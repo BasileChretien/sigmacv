@@ -1,4 +1,11 @@
-import { isHidden, type CanonicalCv, type CvSection, type DisplayChoices } from "./schema";
+import {
+  isHidden,
+  type CanonicalCv,
+  type CvItem,
+  type CvSection,
+  type CvSectionType,
+  type DisplayChoices,
+} from "./schema";
 
 /**
  * Pure, immutable curation operations on the canonical CV object.
@@ -134,6 +141,97 @@ export function updateDisplay(
   patch: Partial<DisplayChoices>,
 ): CanonicalCv {
   return { ...cv, display: { ...cv.display, ...patch } };
+}
+
+// ─── Manual entries (user-authored positions / grants) ───────────────────────
+
+/** Default title + order for a section created on first manual add. */
+const SECTION_DEFAULTS: Partial<
+  Record<CvSectionType, { title: string; order: number }>
+> = {
+  positions: { title: "Positions", order: 1 },
+  editorial: { title: "Editorial Roles", order: 2 },
+  grants: { title: "Grants & Funding", order: 3 },
+  other: { title: "Other", order: 5 },
+};
+
+/**
+ * Add a user-authored ("manual") item to the section of the given type, creating
+ * that section if it doesn't exist yet. Manual items are preserved across
+ * OpenAlex/ORCID re-syncs (see build.ts `previousManualItems`). The caller
+ * supplies a stable unique id (e.g. `position:manual:<uuid>`).
+ */
+export function addManualEntry(
+  cv: CanonicalCv,
+  sectionType: CvSectionType,
+  displayText: string,
+  id: string,
+): CanonicalCv {
+  const text = displayText.trim();
+  if (!text) return cv;
+
+  const item: CvItem = {
+    id,
+    source: "manual",
+    sourceId: "manual",
+    displayText: text,
+    included: true,
+    notMine: false,
+    order: 0,
+    authoredBySelf: false,
+    selfNameVariants: [],
+    meta: {},
+  };
+
+  const existing = cv.sections.find((s) => s.type === sectionType);
+  if (existing) {
+    const maxOrder = existing.items.reduce((m, it) => Math.max(m, it.order), -1);
+    return mapSection(cv, existing.id, (s) => ({
+      ...s,
+      items: [...s.items, { ...item, order: maxOrder + 1 }],
+    }));
+  }
+
+  const def = SECTION_DEFAULTS[sectionType] ?? {
+    title: sectionType,
+    order: cv.sections.length,
+  };
+  const newSection: CvSection = {
+    id: sectionType,
+    type: sectionType,
+    title: def.title,
+    visible: true,
+    order: def.order,
+    items: [item],
+  };
+  return { ...cv, sections: [...cv.sections, newSection] };
+}
+
+/** Edit an item's free-text display string (manual entries). */
+export function updateItemText(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  displayText: string,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) =>
+      it.id === itemId ? { ...it, displayText } : it,
+    ),
+  }));
+}
+
+/** Remove an item from its section (used for user-added manual entries). */
+export function removeItem(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: reindex(s.items.filter((it) => it.id !== itemId)),
+  }));
 }
 
 /**

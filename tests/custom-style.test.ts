@@ -10,6 +10,7 @@ import {
   CustomStyleError,
   resolveCslStyle,
 } from "@/lib/citeproc/customStyle";
+import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { renderCvHtml } from "@/lib/render/html";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -51,6 +52,17 @@ function mockResponse(body: string, status = 200): Response {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+describe("CSL_STYLE_CATALOG", () => {
+  it("is a non-empty list of unique ids, each with a title", () => {
+    expect(CSL_STYLE_CATALOG.length).toBeGreaterThan(20);
+    const ids = CSL_STYLE_CATALOG.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length); // ids are unique
+    expect(CSL_STYLE_CATALOG.every((s) => s.id.length > 0 && s.title.length > 0)).toBe(true);
+    expect(ids).toContain("apa");
+    expect(ids).toContain("nature-medicine");
+  });
 });
 
 describe.skipIf(!hasApa)("validateStyleXml", () => {

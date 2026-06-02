@@ -10,6 +10,10 @@ interface ItemRowProps {
   onToggleNotMine: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  /** Edit a manual entry's text (only passed for source === "manual"). */
+  onUpdateText?: (text: string) => void;
+  /** Delete a manual entry (only passed for source === "manual"). */
+  onRemove?: () => void;
 }
 
 export default function ItemRow({
@@ -20,8 +24,11 @@ export default function ItemRow({
   onToggleNotMine,
   onMoveUp,
   onMoveDown,
+  onUpdateText,
+  onRemove,
 }: ItemRowProps) {
   const isCitation = Boolean(item.csl);
+  const isManual = item.source === "manual";
   const title = item.csl?.title ?? item.displayText ?? "Untitled";
   const year = item.meta.year ?? "—";
   const venue =
@@ -40,7 +47,17 @@ export default function ItemRow({
   return (
     <li className={rowClass}>
       <div className="cv-item-body">
-        <div className="cv-item-title">{title}</div>
+        {isManual && onUpdateText ? (
+          <input
+            className="cv-item-edit"
+            value={item.displayText ?? ""}
+            onChange={(e) => onUpdateText(e.target.value)}
+            placeholder="e.g. Visiting Researcher, MIT (2023)"
+            aria-label="Entry text"
+          />
+        ) : (
+          <div className="cv-item-title">{title}</div>
+        )}
         {isCitation ? (
           <div className="cv-item-meta">
             <span>{year}</span>
@@ -97,6 +114,17 @@ export default function ItemRow({
             title="This work is wrongly attributed to me (corrects the record)"
           >
             {item.notMine ? "Mine" : "Not mine"}
+          </button>
+        ) : null}
+        {isManual && onRemove ? (
+          <button
+            type="button"
+            className="mine-btn is-delete"
+            onClick={onRemove}
+            title="Delete this entry"
+            aria-label="Delete entry"
+          >
+            Delete
           </button>
         ) : null}
       </div>

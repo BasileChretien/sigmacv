@@ -12,15 +12,19 @@ import {
 } from "@/lib/canonical/schema";
 import { isHidden } from "@/lib/canonical/schema";
 import {
+  addManualEntry,
   moveItem,
   moveSection,
+  removeItem,
   renameSection,
   setItemIncluded,
   setItemNotMine,
   setSectionVisible,
   updateDisplay,
+  updateItemText,
 } from "@/lib/canonical/curate";
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
+import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import ItemRow from "./ItemRow";
 
 interface CvEditorProps {
@@ -72,6 +76,27 @@ export default function CvEditor({
   const [styleInput, setStyleInput] = useState("");
   const [styleAdding, setStyleAdding] = useState(false);
   const [styleError, setStyleError] = useState("");
+  // Draft text for the per-section "add entry" inputs, keyed by section type.
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+
+  const hasSection = (type: string): boolean =>
+    cv.sections.some((s) => s.type === type);
+
+  function newId(type: string): string {
+    const rand =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const prefix = type === "positions" ? "position" : type;
+    return `${prefix}:manual:${rand}`;
+  }
+
+  function addEntry(type: "positions" | "grants" | "other") {
+    const text = (drafts[type] ?? "").trim();
+    if (!text) return;
+    onChange(addManualEntry(cv, type, text, newId(type)));
+    setDrafts((d) => ({ ...d, [type]: "" }));
+  }
 
   // Dropdown options = bundled styles + the current custom style (if any).
   const styleOptions = useMemo(() => {
@@ -170,8 +195,9 @@ export default function CvEditor({
           <div className="custom-style-row">
             <input
               type="text"
+              list="csl-style-catalog"
               value={styleInput}
-              placeholder="e.g. Nature Medicine, APA, or a .csl URL"
+              placeholder="Search e.g. Nature Medicine, APA, IEEE… or paste a .csl URL"
               onChange={(e) => setStyleInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -179,9 +205,16 @@ export default function CvEditor({
                   void addCustomStyle();
                 }
               }}
-              aria-label="Citation style id or URL"
+              aria-label="Citation style — search by name, id, or URL"
               disabled={styleAdding}
             />
+            <datalist id="csl-style-catalog">
+              {CSL_STYLE_CATALOG.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.title}
+                </option>
+              ))}
+            </datalist>
             <button
               type="button"
               className="btn"
@@ -449,13 +482,82 @@ export default function CvEditor({
                     onMoveDown={() =>
                       onChange(moveItem(cv, section.id, item.id, "down"))
                     }
+                    onUpdateText={(text) =>
+                      onChange(updateItemText(cv, section.id, item.id, text))
+                    }
+                    onRemove={() =>
+                      onChange(removeItem(cv, section.id, item.id))
+                    }
                   />
                 ))}
               </ul>
             )}
+
+            {section.type === "positions" ||
+            section.type === "grants" ||
+            section.type === "other" ? (
+              <div className="add-entry-row">
+                <input
+                  type="text"
+                  value={drafts[section.type] ?? ""}
+                  placeholder={
+                    section.type === "grants"
+                      ? "Add a grant, e.g. ANR JCJC, €250k (2024–2027)"
+                      : "Add an entry…"
+                  }
+                  onChange={(e) =>
+                    setDrafts((d) => ({ ...d, [section.type]: e.target.value }))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addEntry(section.type as "positions" | "grants" | "other");
+                    }
+                  }}
+                  aria-label={`Add a ${section.type} entry`}
+                />
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() =>
+                    addEntry(section.type as "positions" | "grants" | "other")
+                  }
+                  disabled={!(drafts[section.type] ?? "").trim()}
+                >
+                  Add
+                </button>
+              </div>
+            ) : null}
           </div>
         );
       })}
+
+      {!hasSection("positions") || !hasSection("grants") ? (
+        <div className="add-section-row">
+          {!hasSection("positions") ? (
+            <button
+              type="button"
+              className="btn"
+              onClick={() =>
+                onChange(addManualEntry(cv, "positions", "New position", newId("positions")))
+              }
+            >
+              + Add Positions
+            </button>
+          ) : null}
+          {!hasSection("grants") ? (
+            <button
+              type="button"
+              className="btn"
+              onClick={() =>
+                onChange(addManualEntry(cv, "grants", "New grant", newId("grants")))
+              }
+            >
+              + Add Grants
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

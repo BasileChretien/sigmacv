@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
+  addManualEntry,
   moveItem,
   moveSection,
+  removeItem,
   renameSection,
   setItemIncluded,
   setItemNotMine,
   setSectionVisible,
   updateDisplay,
+  updateItemText,
   visibleItems,
   visibleSections,
 } from "@/lib/canonical/curate";
@@ -173,5 +176,74 @@ describe("updateDisplay", () => {
     expect(next.display.cslStyle).toBe("vancouver");
     expect(next.display.highlightSelf).toBe(false);
     expect(next.display.showMetrics).toBe(false); // untouched
+  });
+});
+
+describe("manual entries (add / edit / remove)", () => {
+  it("creates the section on first add, then appends to it", () => {
+    const cv = makeCv(); // publications only
+    expect(cv.sections.find((s) => s.type === "positions")).toBeUndefined();
+
+    const a = addManualEntry(cv, "positions", "Visiting Researcher, MIT (2023)", "position:manual:1");
+    const pos = a.sections.find((s) => s.type === "positions")!;
+    expect(pos.items).toHaveLength(1);
+    expect(pos.items[0]).toMatchObject({
+      id: "position:manual:1",
+      source: "manual",
+      displayText: "Visiting Researcher, MIT (2023)",
+      included: true,
+    });
+
+    const b = addManualEntry(a, "positions", "Postdoc, ENS (2021–2023)", "position:manual:2");
+    const pos2 = b.sections.find((s) => s.type === "positions")!;
+    expect(pos2.items.map((i) => i.id)).toEqual(["position:manual:1", "position:manual:2"]);
+    expect(pos2.items[1]!.order).toBe(1);
+  });
+
+  it("ignores blank text", () => {
+    const cv = makeCv();
+    expect(addManualEntry(cv, "grants", "   ", "grant:manual:x")).toBe(cv);
+  });
+
+  it("edits an entry's text and removes it (re-indexing)", () => {
+    let cv = addManualEntry(makeCv(), "grants", "Grant A", "grant:manual:a");
+    cv = addManualEntry(cv, "grants", "Grant B", "grant:manual:b");
+    const sectionId = cv.sections.find((s) => s.type === "grants")!.id;
+
+    cv = updateItemText(cv, sectionId, "grant:manual:a", "Grant A (revised)");
+    expect(
+      cv.sections.find((s) => s.type === "grants")!.items.find((i) => i.id === "grant:manual:a")!
+        .displayText,
+    ).toBe("Grant A (revised)");
+
+    cv = removeItem(cv, sectionId, "grant:manual:a");
+    const grants = cv.sections.find((s) => s.type === "grants")!;
+    expect(grants.items.map((i) => i.id)).toEqual(["grant:manual:b"]);
+    expect(grants.items[0]!.order).toBe(0); // re-indexed
+  });
+
+  it("is immutable", () => {
+    const cv = makeCv();
+    const snapshot = JSON.stringify(cv);
+    addManualEntry(cv, "positions", "X", "position:manual:z");
+    expect(JSON.stringify(cv)).toBe(snapshot);
+  });
+
+  it("survives a re-sync (manual items carried over by build)", () => {
+    const previous = addManualEntry(
+      makeCv(),
+      "positions",
+      "Adjunct, Collège de France",
+      "position:manual:keep",
+    );
+    const resynced = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-07-01T00:00:00.000Z",
+      previous,
+    });
+    const pos = resynced.sections.find((s) => s.type === "positions");
+    expect(pos?.items.some((i) => i.id === "position:manual:keep")).toBe(true);
   });
 });
