@@ -14,7 +14,11 @@ import {
   type OpenAlexAuthorship,
   type OpenAlexWork,
 } from "@/lib/openalex/types";
-import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
+import type {
+  ResolvedAffiliation,
+  ResolvedAuthor,
+} from "@/lib/openalex/resolveAuthor";
+import type { OrcidFunding, OrcidPosition } from "@/lib/orcid/client";
 import type { EditorialRole } from "@/lib/oep/client";
 
 const PUBLICATIONS_SECTION_ID = "publications";
@@ -30,6 +34,38 @@ export interface BuildArgs {
   previous?: CanonicalCv | null;
   /** Editorial roles from OEP (optional; empty = no editorial section). */
   editorialRoles?: EditorialRole[];
+  /** Self-asserted employment history from ORCID (Positions section). */
+  employments?: OrcidPosition[];
+  /** Self-asserted funding/grants from ORCID (Grants section). */
+  fundings?: OrcidFunding[];
+}
+
+/** Year range like "(2012–2024)" / "(2024–present)". Empty if no years. */
+function yearRange(start?: number, end?: number): string {
+  if (start && end) return `(${start}–${end})`;
+  if (start) return `(${start}–present)`;
+  if (end) return `(until ${end})`;
+  return "";
+}
+
+function normInstitution(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/** Carry over the user's manually-added items of a given section type. */
+function previousManualItems(
+  previous: CanonicalCv | null | undefined,
+  sectionType: CvSection["type"],
+): CvItem[] {
+  const section = previous?.sections.find((s) => s.type === sectionType);
+  return (section?.items ?? []).filter((it) => it.source === "manual");
+}
+
+/** Normalize a list to a clean 0..n order, preserving relative order. */
+function reindexItems(items: CvItem[]): CvItem[] {
+  return [...items]
+    .sort((a, b) => a.order - b.order)
+    .map((it, i) => ({ ...it, order: i }));
 }
 
 /** Apply a section's preserved title/visibility/order from the previous CV. */
@@ -42,45 +78,143 @@ function mergeSection(
   return { ...built, title: prev.title, visible: prev.visible, order: prev.order };
 }
 
-/** Aggregate distinct grants across the works into a non-citation section. */
-function buildGrantsSection(
-  works: OpenAlexWork[],
-  prevIncluded: Map<string, boolean>,
+/** A non-citation item (position / grant) with curation preserved from prev. */
+function makeEntryItem(
+  id: string,
+  source: CvItem["source"],
+  sourceId: string,
+  displayText: string,
+  prev: CvItem | undefined,
+  order: number,
+  year?: number,
+): CvItem {
+  return {
+    id,
+    source,
+    sourceId,
+    displayText,
+    included: prev?.included ?? true,
+    notMine: prev?.notMine ?? false,
+    notMineAssertedAt: prev?.notMineAssertedAt,
+    order: prev?.order ?? order,
+    authoredBySelf: false,
+    selfNameVariants: [],
+    meta: year ? { year } : {},
+  };
+}
+
+function formatPositionText(p: OrcidPosition): string {
+  const head = [p.roleTitle, p.department].filter(Boolean).join(", ");
+  const label = head ? `${head}, ${p.organization}` : p.organization;
+  const yrs = yearRange(p.startYear, p.endYear);
+  return yrs ? `${label} ${yrs}` : label;
+}
+
+/** "present"/current positions first, then by start year descending. */
+function positionRecency(start?: number, end?: number): number {
+  return (end ?? 9999) * 10000 + (start ?? 0);
+}
+
+/**
+ * Positions / employment. Primary source: ORCID employments (role + dates).
+ * OpenAlex affiliations fill in institutions ORCID doesn't list. The user's own
+ * manually-added positions are always carried over.
+ */
+function buildPositionsSection(
+  employments: OrcidPosition[],
+  affiliations: ResolvedAffiliation[],
+  prevItems: Map<string, CvItem>,
+  manual: CvItem[],
 ): CvSection | null {
-  const seen = new Set<string>();
   const items: CvItem[] = [];
-  for (const w of works) {
-    // OpenAlex `awards` (formerly `grants`): funder + the funder's grant number.
-    for (const g of w.awards ?? []) {
-      const funder = (g.funder_display_name || "").trim();
-      const award = (g.funder_award_id || g.display_name || "").trim();
-      if (!funder && !award) continue;
-      const key = `${funder}|${award}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const id = `grant:${key.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-      items.push({
-        id,
-        source: "derived",
-        sourceId: w.id,
-        displayText: award ? `${funder} — ${award}` : funder,
-        included: prevIncluded.get(id) ?? true,
-        notMine: false,
-        order: items.length,
-        authoredBySelf: false,
-        selfNameVariants: [],
-        meta: {},
-      });
-    }
+  const seen = new Set<string>();
+  let rank = 0;
+
+  const sortedEmp = [...employments].sort(
+    (a, b) =>
+      positionRecency(b.startYear, b.endYear) -
+      positionRecency(a.startYear, a.endYear),
+  );
+  for (const e of sortedEmp) {
+    seen.add(normInstitution(e.organization));
+    const id = `position:orcid:${e.putCode}`;
+    items.push(
+      makeEntryItem(id, "orcid", e.putCode, formatPositionText(e), prevItems.get(id), rank++, e.startYear),
+    );
   }
+  for (const a of affiliations) {
+    if (seen.has(normInstitution(a.institution))) continue;
+    seen.add(normInstitution(a.institution));
+    const id = `position:openalex:${normInstitution(a.institution).replace(/[^a-z0-9]+/g, "-")}`;
+    const yrs = yearRange(a.startYear, a.endYear);
+    const text = yrs ? `${a.institution} ${yrs}` : a.institution;
+    const item = makeEntryItem(id, "openalex", "openalex", text, prevItems.get(id), rank++, a.startYear);
+    // OpenAlex affiliations are inferred from papers and are NOISY (they include
+    // co-authors' institutions / spurious years). They're kept only as an opt-in
+    // suggestion: ALWAYS hidden on (re)build, so the CV shows just the accurate
+    // ORCID employments. Durable extra positions are added manually instead.
+    items.push({ ...item, included: false });
+  }
+  for (const m of manual) {
+    items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
+  }
+
+  if (items.length === 0) return null;
+  return {
+    id: "positions",
+    type: "positions",
+    title: "Positions",
+    visible: true,
+    order: 1,
+    items: reindexItems(items),
+  };
+}
+
+/** Grant year(s): a single award year stays "(2025)" (not "2025–present"). */
+function grantYears(start?: number, end?: number): string {
+  if (start && end && start !== end) return `(${start}–${end})`;
+  if (start) return `(${start})`;
+  if (end) return `(${end})`;
+  return "";
+}
+
+function formatFundingText(f: OrcidFunding): string {
+  const label = f.organization ? `${f.title}, ${f.organization}` : f.title;
+  const yrs = grantYears(f.startYear, f.endYear);
+  return yrs ? `${label} ${yrs}` : label;
+}
+
+/**
+ * Grants & funding from the user's OWN ORCID funding records (person-attributed),
+ * NOT OpenAlex paper-level awards (which are often co-authors'). Manual entries
+ * are carried over.
+ */
+function buildGrantsSection(
+  fundings: OrcidFunding[],
+  prevItems: Map<string, CvItem>,
+  manual: CvItem[],
+): CvSection | null {
+  const items: CvItem[] = [];
+  let rank = 0;
+  const sorted = [...fundings].sort((a, b) => (b.startYear ?? 0) - (a.startYear ?? 0));
+  for (const f of sorted) {
+    const id = `grant:orcid:${f.putCode}`;
+    items.push(
+      makeEntryItem(id, "orcid", f.putCode, formatFundingText(f), prevItems.get(id), rank++, f.startYear),
+    );
+  }
+  for (const m of manual) {
+    items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
+  }
+
   if (items.length === 0) return null;
   return {
     id: "grants",
     type: "grants",
     title: "Grants & Funding",
     visible: true,
-    order: 2,
-    items,
+    order: 3,
+    items: reindexItems(items),
   };
 }
 
@@ -113,7 +247,7 @@ function buildEditorialSection(
     type: "editorial",
     title: "Editorial Roles",
     visible: true,
-    order: 1,
+    order: 2,
     items,
   };
 }
@@ -233,14 +367,25 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     previous,
   );
 
+  const positionsSection = buildPositionsSection(
+    args.employments ?? [],
+    resolved.affiliations ?? [],
+    prevItems,
+    previousManualItems(previous, "positions"),
+  );
   const editorialSection = buildEditorialSection(
     args.editorialRoles ?? [],
     prevIncluded,
   );
-  const grantsSection = buildGrantsSection(works, prevIncluded);
+  const grantsSection = buildGrantsSection(
+    args.fundings ?? [],
+    prevItems,
+    previousManualItems(previous, "grants"),
+  );
 
   const sections: CvSection[] = [
     publicationsSection,
+    positionsSection ? mergeSection(positionsSection, previous) : null,
     editorialSection ? mergeSection(editorialSection, previous) : null,
     grantsSection ? mergeSection(grantsSection, previous) : null,
   ].filter((s): s is CvSection => s !== null);
@@ -256,6 +401,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       displayName: resolved.displayName,
       // Author-record metrics + field-normalized aggregates derived from works.
       metrics: { ...(resolved.metrics ?? {}), ...computeDerivedMetrics(works) },
+      countsByYear: resolved.countsByYear ?? [],
     },
     display,
     sections,

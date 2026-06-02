@@ -171,7 +171,7 @@ export default function CvEditor({
             <input
               type="text"
               value={styleInput}
-              placeholder="e.g. nature, the-lancet, or a .csl URL"
+              placeholder="e.g. Nature Medicine, APA, or a .csl URL"
               onChange={(e) => setStyleInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -322,11 +322,7 @@ export default function CvEditor({
               const raw = values[m.key];
               const value =
                 typeof raw === "number" ? formatMetricValue(m.key, raw) : null;
-              const note = m.placeholder
-                ? " (experimental)"
-                : value
-                  ? ` — ${value}`
-                  : " (no data)";
+              const note = value ? ` — ${value}` : " (no data)";
               return (
                 <label key={m.key} className="field-inline">
                   <input
@@ -354,6 +350,17 @@ export default function CvEditor({
             })}
           </div>
         </div>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.showCharts}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { showCharts: e.target.checked }))
+            }
+          />
+          <span>Show charts (publications &amp; citations / year)</span>
+        </label>
       </fieldset>
 
       {sections.map((section, si) => {

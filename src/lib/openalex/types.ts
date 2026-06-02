@@ -9,6 +9,18 @@ export interface OpenAlexSummaryStats {
   i10_index?: number;
 }
 
+export interface OpenAlexAuthorAffiliation {
+  institution?: { id?: string; display_name?: string | null } | null;
+  /** Years the author was affiliated, per OpenAlex (descending). */
+  years?: number[];
+}
+
+export interface OpenAlexCountsByYear {
+  year: number;
+  works_count?: number;
+  cited_by_count?: number;
+}
+
 export interface OpenAlexAuthor {
   /** URL form, e.g. "https://openalex.org/A5001069481". */
   id: string;
@@ -18,6 +30,10 @@ export interface OpenAlexAuthor {
   works_count?: number;
   cited_by_count?: number;
   summary_stats?: OpenAlexSummaryStats;
+  /** Institutions inferred from the author's works (supplements ORCID positions). */
+  affiliations?: OpenAlexAuthorAffiliation[];
+  /** Per-year works + citation counts (drives the optional mini charts). */
+  counts_by_year?: OpenAlexCountsByYear[];
 }
 
 export interface OpenAlexAuthorship {
@@ -62,22 +78,6 @@ export interface OpenAlexWork {
     first_page?: string | null;
     last_page?: string | null;
   } | null;
-  /**
-   * Funding/grants. OpenAlex renamed the old `grants` field to `awards`
-   * (`grants` is no longer a valid /works `select` field — it 400s). Each entry
-   * carries the funder + the funder's award/grant number.
-   */
-  awards?: Array<{
-    /** Award/grant entity id, URL form "https://openalex.org/G…". */
-    id?: string;
-    /** Award name (frequently null). */
-    display_name?: string | null;
-    /** The grant number as assigned by the funder, e.g. "L250015". */
-    funder_award_id?: string | null;
-    /** Funder entity id, URL form "https://openalex.org/F…". */
-    funder_id?: string;
-    funder_display_name?: string;
-  }>;
   ids?: {
     openalex?: string;
     doi?: string;

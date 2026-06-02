@@ -51,5 +51,37 @@ describe("resolveAuthorByOrcid", () => {
       works_count: 2,
       cited_by_count: undefined,
     });
+    // No affiliations/counts on this record → empty arrays (no fabrication).
+    expect(resolved!.affiliations).toEqual([]);
+    expect(resolved!.countsByYear).toEqual([]);
+  });
+
+  it("maps affiliations (min/max year) and counts_by_year from the primary record", async () => {
+    mocks.fetchAuthorsByOrcid.mockResolvedValue([
+      {
+        id: "https://openalex.org/A1",
+        display_name: "X",
+        works_count: 5,
+        affiliations: [
+          { institution: { display_name: "Nagoya University" }, years: [2024, 2025] },
+          { institution: { display_name: null }, years: [2020] }, // no name → skipped
+          { institution: { display_name: "CHU de Caen" }, years: [] }, // no years
+        ],
+        counts_by_year: [
+          { year: 2024, works_count: 3, cited_by_count: 40 },
+          { year: 2023, works_count: 2 }, // missing cited_by_count → 0
+        ],
+      },
+    ]);
+    const resolved = await resolveAuthorByOrcid("0000-0002-7483-2489");
+    expect(resolved!.affiliations).toEqual([
+      { institution: "Nagoya University", startYear: 2024, endYear: 2025 },
+      { institution: "CHU de Caen", startYear: undefined, endYear: undefined },
+    ]);
+    // Sorted ascending by year; missing citations default to 0.
+    expect(resolved!.countsByYear).toEqual([
+      { year: 2023, works: 2, citations: 0 },
+      { year: 2024, works: 3, citations: 40 },
+    ]);
   });
 });

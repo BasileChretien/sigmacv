@@ -1,0 +1,150 @@
+import { getEnv } from "@/lib/env";
+import { normalizeOrcid } from "@/lib/openalex/types";
+
+/**
+ * ORCID public-API client for the user's self-asserted **employments** and
+ * **fundings**. These are the reliable, person-attributable sources for the CV's
+ * Positions and Grants sections — unlike OpenAlex `awards`, which list funding
+ * acknowledged on a paper (often a co-author's).
+ *
+ * Uses a client_credentials `/read-public` token (the app's ORCID API client).
+ * Reads only PUBLIC records. Every call fails soft (returns []), so a transient
+ * ORCID outage never breaks a sync.
+ */
+
+export interface OrcidPosition {
+  /** ORCID put-code — stable id for this record (used for re-sync dedupe). */
+  putCode: string;
+  organization: string;
+  roleTitle?: string;
+  department?: string;
+  startYear?: number;
+  endYear?: number;
+}
+
+export interface OrcidFunding {
+  putCode: string;
+  title: string;
+  organization?: string;
+  /** ORCID funding type: grant | contract | award | salary-award. */
+  type?: string;
+  startYear?: number;
+  endYear?: number;
+}
+
+function bases(): { token: string; pub: string } {
+  const sandbox = getEnv().ORCID_ENVIRONMENT === "sandbox";
+  return sandbox
+    ? { token: "https://sandbox.orcid.org/oauth/token", pub: "https://pub.sandbox.orcid.org/v3.0" }
+    : { token: "https://orcid.org/oauth/token", pub: "https://pub.orcid.org/v3.0" };
+}
+
+// read-public tokens are extremely long-lived; cache per process (keyed by env).
+let cachedToken: { key: string; token: string } | null = null;
+
+async function getReadPublicToken(): Promise<string> {
+  const env = getEnv();
+  const key = `${env.ORCID_ENVIRONMENT}:${env.ORCID_CLIENT_ID}`;
+  if (cachedToken?.key === key) return cachedToken.token;
+
+  const res = await fetch(bases().token, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    },
+    body: new URLSearchParams({
+      client_id: env.ORCID_CLIENT_ID,
+      client_secret: env.ORCID_CLIENT_SECRET,
+      grant_type: "client_credentials",
+      scope: "/read-public",
+    }),
+  });
+  if (!res.ok) throw new Error(`ORCID token request failed (${res.status})`);
+  const data = (await res.json()) as { access_token?: string };
+  if (!data.access_token) throw new Error("ORCID token response had no access_token");
+  cachedToken = { key, token: data.access_token };
+  return data.access_token;
+}
+
+async function orcidGet<T>(orcid: string, path: string): Promise<T> {
+  const token = await getReadPublicToken();
+  const url = `${bases().pub}/${normalizeOrcid(orcid)}/${path}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    next: { revalidate: 3600 },
+  });
+  if (!res.ok) throw new Error(`ORCID ${path} request failed (${res.status})`);
+  return (await res.json()) as T;
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function toArray<T>(v: T | T[] | null | undefined): T[] {
+  return Array.isArray(v) ? v : v ? [v] : [];
+}
+
+function yearOf(date: any): number | undefined {
+  const raw = date?.year?.value;
+  if (raw == null) return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function nonEmpty(s: unknown): string | undefined {
+  return typeof s === "string" && s.trim() ? s.trim() : undefined;
+}
+
+/** Fetch the user's PUBLIC employment history from ORCID (fails soft → []). */
+export async function fetchOrcidPositions(orcid: string): Promise<OrcidPosition[]> {
+  try {
+    const data = await orcidGet<any>(orcid, "employments");
+    const out: OrcidPosition[] = [];
+    for (const group of toArray(data?.["affiliation-group"])) {
+      for (const s of toArray(group?.summaries)) {
+        const e = s?.["employment-summary"];
+        const org = nonEmpty(e?.organization?.name);
+        const putCode = e?.["put-code"];
+        if (!org || putCode == null) continue;
+        out.push({
+          putCode: String(putCode),
+          organization: org,
+          roleTitle: nonEmpty(e?.["role-title"]),
+          department: nonEmpty(e?.["department-name"]),
+          startYear: yearOf(e?.["start-date"]),
+          endYear: yearOf(e?.["end-date"]),
+        });
+      }
+    }
+    return out;
+  } catch (err) {
+    console.warn("[orcid] employments fetch failed:", err);
+    return [];
+  }
+}
+
+/** Fetch the user's PUBLIC funding/grants from ORCID (fails soft → []). */
+export async function fetchOrcidFundings(orcid: string): Promise<OrcidFunding[]> {
+  try {
+    const data = await orcidGet<any>(orcid, "fundings");
+    const out: OrcidFunding[] = [];
+    for (const group of toArray(data?.group)) {
+      for (const f of toArray(group?.["funding-summary"])) {
+        const title = nonEmpty(f?.title?.title?.value);
+        const putCode = f?.["put-code"];
+        if (!title || putCode == null) continue;
+        out.push({
+          putCode: String(putCode),
+          title,
+          organization: nonEmpty(f?.organization?.name),
+          type: nonEmpty(f?.type),
+          startYear: yearOf(f?.["start-date"]),
+          endYear: yearOf(f?.["end-date"]),
+        });
+      }
+    }
+    return out;
+  } catch (err) {
+    console.warn("[orcid] fundings fetch failed:", err);
+    return [];
+  }
+}

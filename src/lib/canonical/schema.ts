@@ -18,6 +18,7 @@ export const CANONICAL_SCHEMA_VERSION = 1 as const;
 export const SECTION_TYPES = [
   "publications",
   "preprints",
+  "positions",
   "editorial",
   "grants",
   "other",
@@ -27,10 +28,11 @@ export type CvSectionType = z.infer<typeof CvSectionTypeSchema>;
 
 /** A single CV entry. For MVP these come from OpenAlex works. */
 export const CvItemSchema = z.object({
-  /** Stable id — e.g. the OpenAlex short id "W2741809807", or "grant:…". */
+  /** Stable id — e.g. the OpenAlex short id "W2741809807", or "position:…". */
   id: z.string(),
-  source: z.enum(["openalex", "oep", "derived"]),
-  /** Full source identifier (e.g. OpenAlex URL form, or "oep"). */
+  /** Where the item came from. "manual" = user-entered; "orcid" = ORCID record. */
+  source: z.enum(["openalex", "orcid", "oep", "derived", "manual"]),
+  /** Full source identifier (e.g. OpenAlex URL form, ORCID put-code, or "manual"). */
   sourceId: z.string(),
   /** CSL-JSON payload handed to citeproc. Absent for non-citation items. */
   csl: CslItemSchema.optional(),
@@ -110,10 +112,16 @@ export const OwnerMetricsSchema = z.object({
   // Derived field-normalized measures (computed from per-work data at build).
   fwci_mean: z.number().optional(),
   top10pct_share: z.number().optional(), // 0..1
-  // Experimental Sigma-Score (placeholder; no value emitted until validated).
-  sigma_score: z.number().optional(),
 });
 export type OwnerMetrics = z.infer<typeof OwnerMetricsSchema>;
+
+/** One year's output + citation counts (from OpenAlex), for the mini charts. */
+export const CountsByYearSchema = z.object({
+  year: z.number().int(),
+  works: z.number().int(),
+  citations: z.number().int(),
+});
+export type CountsByYear = z.infer<typeof CountsByYearSchema>;
 
 export const CvOwnerSchema = z.object({
   /** Bare ORCID iD, e.g. "0000-0002-7483-2489". */
@@ -123,6 +131,8 @@ export const CvOwnerSchema = z.object({
   /** Header display only — never used for matching/highlighting. */
   displayName: z.string(),
   metrics: OwnerMetricsSchema.optional(),
+  /** Per-year works/citations (drives the optional charts). Default empty. */
+  countsByYear: z.array(CountsByYearSchema).default([]),
 });
 export type CvOwner = z.infer<typeof CvOwnerSchema>;
 
@@ -187,6 +197,8 @@ export const DisplayChoicesSchema = z.object({
   showMetrics: z.boolean().default(false),
   /** Which metric keys to show (subset of METRIC_KEYS). Default none. */
   metrics: z.array(z.string()).default([]),
+  /** Show the publications/citations-per-year mini charts (HTML/PDF). Default off. */
+  showCharts: z.boolean().default(false),
   /** Accent colour (validated hex). */
   accentColor: z.string().regex(HEX_COLOR).default("#1f4fd8"),
   fontPairing: z.enum(FONT_PAIRINGS).default("serif"),

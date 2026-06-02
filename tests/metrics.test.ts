@@ -103,19 +103,16 @@ describe("formattedMetrics", () => {
     ]);
   });
 
-  it("never renders the Sigma-Score placeholder (no value emitted)", () => {
-    const cv = withMetrics({ showMetrics: true, metrics: ["sigma_score"] });
-    expect(formattedMetrics(cv)).toEqual([]);
-  });
-
-  it("flags a placeholder metric as experimental once it has a value", () => {
-    const cv = makeCv();
-    const withSigma: CanonicalCv = {
+  it("drops a selected metric that has no captured value", () => {
+    const cv = withMetrics({ showMetrics: true, metrics: ["i10_index"] });
+    // i10_index isn't in withMetrics()'s owner.metrics → nothing rendered.
+    const noI10: CanonicalCv = {
       ...cv,
-      owner: { ...cv.owner, metrics: { sigma_score: 5 } },
-      display: { ...cv.display, showMetrics: true, metrics: ["sigma_score"] },
+      owner: {
+        ...cv.owner,
+        metrics: { h_index: 12 }, // i10_index absent
+      },
     };
-    expect(formattedMetrics(withSigma)[0]?.placeholder).toBe(true);
-    expect(metricsLineText(withSigma)).toBe("Sigma-Score (experimental): 5.0");
+    expect(formattedMetrics(noI10)).toEqual([]);
   });
 });

@@ -29,8 +29,6 @@ const WORK_SELECT = [
   "authorships",
   "primary_location",
   "biblio",
-  // Funding. OpenAlex renamed `grants` → `awards`; selecting `grants` now 400s.
-  "awards",
   "ids",
 ].join(",");
 

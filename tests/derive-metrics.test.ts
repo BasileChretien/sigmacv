@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  computeDerivedMetrics,
-  computeSigmaScore,
-} from "@/lib/openalex/deriveMetrics";
+import { computeDerivedMetrics } from "@/lib/openalex/deriveMetrics";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 
 function work(fwci?: number, pct?: number): OpenAlexWork {
@@ -26,11 +23,5 @@ describe("computeDerivedMetrics", () => {
     const m = computeDerivedMetrics([work(undefined, undefined)]);
     expect(m.fwci_mean).toBeUndefined();
     expect(m.top10pct_share).toBeUndefined();
-  });
-
-  it("never emits a Sigma-Score value (placeholder)", () => {
-    expect(computeSigmaScore().value).toBeUndefined();
-    expect(computeSigmaScore().isPlaceholder).toBe(true);
-    expect(computeDerivedMetrics([work(1, 50)]).sigma_score).toBeUndefined();
   });
 });

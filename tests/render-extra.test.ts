@@ -85,26 +85,16 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     expect(buf.length).toBeGreaterThan(0);
   });
 
-  it("flags an experimental metric in the HTML header when it has a value", () => {
-    const cv = makeCv();
-    const withSigma: CanonicalCv = {
-      ...cv,
-      owner: { ...cv.owner, metrics: { sigma_score: 5 } },
-      display: { ...cv.display, showMetrics: true, metrics: ["sigma_score"] },
-    };
-    expect(renderCvHtml(withSigma)).toContain("Sigma-Score (experimental): 5.0");
-  });
 
   it("escapes non-citation displayText in HTML (grants with special chars)", () => {
-    const granted = {
-      ...(baseWorks.find((w) => w.id.endsWith("W4300000001")) as OpenAlexWork),
-      awards: [{ funder_display_name: "Foo & <Bar> Trust", funder_award_id: "X1" }],
-    };
     const cv = buildCanonicalCv({
       id: "g",
       resolved,
-      works: [granted, ...baseWorks.filter((w) => !w.id.endsWith("W4300000001"))],
+      works: baseWorks,
       now: "2026-06-02T00:00:00.000Z",
+      fundings: [
+        { putCode: "1", title: "Foo & <Bar> Trust", organization: "X & Y" },
+      ],
       editorialRoles: [{ journal: "BMJ", role: "Editor", startYear: 2020 }] as EditorialRole[],
     });
     const html = renderCvHtml(cv);
@@ -162,6 +152,64 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     it("bold emits only font-weight", () => {
       const css = withHighlight("bold");
       expect(css).toMatch(/\.cv-self\s*\{\s*font-weight:\s*700;\s*\}/);
+    });
+  });
+
+  describe("mini charts", () => {
+    function withCharts(show: boolean): CanonicalCv {
+      const cv = makeCv();
+      return {
+        ...cv,
+        owner: {
+          ...cv.owner,
+          countsByYear: [
+            { year: 2022, works: 3, citations: 10 },
+            { year: 2023, works: 5, citations: 40 },
+            { year: 2024, works: 2, citations: 80 },
+          ],
+        },
+        display: { ...cv.display, showCharts: show },
+      };
+    }
+
+    it("renders SVG charts when enabled", () => {
+      const html = renderCvHtml(withCharts(true));
+      // The figure block + captions only appear when charts actually render
+      // (the `.cv-charts` CSS rule is always present in the stylesheet).
+      expect(html).toContain('<figure class="cv-chart">');
+      expect(html).toContain("Publications / year");
+      expect(html).toContain("Citations / year");
+      expect(html).toContain("<svg");
+    });
+
+    it("omits charts when disabled", () => {
+      expect(renderCvHtml(withCharts(false))).not.toContain("Publications / year");
+    });
+
+    it("omits charts with fewer than two years of data", () => {
+      const cv = makeCv();
+      const sparse: CanonicalCv = {
+        ...cv,
+        owner: { ...cv.owner, countsByYear: [{ year: 2024, works: 1, citations: 0 }] },
+        display: { ...cv.display, showCharts: true },
+      };
+      expect(renderCvHtml(sparse)).not.toContain("Publications / year");
+    });
+
+    it("thins x-axis labels for long (>8 year) series", () => {
+      const cv = makeCv();
+      const years = Array.from({ length: 11 }, (_, i) => ({
+        year: 2014 + i,
+        works: i + 1,
+        citations: i * 5,
+      }));
+      const html = renderCvHtml({
+        ...cv,
+        owner: { ...cv.owner, countsByYear: years },
+        display: { ...cv.display, showCharts: true },
+      });
+      expect(html).toContain("Publications / year");
+      expect(html).toContain("<svg");
     });
   });
 });

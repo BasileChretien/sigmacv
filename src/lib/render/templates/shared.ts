@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { renderChartsHtml } from "../charts";
 import { formattedMetrics } from "../metrics";
 import type { RenderedSection, TemplateTheme } from "./types";
 
@@ -51,6 +52,10 @@ export function commonCss(theme: TemplateTheme): string {
   ol.cv-bib > li { margin: 0 0 ${theme.entryGapRem}rem; padding-left: 1.4rem; text-indent: -1.4rem; }
   .csl-entry { display: inline; }
   .cv-metrics { font-size: 0.8rem; color: #555; margin-top: 0.25rem; }
+  .cv-charts { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 0.6rem; }
+  .cv-chart { margin: 0; }
+  .cv-chart figcaption { font-size: 0.7rem; color: #555; margin-bottom: 0.15rem; }
+  .cv-chart svg { display: block; }
   .cv-self { ${theme.selfHighlightCss} }
   a { color: inherit; }
   @page { size: A4; margin: 18mm 16mm; }
@@ -70,13 +75,10 @@ export function headerHtml(cv: CanonicalCv): string {
   const metrics = formattedMetrics(cv);
   const metricsLine = metrics.length
     ? `<div class="cv-metrics">${metrics
-        .map(
-          (m) =>
-            `${escapeHtml(m.label)}${m.placeholder ? " (experimental)" : ""}: ${escapeHtml(m.value)}`,
-        )
+        .map((m) => `${escapeHtml(m.label)}: ${escapeHtml(m.value)}`)
         .join(" · ")}</div>`
     : "";
-  return `<header class="cv-header"><h1>${name}</h1>${ids}${metricsLine}</header>`;
+  return `<header class="cv-header"><h1>${name}</h1>${ids}${metricsLine}${renderChartsHtml(cv)}</header>`;
 }
 
 /** Section list markup (identical across templates; styled via CSS classes). */

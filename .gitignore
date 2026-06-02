@@ -38,6 +38,10 @@ next-env.d.ts
 # stray local tool binaries (tunnels, CLIs) — these live outside the repo
 *.exe
 
+# local dev server log
+/devserver.log
+*.log
+
 # misc
 .DS_Store
 *.pem

@@ -9,6 +9,20 @@ export interface ResolvedAuthorMetrics {
   cited_by_count?: number;
 }
 
+/** Institution + year-range inferred from OpenAlex (supplements ORCID positions). */
+export interface ResolvedAffiliation {
+  institution: string;
+  startYear?: number;
+  endYear?: number;
+}
+
+/** Per-year works + citation counts for the optional mini charts. */
+export interface ResolvedCountsByYear {
+  year: number;
+  works: number;
+  citations: number;
+}
+
 export interface ResolvedAuthor {
   /** Bare ORCID iD. */
   orcid: string;
@@ -19,6 +33,10 @@ export interface ResolvedAuthor {
   /** Metrics from the primary (most-works) record. Approximate if one iD maps
    *  to several author records. */
   metrics?: ResolvedAuthorMetrics;
+  /** Institutions from the primary record (supplements ORCID employments). */
+  affiliations?: ResolvedAffiliation[];
+  /** Per-year works/citations from the primary record (for the mini charts). */
+  countsByYear?: ResolvedCountsByYear[];
 }
 
 /**
@@ -53,10 +71,34 @@ export async function resolveAuthorByOrcid(
       }
     : undefined;
 
+  const affiliations: ResolvedAffiliation[] = [];
+  for (const a of primary?.affiliations ?? []) {
+    const institution = a.institution?.display_name?.trim();
+    if (!institution) continue;
+    const years = (a.years ?? []).filter(
+      (y): y is number => typeof y === "number",
+    );
+    affiliations.push({
+      institution,
+      startYear: years.length ? Math.min(...years) : undefined,
+      endYear: years.length ? Math.max(...years) : undefined,
+    });
+  }
+
+  const countsByYear: ResolvedCountsByYear[] = (primary?.counts_by_year ?? [])
+    .map((c) => ({
+      year: c.year,
+      works: c.works_count ?? 0,
+      citations: c.cited_by_count ?? 0,
+    }))
+    .sort((a, b) => a.year - b.year);
+
   return {
     orcid: normalizeOrcid(orcid),
     authorIds,
     displayName,
     metrics,
+    affiliations,
+    countsByYear,
   };
 }

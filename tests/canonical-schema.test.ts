@@ -45,6 +45,7 @@ describe("DisplayChoicesSchema", () => {
       highlightStyle: "accent",
       showMetrics: false,
       metrics: [],
+      showCharts: false,
       accentColor: "#1f4fd8",
       fontPairing: "serif",
       density: "comfortable",

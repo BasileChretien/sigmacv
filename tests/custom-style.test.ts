@@ -119,11 +119,20 @@ describe.skipIf(!hasApa)("resolveCslStyle", () => {
     expect(fetchMock).not.toHaveBeenCalled(); // rejected before any fetch
   });
 
-  it("rejects a malformed bare id", async () => {
+  it("normalises a friendly name to a slug", async () => {
+    const fetchMock = vi.fn(async (_url: URL | string) => mockResponse(MINI_XML));
+    vi.stubGlobal("fetch", fetchMock);
+    const style = await resolveCslStyle("Nature Medicine");
+    // "Nature Medicine" → fetched as the slug "nature-medicine".
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("nature-medicine");
+    expect(style.id).toBe("mini-test"); // from MINI_XML's <id>
+  });
+
+  it("rejects an input that normalises to an empty slug", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    await expect(resolveCslStyle("not a slug!")).rejects.toThrow(
-      /style id should look like/i,
+    await expect(resolveCslStyle("!!!")).rejects.toThrow(
+      /citation style name, id, or URL/i,
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });

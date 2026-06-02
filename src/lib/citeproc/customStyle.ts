@@ -36,7 +36,6 @@ const ALLOWED_HOSTS = new Set([
 
 const FETCH_TIMEOUT_MS = 12_000;
 const MAX_BYTES = 600_000; // matches CustomStyleSchema.xml cap; APA ≈ 85 KB
-const SLUG_RE = /^[a-z0-9][a-z0-9._-]*$/i;
 
 export interface ResolvedStyle {
   /** Sanitised slug used as the display.cslStyle key + cache key. */
@@ -88,14 +87,26 @@ function inputToUrl(rawInput: string): URL {
   return new URL(slugToUrl(slug));
 }
 
-/** Pull a clean style slug out of a bare-id input. */
+/**
+ * Turn a human input into a CSL style slug. The CSL style id is almost always
+ * the lowercased, hyphenated title, so we normalise accordingly — this lets a
+ * user type a friendly name ("Nature Medicine", "The Lancet", "APA") instead of
+ * needing to know the exact id ("nature-medicine", "the-lancet", "apa").
+ */
 function sanitizeStyleSlug(input: string): string {
   const tail = input.split("/").pop() ?? input;
-  const slug = tail.replace(/\.csl$/i, "").trim();
-  if (!SLUG_RE.test(slug)) {
-    throw new CustomStyleError(
-      "Style id should look like “nature” or “the-lancet”.",
-    );
+  const slug = tail
+    .replace(/\.csl$/i, "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "") // strip accents
+    .replace(/[\s_]+/g, "-") // spaces / underscores → hyphen
+    .replace(/[^a-z0-9.-]/g, "") // drop anything else
+    .replace(/-+/g, "-") // collapse repeats
+    .replace(/^[-.]+|[-.]+$/g, ""); // trim leading/trailing separators
+  if (!slug) {
+    throw new CustomStyleError("Enter a citation style name, id, or URL.");
   }
   return slug;
 }

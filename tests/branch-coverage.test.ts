@@ -39,19 +39,18 @@ describe("workToCsl edge fields", () => {
 
 describe("build merges editorial + grants sections on re-sync", () => {
   it("preserves renamed/hidden editorial & grants sections", () => {
-    const granted = {
-      ...(baseWorks.find((w) => w.id.endsWith("W4300000001")) as OpenAlexWork),
-      awards: [{ funder_display_name: "NIH", funder_award_id: "R01" }],
-    };
-    const works = [granted, ...baseWorks.filter((w) => !w.id.endsWith("W4300000001"))];
     const roles: EditorialRole[] = [{ journal: "BMJ", role: "Editor", startYear: 2020 }];
+    const fundings = [
+      { putCode: "9", title: "NIH R01", organization: "NIH", startYear: 2020 },
+    ];
 
     const first = buildCanonicalCv({
       id: "m",
       resolved,
-      works,
+      works: baseWorks,
       now: "2026-06-02T00:00:00.000Z",
       editorialRoles: roles,
+      fundings,
     });
     // User renames + hides the non-publication sections.
     const previous: CanonicalCv = {
@@ -67,9 +66,10 @@ describe("build merges editorial + grants sections on re-sync", () => {
     const resynced = buildCanonicalCv({
       id: "m",
       resolved,
-      works,
+      works: baseWorks,
       now: "2026-07-01T00:00:00.000Z",
       editorialRoles: roles,
+      fundings,
       previous,
     });
     const grants = resynced.sections.find((s) => s.type === "grants")!;
