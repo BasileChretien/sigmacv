@@ -35,6 +35,9 @@ next-env.d.ts
 /blob-report/
 /playwright/.cache/
 
+# stray local tool binaries (tunnels, CLIs) — these live outside the repo
+*.exe
+
 # misc
 .DS_Store
 *.pem
