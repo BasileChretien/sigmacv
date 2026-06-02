@@ -1,0 +1,15 @@
+node_modules
+.next
+# Prisma 7 generated client — regenerated in-image by postinstall.
+src/generated
+.git
+.gitignore
+coverage
+test-results
+playwright-report
+*.md
+.env
+.env*.local
+Dockerfile
+docker-compose.yml
+.dockerignore

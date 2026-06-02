@@ -1,0 +1,167 @@
+import { describe, expect, it } from "vitest";
+import { buildCanonicalCv } from "@/lib/canonical/build";
+import { setItemIncluded } from "@/lib/canonical/curate";
+import type { CanonicalCv } from "@/lib/canonical/schema";
+import { TEMPLATES } from "@/lib/canonical/schema";
+import { listAvailableStyles } from "@/lib/citeproc/assets";
+import { renderCvHtml } from "@/lib/render/html";
+import { docxRenderer } from "@/lib/render/docx";
+import { latexRenderer } from "@/lib/render/latex";
+import { markdownRenderer, renderCvMarkdown } from "@/lib/render/markdown";
+import { renderCvLatex } from "@/lib/render/latex";
+import { renderCvDocxBuffer } from "@/lib/render/docx";
+import { cvSlug } from "@/lib/render/slug";
+import { RENDER_FORMATS } from "@/lib/render/types";
+import type { EditorialRole } from "@/lib/oep/client";
+import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
+import type { OpenAlexWork } from "@/lib/openalex/types";
+import worksFixture from "./fixtures/openalex-works.json";
+
+const baseWorks = worksFixture as unknown as OpenAlexWork[];
+const resolved: ResolvedAuthor = {
+  orcid: "0000-0002-7483-2489",
+  authorIds: ["A5001069481", "A5136414971"],
+  displayName: "Basile Chrétien",
+};
+const hasApa = listAvailableStyles().includes("apa");
+
+function makeCv(): CanonicalCv {
+  return buildCanonicalCv({ id: "rx", resolved, works: baseWorks, now: "2026-06-02T00:00:00.000Z" });
+}
+
+function withMetrics(): CanonicalCv {
+  const cv = makeCv();
+  return {
+    ...cv,
+    owner: { ...cv.owner, metrics: { h_index: 9, "2yr_mean_citedness": 3.4 } },
+    display: { ...cv.display, showMetrics: true, metrics: ["h_index"] },
+  };
+}
+
+describe("render format catalog", () => {
+  it("lists the supported formats", () => {
+    expect(RENDER_FORMATS).toEqual(["html", "pdf", "docx", "latex", "markdown"]);
+  });
+});
+
+describe("cvSlug", () => {
+  it("slugifies and strips diacritics", () => {
+    expect(cvSlug("Émilie Dupont!")).toBe("emilie-dupont");
+  });
+  it("falls back to 'cv' for an empty/symbol-only name", () => {
+    expect(cvSlug("")).toBe("cv");
+    expect(cvSlug("!!!")).toBe("cv");
+  });
+});
+
+describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () => {
+  it("markdownRenderer.render returns markdown + .md filename", async () => {
+    const r = await markdownRenderer.render({ cv: makeCv() });
+    expect(r.format).toBe("markdown");
+    expect(r.filename).toBe("basile-chretien-cv.md");
+    expect(r.text).toContain("---");
+  });
+
+  it("latexRenderer.render returns LaTeX + .tex filename", async () => {
+    const r = await latexRenderer.render({ cv: makeCv() });
+    expect(r.filename).toBe("basile-chretien-cv.tex");
+    expect(r.text).toContain("\\documentclass");
+  });
+
+  it("docxRenderer.render returns a .docx buffer", async () => {
+    const r = await docxRenderer.render({ cv: makeCv() });
+    expect(r.filename).toBe("basile-chretien-cv.docx");
+    expect(r.buffer && r.buffer.length).toBeGreaterThan(0);
+  });
+
+  it("renders the metrics line across formats when enabled", () => {
+    expect(renderCvMarkdown(withMetrics())).toContain("h-index: 9");
+    expect(renderCvLatex(withMetrics())).toContain("h-index: 9");
+  });
+
+  it("renders the metrics line into HTML and DOCX", async () => {
+    expect(renderCvHtml(withMetrics())).toContain("h-index: 9");
+    const buf = await renderCvDocxBuffer(withMetrics());
+    expect(buf.length).toBeGreaterThan(0);
+  });
+
+  it("flags an experimental metric in the HTML header when it has a value", () => {
+    const cv = makeCv();
+    const withSigma: CanonicalCv = {
+      ...cv,
+      owner: { ...cv.owner, metrics: { sigma_score: 5 } },
+      display: { ...cv.display, showMetrics: true, metrics: ["sigma_score"] },
+    };
+    expect(renderCvHtml(withSigma)).toContain("Sigma-Score (experimental): 5.0");
+  });
+
+  it("escapes non-citation displayText in HTML (grants with special chars)", () => {
+    const granted = {
+      ...(baseWorks.find((w) => w.id.endsWith("W4300000001")) as OpenAlexWork),
+      awards: [{ funder_display_name: "Foo & <Bar> Trust", funder_award_id: "X1" }],
+    };
+    const cv = buildCanonicalCv({
+      id: "g",
+      resolved,
+      works: [granted, ...baseWorks.filter((w) => !w.id.endsWith("W4300000001"))],
+      now: "2026-06-02T00:00:00.000Z",
+      editorialRoles: [{ journal: "BMJ", role: "Editor", startYear: 2020 }] as EditorialRole[],
+    });
+    const html = renderCvHtml(cv);
+    expect(html).toContain("Grants &amp; Funding"); // section title escaped
+    expect(html).toContain("Foo &amp; &lt;Bar&gt; Trust"); // displayText escaped
+    expect(html).toContain("Editorial Roles");
+  });
+
+  it("emits an empty section (no rows) when all its items are hidden", () => {
+    let cv = makeCv();
+    for (const it of cv.sections[0]!.items) {
+      cv = setItemIncluded(cv, "publications", it.id, false);
+    }
+    const html = renderCvHtml(cv);
+    expect(html).not.toContain("adverse drug reactions");
+  });
+
+  it("uses default name + omits ORCID line for an empty owner, across all templates", () => {
+    const cv = makeCv();
+    for (const template of TEMPLATES) {
+      const empty: CanonicalCv = {
+        ...cv,
+        owner: { ...cv.owner, displayName: "", orcid: "" },
+        display: { ...cv.display, template },
+      };
+      const html = renderCvHtml(empty);
+      expect(html).toContain("Curriculum Vitae");
+      expect(html).not.toContain("ORCID:");
+    }
+  });
+
+  describe("self-name highlight style", () => {
+    function withHighlight(style: CanonicalCv["display"]["highlightStyle"]): string {
+      const cv = makeCv();
+      return renderCvHtml({ ...cv, display: { ...cv.display, highlightStyle: style } });
+    }
+
+    it("accent (default) uses the accent colour + bold", () => {
+      const css = withHighlight("accent");
+      expect(css).toMatch(/\.cv-self\s*\{[^}]*var\(--cv-accent\)/);
+      expect(css).toMatch(/\.cv-self\s*\{[^}]*font-weight:\s*700/);
+    });
+
+    it("underline emits text-decoration underline and no accent colour", () => {
+      const css = withHighlight("underline");
+      expect(css).toMatch(/\.cv-self\s*\{[^}]*text-decoration:\s*underline/);
+      expect(css).not.toMatch(/\.cv-self\s*\{[^}]*var\(--cv-accent\)/);
+    });
+
+    it("accent-underline combines colour and underline", () => {
+      const css = withHighlight("accent-underline");
+      expect(css).toMatch(/\.cv-self\s*\{[^}]*var\(--cv-accent\)[^}]*text-decoration:\s*underline/);
+    });
+
+    it("bold emits only font-weight", () => {
+      const css = withHighlight("bold");
+      expect(css).toMatch(/\.cv-self\s*\{\s*font-weight:\s*700;\s*\}/);
+    });
+  });
+});

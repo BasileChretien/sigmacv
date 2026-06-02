@@ -1,0 +1,115 @@
+[
+  {
+    "id": "https://openalex.org/W4300000002",
+    "doi": null,
+    "title": "Pharmacovigilance signal detection methods",
+    "display_name": "Pharmacovigilance signal detection methods",
+    "publication_year": 2024,
+    "publication_date": "2024-01-10",
+    "type": "preprint",
+    "type_crossref": "posted-content",
+    "language": "en",
+    "cited_by_count": 0,
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5136414971",
+          "display_name": "B. Chrétien",
+          "orcid": "https://orcid.org/0000-0002-7483-2489"
+        },
+        "raw_author_name": "B. Chrétien"
+      }
+    ],
+    "primary_location": { "source": null },
+    "biblio": {
+      "volume": null,
+      "issue": null,
+      "first_page": null,
+      "last_page": null
+    },
+    "ids": { "openalex": "https://openalex.org/W4300000002" }
+  },
+  {
+    "id": "https://openalex.org/W4300000001",
+    "doi": "https://doi.org/10.1000/example1",
+    "title": "A study of adverse drug reactions",
+    "display_name": "A study of adverse drug reactions",
+    "publication_year": 2023,
+    "publication_date": "2023-05-15",
+    "type": "article",
+    "type_crossref": "journal-article",
+    "language": "en",
+    "cited_by_count": 12,
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5001069481",
+          "display_name": "Basile Chrétien",
+          "orcid": "https://orcid.org/0000-0002-7483-2489"
+        },
+        "raw_author_name": "Basile Chrétien"
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5999999999",
+          "display_name": "Charles Dolladille",
+          "orcid": "https://orcid.org/0000-0003-0449-6261"
+        },
+        "raw_author_name": "Charles Dolladille"
+      }
+    ],
+    "primary_location": {
+      "source": {
+        "id": "https://openalex.org/S123",
+        "display_name": "British Journal of Clinical Pharmacology",
+        "issn_l": "0306-5251",
+        "type": "journal"
+      }
+    },
+    "biblio": {
+      "volume": "89",
+      "issue": "5",
+      "first_page": "1500",
+      "last_page": "1510"
+    },
+    "ids": {
+      "openalex": "https://openalex.org/W4300000001",
+      "doi": "https://doi.org/10.1000/example1",
+      "pmid": "https://pubmed.ncbi.nlm.nih.gov/123456"
+    }
+  },
+  {
+    "id": "https://openalex.org/W4300000003",
+    "doi": "https://doi.org/10.1000/example3",
+    "title": "Unrelated work by a namesake",
+    "display_name": "Unrelated work by a namesake",
+    "publication_year": 2020,
+    "publication_date": "2020-09-01",
+    "type": "article",
+    "type_crossref": "journal-article",
+    "language": "en",
+    "cited_by_count": 5,
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A7777777777",
+          "display_name": "Jean Chrétien",
+          "orcid": null
+        },
+        "raw_author_name": "Jean Chrétien"
+      }
+    ],
+    "primary_location": {
+      "source": {
+        "display_name": "Journal of Other Things",
+        "issn_l": "1111-2222"
+      }
+    },
+    "biblio": { "volume": "3", "first_page": "7" },
+    "ids": { "openalex": "https://openalex.org/W4300000003" }
+  }
+]

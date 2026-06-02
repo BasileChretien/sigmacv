@@ -1,0 +1,7 @@
+# Caddy reverse proxy. Set SITE_ADDRESS in the environment:
+#   - a domain (e.g. cv.example.org) → automatic Let's Encrypt TLS
+#   - ":80" → plain HTTP for local/testing
+{$SITE_ADDRESS} {
+	encode gzip zstd
+	reverse_proxy app:3000
+}

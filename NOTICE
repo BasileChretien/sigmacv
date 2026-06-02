@@ -1,0 +1,32 @@
+SigmaCV
+Copyright 2026 SigmaCV contributors
+
+This product includes software developed by the SigmaCV contributors,
+licensed under the Apache License, Version 2.0 (see LICENSE).
+
+────────────────────────────────────────────────────────────────────────────
+Third-party data and assets bundled with this project
+────────────────────────────────────────────────────────────────────────────
+
+CSL citation styles (src/lib/citeproc/assets/styles/*.csl)
+  Source:  https://github.com/citation-style-language/styles
+  License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
+           https://creativecommons.org/licenses/by-sa/3.0/
+  These style files are redistributed unmodified. The CC BY-SA license applies
+  to the .csl files themselves and does NOT affect the Apache-2.0 license of
+  the SigmaCV source code.
+
+CSL locale (src/lib/citeproc/assets/locales/locales-en-US.xml)
+  Source:  https://github.com/citation-style-language/locales
+  License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
+
+citeproc-js
+  Source:  https://github.com/Juris-M/citeproc-js
+  License: Common Public Attribution License (CPAL) 1.0
+
+────────────────────────────────────────────────────────────────────────────
+Data sources accessed at runtime (not bundled)
+────────────────────────────────────────────────────────────────────────────
+
+OpenAlex   — https://openalex.org   (CC0 public data; polite-pool via mailto)
+ORCID      — https://orcid.org       (public API; OAuth/OpenID Connect)

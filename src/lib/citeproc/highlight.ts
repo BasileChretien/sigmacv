@@ -1,0 +1,47 @@
+/**
+ * Identifier-driven self-name highlighting.
+ *
+ * The DECISION to highlight an entry is made upstream by identifier match
+ * (CvItem.authoredBySelf) — never by a name string. This function only wraps
+ * the already-known self name(s) inside an entry we've decided is the user's.
+ *
+ * Because citeproc renders names in style-specific forms ("Chrétien, B.",
+ * "B. Chrétien", "Chrétien B"), the reliably-present token is the family name,
+ * so `nameVariants` should include it. Variants are matched longest-first and
+ * only within text (never inside HTML tags/attributes).
+ */
+
+const CLASS = "cv-self";
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function cleanVariants(variants: string[]): string[] {
+  const seen = new Set<string>();
+  for (const v of variants) {
+    const t = v.trim();
+    if (t.length >= 2) seen.add(t);
+  }
+  // Longest first so a full name wins over a bare family name.
+  return [...seen].sort((a, b) => b.length - a.length);
+}
+
+export function highlightSelf(
+  entryHtml: string,
+  nameVariants: string[],
+): string {
+  const variants = cleanVariants(nameVariants);
+  if (variants.length === 0) return entryHtml;
+
+  const pattern = new RegExp(`(${variants.map(escapeRegExp).join("|")})`, "g");
+
+  // Split on HTML comments and tags so we only substitute inside text segments.
+  return entryHtml
+    .split(/(<!--[\s\S]*?-->|<[^>]+>)/g)
+    .map((segment) => {
+      if (segment.startsWith("<")) return segment;
+      return segment.replace(pattern, `<span class="${CLASS}">$1</span>`);
+    })
+    .join("");
+}

@@ -1,0 +1,454 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import {
+  ACCENT_PRESETS,
+  DENSITIES,
+  FONT_PAIRINGS,
+  HIGHLIGHT_STYLES,
+  TEMPLATES,
+  type CanonicalCv,
+  type CustomStyle,
+} from "@/lib/canonical/schema";
+import { isHidden } from "@/lib/canonical/schema";
+import {
+  moveItem,
+  moveSection,
+  renameSection,
+  setItemIncluded,
+  setItemNotMine,
+  setSectionVisible,
+  updateDisplay,
+} from "@/lib/canonical/curate";
+import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
+import ItemRow from "./ItemRow";
+
+interface CvEditorProps {
+  cv: CanonicalCv;
+  availableStyles: string[];
+  onChange: (next: CanonicalCv) => void;
+}
+
+const STYLE_LABELS: Record<string, string> = {
+  apa: "APA",
+  ieee: "IEEE",
+  "chicago-author-date": "Chicago (author–date)",
+  nature: "Nature",
+  "modern-language-association": "MLA",
+  "american-medical-association": "AMA",
+};
+
+const HIGHLIGHT_STYLE_LABELS: Record<string, string> = {
+  accent: "Accent colour",
+  bold: "Bold",
+  underline: "Underline",
+  "accent-underline": "Accent + underline",
+};
+
+const TEMPLATE_LABELS: Record<string, string> = {
+  classic: "Classic",
+  modern: "Modern",
+  minimal: "Minimal",
+  compact: "Compact",
+};
+const FONT_LABELS: Record<string, string> = {
+  serif: "Serif",
+  sans: "Sans",
+  palatino: "Palatino",
+};
+const DENSITY_LABELS: Record<string, string> = {
+  comfortable: "Comfortable",
+  compact: "Compact",
+};
+
+export default function CvEditor({
+  cv,
+  availableStyles,
+  onChange,
+}: CvEditorProps) {
+  const sections = [...cv.sections].sort((a, b) => a.order - b.order);
+  const customStyle = cv.display.customStyle;
+
+  const [styleInput, setStyleInput] = useState("");
+  const [styleAdding, setStyleAdding] = useState(false);
+  const [styleError, setStyleError] = useState("");
+
+  // Dropdown options = bundled styles + the current custom style (if any).
+  const styleOptions = useMemo(() => {
+    const base = availableStyles.length ? availableStyles : [cv.display.cslStyle];
+    const withCustom =
+      customStyle && !base.includes(customStyle.id)
+        ? [...base, customStyle.id]
+        : base;
+    return withCustom;
+  }, [availableStyles, customStyle, cv.display.cslStyle]);
+
+  const styleLabel = (s: string): string =>
+    customStyle && s === customStyle.id
+      ? customStyle.title
+      : (STYLE_LABELS[s] ?? s);
+
+  async function addCustomStyle() {
+    const input = styleInput.trim();
+    if (!input || styleAdding) return;
+    setStyleAdding(true);
+    setStyleError("");
+    try {
+      const res = await fetch("/api/cv/style/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input }),
+      });
+      const data = (await res.json().catch(() => ({}))) as
+        | (CustomStyle & { error?: string })
+        | { error?: string };
+      if (!res.ok || !("xml" in data)) {
+        setStyleError(("error" in data && data.error) || "Could not add style.");
+        return;
+      }
+      const resolved: CustomStyle = {
+        id: data.id,
+        title: data.title,
+        xml: data.xml,
+      };
+      onChange(
+        updateDisplay(cv, {
+          cslStyle: resolved.id,
+          customStyle: resolved,
+        }),
+      );
+      setStyleInput("");
+    } catch {
+      setStyleError("Network error — please try again.");
+    } finally {
+      setStyleAdding(false);
+    }
+  }
+
+  return (
+    <div className="cv-editor">
+      <fieldset className="display-controls">
+        <legend>Style</legend>
+        <label className="field">
+          <span>Template</span>
+          <select
+            value={cv.display.template}
+            onChange={(e) =>
+              onChange(
+                updateDisplay(cv, {
+                  template: e.target.value as CanonicalCv["display"]["template"],
+                }),
+              )
+            }
+          >
+            {TEMPLATES.map((t) => (
+              <option key={t} value={t}>
+                {TEMPLATE_LABELS[t] ?? t}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span>Citation style</span>
+          <select
+            value={cv.display.cslStyle}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { cslStyle: e.target.value }))
+            }
+          >
+            {styleOptions.map((s) => (
+              <option key={s} value={s}>
+                {styleLabel(s)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="field custom-style">
+          <span>Add a citation style</span>
+          <div className="custom-style-row">
+            <input
+              type="text"
+              value={styleInput}
+              placeholder="e.g. nature, the-lancet, or a .csl URL"
+              onChange={(e) => setStyleInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void addCustomStyle();
+                }
+              }}
+              aria-label="Citation style id or URL"
+              disabled={styleAdding}
+            />
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void addCustomStyle()}
+              disabled={styleAdding || !styleInput.trim()}
+            >
+              {styleAdding ? "Adding…" : "Add"}
+            </button>
+          </div>
+          {styleError ? (
+            <span className="custom-style-error">{styleError}</span>
+          ) : (
+            <span className="muted custom-style-hint">
+              From the{" "}
+              <a
+                href="https://www.zotero.org/styles"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Zotero style repository
+              </a>{" "}
+              — paste a style&apos;s id or URL.
+            </span>
+          )}
+        </div>
+
+        <label className="field">
+          <span>Font</span>
+          <select
+            value={cv.display.fontPairing}
+            onChange={(e) =>
+              onChange(
+                updateDisplay(cv, {
+                  fontPairing:
+                    e.target.value as CanonicalCv["display"]["fontPairing"],
+                }),
+              )
+            }
+          >
+            {FONT_PAIRINGS.map((f) => (
+              <option key={f} value={f}>
+                {FONT_LABELS[f] ?? f}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span>Density</span>
+          <select
+            value={cv.display.density}
+            onChange={(e) =>
+              onChange(
+                updateDisplay(cv, {
+                  density:
+                    e.target.value as CanonicalCv["display"]["density"],
+                }),
+              )
+            }
+          >
+            {DENSITIES.map((d) => (
+              <option key={d} value={d}>
+                {DENSITY_LABELS[d] ?? d}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="field">
+          <span>Accent</span>
+          <div className="accent-swatches">
+            {ACCENT_PRESETS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`swatch${cv.display.accentColor === c ? " is-selected" : ""}`}
+                style={{ background: c }}
+                onClick={() => onChange(updateDisplay(cv, { accentColor: c }))}
+                aria-label={`Accent ${c}`}
+                title={c}
+              />
+            ))}
+            <input
+              type="color"
+              className="swatch-custom"
+              value={cv.display.accentColor}
+              onChange={(e) =>
+                onChange(updateDisplay(cv, { accentColor: e.target.value }))
+              }
+              aria-label="Custom accent colour"
+              title="Custom accent colour"
+            />
+          </div>
+        </div>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.highlightSelf}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { highlightSelf: e.target.checked }))
+            }
+          />
+          <span>Highlight my name</span>
+        </label>
+
+        <label className="field">
+          <span>Highlight style</span>
+          <select
+            value={cv.display.highlightStyle}
+            disabled={!cv.display.highlightSelf}
+            onChange={(e) =>
+              onChange(
+                updateDisplay(cv, {
+                  highlightStyle:
+                    e.target.value as CanonicalCv["display"]["highlightStyle"],
+                }),
+              )
+            }
+          >
+            {HIGHLIGHT_STYLES.map((h) => (
+              <option key={h} value={h}>
+                {HIGHLIGHT_STYLE_LABELS[h] ?? h}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="field metric-picker">
+          <span>Metrics (optional — none by default)</span>
+          <div className="metric-options">
+            {METRIC_DEFS.map((m) => {
+              const selected = cv.display.metrics.includes(m.key);
+              const values = (cv.owner.metrics ?? {}) as Record<
+                string,
+                number | undefined
+              >;
+              const raw = values[m.key];
+              const value =
+                typeof raw === "number" ? formatMetricValue(m.key, raw) : null;
+              const note = m.placeholder
+                ? " (experimental)"
+                : value
+                  ? ` — ${value}`
+                  : " (no data)";
+              return (
+                <label key={m.key} className="field-inline">
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={() => {
+                      const set = new Set(cv.display.metrics);
+                      if (selected) set.delete(m.key);
+                      else set.add(m.key);
+                      const metrics = [...set];
+                      onChange(
+                        updateDisplay(cv, {
+                          metrics,
+                          showMetrics: metrics.length > 0,
+                        }),
+                      );
+                    }}
+                  />
+                  <span>
+                    {m.label}
+                    {note}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      </fieldset>
+
+      {sections.map((section, si) => {
+        const items = [...section.items].sort((a, b) => a.order - b.order);
+        const shownCount = items.filter((i) => !isHidden(i)).length;
+        return (
+          <div key={section.id} className="section-block">
+            <div className="section-head">
+              <input
+                className="section-title"
+                value={section.title}
+                onChange={(e) =>
+                  onChange(renameSection(cv, section.id, e.target.value))
+                }
+                aria-label="Section title"
+              />
+              <span className="section-count muted">
+                {shownCount}/{items.length} shown
+              </span>
+              <label className="field-inline">
+                <input
+                  type="checkbox"
+                  checked={section.visible}
+                  onChange={(e) =>
+                    onChange(
+                      setSectionVisible(cv, section.id, e.target.checked),
+                    )
+                  }
+                />
+                <span>Show</span>
+              </label>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => onChange(moveSection(cv, section.id, "up"))}
+                disabled={si === 0}
+                aria-label="Move section up"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => onChange(moveSection(cv, section.id, "down"))}
+                disabled={si === sections.length - 1}
+                aria-label="Move section down"
+              >
+                ↓
+              </button>
+            </div>
+
+            {items.length === 0 ? (
+              <p className="muted empty-note">No items in this section.</p>
+            ) : (
+              <ul className="cv-item-list">
+                {items.map((item, ii) => (
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    isFirst={ii === 0}
+                    isLast={ii === items.length - 1}
+                    onToggleIncluded={() =>
+                      onChange(
+                        setItemIncluded(
+                          cv,
+                          section.id,
+                          item.id,
+                          !item.included,
+                        ),
+                      )
+                    }
+                    onToggleNotMine={() =>
+                      onChange(
+                        setItemNotMine(
+                          cv,
+                          section.id,
+                          item.id,
+                          !item.notMine,
+                          new Date().toISOString(),
+                        ),
+                      )
+                    }
+                    onMoveUp={() =>
+                      onChange(moveItem(cv, section.id, item.id, "up"))
+                    }
+                    onMoveDown={() =>
+                      onChange(moveItem(cv, section.id, item.id, "down"))
+                    }
+                  />
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}

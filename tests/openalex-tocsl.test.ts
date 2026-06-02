@@ -1,0 +1,105 @@
+import { describe, expect, it } from "vitest";
+import { toCslName, workToCsl } from "@/lib/openalex/toCsl";
+import type { OpenAlexWork } from "@/lib/openalex/types";
+import worksFixture from "./fixtures/openalex-works.json";
+
+const works = worksFixture as unknown as OpenAlexWork[];
+const byId = (id: string) => works.find((w) => w.id.endsWith(id))!;
+
+describe("toCslName", () => {
+  it("splits a two-token name into family + given", () => {
+    expect(toCslName("Basile Chrétien")).toEqual({
+      family: "Chrétien",
+      given: "Basile",
+    });
+  });
+
+  it("treats the last token as the family name for multi-token names", () => {
+    expect(toCslName("Anna Maria De La Cruz")).toEqual({
+      family: "Cruz",
+      given: "Anna Maria De La",
+    });
+  });
+
+  it("parses the comma form 'Family, Given'", () => {
+    expect(toCslName("Chrétien, B.")).toEqual({
+      family: "Chrétien",
+      given: "B.",
+    });
+    expect(toCslName("van den Berg, J.")).toEqual({
+      family: "van den Berg",
+      given: "J.",
+    });
+  });
+
+  it("treats 'Family,' with no given as family-only", () => {
+    expect(toCslName("Smith,")).toEqual({ family: "Smith" });
+  });
+
+  it("uses a literal for single-token / organization names", () => {
+    expect(toCslName("WHO")).toEqual({ literal: "WHO" });
+  });
+
+  it("returns an empty literal for blank input", () => {
+    expect(toCslName("  ")).toEqual({ literal: "" });
+    expect(toCslName(null)).toEqual({ literal: "" });
+  });
+});
+
+describe("workToCsl", () => {
+  it("maps a journal article to article-journal with full metadata", () => {
+    const csl = workToCsl(byId("W4300000001"));
+    expect(csl.id).toBe("W4300000001");
+    expect(csl.type).toBe("article-journal");
+    expect(csl.title).toBe("A study of adverse drug reactions");
+    expect(csl["container-title"]).toBe(
+      "British Journal of Clinical Pharmacology",
+    );
+    expect(csl.volume).toBe("89");
+    expect(csl.issue).toBe("5");
+    expect(csl.page).toBe("1500-1510");
+    expect(csl.issued).toEqual({ "date-parts": [[2023, 5, 15]] });
+    expect(csl.author).toEqual([
+      { family: "Chrétien", given: "Basile" },
+      { family: "Dolladille", given: "Charles" },
+    ]);
+  });
+
+  it("strips the DOI prefix and sets a doi.org URL", () => {
+    const csl = workToCsl(byId("W4300000001"));
+    expect(csl.DOI).toBe("10.1000/example1");
+    expect(csl.URL).toBe("https://doi.org/10.1000/example1");
+  });
+
+  it("maps posted-content/preprint to article and falls back to OpenAlex URL", () => {
+    const csl = workToCsl(byId("W4300000002"));
+    expect(csl.type).toBe("article");
+    expect(csl.DOI).toBeUndefined();
+    expect(csl.URL).toBe("https://openalex.org/W4300000002");
+    expect(csl["container-title"]).toBeUndefined();
+  });
+
+  it("emits a single-page range when only first_page is present", () => {
+    const csl = workToCsl(byId("W4300000003"));
+    expect(csl.page).toBe("7");
+  });
+
+  it("falls back to publication_year when there's no full date", () => {
+    const csl = workToCsl({
+      id: "https://openalex.org/W777",
+      title: "Year only",
+      publication_year: 2019,
+      type: "article",
+    } as unknown as OpenAlexWork);
+    expect(csl.issued).toEqual({ "date-parts": [[2019]] });
+  });
+
+  it("omits issued when there is no date at all", () => {
+    const csl = workToCsl({
+      id: "https://openalex.org/W778",
+      title: "No date",
+      type: "article",
+    } as unknown as OpenAlexWork);
+    expect(csl.issued).toBeUndefined();
+  });
+});

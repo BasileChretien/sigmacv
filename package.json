@@ -1,0 +1,64 @@
+{
+  "name": "sigmacv",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Auto-generate clean, customizable academic CVs from open research data (OpenAlex, ORCID).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "dev:public": "next dev -H ::",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "fetch-csl": "node scripts/fetch-csl.mjs",
+    "resync": "node scripts/resync.mjs",
+    "db:generate": "prisma generate",
+    "db:migrate": "dotenv -e .env -- prisma migrate dev",
+    "db:push": "dotenv -e .env -- prisma db push",
+    "db:push:e2e": "dotenv -e .env.e2e -- prisma db push",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:install": "playwright install --with-deps chromium",
+    "postinstall": "prisma generate"
+  },
+  "overrides": {
+    "postcss": "^8.5.10",
+    "nodemailer": "^8.0.10",
+    "@hono/node-server": "^1.19.14"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.7.4",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "citeproc": "^2.4.63",
+    "docx": "^9.0.0",
+    "next": "^15.1.6",
+    "next-auth": "^5.0.0-beta.25",
+    "nodemailer": "^8.0.10",
+    "pg": "^8.13.1",
+    "playwright": "1.60.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0",
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "@vitest/coverage-v8": "^4.1.8",
+    "dotenv": "^16.4.7",
+    "dotenv-cli": "^8.0.0",
+    "prisma": "^7.8.0",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.8"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

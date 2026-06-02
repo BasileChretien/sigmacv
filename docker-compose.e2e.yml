@@ -1,0 +1,14 @@
+# Local convenience: an isolated Postgres for the E2E suite on port 5433,
+# kept separate from the production compose stack.
+#   docker compose -f docker-compose.e2e.yml up -d
+services:
+  postgres-e2e:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sigmacv
+      POSTGRES_PASSWORD: sigmacv
+      POSTGRES_DB: sigmacv_e2e
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data # ephemeral; test DB needn't persist

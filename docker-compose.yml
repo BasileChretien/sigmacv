@@ -1,0 +1,81 @@
+# SigmaCV — single-VPS deployment (app + Postgres + Caddy/TLS).
+# The MVP renders PDF in-process inside the `app` container (its image ships
+# Chromium), so there is no separate render-worker service yet.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sigmacv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sigmacv}
+      POSTGRES_DB: ${POSTGRES_DB:-sigmacv}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sigmacv}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Not published to the host in production; only the app talks to it.
+    expose:
+      - "5432"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-sigmacv}:${POSTGRES_PASSWORD:-sigmacv}@postgres:5432/${POSTGRES_DB:-sigmacv}?schema=public"
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: ${AUTH_URL}
+      AUTH_TRUST_HOST: "true"
+      ORCID_CLIENT_ID: ${ORCID_CLIENT_ID}
+      ORCID_CLIENT_SECRET: ${ORCID_CLIENT_SECRET}
+      ORCID_ENVIRONMENT: ${ORCID_ENVIRONMENT:-sandbox}
+      OPENALEX_MAILTO: ${OPENALEX_MAILTO}
+      OEP_DATA_URL: ${OEP_DATA_URL:-}
+      RESYNC_SECRET: ${RESYNC_SECRET:-}
+      NODE_ENV: "production"
+    expose:
+      - "3000"
+
+  # Periodically re-syncs published "living" CVs by hitting the internal,
+  # secret-guarded endpoint. Disabled gracefully if RESYNC_SECRET is unset
+  # (the endpoint returns 503 and curl's failure is swallowed).
+  resync-cron:
+    image: curlimages/curl:8.11.1
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      RESYNC_SECRET: ${RESYNC_SECRET:-}
+      RESYNC_INTERVAL_SECONDS: ${RESYNC_INTERVAL_SECONDS:-3600}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - 'while true; do sleep "${RESYNC_INTERVAL_SECONDS:-3600}"; curl -fsS -X POST -H "Authorization: Bearer ${RESYNC_SECRET}" http://app:3000/api/internal/resync || true; done'
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      # Set SITE_ADDRESS to your domain (e.g. cv.example.org) for automatic TLS,
+      # or leave as :80 for local/plain HTTP.
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

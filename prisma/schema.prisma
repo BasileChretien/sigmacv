@@ -1,0 +1,109 @@
+// SigmaCV database schema.
+// Auth.js (NextAuth) standard models + SigmaCV-specific fields and the Cv row
+// that stores the canonical CV object as JSON.
+
+generator client {
+  // Prisma 7: the Rust-free `prisma-client` generator (replaces prisma-client-js).
+  // It emits TypeScript into `output`; we import from there, not "@prisma/client".
+  // No binaryTargets — the v7 client uses a driver adapter (no Rust query engine).
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  // Prisma 7: the connection URL lives in prisma.config.ts (for the CLI) and is
+  // supplied to the runtime client via the driver adapter (src/lib/db.ts).
+  provider = "postgresql"
+}
+
+model User {
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  // Bare ORCID iD (e.g. 0000-0002-7483-2489), set from the OIDC `sub` claim.
+  orcid           String?   @unique
+  // Structural research-consent hook. NO logging happens unless/until built.
+  researchConsent Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  accounts       Account[]
+  sessions       Session[]
+  cv             Cv?
+  researchEvents ResearchEvent[]
+}
+
+// Consent-gated research log (author-disambiguation + self-presentation studies).
+// NOTHING is written here unless User.researchConsent is true. Cascade-deleted
+// with the user; exportable via the account data-export endpoint.
+model ResearchEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  // "curation_correction" (a mine/not-mine flip) | "composition_snapshot"
+  type      String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// One canonical CV document per user (the single source of truth).
+model Cv {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  document      Json
+  schemaVersion Int       @default(1)
+  lastSyncedAt  DateTime?
+  // Living public page: published flag + a stable public slug.
+  published     Boolean   @default(false)
+  publicSlug    String?   @unique
+  // Compare-and-set lock for the scheduled re-sync job (null = unlocked).
+  resyncLockedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([published, lastSyncedAt])
+}
