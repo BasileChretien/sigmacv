@@ -25,88 +25,91 @@ export default async function Home() {
   }
 
   return (
-    <main className="container" style={{ maxWidth: 720, paddingTop: "4rem" }}>
-      <h1 style={{ fontSize: "2.4rem", marginBottom: "0.5rem" }}>SigmaCV</h1>
-      <p
-        className="muted"
-        style={{ fontSize: "1.15rem", marginTop: 0, marginBottom: "2rem" }}
-      >
-        Clean, customizable academic CVs auto-generated from open research data.
-      </p>
+    <div className="auth-shell">
+      <header className="auth-nav">
+        <span className="brand">
+          <span className="brand-mark" aria-hidden="true">
+            Σ
+          </span>
+          SigmaCV
+        </span>
+        <Link href="/about">About</Link>
+      </header>
 
-      <ol
-        className="muted"
-        style={{ lineHeight: 1.9, marginBottom: "2rem", paddingLeft: "1.1rem" }}
-      >
-        <li>Sign in with your ORCID iD.</li>
-        <li>Your publications populate automatically from OpenAlex.</li>
-        <li>Curate them, pick a citation style, and export to PDF.</li>
-      </ol>
+      <main className="auth-main">
+        <section className="hero">
+          <span className="eyebrow">
+            Open infrastructure for responsible research assessment
+          </span>
+          <h1 className="hero-title">
+            Your academic CV, auto-built from the open record.
+          </h1>
+          <p className="hero-sub">
+            Clean, customizable CVs generated from OpenAlex, ORCID, Crossref and
+            DataCite — curate what&apos;s yours, pick a citation style, and
+            export to PDF, DOCX, LaTeX or Markdown.
+          </p>
+          <ol className="hero-steps">
+            <li>
+              <span className="step-n">1</span>Sign in with your ORCID iD.
+            </li>
+            <li>
+              <span className="step-n">2</span>Publications populate
+              automatically from OpenAlex.
+            </li>
+            <li>
+              <span className="step-n">3</span>Curate, style, and export — or
+              publish a living page.
+            </li>
+          </ol>
+        </section>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", maxWidth: 360 }}>
-        <form action={signInWithOrcid}>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{ fontSize: "1.05rem", width: "100%", justifyContent: "center" }}
-          >
-            <OrcidMark />
-            Sign in with ORCID
-          </button>
-        </form>
+        <section className="auth-card card">
+          <h2 className="auth-card-title">Sign in</h2>
+          <p className="auth-card-sub muted">Free for individuals · open source</p>
 
-        {enabledProviders.google ? (
-          <form action={signInWithGoogle}>
-            <button
-              type="submit"
-              className="btn"
-              style={{ width: "100%", justifyContent: "center" }}
-            >
-              Continue with Google
+          <form action={signInWithOrcid}>
+            <button type="submit" className="btn btn-primary btn-lg auth-btn">
+              <OrcidMark />
+              Sign in with ORCID
             </button>
           </form>
-        ) : null}
 
-        {enabledProviders.email ? (
-          <form
-            action={signInWithEmail}
-            style={{ display: "flex", gap: "0.4rem" }}
-          >
-            <input
-              type="email"
-              name="email"
-              required
-              placeholder="you@example.org"
-              style={{
-                flex: 1,
-                padding: "0.5rem 0.6rem",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--radius)",
-              }}
-            />
-            <button type="submit" className="btn">
-              Email me a link
-            </button>
-          </form>
-        ) : null}
-      </div>
+          {enabledProviders.google || enabledProviders.email ? (
+            <div className="auth-divider">
+              <span>or</span>
+            </div>
+          ) : null}
 
-      <p className="muted" style={{ marginTop: "2rem", fontSize: "0.85rem" }}>
-        Open source · Apache-2.0 · Your data stays yours. SigmaCV reads only
-        public research metadata and never logs your choices without explicit
-        consent.
-      </p>
+          {enabledProviders.google ? (
+            <form action={signInWithGoogle}>
+              <button type="submit" className="btn auth-btn">
+                Continue with Google
+              </button>
+            </form>
+          ) : null}
 
-      <footer
-        className="site-footer"
-        style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}
-      >
-        <Link href="/about" className="muted">
-          About
-        </Link>
+          {enabledProviders.email ? (
+            <form action={signInWithEmail} className="auth-email-row">
+              <input type="email" name="email" required placeholder="you@university.edu" />
+              <button type="submit" className="btn">
+                Email link
+              </button>
+            </form>
+          ) : null}
+
+          <p className="auth-fineprint muted">
+            Open source · Apache-2.0. SigmaCV reads only public research metadata
+            and never logs your choices without explicit consent.
+          </p>
+        </section>
+      </main>
+
+      <footer className="auth-footer">
+        <span className="muted">© SigmaCV · open source</span>
         <SiteLinks />
       </footer>
-    </main>
+    </div>
   );
 }
 

@@ -9,10 +9,10 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="container" style={{ maxWidth: 720, paddingTop: "4rem" }}>
-      <h1 style={{ marginBottom: "0.5rem" }}>About SigmaCV</h1>
+    <main className="doc-page">
+      <h1>About SigmaCV</h1>
 
-      <p style={{ lineHeight: 1.6 }}>
+      <p>
         SigmaCV is open infrastructure for{" "}
         <strong>responsible research assessment</strong>. It auto-generates
         clean, customizable academic CVs from open research data — OpenAlex,
@@ -21,23 +21,22 @@ export default function AboutPage() {
         (Apache-2.0).
       </p>
 
-      <p style={{ lineHeight: 1.6 }}>
+      <p>
         Your data stays yours: SigmaCV reads only public research metadata,
         matches your work by identifier (never by name), and never logs your
         choices without explicit consent.
       </p>
 
-      <h2 style={{ fontSize: "1.2rem", marginTop: "1.8rem" }}>Who&apos;s behind it</h2>
-      <p style={{ lineHeight: 1.6 }}>
+      <h2>Who&apos;s behind it</h2>
+      <p>
         SigmaCV is built and maintained by <strong>Basile Chrétien</strong>{" "}
-        (PharmD, MSc, MPH), a pharmacist and researcher in pharmacovigilance
-        and clinical pharmacology. Contributions and feedback are welcome on
-        GitHub.
+        (PharmD, MSc, MPH), a pharmacist and researcher in pharmacovigilance and
+        clinical pharmacology. Contributions and feedback are welcome on GitHub.
       </p>
 
       <SiteLinks className="site-links about-links" />
 
-      <p className="muted" style={{ marginTop: "2rem", fontSize: "0.9rem" }}>
+      <p className="doc-back muted">
         <Link href="/">← Back to SigmaCV</Link>
       </p>
     </main>
