@@ -209,6 +209,7 @@ export const OwnerMetricsSchema = z.object({
   cited_by_count: z.number().int().optional(),
   // Derived field-normalized measures (computed from per-work data at build).
   fwci_mean: z.number().optional(),
+  fwci_n: z.number().int().optional(), // works the FWCI mean was computed over
   top10pct_share: z.number().optional(), // 0..1
 });
 export type OwnerMetrics = z.infer<typeof OwnerMetricsSchema>;

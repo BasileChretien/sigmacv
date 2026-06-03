@@ -167,7 +167,7 @@ export default function CvWorkspace({
   }, [dirty, handleSave, exportFormat]);
 
   return (
-    <div className="cv-page">
+    <div className="cv-page" lang={uiLocale}>
       <ResearchConsentPrompt initialConsent={researchConsent} locale={uiLocale} />
       <header className="cv-topbar">
         <div className="cv-topbar-left">

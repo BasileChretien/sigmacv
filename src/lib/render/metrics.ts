@@ -1,5 +1,9 @@
 import type { CanonicalCv, OwnerMetrics } from "@/lib/canonical/schema";
-import { metricContext, metricLabel } from "@/lib/i18n/render";
+import {
+  metricContext,
+  metricCoverageNote,
+  metricLabel,
+} from "@/lib/i18n/render";
 
 /**
  * Metric catalog. Order is the display order: FIELD-NORMALIZED measures first
@@ -35,6 +39,23 @@ function formatValue(format: string, raw: number): string {
   return raw.toFixed(1); // decimal
 }
 
+/**
+ * Responsible-reading context for a metric. For mean-FWCI we append the coverage
+ * ("mean over N works with FWCI") so a small/skewed sample isn't mistaken for a
+ * precise field-normalized score.
+ */
+function contextFor(
+  locale: string,
+  key: string,
+  values: OwnerMetrics,
+): string | undefined {
+  const base = metricContext(locale, key);
+  if (key !== "fwci_mean") return base;
+  const coverage = metricCoverageNote(locale, values.fwci_n);
+  if (!coverage) return base;
+  return base ? `${base} · ${coverage}` : coverage;
+}
+
 /** Format a raw metric value using its catalog format (for the editor preview). */
 export function formatMetricValue(key: string, raw: number): string {
   const def = METRIC_DEFS.find((d) => d.key === key);
@@ -60,7 +81,7 @@ export function formattedMetrics(cv: CanonicalCv): FormattedMetric[] {
         key: def.key,
         label: metricLabel(locale, def.key),
         value: formatValue(def.format, raw),
-        context: metricContext(locale, def.key),
+        context: contextFor(locale, def.key, values),
       };
     })
     .filter((m): m is FormattedMetric => m !== null);

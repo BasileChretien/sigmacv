@@ -28,6 +28,8 @@ export interface RenderStrings {
   metricCitations: string;
   metricContextFwci: string;
   metricContext2yr: string;
+  /** Coverage note appended to mean-FWCI; "{n}" is replaced with the work count. */
+  metricFwciCoverage: string;
   roleFirst: string;
   roleSecond: string;
   roleThird: string;
@@ -57,7 +59,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "Works",
     metricCitations: "Citations",
     metricContextFwci: "1.0 = world average for field & year",
-    metricContext2yr: "field-normalised journal-independent",
+    metricContext2yr: "2-year citation rate — not field-normalised (varies by field)",
+    metricFwciCoverage: "mean over {n} works with FWCI",
     roleFirst: "First author",
     roleSecond: "Second author",
     roleThird: "Third author",
@@ -85,7 +88,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "成果数",
     metricCitations: "被引数",
     metricContextFwci: "1.0 = 同领域同年度的全球平均水平",
-    metricContext2yr: "领域归一化、不依赖期刊",
+    metricContext2yr: "两年期被引率 — 非领域归一化（因领域而异）",
+    metricFwciCoverage: "基于 {n} 篇有 FWCI 的成果的均值",
     roleFirst: "第一作者",
     roleSecond: "第二作者",
     roleThird: "第三作者",
@@ -113,7 +117,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "Trabajos",
     metricCitations: "Citas",
     metricContextFwci: "1,0 = media mundial del campo y año",
-    metricContext2yr: "normalizada por campo e independiente de la revista",
+    metricContext2yr: "tasa de citación a 2 años — no normalizada por campo (varía según el campo)",
+    metricFwciCoverage: "media sobre {n} trabajos con FWCI",
     roleFirst: "Primer autor",
     roleSecond: "Segundo autor",
     roleThird: "Tercer autor",
@@ -141,7 +146,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "Travaux",
     metricCitations: "Citations",
     metricContextFwci: "1,0 = moyenne mondiale pour le domaine et l’année",
-    metricContext2yr: "normalisé par domaine, indépendant de la revue",
+    metricContext2yr: "taux de citation sur 2 ans — non normalisé par domaine (varie selon le domaine)",
+    metricFwciCoverage: "moyenne sur {n} travaux avec FWCI",
     roleFirst: "Premier auteur",
     roleSecond: "Deuxième auteur",
     roleThird: "Troisième auteur",
@@ -169,7 +175,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "Werke",
     metricCitations: "Zitationen",
     metricContextFwci: "1,0 = Weltdurchschnitt für Fachgebiet & Jahr",
-    metricContext2yr: "fachnormiert, journalunabhängig",
+    metricContext2yr: "2-Jahres-Zitationsrate — nicht fachnormiert (variiert je nach Fach)",
+    metricFwciCoverage: "Mittel über {n} Werke mit FWCI",
     roleFirst: "Erstautor",
     roleSecond: "Zweitautor",
     roleThird: "Drittautor",
@@ -197,7 +204,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "業績数",
     metricCitations: "被引用数",
     metricContextFwci: "1.0 = 分野・年の世界平均",
-    metricContext2yr: "分野標準化・ジャーナル非依存",
+    metricContext2yr: "2年間の被引用率 — 分野標準化なし（分野により大きく異なる）",
+    metricFwciCoverage: "FWCIのある{n}件の業績による平均",
     roleFirst: "筆頭著者",
     roleSecond: "第二著者",
     roleThird: "第三著者",
@@ -225,7 +233,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "Trabalhos",
     metricCitations: "Citações",
     metricContextFwci: "1,0 = média mundial para a área e o ano",
-    metricContext2yr: "normalizado por área, independente do periódico",
+    metricContext2yr: "taxa de citação em 2 anos — não normalizada por área (varia conforme a área)",
+    metricFwciCoverage: "média sobre {n} trabalhos com FWCI",
     roleFirst: "Primeiro autor",
     roleSecond: "Segundo autor",
     roleThird: "Terceiro autor",
@@ -253,7 +262,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "Lavori",
     metricCitations: "Citazioni",
     metricContextFwci: "1,0 = media mondiale per campo e anno",
-    metricContext2yr: "normalizzato per campo, indipendente dalla rivista",
+    metricContext2yr: "tasso di citazione a 2 anni — non normalizzato per campo (varia per disciplina)",
+    metricFwciCoverage: "media su {n} lavori con FWCI",
     roleFirst: "Primo autore",
     roleSecond: "Secondo autore",
     roleThird: "Terzo autore",
@@ -281,7 +291,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "논문 수",
     metricCitations: "피인용 수",
     metricContextFwci: "1.0 = 분야 및 연도별 세계 평균",
-    metricContext2yr: "분야 정규화, 저널 독립적",
+    metricContext2yr: "2년 피인용률 — 분야 정규화 아님 (분야별로 크게 다름)",
+    metricFwciCoverage: "FWCI가 있는 {n}편 논문 기준 평균",
     roleFirst: "제1저자",
     roleSecond: "제2저자",
     roleThird: "제3저자",
@@ -309,7 +320,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "Работы",
     metricCitations: "Цитирования",
     metricContextFwci: "1,0 = среднемировой уровень для области и года",
-    metricContext2yr: "нормализовано по области, без учёта журнала",
+    metricContext2yr: "цитируемость за 2 года — без нормализации по области (зависит от области)",
+    metricFwciCoverage: "среднее по {n} работам с FWCI",
     roleFirst: "Первый автор",
     roleSecond: "Второй автор",
     roleThird: "Третий автор",
@@ -347,6 +359,18 @@ export function metricContext(locale: string, key: string): string | undefined {
     "2yr_mean_citedness": s.metricContext2yr,
   };
   return map[key];
+}
+
+/**
+ * Localized "mean over N works with FWCI" coverage note. Returns undefined when
+ * N is not a positive number, so callers can omit it cleanly.
+ */
+export function metricCoverageNote(
+  locale: string,
+  n: number | undefined,
+): string | undefined {
+  if (typeof n !== "number" || n <= 0) return undefined;
+  return renderStrings(locale).metricFwciCoverage.replace("{n}", String(n));
 }
 
 /** Map an authorship role to its localized label. */

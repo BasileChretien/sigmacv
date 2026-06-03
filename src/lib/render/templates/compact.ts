@@ -1,4 +1,4 @@
-import { commonCss, headerHtml, pageShell, provenanceFooter, sectionsHtml } from "./shared";
+import { commonCss, cvPageShell, headerHtml, provenanceFooter, sectionsHtml } from "./shared";
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**
@@ -31,6 +31,6 @@ export const compactTemplate: CvTemplate = {
   render(cv, sections, theme) {
     const css = commonCss(theme) + compactCss(theme);
     const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}</div>`;
-    return pageShell(`${cv.owner.displayName || "CV"} — CV`, css, body);
+    return cvPageShell(cv, css, body);
   },
 };

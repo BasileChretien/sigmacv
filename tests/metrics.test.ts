@@ -95,6 +95,30 @@ describe("formattedMetrics", () => {
     expect(metricsLineText(cv)).toBe("Mean work FWCI: 1.8");
   });
 
+  it("appends FWCI coverage (mean over N works) when fwci_n is present", () => {
+    const cv = makeCv();
+    const withCoverage: CanonicalCv = {
+      ...cv,
+      owner: { ...cv.owner, metrics: { fwci_mean: 1.84, fwci_n: 73 } },
+      display: { ...cv.display, showMetrics: true, metrics: ["fwci_mean"] },
+    };
+    const fwci = formattedMetrics(withCoverage)[0];
+    expect(fwci?.value).toBe("1.8");
+    expect(fwci?.context).toContain("1.0 = world average");
+    expect(fwci?.context).toContain("mean over 73 works with FWCI");
+  });
+
+  it("omits FWCI coverage when fwci_n is absent", () => {
+    const cv = makeCv();
+    const noCoverage: CanonicalCv = {
+      ...cv,
+      owner: { ...cv.owner, metrics: { fwci_mean: 1.84 } },
+      display: { ...cv.display, showMetrics: true, metrics: ["fwci_mean"] },
+    };
+    const fwci = formattedMetrics(noCoverage)[0];
+    expect(fwci?.context).toBe("1.0 = world average for field & year");
+  });
+
   it("leads with field-normalized measures before h-index", () => {
     const cv = withMetrics({
       showMetrics: true,

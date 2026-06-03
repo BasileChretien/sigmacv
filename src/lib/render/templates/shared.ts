@@ -75,6 +75,26 @@ function contactHtml(cv: CanonicalCv): string {
  * CSP means injected markup (from citeproc output) can never execute — applies
  * to both the preview iframe and the headless-Chromium PDF page.
  */
+/**
+ * Localized document `<title>`: "Name — Curriculum Vitae" (translated), or just
+ * the localized fallback ("履歴書", "Lebenslauf", …) when no name is set.
+ */
+export function cvDocTitle(cv: CanonicalCv): string {
+  const fallback = renderStrings(cv.display.locale).cvFallbackTitle;
+  const name = cv.owner.displayName?.trim();
+  return name ? `${name} — ${fallback}` : fallback;
+}
+
+/**
+ * `pageShell` bound to a CV: emits the localized title AND sets `<html lang>` to
+ * the CV's content locale (BCP-47), so an exported French/Korean/… CV is not
+ * mis-declared as English to screen readers, hyphenation, and crawlers. Every
+ * template should use this instead of calling `pageShell` directly.
+ */
+export function cvPageShell(cv: CanonicalCv, css: string, body: string): string {
+  return pageShell(cvDocTitle(cv), css, body, cv.display.locale);
+}
+
 export function pageShell(
   title: string,
   css: string,

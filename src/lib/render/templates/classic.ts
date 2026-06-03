@@ -1,7 +1,7 @@
 import {
   commonCss,
+  cvPageShell,
   headerHtml,
-  pageShell,
   provenanceFooter,
   sectionsHtml,
 } from "./shared";
@@ -29,6 +29,6 @@ export const classicTemplate: CvTemplate = {
   render(cv, sections, theme) {
     const css = commonCss(theme) + classicCss(theme);
     const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}</div>`;
-    return pageShell(`${cv.owner.displayName || "CV"} — CV`, css, body);
+    return cvPageShell(cv, css, body);
   },
 };

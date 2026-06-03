@@ -1,4 +1,4 @@
-import { commonCss, headerHtml, pageShell, provenanceFooter, sectionsHtml } from "./shared";
+import { commonCss, cvPageShell, headerHtml, provenanceFooter, sectionsHtml } from "./shared";
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**
@@ -54,6 +54,6 @@ export const sidebarTemplate: CvTemplate = {
       cv,
       { photo: true },
     )}</aside><main class="cv-main">${sectionsHtml(sections)}${provenanceFooter(cv)}</main></div></div>`;
-    return pageShell(`${cv.owner.displayName || "CV"} — CV`, css, body);
+    return cvPageShell(cv, css, body);
   },
 };

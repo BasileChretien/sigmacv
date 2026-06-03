@@ -9,6 +9,13 @@ import type { OpenAlexWork } from "./types";
 export interface DerivedMetrics {
   /** Mean of per-work FWCI (a proxy — NOT OpenAlex's official author FWCI). */
   fwci_mean?: number;
+  /**
+   * Number of works that actually carried an FWCI value, i.e. the sample the
+   * mean was computed over. OpenAlex leaves FWCI null for recent/low-data works,
+   * so this is usually < total works. Surfaced next to the mean so a small-N
+   * average isn't read as a precise field-normalized score (Leiden principle 7).
+   */
+  fwci_n?: number;
   /** Fraction (0..1) of works in the top decile by field+year citations. */
   top10pct_share?: number;
 }
@@ -21,6 +28,7 @@ export function computeDerivedMetrics(works: OpenAlexWork[]): DerivedMetrics {
     .filter((x): x is number => typeof x === "number");
   if (fwcis.length > 0) {
     out.fwci_mean = fwcis.reduce((a, b) => a + b, 0) / fwcis.length;
+    out.fwci_n = fwcis.length;
   }
 
   // OpenAlex returns `cited_by_percentile_year` as a {min, max} RANGE (there is

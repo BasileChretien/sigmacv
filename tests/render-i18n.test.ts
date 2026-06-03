@@ -5,10 +5,12 @@ import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import {
   authorshipRoleLabel,
   metricContext,
+  metricCoverageNote,
   metricLabel,
   renderStrings,
 } from "@/lib/i18n/render";
 import { renderCvHtml } from "@/lib/render/html";
+import { cvDocTitle } from "@/lib/render/templates/shared";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -73,6 +75,35 @@ describe("renderStrings helpers", () => {
     expect(renderStrings("de-DE").cvFallbackTitle).toBe("Lebenslauf");
   });
 
+  it("removes the misleading 'field-normalised' claim from the 2-year metric", () => {
+    // It's a JIF-analogue, not field-normalized — honesty fix (anti-DORA).
+    expect(metricContext("en-US", "2yr_mean_citedness")).toContain(
+      "not field-normalised",
+    );
+    expect(metricContext("en-US", "2yr_mean_citedness")).not.toMatch(
+      /^field-normalised/,
+    );
+    // FWCI keeps its (correct) field-normalized context.
+    expect(metricContext("en-US", "fwci_mean")).toContain("world average");
+  });
+
+  it("builds a localized document title, falling back when no name is set", () => {
+    const cv = localizedCv("de-DE");
+    expect(cvDocTitle(cv)).toBe("Basile Chrétien — Lebenslauf");
+    const noName: CanonicalCv = { ...cv, owner: { ...cv.owner, displayName: "" } };
+    expect(cvDocTitle(noName)).toBe("Lebenslauf");
+    expect(cvDocTitle({ ...noName, display: { ...cv.display, locale: "ja-JP" } })).toBe(
+      "履歴書",
+    );
+  });
+
+  it("builds a localized FWCI coverage note and omits it for empty N", () => {
+    expect(metricCoverageNote("en-US", 73)).toBe("mean over 73 works with FWCI");
+    expect(metricCoverageNote("fr-FR", 5)).toBe("moyenne sur 5 travaux avec FWCI");
+    expect(metricCoverageNote("en-US", 0)).toBeUndefined();
+    expect(metricCoverageNote("en-US", undefined)).toBeUndefined();
+  });
+
   it("defines every rendered-CV string for all 10 locales", () => {
     expect(SUPPORTED_LOCALES).toHaveLength(10);
     for (const loc of SUPPORTED_LOCALES) {
@@ -86,6 +117,10 @@ describe("renderStrings helpers", () => {
 describe.skipIf(!hasApa)("rendered CV output is fully localized", () => {
   it("renders a French CV with French chart/metric/authorship/provenance strings", () => {
     const html = renderCvHtml(localizedCv("fr-FR"));
+    // The document declares its content locale (not a hardcoded en) so screen
+    // readers, hyphenation and crawlers treat it as French.
+    expect(html).toContain('<html lang="fr-FR">');
+    expect(html).not.toContain('<html lang="en">');
     expect(html).toContain("Publications / an"); // chart caption
     expect(html).toContain("Citations / an");
     expect(html).toContain("FWCI moyen des travaux"); // metric label
