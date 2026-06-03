@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
 import { enabledProviders } from "@/auth.config";
+import SupportLink from "@/components/SupportLink";
 
 export default async function Home() {
   const session = await auth();
@@ -94,6 +95,10 @@ export default async function Home() {
         public research metadata and never logs your choices without explicit
         consent.
       </p>
+
+      <div style={{ marginTop: "1.5rem" }}>
+        <SupportLink />
+      </div>
     </main>
   );
 }

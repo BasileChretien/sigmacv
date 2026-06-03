@@ -7,6 +7,7 @@ import AccountControls from "./AccountControls";
 import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
 import PublishControls from "./PublishControls";
+import SupportLink from "./SupportLink";
 
 type ExportFormat = "pdf" | "docx" | "latex" | "markdown" | "json";
 
@@ -185,6 +186,7 @@ export default function CvWorkspace({
           >
             {t(uiLocale, "exportLabel")}
           </button>
+          <SupportLink />
           <form action={signOutAction}>
             <button type="submit" className="btn">
               {t(uiLocale, "signOut")}
