@@ -617,6 +617,14 @@ input[type="radio"] {
 .section-block:hover {
   box-shadow: var(--shadow-sm);
 }
+/* A section hidden from the CV (Show unchecked) is dimmed + struck through. */
+.section-block.is-section-hidden {
+  opacity: 0.6;
+}
+.section-block.is-section-hidden .section-title {
+  text-decoration: line-through;
+  color: var(--muted);
+}
 .section-head {
   display: flex;
   align-items: center;
@@ -897,21 +905,21 @@ input[type="radio"] {
 /* ── Profile panel ───────────────────────────────────────────────────────── */
 .profile-top {
   grid-column: 1 / -1;
-  display: flex;
+  display: grid;
+  grid-template-columns: 7rem 1fr; /* photo column is independent → never overlaps the fields */
   gap: var(--space-4);
-  align-items: flex-start;
+  align-items: start;
 }
 .profile-photo-col {
-  width: 96px;
-  flex: none;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 .profile-photo-preview,
 .profile-photo-placeholder {
-  width: 96px;
-  height: 96px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   border-radius: var(--radius-md);
   object-fit: cover;
   background: var(--surface-2);
@@ -923,8 +931,13 @@ input[type="radio"] {
 }
 .profile-photo-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--space-1);
+}
+.profile-photo-actions .btn {
+  width: 100%;
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
 }
 .profile-photo-hint {
   font-size: var(--text-2xs);

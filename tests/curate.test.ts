@@ -7,6 +7,7 @@ import {
   moveItemTo,
   moveSection,
   moveSectionTo,
+  orderedSections,
   removeItem,
   renameSection,
   setItemIncluded,
@@ -17,6 +18,7 @@ import {
   visibleItems,
   visibleSections,
 } from "@/lib/canonical/curate";
+import type { CanonicalCv } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -231,6 +233,28 @@ describe("section ops + selectors", () => {
     expect(ordered.map((s) => s.order)).toEqual([0, 1]);
     // boundary no-op still holds
     expect(moveSection(cv, "publications", "up")).toEqual(cv);
+  });
+
+  it("orderedSections applies the canonical order at display time until customized", () => {
+    const cv = buildCanonicalCv({
+      id: "os",
+      resolved,
+      works,
+      now: "2026-06-02T00:00:00.000Z",
+      employments: [{ putCode: "1", organization: "Nagoya U", roleTitle: "AP", startYear: 2024 }],
+    });
+    // Simulate a stale stored doc: publications pinned first, not customized.
+    const stale: CanonicalCv = {
+      ...cv,
+      sections: cv.sections.map((s) =>
+        s.type === "publications" ? { ...s, order: -5 } : s,
+      ),
+    };
+    const ord = orderedSections(stale).map((s) => s.type);
+    expect(ord.indexOf("positions")).toBeLessThan(ord.indexOf("publications"));
+    // Once customized, the stored order wins.
+    const customized: CanonicalCv = { ...stale, display: { ...stale.display, sectionsCustomized: true } };
+    expect(orderedSections(customized)[0]!.type).toBe("publications");
   });
 
   it("marks sectionsCustomized once the user reorders a section", () => {

@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import {
   ACCENT_PRESETS,
+  AUTHORSHIP_ROLE_LABELS,
+  AUTHORSHIP_ROLES,
   DENSITIES,
   FONT_PAIRINGS,
   HIGHLIGHT_STYLES,
@@ -19,6 +21,7 @@ import {
   moveItemTo,
   moveSection,
   moveSectionTo,
+  orderedSections,
   removeItem,
   renameSection,
   setItemIncluded,
@@ -93,11 +96,10 @@ export default function CvEditor({
   availableStyles,
   onChange,
 }: CvEditorProps) {
-  const sections = [...cv.sections].sort((a, b) => a.order - b.order);
+  const sections = orderedSections(cv);
   const customStyle = cv.display.customStyle;
   const locale = asLocale(cv.display.locale);
 
-  const [styleInput, setStyleInput] = useState("");
   const [styleAdding, setStyleAdding] = useState(false);
   const [styleError, setStyleError] = useState("");
   // Draft text for the per-section "add entry" inputs, keyed by section type.
@@ -164,36 +166,31 @@ export default function CvEditor({
       ? customStyle.title
       : (STYLE_LABELS[s] ?? s);
 
-  async function addCustomStyle() {
-    const input = styleInput.trim();
-    if (!input || styleAdding) return;
+  // Resolve a style by id/name/URL (any Zotero/CSL style) and apply it.
+  async function resolveAndApplyStyle(input: string) {
+    const value = input.trim();
+    if (!value || styleAdding) return;
     setStyleAdding(true);
     setStyleError("");
     try {
       const res = await fetch("/api/cv/style/resolve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify({ input: value }),
       });
       const data = (await res.json().catch(() => ({}))) as
         | (CustomStyle & { error?: string })
         | { error?: string };
       if (!res.ok || !("xml" in data)) {
-        setStyleError(("error" in data && data.error) || "Could not add style.");
+        setStyleError(("error" in data && data.error) || "Could not load that style.");
         return;
       }
-      const resolved: CustomStyle = {
-        id: data.id,
-        title: data.title,
-        xml: data.xml,
-      };
       onChange(
         updateDisplay(cv, {
-          cslStyle: resolved.id,
-          customStyle: resolved,
+          cslStyle: data.id,
+          customStyle: { id: data.id, title: data.title, xml: data.xml },
         }),
       );
-      setStyleInput("");
     } catch {
       setStyleError("Network error — please try again.");
     } finally {
@@ -244,20 +241,47 @@ export default function CvEditor({
           </select>
         </label>
 
-        <label className="field">
+        <label className="field custom-style">
           <span>Citation style</span>
           <select
             value={cv.display.cslStyle}
-            onChange={(e) =>
-              onChange(updateDisplay(cv, { cslStyle: e.target.value }))
-            }
+            disabled={styleAdding}
+            aria-label="Citation style"
+            onChange={(e) => {
+              const v = e.target.value;
+              if (styleOptions.includes(v)) {
+                onChange(updateDisplay(cv, { cslStyle: v }));
+              } else {
+                void resolveAndApplyStyle(v); // a catalog style → resolve + apply
+              }
+            }}
           >
-            {styleOptions.map((s) => (
-              <option key={s} value={s}>
-                {styleLabel(s)}
-              </option>
-            ))}
+            <optgroup label="Your styles">
+              {styleOptions.map((s) => (
+                <option key={s} value={s}>
+                  {styleLabel(s)}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Journal & society styles">
+              {CSL_STYLE_CATALOG.filter((s) => !styleOptions.includes(s.id)).map(
+                (s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.title}
+                  </option>
+                ),
+              )}
+            </optgroup>
           </select>
+          {styleAdding ? (
+            <span className="muted custom-style-hint">Loading style…</span>
+          ) : styleError ? (
+            <span className="custom-style-error">{styleError}</span>
+          ) : (
+            <span className="muted custom-style-hint">
+              Pick any journal style — applied to every citation.
+            </span>
+          )}
         </label>
 
         <label className="field">
@@ -280,49 +304,6 @@ export default function CvEditor({
             <option value="citations">{t(locale, "sortCitations")}</option>
           </select>
         </label>
-
-        <div className="field custom-style">
-          <span>Use another journal style</span>
-          <div className="custom-style-row">
-            <input
-              type="text"
-              list="csl-style-catalog"
-              value={styleInput}
-              placeholder="Search a journal or style — e.g. Nature, Cell, BMJ…"
-              onChange={(e) => setStyleInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void addCustomStyle();
-                }
-              }}
-              aria-label="Search citation styles by journal name"
-              disabled={styleAdding}
-            />
-            <datalist id="csl-style-catalog">
-              {CSL_STYLE_CATALOG.map((s) => (
-                <option key={s.id} value={s.title} />
-              ))}
-            </datalist>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => void addCustomStyle()}
-              disabled={styleAdding || !styleInput.trim()}
-            >
-              {styleAdding ? "Adding…" : "Add"}
-            </button>
-          </div>
-          {styleError ? (
-            <span className="custom-style-error">{styleError}</span>
-          ) : (
-            <span className="muted custom-style-hint">
-              Start typing to search thousands of journal &amp; society styles,
-              then press <strong>Add</strong>. Once added, it appears in the
-              Citation style menu above.
-            </span>
-          )}
-        </div>
 
         <label className="field">
           <span>Font</span>
@@ -487,6 +468,40 @@ export default function CvEditor({
           </div>
         </div>
 
+        <div className="field metric-picker">
+          <span>Authorship summary table (peer-reviewed only)</span>
+          <div className="metric-options">
+            {AUTHORSHIP_ROLES.map((r) => {
+              const selected = cv.display.authorshipRoles.includes(r);
+              return (
+                <label key={r} className="field-inline">
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={() => {
+                      const set = new Set(cv.display.authorshipRoles);
+                      if (selected) set.delete(r);
+                      else set.add(r);
+                      const roles = [...set];
+                      onChange(
+                        updateDisplay(cv, {
+                          authorshipRoles: roles,
+                          showAuthorshipTable: roles.length > 0,
+                        }),
+                      );
+                    }}
+                  />
+                  <span>{AUTHORSHIP_ROLE_LABELS[r]}</span>
+                </label>
+              );
+            })}
+          </div>
+          <span className="muted metric-preset-note">
+            Adds a table counting how often you are first / last /
+            corresponding author, etc. Pre-prints are not counted.
+          </span>
+        </div>
+
         <label className="field-inline">
           <input
             type="checkbox"
@@ -554,7 +569,9 @@ export default function CvEditor({
         return (
           <div
             key={section.id}
-            className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}`}
+            className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}${
+              section.visible ? "" : " is-section-hidden"
+            }`}
           >
             <div
               className="section-head"

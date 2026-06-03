@@ -21,7 +21,14 @@
         "raw_author_name": "B. Chrétien"
       }
     ],
-    "primary_location": { "source": null },
+    "primary_location": {
+      "source": {
+        "id": "https://openalex.org/S456",
+        "display_name": "Drug Safety",
+        "issn_l": "0114-5916",
+        "type": "journal"
+      }
+    },
     "biblio": {
       "volume": null,
       "issue": null,

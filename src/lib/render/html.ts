@@ -28,7 +28,7 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
       `<span class="cv-badge cv-badge-role">${escapeHtml(item.meta.authorRole)}</span>`,
     );
   }
-  return badges.length ? ` ${badges.join("")}` : "";
+  return badges.length ? ` ${badges.join(" ")}` : "";
 }
 
 /**

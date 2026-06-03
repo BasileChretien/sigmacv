@@ -411,7 +411,9 @@ function buildEditorialSection(
 function isPreprint(work: OpenAlexWork): boolean {
   const type = (work.type ?? "").toLowerCase();
   if (type === "preprint" || type === "posted-content") return true;
-  return (work.primary_location?.source?.type ?? "").toLowerCase() === "repository";
+  if ((work.primary_location?.source?.type ?? "").toLowerCase() === "repository") return true;
+  // No published venue (journal/conference) → treat as a preprint/unpublished.
+  return !work.primary_location?.source?.display_name;
 }
 
 // OpenAlex `type` values that are NOT peer-reviewed scholarship.
@@ -551,7 +553,8 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const preprintIds = new Set<string>();
   const items: CvItem[] = works.map((work) => {
     const csl = workToCsl(work);
-    const selfAuth = (work.authorships ?? []).find(matches);
+    const selfIndex = (work.authorships ?? []).findIndex(matches);
+    const selfAuth = selfIndex >= 0 ? work.authorships![selfIndex] : undefined;
     const authoredBySelf = Boolean(selfAuth);
     if (isPreprint(work)) preprintIds.add(csl.id);
     // Match by id, else by DOI (id churn) to preserve hide / "not mine" decisions.
@@ -584,6 +587,10 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
             : undefined,
         authorRole: authorRoleLabel(selfAuth),
         authorCount: work.authorships?.length,
+        // 1-based position of the account holder among the authors (for the
+        // authorship-summary table) + corresponding flag.
+        authorPosition: authoredBySelf ? selfIndex + 1 : undefined,
+        isCorresponding: selfAuth?.is_corresponding === true ? true : undefined,
         peerReviewed: isPeerReviewed(work),
         reviewFlag: authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined,
       },

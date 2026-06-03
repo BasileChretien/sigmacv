@@ -318,7 +318,21 @@ export function visibleItems(section: CvSection) {
   return reindex(section.items.filter((it) => !isHidden(it)));
 }
 
-/** Sections that should appear, in order. */
+/**
+ * Sections in their effective display order. Until the user has manually
+ * reordered (sectionsCustomized), the canonical default order is applied at
+ * display time — so a stored doc built before the default existed still shows
+ * Positions/Education first WITHOUT needing a re-sync. Once customized, the
+ * user's stored order wins.
+ */
+export function orderedSections(cv: CanonicalCv): CvSection[] {
+  if (cv.display.sectionsCustomized) return sortByOrder(cv.sections);
+  return [...cv.sections].sort(
+    (a, b) => DEFAULT_SECTION_ORDER[a.type] - DEFAULT_SECTION_ORDER[b.type],
+  );
+}
+
+/** Visible sections that should appear, in effective display order. */
 export function visibleSections(cv: CanonicalCv): CvSection[] {
-  return sortByOrder(cv.sections).filter((s) => s.visible);
+  return orderedSections(cv).filter((s) => s.visible);
 }

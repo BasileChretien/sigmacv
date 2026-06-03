@@ -1,10 +1,28 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { authorshipCounts } from "../authorship";
 import { renderChartsHtml } from "../charts";
 import { escapeHtml, safeHref } from "../escape";
 import { formattedMetrics } from "../metrics";
 import type { RenderedSection, TemplateTheme } from "./types";
 
 export { escapeHtml };
+
+/**
+ * The optional authorship-summary table (counts of first/last/corresponding/…
+ * across peer-reviewed publications). "" when disabled or empty.
+ */
+export function authorshipTableHtml(cv: CanonicalCv): string {
+  if (!cv.display.showAuthorshipTable) return "";
+  const rows = authorshipCounts(cv, cv.display.authorshipRoles);
+  if (rows.length === 0) return "";
+  const body = rows
+    .map(
+      (r) =>
+        `<tr><td>${escapeHtml(r.label)}</td><td class="cv-authorship-n">${r.count}</td></tr>`,
+    )
+    .join("");
+  return `<table class="cv-authorship"><caption>Authorship (peer-reviewed)</caption><tbody>${body}</tbody></table>`;
+}
 
 /** A profile photo `<img>` (data URL), or "" if none. img-src data: is CSP-allowed. */
 export function photoHtml(cv: CanonicalCv): string {
@@ -137,10 +155,14 @@ export function commonCss(theme: TemplateTheme): string {
 
   .cv-self { ${theme.selfHighlightCss} }
 
-  .cv-badge { display: inline-block; font-size: 0.6rem; font-weight: 600; line-height: 1.4; padding: 0.05em 0.45em; border-radius: 999px; vertical-align: 0.1em; margin-left: 0.3em; letter-spacing: 0.03em; }
+  .cv-badge { display: inline-block; font-size: 0.6rem; font-weight: 600; line-height: 1.4; padding: 0.05em 0.5em; border-radius: 999px; vertical-align: 0.12em; margin-left: 0.45em; white-space: nowrap; letter-spacing: 0.03em; }
   .cv-badge-oa { color: #0e7066; background: #e7f4f1; border: 1px solid #bfe3dc; }
   .cv-badge-role { color: var(--cv-muted); background: #f2f3f5; border: 1px solid var(--cv-rule); text-transform: lowercase; }
 
+  .cv-authorship { border-collapse: collapse; margin-top: 0.9rem; font-size: 0.8rem; }
+  .cv-authorship caption { text-align: left; font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--cv-muted); margin-bottom: 0.3rem; }
+  .cv-authorship td { padding: 0.12rem 0.9rem 0.12rem 0; color: var(--cv-ink-2); }
+  .cv-authorship .cv-authorship-n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--cv-ink); padding-right: 0; }
   .cv-charts { display: flex; flex-wrap: wrap; gap: 1.6rem; margin-top: 0.9rem; }
   .cv-chart { margin: 0; }
   .cv-chart figcaption { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--cv-muted); margin-bottom: 0.25rem; }
@@ -193,7 +215,7 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
     : "";
   const photo = opts.photo ? photoHtml(cv) : "";
   const text = `<div class="cv-headtext"><h1>${name}</h1>${headline}${ids}${contactHtml(cv)}${metricsLine}</div>`;
-  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${renderChartsHtml(cv)}${summary}</header>`;
+  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${renderChartsHtml(cv)}${authorshipTableHtml(cv)}${summary}</header>`;
 }
 
 const SOURCE_LABEL: Record<string, string> = {

@@ -202,6 +202,7 @@ describe("buildCanonicalCv", () => {
         authorships: [
           { author: { id: "https://openalex.org/A5001069481" }, raw_author_name: "Self" },
         ],
+        primary_location: { source: { display_name: "Journal A", type: "journal" } },
       },
       {
         id: "https://openalex.org/W501",
@@ -211,6 +212,7 @@ describe("buildCanonicalCv", () => {
         authorships: [
           { author: { id: "https://openalex.org/A5001069481" }, raw_author_name: "Self" },
         ],
+        primary_location: { source: { display_name: "Journal A", type: "journal" } },
       },
     ] as unknown as OpenAlexWork[];
     const cv = buildCanonicalCv({

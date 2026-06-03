@@ -72,6 +72,31 @@ export const NOT_MINE_REASON_LABELS: Record<NotMineReason, string> = {
   other: "Other reason",
 };
 
+/**
+ * Authorship positions for the optional authorship-summary table (counts of how
+ * often the account holder is first/last/corresponding/etc. across PEER-REVIEWED
+ * publications — preprints excluded). The user chooses which rows to show.
+ */
+export const AUTHORSHIP_ROLES = [
+  "first",
+  "second",
+  "third",
+  "middle",
+  "second-last",
+  "last",
+  "corresponding",
+] as const;
+export type AuthorshipRole = (typeof AUTHORSHIP_ROLES)[number];
+export const AUTHORSHIP_ROLE_LABELS: Record<AuthorshipRole, string> = {
+  first: "First author",
+  second: "Second author",
+  third: "Third author",
+  middle: "Middle author",
+  "second-last": "Second-to-last author",
+  last: "Last author",
+  corresponding: "Corresponding author",
+};
+
 /** A single CV entry. For MVP these come from OpenAlex works. */
 export const CvItemSchema = z.object({
   /** Stable id — e.g. the OpenAlex short id "W2741809807", or "position:…". */
@@ -127,6 +152,10 @@ export const CvItemSchema = z.object({
     authorRole: z.string().optional(),
     /** Total number of authors on the work. */
     authorCount: z.number().int().optional(),
+    /** The account holder's 1-based position among the authors (authorship table). */
+    authorPosition: z.number().int().optional(),
+    /** Whether the account holder is a corresponding author on this work. */
+    isCorresponding: z.boolean().optional(),
     /**
      * Whether this citation is a peer-reviewed output (computed at build from the
      * work type + venue). false for preprints, datasets, editorials, etc. Drives
@@ -355,6 +384,10 @@ export const DisplayChoicesSchema = z.object({
    * Publications → …); afterwards the user's arrangement is preserved on re-sync.
    */
   sectionsCustomized: z.boolean().default(false),
+  /** Show the authorship-position summary table (counts of first/last/…). Default off. */
+  showAuthorshipTable: z.boolean().default(false),
+  /** Which authorship roles to include in that table (subset of AUTHORSHIP_ROLES). */
+  authorshipRoles: z.array(z.string()).default([]),
   /** Accent colour (validated hex). */
   accentColor: z.string().regex(HEX_COLOR).default("#1f4fd8"),
   fontPairing: z.enum(FONT_PAIRINGS).default("serif"),

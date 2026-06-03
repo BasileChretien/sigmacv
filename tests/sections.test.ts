@@ -406,6 +406,7 @@ describe("non-citation sections (positions + grants + editorial)", () => {
           },
         },
       ],
+      primary_location: { source: { display_name: "Some Journal", type: "journal" } },
     } as unknown as OpenAlexWork;
     const cv = buildCanonicalCv({
       id: "rf",
@@ -434,6 +435,7 @@ describe("non-citation sections (positions + grants + editorial)", () => {
           },
         },
       ],
+      primary_location: { source: { display_name: "Some Journal", type: "journal" } },
     } as unknown as OpenAlexWork;
     const cv = buildCanonicalCv({
       id: "rf2",

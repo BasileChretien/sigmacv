@@ -14,6 +14,7 @@ function atsCss(_theme: TemplateTheme): string {
   .cv { max-width: 720px; padding: 36px 44px; }
   /* Strip everything a résumé parser can't read. */
   .cv-photo, .cv-charts, .cv-badge { display: none !important; }
+  .cv-authorship { display: none !important; }
   .cv-headmain { display: block; }
   header.cv-header { margin-bottom: 1rem; border: 0; }
   header.cv-header h1 { font-size: 1.6rem; font-weight: bold; margin: 0 0 0.2rem; color: #000; letter-spacing: 0; }
