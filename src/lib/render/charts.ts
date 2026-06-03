@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { escapeHtml } from "./escape";
 
 /**
  * Tiny, dependency-free inline-SVG bar charts for the CV header — publications
@@ -18,12 +19,7 @@ const BAR_W = 12;
 const GAP = 4;
 const CHART_H = 64;
 
-function escapeXml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
+const escapeXml = escapeHtml;
 
 function barChart(title: string, points: Point[]): string {
   const max = Math.max(1, ...points.map((p) => p.value));

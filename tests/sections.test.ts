@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
+import { setItemNotMine } from "@/lib/canonical/curate";
 import { parseCanonicalCv } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { renderCvMarkdown } from "@/lib/render/markdown";
@@ -143,6 +144,32 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       "editorial",
       "grants",
     ]);
+  });
+
+  it("preserves a 'not mine' assertion across an OpenAlex id change (DOI-anchored)", () => {
+    const withDoi = baseWorks.find((w) => w.doi);
+    expect(withDoi).toBeDefined();
+    const first = buildCanonicalCv({
+      id: "x",
+      resolved,
+      works: [withDoi!],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const pubId = first.sections[0]!.items[0]!.id;
+    const asserted = setItemNotMine(first, "publications", pubId, true, "2026-06-02T00:00:00.000Z");
+
+    // OpenAlex re-issues the SAME work (same DOI) under a different id.
+    const churned = { ...withDoi!, id: `${withDoi!.id}-v2` };
+    const resynced = buildCanonicalCv({
+      id: "x",
+      resolved,
+      works: [churned],
+      now: "2026-07-01T00:00:00.000Z",
+      previous: asserted,
+    });
+    const item = resynced.sections[0]!.items[0]!;
+    expect(item.id).not.toBe(pubId); // id genuinely changed
+    expect(item.notMine).toBe(true); // …yet the correction survived
   });
 
   it.skipIf(!hasApa)("renders positions/grants/editorial displayText in Markdown", () => {

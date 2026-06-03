@@ -206,10 +206,22 @@ export const DisplayChoicesSchema = z.object({
 });
 export type DisplayChoices = z.infer<typeof DisplayChoicesSchema>;
 
+export const PROVENANCE_SOURCES = [
+  "openalex",
+  "orcid",
+  "oep",
+  "crossref",
+  "datacite",
+  "ror",
+  "derived",
+  "manual",
+] as const;
+
 export const ProvenanceSchema = z.object({
   generatedAt: z.string(),
   lastSyncedAt: z.string().optional(),
-  sources: z.array(z.literal("openalex")),
+  /** Data sources that contributed to this CV. Back-compat: old ["openalex"]. */
+  sources: z.array(z.enum(PROVENANCE_SOURCES)),
 });
 export type Provenance = z.infer<typeof ProvenanceSchema>;
 

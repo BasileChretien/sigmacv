@@ -148,12 +148,13 @@ function buildPositionsSection(
     const id = `position:openalex:${normInstitution(a.institution).replace(/[^a-z0-9]+/g, "-")}`;
     const yrs = yearRange(a.startYear, a.endYear);
     const text = yrs ? `${a.institution} ${yrs}` : a.institution;
-    const item = makeEntryItem(id, "openalex", "openalex", text, prevItems.get(id), rank++, a.startYear);
     // OpenAlex affiliations are inferred from papers and are NOISY (they include
-    // co-authors' institutions / spurious years). They're kept only as an opt-in
-    // suggestion: ALWAYS hidden on (re)build, so the CV shows just the accurate
-    // ORCID employments. Durable extra positions are added manually instead.
-    items.push({ ...item, included: false });
+    // co-authors' institutions / spurious years). They default to HIDDEN, but we
+    // respect a user who explicitly un-hid one (prev.included === true) so the
+    // choice survives re-sync. New ones start hidden.
+    const prev = prevItems.get(id);
+    const item = makeEntryItem(id, "openalex", "openalex", text, prev, rank++, a.startYear);
+    items.push({ ...item, included: prev?.included ?? false });
   }
   for (const m of manual) {
     items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
@@ -311,8 +312,17 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
 
   // Preserve prior per-item curation (included flag) and ordering on re-sync.
   const prevItems = new Map<string, CvItem>();
+  // Secondary index by DOI: OpenAlex occasionally changes a work's primary id
+  // (merges/splits). Anchoring on DOI too means a hidden / "not mine" decision
+  // survives id churn — a resurrected "not mine" would both mis-display the CV
+  // and corrupt the disambiguation dataset.
+  const prevByDoi = new Map<string, CvItem>();
   for (const s of previous?.sections ?? []) {
-    for (const it of s.items) prevItems.set(it.id, it);
+    for (const it of s.items) {
+      prevItems.set(it.id, it);
+      const doi = it.csl?.DOI ?? it.meta.doi;
+      if (doi) prevByDoi.set(doi.toLowerCase(), it);
+    }
   }
   // New works are appended AFTER everything the user already curated (newest
   // first, since `works` is recency-sorted) so a re-sync never reshuffles their
@@ -324,7 +334,10 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const items: CvItem[] = works.map((work) => {
     const csl = workToCsl(work);
     const authoredBySelf = (work.authorships ?? []).some(matches);
-    const prev = prevItems.get(csl.id);
+    // Match by id, else by DOI (id churn) to preserve hide / "not mine" decisions.
+    const prev =
+      prevItems.get(csl.id) ??
+      (csl.DOI ? prevByDoi.get(csl.DOI.toLowerCase()) : undefined);
     return {
       id: csl.id,
       source: "openalex",
@@ -390,6 +403,11 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     grantsSection ? mergeSection(grantsSection, previous) : null,
   ].filter((s): s is CvSection => s !== null);
 
+  // Provenance reflects the sources that actually contributed (always include
+  // openalex, the primary works source).
+  const usedSources = new Set<CvItem["source"]>(["openalex"]);
+  for (const s of sections) for (const it of s.items) usedSources.add(it.source);
+
   const display = previous?.display ?? DisplayChoicesSchema.parse({});
 
   const cv: CanonicalCv = {
@@ -408,7 +426,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     provenance: {
       generatedAt: previous?.provenance.generatedAt ?? now,
       lastSyncedAt: now,
-      sources: ["openalex"],
+      sources: [...usedSources],
     },
   };
 

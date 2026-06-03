@@ -1,4 +1,5 @@
 import { getEnv } from "@/lib/env";
+import { resilientFetch } from "@/lib/http";
 import { normalizeOrcid } from "@/lib/openalex/types";
 
 /**
@@ -47,7 +48,7 @@ async function getReadPublicToken(): Promise<string> {
   const key = `${env.ORCID_ENVIRONMENT}:${env.ORCID_CLIENT_ID}`;
   if (cachedToken?.key === key) return cachedToken.token;
 
-  const res = await fetch(bases().token, {
+  const res = await resilientFetch(bases().token, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -59,6 +60,7 @@ async function getReadPublicToken(): Promise<string> {
       grant_type: "client_credentials",
       scope: "/read-public",
     }),
+    timeoutMs: 12_000,
   });
   if (!res.ok) throw new Error(`ORCID token request failed (${res.status})`);
   const data = (await res.json()) as { access_token?: string };
@@ -70,9 +72,10 @@ async function getReadPublicToken(): Promise<string> {
 async function orcidGet<T>(orcid: string, path: string): Promise<T> {
   const token = await getReadPublicToken();
   const url = `${bases().pub}/${normalizeOrcid(orcid)}/${path}`;
-  const res = await fetch(url, {
+  const res = await resilientFetch(url, {
     headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
     next: { revalidate: 3600 },
+    timeoutMs: 12_000,
   });
   if (!res.ok) throw new Error(`ORCID ${path} request failed (${res.status})`);
   return (await res.json()) as T;

@@ -6,15 +6,9 @@ import {
   type CiteprocOutputFormat,
 } from "@/lib/citeproc/engine";
 import type { CslItem } from "@/types/csl";
+import { escapeHtml } from "./escape";
 
-function escapeHtmlText(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+const escapeHtmlText = escapeHtml;
 
 export interface PreparedItem {
   item: CvItem;

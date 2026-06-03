@@ -1,16 +1,10 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { renderChartsHtml } from "../charts";
+import { escapeHtml } from "../escape";
 import { formattedMetrics } from "../metrics";
 import type { RenderedSection, TemplateTheme } from "./types";
 
-export function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+export { escapeHtml };
 
 /**
  * Wrap template-specific CSS + body into a complete HTML document. The strict

@@ -1,4 +1,5 @@
 import { getEnv } from "@/lib/env";
+import { resilientFetch } from "@/lib/http";
 import {
   normalizeOrcid,
   shortId,
@@ -45,10 +46,16 @@ async function openAlexGet<T>(
   url.searchParams.set("mailto", getEnv().OPENALEX_MAILTO);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
+  const mailto = getEnv().OPENALEX_MAILTO;
+  const res = await resilientFetch(url, {
+    headers: {
+      Accept: "application/json",
+      // Polite-pool identification (in addition to the mailto query param).
+      "User-Agent": `SigmaCV (mailto:${mailto})`,
+    },
     // OpenAlex data changes slowly; let Next cache for an hour.
     next: { revalidate: 3600 },
+    timeoutMs: 15_000,
   });
   if (!res.ok) {
     throw new Error(
