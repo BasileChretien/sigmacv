@@ -2,9 +2,25 @@ import { describe, expect, it } from "vitest";
 import {
   CANONICAL_SCHEMA_VERSION,
   DisplayChoicesSchema,
+  migrateCanonicalDocument,
   parseCanonicalCv,
   safeParseCanonicalCv,
 } from "@/lib/canonical/schema";
+
+describe("migrateCanonicalDocument", () => {
+  it("passes a current (v1) document through unchanged", () => {
+    const doc = { schemaVersion: 1, id: "x" };
+    expect(migrateCanonicalDocument(doc)).toBe(doc);
+  });
+  it("returns non-object inputs unchanged", () => {
+    expect(migrateCanonicalDocument(null)).toBeNull();
+    expect(migrateCanonicalDocument("nope")).toBe("nope");
+  });
+  it("tolerates a missing schemaVersion (defaults to 1)", () => {
+    const doc = { id: "x" };
+    expect(migrateCanonicalDocument(doc)).toBe(doc);
+  });
+});
 
 const validCv = {
   schemaVersion: CANONICAL_SCHEMA_VERSION,

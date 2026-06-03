@@ -29,14 +29,22 @@ At your DNS provider, add records for the host you'll use (e.g. `cv.example.org`
 Wait until `dig +short cv.example.org` returns the IP (TLS won't issue until DNS resolves).
 
 ## 3. 🔑 Apply the database schema to Neon (one-time)
-Migrations aren't committed yet, so the schema is applied with `prisma db push`.
-If you're reusing the Neon DB from development the tables already exist — skip this.
-For a **fresh** Neon database, run **once from your laptop** (has Node + the repo):
+A baseline migration is committed at `prisma/migrations/0_init`, so the container
+entrypoint runs `prisma migrate deploy` on every start.
 
-```bash
-# DATABASE_URL = your prod Neon DIRECT endpoint, ?sslmode=require
-DATABASE_URL="postgresql://…neon.tech/neondb?sslmode=require" npx prisma db push
-```
+- **Fresh Neon database:** nothing to do here — `migrate deploy` creates the
+  schema on first boot. (Or run it yourself once: `DATABASE_URL="…" npx prisma migrate deploy`.)
+- **Reusing a DB whose tables already exist** (e.g. created earlier with
+  `db push`): mark the baseline as already-applied ONCE so `migrate deploy`
+  doesn't try to recreate the tables:
+
+  ```bash
+  DATABASE_URL="postgresql://…neon.tech/neondb?sslmode=require" \
+    npx prisma migrate resolve --applied 0_init
+  ```
+
+Future schema changes: `npx prisma migrate dev --name <change>` locally, commit
+the new folder under `prisma/migrations/`, and `migrate deploy` applies it on deploy.
 
 ## 4. Install Docker on the server
 SSH in (`ssh root@SERVER_IP`), then:

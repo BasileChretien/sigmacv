@@ -252,13 +252,31 @@ export const CanonicalCvSchema = z.object({
 export type CanonicalCv = z.infer<typeof CanonicalCvSchema>;
 
 /**
+ * Upgrade a stored document to the current schema version BEFORE validation.
+ * Today schemaVersion === 1, so this is a pass-through — but it is the single
+ * place a future v1→v2→… migration chain lives. Routing every read through it
+ * means a version bump never silently nulls every stored CV (the failure mode
+ * if validation simply rejected an old shape). New FIELDS don't need a bump
+ * (Zod `.optional()`/`.default()` + enum-extension stay back-compatible); only
+ * breaking/structural changes do.
+ */
+export function migrateCanonicalDocument(input: unknown): unknown {
+  if (!input || typeof input !== "object") return input;
+  const doc = input as Record<string, unknown>;
+  let version = typeof doc.schemaVersion === "number" ? doc.schemaVersion : 1;
+  // while (version < CANONICAL_SCHEMA_VERSION) { …migrate one step…; version++ }
+  void version; // no migration steps yet (current version is 1)
+  return doc;
+}
+
+/**
  * Parse + validate an unknown value (e.g. a row from Postgres JSON) into a
  * CanonicalCv. Throws ZodError on invalid input — callers handle it.
  */
 export function parseCanonicalCv(input: unknown): CanonicalCv {
-  return CanonicalCvSchema.parse(input);
+  return CanonicalCvSchema.parse(migrateCanonicalDocument(input));
 }
 
 export function safeParseCanonicalCv(input: unknown) {
-  return CanonicalCvSchema.safeParse(input);
+  return CanonicalCvSchema.safeParse(migrateCanonicalDocument(input));
 }
