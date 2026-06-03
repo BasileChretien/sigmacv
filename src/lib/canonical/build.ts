@@ -638,11 +638,22 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       : null;
 
   const positionsSection = buildPositionsSection(
-    [...(args.employments ?? []), ...(args.invitedPositions ?? [])],
+    args.employments ?? [],
     resolved.affiliations ?? [],
     prevItems,
     previousManualItems(previous, "positions"),
   );
+  // ORCID "invited positions" are visiting/invited roles & talks — surfaced as a
+  // dedicated Invited Talks section (a CV staple) rather than buried in Positions.
+  const talksSection = buildOrcidEntrySection(args.invitedPositions ?? [], {
+    id: "talks",
+    type: "talks",
+    title: "Invited Talks",
+    order: DEFAULT_SECTION_ORDER.talks,
+    idPrefix: "talk",
+    prevItems,
+    manual: previousManualItems(previous, "talks"),
+  });
   const educationSection = buildOrcidEntrySection(args.education ?? [], {
     id: "education",
     type: "education",
@@ -700,6 +711,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     positionsSection ? mergeSection(positionsSection, previous) : null,
     educationSection ? mergeSection(educationSection, previous) : null,
     awardsSection ? mergeSection(awardsSection, previous) : null,
+    talksSection ? mergeSection(talksSection, previous) : null,
     serviceSection ? mergeSection(serviceSection, previous) : null,
     peerReviewSection ? mergeSection(peerReviewSection, previous) : null,
     editorialSection ? mergeSection(editorialSection, previous) : null,

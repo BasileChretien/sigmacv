@@ -277,6 +277,25 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 /**
+ * Localized "last synced" date. Formatted in UTC (the timestamp is UTC-stored)
+ * so the displayed day never shifts with the render machine's timezone; falls
+ * back to the raw ISO date if the value can't be parsed.
+ */
+function formatSyncDate(iso: string | undefined, locale: string): string | undefined {
+  if (!iso) return undefined;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: "medium",
+      timeZone: "UTC",
+    }).format(d);
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
+
+/**
  * A small data-provenance footer — what sources built this CV, when it synced,
  * and how much the user curated. Core to "responsible, auditable" CVs.
  */
@@ -293,7 +312,7 @@ export function provenanceFooter(cv: CanonicalCv): string {
   const items = cv.sections.flatMap((sec) => sec.items);
   const hidden = items.filter((i) => !i.included).length;
   const corrected = items.filter((i) => i.notMine).length;
-  const synced = cv.provenance.lastSyncedAt?.slice(0, 10);
+  const synced = formatSyncDate(cv.provenance.lastSyncedAt, cv.display.locale);
   const sources = cv.provenance.sources.map(localizedSource).join(", ");
   const parts = [`${s.provGeneratedFrom} ${escapeHtml(sources)}`];
   if (synced) parts.push(`${s.provOn} ${escapeHtml(synced)}`);

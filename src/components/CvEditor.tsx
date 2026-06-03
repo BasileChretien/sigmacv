@@ -441,7 +441,9 @@ export default function CvEditor({
               >;
               const raw = values[m.key];
               const value =
-                typeof raw === "number" ? formatMetricValue(m.key, raw) : null;
+                typeof raw === "number"
+                  ? formatMetricValue(m.key, raw, cvLocale)
+                  : null;
               const note = value ? ` — ${value}` : ` ${u.metricNoData}`;
               return (
                 <label key={m.key} className="field-inline">

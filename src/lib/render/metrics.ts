@@ -34,9 +34,15 @@ export interface FormattedMetric {
   context?: string;
 }
 
-function formatValue(format: string, raw: number): string {
-  if (format === "integer") return String(raw);
-  return raw.toFixed(1); // decimal
+function formatValue(format: string, raw: number, locale: string): string {
+  // Locale-aware so the value's decimal/grouping separators match the language
+  // the rest of the CV (incl. the metric label/context) is already rendered in
+  // — e.g. German "1,0" / "1.485" rather than a hardcoded "1.0" / "1485".
+  if (format === "integer") return new Intl.NumberFormat(locale).format(raw);
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(raw);
 }
 
 /**
@@ -57,9 +63,9 @@ function contextFor(
 }
 
 /** Format a raw metric value using its catalog format (for the editor preview). */
-export function formatMetricValue(key: string, raw: number): string {
+export function formatMetricValue(key: string, raw: number, locale = "en-US"): string {
   const def = METRIC_DEFS.find((d) => d.key === key);
-  return formatValue(def?.format ?? "decimal", raw);
+  return formatValue(def?.format ?? "decimal", raw, locale);
 }
 
 /**
@@ -80,7 +86,7 @@ export function formattedMetrics(cv: CanonicalCv): FormattedMetric[] {
       return {
         key: def.key,
         label: metricLabel(locale, def.key),
-        value: formatValue(def.format, raw),
+        value: formatValue(def.format, raw, locale),
         context: contextFor(locale, def.key, values),
       };
     })

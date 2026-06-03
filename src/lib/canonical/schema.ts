@@ -22,6 +22,7 @@ export const SECTION_TYPES = [
   "positions",
   "education",
   "awards",
+  "talks",
   "service",
   "peer-review",
   "editorial",
@@ -45,11 +46,12 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
   datasets: 4,
   grants: 5,
   awards: 6,
-  editorial: 7,
-  "peer-review": 8,
-  service: 9,
-  skills: 10,
-  other: 11,
+  talks: 7,
+  editorial: 8,
+  "peer-review": 9,
+  service: 10,
+  skills: 11,
+  other: 12,
 };
 
 /**

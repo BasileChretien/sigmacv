@@ -341,7 +341,7 @@ describe("manual entries (add / edit / remove)", () => {
     const skills = cv.sections.find((s) => s.type === "skills")!;
     expect(skills).toBeDefined();
     expect(skills.title).toBe("Skills"); // en-US default
-    expect(skills.order).toBe(10); // DEFAULT_SECTION_ORDER.skills
+    expect(skills.order).toBe(11); // DEFAULT_SECTION_ORDER.skills
     expect(skills.items[0]!.displayText).toBe("Python, R, statistics");
   });
 

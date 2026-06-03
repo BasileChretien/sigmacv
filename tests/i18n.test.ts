@@ -102,6 +102,7 @@ describe("full coverage of all 10 supported locales", () => {
     "positions",
     "education",
     "awards",
+    "talks",
     "service",
     "peer-review",
     "editorial",

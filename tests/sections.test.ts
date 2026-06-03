@@ -147,7 +147,7 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     ]);
   });
 
-  it("builds Education, Awards, Service, Peer-review sections + merges invited positions", () => {
+  it("builds Education, Awards, Service, Peer-review + a dedicated Invited Talks section", () => {
     const cv = buildCanonicalCv({
       id: "orc",
       resolved,
@@ -183,12 +183,18 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(byType("service")!.items[0]!.displayText).toBe(
       "Committee Member, ISoP (2022–present)",
     );
-    // Invited position is merged into Positions.
+    // Invited positions get their own "Invited Talks" section (not merged into
+    // Positions), so visiting/invited roles aren't buried under employment.
     expect(
-      byType("positions")!.items.some((i) =>
+      byType("talks")!.items.some((i) =>
         i.displayText?.includes("Visiting Scholar, Harvard (2019–2020)"),
       ),
     ).toBe(true);
+    expect(
+      byType("positions")?.items.some((i) =>
+        i.displayText?.includes("Visiting Scholar"),
+      ) ?? false,
+    ).toBe(false);
     // Peer review: singular vs plural.
     const pr = byType("peer-review")!.items.map((i) => i.displayText);
     expect(pr).toContain("BMJ — 5 reviews");

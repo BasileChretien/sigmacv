@@ -336,6 +336,22 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(html).toContain("1 hidden");
     });
 
+    it("localizes the sync date and falls back gracefully on a bad timestamp", () => {
+      const cv = makeCv();
+      // Valid ISO → localized medium date (en-US): "Jun 2, 2026".
+      const good = renderCvHtml({
+        ...cv,
+        provenance: { ...cv.provenance, lastSyncedAt: "2026-06-02T00:00:00.000Z" },
+      });
+      expect(good).toContain("Jun 2, 2026");
+      // Unparseable timestamp → falls back to the raw leading characters, never throws.
+      const bad = renderCvHtml({
+        ...cv,
+        provenance: { ...cv.provenance, lastSyncedAt: "not-a-date" },
+      });
+      expect(bad).toContain('class="cv-provenance"');
+    });
+
     it("omits the provenance footer when disabled", () => {
       const cv = makeCv();
       const html = renderCvHtml({
