@@ -28,7 +28,18 @@ const customStyleCache = new Map<string, string>();
 const localeCache = new Map<string, string>();
 
 /** Vendored CSL locales the app ships (drives citation terms + date formats). */
-export const BUNDLED_LOCALES = ["en-US", "fr-FR", "ja-JP"] as const;
+export const BUNDLED_LOCALES = [
+  "en-US",
+  "zh-CN",
+  "es-ES",
+  "fr-FR",
+  "de-DE",
+  "ja-JP",
+  "pt-BR",
+  "it-IT",
+  "ko-KR",
+  "ru-RU",
+] as const;
 
 /**
  * Map a requested language tag (citeproc may ask for "fr-FR", "fr", "ja", …) to
@@ -91,7 +102,7 @@ export function registerStyleXml(id: string, xml: string): void {
 
 /**
  * Return locale XML for a requested language tag. Maps to the nearest bundled
- * locale (en-US / fr-FR / ja-JP); unknown tags fall back to en-US. citeproc may
+ * locale by primary subtag; unknown tags fall back to en-US. citeproc may
  * request "en-US", "fr", "ja", etc. Cached per resolved locale.
  */
 export function getLocaleXml(lang?: string): string {

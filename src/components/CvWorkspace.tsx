@@ -7,6 +7,7 @@ import AccountControls from "./AccountControls";
 import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
 import PublishControls from "./PublishControls";
+import ResearchConsentPrompt from "./ResearchConsentPrompt";
 import SupportLink from "./SupportLink";
 
 type ExportFormat = "pdf" | "docx" | "latex" | "markdown" | "json";
@@ -135,6 +136,7 @@ export default function CvWorkspace({
 
   return (
     <div className="cv-page">
+      <ResearchConsentPrompt initialConsent={researchConsent} />
       <header className="cv-topbar">
         <div className="cv-topbar-left">
           <strong>SigmaCV</strong>

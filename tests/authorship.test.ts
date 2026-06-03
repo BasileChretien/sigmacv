@@ -109,6 +109,14 @@ describe("authorshipTableHtml", () => {
     const cv = updateDisplay(base, { showAuthorshipTable: true, authorshipRoles: [] });
     expect(authorshipTableHtml(cv)).toBe("");
   });
+  it("renders nothing when every chosen role count is zero (stale/empty data)", () => {
+    // base has a 1st author (Wa) and a 3rd-of-3 author (Wb); nobody is "second".
+    const cv = updateDisplay(base, {
+      showAuthorshipTable: true,
+      authorshipRoles: ["second"],
+    });
+    expect(authorshipTableHtml(cv)).toBe("");
+  });
   it("renders a table with the chosen roles when enabled", () => {
     const cv = updateDisplay(base, {
       showAuthorshipTable: true,

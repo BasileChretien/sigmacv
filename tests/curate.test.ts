@@ -12,6 +12,7 @@ import {
   renameSection,
   setItemIncluded,
   setItemNotMine,
+  setLocale,
   setSectionVisible,
   updateDisplay,
   updateItemText,
@@ -233,6 +234,25 @@ describe("section ops + selectors", () => {
     expect(ordered.map((s) => s.order)).toEqual([0, 1]);
     // boundary no-op still holds
     expect(moveSection(cv, "publications", "up")).toEqual(cv);
+  });
+
+  it("setLocale re-localizes default section headings but preserves user renames", () => {
+    const cv = makeCv();
+    expect(cv.sections.find((s) => s.type === "publications")!.title).toBe(
+      "Publications",
+    );
+    // Default heading → re-localized to the chosen language.
+    const de = setLocale(cv, "de-DE");
+    expect(de.display.locale).toBe("de-DE");
+    expect(de.sections.find((s) => s.type === "publications")!.title).toBe(
+      "Publikationen",
+    );
+    // A heading the user renamed is never clobbered by a language switch.
+    const renamed = renameSection(cv, SECTION, "My Selected Papers");
+    const deRenamed = setLocale(renamed, "de-DE");
+    expect(deRenamed.sections.find((s) => s.type === "publications")!.title).toBe(
+      "My Selected Papers",
+    );
   });
 
   it("orderedSections applies the canonical order at display time until customized", () => {

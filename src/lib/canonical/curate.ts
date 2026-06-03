@@ -9,7 +9,7 @@ import {
   type DisplayChoices,
   type NotMineReason,
 } from "./schema";
-import { sectionTitle } from "@/lib/i18n";
+import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 
 /**
  * Pure, immutable curation operations on the canonical CV object.
@@ -193,6 +193,25 @@ export function updateDisplay(
   patch: Partial<DisplayChoices>,
 ): CanonicalCv {
   return { ...cv, display: { ...cv.display, ...patch } };
+}
+
+/**
+ * Switch the document language. Beyond setting `display.locale` (which drives
+ * citeproc's citation language), this RE-LOCALIZES every section heading that
+ * still holds its default title — so changing the language immediately changes
+ * the visible section titles in the rendered CV, not just the editor chrome.
+ * Headings the user deliberately renamed are left untouched.
+ */
+export function setLocale(cv: CanonicalCv, locale: string): CanonicalCv {
+  return {
+    ...cv,
+    display: { ...cv.display, locale },
+    sections: cv.sections.map((s) =>
+      isDefaultSectionTitle(s.type, s.title)
+        ? { ...s, title: sectionTitle(locale, s.type) }
+        : s,
+    ),
+  };
 }
 
 /**

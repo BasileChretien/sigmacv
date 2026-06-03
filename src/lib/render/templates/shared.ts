@@ -15,6 +15,9 @@ export function authorshipTableHtml(cv: CanonicalCv): string {
   if (!cv.display.showAuthorshipTable) return "";
   const rows = authorshipCounts(cv, cv.display.authorshipRoles);
   if (rows.length === 0) return "";
+  // An all-zero table is noise in the final document (typically stale data with
+  // no author positions yet) — omit it rather than print a column of zeros.
+  if (rows.every((r) => r.count === 0)) return "";
   const body = rows
     .map(
       (r) =>
@@ -163,10 +166,14 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-authorship caption { text-align: left; font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--cv-muted); margin-bottom: 0.3rem; }
   .cv-authorship td { padding: 0.12rem 0.9rem 0.12rem 0; color: var(--cv-ink-2); }
   .cv-authorship .cv-authorship-n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--cv-ink); padding-right: 0; }
-  .cv-charts { display: flex; flex-wrap: wrap; gap: 1.6rem; margin-top: 0.9rem; }
+  /* Charts sit in a guaranteed light card so the accent-coloured bars stay
+     visible on EVERY template — including ones with a coloured header/sidebar
+     (where accent bars would otherwise vanish into an accent background). */
+  .cv-charts { display: inline-flex; flex-wrap: wrap; gap: 1.2rem 1.6rem; margin-top: 0.9rem; padding: 0.7rem 0.95rem; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; max-width: 100%; }
   .cv-chart { margin: 0; }
-  .cv-chart figcaption { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--cv-muted); margin-bottom: 0.25rem; }
+  .cv-chart figcaption { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #374151; margin-bottom: 0.25rem; }
   .cv-chart svg { display: block; }
+  .cv-chart rect { stroke: rgba(0, 0, 0, 0.12); stroke-width: 0.5; }
 
   .cv-provenance { margin-top: 2.2rem; padding-top: 0.7rem; border-top: 1px solid var(--cv-rule); font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
   a { color: inherit; }

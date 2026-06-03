@@ -23,8 +23,12 @@ export function computeDerivedMetrics(works: OpenAlexWork[]): DerivedMetrics {
     out.fwci_mean = fwcis.reduce((a, b) => a + b, 0) / fwcis.length;
   }
 
+  // OpenAlex returns `cited_by_percentile_year` as a {min, max} RANGE (there is
+  // no `.value` field), e.g. {min: 91, max: 92}. Read the midpoint of the range,
+  // falling back to `.value` if a caller supplies it. A work is "top-10%" when
+  // its citation percentile for its field+year is ≥ 90.
   const percentiles = works
-    .map((w) => w.cited_by_percentile_year?.value)
+    .map((w) => percentileOf(w.cited_by_percentile_year))
     .filter((x): x is number => typeof x === "number");
   if (percentiles.length > 0) {
     out.top10pct_share =
@@ -32,4 +36,18 @@ export function computeDerivedMetrics(works: OpenAlexWork[]): DerivedMetrics {
   }
 
   return out;
+}
+
+/** Resolve a single percentile (0–100) from OpenAlex's range/value shape. */
+function percentileOf(
+  p: { min?: number; max?: number; value?: number } | null | undefined,
+): number | undefined {
+  if (!p) return undefined;
+  if (typeof p.value === "number") return p.value;
+  if (typeof p.min === "number" && typeof p.max === "number") {
+    return (p.min + p.max) / 2;
+  }
+  if (typeof p.min === "number") return p.min;
+  if (typeof p.max === "number") return p.max;
+  return undefined;
 }

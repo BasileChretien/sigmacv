@@ -26,6 +26,7 @@ import {
   renameSection,
   setItemIncluded,
   setItemNotMine,
+  setLocale,
   setSectionVisible,
   updateDisplay,
   updateItemText,
@@ -99,6 +100,22 @@ export default function CvEditor({
   const sections = orderedSections(cv);
   const customStyle = cv.display.customStyle;
   const locale = asLocale(cv.display.locale);
+
+  // The authorship table needs per-work author positions, which only exist on
+  // freshly-synced data. If the table is on but any peer-reviewed own work lacks
+  // a position, the counts will read 0 — prompt a re-sync rather than show zeros.
+  const authorshipNeedsResync =
+    cv.display.showAuthorshipTable &&
+    cv.sections.some((s) =>
+      s.items.some(
+        (i) =>
+          i.authoredBySelf &&
+          i.included &&
+          !i.notMine &&
+          i.meta.peerReviewed !== false &&
+          i.meta.authorPosition === undefined,
+      ),
+    );
 
   const [styleAdding, setStyleAdding] = useState(false);
   const [styleError, setStyleError] = useState("");
@@ -228,9 +245,7 @@ export default function CvEditor({
           <span>{t(locale, "language")}</span>
           <select
             value={locale}
-            onChange={(e) =>
-              onChange(updateDisplay(cv, { locale: e.target.value }))
-            }
+            onChange={(e) => onChange(setLocale(cv, e.target.value))}
             aria-label={t(locale, "language")}
           >
             {SUPPORTED_LOCALES.map((loc) => (
@@ -500,6 +515,13 @@ export default function CvEditor({
             Adds a table counting how often you are first / last /
             corresponding author, etc. Pre-prints are not counted.
           </span>
+          {authorshipNeedsResync ? (
+            <span className="metric-preset-note authorship-resync-note">
+              ⚠ These counts are empty for your existing publications. Click{" "}
+              <strong>Re-sync</strong> (top right) to pull author positions from
+              OpenAlex.
+            </span>
+          ) : null}
         </div>
 
         <label className="field-inline">
