@@ -472,16 +472,31 @@ function authorRoleLabel(a: OpenAlexAuthorship | undefined): string | undefined 
 }
 
 /** Build the identifier matcher for the account holder. */
+/** How an authorship matched the account holder — the crux signal for the
+ *  author-disambiguation-error study (an ORCID match is far stronger than an
+ *  OpenAlex-author-id match). null = no match. */
+export type MatchBasis = "orcid" | "openalex-id" | "both";
+
 function makeSelfMatcher(resolved: ResolvedAuthor) {
   const selfOrcid = normalizeOrcid(resolved.orcid);
   const selfAuthorIds = new Set(resolved.authorIds.map(shortId).filter(Boolean));
 
-  return function matches(a: OpenAlexAuthorship): boolean {
+  function basisFor(a: OpenAlexAuthorship): MatchBasis | null {
     const aid = shortId(a.author?.id);
-    if (aid && selfAuthorIds.has(aid)) return true;
+    const byId = !!(aid && selfAuthorIds.has(aid));
     const ao = normalizeOrcid(a.author?.orcid);
-    return !!ao && ao === selfOrcid;
-  };
+    const byOrcid = !!ao && ao === selfOrcid;
+    if (byId && byOrcid) return "both";
+    if (byOrcid) return "orcid";
+    if (byId) return "openalex-id";
+    return null;
+  }
+
+  function matches(a: OpenAlexAuthorship): boolean {
+    return basisFor(a) !== null;
+  }
+
+  return { matches, basisFor };
 }
 
 /** Self name(s) exactly as printed on this work (from matched authorships). */
@@ -525,7 +540,7 @@ function byRecency(a: OpenAlexWork, b: OpenAlexWork): number {
 
 export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const { id, resolved, now, previous } = args;
-  const matches = makeSelfMatcher(resolved);
+  const { matches, basisFor } = makeSelfMatcher(resolved);
   const ownerOrcid = normalizeOrcid(resolved.orcid);
   const works = dedupeWorks(args.works).sort(byRecency);
 
@@ -591,6 +606,9 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
         // authorship-summary table) + corresponding flag.
         authorPosition: authoredBySelf ? selfIndex + 1 : undefined,
         isCorresponding: selfAuth?.is_corresponding === true ? true : undefined,
+        // Which identifier made the self-match (ORCID > OpenAlex id). Recorded so
+        // the disambiguation-error study can stratify errors by match strength.
+        matchBasis: selfAuth ? (basisFor(selfAuth) ?? undefined) : undefined,
         peerReviewed: isPeerReviewed(work),
         reviewFlag: authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined,
       },

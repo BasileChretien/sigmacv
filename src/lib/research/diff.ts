@@ -68,6 +68,8 @@ export interface NotMineAssertion {
   reason?: string;
   /** The disambiguation hint the build computed, if any (e.g. "orcid-conflict"). */
   reviewFlag?: string;
+  /** How the (now-disputed) self-match was made: "orcid" | "openalex-id" | "both". */
+  matchBasis?: string;
   meta: {
     year?: number;
     type?: string;
@@ -103,6 +105,7 @@ export function diffNotMineChanges(
         assertedAt: it.notMineAssertedAt,
         reason: it.notMineReason,
         reviewFlag: it.meta.reviewFlag,
+        matchBasis: it.meta.matchBasis,
         meta: { year: it.meta.year, type: it.meta.type, doi: it.meta.doi },
       });
     }
@@ -113,16 +116,29 @@ export function diffNotMineChanges(
 export interface CompositionSnapshot {
   template: string;
   cslStyle: string;
+  /** CV content language (a self-presentation choice in its own right). */
+  locale: string;
   highlightSelf: boolean;
   showMetrics: boolean;
   /** Which metric keys the user chose to display (for the metric-norms study). */
   metricsShown: string[];
+  /** Show only peer-reviewed publications (drops preprints from the main list). */
+  peerReviewedOnly: boolean;
+  /** Sort order applied to publications (citations / year / custom). */
+  publicationOrder: string;
+  /** Whether the authorship-position summary table is shown, and which roles. */
+  showAuthorshipTable: boolean;
+  authorshipRoles: string[];
+  /** Whether the per-year publication/citation charts are shown. */
+  showCharts: boolean;
   fontPairing: string;
   density: string;
   accentColor: string;
   sections: Array<{
     type: string;
     visible: boolean;
+    /** Display order (a first-class self-presentation choice). */
+    order: number;
     itemCount: number;
     includedCount: number;
   }>;
@@ -133,15 +149,22 @@ export function compositionSnapshot(cv: CanonicalCv): CompositionSnapshot {
   return {
     template: cv.display.template,
     cslStyle: cv.display.cslStyle,
+    locale: cv.display.locale,
     highlightSelf: cv.display.highlightSelf,
     showMetrics: cv.display.showMetrics,
     metricsShown: cv.display.metrics,
+    peerReviewedOnly: cv.display.peerReviewedOnly,
+    publicationOrder: cv.display.publicationOrder,
+    showAuthorshipTable: cv.display.showAuthorshipTable,
+    authorshipRoles: cv.display.authorshipRoles,
+    showCharts: cv.display.showCharts,
     fontPairing: cv.display.fontPairing,
     density: cv.display.density,
     accentColor: cv.display.accentColor,
     sections: cv.sections.map((s) => ({
       type: s.type,
       visible: s.visible,
+      order: s.order,
       itemCount: s.items.length,
       includedCount: s.items.filter((i) => i.included).length,
     })),

@@ -165,6 +165,12 @@ export const CvItemSchema = z.object({
     /** Whether the account holder is a corresponding author on this work. */
     isCorresponding: z.boolean().optional(),
     /**
+     * Which identifier matched the account holder on this work: "orcid" (strong),
+     * "openalex-id", or "both". Recorded so the disambiguation-error study can
+     * stratify "not mine" assertions by how the (possibly wrong) match was made.
+     */
+    matchBasis: z.enum(["orcid", "openalex-id", "both"]).optional(),
+    /**
      * Whether this citation is a peer-reviewed output (computed at build from the
      * work type + venue). false for preprints, datasets, editorials, etc. Drives
      * the "peer-reviewed only" display filter. Undefined for non-citation items.

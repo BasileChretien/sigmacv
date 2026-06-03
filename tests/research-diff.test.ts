@@ -105,9 +105,19 @@ describe("compositionSnapshot", () => {
     const snap = compositionSnapshot(makeCv());
     expect(snap.cslStyle).toBe("apa");
     expect(snap.template).toBe("classic");
+    // Self-presentation choices the metric-norms study needs (paper #3).
+    expect(snap).toMatchObject({
+      locale: "en-US",
+      peerReviewedOnly: expect.any(Boolean),
+      publicationOrder: expect.any(String),
+      showAuthorshipTable: expect.any(Boolean),
+      authorshipRoles: expect.any(Array),
+      showCharts: expect.any(Boolean),
+    });
     expect(snap.sections[0]).toMatchObject({
       type: "publications",
       visible: true,
+      order: expect.any(Number),
       itemCount: 3,
       includedCount: 3,
     });
