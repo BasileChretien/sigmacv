@@ -13,6 +13,7 @@ Object.assign(process.env, {
 
 const mocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
+  findMany: vi.fn(),
   upsert: vi.fn(),
   update: vi.fn(),
   fetchWorks: vi.fn(),
@@ -25,7 +26,12 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    cv: { findUnique: mocks.findUnique, upsert: mocks.upsert, update: mocks.update },
+    cv: {
+      findUnique: mocks.findUnique,
+      findMany: mocks.findMany,
+      upsert: mocks.upsert,
+      update: mocks.update,
+    },
   },
 }));
 vi.mock("@/lib/openalex/client", () => ({ fetchWorksByAuthorIds: mocks.fetchWorks }));
@@ -56,7 +62,9 @@ import {
   CvNotFoundError,
   getCvForUser,
   getPublicCv,
+  getPublicCvForPage,
   getPublishState,
+  listIndexablePublicSlugs,
   saveCvForUser,
   setPublishState,
   syncCvForUser,
@@ -141,21 +149,71 @@ describe("saveCvForUser", () => {
 describe("publish state", () => {
   it("reports defaults when no row exists", async () => {
     mocks.findUnique.mockResolvedValue(null);
-    expect(await getPublishState("u1")).toEqual({ published: false, publicSlug: null });
+    expect(await getPublishState("u1")).toEqual({
+      published: false,
+      publicSlug: null,
+      indexable: false,
+    });
   });
 
   it("mints a slug on first publish", async () => {
     mocks.findUnique.mockResolvedValue({ id: "abcd1234ef", document: DOC, publicSlug: null });
-    mocks.update.mockResolvedValue({ published: true, publicSlug: "basile-chretien-abcd1234" });
+    mocks.update.mockResolvedValue({
+      published: true,
+      publicSlug: "basile-chretien-abcd1234",
+      publicIndexable: false,
+    });
     const state = await setPublishState("u1", true);
     expect(state.published).toBe(true);
+    expect(state.indexable).toBe(false);
     const slugArg = mocks.update.mock.calls[0]![0].data.publicSlug as string;
     expect(slugArg).toMatch(/^basile-chretien-/);
+  });
+
+  it("only allows indexing while published (and clears it on unpublish)", async () => {
+    mocks.findUnique.mockResolvedValue({ id: "abcd1234ef", document: DOC, publicSlug: "s" });
+    mocks.update.mockResolvedValue({
+      published: true,
+      publicSlug: "s",
+      publicIndexable: true,
+    });
+    await setPublishState("u1", true, true);
+    expect(mocks.update.mock.calls[0]![0].data.publicIndexable).toBe(true);
+
+    mocks.update.mockClear();
+    mocks.update.mockResolvedValue({ published: false, publicSlug: "s", publicIndexable: false });
+    await setPublishState("u1", false, true); // indexable requested but not published
+    expect(mocks.update.mock.calls[0]![0].data.publicIndexable).toBe(false);
   });
 
   it("throws when publishing a non-existent CV", async () => {
     mocks.findUnique.mockResolvedValue(null);
     await expect(setPublishState("u1", true)).rejects.toBeInstanceOf(CvNotFoundError);
+  });
+});
+
+describe("getPublicCvForPage + listIndexablePublicSlugs", () => {
+  it("returns the CV plus its indexing opt-in", async () => {
+    mocks.findUnique.mockResolvedValue({
+      published: true,
+      publicIndexable: true,
+      document: DOC,
+    });
+    const rec = await getPublicCvForPage("slug");
+    expect(rec?.cv.owner.displayName).toBe("Basile Chrétien");
+    expect(rec?.indexable).toBe(true);
+  });
+  it("returns null when unpublished", async () => {
+    mocks.findUnique.mockResolvedValue({ published: false, document: DOC });
+    expect(await getPublicCvForPage("slug")).toBeNull();
+  });
+  it("lists only opted-in published slugs", async () => {
+    mocks.findMany.mockResolvedValue([
+      { publicSlug: "a-1234" },
+      { publicSlug: "b-5678" },
+      { publicSlug: null },
+    ]);
+    expect(await listIndexablePublicSlugs()).toEqual(["a-1234", "b-5678"]);
   });
 });
 

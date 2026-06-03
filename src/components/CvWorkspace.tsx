@@ -29,6 +29,7 @@ interface CvWorkspaceProps {
   researchConsent: boolean;
   published: boolean;
   publicSlug: string | null;
+  publicIndexable: boolean;
   signOutAction: () => Promise<void>;
 }
 
@@ -58,6 +59,7 @@ export default function CvWorkspace({
   researchConsent,
   published,
   publicSlug,
+  publicIndexable,
   signOutAction,
 }: CvWorkspaceProps) {
   const [cv, setCv] = useState<CanonicalCv | null>(initialCv);
@@ -180,6 +182,7 @@ export default function CvWorkspace({
           <PublishControls
             initialPublished={published}
             initialSlug={publicSlug}
+            initialIndexable={publicIndexable}
             locale={uiLocale}
           />
           <AccountControls researchConsent={researchConsent} locale={uiLocale} />

@@ -2,11 +2,13 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/siteUrl";
 
 /**
- * Crawl policy. Marketing pages are open; the auth-gated editor, API, Next
- * internals, and published CVs are disallowed. Published CVs (/p/*) are also
- * served with `X-Robots-Tag: noindex` — robots Disallow alone does not de-index
- * already-known URLs, so both are kept until an explicit "allow indexing"
- * consent exists.
+ * Crawl policy. Marketing pages are open; the auth-gated editor, API and Next
+ * internals are disallowed. Published CVs (/p/*) are NO LONGER blanket-disallowed
+ * here: indexing is decided per page via `X-Robots-Tag`. A page is `noindex`
+ * unless its owner gave the explicit, separate "allow indexing" consent — so
+ * crawlers may fetch /p/ but only index opted-in pages (and only those are in
+ * the sitemap). Disallowing /p/ in robots would prevent crawlers from ever
+ * seeing the per-page header, blocking the opted-in pages too.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -14,7 +16,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/_next/", "/p/", "/cv"],
+        disallow: ["/api/", "/_next/", "/cv"],
       },
     ],
     sitemap: absoluteUrl("sitemap.xml"),

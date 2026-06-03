@@ -75,6 +75,8 @@ export interface UiStrings {
   copyLink: string;
   linkCopied: string;
   publishTitle: string;
+  allowIndexing: string;
+  allowIndexingTitle: string;
   exportFormatTitle: string;
   exportPdf: string;
   exportDocx: string;
@@ -170,6 +172,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Open page",
     copyLink: "Copy link",
     linkCopied: "Link copied!",
+    allowIndexing: "Allow search engines to index this page",
+    allowIndexingTitle:
+      "Off by default. When on, your public CV can appear in search results (name, ORCID, publications).",
     publishTitle:
       "Creates a shareable public web page of this CV at a public link. It re-syncs as you update. Off by default; un-tick to take it offline.",
     exportFormatTitle:
@@ -265,6 +270,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "打开页面",
     copyLink: "复制链接",
     linkCopied: "链接已复制！",
+    allowIndexing: "允许搜索引擎索引此页面",
+    allowIndexingTitle:
+      "默认关闭。开启后，您的公开简历可能出现在搜索结果中（姓名、ORCID、论文）。",
     publishTitle:
       "在公开链接处创建此简历的可分享公开网页。它会随你的更新而重新同步。默认关闭；取消勾选可将其下线。",
     exportFormatTitle:
@@ -361,6 +369,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Abrir página",
     copyLink: "Copiar enlace",
     linkCopied: "¡Enlace copiado!",
+    allowIndexing: "Permitir que los buscadores indexen esta página",
+    allowIndexingTitle:
+      "Desactivado por defecto. Si se activa, tu CV público puede aparecer en los resultados de búsqueda (nombre, ORCID, publicaciones).",
     publishTitle:
       "Crea una página web pública de este CV en un enlace público que se puede compartir. Se resincroniza a medida que lo actualizas. Desactivada por defecto; desmárcala para retirarla.",
     exportFormatTitle:
@@ -457,6 +468,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Ouvrir la page",
     copyLink: "Copier le lien",
     linkCopied: "Lien copié !",
+    allowIndexing: "Autoriser l’indexation par les moteurs de recherche",
+    allowIndexingTitle:
+      "Désactivé par défaut. Activé, votre CV public peut apparaître dans les résultats de recherche (nom, ORCID, publications).",
     publishTitle:
       "Crée une page web publique partageable de ce CV via un lien public. Elle se resynchronise au fur et à mesure de vos mises à jour. Désactivée par défaut ; décochez pour la mettre hors ligne.",
     exportFormatTitle:
@@ -553,6 +567,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Seite öffnen",
     copyLink: "Link kopieren",
     linkCopied: "Link kopiert!",
+    allowIndexing: "Suchmaschinen-Indexierung dieser Seite erlauben",
+    allowIndexingTitle:
+      "Standardmäßig aus. Wenn aktiviert, kann Ihr öffentlicher Lebenslauf in Suchergebnissen erscheinen (Name, ORCID, Publikationen).",
     publishTitle:
       "Erstellt eine teilbare öffentliche Webseite dieses Lebenslaufs unter einem öffentlichen Link. Sie wird bei Aktualisierungen neu synchronisiert. Standardmäßig aus; Häkchen entfernen, um sie offline zu nehmen.",
     exportFormatTitle:
@@ -649,6 +666,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "ページを開く",
     copyLink: "リンクをコピー",
     linkCopied: "リンクをコピーしました！",
+    allowIndexing: "このページの検索エンジンによるインデックスを許可",
+    allowIndexingTitle:
+      "初期設定はオフです。オンにすると、公開CVが検索結果に表示される場合があります（氏名・ORCID・論文）。",
     publishTitle:
       "この CV を共有可能な公開ウェブページとして公開リンクに作成します。更新すると再同期されます。既定ではオフ。チェックを外すとオフラインにできます。",
     exportFormatTitle:
@@ -745,6 +765,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Abrir página",
     copyLink: "Copiar link",
     linkCopied: "Link copiado!",
+    allowIndexing: "Permitir que mecanismos de busca indexem esta página",
+    allowIndexingTitle:
+      "Desativado por padrão. Quando ativado, seu CV público pode aparecer nos resultados de busca (nome, ORCID, publicações).",
     publishTitle:
       "Cria uma página web pública e compartilhável deste CV em um link público. Ela é ressincronizada conforme você atualiza. Desativada por padrão; desmarque para tirá-la do ar.",
     exportFormatTitle:
@@ -841,6 +864,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Apri pagina",
     copyLink: "Copia link",
     linkCopied: "Link copiato!",
+    allowIndexing: "Consenti l’indicizzazione di questa pagina dai motori di ricerca",
+    allowIndexingTitle:
+      "Disattivato per impostazione predefinita. Se attivo, il tuo CV pubblico può comparire nei risultati di ricerca (nome, ORCID, pubblicazioni).",
     publishTitle:
       "Crea una pagina web pubblica condivisibile di questo CV tramite un link pubblico. Si risincronizza man mano che apporti aggiornamenti. Disattivata per impostazione predefinita; deseleziona per metterla offline.",
     exportFormatTitle:
@@ -937,6 +963,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "페이지 열기",
     copyLink: "링크 복사",
     linkCopied: "링크가 복사되었습니다!",
+    allowIndexing: "검색 엔진이 이 페이지를 색인하도록 허용",
+    allowIndexingTitle:
+      "기본적으로 꺼져 있습니다. 켜면 공개 CV가 검색 결과에 표시될 수 있습니다(이름, ORCID, 논문).",
     publishTitle:
       "이 CV의 공유 가능한 공개 웹 페이지를 공개 링크로 생성합니다. 업데이트할 때마다 다시 동기화됩니다. 기본값은 꺼짐이며, 체크를 해제하면 오프라인으로 전환됩니다.",
     exportFormatTitle:
@@ -1033,6 +1062,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Открыть страницу",
     copyLink: "Скопировать ссылку",
     linkCopied: "Ссылка скопирована!",
+    allowIndexing: "Разрешить индексирование этой страницы поисковыми системами",
+    allowIndexingTitle:
+      "По умолчанию выключено. Если включить, ваше публичное резюме может появляться в результатах поиска (имя, ORCID, публикации).",
     publishTitle:
       "Создаёт публичную веб-страницу этого CV, доступную по публичной ссылке. Она пересинхронизируется по мере ваших изменений. По умолчанию отключено; снимите галочку, чтобы перевести её в офлайн.",
     exportFormatTitle:

@@ -8,7 +8,10 @@ import { rateLimit } from "@/lib/rateLimit";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const BodySchema = z.object({ published: z.boolean() });
+const BodySchema = z.object({
+  published: z.boolean(),
+  indexable: z.boolean().optional(),
+});
 
 export async function GET() {
   const session = await auth();
@@ -41,11 +44,18 @@ export async function POST(req: Request) {
   }
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Expected { published: boolean }" }, { status: 422 });
+    return NextResponse.json(
+      { error: "Expected { published: boolean, indexable?: boolean }" },
+      { status: 422 },
+    );
   }
 
   try {
-    const state = await setPublishState(session.user.id, parsed.data.published);
+    const state = await setPublishState(
+      session.user.id,
+      parsed.data.published,
+      parsed.data.indexable ?? false,
+    );
     return NextResponse.json(state);
   } catch (err) {
     if (err instanceof CvNotFoundError) {

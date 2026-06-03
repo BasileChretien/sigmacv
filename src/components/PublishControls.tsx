@@ -6,6 +6,7 @@ import { ui } from "@/lib/i18n/ui";
 interface PublishControlsProps {
   initialPublished: boolean;
   initialSlug: string | null;
+  initialIndexable: boolean;
   locale: string;
 }
 
@@ -17,34 +18,41 @@ interface PublishControlsProps {
 export default function PublishControls({
   initialPublished,
   initialSlug,
+  initialIndexable,
   locale,
 }: PublishControlsProps) {
   const u = ui(locale);
   const [published, setPublished] = useState(initialPublished);
   const [slug, setSlug] = useState(initialSlug);
+  const [indexable, setIndexable] = useState(initialIndexable);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  async function toggle(next: boolean) {
+  async function update(next: boolean, nextIndexable: boolean) {
     setBusy(true);
     try {
       const res = await fetch("/api/cv/publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ published: next }),
+        body: JSON.stringify({ published: next, indexable: nextIndexable }),
       });
       if (res.ok) {
         const data = (await res.json()) as {
           published: boolean;
           publicSlug: string | null;
+          indexable: boolean;
         };
         setPublished(data.published);
         setSlug(data.publicSlug);
+        setIndexable(data.indexable);
       }
     } finally {
       setBusy(false);
     }
   }
+
+  // Unpublishing always clears indexing; publishing keeps the prior choice.
+  const toggle = (next: boolean) => update(next, next ? indexable : false);
 
   async function copyLink() {
     if (!slug) return;
@@ -77,6 +85,15 @@ export default function PublishControls({
           <button type="button" className="link-btn" onClick={copyLink}>
             {copied ? u.linkCopied : u.copyLink}
           </button>
+          <label className="field-inline" title={u.allowIndexingTitle}>
+            <input
+              type="checkbox"
+              checked={indexable}
+              disabled={busy}
+              onChange={(e) => update(true, e.target.checked)}
+            />
+            <span>{u.allowIndexing}</span>
+          </label>
         </>
       ) : null}
     </div>

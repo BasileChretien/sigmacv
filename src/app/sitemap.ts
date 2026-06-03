@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { listIndexablePublicSlugs } from "@/lib/cv/sync";
 import {
   DEFAULT_UI_LOCALE,
   LOCALE_SLUGS,
@@ -6,13 +7,16 @@ import {
 } from "@/lib/i18n";
 import { absoluteUrl } from "@/lib/siteUrl";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Public sitemap. Lists only crawlable, indexable URLs: the homepage, /about,
  * AND /privacy in every language (each with per-entry hreflang `alternates`).
- * Excludes the auth-gated editor (/cv), published CVs (/p/*, noindex by privacy
- * design), and all /api + Next internals.
+ * Public CVs (/p/*) are included ONLY when their owner opted into indexing
+ * (publicIndexable) — the privacy-preserving growth loop. Excludes the
+ * auth-gated editor (/cv) and all /api + Next internals.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const slug = (loc: string) => LOCALE_SLUGS[loc as keyof typeof LOCALE_SLUGS];
   const homePath = (loc: string) => (loc === DEFAULT_UI_LOCALE ? "/" : slug(loc));
   const aboutPath = (loc: string) =>
@@ -51,5 +55,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     alternates: { languages: privacyLanguages },
   }));
 
-  return [...homeEntries, ...aboutEntries, ...privacyEntries];
+  // Opt-in indexable public CVs — the privacy-preserving organic-growth loop.
+  // Best-effort: a DB hiccup must not break the (static-content) sitemap.
+  let cvEntries: MetadataRoute.Sitemap = [];
+  try {
+    const slugs = await listIndexablePublicSlugs();
+    cvEntries = slugs.map((slug) => ({
+      url: absoluteUrl(`p/${slug}`),
+      changeFrequency: "weekly",
+      priority: 0.6,
+    }));
+  } catch {
+    cvEntries = [];
+  }
+
+  return [...homeEntries, ...aboutEntries, ...privacyEntries, ...cvEntries];
 }

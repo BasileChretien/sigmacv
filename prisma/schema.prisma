@@ -103,6 +103,10 @@ model Cv {
   // Living public page: published flag + a stable public slug.
   published     Boolean   @default(false)
   publicSlug    String?   @unique
+  // Separate, explicit opt-in to let search engines index the public page.
+  // Default false: publishing shares a capability URL; INDEXING (names/ORCID/
+  // publications into Google) requires this distinct consent (GDPR/APPI).
+  publicIndexable Boolean @default(false)
   // Compare-and-set lock for the scheduled re-sync job (null = unlocked).
   resyncLockedAt DateTime?
   createdAt     DateTime  @default(now())

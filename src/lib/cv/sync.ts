@@ -187,23 +187,29 @@ export async function saveCvForUser(
 export interface PublishState {
   published: boolean;
   publicSlug: string | null;
+  /** Whether the published page opts in to search-engine indexing. */
+  indexable: boolean;
 }
 
 export async function getPublishState(userId: string): Promise<PublishState> {
   const row = await prisma.cv.findUnique({
     where: { userId },
-    select: { published: true, publicSlug: true },
+    select: { published: true, publicSlug: true, publicIndexable: true },
   });
   return {
     published: row?.published ?? false,
     publicSlug: row?.publicSlug ?? null,
+    indexable: row?.publicIndexable ?? false,
   };
 }
 
-/** Publish/unpublish the public page; mints a stable slug on first publish. */
+/** Publish/unpublish the public page; mints a stable slug on first publish.
+ *  `indexable` is a SEPARATE opt-in (default false) — unpublishing always
+ *  clears it, and it can only be true while published. */
 export async function setPublishState(
   userId: string,
   published: boolean,
+  indexable = false,
 ): Promise<PublishState> {
   const row = await prisma.cv.findUnique({ where: { userId } });
   if (!row) throw new CvNotFoundError();
@@ -219,12 +225,17 @@ export async function setPublishState(
     slug = `${cvSlug(name)}-${randomBytes(10).toString("hex")}`;
   }
 
+  const publicIndexable = published && indexable;
   const updated = await prisma.cv.update({
     where: { userId },
-    data: { published, publicSlug: slug },
-    select: { published: true, publicSlug: true },
+    data: { published, publicSlug: slug, publicIndexable },
+    select: { published: true, publicSlug: true, publicIndexable: true },
   });
-  return { published: updated.published, publicSlug: updated.publicSlug };
+  return {
+    published: updated.published,
+    publicSlug: updated.publicSlug,
+    indexable: updated.publicIndexable,
+  };
 }
 
 /**
@@ -238,4 +249,27 @@ export async function getPublicCv(slug: string): Promise<CanonicalCv | null> {
   const parsed = safeParseCanonicalCv(row.document);
   if (!parsed.success) return null;
   return parsed.data;
+}
+
+/** Like getPublicCv, but also returns the indexing opt-in for robots/JSON-LD. */
+export async function getPublicCvForPage(
+  slug: string,
+): Promise<{ cv: CanonicalCv; indexable: boolean } | null> {
+  const row = await prisma.cv.findUnique({ where: { publicSlug: slug } });
+  if (!row || !row.published) return null;
+  const parsed = safeParseCanonicalCv(row.document);
+  if (!parsed.success) return null;
+  return { cv: parsed.data, indexable: row.publicIndexable };
+}
+
+/** Public slugs that the owner has opted into search-engine indexing — for the
+ *  sitemap. Empty if none; never includes unpublished or non-indexable pages. */
+export async function listIndexablePublicSlugs(): Promise<string[]> {
+  const rows = await prisma.cv.findMany({
+    where: { published: true, publicIndexable: true, publicSlug: { not: null } },
+    select: { publicSlug: true },
+  });
+  return rows
+    .map((r) => r.publicSlug)
+    .filter((s): s is string => typeof s === "string");
 }

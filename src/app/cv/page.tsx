@@ -43,6 +43,7 @@ export default async function CvPage() {
       researchConsent={session.user.researchConsent ?? false}
       published={publish.published}
       publicSlug={publish.publicSlug}
+      publicIndexable={publish.indexable}
       signOutAction={handleSignOut}
     />
   );
