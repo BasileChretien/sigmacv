@@ -7,6 +7,7 @@ import {
 } from "docx";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { splitSelf } from "./emphasize";
+import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
 import { metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
@@ -25,12 +26,36 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
     }),
   ];
 
+  const head = textHeader(cv);
+  if (head.headline) {
+    children.push(
+      new Paragraph({ children: [new TextRun({ text: head.headline })] }),
+    );
+  }
+
   if (cv.owner.orcid) {
     children.push(
       new Paragraph({
         children: [
           new TextRun({ text: `ORCID: ${cv.owner.orcid}`, italics: true }),
         ],
+      }),
+    );
+  }
+
+  if (head.contact.length) {
+    children.push(
+      new Paragraph({
+        children: [new TextRun({ text: head.contact.join("  ·  ") })],
+      }),
+    );
+  }
+
+  if (head.summary) {
+    children.push(
+      new Paragraph({
+        children: [new TextRun({ text: head.summary })],
+        spacing: { before: 80, after: 120 },
       }),
     );
   }

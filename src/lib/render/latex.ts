@@ -1,5 +1,6 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { wrapSelf } from "./emphasize";
+import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
 import { metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
@@ -36,6 +37,16 @@ export function renderCvLatex(cv: CanonicalCv): string {
   const metricsLine = metricsRaw
     ? `{\\small ${escapeLatex(metricsRaw)}}\\\\[8pt]`
     : "";
+  const head = textHeader(cv);
+  const headlineLine = head.headline
+    ? `{\\large ${escapeLatex(head.headline)}}\\\\[4pt]`
+    : "";
+  const contactLine = head.contact.length
+    ? `{\\small ${escapeLatex(head.contact.join("  ·  "))}}\\\\[6pt]`
+    : "";
+  const summaryPar = head.summary
+    ? `\\noindent ${escapeLatex(head.summary)}\\par\\medskip\n\n`
+    : "";
 
   const blocks = sections
     .map(({ section, items }) => {
@@ -70,15 +81,15 @@ export function renderCvLatex(cv: CanonicalCv): string {
     "\\begin{document}",
     "\\pagestyle{empty}",
     `{\\Large\\bfseries ${name}}\\\\[2pt]`,
-    orcid
-      ? `\\href{https://orcid.org/${orcid}}{ORCID: ${orcid}}\\\\[${metricsLine ? "4pt" : "10pt"}]`
-      : "",
+    headlineLine,
+    orcid ? `\\href{https://orcid.org/${orcid}}{ORCID: ${orcid}}\\\\[4pt]` : "",
+    contactLine,
     metricsLine,
   ]
     .filter(Boolean)
     .join("\n");
 
-  return `${preamble}\n\n${blocks.join("\n\n")}\n\n\\end{document}\n`;
+  return `${preamble}\n\n${summaryPar}${blocks.join("\n\n")}\n\n\\end{document}\n`;
 }
 
 export const latexRenderer: Renderer = {

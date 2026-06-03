@@ -1,5 +1,6 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { wrapSelf } from "./emphasize";
+import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
 import { metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
@@ -56,9 +57,15 @@ export function renderCvMarkdown(cv: CanonicalCv): string {
     .join("\n\n");
 
   const heading = cv.owner.displayName || "Curriculum Vitae";
+  const head = textHeader(cv);
+  const headlineBlock = head.headline ? `*${escapeMarkdown(head.headline)}*\n\n` : "";
+  const contactBlock = head.contact.length
+    ? `${head.contact.map(escapeMarkdown).join(" · ")}\n\n`
+    : "";
+  const summaryBlock = head.summary ? `${escapeMarkdown(head.summary)}\n\n` : "";
   const metrics = metricsLineText(cv);
   const metricsBlock = metrics ? `*${escapeMarkdown(metrics)}*\n\n` : "";
-  return `${frontmatter}\n\n# ${heading}\n\n${metricsBlock}${body}\n`;
+  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${metricsBlock}${body}\n`;
 }
 
 export const markdownRenderer: Renderer = {

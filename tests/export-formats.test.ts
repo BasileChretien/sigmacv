@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
+import { updateOwner } from "@/lib/canonical/curate";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { renderCvDocxBuffer } from "@/lib/render/docx";
+import { textHeader } from "@/lib/render/headerText";
 import { renderCvLatex } from "@/lib/render/latex";
 import { renderCvMarkdown } from "@/lib/render/markdown";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
@@ -59,5 +61,61 @@ describe.skipIf(!hasApa)("export formats (need vendored CSL assets)", () => {
     // .docx is a ZIP container — check the PK magic bytes.
     expect(buf[0]).toBe(0x50);
     expect(buf[1]).toBe(0x4b);
+  });
+
+  it("Markdown + LaTeX include headline, contact and summary", () => {
+    const cv = updateOwner(makeCv(), {
+      headline: "Assistant Professor",
+      summary: "Pharmacovigilance researcher.",
+      contact: { email: "b@example.org", location: "Nagoya" },
+      links: [{ label: "Scholar", url: "https://scholar.example/me" }],
+    });
+    const md = renderCvMarkdown(cv);
+    expect(md).toContain("Assistant Professor");
+    expect(md).toContain("b@example.org");
+    expect(md).toContain("Nagoya");
+    expect(md).toContain("Scholar: https://scholar.example/me");
+    expect(md).toContain("Pharmacovigilance researcher.");
+
+    const tex = renderCvLatex(cv);
+    expect(tex).toContain("Assistant Professor");
+    expect(tex).toContain("b@example.org");
+    expect(tex).toContain("Pharmacovigilance researcher.");
+  });
+
+  it("DOCX still builds with profile header fields", async () => {
+    const cv = updateOwner(makeCv(), {
+      headline: "Prof",
+      summary: "Bio.",
+      contact: { email: "b@example.org" },
+    });
+    const buf = await renderCvDocxBuffer(cv);
+    expect(buf.length).toBeGreaterThan(0);
+  });
+});
+
+describe("textHeader", () => {
+  it("collects contact parts in order and trims empties", () => {
+    const cv = updateOwner(makeCv(), {
+      headline: "  Prof  ",
+      summary: "  ",
+      contact: { location: "Nagoya", email: "a@b.com", phone: "+81-90", website: "https://x.org" },
+      links: [
+        { label: "Site", url: "https://site.org" },
+        { label: "", url: "https://noLabel.org" },
+        { label: "Empty", url: "  " },
+      ],
+    });
+    const h = textHeader(cv);
+    expect(h.headline).toBe("Prof"); // trimmed
+    expect(h.summary).toBeUndefined(); // whitespace-only → undefined
+    expect(h.contact).toEqual([
+      "Nagoya",
+      "a@b.com",
+      "+81-90",
+      "https://x.org",
+      "Site: https://site.org",
+      "https://noLabel.org",
+    ]); // empty-url link dropped
   });
 });
