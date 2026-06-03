@@ -276,6 +276,15 @@ describe("manual entries (add / edit / remove)", () => {
     expect(addManualEntry(cv, "grants", "   ", "grant:manual:x")).toBe(cv);
   });
 
+  it("creates a Skills section at its canonical order with a localized title", () => {
+    const cv = addManualEntry(makeCv(), "skills", "Python, R, statistics", "skills:manual:1");
+    const skills = cv.sections.find((s) => s.type === "skills")!;
+    expect(skills).toBeDefined();
+    expect(skills.title).toBe("Skills"); // en-US default
+    expect(skills.order).toBe(10); // DEFAULT_SECTION_ORDER.skills
+    expect(skills.items[0]!.displayText).toBe("Python, R, statistics");
+  });
+
   it("edits an entry's text and removes it (re-indexing)", () => {
     let cv = addManualEntry(makeCv(), "grants", "Grant A", "grant:manual:a");
     cv = addManualEntry(cv, "grants", "Grant B", "grant:manual:b");

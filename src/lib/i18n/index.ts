@@ -46,6 +46,7 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "Peer Review",
     editorial: "Editorial Roles",
     grants: "Grants & Funding",
+    skills: "Skills",
     other: "Other",
   },
   "fr-FR": {
@@ -59,6 +60,7 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "Évaluation par les pairs",
     editorial: "Fonctions éditoriales",
     grants: "Financements et bourses",
+    skills: "Compétences",
     other: "Autres",
   },
   "ja-JP": {
@@ -72,6 +74,7 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "査読",
     editorial: "編集委員",
     grants: "助成金・研究費",
+    skills: "スキル",
     other: "その他",
   },
 };

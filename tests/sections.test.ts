@@ -443,6 +443,61 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(resynced.owner.openAlexAuthorIds).toEqual(resolved.authorIds);
   });
 
+  it("orders new sections by the canonical academic default with distinct orders", () => {
+    const cv = buildCanonicalCv({
+      id: "ord",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      employments,
+      fundings,
+      editorialRoles,
+      education: [
+        { putCode: "400", organization: "University of Caen", roleTitle: "PharmD", startYear: 2008 },
+      ],
+      distinctions: [
+        { putCode: "500", organization: "French Society of Pharmacology", roleTitle: "Young Investigator Award", startYear: 2021 },
+      ],
+      dataciteOutputs: [
+        { doi: "10.5281/zenodo.1", title: "A dataset", type: "Dataset", year: 2023 },
+      ],
+    });
+    const orders = cv.sections.map((s) => s.order);
+    // No two sections share an order value (the old datasets/positions=2 bug).
+    expect(new Set(orders).size).toBe(orders.length);
+    const ordered = [...cv.sections].sort((a, b) => a.order - b.order).map((s) => s.type);
+    expect(ordered.indexOf("positions")).toBeLessThan(ordered.indexOf("publications"));
+    expect(ordered.indexOf("education")).toBeLessThan(ordered.indexOf("publications"));
+    expect(ordered.indexOf("publications")).toBeLessThan(ordered.indexOf("datasets"));
+    expect(ordered.indexOf("grants")).toBeLessThan(ordered.indexOf("awards"));
+  });
+
+  it("preserves a user's section order across a re-sync", () => {
+    const first = buildCanonicalCv({
+      id: "ord2",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      employments,
+    });
+    // Pretend the user dragged Publications to the very top (order -1).
+    const reordered: CanonicalCv = {
+      ...first,
+      sections: first.sections.map((s) =>
+        s.type === "publications" ? { ...s, order: -1 } : s,
+      ),
+    };
+    const resynced = buildCanonicalCv({
+      id: "ord2",
+      resolved,
+      works: baseWorks,
+      now: "2026-07-01T00:00:00.000Z",
+      employments,
+      previous: reordered,
+    });
+    expect(resynced.sections.find((s) => s.type === "publications")!.order).toBe(-1);
+  });
+
   it("localizes default section titles to the chosen locale, preserving renames", () => {
     const en = buildCanonicalCv({
       id: "loc",

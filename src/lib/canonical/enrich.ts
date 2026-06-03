@@ -114,7 +114,11 @@ export async function enrichCvWithCrossref(
     items: section.items.map((item, i) => {
       const supp = fills.get(`${s}:${i}`);
       return supp && item.csl
-        ? { ...item, csl: mergeCslGaps(item.csl, supp) }
+        ? {
+            ...item,
+            csl: mergeCslGaps(item.csl, supp),
+            meta: { ...item.meta, enriched: true },
+          }
         : item;
     }),
   }));

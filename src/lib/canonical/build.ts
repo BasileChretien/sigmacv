@@ -1,6 +1,7 @@
 import {
   CANONICAL_SCHEMA_VERSION,
   CanonicalCvSchema,
+  DEFAULT_SECTION_ORDER,
   DisplayChoicesSchema,
   type CanonicalCv,
   type CvItem,
@@ -690,14 +691,20 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     grantsSection ? mergeSection(grantsSection, previous) : null,
   ].filter((s): s is CvSection => s !== null);
 
-  // Localize default section headings to the chosen locale. Genuine user
-  // renames (titles that aren't a default in any locale) are left untouched.
+  // Localize default section headings to the chosen locale (genuine user
+  // renames are left untouched), and snap NEWLY-created sections to the
+  // canonical default order. Sections the user already had keep their
+  // arrangement (preserved by mergeSection), so re-sync never reshuffles them.
   const locale = (previous?.display ?? DisplayChoicesSchema.parse({})).locale;
-  const sections: CvSection[] = builtSections.map((s) =>
-    isDefaultSectionTitle(s.type, s.title)
+  const prevSectionIds = new Set((previous?.sections ?? []).map((s) => s.id));
+  const sections: CvSection[] = builtSections.map((s) => {
+    const titled = isDefaultSectionTitle(s.type, s.title)
       ? { ...s, title: sectionTitle(locale, s.type) }
-      : s,
-  );
+      : s;
+    return prevSectionIds.has(s.id)
+      ? titled
+      : { ...titled, order: DEFAULT_SECTION_ORDER[s.type] };
+  });
 
   // Provenance reflects the sources that actually contributed (always include
   // openalex, the primary works source).

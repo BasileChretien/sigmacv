@@ -130,6 +130,8 @@ describe("enrichCvWithCrossref", () => {
     const items = out.sections[0]!.items;
     expect(items[0]!.csl?.["container-title"]).toBe("Filled Journal");
     expect(items[0]!.csl?.volume).toBe("7");
+    expect(items[0]!.meta.enriched).toBe(true); // marked for source display
+    expect(items[1]!.meta.enriched).toBeUndefined(); // untouched item not marked
     expect(items[1]!.csl?.["container-title"]).toBe("Already");
     expect(out.provenance.sources).toContain("crossref");
     // Only the one gap-having work was looked up.

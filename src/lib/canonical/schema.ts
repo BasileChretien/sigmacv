@@ -26,10 +26,31 @@ export const SECTION_TYPES = [
   "peer-review",
   "editorial",
   "grants",
+  "skills",
   "other",
 ] as const;
 export const CvSectionTypeSchema = z.enum(SECTION_TYPES);
 export type CvSectionType = z.infer<typeof CvSectionTypeSchema>;
+
+/**
+ * Canonical default ordering of sections on a fresh CV (standard academic
+ * sequence). Single source of truth — the build applies it to newly-created
+ * sections, while any arrangement the user has already made is preserved.
+ */
+export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
+  positions: 0,
+  education: 1,
+  publications: 2,
+  preprints: 3,
+  datasets: 4,
+  grants: 5,
+  awards: 6,
+  editorial: 7,
+  "peer-review": 8,
+  service: 9,
+  skills: 10,
+  other: 11,
+};
 
 /**
  * Why a user asserted a work "isn't mine". Optional structured signal captured
@@ -112,6 +133,8 @@ export const CvItemSchema = z.object({
      * the "peer-reviewed only" display filter. Undefined for non-citation items.
      */
     peerReviewed: z.boolean().optional(),
+    /** True when this item's metadata was gap-filled from Crossref (source display). */
+    enriched: z.boolean().optional(),
     /**
      * A computed disambiguation hint surfacing works that MIGHT be misattributed,
      * for proactive review (e.g. "orcid-conflict" = the matched OpenAlex author

@@ -1,4 +1,5 @@
 import {
+  DEFAULT_SECTION_ORDER,
   isHidden,
   type CanonicalCv,
   type CvItem,
@@ -202,22 +203,7 @@ export function updateOwner(
   return { ...cv, owner };
 }
 
-// ─── Manual entries (user-authored positions / grants) ───────────────────────
-
-/** Default title + order for a section created on first manual add. */
-const SECTION_DEFAULTS: Partial<
-  Record<CvSectionType, { title: string; order: number }>
-> = {
-  datasets: { title: "Datasets & Software", order: 2 },
-  positions: { title: "Positions", order: 2 },
-  education: { title: "Education", order: 3 },
-  awards: { title: "Awards & Honors", order: 4 },
-  service: { title: "Service & Memberships", order: 5 },
-  "peer-review": { title: "Peer Review", order: 7 },
-  editorial: { title: "Editorial Roles", order: 6 },
-  grants: { title: "Grants & Funding", order: 8 },
-  other: { title: "Other", order: 9 },
-};
+// ─── Manual entries (user-authored positions / grants / skills / …) ──────────
 
 /**
  * Add a user-authored ("manual") item to the section of the given type, creating
@@ -256,16 +242,12 @@ export function addManualEntry(
     }));
   }
 
-  const def = SECTION_DEFAULTS[sectionType] ?? {
-    title: sectionType,
-    order: cv.sections.length,
-  };
   const newSection: CvSection = {
     id: sectionType,
     type: sectionType,
     title: sectionTitle(cv.display.locale, sectionType),
     visible: true,
-    order: def.order,
+    order: DEFAULT_SECTION_ORDER[sectionType],
     items: [item],
   };
   return { ...cv, sections: [...cv.sections, newSection] };
