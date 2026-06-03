@@ -1,8 +1,0 @@
-# SigmaCV — crawl policy.
-# Published CV pages (/p/*) are capability URLs the owner shares deliberately;
-# they are served with X-Robots-Tag: noindex until an explicit "allow indexing"
-# consent exists. API + Next internals are never useful to crawlers.
-User-agent: *
-Disallow: /api/
-Disallow: /_next/
-Disallow: /p/

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { consentStrings } from "@/lib/i18n";
 
 /**
  * Research-consent onboarding.
@@ -25,14 +26,18 @@ type Mode = "hidden" | "prompt" | "banner";
 interface ResearchConsentPromptProps {
   /** The account's stored consent flag (server-rendered). */
   initialConsent: boolean;
+  /** UI locale (follows the CV's display language). */
+  locale: string;
 }
 
 export default function ResearchConsentPrompt({
   initialConsent,
+  locale,
 }: ResearchConsentPromptProps) {
   const [mode, setMode] = useState<Mode>("hidden");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const s = consentStrings(locale);
 
   // Decide what (if anything) to show — client-only, so SSR stays inert.
   useEffect(() => {
@@ -72,7 +77,7 @@ export default function ResearchConsentPrompt({
       markSeen();
       setMode("hidden");
     } catch {
-      setError("Couldn’t save your choice — please try again.");
+      setError(s.error);
     } finally {
       setBusy(false);
     }
@@ -96,16 +101,6 @@ export default function ResearchConsentPrompt({
 
   if (mode === "hidden") return null;
 
-  const blurb = (
-    <>
-      Help improve responsible research assessment. With your consent, SigmaCV
-      logs your <strong>“mine / not mine” corrections</strong> and{" "}
-      <strong>CV-composition choices</strong> (never your private data) to study
-      author disambiguation and metric norms. It’s optional, off by default, and
-      you can turn it off anytime in your account.
-    </>
-  );
-
   if (mode === "prompt") {
     return (
       <div className="consent-overlay" role="presentation">
@@ -115,8 +110,8 @@ export default function ResearchConsentPrompt({
           aria-modal="true"
           aria-labelledby="consent-title"
         >
-          <h2 id="consent-title">Contribute to open research?</h2>
-          <p>{blurb}</p>
+          <h2 id="consent-title">{s.title}</h2>
+          <p>{s.blurb}</p>
           {error ? <p className="consent-error">{error}</p> : null}
           <div className="consent-actions">
             <button
@@ -125,7 +120,7 @@ export default function ResearchConsentPrompt({
               onClick={accept}
               disabled={busy}
             >
-              {busy ? "Saving…" : "Yes, contribute"}
+              {s.yes}
             </button>
             <button
               type="button"
@@ -133,7 +128,7 @@ export default function ResearchConsentPrompt({
               onClick={declinePrompt}
               disabled={busy}
             >
-              Not now
+              {s.notNow}
             </button>
           </div>
         </div>
@@ -143,8 +138,8 @@ export default function ResearchConsentPrompt({
 
   // banner
   return (
-    <div className="consent-banner" role="region" aria-label="Research consent">
-      <p className="consent-banner-text">{blurb}</p>
+    <div className="consent-banner" role="region" aria-label={s.title}>
+      <p className="consent-banner-text">{s.blurb}</p>
       {error ? <span className="consent-error">{error}</span> : null}
       <div className="consent-actions">
         <button
@@ -153,16 +148,16 @@ export default function ResearchConsentPrompt({
           onClick={accept}
           disabled={busy}
         >
-          {busy ? "Saving…" : "Contribute"}
+          {s.contribute}
         </button>
         <button
           type="button"
           className="btn btn-small"
           onClick={dismissBanner}
           disabled={busy}
-          aria-label="Dismiss"
+          aria-label={s.dismiss}
         >
-          Dismiss
+          {s.dismiss}
         </button>
       </div>
     </div>

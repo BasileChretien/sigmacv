@@ -1,10 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SiteLinks from "@/components/SiteLinks";
 
-export const metadata = {
-  title: "About — SigmaCV",
+export const metadata: Metadata = {
+  // The root layout's title template appends " — SigmaCV".
+  title: "About",
   description:
     "SigmaCV is open infrastructure for responsible research assessment — academic CVs auto-generated from open research data.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

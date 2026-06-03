@@ -51,6 +51,42 @@ export function asLocale(value: string | undefined): Locale {
     : DEFAULT_UI_LOCALE;
 }
 
+// ─── URL locale slugs (for the multilingual, crawlable landing) ──────────────
+
+/** Short URL slug per locale: en-US -> "en", zh-CN -> "zh", … (used as /[slug]). */
+export const LOCALE_SLUGS: Record<Locale, string> = {
+  "en-US": "en",
+  "zh-CN": "zh",
+  "es-ES": "es",
+  "fr-FR": "fr",
+  "de-DE": "de",
+  "ja-JP": "ja",
+  "pt-BR": "pt",
+  "it-IT": "it",
+  "ko-KR": "ko",
+  "ru-RU": "ru",
+};
+
+/** The slug for the default locale ("en"); the default landing lives at "/". */
+export const DEFAULT_LOCALE_SLUG = LOCALE_SLUGS[DEFAULT_UI_LOCALE];
+
+/** Slugs for every NON-default locale — the set of `/[locale]` static params. */
+export const NON_DEFAULT_LOCALE_SLUGS: string[] = SUPPORTED_LOCALES.filter(
+  (l) => l !== DEFAULT_UI_LOCALE,
+).map((l) => LOCALE_SLUGS[l]);
+
+/** Slug for a locale (falls back to the default locale's slug). */
+export function slugForLocale(locale: string): string {
+  return LOCALE_SLUGS[asLocale(locale)];
+}
+
+/** Locale for a URL slug, or undefined if the slug is unknown. */
+export function localeForSlug(slug: string): Locale | undefined {
+  return (Object.entries(LOCALE_SLUGS) as [Locale, string][]).find(
+    ([, s]) => s === slug,
+  )?.[0];
+}
+
 // ─── CV content: default section titles ──────────────────────────────────────
 
 const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
@@ -1069,4 +1105,124 @@ const DICTS: Record<Locale, Record<ChromeKey, string>> = {
 export function t(locale: string, key: ChromeKey): string {
   const dict = DICTS[asLocale(locale)];
   return dict[key] ?? EN[key];
+}
+
+// ─── Research-consent onboarding strings ─────────────────────────────────────
+
+export interface ConsentStrings {
+  title: string;
+  blurb: string;
+  yes: string;
+  notNow: string;
+  contribute: string;
+  dismiss: string;
+  error: string;
+}
+
+const CONSENT_I18N: Record<Locale, ConsentStrings> = {
+  "en-US": {
+    title: "Contribute to open research?",
+    blurb:
+      "Help improve responsible research assessment. With your consent, SigmaCV logs your “mine / not mine” corrections and CV-composition choices (never your private data) to study author disambiguation and metric norms. It’s optional, off by default, and you can turn it off anytime in your account.",
+    yes: "Yes, contribute",
+    notNow: "Not now",
+    contribute: "Contribute",
+    dismiss: "Dismiss",
+    error: "Couldn’t save your choice — please try again.",
+  },
+  "zh-CN": {
+    title: "为开放研究做贡献？",
+    blurb:
+      "帮助改进负责任的研究评价。在您同意的情况下，SigmaCV 会记录您的「是我的/不是我的」更正和简历编排选择（绝不记录您的私人数据），用于研究作者消歧与指标规范。此为可选项，默认关闭，您可随时在账户中关闭。",
+    yes: "好的，我愿意贡献",
+    notNow: "暂不",
+    contribute: "贡献",
+    dismiss: "忽略",
+    error: "无法保存您的选择，请重试。",
+  },
+  "es-ES": {
+    title: "¿Contribuir a la investigación abierta?",
+    blurb:
+      "Ayuda a mejorar la evaluación responsable de la investigación. Con tu consentimiento, SigmaCV registra tus correcciones «es mío / no es mío» y tus decisiones de composición del CV (nunca tus datos privados) para estudiar la desambiguación de autores y las normas de las métricas. Es opcional, está desactivado por defecto y puedes desactivarlo cuando quieras en tu cuenta.",
+    yes: "Sí, contribuir",
+    notNow: "Ahora no",
+    contribute: "Contribuir",
+    dismiss: "Descartar",
+    error: "No se pudo guardar tu elección; inténtalo de nuevo.",
+  },
+  "fr-FR": {
+    title: "Contribuer à la recherche ouverte ?",
+    blurb:
+      "Aidez à améliorer l’évaluation responsable de la recherche. Avec votre consentement, SigmaCV enregistre vos corrections « de moi / pas de moi » et vos choix de composition de CV (jamais vos données privées) pour étudier la désambiguïsation des auteurs et les normes des indicateurs. C’est facultatif, désactivé par défaut, et vous pouvez le désactiver à tout moment dans votre compte.",
+    yes: "Oui, contribuer",
+    notNow: "Plus tard",
+    contribute: "Contribuer",
+    dismiss: "Ignorer",
+    error: "Impossible d’enregistrer votre choix — veuillez réessayer.",
+  },
+  "de-DE": {
+    title: "Zur offenen Forschung beitragen?",
+    blurb:
+      "Helfen Sie, die verantwortungsvolle Forschungsbewertung zu verbessern. Mit Ihrer Einwilligung protokolliert SigmaCV Ihre „von mir / nicht von mir“-Korrekturen und Ihre CV-Gestaltungsentscheidungen (niemals Ihre privaten Daten), um Autorendisambiguierung und Metrik-Normen zu erforschen. Es ist optional, standardmäßig deaktiviert und kann jederzeit in Ihrem Konto abgeschaltet werden.",
+    yes: "Ja, beitragen",
+    notNow: "Jetzt nicht",
+    contribute: "Beitragen",
+    dismiss: "Schließen",
+    error: "Ihre Auswahl konnte nicht gespeichert werden — bitte erneut versuchen.",
+  },
+  "ja-JP": {
+    title: "オープンな研究に貢献しますか？",
+    blurb:
+      "責任ある研究評価の改善にご協力ください。ご同意いただくと、SigmaCV はあなたの「自分の/自分のではない」修正と CV の構成の選択（私的データは一切記録しません）を記録し、著者の名寄せや指標の規範の研究に用います。任意で、既定ではオフ、アカウントからいつでもオフにできます。",
+    yes: "はい、貢献します",
+    notNow: "今はしない",
+    contribute: "貢献する",
+    dismiss: "閉じる",
+    error: "選択を保存できませんでした。もう一度お試しください。",
+  },
+  "pt-BR": {
+    title: "Contribuir para a pesquisa aberta?",
+    blurb:
+      "Ajude a melhorar a avaliação responsável da pesquisa. Com o seu consentimento, o SigmaCV registra suas correções «é meu / não é meu» e suas escolhas de composição do CV (nunca seus dados privados) para estudar a desambiguação de autores e as normas de métricas. É opcional, desativado por padrão, e você pode desativá-lo a qualquer momento na sua conta.",
+    yes: "Sim, contribuir",
+    notNow: "Agora não",
+    contribute: "Contribuir",
+    dismiss: "Dispensar",
+    error: "Não foi possível salvar sua escolha — tente novamente.",
+  },
+  "it-IT": {
+    title: "Contribuire alla ricerca aperta?",
+    blurb:
+      "Aiuta a migliorare la valutazione responsabile della ricerca. Con il tuo consenso, SigmaCV registra le tue correzioni «è mio / non è mio» e le tue scelte di composizione del CV (mai i tuoi dati privati) per studiare la disambiguazione degli autori e le norme delle metriche. È facoltativo, disattivato per impostazione predefinita, e puoi disattivarlo in qualsiasi momento nel tuo account.",
+    yes: "Sì, contribuisci",
+    notNow: "Non ora",
+    contribute: "Contribuisci",
+    dismiss: "Ignora",
+    error: "Impossibile salvare la tua scelta — riprova.",
+  },
+  "ko-KR": {
+    title: "오픈 연구에 기여하시겠어요?",
+    blurb:
+      "책임 있는 연구 평가 개선에 도움을 주세요. 동의하시면 SigmaCV는 회원님의 「내 것 / 내 것이 아님」 정정과 CV 구성 선택(개인 정보는 절대 기록하지 않음)을 기록하여 저자 식별과 지표 규범 연구에 활용합니다. 선택 사항이며 기본적으로 꺼져 있고, 계정에서 언제든지 끌 수 있습니다.",
+    yes: "예, 기여할게요",
+    notNow: "나중에",
+    contribute: "기여하기",
+    dismiss: "닫기",
+    error: "선택을 저장하지 못했습니다 — 다시 시도해 주세요.",
+  },
+  "ru-RU": {
+    title: "Внести вклад в открытую науку?",
+    blurb:
+      "Помогите улучшить ответственную оценку исследований. С вашего согласия SigmaCV фиксирует ваши исправления «моё / не моё» и решения по составу резюме (но никогда ваши личные данные), чтобы изучать разрешение неоднозначности авторов и нормы метрик. Это необязательно, по умолчанию выключено, и вы можете отключить это в любой момент в своём аккаунте.",
+    yes: "Да, внести вклад",
+    notNow: "Не сейчас",
+    contribute: "Внести вклад",
+    dismiss: "Закрыть",
+    error: "Не удалось сохранить выбор — попробуйте снова.",
+  },
+};
+
+/** Localized strings for the research-consent prompt/banner. */
+export function consentStrings(locale: string): ConsentStrings {
+  return CONSENT_I18N[asLocale(locale)];
 }

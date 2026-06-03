@@ -136,7 +136,7 @@ export default function CvWorkspace({
 
   return (
     <div className="cv-page">
-      <ResearchConsentPrompt initialConsent={researchConsent} />
+      <ResearchConsentPrompt initialConsent={researchConsent} locale={uiLocale} />
       <header className="cv-topbar">
         <div className="cv-topbar-left">
           <strong>SigmaCV</strong>

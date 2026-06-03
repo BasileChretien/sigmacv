@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
   asLocale,
+  consentStrings,
   DEFAULT_UI_LOCALE,
   isDefaultSectionTitle,
+  localeForSlug,
   LOCALE_LABELS,
+  LOCALE_SLUGS,
+  NON_DEFAULT_LOCALE_SLUGS,
   reasonLabel,
   sectionTitle,
+  slugForLocale,
   SUPPORTED_LOCALES,
   t,
 } from "@/lib/i18n";
@@ -125,6 +130,45 @@ describe("full coverage of all 10 supported locales", () => {
     for (const loc of SUPPORTED_LOCALES) {
       for (const reason of REASONS) {
         expect(reasonLabel(loc, reason).length).toBeGreaterThan(0);
+      }
+    }
+  });
+});
+
+describe("locale URL slugs", () => {
+  it("round-trips slug ↔ locale", () => {
+    expect(slugForLocale("fr-FR")).toBe("fr");
+    expect(slugForLocale("ja-JP")).toBe("ja");
+    expect(localeForSlug("fr")).toBe("fr-FR");
+    expect(localeForSlug("zh")).toBe("zh-CN");
+  });
+  it("falls back to the default slug and rejects unknown slugs", () => {
+    expect(slugForLocale("xx-XX")).toBe("en");
+    expect(localeForSlug("zz")).toBeUndefined();
+  });
+  it("has a unique slug per locale", () => {
+    const slugs = Object.values(LOCALE_SLUGS);
+    expect(new Set(slugs).size).toBe(slugs.length);
+    expect(slugs).toHaveLength(10);
+  });
+  it("non-default slugs cover the 9 localized landing routes (no 'en')", () => {
+    expect(NON_DEFAULT_LOCALE_SLUGS).toHaveLength(9);
+    expect(NON_DEFAULT_LOCALE_SLUGS).not.toContain("en");
+    expect(NON_DEFAULT_LOCALE_SLUGS).toContain("ko");
+  });
+});
+
+describe("consentStrings", () => {
+  it("localizes the consent prompt and falls back to English", () => {
+    expect(consentStrings("en-US").yes).toBe("Yes, contribute");
+    expect(consentStrings("fr-FR").notNow).toBe("Plus tard");
+    expect(consentStrings("ja-JP").dismiss).toBe("閉じる");
+    expect(consentStrings("xx-XX").title).toBe(consentStrings("en-US").title);
+  });
+  it("has every field non-empty in every locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      for (const value of Object.values(consentStrings(loc))) {
+        expect(value.length).toBeGreaterThan(0);
       }
     }
   });
