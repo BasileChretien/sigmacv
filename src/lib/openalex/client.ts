@@ -32,6 +32,7 @@ const WORK_SELECT = [
   "fwci",
   "cited_by_percentile_year",
   "authorships",
+  "open_access",
   "primary_location",
   "biblio",
   "ids",

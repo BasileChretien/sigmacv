@@ -253,6 +253,23 @@ function buildEditorialSection(
   };
 }
 
+/** A work is a preprint if OpenAlex types it so, or its primary source is a repository. */
+function isPreprint(work: OpenAlexWork): boolean {
+  if ((work.type ?? "").toLowerCase() === "preprint") return true;
+  return (work.primary_location?.source?.type ?? "").toLowerCase() === "repository";
+}
+
+/** A human label for the account holder's authorship role on a work, or undefined. */
+function authorRoleLabel(a: OpenAlexAuthorship | undefined): string | undefined {
+  if (!a) return undefined;
+  const parts: string[] = [];
+  const pos = (a.author_position ?? "").toLowerCase();
+  if (pos === "first") parts.push("first");
+  else if (pos === "last") parts.push("last");
+  if (a.is_corresponding) parts.push("corresponding");
+  return parts.length ? parts.join(", ") : undefined;
+}
+
 /** Build the identifier matcher for the account holder. */
 function makeSelfMatcher(resolved: ResolvedAuthor) {
   const selfOrcid = normalizeOrcid(resolved.orcid);
@@ -331,9 +348,12 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const maxPrevOrder = prevOrders.length > 0 ? Math.max(...prevOrders) : -1;
   let newItemRank = 0;
 
+  const preprintIds = new Set<string>();
   const items: CvItem[] = works.map((work) => {
     const csl = workToCsl(work);
-    const authoredBySelf = (work.authorships ?? []).some(matches);
+    const selfAuth = (work.authorships ?? []).find(matches);
+    const authoredBySelf = Boolean(selfAuth);
+    if (isPreprint(work)) preprintIds.add(csl.id);
     // Match by id, else by DOI (id churn) to preserve hide / "not mine" decisions.
     const prev =
       prevItems.get(csl.id) ??
@@ -356,6 +376,12 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
         type: work.type ?? undefined,
         doi: csl.DOI,
         citedByCount: work.cited_by_count,
+        oaStatus:
+          work.open_access?.is_oa && work.open_access.oa_status
+            ? work.open_access.oa_status
+            : undefined,
+        authorRole: authorRoleLabel(selfAuth),
+        authorCount: work.authorships?.length,
       },
     };
   });
@@ -368,6 +394,11 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const prevIncluded = new Map<string, boolean>();
   for (const [id, it] of prevItems) prevIncluded.set(id, it.included);
 
+  // Split into Publications vs Preprints (so the CV doesn't double-count a
+  // preprint and its published version, and matches academic convention).
+  const pubItems = reindexItems(ordered.filter((it) => !preprintIds.has(it.id)));
+  const preprintItems = reindexItems(ordered.filter((it) => preprintIds.has(it.id)));
+
   const publicationsSection = mergeSection(
     {
       id: PUBLICATIONS_SECTION_ID,
@@ -375,10 +406,25 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       title: "Publications",
       visible: true,
       order: 0,
-      items: ordered,
+      items: pubItems,
     },
     previous,
   );
+
+  const preprintsSection: CvSection | null =
+    preprintItems.length > 0
+      ? mergeSection(
+          {
+            id: "preprints",
+            type: "preprints",
+            title: "Preprints",
+            visible: true,
+            order: 1,
+            items: preprintItems,
+          },
+          previous,
+        )
+      : null;
 
   const positionsSection = buildPositionsSection(
     args.employments ?? [],
@@ -398,6 +444,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
 
   const sections: CvSection[] = [
     publicationsSection,
+    preprintsSection,
     positionsSection ? mergeSection(positionsSection, previous) : null,
     editorialSection ? mergeSection(editorialSection, previous) : null,
     grantsSection ? mergeSection(grantsSection, previous) : null,

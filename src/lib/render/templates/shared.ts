@@ -51,6 +51,9 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-chart figcaption { font-size: 0.7rem; color: #555; margin-bottom: 0.15rem; }
   .cv-chart svg { display: block; }
   .cv-self { ${theme.selfHighlightCss} }
+  .cv-badge { display: inline-block; font-size: 0.62rem; font-weight: 600; line-height: 1; padding: 0.12em 0.4em; border-radius: 0.5em; vertical-align: 0.08em; margin-left: 0.25em; letter-spacing: 0.02em; }
+  .cv-badge-oa { color: #0f766e; border: 1px solid #0f766e; }
+  .cv-badge-role { color: #555; border: 1px solid #bbb; text-transform: lowercase; }
   a { color: inherit; }
   @page { size: A4; margin: 18mm 16mm; }
   @media print {

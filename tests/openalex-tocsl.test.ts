@@ -72,7 +72,17 @@ describe("workToCsl", () => {
   });
 
   it("maps posted-content/preprint to article and falls back to OpenAlex URL", () => {
-    const csl = workToCsl(byId("W4300000002"));
+    // Synthetic preprint (the shared fixture intentionally has no preprint, so
+    // the build's publication/preprint split tests stay decoupled).
+    const csl = workToCsl({
+      id: "https://openalex.org/W4300000002",
+      doi: null,
+      title: "Pharmacovigilance signal detection methods",
+      display_name: "Pharmacovigilance signal detection methods",
+      publication_year: 2024,
+      type: "preprint",
+      type_crossref: "posted-content",
+    } as OpenAlexWork);
     expect(csl.type).toBe("article");
     expect(csl.DOI).toBeUndefined();
     expect(csl.URL).toBe("https://openalex.org/W4300000002");

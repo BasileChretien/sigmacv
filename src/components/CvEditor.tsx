@@ -394,6 +394,28 @@ export default function CvEditor({
           />
           <span>Show charts (publications &amp; citations / year)</span>
         </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.showOpenAccess}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { showOpenAccess: e.target.checked }))
+            }
+          />
+          <span>Open-access badges</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.showAuthorRole}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { showAuthorRole: e.target.checked }))
+            }
+          />
+          <span>Show my author role (first / last / corresponding)</span>
+        </label>
       </fieldset>
 
       {sections.map((section, si) => {

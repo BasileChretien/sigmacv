@@ -227,4 +227,62 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(html).toContain("<svg");
     });
   });
+
+  describe("publication badges (open access + author role)", () => {
+    const oaWork = {
+      ...(baseWorks[0] as OpenAlexWork),
+      id: "https://openalex.org/W777",
+      doi: null,
+      title: "An OA paper",
+      display_name: "An OA paper",
+      open_access: { is_oa: true, oa_status: "gold" },
+      authorships: [
+        {
+          author_position: "first",
+          is_corresponding: true,
+          author: {
+            id: "https://openalex.org/A5001069481",
+            display_name: "Basile Chrétien",
+          },
+        },
+        {
+          author_position: "last",
+          author: {
+            id: "https://openalex.org/A999",
+            display_name: "Someone Else",
+          },
+        },
+      ],
+    };
+    function cvWith(display: Partial<CanonicalCv["display"]>): CanonicalCv {
+      const cv = buildCanonicalCv({
+        id: "b",
+        resolved,
+        works: [oaWork as unknown as OpenAlexWork],
+        now: "2026-06-02T00:00:00.000Z",
+      });
+      return { ...cv, display: { ...cv.display, ...display } };
+    }
+
+    it("renders an OA badge when showOpenAccess and the work is OA", () => {
+      expect(renderCvHtml(cvWith({ showOpenAccess: true }))).toContain(
+        'title="Open access (gold)"',
+      );
+    });
+
+    it("omits the OA badge when showOpenAccess is off", () => {
+      expect(renderCvHtml(cvWith({ showOpenAccess: false }))).not.toContain(
+        'title="Open access',
+      );
+    });
+
+    it("renders the author-role badge when enabled (first, corresponding)", () => {
+      const html = renderCvHtml(cvWith({ showAuthorRole: true }));
+      expect(html).toContain(">first, corresponding</span>");
+    });
+
+    it("omits the author-role badge by default", () => {
+      expect(renderCvHtml(cvWith({}))).not.toContain("first, corresponding");
+    });
+  });
 });

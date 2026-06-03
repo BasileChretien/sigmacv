@@ -1,5 +1,10 @@
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import type {
+  CanonicalCv,
+  CvItem,
+  DisplayChoices,
+} from "@/lib/canonical/schema";
 import { highlightSelf } from "@/lib/citeproc/highlight";
+import { escapeHtml } from "./escape";
 import { prepareSections } from "./prepare";
 import { cvSlug } from "./slug";
 import { getTemplate, resolveTheme } from "./templates";
@@ -7,6 +12,24 @@ import type { RenderedSection } from "./templates/types";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
 export { cvSlug } from "./slug";
+
+/** Inline badges appended to a publication/preprint entry (HTML/PDF only). */
+function itemBadges(item: CvItem, display: DisplayChoices): string {
+  const badges: string[] = [];
+  if (display.showOpenAccess && item.meta.oaStatus) {
+    badges.push(
+      `<span class="cv-badge cv-badge-oa" title="Open access (${escapeHtml(
+        item.meta.oaStatus,
+      )})">OA</span>`,
+    );
+  }
+  if (display.showAuthorRole && item.meta.authorRole) {
+    badges.push(
+      `<span class="cv-badge cv-badge-role">${escapeHtml(item.meta.authorRole)}</span>`,
+    );
+  }
+  return badges.length ? ` ${badges.join("")}` : "";
+}
 
 /**
  * Render the canonical object to a standalone HTML document.
@@ -29,6 +52,7 @@ export function renderCvHtml(cv: CanonicalCv): string {
         ) {
           html = highlightSelf(html, item.selfNameVariants);
         }
+        html += itemBadges(item, cv.display);
         return { item, html };
       }),
     }),

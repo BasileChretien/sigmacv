@@ -73,6 +73,12 @@ export const CvItemSchema = z.object({
     type: z.string().optional(),
     doi: z.string().optional(),
     citedByCount: z.number().int().optional(),
+    /** Open-access status from OpenAlex ("gold"/"green"/"hybrid"/"bronze"/"diamond"). */
+    oaStatus: z.string().optional(),
+    /** The account holder's authorship role on this work ("first"/"last"/"corresponding"). */
+    authorRole: z.string().optional(),
+    /** Total number of authors on the work. */
+    authorCount: z.number().int().optional(),
   }),
 });
 export type CvItem = z.infer<typeof CvItemSchema>;
@@ -199,6 +205,10 @@ export const DisplayChoicesSchema = z.object({
   metrics: z.array(z.string()).default([]),
   /** Show the publications/citations-per-year mini charts (HTML/PDF). Default off. */
   showCharts: z.boolean().default(false),
+  /** Show an "Open Access" badge on OA publications (HTML/PDF). Default on. */
+  showOpenAccess: z.boolean().default(true),
+  /** Show the account holder's authorship role (first/last/corresponding). Default off. */
+  showAuthorRole: z.boolean().default(false),
   /** Accent colour (validated hex). */
   accentColor: z.string().regex(HEX_COLOR).default("#1f4fd8"),
   fontPairing: z.enum(FONT_PAIRINGS).default("serif"),

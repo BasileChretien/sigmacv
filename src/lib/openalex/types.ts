@@ -37,7 +37,8 @@ export interface OpenAlexAuthor {
 }
 
 export interface OpenAlexAuthorship {
-  author_position?: string;
+  author_position?: string; // "first" | "middle" | "last"
+  is_corresponding?: boolean;
   author?: {
     id?: string;
     display_name?: string;
@@ -71,6 +72,13 @@ export interface OpenAlexWork {
   /** Percentile of citations for the work's field+year (value 0..100). */
   cited_by_percentile_year?: { min?: number; max?: number; value?: number } | null;
   authorships?: OpenAlexAuthorship[];
+  /** Open-access status for the work. */
+  open_access?: {
+    is_oa?: boolean;
+    /** "gold" | "green" | "hybrid" | "bronze" | "closed" | "diamond". */
+    oa_status?: string;
+    oa_url?: string | null;
+  } | null;
   primary_location?: { source?: OpenAlexSource | null } | null;
   biblio?: {
     volume?: string | null;

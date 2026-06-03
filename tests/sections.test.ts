@@ -146,6 +146,31 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     ]);
   });
 
+  it("routes preprint-typed works into a separate Preprints section", () => {
+    const preprint = {
+      ...(baseWorks[0] as OpenAlexWork),
+      id: "https://openalex.org/W999PRE",
+      doi: null,
+      title: "A preprint about X",
+      display_name: "A preprint about X",
+      type: "preprint",
+    };
+    const cv = buildCanonicalCv({
+      id: "p",
+      resolved,
+      works: [preprint, ...baseWorks],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const pre = cv.sections.find((s) => s.type === "preprints");
+    const pubs = cv.sections.find((s) => s.type === "publications")!;
+    expect(pre).toBeDefined();
+    expect(pre!.items).toHaveLength(1);
+    expect(pre!.items[0]!.csl?.title).toBe("A preprint about X");
+    // The preprint is NOT also in Publications (no double-counting).
+    expect(pubs.items.some((i) => i.csl?.title === "A preprint about X")).toBe(false);
+    expect(cv.sections.map((s) => s.type)).toContain("preprints");
+  });
+
   it("preserves a 'not mine' assertion across an OpenAlex id change (DOI-anchored)", () => {
     const withDoi = baseWorks.find((w) => w.doi);
     expect(withDoi).toBeDefined();

@@ -46,6 +46,8 @@ describe("DisplayChoicesSchema", () => {
       showMetrics: false,
       metrics: [],
       showCharts: false,
+      showOpenAccess: true,
+      showAuthorRole: false,
       accentColor: "#1f4fd8",
       fontPairing: "serif",
       density: "comfortable",
