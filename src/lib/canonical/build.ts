@@ -18,7 +18,11 @@ import type {
   ResolvedAffiliation,
   ResolvedAuthor,
 } from "@/lib/openalex/resolveAuthor";
-import type { OrcidFunding, OrcidPosition } from "@/lib/orcid/client";
+import type {
+  OrcidFunding,
+  OrcidPeerReviewGroup,
+  OrcidPosition,
+} from "@/lib/orcid/client";
 import type { EditorialRole } from "@/lib/oep/client";
 
 const PUBLICATIONS_SECTION_ID = "publications";
@@ -38,6 +42,16 @@ export interface BuildArgs {
   employments?: OrcidPosition[];
   /** Self-asserted funding/grants from ORCID (Grants section). */
   fundings?: OrcidFunding[];
+  /** ORCID invited positions — merged into the Positions section. */
+  invitedPositions?: OrcidPosition[];
+  /** ORCID education + qualification records (Education section). */
+  education?: OrcidPosition[];
+  /** ORCID distinctions (Awards & Honors section). */
+  distinctions?: OrcidPosition[];
+  /** ORCID memberships + services (Service section). */
+  service?: OrcidPosition[];
+  /** ORCID peer-review activity, aggregated by venue (Peer Review section). */
+  peerReviews?: OrcidPeerReviewGroup[];
 }
 
 /** Year range like "(2012–2024)" / "(2024–present)". Empty if no years. */
@@ -166,7 +180,88 @@ function buildPositionsSection(
     type: "positions",
     title: "Positions",
     visible: true,
-    order: 1,
+    order: 2,
+    items: reindexItems(items),
+  };
+}
+
+/** Award/distinction text: "<award>, <org> (<year>)". */
+function formatAwardText(p: OrcidPosition): string {
+  const label = p.roleTitle
+    ? `${p.roleTitle}${p.organization ? `, ${p.organization}` : ""}`
+    : p.organization;
+  const yrs = grantYears(p.startYear, p.endYear);
+  return yrs ? `${label} ${yrs}` : label;
+}
+
+interface OrcidEntrySectionOpts {
+  id: string;
+  type: CvSection["type"];
+  title: string;
+  order: number;
+  idPrefix: string;
+  prevItems: Map<string, CvItem>;
+  manual: CvItem[];
+  /** Awards are points in time → "(2020)"; positions/education are ranges. */
+  singleYear?: boolean;
+}
+
+/** Generic builder for ORCID-sourced entry sections (education, awards, service). */
+function buildOrcidEntrySection(
+  entries: OrcidPosition[],
+  opts: OrcidEntrySectionOpts,
+): CvSection | null {
+  const items: CvItem[] = [];
+  let rank = 0;
+  const sorted = [...entries].sort(
+    (a, b) =>
+      positionRecency(b.startYear, b.endYear) -
+      positionRecency(a.startYear, a.endYear),
+  );
+  for (const e of sorted) {
+    const id = `${opts.idPrefix}:orcid:${e.putCode}`;
+    const text = opts.singleYear ? formatAwardText(e) : formatPositionText(e);
+    items.push(
+      makeEntryItem(id, "orcid", e.putCode, text, opts.prevItems.get(id), rank++, e.startYear),
+    );
+  }
+  for (const m of opts.manual) {
+    items.push({ ...m, order: opts.prevItems.get(m.id)?.order ?? rank++ });
+  }
+  if (items.length === 0) return null;
+  return {
+    id: opts.id,
+    type: opts.type,
+    title: opts.title,
+    visible: true,
+    order: opts.order,
+    items: reindexItems(items),
+  };
+}
+
+/** Peer-review section: one entry per convening venue with a review count. */
+function buildPeerReviewSection(
+  groups: OrcidPeerReviewGroup[],
+  prevItems: Map<string, CvItem>,
+  manual: CvItem[],
+): CvSection | null {
+  const items: CvItem[] = [];
+  let rank = 0;
+  for (const g of groups) {
+    const id = `peer-review:orcid:${normInstitution(g.organization).replace(/[^a-z0-9]+/g, "-")}`;
+    const text = `${g.organization} — ${g.count} review${g.count === 1 ? "" : "s"}`;
+    items.push(makeEntryItem(id, "orcid", "peer-review", text, prevItems.get(id), rank++));
+  }
+  for (const m of manual) {
+    items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
+  }
+  if (items.length === 0) return null;
+  return {
+    id: "peer-review",
+    type: "peer-review",
+    title: "Peer Review",
+    visible: true,
+    order: 7,
     items: reindexItems(items),
   };
 }
@@ -214,7 +309,7 @@ function buildGrantsSection(
     type: "grants",
     title: "Grants & Funding",
     visible: true,
-    order: 3,
+    order: 8,
     items: reindexItems(items),
   };
 }
@@ -248,7 +343,7 @@ function buildEditorialSection(
     type: "editorial",
     title: "Editorial Roles",
     visible: true,
-    order: 2,
+    order: 6,
     items,
   };
 }
@@ -427,10 +522,43 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       : null;
 
   const positionsSection = buildPositionsSection(
-    args.employments ?? [],
+    [...(args.employments ?? []), ...(args.invitedPositions ?? [])],
     resolved.affiliations ?? [],
     prevItems,
     previousManualItems(previous, "positions"),
+  );
+  const educationSection = buildOrcidEntrySection(args.education ?? [], {
+    id: "education",
+    type: "education",
+    title: "Education",
+    order: 3,
+    idPrefix: "education",
+    prevItems,
+    manual: previousManualItems(previous, "education"),
+  });
+  const awardsSection = buildOrcidEntrySection(args.distinctions ?? [], {
+    id: "awards",
+    type: "awards",
+    title: "Awards & Honors",
+    order: 4,
+    idPrefix: "award",
+    prevItems,
+    manual: previousManualItems(previous, "awards"),
+    singleYear: true,
+  });
+  const serviceSection = buildOrcidEntrySection(args.service ?? [], {
+    id: "service",
+    type: "service",
+    title: "Service & Memberships",
+    order: 5,
+    idPrefix: "service",
+    prevItems,
+    manual: previousManualItems(previous, "service"),
+  });
+  const peerReviewSection = buildPeerReviewSection(
+    args.peerReviews ?? [],
+    prevItems,
+    previousManualItems(previous, "peer-review"),
   );
   const editorialSection = buildEditorialSection(
     args.editorialRoles ?? [],
@@ -446,6 +574,10 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     publicationsSection,
     preprintsSection,
     positionsSection ? mergeSection(positionsSection, previous) : null,
+    educationSection ? mergeSection(educationSection, previous) : null,
+    awardsSection ? mergeSection(awardsSection, previous) : null,
+    serviceSection ? mergeSection(serviceSection, previous) : null,
+    peerReviewSection ? mergeSection(peerReviewSection, previous) : null,
     editorialSection ? mergeSection(editorialSection, previous) : null,
     grantsSection ? mergeSection(grantsSection, previous) : null,
   ].filter((s): s is CvSection => s !== null);

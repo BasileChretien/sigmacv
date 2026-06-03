@@ -149,10 +149,14 @@ export function updateDisplay(
 const SECTION_DEFAULTS: Partial<
   Record<CvSectionType, { title: string; order: number }>
 > = {
-  positions: { title: "Positions", order: 1 },
-  editorial: { title: "Editorial Roles", order: 2 },
-  grants: { title: "Grants & Funding", order: 3 },
-  other: { title: "Other", order: 5 },
+  positions: { title: "Positions", order: 2 },
+  education: { title: "Education", order: 3 },
+  awards: { title: "Awards & Honors", order: 4 },
+  service: { title: "Service & Memberships", order: 5 },
+  "peer-review": { title: "Peer Review", order: 7 },
+  editorial: { title: "Editorial Roles", order: 6 },
+  grants: { title: "Grants & Funding", order: 8 },
+  other: { title: "Other", order: 9 },
 };
 
 /**

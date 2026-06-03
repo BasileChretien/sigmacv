@@ -160,3 +160,99 @@ describe("fetchOrcidFundings", () => {
     expect(await fetchOrcidFundings("0000-0002-7483-2489")).toEqual([]);
   });
 });
+
+// Affiliation-shaped endpoint body for a given summary key.
+function aff(summaryKey: string) {
+  return {
+    "affiliation-group": [
+      {
+        summaries: [
+          {
+            [summaryKey]: {
+              "put-code": 1,
+              "role-title": "Role",
+              "department-name": "Dept",
+              organization: { name: "Org" },
+              "start-date": { year: { value: "2020" } },
+              "end-date": null,
+            },
+          },
+        ],
+      },
+    ],
+  };
+}
+
+const PEER = {
+  group: [
+    {
+      "peer-review-group": [
+        {
+          "peer-review-summary": [
+            { "convening-organization": { name: "BMJ" } },
+            { "convening-organization": { name: "BMJ" } },
+            {}, // no convening org → falls back to a generic bucket
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+function routeAll(overrides: { peer?: Response } = {}) {
+  return vi.fn(async (url: URL | string) => {
+    const u = url.toString();
+    if (u.includes("/oauth/token")) return res(TOKEN_BODY);
+    if (u.includes("/educations")) return res(aff("education-summary"));
+    if (u.includes("/qualifications")) return res(aff("qualification-summary"));
+    if (u.includes("/distinctions")) return res(aff("distinction-summary"));
+    if (u.includes("/memberships")) return res(aff("membership-summary"));
+    if (u.includes("/services")) return res(aff("service-summary"));
+    if (u.includes("/invited-positions")) return res(aff("invited-position-summary"));
+    if (u.includes("/peer-reviews")) return overrides.peer ?? res(PEER);
+    return res({});
+  });
+}
+
+describe("ORCID extra public sections", () => {
+  it("reads education (educations + qualifications)", async () => {
+    vi.stubGlobal("fetch", routeAll());
+    const { fetchOrcidEducation } = await freshClient();
+    const edu = await fetchOrcidEducation("0000-0002-7483-2489");
+    expect(edu).toHaveLength(2); // one from each endpoint
+    expect(edu[0]).toMatchObject({ organization: "Org", roleTitle: "Role" });
+  });
+
+  it("reads distinctions", async () => {
+    vi.stubGlobal("fetch", routeAll());
+    const { fetchOrcidDistinctions } = await freshClient();
+    const d = await fetchOrcidDistinctions("0000-0002-7483-2489");
+    expect(d[0]?.organization).toBe("Org");
+  });
+
+  it("reads service (memberships + services merged)", async () => {
+    vi.stubGlobal("fetch", routeAll());
+    const { fetchOrcidService } = await freshClient();
+    expect(await fetchOrcidService("0000-0002-7483-2489")).toHaveLength(2);
+  });
+
+  it("reads invited positions", async () => {
+    vi.stubGlobal("fetch", routeAll());
+    const { fetchOrcidInvitedPositions } = await freshClient();
+    expect(await fetchOrcidInvitedPositions("0000-0002-7483-2489")).toHaveLength(1);
+  });
+
+  it("aggregates peer reviews by convening organization", async () => {
+    vi.stubGlobal("fetch", routeAll());
+    const { fetchOrcidPeerReviews } = await freshClient();
+    const pr = await fetchOrcidPeerReviews("0000-0002-7483-2489");
+    expect(pr).toContainEqual({ organization: "BMJ", count: 2 });
+    expect(pr).toContainEqual({ organization: "Journals & conferences", count: 1 });
+  });
+
+  it("peer reviews fail soft on error", async () => {
+    vi.stubGlobal("fetch", routeAll({ peer: res({}, false, 500) }));
+    const { fetchOrcidPeerReviews } = await freshClient();
+    expect(await fetchOrcidPeerReviews("0000-0002-7483-2489")).toEqual([]);
+  });
+});

@@ -97,14 +97,24 @@ function nonEmpty(s: unknown): string | undefined {
   return typeof s === "string" && s.trim() ? s.trim() : undefined;
 }
 
-/** Fetch the user's PUBLIC employment history from ORCID (fails soft → []). */
-export async function fetchOrcidPositions(orcid: string): Promise<OrcidPosition[]> {
+/**
+ * Generic reader for ORCID's "affiliation" endpoints, which all share the same
+ * shape: affiliation-group[].summaries[].<summaryKey> with organization +
+ * role-title + department + dates + put-code. Covers employments, educations,
+ * qualifications, distinctions, memberships, services, invited-positions.
+ * Fails soft → [].
+ */
+async function fetchOrcidAffiliations(
+  orcid: string,
+  path: string,
+  summaryKey: string,
+): Promise<OrcidPosition[]> {
   try {
-    const data = await orcidGet<any>(orcid, "employments");
+    const data = await orcidGet<any>(orcid, path);
     const out: OrcidPosition[] = [];
     for (const group of toArray(data?.["affiliation-group"])) {
       for (const s of toArray(group?.summaries)) {
-        const e = s?.["employment-summary"];
+        const e = s?.[summaryKey];
         const org = nonEmpty(e?.organization?.name);
         const putCode = e?.["put-code"];
         if (!org || putCode == null) continue;
@@ -120,7 +130,68 @@ export async function fetchOrcidPositions(orcid: string): Promise<OrcidPosition[
     }
     return out;
   } catch (err) {
-    console.warn("[orcid] employments fetch failed:", err);
+    console.warn(`[orcid] ${path} fetch failed:`, err);
+    return [];
+  }
+}
+
+/** PUBLIC employment history (fails soft → []). */
+export function fetchOrcidPositions(orcid: string): Promise<OrcidPosition[]> {
+  return fetchOrcidAffiliations(orcid, "employments", "employment-summary");
+}
+
+/** PUBLIC education + qualification records. */
+export async function fetchOrcidEducation(orcid: string): Promise<OrcidPosition[]> {
+  const [edu, quals] = await Promise.all([
+    fetchOrcidAffiliations(orcid, "educations", "education-summary"),
+    fetchOrcidAffiliations(orcid, "qualifications", "qualification-summary"),
+  ]);
+  return [...edu, ...quals];
+}
+
+/** PUBLIC awards / distinctions. */
+export function fetchOrcidDistinctions(orcid: string): Promise<OrcidPosition[]> {
+  return fetchOrcidAffiliations(orcid, "distinctions", "distinction-summary");
+}
+
+/** PUBLIC memberships + service roles. */
+export async function fetchOrcidService(orcid: string): Promise<OrcidPosition[]> {
+  const [memberships, services] = await Promise.all([
+    fetchOrcidAffiliations(orcid, "memberships", "membership-summary"),
+    fetchOrcidAffiliations(orcid, "services", "service-summary"),
+  ]);
+  return [...memberships, ...services];
+}
+
+/** PUBLIC invited positions (visiting roles etc.). */
+export function fetchOrcidInvitedPositions(orcid: string): Promise<OrcidPosition[]> {
+  return fetchOrcidAffiliations(orcid, "invited-positions", "invited-position-summary");
+}
+
+/** PUBLIC peer-review activity, aggregated by convening organization. */
+export interface OrcidPeerReviewGroup {
+  organization: string;
+  count: number;
+}
+export async function fetchOrcidPeerReviews(
+  orcid: string,
+): Promise<OrcidPeerReviewGroup[]> {
+  try {
+    const data = await orcidGet<any>(orcid, "peer-reviews");
+    const counts = new Map<string, number>();
+    for (const g of toArray(data?.group)) {
+      for (const prg of toArray(g?.["peer-review-group"])) {
+        for (const s of toArray(prg?.["peer-review-summary"])) {
+          const org = nonEmpty(s?.["convening-organization"]?.name) ?? "Journals & conferences";
+          counts.set(org, (counts.get(org) ?? 0) + 1);
+        }
+      }
+    }
+    return [...counts.entries()]
+      .map(([organization, count]) => ({ organization, count }))
+      .sort((a, b) => b.count - a.count);
+  } catch (err) {
+    console.warn("[orcid] peer-reviews fetch failed:", err);
     return [];
   }
 }

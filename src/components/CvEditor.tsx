@@ -91,7 +91,17 @@ export default function CvEditor({
     return `${prefix}:manual:${rand}`;
   }
 
-  function addEntry(type: "positions" | "grants" | "other") {
+  // Sections where a free-text "Add an entry" makes sense.
+  const MANUAL_SECTIONS = new Set([
+    "positions",
+    "education",
+    "awards",
+    "service",
+    "grants",
+    "other",
+  ]);
+
+  function addEntry(type: CanonicalCv["sections"][number]["type"]) {
     const text = (drafts[type] ?? "").trim();
     if (!text) return;
     onChange(addManualEntry(cv, type, text, newId(type)));
@@ -515,9 +525,7 @@ export default function CvEditor({
               </ul>
             )}
 
-            {section.type === "positions" ||
-            section.type === "grants" ||
-            section.type === "other" ? (
+            {MANUAL_SECTIONS.has(section.type) ? (
               <div className="add-entry-row">
                 <input
                   type="text"
@@ -533,7 +541,7 @@ export default function CvEditor({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      addEntry(section.type as "positions" | "grants" | "other");
+                      addEntry(section.type);
                     }
                   }}
                   aria-label={`Add a ${section.type} entry`}
@@ -541,9 +549,7 @@ export default function CvEditor({
                 <button
                   type="button"
                   className="btn"
-                  onClick={() =>
-                    addEntry(section.type as "positions" | "grants" | "other")
-                  }
+                  onClick={() => addEntry(section.type)}
                   disabled={!(drafts[section.type] ?? "").trim()}
                 >
                   Add

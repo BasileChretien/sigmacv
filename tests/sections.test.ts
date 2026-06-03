@@ -146,6 +146,54 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     ]);
   });
 
+  it("builds Education, Awards, Service, Peer-review sections + merges invited positions", () => {
+    const cv = buildCanonicalCv({
+      id: "orc",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      employments,
+      invitedPositions: [
+        { putCode: "300", organization: "Harvard", roleTitle: "Visiting Scholar", startYear: 2019, endYear: 2020 },
+      ],
+      education: [
+        { putCode: "400", organization: "University of Caen", roleTitle: "PharmD", startYear: 2008, endYear: 2014 },
+      ],
+      distinctions: [
+        { putCode: "500", organization: "French Society of Pharmacology", roleTitle: "Young Investigator Award", startYear: 2021 },
+      ],
+      service: [
+        { putCode: "600", organization: "ISoP", roleTitle: "Committee Member", startYear: 2022 },
+      ],
+      peerReviews: [
+        { organization: "BMJ", count: 5 },
+        { organization: "Cell", count: 1 },
+      ],
+    });
+    const byType = (t: string) => cv.sections.find((s) => s.type === t);
+
+    expect(byType("education")!.items[0]!.displayText).toBe(
+      "PharmD, University of Caen (2008–2014)",
+    );
+    // Awards use a single year, not a "–present" range.
+    expect(byType("awards")!.items[0]!.displayText).toBe(
+      "Young Investigator Award, French Society of Pharmacology (2021)",
+    );
+    expect(byType("service")!.items[0]!.displayText).toBe(
+      "Committee Member, ISoP (2022–present)",
+    );
+    // Invited position is merged into Positions.
+    expect(
+      byType("positions")!.items.some((i) =>
+        i.displayText?.includes("Visiting Scholar, Harvard (2019–2020)"),
+      ),
+    ).toBe(true);
+    // Peer review: singular vs plural.
+    const pr = byType("peer-review")!.items.map((i) => i.displayText);
+    expect(pr).toContain("BMJ — 5 reviews");
+    expect(pr).toContain("Cell — 1 review");
+  });
+
   it("routes preprint-typed works into a separate Preprints section", () => {
     const preprint = {
       ...(baseWorks[0] as OpenAlexWork),

@@ -10,7 +10,15 @@ import {
 import { fetchWorksByAuthorIds } from "@/lib/openalex/client";
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
 import { normalizeOrcid } from "@/lib/openalex/types";
-import { fetchOrcidFundings, fetchOrcidPositions } from "@/lib/orcid/client";
+import {
+  fetchOrcidDistinctions,
+  fetchOrcidEducation,
+  fetchOrcidFundings,
+  fetchOrcidInvitedPositions,
+  fetchOrcidPeerReviews,
+  fetchOrcidPositions,
+  fetchOrcidService,
+} from "@/lib/orcid/client";
 import { fetchEditorialRoles } from "@/lib/oep/client";
 import { cvSlug } from "@/lib/render/slug";
 import { logCvSave } from "@/lib/research/log";
@@ -56,11 +64,26 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   const previous = previousParsed?.success ? previousParsed.data : null;
 
   const resolved = await resolveAuthorByOrcid(orcid);
-  const [works, editorialRoles, employments, fundings] = await Promise.all([
+  const [
+    works,
+    editorialRoles,
+    employments,
+    fundings,
+    invitedPositions,
+    education,
+    distinctions,
+    service,
+    peerReviews,
+  ] = await Promise.all([
     resolved ? fetchWorksByAuthorIds(resolved.authorIds) : Promise.resolve([]),
     fetchEditorialRoles(orcid),
     fetchOrcidPositions(orcid),
     fetchOrcidFundings(orcid),
+    fetchOrcidInvitedPositions(orcid),
+    fetchOrcidEducation(orcid),
+    fetchOrcidDistinctions(orcid),
+    fetchOrcidService(orcid),
+    fetchOrcidPeerReviews(orcid),
   ]);
 
   const id = existing?.id ?? randomUUID();
@@ -77,6 +100,11 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     editorialRoles,
     employments,
     fundings,
+    invitedPositions,
+    education,
+    distinctions,
+    service,
+    peerReviews,
   });
 
   await prisma.cv.upsert({
