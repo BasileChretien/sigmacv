@@ -9,8 +9,8 @@ function modernCss(_theme: TemplateTheme): string {
   return `
   .cv { padding-top: 56px; padding-bottom: 48px; }
   header.cv-header { margin-bottom: 2rem; }
-  header.cv-header h1 { font-size: 2.4rem; font-weight: 700; color: var(--cv-accent); letter-spacing: -0.022em; line-height: 1.02; }
-  header.cv-header .cv-headline { font-size: 1.05rem; color: var(--cv-ink-2); margin-top: 0.25rem; }
+  header.cv-header h1 { font-size: 2.15rem; font-weight: 700; color: var(--cv-accent); letter-spacing: -0.022em; line-height: 1.04; }
+  header.cv-header .cv-headline { font-size: 1.22rem; font-weight: 500; color: var(--cv-ink-2); margin-top: 0.3rem; }
   .cv-photo { width: 112px; height: 112px; border-radius: 12px; }
   section.cv-section > h2 {
     font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em;

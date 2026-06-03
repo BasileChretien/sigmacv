@@ -6,7 +6,8 @@ import { TEMPLATES } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { renderCvHtml } from "@/lib/render/html";
 import { docxRenderer } from "@/lib/render/docx";
-import { latexRenderer } from "@/lib/render/latex";
+import { bibtexRenderer } from "@/lib/render/bibtex";
+import { latexClassicRenderer, latexRenderer } from "@/lib/render/latex";
 import { markdownRenderer, renderCvMarkdown } from "@/lib/render/markdown";
 import { renderCvLatex } from "@/lib/render/latex";
 import { renderCvDocxBuffer } from "@/lib/render/docx";
@@ -45,6 +46,7 @@ describe("render format catalog", () => {
       "pdf",
       "docx",
       "latex",
+      "latex-classic",
       "markdown",
       "bibtex",
     ]);
@@ -69,16 +71,31 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     expect(r.text).toContain("---");
   });
 
-  it("latexRenderer.render returns LaTeX + .tex filename", async () => {
+  it("latexRenderer.render returns modern LaTeX + .tex filename", async () => {
     const r = await latexRenderer.render({ cv: makeCv() });
+    expect(r.format).toBe("latex");
     expect(r.filename).toBe("basile-chretien-cv.tex");
-    expect(r.text).toContain("\\documentclass");
+    expect(r.text).toContain("\\definecolor{cvaccent}"); // modern
+  });
+
+  it("latexClassicRenderer.render returns classic LaTeX + .tex filename", async () => {
+    const r = await latexClassicRenderer.render({ cv: makeCv() });
+    expect(r.format).toBe("latex-classic");
+    expect(r.filename).toBe("basile-chretien-cv.tex");
+    expect(r.text).toContain("\\documentclass[11pt]{article}"); // classic
   });
 
   it("docxRenderer.render returns a .docx buffer", async () => {
     const r = await docxRenderer.render({ cv: makeCv() });
     expect(r.filename).toBe("basile-chretien-cv.docx");
     expect(r.buffer && r.buffer.length).toBeGreaterThan(0);
+  });
+
+  it("bibtexRenderer.render returns BibTeX + .bib filename", async () => {
+    const r = await bibtexRenderer.render({ cv: makeCv() });
+    expect(r.format).toBe("bibtex");
+    expect(r.filename).toBe("basile-chretien-publications.bib");
+    expect(r.text).toContain("@article{");
   });
 
   it("renders the metrics line across formats when enabled", () => {

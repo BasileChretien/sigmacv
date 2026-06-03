@@ -18,7 +18,7 @@ function sidebarCss(_theme: TemplateTheme): string {
   .cv-sidebar .cv-header { margin: 0; }
   .cv-sidebar .cv-headmain { flex-direction: column; align-items: flex-start; gap: 1rem; }
   .cv-sidebar h1 { font-size: 1.55rem; font-weight: 700; color: #fff; line-height: 1.12; letter-spacing: -0.01em; }
-  .cv-sidebar .cv-headline { font-size: 0.95rem; color: rgba(255,255,255,0.88); font-weight: 400; }
+  .cv-sidebar .cv-headline { font-size: 1.1rem; color: rgba(255,255,255,0.92); font-weight: 500; }
   .cv-sidebar .cv-ids,
   .cv-sidebar .cv-contact,
   .cv-sidebar .cv-links { color: rgba(255,255,255,0.9); font-size: 0.8rem; line-height: 1.7; }

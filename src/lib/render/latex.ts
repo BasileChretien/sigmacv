@@ -173,21 +173,38 @@ function buildModern(cv: CanonicalCv): string {
   return `${preamble}\n${header}\n${summaryPar}\n${blocks.join("\n\n")}\n\n\\end{document}\n`;
 }
 
-export function renderCvLatex(cv: CanonicalCv): string {
-  return cv.display.latexTemplate === "classic"
-    ? buildClassic(cv)
-    : buildModern(cv);
+export type LatexVariant = "classic" | "modern";
+
+/** The two LaTeX designs are chosen at export time (two entries in the export
+ *  menu), not via a persisted setting. "modern" is the polished default. */
+export function renderCvLatex(
+  cv: CanonicalCv,
+  variant: LatexVariant = "modern",
+): string {
+  return variant === "classic" ? buildClassic(cv) : buildModern(cv);
 }
 
+function latexResult(cv: CanonicalCv, variant: LatexVariant): RenderResult {
+  return {
+    format: variant === "classic" ? "latex-classic" : "latex",
+    mimeType: "application/x-tex; charset=utf-8",
+    filename: `${cvSlug(cv.owner.displayName)}-cv.tex`,
+    text: renderCvLatex(cv, variant),
+  };
+}
+
+/** Modern (professional) LaTeX export. */
 export const latexRenderer: Renderer = {
   format: "latex",
   async render({ cv }: RenderInput): Promise<RenderResult> {
-    const text = renderCvLatex(cv);
-    return {
-      format: "latex",
-      mimeType: "application/x-tex; charset=utf-8",
-      filename: `${cvSlug(cv.owner.displayName)}-cv.tex`,
-      text,
-    };
+    return latexResult(cv, "modern");
+  },
+};
+
+/** Classic (minimal) LaTeX export. */
+export const latexClassicRenderer: Renderer = {
+  format: "latex-classic",
+  async render({ cv }: RenderInput): Promise<RenderResult> {
+    return latexResult(cv, "classic");
   },
 };

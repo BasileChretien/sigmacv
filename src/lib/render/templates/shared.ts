@@ -137,7 +137,7 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-headmain { display: flex; gap: 1.6rem; align-items: flex-start; justify-content: space-between; }
   .cv-headtext { flex: 1 1 auto; min-width: 0; }
   .cv-photo { flex: none; width: 104px; height: 104px; border-radius: 10px; object-fit: cover; }
-  .cv-headline { font-size: 1.02rem; font-weight: 400; color: var(--cv-ink-2); margin-top: 0.1rem; letter-spacing: 0.005em; }
+  .cv-headline { font-size: 1.2rem; font-weight: 500; color: var(--cv-ink-2); margin-top: 0.15rem; letter-spacing: 0; }
   .cv-ids { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.35rem; }
   .cv-ids a { color: var(--cv-accent); text-decoration: none; }
   .cv-contact, .cv-links { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.3rem; line-height: 1.5; }

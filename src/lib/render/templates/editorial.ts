@@ -10,8 +10,8 @@ function editorialCss(_theme: TemplateTheme): string {
   return `
   .cv { max-width: 740px; padding: 52px 56px; }
   header.cv-header { border-bottom: 3px solid var(--cv-accent); padding-bottom: 1rem; margin-bottom: 1.9rem; }
-  header.cv-header h1 { font-size: 2.7rem; font-weight: 700; letter-spacing: -0.025em; line-height: 1.0; }
-  header.cv-header .cv-headline { font-size: 1.08rem; color: var(--cv-accent); font-weight: 600; margin-top: 0.4rem; letter-spacing: 0.01em; }
+  header.cv-header h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.022em; line-height: 1.05; }
+  header.cv-header .cv-headline { font-size: 1.25rem; color: var(--cv-accent); font-weight: 600; margin-top: 0.4rem; letter-spacing: 0.01em; }
   header.cv-header .cv-ids a { color: var(--cv-accent); }
   .cv-summary { font-size: 1rem; line-height: 1.6; color: var(--cv-ink-2); }
   section.cv-section > h2 {

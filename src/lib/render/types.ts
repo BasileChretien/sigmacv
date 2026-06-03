@@ -14,6 +14,7 @@ export const RENDER_FORMATS = [
   "pdf",
   "docx",
   "latex",
+  "latex-classic",
   "markdown",
   "bibtex",
 ] as const;

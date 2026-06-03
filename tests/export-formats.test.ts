@@ -40,7 +40,7 @@ describe.skipIf(!hasApa)("export formats (need vendored CSL assets)", () => {
   });
 
   it("LaTeX (classic): minimal article with itemized bibliography + \\textbf self", () => {
-    const tex = renderCvLatex(updateDisplay(makeCv(), { latexTemplate: "classic" }));
+    const tex = renderCvLatex(makeCv(), "classic");
     expect(tex).toContain("\\documentclass[11pt]{article}");
     expect(tex).toContain("\\section*{Publications}");
     expect(tex).toContain("\\item ");
@@ -49,7 +49,7 @@ describe.skipIf(!hasApa)("export formats (need vendored CSL assets)", () => {
   });
 
   it("LaTeX (modern): accent colour, section rules, professional layout (default)", () => {
-    const tex = renderCvLatex(makeCv()); // modern is the default
+    const tex = renderCvLatex(makeCv()); // modern is the default variant
     expect(tex).toContain("\\documentclass[11pt,a4paper]{article}");
     expect(tex).toContain("\\definecolor{cvaccent}{HTML}{1F4FD8}");
     expect(tex).toContain("\\section{Publications}");

@@ -14,6 +14,7 @@ type ExportFormat =
   | "pdf"
   | "docx"
   | "latex"
+  | "latex-classic"
   | "markdown"
   | "bibtex"
   | "json";
@@ -183,7 +184,8 @@ export default function CvWorkspace({
           >
             <option value="pdf">PDF (styled like preview)</option>
             <option value="docx">Word .docx (plain)</option>
-            <option value="latex">LaTeX .tex (plain)</option>
+            <option value="latex">LaTeX — Modern (.tex)</option>
+            <option value="latex-classic">LaTeX — Classic (.tex)</option>
             <option value="markdown">Markdown .md (plain)</option>
             <option value="bibtex">BibTeX .bib (for Zotero)</option>
             <option value="json">JSON (data)</option>

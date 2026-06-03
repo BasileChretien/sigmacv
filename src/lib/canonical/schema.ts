@@ -341,12 +341,6 @@ export type CustomStyle = z.infer<typeof CustomStyleSchema>;
 
 export const DisplayChoicesSchema = z.object({
   template: z.enum(TEMPLATES).default("classic"),
-  /**
-   * Design used by the LaTeX (.tex) export specifically — independent of the
-   * on-screen HTML template. "modern" is a polished, self-contained design;
-   * "classic" is a minimal article layout.
-   */
-  latexTemplate: z.enum(["classic", "modern"]).default("modern"),
   /** Bundled CSL style key, e.g. "apa" (see src/lib/citeproc/assets/styles). */
   cslStyle: z.string().default("apa"),
   /**
