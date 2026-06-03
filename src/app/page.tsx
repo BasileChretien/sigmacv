@@ -1,7 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
 import { enabledProviders } from "@/auth.config";
-import SupportLink from "@/components/SupportLink";
+import SiteLinks from "@/components/SiteLinks";
 
 export default async function Home() {
   const session = await auth();
@@ -96,9 +97,15 @@ export default async function Home() {
         consent.
       </p>
 
-      <div style={{ marginTop: "1.5rem" }}>
-        <SupportLink />
-      </div>
+      <footer
+        className="site-footer"
+        style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}
+      >
+        <Link href="/about" className="muted">
+          About
+        </Link>
+        <SiteLinks />
+      </footer>
     </main>
   );
 }

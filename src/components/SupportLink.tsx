@@ -1,4 +1,4 @@
-import { safeHref } from "@/lib/render/escape";
+import { getSiteLinks } from "@/lib/siteLinks";
 
 /**
  * "Buy me a coffee" support link for the site owner. Configured via the public
@@ -9,10 +9,8 @@ import { safeHref } from "@/lib/render/escape";
  * Deliberately part of the app chrome (editor / landing), NOT the rendered CV —
  * it must never appear on a user's exported or published CV.
  */
-const RAW_URL = process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL ?? "";
-
 export default function SupportLink({ className }: { className?: string }) {
-  const url = safeHref(RAW_URL);
+  const url = getSiteLinks().coffee;
   if (!url) return null;
   return (
     <a

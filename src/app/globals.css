@@ -609,13 +609,29 @@ button {
 
 /* Buy-me-a-coffee support link (chrome only — never on a rendered CV). */
 .coffee-btn {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius, 8px);
   background: #ffdd00;
-  border-color: #e6c700;
+  border: 1px solid #e6c700;
   color: #222;
   font-weight: 600;
+  text-decoration: none;
 }
 .coffee-btn:hover {
   background: #ffe838;
+}
+
+/* Site-owner links row (footer / About — chrome only). */
+.site-links {
+  display: inline-flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+.about-links {
+  margin-top: 1.5rem;
 }
 
 .cv-item-row.is-not-mine .cv-item-title {
