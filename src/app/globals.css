@@ -116,6 +116,11 @@ body {
   margin: 0;
   padding: 0;
 }
+/* Tell the UA both schemes are supported so native scrollbars, form controls
+   and the file picker render in the matching theme. */
+html {
+  color-scheme: light dark;
+}
 
 body {
   background: var(--bg);
@@ -209,6 +214,42 @@ button {
   margin-top: 0.25rem;
   font-size: var(--text-2xs);
   line-height: 1.35;
+}
+
+/* ── Dark mode (app chrome only) ──────────────────────────────────────────
+   Opt-in via the OS preference: light mode is completely unchanged. Only the
+   semantic tokens are re-pointed, so the token-based chrome adapts wholesale.
+   The CV preview/document stays light on any theme — it's a print artifact. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #13151a;
+    --surface: #1b1e25;
+    --surface-2: #21252e;
+    --surface-sunken: #15171d;
+    --border: #2c313b;
+    --border-strong: #3b414e;
+    --text: #eceef2;
+    --text-secondary: #c4c9d2;
+    --muted: #99a0ac;
+    --accent-soft: rgba(94, 130, 247, 0.18);
+    --accent-ring: rgba(94, 130, 247, 0.45);
+    --danger-soft: rgba(192, 54, 44, 0.22);
+    --danger-text: #f3a59c;
+    --warn-soft: rgba(122, 78, 12, 0.3);
+    --warn-text: #e6c074;
+    --success-soft: rgba(26, 127, 75, 0.22);
+    --success-text: #84d4a6;
+    /* Shadows read as depth against dark surfaces only when darker + larger. */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.4);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 6px 18px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 28px rgba(0, 0, 0, 0.55);
+    --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.55), 0 24px 48px rgba(0, 0, 0, 0.6);
+  }
+  /* The CV preview/document is a print artifact — keep it light on any theme. */
+  .cv-preview-frame {
+    background: #fff;
+  }
 }
 
 .container {
