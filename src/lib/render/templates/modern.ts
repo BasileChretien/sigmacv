@@ -23,7 +23,7 @@ export const modernTemplate: CvTemplate = {
   key: "modern",
   render(cv, sections, theme) {
     const css = commonCss(theme) + modernCss(theme);
-    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}</div>`;
+    const body = `<div class="cv">${headerHtml(cv, { photo: true })}${sectionsHtml(sections)}${provenanceFooter(cv)}</div>`;
     return pageShell(`${cv.owner.displayName || "CV"} — CV`, css, body);
   },
 };

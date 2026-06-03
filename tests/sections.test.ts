@@ -405,6 +405,44 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(item.meta.reviewFlag).toBeUndefined();
   });
 
+  it("preserves user-entered profile/header fields across a re-sync", () => {
+    const first = buildCanonicalCv({
+      id: "prof",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const curated: CanonicalCv = {
+      ...first,
+      owner: {
+        ...first.owner,
+        displayName: "B. Chrétien, PharmD",
+        headline: "Assistant Professor",
+        summary: "Pharmacovigilance.",
+        photo: "data:image/png;base64,AAAA",
+        contact: { email: "b@example.org", location: "Nagoya" },
+        links: [{ label: "Site", url: "https://example.org" }],
+        personal: { nationality: "French" },
+      },
+    };
+    const resynced = buildCanonicalCv({
+      id: "prof",
+      resolved,
+      works: baseWorks,
+      now: "2026-07-01T00:00:00.000Z",
+      previous: curated,
+    });
+    expect(resynced.owner.displayName).toBe("B. Chrétien, PharmD");
+    expect(resynced.owner.headline).toBe("Assistant Professor");
+    expect(resynced.owner.summary).toBe("Pharmacovigilance.");
+    expect(resynced.owner.photo).toBe("data:image/png;base64,AAAA");
+    expect(resynced.owner.contact?.email).toBe("b@example.org");
+    expect(resynced.owner.links).toHaveLength(1);
+    expect(resynced.owner.personal?.nationality).toBe("French");
+    // …while metrics still refresh from OpenAlex.
+    expect(resynced.owner.openAlexAuthorIds).toEqual(resolved.authorIds);
+  });
+
   it("localizes default section titles to the chosen locale, preserving renames", () => {
     const en = buildCanonicalCv({
       id: "loc",

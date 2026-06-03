@@ -1,10 +1,49 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { renderChartsHtml } from "../charts";
-import { escapeHtml } from "../escape";
+import { escapeHtml, safeHref } from "../escape";
 import { formattedMetrics } from "../metrics";
 import type { RenderedSection, TemplateTheme } from "./types";
 
 export { escapeHtml };
+
+/** A profile photo `<img>` (data URL), or "" if none. img-src data: is CSP-allowed. */
+export function photoHtml(cv: CanonicalCv): string {
+  const photo = cv.owner.photo;
+  if (!photo) return "";
+  return `<img class="cv-photo" src="${escapeHtml(photo)}" alt="" />`;
+}
+
+/** The contact line: location · email · phone · website (+ extra links). */
+function contactHtml(cv: CanonicalCv): string {
+  const c = cv.owner.contact ?? {};
+  const parts: string[] = [];
+  if (c.location) parts.push(escapeHtml(c.location));
+  if (c.email) {
+    const href = safeHref(`mailto:${c.email}`);
+    parts.push(href ? `<a href="${escapeHtml(href)}">${escapeHtml(c.email)}</a>` : escapeHtml(c.email));
+  }
+  if (c.phone) parts.push(escapeHtml(c.phone));
+  if (c.website) {
+    // Only render the website when it resolves to a SAFE href; an unsafe scheme
+    // (javascript:/data:/…) is dropped entirely rather than shown as raw text.
+    const href = safeHref(c.website);
+    if (href) parts.push(`<a href="${escapeHtml(href)}">${escapeHtml(c.website)}</a>`);
+  }
+  const links = (cv.owner.links ?? [])
+    .map((l) => {
+      const href = safeHref(l.url);
+      const label = escapeHtml(l.label || l.url);
+      return href ? `<a href="${escapeHtml(href)}">${label}</a>` : label;
+    })
+    .filter(Boolean);
+  const contactLine = parts.length
+    ? `<div class="cv-contact">${parts.join(" · ")}</div>`
+    : "";
+  const linksLine = links.length
+    ? `<div class="cv-links">${links.join(" · ")}</div>`
+    : "";
+  return contactLine + linksLine;
+}
 
 /**
  * Wrap template-specific CSS + body into a complete HTML document. The strict
@@ -45,6 +84,13 @@ export function commonCss(theme: TemplateTheme): string {
   ol.cv-bib { list-style: none; margin: 0; padding: 0; }
   ol.cv-bib > li { margin: 0 0 ${theme.entryGapRem}rem; padding-left: 1.4rem; text-indent: -1.4rem; }
   .csl-entry { display: inline; }
+  .cv-headmain { display: flex; gap: 1.2rem; align-items: flex-start; justify-content: space-between; }
+  .cv-headtext { flex: 1 1 auto; min-width: 0; }
+  .cv-photo { flex: none; width: 96px; height: 96px; border-radius: 8px; object-fit: cover; }
+  .cv-headline { font-size: 1rem; color: #444; margin-top: 0.15rem; }
+  .cv-contact { font-size: 0.82rem; color: #555; margin-top: 0.3rem; }
+  .cv-links { font-size: 0.82rem; color: #555; margin-top: 0.15rem; }
+  .cv-summary { margin: 0.8rem 0 0; font-size: 0.92rem; color: #333; line-height: 1.5; }
   .cv-metrics { font-size: 0.8rem; color: #555; margin-top: 0.25rem; }
   .cv-charts { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 0.6rem; }
   .cv-chart { margin: 0; }
@@ -64,9 +110,16 @@ export function commonCss(theme: TemplateTheme): string {
   }`;
 }
 
-/** The header block (shared structure; templates style `.cv-header` differently). */
-export function headerHtml(cv: CanonicalCv): string {
+/**
+ * The header block (shared structure; templates style `.cv-header` differently).
+ * `opts.photo` lets visual templates (modern/rirekisho) opt into the photo;
+ * text-first templates (classic/minimal/compact/ats) omit it.
+ */
+export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): string {
   const name = escapeHtml(cv.owner.displayName || "Curriculum Vitae");
+  const headline = cv.owner.headline
+    ? `<div class="cv-headline">${escapeHtml(cv.owner.headline)}</div>`
+    : "";
   const orcid = cv.owner.orcid ? escapeHtml(cv.owner.orcid) : "";
   const ids = orcid
     ? `<div class="cv-ids">ORCID: <a href="https://orcid.org/${orcid}">${orcid}</a></div>`
@@ -84,7 +137,12 @@ export function headerHtml(cv: CanonicalCv): string {
         )
         .join(" · ")}</div>`
     : "";
-  return `<header class="cv-header"><h1>${name}</h1>${ids}${metricsLine}${renderChartsHtml(cv)}</header>`;
+  const summary = cv.owner.summary
+    ? `<p class="cv-summary">${escapeHtml(cv.owner.summary)}</p>`
+    : "";
+  const photo = opts.photo ? photoHtml(cv) : "";
+  const text = `<div class="cv-headtext"><h1>${name}</h1>${headline}${ids}${contactHtml(cv)}${metricsLine}</div>`;
+  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${renderChartsHtml(cv)}${summary}</header>`;
 }
 
 const SOURCE_LABEL: Record<string, string> = {

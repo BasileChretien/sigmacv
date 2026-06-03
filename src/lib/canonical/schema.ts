@@ -169,6 +169,42 @@ export const CountsByYearSchema = z.object({
 });
 export type CountsByYear = z.infer<typeof CountsByYearSchema>;
 
+/** An extra labelled link (personal site, Google Scholar, GitHub, …). */
+export const CvLinkSchema = z.object({
+  label: z.string().max(120),
+  url: z.string().max(2048),
+});
+export type CvLink = z.infer<typeof CvLinkSchema>;
+
+/** Optional contact block. All user-entered, optional, deleted with the account. */
+export const CvContactSchema = z.object({
+  email: z.string().max(254).optional(),
+  phone: z.string().max(60).optional(),
+  website: z.string().max(2048).optional(),
+  location: z.string().max(200).optional(),
+});
+export type CvContact = z.infer<typeof CvContactSchema>;
+
+/**
+ * Personal fields for the Japanese rirekisho (履歴書) form. PERSONAL DATA under
+ * GDPR/APPI: entirely optional, user-entered, never auto-populated, included in
+ * the data export and cascade-deleted with the account. Only rendered by the
+ * rirekisho template and only when the user fills them in.
+ */
+export const CvPersonalSchema = z.object({
+  /** Furigana / phonetic reading of the name (ふりがな). */
+  phoneticName: z.string().max(200).optional(),
+  /** Free-form or ISO date — we never parse/validate the calendar. */
+  dateOfBirth: z.string().max(40).optional(),
+  gender: z.string().max(40).optional(),
+  nationality: z.string().max(120).optional(),
+  address: z.string().max(400).optional(),
+});
+export type CvPersonal = z.infer<typeof CvPersonalSchema>;
+
+/** Max length of an embedded photo data URL (~1 MB). Keeps the document sane. */
+export const PHOTO_DATA_URL_MAX = 1_400_000;
+
 export const CvOwnerSchema = z.object({
   /** Bare ORCID iD, e.g. "0000-0002-7483-2489". */
   orcid: z.string(),
@@ -176,6 +212,23 @@ export const CvOwnerSchema = z.object({
   openAlexAuthorIds: z.array(z.string()),
   /** Header display only — never used for matching/highlighting. */
   displayName: z.string(),
+  /** A short headline / job title shown under the name (user-editable). */
+  headline: z.string().max(200).optional(),
+  /** A few-sentence professional summary shown at the top (user-editable). */
+  summary: z.string().max(2000).optional(),
+  /**
+   * Profile photo as an embedded data URL (client-side downscaled + capped).
+   * Lives in the document — no external host, deleted with the account. Only
+   * shown by templates that support a photo (modern / rirekisho).
+   */
+  photo: z
+    .string()
+    .max(PHOTO_DATA_URL_MAX)
+    .regex(/^data:image\/[a-z.+-]+;base64,/i, "photo must be an image data URL")
+    .optional(),
+  contact: CvContactSchema.optional(),
+  links: z.array(CvLinkSchema).max(20).default([]),
+  personal: CvPersonalSchema.optional(),
   metrics: OwnerMetricsSchema.optional(),
   /** Per-year works/citations (drives the optional charts). Default empty. */
   countsByYear: z.array(CountsByYearSchema).default([]),

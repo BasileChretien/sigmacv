@@ -706,13 +706,24 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
 
   const display = previous?.display ?? DisplayChoicesSchema.parse({});
 
+  // User-entered header/profile fields are NEVER sourced from OpenAlex, so they
+  // must survive a re-sync. displayName is OpenAlex-derived but user-editable —
+  // keep the user's value once set.
+  const prevOwner = previous?.owner;
+
   const cv: CanonicalCv = {
     schemaVersion: CANONICAL_SCHEMA_VERSION,
     id,
     owner: {
       orcid: resolved.orcid,
       openAlexAuthorIds: resolved.authorIds,
-      displayName: resolved.displayName,
+      displayName: prevOwner?.displayName || resolved.displayName,
+      headline: prevOwner?.headline,
+      summary: prevOwner?.summary,
+      photo: prevOwner?.photo,
+      contact: prevOwner?.contact,
+      links: prevOwner?.links ?? [],
+      personal: prevOwner?.personal,
       // Author-record metrics + field-normalized aggregates derived from works.
       metrics: { ...(resolved.metrics ?? {}), ...computeDerivedMetrics(works) },
       countsByYear: resolved.countsByYear ?? [],

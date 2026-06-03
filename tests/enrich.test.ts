@@ -56,6 +56,7 @@ function makeCv(items: CvItem[]): CanonicalCv {
       orcid: "0000-0002-7483-2489",
       openAlexAuthorIds: [],
       displayName: "X",
+      links: [],
       countsByYear: [],
     },
     display: DisplayChoicesSchema.parse({}),

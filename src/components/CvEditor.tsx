@@ -27,6 +27,7 @@ import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t } from "@/lib/i18n";
 import ItemRow from "./ItemRow";
+import ProfilePanel from "./ProfilePanel";
 
 interface CvEditorProps {
   cv: CanonicalCv;
@@ -165,6 +166,8 @@ export default function CvEditor({
 
   return (
     <div className="cv-editor">
+      <ProfilePanel cv={cv} locale={locale} onChange={onChange} />
+
       <fieldset className="display-controls">
         <legend>Style</legend>
         <label className="field">

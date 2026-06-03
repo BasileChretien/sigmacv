@@ -2,6 +2,7 @@ import {
   isHidden,
   type CanonicalCv,
   type CvItem,
+  type CvOwner,
   type CvSection,
   type CvSectionType,
   type DisplayChoices,
@@ -146,6 +147,22 @@ export function updateDisplay(
   patch: Partial<DisplayChoices>,
 ): CanonicalCv {
   return { ...cv, display: { ...cv.display, ...patch } };
+}
+
+/**
+ * Update owner/header profile fields (name, headline, summary, photo, contact,
+ * links, personal). Shallow-merges the top level; nested `contact`/`personal`
+ * patches are merged with the existing sub-object so a partial update never
+ * drops sibling fields. Immutable.
+ */
+export function updateOwner(
+  cv: CanonicalCv,
+  patch: Partial<CvOwner>,
+): CanonicalCv {
+  const owner: CvOwner = { ...cv.owner, ...patch };
+  if (patch.contact) owner.contact = { ...cv.owner.contact, ...patch.contact };
+  if (patch.personal) owner.personal = { ...cv.owner.personal, ...patch.personal };
+  return { ...cv, owner };
 }
 
 // ─── Manual entries (user-authored positions / grants) ───────────────────────
