@@ -68,6 +68,7 @@ export interface UiStrings {
   deleteAccount: string;
   deleteConfirm: string;
   deleteFailed: string;
+  cancel: string;
   publishPublic: string;
   publicLive: string;
   openPage: string;
@@ -163,6 +164,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Permanently delete your account and all associated data? This cannot be undone.",
     deleteFailed: "Failed to delete account. Please try again.",
+    cancel: "Cancel",
     publishPublic: "Publish public page",
     publicLive: "Public page is live",
     openPage: "Open page",
@@ -257,6 +259,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteAccount: "删除账户",
     deleteConfirm: "永久删除你的账户及所有相关数据？此操作无法撤销。",
     deleteFailed: "删除账户失败。请重试。",
+    cancel: "取消",
     publishPublic: "发布公开页面",
     publicLive: "公开页面已上线",
     openPage: "打开页面",
@@ -352,6 +355,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "¿Eliminar permanentemente tu cuenta y todos los datos asociados? Esta acción no se puede deshacer.",
     deleteFailed: "No se pudo eliminar la cuenta. Inténtalo de nuevo.",
+    cancel: "Cancelar",
     publishPublic: "Publicar página pública",
     publicLive: "La página pública está activa",
     openPage: "Abrir página",
@@ -447,6 +451,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Supprimer définitivement votre compte et toutes les données associées ? Cette action est irréversible.",
     deleteFailed: "Échec de la suppression du compte. Veuillez réessayer.",
+    cancel: "Annuler",
     publishPublic: "Publier la page publique",
     publicLive: "La page publique est en ligne",
     openPage: "Ouvrir la page",
@@ -542,6 +547,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Ihr Konto und alle zugehörigen Daten dauerhaft löschen? Dies kann nicht rückgängig gemacht werden.",
     deleteFailed: "Konto konnte nicht gelöscht werden. Bitte erneut versuchen.",
+    cancel: "Abbrechen",
     publishPublic: "Öffentliche Seite veröffentlichen",
     publicLive: "Öffentliche Seite ist online",
     openPage: "Seite öffnen",
@@ -637,6 +643,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "アカウントと関連するすべてのデータを完全に削除しますか？この操作は取り消せません。",
     deleteFailed: "アカウントの削除に失敗しました。もう一度お試しください。",
+    cancel: "キャンセル",
     publishPublic: "公開ページを公開",
     publicLive: "公開ページは公開中です",
     openPage: "ページを開く",
@@ -732,6 +739,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Excluir permanentemente sua conta e todos os dados associados? Isso não pode ser desfeito.",
     deleteFailed: "Falha ao excluir a conta. Tente novamente.",
+    cancel: "Cancelar",
     publishPublic: "Publicar página pública",
     publicLive: "A página pública está no ar",
     openPage: "Abrir página",
@@ -827,6 +835,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Eliminare definitivamente il tuo account e tutti i dati associati? L’operazione non può essere annullata.",
     deleteFailed: "Eliminazione dell’account non riuscita. Riprova.",
+    cancel: "Annulla",
     publishPublic: "Pubblica pagina pubblica",
     publicLive: "La pagina pubblica è online",
     openPage: "Apri pagina",
@@ -922,6 +931,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "계정과 관련된 모든 데이터를 영구적으로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     deleteFailed: "계정 삭제에 실패했습니다. 다시 시도해 주세요.",
+    cancel: "취소",
     publishPublic: "공개 페이지 게시",
     publicLive: "공개 페이지가 활성화되었습니다",
     openPage: "페이지 열기",
@@ -1017,6 +1027,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Безвозвратно удалить ваш аккаунт и все связанные данные? Это действие нельзя отменить.",
     deleteFailed: "Не удалось удалить аккаунт. Пожалуйста, попробуйте ещё раз.",
+    cancel: "Отмена",
     publishPublic: "Опубликовать публичную страницу",
     publicLive: "Публичная страница активна",
     openPage: "Открыть страницу",

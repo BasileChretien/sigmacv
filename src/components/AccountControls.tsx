@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 
 /**
@@ -22,6 +22,21 @@ export default function AccountControls({
   const u = ui(locale);
   const [consenting, setConsenting] = useState(researchConsent);
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [error, setError] = useState("");
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  // Move focus into the confirm dialog and close it on Escape (a11y; replaces
+  // the native window.confirm, which broke the app's visual language).
+  useEffect(() => {
+    if (!confirmOpen) return;
+    cancelRef.current?.focus();
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && !busy) setConfirmOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [confirmOpen, busy]);
 
   async function stopContributing() {
     setConsenting(false); // optimistic
@@ -37,17 +52,16 @@ export default function AccountControls({
     }
   }
 
-  async function deleteAccount() {
-    if (!window.confirm(u.deleteConfirm)) {
-      return;
-    }
+  async function confirmDelete() {
     setBusy(true);
-    const res = await fetch("/api/account", { method: "DELETE" });
-    if (res.ok) {
+    setError("");
+    try {
+      const res = await fetch("/api/account", { method: "DELETE" });
+      if (!res.ok) throw new Error("delete failed");
       window.location.href = "/";
-    } else {
+    } catch {
       setBusy(false);
-      window.alert(u.deleteFailed);
+      setError(u.deleteFailed);
     }
   }
 
@@ -69,11 +83,48 @@ export default function AccountControls({
       <button
         type="button"
         className="link-btn danger"
-        onClick={deleteAccount}
+        onClick={() => {
+          setError("");
+          setConfirmOpen(true);
+        }}
         disabled={busy}
       >
         {u.deleteAccount}
       </button>
+
+      {confirmOpen ? (
+        <div className="consent-overlay" role="presentation">
+          <div
+            className="consent-prompt"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-account-title"
+          >
+            <h2 id="delete-account-title">{u.deleteAccount}</h2>
+            <p>{u.deleteConfirm}</p>
+            {error ? <p className="consent-error">{error}</p> : null}
+            <div className="consent-actions">
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={confirmDelete}
+                disabled={busy}
+              >
+                {u.deleteAccount}
+              </button>
+              <button
+                ref={cancelRef}
+                type="button"
+                className="btn"
+                onClick={() => setConfirmOpen(false)}
+                disabled={busy}
+              >
+                {u.cancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
