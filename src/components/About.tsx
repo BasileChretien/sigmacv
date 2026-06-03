@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { asLocale } from "@/lib/i18n";
 import { aboutStrings } from "@/lib/i18n/about";
-import { localeHomePath } from "@/lib/seo";
+import { localeAboutPath, localeHomePath } from "@/lib/seo";
+import DocJsonLd from "./DocJsonLd";
 import SiteLinks from "./SiteLinks";
 
 /**
@@ -15,6 +16,12 @@ export default function About({ locale }: { locale: string }) {
   const s = aboutStrings(loc);
   return (
     <main className="doc-page" lang={loc}>
+      <DocJsonLd
+        path={localeAboutPath(loc).replace(/^\//, "")}
+        name={s.heading}
+        description={s.metaDescription}
+        locale={loc}
+      />
       <h1>{s.heading}</h1>
       <p>{s.intro}</p>
       <p>{s.privacy}</p>

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { asLocale } from "@/lib/i18n";
 import { privacyStrings } from "@/lib/i18n/privacy";
-import { localeHomePath } from "@/lib/seo";
+import { localeHomePath, localePrivacyPath } from "@/lib/seo";
+import DocJsonLd from "./DocJsonLd";
 
 /**
  * The privacy-notice markup, localized. Shared by the default `/privacy`
@@ -14,6 +15,12 @@ export default function Privacy({ locale }: { locale: string }) {
   const s = privacyStrings(loc);
   return (
     <main className="doc-page" lang={loc}>
+      <DocJsonLd
+        path={localePrivacyPath(loc).replace(/^\//, "")}
+        name={s.heading}
+        description={s.metaDescription}
+        locale={loc}
+      />
       <h1>{s.heading}</h1>
       <p>{s.intro}</p>
 
