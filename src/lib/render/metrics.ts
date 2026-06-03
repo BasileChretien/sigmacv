@@ -1,20 +1,22 @@
 import type { CanonicalCv, OwnerMetrics } from "@/lib/canonical/schema";
+import { metricContext, metricLabel } from "@/lib/i18n/render";
 
 /**
  * Metric catalog. Order is the display order: FIELD-NORMALIZED measures first
- * (the brief prefers them over raw h-index), then plain counts.
+ * (the brief prefers them over raw h-index), then plain counts. Labels +
+ * responsible-reading context are localized at display time (see lib/i18n/render).
  */
 export const METRIC_DEFS = [
-  { key: "2yr_mean_citedness", label: "2-yr mean citedness", format: "decimal" },
-  { key: "fwci_mean", label: "Mean work FWCI", format: "decimal" },
+  { key: "2yr_mean_citedness", format: "decimal" },
+  { key: "fwci_mean", format: "decimal" },
   // NOTE: a by-year citation percentile ("top 10%") was removed from the
   // selectable catalog — it is NOT field-normalised and reads ~100% for most
   // active researchers (most works globally are barely cited), which looked
   // contradictory next to FWCI. It is still computed + stored for research use.
-  { key: "h_index", label: "h-index", format: "integer" },
-  { key: "i10_index", label: "i10-index", format: "integer" },
-  { key: "works_count", label: "Works", format: "integer" },
-  { key: "cited_by_count", label: "Citations", format: "integer" },
+  { key: "h_index", format: "integer" },
+  { key: "i10_index", format: "integer" },
+  { key: "works_count", format: "integer" },
+  { key: "cited_by_count", format: "integer" },
 ] as const;
 
 export type MetricKey = (typeof METRIC_DEFS)[number]["key"];
@@ -27,16 +29,6 @@ export interface FormattedMetric {
   /** Short interpretive context — encourages responsible reading of the number. */
   context?: string;
 }
-
-/**
- * Responsible-metrics context: a one-line interpretation shown beside a metric
- * so a number is never presented bare. Only for genuinely field-normalized
- * indicators — we deliberately do NOT fabricate peer percentiles we can't back.
- */
-const METRIC_CONTEXT: Record<string, string> = {
-  fwci_mean: "1.0 = world average for field & year",
-  "2yr_mean_citedness": "field-normalised journal-independent",
-};
 
 function formatValue(format: string, raw: number): string {
   if (format === "integer") return String(raw);
@@ -59,15 +51,16 @@ export function formattedMetrics(cv: CanonicalCv): FormattedMetric[] {
   const values: OwnerMetrics = cv.owner.metrics ?? {};
   const selected = new Set(cv.display.metrics);
 
+  const locale = cv.display.locale;
   return METRIC_DEFS.filter((def) => selected.has(def.key))
     .map((def): FormattedMetric | null => {
       const raw = values[def.key as keyof OwnerMetrics];
       if (typeof raw !== "number") return null;
       return {
         key: def.key,
-        label: def.label,
+        label: metricLabel(locale, def.key),
         value: formatValue(def.format, raw),
-        context: METRIC_CONTEXT[def.key],
+        context: metricContext(locale, def.key),
       };
     })
     .filter((m): m is FormattedMetric => m !== null);

@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
 import { renderChartsHtml } from "../charts";
 import { escapeHtml, safeHref } from "../escape";
@@ -18,13 +19,16 @@ export function authorshipTableHtml(cv: CanonicalCv): string {
   // An all-zero table is noise in the final document (typically stale data with
   // no author positions yet) — omit it rather than print a column of zeros.
   if (rows.every((r) => r.count === 0)) return "";
+  const loc = cv.display.locale;
   const body = rows
     .map(
       (r) =>
-        `<tr><td>${escapeHtml(r.label)}</td><td class="cv-authorship-n">${r.count}</td></tr>`,
+        `<tr><td>${escapeHtml(authorshipRoleLabel(loc, r.role))}</td><td class="cv-authorship-n">${r.count}</td></tr>`,
     )
     .join("");
-  return `<table class="cv-authorship"><caption>Authorship (peer-reviewed)</caption><tbody>${body}</tbody></table>`;
+  return `<table class="cv-authorship"><caption>${escapeHtml(
+    renderStrings(loc).authorshipCaption,
+  )}</caption><tbody>${body}</tbody></table>`;
 }
 
 /** A profile photo `<img>` (data URL), or "" if none. img-src data: is CSP-allowed. */
@@ -199,7 +203,9 @@ export function commonCss(theme: TemplateTheme): string {
  * text-first templates (classic/minimal/compact/ats) omit it.
  */
 export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): string {
-  const name = escapeHtml(cv.owner.displayName || "Curriculum Vitae");
+  const name = escapeHtml(
+    cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle,
+  );
   const headline = cv.owner.headline
     ? `<div class="cv-headline">${escapeHtml(cv.owner.headline)}</div>`
     : "";
@@ -245,18 +251,24 @@ const SOURCE_LABEL: Record<string, string> = {
  */
 export function provenanceFooter(cv: CanonicalCv): string {
   if (!cv.display.showProvenance) return "";
-  const items = cv.sections.flatMap((s) => s.items);
+  const s = renderStrings(cv.display.locale);
+  // "manual entries" / "derived" are descriptive (localized); the rest are
+  // proper nouns (OpenAlex, ORCID, …).
+  const localizedSource = (src: string): string => {
+    if (src === "manual") return s.sourceManualEntries;
+    if (src === "derived") return s.sourceDerived;
+    return SOURCE_LABEL[src] ?? src;
+  };
+  const items = cv.sections.flatMap((sec) => sec.items);
   const hidden = items.filter((i) => !i.included).length;
   const corrected = items.filter((i) => i.notMine).length;
   const synced = cv.provenance.lastSyncedAt?.slice(0, 10);
-  const sources = cv.provenance.sources
-    .map((s) => SOURCE_LABEL[s] ?? s)
-    .join(", ");
-  const parts = [`Generated from ${escapeHtml(sources)}`];
-  if (synced) parts.push(`on ${escapeHtml(synced)}`);
-  const counts: string[] = [`${items.length} records`];
-  if (hidden) counts.push(`${hidden} hidden`);
-  if (corrected) counts.push(`${corrected} corrected`);
+  const sources = cv.provenance.sources.map(localizedSource).join(", ");
+  const parts = [`${s.provGeneratedFrom} ${escapeHtml(sources)}`];
+  if (synced) parts.push(`${s.provOn} ${escapeHtml(synced)}`);
+  const counts: string[] = [`${items.length} ${s.provRecords}`];
+  if (hidden) counts.push(`${hidden} ${s.provHidden}`);
+  if (corrected) counts.push(`${corrected} ${s.provCorrected}`);
   return `<footer class="cv-provenance">${parts.join(" ")} · ${counts.join(", ")}</footer>`;
 }
 

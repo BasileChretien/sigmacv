@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import {
   ACCENT_PRESETS,
-  AUTHORSHIP_ROLE_LABELS,
   AUTHORSHIP_ROLES,
   DENSITIES,
   FONT_PAIRINGS,
@@ -32,6 +31,7 @@ import {
   updateItemText,
 } from "@/lib/canonical/curate";
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
+import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
 import ItemRow from "./ItemRow";
@@ -454,7 +454,7 @@ export default function CvEditor({
                     }}
                   />
                   <span>
-                    {m.label}
+                    {metricLabel(locale, m.key)}
                     {note}
                   </span>
                 </label>
@@ -506,7 +506,7 @@ export default function CvEditor({
                       );
                     }}
                   />
-                  <span>{AUTHORSHIP_ROLE_LABELS[r]}</span>
+                  <span>{authorshipRoleLabel(locale, r)}</span>
                 </label>
               );
             })}

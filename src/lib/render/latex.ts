@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { renderStrings } from "@/lib/i18n/render";
 import { wrapSelf } from "./emphasize";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
@@ -55,7 +56,9 @@ function sectionItems(
 /** A minimal, dependency-light article layout (compiles with a bare TeX Live). */
 function buildClassic(cv: CanonicalCv): string {
   const sections = prepareSections(cv, "text");
-  const name = escapeLatex(cv.owner.displayName || "Curriculum Vitae");
+  const name = escapeLatex(
+    cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle,
+  );
   const orcid = cv.owner.orcid ? escapeLatex(cv.owner.orcid) : "";
   const metricsRaw = metricsLineText(cv);
   const metricsLine = metricsRaw
@@ -116,7 +119,9 @@ function accentHex(cv: CanonicalCv): string {
 function buildModern(cv: CanonicalCv): string {
   const sections = prepareSections(cv, "text");
   const head = textHeader(cv);
-  const name = escapeLatex(cv.owner.displayName || "Curriculum Vitae");
+  const name = escapeLatex(
+    cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle,
+  );
   const headline = head.headline ? escapeLatex(head.headline) : "";
   const contactBits: string[] = [];
   if (cv.owner.orcid) {

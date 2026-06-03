@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml } from "./escape";
 
 /**
@@ -57,12 +58,13 @@ export function renderChartsHtml(cv: CanonicalCv): string {
     .slice(-12);
   if (data.length < 2) return "";
 
+  const s = renderStrings(cv.display.locale);
   const pubs = barChart(
-    "Publications / year",
+    s.chartPublicationsPerYear,
     data.map((d) => ({ label: String(d.year), value: d.works })),
   );
   const cites = barChart(
-    "Citations / year",
+    s.chartCitationsPerYear,
     data.map((d) => ({ label: String(d.year), value: d.citations })),
   );
   return `<div class="cv-charts">${pubs}${cites}</div>`;

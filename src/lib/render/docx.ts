@@ -6,6 +6,7 @@ import {
   TextRun,
 } from "docx";
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { renderStrings } from "@/lib/i18n/render";
 import { splitSelf } from "./emphasize";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
@@ -21,7 +22,9 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
   const sections = prepareSections(cv, "text");
   const children: Paragraph[] = [
     new Paragraph({
-      text: cv.owner.displayName || "Curriculum Vitae",
+      text:
+        cv.owner.displayName ||
+        renderStrings(cv.display.locale).cvFallbackTitle,
       heading: HeadingLevel.TITLE,
     }),
   ];

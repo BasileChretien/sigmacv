@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { renderStrings } from "@/lib/i18n/render";
 import { wrapSelf } from "./emphasize";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
@@ -21,10 +22,11 @@ function yamlString(s: string): string {
  */
 export function renderCvMarkdown(cv: CanonicalCv): string {
   const sections = prepareSections(cv, "text");
+  const fallbackTitle = renderStrings(cv.display.locale).cvFallbackTitle;
 
   const frontmatter = [
     "---",
-    `title: ${yamlString(cv.owner.displayName || "Curriculum Vitae")}`,
+    `title: ${yamlString(cv.owner.displayName || fallbackTitle)}`,
     cv.owner.orcid ? `orcid: ${yamlString(cv.owner.orcid)}` : null,
     `generated: ${yamlString(cv.provenance.generatedAt)}`,
     "source: openalex",
@@ -56,7 +58,7 @@ export function renderCvMarkdown(cv: CanonicalCv): string {
     .filter(Boolean)
     .join("\n\n");
 
-  const heading = cv.owner.displayName || "Curriculum Vitae";
+  const heading = cv.owner.displayName || fallbackTitle;
   const head = textHeader(cv);
   const headlineBlock = head.headline ? `*${escapeMarkdown(head.headline)}*\n\n` : "";
   const contactBlock = head.contact.length
