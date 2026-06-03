@@ -243,6 +243,7 @@ export const TEMPLATES = [
   "compact",
   "sidebar",
   "editorial",
+  "ats",
 ] as const;
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;

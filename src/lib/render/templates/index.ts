@@ -4,6 +4,7 @@ import type {
   HighlightStyle,
   TemplateKey,
 } from "@/lib/canonical/schema";
+import { atsTemplate } from "./ats";
 import { classicTemplate } from "./classic";
 import { compactTemplate } from "./compact";
 import { editorialTemplate } from "./editorial";
@@ -37,6 +38,7 @@ const REGISTRY: Record<TemplateKey, CvTemplate> = {
   compact: compactTemplate,
   sidebar: sidebarTemplate,
   editorial: editorialTemplate,
+  ats: atsTemplate,
 };
 
 export function getTemplate(key: TemplateKey): CvTemplate {

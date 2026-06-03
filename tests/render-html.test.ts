@@ -103,6 +103,19 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(editorial).toContain("border-bottom: 3px solid var(--cv-accent)");
   });
 
+  it("renders the ATS template plain: hides badges/charts/photo, black text", () => {
+    const cv = updateOwner(
+      updateDisplay(makeCv(), { template: "ats", showOpenAccess: true, showCharts: true }),
+      { photo: "data:image/png;base64,iVBORw0KGgo=" },
+    );
+    const html = renderCvHtml(cv);
+    // Decoration is stripped via CSS regardless of toggles.
+    expect(html).toContain(".cv-photo, .cv-charts, .cv-badge { display: none !important; }");
+    // Standard system sans-serif, single column (no two-column markup).
+    expect(html).toContain("Arial, Helvetica");
+    expect(html).not.toContain("cv-sidebar-layout");
+  });
+
   it("injects the chosen accent colour into the document CSS", () => {
     const html = renderCvHtml(updateDisplay(makeCv(), { accentColor: "#0f766e" }));
     expect(html).toContain("--cv-accent: #0f766e");
