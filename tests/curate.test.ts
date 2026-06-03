@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   addManualEntry,
+  addSection,
   moveItem,
   moveItemTo,
   moveSection,
@@ -283,6 +284,16 @@ describe("manual entries (add / edit / remove)", () => {
     expect(skills.title).toBe("Skills"); // en-US default
     expect(skills.order).toBe(10); // DEFAULT_SECTION_ORDER.skills
     expect(skills.items[0]!.displayText).toBe("Python, R, statistics");
+  });
+
+  it("addSection creates an empty section at its canonical order, idempotently", () => {
+    const cv = addSection(makeCv(), "awards");
+    const awards = cv.sections.find((s) => s.type === "awards")!;
+    expect(awards.items).toHaveLength(0);
+    expect(awards.order).toBe(6); // DEFAULT_SECTION_ORDER.awards
+    expect(awards.title).toBe("Awards & Honors");
+    // Adding the same type again is a no-op (no duplicate section).
+    expect(addSection(cv, "awards")).toBe(cv);
   });
 
   it("edits an entry's text and removes it (re-indexing)", () => {

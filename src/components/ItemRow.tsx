@@ -8,6 +8,15 @@ import {
 } from "@/lib/canonical/schema";
 import { reasonLabel, t, type Locale } from "@/lib/i18n";
 
+/** Proper-noun data-source names (not translated); "manual" is localized below. */
+const SOURCE_NAMES: Record<string, string> = {
+  openalex: "OpenAlex",
+  orcid: "ORCID",
+  oep: "Open Editors Plus",
+  datacite: "DataCite",
+  derived: "derived",
+};
+
 interface ItemRowProps {
   item: CvItem;
   locale: Locale;
@@ -52,6 +61,18 @@ export default function ItemRow({
     typeof item.csl?.["container-title"] === "string"
       ? item.csl["container-title"]
       : "";
+
+  // Where this entry's data came from (hover to see). "+ Crossref" when its
+  // bibliographic gaps were filled by Crossref.
+  const sourceName = isManual
+    ? t(locale, "sourceManual")
+    : (SOURCE_NAMES[item.source] ?? item.source);
+  const sourceText = item.meta.enriched ? `${sourceName} + Crossref` : sourceName;
+  const sourceBadge = (
+    <span className="cv-source-badge" title={`${t(locale, "source")}: ${sourceText}`}>
+      {sourceText}
+    </span>
+  );
 
   const rowClass = [
     "cv-item-row",
@@ -122,8 +143,11 @@ export default function ItemRow({
                 {t(locale, "reviewBadge")}
               </span>
             ) : null}
+            {sourceBadge}
           </div>
-        ) : null}
+        ) : (
+          <div className="cv-item-meta">{sourceBadge}</div>
+        )}
         {isCitation && item.notMine && onSetNotMineReason ? (
           <select
             className="cv-reason-select"

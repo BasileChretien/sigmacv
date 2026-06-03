@@ -253,6 +253,27 @@ export function addManualEntry(
   return { ...cv, sections: [...cv.sections, newSection] };
 }
 
+/**
+ * Create an empty section of the given type (if it doesn't already exist), at
+ * its canonical order with a localized title. The user then adds entries via
+ * the add-entry input. Used by the editor's "Add a section" menu.
+ */
+export function addSection(
+  cv: CanonicalCv,
+  sectionType: CvSectionType,
+): CanonicalCv {
+  if (cv.sections.some((s) => s.type === sectionType)) return cv;
+  const newSection: CvSection = {
+    id: sectionType,
+    type: sectionType,
+    title: sectionTitle(cv.display.locale, sectionType),
+    visible: true,
+    order: DEFAULT_SECTION_ORDER[sectionType],
+    items: [],
+  };
+  return { ...cv, sections: [...cv.sections, newSection] };
+}
+
 /** Edit an item's free-text display string (manual entries). */
 export function updateItemText(
   cv: CanonicalCv,

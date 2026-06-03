@@ -561,6 +561,63 @@ button {
   align-self: center;
 }
 
+/* Editor "how it works" hint + per-item source + collapsible sections. */
+.editor-hint {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.78rem;
+  color: #555;
+  background: var(--accent-soft, #eef2ff);
+  border-radius: var(--radius, 8px);
+  line-height: 1.4;
+}
+.cv-source-badge {
+  margin-left: 0.4rem;
+  font-size: 0.66rem;
+  color: #777;
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+  cursor: help;
+  white-space: nowrap;
+}
+.section-toggle {
+  flex: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #666;
+  padding: 0 0.2rem;
+  line-height: 1;
+}
+.section-block.is-collapsed {
+  padding-bottom: 0.4rem;
+}
+.add-section-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+}
+.add-section-label {
+  font-size: 0.82rem;
+}
+
+/* Buy-me-a-coffee support link (chrome only — never on a rendered CV). */
+.coffee-btn {
+  background: #ffdd00;
+  border-color: #e6c700;
+  color: #222;
+  font-weight: 600;
+}
+.coffee-btn:hover {
+  background: #ffe838;
+}
+
 .cv-item-row.is-not-mine .cv-item-title {
   text-decoration: line-through;
 }

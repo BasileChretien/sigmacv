@@ -28,6 +28,13 @@ function makeCv(): CanonicalCv {
 
 afterEach(cleanup);
 
+/** Sections are collapsed by default; expand them all so item rows render. */
+function expandAllSections() {
+  document
+    .querySelectorAll<HTMLButtonElement>("button.section-toggle")
+    .forEach((b) => fireEvent.click(b));
+}
+
 describe("CvEditor (component)", () => {
   it("toggling a metric calls onChange with the metric + showMetrics on", () => {
     const onChange = vi.fn();
@@ -62,21 +69,35 @@ describe("CvEditor (component)", () => {
     expect(next.display.showMetrics).toBe(true);
   });
 
-  it("offers + Add Positions when there is no positions section, and creates one", () => {
+  it("offers an add-section button for a missing section and creates it", () => {
     const onChange = vi.fn();
     render(<CvEditor cv={makeCv()} availableStyles={["apa"]} onChange={onChange} />);
-    fireEvent.click(screen.getByText("+ Add Positions"));
+    fireEvent.click(screen.getByText("+ Positions"));
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
     const positions = next.sections.find((s) => s.type === "positions");
     expect(positions).toBeDefined();
-    expect(positions!.items[0]!.source).toBe("manual");
+    expect(positions!.items).toHaveLength(0); // empty section, ready for entries
   });
 
-  it("renders one editable row per publication with curation controls", () => {
+  it("offers a Skills add-section button", () => {
     render(<CvEditor cv={makeCv()} availableStyles={["apa"]} onChange={vi.fn()} />);
-    // Each publication row has a Hide + Not mine button.
+    expect(screen.getByText("+ Skills")).toBeTruthy();
+  });
+
+  it("collapses sections by default and expands on demand to show rows", () => {
+    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} onChange={vi.fn()} />);
+    // Collapsed: no item rows yet.
+    expect(screen.queryAllByText("Hide").length).toBe(0);
+    expandAllSections();
+    // Expanded: a Hide + Not mine per publication.
     expect(screen.getAllByText("Hide").length).toBe(works.length);
     expect(screen.getAllByText("Not mine").length).toBe(works.length);
+  });
+
+  it("shows each item's data source", () => {
+    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} onChange={vi.fn()} />);
+    expandAllSections();
+    expect(screen.getAllByText("OpenAlex").length).toBeGreaterThan(0);
   });
 
   it("surfaces a review badge for an orcid-conflict work", () => {
@@ -98,6 +119,7 @@ describe("CvEditor (component)", () => {
     } as unknown as OpenAlexWork;
     const cv = buildCanonicalCv({ id: "rf", resolved, works: [conflict], now: "2026-06-02T00:00:00.000Z" });
     render(<CvEditor cv={cv} availableStyles={["apa"]} onChange={vi.fn()} />);
+    expandAllSections();
     expect(screen.getByText(/⚠ review/)).toBeTruthy();
   });
 
@@ -108,6 +130,7 @@ describe("CvEditor (component)", () => {
     const withNotMine = setItemNotMine(base, sectionId, id, true, { now: "2026-06-02T00:00:00.000Z" });
     const onChange = vi.fn();
     render(<CvEditor cv={withNotMine} availableStyles={["apa"]} onChange={onChange} />);
+    expandAllSections();
     // The accessible name uses a typographic apostrophe — match it loosely.
     fireEvent.change(screen.getByLabelText(/why isn.t this yours/i), {
       target: { value: "different-person" },
@@ -125,6 +148,7 @@ describe("CvEditor (component)", () => {
     const { container } = render(
       <CvEditor cv={cv} availableStyles={["apa"]} onChange={onChange} />,
     );
+    expandAllSections();
     const handles = screen.getAllByTitle("Drag to reorder"); // item handles only
     const rows = container.querySelectorAll("li.cv-item-row");
     expect(rows.length).toBeGreaterThan(2);
@@ -142,6 +166,7 @@ describe("CvEditor (component)", () => {
       display: { ...makeCv().display, locale: "fr-FR" },
     };
     render(<CvEditor cv={fr} availableStyles={["apa"]} onChange={onChange} />);
+    expandAllSections();
     // French chrome: the per-row curation button reads "Masquer".
     expect(screen.getAllByText("Masquer").length).toBeGreaterThan(0);
     // The language picker switches display.locale.

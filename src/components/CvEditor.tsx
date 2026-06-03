@@ -8,11 +8,13 @@ import {
   HIGHLIGHT_STYLES,
   TEMPLATES,
   type CanonicalCv,
+  type CvSectionType,
   type CustomStyle,
 } from "@/lib/canonical/schema";
 import { isHidden } from "@/lib/canonical/schema";
 import {
   addManualEntry,
+  addSection,
   moveItem,
   moveItemTo,
   moveSection,
@@ -27,7 +29,7 @@ import {
 } from "@/lib/canonical/curate";
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
-import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t } from "@/lib/i18n";
+import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
 import ItemRow from "./ItemRow";
 import ProfilePanel from "./ProfilePanel";
 
@@ -73,6 +75,18 @@ const DENSITY_LABELS: Record<string, string> = {
   compact: "Compact",
 };
 
+/** Section types a user can add manually (the rest are source-driven). */
+const ADDABLE_SECTIONS: CvSectionType[] = [
+  "positions",
+  "education",
+  "awards",
+  "service",
+  "skills",
+  "datasets",
+  "grants",
+  "other",
+];
+
 export default function CvEditor({
   cv,
   availableStyles,
@@ -92,6 +106,16 @@ export default function CvEditor({
   // by dropping onto another section's header.
   const [dragSection, setDragSection] = useState<string | null>(null);
   const [dragItem, setDragItem] = useState<{ sectionId: string; itemId: string } | null>(null);
+  // Sections are collapsed by default (only ids in this set are expanded) — keeps
+  // the list compact so the reorder/visibility controls are obvious at a glance.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggleExpanded = (id: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   const hasSection = (type: string): boolean =>
     cv.sections.some((s) => s.type === type);
@@ -506,11 +530,17 @@ export default function CvEditor({
         </label>
       </fieldset>
 
+      <p className="editor-hint">{t(locale, "editorHints")}</p>
+
       {sections.map((section, si) => {
         const items = [...section.items].sort((a, b) => a.order - b.order);
         const shownCount = items.filter((i) => !isHidden(i)).length;
+        const isExpanded = expanded.has(section.id);
         return (
-          <div key={section.id} className="section-block">
+          <div
+            key={section.id}
+            className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}`}
+          >
             <div
               className="section-head"
               onDragOver={
@@ -539,6 +569,16 @@ export default function CvEditor({
               >
                 ⠿
               </span>
+              <button
+                type="button"
+                className="section-toggle"
+                onClick={() => toggleExpanded(section.id)}
+                aria-expanded={isExpanded}
+                aria-label={t(locale, isExpanded ? "collapseSection" : "expandSection")}
+                title={t(locale, isExpanded ? "collapseSection" : "expandSection")}
+              >
+                {isExpanded ? "▾" : "▸"}
+              </button>
               <input
                 className="section-title"
                 value={section.title}
@@ -582,6 +622,8 @@ export default function CvEditor({
               </button>
             </div>
 
+            {isExpanded ? (
+              <>
             {items.length === 0 ? (
               <p className="muted empty-note">{t(locale, "noItems")}</p>
             ) : (
@@ -675,34 +717,28 @@ export default function CvEditor({
                 </button>
               </div>
             ) : null}
+              </>
+            ) : null}
           </div>
         );
       })}
 
-      {!hasSection("positions") || !hasSection("grants") ? (
+      {ADDABLE_SECTIONS.some((tp) => !hasSection(tp)) ? (
         <div className="add-section-row">
-          {!hasSection("positions") ? (
+          <span className="muted add-section-label">{t(locale, "addSection")}:</span>
+          {ADDABLE_SECTIONS.filter((tp) => !hasSection(tp)).map((tp) => (
             <button
+              key={tp}
               type="button"
-              className="btn"
-              onClick={() =>
-                onChange(addManualEntry(cv, "positions", "New position", newId("positions")))
-              }
+              className="btn btn-sm"
+              onClick={() => {
+                onChange(addSection(cv, tp));
+                setExpanded((prev) => new Set(prev).add(tp));
+              }}
             >
-              + Add Positions
+              + {sectionTitle(locale, tp)}
             </button>
-          ) : null}
-          {!hasSection("grants") ? (
-            <button
-              type="button"
-              className="btn"
-              onClick={() =>
-                onChange(addManualEntry(cv, "grants", "New grant", newId("grants")))
-              }
-            >
-              + Add Grants
-            </button>
-          ) : null}
+          ))}
         </div>
       ) : null}
     </div>

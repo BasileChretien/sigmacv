@@ -192,6 +192,14 @@ const EN = {
   gender: "Gender",
   nationality: "Nationality",
   address: "Address",
+  // sections + hints + source
+  source: "Source",
+  sourceManual: "added by you",
+  addSection: "Add a section",
+  expandSection: "Expand section",
+  collapseSection: "Collapse section",
+  editorHints:
+    "Tip: drag ⠿ to reorder · click a section to expand it · Hide/Show and “Not mine” control what appears · hover an entry to see its source.",
 } as const;
 
 export type ChromeKey = keyof typeof EN;
@@ -258,6 +266,13 @@ const FR: Record<ChromeKey, string> = {
   gender: "Genre",
   nationality: "Nationalité",
   address: "Adresse",
+  source: "Source",
+  sourceManual: "ajouté par vous",
+  addSection: "Ajouter une section",
+  expandSection: "Développer la section",
+  collapseSection: "Réduire la section",
+  editorHints:
+    "Astuce : glissez ⠿ pour réordonner · cliquez une section pour la développer · « Masquer/Afficher » et « Pas de moi » contrôlent l’affichage · survolez une entrée pour voir sa source.",
 };
 
 const JA: Record<ChromeKey, string> = {
@@ -322,6 +337,13 @@ const JA: Record<ChromeKey, string> = {
   gender: "性別",
   nationality: "国籍",
   address: "住所",
+  source: "出典",
+  sourceManual: "あなたが追加",
+  addSection: "セクションを追加",
+  expandSection: "セクションを展開",
+  collapseSection: "セクションを折りたたむ",
+  editorHints:
+    "ヒント：⠿ をドラッグで並べ替え・セクションをクリックで展開・「非表示/表示」と「自分のではない」で表示を調整・項目にカーソルを合わせると出典が表示されます。",
 };
 
 const DICTS: Record<Locale, Record<ChromeKey, string>> = {
