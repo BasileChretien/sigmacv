@@ -1,16 +1,22 @@
 import { fileURLToPath } from "node:url";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // React plugin so component tests (.test.tsx) can use JSX + the automatic
+  // runtime. Pure-logic tests (.test.ts, node env) are unaffected.
+  plugins: [react()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   test: {
+    // Default node env (fast) for logic tests; component tests opt into jsdom
+    // per-file via `// @vitest-environment jsdom`.
     environment: "node",
     globals: true,
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.{ts,tsx}"],
     // citeproc engine init is ~0.7s per render; with coverage instrumentation
     // the multi-render tests need more than the 5s default.
     testTimeout: 30_000,

@@ -1,0 +1,53 @@
+name: E2E (manual)
+
+# Manual trigger only: the Playwright journeys have never run in CI, so this is
+# kept off the PR gate until it's been validated green. Run it from the Actions
+# tab; once reliably green, add `pull_request:` to make it a required check.
+on:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    name: Playwright journeys
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: sigmacv
+          POSTGRES_PASSWORD: sigmacv
+          POSTGRES_DB: sigmacv
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U sigmacv"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      # E2E runs the app in dev mode (playwright.config webServer) so env.ts's
+      # production guards don't fire and OPENALEX_API_BASE (fixture server) is honored.
+      DATABASE_URL: "postgresql://sigmacv:sigmacv@localhost:5432/sigmacv"
+      AUTH_SECRET: "ci-e2e-secret-not-a-real-secret"
+      AUTH_URL: "http://localhost:3100"
+      ORCID_CLIENT_ID: "ci-e2e"
+      ORCID_CLIENT_SECRET: "ci-e2e"
+      ORCID_ENVIRONMENT: "sandbox"
+      OPENALEX_MAILTO: "ci@example.com"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Apply schema to the CI database
+        run: npx prisma db push
+      - name: Install Playwright (chromium)
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E journeys
+        run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
