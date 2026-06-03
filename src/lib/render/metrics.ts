@@ -7,7 +7,7 @@ import type { CanonicalCv, OwnerMetrics } from "@/lib/canonical/schema";
 export const METRIC_DEFS = [
   { key: "2yr_mean_citedness", label: "2-yr mean citedness", format: "decimal" },
   { key: "fwci_mean", label: "Mean work FWCI", format: "decimal" },
-  { key: "top10pct_share", label: "Top-10% works", format: "percent" },
+  { key: "top10pct_share", label: "Top 10% by year", format: "percent" },
   { key: "h_index", label: "h-index", format: "integer" },
   { key: "i10_index", label: "i10-index", format: "integer" },
   { key: "works_count", label: "Works", format: "integer" },
@@ -32,7 +32,11 @@ export interface FormattedMetric {
  */
 const METRIC_CONTEXT: Record<string, string> = {
   fwci_mean: "1.0 = world average for field & year",
-  top10pct_share: "works in the top 10% by field & year",
+  // NOTE: cited_by_percentile_year is a percentile by PUBLICATION YEAR across
+  // all fields — NOT field-normalised. Most works globally are barely cited, so
+  // this often reads high even when the field-normalised FWCI is ~average. Label
+  // it honestly so it doesn't look contradictory next to FWCI.
+  top10pct_share: "most-cited 10% for their year (by citations, not field-normalised)",
   "2yr_mean_citedness": "field-normalised journal-independent",
 };
 

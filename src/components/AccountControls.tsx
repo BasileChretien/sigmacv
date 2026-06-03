@@ -2,33 +2,13 @@
 
 import { useState } from "react";
 
-interface AccountControlsProps {
-  initialConsent: boolean;
-}
-
 /**
- * Research-consent toggle + GDPR/APPI self-service (data export, account
- * deletion). Consent defaults OFF; no research data is logged until it's on.
+ * GDPR/APPI self-service: data export + account deletion. Research-consent
+ * opt-in is handled by the onboarding prompt/banner (ResearchConsentPrompt),
+ * not a topbar toggle.
  */
-export default function AccountControls({
-  initialConsent,
-}: AccountControlsProps) {
-  const [consent, setConsent] = useState(initialConsent);
+export default function AccountControls() {
   const [busy, setBusy] = useState(false);
-
-  async function toggleConsent(next: boolean) {
-    setConsent(next); // optimistic
-    try {
-      const res = await fetch("/api/account/consent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ consent: next }),
-      });
-      if (!res.ok) throw new Error("consent update failed");
-    } catch {
-      setConsent(!next); // revert on failure
-    }
-  }
 
   async function deleteAccount() {
     if (
@@ -50,14 +30,6 @@ export default function AccountControls({
 
   return (
     <div className="account-controls">
-      <label className="field-inline" title="Optional. Helps research on author disambiguation and CV norms. No data is logged unless this is on.">
-        <input
-          type="checkbox"
-          checked={consent}
-          onChange={(e) => toggleConsent(e.target.checked)}
-        />
-        <span>Contribute to research</span>
-      </label>
       <a className="link-btn" href="/api/account/export">
         Export my data
       </a>

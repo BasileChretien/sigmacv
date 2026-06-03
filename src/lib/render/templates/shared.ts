@@ -162,10 +162,13 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-badge-oa { color: #0e7066; background: #e7f4f1; border: 1px solid #bfe3dc; }
   .cv-badge-role { color: var(--cv-muted); background: #f2f3f5; border: 1px solid var(--cv-rule); text-transform: lowercase; }
 
-  .cv-authorship { border-collapse: collapse; margin-top: 0.9rem; font-size: 0.8rem; }
-  .cv-authorship caption { text-align: left; font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--cv-muted); margin-bottom: 0.3rem; }
-  .cv-authorship td { padding: 0.12rem 0.9rem 0.12rem 0; color: var(--cv-ink-2); }
-  .cv-authorship .cv-authorship-n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--cv-ink); padding-right: 0; }
+  /* The authorship table sits in a guaranteed light card with fixed dark text,
+     so it stays legible on EVERY template — including ones with a coloured
+     header/sidebar (where themed --cv-ink/--cv-muted could vanish). */
+  .cv-authorship { border-collapse: separate; border-spacing: 0; margin-top: 0.9rem; font-size: 0.8rem; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.45rem 0.85rem 0.5rem; color: #374151; }
+  .cv-authorship caption { text-align: left; font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #6b7280; margin-bottom: 0.3rem; }
+  .cv-authorship td { padding: 0.14rem 1.1rem 0.14rem 0; color: #374151; }
+  .cv-authorship .cv-authorship-n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #111827; padding-right: 0; }
   /* Charts sit in a guaranteed light card so the accent-coloured bars stay
      visible on EVERY template — including ones with a coloured header/sidebar
      (where accent bars would otherwise vanish into an accent background). */

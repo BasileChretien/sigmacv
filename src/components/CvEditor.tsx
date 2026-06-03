@@ -576,10 +576,14 @@ export default function CvEditor({
               onChange(updateDisplay(cv, { peerReviewedOnly: e.target.checked }))
             }
           />
-          <span title="Hides preprints and other non-peer-reviewed works from the rendered CV, wherever they sit.">
-            Peer-reviewed publications only
+          <span title="Removes ALL non-peer-reviewed works from the CV, including your entire Preprints section. Leave this OFF to keep preprints listed (in their own section).">
+            Hide preprints &amp; non-peer-reviewed work
           </span>
         </label>
+        <p className="muted metric-preset-note">
+          By default, preprints are kept but listed in a separate “Preprints”
+          section. Turn this on only if you want them gone entirely.
+        </p>
       </fieldset>
 
       <p className="editor-hint">{t(locale, "editorHints")}</p>

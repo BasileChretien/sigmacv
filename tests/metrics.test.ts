@@ -89,7 +89,7 @@ describe("formattedMetrics", () => {
       showMetrics: true,
       metrics: ["fwci_mean", "top10pct_share"],
     });
-    expect(metricsLineText(cv)).toBe("Mean work FWCI: 1.8 · Top-10% works: 25%");
+    expect(metricsLineText(cv)).toBe("Mean work FWCI: 1.8 · Top 10% by year: 25%");
   });
 
   it("leads with field-normalized measures before h-index", () => {

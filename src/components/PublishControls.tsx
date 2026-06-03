@@ -56,22 +56,25 @@ export default function PublishControls({
 
   return (
     <div className="account-controls">
-      <label className="field-inline" title="Publish a public, re-syncing CV page.">
+      <label
+        className="field-inline"
+        title="Creates a shareable public web page of this CV at a public link (sigmacv.org/p/…). It re-syncs as you update. Off by default; un-tick to take it offline."
+      >
         <input
           type="checkbox"
           checked={published}
           disabled={busy}
           onChange={(e) => toggle(e.target.checked)}
         />
-        <span>Public page</span>
+        <span>{published ? "Public page is live" : "Publish public page"}</span>
       </label>
       {published && slug ? (
         <>
           <a className="link-btn" href={`/p/${slug}`} target="_blank" rel="noreferrer">
-            View
+            Open page
           </a>
           <button type="button" className="link-btn" onClick={copyLink}>
-            {copied ? "Copied!" : "Copy link"}
+            {copied ? "Link copied!" : "Copy link"}
           </button>
         </>
       ) : null}

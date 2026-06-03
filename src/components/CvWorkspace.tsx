@@ -143,7 +143,7 @@ export default function CvWorkspace({
           <span className="muted">·</span>
           <span className="muted">{userName}</span>
           <PublishControls initialPublished={published} initialSlug={publicSlug} />
-          <AccountControls initialConsent={researchConsent} />
+          <AccountControls />
         </div>
         <div className="cv-topbar-actions">
           {status ? <span className="status muted">{status}</span> : null}
@@ -172,12 +172,13 @@ export default function CvWorkspace({
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
             aria-label={t(uiLocale, "exportFormat")}
+            title="PDF keeps your chosen visual template. Word, LaTeX and Markdown contain the same content + citation style in a plain, editable layout (no template styling)."
             disabled={!cv}
           >
-            <option value="pdf">PDF</option>
-            <option value="docx">Word (.docx)</option>
-            <option value="latex">LaTeX (.tex)</option>
-            <option value="markdown">Markdown (.md)</option>
+            <option value="pdf">PDF (styled like preview)</option>
+            <option value="docx">Word .docx (plain)</option>
+            <option value="latex">LaTeX .tex (plain)</option>
+            <option value="markdown">Markdown .md (plain)</option>
             <option value="json">JSON (data)</option>
           </select>
           <button
