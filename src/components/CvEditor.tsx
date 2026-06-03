@@ -477,6 +477,19 @@ export default function CvEditor({
           />
           <span>Data-provenance footer</span>
         </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.peerReviewedOnly}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { peerReviewedOnly: e.target.checked }))
+            }
+          />
+          <span title="Hides preprints and other non-peer-reviewed works from the rendered CV, wherever they sit.">
+            Peer-reviewed publications only
+          </span>
+        </label>
       </fieldset>
 
       {sections.map((section, si) => {

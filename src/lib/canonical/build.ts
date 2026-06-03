@@ -395,10 +395,44 @@ function buildEditorialSection(
   };
 }
 
-/** A work is a preprint if OpenAlex types it so, or its primary source is a repository. */
+/**
+ * A work is a preprint if OpenAlex/Crossref types it so ("preprint" or
+ * "posted-content"), or its primary source is a repository. Catches preprints
+ * that would otherwise land in Publications.
+ */
 function isPreprint(work: OpenAlexWork): boolean {
-  if ((work.type ?? "").toLowerCase() === "preprint") return true;
+  const type = (work.type ?? "").toLowerCase();
+  if (type === "preprint" || type === "posted-content") return true;
   return (work.primary_location?.source?.type ?? "").toLowerCase() === "repository";
+}
+
+// OpenAlex `type` values that are NOT peer-reviewed scholarship.
+const NON_PEER_REVIEWED_TYPES = new Set([
+  "preprint",
+  "posted-content",
+  "dataset",
+  "paratext",
+  "supplementary-materials",
+  "other",
+  "peer-review",
+  "grant",
+  "editorial",
+  "letter",
+]);
+
+/**
+ * Heuristic: is this a peer-reviewed output? False for preprints (by type OR
+ * repository source — catches preprints that slipped into Publications), for
+ * non-scholarly types, and for works with no published venue. Identifier/metadata
+ * based; the user can still override per item via hide. Drives the
+ * "peer-reviewed only" filter.
+ */
+function isPeerReviewed(work: OpenAlexWork): boolean {
+  if (isPreprint(work)) return false;
+  const type = (work.type ?? "").toLowerCase();
+  if (NON_PEER_REVIEWED_TYPES.has(type)) return false;
+  // Require a real publication venue (journal/conference/book), not a repository.
+  return Boolean(work.primary_location?.source?.display_name);
 }
 
 /**
@@ -542,6 +576,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
             : undefined,
         authorRole: authorRoleLabel(selfAuth),
         authorCount: work.authorships?.length,
+        peerReviewed: isPeerReviewed(work),
         reviewFlag: authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined,
       },
     };

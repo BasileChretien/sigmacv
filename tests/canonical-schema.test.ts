@@ -65,6 +65,7 @@ describe("DisplayChoicesSchema", () => {
       showOpenAccess: true,
       showAuthorRole: false,
       showProvenance: true,
+      peerReviewedOnly: false,
       accentColor: "#1f4fd8",
       fontPairing: "serif",
       density: "comfortable",

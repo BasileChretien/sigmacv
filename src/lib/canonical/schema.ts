@@ -107,6 +107,12 @@ export const CvItemSchema = z.object({
     /** Total number of authors on the work. */
     authorCount: z.number().int().optional(),
     /**
+     * Whether this citation is a peer-reviewed output (computed at build from the
+     * work type + venue). false for preprints, datasets, editorials, etc. Drives
+     * the "peer-reviewed only" display filter. Undefined for non-citation items.
+     */
+    peerReviewed: z.boolean().optional(),
+    /**
      * A computed disambiguation hint surfacing works that MIGHT be misattributed,
      * for proactive review (e.g. "orcid-conflict" = the matched OpenAlex author
      * record lists a different ORCID on this paper). Advisory only — never hides
@@ -245,6 +251,12 @@ export const DisplayChoicesSchema = z.object({
   showAuthorRole: z.boolean().default(false),
   /** Show a data-provenance footer (sources, sync date, hidden/corrected counts). */
   showProvenance: z.boolean().default(true),
+  /**
+   * Render only peer-reviewed citations (drops preprints + non-peer-reviewed
+   * works wherever they sit, e.g. a preprint mis-filed under Publications).
+   * Non-citation entries (positions, grants, …) are unaffected. Default off.
+   */
+  peerReviewedOnly: z.boolean().default(false),
   /** Accent colour (validated hex). */
   accentColor: z.string().regex(HEX_COLOR).default("#1f4fd8"),
   fontPairing: z.enum(FONT_PAIRINGS).default("serif"),

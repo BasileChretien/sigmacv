@@ -38,9 +38,16 @@ export function prepareSections(
     registerStyleXml(custom.id, custom.xml);
   }
 
+  // "Peer-reviewed only" drops non-peer-reviewed CITATIONS wherever they sit
+  // (e.g. a preprint mis-filed under Publications). Non-citation entries
+  // (positions, grants, editorial roles) are never touched.
+  const peerOnly = cv.display.peerReviewedOnly;
+  const keep = (item: CvItem): boolean =>
+    !peerOnly || !item.csl || item.meta.peerReviewed !== false;
+
   const perSection = visibleSections(cv).map((section) => ({
     section,
-    items: visibleItems(section),
+    items: visibleItems(section).filter(keep),
   }));
 
   // Citation items go through citeproc; non-citation items (editorial, grants)
