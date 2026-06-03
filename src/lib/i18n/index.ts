@@ -336,6 +336,8 @@ const EN = {
   exportFormat: "Export format",
   signOut: "Sign out",
   language: "Language",
+  uiLanguage: "Interface language",
+  cvLanguage: "CV language",
   // empty state
   emptyTitle: "No CV yet",
   emptyBody:
@@ -419,6 +421,8 @@ const ZH: Record<ChromeKey, string> = {
   exportFormat: "导出格式",
   signOut: "退出登录",
   language: "语言",
+  uiLanguage: "界面语言",
+  cvLanguage: "CV 语言",
   emptyTitle: "还没有简历",
   emptyBody:
     "我们尚未在 OpenAlex 上找到与您的 ORCID iD 关联的论文。请尝试同步——新记录可能需要一些时间才会显示，而沙盒 ORCID iD 没有 OpenAlex 档案。",
@@ -495,6 +499,8 @@ const ES: Record<ChromeKey, string> = {
   exportFormat: "Formato de exportación",
   signOut: "Cerrar sesión",
   language: "Idioma",
+  uiLanguage: "Idioma de la interfaz",
+  cvLanguage: "Idioma del CV",
   emptyTitle: "Aún no hay CV",
   emptyBody:
     "Todavía no encontramos publicaciones para tu iD ORCID en OpenAlex. Prueba a sincronizar: los nuevos registros pueden tardar en aparecer, y los iD ORCID de prueba no tienen perfil en OpenAlex.",
@@ -571,6 +577,8 @@ const FR: Record<ChromeKey, string> = {
   exportFormat: "Format d’export",
   signOut: "Se déconnecter",
   language: "Langue",
+  uiLanguage: "Langue de l’interface",
+  cvLanguage: "Langue du CV",
   emptyTitle: "Pas encore de CV",
   emptyBody:
     "Nous n’avons pas encore trouvé de publications pour votre iD ORCID sur OpenAlex. Essayez de synchroniser — les nouveaux enregistrements peuvent mettre du temps à apparaître, et les iD ORCID de test n’ont pas de profil OpenAlex.",
@@ -647,6 +655,8 @@ const DE: Record<ChromeKey, string> = {
   exportFormat: "Exportformat",
   signOut: "Abmelden",
   language: "Sprache",
+  uiLanguage: "Oberflächensprache",
+  cvLanguage: "Lebenslauf-Sprache",
   emptyTitle: "Noch kein Lebenslauf",
   emptyBody:
     "Wir haben für Ihre ORCID iD noch keine Publikationen auf OpenAlex gefunden. Versuchen Sie zu synchronisieren – neue Einträge können einige Zeit benötigen, und Sandbox-ORCID-iDs haben kein OpenAlex-Profil.",
@@ -723,6 +733,8 @@ const JA: Record<ChromeKey, string> = {
   exportFormat: "エクスポート形式",
   signOut: "サインアウト",
   language: "言語",
+  uiLanguage: "表示言語",
+  cvLanguage: "CV の言語",
   emptyTitle: "CV がまだありません",
   emptyBody:
     "OpenAlex 上であなたの ORCID iD に紐づく論文がまだ見つかりません。同期をお試しください。新しい記録は反映に時間がかかることがあり、サンドボックスの ORCID iD には OpenAlex プロフィールがありません。",
@@ -799,6 +811,8 @@ const PT: Record<ChromeKey, string> = {
   exportFormat: "Formato de exportação",
   signOut: "Sair",
   language: "Idioma",
+  uiLanguage: "Idioma da interface",
+  cvLanguage: "Idioma do CV",
   emptyTitle: "Ainda sem currículo",
   emptyBody:
     "Ainda não encontramos publicações para o seu iD ORCID no OpenAlex. Tente sincronizar — novos registros podem demorar a aparecer, e iDs ORCID de teste não têm perfil no OpenAlex.",
@@ -875,6 +889,8 @@ const IT: Record<ChromeKey, string> = {
   exportFormat: "Formato di esportazione",
   signOut: "Esci",
   language: "Lingua",
+  uiLanguage: "Lingua dell’interfaccia",
+  cvLanguage: "Lingua del CV",
   emptyTitle: "Ancora nessun CV",
   emptyBody:
     "Non abbiamo ancora trovato pubblicazioni per il tuo iD ORCID su OpenAlex. Prova a sincronizzare: i nuovi record possono richiedere tempo per comparire e gli iD ORCID di prova non hanno un profilo OpenAlex.",
@@ -951,6 +967,8 @@ const KO: Record<ChromeKey, string> = {
   exportFormat: "내보내기 형식",
   signOut: "로그아웃",
   language: "언어",
+  uiLanguage: "인터페이스 언어",
+  cvLanguage: "CV 언어",
   emptyTitle: "아직 CV가 없습니다",
   emptyBody:
     "OpenAlex에서 회원님의 ORCID iD에 연결된 논문을 아직 찾지 못했습니다. 동기화를 시도해 보세요. 새 기록은 표시되기까지 시간이 걸릴 수 있으며, 샌드박스 ORCID iD에는 OpenAlex 프로필이 없습니다.",
@@ -1027,6 +1045,8 @@ const RU: Record<ChromeKey, string> = {
   exportFormat: "Формат экспорта",
   signOut: "Выйти",
   language: "Язык",
+  uiLanguage: "Язык интерфейса",
+  cvLanguage: "Язык резюме",
   emptyTitle: "Резюме пока нет",
   emptyBody:
     "Мы пока не нашли публикаций для вашего ORCID iD в OpenAlex. Попробуйте синхронизировать — новые записи могут появляться не сразу, а у тестовых ORCID iD нет профиля в OpenAlex.",

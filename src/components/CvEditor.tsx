@@ -41,6 +41,8 @@ import ProfilePanel from "./ProfilePanel";
 interface CvEditorProps {
   cv: CanonicalCv;
   availableStyles: string[];
+  /** Interface language (independent of the CV's own rendered language). */
+  uiLocale: string;
   onChange: (next: CanonicalCv) => void;
 }
 
@@ -69,11 +71,15 @@ const ADDABLE_SECTIONS: CvSectionType[] = [
 export default function CvEditor({
   cv,
   availableStyles,
+  uiLocale,
   onChange,
 }: CvEditorProps) {
   const sections = orderedSections(cv);
   const customStyle = cv.display.customStyle;
-  const locale = asLocale(cv.display.locale);
+  // Editor chrome follows the INTERFACE language; the CV's own language is
+  // cv.display.locale, edited via the "CV language" picker below.
+  const locale = asLocale(uiLocale);
+  const cvLocale = asLocale(cv.display.locale);
   const u = ui(locale);
 
   // Locale-aware option labels (built from the chrome dictionary).
@@ -244,11 +250,11 @@ export default function CvEditor({
         </label>
 
         <label className="field">
-          <span>{t(locale, "language")}</span>
+          <span>{t(locale, "cvLanguage")}</span>
           <select
-            value={locale}
+            value={cvLocale}
             onChange={(e) => onChange(setLocale(cv, e.target.value))}
-            aria-label={t(locale, "language")}
+            aria-label={t(locale, "cvLanguage")}
           >
             {SUPPORTED_LOCALES.map((loc) => (
               <option key={loc} value={loc}>

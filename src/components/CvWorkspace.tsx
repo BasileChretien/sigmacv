@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
-import { asLocale, t } from "@/lib/i18n";
+import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
+
+const UI_LOCALE_KEY = "sigmacv:uiLocale";
 import AccountControls from "./AccountControls";
 import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
@@ -67,8 +69,30 @@ export default function CvWorkspace({
   const [status, setStatus] = useState("");
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
 
-  // UI language follows the CV's chosen locale (en-US when there's no CV yet).
-  const uiLocale = asLocale(cv?.display.locale);
+  // INTERFACE language — independent of the CV's own (rendered) language. It's a
+  // client preference (localStorage), not part of the CV document. Initial value
+  // mirrors the CV's language so first paint is sensible; a saved choice (read
+  // after mount to avoid hydration mismatch) overrides it.
+  const [uiLocale, setUiLocale] = useState<Locale>(
+    asLocale(initialCv?.display.locale),
+  );
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(UI_LOCALE_KEY);
+      if (saved) setUiLocale(asLocale(saved));
+    } catch {
+      /* storage unavailable — keep the default */
+    }
+  }, []);
+  const changeUiLocale = useCallback((value: string) => {
+    const next = asLocale(value);
+    setUiLocale(next);
+    try {
+      window.localStorage.setItem(UI_LOCALE_KEY, next);
+    } catch {
+      /* non-fatal */
+    }
+  }, []);
 
   // Debounced live preview whenever the document changes.
   useEffect(() => {
@@ -203,6 +227,19 @@ export default function CvWorkspace({
           >
             {t(uiLocale, "exportLabel")}
           </button>
+          <select
+            className="lang-switcher"
+            value={uiLocale}
+            onChange={(e) => changeUiLocale(e.target.value)}
+            aria-label={t(uiLocale, "uiLanguage")}
+            title={t(uiLocale, "uiLanguage")}
+          >
+            {SUPPORTED_LOCALES.map((loc) => (
+              <option key={loc} value={loc}>
+                {LOCALE_LABELS[loc]}
+              </option>
+            ))}
+          </select>
           <SupportLink locale={uiLocale} />
           <form action={signOutAction}>
             <button type="submit" className="btn">
@@ -218,6 +255,7 @@ export default function CvWorkspace({
             <CvEditor
               cv={cv}
               availableStyles={availableStyles}
+              uiLocale={uiLocale}
               onChange={update}
             />
           </section>
