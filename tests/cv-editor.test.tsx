@@ -118,6 +118,23 @@ describe("CvEditor (component)", () => {
     expect(item.notMineReason).toBe("different-person");
   });
 
+  it("reorders items within a section via drag-and-drop", () => {
+    const onChange = vi.fn();
+    const cv = makeCv();
+    const firstId = [...cv.sections[0]!.items].sort((a, b) => a.order - b.order)[0]!.id;
+    const { container } = render(
+      <CvEditor cv={cv} availableStyles={["apa"]} onChange={onChange} />,
+    );
+    const handles = screen.getAllByTitle("Drag to reorder"); // item handles only
+    const rows = container.querySelectorAll("li.cv-item-row");
+    expect(rows.length).toBeGreaterThan(2);
+    fireEvent.dragStart(handles[0]!, { dataTransfer: {} });
+    fireEvent.drop(rows[2]!);
+    const next = onChange.mock.calls.at(-1)![0] as CanonicalCv;
+    const ordered = [...next.sections[0]!.items].sort((a, b) => a.order - b.order);
+    expect(ordered[2]!.id).toBe(firstId); // dragged item landed at index 2
+  });
+
   it("renders chrome in the selected locale and switches it via the picker", () => {
     const onChange = vi.fn();
     const fr: CanonicalCv = {

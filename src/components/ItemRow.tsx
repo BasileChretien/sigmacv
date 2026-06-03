@@ -19,6 +19,10 @@ interface ItemRowProps {
   onSetNotMineReason?: (reason: NotMineReason | undefined) => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  /** Drag-and-drop reorder: this row started being dragged. */
+  onDragStart?: () => void;
+  /** Drag-and-drop reorder: a dragged row was dropped onto this one. */
+  onDropOver?: () => void;
   /** Edit a manual entry's text (only passed for source === "manual"). */
   onUpdateText?: (text: string) => void;
   /** Delete a manual entry (only passed for source === "manual"). */
@@ -35,6 +39,8 @@ export default function ItemRow({
   onSetNotMineReason,
   onMoveUp,
   onMoveDown,
+  onDragStart,
+  onDropOver,
   onUpdateText,
   onRemove,
 }: ItemRowProps) {
@@ -56,7 +62,33 @@ export default function ItemRow({
     .join(" ");
 
   return (
-    <li className={rowClass}>
+    <li
+      className={rowClass}
+      onDragOver={onDropOver ? (e) => e.preventDefault() : undefined}
+      onDrop={
+        onDropOver
+          ? (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDropOver();
+            }
+          : undefined
+      }
+    >
+      {onDragStart ? (
+        <span
+          className="drag-handle"
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = "move";
+            onDragStart();
+          }}
+          title="Drag to reorder"
+          aria-hidden="true"
+        >
+          ⠿
+        </span>
+      ) : null}
       <div className="cv-item-body">
         {isManual && onUpdateText ? (
           <input

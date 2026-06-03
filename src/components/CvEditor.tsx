@@ -14,7 +14,9 @@ import { isHidden } from "@/lib/canonical/schema";
 import {
   addManualEntry,
   moveItem,
+  moveItemTo,
   moveSection,
+  moveSectionTo,
   removeItem,
   renameSection,
   setItemIncluded,
@@ -85,6 +87,11 @@ export default function CvEditor({
   const [styleError, setStyleError] = useState("");
   // Draft text for the per-section "add entry" inputs, keyed by section type.
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  // Drag-and-drop reorder state (mouse only; the ↑/↓ buttons remain the
+  // accessible fallback). Items reorder within their section; sections reorder
+  // by dropping onto another section's header.
+  const [dragSection, setDragSection] = useState<string | null>(null);
+  const [dragItem, setDragItem] = useState<{ sectionId: string; itemId: string } | null>(null);
 
   const hasSection = (type: string): boolean =>
     cv.sections.some((s) => s.type === type);
@@ -504,7 +511,34 @@ export default function CvEditor({
         const shownCount = items.filter((i) => !isHidden(i)).length;
         return (
           <div key={section.id} className="section-block">
-            <div className="section-head">
+            <div
+              className="section-head"
+              onDragOver={
+                dragSection && dragSection !== section.id
+                  ? (e) => e.preventDefault()
+                  : undefined
+              }
+              onDrop={(e) => {
+                if (dragSection && dragSection !== section.id) {
+                  e.preventDefault();
+                  onChange(moveSectionTo(cv, dragSection, si));
+                }
+                setDragSection(null);
+              }}
+            >
+              <span
+                className="drag-handle"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = "move";
+                  setDragSection(section.id);
+                }}
+                onDragEnd={() => setDragSection(null)}
+                title="Drag to reorder section"
+                aria-hidden="true"
+              >
+                ⠿
+              </span>
               <input
                 className="section-title"
                 value={section.title}
@@ -590,6 +624,15 @@ export default function CvEditor({
                     onMoveDown={() =>
                       onChange(moveItem(cv, section.id, item.id, "down"))
                     }
+                    onDragStart={() =>
+                      setDragItem({ sectionId: section.id, itemId: item.id })
+                    }
+                    onDropOver={() => {
+                      if (dragItem && dragItem.sectionId === section.id) {
+                        onChange(moveItemTo(cv, section.id, dragItem.itemId, ii));
+                      }
+                      setDragItem(null);
+                    }}
                     onUpdateText={(text) =>
                       onChange(updateItemText(cv, section.id, item.id, text))
                     }

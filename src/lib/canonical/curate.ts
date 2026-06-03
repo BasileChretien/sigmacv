@@ -106,6 +106,26 @@ export function moveItem(
   });
 }
 
+/** Move an item to an explicit index within its section (drag-and-drop). */
+export function moveItemTo(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  targetIndex: number,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => {
+    const items = sortByOrder(s.items);
+    const from = items.findIndex((i) => i.id === itemId);
+    if (from < 0) return s;
+    const clamped = Math.max(0, Math.min(targetIndex, items.length - 1));
+    if (clamped === from) return s;
+    const next = [...items];
+    const [moved] = next.splice(from, 1);
+    next.splice(clamped, 0, moved!);
+    return { ...s, items: next.map((it, i) => ({ ...it, order: i })) };
+  });
+}
+
 export function setSectionVisible(
   cv: CanonicalCv,
   sectionId: string,
@@ -138,6 +158,23 @@ export function moveSection(
   const b = next[target]!;
   next[idx] = b;
   next[target] = a;
+  return { ...cv, sections: next.map((s, i) => ({ ...s, order: i })) };
+}
+
+/** Move a section to an explicit index (drag-and-drop). */
+export function moveSectionTo(
+  cv: CanonicalCv,
+  sectionId: string,
+  targetIndex: number,
+): CanonicalCv {
+  const sections = sortByOrder(cv.sections);
+  const from = sections.findIndex((s) => s.id === sectionId);
+  if (from < 0) return cv;
+  const clamped = Math.max(0, Math.min(targetIndex, sections.length - 1));
+  if (clamped === from) return cv;
+  const next = [...sections];
+  const [moved] = next.splice(from, 1);
+  next.splice(clamped, 0, moved!);
   return { ...cv, sections: next.map((s, i) => ({ ...s, order: i })) };
 }
 

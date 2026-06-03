@@ -544,6 +544,23 @@ button {
   font-size: 0.85rem;
 }
 
+/* Drag handle for reordering sections + items (mouse; arrows are the a11y path). */
+.drag-handle {
+  cursor: grab;
+  color: var(--muted, #999);
+  user-select: none;
+  padding: 0 0.25rem;
+  font-size: 0.95rem;
+  line-height: 1;
+  flex: none;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+.section-head .drag-handle {
+  align-self: center;
+}
+
 .cv-item-row.is-not-mine .cv-item-title {
   text-decoration: line-through;
 }

@@ -3,7 +3,9 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   addManualEntry,
   moveItem,
+  moveItemTo,
   moveSection,
+  moveSectionTo,
   removeItem,
   renameSection,
   setItemIncluded,
@@ -139,6 +141,54 @@ describe("moveItem", () => {
     expect(
       [...next.sections[0]!.items].sort((a, b) => a.order - b.order)[0]!.id,
     ).toBe(first);
+  });
+});
+
+describe("moveItemTo (drag-and-drop)", () => {
+  it("moves an item to an arbitrary index and re-indexes 0..n", () => {
+    const cv = makeCv();
+    const items = [...cv.sections[0]!.items].sort((a, b) => a.order - b.order);
+    const first = items[0]!.id;
+    const next = moveItemTo(cv, SECTION, first, 2);
+    const reordered = [...next.sections[0]!.items].sort((a, b) => a.order - b.order);
+    expect(reordered[2]!.id).toBe(first);
+    expect(reordered.map((i) => i.order)).toEqual([0, 1, 2]);
+  });
+
+  it("clamps an out-of-range target and is a no-op when index is unchanged", () => {
+    const cv = makeCv();
+    const items = [...cv.sections[0]!.items].sort((a, b) => a.order - b.order);
+    const last = items[items.length - 1]!.id;
+    const clamped = moveItemTo(cv, SECTION, last, 999);
+    const order = [...clamped.sections[0]!.items].sort((a, b) => a.order - b.order);
+    expect(order[order.length - 1]!.id).toBe(last); // already last → stays
+    // Unknown item id → content unchanged.
+    expect(moveItemTo(cv, SECTION, "nope", 0)).toEqual(cv);
+  });
+});
+
+describe("moveSectionTo (drag-and-drop)", () => {
+  function multi() {
+    return buildCanonicalCv({
+      id: "ms",
+      resolved,
+      works,
+      now: "2026-06-02T00:00:00.000Z",
+      editorialRoles: [{ journal: "BMJ", role: "Editor", startYear: 2020 }],
+      fundings: [{ putCode: "1", title: "ANR", organization: "ANR" }],
+    });
+  }
+  it("moves a section to an arbitrary index", () => {
+    const cv = multi();
+    const grants = cv.sections.find((s) => s.type === "grants")!.id;
+    const next = moveSectionTo(cv, grants, 0);
+    const ordered = [...next.sections].sort((a, b) => a.order - b.order);
+    expect(ordered[0]!.type).toBe("grants");
+    expect(ordered.map((s) => s.order)).toEqual(ordered.map((_, i) => i));
+  });
+  it("is a no-op for an unknown section id", () => {
+    const cv = multi();
+    expect(moveSectionTo(cv, "nope", 0)).toBe(cv);
   });
 });
 
