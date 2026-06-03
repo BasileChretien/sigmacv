@@ -333,6 +333,27 @@ export default function CvEditor({
         </label>
 
         <label className="field">
+          <span>{t(locale, "pubLimit")}</span>
+          <input
+            type="number"
+            min={0}
+            max={500}
+            value={cv.display.publicationsLimit ?? 0}
+            onChange={(e) => {
+              const n = Math.max(0, Math.floor(Number(e.target.value) || 0));
+              onChange(
+                updateDisplay(cv, {
+                  publicationsLimit: n > 0 ? n : undefined,
+                }),
+              );
+            }}
+            aria-label={t(locale, "pubLimit")}
+            title={t(locale, "pubLimitHint")}
+          />
+          <span className="field-hint muted">{t(locale, "pubLimitHint")}</span>
+        </label>
+
+        <label className="field">
           <span>{u.fontLabel}</span>
           <select
             value={cv.display.fontPairing}

@@ -449,6 +449,8 @@ const EN = {
   sortCitations: "Most cited first",
   sortYearDesc: "Newest first",
   sortYearAsc: "Oldest first",
+  pubLimit: "Selected publications",
+  pubLimitHint: "Show only the top N (0 = all)",
 } as const;
 
 export type ChromeKey = keyof typeof EN;
@@ -536,6 +538,8 @@ const ZH: Record<ChromeKey, string> = {
   sortCitations: "被引用最多优先",
   sortYearDesc: "最新优先",
   sortYearAsc: "最早优先",
+  pubLimit: "精选论文",
+  pubLimitHint: "仅显示前 N 篇（0 = 全部）",
 };
 
 const ES: Record<ChromeKey, string> = {
@@ -621,6 +625,8 @@ const ES: Record<ChromeKey, string> = {
   sortCitations: "Más citadas primero",
   sortYearDesc: "Más recientes primero",
   sortYearAsc: "Más antiguas primero",
+  pubLimit: "Publicaciones seleccionadas",
+  pubLimitHint: "Mostrar solo las N principales (0 = todas)",
 };
 
 const FR: Record<ChromeKey, string> = {
@@ -706,6 +712,8 @@ const FR: Record<ChromeKey, string> = {
   sortCitations: "Les plus citées d’abord",
   sortYearDesc: "Plus récentes d’abord",
   sortYearAsc: "Plus anciennes d’abord",
+  pubLimit: "Publications sélectionnées",
+  pubLimitHint: "N premières seulement (0 = toutes)",
 };
 
 const DE: Record<ChromeKey, string> = {
@@ -791,6 +799,8 @@ const DE: Record<ChromeKey, string> = {
   sortCitations: "Meistzitierte zuerst",
   sortYearDesc: "Neueste zuerst",
   sortYearAsc: "Älteste zuerst",
+  pubLimit: "Ausgewählte Publikationen",
+  pubLimitHint: "Nur die obersten N (0 = alle)",
 };
 
 const JA: Record<ChromeKey, string> = {
@@ -876,6 +886,8 @@ const JA: Record<ChromeKey, string> = {
   sortCitations: "被引用数の多い順",
   sortYearDesc: "新しい順",
   sortYearAsc: "古い順",
+  pubLimit: "主要論文",
+  pubLimitHint: "上位N件のみ（0=すべて）",
 };
 
 const PT: Record<ChromeKey, string> = {
@@ -961,6 +973,8 @@ const PT: Record<ChromeKey, string> = {
   sortCitations: "Mais citadas primeiro",
   sortYearDesc: "Mais recentes primeiro",
   sortYearAsc: "Mais antigas primeiro",
+  pubLimit: "Publicações selecionadas",
+  pubLimitHint: "Mostrar apenas as N principais (0 = todas)",
 };
 
 const IT: Record<ChromeKey, string> = {
@@ -1046,6 +1060,8 @@ const IT: Record<ChromeKey, string> = {
   sortCitations: "Più citate prima",
   sortYearDesc: "Più recenti prima",
   sortYearAsc: "Più vecchie prima",
+  pubLimit: "Pubblicazioni selezionate",
+  pubLimitHint: "Solo le prime N (0 = tutte)",
 };
 
 const KO: Record<ChromeKey, string> = {
@@ -1131,6 +1147,8 @@ const KO: Record<ChromeKey, string> = {
   sortCitations: "피인용 많은 순",
   sortYearDesc: "최신순",
   sortYearAsc: "오래된순",
+  pubLimit: "주요 논문",
+  pubLimitHint: "상위 N개만 (0 = 전체)",
 };
 
 const RU: Record<ChromeKey, string> = {
@@ -1216,6 +1234,8 @@ const RU: Record<ChromeKey, string> = {
   sortCitations: "Сначала самые цитируемые",
   sortYearDesc: "Сначала новые",
   sortYearAsc: "Сначала старые",
+  pubLimit: "Избранные публикации",
+  pubLimitHint: "Только первые N (0 = все)",
 };
 
 const DICTS: Record<Locale, Record<ChromeKey, string>> = {

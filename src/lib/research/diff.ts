@@ -126,6 +126,8 @@ export interface CompositionSnapshot {
   peerReviewedOnly: boolean;
   /** Sort order applied to publications (citations / year / custom). */
   publicationOrder: string;
+  /** "Selected publications" cap (top-N), or 0 when showing all. */
+  publicationsLimit: number;
   /** Whether the authorship-position summary table is shown, and which roles. */
   showAuthorshipTable: boolean;
   authorshipRoles: string[];
@@ -155,6 +157,7 @@ export function compositionSnapshot(cv: CanonicalCv): CompositionSnapshot {
     metricsShown: cv.display.metrics,
     peerReviewedOnly: cv.display.peerReviewedOnly,
     publicationOrder: cv.display.publicationOrder,
+    publicationsLimit: cv.display.publicationsLimit ?? 0,
     showAuthorshipTable: cv.display.showAuthorshipTable,
     authorshipRoles: cv.display.authorshipRoles,
     showCharts: cv.display.showCharts,

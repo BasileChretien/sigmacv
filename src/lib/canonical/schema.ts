@@ -402,6 +402,12 @@ export const DisplayChoicesSchema = z.object({
     .enum(["custom", "citations", "year-desc", "year-asc"])
     .default("custom"),
   /**
+   * "Selected publications": cap the Publications section to the top N entries
+   * (after ordering + the peer-reviewed-only filter), for a grant biosketch /
+   * 2-page CV. 0 or undefined = show all. Other sections are unaffected.
+   */
+  publicationsLimit: z.number().int().min(0).max(500).optional(),
+  /**
    * True once the user has manually reordered sections (drag or ↑/↓). Until
    * then the build applies the canonical default order (Positions → Education →
    * Publications → …); afterwards the user's arrangement is preserved on re-sync.

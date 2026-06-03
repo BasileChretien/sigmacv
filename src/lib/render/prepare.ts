@@ -60,9 +60,17 @@ export function prepareSections(
     });
   };
 
+  // "Selected publications": cap the main Publications list to the top N AFTER
+  // ordering + the peer-reviewed-only filter (for a grant biosketch / short CV).
+  // Only Publications is capped; Preprints and everything else are untouched.
+  const limit = cv.display.publicationsLimit ?? 0;
+
   const perSection = visibleSections(cv).map((section) => {
     let items = visibleItems(section).filter(keep);
     if (CITATION_SECTIONS.has(section.type)) items = sortCitations(items);
+    if (section.type === "publications" && limit > 0) {
+      items = items.slice(0, limit);
+    }
     return { section, items };
   });
 
