@@ -788,6 +788,8 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     },
     display,
     sections,
+    // Saved view-presets are a pure display concern — carry them across re-syncs.
+    presets: previous?.presets ?? [],
     provenance: {
       generatedAt: previous?.provenance.generatedAt ?? now,
       lastSyncedAt: now,

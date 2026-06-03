@@ -3,6 +3,8 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   addManualEntry,
   addSection,
+  applyPreset,
+  deletePreset,
   moveItem,
   moveItemTo,
   moveSection,
@@ -10,6 +12,7 @@ import {
   orderedSections,
   removeItem,
   renameSection,
+  savePreset,
   setItemIncluded,
   setItemNotMine,
   setLocale,
@@ -395,5 +398,51 @@ describe("manual entries (add / edit / remove)", () => {
     });
     const pos = resynced.sections.find((s) => s.type === "positions");
     expect(pos?.items.some((i) => i.id === "position:manual:keep")).toBe(true);
+  });
+});
+
+describe("named presets", () => {
+  it("saves the current view (display + section visibility) and re-applies it", () => {
+    const cv = makeCv();
+    const customized = updateDisplay(
+      setSectionVisible(cv, "publications", false),
+      { template: "modern", publicationsLimit: 5 },
+    );
+    const withPreset = savePreset(customized, "Grant biosketch");
+    expect(withPreset.presets).toHaveLength(1);
+    const preset = withPreset.presets[0]!;
+    expect(preset.name).toBe("Grant biosketch");
+    expect(preset.display.template).toBe("modern");
+    expect(preset.sectionVisibility.publications).toBe(false);
+
+    // Change the live view, then apply the preset to restore it.
+    const changed = updateDisplay(
+      setSectionVisible(withPreset, "publications", true),
+      { template: "classic", publicationsLimit: undefined },
+    );
+    const restored = applyPreset(changed, preset.id);
+    expect(restored.display.template).toBe("modern");
+    expect(restored.display.publicationsLimit).toBe(5);
+    expect(
+      restored.sections.find((s) => s.id === "publications")!.visible,
+    ).toBe(false);
+  });
+
+  it("upserts by name, ignores a blank name, and deletes by id", () => {
+    const cv = makeCv();
+    const once = savePreset(cv, "Full CV");
+    const twice = savePreset(
+      updateDisplay(once, { template: "minimal" }),
+      "Full CV",
+    );
+    expect(twice.presets).toHaveLength(1); // upsert, not a duplicate
+    expect(twice.presets[0]!.display.template).toBe("minimal");
+
+    expect(savePreset(cv, "   ")).toBe(cv); // blank name → no-op
+
+    const id = twice.presets[0]!.id;
+    expect(deletePreset(twice, id).presets).toHaveLength(0);
+    expect(deletePreset(twice, "preset:nope")).toBe(twice); // unknown → no-op
+    expect(applyPreset(cv, "preset:nope")).toBe(cv); // unknown → no-op
   });
 });

@@ -443,12 +443,30 @@ export const ProvenanceSchema = z.object({
 });
 export type Provenance = z.infer<typeof ProvenanceSchema>;
 
+/**
+ * A named display-preset: a saved "view" of the same canonical CV (e.g. a full
+ * academic CV vs. a 2-page grant biosketch). Captures the display choices + a
+ * snapshot of which sections were visible, so the user can switch between
+ * layouts WITHOUT duplicating the underlying curated data (single source of
+ * truth). Curation (included/notMine/order/content) is shared across presets.
+ */
+export const CvPresetSchema = z.object({
+  id: z.string().min(1).max(80),
+  name: z.string().min(1).max(60),
+  display: DisplayChoicesSchema,
+  /** sectionId → visible, captured when the preset was saved. */
+  sectionVisibility: z.record(z.string(), z.boolean()).default({}),
+});
+export type CvPreset = z.infer<typeof CvPresetSchema>;
+
 export const CanonicalCvSchema = z.object({
   schemaVersion: z.literal(CANONICAL_SCHEMA_VERSION),
   id: z.string(),
   owner: CvOwnerSchema,
   display: DisplayChoicesSchema,
   sections: z.array(CvSectionSchema),
+  /** Saved named view-presets (optional; back-compat: old docs have none). */
+  presets: z.array(CvPresetSchema).max(20).default([]),
   provenance: ProvenanceSchema,
 });
 export type CanonicalCv = z.infer<typeof CanonicalCvSchema>;

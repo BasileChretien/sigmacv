@@ -63,6 +63,7 @@ function makeCv(items: CvItem[]): CanonicalCv {
     sections: [
       { id: "publications", type: "publications", title: "Publications", visible: true, order: 0, items },
     ],
+    presets: [],
     provenance: { generatedAt: "t0", lastSyncedAt: "t0", sources: ["openalex"] },
   };
 }

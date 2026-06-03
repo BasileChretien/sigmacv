@@ -451,6 +451,11 @@ const EN = {
   sortYearAsc: "Oldest first",
   pubLimit: "Selected publications",
   pubLimitHint: "Show only the top N (0 = all)",
+  presets: "Presets",
+  savePreset: "Save current view",
+  presetName: "Name this view (e.g. Grant biosketch)",
+  applyPreset: "Apply",
+  deletePreset: "Delete preset",
 } as const;
 
 export type ChromeKey = keyof typeof EN;
@@ -540,6 +545,11 @@ const ZH: Record<ChromeKey, string> = {
   sortYearAsc: "最早优先",
   pubLimit: "精选论文",
   pubLimitHint: "仅显示前 N 篇（0 = 全部）",
+  presets: "预设视图",
+  savePreset: "保存当前视图",
+  presetName: "为此视图命名（如：基金简历）",
+  applyPreset: "应用",
+  deletePreset: "删除预设",
 };
 
 const ES: Record<ChromeKey, string> = {
@@ -627,6 +637,11 @@ const ES: Record<ChromeKey, string> = {
   sortYearAsc: "Más antiguas primero",
   pubLimit: "Publicaciones seleccionadas",
   pubLimitHint: "Mostrar solo las N principales (0 = todas)",
+  presets: "Presets",
+  savePreset: "Guardar vista actual",
+  presetName: "Nombra esta vista (p. ej. Biosketch)",
+  applyPreset: "Aplicar",
+  deletePreset: "Eliminar preset",
 };
 
 const FR: Record<ChromeKey, string> = {
@@ -714,6 +729,11 @@ const FR: Record<ChromeKey, string> = {
   sortYearAsc: "Plus anciennes d’abord",
   pubLimit: "Publications sélectionnées",
   pubLimitHint: "N premières seulement (0 = toutes)",
+  presets: "Préréglages",
+  savePreset: "Enregistrer la vue actuelle",
+  presetName: "Nom de la vue (ex. CV de bourse)",
+  applyPreset: "Appliquer",
+  deletePreset: "Supprimer le préréglage",
 };
 
 const DE: Record<ChromeKey, string> = {
@@ -801,6 +821,11 @@ const DE: Record<ChromeKey, string> = {
   sortYearAsc: "Älteste zuerst",
   pubLimit: "Ausgewählte Publikationen",
   pubLimitHint: "Nur die obersten N (0 = alle)",
+  presets: "Voreinstellungen",
+  savePreset: "Aktuelle Ansicht speichern",
+  presetName: "Name der Ansicht (z. B. Kurz-CV)",
+  applyPreset: "Anwenden",
+  deletePreset: "Voreinstellung löschen",
 };
 
 const JA: Record<ChromeKey, string> = {
@@ -888,6 +913,11 @@ const JA: Record<ChromeKey, string> = {
   sortYearAsc: "古い順",
   pubLimit: "主要論文",
   pubLimitHint: "上位N件のみ（0=すべて）",
+  presets: "プリセット",
+  savePreset: "現在のビューを保存",
+  presetName: "ビュー名（例：助成用CV）",
+  applyPreset: "適用",
+  deletePreset: "プリセットを削除",
 };
 
 const PT: Record<ChromeKey, string> = {
@@ -975,6 +1005,11 @@ const PT: Record<ChromeKey, string> = {
   sortYearAsc: "Mais antigas primeiro",
   pubLimit: "Publicações selecionadas",
   pubLimitHint: "Mostrar apenas as N principais (0 = todas)",
+  presets: "Predefinições",
+  savePreset: "Salvar visualização atual",
+  presetName: "Nome da visualização (ex.: Biosketch)",
+  applyPreset: "Aplicar",
+  deletePreset: "Excluir predefinição",
 };
 
 const IT: Record<ChromeKey, string> = {
@@ -1062,6 +1097,11 @@ const IT: Record<ChromeKey, string> = {
   sortYearAsc: "Più vecchie prima",
   pubLimit: "Pubblicazioni selezionate",
   pubLimitHint: "Solo le prime N (0 = tutte)",
+  presets: "Preset",
+  savePreset: "Salva vista corrente",
+  presetName: "Nome della vista (es. Biosketch)",
+  applyPreset: "Applica",
+  deletePreset: "Elimina preset",
 };
 
 const KO: Record<ChromeKey, string> = {
@@ -1149,6 +1189,11 @@ const KO: Record<ChromeKey, string> = {
   sortYearAsc: "오래된순",
   pubLimit: "주요 논문",
   pubLimitHint: "상위 N개만 (0 = 전체)",
+  presets: "프리셋",
+  savePreset: "현재 보기 저장",
+  presetName: "보기 이름 (예: 연구비용 CV)",
+  applyPreset: "적용",
+  deletePreset: "프리셋 삭제",
 };
 
 const RU: Record<ChromeKey, string> = {
@@ -1236,6 +1281,11 @@ const RU: Record<ChromeKey, string> = {
   sortYearAsc: "Сначала старые",
   pubLimit: "Избранные публикации",
   pubLimitHint: "Только первые N (0 = все)",
+  presets: "Пресеты",
+  savePreset: "Сохранить текущий вид",
+  presetName: "Название вида (напр. краткое CV)",
+  applyPreset: "Применить",
+  deletePreset: "Удалить пресет",
 };
 
 const DICTS: Record<Locale, Record<ChromeKey, string>> = {

@@ -16,6 +16,8 @@ import { isHidden } from "@/lib/canonical/schema";
 import {
   addManualEntry,
   addSection,
+  applyPreset,
+  deletePreset,
   moveItem,
   moveItemTo,
   moveSection,
@@ -23,6 +25,7 @@ import {
   orderedSections,
   removeItem,
   renameSection,
+  savePreset,
   setItemIncluded,
   setItemNotMine,
   setLocale,
@@ -138,6 +141,8 @@ export default function CvEditor({
   // by dropping onto another section's header.
   const [dragSection, setDragSection] = useState<string | null>(null);
   const [dragItem, setDragItem] = useState<{ sectionId: string; itemId: string } | null>(null);
+  // Name buffer for saving the current view as a named preset.
+  const [presetName, setPresetName] = useState("");
   // Sections are COLLAPSED by default (compact list that's easy to scan +
   // reorder); the chevron expands one. Only ids in this set are expanded.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -233,6 +238,51 @@ export default function CvEditor({
 
       <fieldset className="display-controls">
         <legend>{u.styleLegend}</legend>
+
+        <div className="presets-bar">
+          <span className="presets-label">{t(locale, "presets")}</span>
+          {(cv.presets ?? []).map((p) => (
+            <span key={p.id} className="preset-chip">
+              <button
+                type="button"
+                className="preset-apply"
+                title={t(locale, "applyPreset")}
+                onClick={() => onChange(applyPreset(cv, p.id))}
+              >
+                {p.name}
+              </button>
+              <button
+                type="button"
+                className="preset-del"
+                aria-label={t(locale, "deletePreset")}
+                title={t(locale, "deletePreset")}
+                onClick={() => onChange(deletePreset(cv, p.id))}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <input
+            type="text"
+            className="preset-name-input"
+            value={presetName}
+            placeholder={t(locale, "presetName")}
+            onChange={(e) => setPresetName(e.target.value)}
+            aria-label={t(locale, "presetName")}
+          />
+          <button
+            type="button"
+            className="btn btn-sm"
+            disabled={!presetName.trim()}
+            onClick={() => {
+              onChange(savePreset(cv, presetName));
+              setPresetName("");
+            }}
+          >
+            {t(locale, "savePreset")}
+          </button>
+        </div>
+
         <label className="field">
           <span>{u.templateLabel}</span>
           <select

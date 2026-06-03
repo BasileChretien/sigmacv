@@ -195,6 +195,57 @@ export function updateDisplay(
   return { ...cv, display: { ...cv.display, ...patch } };
 }
 
+/** Stable preset id derived from its name (so re-saving a name updates it). */
+function presetId(name: string): string {
+  const slug = name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  return `preset:${slug || "view"}`;
+}
+
+/**
+ * Save the current display choices + section visibility as a NAMED preset (a
+ * reusable "view" of the same curated data — e.g. full CV vs. grant biosketch).
+ * Upserts by name. No-op for a blank name. Curation data is never duplicated.
+ */
+export function savePreset(cv: CanonicalCv, name: string): CanonicalCv {
+  const trimmed = name.trim();
+  if (!trimmed) return cv;
+  const id = presetId(trimmed);
+  const preset = {
+    id,
+    name: trimmed,
+    display: cv.display,
+    sectionVisibility: Object.fromEntries(
+      cv.sections.map((s) => [s.id, s.visible]),
+    ),
+  };
+  const others = (cv.presets ?? []).filter((p) => p.id !== id);
+  return { ...cv, presets: [...others, preset] };
+}
+
+/** Apply a saved preset: restore its display choices + section visibility. The
+ *  underlying items/curation are untouched. No-op if the id is unknown. */
+export function applyPreset(cv: CanonicalCv, id: string): CanonicalCv {
+  const preset = (cv.presets ?? []).find((p) => p.id === id);
+  if (!preset) return cv;
+  const sections = cv.sections.map((s) =>
+    s.id in preset.sectionVisibility
+      ? { ...s, visible: preset.sectionVisibility[s.id]! }
+      : s,
+  );
+  return { ...cv, display: { ...preset.display }, sections };
+}
+
+/** Delete a saved preset by id (no-op if unknown). */
+export function deletePreset(cv: CanonicalCv, id: string): CanonicalCv {
+  const presets = cv.presets ?? [];
+  const next = presets.filter((p) => p.id !== id);
+  return next.length === presets.length ? cv : { ...cv, presets: next };
+}
+
 /**
  * Switch the document language. Beyond setting `display.locale` (which drives
  * citeproc's citation language), this RE-LOCALIZES every section heading that
