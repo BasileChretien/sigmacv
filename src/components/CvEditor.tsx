@@ -531,13 +531,17 @@ export default function CvEditor({
                     }
                     onToggleNotMine={() =>
                       onChange(
-                        setItemNotMine(
-                          cv,
-                          section.id,
-                          item.id,
-                          !item.notMine,
-                          new Date().toISOString(),
-                        ),
+                        setItemNotMine(cv, section.id, item.id, !item.notMine, {
+                          now: new Date().toISOString(),
+                        }),
+                      )
+                    }
+                    onSetNotMineReason={(reason) =>
+                      onChange(
+                        setItemNotMine(cv, section.id, item.id, true, {
+                          reason,
+                          now: new Date().toISOString(),
+                        }),
                       )
                     }
                     onMoveUp={() =>

@@ -67,30 +67,51 @@ describe('"not mine" assertion is distinct from hide', () => {
   it("setItemNotMine sets the flag + stamps a timestamp, and clears on retract", () => {
     const cv = makeCv();
     const id = cv.sections[0]!.items[0]!.id;
-    const asserted = setItemNotMine(cv, SECTION, id, true, "2026-06-02T00:00:00.000Z");
+    const asserted = setItemNotMine(cv, SECTION, id, true, { now: "2026-06-02T00:00:00.000Z" });
     const a = asserted.sections[0]!.items.find((i) => i.id === id)!;
     expect(a.notMine).toBe(true);
     expect(a.notMineAssertedAt).toBe("2026-06-02T00:00:00.000Z");
     // included is untouched — orthogonal axes
     expect(a.included).toBe(true);
 
-    const retracted = setItemNotMine(asserted, SECTION, id, false, "2026-07-01T00:00:00.000Z");
+    const retracted = setItemNotMine(asserted, SECTION, id, false, { now: "2026-07-01T00:00:00.000Z" });
     const r = retracted.sections[0]!.items.find((i) => i.id === id)!;
     expect(r.notMine).toBe(false);
     expect(r.notMineAssertedAt).toBeUndefined();
   });
 
+  it("records the structured reason on assert and clears it on retract", () => {
+    const cv = makeCv();
+    const id = cv.sections[0]!.items[0]!.id;
+    const asserted = setItemNotMine(cv, SECTION, id, true, {
+      reason: "different-person",
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    expect(asserted.sections[0]!.items.find((i) => i.id === id)!.notMineReason).toBe(
+      "different-person",
+    );
+    const retracted = setItemNotMine(asserted, SECTION, id, false, { now: "2026-07-01T00:00:00.000Z" });
+    expect(retracted.sections[0]!.items.find((i) => i.id === id)!.notMineReason).toBeUndefined();
+  });
+
+  it("defaults the timestamp to wall-clock when now is omitted", () => {
+    const cv = makeCv();
+    const id = cv.sections[0]!.items[0]!.id;
+    const asserted = setItemNotMine(cv, SECTION, id, true);
+    expect(asserted.sections[0]!.items.find((i) => i.id === id)!.notMineAssertedAt).toBeTruthy();
+  });
+
   it("is immutable", () => {
     const cv = makeCv();
     const snapshot = JSON.stringify(cv);
-    setItemNotMine(cv, SECTION, cv.sections[0]!.items[0]!.id, true, "2026-06-02T00:00:00.000Z");
+    setItemNotMine(cv, SECTION, cv.sections[0]!.items[0]!.id, true, { now: "2026-06-02T00:00:00.000Z" });
     expect(JSON.stringify(cv)).toBe(snapshot);
   });
 
   it("visibleItems excludes a 'not mine' item even when it is included", () => {
     const cv = makeCv();
     const id = cv.sections[0]!.items[0]!.id;
-    const next = setItemNotMine(cv, SECTION, id, true, "2026-06-02T00:00:00.000Z");
+    const next = setItemNotMine(cv, SECTION, id, true, { now: "2026-06-02T00:00:00.000Z" });
     const item = next.sections[0]!.items.find((i) => i.id === id)!;
     expect(item.included).toBe(true); // still "included" for display purposes
     expect(visibleItems(next.sections[0]!).find((i) => i.id === id)).toBeUndefined();

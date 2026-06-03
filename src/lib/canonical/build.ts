@@ -400,6 +400,21 @@ function isPreprint(work: OpenAlexWork): boolean {
   return (work.primary_location?.source?.type ?? "").toLowerCase() === "repository";
 }
 
+/**
+ * A soft disambiguation hint for proactive review. The work matched as the
+ * account holder's (typically by OpenAlex author id), but THIS paper lists a
+ * DIFFERENT ORCID for that authorship — a classic same-name collision. Purely
+ * identifier-based (never name strings); advisory only and never auto-hides.
+ */
+function reviewFlagFor(
+  selfAuth: OpenAlexAuthorship | undefined,
+  ownerOrcid: string,
+): string | undefined {
+  if (!selfAuth || !ownerOrcid) return undefined;
+  const authOrcid = normalizeOrcid(selfAuth.author?.orcid);
+  return authOrcid && authOrcid !== ownerOrcid ? "orcid-conflict" : undefined;
+}
+
 /** A human label for the account holder's authorship role on a work, or undefined. */
 function authorRoleLabel(a: OpenAlexAuthorship | undefined): string | undefined {
   if (!a) return undefined;
@@ -466,6 +481,7 @@ function byRecency(a: OpenAlexWork, b: OpenAlexWork): number {
 export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const { id, resolved, now, previous } = args;
   const matches = makeSelfMatcher(resolved);
+  const ownerOrcid = normalizeOrcid(resolved.orcid);
   const works = dedupeWorks(args.works).sort(byRecency);
 
   // Preserve prior per-item curation (included flag) and ordering on re-sync.
@@ -509,6 +525,8 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       included: prev?.included ?? true,
       notMine: prev?.notMine ?? false,
       notMineAssertedAt: prev?.notMineAssertedAt,
+      // Preserve the user's disambiguation reason across re-syncs.
+      notMineReason: prev?.notMineReason,
       order: prev ? prev.order : maxPrevOrder + 1 + newItemRank++,
       authoredBySelf,
       selfNameVariants: authoredBySelf ? selfNameVariants(work, matches) : [],
@@ -523,6 +541,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
             : undefined,
         authorRole: authorRoleLabel(selfAuth),
         authorCount: work.authorships?.length,
+        reviewFlag: authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined,
       },
     };
   });

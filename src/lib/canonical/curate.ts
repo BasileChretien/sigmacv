@@ -5,6 +5,7 @@ import {
   type CvSection,
   type CvSectionType,
   type DisplayChoices,
+  type NotMineReason,
 } from "./schema";
 
 /**
@@ -54,16 +55,18 @@ export function setItemIncluded(
 
 /**
  * Assert / retract "this work is not mine" (a disambiguation claim, distinct
- * from a display hide). Stamps `notMineAssertedAt` on assert, clears on retract.
- * `now` is threaded in for determinism; falls back to wall-clock if omitted.
+ * from a display hide). On assert: stamps `notMineAssertedAt` and records the
+ * optional structured `reason`. On retract: clears both. `now` is threaded in
+ * for determinism; falls back to wall-clock if omitted.
  */
 export function setItemNotMine(
   cv: CanonicalCv,
   sectionId: string,
   itemId: string,
   notMine: boolean,
-  now: string = new Date().toISOString(),
+  opts: { reason?: NotMineReason; now?: string } = {},
 ): CanonicalCv {
+  const now = opts.now ?? new Date().toISOString();
   return mapSection(cv, sectionId, (s) => ({
     ...s,
     items: s.items.map((it) =>
@@ -72,6 +75,7 @@ export function setItemNotMine(
             ...it,
             notMine,
             notMineAssertedAt: notMine ? now : undefined,
+            notMineReason: notMine ? opts.reason : undefined,
           }
         : it,
     ),

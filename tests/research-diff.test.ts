@@ -59,7 +59,7 @@ describe("diffNotMineChanges", () => {
       "publications",
       "W4300000003",
       true,
-      "2026-06-02T00:00:00.000Z",
+      { reason: "different-person", now: "2026-06-02T00:00:00.000Z" },
     );
     const changes = diffNotMineChanges(before, asserted);
     expect(changes).toHaveLength(1);
@@ -68,6 +68,7 @@ describe("diffNotMineChanges", () => {
       asserted: true,
       authoredBySelf: false,
       assertedAt: "2026-06-02T00:00:00.000Z",
+      reason: "different-person",
     });
   });
 
@@ -83,7 +84,7 @@ describe("pendingNotMineAssertions (v2 upstream-push read interface)", () => {
       "publications",
       "W4300000003",
       true,
-      "2026-06-02T00:00:00.000Z",
+      { now: "2026-06-02T00:00:00.000Z" },
     );
     const pending = pendingNotMineAssertions(cv);
     expect(pending).toHaveLength(1);

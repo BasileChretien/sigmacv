@@ -433,6 +433,30 @@ button {
   letter-spacing: 0.04em;
 }
 
+/* Advisory disambiguation hint (computed) — prompts the user to double-check. */
+.cv-review-badge {
+  margin-left: 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #92560a;
+  background: #fdf2dc;
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+  cursor: help;
+}
+
+/* Optional "why isn't this yours?" reason picker, shown once marked not-mine. */
+.cv-reason-select {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+  max-width: 22rem;
+}
+
 .cv-item-row.is-not-mine .cv-item-title {
   text-decoration: line-through;
 }

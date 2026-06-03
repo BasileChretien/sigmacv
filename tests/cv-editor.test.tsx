@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import CvEditor from "@/components/CvEditor";
 import { buildCanonicalCv } from "@/lib/canonical/build";
+import { setItemNotMine } from "@/lib/canonical/curate";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -76,5 +77,43 @@ describe("CvEditor (component)", () => {
     // Each publication row has a Hide + Not mine button.
     expect(screen.getAllByText("Hide").length).toBe(works.length);
     expect(screen.getAllByText("Not mine").length).toBe(works.length);
+  });
+
+  it("surfaces a review badge for an orcid-conflict work", () => {
+    const conflict = {
+      id: "https://openalex.org/W_conflict",
+      title: "Possibly a namesake's paper",
+      display_name: "Possibly a namesake's paper",
+      type: "article",
+      publication_year: 2023,
+      authorships: [
+        {
+          author: {
+            id: "https://openalex.org/A5001069481",
+            display_name: "B. Chrétien",
+            orcid: "https://orcid.org/0000-0009-9999-9999",
+          },
+        },
+      ],
+    } as unknown as OpenAlexWork;
+    const cv = buildCanonicalCv({ id: "rf", resolved, works: [conflict], now: "2026-06-02T00:00:00.000Z" });
+    render(<CvEditor cv={cv} availableStyles={["apa"]} onChange={vi.fn()} />);
+    expect(screen.getByText(/⚠ review/)).toBeTruthy();
+  });
+
+  it("captures a structured reason from the not-mine reason picker", () => {
+    const base = makeCv();
+    const sectionId = base.sections[0]!.id;
+    const id = base.sections[0]!.items[0]!.id;
+    const withNotMine = setItemNotMine(base, sectionId, id, true, { now: "2026-06-02T00:00:00.000Z" });
+    const onChange = vi.fn();
+    render(<CvEditor cv={withNotMine} availableStyles={["apa"]} onChange={onChange} />);
+    fireEvent.change(screen.getByLabelText(/why isn't this yours/i), {
+      target: { value: "different-person" },
+    });
+    const next = onChange.mock.calls[0]![0] as CanonicalCv;
+    const item = next.sections[0]!.items.find((i) => i.id === id)!;
+    expect(item.notMine).toBe(true);
+    expect(item.notMineReason).toBe("different-person");
   });
 });

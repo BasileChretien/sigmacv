@@ -31,6 +31,26 @@ export const SECTION_TYPES = [
 export const CvSectionTypeSchema = z.enum(SECTION_TYPES);
 export type CvSectionType = z.infer<typeof CvSectionTypeSchema>;
 
+/**
+ * Why a user asserted a work "isn't mine". Optional structured signal captured
+ * alongside the `notMine` flag — it sharpens the author-disambiguation-error
+ * study (a same-name collision is a very different error from a duplicate).
+ */
+export const NOT_MINE_REASONS = [
+  "different-person",
+  "duplicate",
+  "wrong-field",
+  "other",
+] as const;
+export const NotMineReasonSchema = z.enum(NOT_MINE_REASONS);
+export type NotMineReason = z.infer<typeof NotMineReasonSchema>;
+export const NOT_MINE_REASON_LABELS: Record<NotMineReason, string> = {
+  "different-person": "A different researcher (name or ID collision)",
+  duplicate: "Duplicate of another listed work",
+  "wrong-field": "Outside my field of research",
+  other: "Other reason",
+};
+
 /** A single CV entry. For MVP these come from OpenAlex works. */
 export const CvItemSchema = z.object({
   /** Stable id — e.g. the OpenAlex short id "W2741809807", or "position:…". */
@@ -58,6 +78,8 @@ export const CvItemSchema = z.object({
   notMine: z.boolean().default(false),
   /** ISO timestamp when `notMine` was last set true (study + v2 push). */
   notMineAssertedAt: z.string().optional(),
+  /** Optional structured reason for a `notMine` assertion (disambiguation study). */
+  notMineReason: NotMineReasonSchema.optional(),
   /** Order within its section (ascending). */
   order: z.number().int(),
   /**
@@ -84,6 +106,13 @@ export const CvItemSchema = z.object({
     authorRole: z.string().optional(),
     /** Total number of authors on the work. */
     authorCount: z.number().int().optional(),
+    /**
+     * A computed disambiguation hint surfacing works that MIGHT be misattributed,
+     * for proactive review (e.g. "orcid-conflict" = the matched OpenAlex author
+     * record lists a different ORCID on this paper). Advisory only — never hides
+     * the item; the user decides. Free-form so new heuristics need no schema bump.
+     */
+    reviewFlag: z.string().optional(),
   }),
 });
 export type CvItem = z.infer<typeof CvItemSchema>;

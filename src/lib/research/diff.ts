@@ -64,6 +64,10 @@ export interface NotMineAssertion {
   asserted: boolean;
   authoredBySelf: boolean;
   assertedAt?: string;
+  /** The user's structured reason for the assertion (when given). */
+  reason?: string;
+  /** The disambiguation hint the build computed, if any (e.g. "orcid-conflict"). */
+  reviewFlag?: string;
   meta: {
     year?: number;
     type?: string;
@@ -97,6 +101,8 @@ export function diffNotMineChanges(
         asserted: it.notMine,
         authoredBySelf: it.authoredBySelf,
         assertedAt: it.notMineAssertedAt,
+        reason: it.notMineReason,
+        reviewFlag: it.meta.reviewFlag,
         meta: { year: it.meta.year, type: it.meta.type, doi: it.meta.doi },
       });
     }

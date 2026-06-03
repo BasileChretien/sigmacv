@@ -251,7 +251,7 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       now: "2026-06-02T00:00:00.000Z",
     });
     const pubId = first.sections[0]!.items[0]!.id;
-    const asserted = setItemNotMine(first, "publications", pubId, true, "2026-06-02T00:00:00.000Z");
+    const asserted = setItemNotMine(first, "publications", pubId, true, { now: "2026-06-02T00:00:00.000Z" });
 
     // OpenAlex re-issues the SAME work (same DOI) under a different id.
     const churned = { ...withDoi!, id: `${withDoi!.id}-v2` };
@@ -345,6 +345,88 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       .flatMap((s) => s.items)
       .filter((i) => i.sourceId === w.id).length;
     expect(occurrences).toBe(1); // the duplicate is dropped
+  });
+
+  it("flags an orcid-conflict for proactive review (identifier-based)", () => {
+    // Matched by OpenAlex author id, but this paper lists a DIFFERENT ORCID for
+    // that author → a same-name collision worth reviewing.
+    const conflict = {
+      id: "https://openalex.org/W_conflict",
+      title: "Possibly a namesake's paper",
+      display_name: "Possibly a namesake's paper",
+      type: "article",
+      publication_year: 2023,
+      authorships: [
+        {
+          author: {
+            id: "https://openalex.org/A5001069481", // owner's OpenAlex id
+            display_name: "B. Chrétien",
+            orcid: "https://orcid.org/0000-0009-9999-9999", // …but a different ORCID
+          },
+        },
+      ],
+    } as unknown as OpenAlexWork;
+    const cv = buildCanonicalCv({
+      id: "rf",
+      resolved,
+      works: [conflict],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const item = cv.sections[0]!.items.find((i) => i.sourceId === conflict.id)!;
+    expect(item.authoredBySelf).toBe(true);
+    expect(item.meta.reviewFlag).toBe("orcid-conflict");
+  });
+
+  it("does not flag a work matched by the owner's own ORCID", () => {
+    const clean = {
+      id: "https://openalex.org/W_clean",
+      title: "Genuinely mine",
+      display_name: "Genuinely mine",
+      type: "article",
+      publication_year: 2023,
+      authorships: [
+        {
+          author: {
+            id: "https://openalex.org/A_other",
+            display_name: "Basile Chrétien",
+            orcid: "https://orcid.org/0000-0002-7483-2489", // owner's ORCID
+          },
+        },
+      ],
+    } as unknown as OpenAlexWork;
+    const cv = buildCanonicalCv({
+      id: "rf2",
+      resolved,
+      works: [clean],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const item = cv.sections[0]!.items.find((i) => i.sourceId === clean.id)!;
+    expect(item.authoredBySelf).toBe(true);
+    expect(item.meta.reviewFlag).toBeUndefined();
+  });
+
+  it("preserves the not-mine reason across a re-sync", () => {
+    const first = buildCanonicalCv({
+      id: "nr",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const pubId = first.sections[0]!.items[0]!.id;
+    const asserted = setItemNotMine(first, "publications", pubId, true, {
+      reason: "different-person",
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const resynced = buildCanonicalCv({
+      id: "nr",
+      resolved,
+      works: baseWorks,
+      now: "2026-07-01T00:00:00.000Z",
+      previous: asserted,
+    });
+    const item = resynced.sections[0]!.items.find((i) => i.id === pubId)!;
+    expect(item.notMine).toBe(true);
+    expect(item.notMineReason).toBe("different-person");
   });
 
   it.skipIf(!hasApa)("renders positions/grants/editorial displayText in Markdown", () => {

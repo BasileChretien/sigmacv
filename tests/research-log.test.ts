@@ -55,7 +55,7 @@ describe("logCvSave", () => {
   it("logs a 'not mine' flip as a distinct disambiguation_assertion", async () => {
     mocks.findUnique.mockResolvedValue({ researchConsent: true });
     const prev = base();
-    const next = setItemNotMine(prev, "publications", "W4300000003", true, "2026-06-02T00:00:00.000Z");
+    const next = setItemNotMine(prev, "publications", "W4300000003", true, { now: "2026-06-02T00:00:00.000Z" });
     await logCvSave("u1", prev, next);
     const events = mocks.createMany.mock.calls[0]![0].data as Array<{ type: string }>;
     expect(events.map((e) => e.type)).toContain("disambiguation_assertion");

@@ -1,6 +1,12 @@
 "use client";
 
-import { isHidden, type CvItem } from "@/lib/canonical/schema";
+import {
+  isHidden,
+  NOT_MINE_REASON_LABELS,
+  NOT_MINE_REASONS,
+  type CvItem,
+  type NotMineReason,
+} from "@/lib/canonical/schema";
 
 interface ItemRowProps {
   item: CvItem;
@@ -8,6 +14,8 @@ interface ItemRowProps {
   isLast: boolean;
   onToggleIncluded: () => void;
   onToggleNotMine: () => void;
+  /** Set/clear the structured reason for a "not mine" assertion. */
+  onSetNotMineReason?: (reason: NotMineReason | undefined) => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   /** Edit a manual entry's text (only passed for source === "manual"). */
@@ -22,6 +30,7 @@ export default function ItemRow({
   isLast,
   onToggleIncluded,
   onToggleNotMine,
+  onSetNotMineReason,
   onMoveUp,
   onMoveDown,
   onUpdateText,
@@ -72,7 +81,37 @@ export default function ItemRow({
                 not mine
               </span>
             ) : null}
+            {item.authoredBySelf &&
+            item.meta.reviewFlag === "orcid-conflict" &&
+            !item.notMine ? (
+              <span
+                className="cv-review-badge"
+                title="This record lists a different ORCID for the matching author — check that it's really yours."
+              >
+                ⚠ review
+              </span>
+            ) : null}
           </div>
+        ) : null}
+        {isCitation && item.notMine && onSetNotMineReason ? (
+          <select
+            className="cv-reason-select"
+            value={item.notMineReason ?? ""}
+            onChange={(e) =>
+              onSetNotMineReason(
+                e.target.value ? (e.target.value as NotMineReason) : undefined,
+              )
+            }
+            aria-label="Why isn't this yours?"
+            title="Why isn't this yours? (optional — helps fix author disambiguation)"
+          >
+            <option value="">Why? (optional)</option>
+            {NOT_MINE_REASONS.map((r) => (
+              <option key={r} value={r}>
+                {NOT_MINE_REASON_LABELS[r]}
+              </option>
+            ))}
+          </select>
         ) : null}
       </div>
       <div className="cv-item-actions">
