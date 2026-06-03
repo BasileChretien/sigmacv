@@ -28,6 +28,20 @@ export function homeLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+/** /about path for a locale: "/about" for the default, "/{slug}/about" otherwise. */
+export function localeAboutPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/about" : `/${LOCALE_SLUGS[loc]}/about`;
+}
+
+/** hreflang → path map for the /about page (relative; resolved against metadataBase). */
+export function aboutLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeAboutPath(loc);
+  languages["x-default"] = "/about";
+  return languages;
+}
+
 /** Open Graph locale tag (underscored): "fr-FR" → "fr_FR". */
 export function ogLocale(locale: string): string {
   return asLocale(locale).replace("-", "_");

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import {
+  aboutLanguageAlternates,
   homeLanguageAlternates,
+  localeAboutPath,
   localeHomePath,
   ogAlternateLocales,
   ogLocale,
@@ -28,6 +30,22 @@ describe("homeLanguageAlternates", () => {
       expect(langs[loc]).toBeDefined();
     }
     // 10 locales + x-default
+    expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
+  });
+});
+
+describe("localeAboutPath / aboutLanguageAlternates", () => {
+  it("serves /about for the default and /{slug}/about for others", () => {
+    expect(localeAboutPath("en-US")).toBe("/about");
+    expect(localeAboutPath("fr-FR")).toBe("/fr/about");
+    expect(localeAboutPath("ja-JP")).toBe("/ja/about");
+    expect(localeAboutPath("xx-XX")).toBe("/about");
+  });
+  it("maps every locale plus x-default", () => {
+    const langs = aboutLanguageAlternates();
+    expect(langs["x-default"]).toBe("/about");
+    expect(langs["en-US"]).toBe("/about");
+    expect(langs["de-DE"]).toBe("/de/about");
     expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
   });
 });
