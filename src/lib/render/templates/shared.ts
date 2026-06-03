@@ -26,9 +26,15 @@ export function authorshipTableHtml(cv: CanonicalCv): string {
         `<tr><td>${escapeHtml(authorshipRoleLabel(loc, r.role))}</td><td class="cv-authorship-n">${r.count}</td></tr>`,
     )
     .join("");
+  const s = renderStrings(loc);
+  // Corresponding-author coverage in OpenAlex is sparse, so a "Corresponding"
+  // count systematically undercounts — footnote it so it isn't read as fact.
+  const note = rows.some((r) => r.role === "corresponding")
+    ? `<p class="cv-authorship-note">${escapeHtml(s.authorshipCorrespondingNote)}</p>`
+    : "";
   return `<table class="cv-authorship"><caption>${escapeHtml(
-    renderStrings(loc).authorshipCaption,
-  )}</caption><tbody>${body}</tbody></table>`;
+    s.authorshipCaption,
+  )}</caption><tbody>${body}</tbody></table>${note}`;
 }
 
 /** A profile photo `<img>` (data URL), or "" if none. img-src data: is CSP-allowed. */
@@ -199,6 +205,7 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-authorship caption { text-align: left; font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #6b7280; margin-bottom: 0.3rem; }
   .cv-authorship td { padding: 0.14rem 1.1rem 0.14rem 0; color: #374151; }
   .cv-authorship .cv-authorship-n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #111827; padding-right: 0; }
+  .cv-authorship-note { font-size: 0.62rem; color: var(--cv-faint); margin: 0.3rem 0 0; font-style: italic; }
   /* Charts sit in a guaranteed light card so the accent-coloured bars stay
      visible on EVERY template — including ones with a coloured header/sidebar
      (where accent bars would otherwise vanish into an accent background). */
@@ -319,7 +326,13 @@ export function provenanceFooter(cv: CanonicalCv): string {
   const counts: string[] = [`${items.length} ${s.provRecords}`];
   if (hidden) counts.push(`${hidden} ${s.provHidden}`);
   if (corrected) counts.push(`${corrected} ${s.provCorrected}`);
-  return `<footer class="cv-provenance">${parts.join(" ")} · ${counts.join(", ")}</footer>`;
+  // Surface that the peer-reviewed/preprint split (which the peer-reviewed-only
+  // filter and the authorship table silently depend on) is a heuristic.
+  const note =
+    cv.display.peerReviewedOnly || cv.display.showAuthorshipTable
+      ? ` · ${escapeHtml(s.provClassificationNote)}`
+      : "";
+  return `<footer class="cv-provenance">${parts.join(" ")} · ${counts.join(", ")}${note}</footer>`;
 }
 
 /** Section list markup (identical across templates; styled via CSS classes). */
