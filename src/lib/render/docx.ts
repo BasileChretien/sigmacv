@@ -23,8 +23,9 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
   const children: Paragraph[] = [
     new Paragraph({
       text:
-        cv.owner.displayName ||
-        renderStrings(cv.display.locale).cvFallbackTitle,
+        (cv.owner.honorific ? `${cv.owner.honorific} ` : "") +
+        (cv.owner.displayName ||
+          renderStrings(cv.display.locale).cvFallbackTitle),
       heading: HeadingLevel.TITLE,
     }),
   ];

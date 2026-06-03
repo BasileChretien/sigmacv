@@ -58,8 +58,9 @@ export function renderCvMarkdown(cv: CanonicalCv): string {
     .filter(Boolean)
     .join("\n\n");
 
-  const heading = cv.owner.displayName || fallbackTitle;
   const head = textHeader(cv);
+  const name = cv.owner.displayName || fallbackTitle;
+  const heading = head.honorific ? `${head.honorific} ${name}` : name;
   const headlineBlock = head.headline ? `*${escapeMarkdown(head.headline)}*\n\n` : "";
   const contactBlock = head.contact.length
     ? `${head.contact.map(escapeMarkdown).join(" · ")}\n\n`

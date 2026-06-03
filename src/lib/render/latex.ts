@@ -57,7 +57,8 @@ function sectionItems(
 function buildClassic(cv: CanonicalCv): string {
   const sections = prepareSections(cv, "text");
   const name = escapeLatex(
-    cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle,
+    (cv.owner.honorific ? `${cv.owner.honorific} ` : "") +
+      (cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle),
   );
   const orcid = cv.owner.orcid ? escapeLatex(cv.owner.orcid) : "";
   const metricsRaw = metricsLineText(cv);
@@ -120,7 +121,8 @@ function buildModern(cv: CanonicalCv): string {
   const sections = prepareSections(cv, "text");
   const head = textHeader(cv);
   const name = escapeLatex(
-    cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle,
+    (cv.owner.honorific ? `${cv.owner.honorific} ` : "") +
+      (cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle),
   );
   const headline = head.headline ? escapeLatex(head.headline) : "";
   const contactBits: string[] = [];

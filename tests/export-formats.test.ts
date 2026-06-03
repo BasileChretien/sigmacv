@@ -113,6 +113,12 @@ describe.skipIf(!hasApa)("export formats (need vendored CSL assets)", () => {
     expect(buf.length).toBeGreaterThan(0);
   });
 
+  it("prepends the honorific to the name in Markdown + LaTeX exports", () => {
+    const cv = updateOwner(makeCv(), { honorific: "Dr" });
+    expect(renderCvMarkdown(cv)).toContain("# Dr Basile Chrétien");
+    expect(renderCvLatex(cv, "classic")).toContain("Dr Basile Chr");
+  });
+
   it("BibTeX: @article entries with author/title/year/DOI + a cite key", () => {
     const bib = renderCvBibtex(makeCv());
     expect(bib).toContain("@article{");

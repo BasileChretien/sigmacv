@@ -127,6 +127,19 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     expect(html).toContain("Editorial Roles");
   });
 
+  it("renders the honorific before the name and the headline below it", () => {
+    const cv = makeCv();
+    const withHeader: CanonicalCv = {
+      ...cv,
+      owner: { ...cv.owner, honorific: "Dr", headline: "Senior Pharmacologist" },
+    };
+    const html = renderCvHtml(withHeader);
+    // Honorific is inline, before the name, inside the h1.
+    expect(html).toMatch(/<h1><span class="cv-honorific">Dr<\/span> Basile/);
+    // Headline/role is a separate block under the name.
+    expect(html).toContain('<div class="cv-headline">Senior Pharmacologist</div>');
+  });
+
   it("emits an empty section (no rows) when all its items are hidden", () => {
     let cv = makeCv();
     for (const it of cv.sections[0]!.items) {

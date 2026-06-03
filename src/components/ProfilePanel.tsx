@@ -119,6 +119,17 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
 
         <div className="profile-fields">
           <label className="field">
+            <span>{t(locale, "honorific")}</span>
+            <input
+              type="text"
+              value={owner.honorific ?? ""}
+              placeholder="Dr"
+              onChange={(e) =>
+                onChange(updateOwner(cv, { honorific: e.target.value || undefined }))
+              }
+            />
+          </label>
+          <label className="field">
             <span>{t(locale, "displayName")}</span>
             <input
               type="text"

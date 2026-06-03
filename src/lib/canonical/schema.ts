@@ -264,7 +264,9 @@ export const CvOwnerSchema = z.object({
   openAlexAuthorIds: z.array(z.string()),
   /** Header display only — never used for matching/highlighting. */
   displayName: z.string(),
-  /** A short headline / job title shown under the name (user-editable). */
+  /** An honorific/title prefix shown BEFORE the name, e.g. "Dr" (user-editable). */
+  honorific: z.string().max(60).optional(),
+  /** A short headline / role shown UNDER the name (user-editable). */
   headline: z.string().max(200).optional(),
   /** A few-sentence professional summary shown at the top (user-editable). */
   summary: z.string().max(2000).optional(),

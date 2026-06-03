@@ -141,7 +141,8 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-headmain { display: flex; gap: 1.6rem; align-items: flex-start; justify-content: space-between; }
   .cv-headtext { flex: 1 1 auto; min-width: 0; }
   .cv-photo { flex: none; width: 104px; height: 104px; border-radius: 10px; object-fit: cover; }
-  .cv-headline { display: inline-block; font-size: 0.6em; font-weight: 500; color: var(--cv-ink-2); margin-right: 0.45em; letter-spacing: 0; vertical-align: baseline; }
+  .cv-honorific { display: inline-block; font-size: 0.6em; font-weight: 500; color: inherit; opacity: 0.78; margin-right: 0.4em; letter-spacing: 0; vertical-align: baseline; }
+  .cv-headline { font-size: 1.2rem; font-weight: 500; color: var(--cv-ink-2); margin-top: 0.15rem; letter-spacing: 0; }
   .cv-ids { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.35rem; }
   .cv-ids a { color: var(--cv-accent); text-decoration: none; }
   .cv-contact, .cv-links { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.3rem; line-height: 1.5; }
@@ -206,10 +207,13 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
   const name = escapeHtml(
     cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle,
   );
-  // The headline/title sits inline BEFORE the name, on the SAME line, so an
-  // honorific reads naturally (e.g. "Dr Basile Chrétien").
+  // Honorific (e.g. "Dr") sits inline BEFORE the name on the same line; the
+  // headline/role is a separate line UNDER the name.
+  const honorific = cv.owner.honorific
+    ? `<span class="cv-honorific">${escapeHtml(cv.owner.honorific)}</span> `
+    : "";
   const headline = cv.owner.headline
-    ? `<span class="cv-headline">${escapeHtml(cv.owner.headline)}</span> `
+    ? `<div class="cv-headline">${escapeHtml(cv.owner.headline)}</div>`
     : "";
   const orcid = cv.owner.orcid ? escapeHtml(cv.owner.orcid) : "";
   const ids = orcid
@@ -232,7 +236,7 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
     ? `<p class="cv-summary">${escapeHtml(cv.owner.summary)}</p>`
     : "";
   const photo = opts.photo ? photoHtml(cv) : "";
-  const text = `<div class="cv-headtext"><h1>${headline}${name}</h1>${ids}${contactHtml(cv)}${metricsLine}</div>`;
+  const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}${metricsLine}</div>`;
   return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${renderChartsHtml(cv)}${authorshipTableHtml(cv)}${summary}</header>`;
 }
 

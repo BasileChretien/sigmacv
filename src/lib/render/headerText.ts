@@ -6,6 +6,8 @@ import type { CanonicalCv } from "@/lib/canonical/schema";
  * strings in its own syntax before emitting them.
  */
 export interface TextHeader {
+  /** Honorific/title prefix shown before the name, e.g. "Dr". */
+  honorific?: string;
   headline?: string;
   /** Contact parts in display order: location, email, phone, website, links. */
   contact: string[];
@@ -25,6 +27,7 @@ export function textHeader(cv: CanonicalCv): TextHeader {
     contact.push(l.label?.trim() ? `${l.label.trim()}: ${url}` : url);
   }
   return {
+    honorific: cv.owner.honorific?.trim() || undefined,
     headline: cv.owner.headline?.trim() || undefined,
     contact,
     summary: cv.owner.summary?.trim() || undefined,

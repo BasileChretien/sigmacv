@@ -745,6 +745,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       orcid: resolved.orcid,
       openAlexAuthorIds: resolved.authorIds,
       displayName: prevOwner?.displayName || resolved.displayName,
+      honorific: prevOwner?.honorific,
       headline: prevOwner?.headline,
       summary: prevOwner?.summary,
       photo: prevOwner?.photo,
