@@ -13,14 +13,14 @@ import type { CvTemplate, TemplateTheme } from "./types";
  */
 function classicCss(_theme: TemplateTheme): string {
   return `
-  header.cv-header { margin-bottom: 1.4rem; border-bottom: 2px solid var(--cv-accent); padding-bottom: 0.8rem; }
-  header.cv-header h1 { font-size: 1.9rem; margin: 0 0 0.25rem; letter-spacing: 0.2px; }
-  header.cv-header .cv-ids { font-size: 0.85rem; color: #555; }
-  header.cv-header .cv-ids a { color: var(--cv-accent); text-decoration: none; }
+  header.cv-header { margin-bottom: 1.6rem; padding-bottom: 0.9rem; border-bottom: 1.5px solid var(--cv-accent); }
+  header.cv-header h1 { font-size: 1.95rem; font-weight: 600; letter-spacing: 0.1px; }
+  header.cv-header .cv-ids a { color: var(--cv-accent); }
   section.cv-section > h2 {
-    font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--cv-accent); border-bottom: 1px solid #ddd;
-    padding-bottom: 0.25rem; margin: 0 0 0.7rem;
+    font-size: 0.82rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--cv-accent);
+    border-bottom: 1px solid var(--cv-rule);
+    padding-bottom: 0.28rem; margin: 0 0 0.75rem;
   }`;
 }
 

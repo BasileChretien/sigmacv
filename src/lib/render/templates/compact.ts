@@ -8,17 +8,21 @@ import type { CvTemplate, TemplateTheme } from "./types";
  */
 function compactCss(_theme: TemplateTheme): string {
   return `
-  header.cv-header { margin-bottom: 1rem; border-bottom: 1px solid #ccc; padding-bottom: 0.5rem; }
-  header.cv-header h1 { font-size: 1.6rem; margin: 0 0 0.15rem; }
-  header.cv-header .cv-ids { font-size: 0.8rem; color: #555; }
-  header.cv-header .cv-ids a { color: var(--cv-accent); text-decoration: none; }
+  .cv { padding: 36px 44px; }
+  header.cv-header { margin-bottom: 1.1rem; padding-bottom: 0.55rem; border-bottom: 1px solid var(--cv-rule-strong); }
+  header.cv-header h1 { font-size: 1.6rem; font-weight: 600; }
+  header.cv-header .cv-ids a { color: var(--cv-accent); }
   section.cv-section > h2 {
-    font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--cv-accent); border-bottom: 1px solid #ddd;
-    padding-bottom: 0.15rem; margin: 0 0 0.5rem;
+    font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--cv-accent); border-bottom: 1px solid var(--cv-rule);
+    padding-bottom: 0.18rem; margin: 0 0 0.55rem;
   }
-  ol.cv-bib { column-count: 2; column-gap: 1.6rem; }
-  ol.cv-bib > li { break-inside: avoid; -webkit-column-break-inside: avoid; }
+  ol.cv-bib { column-count: 2; column-gap: 1.8rem; column-fill: balance; padding-left: 0; }
+  ol.cv-bib > li {
+    break-inside: avoid; -webkit-column-break-inside: avoid;
+    padding-left: 1.2em; text-indent: -1.2em;
+    hyphens: auto; -webkit-hyphens: auto;
+  }
   @media print { ol.cv-bib { column-count: 2; } }`;
 }
 

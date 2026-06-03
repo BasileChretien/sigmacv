@@ -16,18 +16,23 @@ import type { CvTemplate, RenderedSection, TemplateTheme } from "./types";
  */
 function rirekishoCss(_theme: TemplateTheme): string {
   return `
-  .cv { max-width: 760px; }
-  .rk-title { text-align: center; font-size: 1.4rem; letter-spacing: 0.5em; margin: 0 0 1rem; }
-  table.rk { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
-  table.rk th, table.rk td { border: 1px solid #333; padding: 0.4rem 0.6rem; vertical-align: top; font-size: 0.9rem; }
-  table.rk .rk-label { background: #f3f3f3; white-space: nowrap; width: 7rem; font-weight: 600; }
-  table.rk .rk-furigana { font-size: 0.72rem; color: #555; }
-  table.rk .rk-name { font-size: 1.25rem; font-weight: 700; }
-  td.rk-photo { width: 120px; text-align: center; vertical-align: middle; color: #999; font-size: 0.8rem; }
+  body { font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", "Noto Sans CJK JP", sans-serif; }
+  .cv { max-width: 760px; padding: 36px 40px; }
+  .rk-title { text-align: center; font-size: 1.5rem; letter-spacing: 0.6em; font-weight: 700; margin: 0 0 1.2rem; padding-left: 0.6em; }
+  table.rk { width: 100%; border-collapse: collapse; margin-bottom: 1.1rem; }
+  table.rk th, table.rk td { border: 1px solid #2b2b2b; padding: 0.45rem 0.65rem; vertical-align: top; font-size: 0.88rem; line-height: 1.5; }
+  table.rk .rk-label { background: #f1f2f4; white-space: nowrap; width: 7rem; font-weight: 600; color: var(--cv-ink); }
+  table.rk .rk-furigana { font-size: 0.72rem; color: var(--cv-muted); }
+  table.rk .rk-name { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.04em; }
+  td.rk-photo { width: 122px; text-align: center; vertical-align: middle; color: var(--cv-faint); font-size: 0.78rem; background: #fafbfc; }
   td.rk-photo .cv-photo { width: 100px; height: 130px; border-radius: 0; object-fit: cover; }
   table.rk-history td.rk-year { width: 5rem; text-align: center; white-space: nowrap; }
-  table.rk-history td.rk-center { text-align: center; font-weight: 600; background: #fafafa; }
-  section.cv-section > h2 { font-size: 1rem; border-bottom: 1px solid #333; padding-bottom: 0.2rem; }`;
+  table.rk-history td.rk-center { text-align: center; font-weight: 600; background: #fafbfc; letter-spacing: 0.2em; }
+  section.cv-section ol.cv-bib > li { padding-left: 0; text-indent: 0; }
+  section.cv-section > h2 { font-size: 1rem; font-weight: 700; border-bottom: 1.5px solid #2b2b2b; padding-bottom: 0.2rem; letter-spacing: 0.08em; }
+  @media print {
+    td.rk-photo, table.rk .rk-label, table.rk-history td.rk-center { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }`;
 }
 
 function cell(value: string | undefined): string {

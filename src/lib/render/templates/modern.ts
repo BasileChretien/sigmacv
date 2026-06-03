@@ -7,14 +7,14 @@ import type { CvTemplate, TemplateTheme } from "./types";
  */
 function modernCss(_theme: TemplateTheme): string {
   return `
-  .cv { padding-top: 48px; }
-  header.cv-header { margin-bottom: 1.6rem; }
-  header.cv-header h1 { font-size: 2.2rem; margin: 0; color: var(--cv-accent); letter-spacing: -0.01em; }
-  header.cv-header .cv-ids { font-size: 0.85rem; color: #666; margin-top: 0.3rem; }
-  header.cv-header .cv-ids a { color: var(--cv-accent); text-decoration: none; }
+  .cv { padding-top: 56px; padding-bottom: 48px; }
+  header.cv-header { margin-bottom: 2rem; }
+  header.cv-header h1 { font-size: 2.4rem; font-weight: 700; color: var(--cv-accent); letter-spacing: -0.022em; line-height: 1.02; }
+  header.cv-header .cv-headline { font-size: 1.05rem; color: var(--cv-ink-2); margin-top: 0.25rem; }
+  .cv-photo { width: 112px; height: 112px; border-radius: 12px; }
   section.cv-section > h2 {
-    font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em;
-    color: #888; margin: 0 0 0.6rem; padding-left: 0.6rem;
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--cv-muted); margin: 0 0 0.7rem; padding-left: 0.7rem;
     border-left: 3px solid var(--cv-accent);
   }`;
 }

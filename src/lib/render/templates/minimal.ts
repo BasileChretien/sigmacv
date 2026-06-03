@@ -8,13 +8,16 @@ import type { CvTemplate, TemplateTheme } from "./types";
  */
 function minimalCss(_theme: TemplateTheme): string {
   return `
-  header.cv-header { margin-bottom: 1.4rem; }
-  header.cv-header h1 { font-size: 1.7rem; font-weight: 400; margin: 0 0 0.2rem; }
-  header.cv-header .cv-ids { font-size: 0.85rem; color: #555; }
-  header.cv-header .cv-ids a { color: inherit; text-decoration: none; }
+  .cv { max-width: 720px; }
+  header.cv-header { margin-bottom: 1.8rem; }
+  header.cv-header h1 { font-size: 1.85rem; font-weight: 400; letter-spacing: -0.01em; color: var(--cv-ink); }
+  header.cv-header .cv-headline { font-weight: 400; color: var(--cv-muted); }
+  header.cv-header .cv-ids a { color: inherit; }
   section.cv-section > h2 {
-    font-size: 0.95rem; font-weight: 600; color: #333; margin: 0 0 0.6rem;
-  }`;
+    font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.18em; color: var(--cv-ink-2); margin: 0 0 0.7rem;
+  }
+  ol.cv-bib > li { line-height: 1.5; }`;
 }
 
 export const minimalTemplate: CvTemplate = {

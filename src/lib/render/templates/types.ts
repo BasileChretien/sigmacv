@@ -17,11 +17,15 @@ export interface RenderedSection {
  */
 export interface TemplateTheme {
   accentColor: string; // validated hex
+  /** A low-opacity tint of the accent (safe rgba), derived from accentColor. */
+  accentSoft: string;
   fontFamily: string; // resolved CSS font stack
   bodyFontPt: number;
   lineHeight: number;
   sectionGapRem: number;
   entryGapRem: number;
+  /** Base <h1> name size in rem (templates may still override). */
+  nameSizeRem: number;
   /** CSS declarations for `.cv-self` (from the highlight-style choice). */
   selfHighlightCss: string;
 }
