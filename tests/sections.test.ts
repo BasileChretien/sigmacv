@@ -333,6 +333,47 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(() => parseCanonicalCv(resynced)).not.toThrow();
   });
 
+  it("supports manually-added editorial roles and preserves them across re-sync", () => {
+    // No OEP source: a user adds an editorial role by hand.
+    const base = buildCanonicalCv({
+      id: "ed",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const manual: CvItem = {
+      id: "editorial:manual:1",
+      source: "manual",
+      sourceId: "manual",
+      displayText: "Associate Editor, Drug Safety (2023–present)",
+      included: true,
+      notMine: false,
+      order: 0,
+      authoredBySelf: false,
+      selfNameVariants: [],
+      meta: {},
+    };
+    const withEditorial: CanonicalCv = {
+      ...base,
+      sections: [
+        ...base.sections,
+        { id: "editorial", type: "editorial", title: "Editorial Roles", visible: true, order: 7, items: [manual] },
+      ],
+    };
+    const resynced = buildCanonicalCv({
+      id: "ed",
+      resolved,
+      works: baseWorks,
+      now: "2026-07-01T00:00:00.000Z",
+      previous: withEditorial,
+    });
+    const editorial = resynced.sections.find((s) => s.type === "editorial")!;
+    expect(editorial).toBeDefined();
+    expect(editorial.items.map((i) => i.displayText)).toContain(
+      "Associate Editor, Drug Safety (2023–present)",
+    );
+  });
+
   it("de-duplicates works that repeat the same OpenAlex id", () => {
     const w = baseWorks[0] as OpenAlexWork;
     const cv = buildCanonicalCv({

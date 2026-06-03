@@ -362,12 +362,17 @@ function buildGrantsSection(
   };
 }
 
-/** Build the editorial-roles section from OEP data. */
+/**
+ * Build the editorial-roles section. Roles come from the Open Editors Plus
+ * dataset (OEP_DATA_URL) when configured; the user's own manually-added
+ * editorial entries are always carried over too — so the section works even
+ * with no OEP source. Returns null only when there are neither.
+ */
 function buildEditorialSection(
   roles: EditorialRole[],
   prevIncluded: Map<string, boolean>,
+  manual: CvItem[],
 ): CvSection | null {
-  if (roles.length === 0) return null;
   const items: CvItem[] = roles.map((r, i) => {
     const id = `editorial:${i}`;
     const years = r.startYear
@@ -386,13 +391,15 @@ function buildEditorialSection(
       meta: {},
     };
   });
+  for (const m of manual) items.push({ ...m, order: items.length });
+  if (items.length === 0) return null;
   return {
     id: "editorial",
     type: "editorial",
     title: "Editorial Roles",
     visible: true,
     order: 6,
-    items,
+    items: reindexItems(items),
   };
 }
 
@@ -665,6 +672,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const editorialSection = buildEditorialSection(
     args.editorialRoles ?? [],
     prevIncluded,
+    previousManualItems(previous, "editorial"),
   );
   const grantsSection = buildGrantsSection(
     args.fundings ?? [],

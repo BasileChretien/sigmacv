@@ -83,6 +83,7 @@ const ADDABLE_SECTIONS: CvSectionType[] = [
   "service",
   "skills",
   "datasets",
+  "editorial",
   "grants",
   "other",
 ];
@@ -136,6 +137,7 @@ export default function CvEditor({
     "awards",
     "service",
     "datasets",
+    "editorial",
     "grants",
     "other",
   ]);
