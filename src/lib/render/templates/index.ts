@@ -6,8 +6,10 @@ import type {
 } from "@/lib/canonical/schema";
 import { classicTemplate } from "./classic";
 import { compactTemplate } from "./compact";
+import { editorialTemplate } from "./editorial";
 import { minimalTemplate } from "./minimal";
 import { modernTemplate } from "./modern";
+import { sidebarTemplate } from "./sidebar";
 import type { CvTemplate, TemplateTheme } from "./types";
 
 export type { CvTemplate, RenderedItem, RenderedSection, TemplateTheme } from "./types";
@@ -33,6 +35,8 @@ const REGISTRY: Record<TemplateKey, CvTemplate> = {
   modern: modernTemplate,
   minimal: minimalTemplate,
   compact: compactTemplate,
+  sidebar: sidebarTemplate,
+  editorial: editorialTemplate,
 };
 
 export function getTemplate(key: TemplateKey): CvTemplate {

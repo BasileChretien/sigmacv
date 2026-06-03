@@ -56,6 +56,8 @@ const TEMPLATE_LABELS: Record<string, string> = {
   modern: "Modern",
   minimal: "Minimal",
   compact: "Compact",
+  sidebar: "Sidebar (photo)",
+  editorial: "Editorial",
 };
 const FONT_LABELS: Record<string, string> = {
   serif: "Serif",

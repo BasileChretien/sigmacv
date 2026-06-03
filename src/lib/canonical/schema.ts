@@ -236,7 +236,14 @@ export const CvOwnerSchema = z.object({
 export type CvOwner = z.infer<typeof CvOwnerSchema>;
 
 /** Constrained customization options (kept tasteful + safe-to-inject). */
-export const TEMPLATES = ["classic", "modern", "minimal", "compact"] as const;
+export const TEMPLATES = [
+  "classic",
+  "modern",
+  "minimal",
+  "compact",
+  "sidebar",
+  "editorial",
+] as const;
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
 /** How the account holder's name is emphasised in their own works. */

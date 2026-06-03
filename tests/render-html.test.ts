@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemIncluded, setSectionVisible, updateDisplay } from "@/lib/canonical/curate";
+import { setItemIncluded, setSectionVisible, updateDisplay, updateOwner } from "@/lib/canonical/curate";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { getRenderer } from "@/lib/render";
 import { htmlRenderer, renderCvHtml } from "@/lib/render/html";
@@ -85,6 +85,22 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
   it("renders the minimal template (rule-free, lighter weight name)", () => {
     const minimal = renderCvHtml(updateDisplay(makeCv(), { template: "minimal" }));
     expect(minimal).toContain("font-weight: 400");
+  });
+
+  it("renders the sidebar template with the photo in a coloured aside", () => {
+    const withPhoto = updateOwner(
+      updateDisplay(makeCv(), { template: "sidebar" }),
+      { photo: "data:image/png;base64,iVBORw0KGgo=", headline: "Assistant Professor" },
+    );
+    const html = renderCvHtml(withPhoto);
+    expect(html).toContain("cv-sidebar-layout");
+    expect(html).toContain('<img class="cv-photo"');
+    expect(html).toContain("Assistant Professor");
+  });
+
+  it("renders the editorial template (accent rule under the name)", () => {
+    const editorial = renderCvHtml(updateDisplay(makeCv(), { template: "editorial" }));
+    expect(editorial).toContain("border-bottom: 3px solid var(--cv-accent)");
   });
 
   it("injects the chosen accent colour into the document CSS", () => {
