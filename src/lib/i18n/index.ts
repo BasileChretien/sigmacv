@@ -199,7 +199,12 @@ const EN = {
   expandSection: "Expand section",
   collapseSection: "Collapse section",
   editorHints:
-    "Tip: drag ⠿ to reorder · click a section to expand it · Hide/Show and “Not mine” control what appears · hover an entry to see its source.",
+    "Tip: drag ⠿ to reorder · click a section's chevron to collapse it · Hide/Show and “Not mine” control what appears · hover an entry to see its source.",
+  sortPublications: "Sort publications",
+  sortCustom: "Custom (as arranged)",
+  sortCitations: "Most cited first",
+  sortYearDesc: "Newest first",
+  sortYearAsc: "Oldest first",
 } as const;
 
 export type ChromeKey = keyof typeof EN;
@@ -272,7 +277,12 @@ const FR: Record<ChromeKey, string> = {
   expandSection: "Développer la section",
   collapseSection: "Réduire la section",
   editorHints:
-    "Astuce : glissez ⠿ pour réordonner · cliquez une section pour la développer · « Masquer/Afficher » et « Pas de moi » contrôlent l’affichage · survolez une entrée pour voir sa source.",
+    "Astuce : glissez ⠿ pour réordonner · cliquez le chevron d’une section pour la réduire · « Masquer/Afficher » et « Pas de moi » contrôlent l’affichage · survolez une entrée pour voir sa source.",
+  sortPublications: "Trier les publications",
+  sortCustom: "Personnalisé (tel quel)",
+  sortCitations: "Les plus citées d’abord",
+  sortYearDesc: "Plus récentes d’abord",
+  sortYearAsc: "Plus anciennes d’abord",
 };
 
 const JA: Record<ChromeKey, string> = {
@@ -343,7 +353,12 @@ const JA: Record<ChromeKey, string> = {
   expandSection: "セクションを展開",
   collapseSection: "セクションを折りたたむ",
   editorHints:
-    "ヒント：⠿ をドラッグで並べ替え・セクションをクリックで展開・「非表示/表示」と「自分のではない」で表示を調整・項目にカーソルを合わせると出典が表示されます。",
+    "ヒント：⠿ をドラッグで並べ替え・セクションの▾で折りたたみ・「非表示/表示」と「自分のではない」で表示を調整・項目にカーソルを合わせると出典が表示されます。",
+  sortPublications: "論文の並び順",
+  sortCustom: "カスタム（現在の並び）",
+  sortCitations: "被引用数の多い順",
+  sortYearDesc: "新しい順",
+  sortYearAsc: "古い順",
 };
 
 const DICTS: Record<Locale, Record<ChromeKey, string>> = {

@@ -233,6 +233,21 @@ describe("section ops + selectors", () => {
     expect(moveSection(cv, "publications", "up")).toEqual(cv);
   });
 
+  it("marks sectionsCustomized once the user reorders a section", () => {
+    const cv = buildCanonicalCv({
+      id: "sc",
+      resolved,
+      works,
+      now: "2026-06-02T00:00:00.000Z",
+      editorialRoles: [{ journal: "BMJ", role: "Editor", startYear: 2020 }],
+    });
+    expect(cv.display.sectionsCustomized).toBe(false);
+    const moved = moveSection(cv, "editorial", "up");
+    expect(moved.display.sectionsCustomized).toBe(true);
+    const moved2 = moveSectionTo(cv, "editorial", 0);
+    expect(moved2.display.sectionsCustomized).toBe(true);
+  });
+
   it("is a no-op for unknown section/item ids", () => {
     const cv = makeCv();
     expect(moveSection(cv, "no-such-section", "up")).toEqual(cv);

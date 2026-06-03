@@ -513,7 +513,34 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(ordered.indexOf("grants")).toBeLessThan(ordered.indexOf("awards"));
   });
 
-  it("preserves a user's section order across a re-sync", () => {
+  it("re-applies the canonical order on re-sync when the user hasn't customized", () => {
+    const first = buildCanonicalCv({
+      id: "ord1",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      employments,
+    });
+    // Simulate an OLD stored doc with publications pinned first + no custom flag.
+    const stale: CanonicalCv = {
+      ...first,
+      sections: first.sections.map((s) =>
+        s.type === "publications" ? { ...s, order: 0 } : s,
+      ),
+    };
+    const resynced = buildCanonicalCv({
+      id: "ord1",
+      resolved,
+      works: baseWorks,
+      now: "2026-07-01T00:00:00.000Z",
+      employments,
+      previous: stale,
+    });
+    const ord = [...resynced.sections].sort((a, b) => a.order - b.order).map((s) => s.type);
+    expect(ord.indexOf("positions")).toBeLessThan(ord.indexOf("publications"));
+  });
+
+  it("preserves a user's section order across a re-sync once customized", () => {
     const first = buildCanonicalCv({
       id: "ord2",
       resolved,
@@ -521,9 +548,10 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       now: "2026-06-02T00:00:00.000Z",
       employments,
     });
-    // Pretend the user dragged Publications to the very top (order -1).
+    // The user dragged Publications to the very top (order -1) → customized flag set.
     const reordered: CanonicalCv = {
       ...first,
+      display: { ...first.display, sectionsCustomized: true },
       sections: first.sections.map((s) =>
         s.type === "publications" ? { ...s, order: -1 } : s,
       ),

@@ -703,13 +703,18 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // renames are left untouched), and snap NEWLY-created sections to the
   // canonical default order. Sections the user already had keep their
   // arrangement (preserved by mergeSection), so re-sync never reshuffles them.
-  const locale = (previous?.display ?? DisplayChoicesSchema.parse({})).locale;
+  const prevDisplay = previous?.display ?? DisplayChoicesSchema.parse({});
+  const locale = prevDisplay.locale;
+  // Until the user manually reorders sections, always apply the canonical
+  // default order (so Positions/Education lead by default). Once they've
+  // customized, keep their arrangement; only brand-new sections snap to default.
+  const customized = prevDisplay.sectionsCustomized;
   const prevSectionIds = new Set((previous?.sections ?? []).map((s) => s.id));
   const sections: CvSection[] = builtSections.map((s) => {
     const titled = isDefaultSectionTitle(s.type, s.title)
       ? { ...s, title: sectionTitle(locale, s.type) }
       : s;
-    return prevSectionIds.has(s.id)
+    return customized && prevSectionIds.has(s.id)
       ? titled
       : { ...titled, order: DEFAULT_SECTION_ORDER[s.type] };
   });

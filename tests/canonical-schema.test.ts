@@ -66,6 +66,8 @@ describe("DisplayChoicesSchema", () => {
       showAuthorRole: false,
       showProvenance: true,
       peerReviewedOnly: false,
+      publicationOrder: "custom",
+      sectionsCustomized: false,
       accentColor: "#1f4fd8",
       fontPairing: "serif",
       density: "comfortable",

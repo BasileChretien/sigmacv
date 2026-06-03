@@ -107,11 +107,12 @@ export default function CvEditor({
   // by dropping onto another section's header.
   const [dragSection, setDragSection] = useState<string | null>(null);
   const [dragItem, setDragItem] = useState<{ sectionId: string; itemId: string } | null>(null);
-  // Sections are collapsed by default (only ids in this set are expanded) — keeps
-  // the list compact so the reorder/visibility controls are obvious at a glance.
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // Sections are EXPANDED by default (so content is readable at a glance); the
+  // chevron collapses them. We track the collapsed ids, so new sections appear
+  // expanded.
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const toggleExpanded = (id: string) =>
-    setExpanded((prev) => {
+    setCollapsed((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -260,14 +261,35 @@ export default function CvEditor({
           </select>
         </label>
 
+        <label className="field">
+          <span>{t(locale, "sortPublications")}</span>
+          <select
+            value={cv.display.publicationOrder}
+            onChange={(e) =>
+              onChange(
+                updateDisplay(cv, {
+                  publicationOrder: e.target
+                    .value as CanonicalCv["display"]["publicationOrder"],
+                }),
+              )
+            }
+            aria-label={t(locale, "sortPublications")}
+          >
+            <option value="custom">{t(locale, "sortCustom")}</option>
+            <option value="year-desc">{t(locale, "sortYearDesc")}</option>
+            <option value="year-asc">{t(locale, "sortYearAsc")}</option>
+            <option value="citations">{t(locale, "sortCitations")}</option>
+          </select>
+        </label>
+
         <div className="field custom-style">
-          <span>Add a citation style</span>
+          <span>Use another journal style</span>
           <div className="custom-style-row">
             <input
               type="text"
               list="csl-style-catalog"
               value={styleInput}
-              placeholder="Search e.g. Nature Medicine, APA, IEEE… or paste a .csl URL"
+              placeholder="Search a journal or style — e.g. Nature, Cell, BMJ…"
               onChange={(e) => setStyleInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -275,14 +297,12 @@ export default function CvEditor({
                   void addCustomStyle();
                 }
               }}
-              aria-label="Citation style — search by name, id, or URL"
+              aria-label="Search citation styles by journal name"
               disabled={styleAdding}
             />
             <datalist id="csl-style-catalog">
               {CSL_STYLE_CATALOG.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.title}
-                </option>
+                <option key={s.id} value={s.title} />
               ))}
             </datalist>
             <button
@@ -298,15 +318,9 @@ export default function CvEditor({
             <span className="custom-style-error">{styleError}</span>
           ) : (
             <span className="muted custom-style-hint">
-              From the{" "}
-              <a
-                href="https://www.zotero.org/styles"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Zotero style repository
-              </a>{" "}
-              — paste a style&apos;s id or URL.
+              Start typing to search thousands of journal &amp; society styles,
+              then press <strong>Add</strong>. Once added, it appears in the
+              Citation style menu above.
             </span>
           )}
         </div>
@@ -537,7 +551,7 @@ export default function CvEditor({
       {sections.map((section, si) => {
         const items = [...section.items].sort((a, b) => a.order - b.order);
         const shownCount = items.filter((i) => !isHidden(i)).length;
-        const isExpanded = expanded.has(section.id);
+        const isExpanded = !collapsed.has(section.id);
         return (
           <div
             key={section.id}
@@ -733,10 +747,7 @@ export default function CvEditor({
               key={tp}
               type="button"
               className="btn btn-sm"
-              onClick={() => {
-                onChange(addSection(cv, tp));
-                setExpanded((prev) => new Set(prev).add(tp));
-              }}
+              onClick={() => onChange(addSection(cv, tp))}
             >
               + {sectionTitle(locale, tp)}
             </button>

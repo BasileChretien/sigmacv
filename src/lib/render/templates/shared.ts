@@ -122,7 +122,7 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-contact, .cv-links { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.3rem; line-height: 1.5; }
   .cv-links { margin-top: 0.1rem; }
   .cv-contact a, .cv-links a { color: var(--cv-muted); text-decoration: none; }
-  .cv-summary { margin: 0.95rem 0 0; font-size: 0.95rem; color: var(--cv-ink-2); line-height: 1.55; max-width: 62ch; }
+  .cv-summary { margin: 0.95rem 0 0; font-size: 0.95rem; color: var(--cv-ink-2); line-height: 1.55; }
   .cv-metrics { font-size: 0.8rem; color: var(--cv-muted); margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.15rem 1.1rem; }
   .cv-metric-context { color: var(--cv-faint); font-style: italic; }
 

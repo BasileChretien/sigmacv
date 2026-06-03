@@ -102,3 +102,32 @@ describe.skipIf(!hasApa)("peerReviewedOnly render filter (prepareSections)", () 
     expect(items.some((i) => (i.displayText ?? "").includes("ANR grant"))).toBe(true);
   });
 });
+
+describe.skipIf(!hasApa)("publicationOrder render sort", () => {
+  // Three articles: low/high/mid citations, ascending years.
+  const works = [
+    work("Wa", { title: "Older few-cited", publication_year: 2018, cited_by_count: 3 }),
+    work("Wb", { title: "Newer highly-cited", publication_year: 2022, cited_by_count: 120 }),
+    work("Wc", { title: "Mid", publication_year: 2020, cited_by_count: 40 }),
+  ];
+  const base = () =>
+    buildCanonicalCv({ id: "ord", resolved, works, now: "2026-06-02T00:00:00.000Z" });
+  const pubTitles = (cv: ReturnType<typeof base>) =>
+    prepareSections(cv, "text")
+      .find((s) => s.section.type === "publications")!
+      .items.map((i) => i.item.csl?.title);
+
+  it("custom (default) keeps the built newest-first order", () => {
+    expect(pubTitles(base())).toEqual(["Newer highly-cited", "Mid", "Older few-cited"]);
+  });
+
+  it("citations sorts most-cited first", () => {
+    const cv = updateDisplay(base(), { publicationOrder: "citations" });
+    expect(pubTitles(cv)).toEqual(["Newer highly-cited", "Mid", "Older few-cited"]);
+  });
+
+  it("year-asc sorts oldest first", () => {
+    const cv = updateDisplay(base(), { publicationOrder: "year-asc" });
+    expect(pubTitles(cv)).toEqual(["Older few-cited", "Mid", "Newer highly-cited"]);
+  });
+});

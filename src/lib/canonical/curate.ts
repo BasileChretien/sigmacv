@@ -159,7 +159,11 @@ export function moveSection(
   const b = next[target]!;
   next[idx] = b;
   next[target] = a;
-  return { ...cv, sections: next.map((s, i) => ({ ...s, order: i })) };
+  return {
+    ...cv,
+    sections: next.map((s, i) => ({ ...s, order: i })),
+    display: { ...cv.display, sectionsCustomized: true },
+  };
 }
 
 /** Move a section to an explicit index (drag-and-drop). */
@@ -176,7 +180,11 @@ export function moveSectionTo(
   const next = [...sections];
   const [moved] = next.splice(from, 1);
   next.splice(clamped, 0, moved!);
-  return { ...cv, sections: next.map((s, i) => ({ ...s, order: i })) };
+  return {
+    ...cv,
+    sections: next.map((s, i) => ({ ...s, order: i })),
+    display: { ...cv.display, sectionsCustomized: true },
+  };
 }
 
 /** Update one or more display choices (citation style, highlight, etc.). */

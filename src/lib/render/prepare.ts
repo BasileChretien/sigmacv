@@ -45,10 +45,26 @@ export function prepareSections(
   const keep = (item: CvItem): boolean =>
     !peerOnly || !item.csl || item.meta.peerReviewed !== false;
 
-  const perSection = visibleSections(cv).map((section) => ({
-    section,
-    items: visibleItems(section).filter(keep),
-  }));
+  // Optional re-sort of publication/preprint entries by citations or year.
+  // "custom" keeps the curated/dragged order (the chokepoint default).
+  const order = cv.display.publicationOrder;
+  const CITATION_SECTIONS = new Set(["publications", "preprints"]);
+  const sortCitations = (items: CvItem[]): CvItem[] => {
+    if (order === "custom") return items;
+    return [...items].sort((a, b) => {
+      if (order === "citations") {
+        return (b.meta.citedByCount ?? 0) - (a.meta.citedByCount ?? 0);
+      }
+      if (order === "year-asc") return (a.meta.year ?? 0) - (b.meta.year ?? 0);
+      return (b.meta.year ?? 0) - (a.meta.year ?? 0); // year-desc
+    });
+  };
+
+  const perSection = visibleSections(cv).map((section) => {
+    let items = visibleItems(section).filter(keep);
+    if (CITATION_SECTIONS.has(section.type)) items = sortCitations(items);
+    return { section, items };
+  });
 
   // Citation items go through citeproc; non-citation items (editorial, grants)
   // carry a plain `displayText` instead.

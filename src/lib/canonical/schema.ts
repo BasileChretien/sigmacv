@@ -342,6 +342,19 @@ export const DisplayChoicesSchema = z.object({
    * Non-citation entries (positions, grants, …) are unaffected. Default off.
    */
   peerReviewedOnly: z.boolean().default(false),
+  /**
+   * How publication/preprint entries are ordered. "custom" keeps the built/
+   * dragged order (newest-first by default); other values re-sort at render.
+   */
+  publicationOrder: z
+    .enum(["custom", "citations", "year-desc", "year-asc"])
+    .default("custom"),
+  /**
+   * True once the user has manually reordered sections (drag or ↑/↓). Until
+   * then the build applies the canonical default order (Positions → Education →
+   * Publications → …); afterwards the user's arrangement is preserved on re-sync.
+   */
+  sectionsCustomized: z.boolean().default(false),
   /** Accent colour (validated hex). */
   accentColor: z.string().regex(HEX_COLOR).default("#1f4fd8"),
   fontPairing: z.enum(FONT_PAIRINGS).default("serif"),
