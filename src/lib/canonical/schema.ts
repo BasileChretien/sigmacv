@@ -213,6 +213,8 @@ export const DisplayChoicesSchema = z.object({
   showOpenAccess: z.boolean().default(true),
   /** Show the account holder's authorship role (first/last/corresponding). Default off. */
   showAuthorRole: z.boolean().default(false),
+  /** Show a data-provenance footer (sources, sync date, hidden/corrected counts). */
+  showProvenance: z.boolean().default(true),
   /** Accent colour (validated hex). */
   accentColor: z.string().regex(HEX_COLOR).default("#1f4fd8"),
   fontPairing: z.enum(FONT_PAIRINGS).default("serif"),

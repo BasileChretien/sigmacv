@@ -48,6 +48,7 @@ describe("DisplayChoicesSchema", () => {
       showCharts: false,
       showOpenAccess: true,
       showAuthorRole: false,
+      showProvenance: true,
       accentColor: "#1f4fd8",
       fontPairing: "serif",
       density: "comfortable",

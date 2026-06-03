@@ -392,6 +392,26 @@ export default function CvEditor({
               );
             })}
           </div>
+          <div className="metric-preset">
+            <button
+              type="button"
+              className="btn btn-small"
+              onClick={() =>
+                onChange(
+                  updateDisplay(cv, {
+                    metrics: ["2yr_mean_citedness", "fwci_mean", "top10pct_share"],
+                    showMetrics: true,
+                  }),
+                )
+              }
+            >
+              Responsible-metrics preset
+            </button>
+            <span className="muted metric-preset-note">
+              Field-normalised indicators only (DORA / Leiden) — avoids
+              journal-level proxies like the Impact Factor.
+            </span>
+          </div>
         </div>
 
         <label className="field-inline">
@@ -425,6 +445,17 @@ export default function CvEditor({
             }
           />
           <span>Show my author role (first / last / corresponding)</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.showProvenance}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { showProvenance: e.target.checked }))
+            }
+          />
+          <span>Data-provenance footer</span>
         </label>
       </fieldset>
 

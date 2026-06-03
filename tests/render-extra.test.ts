@@ -285,4 +285,37 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(renderCvHtml(cvWith({}))).not.toContain("first, corresponding");
     });
   });
+
+  describe("provenance footer + metric context", () => {
+    it("renders a provenance footer by default with hidden/corrected counts", () => {
+      const cv = makeCv();
+      const id = cv.sections[0]!.items[0]!.id;
+      const hidden = setItemIncluded(cv, "publications", id, false);
+      const html = renderCvHtml(hidden);
+      expect(html).toContain('class="cv-provenance"');
+      expect(html).toContain("Generated from OpenAlex");
+      expect(html).toContain("1 hidden");
+    });
+
+    it("omits the provenance footer when disabled", () => {
+      const cv = makeCv();
+      const html = renderCvHtml({
+        ...cv,
+        display: { ...cv.display, showProvenance: false },
+      });
+      expect(html).not.toContain("Generated from");
+    });
+
+    it("annotates a field-normalised metric with responsible-reading context", () => {
+      const cv = makeCv();
+      const withFwci: CanonicalCv = {
+        ...cv,
+        owner: { ...cv.owner, metrics: { fwci_mean: 1.8 } },
+        display: { ...cv.display, showMetrics: true, metrics: ["fwci_mean"] },
+      };
+      const html = renderCvHtml(withFwci);
+      expect(html).toContain("Mean work FWCI: 1.8");
+      expect(html).toContain("1.0 = world average");
+    });
+  });
 });

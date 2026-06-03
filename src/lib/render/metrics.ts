@@ -21,7 +21,20 @@ export interface FormattedMetric {
   key: string;
   label: string;
   value: string;
+  /** Short interpretive context — encourages responsible reading of the number. */
+  context?: string;
 }
+
+/**
+ * Responsible-metrics context: a one-line interpretation shown beside a metric
+ * so a number is never presented bare. Only for genuinely field-normalized
+ * indicators — we deliberately do NOT fabricate peer percentiles we can't back.
+ */
+const METRIC_CONTEXT: Record<string, string> = {
+  fwci_mean: "1.0 = world average for field & year",
+  top10pct_share: "works in the top 10% by field & year",
+  "2yr_mean_citedness": "field-normalised journal-independent",
+};
 
 function formatValue(format: string, raw: number): string {
   if (format === "percent") return `${Math.round(raw * 100)}%`;
@@ -53,6 +66,7 @@ export function formattedMetrics(cv: CanonicalCv): FormattedMetric[] {
         key: def.key,
         label: def.label,
         value: formatValue(def.format, raw),
+        context: METRIC_CONTEXT[def.key],
       };
     })
     .filter((m): m is FormattedMetric => m !== null);

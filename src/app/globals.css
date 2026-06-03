@@ -286,6 +286,23 @@ button {
   color: #b42318;
 }
 
+.metric-preset {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-small {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.metric-preset-note {
+  font-size: 0.72rem;
+}
+
 .metric-options {
   display: flex;
   flex-wrap: wrap;

@@ -2,6 +2,7 @@ import {
   commonCss,
   headerHtml,
   pageShell,
+  provenanceFooter,
   sectionsHtml,
 } from "./shared";
 import type { CvTemplate, TemplateTheme } from "./types";
@@ -27,7 +28,7 @@ export const classicTemplate: CvTemplate = {
   key: "classic",
   render(cv, sections, theme) {
     const css = commonCss(theme) + classicCss(theme);
-    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}</div>`;
+    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}</div>`;
     return pageShell(`${cv.owner.displayName || "CV"} — CV`, css, body);
   },
 };
