@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { setItemNotMine } from "@/lib/canonical/curate";
 import { parseCanonicalCv } from "@/lib/canonical/schema";
+import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { renderCvMarkdown } from "@/lib/render/markdown";
 import type { EditorialRole } from "@/lib/oep/client";
@@ -264,6 +265,86 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     const item = resynced.sections[0]!.items[0]!;
     expect(item.id).not.toBe(pubId); // id genuinely changed
     expect(item.notMine).toBe(true); // …yet the correction survived
+  });
+
+  it("carries manual entries through education, peer-review and grants on re-sync", () => {
+    // First build creates the ORCID-sourced sections.
+    const first = buildCanonicalCv({
+      id: "m",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      fundings,
+      education: [
+        { putCode: "400", organization: "University of Caen", roleTitle: "PharmD", startYear: 2008, endYear: 2014 },
+        // A 2nd, more-recent entry so buildOrcidEntrySection's recency sort runs.
+        { putCode: "401", organization: "Nagoya University", roleTitle: "MPH", startYear: 2024 },
+      ],
+      peerReviews: [{ organization: "BMJ", count: 5 }],
+    });
+
+    // Inject a user-added MANUAL entry into each section (source: "manual").
+    const manual = (id: string, displayText: string): CvItem => ({
+      id,
+      source: "manual",
+      sourceId: id,
+      displayText,
+      included: true,
+      notMine: false,
+      order: 99,
+      authoredBySelf: false,
+      selfNameVariants: [],
+      meta: {},
+    });
+    const withManual: CanonicalCv = {
+      ...first,
+      sections: first.sections.map((s) => {
+        if (s.type === "education") return { ...s, items: [...s.items, manual("education:manual:1", "Self-taught Rust")] };
+        if (s.type === "peer-review") return { ...s, items: [...s.items, manual("peer-review:manual:1", "Grant review panel — NIH")] };
+        if (s.type === "grants") return { ...s, items: [...s.items, manual("grant:manual:1", "Internal seed fund (2020)")] };
+        return s;
+      }),
+    };
+
+    // Re-sync with the same upstream data + the curated previous.
+    const resynced = buildCanonicalCv({
+      id: "m",
+      resolved,
+      works: baseWorks,
+      now: "2026-07-01T00:00:00.000Z",
+      fundings,
+      education: [
+        { putCode: "400", organization: "University of Caen", roleTitle: "PharmD", startYear: 2008, endYear: 2014 },
+      ],
+      peerReviews: [{ organization: "BMJ", count: 5 }],
+      previous: withManual,
+    });
+
+    const texts = (t: string) =>
+      resynced.sections.find((s) => s.type === t)!.items.map((i) => i.displayText);
+    expect(texts("education")).toContain("Self-taught Rust");
+    expect(texts("peer-review")).toContain("Grant review panel — NIH");
+    expect(texts("grants")).toContain("Internal seed fund (2020)");
+    // Manual items keep their "manual" provenance after the rebuild.
+    const manualEdu = resynced.sections
+      .find((s) => s.type === "education")!
+      .items.find((i) => i.id === "education:manual:1");
+    expect(manualEdu!.source).toBe("manual");
+    expect(() => parseCanonicalCv(resynced)).not.toThrow();
+  });
+
+  it("de-duplicates works that repeat the same OpenAlex id", () => {
+    const w = baseWorks[0] as OpenAlexWork;
+    const cv = buildCanonicalCv({
+      id: "dup",
+      resolved,
+      works: [w, { ...w }], // same id appears twice
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const occurrences = cv.sections
+      .flatMap((s) => s.items)
+      .filter((i) => i.sourceId === w.id).length;
+    expect(occurrences).toBe(1); // the duplicate is dropped
   });
 
   it.skipIf(!hasApa)("renders positions/grants/editorial displayText in Markdown", () => {

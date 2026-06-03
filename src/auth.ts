@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/db";
 import { authConfig } from "@/auth.config";
+import { logger } from "@/lib/log";
 import { normalizeOrcid } from "@/lib/openalex/types";
 
 /** The subset of DB User columns the session callback reads off the adapter user. */
@@ -50,7 +51,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             data: { orcid: normalizeOrcid(account.providerAccountId) },
           });
         } catch (err) {
-          console.error("[auth] failed to persist ORCID iD", err);
+          logger.error("auth.persist_orcid_failed", { err });
         }
       }
     },

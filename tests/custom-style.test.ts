@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
+  DEFAULT_STYLE,
   getStyleXml,
   listAvailableStyles,
   registerStyleXml,
@@ -96,6 +97,20 @@ describe("registerStyleXml / getStyleXml", () => {
     expect(after).toBe(before);
     expect(after).not.toBe("<evil/>");
     expect(after).toContain("purl.org/net/xbiblio/csl");
+  });
+
+  it("ignores a registration with an empty id or empty xml", () => {
+    // No key (sanitises to "") or no body → no-op, nothing cached.
+    registerStyleXml("", MINI_XML);
+    registerStyleXml("!!!", MINI_XML); // sanitises to empty
+    registerStyleXml("zzz-empty-body", "");
+    expect(() => getStyleXml("zzz-empty-body")).not.toThrow();
+    // An unregistered, non-bundled key falls back to the default style.
+    expect(getStyleXml("zzz-empty-body")).toBe(getStyleXml(DEFAULT_STYLE));
+  });
+
+  it.skipIf(!hasApa)("falls back to the default style for an unknown key", () => {
+    expect(getStyleXml("totally-unknown-style-xyz")).toBe(getStyleXml(DEFAULT_STYLE));
   });
 });
 

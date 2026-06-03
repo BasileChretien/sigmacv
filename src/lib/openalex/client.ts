@@ -1,5 +1,6 @@
 import { getEnv } from "@/lib/env";
 import { resilientFetch } from "@/lib/http";
+import { logger } from "@/lib/log";
 import {
   normalizeOrcid,
   shortId,
@@ -111,10 +112,11 @@ export async function fetchWorksByAuthorIds(
   }
 
   if (cursor && pages >= maxPages) {
-    console.warn(
-      `[openalex] hit maxPages=${maxPages} for authors ${ids.join(",")}; ` +
-        `${out.length} works fetched, more may exist.`,
-    );
+    logger.warn("openalex.works_truncated", {
+      maxPages,
+      authorCount: ids.length,
+      fetched: out.length,
+    });
   }
   return out;
 }

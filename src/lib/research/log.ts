@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { logger } from "@/lib/log";
 import { prisma } from "@/lib/db";
 import {
   compositionSnapshot,
@@ -61,6 +62,6 @@ export async function logCvSave(
 
     await prisma.researchEvent.createMany({ data: events });
   } catch (err) {
-    console.error("[research] failed to log CV save", err);
+    logger.error("research.log_cv_save_failed", { err });
   }
 }

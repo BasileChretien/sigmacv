@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { CvNotFoundError, getCvForUser, saveCvForUser } from "@/lib/cv/sync";
+import { logger } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,7 +47,7 @@ export async function PATCH(req: Request) {
     if (err instanceof CvNotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 409 });
     }
-    console.error("[api/cv PATCH]", err);
+    logger.error("api.cv_patch_failed", { err });
     return NextResponse.json({ error: "Failed to save CV" }, { status: 500 });
   }
 }

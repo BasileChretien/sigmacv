@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { syncCvForUser } from "@/lib/cv/sync";
+import { logger } from "@/lib/log";
 import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -40,7 +41,7 @@ export async function POST() {
     });
     return NextResponse.json({ cv });
   } catch (err) {
-    console.error("[api/cv/sync]", err);
+    logger.error("api.cv_sync_failed", { err });
     return NextResponse.json(
       { error: "Failed to sync from OpenAlex. Please try again." },
       { status: 502 },

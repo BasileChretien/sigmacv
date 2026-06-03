@@ -1,4 +1,5 @@
 import { resilientFetch } from "@/lib/http";
+import { logger } from "@/lib/log";
 import { normalizeOrcid } from "@/lib/openalex/types";
 
 /**
@@ -78,7 +79,7 @@ export async function fetchDataciteOutputs(
     }
     return out;
   } catch (err) {
-    console.warn("[datacite] fetch failed:", err);
+    logger.warn("datacite.fetch_failed", { err });
     return [];
   }
 }

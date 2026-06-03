@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/log";
 import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -36,7 +37,7 @@ export async function DELETE() {
     }
     return res;
   } catch (err) {
-    console.error("[api/account DELETE]", err);
+    logger.error("api.account_delete_failed", { err });
     return NextResponse.json(
       { error: "Failed to delete account" },
       { status: 500 },

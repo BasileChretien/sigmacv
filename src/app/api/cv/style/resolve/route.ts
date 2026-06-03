@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { CustomStyleError, resolveCslStyle } from "@/lib/citeproc/customStyle";
+import { logger } from "@/lib/log";
 import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
     if (err instanceof CustomStyleError) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
-    console.error("[api/cv/style/resolve]", err);
+    logger.error("api.cv_style_resolve_failed", { err });
     return NextResponse.json(
       { error: "Could not resolve that style." },
       { status: 500 },

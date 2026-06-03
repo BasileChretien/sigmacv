@@ -1,5 +1,6 @@
 import { getEnv } from "@/lib/env";
 import { resilientFetch } from "@/lib/http";
+import { logger } from "@/lib/log";
 import { normalizeOrcid } from "@/lib/openalex/types";
 
 /**
@@ -130,7 +131,7 @@ async function fetchOrcidAffiliations(
     }
     return out;
   } catch (err) {
-    console.warn(`[orcid] ${path} fetch failed:`, err);
+    logger.warn("orcid.affiliations_fetch_failed", { path, err });
     return [];
   }
 }
@@ -191,7 +192,7 @@ export async function fetchOrcidPeerReviews(
       .map(([organization, count]) => ({ organization, count }))
       .sort((a, b) => b.count - a.count);
   } catch (err) {
-    console.warn("[orcid] peer-reviews fetch failed:", err);
+    logger.warn("orcid.peer_reviews_fetch_failed", { err });
     return [];
   }
 }
@@ -218,7 +219,7 @@ export async function fetchOrcidFundings(orcid: string): Promise<OrcidFunding[]>
     }
     return out;
   } catch (err) {
-    console.warn("[orcid] fundings fetch failed:", err);
+    logger.warn("orcid.fundings_fetch_failed", { err });
     return [];
   }
 }

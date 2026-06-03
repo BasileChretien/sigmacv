@@ -1,3 +1,4 @@
+import { logger } from "@/lib/log";
 import { normalizeOrcid } from "@/lib/openalex/types";
 
 /**
@@ -35,7 +36,7 @@ export async function fetchEditorialRoles(
   try {
     const res = await fetch(url, { next: { revalidate: 86400 } });
     if (!res.ok) {
-      console.error(`[oep] dataset fetch failed: ${res.status}`);
+      logger.warn("oep.dataset_fetch_failed", { status: res.status });
       return [];
     }
     const data = (await res.json()) as OepRecord[];
@@ -51,7 +52,7 @@ export async function fetchEditorialRoles(
         endYear: r.endYear,
       }));
   } catch (err) {
-    console.error("[oep] failed to load editorial roles", err);
+    logger.warn("oep.editorial_roles_failed", { err });
     return [];
   }
 }

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { getCvForUser, getPublishState, syncCvForUser } from "@/lib/cv/sync";
+import { logger } from "@/lib/log";
 import CvWorkspace from "@/components/CvWorkspace";
 
 export const runtime = "nodejs";
@@ -22,7 +23,7 @@ export default async function CvPage() {
         fallbackName: session.user.name ?? "",
       });
     } catch (err) {
-      console.error("[cv] initial sync failed", err);
+      logger.error("cv.initial_sync_failed", { err });
     }
   }
 

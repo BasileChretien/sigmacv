@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { resyncDueCvs } from "@/lib/cv/resync";
 import { getEnv } from "@/lib/env";
+import { logger } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
     const summary = await resyncDueCvs();
     return NextResponse.json({ ok: true, ...summary });
   } catch (err) {
-    console.error("[api/internal/resync]", err);
+    logger.error("api.internal_resync_failed", { err });
     return NextResponse.json({ error: "Resync failed" }, { status: 500 });
   }
 }

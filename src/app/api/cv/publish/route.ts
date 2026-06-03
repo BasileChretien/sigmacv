@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { CvNotFoundError, getPublishState, setPublishState } from "@/lib/cv/sync";
+import { logger } from "@/lib/log";
 import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
     if (err instanceof CvNotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 409 });
     }
-    console.error("[api/cv/publish]", err);
+    logger.error("api.cv_publish_failed", { err });
     return NextResponse.json({ error: "Failed to update publish state" }, { status: 500 });
   }
 }

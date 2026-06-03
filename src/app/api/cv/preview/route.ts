@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
+import { logger } from "@/lib/log";
 import { rateLimit } from "@/lib/rateLimit";
 import { renderCvHtml } from "@/lib/render/html";
 
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
     const html = renderCvHtml(parsed.data);
     return NextResponse.json({ html });
   } catch (err) {
-    console.error("[api/cv/preview]", err);
+    logger.error("api.cv_preview_failed", { err });
     return NextResponse.json(
       { error: "Failed to render preview" },
       { status: 500 },

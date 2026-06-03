@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCvForUser } from "@/lib/cv/sync";
+import { logger } from "@/lib/log";
 import { rateLimit } from "@/lib/rateLimit";
 import { getRenderer } from "@/lib/render";
 import { cvSlug } from "@/lib/render/slug";
@@ -73,7 +74,7 @@ export async function GET(
       },
     });
   } catch (err) {
-    console.error(`[api/cv/export/${format}]`, err);
+    logger.error("api.cv_export_failed", { format, err });
     return NextResponse.json(
       { error: "Failed to generate export." },
       { status: 500 },

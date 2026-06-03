@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/log";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   CanonicalCvSchema,
@@ -38,7 +39,7 @@ export async function getCvForUser(userId: string): Promise<CanonicalCv | null> 
   if (!row) return null;
   const parsed = safeParseCanonicalCv(row.document);
   if (!parsed.success) {
-    console.error("[cv] stored document failed validation", parsed.error.issues);
+    logger.error("cv.stored_document_invalid", { issueCount: parsed.error.issues.length });
     return null;
   }
   return parsed.data;
