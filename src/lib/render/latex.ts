@@ -4,6 +4,7 @@ import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
 import { metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
+import type { PreparedSection } from "./prepare";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
 const LATEX_ESCAPE: Record<string, string> = {
@@ -23,13 +24,36 @@ function escapeLatex(s: string): string {
   return s.replace(/[\\&%$#_{}~^]/g, (c) => LATEX_ESCAPE[c] ?? c);
 }
 
-/**
- * A self-contained LaTeX document. Citations come from citeproc (text output)
- * so the style matches every other format exactly — we do NOT hand off to
- * BibTeX/biblatex (which would re-style). The bibliography is a plain itemize;
- * the user's name is bolded with \textbf on their own works.
- */
-export function renderCvLatex(cv: CanonicalCv): string {
+/** Citations come from citeproc (text output) so the style matches every other
+ *  format exactly. The account holder's name is bolded on their own works. */
+function sectionItems(
+  cv: CanonicalCv,
+  sections: PreparedSection[],
+): { title: string; lines: string[] }[] {
+  return sections
+    .filter(({ items }) => items.length > 0)
+    .map(({ section, items }) => ({
+      title: escapeLatex(section.title),
+      lines: items.map(({ item, entry }) => {
+        let t = escapeLatex(entry);
+        if (
+          cv.display.highlightSelf &&
+          item.authoredBySelf &&
+          item.selfNameVariants.length > 0
+        ) {
+          t = wrapSelf(
+            t,
+            item.selfNameVariants.map(escapeLatex),
+            (s) => `\\textbf{${s}}`,
+          );
+        }
+        return t;
+      }),
+    }));
+}
+
+/** A minimal, dependency-light article layout (compiles with a bare TeX Live). */
+function buildClassic(cv: CanonicalCv): string {
   const sections = prepareSections(cv, "text");
   const name = escapeLatex(cv.owner.displayName || "Curriculum Vitae");
   const orcid = cv.owner.orcid ? escapeLatex(cv.owner.orcid) : "";
@@ -48,27 +72,12 @@ export function renderCvLatex(cv: CanonicalCv): string {
     ? `\\noindent ${escapeLatex(head.summary)}\\par\\medskip\n\n`
     : "";
 
-  const blocks = sections
-    .map(({ section, items }) => {
-      if (items.length === 0) return "";
-      const lines = items.map(({ item, entry }) => {
-        let t = escapeLatex(entry);
-        if (
-          cv.display.highlightSelf &&
-          item.authoredBySelf &&
-          item.selfNameVariants.length > 0
-        ) {
-          t = wrapSelf(
-            t,
-            item.selfNameVariants.map(escapeLatex),
-            (s) => `\\textbf{${s}}`,
-          );
-        }
-        return `  \\item ${t}`;
-      });
-      return `\\section*{${escapeLatex(section.title)}}\n\\begin{itemize}\n${lines.join("\n")}\n\\end{itemize}`;
-    })
-    .filter(Boolean);
+  const blocks = sectionItems(cv, sections).map(
+    ({ title, lines }) =>
+      `\\section*{${title}}\n\\begin{itemize}\n${lines
+        .map((l) => `  \\item ${l}`)
+        .join("\n")}\n\\end{itemize}`,
+  );
 
   const preamble = [
     "\\documentclass[11pt]{article}",
@@ -90,6 +99,84 @@ export function renderCvLatex(cv: CanonicalCv): string {
     .join("\n");
 
   return `${preamble}\n\n${summaryPar}${blocks.join("\n\n")}\n\n\\end{document}\n`;
+}
+
+/** Six-digit HEX (no #) for xcolor's \definecolor{...}{HTML}{...}. */
+function accentHex(cv: CanonicalCv): string {
+  const raw = (cv.display.accentColor || "#1f4fd8").replace(/^#/, "");
+  return /^[0-9a-fA-F]{6}$/.test(raw) ? raw.toUpperCase() : "1F4FD8";
+}
+
+/**
+ * A polished, professional design — accent-coloured name + section rules,
+ * refined typography (lmodern + microtype), coloured DOIs. Self-contained:
+ * uses only packages shipped with any standard TeX Live, so it compiles
+ * everywhere (no moderncv/altacv class required).
+ */
+function buildModern(cv: CanonicalCv): string {
+  const sections = prepareSections(cv, "text");
+  const head = textHeader(cv);
+  const name = escapeLatex(cv.owner.displayName || "Curriculum Vitae");
+  const headline = head.headline ? escapeLatex(head.headline) : "";
+  const contactBits: string[] = [];
+  if (cv.owner.orcid) {
+    const o = escapeLatex(cv.owner.orcid);
+    contactBits.push(`\\href{https://orcid.org/${o}}{ORCID ${o}}`);
+  }
+  for (const c of head.contact) contactBits.push(escapeLatex(c));
+  const contactLine = contactBits.join("  \\textbullet{}  ");
+  const metricsRaw = metricsLineText(cv);
+
+  const blocks = sectionItems(cv, sections).map(
+    ({ title, lines }) =>
+      `\\section{${title}}\n\\begin{cvlist}\n${lines
+        .map((l) => `  \\item ${l}`)
+        .join("\n")}\n\\end{cvlist}`,
+  );
+
+  const preamble = [
+    "\\documentclass[11pt,a4paper]{article}",
+    "\\usepackage[utf8]{inputenc}",
+    "\\usepackage[T1]{fontenc}",
+    "\\usepackage{lmodern}",
+    "\\usepackage{microtype}",
+    "\\usepackage[margin=0.9in]{geometry}",
+    "\\usepackage{xcolor}",
+    "\\usepackage{enumitem}",
+    "\\usepackage{titlesec}",
+    "\\usepackage[hidelinks]{hyperref}",
+    `\\definecolor{cvaccent}{HTML}{${accentHex(cv)}}`,
+    "\\hypersetup{colorlinks=true,urlcolor=cvaccent,linkcolor=cvaccent}",
+    "\\titleformat{\\section}{\\large\\bfseries\\color{cvaccent}}{}{0em}{}[{\\color{cvaccent}\\titlerule[1pt]}]",
+    "\\titlespacing*{\\section}{0pt}{1.3em}{0.55em}",
+    "\\newlist{cvlist}{itemize}{1}",
+    "\\setlist[cvlist]{leftmargin=1.1em,itemsep=4pt,topsep=2pt,label={}}",
+    "\\setlength{\\parindent}{0pt}",
+    "\\pagestyle{empty}",
+    "\\begin{document}",
+  ].join("\n");
+
+  const header = [
+    `{\\fontsize{24}{27}\\selectfont\\bfseries\\color{cvaccent}${name}}\\\\[3pt]`,
+    headline ? `{\\large ${headline}}\\\\[3pt]` : "",
+    contactLine ? `{\\small\\color{black!65}${contactLine}}\\\\[2pt]` : "",
+    metricsRaw ? `{\\small\\itshape\\color{black!55}${escapeLatex(metricsRaw)}}\\\\[2pt]` : "",
+    "{\\color{cvaccent}\\rule{\\linewidth}{1.1pt}}\\\\[2pt]",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const summaryPar = head.summary
+    ? `\\medskip\n${escapeLatex(head.summary)}\\par\n`
+    : "";
+
+  return `${preamble}\n${header}\n${summaryPar}\n${blocks.join("\n\n")}\n\n\\end{document}\n`;
+}
+
+export function renderCvLatex(cv: CanonicalCv): string {
+  return cv.display.latexTemplate === "classic"
+    ? buildClassic(cv)
+    : buildModern(cv);
 }
 
 export const latexRenderer: Renderer = {

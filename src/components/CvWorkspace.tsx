@@ -10,7 +10,13 @@ import PublishControls from "./PublishControls";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
 import SupportLink from "./SupportLink";
 
-type ExportFormat = "pdf" | "docx" | "latex" | "markdown" | "json";
+type ExportFormat =
+  | "pdf"
+  | "docx"
+  | "latex"
+  | "markdown"
+  | "bibtex"
+  | "json";
 
 interface CvWorkspaceProps {
   initialCv: CanonicalCv | null;
@@ -143,7 +149,7 @@ export default function CvWorkspace({
           <span className="muted">·</span>
           <span className="muted">{userName}</span>
           <PublishControls initialPublished={published} initialSlug={publicSlug} />
-          <AccountControls />
+          <AccountControls researchConsent={researchConsent} />
         </div>
         <div className="cv-topbar-actions">
           {status ? <span className="status muted">{status}</span> : null}
@@ -179,6 +185,7 @@ export default function CvWorkspace({
             <option value="docx">Word .docx (plain)</option>
             <option value="latex">LaTeX .tex (plain)</option>
             <option value="markdown">Markdown .md (plain)</option>
+            <option value="bibtex">BibTeX .bib (for Zotero)</option>
             <option value="json">JSON (data)</option>
           </select>
           <button

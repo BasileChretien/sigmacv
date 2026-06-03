@@ -40,7 +40,14 @@ function withMetrics(): CanonicalCv {
 
 describe("render format catalog", () => {
   it("lists the supported formats", () => {
-    expect(RENDER_FORMATS).toEqual(["html", "pdf", "docx", "latex", "markdown"]);
+    expect(RENDER_FORMATS).toEqual([
+      "html",
+      "pdf",
+      "docx",
+      "latex",
+      "markdown",
+      "bibtex",
+    ]);
   });
 });
 

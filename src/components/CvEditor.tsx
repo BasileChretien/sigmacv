@@ -242,6 +242,26 @@ export default function CvEditor({
         </label>
 
         <label className="field">
+          <span title="Design used only for the LaTeX (.tex) export. 'Modern' is a polished, professional layout; 'Classic' is a minimal article.">
+            LaTeX export style
+          </span>
+          <select
+            value={cv.display.latexTemplate}
+            onChange={(e) =>
+              onChange(
+                updateDisplay(cv, {
+                  latexTemplate: e.target
+                    .value as CanonicalCv["display"]["latexTemplate"],
+                }),
+              )
+            }
+          >
+            <option value="modern">Modern (professional)</option>
+            <option value="classic">Classic (minimal)</option>
+          </select>
+        </label>
+
+        <label className="field">
           <span>{t(locale, "language")}</span>
           <select
             value={locale}
@@ -468,7 +488,7 @@ export default function CvEditor({
               onClick={() =>
                 onChange(
                   updateDisplay(cv, {
-                    metrics: ["2yr_mean_citedness", "fwci_mean", "top10pct_share"],
+                    metrics: ["2yr_mean_citedness", "fwci_mean"],
                     showMetrics: true,
                   }),
                 )

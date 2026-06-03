@@ -44,8 +44,10 @@ function withMetrics(overrides: Partial<CanonicalCv["display"]>): CanonicalCv {
 describe("formatMetricValue", () => {
   it("formats per the metric's catalog format", () => {
     expect(formatMetricValue("h_index", 12)).toBe("12"); // integer
-    expect(formatMetricValue("top10pct_share", 0.25)).toBe("25%"); // percent
+    expect(formatMetricValue("works_count", 116)).toBe("116"); // integer
     expect(formatMetricValue("fwci_mean", 1.84)).toBe("1.8"); // decimal
+    // Unknown / removed keys fall back to the decimal format.
+    expect(formatMetricValue("top10pct_share", 0.25)).toBe("0.3");
   });
 
   it("falls back to decimal for an unknown key", () => {
@@ -84,12 +86,13 @@ describe("formattedMetrics", () => {
     expect(metricsLineText(cv)).toBe("2-yr mean citedness: 3.4 · Works: 116");
   });
 
-  it("formats field-normalized metrics (FWCI decimal, top-10% percent)", () => {
+  it("formats field-normalized metrics and ignores removed/unknown keys", () => {
     const cv = withMetrics({
       showMetrics: true,
+      // top10pct_share is no longer a selectable metric → silently dropped.
       metrics: ["fwci_mean", "top10pct_share"],
     });
-    expect(metricsLineText(cv)).toBe("Mean work FWCI: 1.8 · Top 10% by year: 25%");
+    expect(metricsLineText(cv)).toBe("Mean work FWCI: 1.8");
   });
 
   it("leads with field-normalized measures before h-index", () => {

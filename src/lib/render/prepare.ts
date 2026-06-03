@@ -66,30 +66,36 @@ export function prepareSections(
     return { section, items };
   });
 
-  // Citation items go through citeproc; non-citation items (editorial, grants)
-  // carry a plain `displayText` instead.
-  const cslItems = perSection
-    .flatMap((s) => s.items)
-    .map((i) => i.csl)
-    .filter((c): c is CslItem => Boolean(c));
-  const entries = renderBibliography(
-    cslItems,
-    cv.display.cslStyle,
-    cv.display.locale,
-    outputFormat,
-  );
-  const byId = new Map(entries.map((e) => [e.id, e.content]));
-
-  return perSection.map(({ section, items }) => ({
-    section,
-    items: items.map((item) => {
-      if (item.csl) return { item, entry: byId.get(item.id) ?? "" };
-      const text = item.displayText ?? "";
-      // citeproc HTML is already markup; plain displayText must be escaped for HTML.
-      return {
-        item,
-        entry: outputFormat === "html" ? escapeHtmlText(text) : text,
-      };
-    }),
-  }));
+  // Render each section's bibliography SEPARATELY. Numbered CSL styles
+  // (Vancouver, AMA, Nature, IEEE…) number a bibliography 1..N and may sort it;
+  // rendering all sections in one pass meant Publications showed gappy numbers
+  // (3,4,5,…,11) because Preprints/Datasets occupied the skipped numbers. Per
+  // section, each list is contiguous (Publications 1..K, Preprints 1..M).
+  // Author–date styles (APA) carry no numbers, so their output is unchanged.
+  return perSection.map(({ section, items }) => {
+    const cslItems = items
+      .map((i) => i.csl)
+      .filter((c): c is CslItem => Boolean(c));
+    const entries = cslItems.length
+      ? renderBibliography(
+          cslItems,
+          cv.display.cslStyle,
+          cv.display.locale,
+          outputFormat,
+        )
+      : [];
+    const byId = new Map(entries.map((e) => [e.id, e.content]));
+    return {
+      section,
+      items: items.map((item) => {
+        if (item.csl) return { item, entry: byId.get(item.id) ?? "" };
+        const text = item.displayText ?? "";
+        // citeproc HTML is already markup; plain displayText must be escaped for HTML.
+        return {
+          item,
+          entry: outputFormat === "html" ? escapeHtmlText(text) : text,
+        };
+      }),
+    };
+  });
 }

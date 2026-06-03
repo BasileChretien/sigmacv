@@ -15,6 +15,7 @@ export const RENDER_FORMATS = [
   "docx",
   "latex",
   "markdown",
+  "bibtex",
 ] as const;
 export type RenderFormat = (typeof RENDER_FORMATS)[number];
 

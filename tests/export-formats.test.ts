@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { updateOwner } from "@/lib/canonical/curate";
+import { setItemNotMine, updateDisplay, updateOwner } from "@/lib/canonical/curate";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
+import { renderCvBibtex } from "@/lib/render/bibtex";
 import { renderCvDocxBuffer } from "@/lib/render/docx";
 import { textHeader } from "@/lib/render/headerText";
 import { renderCvLatex } from "@/lib/render/latex";
@@ -38,8 +39,8 @@ describe.skipIf(!hasApa)("export formats (need vendored CSL assets)", () => {
     expect(md).toContain("**Chrétien**"); // self name bolded
   });
 
-  it("LaTeX: self-contained document with itemized bibliography + \\textbf self", () => {
-    const tex = renderCvLatex(makeCv());
+  it("LaTeX (classic): minimal article with itemized bibliography + \\textbf self", () => {
+    const tex = renderCvLatex(updateDisplay(makeCv(), { latexTemplate: "classic" }));
     expect(tex).toContain("\\documentclass[11pt]{article}");
     expect(tex).toContain("\\section*{Publications}");
     expect(tex).toContain("\\item ");
@@ -47,12 +48,31 @@ describe.skipIf(!hasApa)("export formats (need vendored CSL assets)", () => {
     expect(tex).toContain("\\end{document}");
   });
 
-  it("LaTeX: escapes special characters", () => {
-    // Title-less work would never happen, but verify the escaper on a hash.
+  it("LaTeX (modern): accent colour, section rules, professional layout (default)", () => {
+    const tex = renderCvLatex(makeCv()); // modern is the default
+    expect(tex).toContain("\\documentclass[11pt,a4paper]{article}");
+    expect(tex).toContain("\\definecolor{cvaccent}{HTML}{1F4FD8}");
+    expect(tex).toContain("\\section{Publications}");
+    expect(tex).toContain("\\titlerule");
+    expect(tex).toContain("\\textbf{Chr");
+    expect(tex).toContain("\\end{document}");
+  });
+
+  it("LaTeX: escapes special characters (no bare % comment surprises)", () => {
     const tex = renderCvLatex(makeCv());
-    // No raw unescaped & should appear (citeproc output rarely has one, but the
-    // escaper must run): assert there are no bare '%' line-comment surprises.
     expect(tex).not.toMatch(/[^\\]%/);
+  });
+
+  it("LaTeX (modern): uses a valid accent and falls back for an invalid one", () => {
+    const cv = makeCv();
+    const ok = renderCvLatex(updateDisplay(cv, { accentColor: "#0f766e" }));
+    expect(ok).toContain("\\definecolor{cvaccent}{HTML}{0F766E}");
+    // An invalid colour (bypassing schema validation) → safe default.
+    const bad = renderCvLatex({
+      ...cv,
+      display: { ...cv.display, accentColor: "#fff" },
+    });
+    expect(bad).toContain("\\definecolor{cvaccent}{HTML}{1F4FD8}");
   });
 
   it("DOCX: produces a non-empty .docx (zip) buffer", async () => {
@@ -91,6 +111,34 @@ describe.skipIf(!hasApa)("export formats (need vendored CSL assets)", () => {
     });
     const buf = await renderCvDocxBuffer(cv);
     expect(buf.length).toBeGreaterThan(0);
+  });
+
+  it("BibTeX: @article entries with author/title/year/DOI + a cite key", () => {
+    const bib = renderCvBibtex(makeCv());
+    expect(bib).toContain("@article{");
+    expect(bib).toMatch(/@article\{chretien2023/); // <family><year><word>
+    expect(bib).toContain("title = {{"); // double-braced to protect case
+    expect(bib).toContain("doi = {10.1000/example1}"); // DOI kept literal
+    expect(bib).toContain("Chrétien"); // UTF-8 author preserved
+    expect(bib.endsWith("\n")).toBe(true);
+  });
+
+  it("BibTeX: excludes works asserted 'not mine'", () => {
+    const cv = setItemNotMine(makeCv(), "publications", "W4300000003", true);
+    const bib = renderCvBibtex(cv);
+    expect(bib).not.toContain("namesake"); // the not-mine work is dropped
+  });
+});
+
+describe("BibTeX (no CSL assets needed)", () => {
+  it("returns an empty string when there are no publications", () => {
+    const empty = buildCanonicalCv({
+      id: "e",
+      resolved,
+      works: [],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    expect(renderCvBibtex(empty)).toBe("");
   });
 });
 

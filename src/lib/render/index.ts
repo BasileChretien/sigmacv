@@ -21,6 +21,8 @@ export async function getRenderer(format: RenderFormat): Promise<Renderer> {
       return (await import("./latex")).latexRenderer;
     case "markdown":
       return (await import("./markdown")).markdownRenderer;
+    case "bibtex":
+      return (await import("./bibtex")).bibtexRenderer;
     default:
       throw new Error(`Unknown render format: ${String(format)}`);
   }

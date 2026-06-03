@@ -10,7 +10,13 @@ import type { RenderFormat } from "@/lib/render/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const EXPORTABLE: readonly RenderFormat[] = ["pdf", "docx", "latex", "markdown"];
+const EXPORTABLE: readonly RenderFormat[] = [
+  "pdf",
+  "docx",
+  "latex",
+  "markdown",
+  "bibtex",
+];
 // "json" exports the canonical CV object verbatim (machine-readable, open).
 const ALL_FORMATS: readonly string[] = [...EXPORTABLE, "json"];
 const EXPORT_MAX = 60;

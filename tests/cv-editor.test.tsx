@@ -61,11 +61,7 @@ describe("CvEditor (component)", () => {
     render(<CvEditor cv={makeCv()} availableStyles={["apa"]} onChange={onChange} />);
     fireEvent.click(screen.getByText(/responsible-metrics preset/i));
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
-    expect(next.display.metrics).toEqual([
-      "2yr_mean_citedness",
-      "fwci_mean",
-      "top10pct_share",
-    ]);
+    expect(next.display.metrics).toEqual(["2yr_mean_citedness", "fwci_mean"]);
     expect(next.display.showMetrics).toBe(true);
   });
 
