@@ -20,6 +20,10 @@ export interface RenderStrings {
   sourceManualEntries: string;
   sourceDerived: string;
   cvFallbackTitle: string;
+  /** Short label inside the open-access badge on a publication entry. */
+  badgeOpenAccess: string;
+  /** Accessible title/tooltip for the OA badge; "{status}" → the OA status. */
+  badgeOpenAccessTitle: string;
   metric2yr: string;
   metricFwci: string;
   metricHIndex: string;
@@ -52,6 +56,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     sourceManualEntries: "manual entries",
     sourceDerived: "derived",
     cvFallbackTitle: "Curriculum Vitae",
+    badgeOpenAccess: "OA",
+    badgeOpenAccessTitle: "Open access ({status})",
     metric2yr: "2-yr mean citedness",
     metricFwci: "Mean work FWCI",
     metricHIndex: "h-index",
@@ -81,6 +87,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     sourceManualEntries: "手动录入",
     sourceDerived: "推导得出",
     cvFallbackTitle: "简历",
+    badgeOpenAccess: "OA",
+    badgeOpenAccessTitle: "开放获取（{status}）",
     metric2yr: "两年平均被引率",
     metricFwci: "平均成果 FWCI",
     metricHIndex: "h 指数",
@@ -110,6 +118,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     sourceManualEntries: "entradas manuales",
     sourceDerived: "derivado",
     cvFallbackTitle: "Curriculum Vitae",
+    badgeOpenAccess: "OA",
+    badgeOpenAccessTitle: "Acceso abierto ({status})",
     metric2yr: "Citación media a 2 años",
     metricFwci: "FWCI medio por trabajo",
     metricHIndex: "índice h",
@@ -139,6 +149,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     sourceManualEntries: "saisies manuelles",
     sourceDerived: "dérivé",
     cvFallbackTitle: "Curriculum Vitae",
+    badgeOpenAccess: "OA",
+    badgeOpenAccessTitle: "Accès libre ({status})",
     metric2yr: "Citations moyennes sur 2 ans",
     metricFwci: "FWCI moyen des travaux",
     metricHIndex: "indice h",
@@ -168,6 +180,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     sourceManualEntries: "manuelle Einträge",
     sourceDerived: "abgeleitet",
     cvFallbackTitle: "Lebenslauf",
+    badgeOpenAccess: "OA",
+    badgeOpenAccessTitle: "Open Access ({status})",
     metric2yr: "Mittlere Zitationsrate (2 Jahre)",
     metricFwci: "Mittlerer FWCI",
     metricHIndex: "h-Index",
@@ -197,6 +211,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     sourceManualEntries: "手動入力",
     sourceDerived: "推定",
     cvFallbackTitle: "履歴書",
+    badgeOpenAccess: "OA",
+    badgeOpenAccessTitle: "オープンアクセス（{status}）",
     metric2yr: "2年間平均被引用度",
     metricFwci: "平均FWCI",
     metricHIndex: "h指数",
@@ -226,6 +242,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     sourceManualEntries: "entradas manuais",
     sourceDerived: "derivado",
     cvFallbackTitle: "Curriculum Vitae",
+    badgeOpenAccess: "OA",
+    badgeOpenAccessTitle: "Acesso aberto ({status})",
     metric2yr: "Citação média em 2 anos",
     metricFwci: "FWCI médio dos trabalhos",
     metricHIndex: "índice h",
@@ -255,6 +273,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     sourceManualEntries: "voci manuali",
     sourceDerived: "derivato",
     cvFallbackTitle: "Curriculum Vitae",
+    badgeOpenAccess: "OA",
+    badgeOpenAccessTitle: "Accesso aperto ({status})",
     metric2yr: "Citazioni medie a 2 anni",
     metricFwci: "FWCI medio dei lavori",
     metricHIndex: "indice h",
@@ -284,6 +304,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     sourceManualEntries: "수동 입력",
     sourceDerived: "파생",
     cvFallbackTitle: "이력서",
+    badgeOpenAccess: "OA",
+    badgeOpenAccessTitle: "오픈 액세스 ({status})",
     metric2yr: "2년 평균 피인용도",
     metricFwci: "평균 논문 FWCI",
     metricHIndex: "h-지수",
@@ -313,6 +335,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     sourceManualEntries: "ручные записи",
     sourceDerived: "производные",
     cvFallbackTitle: "Резюме",
+    badgeOpenAccess: "OA",
+    badgeOpenAccessTitle: "Открытый доступ ({status})",
     metric2yr: "Средняя цитируемость за 2 года",
     metricFwci: "Средний FWCI работы",
     metricHIndex: "h-индекс",

@@ -5,7 +5,7 @@ import {
   signInWithGoogle,
   signInWithOrcid,
 } from "@/app/auth-actions";
-import { asLocale } from "@/lib/i18n";
+import { asLocale, t } from "@/lib/i18n";
 import { landingStrings } from "@/lib/i18n/landing";
 import { localeAboutPath } from "@/lib/seo";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -32,6 +32,9 @@ export default function Landing({ locale }: LandingProps) {
 
   return (
     <div className="auth-shell" lang={loc}>
+      <a href="#auth-main" className="skip-link">
+        {t(loc, "skipToContent")}
+      </a>
       <StructuredData locale={loc} description={s.metaDescription} />
       <header className="auth-nav">
         <span className="brand">
@@ -46,7 +49,7 @@ export default function Landing({ locale }: LandingProps) {
         </div>
       </header>
 
-      <main className="auth-main">
+      <main className="auth-main" id="auth-main">
         <section className="hero">
           <span className="eyebrow">{s.eyebrow}</span>
           <h1 className="hero-title">{s.heroTitle}</h1>

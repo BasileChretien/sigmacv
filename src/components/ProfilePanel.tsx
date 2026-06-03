@@ -84,7 +84,11 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
         <div className="profile-photo-col">
           {owner.photo ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="profile-photo-preview" src={owner.photo} alt="" />
+            <img
+              className="profile-photo-preview"
+              src={owner.photo}
+              alt={owner.displayName || t(locale, "photo")}
+            />
           ) : (
             <div className="profile-photo-placeholder" aria-hidden="true" />
           )}
@@ -123,7 +127,7 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
             <input
               type="text"
               value={owner.honorific ?? ""}
-              placeholder="Dr"
+              placeholder={t(locale, "honorificPlaceholder")}
               onChange={(e) =>
                 onChange(updateOwner(cv, { honorific: e.target.value || undefined }))
               }
@@ -211,8 +215,13 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
               onChange={(e) => setLink(i, { url: e.target.value })}
               aria-label={t(locale, "linkUrl")}
             />
-            <button type="button" className="btn btn-sm" onClick={() => removeLink(i)}>
-              {t(locale, "removePhoto")}
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => removeLink(i)}
+              aria-label={t(locale, "removeLink")}
+            >
+              {t(locale, "removeLink")}
             </button>
           </div>
         ))}

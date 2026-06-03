@@ -168,6 +168,9 @@ export default function CvWorkspace({
 
   return (
     <div className="cv-page" lang={uiLocale}>
+      <a href="#cv-main" className="skip-link">
+        {t(uiLocale, "skipToContent")}
+      </a>
       <ResearchConsentPrompt initialConsent={researchConsent} locale={uiLocale} />
       <header className="cv-topbar">
         <div className="cv-topbar-left">
@@ -182,7 +185,11 @@ export default function CvWorkspace({
           <AccountControls researchConsent={researchConsent} locale={uiLocale} />
         </div>
         <div className="cv-topbar-actions">
-          {status ? <span className="status muted">{status}</span> : null}
+          {/* Persistent polite live region so screen readers announce
+              "Saved." / "Synced…" without a focus change. */}
+          <span className="status muted" role="status" aria-live="polite">
+            {status}
+          </span>
           <button
             type="button"
             className="btn"
@@ -232,7 +239,7 @@ export default function CvWorkspace({
             value={uiLocale}
             onChange={(e) => changeUiLocale(e.target.value)}
             aria-label={t(uiLocale, "uiLanguage")}
-            title={t(uiLocale, "uiLanguage")}
+            title={t(uiLocale, "uiLanguageHint")}
           >
             {SUPPORTED_LOCALES.map((loc) => (
               <option key={loc} value={loc}>
@@ -250,7 +257,7 @@ export default function CvWorkspace({
       </header>
 
       {cv ? (
-        <div className="cv-workspace">
+        <div className="cv-workspace" id="cv-main">
           <section className="cv-workspace-pane">
             <CvEditor
               cv={cv}
@@ -264,7 +271,7 @@ export default function CvWorkspace({
           </section>
         </div>
       ) : (
-        <div className="cv-empty container">
+        <div className="cv-empty container" id="cv-main">
           <h2>{t(uiLocale, "emptyTitle")}</h2>
           <p className="muted">{t(uiLocale, "emptyBody")}</p>
           <button

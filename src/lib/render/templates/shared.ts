@@ -35,7 +35,10 @@ export function authorshipTableHtml(cv: CanonicalCv): string {
 export function photoHtml(cv: CanonicalCv): string {
   const photo = cv.owner.photo;
   if (!photo) return "";
-  return `<img class="cv-photo" src="${escapeHtml(photo)}" alt="" />`;
+  // Give the portrait an accessible name on the published page (the owner's
+  // display name) rather than an empty alt that tells a screen-reader nothing.
+  const alt = escapeHtml(cv.owner.displayName || "");
+  return `<img class="cv-photo" src="${escapeHtml(photo)}" alt="${alt}" />`;
 }
 
 /** The contact line: location · email · phone · website (+ extra links). */
@@ -124,8 +127,8 @@ export function commonCss(theme: TemplateTheme): string {
     --cv-accent-soft: ${theme.accentSoft};
     --cv-ink: #1a1d23;
     --cv-ink-2: #3d434d;
-    --cv-muted: #6b7280;
-    --cv-faint: #9aa1ac;
+    --cv-muted: #5d646f;
+    --cv-faint: #6b7280;
     --cv-rule: #e6e8ec;
     --cv-rule-strong: #c9ccd3;
     --cv-page: #ffffff;
@@ -161,7 +164,9 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-headmain { display: flex; gap: 1.6rem; align-items: flex-start; justify-content: space-between; }
   .cv-headtext { flex: 1 1 auto; min-width: 0; }
   .cv-photo { flex: none; width: 104px; height: 104px; border-radius: 10px; object-fit: cover; }
-  .cv-honorific { display: inline-block; font-size: 0.6em; font-weight: 500; color: inherit; opacity: 0.78; margin-right: 0.4em; letter-spacing: 0; vertical-align: baseline; }
+  /* Honorific reads as part of the name, not a stray superscript: scale with the
+     name but never shrink below ~0.8rem (matters on small-h1 templates like ATS). */
+  .cv-honorific { display: inline-block; font-size: max(0.62em, 0.8rem); font-weight: 600; color: inherit; opacity: 0.85; margin-right: 0.4em; letter-spacing: 0; vertical-align: baseline; }
   .cv-headline { font-size: 1.2rem; font-weight: 500; color: var(--cv-ink-2); margin-top: 0.15rem; letter-spacing: 0; }
   .cv-ids { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.35rem; }
   .cv-ids a { color: var(--cv-accent); text-decoration: none; }

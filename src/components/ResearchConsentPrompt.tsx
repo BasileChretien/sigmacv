@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { consentStrings } from "@/lib/i18n";
+
+const FOCUSABLE =
+  'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /**
  * Research-consent onboarding.
@@ -38,6 +41,45 @@ export default function ResearchConsentPrompt({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const s = consentStrings(locale);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
+
+  // Modal a11y for the first-use prompt: move focus in, trap Tab, close on
+  // Escape (= "not now"), and restore focus to the trigger on close (WCAG 2.4.3).
+  useEffect(() => {
+    if (mode !== "prompt") return;
+    restoreFocusRef.current = (document.activeElement as HTMLElement) ?? null;
+    const dialog = dialogRef.current;
+    dialog?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        markSeen();
+        setMode("hidden");
+        return;
+      }
+      if (e.key !== "Tab" || !dialog) return;
+      const items = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (items.length === 0) return;
+      const first = items[0]!;
+      const last = items[items.length - 1]!;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      restoreFocusRef.current?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   // Decide what (if anything) to show — client-only, so SSR stays inert.
   useEffect(() => {
@@ -109,6 +151,7 @@ export default function ResearchConsentPrompt({
           role="dialog"
           aria-modal="true"
           aria-labelledby="consent-title"
+          ref={dialogRef}
         >
           <h2 id="consent-title">{s.title}</h2>
           <p>{s.blurb}</p>

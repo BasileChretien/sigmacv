@@ -184,6 +184,33 @@ button {
   }
 }
 
+/* Skip link: off-screen until focused, then pinned top-left (WCAG 2.4.1). */
+.skip-link {
+  position: absolute;
+  left: var(--space-3);
+  top: -3rem;
+  z-index: 100;
+  padding: 0.5rem 0.9rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  transition: top var(--dur) var(--ease);
+}
+.skip-link:focus {
+  top: var(--space-3);
+}
+
+/* Small helper text under a form control (e.g. the document-language picker). */
+.field-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: var(--text-2xs);
+  line-height: 1.35;
+}
+
 .container {
   max-width: 1180px;
   margin: 0 auto;
@@ -761,7 +788,12 @@ input[type="radio"] {
   cursor: grab;
   color: var(--grey-400);
   user-select: none;
-  width: 1.25rem;
+  /* WCAG 2.5.8 target size (min 24px) — the handle is a pointer target. */
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   font-size: var(--text-md);
   line-height: 1;
@@ -928,7 +960,9 @@ input[type="radio"] {
   cursor: help;
 }
 .cv-source-badge {
-  color: var(--muted);
+  /* grey-700 (not grey-600) so this small 0.625rem text clears WCAG 1.4.3
+     (4.5:1) on the grey-100 chip background. */
+  color: var(--text-secondary);
   background: var(--grey-100);
   border-color: var(--border);
   font-weight: var(--weight-medium);
@@ -1056,6 +1090,11 @@ input[type="radio"] {
   background: #fff;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+  /* Loading dim moved off inline style so prefers-reduced-motion can disable it. */
+  transition: opacity var(--dur) var(--ease);
+}
+.cv-preview-frame.is-loading {
+  opacity: 0.5;
 }
 .cv-preview-empty {
   display: grid;

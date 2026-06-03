@@ -18,10 +18,9 @@ export default function CvPreview({ html, loading, locale }: CvPreviewProps) {
         // which would re-enable script execution on untrusted CV markup.
         <iframe
           title={u.previewTitle}
-          className="cv-preview-frame"
+          className={`cv-preview-frame${loading ? " is-loading" : ""}`}
           srcDoc={html}
           sandbox=""
-          style={loading ? { opacity: 0.5, transition: "opacity 0.15s" } : undefined}
         />
       ) : (
         <div className="cv-preview-empty muted">

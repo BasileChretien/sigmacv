@@ -255,6 +255,7 @@ export default function CvEditor({
             value={cvLocale}
             onChange={(e) => onChange(setLocale(cv, e.target.value))}
             aria-label={t(locale, "cvLanguage")}
+            title={t(locale, "cvLanguageHint")}
           >
             {SUPPORTED_LOCALES.map((loc) => (
               <option key={loc} value={loc}>
@@ -262,6 +263,7 @@ export default function CvEditor({
               </option>
             ))}
           </select>
+          <span className="field-hint muted">{t(locale, "cvLanguageHint")}</span>
         </label>
 
         <label className="field custom-style">
