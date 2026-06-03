@@ -625,13 +625,22 @@ button {
 /* Site-owner links row (footer / About — chrome only). */
 .site-links {
   display: inline-flex;
-  gap: 1rem;
+  gap: 0.9rem;
   align-items: center;
   flex-wrap: wrap;
   font-size: 0.9rem;
 }
 .about-links {
   margin-top: 1.5rem;
+}
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  color: #555;
+  transition: color 0.15s ease;
+}
+.icon-link:hover {
+  color: var(--accent, #1f4fd8);
 }
 
 .cv-item-row.is-not-mine .cv-item-title {
