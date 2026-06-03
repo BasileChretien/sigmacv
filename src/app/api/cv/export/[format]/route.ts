@@ -3,12 +3,15 @@ import { auth } from "@/auth";
 import { getCvForUser } from "@/lib/cv/sync";
 import { rateLimit } from "@/lib/rateLimit";
 import { getRenderer } from "@/lib/render";
+import { cvSlug } from "@/lib/render/slug";
 import type { RenderFormat } from "@/lib/render/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const EXPORTABLE: readonly RenderFormat[] = ["pdf", "docx", "latex", "markdown"];
+// "json" exports the canonical CV object verbatim (machine-readable, open).
+const ALL_FORMATS: readonly string[] = [...EXPORTABLE, "json"];
 const EXPORT_MAX = 60;
 const EXPORT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
@@ -23,7 +26,7 @@ export async function GET(
   }
 
   const { format } = await params;
-  if (!EXPORTABLE.includes(format as RenderFormat)) {
+  if (!ALL_FORMATS.includes(format)) {
     return NextResponse.json(
       { error: `Unsupported export format: ${format}` },
       { status: 400 },
@@ -41,6 +44,18 @@ export async function GET(
   const cv = await getCvForUser(session.user.id);
   if (!cv) {
     return NextResponse.json({ error: "No CV to export yet." }, { status: 404 });
+  }
+
+  // Machine-readable export: the canonical CV object itself (open schema).
+  if (format === "json") {
+    return new NextResponse(JSON.stringify(cv, null, 2), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${cvSlug(cv.owner.displayName)}-cv.json"`,
+        "Cache-Control": "no-store",
+      },
+    });
   }
 
   try {

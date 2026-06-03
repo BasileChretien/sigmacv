@@ -7,7 +7,7 @@ import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
 import PublishControls from "./PublishControls";
 
-type ExportFormat = "pdf" | "docx" | "latex" | "markdown";
+type ExportFormat = "pdf" | "docx" | "latex" | "markdown" | "json";
 
 interface CvWorkspaceProps {
   initialCv: CanonicalCv | null;
@@ -167,6 +167,7 @@ export default function CvWorkspace({
             <option value="docx">Word (.docx)</option>
             <option value="latex">LaTeX (.tex)</option>
             <option value="markdown">Markdown (.md)</option>
+            <option value="json">JSON (data)</option>
           </select>
           <button
             type="button"
