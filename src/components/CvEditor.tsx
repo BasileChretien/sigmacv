@@ -25,6 +25,7 @@ import {
 } from "@/lib/canonical/curate";
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
+import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t } from "@/lib/i18n";
 import ItemRow from "./ItemRow";
 
 interface CvEditorProps {
@@ -72,6 +73,7 @@ export default function CvEditor({
 }: CvEditorProps) {
   const sections = [...cv.sections].sort((a, b) => a.order - b.order);
   const customStyle = cv.display.customStyle;
+  const locale = asLocale(cv.display.locale);
 
   const [styleInput, setStyleInput] = useState("");
   const [styleAdding, setStyleAdding] = useState(false);
@@ -177,9 +179,26 @@ export default function CvEditor({
               )
             }
           >
-            {TEMPLATES.map((t) => (
-              <option key={t} value={t}>
-                {TEMPLATE_LABELS[t] ?? t}
+            {TEMPLATES.map((tpl) => (
+              <option key={tpl} value={tpl}>
+                {TEMPLATE_LABELS[tpl] ?? tpl}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span>{t(locale, "language")}</span>
+          <select
+            value={locale}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { locale: e.target.value }))
+            }
+            aria-label={t(locale, "language")}
+          >
+            {SUPPORTED_LOCALES.map((loc) => (
+              <option key={loc} value={loc}>
+                {LOCALE_LABELS[loc]}
               </option>
             ))}
           </select>
@@ -510,13 +529,14 @@ export default function CvEditor({
             </div>
 
             {items.length === 0 ? (
-              <p className="muted empty-note">No items in this section.</p>
+              <p className="muted empty-note">{t(locale, "noItems")}</p>
             ) : (
               <ul className="cv-item-list">
                 {items.map((item, ii) => (
                   <ItemRow
                     key={item.id}
                     item={item}
+                    locale={locale}
                     isFirst={ii === 0}
                     isLast={ii === items.length - 1}
                     onToggleIncluded={() =>
@@ -569,7 +589,7 @@ export default function CvEditor({
                   placeholder={
                     section.type === "grants"
                       ? "Add a grant, e.g. ANR JCJC, €250k (2024–2027)"
-                      : "Add an entry…"
+                      : t(locale, "addEntryPlaceholder")
                   }
                   onChange={(e) =>
                     setDrafts((d) => ({ ...d, [section.type]: e.target.value }))
@@ -588,7 +608,7 @@ export default function CvEditor({
                   onClick={() => addEntry(section.type)}
                   disabled={!(drafts[section.type] ?? "").trim()}
                 >
-                  Add
+                  {t(locale, "add")}
                 </button>
               </div>
             ) : null}

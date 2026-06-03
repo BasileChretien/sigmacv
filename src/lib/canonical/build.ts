@@ -7,6 +7,7 @@ import {
   type CvSection,
 } from "./schema";
 import { computeDerivedMetrics } from "@/lib/openalex/deriveMetrics";
+import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName, workToCsl } from "@/lib/openalex/toCsl";
 import {
   normalizeOrcid,
@@ -641,7 +642,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     previousManualItems(previous, "datasets"),
   );
 
-  const sections: CvSection[] = [
+  const builtSections: CvSection[] = [
     publicationsSection,
     preprintsSection,
     datasetsSection ? mergeSection(datasetsSection, previous) : null,
@@ -653,6 +654,15 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     editorialSection ? mergeSection(editorialSection, previous) : null,
     grantsSection ? mergeSection(grantsSection, previous) : null,
   ].filter((s): s is CvSection => s !== null);
+
+  // Localize default section headings to the chosen locale. Genuine user
+  // renames (titles that aren't a default in any locale) are left untouched.
+  const locale = (previous?.display ?? DisplayChoicesSchema.parse({})).locale;
+  const sections: CvSection[] = builtSections.map((s) =>
+    isDefaultSectionTitle(s.type, s.title)
+      ? { ...s, title: sectionTitle(locale, s.type) }
+      : s,
+  );
 
   // Provenance reflects the sources that actually contributed (always include
   // openalex, the primary works source).

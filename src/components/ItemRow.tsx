@@ -2,14 +2,15 @@
 
 import {
   isHidden,
-  NOT_MINE_REASON_LABELS,
   NOT_MINE_REASONS,
   type CvItem,
   type NotMineReason,
 } from "@/lib/canonical/schema";
+import { reasonLabel, t, type Locale } from "@/lib/i18n";
 
 interface ItemRowProps {
   item: CvItem;
+  locale: Locale;
   isFirst: boolean;
   isLast: boolean;
   onToggleIncluded: () => void;
@@ -26,6 +27,7 @@ interface ItemRowProps {
 
 export default function ItemRow({
   item,
+  locale,
   isFirst,
   isLast,
   onToggleIncluded,
@@ -73,22 +75,19 @@ export default function ItemRow({
             {venue ? <span> · {venue}</span> : null}
             {item.authoredBySelf ? (
               <span className="cv-self-badge" title="Matched by your identifier">
-                you
+                {t(locale, "youBadge")}
               </span>
             ) : null}
             {item.notMine ? (
-              <span className="cv-notmine-badge" title="You marked this as wrongly attributed">
-                not mine
+              <span className="cv-notmine-badge" title={t(locale, "notMineHint")}>
+                {t(locale, "notMineBadge")}
               </span>
             ) : null}
             {item.authoredBySelf &&
             item.meta.reviewFlag === "orcid-conflict" &&
             !item.notMine ? (
-              <span
-                className="cv-review-badge"
-                title="This record lists a different ORCID for the matching author — check that it's really yours."
-              >
-                ⚠ review
+              <span className="cv-review-badge" title={t(locale, "reviewHint")}>
+                {t(locale, "reviewBadge")}
               </span>
             ) : null}
           </div>
@@ -102,13 +101,13 @@ export default function ItemRow({
                 e.target.value ? (e.target.value as NotMineReason) : undefined,
               )
             }
-            aria-label="Why isn't this yours?"
-            title="Why isn't this yours? (optional — helps fix author disambiguation)"
+            aria-label={t(locale, "reasonAria")}
+            title={t(locale, "reasonAria")}
           >
-            <option value="">Why? (optional)</option>
+            <option value="">{t(locale, "reasonPrompt")}</option>
             {NOT_MINE_REASONS.map((r) => (
               <option key={r} value={r}>
-                {NOT_MINE_REASON_LABELS[r]}
+                {reasonLabel(locale, r)}
               </option>
             ))}
           </select>
@@ -120,8 +119,8 @@ export default function ItemRow({
           className="icon-btn"
           onClick={onMoveUp}
           disabled={isFirst}
-          aria-label="Move up"
-          title="Move up"
+          aria-label={t(locale, "moveUp")}
+          title={t(locale, "moveUp")}
         >
           ↑
         </button>
@@ -130,8 +129,8 @@ export default function ItemRow({
           className="icon-btn"
           onClick={onMoveDown}
           disabled={isLast}
-          aria-label="Move down"
-          title="Move down"
+          aria-label={t(locale, "moveDown")}
+          title={t(locale, "moveDown")}
         >
           ↓
         </button>
@@ -140,9 +139,9 @@ export default function ItemRow({
           className="mine-btn"
           onClick={onToggleIncluded}
           aria-pressed={!item.included}
-          title="Keep on file but leave it off this CV"
+          title={t(locale, "hideHint")}
         >
-          {item.included ? "Hide" : "Show"}
+          {item.included ? t(locale, "hide") : t(locale, "show")}
         </button>
         {isCitation ? (
           <button
@@ -150,9 +149,9 @@ export default function ItemRow({
             className={`mine-btn${item.notMine ? " is-restore" : ""}`}
             onClick={onToggleNotMine}
             aria-pressed={item.notMine}
-            title="This work is wrongly attributed to me (corrects the record)"
+            title={t(locale, "notMineHint")}
           >
-            {item.notMine ? "Mine" : "Not mine"}
+            {item.notMine ? t(locale, "mine") : t(locale, "notMine")}
           </button>
         ) : null}
         {isManual && onRemove ? (
@@ -160,10 +159,10 @@ export default function ItemRow({
             type="button"
             className="mine-btn is-delete"
             onClick={onRemove}
-            title="Delete this entry"
-            aria-label="Delete entry"
+            title={t(locale, "delete")}
+            aria-label={t(locale, "delete")}
           >
-            Delete
+            {t(locale, "delete")}
           </button>
         ) : null}
       </div>

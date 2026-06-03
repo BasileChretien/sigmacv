@@ -7,6 +7,7 @@ import {
   type DisplayChoices,
   type NotMineReason,
 } from "./schema";
+import { sectionTitle } from "@/lib/i18n";
 
 /**
  * Pure, immutable curation operations on the canonical CV object.
@@ -208,7 +209,7 @@ export function addManualEntry(
   const newSection: CvSection = {
     id: sectionType,
     type: sectionType,
-    title: def.title,
+    title: sectionTitle(cv.display.locale, sectionType),
     visible: true,
     order: def.order,
     items: [item],

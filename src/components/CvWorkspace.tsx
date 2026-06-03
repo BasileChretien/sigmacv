@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { asLocale, t } from "@/lib/i18n";
 import AccountControls from "./AccountControls";
 import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
@@ -56,6 +57,9 @@ export default function CvWorkspace({
   const [status, setStatus] = useState("");
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
 
+  // UI language follows the CV's chosen locale (en-US when there's no CV yet).
+  const uiLocale = asLocale(cv?.display.locale);
+
   // Debounced live preview whenever the document changes.
   useEffect(() => {
     if (!cv) {
@@ -91,15 +95,15 @@ export default function CvWorkspace({
     try {
       await apiFetch("/api/cv", "PATCH", { document: cv });
       setDirty(false);
-      setStatus("Saved.");
+      setStatus(t(uiLocale, "savedStatus"));
       return true;
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : "Save failed.");
+      setStatus(err instanceof Error ? err.message : t(uiLocale, "saveFailed"));
       return false;
     } finally {
       setSaving(false);
     }
-  }, [cv]);
+  }, [cv, uiLocale]);
 
   const handleSync = useCallback(async () => {
     setSyncing(true);
@@ -110,13 +114,13 @@ export default function CvWorkspace({
       };
       setCv(data.cv);
       setDirty(false);
-      setStatus("Synced from OpenAlex.");
+      setStatus(t(uiLocale, "syncedStatus"));
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : "Sync failed.");
+      setStatus(err instanceof Error ? err.message : t(uiLocale, "syncFailed"));
     } finally {
       setSyncing(false);
     }
-  }, []);
+  }, [uiLocale]);
 
   const handleExport = useCallback(async () => {
     // Export uses the SAVED document — don't download a stale file if the
@@ -146,7 +150,7 @@ export default function CvWorkspace({
             onClick={handleSync}
             disabled={syncing}
           >
-            {syncing ? "Syncing…" : "Re-sync"}
+            {syncing ? t(uiLocale, "resyncing") : t(uiLocale, "resync")}
           </button>
           <button
             type="button"
@@ -154,13 +158,17 @@ export default function CvWorkspace({
             onClick={handleSave}
             disabled={!cv || saving || !dirty}
           >
-            {saving ? "Saving…" : dirty ? "Save" : "Saved"}
+            {saving
+              ? t(uiLocale, "saving")
+              : dirty
+                ? t(uiLocale, "save")
+                : t(uiLocale, "saved")}
           </button>
           <select
             className="export-format"
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
-            aria-label="Export format"
+            aria-label={t(uiLocale, "exportFormat")}
             disabled={!cv}
           >
             <option value="pdf">PDF</option>
@@ -175,11 +183,11 @@ export default function CvWorkspace({
             onClick={handleExport}
             disabled={!cv || saving || syncing}
           >
-            Export
+            {t(uiLocale, "exportLabel")}
           </button>
           <form action={signOutAction}>
             <button type="submit" className="btn">
-              Sign out
+              {t(uiLocale, "signOut")}
             </button>
           </form>
         </div>
@@ -200,19 +208,15 @@ export default function CvWorkspace({
         </div>
       ) : (
         <div className="cv-empty container">
-          <h2>No CV yet</h2>
-          <p className="muted">
-            We couldn&apos;t find publications for your ORCID iD on OpenAlex
-            yet. Try syncing — new records can take time to appear, and sandbox
-            ORCID iDs have no OpenAlex profile.
-          </p>
+          <h2>{t(uiLocale, "emptyTitle")}</h2>
+          <p className="muted">{t(uiLocale, "emptyBody")}</p>
           <button
             type="button"
             className="btn btn-primary"
             onClick={handleSync}
             disabled={syncing}
           >
-            {syncing ? "Syncing…" : "Sync from OpenAlex"}
+            {syncing ? t(uiLocale, "resyncing") : t(uiLocale, "syncFromOpenAlex")}
           </button>
         </div>
       )}

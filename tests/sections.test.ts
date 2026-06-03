@@ -405,6 +405,41 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(item.meta.reviewFlag).toBeUndefined();
   });
 
+  it("localizes default section titles to the chosen locale, preserving renames", () => {
+    const en = buildCanonicalCv({
+      id: "loc",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      employments,
+      fundings,
+    });
+    expect(en.sections.find((s) => s.type === "grants")!.title).toBe("Grants & Funding");
+
+    // The user switches to French and renames Positions, then re-syncs.
+    const frRenamed: CanonicalCv = {
+      ...en,
+      display: { ...en.display, locale: "fr-FR" },
+      sections: en.sections.map((s) =>
+        s.type === "positions" ? { ...s, title: "Mes postes" } : s,
+      ),
+    };
+    const fr = buildCanonicalCv({
+      id: "loc",
+      resolved,
+      works: baseWorks,
+      now: "2026-07-01T00:00:00.000Z",
+      employments,
+      fundings,
+      previous: frRenamed,
+    });
+    // Default headings re-localize…
+    expect(fr.sections.find((s) => s.type === "grants")!.title).toBe("Financements et bourses");
+    expect(fr.sections.find((s) => s.type === "publications")!.title).toBe("Publications");
+    // …but the genuine rename is left untouched.
+    expect(fr.sections.find((s) => s.type === "positions")!.title).toBe("Mes postes");
+  });
+
   it("preserves the not-mine reason across a re-sync", () => {
     const first = buildCanonicalCv({
       id: "nr",

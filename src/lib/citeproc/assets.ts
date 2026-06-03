@@ -24,7 +24,24 @@ const styleCache = new Map<string, string>();
  * shadow or poison a bundled one (`getStyleXml` always prefers vendored).
  */
 const customStyleCache = new Map<string, string>();
-let localeCache: string | null = null;
+/** Parsed locale XML cached per resolved locale file (e.g. "fr-FR"). */
+const localeCache = new Map<string, string>();
+
+/** Vendored CSL locales the app ships (drives citation terms + date formats). */
+export const BUNDLED_LOCALES = ["en-US", "fr-FR", "ja-JP"] as const;
+
+/**
+ * Map a requested language tag (citeproc may ask for "fr-FR", "fr", "ja", …) to
+ * a bundled locale file. Matches on the primary language subtag; anything we
+ * don't ship falls back to the default (en-US).
+ */
+function resolveLocaleKey(lang: string | undefined): string {
+  const primary = (lang ?? "").toLowerCase().split("-")[0];
+  const match = BUNDLED_LOCALES.find(
+    (l) => l.toLowerCase().split("-")[0] === primary,
+  );
+  return match ?? DEFAULT_LOCALE;
+}
 
 function sanitizeKey(key: string): string {
   return key.replace(/[^a-z0-9-]/gi, "").toLowerCase();
@@ -73,20 +90,28 @@ export function registerStyleXml(id: string, xml: string): void {
 }
 
 /**
- * Return locale XML. The MVP bundles only en-US, so we return it for any
- * requested language tag (citeproc requests "en-US", "en", or "us").
+ * Return locale XML for a requested language tag. Maps to the nearest bundled
+ * locale (en-US / fr-FR / ja-JP); unknown tags fall back to en-US. citeproc may
+ * request "en-US", "fr", "ja", etc. Cached per resolved locale.
  */
-export function getLocaleXml(_lang?: string): string {
-  if (localeCache) return localeCache;
-  const path = join(LOCALES_DIR, `locales-${DEFAULT_LOCALE}.xml`);
-  /* v8 ignore next 5 -- defensive: the en-US locale is vendored by fetch-csl */
+export function getLocaleXml(lang?: string): string {
+  const key = resolveLocaleKey(lang);
+  const cached = localeCache.get(key);
+  if (cached) return cached;
+
+  const path = join(LOCALES_DIR, `locales-${key}.xml`);
+  // Fall back to the always-present default if a non-default locale is somehow
+  // missing on disk (so a partial vendor never breaks rendering).
   if (!existsSync(path)) {
+    if (key !== DEFAULT_LOCALE) return getLocaleXml(DEFAULT_LOCALE);
+    /* v8 ignore next 4 -- defensive: en-US is vendored by fetch-csl */
     throw new Error(
       `CSL locale not found at ${path}. Run \`npm run fetch-csl\`.`,
     );
   }
-  localeCache = readFileSync(path, "utf8");
-  return localeCache;
+  const xml = readFileSync(path, "utf8");
+  localeCache.set(key, xml);
+  return xml;
 }
 
 /** List the style keys available on disk (for the UI dropdown). */

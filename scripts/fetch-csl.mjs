@@ -26,7 +26,9 @@ const STYLES = [
   "modern-language-association",
   "american-medical-association",
 ];
-const LOCALES = ["en-US"];
+// Bundled CSL locales — drive citation terms ("et al."/"and"), date formats,
+// etc. in the rendered CV. The UI offers a locale picker over this set.
+const LOCALES = ["en-US", "fr-FR", "ja-JP"];
 
 async function download(url, dest) {
   const res = await fetch(url);

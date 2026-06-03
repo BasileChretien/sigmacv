@@ -108,12 +108,28 @@ describe("CvEditor (component)", () => {
     const withNotMine = setItemNotMine(base, sectionId, id, true, { now: "2026-06-02T00:00:00.000Z" });
     const onChange = vi.fn();
     render(<CvEditor cv={withNotMine} availableStyles={["apa"]} onChange={onChange} />);
-    fireEvent.change(screen.getByLabelText(/why isn't this yours/i), {
+    // The accessible name uses a typographic apostrophe — match it loosely.
+    fireEvent.change(screen.getByLabelText(/why isn.t this yours/i), {
       target: { value: "different-person" },
     });
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
     const item = next.sections[0]!.items.find((i) => i.id === id)!;
     expect(item.notMine).toBe(true);
     expect(item.notMineReason).toBe("different-person");
+  });
+
+  it("renders chrome in the selected locale and switches it via the picker", () => {
+    const onChange = vi.fn();
+    const fr: CanonicalCv = {
+      ...makeCv(),
+      display: { ...makeCv().display, locale: "fr-FR" },
+    };
+    render(<CvEditor cv={fr} availableStyles={["apa"]} onChange={onChange} />);
+    // French chrome: the per-row curation button reads "Masquer".
+    expect(screen.getAllByText("Masquer").length).toBeGreaterThan(0);
+    // The language picker switches display.locale.
+    fireEvent.change(screen.getByLabelText(/langue/i), { target: { value: "ja-JP" } });
+    const next = onChange.mock.calls[0]![0] as CanonicalCv;
+    expect(next.display.locale).toBe("ja-JP");
   });
 });
