@@ -51,3 +51,6 @@ yarn-error.log*
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# ensure-db schema-sync fingerprint (local)
+.prisma-pushed

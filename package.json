@@ -6,8 +6,11 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/ensure-db.mjs",
     "dev": "next dev",
+    "predev:public": "node scripts/ensure-db.mjs",
     "dev:public": "next dev -H ::",
+    "db:sync": "node scripts/ensure-db.mjs",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",

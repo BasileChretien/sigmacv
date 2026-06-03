@@ -41,3 +41,6 @@ Personal data under GDPR + Japan APPI. Data minimization; per-field publish cons
 
 ## Working conventions
 Open-source (permissive license). Secrets in env only. Define and freeze the **canonical CV schema** and the **renderer interface** early — everything depends on them. Build the MVP vertical slice end-to-end before broadening.
+
+### Database / Prisma workflow
+The dev DB (Neon) is **push-managed**, so after changing `prisma/schema.prisma` the DB must be synced with `npm run db:push` (it uses `dotenv -e .env`; a bare `npx prisma …` falls back to a placeholder URL and fails with `P1001`). This is now **automatic**: `predev` runs `scripts/ensure-db.mjs`, which fingerprints the schema and runs `db push` only when it changed (instant no-op otherwise; non-fatal if the DB is unreachable). Forgetting to sync previously surfaced as an opaque Auth.js *"server configuration"* error on the first authenticated request. `npm run db:sync` runs it on demand; `npm run db:migrate` is the migration-history path (fresh DB / Docker). Migration files under `prisma/migrations/` are kept consistent with the schema by tests.
