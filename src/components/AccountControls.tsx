@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ui } from "@/lib/i18n/ui";
 
 /**
  * GDPR/APPI self-service: withdraw research consent + data export + account
@@ -11,11 +12,14 @@ import { useState } from "react";
  */
 interface AccountControlsProps {
   researchConsent: boolean;
+  locale: string;
 }
 
 export default function AccountControls({
   researchConsent,
+  locale,
 }: AccountControlsProps) {
+  const u = ui(locale);
   const [consenting, setConsenting] = useState(researchConsent);
   const [busy, setBusy] = useState(false);
 
@@ -34,11 +38,7 @@ export default function AccountControls({
   }
 
   async function deleteAccount() {
-    if (
-      !window.confirm(
-        "Permanently delete your account and all associated data? This cannot be undone.",
-      )
-    ) {
+    if (!window.confirm(u.deleteConfirm)) {
       return;
     }
     setBusy(true);
@@ -47,7 +47,7 @@ export default function AccountControls({
       window.location.href = "/";
     } else {
       setBusy(false);
-      window.alert("Failed to delete account. Please try again.");
+      window.alert(u.deleteFailed);
     }
   }
 
@@ -58,13 +58,13 @@ export default function AccountControls({
           type="button"
           className="link-btn"
           onClick={stopContributing}
-          title="You're currently contributing anonymised curation data to research. Click to stop and turn it off."
+          title={u.stopContributingTitle}
         >
-          Stop contributing to research
+          {u.stopContributing}
         </button>
       ) : null}
       <a className="link-btn" href="/api/account/export">
-        Export my data
+        {u.exportData}
       </a>
       <button
         type="button"
@@ -72,7 +72,7 @@ export default function AccountControls({
         onClick={deleteAccount}
         disabled={busy}
       >
-        Delete account
+        {u.deleteAccount}
       </button>
     </div>
   );

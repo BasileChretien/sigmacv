@@ -5,6 +5,7 @@ import type { CanonicalCv, CvLink } from "@/lib/canonical/schema";
 import { PHOTO_DATA_URL_MAX } from "@/lib/canonical/schema";
 import { updateOwner } from "@/lib/canonical/curate";
 import { t, type Locale } from "@/lib/i18n";
+import { ui } from "@/lib/i18n/ui";
 
 interface ProfilePanelProps {
   cv: CanonicalCv;
@@ -58,7 +59,7 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
     if (!file) return;
     const dataUrl = await fileToDataUrl(file);
     if (!dataUrl || dataUrl.length > PHOTO_DATA_URL_MAX) {
-      setPhotoError("That image is too large — try a smaller one.");
+      setPhotoError(ui(locale).photoTooLarge);
       return;
     }
     onChange(updateOwner(cv, { photo: dataUrl }));

@@ -32,6 +32,7 @@ import {
 } from "@/lib/canonical/curate";
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
+import { ui } from "@/lib/i18n/ui";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
 import ItemRow from "./ItemRow";
@@ -50,33 +51,6 @@ const STYLE_LABELS: Record<string, string> = {
   nature: "Nature",
   "modern-language-association": "MLA",
   "american-medical-association": "AMA",
-};
-
-const HIGHLIGHT_STYLE_LABELS: Record<string, string> = {
-  accent: "Accent colour",
-  bold: "Bold",
-  underline: "Underline",
-  "accent-underline": "Accent + underline",
-};
-
-const TEMPLATE_LABELS: Record<string, string> = {
-  classic: "Classic",
-  modern: "Modern",
-  minimal: "Minimal",
-  compact: "Compact",
-  sidebar: "Sidebar (photo)",
-  editorial: "Editorial",
-  ats: "ATS-friendly",
-  rirekisho: "Japanese (履歴書)",
-};
-const FONT_LABELS: Record<string, string> = {
-  serif: "Serif",
-  sans: "Sans",
-  palatino: "Palatino",
-};
-const DENSITY_LABELS: Record<string, string> = {
-  comfortable: "Comfortable",
-  compact: "Compact",
 };
 
 /** Section types a user can add manually (the rest are source-driven). */
@@ -100,6 +74,34 @@ export default function CvEditor({
   const sections = orderedSections(cv);
   const customStyle = cv.display.customStyle;
   const locale = asLocale(cv.display.locale);
+  const u = ui(locale);
+
+  // Locale-aware option labels (built from the chrome dictionary).
+  const TEMPLATE_LABELS: Record<string, string> = {
+    classic: u.tplClassic,
+    modern: u.tplModern,
+    minimal: u.tplMinimal,
+    compact: u.tplCompact,
+    sidebar: u.tplSidebar,
+    editorial: u.tplEditorial,
+    ats: u.tplAts,
+    rirekisho: "Japanese (履歴書)",
+  };
+  const HIGHLIGHT_STYLE_LABELS: Record<string, string> = {
+    accent: u.hlAccent,
+    bold: u.hlBold,
+    underline: u.hlUnderline,
+    "accent-underline": u.hlAccentUnderline,
+  };
+  const FONT_LABELS: Record<string, string> = {
+    serif: u.fontSerif,
+    sans: u.fontSans,
+    palatino: u.fontPalatino,
+  };
+  const DENSITY_LABELS: Record<string, string> = {
+    comfortable: u.densityComfortable,
+    compact: u.densityCompact,
+  };
 
   // The authorship table needs per-work author positions, which only exist on
   // freshly-synced data. If the table is on but any peer-reviewed own work lacks
@@ -199,7 +201,7 @@ export default function CvEditor({
         | (CustomStyle & { error?: string })
         | { error?: string };
       if (!res.ok || !("xml" in data)) {
-        setStyleError(("error" in data && data.error) || "Could not load that style.");
+        setStyleError(("error" in data && data.error) || u.styleLoadError);
         return;
       }
       onChange(
@@ -209,7 +211,7 @@ export default function CvEditor({
         }),
       );
     } catch {
-      setStyleError("Network error — please try again.");
+      setStyleError(u.styleNetworkError);
     } finally {
       setStyleAdding(false);
     }
@@ -220,9 +222,9 @@ export default function CvEditor({
       <ProfilePanel cv={cv} locale={locale} onChange={onChange} />
 
       <fieldset className="display-controls">
-        <legend>Style</legend>
+        <legend>{u.styleLegend}</legend>
         <label className="field">
-          <span>Template</span>
+          <span>{u.templateLabel}</span>
           <select
             value={cv.display.template}
             onChange={(e) =>
@@ -257,11 +259,11 @@ export default function CvEditor({
         </label>
 
         <label className="field custom-style">
-          <span>Citation style</span>
+          <span>{u.citationLabel}</span>
           <select
             value={cv.display.cslStyle}
             disabled={styleAdding}
-            aria-label="Citation style"
+            aria-label={u.citationLabel}
             onChange={(e) => {
               const v = e.target.value;
               if (styleOptions.includes(v)) {
@@ -271,14 +273,14 @@ export default function CvEditor({
               }
             }}
           >
-            <optgroup label="Your styles">
+            <optgroup label={u.yourStyles}>
               {styleOptions.map((s) => (
                 <option key={s} value={s}>
                   {styleLabel(s)}
                 </option>
               ))}
             </optgroup>
-            <optgroup label="Journal & society styles">
+            <optgroup label={u.journalStyles}>
               {CSL_STYLE_CATALOG.filter((s) => !styleOptions.includes(s.id)).map(
                 (s) => (
                   <option key={s.id} value={s.id}>
@@ -289,13 +291,11 @@ export default function CvEditor({
             </optgroup>
           </select>
           {styleAdding ? (
-            <span className="muted custom-style-hint">Loading style…</span>
+            <span className="muted custom-style-hint">{u.styleLoading}</span>
           ) : styleError ? (
             <span className="custom-style-error">{styleError}</span>
           ) : (
-            <span className="muted custom-style-hint">
-              Pick any journal style — applied to every citation.
-            </span>
+            <span className="muted custom-style-hint">{u.stylePickHint}</span>
           )}
         </label>
 
@@ -321,7 +321,7 @@ export default function CvEditor({
         </label>
 
         <label className="field">
-          <span>Font</span>
+          <span>{u.fontLabel}</span>
           <select
             value={cv.display.fontPairing}
             onChange={(e) =>
@@ -342,7 +342,7 @@ export default function CvEditor({
         </label>
 
         <label className="field">
-          <span>Density</span>
+          <span>{u.densityLabel}</span>
           <select
             value={cv.display.density}
             onChange={(e) =>
@@ -363,7 +363,7 @@ export default function CvEditor({
         </label>
 
         <div className="field">
-          <span>Accent</span>
+          <span>{u.accentLabel}</span>
           <div className="accent-swatches">
             {ACCENT_PRESETS.map((c) => (
               <button
@@ -372,7 +372,7 @@ export default function CvEditor({
                 className={`swatch${cv.display.accentColor === c ? " is-selected" : ""}`}
                 style={{ background: c }}
                 onClick={() => onChange(updateDisplay(cv, { accentColor: c }))}
-                aria-label={`Accent ${c}`}
+                aria-label={`${u.accentLabel} ${c}`}
                 title={c}
               />
             ))}
@@ -383,8 +383,8 @@ export default function CvEditor({
               onChange={(e) =>
                 onChange(updateDisplay(cv, { accentColor: e.target.value }))
               }
-              aria-label="Custom accent colour"
-              title="Custom accent colour"
+              aria-label={u.customAccent}
+              title={u.customAccent}
             />
           </div>
         </div>
@@ -397,11 +397,11 @@ export default function CvEditor({
               onChange(updateDisplay(cv, { highlightSelf: e.target.checked }))
             }
           />
-          <span>Highlight my name</span>
+          <span>{u.highlightSelf}</span>
         </label>
 
         <label className="field">
-          <span>Highlight style</span>
+          <span>{u.highlightStyleLabel}</span>
           <select
             value={cv.display.highlightStyle}
             disabled={!cv.display.highlightSelf}
@@ -423,7 +423,7 @@ export default function CvEditor({
         </label>
 
         <div className="field metric-picker">
-          <span>Metrics (optional — none by default)</span>
+          <span>{u.metricsLabel}</span>
           <div className="metric-options">
             {METRIC_DEFS.map((m) => {
               const selected = cv.display.metrics.includes(m.key);
@@ -434,7 +434,7 @@ export default function CvEditor({
               const raw = values[m.key];
               const value =
                 typeof raw === "number" ? formatMetricValue(m.key, raw) : null;
-              const note = value ? ` — ${value}` : " (no data)";
+              const note = value ? ` — ${value}` : ` ${u.metricNoData}`;
               return (
                 <label key={m.key} className="field-inline">
                   <input
@@ -474,17 +474,16 @@ export default function CvEditor({
                 )
               }
             >
-              Responsible-metrics preset
+              {u.metricsPreset}
             </button>
             <span className="muted metric-preset-note">
-              Field-normalised indicators only (DORA / Leiden) — avoids
-              journal-level proxies like the Impact Factor.
+              {u.metricsPresetNote}
             </span>
           </div>
         </div>
 
         <div className="field metric-picker">
-          <span>Authorship summary table (peer-reviewed only)</span>
+          <span>{u.authorshipLabel}</span>
           <div className="metric-options">
             {AUTHORSHIP_ROLES.map((r) => {
               const selected = cv.display.authorshipRoles.includes(r);
@@ -511,15 +510,10 @@ export default function CvEditor({
               );
             })}
           </div>
-          <span className="muted metric-preset-note">
-            Adds a table counting how often you are first / last /
-            corresponding author, etc. Pre-prints are not counted.
-          </span>
+          <span className="muted metric-preset-note">{u.authorshipNote}</span>
           {authorshipNeedsResync ? (
             <span className="metric-preset-note authorship-resync-note">
-              ⚠ These counts are empty for your existing publications. Click{" "}
-              <strong>Re-sync</strong> (top right) to pull author positions from
-              OpenAlex.
+              {u.authorshipResyncNote}
             </span>
           ) : null}
         </div>
@@ -532,7 +526,7 @@ export default function CvEditor({
               onChange(updateDisplay(cv, { showCharts: e.target.checked }))
             }
           />
-          <span>Show charts (publications &amp; citations / year)</span>
+          <span>{u.showCharts}</span>
         </label>
 
         <label className="field-inline">
@@ -543,7 +537,7 @@ export default function CvEditor({
               onChange(updateDisplay(cv, { showOpenAccess: e.target.checked }))
             }
           />
-          <span>Open-access badges</span>
+          <span>{u.showOpenAccess}</span>
         </label>
 
         <label className="field-inline">
@@ -554,7 +548,7 @@ export default function CvEditor({
               onChange(updateDisplay(cv, { showAuthorRole: e.target.checked }))
             }
           />
-          <span>Show my author role (first / last / corresponding)</span>
+          <span>{u.showAuthorRole}</span>
         </label>
 
         <label className="field-inline">
@@ -565,7 +559,7 @@ export default function CvEditor({
               onChange(updateDisplay(cv, { showProvenance: e.target.checked }))
             }
           />
-          <span>Data-provenance footer</span>
+          <span>{u.showProvenance}</span>
         </label>
 
         <label className="field-inline">
@@ -576,14 +570,9 @@ export default function CvEditor({
               onChange(updateDisplay(cv, { peerReviewedOnly: e.target.checked }))
             }
           />
-          <span title="Removes ALL non-peer-reviewed works from the CV, including your entire Preprints section. Leave this OFF to keep preprints listed (in their own section).">
-            Hide preprints &amp; non-peer-reviewed work
-          </span>
+          <span title={u.peerReviewedOnlyTitle}>{u.peerReviewedOnly}</span>
         </label>
-        <p className="muted metric-preset-note">
-          By default, preprints are kept but listed in a separate “Preprints”
-          section. Turn this on only if you want them gone entirely.
-        </p>
+        <p className="muted metric-preset-note">{u.peerReviewedOnlyNote}</p>
       </fieldset>
 
       <p className="editor-hint">{t(locale, "editorHints")}</p>
@@ -622,7 +611,7 @@ export default function CvEditor({
                   setDragSection(section.id);
                 }}
                 onDragEnd={() => setDragSection(null)}
-                title="Drag to reorder section"
+                title={u.dragSection}
                 aria-hidden="true"
               >
                 ⠿
@@ -643,10 +632,10 @@ export default function CvEditor({
                 onChange={(e) =>
                   onChange(renameSection(cv, section.id, e.target.value))
                 }
-                aria-label="Section title"
+                aria-label={u.sectionTitleAria}
               />
               <span className="section-count muted">
-                {shownCount}/{items.length} shown
+                {shownCount}/{items.length} {u.shownSuffix}
               </span>
               <label className="field-inline">
                 <input
@@ -658,14 +647,14 @@ export default function CvEditor({
                     )
                   }
                 />
-                <span>Show</span>
+                <span>{t(locale, "show")}</span>
               </label>
               <button
                 type="button"
                 className="icon-btn"
                 onClick={() => onChange(moveSection(cv, section.id, "up"))}
                 disabled={si === 0}
-                aria-label="Move section up"
+                aria-label={u.moveSectionUp}
               >
                 ↑
               </button>
@@ -674,7 +663,7 @@ export default function CvEditor({
                 className="icon-btn"
                 onClick={() => onChange(moveSection(cv, section.id, "down"))}
                 disabled={si === sections.length - 1}
-                aria-label="Move section down"
+                aria-label={u.moveSectionDown}
               >
                 ↓
               </button>
@@ -751,7 +740,7 @@ export default function CvEditor({
                   value={drafts[section.type] ?? ""}
                   placeholder={
                     section.type === "grants"
-                      ? "Add a grant, e.g. ANR JCJC, €250k (2024–2027)"
+                      ? u.grantsPlaceholder
                       : t(locale, "addEntryPlaceholder")
                   }
                   onChange={(e) =>
@@ -763,7 +752,7 @@ export default function CvEditor({
                       addEntry(section.type);
                     }
                   }}
-                  aria-label={`Add a ${section.type} entry`}
+                  aria-label={u.addEntryAria}
                 />
                 <button
                   type="button"

@@ -7,6 +7,7 @@ import {
   type NotMineReason,
 } from "@/lib/canonical/schema";
 import { reasonLabel, t, type Locale } from "@/lib/i18n";
+import { ui } from "@/lib/i18n/ui";
 
 /** Proper-noun data-source names (not translated); "manual" is localized below. */
 const SOURCE_NAMES: Record<string, string> = {
@@ -53,9 +54,10 @@ export default function ItemRow({
   onUpdateText,
   onRemove,
 }: ItemRowProps) {
+  const u = ui(locale);
   const isCitation = Boolean(item.csl);
   const isManual = item.source === "manual";
-  const title = item.csl?.title ?? item.displayText ?? "Untitled";
+  const title = item.csl?.title ?? item.displayText ?? u.itemUntitled;
   const year = item.meta.year ?? "—";
   const venue =
     typeof item.csl?.["container-title"] === "string"
@@ -104,7 +106,7 @@ export default function ItemRow({
             e.dataTransfer.effectAllowed = "move";
             onDragStart();
           }}
-          title="Drag to reorder"
+          title={u.dragItem}
           aria-hidden="true"
         >
           ⠿
@@ -116,8 +118,8 @@ export default function ItemRow({
             className="cv-item-edit"
             value={item.displayText ?? ""}
             onChange={(e) => onUpdateText(e.target.value)}
-            placeholder="e.g. Visiting Researcher, MIT (2023)"
-            aria-label="Entry text"
+            placeholder={u.manualPlaceholder}
+            aria-label={u.entryTextAria}
           />
         ) : (
           <div className="cv-item-title">{title}</div>
@@ -127,7 +129,7 @@ export default function ItemRow({
             <span>{year}</span>
             {venue ? <span> · {venue}</span> : null}
             {item.authoredBySelf ? (
-              <span className="cv-self-badge" title="Matched by your identifier">
+              <span className="cv-self-badge" title={u.matchedByIdentifier}>
                 {t(locale, "youBadge")}
               </span>
             ) : null}

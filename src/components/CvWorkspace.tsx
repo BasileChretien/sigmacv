@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { asLocale, t } from "@/lib/i18n";
+import { ui } from "@/lib/i18n/ui";
 import AccountControls from "./AccountControls";
 import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
@@ -149,8 +150,12 @@ export default function CvWorkspace({
           <strong>SigmaCV</strong>
           <span className="muted">·</span>
           <span className="muted">{userName}</span>
-          <PublishControls initialPublished={published} initialSlug={publicSlug} />
-          <AccountControls researchConsent={researchConsent} />
+          <PublishControls
+            initialPublished={published}
+            initialSlug={publicSlug}
+            locale={uiLocale}
+          />
+          <AccountControls researchConsent={researchConsent} locale={uiLocale} />
         </div>
         <div className="cv-topbar-actions">
           {status ? <span className="status muted">{status}</span> : null}
@@ -179,16 +184,16 @@ export default function CvWorkspace({
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
             aria-label={t(uiLocale, "exportFormat")}
-            title="PDF keeps your chosen visual template. Word, LaTeX and Markdown contain the same content + citation style in a plain, editable layout (no template styling)."
+            title={ui(uiLocale).exportFormatTitle}
             disabled={!cv}
           >
-            <option value="pdf">PDF (styled like preview)</option>
-            <option value="docx">Word .docx (plain)</option>
-            <option value="latex">LaTeX — Modern (.tex)</option>
-            <option value="latex-classic">LaTeX — Classic (.tex)</option>
-            <option value="markdown">Markdown .md (plain)</option>
-            <option value="bibtex">BibTeX .bib (for Zotero)</option>
-            <option value="json">JSON (data)</option>
+            <option value="pdf">{ui(uiLocale).exportPdf}</option>
+            <option value="docx">{ui(uiLocale).exportDocx}</option>
+            <option value="latex">{ui(uiLocale).exportLatexModern}</option>
+            <option value="latex-classic">{ui(uiLocale).exportLatexClassic}</option>
+            <option value="markdown">{ui(uiLocale).exportMarkdown}</option>
+            <option value="bibtex">{ui(uiLocale).exportBibtex}</option>
+            <option value="json">{ui(uiLocale).exportJson}</option>
           </select>
           <button
             type="button"
@@ -198,7 +203,7 @@ export default function CvWorkspace({
           >
             {t(uiLocale, "exportLabel")}
           </button>
-          <SupportLink />
+          <SupportLink locale={uiLocale} />
           <form action={signOutAction}>
             <button type="submit" className="btn">
               {t(uiLocale, "signOut")}
@@ -217,7 +222,7 @@ export default function CvWorkspace({
             />
           </section>
           <section className="cv-workspace-pane">
-            <CvPreview html={previewHtml} loading={previewLoading} />
+            <CvPreview html={previewHtml} loading={previewLoading} locale={uiLocale} />
           </section>
         </div>
       ) : (

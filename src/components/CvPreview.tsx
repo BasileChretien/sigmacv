@@ -1,11 +1,15 @@
 "use client";
 
+import { ui } from "@/lib/i18n/ui";
+
 interface CvPreviewProps {
   html: string;
   loading?: boolean;
+  locale: string;
 }
 
-export default function CvPreview({ html, loading }: CvPreviewProps) {
+export default function CvPreview({ html, loading, locale }: CvPreviewProps) {
+  const u = ui(locale);
   return (
     <div className="cv-preview">
       {html ? (
@@ -13,7 +17,7 @@ export default function CvPreview({ html, loading }: CvPreviewProps) {
         // NOTE: keep `sandbox=""` empty — never add `allow-scripts`/`allow-same-origin`,
         // which would re-enable script execution on untrusted CV markup.
         <iframe
-          title="CV preview"
+          title={u.previewTitle}
           className="cv-preview-frame"
           srcDoc={html}
           sandbox=""
@@ -21,7 +25,7 @@ export default function CvPreview({ html, loading }: CvPreviewProps) {
         />
       ) : (
         <div className="cv-preview-empty muted">
-          {loading ? "Rendering preview…" : "Preview will appear here."}
+          {loading ? u.previewRendering : u.previewEmpty}
         </div>
       )}
     </div>

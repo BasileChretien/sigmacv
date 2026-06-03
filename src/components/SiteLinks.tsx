@@ -1,3 +1,4 @@
+import { ui } from "@/lib/i18n/ui";
 import { getSiteLinks } from "@/lib/siteLinks";
 
 /** GitHub mark. */
@@ -23,11 +24,18 @@ function LinkedinIcon() {
  * GitHub + LinkedIn render as icons; Buy me a coffee stays a labelled button.
  * Renders nothing if none are configured.
  */
-export default function SiteLinks({ className }: { className?: string }) {
+export default function SiteLinks({
+  className,
+  locale = "en-US",
+}: {
+  className?: string;
+  locale?: string;
+}) {
   const { github, linkedin, coffee } = getSiteLinks();
   if (!github && !linkedin && !coffee) return null;
+  const u = ui(locale);
   return (
-    <nav className={className ?? "site-links"} aria-label="Links">
+    <nav className={className ?? "site-links"} aria-label={u.linksNav}>
       {github ? (
         <a
           href={github}
@@ -54,7 +62,7 @@ export default function SiteLinks({ className }: { className?: string }) {
       ) : null}
       {coffee ? (
         <a href={coffee} target="_blank" rel="noopener noreferrer" className="coffee-btn">
-          ☕ Buy me a coffee
+          {u.coffee}
         </a>
       ) : null}
     </nav>

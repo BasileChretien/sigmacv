@@ -111,7 +111,7 @@ export default function Landing({ locale }: LandingProps) {
 
       <footer className="auth-footer">
         <span className="muted">{s.footer}</span>
-        <SiteLinks />
+        <SiteLinks locale={loc} />
       </footer>
     </div>
   );

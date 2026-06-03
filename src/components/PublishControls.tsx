@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { ui } from "@/lib/i18n/ui";
 
 interface PublishControlsProps {
   initialPublished: boolean;
   initialSlug: string | null;
+  locale: string;
 }
 
 /**
@@ -15,7 +17,9 @@ interface PublishControlsProps {
 export default function PublishControls({
   initialPublished,
   initialSlug,
+  locale,
 }: PublishControlsProps) {
+  const u = ui(locale);
   const [published, setPublished] = useState(initialPublished);
   const [slug, setSlug] = useState(initialSlug);
   const [busy, setBusy] = useState(false);
@@ -56,25 +60,22 @@ export default function PublishControls({
 
   return (
     <div className="account-controls">
-      <label
-        className="field-inline"
-        title="Creates a shareable public web page of this CV at a public link (sigmacv.org/p/…). It re-syncs as you update. Off by default; un-tick to take it offline."
-      >
+      <label className="field-inline" title={u.publishTitle}>
         <input
           type="checkbox"
           checked={published}
           disabled={busy}
           onChange={(e) => toggle(e.target.checked)}
         />
-        <span>{published ? "Public page is live" : "Publish public page"}</span>
+        <span>{published ? u.publicLive : u.publishPublic}</span>
       </label>
       {published && slug ? (
         <>
           <a className="link-btn" href={`/p/${slug}`} target="_blank" rel="noreferrer">
-            Open page
+            {u.openPage}
           </a>
           <button type="button" className="link-btn" onClick={copyLink}>
-            {copied ? "Link copied!" : "Copy link"}
+            {copied ? u.linkCopied : u.copyLink}
           </button>
         </>
       ) : null}
