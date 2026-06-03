@@ -130,4 +130,9 @@ describe.skipIf(!hasApa)("publicationOrder render sort", () => {
     const cv = updateDisplay(base(), { publicationOrder: "year-asc" });
     expect(pubTitles(cv)).toEqual(["Older few-cited", "Mid", "Newer highly-cited"]);
   });
+
+  it("year-desc sorts newest first", () => {
+    const cv = updateDisplay(base(), { publicationOrder: "year-desc" });
+    expect(pubTitles(cv)).toEqual(["Newer highly-cited", "Mid", "Older few-cited"]);
+  });
 });

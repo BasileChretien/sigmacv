@@ -168,8 +168,7 @@ export default function ItemRow({
             ))}
           </select>
         ) : null}
-      </div>
-      <div className="cv-item-actions">
+        <div className="cv-item-actions">
         <button
           type="button"
           className="icon-btn"
@@ -221,6 +220,7 @@ export default function ItemRow({
             {t(locale, "delete")}
           </button>
         ) : null}
+        </div>
       </div>
     </li>
   );

@@ -28,6 +28,13 @@ function makeCv(): CanonicalCv {
 
 afterEach(cleanup);
 
+/** Sections are collapsed by default; expand them all so item rows render. */
+function expandAllSections() {
+  document
+    .querySelectorAll<HTMLButtonElement>("button.section-toggle")
+    .forEach((b) => fireEvent.click(b));
+}
+
 describe("CvEditor (component)", () => {
   it("toggling a metric calls onChange with the metric + showMetrics on", () => {
     const onChange = vi.fn();
@@ -77,21 +84,19 @@ describe("CvEditor (component)", () => {
     expect(screen.getByText("+ Skills")).toBeTruthy();
   });
 
-  it("expands sections by default and collapses on demand", () => {
-    const { container } = render(
-      <CvEditor cv={makeCv()} availableStyles={["apa"]} onChange={vi.fn()} />,
-    );
-    // Expanded by default: a Hide + Not mine per publication.
+  it("collapses sections by default and expands on demand to show rows", () => {
+    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} onChange={vi.fn()} />);
+    // Collapsed: no item rows yet.
+    expect(screen.queryAllByText("Hide").length).toBe(0);
+    expandAllSections();
+    // Expanded: a Hide + Not mine per publication.
     expect(screen.getAllByText("Hide").length).toBe(works.length);
     expect(screen.getAllByText("Not mine").length).toBe(works.length);
-    // Collapsing the (only) section hides its rows.
-    const toggle = container.querySelector<HTMLButtonElement>("button.section-toggle");
-    fireEvent.click(toggle!);
-    expect(screen.queryAllByText("Hide").length).toBe(0);
   });
 
   it("shows each item's data source", () => {
     render(<CvEditor cv={makeCv()} availableStyles={["apa"]} onChange={vi.fn()} />);
+    expandAllSections();
     expect(screen.getAllByText("OpenAlex").length).toBeGreaterThan(0);
   });
 
@@ -114,6 +119,7 @@ describe("CvEditor (component)", () => {
     } as unknown as OpenAlexWork;
     const cv = buildCanonicalCv({ id: "rf", resolved, works: [conflict], now: "2026-06-02T00:00:00.000Z" });
     render(<CvEditor cv={cv} availableStyles={["apa"]} onChange={vi.fn()} />);
+    expandAllSections();
     expect(screen.getByText(/⚠ review/)).toBeTruthy();
   });
 
@@ -124,6 +130,7 @@ describe("CvEditor (component)", () => {
     const withNotMine = setItemNotMine(base, sectionId, id, true, { now: "2026-06-02T00:00:00.000Z" });
     const onChange = vi.fn();
     render(<CvEditor cv={withNotMine} availableStyles={["apa"]} onChange={onChange} />);
+    expandAllSections();
     // The accessible name uses a typographic apostrophe — match it loosely.
     fireEvent.change(screen.getByLabelText(/why isn.t this yours/i), {
       target: { value: "different-person" },
@@ -141,6 +148,7 @@ describe("CvEditor (component)", () => {
     const { container } = render(
       <CvEditor cv={cv} availableStyles={["apa"]} onChange={onChange} />,
     );
+    expandAllSections();
     const handles = screen.getAllByTitle("Drag to reorder"); // item handles only
     const rows = container.querySelectorAll("li.cv-item-row");
     expect(rows.length).toBeGreaterThan(2);
@@ -158,6 +166,7 @@ describe("CvEditor (component)", () => {
       display: { ...makeCv().display, locale: "fr-FR" },
     };
     render(<CvEditor cv={fr} availableStyles={["apa"]} onChange={onChange} />);
+    expandAllSections();
     // French chrome: the per-row curation button reads "Masquer".
     expect(screen.getAllByText("Masquer").length).toBeGreaterThan(0);
     // The language picker switches display.locale.

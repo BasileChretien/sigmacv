@@ -107,12 +107,11 @@ export default function CvEditor({
   // by dropping onto another section's header.
   const [dragSection, setDragSection] = useState<string | null>(null);
   const [dragItem, setDragItem] = useState<{ sectionId: string; itemId: string } | null>(null);
-  // Sections are EXPANDED by default (so content is readable at a glance); the
-  // chevron collapses them. We track the collapsed ids, so new sections appear
-  // expanded.
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  // Sections are COLLAPSED by default (compact list that's easy to scan +
+  // reorder); the chevron expands one. Only ids in this set are expanded.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggleExpanded = (id: string) =>
-    setCollapsed((prev) => {
+    setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -551,7 +550,7 @@ export default function CvEditor({
       {sections.map((section, si) => {
         const items = [...section.items].sort((a, b) => a.order - b.order);
         const shownCount = items.filter((i) => !isHidden(i)).length;
-        const isExpanded = !collapsed.has(section.id);
+        const isExpanded = expanded.has(section.id);
         return (
           <div
             key={section.id}
@@ -747,7 +746,10 @@ export default function CvEditor({
               key={tp}
               type="button"
               className="btn btn-sm"
-              onClick={() => onChange(addSection(cv, tp))}
+              onClick={() => {
+                onChange(addSection(cv, tp));
+                setExpanded((prev) => new Set(prev).add(tp));
+              }}
             >
               + {sectionTitle(locale, tp)}
             </button>
