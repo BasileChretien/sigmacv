@@ -59,7 +59,11 @@ const STYLE_LABELS: Record<string, string> = {
 const ADDABLE_SECTIONS: CvSectionType[] = [
   "positions",
   "education",
+  "teaching",
+  "supervision",
+  "conference",
   "awards",
+  "talks",
   "service",
   "skills",
   "datasets",

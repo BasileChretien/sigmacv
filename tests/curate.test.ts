@@ -341,7 +341,7 @@ describe("manual entries (add / edit / remove)", () => {
     const skills = cv.sections.find((s) => s.type === "skills")!;
     expect(skills).toBeDefined();
     expect(skills.title).toBe("Skills"); // en-US default
-    expect(skills.order).toBe(11); // DEFAULT_SECTION_ORDER.skills
+    expect(skills.order).toBe(14); // DEFAULT_SECTION_ORDER.skills
     expect(skills.items[0]!.displayText).toBe("Python, R, statistics");
   });
 
@@ -349,7 +349,7 @@ describe("manual entries (add / edit / remove)", () => {
     const cv = addSection(makeCv(), "awards");
     const awards = cv.sections.find((s) => s.type === "awards")!;
     expect(awards.items).toHaveLength(0);
-    expect(awards.order).toBe(6); // DEFAULT_SECTION_ORDER.awards
+    expect(awards.order).toBe(7); // DEFAULT_SECTION_ORDER.awards
     expect(awards.title).toBe("Awards & Honors");
     // Adding the same type again is a no-op (no duplicate section).
     expect(addSection(cv, "awards")).toBe(cv);
