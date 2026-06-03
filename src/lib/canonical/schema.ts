@@ -18,6 +18,7 @@ export const CANONICAL_SCHEMA_VERSION = 1 as const;
 export const SECTION_TYPES = [
   "publications",
   "preprints",
+  "datasets",
   "positions",
   "education",
   "awards",
@@ -35,7 +36,7 @@ export const CvItemSchema = z.object({
   /** Stable id — e.g. the OpenAlex short id "W2741809807", or "position:…". */
   id: z.string(),
   /** Where the item came from. "manual" = user-entered; "orcid" = ORCID record. */
-  source: z.enum(["openalex", "orcid", "oep", "derived", "manual"]),
+  source: z.enum(["openalex", "orcid", "oep", "datacite", "derived", "manual"]),
   /** Full source identifier (e.g. OpenAlex URL form, ORCID put-code, or "manual"). */
   sourceId: z.string(),
   /** CSL-JSON payload handed to citeproc. Absent for non-citation items. */

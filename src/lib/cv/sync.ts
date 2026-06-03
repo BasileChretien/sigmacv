@@ -19,6 +19,7 @@ import {
   fetchOrcidPositions,
   fetchOrcidService,
 } from "@/lib/orcid/client";
+import { fetchDataciteOutputs } from "@/lib/datacite/client";
 import { fetchEditorialRoles } from "@/lib/oep/client";
 import { cvSlug } from "@/lib/render/slug";
 import { logCvSave } from "@/lib/research/log";
@@ -74,6 +75,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     distinctions,
     service,
     peerReviews,
+    dataciteOutputs,
   ] = await Promise.all([
     resolved ? fetchWorksByAuthorIds(resolved.authorIds) : Promise.resolve([]),
     fetchEditorialRoles(orcid),
@@ -84,6 +86,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     fetchOrcidDistinctions(orcid),
     fetchOrcidService(orcid),
     fetchOrcidPeerReviews(orcid),
+    fetchDataciteOutputs(orcid),
   ]);
 
   const id = existing?.id ?? randomUUID();
@@ -105,6 +108,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     distinctions,
     service,
     peerReviews,
+    dataciteOutputs,
   });
 
   await prisma.cv.upsert({

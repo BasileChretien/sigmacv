@@ -194,6 +194,27 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(pr).toContain("Cell — 1 review");
   });
 
+  it("builds a Datasets & Software section from DataCite outputs", () => {
+    const cv = buildCanonicalCv({
+      id: "ds",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      dataciteOutputs: [
+        { doi: "10.5281/zenodo.9", title: "PV signal toolkit", type: "Software", year: 2024, publisher: "Zenodo" },
+        { doi: "10.5281/zenodo.8", title: "VigiBase extract", type: "Dataset", year: 2023, publisher: "Zenodo" },
+      ],
+    });
+    const datasets = cv.sections.find((s) => s.type === "datasets")!;
+    expect(datasets.items).toHaveLength(2);
+    // Newest first; format "<title>. <publisher> (<year>) [<type>]".
+    expect(datasets.items[0]!.displayText).toBe(
+      "PV signal toolkit. Zenodo (2024) [Software]",
+    );
+    expect(datasets.items[0]!.source).toBe("datacite");
+    expect(datasets.items[0]!.meta.doi).toBe("10.5281/zenodo.9");
+  });
+
   it("routes preprint-typed works into a separate Preprints section", () => {
     const preprint = {
       ...(baseWorks[0] as OpenAlexWork),

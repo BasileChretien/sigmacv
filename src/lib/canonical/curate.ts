@@ -149,6 +149,7 @@ export function updateDisplay(
 const SECTION_DEFAULTS: Partial<
   Record<CvSectionType, { title: string; order: number }>
 > = {
+  datasets: { title: "Datasets & Software", order: 2 },
   positions: { title: "Positions", order: 2 },
   education: { title: "Education", order: 3 },
   awards: { title: "Awards & Honors", order: 4 },

@@ -23,6 +23,7 @@ import type {
   OrcidPeerReviewGroup,
   OrcidPosition,
 } from "@/lib/orcid/client";
+import type { DataciteOutput } from "@/lib/datacite/client";
 import type { EditorialRole } from "@/lib/oep/client";
 
 const PUBLICATIONS_SECTION_ID = "publications";
@@ -52,6 +53,51 @@ export interface BuildArgs {
   service?: OrcidPosition[];
   /** ORCID peer-review activity, aggregated by venue (Peer Review section). */
   peerReviews?: OrcidPeerReviewGroup[];
+  /** DataCite datasets/software outputs (Datasets & Software section). */
+  dataciteOutputs?: DataciteOutput[];
+}
+
+/** "<title>. <publisher> (<year>) [<type>]" for a DataCite output. */
+function formatDatasetText(o: DataciteOutput): string {
+  const head = o.publisher ? `${o.title}. ${o.publisher}` : o.title;
+  const yr = o.year ? ` (${o.year})` : "";
+  return `${head}${yr} [${o.type}]`;
+}
+
+/** Datasets & Software section from DataCite outputs (+ manual entries). */
+function buildDatasetsSection(
+  outputs: DataciteOutput[],
+  prevItems: Map<string, CvItem>,
+  manual: CvItem[],
+): CvSection | null {
+  const items: CvItem[] = [];
+  let rank = 0;
+  const sorted = [...outputs].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+  for (const o of sorted) {
+    const id = `dataset:datacite:${o.doi.replace(/[^a-z0-9]+/gi, "-")}`;
+    const it = makeEntryItem(
+      id,
+      "datacite",
+      o.doi,
+      formatDatasetText(o),
+      prevItems.get(id),
+      rank++,
+      o.year,
+    );
+    items.push({ ...it, meta: { ...it.meta, doi: o.doi } });
+  }
+  for (const m of manual) {
+    items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
+  }
+  if (items.length === 0) return null;
+  return {
+    id: "datasets",
+    type: "datasets",
+    title: "Datasets & Software",
+    visible: true,
+    order: 2,
+    items: reindexItems(items),
+  };
 }
 
 /** Year range like "(2012–2024)" / "(2024–present)". Empty if no years. */
@@ -570,9 +616,16 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     previousManualItems(previous, "grants"),
   );
 
+  const datasetsSection = buildDatasetsSection(
+    args.dataciteOutputs ?? [],
+    prevItems,
+    previousManualItems(previous, "datasets"),
+  );
+
   const sections: CvSection[] = [
     publicationsSection,
     preprintsSection,
+    datasetsSection ? mergeSection(datasetsSection, previous) : null,
     positionsSection ? mergeSection(positionsSection, previous) : null,
     educationSection ? mergeSection(educationSection, previous) : null,
     awardsSection ? mergeSection(awardsSection, previous) : null,

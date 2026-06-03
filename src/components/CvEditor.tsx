@@ -97,6 +97,7 @@ export default function CvEditor({
     "education",
     "awards",
     "service",
+    "datasets",
     "grants",
     "other",
   ]);
