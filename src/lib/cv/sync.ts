@@ -2,7 +2,13 @@ import { randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/log";
+import { getEnv } from "@/lib/env";
 import { buildCanonicalCv } from "@/lib/canonical/build";
+import {
+  canonicalizeInstitutions,
+  enrichCvWithCrossref,
+  withRorProvenance,
+} from "@/lib/canonical/enrich";
 import {
   CanonicalCvSchema,
   safeParseCanonicalCv,
@@ -90,27 +96,45 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     fetchDataciteOutputs(orcid),
   ]);
 
+  // ROR: canonicalize free-text institution names BEFORE building so the same
+  // institution from ORCID and OpenAlex de-duplicates and renders consistently.
+  const { result: inst, used: usedRor } = await canonicalizeInstitutions({
+    employments,
+    education,
+    distinctions,
+    service,
+    invitedPositions,
+    affiliations: resolved?.affiliations ?? [],
+  });
+
   const id = existing?.id ?? randomUUID();
-  const cv = buildCanonicalCv({
+  let cv = buildCanonicalCv({
     id,
-    resolved: resolved ?? {
-      orcid: normalizeOrcid(orcid),
-      authorIds: [],
-      displayName: fallbackName ?? "",
-    },
+    resolved: resolved
+      ? { ...resolved, affiliations: inst.affiliations }
+      : {
+          orcid: normalizeOrcid(orcid),
+          authorIds: [],
+          displayName: fallbackName ?? "",
+        },
     works,
     now,
     previous,
     editorialRoles,
-    employments,
+    employments: inst.employments,
     fundings,
-    invitedPositions,
-    education,
-    distinctions,
-    service,
+    invitedPositions: inst.invitedPositions,
+    education: inst.education,
+    distinctions: inst.distinctions,
+    service: inst.service,
     peerReviews,
     dataciteOutputs,
   });
+  if (usedRor) cv = withRorProvenance(cv);
+
+  // Crossref: fill bibliographic gaps (journal, volume/issue, pages) on works
+  // that have a DOI but incomplete OpenAlex metadata. Bounded + fails soft.
+  cv = await enrichCvWithCrossref(cv, getEnv().OPENALEX_MAILTO);
 
   await prisma.cv.upsert({
     where: { userId },

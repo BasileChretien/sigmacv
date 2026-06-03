@@ -1,5 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// syncCvForUser reads OPENALEX_MAILTO (for Crossref's polite pool). Provide the
+// minimal valid env so getEnv() doesn't throw; ORCID/DataCite/enrich are mocked
+// below so no real network is attempted.
+Object.assign(process.env, {
+  DATABASE_URL: "postgresql://u:p@localhost:5432/db",
+  AUTH_SECRET: "x".repeat(20),
+  ORCID_CLIENT_ID: "APP-1",
+  ORCID_CLIENT_SECRET: "secret",
+  OPENALEX_MAILTO: "ci@example.org",
+});
+
 const mocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
   upsert: vi.fn(),
@@ -8,6 +19,8 @@ const mocks = vi.hoisted(() => ({
   resolveAuthor: vi.fn(),
   fetchEditorial: vi.fn(),
   logCvSave: vi.fn(),
+  canonicalizeInstitutions: vi.fn(),
+  enrichCvWithCrossref: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -19,6 +32,24 @@ vi.mock("@/lib/openalex/client", () => ({ fetchWorksByAuthorIds: mocks.fetchWork
 vi.mock("@/lib/openalex/resolveAuthor", () => ({ resolveAuthorByOrcid: mocks.resolveAuthor }));
 vi.mock("@/lib/oep/client", () => ({ fetchEditorialRoles: mocks.fetchEditorial }));
 vi.mock("@/lib/research/log", () => ({ logCvSave: mocks.logCvSave }));
+// ORCID + DataCite clients have their own tests; stub them to [] so this
+// orchestration test makes no network calls.
+vi.mock("@/lib/orcid/client", () => ({
+  fetchOrcidPositions: vi.fn(async () => []),
+  fetchOrcidFundings: vi.fn(async () => []),
+  fetchOrcidInvitedPositions: vi.fn(async () => []),
+  fetchOrcidEducation: vi.fn(async () => []),
+  fetchOrcidDistinctions: vi.fn(async () => []),
+  fetchOrcidService: vi.fn(async () => []),
+  fetchOrcidPeerReviews: vi.fn(async () => []),
+}));
+vi.mock("@/lib/datacite/client", () => ({ fetchDataciteOutputs: vi.fn(async () => []) }));
+// Enrichment (ROR + Crossref) is covered by enrich.test.ts; keep it a no-op here.
+vi.mock("@/lib/canonical/enrich", () => ({
+  canonicalizeInstitutions: mocks.canonicalizeInstitutions,
+  enrichCvWithCrossref: mocks.enrichCvWithCrossref,
+  withRorProvenance: (cv: unknown) => cv,
+}));
 
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
@@ -52,6 +83,9 @@ beforeEach(() => {
   mocks.upsert.mockResolvedValue({});
   mocks.logCvSave.mockResolvedValue(undefined);
   mocks.fetchEditorial.mockResolvedValue([]);
+  // Enrichment is a pass-through here (its own behaviour is in enrich.test.ts).
+  mocks.canonicalizeInstitutions.mockImplementation(async (input) => ({ result: input, used: false }));
+  mocks.enrichCvWithCrossref.mockImplementation(async (cv) => cv);
 });
 
 describe("getCvForUser", () => {
