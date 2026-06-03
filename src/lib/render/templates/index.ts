@@ -10,6 +10,7 @@ import { compactTemplate } from "./compact";
 import { editorialTemplate } from "./editorial";
 import { minimalTemplate } from "./minimal";
 import { modernTemplate } from "./modern";
+import { rirekishoTemplate } from "./rirekisho";
 import { sidebarTemplate } from "./sidebar";
 import type { CvTemplate, TemplateTheme } from "./types";
 
@@ -39,6 +40,7 @@ const REGISTRY: Record<TemplateKey, CvTemplate> = {
   sidebar: sidebarTemplate,
   editorial: editorialTemplate,
   ats: atsTemplate,
+  rirekisho: rirekishoTemplate,
 };
 
 export function getTemplate(key: TemplateKey): CvTemplate {

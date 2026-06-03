@@ -50,9 +50,14 @@ function contactHtml(cv: CanonicalCv): string {
  * CSP means injected markup (from citeproc output) can never execute — applies
  * to both the preview iframe and the headless-Chromium PDF page.
  */
-export function pageShell(title: string, css: string, body: string): string {
+export function pageShell(
+  title: string,
+  css: string,
+  body: string,
+  lang = "en",
+): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${escapeHtml(lang)}">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />

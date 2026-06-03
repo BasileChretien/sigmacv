@@ -103,6 +103,43 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(editorial).toContain("border-bottom: 3px solid var(--cv-accent)");
   });
 
+  it("renders the rirekisho form with personal fields + 学歴・職歴 table", () => {
+    const base = buildCanonicalCv({
+      id: "rk",
+      resolved,
+      works,
+      now: "2026-06-02T00:00:00.000Z",
+      employments: [
+        { putCode: "200", organization: "Nagoya University", roleTitle: "Assistant Professor", startYear: 2024 },
+      ],
+      education: [
+        { putCode: "400", organization: "University of Caen", roleTitle: "PharmD", startYear: 2008, endYear: 2014 },
+      ],
+    });
+    const cv = updateOwner(updateDisplay(base, { template: "rirekisho" }), {
+      photo: "data:image/png;base64,iVBORw0KGgo=",
+      personal: {
+        phoneticName: "クレティアン バジル",
+        dateOfBirth: "1990-01-01",
+        gender: "男性",
+        nationality: "フランス",
+        address: "名古屋市",
+      },
+      contact: { email: "b@example.org" },
+    });
+    const html = renderCvHtml(cv);
+    expect(html).toContain('<html lang="ja">');
+    expect(html).toContain("履歴書");
+    expect(html).toContain("ふりがな");
+    expect(html).toContain("クレティアン バジル");
+    expect(html).toContain("学歴");
+    expect(html).toContain("職歴");
+    expect(html).toContain("名古屋市");
+    expect(html).toContain('<img class="cv-photo"');
+    // Education/positions are in the history table, not duplicated as sections.
+    expect(html).toContain("PharmD, University of Caen");
+  });
+
   it("renders the ATS template plain: hides badges/charts/photo, black text", () => {
     const cv = updateOwner(
       updateDisplay(makeCv(), { template: "ats", showOpenAccess: true, showCharts: true }),

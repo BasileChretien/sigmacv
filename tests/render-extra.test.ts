@@ -121,7 +121,9 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
         display: { ...cv.display, template },
       };
       const html = renderCvHtml(empty);
-      expect(html).toContain("Curriculum Vitae");
+      // Every template falls back to a default title; the rirekisho form uses
+      // its own Japanese title (履歴書) instead of "Curriculum Vitae".
+      expect(html.includes("Curriculum Vitae") || html.includes("履歴書")).toBe(true);
       expect(html).not.toContain("ORCID:");
     }
   });

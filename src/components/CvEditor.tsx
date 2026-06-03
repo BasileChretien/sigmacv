@@ -59,6 +59,7 @@ const TEMPLATE_LABELS: Record<string, string> = {
   sidebar: "Sidebar (photo)",
   editorial: "Editorial",
   ats: "ATS-friendly",
+  rirekisho: "Japanese (履歴書)",
 };
 const FONT_LABELS: Record<string, string> = {
   serif: "Serif",
