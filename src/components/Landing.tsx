@@ -7,6 +7,7 @@ import {
 } from "@/app/auth-actions";
 import { asLocale } from "@/lib/i18n";
 import { landingStrings } from "@/lib/i18n/landing";
+import { localeAboutPath } from "@/lib/seo";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SiteLinks from "./SiteLinks";
 import StructuredData from "./StructuredData";
@@ -40,7 +41,7 @@ export default function Landing({ locale }: LandingProps) {
           SigmaCV
         </span>
         <div className="auth-nav-right">
-          <Link href="/about">{s.about}</Link>
+          <Link href={localeAboutPath(loc)}>{s.about}</Link>
           <LanguageSwitcher current={loc} label={s.languageLabel} />
         </div>
       </header>
