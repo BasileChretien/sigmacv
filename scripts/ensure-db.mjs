@@ -91,9 +91,11 @@ function main() {
   console.log(
     "[ensure-db] Prisma schema changed — syncing the database (prisma db push)…",
   );
+  // `prisma db push` syncs the schema AND regenerates the client (Prisma 7 has
+  // no `--skip-generate` flag), so no separate generate step is needed.
   const res = spawnSync(
     "npx",
-    ["dotenv", "-e", ENV_PATH, "--", "prisma", "db", "push", "--skip-generate"],
+    ["dotenv", "-e", ENV_PATH, "--", "prisma", "db", "push"],
     { stdio: "inherit", shell: true },
   );
   if (res.status === 0) {
@@ -102,7 +104,6 @@ function main() {
     } catch {
       /* cache is best-effort */
     }
-    spawnSync("npx", ["prisma", "generate"], { stdio: "inherit", shell: true });
     console.log("[ensure-db] Database in sync.");
   } else {
     console.warn(
