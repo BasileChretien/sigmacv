@@ -161,6 +161,31 @@ describe.skipIf(!hasApa)("resolveCslStyle", () => {
     await expect(resolveCslStyle("nature")).rejects.toThrow(/CSL style/i);
   });
 
+  it("rejects a redirect that lands on a disallowed host (SSRF)", async () => {
+    const evil = {
+      ok: true,
+      status: 200,
+      url: "http://169.254.169.254/latest/meta-data/",
+      headers: new Headers(),
+      text: async () => MINI_XML,
+    } as unknown as Response;
+    vi.stubGlobal("fetch", vi.fn(async () => evil));
+    await expect(resolveCslStyle("nature")).rejects.toThrow(/disallowed host/i);
+  });
+
+  it("accepts a redirect that stays on an allowed host", async () => {
+    const okRes = {
+      ok: true,
+      status: 200,
+      url: "https://www.zotero.org/styles/nature-medicine",
+      headers: new Headers(),
+      text: async () => MINI_XML,
+    } as unknown as Response;
+    vi.stubGlobal("fetch", vi.fn(async () => okRes));
+    const style = await resolveCslStyle("nature");
+    expect(style.id).toBe("mini-test");
+  });
+
   it("rejects a note-only style via citeproc validation", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => mockResponse(NOTE_XML)));
     await expect(resolveCslStyle("note-only")).rejects.toBeInstanceOf(

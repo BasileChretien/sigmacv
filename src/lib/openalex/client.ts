@@ -9,8 +9,12 @@ import {
 
 // Overridable so E2E tests can point at a local fixture server (a server-side
 // fetch is invisible to Playwright's page.route). Defaults to the real API.
+// IGNORED in production: respecting it there would let a misconfigured/poisoned
+// env exfiltrate users' OPENALEX_MAILTO + ORCID iDs to an arbitrary host.
 const OPENALEX_API =
-  process.env.OPENALEX_API_BASE ?? "https://api.openalex.org";
+  process.env.NODE_ENV !== "production" && process.env.OPENALEX_API_BASE
+    ? process.env.OPENALEX_API_BASE
+    : "https://api.openalex.org";
 
 // Only request the fields we need (smaller, faster responses).
 const WORK_SELECT = [

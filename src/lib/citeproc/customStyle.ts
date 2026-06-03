@@ -128,6 +128,21 @@ async function fetchStyleText(url: URL): Promise<string> {
     clearTimeout(timer);
   }
 
+  // SSRF guard: the initial host was allow-listed, but `redirect: "follow"` may
+  // have landed us elsewhere (e.g. an allow-listed host 302-ing to an internal
+  // IP). Re-validate the FINAL resolved host.
+  if (res.url) {
+    let finalUrl: URL | null = null;
+    try {
+      finalUrl = new URL(res.url);
+    } catch {
+      throw new CustomStyleError("The style URL resolved to an invalid location.");
+    }
+    if (!ALLOWED_HOSTS.has(finalUrl.hostname)) {
+      throw new CustomStyleError("The style URL redirected to a disallowed host.");
+    }
+  }
+
   if (res.status === 404) {
     throw new CustomStyleError("No style found at that id/URL.");
   }

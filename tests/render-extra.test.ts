@@ -155,6 +155,21 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     });
   });
 
+  it("falls back to the default accent for an invalid stored colour", () => {
+    const cv = makeCv();
+    const tampered: CanonicalCv = {
+      ...cv,
+      display: {
+        ...cv.display,
+        // A value that bypassed schema validation somehow — must not break out of CSS.
+        accentColor: "#000; } body{display:none}" as CanonicalCv["display"]["accentColor"],
+      },
+    };
+    const html = renderCvHtml(tampered);
+    expect(html).toContain("--cv-accent: #1f4fd8;"); // safe default
+    expect(html).not.toContain("body{display:none}");
+  });
+
   describe("mini charts", () => {
     function withCharts(show: boolean): CanonicalCv {
       const cv = makeCv();

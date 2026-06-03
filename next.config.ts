@@ -4,10 +4,12 @@ const nextConfig: NextConfig = {
   // Standalone output keeps the Docker image small (app + traced deps only).
   output: "standalone",
 
-  // Dev only: allow the ngrok tunnel origin to load the dev server's client
-  // assets/HMR (otherwise Next blocks them when accessed via the tunnel).
-  // Harmless in production; update if the tunnel URL changes.
-  allowedDevOrigins: ["distance-comrade-barber.ngrok-free.dev"],
+  // Dev only: allow a tunnel origin (ngrok/cloudflared) to load the dev server's
+  // client assets/HMR. Set NEXT_ALLOWED_DEV_ORIGIN to your tunnel host; not
+  // hardcoded so no personal tunnel address lands in the public repo.
+  allowedDevOrigins: process.env.NEXT_ALLOWED_DEV_ORIGIN
+    ? [process.env.NEXT_ALLOWED_DEV_ORIGIN]
+    : [],
 
   // These packages are native/CommonJS and must not be bundled by the server
   // compiler — they are required at runtime from node_modules instead.
@@ -29,30 +31,26 @@ const nextConfig: NextConfig = {
     "/api/internal/resync": ["./src/lib/citeproc/assets/**/*"],
   },
 
-  // Baseline security headers on every response. HSTS only takes effect over
-  // HTTPS (terminated by Caddy in production).
+  // Baseline security headers on every response.
   async headers() {
-    return [
+    const base = [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       {
-        source: "/:path*",
-        headers: [
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "DENY" },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains",
-          },
-        ],
+        key: "Permissions-Policy",
+        value: "camera=(), microphone=(), geolocation=()",
       },
     ];
+    // HSTS only when actually served over HTTPS — emitting it over plain HTTP
+    // (local/IP testing on :80) would lock a browser out of the HTTP origin.
+    if (process.env.AUTH_URL?.startsWith("https://")) {
+      base.push({
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains",
+      });
+    }
+    return [{ source: "/:path*", headers: base }];
   },
 };
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,9 +14,27 @@ export async function DELETE() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rl = rateLimit(`account-delete:${session.user.id}`, 5, 60 * 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please wait a bit." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
+
   try {
     await prisma.user.delete({ where: { id: session.user.id } });
-    return NextResponse.json({ ok: true });
+    // The DB session cascade-deletes with the user, but the browser still holds
+    // the session cookie — clear it so no stale cookie can be re-associated
+    // (e.g. if the same email later re-registers).
+    const res = NextResponse.json({ ok: true });
+    for (const name of [
+      "authjs.session-token",
+      "__Secure-authjs.session-token",
+    ]) {
+      res.cookies.set(name, "", { maxAge: 0, path: "/" });
+    }
+    return res;
   } catch (err) {
     console.error("[api/account DELETE]", err);
     return NextResponse.json(

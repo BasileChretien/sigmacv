@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,7 +14,15 @@ export async function GET() {
   }
   const userId = session.user.id;
 
-  const [user, cv, researchEvents] = await Promise.all([
+  const rl = rateLimit(`export:account:${userId}`, 10, 60 * 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many export requests. Please wait a bit." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
+
+  const [user, accounts, sessions, cv, researchEvents] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -25,6 +34,16 @@ export async function GET() {
         createdAt: true,
       },
     }),
+    // OAuth provider linkages — non-secret fields only (omit tokens).
+    prisma.account.findMany({
+      where: { userId },
+      select: { provider: true, providerAccountId: true, type: true },
+    }),
+    // Session metadata (no token values).
+    prisma.session.findMany({
+      where: { userId },
+      select: { expires: true },
+    }),
     prisma.cv.findUnique({ where: { userId } }),
     prisma.researchEvent.findMany({ where: { userId } }),
   ]);
@@ -32,6 +51,8 @@ export async function GET() {
   const payload = {
     exportedAt: new Date().toISOString(),
     user,
+    accounts,
+    sessions,
     cv: cv?.document ?? null,
     researchEvents,
   };

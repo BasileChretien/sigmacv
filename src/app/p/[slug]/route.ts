@@ -29,7 +29,11 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": "text/html; charset=utf-8",
-      "X-Robots-Tag": "index, follow",
+      // Publishing exposes a capability URL the owner chooses to share. We do
+      // NOT let search engines index it: that would put names/ORCID/publication
+      // lists into Google with only a blanket publish toggle. Indexing requires
+      // a future explicit, specific "allow indexing" consent (GDPR/APPI).
+      "X-Robots-Tag": "noindex, nofollow",
       "Cache-Control": "public, max-age=300",
     },
   });

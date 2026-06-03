@@ -7,10 +7,16 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function safeEqual(a: string, b: string): boolean {
-  const ab = Buffer.from(a);
-  const bb = Buffer.from(b);
-  if (ab.length !== bb.length) return false;
-  return timingSafeEqual(ab, bb);
+  const ab = Buffer.from(a, "utf8");
+  const bb = Buffer.from(b, "utf8");
+  // Pad both to equal length so timingSafeEqual doesn't early-return on a length
+  // mismatch (which would leak the secret's length via timing).
+  const len = Math.max(ab.length, bb.length, 1);
+  const pa = Buffer.alloc(len);
+  const pb = Buffer.alloc(len);
+  ab.copy(pa);
+  bb.copy(pb);
+  return timingSafeEqual(pa, pb) && ab.length === bb.length;
 }
 
 /**

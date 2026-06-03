@@ -3,5 +3,12 @@
 #   - ":80" → plain HTTP for local/testing
 {$SITE_ADDRESS} {
 	encode gzip zstd
+
+	# /api/internal/* (the secret-guarded resync endpoint) is machine-to-machine
+	# only — the cron container reaches it directly at http://app:3000 on the
+	# internal Docker network. Never expose it publicly, even with the Bearer guard.
+	@internal path /api/internal/*
+	respond @internal 404
+
 	reverse_proxy app:3000
 }
