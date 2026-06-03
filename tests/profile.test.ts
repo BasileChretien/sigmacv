@@ -62,6 +62,22 @@ describe("CvOwnerSchema", () => {
       }).success,
     ).toBe(false);
   });
+  it("rejects an SVG photo (can carry scripts) but accepts raster formats", () => {
+    const base = { orcid: "x", openAlexAuthorIds: [], displayName: "X" };
+    expect(
+      CvOwnerSchema.safeParse({
+        ...base,
+        photo: "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
+      }).success,
+    ).toBe(false);
+    expect(CvOwnerSchema.safeParse({ ...base, photo: PNG }).success).toBe(true);
+    expect(
+      CvOwnerSchema.safeParse({
+        ...base,
+        photo: "data:image/webp;base64,UklGRg==",
+      }).success,
+    ).toBe(true);
+  });
   it("defaults links to an empty array", () => {
     const p = CvOwnerSchema.parse({ orcid: "x", openAlexAuthorIds: [], displayName: "X" });
     expect(p.links).toEqual([]);

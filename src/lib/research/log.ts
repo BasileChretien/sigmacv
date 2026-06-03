@@ -9,6 +9,13 @@ import {
 } from "./diff";
 
 /**
+ * Version of the research-consent notice. Bump when the *what/why* of logging
+ * materially changes, so re-consent can be required and each user's stored
+ * `researchConsentVersion` records exactly what they agreed to (IRB audit trail).
+ */
+export const RESEARCH_CONSENT_VERSION = 1;
+
+/**
  * Consent-gated research logging.
  *
  * NOTHING is written unless the user has explicitly opted in

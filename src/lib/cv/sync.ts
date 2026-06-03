@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/log";
@@ -212,7 +212,11 @@ export async function setPublishState(
   if (published && !slug) {
     const parsed = safeParseCanonicalCv(row.document);
     const name = parsed.success ? parsed.data.owner.displayName : "cv";
-    slug = `${cvSlug(name)}-${row.id.slice(0, 8)}`;
+    // Capability URL: a readable name plus an UNGUESSABLE 80-bit random suffix.
+    // The old `row.id.slice(0,8)` exposed a time-ordered CUID prefix that, given
+    // a known name + approximate signup time, narrowed enumeration — a privacy
+    // risk for a tool keyed to real researcher identities.
+    slug = `${cvSlug(name)}-${randomBytes(10).toString("hex")}`;
   }
 
   const updated = await prisma.cv.update({

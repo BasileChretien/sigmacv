@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { consentStrings } from "@/lib/i18n";
+import { consentStrings, t } from "@/lib/i18n";
+import { localePrivacyPath } from "@/lib/seo";
 
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -155,6 +156,11 @@ export default function ResearchConsentPrompt({
         >
           <h2 id="consent-title">{s.title}</h2>
           <p>{s.blurb}</p>
+          <p className="consent-learn-more">
+            <a href={localePrivacyPath(locale)} target="_blank" rel="noopener noreferrer">
+              {t(locale, "privacy")}
+            </a>
+          </p>
           {error ? <p className="consent-error">{error}</p> : null}
           <div className="consent-actions">
             <button

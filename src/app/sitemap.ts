@@ -7,23 +7,27 @@ import {
 import { absoluteUrl } from "@/lib/siteUrl";
 
 /**
- * Public sitemap. Lists only crawlable, indexable URLs: the homepage AND /about
- * in every language (each with per-entry hreflang `alternates`). Excludes the
- * auth-gated editor (/cv), published CVs (/p/*, noindex by privacy design),
- * and all /api + Next internals.
+ * Public sitemap. Lists only crawlable, indexable URLs: the homepage, /about,
+ * AND /privacy in every language (each with per-entry hreflang `alternates`).
+ * Excludes the auth-gated editor (/cv), published CVs (/p/*, noindex by privacy
+ * design), and all /api + Next internals.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const slug = (loc: string) => LOCALE_SLUGS[loc as keyof typeof LOCALE_SLUGS];
   const homePath = (loc: string) => (loc === DEFAULT_UI_LOCALE ? "/" : slug(loc));
   const aboutPath = (loc: string) =>
     loc === DEFAULT_UI_LOCALE ? "about" : `${slug(loc)}/about`;
+  const privacyPath = (loc: string) =>
+    loc === DEFAULT_UI_LOCALE ? "privacy" : `${slug(loc)}/privacy`;
 
   // Absolute hreflang maps (reciprocal + self) shared across each page's entries.
   const homeLanguages: Record<string, string> = {};
   const aboutLanguages: Record<string, string> = {};
+  const privacyLanguages: Record<string, string> = {};
   for (const loc of SUPPORTED_LOCALES) {
     homeLanguages[loc] = absoluteUrl(homePath(loc));
     aboutLanguages[loc] = absoluteUrl(aboutPath(loc));
+    privacyLanguages[loc] = absoluteUrl(privacyPath(loc));
   }
 
   const homeEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map((loc) => ({
@@ -40,5 +44,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     alternates: { languages: aboutLanguages },
   }));
 
-  return [...homeEntries, ...aboutEntries];
+  const privacyEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map((loc) => ({
+    url: absoluteUrl(privacyPath(loc)),
+    changeFrequency: "yearly",
+    priority: loc === DEFAULT_UI_LOCALE ? 0.4 : 0.3,
+    alternates: { languages: privacyLanguages },
+  }));
+
+  return [...homeEntries, ...aboutEntries, ...privacyEntries];
 }

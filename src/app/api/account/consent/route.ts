@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { RESEARCH_CONSENT_VERSION } from "@/lib/research/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,9 +27,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Expected { consent: boolean }" }, { status: 422 });
   }
 
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: { researchConsent: parsed.data.consent },
-  });
+  const userId = session.user.id;
+  if (parsed.data.consent) {
+    // Grant: stamp WHEN and WHICH consent version (IRB audit trail).
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        researchConsent: true,
+        researchConsentAt: new Date(),
+        researchConsentVersion: RESEARCH_CONSENT_VERSION,
+      },
+    });
+  } else {
+    // Withdrawal (GDPR Art. 7(3) / 17): stop future logging AND erase everything
+    // collected under the prior consent, atomically.
+    await prisma.$transaction([
+      prisma.researchEvent.deleteMany({ where: { userId } }),
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          researchConsent: false,
+          researchConsentAt: null,
+          researchConsentVersion: null,
+        },
+      }),
+    ]);
+  }
   return NextResponse.json({ ok: true, consent: parsed.data.consent });
 }

@@ -33,7 +33,15 @@ export async function DELETE() {
       "authjs.session-token",
       "__Secure-authjs.session-token",
     ]) {
-      res.cookies.set(name, "", { maxAge: 0, path: "/" });
+      // Mirror the attributes Auth.js set the cookie with, so the browser
+      // reliably overwrites/expires the original httpOnly+Secure session cookie.
+      res.cookies.set(name, "", {
+        maxAge: 0,
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      });
     }
     return res;
   } catch (err) {

@@ -34,7 +34,10 @@ export async function GET(
       // lists into Google with only a blanket publish toggle. Indexing requires
       // a future explicit, specific "allow indexing" consent (GDPR/APPI).
       "X-Robots-Tag": "noindex, nofollow",
-      "Cache-Control": "public, max-age=300",
+      // Personal data + a "living" page: never let a shared/CDN cache hold it
+      // (an unpublish must take effect immediately, and PII shouldn't sit in
+      // intermediary caches). The scheduled re-sync owns freshness.
+      "Cache-Control": "private, no-store",
     },
   });
 }

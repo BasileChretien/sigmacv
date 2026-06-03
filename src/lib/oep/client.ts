@@ -27,11 +27,36 @@ interface OepRecord {
   endYear?: number;
 }
 
+/**
+ * Validate the operator-configured `OEP_DATA_URL` before fetching: require an
+ * http(s) scheme and reject the cloud link-local metadata host. `OEP_DATA_URL`
+ * is operator-set (not user input), so this is defence-in-depth against a
+ * misconfiguration that would turn the fetch into an SSRF primitive.
+ */
+export function isAllowedOepUrl(raw: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+  // Block the well-known cloud metadata endpoint outright.
+  if (u.hostname === "169.254.169.254" || u.hostname === "metadata.google.internal") {
+    return false;
+  }
+  return true;
+}
+
 export async function fetchEditorialRoles(
   orcid: string,
 ): Promise<EditorialRole[]> {
   const url = process.env.OEP_DATA_URL;
   if (!url) return [];
+  if (!isAllowedOepUrl(url)) {
+    logger.warn("oep.dataset_url_rejected", {});
+    return [];
+  }
 
   try {
     const res = await fetch(url, { next: { revalidate: 86400 } });

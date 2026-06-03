@@ -1,0 +1,351 @@
+import { asLocale, type Locale } from "./index";
+
+/**
+ * Privacy-notice copy, localized for all 10 supported languages. Typed as
+ * Record<Locale, PrivacyStrings> so a missing translation is a compile error.
+ * Used by the default `/privacy` and the localized `/[locale]/privacy` routes.
+ *
+ * This is a GDPR (EU) + APPI (Japan) Article 13-style notice: controller,
+ * data processed, purpose & legal basis, the opt-in research use, retention,
+ * data-subject rights, and contact. Proper nouns (SigmaCV, OpenAlex, ORCID, …)
+ * and the GDPR article references are intentionally kept untranslated.
+ */
+export interface PrivacyStrings {
+  metaTitle: string;
+  metaDescription: string;
+  heading: string;
+  intro: string;
+  controllerHeading: string;
+  controller: string;
+  dataHeading: string;
+  data: string;
+  purposeHeading: string;
+  purpose: string;
+  researchHeading: string;
+  research: string;
+  retentionHeading: string;
+  retention: string;
+  rightsHeading: string;
+  rights: string;
+  contactHeading: string;
+  contact: string;
+  updatedNote: string;
+  backLink: string;
+}
+
+const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
+  "en-US": {
+    metaTitle: "Privacy",
+    metaDescription:
+      "How SigmaCV handles your personal data: data minimization, identifier-only matching, and research logging only with explicit consent (GDPR + Japan APPI).",
+    heading: "Privacy & Data Protection",
+    intro:
+      "SigmaCV is built on data minimization. It reads only public research metadata, matches your work by identifier (ORCID / OpenAlex ID) — never by name — and logs nothing about your choices unless you explicitly opt in. This notice explains what we process and the rights you have under the EU GDPR and Japan's APPI.",
+    controllerHeading: "Data controller",
+    controller:
+      "SigmaCV is maintained by Basile Chrétien (PharmD, MSc, MPH). For any privacy request, contact the maintainer through the project's GitHub repository.",
+    dataHeading: "What we process",
+    data: "Account data from your sign-in provider (ORCID iD, or email / Google account); the public research metadata used to build your CV (publications, grants, affiliations and metrics from OpenAlex, ORCID, Crossref, DataCite and Open Editors Plus); the CV content and display choices you create; and an optional profile photo you upload. Your CV is private unless you choose to publish a public page.",
+    purposeHeading: "Purpose & legal basis",
+    purpose:
+      "We process this data to provide the service you requested — generating and exporting your CV (GDPR Art. 6(1)(b), performance of a contract). Publishing a public CV page happens only on your instruction. We do not sell your data or use it for advertising.",
+    researchHeading: "Research use (opt-in only)",
+    research:
+      "SigmaCV is also a research project on responsible research assessment and author-name disambiguation. Logging of your curation choices for research is OFF by default and happens only with your explicit, separate consent (GDPR Art. 6(1)(a)). You can withdraw at any time from your account; withdrawal stops future logging and erases the research records already collected. Confirmatory analyses are pre-registered and conducted under an ethics/IRB protocol. If the scope of research logging materially changes, we ask for your consent again.",
+    retentionHeading: "Retention",
+    retention:
+      "We keep your account and CV data until you delete your account. Deleting your account permanently removes your profile, CV, and any research records. Published public pages stop being served immediately when you unpublish or delete.",
+    rightsHeading: "Your rights",
+    rights:
+      "You can access and export all your data (a one-click JSON export), correct it in the editor, withdraw research consent, and delete your account and all associated data at any time — directly from the app. Under the GDPR and APPI you also have the right to lodge a complaint with your data-protection authority.",
+    contactHeading: "Contact",
+    contact:
+      "Questions or requests: reach the maintainer via the SigmaCV GitHub repository.",
+    updatedNote:
+      "We may update this notice; material changes to research logging require renewed consent.",
+    backLink: "← Back to SigmaCV",
+  },
+  "zh-CN": {
+    metaTitle: "隐私",
+    metaDescription:
+      "SigmaCV 如何处理您的个人数据：数据最小化、仅基于标识符的匹配，以及仅在获得明确同意后进行的研究日志记录（GDPR + 日本 APPI）。",
+    heading: "隐私与数据保护",
+    intro:
+      "SigmaCV 以数据最小化为基础构建。它仅读取公开的研究元数据，通过标识符（ORCID / OpenAlex ID）匹配您的成果——绝不依据姓名——并且除非您明确选择加入，否则不会记录任何关于您选择的信息。本声明说明了我们处理哪些数据，以及您在欧盟 GDPR 和日本 APPI 下所享有的权利。",
+    controllerHeading: "数据控制者",
+    controller:
+      "SigmaCV 由 Basile Chrétien（PharmD, MSc, MPH）维护。如有任何隐私相关请求，请通过本项目的 GitHub 仓库联系维护者。",
+    dataHeading: "我们处理哪些数据",
+    data: "来自您登录提供方的账户数据（ORCID iD，或电子邮件 / Google 账户）；用于生成您简历的公开研究元数据（来自 OpenAlex、ORCID、Crossref、DataCite 和 Open Editors Plus 的出版物、资助、所属机构和指标）；您创建的简历内容和显示选择；以及您上传的可选个人照片。除非您选择发布公开页面，否则您的简历是私密的。",
+    purposeHeading: "目的与法律依据",
+    purpose:
+      "我们处理这些数据是为了提供您所请求的服务——生成和导出您的简历（GDPR Art. 6(1)(b)，履行合同）。仅在您发出指示时才会发布公开的简历页面。我们不会出售您的数据，也不会将其用于广告。",
+    researchHeading: "研究用途（仅限选择加入）",
+    research:
+      "SigmaCV 同时也是一个关于负责任的研究评估和作者姓名消歧的研究项目。出于研究目的对您的策展选择进行的日志记录默认为关闭，且仅在获得您明确、单独的同意后才会进行（GDPR Art. 6(1)(a)）。您可以随时从您的账户中撤回同意；撤回后将停止未来的日志记录，并删除已收集的研究记录。确证性分析已预先注册，并在伦理 / IRB 协议下进行。如果研究日志记录的范围发生实质性变更，我们将再次征求您的同意。",
+    retentionHeading: "数据保留",
+    retention:
+      "在您删除账户之前，我们会保留您的账户和简历数据。删除账户将永久移除您的个人资料、简历以及任何研究记录。当您取消发布或删除时，已发布的公开页面将立即停止提供访问。",
+    rightsHeading: "您的权利",
+    rights:
+      "您可以访问并导出您的所有数据（一键 JSON 导出）、在编辑器中更正数据、撤回研究同意，并可随时删除您的账户及所有关联数据——均可直接在应用内完成。根据 GDPR 和 APPI，您还有权向您的数据保护机构提出投诉。",
+    contactHeading: "联系方式",
+    contact: "如有问题或请求：请通过 SigmaCV GitHub 仓库联系维护者。",
+    updatedNote:
+      "我们可能会更新本声明；对研究日志记录的实质性变更需要重新征得同意。",
+    backLink: "← 返回 SigmaCV",
+  },
+  "es-ES": {
+    metaTitle: "Privacidad",
+    metaDescription:
+      "Cómo SigmaCV trata sus datos personales: minimización de datos, emparejamiento basado únicamente en identificadores y registro con fines de investigación solo con consentimiento explícito (GDPR + APPI de Japón).",
+    heading: "Privacidad y protección de datos",
+    intro:
+      "SigmaCV se basa en la minimización de datos. Lee únicamente metadatos públicos de investigación, identifica sus trabajos mediante identificador (ORCID / OpenAlex ID) —nunca por el nombre— y no registra nada sobre sus decisiones a menos que usted lo autorice de forma explícita. Este aviso explica qué datos tratamos y los derechos que le asisten en virtud del GDPR de la UE y de la APPI de Japón.",
+    controllerHeading: "Responsable del tratamiento",
+    controller:
+      "SigmaCV está mantenido por Basile Chrétien (PharmD, MSc, MPH). Para cualquier solicitud relacionada con la privacidad, póngase en contacto con el responsable del mantenimiento a través del repositorio de GitHub del proyecto.",
+    dataHeading: "Qué datos tratamos",
+    data: "Datos de la cuenta procedentes de su proveedor de inicio de sesión (ORCID iD, o cuenta de correo electrónico / Google); los metadatos públicos de investigación utilizados para crear su CV (publicaciones, financiaciones, afiliaciones y métricas de OpenAlex, ORCID, Crossref, DataCite y Open Editors Plus); el contenido del CV y las opciones de presentación que usted crea; y una fotografía de perfil opcional que usted suba. Su CV es privado a menos que decida publicar una página pública.",
+    purposeHeading: "Finalidad y base jurídica",
+    purpose:
+      "Tratamos estos datos para prestar el servicio que usted ha solicitado: generar y exportar su CV (GDPR Art. 6(1)(b), ejecución de un contrato). La publicación de una página pública del CV solo se realiza por indicación suya. No vendemos sus datos ni los utilizamos con fines publicitarios.",
+    researchHeading: "Uso con fines de investigación (solo previa aceptación)",
+    research:
+      "SigmaCV es también un proyecto de investigación sobre la evaluación responsable de la investigación y la desambiguación de nombres de autores. El registro de sus decisiones de curación con fines de investigación está DESACTIVADO de forma predeterminada y solo se realiza con su consentimiento explícito e independiente (GDPR Art. 6(1)(a)). Puede retirar su consentimiento en cualquier momento desde su cuenta; la retirada detiene el registro futuro y borra los registros de investigación ya recopilados. Los análisis confirmatorios están preinscritos y se llevan a cabo conforme a un protocolo ético/de comité de ética (IRB). Si el alcance del registro con fines de investigación cambia de forma sustancial, le solicitaremos de nuevo su consentimiento.",
+    retentionHeading: "Conservación",
+    retention:
+      "Conservamos los datos de su cuenta y de su CV hasta que elimine su cuenta. Al eliminar su cuenta se borran de forma permanente su perfil, su CV y cualquier registro de investigación. Las páginas públicas publicadas dejan de servirse de inmediato cuando las despublica o las elimina.",
+    rightsHeading: "Sus derechos",
+    rights:
+      "Puede acceder a todos sus datos y exportarlos (una exportación en JSON con un solo clic), rectificarlos en el editor, retirar el consentimiento para la investigación y eliminar su cuenta y todos los datos asociados en cualquier momento, directamente desde la aplicación. En virtud del GDPR y de la APPI, también tiene derecho a presentar una reclamación ante su autoridad de protección de datos.",
+    contactHeading: "Contacto",
+    contact:
+      "Preguntas o solicitudes: póngase en contacto con el responsable del mantenimiento a través del repositorio de GitHub de SigmaCV.",
+    updatedNote:
+      "Es posible que actualicemos este aviso; los cambios sustanciales en el registro con fines de investigación requieren un nuevo consentimiento.",
+    backLink: "← Volver a SigmaCV",
+  },
+  "fr-FR": {
+    metaTitle: "Confidentialité",
+    metaDescription:
+      "Comment SigmaCV traite vos données personnelles : minimisation des données, appariement uniquement par identifiant, et journalisation à des fins de recherche uniquement avec votre consentement explicite (GDPR + APPI du Japon).",
+    heading: "Confidentialité et protection des données",
+    intro:
+      "SigmaCV repose sur la minimisation des données. Il ne lit que des métadonnées de recherche publiques, associe vos travaux par identifiant (ORCID / OpenAlex ID) — jamais par le nom — et n'enregistre rien sur vos choix sans votre accord explicite. Le présent avis explique ce que nous traitons et les droits dont vous disposez au titre du GDPR de l'UE et de l'APPI du Japon.",
+    controllerHeading: "Responsable du traitement",
+    controller:
+      "SigmaCV est maintenu par Basile Chrétien (PharmD, MSc, MPH). Pour toute demande relative à la confidentialité, contactez le mainteneur via le dépôt GitHub du projet.",
+    dataHeading: "Ce que nous traitons",
+    data: "Les données de compte issues de votre fournisseur de connexion (ORCID iD, ou compte e-mail / Google) ; les métadonnées de recherche publiques utilisées pour construire votre CV (publications, financements, affiliations et indicateurs provenant d'OpenAlex, ORCID, Crossref, DataCite et Open Editors Plus) ; le contenu du CV et les choix d'affichage que vous créez ; et une photo de profil facultative que vous téléversez. Votre CV est privé, sauf si vous choisissez de publier une page publique.",
+    purposeHeading: "Finalité et base légale",
+    purpose:
+      "Nous traitons ces données pour fournir le service que vous avez demandé — générer et exporter votre CV (GDPR Art. 6(1)(b), exécution d'un contrat). La publication d'une page de CV publique n'a lieu que sur votre instruction. Nous ne vendons pas vos données et ne les utilisons pas à des fins publicitaires.",
+    researchHeading: "Utilisation à des fins de recherche (sur adhésion uniquement)",
+    research:
+      "SigmaCV est aussi un projet de recherche sur l'évaluation responsable de la recherche et la désambiguïsation des noms d'auteurs. La journalisation de vos choix de curation à des fins de recherche est DÉSACTIVÉE par défaut et n'a lieu qu'avec votre consentement explicite et distinct (GDPR Art. 6(1)(a)). Vous pouvez le retirer à tout moment depuis votre compte ; le retrait arrête toute journalisation future et efface les enregistrements de recherche déjà collectés. Les analyses confirmatoires sont préenregistrées et menées dans le cadre d'un protocole éthique/IRB. Si la portée de la journalisation à des fins de recherche change de manière substantielle, nous vous redemanderons votre consentement.",
+    retentionHeading: "Conservation",
+    retention:
+      "Nous conservons les données de votre compte et de votre CV jusqu'à ce que vous supprimiez votre compte. La suppression de votre compte efface définitivement votre profil, votre CV et tout enregistrement de recherche. Les pages publiques publiées cessent d'être servies immédiatement lorsque vous les dépubliez ou les supprimez.",
+    rightsHeading: "Vos droits",
+    rights:
+      "Vous pouvez accéder à toutes vos données et les exporter (un export JSON en un clic), les corriger dans l'éditeur, retirer votre consentement à la recherche, et supprimer votre compte et toutes les données associées à tout moment — directement depuis l'application. Au titre du GDPR et de l'APPI, vous avez également le droit d'introduire une réclamation auprès de votre autorité de protection des données.",
+    contactHeading: "Contact",
+    contact:
+      "Questions ou demandes : contactez le mainteneur via le dépôt GitHub de SigmaCV.",
+    updatedNote:
+      "Nous pouvons mettre à jour le présent avis ; toute modification substantielle de la journalisation à des fins de recherche nécessite un nouveau consentement.",
+    backLink: "← Retour à SigmaCV",
+  },
+  "de-DE": {
+    metaTitle: "Datenschutz",
+    metaDescription:
+      "Wie SigmaCV mit Ihren personenbezogenen Daten umgeht: Datenminimierung, Zuordnung ausschließlich über Identifikatoren und Forschungsprotokollierung nur mit ausdrücklicher Einwilligung (GDPR + Japan APPI).",
+    heading: "Datenschutz",
+    intro:
+      "SigmaCV basiert auf dem Grundsatz der Datenminimierung. Es liest ausschließlich öffentliche Forschungsmetadaten, ordnet Ihre Arbeiten anhand von Identifikatoren zu (ORCID / OpenAlex ID) — niemals anhand des Namens — und protokolliert nichts über Ihre Entscheidungen, sofern Sie dem nicht ausdrücklich zustimmen. Dieser Hinweis erläutert, welche Daten wir verarbeiten und welche Rechte Ihnen nach der GDPR der EU sowie dem japanischen APPI zustehen.",
+    controllerHeading: "Verantwortliche Stelle",
+    controller:
+      "SigmaCV wird von Basile Chrétien (PharmD, MSc, MPH) betreut. Für datenschutzbezogene Anfragen wenden Sie sich bitte über das GitHub-Repository des Projekts an den Betreiber.",
+    dataHeading: "Was wir verarbeiten",
+    data: "Kontodaten von Ihrem Anmeldeanbieter (ORCID iD oder E-Mail- / Google-Konto); die öffentlichen Forschungsmetadaten, die zur Erstellung Ihres CV verwendet werden (Publikationen, Fördermittel, Zugehörigkeiten und Metriken von OpenAlex, ORCID, Crossref, DataCite und Open Editors Plus); die von Ihnen erstellten CV-Inhalte und Anzeigeeinstellungen; sowie ein optionales Profilfoto, das Sie hochladen. Ihr CV ist privat, sofern Sie sich nicht für die Veröffentlichung einer öffentlichen Seite entscheiden.",
+    purposeHeading: "Zweck & Rechtsgrundlage",
+    purpose:
+      "Wir verarbeiten diese Daten, um den von Ihnen angeforderten Dienst bereitzustellen — die Erstellung und den Export Ihres CV (GDPR Art. 6(1)(b), Erfüllung eines Vertrags). Die Veröffentlichung einer öffentlichen CV-Seite erfolgt ausschließlich auf Ihre Anweisung. Wir verkaufen Ihre Daten nicht und verwenden sie nicht für Werbung.",
+    researchHeading: "Nutzung zu Forschungszwecken (nur mit Einwilligung)",
+    research:
+      "SigmaCV ist zugleich ein Forschungsprojekt zur verantwortungsvollen Forschungsbewertung und zur Disambiguierung von Autorennamen. Die Protokollierung Ihrer Kuratierungsentscheidungen zu Forschungszwecken ist standardmäßig DEAKTIVIERT und erfolgt nur mit Ihrer ausdrücklichen, gesonderten Einwilligung (GDPR Art. 6(1)(a)). Sie können diese jederzeit über Ihr Konto widerrufen; der Widerruf beendet die künftige Protokollierung und löscht die bereits erhobenen Forschungsdatensätze. Bestätigende Analysen werden vorab registriert und im Rahmen eines Ethik-/IRB-Protokolls durchgeführt. Sollte sich der Umfang der Forschungsprotokollierung wesentlich ändern, holen wir Ihre Einwilligung erneut ein.",
+    retentionHeading: "Speicherdauer",
+    retention:
+      "Wir bewahren Ihre Konto- und CV-Daten auf, bis Sie Ihr Konto löschen. Durch das Löschen Ihres Kontos werden Ihr Profil, Ihr CV und sämtliche Forschungsdatensätze dauerhaft entfernt. Veröffentlichte öffentliche Seiten werden sofort nicht mehr ausgeliefert, sobald Sie die Veröffentlichung zurücknehmen oder löschen.",
+    rightsHeading: "Ihre Rechte",
+    rights:
+      "Sie können jederzeit auf alle Ihre Daten zugreifen und diese exportieren (ein JSON-Export per Klick), sie im Editor berichtigen, Ihre Einwilligung zur Forschung widerrufen sowie Ihr Konto und alle zugehörigen Daten löschen — direkt in der App. Nach der GDPR und dem APPI haben Sie zudem das Recht, eine Beschwerde bei Ihrer Datenschutzbehörde einzureichen.",
+    contactHeading: "Kontakt",
+    contact:
+      "Fragen oder Anliegen: Wenden Sie sich über das SigmaCV-GitHub-Repository an den Betreiber.",
+    updatedNote:
+      "Wir können diesen Hinweis aktualisieren; wesentliche Änderungen an der Forschungsprotokollierung erfordern eine erneute Einwilligung.",
+    backLink: "← Zurück zu SigmaCV",
+  },
+  "ja-JP": {
+    metaTitle: "プライバシー",
+    metaDescription:
+      "SigmaCV における個人データの取り扱いについて：データ最小化、識別子のみによる照合、そして明示的な同意がある場合に限る研究目的のログ記録（GDPR + 日本の APPI）。",
+    heading: "プライバシーとデータ保護",
+    intro:
+      "SigmaCV はデータ最小化を基本として構築されています。公開されている研究メタデータのみを読み取り、お客様の業績を識別子（ORCID / OpenAlex ID）によって照合し、氏名文字列で照合することは決してありません。また、お客様が明示的にオプトインしない限り、お客様の選択について何も記録しません。本通知では、当方が処理する内容と、EU GDPR および日本の APPI のもとでお客様が有する権利について説明します。",
+    controllerHeading: "データ管理者",
+    controller:
+      "SigmaCV は Basile Chrétien（PharmD, MSc, MPH）によって運営されています。プライバシーに関するご請求は、本プロジェクトの GitHub リポジトリを通じて運営者までご連絡ください。",
+    dataHeading: "当方が処理する情報",
+    data: "お客様のサインインプロバイダーから取得するアカウントデータ（ORCID iD、またはメールアドレス / Google アカウント）、CV の作成に使用する公開研究メタデータ（OpenAlex、ORCID、Crossref、DataCite および Open Editors Plus から取得した論文、助成金、所属機関および各種指標）、お客様が作成する CV のコンテンツおよび表示に関する選択、ならびにお客様が任意でアップロードするプロフィール写真です。お客様が公開ページを公開することを選択しない限り、お客様の CV は非公開です。",
+    purposeHeading: "目的および法的根拠",
+    purpose:
+      "当方は、お客様が要求されたサービス（CV の生成およびエクスポート）を提供するためにこのデータを処理します（GDPR Art. 6(1)(b)、契約の履行）。公開 CV ページの公開は、お客様の指示があった場合に限り行われます。当方はお客様のデータを販売せず、広告目的で使用することもありません。",
+    researchHeading: "研究目的での利用（オプトインの場合のみ）",
+    research:
+      "SigmaCV は、責任ある研究評価および著者名の名寄せ（曖昧性解消）に関する研究プロジェクトでもあります。研究目的でのお客様のキュレーション選択のログ記録は、初期設定ではオフになっており、お客様の明示的かつ個別の同意がある場合に限り行われます（GDPR Art. 6(1)(a)）。お客様はいつでもアカウントから同意を撤回でき、撤回により今後のログ記録は停止され、すでに収集された研究記録は消去されます。確証的分析は事前登録され、倫理／IRB プロトコルのもとで実施されます。研究目的のログ記録の範囲に重大な変更があった場合、当方は改めてお客様の同意を求めます。",
+    retentionHeading: "保持期間",
+    retention:
+      "当方は、お客様がアカウントを削除するまで、お客様のアカウントおよび CV データを保持します。アカウントを削除すると、お客様のプロフィール、CV、およびすべての研究記録が完全に削除されます。公開されている公開ページは、お客様が公開を取り消すか削除した時点で直ちに配信が停止されます。",
+    rightsHeading: "お客様の権利",
+    rights:
+      "お客様は、ご自身のすべてのデータにアクセスしてエクスポートすること（ワンクリックでの JSON エクスポート）、エディターでデータを修正すること、研究目的の同意を撤回すること、ならびにアカウントおよび関連するすべてのデータをいつでも削除することができ、これらはすべてアプリから直接行えます。GDPR および APPI のもとで、お客様にはデータ保護当局に苦情を申し立てる権利もあります。",
+    contactHeading: "お問い合わせ",
+    contact:
+      "ご質問やご請求は、SigmaCV の GitHub リポジトリを通じて運営者までご連絡ください。",
+    updatedNote:
+      "当方は本通知を更新する場合があります。研究目的のログ記録に関する重大な変更については、改めて同意が必要となります。",
+    backLink: "← SigmaCV に戻る",
+  },
+  "pt-BR": {
+    metaTitle: "Privacidade",
+    metaDescription:
+      "Como o SigmaCV trata seus dados pessoais: minimização de dados, correspondência apenas por identificador e registro para pesquisa somente com consentimento explícito (GDPR + APPI do Japão).",
+    heading: "Privacidade e Proteção de Dados",
+    intro:
+      "O SigmaCV foi desenvolvido com base na minimização de dados. Ele lê apenas metadados públicos de pesquisa, identifica seus trabalhos por identificador (ORCID / OpenAlex ID) — nunca pelo nome — e não registra nada sobre suas escolhas, a menos que você opte explicitamente por isso. Este aviso explica o que processamos e os direitos que você tem sob o GDPR da UE e o APPI do Japão.",
+    controllerHeading: "Controlador de dados",
+    controller:
+      "O SigmaCV é mantido por Basile Chrétien (PharmD, MSc, MPH). Para qualquer solicitação relacionada à privacidade, entre em contato com o mantenedor através do repositório GitHub do projeto.",
+    dataHeading: "O que processamos",
+    data: "Dados de conta do seu provedor de login (ORCID iD, ou conta de e-mail / Google); os metadados públicos de pesquisa usados para montar seu CV (publicações, financiamentos, afiliações e métricas de OpenAlex, ORCID, Crossref, DataCite e Open Editors Plus); o conteúdo do CV e as escolhas de exibição que você cria; e uma foto de perfil opcional que você carrega. Seu CV é privado, a menos que você opte por publicar uma página pública.",
+    purposeHeading: "Finalidade e base legal",
+    purpose:
+      "Processamos esses dados para fornecer o serviço que você solicitou — gerar e exportar seu CV (GDPR Art. 6(1)(b), execução de um contrato). A publicação de uma página pública de CV ocorre apenas mediante sua instrução. Não vendemos seus dados nem os utilizamos para publicidade.",
+    researchHeading: "Uso para pesquisa (apenas mediante adesão)",
+    research:
+      "O SigmaCV é também um projeto de pesquisa sobre avaliação responsável da pesquisa e desambiguação de nomes de autores. O registro das suas escolhas de curadoria para fins de pesquisa está DESATIVADO por padrão e ocorre somente com o seu consentimento explícito e separado (GDPR Art. 6(1)(a)). Você pode revogá-lo a qualquer momento a partir da sua conta; a revogação interrompe o registro futuro e apaga os registros de pesquisa já coletados. As análises confirmatórias são pré-registradas e conduzidas sob um protocolo de ética/IRB. Se o escopo do registro para pesquisa mudar de forma significativa, solicitaremos novamente o seu consentimento.",
+    retentionHeading: "Retenção",
+    retention:
+      "Mantemos os dados da sua conta e do seu CV até que você exclua sua conta. A exclusão da sua conta remove permanentemente seu perfil, seu CV e quaisquer registros de pesquisa. As páginas públicas publicadas deixam de ser exibidas imediatamente quando você as despublica ou exclui.",
+    rightsHeading: "Seus direitos",
+    rights:
+      "Você pode acessar e exportar todos os seus dados (uma exportação em JSON com um clique), corrigi-los no editor, revogar o consentimento para pesquisa e excluir sua conta e todos os dados associados a qualquer momento — diretamente pelo aplicativo. Sob o GDPR e o APPI, você também tem o direito de apresentar uma reclamação à sua autoridade de proteção de dados.",
+    contactHeading: "Contato",
+    contact:
+      "Dúvidas ou solicitações: entre em contato com o mantenedor através do repositório GitHub do SigmaCV.",
+    updatedNote:
+      "Podemos atualizar este aviso; alterações significativas no registro para pesquisa exigem renovação do consentimento.",
+    backLink: "← Voltar ao SigmaCV",
+  },
+  "it-IT": {
+    metaTitle: "Privacy",
+    metaDescription:
+      "Come SigmaCV gestisce i tuoi dati personali: minimizzazione dei dati, corrispondenza basata esclusivamente sugli identificatori e registrazione a fini di ricerca solo previo consenso esplicito (GDPR + APPI giapponese).",
+    heading: "Privacy e protezione dei dati",
+    intro:
+      "SigmaCV è costruito sul principio della minimizzazione dei dati. Legge esclusivamente metadati pubblici di ricerca, associa i tuoi lavori tramite identificatore (ORCID / OpenAlex ID) — mai tramite il nome — e non registra nulla riguardo alle tue scelte a meno che tu non vi acconsenta esplicitamente. La presente informativa illustra quali dati trattiamo e i diritti che ti spettano ai sensi del GDPR dell'UE e dell'APPI giapponese.",
+    controllerHeading: "Titolare del trattamento",
+    controller:
+      "SigmaCV è gestito da Basile Chrétien (PharmD, MSc, MPH). Per qualsiasi richiesta in materia di privacy, contatta il responsabile della manutenzione tramite il repository GitHub del progetto.",
+    dataHeading: "Quali dati trattiamo",
+    data: "I dati dell'account forniti dal tuo provider di accesso (ORCID iD, oppure indirizzo email / account Google); i metadati pubblici di ricerca utilizzati per costruire il tuo CV (pubblicazioni, finanziamenti, affiliazioni e metriche provenienti da OpenAlex, ORCID, Crossref, DataCite e Open Editors Plus); i contenuti del CV e le scelte di visualizzazione che crei; e un'eventuale foto profilo che carichi. Il tuo CV è privato a meno che tu non scelga di pubblicare una pagina pubblica.",
+    purposeHeading: "Finalità e base giuridica",
+    purpose:
+      "Trattiamo questi dati per fornire il servizio da te richiesto — generare ed esportare il tuo CV (GDPR Art. 6(1)(b), esecuzione di un contratto). La pubblicazione di una pagina pubblica del CV avviene esclusivamente su tua indicazione. Non vendiamo i tuoi dati né li utilizziamo a fini pubblicitari.",
+    researchHeading: "Uso a fini di ricerca (solo con adesione)",
+    research:
+      "SigmaCV è anche un progetto di ricerca sulla valutazione responsabile della ricerca e sulla disambiguazione dei nomi degli autori. La registrazione delle tue scelte di curatela a fini di ricerca è DISATTIVATA per impostazione predefinita e avviene solo previo tuo consenso esplicito e separato (GDPR Art. 6(1)(a)). Puoi revocarlo in qualsiasi momento dal tuo account; la revoca interrompe le registrazioni future e cancella i dati di ricerca già raccolti. Le analisi confermative sono preregistrate e condotte nell'ambito di un protocollo etico/IRB. Qualora l'ambito della registrazione a fini di ricerca cambi in modo sostanziale, ti chiederemo nuovamente il consenso.",
+    retentionHeading: "Conservazione",
+    retention:
+      "Conserviamo i dati del tuo account e del tuo CV finché non elimini il tuo account. L'eliminazione dell'account rimuove definitivamente il tuo profilo, il CV e qualsiasi dato di ricerca. Le pagine pubbliche pubblicate cessano immediatamente di essere erogate quando le ritiri dalla pubblicazione o le elimini.",
+    rightsHeading: "I tuoi diritti",
+    rights:
+      "Puoi accedere a tutti i tuoi dati ed esportarli (un'esportazione JSON con un solo clic), correggerli nell'editor, revocare il consenso alla ricerca ed eliminare il tuo account e tutti i dati associati in qualsiasi momento — direttamente dall'app. Ai sensi del GDPR e dell'APPI hai inoltre il diritto di proporre reclamo alla tua autorità di protezione dei dati.",
+    contactHeading: "Contatti",
+    contact:
+      "Domande o richieste: contatta il responsabile della manutenzione tramite il repository GitHub di SigmaCV.",
+    updatedNote:
+      "Potremmo aggiornare la presente informativa; modifiche sostanziali alla registrazione a fini di ricerca richiedono un nuovo consenso.",
+    backLink: "← Torna a SigmaCV",
+  },
+  "ko-KR": {
+    metaTitle: "개인정보 보호",
+    metaDescription:
+      "SigmaCV가 개인정보를 처리하는 방식: 데이터 최소화, 식별자 기반 매칭, 명시적 동의가 있는 경우에만 수행하는 연구 로깅(GDPR + 일본 APPI).",
+    heading: "개인정보 보호 및 데이터 보호",
+    intro:
+      "SigmaCV는 데이터 최소화를 기반으로 구축되었습니다. 공개된 연구 메타데이터만을 읽어 들이며, 이름이 아닌 식별자(ORCID / OpenAlex ID)로 귀하의 성과물을 매칭합니다. 또한 귀하가 명시적으로 동의(opt in)하지 않는 한 귀하의 선택에 관한 어떤 것도 기록하지 않습니다. 본 고지는 당사가 처리하는 정보와, EU GDPR 및 일본 APPI에 따라 귀하가 가지는 권리를 설명합니다.",
+    controllerHeading: "데이터 관리자",
+    controller:
+      "SigmaCV는 Basile Chrétien(PharmD, MSc, MPH)이 관리합니다. 개인정보 관련 요청은 프로젝트의 GitHub 저장소를 통해 관리자에게 문의해 주십시오.",
+    dataHeading: "당사가 처리하는 정보",
+    data: "로그인 제공자로부터 받는 계정 데이터(ORCID iD, 또는 이메일 / Google 계정), CV를 구성하는 데 사용되는 공개 연구 메타데이터(OpenAlex, ORCID, Crossref, DataCite, Open Editors Plus의 출판물, 연구비, 소속 기관 및 지표), 귀하가 작성하는 CV 콘텐츠와 표시 선택 사항, 그리고 귀하가 업로드하는 선택적 프로필 사진을 처리합니다. 귀하가 공개 페이지를 게시하기로 선택하지 않는 한 귀하의 CV는 비공개로 유지됩니다.",
+    purposeHeading: "목적 및 법적 근거",
+    purpose:
+      "당사는 귀하가 요청한 서비스, 즉 CV의 생성 및 내보내기를 제공하기 위해 이 데이터를 처리합니다(GDPR Art. 6(1)(b), 계약의 이행). 공개 CV 페이지 게시는 오직 귀하의 지시에 따라서만 이루어집니다. 당사는 귀하의 데이터를 판매하거나 광고에 사용하지 않습니다.",
+    researchHeading: "연구 목적 이용(동의 시에만)",
+    research:
+      "SigmaCV는 책임 있는 연구 평가와 저자명 식별(disambiguation)에 관한 연구 프로젝트이기도 합니다. 연구를 위한 귀하의 큐레이션 선택 기록은 기본적으로 꺼져 있으며, 오직 귀하의 명시적이고 별도의 동의(GDPR Art. 6(1)(a))가 있는 경우에만 이루어집니다. 귀하는 언제든지 계정에서 동의를 철회할 수 있으며, 철회 시 향후의 기록이 중단되고 이미 수집된 연구 기록은 삭제됩니다. 확증적 분석은 사전 등록되며 윤리/IRB 프로토콜에 따라 수행됩니다. 연구 로깅의 범위가 실질적으로 변경되는 경우, 당사는 귀하의 동의를 다시 요청합니다.",
+    retentionHeading: "보관 기간",
+    retention:
+      "당사는 귀하가 계정을 삭제할 때까지 귀하의 계정 및 CV 데이터를 보관합니다. 계정을 삭제하면 귀하의 프로필, CV, 그리고 모든 연구 기록이 영구적으로 제거됩니다. 게시된 공개 페이지는 귀하가 게시를 해제하거나 삭제하는 즉시 제공이 중단됩니다.",
+    rightsHeading: "귀하의 권리",
+    rights:
+      "귀하는 앱에서 직접 언제든지 모든 데이터를 열람하고 내보내며(원클릭 JSON 내보내기), 편집기에서 이를 수정하고, 연구 동의를 철회하며, 계정과 관련된 모든 데이터를 삭제할 수 있습니다. GDPR 및 APPI에 따라 귀하는 또한 귀하의 데이터 보호 감독 기관에 민원을 제기할 권리가 있습니다.",
+    contactHeading: "문의처",
+    contact:
+      "질문이나 요청 사항: SigmaCV GitHub 저장소를 통해 관리자에게 연락해 주십시오.",
+    updatedNote:
+      "당사는 본 고지를 업데이트할 수 있으며, 연구 로깅에 대한 실질적 변경에는 새로운 동의가 필요합니다.",
+    backLink: "← SigmaCV로 돌아가기",
+  },
+  "ru-RU": {
+    metaTitle: "Конфиденциальность",
+    metaDescription:
+      "Как SigmaCV обрабатывает ваши персональные данные: минимизация данных, сопоставление только по идентификатору и ведение исследовательских журналов только при наличии явного согласия (GDPR + Japan APPI).",
+    heading: "Конфиденциальность и защита данных",
+    intro:
+      "SigmaCV построен на принципе минимизации данных. Он считывает только открытые научные метаданные, сопоставляет ваши работы по идентификатору (ORCID / OpenAlex ID), а не по имени, и не ведёт никаких записей о ваших действиях, если вы явно не дадите на это согласие. В настоящем уведомлении разъясняется, какие данные мы обрабатываем и какими правами вы обладаете в соответствии с GDPR ЕС и APPI Японии.",
+    controllerHeading: "Контролёр данных",
+    controller:
+      "SigmaCV поддерживается Basile Chrétien (PharmD, MSc, MPH). По любым вопросам, связанным с конфиденциальностью, обращайтесь к сопровождающему через репозиторий проекта на GitHub.",
+    dataHeading: "Какие данные мы обрабатываем",
+    data: "Учётные данные от вашего провайдера входа (ORCID iD либо учётная запись электронной почты / Google); открытые научные метаданные, используемые для формирования вашего CV (публикации, гранты, аффилиации и метрики из OpenAlex, ORCID, Crossref, DataCite и Open Editors Plus); содержимое CV и выбранные вами параметры отображения; а также необязательное фото профиля, которое вы загружаете. Ваше CV является приватным, если вы не решите опубликовать общедоступную страницу.",
+    purposeHeading: "Цель и правовое основание",
+    purpose:
+      "Мы обрабатываем эти данные для предоставления запрошенной вами услуги — формирования и экспорта вашего CV (GDPR Art. 6(1)(b), исполнение договора). Публикация общедоступной страницы CV происходит только по вашему указанию. Мы не продаём ваши данные и не используем их для рекламы.",
+    researchHeading: "Использование в исследовательских целях (только при согласии)",
+    research:
+      "SigmaCV также является исследовательским проектом, посвящённым ответственной оценке научной деятельности и устранению неоднозначности имён авторов. Ведение журналов ваших решений по курированию в исследовательских целях по умолчанию ВЫКЛЮЧЕНО и осуществляется только при наличии вашего явного, отдельного согласия (GDPR Art. 6(1)(a)). Вы можете в любой момент отозвать его в своей учётной записи; отзыв прекращает дальнейшее ведение журналов и удаляет уже собранные исследовательские записи. Подтверждающие анализы предварительно регистрируются и проводятся в рамках этического протокола / протокола IRB. Если объём ведения исследовательских журналов существенно изменится, мы снова запросим ваше согласие.",
+    retentionHeading: "Сроки хранения",
+    retention:
+      "Мы храним данные вашей учётной записи и CV до тех пор, пока вы не удалите свою учётную запись. Удаление учётной записи безвозвратно удаляет ваш профиль, CV и любые исследовательские записи. Опубликованные общедоступные страницы перестают обслуживаться немедленно при снятии публикации или удалении.",
+    rightsHeading: "Ваши права",
+    rights:
+      "Вы можете получить доступ ко всем своим данным и экспортировать их (экспорт в JSON одним щелчком), исправить их в редакторе, отозвать согласие на исследования, а также удалить свою учётную запись и все связанные с ней данные в любое время — непосредственно в приложении. В соответствии с GDPR и APPI вы также имеете право подать жалобу в свой орган по защите данных.",
+    contactHeading: "Контакты",
+    contact:
+      "Вопросы или запросы: свяжитесь с сопровождающим через репозиторий SigmaCV на GitHub.",
+    updatedNote:
+      "Мы можем обновлять настоящее уведомление; существенные изменения в ведении исследовательских журналов требуют повторного согласия.",
+    backLink: "← Назад к SigmaCV",
+  },
+};
+
+/** Localized privacy-notice strings (falls back to English for unknown locales). */
+export function privacyStrings(locale: string): PrivacyStrings {
+  return PRIVACY_I18N[asLocale(locale)];
+}

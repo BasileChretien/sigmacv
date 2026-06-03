@@ -42,6 +42,20 @@ export function aboutLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+/** /privacy path for a locale: "/privacy" for the default, "/{slug}/privacy" otherwise. */
+export function localePrivacyPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/privacy" : `/${LOCALE_SLUGS[loc]}/privacy`;
+}
+
+/** hreflang → path map for the /privacy page (relative; resolved against metadataBase). */
+export function privacyLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localePrivacyPath(loc);
+  languages["x-default"] = "/privacy";
+  return languages;
+}
+
 /** Open Graph locale tag (underscored): "fr-FR" → "fr_FR". */
 export function ogLocale(locale: string): string {
   return asLocale(locale).replace("-", "_");

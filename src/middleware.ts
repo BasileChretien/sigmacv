@@ -15,7 +15,11 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 export function middleware(request: NextRequest): NextResponse {
   const isDev = process.env.NODE_ENV !== "production";
-  const nonce = btoa(crypto.randomUUID());
+  // Base64 of 16 RAW random bytes (128 bits) — stronger and more standard than
+  // base64-ing the 36-char UUID *string* (which only encodes hex ASCII).
+  const nonce = btoa(
+    String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))),
+  );
 
   const scriptSrc = isDev
     ? "'self' 'unsafe-eval' 'unsafe-inline'"

@@ -5,8 +5,10 @@ import {
   homeLanguageAlternates,
   localeAboutPath,
   localeHomePath,
+  localePrivacyPath,
   ogAlternateLocales,
   ogLocale,
+  privacyLanguageAlternates,
 } from "@/lib/seo";
 
 describe("localeHomePath", () => {
@@ -46,6 +48,22 @@ describe("localeAboutPath / aboutLanguageAlternates", () => {
     expect(langs["x-default"]).toBe("/about");
     expect(langs["en-US"]).toBe("/about");
     expect(langs["de-DE"]).toBe("/de/about");
+    expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
+  });
+});
+
+describe("localePrivacyPath / privacyLanguageAlternates", () => {
+  it("serves /privacy for the default and /{slug}/privacy for others", () => {
+    expect(localePrivacyPath("en-US")).toBe("/privacy");
+    expect(localePrivacyPath("fr-FR")).toBe("/fr/privacy");
+    expect(localePrivacyPath("ja-JP")).toBe("/ja/privacy");
+    expect(localePrivacyPath("xx-XX")).toBe("/privacy");
+  });
+  it("maps every locale plus x-default", () => {
+    const langs = privacyLanguageAlternates();
+    expect(langs["x-default"]).toBe("/privacy");
+    expect(langs["en-US"]).toBe("/privacy");
+    expect(langs["de-DE"]).toBe("/de/privacy");
     expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
   });
 });

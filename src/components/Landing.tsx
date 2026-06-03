@@ -7,7 +7,7 @@ import {
 } from "@/app/auth-actions";
 import { asLocale, t } from "@/lib/i18n";
 import { landingStrings } from "@/lib/i18n/landing";
-import { localeAboutPath } from "@/lib/seo";
+import { localeAboutPath, localePrivacyPath } from "@/lib/seo";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SiteLinks from "./SiteLinks";
 import StructuredData from "./StructuredData";
@@ -115,6 +115,9 @@ export default function Landing({ locale }: LandingProps) {
 
       <footer className="auth-footer">
         <span className="muted">{s.footer}</span>
+        <Link className="footer-link" href={localePrivacyPath(loc)}>
+          {t(loc, "privacy")}
+        </Link>
         <SiteLinks locale={loc} />
       </footer>
     </div>

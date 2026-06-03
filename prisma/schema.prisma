@@ -26,6 +26,11 @@ model User {
   orcid           String?   @unique
   // Structural research-consent hook. NO logging happens unless/until built.
   researchConsent Boolean   @default(false)
+  // When consent was last granted, and the version of the consent notice the
+  // user agreed to — needed for an IRB-defensible audit trail (what each user
+  // agreed to, and when). Null until they first opt in.
+  researchConsentAt      DateTime?
+  researchConsentVersion Int?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
