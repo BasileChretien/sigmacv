@@ -1,13 +1,8 @@
 # research
 
-> Auto-generated stub on 2026-06-02 by ensure-claude-md hook.
-> Run `/init` to replace this with a full codebase analysis, or edit by hand.
+The consent-gated research-logging pipeline (this project is also a research vehicle: disambiguation-error and self-presentation studies).
 
-## Overview
-_TODO_
+- **`log.ts`** — writes `ResearchEvent` rows. **It writes nothing unless `User.researchConsent` is true.** This gate is mandatory (GDPR + Japan APPI; logging only under IRB, confirmatory analyses pre-registered).
+- **`diff.ts`** — computes the curation deltas that are the actual research signal (e.g. "mine/not-mine" corrections, composition choices), so logged events are minimal and structured rather than raw snapshots.
 
-## Commands
-_TODO — build, test, lint commands_
-
-## Conventions
-_TODO — coding style, testing, file layout_
+Treat the consent check as a hard precondition — never log on a path that could run without it, and keep events data-minimized.

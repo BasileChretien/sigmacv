@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Project: SigmaCV
 Open-source web app that auto-generates clean, customizable academic CVs from open research data (OpenAlex, ORCID, Crossref, Open Editors Plus). Free for individuals. *(Working name; ties to the Sigma-Score bibliometric index — may be renamed.)*
 
@@ -44,3 +46,32 @@ Open-source (permissive license). Secrets in env only. Define and freeze the **c
 
 ### Database / Prisma workflow
 The dev DB (Neon) is **push-managed**, so after changing `prisma/schema.prisma` the DB must be synced with `npm run db:push` (it uses `dotenv -e .env`; a bare `npx prisma …` falls back to a placeholder URL and fails with `P1001`). This is now **automatic**: `predev` runs `scripts/ensure-db.mjs`, which fingerprints the schema and runs `db push` only when it changed (instant no-op otherwise; non-fatal if the DB is unreachable). Forgetting to sync previously surfaced as an opaque Auth.js *"server configuration"* error on the first authenticated request. `npm run db:sync` runs it on demand; `npm run db:migrate` is the migration-history path (fresh DB / Docker). Migration files under `prisma/migrations/` are kept consistent with the schema by tests.
+
+The Prisma client is generated into **`src/generated/prisma/`** (committed, `postinstall` regenerates it). Treat it as build output — never hand-edit.
+
+## Commands
+```bash
+npm run dev            # Next dev server (predev auto-syncs the DB schema)
+npm run build          # production build
+npm run typecheck      # tsc --noEmit  (run this after every code change)
+npm test               # vitest run — full unit/integration suite (~535 tests)
+npm run coverage       # vitest run --coverage — ENFORCES the gate (see below)
+npm run e2e            # Playwright E2E (needs e2e DB; e2e:install first)
+npm run fetch-csl      # vendor the CSL styles + en-US locale into citeproc assets
+```
+Run a single test file / case:
+```bash
+npx vitest run tests/template-style.test.ts          # one file
+npx vitest run -t "Sidebar template"                 # tests matching a name
+npx vitest tests/curate.test.ts                       # watch one file
+```
+**Verify loop after any `src/lib` change:** `npm run typecheck` then `npm run coverage`. The coverage gate (configured in `vitest.config.ts`, scoped to `src/lib/**`) fails the run below **stmts 98 / branches 87 / funcs 99 / lines 99**. The codebase convention for genuinely unreachable defensive branches is an inline `/* v8 ignore next N -- reason */` comment (grep for examples). One-off QA artifacts (throwaway `.preview/` files, `tests/_*_gen.test.ts`, `scripts/_*.mjs`) must be removed before committing.
+
+## Where the code lives (`src/`)
+- **`app/`** — Next.js App Router. Public pages also exist under **`app/[locale]/`** (localized routes; `middleware.ts` handles locale + auth gating). API routes live in `app/api/**` (`cv` load/save/sync/preview/publish, `account` consent/export/delete, `internal/resync` cron). `app/p/[slug]/route.ts` serves the living public CV page.
+- **`lib/`** — all domain logic; the **only** path the coverage gate covers. Subsystems: `canonical/` (the Zod schema + `build` + pure immutable `curate` ops + `enrich`), `render/` (the renderer family — see its own CLAUDE.md), `citeproc/` (CSL engine, style catalog, vendored assets, identifier-driven highlight), `openalex/`·`orcid/`·`crossref/`·`datacite/`·`ror/`·`oep/` (external clients; all use a polite-pool `mailto` and are unit-tested with mocked `fetch`), `cv/` (`sync` rebuild, scheduled `resync`, public JSON-LD), `i18n/` (UI strings), `research/` (consent-gated logging + diff). Rate limiting is Postgres-backed (`rateLimit.ts` + `rateLimitStore.ts`).
+- **`components/`** — React client components (the `/cv` editor + preview, publish/consent/account controls).
+- **`generated/prisma/`** — generated Prisma client (do not edit). `types/` — ambient `.d.ts` (CSL, next-auth).
+
+## Internationalization
+Ten locales: **en-US, zh-CN, es-ES, fr-FR, de-DE, ja-JP, pt-BR, it-IT, ko-KR, ru-RU**. UI/render strings live in `src/lib/i18n/*` as typed records keyed by locale; **adding a key forces a value in all ten** (TypeScript fails the build otherwise). For bulk multi-locale edits, use a file-based Node script (the shell mangles backslashes in heredocs/here-strings — write scripts with the editor, not heredocs).

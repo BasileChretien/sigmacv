@@ -1,13 +1,11 @@
 # canonical
 
-> Auto-generated stub on 2026-06-02 by ensure-claude-md hook.
-> Run `/init` to replace this with a full codebase analysis, or edit by hand.
+The **single source of truth**. A `CanonicalCv` (curated data + display choices) is one Zod-validated object that every renderer and the public page derive from.
 
-## Overview
-_TODO_
+- **`schema.ts`** — the Zod schema + inferred types. `CANONICAL_SCHEMA_VERSION` is pinned; section types + default order, "not mine" reason codes, authorship roles, owner metrics/contact/links all live here. Change shape only deliberately (it's persisted as `Cv.document` JSON and read by every format).
+- **`build.ts`** — assembles a `CanonicalCv` from resolved author + works; computes `authoredBySelf` + `selfNameVariants` by **identifier match** (never name string).
+- **`curate.ts`** — the curation operations. **Pure and immutable**: every op returns a new object, never mutates. This is where reorder / show-hide / rename / "not mine" live.
+- **`assertions.ts`** — keeps the "not mine" research signal (`notMine` + reason) separate from display hiding. `isHidden(item)` is the single predicate renderers use.
+- **`enrich.ts`** — folds in ROR (affiliations) and Crossref data.
 
-## Commands
-_TODO — build, test, lint commands_
-
-## Conventions
-_TODO — coding style, testing, file layout_
+Invariant: **"not mine" sets `included:false`, it does not delete** — the correction is preserved for the disambiguation study.
