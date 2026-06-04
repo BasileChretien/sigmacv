@@ -6,6 +6,7 @@ import { cvSlug } from "./html";
 import { metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
 import type { PreparedSection } from "./prepare";
+import { docStyle, type DocStyle } from "./templateStyle";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
 const LATEX_ESCAPE: Record<string, string> = {
@@ -112,12 +113,13 @@ function accentHex(cv: CanonicalCv): string {
 }
 
 /**
- * A polished, professional design — accent-coloured name + section rules,
- * refined typography (lmodern + microtype), coloured DOIs. Self-contained:
- * uses only packages shipped with any standard TeX Live, so it compiles
- * everywhere (no moderncv/altacv class required).
+ * Template-aware professional design: the accent colour, serif/sans body, and
+ * heading + name treatment follow the CHOSEN TEMPLATE (Classic → centred serif;
+ * Modern → accent name; ATS → plain monochrome; etc.), so the .tex resembles
+ * the on-screen template. Self-contained — only packages from a standard TeX
+ * Live, so it compiles everywhere (no moderncv/altacv class).
  */
-function buildModern(cv: CanonicalCv): string {
+function buildStyled(cv: CanonicalCv, style: DocStyle): string {
   const sections = prepareSections(cv, "text");
   const head = textHeader(cv);
   const name = escapeLatex(
@@ -141,11 +143,20 @@ function buildModern(cv: CanonicalCv): string {
         .join("\n")}\n\\end{cvlist}`,
   );
 
+  // Plain (ATS) ⇒ no accent anywhere; otherwise accent headings/rule and links.
+  const headColor = style.accentHeadings && !style.plain ? "\\color{cvaccent}" : "";
+  const rule = style.accentHeadings && !style.plain
+    ? "[{\\color{cvaccent}\\titlerule[1pt]}]"
+    : "[{\\titlerule}]";
+  const nameColor = style.accentName && !style.plain ? "\\color{cvaccent}" : "";
+  const linkColor = style.plain ? "black" : "cvaccent";
+
   const preamble = [
     "\\documentclass[11pt,a4paper]{article}",
     "\\usepackage[utf8]{inputenc}",
     "\\usepackage[T1]{fontenc}",
     "\\usepackage{lmodern}",
+    style.serif ? "" : "\\renewcommand{\\familydefault}{\\sfdefault}",
     "\\usepackage{microtype}",
     "\\usepackage[margin=0.9in]{geometry}",
     "\\usepackage{xcolor}",
@@ -153,25 +164,29 @@ function buildModern(cv: CanonicalCv): string {
     "\\usepackage{titlesec}",
     "\\usepackage[hidelinks]{hyperref}",
     `\\definecolor{cvaccent}{HTML}{${accentHex(cv)}}`,
-    "\\hypersetup{colorlinks=true,urlcolor=cvaccent,linkcolor=cvaccent}",
-    "\\titleformat{\\section}{\\large\\bfseries\\color{cvaccent}}{}{0em}{}[{\\color{cvaccent}\\titlerule[1pt]}]",
+    `\\hypersetup{colorlinks=true,urlcolor=${linkColor},linkcolor=${linkColor}}`,
+    `\\titleformat{\\section}{\\large\\bfseries${headColor}}{}{0em}{}${rule}`,
     "\\titlespacing*{\\section}{0pt}{1.3em}{0.55em}",
     "\\newlist{cvlist}{itemize}{1}",
     "\\setlist[cvlist]{leftmargin=1.1em,itemsep=4pt,topsep=2pt,label={}}",
     "\\setlength{\\parindent}{0pt}",
     "\\pagestyle{empty}",
     "\\begin{document}",
-  ].join("\n");
-
-  const header = [
-    `{\\fontsize{24}{27}\\selectfont\\bfseries\\color{cvaccent}${name}}\\\\[3pt]`,
-    headline ? `{\\large ${headline}}\\\\[3pt]` : "",
-    contactLine ? `{\\small\\color{black!65}${contactLine}}\\\\[2pt]` : "",
-    metricsRaw ? `{\\small\\itshape\\color{black!55}${escapeLatex(metricsRaw)}}\\\\[2pt]` : "",
-    "{\\color{cvaccent}\\rule{\\linewidth}{1.1pt}}\\\\[2pt]",
   ]
     .filter(Boolean)
     .join("\n");
+
+  const headerLines = [
+    `{\\fontsize{24}{27}\\selectfont\\bfseries${nameColor}${name}}\\\\[3pt]`,
+    headline ? `{\\large ${headline}}\\\\[3pt]` : "",
+    contactLine ? `{\\small\\color{black!65}${contactLine}}\\\\[2pt]` : "",
+    metricsRaw ? `{\\small\\itshape\\color{black!55}${escapeLatex(metricsRaw)}}\\\\[2pt]` : "",
+    style.plain ? "" : "{\\color{cvaccent}\\rule{\\linewidth}{1.1pt}}\\\\[2pt]",
+  ].filter(Boolean);
+  // Classic centres the masthead; everything else is left-aligned.
+  const header = style.centeredHeader
+    ? `\\begin{center}\n${headerLines.join("\n")}\n\\end{center}`
+    : headerLines.join("\n");
 
   const summaryPar = head.summary
     ? `\\medskip\n${escapeLatex(head.summary)}\\par\n`
@@ -182,13 +197,13 @@ function buildModern(cv: CanonicalCv): string {
 
 export type LatexVariant = "classic" | "modern";
 
-/** The two LaTeX designs are chosen at export time (two entries in the export
- *  menu), not via a persisted setting. "modern" is the polished default. */
+/** "modern" follows the chosen template (accent/font/headings); "classic" is a
+ *  guaranteed-minimal, dependency-light layout. Chosen at export time. */
 export function renderCvLatex(
   cv: CanonicalCv,
   variant: LatexVariant = "modern",
 ): string {
-  return variant === "classic" ? buildClassic(cv) : buildModern(cv);
+  return variant === "classic" ? buildClassic(cv) : buildStyled(cv, docStyle(cv));
 }
 
 function latexResult(cv: CanonicalCv, variant: LatexVariant): RenderResult {
