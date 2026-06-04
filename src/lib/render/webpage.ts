@@ -32,7 +32,6 @@ function webThemeCss(accent: string): string {
     color: #fff; padding: clamp(40px, 7vw, 72px) ${gutter} clamp(36px, 6vw, 56px); margin: 0;
   }
   @keyframes heroShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-  @media (prefers-reduced-motion: reduce) { header.cv-header { animation: none; } }
 
   header.cv-header h1 { font-size: clamp(2.1rem, 5.5vw, 3.2rem); font-weight: 800; color: #fff; letter-spacing: -0.03em; line-height: 0.98; }
   header.cv-header .cv-honorific { color: #fff; }
@@ -61,25 +60,25 @@ function webThemeCss(accent: string): string {
   `;
 }
 
-/** Entrance + scroll-reveal animation CSS (progressive: hidden only when JS runs). */
+/**
+ * Pure-CSS entrance animation. Each block animates from hidden to its natural
+ * state with `animation-fill-mode: both`, so it ALWAYS ends visible — no JS, so
+ * it can never get stuck hidden (the earlier scroll-reveal could). Staggered so
+ * the page assembles itself on load. Disabled under prefers-reduced-motion.
+ */
 const ANIMATION_CSS = `
-  html.js header.cv-header, html.js section.cv-section, html.js .cv-provenance {
-    opacity: 0; transform: translateY(22px);
-    transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1);
-  }
-  header.cv-header.in, section.cv-section.in, .cv-provenance.in { opacity: 1; transform: none; }
+  @keyframes cvRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+  header.cv-header { animation: cvRise 0.65s cubic-bezier(0.16,1,0.3,1) both; }
+  section.cv-section { animation: cvRise 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+  section.cv-section:nth-of-type(1) { animation-delay: 0.10s; }
+  section.cv-section:nth-of-type(2) { animation-delay: 0.18s; }
+  section.cv-section:nth-of-type(3) { animation-delay: 0.26s; }
+  section.cv-section:nth-of-type(4) { animation-delay: 0.34s; }
+  section.cv-section:nth-of-type(n+5) { animation-delay: 0.42s; }
+  .cv-provenance { animation: cvRise 0.6s cubic-bezier(0.16,1,0.3,1) both; animation-delay: 0.5s; }
   @media (prefers-reduced-motion: reduce) {
-    html.js header.cv-header, html.js section.cv-section, html.js .cv-provenance { opacity: 1 !important; transform: none !important; transition: none; }
+    header.cv-header, section.cv-section, .cv-provenance { animation: none; }
   }`;
-
-/** Self-contained reveal script (runs when the downloaded file is opened). */
-const REVEAL_SCRIPT = `<script>(function(){
-  var d=document; d.documentElement.classList.add('js');
-  var els=d.querySelectorAll('header.cv-header, section.cv-section, .cv-provenance');
-  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in');});return;}
-  var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}});},{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
-  els.forEach(function(e){io.observe(e);});
-})();</script>`;
 
 /** Render the canonical CV as a standalone, animated, interactive web page. */
 export function renderCvWebpage(cv: CanonicalCv): string {
@@ -100,7 +99,6 @@ export function renderCvWebpage(cv: CanonicalCv): string {
 </head>
 <body>
 ${body}
-${REVEAL_SCRIPT}
 </body>
 </html>`;
 }

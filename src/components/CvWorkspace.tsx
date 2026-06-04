@@ -170,7 +170,14 @@ export default function CvWorkspace({
       const ok = await handleSave();
       if (!ok) return;
     }
-    window.location.href = `/api/cv/export/${exportFormat}`;
+    const url = `/api/cv/export/${exportFormat}`;
+    // The web page is served inline — open it in a new tab so you can view the
+    // live animations (and save it from the browser); other formats download.
+    if (exportFormat === "webpage") {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } else {
+      window.location.href = url;
+    }
   }, [dirty, handleSave, exportFormat]);
 
   return (

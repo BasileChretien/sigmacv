@@ -2,51 +2,47 @@ import { commonCss, cvPageShell, headerHtml, provenanceFooter, sectionsHtml } fr
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**
- * "Slate" — a full dark-mode CV. The whole page is deep charcoal with light
- * text and a vivid accent; the forced-light charts/authorship render as bright
- * cards that pop against the dark field. It recolours the shared design tokens
- * (--cv-ink/-muted/-rule/-page) so every shared element adapts. A distinctly
- * screen/web look; the dark fill is kept for PDF too (print-color-adjust exact).
+ * "Slate" — a professional Canva-style header resume: a clean SOLID accent band
+ * across the top carries the name, role, contact and photo in white; the body is
+ * white with accent-underlined section headings. Tasteful, corporate-friendly
+ * (no gradient, no dark mode). The colour is confined to the top band so the PDF
+ * prints mostly ink-light below it.
  */
 function slateCss(theme: TemplateTheme): string {
   const a = theme.accentColor;
-  const bg = "#0e1117";
+  const g = "56px";
   return `
-  /* Recolour the shared tokens for dark mode — everything downstream follows. */
-  :root {
-    --cv-page: ${bg};
-    --cv-ink: #f4f6fa;
-    --cv-ink-2: #cdd4e0;
-    --cv-muted: #99a2b2;
-    --cv-faint: #7c8696;
-    --cv-rule: #262b36;
-    --cv-rule-strong: #39414f;
-  }
-  html, body { background: ${bg}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .cv { max-width: 820px; padding: 60px 60px; }
+  .cv { max-width: 840px; padding: 0; }
 
+  /* Solid accent header band (the signature). */
   header.cv-header {
-    padding-bottom: 1.5rem; margin-bottom: 1.9rem;
-    border-bottom: 1px solid var(--cv-rule);
+    background: ${a}; color: #fff;
+    padding: 48px ${g} 40px; margin: 0 0 2rem;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  header.cv-header h1 { font-size: 2.7rem; font-weight: 800; color: #ffffff; letter-spacing: -0.026em; }
-  .cv-headline { color: ${a}; font-weight: 600; font-size: 1.22rem; margin-top: 0.3rem; }
-  .cv-photo {
-    width: 108px; height: 108px; border-radius: 50%; border: 3px solid ${a};
-    box-shadow: 0 0 0 6px color-mix(in srgb, ${a} 18%, transparent);
-  }
-  .cv-ids a, .cv-contact a, .cv-links a { color: ${a}; }
+  header.cv-header h1 { font-size: 2.7rem; font-weight: 800; color: #fff; letter-spacing: -0.026em; }
+  header.cv-header .cv-honorific { color: #fff; }
+  .cv-headline { color: rgba(255,255,255,0.94); font-weight: 500; font-size: 1.24rem; margin-top: 0.4rem; }
+  .cv-ids, .cv-contact, .cv-links, .cv-metrics { color: rgba(255,255,255,0.9); }
+  .cv-ids a, .cv-contact a, .cv-links a { color: #fff; }
+  .cv-metric-context { color: rgba(255,255,255,0.72); }
+  .cv-summary { color: rgba(255,255,255,0.95); }
+  .cv-photo { width: 110px; height: 110px; border-radius: 10px; border: 3px solid rgba(255,255,255,0.55); }
+  .cv-charts, .cv-authorship { border: 0; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
 
-  /* Accent-led section labels with a soft underline. */
+  /* White body with accent-underlined section headings. */
+  section.cv-section { margin: 0 ${g} var(--cv-space); }
+  section.cv-section:first-of-type { margin-top: 0; }
   section.cv-section > h2 {
-    font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em;
-    color: ${a}; margin: 0 0 0.7rem; padding-bottom: 0.3rem;
-    border-bottom: 1px solid var(--cv-rule);
+    display: inline-block; font-size: 0.8rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; color: ${a};
+    margin: 0 0 0.65rem; padding-bottom: 0.28rem; border-bottom: 2px solid ${a};
   }
   ol.cv-bib > li a { color: ${a}; }
+  .cv-provenance { margin: 1.6rem ${g} 2.4rem; }
 
   @media print {
-    html, body, .cv { background: ${bg}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    header.cv-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     section.cv-section { break-inside: auto; }
   }`;
 }

@@ -32,10 +32,13 @@ describe.skipIf(!hasApa)("renderCvWebpage", () => {
     // The CV content is present.
     expect(html).toContain("Basile");
     expect(html.toLowerCase()).toContain("adverse drug reactions");
-    // Animation: a living gradient hero + scroll-reveal transitions + the script.
+    // Animation: a living gradient hero + a pure-CSS entrance (no JS, so content
+    // can never get stuck hidden — content is always revealed by the animation's
+    // fill-mode). No <script> at all.
     expect(html).toContain("@keyframes heroShift");
-    expect(html).toContain("IntersectionObserver");
-    expect(html).toContain("classList.add('js')");
+    expect(html).toContain("@keyframes cvRise");
+    expect(html).toContain("animation: cvRise");
+    expect(html).not.toContain("<script");
     // Respects reduced-motion + declares light colour scheme.
     expect(html).toContain("prefers-reduced-motion");
     expect(html).toContain("color-scheme: light");

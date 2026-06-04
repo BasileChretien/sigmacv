@@ -73,11 +73,14 @@ export async function GET(
     const body: BodyInit = result.buffer
       ? new Uint8Array(result.buffer)
       : (result.text ?? result.html ?? "");
+    // The animated web page is meant to be VIEWED (and saved from) the browser,
+    // so serve it inline; every other format downloads as an attachment.
+    const disposition = format === "webpage" ? "inline" : "attachment";
     return new NextResponse(body, {
       status: 200,
       headers: {
         "Content-Type": result.mimeType,
-        "Content-Disposition": `attachment; filename="${result.filename}"`,
+        "Content-Disposition": `${disposition}; filename="${result.filename}"`,
         "Cache-Control": "no-store",
       },
     });

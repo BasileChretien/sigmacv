@@ -2,61 +2,35 @@ import { commonCss, cvPageShell, headerHtml, provenanceFooter, sectionsHtml } fr
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**
- * "Aurora" — a bold, colourful hero. A full-bleed gradient masthead (the accent
- * deepening into shadow) carries an oversized name, a ringed photo and the
- * contact line in light type; the charts/authorship render as white cards
- * floating on the colour. The body is clean white with accent "chip" section
- * labels. Print-aware: the gradient is confined to the masthead.
+ * "Aurora" — a clean, professional template in the Canva mould. Tasteful colour
+ * used structurally: each section heading is a solid accent "pill" (white text
+ * on accent), the role headline is accent-coloured, and the header sits over a
+ * quiet rule. White page, modern sans hierarchy, photo supported. Prints cleanly
+ * (the only fills are the small heading pills, kept print-exact).
  */
 function auroraCss(theme: TemplateTheme): string {
   const a = theme.accentColor;
-  const gutter = "60px";
   return `
-  .cv { max-width: 860px; padding: 0; }
+  .cv { max-width: 800px; padding: 54px 60px; }
 
-  /* ---- GRADIENT HERO MASTHEAD ---- */
-  header.cv-header {
-    background: radial-gradient(135% 160% at 0% 0%, ${a} 0%, color-mix(in srgb, ${a} 58%, #0b1020) 100%);
-    color: #fff;
-    padding: 66px ${gutter} 54px;
-    margin: 0 0 2.4rem;
+  header.cv-header { margin-bottom: 1.8rem; padding-bottom: 1.2rem; border-bottom: 2px solid var(--cv-rule); }
+  header.cv-header h1 { font-size: 2.5rem; font-weight: 800; color: var(--cv-ink); letter-spacing: -0.026em; }
+  .cv-headline { color: ${a}; font-weight: 600; font-size: 1.22rem; margin-top: 0.32rem; }
+  .cv-photo { width: 106px; height: 106px; border-radius: 50%; }
+  header.cv-header .cv-ids a, header.cv-header .cv-contact a, header.cv-header .cv-links a { color: ${a}; }
+
+  /* Signature: solid accent section-label pills (white on accent). */
+  section.cv-section > h2 {
+    display: inline-block; background: ${a}; color: #fff;
+    padding: 0.34rem 0.9rem; border-radius: 6px;
+    font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+    margin: 0 0 0.9rem;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  header.cv-header h1 {
-    font-size: 3.1rem; font-weight: 800; color: #fff;
-    letter-spacing: -0.032em; line-height: 0.98;
-  }
-  header.cv-header .cv-honorific { color: #fff; }
-  .cv-headline { color: rgba(255,255,255,0.94); font-size: 1.32rem; font-weight: 500; margin-top: 0.5rem; }
-  .cv-ids, .cv-contact, .cv-links, .cv-metrics { color: rgba(255,255,255,0.9); }
-  .cv-ids a, .cv-contact a, .cv-links a { color: #fff; }
-  .cv-metric-context { color: rgba(255,255,255,0.72); }
-  .cv-summary { color: rgba(255,255,255,0.95); }
-  .cv-photo {
-    width: 124px; height: 124px; border-radius: 50%;
-    border: 4px solid rgba(255,255,255,0.4); box-shadow: 0 8px 22px rgba(0,0,0,0.22);
-  }
-  /* Charts/authorship are forced-light cards — lift them as white panels. */
-  .cv-charts, .cv-authorship { border: 0; border-radius: 14px; box-shadow: 0 10px 26px rgba(0,0,0,0.20); }
-
-  /* ---- WHITE BODY with accent chip labels ---- */
-  section.cv-section { margin: 0 ${gutter} var(--cv-space); }
-  section.cv-section:first-of-type { margin-top: 0; }
-  section.cv-section > h2 {
-    display: flex; align-items: center; gap: 0.6rem;
-    font-size: 0.74rem; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 0.14em; color: ${a}; margin: 0 0 0.7rem;
-  }
-  section.cv-section > h2::before {
-    content: ""; width: 22px; height: 4px; border-radius: 4px; background: ${a};
-  }
   ol.cv-bib > li a { color: ${a}; }
-  .cv-provenance { margin: 1.8rem ${gutter} 2.6rem; }
 
   @media print {
-    header.cv-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .cv-charts, .cv-authorship { box-shadow: none; }
-    section.cv-section { break-inside: auto; }
+    section.cv-section > h2 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }`;
 }
 
