@@ -2,86 +2,46 @@ import { commonCss, cvPageShell, headerHtml, provenanceFooter, sectionsHtml } fr
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**
- * "Editorial" — a print-magazine masthead. The signature is an oversized serif
- * DISPLAY name (the biggest of any template) sitting over a thick accent rule,
- * an accent-coloured HEADLINE under it (the inverse of Modern, which accents the
- * name), and refined small-caps section headers each carrying a strong hairline.
- *
- * It is the most "designed page" of the conservative-leaning set: text-forward
- * (no photo), high-contrast, with generous vertical rhythm. The accent is a
- * typographic spice — a header rule, a headline, link colour, a thin summary
- * hairline — never a fill, so the page prints beautifully with no dark areas.
+ * "Editorial" — a magazine masthead: an oversized display name, an italic accent
+ * standfirst, a heavy accent rule under the header, and LARGE display section
+ * titles (not the small uppercase labels the other templates use). Deliberately
+ * bold and typographic so it never reads like the conservative, centered Classic.
+ * Accent is a typographic spice (rule, standfirst, titles' hairline, links) — no
+ * fills, so it prints with no dark areas.
  */
 function editorialCss(_theme: TemplateTheme): string {
   return `
-  .cv { max-width: 760px; padding: 54px 56px; }
+  .cv { max-width: 800px; padding: 60px 64px; }
 
-  /* Header: oversized serif masthead over a thick accent rule. */
   header.cv-header {
-    border-bottom: 3px solid var(--cv-accent);
-    padding-bottom: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 2.4rem; padding-bottom: 1.2rem;
+    border-bottom: 4px solid var(--cv-accent);
   }
-  /* The 2.6rem display name is the signature — biggest of any template. */
   header.cv-header h1 {
-    font-size: 2.6rem;
-    font-weight: 700;
-    letter-spacing: -0.026em;
-    line-height: 1.02;
-    margin: 0 0 0.05rem;
+    font-size: 3.15rem; font-weight: 800; letter-spacing: -0.032em;
+    line-height: 0.96; margin: 0 0 0.05rem; color: var(--cv-ink);
   }
-  /* Accent HEADLINE (not an accent name) — the inverse of Modern. */
+  /* Italic accent standfirst — the magazine signature. */
   header.cv-header .cv-headline {
-    font-size: 1.3rem;
+    font-size: 1.32rem; font-weight: 500; font-style: italic;
+    color: var(--cv-accent); margin-top: 0.5rem; letter-spacing: -0.01em;
+  }
+  header.cv-header .cv-ids a, header.cv-header .cv-contact a, header.cv-header .cv-links a {
     color: var(--cv-accent);
-    font-weight: 600;
-    margin-top: 0.45rem;
-    letter-spacing: 0.01em;
-    line-height: 1.2;
-  }
-  header.cv-header .cv-ids a { color: var(--cv-accent); }
-
-  /* Generous lede. A thin accent hairline prefixes the first line as a subtle
-     editorial flourish — a magazine drop-rule, not a fill. */
-  .cv-summary {
-    position: relative;
-    font-size: 1.02rem;
-    line-height: 1.62;
-    color: var(--cv-ink-2);
-    margin-top: 1.1rem;
-    padding-left: 1.05rem;
-  }
-  .cv-summary::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.32em;
-    bottom: 0.32em;
-    width: 2px;
-    background: var(--cv-accent);
-    border-radius: 1px;
   }
 
-  /* Refined small-caps section headers with a strong hairline. The headers stay
-     ink-coloured (accent is reserved for the rule/headline/links). */
+  /* Large display section titles with a hairline — not small uppercase labels. */
   section.cv-section > h2 {
-    font-size: 1.08rem;
-    font-weight: 600;
-    font-variant: small-caps;
-    letter-spacing: 0.06em;
-    color: var(--cv-ink);
-    margin: 0 0 0.75rem;
-    padding-bottom: 0.22rem;
-    border-bottom: 1px solid var(--cv-rule-strong);
+    font-size: 1.5rem; font-weight: 700; letter-spacing: -0.018em;
+    color: var(--cv-ink); margin: 0 0 0.7rem; padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--cv-rule);
   }
 
-  /* Strong vertical rhythm: roomier bibliography leading than the shared base. */
-  ol.cv-bib > li { line-height: 1.52; }
+  ol.cv-bib > li { line-height: 1.5; }
+  ol.cv-bib > li a { color: var(--cv-accent); }
 
   @media print {
-    /* Hairlines + serif display print beautifully; keep the accent rule crisp. */
-    header.cv-header { border-bottom-width: 2px; }
-    .cv-summary::before { width: 1.5px; }
+    header.cv-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }`;
 }
 

@@ -98,9 +98,9 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(html).toContain("Assistant Professor");
   });
 
-  it("renders the editorial template (accent rule under the name)", () => {
+  it("renders the editorial template (heavy accent rule under the masthead)", () => {
     const editorial = renderCvHtml(updateDisplay(makeCv(), { template: "editorial" }));
-    expect(editorial).toContain("border-bottom: 3px solid var(--cv-accent)");
+    expect(editorial).toMatch(/border-bottom:\s*4px solid var\(--cv-accent\)/);
   });
 
   it("renders the rirekisho form with personal fields + 学歴・職歴 table", () => {
