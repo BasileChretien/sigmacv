@@ -103,7 +103,7 @@ export const AUTHORSHIP_ROLE_LABELS: Record<AuthorshipRole, string> = {
   first: "First author",
   second: "Second author",
   third: "Third author",
-  middle: "Middle author",
+  middle: "k-th author",
   "second-last": "Second-to-last author",
   last: "Last author",
   corresponding: "Corresponding author",

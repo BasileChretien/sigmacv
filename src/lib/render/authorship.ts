@@ -34,9 +34,14 @@ const PREDICATES: Record<AuthorshipRole, (item: CvItem) => boolean> = {
   first: (i) => i.meta.authorPosition === 1,
   second: (i) => i.meta.authorPosition === 2,
   third: (i) => i.meta.authorPosition === 3,
-  middle: (i) =>
-    (i.meta.authorPosition ?? 0) > 1 &&
-    (i.meta.authorPosition ?? 0) < (i.meta.authorCount ?? 0),
+  // "k-th author": a generic middle position — every position EXCEPT first,
+  // second, third, second-to-last and last. So p with 4 ≤ p ≤ authorCount − 2.
+  // (NOT a superset of second/third/second-to-last; those are broken out.)
+  middle: (i) => {
+    const p = i.meta.authorPosition ?? 0;
+    const n = i.meta.authorCount ?? 0;
+    return p >= 4 && p <= n - 2;
+  },
   "second-last": (i) =>
     (i.meta.authorCount ?? 0) > 2 &&
     i.meta.authorPosition === (i.meta.authorCount ?? 0) - 1,
@@ -48,9 +53,9 @@ const PREDICATES: Record<AuthorshipRole, (item: CvItem) => boolean> = {
 
 /**
  * Count peer-reviewed publications by the requested authorship roles. Roles the
- * caller didn't request are omitted; invalid role strings are ignored. The same
- * paper can satisfy several roles (e.g. 2nd author of 5 is both "second" and
- * "middle") — the user picks which rows to surface.
+ * caller didn't request are omitted; invalid role strings are ignored. A paper
+ * can still satisfy a couple of roles (e.g. 3rd author of 4 is both "third" and
+ * "second-to-last") — the user picks which rows to surface.
  */
 export function authorshipCounts(
   cv: CanonicalCv,
