@@ -54,58 +54,6 @@ function sectionItems(
     }));
 }
 
-/** A minimal, dependency-light article layout (compiles with a bare TeX Live). */
-function buildClassic(cv: CanonicalCv): string {
-  const sections = prepareSections(cv, "text");
-  const name = escapeLatex(
-    (cv.owner.honorific ? `${cv.owner.honorific} ` : "") +
-      (cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle),
-  );
-  const orcid = cv.owner.orcid ? escapeLatex(cv.owner.orcid) : "";
-  const metricsRaw = metricsLineText(cv);
-  const metricsLine = metricsRaw
-    ? `{\\small ${escapeLatex(metricsRaw)}}\\\\[8pt]`
-    : "";
-  const head = textHeader(cv);
-  const headlineLine = head.headline
-    ? `{\\large ${escapeLatex(head.headline)}}\\\\[4pt]`
-    : "";
-  const contactLine = head.contact.length
-    ? `{\\small ${escapeLatex(head.contact.join("  ·  "))}}\\\\[6pt]`
-    : "";
-  const summaryPar = head.summary
-    ? `\\noindent ${escapeLatex(head.summary)}\\par\\medskip\n\n`
-    : "";
-
-  const blocks = sectionItems(cv, sections).map(
-    ({ title, lines }) =>
-      `\\section*{${title}}\n\\begin{itemize}\n${lines
-        .map((l) => `  \\item ${l}`)
-        .join("\n")}\n\\end{itemize}`,
-  );
-
-  const preamble = [
-    "\\documentclass[11pt]{article}",
-    "\\usepackage[utf8]{inputenc}",
-    "\\usepackage[T1]{fontenc}",
-    "\\usepackage[margin=1in]{geometry}",
-    "\\usepackage{enumitem}",
-    "\\usepackage[hidelinks]{hyperref}",
-    "\\setlist[itemize]{leftmargin=*,itemsep=2pt,label={}}",
-    "\\begin{document}",
-    "\\pagestyle{empty}",
-    `{\\Large\\bfseries ${name}}\\\\[2pt]`,
-    headlineLine,
-    orcid ? `\\href{https://orcid.org/${orcid}}{ORCID: ${orcid}}\\\\[4pt]` : "",
-    contactLine,
-    metricsLine,
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  return `${preamble}\n\n${summaryPar}${blocks.join("\n\n")}\n\n\\end{document}\n`;
-}
-
 /** Six-digit HEX (no #) for xcolor's \definecolor{...}{HTML}{...}. */
 function accentHex(cv: CanonicalCv): string {
   const raw = (cv.display.accentColor || "#1f4fd8").replace(/^#/, "");
@@ -195,38 +143,20 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
   return `${preamble}\n${header}\n${summaryPar}\n${blocks.join("\n\n")}\n\n\\end{document}\n`;
 }
 
-export type LatexVariant = "classic" | "modern";
-
-/** "modern" follows the chosen template (accent/font/headings); "classic" is a
- *  guaranteed-minimal, dependency-light layout. Chosen at export time. */
-export function renderCvLatex(
-  cv: CanonicalCv,
-  variant: LatexVariant = "modern",
-): string {
-  return variant === "classic" ? buildClassic(cv) : buildStyled(cv, docStyle(cv));
+/** Render a .tex that follows the chosen template (accent, font, heading + name
+ *  treatment). A single self-contained design that compiles on a bare TeX Live. */
+export function renderCvLatex(cv: CanonicalCv): string {
+  return buildStyled(cv, docStyle(cv));
 }
 
-function latexResult(cv: CanonicalCv, variant: LatexVariant): RenderResult {
-  return {
-    format: variant === "classic" ? "latex-classic" : "latex",
-    mimeType: "application/x-tex; charset=utf-8",
-    filename: `${cvSlug(cv.owner.displayName)}-cv.tex`,
-    text: renderCvLatex(cv, variant),
-  };
-}
-
-/** Modern (professional) LaTeX export. */
 export const latexRenderer: Renderer = {
   format: "latex",
   async render({ cv }: RenderInput): Promise<RenderResult> {
-    return latexResult(cv, "modern");
-  },
-};
-
-/** Classic (minimal) LaTeX export. */
-export const latexClassicRenderer: Renderer = {
-  format: "latex-classic",
-  async render({ cv }: RenderInput): Promise<RenderResult> {
-    return latexResult(cv, "classic");
+    return {
+      format: "latex",
+      mimeType: "application/x-tex; charset=utf-8",
+      filename: `${cvSlug(cv.owner.displayName)}-cv.tex`,
+      text: renderCvLatex(cv),
+    };
   },
 };

@@ -82,7 +82,6 @@ export interface UiStrings {
   exportPdf: string;
   exportDocx: string;
   exportLatexModern: string;
-  exportLatexClassic: string;
   exportMarkdown: string;
   exportBibtex: string;
   exportJson: string;
@@ -180,12 +179,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Creates a shareable public web page of this CV at a public link. It re-syncs as you update. Off by default; un-tick to take it offline.",
     exportFormatTitle:
-      "PDF keeps your chosen visual template. Word, LaTeX and Markdown contain the same content + citation style in a plain, editable layout (no template styling).",
-    exportPdf: "PDF (styled like preview)",
-    exportDocx: "Word .docx (matches your template)",
-    exportLatexModern: "LaTeX .tex (matches your template)",
-    exportLatexClassic: "LaTeX .tex (minimal)",
-    exportMarkdown: "Markdown .md (plain text)",
+      "PDF matches your template exactly. Word and LaTeX follow it closely but may differ. Markdown is plain text (no styling).",
+    exportPdf: "PDF (.pdf)",
+    exportDocx: "Word (.docx)",
+    exportLatexModern: "LaTeX (.tex)",
+    exportMarkdown: "Markdown (.md)",
     exportBibtex: "BibTeX .bib (for Zotero)",
     exportJson: "JSON (data)",
     itemUntitled: "Untitled",
@@ -279,12 +277,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "在公开链接处创建此简历的可分享公开网页。它会随你的更新而重新同步。默认关闭；取消勾选可将其下线。",
     exportFormatTitle:
-      "PDF 会保留你选择的视觉模板。Word、LaTeX 和 Markdown 包含相同的内容和引用样式，但采用朴素、可编辑的排版（无模板样式）。",
-    exportPdf: "PDF（样式与预览相同）",
-    exportDocx: "Word .docx（匹配所选模板）",
-    exportLatexModern: "LaTeX .tex（匹配所选模板）",
-    exportLatexClassic: "LaTeX .tex（极简）",
-    exportMarkdown: "Markdown .md（纯文本）",
+      "PDF 与所选模板完全一致。Word 和 LaTeX 接近模板，但可能略有差异。Markdown 为纯文本（无样式）。",
+    exportPdf: "PDF (.pdf)",
+    exportDocx: "Word (.docx)",
+    exportLatexModern: "LaTeX (.tex)",
+    exportMarkdown: "Markdown (.md)",
     exportBibtex: "BibTeX .bib（用于 Zotero）",
     exportJson: "JSON（数据）",
     itemUntitled: "无标题",
@@ -379,12 +376,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Crea una página web pública de este CV en un enlace público que se puede compartir. Se resincroniza a medida que lo actualizas. Desactivada por defecto; desmárcala para retirarla.",
     exportFormatTitle:
-      "El PDF conserva la plantilla visual que elijas. Word, LaTeX y Markdown contienen el mismo contenido y estilo de citas en un diseño sencillo y editable (sin estilo de plantilla).",
-    exportPdf: "PDF (con el estilo de la vista previa)",
-    exportDocx: "Word .docx (según tu plantilla)",
-    exportLatexModern: "LaTeX .tex (según tu plantilla)",
-    exportLatexClassic: "LaTeX .tex (mínima)",
-    exportMarkdown: "Markdown .md (texto sin formato)",
+      "El PDF coincide exactamente con tu plantilla. Word y LaTeX la siguen de cerca, pero pueden variar. Markdown es texto sin formato.",
+    exportPdf: "PDF (.pdf)",
+    exportDocx: "Word (.docx)",
+    exportLatexModern: "LaTeX (.tex)",
+    exportMarkdown: "Markdown (.md)",
     exportBibtex: "BibTeX .bib (para Zotero)",
     exportJson: "JSON (datos)",
     itemUntitled: "Sin título",
@@ -479,12 +475,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Crée une page web publique partageable de ce CV via un lien public. Elle se resynchronise au fur et à mesure de vos mises à jour. Désactivée par défaut ; décochez pour la mettre hors ligne.",
     exportFormatTitle:
-      "Le PDF conserve le modèle visuel que vous avez choisi. Word, LaTeX et Markdown contiennent le même contenu et le même style de citation dans une mise en page simple et modifiable (sans mise en forme du modèle).",
-    exportPdf: "PDF (mis en forme comme l’aperçu)",
-    exportDocx: "Word .docx (selon votre modèle)",
-    exportLatexModern: "LaTeX .tex (selon votre modèle)",
-    exportLatexClassic: "LaTeX .tex (minimal)",
-    exportMarkdown: "Markdown .md (texte brut)",
+      "Le PDF correspond exactement à votre modèle. Word et LaTeX le suivent de près mais peuvent différer. Markdown est du texte brut (sans mise en forme).",
+    exportPdf: "PDF (.pdf)",
+    exportDocx: "Word (.docx)",
+    exportLatexModern: "LaTeX (.tex)",
+    exportMarkdown: "Markdown (.md)",
     exportBibtex: "BibTeX .bib (pour Zotero)",
     exportJson: "JSON (données)",
     itemUntitled: "Sans titre",
@@ -579,12 +574,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Erstellt eine teilbare öffentliche Webseite dieses Lebenslaufs unter einem öffentlichen Link. Sie wird bei Aktualisierungen neu synchronisiert. Standardmäßig aus; Häkchen entfernen, um sie offline zu nehmen.",
     exportFormatTitle:
-      "PDF behält Ihre gewählte visuelle Vorlage bei. Word, LaTeX und Markdown enthalten denselben Inhalt + Zitierstil in einem schlichten, bearbeitbaren Layout (ohne Vorlagengestaltung).",
-    exportPdf: "PDF (gestaltet wie die Vorschau)",
-    exportDocx: "Word .docx (passend zur Vorlage)",
-    exportLatexModern: "LaTeX .tex (passend zur Vorlage)",
-    exportLatexClassic: "LaTeX .tex (minimal)",
-    exportMarkdown: "Markdown .md (reiner Text)",
+      "Das PDF entspricht exakt Ihrer Vorlage. Word und LaTeX orientieren sich daran, können aber abweichen. Markdown ist reiner Text.",
+    exportPdf: "PDF (.pdf)",
+    exportDocx: "Word (.docx)",
+    exportLatexModern: "LaTeX (.tex)",
+    exportMarkdown: "Markdown (.md)",
     exportBibtex: "BibTeX .bib (für Zotero)",
     exportJson: "JSON (Daten)",
     itemUntitled: "Ohne Titel",
@@ -679,12 +673,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "この CV を共有可能な公開ウェブページとして公開リンクに作成します。更新すると再同期されます。既定ではオフ。チェックを外すとオフラインにできます。",
     exportFormatTitle:
-      "PDF は選択した視覚テンプレートを保持します。Word・LaTeX・Markdown は同じ内容と引用スタイルを、シンプルで編集可能なレイアウト（テンプレートのスタイルなし）で含みます。",
-    exportPdf: "PDF（プレビューと同じスタイル）",
-    exportDocx: "Word .docx（テンプレートに合わせる）",
-    exportLatexModern: "LaTeX .tex（テンプレートに合わせる）",
-    exportLatexClassic: "LaTeX .tex（ミニマル）",
-    exportMarkdown: "Markdown .md（プレーンテキスト）",
+      "PDF はテンプレートと完全に一致します。Word と LaTeX は概ね従いますが、多少異なる場合があります。Markdown はプレーンテキストです。",
+    exportPdf: "PDF (.pdf)",
+    exportDocx: "Word (.docx)",
+    exportLatexModern: "LaTeX (.tex)",
+    exportMarkdown: "Markdown (.md)",
     exportBibtex: "BibTeX .bib（Zotero 用）",
     exportJson: "JSON（データ）",
     itemUntitled: "無題",
@@ -779,12 +772,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Cria uma página web pública e compartilhável deste CV em um link público. Ela é ressincronizada conforme você atualiza. Desativada por padrão; desmarque para tirá-la do ar.",
     exportFormatTitle:
-      "O PDF mantém o modelo visual escolhido. Word, LaTeX e Markdown contêm o mesmo conteúdo + estilo de citação em um layout simples e editável (sem a formatação do modelo).",
-    exportPdf: "PDF (estilizado como a prévia)",
-    exportDocx: "Word .docx (conforme seu modelo)",
-    exportLatexModern: "LaTeX .tex (conforme seu modelo)",
-    exportLatexClassic: "LaTeX .tex (mínima)",
-    exportMarkdown: "Markdown .md (texto simples)",
+      "O PDF corresponde exatamente ao seu modelo. Word e LaTeX o seguem de perto, mas podem variar. Markdown é texto simples.",
+    exportPdf: "PDF (.pdf)",
+    exportDocx: "Word (.docx)",
+    exportLatexModern: "LaTeX (.tex)",
+    exportMarkdown: "Markdown (.md)",
     exportBibtex: "BibTeX .bib (para o Zotero)",
     exportJson: "JSON (dados)",
     itemUntitled: "Sem título",
@@ -879,12 +871,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Crea una pagina web pubblica condivisibile di questo CV tramite un link pubblico. Si risincronizza man mano che apporti aggiornamenti. Disattivata per impostazione predefinita; deseleziona per metterla offline.",
     exportFormatTitle:
-      "Il PDF mantiene il modello visivo scelto. Word, LaTeX e Markdown contengono gli stessi contenuti + lo stile di citazione in un layout semplice e modificabile (senza stile del modello).",
-    exportPdf: "PDF (con lo stile dell’anteprima)",
-    exportDocx: "Word .docx (in linea col modello)",
-    exportLatexModern: "LaTeX .tex (in linea col modello)",
-    exportLatexClassic: "LaTeX .tex (minimale)",
-    exportMarkdown: "Markdown .md (testo semplice)",
+      "Il PDF corrisponde esattamente al tuo modello. Word e LaTeX lo seguono da vicino ma possono differire. Markdown è testo semplice.",
+    exportPdf: "PDF (.pdf)",
+    exportDocx: "Word (.docx)",
+    exportLatexModern: "LaTeX (.tex)",
+    exportMarkdown: "Markdown (.md)",
     exportBibtex: "BibTeX .bib (per Zotero)",
     exportJson: "JSON (dati)",
     itemUntitled: "Senza titolo",
@@ -979,12 +970,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "이 CV의 공유 가능한 공개 웹 페이지를 공개 링크로 생성합니다. 업데이트할 때마다 다시 동기화됩니다. 기본값은 꺼짐이며, 체크를 해제하면 오프라인으로 전환됩니다.",
     exportFormatTitle:
-      "PDF는 선택한 시각적 템플릿을 유지합니다. Word, LaTeX, Markdown은 동일한 내용과 인용 스타일을 템플릿 서식 없이 편집 가능한 단순 레이아웃으로 담습니다.",
-    exportPdf: "PDF (미리보기와 동일한 스타일)",
-    exportDocx: "Word .docx (템플릿에 맞춤)",
-    exportLatexModern: "LaTeX .tex (템플릿에 맞춤)",
-    exportLatexClassic: "LaTeX .tex (미니멀)",
-    exportMarkdown: "Markdown .md (일반 텍스트)",
+      "PDF는 템플릿과 정확히 일치합니다. Word와 LaTeX는 비슷하게 따르지만 다를 수 있습니다. Markdown은 일반 텍스트입니다.",
+    exportPdf: "PDF (.pdf)",
+    exportDocx: "Word (.docx)",
+    exportLatexModern: "LaTeX (.tex)",
+    exportMarkdown: "Markdown (.md)",
     exportBibtex: "BibTeX .bib (Zotero용)",
     exportJson: "JSON (데이터)",
     itemUntitled: "제목 없음",
@@ -1079,12 +1069,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Создаёт публичную веб-страницу этого CV, доступную по публичной ссылке. Она пересинхронизируется по мере ваших изменений. По умолчанию отключено; снимите галочку, чтобы перевести её в офлайн.",
     exportFormatTitle:
-      "PDF сохраняет выбранный вами визуальный шаблон. Word, LaTeX и Markdown содержат то же содержимое и стиль цитирования в простом редактируемом виде (без оформления шаблона).",
-    exportPdf: "PDF (оформление как в предпросмотре)",
-    exportDocx: "Word .docx (по вашему шаблону)",
-    exportLatexModern: "LaTeX .tex (по вашему шаблону)",
-    exportLatexClassic: "LaTeX .tex (минимальный)",
-    exportMarkdown: "Markdown .md (обычный текст)",
+      "PDF точно соответствует вашему шаблону. Word и LaTeX близки к нему, но могут отличаться. Markdown — обычный текст.",
+    exportPdf: "PDF (.pdf)",
+    exportDocx: "Word (.docx)",
+    exportLatexModern: "LaTeX (.tex)",
+    exportMarkdown: "Markdown (.md)",
     exportBibtex: "BibTeX .bib (для Zotero)",
     exportJson: "JSON (данные)",
     itemUntitled: "Без названия",

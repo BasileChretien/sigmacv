@@ -14,7 +14,6 @@ const EXPORTABLE: readonly RenderFormat[] = [
   "pdf",
   "docx",
   "latex",
-  "latex-classic",
   "markdown",
   "bibtex",
 ];

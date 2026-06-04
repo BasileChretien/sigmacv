@@ -19,7 +19,6 @@ type ExportFormat =
   | "pdf"
   | "docx"
   | "latex"
-  | "latex-classic"
   | "markdown"
   | "bibtex"
   | "json";
@@ -228,7 +227,6 @@ export default function CvWorkspace({
             <option value="pdf">{ui(uiLocale).exportPdf}</option>
             <option value="docx">{ui(uiLocale).exportDocx}</option>
             <option value="latex">{ui(uiLocale).exportLatexModern}</option>
-            <option value="latex-classic">{ui(uiLocale).exportLatexClassic}</option>
             <option value="markdown">{ui(uiLocale).exportMarkdown}</option>
             <option value="bibtex">{ui(uiLocale).exportBibtex}</option>
             <option value="json">{ui(uiLocale).exportJson}</option>

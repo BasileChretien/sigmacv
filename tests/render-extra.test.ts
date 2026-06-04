@@ -7,7 +7,7 @@ import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { renderCvHtml } from "@/lib/render/html";
 import { docxRenderer } from "@/lib/render/docx";
 import { bibtexRenderer } from "@/lib/render/bibtex";
-import { latexClassicRenderer, latexRenderer } from "@/lib/render/latex";
+import { latexRenderer } from "@/lib/render/latex";
 import { markdownRenderer, renderCvMarkdown } from "@/lib/render/markdown";
 import { renderCvLatex } from "@/lib/render/latex";
 import { renderCvDocxBuffer } from "@/lib/render/docx";
@@ -46,7 +46,6 @@ describe("render format catalog", () => {
       "pdf",
       "docx",
       "latex",
-      "latex-classic",
       "markdown",
       "bibtex",
     ]);
@@ -76,13 +75,6 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     expect(r.format).toBe("latex");
     expect(r.filename).toBe("basile-chretien-cv.tex");
     expect(r.text).toContain("\\definecolor{cvaccent}"); // modern
-  });
-
-  it("latexClassicRenderer.render returns classic LaTeX + .tex filename", async () => {
-    const r = await latexClassicRenderer.render({ cv: makeCv() });
-    expect(r.format).toBe("latex-classic");
-    expect(r.filename).toBe("basile-chretien-cv.tex");
-    expect(r.text).toContain("\\documentclass[11pt]{article}"); // classic
   });
 
   it("docxRenderer.render returns a .docx buffer", async () => {

@@ -39,17 +39,8 @@ describe.skipIf(!hasApa)("export formats (need vendored CSL assets)", () => {
     expect(md).toContain("**Chrétien**"); // self name bolded
   });
 
-  it("LaTeX (classic): minimal article with itemized bibliography + \\textbf self", () => {
-    const tex = renderCvLatex(makeCv(), "classic");
-    expect(tex).toContain("\\documentclass[11pt]{article}");
-    expect(tex).toContain("\\section*{Publications}");
-    expect(tex).toContain("\\item ");
-    expect(tex).toContain("\\textbf{Chr"); // \textbf{Chrétien}
-    expect(tex).toContain("\\end{document}");
-  });
-
-  it("LaTeX (modern): accent colour, section rules, professional layout (default)", () => {
-    const tex = renderCvLatex(makeCv()); // modern is the default variant
+  it("LaTeX: accent colour, section rules, template-styled layout", () => {
+    const tex = renderCvLatex(makeCv());
     expect(tex).toContain("\\documentclass[11pt,a4paper]{article}");
     expect(tex).toContain("\\definecolor{cvaccent}{HTML}{1F4FD8}");
     expect(tex).toContain("\\section{Publications}");
@@ -116,7 +107,7 @@ describe.skipIf(!hasApa)("export formats (need vendored CSL assets)", () => {
   it("prepends the honorific to the name in Markdown + LaTeX exports", () => {
     const cv = updateOwner(makeCv(), { honorific: "Dr" });
     expect(renderCvMarkdown(cv)).toContain("# Dr Basile Chrétien");
-    expect(renderCvLatex(cv, "classic")).toContain("Dr Basile Chr");
+    expect(renderCvLatex(cv)).toContain("Dr Basile Chr");
   });
 
   it("BibTeX: @article entries with author/title/year/DOI + a cite key", () => {

@@ -19,8 +19,6 @@ export async function getRenderer(format: RenderFormat): Promise<Renderer> {
       return (await import("./docx")).docxRenderer;
     case "latex":
       return (await import("./latex")).latexRenderer;
-    case "latex-classic":
-      return (await import("./latex")).latexClassicRenderer;
     case "markdown":
       return (await import("./markdown")).markdownRenderer;
     case "bibtex":
