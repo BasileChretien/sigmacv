@@ -1,5 +1,6 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
-import { renderStrings } from "@/lib/i18n/render";
+import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
+import { authorshipCounts } from "./authorship";
 import { wrapSelf } from "./emphasize";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
@@ -26,6 +27,22 @@ function escapeLatex(s: string): string {
   return s.replace(/[\\&%$#_{}~^]/g, (c) => LATEX_ESCAPE[c] ?? c);
 }
 
+const URL_RE = /(https?:\/\/[^\s]+)/g;
+
+/** Escape an entry for LaTeX, but wrap any URL in \url{} so it (a) keeps its raw
+ *  characters and (b) can break across lines (via xurl) instead of overflowing
+ *  the margin. Self-name highlighting is applied only to the escaped text runs. */
+function latexifyEntry(entry: string, bold: ((s: string) => string) | null): string {
+  return entry
+    .split(URL_RE)
+    .map((part) => {
+      if (/^https?:\/\//.test(part)) return `\\url{${part}}`;
+      const escaped = escapeLatex(part);
+      return bold ? bold(escaped) : escaped;
+    })
+    .join("");
+}
+
 /** Citations come from citeproc (text output) so the style matches every other
  *  format exactly. The account holder's name is bolded on their own works. */
 function sectionItems(
@@ -37,19 +54,18 @@ function sectionItems(
     .map(({ section, items }) => ({
       title: escapeLatex(section.title),
       lines: items.map(({ item, entry }) => {
-        let t = escapeLatex(entry);
-        if (
+        const highlight =
           cv.display.highlightSelf &&
           item.authoredBySelf &&
-          item.selfNameVariants.length > 0
-        ) {
-          t = wrapSelf(
-            t,
-            item.selfNameVariants.map(escapeLatex),
-            (s) => `\\textbf{${s}}`,
-          );
-        }
-        return t;
+          item.selfNameVariants.length > 0;
+        const variants = item.selfNameVariants.map(escapeLatex);
+        return latexifyEntry(
+          entry,
+          highlight
+            ? (escaped) =>
+                wrapSelf(escaped, variants, (s) => `\\textbf{${s}}`)
+            : null,
+        );
       }),
     }));
 }
@@ -58,6 +74,53 @@ function sectionItems(
 function accentHex(cv: CanonicalCv): string {
   const raw = (cv.display.accentColor || "#1f4fd8").replace(/^#/, "");
   return /^[0-9a-fA-F]{6}$/.test(raw) ? raw.toUpperCase() : "1F4FD8";
+}
+
+/** Publications + citations per year as a LaTeX tabular (mirrors the HTML chart
+ *  data). "" when charts are off or there's too little data. */
+function yearTableLatex(cv: CanonicalCv): string {
+  if (!cv.display.showCharts) return "";
+  const data = [...(cv.owner.countsByYear ?? [])]
+    .filter((d) => Number.isFinite(d.year))
+    .sort((a, b) => a.year - b.year)
+    .slice(-12);
+  if (data.length < 2) return "";
+  const s = renderStrings(cv.display.locale);
+  const rows = data
+    .map((d) => `${d.year} & ${d.works} & ${d.citations} \\\\`)
+    .join("\n");
+  return [
+    "\\medskip\\noindent\\begin{tabular}{@{}lrr@{}}",
+    ` & \\textbf{${escapeLatex(s.chartPublicationsPerYear)}} & \\textbf{${escapeLatex(s.chartCitationsPerYear)}} \\\\`,
+    "\\hline",
+    rows,
+    "\\end{tabular}\\par",
+  ].join("\n");
+}
+
+/** The authorship-summary table as a LaTeX tabular. "" when off/empty. */
+function authorshipTableLatex(cv: CanonicalCv): string {
+  if (!cv.display.showAuthorshipTable) return "";
+  const rows = authorshipCounts(cv, cv.display.authorshipRoles);
+  if (rows.length === 0 || rows.every((r) => r.count === 0)) return "";
+  const s = renderStrings(cv.display.locale);
+  const total = rows[0]?.total ?? 0;
+  const body = rows
+    .map(
+      (r) =>
+        `${escapeLatex(authorshipRoleLabel(cv.display.locale, r.role))} & ${r.count} & ${r.percent}\\% \\\\`,
+    )
+    .join("\n");
+  const note = rows.some((r) => r.role === "corresponding")
+    ? `\n{\\footnotesize\\itshape ${escapeLatex(s.authorshipCorrespondingNote)}\\par}`
+    : "";
+  return [
+    "\\medskip\\noindent\\begin{tabular}{@{}lrr@{}}",
+    `\\multicolumn{3}{@{}l}{\\textbf{${escapeLatex(s.authorshipCaption)} \\textperiodcentered{} n=${total}}} \\\\`,
+    "\\hline",
+    body,
+    "\\end{tabular}\\par" + note,
+  ].join("\n");
 }
 
 /**
@@ -111,6 +174,7 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
     "\\usepackage{enumitem}",
     "\\usepackage{titlesec}",
     "\\usepackage[hidelinks]{hyperref}",
+    "\\usepackage{xurl}",
     `\\definecolor{cvaccent}{HTML}{${accentHex(cv)}}`,
     `\\hypersetup{colorlinks=true,urlcolor=${linkColor},linkcolor=${linkColor}}`,
     `\\titleformat{\\section}{\\large\\bfseries${headColor}}{}{0em}{}${rule}`,
@@ -125,7 +189,7 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
     .join("\n");
 
   const headerLines = [
-    `{\\fontsize{24}{27}\\selectfont\\bfseries${nameColor}${name}}\\\\[3pt]`,
+    `{\\fontsize{24}{27}\\selectfont\\bfseries ${nameColor}${name}}\\\\[3pt]`,
     headline ? `{\\large ${headline}}\\\\[3pt]` : "",
     contactLine ? `{\\small\\color{black!65}${contactLine}}\\\\[2pt]` : "",
     metricsRaw ? `{\\small\\itshape\\color{black!55}${escapeLatex(metricsRaw)}}\\\\[2pt]` : "",
@@ -140,7 +204,18 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
     ? `\\medskip\n${escapeLatex(head.summary)}\\par\n`
     : "";
 
-  return `${preamble}\n${header}\n${summaryPar}\n${blocks.join("\n\n")}\n\n\\end{document}\n`;
+  // Charts + authorship render as tables (LaTeX can't draw the bar charts).
+  const tables = [yearTableLatex(cv), authorshipTableLatex(cv)]
+    .filter(Boolean)
+    .join("\n");
+
+  // A photo can't be embedded in a standalone .tex; leave a ready-to-use line
+  // the author can enable once they save the image next to this file.
+  const photoNote = cv.owner.photo
+    ? "% To add your photo: save it as cv-photo.jpg beside this .tex, then add\n% \\usepackage{graphicx} and \\includegraphics[width=2.8cm]{cv-photo} where you want it.\n"
+    : "";
+
+  return `${preamble}\n${photoNote}${header}\n${tables}\n${summaryPar}\n${blocks.join("\n\n")}\n\n\\end{document}\n`;
 }
 
 /** Render a .tex that follows the chosen template (accent, font, heading + name
