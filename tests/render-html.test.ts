@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemIncluded, setSectionVisible, updateDisplay, updateOwner } from "@/lib/canonical/curate";
+import { addManualEntry, addSection, setItemIncluded, setSectionVisible, updateDisplay, updateOwner } from "@/lib/canonical/curate";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { getRenderer } from "@/lib/render";
 import { htmlRenderer, renderCvHtml } from "@/lib/render/html";
@@ -148,6 +148,17 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(html).toContain('<img class="cv-photo"');
     // Education/positions are in the history table, not duplicated as sections.
     expect(html).toContain("PharmD, University of Caen");
+  });
+
+  it("rirekisho fills the 年 column from the entry text for a manual history item without a structured year", () => {
+    let cv = addSection(makeCv(), "education");
+    cv = addManualEntry(cv, "education", "MSc Public Health, Paris-Saclay (2018–2020)", "edu:withyear");
+    cv = addManualEntry(cv, "education", "Certificate in Pedagogy", "edu:noyear");
+    const html = renderCvHtml(updateDisplay(cv, { template: "rirekisho" }));
+    // The first 4-digit year in the free text is surfaced into the 年 column…
+    expect(html).toMatch(/<td class="rk-year">2018<\/td><td>[^<]*Paris-Saclay/);
+    // …and an entry with no year leaves the 年 column empty (not a broken cell).
+    expect(html).toMatch(/<td class="rk-year"><\/td><td>Certificate in Pedagogy/);
   });
 
   it("renders the ATS template plain: hides badges/charts/photo, black text", () => {

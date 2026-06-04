@@ -70,6 +70,13 @@ function cell(value: string | undefined): string {
   return value ? escapeHtml(value) : "";
 }
 
+/** First plausible 4-digit year (1900–2099) in a free-text history entry — used
+ *  for the 年 column when a manually-typed item has no structured `meta.year`. */
+function firstYearOf(text: string): number | undefined {
+  const m = text.match(/\b(?:19|20)\d{2}\b/);
+  return m ? Number(m[0]) : undefined;
+}
+
 function headerTable(cv: CanonicalCv): string {
   const o = cv.owner;
   const p = o.personal ?? {};
@@ -117,9 +124,13 @@ function historyTable(sections: RenderedSection[]): string {
     if (!rs || rs.items.length === 0) return;
     rows.push(`<tr><td class="rk-year"></td><td class="rk-center">${heading}</td></tr>`);
     for (const ri of rs.items) {
-      const year = ri.item.meta.year ? String(ri.item.meta.year) : "";
+      const text = ri.item.displayText ?? "";
+      // 年 column: the structured meta.year (set for ORCID/OpenAlex entries), else
+      // the first 4-digit year found in the free text — so a manually-typed line
+      // like "PharmD … (2007–2016)" still fills the form's year column.
+      const year = ri.item.meta.year ?? firstYearOf(text);
       rows.push(
-        `<tr><td class="rk-year">${escapeHtml(year)}</td><td>${escapeHtml(ri.item.displayText ?? "")}</td></tr>`,
+        `<tr><td class="rk-year">${escapeHtml(year ? String(year) : "")}</td><td>${escapeHtml(text)}</td></tr>`,
       );
     }
   };
