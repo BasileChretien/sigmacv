@@ -187,6 +187,25 @@ describe("curatedMetrics (field-normalized measures follow curation)", () => {
     expect(m.works_count).toBe(116); // untouched
   });
 
+  it("excludes preprints from the FWCI recompute", () => {
+    // A preprint (type + repository venue → routed to the preprints section)
+    // carrying a high FWCI must NOT move the mean.
+    const preprint = {
+      ...workWith("Wpre", 10, 99),
+      type: "preprint",
+      primary_location: { source: { display_name: "medRxiv", type: "repository" } },
+    } as unknown as OpenAlexWork;
+    const cv = buildCanonicalCv({
+      id: "cmp",
+      resolved,
+      works: [workWith("Wa", 2, 95), workWith("Wb", 1, 50), workWith("Wc", 5, 99), preprint],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const m = curatedMetrics(cv);
+    expect(m.fwci_mean).toBeCloseTo((2 + 1 + 5) / 3, 5); // preprint's 10 excluded
+    expect(m.fwci_n).toBe(3);
+  });
+
   it("drops a 'not mine' work from the FWCI mean / N / top-10%", () => {
     const cv = build3();
     const curated: CanonicalCv = {

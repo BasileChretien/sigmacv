@@ -282,6 +282,7 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       const cv = {
         sections: [
           {
+            type: "publications",
             items: [
               mk({ year: 2020, cites: 3 }),
               mk({ year: 2020, cites: 2 }),
@@ -292,6 +293,8 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
               mk({}), // excluded: undated
             ],
           },
+          // A whole section of preprints is excluded from the figures.
+          { type: "preprints", items: [mk({ year: 2019, cites: 99 })] },
         ],
       } as unknown as CanonicalCv;
       const by = Object.fromEntries(curatedCountsByYear(cv).map((c) => [c.year, c]));
@@ -299,6 +302,7 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(by[2021]).toMatchObject({ works: 1, citations: 0 }); // not-mine 2021 dropped
       expect(by[2022]).toBeUndefined();
       expect(by[2023]).toBeUndefined();
+      expect(by[2019]).toBeUndefined(); // preprint section excluded
     });
 
     it("a wrongly-attributed old work marked 'not mine' leaves the charts (1993 case)", () => {

@@ -8,7 +8,8 @@ import {
 /**
  * Metrics adjusted for curation. The FIELD-NORMALIZED measures we DERIVE from
  * per-work data (FWCI mean + its coverage N, top-10% share) are recomputed over
- * the CURATED works, so works marked "not mine" / hidden no longer inflate them.
+ * the CURATED, non-preprint works, so works marked "not mine" / hidden — and the
+ * preprint section — no longer inflate them.
  * They need the per-work `fwci`/`topDecile` captured at build (a CV synced before
  * those fields existed has none → we keep the author-level value until re-sync).
  *
@@ -19,6 +20,7 @@ import {
 export function curatedMetrics(cv: CanonicalCv): OwnerMetrics {
   const base: OwnerMetrics = cv.owner.metrics ?? {};
   const works = cv.sections
+    .filter((s) => s.type !== "preprints") // preprints don't count toward the metrics
     .flatMap((s) => s.items)
     .filter((it) => Boolean(it.csl) && !isHidden(it));
   const fwcis = works

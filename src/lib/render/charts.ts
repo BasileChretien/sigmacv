@@ -61,15 +61,17 @@ function barChart(title: string, points: Point[]): string {
 /**
  * Per-year counts derived from the CURATED work items — so works marked "not
  * mine" or hidden are excluded (the build-time `owner.countsByYear` is the whole
- * OpenAlex author aggregate and would keep counting removed works). "works" is
- * the number of kept publications that year; "citations" is their total
- * cited-by count.
+ * OpenAlex author aggregate and would keep counting removed works). PREPRINTS
+ * are excluded too: the charts summarise peer-reviewed-style output, not the
+ * preprint section. "works" is the number of kept publications that year;
+ * "citations" is their total cited-by count.
  */
 export function curatedCountsByYear(
   cv: CanonicalCv,
 ): { year: number; works: number; citations: number }[] {
   const byYear = new Map<number, { works: number; citations: number }>();
   for (const section of cv.sections) {
+    if (section.type === "preprints") continue; // preprints don't count toward the figures
     for (const item of section.items) {
       if (!item.csl || isHidden(item)) continue; // real works only, minus removed
       const year = item.meta.year;
