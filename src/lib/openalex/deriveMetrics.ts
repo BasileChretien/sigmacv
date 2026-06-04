@@ -46,6 +46,14 @@ export function computeDerivedMetrics(works: OpenAlexWork[]): DerivedMetrics {
   return out;
 }
 
+/** Whether a single work sits in the top decile (citation percentile ≥ 90) for
+ *  its field + year — stored per work so the share recomputes over curated works.
+ *  undefined when OpenAlex carries no percentile for the work. */
+export function workTopDecile(work: OpenAlexWork): boolean | undefined {
+  const p = percentileOf(work.cited_by_percentile_year);
+  return typeof p === "number" ? p >= 90 : undefined;
+}
+
 /** Resolve a single percentile (0–100) from OpenAlex's range/value shape. */
 function percentileOf(
   p: { min?: number; max?: number; value?: number } | null | undefined,

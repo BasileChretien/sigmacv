@@ -1,9 +1,42 @@
-import type { CanonicalCv, OwnerMetrics } from "@/lib/canonical/schema";
+import { isHidden, type CanonicalCv, type OwnerMetrics } from "@/lib/canonical/schema";
 import {
   metricContext,
   metricCoverageNote,
   metricLabel,
 } from "@/lib/i18n/render";
+
+/**
+ * Metrics adjusted for curation. The FIELD-NORMALIZED measures we DERIVE from
+ * per-work data (FWCI mean + its coverage N, top-10% share) are recomputed over
+ * the CURATED works, so works marked "not mine" / hidden no longer inflate them.
+ * They need the per-work `fwci`/`topDecile` captured at build (a CV synced before
+ * those fields existed has none → we keep the author-level value until re-sync).
+ *
+ * OpenAlex's OFFICIAL author numbers (h-index, i10, works/citation counts, 2-yr
+ * mean citedness) are LEFT AS-IS: they are OpenAlex's own author-level figures,
+ * and recomputing them from a possibly-partial works list would undercount.
+ */
+export function curatedMetrics(cv: CanonicalCv): OwnerMetrics {
+  const base: OwnerMetrics = cv.owner.metrics ?? {};
+  const works = cv.sections
+    .flatMap((s) => s.items)
+    .filter((it) => Boolean(it.csl) && !isHidden(it));
+  const fwcis = works
+    .map((w) => w.meta.fwci)
+    .filter((x): x is number => typeof x === "number");
+  const deciles = works
+    .map((w) => w.meta.topDecile)
+    .filter((x): x is boolean => typeof x === "boolean");
+  return {
+    ...base,
+    ...(fwcis.length > 0
+      ? { fwci_mean: fwcis.reduce((a, b) => a + b, 0) / fwcis.length, fwci_n: fwcis.length }
+      : {}),
+    ...(deciles.length > 0
+      ? { top10pct_share: deciles.filter(Boolean).length / deciles.length }
+      : {}),
+  };
+}
 
 /**
  * Metric catalog. Order is the display order: FIELD-NORMALIZED measures first
@@ -75,7 +108,7 @@ export function formatMetricValue(key: string, raw: number, locale = "en-US"): s
  */
 export function formattedMetrics(cv: CanonicalCv): FormattedMetric[] {
   if (!cv.display.showMetrics || cv.display.metrics.length === 0) return [];
-  const values: OwnerMetrics = cv.owner.metrics ?? {};
+  const values: OwnerMetrics = curatedMetrics(cv);
   const selected = new Set(cv.display.metrics);
 
   const locale = cv.display.locale;

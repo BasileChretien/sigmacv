@@ -7,7 +7,7 @@ import {
   type CvItem,
   type CvSection,
 } from "./schema";
-import { computeDerivedMetrics } from "@/lib/openalex/deriveMetrics";
+import { computeDerivedMetrics, workTopDecile } from "@/lib/openalex/deriveMetrics";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName, workToCsl } from "@/lib/openalex/toCsl";
 import {
@@ -600,6 +600,10 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
         type: work.type ?? undefined,
         doi: csl.DOI,
         citedByCount: work.cited_by_count,
+        // Per-work field-normalized data, stored so the FWCI mean + top-10%
+        // share recompute over the CURATED works (excluding "not mine"/hidden).
+        fwci: typeof work.fwci === "number" ? work.fwci : undefined,
+        topDecile: workTopDecile(work),
         oaStatus:
           work.open_access?.is_oa && work.open_access.oa_status
             ? work.open_access.oa_status

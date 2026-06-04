@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import {
+  curatedMetrics,
   formatMetricValue,
   formattedMetrics,
   metricsLineText,
@@ -141,5 +142,73 @@ describe("formattedMetrics", () => {
       },
     };
     expect(formattedMetrics(noI10)).toEqual([]);
+  });
+});
+
+describe("curatedMetrics (field-normalized measures follow curation)", () => {
+  const workWith = (id: string, fwci: number, pct: number): OpenAlexWork =>
+    ({
+      id: `https://openalex.org/${id}`,
+      title: id,
+      display_name: id,
+      type: "article",
+      publication_year: 2022,
+      cited_by_count: 10,
+      fwci,
+      cited_by_percentile_year: { min: pct, max: pct + 1 },
+      authorships: [{ author: { id: "https://openalex.org/A5001069481" } }],
+      primary_location: { source: { display_name: "J", type: "journal" } },
+    }) as unknown as OpenAlexWork;
+
+  // Three self works carrying per-work FWCI (2, 1, 5) + top-decile (yes, no, yes).
+  function build3(): CanonicalCv {
+    const cv = buildCanonicalCv({
+      id: "cm",
+      resolved,
+      works: [workWith("Wa", 2, 95), workWith("Wb", 1, 50), workWith("Wc", 5, 99)],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    return {
+      ...cv,
+      owner: {
+        ...cv.owner,
+        // Author-level numbers that must survive untouched.
+        metrics: { ...cv.owner.metrics, h_index: 12, works_count: 116 },
+      },
+    };
+  }
+
+  it("recomputes FWCI mean / N / top-10% from per-work data, keeping official counts", () => {
+    const m = curatedMetrics(build3());
+    expect(m.fwci_mean).toBeCloseTo((2 + 1 + 5) / 3, 5);
+    expect(m.fwci_n).toBe(3);
+    expect(m.top10pct_share).toBeCloseTo(2 / 3, 5);
+    expect(m.h_index).toBe(12); // OpenAlex official — untouched
+    expect(m.works_count).toBe(116); // untouched
+  });
+
+  it("drops a 'not mine' work from the FWCI mean / N / top-10%", () => {
+    const cv = build3();
+    const curated: CanonicalCv = {
+      ...cv,
+      sections: cv.sections.map((s) => ({
+        ...s,
+        items: s.items.map((it) => (it.meta.fwci === 5 ? { ...it, notMine: true } : it)),
+      })),
+    };
+    const m = curatedMetrics(curated);
+    expect(m.fwci_mean).toBeCloseTo(1.5, 5); // (2 + 1) / 2
+    expect(m.fwci_n).toBe(2);
+    expect(m.top10pct_share).toBeCloseTo(0.5, 5); // 1 of 2
+  });
+
+  it("keeps the author-level FWCI when no per-work data is present (pre-re-sync)", () => {
+    const cv = makeCv(); // fixture works carry no per-work fwci
+    const m = curatedMetrics({
+      ...cv,
+      owner: { ...cv.owner, metrics: { fwci_mean: 1.84, fwci_n: 73 } },
+    });
+    expect(m.fwci_mean).toBe(1.84);
+    expect(m.fwci_n).toBe(73);
   });
 });

@@ -158,6 +158,12 @@ export const CvItemSchema = z.object({
     type: z.string().optional(),
     doi: z.string().optional(),
     citedByCount: z.number().int().optional(),
+    /** Per-work field-weighted citation impact (OpenAlex `fwci`). Stored so the
+     *  FWCI mean can be RECOMPUTED over the curated works (excluding "not mine"). */
+    fwci: z.number().optional(),
+    /** Whether this work is in the top decile by field+year citations (OpenAlex
+     *  percentile ≥ 90). Stored so top-10% share recomputes over curated works. */
+    topDecile: z.boolean().optional(),
     /** Open-access status from OpenAlex ("gold"/"green"/"hybrid"/"bronze"/"diamond"). */
     oaStatus: z.string().optional(),
     /** The account holder's authorship role on this work ("first"/"last"/"corresponding"). */
