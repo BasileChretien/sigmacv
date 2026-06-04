@@ -205,7 +205,7 @@ export default function ItemRow({
           className="mine-btn"
           onClick={onToggleIncluded}
           aria-pressed={!item.included}
-          aria-label={`${item.included ? t(locale, "hide") : t(locale, "show")} — ${title}`}
+          aria-label={`${item.included ? t(locale, "hide") : t(locale, "show")}: ${title}`}
           title={t(locale, "hideHint")}
         >
           {item.included ? t(locale, "hide") : t(locale, "show")}
@@ -216,7 +216,7 @@ export default function ItemRow({
             className={`mine-btn${item.notMine ? " is-restore" : ""}`}
             onClick={onToggleNotMine}
             aria-pressed={item.notMine}
-            aria-label={`${item.notMine ? t(locale, "mine") : t(locale, "notMine")} — ${title}`}
+            aria-label={`${item.notMine ? t(locale, "mine") : t(locale, "notMine")}: ${title}`}
             title={t(locale, "notMineHint")}
           >
             {item.notMine ? t(locale, "mine") : t(locale, "notMine")}

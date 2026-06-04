@@ -581,6 +581,11 @@ export default function CvEditor({
             <option value="year-asc">{t(locale, "sortYearAsc")}</option>
             <option value="citations">{t(locale, "sortCitations")}</option>
           </select>
+          {cv.display.publicationOrder === "citations" ? (
+            <span className="field-hint muted">
+              {t(locale, "sortCitationsNote")}
+            </span>
+          ) : null}
         </label>
 
         <label className="field">

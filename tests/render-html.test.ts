@@ -68,6 +68,8 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     // …and the container guarantees a gap between consecutive badges (regression:
     // the count pill used to butt straight against the OA/role pill or the URL).
     expect(html).toMatch(/\.cv-badges\s*\{[^{}]*gap:/);
+    // The citation pill carries a field-normalisation caveat (responsible metrics).
+    expect(html).toMatch(/cv-badge-cites[^>]*title="[^"]*field-normalised/i);
   });
 
   it("strips the authorship-note in the ATS template (no orphaned caveat when the table is hidden)", () => {

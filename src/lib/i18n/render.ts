@@ -31,6 +31,8 @@ export interface RenderStrings {
   badgeOpenAccessTitle: string;
   /** Per-entry citation-count badge; "{n}" → the (locale-formatted) count. */
   badgeCitations: string;
+  /** Tooltip caveat on the citation pill (raw counts aren't field-normalised). */
+  badgeCitationsTitle: string;
   metric2yr: string;
   metricFwci: string;
   metricHIndex: string;
@@ -69,6 +71,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open access ({status})",
     badgeCitations: "{n} citations",
+    badgeCitationsTitle: "Raw citation count — not field-normalised (varies by field and age)",
     metric2yr: "2-yr mean citedness",
     metricFwci: "Mean work FWCI",
     metricHIndex: "h-index",
@@ -104,6 +107,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "开放获取（{status}）",
     badgeCitations: "被引 {n}",
+    badgeCitationsTitle: "原始被引次数——未经领域标准化（因领域与年代而异）",
     metric2yr: "两年平均被引率",
     metricFwci: "平均成果 FWCI",
     metricHIndex: "h 指数",
@@ -139,6 +143,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acceso abierto ({status})",
     badgeCitations: "{n} citas",
+    badgeCitationsTitle: "Recuento bruto de citas — sin normalización por campo (varía por campo y antigüedad)",
     metric2yr: "Citación media a 2 años",
     metricFwci: "FWCI medio por trabajo",
     metricHIndex: "índice h",
@@ -174,6 +179,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accès libre ({status})",
     badgeCitations: "{n} citations",
+    badgeCitationsTitle: "Nombre brut de citations — non normalisé par domaine (varie selon le domaine et l’ancienneté)",
     metric2yr: "Citations moyennes sur 2 ans",
     metricFwci: "FWCI moyen des travaux",
     metricHIndex: "indice h",
@@ -209,6 +215,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open Access ({status})",
     badgeCitations: "{n} Zitationen",
+    badgeCitationsTitle: "Reine Zitationszahl — nicht feldnormiert (variiert je nach Fach und Alter)",
     metric2yr: "Mittlere Zitationsrate (2 Jahre)",
     metricFwci: "Mittlerer FWCI",
     metricHIndex: "h-Index",
@@ -244,6 +251,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "オープンアクセス（{status}）",
     badgeCitations: "被引用 {n}",
+    badgeCitationsTitle: "被引用数の生値 — 分野標準化なし（分野・年代で変動）",
     metric2yr: "2年間平均被引用度",
     metricFwci: "平均FWCI",
     metricHIndex: "h指数",
@@ -279,6 +287,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acesso aberto ({status})",
     badgeCitations: "{n} citações",
+    badgeCitationsTitle: "Contagem bruta de citações — não normalizada por área (varia por área e idade)",
     metric2yr: "Citação média em 2 anos",
     metricFwci: "FWCI médio dos trabalhos",
     metricHIndex: "índice h",
@@ -314,6 +323,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accesso aperto ({status})",
     badgeCitations: "{n} citazioni",
+    badgeCitationsTitle: "Conteggio grezzo delle citazioni — non normalizzato per campo (varia per campo ed età)",
     metric2yr: "Citazioni medie a 2 anni",
     metricFwci: "FWCI medio dei lavori",
     metricHIndex: "indice h",
@@ -349,6 +359,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "오픈 액세스 ({status})",
     badgeCitations: "인용 {n}회",
+    badgeCitationsTitle: "원시 피인용 수 — 분야 정규화 안 됨 (분야·연도에 따라 다름)",
     metric2yr: "2년 평균 피인용도",
     metricFwci: "평균 논문 FWCI",
     metricHIndex: "h-지수",
@@ -384,6 +395,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Открытый доступ ({status})",
     badgeCitations: "{n} цитирований",
+    badgeCitationsTitle: "Сырое число цитирований — без нормализации по области (зависит от области и возраста)",
     metric2yr: "Средняя цитируемость за 2 года",
     metricFwci: "Средний FWCI работы",
     metricHIndex: "h-индекс",

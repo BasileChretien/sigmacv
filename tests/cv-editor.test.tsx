@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import CvEditor from "@/components/CvEditor";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { addSection, setItemNotMine } from "@/lib/canonical/curate";
+import { addSection, setItemNotMine, updateDisplay } from "@/lib/canonical/curate";
 import { sectionTitle } from "@/lib/i18n";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
@@ -55,6 +55,23 @@ describe("CvEditor (component)", () => {
     });
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
     expect(next.display.highlightStyle).toBe("underline");
+  });
+
+  it("shows a responsible-use note only when sorting publications by citations", () => {
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
+    );
+    expect(screen.queryByText(/Sorting by citations/i)).toBeNull();
+    rerender(
+      <CvEditor
+        cv={updateDisplay(makeCv(), { publicationOrder: "citations" })}
+        availableStyles={["apa"]}
+        uiLocale="en-US"
+        onChange={onChange}
+      />,
+    );
+    expect(screen.getByText(/Sorting by citations/i)).toBeTruthy();
   });
 
   it("the responsible-metrics preset selects field-normalised indicators", () => {
@@ -139,10 +156,11 @@ describe("CvEditor (component)", () => {
   it("gives the Hide and Not-mine buttons an item-specific accessible name", () => {
     render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
     expandAllSections();
-    // The accessible name is "Hide — <title>" / "Not mine — <title>" (not the bare
-    // verb), so a screen reader announces which entry the button acts on.
-    expect(screen.getAllByRole("button", { name: /^Hide — .+/ }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("button", { name: /^Not mine — .+/ }).length).toBeGreaterThan(0);
+    // The accessible name is "Hide: <title>" / "Not mine: <title>" (not the bare
+    // verb), so a screen reader announces which entry the button acts on. A colon
+    // separator (not an em dash) stays unambiguous when the title itself has a "—".
+    expect(screen.getAllByRole("button", { name: /^Hide: .+/ }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /^Not mine: .+/ }).length).toBeGreaterThan(0);
   });
 
   it("surfaces a review badge for an orcid-conflict work", () => {

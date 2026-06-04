@@ -38,9 +38,9 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
     const s = renderStrings(display.locale);
     const n = new Intl.NumberFormat(display.locale).format(item.meta.citedByCount);
     badges.push(
-      `<span class="cv-badge cv-badge-cites">${escapeHtml(
-        s.badgeCitations.replace("{n}", n),
-      )}</span>`,
+      `<span class="cv-badge cv-badge-cites" title="${escapeHtml(
+        s.badgeCitationsTitle,
+      )}">${escapeHtml(s.badgeCitations.replace("{n}", n))}</span>`,
     );
   }
   // Wrap the group in an inline-flex container (own `gap` + `margin-left`) so the
