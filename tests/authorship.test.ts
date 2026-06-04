@@ -56,9 +56,9 @@ describe("build: no-venue work is treated as a preprint", () => {
 });
 
 describe("authorshipCounts", () => {
-  // first(1/3) · last+corresponding(3/3) · second(2/4) ·
-  // single(1/1) · third & second-last(3/4). No work here is a "k-th" middle
-  // author — that needs a position in 4..authorCount-2, and max authorCount is 4.
+  // Position roles partition each paper (front ordinal wins ties; last wins the
+  // final position): first(1/3) · last+corr(3/3, p===n) · second(2/4) ·
+  // first(1/1, single) · third(3/4, front wins over second-to-last).
   const cv = build([
     work("Wa", 1, 3),
     work("Wb", 3, 3, true),
@@ -80,31 +80,37 @@ describe("authorshipCounts", () => {
     const by = Object.fromEntries(rows.map((r) => [r.role, r.count]));
     expect(by.first).toBe(2); // Wa (1/3) + Wd (1/1)
     expect(by.second).toBe(1); // Wc (2/4)
-    expect(by.third).toBe(2); // Wb (3/3) + We (3/4)
-    expect(by.middle).toBe(0); // "k-th": nobody is in positions 4..n-2 (max n is 4)
-    expect(by["second-last"]).toBe(1); // We (3 of 4); needs ≥3 authors
-    expect(by.last).toBe(1); // Wb (3/3); Wd 1/1 → not counted as "last"
-    expect(by.corresponding).toBe(1); // Wb
+    expect(by.third).toBe(1); // We (3/4); Wb (3/3) is the LAST author, not third
+    expect(by.middle).toBe(0); // nobody is in positions 4..n-2 (max n is 4)
+    expect(by["second-last"]).toBe(0); // We (3/4) is "third" — front ordinal wins
+    expect(by.last).toBe(1); // Wb (3/3); Wd 1/1 → first, not "last"
+    expect(by.corresponding).toBe(1); // Wb (orthogonal — overlaps "last")
   });
 
-  it("'middle' (k-th author) = only the leftover positions (not 2nd/3rd/2nd-to-last)", () => {
+  it("position roles are a partition: each paper counts once → they sum to 100%", () => {
     const deep = build([
-      work("Wk1", 5, 8), // position 5 of 8 → k (4..6)
-      work("Wk2", 4, 6), // position 4 of 6 → k (4..4)
-      work("Wn1", 2, 4), // second → NOT k
-      work("Wn2", 3, 4), // third + second-to-last (n-1=3) → NOT k
-      work("Wn3", 7, 8), // second-to-last (n-1=7) → NOT k
+      work("Wf", 1, 5), // first
+      work("Wk1", 5, 8), // 5 of 8 → k-th middle
+      work("Wk2", 4, 6), // 4 of 6 → k-th middle
+      work("Ws2", 2, 4), // second
+      work("Ws3", 2, 3), // 2 of 3 → second (front wins over second-to-last)
+      work("Wt", 3, 4), // 3 of 4 → third (front wins over second-to-last)
+      work("Wstl", 7, 8), // second-to-last (n-1=7)
+      work("Wl", 6, 6), // last
+      work("Wl2", 2, 2), // 2 of 2 → LAST (last wins over second)
     ]);
-    const by = Object.fromEntries(
-      authorshipCounts(deep, ["middle", "second", "third", "second-last"]).map((r) => [
-        r.role,
-        r.count,
-      ]),
-    );
-    expect(by.middle).toBe(2); // only Wk1 (5/8) + Wk2 (4/6)
-    expect(by.second).toBe(1); // Wn1
-    expect(by.third).toBe(1); // Wn2
-    expect(by["second-last"]).toBe(2); // Wn2 (3/4) + Wn3 (7/8)
+    const roles = ["first", "second", "third", "middle", "second-last", "last"] as const;
+    const rows = authorshipCounts(deep, roles);
+    const by = Object.fromEntries(rows.map((r) => [r.role, r.count]));
+    expect(by.first).toBe(1); // Wf
+    expect(by.second).toBe(2); // Ws2 (2/4) + Ws3 (2/3)
+    expect(by.third).toBe(1); // Wt (3/4)
+    expect(by.middle).toBe(2); // Wk1 (5/8) + Wk2 (4/6)
+    expect(by["second-last"]).toBe(1); // Wstl (7/8)
+    expect(by.last).toBe(2); // Wl (6/6) + Wl2 (2/2)
+    // The defining property: every paper lands in exactly one position role.
+    expect(roles.reduce((acc, r) => acc + (by[r] ?? 0), 0)).toBe(9);
+    expect(rows.every((r) => r.total === 9)).toBe(true);
   });
 
   it("reports a shared denominator and per-role percentage", () => {

@@ -30,32 +30,45 @@ function counts(item: CvItem): boolean {
   );
 }
 
+/**
+ * The SINGLE position role a paper's self-author falls into, so the position
+ * roles PARTITION the corpus — each paper counts once, and the shares sum to
+ * 100% (modulo rounding) when all are shown. Precedence: first wins position 1,
+ * last wins the final position (so 2nd-of-2 is the senior LAST author, not a
+ * "second" author), then the front ordinals (second, third) win ties over
+ * second-to-last; the remaining interior positions are the generic "k-th"
+ * middle (4 ≤ p ≤ authorCount − 2). "corresponding" is NOT a position role.
+ */
+function positionRole(i: CvItem): AuthorshipRole | null {
+  const p = i.meta.authorPosition ?? 0;
+  const n = i.meta.authorCount ?? 0;
+  /* v8 ignore next -- defensive: counted items always carry a self position */
+  if (p < 1 || n < 1) return null;
+  if (p === 1) return "first";
+  if (p === n) return "last";
+  if (p === 2) return "second";
+  if (p === 3) return "third";
+  if (p === n - 1) return "second-last";
+  return "middle";
+}
+
 const PREDICATES: Record<AuthorshipRole, (item: CvItem) => boolean> = {
-  first: (i) => i.meta.authorPosition === 1,
-  second: (i) => i.meta.authorPosition === 2,
-  third: (i) => i.meta.authorPosition === 3,
-  // "k-th author": a generic middle position — every position EXCEPT first,
-  // second, third, second-to-last and last. So p with 4 ≤ p ≤ authorCount − 2.
-  // (NOT a superset of second/third/second-to-last; those are broken out.)
-  middle: (i) => {
-    const p = i.meta.authorPosition ?? 0;
-    const n = i.meta.authorCount ?? 0;
-    return p >= 4 && p <= n - 2;
-  },
-  "second-last": (i) =>
-    (i.meta.authorCount ?? 0) > 2 &&
-    i.meta.authorPosition === (i.meta.authorCount ?? 0) - 1,
-  last: (i) =>
-    (i.meta.authorCount ?? 0) > 1 &&
-    i.meta.authorPosition === (i.meta.authorCount ?? 0),
+  first: (i) => positionRole(i) === "first",
+  second: (i) => positionRole(i) === "second",
+  third: (i) => positionRole(i) === "third",
+  middle: (i) => positionRole(i) === "middle",
+  "second-last": (i) => positionRole(i) === "second-last",
+  last: (i) => positionRole(i) === "last",
+  // Orthogonal to position (a paper can be first AND corresponding), so it is
+  // deliberately outside the partition and may overlap any position role.
   corresponding: (i) => i.meta.isCorresponding === true,
 };
 
 /**
  * Count peer-reviewed publications by the requested authorship roles. Roles the
- * caller didn't request are omitted; invalid role strings are ignored. A paper
- * can still satisfy a couple of roles (e.g. 3rd author of 4 is both "third" and
- * "second-to-last") — the user picks which rows to surface.
+ * caller didn't request are omitted; invalid role strings are ignored. The six
+ * POSITION roles are mutually exclusive (see positionRole) so their shares sum
+ * to 100% when all are shown; "corresponding" is orthogonal and may overlap.
  */
 export function authorshipCounts(
   cv: CanonicalCv,
