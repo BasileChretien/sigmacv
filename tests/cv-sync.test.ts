@@ -22,6 +22,8 @@ const mocks = vi.hoisted(() => ({
   logCvSave: vi.fn(),
   canonicalizeInstitutions: vi.fn(),
   enrichCvWithCrossref: vi.fn(),
+  fetchPeerReviews: vi.fn(),
+  fetchJournalNames: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -34,7 +36,10 @@ vi.mock("@/lib/db", () => ({
     },
   },
 }));
-vi.mock("@/lib/openalex/client", () => ({ fetchWorksByAuthorIds: mocks.fetchWorks }));
+vi.mock("@/lib/openalex/client", () => ({
+  fetchWorksByAuthorIds: mocks.fetchWorks,
+  fetchJournalNamesByIssn: mocks.fetchJournalNames,
+}));
 vi.mock("@/lib/openalex/resolveAuthor", () => ({ resolveAuthorByOrcid: mocks.resolveAuthor }));
 vi.mock("@/lib/oep/client", () => ({ fetchEditorialRoles: mocks.fetchEditorial }));
 vi.mock("@/lib/research/log", () => ({ logCvSave: mocks.logCvSave }));
@@ -47,7 +52,7 @@ vi.mock("@/lib/orcid/client", () => ({
   fetchOrcidEducation: vi.fn(async () => []),
   fetchOrcidDistinctions: vi.fn(async () => []),
   fetchOrcidService: vi.fn(async () => []),
-  fetchOrcidPeerReviews: vi.fn(async () => []),
+  fetchOrcidPeerReviews: mocks.fetchPeerReviews,
 }));
 vi.mock("@/lib/datacite/client", () => ({ fetchDataciteOutputs: vi.fn(async () => []) }));
 // Enrichment (ROR + Crossref) is covered by enrich.test.ts; keep it a no-op here.
@@ -94,6 +99,8 @@ beforeEach(() => {
   // Enrichment is a pass-through here (its own behaviour is in enrich.test.ts).
   mocks.canonicalizeInstitutions.mockImplementation(async (input) => ({ result: input, used: false }));
   mocks.enrichCvWithCrossref.mockImplementation(async (cv) => cv);
+  mocks.fetchPeerReviews.mockResolvedValue([]);
+  mocks.fetchJournalNames.mockResolvedValue(new Map<string, string>());
 });
 
 describe("getCvForUser", () => {
@@ -122,6 +129,22 @@ describe("syncCvForUser", () => {
     expect(cv.sections[0]!.type).toBe("publications");
     expect(mocks.upsert).toHaveBeenCalledTimes(1);
     expect(mocks.fetchEditorial).toHaveBeenCalled();
+  });
+
+  it("labels peer reviews by resolved journal name, not the publisher", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue([]);
+    mocks.fetchPeerReviews.mockResolvedValue([
+      { issn: "1471-2415", organization: "Springer Nature", count: 2 },
+    ]);
+    mocks.fetchJournalNames.mockResolvedValue(
+      new Map([["1471-2415", "BMC Ophthalmology"]]),
+    );
+    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.fetchJournalNames).toHaveBeenCalledWith(["1471-2415"]);
+    const pr = cv.sections.find((s) => s.type === "peer-review");
+    expect(pr?.items[0]?.displayText).toBe("BMC Ophthalmology — 2 reviews");
   });
 
   it("builds an empty CV when the ORCID resolves to no OpenAlex author", async () => {

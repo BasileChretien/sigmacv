@@ -287,7 +287,8 @@ function buildOrcidEntrySection(
   };
 }
 
-/** Peer-review section: one entry per convening venue with a review count. */
+/** Peer-review section: one entry per journal with a review count. Labelled by
+ *  the resolved JOURNAL name (falls back to the convening org/publisher). */
 function buildPeerReviewSection(
   groups: OrcidPeerReviewGroup[],
   prevItems: Map<string, CvItem>,
@@ -296,8 +297,11 @@ function buildPeerReviewSection(
   const items: CvItem[] = [];
   let rank = 0;
   for (const g of groups) {
-    const id = `peer-review:orcid:${normInstitution(g.organization).replace(/[^a-z0-9]+/g, "-")}`;
-    const text = `${g.organization} — ${g.count} review${g.count === 1 ? "" : "s"}`;
+    const label = g.journal ?? g.organization;
+    // Stable id keyed by ISSN when available, else the label.
+    const key = g.issn ?? normInstitution(label);
+    const id = `peer-review:orcid:${key.replace(/[^a-z0-9]+/g, "-")}`;
+    const text = `${label} — ${g.count} review${g.count === 1 ? "" : "s"}`;
     items.push(makeEntryItem(id, "orcid", "peer-review", text, prevItems.get(id), rank++));
   }
   for (const m of manual) {

@@ -167,7 +167,8 @@ describe("non-citation sections (positions + grants + editorial)", () => {
         { putCode: "600", organization: "ISoP", roleTitle: "Committee Member", startYear: 2022 },
       ],
       peerReviews: [
-        { organization: "BMJ", count: 5 },
+        // Resolved journal name wins over the publisher/convening org.
+        { issn: "0959-8138", journal: "The BMJ", organization: "BMJ Publishing", count: 5 },
         { organization: "Cell", count: 1 },
       ],
     });
@@ -195,10 +196,10 @@ describe("non-citation sections (positions + grants + editorial)", () => {
         i.displayText?.includes("Visiting Scholar"),
       ) ?? false,
     ).toBe(false);
-    // Peer review: singular vs plural.
+    // Peer review labelled by JOURNAL (resolved name), publisher only as fallback.
     const pr = byType("peer-review")!.items.map((i) => i.displayText);
-    expect(pr).toContain("BMJ — 5 reviews");
-    expect(pr).toContain("Cell — 1 review");
+    expect(pr).toContain("The BMJ — 5 reviews"); // journal name, not "BMJ Publishing"
+    expect(pr).toContain("Cell — 1 review"); // no journal → org fallback
   });
 
   it("builds a Datasets & Software section from DataCite outputs", () => {

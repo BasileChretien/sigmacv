@@ -186,15 +186,34 @@ function aff(summaryKey: string) {
 const PEER = {
   group: [
     {
+      // ORCID groups per journal; the group external-id is the ISSN.
+      "external-ids": {
+        "external-id": [
+          { "external-id-type": "peer-review", "external-id-value": "issn:1471-2415" },
+        ],
+      },
       "peer-review-group": [
         {
           "peer-review-summary": [
-            { "convening-organization": { name: "BMJ" } },
-            { "convening-organization": { name: "BMJ" } },
-            {}, // no convening org → falls back to a generic bucket
+            { "convening-organization": { name: "Springer Nature" } },
+            { "convening-organization": { name: "Springer Nature" } },
           ],
         },
       ],
+    },
+    {
+      // No group external-id → ISSN comes from the summary's review-group-id.
+      "peer-review-group": [
+        {
+          "peer-review-summary": [
+            { "convening-organization": { name: "BMJ" }, "review-group-id": "issn:0959-8138" },
+          ],
+        },
+      ],
+    },
+    {
+      // No ISSN anywhere, no convening org → generic publisher fallback.
+      "peer-review-group": [{ "peer-review-summary": [{}] }],
     },
   ],
 };
@@ -242,12 +261,24 @@ describe("ORCID extra public sections", () => {
     expect(await fetchOrcidInvitedPositions("0000-0002-7483-2489")).toHaveLength(1);
   });
 
-  it("aggregates peer reviews by convening organization", async () => {
+  it("groups peer reviews per journal (ISSN), keeping the publisher as fallback", async () => {
     vi.stubGlobal("fetch", routeAll());
     const { fetchOrcidPeerReviews } = await freshClient();
     const pr = await fetchOrcidPeerReviews("0000-0002-7483-2489");
-    expect(pr).toContainEqual({ organization: "BMJ", count: 2 });
-    expect(pr).toContainEqual({ organization: "Journals & conferences", count: 1 });
+    // ISSN from the group external-id; count is per journal, not per publisher.
+    expect(pr).toContainEqual({
+      issn: "1471-2415",
+      organization: "Springer Nature",
+      count: 2,
+    });
+    // ISSN recovered from the summary's review-group-id.
+    expect(pr).toContainEqual({ issn: "0959-8138", organization: "BMJ", count: 1 });
+    // No ISSN, no convening org → generic fallback (issn undefined).
+    expect(pr).toContainEqual({
+      issn: undefined,
+      organization: "Journals & conferences",
+      count: 1,
+    });
   });
 
   it("peer reviews fail soft on error", async () => {

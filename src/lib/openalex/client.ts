@@ -120,3 +120,52 @@ export async function fetchWorksByAuthorIds(
   }
   return out;
 }
+
+/** Minimal OpenAlex "source" (journal) shape we read for ISSN → name. */
+interface OpenAlexSource {
+  display_name?: string;
+  issn_l?: string | null;
+  issn?: string[] | null;
+}
+
+/**
+ * Resolve journal ISSNs to their display names (OpenAlex "sources"). Used to
+ * label peer-review activity by JOURNAL rather than by the convening
+ * organization/publisher that ORCID records. Returns an issn → name map; ISSNs
+ * that don't resolve are simply absent (the caller falls back). Fails soft.
+ */
+export async function fetchJournalNamesByIssn(
+  issns: string[],
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const unique = [...new Set(issns.map((s) => s.trim()).filter(Boolean))];
+  if (unique.length === 0) return out;
+
+  // OpenAlex OR-filter (`|`); chunk so the URL/filter stays reasonable.
+  const CHUNK = 40;
+  for (let i = 0; i < unique.length; i += CHUNK) {
+    const batch = unique.slice(i, i + CHUNK);
+    try {
+      const data = await openAlexGet<OpenAlexListResponse<OpenAlexSource>>(
+        "/sources",
+        {
+          filter: `issn:${batch.join("|")}`,
+          select: "display_name,issn,issn_l",
+          "per-page": "200",
+        },
+      );
+      for (const src of data.results ?? []) {
+        const name = src.display_name?.trim();
+        if (!name) continue;
+        // Map every ISSN the source carries (print + electronic + linking) to
+        // the name, so whichever ISSN ORCID recorded resolves.
+        for (const issn of src.issn ?? []) if (issn) out.set(issn, name);
+        if (src.issn_l) out.set(src.issn_l, name);
+      }
+    } catch (err) {
+      logger.warn("openalex.sources_by_issn_failed", { err });
+      // leave this batch unresolved; the caller falls back to the publisher.
+    }
+  }
+  return out;
+}

@@ -14,7 +14,10 @@ import {
   safeParseCanonicalCv,
   type CanonicalCv,
 } from "@/lib/canonical/schema";
-import { fetchWorksByAuthorIds } from "@/lib/openalex/client";
+import {
+  fetchJournalNamesByIssn,
+  fetchWorksByAuthorIds,
+} from "@/lib/openalex/client";
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
 import { normalizeOrcid } from "@/lib/openalex/types";
 import {
@@ -95,6 +98,20 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     fetchOrcidPeerReviews(orcid),
     fetchDataciteOutputs(orcid),
   ]);
+
+  // Peer reviews carry the journal ISSN but not its name (ORCID records the
+  // publisher/Publons org). Resolve ISSNs → journal names so the section reads
+  // by journal, not by publisher. Best-effort: unresolved ISSNs keep the
+  // publisher fallback.
+  const prIssns = peerReviews
+    .map((p) => p.issn)
+    .filter((x): x is string => Boolean(x));
+  if (prIssns.length > 0) {
+    const names = await fetchJournalNamesByIssn(prIssns);
+    for (const pr of peerReviews) {
+      if (pr.issn) pr.journal = names.get(pr.issn) ?? pr.journal;
+    }
+  }
 
   // ROR: canonicalize free-text institution names BEFORE building so the same
   // institution from ORCID and OpenAlex de-duplicates and renders consistently.

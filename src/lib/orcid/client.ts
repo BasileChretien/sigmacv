@@ -169,28 +169,59 @@ export function fetchOrcidInvitedPositions(orcid: string): Promise<OrcidPosition
   return fetchOrcidAffiliations(orcid, "invited-positions", "invited-position-summary");
 }
 
-/** PUBLIC peer-review activity, aggregated by convening organization. */
+/**
+ * PUBLIC peer-review activity. ORCID already groups reviews per VENUE (each
+ * `group`'s external-id is the journal's ISSN), so we count per group and keep
+ * that ISSN. The convening-organization (often the publisher / Publons-Clarivate)
+ * is only a FALLBACK label — the journal NAME isn't in ORCID and is resolved
+ * downstream from the ISSN (see fetchJournalNamesByIssn).
+ */
 export interface OrcidPeerReviewGroup {
+  /** Journal ISSN from the ORCID group external-id / review-group-id, if any. */
+  issn?: string;
+  /** Resolved journal name (filled downstream); falls back to `organization`. */
+  journal?: string;
+  /** Convening organization / publisher — the fallback display label. */
   organization: string;
   count: number;
 }
+
+function issnFromGroupId(value: unknown): string | undefined {
+  const v = nonEmpty(value as string | undefined);
+  return v && /^issn:/i.test(v) ? v.slice(5).trim() : undefined;
+}
+
 export async function fetchOrcidPeerReviews(
   orcid: string,
 ): Promise<OrcidPeerReviewGroup[]> {
   try {
     const data = await orcidGet<any>(orcid, "peer-reviews");
-    const counts = new Map<string, number>();
+    const out: OrcidPeerReviewGroup[] = [];
     for (const g of toArray(data?.group)) {
+      // The group-level external-id is normally the journal ISSN.
+      let issn: string | undefined;
+      for (const eid of toArray(g?.["external-ids"]?.["external-id"])) {
+        issn = issnFromGroupId(eid?.["external-id-value"]);
+        if (issn) break;
+      }
+      let count = 0;
+      let organization: string | undefined;
       for (const prg of toArray(g?.["peer-review-group"])) {
         for (const s of toArray(prg?.["peer-review-summary"])) {
-          const org = nonEmpty(s?.["convening-organization"]?.name) ?? "Journals & conferences";
-          counts.set(org, (counts.get(org) ?? 0) + 1);
+          count += 1;
+          organization ??= nonEmpty(s?.["convening-organization"]?.name);
+          issn ??= issnFromGroupId(s?.["review-group-id"]);
         }
       }
+      if (count > 0) {
+        out.push({
+          issn,
+          organization: organization ?? "Journals & conferences",
+          count,
+        });
+      }
     }
-    return [...counts.entries()]
-      .map(([organization, count]) => ({ organization, count }))
-      .sort((a, b) => b.count - a.count);
+    return out.sort((a, b) => b.count - a.count);
   } catch (err) {
     logger.warn("orcid.peer_reviews_fetch_failed", { err });
     return [];
