@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { toCslName, workToCsl } from "@/lib/openalex/toCsl";
+import { hasCjk, toCslName, workToCsl } from "@/lib/openalex/toCsl";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
+
+// Build CJK strings from code points so the test source stays ASCII (and the
+// assertions echo the very same literal, so byte-encoding can never drift).
+const cp = (...points: number[]) => String.fromCodePoint(...points);
+const YAMADA_TARO = cp(0x5c71, 0x7530, 0x592a, 0x90ce); //  山田太郎 (ja, no space)
+const YAMADA_SPACED = cp(0x5c71, 0x7530, 0x20, 0x592a, 0x90ce); // 山田 太郎
+const WANG_WEI = cp(0x738b, 0x4f1f); //                          王伟 (zh)
+const HONG = cp(0xd64d, 0xae38, 0xb3d9); //                       홍길동 (ko)
 
 const works = worksFixture as unknown as OpenAlexWork[];
 const byId = (id: string) => works.find((w) => w.id.endsWith(id))!;
@@ -43,6 +51,32 @@ describe("toCslName", () => {
   it("returns an empty literal for blank input", () => {
     expect(toCslName("  ")).toEqual({ literal: "" });
     expect(toCslName(null)).toEqual({ literal: "" });
+  });
+
+  it("keeps CJK names verbatim as a literal (family-first, never split)", () => {
+    // A Western split would make 'family: 郎/太郎' and abbreviate the rest —
+    // wrong for CJK. Preserve the whole name in its original order instead.
+    expect(toCslName(YAMADA_TARO)).toEqual({ literal: YAMADA_TARO });
+    expect(toCslName(YAMADA_SPACED)).toEqual({ literal: YAMADA_SPACED });
+    expect(toCslName(WANG_WEI)).toEqual({ literal: WANG_WEI });
+    expect(toCslName(HONG)).toEqual({ literal: HONG });
+  });
+
+  it("still splits accented Latin / Cyrillic names (not treated as CJK)", () => {
+    expect(toCslName("Ülo Männik")).toEqual({ family: "Männik", given: "Ülo" });
+    expect(toCslName("Владимир Иванов")).toEqual({
+      family: "Иванов",
+      given: "Владимир",
+    });
+  });
+});
+
+describe("hasCjk", () => {
+  it("detects CJK characters and ignores non-CJK scripts", () => {
+    expect(hasCjk(YAMADA_TARO)).toBe(true);
+    expect(hasCjk(HONG)).toBe(true);
+    expect(hasCjk("Basile Chrétien")).toBe(false);
+    expect(hasCjk(cp(0x645, 0x62d, 0x645, 0x62f))).toBe(false); // محمد (arabic)
   });
 });
 

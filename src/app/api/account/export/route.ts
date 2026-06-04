@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { rateLimit } from "@/lib/rateLimit";
+import { enforceRateLimit } from "@/lib/rateLimitStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export async function GET() {
   }
   const userId = session.user.id;
 
-  const rl = rateLimit(`export:account:${userId}`, 10, 60 * 60 * 1000);
+  const rl = await enforceRateLimit(`export:account:${userId}`, 10, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many export requests. Please wait a bit." },

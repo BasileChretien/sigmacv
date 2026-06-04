@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { syncCvForUser } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
-import { rateLimit } from "@/lib/rateLimit";
+import { enforceRateLimit } from "@/lib/rateLimitStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const rl = rateLimit(`sync:${session.user.id}`, SYNC_MAX, SYNC_WINDOW_MS);
+  const rl = await enforceRateLimit(`sync:${session.user.id}`, SYNC_MAX, SYNC_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many sync requests. Please wait a bit." },

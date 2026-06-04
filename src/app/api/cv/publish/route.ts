@@ -3,7 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { CvNotFoundError, getPublishState, setPublishState } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
-import { rateLimit } from "@/lib/rateLimit";
+import { enforceRateLimit } from "@/lib/rateLimitStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const rl = rateLimit(`publish:${session.user.id}`, 30, 60 * 60 * 1000);
+  const rl = await enforceRateLimit(`publish:${session.user.id}`, 30, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many publish changes. Please wait a bit." },

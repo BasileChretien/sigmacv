@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { logger } from "@/lib/log";
-import { rateLimit } from "@/lib/rateLimit";
+import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { renderCvHtml } from "@/lib/render/html";
 
 export const runtime = "nodejs";
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const rl = rateLimit(`preview:${session.user.id}`, PREVIEW_MAX, PREVIEW_WINDOW_MS);
+  const rl = await enforceRateLimit(`preview:${session.user.id}`, PREVIEW_MAX, PREVIEW_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many preview requests. Please wait a moment." },

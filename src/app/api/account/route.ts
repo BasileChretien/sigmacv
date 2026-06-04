@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/log";
-import { rateLimit } from "@/lib/rateLimit";
+import { enforceRateLimit } from "@/lib/rateLimitStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export async function DELETE() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const rl = rateLimit(`account-delete:${session.user.id}`, 5, 60 * 60 * 1000);
+  const rl = await enforceRateLimit(`account-delete:${session.user.id}`, 5, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many attempts. Please wait a bit." },

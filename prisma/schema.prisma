@@ -116,3 +116,14 @@ model Cv {
 
   @@index([published, lastSyncedAt])
 }
+
+// Persistent fixed-window rate-limit counters. Used ONLY when the app runs as
+// multiple instances and RATE_LIMIT_PERSIST=true (a single instance uses the
+// in-memory limiter). One row per limiter key; `resetAt` bounds the window.
+model RateLimitWindow {
+  key     String   @id
+  count   Int
+  resetAt DateTime
+
+  @@index([resetAt])
+}

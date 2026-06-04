@@ -38,14 +38,39 @@ function mapType(work: OpenAlexWork): string {
 }
 
 /**
+ * Han / Hiragana / Katakana / Hangul ranges:
+ *   U+1100–11FF  Hangul Jamo          U+3040–30FF  Hiragana + Katakana
+ *   U+3130–318F  Hangul Compat Jamo   U+3400–4DBF  CJK Ext-A
+ *   U+4E00–9FFF  CJK Unified          U+AC00–D7AF  Hangul Syllables
+ *   U+F900–FAFF  CJK Compat Ideographs
+ * Names in these scripts are written family-name-first and must NOT be run
+ * through the Western "Given Family" splitter (which would treat the last
+ * token as the family name and let a CSL style abbreviate the rest).
+ */
+const CJK_RE =
+  /[\u1100-\u11FF\u3040-\u30FF\u3130-\u318F\u3400-\u4DBF\u4E00-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF]/;
+
+/** True when the text contains any CJK (Chinese/Japanese/Korean) character. */
+export function hasCjk(text: string): boolean {
+  return CJK_RE.test(text);
+}
+
+/**
  * Heuristic name splitter: OpenAlex gives a single `display_name` rather than
  * structured given/family parts. We treat the last whitespace-separated token
  * as the family name and the rest as given. Single-token names (often
  * organizations) become a `literal`. Documented limitation — refine later.
+ *
+ * CJK names are the exception: they're family-first and would be reordered or
+ * abbreviated by the Western split, so we preserve them whole as a CSL
+ * `literal` (citeproc renders a literal verbatim, in its original order).
  */
 export function toCslName(raw: string | undefined | null): CslName {
   const name = (raw ?? "").trim();
   if (!name) return { literal: "" };
+
+  // CJK (family-first): keep verbatim so the order and full name are preserved.
+  if (CJK_RE.test(name)) return { literal: name };
 
   // Already in "Family, Given" form (common for non-ORCID OpenAlex authors).
   const comma = name.indexOf(",");
