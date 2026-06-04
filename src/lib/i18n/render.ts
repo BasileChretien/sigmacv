@@ -28,6 +28,8 @@ export interface RenderStrings {
   badgeOpenAccess: string;
   /** Accessible title/tooltip for the OA badge; "{status}" → the OA status. */
   badgeOpenAccessTitle: string;
+  /** Per-entry citation-count badge; "{n}" → the (locale-formatted) count. */
+  badgeCitations: string;
   metric2yr: string;
   metricFwci: string;
   metricHIndex: string;
@@ -64,6 +66,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open access ({status})",
+    badgeCitations: "{n} citations",
     metric2yr: "2-yr mean citedness",
     metricFwci: "Mean work FWCI",
     metricHIndex: "h-index",
@@ -97,6 +100,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "简历",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "开放获取（{status}）",
+    badgeCitations: "被引 {n}",
     metric2yr: "两年平均被引率",
     metricFwci: "平均成果 FWCI",
     metricHIndex: "h 指数",
@@ -130,6 +134,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acceso abierto ({status})",
+    badgeCitations: "{n} citas",
     metric2yr: "Citación media a 2 años",
     metricFwci: "FWCI medio por trabajo",
     metricHIndex: "índice h",
@@ -163,6 +168,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accès libre ({status})",
+    badgeCitations: "{n} citations",
     metric2yr: "Citations moyennes sur 2 ans",
     metricFwci: "FWCI moyen des travaux",
     metricHIndex: "indice h",
@@ -196,6 +202,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Lebenslauf",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open Access ({status})",
+    badgeCitations: "{n} Zitationen",
     metric2yr: "Mittlere Zitationsrate (2 Jahre)",
     metricFwci: "Mittlerer FWCI",
     metricHIndex: "h-Index",
@@ -229,6 +236,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "履歴書",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "オープンアクセス（{status}）",
+    badgeCitations: "被引用 {n}",
     metric2yr: "2年間平均被引用度",
     metricFwci: "平均FWCI",
     metricHIndex: "h指数",
@@ -262,6 +270,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acesso aberto ({status})",
+    badgeCitations: "{n} citações",
     metric2yr: "Citação média em 2 anos",
     metricFwci: "FWCI médio dos trabalhos",
     metricHIndex: "índice h",
@@ -295,6 +304,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accesso aperto ({status})",
+    badgeCitations: "{n} citazioni",
     metric2yr: "Citazioni medie a 2 anni",
     metricFwci: "FWCI medio dei lavori",
     metricHIndex: "indice h",
@@ -328,6 +338,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "이력서",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "오픈 액세스 ({status})",
+    badgeCitations: "인용 {n}회",
     metric2yr: "2년 평균 피인용도",
     metricFwci: "평균 논문 FWCI",
     metricHIndex: "h-지수",
@@ -361,6 +372,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Резюме",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Открытый доступ ({status})",
+    badgeCitations: "{n} цитирований",
     metric2yr: "Средняя цитируемость за 2 года",
     metricFwci: "Средний FWCI работы",
     metricHIndex: "h-индекс",

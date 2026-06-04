@@ -35,6 +35,7 @@ export interface UiStrings {
   showCharts: string;
   showOpenAccess: string;
   showAuthorRole: string;
+  showCitationCounts: string;
   showProvenance: string;
   peerReviewedOnly: string;
   peerReviewedOnlyTitle: string;
@@ -129,6 +130,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCharts: "Show charts (publications & citations / year)",
     showOpenAccess: "Open-access badges",
     showAuthorRole: "Show my author role (first / last / corresponding)",
+    showCitationCounts: "Show citation counts on each publication",
     showProvenance: "Data-provenance footer",
     peerReviewedOnly: "Hide preprints & non-peer-reviewed work",
     peerReviewedOnlyTitle:
@@ -228,6 +230,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCharts: "显示图表（每年出版物与引用数）",
     showOpenAccess: "开放获取标识",
     showAuthorRole: "显示我的作者角色（第一／末位／通讯）",
+    showCitationCounts: "在每篇论文上显示被引次数",
     showProvenance: "数据来源页脚",
     peerReviewedOnly: "隐藏预印本及非同行评审成果",
     peerReviewedOnlyTitle:
@@ -326,6 +329,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCharts: "Mostrar gráficos (publicaciones y citas / año)",
     showOpenAccess: "Distintivos de acceso abierto",
     showAuthorRole: "Mostrar mi rol de autor (primero / último / correspondencia)",
+    showCitationCounts: "Mostrar el número de citas en cada publicación",
     showProvenance: "Pie de página con la procedencia de los datos",
     peerReviewedOnly: "Ocultar preprints y trabajos no revisados por pares",
     peerReviewedOnlyTitle:
@@ -425,6 +429,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCharts: "Afficher les graphiques (publications et citations / an)",
     showOpenAccess: "Badges de libre accès",
     showAuthorRole: "Afficher mon rôle d’auteur (premier / dernier / correspondant)",
+    showCitationCounts: "Afficher le nombre de citations sur chaque publication",
     showProvenance: "Pied de page sur la provenance des données",
     peerReviewedOnly: "Masquer les pré-publications et les travaux non évalués par les pairs",
     peerReviewedOnlyTitle:
@@ -524,6 +529,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCharts: "Diagramme anzeigen (Publikationen & Zitationen / Jahr)",
     showOpenAccess: "Open-Access-Abzeichen",
     showAuthorRole: "Meine Autorenrolle anzeigen (Erst-/Letzt-/korrespondierend)",
+    showCitationCounts: "Zitationszahl bei jeder Publikation anzeigen",
     showProvenance: "Fußzeile zur Datenherkunft",
     peerReviewedOnly: "Preprints & nicht peer-reviewte Arbeiten ausblenden",
     peerReviewedOnlyTitle:
@@ -623,6 +629,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCharts: "グラフを表示（年別の論文数・被引用数）",
     showOpenAccess: "オープンアクセスバッジ",
     showAuthorRole: "自分の著者役割を表示（筆頭・最終・責任著者）",
+    showCitationCounts: "各論文に被引用数を表示",
     showProvenance: "データ出典フッター",
     peerReviewedOnly: "プレプリント・非査読の業績を非表示",
     peerReviewedOnlyTitle:
@@ -722,6 +729,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCharts: "Mostrar gráficos (publicações e citações / ano)",
     showOpenAccess: "Selos de acesso aberto",
     showAuthorRole: "Mostrar meu papel de autoria (primeiro / último / correspondente)",
+    showCitationCounts: "Mostrar o número de citações em cada publicação",
     showProvenance: "Rodapé de proveniência dos dados",
     peerReviewedOnly: "Ocultar pré-prints e trabalhos não revisados por pares",
     peerReviewedOnlyTitle:
@@ -821,6 +829,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCharts: "Mostra grafici (pubblicazioni e citazioni / anno)",
     showOpenAccess: "Badge ad accesso aperto",
     showAuthorRole: "Mostra il mio ruolo di autore (primo / ultimo / corrispondente)",
+    showCitationCounts: "Mostra il numero di citazioni per ogni pubblicazione",
     showProvenance: "Piè di pagina sulla provenienza dei dati",
     peerReviewedOnly: "Nascondi i preprint e i lavori non sottoposti a revisione paritaria",
     peerReviewedOnlyTitle:
@@ -920,6 +929,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCharts: "차트 표시 (연도별 출판물 및 인용 수)",
     showOpenAccess: "오픈 액세스 배지",
     showAuthorRole: "내 저자 역할 표시 (제1저자 / 마지막 저자 / 교신저자)",
+    showCitationCounts: "각 논문에 피인용 수 표시",
     showProvenance: "데이터 출처 푸터",
     peerReviewedOnly: "프리프린트 및 비동료 심사 자료 숨기기",
     peerReviewedOnlyTitle:
@@ -1019,6 +1029,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCharts: "Показать графики (публикации и цитирования по годам)",
     showOpenAccess: "Значки открытого доступа",
     showAuthorRole: "Показывать мою авторскую роль (первый / последний / корреспондирующий)",
+    showCitationCounts: "Показывать число цитирований у каждой публикации",
     showProvenance: "Нижний колонтитул с источниками данных",
     peerReviewedOnly: "Скрыть препринты и нерецензируемые работы",
     peerReviewedOnlyTitle:

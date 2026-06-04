@@ -34,6 +34,15 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
       `<span class="cv-badge cv-badge-role">${escapeHtml(item.meta.authorRole)}</span>`,
     );
   }
+  if (display.showCitationCounts && typeof item.meta.citedByCount === "number") {
+    const s = renderStrings(display.locale);
+    const n = new Intl.NumberFormat(display.locale).format(item.meta.citedByCount);
+    badges.push(
+      `<span class="cv-badge cv-badge-cites">${escapeHtml(
+        s.badgeCitations.replace("{n}", n),
+      )}</span>`,
+    );
+  }
   return badges.length ? ` ${badges.join(" ")}` : "";
 }
 

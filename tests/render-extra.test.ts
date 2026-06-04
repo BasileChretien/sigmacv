@@ -274,6 +274,7 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       doi: null,
       title: "An OA paper",
       display_name: "An OA paper",
+      cited_by_count: 1234,
       open_access: { is_oa: true, oa_status: "gold" },
       authorships: [
         {
@@ -322,6 +323,17 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
 
     it("omits the author-role badge by default", () => {
       expect(renderCvHtml(cvWith({}))).not.toContain("first, corresponding");
+    });
+
+    it("renders a locale-formatted citation-count badge when enabled", () => {
+      const html = renderCvHtml(cvWith({ showCitationCounts: true }));
+      // en-US groups thousands: 1,234. (The class name is always in the CSS, so
+      // we assert on the rendered count text, not the class.)
+      expect(html).toContain(">1,234 citations</span>");
+    });
+
+    it("omits the citation-count badge by default", () => {
+      expect(renderCvHtml(cvWith({}))).not.toContain("1,234 citations");
     });
   });
 

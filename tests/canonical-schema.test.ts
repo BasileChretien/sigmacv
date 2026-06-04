@@ -64,6 +64,7 @@ describe("DisplayChoicesSchema", () => {
       showCharts: false,
       showOpenAccess: true,
       showAuthorRole: false,
+      showCitationCounts: false,
       showProvenance: true,
       peerReviewedOnly: false,
       publicationOrder: "custom",

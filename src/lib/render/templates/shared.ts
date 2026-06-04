@@ -199,6 +199,7 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-badge { display: inline-block; font-size: 0.6rem; font-weight: 600; line-height: 1.4; padding: 0.05em 0.5em; border-radius: 999px; vertical-align: 0.12em; margin-left: 0.45em; white-space: nowrap; letter-spacing: 0.03em; }
   .cv-badge-oa { color: #0e7066; background: #e7f4f1; border: 1px solid #bfe3dc; }
   .cv-badge-role { color: var(--cv-muted); background: #f2f3f5; border: 1px solid var(--cv-rule); text-transform: lowercase; }
+  .cv-badge-cites { color: var(--cv-muted); background: #f2f3f5; border: 1px solid var(--cv-rule); font-variant-numeric: tabular-nums; }
 
   /* The authorship table sits in a guaranteed light card with fixed dark text,
      so it stays legible on EVERY template — including ones with a coloured

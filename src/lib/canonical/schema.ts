@@ -386,6 +386,8 @@ export const DisplayChoicesSchema = z.object({
   showOpenAccess: z.boolean().default(true),
   /** Show the account holder's authorship role (first/last/corresponding). Default off. */
   showAuthorRole: z.boolean().default(false),
+  /** Show a per-entry citation count on publications/preprints (HTML/PDF). Default off. */
+  showCitationCounts: z.boolean().default(false),
   /** Show a data-provenance footer (sources, sync date, hidden/corrected counts). */
   showProvenance: z.boolean().default(true),
   /**

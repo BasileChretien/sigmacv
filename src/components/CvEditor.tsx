@@ -639,6 +639,17 @@ export default function CvEditor({
         <label className="field-inline">
           <input
             type="checkbox"
+            checked={cv.display.showCitationCounts}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { showCitationCounts: e.target.checked }))
+            }
+          />
+          <span>{u.showCitationCounts}</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
             checked={cv.display.showProvenance}
             onChange={(e) =>
               onChange(updateDisplay(cv, { showProvenance: e.target.checked }))
