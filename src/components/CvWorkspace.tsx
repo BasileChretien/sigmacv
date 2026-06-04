@@ -237,19 +237,24 @@ export default function CvWorkspace({
           >
             {t(uiLocale, "exportLabel")}
           </button>
-          <select
-            className="lang-switcher"
-            value={uiLocale}
-            onChange={(e) => changeUiLocale(e.target.value)}
-            aria-label={t(uiLocale, "uiLanguage")}
-            title={t(uiLocale, "uiLanguageHint")}
-          >
-            {SUPPORTED_LOCALES.map((loc) => (
-              <option key={loc} value={loc}>
-                {LOCALE_LABELS[loc]}
-              </option>
-            ))}
-          </select>
+          <span className="ui-lang" title={t(uiLocale, "uiLanguageHint")}>
+            <span className="ui-lang-icon" aria-hidden="true">
+              🌐
+            </span>
+            <select
+              className="lang-switcher"
+              value={uiLocale}
+              onChange={(e) => changeUiLocale(e.target.value)}
+              aria-label={t(uiLocale, "uiLanguage")}
+              title={t(uiLocale, "uiLanguageHint")}
+            >
+              {SUPPORTED_LOCALES.map((loc) => (
+                <option key={loc} value={loc}>
+                  {LOCALE_LABELS[loc]}
+                </option>
+              ))}
+            </select>
+          </span>
           <SupportLink locale={uiLocale} />
           <form action={signOutAction}>
             <button type="submit" className="btn">

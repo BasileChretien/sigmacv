@@ -1276,6 +1276,17 @@ input[type="radio"] {
   padding: 0.25rem 0.5rem;
   cursor: pointer;
 }
+/* Interface-language switcher: a globe (web convention for *site* language)
+   distinguishes it from the editor's text-labelled "CV language" picker. */
+.ui-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.ui-lang-icon {
+  font-size: var(--text-sm);
+  line-height: 1;
+}
 .auth-main {
   flex: 1;
   display: grid;
