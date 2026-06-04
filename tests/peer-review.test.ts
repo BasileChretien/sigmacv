@@ -103,6 +103,29 @@ describe.skipIf(!hasApa)("peerReviewedOnly render filter (prepareSections)", () 
   });
 });
 
+describe.skipIf(!hasApa)("countLetters render filter (prepareSections)", () => {
+  const article = work("Wj", { title: "Peer-reviewed paper" });
+  const letter = work("Wl", { title: "A letter", type: "letter" }); // journal venue, type letter
+  const cvWith = () =>
+    buildCanonicalCv({ id: "cl", resolved, works: [article, letter], now: "2026-06-02T00:00:00.000Z" });
+  const titles = (cv: ReturnType<typeof cvWith>) =>
+    prepareSections(cv, "text")
+      .flatMap((s) => s.items)
+      .map((i) => i.item.csl?.title);
+
+  it("hides letters from the listing by default (countLetters off)", () => {
+    const t = titles(cvWith());
+    expect(t).toContain("Peer-reviewed paper"); // peer-reviewed stays
+    expect(t).not.toContain("A letter"); // the letter is hidden
+  });
+
+  it("lists letters when countLetters is on", () => {
+    const t = titles(updateDisplay(cvWith(), { countLetters: true }));
+    expect(t).toContain("A letter");
+    expect(t).toContain("Peer-reviewed paper");
+  });
+});
+
 describe.skipIf(!hasApa)("publicationOrder render sort", () => {
   // Three articles: low/high/mid citations, ascending years.
   const works = [

@@ -38,12 +38,21 @@ export function prepareSections(
     registerStyleXml(custom.id, custom.xml);
   }
 
-  // "Peer-reviewed only" drops non-peer-reviewed CITATIONS wherever they sit
-  // (e.g. a preprint mis-filed under Publications). Non-citation entries
-  // (positions, grants, editorial roles) are never touched.
+  // Which non-peer-reviewed CITATIONS to LIST (non-citation entries — positions,
+  // grants, editorial roles — are never touched):
+  //  - "Peer-reviewed only" drops ALL non-peer-reviewed works wherever they sit
+  //    (incl. preprints), e.g. a preprint mis-filed under Publications.
+  //  - Otherwise a LETTER (a non-peer-reviewed work OUTSIDE the Preprints section)
+  //    is shown only when "count letters" is on — so the listing matches the
+  //    figures. Preprints keep their own section unless peer-reviewed-only removes
+  //    them.
   const peerOnly = cv.display.peerReviewedOnly;
-  const keep = (item: CvItem): boolean =>
-    !peerOnly || !item.csl || item.meta.peerReviewed !== false;
+  const includeLetters = cv.display.countLetters === true;
+  const keep = (item: CvItem, sectionType: string): boolean => {
+    if (!item.csl || item.meta.peerReviewed !== false) return true; // peer-reviewed / non-citation
+    if (peerOnly) return false; // strict: drop all non-peer-reviewed
+    return includeLetters || sectionType === "preprints"; // letters follow the toggle
+  };
 
   // Optional re-sort of publication/preprint entries by citations or year.
   // "custom" keeps the curated/dragged order (the chokepoint default).
@@ -66,7 +75,7 @@ export function prepareSections(
   const limit = cv.display.publicationsLimit ?? 0;
 
   const perSection = visibleSections(cv).map((section) => {
-    let items = visibleItems(section).filter(keep);
+    let items = visibleItems(section).filter((it) => keep(it, section.type));
     if (CITATION_SECTIONS.has(section.type)) items = sortCitations(items);
     if (section.type === "publications" && limit > 0) {
       items = items.slice(0, limit);

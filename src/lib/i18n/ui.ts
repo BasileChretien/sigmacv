@@ -139,10 +139,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Removes ALL non-peer-reviewed works from the CV, including your entire Preprints section. Leave this OFF to keep preprints listed (in their own section).",
     peerReviewedOnlyNote:
       "By default, preprints are kept but listed in a separate “Preprints” section. Turn this on only if you want them gone entirely.",
-    countLetters: "Count letters & non-peer-reviewed work in figures",
+    countLetters: "Include letters & non-peer-reviewed publications",
     countLettersTitle:
-      "When on, letters/editorials and other non-peer-reviewed publications are counted in the per-year charts, the metrics (FWCI, top-10%) and the authorship table — everywhere. Off (default) keeps those figures peer-reviewed-only. Preprints never count toward the figures.",
-    countLettersNote: "Affects the COUNTS only, not which entries are listed (that is the option above).",
+      "When on, letters/editorials and other non-peer-reviewed publications are LISTED and counted in the charts, metrics (FWCI, top-10%) and authorship table. When off, they're hidden from the list and excluded from those figures. Preprints are controlled separately (option above).",
+    countLettersNote: "Applies to both the listing and the figures.",
     shownSuffix: "shown",
     dragSection: "Drag to reorder section",
     sectionTitleAria: "Section title",
@@ -242,10 +242,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "从简历中移除所有非同行评审的成果，包括整个预印本部分。保持关闭可继续列出预印本（在其专属部分中）。",
     peerReviewedOnlyNote:
       "默认情况下，预印本会保留但列在单独的“预印本”部分。仅当你想彻底删除它们时才开启此项。",
-    countLetters: "在图表中计入快报及非同行评审成果",
+    countLetters: "包含快报及非同行评审论文",
     countLettersTitle:
-      "开启后，快报／评论等非同行评审论文将计入年度图表、指标（FWCI、前 10%）和作者署名表——处处一致。关闭（默认）则这些图表仅统计同行评审成果。预印本始终不计入图表。",
-    countLettersNote: "仅影响统计，不影响列出的条目（那是上面的选项）。",
+      "开启后，快报／评论等非同行评审论文将列出，并计入年度图表、指标（FWCI、前 10%）和作者署名表。关闭后则从列表中隐藏，并排除出这些图表。预印本由上方选项单独控制。",
+    countLettersNote: "同时影响列表与图表。",
     shownSuffix: "已显示",
     dragSection: "拖动以重新排序此部分",
     sectionTitleAria: "部分标题",
@@ -344,10 +344,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Elimina TODOS los trabajos no revisados por pares del CV, incluida toda tu sección de Preprints. Déjalo DESACTIVADO para mantener los preprints listados (en su propia sección).",
     peerReviewedOnlyNote:
       "Por defecto, los preprints se conservan pero se listan en una sección «Preprints» aparte. Actívalo solo si quieres eliminarlos por completo.",
-    countLetters: "Contar cartas y trabajos no revisados por pares en las cifras",
+    countLetters: "Incluir cartas y publicaciones no revisadas por pares",
     countLettersTitle:
-      "Si se activa, las cartas/editoriales y otras publicaciones no revisadas por pares se cuentan en los gráficos por año, las métricas (FWCI, top 10%) y la tabla de autoría — en todas partes. Desactivado (por defecto) mantiene esas cifras solo con revisión por pares. Las preimpresiones nunca cuentan en las cifras.",
-    countLettersNote: "Afecta solo a los RECUENTOS, no a qué entradas se listan (esa es la opción de arriba).",
+      "Si se activa, las cartas/editoriales y otras publicaciones no revisadas por pares se listan y se cuentan en los gráficos, las métricas (FWCI, top 10%) y la tabla de autoría. Si se desactiva, se ocultan de la lista y se excluyen de esas cifras. Las preimpresiones se controlan aparte (opción de arriba).",
+    countLettersNote: "Afecta tanto al listado como a las cifras.",
     shownSuffix: "mostrados",
     dragSection: "Arrastra para reordenar la sección",
     sectionTitleAria: "Título de la sección",
@@ -447,10 +447,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Supprime du CV TOUS les travaux non évalués par les pairs, y compris l’intégralité de votre section Pré-publications. Laissez cette option DÉSACTIVÉE pour conserver les pré-publications dans la liste (dans leur propre section).",
     peerReviewedOnlyNote:
       "Par défaut, les pré-publications sont conservées mais regroupées dans une section « Pré-publications » distincte. N’activez cette option que si vous souhaitez les supprimer entièrement.",
-    countLetters: "Compter les lettres et travaux non évalués dans les figures",
+    countLetters: "Inclure les lettres et publications non évaluées par les pairs",
     countLettersTitle:
-      "Si activé, les lettres/éditoriaux et autres publications non évaluées par les pairs sont comptés dans les graphiques annuels, les métriques (FWCI, top 10 %) et le tableau de qualité d’auteur — partout. Désactivé (par défaut), ces figures ne comptent que les travaux évalués par les pairs. Les prépublications ne comptent jamais dans les figures.",
-    countLettersNote: "N’affecte que les DÉCOMPTES, pas les entrées listées (c’est l’option ci-dessus).",
+      "Si activé, les lettres/éditoriaux et autres publications non évaluées par les pairs sont listés et comptés dans les graphiques, les métriques (FWCI, top 10 %) et le tableau de qualité d’auteur. Si désactivé, ils sont masqués de la liste et exclus de ces figures. Les prépublications sont gérées à part (option ci-dessus).",
+    countLettersNote: "Affecte à la fois la liste et les figures.",
     shownSuffix: "affiché(s)",
     dragSection: "Faire glisser pour réordonner la section",
     sectionTitleAria: "Titre de la section",
@@ -550,10 +550,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Entfernt ALLE nicht peer-reviewten Arbeiten aus dem Lebenslauf, einschließlich Ihres gesamten Preprints-Abschnitts. Lassen Sie dies AUS, um Preprints (in einem eigenen Abschnitt) aufgeführt zu lassen.",
     peerReviewedOnlyNote:
       "Standardmäßig werden Preprints beibehalten, aber in einem separaten Abschnitt „Preprints“ aufgeführt. Aktivieren Sie dies nur, wenn Sie sie vollständig entfernen möchten.",
-    countLetters: "Briefe & nicht begutachtete Arbeiten in Kennzahlen zählen",
+    countLetters: "Briefe & nicht begutachtete Publikationen einbeziehen",
     countLettersTitle:
-      "Wenn aktiviert, werden Briefe/Editorials und andere nicht begutachtete Publikationen in die Jahresdiagramme, die Kennzahlen (FWCI, Top-10%) und die Autorschaftstabelle einbezogen – überall. Aus (Standard) zählen diese Kennzahlen nur begutachtete Arbeiten. Preprints zählen nie zu den Kennzahlen.",
-    countLettersNote: "Betrifft nur die ZÄHLUNGEN, nicht die aufgeführten Einträge (das ist die Option oben).",
+      "Wenn aktiviert, werden Briefe/Editorials und andere nicht begutachtete Publikationen aufgeführt und in den Diagrammen, Kennzahlen (FWCI, Top-10%) und der Autorschaftstabelle gezählt. Wenn aus, werden sie aus der Liste ausgeblendet und aus diesen Kennzahlen ausgeschlossen. Preprints werden separat gesteuert (Option oben).",
+    countLettersNote: "Betrifft sowohl die Liste als auch die Kennzahlen.",
     shownSuffix: "angezeigt",
     dragSection: "Ziehen, um den Abschnitt neu anzuordnen",
     sectionTitleAria: "Abschnittstitel",
@@ -653,10 +653,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "プレプリントのセクション全体を含め、すべての非査読業績を CV から削除します。プレプリントを（独立したセクションに）残すにはオフのままにしてください。",
     peerReviewedOnlyNote:
       "既定では、プレプリントは残りますが別の「プレプリント」セクションに掲載されます。完全に削除したい場合のみオンにしてください。",
-    countLetters: "図表にレター・非査読の業績も含める",
+    countLetters: "レター・非査読の出版物を含める",
     countLettersTitle:
-      "オンにすると、レター／論説など非査読の出版物が年別チャート・指標（FWCI、上位10%）・著者貢献表のすべてに含まれます。オフ（既定）ではこれらの図表は査読付きのみを集計します。プレプリントは図表に常に含まれません。",
-    countLettersNote: "集計のみに影響し、表示される項目（上の設定）は変わりません。",
+      "オンにすると、レター／論説など非査読の出版物が一覧に表示され、年別チャート・指標（FWCI、上位10%）・著者貢献表に集計されます。オフにすると一覧から隠れ、これらの図表からも除外されます。プレプリントは上の設定で個別に管理します。",
+    countLettersNote: "一覧と図表の両方に影響します。",
     shownSuffix: "件表示",
     dragSection: "ドラッグしてセクションを並べ替え",
     sectionTitleAria: "セクションタイトル",
@@ -756,10 +756,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Remove TODOS os trabalhos não revisados por pares do CV, incluindo toda a sua seção de Pré-prints. Deixe DESATIVADO para manter os pré-prints listados (em sua própria seção).",
     peerReviewedOnlyNote:
       "Por padrão, os pré-prints são mantidos, mas listados em uma seção “Pré-prints” separada. Ative isto apenas se quiser removê-los por completo.",
-    countLetters: "Contar cartas e trabalhos não revisados por pares nas figuras",
+    countLetters: "Incluir cartas e publicações não revisadas por pares",
     countLettersTitle:
-      "Quando ativado, cartas/editoriais e outras publicações não revisadas por pares são contadas nos gráficos por ano, nas métricas (FWCI, top 10%) e na tabela de autoria — em todos os lugares. Desativado (padrão) mantém essas figuras apenas com revisão por pares. Preprints nunca contam nas figuras.",
-    countLettersNote: "Afeta apenas as CONTAGENS, não quais entradas são listadas (essa é a opção acima).",
+      "Quando ativado, cartas/editoriais e outras publicações não revisadas por pares são listadas e contadas nos gráficos, nas métricas (FWCI, top 10%) e na tabela de autoria. Quando desativado, ficam ocultas da lista e excluídas dessas figuras. Preprints são controlados à parte (opção acima).",
+    countLettersNote: "Afeta tanto a listagem quanto as figuras.",
     shownSuffix: "exibido(s)",
     dragSection: "Arraste para reordenar a seção",
     sectionTitleAria: "Título da seção",
@@ -859,10 +859,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Rimuove TUTTI i lavori non sottoposti a revisione paritaria dal CV, inclusa l’intera sezione Preprint. Lascia questa opzione DISATTIVATA per mantenere i preprint elencati (in una sezione dedicata).",
     peerReviewedOnlyNote:
       "Per impostazione predefinita, i preprint vengono mantenuti ma elencati in una sezione separata “Preprint”. Attiva questa opzione solo se vuoi eliminarli del tutto.",
-    countLetters: "Conta lettere e lavori non sottoposti a revisione nelle figure",
+    countLetters: "Includi lettere e pubblicazioni non sottoposte a revisione",
     countLettersTitle:
-      "Se attivo, lettere/editoriali e altre pubblicazioni non sottoposte a revisione paritaria sono conteggiate nei grafici per anno, nelle metriche (FWCI, top 10%) e nella tabella di paternità — ovunque. Disattivato (predefinito) mantiene queste figure solo con revisione paritaria. I preprint non contano mai nelle figure.",
-    countLettersNote: "Incide solo sui CONTEGGI, non sulle voci elencate (è l’opzione qui sopra).",
+      "Se attivo, lettere/editoriali e altre pubblicazioni non sottoposte a revisione paritaria sono elencate e conteggiate nei grafici, nelle metriche (FWCI, top 10%) e nella tabella di paternità. Se disattivato, sono nascoste dall’elenco ed escluse da queste figure. I preprint sono gestiti a parte (opzione sopra).",
+    countLettersNote: "Incide sia sull’elenco sia sulle figure.",
     shownSuffix: "mostrati",
     dragSection: "Trascina per riordinare la sezione",
     sectionTitleAria: "Titolo della sezione",
@@ -962,10 +962,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "프리프린트 섹션 전체를 포함하여 동료 심사를 거치지 않은 모든 자료를 CV에서 제거합니다. 프리프린트를 (별도 섹션에) 계속 표시하려면 이 옵션을 끄세요.",
     peerReviewedOnlyNote:
       "기본적으로 프리프린트는 유지되지만 별도의 “프리프린트” 섹션에 표시됩니다. 완전히 제거하려는 경우에만 이 옵션을 켜세요.",
-    countLetters: "그림/지표에 레터 및 비심사 업적 포함",
+    countLetters: "레터 및 비심사 출판물 포함",
     countLettersTitle:
-      "켜면 레터/사설 등 비심사 출판물이 연도별 차트, 지표(FWCI, 상위 10%), 저자 정보 표 등 모든 곳에 집계됩니다. 끄면(기본값) 이 그림들은 동료 심사 업적만 집계합니다. 프리프린트는 그림에 항상 제외됩니다.",
-    countLettersNote: "표시되는 항목(위 옵션)이 아니라 집계에만 영향을 줍니다.",
+      "켜면 레터/사설 등 비심사 출판물이 목록에 표시되고 차트, 지표(FWCI, 상위 10%), 저자 정보 표에 집계됩니다. 끄면 목록에서 숨겨지고 이 그림들에서 제외됩니다. 프리프린트는 위 옵션에서 별도로 제어합니다.",
+    countLettersNote: "목록과 그림 모두에 적용됩니다.",
     shownSuffix: "표시됨",
     dragSection: "드래그하여 섹션 순서 변경",
     sectionTitleAria: "섹션 제목",
@@ -1065,10 +1065,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Удаляет из CV ВСЕ нерецензируемые работы, включая весь ваш раздел «Препринты». Оставьте этот параметр ВЫКЛЮЧЕННЫМ, чтобы препринты оставались в списке (в отдельном разделе).",
     peerReviewedOnlyNote:
       "По умолчанию препринты сохраняются, но выводятся в отдельном разделе «Препринты». Включайте этот параметр, только если хотите полностью их убрать.",
-    countLetters: "Учитывать письма и нерецензируемые работы в показателях",
+    countLetters: "Включать письма и нерецензируемые публикации",
     countLettersTitle:
-      "Если включено, письма/редакционные статьи и другие нерецензируемые публикации учитываются в годовых графиках, метриках (FWCI, топ-10%) и таблице авторства — везде. Выключено (по умолчанию) — эти показатели считаются только по рецензируемым работам. Препринты никогда не учитываются в показателях.",
-    countLettersNote: "Влияет только на ПОДСЧЁТ, а не на список записей (это опция выше).",
+      "Если включено, письма/редакционные статьи и другие нерецензируемые публикации отображаются в списке и учитываются в графиках, метриках (FWCI, топ-10%) и таблице авторства. Если выключено, они скрываются из списка и исключаются из этих показателей. Препринты управляются отдельно (опция выше).",
+    countLettersNote: "Влияет и на список, и на показатели.",
     shownSuffix: "показано",
     dragSection: "Перетащите, чтобы изменить порядок раздела",
     sectionTitleAria: "Заголовок раздела",

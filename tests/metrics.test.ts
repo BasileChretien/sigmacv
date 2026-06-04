@@ -219,6 +219,13 @@ describe("curatedMetrics (field-normalized measures follow curation)", () => {
     expect(curatedMetrics(cv(false)).fwci_n).toBe(2);
     expect(curatedMetrics(cv(true)).fwci_mean).toBeCloseTo((2 + 1 + 8) / 3, 5); // letter included
     expect(curatedMetrics(cv(true)).fwci_n).toBe(3);
+    // "peer-reviewed only" overrides countLetters in the figures too.
+    const strict = {
+      display: { countLetters: true, peerReviewedOnly: true },
+      owner: { metrics: {} },
+      sections: [{ type: "publications", items: [mk(2, true), mk(1, true), mk(8, false)] }],
+    } as unknown as CanonicalCv;
+    expect(curatedMetrics(strict).fwci_n).toBe(2); // letter dropped despite countLetters
   });
 
   it("drops a 'not mine' work from the FWCI mean / N / top-10%", () => {
