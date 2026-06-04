@@ -106,6 +106,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     supervision: "Supervision",
     conference: "Conference Presentations",
     skills: "Skills",
+    languages: "Languages",
+    references: "References",
     other: "Other",
   },
   "zh-CN": {
@@ -124,6 +126,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     supervision: "指导学生",
     conference: "会议报告",
     skills: "技能",
+    languages: "语言",
+    references: "推荐人",
     other: "其他",
   },
   "es-ES": {
@@ -142,6 +146,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     supervision: "Dirección de tesis",
     conference: "Comunicaciones en congresos",
     skills: "Competencias",
+    languages: "Idiomas",
+    references: "Referencias",
     other: "Otros",
   },
   "fr-FR": {
@@ -160,6 +166,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     supervision: "Encadrement",
     conference: "Communications en congrès",
     skills: "Compétences",
+    languages: "Langues",
+    references: "Références",
     other: "Autres",
   },
   "de-DE": {
@@ -178,6 +186,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     supervision: "Betreuung",
     conference: "Konferenzbeiträge",
     skills: "Kompetenzen",
+    languages: "Sprachen",
+    references: "Referenzen",
     other: "Sonstiges",
   },
   "ja-JP": {
@@ -196,6 +206,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     supervision: "指導",
     conference: "学会発表",
     skills: "スキル",
+    languages: "言語",
+    references: "推薦者",
     other: "その他",
   },
   "pt-BR": {
@@ -214,6 +226,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     supervision: "Orientação",
     conference: "Apresentações em congressos",
     skills: "Competências",
+    languages: "Idiomas",
+    references: "Referências",
     other: "Outros",
   },
   "it-IT": {
@@ -232,6 +246,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     supervision: "Supervisione",
     conference: "Comunicazioni a congressi",
     skills: "Competenze",
+    languages: "Lingue",
+    references: "Referenze",
     other: "Altro",
   },
   "ko-KR": {
@@ -250,6 +266,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     supervision: "지도",
     conference: "학술대회 발표",
     skills: "역량",
+    languages: "언어",
+    references: "추천인",
     other: "기타",
   },
   "ru-RU": {
@@ -268,6 +286,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     supervision: "Научное руководство",
     conference: "Доклады на конференциях",
     skills: "Навыки",
+    languages: "Языки",
+    references: "Рекомендатели",
     other: "Прочее",
   },
 };

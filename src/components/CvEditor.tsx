@@ -277,6 +277,46 @@ export default function CvEditor({
     setStructDrafts((d) => ({ ...d, [type]: { title: "" } }));
   }
 
+  // Languages: a language + a proficiency (CEFR level / native / a test+score),
+  // composed into "French — C1 (CEFR)" and stored as a manual entry.
+  const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
+  const [langDraft, setLangDraft] = useState({
+    lang: "",
+    level: "C2 (CEFR)",
+    other: "",
+  });
+  function addLanguage() {
+    const lang = langDraft.lang.trim();
+    if (!lang) return;
+    const level =
+      langDraft.level === "__other__" ? langDraft.other.trim() : langDraft.level;
+    const text = level ? `${lang} — ${level}` : lang;
+    onChange(addManualEntry(cv, "languages", text, newId("languages")));
+    setLangDraft({ lang: "", level: "C2 (CEFR)", other: "" });
+  }
+
+  // References: a referee + affiliation/email/phone, composed into
+  // "Name, Affiliation · email · phone" and stored as a manual entry.
+  const [refDraft, setRefDraft] = useState({
+    name: "",
+    affiliation: "",
+    email: "",
+    phone: "",
+  });
+  function addReference() {
+    const name = refDraft.name.trim();
+    if (!name) return;
+    const head = refDraft.affiliation.trim()
+      ? `${name}, ${refDraft.affiliation.trim()}`
+      : name;
+    const contact = [refDraft.email.trim(), refDraft.phone.trim()]
+      .filter(Boolean)
+      .join(" · ");
+    const text = contact ? `${head} · ${contact}` : head;
+    onChange(addManualEntry(cv, "references", text, newId("references")));
+    setRefDraft({ name: "", affiliation: "", email: "", phone: "" });
+  }
+
   // Real template thumbnails: render the user's own (trimmed) CV in every
   // template and show each scaled in the gallery. Fetched once and whenever the
   // *look* (accent/font/highlight/language) changes — not on every content edit,
@@ -1104,6 +1144,116 @@ export default function CvEditor({
                   </button>
                 </div>
               </details>
+            ) : null}
+
+            {section.type === "languages" ? (
+              <div className="add-entry-row lang-row">
+                <input
+                  type="text"
+                  className="lang-name"
+                  value={langDraft.lang}
+                  placeholder={eu.langLabel}
+                  aria-label={eu.langLabel}
+                  onChange={(e) =>
+                    setLangDraft((d) => ({ ...d, lang: e.target.value }))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addLanguage();
+                    }
+                  }}
+                />
+                <select
+                  value={langDraft.level}
+                  aria-label={eu.langLevel}
+                  onChange={(e) =>
+                    setLangDraft((d) => ({ ...d, level: e.target.value }))
+                  }
+                >
+                  {CEFR_LEVELS.map((c) => (
+                    <option key={c} value={`${c} (CEFR)`}>{`${c} (CEFR)`}</option>
+                  ))}
+                  <option value={eu.langNative}>{eu.langNative}</option>
+                  <option value="__other__">{eu.langOther}</option>
+                </select>
+                {langDraft.level === "__other__" ? (
+                  <input
+                    type="text"
+                    value={langDraft.other}
+                    placeholder="TOEFL iBT 110"
+                    aria-label={eu.langOther}
+                    onChange={(e) =>
+                      setLangDraft((d) => ({ ...d, other: e.target.value }))
+                    }
+                  />
+                ) : null}
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={addLanguage}
+                  disabled={!langDraft.lang.trim()}
+                >
+                  {eu.feAdd}
+                </button>
+              </div>
+            ) : null}
+
+            {section.type === "references" ? (
+              <div className="structured-fields reference-fields">
+                <div className="structured-row">
+                  <label className="field">
+                    <span>{eu.refName}</span>
+                    <input
+                      type="text"
+                      value={refDraft.name}
+                      onChange={(e) =>
+                        setRefDraft((d) => ({ ...d, name: e.target.value }))
+                      }
+                    />
+                  </label>
+                  <label className="field">
+                    <span>{eu.refAffiliation}</span>
+                    <input
+                      type="text"
+                      value={refDraft.affiliation}
+                      onChange={(e) =>
+                        setRefDraft((d) => ({ ...d, affiliation: e.target.value }))
+                      }
+                    />
+                  </label>
+                </div>
+                <div className="structured-row">
+                  <label className="field">
+                    <span>{eu.refEmail}</span>
+                    <input
+                      type="email"
+                      value={refDraft.email}
+                      onChange={(e) =>
+                        setRefDraft((d) => ({ ...d, email: e.target.value }))
+                      }
+                    />
+                  </label>
+                  <label className="field">
+                    <span>{eu.refPhone}</span>
+                    <input
+                      type="tel"
+                      value={refDraft.phone}
+                      onChange={(e) =>
+                        setRefDraft((d) => ({ ...d, phone: e.target.value }))
+                      }
+                    />
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={addReference}
+                  disabled={!refDraft.name.trim()}
+                >
+                  {eu.feAdd}
+                </button>
+              </div>
             ) : null}
               </>
             ) : null}

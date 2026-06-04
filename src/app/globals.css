@@ -1234,6 +1234,22 @@ input[type="radio"] {
 .structured-year {
   max-width: 7rem;
 }
+/* Languages add-row: a name input + a level <select> + add button. */
+.lang-row .lang-name {
+  flex: 1 1 8rem;
+}
+.lang-row select {
+  font: inherit;
+  font-size: var(--text-sm);
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+.reference-fields {
+  padding: var(--space-2) 0 0;
+}
 .structured-fields .btn {
   align-self: flex-start;
 }

@@ -31,6 +31,8 @@ export const SECTION_TYPES = [
   "editorial",
   "grants",
   "skills",
+  "languages",
+  "references",
   "other",
 ] as const;
 export const CvSectionTypeSchema = z.enum(SECTION_TYPES);
@@ -57,7 +59,9 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
   "peer-review": 12,
   service: 13,
   skills: 14,
-  other: 15,
+  languages: 15,
+  references: 16,
+  other: 17,
 };
 
 /**

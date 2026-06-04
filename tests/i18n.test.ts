@@ -69,6 +69,9 @@ describe("sectionTitle", () => {
     expect(sectionTitle("ja-JP", "education")).toBe("学歴");
     expect(sectionTitle("de-DE", "education")).toBe("Ausbildung");
     expect(sectionTitle("zh-CN", "publications")).toBe("发表论文");
+    expect(sectionTitle("en-US", "languages")).toBe("Languages");
+    expect(sectionTitle("fr-FR", "references")).toBe("Références");
+    expect(sectionTitle("ja-JP", "languages")).toBe("言語");
   });
   it("falls back to English for an unknown locale", () => {
     expect(sectionTitle("xx-XX", "publications")).toBe("Publications");

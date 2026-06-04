@@ -29,6 +29,14 @@ export interface EditorExtraStrings {
   coachBody: string;
   coachGotIt: string;
   exportWebpage: string;
+  langLabel: string;
+  langLevel: string;
+  langNative: string;
+  langOther: string;
+  refName: string;
+  refAffiliation: string;
+  refEmail: string;
+  refPhone: string;
 }
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
@@ -52,6 +60,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "Author matching isn’t perfect. If an entry isn’t yours, open it and mark it “Not mine” — it’s hidden from your CV (never deleted) and improves matching.",
     coachGotIt: "Got it",
     exportWebpage: "Web page (animated)",
+    langLabel: "Language",
+    langLevel: "Level",
+    langNative: "Native / bilingual",
+    langOther: "Other (test + score)",
+    refName: "Name",
+    refAffiliation: "Affiliation",
+    refEmail: "Email",
+    refPhone: "Phone",
   },
   "zh-CN": {
     grpTemplate: "模板与排版",
@@ -73,6 +89,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "作者匹配并非完美。如果某条目不属于您，请打开它并标记为“不是我的”——它会从简历中隐藏（绝不删除），并有助于改进匹配。",
     coachGotIt: "知道了",
     exportWebpage: "网页（动画）",
+    langLabel: "语言",
+    langLevel: "水平",
+    langNative: "母语／双语",
+    langOther: "其他（考试＋分数）",
+    refName: "姓名",
+    refAffiliation: "单位",
+    refEmail: "邮箱",
+    refPhone: "电话",
   },
   "es-ES": {
     grpTemplate: "Plantilla y diseño",
@@ -95,6 +119,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "La identificación de autores no es perfecta. Si una entrada no es tuya, ábrela y márcala como «No es mía»: se oculta de tu CV (nunca se elimina) y mejora la identificación.",
     coachGotIt: "Entendido",
     exportWebpage: "Página web (animada)",
+    langLabel: "Idioma",
+    langLevel: "Nivel",
+    langNative: "Nativo / bilingüe",
+    langOther: "Otro (examen + puntuación)",
+    refName: "Nombre",
+    refAffiliation: "Afiliación",
+    refEmail: "Correo",
+    refPhone: "Teléfono",
   },
   "fr-FR": {
     grpTemplate: "Modèle et mise en page",
@@ -117,6 +149,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "L’appariement des auteurs n’est pas parfait. Si une entrée n’est pas la vôtre, ouvrez-la et marquez-la « Pas la mienne » : elle est masquée de votre CV (jamais supprimée) et améliore l’appariement.",
     coachGotIt: "Compris",
     exportWebpage: "Page web (animée)",
+    langLabel: "Langue",
+    langLevel: "Niveau",
+    langNative: "Langue maternelle / bilingue",
+    langOther: "Autre (test + score)",
+    refName: "Nom",
+    refAffiliation: "Affiliation",
+    refEmail: "E-mail",
+    refPhone: "Téléphone",
   },
   "de-DE": {
     grpTemplate: "Vorlage & Layout",
@@ -139,6 +179,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "Die Autorenzuordnung ist nicht perfekt. Wenn ein Eintrag nicht von Ihnen ist, öffnen Sie ihn und markieren Sie ihn als „Nicht von mir“ — er wird aus Ihrem Lebenslauf ausgeblendet (nie gelöscht) und verbessert die Zuordnung.",
     coachGotIt: "Verstanden",
     exportWebpage: "Webseite (animiert)",
+    langLabel: "Sprache",
+    langLevel: "Niveau",
+    langNative: "Muttersprache / zweisprachig",
+    langOther: "Andere (Test + Punktzahl)",
+    refName: "Name",
+    refAffiliation: "Zugehörigkeit",
+    refEmail: "E-Mail",
+    refPhone: "Telefon",
   },
   "ja-JP": {
     grpTemplate: "テンプレートとレイアウト",
@@ -160,6 +208,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "著者の自動照合は完全ではありません。ご自身のものでない項目は開いて「自分のものではない」に設定してください。履歴書から非表示になり（削除はされません）、照合の改善に役立ちます。",
     coachGotIt: "了解",
     exportWebpage: "ウェブページ（アニメーション）",
+    langLabel: "言語",
+    langLevel: "レベル",
+    langNative: "母語／バイリンガル",
+    langOther: "その他（試験＋スコア）",
+    refName: "氏名",
+    refAffiliation: "所属",
+    refEmail: "メール",
+    refPhone: "電話",
   },
   "pt-BR": {
     grpTemplate: "Modelo e layout",
@@ -182,6 +238,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "A correspondência de autores não é perfeita. Se uma entrada não for sua, abra-a e marque como “Não é minha” — ela fica oculta no seu currículo (nunca é excluída) e melhora a correspondência.",
     coachGotIt: "Entendi",
     exportWebpage: "Página web (animada)",
+    langLabel: "Idioma",
+    langLevel: "Nível",
+    langNative: "Nativo / bilíngue",
+    langOther: "Outro (teste + pontuação)",
+    refName: "Nome",
+    refAffiliation: "Afiliação",
+    refEmail: "E-mail",
+    refPhone: "Telefone",
   },
   "it-IT": {
     grpTemplate: "Modello e layout",
@@ -204,6 +268,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "L’abbinamento degli autori non è perfetto. Se una voce non è tua, aprila e contrassegnala come «Non è mia»: viene nascosta dal CV (mai eliminata) e migliora l’abbinamento.",
     coachGotIt: "Ho capito",
     exportWebpage: "Pagina web (animata)",
+    langLabel: "Lingua",
+    langLevel: "Livello",
+    langNative: "Madrelingua / bilingue",
+    langOther: "Altro (test + punteggio)",
+    refName: "Nome",
+    refAffiliation: "Affiliazione",
+    refEmail: "Email",
+    refPhone: "Telefono",
   },
   "ko-KR": {
     grpTemplate: "템플릿 및 레이아웃",
@@ -225,6 +297,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "저자 매칭은 완벽하지 않습니다. 본인의 항목이 아니라면 열어서 “내 것이 아님”으로 표시하세요. 이력서에서 숨겨지며(삭제되지 않음) 매칭 개선에 도움이 됩니다.",
     coachGotIt: "확인",
     exportWebpage: "웹 페이지(애니메이션)",
+    langLabel: "언어",
+    langLevel: "수준",
+    langNative: "원어민/이중언어",
+    langOther: "기타(시험+점수)",
+    refName: "이름",
+    refAffiliation: "소속",
+    refEmail: "이메일",
+    refPhone: "전화",
   },
   "ru-RU": {
     grpTemplate: "Шаблон и вёрстка",
@@ -247,6 +327,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "Сопоставление авторов несовершенно. Если запись не ваша, откройте её и отметьте «Не моя» — она скрывается из резюме (никогда не удаляется) и улучшает сопоставление.",
     coachGotIt: "Понятно",
     exportWebpage: "Веб-страница (анимация)",
+    langLabel: "Язык",
+    langLevel: "Уровень",
+    langNative: "Родной / билингв",
+    langOther: "Другое (тест + балл)",
+    refName: "Имя",
+    refAffiliation: "Аффилиация",
+    refEmail: "Эл. почта",
+    refPhone: "Телефон",
   },
 };
 
