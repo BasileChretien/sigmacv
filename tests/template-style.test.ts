@@ -140,18 +140,35 @@ describe("rich content (tables, photo) in exports", () => {
   });
 
   it("DOCX embeds the per-year charts as SVG images (only with ≥2 data points)", async () => {
-    const withCounts = (counts: { year: number; works: number; citations: number }[]): CanonicalCv => ({
-      ...updateDisplay(base, { showCharts: true }),
-      owner: { ...base.owner, countsByYear: counts },
-    });
-    // 12 years also exercises the chart scale + x-axis label-thinning branches.
-    const many = Array.from({ length: 12 }, (_, i) => ({ year: 2013 + i, works: (i % 5) + 1, citations: i * 7 }));
-    const zip = await JSZip.loadAsync(await renderCvDocxBuffer(withCounts(many)));
+    // Charts derive from the curated work ITEMS, so build a CV whose items span
+    // the given years. 12 years also exercises the chart scale + label-thinning.
+    const cvWithYears = (years: number[]): CanonicalCv => {
+      const works = years.map(
+        (year, i) =>
+          ({
+            id: `https://openalex.org/Wy${i}`,
+            title: `W${i}`,
+            display_name: `W${i}`,
+            type: "article",
+            publication_year: year,
+            cited_by_count: i * 3,
+            authorships: [{ author: { id: "https://openalex.org/A5001069481" } }],
+            primary_location: { source: { display_name: "J", type: "journal" } },
+          }) as unknown as OpenAlexWork,
+      );
+      return updateDisplay(
+        buildCanonicalCv({ id: "yr", resolved, works, now: "2026-06-02T00:00:00.000Z" }),
+        { showCharts: true },
+      );
+    };
+    const zip = await JSZip.loadAsync(
+      await renderCvDocxBuffer(cvWithYears(Array.from({ length: 12 }, (_, i) => 2013 + i))),
+    );
     const xml = await zip.file("word/document.xml")!.async("string");
     expect(xml).toMatch(/<w:drawing>/); // chart embedded as an image, not a table
     expect(zip.file(/word\/media\/.*\.svg$/i).length).toBeGreaterThan(0); // the SVG chart is in the package
-    // A single data point → no chart, but the document still builds.
-    expect((await renderCvDocxBuffer(withCounts([{ year: 2024, works: 7, citations: 80 }])))[0]).toBe(0x50);
+    // A single work-year → no chart, but the document still builds.
+    expect((await renderCvDocxBuffer(cvWithYears([2024])))[0]).toBe(0x50);
   });
 });
 

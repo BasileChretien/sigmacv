@@ -1,4 +1,4 @@
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import { isHidden, type CanonicalCv } from "@/lib/canonical/schema";
 import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml } from "./escape";
 
@@ -58,12 +58,36 @@ function barChart(title: string, points: Point[]): string {
 </figure>`;
 }
 
+/**
+ * Per-year counts derived from the CURATED work items — so works marked "not
+ * mine" or hidden are excluded (the build-time `owner.countsByYear` is the whole
+ * OpenAlex author aggregate and would keep counting removed works). "works" is
+ * the number of kept publications that year; "citations" is their total
+ * cited-by count.
+ */
+export function curatedCountsByYear(
+  cv: CanonicalCv,
+): { year: number; works: number; citations: number }[] {
+  const byYear = new Map<number, { works: number; citations: number }>();
+  for (const section of cv.sections) {
+    for (const item of section.items) {
+      if (!item.csl || isHidden(item)) continue; // real works only, minus removed
+      const year = item.meta.year;
+      if (typeof year !== "number" || !Number.isFinite(year)) continue;
+      const e = byYear.get(year) ?? { works: 0, citations: 0 };
+      e.works += 1;
+      e.citations += item.meta.citedByCount ?? 0;
+      byYear.set(year, e);
+    }
+  }
+  return [...byYear.entries()].map(([year, v]) => ({ year, works: v.works, citations: v.citations }));
+}
+
 /** Per-year publication + citation points (last 12 years), or null when charts
  *  are disabled / there's too little data. */
 function chartPoints(cv: CanonicalCv): { pubs: Point[]; cites: Point[] } | null {
   if (!cv.display.showCharts) return null;
-  const data = [...(cv.owner.countsByYear ?? [])]
-    .filter((d) => Number.isFinite(d.year))
+  const data = curatedCountsByYear(cv)
     .sort((a, b) => a.year - b.year)
     .slice(-12);
   if (data.length < 2) return null;

@@ -1,6 +1,7 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "./authorship";
+import { curatedCountsByYear } from "./charts";
 import { wrapSelf } from "./emphasize";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
@@ -80,8 +81,7 @@ function accentHex(cv: CanonicalCv): string {
  *  data). "" when charts are off or there's too little data. */
 function yearTableLatex(cv: CanonicalCv): string {
   if (!cv.display.showCharts) return "";
-  const data = [...(cv.owner.countsByYear ?? [])]
-    .filter((d) => Number.isFinite(d.year))
+  const data = curatedCountsByYear(cv)
     .sort((a, b) => a.year - b.year)
     .slice(-12);
   if (data.length < 2) return "";

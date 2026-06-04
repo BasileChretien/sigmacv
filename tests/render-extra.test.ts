@@ -4,6 +4,7 @@ import { setItemIncluded } from "@/lib/canonical/curate";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { TEMPLATES } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
+import { curatedCountsByYear } from "@/lib/render/charts";
 import { renderCvHtml } from "@/lib/render/html";
 import { docxRenderer } from "@/lib/render/docx";
 import { bibtexRenderer } from "@/lib/render/bibtex";
@@ -37,6 +38,27 @@ function withMetrics(): CanonicalCv {
     owner: { ...cv.owner, metrics: { h_index: 9, "2yr_mean_citedness": 3.4 } },
     display: { ...cv.display, showMetrics: true, metrics: ["h_index"] },
   };
+}
+
+// Charts derive from the curated work ITEMS (so "not mine"/hidden works drop
+// out), not the build-time author aggregate — so build a CV whose items span
+// the given publication years.
+function cvWithYears(years: number[]): CanonicalCv {
+  const works = years.map(
+    (year, i) =>
+      ({
+        id: `https://openalex.org/Wy${i}`,
+        title: `Work ${i}`,
+        display_name: `Work ${i}`,
+        type: "article",
+        publication_year: year,
+        cited_by_count: i,
+        authorships: [{ author: { id: "https://openalex.org/A5001069481" } }],
+        primary_location: { source: { display_name: "J. Test", type: "journal" } },
+      }) as unknown as OpenAlexWork,
+  );
+  const cv = buildCanonicalCv({ id: "yr", resolved, works, now: "2026-06-02T00:00:00.000Z" });
+  return { ...cv, display: { ...cv.display, showCharts: true } };
 }
 
 describe("render format catalog", () => {
@@ -233,29 +255,50 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     });
 
     it("omits charts with fewer than two years of data", () => {
-      const cv = makeCv();
-      const sparse: CanonicalCv = {
-        ...cv,
-        owner: { ...cv.owner, countsByYear: [{ year: 2024, works: 1, citations: 0 }] },
-        display: { ...cv.display, showCharts: true },
-      };
-      expect(renderCvHtml(sparse)).not.toContain("Publications / year");
+      // A single curated work-year → not enough to chart.
+      expect(renderCvHtml(cvWithYears([2024]))).not.toContain("Publications / year");
     });
 
     it("thins x-axis labels for long (>8 year) series", () => {
-      const cv = makeCv();
-      const years = Array.from({ length: 11 }, (_, i) => ({
-        year: 2014 + i,
-        works: i + 1,
-        citations: i * 5,
-      }));
-      const html = renderCvHtml({
-        ...cv,
-        owner: { ...cv.owner, countsByYear: years },
-        display: { ...cv.display, showCharts: true },
-      });
+      const html = renderCvHtml(cvWithYears(Array.from({ length: 11 }, (_, i) => 2014 + i)));
       expect(html).toContain("Publications / year");
       expect(html).toContain("<svg");
+    });
+
+    it("counts only included, dated work items — excludes not-mine/hidden/undated/manual", () => {
+      const mk = (o: {
+        year?: number;
+        cites?: number;
+        manual?: boolean;
+        included?: boolean;
+        notMine?: boolean;
+      }) =>
+        ({
+          csl: o.manual ? undefined : {},
+          included: o.included ?? true,
+          notMine: o.notMine ?? false,
+          meta: { year: o.year, citedByCount: o.cites },
+        }) as unknown as CanonicalCv["sections"][number]["items"][number];
+      const cv = {
+        sections: [
+          {
+            items: [
+              mk({ year: 2020, cites: 3 }),
+              mk({ year: 2020, cites: 2 }),
+              mk({ year: 2021 }), // counted; no cited-by count → +0
+              mk({ year: 2021, cites: 99, notMine: true }), // excluded: not mine
+              mk({ year: 2022, cites: 99, included: false }), // excluded: hidden
+              mk({ year: 2023, manual: true }), // excluded: not a work (no CSL)
+              mk({}), // excluded: undated
+            ],
+          },
+        ],
+      } as unknown as CanonicalCv;
+      const by = Object.fromEntries(curatedCountsByYear(cv).map((c) => [c.year, c]));
+      expect(by[2020]).toMatchObject({ works: 2, citations: 5 });
+      expect(by[2021]).toMatchObject({ works: 1, citations: 0 }); // not-mine 2021 dropped
+      expect(by[2022]).toBeUndefined();
+      expect(by[2023]).toBeUndefined();
     });
   });
 

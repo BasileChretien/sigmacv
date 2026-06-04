@@ -28,22 +28,28 @@ const work = {
   display_name: "A study of adverse drug reactions",
   type: "article",
   publication_year: 2024,
+  cited_by_count: 10,
   authorships: [
     { author: { id: SELF, display_name: "Basile Chrétien" }, raw_author_name: "Basile Chrétien" },
   ],
   primary_location: { source: { display_name: "Journal A", type: "journal" } },
 } as unknown as OpenAlexWork;
+// A second year so the per-year charts (now derived from the curated items) render.
+const work2 = {
+  ...work,
+  id: "https://openalex.org/W2",
+  title: "An earlier study",
+  display_name: "An earlier study",
+  publication_year: 2023,
+  cited_by_count: 5,
+} as unknown as OpenAlexWork;
 
 function localizedCv(locale: string): CanonicalCv {
-  const cv = buildCanonicalCv({ id: "i", resolved, works: [work], now: "2026-06-02T00:00:00.000Z" });
+  const cv = buildCanonicalCv({ id: "i", resolved, works: [work, work2], now: "2026-06-02T00:00:00.000Z" });
   return {
     ...cv,
     owner: {
       ...cv.owner,
-      countsByYear: [
-        { year: 2023, works: 2, citations: 5 },
-        { year: 2024, works: 3, citations: 10 },
-      ],
       metrics: { fwci_mean: 1.4 },
     },
     display: {
