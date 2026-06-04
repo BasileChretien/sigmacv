@@ -4,7 +4,7 @@ import { setItemIncluded } from "@/lib/canonical/curate";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { TEMPLATES } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
-import { curatedCountsByYear } from "@/lib/render/charts";
+import { curatedCountsByYear, renderChartsHtml } from "@/lib/render/charts";
 import { renderCvHtml } from "@/lib/render/html";
 import { docxRenderer } from "@/lib/render/docx";
 import { bibtexRenderer } from "@/lib/render/bibtex";
@@ -252,6 +252,52 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
 
     it("omits charts when disabled", () => {
       expect(renderCvHtml(withCharts(false))).not.toContain("Publications / year");
+    });
+
+    it("scales bars logarithmically and labels the axis", () => {
+      const mk = (year: number, cites: number) =>
+        ({
+          csl: {},
+          included: true,
+          notMine: false,
+          meta: { year, citedByCount: cites },
+        }) as unknown as CanonicalCv["sections"][number]["items"][number];
+      // Citations span two orders of magnitude (1 vs 100) within one chart.
+      const cv = {
+        display: { showCharts: true, locale: "en-US", countLetters: false },
+        sections: [
+          { type: "publications", items: [mk(2020, 1), mk(2021, 100)] },
+        ],
+      } as unknown as CanonicalCv;
+      const html = renderChartsHtml(cv);
+      // Axis is honestly labelled so a log scale isn't misread as linear.
+      expect(html).toContain("(log)");
+      const heights = [...html.matchAll(/<rect[^>]*height="(\d+)"/g)].map((m) =>
+        Number(m[1]),
+      );
+      const tallest = Math.max(...heights);
+      const smallestVisible = Math.min(...heights.filter((h) => h > 0));
+      // The value-1 citation bar would be ~1px on a linear scale next to the
+      // value-100 bar; log1p keeps it clearly visible (≈10px of the 64px height).
+      expect(tallest).toBe(64);
+      expect(smallestVisible).toBeGreaterThan(3);
+    });
+
+    it("renders zero-height bars when every value is 0 (no log(0))", () => {
+      const mk = (year: number) =>
+        ({
+          csl: {},
+          included: true,
+          notMine: false,
+          meta: { year, citedByCount: 0 },
+        }) as unknown as CanonicalCv["sections"][number]["items"][number];
+      // Two years of work but no citations at all → the citations chart's logMax
+      // is 0, so its bars must flatten to height 0 rather than divide-by-zero.
+      const cv = {
+        display: { showCharts: true, locale: "en-US", countLetters: false },
+        sections: [{ type: "publications", items: [mk(2020), mk(2021)] }],
+      } as unknown as CanonicalCv;
+      expect(renderChartsHtml(cv)).toContain('height="0"');
     });
 
     it("omits charts with fewer than two years of data", () => {

@@ -34,11 +34,18 @@ const chartWidth = (points: Point[]): number => Math.max(points.length * (BAR_W 
 
 /** The bars + year labels (the SVG body), with a caller-supplied bar fill. */
 function bars(points: Point[], fill: string): string {
-  const max = Math.max(1, ...points.map((p) => p.value));
+  // Log scale (log1p, so a 0-count year maps to 0 height and there is no log(0)):
+  // a single-paper / few-citation year stays visible next to a 200-citation year,
+  // which a linear scale would flatten to ~1px. The <title> tooltip keeps the raw
+  // count, and the caption is labelled "(log)" so the axis isn't misread.
+  const logMax = Math.log1p(Math.max(0, ...points.map((p) => p.value)));
   const labelEvery = points.length > 8 ? 2 : 1; // avoid crowding x-axis labels
   return points
     .map((p, i) => {
-      const h = Math.round((p.value / max) * CHART_H);
+      const h =
+        logMax > 0
+          ? Math.round((Math.log1p(Math.max(0, p.value)) / logMax) * CHART_H)
+          : 0;
       const x = i * (BAR_W + GAP);
       const y = CHART_H - h;
       const showLabel = i % labelEvery === 0 || i === points.length - 1;
@@ -101,7 +108,7 @@ export function renderChartsHtml(cv: CanonicalCv): string {
   const pts = chartPoints(cv);
   if (!pts) return "";
   const s = renderStrings(cv.display.locale);
-  return `<div class="cv-charts">${barChart(s.chartPublicationsPerYear, pts.pubs)}${barChart(s.chartCitationsPerYear, pts.cites)}</div>`;
+  return `<div class="cv-charts">${barChart(`${s.chartPublicationsPerYear} ${s.chartLogScale}`, pts.pubs)}${barChart(`${s.chartCitationsPerYear} ${s.chartLogScale}`, pts.cites)}</div>`;
 }
 
 /** The same charts as standalone SVGs for embedding in the DOCX (neutral bars,
@@ -119,5 +126,8 @@ export function cvChartSvgs(cv: CanonicalCv): ChartSvg[] {
       svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${SVG_H}" width="${width}" height="${SVG_H}">${bars(points, "#444444")}</svg>`,
     };
   };
-  return [mk(s.chartPublicationsPerYear, pts.pubs), mk(s.chartCitationsPerYear, pts.cites)];
+  return [
+    mk(`${s.chartPublicationsPerYear} ${s.chartLogScale}`, pts.pubs),
+    mk(`${s.chartCitationsPerYear} ${s.chartLogScale}`, pts.cites),
+  ];
 }
