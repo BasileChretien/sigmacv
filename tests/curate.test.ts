@@ -435,11 +435,11 @@ describe("named presets", () => {
     const cv = makeCv();
     const once = savePreset(cv, "Full CV");
     const twice = savePreset(
-      updateDisplay(once, { template: "minimal" }),
+      updateDisplay(once, { template: "modern" }),
       "Full CV",
     );
     expect(twice.presets).toHaveLength(1); // upsert, not a duplicate
-    expect(twice.presets[0]!.display.template).toBe("minimal");
+    expect(twice.presets[0]!.display.template).toBe("modern");
 
     expect(savePreset(cv, "   ")).toBe(cv); // blank name → no-op
 

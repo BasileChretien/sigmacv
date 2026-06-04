@@ -314,13 +314,10 @@ export type CvOwner = z.infer<typeof CvOwnerSchema>;
 export const TEMPLATES = [
   "classic",
   "modern",
-  "minimal",
-  "compact",
   "sidebar",
-  "editorial",
   "ats",
   "rirekisho",
-  // Bolder, design-forward additions.
+  // Bold, design-forward templates.
   "aurora",
   "slate",
   "timeline",
@@ -367,7 +364,9 @@ export const CustomStyleSchema = z.object({
 export type CustomStyle = z.infer<typeof CustomStyleSchema>;
 
 export const DisplayChoicesSchema = z.object({
-  template: z.enum(TEMPLATES).default("classic"),
+  // .catch keeps old saved CVs loading if they reference a since-removed
+  // template (e.g. minimal/compact/editorial) — they fall back to classic.
+  template: z.enum(TEMPLATES).default("classic").catch("classic"),
   /** Bundled CSL style key, e.g. "apa" (see src/lib/citeproc/assets/styles). */
   cslStyle: z.string().default("apa"),
   /**

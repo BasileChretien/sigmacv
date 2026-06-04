@@ -154,13 +154,10 @@ export default function CvEditor({
   const TEMPLATE_LABELS: Record<string, string> = {
     classic: u.tplClassic,
     modern: u.tplModern,
-    minimal: u.tplMinimal,
-    compact: u.tplCompact,
     sidebar: u.tplSidebar,
-    editorial: u.tplEditorial,
     ats: u.tplAts,
     rirekisho: "Japanese (履歴書)",
-    // New design-forward templates use proper-noun names (no translation needed).
+    // Bold, design-forward templates use proper-noun names (no translation needed).
     aurora: "Aurora",
     slate: "Slate",
     timeline: "Timeline",

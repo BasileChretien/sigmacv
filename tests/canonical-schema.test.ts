@@ -87,10 +87,17 @@ describe("DisplayChoicesSchema", () => {
     ).toBe(false);
   });
 
-  it("rejects unknown template / font / density values", () => {
-    expect(DisplayChoicesSchema.safeParse({ template: "fancy" }).success).toBe(false);
+  it("rejects unknown font / density values", () => {
     expect(DisplayChoicesSchema.safeParse({ fontPairing: "comic" }).success).toBe(false);
     expect(DisplayChoicesSchema.safeParse({ density: "huge" }).success).toBe(false);
+  });
+
+  it("coerces an unknown/removed template to classic (forward-compat fallback)", () => {
+    // A CV saved with a since-removed template (minimal/compact/editorial) must
+    // still load — .catch falls the field back to classic instead of failing.
+    const parsed = DisplayChoicesSchema.safeParse({ template: "minimal" });
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.template).toBe("classic");
   });
 });
 

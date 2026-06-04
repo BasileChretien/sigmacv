@@ -7,9 +7,6 @@ import type {
 import { atsTemplate } from "./ats";
 import { auroraTemplate } from "./aurora";
 import { classicTemplate } from "./classic";
-import { compactTemplate } from "./compact";
-import { editorialTemplate } from "./editorial";
-import { minimalTemplate } from "./minimal";
 import { modernTemplate } from "./modern";
 import { rirekishoTemplate } from "./rirekisho";
 import { sidebarTemplate } from "./sidebar";
@@ -43,10 +40,7 @@ const SELF_HIGHLIGHT_CSS: Record<HighlightStyle, string> = {
 const REGISTRY: Record<TemplateKey, CvTemplate> = {
   classic: classicTemplate,
   modern: modernTemplate,
-  minimal: minimalTemplate,
-  compact: compactTemplate,
   sidebar: sidebarTemplate,
-  editorial: editorialTemplate,
   ats: atsTemplate,
   rirekisho: rirekishoTemplate,
   aurora: auroraTemplate,

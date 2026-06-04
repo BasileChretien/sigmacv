@@ -2,46 +2,61 @@ import { commonCss, cvPageShell, headerHtml, provenanceFooter, sectionsHtml } fr
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**
- * "Aurora" — a clean, contemporary layout. Colour is used as a precise accent,
- * never a fill: a slim accent spine runs down the content column, the name is
- * oversized with an accent subtitle, and section labels are quiet uppercase
- * tracking with a hairline that runs to the right margin. Airy and print-light.
+ * "Aurora" — a bold, colourful hero. A full-bleed gradient masthead (the accent
+ * deepening into shadow) carries an oversized name, a ringed photo and the
+ * contact line in light type; the charts/authorship render as white cards
+ * floating on the colour. The body is clean white with accent "chip" section
+ * labels. Print-aware: the gradient is confined to the masthead.
  */
-function auroraCss(_theme: TemplateTheme): string {
+function auroraCss(theme: TemplateTheme): string {
+  const a = theme.accentColor;
+  const gutter = "60px";
   return `
-  .cv { max-width: 760px; padding: 58px 60px 56px 66px; position: relative; }
-  /* Accent spine down the content column — the signature, ink-light for print. */
-  .cv::before {
-    content: ""; position: absolute; left: 0; top: 58px; bottom: 56px;
-    width: 4px; border-radius: 4px; background: var(--cv-accent);
-  }
+  .cv { max-width: 860px; padding: 0; }
 
-  header.cv-header { margin-bottom: 2.3rem; }
+  /* ---- GRADIENT HERO MASTHEAD ---- */
+  header.cv-header {
+    background: radial-gradient(135% 160% at 0% 0%, ${a} 0%, color-mix(in srgb, ${a} 58%, #0b1020) 100%);
+    color: #fff;
+    padding: 66px ${gutter} 54px;
+    margin: 0 0 2.4rem;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
   header.cv-header h1 {
-    font-size: 2.55rem; font-weight: 750; letter-spacing: -0.026em;
-    line-height: 1.0; color: var(--cv-ink); margin: 0;
+    font-size: 3.1rem; font-weight: 800; color: #fff;
+    letter-spacing: -0.032em; line-height: 0.98;
   }
-  .cv-headline {
-    font-size: 1.18rem; font-weight: 500; color: var(--cv-accent);
-    margin-top: 0.45rem; letter-spacing: -0.005em;
+  header.cv-header .cv-honorific { color: #fff; }
+  .cv-headline { color: rgba(255,255,255,0.94); font-size: 1.32rem; font-weight: 500; margin-top: 0.5rem; }
+  .cv-ids, .cv-contact, .cv-links, .cv-metrics { color: rgba(255,255,255,0.9); }
+  .cv-ids a, .cv-contact a, .cv-links a { color: #fff; }
+  .cv-metric-context { color: rgba(255,255,255,0.72); }
+  .cv-summary { color: rgba(255,255,255,0.95); }
+  .cv-photo {
+    width: 124px; height: 124px; border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.4); box-shadow: 0 8px 22px rgba(0,0,0,0.22);
   }
-  .cv-photo { width: 100px; height: 100px; border-radius: 50%; }
-  .cv-ids a, .cv-contact a, .cv-links a { color: var(--cv-accent); }
+  /* Charts/authorship are forced-light cards — lift them as white panels. */
+  .cv-charts, .cv-authorship { border: 0; border-radius: 14px; box-shadow: 0 10px 26px rgba(0,0,0,0.20); }
 
-  /* Quiet label + a hairline filling the rest of the row. */
+  /* ---- WHITE BODY with accent chip labels ---- */
+  section.cv-section { margin: 0 ${gutter} var(--cv-space); }
+  section.cv-section:first-of-type { margin-top: 0; }
   section.cv-section > h2 {
-    display: flex; align-items: center; gap: 0.85rem;
-    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.18em; color: var(--cv-muted); margin: 0 0 0.8rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.74rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.14em; color: ${a}; margin: 0 0 0.7rem;
   }
-  section.cv-section > h2::after {
-    content: ""; flex: 1 1 auto; height: 1px; background: var(--cv-rule);
+  section.cv-section > h2::before {
+    content: ""; width: 22px; height: 4px; border-radius: 4px; background: ${a};
   }
-
-  ol.cv-bib > li a { color: var(--cv-accent); }
+  ol.cv-bib > li a { color: ${a}; }
+  .cv-provenance { margin: 1.8rem ${gutter} 2.6rem; }
 
   @media print {
-    .cv::before { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    header.cv-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cv-charts, .cv-authorship { box-shadow: none; }
+    section.cv-section { break-inside: auto; }
   }`;
 }
 

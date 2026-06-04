@@ -76,17 +76,6 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(classic).not.toContain("border-left: 3px solid var(--cv-accent)");
   });
 
-  it("renders the compact template with a two-column bibliography", () => {
-    const compact = renderCvHtml(updateDisplay(makeCv(), { template: "compact" }));
-    expect(compact).toContain("column-count: 2");
-    expect(renderCvHtml(makeCv())).not.toContain("column-count: 2");
-  });
-
-  it("renders the minimal template (rule-free, lighter weight name)", () => {
-    const minimal = renderCvHtml(updateDisplay(makeCv(), { template: "minimal" }));
-    expect(minimal).toContain("font-weight: 400");
-  });
-
   it("renders the sidebar template with the photo in a coloured aside", () => {
     const withPhoto = updateOwner(
       updateDisplay(makeCv(), { template: "sidebar" }),
@@ -96,11 +85,6 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(html).toContain("cv-sidebar-layout");
     expect(html).toContain('<img class="cv-photo"');
     expect(html).toContain("Assistant Professor");
-  });
-
-  it("renders the editorial template (heavy accent rule under the masthead)", () => {
-    const editorial = renderCvHtml(updateDisplay(makeCv(), { template: "editorial" }));
-    expect(editorial).toMatch(/border-bottom:\s*4px solid var\(--cv-accent\)/);
   });
 
   it("renders the rirekisho form with personal fields + 学歴・職歴 table", () => {

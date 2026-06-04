@@ -2,48 +2,51 @@ import { commonCss, cvPageShell, headerHtml, provenanceFooter, sectionsHtml } fr
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**
- * "Slate" — an editorial Swiss grid. Each section's LABEL sits in a narrow left
- * gutter and its content fills the wide right column, divided by a hairline.
- * Monochrome with a single accent and a strong rule under the name — a precise,
- * designed, contemporary look. Prints cleanly (no fills).
+ * "Slate" — a full dark-mode CV. The whole page is deep charcoal with light
+ * text and a vivid accent; the forced-light charts/authorship render as bright
+ * cards that pop against the dark field. It recolours the shared design tokens
+ * (--cv-ink/-muted/-rule/-page) so every shared element adapts. A distinctly
+ * screen/web look; the dark fill is kept for PDF too (print-color-adjust exact).
  */
-function slateCss(_theme: TemplateTheme): string {
+function slateCss(theme: TemplateTheme): string {
+  const a = theme.accentColor;
+  const bg = "#0e1117";
   return `
-  .cv { max-width: 830px; padding: 56px 58px; }
+  /* Recolour the shared tokens for dark mode — everything downstream follows. */
+  :root {
+    --cv-page: ${bg};
+    --cv-ink: #f4f6fa;
+    --cv-ink-2: #cdd4e0;
+    --cv-muted: #99a2b2;
+    --cv-faint: #7c8696;
+    --cv-rule: #262b36;
+    --cv-rule-strong: #39414f;
+  }
+  html, body { background: ${bg}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .cv { max-width: 820px; padding: 60px 60px; }
 
   header.cv-header {
-    margin-bottom: 2rem; padding-bottom: 1.3rem;
-    border-bottom: 2.5px solid var(--cv-ink);
+    padding-bottom: 1.5rem; margin-bottom: 1.9rem;
+    border-bottom: 1px solid var(--cv-rule);
   }
-  header.cv-header h1 {
-    font-size: 2.35rem; font-weight: 700; letter-spacing: -0.022em; color: var(--cv-ink);
+  header.cv-header h1 { font-size: 2.7rem; font-weight: 800; color: #ffffff; letter-spacing: -0.026em; }
+  .cv-headline { color: ${a}; font-weight: 600; font-size: 1.22rem; margin-top: 0.3rem; }
+  .cv-photo {
+    width: 108px; height: 108px; border-radius: 50%; border: 3px solid ${a};
+    box-shadow: 0 0 0 6px color-mix(in srgb, ${a} 18%, transparent);
   }
-  .cv-headline { font-size: 1.12rem; font-weight: 500; color: var(--cv-muted); margin-top: 0.3rem; }
-  .cv-photo { width: 92px; height: 92px; border-radius: 8px; }
-  .cv-ids a, .cv-contact a, .cv-links a { color: var(--cv-accent); }
+  .cv-ids a, .cv-contact a, .cv-links a { color: ${a}; }
 
-  /* The grid: label column + content column, separated by a top hairline. */
-  section.cv-section {
-    display: grid;
-    grid-template-columns: 8.5rem 1fr;
-    column-gap: 2rem;
-    margin-top: var(--cv-space);
-    padding-top: 1rem;
-    border-top: 1px solid var(--cv-rule);
-  }
-  section.cv-section:first-of-type { margin-top: calc(var(--cv-space) * 0.7); }
+  /* Accent-led section labels with a soft underline. */
   section.cv-section > h2 {
-    grid-column: 1; margin: 0; line-height: 1.45;
-    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.13em; color: var(--cv-accent);
+    font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em;
+    color: ${a}; margin: 0 0 0.7rem; padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--cv-rule);
   }
-  /* Everything that isn't the heading flows into the right column. */
-  section.cv-section > :not(h2) { grid-column: 2; }
-
-  ol.cv-bib > li a { color: var(--cv-accent); }
+  ol.cv-bib > li a { color: ${a}; }
 
   @media print {
-    /* The label/content grid holds on the printed page too. */
+    html, body, .cv { background: ${bg}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     section.cv-section { break-inside: auto; }
   }`;
 }
@@ -52,7 +55,7 @@ export const slateTemplate: CvTemplate = {
   key: "slate",
   render(cv, sections, theme) {
     const css = commonCss(theme) + slateCss(theme);
-    const body = `<div class="cv">${headerHtml(cv, { photo: false })}${sectionsHtml(sections)}${provenanceFooter(cv)}</div>`;
+    const body = `<div class="cv">${headerHtml(cv, { photo: true })}${sectionsHtml(sections)}${provenanceFooter(cv)}</div>`;
     return cvPageShell(cv, css, body);
   },
 };

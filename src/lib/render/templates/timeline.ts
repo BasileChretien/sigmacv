@@ -2,48 +2,45 @@ import { commonCss, cvPageShell, headerHtml, provenanceFooter, sectionsHtml } fr
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**
- * "Timeline" — sections thread one continuous accent rail with a filled node at
- * each heading, so the CV scans as a single vertical narrative. Refined nodes,
- * sentence-case headings and roomy spacing keep it modern rather than gimmicky.
- * The header sits above the rail (it owns the charts/authorship light cards).
+ * "Timeline" — a bold numbered layout. A CSS counter stamps a large accent
+ * numeral (01, 02, 03 …) in the left margin of each section, so the CV reads as
+ * a confident, sequenced narrative. Strong accent header rule and headline. No
+ * markup change (the counter rides the shared section structure); prints in
+ * colour via print-color-adjust.
  */
-function timelineCss(_theme: TemplateTheme): string {
+function timelineCss(theme: TemplateTheme): string {
+  const a = theme.accentColor;
   return `
-  .cv { max-width: 770px; padding: 54px 58px; }
+  .cv { max-width: 800px; padding: 54px 58px; counter-reset: cvsec; }
 
-  header.cv-header { margin-bottom: 2rem; }
-  header.cv-header h1 {
-    font-size: 2.2rem; font-weight: 700; letter-spacing: -0.022em; color: var(--cv-ink);
+  header.cv-header {
+    margin-bottom: 2.2rem; padding-bottom: 1.2rem;
+    border-bottom: 3px solid ${a};
   }
-  .cv-headline { font-size: 1.15rem; font-weight: 500; color: var(--cv-accent); margin-top: 0.32rem; }
-  .cv-photo { width: 96px; height: 96px; border-radius: 50%; }
-  header.cv-header .cv-ids a, header.cv-header .cv-contact a, header.cv-header .cv-links a { color: var(--cv-accent); }
+  header.cv-header h1 { font-size: 2.55rem; font-weight: 800; color: var(--cv-ink); letter-spacing: -0.028em; }
+  .cv-headline { color: ${a}; font-weight: 600; font-size: 1.24rem; margin-top: 0.32rem; }
+  .cv-photo { width: 104px; height: 104px; border-radius: 16px; }
+  header.cv-header .cv-ids a, header.cv-header .cv-contact a, header.cv-header .cv-links a { color: ${a}; }
 
-  /* The rail: each section paints a segment of one unbroken left border. */
+  /* Big accent numeral in the left margin of every section. */
   section.cv-section {
-    position: relative; margin-top: 0; margin-left: 0.45rem;
-    padding-left: 2.2rem; padding-top: var(--cv-space);
-    border-left: 2px solid var(--cv-rule);
+    counter-increment: cvsec; position: relative;
+    padding-left: 4.2rem; margin-top: var(--cv-space);
   }
-  section.cv-section:first-of-type { padding-top: calc(var(--cv-space) * 0.55); }
-
   section.cv-section > h2 {
-    position: relative; font-size: 1.02rem; font-weight: 700;
-    letter-spacing: -0.006em; color: var(--cv-ink); margin: 0 0 0.7rem;
+    font-size: 1.18rem; font-weight: 800; letter-spacing: -0.014em;
+    color: var(--cv-ink); margin: 0 0 0.7rem; padding-top: 0.4rem;
   }
-  /* Filled accent node sitting on the rail, ringed by the page colour. */
   section.cv-section > h2::before {
-    content: ""; position: absolute; left: calc(-2.2rem - 7px); top: 0.18em;
-    width: 13px; height: 13px; border-radius: 50%;
-    background: var(--cv-accent); box-shadow: 0 0 0 4px var(--cv-page);
+    content: counter(cvsec, decimal-leading-zero);
+    position: absolute; left: 0; top: 0;
+    font-size: 2.5rem; font-weight: 800; line-height: 1;
+    letter-spacing: -0.04em; color: ${a};
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
+  ol.cv-bib > li a { color: ${a}; }
 
-  ol.cv-bib > li a { color: var(--cv-accent); }
-
-  @media print {
-    section.cv-section { break-inside: auto; }
-    section.cv-section > h2::before { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  }`;
+  @media print { section.cv-section { break-inside: auto; } }`;
 }
 
 export const timelineTemplate: CvTemplate = {
