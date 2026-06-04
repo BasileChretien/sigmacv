@@ -145,20 +145,20 @@ describe("authorshipCounts", () => {
     expect(authorshipCounts(cv, ["bogus"])).toEqual([]);
   });
 
-  it("counts letters only when countLetters is on", () => {
-    const item = (pos: number, n: number, peerReviewed: boolean) => ({
+  it("counts letters (peer-reviewed) only when countLetters is on", () => {
+    const item = (pos: number, n: number, type?: string) => ({
       csl: {},
       authoredBySelf: true,
       included: true,
       notMine: false,
       selfNameVariants: [],
-      meta: { authorPosition: pos, authorCount: n, peerReviewed },
+      meta: { authorPosition: pos, authorCount: n, peerReviewed: true, type },
     });
     const make = (countLetters: boolean) =>
       ({
         display: { countLetters },
         sections: [
-          { type: "publications", items: [item(1, 3, true), item(1, 2, false)] }, // 2nd is a letter
+          { type: "publications", items: [item(1, 3), item(1, 2, "letter")] }, // 2nd is a letter
         ],
       }) as unknown as CanonicalCv;
     const off = authorshipCounts(make(false), ["first"])[0]!;
@@ -198,15 +198,5 @@ describe("authorshipTableHtml", () => {
     expect(html).toContain("cv-authorship-pct");
     expect(html).toContain("50%");
     expect(html).toContain("n=2"); // denominator surfaced in the caption
-  });
-  it("drops the '(peer-reviewed)' caption qualifier when letters are counted", () => {
-    const cv = updateDisplay(base, {
-      showAuthorshipTable: true,
-      authorshipRoles: ["first", "last"],
-      countLetters: true,
-    });
-    const html = authorshipTableHtml(cv);
-    expect(html).toContain("Authorship"); // base caption kept
-    expect(html).not.toContain("peer-reviewed"); // qualifier dropped (letters counted)
   });
 });

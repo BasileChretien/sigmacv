@@ -421,6 +421,9 @@ function isPreprint(work: OpenAlexWork): boolean {
 }
 
 // OpenAlex `type` values that are NOT peer-reviewed scholarship.
+// NOTE: "letter" is NOT here — a letter/correspondence published in a real
+// journal venue (research letters, ADR case letters, etc.) IS peer-reviewed.
+// A letter with no venue still falls through isPreprint() → not peer-reviewed.
 const NON_PEER_REVIEWED_TYPES = new Set([
   "preprint",
   "posted-content",
@@ -431,7 +434,6 @@ const NON_PEER_REVIEWED_TYPES = new Set([
   "peer-review",
   "grant",
   "editorial",
-  "letter",
 ]);
 
 /**

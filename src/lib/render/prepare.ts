@@ -38,20 +38,20 @@ export function prepareSections(
     registerStyleXml(custom.id, custom.xml);
   }
 
-  // Which non-peer-reviewed CITATIONS to LIST (non-citation entries — positions,
-  // grants, editorial roles — are never touched):
-  //  - "Peer-reviewed only" drops ALL non-peer-reviewed works wherever they sit
-  //    (incl. preprints), e.g. a preprint mis-filed under Publications.
-  //  - Otherwise a LETTER (a non-peer-reviewed work OUTSIDE the Preprints section)
-  //    is shown only when "count letters" is on — so the listing matches the
-  //    figures. Preprints keep their own section unless peer-reviewed-only removes
-  //    them.
+  // Which CITATIONS to LIST (non-citation entries — positions, grants, editorial
+  // roles — are never touched):
+  //  - "Peer-reviewed only" drops every non-peer-reviewed work wherever it sits
+  //    (preprints, editorials, a preprint mis-filed under Publications).
+  //  - "Count letters" off → drop LETTERS (by document type) for an articles-only
+  //    view, even though letters are peer-reviewed. On (default) → keep them.
+  // Both mirror countableWorks so the listing matches the figures.
   const peerOnly = cv.display.peerReviewedOnly;
-  const includeLetters = cv.display.countLetters === true;
-  const keep = (item: CvItem, sectionType: string): boolean => {
-    if (!item.csl || item.meta.peerReviewed !== false) return true; // peer-reviewed / non-citation
-    if (peerOnly) return false; // strict: drop all non-peer-reviewed
-    return includeLetters || sectionType === "preprints"; // letters follow the toggle
+  const countLetters = cv.display.countLetters !== false; // default on
+  const keep = (item: CvItem): boolean => {
+    if (!item.csl) return true; // non-citation entries untouched
+    if (peerOnly && item.meta.peerReviewed === false) return false; // strict: drop non-peer-reviewed
+    if (item.meta.type === "letter" && !countLetters) return false; // articles-only: drop letters
+    return true;
   };
 
   // Optional re-sort of publication/preprint entries by citations or year.
@@ -75,7 +75,7 @@ export function prepareSections(
   const limit = cv.display.publicationsLimit ?? 0;
 
   const perSection = visibleSections(cv).map((section) => {
-    let items = visibleItems(section).filter((it) => keep(it, section.type));
+    let items = visibleItems(section).filter(keep);
     if (CITATION_SECTIONS.has(section.type)) items = sortCitations(items);
     if (section.type === "publications" && limit > 0) {
       items = items.slice(0, limit);

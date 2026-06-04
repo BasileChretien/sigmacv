@@ -38,6 +38,16 @@ describe("isPeerReviewed (via build meta.peerReviewed)", () => {
     expect(flag(cv, "https://openalex.org/Wart")).toBe(true);
   });
 
+  it("marks a journal LETTER as peer-reviewed (research letters / correspondence)", () => {
+    const cv = build([work("Wlet", { type: "letter" })]);
+    expect(flag(cv, "https://openalex.org/Wlet")).toBe(true);
+  });
+
+  it("still marks an editorial as not peer-reviewed", () => {
+    const cv = build([work("Wed", { type: "editorial" })]);
+    expect(flag(cv, "https://openalex.org/Wed")).toBe(false);
+  });
+
   it("marks a type=preprint work as not peer-reviewed", () => {
     const cv = build([
       work("Wpre", { type: "preprint", primary_location: { source: { display_name: "bioRxiv", type: "repository" } } }),
@@ -113,16 +123,16 @@ describe.skipIf(!hasApa)("countLetters render filter (prepareSections)", () => {
       .flatMap((s) => s.items)
       .map((i) => i.item.csl?.title);
 
-  it("hides letters from the listing by default (countLetters off)", () => {
+  it("lists letters by default (they are peer-reviewed)", () => {
     const t = titles(cvWith());
-    expect(t).toContain("Peer-reviewed paper"); // peer-reviewed stays
-    expect(t).not.toContain("A letter"); // the letter is hidden
+    expect(t).toContain("Peer-reviewed paper");
+    expect(t).toContain("A letter");
   });
 
-  it("lists letters when countLetters is on", () => {
-    const t = titles(updateDisplay(cvWith(), { countLetters: true }));
-    expect(t).toContain("A letter");
-    expect(t).toContain("Peer-reviewed paper");
+  it("hides letters for an articles-only view (countLetters off)", () => {
+    const t = titles(updateDisplay(cvWith(), { countLetters: false }));
+    expect(t).toContain("Peer-reviewed paper"); // articles stay
+    expect(t).not.toContain("A letter"); // letters dropped
   });
 });
 

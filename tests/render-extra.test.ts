@@ -306,13 +306,13 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(by[2019]).toBeUndefined(); // preprint section excluded
     });
 
-    it("counts letters in the per-year charts only when countLetters is on", () => {
-      const item = (year: number, peerReviewed: boolean) =>
-        ({ csl: {}, included: true, notMine: false, meta: { year, peerReviewed, citedByCount: 0 } });
+    it("counts letters (peer-reviewed) in the per-year charts only when countLetters is on", () => {
+      const item = (year: number, type?: string) =>
+        ({ csl: {}, included: true, notMine: false, meta: { year, peerReviewed: true, type, citedByCount: 0 } });
       const cv = (countLetters: boolean) =>
         ({
           display: { countLetters },
-          sections: [{ type: "publications", items: [item(2018, true), item(2019, false)] }],
+          sections: [{ type: "publications", items: [item(2018), item(2019, "letter")] }],
         }) as unknown as CanonicalCv;
       expect(curatedCountsByYear(cv(false)).map((c) => c.year)).toEqual([2018]); // letter year off
       expect(curatedCountsByYear(cv(true)).map((c) => c.year).sort()).toEqual([2018, 2019]); // on

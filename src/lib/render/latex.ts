@@ -105,7 +105,6 @@ function authorshipTableLatex(cv: CanonicalCv): string {
   if (rows.length === 0 || rows.every((r) => r.count === 0)) return "";
   const s = renderStrings(cv.display.locale);
   const total = rows[0]?.total ?? 0;
-  const caption = cv.display.countLetters ? s.authorshipCaptionAll : s.authorshipCaption;
   // One metric column reading "16 (18%)" so the count and its share can't run
   // together into a meaningless number.
   const body = rows
@@ -119,7 +118,7 @@ function authorshipTableLatex(cv: CanonicalCv): string {
     : "";
   return [
     "\\medskip\\noindent\\begin{tabular}{@{}lr@{}}",
-    `\\multicolumn{2}{@{}l}{\\textbf{${escapeLatex(caption)} \\textperiodcentered{} n=${total}}} \\\\`,
+    `\\multicolumn{2}{@{}l}{\\textbf{${escapeLatex(s.authorshipCaption)} \\textperiodcentered{} n=${total}}} \\\\`,
     "\\hline",
     body,
     "\\end{tabular}\\par" + note,

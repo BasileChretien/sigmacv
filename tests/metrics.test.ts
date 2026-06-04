@@ -206,26 +206,27 @@ describe("curatedMetrics (field-normalized measures follow curation)", () => {
     expect(m.fwci_n).toBe(3);
   });
 
-  it("counts letters in the FWCI recompute only when countLetters is on", () => {
-    const mk = (fwci: number, peerReviewed: boolean) =>
-      ({ csl: {}, included: true, notMine: false, meta: { fwci, peerReviewed, citedByCount: 1 } });
+  it("counts letters (peer-reviewed) in the FWCI recompute only when countLetters is on", () => {
+    // A "letter" is peer-reviewed but identified by document type.
+    const mk = (fwci: number, type?: string) =>
+      ({ csl: {}, included: true, notMine: false, meta: { fwci, peerReviewed: true, type, citedByCount: 1 } });
     const cv = (countLetters: boolean) =>
       ({
         display: { countLetters },
         owner: { metrics: {} },
-        sections: [{ type: "publications", items: [mk(2, true), mk(1, true), mk(8, false)] }],
+        sections: [{ type: "publications", items: [mk(2), mk(1), mk(8, "letter")] }],
       }) as unknown as CanonicalCv;
     expect(curatedMetrics(cv(false)).fwci_mean).toBeCloseTo((2 + 1) / 2, 5); // letter excluded
     expect(curatedMetrics(cv(false)).fwci_n).toBe(2);
     expect(curatedMetrics(cv(true)).fwci_mean).toBeCloseTo((2 + 1 + 8) / 3, 5); // letter included
     expect(curatedMetrics(cv(true)).fwci_n).toBe(3);
-    // "peer-reviewed only" overrides countLetters in the figures too.
-    const strict = {
-      display: { countLetters: true, peerReviewedOnly: true },
+    // A genuinely non-peer-reviewed work (e.g. editorial) never counts, regardless.
+    const withEditorial = {
+      display: { countLetters: true },
       owner: { metrics: {} },
-      sections: [{ type: "publications", items: [mk(2, true), mk(1, true), mk(8, false)] }],
+      sections: [{ type: "publications", items: [mk(2), { csl: {}, included: true, notMine: false, meta: { fwci: 9, peerReviewed: false, type: "editorial" } }] }],
     } as unknown as CanonicalCv;
-    expect(curatedMetrics(strict).fwci_n).toBe(2); // letter dropped despite countLetters
+    expect(curatedMetrics(withEditorial).fwci_n).toBe(1); // editorial excluded (non-peer-reviewed)
   });
 
   it("drops a 'not mine' work from the FWCI mean / N / top-10%", () => {
