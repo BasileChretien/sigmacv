@@ -10,6 +10,8 @@ import {
   type NotMineReason,
 } from "./schema";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
+import { toCslName } from "@/lib/openalex/toCsl";
+import type { CslItem, CslName } from "@/types/csl";
 
 /**
  * Pure, immutable curation operations on the canonical CV object.
@@ -311,7 +313,7 @@ export function addManualEntry(
   const text = displayText.trim();
   if (!text) return cv;
 
-  const item: CvItem = {
+  return appendManualItem(cv, sectionType, {
     id,
     source: "manual",
     sourceId: "manual",
@@ -322,8 +324,16 @@ export function addManualEntry(
     authoredBySelf: false,
     selfNameVariants: [],
     meta: {},
-  };
+  });
+}
 
+/** Append a manual item to its section (creating the section if absent), giving
+ *  it the next order. Shared by the free-text and structured add-entry paths. */
+function appendManualItem(
+  cv: CanonicalCv,
+  sectionType: CvSectionType,
+  item: CvItem,
+): CanonicalCv {
   const existing = cv.sections.find((s) => s.type === sectionType);
   if (existing) {
     const maxOrder = existing.items.reduce((m, it) => Math.max(m, it.order), -1);
@@ -339,9 +349,112 @@ export function addManualEntry(
     title: sectionTitle(cv.display.locale, sectionType),
     visible: true,
     order: DEFAULT_SECTION_ORDER[sectionType],
-    items: [item],
+    items: [{ ...item, order: 0 }],
   };
   return { ...cv, sections: [...cv.sections, newSection] };
+}
+
+/** Fields for a structured (citation-style) manual entry. Only `title` is
+ *  required; the rest are optional and omitted from the CSL when blank. */
+export interface ManualEntryFields {
+  /** CSL type (e.g. "article-journal", "paper-conference", "chapter"). */
+  type?: string;
+  title: string;
+  /** Authors, one per line or separated by ";" — ideally "Family, Given". */
+  authors?: string;
+  /** Journal / conference / publisher (CSL container-title). */
+  venue?: string;
+  year?: number | string;
+  doi?: string;
+  url?: string;
+}
+
+/** "https://doi.org/10.1/x" (or "doi:10.1/x") → "10.1/x". */
+function bareDoi(doi: string): string {
+  return doi.trim().replace(/^(https?:\/\/(dx\.)?doi\.org\/|doi:)/i, "");
+}
+
+/** Split an authors string ("Smith, J; Doe, A") into CSL names (one per
+ *  line/semicolon), reusing the OpenAlex name splitter (handles CJK + commas). */
+function parseAuthors(raw: string | undefined): CslName[] {
+  return (raw ?? "")
+    .split(/[;\n]+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map(toCslName);
+}
+
+/**
+ * Build a CSL-JSON item from structured manual fields, so the entry renders
+ * through the SAME citeproc pipeline (and chosen citation style) as imported
+ * works — no per-entry formatting. Returns null when the title is blank.
+ */
+export function buildManualCsl(
+  id: string,
+  fields: ManualEntryFields,
+): CslItem | null {
+  const title = fields.title.trim();
+  if (!title) return null;
+
+  const csl: CslItem = {
+    id,
+    type: fields.type?.trim() || "article-journal",
+    title,
+  };
+  const authors = parseAuthors(fields.authors);
+  if (authors.length) csl.author = authors;
+
+  const year =
+    typeof fields.year === "string" ? parseInt(fields.year, 10) : fields.year;
+  if (typeof year === "number" && Number.isFinite(year)) {
+    csl.issued = { "date-parts": [[year]] };
+  }
+  const venue = fields.venue?.trim();
+  if (venue) csl["container-title"] = venue;
+
+  const doi = fields.doi ? bareDoi(fields.doi) : "";
+  if (doi) {
+    csl.DOI = doi;
+    csl.URL = `https://doi.org/${doi}`;
+  } else if (fields.url?.trim()) {
+    csl.URL = fields.url.trim();
+  }
+  return csl;
+}
+
+/**
+ * Add a STRUCTURED manual entry to the section of the given type. Builds a CSL
+ * item (rendered via citeproc, consistent with the chosen style) rather than a
+ * free-text string. Preserved across re-sync like every manual item. No-op when
+ * the title is blank.
+ */
+export function addStructuredEntry(
+  cv: CanonicalCv,
+  sectionType: CvSectionType,
+  fields: ManualEntryFields,
+  id: string,
+): CanonicalCv {
+  const csl = buildManualCsl(id, fields);
+  if (!csl) return cv;
+
+  const year =
+    typeof fields.year === "string" ? parseInt(fields.year, 10) : fields.year;
+  return appendManualItem(cv, sectionType, {
+    id,
+    source: "manual",
+    sourceId: "manual",
+    csl,
+    included: true,
+    notMine: false,
+    order: 0,
+    authoredBySelf: false,
+    selfNameVariants: [],
+    meta: {
+      year: typeof year === "number" && Number.isFinite(year) ? year : undefined,
+      type: csl.type,
+      doi: csl.DOI,
+    },
+  });
 }
 
 /**

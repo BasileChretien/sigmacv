@@ -3,6 +3,8 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   addManualEntry,
   addSection,
+  addStructuredEntry,
+  buildManualCsl,
   applyPreset,
   deletePreset,
   moveItem,
@@ -461,5 +463,79 @@ describe("removeSection", () => {
     expect(cv.sections).toHaveLength(before);
     // unknown id → same reference (no-op)
     expect(removeSection(cv, "does-not-exist")).toBe(cv);
+  });
+});
+
+describe("buildManualCsl", () => {
+  it("builds a full CSL item from structured fields", () => {
+    const csl = buildManualCsl("m1", {
+      type: "paper-conference",
+      title: "On signal detection",
+      authors: "Chrétien, Basile; Dolladille, Charles",
+      venue: "Proc. Pharmacovigilance",
+      year: 2024,
+      doi: "https://doi.org/10.1/xyz",
+    });
+    expect(csl).toMatchObject({
+      id: "m1",
+      type: "paper-conference",
+      title: "On signal detection",
+      "container-title": "Proc. Pharmacovigilance",
+      issued: { "date-parts": [[2024]] },
+      DOI: "10.1/xyz",
+      URL: "https://doi.org/10.1/xyz",
+      author: [
+        { family: "Chrétien", given: "Basile" },
+        { family: "Dolladille", given: "Charles" },
+      ],
+    });
+  });
+
+  it("defaults the type, accepts a year string, and uses a bare URL without a DOI", () => {
+    const csl = buildManualCsl("m2", {
+      title: "A dataset",
+      year: "2020",
+      url: "https://example.org/data",
+    });
+    expect(csl?.type).toBe("article-journal");
+    expect(csl?.issued).toEqual({ "date-parts": [[2020]] });
+    expect(csl?.URL).toBe("https://example.org/data");
+    expect(csl?.DOI).toBeUndefined();
+    expect(csl?.author).toBeUndefined();
+    expect(csl?.["container-title"]).toBeUndefined();
+  });
+
+  it("returns null for a blank title and ignores a non-numeric year", () => {
+    expect(buildManualCsl("m3", { title: "   " })).toBeNull();
+    const csl = buildManualCsl("m4", { title: "X", year: "n/a" });
+    expect(csl?.issued).toBeUndefined();
+  });
+});
+
+describe("addStructuredEntry", () => {
+  it("adds a citeproc-rendered item (csl, no displayText) to a new section", () => {
+    const cv = addStructuredEntry(
+      makeCv(),
+      "conference",
+      { title: "Talk on ADRs", venue: "ESCP", year: 2025 },
+      "conference:manual:1",
+    );
+    const section = cv.sections.find((s) => s.type === "conference")!;
+    const item = section.items.at(-1)!;
+    expect(item.source).toBe("manual");
+    expect(item.displayText).toBeUndefined();
+    expect(item.csl?.title).toBe("Talk on ADRs");
+    expect(item.meta.year).toBe(2025);
+    expect(item.meta.type).toBe("article-journal");
+  });
+
+  it("appends with the next order and is a no-op for a blank title", () => {
+    let cv = addStructuredEntry(makeCv(), "publications", { title: "First" }, "p:m:1");
+    cv = addStructuredEntry(cv, "publications", { title: "Second" }, "p:m:2");
+    const pubs = cv.sections.find((s) => s.type === "publications")!;
+    const orders = pubs.items.map((i) => i.order);
+    expect(new Set(orders).size).toBe(orders.length); // unique, no collisions
+    // blank title → unchanged reference
+    expect(addStructuredEntry(cv, "publications", { title: "  " }, "p:m:3")).toBe(cv);
   });
 });
