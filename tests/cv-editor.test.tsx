@@ -3,7 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import CvEditor from "@/components/CvEditor";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemNotMine } from "@/lib/canonical/curate";
+import { addSection, setItemNotMine } from "@/lib/canonical/curate";
+import { sectionTitle } from "@/lib/i18n";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -79,6 +80,24 @@ describe("CvEditor (component)", () => {
     render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
     expect(screen.getByText("+ Skills")).toBeTruthy();
   });
+
+  // Regression: these source-less section types were in the add-section menu but
+  // in neither MANUAL_SECTIONS nor STRUCTURED_SECTIONS, so they rendered with no
+  // input at all — the user could add them but never fill them.
+  it.each(["skills", "talks", "teaching", "supervision"] as const)(
+    "renders a free-text add-entry row for the '%s' section",
+    (type) => {
+      const cv = addSection(makeCv(), type);
+      render(<CvEditor cv={cv} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+      expandAllSections();
+      const titleInput = [
+        ...document.querySelectorAll<HTMLInputElement>("input.section-title"),
+      ].find((i) => i.value === sectionTitle("en-US", type));
+      expect(titleInput).toBeTruthy();
+      const block = titleInput!.closest(".section-block");
+      expect(block?.querySelector(".add-entry-row")).toBeTruthy();
+    },
+  );
 
   it("collapses sections by default and expands on demand to show rows", () => {
     render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);

@@ -224,7 +224,9 @@ export default function CvEditor({
     return `${prefix}:manual:${rand}`;
   }
 
-  // Sections where a free-text "Add an entry" makes sense.
+  // Sections where a free-text "Add an entry" makes sense. Without this, a
+  // source-less section the user adds from the menu (talks/teaching/supervision/
+  // skills) would render with NO input at all — silently un-fillable.
   const MANUAL_SECTIONS = new Set([
     "positions",
     "education",
@@ -233,6 +235,10 @@ export default function CvEditor({
     "datasets",
     "editorial",
     "grants",
+    "talks",
+    "teaching",
+    "supervision",
+    "skills",
     "other",
   ]);
 
