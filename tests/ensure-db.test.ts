@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  dbPushArgs,
   isUsableDatabaseUrl,
   needsSync,
   parseDatabaseUrl,
@@ -51,6 +52,32 @@ describe("ensure-db: parseDatabaseUrl", () => {
     expect(parseDatabaseUrl("OTHER=1")).toBeNull();
     expect(parseDatabaseUrl("")).toBeNull();
     expect(parseDatabaseUrl(null as unknown as string)).toBeNull();
+  });
+});
+
+describe("ensure-db: dbPushArgs", () => {
+  it("loads .env then runs `prisma db push` — no invalid flags", () => {
+    const args = dbPushArgs();
+    expect(args).toEqual(["dotenv", "-e", ".env", "--", "prisma", "db", "push"]);
+    // Regression guard: `--skip-generate` is NOT a Prisma 7 flag (it broke the
+    // auto-sync). The command must end exactly at `prisma db push`.
+    expect(args).not.toContain("--skip-generate");
+    expect(args.slice(-3)).toEqual(["prisma", "db", "push"]);
+    // Must inject the real DATABASE_URL via dotenv (bare prisma hits the
+    // placeholder URL and fails with P1001).
+    expect(args.slice(0, 4)).toEqual(["dotenv", "-e", ".env", "--"]);
+  });
+
+  it("respects a custom env path", () => {
+    expect(dbPushArgs(".env.e2e")).toEqual([
+      "dotenv",
+      "-e",
+      ".env.e2e",
+      "--",
+      "prisma",
+      "db",
+      "push",
+    ]);
   });
 });
 

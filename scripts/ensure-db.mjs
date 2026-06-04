@@ -61,6 +61,16 @@ export function needsSync(currentHash, cachedHash) {
   return currentHash !== cachedHash;
 }
 
+/**
+ * Argv for the DB sync: load `.env` (so the real DATABASE_URL is used, not the
+ * CLI placeholder) then `prisma db push` (which also regenerates the client).
+ * Kept pure + exported so a test pins the exact command — this is where the
+ * earlier `--skip-generate` (not a Prisma 7 flag) regression slipped in.
+ */
+export function dbPushArgs(envPath = ENV_PATH) {
+  return ["dotenv", "-e", envPath, "--", "prisma", "db", "push"];
+}
+
 function readFileSafe(path) {
   try {
     return existsSync(path) ? readFileSync(path, "utf8") : null;
@@ -93,11 +103,7 @@ function main() {
   );
   // `prisma db push` syncs the schema AND regenerates the client (Prisma 7 has
   // no `--skip-generate` flag), so no separate generate step is needed.
-  const res = spawnSync(
-    "npx",
-    ["dotenv", "-e", ENV_PATH, "--", "prisma", "db", "push"],
-    { stdio: "inherit", shell: true },
-  );
+  const res = spawnSync("npx", dbPushArgs(), { stdio: "inherit", shell: true });
   if (res.status === 0) {
     try {
       writeFileSync(CACHE_PATH, hash, "utf8");
