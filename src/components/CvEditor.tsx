@@ -7,6 +7,7 @@ import {
   DENSITIES,
   FONT_PAIRINGS,
   HIGHLIGHT_STYLES,
+  SECTION_TYPES,
   TEMPLATES,
   type CanonicalCv,
   type CvSectionType,
@@ -59,22 +60,13 @@ const STYLE_LABELS: Record<string, string> = {
   "american-medical-association": "AMA",
 };
 
-/** Section types a user can add manually (the rest are source-driven). */
-const ADDABLE_SECTIONS: CvSectionType[] = [
-  "positions",
-  "education",
-  "teaching",
-  "supervision",
-  "conference",
-  "awards",
-  "talks",
-  "service",
-  "skills",
-  "datasets",
-  "editorial",
-  "grants",
-  "other",
-];
+/**
+ * Section types offered in the "Add a section" menu — EVERY type, so any
+ * section the user removed can be re-added. Source-driven types (publications,
+ * preprints, peer-review) re-add as an empty section that the next re-sync
+ * repopulates from the open record.
+ */
+const ADDABLE_SECTIONS: readonly CvSectionType[] = SECTION_TYPES;
 
 export default function CvEditor({
   cv,
