@@ -22,6 +22,7 @@ type ExportFormat =
   | "latex-classic"
   | "markdown"
   | "bibtex"
+  | "webpage"
   | "json";
 
 interface CvWorkspaceProps {
@@ -231,6 +232,7 @@ export default function CvWorkspace({
             <option value="latex-classic">{ui(uiLocale).exportLatexClassic}</option>
             <option value="markdown">{ui(uiLocale).exportMarkdown}</option>
             <option value="bibtex">{ui(uiLocale).exportBibtex}</option>
+            <option value="webpage">{editorUi(uiLocale).exportWebpage}</option>
             <option value="json">{ui(uiLocale).exportJson}</option>
           </select>
           <button

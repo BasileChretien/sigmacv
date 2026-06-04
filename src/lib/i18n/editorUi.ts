@@ -28,6 +28,7 @@ export interface EditorExtraStrings {
   coachTitle: string;
   coachBody: string;
   coachGotIt: string;
+  exportWebpage: string;
 }
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
@@ -50,6 +51,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     coachBody:
       "Author matching isn’t perfect. If an entry isn’t yours, open it and mark it “Not mine” — it’s hidden from your CV (never deleted) and improves matching.",
     coachGotIt: "Got it",
+    exportWebpage: "Web page (animated)",
   },
   "zh-CN": {
     grpTemplate: "模板与排版",
@@ -70,6 +72,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     coachBody:
       "作者匹配并非完美。如果某条目不属于您，请打开它并标记为“不是我的”——它会从简历中隐藏（绝不删除），并有助于改进匹配。",
     coachGotIt: "知道了",
+    exportWebpage: "网页（动画）",
   },
   "es-ES": {
     grpTemplate: "Plantilla y diseño",
@@ -91,6 +94,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     coachBody:
       "La identificación de autores no es perfecta. Si una entrada no es tuya, ábrela y márcala como «No es mía»: se oculta de tu CV (nunca se elimina) y mejora la identificación.",
     coachGotIt: "Entendido",
+    exportWebpage: "Página web (animada)",
   },
   "fr-FR": {
     grpTemplate: "Modèle et mise en page",
@@ -112,6 +116,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     coachBody:
       "L’appariement des auteurs n’est pas parfait. Si une entrée n’est pas la vôtre, ouvrez-la et marquez-la « Pas la mienne » : elle est masquée de votre CV (jamais supprimée) et améliore l’appariement.",
     coachGotIt: "Compris",
+    exportWebpage: "Page web (animée)",
   },
   "de-DE": {
     grpTemplate: "Vorlage & Layout",
@@ -133,6 +138,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     coachBody:
       "Die Autorenzuordnung ist nicht perfekt. Wenn ein Eintrag nicht von Ihnen ist, öffnen Sie ihn und markieren Sie ihn als „Nicht von mir“ — er wird aus Ihrem Lebenslauf ausgeblendet (nie gelöscht) und verbessert die Zuordnung.",
     coachGotIt: "Verstanden",
+    exportWebpage: "Webseite (animiert)",
   },
   "ja-JP": {
     grpTemplate: "テンプレートとレイアウト",
@@ -153,6 +159,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     coachBody:
       "著者の自動照合は完全ではありません。ご自身のものでない項目は開いて「自分のものではない」に設定してください。履歴書から非表示になり（削除はされません）、照合の改善に役立ちます。",
     coachGotIt: "了解",
+    exportWebpage: "ウェブページ（アニメーション）",
   },
   "pt-BR": {
     grpTemplate: "Modelo e layout",
@@ -174,6 +181,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     coachBody:
       "A correspondência de autores não é perfeita. Se uma entrada não for sua, abra-a e marque como “Não é minha” — ela fica oculta no seu currículo (nunca é excluída) e melhora a correspondência.",
     coachGotIt: "Entendi",
+    exportWebpage: "Página web (animada)",
   },
   "it-IT": {
     grpTemplate: "Modello e layout",
@@ -195,6 +203,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     coachBody:
       "L’abbinamento degli autori non è perfetto. Se una voce non è tua, aprila e contrassegnala come «Non è mia»: viene nascosta dal CV (mai eliminata) e migliora l’abbinamento.",
     coachGotIt: "Ho capito",
+    exportWebpage: "Pagina web (animata)",
   },
   "ko-KR": {
     grpTemplate: "템플릿 및 레이아웃",
@@ -215,6 +224,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     coachBody:
       "저자 매칭은 완벽하지 않습니다. 본인의 항목이 아니라면 열어서 “내 것이 아님”으로 표시하세요. 이력서에서 숨겨지며(삭제되지 않음) 매칭 개선에 도움이 됩니다.",
     coachGotIt: "확인",
+    exportWebpage: "웹 페이지(애니메이션)",
   },
   "ru-RU": {
     grpTemplate: "Шаблон и вёрстка",
@@ -236,6 +246,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     coachBody:
       "Сопоставление авторов несовершенно. Если запись не ваша, откройте её и отметьте «Не моя» — она скрывается из резюме (никогда не удаляется) и улучшает сопоставление.",
     coachGotIt: "Понятно",
+    exportWebpage: "Веб-страница (анимация)",
   },
 };
 

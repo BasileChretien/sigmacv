@@ -17,6 +17,7 @@ const EXPORTABLE: readonly RenderFormat[] = [
   "latex-classic",
   "markdown",
   "bibtex",
+  "webpage",
 ];
 // "json" exports the canonical CV object verbatim (machine-readable, open).
 const ALL_FORMATS: readonly string[] = [...EXPORTABLE, "json"];

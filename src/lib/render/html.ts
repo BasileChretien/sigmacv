@@ -54,25 +54,31 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
  * entry is then highlighted iff the item is the user's own (identifier match)
  * and highlighting is enabled.
  */
-export function renderCvHtml(cv: CanonicalCv): string {
-  const rendered: RenderedSection[] = prepareSections(cv, "html").map(
-    ({ section, items }) => ({
-      section,
-      items: items.map(({ item, entry }) => {
-        let html = entry;
-        if (
-          cv.display.highlightSelf &&
-          item.authoredBySelf &&
-          item.selfNameVariants.length > 0
-        ) {
-          html = highlightSelf(html, item.selfNameVariants);
-        }
-        html += itemBadges(item, cv.display);
-        return { item, html };
-      }),
+/**
+ * Citeproc-render every section's bibliography (once), then highlight the
+ * account holder's own entries and append inline badges. Shared by the print
+ * templates (renderCvHtml) and the animated web export.
+ */
+export function buildRenderedSections(cv: CanonicalCv): RenderedSection[] {
+  return prepareSections(cv, "html").map(({ section, items }) => ({
+    section,
+    items: items.map(({ item, entry }) => {
+      let html = entry;
+      if (
+        cv.display.highlightSelf &&
+        item.authoredBySelf &&
+        item.selfNameVariants.length > 0
+      ) {
+        html = highlightSelf(html, item.selfNameVariants);
+      }
+      html += itemBadges(item, cv.display);
+      return { item, html };
     }),
-  );
+  }));
+}
 
+export function renderCvHtml(cv: CanonicalCv): string {
+  const rendered = buildRenderedSections(cv);
   const template = getTemplate(cv.display.template);
   const theme = resolveTheme(cv.display);
   return template.render(cv, rendered, theme);
