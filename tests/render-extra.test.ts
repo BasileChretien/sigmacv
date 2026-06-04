@@ -300,6 +300,23 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(by[2022]).toBeUndefined();
       expect(by[2023]).toBeUndefined();
     });
+
+    it("a wrongly-attributed old work marked 'not mine' leaves the charts (1993 case)", () => {
+      // OpenAlex attributed a 1993 work; the user's real first paper is 2015.
+      const cv = cvWithYears([1993, 2015, 2016, 2017]);
+      const curated: CanonicalCv = {
+        ...cv,
+        sections: cv.sections.map((s) => ({
+          ...s,
+          items: s.items.map((it) => (it.meta.year === 1993 ? { ...it, notMine: true } : it)),
+        })),
+      };
+      const years = curatedCountsByYear(curated).map((c) => c.year);
+      expect(years).not.toContain(1993);
+      expect(years).toEqual(expect.arrayContaining([2015, 2016, 2017]));
+      // It IS still counted while it remains in the list (until marked):
+      expect(curatedCountsByYear(cv).map((c) => c.year)).toContain(1993);
+    });
   });
 
   describe("publication badges (open access + author role)", () => {
