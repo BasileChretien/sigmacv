@@ -765,6 +765,22 @@ input[type="radio"] {
   font-size: var(--text-xs);
   color: var(--muted);
 }
+/* Links inside the responsible-metrics note (DORA / Leiden / Impact-Factor
+   citation) must read as links against the muted note text. */
+.metric-preset-note a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.metric-preset-note a:hover {
+  text-decoration: none;
+}
+/* A note that explains the checkbox above it: span the full grid width instead
+   of being squeezed into the left column of the 2-col controls grid. */
+.field-note {
+  grid-column: 1 / -1;
+  margin: 0;
+}
 .authorship-resync-note {
   display: block;
   margin-top: var(--space-1);

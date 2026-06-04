@@ -86,6 +86,24 @@ describe("authorshipCounts", () => {
     expect(by.corresponding).toBe(1); // Wb
   });
 
+  it("reports a shared denominator and per-role percentage", () => {
+    const rows = authorshipCounts(cv, ["first", "second", "corresponding"]);
+    // 5 peer-reviewed works → the percentage base is the same for every row.
+    expect(rows.every((r) => r.total === 5)).toBe(true);
+    const by = Object.fromEntries(rows.map((r) => [r.role, r.percent]));
+    expect(by.first).toBe(40); // 2 of 5
+    expect(by.second).toBe(20); // 1 of 5
+    expect(by.corresponding).toBe(20); // 1 of 5
+  });
+
+  it("yields a 0% (not NaN) percentage when there are no counted works", () => {
+    const empty = build([]);
+    const rows = authorshipCounts(empty, ["first"]);
+    expect(rows).toEqual([
+      { role: "first", label: "First author", count: 0, total: 0, percent: 0 },
+    ]);
+  });
+
   it("excludes preprints from the counts", () => {
     const preprint = work("Wp", 1, 2);
     preprint.type = "preprint";
@@ -126,5 +144,9 @@ describe("authorshipTableHtml", () => {
     expect(html).toContain("cv-authorship");
     expect(html).toContain("First author");
     expect(html).toContain("Corresponding author");
+    // base has 2 peer-reviewed works; first/last/corresponding are each 1 → 50%.
+    expect(html).toContain("cv-authorship-pct");
+    expect(html).toContain("50%");
+    expect(html).toContain("n=2"); // denominator surfaced in the caption
   });
 });

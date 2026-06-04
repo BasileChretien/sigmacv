@@ -11,6 +11,11 @@ export interface AuthorshipCount {
   role: AuthorshipRole;
   label: string;
   count: number;
+  /** Peer-reviewed own publications the percentage is taken over (same for
+   *  every row — it's the denominator, surfaced so callers needn't recompute). */
+  total: number;
+  /** count / total as a whole percent (0 when total is 0). */
+  percent: number;
 }
 
 /** A citation entry that counts toward authorship: the user's own, shown, and
@@ -52,13 +57,19 @@ export function authorshipCounts(
   roles: readonly string[],
 ): AuthorshipCount[] {
   const items = cv.sections.flatMap((s) => s.items).filter(counts);
+  const total = items.length;
   return roles
     .filter((r): r is AuthorshipRole =>
       (AUTHORSHIP_ROLES as readonly string[]).includes(r),
     )
-    .map((role) => ({
-      role,
-      label: AUTHORSHIP_ROLE_LABELS[role],
-      count: items.filter(PREDICATES[role]).length,
-    }));
+    .map((role) => {
+      const count = items.filter(PREDICATES[role]).length;
+      return {
+        role,
+        label: AUTHORSHIP_ROLE_LABELS[role],
+        count,
+        total,
+        percent: total > 0 ? Math.round((count / total) * 100) : 0,
+      };
+    });
 }

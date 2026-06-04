@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import {
   ACCENT_PRESETS,
   AUTHORSHIP_ROLES,
@@ -67,6 +67,70 @@ const STYLE_LABELS: Record<string, string> = {
  * repopulates from the open record.
  */
 const ADDABLE_SECTIONS: readonly CvSectionType[] = SECTION_TYPES;
+
+/**
+ * Citations behind the responsible-metrics note. These tokens appear verbatim
+ * in every locale's `metricsPresetNote` (they're proper nouns / a fixed term),
+ * so we can linkify them with a plain token split — no per-locale plumbing.
+ *   • DORA / Leiden → the declarations the preset implements.
+ *   • Impact Factor → the canonical peer-reviewed critique (Seglen, BMJ 1997)
+ *     that *evidences* why journal-level proxies don't belong in evaluation.
+ */
+const RESPONSIBLE_METRIC_LINKS: ReadonlyArray<{
+  token: string;
+  href: string;
+  title: string;
+}> = [
+  {
+    token: "DORA",
+    href: "https://sfdora.org/",
+    title: "San Francisco Declaration on Research Assessment (DORA)",
+  },
+  {
+    token: "Leiden",
+    href: "https://www.leidenmanifesto.org/",
+    title: "The Leiden Manifesto for research metrics (Hicks et al., Nature 2015)",
+  },
+  {
+    token: "Impact Factor",
+    href: "https://doi.org/10.1136/bmj.314.7079.497",
+    title:
+      "Seglen PO. Why the impact factor of journals should not be used for evaluating research. BMJ 1997;314:497.",
+  },
+];
+
+// Longest token first so multi-word terms win over any future prefix overlap.
+const METRIC_LINK_RE = new RegExp(
+  `(${[...RESPONSIBLE_METRIC_LINKS]
+    .sort((a, b) => b.token.length - a.token.length)
+    .map((l) => l.token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("|")})`,
+);
+
+/** The responsible-metrics note with DORA / Leiden / Impact-Factor references
+ *  turned into links (the rest of the sentence stays plain, translatable text). */
+function MetricsNoteText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(METRIC_LINK_RE).map((part, i) => {
+        const link = RESPONSIBLE_METRIC_LINKS.find((l) => l.token === part);
+        return link ? (
+          <a
+            key={i}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={link.title}
+          >
+            {part}
+          </a>
+        ) : (
+          <Fragment key={i}>{part}</Fragment>
+        );
+      })}
+    </>
+  );
+}
 
 export default function CvEditor({
   cv,
@@ -555,7 +619,7 @@ export default function CvEditor({
               {u.metricsPreset}
             </button>
             <span className="muted metric-preset-note">
-              {u.metricsPresetNote}
+              <MetricsNoteText text={u.metricsPresetNote} />
             </span>
           </div>
         </div>
@@ -661,7 +725,9 @@ export default function CvEditor({
           />
           <span title={u.peerReviewedOnlyTitle}>{u.peerReviewedOnly}</span>
         </label>
-        <p className="muted metric-preset-note">{u.peerReviewedOnlyNote}</p>
+        <p className="muted metric-preset-note field-note">
+          {u.peerReviewedOnlyNote}
+        </p>
       </fieldset>
 
       <p className="editor-hint">{t(locale, "editorHints")}</p>

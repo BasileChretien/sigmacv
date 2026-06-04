@@ -20,10 +20,17 @@ export function authorshipTableHtml(cv: CanonicalCv): string {
   // no author positions yet) — omit it rather than print a column of zeros.
   if (rows.every((r) => r.count === 0)) return "";
   const loc = cv.display.locale;
+  const total = rows[0]?.total ?? 0;
+  const numFmt = new Intl.NumberFormat(loc);
+  const pctFmt = new Intl.NumberFormat(loc, { style: "percent" });
+  // Each row shows the count plus its share of the peer-reviewed corpus, so a
+  // role reads as "12 (30%)" rather than a bare number with no denominator.
   const body = rows
     .map(
       (r) =>
-        `<tr><td>${escapeHtml(authorshipRoleLabel(loc, r.role))}</td><td class="cv-authorship-n">${r.count}</td></tr>`,
+        `<tr><td>${escapeHtml(authorshipRoleLabel(loc, r.role))}</td><td class="cv-authorship-n">${numFmt.format(
+          r.count,
+        )}<span class="cv-authorship-pct">${pctFmt.format(r.percent / 100)}</span></td></tr>`,
     )
     .join("");
   const s = renderStrings(loc);
@@ -32,9 +39,10 @@ export function authorshipTableHtml(cv: CanonicalCv): string {
   const note = rows.some((r) => r.role === "corresponding")
     ? `<p class="cv-authorship-note">${escapeHtml(s.authorshipCorrespondingNote)}</p>`
     : "";
-  return `<table class="cv-authorship"><caption>${escapeHtml(
-    s.authorshipCaption,
-  )}</caption><tbody>${body}</tbody></table>${note}`;
+  // Surface the denominator (n) so the percentages are interpretable — a 50%
+  // first-author share means something different over 4 papers than over 80.
+  const caption = `${escapeHtml(s.authorshipCaption)} · n=${numFmt.format(total)}`;
+  return `<table class="cv-authorship"><caption>${caption}</caption><tbody>${body}</tbody></table>${note}`;
 }
 
 /** A profile photo `<img>` (data URL), or "" if none. img-src data: is CSP-allowed. */
@@ -208,6 +216,7 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-authorship caption { text-align: left; font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #6b7280; margin-bottom: 0.3rem; }
   .cv-authorship td { padding: 0.14rem 1.1rem 0.14rem 0; color: #374151; }
   .cv-authorship .cv-authorship-n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #111827; padding-right: 0; }
+  .cv-authorship .cv-authorship-pct { margin-left: 0.4rem; font-weight: 400; color: #6b7280; }
   .cv-authorship-note { font-size: 0.62rem; color: var(--cv-faint); margin: 0.3rem 0 0; font-style: italic; }
   /* Charts sit in a guaranteed light card so the accent-coloured bars stay
      visible on EVERY template — including ones with a coloured header/sidebar
