@@ -990,6 +990,12 @@ input[type="radio"] {
   cursor: not-allowed;
   background: var(--surface);
 }
+/* Destructive icon button (e.g. remove section): red on hover. */
+.icon-btn.danger:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
 .mine-btn {
   height: 2rem;
   padding: 0 var(--space-3);

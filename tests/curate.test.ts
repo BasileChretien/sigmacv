@@ -11,6 +11,7 @@ import {
   moveSectionTo,
   orderedSections,
   removeItem,
+  removeSection,
   renameSection,
   savePreset,
   setItemIncluded,
@@ -444,5 +445,21 @@ describe("named presets", () => {
     expect(deletePreset(twice, id).presets).toHaveLength(0);
     expect(deletePreset(twice, "preset:nope")).toBe(twice); // unknown → no-op
     expect(applyPreset(cv, "preset:nope")).toBe(cv); // unknown → no-op
+  });
+});
+
+describe("removeSection", () => {
+  it("removes a section immutably; unknown id is a no-op", () => {
+    const cv = makeCv();
+    const target = cv.sections[0]!.id;
+    const before = cv.sections.length;
+
+    const next = removeSection(cv, target);
+    expect(next.sections.find((s) => s.id === target)).toBeUndefined();
+    expect(next.sections).toHaveLength(before - 1);
+    // input untouched
+    expect(cv.sections).toHaveLength(before);
+    // unknown id → same reference (no-op)
+    expect(removeSection(cv, "does-not-exist")).toBe(cv);
   });
 });

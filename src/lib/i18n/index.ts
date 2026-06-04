@@ -442,6 +442,8 @@ const EN = {
   addSection: "Add a section",
   expandSection: "Expand section",
   collapseSection: "Collapse section",
+  removeSection: "Remove section",
+  removeSectionTitle: "Remove from the CV. Re-addable types return to “Add a section”.",
   editorHints:
     "Tip: drag ⠿ to reorder · click a section's chevron to collapse it · Hide/Show and “Not mine” control what appears · hover an entry to see its source.",
   sortPublications: "Sort publications",
@@ -536,6 +538,8 @@ const ZH: Record<ChromeKey, string> = {
   addSection: "添加部分",
   expandSection: "展开该部分",
   collapseSection: "折叠该部分",
+  removeSection: "移除此栏目",
+  removeSectionTitle: "从简历中移除。可重新添加的类型会回到“添加栏目”。",
   editorHints:
     "提示：拖动 ⠿ 重新排序・点击部分的箭头可折叠・用「隐藏/显示」和「不是我的」控制显示内容・将鼠标悬停在条目上可查看来源。",
   sortPublications: "论文排序",
@@ -628,6 +632,8 @@ const ES: Record<ChromeKey, string> = {
   addSection: "Añadir una sección",
   expandSection: "Expandir la sección",
   collapseSection: "Contraer la sección",
+  removeSection: "Quitar sección",
+  removeSectionTitle: "Quitar del CV. Los tipos reañadibles vuelven a «Añadir sección».",
   editorHints:
     "Consejo: arrastra ⠿ para reordenar · haz clic en el chevrón de una sección para contraerla · «Ocultar/Mostrar» y «No es mío» controlan lo que aparece · pasa el cursor por una entrada para ver su fuente.",
   sortPublications: "Ordenar publicaciones",
@@ -720,6 +726,8 @@ const FR: Record<ChromeKey, string> = {
   addSection: "Ajouter une section",
   expandSection: "Développer la section",
   collapseSection: "Réduire la section",
+  removeSection: "Retirer la section",
+  removeSectionTitle: "Retirer du CV. Les types réajoutables reviennent dans « Ajouter une section ».",
   editorHints:
     "Astuce : glissez ⠿ pour réordonner · cliquez le chevron d’une section pour la réduire · « Masquer/Afficher » et « Pas de moi » contrôlent l’affichage · survolez une entrée pour voir sa source.",
   sortPublications: "Trier les publications",
@@ -812,6 +820,8 @@ const DE: Record<ChromeKey, string> = {
   addSection: "Abschnitt hinzufügen",
   expandSection: "Abschnitt ausklappen",
   collapseSection: "Abschnitt einklappen",
+  removeSection: "Abschnitt entfernen",
+  removeSectionTitle: "Aus dem Lebenslauf entfernen. Wieder hinzufügbare Typen erscheinen erneut unter „Abschnitt hinzufügen“.",
   editorHints:
     "Tipp: ⠿ ziehen zum Umsortieren · auf das Chevron eines Abschnitts klicken, um ihn einzuklappen · „Ausblenden/Anzeigen“ und „Nicht von mir“ steuern die Anzeige · mit dem Mauszeiger über einen Eintrag fahren, um die Quelle zu sehen.",
   sortPublications: "Publikationen sortieren",
@@ -904,6 +914,8 @@ const JA: Record<ChromeKey, string> = {
   addSection: "セクションを追加",
   expandSection: "セクションを展開",
   collapseSection: "セクションを折りたたむ",
+  removeSection: "セクションを削除",
+  removeSectionTitle: "CVから削除します。再追加可能な種類は「セクションを追加」に戻ります。",
   editorHints:
     "ヒント：⠿ をドラッグで並べ替え・セクションの▾で折りたたみ・「非表示/表示」と「自分のではない」で表示を調整・項目にカーソルを合わせると出典が表示されます。",
   sortPublications: "論文の並び順",
@@ -996,6 +1008,8 @@ const PT: Record<ChromeKey, string> = {
   addSection: "Adicionar uma seção",
   expandSection: "Expandir a seção",
   collapseSection: "Recolher a seção",
+  removeSection: "Remover seção",
+  removeSectionTitle: "Remover do CV. Tipos readicionáveis voltam para “Adicionar seção”.",
   editorHints:
     "Dica: arraste ⠿ para reordenar · clique no chevron de uma seção para recolhê-la · «Ocultar/Mostrar» e «Não é meu» controlam o que aparece · passe o cursor sobre uma entrada para ver a fonte.",
   sortPublications: "Ordenar publicações",
@@ -1088,6 +1102,8 @@ const IT: Record<ChromeKey, string> = {
   addSection: "Aggiungi una sezione",
   expandSection: "Espandi la sezione",
   collapseSection: "Comprimi la sezione",
+  removeSection: "Rimuovi sezione",
+  removeSectionTitle: "Rimuovi dal CV. I tipi riaggiungibili tornano in «Aggiungi sezione».",
   editorHints:
     "Suggerimento: trascina ⠿ per riordinare · fai clic sul chevron di una sezione per comprimerla · «Nascondi/Mostra» e «Non è mio» controllano cosa appare · passa il cursore su una voce per vederne la fonte.",
   sortPublications: "Ordina le pubblicazioni",
@@ -1180,6 +1196,8 @@ const KO: Record<ChromeKey, string> = {
   addSection: "섹션 추가",
   expandSection: "섹션 펼치기",
   collapseSection: "섹션 접기",
+  removeSection: "섹션 제거",
+  removeSectionTitle: "CV에서 제거합니다. 다시 추가할 수 있는 유형은 ‘섹션 추가’로 돌아갑니다.",
   editorHints:
     "팁: ⠿를 드래그해 순서 변경 · 섹션의 화살표를 클릭해 접기 · 「숨기기/표시」와 「내 것이 아님」으로 표시 내용 제어 · 항목에 마우스를 올리면 출처가 표시됩니다.",
   sortPublications: "논문 정렬",
@@ -1272,6 +1290,8 @@ const RU: Record<ChromeKey, string> = {
   addSection: "Добавить раздел",
   expandSection: "Развернуть раздел",
   collapseSection: "Свернуть раздел",
+  removeSection: "Удалить раздел",
+  removeSectionTitle: "Удалить из резюме. Повторно добавляемые типы вернутся в «Добавить раздел».",
   editorHints:
     "Совет: перетаскивайте ⠿ для изменения порядка · щёлкните стрелку раздела, чтобы свернуть · «Скрыть/Показать» и «Не моё» управляют отображением · наведите курсор на запись, чтобы увидеть источник.",
   sortPublications: "Сортировать публикации",

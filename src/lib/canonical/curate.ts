@@ -135,6 +135,19 @@ export function setSectionVisible(
   return mapSection(cv, sectionId, (s) => ({ ...s, visible }));
 }
 
+/**
+ * Remove a section from the CV entirely (distinct from `setSectionVisible`,
+ * which keeps it in the editor but hides it from the rendered CV). Re-addable
+ * types reappear in the "Add a section" menu (it lists addable types not
+ * currently present); a manual "other"/custom section is simply gone (re-add a
+ * blank one anytime). Its items are dropped — source-driven sections are
+ * rebuilt on the next re-sync, manual entries are not. No-op for unknown ids.
+ */
+export function removeSection(cv: CanonicalCv, sectionId: string): CanonicalCv {
+  const next = cv.sections.filter((s) => s.id !== sectionId);
+  return next.length === cv.sections.length ? cv : { ...cv, sections: next };
+}
+
 export function renameSection(
   cv: CanonicalCv,
   sectionId: string,

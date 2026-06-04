@@ -24,6 +24,7 @@ import {
   moveSectionTo,
   orderedSections,
   removeItem,
+  removeSection,
   renameSection,
   savePreset,
   setItemIncluded,
@@ -762,6 +763,15 @@ export default function CvEditor({
                 aria-label={u.moveSectionDown}
               >
                 ↓
+              </button>
+              <button
+                type="button"
+                className="icon-btn danger"
+                onClick={() => onChange(removeSection(cv, section.id))}
+                aria-label={t(locale, "removeSection")}
+                title={t(locale, "removeSectionTitle")}
+              >
+                ×
               </button>
             </div>
 
