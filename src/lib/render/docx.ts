@@ -17,53 +17,27 @@ import {
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "./authorship";
+import { renderCvDocxViaHtml } from "./docxHtml";
 import { splitSelf } from "./emphasize";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
+import { parsePhoto, photoBox } from "./image";
 import { metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
 import { docStyle, type DocStyle } from "./templateStyle";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
-/** Decode intrinsic pixel size from a PNG/JPEG buffer (so the photo isn't
- *  distorted). Returns null if it can't be read. */
-function imageSize(data: Buffer, type: "png" | "jpg"): { w: number; h: number } | null {
-  if (type === "png") {
-    if (data.length < 24) return null;
-    const w = data.readUInt32BE(16);
-    const h = data.readUInt32BE(20);
-    return w > 0 && h > 0 ? { w, h } : null;
-  }
-  // JPEG: walk the segment markers (each FF-prefixed) to the Start-Of-Frame,
-  // which carries the size. Stop if the stream desyncs (a non-FF marker byte).
-  let o = 2;
-  while (o + 9 < data.length && data[o] === 0xff) {
-    const marker = data[o + 1]!;
-    if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
-      const h = data.readUInt16BE(o + 5);
-      const w = data.readUInt16BE(o + 7);
-      return w > 0 && h > 0 ? { w, h } : null;
-    }
-    o += 2 + data.readUInt16BE(o + 2);
-  }
-  return null; // no SOF found ⇒ caller falls back to a square box
-}
-
 /** The profile photo as a docx paragraph, scaled to ~96px wide (aspect kept).
  *  Skipped for the plain (ATS) profile and for non-PNG/JPEG data URLs. */
 function photoParagraph(cv: CanonicalCv, style: DocStyle): Paragraph | null {
-  if (style.plain || !cv.owner.photo) return null;
-  const m = /^data:image\/(png|jpe?g);base64,([A-Za-z0-9+/=]+)$/.exec(cv.owner.photo);
-  if (!m) return null;
-  const type = m[1] === "png" ? "png" : "jpg";
-  const data = Buffer.from(m[2]!, "base64");
-  const size = imageSize(data, type);
-  const width = 96;
-  const height = size ? Math.round((width * size.h) / size.w) : 96;
+  if (style.plain) return null;
+  const photo = parsePhoto(cv.owner.photo);
+  if (!photo) return null;
+  const { width, height } = photoBox(photo, 96);
   return new Paragraph({
     alignment: style.centeredHeader ? AlignmentType.CENTER : undefined,
     children: [
-      new ImageRun({ type, data, transformation: { width, height } }),
+      new ImageRun({ type: photo.type, data: photo.data, transformation: { width, height } }),
     ],
   });
 }
@@ -335,7 +309,16 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
 export const docxRenderer: Renderer = {
   format: "docx",
   async render({ cv }: RenderInput): Promise<RenderResult> {
-    const buffer = await renderCvDocxBuffer(cv);
+    // Primary path: convert the template HTML so the .docx carries the
+    // template's colours/fonts/layout. Fall back to the hand-built document if
+    // the HTML conversion ever throws, so an export is always produced.
+    let buffer: Buffer;
+    try {
+      buffer = await renderCvDocxViaHtml(cv);
+    } catch {
+      /* v8 ignore next 2 -- fallback: hand-built DOCX when HTML conversion fails */
+      buffer = await renderCvDocxBuffer(cv);
+    }
     return {
       format: "docx",
       mimeType:
