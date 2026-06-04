@@ -25,6 +25,8 @@ export interface DocStyle {
   uppercaseHeadings: boolean;
   /** Monochrome, no accent anywhere (ATS — parser-safe). */
   plain: boolean;
+  /** Two-column layout with a coloured left sidebar (Sidebar template). */
+  twoColumn: boolean;
 }
 
 /** Map the CV's template + display choices to a portable style profile. */
@@ -41,6 +43,7 @@ export function docStyle(cv: CanonicalCv): DocStyle {
     centeredHeader: false,
     uppercaseHeadings: true,
     plain: false,
+    twoColumn: false,
   };
   switch (cv.display.template) {
     case "classic":
@@ -48,7 +51,7 @@ export function docStyle(cv: CanonicalCv): DocStyle {
     case "modern":
       return { ...base, accentName: true };
     case "sidebar":
-      return base;
+      return { ...base, twoColumn: true };
     case "ats":
       return {
         ...base,

@@ -1,14 +1,17 @@
 import {
   AlignmentType,
+  BorderStyle,
   Document,
   HeadingLevel,
   ImageRun,
   Packer,
   Paragraph,
+  ShadingType,
   Table,
   TableCell,
   TableRow,
   TextRun,
+  VerticalAlign,
   WidthType,
 } from "docx";
 import type { CanonicalCv } from "@/lib/canonical/schema";
@@ -110,36 +113,40 @@ function authorshipTable(cv: CanonicalCv): Table | null {
   );
 }
 
-/**
- * Build a .docx from the canonical object, styled to RESEMBLE the chosen
- * template: serif/sans font, an accent (or centred, or plain) name, accent/
- * plain/uppercase headings, the profile PHOTO (image), and the per-year +
- * authorship data as real tables. Citations are citeproc text; the user's name
- * is bolded on their own works via separate runs.
- */
-export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
-  const style = docStyle(cv);
-  const bodyFont = style.serif ? "Cambria" : "Calibri";
-  const headColor = style.plain ? undefined : style.accentHex;
-  const center = style.centeredHeader ? AlignmentType.CENTER : undefined;
-  const sections = prepareSections(cv, "text");
-  const s = renderStrings(cv.display.locale);
+type DocxStrings = ReturnType<typeof renderStrings>;
 
-  const children: (Paragraph | Table)[] = [];
+/** The masthead block (photo, name, headline, ORCID, contact, metrics). When
+ *  `onAccent` (the sidebar's coloured left column), text is white and always
+ *  left-aligned; otherwise it follows the template (centred name for Classic,
+ *  accent-coloured name for Modern). */
+function mastheadParagraphs(
+  cv: CanonicalCv,
+  style: DocStyle,
+  s: DocxStrings,
+  onAccent: boolean,
+): Paragraph[] {
+  const center = style.centeredHeader ? AlignmentType.CENTER : undefined;
+  const alignment = onAccent ? undefined : center;
+  const white = onAccent ? "FFFFFF" : undefined;
+  const out: Paragraph[] = [];
 
   const photo = photoParagraph(cv, style);
-  if (photo) children.push(photo);
+  if (photo) out.push(photo);
 
-  children.push(
+  out.push(
     new Paragraph({
       heading: HeadingLevel.TITLE,
-      alignment: center,
+      alignment,
       children: [
         new TextRun({
           text:
             (cv.owner.honorific ? `${cv.owner.honorific} ` : "") +
             (cv.owner.displayName || s.cvFallbackTitle),
-          color: style.accentName && !style.plain ? style.accentHex : undefined,
+          color: onAccent
+            ? "FFFFFF"
+            : style.accentName && !style.plain
+              ? style.accentHex
+              : undefined,
         }),
       ],
     }),
@@ -147,50 +154,62 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
 
   const head = textHeader(cv);
   if (head.headline) {
-    children.push(
-      new Paragraph({ alignment: center, children: [new TextRun(head.headline)] }),
-    );
+    out.push(new Paragraph({ alignment, children: [new TextRun({ text: head.headline, color: white })] }));
   }
   if (cv.owner.orcid) {
-    children.push(
+    out.push(
       new Paragraph({
-        alignment: center,
-        children: [new TextRun({ text: `ORCID: ${cv.owner.orcid}`, italics: true })],
+        alignment,
+        children: [new TextRun({ text: `ORCID: ${cv.owner.orcid}`, italics: true, color: white })],
       }),
     );
   }
   if (head.contact.length) {
-    children.push(
-      new Paragraph({ alignment: center, children: [new TextRun(head.contact.join("  ·  "))] }),
+    out.push(
+      new Paragraph({ alignment, children: [new TextRun({ text: head.contact.join("  ·  "), color: white })] }),
     );
   }
   const metrics = metricsLineText(cv);
   if (metrics) {
-    children.push(
+    out.push(
       new Paragraph({
-        alignment: center,
-        children: [new TextRun({ text: metrics, italics: true })],
+        alignment,
+        children: [new TextRun({ text: metrics, italics: true, color: white })],
         spacing: { after: 80 },
       }),
     );
   }
+  return out;
+}
 
-  // Charts → per-year table; the authorship summary → table.
+/** Everything below the masthead: the per-year + authorship tables, the
+ *  summary, then each section's heading and citeproc-rendered items (the
+ *  account holder's name bolded on their own works). */
+function bodyBlocks(
+  cv: CanonicalCv,
+  style: DocStyle,
+  s: DocxStrings,
+  sections: ReturnType<typeof prepareSections>,
+): (Paragraph | Table)[] {
+  const headColor = style.plain ? undefined : style.accentHex;
+  const center = style.centeredHeader ? AlignmentType.CENTER : undefined;
+  const out: (Paragraph | Table)[] = [];
+
   const years = yearTable(cv);
   if (years) {
-    children.push(years);
-    children.push(new Paragraph({ spacing: { after: 80 } }));
+    out.push(years);
+    out.push(new Paragraph({ spacing: { after: 80 } }));
   }
   const authorship = authorshipTable(cv);
   if (authorship) {
-    children.push(
+    out.push(
       new Paragraph({
         children: [new TextRun({ text: `${s.authorshipCaption}`, bold: true })],
         spacing: { before: 80 },
       }),
     );
-    children.push(authorship);
-    children.push(
+    out.push(authorship);
+    out.push(
       new Paragraph({
         children: [new TextRun({ text: s.authorshipCorrespondingNote, italics: true, size: 16 })],
         spacing: { after: 80 },
@@ -198,8 +217,9 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
     );
   }
 
+  const head = textHeader(cv);
   if (head.summary) {
-    children.push(
+    out.push(
       new Paragraph({
         alignment: center,
         children: [new TextRun(head.summary)],
@@ -210,7 +230,7 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
 
   for (const { section, items } of sections) {
     if (items.length === 0) continue;
-    children.push(
+    out.push(
       new Paragraph({
         heading: HeadingLevel.HEADING_2,
         children: [
@@ -232,9 +252,75 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
               (seg) => new TextRun({ text: seg.text, bold: seg.self }),
             )
           : [new TextRun(entry)];
-      children.push(new Paragraph({ children: runs, spacing: { after: 120 } }));
+      out.push(new Paragraph({ children: runs, spacing: { after: 120 } }));
     }
   }
+  return out;
+}
+
+/** Sidebar template: a borderless two-column table — a shaded accent left cell
+ *  (white masthead) and the content on the right. Mirrors the LaTeX/HTML
+ *  sidebar. (Word repaints the cell shading per page, so a very long CV may show
+ *  the band only beside the first page's portion — acceptable for a CV.) */
+function sidebarLayout(
+  cv: CanonicalCv,
+  style: DocStyle,
+  s: DocxStrings,
+  sections: ReturnType<typeof prepareSections>,
+): Table[] {
+  const left = mastheadParagraphs(cv, style, s, true); // always ≥1 (the name)
+  const right = bodyBlocks(cv, style, s, sections);
+  // A Word table cell must hold ≥1 block; bodyBlocks is non-empty for any real
+  // CV, so this fallback is purely defensive.
+  /* v8 ignore next -- defensive: bodyBlocks is non-empty for any real CV */
+  const rightChildren = right.length > 0 ? right : [new Paragraph("")];
+  const none = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+  const cellBorders = { top: none, bottom: none, left: none, right: none };
+  return [
+    new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: { ...cellBorders, insideHorizontal: none, insideVertical: none },
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              width: { size: 34, type: WidthType.PERCENTAGE },
+              shading: { type: ShadingType.CLEAR, color: "auto", fill: style.accentHex },
+              margins: { top: 220, bottom: 220, left: 220, right: 200 },
+              verticalAlign: VerticalAlign.TOP,
+              borders: cellBorders,
+              children: left,
+            }),
+            new TableCell({
+              width: { size: 66, type: WidthType.PERCENTAGE },
+              margins: { top: 220, bottom: 220, left: 320, right: 120 },
+              borders: cellBorders,
+              children: rightChildren,
+            }),
+          ],
+        }),
+      ],
+    }),
+  ];
+}
+
+/**
+ * Build a .docx from the canonical object, styled to RESEMBLE the chosen
+ * template: serif/sans font, an accent (or centred, or plain) name, accent/
+ * plain/uppercase headings, the profile PHOTO (image), and the per-year +
+ * authorship data as real tables. The Sidebar template lays out as a coloured
+ * two-column table. Citations are citeproc text; the user's name is bolded on
+ * their own works via separate runs.
+ */
+export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
+  const style = docStyle(cv);
+  const bodyFont = style.serif ? "Cambria" : "Calibri";
+  const sections = prepareSections(cv, "text");
+  const s = renderStrings(cv.display.locale);
+
+  const children: (Paragraph | Table)[] = style.twoColumn
+    ? sidebarLayout(cv, style, s, sections)
+    : [...mastheadParagraphs(cv, style, s, false), ...bodyBlocks(cv, style, s, sections)];
 
   const doc = new Document({
     styles: { default: { document: { run: { font: bodyFont } } } },

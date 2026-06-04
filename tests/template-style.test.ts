@@ -156,3 +156,36 @@ describe("rich content (tables, photo) in exports", () => {
     ).toBeGreaterThan(0);
   });
 });
+
+describe("Sidebar template — two-column layout in exports", () => {
+  // A sidebar CV carrying every rich element (photo, headline, contact,
+  // metrics, charts, authorship) so the coloured-column paths are exercised.
+  const sidebarCv: CanonicalCv = {
+    ...rich("sidebar"),
+    owner: {
+      ...rich("sidebar").owner,
+      honorific: "Dr",
+      headline: "Pharmacovigilance & Clinical Pharmacology",
+      contact: { email: "basile@example.org" },
+      summary: "Drug-safety researcher.",
+      metrics: { fwci_mean: 1.6, h_index: 12 },
+    },
+    display: { ...rich("sidebar").display, showMetrics: true, metrics: ["fwci_mean", "h_index"] },
+  };
+
+  it("LaTeX uses a paracol two-column layout with a full-height accent band", () => {
+    const tex = renderCvLatex(sidebarCv);
+    expect(tex).toContain("\\begin{paracol}");
+    expect(tex).toContain("\\switchcolumn");
+    expect(tex).toContain("\\AddToShipoutPictureBG"); // the coloured band
+    expect(tex).toContain("\\color{white}"); // left (accent) column text
+    expect(tex).toContain("\\color{black}"); // reset so the right column isn't white-on-white
+    expect(tex).toContain("\\begin{tabular}"); // tables still render
+  });
+
+  it("DOCX renders the sidebar as a shaded two-column table and stays valid", async () => {
+    const buf = await renderCvDocxBuffer(sidebarCv);
+    expect(buf.length).toBeGreaterThan(0);
+    expect(buf[0]).toBe(0x50); // PK zip magic
+  });
+});

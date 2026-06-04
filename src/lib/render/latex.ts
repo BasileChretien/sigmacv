@@ -218,10 +218,89 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
   return `${preamble}\n${photoNote}${header}\n${tables}\n${summaryPar}\n${blocks.join("\n\n")}\n\n\\end{document}\n`;
 }
 
+/** Sidebar template: a two-column layout with a coloured left panel (name,
+ *  contact, metrics in white) and the content on the right — built with paracol
+ *  so the accent column runs full page height. */
+function buildSidebarLatex(cv: CanonicalCv, style: DocStyle): string {
+  const sections = prepareSections(cv, "text");
+  const head = textHeader(cv);
+  const name = escapeLatex(
+    (cv.owner.honorific ? `${cv.owner.honorific} ` : "") +
+      (cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle),
+  );
+  const metricsRaw = metricsLineText(cv);
+
+  // Joined with line breaks BETWEEN items (no leading/trailing \\, which would
+  // trigger "no line here to end" in the paracol column).
+  const leftBits = [
+    `{\\Large\\bfseries ${name}}`,
+    head.headline ? `{\\large ${escapeLatex(head.headline)}}` : "",
+    cv.owner.orcid ? `{\\small ORCID: ${escapeLatex(cv.owner.orcid)}}` : "",
+    ...head.contact.map((c) => `{\\small ${escapeLatex(c)}}`),
+    metricsRaw ? `{\\small\\itshape ${escapeLatex(metricsRaw)}}` : "",
+  ]
+    .filter(Boolean)
+    .join(" \\\\[6pt]\n");
+
+  const summaryPar = head.summary ? `${escapeLatex(head.summary)}\\par\\medskip\n` : "";
+  const tables = [yearTableLatex(cv), authorshipTableLatex(cv)].filter(Boolean).join("\n");
+  const blocks = sectionItems(cv, sections)
+    .map(
+      ({ title, lines }) =>
+        `\\section{${title}}\n\\begin{cvlist}\n${lines
+          .map((l) => `  \\item ${l}`)
+          .join("\n")}\n\\end{cvlist}`,
+    )
+    .join("\n\n");
+  const photoNote = cv.owner.photo
+    ? "% To add your photo: save cv-photo.jpg beside this file, add \\usepackage{graphicx}\n% and \\includegraphics[width=\\linewidth]{cv-photo} at the top of the left column.\n"
+    : "";
+
+  const preamble = [
+    "\\documentclass[11pt,a4paper]{article}",
+    "\\usepackage[utf8]{inputenc}",
+    "\\usepackage[T1]{fontenc}",
+    "\\usepackage{lmodern}",
+    style.serif ? "" : "\\renewcommand{\\familydefault}{\\sfdefault}",
+    "\\usepackage{microtype}",
+    "\\usepackage[margin=0.8in]{geometry}",
+    "\\usepackage{xcolor}",
+    "\\usepackage{enumitem}",
+    "\\usepackage{titlesec}",
+    "\\usepackage[hidelinks]{hyperref}",
+    "\\usepackage{xurl}",
+    "\\usepackage{paracol}",
+    "\\usepackage{eso-pic}",
+    `\\definecolor{cvaccent}{HTML}{${accentHex(cv)}}`,
+    "\\hypersetup{colorlinks=true,urlcolor=cvaccent,linkcolor=cvaccent}",
+    "\\titleformat{\\section}{\\large\\bfseries\\color{cvaccent}}{}{0em}{}[{\\color{cvaccent}\\titlerule[1pt]}]",
+    "\\titlespacing*{\\section}{0pt}{1.1em}{0.5em}",
+    "\\newlist{cvlist}{itemize}{1}",
+    "\\setlist[cvlist]{leftmargin=1.1em,itemsep=4pt,topsep=2pt,label={}}",
+    "\\setlength{\\parindent}{0pt}",
+    "\\columnratio{0.34}",
+    "\\setlength{\\columnsep}{1.6em}",
+    // Paint a full-height accent band on the left, exactly as wide as the
+    // 0.8in margin + column-0 width (+0.5em inner padding), evaluated at shipout
+    // so \\textwidth/\\columnsep are final. Deterministic — it can never overrun
+    // column 1 (which starts a full \\columnsep further right).
+    "\\AddToShipoutPictureBG{\\AtPageLowerLeft{\\color{cvaccent}\\rule{\\the\\dimexpr 0.8in+0.34\\textwidth-0.34\\columnsep+0.5em\\relax}{\\paperheight}}}",
+    "\\pagestyle{empty}",
+    "\\begin{document}",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  // The left (accent) column prints white on the coloured panel; \switchcolumn
+  // resets to black so the right column's body text is NOT white-on-white.
+  return `${preamble}\n${photoNote}\\begin{paracol}{2}\n\\color{white}\\raggedright\n${leftBits}\n\\switchcolumn\n\\color{black}\n${summaryPar}${tables}\n\n${blocks}\n\\end{paracol}\n\\end{document}\n`;
+}
+
 /** Render a .tex that follows the chosen template (accent, font, heading + name
  *  treatment). A single self-contained design that compiles on a bare TeX Live. */
 export function renderCvLatex(cv: CanonicalCv): string {
-  return buildStyled(cv, docStyle(cv));
+  const style = docStyle(cv);
+  return style.twoColumn ? buildSidebarLatex(cv, style) : buildStyled(cv, style);
 }
 
 export const latexRenderer: Renderer = {
