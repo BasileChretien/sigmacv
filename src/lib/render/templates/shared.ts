@@ -137,6 +137,11 @@ ${body}
 export function commonCss(theme: TemplateTheme): string {
   return `
   :root {
+    /* A CV is a light document. Declare it light-only so a browser's auto
+       dark-mode never inverts the page (white→dark) in the preview iframe or
+       on screen — PDF export is already light. Explicit dark fills (e.g. the
+       Slate header band, Aurora gradient) are authored colours, unaffected. */
+    color-scheme: light;
     --cv-accent: ${theme.accentColor};
     --cv-accent-soft: ${theme.accentSoft};
     --cv-ink: #1a1d23;

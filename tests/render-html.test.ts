@@ -146,16 +146,26 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
       { photo: "data:image/png;base64,iVBORw0KGgo=" },
     );
     const html = renderCvHtml(cv);
-    // Decoration is stripped via CSS regardless of toggles.
-    expect(html).toContain(".cv-photo, .cv-charts, .cv-badge { display: none !important; }");
-    // Standard system sans-serif, single column (no two-column markup).
+    // Decoration is stripped via CSS regardless of toggles (photo, charts and
+    // badges are hidden with display:none !important — grouped in any order).
+    expect(html).toMatch(
+      /\.cv-photo,[^{}]*\.cv-charts,[^{}]*\.cv-badge[^{}]*\{[^{}]*display:\s*none\s*!important/,
+    );
+    // Standard system sans-serif + forced-black text, single column (no two-column markup).
     expect(html).toContain("Arial, Helvetica");
+    expect(html).toContain("color: #000");
     expect(html).not.toContain("cv-sidebar-layout");
   });
 
   it("injects the chosen accent colour into the document CSS", () => {
     const html = renderCvHtml(updateDisplay(makeCv(), { accentColor: "#0f766e" }));
     expect(html).toContain("--cv-accent: #0f766e");
+  });
+
+  it("declares the CV light-only so a browser never auto-dark-inverts it", () => {
+    // A CV is a light document; without this, force/auto dark-mode inverts the
+    // white page (and the preview iframe) to a muddy dark version.
+    expect(renderCvHtml(makeCv())).toContain("color-scheme: light");
   });
 
   it("applies compact density (smaller base font)", () => {
