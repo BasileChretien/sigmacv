@@ -20,7 +20,6 @@ const nextConfig: NextConfig = {
     "@prisma/adapter-pg",
     "pg",
     "nodemailer",
-    "@turbodocx/html-to-docx",
   ],
 
   // citeproc reads CSL style + locale XML from disk at runtime. Make sure the

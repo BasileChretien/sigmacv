@@ -179,7 +179,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Creates a shareable public web page of this CV at a public link. It re-syncs as you update. Off by default; un-tick to take it offline.",
     exportFormatTitle:
-      "PDF matches your template exactly. Word and LaTeX follow it closely but may differ. Markdown is plain text (no styling).",
+      "PDF matches your template exactly. LaTeX follows it closely (editable source). Word and Markdown are plain, editable text — no template styling.",
     exportPdf: "PDF — print-ready CV (.pdf)",
     exportDocx: "Word — editable CV (.docx)",
     exportLatexModern: "LaTeX — editable source (.tex)",
@@ -277,7 +277,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "在公开链接处创建此简历的可分享公开网页。它会随你的更新而重新同步。默认关闭；取消勾选可将其下线。",
     exportFormatTitle:
-      "PDF 与所选模板完全一致。Word 和 LaTeX 接近模板，但可能略有差异。Markdown 为纯文本（无样式）。",
+      "PDF 完全匹配您的模板。LaTeX 接近匹配（可编辑源文件）。Word 和 Markdown 为纯文本，可编辑，不含模板样式。",
     exportPdf: "PDF — 可打印简历 (.pdf)",
     exportDocx: "Word — 可编辑简历 (.docx)",
     exportLatexModern: "LaTeX — 可编辑源文件 (.tex)",
@@ -376,7 +376,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Crea una página web pública de este CV en un enlace público que se puede compartir. Se resincroniza a medida que lo actualizas. Desactivada por defecto; desmárcala para retirarla.",
     exportFormatTitle:
-      "El PDF coincide exactamente con tu plantilla. Word y LaTeX la siguen de cerca, pero pueden variar. Markdown es texto sin formato.",
+      "El PDF coincide exactamente con tu plantilla. LaTeX la sigue de cerca (código editable). Word y Markdown son texto sencillo y editable, sin estilo de plantilla.",
     exportPdf: "PDF — CV listo para imprimir (.pdf)",
     exportDocx: "Word — CV editable (.docx)",
     exportLatexModern: "LaTeX — código editable (.tex)",
@@ -475,7 +475,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Crée une page web publique partageable de ce CV via un lien public. Elle se resynchronise au fur et à mesure de vos mises à jour. Désactivée par défaut ; décochez pour la mettre hors ligne.",
     exportFormatTitle:
-      "Le PDF correspond exactement à votre modèle. Word et LaTeX le suivent de près mais peuvent différer. Markdown est du texte brut (sans mise en forme).",
+      "Le PDF correspond exactement à votre modèle. LaTeX le suit fidèlement (source modifiable). Word et Markdown sont du texte brut et modifiable, sans style de modèle.",
     exportPdf: "PDF — CV prêt à imprimer (.pdf)",
     exportDocx: "Word — CV modifiable (.docx)",
     exportLatexModern: "LaTeX — source modifiable (.tex)",
@@ -574,7 +574,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Erstellt eine teilbare öffentliche Webseite dieses Lebenslaufs unter einem öffentlichen Link. Sie wird bei Aktualisierungen neu synchronisiert. Standardmäßig aus; Häkchen entfernen, um sie offline zu nehmen.",
     exportFormatTitle:
-      "Das PDF entspricht exakt Ihrer Vorlage. Word und LaTeX orientieren sich daran, können aber abweichen. Markdown ist reiner Text.",
+      "Das PDF entspricht exakt Ihrer Vorlage. LaTeX folgt ihr eng (bearbeitbarer Quelltext). Word und Markdown sind einfacher, bearbeitbarer Text ohne Vorlagenstil.",
     exportPdf: "PDF — druckfertiger Lebenslauf (.pdf)",
     exportDocx: "Word — bearbeitbarer Lebenslauf (.docx)",
     exportLatexModern: "LaTeX — bearbeitbarer Quelltext (.tex)",
@@ -673,7 +673,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "この CV を共有可能な公開ウェブページとして公開リンクに作成します。更新すると再同期されます。既定ではオフ。チェックを外すとオフラインにできます。",
     exportFormatTitle:
-      "PDF はテンプレートと完全に一致します。Word と LaTeX は概ね従いますが、多少異なる場合があります。Markdown はプレーンテキストです。",
+      "PDF はテンプレートと完全に一致します。LaTeX はそれに近い形（編集可能なソース）です。Word と Markdown はテンプレートの装飾がない、編集可能なプレーンテキストです。",
     exportPdf: "PDF — 印刷用 CV (.pdf)",
     exportDocx: "Word — 編集可能な CV (.docx)",
     exportLatexModern: "LaTeX — 編集可能なソース (.tex)",
@@ -772,7 +772,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Cria uma página web pública e compartilhável deste CV em um link público. Ela é ressincronizada conforme você atualiza. Desativada por padrão; desmarque para tirá-la do ar.",
     exportFormatTitle:
-      "O PDF corresponde exatamente ao seu modelo. Word e LaTeX o seguem de perto, mas podem variar. Markdown é texto simples.",
+      "O PDF corresponde exatamente ao seu modelo. O LaTeX o segue de perto (código editável). Word e Markdown são texto simples e editável, sem estilo de modelo.",
     exportPdf: "PDF — currículo pronto para impressão (.pdf)",
     exportDocx: "Word — currículo editável (.docx)",
     exportLatexModern: "LaTeX — código editável (.tex)",
@@ -871,7 +871,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Crea una pagina web pubblica condivisibile di questo CV tramite un link pubblico. Si risincronizza man mano che apporti aggiornamenti. Disattivata per impostazione predefinita; deseleziona per metterla offline.",
     exportFormatTitle:
-      "Il PDF corrisponde esattamente al tuo modello. Word e LaTeX lo seguono da vicino ma possono differire. Markdown è testo semplice.",
+      "Il PDF corrisponde esattamente al tuo modello. LaTeX lo segue fedelmente (sorgente modificabile). Word e Markdown sono testo semplice e modificabile, senza stile del modello.",
     exportPdf: "PDF — CV pronto per la stampa (.pdf)",
     exportDocx: "Word — CV modificabile (.docx)",
     exportLatexModern: "LaTeX — sorgente modificabile (.tex)",
@@ -970,7 +970,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "이 CV의 공유 가능한 공개 웹 페이지를 공개 링크로 생성합니다. 업데이트할 때마다 다시 동기화됩니다. 기본값은 꺼짐이며, 체크를 해제하면 오프라인으로 전환됩니다.",
     exportFormatTitle:
-      "PDF는 템플릿과 정확히 일치합니다. Word와 LaTeX는 비슷하게 따르지만 다를 수 있습니다. Markdown은 일반 텍스트입니다.",
+      "PDF는 템플릿과 정확히 일치합니다. LaTeX는 이에 가깝습니다(편집 가능한 소스). Word와 Markdown은 템플릿 스타일이 없는 편집 가능한 일반 텍스트입니다.",
     exportPdf: "PDF — 인쇄용 이력서 (.pdf)",
     exportDocx: "Word — 편집 가능한 이력서 (.docx)",
     exportLatexModern: "LaTeX — 편집 가능한 소스 (.tex)",
@@ -1069,7 +1069,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publishTitle:
       "Создаёт публичную веб-страницу этого CV, доступную по публичной ссылке. Она пересинхронизируется по мере ваших изменений. По умолчанию отключено; снимите галочку, чтобы перевести её в офлайн.",
     exportFormatTitle:
-      "PDF точно соответствует вашему шаблону. Word и LaTeX близки к нему, но могут отличаться. Markdown — обычный текст.",
+      "PDF в точности соответствует вашему шаблону. LaTeX близко следует ему (редактируемый исходник). Word и Markdown — простой редактируемый текст без стилей шаблона.",
     exportPdf: "PDF — резюме для печати (.pdf)",
     exportDocx: "Word — редактируемое резюме (.docx)",
     exportLatexModern: "LaTeX — редактируемый исходник (.tex)",

@@ -19,7 +19,7 @@ const works = worksFixture as unknown as OpenAlexWork[];
 const base = buildCanonicalCv({ id: "ts", resolved, works, now: "2026-06-02T00:00:00.000Z" });
 const withTemplate = (t: TemplateKey): CanonicalCv => updateDisplay(base, { template: t });
 
-// 1×1 transparent PNG (valid image data for the docx ImageRun path).
+// 1×1 transparent PNG — a valid owner.photo (the LaTeX export leaves a photo note).
 const PNG_1x1 =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 const rich = (t: TemplateKey): CanonicalCv => {
@@ -48,6 +48,12 @@ describe("docStyle", () => {
     expect(docStyle(withTemplate("modern"))).toMatchObject({ accentName: true, centeredHeader: false });
     expect(docStyle(withTemplate("ats"))).toMatchObject({ plain: true, accentHeadings: false, serif: false });
     expect(docStyle(withTemplate("sidebar"))).toMatchObject({ accentHeadings: true, plain: false });
+    expect(docStyle(withTemplate("rirekisho"))).toMatchObject({ accentHeadings: false, uppercaseHeadings: false });
+    // An unknown template falls back to the base profile.
+    expect(docStyle({ ...base, display: { ...base.display, template: "x" as TemplateKey } })).toMatchObject({
+      accentHeadings: true,
+      twoColumn: false,
+    });
   });
 
   it("follows the chosen font + accent, with a safe accent fallback", () => {
@@ -98,39 +104,29 @@ describe("rich content (tables, photo) in exports", () => {
   it("LaTeX leaves a ready-to-use photo include when a photo is set", () => {
     expect(renderCvLatex(rich("modern"))).toContain("cv-photo");
   });
-  it("DOCX embeds the photo + tables and stays a valid .docx", async () => {
-    const buf = await renderCvDocxBuffer(rich("modern"));
-    expect(buf.length).toBeGreaterThan(0);
-    expect(buf[0]).toBe(0x50);
-  });
-  it("ATS DOCX omits the photo (parser-safe) but still builds", async () => {
-    const buf = await renderCvDocxBuffer(rich("ats"));
-    expect(buf.length).toBeGreaterThan(0);
-  });
-
-  const withPhoto = (photo: string): CanonicalCv => {
-    const cv = updateDisplay(base, { template: "modern" });
-    return { ...cv, owner: { ...cv.owner, photo } };
+  // The DOCX is a PLAIN, template-agnostic document (no accent / photo /
+  // sidebar) — the PDF is the template-faithful export.
+  const fullCv: CanonicalCv = {
+    ...rich("modern"),
+    owner: {
+      ...rich("modern").owner,
+      honorific: "Dr",
+      headline: "Pharmacovigilance & Clinical Pharmacology",
+      contact: { email: "basile@example.org" },
+      summary: "Drug-safety researcher.",
+      metrics: { fwci_mean: 1.6, h_index: 12 },
+    },
+    display: { ...rich("modern").display, showMetrics: true, metrics: ["fwci_mean", "h_index"] },
   };
 
-  it("DOCX reads JPEG photo dimensions and stays valid", async () => {
-    // SOI + APP0 segment + SOF0 (16×16): exercises the segment-walk + SOF read.
-    const jpeg = Buffer.from([
-      0xff, 0xd8, // SOI
-      0xff, 0xe0, 0x00, 0x06, 0x4a, 0x46, 0x49, 0x46, // APP0 (skipped)
-      0xff, 0xc0, 0x00, 0x11, 0x08, 0x00, 0x10, 0x00, 0x10, 0x03, 0x01, 0x22,
-      0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01, // SOF0 → 16×16
-      0xff, 0xd9, // EOI
-    ]).toString("base64");
-    const buf = await renderCvDocxBuffer(withPhoto(`data:image/jpeg;base64,${jpeg}`));
-    expect(buf.length).toBeGreaterThan(0);
-  });
-
-  it("DOCX skips a non-PNG/JPEG (e.g. GIF) photo gracefully", async () => {
-    const buf = await renderCvDocxBuffer(
-      withPhoto("data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="),
-    );
-    expect(buf.length).toBeGreaterThan(0);
+  it("DOCX is a valid plain document carrying the header, tables and sections", async () => {
+    const buf = await renderCvDocxBuffer(fullCv);
+    expect(buf[0]).toBe(0x50); // PK zip magic
+    const xml = await (await JSZip.loadAsync(buf)).file("word/document.xml")!.async("string");
+    expect(xml).toContain("ORCID:"); // a header field made it in
+    expect(xml).toMatch(/\(\d+%\)/); // authorship "N (P%)"
+    expect(xml).not.toMatch(/<w:tr\s*\/>|<w:tr>\s*<\/w:tr>/); // no empty rows (would corrupt Word)
+    expect(xml).not.toMatch(/w:fill="[0-9A-Fa-f]{6}"/); // plain: no shaded / accent cells
   });
 
   it("DOCX handles an empty name, an all-zero authorship table, and empty sections", async () => {
@@ -143,18 +139,19 @@ describe("rich content (tables, photo) in exports", () => {
     expect(buf.length).toBeGreaterThan(0);
   });
 
-  it("DOCX falls back to a square box when dimensions can't be read", async () => {
-    // Too-short PNG and a JPEG with no SOF marker → size unknown, still builds.
-    const shortPng = Buffer.from([0x89, 0x50, 0x4e, 0x47]).toString("base64");
-    const noSof = Buffer.from([
-      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x0c, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xd9,
-    ]).toString("base64");
-    expect(
-      (await renderCvDocxBuffer(withPhoto(`data:image/png;base64,${shortPng}`))).length,
-    ).toBeGreaterThan(0);
-    expect(
-      (await renderCvDocxBuffer(withPhoto(`data:image/jpeg;base64,${noSof}`))).length,
-    ).toBeGreaterThan(0);
+  it("DOCX includes the per-year table only with ≥2 data points", async () => {
+    const withCounts = (counts: { year: number; works: number; citations: number }[]): CanonicalCv => ({
+      ...updateDisplay(base, { showCharts: true }),
+      owner: { ...base.owner, countsByYear: counts },
+    });
+    const two = withCounts([
+      { year: 2023, works: 5, citations: 40 },
+      { year: 2024, works: 7, citations: 80 },
+    ]);
+    const xml = await (await JSZip.loadAsync(await renderCvDocxBuffer(two))).file("word/document.xml")!.async("string");
+    expect(xml).toContain("2024"); // per-year table rendered
+    // A single data point → table omitted, but the document still builds.
+    expect((await renderCvDocxBuffer(withCounts([{ year: 2024, works: 7, citations: 80 }])))[0]).toBe(0x50);
   });
 });
 
@@ -182,12 +179,6 @@ describe("Sidebar template — two-column layout in exports", () => {
     expect(tex).toContain("\\color{white}"); // left (accent) column text
     expect(tex).toContain("\\color{black}"); // reset so the right column isn't white-on-white
     expect(tex).toContain("\\begin{tabular}"); // tables still render
-  });
-
-  it("DOCX renders the sidebar as a shaded two-column table and stays valid", async () => {
-    const buf = await renderCvDocxBuffer(sidebarCv);
-    expect(buf.length).toBeGreaterThan(0);
-    expect(buf[0]).toBe(0x50); // PK zip magic
   });
 });
 
