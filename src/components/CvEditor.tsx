@@ -870,6 +870,18 @@ export default function CvEditor({
         <p className="muted metric-preset-note field-note">
           {u.peerReviewedOnlyNote}
         </p>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.countLetters}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { countLetters: e.target.checked }))
+            }
+          />
+          <span title={u.countLettersTitle}>{u.countLetters}</span>
+        </label>
+        <p className="muted metric-preset-note field-note">{u.countLettersNote}</p>
       </fieldset>
 
       <p className="editor-hint">{t(locale, "editorHints")}</p>

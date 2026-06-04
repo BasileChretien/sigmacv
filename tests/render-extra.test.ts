@@ -280,6 +280,7 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
           meta: { year: o.year, citedByCount: o.cites },
         }) as unknown as CanonicalCv["sections"][number]["items"][number];
       const cv = {
+        display: { countLetters: false },
         sections: [
           {
             type: "publications",
@@ -303,6 +304,18 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(by[2022]).toBeUndefined();
       expect(by[2023]).toBeUndefined();
       expect(by[2019]).toBeUndefined(); // preprint section excluded
+    });
+
+    it("counts letters in the per-year charts only when countLetters is on", () => {
+      const item = (year: number, peerReviewed: boolean) =>
+        ({ csl: {}, included: true, notMine: false, meta: { year, peerReviewed, citedByCount: 0 } });
+      const cv = (countLetters: boolean) =>
+        ({
+          display: { countLetters },
+          sections: [{ type: "publications", items: [item(2018, true), item(2019, false)] }],
+        }) as unknown as CanonicalCv;
+      expect(curatedCountsByYear(cv(false)).map((c) => c.year)).toEqual([2018]); // letter year off
+      expect(curatedCountsByYear(cv(true)).map((c) => c.year).sort()).toEqual([2018, 2019]); // on
     });
 
     it("a wrongly-attributed old work marked 'not mine' leaves the charts (1993 case)", () => {

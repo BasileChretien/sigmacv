@@ -411,6 +411,15 @@ export const DisplayChoicesSchema = z.object({
    */
   peerReviewedOnly: z.boolean().default(false),
   /**
+   * Count letters & other non-peer-reviewed publications in the FIGURES — the
+   * per-year charts, the field-normalized metrics (FWCI, top-10%) and the
+   * authorship table. Default off: those figures are peer-reviewed-only, kept
+   * consistent with the "Authorship (peer-reviewed)" table. Preprints are always
+   * excluded from the figures regardless. (This is about the COUNTS, not which
+   * entries are listed — that's `peerReviewedOnly`.)
+   */
+  countLetters: z.boolean().default(false),
+  /**
    * How publication/preprint entries are ordered. "custom" keeps the built/
    * dragged order (newest-first by default); other values re-sort at render.
    */

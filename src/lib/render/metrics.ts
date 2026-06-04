@@ -1,9 +1,10 @@
-import { isHidden, type CanonicalCv, type OwnerMetrics } from "@/lib/canonical/schema";
+import type { CanonicalCv, OwnerMetrics } from "@/lib/canonical/schema";
 import {
   metricContext,
   metricCoverageNote,
   metricLabel,
 } from "@/lib/i18n/render";
+import { countableWorks } from "./countable";
 
 /**
  * Metrics adjusted for curation. The FIELD-NORMALIZED measures we DERIVE from
@@ -19,10 +20,7 @@ import {
  */
 export function curatedMetrics(cv: CanonicalCv): OwnerMetrics {
   const base: OwnerMetrics = cv.owner.metrics ?? {};
-  const works = cv.sections
-    .filter((s) => s.type !== "preprints") // preprints don't count toward the metrics
-    .flatMap((s) => s.items)
-    .filter((it) => Boolean(it.csl) && !isHidden(it));
+  const works = countableWorks(cv);
   const fwcis = works
     .map((w) => w.meta.fwci)
     .filter((x): x is number => typeof x === "number");

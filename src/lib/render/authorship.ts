@@ -5,29 +5,18 @@ import {
   type CanonicalCv,
   type CvItem,
 } from "@/lib/canonical/schema";
+import { countableWorks } from "./countable";
 
 /** One row of the authorship-summary table. */
 export interface AuthorshipCount {
   role: AuthorshipRole;
   label: string;
   count: number;
-  /** Peer-reviewed own publications the percentage is taken over (same for
-   *  every row — it's the denominator, surfaced so callers needn't recompute). */
+  /** Own publications the percentage is taken over (same for every row — it's
+   *  the denominator, surfaced so callers needn't recompute). */
   total: number;
   /** count / total as a whole percent (0 when total is 0). */
   percent: number;
-}
-
-/** A citation entry that counts toward authorship: the user's own, shown, and
- *  PEER-REVIEWED (preprints / non-peer-reviewed are excluded by definition). */
-function counts(item: CvItem): boolean {
-  return (
-    Boolean(item.csl) &&
-    item.authoredBySelf &&
-    item.included &&
-    !item.notMine &&
-    item.meta.peerReviewed !== false
-  );
 }
 
 /**
@@ -65,16 +54,19 @@ const PREDICATES: Record<AuthorshipRole, (item: CvItem) => boolean> = {
 };
 
 /**
- * Count peer-reviewed publications by the requested authorship roles. Roles the
- * caller didn't request are omitted; invalid role strings are ignored. The six
- * POSITION roles are mutually exclusive (see positionRole) so their shares sum
- * to 100% when all are shown; "corresponding" is orthogonal and may overlap.
+ * Count the account holder's own publications by the requested authorship roles.
+ * The counted set follows the figures' rule (see countableWorks): kept works,
+ * preprints excluded, letters/non-peer-reviewed included only when the
+ * `countLetters` option is on. Roles the caller didn't request are omitted;
+ * invalid role strings are ignored. The six POSITION roles are mutually
+ * exclusive (see positionRole) so their shares sum to 100% when all are shown;
+ * "corresponding" is orthogonal and may overlap.
  */
 export function authorshipCounts(
   cv: CanonicalCv,
   roles: readonly string[],
 ): AuthorshipCount[] {
-  const items = cv.sections.flatMap((s) => s.items).filter(counts);
+  const items = countableWorks(cv).filter((it) => it.authoredBySelf);
   const total = items.length;
   return roles
     .filter((r): r is AuthorshipRole =>

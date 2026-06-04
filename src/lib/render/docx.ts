@@ -132,7 +132,12 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
     const total = authorRows[0]!.total; // guard above guarantees a row
     children.push(
       new Paragraph({
-        children: [new TextRun({ text: `${s.authorshipCaption} · n=${total}`, bold: true })],
+        children: [
+          new TextRun({
+            text: `${cv.display.countLetters ? s.authorshipCaptionAll : s.authorshipCaption} · n=${total}`,
+            bold: true,
+          }),
+        ],
         spacing: { before: 80 },
       }),
     );

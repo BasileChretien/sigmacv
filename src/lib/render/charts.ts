@@ -1,5 +1,6 @@
-import { isHidden, type CanonicalCv } from "@/lib/canonical/schema";
+import type { CanonicalCv } from "@/lib/canonical/schema";
 import { renderStrings } from "@/lib/i18n/render";
+import { countableWorks } from "./countable";
 import { escapeHtml } from "./escape";
 
 /**
@@ -70,17 +71,13 @@ export function curatedCountsByYear(
   cv: CanonicalCv,
 ): { year: number; works: number; citations: number }[] {
   const byYear = new Map<number, { works: number; citations: number }>();
-  for (const section of cv.sections) {
-    if (section.type === "preprints") continue; // preprints don't count toward the figures
-    for (const item of section.items) {
-      if (!item.csl || isHidden(item)) continue; // real works only, minus removed
-      const year = item.meta.year;
-      if (typeof year !== "number" || !Number.isFinite(year)) continue;
-      const e = byYear.get(year) ?? { works: 0, citations: 0 };
-      e.works += 1;
-      e.citations += item.meta.citedByCount ?? 0;
-      byYear.set(year, e);
-    }
+  for (const item of countableWorks(cv)) {
+    const year = item.meta.year;
+    if (typeof year !== "number" || !Number.isFinite(year)) continue;
+    const e = byYear.get(year) ?? { works: 0, citations: 0 };
+    e.works += 1;
+    e.citations += item.meta.citedByCount ?? 0;
+    byYear.set(year, e);
   }
   return [...byYear.entries()].map(([year, v]) => ({ year, works: v.works, citations: v.citations }));
 }

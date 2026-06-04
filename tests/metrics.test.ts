@@ -206,6 +206,21 @@ describe("curatedMetrics (field-normalized measures follow curation)", () => {
     expect(m.fwci_n).toBe(3);
   });
 
+  it("counts letters in the FWCI recompute only when countLetters is on", () => {
+    const mk = (fwci: number, peerReviewed: boolean) =>
+      ({ csl: {}, included: true, notMine: false, meta: { fwci, peerReviewed, citedByCount: 1 } });
+    const cv = (countLetters: boolean) =>
+      ({
+        display: { countLetters },
+        owner: { metrics: {} },
+        sections: [{ type: "publications", items: [mk(2, true), mk(1, true), mk(8, false)] }],
+      }) as unknown as CanonicalCv;
+    expect(curatedMetrics(cv(false)).fwci_mean).toBeCloseTo((2 + 1) / 2, 5); // letter excluded
+    expect(curatedMetrics(cv(false)).fwci_n).toBe(2);
+    expect(curatedMetrics(cv(true)).fwci_mean).toBeCloseTo((2 + 1 + 8) / 3, 5); // letter included
+    expect(curatedMetrics(cv(true)).fwci_n).toBe(3);
+  });
+
   it("drops a 'not mine' work from the FWCI mean / N / top-10%", () => {
     const cv = build3();
     const curated: CanonicalCv = {

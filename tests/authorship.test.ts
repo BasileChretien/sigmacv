@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { updateDisplay } from "@/lib/canonical/curate";
+import type { CanonicalCv } from "@/lib/canonical/schema";
 import { authorshipCounts } from "@/lib/render/authorship";
 import { authorshipTableHtml } from "@/lib/render/templates/shared";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
@@ -143,6 +144,28 @@ describe("authorshipCounts", () => {
   it("ignores unknown role strings", () => {
     expect(authorshipCounts(cv, ["bogus"])).toEqual([]);
   });
+
+  it("counts letters only when countLetters is on", () => {
+    const item = (pos: number, n: number, peerReviewed: boolean) => ({
+      csl: {},
+      authoredBySelf: true,
+      included: true,
+      notMine: false,
+      selfNameVariants: [],
+      meta: { authorPosition: pos, authorCount: n, peerReviewed },
+    });
+    const make = (countLetters: boolean) =>
+      ({
+        display: { countLetters },
+        sections: [
+          { type: "publications", items: [item(1, 3, true), item(1, 2, false)] }, // 2nd is a letter
+        ],
+      }) as unknown as CanonicalCv;
+    const off = authorshipCounts(make(false), ["first"])[0]!;
+    expect([off.count, off.total]).toEqual([1, 1]); // letter excluded
+    const on = authorshipCounts(make(true), ["first"])[0]!;
+    expect([on.count, on.total]).toEqual([2, 2]); // letter included
+  });
 });
 
 describe("authorshipTableHtml", () => {
@@ -175,5 +198,15 @@ describe("authorshipTableHtml", () => {
     expect(html).toContain("cv-authorship-pct");
     expect(html).toContain("50%");
     expect(html).toContain("n=2"); // denominator surfaced in the caption
+  });
+  it("drops the '(peer-reviewed)' caption qualifier when letters are counted", () => {
+    const cv = updateDisplay(base, {
+      showAuthorshipTable: true,
+      authorshipRoles: ["first", "last"],
+      countLetters: true,
+    });
+    const html = authorshipTableHtml(cv);
+    expect(html).toContain("Authorship"); // base caption kept
+    expect(html).not.toContain("peer-reviewed"); // qualifier dropped (letters counted)
   });
 });

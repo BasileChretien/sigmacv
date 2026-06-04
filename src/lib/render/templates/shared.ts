@@ -41,7 +41,8 @@ export function authorshipTableHtml(cv: CanonicalCv): string {
     : "";
   // Surface the denominator (n) so the percentages are interpretable — a 50%
   // first-author share means something different over 4 papers than over 80.
-  const caption = `${escapeHtml(s.authorshipCaption)} · n=${numFmt.format(total)}`;
+  const captionText = cv.display.countLetters ? s.authorshipCaptionAll : s.authorshipCaption;
+  const caption = `${escapeHtml(captionText)} · n=${numFmt.format(total)}`;
   return `<table class="cv-authorship"><caption>${caption}</caption><tbody>${body}</tbody></table>${note}`;
 }
 

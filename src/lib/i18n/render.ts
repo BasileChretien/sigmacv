@@ -12,6 +12,9 @@ export interface RenderStrings {
   chartPublicationsPerYear: string;
   chartCitationsPerYear: string;
   authorshipCaption: string;
+  /** Authorship caption when letters/non-peer-reviewed works are counted too
+   *  (drops the "peer-reviewed" qualifier so it stays honest). */
+  authorshipCaptionAll: string;
   /** Caveat shown under the authorship table when a "corresponding" row is present. */
   authorshipCorrespondingNote: string;
   /** Provenance caveat: peer-reviewed vs preprint split is a heuristic. */
@@ -54,6 +57,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartPublicationsPerYear: "Publications / year",
     chartCitationsPerYear: "Citations / year",
     authorshipCaption: "Authorship (peer-reviewed)",
+    authorshipCaptionAll: "Authorship",
     authorshipCorrespondingNote: "Corresponding-author data (OpenAlex) is often incomplete.",
     provClassificationNote: "Peer-reviewed vs. preprint classification is heuristic.",
     provGeneratedFrom: "Generated from",
@@ -88,6 +92,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartPublicationsPerYear: "年度发表数",
     chartCitationsPerYear: "年度被引数",
     authorshipCaption: "作者署名（同行评审）",
+    authorshipCaptionAll: "作者署名",
     authorshipCorrespondingNote: "通讯作者数据（来自 OpenAlex）通常不完整。",
     provClassificationNote: "同行评审与预印本的分类为启发式判断。",
     provGeneratedFrom: "数据来源",
@@ -122,6 +127,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartPublicationsPerYear: "Publicaciones / año",
     chartCitationsPerYear: "Citas / año",
     authorshipCaption: "Autoría (revisado por pares)",
+    authorshipCaptionAll: "Autoría",
     authorshipCorrespondingNote: "Los datos de autor de correspondencia (OpenAlex) suelen estar incompletos.",
     provClassificationNote: "La clasificación revisado por pares/preimpresión es heurística.",
     provGeneratedFrom: "Generado a partir de",
@@ -156,6 +162,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartPublicationsPerYear: "Publications / an",
     chartCitationsPerYear: "Citations / an",
     authorshipCaption: "Qualité d’auteur (évaluées par les pairs)",
+    authorshipCaptionAll: "Qualité d’auteur",
     authorshipCorrespondingNote: "Les données d’auteur correspondant (OpenAlex) sont souvent incomplètes.",
     provClassificationNote: "La distinction évalué par les pairs / prépublication est heuristique.",
     provGeneratedFrom: "Généré à partir de",
@@ -190,6 +197,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartPublicationsPerYear: "Publikationen / Jahr",
     chartCitationsPerYear: "Zitationen / Jahr",
     authorshipCaption: "Autorschaft (begutachtet)",
+    authorshipCaptionAll: "Autorschaft",
     authorshipCorrespondingNote: "Angaben zum korrespondierenden Autor (OpenAlex) sind oft unvollständig.",
     provClassificationNote: "Die Einstufung begutachtet/Preprint erfolgt heuristisch.",
     provGeneratedFrom: "Erstellt aus",
@@ -224,6 +232,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartPublicationsPerYear: "年別論文数",
     chartCitationsPerYear: "年別被引用数",
     authorshipCaption: "著者貢献（査読付き）",
+    authorshipCaptionAll: "著者貢献",
     authorshipCorrespondingNote: "責任著者のデータ（OpenAlex）は不完全な場合が多くあります。",
     provClassificationNote: "査読付き／プレプリントの分類は推定によるものです。",
     provGeneratedFrom: "生成元",
@@ -258,6 +267,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartPublicationsPerYear: "Publicações / ano",
     chartCitationsPerYear: "Citações / ano",
     authorshipCaption: "Autoria (revisado por pares)",
+    authorshipCaptionAll: "Autoria",
     authorshipCorrespondingNote: "Os dados de autor correspondente (OpenAlex) costumam estar incompletos.",
     provClassificationNote: "A classificação revisado por pares/preprint é heurística.",
     provGeneratedFrom: "Gerado a partir de",
@@ -292,6 +302,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartPublicationsPerYear: "Pubblicazioni / anno",
     chartCitationsPerYear: "Citazioni / anno",
     authorshipCaption: "Paternità (sottoposto a revisione paritaria)",
+    authorshipCaptionAll: "Paternità",
     authorshipCorrespondingNote: "I dati sull’autore corrispondente (OpenAlex) sono spesso incompleti.",
     provClassificationNote: "La classificazione con revisione paritaria/preprint è euristica.",
     provGeneratedFrom: "Generato da",
@@ -326,6 +337,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartPublicationsPerYear: "연도별 논문 수",
     chartCitationsPerYear: "연도별 피인용 수",
     authorshipCaption: "저자 정보 (동료 심사)",
+    authorshipCaptionAll: "저자 정보",
     authorshipCorrespondingNote: "교신저자 데이터(OpenAlex)는 불완전한 경우가 많습니다.",
     provClassificationNote: "동료 심사/프리프린트 분류는 추정에 기반합니다.",
     provGeneratedFrom: "출처",
@@ -360,6 +372,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartPublicationsPerYear: "Публикации / год",
     chartCitationsPerYear: "Цитирования / год",
     authorshipCaption: "Авторство (рецензируемые)",
+    authorshipCaptionAll: "Авторство",
     authorshipCorrespondingNote: "Данные об авторе для корреспонденции (OpenAlex) часто неполны.",
     provClassificationNote: "Классификация «рецензируемое/препринт» является эвристической.",
     provGeneratedFrom: "Сформировано из",
