@@ -17,6 +17,8 @@ import { isHidden } from "@/lib/canonical/schema";
 import {
   addManualEntry,
   addSection,
+  addStructuredEntry,
+  type ManualEntryFields,
   applyPreset,
   deletePreset,
   moveItem,
@@ -38,6 +40,7 @@ import {
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { ui } from "@/lib/i18n/ui";
+import { editorUi } from "@/lib/i18n/editorUi";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
 import ItemRow from "./ItemRow";
@@ -132,6 +135,23 @@ function MetricsNoteText({ text }: { text: string }) {
   );
 }
 
+/** A tiny CSS-only schematic of a template layout for the picker gallery. The
+ *  `data-tpl` attribute lets globals.css vary the look per template (sidebar
+ *  column, accent header band, table grid, …). Decorative — aria-hidden. */
+function TemplateThumb({ tpl }: { tpl: string }) {
+  return (
+    <span className="tpl-thumb" data-tpl={tpl} aria-hidden="true">
+      <span className="tt-side" />
+      <span className="tt-body">
+        <span className="tt-head" />
+        <span className="tt-line" />
+        <span className="tt-line" />
+        <span className="tt-line short" />
+      </span>
+    </span>
+  );
+}
+
 export default function CvEditor({
   cv,
   availableStyles,
@@ -145,6 +165,7 @@ export default function CvEditor({
   const locale = asLocale(uiLocale);
   const cvLocale = asLocale(cv.display.locale);
   const u = ui(locale);
+  const eu = editorUi(locale);
 
   // Locale-aware option labels (built from the chrome dictionary).
   const TEMPLATE_LABELS: Record<string, string> = {
@@ -235,11 +256,41 @@ export default function CvEditor({
     "other",
   ]);
 
+  // Citation-type sections where a STRUCTURED entry (title/authors/venue/…) is
+  // useful — it renders through citeproc with the chosen style, like an import.
+  const STRUCTURED_SECTIONS = new Set([
+    "publications",
+    "preprints",
+    "conference",
+    "other",
+  ]);
+
   function addEntry(type: CanonicalCv["sections"][number]["type"]) {
     const text = (drafts[type] ?? "").trim();
     if (!text) return;
     onChange(addManualEntry(cv, type, text, newId(type)));
     setDrafts((d) => ({ ...d, [type]: "" }));
+  }
+
+  // Structured (citation-style) manual entries: a small form whose fields build
+  // a CSL item, so the entry renders through citeproc like an imported work.
+  const [structDrafts, setStructDrafts] = useState<
+    Record<string, ManualEntryFields>
+  >({});
+  const setStructField = (
+    type: string,
+    key: keyof ManualEntryFields,
+    value: string,
+  ) =>
+    setStructDrafts((d) => ({
+      ...d,
+      [type]: { ...(d[type] ?? { title: "" }), [key]: value },
+    }));
+  function addStructured(type: CanonicalCv["sections"][number]["type"]) {
+    const fields = structDrafts[type];
+    if (!fields?.title?.trim()) return;
+    onChange(addStructuredEntry(cv, type, fields, newId(type)));
+    setStructDrafts((d) => ({ ...d, [type]: { title: "" } }));
   }
 
   // Dropdown options = bundled styles + the current custom style (if any).
@@ -340,25 +391,41 @@ export default function CvEditor({
           </button>
         </div>
 
-        <label className="field">
-          <span>{u.templateLabel}</span>
-          <select
-            value={cv.display.template}
-            onChange={(e) =>
-              onChange(
-                updateDisplay(cv, {
-                  template: e.target.value as CanonicalCv["display"]["template"],
-                }),
-              )
-            }
+        <h3 className="group-head">{eu.grpTemplate}</h3>
+
+        <div className="field template-field">
+          <span id="tpl-label">{u.templateLabel}</span>
+          <div
+            className="template-gallery"
+            role="radiogroup"
+            aria-labelledby="tpl-label"
           >
-            {TEMPLATES.map((tpl) => (
-              <option key={tpl} value={tpl}>
-                {TEMPLATE_LABELS[tpl] ?? tpl}
-              </option>
-            ))}
-          </select>
-        </label>
+            {TEMPLATES.map((tpl) => {
+              const selected = cv.display.template === tpl;
+              return (
+                <button
+                  key={tpl}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  className={`tpl-card${selected ? " is-selected" : ""}`}
+                  onClick={() =>
+                    onChange(
+                      updateDisplay(cv, {
+                        template:
+                          tpl as CanonicalCv["display"]["template"],
+                      }),
+                    )
+                  }
+                  title={TEMPLATE_LABELS[tpl] ?? tpl}
+                >
+                  <TemplateThumb tpl={tpl} />
+                  <span className="tpl-name">{TEMPLATE_LABELS[tpl] ?? tpl}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <label className="field">
           <span>{t(locale, "cvLanguage")}</span>
@@ -562,6 +629,8 @@ export default function CvEditor({
           </select>
         </label>
 
+        <h3 className="group-head">{eu.grpMetrics}</h3>
+
         <div className="field metric-picker">
           <span>{u.metricsLabel}</span>
           <div className="metric-options">
@@ -659,6 +728,8 @@ export default function CvEditor({
             </span>
           ) : null}
         </div>
+
+        <h3 className="group-head">{eu.grpDisplay}</h3>
 
         <label className="field-inline">
           <input
@@ -927,6 +998,77 @@ export default function CvEditor({
                   {t(locale, "add")}
                 </button>
               </div>
+            ) : null}
+
+            {STRUCTURED_SECTIONS.has(section.type) ? (
+              <details className="structured-entry">
+                <summary>{eu.structuredEntry}</summary>
+                <div className="structured-fields">
+                  <label className="field">
+                    <span>{eu.feTitle}</span>
+                    <input
+                      type="text"
+                      value={structDrafts[section.type]?.title ?? ""}
+                      onChange={(e) =>
+                        setStructField(section.type, "title", e.target.value)
+                      }
+                    />
+                  </label>
+                  <label className="field">
+                    <span>{eu.feAuthors}</span>
+                    <textarea
+                      rows={2}
+                      value={structDrafts[section.type]?.authors ?? ""}
+                      placeholder={eu.feAuthorsHint}
+                      onChange={(e) =>
+                        setStructField(section.type, "authors", e.target.value)
+                      }
+                    />
+                    <span className="field-hint muted">{eu.feAuthorsHint}</span>
+                  </label>
+                  <div className="structured-row">
+                    <label className="field">
+                      <span>{eu.feVenue}</span>
+                      <input
+                        type="text"
+                        value={structDrafts[section.type]?.venue ?? ""}
+                        onChange={(e) =>
+                          setStructField(section.type, "venue", e.target.value)
+                        }
+                      />
+                    </label>
+                    <label className="field structured-year">
+                      <span>{eu.feYear}</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={structDrafts[section.type]?.year ?? ""}
+                        onChange={(e) =>
+                          setStructField(section.type, "year", e.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+                  <label className="field">
+                    <span>{eu.feDoi}</span>
+                    <input
+                      type="text"
+                      value={structDrafts[section.type]?.doi ?? ""}
+                      onChange={(e) =>
+                        setStructField(section.type, "doi", e.target.value)
+                      }
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => addStructured(section.type)}
+                    disabled={!structDrafts[section.type]?.title?.trim()}
+                  >
+                    {eu.feAdd}
+                  </button>
+                </div>
+              </details>
             ) : null}
               </>
             ) : null}

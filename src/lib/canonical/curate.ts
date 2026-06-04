@@ -412,10 +412,17 @@ export function buildManualCsl(
   const venue = fields.venue?.trim();
   if (venue) csl["container-title"] = venue;
 
-  const doi = fields.doi ? bareDoi(fields.doi) : "";
-  if (doi) {
-    csl.DOI = doi;
-    csl.URL = `https://doi.org/${doi}`;
+  // The editor offers a single "DOI or URL" field: a value that looks like a
+  // DOI becomes a DOI (+ doi.org URL); anything else is kept as a plain URL.
+  const rawDoi = (fields.doi ?? "").trim();
+  if (rawDoi) {
+    const stripped = bareDoi(rawDoi);
+    if (/^10\.\d+\/\S+$/.test(stripped)) {
+      csl.DOI = stripped;
+      csl.URL = `https://doi.org/${stripped}`;
+    } else {
+      csl.URL = rawDoi;
+    }
   } else if (fields.url?.trim()) {
     csl.URL = fields.url.trim();
   }

@@ -1102,6 +1102,230 @@ input[type="radio"] {
 .add-entry-row input {
   flex: 1;
 }
+
+/* ── Grouped style panel (#1): full-width subheadings inside the controls grid ── */
+.group-head {
+  grid-column: 1 / -1;
+  margin: var(--space-3) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--muted);
+}
+
+/* ── Template gallery (#2): selectable cards with a tiny CSS schematic ── */
+.template-field {
+  grid-column: 1 / -1;
+}
+.template-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: var(--space-2);
+}
+.tpl-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
+}
+.tpl-card:hover {
+  border-color: var(--border-strong);
+}
+.tpl-card.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.tpl-name {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  text-align: center;
+}
+.tpl-card.is-selected .tpl-name {
+  color: var(--text);
+  font-weight: var(--weight-medium);
+}
+.tpl-thumb {
+  display: flex;
+  gap: 2px;
+  height: 46px;
+  padding: 4px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+.tt-side {
+  display: none;
+  width: 24%;
+  background: var(--accent);
+  opacity: 0.3;
+  border-radius: 2px;
+}
+.tt-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.tt-head {
+  height: 7px;
+  width: 70%;
+  background: #94a3b8;
+  border-radius: 2px;
+}
+.tt-line {
+  height: 3px;
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+.tt-line.short {
+  width: 55%;
+}
+/* Per-template variants so each card hints at its real layout. */
+.tpl-thumb[data-tpl="sidebar"] .tt-side {
+  display: block;
+}
+.tpl-thumb[data-tpl="modern"] .tt-head,
+.tpl-thumb[data-tpl="editorial"] .tt-head {
+  height: 9px;
+  width: 85%;
+  background: var(--accent);
+}
+.tpl-thumb[data-tpl="rirekisho"] .tt-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+}
+.tpl-thumb[data-tpl="ats"] .tt-head {
+  width: 55%;
+  background: #cbd5e1;
+}
+
+/* ── Structured manual entry (#5) ── */
+.structured-entry {
+  margin-top: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+.structured-entry > summary {
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--accent);
+}
+.structured-entry[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+.structured-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+.structured-fields .field {
+  gap: 4px;
+}
+.structured-fields input,
+.structured-fields textarea {
+  font: inherit;
+  font-size: var(--text-sm);
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+  box-sizing: border-box;
+}
+.structured-fields textarea {
+  resize: vertical;
+}
+.structured-row {
+  display: flex;
+  gap: var(--space-2);
+}
+.structured-row .field {
+  flex: 1;
+}
+.structured-year {
+  max-width: 7rem;
+}
+.structured-fields .btn {
+  align-self: flex-start;
+}
+
+/* ── First-run disambiguation coachmark (#4) ── */
+.coachmark {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: 0 var(--space-5) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+}
+.coachmark-body {
+  flex: 1;
+}
+.coachmark-body strong {
+  display: block;
+  font-size: var(--text-sm);
+  margin-bottom: 2px;
+}
+.coachmark-body p {
+  margin: 0;
+  font-size: var(--text-xs);
+}
+.coachmark .btn {
+  flex-shrink: 0;
+}
+
+/* ── Mobile Editor/Preview tabs (#3): hidden on desktop, shown ≤880px ── */
+.pane-tabs {
+  display: none;
+}
+.pane-tab {
+  flex: 1;
+  padding: var(--space-2);
+  font: inherit;
+  font-size: var(--text-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.pane-tab.is-active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+.pane-tab:first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+.pane-tab:last-child {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+@media (max-width: 880px) {
+  .pane-tabs {
+    display: flex;
+    margin: 0 var(--space-5) var(--space-3);
+  }
+  .cv-workspace[data-active-pane="editor"] .cv-workspace-pane[data-pane="preview"],
+  .cv-workspace[data-active-pane="preview"] .cv-workspace-pane[data-pane="editor"] {
+    display: none;
+  }
+}
 .add-section-row {
   display: flex;
   flex-wrap: wrap;

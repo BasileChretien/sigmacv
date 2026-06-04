@@ -4,11 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
+import { editorUi } from "@/lib/i18n/editorUi";
 
 const UI_LOCALE_KEY = "sigmacv:uiLocale";
 import AccountControls from "./AccountControls";
 import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
+import DisambiguationCoachmark from "./DisambiguationCoachmark";
 import PublishControls from "./PublishControls";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
 import SupportLink from "./SupportLink";
@@ -70,6 +72,8 @@ export default function CvWorkspace({
   const [syncing, setSyncing] = useState(false);
   const [status, setStatus] = useState("");
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
+  // Which pane is visible on narrow screens (both show side-by-side on desktop).
+  const [pane, setPane] = useState<"editor" | "preview">("editor");
 
   // INTERFACE language — independent of the CV's own (rendered) language. It's a
   // client preference (localStorage), not part of the CV document. Initial value
@@ -265,19 +269,53 @@ export default function CvWorkspace({
       </header>
 
       {cv ? (
-        <div className="cv-workspace" id="cv-main">
-          <section className="cv-workspace-pane">
-            <CvEditor
-              cv={cv}
-              availableStyles={availableStyles}
-              uiLocale={uiLocale}
-              onChange={update}
-            />
-          </section>
-          <section className="cv-workspace-pane">
-            <CvPreview html={previewHtml} loading={previewLoading} locale={uiLocale} />
-          </section>
-        </div>
+        <>
+          <DisambiguationCoachmark
+            locale={uiLocale}
+            show={cv.sections.some(
+              (s) =>
+                (s.type === "publications" || s.type === "preprints") &&
+                s.items.length > 0,
+            )}
+          />
+          {/* Mobile-only pane switch: on a phone the two panes stack and only
+              the active one shows, so you don't scroll past the whole editor to
+              reach the preview. On desktop both panes show and these hide. */}
+          <div
+            className="pane-tabs"
+            aria-label={`${editorUi(uiLocale).tabEditor} / ${editorUi(uiLocale).tabPreview}`}
+          >
+            <button
+              type="button"
+              className={`pane-tab${pane === "editor" ? " is-active" : ""}`}
+              aria-pressed={pane === "editor"}
+              onClick={() => setPane("editor")}
+            >
+              {editorUi(uiLocale).tabEditor}
+            </button>
+            <button
+              type="button"
+              className={`pane-tab${pane === "preview" ? " is-active" : ""}`}
+              aria-pressed={pane === "preview"}
+              onClick={() => setPane("preview")}
+            >
+              {editorUi(uiLocale).tabPreview}
+            </button>
+          </div>
+          <div className="cv-workspace" id="cv-main" data-active-pane={pane}>
+            <section className="cv-workspace-pane" data-pane="editor">
+              <CvEditor
+                cv={cv}
+                availableStyles={availableStyles}
+                uiLocale={uiLocale}
+                onChange={update}
+              />
+            </section>
+            <section className="cv-workspace-pane" data-pane="preview">
+              <CvPreview html={previewHtml} loading={previewLoading} locale={uiLocale} />
+            </section>
+          </div>
+        </>
       ) : (
         <div className="cv-empty container" id="cv-main">
           <h2>{t(uiLocale, "emptyTitle")}</h2>
