@@ -93,6 +93,7 @@ export interface UiStrings {
   manualPlaceholder: string;
   entryTextAria: string;
   matchedByIdentifier: string;
+  matchedByIdOnly: string;
   photoTooLarge: string;
   previewTitle: string;
   previewRendering: string;
@@ -198,6 +199,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     manualPlaceholder: "e.g. Visiting Researcher, MIT (2023)",
     entryTextAria: "Entry text",
     matchedByIdentifier: "Matched by your identifier",
+    matchedByIdOnly: "Matched by OpenAlex ID only — not ORCID-confirmed; review",
     photoTooLarge: "That image is too large — try a smaller one.",
     previewTitle: "CV preview",
     previewRendering: "Rendering preview…",
@@ -300,6 +302,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     manualPlaceholder: "例如：访问研究员，MIT（2023）",
     entryTextAria: "条目文本",
     matchedByIdentifier: "通过你的标识符匹配",
+    matchedByIdOnly: "仅通过 OpenAlex ID 匹配——未经 ORCID 确认，请核查",
     photoTooLarge: "该图片过大——请尝试较小的图片。",
     previewTitle: "简历预览",
     previewRendering: "正在渲染预览…",
@@ -403,6 +406,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     manualPlaceholder: "p. ej. Investigador visitante, MIT (2023)",
     entryTextAria: "Texto de la entrada",
     matchedByIdentifier: "Coincidencia por tu identificador",
+    matchedByIdOnly: "Coincidencia solo por ID de OpenAlex — sin confirmar por ORCID; revísalo",
     photoTooLarge: "Esa imagen es demasiado grande; prueba con una más pequeña.",
     previewTitle: "Vista previa del CV",
     previewRendering: "Generando vista previa…",
@@ -506,6 +510,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     manualPlaceholder: "p. ex. Chercheur invité, MIT (2023)",
     entryTextAria: "Texte de l’entrée",
     matchedByIdentifier: "Identifié par votre identifiant",
+    matchedByIdOnly: "Identifié par l’ID OpenAlex seul — non confirmé par ORCID ; à vérifier",
     photoTooLarge: "Cette image est trop volumineuse — essayez-en une plus petite.",
     previewTitle: "Aperçu du CV",
     previewRendering: "Génération de l’aperçu…",
@@ -609,6 +614,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     manualPlaceholder: "z. B. Gastforscher:in, MIT (2023)",
     entryTextAria: "Eintragstext",
     matchedByIdentifier: "Anhand Ihrer Kennung zugeordnet",
+    matchedByIdOnly: "Nur über OpenAlex-ID zugeordnet — nicht per ORCID bestätigt; bitte prüfen",
     photoTooLarge: "Dieses Bild ist zu groß — versuchen Sie ein kleineres.",
     previewTitle: "Lebenslauf-Vorschau",
     previewRendering: "Vorschau wird erstellt…",
@@ -712,6 +718,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     manualPlaceholder: "例：客員研究員、MIT（2023）",
     entryTextAria: "項目テキスト",
     matchedByIdentifier: "あなたの識別子で一致",
+    matchedByIdOnly: "OpenAlex ID のみで一致 — ORCID 未確認。確認してください",
     photoTooLarge: "この画像は大きすぎます — もっと小さいものをお試しください。",
     previewTitle: "CV プレビュー",
     previewRendering: "プレビューを描画中…",
@@ -815,6 +822,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     manualPlaceholder: "ex.: Pesquisador Visitante, MIT (2023)",
     entryTextAria: "Texto da entrada",
     matchedByIdentifier: "Correspondência pelo seu identificador",
+    matchedByIdOnly: "Correspondência apenas por ID do OpenAlex — não confirmada por ORCID; revise",
     photoTooLarge: "Essa imagem é muito grande — tente uma menor.",
     previewTitle: "Prévia do CV",
     previewRendering: "Renderizando prévia…",
@@ -918,6 +926,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     manualPlaceholder: "ad es. Ricercatore in visita, MIT (2023)",
     entryTextAria: "Testo della voce",
     matchedByIdentifier: "Abbinato tramite il tuo identificativo",
+    matchedByIdOnly: "Abbinato solo tramite ID OpenAlex — non confermato da ORCID; verifica",
     photoTooLarge: "Quell’immagine è troppo grande — provane una più piccola.",
     previewTitle: "Anteprima del CV",
     previewRendering: "Rendering dell’anteprima…",
@@ -1021,6 +1030,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     manualPlaceholder: "예: 방문 연구원, MIT (2023)",
     entryTextAria: "항목 텍스트",
     matchedByIdentifier: "내 식별자로 매칭됨",
+    matchedByIdOnly: "OpenAlex ID로만 매칭됨 — ORCID 미확인. 확인하세요",
     photoTooLarge: "이미지가 너무 큽니다 — 더 작은 이미지를 사용해 보세요.",
     previewTitle: "CV 미리보기",
     previewRendering: "미리보기 렌더링 중…",
@@ -1124,6 +1134,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     manualPlaceholder: "напр. Приглашённый исследователь, MIT (2023)",
     entryTextAria: "Текст записи",
     matchedByIdentifier: "Сопоставлено по вашему идентификатору",
+    matchedByIdOnly: "Сопоставлено только по OpenAlex ID — не подтверждено ORCID; проверьте",
     photoTooLarge: "Это изображение слишком большое — попробуйте поменьше.",
     previewTitle: "Предпросмотр CV",
     previewRendering: "Формирование предпросмотра…",

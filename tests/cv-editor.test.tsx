@@ -115,6 +115,36 @@ describe("CvEditor (component)", () => {
     expect(screen.getAllByText("OpenAlex").length).toBeGreaterThan(0);
   });
 
+  it("flags a weak (OpenAlex-ID-only) self-match for review", () => {
+    let cv = makeCv();
+    // Force authored-by-self items to be id-only matches (not ORCID-confirmed).
+    cv = {
+      ...cv,
+      sections: cv.sections.map((s) => ({
+        ...s,
+        items: s.items.map((it) =>
+          it.authoredBySelf
+            ? { ...it, meta: { ...it.meta, matchBasis: "openalex-id" as const } }
+            : it,
+        ),
+      })),
+    };
+    render(<CvEditor cv={cv} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    expandAllSections();
+    const weak = document.querySelector(".cv-self-badge.is-weak-match");
+    expect(weak).toBeTruthy();
+    expect(weak!.getAttribute("title")).toMatch(/OpenAlex ID only/i);
+  });
+
+  it("gives the Hide and Not-mine buttons an item-specific accessible name", () => {
+    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    expandAllSections();
+    // The accessible name is "Hide — <title>" / "Not mine — <title>" (not the bare
+    // verb), so a screen reader announces which entry the button acts on.
+    expect(screen.getAllByRole("button", { name: /^Hide — .+/ }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /^Not mine — .+/ }).length).toBeGreaterThan(0);
+  });
+
   it("surfaces a review badge for an orcid-conflict work", () => {
     const conflict = {
       id: "https://openalex.org/W_conflict",

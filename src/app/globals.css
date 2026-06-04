@@ -1071,6 +1071,15 @@ input[type="radio"] {
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
 }
+/* Weaker match: claimed as yours by OpenAlex author-id only, NOT confirmed by
+   your ORCID — amber + dashed so common-name false positives are easy to triage. */
+.cv-self-badge.is-weak-match {
+  color: var(--warn-text);
+  background: var(--warn-soft);
+  border-color: #f0dcae;
+  border-style: dashed;
+  cursor: help;
+}
 .cv-notmine-badge {
   color: var(--danger-text);
   background: var(--danger-soft);

@@ -129,7 +129,16 @@ export default function ItemRow({
             <span>{year}</span>
             {venue ? <span> · {venue}</span> : null}
             {item.authoredBySelf ? (
-              <span className="cv-self-badge" title={u.matchedByIdentifier}>
+              <span
+                className={`cv-self-badge${
+                  item.meta.matchBasis === "openalex-id" ? " is-weak-match" : ""
+                }`}
+                title={
+                  item.meta.matchBasis === "openalex-id"
+                    ? u.matchedByIdOnly
+                    : u.matchedByIdentifier
+                }
+              >
                 {t(locale, "youBadge")}
               </span>
             ) : null}
@@ -196,6 +205,7 @@ export default function ItemRow({
           className="mine-btn"
           onClick={onToggleIncluded}
           aria-pressed={!item.included}
+          aria-label={`${item.included ? t(locale, "hide") : t(locale, "show")} — ${title}`}
           title={t(locale, "hideHint")}
         >
           {item.included ? t(locale, "hide") : t(locale, "show")}
@@ -206,6 +216,7 @@ export default function ItemRow({
             className={`mine-btn${item.notMine ? " is-restore" : ""}`}
             onClick={onToggleNotMine}
             aria-pressed={item.notMine}
+            aria-label={`${item.notMine ? t(locale, "mine") : t(locale, "notMine")} — ${title}`}
             title={t(locale, "notMineHint")}
           >
             {item.notMine ? t(locale, "mine") : t(locale, "notMine")}
