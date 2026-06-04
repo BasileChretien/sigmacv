@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import {
   aboutLanguageAlternates,
+  accessibilityLanguageAlternates,
+  faqLanguageAlternates,
   homeLanguageAlternates,
   localeAboutPath,
+  localeAccessibilityPath,
+  localeFaqPath,
   localeHomePath,
   localePrivacyPath,
   ogAlternateLocales,
@@ -64,6 +68,38 @@ describe("localePrivacyPath / privacyLanguageAlternates", () => {
     expect(langs["x-default"]).toBe("/privacy");
     expect(langs["en-US"]).toBe("/privacy");
     expect(langs["de-DE"]).toBe("/de/privacy");
+    expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
+  });
+});
+
+describe("localeFaqPath / faqLanguageAlternates", () => {
+  it("serves /faq for the default and /{slug}/faq for others", () => {
+    expect(localeFaqPath("en-US")).toBe("/faq");
+    expect(localeFaqPath("fr-FR")).toBe("/fr/faq");
+    expect(localeFaqPath("ja-JP")).toBe("/ja/faq");
+    expect(localeFaqPath("xx-XX")).toBe("/faq");
+  });
+  it("maps every locale plus x-default", () => {
+    const langs = faqLanguageAlternates();
+    expect(langs["x-default"]).toBe("/faq");
+    expect(langs["en-US"]).toBe("/faq");
+    expect(langs["de-DE"]).toBe("/de/faq");
+    expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
+  });
+});
+
+describe("localeAccessibilityPath / accessibilityLanguageAlternates", () => {
+  it("serves /accessibility for the default and /{slug}/accessibility for others", () => {
+    expect(localeAccessibilityPath("en-US")).toBe("/accessibility");
+    expect(localeAccessibilityPath("fr-FR")).toBe("/fr/accessibility");
+    expect(localeAccessibilityPath("ja-JP")).toBe("/ja/accessibility");
+    expect(localeAccessibilityPath("xx-XX")).toBe("/accessibility");
+  });
+  it("maps every locale plus x-default", () => {
+    const langs = accessibilityLanguageAlternates();
+    expect(langs["x-default"]).toBe("/accessibility");
+    expect(langs["en-US"]).toBe("/accessibility");
+    expect(langs["de-DE"]).toBe("/de/accessibility");
     expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
   });
 });

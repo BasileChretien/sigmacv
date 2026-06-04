@@ -56,6 +56,37 @@ export function privacyLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+/** /faq path for a locale: "/faq" for the default, "/{slug}/faq" otherwise. */
+export function localeFaqPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/faq" : `/${LOCALE_SLUGS[loc]}/faq`;
+}
+
+/** hreflang → path map for the /faq page (relative; resolved against metadataBase). */
+export function faqLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeFaqPath(loc);
+  languages["x-default"] = "/faq";
+  return languages;
+}
+
+/** /accessibility path for a locale: "/accessibility" for the default, "/{slug}/accessibility" otherwise. */
+export function localeAccessibilityPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE
+    ? "/accessibility"
+    : `/${LOCALE_SLUGS[loc]}/accessibility`;
+}
+
+/** hreflang → path map for the /accessibility page (relative; resolved against metadataBase). */
+export function accessibilityLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES)
+    languages[loc] = localeAccessibilityPath(loc);
+  languages["x-default"] = "/accessibility";
+  return languages;
+}
+
 /** Open Graph locale tag (underscored): "fr-FR" → "fr_FR". */
 export function ogLocale(locale: string): string {
   return asLocale(locale).replace("-", "_");

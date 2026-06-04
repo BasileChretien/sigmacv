@@ -6,8 +6,15 @@ import {
   signInWithOrcid,
 } from "@/app/auth-actions";
 import { asLocale, t } from "@/lib/i18n";
+import { accessibilityStrings } from "@/lib/i18n/accessibility";
+import { faqStrings } from "@/lib/i18n/faq";
 import { landingStrings } from "@/lib/i18n/landing";
-import { localeAboutPath, localePrivacyPath } from "@/lib/seo";
+import {
+  localeAboutPath,
+  localeAccessibilityPath,
+  localeFaqPath,
+  localePrivacyPath,
+} from "@/lib/seo";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SiteLinks from "./SiteLinks";
 import StructuredData from "./StructuredData";
@@ -117,6 +124,12 @@ export default function Landing({ locale }: LandingProps) {
         <span className="muted">{s.footer}</span>
         <Link className="footer-link" href={localePrivacyPath(loc)}>
           {t(loc, "privacy")}
+        </Link>
+        <Link className="footer-link" href={localeFaqPath(loc)}>
+          {faqStrings(loc).navLabel}
+        </Link>
+        <Link className="footer-link" href={localeAccessibilityPath(loc)}>
+          {accessibilityStrings(loc).navLabel}
         </Link>
         <SiteLinks locale={loc} />
       </footer>
