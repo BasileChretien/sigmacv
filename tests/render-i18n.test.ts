@@ -54,6 +54,7 @@ function localizedCv(locale: string): CanonicalCv {
       metrics: ["fwci_mean"],
       showAuthorshipTable: true,
       authorshipRoles: ["first"],
+      showProvenance: true, // this test asserts the (opt-in) provenance footer
     },
   };
 }

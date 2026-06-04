@@ -388,8 +388,13 @@ export const DisplayChoicesSchema = z.object({
   showAuthorRole: z.boolean().default(false),
   /** Show a per-entry citation count on publications/preprints (HTML/PDF). Default off. */
   showCitationCounts: z.boolean().default(false),
-  /** Show a data-provenance footer (sources, sync date, hidden/corrected counts). */
-  showProvenance: z.boolean().default(true),
+  /**
+   * Show a data-provenance footer (sources, sync date, hidden/corrected counts,
+   * classification caveat). Opt-IN: it's meta-information that doesn't belong on
+   * a finished CV by default (and "N hidden" over-shares curation). Kept as an
+   * option for transparency/auditability. Default off.
+   */
+  showProvenance: z.boolean().default(false),
   /**
    * Render only peer-reviewed citations (drops preprints + non-peer-reviewed
    * works wherever they sit, e.g. a preprint mis-filed under Publications).

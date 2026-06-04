@@ -338,10 +338,14 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
   });
 
   describe("provenance footer + metric context", () => {
-    it("renders a provenance footer by default with hidden/corrected counts", () => {
-      const cv = makeCv();
-      const id = cv.sections[0]!.items[0]!.id;
-      const hidden = setItemIncluded(cv, "publications", id, false);
+    function withProvenance(cv: CanonicalCv): CanonicalCv {
+      return { ...cv, display: { ...cv.display, showProvenance: true } };
+    }
+
+    it("renders a provenance footer when enabled, with hidden/corrected counts", () => {
+      const base = withProvenance(makeCv());
+      const id = base.sections[0]!.items[0]!.id;
+      const hidden = setItemIncluded(base, "publications", id, false);
       const html = renderCvHtml(hidden);
       expect(html).toContain('class="cv-provenance"');
       expect(html).toContain("Generated from OpenAlex");
@@ -349,7 +353,7 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     });
 
     it("localizes the sync date and falls back gracefully on a bad timestamp", () => {
-      const cv = makeCv();
+      const cv = withProvenance(makeCv());
       // Valid ISO → localized medium date (en-US): "Jun 2, 2026".
       const good = renderCvHtml({
         ...cv,
@@ -364,13 +368,9 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(bad).toContain('class="cv-provenance"');
     });
 
-    it("omits the provenance footer when disabled", () => {
-      const cv = makeCv();
-      const html = renderCvHtml({
-        ...cv,
-        display: { ...cv.display, showProvenance: false },
-      });
-      expect(html).not.toContain("Generated from");
+    it("omits the provenance footer by default (opt-in)", () => {
+      // Default display → no footer (it's meta-info, off on a finished CV).
+      expect(renderCvHtml(makeCv())).not.toContain("Generated from");
     });
 
     it("annotates a field-normalised metric with responsible-reading context", () => {
