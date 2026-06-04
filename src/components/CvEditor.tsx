@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   ACCENT_PRESETS,
   AUTHORSHIP_ROLES,
@@ -135,23 +135,6 @@ function MetricsNoteText({ text }: { text: string }) {
   );
 }
 
-/** A tiny CSS-only schematic of a template layout for the picker gallery. The
- *  `data-tpl` attribute lets globals.css vary the look per template (sidebar
- *  column, accent header band, table grid, …). Decorative — aria-hidden. */
-function TemplateThumb({ tpl }: { tpl: string }) {
-  return (
-    <span className="tpl-thumb" data-tpl={tpl} aria-hidden="true">
-      <span className="tt-side" />
-      <span className="tt-body">
-        <span className="tt-head" />
-        <span className="tt-line" />
-        <span className="tt-line" />
-        <span className="tt-line short" />
-      </span>
-    </span>
-  );
-}
-
 export default function CvEditor({
   cv,
   availableStyles,
@@ -177,6 +160,10 @@ export default function CvEditor({
     editorial: u.tplEditorial,
     ats: u.tplAts,
     rirekisho: "Japanese (履歴書)",
+    // New design-forward templates use proper-noun names (no translation needed).
+    aurora: "Aurora",
+    slate: "Slate",
+    timeline: "Timeline",
   };
   const HIGHLIGHT_STYLE_LABELS: Record<string, string> = {
     accent: u.hlAccent,
@@ -292,6 +279,42 @@ export default function CvEditor({
     onChange(addStructuredEntry(cv, type, fields, newId(type)));
     setStructDrafts((d) => ({ ...d, [type]: { title: "" } }));
   }
+
+  // Real template thumbnails: render the user's own (trimmed) CV in every
+  // template and show each scaled in the gallery. Fetched once and whenever the
+  // *look* (accent/font/highlight/language) changes — not on every content edit,
+  // so typing doesn't hammer the renderer.
+  const [tplPreviews, setTplPreviews] = useState<Record<string, string>>({});
+  const { accentColor, fontPairing, highlightStyle } = cv.display;
+  const styleLocale = cv.display.locale;
+  useEffect(() => {
+    let cancelled = false;
+    const handle = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/cv/preview/gallery", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ document: cv }),
+        });
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as {
+          previews?: { template: string; html: string }[];
+        };
+        if (cancelled) return;
+        const map: Record<string, string> = {};
+        for (const p of data.previews ?? []) map[p.template] = p.html;
+        setTplPreviews(map);
+      } catch {
+        /* thumbnails are best-effort — the big preview pane is the source of truth */
+      }
+    }, 500);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+    // Intentionally not keyed on the whole document — only on the visual choices.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accentColor, fontPairing, highlightStyle, styleLocale]);
 
   // Dropdown options = bundled styles + the current custom style (if any).
   const styleOptions = useMemo(() => {
@@ -419,7 +442,22 @@ export default function CvEditor({
                   }
                   title={TEMPLATE_LABELS[tpl] ?? tpl}
                 >
-                  <TemplateThumb tpl={tpl} />
+                  <span className="tpl-preview">
+                    {tplPreviews[tpl] ? (
+                      <iframe
+                        className="tpl-frame"
+                        srcDoc={tplPreviews[tpl]}
+                        title={TEMPLATE_LABELS[tpl] ?? tpl}
+                        sandbox=""
+                        scrolling="no"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="tpl-skeleton" aria-hidden="true" />
+                    )}
+                  </span>
                   <span className="tpl-name">{TEMPLATE_LABELS[tpl] ?? tpl}</span>
                 </button>
               );

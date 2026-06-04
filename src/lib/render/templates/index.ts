@@ -5,6 +5,7 @@ import type {
   TemplateKey,
 } from "@/lib/canonical/schema";
 import { atsTemplate } from "./ats";
+import { auroraTemplate } from "./aurora";
 import { classicTemplate } from "./classic";
 import { compactTemplate } from "./compact";
 import { editorialTemplate } from "./editorial";
@@ -12,6 +13,8 @@ import { minimalTemplate } from "./minimal";
 import { modernTemplate } from "./modern";
 import { rirekishoTemplate } from "./rirekisho";
 import { sidebarTemplate } from "./sidebar";
+import { slateTemplate } from "./slate";
+import { timelineTemplate } from "./timeline";
 import type { CvTemplate, TemplateTheme } from "./types";
 
 export type { CvTemplate, RenderedItem, RenderedSection, TemplateTheme } from "./types";
@@ -46,6 +49,9 @@ const REGISTRY: Record<TemplateKey, CvTemplate> = {
   editorial: editorialTemplate,
   ats: atsTemplate,
   rirekisho: rirekishoTemplate,
+  aurora: auroraTemplate,
+  slate: slateTemplate,
+  timeline: timelineTemplate,
 };
 
 export function getTemplate(key: TemplateKey): CvTemplate {

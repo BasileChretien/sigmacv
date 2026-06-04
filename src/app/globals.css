@@ -1116,20 +1116,22 @@ input[type="radio"] {
   color: var(--muted);
 }
 
-/* ── Template gallery (#2): selectable cards with a tiny CSS schematic ── */
+/* ── Template gallery (#2): selectable cards with a REAL scaled preview ── */
 .template-field {
   grid-column: 1 / -1;
 }
 .template-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 .tpl-card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 5px;
   padding: 5px;
+  width: 135px;
   background: var(--surface-sunken);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1152,61 +1154,34 @@ input[type="radio"] {
   color: var(--text);
   font-weight: var(--weight-medium);
 }
-.tpl-thumb {
-  display: flex;
-  gap: 2px;
-  height: 46px;
-  padding: 4px;
+/* The preview box clips a down-scaled, real render of the page top. */
+.tpl-preview {
+  width: 125px;
+  height: 166px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 4px;
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 3px;
-  box-sizing: border-box;
 }
-.tt-side {
-  display: none;
-  width: 24%;
-  background: var(--accent);
-  opacity: 0.3;
-  border-radius: 2px;
+.tpl-frame {
+  width: 780px;
+  height: 1040px;
+  border: 0;
+  background: #ffffff;
+  transform: scale(0.16);
+  transform-origin: top left;
+  pointer-events: none;
 }
-.tt-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.tt-head {
-  height: 7px;
-  width: 70%;
-  background: #94a3b8;
-  border-radius: 2px;
-}
-.tt-line {
-  height: 3px;
-  background: #cbd5e1;
-  border-radius: 2px;
-}
-.tt-line.short {
-  width: 55%;
-}
-/* Per-template variants so each card hints at its real layout. */
-.tpl-thumb[data-tpl="sidebar"] .tt-side {
+.tpl-skeleton {
   display: block;
-}
-.tpl-thumb[data-tpl="modern"] .tt-head,
-.tpl-thumb[data-tpl="editorial"] .tt-head {
-  height: 9px;
-  width: 85%;
-  background: var(--accent);
-}
-.tpl-thumb[data-tpl="rirekisho"] .tt-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
-}
-.tpl-thumb[data-tpl="ats"] .tt-head {
-  width: 55%;
-  background: #cbd5e1;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    100deg,
+    var(--surface-sunken) 30%,
+    var(--surface) 50%,
+    var(--surface-sunken) 70%
+  );
 }
 
 /* ── Structured manual entry (#5) ── */

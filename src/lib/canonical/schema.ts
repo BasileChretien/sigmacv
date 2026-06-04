@@ -320,6 +320,10 @@ export const TEMPLATES = [
   "editorial",
   "ats",
   "rirekisho",
+  // Bolder, design-forward additions.
+  "aurora",
+  "slate",
+  "timeline",
 ] as const;
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
