@@ -1,6 +1,7 @@
 import {
   Document,
   HeadingLevel,
+  ImageRun,
   Packer,
   Paragraph,
   Table,
@@ -12,6 +13,7 @@ import {
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "./authorship";
+import { cvChartSvgs } from "./charts";
 import { splitSelf } from "./emphasize";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
@@ -19,44 +21,67 @@ import { metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
-/** A simple bordered data table. An EMPTY header is omitted entirely — a
- *  `<w:tr>` with no cells is invalid OOXML and makes Word refuse the file. */
-function dataTable(header: string[], rows: string[][]): Table {
-  const cell = (text: string, bold = false) =>
-    new TableCell({
-      children: [new Paragraph({ children: [new TextRun({ text, bold })] })],
-    });
-  const headerRow = header.length
-    ? [new TableRow({ tableHeader: true, children: header.map((h) => cell(h, true)) })]
-    : [];
+// 1×1 transparent PNG — the required fallback for the SVG charts. Modern Word
+// (2016+) renders the crisp SVG; only very old viewers fall back to this.
+const FALLBACK_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "base64",
+);
+
+/** A simple borderless data table (no header). */
+function dataTable(rows: string[][]): Table {
   return new Table({
     width: { size: 70, type: WidthType.PERCENTAGE },
-    rows: [...headerRow, ...rows.map((r) => new TableRow({ children: r.map((c) => cell(c)) }))],
+    rows: rows.map(
+      (r) =>
+        new TableRow({
+          children: r.map(
+            (c) => new TableCell({ children: [new Paragraph({ children: [new TextRun(c)] })] }),
+          ),
+        }),
+    ),
   });
 }
 
-/** Publications + citations per year as a table (the HTML chart data). */
-function yearTable(cv: CanonicalCv): Table | null {
-  if (!cv.display.showCharts) return null;
-  const data = [...(cv.owner.countsByYear ?? [])]
-    .filter((d) => Number.isFinite(d.year))
-    .sort((a, b) => a.year - b.year)
-    .slice(-12);
-  if (data.length < 2) return null;
-  const s = renderStrings(cv.display.locale);
-  return dataTable(
-    ["", s.chartPublicationsPerYear, s.chartCitationsPerYear],
-    data.map((d) => [String(d.year), String(d.works), String(d.citations)]),
-  );
+/** The per-year publication + citation charts, embedded as SVG images (a bold
+ *  caption + the chart) — the same charts the PDF shows, not a data table. */
+function chartParagraphs(cv: CanonicalCv): Paragraph[] {
+  const out: Paragraph[] = [];
+  for (const chart of cvChartSvgs(cv)) {
+    const scale = Math.min(2.2, 320 / chart.width);
+    out.push(
+      new Paragraph({
+        children: [new TextRun({ text: chart.caption, bold: true })],
+        spacing: { before: 120, after: 40 },
+      }),
+    );
+    out.push(
+      new Paragraph({
+        children: [
+          new ImageRun({
+            type: "svg",
+            data: Buffer.from(chart.svg, "utf8"),
+            transformation: {
+              width: Math.round(chart.width * scale),
+              height: Math.round(chart.height * scale),
+            },
+            fallback: { type: "png", data: FALLBACK_PNG },
+          }),
+        ],
+        spacing: { after: 80 },
+      }),
+    );
+  }
+  return out;
 }
 
 /**
  * Build a PLAIN, template-agnostic .docx: a clean, single-column, black-on-white
- * EDITABLE document — header, the per-year + authorship data tables, then each
- * section's items (citeproc text, with the account holder's name bolded on their
- * own works). Template styling (accent colour, sidebar, centring, the photo) is
- * intentionally NOT applied: the PDF is the template-faithful export, while the
- * .docx is meant to be opened and edited in Word.
+ * EDITABLE document — header, the per-year charts (embedded as SVG images, like
+ * the PDF) + the authorship table, then each section's items (citeproc text,
+ * with the account holder's name bolded on their own works). Template styling
+ * (accent colour, sidebar, centring) is intentionally NOT applied: the PDF is
+ * the template-faithful export, while the .docx is meant to be edited in Word.
  */
 export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
   const bodyFont = cv.display.fontPairing === "sans" ? "Calibri" : "Cambria";
@@ -97,11 +122,7 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
     );
   }
 
-  const years = yearTable(cv);
-  if (years) {
-    children.push(years);
-    children.push(new Paragraph({ spacing: { after: 80 } }));
-  }
+  children.push(...chartParagraphs(cv));
 
   // Authorship summary: role · "N (P%)", with the denominator in the caption.
   const authorRows = cv.display.showAuthorshipTable
@@ -117,7 +138,6 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
     );
     children.push(
       dataTable(
-        [],
         authorRows.map((r) => [
           authorshipRoleLabel(cv.display.locale, r.role),
           `${r.count} (${r.percent}%)`,

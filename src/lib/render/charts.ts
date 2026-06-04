@@ -3,12 +3,10 @@ import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml } from "./escape";
 
 /**
- * Tiny, dependency-free inline-SVG bar charts for the CV header — publications
- * and citations per year. SVG works in both the HTML preview and the headless-
- * Chromium PDF, and carries no script (CSP-safe). Bars use the accent colour
- * via the `--cv-accent` CSS variable defined by the template's common CSS.
- *
- * Text formats (Markdown / LaTeX / DOCX) don't include charts.
+ * Tiny, dependency-free inline-SVG bar charts for the CV — publications and
+ * citations per year. The HTML/PDF use the accent colour via the `--cv-accent`
+ * CSS variable; the DOCX embeds the SAME charts as standalone SVG images
+ * (concrete colours, since CSS variables don't resolve outside HTML).
  */
 
 interface Point {
@@ -16,18 +14,28 @@ interface Point {
   value: number;
 }
 
+/** A standalone chart ready to embed in a .docx as an SVG image. */
+export interface ChartSvg {
+  caption: string;
+  svg: string;
+  width: number;
+  height: number;
+}
+
 const BAR_W = 12;
 const GAP = 4;
 const CHART_H = 64;
+const SVG_H = CHART_H + 14;
 
 const escapeXml = escapeHtml;
 
-function barChart(title: string, points: Point[]): string {
-  const max = Math.max(1, ...points.map((p) => p.value));
-  const width = points.length * (BAR_W + GAP);
-  const labelEvery = points.length > 8 ? 2 : 1; // avoid crowding x-axis labels
+const chartWidth = (points: Point[]): number => Math.max(points.length * (BAR_W + GAP), 1);
 
-  const bars = points
+/** The bars + year labels (the SVG body), with a caller-supplied bar fill. */
+function bars(points: Point[], fill: string): string {
+  const max = Math.max(1, ...points.map((p) => p.value));
+  const labelEvery = points.length > 8 ? 2 : 1; // avoid crowding x-axis labels
+  return points
     .map((p, i) => {
       const h = Math.round((p.value / max) * CHART_H);
       const x = i * (BAR_W + GAP);
@@ -36,36 +44,57 @@ function barChart(title: string, points: Point[]): string {
       const yearLabel = showLabel
         ? `<text x="${x + BAR_W / 2}" y="${CHART_H + 11}" font-size="7" text-anchor="middle" fill="#777">${escapeXml(p.label.slice(2))}</text>`
         : "";
-      return `<rect x="${x}" y="${y}" width="${BAR_W}" height="${h}" rx="1" fill="var(--cv-accent)"><title>${escapeXml(p.label)}: ${p.value}</title></rect>${yearLabel}`;
+      return `<rect x="${x}" y="${y}" width="${BAR_W}" height="${h}" rx="1" fill="${fill}"><title>${escapeXml(p.label)}: ${p.value}</title></rect>${yearLabel}`;
     })
     .join("");
+}
 
+/** HTML <figure> chart (accent bars via the CSS variable). */
+function barChart(title: string, points: Point[]): string {
+  const width = chartWidth(points);
   return `<figure class="cv-chart">
   <figcaption>${escapeXml(title)}</figcaption>
-  <svg viewBox="0 0 ${Math.max(width, 1)} ${CHART_H + 14}" width="${Math.max(width, 1)}" height="${CHART_H + 14}" role="img" aria-label="${escapeXml(title)}">${bars}</svg>
+  <svg viewBox="0 0 ${width} ${SVG_H}" width="${width}" height="${SVG_H}" role="img" aria-label="${escapeXml(title)}">${bars(points, "var(--cv-accent)")}</svg>
 </figure>`;
 }
 
-/**
- * Render the charts block, or "" when disabled / insufficient data. Uses the
- * last 12 years of OpenAlex per-year counts.
- */
-export function renderChartsHtml(cv: CanonicalCv): string {
-  if (!cv.display.showCharts) return "";
+/** Per-year publication + citation points (last 12 years), or null when charts
+ *  are disabled / there's too little data. */
+function chartPoints(cv: CanonicalCv): { pubs: Point[]; cites: Point[] } | null {
+  if (!cv.display.showCharts) return null;
   const data = [...(cv.owner.countsByYear ?? [])]
     .filter((d) => Number.isFinite(d.year))
     .sort((a, b) => a.year - b.year)
     .slice(-12);
-  if (data.length < 2) return "";
+  if (data.length < 2) return null;
+  return {
+    pubs: data.map((d) => ({ label: String(d.year), value: d.works })),
+    cites: data.map((d) => ({ label: String(d.year), value: d.citations })),
+  };
+}
 
+/** Render the charts block, or "" when disabled / insufficient data. */
+export function renderChartsHtml(cv: CanonicalCv): string {
+  const pts = chartPoints(cv);
+  if (!pts) return "";
   const s = renderStrings(cv.display.locale);
-  const pubs = barChart(
-    s.chartPublicationsPerYear,
-    data.map((d) => ({ label: String(d.year), value: d.works })),
-  );
-  const cites = barChart(
-    s.chartCitationsPerYear,
-    data.map((d) => ({ label: String(d.year), value: d.citations })),
-  );
-  return `<div class="cv-charts">${pubs}${cites}</div>`;
+  return `<div class="cv-charts">${barChart(s.chartPublicationsPerYear, pts.pubs)}${barChart(s.chartCitationsPerYear, pts.cites)}</div>`;
+}
+
+/** The same charts as standalone SVGs for embedding in the DOCX (neutral bars,
+ *  since the .docx is plain). Empty when charts are off / data is too sparse. */
+export function cvChartSvgs(cv: CanonicalCv): ChartSvg[] {
+  const pts = chartPoints(cv);
+  if (!pts) return [];
+  const s = renderStrings(cv.display.locale);
+  const mk = (caption: string, points: Point[]): ChartSvg => {
+    const width = chartWidth(points);
+    return {
+      caption,
+      width,
+      height: SVG_H,
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${SVG_H}" width="${width}" height="${SVG_H}">${bars(points, "#444444")}</svg>`,
+    };
+  };
+  return [mk(s.chartPublicationsPerYear, pts.pubs), mk(s.chartCitationsPerYear, pts.cites)];
 }

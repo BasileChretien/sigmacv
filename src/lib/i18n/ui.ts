@@ -181,7 +181,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportFormatTitle:
       "PDF matches your template exactly. LaTeX follows it closely (editable source). Word and Markdown are plain, editable text — no template styling.",
     exportPdf: "PDF — print-ready CV (.pdf)",
-    exportDocx: "Word — editable CV (.docx)",
+    exportDocx: "Word — plain, editable (.docx)",
     exportLatexModern: "LaTeX — editable source (.tex)",
     exportMarkdown: "Markdown — plain text (.md)",
     exportBibtex: "BibTeX — publication list (.bib)",
@@ -279,7 +279,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportFormatTitle:
       "PDF 完全匹配您的模板。LaTeX 接近匹配（可编辑源文件）。Word 和 Markdown 为纯文本，可编辑，不含模板样式。",
     exportPdf: "PDF — 可打印简历 (.pdf)",
-    exportDocx: "Word — 可编辑简历 (.docx)",
+    exportDocx: "Word — 纯文本，可编辑 (.docx)",
     exportLatexModern: "LaTeX — 可编辑源文件 (.tex)",
     exportMarkdown: "Markdown — 纯文本 (.md)",
     exportBibtex: "BibTeX — 论文列表 (.bib)",
@@ -378,7 +378,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportFormatTitle:
       "El PDF coincide exactamente con tu plantilla. LaTeX la sigue de cerca (código editable). Word y Markdown son texto sencillo y editable, sin estilo de plantilla.",
     exportPdf: "PDF — CV listo para imprimir (.pdf)",
-    exportDocx: "Word — CV editable (.docx)",
+    exportDocx: "Word — sencillo, editable (.docx)",
     exportLatexModern: "LaTeX — código editable (.tex)",
     exportMarkdown: "Markdown — texto sin formato (.md)",
     exportBibtex: "BibTeX — lista de publicaciones (.bib)",
@@ -477,7 +477,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportFormatTitle:
       "Le PDF correspond exactement à votre modèle. LaTeX le suit fidèlement (source modifiable). Word et Markdown sont du texte brut et modifiable, sans style de modèle.",
     exportPdf: "PDF — CV prêt à imprimer (.pdf)",
-    exportDocx: "Word — CV modifiable (.docx)",
+    exportDocx: "Word — simple, modifiable (.docx)",
     exportLatexModern: "LaTeX — source modifiable (.tex)",
     exportMarkdown: "Markdown — texte brut (.md)",
     exportBibtex: "BibTeX — liste de publications (.bib)",
@@ -576,7 +576,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportFormatTitle:
       "Das PDF entspricht exakt Ihrer Vorlage. LaTeX folgt ihr eng (bearbeitbarer Quelltext). Word und Markdown sind einfacher, bearbeitbarer Text ohne Vorlagenstil.",
     exportPdf: "PDF — druckfertiger Lebenslauf (.pdf)",
-    exportDocx: "Word — bearbeitbarer Lebenslauf (.docx)",
+    exportDocx: "Word — schlicht, bearbeitbar (.docx)",
     exportLatexModern: "LaTeX — bearbeitbarer Quelltext (.tex)",
     exportMarkdown: "Markdown — reiner Text (.md)",
     exportBibtex: "BibTeX — Publikationsliste (.bib)",
@@ -675,7 +675,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportFormatTitle:
       "PDF はテンプレートと完全に一致します。LaTeX はそれに近い形（編集可能なソース）です。Word と Markdown はテンプレートの装飾がない、編集可能なプレーンテキストです。",
     exportPdf: "PDF — 印刷用 CV (.pdf)",
-    exportDocx: "Word — 編集可能な CV (.docx)",
+    exportDocx: "Word — シンプル・編集可能 (.docx)",
     exportLatexModern: "LaTeX — 編集可能なソース (.tex)",
     exportMarkdown: "Markdown — プレーンテキスト (.md)",
     exportBibtex: "BibTeX — 論文リスト (.bib)",
@@ -774,7 +774,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportFormatTitle:
       "O PDF corresponde exatamente ao seu modelo. O LaTeX o segue de perto (código editável). Word e Markdown são texto simples e editável, sem estilo de modelo.",
     exportPdf: "PDF — currículo pronto para impressão (.pdf)",
-    exportDocx: "Word — currículo editável (.docx)",
+    exportDocx: "Word — simples, editável (.docx)",
     exportLatexModern: "LaTeX — código editável (.tex)",
     exportMarkdown: "Markdown — texto simples (.md)",
     exportBibtex: "BibTeX — lista de publicações (.bib)",
@@ -873,7 +873,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportFormatTitle:
       "Il PDF corrisponde esattamente al tuo modello. LaTeX lo segue fedelmente (sorgente modificabile). Word e Markdown sono testo semplice e modificabile, senza stile del modello.",
     exportPdf: "PDF — CV pronto per la stampa (.pdf)",
-    exportDocx: "Word — CV modificabile (.docx)",
+    exportDocx: "Word — semplice, modificabile (.docx)",
     exportLatexModern: "LaTeX — sorgente modificabile (.tex)",
     exportMarkdown: "Markdown — testo semplice (.md)",
     exportBibtex: "BibTeX — elenco pubblicazioni (.bib)",
@@ -972,7 +972,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportFormatTitle:
       "PDF는 템플릿과 정확히 일치합니다. LaTeX는 이에 가깝습니다(편집 가능한 소스). Word와 Markdown은 템플릿 스타일이 없는 편집 가능한 일반 텍스트입니다.",
     exportPdf: "PDF — 인쇄용 이력서 (.pdf)",
-    exportDocx: "Word — 편집 가능한 이력서 (.docx)",
+    exportDocx: "Word — 단순, 편집 가능 (.docx)",
     exportLatexModern: "LaTeX — 편집 가능한 소스 (.tex)",
     exportMarkdown: "Markdown — 일반 텍스트 (.md)",
     exportBibtex: "BibTeX — 논문 목록 (.bib)",
@@ -1071,7 +1071,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportFormatTitle:
       "PDF в точности соответствует вашему шаблону. LaTeX близко следует ему (редактируемый исходник). Word и Markdown — простой редактируемый текст без стилей шаблона.",
     exportPdf: "PDF — резюме для печати (.pdf)",
-    exportDocx: "Word — редактируемое резюме (.docx)",
+    exportDocx: "Word — простой, редактируемый (.docx)",
     exportLatexModern: "LaTeX — редактируемый исходник (.tex)",
     exportMarkdown: "Markdown — простой текст (.md)",
     exportBibtex: "BibTeX — список публикаций (.bib)",

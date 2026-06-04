@@ -139,18 +139,18 @@ describe("rich content (tables, photo) in exports", () => {
     expect(buf.length).toBeGreaterThan(0);
   });
 
-  it("DOCX includes the per-year table only with ≥2 data points", async () => {
+  it("DOCX embeds the per-year charts as SVG images (only with ≥2 data points)", async () => {
     const withCounts = (counts: { year: number; works: number; citations: number }[]): CanonicalCv => ({
       ...updateDisplay(base, { showCharts: true }),
       owner: { ...base.owner, countsByYear: counts },
     });
-    const two = withCounts([
-      { year: 2023, works: 5, citations: 40 },
-      { year: 2024, works: 7, citations: 80 },
-    ]);
-    const xml = await (await JSZip.loadAsync(await renderCvDocxBuffer(two))).file("word/document.xml")!.async("string");
-    expect(xml).toContain("2024"); // per-year table rendered
-    // A single data point → table omitted, but the document still builds.
+    // 12 years also exercises the chart scale + x-axis label-thinning branches.
+    const many = Array.from({ length: 12 }, (_, i) => ({ year: 2013 + i, works: (i % 5) + 1, citations: i * 7 }));
+    const zip = await JSZip.loadAsync(await renderCvDocxBuffer(withCounts(many)));
+    const xml = await zip.file("word/document.xml")!.async("string");
+    expect(xml).toMatch(/<w:drawing>/); // chart embedded as an image, not a table
+    expect(zip.file(/word\/media\/.*\.svg$/i).length).toBeGreaterThan(0); // the SVG chart is in the package
+    // A single data point → no chart, but the document still builds.
     expect((await renderCvDocxBuffer(withCounts([{ year: 2024, works: 7, citations: 80 }])))[0]).toBe(0x50);
   });
 });
