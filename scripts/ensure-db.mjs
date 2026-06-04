@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Auto-sync the DEV database to prisma/schema.prisma before `next dev`.
  *
