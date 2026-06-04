@@ -157,10 +157,6 @@ export default function CvEditor({
     sidebar: u.tplSidebar,
     ats: u.tplAts,
     rirekisho: "Japanese (履歴書)",
-    // Bold, design-forward templates use proper-noun names (no translation needed).
-    aurora: "Aurora",
-    slate: "Slate",
-    timeline: "Timeline",
   };
   const HIGHLIGHT_STYLE_LABELS: Record<string, string> = {
     accent: u.hlAccent,

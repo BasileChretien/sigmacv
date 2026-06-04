@@ -17,7 +17,6 @@ const EXPORTABLE: readonly RenderFormat[] = [
   "latex-classic",
   "markdown",
   "bibtex",
-  "webpage",
 ];
 // "json" exports the canonical CV object verbatim (machine-readable, open).
 const ALL_FORMATS: readonly string[] = [...EXPORTABLE, "json"];
@@ -73,14 +72,11 @@ export async function GET(
     const body: BodyInit = result.buffer
       ? new Uint8Array(result.buffer)
       : (result.text ?? result.html ?? "");
-    // The animated web page is meant to be VIEWED (and saved from) the browser,
-    // so serve it inline; every other format downloads as an attachment.
-    const disposition = format === "webpage" ? "inline" : "attachment";
     return new NextResponse(body, {
       status: 200,
       headers: {
         "Content-Type": result.mimeType,
-        "Content-Disposition": `${disposition}; filename="${result.filename}"`,
+        "Content-Disposition": `attachment; filename="${result.filename}"`,
         "Cache-Control": "no-store",
       },
     });

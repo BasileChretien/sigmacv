@@ -49,7 +49,6 @@ describe("render format catalog", () => {
       "latex-classic",
       "markdown",
       "bibtex",
-      "webpage",
     ]);
   });
 });

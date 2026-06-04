@@ -321,10 +321,6 @@ export const TEMPLATES = [
   "sidebar",
   "ats",
   "rirekisho",
-  // Bold, design-forward templates.
-  "aurora",
-  "slate",
-  "timeline",
 ] as const;
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;

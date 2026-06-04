@@ -17,8 +17,6 @@ export const RENDER_FORMATS = [
   "latex-classic",
   "markdown",
   "bibtex",
-  // A self-contained, animated, interactive web page (download + open in a browser).
-  "webpage",
 ] as const;
 export type RenderFormat = (typeof RENDER_FORMATS)[number];
 

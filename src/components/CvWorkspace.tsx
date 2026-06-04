@@ -22,7 +22,6 @@ type ExportFormat =
   | "latex-classic"
   | "markdown"
   | "bibtex"
-  | "webpage"
   | "json";
 
 interface CvWorkspaceProps {
@@ -170,14 +169,7 @@ export default function CvWorkspace({
       const ok = await handleSave();
       if (!ok) return;
     }
-    const url = `/api/cv/export/${exportFormat}`;
-    // The web page is served inline — open it in a new tab so you can view the
-    // live animations (and save it from the browser); other formats download.
-    if (exportFormat === "webpage") {
-      window.open(url, "_blank", "noopener,noreferrer");
-    } else {
-      window.location.href = url;
-    }
+    window.location.href = `/api/cv/export/${exportFormat}`;
   }, [dirty, handleSave, exportFormat]);
 
   return (
@@ -239,7 +231,6 @@ export default function CvWorkspace({
             <option value="latex-classic">{ui(uiLocale).exportLatexClassic}</option>
             <option value="markdown">{ui(uiLocale).exportMarkdown}</option>
             <option value="bibtex">{ui(uiLocale).exportBibtex}</option>
-            <option value="webpage">{editorUi(uiLocale).exportWebpage}</option>
             <option value="json">{ui(uiLocale).exportJson}</option>
           </select>
           <button
