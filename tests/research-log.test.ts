@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
@@ -15,6 +15,7 @@ vi.mock("@/lib/db", () => ({
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { setItemIncluded, setItemNotMine } from "@/lib/canonical/curate";
 import { logCvSave } from "@/lib/research/log";
+import { isResearchLoggingEnabled } from "@/lib/research/enabled";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -31,6 +32,26 @@ const base = () =>
 beforeEach(() => {
   mocks.findUnique.mockReset();
   mocks.createMany.mockReset().mockResolvedValue({ count: 0 });
+  // The logging cases below assume the programme is ON; the default-off state is
+  // covered by its own test.
+  process.env.RESEARCH_LOGGING_ENABLED = "true";
+});
+
+afterEach(() => {
+  delete process.env.RESEARCH_LOGGING_ENABLED;
+});
+
+describe("isResearchLoggingEnabled", () => {
+  it("is off unless RESEARCH_LOGGING_ENABLED is exactly 'true'", () => {
+    delete process.env.RESEARCH_LOGGING_ENABLED;
+    expect(isResearchLoggingEnabled()).toBe(false);
+    process.env.RESEARCH_LOGGING_ENABLED = "false";
+    expect(isResearchLoggingEnabled()).toBe(false);
+    process.env.RESEARCH_LOGGING_ENABLED = "1";
+    expect(isResearchLoggingEnabled()).toBe(false);
+    process.env.RESEARCH_LOGGING_ENABLED = "true";
+    expect(isResearchLoggingEnabled()).toBe(true);
+  });
 });
 
 describe("logCvSave", () => {
@@ -38,6 +59,19 @@ describe("logCvSave", () => {
     mocks.findUnique.mockResolvedValue({ researchConsent: false });
     await logCvSave("u1", base(), base());
     expect(mocks.createMany).not.toHaveBeenCalled();
+  });
+
+  it("writes nothing while the programme is paused, even with consent", async () => {
+    delete process.env.RESEARCH_LOGGING_ENABLED; // default: paused (no IRB yet)
+    mocks.findUnique.mockResolvedValue({ researchConsent: true });
+    const prev = base();
+    const next = setItemNotMine(prev, "publications", "W4300000003", true, {
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    await logCvSave("u1", prev, next);
+    expect(mocks.createMany).not.toHaveBeenCalled();
+    // short-circuits before it even reads the consent flag
+    expect(mocks.findUnique).not.toHaveBeenCalled();
   });
 
   it("logs a hide as curation_correction + a composition snapshot (with consent)", async () => {

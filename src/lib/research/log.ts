@@ -7,6 +7,7 @@ import {
   diffIncludedChanges,
   diffNotMineChanges,
 } from "./diff";
+import { isResearchLoggingEnabled } from "./enabled";
 
 /**
  * Version of the research-consent notice. Bump when the *what/why* of logging
@@ -41,6 +42,9 @@ export async function logCvSave(
   next: CanonicalCv,
 ): Promise<void> {
   try {
+    // Programme-level switch: paused until an IRB protocol is in place. Checked
+    // before consent so a stored `researchConsent: true` never logs while off.
+    if (!isResearchLoggingEnabled()) return;
     if (!(await hasConsent(userId))) return;
 
     const events: Prisma.ResearchEventCreateManyInput[] = diffIncludedChanges(

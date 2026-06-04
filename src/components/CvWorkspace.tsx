@@ -28,6 +28,8 @@ interface CvWorkspaceProps {
   availableStyles: string[];
   userName: string;
   researchConsent: boolean;
+  /** Whether the research-logging programme is active (off until IRB approval). */
+  researchEnabled: boolean;
   published: boolean;
   publicSlug: string | null;
   publicIndexable: boolean;
@@ -58,6 +60,7 @@ export default function CvWorkspace({
   availableStyles,
   userName,
   researchConsent,
+  researchEnabled,
   published,
   publicSlug,
   publicIndexable,
@@ -176,7 +179,9 @@ export default function CvWorkspace({
       <a href="#cv-main" className="skip-link">
         {t(uiLocale, "skipToContent")}
       </a>
-      <ResearchConsentPrompt initialConsent={researchConsent} locale={uiLocale} />
+      {researchEnabled ? (
+        <ResearchConsentPrompt initialConsent={researchConsent} locale={uiLocale} />
+      ) : null}
       <header className="cv-topbar">
         <div className="cv-topbar-left">
           <strong>SigmaCV</strong>

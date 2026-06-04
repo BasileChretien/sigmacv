@@ -3,6 +3,7 @@ import { auth, signOut } from "@/auth";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { getCvForUser, getPublishState, syncCvForUser } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
+import { isResearchLoggingEnabled } from "@/lib/research/enabled";
 import CvWorkspace from "@/components/CvWorkspace";
 
 export const runtime = "nodejs";
@@ -41,6 +42,7 @@ export default async function CvPage() {
       availableStyles={availableStyles}
       userName={session.user.name ?? session.user.orcid ?? "Researcher"}
       researchConsent={session.user.researchConsent ?? false}
+      researchEnabled={isResearchLoggingEnabled()}
       published={publish.published}
       publicSlug={publish.publicSlug}
       publicIndexable={publish.indexable}
