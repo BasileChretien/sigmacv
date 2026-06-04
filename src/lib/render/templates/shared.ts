@@ -30,7 +30,7 @@ export function authorshipTableHtml(cv: CanonicalCv): string {
       (r) =>
         `<tr><td>${escapeHtml(authorshipRoleLabel(loc, r.role))}</td><td class="cv-authorship-n">${numFmt.format(
           r.count,
-        )}<span class="cv-authorship-pct">${pctFmt.format(r.percent / 100)}</span></td></tr>`,
+        )}<span class="cv-authorship-pct">(${pctFmt.format(r.percent / 100)})</span></td></tr>`,
     )
     .join("");
   const s = renderStrings(loc);

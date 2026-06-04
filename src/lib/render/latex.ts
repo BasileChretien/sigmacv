@@ -105,18 +105,20 @@ function authorshipTableLatex(cv: CanonicalCv): string {
   if (rows.length === 0 || rows.every((r) => r.count === 0)) return "";
   const s = renderStrings(cv.display.locale);
   const total = rows[0]?.total ?? 0;
+  // One metric column reading "16 (18%)" so the count and its share can't run
+  // together into a meaningless number.
   const body = rows
     .map(
       (r) =>
-        `${escapeLatex(authorshipRoleLabel(cv.display.locale, r.role))} & ${r.count} & ${r.percent}\\% \\\\`,
+        `${escapeLatex(authorshipRoleLabel(cv.display.locale, r.role))} & ${r.count} (${r.percent}\\%) \\\\`,
     )
     .join("\n");
   const note = rows.some((r) => r.role === "corresponding")
     ? `\n{\\footnotesize\\itshape ${escapeLatex(s.authorshipCorrespondingNote)}\\par}`
     : "";
   return [
-    "\\medskip\\noindent\\begin{tabular}{@{}lrr@{}}",
-    `\\multicolumn{3}{@{}l}{\\textbf{${escapeLatex(s.authorshipCaption)} \\textperiodcentered{} n=${total}}} \\\\`,
+    "\\medskip\\noindent\\begin{tabular}{@{}lr@{}}",
+    `\\multicolumn{2}{@{}l}{\\textbf{${escapeLatex(s.authorshipCaption)} \\textperiodcentered{} n=${total}}} \\\\`,
     "\\hline",
     body,
     "\\end{tabular}\\par" + note,

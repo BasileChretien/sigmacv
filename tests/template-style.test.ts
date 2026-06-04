@@ -1,3 +1,4 @@
+import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { updateDisplay } from "@/lib/canonical/curate";
@@ -187,5 +188,26 @@ describe("Sidebar template — two-column layout in exports", () => {
     const buf = await renderCvDocxBuffer(sidebarCv);
     expect(buf.length).toBeGreaterThan(0);
     expect(buf[0]).toBe(0x50); // PK zip magic
+  });
+});
+
+describe("DOCX authorship table is well-formed (Word-openable)", () => {
+  const authCv = updateDisplay(base, {
+    template: "classic",
+    showAuthorshipTable: true,
+    authorshipRoles: ["first", "second", "third", "middle", "second-last", "last"],
+  });
+
+  it("emits no empty <w:tr> (an empty row makes Word refuse the file) and combines count + share", async () => {
+    const buf = await renderCvDocxBuffer(authCv);
+    const xml = await (await JSZip.loadAsync(buf)).file("word/document.xml")!.async("string");
+    // The regression: a header row built from an empty array → <w:tr></w:tr>.
+    expect(xml).not.toMatch(/<w:tr\s*\/>|<w:tr>\s*<\/w:tr>/);
+    // Every row carries at least one cell (classic has no nested tables).
+    for (const tr of xml.match(/<w:tr[\s>][\s\S]*?<\/w:tr>/g) ?? []) {
+      expect(tr).toMatch(/<w:tc[\s>]/);
+    }
+    // Count + share live in one cell as "N (P%)", not two columns that merge.
+    expect(xml).toMatch(/\(\d+%\)/);
   });
 });

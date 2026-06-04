@@ -68,18 +68,20 @@ function photoParagraph(cv: CanonicalCv, style: DocStyle): Paragraph | null {
   });
 }
 
-/** A simple bordered data table (header row bold). */
+/** A simple bordered data table (optional bold header row). An EMPTY header is
+ *  omitted entirely — a `<w:tr>` with no cells is invalid OOXML and makes Word
+ *  refuse to open the document. */
 function dataTable(header: string[], rows: string[][]): Table {
   const cell = (text: string, bold = false) =>
     new TableCell({
       children: [new Paragraph({ children: [new TextRun({ text, bold })] })],
     });
+  const headerRow = header.length
+    ? [new TableRow({ tableHeader: true, children: header.map((h) => cell(h, true)) })]
+    : [];
   return new Table({
     width: { size: 70, type: WidthType.PERCENTAGE },
-    rows: [
-      new TableRow({ tableHeader: true, children: header.map((h) => cell(h, true)) }),
-      ...rows.map((r) => new TableRow({ children: r.map((c) => cell(c)) })),
-    ],
+    rows: [...headerRow, ...rows.map((r) => new TableRow({ children: r.map((c) => cell(c)) }))],
   });
 }
 
@@ -103,12 +105,13 @@ function authorshipTable(cv: CanonicalCv): Table | null {
   if (!cv.display.showAuthorshipTable) return null;
   const rows = authorshipCounts(cv, cv.display.authorshipRoles);
   if (rows.length === 0 || rows.every((r) => r.count === 0)) return null;
+  // One metric column reading "16 (18%)" — count and share were previously two
+  // unlabelled columns that ran together as a meaningless "1618%".
   return dataTable(
     [],
     rows.map((r) => [
       authorshipRoleLabel(cv.display.locale, r.role),
-      String(r.count),
-      `${r.percent}%`,
+      `${r.count} (${r.percent}%)`,
     ]),
   );
 }
