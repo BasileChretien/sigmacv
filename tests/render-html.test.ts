@@ -55,6 +55,30 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(html).not.toContain('<span class="cv-self">');
   });
 
+  it("wraps inline badges in a separated container so they can't collide with the citation text", () => {
+    const html = renderCvHtml(
+      updateDisplay(makeCv(), {
+        showCitationCounts: true,
+        showAuthorRole: true,
+        showOpenAccess: true,
+      }),
+    );
+    // The badge group is wrapped, so a bare trailing URL/DOI can't fuse with it…
+    expect(html).toContain('class="cv-badges"');
+    // …and the container guarantees a gap between consecutive badges (regression:
+    // the count pill used to butt straight against the OA/role pill or the URL).
+    expect(html).toMatch(/\.cv-badges\s*\{[^{}]*gap:/);
+  });
+
+  it("strips the authorship-note in the ATS template (no orphaned caveat when the table is hidden)", () => {
+    const html = renderCvHtml(updateDisplay(makeCv(), { template: "ats" }));
+    // .cv-authorship is already hidden in ATS, but the caveat is a SEPARATE class;
+    // it must be hidden in the same strip rule or it renders with no table above it.
+    expect(html).toMatch(
+      /\.cv-photo,[^{}]*\.cv-authorship-note[^{}]*\{[^{}]*display:\s*none\s*!important/,
+    );
+  });
+
   it("excludes 'not mine' items from the output", () => {
     const cv = setItemIncluded(makeCv(), SECTION, "W4300000003", false);
     const html = renderCvHtml(cv);

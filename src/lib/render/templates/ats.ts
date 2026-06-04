@@ -22,7 +22,7 @@ function atsCss(_theme: TemplateTheme): string {
   .cv { max-width: 720px; padding: 36px 44px; }
 
   /* Strip everything a résumé parser can't read — independent of display toggles. */
-  .cv-photo, .cv-charts, .cv-badge, .cv-authorship { display: none !important; }
+  .cv-photo, .cv-charts, .cv-badge, .cv-badges, .cv-authorship, .cv-authorship-note { display: none !important; }
   .cv-headmain { display: block; }
 
   /* Header: plain black, no border band, no accent. */

@@ -43,7 +43,11 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
       )}</span>`,
     );
   }
-  return badges.length ? ` ${badges.join(" ")}` : "";
+  // Wrap the group in an inline-flex container (own `gap` + `margin-left`) so the
+  // badges can never collapse against the preceding citation text/URL or against
+  // each other — a plain joining space did, depending on the CSL style's trailing
+  // node (e.g. a bare URL in APA) and on whitespace collapsing.
+  return badges.length ? `<span class="cv-badges">${badges.join("")}</span>` : "";
 }
 
 /**
