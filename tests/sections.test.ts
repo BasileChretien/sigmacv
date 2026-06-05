@@ -102,6 +102,36 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(oaItem?.included).toBe(false);
   });
 
+  it("stamps lastVerifiedAt + persists the ROR id on live-sourced entry items", () => {
+    const cv = buildCanonicalCv({
+      id: "s",
+      resolved: {
+        ...resolved,
+        // OpenAlex affiliation carrying a ROR id (set during ROR enrichment).
+        affiliations: [
+          { institution: "Université de Caen", startYear: 2010, rorId: "https://ror.org/051kpcy16" },
+        ],
+      },
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      // ORCID employment carrying a ROR id.
+      employments: [
+        { putCode: "200", organization: "Nagoya University", roleTitle: "Assistant Professor", startYear: 2024, rorId: "https://ror.org/04chrp450" },
+      ],
+      fundings,
+    });
+    const positions = cv.sections.find((s) => s.type === "positions")!;
+    const orcidPos = positions.items.find((i) => i.source === "orcid")!;
+    const oaPos = positions.items.find((i) => i.source === "openalex")!;
+    expect(orcidPos.meta.rorId).toBe("https://ror.org/04chrp450");
+    expect(orcidPos.meta.lastVerifiedAt).toBe("2026-06-02T00:00:00.000Z");
+    expect(oaPos.meta.rorId).toBe("https://ror.org/051kpcy16");
+    // Grants (ORCID, no institution ROR) still get a freshness stamp.
+    const grant = cv.sections.find((s) => s.type === "grants")!.items[0]!;
+    expect(grant.meta.lastVerifiedAt).toBe("2026-06-02T00:00:00.000Z");
+    expect(grant.meta.rorId).toBeUndefined();
+  });
+
   it("adds an editorial section from OEP roles", () => {
     const cv = buildCanonicalCv({
       id: "s",

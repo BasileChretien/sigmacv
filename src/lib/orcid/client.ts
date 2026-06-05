@@ -22,6 +22,8 @@ export interface OrcidPosition {
   department?: string;
   startYear?: number;
   endYear?: number;
+  /** ROR id of the canonicalized organization, set during ROR enrichment. */
+  rorId?: string;
 }
 
 export interface OrcidFunding {

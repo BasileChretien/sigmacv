@@ -15,6 +15,20 @@ import { CslItemSchema } from "@/types/csl";
 
 export const CANONICAL_SCHEMA_VERSION = 1 as const;
 
+/**
+ * Licenses offered for the whole-CV reuse statement (`display.cvLicense`) and
+ * the human/URL mapping in `license.ts`. "none" + "all-rights-reserved" are the
+ * two non-CC sentinels (no canonical SPDX URL). Proper nouns — NOT i18n'd.
+ */
+export const CV_LICENSES = [
+  "none",
+  "CC0-1.0",
+  "CC-BY-4.0",
+  "CC-BY-SA-4.0",
+  "all-rights-reserved",
+] as const;
+export type CvLicenseKey = (typeof CV_LICENSES)[number];
+
 export const SECTION_TYPES = [
   "publications",
   "preprints",
@@ -166,6 +180,22 @@ export const CvItemSchema = z.object({
     topDecile: z.boolean().optional(),
     /** Open-access status from OpenAlex ("gold"/"green"/"hybrid"/"bronze"/"diamond"). */
     oaStatus: z.string().optional(),
+    /**
+     * Reuse license of THIS work (e.g. "cc-by", "cc-by-nc-nd"), taken from the
+     * OpenAlex location (`primary_location.license`, else `best_oa_location`).
+     * Free-form (OpenAlex's own slug) — surfaced for FAIR/open-science display.
+     */
+    license: z.string().optional(),
+    /** PubMed id (bare numeric, e.g. "12345678"), extracted from OpenAlex `ids.pmid`. */
+    pmid: z.string().optional(),
+    /** ROR id of the institution this item was canonicalized to, when ROR matched. */
+    rorId: z.string().optional(),
+    /**
+     * ISO timestamp of the build that last fetched this item from a LIVE source
+     * (openalex/orcid/…). Per-item freshness for FAIR provenance; undefined for
+     * purely manual entries that were never re-fetched.
+     */
+    lastVerifiedAt: z.string().optional(),
     /** The account holder's authorship role on this work ("first"/"last"/"corresponding"). */
     authorRole: z.string().optional(),
     /** Total number of authors on the work. */
@@ -399,6 +429,11 @@ export const DisplayChoicesSchema = z.object({
   highlightSelf: z.boolean().default(true),
   /** How the self-name is emphasised (colour / bold / underline). */
   highlightStyle: z.enum(HIGHLIGHT_STYLES).default("accent"),
+  /**
+   * Whole-CV reuse license (FAIR / open-science). Default "none" = no statement.
+   * `licenseInfo()` in `license.ts` maps the key → human name + SPDX URL.
+   */
+  cvLicense: z.enum(CV_LICENSES).default("none"),
   /** Master metrics toggle. Brief: metrics default to NONE. */
   showMetrics: z.boolean().default(false),
   /** Which metric keys to show (subset of METRIC_KEYS). Default none. */
@@ -475,6 +510,14 @@ export const DisplayChoicesSchema = z.object({
       location: z.boolean().default(false),
     })
     .default({}),
+  /**
+   * Show the small "Made with SigmaCV" attribution footer on the PUBLIC living
+   * page (`/p/[slug]`) only — a referral backlink to the site root. Opt-OUT:
+   * default ON. It never appears on exported PDF/DOCX/LaTeX/Markdown (a CV the
+   * owner submits to a job/grant must stay unbranded); the public route is the
+   * only renderer that requests it.
+   */
+  publicAttribution: z.boolean().default(true),
 });
 export type DisplayChoices = z.infer<typeof DisplayChoicesSchema>;
 

@@ -193,6 +193,11 @@ describe("canonicalizeInstitutions", () => {
     expect(result.education[0]!.organization).toBe("Caen University Hospital");
     expect(result.service[0]!.organization).toBe("Unknown Place");
     expect(result.affiliations[0]!.institution).toBe("Nagoya University");
+    // The matched ROR id is persisted additively alongside the canonical name.
+    expect(result.employments[0]!.rorId).toBe("https://ror.org/04chrp450");
+    expect(result.education[0]!.rorId).toBe("https://ror.org/051kpcy16");
+    expect(result.affiliations[0]!.rorId).toBe("https://ror.org/04chrp450");
+    expect(result.service[0]!.rorId).toBeUndefined(); // no ROR match → no id
     // Distinct names resolved once each (Nagoya appears twice → dedup'd to 1 call).
     expect(mocks.resolveInstitution).toHaveBeenCalledTimes(3);
   });
@@ -212,10 +217,17 @@ describe("canonicalizeInstitutions", () => {
     expect(mocks.resolveInstitution).not.toHaveBeenCalled();
   });
 
-  it("does not rewrite when ROR returns the same name", async () => {
+  it("does not rewrite when ROR returns the same name, but still persists its id", async () => {
     mocks.resolveInstitution.mockResolvedValue({ id: "https://ror.org/x", name: "Exact Name" });
-    const { used } = await canonicalizeInstitutions({ ...emptyBundle, employments: [pos("Exact Name")] });
+    const { result, used } = await canonicalizeInstitutions({
+      ...emptyBundle,
+      employments: [pos("Exact Name")],
+    });
+    // No visible name change → not a "ror" provenance contribution…
     expect(used).toBe(false);
+    // …yet the ROR id is captured additively (the name was already canonical).
+    expect(result.employments[0]!.organization).toBe("Exact Name");
+    expect(result.employments[0]!.rorId).toBe("https://ror.org/x");
   });
 });
 

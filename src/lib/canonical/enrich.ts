@@ -169,25 +169,45 @@ export async function canonicalizeInstitutions(
     resolveInstitution(name),
   );
 
-  // name → canonical name (only when ROR returned a DIFFERENT, confident name).
-  const canonical = new Map<string, string>();
+  // name → { canonical name?, rorId } for every CONFIDENT ROR match. The name is
+  // only recorded when ROR returned a DIFFERENT string (so identical names are
+  // left untouched), but the rorId is captured on ANY confident match so it can
+  // be persisted even when the name didn't change.
+  const matched = new Map<string, { name?: string; rorId?: string }>();
   unique.forEach((name, idx) => {
     const org = resolved[idx];
-    if (org?.name && org.name !== name) canonical.set(name, org.name);
+    if (!org) return;
+    matched.set(name, {
+      name: org.name && org.name !== name ? org.name : undefined,
+      rorId: org.id || undefined,
+    });
   });
-  if (canonical.size === 0) return { result: input, used: false };
+  if (matched.size === 0) return { result: input, used: false };
+  // A name CHANGE drives the "ror" provenance flag (used). A pure id annotation
+  // (name unchanged) is additive metadata and not a visible source contribution.
+  const used = [...matched.values()].some((m) => m.name !== undefined);
 
   const mapPos = (p: OrcidPosition): OrcidPosition => {
-    const c = canonical.get(p.organization.trim());
-    return c ? { ...p, organization: c } : p;
+    const m = matched.get(p.organization.trim());
+    if (!m) return p;
+    return {
+      ...p,
+      organization: m.name ?? p.organization,
+      rorId: m.rorId ?? p.rorId,
+    };
   };
   const mapAff = (a: ResolvedAffiliation): ResolvedAffiliation => {
-    const c = canonical.get(a.institution.trim());
-    return c ? { ...a, institution: c } : a;
+    const m = matched.get(a.institution.trim());
+    if (!m) return a;
+    return {
+      ...a,
+      institution: m.name ?? a.institution,
+      rorId: m.rorId ?? a.rorId,
+    };
   };
 
   return {
-    used: true,
+    used,
     result: {
       employments: input.employments.map(mapPos),
       education: input.education.map(mapPos),

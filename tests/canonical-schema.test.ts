@@ -59,6 +59,7 @@ describe("DisplayChoicesSchema", () => {
       locale: "en-US",
       highlightSelf: true,
       highlightStyle: "accent",
+      cvLicense: "none",
       showMetrics: false,
       metrics: [],
       showCharts: false,
@@ -76,6 +77,7 @@ describe("DisplayChoicesSchema", () => {
       fontPairing: "serif",
       density: "comfortable",
       publicContact: { email: false, phone: false, location: false },
+      publicAttribution: true,
     });
   });
 
@@ -92,6 +94,13 @@ describe("DisplayChoicesSchema", () => {
   it("rejects unknown font / density values", () => {
     expect(DisplayChoicesSchema.safeParse({ fontPairing: "comic" }).success).toBe(false);
     expect(DisplayChoicesSchema.safeParse({ density: "huge" }).success).toBe(false);
+  });
+
+  it("defaults cvLicense to none and accepts known licenses / rejects unknown", () => {
+    expect(DisplayChoicesSchema.parse({}).cvLicense).toBe("none");
+    expect(DisplayChoicesSchema.safeParse({ cvLicense: "CC-BY-4.0" }).success).toBe(true);
+    expect(DisplayChoicesSchema.safeParse({ cvLicense: "all-rights-reserved" }).success).toBe(true);
+    expect(DisplayChoicesSchema.safeParse({ cvLicense: "WTFPL" }).success).toBe(false);
   });
 
   it("coerces an unknown/removed template to classic (forward-compat fallback)", () => {

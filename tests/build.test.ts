@@ -265,6 +265,29 @@ describe("buildCanonicalCv", () => {
     ]);
   });
 
+  it("populates per-work license (primary, else best_oa fallback, else none)", () => {
+    const items = build().sections[0]!.items;
+    const byId = (id: string) => items.find((i) => i.id === id)!;
+    // primary_location.license
+    expect(byId("W4300000001").meta.license).toBe("cc-by");
+    // primary license is null → falls back to best_oa_location.license
+    expect(byId("W4300000002").meta.license).toBe("cc-by-nc-nd");
+    // neither location carries a license
+    expect(byId("W4300000003").meta.license).toBeUndefined();
+  });
+
+  it("extracts the bare PubMed id from the OpenAlex ids.pmid URL", () => {
+    const items = build().sections[0]!.items;
+    const byId = (id: string) => items.find((i) => i.id === id)!;
+    expect(byId("W4300000001").meta.pmid).toBe("123456");
+    expect(byId("W4300000002").meta.pmid).toBeUndefined(); // no ids.pmid
+  });
+
+  it("stamps lastVerifiedAt with the build timestamp for live-sourced works", () => {
+    const items = build().sections[0]!.items;
+    expect(items.every((i) => i.meta.lastVerifiedAt === "2026-06-02T00:00:00.000Z")).toBe(true);
+  });
+
   it("breaks recency ties alphabetically by title", () => {
     const sameYear = [
       {

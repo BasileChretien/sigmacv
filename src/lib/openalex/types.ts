@@ -55,6 +55,13 @@ export interface OpenAlexSource {
   type?: string;
 }
 
+/** An OpenAlex "location" (where a work is hosted). Carries the reuse license. */
+export interface OpenAlexLocation {
+  source?: OpenAlexSource | null;
+  /** Reuse license slug (e.g. "cc-by", "cc-by-nc-nd"), or null when unknown. */
+  license?: string | null;
+}
+
 export interface OpenAlexWork {
   /** URL form, e.g. "https://openalex.org/W2741809807". */
   id: string;
@@ -79,7 +86,9 @@ export interface OpenAlexWork {
     oa_status?: string;
     oa_url?: string | null;
   } | null;
-  primary_location?: { source?: OpenAlexSource | null } | null;
+  primary_location?: OpenAlexLocation | null;
+  /** Best open-access location (fallback source for the reuse license). */
+  best_oa_location?: OpenAlexLocation | null;
   biblio?: {
     volume?: string | null;
     issue?: string | null;
