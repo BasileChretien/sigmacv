@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+title: SigmaCV
+message: >-
+  If you use SigmaCV in your research, please cite it using the
+  metadata in this file.
+type: software
+authors:
+  - given-names: Basile
+    family-names: Chrétien
+    orcid: "https://orcid.org/0000-0002-7483-2489"
+    affiliation: >-
+      Department of International Medical Education, Nagoya University
+      Graduate School of Medicine, Nagoya, Japan
+repository-code: "https://github.com/BasileChretien/sigmacv"
+url: "https://sigmacv.org"
+abstract: >-
+  SigmaCV auto-generates clean, customizable academic CVs from open
+  research data (OpenAlex, ORCID, Crossref, Open Editors Plus). It is
+  free for individuals and built as open infrastructure for responsible
+  research assessment: a single canonical CV object drives every output
+  format, citations are rendered through CSL, and the account holder is
+  matched by persistent identifier (ORCID / OpenAlex), never by name
+  string.
+keywords:
+  - academic CV
+  - curriculum vitae
+  - ORCID
+  - OpenAlex
+  - bibliometrics
+  - responsible research assessment
+  - FAIR
+  - open science
+  - CSL
+license: Apache-2.0
+version: 0.1.0
+date-released: "2026-06-05"

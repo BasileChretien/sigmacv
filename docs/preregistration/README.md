@@ -21,15 +21,17 @@ collected `ResearchEvent` rows. See `/privacy` and `src/lib/research/`.
 - **Signal:** `disambiguation_assertion` events — "not mine" flips with a
   structured `reason`, the build-computed `reviewFlag`, `authoredBySelf`, and
   (planned) the identifier-match basis.
-- **Plan:** _TODO — register before analysis._ Pre-specify error taxonomy,
-  exposure (match basis), outcome (assertion), and the model.
+- **Plan:** draft template at
+  [`study-2-disambiguation-error.md`](study-2-disambiguation-error.md) —
+  complete the placeholders, register, and freeze the script before analysis.
 
 ### 3. Self-presentation / metric-norms study
 - **Signal:** `composition_snapshot` events — template, citation style, locale,
   highlight, metrics shown, peer-reviewed-only, publication order, authorship
   table/roles, charts, fonts, and per-section visibility/order/counts.
-- **Plan:** _TODO — register before analysis._ Pre-specify the composition
-  features, covariates, and the confirmatory hypotheses.
+- **Plan:** draft template at
+  [`study-3-self-presentation.md`](study-3-self-presentation.md) — complete the
+  placeholders, register, and freeze the script before analysis.
 
 ## Checklist before any confirmatory analysis
 - [ ] IRB protocol number recorded here
