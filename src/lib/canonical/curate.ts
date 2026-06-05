@@ -465,6 +465,39 @@ export function addStructuredEntry(
 }
 
 /**
+ * Append a DOI-claimed work (built by `buildClaimedItem` from OpenAlex data) to
+ * the right section — Preprints if it's a preprint, else Publications — creating
+ * the section if needed. The metadata is source-driven; only ownership is asserted.
+ */
+export function addClaimedWork(
+  cv: CanonicalCv,
+  item: CvItem,
+  isPreprint: boolean,
+): CanonicalCv {
+  return appendManualItem(cv, isPreprint ? "preprints" : "publications", item);
+}
+
+/**
+ * Whether the CV already contains a work with the given OpenAlex id or DOI, so
+ * the "add by DOI" flow can refuse a duplicate rather than list it twice.
+ */
+export function cvHasWork(
+  cv: CanonicalCv,
+  opts: { id?: string; doi?: string },
+): boolean {
+  const doi = opts.doi?.toLowerCase();
+  return cv.sections.some((s) =>
+    s.items.some(
+      (it) =>
+        (opts.id !== undefined && it.id === opts.id) ||
+        (doi !== undefined &&
+          (it.csl?.DOI?.toLowerCase() === doi ||
+            it.meta.doi?.toLowerCase() === doi)),
+    ),
+  );
+}
+
+/**
  * Create an empty section of the given type (if it doesn't already exist), at
  * its canonical order with a localized title. The user then adds entries via
  * the add-entry input. Used by the editor's "Add a section" menu.

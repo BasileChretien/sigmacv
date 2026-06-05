@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
+  addClaimedWork,
   addManualEntry,
   addSection,
   addStructuredEntry,
   buildManualCsl,
+  cvHasWork,
   applyPreset,
   deletePreset,
   moveItem,
@@ -25,7 +27,7 @@ import {
   visibleItems,
   visibleSections,
 } from "@/lib/canonical/curate";
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -42,6 +44,42 @@ function makeCv() {
 }
 
 const SECTION = "publications";
+
+describe("addClaimedWork / cvHasWork", () => {
+  const claimed: CvItem = {
+    id: "W_NEW",
+    source: "openalex",
+    sourceId: "https://openalex.org/W_NEW",
+    csl: { id: "W_NEW", type: "article-journal", title: "Claimed paper", DOI: "10.5555/new" },
+    included: true,
+    notMine: false,
+    order: 0,
+    authoredBySelf: true,
+    selfNameVariants: ["Basile Chrétien"],
+    meta: { year: 2021, claimed: true, matchBasis: "claimed", authorPosition: 1, peerReviewed: true },
+  };
+
+  it("appends a claimed work to Publications", () => {
+    const cv = addClaimedWork(makeCv(), claimed, false);
+    const pubs = cv.sections.find((s) => s.type === "publications")!;
+    expect(pubs.items.some((i) => i.id === "W_NEW")).toBe(true);
+  });
+
+  it("appends a claimed preprint to the Preprints section (creating it)", () => {
+    const cv = addClaimedWork(makeCv(), claimed, true);
+    expect(
+      cv.sections.find((s) => s.type === "preprints")?.items.some((i) => i.id === "W_NEW"),
+    ).toBe(true);
+  });
+
+  it("cvHasWork detects an existing work by id or DOI (case-insensitive)", () => {
+    const cv = addClaimedWork(makeCv(), claimed, false);
+    expect(cvHasWork(cv, { id: "W_NEW" })).toBe(true);
+    expect(cvHasWork(cv, { doi: "10.5555/NEW" })).toBe(true);
+    expect(cvHasWork(cv, { doi: "10.0/absent" })).toBe(false);
+    expect(cvHasWork(makeCv(), { id: "W_NEW" })).toBe(false);
+  });
+});
 
 describe("curation is immutable", () => {
   it("never mutates the input document", () => {
