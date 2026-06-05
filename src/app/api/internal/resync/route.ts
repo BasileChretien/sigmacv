@@ -3,9 +3,14 @@ import { NextResponse } from "next/server";
 import { resyncDueCvs } from "@/lib/cv/resync";
 import { getEnv } from "@/lib/env";
 import { logger } from "@/lib/log";
+import { enforceRateLimit } from "@/lib/rateLimitStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Coarse minimum interval between scans: each runs an expensive fan-out to the
+// external APIs, so even an authorized caller can't trigger overlapping batches.
+const RESYNC_MIN_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 function safeEqual(a: string, b: string): boolean {
   const ab = Buffer.from(a, "utf8");
@@ -38,6 +43,16 @@ export async function POST(req: Request) {
     : (req.headers.get("x-resync-secret") ?? "");
   if (!provided || !safeEqual(provided, secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Minimum-interval guard: refuse to start a new scan if one ran very recently,
+  // so a leaked secret / misfiring cron can't stack overlapping fan-outs.
+  const rl = await enforceRateLimit("internal-resync", 1, RESYNC_MIN_INTERVAL_MS);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { ok: true, skipped: "ran too recently" },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
   }
 
   try {

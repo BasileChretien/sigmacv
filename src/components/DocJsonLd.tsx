@@ -1,3 +1,4 @@
+import { serializeJsonLd } from "@/lib/jsonLd";
 import { absoluteUrl, SITE_URL } from "@/lib/siteUrl";
 
 /**
@@ -32,7 +33,7 @@ export default function DocJsonLd({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
     />
   );
 }

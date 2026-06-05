@@ -94,4 +94,22 @@ describe("cslItemsToBibtex", () => {
   it("returns an empty string for no items", () => {
     expect(cslItemsToBibtex([])).toBe("");
   });
+
+  it("strips braces/backslash from url + doi so a crafted value can't inject", () => {
+    const evil: CslItem = {
+      id: "WX",
+      type: "article-journal",
+      title: "Injection attempt",
+      author: [{ family: "X", given: "Y" }],
+      issued: { "date-parts": [[2024]] },
+      DOI: "10.1/x}\\input{/etc/passwd}",
+      URL: "https://e.org/}{\\write18{rm}",
+    };
+    const bib = cslItemsToBibtex([evil]);
+    // Braces + backslash removed → no early-close of the {value}, no live LaTeX.
+    expect(bib).toContain("doi = {10.1/xinput/etc/passwd}");
+    expect(bib).toContain("url = {https://e.org/write18rm}");
+    expect(bib).not.toContain("\\input");
+    expect(bib).not.toContain("\\write18");
+  });
 });

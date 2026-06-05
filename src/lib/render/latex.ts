@@ -30,6 +30,14 @@ function escapeLatex(s: string): string {
 
 const URL_RE = /(https?:\/\/[^\s]+)/g;
 
+/** Make a URL safe inside \url{}: an unbalanced brace or backslash would close
+ *  the argument early and turn the remainder into live LaTeX (e.g.
+ *  `https://x}\input{...}`). Real URLs never need these literally (they'd be
+ *  %-encoded), so strip them (braces, backslash, caret, tilde). */
+function sanitizeUrlForLatex(url: string): string {
+  return url.replace(/[{}\\^~]/g, "");
+}
+
 /** Escape an entry for LaTeX, but wrap any URL in \url{} so it (a) keeps its raw
  *  characters and (b) can break across lines (via xurl) instead of overflowing
  *  the margin. Self-name highlighting is applied only to the escaped text runs. */
@@ -37,7 +45,7 @@ function latexifyEntry(entry: string, bold: ((s: string) => string) | null): str
   return entry
     .split(URL_RE)
     .map((part) => {
-      if (/^https?:\/\//.test(part)) return `\\url{${part}}`;
+      if (/^https?:\/\//.test(part)) return `\\url{${sanitizeUrlForLatex(part)}}`;
       const escaped = escapeLatex(part);
       return bold ? bold(escaped) : escaped;
     })

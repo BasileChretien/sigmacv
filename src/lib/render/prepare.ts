@@ -1,6 +1,6 @@
 import type { CanonicalCv, CvItem, CvSection } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
-import { registerStyleXml } from "@/lib/citeproc/assets";
+import { DEFAULT_STYLE, isBundledStyle, registerStyleXml } from "@/lib/citeproc/assets";
 import {
   renderBibliography,
   type CiteprocOutputFormat,
@@ -31,11 +31,18 @@ export function prepareSections(
   cv: CanonicalCv,
   outputFormat: CiteprocOutputFormat,
 ): PreparedSection[] {
-  // If the chosen style is a user-added custom style, make its XML resolvable
-  // for this render (the canonical document carries it; this is the fast path).
+  // Resolve the effective citation style for THIS render.
+  //  - A custom style whose payload this document carries → register + use it.
+  //  - A custom style id WITHOUT a matching payload → do NOT resolve it from the
+  //    shared, process-global custom-style cache (another user may have
+  //    registered that id); fall back to the default bundled style.
+  //  - A bundled style id → use it directly.
   const custom = cv.display.customStyle;
+  let styleKey = cv.display.cslStyle;
   if (custom && custom.id === cv.display.cslStyle) {
     registerStyleXml(custom.id, custom.xml);
+  } else if (!isBundledStyle(styleKey)) {
+    styleKey = DEFAULT_STYLE;
   }
 
   // Which CITATIONS to LIST (non-citation entries — positions, grants, editorial
@@ -96,7 +103,7 @@ export function prepareSections(
     const entries = cslItems.length
       ? renderBibliography(
           cslItems,
-          cv.display.cslStyle,
+          styleKey,
           cv.display.locale,
           outputFormat,
         )

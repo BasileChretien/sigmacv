@@ -1,3 +1,4 @@
+import { serializeJsonLd } from "@/lib/jsonLd";
 import { getSiteLinks } from "@/lib/siteLinks";
 import { SITE_URL } from "@/lib/siteUrl";
 
@@ -70,7 +71,7 @@ export default function StructuredData({
     <script
       type="application/ld+json"
       // Server-rendered from static, non-user data — safe to inline.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
     />
   );
 }

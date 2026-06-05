@@ -3,6 +3,7 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   DEFAULT_STYLE,
   getStyleXml,
+  isBundledStyle,
   listAvailableStyles,
   registerStyleXml,
 } from "@/lib/citeproc/assets";
@@ -355,5 +356,32 @@ describe.skipIf(!hasApa)("rendering with a custom style", () => {
     });
     // The custom style's literal marker proves it was the style used.
     expect(html).toContain("MINISTYLE");
+  });
+
+  it("does NOT resolve a custom cslStyle id from the shared cache without a payload", () => {
+    // Simulate another user having registered a custom style under this id.
+    registerStyleXml("shared-id-render", MINI_XML);
+    const cv = buildCanonicalCv({
+      id: "cs2",
+      resolved,
+      works,
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    // This document references the id but carries NO customStyle payload — it must
+    // fall back to the default bundled style, not the cross-user cached one.
+    const html = renderCvHtml({
+      ...cv,
+      display: { ...cv.display, cslStyle: "shared-id-render" },
+    });
+    expect(html).not.toContain("MINISTYLE"); // the other user's style was NOT used
+    expect(html).toContain("Publications"); // rendered fine with the default style
+  });
+});
+
+describe.skipIf(!hasApa)("isBundledStyle", () => {
+  it("is true for a vendored style, false for a custom/unknown id", () => {
+    expect(isBundledStyle("apa")).toBe(true);
+    expect(isBundledStyle("definitely-not-bundled-xyz")).toBe(false);
+    expect(isBundledStyle("")).toBe(false);
   });
 });

@@ -100,6 +100,12 @@ export function registerStyleXml(id: string, xml: string): void {
   customStyleCache.set(key, xml);
 }
 
+/** True if `styleKey` is one of the vendored (bundled) styles shipped on disk. */
+export function isBundledStyle(styleKey: string): boolean {
+  const key = sanitizeKey(styleKey);
+  return key.length > 0 && existsSync(vendoredStylePath(key));
+}
+
 /**
  * Return locale XML for a requested language tag. Maps to the nearest bundled
  * locale by primary subtag; unknown tags fall back to en-US. citeproc may

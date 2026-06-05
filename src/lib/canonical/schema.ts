@@ -316,10 +316,12 @@ export const CvOwnerSchema = z.object({
     .string()
     .max(PHOTO_DATA_URL_MAX)
     // Raster formats only. Crucially this REJECTS image/svg+xml, which can carry
-    // embedded scripts — the client already downscales to JPEG, so a non-raster
-    // type only arrives via a crafted request.
+    // embedded scripts. END-ANCHORED to a strict base64 body so nothing can be
+    // smuggled AFTER the base64 (e.g. `…;base64,AAAA"><script>`): the schema is a
+    // real boundary, not just a prefix check. The client downscales to JPEG, so a
+    // non-conforming value only arrives via a crafted request.
     .regex(
-      /^data:image\/(jpeg|png|webp|gif);base64,/i,
+      /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/i,
       "photo must be a JPEG, PNG, WebP, or GIF data URL",
     )
     .optional(),

@@ -187,18 +187,33 @@ export async function saveCvForUser(
   const prevParsed = safeParseCanonicalCv(existing.document);
   const previous = prevParsed.success ? prevParsed.data : null;
 
+  // Identity reconciliation: owner.orcid + openAlexAuthorIds are SERVER-derived
+  // (set from the authenticated ORCID when the CV is built/synced). A curation
+  // save must never change them — otherwise a user could set another
+  // researcher's ORCID iD as their own and publish it on an indexable page.
+  const reconciled: CanonicalCv = previous
+    ? {
+        ...validated,
+        owner: {
+          ...validated.owner,
+          orcid: previous.owner.orcid,
+          openAlexAuthorIds: previous.owner.openAlexAuthorIds,
+        },
+      }
+    : validated;
+
   await prisma.cv.update({
     where: { userId },
     data: {
-      document: validated as unknown as Prisma.InputJsonValue,
-      schemaVersion: validated.schemaVersion,
+      document: reconciled as unknown as Prisma.InputJsonValue,
+      schemaVersion: reconciled.schemaVersion,
     },
   });
 
   // Consent-gated research logging (no-op without consent; never throws here).
-  await logCvSave(userId, previous, validated);
+  await logCvSave(userId, previous, reconciled);
 
-  return validated;
+  return reconciled;
 }
 
 // ─── Living public page ──────────────────────────────────────────────────────

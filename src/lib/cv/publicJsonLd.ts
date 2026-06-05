@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { serializeJsonLd } from "@/lib/jsonLd";
 import { absoluteUrl } from "@/lib/siteUrl";
 
 /**
@@ -30,5 +31,5 @@ export function profilePageJsonLd(cv: CanonicalCv, slug: string): string {
     mainEntity: person,
   };
 
-  return JSON.stringify(jsonLd).replace(/</g, "\\u003c");
+  return serializeJsonLd(jsonLd);
 }

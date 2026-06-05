@@ -80,6 +80,15 @@ function field(name: string, value: string, raw = false): string | null {
   return `  ${name} = {${raw ? value : esc(value)}}`;
 }
 
+/** A `name = {value}` line for URL/DOI fields: kept literal for clean import, but
+ *  with braces + backslash stripped so a crafted value can't break out of the
+ *  {…} and inject BibTeX/LaTeX. */
+function urlField(name: string, value: string): string | null {
+  if (!value) return null;
+  const safe = value.replace(/[{}\\]/g, "");
+  if (!safe) return null;
+  return `  ${name} = {${safe}}`;
+}
 function cslToBibtex(csl: CslItem, key: string): string {
   const type = bibType(csl);
   const container = csl["container-title"] ?? "";
@@ -95,8 +104,8 @@ function cslToBibtex(csl: CslItem, key: string): string {
     field("number", csl.issue ?? ""),
     field("pages", pagesOf(csl), true),
     field("publisher", csl.publisher ?? ""),
-    field("doi", csl.DOI ?? "", true), // URLs/DOIs kept literal so they import cleanly
-    field("url", csl.URL ?? "", true),
+    urlField("doi", csl.DOI ?? ""), // sanitised so a crafted value can't break the braces
+    urlField("url", csl.URL ?? ""),
   ];
   const body = lines.filter((l): l is string => l !== null).join(",\n");
   return `@${type}{${key},\n${body}\n}`;

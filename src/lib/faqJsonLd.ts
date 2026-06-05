@@ -7,6 +7,8 @@
  * "<" escaped to "<" (see publicJsonLd.ts) so it is safe to embed even if a
  * question or answer contained "</script>".
  */
+import { serializeJsonLd } from "@/lib/jsonLd";
+
 export function faqPageJsonLd(items: { q: string; a: string }[]): string {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -21,6 +23,5 @@ export function faqPageJsonLd(items: { q: string; a: string }[]): string {
     })),
   };
 
-  const payload = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
-  return `<script type="application/ld+json">${payload}</script>`;
+  return `<script type="application/ld+json">${serializeJsonLd(jsonLd)}</script>`;
 }
