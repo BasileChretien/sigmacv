@@ -258,6 +258,39 @@ export function isHidden(item: Pick<CvItem, "included" | "notMine">): boolean {
   return !item.included || item.notMine === true;
 }
 
+/**
+ * The standard funder "narrative CV" modules (UKRI Résumé for Research and
+ * Innovation / Royal Society Résumé for Researchers framing). The researcher
+ * writes the PROSE; SigmaCV only stores, curates and renders it. Keys are stable
+ * (proper-noun-free) identifiers; the localized heading + guidance prompt live in
+ * `i18n/narrative.ts`, so a heading can be re-localized without changing the key.
+ */
+export const NARRATIVE_MODULE_KEYS = [
+  "personal-statement",
+  "knowledge",
+  "individuals",
+  "community",
+  "society",
+  "additional",
+] as const;
+export const NarrativeModuleKeySchema = z.enum(NARRATIVE_MODULE_KEYS);
+export type NarrativeModuleKey = z.infer<typeof NarrativeModuleKeySchema>;
+
+/**
+ * One narrative module: a user-chosen heading + free-text body, with an
+ * include/exclude display toggle. The body is bounded (8k chars) to keep the
+ * canonical document a sane size; it is USER FREE-TEXT and must be escaped /
+ * safe-transformed by every renderer (never interpreted as raw HTML/markdown).
+ */
+export const CvNarrativeModuleSchema = z.object({
+  key: NarrativeModuleKeySchema,
+  heading: z.string().max(200),
+  body: z.string().max(8000),
+  /** Display toggle: only `included` modules with a non-empty body are rendered. */
+  included: z.boolean().default(true),
+});
+export type CvNarrativeModule = z.infer<typeof CvNarrativeModuleSchema>;
+
 export const CvSectionSchema = z.object({
   id: z.string(),
   type: CvSectionTypeSchema,
@@ -577,6 +610,13 @@ export const CanonicalCvSchema = z.object({
   sections: z.array(CvSectionSchema).max(60),
   /** Saved named view-presets (optional; back-compat: old docs have none). */
   presets: z.array(CvPresetSchema).max(20).default([]),
+  /**
+   * The narrative-CV modules (funder résumé prose). Additive + `.default([])`,
+   * so a document stored before narratives existed validates as `[]`. Capped at
+   * 12 (the six standard modules plus headroom). Rendered as a block above the
+   * sections when ≥1 included module has a non-empty body.
+   */
+  narrative: z.array(CvNarrativeModuleSchema).max(12).default([]),
   provenance: ProvenanceSchema,
 });
 export type CanonicalCv = z.infer<typeof CanonicalCvSchema>;

@@ -967,6 +967,8 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     sections,
     // Saved view-presets are a pure display concern — carry them across re-syncs.
     presets: previous?.presets ?? [],
+    // Narrative-CV prose is user-authored (never sourced) — preserve it on re-sync.
+    narrative: previous?.narrative ?? [],
     provenance: {
       generatedAt: previous?.provenance.generatedAt ?? now,
       lastSyncedAt: now,

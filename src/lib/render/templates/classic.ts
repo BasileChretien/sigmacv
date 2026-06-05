@@ -4,6 +4,7 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  narrativeBlock,
   provenanceFooter,
   sectionsHtml,
 } from "./shared";
@@ -98,7 +99,7 @@ export const classicTemplate: CvTemplate = {
   render(cv, sections, theme, opts) {
     const css = commonCss(theme) + classicCss(theme);
     // Text-first: omit the photo (no `{ photo: true }`).
-    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}</div>`;
+    const body = `<div class="cv">${headerHtml(cv)}${narrativeBlock(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}</div>`;
     return cvPageShell(cv, css, body);
   },
 };

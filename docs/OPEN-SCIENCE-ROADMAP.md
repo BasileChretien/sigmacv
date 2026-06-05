@@ -99,6 +99,24 @@ OpenAlex curation API is confirmed available.
 | 6.2 | `RESEARCH_LOGGING_ENABLED` + `OPENALEX_CURATION_ENABLED` stay off until IRB / API | ✅ verified default-off |
 | 6.3 | Tool/infrastructure paper (paper 1); cite the Zenodo DOI from 0.2 | ⬜ maintainer action |
 
+## Phase 7 — Grant-application CVs (new direction, 2026-06)
+
+Decision: build the CV formats required by major **calls for projects** — all
+funder families (EU ERC/MSCA · US NIH/NSF · Japan JSPS/KAKENHI), starting with the
+**narrative-CV capability** (the DORA/CoARA differentiator). Caveat: several funders
+require final submission via their **own portal** (NIH/NSF → SciENcv; EU → Funding &
+Tenders) — SigmaCV drafts / maintains / exports a matching CV, it is **not** the
+official submission system, and these formats need a yearly maintenance pass.
+
+| # | Item | Status |
+|---|---|---|
+| 7.1 | Narrative-CV canonical model (R4RI / Royal Society modules) + localized headings + curate ops | 🔜 |
+| 7.2 | Safe narrative rendering (HTML/PDF + Markdown + DOCX), body escaped | 🔜 |
+| 7.3 | Narrative editor UI + starter "Narrative CV" preset | ⬜ |
+| 7.4 | EU — ERC + MSCA structured presets / export profiles | ⬜ |
+| 7.5 | US — NIH biosketch (✅ export) + NSF profile | ⬜ |
+| 7.6 | Japan — JSPS/KAKENHI (researchmap / e-Rad) profile | ⬜ |
+
 ## Recommended execution order
 
 1. Phase 0 (parallel, unblocks credibility + DOI).

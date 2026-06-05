@@ -205,6 +205,17 @@ export function commonCss(theme: TemplateTheme): string {
   section.cv-section:first-of-type { margin-top: calc(var(--cv-space) * 0.6); }
   section.cv-section > h2 { font-size: 0.95rem; font-weight: 600; color: var(--cv-ink); margin: 0 0 0.65rem; }
 
+  /* Narrative-CV block (funder résumé prose) — sits ABOVE the sections. Reads as
+     running prose: a module heading then escaped paragraphs / bullet lists. */
+  section.cv-narrative { margin-top: calc(var(--cv-space) * 0.6); }
+  .cv-narrative-module { margin-top: var(--cv-space); }
+  .cv-narrative-module:first-child { margin-top: 0; }
+  .cv-narrative-module > h3 { font-size: 0.95rem; font-weight: 600; color: var(--cv-ink); margin: 0 0 0.45rem; }
+  .cv-narrative-module p { margin: 0 0 0.55rem; line-height: 1.55; color: var(--cv-ink-2); }
+  .cv-narrative-module p:last-child { margin-bottom: 0; }
+  ul.cv-narrative-list { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
+  ul.cv-narrative-list > li { margin: 0 0 0.2rem; line-height: 1.5; color: var(--cv-ink-2); }
+
   ol.cv-bib { list-style: none; margin: 0; padding: 0; }
   ol.cv-bib > li { margin: 0 0 var(--cv-entry-gap); padding-left: var(--cv-hang); text-indent: calc(var(--cv-hang) * -1); line-height: 1.42; }
   .csl-entry { display: inline; }
@@ -413,6 +424,90 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
   return `<footer class="cv-attribution">${madeWith} <a href="${escapeHtml(
     href,
   )}">SigmaCV</a></footer>`;
+}
+
+/**
+ * SAFE transform of a narrative module's USER FREE-TEXT body into HTML.
+ *
+ * The body is user-controlled data, NOT trusted markup — so everything is
+ * HTML-escaped first (see `escapeHtml`), and only a MINIMAL, hand-rolled set of
+ * structural affordances is then layered on top of the already-escaped text:
+ *  - blank lines split the body into `<p>` paragraphs;
+ *  - within a paragraph, runs of lines each beginning with "- " become a `<ul>`
+ *    of `<li>` items; non-list lines are joined with `<br>`.
+ * Raw HTML and arbitrary markdown are NEVER interpreted — an injected
+ * `<script>` / `<img onerror=…>` survives only as inert escaped text. This is
+ * the single chokepoint; every renderer that shows the narrative uses it.
+ */
+function narrativeBodyHtml(body: string): string {
+  // Normalise newlines, then split into paragraphs on one-or-more blank lines.
+  const paragraphs = body
+    .replace(/\r\n?/g, "\n")
+    .split(/\n[ \t]*\n+/)
+    .map((p) => p.replace(/^\n+|\n+$/g, ""))
+    .filter((p) => p.trim().length > 0);
+
+  return paragraphs
+    .map((para) => {
+      const lines = para.split("\n");
+      const out: string[] = [];
+      let listItems: string[] = [];
+      const flushList = () => {
+        if (listItems.length === 0) return;
+        out.push(
+          `<ul class="cv-narrative-list">${listItems
+            .map((li) => `<li>${escapeHtml(li)}</li>`)
+            .join("")}</ul>`,
+        );
+        listItems = [];
+      };
+      let textRun: string[] = [];
+      const flushText = () => {
+        if (textRun.length === 0) return;
+        out.push(
+          `<p>${textRun.map((t) => escapeHtml(t)).join("<br />")}</p>`,
+        );
+        textRun = [];
+      };
+      for (const rawLine of lines) {
+        const listMatch = rawLine.match(/^[ \t]*-[ \t]+(.*)$/);
+        if (listMatch) {
+          flushText();
+          listItems.push(listMatch[1]!);
+        } else {
+          flushList();
+          textRun.push(rawLine);
+        }
+      }
+      flushText();
+      flushList();
+      return out.join("");
+    })
+    .join("");
+}
+
+/**
+ * The narrative-CV block (funder résumé prose), rendered ABOVE the sections. Each
+ * INCLUDED module with a non-empty body becomes a heading + its safe-transformed
+ * body. "" when there is no narrative content to show (so the block is gated by
+ * presence — templates can always inline it). The heading + body are both
+ * USER FREE-TEXT and are HTML-escaped / safe-transformed; nothing is interpreted
+ * as raw HTML or arbitrary markdown.
+ */
+export function narrativeBlock(cv: CanonicalCv): string {
+  const modules = (cv.narrative ?? []).filter(
+    (m) => m.included && m.body.trim().length > 0,
+  );
+  if (modules.length === 0) return "";
+  const blocks = modules
+    .map(
+      (m) =>
+        `<section class="cv-narrative-module"><h3>${escapeHtml(
+          m.heading,
+        )}</h3>${narrativeBodyHtml(m.body)}</section>`,
+    )
+    .join("");
+  return `<section class="cv-narrative">${blocks}</section>`;
 }
 
 /** Section list markup (identical across templates; styled via CSS classes). */

@@ -4,6 +4,7 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  narrativeBlock,
   provenanceFooter,
   sectionsHtml,
 } from "./shared";
@@ -85,7 +86,7 @@ export const modernTemplate: CvTemplate = {
     const css = commonCss(theme) + modernCss(theme);
     const body = `<div class="cv">${headerHtml(cv, {
       photo: true,
-    })}${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}</div>`;
+    })}${narrativeBlock(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}</div>`;
     return cvPageShell(cv, css, body);
   },
 };

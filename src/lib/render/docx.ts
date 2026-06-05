@@ -76,6 +76,41 @@ function chartParagraphs(cv: CanonicalCv): Paragraph[] {
 }
 
 /**
+ * The narrative-CV block as DOCX paragraphs: each included module with a
+ * non-empty body becomes a heading paragraph + its body split into paragraphs on
+ * blank lines (the body is the user's own plain-text prose, emitted as text runs
+ * — Word escapes XML for us). "" → no paragraphs.
+ */
+function narrativeParagraphs(cv: CanonicalCv): Paragraph[] {
+  const modules = (cv.narrative ?? []).filter(
+    (m) => m.included && m.body.trim().length > 0,
+  );
+  const out: Paragraph[] = [];
+  for (const m of modules) {
+    out.push(
+      new Paragraph({
+        heading: HeadingLevel.HEADING_2,
+        children: [new TextRun({ text: m.heading, bold: true })],
+      }),
+    );
+    const bodyParas = m.body
+      .replace(/\r\n?/g, "\n")
+      .split(/\n[ \t]*\n+/)
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+    for (const para of bodyParas) {
+      out.push(
+        new Paragraph({
+          children: [new TextRun(para)],
+          spacing: { after: 120 },
+        }),
+      );
+    }
+  }
+  return out;
+}
+
+/**
  * Build a PLAIN, template-agnostic .docx: a clean, single-column, black-on-white
  * EDITABLE document — header, the per-year charts (embedded as SVG images, like
  * the PDF) + the authorship table, then each section's items (citeproc text,
@@ -159,6 +194,9 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
       new Paragraph({ children: [new TextRun(head.summary)], spacing: { before: 80, after: 120 } }),
     );
   }
+
+  // Narrative-CV prose (funder résumé modules) sits ABOVE the data sections.
+  children.push(...narrativeParagraphs(cv));
 
   for (const { section, items } of sections) {
     if (items.length === 0) continue;
