@@ -42,7 +42,7 @@ Status keys: ✅ done · 🔜 in progress · ⬜ planned.
 | 1.2 | Per-work `meta.license` from OpenAlex | `build.ts`, `openalex/*`, `schema.ts` | ✅ |
 | 1.3 | Persist ROR IDs → `meta.rorId` (+ on positions/affiliations) | `canonical/enrich.ts`, `schema.ts` | ✅ |
 | 1.4 | PMID extraction → `meta.pmid` | `build.ts`, `openalex/*`, `schema.ts` | ✅ |
-| 1.5 | Funder IDs on grants (Crossref Funder Registry / ROR) | `orcid/*`, `schema.ts` | ⬜ deferred |
+| 1.5 | Funder IDs on grants → `meta.funderId/funderName/awardId` (ORCID-driven + OpenAlex backfill) | `orcid/*`, `build.ts`, `schema.ts` | ✅ |
 | 1.6 | Per-item `meta.lastVerifiedAt` | `build.ts`, `schema.ts` | ✅ |
 | 1.7 | CRediT roles `meta.creditRoles` (optional, larger) | `schema.ts`, `build.ts` | ⬜ deferred |
 
@@ -53,7 +53,7 @@ Status keys: ✅ done · 🔜 in progress · ⬜ planned.
 | 2.1 | Enrich public JSON-LD → full schema.org/Person (affiliation/ROR, sameAs, license) | `lib/cv/publicJsonLd.ts` | ✅ |
 | 2.2 | Content negotiation on the public route (`ld+json`, CSL-JSON, BibTeX, JSON) + suffix paths | `lib/cv/publicFormats.ts`, `app/p/[slug]/route.ts` | ✅ |
 | 2.3 | Gate closed + rate-limit the machine-readable responses | route (reuses limiter + projection) | ✅ |
-| 2.4 | OG/Twitter meta tags (✅) + per-CV OG image (deferred) | `lib/cv/publicMeta.ts` | 🔜 |
+| 2.4 | OG/Twitter meta tags + per-CV OG image (`/p/[slug]/og`) | `lib/cv/{publicMeta,ogImage}.ts` | ✅ |
 | 2.5 | Visible license line on the public HTML page | `lib/render/templates/shared.ts` | ✅ |
 
 ## Phase 3 — Interoperable export formats (renderer-switch pattern)
@@ -65,17 +65,17 @@ Closest analog: `render/bibtex.ts`.
 
 | # | Format | Status |
 |---|---|---|
-| 3.1 | CSL-JSON export (items already carry `csl`) — lowest effort | ⬜ |
-| 3.2 | JSON Résumé | ⬜ |
-| 3.3 | NIH SciENcv / biosketch | ⬜ |
-| 3.4 | Europass | ⬜ |
+| 3.1 | CSL-JSON export (items already carry `csl`) — lowest effort | ✅ |
+| 3.2 | JSON Résumé | ✅ |
+| 3.3 | NIH SciENcv / biosketch (Markdown) | ✅ |
+| 3.4 | Europass | ⬜ deferred — official ELM model is a controlled-vocabulary JSON-LD graph |
 
 ## Phase 4 — Growth loop (public-page virality + SEO)
 
 | # | Item | Status |
 |---|---|---|
 | 4.1 | Tasteful "Made with SigmaCV" footer (opt-out, public page only) → referral backlink | ✅ |
-| 4.2 | Funder/format SEO landing pages ("Generate your NIH biosketch", "ORCID → CV") | ⬜ deferred (needs real localized copy ×10) |
+| 4.2 | SEO landing pages `/orcid-to-cv` + `/nih-biosketch` (×10 locales; native-review pending) | ✅ |
 | 4.3 | Strengthen JSON-LD entity graph (`sameAs` → OpenAlex + ORCID) | ✅ |
 | 4.4 | Library / CoARA / OpenAlex-user-group outreach kit ([`OUTREACH.md`](OUTREACH.md)) | ✅ |
 
@@ -87,9 +87,9 @@ OpenAlex curation API is confirmed available.
 
 | # | Item | Status |
 |---|---|---|
-| 5.1 | OpenAlex curation write-client | ⬜ |
-| 5.2 | Endpoint + explicit user opt-in + audit log + rate limit | ⬜ |
-| 5.3 | Surface "your correction improved the shared record" in the UI | ⬜ |
+| 5.1 | OpenAlex curation write-client (flag-gated, disabled by default) | ✅ scaffold |
+| 5.2 | Endpoint + explicit user opt-in + audit log + rate limit | ✅ |
+| 5.3 | Surface "your correction improved the shared record" in the UI | ⬜ deferred — feature disabled until API confirmed |
 
 ## Phase 6 — Research-vehicle hardening (parallel, tied to IRB)
 
