@@ -54,6 +54,45 @@ describe("buildResearchExport", () => {
     expect(rows.map((r) => r.eventType)).toEqual(["curation_correction", "composition_snapshot"]);
   });
 
+  it("pseudonymises work identifiers (DOI / sourceId) so no raw value leaks", () => {
+    const subjects = [
+      subject("user_a", [
+        {
+          type: "curation_correction",
+          payload: {
+            itemId: "it_1",
+            sourceId: "W4300000001",
+            from: true,
+            to: false,
+            meta: { year: 2023, type: "article", doi: "10.1136/bmj.314.7079.497" },
+          },
+          createdAt: at("2026-01-01T00:00:00Z"),
+        },
+      ]),
+    ];
+    const rows = buildResearchExport(subjects, SALT);
+    const serialized = JSON.stringify(rows);
+    // No raw DOI / OpenAlex source id / item id reaches the analyst dataset…
+    expect(serialized).not.toContain("10.1136/bmj.314.7079.497");
+    expect(serialized).not.toContain("W4300000001");
+    expect(serialized).not.toContain("it_1");
+    // …but non-identifying signal is preserved, and the pseudonymised DOI is the
+    // consistent keyed-HMAC token.
+    const payload = rows[0]!.payload as { meta: { doi: string; year: number }; sourceId: string };
+    expect(payload.meta.year).toBe(2023);
+    expect(payload.meta.doi).toBe(pseudonymise("10.1136/bmj.314.7079.497", SALT));
+    expect(payload.sourceId).toBe(pseudonymise("W4300000001", SALT));
+  });
+
+  it("passes a null / non-object payload through unchanged", () => {
+    const subjects = [
+      subject("user_a", [
+        { type: "composition_snapshot", payload: null, createdAt: at("2026-01-01T00:00:00Z") },
+      ]),
+    ];
+    expect(buildResearchExport(subjects, SALT)[0]!.payload).toBeNull();
+  });
+
   it("drops non-consenting subjects (defence in depth)", () => {
     const subjects = [
       subject("user_a", [

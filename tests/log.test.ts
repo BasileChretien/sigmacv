@@ -71,9 +71,8 @@ describe("logger", () => {
 
     it("falls back to a marker line when fields are unserialisable", () => {
       setNodeEnv("production");
-      const circular: Record<string, unknown> = {};
-      circular.self = circular; // JSON.stringify throws on a cycle
-      logger.error("evt.bad", { circular });
+      // A BigInt passes through serialize() but JSON.stringify rejects it.
+      logger.error("evt.bad", { big: 10n });
       expect(error).toHaveBeenCalledWith(
         '{"level":"error","event":"evt.bad","_fieldsError":"unserialisable"}',
       );
@@ -121,6 +120,35 @@ describe("logger", () => {
       expect(log).toHaveBeenCalledWith(
         '{"level":"info","event":"evt","userEmail":"[redacted]","AccessToken":"[redacted]"}',
       );
+    });
+
+    it("redacts sensitive keys nested under benign ones (recursive)", () => {
+      setNodeEnv("production");
+      logger.error("http.failed", {
+        request: { headers: { authorization: "Bearer SUPERSECRET" }, url: "/x" },
+      });
+      const line = error.mock.calls[0]?.[0] as string;
+      expect(line).not.toContain("SUPERSECRET");
+      expect(line).toContain('"authorization":"[redacted]"');
+      expect(line).toContain('"url":"/x"'); // benign nested value preserved
+    });
+
+    it("redacts sensitive keys inside arrays of objects", () => {
+      setNodeEnv("production");
+      logger.info("evt.arr", { items: [{ token: "t1" }, { ok: true }] });
+      const line = log.mock.calls[0]?.[0] as string;
+      expect(line).not.toContain("t1");
+      expect(line).toContain('"token":"[redacted]"');
+      expect(line).toContain('"ok":true');
+    });
+
+    it("depth-caps deeply nested / circular structures instead of looping", () => {
+      setNodeEnv("development");
+      const circular: Record<string, unknown> = {};
+      circular.self = circular;
+      logger.info("evt.deep", { circular });
+      const arg = log.mock.calls[0]?.[1];
+      expect(JSON.stringify(arg)).toContain("[depth-limit]");
     });
   });
 

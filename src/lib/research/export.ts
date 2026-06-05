@@ -86,9 +86,35 @@ export function pseudonymise(userId: string, salt: string): string {
  * Pure + deterministic given `(subjects, salt)`. Drops, as defence in depth:
  *   • any subject without `researchConsent` (the query already filters these),
  *   • any event whose type is not pre-registered.
- * Emits no direct identifiers. Rows are sorted (subject, then time) so exports
+ * Emits NO direct identifiers and NO raw work identifiers — the subject is a
+ * keyed-HMAC pseudonym and every DOI / OpenAlex source id in the payload is
+ * HMAC-pseudonymised too (so a distinctive own-work DOI can't re-identify a
+ * subject by public lookup). Rows are sorted (subject, then time) so exports
  * are reproducible / diffable.
  */
+/**
+ * Pseudonymise the quasi-identifying WORK identifiers inside an event payload —
+ * a publication DOI / OpenAlex source id resolves (via Crossref/OpenAlex) to a
+ * public author list, so a single distinctive own-work DOI could re-identify a
+ * pseudonymous subject WITHOUT the key table. We HMAC them with the same salt so
+ * the analyst keeps a consistent per-work token (work-level grouping is the
+ * disambiguation signal) but cannot resolve it to a real publication or author.
+ */
+function deidentifyPayload(payload: unknown, salt: string): unknown {
+  if (!payload || typeof payload !== "object") return payload;
+  const p = payload as Record<string, unknown>;
+  const out: Record<string, unknown> = { ...p };
+  if (typeof p.sourceId === "string") out.sourceId = pseudonymise(p.sourceId, salt);
+  if (typeof p.itemId === "string") out.itemId = pseudonymise(p.itemId, salt);
+  if (p.meta && typeof p.meta === "object") {
+    const meta = p.meta as Record<string, unknown>;
+    if (typeof meta.doi === "string") {
+      out.meta = { ...meta, doi: pseudonymise(meta.doi, salt) };
+    }
+  }
+  return out;
+}
+
 export function buildResearchExport(
   subjects: readonly ResearchSubjectInput[],
   salt: string,
@@ -104,7 +130,7 @@ export function buildResearchExport(
         consentVersion: s.researchConsentVersion,
         eventType: e.type,
         at: e.createdAt.toISOString(),
-        payload: e.payload,
+        payload: deidentifyPayload(e.payload, salt),
       });
     }
   }

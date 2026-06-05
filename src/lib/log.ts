@@ -13,10 +13,24 @@ type LogFields = Record<string, unknown>;
 
 const SENSITIVE_KEY = /token|secret|password|authorization|cookie|database_url|email|orcid/i;
 const MAX_LINE = 4000;
+const MAX_DEPTH = 6;
 
-function serialize(value: unknown): unknown {
+/**
+ * Reduce a value for logging. Errors → {name,message} (no stack/PII); objects +
+ * arrays are walked RECURSIVELY so a sensitive key nested under a benign one
+ * (e.g. `{ request: { headers: { authorization } } }`) is still redacted. A
+ * depth cap bounds pathological/circular structures.
+ */
+function serialize(value: unknown, depth = 0): unknown {
   if (value instanceof Error) return { name: value.name, message: value.message };
-  return value;
+  if (value === null || typeof value !== "object") return value;
+  if (depth >= MAX_DEPTH) return "[depth-limit]";
+  if (Array.isArray(value)) return value.map((v) => serialize(v, depth + 1));
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    out[k] = SENSITIVE_KEY.test(k) ? "[redacted]" : serialize(v, depth + 1);
+  }
+  return out;
 }
 
 function redact(fields: LogFields): LogFields {
