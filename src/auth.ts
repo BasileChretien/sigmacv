@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/db";
 import { authConfig } from "@/auth.config";
 import { logger } from "@/lib/log";
+import { stripAccountTokens } from "@/lib/auth/stripAccountTokens";
 import { normalizeOrcid } from "@/lib/openalex/types";
 
 /** The subset of DB User columns the session callback reads off the adapter user. */
@@ -26,14 +27,7 @@ interface SessionDbUser {
 const adapter = PrismaAdapter(prisma);
 const baseLinkAccount = adapter.linkAccount;
 if (baseLinkAccount) {
-  adapter.linkAccount = (account) =>
-    baseLinkAccount({
-      ...account,
-      access_token: undefined,
-      refresh_token: undefined,
-      id_token: undefined,
-      expires_at: undefined,
-    });
+  adapter.linkAccount = (account) => baseLinkAccount(stripAccountTokens(account));
 }
 
 /**

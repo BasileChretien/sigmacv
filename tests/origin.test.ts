@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { isSameOrigin } from "@/lib/security/origin";
 
 const APP = "https://cv.example.org";
@@ -25,11 +25,35 @@ describe("isSameOrigin", () => {
     expect(isSameOrigin(req({}), APP)).toBe(true);
   });
 
-  it("is permissive when no canonical origin is configured (dev)", () => {
+  it("is permissive (dev) when no canonical origin is configured", () => {
     expect(isSameOrigin(req({ origin: "https://anything.example" }), undefined)).toBe(true);
   });
 
-  it("does not hard-fail on a misconfigured AUTH_URL", () => {
+  it("is permissive (dev) on a misconfigured AUTH_URL", () => {
     expect(isSameOrigin(req({ origin: APP }), "not-a-url")).toBe(true);
+  });
+});
+
+describe("isSameOrigin — production fail-closed", () => {
+  const original = process.env.NODE_ENV;
+  beforeEach(() => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = "production";
+  });
+  afterEach(() => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = original;
+  });
+
+  it("rejects when no canonical origin resolves (misconfigured AUTH_URL)", () => {
+    expect(isSameOrigin(req({ origin: APP }), undefined)).toBe(false);
+    expect(isSameOrigin(req({ origin: APP }), "not-a-url")).toBe(false);
+  });
+
+  it("rejects a request carrying neither Origin nor Referer", () => {
+    expect(isSameOrigin(req({}), APP)).toBe(false);
+  });
+
+  it("still accepts a matching Origin and rejects a foreign one", () => {
+    expect(isSameOrigin(req({ origin: APP }), APP)).toBe(true);
+    expect(isSameOrigin(req({ origin: "https://evil.example" }), APP)).toBe(false);
   });
 });

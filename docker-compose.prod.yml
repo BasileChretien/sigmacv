@@ -32,6 +32,8 @@ services:
       ORCID_CLIENT_SECRET: ${ORCID_CLIENT_SECRET}
       ORCID_ENVIRONMENT: ${ORCID_ENVIRONMENT:-production}
       OPENALEX_MAILTO: ${OPENALEX_MAILTO}
+      # Durable, cross-instance rate limiting (survives restarts). Default on.
+      RATE_LIMIT_PERSIST: ${RATE_LIMIT_PERSIST:-true}
       # Optional features (leave blank to disable).
       OEP_DATA_URL: ${OEP_DATA_URL:-}
       RESYNC_SECRET: ${RESYNC_SECRET:-}

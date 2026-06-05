@@ -7,10 +7,13 @@
  * foreign `Origin` header, so we reject any request whose `Origin` (or, as a
  * fallback, `Referer`) doesn't match the app's own origin.
  *
- * The expected origin is `AUTH_URL` (the canonical production origin). When it
- * is unset (local dev), the check is permissive so local tooling isn't blocked —
- * `SameSite=Lax` still applies. Read straight from `process.env` (same rationale
- * as the research switches) and injectable for tests.
+ * The expected origin is `AUTH_URL` (the canonical production origin), which
+ * `env.ts` makes mandatory in production. This check FAILS CLOSED in production:
+ * if no canonical origin resolves, or the request carries neither `Origin` nor
+ * `Referer` (modern browsers always send `Origin` on POST/PATCH/DELETE), it is
+ * rejected — a misconfigured `AUTH_URL` must not silently disable the layer. In
+ * dev (non-production, `AUTH_URL` typically unset) it stays permissive so local
+ * tooling isn't blocked; `SameSite=Lax` remains the primary guard either way.
  */
 function originOf(url: string): string | null {
   try {
@@ -24,9 +27,13 @@ export function isSameOrigin(
   req: Request,
   allowedOrigin: string | undefined = process.env.AUTH_URL,
 ): boolean {
-  if (!allowedOrigin) return true; // dev / no canonical origin configured
-  const expected = originOf(allowedOrigin);
-  if (!expected) return true; // misconfigured AUTH_URL — don't hard-fail requests
+  const isProd = process.env.NODE_ENV === "production";
+  const expected = allowedOrigin ? originOf(allowedOrigin) : null;
+  if (!expected) {
+    // No canonical origin configured (or unparseable). Permissive in dev; fail
+    // closed in production so a misconfig can't disable this CSRF layer.
+    return !isProd;
+  }
 
   const origin = req.headers.get("origin");
   if (origin) return origin === expected;
@@ -35,7 +42,7 @@ export function isSameOrigin(
   const referer = req.headers.get("referer");
   if (referer) return originOf(referer) === expected;
 
-  // Neither header present: not a cross-site browser form POST (those always
-  // send Origin). Allow — SameSite=Lax remains the primary guard.
-  return true;
+  // Neither header present. A genuine cross-site browser POST/PATCH/DELETE always
+  // sends Origin, so a header-less mutating request is untrusted in production.
+  return !isProd;
 }

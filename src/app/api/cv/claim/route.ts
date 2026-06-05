@@ -58,10 +58,8 @@ export async function POST(req: Request) {
   }
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid request", issues: parsed.error.issues },
-      { status: 422 },
-    );
+    // Generic message — don't echo raw Zod issues (internal schema paths).
+    return NextResponse.json({ error: "Invalid request" }, { status: 422 });
   }
 
   const { doi, confirm, selfAuthorIndex } = parsed.data;

@@ -44,10 +44,8 @@ export async function POST(req: Request) {
     (body as { document?: unknown } | null)?.document,
   );
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid CV document", issues: parsed.error.issues },
-      { status: 422 },
-    );
+    // Generic message — don't echo raw Zod issues (internal schema paths).
+    return NextResponse.json({ error: "Invalid CV document" }, { status: 422 });
   }
 
   try {
