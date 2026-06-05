@@ -75,6 +75,7 @@ describe("DisplayChoicesSchema", () => {
       accentColor: "#1f4fd8",
       fontPairing: "serif",
       density: "comfortable",
+      publicContact: { email: false, phone: false, location: false },
     });
   });
 

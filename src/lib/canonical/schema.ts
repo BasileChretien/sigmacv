@@ -458,6 +458,21 @@ export const DisplayChoicesSchema = z.object({
   accentColor: z.string().regex(HEX_COLOR).default("#1f4fd8"),
   fontPairing: z.enum(FONT_PAIRINGS).default("serif"),
   density: z.enum(DENSITIES).default("comfortable"),
+  /**
+   * Per-field consent for what appears on the PUBLIC page (`/p/[slug]`). Default
+   * ALL OFF (GDPR/APPI data-minimization): publishing shares the CV body, but
+   * contact details are personal data and are shown publicly only when the owner
+   * explicitly opts each one in. The rirekisho `owner.personal` fields (address,
+   * date of birth, gender, nationality) are NEVER auto-published — they have no
+   * flag and are always stripped from the public projection.
+   */
+  publicContact: z
+    .object({
+      email: z.boolean().default(false),
+      phone: z.boolean().default(false),
+      location: z.boolean().default(false),
+    })
+    .default({}),
 });
 export type DisplayChoices = z.infer<typeof DisplayChoicesSchema>;
 

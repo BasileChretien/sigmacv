@@ -2,6 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { invalidatePublicPage } from "@/lib/cv/publicPageCache";
+import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { logger } from "@/lib/log";
 import { getEnv } from "@/lib/env";
 import { buildCanonicalCv } from "@/lib/canonical/build";
@@ -269,7 +270,8 @@ export async function getPublicCv(slug: string): Promise<CanonicalCv | null> {
   if (!row || !row.published) return null;
   const parsed = safeParseCanonicalCv(row.document);
   if (!parsed.success) return null;
-  return parsed.data;
+  // Public projection: strip personal fields + opt-in-gated contact details.
+  return projectCvForPublic(parsed.data);
 }
 
 /** Like getPublicCv, but also returns the indexing opt-in for robots/JSON-LD. */
@@ -280,7 +282,7 @@ export async function getPublicCvForPage(
   if (!row || !row.published) return null;
   const parsed = safeParseCanonicalCv(row.document);
   if (!parsed.success) return null;
-  return { cv: parsed.data, indexable: row.publicIndexable };
+  return { cv: projectCvForPublic(parsed.data), indexable: row.publicIndexable };
 }
 
 /** Public slugs that the owner has opted into search-engine indexing — for the

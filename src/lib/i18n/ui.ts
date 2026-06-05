@@ -81,6 +81,10 @@ export interface UiStrings {
   publishTitle: string;
   allowIndexing: string;
   allowIndexingTitle: string;
+  publicContactLegend: string;
+  publicShowEmail: string;
+  publicShowPhone: string;
+  publicShowLocation: string;
   exportFormatTitle: string;
   exportPdf: string;
   exportDocx: string;
@@ -181,6 +185,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Open page",
     copyLink: "Copy link",
     linkCopied: "Link copied!",
+    publicContactLegend: "Show on the public page",
+    publicShowEmail: "Email",
+    publicShowPhone: "Phone",
+    publicShowLocation: "Location",
     allowIndexing: "Allow search engines to index this page",
     allowIndexingTitle:
       "Off by default. When on, your public CV can appear in search results (name, ORCID, publications).",
@@ -284,6 +292,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "打开页面",
     copyLink: "复制链接",
     linkCopied: "链接已复制！",
+    publicContactLegend: "在公开页面显示",
+    publicShowEmail: "电子邮箱",
+    publicShowPhone: "电话",
+    publicShowLocation: "所在地",
     allowIndexing: "允许搜索引擎索引此页面",
     allowIndexingTitle:
       "默认关闭。开启后，您的公开简历可能出现在搜索结果中（姓名、ORCID、论文）。",
@@ -388,6 +400,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Abrir página",
     copyLink: "Copiar enlace",
     linkCopied: "¡Enlace copiado!",
+    publicContactLegend: "Mostrar en la página pública",
+    publicShowEmail: "Correo electrónico",
+    publicShowPhone: "Teléfono",
+    publicShowLocation: "Ubicación",
     allowIndexing: "Permitir que los buscadores indexen esta página",
     allowIndexingTitle:
       "Desactivado por defecto. Si se activa, tu CV público puede aparecer en los resultados de búsqueda (nombre, ORCID, publicaciones).",
@@ -492,6 +508,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Ouvrir la page",
     copyLink: "Copier le lien",
     linkCopied: "Lien copié !",
+    publicContactLegend: "Afficher sur la page publique",
+    publicShowEmail: "E-mail",
+    publicShowPhone: "Téléphone",
+    publicShowLocation: "Localisation",
     allowIndexing: "Autoriser l’indexation par les moteurs de recherche",
     allowIndexingTitle:
       "Désactivé par défaut. Activé, votre CV public peut apparaître dans les résultats de recherche (nom, ORCID, publications).",
@@ -596,6 +616,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Seite öffnen",
     copyLink: "Link kopieren",
     linkCopied: "Link kopiert!",
+    publicContactLegend: "Auf der öffentlichen Seite anzeigen",
+    publicShowEmail: "E-Mail",
+    publicShowPhone: "Telefon",
+    publicShowLocation: "Standort",
     allowIndexing: "Suchmaschinen-Indexierung dieser Seite erlauben",
     allowIndexingTitle:
       "Standardmäßig aus. Wenn aktiviert, kann Ihr öffentlicher Lebenslauf in Suchergebnissen erscheinen (Name, ORCID, Publikationen).",
@@ -700,6 +724,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "ページを開く",
     copyLink: "リンクをコピー",
     linkCopied: "リンクをコピーしました！",
+    publicContactLegend: "公開ページに表示",
+    publicShowEmail: "メール",
+    publicShowPhone: "電話",
+    publicShowLocation: "所在地",
     allowIndexing: "このページの検索エンジンによるインデックスを許可",
     allowIndexingTitle:
       "初期設定はオフです。オンにすると、公開CVが検索結果に表示される場合があります（氏名・ORCID・論文）。",
@@ -804,6 +832,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Abrir página",
     copyLink: "Copiar link",
     linkCopied: "Link copiado!",
+    publicContactLegend: "Mostrar na página pública",
+    publicShowEmail: "E-mail",
+    publicShowPhone: "Telefone",
+    publicShowLocation: "Localização",
     allowIndexing: "Permitir que mecanismos de busca indexem esta página",
     allowIndexingTitle:
       "Desativado por padrão. Quando ativado, seu CV público pode aparecer nos resultados de busca (nome, ORCID, publicações).",
@@ -908,6 +940,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Apri pagina",
     copyLink: "Copia link",
     linkCopied: "Link copiato!",
+    publicContactLegend: "Mostra nella pagina pubblica",
+    publicShowEmail: "E-mail",
+    publicShowPhone: "Telefono",
+    publicShowLocation: "Località",
     allowIndexing: "Consenti l’indicizzazione di questa pagina dai motori di ricerca",
     allowIndexingTitle:
       "Disattivato per impostazione predefinita. Se attivo, il tuo CV pubblico può comparire nei risultati di ricerca (nome, ORCID, pubblicazioni).",
@@ -1012,6 +1048,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "페이지 열기",
     copyLink: "링크 복사",
     linkCopied: "링크가 복사되었습니다!",
+    publicContactLegend: "공개 페이지에 표시",
+    publicShowEmail: "이메일",
+    publicShowPhone: "전화",
+    publicShowLocation: "위치",
     allowIndexing: "검색 엔진이 이 페이지를 색인하도록 허용",
     allowIndexingTitle:
       "기본적으로 꺼져 있습니다. 켜면 공개 CV가 검색 결과에 표시될 수 있습니다(이름, ORCID, 논문).",
@@ -1116,6 +1156,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Открыть страницу",
     copyLink: "Скопировать ссылку",
     linkCopied: "Ссылка скопирована!",
+    publicContactLegend: "Показывать на публичной странице",
+    publicShowEmail: "Эл. почта",
+    publicShowPhone: "Телефон",
+    publicShowLocation: "Местоположение",
     allowIndexing: "Разрешить индексирование этой страницы поисковыми системами",
     allowIndexingTitle:
       "По умолчанию выключено. Если включить, ваше публичное резюме может появляться в результатах поиска (имя, ORCID, публикации).",

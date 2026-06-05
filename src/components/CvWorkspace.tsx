@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { updateDisplay } from "@/lib/canonical/curate";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
@@ -203,6 +204,12 @@ export default function CvWorkspace({
             initialSlug={publicSlug}
             initialIndexable={publicIndexable}
             locale={uiLocale}
+            publicContact={
+              cv?.display.publicContact ?? { email: false, phone: false, location: false }
+            }
+            onPublicContactChange={(next) => {
+              if (cv) update(updateDisplay(cv, { publicContact: next }));
+            }}
           />
           <AccountControls researchConsent={researchConsent} locale={uiLocale} />
         </div>

@@ -496,6 +496,21 @@ input[type="radio"] {
   font-size: var(--text-sm);
   color: var(--text-secondary);
 }
+/* Per-field consent for contact details on the public page. */
+.public-contact-consent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0 0 0 var(--space-3);
+  border: none;
+  border-left: 1px solid var(--border);
+}
+.public-contact-consent legend {
+  display: contents;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
 .link-btn {
   background: none;
   border: none;

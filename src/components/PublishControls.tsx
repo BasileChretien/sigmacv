@@ -3,11 +3,20 @@
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 
+interface PublicContactFlags {
+  email: boolean;
+  phone: boolean;
+  location: boolean;
+}
+
 interface PublishControlsProps {
   initialPublished: boolean;
   initialSlug: string | null;
   initialIndexable: boolean;
   locale: string;
+  /** Per-field consent for contact details on the public page (default off). */
+  publicContact: PublicContactFlags;
+  onPublicContactChange: (next: PublicContactFlags) => void;
 }
 
 /**
@@ -20,6 +29,8 @@ export default function PublishControls({
   initialSlug,
   initialIndexable,
   locale,
+  publicContact,
+  onPublicContactChange,
 }: PublishControlsProps) {
   const u = ui(locale);
   const [published, setPublished] = useState(initialPublished);
@@ -94,6 +105,39 @@ export default function PublishControls({
             />
             <span>{u.allowIndexing}</span>
           </label>
+          <fieldset className="public-contact-consent">
+            <legend>{u.publicContactLegend}</legend>
+            <label className="field-inline">
+              <input
+                type="checkbox"
+                checked={publicContact.email}
+                onChange={(e) =>
+                  onPublicContactChange({ ...publicContact, email: e.target.checked })
+                }
+              />
+              <span>{u.publicShowEmail}</span>
+            </label>
+            <label className="field-inline">
+              <input
+                type="checkbox"
+                checked={publicContact.phone}
+                onChange={(e) =>
+                  onPublicContactChange({ ...publicContact, phone: e.target.checked })
+                }
+              />
+              <span>{u.publicShowPhone}</span>
+            </label>
+            <label className="field-inline">
+              <input
+                type="checkbox"
+                checked={publicContact.location}
+                onChange={(e) =>
+                  onPublicContactChange({ ...publicContact, location: e.target.checked })
+                }
+              />
+              <span>{u.publicShowLocation}</span>
+            </label>
+          </fieldset>
         </>
       ) : null}
     </div>
