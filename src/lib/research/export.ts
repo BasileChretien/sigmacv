@@ -1,0 +1,157 @@
+import { createHmac } from "node:crypto";
+
+/**
+ * IRB-gated researcher export of the consent-gated research dataset
+ * (the author-disambiguation study, paper #2, and the self-presentation /
+ * metric-norms study, paper #3).
+ *
+ * This module is the PURE, testable core: it turns raw consenting-user records
+ * into a de-identified dataset and decides whether the export is even allowed to
+ * run. The actual DB read + file write lives in the offline operator script
+ * `scripts/export-research-data.ts`; there is deliberately NO network route.
+ *
+ * Safety properties (so this can ship while still DISABLED):
+ *   • Hard-gated — `researchExportGate()` is OFF unless an explicit IRB-approval
+ *     env triad is set (see below). The shipped default is off.
+ *   • Pseudonymous — subjects are keyed-HMAC pseudonyms, never the user id.
+ *   • Minimal — only the pre-registered event types are emitted, and the
+ *     payloads are already the data-minimized structured signals produced by
+ *     `diff.ts` (no names / emails / ORCIDs).
+ */
+
+/**
+ * Event types the studies pre-register. MUST stay in sync with the `type`
+ * values written in `research/log.ts`. Anything else is dropped from the export
+ * as defence in depth.
+ */
+export const PRE_REGISTERED_EVENT_TYPES = [
+  "curation_correction",
+  "disambiguation_assertion",
+  "composition_snapshot",
+] as const;
+
+export type ResearchEventType = (typeof PRE_REGISTERED_EVENT_TYPES)[number];
+
+const PRE_REGISTERED = new Set<string>(PRE_REGISTERED_EVENT_TYPES);
+
+/** A consenting user's research record, as read from the DB (minimal shape). */
+export interface ResearchSubjectInput {
+  userId: string;
+  researchConsent: boolean;
+  researchConsentVersion: number | null;
+  events: ReadonlyArray<{
+    type: string;
+    payload: unknown;
+    createdAt: Date;
+  }>;
+}
+
+/** One de-identified row of the exported dataset. Carries NO direct identifier. */
+export interface ResearchExportRow {
+  /** Keyed-HMAC pseudonym — stable across runs, not reversible without the salt. */
+  subject: string;
+  /** Which version of the consent notice the subject agreed under (audit trail). */
+  consentVersion: number | null;
+  eventType: string;
+  /** ISO-8601 timestamp of the event. */
+  at: string;
+  /** The structured research signal (from `diff.ts`); already minimized. */
+  payload: unknown;
+}
+
+/**
+ * Pseudonymise a user id: HMAC-SHA256(userId, salt), truncated to 64 bits of hex.
+ * Deterministic given the salt (so repeated exports link longitudinally) but not
+ * reversible without it. The salt is a secret held only by the study team.
+ */
+export function pseudonymise(userId: string, salt: string): string {
+  if (!salt) throw new Error("pseudonymisation salt is required");
+  return createHmac("sha256", salt).update(userId).digest("hex").slice(0, 16);
+}
+
+/**
+ * Build the de-identified research dataset from raw consenting-user records.
+ * Pure + deterministic given `(subjects, salt)`. Drops, as defence in depth:
+ *   • any subject without `researchConsent` (the query already filters these),
+ *   • any event whose type is not pre-registered.
+ * Emits no direct identifiers. Rows are sorted (subject, then time) so exports
+ * are reproducible / diffable.
+ */
+export function buildResearchExport(
+  subjects: readonly ResearchSubjectInput[],
+  salt: string,
+): ResearchExportRow[] {
+  const rows: ResearchExportRow[] = [];
+  for (const s of subjects) {
+    if (!s.researchConsent) continue;
+    const subject = pseudonymise(s.userId, salt);
+    for (const e of s.events) {
+      if (!PRE_REGISTERED.has(e.type)) continue;
+      rows.push({
+        subject,
+        consentVersion: s.researchConsentVersion,
+        eventType: e.type,
+        at: e.createdAt.toISOString(),
+        payload: e.payload,
+      });
+    }
+  }
+  rows.sort((a, b) =>
+    a.subject === b.subject ? a.at.localeCompare(b.at) : a.subject.localeCompare(b.subject),
+  );
+  return rows;
+}
+
+/** Serialise the dataset as JSON Lines (one row per line) — analysis-friendly. */
+export function toJsonl(rows: readonly ResearchExportRow[]): string {
+  if (rows.length === 0) return "";
+  return rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
+}
+
+/** Minimum acceptable length for the pseudonymisation salt. */
+export const MIN_SALT_LENGTH = 16;
+
+/**
+ * Result of the hard gate. A discriminated union so callers that pass the
+ * `enabled` check get `irbRef` + `salt` without optional-chaining.
+ */
+export type ResearchExportGate =
+  | { enabled: false; reason: string }
+  | { enabled: true; irbRef: string; salt: string };
+
+/**
+ * Hard gate for the researcher export. DISABLED unless ALL of:
+ *   • `RESEARCH_EXPORT_ENABLED` === "true"
+ *   • `RESEARCH_EXPORT_IRB_REF` is set (the approval number — recorded in the
+ *     output filename for the audit trail)
+ *   • `RESEARCH_EXPORT_PSEUDONYM_SALT` is set and ≥ `MIN_SALT_LENGTH` chars
+ *
+ * Read straight from `process.env` (same rationale as `enabled.ts`): a single
+ * deliberate opt-in that an unrelated malformed env var can never flip on. The
+ * `env` parameter is injectable for tests.
+ */
+export function researchExportGate(
+  env: Record<string, string | undefined> = process.env,
+): ResearchExportGate {
+  if (env.RESEARCH_EXPORT_ENABLED !== "true") {
+    return {
+      enabled: false,
+      reason: 'RESEARCH_EXPORT_ENABLED is not "true" (IRB-gated; off by default)',
+    };
+  }
+  const irbRef = (env.RESEARCH_EXPORT_IRB_REF ?? "").trim();
+  if (!irbRef) {
+    return {
+      enabled: false,
+      reason: "RESEARCH_EXPORT_IRB_REF is required (record the IRB approval number)",
+    };
+  }
+  const salt = env.RESEARCH_EXPORT_PSEUDONYM_SALT ?? "";
+  if (salt.length < MIN_SALT_LENGTH) {
+    return {
+      enabled: false,
+      reason: `RESEARCH_EXPORT_PSEUDONYM_SALT must be at least ${MIN_SALT_LENGTH} characters`,
+    };
+  }
+  return { enabled: true, irbRef, salt };
+}

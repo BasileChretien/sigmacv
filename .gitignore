@@ -58,3 +58,6 @@ yarn-error.log*
 # IRB / ethics application materials (may contain personal data; not for the public repo)
 /Ethics/
 /docs/irb/
+
+# Researcher data exports (pseudonymised human-subjects data — NEVER commit)
+/research-export/

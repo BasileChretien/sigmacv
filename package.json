@@ -19,6 +19,7 @@
     "coverage": "vitest run --coverage",
     "fetch-csl": "node scripts/fetch-csl.mjs",
     "resync": "node scripts/resync.mjs",
+    "research:export": "dotenv -e .env -- tsx scripts/export-research-data.ts",
     "db:generate": "prisma generate",
     "db:migrate": "dotenv -e .env -- prisma migrate dev",
     "db:push": "dotenv -e .env -- prisma db push",
@@ -63,6 +64,7 @@
     "dotenv-cli": "^8.0.0",
     "jsdom": "^25.0.1",
     "prisma": "^7.8.0",
+    "tsx": "^4.22.4",
     "typescript": "^5.7.3",
     "vitest": "^4.1.8"
   },
