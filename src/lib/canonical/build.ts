@@ -123,6 +123,36 @@ function previousManualItems(
   return (section?.items ?? []).filter((it) => it.source === "manual");
 }
 
+/**
+ * User-added publication/preprint items the fresh pull didn't return — manual
+ * structured entries AND DOI-claimed works (`meta.claimed`). They must survive a
+ * re-sync: `mergeSection` only preserves a section's chrome (title/visibility/
+ * order), not items, so without this they would silently vanish. De-duped against
+ * the freshly-fetched set by id AND DOI, so once OpenAlex finally attributes a
+ * claimed work, the properly-attributed fetched copy supersedes the claim.
+ */
+function carryOverUserItems(
+  fetched: CvItem[],
+  previous: CanonicalCv | null | undefined,
+  sectionType: CvSection["type"],
+): CvItem[] {
+  const prevSection = previous?.sections.find((s) => s.type === sectionType);
+  if (!prevSection) return fetched;
+  const ids = new Set(fetched.map((it) => it.id));
+  const dois = new Set(
+    fetched
+      .map((it) => it.csl?.DOI?.toLowerCase())
+      .filter((d): d is string => Boolean(d)),
+  );
+  const carried = prevSection.items.filter(
+    (it) =>
+      (it.source === "manual" || it.meta.claimed === true) &&
+      !ids.has(it.id) &&
+      !(it.csl?.DOI && dois.has(it.csl.DOI.toLowerCase())),
+  );
+  return carried.length ? [...fetched, ...carried] : fetched;
+}
+
 /** Normalize a list to a clean 0..n order, preserving relative order. */
 function reindexItems(items: CvItem[]): CvItem[] {
   return [...items]
@@ -635,8 +665,20 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
 
   // Split into Publications vs Preprints (so the CV doesn't double-count a
   // preprint and its published version, and matches academic convention).
-  const pubItems = reindexItems(ordered.filter((it) => !preprintIds.has(it.id)));
-  const preprintItems = reindexItems(ordered.filter((it) => preprintIds.has(it.id)));
+  const pubItems = reindexItems(
+    carryOverUserItems(
+      ordered.filter((it) => !preprintIds.has(it.id)),
+      previous,
+      "publications",
+    ),
+  );
+  const preprintItems = reindexItems(
+    carryOverUserItems(
+      ordered.filter((it) => preprintIds.has(it.id)),
+      previous,
+      "preprints",
+    ),
+  );
 
   const publicationsSection = mergeSection(
     {

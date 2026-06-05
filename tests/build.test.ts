@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { parseCanonicalCv } from "@/lib/canonical/schema";
+import { parseCanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -126,6 +126,79 @@ describe("buildCanonicalCv", () => {
 
   it("defaults notMine=false on a fresh build", () => {
     expect(build().sections[0]!.items.every((i) => i.notMine === false)).toBe(true);
+  });
+
+  function withExtraPubItems(base: ReturnType<typeof build>, extra: CvItem[]) {
+    return {
+      ...base,
+      sections: base.sections.map((s) =>
+        s.type === "publications" ? { ...s, items: [...s.items, ...extra] } : s,
+      ),
+    };
+  }
+
+  it("preserves user-added (claimed + manual) publications across re-sync", () => {
+    const claimed: CvItem = {
+      id: "W_CLAIMED",
+      source: "openalex",
+      sourceId: "https://openalex.org/W_CLAIMED",
+      csl: { id: "W_CLAIMED", type: "article-journal", title: "A claimed CJK paper", DOI: "10.9999/claimed" },
+      included: true,
+      notMine: false,
+      order: 99,
+      authoredBySelf: true,
+      selfNameVariants: ["Wei Zhang"],
+      meta: { year: 2019, claimed: true, matchBasis: "claimed", authorPosition: 2, peerReviewed: true },
+    };
+    const manual: CvItem = {
+      id: "publication:manual:abc",
+      source: "manual",
+      sourceId: "manual",
+      csl: { id: "publication:manual:abc", type: "article-journal", title: "A hand-typed work" },
+      included: true,
+      notMine: false,
+      order: 98,
+      authoredBySelf: false,
+      selfNameVariants: [],
+      meta: { year: 2018 },
+    };
+    const resynced = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-08-01T00:00:00.000Z",
+      previous: withExtraPubItems(build(), [claimed, manual]),
+    });
+    const ids = resynced.sections.find((s) => s.type === "publications")!.items.map((i) => i.id);
+    expect(ids).toContain("W_CLAIMED"); // DOI-claimed work survives
+    expect(ids).toContain("publication:manual:abc"); // manual entry survives (was a pre-existing loss)
+  });
+
+  it("a claimed work OpenAlex later attributes is superseded, not duplicated", () => {
+    const first = build();
+    const dupDoi = first.sections[0]!.items.find((i) => i.id === "W4300000001")!.csl!.DOI!;
+    const staleClaim: CvItem = {
+      id: "W_STALE",
+      source: "openalex",
+      sourceId: "https://openalex.org/W_STALE",
+      csl: { id: "W_STALE", type: "article-journal", title: "Now properly attributed", DOI: dupDoi },
+      included: true,
+      notMine: false,
+      order: 99,
+      authoredBySelf: true,
+      selfNameVariants: [],
+      meta: { claimed: true, matchBasis: "claimed" },
+    };
+    const resynced = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-08-01T00:00:00.000Z",
+      previous: withExtraPubItems(first, [staleClaim]),
+    });
+    const items = resynced.sections[0]!.items;
+    expect(items.filter((i) => i.csl?.DOI?.toLowerCase() === dupDoi.toLowerCase())).toHaveLength(1);
+    expect(items.find((i) => i.id === "W_STALE")).toBeUndefined();
   });
 
   it("appends newly-discovered works AFTER the user's curated order on re-sync", () => {
