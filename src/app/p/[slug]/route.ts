@@ -1,10 +1,54 @@
 import { NextResponse } from "next/server";
 import { getPublicCvForPage } from "@/lib/cv/sync";
+import {
+  getCachedPublicPage,
+  setCachedPublicPage,
+} from "@/lib/cv/publicPageCache";
 import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
+import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { renderCvHtml } from "@/lib/render/html";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Anonymous + render-heavy: bound per-IP request rate so a flood (especially of
+// random/invalid slugs, which bypass the render cache) can't pin the process.
+const PUBPAGE_MAX = 120;
+const PUBPAGE_WINDOW_MS = 60_000; // 1 minute
+
+/** Best-effort client IP from the proxy (Caddy) headers; "unknown" in dev. */
+function clientIp(req: Request): string {
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0]!.trim();
+  return req.headers.get("x-real-ip")?.trim() || "unknown";
+}
+
+/** Build the public-page HTTP response with the hardened security headers. */
+function publicPageResponse(html: string, indexable: boolean): NextResponse {
+  return new NextResponse(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      // Indexing requires the owner's explicit, separate opt-in. Without it the
+      // page stays noindex so names/ORCID/publications don't enter search
+      // engines on a blanket publish toggle (GDPR/APPI).
+      "X-Robots-Tag": indexable ? "index, follow" : "noindex, nofollow",
+      // Personal data + a living page: never cache in a shared/CDN layer so an
+      // unpublish/unindex takes effect immediately. (In-process render caching
+      // is separate and slug-invalidated on publish-state changes.)
+      "Cache-Control": "private, no-store",
+      // Defence-in-depth as an HTTP header (stronger than the in-document meta
+      // CSP, and able to set frame-ancestors). Mirrors the document's policy:
+      // no scripts, inline styles only, data: images; never framed.
+      "Content-Security-Policy":
+        "default-src 'none'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      // Don't leak the unguessable capability slug to external links via Referer.
+      "Referrer-Policy": "no-referrer",
+    },
+  });
+}
 
 /**
  * Public, living CV page. Serves the self-contained CV HTML document (its own
@@ -16,12 +60,31 @@ export const dynamic = "force-dynamic";
  * we allow indexing and embed ProfilePage/Person JSON-LD for rich results.
  */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const record = await getPublicCvForPage(slug);
 
+  const rl = await enforceRateLimit(`pubpage:${clientIp(req)}`, PUBPAGE_MAX, PUBPAGE_WINDOW_MS);
+  if (!rl.ok) {
+    return new NextResponse("Too many requests. Please try again shortly.", {
+      status: 429,
+      headers: {
+        "Retry-After": String(rl.retryAfterSec),
+        "Content-Type": "text/plain; charset=utf-8",
+      },
+    });
+  }
+
+  // Serve a recently-rendered page without re-reading/parsing/rendering. Only
+  // published 200s are ever cached, and publish-state changes invalidate the
+  // slug, so this can't serve an unpublished page.
+  const cached = getCachedPublicPage(slug);
+  if (cached) {
+    return publicPageResponse(cached.html, cached.indexable);
+  }
+
+  const record = await getPublicCvForPage(slug);
   if (!record) {
     return new NextResponse("This CV is not available.", {
       status: 404,
@@ -41,19 +104,6 @@ export async function GET(
     html = html.replace("</head>", `${jsonLd}</head>`);
   }
 
-  return new NextResponse(html, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      // Indexing requires the owner's explicit, separate opt-in. Without it the
-      // page stays noindex so names/ORCID/publications don't enter search
-      // engines on a blanket publish toggle (GDPR/APPI).
-      "X-Robots-Tag": indexable
-        ? "index, follow"
-        : "noindex, nofollow",
-      // Personal data + a living page: never cache in a shared/CDN layer so an
-      // unpublish/unindex takes effect immediately.
-      "Cache-Control": "private, no-store",
-    },
-  });
+  setCachedPublicPage(slug, { html, indexable });
+  return publicPageResponse(html, indexable);
 }

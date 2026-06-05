@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { invalidatePublicPage } from "@/lib/cv/publicPageCache";
 import { logger } from "@/lib/log";
 import { getEnv } from "@/lib/env";
 import { buildCanonicalCv } from "@/lib/canonical/build";
@@ -248,6 +249,9 @@ export async function setPublishState(
     data: { published, publicSlug: slug, publicIndexable },
     select: { published: true, publicSlug: true, publicIndexable: true },
   });
+  // Drop any cached render so unpublish/publish/index changes take effect at
+  // once (the public route caches rendered pages for a short TTL).
+  if (updated.publicSlug) invalidatePublicPage(updated.publicSlug);
   return {
     published: updated.published,
     publicSlug: updated.publicSlug,
