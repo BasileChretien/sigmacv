@@ -39,6 +39,7 @@
     "@prisma/client": "^7.8.0",
     "citeproc": "^2.4.63",
     "docx": "^9.0.0",
+    "motion": "^12.40.0",
     "next": "^15.1.6",
     "next-auth": "^5.0.0-beta.25",
     "nodemailer": "^8.0.10",

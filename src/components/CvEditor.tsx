@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Reorder, useDragControls, type DragControls } from "motion/react";
 import {
   ACCENT_PRESETS,
   AUTHORSHIP_ROLES,
@@ -24,8 +25,8 @@ import {
   moveItem,
   moveItemTo,
   moveSection,
-  moveSectionTo,
   orderedSections,
+  reorderSections,
   removeItem,
   removeSection,
   renameSection,
@@ -139,6 +140,41 @@ function MetricsNoteText({ text }: { text: string }) {
   );
 }
 
+/**
+ * One reorderable section. The card itself follows the pointer while dragging
+ * (Motion `Reorder.Item`, so the held section glides and the rest spring out of
+ * the way); `dragListener` is off so a drag only begins from the ⠿ handle — the
+ * title input and buttons inside stay clickable. The handle gets `controls` via
+ * the render-prop child and calls `controls.start(e)` on pointer-down.
+ */
+function SectionCard({
+  value,
+  children,
+}: {
+  value: string;
+  children: (controls: DragControls) => ReactNode;
+}) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item
+      value={value}
+      as="div"
+      className="section-card"
+      dragListener={false}
+      dragControls={controls}
+      style={{ position: "relative" }}
+      whileDrag={{
+        scale: 1.025,
+        boxShadow: "0 12px 30px rgba(15, 23, 42, 0.18)",
+        zIndex: 30,
+      }}
+      transition={{ type: "spring", stiffness: 550, damping: 38, mass: 0.6 }}
+    >
+      {children(controls)}
+    </Reorder.Item>
+  );
+}
+
 export default function CvEditor({
   cv,
   availableStyles,
@@ -200,12 +236,9 @@ export default function CvEditor({
   // Draft text for the per-section "add entry" inputs, keyed by section type.
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   // Drag-and-drop reorder state (mouse only; the ↑/↓ buttons remain the
-  // accessible fallback). Items reorder within their section; sections reorder
-  // by dropping onto another section's header.
-  const [dragSection, setDragSection] = useState<string | null>(null);
-  // The section last reordered INTO during a drag — so the live reorder fires
-  // once per section the pointer crosses (not on every dragover) and never thrashes.
-  const lastOverSection = useRef<string | null>(null);
+  // accessible fallback). Items reorder within their section via native DnD;
+  // sections reorder via Motion `Reorder` (the held card tracks the pointer and
+  // the rest spring out of the way) — that drag state lives inside Motion.
   const [dragItem, setDragItem] = useState<{ sectionId: string; itemId: string } | null>(null);
   // Name buffer for saving the current view as a named preset.
   const [presetName, setPresetName] = useState("");
@@ -905,12 +938,21 @@ export default function CvEditor({
 
       <p className="editor-hint">{t(locale, "editorHints")}</p>
 
+      <Reorder.Group
+        axis="y"
+        as="div"
+        className="sections-list"
+        values={sections.map((s) => s.id)}
+        onReorder={(ids) => onChange(reorderSections(cv, ids))}
+      >
       {sections.map((section, si) => {
         const items = [...section.items].sort((a, b) => a.order - b.order);
         const shownCount = items.filter((i) => !isHidden(i)).length;
         const isExpanded = expanded.has(section.id);
         return (
-          <Fragment key={section.id}>
+          <SectionCard key={section.id} value={section.id}>
+            {(controls) => (
+              <>
             {/* The "add a publication by DOI" panel sits directly above the
                 Publications section and moves with it when sections reorder. */}
             {section.type === "publications" ? (
@@ -919,36 +961,12 @@ export default function CvEditor({
           <div
             className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}${
               section.visible ? "" : " is-section-hidden"
-            }${dragSection === section.id ? " is-dragging" : ""}`}
-            onDragOver={(e) => {
-              if (!dragSection || dragSection === section.id) return;
-              e.preventDefault();
-              // Reorder LIVE so the user sees the section reposition as they drag.
-              // Fires once per section the pointer crosses (lastOverSection guard),
-              // so the list reflows smoothly instead of only updating on drop.
-              if (lastOverSection.current === section.id) return;
-              lastOverSection.current = section.id;
-              onChange(moveSectionTo(cv, dragSection, si));
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragSection(null);
-              lastOverSection.current = null;
-            }}
+            }`}
           >
             <div className="section-head">
               <span
                 className="drag-handle"
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.effectAllowed = "move";
-                  setDragSection(section.id);
-                  lastOverSection.current = section.id;
-                }}
-                onDragEnd={() => {
-                  setDragSection(null);
-                  lastOverSection.current = null;
-                }}
+                onPointerDown={(e) => controls.start(e)}
                 title={u.dragSection}
                 aria-hidden="true"
               >
@@ -1295,9 +1313,12 @@ export default function CvEditor({
               </>
             ) : null}
           </div>
-          </Fragment>
+              </>
+            )}
+          </SectionCard>
         );
       })}
+      </Reorder.Group>
 
       {ADDABLE_SECTIONS.some((tp) => !hasSection(tp)) ? (
         <div className="add-section-row">

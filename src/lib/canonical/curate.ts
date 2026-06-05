@@ -202,6 +202,38 @@ export function moveSectionTo(
   };
 }
 
+/**
+ * Reorder sections to an explicit id sequence — the result of a pointer
+ * drag-and-drop (Motion `Reorder` hands back the full new order). Any ids the
+ * caller omits (defensive) keep their existing relative order, appended at the
+ * end, so a stale/partial list can never drop a section.
+ */
+export function reorderSections(
+  cv: CanonicalCv,
+  orderedIds: readonly string[],
+): CanonicalCv {
+  const sorted = sortByOrder(cv.sections);
+  const byId = new Map(cv.sections.map((s) => [s.id, s]));
+  const ordered: CvSection[] = [];
+  for (const id of orderedIds) {
+    const s = byId.get(id);
+    if (s) {
+      ordered.push(s);
+      byId.delete(id);
+    }
+  }
+  for (const s of sortByOrder([...byId.values()])) ordered.push(s);
+  // No-op (preserve identity) when the order is unchanged — avoids a needless
+  // save/re-render when Motion fires onReorder with the current order.
+  const unchanged = ordered.every((s, i) => sorted[i]?.id === s.id);
+  if (unchanged) return cv;
+  return {
+    ...cv,
+    sections: ordered.map((s, i) => ({ ...s, order: i })),
+    display: { ...cv.display, sectionsCustomized: true },
+  };
+}
+
 /** Update one or more display choices (citation style, highlight, etc.). */
 export function updateDisplay(
   cv: CanonicalCv,

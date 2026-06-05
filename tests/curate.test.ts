@@ -17,6 +17,7 @@ import {
   removeItem,
   removeSection,
   renameSection,
+  reorderSections,
   savePreset,
   setItemIncluded,
   setItemNotMine,
@@ -237,6 +238,44 @@ describe("moveSectionTo (drag-and-drop)", () => {
   it("is a no-op for an unknown section id", () => {
     const cv = multi();
     expect(moveSectionTo(cv, "nope", 0)).toBe(cv);
+  });
+});
+
+describe("reorderSections (pointer drag-and-drop)", () => {
+  function multi() {
+    return buildCanonicalCv({
+      id: "rs",
+      resolved,
+      works,
+      now: "2026-06-02T00:00:00.000Z",
+      editorialRoles: [{ journal: "BMJ", role: "Editor", startYear: 2020 }],
+      fundings: [{ putCode: "1", title: "ANR", organization: "ANR" }],
+    });
+  }
+  it("applies an explicit full id order and re-indexes", () => {
+    const cv = multi();
+    const ids = [...cv.sections].sort((a, b) => a.order - b.order).map((s) => s.id);
+    const reversed = [...ids].reverse();
+    const next = reorderSections(cv, reversed);
+    const ordered = [...next.sections].sort((a, b) => a.order - b.order);
+    expect(ordered.map((s) => s.id)).toEqual(reversed);
+    expect(ordered.map((s) => s.order)).toEqual(ordered.map((_, i) => i));
+    expect(next.display.sectionsCustomized).toBe(true);
+  });
+  it("appends omitted ids (a partial list never drops a section)", () => {
+    const cv = multi();
+    const sorted = [...cv.sections].sort((a, b) => a.order - b.order);
+    const first = sorted[0]!.id;
+    // Move only the first section to the end; the rest keep their relative order.
+    const next = reorderSections(cv, [...sorted.slice(1).map((s) => s.id), first]);
+    const ordered = [...next.sections].sort((a, b) => a.order - b.order);
+    expect(ordered).toHaveLength(sorted.length);
+    expect(ordered[ordered.length - 1]!.id).toBe(first);
+  });
+  it("is an identity no-op when the order is unchanged", () => {
+    const cv = multi();
+    const ids = [...cv.sections].sort((a, b) => a.order - b.order).map((s) => s.id);
+    expect(reorderSections(cv, ids)).toBe(cv);
   });
 });
 

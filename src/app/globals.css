@@ -820,14 +820,16 @@ input[type="radio"] {
 .section-block:hover {
   box-shadow: var(--shadow-sm);
 }
-/* A section hidden from the CV (Show unchecked) is dimmed + struck through. */
-/* The section currently being dragged — dimmed + outlined so the live reorder
-   (the list reflows as you drag) is obvious. */
-.section-block.is-dragging {
-  opacity: 0.45;
-  outline: 2px dashed var(--accent);
-  outline-offset: -2px;
+/* Reorderable section wrapper (Motion `Reorder.Item`). The held card lifts and
+   tracks the pointer (scale + shadow via `whileDrag`) while the others spring
+   into place; `position: relative` gives the lifted card its own stacking. */
+.section-card {
+  position: relative;
 }
+.section-card:active {
+  cursor: grabbing;
+}
+/* A section hidden from the CV (Show unchecked) is dimmed + struck through. */
 .section-block.is-section-hidden {
   opacity: 0.6;
 }
@@ -914,6 +916,9 @@ input[type="radio"] {
   cursor: grab;
   color: var(--grey-400);
   user-select: none;
+  /* Pointer-driven reorder (Motion): claim the gesture so a touch-drag from the
+     handle starts a reorder instead of scrolling the panel. */
+  touch-action: none;
   /* WCAG 2.5.8 target size (min 24px) — the handle is a pointer target. */
   min-width: 24px;
   min-height: 24px;
