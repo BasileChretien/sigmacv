@@ -36,6 +36,22 @@ Opt-in, user-chosen, **default none**. Prefer field-normalized over h-index. Sig
 ## Privacy & ethics (mandatory)
 Personal data under GDPR + Japan APPI. Data minimization; per-field publish consent; account deletion + data export. Research logging only behind explicit consent, under IRB; pre-register confirmatory analyses.
 
+## 🚀 Production go-live checklist (DO THIS BEFORE EXPOSING PUBLICLY)
+The app passed three security audits; the hardening it relies on must be **configured at deploy time**. Full detail + rationale in [`SECURITY.md`](SECURITY.md). Before opening to real users:
+
+- [ ] **`POSTGRES_PASSWORD`** — set a strong value (`openssl rand -base64 24`). Deployment now *fails fast* if unset (no committed default).
+- [ ] **`AUTH_SECRET`** — ≥ 32 chars (`openssl rand -base64 33`). Enforced in prod by `env.ts`.
+- [ ] **`AUTH_URL`** — the canonical **HTTPS** origin (e.g. `https://cv.example.org`). Anchors OAuth callbacks **and** the CSRF same-origin check (which fails closed in prod). Must match the ORCID redirect-URI host.
+- [ ] **`ORCID_ENVIRONMENT=production`** + a **production** ORCID app (client id/secret); `OPENALEX_MAILTO` set (polite pool).
+- [ ] **`RATE_LIMIT_PERSIST=true`** — durable, cross-instance rate limiting (defaulted on in the compose files).
+- [ ] **Postgres stays unpublished** to the internet — compose uses `expose` only; never add a host `ports:` mapping for it.
+- [ ] **Caddy** overwrites `X-Forwarded-For` with the real peer + sets `request_body max_size`, and 404s `/api/internal/*` (already in `Caddyfile` — don't remove).
+- [ ] **Container** runs non-root with `cap_drop: ALL` + `no-new-privileges` (already in the Dockerfile + compose).
+- [ ] **Research logging stays OFF** (`RESEARCH_LOGGING_ENABLED` unset) and the **research export stays gated** until IRB approval; finalise the export's de-identified fields against the pre-registration before ever enabling.
+- [ ] **Accepted residuals** (documented in `SECURITY.md`): ORCID has no PKCE (upstream); DB session token at rest (rely on Neon/Postgres encryption-at-rest); revisit if the threat model changes.
+
+Generate secrets with `openssl rand`, put them in the server's `.env` only (never commit), and keep `.env.production.example` as the template.
+
 ## Scope
 - **MVP slice**: ORCID login → OpenAlex pull → canonical object → one HTML template (CSL + name highlight) → PDF export → curation UI.
 - **Then**: more templates + constrained customization · other export formats · living public page · OEP roles · opt-in metrics · consent + logging · OpenAlex grant fields.
