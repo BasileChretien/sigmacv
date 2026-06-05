@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   ACCENT_PRESETS,
   AUTHORSHIP_ROLES,
@@ -203,6 +203,9 @@ export default function CvEditor({
   // accessible fallback). Items reorder within their section; sections reorder
   // by dropping onto another section's header.
   const [dragSection, setDragSection] = useState<string | null>(null);
+  // The section last reordered INTO during a drag — so the live reorder fires
+  // once per section the pointer crosses (not on every dragover) and never thrashes.
+  const lastOverSection = useRef<string | null>(null);
   const [dragItem, setDragItem] = useState<{ sectionId: string; itemId: string } | null>(null);
   // Name buffer for saving the current view as a named preset.
   const [presetName, setPresetName] = useState("");
@@ -916,31 +919,36 @@ export default function CvEditor({
           <div
             className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}${
               section.visible ? "" : " is-section-hidden"
-            }`}
+            }${dragSection === section.id ? " is-dragging" : ""}`}
+            onDragOver={(e) => {
+              if (!dragSection || dragSection === section.id) return;
+              e.preventDefault();
+              // Reorder LIVE so the user sees the section reposition as they drag.
+              // Fires once per section the pointer crosses (lastOverSection guard),
+              // so the list reflows smoothly instead of only updating on drop.
+              if (lastOverSection.current === section.id) return;
+              lastOverSection.current = section.id;
+              onChange(moveSectionTo(cv, dragSection, si));
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragSection(null);
+              lastOverSection.current = null;
+            }}
           >
-            <div
-              className="section-head"
-              onDragOver={
-                dragSection && dragSection !== section.id
-                  ? (e) => e.preventDefault()
-                  : undefined
-              }
-              onDrop={(e) => {
-                if (dragSection && dragSection !== section.id) {
-                  e.preventDefault();
-                  onChange(moveSectionTo(cv, dragSection, si));
-                }
-                setDragSection(null);
-              }}
-            >
+            <div className="section-head">
               <span
                 className="drag-handle"
                 draggable
                 onDragStart={(e) => {
                   e.dataTransfer.effectAllowed = "move";
                   setDragSection(section.id);
+                  lastOverSection.current = section.id;
                 }}
-                onDragEnd={() => setDragSection(null)}
+                onDragEnd={() => {
+                  setDragSection(null);
+                  lastOverSection.current = null;
+                }}
                 title={u.dragSection}
                 aria-hidden="true"
               >

@@ -821,6 +821,13 @@ input[type="radio"] {
   box-shadow: var(--shadow-sm);
 }
 /* A section hidden from the CV (Show unchecked) is dimmed + struck through. */
+/* The section currently being dragged — dimmed + outlined so the live reorder
+   (the list reflows as you drag) is obvious. */
+.section-block.is-dragging {
+  opacity: 0.45;
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}
 .section-block.is-section-hidden {
   opacity: 0.6;
 }
