@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { isSameOrigin } from "@/lib/security/origin";
 import { RESEARCH_CONSENT_VERSION } from "@/lib/research/log";
 
 export const runtime = "nodejs";
@@ -19,6 +20,9 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
   }
 
   const rl = await enforceRateLimit(`consent:${session.user.id}`, CONSENT_MAX, CONSENT_WINDOW_MS);

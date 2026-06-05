@@ -119,13 +119,19 @@ describe("enforceRateLimit — persistent (Postgres)", () => {
     expect(mocks.upsert).toHaveBeenCalledTimes(1);
   });
 
-  it("fails soft (allows) and logs when the DB errors", async () => {
+  it("degrades to the in-memory limiter (does NOT fail open) and logs when the DB errors", async () => {
     mocks.transaction.mockRejectedValue(new Error("db unreachable"));
-    const r = await enforceRateLimit("k", 5, 60_000, 1000);
-    expect(r.ok).toBe(true);
+    // Within the in-memory budget the request is allowed…
+    for (let i = 0; i < 5; i++) {
+      const r = await enforceRateLimit("degraded-key", 5, 60_000, 1000);
+      expect(r.ok).toBe(true);
+    }
+    // …but it is NOT unbounded — the fallback still throttles past the cap.
+    const denied = await enforceRateLimit("degraded-key", 5, 60_000, 1000);
+    expect(denied.ok).toBe(false);
     expect(mocks.warn).toHaveBeenCalledWith(
-      "ratelimit.persist_failed",
-      expect.objectContaining({ key: "k" }),
+      "ratelimit.persist_failed_degraded",
+      expect.objectContaining({ key: "degraded-key" }),
     );
   });
 });

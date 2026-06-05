@@ -32,8 +32,13 @@ interface OrcidProfile {
  * supplies the authorization/token/userinfo/jwks endpoints. The `sub` claim is
  * the user's ORCID iD.
  *
- * Note: `checks` excludes "nonce" because ORCID has historically not echoed it
- * reliably; PKCE + state still protect the flow.
+ * Security note: this flow runs with `checks: ["state"]` ONLY. ORCID's OIDC
+ * discovery advertises neither PKCE (no `code_challenge_methods_supported`) nor
+ * a reliable nonce, and Auth.js refuses to request a check the IdP doesn't
+ * advertise. Residual risk is constrained: it is a confidential client
+ * exchanging the code server-side with the secret (client_secret_post), the
+ * callback is strictly same-site, and there is no open redirect to leak the
+ * code. If ORCID later advertises PKCE/S256, switch to `["state","pkce"]`.
  */
 const orcidProvider: OIDCConfig<OrcidProfile> = {
   id: "orcid",

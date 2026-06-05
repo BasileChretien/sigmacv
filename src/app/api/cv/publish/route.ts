@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { CvNotFoundError, getPublishState, setPublishState } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { isSameOrigin } from "@/lib/security/origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,9 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
   }
 
   const rl = await enforceRateLimit(`publish:${session.user.id}`, 30, 60 * 60 * 1000);

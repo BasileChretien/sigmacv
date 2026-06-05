@@ -45,6 +45,14 @@ COPY --from=builder /app/src/lib/citeproc/assets ./src/lib/citeproc/assets
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
+# Drop root: run the Node server AND Chromium as the Playwright image's
+# non-root `pwuser` (uid 1000). A future Chromium/markup-injection RCE then
+# lands as an unprivileged user, not root, so it can't read the process env
+# (DATABASE_URL / AUTH_SECRET / ORCID_CLIENT_SECRET) from a privileged context.
+# Own the app dir so Prisma/Next runtime writes still succeed.
+RUN chown -R pwuser:pwuser /app
+USER pwuser
+
 EXPOSE 3000
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "server.js"]

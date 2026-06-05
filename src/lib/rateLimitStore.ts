@@ -8,9 +8,11 @@
  * `RateLimitWindow` table — limits then hold across instances and survive
  * restarts.
  *
- * Fail-soft: if the database is briefly unreachable we ALLOW the request rather
- * than lock users out of every rate-limited route on a transient DB blip. The
- * limiter is a guardrail against abuse, not an auth boundary.
+ * Degraded mode: if the persistent store is briefly unreachable we DON'T fail
+ * open (which would disable throttling on every expensive route under DB
+ * pressure) — we fall back to the in-memory limiter, so requests stay
+ * conservatively throttled until the DB recovers. The limiter is a guardrail
+ * against abuse, not an auth boundary.
  */
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/log";
@@ -75,7 +77,9 @@ export async function enforceRateLimit(
   try {
     return await prismaRateLimit(key, max, windowMs, now);
   } catch (err) {
-    logger.warn("ratelimit.persist_failed", { key, err });
-    return { ok: true, retryAfterSec: 0 };
+    // Don't fail open: degrade to the in-memory limiter so the route stays
+    // throttled (conservatively) during a DB blip instead of becoming unbounded.
+    logger.warn("ratelimit.persist_failed_degraded", { key, err });
+    return rateLimit(key, max, windowMs, now);
   }
 }

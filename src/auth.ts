@@ -13,17 +13,27 @@ interface SessionDbUser {
 }
 
 /**
- * Prisma adapter, patched for ORCID: ORCID access tokens expire ~20 years out,
- * so Auth.js's computed `expires_at` (epoch seconds, ~2.4e9) overflows the
- * 32-bit `Account.expires_at` Int column. We never use the ORCID access token
- * after sign-in (publications come from the public OpenAlex API via the iD),
- * so drop it when linking the account.
+ * Prisma adapter, patched for ORCID. Two reasons:
+ *  1. ORCID access tokens expire ~20 years out, so Auth.js's computed
+ *     `expires_at` (epoch seconds, ~2.4e9) overflows the 32-bit
+ *     `Account.expires_at` Int column.
+ *  2. We never use the provider tokens after sign-in — publications come from
+ *     the public OpenAlex API via the iD, and sessions are database-backed
+ *     (no JWT). So we DROP the access/refresh/id tokens entirely rather than
+ *     persist long-lived bearer credentials unencrypted at rest (defence in
+ *     depth: a leaked DATABASE_URL / stolen backup then yields no usable token).
  */
 const adapter = PrismaAdapter(prisma);
 const baseLinkAccount = adapter.linkAccount;
 if (baseLinkAccount) {
   adapter.linkAccount = (account) =>
-    baseLinkAccount({ ...account, expires_at: undefined });
+    baseLinkAccount({
+      ...account,
+      access_token: undefined,
+      refresh_token: undefined,
+      id_token: undefined,
+      expires_at: undefined,
+    });
 }
 
 /**

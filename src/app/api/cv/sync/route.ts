@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { syncCvForUser } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { isSameOrigin } from "@/lib/security/origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,10 +13,13 @@ const SYNC_MAX = 10;
 const SYNC_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
 /** Re-pull works from OpenAlex and rebuild the canonical CV (curation preserved). */
-export async function POST() {
+export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
   }
 
   const rl = await enforceRateLimit(`sync:${session.user.id}`, SYNC_MAX, SYNC_WINDOW_MS);
