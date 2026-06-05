@@ -4,11 +4,21 @@
 {$SITE_ADDRESS} {
 	encode gzip zstd
 
+	# Hard cap the request body at the edge (defence-in-depth alongside the app's
+	# streamed per-route ceiling) so an oversize/chunked body can't reach Node.
+	request_body {
+		max_size 10MB
+	}
+
 	# /api/internal/* (the secret-guarded resync endpoint) is machine-to-machine
 	# only — the cron container reaches it directly at http://app:3000 on the
 	# internal Docker network. Never expose it publicly, even with the Bearer guard.
 	@internal path /api/internal/*
 	respond @internal 404
 
-	reverse_proxy app:3000
+	reverse_proxy app:3000 {
+		# Strip any client-supplied X-Forwarded-For and set it to the real peer IP,
+		# so the app's per-IP rate limit can't be evaded by spoofing the header.
+		header_up X-Forwarded-For {remote_host}
+	}
 }

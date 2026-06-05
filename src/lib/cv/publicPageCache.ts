@@ -29,6 +29,36 @@ const cache = new Map<string, CacheRecord>();
 const MAX_ENTRIES = 2000;
 const TTL_MS = 60_000; // 1 minute
 
+// Short negative cache for slugs that resolved to "not found" — so a flood of
+// random/invalid slugs (which bypass the render cache) doesn't hit the DB on
+// every request. Kept brief so a freshly-published slug appears quickly.
+const missCache = new Map<string, number>(); // slug -> expiry epoch ms
+const MISS_TTL_MS = 30_000;
+const MISS_MAX = 5000;
+
+/** True if this slug recently resolved to "not found" (skip the DB read). */
+export function isKnownMiss(slug: string, now: number = Date.now()): boolean {
+  const exp = missCache.get(slug);
+  if (exp === undefined) return false;
+  if (now >= exp) {
+    missCache.delete(slug);
+    return false;
+  }
+  return true;
+}
+
+/** Record that a slug resolved to "not found" (negative cache). */
+export function rememberMiss(slug: string, now: number = Date.now()): void {
+  if (missCache.size >= MISS_MAX) {
+    for (const [k, exp] of missCache) if (now >= exp) missCache.delete(k);
+    if (missCache.size >= MISS_MAX) {
+      const oldest = missCache.keys().next().value;
+      if (oldest !== undefined) missCache.delete(oldest);
+    }
+  }
+  missCache.set(slug, now + MISS_TTL_MS);
+}
+
 /** Return the cached rendered page for a slug, or null on miss/expiry. */
 export function getCachedPublicPage(
   slug: string,
@@ -63,12 +93,15 @@ export function setCachedPublicPage(
 }
 
 /** Drop a slug from the cache — call on any publish/unpublish/index change so
- *  the new state (including 404 after unpublish) takes effect immediately. */
+ *  the new state (including 404 after unpublish) takes effect immediately. Also
+ *  clears the negative cache so a freshly-published slug appears at once. */
 export function invalidatePublicPage(slug: string): void {
   cache.delete(slug);
+  missCache.delete(slug);
 }
 
 /** Test-only: clear the cache. */
 export function __resetPublicPageCache(): void {
   cache.clear();
+  missCache.clear();
 }

@@ -4,6 +4,7 @@ import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { CvNotFoundError, getCvForUser, saveCvForUser } from "@/lib/cv/sync";
 import { validateStyleXml } from "@/lib/citeproc/engine";
 import { logger } from "@/lib/log";
+import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { isSameOrigin } from "@/lib/security/origin";
 
@@ -46,19 +47,15 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const declaredLength = Number(req.headers.get("content-length") ?? 0);
-  if (declaredLength > MAX_BODY_BYTES) {
-    return NextResponse.json({ error: "CV document too large" }, { status: 413 });
+  // Enforce the size ceiling by STREAMING the body (content-length is spoofable).
+  const read = await readJsonBodyWithLimit(req, MAX_BODY_BYTES);
+  if (!read.ok) {
+    return read.tooLarge
+      ? NextResponse.json({ error: "CV document too large" }, { status: 413 })
+      : NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const document = (body as { document?: unknown } | null)?.document;
+  const document = (read.value as { document?: unknown } | null)?.document;
   const parsed = CanonicalCvSchema.safeParse(document);
   if (!parsed.success) {
     // Generic message — do NOT echo raw Zod issues (internal schema paths +

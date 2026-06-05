@@ -3,6 +3,8 @@ import {
   __resetPublicPageCache,
   getCachedPublicPage,
   invalidatePublicPage,
+  isKnownMiss,
+  rememberMiss,
   setCachedPublicPage,
 } from "@/lib/cv/publicPageCache";
 
@@ -35,5 +37,25 @@ describe("publicPageCache", () => {
     }
     // The most recent insert is present; the cache did not grow without bound.
     expect(getCachedPublicPage("slug-2099", 5000)).not.toBeNull();
+  });
+
+  describe("negative cache (unknown slugs)", () => {
+    it("remembers a miss, then expires it after the TTL", () => {
+      expect(isKnownMiss("ghost", 1000)).toBe(false);
+      rememberMiss("ghost", 1000);
+      expect(isKnownMiss("ghost", 1000 + 29_000)).toBe(true);
+      expect(isKnownMiss("ghost", 1000 + 31_000)).toBe(false); // 30s TTL elapsed
+    });
+
+    it("invalidate clears the miss so a freshly-published slug appears at once", () => {
+      rememberMiss("soon", 1000);
+      invalidatePublicPage("soon");
+      expect(isKnownMiss("soon", 1100)).toBe(false);
+    });
+
+    it("bounds the miss cache under pressure", () => {
+      for (let i = 0; i < 5200; i++) rememberMiss(`m-${i}`, 5000);
+      expect(isKnownMiss("m-5199", 5000)).toBe(true);
+    });
   });
 });

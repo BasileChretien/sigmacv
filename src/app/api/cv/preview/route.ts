@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { logger } from "@/lib/log";
+import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { isSameOrigin } from "@/lib/security/origin";
 import { renderCvHtml } from "@/lib/render/html";
 
 export const runtime = "nodejs";
@@ -19,6 +21,9 @@ export async function POST(req: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
+  }
 
   const rl = await enforceRateLimit(`preview:${session.user.id}`, PREVIEW_MAX, PREVIEW_WINDOW_MS);
   if (!rl.ok) {
@@ -28,20 +33,15 @@ export async function POST(req: Request) {
     );
   }
 
-  const declaredLength = Number(req.headers.get("content-length") ?? 0);
-  if (declaredLength > MAX_BODY_BYTES) {
-    return NextResponse.json({ error: "CV document too large" }, { status: 413 });
-  }
-
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const read = await readJsonBodyWithLimit(req, MAX_BODY_BYTES);
+  if (!read.ok) {
+    return read.tooLarge
+      ? NextResponse.json({ error: "CV document too large" }, { status: 413 })
+      : NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   const parsed = CanonicalCvSchema.safeParse(
-    (body as { document?: unknown } | null)?.document,
+    (read.value as { document?: unknown } | null)?.document,
   );
   if (!parsed.success) {
     // Generic message — don't echo raw Zod issues (schema internals) to clients.

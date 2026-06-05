@@ -7,7 +7,9 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-sigmacv}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sigmacv}
+      # REQUIRED — no default. `docker compose up` fails fast if unset/empty, so
+      # production Postgres can never run with a committed/guessable password.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set a strong POSTGRES_PASSWORD (e.g. openssl rand -base64 24)}
       POSTGRES_DB: ${POSTGRES_DB:-sigmacv}
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -28,8 +30,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # Hardening (matches docker-compose.prod.yml): non-root image + no privilege
+    # escalation + drop all caps (binds 3000, sandbox-less Chromium needs none).
+    security_opt:
+      - "no-new-privileges:true"
+    cap_drop:
+      - ALL
     environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-sigmacv}:${POSTGRES_PASSWORD:-sigmacv}@postgres:5432/${POSTGRES_DB:-sigmacv}?schema=public"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-sigmacv}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sigmacv}?schema=public"
       AUTH_SECRET: ${AUTH_SECRET}
       AUTH_URL: ${AUTH_URL}
       AUTH_TRUST_HOST: "true"
@@ -39,6 +47,7 @@ services:
       OPENALEX_MAILTO: ${OPENALEX_MAILTO}
       OEP_DATA_URL: ${OEP_DATA_URL:-}
       RESYNC_SECRET: ${RESYNC_SECRET:-}
+      RATE_LIMIT_PERSIST: ${RATE_LIMIT_PERSIST:-true}
       NODE_ENV: "production"
     expose:
       - "3000"

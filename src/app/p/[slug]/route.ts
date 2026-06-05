@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getPublicCvForPage } from "@/lib/cv/sync";
 import {
   getCachedPublicPage,
+  isKnownMiss,
+  rememberMiss,
   setCachedPublicPage,
 } from "@/lib/cv/publicPageCache";
 import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
@@ -15,11 +17,23 @@ export const dynamic = "force-dynamic";
 // random/invalid slugs, which bypass the render cache) can't pin the process.
 const PUBPAGE_MAX = 120;
 const PUBPAGE_WINDOW_MS = 60_000; // 1 minute
+// A second, GLOBAL ceiling across all IPs — bounds a distributed flood that
+// rotates source IPs (each IP staying under the per-IP cap).
+const PUBPAGE_GLOBAL_MAX = 3_000;
+const PUBPAGE_GLOBAL_WINDOW_MS = 60_000;
 
-/** Best-effort client IP from the proxy (Caddy) headers; "unknown" in dev. */
+/**
+ * Real client IP from the proxy headers. Caddy is configured to OVERWRITE
+ * X-Forwarded-For with the real peer (`header_up X-Forwarded-For {remote_host}`),
+ * so the trusted value is the RIGHTMOST hop — never the leftmost client-supplied
+ * one (which would let an attacker rotate it to evade the per-IP limit).
+ */
 function clientIp(req: Request): string {
   const fwd = req.headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0]!.trim();
+  if (fwd) {
+    const parts = fwd.split(",");
+    return parts[parts.length - 1]!.trim();
+  }
   return req.headers.get("x-real-ip")?.trim() || "unknown";
 }
 
@@ -65,16 +79,19 @@ export async function GET(
 ) {
   const { slug } = await params;
 
-  const rl = await enforceRateLimit(`pubpage:${clientIp(req)}`, PUBPAGE_MAX, PUBPAGE_WINDOW_MS);
-  if (!rl.ok) {
-    return new NextResponse("Too many requests. Please try again shortly.", {
+  const tooMany = (retryAfterSec: number) =>
+    new NextResponse("Too many requests. Please try again shortly.", {
       status: 429,
       headers: {
-        "Retry-After": String(rl.retryAfterSec),
+        "Retry-After": String(retryAfterSec),
         "Content-Type": "text/plain; charset=utf-8",
       },
     });
-  }
+
+  const rl = await enforceRateLimit(`pubpage:${clientIp(req)}`, PUBPAGE_MAX, PUBPAGE_WINDOW_MS);
+  if (!rl.ok) return tooMany(rl.retryAfterSec);
+  const grl = await enforceRateLimit("pubpage:global", PUBPAGE_GLOBAL_MAX, PUBPAGE_GLOBAL_WINDOW_MS);
+  if (!grl.ok) return tooMany(grl.retryAfterSec);
 
   // Serve a recently-rendered page without re-reading/parsing/rendering. Only
   // published 200s are ever cached, and publish-state changes invalidate the
@@ -84,12 +101,20 @@ export async function GET(
     return publicPageResponse(cached.html, cached.indexable);
   }
 
-  const record = await getPublicCvForPage(slug);
-  if (!record) {
-    return new NextResponse("This CV is not available.", {
+  const notFound = () =>
+    new NextResponse("This CV is not available.", {
       status: 404,
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
+
+  // Negative cache: a recently-unknown slug skips the DB read (random-slug flood
+  // protection). Cleared immediately when a slug is published.
+  if (isKnownMiss(slug)) return notFound();
+
+  const record = await getPublicCvForPage(slug);
+  if (!record) {
+    rememberMiss(slug);
+    return notFound();
   }
 
   const { cv, indexable } = record;

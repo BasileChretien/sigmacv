@@ -2,16 +2,19 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { logger } from "@/lib/log";
+import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { isSameOrigin } from "@/lib/security/origin";
 import { templateGalleryPreviews } from "@/lib/render/galleryPreview";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// One request renders the sample in every template — heavier than a single
-// preview, so a tighter cap (the gallery fetches once per editor session).
-const GALLERY_MAX = 60;
+// One request renders the sample in EVERY template (~5x a single preview), so a
+// tighter cap (the gallery fetches once per editor session) + a body ceiling.
+const GALLERY_MAX = 30;
 const GALLERY_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_BODY_BYTES = 8_000_000;
 
 /** Render a trimmed sample of the document in every template, for the editor's
  *  template-picker thumbnails (real previews, not schematics). */
@@ -19,6 +22,9 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
   }
 
   const rl = await enforceRateLimit(
@@ -33,15 +39,15 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const read = await readJsonBodyWithLimit(req, MAX_BODY_BYTES);
+  if (!read.ok) {
+    return read.tooLarge
+      ? NextResponse.json({ error: "CV document too large" }, { status: 413 })
+      : NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   const parsed = CanonicalCvSchema.safeParse(
-    (body as { document?: unknown } | null)?.document,
+    (read.value as { document?: unknown } | null)?.document,
   );
   if (!parsed.success) {
     // Generic message — don't echo raw Zod issues (internal schema paths).
