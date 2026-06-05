@@ -46,6 +46,7 @@ import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
 import ItemRow from "./ItemRow";
+import NarrativeEditor from "./NarrativeEditor";
 import ProfilePanel from "./ProfilePanel";
 
 interface CvEditorProps {
@@ -935,6 +936,8 @@ export default function CvEditor({
         </label>
         <p className="muted metric-preset-note field-note">{u.countLettersNote}</p>
       </fieldset>
+
+      <NarrativeEditor cv={cv} uiLocale={uiLocale} onChange={onChange} />
 
       <p className="editor-hint">{t(locale, "editorHints")}</p>
 

@@ -45,6 +45,19 @@ export interface EditorExtraStrings {
   claimAlready: string;
   claimWhichAuthor: string;
   claimError: string;
+  // Narrative-CV editor (funder résumé prose) + one-click starter layout.
+  narrativeLegend: string;
+  narrativeIntro: string;
+  narrativeAdd: string;
+  narrativeStarter: string;
+  narrativeStarterNote: string;
+  narrativeHeading: string;
+  narrativeBody: string;
+  narrativeBodyHint: string;
+  narrativeCharsLeft: string;
+  narrativeRemove: string;
+  narrativeMoveUp: string;
+  narrativeMoveDown: string;
 }
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
@@ -83,6 +96,20 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Already in your CV.",
     claimWhichAuthor: "Which author are you?",
     claimError: "Lookup failed — please try again.",
+    narrativeLegend: "Narrative CV",
+    narrativeIntro:
+      "Funder-style résumé prose (UKRI / Royal Society framing). Shown above your sections. Write your own text; each module has a guidance prompt.",
+    narrativeAdd: "Add narrative section",
+    narrativeStarter: "Narrative CV layout",
+    narrativeStarterNote:
+      "Seeds the narrative modules and trims the publication list to a few selected works. Reversible — it only changes display.",
+    narrativeHeading: "Heading",
+    narrativeBody: "Body",
+    narrativeBodyHint: "Blank line = new paragraph; lines starting with “- ” become a list.",
+    narrativeCharsLeft: "{n} characters left",
+    narrativeRemove: "Remove module",
+    narrativeMoveUp: "Move module up",
+    narrativeMoveDown: "Move module down",
   },
   "zh-CN": {
     grpTemplate: "模板与排版",
@@ -119,6 +146,20 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "已在你的简历中。",
     claimWhichAuthor: "你是哪位作者？",
     claimError: "查找失败——请重试。",
+    narrativeLegend: "叙述式简历",
+    narrativeIntro:
+      "资助方风格的叙述式简历（UKRI／英国皇家学会框架），显示在各栏目上方。请自行撰写，每个模块都有写作提示。",
+    narrativeAdd: "添加叙述部分",
+    narrativeStarter: "叙述式简历版式",
+    narrativeStarterNote:
+      "生成叙述模块，并将论文列表精简为少量代表作。可逆——仅更改显示。",
+    narrativeHeading: "标题",
+    narrativeBody: "正文",
+    narrativeBodyHint: "空行＝新段落；以“- ”开头的行会变成列表。",
+    narrativeCharsLeft: "还剩 {n} 个字符",
+    narrativeRemove: "移除模块",
+    narrativeMoveUp: "上移模块",
+    narrativeMoveDown: "下移模块",
   },
   "es-ES": {
     grpTemplate: "Plantilla y diseño",
@@ -156,6 +197,20 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Ya está en tu CV.",
     claimWhichAuthor: "¿Cuál autor eres?",
     claimError: "La búsqueda falló: inténtalo de nuevo.",
+    narrativeLegend: "CV narrativo",
+    narrativeIntro:
+      "Texto de CV narrativo al estilo de las agencias financiadoras (marco UKRI / Royal Society). Se muestra encima de tus secciones. Escribe tu propio texto; cada módulo tiene una guía.",
+    narrativeAdd: "Añadir sección narrativa",
+    narrativeStarter: "Diseño de CV narrativo",
+    narrativeStarterNote:
+      "Genera los módulos narrativos y recorta la lista de publicaciones a unas obras seleccionadas. Reversible: solo cambia la visualización.",
+    narrativeHeading: "Encabezado",
+    narrativeBody: "Texto",
+    narrativeBodyHint: "Línea en blanco = párrafo nuevo; las líneas que empiezan por «- » forman una lista.",
+    narrativeCharsLeft: "Quedan {n} caracteres",
+    narrativeRemove: "Eliminar módulo",
+    narrativeMoveUp: "Subir módulo",
+    narrativeMoveDown: "Bajar módulo",
   },
   "fr-FR": {
     grpTemplate: "Modèle et mise en page",
@@ -193,6 +248,20 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Déjà dans votre CV.",
     claimWhichAuthor: "Quel auteur êtes-vous ?",
     claimError: "Échec de la recherche — veuillez réessayer.",
+    narrativeLegend: "CV narratif",
+    narrativeIntro:
+      "Texte de CV narratif façon financeurs (cadre UKRI / Royal Society). Affiché au-dessus de vos sections. Rédigez votre propre texte ; chaque module comporte une consigne.",
+    narrativeAdd: "Ajouter une section narrative",
+    narrativeStarter: "Mise en page CV narratif",
+    narrativeStarterNote:
+      "Crée les modules narratifs et réduit la liste de publications à quelques travaux choisis. Réversible — ne modifie que l’affichage.",
+    narrativeHeading: "Titre",
+    narrativeBody: "Texte",
+    narrativeBodyHint: "Ligne vide = nouveau paragraphe ; les lignes commençant par « - » forment une liste.",
+    narrativeCharsLeft: "{n} caractères restants",
+    narrativeRemove: "Supprimer le module",
+    narrativeMoveUp: "Monter le module",
+    narrativeMoveDown: "Descendre le module",
   },
   "de-DE": {
     grpTemplate: "Vorlage & Layout",
@@ -230,6 +299,20 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Bereits in Ihrem Lebenslauf.",
     claimWhichAuthor: "Welcher Autor sind Sie?",
     claimError: "Suche fehlgeschlagen – bitte erneut versuchen.",
+    narrativeLegend: "Narrativer Lebenslauf",
+    narrativeIntro:
+      "Narrativer Lebenslauf im Stil der Förderer (UKRI- / Royal-Society-Rahmen). Wird über Ihren Abschnitten angezeigt. Schreiben Sie Ihren eigenen Text; jedes Modul hat einen Hinweis.",
+    narrativeAdd: "Narrativen Abschnitt hinzufügen",
+    narrativeStarter: "Layout „Narrativer Lebenslauf“",
+    narrativeStarterNote:
+      "Legt die narrativen Module an und kürzt die Publikationsliste auf einige ausgewählte Arbeiten. Umkehrbar – ändert nur die Anzeige.",
+    narrativeHeading: "Überschrift",
+    narrativeBody: "Text",
+    narrativeBodyHint: "Leerzeile = neuer Absatz; Zeilen mit „- “ am Anfang werden zur Liste.",
+    narrativeCharsLeft: "{n} Zeichen übrig",
+    narrativeRemove: "Modul entfernen",
+    narrativeMoveUp: "Modul nach oben",
+    narrativeMoveDown: "Modul nach unten",
   },
   "ja-JP": {
     grpTemplate: "テンプレートとレイアウト",
@@ -266,6 +349,20 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "すでに CV にあります。",
     claimWhichAuthor: "あなたはどの著者ですか？",
     claimError: "検索に失敗しました。もう一度お試しください。",
+    narrativeLegend: "ナラティブCV",
+    narrativeIntro:
+      "助成機関方式のナラティブCV（UKRI／Royal Society の枠組み）。各セクションの上に表示されます。本文はご自身で記述してください。各モジュールにガイドがあります。",
+    narrativeAdd: "ナラティブ欄を追加",
+    narrativeStarter: "ナラティブCVレイアウト",
+    narrativeStarterNote:
+      "ナラティブ各モジュールを用意し、論文一覧を選抜した数件に絞ります。元に戻せます——表示のみを変更します。",
+    narrativeHeading: "見出し",
+    narrativeBody: "本文",
+    narrativeBodyHint: "空行＝段落の区切り。「- 」で始まる行は箇条書きになります。",
+    narrativeCharsLeft: "残り{n}文字",
+    narrativeRemove: "モジュールを削除",
+    narrativeMoveUp: "モジュールを上へ",
+    narrativeMoveDown: "モジュールを下へ",
   },
   "pt-BR": {
     grpTemplate: "Modelo e layout",
@@ -303,6 +400,20 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Já está no seu CV.",
     claimWhichAuthor: "Qual autor é você?",
     claimError: "Falha na busca — tente novamente.",
+    narrativeLegend: "Currículo narrativo",
+    narrativeIntro:
+      "Texto de currículo narrativo no estilo das agências de fomento (estrutura UKRI / Royal Society). Exibido acima das suas seções. Escreva o seu próprio texto; cada módulo tem uma orientação.",
+    narrativeAdd: "Adicionar seção narrativa",
+    narrativeStarter: "Layout de currículo narrativo",
+    narrativeStarterNote:
+      "Cria os módulos narrativos e reduz a lista de publicações a alguns trabalhos selecionados. Reversível — altera apenas a exibição.",
+    narrativeHeading: "Título",
+    narrativeBody: "Texto",
+    narrativeBodyHint: "Linha em branco = novo parágrafo; linhas iniciadas por “- ” viram uma lista.",
+    narrativeCharsLeft: "Faltam {n} caracteres",
+    narrativeRemove: "Remover módulo",
+    narrativeMoveUp: "Mover módulo para cima",
+    narrativeMoveDown: "Mover módulo para baixo",
   },
   "it-IT": {
     grpTemplate: "Modello e layout",
@@ -340,6 +451,20 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Già presente nel tuo CV.",
     claimWhichAuthor: "Quale autore sei?",
     claimError: "Ricerca non riuscita — riprova.",
+    narrativeLegend: "CV narrativo",
+    narrativeIntro:
+      "CV narrativo in stile enti finanziatori (impostazione UKRI / Royal Society). Mostrato sopra le tue sezioni. Scrivi il tuo testo; ogni modulo ha una guida.",
+    narrativeAdd: "Aggiungi sezione narrativa",
+    narrativeStarter: "Layout CV narrativo",
+    narrativeStarterNote:
+      "Crea i moduli narrativi e riduce l’elenco delle pubblicazioni ad alcuni lavori selezionati. Reversibile — cambia solo la visualizzazione.",
+    narrativeHeading: "Titolo",
+    narrativeBody: "Testo",
+    narrativeBodyHint: "Riga vuota = nuovo paragrafo; le righe che iniziano con «- » diventano un elenco.",
+    narrativeCharsLeft: "{n} caratteri rimasti",
+    narrativeRemove: "Rimuovi modulo",
+    narrativeMoveUp: "Sposta modulo su",
+    narrativeMoveDown: "Sposta modulo giù",
   },
   "ko-KR": {
     grpTemplate: "템플릿 및 레이아웃",
@@ -376,6 +501,20 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "이미 CV에 있습니다.",
     claimWhichAuthor: "본인은 어느 저자인가요?",
     claimError: "조회 실패 — 다시 시도해 주세요.",
+    narrativeLegend: "내러티브 CV",
+    narrativeIntro:
+      "연구비 지원기관 방식의 내러티브 CV(UKRI / Royal Society 틀). 섹션 위에 표시됩니다. 본문은 직접 작성하세요. 각 모듈에 안내가 있습니다.",
+    narrativeAdd: "내러티브 섹션 추가",
+    narrativeStarter: "내러티브 CV 레이아웃",
+    narrativeStarterNote:
+      "내러티브 모듈을 생성하고 논문 목록을 선별한 몇 편으로 줄입니다. 되돌릴 수 있음 — 표시만 변경합니다.",
+    narrativeHeading: "제목",
+    narrativeBody: "본문",
+    narrativeBodyHint: "빈 줄 = 새 문단, “- ”로 시작하는 줄은 목록이 됩니다.",
+    narrativeCharsLeft: "{n}자 남음",
+    narrativeRemove: "모듈 삭제",
+    narrativeMoveUp: "모듈 위로",
+    narrativeMoveDown: "모듈 아래로",
   },
   "ru-RU": {
     grpTemplate: "Шаблон и вёрстка",
@@ -413,6 +552,20 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Уже есть в вашем CV.",
     claimWhichAuthor: "Какой из авторов — вы?",
     claimError: "Не удалось выполнить поиск — попробуйте снова.",
+    narrativeLegend: "Нарративное резюме",
+    narrativeIntro:
+      "Нарративное резюме в стиле грантодателей (рамка UKRI / Royal Society). Показывается над вашими разделами. Пишите свой текст; у каждого модуля есть подсказка.",
+    narrativeAdd: "Добавить нарративный раздел",
+    narrativeStarter: "Макет нарративного резюме",
+    narrativeStarterNote:
+      "Создаёт нарративные модули и сокращает список публикаций до нескольких избранных работ. Обратимо — меняет только отображение.",
+    narrativeHeading: "Заголовок",
+    narrativeBody: "Текст",
+    narrativeBodyHint: "Пустая строка = новый абзац; строки, начинающиеся с «- », образуют список.",
+    narrativeCharsLeft: "Осталось символов: {n}",
+    narrativeRemove: "Удалить модуль",
+    narrativeMoveUp: "Поднять модуль",
+    narrativeMoveDown: "Опустить модуль",
   },
 };
 

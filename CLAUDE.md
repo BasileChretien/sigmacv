@@ -82,7 +82,7 @@ The Prisma client is generated into **`src/generated/prisma/`** (committed, `pos
 npm run dev            # Next dev server (predev auto-syncs the DB schema)
 npm run build          # production build
 npm run typecheck      # tsc --noEmit  (run this after every code change)
-npm test               # vitest run — full unit/integration suite (~535 tests)
+npm test               # vitest run — full unit/integration suite (~800 tests)
 npm run coverage       # vitest run --coverage — ENFORCES the gate (see below)
 npm run e2e            # Playwright E2E (needs e2e DB; e2e:install first)
 npm run fetch-csl      # vendor the CSL styles + en-US locale into citeproc assets
