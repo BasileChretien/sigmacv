@@ -3,9 +3,18 @@ import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { CvNotFoundError, getCvForUser, saveCvForUser } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
+import { enforceRateLimit } from "@/lib/rateLimitStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// A canonical document (embedded photo up to ~1.4 MB + bounded items) tops out
+// at a few MB; reject anything much larger before we spend CPU parsing it.
+const MAX_BODY_BYTES = 8_000_000;
+// CV saves run full Zod validation + a JSON-column write — throttle per user so
+// one account can't hammer the DB with large writes.
+const SAVE_MAX = 120;
+const SAVE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
 /** Load the signed-in user's canonical CV. */
 export async function GET() {
@@ -24,6 +33,19 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rl = await enforceRateLimit(`save:${session.user.id}`, SAVE_MAX, SAVE_WINDOW_MS);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many save requests. Please wait a moment." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
+
+  const declaredLength = Number(req.headers.get("content-length") ?? 0);
+  if (declaredLength > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: "CV document too large" }, { status: 413 });
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -34,10 +56,9 @@ export async function PATCH(req: Request) {
   const document = (body as { document?: unknown } | null)?.document;
   const parsed = CanonicalCvSchema.safeParse(document);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid CV document", issues: parsed.error.issues },
-      { status: 422 },
-    );
+    // Generic message — do NOT echo raw Zod issues (internal schema paths +
+    // received values) back to the client.
+    return NextResponse.json({ error: "Invalid CV document" }, { status: 422 });
   }
 
   try {

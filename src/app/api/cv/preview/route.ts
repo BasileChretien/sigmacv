@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 // Preview runs a full citeproc render — throttle to blunt CPU abuse.
 const PREVIEW_MAX = 240;
 const PREVIEW_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_BODY_BYTES = 8_000_000;
 
 /** Render a (possibly unsaved) canonical document to HTML for live preview. */
 export async function POST(req: Request) {
@@ -27,6 +28,11 @@ export async function POST(req: Request) {
     );
   }
 
+  const declaredLength = Number(req.headers.get("content-length") ?? 0);
+  if (declaredLength > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: "CV document too large" }, { status: 413 });
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -38,10 +44,8 @@ export async function POST(req: Request) {
     (body as { document?: unknown } | null)?.document,
   );
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid CV document", issues: parsed.error.issues },
-      { status: 422 },
-    );
+    // Generic message — don't echo raw Zod issues (schema internals) to clients.
+    return NextResponse.json({ error: "Invalid CV document" }, { status: 422 });
   }
 
   try {

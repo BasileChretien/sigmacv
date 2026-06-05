@@ -151,7 +151,7 @@ export const CvItemSchema = z.object({
    * the authorship that matched by identifier. Used to wrap the right substring
    * when highlighting — only ever populated for `authoredBySelf` items.
    */
-  selfNameVariants: z.array(z.string()),
+  selfNameVariants: z.array(z.string().max(300)).max(100),
   /** Lightweight denormalized metadata for the curation UI and grouping. */
   meta: z.object({
     year: z.number().int().optional(),
@@ -225,7 +225,10 @@ export const CvSectionSchema = z.object({
   /** Section show/hide toggle. */
   visible: z.boolean(),
   order: z.number().int(),
-  items: z.array(CvItemSchema),
+  // Bounded to cap render cost / payload size (defence against a crafted giant
+  // document forcing multi-second citeproc renders). 10k items per section is
+  // far beyond any real CV yet blocks pathological abuse.
+  items: z.array(CvItemSchema).max(10_000),
 });
 export type CvSection = z.infer<typeof CvSectionSchema>;
 
@@ -498,7 +501,9 @@ export const CanonicalCvSchema = z.object({
   id: z.string(),
   owner: CvOwnerSchema,
   display: DisplayChoicesSchema,
-  sections: z.array(CvSectionSchema),
+  // Bounded — a CV has at most a few dozen section types; the cap blocks a
+  // crafted document with thousands of sections from amplifying render cost.
+  sections: z.array(CvSectionSchema).max(60),
   /** Saved named view-presets (optional; back-compat: old docs have none). */
   presets: z.array(CvPresetSchema).max(20).default([]),
   provenance: ProvenanceSchema,

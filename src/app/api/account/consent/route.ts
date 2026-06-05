@@ -2,18 +2,31 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { RESEARCH_CONSENT_VERSION } from "@/lib/research/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const BodySchema = z.object({ consent: z.boolean() });
+// Consent is a rare, deliberate action; a tight cap stops the withdrawal branch
+// (a transactional deleteMany) from being used as a write amplifier.
+const CONSENT_MAX = 20;
+const CONSENT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
 /** Set the user's research-consent flag (the gate for ALL research logging). */
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rl = await enforceRateLimit(`consent:${session.user.id}`, CONSENT_MAX, CONSENT_WINDOW_MS);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait a moment." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
   }
 
   let body: unknown;

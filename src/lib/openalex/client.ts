@@ -131,7 +131,14 @@ export function bareDoiInput(input: string): string | null {
     .replace(/^https?:\/\/(dx\.)?doi\.org\//, "")
     .replace(/^doi:\s*/, "")
     .trim();
-  return /^10\.\d{4,9}\/\S+$/.test(v) ? v : null;
+  // The bare DOI is interpolated into the request path (`/works/doi:<bare>`), so
+  // it must not be able to re-target that path or its query string. Disallow
+  // whitespace, `?`, `#`, `%` and backslash (which could inject a query/fragment
+  // or an encoded separator), and reject `..` path-traversal segments. A real
+  // DOI suffix never needs any of these.
+  if (!/^10\.\d{4,9}\/[^\s?#%\\]+$/.test(v)) return null;
+  if (v.includes("..")) return null;
+  return v;
 }
 
 /**

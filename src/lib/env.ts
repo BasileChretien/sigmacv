@@ -63,6 +63,14 @@ export function getEnv(): Env {
         "ORCID_ENVIRONMENT must be set explicitly in production (do not rely on the sandbox default).",
       );
     }
+    // AUTH_SECRET signs/encrypts the Auth.js CSRF + callback cookies; a short,
+    // low-entropy value weakens those. Require >=32 chars in production (matches
+    // `openssl rand -base64 33`). Kept lenient in dev so a local secret is fine.
+    if (parsed.data.AUTH_SECRET.length < 32) {
+      problems.push(
+        "AUTH_SECRET must be at least 32 characters in production (generate with `openssl rand -base64 33`).",
+      );
+    }
     if (problems.length > 0) {
       throw new Error(
         `Invalid production environment:\n${problems

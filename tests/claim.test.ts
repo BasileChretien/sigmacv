@@ -58,6 +58,18 @@ describe("bareDoiInput", () => {
     expect(bareDoiInput("not a doi")).toBeNull();
     expect(bareDoiInput("https://example.org/x")).toBeNull();
   });
+  it("rejects payloads that could re-target the OpenAlex request path/query", () => {
+    // The bare DOI is interpolated into `/works/doi:<bare>` — these must not pass.
+    expect(bareDoiInput("10.1234/../../authors/A123")).toBeNull(); // path traversal
+    expect(bareDoiInput("10.1234/x?per-page=1&foo=bar")).toBeNull(); // query injection
+    expect(bareDoiInput("10.1234/x#frag")).toBeNull(); // fragment
+    expect(bareDoiInput("10.1234/x%2e%2e")).toBeNull(); // encoded separator
+    expect(bareDoiInput("10.1234/x\\y")).toBeNull(); // backslash
+  });
+  it("still accepts legitimate DOIs with slashes, dots and punctuation", () => {
+    expect(bareDoiInput("10.1136/bmj.314.7079.497")).toBe("10.1136/bmj.314.7079.497");
+    expect(bareDoiInput("10.1000/xyz123(abc):def")).toBe("10.1000/xyz123(abc):def");
+  });
 });
 
 describe("claimAuthors / selfIndexById", () => {
