@@ -209,13 +209,15 @@ export function commonCss(theme: TemplateTheme): string {
 
   .cv-self { ${theme.selfHighlightCss} }
 
-  /* Inline badge group: a flex container guarantees a gap between consecutive
-     badges and a margin from the citation text — neither can collapse. */
-  .cv-badges { display: inline-flex; flex-wrap: wrap; gap: 0.45em; margin-left: 0.5em; vertical-align: 0.06em; }
-  .cv-badge { display: inline-block; font-size: 0.6rem; font-weight: 600; line-height: 1.4; padding: 0.05em 0.5em; border-radius: 999px; white-space: nowrap; letter-spacing: 0.03em; }
+  /* Inline badge group: a flex container guarantees a clear gap between badges
+     and a margin from the citation text — neither can collapse. The three badge
+     kinds are deliberately DIFFERENT colours so adjacent pills never read as one
+     blob (the old all-grey role+count pills looked merged, e.g. "first23 citations"). */
+  .cv-badges { display: inline-flex; flex-wrap: wrap; gap: 0.5em; margin-left: 0.7em; vertical-align: 0.04em; }
+  .cv-badge { display: inline-block; font-size: 0.6rem; font-weight: 600; line-height: 1.45; padding: 0.08em 0.55em; border-radius: 999px; white-space: nowrap; letter-spacing: 0.03em; }
   .cv-badge-oa { color: #0e7066; background: #e7f4f1; border: 1px solid #bfe3dc; }
   .cv-badge-role { color: var(--cv-muted); background: #f2f3f5; border: 1px solid var(--cv-rule); text-transform: lowercase; }
-  .cv-badge-cites { color: var(--cv-muted); background: #f2f3f5; border: 1px solid var(--cv-rule); font-variant-numeric: tabular-nums; }
+  .cv-badge-cites { color: #3f5573; background: #eef2f9; border: 1px solid #d2ddee; font-variant-numeric: tabular-nums; }
 
   /* The authorship table sits in a guaranteed light card with fixed dark text,
      so it stays legible on EVERY template — including ones with a coloured
