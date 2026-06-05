@@ -65,9 +65,9 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     );
     // The badge group is wrapped, so a bare trailing URL/DOI can't fuse with it…
     expect(html).toContain('class="cv-badges"');
-    // …and the container guarantees a gap between consecutive badges (regression:
-    // the count pill used to butt straight against the OA/role pill or the URL).
-    expect(html).toMatch(/\.cv-badges\s*\{[^{}]*gap:/);
+    // …and consecutive badges are reliably separated by an adjacent-sibling margin
+    // (regression: the count pill used to butt straight against the OA/role pill).
+    expect(html).toMatch(/\.cv-badge \+ \.cv-badge\s*\{[^{}]*margin-left:/);
     // The citation pill carries a field-normalisation caveat (responsible metrics).
     expect(html).toMatch(/cv-badge-cites[^>]*title="[^"]*field-normalised/i);
   });

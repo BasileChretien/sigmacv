@@ -209,15 +209,17 @@ export function commonCss(theme: TemplateTheme): string {
 
   .cv-self { ${theme.selfHighlightCss} }
 
-  /* Inline badge group: a flex container guarantees a clear gap between badges
-     and a margin from the citation text — neither can collapse. The three badge
-     kinds are deliberately DIFFERENT colours so adjacent pills never read as one
-     blob (the old all-grey role+count pills looked merged, e.g. "first23 citations"). */
-  .cv-badges { display: inline-flex; flex-wrap: wrap; gap: 0.5em; margin-left: 0.7em; vertical-align: 0.04em; }
-  .cv-badge { display: inline-block; font-size: 0.6rem; font-weight: 600; line-height: 1.45; padding: 0.08em 0.55em; border-radius: 999px; white-space: nowrap; letter-spacing: 0.03em; }
+  /* Inline badges after each entry. Plain inline-block + adjacent-sibling margins
+     (NOT flex gap, which proved unreliable for a wide role badge sitting next to
+     the count) so each badge is reliably separated from the text and from the
+     others. The three kinds are also DIFFERENT colours (green OA / grey role /
+     blue count) so adjacent pills never read as one merged blob. */
+  .cv-badges { margin-left: 0.6em; }
+  .cv-badge { display: inline-block; font-size: 0.6rem; font-weight: 600; line-height: 1.45; padding: 0.08em 0.55em; border-radius: 999px; white-space: nowrap; letter-spacing: 0.03em; vertical-align: 0.08em; }
+  .cv-badge + .cv-badge { margin-left: 0.5rem; }
   .cv-badge-oa { color: #0e7066; background: #e7f4f1; border: 1px solid #bfe3dc; }
   .cv-badge-role { color: var(--cv-muted); background: #f2f3f5; border: 1px solid var(--cv-rule); text-transform: lowercase; }
-  .cv-badge-cites { color: #3f5573; background: #eef2f9; border: 1px solid #d2ddee; font-variant-numeric: tabular-nums; }
+  .cv-badge-cites { color: #1e40af; background: #dbeafe; border: 1px solid #93c5fd; font-variant-numeric: tabular-nums; }
 
   /* The authorship table sits in a guaranteed light card with fixed dark text,
      so it stays legible on EVERY template — including ones with a coloured
