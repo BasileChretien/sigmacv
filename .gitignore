@@ -61,3 +61,6 @@ yarn-error.log*
 
 # Researcher data exports (pseudonymised human-subjects data — NEVER commit)
 /research-export/
+
+# Local Claude Code config (preview launch profile etc.)
+/.claude/
