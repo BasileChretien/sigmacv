@@ -130,6 +130,17 @@ export default function CvWorkspace({
     setStatus("");
   }, []);
 
+  // A DOI-claimed work is appended + SAVED server-side, so adopt the returned CV
+  // and stay clean (no pending save) rather than marking the doc dirty.
+  const handleClaimAdded = useCallback(
+    (next: CanonicalCv) => {
+      setCv(next);
+      setDirty(false);
+      setStatus(t(uiLocale, "savedStatus"));
+    },
+    [uiLocale],
+  );
+
   const handleSave = useCallback(async (): Promise<boolean> => {
     if (!cv) return false;
     setSaving(true);
@@ -312,6 +323,7 @@ export default function CvWorkspace({
                 availableStyles={availableStyles}
                 uiLocale={uiLocale}
                 onChange={update}
+                onClaimAdded={handleClaimAdded}
               />
             </section>
             <section className="cv-workspace-pane" data-pane="preview">

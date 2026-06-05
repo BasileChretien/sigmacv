@@ -43,6 +43,7 @@ import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
+import ClaimByDoi from "./ClaimByDoi";
 import ItemRow from "./ItemRow";
 import ProfilePanel from "./ProfilePanel";
 
@@ -52,6 +53,9 @@ interface CvEditorProps {
   /** Interface language (independent of the CV's own rendered language). */
   uiLocale: string;
   onChange: (next: CanonicalCv) => void;
+  /** A DOI-claimed work was added server-side; replace the CV with the saved one.
+   *  Always supplied by CvWorkspace; optional so tests can omit it. */
+  onClaimAdded?: (cv: CanonicalCv) => void;
 }
 
 const STYLE_LABELS: Record<string, string> = {
@@ -140,6 +144,7 @@ export default function CvEditor({
   availableStyles,
   uiLocale,
   onChange,
+  onClaimAdded = () => {},
 }: CvEditorProps) {
   const sections = orderedSections(cv);
   const customStyle = cv.display.customStyle;
@@ -896,6 +901,8 @@ export default function CvEditor({
       </fieldset>
 
       <p className="editor-hint">{t(locale, "editorHints")}</p>
+
+      <ClaimByDoi locale={locale} onAdded={onClaimAdded} />
 
       {sections.map((section, si) => {
         const items = [...section.items].sort((a, b) => a.order - b.order);

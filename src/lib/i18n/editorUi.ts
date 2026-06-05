@@ -36,6 +36,15 @@ export interface EditorExtraStrings {
   refAffiliation: string;
   refEmail: string;
   refPhone: string;
+  // "Add a publication by DOI" (OpenAlex-sourced claim) flow.
+  claimLabel: string;
+  claimPlaceholder: string;
+  claimFind: string;
+  claimNote: string;
+  claimNotFound: string;
+  claimAlready: string;
+  claimWhichAuthor: string;
+  claimError: string;
 }
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
@@ -66,6 +75,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     refAffiliation: "Affiliation",
     refEmail: "Email",
     refPhone: "Phone",
+    claimLabel: "Add a publication by DOI",
+    claimPlaceholder: "10.1016/… or a DOI link",
+    claimFind: "Find",
+    claimNote: "Pulled from OpenAlex — citations, author order and FWCI come from the source, so it counts in your charts and authorship table (but not the OpenAlex author-level totals like h-index).",
+    claimNotFound: "Not found in OpenAlex. Only works it indexes can be added this way.",
+    claimAlready: "Already in your CV.",
+    claimWhichAuthor: "Which author are you?",
+    claimError: "Lookup failed — please try again.",
   },
   "zh-CN": {
     grpTemplate: "模板与排版",
@@ -94,6 +111,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     refAffiliation: "单位",
     refEmail: "邮箱",
     refPhone: "电话",
+    claimLabel: "通过 DOI 添加论文",
+    claimPlaceholder: "10.1016/… 或 DOI 链接",
+    claimFind: "查找",
+    claimNote: "数据取自 OpenAlex——被引、作者顺序与 FWCI 均来自来源，因此会计入你的图表与作者贡献表（但不计入 h 指数等 OpenAlex 作者级总计）。",
+    claimNotFound: "在 OpenAlex 中未找到。只能添加其已收录的论文。",
+    claimAlready: "已在你的简历中。",
+    claimWhichAuthor: "你是哪位作者？",
+    claimError: "查找失败——请重试。",
   },
   "es-ES": {
     grpTemplate: "Plantilla y diseño",
@@ -123,6 +148,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     refAffiliation: "Afiliación",
     refEmail: "Correo",
     refPhone: "Teléfono",
+    claimLabel: "Añadir una publicación por DOI",
+    claimPlaceholder: "10.1016/… o un enlace DOI",
+    claimFind: "Buscar",
+    claimNote: "Se obtiene de OpenAlex: las citas, el orden de autoría y el FWCI provienen de la fuente, por lo que cuenta en tus gráficos y tabla de autoría (pero no en los totales a nivel de autor de OpenAlex, como el índice h).",
+    claimNotFound: "No se encontró en OpenAlex. Solo se pueden añadir así los trabajos que indexa.",
+    claimAlready: "Ya está en tu CV.",
+    claimWhichAuthor: "¿Cuál autor eres?",
+    claimError: "La búsqueda falló: inténtalo de nuevo.",
   },
   "fr-FR": {
     grpTemplate: "Modèle et mise en page",
@@ -152,6 +185,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     refAffiliation: "Affiliation",
     refEmail: "E-mail",
     refPhone: "Téléphone",
+    claimLabel: "Ajouter une publication par DOI",
+    claimPlaceholder: "10.1016/… ou un lien DOI",
+    claimFind: "Rechercher",
+    claimNote: "Récupéré depuis OpenAlex — citations, ordre des auteurs et FWCI proviennent de la source, donc la publication compte dans vos graphiques et votre tableau de paternité (mais pas dans les totaux au niveau auteur d’OpenAlex comme l’indice h).",
+    claimNotFound: "Introuvable dans OpenAlex. Seuls les travaux qu’il indexe peuvent être ajoutés ainsi.",
+    claimAlready: "Déjà dans votre CV.",
+    claimWhichAuthor: "Quel auteur êtes-vous ?",
+    claimError: "Échec de la recherche — veuillez réessayer.",
   },
   "de-DE": {
     grpTemplate: "Vorlage & Layout",
@@ -181,6 +222,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     refAffiliation: "Zugehörigkeit",
     refEmail: "E-Mail",
     refPhone: "Telefon",
+    claimLabel: "Publikation per DOI hinzufügen",
+    claimPlaceholder: "10.1016/… oder ein DOI-Link",
+    claimFind: "Suchen",
+    claimNote: "Aus OpenAlex bezogen — Zitationen, Autorenreihenfolge und FWCI stammen aus der Quelle, daher zählt sie in Ihren Diagrammen und der Autorschaftstabelle (aber nicht in den Autoren-Gesamtwerten von OpenAlex wie dem h-Index).",
+    claimNotFound: "Nicht in OpenAlex gefunden. Nur dort indexierte Arbeiten können so hinzugefügt werden.",
+    claimAlready: "Bereits in Ihrem Lebenslauf.",
+    claimWhichAuthor: "Welcher Autor sind Sie?",
+    claimError: "Suche fehlgeschlagen – bitte erneut versuchen.",
   },
   "ja-JP": {
     grpTemplate: "テンプレートとレイアウト",
@@ -209,6 +258,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     refAffiliation: "所属",
     refEmail: "メール",
     refPhone: "電話",
+    claimLabel: "DOI で論文を追加",
+    claimPlaceholder: "10.1016/… または DOI リンク",
+    claimFind: "検索",
+    claimNote: "OpenAlex から取得します。被引用数・著者順・FWCI は出典由来なので、グラフや著者一覧表には反映されますが、h 指数などの OpenAlex 著者レベルの合計には反映されません。",
+    claimNotFound: "OpenAlex に見つかりません。OpenAlex が収録している論文のみ追加できます。",
+    claimAlready: "すでに CV にあります。",
+    claimWhichAuthor: "あなたはどの著者ですか？",
+    claimError: "検索に失敗しました。もう一度お試しください。",
   },
   "pt-BR": {
     grpTemplate: "Modelo e layout",
@@ -238,6 +295,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     refAffiliation: "Afiliação",
     refEmail: "E-mail",
     refPhone: "Telefone",
+    claimLabel: "Adicionar uma publicação por DOI",
+    claimPlaceholder: "10.1016/… ou um link DOI",
+    claimFind: "Buscar",
+    claimNote: "Obtido do OpenAlex — citações, ordem de autoria e FWCI vêm da fonte, então conta nos seus gráficos e na tabela de autoria (mas não nos totais por autor do OpenAlex, como o índice h).",
+    claimNotFound: "Não encontrado no OpenAlex. Só é possível adicionar assim os trabalhos que ele indexa.",
+    claimAlready: "Já está no seu CV.",
+    claimWhichAuthor: "Qual autor é você?",
+    claimError: "Falha na busca — tente novamente.",
   },
   "it-IT": {
     grpTemplate: "Modello e layout",
@@ -267,6 +332,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     refAffiliation: "Affiliazione",
     refEmail: "Email",
     refPhone: "Telefono",
+    claimLabel: "Aggiungi una pubblicazione tramite DOI",
+    claimPlaceholder: "10.1016/… o un link DOI",
+    claimFind: "Cerca",
+    claimNote: "Recuperato da OpenAlex — citazioni, ordine degli autori e FWCI provengono dalla fonte, quindi conta nei tuoi grafici e nella tabella di paternità (ma non nei totali a livello di autore di OpenAlex come l’indice h).",
+    claimNotFound: "Non trovato in OpenAlex. Solo i lavori che indicizza possono essere aggiunti così.",
+    claimAlready: "Già presente nel tuo CV.",
+    claimWhichAuthor: "Quale autore sei?",
+    claimError: "Ricerca non riuscita — riprova.",
   },
   "ko-KR": {
     grpTemplate: "템플릿 및 레이아웃",
@@ -295,6 +368,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     refAffiliation: "소속",
     refEmail: "이메일",
     refPhone: "전화",
+    claimLabel: "DOI로 논문 추가",
+    claimPlaceholder: "10.1016/… 또는 DOI 링크",
+    claimFind: "찾기",
+    claimNote: "OpenAlex에서 가져옵니다 — 피인용 수, 저자 순서, FWCI가 출처에서 오므로 그래프와 저자 표에는 반영되지만 h-지수 등 OpenAlex 저자 수준 합계에는 반영되지 않습니다.",
+    claimNotFound: "OpenAlex에서 찾을 수 없습니다. OpenAlex가 색인한 논문만 이렇게 추가할 수 있습니다.",
+    claimAlready: "이미 CV에 있습니다.",
+    claimWhichAuthor: "본인은 어느 저자인가요?",
+    claimError: "조회 실패 — 다시 시도해 주세요.",
   },
   "ru-RU": {
     grpTemplate: "Шаблон и вёрстка",
@@ -324,6 +405,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     refAffiliation: "Аффилиация",
     refEmail: "Эл. почта",
     refPhone: "Телефон",
+    claimLabel: "Добавить публикацию по DOI",
+    claimPlaceholder: "10.1016/… или ссылка DOI",
+    claimFind: "Найти",
+    claimNote: "Берётся из OpenAlex — цитирования, порядок авторов и FWCI из источника, поэтому работа учитывается в ваших графиках и таблице авторства (но не в авторских итогах OpenAlex, таких как индекс Хирша).",
+    claimNotFound: "Не найдено в OpenAlex. Так можно добавить только индексируемые им работы.",
+    claimAlready: "Уже есть в вашем CV.",
+    claimWhichAuthor: "Какой из авторов — вы?",
+    claimError: "Не удалось выполнить поиск — попробуйте снова.",
   },
 };
 
