@@ -1,4 +1,4 @@
-import { commonCss, cvPageShell, headerHtml, provenanceFooter, sectionsHtml } from "./shared";
+import { attributionFooter, commonCss, cvPageShell, headerHtml, licenseFooter, provenanceFooter, sectionsHtml } from "./shared";
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**
@@ -159,7 +159,7 @@ function sidebarCss(_theme: TemplateTheme): string {
 
 export const sidebarTemplate: CvTemplate = {
   key: "sidebar",
-  render(cv, sections, theme) {
+  render(cv, sections, theme, opts) {
     const css = commonCss(theme) + sidebarCss(theme);
     // Custom body: the shared header lives in the coloured <aside>, the shared
     // sections + provenance footer in the white <main>. headerHtml/sectionsHtml
@@ -168,7 +168,7 @@ export const sidebarTemplate: CvTemplate = {
       `<div class="cv">` +
       `<div class="cv-sidebar-layout">` +
       `<aside class="cv-sidebar">${headerHtml(cv, { photo: true })}</aside>` +
-      `<main class="cv-main">${sectionsHtml(sections)}${provenanceFooter(cv)}</main>` +
+      `<main class="cv-main">${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}</main>` +
       `</div>` +
       `</div>`;
     return cvPageShell(cv, css, body);

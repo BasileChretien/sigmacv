@@ -1,7 +1,9 @@
 import {
+  attributionFooter,
   commonCss,
   cvPageShell,
   headerHtml,
+  licenseFooter,
   provenanceFooter,
   sectionsHtml,
 } from "./shared";
@@ -93,10 +95,10 @@ function classicCss(_theme: TemplateTheme): string {
 
 export const classicTemplate: CvTemplate = {
   key: "classic",
-  render(cv, sections, theme) {
+  render(cv, sections, theme, opts) {
     const css = commonCss(theme) + classicCss(theme);
     // Text-first: omit the photo (no `{ photo: true }`).
-    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}</div>`;
+    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}</div>`;
     return cvPageShell(cv, css, body);
   },
 };

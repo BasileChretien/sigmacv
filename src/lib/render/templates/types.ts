@@ -1,4 +1,5 @@
 import type { CanonicalCv, CvItem, CvSection } from "@/lib/canonical/schema";
+import type { RenderOpts } from "../types";
 
 /** One bibliography entry: the source item + its rendered (highlighted) HTML. */
 export interface RenderedItem {
@@ -41,5 +42,6 @@ export interface CvTemplate {
     cv: CanonicalCv,
     sections: RenderedSection[],
     theme: TemplateTheme,
+    opts?: RenderOpts,
   ): string;
 }

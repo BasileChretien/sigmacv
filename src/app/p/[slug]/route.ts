@@ -6,7 +6,14 @@ import {
   rememberMiss,
   setCachedPublicPage,
 } from "@/lib/cv/publicPageCache";
+import {
+  chooseFormatFromAccept,
+  formatFromSlug,
+  serializePublicCv,
+  type PublicFormat,
+} from "@/lib/cv/publicFormats";
 import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
+import { publicMetaTags } from "@/lib/cv/publicMeta";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { renderCvHtml } from "@/lib/render/html";
 
@@ -37,6 +44,11 @@ function clientIp(req: Request): string {
   return req.headers.get("x-real-ip")?.trim() || "unknown";
 }
 
+/** The robots tag: indexing is the owner's separate per-CV opt-in. */
+function robotsTag(indexable: boolean): string {
+  return indexable ? "index, follow" : "noindex, nofollow";
+}
+
 /** Build the public-page HTTP response with the hardened security headers. */
 function publicPageResponse(html: string, indexable: boolean): NextResponse {
   return new NextResponse(html, {
@@ -46,7 +58,7 @@ function publicPageResponse(html: string, indexable: boolean): NextResponse {
       // Indexing requires the owner's explicit, separate opt-in. Without it the
       // page stays noindex so names/ORCID/publications don't enter search
       // engines on a blanket publish toggle (GDPR/APPI).
-      "X-Robots-Tag": indexable ? "index, follow" : "noindex, nofollow",
+      "X-Robots-Tag": robotsTag(indexable),
       // Personal data + a living page: never cache in a shared/CDN layer so an
       // unpublish/unindex takes effect immediately. (In-process render caching
       // is separate and slug-invalidated on publish-state changes.)
@@ -65,19 +77,54 @@ function publicPageResponse(html: string, indexable: boolean): NextResponse {
 }
 
 /**
- * Public, living CV page. Serves the self-contained CV HTML document (its own
- * styles + CSP) for a published slug. Returns 404 if the slug is unknown or
- * the owner has unpublished it.
+ * Machine-readable export response (JSON-LD / CSL-JSON / BibTeX / JSON). Shares
+ * the HTML path's privacy headers (no-store, the same indexability-driven robots
+ * tag, nosniff, no-referrer). Body + Content-Type come from the serializer; a
+ * Content-Disposition filename makes a direct download land sensibly.
+ */
+function machineResponse(
+  serialized: { contentType: string; body: string; extension: string },
+  slug: string,
+  indexable: boolean,
+): NextResponse {
+  return new NextResponse(serialized.body, {
+    status: 200,
+    headers: {
+      "Content-Type": serialized.contentType,
+      "X-Robots-Tag": robotsTag(indexable),
+      "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer",
+      "Content-Disposition": `inline; filename="${slug}.${serialized.extension}"`,
+    },
+  });
+}
+
+/**
+ * Public, living CV page + its machine-readable representations.
  *
- * Indexing is a SEPARATE per-CV opt-in (publicIndexable): by default the page
- * is noindex (publishing only shares a capability URL); when the owner opts in,
- * we allow indexing and embed ProfilePage/Person JSON-LD for rich results.
+ * Format is chosen by EITHER a stable suffix on the slug (`…​.json`, `.bib`,
+ * `.csl.json`, `.jsonld` — an explicit override) OR `Accept` content
+ * negotiation, defaulting to the HTML page. Every format shares the same slug
+ * lookup, `published` gating (404 + negative cache when not published), and rate
+ * limits; the CV is run through `projectCvForPublic` before serialization.
+ *
+ * Indexing is a SEPARATE per-CV opt-in (publicIndexable): by default the page is
+ * noindex; when the owner opts in, we allow indexing, embed ProfilePage/Person
+ * JSON-LD, and the machine formats advertise the same robots state.
  */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+
+  // An explicit suffix wins over Accept; otherwise negotiate (default html).
+  const suffix = formatFromSlug(rawSlug);
+  const slug = suffix ? suffix.slug : rawSlug;
+  const format: PublicFormat = suffix
+    ? suffix.format
+    : chooseFormatFromAccept(req.headers.get("accept"));
 
   const tooMany = (retryAfterSec: number) =>
     new NextResponse("Too many requests. Please try again shortly.", {
@@ -93,12 +140,11 @@ export async function GET(
   const grl = await enforceRateLimit("pubpage:global", PUBPAGE_GLOBAL_MAX, PUBPAGE_GLOBAL_WINDOW_MS);
   if (!grl.ok) return tooMany(grl.retryAfterSec);
 
-  // Serve a recently-rendered page without re-reading/parsing/rendering. Only
-  // published 200s are ever cached, and publish-state changes invalidate the
-  // slug, so this can't serve an unpublished page.
-  const cached = getCachedPublicPage(slug);
-  if (cached) {
-    return publicPageResponse(cached.html, cached.indexable);
+  // HTML has a render cache (the heavy citeproc path). Machine formats are
+  // cheaper to produce and would multiply cache keys, so they skip it.
+  if (format === "html") {
+    const cached = getCachedPublicPage(slug);
+    if (cached) return publicPageResponse(cached.html, cached.indexable);
   }
 
   const notFound = () =>
@@ -117,16 +163,28 @@ export async function GET(
     return notFound();
   }
 
+  // getPublicCvForPage already returns the projectCvForPublic() projection.
   const { cv, indexable } = record;
-  let html = renderCvHtml(cv);
+
+  if (format !== "html") {
+    return machineResponse(serializePublicCv(cv, format, slug), slug, indexable);
+  }
+
+  // Public living page → request the "Made with SigmaCV" referral footer (the
+  // owner can still opt out via display.publicAttribution). Export renderers
+  // never pass this, so PDF/DOCX/LaTeX/Markdown stay unbranded.
+  let html = renderCvHtml(cv, { attribution: true });
+  // OG/Twitter social-preview meta tags (public profile text only) into <head>.
+  const head = publicMetaTags(cv);
   if (indexable) {
     // Inject ProfilePage/Person JSON-LD into the document head for rich results.
     // It's data (not executed), so it's unaffected by the document's strict CSP.
-    const jsonLd = `<script type="application/ld+json">${profilePageJsonLd(
-      cv,
-      slug,
-    )}</script>`;
-    html = html.replace("</head>", `${jsonLd}</head>`);
+    html = html.replace(
+      "</head>",
+      `${head}<script type="application/ld+json">${profilePageJsonLd(cv, slug)}</script></head>`,
+    );
+  } else {
+    html = html.replace("</head>", `${head}</head>`);
   }
 
   setCachedPublicPage(slug, { html, indexable });

@@ -1,5 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
-import { commonCss, escapeHtml, pageShell, photoHtml, provenanceFooter, sectionsHtml } from "./shared";
+import { attributionFooter, commonCss, escapeHtml, licenseFooter, pageShell, photoHtml, provenanceFooter, sectionsHtml } from "./shared";
 import type { CvTemplate, RenderedSection, TemplateTheme } from "./types";
 
 /**
@@ -145,7 +145,7 @@ function historyTable(sections: RenderedSection[]): string {
 
 export const rirekishoTemplate: CvTemplate = {
   key: "rirekisho",
-  render(cv, sections, theme) {
+  render(cv, sections, theme, opts) {
     const css = commonCss(theme) + rirekishoCss(theme);
     // Education + positions go into the 学歴・職歴 table; everything else below.
     const rest = sections.filter(
@@ -157,6 +157,8 @@ export const rirekishoTemplate: CvTemplate = {
   ${historyTable(sections)}
   ${sectionsHtml(rest)}
   ${provenanceFooter(cv)}
+  ${licenseFooter(cv)}
+  ${attributionFooter(cv, opts)}
 </div>`;
     return pageShell(`${cv.owner.displayName || "履歴書"} — 履歴書`, css, body, "ja");
   },
