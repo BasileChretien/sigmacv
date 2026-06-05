@@ -57,4 +57,39 @@ describe("fetchEditorialRoles", () => {
     });
     expect(await fetchEditorialRoles(ORCID)).toEqual([]);
   });
+
+  it("re-validates the final URL host after the fetch (allowed → proceeds)", async () => {
+    mockFetch(() => ({
+      ok: true,
+      status: 200,
+      url: "https://cdn.example.org/oep.json", // redirected to another public host
+      headers: new Headers(),
+      json: async () => [{ orcid: ORCID, journal: "BMJ", role: "Editor" }],
+    }) as unknown as Response);
+    expect(await fetchEditorialRoles(ORCID)).toEqual([
+      { journal: "BMJ", role: "Editor", startYear: undefined, endYear: undefined },
+    ]);
+  });
+
+  it("returns [] when the fetch redirected onto a blocked host (link-local)", async () => {
+    mockFetch(() => ({
+      ok: true,
+      status: 200,
+      url: "http://169.254.169.254/oep.json",
+      headers: new Headers(),
+      json: async () => [{ orcid: ORCID, journal: "BMJ", role: "Editor" }],
+    }) as unknown as Response);
+    expect(await fetchEditorialRoles(ORCID)).toEqual([]);
+  });
+
+  it("returns [] when the final URL is unparseable", async () => {
+    mockFetch(() => ({
+      ok: true,
+      status: 200,
+      url: "http://exa mple.org/x", // space → invalid URL
+      headers: new Headers(),
+      json: async () => [],
+    }) as unknown as Response);
+    expect(await fetchEditorialRoles(ORCID)).toEqual([]);
+  });
 });

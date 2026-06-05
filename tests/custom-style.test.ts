@@ -176,29 +176,49 @@ describe.skipIf(!hasApa)("resolveCslStyle", () => {
     await expect(resolveCslStyle("nature")).rejects.toThrow(/CSL style/i);
   });
 
-  it("rejects a redirect that lands on a disallowed host (SSRF)", async () => {
-    const evil = {
-      ok: true,
-      status: 200,
-      url: "http://169.254.169.254/latest/meta-data/",
-      headers: new Headers(),
-      text: async () => MINI_XML,
-    } as unknown as Response;
-    vi.stubGlobal("fetch", vi.fn(async () => evil));
+  it("rejects a redirect to a disallowed host WITHOUT issuing the request to it (SSRF)", async () => {
+    const headers = new Headers();
+    headers.set("location", "http://169.254.169.254/latest/meta-data/");
+    const redirect = { ok: false, status: 302, headers, text: async () => "" } as unknown as Response;
+    const fetchMock = vi.fn(async () => redirect);
+    vi.stubGlobal("fetch", fetchMock);
     await expect(resolveCslStyle("nature")).rejects.toThrow(/disallowed host/i);
+    // The internal host was NEVER fetched — only the initial allow-listed request.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("accepts a redirect that stays on an allowed host", async () => {
-    const okRes = {
-      ok: true,
-      status: 200,
-      url: "https://www.zotero.org/styles/nature-medicine",
-      headers: new Headers(),
-      text: async () => MINI_XML,
-    } as unknown as Response;
-    vi.stubGlobal("fetch", vi.fn(async () => okRes));
+  it("follows a redirect that stays on an allowed host", async () => {
+    const headers = new Headers();
+    headers.set("location", "https://www.zotero.org/styles/nature-medicine");
+    const fetchMock = vi.fn(async (u: URL | string) => {
+      return u.toString().endsWith("/styles/nature")
+        ? ({ ok: false, status: 301, headers, text: async () => "" } as unknown as Response)
+        : mockResponse(MINI_XML); // the redirect target serves the style
+    });
+    vi.stubGlobal("fetch", fetchMock);
     const style = await resolveCslStyle("nature");
     expect(style.id).toBe("mini-test");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects an endless redirect loop (hop limit)", async () => {
+    const headers = new Headers();
+    headers.set("location", "https://www.zotero.org/styles/loop");
+    const fetchMock = vi.fn(
+      async () => ({ ok: false, status: 302, headers, text: async () => "" }) as unknown as Response,
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(resolveCslStyle("nature")).rejects.toThrow(/too many/i);
+  });
+
+  it("rejects a redirect to an unparseable Location", async () => {
+    const headers = new Headers();
+    headers.set("location", "https://exa mple.org/x"); // space → invalid URL
+    const fetchMock = vi.fn(
+      async () => ({ ok: false, status: 302, headers, text: async () => "" }) as unknown as Response,
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(resolveCslStyle("nature")).rejects.toThrow(/invalid location/i);
   });
 
   it("rejects a note-only style via citeproc validation", async () => {

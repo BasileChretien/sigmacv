@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { CvNotFoundError, getCvForUser, saveCvForUser } from "@/lib/cv/sync";
+import { validateStyleXml } from "@/lib/citeproc/engine";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { isSameOrigin } from "@/lib/security/origin";
@@ -63,6 +64,17 @@ export async function PATCH(req: Request) {
     // Generic message — do NOT echo raw Zod issues (internal schema paths +
     // received values) back to the client.
     return NextResponse.json({ error: "Invalid CV document" }, { status: 422 });
+  }
+
+  // A custom CSL style is only structurally bounded by Zod (size/shape). Validate
+  // it as real CSL at save time so an invalid/garbage style is rejected here
+  // rather than failing at render on the public page.
+  const customStyle = parsed.data.display.customStyle;
+  if (customStyle) {
+    const verdict = validateStyleXml(customStyle.xml);
+    if (!verdict.ok) {
+      return NextResponse.json({ error: "Invalid custom citation style" }, { status: 422 });
+    }
   }
 
   try {

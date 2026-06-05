@@ -27,11 +27,39 @@ interface OepRecord {
   endYear?: number;
 }
 
+const OEP_FETCH_TIMEOUT_MS = 15_000;
+
+/**
+ * Reject hostnames that resolve to (or literally are) loopback / link-local /
+ * private / cloud-metadata addresses — the classic SSRF targets. This catches IP
+ * LITERALS and the well-known metadata names; it does NOT resolve DNS, so a
+ * hostname that A-records into a private range is not caught here (a deeper
+ * residual, mitigated by OEP_DATA_URL being operator-set, not user input).
+ */
+function isBlockedHost(hostname: string): boolean {
+  const h = hostname.toLowerCase().replace(/^\[|\]$/g, ""); // strip IPv6 brackets
+  // ALWAYS blocked — never a legitimate dataset host, even in dev: the cloud
+  // metadata name and link-local ranges (the classic SSRF-to-metadata targets).
+  if (h === "metadata.google.internal") return true;
+  if (/^169\.254\./.test(h) || /^fe80:/i.test(h)) return true;
+  // Loopback / private ranges are legitimate in local dev (e.g. a local OEP
+  // server on localhost), so only block them in production.
+  if (process.env.NODE_ENV === "production") {
+    if (h === "localhost" || h.endsWith(".localhost")) return true;
+    if (/^(127\.|0\.|10\.|192\.168\.)/.test(h)) return true;
+    if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return true;
+    if (h === "::1" || h === "::") return true;
+    if (/^f[cd][0-9a-f]{2}:/i.test(h)) return true; // IPv6 unique-local (ULA)
+    if (/^::ffff:(127\.|10\.|192\.168\.|169\.254\.)/i.test(h)) return true;
+  }
+  return false;
+}
+
 /**
  * Validate the operator-configured `OEP_DATA_URL` before fetching: require an
- * http(s) scheme and reject the cloud link-local metadata host. `OEP_DATA_URL`
- * is operator-set (not user input), so this is defence-in-depth against a
- * misconfiguration that would turn the fetch into an SSRF primitive.
+ * http(s) scheme and reject loopback/link-local/private/metadata hosts.
+ * `OEP_DATA_URL` is operator-set (not user input), so this is defence-in-depth
+ * against a misconfiguration that would turn the fetch into an SSRF primitive.
  */
 export function isAllowedOepUrl(raw: string): boolean {
   let u: URL;
@@ -41,11 +69,7 @@ export function isAllowedOepUrl(raw: string): boolean {
     return false;
   }
   if (u.protocol !== "https:" && u.protocol !== "http:") return false;
-  // Block the well-known cloud metadata endpoint outright.
-  if (u.hostname === "169.254.169.254" || u.hostname === "metadata.google.internal") {
-    return false;
-  }
-  return true;
+  return !isBlockedHost(u.hostname);
 }
 
 export async function fetchEditorialRoles(
@@ -58,8 +82,22 @@ export async function fetchEditorialRoles(
     return [];
   }
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OEP_FETCH_TIMEOUT_MS);
   try {
-    const res = await fetch(url, { next: { revalidate: 86400 } });
+    // Bound the request, and re-validate the final host after any redirect so an
+    // allowed host can't 3xx the fetch onto an internal address.
+    const res = await fetch(url, { next: { revalidate: 86400 }, signal: controller.signal });
+    if (res.url) {
+      try {
+        if (isBlockedHost(new URL(res.url).hostname)) {
+          logger.warn("oep.dataset_url_rejected", {});
+          return [];
+        }
+      } catch {
+        return [];
+      }
+    }
     if (!res.ok) {
       logger.warn("oep.dataset_fetch_failed", { status: res.status });
       return [];
@@ -79,5 +117,7 @@ export async function fetchEditorialRoles(
   } catch (err) {
     logger.warn("oep.editorial_roles_failed", { err });
     return [];
+  } finally {
+    clearTimeout(timer);
   }
 }

@@ -35,6 +35,7 @@ const ALLOWED_HOSTS = new Set([
 ]);
 
 const FETCH_TIMEOUT_MS = 12_000;
+const MAX_REDIRECTS = 4;
 const MAX_BYTES = 600_000; // matches CustomStyleSchema.xml cap; APA ≈ 85 KB
 
 export interface ResolvedStyle {
@@ -56,7 +57,10 @@ function slugToUrl(slug: string): string {
 }
 
 function assertAllowedHost(url: URL): void {
+  // inputToUrl only ever reaches here with an http(s) URL (the slug path builds
+  // a zotero https URL), so this protocol guard is defensive + unreachable.
   if (url.protocol !== "https:" && url.protocol !== "http:") {
+    /* v8 ignore next -- defensive: callers only pass http(s) URLs */
     throw new CustomStyleError("Only http(s) style URLs are supported.");
   }
   if (!ALLOWED_HOSTS.has(url.hostname)) {
@@ -116,31 +120,41 @@ async function fetchStyleText(url: URL): Promise<string> {
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   let res: Response;
   try {
-    res = await fetch(url, {
-      headers: { Accept: "application/vnd.citationstyles.style+xml, application/xml, text/xml, */*" },
-      signal: controller.signal,
-      redirect: "follow",
-    });
+    // SSRF guard: follow redirects MANUALLY, re-validating each hop's host
+    // against the allowlist BEFORE issuing the request. `redirect: "follow"`
+    // would first issue the request to an internal redirect target (a blind-SSRF
+    // timing/error oracle) even if the final host were re-checked afterwards.
+    let current = url;
+    for (let hop = 0; ; hop++) {
+      if (hop > 0 && !ALLOWED_HOSTS.has(current.hostname)) {
+        throw new CustomStyleError("The style URL redirected to a disallowed host.");
+      }
+      res = await fetch(current, {
+        headers: { Accept: "application/vnd.citationstyles.style+xml, application/xml, text/xml, */*" },
+        signal: controller.signal,
+        redirect: "manual",
+      });
+      if (res.status >= 300 && res.status < 400) {
+        const location = res.headers.get("location");
+        if (!location) break; // redirect with no target → treat as terminal
+        if (hop >= MAX_REDIRECTS) {
+          throw new CustomStyleError("The style URL redirected too many times.");
+        }
+        try {
+          current = new URL(location, current);
+        } catch {
+          throw new CustomStyleError("The style URL redirected to an invalid location.");
+        }
+        continue; // host re-validated at the top of the next iteration
+      }
+      break; // non-redirect response — use it
+    }
   } catch (err) {
+    if (err instanceof CustomStyleError) throw err;
     const reason = err instanceof Error && err.name === "AbortError" ? "timed out" : "failed";
     throw new CustomStyleError(`Fetching the style ${reason}.`);
   } finally {
     clearTimeout(timer);
-  }
-
-  // SSRF guard: the initial host was allow-listed, but `redirect: "follow"` may
-  // have landed us elsewhere (e.g. an allow-listed host 302-ing to an internal
-  // IP). Re-validate the FINAL resolved host.
-  if (res.url) {
-    let finalUrl: URL | null = null;
-    try {
-      finalUrl = new URL(res.url);
-    } catch {
-      throw new CustomStyleError("The style URL resolved to an invalid location.");
-    }
-    if (!ALLOWED_HOSTS.has(finalUrl.hostname)) {
-      throw new CustomStyleError("The style URL redirected to a disallowed host.");
-    }
   }
 
   if (res.status === 404) {
