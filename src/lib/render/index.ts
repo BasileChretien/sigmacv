@@ -23,6 +23,12 @@ export async function getRenderer(format: RenderFormat): Promise<Renderer> {
       return (await import("./markdown")).markdownRenderer;
     case "bibtex":
       return (await import("./bibtex")).bibtexRenderer;
+    case "csljson":
+      return (await import("./csljson")).csljsonRenderer;
+    case "jsonresume":
+      return (await import("./jsonresume")).jsonresumeRenderer;
+    case "biosketch":
+      return (await import("./biosketch")).biosketchRenderer;
     default:
       throw new Error(`Unknown render format: ${String(format)}`);
   }

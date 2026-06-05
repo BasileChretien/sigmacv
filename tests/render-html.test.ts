@@ -224,6 +224,10 @@ describe("renderer registry", () => {
     expect((await getRenderer("docx")).format).toBe("docx");
     expect((await getRenderer("latex")).format).toBe("latex");
     expect((await getRenderer("markdown")).format).toBe("markdown");
+    expect((await getRenderer("bibtex")).format).toBe("bibtex");
+    expect((await getRenderer("csljson")).format).toBe("csljson");
+    expect((await getRenderer("jsonresume")).format).toBe("jsonresume");
+    expect((await getRenderer("biosketch")).format).toBe("biosketch");
   });
 
   it("throws for an unknown format", async () => {
