@@ -18,6 +18,8 @@ function setEnv(overrides: Record<string, string | undefined>) {
     "ORCID_ENVIRONMENT",
     "NODE_ENV",
     "RESYNC_SECRET",
+    "OPENALEX_CURATION_ENABLED",
+    "OPENALEX_CURATION_ENDPOINT",
   ]) {
     delete (process.env as Record<string, string | undefined>)[k];
   }
@@ -95,5 +97,32 @@ describe("getEnv", () => {
     setEnv({ ...VALID, NODE_ENV: "test" });
     const { getEnv } = await loadEnv();
     expect(getEnv()).toBe(getEnv());
+  });
+
+  it("defaults OpenAlex curation to DISABLED (flag unset → false, endpoint undefined)", async () => {
+    setEnv({ ...VALID, NODE_ENV: "test" });
+    delete (process.env as Record<string, string | undefined>).OPENALEX_CURATION_ENABLED;
+    delete (process.env as Record<string, string | undefined>).OPENALEX_CURATION_ENDPOINT;
+    const { getEnv } = await loadEnv();
+    expect(getEnv().OPENALEX_CURATION_ENABLED).toBe(false);
+    expect(getEnv().OPENALEX_CURATION_ENDPOINT).toBeUndefined();
+  });
+
+  it("parses OPENALEX_CURATION_ENABLED=true and a valid endpoint URL", async () => {
+    setEnv({
+      ...VALID,
+      NODE_ENV: "test",
+      OPENALEX_CURATION_ENABLED: "true",
+      OPENALEX_CURATION_ENDPOINT: "https://example.org/curation",
+    });
+    const { getEnv } = await loadEnv();
+    expect(getEnv().OPENALEX_CURATION_ENABLED).toBe(true);
+    expect(getEnv().OPENALEX_CURATION_ENDPOINT).toBe("https://example.org/curation");
+  });
+
+  it("rejects a non-URL OPENALEX_CURATION_ENDPOINT", async () => {
+    setEnv({ ...VALID, NODE_ENV: "test", OPENALEX_CURATION_ENDPOINT: "not-a-url" });
+    const { getEnv } = await loadEnv();
+    expect(() => getEnv()).toThrow();
   });
 });
