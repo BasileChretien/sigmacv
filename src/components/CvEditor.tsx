@@ -902,15 +902,18 @@ export default function CvEditor({
 
       <p className="editor-hint">{t(locale, "editorHints")}</p>
 
-      <ClaimByDoi locale={locale} onAdded={onClaimAdded} />
-
       {sections.map((section, si) => {
         const items = [...section.items].sort((a, b) => a.order - b.order);
         const shownCount = items.filter((i) => !isHidden(i)).length;
         const isExpanded = expanded.has(section.id);
         return (
+          <Fragment key={section.id}>
+            {/* The "add a publication by DOI" panel sits directly above the
+                Publications section and moves with it when sections reorder. */}
+            {section.type === "publications" ? (
+              <ClaimByDoi locale={locale} onAdded={onClaimAdded} />
+            ) : null}
           <div
-            key={section.id}
             className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}${
               section.visible ? "" : " is-section-hidden"
             }`}
@@ -1284,6 +1287,7 @@ export default function CvEditor({
               </>
             ) : null}
           </div>
+          </Fragment>
         );
       })}
 
