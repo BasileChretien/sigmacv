@@ -34,6 +34,15 @@ export interface OrcidFunding {
   type?: string;
   startYear?: number;
   endYear?: number;
+  /**
+   * Disambiguated funding-organization identifier when ORCID has one, prefixed
+   * with its source — e.g. "FUNDREF:http://dx.doi.org/10.13039/501100001665",
+   * "ROR:https://ror.org/…", "GRID:grid.…". Undefined when the funder is a
+   * free-text org with no disambiguation. Drives the interoperable `funderId`.
+   */
+  funderId?: string;
+  /** Grant / award number from the funding's external identifiers, if present. */
+  awardId?: string;
 }
 
 function bases(): { token: string; pub: string } {
@@ -230,6 +239,38 @@ export async function fetchOrcidPeerReviews(
   }
 }
 
+/**
+ * Disambiguated funder identifier from an ORCID organization block, prefixed
+ * with its source (FUNDREF / ROR / GRID / RINGGOLD) so the identifier scheme is
+ * unambiguous downstream. Undefined for a free-text organization with no
+ * disambiguation — we never fabricate an id.
+ */
+function funderIdOf(org: any): string | undefined {
+  const d = org?.["disambiguated-organization"];
+  const id = nonEmpty(d?.["disambiguated-organization-identifier"]);
+  if (!id) return undefined;
+  const source = nonEmpty(d?.["disambiguation-source"]);
+  return source ? `${source}:${id}` : id;
+}
+
+/** First grant/award number from a funding's external identifiers, if any. */
+function awardIdOf(f: any): string | undefined {
+  for (const e of toArray(f?.["external-ids"]?.["external-id"])) {
+    const type = nonEmpty(e?.["external-id-type"])?.toLowerCase();
+    // ORCID uses "grant_number" for the award number; accept it (or any value).
+    if (type === "grant_number") {
+      const v = nonEmpty(e?.["external-id-value"]);
+      if (v) return v;
+    }
+  }
+  // Fall back to the first external-id value of any type (still a real award ref).
+  for (const e of toArray(f?.["external-ids"]?.["external-id"])) {
+    const v = nonEmpty(e?.["external-id-value"]);
+    if (v) return v;
+  }
+  return undefined;
+}
+
 /** Fetch the user's PUBLIC funding/grants from ORCID (fails soft → []). */
 export async function fetchOrcidFundings(orcid: string): Promise<OrcidFunding[]> {
   try {
@@ -247,6 +288,8 @@ export async function fetchOrcidFundings(orcid: string): Promise<OrcidFunding[]>
           type: nonEmpty(f?.type),
           startYear: yearOf(f?.["start-date"]),
           endYear: yearOf(f?.["end-date"]),
+          funderId: funderIdOf(f?.organization),
+          awardId: awardIdOf(f),
         });
       }
     }

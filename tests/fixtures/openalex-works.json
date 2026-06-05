@@ -91,7 +91,19 @@
       "openalex": "https://openalex.org/W4300000001",
       "doi": "https://doi.org/10.1000/example1",
       "pmid": "https://pubmed.ncbi.nlm.nih.gov/123456"
-    }
+    },
+    "grants": [
+      {
+        "funder": "https://openalex.org/F4320332161",
+        "funder_display_name": "Agence Nationale de la Recherche",
+        "award_id": "ANR-18-CE17-0001"
+      },
+      {
+        "funder": "https://openalex.org/F4320337357",
+        "funder_display_name": "Co-author's funder",
+        "award_id": "OTHER-999"
+      }
+    ]
   },
   {
     "id": "https://openalex.org/W4300000003",

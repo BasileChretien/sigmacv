@@ -38,6 +38,7 @@ const WORK_SELECT = [
   "best_oa_location",
   "biblio",
   "ids",
+  "grants",
 ].join(",");
 
 async function openAlexGet<T>(

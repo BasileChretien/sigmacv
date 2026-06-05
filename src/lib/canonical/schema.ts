@@ -191,6 +191,17 @@ export const CvItemSchema = z.object({
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
     rorId: z.string().optional(),
     /**
+     * Funder identifier for a grant item (interoperable funding metadata). The
+     * OpenAlex funder id (e.g. "https://openalex.org/F4320332161") or the ORCID
+     * funding's disambiguated-organization identifier (FundRef/ROR/GRID). Additive
+     * + optional — never invented; left undefined when the source carries none.
+     */
+    funderId: z.string().optional(),
+    /** Human-readable funder name for a grant item (OpenAlex `funder_display_name` / ORCID org name). */
+    funderName: z.string().optional(),
+    /** Award / grant number for a grant item (OpenAlex `award_id` / ORCID grant external id). */
+    awardId: z.string().optional(),
+    /**
      * ISO timestamp of the build that last fetched this item from a LIVE source
      * (openalex/orcid/…). Per-item freshness for FAIR provenance; undefined for
      * purely manual entries that were never re-fetched.

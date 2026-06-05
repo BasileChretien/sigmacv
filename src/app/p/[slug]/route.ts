@@ -16,6 +16,7 @@ import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
 import { publicMetaTags } from "@/lib/cv/publicMeta";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { renderCvHtml } from "@/lib/render/html";
+import { absoluteUrl } from "@/lib/siteUrl";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -175,7 +176,8 @@ export async function GET(
   // never pass this, so PDF/DOCX/LaTeX/Markdown stay unbranded.
   let html = renderCvHtml(cv, { attribution: true });
   // OG/Twitter social-preview meta tags (public profile text only) into <head>.
-  const head = publicMetaTags(cv);
+  // og:image points at the per-CV branded card (same slug, /og sub-route).
+  const head = publicMetaTags(cv, { imageUrl: absoluteUrl(`/p/${slug}/og`) });
   if (indexable) {
     // Inject ProfilePage/Person JSON-LD into the document head for rich results.
     // It's data (not executed), so it's unaffected by the document's strict CSP.

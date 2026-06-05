@@ -60,6 +60,49 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(grants!.items[0]!.csl).toBeUndefined();
   });
 
+  it("populates funder/award identifiers on grant items from ORCID + OpenAlex", () => {
+    const cv = buildCanonicalCv({
+      id: "f",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      fundings: [
+        // ORCID carries a disambiguated funder id + award number directly.
+        {
+          putCode: "100",
+          title: "PARANAC",
+          organization: "University of Caen Normandy",
+          funderId: "FUNDREF:http://dx.doi.org/10.13039/501100001665",
+          awardId: "ANR-18-CE17-0001",
+        },
+        // ORCID has only an award number; the matching OpenAlex grant (same award
+        // number, in the fixture) backfills the funder id + name.
+        { putCode: "101", title: "ML-Driven PBL", organization: "Nagoya University", awardId: "ANR-18-CE17-0001" },
+        // No award/funder info at all → identifiers stay undefined (never invented).
+        { putCode: "102", title: "Bare grant", organization: "Some Org" },
+      ],
+    });
+    const grants = cv.sections.find((s) => s.type === "grants")!;
+    const byPut = (pc: string) => grants.items.find((i) => i.sourceId === pc)!;
+
+    // ORCID-supplied identifiers win.
+    expect(byPut("100").meta.funderId).toBe(
+      "FUNDREF:http://dx.doi.org/10.13039/501100001665",
+    );
+    expect(byPut("100").meta.awardId).toBe("ANR-18-CE17-0001");
+    expect(byPut("100").meta.funderName).toBe("University of Caen Normandy");
+
+    // OpenAlex grant (matched by award number) fills the missing funder id.
+    expect(byPut("101").meta.funderId).toBe("https://openalex.org/F4320332161");
+    expect(byPut("101").meta.awardId).toBe("ANR-18-CE17-0001");
+    // ORCID org name is authoritative for the display name.
+    expect(byPut("101").meta.funderName).toBe("Nagoya University");
+
+    // No identifiers anywhere → nothing fabricated.
+    expect(byPut("102").meta.funderId).toBeUndefined();
+    expect(byPut("102").meta.awardId).toBeUndefined();
+  });
+
   it("adds a positions section from ORCID employments (current first)", () => {
     const cv = buildCanonicalCv({
       id: "s",

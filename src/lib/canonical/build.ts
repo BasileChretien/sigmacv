@@ -181,13 +181,22 @@ function makeEntryItem(
   prev: CvItem | undefined,
   order: number,
   year?: number,
-  /** Extra meta (ROR id, freshness) for items from a live source fetch. */
-  extraMeta?: { rorId?: string; lastVerifiedAt?: string },
+  /** Extra meta (ROR id, freshness, funder ids) for items from a live source fetch. */
+  extraMeta?: {
+    rorId?: string;
+    lastVerifiedAt?: string;
+    funderId?: string;
+    funderName?: string;
+    awardId?: string;
+  },
 ): CvItem {
   const meta: CvItem["meta"] = {};
   if (year) meta.year = year;
   if (extraMeta?.rorId) meta.rorId = extraMeta.rorId;
   if (extraMeta?.lastVerifiedAt) meta.lastVerifiedAt = extraMeta.lastVerifiedAt;
+  if (extraMeta?.funderId) meta.funderId = extraMeta.funderId;
+  if (extraMeta?.funderName) meta.funderName = extraMeta.funderName;
+  if (extraMeta?.awardId) meta.awardId = extraMeta.awardId;
   return {
     id,
     source,
@@ -388,24 +397,73 @@ function formatFundingText(f: OrcidFunding): string {
 }
 
 /**
+ * Index OpenAlex paper-level `grants[]` by award number (lower-cased) so a
+ * person-attributed ORCID funding lacking a disambiguated identifier can borrow
+ * the matching OpenAlex funder id/name. OpenAlex grants are NOT a standalone
+ * source (they're often co-authors' funding) — only used to attach identifiers
+ * to a grant the user already asserted via ORCID.
+ */
+export function indexFundersByAward(
+  works: OpenAlexWork[],
+): Map<string, { funderId?: string; funderName?: string }> {
+  const out = new Map<string, { funderId?: string; funderName?: string }>();
+  for (const w of works) {
+    for (const g of w.grants ?? []) {
+      const award = g.award_id?.trim().toLowerCase();
+      if (!award || out.has(award)) continue;
+      out.set(award, {
+        funderId: g.funder ?? undefined,
+        funderName: g.funder_display_name ?? undefined,
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * Resolve the interoperable funder identifiers for one ORCID funding record.
+ * ORCID's own disambiguated-organization id + org name + award number are
+ * authoritative; an OpenAlex `grants[]` match (by award number) fills only the
+ * funder id/name that ORCID didn't carry. Never invents an identifier.
+ */
+export function resolveFunderIds(
+  f: OrcidFunding,
+  fundersByAward: Map<string, { funderId?: string; funderName?: string }>,
+): { funderId?: string; funderName?: string; awardId?: string } {
+  const oa = f.awardId ? fundersByAward.get(f.awardId.trim().toLowerCase()) : undefined;
+  return {
+    funderId: f.funderId ?? oa?.funderId,
+    funderName: f.organization ?? oa?.funderName,
+    awardId: f.awardId,
+  };
+}
+
+/**
  * Grants & funding from the user's OWN ORCID funding records (person-attributed),
- * NOT OpenAlex paper-level awards (which are often co-authors'). Manual entries
- * are carried over.
+ * NOT OpenAlex paper-level awards (which are often co-authors'). Funder/award
+ * identifiers come from ORCID's disambiguated organization + external ids, with
+ * OpenAlex `grants[]` (matched by award number) filling a missing funder id only.
+ * Manual entries are carried over.
  */
 function buildGrantsSection(
   fundings: OrcidFunding[],
   prevItems: Map<string, CvItem>,
   manual: CvItem[],
   now: string,
+  fundersByAward: Map<string, { funderId?: string; funderName?: string }>,
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
   const sorted = [...fundings].sort((a, b) => (b.startYear ?? 0) - (a.startYear ?? 0));
   for (const f of sorted) {
     const id = `grant:orcid:${f.putCode}`;
+    const funder = resolveFunderIds(f, fundersByAward);
     items.push(
       makeEntryItem(id, "orcid", f.putCode, formatFundingText(f), prevItems.get(id), rank++, f.startYear, {
         lastVerifiedAt: now,
+        funderId: funder.funderId,
+        funderName: funder.funderName,
+        awardId: funder.awardId,
       }),
     );
   }
@@ -831,6 +889,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     prevItems,
     previousManualItems(previous, "grants"),
     now,
+    indexFundersByAward(works),
   );
 
   const datasetsSection = buildDatasetsSection(
