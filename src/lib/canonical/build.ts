@@ -412,7 +412,7 @@ function buildEditorialSection(
  * "posted-content"), or its primary source is a repository. Catches preprints
  * that would otherwise land in Publications.
  */
-function isPreprint(work: OpenAlexWork): boolean {
+export function isPreprint(work: OpenAlexWork): boolean {
   const type = (work.type ?? "").toLowerCase();
   if (type === "preprint" || type === "posted-content") return true;
   if ((work.primary_location?.source?.type ?? "").toLowerCase() === "repository") return true;
@@ -443,7 +443,7 @@ const NON_PEER_REVIEWED_TYPES = new Set([
  * based; the user can still override per item via hide. Drives the
  * "peer-reviewed only" filter.
  */
-function isPeerReviewed(work: OpenAlexWork): boolean {
+export function isPeerReviewed(work: OpenAlexWork): boolean {
   if (isPreprint(work)) return false;
   const type = (work.type ?? "").toLowerCase();
   if (NON_PEER_REVIEWED_TYPES.has(type)) return false;
@@ -457,7 +457,7 @@ function isPeerReviewed(work: OpenAlexWork): boolean {
  * DIFFERENT ORCID for that authorship — a classic same-name collision. Purely
  * identifier-based (never name strings); advisory only and never auto-hides.
  */
-function reviewFlagFor(
+export function reviewFlagFor(
   selfAuth: OpenAlexAuthorship | undefined,
   ownerOrcid: string,
 ): string | undefined {
@@ -467,7 +467,7 @@ function reviewFlagFor(
 }
 
 /** A human label for the account holder's authorship role on a work, or undefined. */
-function authorRoleLabel(a: OpenAlexAuthorship | undefined): string | undefined {
+export function authorRoleLabel(a: OpenAlexAuthorship | undefined): string | undefined {
   if (!a) return undefined;
   const parts: string[] = [];
   const pos = (a.author_position ?? "").toLowerCase();
@@ -483,7 +483,7 @@ function authorRoleLabel(a: OpenAlexAuthorship | undefined): string | undefined 
  *  OpenAlex-author-id match). null = no match. */
 export type MatchBasis = "orcid" | "openalex-id" | "both";
 
-function makeSelfMatcher(resolved: ResolvedAuthor) {
+export function makeSelfMatcher(resolved: ResolvedAuthor) {
   const selfOrcid = normalizeOrcid(resolved.orcid);
   const selfAuthorIds = new Set(resolved.authorIds.map(shortId).filter(Boolean));
 
@@ -506,7 +506,7 @@ function makeSelfMatcher(resolved: ResolvedAuthor) {
 }
 
 /** Self name(s) exactly as printed on this work (from matched authorships). */
-function selfNameVariants(
+export function selfNameVariants(
   work: OpenAlexWork,
   matches: (a: OpenAlexAuthorship) => boolean,
 ): string[] {

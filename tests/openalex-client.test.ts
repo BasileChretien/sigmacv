@@ -4,7 +4,7 @@ vi.mock("@/lib/env", () => ({
   getEnv: () => ({ OPENALEX_MAILTO: "test@example.org" }),
 }));
 
-import { fetchAuthorsByOrcid, fetchWorksByAuthorIds } from "@/lib/openalex/client";
+import { fetchAuthorsByOrcid, fetchWorkByDoi, fetchWorksByAuthorIds } from "@/lib/openalex/client";
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status });
@@ -67,5 +67,27 @@ describe("fetchWorksByAuthorIds", () => {
     expect(works).toHaveLength(1);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalled();
+  });
+});
+
+describe("fetchWorkByDoi", () => {
+  it("fetches /works/doi:{bare} for a valid DOI and returns the work", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ id: "https://openalex.org/W42", doi: "10.1/x" }));
+    const work = await fetchWorkByDoi("https://doi.org/10.1234/ABC");
+    expect(work?.id).toBe("https://openalex.org/W42");
+    const url = new URL(fetchMock.mock.calls[0]![0].toString());
+    expect(url.pathname).toBe("/works/doi:10.1234/abc");
+    expect(url.searchParams.get("mailto")).toBe("test@example.org");
+  });
+
+  it("returns null without a request for a malformed DOI", async () => {
+    expect(await fetchWorkByDoi("not-a-doi")).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns null (not throw) when OpenAlex has no record (404)", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    fetchMock.mockResolvedValue(jsonResponse({}, 404));
+    expect(await fetchWorkByDoi("10.1234/missing")).toBeNull();
   });
 });

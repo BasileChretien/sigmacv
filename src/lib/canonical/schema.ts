@@ -176,10 +176,19 @@ export const CvItemSchema = z.object({
     isCorresponding: z.boolean().optional(),
     /**
      * Which identifier matched the account holder on this work: "orcid" (strong),
-     * "openalex-id", or "both". Recorded so the disambiguation-error study can
-     * stratify "not mine" assertions by how the (possibly wrong) match was made.
+     * "openalex-id", "both", or "claimed" (no identifier match — the user asserted
+     * ownership when adding the work by DOI). Recorded so the disambiguation-error
+     * study can stratify assertions by how the (possibly wrong) match was made.
      */
-    matchBasis: z.enum(["orcid", "openalex-id", "both"]).optional(),
+    matchBasis: z.enum(["orcid", "openalex-id", "both", "claimed"]).optional(),
+    /**
+     * True when the user added this work themselves by DOI (fetched from OpenAlex
+     * but not attributed to their author profile). The metadata is still from the
+     * source — only the ownership is user-asserted. Marked so re-sync preserves it
+     * (it won't be re-fetched) and the disambiguation study can use the
+     * false-negative correction signal (the mirror of "not mine").
+     */
+    claimed: z.boolean().optional(),
     /**
      * Whether this citation is a peer-reviewed output (computed at build from the
      * work type + venue). false for preprints, datasets, editorials, etc. Drives

@@ -121,6 +121,39 @@ export async function fetchWorksByAuthorIds(
   return out;
 }
 
+/** Normalize a user-supplied DOI to its bare form ("10.xxxx/yyyy"): strip a
+ *  scheme / doi.org / "doi:" prefix and lower-case. Returns null if it doesn't
+ *  look like a DOI, so a junk lookup never hits the API. */
+export function bareDoiInput(input: string): string | null {
+  const v = (input ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//, "")
+    .replace(/^doi:\s*/, "")
+    .trim();
+  return /^10\.\d{4,9}\/\S+$/.test(v) ? v : null;
+}
+
+/**
+ * Fetch a SINGLE work by DOI (the user's "add a work by DOI" claim flow). All
+ * the work's metadata — year, citations, FWCI, author positions — comes from
+ * OpenAlex, so figures stay source-driven. Returns null when the DOI is
+ * malformed or OpenAlex has no record (404) / a transient error: the caller
+ * surfaces "not found" rather than throwing into the request.
+ */
+export async function fetchWorkByDoi(doi: string): Promise<OpenAlexWork | null> {
+  const bare = bareDoiInput(doi);
+  if (!bare) return null;
+  try {
+    return await openAlexGet<OpenAlexWork>(`/works/doi:${bare}`, {
+      select: WORK_SELECT,
+    });
+  } catch (err) {
+    logger.warn("openalex.work_by_doi_failed", { err });
+    return null;
+  }
+}
+
 /** Minimal OpenAlex "source" (journal) shape we read for ISSN → name. */
 interface OpenAlexSource {
   display_name?: string;
