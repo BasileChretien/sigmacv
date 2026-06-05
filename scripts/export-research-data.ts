@@ -21,6 +21,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  buildKeyTable,
   buildResearchExport,
   researchExportGate,
   toJsonl,
@@ -46,12 +47,18 @@ async function main(): Promise<void> {
   const { prisma } = await import("@/lib/db");
 
   try {
-    // Only consenting users; select just the fields the export needs.
+    // Only consenting users. The identity fields are read solely to build the
+    // separate re-identification key table (対照表); the de-identified dataset
+    // never sees them.
     const users = await prisma.user.findMany({
       where: { researchConsent: true },
       select: {
         id: true,
+        name: true,
+        email: true,
+        orcid: true,
         researchConsentVersion: true,
+        researchConsentAt: true,
         researchEvents: {
           select: { type: true, payload: true, createdAt: true },
         },
@@ -62,10 +69,12 @@ async function main(): Promise<void> {
       userId: u.id,
       researchConsent: true,
       researchConsentVersion: u.researchConsentVersion,
+      identity: { name: u.name, email: u.email, orcid: u.orcid, consentAt: u.researchConsentAt },
       events: u.researchEvents,
     }));
 
     const rows = buildResearchExport(subjects, gate.salt);
+    const keyRows = buildKeyTable(subjects, gate.salt);
 
     console.log(`IRB ref:                 ${gate.irbRef}`);
     console.log(`consenting subjects:     ${subjects.length}`);
@@ -80,9 +89,22 @@ async function main(): Promise<void> {
     mkdirSync(outDir, { recursive: true });
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     const safeRef = gate.irbRef.replace(/[^A-Za-z0-9_-]/g, "_");
-    const outPath = join(outDir, `research-dataset_${safeRef}_${stamp}.jsonl`);
-    writeFileSync(outPath, toJsonl(rows), "utf8");
-    console.log(`wrote ${outPath}`);
+
+    // (1) De-identified analysis dataset — given to the analyst.
+    const dataPath = join(outDir, `research-dataset_${safeRef}_${stamp}.jsonl`);
+    writeFileSync(dataPath, toJsonl(rows), "utf8");
+    console.log(`wrote ${dataPath}  (de-identified — for the analyst)`);
+
+    // (2) Re-identification key table (対照表) — IDENTIFYING. Held ONLY by the
+    // personal-information manager; do NOT share with the analyst or commit it.
+    const keyPath = join(outDir, `KEYTABLE-DO-NOT-SHARE_${safeRef}_${stamp}.jsonl`);
+    writeFileSync(keyPath, toJsonl(keyRows), "utf8");
+    console.log(`wrote ${keyPath}  (対照表 — IDENTIFYING; personal-information manager only)`);
+    console.log(
+      "⚠️  The KEYTABLE file re-identifies subjects. Keep it under access control\n" +
+        "    (personal-information manager only); never give it to the analyst and\n" +
+        "    never commit it. The analyst works from the de-identified dataset alone.",
+    );
   } finally {
     await prisma.$disconnect();
   }

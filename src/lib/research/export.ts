@@ -39,6 +39,18 @@ export interface ResearchSubjectInput {
   userId: string;
   researchConsent: boolean;
   researchConsentVersion: number | null;
+  /**
+   * Identity fields. Used ONLY to build the separate re-identification key table
+   * (対照表, `buildKeyTable`) that the 個人情報管理者 holds — NEVER the de-identified
+   * analysis dataset. Optional so the de-identified path can be exercised without
+   * ever loading identifiers.
+   */
+  identity?: {
+    name?: string | null;
+    email?: string | null;
+    orcid?: string | null;
+    consentAt?: Date | null;
+  };
   events: ReadonlyArray<{
     type: string;
     payload: unknown;
@@ -102,8 +114,63 @@ export function buildResearchExport(
   return rows;
 }
 
-/** Serialise the dataset as JSON Lines (one row per line) — analysis-friendly. */
-export function toJsonl(rows: readonly ResearchExportRow[]): string {
+/**
+ * One row of the re-identification key table (対照表) — **IDENTIFYING**.
+ * Maps each pseudonym back to the account identity, so that (and only that) the
+ * 個人情報管理者 (personal-information manager) can honour a withdrawal/erasure
+ * request. This table is held under access control by the personal-information
+ * manager and is **never** given to the analyst, who works from the de-identified
+ * dataset (`ResearchExportRow`) alone. (Matches the protocol §4.2.1.)
+ */
+export interface KeyTableRow {
+  /** The same keyed-HMAC pseudonym used in the de-identified dataset. */
+  subject: string;
+  /** Internal account id. */
+  userId: string;
+  /** Account identity (any field may be null). */
+  name: string | null;
+  email: string | null;
+  orcid: string | null;
+  /** Consent-notice version the subject agreed under, and when (audit trail). */
+  consentVersion: number | null;
+  consentAt: string | null;
+}
+
+/**
+ * Build the re-identification key table (対照表) from raw consenting-user records.
+ * Pure + deterministic given `(subjects, salt)`; the `subject` column equals the
+ * pseudonym in `buildResearchExport`, so the two outputs join on `subject`.
+ *
+ * This is the SEPARATE artifact the personal-information manager keeps; the
+ * de-identified analysis dataset (`buildResearchExport`) carries none of these
+ * identifiers. Keeping them in two functions/files is what makes the analyst's
+ * copy non-re-identifiable without the manager's key table.
+ */
+export function buildKeyTable(
+  subjects: readonly ResearchSubjectInput[],
+  salt: string,
+): KeyTableRow[] {
+  const rows: KeyTableRow[] = [];
+  for (const s of subjects) {
+    if (!s.researchConsent) continue;
+    const consentAt = s.identity?.consentAt;
+    rows.push({
+      subject: pseudonymise(s.userId, salt),
+      userId: s.userId,
+      name: s.identity?.name ?? null,
+      email: s.identity?.email ?? null,
+      orcid: s.identity?.orcid ?? null,
+      consentVersion: s.researchConsentVersion,
+      consentAt: consentAt ? consentAt.toISOString() : null,
+    });
+  }
+  rows.sort((a, b) => a.subject.localeCompare(b.subject));
+  return rows;
+}
+
+/** Serialise rows as JSON Lines (one object per line). Used for both the
+ *  de-identified dataset and the key table. */
+export function toJsonl(rows: readonly object[]): string {
   if (rows.length === 0) return "";
   return rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
 }

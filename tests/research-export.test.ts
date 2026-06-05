@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   MIN_SALT_LENGTH,
   PRE_REGISTERED_EVENT_TYPES,
+  buildKeyTable,
   buildResearchExport,
   pseudonymise,
   researchExportGate,
@@ -99,6 +100,78 @@ describe("buildResearchExport", () => {
 
   it("handles an empty input", () => {
     expect(buildResearchExport([], SALT)).toEqual([]);
+  });
+});
+
+describe("buildKeyTable (対照表 — the personal-information manager's key)", () => {
+  const at = (iso: string) => new Date(iso);
+  const events = [
+    { type: "curation_correction", payload: {}, createdAt: at("2026-01-01T00:00:00Z") },
+  ];
+
+  it("maps each consenting subject's pseudonym to its identity, joining the dataset on `subject`", () => {
+    const subjects: ResearchSubjectInput[] = [
+      {
+        userId: "user_a",
+        researchConsent: true,
+        researchConsentVersion: 2,
+        identity: {
+          name: "Ada L",
+          email: "ada@example.org",
+          orcid: "0000-0002-7483-2489",
+          consentAt: at("2026-01-01T09:00:00Z"),
+        },
+        events,
+      },
+    ];
+    const key = buildKeyTable(subjects, SALT);
+    expect(key).toHaveLength(1);
+    // The key's `subject` equals the de-identified dataset's pseudonym — they join.
+    expect(key[0]!.subject).toBe(pseudonymise("user_a", SALT));
+    expect(buildResearchExport(subjects, SALT)[0]!.subject).toBe(key[0]!.subject);
+    expect(key[0]!).toMatchObject({
+      userId: "user_a",
+      name: "Ada L",
+      email: "ada@example.org",
+      orcid: "0000-0002-7483-2489",
+      consentVersion: 2,
+      consentAt: "2026-01-01T09:00:00.000Z",
+    });
+  });
+
+  it("drops non-consenting subjects (defence in depth)", () => {
+    const subjects: ResearchSubjectInput[] = [
+      { userId: "user_a", researchConsent: false, researchConsentVersion: 1, events },
+    ];
+    expect(buildKeyTable(subjects, SALT)).toEqual([]);
+  });
+
+  it("tolerates missing identity fields (nulls), never throwing", () => {
+    const subjects: ResearchSubjectInput[] = [
+      { userId: "user_a", researchConsent: true, researchConsentVersion: null, events },
+    ];
+    const key = buildKeyTable(subjects, SALT);
+    expect(key[0]!).toMatchObject({
+      name: null,
+      email: null,
+      orcid: null,
+      consentVersion: null,
+      consentAt: null,
+    });
+  });
+
+  it("sorts by subject for reproducible output, and handles empty input", () => {
+    const mk = (id: string): ResearchSubjectInput => ({
+      userId: id,
+      researchConsent: true,
+      researchConsentVersion: 1,
+      identity: { name: id },
+      events,
+    });
+    const key = buildKeyTable([mk("user_b"), mk("user_a")], SALT);
+    const subjects0 = key.map((r) => r.subject);
+    expect(subjects0).toEqual([...subjects0].sort((a, b) => a.localeCompare(b)));
+    expect(buildKeyTable([], SALT)).toEqual([]);
   });
 });
 
