@@ -87,6 +87,29 @@ export function accessibilityLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+/**
+ * Path for an SEO landing page in a given locale: "/{segment}" for the default
+ * locale, "/{slug}/{segment}" otherwise. `segment` is the bare path id, e.g.
+ * "orcid-to-cv" or "nih-biosketch".
+ */
+export function localeLandingPagePath(segment: string, locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE
+    ? `/${segment}`
+    : `/${LOCALE_SLUGS[loc]}/${segment}`;
+}
+
+/** hreflang → path map for an SEO landing page (relative; resolved against metadataBase). */
+export function landingPageLanguageAlternates(
+  segment: string,
+): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES)
+    languages[loc] = localeLandingPagePath(segment, loc);
+  languages["x-default"] = `/${segment}`;
+  return languages;
+}
+
 /** Open Graph locale tag (underscored): "fr-FR" → "fr_FR". */
 export function ogLocale(locale: string): string {
   return asLocale(locale).replace("-", "_");
