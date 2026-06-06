@@ -1,5 +1,5 @@
 import { test as base } from "@playwright/test";
-import works from "../../tests/fixtures/openalex-works.json";
+import works from "../../tests/fixtures/openalex-works.json" with { type: "json" };
 import type { OpenAlexWork } from "../../src/lib/openalex/types";
 import { seedCv, seedSession, seedUser, TEST_ORCID } from "./seed";
 

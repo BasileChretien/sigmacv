@@ -1,5 +1,5 @@
 import { createServer, type Server } from "node:http";
-import worksFixture from "../../tests/fixtures/openalex-works.json";
+import worksFixture from "../../tests/fixtures/openalex-works.json" with { type: "json" };
 
 // A tiny fixture OpenAlex server so the sync journey is deterministic. The app
 // reaches it via OPENALEX_API_BASE (server-side fetch — Playwright page.route
