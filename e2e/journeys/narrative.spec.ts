@@ -14,7 +14,9 @@ test("narrative editor → seed → edit → save → preview → publish", asyn
   authedUserId,
 }) => {
   await page.goto("/cv");
-  await expect(page.getByText("Publications")).toBeVisible();
+  // Editor loaded (unambiguous: the Narrative CV panel this spec drives —
+  // plain getByText("Publications") matches several control labels).
+  await expect(page.getByRole("group", { name: "Narrative CV" })).toBeVisible();
 
   // 1. Open the Narrative panel and seed the standard modules. With no modules
   //    yet, the "Add narrative section" control (en-US `narrativeAdd`) is shown;
@@ -56,8 +58,13 @@ test("narrative editor → seed → edit → save → preview → publish", asyn
 
   // 5. Publish, then assert the marker appears on the public page WITHOUT auth
   //    (the public page renders the same canonical narrative block).
-  await page.getByRole("checkbox", { name: /Public page/i }).check();
-  await expect(page.getByRole("link", { name: /^View$/ })).toBeVisible();
+  // Publish is async (the checkbox reflects server state after /api/cv/publish),
+  // so click + wait for the resulting "View" link rather than asserting the
+  // checkbox flips synchronously.
+  await page.getByRole("checkbox", { name: /Public page/i }).click();
+  // After publish the "open page" link (href /p/<slug>) appears — match by href
+  // so the assertion is locale-independent.
+  await expect(page.locator('a[href^="/p/"]')).toBeVisible();
 
   const published = await db.cv.findUnique({ where: { userId: authedUserId } });
   expect(published?.published).toBe(true);

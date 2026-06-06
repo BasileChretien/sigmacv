@@ -8,9 +8,10 @@ test("publish → public page reachable → unpublish → 404", async ({
 }) => {
   await page.goto("/cv");
 
-  // Enable the public page.
-  await page.getByRole("checkbox", { name: /Public page/i }).check();
-  await expect(page.getByRole("link", { name: /^View$/ })).toBeVisible();
+  // Enable the public page (publish is async; the open-page link appears once
+  // /api/cv/publish resolves — match it by href so it's locale-independent).
+  await page.getByTestId("publish-toggle").click();
+  await expect(page.locator('a[href^="/p/"]')).toBeVisible();
 
   const row = await db.cv.findUnique({ where: { userId: authedUserId } });
   expect(row?.published).toBe(true);
@@ -26,7 +27,8 @@ test("publish → public page reachable → unpublish → 404", async ({
   await anon.close();
 
   // Unpublish → 404.
-  await page.getByRole("checkbox", { name: /Public page/i }).uncheck();
+  await page.getByTestId("publish-toggle").click();
+  await expect(page.locator('a[href^="/p/"]')).toBeHidden();
   const anon2 = await context.browser()!.newContext();
   const anonPage2 = await anon2.newPage();
   const res2 = await anonPage2.goto(`/p/${slug}`);

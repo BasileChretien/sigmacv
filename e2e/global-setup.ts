@@ -15,7 +15,8 @@ export default async function globalSetup() {
   }
 
   // Create the schema (this project uses `prisma db push`, not migrations).
-  execSync("npx prisma db push --skip-generate --accept-data-loss", {
+  // Prisma 7 removed the `--skip-generate` flag; the URL comes from prisma.config.ts.
+  execSync("npx prisma db push --accept-data-loss", {
     stdio: "inherit",
     env: process.env,
   });

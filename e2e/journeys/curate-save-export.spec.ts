@@ -4,9 +4,11 @@ import { expect, test } from "../fixtures/auth";
 
 test("curate → save → persist → export", async ({ page, authedUserId }) => {
   await page.goto("/cv");
-  await expect(page.getByText("Publications")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Narrative CV" })).toBeVisible();
 
-  // Hide the first item via its row control.
+  // Expand the Publications section if collapsed, then hide its first item.
+  const expand = page.getByRole("button", { name: "Expand section" }).first();
+  if (await expand.isVisible().catch(() => false)) await expand.click();
   const firstRow = page.locator(".cv-item-row").first();
   await firstRow.getByRole("button", { name: "Hide" }).click();
 
@@ -35,9 +37,10 @@ test("curate → save → persist → export", async ({ page, authedUserId }) =>
   expect(path).toBeTruthy();
 });
 
-test("PDF export returns a real PDF", async ({ page }) => {
+test("PDF export returns a real PDF", async ({ page, authedUserId }) => {
+  expect(authedUserId).toBeTruthy(); // activates the authed-session fixture
   await page.goto("/cv");
-  await expect(page.getByText("Publications")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Narrative CV" })).toBeVisible();
   await page.locator(".export-format").selectOption("pdf");
   const [download] = await Promise.all([
     page.waitForEvent("download"),
