@@ -17,6 +17,19 @@ RUN npm ci
 # Build the standalone Next.js server.
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# `next build` collects each route's page-data, which imports `lib/db.ts` →
+# `export const prisma = … ?? createPrismaClient()` eagerly creates the Prisma
+# client → `getEnv()` validates the env. Supply BUILD-ONLY placeholders so a clean
+# image builds without real secrets. These are server-side (not NEXT_PUBLIC_*), so
+# they are NOT inlined into the client bundle, and they do NOT reach the runtime
+# stage — which receives the real values from the environment (compose / .env).
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public" \
+    AUTH_SECRET="build-only-placeholder-secret-build-only-placeholder" \
+    AUTH_URL="http://localhost:3000" \
+    ORCID_CLIENT_ID="build" \
+    ORCID_CLIENT_SECRET="build" \
+    ORCID_ENVIRONMENT="sandbox" \
+    OPENALEX_MAILTO="build@example.com"
 RUN npm run build
 
 # ─── Runtime stage ───────────────────────────────────────────────────────────
@@ -29,8 +42,14 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0
 
-# Prisma CLI (for `migrate deploy` on startup) — kept minimal.
-RUN npm install -g prisma@7
+# Prisma CLI for `migrate deploy` on startup. Also symlink the globally-installed
+# `prisma` package into /app/node_modules: prisma.config.ts does
+# `import "prisma/config"`, which Node resolves RELATIVE TO the config file in
+# /app — a bare `-g` install isn't reachable from there, so the CLI would fail to
+# load the config (and the schema would never be applied).
+RUN npm install -g prisma@7 \
+  && mkdir -p node_modules \
+  && ln -sfn "$(npm root -g)/prisma" node_modules/prisma
 
 # Standalone server + static assets + public dir. The Rust-free Prisma 7 client
 # (src/generated/prisma) is traced into the standalone bundle automatically.

@@ -3,11 +3,11 @@ set -euo pipefail
 
 # Apply database migrations before starting the server. Prisma 7 reads the
 # datasource URL from prisma.config.ts (DATABASE_URL must be in the container
-# env). No-op until migrations are committed under prisma/migrations/ — kept
-# non-fatal so a missing/empty migrations dir never blocks startup (the schema
-# is applied via `prisma db push` in the current setup).
+# env). FATAL on failure (set -e): never start the server against an unmigrated
+# database — a silent no-schema start looks "up" but every DB-backed route 500s.
+# `migrate deploy` is a no-op (exit 0) when there are no pending migrations.
 echo "[entrypoint] Applying Prisma migrations…"
-prisma migrate deploy || echo "[entrypoint] migrate deploy skipped (no committed migrations)"
+prisma migrate deploy
 
-echo "[entrypoint] Starting SigmaCV…"
+echo "[entrypoint] Migrations applied. Starting SigmaCV…"
 exec "$@"
