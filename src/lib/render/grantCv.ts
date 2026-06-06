@@ -5,6 +5,7 @@ import {
   type GrantPresetId,
 } from "@/lib/canonical/grantPresets";
 import { wrapSelf } from "./emphasize";
+import { escapeMarkdown } from "./escape";
 import { prepareSections } from "./prepare";
 import type { PreparedSection } from "./prepare";
 import { cvSlug } from "./slug";
@@ -40,12 +41,6 @@ import type { Renderer, RenderInput, RenderResult } from "./types";
  * from `i18n/narrative.ts` at the chosen `display.locale`), because those are
  * the researcher's own prose sections, not funder-mandated proper nouns.
  */
-
-/** Light escaping so citeproc / display text doesn't trigger accidental
- *  Markdown formatting (mirrors the biosketch + markdown renderers). */
-function escapeMarkdown(s: string): string {
-  return s.replace(/([\\`*_])/g, "\\$1");
-}
 
 /**
  * The per-funder heading map: for each section type a preset can make visible,
@@ -168,13 +163,14 @@ function publicationLines(
 }
 
 /** The narrative-CV block: each included module with a non-empty body becomes
- *  `## <localized heading>` + its body. Mirrors the markdown renderer — the body
- *  is the user's own plain-text prose, emitted as-is (Markdown has no
- *  HTML-injection surface). Empty string when there is nothing to show. */
+ *  `## <localized heading>` + its body. Mirrors the markdown renderer — heading
+ *  and body are USER FREE-TEXT, so both run through `escapeMarkdown` so stray
+ *  Markdown structure (a leading `#`, `*`, `[`) can't change the document.
+ *  Empty array when there is nothing to show. */
 function narrativeBlocks(cv: CanonicalCv): string[] {
   return (cv.narrative ?? [])
     .filter((m) => m.included && m.body.trim().length > 0)
-    .map((m) => `## ${m.heading}\n\n${m.body.trim()}`);
+    .map((m) => `## ${escapeMarkdown(m.heading)}\n\n${escapeMarkdown(m.body.trim())}`);
 }
 
 /**
@@ -218,8 +214,11 @@ export function renderGrantCv(cv: CanonicalCv, funderId: GrantPresetId): string 
   // ── Funder sections, in the preset's configured order ───────────────────────
   // Merge sections that share a heading (NSF: service + talks → "Synergistic
   // Activities") under a single heading, keeping the preset order of first
-  // appearance.
-  const seenHeadings = new Set<string>();
+  // appearance. We track the EXACT block index each emitted funder heading went
+  // to (heading → index) rather than re-scanning `blocks` by prefix — a user
+  // narrative block whose heading happens to equal a funder heading must never
+  // be mistaken for the section to append to.
+  const headingBlockIndex = new Map<string, number>();
   for (const type of preset.visibleSections) {
     const funderHeading = headings[type];
     /* v8 ignore next -- every preset-visible section has a heading mapping */
@@ -228,24 +227,23 @@ export function renderGrantCv(cv: CanonicalCv, funderId: GrantPresetId): string 
     if (type === "publications") {
       const lines = publicationLines(cvForRender, prepared);
       const body = lines.length ? lines.join("\n") : "_(None listed.)_";
+      headingBlockIndex.set(funderHeading, blocks.length);
       blocks.push(`## ${funderHeading}\n\n${body}`);
-      seenHeadings.add(funderHeading);
       continue;
     }
 
     const bullets = bulletList(cvForRender, type);
     if (bullets.length === 0) continue; // omit an empty non-publications section
 
-    if (seenHeadings.has(funderHeading)) {
+    const existingIdx = headingBlockIndex.get(funderHeading);
+    if (existingIdx !== undefined) {
       // Same heading already emitted (e.g. NSF talks after service): append the
-      // bullets to that block rather than repeating the heading.
-      const idx = blocks.findIndex((b) => b.startsWith(`## ${funderHeading}\n\n`));
-      /* v8 ignore next -- seenHeadings only holds an emitted, findable heading */
-      if (idx >= 0) blocks[idx] = `${blocks[idx]}\n${bullets.join("\n")}`;
+      // bullets to THAT specific block (tracked index), never a look-alike.
+      blocks[existingIdx] = `${blocks[existingIdx]}\n${bullets.join("\n")}`;
       continue;
     }
+    headingBlockIndex.set(funderHeading, blocks.length);
     blocks.push(`## ${funderHeading}\n\n${bullets.join("\n")}`);
-    seenHeadings.add(funderHeading);
   }
 
   // ── Footer: this is a SigmaCV draft; submit via the funder's own portal ──────

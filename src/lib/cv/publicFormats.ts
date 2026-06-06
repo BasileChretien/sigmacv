@@ -1,6 +1,6 @@
-import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
-import { visibleItems, visibleSections } from "@/lib/canonical/curate";
+import type { CanonicalCv } from "@/lib/canonical/schema";
 import { renderCvBibtex } from "@/lib/render/bibtex";
+import { cvCslItems } from "@/lib/render/csljson";
 import type { CslItem } from "@/types/csl";
 import { profilePageJsonLd } from "./publicJsonLd";
 
@@ -119,16 +119,13 @@ export function chooseFormatFromAccept(accept: string | null | undefined): Publi
 }
 
 /**
- * Visible, owned, not-"not mine" CSL items across the visible sections — the
- * SAME chokepoint the renderers use (`visibleSections` → `visibleItems`, then
- * drop non-citation + "not mine" items). Used for the CSL-JSON + BibTeX exports
- * so they exactly mirror what the HTML page shows.
+ * Visible, owned, not-"not mine" CSL items for the public exports. Thin alias of
+ * the single shared predicate in `render/csljson.ts` (`cvCslItems`) so the
+ * public CSL-JSON + BibTeX surfaces and the authenticated owner download can
+ * never diverge. Re-exported under the public name for existing callers/tests.
  */
 export function publicCslItems(cv: CanonicalCv): CslItem[] {
-  return visibleSections(cv)
-    .flatMap((s) => visibleItems(s))
-    .filter((i): i is CvItem & { csl: CslItem } => Boolean(i.csl) && !i.notMine)
-    .map((i) => i.csl);
+  return cvCslItems(cv);
 }
 
 export interface SerializedPublicCv {

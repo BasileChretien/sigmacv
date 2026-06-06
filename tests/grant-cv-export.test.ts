@@ -258,6 +258,35 @@ describe.skipIf(!hasApa)("funder grant-CV export", () => {
     expect(block).toContain("national pharmacovigilance committee");
     expect(block).toContain("Keynote, ISoP 2023");
   });
+
+  it("does NOT append funder bullets to a narrative module whose heading collides with a funder heading", () => {
+    // A user narrative block whose heading equals the NSF "Synergistic
+    // Activities" funder heading must not absorb the service/talks bullets — the
+    // merge tracks the exact emitted-section index, not a heading prefix.
+    let cv = fullCv();
+    cv = upsertNarrativeModule(cv, "knowledge", {
+      heading: "Synergistic Activities",
+      body: "Narrative prose about my synergy.",
+    });
+    const md = renderGrantCv(cv, "nsf");
+
+    // The narrative block (its own prose) is distinct from the funder section.
+    const narrativeIdx = md.indexOf("Narrative prose about my synergy.");
+    expect(narrativeIdx).toBeGreaterThanOrEqual(0);
+
+    // The funder Synergistic-Activities block (service + talks) is the LAST
+    // "## Synergistic Activities" occurrence and carries the bullets.
+    const lastHeadingIdx = md.lastIndexOf("## Synergistic Activities");
+    const funderBlock = md.slice(lastHeadingIdx);
+    expect(funderBlock).toContain("national pharmacovigilance committee");
+    expect(funderBlock).toContain("Keynote, ISoP 2023");
+
+    // The bullets did NOT get appended to the narrative block: the narrative
+    // prose paragraph is not immediately followed by the funder bullets.
+    const narrativeBlockEnd = md.indexOf("\n\n##", narrativeIdx);
+    const narrativeBlock = md.slice(narrativeIdx, narrativeBlockEnd < 0 ? undefined : narrativeBlockEnd);
+    expect(narrativeBlock).not.toContain("national pharmacovigilance committee");
+  });
 });
 
 /** The text of a `## heading` section up to the next `## ` (or end). */

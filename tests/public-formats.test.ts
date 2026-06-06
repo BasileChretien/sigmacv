@@ -8,6 +8,7 @@ import {
   publicCslItems,
   serializePublicCv,
 } from "@/lib/cv/publicFormats";
+import { cvCslItems } from "@/lib/render/csljson";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import type { CanonicalCv } from "@/lib/canonical/schema";
@@ -114,6 +115,13 @@ describe("publicCslItems", () => {
     cv = setItemNotMine(cv, pubs.id, second.id, true, { now: "2026-06-02T00:00:00.000Z" });
     const after = publicCslItems(projectCvForPublic(cv)).length;
     expect(after).toBe(before - 2);
+  });
+
+  it("is the SAME predicate as render/csljson cvCslItems (single shared source)", () => {
+    // Fix 9: publicCslItems is a thin alias of cvCslItems — they must never
+    // diverge. Identical output on the same CV proves they share one definition.
+    const cv = publicCv();
+    expect(publicCslItems(cv)).toEqual(cvCslItems(cv));
   });
 });
 

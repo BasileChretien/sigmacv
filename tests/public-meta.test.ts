@@ -39,6 +39,34 @@ describe("publicMetaDescription", () => {
     expect(d.length).toBeLessThanOrEqual(200);
     expect(d.endsWith("…")).toBe(true);
   });
+
+  it("does not cut through a UTF-16 surrogate pair at the truncation boundary", () => {
+    // 101 astral-plane characters (each = a surrogate pair → 2 code units, no
+    // spaces) so the naive 199-unit cut would land between the two halves of a
+    // pair. The fix backs off so the result has NO lone surrogate.
+    const emoji = "😀"; // U+1F600, a single astral code point
+    const d = publicMetaDescription(makeCv({ summary: emoji.repeat(101) }));
+    expect(d.length).toBeLessThanOrEqual(200);
+    expect(d.endsWith("…")).toBe(true);
+    // No lone surrogate: every code unit before the ellipsis is part of a whole
+    // pair. Stripping the ellipsis, the remaining text round-trips through
+    // codePoint iteration without producing U+FFFD-style breakage.
+    const body = d.slice(0, -1); // drop the ellipsis
+    expect(body.length % 2).toBe(0); // whole emoji only → even unit count
+    for (let i = 0; i < body.length; i++) {
+      const code = body.charCodeAt(i);
+      const isHigh = code >= 0xd800 && code <= 0xdbff;
+      const isLow = code >= 0xdc00 && code <= 0xdfff;
+      if (isHigh) {
+        // A high surrogate must be immediately followed by a low surrogate.
+        const next = body.charCodeAt(i + 1);
+        expect(next >= 0xdc00 && next <= 0xdfff).toBe(true);
+      }
+      // The last unit must never be a lone high surrogate (the bug we fixed).
+      if (i === body.length - 1) expect(isHigh).toBe(false);
+      void isLow;
+    }
+  });
 });
 
 describe("publicMetaTags", () => {
