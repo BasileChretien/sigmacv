@@ -13,7 +13,9 @@ import {
   updateDisplay,
   upsertNarrativeModule,
 } from "@/lib/canonical/curate";
+import { applyGrantPreset } from "@/lib/canonical/grantPresets";
 import { defaultNarrativeModules, narrativeModuleStrings } from "@/lib/i18n/narrative";
+import { grantPresetList } from "@/lib/i18n/grantPresets";
 import { asLocale, t } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
 
@@ -22,6 +24,9 @@ const NARRATIVE_BODY_MAX = 8000;
 
 /** Name of the one-click starter preset; reused so re-applying upserts (no dupes). */
 const NARRATIVE_PRESET_NAME = "Narrative CV";
+
+/** Snapshot name for the view saved before a grant layout is applied (reversible). */
+const GRANT_SNAPSHOT_NAME = "Before grant layout";
 
 /** "Selected publications" cap the starter layout applies (a few representative works). */
 const NARRATIVE_PUB_LIMIT = 5;
@@ -78,6 +83,16 @@ export default function NarrativeEditor({ cv, uiLocale, onChange }: NarrativeEdi
     );
   }
 
+  // Apply a one-click EU grant-CV layout (ERC / MSCA): snapshot the current view
+  // as a restorable preset first (so the user can switch back), then set the
+  // funder-expected section visibility + display via the pure `applyGrantPreset`.
+  // Reversible: it only changes display + visibility (+ seeds narrative modules),
+  // never the curated item data.
+  function applyGrant(id: string) {
+    const withPreset = savePreset(cv, GRANT_SNAPSHOT_NAME);
+    onChange(applyGrantPreset(withPreset, id, cvLocale));
+  }
+
   return (
     <fieldset className="display-controls narrative-editor">
       <legend>{eu.narrativeLegend}</legend>
@@ -97,6 +112,22 @@ export default function NarrativeEditor({ cv, uiLocale, onChange }: NarrativeEdi
           {eu.narrativeStarter}
         </button>
         <span className="muted narrative-starter-note">{eu.narrativeStarterNote}</span>
+      </div>
+
+      <div className="grant-presets">
+        <span className="grant-presets-label">{eu.grantLegend}</span>
+        {grantPresetList(locale).map((preset) => (
+          <button
+            key={preset.id}
+            type="button"
+            className="btn btn-sm"
+            onClick={() => applyGrant(preset.id)}
+            title={preset.description}
+          >
+            {eu.grantApply.replace("{name}", preset.name)}
+          </button>
+        ))}
+        <p className="muted narrative-starter-note grant-presets-note">{eu.grantIntro}</p>
       </div>
 
       {modules.map((mod, i) => {

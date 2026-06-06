@@ -58,6 +58,10 @@ export interface EditorExtraStrings {
   narrativeRemove: string;
   narrativeMoveUp: string;
   narrativeMoveDown: string;
+  // EU grant-CV presets (ERC / MSCA) — one-click layout.
+  grantLegend: string;
+  grantIntro: string;
+  grantApply: string;
 }
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
@@ -110,6 +114,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     narrativeRemove: "Remove module",
     narrativeMoveUp: "Move module up",
     narrativeMoveDown: "Move module down",
+    grantLegend: "Grant CV",
+    grantIntro:
+      "Apply a structured starting layout matching a major EU call. It only changes display + which sections show, and seeds the narrative modules. Reversible — your current view is saved first. Submit the final application via the funder’s own portal/template.",
+    grantApply: "Apply {name} layout",
   },
   "zh-CN": {
     grpTemplate: "模板与排版",
@@ -160,6 +168,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     narrativeRemove: "移除模块",
     narrativeMoveUp: "上移模块",
     narrativeMoveDown: "下移模块",
+    grantLegend: "资助简历",
+    grantIntro:
+      "套用与某项重要欧盟项目相匹配的结构化起始版式。它仅更改显示内容及栏目可见性，并生成叙述模块。可逆——会先保存你当前的视图。最终申请请通过资助方自己的门户／模板提交。",
+    grantApply: "套用 {name} 版式",
   },
   "es-ES": {
     grpTemplate: "Plantilla y diseño",
@@ -211,6 +223,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     narrativeRemove: "Eliminar módulo",
     narrativeMoveUp: "Subir módulo",
     narrativeMoveDown: "Bajar módulo",
+    grantLegend: "CV de subvención",
+    grantIntro:
+      "Aplica un diseño inicial estructurado acorde con una gran convocatoria de la UE. Solo cambia la visualización y qué secciones se muestran, y genera los módulos narrativos. Reversible: tu vista actual se guarda primero. Presenta la solicitud final mediante el portal/plantilla del propio financiador.",
+    grantApply: "Aplicar diseño {name}",
   },
   "fr-FR": {
     grpTemplate: "Modèle et mise en page",
@@ -262,6 +278,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     narrativeRemove: "Supprimer le module",
     narrativeMoveUp: "Monter le module",
     narrativeMoveDown: "Descendre le module",
+    grantLegend: "CV de financement",
+    grantIntro:
+      "Appliquez une mise en page de départ structurée correspondant à un grand appel de l’UE. Elle ne modifie que l’affichage et les sections visibles, et crée les modules narratifs. Réversible — votre vue actuelle est d’abord enregistrée. Déposez la candidature finale via le portail/modèle propre au financeur.",
+    grantApply: "Appliquer la mise en page {name}",
   },
   "de-DE": {
     grpTemplate: "Vorlage & Layout",
@@ -313,6 +333,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     narrativeRemove: "Modul entfernen",
     narrativeMoveUp: "Modul nach oben",
     narrativeMoveDown: "Modul nach unten",
+    grantLegend: "Förder-Lebenslauf",
+    grantIntro:
+      "Wenden Sie ein strukturiertes Ausgangslayout passend zu einer großen EU-Ausschreibung an. Es ändert nur die Anzeige und welche Abschnitte sichtbar sind und legt die narrativen Module an. Umkehrbar — Ihre aktuelle Ansicht wird zuvor gespeichert. Reichen Sie den endgültigen Antrag über das Portal/die Vorlage des Förderers ein.",
+    grantApply: "Layout {name} anwenden",
   },
   "ja-JP": {
     grpTemplate: "テンプレートとレイアウト",
@@ -363,6 +387,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     narrativeRemove: "モジュールを削除",
     narrativeMoveUp: "モジュールを上へ",
     narrativeMoveDown: "モジュールを下へ",
+    grantLegend: "助成用 CV",
+    grantIntro:
+      "主要な EU 公募に合わせた構造化された初期レイアウトを適用します。表示内容と表示するセクションのみを変更し、ナラティブ各モジュールを用意します。元に戻せます——先に現在のビューを保存します。最終的な申請は助成機関自身のポータル／テンプレートで提出してください。",
+    grantApply: "{name} レイアウトを適用",
   },
   "pt-BR": {
     grpTemplate: "Modelo e layout",
@@ -414,6 +442,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     narrativeRemove: "Remover módulo",
     narrativeMoveUp: "Mover módulo para cima",
     narrativeMoveDown: "Mover módulo para baixo",
+    grantLegend: "Currículo de financiamento",
+    grantIntro:
+      "Aplique um layout inicial estruturado correspondente a uma grande chamada da UE. Ele só altera a exibição e quais seções aparecem, e cria os módulos narrativos. Reversível — sua visualização atual é salva primeiro. Envie a candidatura final pelo portal/modelo do próprio financiador.",
+    grantApply: "Aplicar layout {name}",
   },
   "it-IT": {
     grpTemplate: "Modello e layout",
@@ -465,6 +497,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     narrativeRemove: "Rimuovi modulo",
     narrativeMoveUp: "Sposta modulo su",
     narrativeMoveDown: "Sposta modulo giù",
+    grantLegend: "CV per finanziamenti",
+    grantIntro:
+      "Applica un layout iniziale strutturato corrispondente a un importante bando UE. Cambia solo la visualizzazione e quali sezioni compaiono, e crea i moduli narrativi. Reversibile — la tua vista attuale viene salvata prima. Presenta la domanda finale tramite il portale/modello dell’ente finanziatore.",
+    grantApply: "Applica layout {name}",
   },
   "ko-KR": {
     grpTemplate: "템플릿 및 레이아웃",
@@ -515,6 +551,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     narrativeRemove: "모듈 삭제",
     narrativeMoveUp: "모듈 위로",
     narrativeMoveDown: "모듈 아래로",
+    grantLegend: "연구비 CV",
+    grantIntro:
+      "주요 EU 공모에 맞는 구조화된 시작 레이아웃을 적용합니다. 표시 내용과 보이는 섹션만 변경하고 내러티브 모듈을 생성합니다. 되돌릴 수 있음 — 현재 보기를 먼저 저장합니다. 최종 지원은 지원기관 자체 포털/템플릿으로 제출하세요.",
+    grantApply: "{name} 레이아웃 적용",
   },
   "ru-RU": {
     grpTemplate: "Шаблон и вёрстка",
@@ -566,6 +606,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     narrativeRemove: "Удалить модуль",
     narrativeMoveUp: "Поднять модуль",
     narrativeMoveDown: "Опустить модуль",
+    grantLegend: "Резюме для гранта",
+    grantIntro:
+      "Примените структурированный начальный макет под крупный конкурс ЕС. Он меняет только отображение и видимые разделы и создаёт нарративные модули. Обратимо — текущий вид сохраняется заранее. Итоговую заявку подавайте через собственный портал/шаблон грантодателя.",
+    grantApply: "Применить макет {name}",
   },
 };
 
