@@ -112,7 +112,7 @@ official submission system, and these formats need a yearly maintenance pass.
 |---|---|---|
 | 7.1 | Narrative-CV canonical model (R4RI / Royal Society modules) + localized headings + curate ops | 🔜 |
 | 7.2 | Safe narrative rendering (HTML/PDF + Markdown + DOCX), body escaped | 🔜 |
-| 7.3 | Narrative editor UI + "Narrative CV" starter layout | ✅ (build/typecheck; live-UI E2E pending) |
+| 7.3 | Narrative editor UI + "Narrative CV" starter layout | ✅ (live E2E green) |
 | 7.4 | EU — ERC + MSCA structured presets | ✅ |
 | 7.5 | US — NIH biosketch export (✅) + NSF preset | ✅ |
 | 7.6 | Japan — JSPS/KAKENHI (researchmap / e-Rad) preset | ✅ |
