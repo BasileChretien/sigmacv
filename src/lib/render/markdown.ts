@@ -17,6 +17,21 @@ function yamlString(s: string): string {
 }
 
 /**
+ * The narrative-CV block as Markdown: each included module with a non-empty body
+ * becomes `## <heading>` + its body. The body is already plain text (the user's
+ * own prose), so it is emitted AS-IS — Markdown is a plain-text format, so there
+ * is no HTML-injection surface here (the HTML renderers escape; this doesn't).
+ */
+function narrativeMarkdown(cv: CanonicalCv): string {
+  const modules = (cv.narrative ?? []).filter(
+    (m) => m.included && m.body.trim().length > 0,
+  );
+  return modules
+    .map((m) => `## ${m.heading}\n\n${m.body.trim()}`)
+    .join("\n\n");
+}
+
+/**
  * Markdown with YAML frontmatter (Hugo-compatible). Self name is bolded with
  * `**…**` on the user's own works.
  */
@@ -68,7 +83,9 @@ export function renderCvMarkdown(cv: CanonicalCv): string {
   const summaryBlock = head.summary ? `${escapeMarkdown(head.summary)}\n\n` : "";
   const metrics = metricsLineText(cv);
   const metricsBlock = metrics ? `*${escapeMarkdown(metrics)}*\n\n` : "";
-  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${metricsBlock}${body}\n`;
+  const narrative = narrativeMarkdown(cv);
+  const narrativeBlock = narrative ? `${narrative}\n\n` : "";
+  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${metricsBlock}${narrativeBlock}${body}\n`;
 }
 
 export const markdownRenderer: Renderer = {

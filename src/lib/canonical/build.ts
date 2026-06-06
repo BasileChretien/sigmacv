@@ -71,6 +71,7 @@ function buildDatasetsSection(
   outputs: DataciteOutput[],
   prevItems: Map<string, CvItem>,
   manual: CvItem[],
+  now: string,
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
@@ -85,6 +86,7 @@ function buildDatasetsSection(
       prevItems.get(id),
       rank++,
       o.year,
+      { lastVerifiedAt: now },
     );
     items.push({ ...it, meta: { ...it.meta, doi: o.doi } });
   }
@@ -179,7 +181,22 @@ function makeEntryItem(
   prev: CvItem | undefined,
   order: number,
   year?: number,
+  /** Extra meta (ROR id, freshness, funder ids) for items from a live source fetch. */
+  extraMeta?: {
+    rorId?: string;
+    lastVerifiedAt?: string;
+    funderId?: string;
+    funderName?: string;
+    awardId?: string;
+  },
 ): CvItem {
+  const meta: CvItem["meta"] = {};
+  if (year) meta.year = year;
+  if (extraMeta?.rorId) meta.rorId = extraMeta.rorId;
+  if (extraMeta?.lastVerifiedAt) meta.lastVerifiedAt = extraMeta.lastVerifiedAt;
+  if (extraMeta?.funderId) meta.funderId = extraMeta.funderId;
+  if (extraMeta?.funderName) meta.funderName = extraMeta.funderName;
+  if (extraMeta?.awardId) meta.awardId = extraMeta.awardId;
   return {
     id,
     source,
@@ -191,7 +208,7 @@ function makeEntryItem(
     order: prev?.order ?? order,
     authoredBySelf: false,
     selfNameVariants: [],
-    meta: year ? { year } : {},
+    meta,
   };
 }
 
@@ -217,6 +234,7 @@ function buildPositionsSection(
   affiliations: ResolvedAffiliation[],
   prevItems: Map<string, CvItem>,
   manual: CvItem[],
+  now: string,
 ): CvSection | null {
   const items: CvItem[] = [];
   const seen = new Set<string>();
@@ -231,7 +249,10 @@ function buildPositionsSection(
     seen.add(normInstitution(e.organization));
     const id = `position:orcid:${e.putCode}`;
     items.push(
-      makeEntryItem(id, "orcid", e.putCode, formatPositionText(e), prevItems.get(id), rank++, e.startYear),
+      makeEntryItem(id, "orcid", e.putCode, formatPositionText(e), prevItems.get(id), rank++, e.startYear, {
+        rorId: e.rorId,
+        lastVerifiedAt: now,
+      }),
     );
   }
   for (const a of affiliations) {
@@ -245,7 +266,10 @@ function buildPositionsSection(
     // respect a user who explicitly un-hid one (prev.included === true) so the
     // choice survives re-sync. New ones start hidden.
     const prev = prevItems.get(id);
-    const item = makeEntryItem(id, "openalex", "openalex", text, prev, rank++, a.startYear);
+    const item = makeEntryItem(id, "openalex", "openalex", text, prev, rank++, a.startYear, {
+      rorId: a.rorId,
+      lastVerifiedAt: now,
+    });
     items.push({ ...item, included: prev?.included ?? false });
   }
   for (const m of manual) {
@@ -280,6 +304,8 @@ interface OrcidEntrySectionOpts {
   idPrefix: string;
   prevItems: Map<string, CvItem>;
   manual: CvItem[];
+  /** Build timestamp — per-item freshness for these live (ORCID) entries. */
+  now: string;
   /** Awards are points in time → "(2020)"; positions/education are ranges. */
   singleYear?: boolean;
 }
@@ -300,7 +326,10 @@ function buildOrcidEntrySection(
     const id = `${opts.idPrefix}:orcid:${e.putCode}`;
     const text = opts.singleYear ? formatAwardText(e) : formatPositionText(e);
     items.push(
-      makeEntryItem(id, "orcid", e.putCode, text, opts.prevItems.get(id), rank++, e.startYear),
+      makeEntryItem(id, "orcid", e.putCode, text, opts.prevItems.get(id), rank++, e.startYear, {
+        rorId: e.rorId,
+        lastVerifiedAt: opts.now,
+      }),
     );
   }
   for (const m of opts.manual) {
@@ -323,6 +352,7 @@ function buildPeerReviewSection(
   groups: OrcidPeerReviewGroup[],
   prevItems: Map<string, CvItem>,
   manual: CvItem[],
+  now: string,
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
@@ -332,7 +362,11 @@ function buildPeerReviewSection(
     const key = g.issn ?? normInstitution(label);
     const id = `peer-review:orcid:${key.replace(/[^a-z0-9]+/g, "-")}`;
     const text = `${label} — ${g.count} review${g.count === 1 ? "" : "s"}`;
-    items.push(makeEntryItem(id, "orcid", "peer-review", text, prevItems.get(id), rank++));
+    items.push(
+      makeEntryItem(id, "orcid", "peer-review", text, prevItems.get(id), rank++, undefined, {
+        lastVerifiedAt: now,
+      }),
+    );
   }
   for (const m of manual) {
     items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
@@ -363,22 +397,74 @@ function formatFundingText(f: OrcidFunding): string {
 }
 
 /**
+ * Index OpenAlex paper-level `grants[]` by award number (lower-cased) so a
+ * person-attributed ORCID funding lacking a disambiguated identifier can borrow
+ * the matching OpenAlex funder id/name. OpenAlex grants are NOT a standalone
+ * source (they're often co-authors' funding) — only used to attach identifiers
+ * to a grant the user already asserted via ORCID.
+ */
+export function indexFundersByAward(
+  works: OpenAlexWork[],
+): Map<string, { funderId?: string; funderName?: string }> {
+  const out = new Map<string, { funderId?: string; funderName?: string }>();
+  for (const w of works) {
+    for (const g of w.grants ?? []) {
+      const award = g.award_id?.trim().toLowerCase();
+      if (!award || out.has(award)) continue;
+      out.set(award, {
+        funderId: g.funder ?? undefined,
+        funderName: g.funder_display_name ?? undefined,
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * Resolve the interoperable funder identifiers for one ORCID funding record.
+ * ORCID's own disambiguated-organization id + org name + award number are
+ * authoritative; an OpenAlex `grants[]` match (by award number) fills only the
+ * funder id/name that ORCID didn't carry. Never invents an identifier.
+ */
+export function resolveFunderIds(
+  f: OrcidFunding,
+  fundersByAward: Map<string, { funderId?: string; funderName?: string }>,
+): { funderId?: string; funderName?: string; awardId?: string } {
+  const oa = f.awardId ? fundersByAward.get(f.awardId.trim().toLowerCase()) : undefined;
+  return {
+    funderId: f.funderId ?? oa?.funderId,
+    funderName: f.organization ?? oa?.funderName,
+    awardId: f.awardId,
+  };
+}
+
+/**
  * Grants & funding from the user's OWN ORCID funding records (person-attributed),
- * NOT OpenAlex paper-level awards (which are often co-authors'). Manual entries
- * are carried over.
+ * NOT OpenAlex paper-level awards (which are often co-authors'). Funder/award
+ * identifiers come from ORCID's disambiguated organization + external ids, with
+ * OpenAlex `grants[]` (matched by award number) filling a missing funder id only.
+ * Manual entries are carried over.
  */
 function buildGrantsSection(
   fundings: OrcidFunding[],
   prevItems: Map<string, CvItem>,
   manual: CvItem[],
+  now: string,
+  fundersByAward: Map<string, { funderId?: string; funderName?: string }>,
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
   const sorted = [...fundings].sort((a, b) => (b.startYear ?? 0) - (a.startYear ?? 0));
   for (const f of sorted) {
     const id = `grant:orcid:${f.putCode}`;
+    const funder = resolveFunderIds(f, fundersByAward);
     items.push(
-      makeEntryItem(id, "orcid", f.putCode, formatFundingText(f), prevItems.get(id), rank++, f.startYear),
+      makeEntryItem(id, "orcid", f.putCode, formatFundingText(f), prevItems.get(id), rank++, f.startYear, {
+        lastVerifiedAt: now,
+        funderId: funder.funderId,
+        funderName: funder.funderName,
+        awardId: funder.awardId,
+      }),
     );
   }
   for (const m of manual) {
@@ -406,6 +492,7 @@ function buildEditorialSection(
   roles: EditorialRole[],
   prevIncluded: Map<string, boolean>,
   manual: CvItem[],
+  now: string,
 ): CvSection | null {
   const items: CvItem[] = roles.map((r, i) => {
     const id = `editorial:${i}`;
@@ -422,7 +509,7 @@ function buildEditorialSection(
       order: i,
       authoredBySelf: false,
       selfNameVariants: [],
-      meta: {},
+      meta: { lastVerifiedAt: now },
     };
   });
   for (const m of manual) items.push({ ...m, order: items.length });
@@ -494,6 +581,29 @@ export function reviewFlagFor(
   if (!selfAuth || !ownerOrcid) return undefined;
   const authOrcid = normalizeOrcid(selfAuth.author?.orcid);
   return authOrcid && authOrcid !== ownerOrcid ? "orcid-conflict" : undefined;
+}
+
+/**
+ * Reuse license of a work, from OpenAlex's `primary_location.license`, falling
+ * back to `best_oa_location.license` (a work can be closed at its primary
+ * location but openly licensed via an OA copy). Undefined when neither carries one.
+ */
+export function workLicense(work: OpenAlexWork): string | undefined {
+  return (
+    work.primary_location?.license ?? work.best_oa_location?.license ?? undefined
+  );
+}
+
+/**
+ * Bare PubMed id from OpenAlex `ids.pmid`, which is a URL
+ * ("https://pubmed.ncbi.nlm.nih.gov/12345678"). Returns just the numeric id, or
+ * undefined when absent / not numeric.
+ */
+export function workPmid(work: OpenAlexWork): string | undefined {
+  const pmid = work.ids?.pmid;
+  if (!pmid) return undefined;
+  const m = /(\d+)\/?$/.exec(pmid.trim());
+  return m ? m[1] : undefined;
 }
 
 /** A human label for the account holder's authorship role on a work, or undefined. */
@@ -640,6 +750,11 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
           work.open_access?.is_oa && work.open_access.oa_status
             ? work.open_access.oa_status
             : undefined,
+        // Reuse license + PubMed id (FAIR / open-science surfacing).
+        license: workLicense(work),
+        pmid: workPmid(work),
+        // Per-item freshness: this work came from a live OpenAlex fetch.
+        lastVerifiedAt: now,
         authorRole: authorRoleLabel(selfAuth),
         authorCount: work.authorships?.length,
         // 1-based position of the account holder among the authors (for the
@@ -712,6 +827,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     resolved.affiliations ?? [],
     prevItems,
     previousManualItems(previous, "positions"),
+    now,
   );
   // ORCID "invited positions" are visiting/invited roles & talks — surfaced as a
   // dedicated Invited Talks section (a CV staple) rather than buried in Positions.
@@ -723,6 +839,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     idPrefix: "talk",
     prevItems,
     manual: previousManualItems(previous, "talks"),
+    now,
   });
   const educationSection = buildOrcidEntrySection(args.education ?? [], {
     id: "education",
@@ -732,6 +849,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     idPrefix: "education",
     prevItems,
     manual: previousManualItems(previous, "education"),
+    now,
   });
   const awardsSection = buildOrcidEntrySection(args.distinctions ?? [], {
     id: "awards",
@@ -742,6 +860,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     prevItems,
     manual: previousManualItems(previous, "awards"),
     singleYear: true,
+    now,
   });
   const serviceSection = buildOrcidEntrySection(args.service ?? [], {
     id: "service",
@@ -751,27 +870,33 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     idPrefix: "service",
     prevItems,
     manual: previousManualItems(previous, "service"),
+    now,
   });
   const peerReviewSection = buildPeerReviewSection(
     args.peerReviews ?? [],
     prevItems,
     previousManualItems(previous, "peer-review"),
+    now,
   );
   const editorialSection = buildEditorialSection(
     args.editorialRoles ?? [],
     prevIncluded,
     previousManualItems(previous, "editorial"),
+    now,
   );
   const grantsSection = buildGrantsSection(
     args.fundings ?? [],
     prevItems,
     previousManualItems(previous, "grants"),
+    now,
+    indexFundersByAward(works),
   );
 
   const datasetsSection = buildDatasetsSection(
     args.dataciteOutputs ?? [],
     prevItems,
     previousManualItems(previous, "datasets"),
+    now,
   );
 
   const builtSections: CvSection[] = [
@@ -842,6 +967,8 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     sections,
     // Saved view-presets are a pure display concern — carry them across re-syncs.
     presets: previous?.presets ?? [],
+    // Narrative-CV prose is user-authored (never sourced) — preserve it on re-sync.
+    narrative: previous?.narrative ?? [],
     provenance: {
       generatedAt: previous?.provenance.generatedAt ?? now,
       lastSyncedAt: now,

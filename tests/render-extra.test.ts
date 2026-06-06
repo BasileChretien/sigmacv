@@ -70,6 +70,13 @@ describe("render format catalog", () => {
       "latex",
       "markdown",
       "bibtex",
+      "csljson",
+      "jsonresume",
+      "biosketch",
+      "erc",
+      "msca",
+      "nsf",
+      "jsps",
     ]);
   });
 });

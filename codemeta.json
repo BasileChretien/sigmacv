@@ -1,0 +1,45 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "identifier": "SigmaCV",
+  "name": "SigmaCV",
+  "description": "Auto-generate clean, customizable academic CVs from open research data (OpenAlex, ORCID, Crossref, Open Editors Plus). Open infrastructure for responsible research assessment: one canonical CV object drives every output format, citations render through CSL, and the account holder is matched by persistent identifier rather than name string.",
+  "codeRepository": "https://github.com/BasileChretien/sigmacv",
+  "url": "https://sigmacv.org",
+  "issueTracker": "https://github.com/BasileChretien/sigmacv/issues",
+  "license": "https://spdx.org/licenses/Apache-2.0",
+  "version": "0.1.0",
+  "dateModified": "2026-06-05",
+  "programmingLanguage": [
+    "TypeScript"
+  ],
+  "runtimePlatform": "Node.js",
+  "operatingSystem": [
+    "Linux",
+    "macOS",
+    "Windows"
+  ],
+  "keywords": [
+    "academic CV",
+    "curriculum vitae",
+    "ORCID",
+    "OpenAlex",
+    "bibliometrics",
+    "responsible research assessment",
+    "FAIR",
+    "open science",
+    "CSL"
+  ],
+  "author": [
+    {
+      "@type": "Person",
+      "@id": "https://orcid.org/0000-0002-7483-2489",
+      "givenName": "Basile",
+      "familyName": "Chrétien",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Nagoya University Graduate School of Medicine"
+      }
+    }
+  ]
+}

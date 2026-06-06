@@ -14,6 +14,8 @@ export interface ResolvedAffiliation {
   institution: string;
   startYear?: number;
   endYear?: number;
+  /** ROR id of the canonicalized institution, set during ROR enrichment. */
+  rorId?: string;
 }
 
 /** Per-year works + citation counts for the optional mini charts. */

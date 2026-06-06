@@ -1,7 +1,10 @@
 import {
+  attributionFooter,
   commonCss,
   cvPageShell,
   headerHtml,
+  licenseFooter,
+  narrativeBlock,
   provenanceFooter,
   sectionsHtml,
 } from "./shared";
@@ -79,11 +82,11 @@ function modernCss(_theme: TemplateTheme): string {
 
 export const modernTemplate: CvTemplate = {
   key: "modern",
-  render(cv, sections, theme) {
+  render(cv, sections, theme, opts) {
     const css = commonCss(theme) + modernCss(theme);
     const body = `<div class="cv">${headerHtml(cv, {
       photo: true,
-    })}${sectionsHtml(sections)}${provenanceFooter(cv)}</div>`;
+    })}${narrativeBlock(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}</div>`;
     return cvPageShell(cv, css, body);
   },
 };

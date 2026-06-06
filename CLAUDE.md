@@ -48,9 +48,21 @@ The app passed three security audits; the hardening it relies on must be **confi
 - [ ] **Caddy** overwrites `X-Forwarded-For` with the real peer + sets `request_body max_size`, and 404s `/api/internal/*` (already in `Caddyfile` — don't remove).
 - [ ] **Container** runs non-root with `cap_drop: ALL` + `no-new-privileges` (already in the Dockerfile + compose).
 - [ ] **Research logging stays OFF** (`RESEARCH_LOGGING_ENABLED` unset) and the **research export stays gated** until IRB approval; finalise the export's de-identified fields against the pre-registration before ever enabling.
+- [ ] **Upstream OpenAlex curation stays OFF** (`OPENALEX_CURATION_ENABLED` unset) — the "not mine" push (`src/lib/openalex/assert.ts`, endpoint `/api/cv/assert`) is disabled-by-default v2 scaffolding that makes **no** network call while unset; keep it off until the real OpenAlex curation API contract is confirmed and the **PROVISIONAL** payload finalised.
 - [ ] **Accepted residuals** (documented in `SECURITY.md`): ORCID has no PKCE (upstream); DB session token at rest (rely on Neon/Postgres encryption-at-rest); revisit if the threat model changes.
 
 Generate secrets with `openssl rand`, put them in the server's `.env` only (never commit), and keep `.env.production.example` as the template.
+
+### Open-science launch tasks (maintainer, one-time)
+The FAIR/open-science work is implemented (full status in [`docs/OPEN-SCIENCE-ROADMAP.md`](docs/OPEN-SCIENCE-ROADMAP.md)). These remaining steps are **mine to do**, not code — do them around launch:
+
+- [ ] **Mint the software DOI** — cut a tagged GitHub release so Zenodo deposits it (config in `.zenodo.json`). Then write the DOI back into `CITATION.cff`, `.zenodo.json`, and the README "Citing" section, and bump `version`/`date-released` in `CITATION.cff` + `codemeta.json` + `.zenodo.json` to match the tag.
+- [ ] **Sign DORA** (<https://sfdora.org/>) and record CoARA alignment; the stance is already stated in [`docs/OPEN-SCIENCE.md`](docs/OPEN-SCIENCE.md).
+- [ ] **Before ANY confirmatory research analysis** — complete the placeholders in `docs/preregistration/study-2-*.md` and `study-3-*.md`, register on OSF, record the **IRB № + OSF DOI**, and freeze the analysis script *before* touching data. Keep `RESEARCH_LOGGING_ENABLED` off until IRB approval, and **bump `RESEARCH_CONSENT_VERSION`** when you turn it on so users re-consent under the approved terms.
+- [ ] **Tool / infrastructure paper** (paper #1) — cite the Zenodo DOI above.
+- [ ] **Outreach** — the reusable kit is in [`docs/OUTREACH.md`](docs/OUTREACH.md) (libraries / DORA-CoARA / OpenAlex user group).
+
+> Deferred features (not blockers; tracked in the roadmap): Europass export (controlled-vocabulary ELM graph), CRediT roles (no per-author source in OpenAlex), and the upstream-curation UI (feature disabled).
 
 ## Scope
 - **MVP slice**: ORCID login → OpenAlex pull → canonical object → one HTML template (CSL + name highlight) → PDF export → curation UI.
@@ -70,7 +82,7 @@ The Prisma client is generated into **`src/generated/prisma/`** (committed, `pos
 npm run dev            # Next dev server (predev auto-syncs the DB schema)
 npm run build          # production build
 npm run typecheck      # tsc --noEmit  (run this after every code change)
-npm test               # vitest run — full unit/integration suite (~535 tests)
+npm test               # vitest run — full unit/integration suite (~800 tests)
 npm run coverage       # vitest run --coverage — ENFORCES the gate (see below)
 npm run e2e            # Playwright E2E (needs e2e DB; e2e:install first)
 npm run fetch-csl      # vendor the CSL styles + en-US locale into citeproc assets

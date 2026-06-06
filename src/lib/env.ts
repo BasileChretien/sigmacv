@@ -25,6 +25,20 @@ const EnvSchema = z.object({
   // Shared secret guarding the internal scheduled-resync endpoint. If unset the
   // endpoint is disabled (returns 503), so it's optional even in production.
   RESYNC_SECRET: z.string().min(16).optional(),
+  // ── OpenAlex upstream curation push (Phase 5 — "give back to the commons") ──
+  // DISABLED by default. When unset/false the app makes NO external curation
+  // write — ever (the endpoint 503s and the write-client returns "disabled"
+  // without touching the network). The real OpenAlex curation API contract is
+  // UNCONFIRMED, so this stays gated until it is. Set to "true" only once the
+  // endpoint + payload below are verified against the real API.
+  OPENALEX_CURATION_ENABLED: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => v === "true"),
+  // Where the (PROVISIONAL) curation request is POSTed when enabled. Optional
+  // even when enabled: if absent the write-client reports an error rather than
+  // guessing a production URL.
+  OPENALEX_CURATION_ENDPOINT: z.string().url().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

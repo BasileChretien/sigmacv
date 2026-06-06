@@ -55,9 +55,34 @@ const FUNDINGS = {
           "put-code": 100,
           title: { title: { value: "PARANAC" } },
           type: "contract",
-          organization: { name: "University of Caen" },
+          organization: {
+            name: "University of Caen",
+            // Disambiguated funder (FundRef) + a grant number → funderId + awardId.
+            "disambiguated-organization": {
+              "disambiguated-organization-identifier":
+                "http://dx.doi.org/10.13039/501100001665",
+              "disambiguation-source": "FUNDREF",
+            },
+          },
+          "external-ids": {
+            "external-id": [
+              { "external-id-type": "grant_number", "external-id-value": "ANR-18-CE17-0001" },
+            ],
+          },
           "start-date": { year: { value: "2021" } },
           "end-date": null,
+        },
+        {
+          // No disambiguation + a non-grant_number external id → funderId undefined,
+          // awardId falls back to the first external-id value.
+          "put-code": 101,
+          title: { title: { value: "Seed grant" } },
+          organization: { name: "Local Org" },
+          "external-ids": {
+            "external-id": [
+              { "external-id-type": "other", "external-id-value": "SEED-2020" },
+            ],
+          },
         },
       ],
     },
@@ -128,18 +153,55 @@ describe("fetchOrcidPositions", () => {
 });
 
 describe("fetchOrcidFundings", () => {
-  it("parses fundings (title, org, type, start year, put-code)", async () => {
+  it("parses fundings (title, org, type, start year, put-code) + funder/award ids", async () => {
     vi.stubGlobal("fetch", routedFetch());
     const { fetchOrcidFundings } = await freshClient();
     const fundings = await fetchOrcidFundings("0000-0002-7483-2489");
-    expect(fundings).toHaveLength(1);
+    expect(fundings).toHaveLength(2);
     expect(fundings[0]).toMatchObject({
       putCode: "100",
       title: "PARANAC",
       organization: "University of Caen",
       type: "contract",
       startYear: 2021,
+      // Disambiguated FundRef id, prefixed with its source scheme.
+      funderId: "FUNDREF:http://dx.doi.org/10.13039/501100001665",
+      // Award number from the grant_number external id.
+      awardId: "ANR-18-CE17-0001",
     });
+    // No disambiguation → no funderId; awardId falls back to the first external id.
+    expect(fundings[1]).toMatchObject({
+      putCode: "101",
+      title: "Seed grant",
+      awardId: "SEED-2020",
+    });
+    expect(fundings[1]?.funderId).toBeUndefined();
+  });
+
+  it("emits a bare disambiguated id when no disambiguation-source is present", async () => {
+    const fund = res({
+      group: [
+        {
+          "funding-summary": [
+            {
+              "put-code": 102,
+              title: { title: { value: "Untagged funder" } },
+              organization: {
+                name: "Mystery Org",
+                "disambiguated-organization": {
+                  "disambiguated-organization-identifier": "grid.12345.6",
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
+    vi.stubGlobal("fetch", routedFetch({ fund }));
+    const { fetchOrcidFundings } = await freshClient();
+    const fundings = await fetchOrcidFundings("0000-0002-7483-2489");
+    expect(fundings[0]?.funderId).toBe("grid.12345.6");
+    expect(fundings[0]?.awardId).toBeUndefined();
   });
 
   it("caches the read-public token across calls (one token request)", async () => {

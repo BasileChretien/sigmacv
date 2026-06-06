@@ -1,7 +1,8 @@
 import { test as base } from "@playwright/test";
-import works from "../../tests/fixtures/openalex-works.json";
+import works from "../../tests/fixtures/openalex-works.json" with { type: "json" };
 import type { OpenAlexWork } from "../../src/lib/openalex/types";
 import { seedCv, seedSession, seedUser, TEST_ORCID } from "./seed";
+import { db } from "./db";
 
 interface Fixtures {
   /** A signed-in user (DB session cookie injected) with a seeded CV. */
@@ -16,6 +17,15 @@ interface Fixtures {
  */
 export const test = base.extend<Fixtures>({
   authedUserId: async ({ context }, use) => {
+    // Clean slate before each test (the suite runs serially) so the seeded
+    // unique TEST_ORCID never collides with a user left by a previous spec.
+    await db.researchEvent.deleteMany();
+    await db.cv.deleteMany();
+    await db.session.deleteMany();
+    await db.account.deleteMany();
+    await db.verificationToken.deleteMany();
+    await db.user.deleteMany();
+
     const user = await seedUser({
       orcid: TEST_ORCID,
       name: "Basile Chrétien",

@@ -1,6 +1,9 @@
 # SigmaCV
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+[![Open science: FAIR](https://img.shields.io/badge/open%20science-FAIR-2ea44f.svg)](docs/OPEN-SCIENCE.md)
+[![Cite this repository](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
 
 Auto-generate clean, customizable **academic CVs** from open research data
 (OpenAlex, ORCID). Log in, see your publications auto-populated, curate them
@@ -135,6 +138,37 @@ docker compose up --build -d
 ```
 Caddy terminates TLS and proxies to the app; the app applies migrations on
 startup and renders PDFs in-process.
+
+## Open science & FAIR
+
+SigmaCV is open infrastructure for **responsible research assessment**, built to
+the [FAIR principles](https://www.go-fair.org/fair-principles/) for both the CVs
+it produces and the software itself. See
+[`docs/OPEN-SCIENCE.md`](docs/OPEN-SCIENCE.md) for the full statement and
+[`docs/OPEN-SCIENCE-ROADMAP.md`](docs/OPEN-SCIENCE-ROADMAP.md) for the sequenced
+roadmap. Highlights:
+
+- **Identifier-driven, never name-based** — authorship is matched by ORCID /
+  OpenAlex ID, so records resolve unambiguously.
+- **Provenance on every record** — source, match basis, sync timestamps.
+- **Privacy by default** — per-field publish consent, account export and
+  deletion (GDPR / Japan APPI); public pages are non-indexable until opted in.
+- **Opt-in, field-normalized metrics** (default none), consistent with
+  [DORA](https://sfdora.org/).
+- **Self-hostable** — the whole stack runs on your own VPS with Docker Compose
+  (see [`DEPLOY.md`](DEPLOY.md)); no lock-in to a hosted instance.
+
+Contributions are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) and
+[`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+
+## Citing SigmaCV
+
+If you use SigmaCV in your research, please cite it using the metadata in
+[`CITATION.cff`](CITATION.cff) (GitHub's "Cite this repository" renders it
+automatically). Machine-readable software metadata is also provided in
+[`codemeta.json`](codemeta.json), and archival deposits are configured via
+[`.zenodo.json`](.zenodo.json) (a release DOI is minted on the first tagged
+release).
 
 ## License
 [Apache-2.0](LICENSE). Bundled CSL styles are CC BY-SA 3.0 — see [`NOTICE`](NOTICE).

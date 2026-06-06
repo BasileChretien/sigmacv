@@ -82,6 +82,7 @@ export default function PublishControls({
       <label className="field-inline" title={u.publishTitle}>
         <input
           type="checkbox"
+          data-testid="publish-toggle"
           checked={published}
           disabled={busy}
           onChange={(e) => toggle(e.target.checked)}

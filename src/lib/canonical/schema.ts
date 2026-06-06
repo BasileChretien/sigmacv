@@ -15,6 +15,20 @@ import { CslItemSchema } from "@/types/csl";
 
 export const CANONICAL_SCHEMA_VERSION = 1 as const;
 
+/**
+ * Licenses offered for the whole-CV reuse statement (`display.cvLicense`) and
+ * the human/URL mapping in `license.ts`. "none" + "all-rights-reserved" are the
+ * two non-CC sentinels (no canonical SPDX URL). Proper nouns — NOT i18n'd.
+ */
+export const CV_LICENSES = [
+  "none",
+  "CC0-1.0",
+  "CC-BY-4.0",
+  "CC-BY-SA-4.0",
+  "all-rights-reserved",
+] as const;
+export type CvLicenseKey = (typeof CV_LICENSES)[number];
+
 export const SECTION_TYPES = [
   "publications",
   "preprints",
@@ -166,6 +180,33 @@ export const CvItemSchema = z.object({
     topDecile: z.boolean().optional(),
     /** Open-access status from OpenAlex ("gold"/"green"/"hybrid"/"bronze"/"diamond"). */
     oaStatus: z.string().optional(),
+    /**
+     * Reuse license of THIS work (e.g. "cc-by", "cc-by-nc-nd"), taken from the
+     * OpenAlex location (`primary_location.license`, else `best_oa_location`).
+     * Free-form (OpenAlex's own slug) — surfaced for FAIR/open-science display.
+     */
+    license: z.string().optional(),
+    /** PubMed id (bare numeric, e.g. "12345678"), extracted from OpenAlex `ids.pmid`. */
+    pmid: z.string().optional(),
+    /** ROR id of the institution this item was canonicalized to, when ROR matched. */
+    rorId: z.string().optional(),
+    /**
+     * Funder identifier for a grant item (interoperable funding metadata). The
+     * OpenAlex funder id (e.g. "https://openalex.org/F4320332161") or the ORCID
+     * funding's disambiguated-organization identifier (FundRef/ROR/GRID). Additive
+     * + optional — never invented; left undefined when the source carries none.
+     */
+    funderId: z.string().optional(),
+    /** Human-readable funder name for a grant item (OpenAlex `funder_display_name` / ORCID org name). */
+    funderName: z.string().optional(),
+    /** Award / grant number for a grant item (OpenAlex `award_id` / ORCID grant external id). */
+    awardId: z.string().optional(),
+    /**
+     * ISO timestamp of the build that last fetched this item from a LIVE source
+     * (openalex/orcid/…). Per-item freshness for FAIR provenance; undefined for
+     * purely manual entries that were never re-fetched.
+     */
+    lastVerifiedAt: z.string().optional(),
     /** The account holder's authorship role on this work ("first"/"last"/"corresponding"). */
     authorRole: z.string().optional(),
     /** Total number of authors on the work. */
@@ -216,6 +257,39 @@ export type CvItem = z.infer<typeof CvItemSchema>;
 export function isHidden(item: Pick<CvItem, "included" | "notMine">): boolean {
   return !item.included || item.notMine === true;
 }
+
+/**
+ * The standard funder "narrative CV" modules (UKRI Résumé for Research and
+ * Innovation / Royal Society Résumé for Researchers framing). The researcher
+ * writes the PROSE; SigmaCV only stores, curates and renders it. Keys are stable
+ * (proper-noun-free) identifiers; the localized heading + guidance prompt live in
+ * `i18n/narrative.ts`, so a heading can be re-localized without changing the key.
+ */
+export const NARRATIVE_MODULE_KEYS = [
+  "personal-statement",
+  "knowledge",
+  "individuals",
+  "community",
+  "society",
+  "additional",
+] as const;
+export const NarrativeModuleKeySchema = z.enum(NARRATIVE_MODULE_KEYS);
+export type NarrativeModuleKey = z.infer<typeof NarrativeModuleKeySchema>;
+
+/**
+ * One narrative module: a user-chosen heading + free-text body, with an
+ * include/exclude display toggle. The body is bounded (8k chars) to keep the
+ * canonical document a sane size; it is USER FREE-TEXT and must be escaped /
+ * safe-transformed by every renderer (never interpreted as raw HTML/markdown).
+ */
+export const CvNarrativeModuleSchema = z.object({
+  key: NarrativeModuleKeySchema,
+  heading: z.string().max(200),
+  body: z.string().max(8000),
+  /** Display toggle: only `included` modules with a non-empty body are rendered. */
+  included: z.boolean().default(true),
+});
+export type CvNarrativeModule = z.infer<typeof CvNarrativeModuleSchema>;
 
 export const CvSectionSchema = z.object({
   id: z.string(),
@@ -399,6 +473,11 @@ export const DisplayChoicesSchema = z.object({
   highlightSelf: z.boolean().default(true),
   /** How the self-name is emphasised (colour / bold / underline). */
   highlightStyle: z.enum(HIGHLIGHT_STYLES).default("accent"),
+  /**
+   * Whole-CV reuse license (FAIR / open-science). Default "none" = no statement.
+   * `licenseInfo()` in `license.ts` maps the key → human name + SPDX URL.
+   */
+  cvLicense: z.enum(CV_LICENSES).default("none"),
   /** Master metrics toggle. Brief: metrics default to NONE. */
   showMetrics: z.boolean().default(false),
   /** Which metric keys to show (subset of METRIC_KEYS). Default none. */
@@ -475,6 +554,14 @@ export const DisplayChoicesSchema = z.object({
       location: z.boolean().default(false),
     })
     .default({}),
+  /**
+   * Show the small "Made with SigmaCV" attribution footer on the PUBLIC living
+   * page (`/p/[slug]`) only — a referral backlink to the site root. Opt-OUT:
+   * default ON. It never appears on exported PDF/DOCX/LaTeX/Markdown (a CV the
+   * owner submits to a job/grant must stay unbranded); the public route is the
+   * only renderer that requests it.
+   */
+  publicAttribution: z.boolean().default(true),
 });
 export type DisplayChoices = z.infer<typeof DisplayChoicesSchema>;
 
@@ -523,6 +610,13 @@ export const CanonicalCvSchema = z.object({
   sections: z.array(CvSectionSchema).max(60),
   /** Saved named view-presets (optional; back-compat: old docs have none). */
   presets: z.array(CvPresetSchema).max(20).default([]),
+  /**
+   * The narrative-CV modules (funder résumé prose). Additive + `.default([])`,
+   * so a document stored before narratives existed validates as `[]`. Capped at
+   * 12 (the six standard modules plus headroom). Rendered as a block above the
+   * sections when ≥1 included module has a non-empty body.
+   */
+  narrative: z.array(CvNarrativeModuleSchema).max(12).default([]),
   provenance: ProvenanceSchema,
 });
 export type CanonicalCv = z.infer<typeof CanonicalCvSchema>;

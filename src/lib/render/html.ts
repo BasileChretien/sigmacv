@@ -10,7 +10,7 @@ import { prepareSections } from "./prepare";
 import { cvSlug } from "./slug";
 import { getTemplate, resolveTheme } from "./templates";
 import type { RenderedSection } from "./templates/types";
-import type { Renderer, RenderInput, RenderResult } from "./types";
+import type { RenderOpts, Renderer, RenderInput, RenderResult } from "./types";
 
 export { cvSlug } from "./slug";
 
@@ -81,17 +81,17 @@ export function buildRenderedSections(cv: CanonicalCv): RenderedSection[] {
   }));
 }
 
-export function renderCvHtml(cv: CanonicalCv): string {
+export function renderCvHtml(cv: CanonicalCv, opts?: RenderOpts): string {
   const rendered = buildRenderedSections(cv);
   const template = getTemplate(cv.display.template);
   const theme = resolveTheme(cv.display);
-  return template.render(cv, rendered, theme);
+  return template.render(cv, rendered, theme, opts);
 }
 
 export const htmlRenderer: Renderer = {
   format: "html",
-  async render({ cv }: RenderInput): Promise<RenderResult> {
-    const html = renderCvHtml(cv);
+  async render({ cv, opts }: RenderInput): Promise<RenderResult> {
+    const html = renderCvHtml(cv, opts);
     return {
       format: "html",
       mimeType: "text/html; charset=utf-8",

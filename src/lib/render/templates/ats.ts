@@ -1,4 +1,4 @@
-import { commonCss, cvPageShell, headerHtml, provenanceFooter, sectionsHtml } from "./shared";
+import { attributionFooter, commonCss, cvPageShell, headerHtml, licenseFooter, narrativeBlock, provenanceFooter, sectionsHtml } from "./shared";
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**
@@ -67,9 +67,9 @@ function atsCss(_theme: TemplateTheme): string {
 
 export const atsTemplate: CvTemplate = {
   key: "ats",
-  render(cv, sections, theme) {
+  render(cv, sections, theme, opts) {
     const css = commonCss(theme) + atsCss(theme);
-    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}</div>`;
+    const body = `<div class="cv">${headerHtml(cv)}${narrativeBlock(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}</div>`;
     return cvPageShell(cv, css, body);
   },
 };

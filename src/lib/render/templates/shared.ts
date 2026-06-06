@@ -1,9 +1,12 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
 import { renderChartsHtml } from "../charts";
 import { escapeHtml, safeHref } from "../escape";
 import { formattedMetrics } from "../metrics";
+import { SITE_URL } from "@/lib/siteUrl";
+import type { RenderOpts } from "../types";
 import type { RenderedSection, TemplateTheme } from "./types";
 
 export { escapeHtml };
@@ -202,6 +205,17 @@ export function commonCss(theme: TemplateTheme): string {
   section.cv-section:first-of-type { margin-top: calc(var(--cv-space) * 0.6); }
   section.cv-section > h2 { font-size: 0.95rem; font-weight: 600; color: var(--cv-ink); margin: 0 0 0.65rem; }
 
+  /* Narrative-CV block (funder résumé prose) — sits ABOVE the sections. Reads as
+     running prose: a module heading then escaped paragraphs / bullet lists. */
+  section.cv-narrative { margin-top: calc(var(--cv-space) * 0.6); }
+  .cv-narrative-module { margin-top: var(--cv-space); }
+  .cv-narrative-module:first-child { margin-top: 0; }
+  .cv-narrative-module > h3 { font-size: 0.95rem; font-weight: 600; color: var(--cv-ink); margin: 0 0 0.45rem; }
+  .cv-narrative-module p { margin: 0 0 0.55rem; line-height: 1.55; color: var(--cv-ink-2); }
+  .cv-narrative-module p:last-child { margin-bottom: 0; }
+  ul.cv-narrative-list { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
+  ul.cv-narrative-list > li { margin: 0 0 0.2rem; line-height: 1.5; color: var(--cv-ink-2); }
+
   ol.cv-bib { list-style: none; margin: 0; padding: 0; }
   ol.cv-bib > li { margin: 0 0 var(--cv-entry-gap); padding-left: var(--cv-hang); text-indent: calc(var(--cv-hang) * -1); line-height: 1.42; }
   .csl-entry { display: inline; }
@@ -244,6 +258,14 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-chart rect { stroke: rgba(0, 0, 0, 0.12); stroke-width: 0.5; }
 
   .cv-provenance { margin-top: 2.2rem; padding-top: 0.7rem; border-top: 1px solid var(--cv-rule); font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
+  /* Whole-CV reuse license line — a quiet footnote under the document. When the
+     provenance footer is also shown it sits just below it (smaller top margin). */
+  .cv-license { margin-top: 1rem; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
+  .cv-license a { color: var(--cv-muted); text-decoration: underline; text-underline-offset: 0.15em; }
+  /* "Made with SigmaCV" referral footer — public living page ONLY (never in an
+     export). A quiet brand backlink under the document. */
+  .cv-attribution { margin-top: 1rem; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
+  .cv-attribution a { color: var(--cv-accent); text-decoration: none; }
   a { color: inherit; }
 
   @page { size: A4; margin: 16mm 15mm; }
@@ -361,6 +383,131 @@ export function provenanceFooter(cv: CanonicalCv): string {
       ? ` · ${escapeHtml(s.provClassificationNote)}`
       : "";
   return `<footer class="cv-provenance">${parts.join(" ")} · ${counts.join(", ")}${note}</footer>`;
+}
+
+/**
+ * A small whole-CV reuse-license line (FAIR / open-science). Shown only when the
+ * owner chose a linkable license (`display.cvLicense` not "none"/closed); the
+ * license NAME is a proper noun (CC BY 4.0, CC0 1.0, …) so it is not translated,
+ * linked to its canonical SPDX page. "" when there's no license statement to show.
+ */
+export function licenseFooter(cv: CanonicalCv): string {
+  const info = licenseInfo(cv.display.cvLicense);
+  if (!info) return "";
+  const href = safeHref(info.url);
+  const name = escapeHtml(info.name);
+  const label = href
+    ? `<a href="${escapeHtml(href)}" rel="license">${name}</a>`
+    : name;
+  return `<footer class="cv-license">${label}</footer>`;
+}
+
+/**
+ * The "Made with SigmaCV" attribution footer — a small referral backlink to the
+ * site root, shown ONLY on the public living page (`/p/[slug]`). The growth-loop
+ * link is wanted, so it is a plain follow link (no rel="nofollow").
+ *
+ * Emitted only when BOTH (a) the caller opted in (`opts.attribution === true` —
+ * exporters never do, so PDF/DOCX/LaTeX/Markdown stay unbranded) AND (b) the
+ * owner hasn't opted out (`display.publicAttribution !== false`). "" otherwise.
+ * "SigmaCV" is the brand name and is never translated; only "Made with" is.
+ */
+export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): string {
+  if (!opts.attribution) return "";
+  if (cv.display.publicAttribution === false) return "";
+  const href = safeHref(SITE_URL);
+  // SITE_URL is an https origin from env/fallback, so safeHref always passes; the
+  // guard keeps an unexpected non-http value from ever reaching the href.
+  /* v8 ignore next -- SITE_URL is always a safe https origin */
+  if (!href) return "";
+  const madeWith = escapeHtml(renderStrings(cv.display.locale).madeWith);
+  return `<footer class="cv-attribution">${madeWith} <a href="${escapeHtml(
+    href,
+  )}">SigmaCV</a></footer>`;
+}
+
+/**
+ * SAFE transform of a narrative module's USER FREE-TEXT body into HTML.
+ *
+ * The body is user-controlled data, NOT trusted markup — so everything is
+ * HTML-escaped first (see `escapeHtml`), and only a MINIMAL, hand-rolled set of
+ * structural affordances is then layered on top of the already-escaped text:
+ *  - blank lines split the body into `<p>` paragraphs;
+ *  - within a paragraph, runs of lines each beginning with "- " become a `<ul>`
+ *    of `<li>` items; non-list lines are joined with `<br>`.
+ * Raw HTML and arbitrary markdown are NEVER interpreted — an injected
+ * `<script>` / `<img onerror=…>` survives only as inert escaped text. This is
+ * the single chokepoint; every renderer that shows the narrative uses it.
+ */
+function narrativeBodyHtml(body: string): string {
+  // Normalise newlines, then split into paragraphs on one-or-more blank lines.
+  const paragraphs = body
+    .replace(/\r\n?/g, "\n")
+    .split(/\n[ \t]*\n+/)
+    .map((p) => p.replace(/^\n+|\n+$/g, ""))
+    .filter((p) => p.trim().length > 0);
+
+  return paragraphs
+    .map((para) => {
+      const lines = para.split("\n");
+      const out: string[] = [];
+      let listItems: string[] = [];
+      const flushList = () => {
+        if (listItems.length === 0) return;
+        out.push(
+          `<ul class="cv-narrative-list">${listItems
+            .map((li) => `<li>${escapeHtml(li)}</li>`)
+            .join("")}</ul>`,
+        );
+        listItems = [];
+      };
+      let textRun: string[] = [];
+      const flushText = () => {
+        if (textRun.length === 0) return;
+        out.push(
+          `<p>${textRun.map((t) => escapeHtml(t)).join("<br />")}</p>`,
+        );
+        textRun = [];
+      };
+      for (const rawLine of lines) {
+        const listMatch = rawLine.match(/^[ \t]*-[ \t]+(.*)$/);
+        if (listMatch) {
+          flushText();
+          listItems.push(listMatch[1]!);
+        } else {
+          flushList();
+          textRun.push(rawLine);
+        }
+      }
+      flushText();
+      flushList();
+      return out.join("");
+    })
+    .join("");
+}
+
+/**
+ * The narrative-CV block (funder résumé prose), rendered ABOVE the sections. Each
+ * INCLUDED module with a non-empty body becomes a heading + its safe-transformed
+ * body. "" when there is no narrative content to show (so the block is gated by
+ * presence — templates can always inline it). The heading + body are both
+ * USER FREE-TEXT and are HTML-escaped / safe-transformed; nothing is interpreted
+ * as raw HTML or arbitrary markdown.
+ */
+export function narrativeBlock(cv: CanonicalCv): string {
+  const modules = (cv.narrative ?? []).filter(
+    (m) => m.included && m.body.trim().length > 0,
+  );
+  if (modules.length === 0) return "";
+  const blocks = modules
+    .map(
+      (m) =>
+        `<section class="cv-narrative-module"><h3>${escapeHtml(
+          m.heading,
+        )}</h3>${narrativeBodyHtml(m.body)}</section>`,
+    )
+    .join("");
+  return `<section class="cv-narrative">${blocks}</section>`;
 }
 
 /** Section list markup (identical across templates; styled via CSS classes). */

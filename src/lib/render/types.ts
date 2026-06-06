@@ -16,11 +16,34 @@ export const RENDER_FORMATS = [
   "latex",
   "markdown",
   "bibtex",
+  "csljson",
+  "jsonresume",
+  "biosketch",
+  "erc",
+  "msca",
+  "nsf",
+  "jsps",
 ] as const;
 export type RenderFormat = (typeof RENDER_FORMATS)[number];
 
+/**
+ * Render-time options that are NOT part of the canonical document — context the
+ * caller supplies about *where* the output will be shown. Currently just the
+ * public-page attribution backlink, which only the living public page requests
+ * (every export path leaves it unset, so exports stay unbranded).
+ */
+export interface RenderOpts {
+  /**
+   * When true, the public-page "Made with SigmaCV" attribution footer is emitted
+   * (still subject to the owner's `display.publicAttribution` opt-out). Only the
+   * `/p/[slug]` route sets this; exporters never do.
+   */
+  attribution?: boolean;
+}
+
 export interface RenderInput {
   cv: CanonicalCv;
+  opts?: RenderOpts;
 }
 
 /**

@@ -1,0 +1,31 @@
+{
+  "title": "SigmaCV",
+  "description": "Auto-generate clean, customizable academic CVs from open research data (OpenAlex, ORCID, Crossref, Open Editors Plus). Open infrastructure for responsible research assessment.",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "Apache-2.0",
+  "creators": [
+    {
+      "name": "Chrétien, Basile",
+      "orcid": "0000-0002-7483-2489",
+      "affiliation": "Nagoya University Graduate School of Medicine, Nagoya, Japan"
+    }
+  ],
+  "keywords": [
+    "academic CV",
+    "ORCID",
+    "OpenAlex",
+    "bibliometrics",
+    "responsible research assessment",
+    "FAIR",
+    "open science",
+    "CSL"
+  ],
+  "related_identifiers": [
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/BasileChretien/sigmacv",
+      "scheme": "url"
+    }
+  ]
+}

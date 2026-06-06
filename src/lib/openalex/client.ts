@@ -35,8 +35,10 @@ const WORK_SELECT = [
   "authorships",
   "open_access",
   "primary_location",
+  "best_oa_location",
   "biblio",
   "ids",
+  "grants",
 ].join(",");
 
 async function openAlexGet<T>(

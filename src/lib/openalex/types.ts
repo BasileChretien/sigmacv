@@ -55,6 +55,27 @@ export interface OpenAlexSource {
   type?: string;
 }
 
+/** An OpenAlex "location" (where a work is hosted). Carries the reuse license. */
+export interface OpenAlexLocation {
+  source?: OpenAlexSource | null;
+  /** Reuse license slug (e.g. "cc-by", "cc-by-nc-nd"), or null when unknown. */
+  license?: string | null;
+}
+
+/**
+ * A funding acknowledgement on a work (OpenAlex `grants[]`). NOTE: these are
+ * paper-level acknowledgements — often a co-author's funding — so they are used
+ * only to ATTACH funder identifiers to person-attributed grant items, never as a
+ * standalone funding source. `funder` is an OpenAlex funder id (URL form).
+ */
+export interface OpenAlexGrant {
+  /** OpenAlex funder id, URL form, e.g. "https://openalex.org/F4320332161". */
+  funder?: string | null;
+  funder_display_name?: string | null;
+  /** Award / grant number as printed on the work, e.g. "ANR-18-CE17-0001". */
+  award_id?: string | null;
+}
+
 export interface OpenAlexWork {
   /** URL form, e.g. "https://openalex.org/W2741809807". */
   id: string;
@@ -79,7 +100,9 @@ export interface OpenAlexWork {
     oa_status?: string;
     oa_url?: string | null;
   } | null;
-  primary_location?: { source?: OpenAlexSource | null } | null;
+  primary_location?: OpenAlexLocation | null;
+  /** Best open-access location (fallback source for the reuse license). */
+  best_oa_location?: OpenAlexLocation | null;
   biblio?: {
     volume?: string | null;
     issue?: string | null;
@@ -92,6 +115,8 @@ export interface OpenAlexWork {
     pmid?: string;
     mag?: string;
   } | null;
+  /** Funding acknowledgements on the work (funder id + award number). */
+  grants?: OpenAlexGrant[] | null;
 }
 
 export interface OpenAlexListResponse<T> {

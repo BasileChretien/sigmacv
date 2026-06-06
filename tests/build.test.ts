@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { buildCanonicalCv } from "@/lib/canonical/build";
+import {
+  buildCanonicalCv,
+  indexFundersByAward,
+  resolveFunderIds,
+} from "@/lib/canonical/build";
 import { parseCanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
+import type { OrcidFunding } from "@/lib/orcid/client";
 import worksFixture from "./fixtures/openalex-works.json";
 
 const works = worksFixture as unknown as OpenAlexWork[];
@@ -265,6 +270,29 @@ describe("buildCanonicalCv", () => {
     ]);
   });
 
+  it("populates per-work license (primary, else best_oa fallback, else none)", () => {
+    const items = build().sections[0]!.items;
+    const byId = (id: string) => items.find((i) => i.id === id)!;
+    // primary_location.license
+    expect(byId("W4300000001").meta.license).toBe("cc-by");
+    // primary license is null → falls back to best_oa_location.license
+    expect(byId("W4300000002").meta.license).toBe("cc-by-nc-nd");
+    // neither location carries a license
+    expect(byId("W4300000003").meta.license).toBeUndefined();
+  });
+
+  it("extracts the bare PubMed id from the OpenAlex ids.pmid URL", () => {
+    const items = build().sections[0]!.items;
+    const byId = (id: string) => items.find((i) => i.id === id)!;
+    expect(byId("W4300000001").meta.pmid).toBe("123456");
+    expect(byId("W4300000002").meta.pmid).toBeUndefined(); // no ids.pmid
+  });
+
+  it("stamps lastVerifiedAt with the build timestamp for live-sourced works", () => {
+    const items = build().sections[0]!.items;
+    expect(items.every((i) => i.meta.lastVerifiedAt === "2026-06-02T00:00:00.000Z")).toBe(true);
+  });
+
   it("breaks recency ties alphabetically by title", () => {
     const sameYear = [
       {
@@ -298,5 +326,73 @@ describe("buildCanonicalCv", () => {
       "Alpha study",
       "Zeta study",
     ]);
+  });
+});
+
+describe("indexFundersByAward", () => {
+  it("indexes OpenAlex grants by lower-cased award number (first wins)", () => {
+    const ws = [
+      {
+        id: "https://openalex.org/W1",
+        grants: [
+          { funder: "https://openalex.org/F1", funder_display_name: "Funder One", award_id: "AB-1" },
+          // Duplicate award number → the first entry is kept.
+          { funder: "https://openalex.org/F2", funder_display_name: "Funder Two", award_id: "ab-1" },
+          // No award id → skipped (can't be keyed).
+          { funder: "https://openalex.org/F3", award_id: null },
+        ],
+      },
+      // A work with no grants array at all.
+      { id: "https://openalex.org/W2" },
+    ] as unknown as OpenAlexWork[];
+    const idx = indexFundersByAward(ws);
+    expect(idx.get("ab-1")).toEqual({
+      funderId: "https://openalex.org/F1",
+      funderName: "Funder One",
+    });
+    expect(idx.size).toBe(1); // only the one keyable, de-duped award
+  });
+});
+
+describe("resolveFunderIds", () => {
+  const idx = indexFundersByAward([
+    {
+      id: "https://openalex.org/W1",
+      grants: [{ funder: "https://openalex.org/F1", funder_display_name: "OA Funder", award_id: "AB-1" }],
+    },
+  ] as unknown as OpenAlexWork[]);
+
+  it("prefers ORCID's own funder id + org name over the OpenAlex match", () => {
+    const f: OrcidFunding = {
+      putCode: "1",
+      title: "Grant",
+      organization: "ORCID Org",
+      funderId: "FUNDREF:10.13039/x",
+      awardId: "AB-1",
+    };
+    expect(resolveFunderIds(f, idx)).toEqual({
+      funderId: "FUNDREF:10.13039/x",
+      funderName: "ORCID Org",
+      awardId: "AB-1",
+    });
+  });
+
+  it("borrows the OpenAlex funder id (by award) when ORCID lacks one", () => {
+    const f: OrcidFunding = { putCode: "2", title: "Grant", awardId: "AB-1" };
+    expect(resolveFunderIds(f, idx)).toEqual({
+      funderId: "https://openalex.org/F1",
+      // No ORCID org + no need to fall back? funderName falls back to OA name.
+      funderName: "OA Funder",
+      awardId: "AB-1",
+    });
+  });
+
+  it("invents nothing when neither ORCID nor OpenAlex carries identifiers", () => {
+    const f: OrcidFunding = { putCode: "3", title: "Grant" };
+    expect(resolveFunderIds(f, idx)).toEqual({
+      funderId: undefined,
+      funderName: undefined,
+      awardId: undefined,
+    });
   });
 });
