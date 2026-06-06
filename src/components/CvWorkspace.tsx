@@ -16,13 +16,22 @@ import PublishControls from "./PublishControls";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
 import SupportLink from "./SupportLink";
 
+// Mirrors the API's EXPORTABLE list in app/api/cv/export/[format]/route.ts
+// (the RenderFormats minus "html", plus the raw-canonical "json").
 type ExportFormat =
   | "pdf"
   | "docx"
   | "latex"
   | "markdown"
   | "bibtex"
-  | "json";
+  | "csljson"
+  | "jsonresume"
+  | "json"
+  | "biosketch"
+  | "erc"
+  | "msca"
+  | "nsf"
+  | "jsps";
 
 interface CvWorkspaceProps {
   initialCv: CanonicalCv | null;
@@ -247,12 +256,25 @@ export default function CvWorkspace({
             title={ui(uiLocale).exportFormatTitle}
             disabled={!cv}
           >
-            <option value="pdf">{ui(uiLocale).exportPdf}</option>
-            <option value="docx">{ui(uiLocale).exportDocx}</option>
-            <option value="latex">{ui(uiLocale).exportLatexModern}</option>
-            <option value="markdown">{ui(uiLocale).exportMarkdown}</option>
-            <option value="bibtex">{ui(uiLocale).exportBibtex}</option>
-            <option value="json">{ui(uiLocale).exportJson}</option>
+            <optgroup label={ui(uiLocale).exportGroupDocuments}>
+              <option value="pdf">{ui(uiLocale).exportPdf}</option>
+              <option value="docx">{ui(uiLocale).exportDocx}</option>
+              <option value="latex">{ui(uiLocale).exportLatexModern}</option>
+              <option value="markdown">{ui(uiLocale).exportMarkdown}</option>
+            </optgroup>
+            <optgroup label={ui(uiLocale).exportGroupData}>
+              <option value="bibtex">{ui(uiLocale).exportBibtex}</option>
+              <option value="csljson">{ui(uiLocale).exportCslJson}</option>
+              <option value="jsonresume">{ui(uiLocale).exportJsonResume}</option>
+              <option value="json">{ui(uiLocale).exportJson}</option>
+            </optgroup>
+            <optgroup label={ui(uiLocale).exportGroupGrantCv}>
+              <option value="biosketch">{ui(uiLocale).exportBiosketch}</option>
+              <option value="erc">{ui(uiLocale).exportErc}</option>
+              <option value="msca">{ui(uiLocale).exportMsca}</option>
+              <option value="nsf">{ui(uiLocale).exportNsf}</option>
+              <option value="jsps">{ui(uiLocale).exportJsps}</option>
+            </optgroup>
           </select>
           <button
             type="button"
