@@ -9,20 +9,23 @@ import { defaultNarrativeModules } from "@/lib/i18n/narrative";
 
 /**
  * ───────────────────────────────────────────────────────────────────────────
- * EU grant-CV presets (Phase 7.4) — one-click "grant CV" starting points.
+ * Grant-CV presets (Phase 7.4 EU · 7.5 US NSF · 7.6 Japan JSPS) — one-click
+ * "grant CV" starting points.
  * ───────────────────────────────────────────────────────────────────────────
  * Each preset configures the canonical CV to match the STRUCTURE that a major
- * EU funding call expects, reusing the existing section types + display fields.
+ * funding call expects, reusing the existing section types + display fields.
  * These are structured STARTING POINTS, not pixel-exact official templates —
  * the funder mandates its own portal/template (ERC/MSCA via the EU Funding &
- * Tenders portal), and the localized description says so explicitly.
+ * Tenders portal; NSF via SciENcv on Research.gov; JSPS/KAKENHI via e-Rad with
+ * data maintained in researchmap), and the localized description says so
+ * explicitly.
  *
  * Applying a preset only changes DISPLAY + section visibility (+ seeds the
  * narrative scaffolding). It never deletes curated item data, so it is fully
  * reversible — the editor snapshots the current view as a named preset first.
  */
 
-export const GRANT_PRESET_IDS = ["erc", "msca"] as const;
+export const GRANT_PRESET_IDS = ["erc", "msca", "nsf", "jsps"] as const;
 export type GrantPresetId = (typeof GRANT_PRESET_IDS)[number];
 
 /**
@@ -58,6 +61,20 @@ const ERC_PUBLICATIONS_LIMIT = 10;
  * tighter selected-publications list keeps the CV to the expected short form.
  */
 const MSCA_PUBLICATIONS_LIMIT = 8;
+
+/**
+ * NSF biographical sketch (SciENcv): the "Products" section asks for up to 5
+ * products most closely related to the proposal plus up to 5 other significant
+ * products — i.e. ~10 representative outputs, not a full bibliography.
+ */
+const NSF_PUBLICATIONS_LIMIT = 10;
+
+/**
+ * JSPS / KAKENHI researcher profile (researchmap / e-Rad): a selected
+ * "research achievements" (研究業績) list rather than a complete publication
+ * list keeps the profile to the expected representative form.
+ */
+const JSPS_PUBLICATIONS_LIMIT = 10;
 
 /**
  * The grant-preset catalog. Every section listed maps a funder rubric item to an
@@ -114,6 +131,53 @@ export const GRANT_PRESETS: Record<GrantPresetId, GrantPresetConfig> = {
     ],
     display: {
       publicationsLimit: MSCA_PUBLICATIONS_LIMIT,
+      publicationOrder: "year-desc",
+      peerReviewedOnly: true,
+    },
+    includesNarrative: true,
+  },
+  // US NSF biographical sketch (SciENcv structure). The four NSF rubric blocks
+  // map onto existing sections: Professional Preparation → education ·
+  // Appointments → positions · Products → publications (≈10 selected outputs) ·
+  // Synergistic Activities → service + talks. Funding (grants) is shown too.
+  // NSF values a synergistic-activity narrative, so include the narrative track.
+  // NOTE: the official biosketch must be generated/certified via SciENcv
+  // (Research.gov); SigmaCV only drafts/maintains it (the `biosketch` Markdown
+  // export reuses this NIH-style structure as a starting draft).
+  nsf: {
+    visibleSections: [
+      "education",
+      "positions",
+      "publications",
+      "service",
+      "talks",
+      "grants",
+    ],
+    display: {
+      publicationsLimit: NSF_PUBLICATIONS_LIMIT,
+      publicationOrder: "year-desc",
+      peerReviewedOnly: true,
+    },
+    includesNarrative: true,
+  },
+  // Japan JSPS / KAKENHI researcher profile (researchmap / e-Rad based). The
+  // profile rubric maps onto existing sections: research achievements (研究業績)
+  // → publications (≈10 selected, newest-first) · career (経歴) → positions +
+  // education · research funding (研究費) → grants · awards (受賞) → awards.
+  // KAKENHI increasingly asks for a narrative research summary, so include the
+  // narrative track. NOTE: the application is submitted via e-Rad and the
+  // researcher record is maintained in researchmap — SigmaCV produces a
+  // draft/export, not the official submission.
+  jsps: {
+    visibleSections: [
+      "publications",
+      "positions",
+      "education",
+      "grants",
+      "awards",
+    ],
+    display: {
+      publicationsLimit: JSPS_PUBLICATIONS_LIMIT,
       publicationOrder: "year-desc",
       peerReviewedOnly: true,
     },

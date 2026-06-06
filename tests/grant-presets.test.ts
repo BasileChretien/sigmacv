@@ -86,8 +86,8 @@ const visibleTypes = (cv: CanonicalCv): Set<string> =>
   new Set(cv.sections.filter((s) => s.visible).map((s) => s.type));
 
 describe("grant preset catalog", () => {
-  it("exposes exactly ERC + MSCA, and the catalog covers them", () => {
-    expect([...GRANT_PRESET_IDS]).toEqual(["erc", "msca"]);
+  it("exposes exactly ERC + MSCA + NSF + JSPS, and the catalog covers them", () => {
+    expect([...GRANT_PRESET_IDS]).toEqual(["erc", "msca", "nsf", "jsps"]);
     for (const id of GRANT_PRESET_IDS) {
       expect(GRANT_PRESETS[id]).toBeTruthy();
       expect(GRANT_PRESETS[id].visibleSections.length).toBeGreaterThan(0);
@@ -97,6 +97,8 @@ describe("grant preset catalog", () => {
   it("isGrantPresetId guards known vs unknown ids", () => {
     expect(isGrantPresetId("erc")).toBe(true);
     expect(isGrantPresetId("msca")).toBe(true);
+    expect(isGrantPresetId("nsf")).toBe(true);
+    expect(isGrantPresetId("jsps")).toBe(true);
     expect(isGrantPresetId("nope")).toBe(false);
   });
 
@@ -118,6 +120,35 @@ describe("grant preset catalog", () => {
     expect(c.includesNarrative).toBe(true);
     expect(c.visibleSections).toContain("education");
     expect(c.visibleSections).toContain("publications");
+  });
+
+  it("NSF: SciENcv blocks (prep/appointments/products/synergistic+funding), ~10, narrative", () => {
+    const c = GRANT_PRESETS.nsf;
+    expect(c.display.publicationsLimit).toBe(10);
+    expect(c.display.publicationOrder).toBe("year-desc");
+    expect(c.display.peerReviewedOnly).toBe(true);
+    expect(c.includesNarrative).toBe(true);
+    // Professional Preparation / Appointments / Products / Synergistic / funding.
+    expect(c.visibleSections).toContain("education");
+    expect(c.visibleSections).toContain("positions");
+    expect(c.visibleSections).toContain("publications");
+    expect(c.visibleSections).toContain("service");
+    expect(c.visibleSections).toContain("talks");
+    expect(c.visibleSections).toContain("grants");
+  });
+
+  it("JSPS: researchmap/e-Rad blocks (achievements/career/funding/awards), narrative", () => {
+    const c = GRANT_PRESETS.jsps;
+    expect(c.display.publicationsLimit).toBe(10);
+    expect(c.display.publicationOrder).toBe("year-desc");
+    expect(c.display.peerReviewedOnly).toBe(true);
+    expect(c.includesNarrative).toBe(true);
+    // Research achievements / career (positions + education) / funding / awards.
+    expect(c.visibleSections).toContain("publications");
+    expect(c.visibleSections).toContain("positions");
+    expect(c.visibleSections).toContain("education");
+    expect(c.visibleSections).toContain("grants");
+    expect(c.visibleSections).toContain("awards");
   });
 });
 

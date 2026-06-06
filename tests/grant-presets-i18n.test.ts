@@ -9,7 +9,7 @@ import {
 import { editorUi } from "@/lib/i18n/editorUi";
 
 describe("grant-preset i18n", () => {
-  it("defines a non-empty name + description for both presets in all 10 locales", () => {
+  it("defines a non-empty name + description for all four presets in all 10 locales", () => {
     expect(SUPPORTED_LOCALES).toHaveLength(10);
     for (const loc of SUPPORTED_LOCALES) {
       const strings = grantPresetStrings(loc);
@@ -20,30 +20,44 @@ describe("grant-preset i18n", () => {
           `${loc}/${id} description`,
         ).toBeGreaterThan(0);
       }
-      // Exactly the two preset ids, no extras/missing.
+      // Exactly the four preset ids, no extras/missing.
       expect(Object.keys(strings).sort()).toEqual([...GRANT_PRESET_IDS].sort());
     }
   });
 
-  it("every description carries the funder-portal caveat in all 10 locales", () => {
+  // Each preset routes to its own funder portal — the proper noun is kept
+  // untranslated in every locale, so a substring check works across all ten.
+  const PORTAL_CAVEAT: Record<(typeof GRANT_PRESET_IDS)[number], string> = {
+    erc: "EU Funding & Tenders",
+    msca: "EU Funding & Tenders",
+    nsf: "SciENcv",
+    jsps: "e-Rad",
+  };
+
+  it("every description carries its own funder-portal caveat in all 10 locales", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const strings = grantPresetStrings(loc);
       for (const id of GRANT_PRESET_IDS) {
-        // The portal name is a proper noun kept untranslated in every locale.
         expect(
           strings[id].description,
-          `${loc}/${id} mentions the EU portal`,
-        ).toContain("EU Funding & Tenders");
+          `${loc}/${id} mentions its funder portal`,
+        ).toContain(PORTAL_CAVEAT[id]);
       }
     }
   });
 
-  it("uses the expected English names + ERC framing", () => {
+  it("uses the expected English names + framing for all four funders", () => {
     const en = grantPresetStrings("en-US");
     expect(en.erc.name).toBe("ERC");
     expect(en.msca.name).toBe("MSCA");
+    expect(en.nsf.name).toBe("NSF");
+    expect(en.jsps.name).toBe("JSPS");
     expect(en.erc.description).toContain("ERC");
     expect(en.msca.description).toContain("MSCA Postdoctoral Fellowships");
+    expect(en.nsf.description).toContain("SciENcv");
+    expect(en.nsf.description).toContain("Research.gov");
+    expect(en.jsps.description).toContain("KAKENHI");
+    expect(en.jsps.description).toContain("researchmap");
   });
 
   it("falls back to English for an unknown locale", () => {
@@ -55,11 +69,11 @@ describe("grant-preset i18n", () => {
     );
   });
 
-  it("grantPresetList returns both presets in catalog order with labels", () => {
+  it("grantPresetList returns all four presets in catalog order with labels", () => {
     const list = grantPresetList("en-US");
     expect(list.map((p) => p.id)).toEqual([...GRANT_PRESET_IDS]);
-    expect(list[0]!.name).toBe("ERC");
-    expect(list[0]!.description.length).toBeGreaterThan(0);
+    expect(list.map((p) => p.name)).toEqual(["ERC", "MSCA", "NSF", "JSPS"]);
+    for (const p of list) expect(p.description.length).toBeGreaterThan(0);
   });
 
   it("the editor control labels exist in every locale (legend, intro, apply)", () => {
