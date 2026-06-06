@@ -1,16 +1,12 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { renderStrings } from "@/lib/i18n/render";
 import { wrapSelf } from "./emphasize";
+import { escapeMarkdown } from "./escape";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
 import { metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
 import type { Renderer, RenderInput, RenderResult } from "./types";
-
-/** Light escaping so citeproc text doesn't trigger accidental Markdown formatting. */
-function escapeMarkdown(s: string): string {
-  return s.replace(/([\\`*_])/g, "\\$1");
-}
 
 function yamlString(s: string): string {
   return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
@@ -18,16 +14,17 @@ function yamlString(s: string): string {
 
 /**
  * The narrative-CV block as Markdown: each included module with a non-empty body
- * becomes `## <heading>` + its body. The body is already plain text (the user's
- * own prose), so it is emitted AS-IS — Markdown is a plain-text format, so there
- * is no HTML-injection surface here (the HTML renderers escape; this doesn't).
+ * becomes `## <heading>` + its body. The heading and body are USER FREE-TEXT, so
+ * both run through `escapeMarkdown` (consistent with how citeproc text is
+ * treated) — a body of "# Not a heading" or stray `*`/`[` can't change the
+ * document's block structure.
  */
 function narrativeMarkdown(cv: CanonicalCv): string {
   const modules = (cv.narrative ?? []).filter(
     (m) => m.included && m.body.trim().length > 0,
   );
   return modules
-    .map((m) => `## ${m.heading}\n\n${m.body.trim()}`)
+    .map((m) => `## ${escapeMarkdown(m.heading)}\n\n${escapeMarkdown(m.body.trim())}`)
     .join("\n\n");
 }
 

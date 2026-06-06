@@ -14,36 +14,16 @@ import {
 } from "@/lib/cv/publicFormats";
 import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
 import { publicMetaTags } from "@/lib/cv/publicMeta";
-import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { renderCvHtml } from "@/lib/render/html";
 import { absoluteUrl } from "@/lib/siteUrl";
+import {
+  enforcePubPageRateLimit,
+  isValidPublicSlug,
+  tooManyRequests,
+} from "./pubRateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-// Anonymous + render-heavy: bound per-IP request rate so a flood (especially of
-// random/invalid slugs, which bypass the render cache) can't pin the process.
-const PUBPAGE_MAX = 120;
-const PUBPAGE_WINDOW_MS = 60_000; // 1 minute
-// A second, GLOBAL ceiling across all IPs — bounds a distributed flood that
-// rotates source IPs (each IP staying under the per-IP cap).
-const PUBPAGE_GLOBAL_MAX = 3_000;
-const PUBPAGE_GLOBAL_WINDOW_MS = 60_000;
-
-/**
- * Real client IP from the proxy headers. Caddy is configured to OVERWRITE
- * X-Forwarded-For with the real peer (`header_up X-Forwarded-For {remote_host}`),
- * so the trusted value is the RIGHTMOST hop — never the leftmost client-supplied
- * one (which would let an attacker rotate it to evade the per-IP limit).
- */
-function clientIp(req: Request): string {
-  const fwd = req.headers.get("x-forwarded-for");
-  if (fwd) {
-    const parts = fwd.split(",");
-    return parts[parts.length - 1]!.trim();
-  }
-  return req.headers.get("x-real-ip")?.trim() || "unknown";
-}
 
 /** The robots tag: indexing is the owner's separate per-CV opt-in. */
 function robotsTag(indexable: boolean): string {
@@ -127,19 +107,20 @@ export async function GET(
     ? suffix.format
     : chooseFormatFromAccept(req.headers.get("accept"));
 
-  const tooMany = (retryAfterSec: number) =>
-    new NextResponse("Too many requests. Please try again shortly.", {
-      status: 429,
-      headers: {
-        "Retry-After": String(retryAfterSec),
-        "Content-Type": "text/plain; charset=utf-8",
-      },
+  const rl = await enforcePubPageRateLimit(req);
+  if (!rl.ok) return tooManyRequests(rl.retryAfterSec);
+
+  const notFound = () =>
+    new NextResponse("This CV is not available.", {
+      status: 404,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
 
-  const rl = await enforceRateLimit(`pubpage:${clientIp(req)}`, PUBPAGE_MAX, PUBPAGE_WINDOW_MS);
-  if (!rl.ok) return tooMany(rl.retryAfterSec);
-  const grl = await enforceRateLimit("pubpage:global", PUBPAGE_GLOBAL_MAX, PUBPAGE_GLOBAL_WINDOW_MS);
-  if (!grl.ok) return tooMany(grl.retryAfterSec);
+  // Validate the stripped slug against the server-generated slug shape BEFORE
+  // any DB lookup or use in the Content-Disposition header. Server slugs always
+  // match; this only rejects crafted input (quotes/CRLF/path chars → header
+  // injection), treating it as not-found.
+  if (!isValidPublicSlug(slug)) return notFound();
 
   // HTML has a render cache (the heavy citeproc path). Machine formats are
   // cheaper to produce and would multiply cache keys, so they skip it.
@@ -147,12 +128,6 @@ export async function GET(
     const cached = getCachedPublicPage(slug);
     if (cached) return publicPageResponse(cached.html, cached.indexable);
   }
-
-  const notFound = () =>
-    new NextResponse("This CV is not available.", {
-      status: 404,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    });
 
   // Negative cache: a recently-unknown slug skips the DB read (random-slug flood
   // protection). Cleared immediately when a slug is published.

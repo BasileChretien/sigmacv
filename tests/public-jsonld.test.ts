@@ -73,6 +73,41 @@ describe("profilePageJsonLd", () => {
     expect(parsed.mainEntity.worksFor).toEqual(org);
   });
 
+  it("accepts a full ror.org URL form as-is (no double prefix)", () => {
+    const cv = makeCv({
+      employments: [
+        { putCode: "e", organization: "Nagoya University", startYear: 2024, rorId: "https://ror.org/04chrp450" },
+      ],
+    });
+    const org = JSON.parse(profilePageJsonLd(cv, "s")).mainEntity.affiliation;
+    expect(org["@id"]).toBe("https://ror.org/04chrp450");
+    expect(org.identifier).toBe("https://ror.org/04chrp450");
+  });
+
+  it("OMITS the @id when rorId is a foreign (non-ror.org) URL — never an attacker URL", () => {
+    const cv = makeCv({
+      employments: [
+        { putCode: "e", organization: "Evil Lab", startYear: 2024, rorId: "https://evil.example/x" },
+      ],
+    });
+    const org = JSON.parse(profilePageJsonLd(cv, "s")).mainEntity.affiliation;
+    // Name still present; the unvalidated URL is dropped entirely.
+    expect(org.name).toContain("Evil Lab");
+    expect(org["@id"]).toBeUndefined();
+    expect(org.identifier).toBeUndefined();
+  });
+
+  it("OMITS the @id when rorId carries junk that can't form a valid ror.org IRI", () => {
+    const cv = makeCv({
+      employments: [
+        { putCode: "e", organization: "Junk Org", startYear: 2024, rorId: "not a/valid id" },
+      ],
+    });
+    const org = JSON.parse(profilePageJsonLd(cv, "s")).mainEntity.affiliation;
+    expect(org["@id"]).toBeUndefined();
+    expect(org.identifier).toBeUndefined();
+  });
+
   it("emits the Organization name even without a ROR id (no @id then)", () => {
     const cv = makeCv({
       employments: [{ putCode: "e", organization: "Some Lab", startYear: 2020 }],

@@ -1,6 +1,11 @@
 import { ImageResponse } from "next/og";
 import { getPublicCvForPage } from "@/lib/cv/sync";
 import { ogImageProps } from "@/lib/cv/ogImage";
+import {
+  enforcePubPageRateLimit,
+  isValidPublicSlug,
+  tooManyRequests,
+} from "../pubRateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,18 +24,27 @@ const SIZE = { width: 1200, height: 630 };
  * opts into indexing per-CV; otherwise the image stays noindex.
  */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<Response> {
   const { slug } = await params;
 
-  const record = await getPublicCvForPage(slug);
-  if (!record) {
-    return new Response("This CV is not available.", {
+  // Same per-IP + global ceiling as the page route, sharing the `pubpage:`
+  // buckets — this render-heavy surface must not be an unthrottled bypass.
+  const rl = await enforcePubPageRateLimit(req);
+  if (!rl.ok) return tooManyRequests(rl.retryAfterSec);
+
+  const notFound = () =>
+    new Response("This CV is not available.", {
       status: 404,
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
-  }
+
+  // Reject crafted slugs before the DB lookup (server slugs always match).
+  if (!isValidPublicSlug(slug)) return notFound();
+
+  const record = await getPublicCvForPage(slug);
+  if (!record) return notFound();
 
   const { cv, indexable } = record;
   const { name, headline, affiliation, accentColor } = ogImageProps(cv);
@@ -93,7 +107,10 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": "image/png",
-      "Cache-Control": "public, max-age=3600",
+      // Private + short TTL so an unpublished CV's OG card can't linger in a
+      // shared/CDN cache for an hour — matches the page route's near-real-time
+      // invalidation (the page is no-store; this still allows brief private reuse).
+      "Cache-Control": "private, max-age=300",
       "X-Robots-Tag": indexable ? "index, follow" : "noindex, nofollow",
       "X-Content-Type-Options": "nosniff",
       "Referrer-Policy": "no-referrer",

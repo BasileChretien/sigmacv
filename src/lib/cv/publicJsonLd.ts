@@ -5,6 +5,26 @@ import { serializeJsonLd } from "@/lib/jsonLd";
 import { safeHref } from "@/lib/render/escape";
 import { absoluteUrl } from "@/lib/siteUrl";
 
+/** The canonical ROR IRI shape: `https://ror.org/<id>` (lowercase alnum body). */
+const ROR_IRI = /^https:\/\/ror\.org\/[0-9a-z]+$/;
+
+/**
+ * Normalise a stored ROR id to its canonical, ATTACKER-PROOF IRI, or undefined.
+ *
+ * `safeHref` only blocks `javascript:`/`data:`; a stored full URL would
+ * otherwise pass through verbatim, letting a crafted `meta.rorId` emit any
+ * `https://…` `@id`/`identifier`. So we validate strictly against the ROR domain
+ * pattern: a full URL is accepted ONLY if it already is `https://ror.org/<id>`;
+ * a bare id becomes `https://ror.org/<id>` and is re-validated. Anything else
+ * (foreign host, http, junk) returns undefined and the caller omits the field.
+ */
+function rorIri(rorId: string): string | undefined {
+  if (ROR_IRI.test(rorId)) return rorId;
+  if (/^https?:\/\//i.test(rorId)) return undefined;
+  const built = `https://ror.org/${rorId}`;
+  return ROR_IRI.test(built) ? built : undefined;
+}
+
 /**
  * The owner's most recent / top-most VISIBLE position, used to build the
  * schema.org affiliation Organization. We take the first visible item of the
@@ -35,9 +55,11 @@ function affiliationOrg(cv: CanonicalCv): Record<string, unknown> | undefined {
   const rorId = pos?.meta.rorId?.trim();
   if (rorId) {
     // ROR ids are stored bare ("01abc23") or as a full URL — normalise to the
-    // canonical IRI for the JSON-LD @id, but never emit a non-https value.
-    const iri = /^https?:\/\//i.test(rorId) ? rorId : `https://ror.org/${rorId}`;
-    if (safeHref(iri)) {
+    // canonical ror.org IRI and emit it only if it validates against the ROR
+    // domain pattern. A foreign/non-ror URL is dropped (never an attacker-
+    // controllable @id); `safeHref` is the additional scheme guard.
+    const iri = rorIri(rorId);
+    if (iri && safeHref(iri)) {
       org["@id"] = iri;
       org.identifier = iri;
     }

@@ -109,6 +109,24 @@ export function isOpenAlexCurationEnabled(): boolean {
   return process.env.OPENALEX_CURATION_ENABLED === "true";
 }
 
+/**
+ * SSRF guard for the curation endpoint: accept ONLY `https://` URLs whose host
+ * is `api.openalex.org` or any `*.openalex.org` subdomain. Anything else (http,
+ * a foreign host, an unparseable URL) is rejected so the write-client can't be
+ * pointed at an internal/arbitrary service even if the env is misconfigured.
+ */
+export function isOpenAlexHttpsEndpoint(endpoint: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(endpoint);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "https:") return false;
+  const host = url.hostname.toLowerCase();
+  return host === "openalex.org" || host === "api.openalex.org" || host.endsWith(".openalex.org");
+}
+
 /** Structured, non-throwing result of an upstream curation submission. */
 export type CurationSubmitResult =
   | { status: "disabled" }
@@ -164,6 +182,15 @@ export async function submitCurationAssertions(
   if (!endpoint) {
     // Fail closed: enabled but unconfigured endpoint → do NOT invent a URL.
     return { status: "error", submitted, reason: "endpoint_unconfigured" };
+  }
+
+  // SSRF allowlist: even though the endpoint comes from the validated env, only
+  // POST to OpenAlex over HTTPS. A misconfigured/hostile endpoint (http, or any
+  // non-openalex host) is refused WITHOUT a fetch, so this write-client can
+  // never be repurposed to reach an internal/arbitrary host.
+  if (!isOpenAlexHttpsEndpoint(endpoint)) {
+    logger.warn("openalex.curation_endpoint_disallowed", { submitted });
+    return { status: "error", submitted, reason: "endpoint_disallowed" };
   }
 
   const doFetch = opts.fetchImpl ?? resilientFetch;

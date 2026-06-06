@@ -84,7 +84,7 @@ describe.skipIf(!hasApa)("CSL-JSON renderer", () => {
     const cv = makeCv();
     const r = await csljsonRenderer.render({ cv });
     expect(r.format).toBe("csljson");
-    expect(r.mimeType).toBe("application/vnd.citationstyles.csl+json");
+    expect(r.mimeType).toBe("application/vnd.citationstyles.csl+json; charset=utf-8");
     expect(r.filename).toBe("basile-chretien-cv.csl.json");
 
     const parsed = JSON.parse(r.text!);

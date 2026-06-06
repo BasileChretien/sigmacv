@@ -3,6 +3,7 @@ import type { PendingNotMineAssertion } from "@/lib/canonical/assertions";
 import {
   buildCurationPayload,
   isOpenAlexCurationEnabled,
+  isOpenAlexHttpsEndpoint,
 } from "@/lib/openalex/assert";
 
 const ORIGINAL = { ...process.env };
@@ -98,6 +99,22 @@ describe("isOpenAlexCurationEnabled", () => {
   });
 });
 
+describe("isOpenAlexHttpsEndpoint (SSRF allowlist)", () => {
+  it("accepts https api.openalex.org and *.openalex.org hosts", () => {
+    expect(isOpenAlexHttpsEndpoint("https://api.openalex.org/curation")).toBe(true);
+    expect(isOpenAlexHttpsEndpoint("https://openalex.org/x")).toBe(true);
+    expect(isOpenAlexHttpsEndpoint("https://sandbox.openalex.org/x")).toBe(true);
+  });
+
+  it("rejects http, foreign hosts, look-alikes, and unparseable URLs", () => {
+    expect(isOpenAlexHttpsEndpoint("http://api.openalex.org/x")).toBe(false);
+    expect(isOpenAlexHttpsEndpoint("https://evil.example/x")).toBe(false);
+    // A look-alike host that merely contains the substring is NOT a subdomain.
+    expect(isOpenAlexHttpsEndpoint("https://openalex.org.evil.example/x")).toBe(false);
+    expect(isOpenAlexHttpsEndpoint("not a url")).toBe(false);
+  });
+});
+
 describe("submitCurationAssertions — DEFAULT DISABLED makes NO network call", () => {
   it("returns { status: 'disabled' } and never calls fetch when the flag is unset", async () => {
     delete process.env.OPENALEX_CURATION_ENABLED;
@@ -119,7 +136,7 @@ describe("submitCurationAssertions — DEFAULT DISABLED makes NO network call", 
 describe("submitCurationAssertions — enabled", () => {
   beforeEach(() => {
     process.env.OPENALEX_CURATION_ENABLED = "true";
-    process.env.OPENALEX_CURATION_ENDPOINT = "https://example.org/curation";
+    process.env.OPENALEX_CURATION_ENDPOINT = "https://api.openalex.org/curation";
     process.env.OPENALEX_MAILTO = "hello@example.org";
     // Satisfy the rest of the validated env boundary (getEnv()).
     process.env.DATABASE_URL = "postgresql://u:p@localhost:5432/db";
@@ -145,7 +162,7 @@ describe("submitCurationAssertions — enabled", () => {
     expect(result).toEqual({ status: "ok", submitted: 1, httpStatus: 200 });
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     const [url, opts] = fetchImpl.mock.calls[0]!;
-    expect(url).toBe("https://example.org/curation");
+    expect(url).toBe("https://api.openalex.org/curation");
     expect(opts.method).toBe("POST");
     expect(opts.headers["User-Agent"]).toContain("mailto:hello@example.org");
     const body = JSON.parse(opts.body);
@@ -202,6 +219,35 @@ describe("submitCurationAssertions — enabled", () => {
     const result = await submitCurationAssertions([assertion()]);
     expect(result).toEqual({ status: "ok", submitted: 1, httpStatus: 200 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("SSRF: refuses a non-openalex endpoint without fetching", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    process.env.OPENALEX_CURATION_ENDPOINT = "https://evil.example/curation";
+    const fetchImpl = vi.fn();
+    const submitCurationAssertions = await freshSubmit();
+    const result = await submitCurationAssertions([assertion()], { fetchImpl });
+    expect(result).toEqual({
+      status: "error",
+      submitted: 1,
+      reason: "endpoint_disallowed",
+    });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("SSRF: refuses an http (non-https) openalex endpoint without fetching", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    // env.ts allows any valid URL; the write-client enforces https + host here.
+    process.env.OPENALEX_CURATION_ENDPOINT = "http://api.openalex.org/curation";
+    const fetchImpl = vi.fn();
+    const submitCurationAssertions = await freshSubmit();
+    const result = await submitCurationAssertions([assertion()], { fetchImpl });
+    expect(result).toEqual({
+      status: "error",
+      submitted: 1,
+      reason: "endpoint_disallowed",
+    });
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 
   it("returns an error when the env boundary is invalid (e.g. bad mailto)", async () => {

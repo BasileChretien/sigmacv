@@ -5,14 +5,12 @@ import { cvSlug } from "./slug";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
 /**
- * CSL-JSON export of the curated citations — the language-neutral interchange
- * format read by Zotero, citeproc, pandoc, and most reference managers. It is
- * the exact `item.csl` payload citeproc renders, so it always matches the CV.
- * Includes every shown, owned reference (has CSL, included, not "not mine")
- * across all visible sections — the same predicate every other renderer uses.
- *
- * The public page already serves this for PUBLISHED CVs; this is the
- * authenticated owner's download path for the same data.
+ * The SINGLE definition of the "shown, owned, citation" predicate, shared by the
+ * authenticated CSL-JSON export here and the public CSL-JSON/BibTeX exports
+ * (`cv/publicFormats.ts` re-exports this). Includes every reference that is
+ * visible (section + item shown), owned (not "not mine"), and carries a CSL
+ * payload — the exact `item.csl` citeproc renders, so it always matches the CV.
+ * Keeping it in one place means the public + owner surfaces can never diverge.
  */
 export function cvCslItems(cv: CanonicalCv): CslItem[] {
   return visibleSections(cv)
@@ -30,7 +28,7 @@ export const csljsonRenderer: Renderer = {
   async render({ cv }: RenderInput): Promise<RenderResult> {
     return {
       format: "csljson",
-      mimeType: "application/vnd.citationstyles.csl+json",
+      mimeType: "application/vnd.citationstyles.csl+json; charset=utf-8",
       filename: `${cvSlug(cv.owner.displayName)}-cv.csl.json`,
       text: renderCvCslJson(cv),
     };

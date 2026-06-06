@@ -208,6 +208,22 @@ describe.skipIf(!hasApa)("narrative in Markdown export", () => {
     const md = renderCvMarkdown(makeCv());
     expect(md).not.toContain("## ");
   });
+
+  it("escapes free-text structure in the narrative body (no injected heading / inert markup)", () => {
+    const cv = upsertNarrativeModule(makeCv(), "society", {
+      heading: "Impact",
+      body: `# Not a heading\n${XSS}`,
+    });
+    const md = renderCvMarkdown(cv);
+    // The leading '#' is escaped so it can't become a real Markdown heading.
+    expect(md).toContain("\\# Not a heading");
+    expect(md).not.toContain("\n# Not a heading");
+    // The body never introduces a NEW '## ' heading beyond the module's own.
+    expect((md.match(/^## /gm) ?? []).length).toBe(1);
+    // The <script> text is carried as inert characters (Markdown isn't HTML),
+    // and angle brackets are present only as literal text, not executed markup.
+    expect(md).toContain("alert(1)");
+  });
 });
 
 describe("narrative in DOCX export", () => {

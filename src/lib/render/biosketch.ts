@@ -1,6 +1,7 @@
 import type { CanonicalCv, CvItem, CvSectionType } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { wrapSelf } from "./emphasize";
+import { escapeMarkdown } from "./escape";
 import { prepareSections } from "./prepare";
 import type { PreparedSection } from "./prepare";
 import { cvSlug } from "./slug";
@@ -22,12 +23,6 @@ import type { Renderer, RenderInput, RenderResult } from "./types";
  * output (and the user's `publicationsLimit`/order) as every other format, with
  * the account holder's name bolded on their own works.
  */
-
-/** Light escaping so citeproc / displayText text doesn't trigger accidental
- *  Markdown formatting (mirrors the markdown renderer). */
-function escapeMarkdown(s: string): string {
-  return s.replace(/([\\`*_])/g, "\\$1");
-}
 
 /** A non-citation entry's plain display string. */
 function entryText(item: CvItem): string {

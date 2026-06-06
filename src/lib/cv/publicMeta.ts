@@ -20,6 +20,11 @@ function oneLine(s: string): string {
   return s.replace(/\s+/g, " ").trim();
 }
 
+/** True if `code` is a UTF-16 high surrogate (the first unit of an astral pair). */
+function isHighSurrogate(code: number): boolean {
+  return code >= 0xd800 && code <= 0xdbff;
+}
+
 /**
  * The social description: the headline, then the summary (truncated). Returns ""
  * when neither is set, so the caller can omit the og:description tag entirely.
@@ -31,7 +36,12 @@ export function publicMetaDescription(cv: CanonicalCv): string {
   const joined = parts.join(" — ");
   if (joined.length <= DESCRIPTION_MAX) return joined;
   // Trim at the limit and add an ellipsis (cut on a word boundary when possible).
-  const cut = joined.slice(0, DESCRIPTION_MAX - 1);
+  let cutLen = DESCRIPTION_MAX - 1;
+  // Don't slice through a UTF-16 surrogate pair (CJK/emoji astral chars): if the
+  // char just before the cut is a high surrogate, back off one so we never emit
+  // a lone (broken) half-pair.
+  if (isHighSurrogate(joined.charCodeAt(cutLen - 1))) cutLen -= 1;
+  const cut = joined.slice(0, cutLen);
   const lastSpace = cut.lastIndexOf(" ");
   const head = lastSpace > DESCRIPTION_MAX / 2 ? cut.slice(0, lastSpace) : cut;
   return `${head.trimEnd()}…`;
