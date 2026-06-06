@@ -19,6 +19,10 @@ const EXPORTABLE: readonly RenderFormat[] = [
   "csljson",
   "jsonresume",
   "biosketch",
+  "erc",
+  "msca",
+  "nsf",
+  "jsps",
 ];
 // "json" exports the canonical CV object verbatim (machine-readable, open).
 const ALL_FORMATS: readonly string[] = [...EXPORTABLE, "json"];

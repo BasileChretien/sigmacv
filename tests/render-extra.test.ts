@@ -73,6 +73,10 @@ describe("render format catalog", () => {
       "csljson",
       "jsonresume",
       "biosketch",
+      "erc",
+      "msca",
+      "nsf",
+      "jsps",
     ]);
   });
 });

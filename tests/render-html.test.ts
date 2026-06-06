@@ -228,6 +228,10 @@ describe("renderer registry", () => {
     expect((await getRenderer("csljson")).format).toBe("csljson");
     expect((await getRenderer("jsonresume")).format).toBe("jsonresume");
     expect((await getRenderer("biosketch")).format).toBe("biosketch");
+    expect((await getRenderer("erc")).format).toBe("erc");
+    expect((await getRenderer("msca")).format).toBe("msca");
+    expect((await getRenderer("nsf")).format).toBe("nsf");
+    expect((await getRenderer("jsps")).format).toBe("jsps");
   });
 
   it("throws for an unknown format", async () => {

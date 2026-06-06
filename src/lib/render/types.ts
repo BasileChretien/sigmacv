@@ -19,6 +19,10 @@ export const RENDER_FORMATS = [
   "csljson",
   "jsonresume",
   "biosketch",
+  "erc",
+  "msca",
+  "nsf",
+  "jsps",
 ] as const;
 export type RenderFormat = (typeof RENDER_FORMATS)[number];
 
