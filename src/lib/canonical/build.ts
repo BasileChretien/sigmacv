@@ -27,6 +27,11 @@ import type {
 } from "@/lib/orcid/client";
 import type { DataciteOutput } from "@/lib/datacite/client";
 import type { EditorialRole } from "@/lib/oep/client";
+import type { OpenaireOutput } from "@/lib/openaire/client";
+import type { DblpConferencePaper } from "@/lib/dblp/client";
+import type { CrossrefGrant } from "@/lib/crossref/client";
+import type { FunderGrant } from "@/lib/grants/match";
+import type { ExternalTrial } from "@/lib/trials/types";
 
 const PUBLICATIONS_SECTION_ID = "publications";
 
@@ -57,6 +62,24 @@ export interface BuildArgs {
   peerReviews?: OrcidPeerReviewGroup[];
   /** DataCite datasets/software outputs (Datasets & Software section). */
   dataciteOutputs?: DataciteOutput[];
+  /** OpenAIRE datasets & software (ORCID-matched; merged into Datasets, dedup by DOI). */
+  openaireOutputs?: OpenaireOutput[];
+  /** DBLP conference papers (ORCID-matched; the Conference Presentations section). */
+  dblpConferencePapers?: DblpConferencePaper[];
+  /** Crossref Grant Linking System grants (ORCID-matched; merged into Grants). */
+  crossrefGrants?: CrossrefGrant[];
+  /**
+   * National funder grants (UKRI/NIH/NSF), matched by NAME + organization (no
+   * ORCID). Surfaced in Grants as REVIEW CANDIDATES — hidden by default with a
+   * "name-matched" review flag, never auto-included.
+   */
+  nationalGrants?: FunderGrant[];
+  /**
+   * Clinical trials where the account holder is an investigator, matched by NAME
+   * + organization (no ORCID). The Clinical Trials section — REVIEW CANDIDATES,
+   * hidden by default with a "name-matched" review flag, never auto-included.
+   */
+  clinicalTrials?: ExternalTrial[];
 }
 
 /** "<title>. <publisher> (<year>) [<type>]" for a DataCite output. */
@@ -66,17 +89,31 @@ function formatDatasetText(o: DataciteOutput): string {
   return `${head}${yr} [${o.type}]`;
 }
 
-/** Datasets & Software section from DataCite outputs (+ manual entries). */
+/** "<title>. <publisher> (<year>) [<type>]" for an OpenAIRE output. */
+function formatOpenaireText(o: OpenaireOutput): string {
+  const head = o.publisher ? `${o.title}. ${o.publisher}` : o.title;
+  const yr = o.year ? ` (${o.year})` : "";
+  return `${head}${yr} [${o.type}]`;
+}
+
+/**
+ * Datasets & Software section. DataCite is the primary source; OpenAIRE
+ * SUPPLEMENTS it (both ORCID-matched, so auto-included), with anything DataCite
+ * already lists deduplicated by DOI. Manual entries are carried over.
+ */
 function buildDatasetsSection(
   outputs: DataciteOutput[],
+  openaireOutputs: OpenaireOutput[],
   prevItems: Map<string, CvItem>,
   manual: CvItem[],
   now: string,
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
+  const seenDois = new Set<string>();
   const sorted = [...outputs].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
   for (const o of sorted) {
+    seenDois.add(o.doi.toLowerCase());
     const id = `dataset:datacite:${o.doi.replace(/[^a-z0-9]+/gi, "-")}`;
     const it = makeEntryItem(
       id,
@@ -90,6 +127,22 @@ function buildDatasetsSection(
     );
     items.push({ ...it, meta: { ...it.meta, doi: o.doi } });
   }
+  const oaSorted = [...openaireOutputs].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+  for (const o of oaSorted) {
+    if (o.doi && seenDois.has(o.doi.toLowerCase())) continue; // DataCite already has it
+    const id = `dataset:openaire:${o.openaireId.replace(/[^a-z0-9]+/gi, "-")}`;
+    const it = makeEntryItem(
+      id,
+      "openaire",
+      o.openaireId,
+      formatOpenaireText(o),
+      prevItems.get(id),
+      rank++,
+      o.year,
+      { lastVerifiedAt: now },
+    );
+    items.push(o.doi ? { ...it, meta: { ...it.meta, doi: o.doi } } : it);
+  }
   for (const m of manual) {
     items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
   }
@@ -100,6 +153,54 @@ function buildDatasetsSection(
     title: "Datasets & Software",
     visible: true,
     order: 2,
+    items: reindexItems(items),
+  };
+}
+
+/** "<title>. <venue> (<year>)" for a DBLP conference paper. */
+function formatConferenceText(p: DblpConferencePaper): string {
+  const head = p.venue ? `${p.title}. ${p.venue}` : p.title;
+  const yr = p.year ? ` (${p.year})` : "";
+  return `${head}${yr}`;
+}
+
+/**
+ * Conference Presentations from DBLP (resolved ORCID→PID, so ORCID-matched and
+ * auto-included). Manual entries are carried over.
+ */
+function buildConferenceSection(
+  papers: DblpConferencePaper[],
+  prevItems: Map<string, CvItem>,
+  manual: CvItem[],
+  now: string,
+): CvSection | null {
+  const items: CvItem[] = [];
+  let rank = 0;
+  const sorted = [...papers].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+  for (const p of sorted) {
+    const id = `conference:dblp:${p.key.replace(/[^a-z0-9]+/gi, "-")}`;
+    const it = makeEntryItem(
+      id,
+      "dblp",
+      p.key,
+      formatConferenceText(p),
+      prevItems.get(id),
+      rank++,
+      p.year,
+      { lastVerifiedAt: now },
+    );
+    items.push(p.doi ? { ...it, meta: { ...it.meta, doi: p.doi } } : it);
+  }
+  for (const m of manual) {
+    items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
+  }
+  if (items.length === 0) return null;
+  return {
+    id: "conference",
+    type: "conference",
+    title: "Conference Presentations",
+    visible: true,
+    order: DEFAULT_SECTION_ORDER.conference,
     items: reindexItems(items),
   };
 }
@@ -449,8 +550,34 @@ export function resolveFunderIds(
  * OpenAlex `grants[]` (matched by award number) filling a missing funder id only.
  * Manual entries are carried over.
  */
+/** "<title>, <funder> (<years>)" for a Crossref Grant Linking System grant. */
+function formatCrossrefGrantText(g: CrossrefGrant): string {
+  const label = g.funderName ? `${g.title}, ${g.funderName}` : g.title;
+  const yrs = grantYears(g.startYear, g.endYear);
+  return yrs ? `${label} ${yrs}` : label;
+}
+
+/** "<title>, <funder> (<years>)" for a national-funder (UKRI/NIH/NSF) grant. */
+function formatFunderGrantText(g: FunderGrant): string {
+  const label = g.funder ? `${g.title}, ${g.funder}` : g.title;
+  const yrs = grantYears(g.startYear, g.endYear);
+  return yrs ? `${label} ${yrs}` : label;
+}
+
+/**
+ * Grants & Funding. Three signals merge here:
+ *  - ORCID funding records (person-attributed) — the primary, auto-included set;
+ *  - Crossref Grant Linking System grants (ORCID-matched) — auto-included,
+ *    deduped against an ORCID funding the user already has (by award number);
+ *  - national funder grants (UKRI/NIH/NSF), matched by NAME + organization — added
+ *    as REVIEW CANDIDATES (hidden by default, `meta.reviewFlag = "name-matched"`),
+ *    never auto-included because there is no identifier match.
+ * Manual entries are carried over.
+ */
 function buildGrantsSection(
   fundings: OrcidFunding[],
+  crossrefGrants: CrossrefGrant[],
+  nationalGrants: FunderGrant[],
   prevItems: Map<string, CvItem>,
   manual: CvItem[],
   now: string,
@@ -458,8 +585,10 @@ function buildGrantsSection(
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
+  const seenAwards = new Set<string>();
   const sorted = [...fundings].sort((a, b) => (b.startYear ?? 0) - (a.startYear ?? 0));
   for (const f of sorted) {
+    if (f.awardId) seenAwards.add(f.awardId.trim().toLowerCase());
     const id = `grant:orcid:${f.putCode}`;
     const funder = resolveFunderIds(f, fundersByAward);
     items.push(
@@ -470,6 +599,35 @@ function buildGrantsSection(
         awardId: funder.awardId,
       }),
     );
+  }
+  const crSorted = [...crossrefGrants].sort((a, b) => (b.startYear ?? 0) - (a.startYear ?? 0));
+  for (const g of crSorted) {
+    if (g.award && seenAwards.has(g.award.trim().toLowerCase())) continue; // ORCID already has it
+    const id = `grant:crossref:${g.doi.replace(/[^a-z0-9]+/gi, "-")}`;
+    items.push(
+      makeEntryItem(id, "crossref", g.doi, formatCrossrefGrantText(g), prevItems.get(id), rank++, g.startYear, {
+        lastVerifiedAt: now,
+        funderId: g.funderId,
+        funderName: g.funderName,
+        awardId: g.award,
+      }),
+    );
+  }
+  const natSorted = [...nationalGrants].sort((a, b) => (b.startYear ?? 0) - (a.startYear ?? 0));
+  for (const g of natSorted) {
+    const id = `grant:${g.source}:${g.externalId.replace(/[^a-z0-9]+/gi, "-")}`;
+    const prev = prevItems.get(id);
+    const it = makeEntryItem(id, g.source, g.externalId, formatFunderGrantText(g), prev, rank++, g.startYear, {
+      lastVerifiedAt: now,
+      funderName: g.funder,
+      awardId: g.externalId,
+    });
+    // NAME+org match → review candidate: hidden by default, flagged for review.
+    items.push({
+      ...it,
+      included: prev?.included ?? false,
+      meta: { ...it.meta, reviewFlag: "name-matched" },
+    });
   }
   for (const m of manual) {
     items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
@@ -537,6 +695,63 @@ function buildEditorialSection(
     title: "Editorial Roles",
     visible: true,
     order: 6,
+    items: reindexItems(items),
+  };
+}
+
+/** "<title>, <sponsor> [<registryId>] <phase> (<years>)" for a clinical trial. */
+function formatTrialText(t: ExternalTrial): string {
+  const label = t.sponsor ? `${t.title}, ${t.sponsor}` : t.title;
+  const tail = [t.phase, grantYears(t.startYear, t.endYear)].filter(Boolean).join(" ");
+  return `${label} [${t.registryId}]${tail ? ` ${tail}` : ""}`;
+}
+
+/**
+ * Clinical Trials where the account holder is an investigator. Registry-sourced
+ * (ClinicalTrials.gov) and matched by NAME + organization — so every entry is a
+ * REVIEW CANDIDATE: hidden by default with `meta.reviewFlag = "name-matched"`,
+ * never auto-included. Manual entries are carried over.
+ */
+function buildClinicalTrialsSection(
+  trials: ExternalTrial[],
+  prevItems: Map<string, CvItem>,
+  manual: CvItem[],
+  now: string,
+): CvSection | null {
+  const items: CvItem[] = [];
+  let rank = 0;
+  const sorted = [...trials].sort((a, b) => (b.startYear ?? 0) - (a.startYear ?? 0));
+  for (const t of sorted) {
+    const id = `trial:${t.source}:${t.registryId.replace(/[^a-z0-9]+/gi, "-")}`;
+    const prev = prevItems.get(id);
+    // ExternalTrial.source is "clinicaltrials" | "ctis"; only the ClinicalTrials.gov
+    // client is wired today, and "clinicaltrials" is the canonical item source.
+    const it = makeEntryItem(
+      id,
+      "clinicaltrials",
+      t.registryId,
+      formatTrialText(t),
+      prev,
+      rank++,
+      t.startYear,
+      { lastVerifiedAt: now },
+    );
+    items.push({
+      ...it,
+      included: prev?.included ?? false,
+      meta: { ...it.meta, reviewFlag: "name-matched", type: t.phase },
+    });
+  }
+  for (const m of manual) {
+    items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
+  }
+  if (items.length === 0) return null;
+  return {
+    id: "clinical-trials",
+    type: "clinical-trials",
+    title: "Clinical Trials",
+    visible: true,
+    order: DEFAULT_SECTION_ORDER["clinical-trials"],
     items: reindexItems(items),
   };
 }
@@ -900,6 +1115,8 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   );
   const grantsSection = buildGrantsSection(
     args.fundings ?? [],
+    args.crossrefGrants ?? [],
+    args.nationalGrants ?? [],
     prevItems,
     previousManualItems(previous, "grants"),
     now,
@@ -908,14 +1125,28 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
 
   const datasetsSection = buildDatasetsSection(
     args.dataciteOutputs ?? [],
+    args.openaireOutputs ?? [],
     prevItems,
     previousManualItems(previous, "datasets"),
+    now,
+  );
+  const conferenceSection = buildConferenceSection(
+    args.dblpConferencePapers ?? [],
+    prevItems,
+    previousManualItems(previous, "conference"),
+    now,
+  );
+  const clinicalTrialsSection = buildClinicalTrialsSection(
+    args.clinicalTrials ?? [],
+    prevItems,
+    previousManualItems(previous, "clinical-trials"),
     now,
   );
 
   const builtSections: CvSection[] = [
     publicationsSection,
     preprintsSection,
+    conferenceSection ? mergeSection(conferenceSection, previous) : null,
     datasetsSection ? mergeSection(datasetsSection, previous) : null,
     positionsSection ? mergeSection(positionsSection, previous) : null,
     educationSection ? mergeSection(educationSection, previous) : null,
@@ -925,11 +1156,12 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     peerReviewSection ? mergeSection(peerReviewSection, previous) : null,
     editorialSection ? mergeSection(editorialSection, previous) : null,
     grantsSection ? mergeSection(grantsSection, previous) : null,
+    clinicalTrialsSection ? mergeSection(clinicalTrialsSection, previous) : null,
   ].filter((s): s is CvSection => s !== null);
 
   // Carry over any PREVIOUS section that the source-driven build doesn't produce
-  // — user-added manual-only sections (skills / languages / references /
-  // conference / other) and PROSE sections (the narrative contributions +
+  // — user-added manual-only sections (skills / languages / references / teaching
+  // / supervision / other) and PROSE sections (the narrative contributions +
   // statements, which are user-authored and never sourced). Without this they'd
   // silently vanish on every re-sync. Matched by id so a built section never
   // duplicates its carried-over twin; appended after the built sections.

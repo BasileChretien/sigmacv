@@ -8,6 +8,12 @@ import { parseCanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import type { OrcidFunding } from "@/lib/orcid/client";
+import type { DataciteOutput } from "@/lib/datacite/client";
+import type { OpenaireOutput } from "@/lib/openaire/client";
+import type { DblpConferencePaper } from "@/lib/dblp/client";
+import type { CrossrefGrant } from "@/lib/crossref/client";
+import type { FunderGrant } from "@/lib/grants/match";
+import type { ExternalTrial } from "@/lib/trials/types";
 import worksFixture from "./fixtures/openalex-works.json";
 
 const works = worksFixture as unknown as OpenAlexWork[];
@@ -326,6 +332,128 @@ describe("buildCanonicalCv", () => {
       "Alpha study",
       "Zeta study",
     ]);
+  });
+});
+
+describe("buildCanonicalCv — external-source sections", () => {
+  function buildWith(extra: Partial<Parameters<typeof buildCanonicalCv>[0]>) {
+    return buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-06-02T00:00:00.000Z",
+      ...extra,
+    });
+  }
+  const section = (cv: ReturnType<typeof build>, type: string) =>
+    cv.sections.find((s) => s.type === type);
+
+  it("merges OpenAIRE into Datasets, deduping DataCite DOIs, auto-included", () => {
+    const dataciteOutputs = [
+      { doi: "10.5281/datacite.X", title: "DC output", type: "Dataset", year: 2023, publisher: "DataCite pub" },
+    ] as unknown as DataciteOutput[];
+    const openaireOutputs: OpenaireOutput[] = [
+      { openaireId: "oa::1", title: "OpenAIRE dataset", type: "dataset", doi: "10.5281/zenodo.1", year: 2024, publisher: "Zenodo" },
+      { openaireId: "oa::2", title: "Dup of DataCite", type: "software", doi: "10.5281/datacite.X", year: 2023 },
+      { openaireId: "oa::3", title: "No DOI, no publisher", type: "software", year: 2022 },
+    ];
+    const ds = section(buildWith({ dataciteOutputs, openaireOutputs }), "datasets")!;
+    expect(ds.items).toHaveLength(3); // DataCite X + oa::1 + oa::3 (oa::2 deduped out)
+    const sources = ds.items.map((i) => i.source);
+    expect(sources.filter((s) => s === "openaire")).toHaveLength(2);
+    expect(sources.filter((s) => s === "datacite")).toHaveLength(1);
+    expect(ds.items.find((i) => i.id === "dataset:openaire:oa-1")!.meta.doi).toBe("10.5281/zenodo.1");
+    expect(ds.items.every((i) => i.included)).toBe(true); // ORCID-matched → auto-included
+  });
+
+  it("builds Conference Presentations from DBLP (auto-included, newest first)", () => {
+    const dblpConferencePapers: DblpConferencePaper[] = [
+      { key: "conf/x/1", title: "Paper A", venue: "JCDL", year: 2021, doi: "10.1/abc" },
+      { key: "conf/x/2", title: "Paper B", year: 2019 }, // no venue, no doi
+    ];
+    const conf = section(buildWith({ dblpConferencePapers }), "conference")!;
+    expect(conf.items.map((i) => i.id)).toEqual([
+      "conference:dblp:conf-x-1",
+      "conference:dblp:conf-x-2",
+    ]);
+    expect(conf.items[0]!.source).toBe("dblp");
+    expect(conf.items[0]!.meta.doi).toBe("10.1/abc");
+    expect(conf.items[1]!.meta.doi).toBeUndefined();
+    expect(conf.items.every((i) => i.included)).toBe(true);
+  });
+
+  it("adds Crossref grants (auto-included) + national grants (hidden review candidates)", () => {
+    const crossrefGrants: CrossrefGrant[] = [
+      { doi: "10.35802/1", award: "GR-1", title: "CR grant", funderName: "Wellcome", funderId: "10.13039/x", startYear: 2022, endYear: 2025 },
+    ];
+    const nationalGrants: FunderGrant[] = [
+      { source: "ukri", externalId: "AH/Y00325X/1", title: "UKRI grant", funder: "AHRC", org: "Univ", startYear: 2024, endYear: 2026 },
+      { source: "nsf", externalId: "2218427", title: "NSF grant (no funder)", startYear: 2022 }, // no funder
+    ];
+    const grants = section(buildWith({ crossrefGrants, nationalGrants }), "grants")!;
+    const cr = grants.items.find((i) => i.source === "crossref")!;
+    expect(cr.included).toBe(true); // ORCID-matched → auto-included
+    expect(cr.meta.funderName).toBe("Wellcome");
+    const ukri = grants.items.find((i) => i.source === "ukri")!;
+    expect(ukri.included).toBe(false); // name-matched → hidden review candidate
+    expect(ukri.meta.reviewFlag).toBe("name-matched");
+    expect(grants.items.find((i) => i.source === "nsf")!.displayText).toContain("NSF grant");
+  });
+
+  it("dedupes a Crossref grant against an ORCID funding by award number", () => {
+    const fundings = [
+      { putCode: "1", title: "Mine", awardId: "GR-1", startYear: 2022 },
+    ] as OrcidFunding[];
+    const crossrefGrants: CrossrefGrant[] = [
+      { doi: "10.35802/1", award: "gr-1", title: "Same grant", startYear: 2022 },
+    ];
+    const grants = section(buildWith({ fundings, crossrefGrants }), "grants")!;
+    expect(grants.items.filter((i) => i.source === "crossref")).toHaveLength(0); // deduped
+    expect(grants.items.filter((i) => i.source === "orcid")).toHaveLength(1);
+  });
+
+  it("builds a Clinical Trials section (hidden review candidates) + records provenance", () => {
+    const clinicalTrials: ExternalTrial[] = [
+      { source: "clinicaltrials", registryId: "NCT123", title: "A trial", sponsor: "Acme", phase: "PHASE2", role: "PRINCIPAL_INVESTIGATOR", org: "Univ", startYear: 2020, endYear: 2022 },
+      { source: "clinicaltrials", registryId: "NCT999", title: "Sponsorless trial" }, // no sponsor/phase/years
+    ];
+    const cv = buildWith({ clinicalTrials });
+    const trials = section(cv, "clinical-trials")!;
+    const t = trials.items.find((i) => i.id === "trial:clinicaltrials:NCT123")!;
+    expect(t.source).toBe("clinicaltrials");
+    expect(t.included).toBe(false);
+    expect(t.meta.reviewFlag).toBe("name-matched");
+    expect(t.meta.type).toBe("PHASE2");
+    expect(t.displayText).toContain("NCT123");
+    expect(cv.provenance.sources).toContain("clinicaltrials");
+  });
+
+  it("preserves a user-confirmed (un-hidden) review candidate across re-sync", () => {
+    const nationalGrants: FunderGrant[] = [
+      { source: "nih", externalId: "5R01-1", title: "NIH grant", funder: "NIGMS", org: "JHU", startYear: 2021 },
+    ];
+    const first = buildWith({ nationalGrants });
+    const id = section(first, "grants")!.items.find((i) => i.source === "nih")!.id;
+    // User confirms it IS theirs → un-hides it.
+    const confirmed = {
+      ...first,
+      sections: first.sections.map((s) =>
+        s.type === "grants"
+          ? { ...s, items: s.items.map((it) => (it.id === id ? { ...it, included: true } : it)) }
+          : s,
+      ),
+    };
+    const resynced = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-09-01T00:00:00.000Z",
+      nationalGrants,
+      previous: confirmed,
+    });
+    const item = section(resynced, "grants")!.items.find((i) => i.id === id)!;
+    expect(item.included).toBe(true); // confirmation survives re-sync
+    expect(item.meta.reviewFlag).toBe("name-matched");
   });
 });
 
