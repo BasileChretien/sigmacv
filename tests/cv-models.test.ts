@@ -88,10 +88,10 @@ describe("CV-model catalog", () => {
   it("counts: grant + institution + industry models", () => {
     const byCat = (c: CvModelCategory) =>
       CV_MODELS.filter((m) => m.category === c).length;
-    expect(byCat("grant")).toBe(21);
-    expect(byCat("institution")).toBe(7);
-    expect(byCat("industry")).toBe(4);
-    expect(CV_MODELS.length).toBe(32);
+    expect(byCat("grant")).toBe(38);
+    expect(byCat("institution")).toBe(10);
+    expect(byCat("industry")).toBe(10);
+    expect(CV_MODELS.length).toBe(58);
   });
 
   it("every model has a unique id", () => {
@@ -201,6 +201,9 @@ describe("applyCvModel", () => {
     "gcp-investigator", // industry, statement override + skills
     "pharma-rd", // industry, CONCISE, titleOverrides
     "medical-affairs", // industry, no overrides
+    "frm-arc", // grant (biomedical), TR10, no overrides
+    "hdr", // institution, FULL, large section set
+    "pharmacovigilance", // industry, CONCISE10, skills + publications overrides
   ];
 
   for (const id of REPRESENTATIVE) {
