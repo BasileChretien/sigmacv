@@ -24,6 +24,8 @@ export interface LandingStrings {
   continueGoogle: string;
   emailPlaceholder: string;
   emailButton: string;
+  /** Accessible name for the email sign-in input (placeholder is not a label). */
+  emailLabel: string;
   fineprint: string;
   about: string;
   footer: string;
@@ -49,6 +51,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     continueGoogle: "Continue with Google",
     emailPlaceholder: "you@university.edu",
     emailButton: "Email link",
+    emailLabel: "Email address",
     fineprint:
       "Open source · Apache-2.0. SigmaCV reads only public research metadata and never logs your choices without explicit consent.",
     about: "About",
@@ -73,6 +76,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     continueGoogle: "使用 Google 继续",
     emailPlaceholder: "you@university.edu",
     emailButton: "邮件链接",
+    emailLabel: "电子邮件地址",
     fineprint:
       "开源 · Apache-2.0。SigmaCV 仅读取公开的研究元数据，未经明确同意绝不记录您的选择。",
     about: "关于",
@@ -97,6 +101,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     continueGoogle: "Continuar con Google",
     emailPlaceholder: "tu@universidad.edu",
     emailButton: "Enlace por correo",
+    emailLabel: "Correo electrónico",
     fineprint:
       "Código abierto · Apache-2.0. SigmaCV solo lee metadatos públicos de investigación y nunca registra tus decisiones sin consentimiento explícito.",
     about: "Acerca de",
@@ -121,6 +126,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     continueGoogle: "Continuer avec Google",
     emailPlaceholder: "vous@universite.edu",
     emailButton: "Lien par e-mail",
+    emailLabel: "Adresse e-mail",
     fineprint:
       "Open source · Apache-2.0. SigmaCV ne lit que des métadonnées de recherche publiques et n’enregistre jamais vos choix sans consentement explicite.",
     about: "À propos",
@@ -145,6 +151,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     continueGoogle: "Mit Google fortfahren",
     emailPlaceholder: "sie@universitaet.edu",
     emailButton: "E-Mail-Link",
+    emailLabel: "E-Mail-Adresse",
     fineprint:
       "Quelloffen · Apache-2.0. SigmaCV liest nur öffentliche Forschungsmetadaten und protokolliert Ihre Entscheidungen niemals ohne ausdrückliche Einwilligung.",
     about: "Über",
@@ -169,6 +176,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     continueGoogle: "Google で続行",
     emailPlaceholder: "you@university.edu",
     emailButton: "メールリンク",
+    emailLabel: "メールアドレス",
     fineprint:
       "オープンソース · Apache-2.0。SigmaCV は公開された研究メタデータのみを読み取り、明示的な同意なしにあなたの選択を記録することはありません。",
     about: "概要",
@@ -193,6 +201,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     continueGoogle: "Continuar com o Google",
     emailPlaceholder: "voce@universidade.edu",
     emailButton: "Link por e-mail",
+    emailLabel: "Endereço de e-mail",
     fineprint:
       "Código aberto · Apache-2.0. O SigmaCV lê apenas metadados públicos de pesquisa e nunca registra suas escolhas sem consentimento explícito.",
     about: "Sobre",
@@ -217,6 +226,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     continueGoogle: "Continua con Google",
     emailPlaceholder: "tu@universita.edu",
     emailButton: "Link via e-mail",
+    emailLabel: "Indirizzo e-mail",
     fineprint:
       "Open source · Apache-2.0. SigmaCV legge solo metadati di ricerca pubblici e non registra mai le tue scelte senza consenso esplicito.",
     about: "Informazioni",
@@ -241,6 +251,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     continueGoogle: "Google로 계속하기",
     emailPlaceholder: "you@university.edu",
     emailButton: "이메일 링크",
+    emailLabel: "이메일 주소",
     fineprint:
       "오픈소스 · Apache-2.0. SigmaCV는 공개된 연구 메타데이터만 읽으며, 명시적 동의 없이 회원님의 선택을 기록하지 않습니다.",
     about: "소개",
@@ -265,6 +276,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     continueGoogle: "Продолжить с Google",
     emailPlaceholder: "you@university.edu",
     emailButton: "Ссылка по эл. почте",
+    emailLabel: "Адрес эл. почты",
     fineprint:
       "Открытый код · Apache-2.0. SigmaCV читает только публичные метаданные исследований и никогда не записывает ваши действия без явного согласия.",
     about: "О проекте",

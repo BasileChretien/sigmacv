@@ -257,12 +257,15 @@ export function commonCss(theme: TemplateTheme): string {
 
   .cv-provenance { margin-top: 2.2rem; padding-top: 0.7rem; border-top: 1px solid var(--cv-rule); font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
   /* Whole-CV reuse license line — a quiet footnote under the document. When the
-     provenance footer is also shown it sits just below it (smaller top margin). */
-  .cv-license { margin-top: 1rem; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
+     provenance block is also shown it sits just below it (smaller top margin).
+     A paragraph (not a landmark) so it doesn't compete with the provenance
+     contentinfo region; reset its UA bottom margin to keep the footnote tight. */
+  .cv-license { margin: 1rem 0 0; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
   .cv-license a { color: var(--cv-muted); text-decoration: underline; text-underline-offset: 0.15em; }
-  /* "Made with SigmaCV" referral footer — public living page ONLY (never in an
-     export). A quiet brand backlink under the document. */
-  .cv-attribution { margin-top: 1rem; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
+  /* "Made with SigmaCV" referral line — public living page ONLY (never in an
+     export). A quiet brand backlink under the document (a paragraph, not a
+     landmark). */
+  .cv-attribution { margin: 1rem 0 0; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
   .cv-attribution a { color: var(--cv-accent); text-decoration: none; }
   a { color: inherit; }
 
@@ -388,6 +391,11 @@ export function provenanceFooter(cv: CanonicalCv): string {
  * owner chose a linkable license (`display.cvLicense` not "none"/closed); the
  * license NAME is a proper noun (CC BY 4.0, CC0 1.0, …) so it is not translated,
  * linked to its canonical SPDX page. "" when there's no license statement to show.
+ *
+ * Emitted as a `<p>`, NOT a `<footer>`: the provenance block is the document's
+ * single `<footer>` (contentinfo) landmark; a CV with provenance + license +
+ * attribution would otherwise expose three competing footer landmarks, which
+ * dilutes the landmark map for screen-reader users (a11y review finding).
  */
 export function licenseFooter(cv: CanonicalCv): string {
   const info = licenseInfo(cv.display.cvLicense);
@@ -397,7 +405,7 @@ export function licenseFooter(cv: CanonicalCv): string {
   const label = href
     ? `<a href="${escapeHtml(href)}" rel="license">${name}</a>`
     : name;
-  return `<footer class="cv-license">${label}</footer>`;
+  return `<p class="cv-license">${label}</p>`;
 }
 
 /**
@@ -409,6 +417,10 @@ export function licenseFooter(cv: CanonicalCv): string {
  * exporters never do, so PDF/DOCX/LaTeX/Markdown stay unbranded) AND (b) the
  * owner hasn't opted out (`display.publicAttribution !== false`). "" otherwise.
  * "SigmaCV" is the brand name and is never translated; only "Made with" is.
+ *
+ * Emitted as a `<p>`, NOT a `<footer>`: the provenance block is the document's
+ * single `<footer>` (contentinfo) landmark — see `licenseFooter`. This referral
+ * line is a quiet brand backlink, not a second contentinfo region.
  */
 export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): string {
   if (!opts.attribution) return "";
@@ -419,9 +431,9 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
   /* v8 ignore next -- SITE_URL is always a safe https origin */
   if (!href) return "";
   const madeWith = escapeHtml(renderStrings(cv.display.locale).madeWith);
-  return `<footer class="cv-attribution">${madeWith} <a href="${escapeHtml(
+  return `<p class="cv-attribution">${madeWith} <a href="${escapeHtml(
     href,
-  )}">SigmaCV</a></footer>`;
+  )}">SigmaCV</a></p>`;
 }
 
 /**

@@ -109,6 +109,7 @@ export default function Landing({ locale }: LandingProps) {
                 name="email"
                 required
                 placeholder={s.emailPlaceholder}
+                aria-label={s.emailLabel}
               />
               <button type="submit" className="btn">
                 {s.emailButton}
