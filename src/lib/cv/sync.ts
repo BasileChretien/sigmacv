@@ -41,6 +41,7 @@ import { fetchUkriGrants } from "@/lib/ukri/client";
 import { fetchNihGrants } from "@/lib/nih/client";
 import { fetchNsfGrants } from "@/lib/nsf/client";
 import { fetchClinicalTrials } from "@/lib/clinicaltrials/client";
+import { fetchEpoPatents } from "@/lib/epo/client";
 import { cvSlug } from "@/lib/render/slug";
 import { logCvSave } from "@/lib/research/log";
 
@@ -134,12 +135,14 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
       ].filter((o): o is string => Boolean(o)),
     ),
   ];
-  const [ukriGrants, nihGrants, nsfGrants, clinicalTrials] = await Promise.all([
-    fetchUkriGrants(displayName, matchOrgs),
-    fetchNihGrants(displayName, matchOrgs),
-    fetchNsfGrants(displayName, matchOrgs),
-    fetchClinicalTrials(displayName, matchOrgs),
-  ]);
+  const [ukriGrants, nihGrants, nsfGrants, clinicalTrials, patents] =
+    await Promise.all([
+      fetchUkriGrants(displayName, matchOrgs),
+      fetchNihGrants(displayName, matchOrgs),
+      fetchNsfGrants(displayName, matchOrgs),
+      fetchClinicalTrials(displayName, matchOrgs),
+      fetchEpoPatents(displayName, matchOrgs),
+    ]);
 
   // Peer reviews carry the journal ISSN but not its name (ORCID records the
   // publisher/Publons org). Resolve ISSNs → journal names so the section reads
@@ -193,6 +196,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     crossrefGrants,
     nationalGrants: [...ukriGrants, ...nihGrants, ...nsfGrants],
     clinicalTrials,
+    patents,
   });
   if (usedRor) cv = withRorProvenance(cv);
 

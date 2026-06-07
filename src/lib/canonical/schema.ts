@@ -47,6 +47,9 @@ export const SECTION_TYPES = [
   // Clinical trials where the account holder is an investigator (registry-sourced,
   // name+org matched → review candidates). Non-prose entry section.
   "clinical-trials",
+  // Patents where the account holder is an inventor (EPO OPS, name+org matched →
+  // review candidates). Non-prose entry section.
+  "patents",
   // ── Prose sections (free-text body, no items) ──────────────────────────────
   // The four R4RI / Royal-Society "narrative CV" contribution modules plus a
   // generic free-titled statement. They are first-class sections, managed like
@@ -101,26 +104,27 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
   conference: 4,
   datasets: 5,
   grants: 6,
-  // Clinical trials sit with the other research outputs, just after grants.
+  // Clinical trials + patents sit with the other research outputs, after grants.
   "clinical-trials": 7,
-  // The four narrative contribution modules sit together just after grants.
-  "narrative-knowledge": 8,
-  "narrative-individuals": 9,
-  "narrative-community": 10,
-  "narrative-society": 11,
-  awards: 12,
-  talks: 13,
-  teaching: 14,
-  supervision: 15,
-  editorial: 16,
-  "peer-review": 17,
-  service: 18,
-  skills: 19,
-  languages: 20,
-  references: 21,
+  patents: 8,
+  // The four narrative contribution modules sit together next.
+  "narrative-knowledge": 9,
+  "narrative-individuals": 10,
+  "narrative-community": 11,
+  "narrative-society": 12,
+  awards: 13,
+  talks: 14,
+  teaching: 15,
+  supervision: 16,
+  editorial: 17,
+  "peer-review": 18,
+  service: 19,
+  skills: 20,
+  languages: 21,
+  references: 22,
   // A generic prose statement sits near the end, just before "Other".
-  statement: 22,
-  other: 23,
+  statement: 23,
+  other: 24,
 };
 
 /**
@@ -186,6 +190,7 @@ export const CvItemSchema = z.object({
     "nih",
     "nsf",
     "clinicaltrials",
+    "epo",
     "derived",
     "manual",
   ]),
@@ -624,6 +629,7 @@ export const PROVENANCE_SOURCES = [
   "nih",
   "nsf",
   "clinicaltrials",
+  "epo",
   "ror",
   // Provenance-only sources (enrich identity/affiliations, not CV items).
   "wikidata",

@@ -32,6 +32,7 @@ const mocks = vi.hoisted(() => ({
   fetchNih: vi.fn(),
   fetchNsf: vi.fn(),
   fetchClinicalTrials: vi.fn(),
+  fetchEpo: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -73,6 +74,7 @@ vi.mock("@/lib/ukri/client", () => ({ fetchUkriGrants: mocks.fetchUkri }));
 vi.mock("@/lib/nih/client", () => ({ fetchNihGrants: mocks.fetchNih }));
 vi.mock("@/lib/nsf/client", () => ({ fetchNsfGrants: mocks.fetchNsf }));
 vi.mock("@/lib/clinicaltrials/client", () => ({ fetchClinicalTrials: mocks.fetchClinicalTrials }));
+vi.mock("@/lib/epo/client", () => ({ fetchEpoPatents: mocks.fetchEpo }));
 // Enrichment (ROR + Crossref) is covered by enrich.test.ts; keep it a no-op here.
 vi.mock("@/lib/canonical/enrich", () => ({
   canonicalizeInstitutions: mocks.canonicalizeInstitutions,
@@ -127,6 +129,7 @@ beforeEach(() => {
   mocks.fetchNih.mockResolvedValue([]);
   mocks.fetchNsf.mockResolvedValue([]);
   mocks.fetchClinicalTrials.mockResolvedValue([]);
+  mocks.fetchEpo.mockResolvedValue([]);
 });
 
 describe("getCvForUser", () => {
@@ -200,6 +203,9 @@ describe("syncCvForUser", () => {
     mocks.fetchClinicalTrials.mockResolvedValue([
       { source: "clinicaltrials", registryId: "NCT1", title: "A trial", org: "Nagoya University", startYear: 2020 },
     ]);
+    mocks.fetchEpo.mockResolvedValue([
+      { source: "epo", publicationNumber: "EP1", title: "A patent", applicants: ["Nagoya University"], inventors: ["Basile Chrétien"], year: 2023 },
+    ]);
     mocks.fetchWikidata.mockResolvedValue({
       wikidataUri: "http://www.wikidata.org/entity/Q1",
       sameAs: ["http://www.wikidata.org/entity/Q1", "https://viaf.org/viaf/1"],
@@ -212,6 +218,11 @@ describe("syncCvForUser", () => {
     expect(cv.sections.find((s) => s.type === "conference")).toBeDefined();
     // Name+org matched → review candidates, hidden by default.
     expect(cv.sections.find((s) => s.type === "clinical-trials")?.items[0]?.included).toBe(false);
+    expect(cv.sections.find((s) => s.type === "patents")?.items[0]?.included).toBe(false);
+    expect(mocks.fetchEpo).toHaveBeenCalledWith(
+      "Basile Chrétien",
+      expect.arrayContaining(["Nagoya University"]),
+    );
     const nih = cv.sections
       .find((s) => s.type === "grants")
       ?.items.find((i) => i.source === "nih");

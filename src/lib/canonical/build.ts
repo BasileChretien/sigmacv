@@ -32,6 +32,7 @@ import type { DblpConferencePaper } from "@/lib/dblp/client";
 import type { CrossrefGrant } from "@/lib/crossref/client";
 import type { FunderGrant } from "@/lib/grants/match";
 import type { ExternalTrial } from "@/lib/trials/types";
+import type { PatentRecord } from "@/lib/patents/types";
 
 const PUBLICATIONS_SECTION_ID = "publications";
 
@@ -80,6 +81,12 @@ export interface BuildArgs {
    * hidden by default with a "name-matched" review flag, never auto-included.
    */
   clinicalTrials?: ExternalTrial[];
+  /**
+   * Patents where the account holder is an inventor (EPO OPS), matched by NAME +
+   * applicant organization. The Patents section — REVIEW CANDIDATES, hidden by
+   * default with a "name-matched" review flag, never auto-included.
+   */
+  patents?: PatentRecord[];
 }
 
 /** "<title>. <publisher> (<year>) [<type>]" for a DataCite output. */
@@ -756,6 +763,61 @@ function buildClinicalTrialsSection(
   };
 }
 
+/** "<title>, <applicant> (<year>) [<publicationNumber>]" for a patent. */
+function formatPatentText(p: PatentRecord): string {
+  const label = p.applicants[0] ? `${p.title}, ${p.applicants[0]}` : p.title;
+  const yr = p.year ? ` (${p.year})` : "";
+  return `${label}${yr} [${p.publicationNumber}]`;
+}
+
+/**
+ * Patents where the account holder is an inventor (EPO OPS). Matched by NAME +
+ * applicant organization — so every entry is a REVIEW CANDIDATE: hidden by
+ * default with `meta.reviewFlag = "name-matched"`, never auto-included. Manual
+ * entries are carried over.
+ */
+function buildPatentsSection(
+  patents: PatentRecord[],
+  prevItems: Map<string, CvItem>,
+  manual: CvItem[],
+  now: string,
+): CvSection | null {
+  const items: CvItem[] = [];
+  let rank = 0;
+  const sorted = [...patents].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+  for (const p of sorted) {
+    const id = `patent:epo:${p.publicationNumber.replace(/[^a-z0-9]+/gi, "-")}`;
+    const prev = prevItems.get(id);
+    const it = makeEntryItem(
+      id,
+      "epo",
+      p.publicationNumber,
+      formatPatentText(p),
+      prev,
+      rank++,
+      p.year,
+      { lastVerifiedAt: now },
+    );
+    items.push({
+      ...it,
+      included: prev?.included ?? false,
+      meta: { ...it.meta, reviewFlag: "name-matched" },
+    });
+  }
+  for (const m of manual) {
+    items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
+  }
+  if (items.length === 0) return null;
+  return {
+    id: "patents",
+    type: "patents",
+    title: "Patents",
+    visible: true,
+    order: DEFAULT_SECTION_ORDER.patents,
+    items: reindexItems(items),
+  };
+}
+
 /**
  * A work is a preprint if OpenAlex/Crossref types it so ("preprint" or
  * "posted-content"), or its primary source is a repository. Catches preprints
@@ -1142,6 +1204,12 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     previousManualItems(previous, "clinical-trials"),
     now,
   );
+  const patentsSection = buildPatentsSection(
+    args.patents ?? [],
+    prevItems,
+    previousManualItems(previous, "patents"),
+    now,
+  );
 
   const builtSections: CvSection[] = [
     publicationsSection,
@@ -1157,6 +1225,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     editorialSection ? mergeSection(editorialSection, previous) : null,
     grantsSection ? mergeSection(grantsSection, previous) : null,
     clinicalTrialsSection ? mergeSection(clinicalTrialsSection, previous) : null,
+    patentsSection ? mergeSection(patentsSection, previous) : null,
   ].filter((s): s is CvSection => s !== null);
 
   // Carry over any PREVIOUS section that the source-driven build doesn't produce

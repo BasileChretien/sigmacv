@@ -14,6 +14,7 @@ import type { DblpConferencePaper } from "@/lib/dblp/client";
 import type { CrossrefGrant } from "@/lib/crossref/client";
 import type { FunderGrant } from "@/lib/grants/match";
 import type { ExternalTrial } from "@/lib/trials/types";
+import type { PatentRecord } from "@/lib/patents/types";
 import worksFixture from "./fixtures/openalex-works.json";
 
 const works = worksFixture as unknown as OpenAlexWork[];
@@ -426,6 +427,22 @@ describe("buildCanonicalCv — external-source sections", () => {
     expect(t.meta.type).toBe("PHASE2");
     expect(t.displayText).toContain("NCT123");
     expect(cv.provenance.sources).toContain("clinicaltrials");
+  });
+
+  it("builds a Patents section from EPO records (hidden review candidates)", () => {
+    const patents: PatentRecord[] = [
+      { source: "epo", publicationNumber: "EP1234567", title: "A device", applicants: ["University of York"], inventors: ["Helen Smith"], year: 2021 },
+      { source: "epo", publicationNumber: "EP7654321B1", title: "Untitled-year patent", applicants: [], inventors: ["Helen Smith"] }, // no applicant, no year
+    ];
+    const cv = buildWith({ patents });
+    const sec = section(cv, "patents")!;
+    const p = sec.items.find((i) => i.id === "patent:epo:EP1234567")!;
+    expect(p.source).toBe("epo");
+    expect(p.included).toBe(false); // name-matched → hidden review candidate
+    expect(p.meta.reviewFlag).toBe("name-matched");
+    expect(p.displayText).toContain("EP1234567");
+    expect(p.displayText).toContain("University of York");
+    expect(cv.provenance.sources).toContain("epo");
   });
 
   it("preserves a user-confirmed (un-hidden) review candidate across re-sync", () => {
