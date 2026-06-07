@@ -108,4 +108,42 @@ describe("ItemRow — 'not mine' eligibility", () => {
     // And the row is marked as a not-mine row for styling.
     expect(document.querySelector("li.is-not-mine")).toBeTruthy();
   });
+
+  it("shows 'not mine' for ORCID-matched OpenAIRE + DBLP outputs", () => {
+    renderRow(makeItem({ id: "dataset:openaire:1", source: "openaire", displayText: "OpenAIRE dataset" }));
+    expect(screen.getByRole("button", { name: /not mine/i })).toBeTruthy();
+    cleanup();
+    renderRow(makeItem({ id: "conference:dblp:1", source: "dblp", displayText: "Conf paper" }));
+    expect(screen.getByRole("button", { name: /not mine/i })).toBeTruthy();
+  });
+});
+
+describe("ItemRow — name+org review candidates", () => {
+  it("flags a name-matched grant for review, offers Show (hidden) but NOT 'not mine'", () => {
+    renderRow(
+      makeItem({
+        id: "grant:nih:5R01",
+        source: "nih",
+        displayText: "NIH grant",
+        included: false, // review candidates start hidden
+        meta: { reviewFlag: "name-matched" },
+      }),
+    );
+    expect(document.querySelector(".cv-review-badge")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^show/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /not mine/i })).toBeNull();
+  });
+
+  it("labels the registry data source on a clinical-trial candidate", () => {
+    renderRow(
+      makeItem({
+        id: "trial:clinicaltrials:NCT1",
+        source: "clinicaltrials",
+        displayText: "A trial [NCT1]",
+        included: false,
+        meta: { reviewFlag: "name-matched" },
+      }),
+    );
+    expect(screen.getByText("ClinicalTrials.gov")).toBeTruthy();
+  });
 });

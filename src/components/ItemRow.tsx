@@ -15,6 +15,13 @@ const SOURCE_NAMES: Record<string, string> = {
   orcid: "ORCID",
   oep: "Open Editors Plus",
   datacite: "DataCite",
+  openaire: "OpenAIRE",
+  dblp: "DBLP",
+  crossref: "Crossref",
+  ukri: "UKRI",
+  nih: "NIH",
+  nsf: "NSF",
+  clinicaltrials: "ClinicalTrials.gov",
   derived: "derived",
 };
 
@@ -58,14 +65,20 @@ export default function ItemRow({
   const isCitation = Boolean(item.csl);
   const isManual = item.source === "manual";
   // "Not mine" is a disambiguation correction for an item a THIRD PARTY
-  // attributed to the account holder by identifier match: bibliographic works
-  // (citations, from OpenAlex), DataCite datasets/software, and Open Editors Plus
-  // editorial roles. ORCID records are self-asserted and manual entries are
-  // self-added, so those get Hide / Delete only. Inferred OpenAlex affiliations
-  // (a non-citation positions item) stay Hide-only too — they're not a discrete
-  // attributed output and must not leak into the upstream-curation read model.
+  // attributed to the account holder by IDENTIFIER match: bibliographic works
+  // (citations, from OpenAlex), DataCite + OpenAIRE datasets/software, DBLP
+  // conference papers (ORCID→PID matched), and Open Editors Plus editorial roles.
+  // ORCID records are self-asserted and manual entries are self-added, so those
+  // get Hide / Delete only. The NAME+org-matched registries (UKRI/NIH/NSF grants,
+  // clinical trials) are review candidates curated via Hide/Show — there is no
+  // identifier to contradict, so they never expose a "not mine" disambiguation
+  // claim. Inferred OpenAlex affiliations (a positions item) stay Hide-only too.
   const canMarkNotMine =
-    isCitation || item.source === "oep" || item.source === "datacite";
+    isCitation ||
+    item.source === "oep" ||
+    item.source === "datacite" ||
+    item.source === "openaire" ||
+    item.source === "dblp";
   const title = item.csl?.title ?? item.displayText ?? u.itemUntitled;
   const year = item.meta.year ?? "—";
   const venue =
@@ -170,6 +183,13 @@ export default function ItemRow({
             {item.notMine ? (
               <span className="cv-notmine-badge" title={t(locale, "notMineHint")}>
                 {t(locale, "notMineBadge")}
+              </span>
+            ) : null}
+            {/* Name+org-matched registry candidate (grants / trials): flag for
+                review. Hidden by default until the user confirms it's theirs. */}
+            {item.meta.reviewFlag === "name-matched" ? (
+              <span className="cv-review-badge" title={t(locale, "reviewHint")}>
+                {t(locale, "reviewBadge")}
               </span>
             ) : null}
             {sourceBadge}
