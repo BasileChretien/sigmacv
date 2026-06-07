@@ -1,4 +1,4 @@
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { renderStrings } from "@/lib/i18n/render";
 import { wrapSelf } from "./emphasize";
 import { escapeMarkdown } from "./escape";
@@ -13,24 +13,11 @@ function yamlString(s: string): string {
 }
 
 /**
- * The narrative-CV block as Markdown: each included module with a non-empty body
- * becomes `## <heading>` + its body. The heading and body are USER FREE-TEXT, so
- * both run through `escapeMarkdown` (consistent with how citeproc text is
- * treated) — a body of "# Not a heading" or stray `*`/`[` can't change the
- * document's block structure.
- */
-function narrativeMarkdown(cv: CanonicalCv): string {
-  const modules = (cv.narrative ?? []).filter(
-    (m) => m.included && m.body.trim().length > 0,
-  );
-  return modules
-    .map((m) => `## ${escapeMarkdown(m.heading)}\n\n${escapeMarkdown(m.body.trim())}`)
-    .join("\n\n");
-}
-
-/**
  * Markdown with YAML frontmatter (Hugo-compatible). Self name is bolded with
- * `**…**` on the user's own works.
+ * `**…**` on the user's own works. Prose sections render in the section flow as
+ * `## <heading>` + their escaped body (heading + body are USER FREE-TEXT, so both
+ * run through `escapeMarkdown` — a body of "# Not a heading" or stray `*`/`[`
+ * can't change the document's block structure).
  */
 export function renderCvMarkdown(cv: CanonicalCv): string {
   const sections = prepareSections(cv, "text");
@@ -49,6 +36,11 @@ export function renderCvMarkdown(cv: CanonicalCv): string {
 
   const body = sections
     .map(({ section, items }) => {
+      if (isProseSectionType(section.type)) {
+        const prose = (section.body ?? "").trim();
+        if (!prose) return "";
+        return `## ${escapeMarkdown(section.title)}\n\n${escapeMarkdown(prose)}`;
+      }
       if (items.length === 0) return "";
       const lines = items.map(({ item, entry }, i) => {
         let text = escapeMarkdown(entry);
@@ -80,9 +72,7 @@ export function renderCvMarkdown(cv: CanonicalCv): string {
   const summaryBlock = head.summary ? `${escapeMarkdown(head.summary)}\n\n` : "";
   const metrics = metricsLineText(cv);
   const metricsBlock = metrics ? `*${escapeMarkdown(metrics)}*\n\n` : "";
-  const narrative = narrativeMarkdown(cv);
-  const narrativeBlock = narrative ? `${narrative}\n\n` : "";
-  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${metricsBlock}${narrativeBlock}${body}\n`;
+  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${metricsBlock}${body}\n`;
 }
 
 export const markdownRenderer: Renderer = {

@@ -4,7 +4,7 @@ import { expect, test } from "../fixtures/auth";
 
 test("curate → save → persist → export", async ({ page, authedUserId }) => {
   await page.goto("/cv");
-  await expect(page.getByRole("group", { name: "Narrative CV" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Style", exact: true })).toBeVisible();
 
   // Expand the Publications section if collapsed, then hide its first item.
   const expand = page.getByRole("button", { name: "Expand section" }).first();
@@ -40,7 +40,7 @@ test("curate → save → persist → export", async ({ page, authedUserId }) =>
 test("PDF export returns a real PDF", async ({ page, authedUserId }) => {
   expect(authedUserId).toBeTruthy(); // activates the authed-session fixture
   await page.goto("/cv");
-  await expect(page.getByRole("group", { name: "Narrative CV" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Style", exact: true })).toBeVisible();
   await page.locator(".export-format").selectOption("pdf");
   const [download] = await Promise.all([
     page.waitForEvent("download"),

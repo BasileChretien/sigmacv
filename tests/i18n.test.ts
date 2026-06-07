@@ -14,6 +14,7 @@ import {
   SUPPORTED_LOCALES,
   t,
 } from "@/lib/i18n";
+import { SECTION_TYPES } from "@/lib/canonical/schema";
 
 describe("asLocale", () => {
   it("passes through supported locales", () => {
@@ -98,24 +99,8 @@ describe("reasonLabel", () => {
 });
 
 describe("full coverage of all 10 supported locales", () => {
-  const SECTION_TYPES = [
-    "publications",
-    "preprints",
-    "datasets",
-    "positions",
-    "education",
-    "conference",
-    "awards",
-    "talks",
-    "teaching",
-    "supervision",
-    "service",
-    "peer-review",
-    "editorial",
-    "grants",
-    "skills",
-    "other",
-  ] as const;
+  // The real section-type list (includes the prose sections), so the all-ten-
+  // locale section-title contract covers every type the schema defines.
   const REASONS = ["different-person", "duplicate", "wrong-field", "other"] as const;
 
   it("ships exactly 10 locales, each with a native label", () => {

@@ -4,55 +4,75 @@ import { db } from "../fixtures/db";
 import { expect, test } from "../fixtures/auth";
 
 // The "Apply NSF layout" button snapshots the current view under this exact name
-// before mutating display/visibility (see NarrativeEditor `GRANT_SNAPSHOT_NAME`).
+// before mutating section selection/order/display (see CvEditor `GRANT_SNAPSHOT_NAME`).
 const SNAPSHOT_NAME = "Before grant layout";
 
-test("grant preset → apply NSF layout → reversible snapshot + seeded narrative + persisted display", async ({
+test("grant preset → apply NSF layout → reversible snapshot + section selection/order + persisted display", async ({
   page,
   authedUserId,
 }) => {
   await page.goto("/cv");
-  // Editor loaded (unambiguous: the Narrative CV panel that hosts the grant
-  // presets — plain getByText("Publications") matches several control labels).
-  await expect(page.getByRole("group", { name: "Narrative CV" })).toBeVisible();
-  const panel = page.locator(".narrative-editor");
-  await expect(panel).toBeVisible();
+  // Editor loaded: the grant-CV button (now in the Style/Presets area) is present.
+  const applyBtn = page.getByRole("button", { name: "Apply NSF layout" });
+  await expect(applyBtn).toBeVisible();
 
   // 1. Apply the NSF grant layout. The button label is `grantApply` with the
   //    preset name substituted → "Apply NSF layout".
-  await page.getByRole("button", { name: "Apply NSF layout" }).click();
+  await applyBtn.click();
 
-  // 2a. Reversible: the pre-apply view was snapshotted as a named preset chip
-  //     ("Before grant layout") so the user can switch back.
+  // 2. Reversible: the pre-apply view was snapshotted as a named preset chip
+  //    ("Before grant layout") so the user can switch back.
   await expect(page.getByText(SNAPSHOT_NAME)).toBeVisible();
-
-  // 2b. The narrative modules are seeded — the `.narrative-module` rows appear.
-  await expect(page.locator(".narrative-module").first()).toBeVisible();
-  expect(await page.locator(".narrative-module").count()).toBeGreaterThan(0);
 
   // 3. Save and wait for the save to settle.
   await page.getByRole("button", { name: /^Save$/ }).click();
   await expect(page.getByText("Saved.")).toBeVisible();
 
-  // 4. Reload the canonical CV from the DB and assert the NSF preset took:
-  //    the publications limit matches the preset and the narrative is non-empty.
+  // 4. Reload the canonical CV from the DB and assert the NSF preset took.
   const row = await db.cv.findUnique({ where: { userId: authedUserId } });
   const parsed = safeParseCanonicalCv(row?.document);
   expect(parsed.success).toBe(true);
   if (parsed.success) {
-    expect(parsed.data.display.publicationsLimit).toBe(
+    const doc = parsed.data;
+    // Display overrides match the preset.
+    expect(doc.display.publicationsLimit).toBe(
       GRANT_PRESETS.nsf.display.publicationsLimit,
     );
-    expect(parsed.data.display.publicationOrder).toBe(
+    expect(doc.display.publicationOrder).toBe(
       GRANT_PRESETS.nsf.display.publicationOrder,
     );
-    expect(parsed.data.display.peerReviewedOnly).toBe(
+    expect(doc.display.peerReviewedOnly).toBe(
       GRANT_PRESETS.nsf.display.peerReviewedOnly,
     );
-    expect((parsed.data.narrative ?? []).length).toBeGreaterThan(0);
-    // The reversible snapshot is persisted as a named preset on the document.
-    expect((parsed.data.presets ?? []).some((p) => p.name === SNAPSHOT_NAME)).toBe(
-      true,
+    // Section ordering was customized to the funder rubric.
+    expect(doc.display.sectionsCustomized).toBe(true);
+
+    // The funder's narrative contribution prose sections were created.
+    const proseTypes = doc.sections
+      .filter((s) =>
+        ["narrative-knowledge", "narrative-individuals", "narrative-community", "narrative-society"].includes(
+          s.type,
+        ),
+      )
+      .map((s) => s.type);
+    expect(proseTypes.length).toBeGreaterThan(0);
+
+    // Exactly the preset's wanted section types are visible.
+    const want = new Set(GRANT_PRESETS.nsf.visibleSections);
+    const visibleTypes = new Set(
+      doc.sections.filter((s) => s.visible).map((s) => s.type),
     );
+    for (const type of want) expect(visibleTypes.has(type)).toBe(true);
+    for (const type of visibleTypes) expect(want.has(type as never)).toBe(true);
+
+    // The visible sections are ordered in the preset's sequence.
+    const visibleOrdered = [...doc.sections]
+      .filter((s) => s.visible)
+      .sort((a, b) => a.order - b.order)
+      .map((s) => s.type);
+    expect(visibleOrdered).toEqual([...GRANT_PRESETS.nsf.visibleSections]);
+
+    // The reversible snapshot is persisted as a named preset on the document.
+    expect((doc.presets ?? []).some((p) => p.name === SNAPSHOT_NAME)).toBe(true);
   }
 });

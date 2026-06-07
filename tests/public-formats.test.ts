@@ -140,7 +140,7 @@ describe("serializePublicCv", () => {
     expect(out.contentType).toContain("application/json");
     expect(out.extension).toBe("json");
     const parsed = JSON.parse(out.body) as CanonicalCv;
-    expect(parsed.schemaVersion).toBe(1);
+    expect(parsed.schemaVersion).toBe(2);
     expect(parsed.owner.orcid).toBe("0000-0002-7483-2489");
   });
 

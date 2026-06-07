@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   CanonicalCvSchema,
-  NARRATIVE_MODULE_KEYS,
+  PROSE_SECTION_TYPES,
+  isProseSectionType,
   type CanonicalCv,
   type CvSection,
   type CvSectionType,
@@ -12,7 +13,7 @@ import {
   applyGrantPreset,
   isGrantPresetId,
 } from "@/lib/canonical/grantPresets";
-import { updateDisplay, upsertNarrativeModule } from "@/lib/canonical/curate";
+import { setSectionBody, updateDisplay } from "@/lib/canonical/curate";
 
 /** A minimal section of the given type with one included item. */
 function section(type: CvSectionType, visible = true): CvSection {
@@ -65,7 +66,7 @@ function makeCv(): CanonicalCv {
     "references",
   ];
   return CanonicalCvSchema.parse({
-    schemaVersion: 1,
+    schemaVersion: 2,
     id: "grant_test",
     owner: {
       orcid: "0000-0002-7483-2489",
@@ -77,7 +78,6 @@ function makeCv(): CanonicalCv {
     display: { locale: "en-US" },
     sections: types.map((t, i) => ({ ...section(t), order: i })),
     presets: [],
-    narrative: [],
     provenance: { generatedAt: "2026-06-02T00:00:00.000Z", sources: ["manual"] },
   });
 }
@@ -102,14 +102,26 @@ describe("grant preset catalog", () => {
     expect(isGrantPresetId("nope")).toBe(false);
   });
 
-  it("ERC: ~10 selected, peer-reviewed, newest-first, with narrative", () => {
+  it("every preset lists the four narrative contribution prose sections", () => {
+    for (const id of GRANT_PRESET_IDS) {
+      const proseInPreset = GRANT_PRESETS[id].visibleSections.filter((t) =>
+        isProseSectionType(t),
+      );
+      expect(proseInPreset).toContain("narrative-knowledge");
+      expect(proseInPreset).toContain("narrative-individuals");
+      expect(proseInPreset).toContain("narrative-community");
+      expect(proseInPreset).toContain("narrative-society");
+    }
+  });
+
+  it("ERC: ~10 selected, peer-reviewed, newest-first, with narrative + grants", () => {
     const c = GRANT_PRESETS.erc;
     expect(c.display.publicationsLimit).toBe(10);
     expect(c.display.publicationOrder).toBe("year-desc");
     expect(c.display.peerReviewedOnly).toBe(true);
-    expect(c.includesNarrative).toBe(true);
     expect(c.visibleSections).toContain("publications");
     expect(c.visibleSections).toContain("grants");
+    expect(c.visibleSections).toContain("narrative-knowledge");
   });
 
   it("MSCA: tighter selected list, peer-reviewed, newest-first, with narrative", () => {
@@ -117,9 +129,9 @@ describe("grant preset catalog", () => {
     expect(c.display.publicationsLimit).toBe(8);
     expect(c.display.publicationOrder).toBe("year-desc");
     expect(c.display.peerReviewedOnly).toBe(true);
-    expect(c.includesNarrative).toBe(true);
     expect(c.visibleSections).toContain("education");
     expect(c.visibleSections).toContain("publications");
+    expect(c.visibleSections).toContain("narrative-society");
   });
 
   it("NSF: SciENcv blocks (prep/appointments/products/synergistic+funding), ~10, narrative", () => {
@@ -127,7 +139,6 @@ describe("grant preset catalog", () => {
     expect(c.display.publicationsLimit).toBe(10);
     expect(c.display.publicationOrder).toBe("year-desc");
     expect(c.display.peerReviewedOnly).toBe(true);
-    expect(c.includesNarrative).toBe(true);
     // Professional Preparation / Appointments / Products / Synergistic / funding.
     expect(c.visibleSections).toContain("education");
     expect(c.visibleSections).toContain("positions");
@@ -135,6 +146,7 @@ describe("grant preset catalog", () => {
     expect(c.visibleSections).toContain("service");
     expect(c.visibleSections).toContain("talks");
     expect(c.visibleSections).toContain("grants");
+    expect(c.visibleSections).toContain("narrative-community");
   });
 
   it("JSPS: researchmap/e-Rad blocks (achievements/career/funding/awards), narrative", () => {
@@ -142,13 +154,13 @@ describe("grant preset catalog", () => {
     expect(c.display.publicationsLimit).toBe(10);
     expect(c.display.publicationOrder).toBe("year-desc");
     expect(c.display.peerReviewedOnly).toBe(true);
-    expect(c.includesNarrative).toBe(true);
     // Research achievements / career (positions + education) / funding / awards.
     expect(c.visibleSections).toContain("publications");
     expect(c.visibleSections).toContain("positions");
     expect(c.visibleSections).toContain("education");
     expect(c.visibleSections).toContain("grants");
     expect(c.visibleSections).toContain("awards");
+    expect(c.visibleSections).toContain("narrative-individuals");
   });
 });
 
@@ -176,7 +188,7 @@ describe("applyGrantPreset", () => {
       const next = applyGrantPreset(makeCv(), id);
       const want = new Set(GRANT_PRESETS[id].visibleSections);
       const got = visibleTypes(next);
-      // Every wanted section that exists is visible…
+      // Every wanted section is visible…
       for (const type of want) expect(got.has(type)).toBe(true);
       // …and nothing outside the rubric is left visible.
       for (const type of got) expect(want.has(type as CvSectionType)).toBe(true);
@@ -186,36 +198,65 @@ describe("applyGrantPreset", () => {
       expect(got.has("preprints")).toBe(false);
     });
 
+    it(`${id}: creates the narrative contribution prose sections (empty body)`, () => {
+      const next = applyGrantPreset(makeCv(), id);
+      for (const type of GRANT_PRESETS[id].visibleSections) {
+        if (!isProseSectionType(type)) continue;
+        const sec = next.sections.find((s) => s.type === type)!;
+        expect(sec).toBeTruthy();
+        expect(sec.visible).toBe(true);
+        expect(sec.items).toEqual([]);
+        expect(sec.body).toBe("");
+      }
+      // Every preset materializes all four narrative contribution sections.
+      const proseTypes = next.sections
+        .filter((s) => isProseSectionType(s.type))
+        .map((s) => s.type);
+      expect(proseTypes).toEqual(
+        expect.arrayContaining([
+          "narrative-knowledge",
+          "narrative-individuals",
+          "narrative-community",
+          "narrative-society",
+        ]),
+      );
+    });
+
+    it(`${id}: orders the visible sections in the preset's sequence`, () => {
+      const next = applyGrantPreset(makeCv(), id);
+      const seq = GRANT_PRESETS[id].visibleSections;
+      const visibleOrdered = [...next.sections]
+        .filter((s) => s.visible)
+        .sort((a, b) => a.order - b.order)
+        .map((s) => s.type);
+      expect(visibleOrdered).toEqual([...seq]);
+      // The hidden sections all sort AFTER the visible block.
+      const maxVisibleOrder = Math.max(
+        ...next.sections.filter((s) => s.visible).map((s) => s.order),
+      );
+      for (const s of next.sections.filter((s) => !s.visible)) {
+        expect(s.order).toBeGreaterThan(maxVisibleOrder);
+      }
+    });
+
     it(`${id}: applies the catalog display fields`, () => {
       const next = applyGrantPreset(makeCv(), id);
       const c = GRANT_PRESETS[id];
       expect(next.display.publicationsLimit).toBe(c.display.publicationsLimit);
       expect(next.display.publicationOrder).toBe(c.display.publicationOrder);
       expect(next.display.peerReviewedOnly).toBe(c.display.peerReviewedOnly);
+      expect(next.display.sectionsCustomized).toBe(true);
     });
 
-    it(`${id}: seeds the six narrative modules (empty bodies, included)`, () => {
-      const next = applyGrantPreset(makeCv(), id);
-      expect(next.narrative.map((m) => m.key).sort()).toEqual(
-        [...NARRATIVE_MODULE_KEYS].sort(),
-      );
-      for (const m of next.narrative) {
-        expect(m.body).toBe("");
-        expect(m.included).toBe(true);
-        expect(m.heading.length).toBeGreaterThan(0);
-      }
-    });
-
-    it(`${id}: leaves curated item data intact (visibility/display only)`, () => {
+    it(`${id}: leaves curated item data intact (visibility/order/display only)`, () => {
       const cv = makeCv();
       const next = applyGrantPreset(cv, id);
-      // Same sections, same items, same item content — only `visible` changes.
-      expect(next.sections.map((s) => s.type)).toEqual(
-        cv.sections.map((s) => s.type),
-      );
-      for (const s of next.sections) {
-        const before = cv.sections.find((b) => b.id === s.id)!;
-        expect(s.items).toEqual(before.items);
+      // Every original section still present with the same items (order/visible
+      // may change; the curated item content does not).
+      for (const before of cv.sections) {
+        const after = next.sections.find((s) => s.id === before.id)!;
+        expect(after).toBeTruthy();
+        expect(after.items).toEqual(before.items);
       }
     });
 
@@ -226,38 +267,32 @@ describe("applyGrantPreset", () => {
     });
   }
 
-  it("preserves narrative modules the user already wrote (no overwrite)", () => {
+  it("preserves a narrative contribution body the user already wrote", () => {
     let cv = makeCv();
-    cv = upsertNarrativeModule(cv, "knowledge", { body: "My real contributions." });
+    // Materialize a narrative-knowledge section and write into it.
+    cv = applyGrantPreset(cv, "erc");
+    const sec = cv.sections.find((s) => s.type === "narrative-knowledge")!;
+    cv = setSectionBody(cv, sec.id, "My real contributions.");
+    // Re-applying the preset must not clobber the written body.
     const next = applyGrantPreset(cv, "erc");
-    const knowledge = next.narrative.find((m) => m.key === "knowledge")!;
+    const knowledge = next.sections.find((s) => s.type === "narrative-knowledge")!;
     expect(knowledge.body).toBe("My real contributions.");
-    // The other five are seeded around it.
-    expect(next.narrative).toHaveLength(NARRATIVE_MODULE_KEYS.length);
   });
 
-  it("does not duplicate narrative modules when all six are already present", () => {
-    // Pre-seed every module, then apply: seedNarrative finds no additions and
-    // returns the document untouched (no growth, bodies preserved).
-    let cv = makeCv();
-    for (const key of NARRATIVE_MODULE_KEYS) {
-      cv = upsertNarrativeModule(cv, key, { body: `body for ${key}` });
+  it("does not duplicate narrative sections when applied twice", () => {
+    let cv = applyGrantPreset(makeCv(), "msca");
+    cv = applyGrantPreset(cv, "msca");
+    for (const type of PROSE_SECTION_TYPES) {
+      const matches = cv.sections.filter((s) => s.type === type);
+      // statement is never auto-created by a preset; the four narrative-* exist once.
+      expect(matches.length).toBeLessThanOrEqual(1);
     }
-    const next = applyGrantPreset(cv, "msca");
-    expect(next.narrative).toHaveLength(NARRATIVE_MODULE_KEYS.length);
-    expect(next.narrative).toEqual(cv.narrative);
   });
 
-  it("seeds the narrative in the requested locale", () => {
-    const next = applyGrantPreset(makeCv(), "erc", "fr-FR");
-    const ps = next.narrative.find((m) => m.key === "personal-statement")!;
-    expect(ps.heading).toBe("Présentation personnelle");
-  });
-
-  it("defaults the seed locale to the CV's own display locale", () => {
-    const cv = updateDisplay(makeCv(), { locale: "de-DE" });
-    const next = applyGrantPreset(cv, "msca");
-    const ps = next.narrative.find((m) => m.key === "personal-statement")!;
-    expect(ps.heading).toBe("Persönliche Darstellung");
+  it("seeds the narrative section titles in the CV's display locale", () => {
+    const cv = updateDisplay(makeCv(), { locale: "fr-FR" });
+    const next = applyGrantPreset(cv, "erc");
+    const knowledge = next.sections.find((s) => s.type === "narrative-knowledge")!;
+    expect(knowledge.title).toBe("Contributions à la production de connaissances");
   });
 });

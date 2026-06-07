@@ -50,7 +50,7 @@ function pub(id: string, c?: CslItem): CvItem {
 }
 function makeCv(items: CvItem[]): CanonicalCv {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     id: "x",
     owner: {
       orcid: "0000-0002-7483-2489",
@@ -64,7 +64,6 @@ function makeCv(items: CvItem[]): CanonicalCv {
       { id: "publications", type: "publications", title: "Publications", visible: true, order: 0, items },
     ],
     presets: [],
-    narrative: [],
     provenance: { generatedAt: "t0", lastSyncedAt: "t0", sources: ["openalex"] },
   };
 }

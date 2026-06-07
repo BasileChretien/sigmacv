@@ -1,4 +1,9 @@
-import type { CanonicalCv, CvItem, CvSectionType } from "@/lib/canonical/schema";
+import {
+  isProseSectionType,
+  type CanonicalCv,
+  type CvItem,
+  type CvSectionType,
+} from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import {
   GRANT_PRESETS,
@@ -37,9 +42,10 @@ import type { Renderer, RenderInput, RenderResult } from "./types";
  * as the NIH `biosketch` renderer keeps its A./B./C. headings fixed. This adds
  * ZERO new ten-locale i18n keys.
  *
- * The NARRATIVE module headings DO carry the user's localized heading (seeded
- * from `i18n/narrative.ts` at the chosen `display.locale`), because those are
- * the researcher's own prose sections, not funder-mandated proper nouns.
+ * The NARRATIVE contribution headings DO carry the user's own section title
+ * (the prose `narrative-*` sections, localized via `SECTION_TITLES` when created
+ * and freely renamable), because those are the researcher's own prose sections,
+ * not funder-mandated proper nouns.
  */
 
 /**
@@ -162,15 +168,18 @@ function publicationLines(
   return lines;
 }
 
-/** The narrative-CV block: each included module with a non-empty body becomes
- *  `## <localized heading>` + its body. Mirrors the markdown renderer — heading
- *  and body are USER FREE-TEXT, so both run through `escapeMarkdown` so stray
- *  Markdown structure (a leading `#`, `*`, `[`) can't change the document.
- *  Empty array when there is nothing to show. */
+/** The narrative-CV block: each VISIBLE prose section (the `narrative-*`
+ *  contributions + any `statement`) with a non-empty body becomes
+ *  `## <section title>` + its body. The section title + body are USER FREE-TEXT,
+ *  so both run through `escapeMarkdown` so stray Markdown structure (a leading
+ *  `#`, `*`, `[`) can't change the document. Empty array when nothing to show. */
 function narrativeBlocks(cv: CanonicalCv): string[] {
-  return (cv.narrative ?? [])
-    .filter((m) => m.included && m.body.trim().length > 0)
-    .map((m) => `## ${escapeMarkdown(m.heading)}\n\n${escapeMarkdown(m.body.trim())}`);
+  return visibleSections(cv)
+    .filter((s) => isProseSectionType(s.type) && (s.body ?? "").trim().length > 0)
+    .map(
+      (s) =>
+        `## ${escapeMarkdown(s.title)}\n\n${escapeMarkdown((s.body ?? "").trim())}`,
+    );
 }
 
 /**
@@ -206,10 +215,11 @@ export function renderGrantCv(cv: CanonicalCv, funderId: GrantPresetId): string 
     blocks.push(`*${escapeMarkdown(owner.headline.trim())}*`);
   }
 
-  // ── Narrative modules (the funders that value a narrative track record) ─────
-  if (preset.includesNarrative) {
-    blocks.push(...narrativeBlocks(cvForRender));
-  }
+  // ── Narrative contribution sections (the funders that value a narrative track
+  // record). These are PROSE sections now — rendered with the user's own section
+  // titles, separately from the funder-data sections below. `narrativeBlocks`
+  // self-gates on the visible prose sections, so it's safe to always call.
+  blocks.push(...narrativeBlocks(cvForRender));
 
   // ── Funder sections, in the preset's configured order ───────────────────────
   // Merge sections that share a heading (NSF: service + talks → "Synergistic
@@ -220,8 +230,11 @@ export function renderGrantCv(cv: CanonicalCv, funderId: GrantPresetId): string 
   // be mistaken for the section to append to.
   const headingBlockIndex = new Map<string, number>();
   for (const type of preset.visibleSections) {
+    // Prose sections (the `narrative-*` contributions) are rendered above by
+    // `narrativeBlocks` with the user's own titles, not as funder-data sections.
+    if (isProseSectionType(type)) continue;
     const funderHeading = headings[type];
-    /* v8 ignore next -- every preset-visible section has a heading mapping */
+    /* v8 ignore next -- every non-prose preset-visible section has a heading mapping */
     if (!funderHeading) continue;
 
     if (type === "publications") {

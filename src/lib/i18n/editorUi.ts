@@ -45,20 +45,11 @@ export interface EditorExtraStrings {
   claimAlready: string;
   claimWhichAuthor: string;
   claimError: string;
-  // Narrative-CV editor (funder résumé prose) + one-click starter layout.
-  narrativeLegend: string;
-  narrativeIntro: string;
-  narrativeAdd: string;
-  narrativeStarter: string;
-  narrativeStarterNote: string;
-  narrativeHeading: string;
-  narrativeBody: string;
-  narrativeBodyHint: string;
-  narrativeCharsLeft: string;
-  narrativeRemove: string;
-  narrativeMoveUp: string;
-  narrativeMoveDown: string;
-  // EU grant-CV presets (ERC / MSCA) — one-click layout.
+  // Prose sections (narrative contribution / statement) — free-text body editor.
+  proseBody: string;
+  proseBodyHint: string;
+  proseCharsLeft: string;
+  // Grant / funder-CV presets (ERC / MSCA / NSF / JSPS) — one-click layout.
   grantLegend: string;
   grantIntro: string;
   grantApply: string;
@@ -100,23 +91,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Already in your CV.",
     claimWhichAuthor: "Which author are you?",
     claimError: "Lookup failed — please try again.",
-    narrativeLegend: "Narrative CV",
-    narrativeIntro:
-      "Funder-style résumé prose (UKRI / Royal Society framing). Shown above your sections. Write your own text; each module has a guidance prompt.",
-    narrativeAdd: "Add narrative section",
-    narrativeStarter: "Narrative CV layout",
-    narrativeStarterNote:
-      "Seeds the narrative modules and trims the publication list to a few selected works. Reversible — it only changes display.",
-    narrativeHeading: "Heading",
-    narrativeBody: "Body",
-    narrativeBodyHint: "Blank line = new paragraph; lines starting with “- ” become a list.",
-    narrativeCharsLeft: "{n} characters left",
-    narrativeRemove: "Remove module",
-    narrativeMoveUp: "Move module up",
-    narrativeMoveDown: "Move module down",
-    grantLegend: "Grant CV",
+    proseBody: "Body",
+    proseBodyHint: "Blank line = new paragraph; lines starting with “- ” become a list.",
+    proseCharsLeft: "{n} characters left",
+    grantLegend: "Grant / funder CV",
     grantIntro:
-      "Apply a structured starting layout matching a major EU call. It only changes display + which sections show, and seeds the narrative modules. Reversible — your current view is saved first. Submit the final application via the funder’s own portal/template.",
+      "Apply a structured starting layout matching a major funder’s call. It shows the funder’s sections (creating any missing ones), sets their order and hides the rest. Reversible — your current view is saved first. Submit the final application via the funder’s own portal/template.",
     grantApply: "Apply {name} layout",
   },
   "zh-CN": {
@@ -154,23 +134,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "已在你的简历中。",
     claimWhichAuthor: "你是哪位作者？",
     claimError: "查找失败——请重试。",
-    narrativeLegend: "叙述式简历",
-    narrativeIntro:
-      "资助方风格的叙述式简历（UKRI／英国皇家学会框架），显示在各栏目上方。请自行撰写，每个模块都有写作提示。",
-    narrativeAdd: "添加叙述部分",
-    narrativeStarter: "叙述式简历版式",
-    narrativeStarterNote:
-      "生成叙述模块，并将论文列表精简为少量代表作。可逆——仅更改显示。",
-    narrativeHeading: "标题",
-    narrativeBody: "正文",
-    narrativeBodyHint: "空行＝新段落；以“- ”开头的行会变成列表。",
-    narrativeCharsLeft: "还剩 {n} 个字符",
-    narrativeRemove: "移除模块",
-    narrativeMoveUp: "上移模块",
-    narrativeMoveDown: "下移模块",
-    grantLegend: "资助简历",
+    proseBody: "正文",
+    proseBodyHint: "空行＝新段落；以“- ”开头的行会变成列表。",
+    proseCharsLeft: "还剩 {n} 个字符",
+    grantLegend: "资助／资助方简历",
     grantIntro:
-      "套用与某项重要欧盟项目相匹配的结构化起始版式。它仅更改显示内容及栏目可见性，并生成叙述模块。可逆——会先保存你当前的视图。最终申请请通过资助方自己的门户／模板提交。",
+      "套用与某个重要资助方公募相匹配的结构化起始版式。它会显示该资助方的栏目（缺失的将创建）、设定其顺序并隐藏其余栏目。可逆——会先保存你当前的视图。最终申请请通过资助方自己的门户／模板提交。",
     grantApply: "套用 {name} 版式",
   },
   "es-ES": {
@@ -209,23 +178,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Ya está en tu CV.",
     claimWhichAuthor: "¿Cuál autor eres?",
     claimError: "La búsqueda falló: inténtalo de nuevo.",
-    narrativeLegend: "CV narrativo",
-    narrativeIntro:
-      "Texto de CV narrativo al estilo de las agencias financiadoras (marco UKRI / Royal Society). Se muestra encima de tus secciones. Escribe tu propio texto; cada módulo tiene una guía.",
-    narrativeAdd: "Añadir sección narrativa",
-    narrativeStarter: "Diseño de CV narrativo",
-    narrativeStarterNote:
-      "Genera los módulos narrativos y recorta la lista de publicaciones a unas obras seleccionadas. Reversible: solo cambia la visualización.",
-    narrativeHeading: "Encabezado",
-    narrativeBody: "Texto",
-    narrativeBodyHint: "Línea en blanco = párrafo nuevo; las líneas que empiezan por «- » forman una lista.",
-    narrativeCharsLeft: "Quedan {n} caracteres",
-    narrativeRemove: "Eliminar módulo",
-    narrativeMoveUp: "Subir módulo",
-    narrativeMoveDown: "Bajar módulo",
-    grantLegend: "CV de subvención",
+    proseBody: "Texto",
+    proseBodyHint: "Línea en blanco = párrafo nuevo; las líneas que empiezan por «- » forman una lista.",
+    proseCharsLeft: "Quedan {n} caracteres",
+    grantLegend: "CV de subvención / financiador",
     grantIntro:
-      "Aplica un diseño inicial estructurado acorde con una gran convocatoria de la UE. Solo cambia la visualización y qué secciones se muestran, y genera los módulos narrativos. Reversible: tu vista actual se guarda primero. Presenta la solicitud final mediante el portal/plantilla del propio financiador.",
+      "Aplica un diseño inicial estructurado acorde con una gran convocatoria de un financiador. Muestra las secciones del financiador (creando las que falten), fija su orden y oculta el resto. Reversible: tu vista actual se guarda primero. Presenta la solicitud final mediante el portal/plantilla del propio financiador.",
     grantApply: "Aplicar diseño {name}",
   },
   "fr-FR": {
@@ -264,23 +222,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Déjà dans votre CV.",
     claimWhichAuthor: "Quel auteur êtes-vous ?",
     claimError: "Échec de la recherche — veuillez réessayer.",
-    narrativeLegend: "CV narratif",
-    narrativeIntro:
-      "Texte de CV narratif façon financeurs (cadre UKRI / Royal Society). Affiché au-dessus de vos sections. Rédigez votre propre texte ; chaque module comporte une consigne.",
-    narrativeAdd: "Ajouter une section narrative",
-    narrativeStarter: "Mise en page CV narratif",
-    narrativeStarterNote:
-      "Crée les modules narratifs et réduit la liste de publications à quelques travaux choisis. Réversible — ne modifie que l’affichage.",
-    narrativeHeading: "Titre",
-    narrativeBody: "Texte",
-    narrativeBodyHint: "Ligne vide = nouveau paragraphe ; les lignes commençant par « - » forment une liste.",
-    narrativeCharsLeft: "{n} caractères restants",
-    narrativeRemove: "Supprimer le module",
-    narrativeMoveUp: "Monter le module",
-    narrativeMoveDown: "Descendre le module",
+    proseBody: "Texte",
+    proseBodyHint: "Ligne vide = nouveau paragraphe ; les lignes commençant par « - » forment une liste.",
+    proseCharsLeft: "{n} caractères restants",
     grantLegend: "CV de financement",
     grantIntro:
-      "Appliquez une mise en page de départ structurée correspondant à un grand appel de l’UE. Elle ne modifie que l’affichage et les sections visibles, et crée les modules narratifs. Réversible — votre vue actuelle est d’abord enregistrée. Déposez la candidature finale via le portail/modèle propre au financeur.",
+      "Appliquez une mise en page de départ structurée correspondant à un grand appel d’un financeur. Elle affiche les sections du financeur (en créant celles qui manquent), fixe leur ordre et masque les autres. Réversible — votre vue actuelle est d’abord enregistrée. Déposez la candidature finale via le portail/modèle propre au financeur.",
     grantApply: "Appliquer la mise en page {name}",
   },
   "de-DE": {
@@ -319,23 +266,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Bereits in Ihrem Lebenslauf.",
     claimWhichAuthor: "Welcher Autor sind Sie?",
     claimError: "Suche fehlgeschlagen – bitte erneut versuchen.",
-    narrativeLegend: "Narrativer Lebenslauf",
-    narrativeIntro:
-      "Narrativer Lebenslauf im Stil der Förderer (UKRI- / Royal-Society-Rahmen). Wird über Ihren Abschnitten angezeigt. Schreiben Sie Ihren eigenen Text; jedes Modul hat einen Hinweis.",
-    narrativeAdd: "Narrativen Abschnitt hinzufügen",
-    narrativeStarter: "Layout „Narrativer Lebenslauf“",
-    narrativeStarterNote:
-      "Legt die narrativen Module an und kürzt die Publikationsliste auf einige ausgewählte Arbeiten. Umkehrbar – ändert nur die Anzeige.",
-    narrativeHeading: "Überschrift",
-    narrativeBody: "Text",
-    narrativeBodyHint: "Leerzeile = neuer Absatz; Zeilen mit „- “ am Anfang werden zur Liste.",
-    narrativeCharsLeft: "{n} Zeichen übrig",
-    narrativeRemove: "Modul entfernen",
-    narrativeMoveUp: "Modul nach oben",
-    narrativeMoveDown: "Modul nach unten",
+    proseBody: "Text",
+    proseBodyHint: "Leerzeile = neuer Absatz; Zeilen mit „- “ am Anfang werden zur Liste.",
+    proseCharsLeft: "{n} Zeichen übrig",
     grantLegend: "Förder-Lebenslauf",
     grantIntro:
-      "Wenden Sie ein strukturiertes Ausgangslayout passend zu einer großen EU-Ausschreibung an. Es ändert nur die Anzeige und welche Abschnitte sichtbar sind und legt die narrativen Module an. Umkehrbar — Ihre aktuelle Ansicht wird zuvor gespeichert. Reichen Sie den endgültigen Antrag über das Portal/die Vorlage des Förderers ein.",
+      "Wenden Sie ein strukturiertes Ausgangslayout passend zur Ausschreibung eines großen Förderers an. Es zeigt die Abschnitte des Förderers (legt fehlende an), setzt ihre Reihenfolge und blendet die übrigen aus. Umkehrbar — Ihre aktuelle Ansicht wird zuvor gespeichert. Reichen Sie den endgültigen Antrag über das Portal/die Vorlage des Förderers ein.",
     grantApply: "Layout {name} anwenden",
   },
   "ja-JP": {
@@ -373,23 +309,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "すでに CV にあります。",
     claimWhichAuthor: "あなたはどの著者ですか？",
     claimError: "検索に失敗しました。もう一度お試しください。",
-    narrativeLegend: "ナラティブCV",
-    narrativeIntro:
-      "助成機関方式のナラティブCV（UKRI／Royal Society の枠組み）。各セクションの上に表示されます。本文はご自身で記述してください。各モジュールにガイドがあります。",
-    narrativeAdd: "ナラティブ欄を追加",
-    narrativeStarter: "ナラティブCVレイアウト",
-    narrativeStarterNote:
-      "ナラティブ各モジュールを用意し、論文一覧を選抜した数件に絞ります。元に戻せます——表示のみを変更します。",
-    narrativeHeading: "見出し",
-    narrativeBody: "本文",
-    narrativeBodyHint: "空行＝段落の区切り。「- 」で始まる行は箇条書きになります。",
-    narrativeCharsLeft: "残り{n}文字",
-    narrativeRemove: "モジュールを削除",
-    narrativeMoveUp: "モジュールを上へ",
-    narrativeMoveDown: "モジュールを下へ",
+    proseBody: "本文",
+    proseBodyHint: "空行＝段落の区切り。「- 」で始まる行は箇条書きになります。",
+    proseCharsLeft: "残り{n}文字",
     grantLegend: "助成用 CV",
     grantIntro:
-      "主要な EU 公募に合わせた構造化された初期レイアウトを適用します。表示内容と表示するセクションのみを変更し、ナラティブ各モジュールを用意します。元に戻せます——先に現在のビューを保存します。最終的な申請は助成機関自身のポータル／テンプレートで提出してください。",
+      "主要な助成機関の公募に合わせた構造化された初期レイアウトを適用します。その助成機関のセクションを表示し（不足分は作成）、順序を設定し、残りを非表示にします。元に戻せます——先に現在のビューを保存します。最終的な申請は助成機関自身のポータル／テンプレートで提出してください。",
     grantApply: "{name} レイアウトを適用",
   },
   "pt-BR": {
@@ -428,23 +353,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Já está no seu CV.",
     claimWhichAuthor: "Qual autor é você?",
     claimError: "Falha na busca — tente novamente.",
-    narrativeLegend: "Currículo narrativo",
-    narrativeIntro:
-      "Texto de currículo narrativo no estilo das agências de fomento (estrutura UKRI / Royal Society). Exibido acima das suas seções. Escreva o seu próprio texto; cada módulo tem uma orientação.",
-    narrativeAdd: "Adicionar seção narrativa",
-    narrativeStarter: "Layout de currículo narrativo",
-    narrativeStarterNote:
-      "Cria os módulos narrativos e reduz a lista de publicações a alguns trabalhos selecionados. Reversível — altera apenas a exibição.",
-    narrativeHeading: "Título",
-    narrativeBody: "Texto",
-    narrativeBodyHint: "Linha em branco = novo parágrafo; linhas iniciadas por “- ” viram uma lista.",
-    narrativeCharsLeft: "Faltam {n} caracteres",
-    narrativeRemove: "Remover módulo",
-    narrativeMoveUp: "Mover módulo para cima",
-    narrativeMoveDown: "Mover módulo para baixo",
+    proseBody: "Texto",
+    proseBodyHint: "Linha em branco = novo parágrafo; linhas iniciadas por “- ” viram uma lista.",
+    proseCharsLeft: "Faltam {n} caracteres",
     grantLegend: "Currículo de financiamento",
     grantIntro:
-      "Aplique um layout inicial estruturado correspondente a uma grande chamada da UE. Ele só altera a exibição e quais seções aparecem, e cria os módulos narrativos. Reversível — sua visualização atual é salva primeiro. Envie a candidatura final pelo portal/modelo do próprio financiador.",
+      "Aplique um layout inicial estruturado correspondente a uma grande chamada de um financiador. Ele mostra as seções do financiador (criando as que faltam), define a ordem delas e oculta as demais. Reversível — sua visualização atual é salva primeiro. Envie a candidatura final pelo portal/modelo do próprio financiador.",
     grantApply: "Aplicar layout {name}",
   },
   "it-IT": {
@@ -483,23 +397,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Già presente nel tuo CV.",
     claimWhichAuthor: "Quale autore sei?",
     claimError: "Ricerca non riuscita — riprova.",
-    narrativeLegend: "CV narrativo",
-    narrativeIntro:
-      "CV narrativo in stile enti finanziatori (impostazione UKRI / Royal Society). Mostrato sopra le tue sezioni. Scrivi il tuo testo; ogni modulo ha una guida.",
-    narrativeAdd: "Aggiungi sezione narrativa",
-    narrativeStarter: "Layout CV narrativo",
-    narrativeStarterNote:
-      "Crea i moduli narrativi e riduce l’elenco delle pubblicazioni ad alcuni lavori selezionati. Reversibile — cambia solo la visualizzazione.",
-    narrativeHeading: "Titolo",
-    narrativeBody: "Testo",
-    narrativeBodyHint: "Riga vuota = nuovo paragrafo; le righe che iniziano con «- » diventano un elenco.",
-    narrativeCharsLeft: "{n} caratteri rimasti",
-    narrativeRemove: "Rimuovi modulo",
-    narrativeMoveUp: "Sposta modulo su",
-    narrativeMoveDown: "Sposta modulo giù",
+    proseBody: "Testo",
+    proseBodyHint: "Riga vuota = nuovo paragrafo; le righe che iniziano con «- » diventano un elenco.",
+    proseCharsLeft: "{n} caratteri rimasti",
     grantLegend: "CV per finanziamenti",
     grantIntro:
-      "Applica un layout iniziale strutturato corrispondente a un importante bando UE. Cambia solo la visualizzazione e quali sezioni compaiono, e crea i moduli narrativi. Reversibile — la tua vista attuale viene salvata prima. Presenta la domanda finale tramite il portale/modello dell’ente finanziatore.",
+      "Applica un layout iniziale strutturato corrispondente a un importante bando di un ente finanziatore. Mostra le sezioni dell’ente (creando quelle mancanti), ne imposta l’ordine e nasconde le altre. Reversibile — la tua vista attuale viene salvata prima. Presenta la domanda finale tramite il portale/modello dell’ente finanziatore.",
     grantApply: "Applica layout {name}",
   },
   "ko-KR": {
@@ -537,23 +440,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "이미 CV에 있습니다.",
     claimWhichAuthor: "본인은 어느 저자인가요?",
     claimError: "조회 실패 — 다시 시도해 주세요.",
-    narrativeLegend: "내러티브 CV",
-    narrativeIntro:
-      "연구비 지원기관 방식의 내러티브 CV(UKRI / Royal Society 틀). 섹션 위에 표시됩니다. 본문은 직접 작성하세요. 각 모듈에 안내가 있습니다.",
-    narrativeAdd: "내러티브 섹션 추가",
-    narrativeStarter: "내러티브 CV 레이아웃",
-    narrativeStarterNote:
-      "내러티브 모듈을 생성하고 논문 목록을 선별한 몇 편으로 줄입니다. 되돌릴 수 있음 — 표시만 변경합니다.",
-    narrativeHeading: "제목",
-    narrativeBody: "본문",
-    narrativeBodyHint: "빈 줄 = 새 문단, “- ”로 시작하는 줄은 목록이 됩니다.",
-    narrativeCharsLeft: "{n}자 남음",
-    narrativeRemove: "모듈 삭제",
-    narrativeMoveUp: "모듈 위로",
-    narrativeMoveDown: "모듈 아래로",
+    proseBody: "본문",
+    proseBodyHint: "빈 줄 = 새 문단, “- ”로 시작하는 줄은 목록이 됩니다.",
+    proseCharsLeft: "{n}자 남음",
     grantLegend: "연구비 CV",
     grantIntro:
-      "주요 EU 공모에 맞는 구조화된 시작 레이아웃을 적용합니다. 표시 내용과 보이는 섹션만 변경하고 내러티브 모듈을 생성합니다. 되돌릴 수 있음 — 현재 보기를 먼저 저장합니다. 최종 지원은 지원기관 자체 포털/템플릿으로 제출하세요.",
+      "주요 지원기관 공모에 맞는 구조화된 시작 레이아웃을 적용합니다. 해당 지원기관의 섹션을 표시하고(없으면 생성), 순서를 설정하며 나머지는 숨깁니다. 되돌릴 수 있음 — 현재 보기를 먼저 저장합니다. 최종 지원은 지원기관 자체 포털/템플릿으로 제출하세요.",
     grantApply: "{name} 레이아웃 적용",
   },
   "ru-RU": {
@@ -592,23 +484,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimAlready: "Уже есть в вашем CV.",
     claimWhichAuthor: "Какой из авторов — вы?",
     claimError: "Не удалось выполнить поиск — попробуйте снова.",
-    narrativeLegend: "Нарративное резюме",
-    narrativeIntro:
-      "Нарративное резюме в стиле грантодателей (рамка UKRI / Royal Society). Показывается над вашими разделами. Пишите свой текст; у каждого модуля есть подсказка.",
-    narrativeAdd: "Добавить нарративный раздел",
-    narrativeStarter: "Макет нарративного резюме",
-    narrativeStarterNote:
-      "Создаёт нарративные модули и сокращает список публикаций до нескольких избранных работ. Обратимо — меняет только отображение.",
-    narrativeHeading: "Заголовок",
-    narrativeBody: "Текст",
-    narrativeBodyHint: "Пустая строка = новый абзац; строки, начинающиеся с «- », образуют список.",
-    narrativeCharsLeft: "Осталось символов: {n}",
-    narrativeRemove: "Удалить модуль",
-    narrativeMoveUp: "Поднять модуль",
-    narrativeMoveDown: "Опустить модуль",
+    proseBody: "Текст",
+    proseBodyHint: "Пустая строка = новый абзац; строки, начинающиеся с «- », образуют список.",
+    proseCharsLeft: "Осталось символов: {n}",
     grantLegend: "Резюме для гранта",
     grantIntro:
-      "Примените структурированный начальный макет под крупный конкурс ЕС. Он меняет только отображение и видимые разделы и создаёт нарративные модули. Обратимо — текущий вид сохраняется заранее. Итоговую заявку подавайте через собственный портал/шаблон грантодателя.",
+      "Примените структурированный начальный макет под крупный конкурс грантодателя. Он показывает разделы грантодателя (создавая недостающие), задаёт их порядок и скрывает остальные. Обратимо — текущий вид сохраняется заранее. Итоговую заявку подавайте через собственный портал/шаблон грантодателя.",
     grantApply: "Применить макет {name}",
   },
 };

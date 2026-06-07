@@ -1,11 +1,13 @@
 import {
+  DEFAULT_SECTION_ORDER,
+  isProseSectionType,
   type CanonicalCv,
-  type CvNarrativeModule,
+  type CvSection,
   type CvSectionType,
   type DisplayChoices,
 } from "./schema";
 import { setSectionVisible, updateDisplay } from "./curate";
-import { defaultNarrativeModules } from "@/lib/i18n/narrative";
+import { sectionTitle } from "@/lib/i18n";
 
 /**
  * ───────────────────────────────────────────────────────────────────────────
@@ -20,9 +22,14 @@ import { defaultNarrativeModules } from "@/lib/i18n/narrative";
  * data maintained in researchmap), and the localized description says so
  * explicitly.
  *
- * Applying a preset only changes DISPLAY + section visibility (+ seeds the
- * narrative scaffolding). It never deletes curated item data, so it is fully
- * reversible — the editor snapshots the current view as a named preset first.
+ * Applying a preset:
+ *  - ensures every section the funder wants EXISTS (creating any missing one as
+ *    an empty section — including the `narrative-*` contribution prose sections);
+ *  - sets exactly those sections VISIBLE and hides the rest;
+ *  - sets the section ORDER to the preset's funder-rubric sequence;
+ *  - applies the display overrides (publications limit / order / peer-reviewed).
+ * It never deletes curated item data, so it is fully reversible — the editor
+ * snapshots the current view as a named preset first.
  */
 
 export const GRANT_PRESET_IDS = ["erc", "msca", "nsf", "jsps"] as const;
@@ -35,10 +42,10 @@ export type GrantPresetId = (typeof GRANT_PRESET_IDS)[number];
  */
 export interface GrantPresetConfig {
   /**
-   * The sections the preset wants VISIBLE, in their funder-rubric order. A
-   * section already present on the CV is shown + (the array order is advisory:
-   * we don't force section reordering, to keep the op minimal and reversible —
-   * visibility is the load-bearing part). Sections NOT in this list are hidden.
+   * The sections the preset wants VISIBLE, in their funder-rubric ORDER. Each is
+   * created (empty) if absent, set visible, and ordered by its position in this
+   * array; every section NOT in this list is hidden. May include the `narrative-*`
+   * prose contribution sections for funders that value a narrative track record.
    */
   visibleSections: readonly CvSectionType[];
   /** Display overrides applied via `updateDisplay`. */
@@ -46,8 +53,6 @@ export interface GrantPresetConfig {
     DisplayChoices,
     "publicationsLimit" | "publicationOrder" | "peerReviewedOnly"
   >;
-  /** Whether the preset seeds + shows the narrative track-record modules. */
-  includesNarrative: boolean;
 }
 
 /**
@@ -84,13 +89,15 @@ const JSPS_PUBLICATIONS_LIMIT = 10;
  *   service → commissions of trust / institutional responsibilities / reviewing ·
  *   editorial → editorial roles · peer-review → reviewing record ·
  *   grants → funding (ID) · talks → invited presentations ·
- *   publications → track record (selected outputs).
+ *   publications → track record (selected outputs) ·
+ *   narrative-* → the funder narrative track-record contribution sections.
  */
 export const GRANT_PRESETS: Record<GrantPresetId, GrantPresetConfig> = {
   // ERC (Starting / Consolidator / Advanced). A structured academic CV: track
   // record (selected, peer-reviewed), funding, fellowships/awards, supervision,
   // teaching, talks, and commissions of trust (service/editorial/peer-review).
-  // Narrative track-record framing is increasingly valued — include it.
+  // Narrative track-record framing is increasingly valued — include the four
+  // contribution sections.
   erc: {
     visibleSections: [
       "positions",
@@ -98,6 +105,10 @@ export const GRANT_PRESETS: Record<GrantPresetId, GrantPresetConfig> = {
       "awards",
       "grants",
       "publications",
+      "narrative-knowledge",
+      "narrative-individuals",
+      "narrative-community",
+      "narrative-society",
       "supervision",
       "teaching",
       "talks",
@@ -110,7 +121,6 @@ export const GRANT_PRESETS: Record<GrantPresetId, GrantPresetConfig> = {
       publicationOrder: "year-desc",
       peerReviewedOnly: true,
     },
-    includesNarrative: true,
   },
   // MSCA Postdoctoral Fellowships. A focused early-career CV: degrees, positions,
   // a short selected-publications list, fellowships/awards, supervision, teaching,
@@ -123,6 +133,10 @@ export const GRANT_PRESETS: Record<GrantPresetId, GrantPresetConfig> = {
       "awards",
       "publications",
       "grants",
+      "narrative-knowledge",
+      "narrative-individuals",
+      "narrative-community",
+      "narrative-society",
       "supervision",
       "teaching",
       "talks",
@@ -134,7 +148,6 @@ export const GRANT_PRESETS: Record<GrantPresetId, GrantPresetConfig> = {
       publicationOrder: "year-desc",
       peerReviewedOnly: true,
     },
-    includesNarrative: true,
   },
   // US NSF biographical sketch (SciENcv structure). The four NSF rubric blocks
   // map onto existing sections: Professional Preparation → education ·
@@ -149,6 +162,10 @@ export const GRANT_PRESETS: Record<GrantPresetId, GrantPresetConfig> = {
       "education",
       "positions",
       "publications",
+      "narrative-knowledge",
+      "narrative-individuals",
+      "narrative-community",
+      "narrative-society",
       "service",
       "talks",
       "grants",
@@ -158,7 +175,6 @@ export const GRANT_PRESETS: Record<GrantPresetId, GrantPresetConfig> = {
       publicationOrder: "year-desc",
       peerReviewedOnly: true,
     },
-    includesNarrative: true,
   },
   // Japan JSPS / KAKENHI researcher profile (researchmap / e-Rad based). The
   // profile rubric maps onto existing sections: research achievements (研究業績)
@@ -175,13 +191,16 @@ export const GRANT_PRESETS: Record<GrantPresetId, GrantPresetConfig> = {
       "education",
       "grants",
       "awards",
+      "narrative-knowledge",
+      "narrative-individuals",
+      "narrative-community",
+      "narrative-society",
     ],
     display: {
       publicationsLimit: JSPS_PUBLICATIONS_LIMIT,
       publicationOrder: "year-desc",
       peerReviewedOnly: true,
     },
-    includesNarrative: true,
   },
 };
 
@@ -191,57 +210,93 @@ export function isGrantPresetId(id: string): id is GrantPresetId {
 }
 
 /**
- * Seed every standard narrative module that's missing, preserving canonical
- * order. Mirrors the narrative editor's seeding: already-present modules
- * (including any the user edited) are left untouched. Pure + immutable.
+ * Create an empty section of `type` if the CV doesn't already have one, with a
+ * localized title. Prose types (`narrative-*`) get an empty `body`. Pure: returns
+ * a new CV (or the same one when the section already exists). Used by
+ * `applyGrantPreset` to materialize the funder's narrative contribution sections.
  */
-function seedNarrative(cv: CanonicalCv, locale: string): CanonicalCv {
-  // `narrative` is `.default([])` in the schema, so it's always an array after
-  // parse; the `?? []` is a defensive guard for a hand-built object.
-  /* v8 ignore next -- narrative is always an array post-parse */
-  const existing = cv.narrative ?? [];
-  const present = new Set(existing.map((m) => m.key));
-  const additions: CvNarrativeModule[] = defaultNarrativeModules(locale).filter(
-    (m) => !present.has(m.key),
-  );
-  if (additions.length === 0) return cv;
-  return { ...cv, narrative: [...existing, ...additions] };
+function ensureSection(cv: CanonicalCv, type: CvSectionType): CanonicalCv {
+  if (cv.sections.some((s) => s.type === type)) return cv;
+  const newSection: CvSection = {
+    id: type,
+    type,
+    title: sectionTitle(cv.display.locale, type),
+    visible: true,
+    order: DEFAULT_SECTION_ORDER[type],
+    items: [],
+    ...(isProseSectionType(type) ? { body: "" } : {}),
+  };
+  return { ...cv, sections: [...cv.sections, newSection] };
 }
 
 /**
- * Apply a grant preset to a CV: set the funder-expected section visibility +
- * display choices, and (when the preset uses them) seed the narrative modules.
+ * Apply a grant preset to a CV:
+ *  - ensure every section the funder rubric wants exists (creating any missing
+ *    one — including the `narrative-*` contribution prose sections — as empty);
+ *  - set those sections VISIBLE and hide every other section;
+ *  - order the visible sections in the preset's funder-rubric sequence, with all
+ *    other (hidden) sections kept after them in their existing relative order;
+ *  - apply the display overrides (limit / order / peer-reviewed-only).
  *
  * PURE + IMMUTABLE — returns a new CV and never mutates the input. It only
- * touches DISPLAY and section visibility (and appends missing narrative
- * scaffolding); it NEVER deletes or reorders curated item data, so the change is
- * fully reversible (the caller snapshots the prior view as a named preset first).
+ * touches DISPLAY, section visibility + order, and creates empty sections; it
+ * NEVER deletes or reorders curated ITEM data, so the change is fully reversible
+ * (the caller snapshots the prior view as a named preset first).
  *
  * Unknown ids are a no-op (identity preserved).
  */
 export function applyGrantPreset(
   cv: CanonicalCv,
   id: string,
-  locale: string = cv.display.locale,
+  /* locale kept in the signature for call-site compatibility; section titles are
+     localized via `cv.display.locale` when created. */
+  _locale: string = cv.display.locale,
 ): CanonicalCv {
   if (!isGrantPresetId(id)) return cv;
+  void _locale;
   const config = GRANT_PRESETS[id];
-  const visible = new Set<CvSectionType>(config.visibleSections);
+  const wanted = config.visibleSections;
+  const wantedSet = new Set<CvSectionType>(wanted);
 
-  // Visibility: show every section the rubric wants, hide the rest. This walks
-  // the existing sections only — it never creates sections (source-driven ones
-  // appear on the next re-sync; the user adds the rest), keeping the op minimal.
+  // 1. Materialize every wanted section that's missing (empty).
   let next = cv;
-  for (const section of cv.sections) {
-    next = setSectionVisible(next, section.id, visible.has(section.type));
+  for (const type of wanted) next = ensureSection(next, type);
+
+  // 2. Visibility: show every wanted section, hide the rest.
+  for (const section of next.sections) {
+    next = setSectionVisible(next, section.id, wantedSet.has(section.type));
   }
 
-  next = updateDisplay(next, { ...config.display });
+  // 3. Order: the wanted sections take the preset's sequence (0..n-1); every
+  //    other section keeps its relative order, appended after them. Operates on
+  //    section TYPE → rank since a preset is expressed in types.
+  const rankByType = new Map<CvSectionType, number>(
+    wanted.map((type, i) => [type, i]),
+  );
+  const visibleCount = wanted.length;
+  // Stable: hidden sections keep their existing relative order after the visible
+  // block (sort by their current order, then assign sequential ranks).
+  const hiddenSorted = [...next.sections]
+    .filter((s) => !wantedSet.has(s.type))
+    .sort((a, b) => a.order - b.order)
+    .map((s) => s.id);
+  const hiddenRank = new Map<string, number>(
+    hiddenSorted.map((sectionId, i) => [sectionId, visibleCount + i]),
+  );
+  const ordered: CvSection[] = next.sections.map((s) => ({
+    ...s,
+    order: wantedSet.has(s.type)
+      ? rankByType.get(s.type)!
+      : hiddenRank.get(s.id)!,
+  }));
+  next = {
+    ...next,
+    sections: ordered,
+    display: { ...next.display, sectionsCustomized: true },
+  };
 
-  // Both catalog presets currently set this; the guard keeps the op correct if a
-  // future preset opts out of the narrative scaffolding.
-  /* v8 ignore next -- every current preset includes the narrative */
-  if (config.includesNarrative) next = seedNarrative(next, locale);
+  // 4. Display overrides (publications limit / order / peer-reviewed-only).
+  next = updateDisplay(next, { ...config.display });
 
   return next;
 }

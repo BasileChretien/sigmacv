@@ -38,7 +38,7 @@ function work(over: Partial<OpenAlexWork> = {}): OpenAlexWork {
 
 function emptyCv(): CanonicalCv {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     id: "cv1",
     owner: { displayName: "Wei Zhang", orcid: ME },
     display: { locale: "en-US" },

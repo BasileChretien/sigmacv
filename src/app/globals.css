@@ -628,32 +628,37 @@ input[type="radio"] {
   gap: var(--space-4);
 }
 
-/* ── Narrative-CV editor: same card chrome as the style panel, but its modules
-      stack full-width (single column) rather than fitting the 2-col grid. ── */
-.narrative-editor {
-  grid-template-columns: 1fr;
+/* ── Prose sections (narrative contributions / a statement): a full-width
+      free-text body editor shown in place of the item-row list. ── */
+.prose-body-field {
+  padding: 0 var(--space-3) var(--space-3);
 }
-.narrative-intro {
-  margin: 0;
-  font-size: var(--text-sm);
+textarea.prose-body {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.5;
 }
-.narrative-actions {
+
+/* ── Grant / funder-CV layout buttons (Style/Presets area). ── */
+.grant-presets {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
 }
-.narrative-starter-note {
+.grant-presets-label {
   font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
-.narrative-module .narrative-body-field {
-  padding: 0 var(--space-3) var(--space-3);
-}
-textarea.narrative-body {
-  width: 100%;
-  resize: vertical;
-  font: inherit;
-  line-height: 1.5;
+.grant-presets-note {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--text-xs);
 }
 
 /* Saved view-presets bar (full-width row at the top of the style panel). */

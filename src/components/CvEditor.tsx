@@ -8,8 +8,10 @@ import {
   DENSITIES,
   FONT_PAIRINGS,
   HIGHLIGHT_STYLES,
+  PROSE_BODY_MAX,
   SECTION_TYPES,
   TEMPLATES,
+  isProseSectionType,
   type CanonicalCv,
   type CvSectionType,
   type CustomStyle,
@@ -34,10 +36,13 @@ import {
   setItemIncluded,
   setItemNotMine,
   setLocale,
+  setSectionBody,
   setSectionVisible,
   updateDisplay,
   updateItemText,
 } from "@/lib/canonical/curate";
+import { applyGrantPreset } from "@/lib/canonical/grantPresets";
+import { grantPresetList } from "@/lib/i18n/grantPresets";
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { ui } from "@/lib/i18n/ui";
@@ -46,8 +51,10 @@ import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
 import ItemRow from "./ItemRow";
-import NarrativeEditor from "./NarrativeEditor";
 import ProfilePanel from "./ProfilePanel";
+
+/** Snapshot name for the view saved before a grant layout is applied (reversible). */
+const GRANT_SNAPSHOT_NAME = "Before grant layout";
 
 interface CvEditorProps {
   cv: CanonicalCv;
@@ -256,6 +263,12 @@ export default function CvEditor({
 
   const hasSection = (type: string): boolean =>
     cv.sections.some((s) => s.type === type);
+
+  // Which section types the "Add a section" menu offers. A type is addable when
+  // it isn't already present — EXCEPT `statement`, a free-titled prose block the
+  // user can add as many times as they like (so it's always offered).
+  const isAddable = (type: CvSectionType): boolean =>
+    type === "statement" || !hasSection(type);
 
   function newId(type: string): string {
     const rand =
@@ -493,6 +506,35 @@ export default function CvEditor({
           >
             {t(locale, "savePreset")}
           </button>
+        </div>
+
+        {/* Grant / funder-CV layouts. Snapshot the current view as a restorable
+            preset first (reversible), then apply the funder's section selection +
+            order + display via the pure `applyGrantPreset`. */}
+        <div className="grant-presets">
+          <span className="grant-presets-label">{eu.grantLegend}</span>
+          {grantPresetList(locale).map((preset) => (
+            <button
+              key={preset.id}
+              type="button"
+              className="btn btn-sm"
+              onClick={() =>
+                onChange(
+                  applyGrantPreset(
+                    savePreset(cv, GRANT_SNAPSHOT_NAME),
+                    preset.id,
+                    cvLocale,
+                  ),
+                )
+              }
+              title={preset.description}
+            >
+              {eu.grantApply.replace("{name}", preset.name)}
+            </button>
+          ))}
+          <p className="muted metric-preset-note grant-presets-note">
+            {eu.grantIntro}
+          </p>
         </div>
 
         <h3 className="group-head">{eu.grpTemplate}</h3>
@@ -937,8 +979,6 @@ export default function CvEditor({
         <p className="muted metric-preset-note field-note">{u.countLettersNote}</p>
       </fieldset>
 
-      <NarrativeEditor cv={cv} uiLocale={uiLocale} onChange={onChange} />
-
       <p className="editor-hint">{t(locale, "editorHints")}</p>
 
       <Reorder.Group
@@ -993,9 +1033,11 @@ export default function CvEditor({
                 }
                 aria-label={u.sectionTitleAria}
               />
-              <span className="section-count muted">
-                {shownCount}/{items.length} {u.shownSuffix}
-              </span>
+              {isProseSectionType(section.type) ? null : (
+                <span className="section-count muted">
+                  {shownCount}/{items.length} {u.shownSuffix}
+                </span>
+              )}
               <label className="field-inline">
                 <input
                   type="checkbox"
@@ -1037,7 +1079,34 @@ export default function CvEditor({
               </button>
             </div>
 
-            {isExpanded ? (
+            {isExpanded && isProseSectionType(section.type) ? (
+              <label className="field prose-body-field">
+                <span className="muted">{eu.proseBody}</span>
+                <textarea
+                  className="prose-body"
+                  rows={6}
+                  value={section.body ?? ""}
+                  maxLength={PROSE_BODY_MAX}
+                  aria-label={`${section.title} — ${eu.proseBody}`}
+                  onChange={(e) =>
+                    onChange(
+                      setSectionBody(
+                        cv,
+                        section.id,
+                        e.target.value.slice(0, PROSE_BODY_MAX),
+                      ),
+                    )
+                  }
+                />
+                <span className="field-hint muted">
+                  {eu.proseBodyHint} ·{" "}
+                  {eu.proseCharsLeft.replace(
+                    "{n}",
+                    String(PROSE_BODY_MAX - (section.body ?? "").length),
+                  )}
+                </span>
+              </label>
+            ) : isExpanded ? (
               <>
             {items.length === 0 ? (
               <p className="muted empty-note">{t(locale, "noItems")}</p>
@@ -1323,17 +1392,22 @@ export default function CvEditor({
       })}
       </Reorder.Group>
 
-      {ADDABLE_SECTIONS.some((tp) => !hasSection(tp)) ? (
+      {ADDABLE_SECTIONS.some(isAddable) ? (
         <div className="add-section-row">
           <span className="muted add-section-label">{t(locale, "addSection")}:</span>
-          {ADDABLE_SECTIONS.filter((tp) => !hasSection(tp)).map((tp) => (
+          {ADDABLE_SECTIONS.filter(isAddable).map((tp) => (
             <button
               key={tp}
               type="button"
               className="btn btn-sm"
               onClick={() => {
                 onChange(addSection(cv, tp));
-                setExpanded((prev) => new Set(prev).add(tp));
+                // A single-instance type's id equals its type, so we can pre-
+                // expand it; a recurring `statement` gets a generated id, so we
+                // leave it collapsed (it appears at the bottom of the list).
+                if (tp !== "statement") {
+                  setExpanded((prev) => new Set(prev).add(tp));
+                }
               }}
             >
               + {sectionTitle(locale, tp)}

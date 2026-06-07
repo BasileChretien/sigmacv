@@ -10,7 +10,7 @@ import {
   TextRun,
   WidthType,
 } from "docx";
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "./authorship";
 import { cvChartSvgs } from "./charts";
@@ -76,36 +76,30 @@ function chartParagraphs(cv: CanonicalCv): Paragraph[] {
 }
 
 /**
- * The narrative-CV block as DOCX paragraphs: each included module with a
- * non-empty body becomes a heading paragraph + its body split into paragraphs on
- * blank lines (the body is the user's own plain-text prose, emitted as text runs
- * — Word escapes XML for us). "" → no paragraphs.
+ * A prose section as DOCX paragraphs: a heading paragraph + its body split into
+ * paragraphs on blank lines (the body is the user's own plain-text prose, emitted
+ * as text runs — Word escapes XML for us). "" body → no paragraphs.
  */
-function narrativeParagraphs(cv: CanonicalCv): Paragraph[] {
-  const modules = (cv.narrative ?? []).filter(
-    (m) => m.included && m.body.trim().length > 0,
-  );
+function proseSectionParagraphs(title: string, body: string): Paragraph[] {
   const out: Paragraph[] = [];
-  for (const m of modules) {
+  out.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_2,
+      children: [new TextRun({ text: title, bold: true })],
+    }),
+  );
+  const bodyParas = body
+    .replace(/\r\n?/g, "\n")
+    .split(/\n[ \t]*\n+/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+  for (const para of bodyParas) {
     out.push(
       new Paragraph({
-        heading: HeadingLevel.HEADING_2,
-        children: [new TextRun({ text: m.heading, bold: true })],
+        children: [new TextRun(para)],
+        spacing: { after: 120 },
       }),
     );
-    const bodyParas = m.body
-      .replace(/\r\n?/g, "\n")
-      .split(/\n[ \t]*\n+/)
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0);
-    for (const para of bodyParas) {
-      out.push(
-        new Paragraph({
-          children: [new TextRun(para)],
-          spacing: { after: 120 },
-        }),
-      );
-    }
   }
   return out;
 }
@@ -195,10 +189,14 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
     );
   }
 
-  // Narrative-CV prose (funder résumé modules) sits ABOVE the data sections.
-  children.push(...narrativeParagraphs(cv));
-
   for (const { section, items } of sections) {
+    // Prose sections (narrative contributions / a statement) render their
+    // free-text body in the section flow, in their reordered position.
+    if (isProseSectionType(section.type)) {
+      const body = (section.body ?? "").trim();
+      if (body) children.push(...proseSectionParagraphs(section.title, section.body ?? ""));
+      continue;
+    }
     if (items.length === 0) continue;
     children.push(
       new Paragraph({

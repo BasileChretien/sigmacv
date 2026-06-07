@@ -1,18 +1,17 @@
 import {
   DEFAULT_SECTION_ORDER,
+  PROSE_BODY_MAX,
   isHidden,
+  isProseSectionType,
   type CanonicalCv,
   type CvItem,
-  type CvNarrativeModule,
   type CvOwner,
   type CvSection,
   type CvSectionType,
   type DisplayChoices,
-  type NarrativeModuleKey,
   type NotMineReason,
 } from "./schema";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
-import { narrativeModuleStrings } from "@/lib/i18n/narrative";
 import { toCslName } from "@/lib/openalex/toCsl";
 import type { CslItem, CslName } from "@/types/csl";
 
@@ -541,16 +540,50 @@ export function addSection(
   cv: CanonicalCv,
   sectionType: CvSectionType,
 ): CanonicalCv {
-  if (cv.sections.some((s) => s.type === sectionType)) return cv;
+  // A `statement` section can legitimately recur (the user titles each one), so
+  // it is NOT deduplicated by type; every other type is single-instance.
+  if (
+    sectionType !== "statement" &&
+    cv.sections.some((s) => s.type === sectionType)
+  ) {
+    return cv;
+  }
+  const isProse = isProseSectionType(sectionType);
+  // Unique id: a recurring `statement` needs a distinct id per instance.
+  const id =
+    sectionType === "statement"
+      ? `statement:${
+          /* a short unique suffix; Date.now keeps it stable + deterministic-enough */
+          cv.sections.filter((s) => s.type === "statement").length
+        }:${cv.sections.length}`
+      : sectionType;
   const newSection: CvSection = {
-    id: sectionType,
+    id,
     type: sectionType,
     title: sectionTitle(cv.display.locale, sectionType),
     visible: true,
     order: DEFAULT_SECTION_ORDER[sectionType],
     items: [],
+    // Prose sections carry a (initially empty) free-text body instead of items.
+    ...(isProse ? { body: "" } : {}),
   };
   return { ...cv, sections: [...cv.sections, newSection] };
+}
+
+/**
+ * Set a prose section's free-text `body` (the heading + running prose a
+ * `PROSE_SECTION_TYPES` section renders instead of items). Bounded to the schema
+ * cap. Pure + immutable; no-op for an unknown section id. Non-prose sections are
+ * left untouched in practice (the editor only calls this for prose sections), but
+ * the op itself simply writes `body` on whatever section id it's given.
+ */
+export function setSectionBody(
+  cv: CanonicalCv,
+  sectionId: string,
+  body: string,
+): CanonicalCv {
+  const clamped = body.slice(0, PROSE_BODY_MAX);
+  return mapSection(cv, sectionId, (s) => ({ ...s, body: clamped }));
 }
 
 /** Edit an item's free-text display string (manual entries). */
@@ -606,87 +639,4 @@ export function orderedSections(cv: CanonicalCv): CvSection[] {
 /** Visible sections that should appear, in effective display order. */
 export function visibleSections(cv: CanonicalCv): CvSection[] {
   return orderedSections(cv).filter((s) => s.visible);
-}
-
-// ─── Narrative CV modules (funder résumé prose) ──────────────────────────────
-
-/** Patch shape for `upsertNarrativeModule` (all fields optional). */
-export interface NarrativeModulePatch {
-  heading?: string;
-  body?: string;
-  included?: boolean;
-}
-
-/** The narrative array (back-compat: a doc stored before narratives is `[]`). */
-function narrativeOf(cv: CanonicalCv): CvNarrativeModule[] {
-  return cv.narrative ?? [];
-}
-
-/**
- * Create or patch a narrative module by key. When the module is absent it is
- * created from the localized default (heading from `i18n/narrative.ts`, empty
- * body, `included: true`) and then the patch is applied; when present, the patch
- * is merged onto the existing module. Pure + immutable.
- */
-export function upsertNarrativeModule(
-  cv: CanonicalCv,
-  key: NarrativeModuleKey,
-  patch: NarrativeModulePatch = {},
-): CanonicalCv {
-  const narrative = narrativeOf(cv);
-  const existing = narrative.find((m) => m.key === key);
-  if (existing) {
-    return {
-      ...cv,
-      narrative: narrative.map((m) =>
-        m.key === key ? { ...m, ...patch } : m,
-      ),
-    };
-  }
-  const seed: CvNarrativeModule = {
-    key,
-    heading: narrativeModuleStrings(cv.display.locale, key).heading,
-    body: "",
-    included: true,
-  };
-  return { ...cv, narrative: [...narrative, { ...seed, ...patch }] };
-}
-
-/** Toggle whether a narrative module is shown (creates it if absent). */
-export function setNarrativeModuleIncluded(
-  cv: CanonicalCv,
-  key: NarrativeModuleKey,
-  included: boolean,
-): CanonicalCv {
-  return upsertNarrativeModule(cv, key, { included });
-}
-
-/** Remove a narrative module entirely (no-op if absent). */
-export function removeNarrativeModule(
-  cv: CanonicalCv,
-  key: NarrativeModuleKey,
-): CanonicalCv {
-  const narrative = narrativeOf(cv);
-  const next = narrative.filter((m) => m.key !== key);
-  return next.length === narrative.length ? cv : { ...cv, narrative: next };
-}
-
-/**
- * Move a narrative module from one index to another (drag-and-drop reorder).
- * Indices are clamped into range; a no-op (same position, or an out-of-range
- * source) preserves identity. Pure + immutable.
- */
-export function reorderNarrative(
-  cv: CanonicalCv,
-  fromIndex: number,
-  toIndex: number,
-): CanonicalCv {
-  const narrative = narrativeOf(cv);
-  if (fromIndex < 0 || fromIndex >= narrative.length) return cv;
-  const to = Math.max(0, Math.min(toIndex, narrative.length - 1));
-  if (to === fromIndex) return cv;
-  const next = [...narrative];
-  const [moved] = next.splice(fromIndex, 1);
-  next.splice(to, 0, moved!);
-  return { ...cv, narrative: next };
 }

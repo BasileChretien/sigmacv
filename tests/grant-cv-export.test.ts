@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   addManualEntry,
+  addSection,
+  renameSection,
+  setSectionBody,
   updateDisplay,
   updateOwner,
-  upsertNarrativeModule,
 } from "@/lib/canonical/curate";
 import { GRANT_PRESETS, type GrantPresetId } from "@/lib/canonical/grantPresets";
 import type { CanonicalCv, CvSectionType } from "@/lib/canonical/schema";
@@ -61,13 +63,18 @@ function fullCv(): CanonicalCv {
   seeds.forEach(([type, text], i) => {
     cv = addManualEntry(cv, type, text, `${type}:${i}`);
   });
-  cv = upsertNarrativeModule(cv, "knowledge", {
-    body: "I uncovered three previously unknown drug-safety signals.",
-  });
+  // The narrative "knowledge" contribution is now a first-class prose section.
+  cv = addSection(cv, "narrative-knowledge");
+  const sec = cv.sections.find((s) => s.type === "narrative-knowledge")!;
+  cv = setSectionBody(
+    cv,
+    sec.id,
+    "I uncovered three previously unknown drug-safety signals.",
+  );
   return cv;
 }
 
-/** A bare CV: no header, no extra sections, no narrative — only the fixture
+/** A bare CV: no header, no extra sections, no prose — only the fixture
  *  publications. Exercises every "omit empty section" branch. */
 function bareCv(): CanonicalCv {
   const cv = makeCv();
@@ -82,7 +89,6 @@ function bareCv(): CanonicalCv {
       contact: undefined,
       links: [],
     },
-    narrative: [],
   };
 }
 
@@ -259,15 +265,14 @@ describe.skipIf(!hasApa)("funder grant-CV export", () => {
     expect(block).toContain("Keynote, ISoP 2023");
   });
 
-  it("does NOT append funder bullets to a narrative module whose heading collides with a funder heading", () => {
-    // A user narrative block whose heading equals the NSF "Synergistic
+  it("does NOT append funder bullets to a narrative section whose title collides with a funder heading", () => {
+    // A user narrative block whose title equals the NSF "Synergistic
     // Activities" funder heading must not absorb the service/talks bullets — the
     // merge tracks the exact emitted-section index, not a heading prefix.
     let cv = fullCv();
-    cv = upsertNarrativeModule(cv, "knowledge", {
-      heading: "Synergistic Activities",
-      body: "Narrative prose about my synergy.",
-    });
+    const sec = cv.sections.find((s) => s.type === "narrative-knowledge")!;
+    cv = renameSection(cv, sec.id, "Synergistic Activities");
+    cv = setSectionBody(cv, sec.id, "Narrative prose about my synergy.");
     const md = renderGrantCv(cv, "nsf");
 
     // The narrative block (its own prose) is distinct from the funder section.

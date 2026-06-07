@@ -13,7 +13,7 @@ import { CslItemSchema } from "@/types/csl";
  * migration when its shape changes; everything downstream depends on it.
  */
 
-export const CANONICAL_SCHEMA_VERSION = 1 as const;
+export const CANONICAL_SCHEMA_VERSION = 2 as const;
 
 /**
  * Licenses offered for the whole-CV reuse statement (`display.cvLicense`) and
@@ -44,6 +44,15 @@ export const SECTION_TYPES = [
   "peer-review",
   "editorial",
   "grants",
+  // ── Prose sections (free-text body, no items) ──────────────────────────────
+  // The four R4RI / Royal-Society "narrative CV" contribution modules plus a
+  // generic free-titled statement. They are first-class sections, managed like
+  // any other (add / reorder / hide / rename) — see PROSE_SECTION_TYPES.
+  "narrative-knowledge",
+  "narrative-individuals",
+  "narrative-community",
+  "narrative-society",
+  "statement",
   "skills",
   "languages",
   "references",
@@ -51,6 +60,30 @@ export const SECTION_TYPES = [
 ] as const;
 export const CvSectionTypeSchema = z.enum(SECTION_TYPES);
 export type CvSectionType = z.infer<typeof CvSectionTypeSchema>;
+
+/**
+ * The PROSE section types — sections that carry a free-text `body` (a heading +
+ * running prose) INSTEAD of `items[]`. Render + UI branch on this set to use the
+ * `body` field and a single textarea rather than an item-row list. The four
+ * `narrative-*` types are the standard funder "narrative CV" contribution
+ * modules (UKRI Résumé for Research and Innovation / Royal Society Résumé for
+ * Researchers framing); `statement` is a generic prose block the user titles.
+ */
+export const PROSE_SECTION_TYPES = new Set<CvSectionType>([
+  "narrative-knowledge",
+  "narrative-individuals",
+  "narrative-community",
+  "narrative-society",
+  "statement",
+]);
+
+/** Whether a section type is a prose section (uses `body`, not `items`). */
+export function isProseSectionType(type: CvSectionType): boolean {
+  return PROSE_SECTION_TYPES.has(type);
+}
+
+/** Mirror of the `body` cap (`CvSectionSchema.body`) — used by the prose editor. */
+export const PROSE_BODY_MAX = 8000;
 
 /**
  * Canonical default ordering of sections on a fresh CV (standard academic
@@ -65,17 +98,24 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
   conference: 4,
   datasets: 5,
   grants: 6,
-  awards: 7,
-  talks: 8,
-  teaching: 9,
-  supervision: 10,
-  editorial: 11,
-  "peer-review": 12,
-  service: 13,
-  skills: 14,
-  languages: 15,
-  references: 16,
-  other: 17,
+  // The four narrative contribution modules sit together just after grants.
+  "narrative-knowledge": 7,
+  "narrative-individuals": 8,
+  "narrative-community": 9,
+  "narrative-society": 10,
+  awards: 11,
+  talks: 12,
+  teaching: 13,
+  supervision: 14,
+  editorial: 15,
+  "peer-review": 16,
+  service: 17,
+  skills: 18,
+  languages: 19,
+  references: 20,
+  // A generic prose statement sits near the end, just before "Other".
+  statement: 21,
+  other: 22,
 };
 
 /**
@@ -258,39 +298,6 @@ export function isHidden(item: Pick<CvItem, "included" | "notMine">): boolean {
   return !item.included || item.notMine === true;
 }
 
-/**
- * The standard funder "narrative CV" modules (UKRI Résumé for Research and
- * Innovation / Royal Society Résumé for Researchers framing). The researcher
- * writes the PROSE; SigmaCV only stores, curates and renders it. Keys are stable
- * (proper-noun-free) identifiers; the localized heading + guidance prompt live in
- * `i18n/narrative.ts`, so a heading can be re-localized without changing the key.
- */
-export const NARRATIVE_MODULE_KEYS = [
-  "personal-statement",
-  "knowledge",
-  "individuals",
-  "community",
-  "society",
-  "additional",
-] as const;
-export const NarrativeModuleKeySchema = z.enum(NARRATIVE_MODULE_KEYS);
-export type NarrativeModuleKey = z.infer<typeof NarrativeModuleKeySchema>;
-
-/**
- * One narrative module: a user-chosen heading + free-text body, with an
- * include/exclude display toggle. The body is bounded (8k chars) to keep the
- * canonical document a sane size; it is USER FREE-TEXT and must be escaped /
- * safe-transformed by every renderer (never interpreted as raw HTML/markdown).
- */
-export const CvNarrativeModuleSchema = z.object({
-  key: NarrativeModuleKeySchema,
-  heading: z.string().max(200),
-  body: z.string().max(8000),
-  /** Display toggle: only `included` modules with a non-empty body are rendered. */
-  included: z.boolean().default(true),
-});
-export type CvNarrativeModule = z.infer<typeof CvNarrativeModuleSchema>;
-
 export const CvSectionSchema = z.object({
   id: z.string(),
   type: CvSectionTypeSchema,
@@ -303,6 +310,14 @@ export const CvSectionSchema = z.object({
   // document forcing multi-second citeproc renders). 10k items per section is
   // far beyond any real CV yet blocks pathological abuse.
   items: z.array(CvItemSchema).max(10_000),
+  /**
+   * USER FREE-TEXT prose body. Used ONLY by prose sections (`PROSE_SECTION_TYPES`)
+   * — a heading + running prose, with `items` left `[]`. Bounded (8k chars) to
+   * keep the canonical document a sane size. It is user-controlled and must be
+   * escaped / safe-transformed by every renderer (never interpreted as raw
+   * HTML/markdown). Optional + back-compat: a non-prose section omits it.
+   */
+  body: z.string().max(8000).optional(),
 });
 export type CvSection = z.infer<typeof CvSectionSchema>;
 
@@ -610,32 +625,119 @@ export const CanonicalCvSchema = z.object({
   sections: z.array(CvSectionSchema).max(60),
   /** Saved named view-presets (optional; back-compat: old docs have none). */
   presets: z.array(CvPresetSchema).max(20).default([]),
-  /**
-   * The narrative-CV modules (funder résumé prose). Additive + `.default([])`,
-   * so a document stored before narratives existed validates as `[]`. Capped at
-   * 12 (the six standard modules plus headroom). Rendered as a block above the
-   * sections when ≥1 included module has a non-empty body.
-   */
-  narrative: z.array(CvNarrativeModuleSchema).max(12).default([]),
   provenance: ProvenanceSchema,
 });
 export type CanonicalCv = z.infer<typeof CanonicalCvSchema>;
 
 /**
+ * Map an old v1 narrative-module key → the v2 prose section TYPE it becomes.
+ * `personal-statement` and `additional` have no dedicated prose type:
+ *  - `personal-statement` folds into `owner.summary` when that is empty, else a
+ *    `statement` section;
+ *  - `additional` always becomes a `statement` section.
+ * (Handled specially in `migrateNarrativeToSections`, not via this map.)
+ */
+const NARRATIVE_KEY_TO_SECTION_TYPE: Record<string, CvSectionType> = {
+  knowledge: "narrative-knowledge",
+  individuals: "narrative-individuals",
+  community: "narrative-community",
+  society: "narrative-society",
+};
+
+/**
+ * v1 → v2: convert the old top-level `narrative[]` modules into first-class
+ * prose SECTIONS. Each module's `heading` → section.title, `body` → section.body,
+ * `included` → section.visible; the four contribution modules map to their
+ * `narrative-*` type, `additional` (and any unknown key) to a generic `statement`
+ * section, and `personal-statement` folds into `owner.summary` when that is empty
+ * (else a `statement` section). Converted sections are appended AFTER the existing
+ * sections; `narrative` is then dropped. Robust: never throws on a malformed old
+ * doc (a non-array narrative, a non-object module, missing fields all degrade to a
+ * no-op skip).
+ */
+function migrateNarrativeToSections(doc: Record<string, unknown>): void {
+  const narrative = doc.narrative;
+  delete doc.narrative; // remove the v1 field whatever happens next
+  if (!Array.isArray(narrative) || narrative.length === 0) return;
+
+  const sections = Array.isArray(doc.sections) ? [...doc.sections] : [];
+  // Highest existing order, so appended prose sections sit after everything.
+  let nextOrder =
+    sections.reduce((m: number, s) => {
+      const o = (s as { order?: unknown })?.order;
+      return typeof o === "number" && o > m ? o : m;
+    }, -1) + 1;
+
+  const owner = (doc.owner ?? {}) as Record<string, unknown>;
+  const summaryEmpty =
+    typeof owner.summary !== "string" || owner.summary.trim().length === 0;
+
+  let statementCount = 0;
+  const makeSection = (
+    type: CvSectionType,
+    title: string,
+    body: string,
+    visible: boolean,
+  ) => {
+    // A unique id; `statement` can recur, so disambiguate the duplicates.
+    const id = type === "statement" ? `statement:${statementCount++}` : type;
+    sections.push({ id, type, title, visible, order: nextOrder++, items: [], body });
+  };
+
+  for (const raw of narrative) {
+    if (!raw || typeof raw !== "object") continue;
+    const mod = raw as Record<string, unknown>;
+    const key = typeof mod.key === "string" ? mod.key : "";
+    const heading = typeof mod.heading === "string" ? mod.heading : "";
+    const body = typeof mod.body === "string" ? mod.body : "";
+    // `included` defaulted to true in v1; treat a missing/non-false value as visible.
+    const visible = mod.included !== false;
+
+    if (key === "personal-statement") {
+      if (summaryEmpty && body.trim().length > 0) {
+        owner.summary = body;
+        doc.owner = owner;
+      } else if (body.trim().length > 0) {
+        // Summary already set — keep the prose as a generic statement instead.
+        makeSection("statement", heading || "Statement", body, visible);
+      }
+      continue;
+    }
+
+    const mappedType = NARRATIVE_KEY_TO_SECTION_TYPE[key];
+    if (mappedType) {
+      makeSection(mappedType, heading, body, visible);
+    } else {
+      // `additional` and any unknown key → a generic statement section.
+      makeSection("statement", heading || "Statement", body, visible);
+    }
+  }
+
+  doc.sections = sections;
+}
+
+/**
  * Upgrade a stored document to the current schema version BEFORE validation.
- * Today schemaVersion === 1, so this is a pass-through — but it is the single
- * place a future v1→v2→… migration chain lives. Routing every read through it
- * means a version bump never silently nulls every stored CV (the failure mode
- * if validation simply rejected an old shape). New FIELDS don't need a bump
- * (Zod `.optional()`/`.default()` + enum-extension stay back-compatible); only
- * breaking/structural changes do.
+ * Routing every read through it means a version bump never silently nulls every
+ * stored CV (the failure mode if validation simply rejected an old shape). New
+ * FIELDS don't need a bump (Zod `.optional()`/`.default()` + enum-extension stay
+ * back-compatible); only breaking/structural changes do.
+ *
+ * v1 → v2: the dedicated `narrative[]` array is replaced by first-class prose
+ * sections (see `migrateNarrativeToSections`).
  */
 export function migrateCanonicalDocument(input: unknown): unknown {
   if (!input || typeof input !== "object") return input;
   const doc = input as Record<string, unknown>;
   let version = typeof doc.schemaVersion === "number" ? doc.schemaVersion : 1;
-  // while (version < CANONICAL_SCHEMA_VERSION) { …migrate one step…; version++ }
-  void version; // no migration steps yet (current version is 1)
+  // Only upgrade KNOWN older versions; a higher/unknown version is left untouched
+  // so validation can reject it (never clobber an unrecognised schemaVersion).
+  if (version >= CANONICAL_SCHEMA_VERSION) return doc;
+  while (version < CANONICAL_SCHEMA_VERSION) {
+    if (version < 2) migrateNarrativeToSections(doc);
+    version++;
+  }
+  doc.schemaVersion = CANONICAL_SCHEMA_VERSION;
   return doc;
 }
 
