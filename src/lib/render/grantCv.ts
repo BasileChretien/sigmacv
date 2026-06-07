@@ -8,7 +8,7 @@ import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import {
   GRANT_PRESETS,
   type GrantPresetId,
-} from "@/lib/canonical/grantPresets";
+} from "@/lib/canonical/cvModels";
 import { wrapSelf } from "./emphasize";
 import { escapeMarkdown } from "./escape";
 import { prepareSections } from "./prepare";

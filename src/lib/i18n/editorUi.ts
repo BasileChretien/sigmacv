@@ -53,6 +53,14 @@ export interface EditorExtraStrings {
   grantLegend: string;
   grantIntro: string;
   grantApply: string;
+  // CV-model catalog picker chrome (the only localized strings — model names /
+  // descriptions render as-is in English). `modelGrp*` are the optgroup labels.
+  modelLegend: string;
+  modelApply: string;
+  modelSnapshot: string;
+  modelGrpGrant: string;
+  modelGrpInstitution: string;
+  modelGrpIndustry: string;
 }
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
@@ -98,6 +106,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     grantIntro:
       "Apply a structured starting layout matching a major funder’s call. It shows the funder’s sections (creating any missing ones), sets their order and hides the rest. Reversible — your current view is saved first. Submit the final application via the funder’s own portal/template.",
     grantApply: "Apply {name} layout",
+    modelLegend: "Choose a CV model",
+    modelApply: "Apply",
+    modelSnapshot: "Before CV model",
+    modelGrpGrant: "Grant calls",
+    modelGrpInstitution: "Public institutions",
+    modelGrpIndustry: "Industry & clinical",
   },
   "zh-CN": {
     grpTemplate: "模板与排版",
@@ -141,6 +155,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     grantIntro:
       "套用与某个重要资助方公募相匹配的结构化起始版式。它会显示该资助方的栏目（缺失的将创建）、设定其顺序并隐藏其余栏目。可逆——会先保存你当前的视图。最终申请请通过资助方自己的门户／模板提交。",
     grantApply: "套用 {name} 版式",
+    modelLegend: "选择简历模型",
+    modelApply: "套用",
+    modelSnapshot: "套用简历模型前",
+    modelGrpGrant: "资助公募",
+    modelGrpInstitution: "公共机构",
+    modelGrpIndustry: "产业与临床",
   },
   "es-ES": {
     grpTemplate: "Plantilla y diseño",
@@ -185,6 +205,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     grantIntro:
       "Aplica un diseño inicial estructurado acorde con una gran convocatoria de un financiador. Muestra las secciones del financiador (creando las que falten), fija su orden y oculta el resto. Reversible: tu vista actual se guarda primero. Presenta la solicitud final mediante el portal/plantilla del propio financiador.",
     grantApply: "Aplicar diseño {name}",
+    modelLegend: "Elige un modelo de CV",
+    modelApply: "Aplicar",
+    modelSnapshot: "Antes del modelo de CV",
+    modelGrpGrant: "Convocatorias de financiación",
+    modelGrpInstitution: "Instituciones públicas",
+    modelGrpIndustry: "Industria y clínica",
   },
   "fr-FR": {
     grpTemplate: "Modèle et mise en page",
@@ -229,6 +255,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     grantIntro:
       "Appliquez une mise en page de départ structurée correspondant à un grand appel d’un financeur. Elle affiche les sections du financeur (en créant celles qui manquent), fixe leur ordre et masque les autres. Réversible — votre vue actuelle est d’abord enregistrée. Déposez la candidature finale via le portail/modèle propre au financeur.",
     grantApply: "Appliquer la mise en page {name}",
+    modelLegend: "Choisir un modèle de CV",
+    modelApply: "Appliquer",
+    modelSnapshot: "Avant le modèle de CV",
+    modelGrpGrant: "Appels à financement",
+    modelGrpInstitution: "Institutions publiques",
+    modelGrpIndustry: "Industrie et clinique",
   },
   "de-DE": {
     grpTemplate: "Vorlage & Layout",
@@ -273,6 +305,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     grantIntro:
       "Wenden Sie ein strukturiertes Ausgangslayout passend zur Ausschreibung eines großen Förderers an. Es zeigt die Abschnitte des Förderers (legt fehlende an), setzt ihre Reihenfolge und blendet die übrigen aus. Umkehrbar — Ihre aktuelle Ansicht wird zuvor gespeichert. Reichen Sie den endgültigen Antrag über das Portal/die Vorlage des Förderers ein.",
     grantApply: "Layout {name} anwenden",
+    modelLegend: "Lebenslauf-Modell wählen",
+    modelApply: "Anwenden",
+    modelSnapshot: "Vor dem Lebenslauf-Modell",
+    modelGrpGrant: "Förderausschreibungen",
+    modelGrpInstitution: "Öffentliche Einrichtungen",
+    modelGrpIndustry: "Industrie & Klinik",
   },
   "ja-JP": {
     grpTemplate: "テンプレートとレイアウト",
@@ -316,6 +354,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     grantIntro:
       "主要な助成機関の公募に合わせた構造化された初期レイアウトを適用します。その助成機関のセクションを表示し（不足分は作成）、順序を設定し、残りを非表示にします。元に戻せます——先に現在のビューを保存します。最終的な申請は助成機関自身のポータル／テンプレートで提出してください。",
     grantApply: "{name} レイアウトを適用",
+    modelLegend: "CV モデルを選択",
+    modelApply: "適用",
+    modelSnapshot: "CV モデル適用前",
+    modelGrpGrant: "助成公募",
+    modelGrpInstitution: "公的機関",
+    modelGrpIndustry: "産業・臨床",
   },
   "pt-BR": {
     grpTemplate: "Modelo e layout",
@@ -360,6 +404,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     grantIntro:
       "Aplique um layout inicial estruturado correspondente a uma grande chamada de um financiador. Ele mostra as seções do financiador (criando as que faltam), define a ordem delas e oculta as demais. Reversível — sua visualização atual é salva primeiro. Envie a candidatura final pelo portal/modelo do próprio financiador.",
     grantApply: "Aplicar layout {name}",
+    modelLegend: "Escolha um modelo de currículo",
+    modelApply: "Aplicar",
+    modelSnapshot: "Antes do modelo de currículo",
+    modelGrpGrant: "Chamadas de financiamento",
+    modelGrpInstitution: "Instituições públicas",
+    modelGrpIndustry: "Indústria e clínica",
   },
   "it-IT": {
     grpTemplate: "Modello e layout",
@@ -404,6 +454,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     grantIntro:
       "Applica un layout iniziale strutturato corrispondente a un importante bando di un ente finanziatore. Mostra le sezioni dell’ente (creando quelle mancanti), ne imposta l’ordine e nasconde le altre. Reversibile — la tua vista attuale viene salvata prima. Presenta la domanda finale tramite il portale/modello dell’ente finanziatore.",
     grantApply: "Applica layout {name}",
+    modelLegend: "Scegli un modello di CV",
+    modelApply: "Applica",
+    modelSnapshot: "Prima del modello di CV",
+    modelGrpGrant: "Bandi di finanziamento",
+    modelGrpInstitution: "Istituzioni pubbliche",
+    modelGrpIndustry: "Industria e clinica",
   },
   "ko-KR": {
     grpTemplate: "템플릿 및 레이아웃",
@@ -447,6 +503,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     grantIntro:
       "주요 지원기관 공모에 맞는 구조화된 시작 레이아웃을 적용합니다. 해당 지원기관의 섹션을 표시하고(없으면 생성), 순서를 설정하며 나머지는 숨깁니다. 되돌릴 수 있음 — 현재 보기를 먼저 저장합니다. 최종 지원은 지원기관 자체 포털/템플릿으로 제출하세요.",
     grantApply: "{name} 레이아웃 적용",
+    modelLegend: "CV 모델 선택",
+    modelApply: "적용",
+    modelSnapshot: "CV 모델 적용 전",
+    modelGrpGrant: "연구비 공모",
+    modelGrpInstitution: "공공기관",
+    modelGrpIndustry: "산업 및 임상",
   },
   "ru-RU": {
     grpTemplate: "Шаблон и вёрстка",
@@ -491,6 +553,12 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     grantIntro:
       "Примените структурированный начальный макет под крупный конкурс грантодателя. Он показывает разделы грантодателя (создавая недостающие), задаёт их порядок и скрывает остальные. Обратимо — текущий вид сохраняется заранее. Итоговую заявку подавайте через собственный портал/шаблон грантодателя.",
     grantApply: "Применить макет {name}",
+    modelLegend: "Выберите модель резюме",
+    modelApply: "Применить",
+    modelSnapshot: "До модели резюме",
+    modelGrpGrant: "Грантовые конкурсы",
+    modelGrpInstitution: "Государственные учреждения",
+    modelGrpIndustry: "Индустрия и клиника",
   },
 };
 

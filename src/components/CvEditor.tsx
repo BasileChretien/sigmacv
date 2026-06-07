@@ -41,8 +41,11 @@ import {
   updateDisplay,
   updateItemText,
 } from "@/lib/canonical/curate";
-import { applyGrantPreset } from "@/lib/canonical/grantPresets";
-import { grantPresetList } from "@/lib/i18n/grantPresets";
+import {
+  applyCvModel,
+  cvModelsByCategory,
+  type CvModelCategory,
+} from "@/lib/canonical/cvModels";
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { ui } from "@/lib/i18n/ui";
@@ -52,9 +55,6 @@ import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/l
 import ClaimByDoi from "./ClaimByDoi";
 import ItemRow from "./ItemRow";
 import ProfilePanel from "./ProfilePanel";
-
-/** Snapshot name for the view saved before a grant layout is applied (reversible). */
-const GRANT_SNAPSHOT_NAME = "Before grant layout";
 
 interface CvEditorProps {
   cv: CanonicalCv;
@@ -250,6 +250,22 @@ export default function CvEditor({
   const [dragItem, setDragItem] = useState<{ sectionId: string; itemId: string } | null>(null);
   // Name buffer for saving the current view as a named preset.
   const [presetName, setPresetName] = useState("");
+  // The CV-model the picker has selected (applied on the Apply button).
+  const [modelId, setModelId] = useState("");
+  // The CV-model catalog, grouped by category (Grant calls / Public
+  // institutions / Industry & clinical). Static — memoized once. Localized
+  // optgroup label per category (only the chrome is localized; model names +
+  // descriptions render as-is in English).
+  const modelGroups = useMemo(() => cvModelsByCategory(), []);
+  const modelGroupLabel = (c: CvModelCategory): string =>
+    c === "grant"
+      ? eu.modelGrpGrant
+      : c === "institution"
+        ? eu.modelGrpInstitution
+        : eu.modelGrpIndustry;
+  const selectedModel = modelId
+    ? modelGroups.flatMap((g) => g.models).find((m) => m.id === modelId)
+    : undefined;
   // Sections are COLLAPSED by default (compact list that's easy to scan +
   // reorder); the chevron expands one. Only ids in this set are expanded.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -508,32 +524,56 @@ export default function CvEditor({
           </button>
         </div>
 
-        {/* Grant / funder-CV layouts. Snapshot the current view as a restorable
-            preset first (reversible), then apply the funder's section selection +
-            order + display via the pure `applyGrantPreset`. */}
-        <div className="grant-presets">
-          <span className="grant-presets-label">{eu.grantLegend}</span>
-          {grantPresetList(locale).map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              className="btn btn-sm"
-              onClick={() =>
-                onChange(
-                  applyGrantPreset(
-                    savePreset(cv, GRANT_SNAPSHOT_NAME),
-                    preset.id,
-                    cvLocale,
-                  ),
-                )
-              }
-              title={preset.description}
-            >
-              {eu.grantApply.replace("{name}", preset.name)}
-            </button>
-          ))}
+        {/* CV-model catalog. Pick a model (grant call / public-institution job /
+            industry CV) from the grouped picker, then Apply: snapshot the current
+            view as a restorable preset first (reversible), then apply the model's
+            section selection + order + display + funder-specific titles via the
+            pure `applyCvModel`. Only the chrome is localized — model names and
+            descriptions render as-is (English). */}
+        <div className="grant-presets cv-models">
+          <span className="grant-presets-label" id="cv-model-label">
+            {eu.modelLegend}
+          </span>
+          <select
+            className="cv-model-select"
+            aria-labelledby="cv-model-label"
+            value={modelId}
+            title={selectedModel?.description}
+            onChange={(e) => setModelId(e.target.value)}
+          >
+            <option value="">—</option>
+            {modelGroups.map((group) => (
+              <optgroup
+                key={group.category}
+                label={modelGroupLabel(group.category)}
+              >
+                {group.models.map((m) => (
+                  <option key={m.id} value={m.id} title={m.description}>
+                    {m.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="btn btn-sm"
+            disabled={!selectedModel}
+            onClick={() => {
+              if (!selectedModel) return;
+              onChange(
+                applyCvModel(
+                  savePreset(cv, eu.modelSnapshot),
+                  selectedModel.id,
+                  cvLocale,
+                ),
+              );
+            }}
+          >
+            {eu.modelApply}
+          </button>
           <p className="muted metric-preset-note grant-presets-note">
-            {eu.grantIntro}
+            {selectedModel ? selectedModel.description : eu.grantIntro}
           </p>
         </div>
 

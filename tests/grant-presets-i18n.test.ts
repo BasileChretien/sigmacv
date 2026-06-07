@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SUPPORTED_LOCALES } from "@/lib/i18n";
-import { GRANT_PRESET_IDS } from "@/lib/canonical/grantPresets";
+import { GRANT_PRESET_IDS } from "@/lib/canonical/cvModels";
 import {
   grantPresetLabel,
   grantPresetList,
@@ -83,6 +83,21 @@ describe("grant-preset i18n", () => {
       expect(eu.grantIntro.length, `${loc} grantIntro`).toBeGreaterThan(0);
       // The apply label interpolates the preset name.
       expect(eu.grantApply, `${loc} grantApply`).toContain("{name}");
+    }
+  });
+
+  it("the CV-model picker chrome exists in every locale (legend, apply, snapshot, 3 optgroups)", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const eu = editorUi(loc);
+      expect(eu.modelLegend.length, `${loc} modelLegend`).toBeGreaterThan(0);
+      expect(eu.modelApply.length, `${loc} modelApply`).toBeGreaterThan(0);
+      expect(eu.modelSnapshot.length, `${loc} modelSnapshot`).toBeGreaterThan(0);
+      expect(eu.modelGrpGrant.length, `${loc} modelGrpGrant`).toBeGreaterThan(0);
+      expect(
+        eu.modelGrpInstitution.length,
+        `${loc} modelGrpInstitution`,
+      ).toBeGreaterThan(0);
+      expect(eu.modelGrpIndustry.length, `${loc} modelGrpIndustry`).toBeGreaterThan(0);
     }
   });
 });

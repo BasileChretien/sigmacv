@@ -8,7 +8,7 @@ import {
   updateDisplay,
   updateOwner,
 } from "@/lib/canonical/curate";
-import { GRANT_PRESETS, type GrantPresetId } from "@/lib/canonical/grantPresets";
+import { GRANT_PRESETS, type GrantPresetId } from "@/lib/canonical/cvModels";
 import type { CanonicalCv, CvSectionType } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import {
@@ -127,7 +127,8 @@ const EXPECTED_HEADINGS: Record<GrantPresetId, readonly string[]> = {
     "## Education",
     "## Positions Held",
     "## Selected Publications",
-    "## Commissions of Trust",
+    "## Supervision and Mentoring",
+    "## Invited Presentations",
   ],
   nsf: [
     "## Professional Preparation",
