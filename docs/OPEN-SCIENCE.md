@@ -68,7 +68,7 @@ This is a living document. Items marked _planned_ are tracked in the
   name-based errors that distort author-level metrics.
 - **Narrative and funder-aligned CVs are first-class.** The R4RI / Royal-Society
   contribution modules (knowledge, individuals, community, society) are ordinary
-  free-text **prose sections**, and a 32-model **CV-model catalog** offers
+  free-text **prose sections**, and a 58-model **CV-model catalog** offers
   one-click, reversible layouts for grant funders (incl. the DORA-aligned
   narrative formats: UKRI R4RI, Royal Society, SNSF, NWO, Wellcome), public
   institutions / jobs, and industry/clinical CVs — making contribution-focused
