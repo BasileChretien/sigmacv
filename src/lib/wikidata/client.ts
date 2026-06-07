@@ -62,6 +62,7 @@ export async function fetchWikidataIdentity(
     });
     if (!res.ok) return null;
     const text = await res.text();
+    /* v8 ignore next -- defensive cap on a pathological response */
     if (text.length > MAX_BYTES) return null;
     const data = JSON.parse(text) as { results?: { bindings?: unknown[] } };
     const bindings = Array.isArray(data.results?.bindings)

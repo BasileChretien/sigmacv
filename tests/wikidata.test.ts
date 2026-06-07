@@ -60,4 +60,20 @@ describe("fetchWikidataIdentity", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(await fetchWikidataIdentity(ORCID)).toBeNull();
   });
+
+  it("returns null when bindings exist but carry no person", async () => {
+    mockSparql({ results: { bindings: [{ award: { value: "x" } }] } });
+    expect(await fetchWikidataIdentity(ORCID)).toBeNull();
+  });
+
+  it("fails soft when the request throws", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => {
+        throw new Error("network down");
+      }),
+    );
+    expect(await fetchWikidataIdentity(ORCID)).toBeNull();
+  });
 });

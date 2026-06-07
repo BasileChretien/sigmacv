@@ -32,6 +32,8 @@ describe("matchesNameAndOrg — never name-only", () => {
 
   it("rejects a name match at the WRONG organization", () => {
     expect(matchesNameAndOrg(person, "Basile Chretien", "Harvard University")).toBe(false);
+    // A too-short org string (≤2 chars) can never match, even with a name hit.
+    expect(matchesNameAndOrg(person, "Basile Chretien", "JP")).toBe(false);
   });
 
   it("rejects when the surname is absent from the candidate", () => {

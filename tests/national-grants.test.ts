@@ -70,6 +70,29 @@ describe("fetchUkriGrants (GtR)", () => {
     expect(spy).not.toHaveBeenCalled();
     mockStatus(500);
     expect(await fetchUkriGrants("Helen Smith", ["University of York"])).toEqual([]);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => {
+        throw new Error("network down");
+      }),
+    );
+    expect(await fetchUkriGrants("Helen Smith", ["University of York"])).toEqual([]);
+  });
+
+  it("drops a matched record that is missing its grant reference", async () => {
+    mockJson(() => ({
+      results: [
+        {
+          projectComposition: {
+            project: { title: "No grant ref" },
+            leadResearchOrganisation: { name: "University of York" },
+            principalInvestigators: [{ fullName: "Helen Smith" }],
+          },
+        },
+      ],
+    }));
+    expect(await fetchUkriGrants("Helen Smith", ["University of York"])).toEqual([]);
   });
 });
 
@@ -113,8 +136,37 @@ describe("fetchNihGrants (RePORTER)", () => {
     ]);
   });
 
-  it("fails soft on a non-OK response", async () => {
+  it("fails soft on a non-OK response and a thrown fetch", async () => {
     mockStatus(500);
+    expect(await fetchNihGrants("Jane Doe", ["Johns Hopkins University"])).toEqual([]);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => {
+        throw new Error("network down");
+      }),
+    );
+    expect(await fetchNihGrants("Jane Doe", ["Johns Hopkins University"])).toEqual([]);
+  });
+
+  it("drops wrong-org and title-less records", async () => {
+    mockJson(() => ({
+      results: [
+        {
+          // matched name, WRONG org → dropped.
+          project_num: "X",
+          project_title: "Y",
+          organization: { org_name: "MIT" },
+          principal_investigators: [{ full_name: "Jane Doe" }],
+        },
+        {
+          // matched, but no title → dropped.
+          project_num: "Z",
+          organization: { org_name: "Johns Hopkins University" },
+          principal_investigators: [{ full_name: "Jane Doe" }],
+        },
+      ],
+    }));
     expect(await fetchNihGrants("Jane Doe", ["Johns Hopkins University"])).toEqual([]);
   });
 });
@@ -168,5 +220,43 @@ describe("fetchNsfGrants (NSF)", () => {
       }),
     );
     expect(await fetchNsfGrants("Maurice Smith", ["Harvard University"])).toEqual([]);
+  });
+
+  it("applies the NSF funder fallback, tolerates odd dates, and drops junk", async () => {
+    mockJson(() => ({
+      response: {
+        award: [
+          "not-an-object", // non-object element → skipped
+          {
+            // no `agency` → funder falls back to "NSF"; non-string + year-less
+            // dates → undefined years (exercises both yearFromMdy branches).
+            id: "100",
+            title: "Fallback award",
+            pdPIName: "Maurice Smith",
+            awardeeName: "Harvard University",
+            startDate: 20200101,
+            expDate: "to be decided",
+          },
+          {
+            // matched but no id → dropped.
+            title: "No id",
+            pdPIName: "Maurice Smith",
+            awardeeName: "Harvard University",
+          },
+        ],
+      },
+    }));
+    const grants = await fetchNsfGrants("Maurice Smith", ["Harvard University"]);
+    expect(grants).toEqual([
+      {
+        source: "nsf",
+        externalId: "100",
+        title: "Fallback award",
+        funder: "NSF",
+        org: "Harvard University",
+        startYear: undefined,
+        endYear: undefined,
+      },
+    ]);
   });
 });

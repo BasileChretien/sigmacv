@@ -109,4 +109,36 @@ describe("fetchClinicalTrials", () => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response("x", { status: 500 }))));
     expect(await fetchClinicalTrials("Dawn Hershman", ["Columbia University"])).toEqual([]);
   });
+
+  it("drops a matched study with no NCT id", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              studies: [
+                {
+                  protocolSection: {
+                    identificationModule: {}, // no nctId
+                    contactsLocationsModule: {
+                      overallOfficials: [
+                        {
+                          name: "Dawn Hershman",
+                          affiliation: "Columbia University",
+                          role: "PRINCIPAL_INVESTIGATOR",
+                        },
+                      ],
+                    },
+                  },
+                },
+              ],
+            }),
+            { status: 200 },
+          ),
+        ),
+      ),
+    );
+    expect(await fetchClinicalTrials("Dawn Hershman", ["Columbia University"])).toEqual([]);
+  });
 });

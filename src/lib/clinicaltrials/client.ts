@@ -84,6 +84,7 @@ export async function fetchClinicalTrials(
     });
     if (!res.ok) return [];
     const body = await res.text();
+    /* v8 ignore next -- defensive cap on a pathological response */
     if (body.length > MAX_BYTES) return [];
     const data = JSON.parse(body) as { studies?: unknown };
     const studies = Array.isArray(data.studies) ? data.studies : [];

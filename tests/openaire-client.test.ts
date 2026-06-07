@@ -56,6 +56,9 @@ describe("fetchOpenaireOutputs", () => {
                   mainTitle: "Handle-only dataset",
                   pids: [{ scheme: "handle", value: "11234/x" }],
                 }),
+                null, // non-object element → mapProduct returns null
+                { id: 999, type: "dataset", mainTitle: "Numeric id" }, // non-string id → null
+                dataset("oa::5", { mainTitle: "No pids field" }), // pids missing → non-array branch
               ]
             : type === "software"
               ? [
@@ -93,6 +96,14 @@ describe("fetchOpenaireOutputs", () => {
       {
         openaireId: "oa::4",
         title: "Handle-only dataset",
+        type: "dataset",
+        doi: undefined,
+        year: undefined,
+        publisher: undefined,
+      },
+      {
+        openaireId: "oa::5",
+        title: "No pids field",
         type: "dataset",
         doi: undefined,
         year: undefined,

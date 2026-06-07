@@ -109,6 +109,7 @@ export async function fetchDblpConferencePapers(
     });
     if (!res.ok) return [];
     const xml = await res.text();
+    /* v8 ignore next -- defensive cap on a pathological response */
     if (xml.length > MAX_BYTES) return [];
     return parseConferencePapers(xml);
   } catch (err) {

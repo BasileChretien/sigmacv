@@ -74,4 +74,33 @@ describe("fetchDblpConferencePapers", () => {
     mock({ sparqlStatus: 500 });
     expect(await fetchDblpConferencePapers(ORCID)).toEqual([]);
   });
+
+  it("handles an <ee> with attributes (object), a DOI-less <ee>, and drops title-less records", async () => {
+    const xml = `<?xml version="1.0"?>
+<dblpperson pid="00/1">
+  <r><inproceedings key="conf/x/1"><title>Paper A.</title><year>2020</year><booktitle>X</booktitle><ee type="oa">https://doi.org/10.1/abc</ee></inproceedings></r>
+  <r><inproceedings key="conf/x/2"><year>2021</year><booktitle>X</booktitle></inproceedings></r>
+  <r><inproceedings key="conf/x/3"><title>Paper C.</title><booktitle>X</booktitle></inproceedings></r>
+</dblpperson>`;
+    mock({ xml });
+    expect(await fetchDblpConferencePapers(ORCID)).toEqual([
+      { key: "conf/x/1", title: "Paper A", venue: "X", year: 2020, doi: "10.1/abc" },
+      { key: "conf/x/3", title: "Paper C", venue: "X", year: undefined, doi: undefined },
+    ]);
+  });
+
+  it("fails soft when the profile fetch throws", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: unknown) => {
+        const u = String(url);
+        if (u.includes("sparql.dblp.org")) {
+          return Promise.resolve(new Response(JSON.stringify(SPARQL_JSON), { status: 200 }));
+        }
+        throw new Error("profile down");
+      }),
+    );
+    expect(await fetchDblpConferencePapers(ORCID)).toEqual([]);
+  });
 });

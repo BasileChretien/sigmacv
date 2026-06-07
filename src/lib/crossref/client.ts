@@ -189,6 +189,7 @@ export async function fetchCrossrefGrantsByOrcid(
     });
     if (!res.ok) return [];
     const body = await res.text();
+    /* v8 ignore next -- defensive cap on a pathological response */
     if (body.length > MAX_GRANT_LIST_BYTES) return [];
     const data = JSON.parse(body) as { message?: { items?: unknown[] } };
     const items = data.message?.items;

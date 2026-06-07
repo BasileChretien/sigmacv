@@ -69,6 +69,7 @@ export async function fetchNihGrants(
     });
     if (!res.ok) return [];
     const body = await res.text();
+    /* v8 ignore next -- defensive cap on a pathological response */
     if (body.length > MAX_BYTES) return [];
     const data = JSON.parse(body) as { results?: unknown };
     const results = Array.isArray(data.results) ? data.results : [];

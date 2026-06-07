@@ -55,6 +55,7 @@ export async function fetchNsfGrants(
     });
     if (!res.ok) return [];
     const body = await res.text();
+    /* v8 ignore next -- defensive cap on a pathological response */
     if (body.length > MAX_BYTES) return [];
     const data = JSON.parse(body) as { response?: unknown };
     const response = asRecord(data.response);
