@@ -731,11 +731,10 @@ function buildClinicalTrialsSection(
   for (const t of sorted) {
     const id = `trial:${t.source}:${t.registryId.replace(/[^a-z0-9]+/gi, "-")}`;
     const prev = prevItems.get(id);
-    // ExternalTrial.source is "clinicaltrials" | "ctis"; only the ClinicalTrials.gov
-    // client is wired today, and "clinicaltrials" is the canonical item source.
+    // ExternalTrial.source ("clinicaltrials" | "ctis") IS the canonical item source.
     const it = makeEntryItem(
       id,
-      "clinicaltrials",
+      t.source,
       t.registryId,
       formatTrialText(t),
       prev,

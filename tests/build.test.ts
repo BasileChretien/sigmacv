@@ -417,6 +417,7 @@ describe("buildCanonicalCv — external-source sections", () => {
     const clinicalTrials: ExternalTrial[] = [
       { source: "clinicaltrials", registryId: "NCT123", title: "A trial", sponsor: "Acme", phase: "PHASE2", role: "PRINCIPAL_INVESTIGATOR", org: "Univ", startYear: 2020, endYear: 2022 },
       { source: "clinicaltrials", registryId: "NCT999", title: "Sponsorless trial" }, // no sponsor/phase/years
+      { source: "ctis", registryId: "2022-500001-30-00", title: "An EU trial", sponsor: "Columbia University", role: "INVESTIGATOR", org: "Columbia University", startYear: 2022 },
     ];
     const cv = buildWith({ clinicalTrials });
     const trials = section(cv, "clinical-trials")!;
@@ -426,7 +427,12 @@ describe("buildCanonicalCv — external-source sections", () => {
     expect(t.meta.reviewFlag).toBe("name-matched");
     expect(t.meta.type).toBe("PHASE2");
     expect(t.displayText).toContain("NCT123");
+    // The EU CTIS trial keeps its own source + id.
+    const eu = trials.items.find((i) => i.id === "trial:ctis:2022-500001-30-00")!;
+    expect(eu.source).toBe("ctis");
+    expect(eu.included).toBe(false);
     expect(cv.provenance.sources).toContain("clinicaltrials");
+    expect(cv.provenance.sources).toContain("ctis");
   });
 
   it("builds a Patents section from EPO records (hidden review candidates)", () => {
