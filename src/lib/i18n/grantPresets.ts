@@ -1,4 +1,4 @@
-import { GRANT_PRESET_IDS, type GrantPresetId } from "@/lib/canonical/grantPresets";
+import { GRANT_PRESET_IDS, type GrantPresetId } from "@/lib/canonical/cvModels";
 import { asLocale, type Locale } from "./index";
 
 /**

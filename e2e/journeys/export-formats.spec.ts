@@ -62,7 +62,7 @@ test("authenticated export API serves the newer formats", async ({
   expect(authedUserId).toBeTruthy(); // activates the authed-session fixture
   // Ensure the seeded CV is in place (the editor load also confirms auth works).
   await page.goto("/cv");
-  await expect(page.getByRole("group", { name: "Narrative CV" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Style", exact: true })).toBeVisible();
 
   for (const c of CASES) {
     const res = await page.request.get(`/api/cv/export/${c.format}`);

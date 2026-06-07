@@ -1,4 +1,4 @@
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
@@ -205,16 +205,14 @@ export function commonCss(theme: TemplateTheme): string {
   section.cv-section:first-of-type { margin-top: calc(var(--cv-space) * 0.6); }
   section.cv-section > h2 { font-size: 0.95rem; font-weight: 600; color: var(--cv-ink); margin: 0 0 0.65rem; }
 
-  /* Narrative-CV block (funder résumé prose) — sits ABOVE the sections. Reads as
-     running prose: a module heading then escaped paragraphs / bullet lists. */
-  section.cv-narrative { margin-top: calc(var(--cv-space) * 0.6); }
-  .cv-narrative-module { margin-top: var(--cv-space); }
-  .cv-narrative-module:first-child { margin-top: 0; }
-  .cv-narrative-module > h3 { font-size: 0.95rem; font-weight: 600; color: var(--cv-ink); margin: 0 0 0.45rem; }
-  .cv-narrative-module p { margin: 0 0 0.55rem; line-height: 1.55; color: var(--cv-ink-2); }
-  .cv-narrative-module p:last-child { margin-bottom: 0; }
-  ul.cv-narrative-list { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
-  ul.cv-narrative-list > li { margin: 0 0 0.2rem; line-height: 1.5; color: var(--cv-ink-2); }
+  /* Prose section body (funder narrative contributions / a free statement).
+     Reads as running prose: the section heading (the shared h2) then escaped
+     paragraphs / bullet lists. */
+  .cv-prose-body { margin: 0; }
+  .cv-prose-body p { margin: 0 0 0.55rem; line-height: 1.55; color: var(--cv-ink-2); }
+  .cv-prose-body p:last-child { margin-bottom: 0; }
+  ul.cv-prose-list { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
+  ul.cv-prose-list > li { margin: 0 0 0.2rem; line-height: 1.5; color: var(--cv-ink-2); }
 
   ol.cv-bib { list-style: none; margin: 0; padding: 0; }
   ol.cv-bib > li { margin: 0 0 var(--cv-entry-gap); padding-left: var(--cv-hang); text-indent: calc(var(--cv-hang) * -1); line-height: 1.42; }
@@ -427,7 +425,7 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
 }
 
 /**
- * SAFE transform of a narrative module's USER FREE-TEXT body into HTML.
+ * SAFE transform of a prose section's USER FREE-TEXT body into HTML.
  *
  * The body is user-controlled data, NOT trusted markup — so everything is
  * HTML-escaped first (see `escapeHtml`), and only a MINIMAL, hand-rolled set of
@@ -437,9 +435,9 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
  *    of `<li>` items; non-list lines are joined with `<br>`.
  * Raw HTML and arbitrary markdown are NEVER interpreted — an injected
  * `<script>` / `<img onerror=…>` survives only as inert escaped text. This is
- * the single chokepoint; every renderer that shows the narrative uses it.
+ * the single chokepoint; every renderer that shows a prose body uses it.
  */
-function narrativeBodyHtml(body: string): string {
+export function proseBodyHtml(body: string): string {
   // Normalise newlines, then split into paragraphs on one-or-more blank lines.
   const paragraphs = body
     .replace(/\r\n?/g, "\n")
@@ -455,7 +453,7 @@ function narrativeBodyHtml(body: string): string {
       const flushList = () => {
         if (listItems.length === 0) return;
         out.push(
-          `<ul class="cv-narrative-list">${listItems
+          `<ul class="cv-prose-list">${listItems
             .map((li) => `<li>${escapeHtml(li)}</li>`)
             .join("")}</ul>`,
         );
@@ -487,33 +485,23 @@ function narrativeBodyHtml(body: string): string {
 }
 
 /**
- * The narrative-CV block (funder résumé prose), rendered ABOVE the sections. Each
- * INCLUDED module with a non-empty body becomes a heading + its safe-transformed
- * body. "" when there is no narrative content to show (so the block is gated by
- * presence — templates can always inline it). The heading + body are both
- * USER FREE-TEXT and are HTML-escaped / safe-transformed; nothing is interpreted
- * as raw HTML or arbitrary markdown.
+ * Section list markup (identical across templates; styled via CSS classes).
+ * A PROSE section (`PROSE_SECTION_TYPES`) renders its heading + safe-transformed
+ * `body` instead of a citation list; it is omitted when the body is blank. A
+ * standard section renders its `items` as a numbered bibliography (omitted when
+ * empty). The section heading + prose body are USER FREE-TEXT and are
+ * HTML-escaped / safe-transformed — nothing is interpreted as raw HTML/markdown.
  */
-export function narrativeBlock(cv: CanonicalCv): string {
-  const modules = (cv.narrative ?? []).filter(
-    (m) => m.included && m.body.trim().length > 0,
-  );
-  if (modules.length === 0) return "";
-  const blocks = modules
-    .map(
-      (m) =>
-        `<section class="cv-narrative-module"><h3>${escapeHtml(
-          m.heading,
-        )}</h3>${narrativeBodyHtml(m.body)}</section>`,
-    )
-    .join("");
-  return `<section class="cv-narrative">${blocks}</section>`;
-}
-
-/** Section list markup (identical across templates; styled via CSS classes). */
 export function sectionsHtml(sections: RenderedSection[]): string {
   return sections
     .map((rs) => {
+      if (isProseSectionType(rs.section.type)) {
+        const body = (rs.section.body ?? "").trim();
+        if (body.length === 0) return "";
+        return `<section class="cv-section cv-prose"><h2>${escapeHtml(
+          rs.section.title,
+        )}</h2><div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "")}</div></section>`;
+      }
       if (rs.items.length === 0) return "";
       const entries = rs.items
         .map((ri) => `<li><div class="csl-entry">${ri.html}</div></li>`)

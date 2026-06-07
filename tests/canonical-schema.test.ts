@@ -8,17 +8,24 @@ import {
 } from "@/lib/canonical/schema";
 
 describe("migrateCanonicalDocument", () => {
-  it("passes a current (v1) document through unchanged", () => {
-    const doc = { schemaVersion: 1, id: "x" };
+  it("passes a current (v2) document through unchanged", () => {
+    const doc = { schemaVersion: CANONICAL_SCHEMA_VERSION, id: "x" };
     expect(migrateCanonicalDocument(doc)).toBe(doc);
   });
   it("returns non-object inputs unchanged", () => {
     expect(migrateCanonicalDocument(null)).toBeNull();
     expect(migrateCanonicalDocument("nope")).toBe("nope");
   });
-  it("tolerates a missing schemaVersion (defaults to 1)", () => {
+  it("upgrades a v1 document to the current version (and drops the narrative field)", () => {
+    const doc = { id: "x", schemaVersion: 1, narrative: [] };
+    const out = migrateCanonicalDocument(doc) as Record<string, unknown>;
+    expect(out.schemaVersion).toBe(CANONICAL_SCHEMA_VERSION);
+    expect(out.narrative).toBeUndefined();
+  });
+  it("tolerates a missing schemaVersion (treated as v1 → upgraded)", () => {
     const doc = { id: "x" };
-    expect(migrateCanonicalDocument(doc)).toBe(doc);
+    const out = migrateCanonicalDocument(doc) as Record<string, unknown>;
+    expect(out.schemaVersion).toBe(CANONICAL_SCHEMA_VERSION);
   });
 });
 

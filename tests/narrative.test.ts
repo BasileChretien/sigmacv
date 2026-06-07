@@ -1,20 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
-  removeNarrativeModule,
-  reorderNarrative,
-  setNarrativeModuleIncluded,
+  addSection,
+  renameSection,
+  setSectionBody,
+  setSectionVisible,
   updateDisplay,
-  upsertNarrativeModule,
 } from "@/lib/canonical/curate";
 import {
-  CanonicalCvSchema,
+  PROSE_SECTION_TYPES,
+  isProseSectionType,
+  migrateCanonicalDocument,
+  parseCanonicalCv,
   type CanonicalCv,
 } from "@/lib/canonical/schema";
-import { defaultNarrativeModules } from "@/lib/i18n/narrative";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { renderCvHtml } from "@/lib/render/html";
-import { narrativeBlock } from "@/lib/render/templates/shared";
 import { renderCvMarkdown } from "@/lib/render/markdown";
 import { renderCvDocxBuffer } from "@/lib/render/docx";
 import JSZip from "jszip";
@@ -29,233 +30,259 @@ const hasApa = listAvailableStyles().includes("apa");
 
 function makeCv(): CanonicalCv {
   return buildCanonicalCv({
-    id: "nar",
+    id: "prose",
     resolved,
     works: [],
     now: "2026-06-02T00:00:00.000Z",
   });
 }
 
+/** Add the `narrative-knowledge` prose section and return [cv, sectionId]. */
+function withKnowledge(cv: CanonicalCv, body: string): [CanonicalCv, string] {
+  let next = addSection(cv, "narrative-knowledge");
+  const id = next.sections.find((s) => s.type === "narrative-knowledge")!.id;
+  next = setSectionBody(next, id, body);
+  return [next, id];
+}
+
 const XSS = '<script>alert(1)</script><img src=x onerror="alert(2)">';
 
-describe("narrative schema", () => {
-  it("defaults to [] for a document stored before narratives existed (additive)", () => {
-    const cv = makeCv();
-    // The build seeds an empty narrative; a doc literally lacking the key still parses.
-    const { narrative: _n, ...withoutNarrative } = cv as CanonicalCv & {
-      narrative: unknown;
-    };
-    const parsed = CanonicalCvSchema.parse(withoutNarrative);
-    expect(parsed.narrative).toEqual([]);
-    expect(cv.narrative).toEqual([]);
-  });
-
-  it("a module included defaults to true", () => {
-    const parsed = CanonicalCvSchema.parse({
-      ...makeCv(),
-      narrative: [{ key: "knowledge", heading: "K", body: "b" }],
-    });
-    expect(parsed.narrative[0]!.included).toBe(true);
+describe("prose section schema + types", () => {
+  it("PROSE_SECTION_TYPES lists the four narrative-* contributions + statement", () => {
+    expect([...PROSE_SECTION_TYPES].sort()).toEqual(
+      [
+        "narrative-knowledge",
+        "narrative-individuals",
+        "narrative-community",
+        "narrative-society",
+        "statement",
+      ].sort(),
+    );
+    expect(isProseSectionType("narrative-society")).toBe(true);
+    expect(isProseSectionType("statement")).toBe(true);
+    expect(isProseSectionType("publications")).toBe(false);
   });
 });
 
-describe("narrative curate ops (pure + immutable)", () => {
-  it("upsert creates a module from the localized default when absent, then patches", () => {
+describe("prose-section curate ops (pure + immutable)", () => {
+  it("addSection creates a prose section with an empty body + no items, localized title", () => {
     const cv = updateDisplay(makeCv(), { locale: "fr-FR" });
-    const next = upsertNarrativeModule(cv, "personal-statement", {
-      body: "Je suis chercheur.",
-    });
-    expect(cv.narrative).toEqual([]); // input untouched
-    expect(next.narrative).toHaveLength(1);
-    expect(next.narrative[0]).toMatchObject({
-      key: "personal-statement",
-      heading: "Présentation personnelle", // seeded from the FR default
-      body: "Je suis chercheur.",
-      included: true,
-    });
+    const next = addSection(cv, "narrative-knowledge");
+    expect(cv.sections.some((s) => s.type === "narrative-knowledge")).toBe(false); // input untouched
+    const sec = next.sections.find((s) => s.type === "narrative-knowledge")!;
+    expect(sec.body).toBe("");
+    expect(sec.items).toEqual([]);
+    expect(sec.visible).toBe(true);
+    expect(sec.title).toBe("Contributions à la production de connaissances");
   });
 
-  it("upsert patches an existing module without recreating it", () => {
-    let cv = upsertNarrativeModule(makeCv(), "knowledge", { body: "first" });
-    cv = upsertNarrativeModule(cv, "knowledge", { heading: "My knowledge" });
-    expect(cv.narrative).toHaveLength(1);
-    expect(cv.narrative[0]).toMatchObject({
-      key: "knowledge",
-      heading: "My knowledge",
-      body: "first", // preserved
-    });
+  it("addSection deduplicates a single-instance narrative type but allows recurring statements", () => {
+    let cv = addSection(makeCv(), "narrative-society");
+    const before = cv.sections.length;
+    cv = addSection(cv, "narrative-society"); // no-op (already present)
+    expect(cv.sections.length).toBe(before);
+    // statement can recur — each add creates a new section.
+    cv = addSection(cv, "statement");
+    cv = addSection(cv, "statement");
+    expect(cv.sections.filter((s) => s.type === "statement")).toHaveLength(2);
   });
 
-  it("setNarrativeModuleIncluded toggles (creating if absent)", () => {
-    let cv = upsertNarrativeModule(makeCv(), "society", { body: "impact" });
-    cv = setNarrativeModuleIncluded(cv, "society", false);
-    expect(cv.narrative[0]!.included).toBe(false);
-    // Creating-via-toggle: absent module is seeded then set.
-    const cv2 = setNarrativeModuleIncluded(makeCv(), "community", false);
-    expect(cv2.narrative[0]).toMatchObject({ key: "community", included: false });
-  });
-
-  it("removeNarrativeModule drops a module (no-op if absent)", () => {
-    const cv = upsertNarrativeModule(makeCv(), "additional", { body: "x" });
-    expect(removeNarrativeModule(cv, "additional").narrative).toHaveLength(0);
-    // Unknown → identity preserved.
-    expect(removeNarrativeModule(cv, "society")).toBe(cv);
-  });
-
-  it("reorderNarrative moves a module and clamps / no-ops out-of-range", () => {
-    let cv = makeCv();
-    cv = upsertNarrativeModule(cv, "personal-statement", { body: "a" });
-    cv = upsertNarrativeModule(cv, "knowledge", { body: "b" });
-    cv = upsertNarrativeModule(cv, "society", { body: "c" });
-    const moved = reorderNarrative(cv, 2, 0);
-    expect(moved.narrative.map((m) => m.key)).toEqual([
-      "society",
-      "personal-statement",
-      "knowledge",
-    ]);
-    // Clamp a too-large target.
-    const clamped = reorderNarrative(cv, 0, 99);
-    expect(clamped.narrative.map((m) => m.key)).toEqual([
-      "knowledge",
-      "society",
-      "personal-statement",
-    ]);
-    // No-op: same position and out-of-range source preserve identity.
-    expect(reorderNarrative(cv, 1, 1)).toBe(cv);
-    expect(reorderNarrative(cv, -1, 0)).toBe(cv);
-    expect(reorderNarrative(cv, 5, 0)).toBe(cv);
+  it("setSectionBody writes the body (clamped to the cap) and is immutable", () => {
+    const [cv, id] = withKnowledge(makeCv(), "first");
+    const next = setSectionBody(cv, id, "second");
+    expect(cv.sections.find((s) => s.id === id)!.body).toBe("first"); // input untouched
+    expect(next.sections.find((s) => s.id === id)!.body).toBe("second");
+    // Over-long bodies are clamped to 8000 chars.
+    const huge = setSectionBody(cv, id, "x".repeat(9000));
+    expect(huge.sections.find((s) => s.id === id)!.body!.length).toBe(8000);
   });
 });
 
-describe("narrativeBlock (HTML, safe transform)", () => {
-  it("returns '' when there is no included, non-empty module", () => {
-    expect(narrativeBlock(makeCv())).toBe("");
-    // An included module with a blank body does NOT render.
-    const blank = upsertNarrativeModule(makeCv(), "knowledge", { body: "   " });
-    expect(narrativeBlock(blank)).toBe("");
-    // An excluded module with a body does NOT render.
-    let excluded = upsertNarrativeModule(makeCv(), "knowledge", { body: "real" });
-    excluded = setNarrativeModuleIncluded(excluded, "knowledge", false);
-    expect(narrativeBlock(excluded)).toBe("");
-  });
-
-  it("renders heading + paragraphs and turns '- ' lines into <li>", () => {
-    const cv = upsertNarrativeModule(makeCv(), "knowledge", {
-      heading: "Key contributions",
-      body: "First para.\n\n- item one\n- item two\nfollow up line",
-    });
-    const html = narrativeBlock(cv);
-    expect(html).toContain('<section class="cv-narrative">');
-    expect(html).toContain("<h3>Key contributions</h3>");
-    expect(html).toContain("<p>First para.</p>");
-    expect(html).toContain('<ul class="cv-narrative-list"><li>item one</li><li>item two</li></ul>');
-    // A non-list line after a list flushes into its own paragraph.
-    expect(html).toContain("<p>follow up line</p>");
-  });
-
-  it("ESCAPES injected HTML in the body — XSS is inert text, not live markup", () => {
-    const cv = upsertNarrativeModule(makeCv(), "personal-statement", {
-      heading: XSS,
-      body: `Intro line ${XSS}\n\n- bullet ${XSS}`,
-    });
-    const html = narrativeBlock(cv);
-    // No live <script>/<img> tag survives — only escaped entities.
-    expect(html).not.toContain("<script>");
-    expect(html).not.toContain("<img");
-    expect(html).not.toContain('onerror="alert(2)"');
-    expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
-    expect(html).toContain("&lt;img src=x onerror=&quot;alert(2)&quot;&gt;");
-  });
-});
-
-describe.skipIf(!hasApa)("narrative in the full HTML render", () => {
-  it("appears above the sections in every template and escapes the body", () => {
+describe.skipIf(!hasApa)("prose sections in the full HTML render", () => {
+  it("renders heading + paragraphs and turns '- ' lines into <li> across every template", () => {
     for (const template of ["classic", "modern", "sidebar", "ats", "rirekisho"] as const) {
-      const cv = updateDisplay(
-        upsertNarrativeModule(makeCv(), "knowledge", {
-          heading: "My contributions",
-          body: `Did great things. ${XSS}`,
-        }),
-        { template },
+      const [base] = withKnowledge(makeCv(), "First para.\n\n- item one\n- item two\nfollow up line");
+      let cv = renameSection(
+        base,
+        base.sections.find((s) => s.type === "narrative-knowledge")!.id,
+        "Key contributions",
       );
+      cv = updateDisplay(cv, { template });
       const html = renderCvHtml(cv);
-      expect(html, template).toContain('class="cv-narrative"');
-      expect(html, template).toContain("My contributions");
-      expect(html, template).toContain("Did great things.");
-      expect(html, template).not.toContain("<script>alert(1)</script>");
-      expect(html, template).not.toContain("onerror=\"alert(2)\"");
+      expect(html, template).toContain('cv-prose"><h2>');
+      expect(html, template).toContain("Key contributions");
+      expect(html, template).toContain("<p>First para.</p>");
+      expect(html, template).toContain(
+        '<ul class="cv-prose-list"><li>item one</li><li>item two</li></ul>',
+      );
+      expect(html, template).toContain("<p>follow up line</p>");
     }
   });
 
-  it("is absent from the rendered document when there is no narrative", () => {
-    const html = renderCvHtml(makeCv());
-    expect(html).not.toContain('class="cv-narrative"');
+  it("ESCAPES injected HTML in a prose body — XSS is inert text, not live markup", () => {
+    const [cv] = withKnowledge(makeCv(), `Intro line ${XSS}\n\n- bullet ${XSS}`);
+    const html = renderCvHtml(cv);
+    expect(html).not.toContain("<script>alert(1)</script>");
+    expect(html).not.toContain("<img src=x");
+    expect(html).not.toContain('onerror="alert(2)"');
+    expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+  });
+
+  it("omits a prose section with a blank body, and a hidden one entirely", () => {
+    // Match the rendered section element, not the (always-present) CSS class names.
+    const PROSE_SECTION = '<section class="cv-section cv-prose">';
+    const blank = addSection(makeCv(), "narrative-society");
+    expect(renderCvHtml(blank)).not.toContain(PROSE_SECTION);
+    // A hidden prose section with a body does not render.
+    const [withBody, id] = withKnowledge(makeCv(), "real prose");
+    const hidden = setSectionVisible(withBody, id, false);
+    expect(renderCvHtml(hidden)).not.toContain(PROSE_SECTION);
   });
 });
 
-describe.skipIf(!hasApa)("narrative in Markdown export", () => {
-  it("prepends each included module as '## heading' + body (emitted as-is)", () => {
-    const cv = upsertNarrativeModule(makeCv(), "society", {
-      heading: "Broader impact",
-      body: "Shaped policy.",
-    });
+describe.skipIf(!hasApa)("prose sections in Markdown export", () => {
+  it("emits each prose section as '## title' + body in the section flow", () => {
+    const [base] = withKnowledge(makeCv(), "Shaped policy.");
+    const cv = renameSection(
+      base,
+      base.sections.find((s) => s.type === "narrative-knowledge")!.id,
+      "Broader impact",
+    );
     const md = renderCvMarkdown(cv);
     expect(md).toContain("## Broader impact");
     expect(md).toContain("Shaped policy.");
   });
 
-  it("omits the narrative entirely when there is none", () => {
-    const md = renderCvMarkdown(makeCv());
-    expect(md).not.toContain("## ");
-  });
-
-  it("escapes free-text structure in the narrative body (no injected heading / inert markup)", () => {
-    const cv = upsertNarrativeModule(makeCv(), "society", {
-      heading: "Impact",
-      body: `# Not a heading\n${XSS}`,
-    });
+  it("escapes free-text structure in a prose body (no injected heading / inert markup)", () => {
+    const [cv] = withKnowledge(makeCv(), `# Not a heading\n${XSS}`);
     const md = renderCvMarkdown(cv);
-    // The leading '#' is escaped so it can't become a real Markdown heading.
     expect(md).toContain("\\# Not a heading");
     expect(md).not.toContain("\n# Not a heading");
-    // The body never introduces a NEW '## ' heading beyond the module's own.
-    expect((md.match(/^## /gm) ?? []).length).toBe(1);
-    // The <script> text is carried as inert characters (Markdown isn't HTML),
-    // and angle brackets are present only as literal text, not executed markup.
     expect(md).toContain("alert(1)");
   });
 });
 
-describe("narrative in DOCX export", () => {
-  it("prepends a heading paragraph + body paragraphs (XML-escaped by docx)", async () => {
-    const cv = upsertNarrativeModule(makeCv(), "individuals", {
-      heading: "Developing people",
-      body: `Mentored many. ${XSS}\n\nSecond paragraph.`,
-    });
+describe("prose sections in DOCX export", () => {
+  it("emits a heading paragraph + body paragraphs (XML-escaped by docx)", async () => {
+    const [base] = withKnowledge(makeCv(), `Mentored many. ${XSS}\n\nSecond paragraph.`);
+    const cv = renameSection(
+      base,
+      base.sections.find((s) => s.type === "narrative-knowledge")!.id,
+      "Developing people",
+    );
     const buf = await renderCvDocxBuffer(cv);
     const zip = await JSZip.loadAsync(buf);
     const xml = await zip.file("word/document.xml")!.async("string");
     expect(xml).toContain("Developing people");
     expect(xml).toContain("Mentored many.");
     expect(xml).toContain("Second paragraph.");
-    // The injected tag is XML-escaped in the document, never a live element.
     expect(xml).not.toContain("<script>alert(1)</script>");
     expect(xml).toContain("&lt;script&gt;");
   });
 });
 
-describe("defaultNarrativeModules seed", () => {
-  it("can be assigned onto a CV and renders all six headings", () => {
-    const cv: CanonicalCv = {
-      ...makeCv(),
-      narrative: defaultNarrativeModules("en-US").map((m) =>
-        m.key === "personal-statement" ? { ...m, body: "Hello." } : m,
-      ),
+describe("v1 → v2 migration: narrative[] → prose sections", () => {
+  /** A minimal v1 document with a populated narrative array. */
+  function v1Doc(narrative: unknown, summary = "") {
+    return {
+      schemaVersion: 1,
+      id: "old",
+      owner: {
+        orcid: "0000-0002-7483-2489",
+        openAlexAuthorIds: ["A1"],
+        displayName: "X",
+        summary,
+        links: [],
+        countsByYear: [],
+      },
+      display: { locale: "en-US" },
+      sections: [
+        { id: "publications", type: "publications", title: "Publications", visible: true, order: 0, items: [] },
+      ],
+      presets: [],
+      narrative,
+      provenance: { generatedAt: "t0", sources: ["openalex"] },
     };
-    // Only the filled module renders (others have empty bodies).
-    const html = narrativeBlock(cv);
-    expect(html).toContain("Personal statement");
-    expect(html).toContain("Hello.");
-    expect(html).not.toContain("Additional information");
+  }
+
+  it("maps the four contribution modules to narrative-* prose sections", () => {
+    const doc = v1Doc([
+      { key: "knowledge", heading: "K", body: "kbody", included: true },
+      { key: "individuals", heading: "I", body: "ibody", included: false },
+      { key: "community", heading: "C", body: "cbody", included: true },
+      { key: "society", heading: "S", body: "sbody", included: true },
+    ]);
+    const cv = parseCanonicalCv(doc);
+    expect(cv.schemaVersion).toBe(2);
+    expect((cv as { narrative?: unknown }).narrative).toBeUndefined();
+    const byType = new Map(cv.sections.map((s) => [s.type, s]));
+    expect(byType.get("narrative-knowledge")).toMatchObject({
+      title: "K",
+      body: "kbody",
+      visible: true,
+    });
+    // included:false → visible:false.
+    expect(byType.get("narrative-individuals")!.visible).toBe(false);
+    expect(byType.get("narrative-community")!.body).toBe("cbody");
+    expect(byType.get("narrative-society")!.body).toBe("sbody");
+  });
+
+  it("folds personal-statement into owner.summary when summary is empty", () => {
+    const doc = v1Doc(
+      [{ key: "personal-statement", heading: "PS", body: "I am a researcher.", included: true }],
+      "",
+    );
+    const cv = parseCanonicalCv(doc);
+    expect(cv.owner.summary).toBe("I am a researcher.");
+    expect(cv.sections.some((s) => s.type === "statement")).toBe(false);
+  });
+
+  it("keeps personal-statement as a statement section when summary is already set", () => {
+    const doc = v1Doc(
+      [{ key: "personal-statement", heading: "PS", body: "extra prose", included: true }],
+      "Existing summary.",
+    );
+    const cv = parseCanonicalCv(doc);
+    expect(cv.owner.summary).toBe("Existing summary."); // unchanged
+    const statement = cv.sections.find((s) => s.type === "statement")!;
+    expect(statement.body).toBe("extra prose");
+    expect(statement.title).toBe("PS");
+  });
+
+  it("maps 'additional' (and unknown keys) to a statement section", () => {
+    const doc = v1Doc([
+      { key: "additional", heading: "More", body: "career break note", included: true },
+      { key: "weird-unknown", heading: "Odd", body: "odd body", included: true },
+    ]);
+    const cv = parseCanonicalCv(doc);
+    const statements = cv.sections.filter((s) => s.type === "statement");
+    expect(statements).toHaveLength(2);
+    expect(statements.map((s) => s.body).sort()).toEqual(
+      ["career break note", "odd body"].sort(),
+    );
+  });
+
+  it("appends converted sections AFTER existing ones", () => {
+    const doc = v1Doc([{ key: "knowledge", heading: "K", body: "k", included: true }]);
+    const cv = parseCanonicalCv(doc);
+    const pubs = cv.sections.find((s) => s.type === "publications")!;
+    const knowledge = cv.sections.find((s) => s.type === "narrative-knowledge")!;
+    expect(knowledge.order).toBeGreaterThan(pubs.order);
+  });
+
+  it("is robust to a malformed narrative (non-array / non-object modules)", () => {
+    // Non-array narrative → just dropped, no throw.
+    expect(() => parseCanonicalCv(v1Doc("not-an-array" as unknown))).not.toThrow();
+    // Array with junk entries → skipped, no throw.
+    const cv = parseCanonicalCv(
+      v1Doc([null, 42, { key: "knowledge", body: "ok" }] as unknown),
+    );
+    expect(cv.sections.find((s) => s.type === "narrative-knowledge")!.body).toBe("ok");
+  });
+
+  it("migrateCanonicalDocument bumps schemaVersion and removes the narrative field", () => {
+    const out = migrateCanonicalDocument(v1Doc([])) as Record<string, unknown>;
+    expect(out.schemaVersion).toBe(2);
+    expect(out.narrative).toBeUndefined();
   });
 });

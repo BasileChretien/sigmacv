@@ -5,62 +5,55 @@ import { expect, test } from "../fixtures/auth";
 // A recognizable, unique body string we can grep for in the rendered preview,
 // the persisted canonical document, and the published public page.
 const MARKER = "NARRATIVE_E2E_MARKER";
-// A custom heading we type over the seeded default ("Personal statement").
-const HEADING = "About my research (E2E)";
+// The en-US default title of the `narrative-knowledge` prose section, which is
+// also the label of its "Add a section" button (prefixed with "+ ").
+const SECTION_TITLE = "Contributions to the generation of knowledge";
 
-test("narrative editor → seed → edit → save → preview → publish", async ({
+test("prose section → add from menu → type body → save → preview → publish", async ({
   page,
   context,
   authedUserId,
 }) => {
   await page.goto("/cv");
-  // Editor loaded (unambiguous: the Narrative CV panel this spec drives —
-  // plain getByText("Publications") matches several control labels).
-  await expect(page.getByRole("group", { name: "Narrative CV" })).toBeVisible();
+  // Editor loaded: the "Add a section" menu offers the prose-section button.
+  const addBtn = page.getByRole("button", { name: `+ ${SECTION_TITLE}` });
+  await expect(addBtn).toBeVisible();
 
-  // 1. Open the Narrative panel and seed the standard modules. With no modules
-  //    yet, the "Add narrative section" control (en-US `narrativeAdd`) is shown;
-  //    clicking it seeds the six funder-résumé modules (heading + empty body).
-  const panel = page.locator(".narrative-editor");
-  await expect(panel).toBeVisible();
-  await panel.getByRole("button", { name: "Add narrative section" }).click();
+  // 1. Add the "Contributions to the generation of knowledge" prose section from
+  //    the "Add a section" menu. Adding a single-instance section auto-expands it.
+  await addBtn.click();
 
-  // The modules appear; the first is the "Personal statement" module.
-  const firstModule = page.locator(".narrative-module").first();
-  await expect(firstModule).toBeVisible();
+  // The section card appears, expanded, with its prose textarea.
+  const proseBody = page.locator("textarea.prose-body").first();
+  await expect(proseBody).toBeVisible();
 
-  // 2. Edit the first module's heading (aria-label "Heading") and type a
-  //    recognizable body into its textarea (`.narrative-body`).
-  const headingInput = firstModule.getByRole("textbox", { name: "Heading" });
-  await headingInput.fill(HEADING);
-  await firstModule.locator("textarea.narrative-body").fill(MARKER);
+  // 2. Type a recognizable body into the prose textarea.
+  await proseBody.fill(MARKER);
 
   // 3. Save and wait for the save to settle (the polite status region shows
   //    "Saved." once `/api/cv` PATCH resolves).
   await page.getByRole("button", { name: /^Save$/ }).click();
   await expect(page.getByText("Saved.")).toBeVisible();
 
-  // The narrative is persisted to the canonical document with the edited
-  // heading + marker body.
+  // The prose section is persisted to the canonical document with the marker body.
   const row = await db.cv.findUnique({ where: { userId: authedUserId } });
   const parsed = safeParseCanonicalCv(row?.document);
   expect(parsed.success).toBe(true);
   if (parsed.success) {
-    const mod = (parsed.data.narrative ?? []).find((m) => m.heading === HEADING);
-    expect(mod?.body).toBe(MARKER);
+    const sec = parsed.data.sections.find(
+      (s) => s.type === "narrative-knowledge",
+    );
+    expect(sec?.body).toBe(MARKER);
   }
 
-  // 4. The rendered preview (sandboxed srcDoc iframe) shows the narrative block
-  //    above the sections: the edited heading and the marker body.
+  // 4. The rendered preview (sandboxed srcDoc iframe) shows the prose section:
+  //    its heading and the marker body.
   const preview = page.frameLocator("iframe.cv-preview-frame");
-  await expect(preview.locator(".cv-narrative")).toContainText(HEADING);
-  await expect(preview.locator(".cv-narrative")).toContainText(MARKER);
+  await expect(preview.locator(".cv-prose")).toContainText(SECTION_TITLE);
+  await expect(preview.locator(".cv-prose")).toContainText(MARKER);
 
   // 5. Publish, then assert the marker appears on the public page WITHOUT auth
-  //    (the public page renders the same canonical narrative block).
-  // Publish is async (the checkbox reflects server state after /api/cv/publish),
-  // so click + wait for the resulting "View" link rather than asserting the
-  // checkbox flips synchronously.
+  //    (the public page renders the same canonical prose section).
   await page.getByRole("checkbox", { name: /Public page/i }).click();
   // After publish the "open page" link (href /p/<slug>) appears — match by href
   // so the assertion is locale-independent.
@@ -75,7 +68,7 @@ test("narrative editor → seed → edit → save → preview → publish", asyn
   const anonPage = await anon.newPage();
   const res = await anonPage.goto(`/p/${slug}`);
   expect(res?.status()).toBe(200);
-  await expect(anonPage.locator("body")).toContainText(HEADING);
+  await expect(anonPage.locator("body")).toContainText(SECTION_TITLE);
   await expect(anonPage.locator("body")).toContainText(MARKER);
   await anon.close();
 });

@@ -1,5 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
-import { attributionFooter, commonCss, escapeHtml, licenseFooter, narrativeBlock, pageShell, photoHtml, provenanceFooter, sectionsHtml } from "./shared";
+import { attributionFooter, commonCss, escapeHtml, licenseFooter, pageShell, photoHtml, provenanceFooter, sectionsHtml } from "./shared";
 import type { CvTemplate, RenderedSection, TemplateTheme } from "./types";
 
 /**
@@ -155,7 +155,6 @@ export const rirekishoTemplate: CvTemplate = {
   <h1 class="rk-title">履歴書</h1>
   ${headerTable(cv)}
   ${historyTable(sections)}
-  ${narrativeBlock(cv)}
   ${sectionsHtml(rest)}
   ${provenanceFooter(cv)}
   ${licenseFooter(cv)}

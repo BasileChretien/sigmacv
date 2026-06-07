@@ -31,7 +31,7 @@ describe("buildCanonicalCv", () => {
   it("produces a schema-valid canonical object", () => {
     const cv = build();
     expect(() => parseCanonicalCv(cv)).not.toThrow();
-    expect(cv.schemaVersion).toBe(1);
+    expect(cv.schemaVersion).toBe(2);
     expect(cv.owner.orcid).toBe("0000-0002-7483-2489");
     expect(cv.sections).toHaveLength(1);
     expect(cv.sections[0]!.type).toBe("publications");

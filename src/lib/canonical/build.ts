@@ -913,6 +913,18 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     grantsSection ? mergeSection(grantsSection, previous) : null,
   ].filter((s): s is CvSection => s !== null);
 
+  // Carry over any PREVIOUS section that the source-driven build doesn't produce
+  // — user-added manual-only sections (skills / languages / references /
+  // conference / other) and PROSE sections (the narrative contributions +
+  // statements, which are user-authored and never sourced). Without this they'd
+  // silently vanish on every re-sync. Matched by id so a built section never
+  // duplicates its carried-over twin; appended after the built sections.
+  const builtIds = new Set(builtSections.map((s) => s.id));
+  const carriedSections: CvSection[] = (previous?.sections ?? []).filter(
+    (s) => !builtIds.has(s.id),
+  );
+  const allSections = [...builtSections, ...carriedSections];
+
   // Localize default section headings to the chosen locale (genuine user
   // renames are left untouched), and snap NEWLY-created sections to the
   // canonical default order. Sections the user already had keep their
@@ -924,7 +936,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // customized, keep their arrangement; only brand-new sections snap to default.
   const customized = prevDisplay.sectionsCustomized;
   const prevSectionIds = new Set((previous?.sections ?? []).map((s) => s.id));
-  const sections: CvSection[] = builtSections.map((s) => {
+  const sections: CvSection[] = allSections.map((s) => {
     const titled = isDefaultSectionTitle(s.type, s.title)
       ? { ...s, title: sectionTitle(locale, s.type) }
       : s;
@@ -967,8 +979,6 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     sections,
     // Saved view-presets are a pure display concern — carry them across re-syncs.
     presets: previous?.presets ?? [],
-    // Narrative-CV prose is user-authored (never sourced) — preserve it on re-sync.
-    narrative: previous?.narrative ?? [],
     provenance: {
       generatedAt: previous?.provenance.generatedAt ?? now,
       lastSyncedAt: now,
