@@ -16,8 +16,9 @@ Status keys: ✅ done · 🔜 in progress · ⬜ planned.
   (TypeScript fails the build otherwise). Bulk locale edits via a file-based
   Node script, not shell heredocs.
 - Schema additions are **additive** (optional / `.default()`) so `schemaVersion`
-  stays `1`; only a structural/breaking change bumps it and fills in
-  `migrateCanonicalDocument()`.
+  need not change; only a structural/breaking change bumps it and fills in
+  `migrateCanonicalDocument()` (the narrative→prose-sections redesign did this,
+  taking the canonical schema to **v2**).
 - Content-negotiation / public-API work fails **closed** on consent (only
   `published` CVs, only `projectCvForPublic()` output, `publicIndexable`
   separate) and is rate-limited.
@@ -68,7 +69,7 @@ Closest analog: `render/bibtex.ts`.
 | 3.1 | CSL-JSON export (items already carry `csl`) — lowest effort | ✅ |
 | 3.2 | JSON Résumé | ✅ |
 | 3.3 | NIH SciENcv / biosketch (Markdown) | ✅ |
-| 3.4 | Europass | ⬜ deferred — official ELM model is a controlled-vocabulary JSON-LD graph |
+| 3.4 | Europass | 🔜 structured **layout** shipped in the CV-model catalog (Phase 7.8); the official ELM JSON-LD export stays ⬜ deferred (controlled-vocabulary graph) |
 
 ## Phase 4 — Growth loop (public-page virality + SEO)
 
@@ -99,24 +100,47 @@ OpenAlex curation API is confirmed available.
 | 6.2 | `RESEARCH_LOGGING_ENABLED` + `OPENALEX_CURATION_ENABLED` stay off until IRB / API | ✅ verified default-off |
 | 6.3 | Tool/infrastructure paper (paper 1); cite the Zenodo DOI from 0.2 | ⬜ maintainer action |
 
-## Phase 7 — Grant-application CVs (new direction, 2026-06)
+## Phase 7 — Grant-application & job CVs (new direction, 2026-06)
 
-Decision: build the CV formats required by major **calls for projects** — all
-funder families (EU ERC/MSCA · US NIH/NSF · Japan JSPS/KAKENHI), starting with the
-**narrative-CV capability** (the DORA/CoARA differentiator). Caveat: several funders
-require final submission via their **own portal** (NIH/NSF → SciENcv; EU → Funding &
-Tenders) — SigmaCV drafts / maintains / exports a matching CV, it is **not** the
-official submission system, and these formats need a yearly maintenance pass.
+Decision: build the CV formats required by major **calls for projects** and
+**jobs** — funder families (EU ERC/MSCA · US NIH/NSF · Japan JSPS/KAKENHI · …),
+public-institution / job CVs, and industry/clinical CVs — with the
+**narrative-CV capability** (the DORA/CoARA differentiator) as first-class prose
+sections. Caveat: several funders require final submission via their **own
+portal** (NIH/NSF → SciENcv; EU → Funding & Tenders) — SigmaCV drafts /
+maintains / exports a matching CV, it is **not** the official submission system,
+and these formats need a yearly maintenance pass.
+
+**Design note (merged):** the dedicated "Narrative CV" panel and `cv.narrative[]`
+array were **removed**. The R4RI / Royal-Society contribution modules are now
+ordinary **prose sections** (`narrative-knowledge` / `-individuals` / `-community`
+/ `-society`) plus a generic `statement`, added from the normal "Add a section"
+menu; each is a heading + free-text `body`, and the top Summary is the personal
+statement. This bumped the canonical `schemaVersion` to **2** (with a v1→v2
+migration). The "grant preset" mechanism generalized into the **CV-model catalog**
+(`canonical/cvModels.ts`): **32 models** across grant funders (~21),
+public-institution/job CVs (~7), and industry/clinical CVs (~4), applied via a
+grouped picker. Rows 7.1–7.3 below are superseded by this redesign.
 
 | # | Item | Status |
 |---|---|---|
-| 7.1 | Narrative-CV canonical model (R4RI / Royal Society modules) + localized headings + curate ops | 🔜 |
-| 7.2 | Safe narrative rendering (HTML/PDF + Markdown + DOCX), body escaped | 🔜 |
-| 7.3 | Narrative editor UI + "Narrative CV" starter layout | ✅ (live E2E green) |
-| 7.4 | EU — ERC + MSCA structured presets | ✅ |
-| 7.5 | US — NIH biosketch export (✅) + NSF preset | ✅ |
-| 7.6 | Japan — JSPS/KAKENHI (researchmap / e-Rad) preset | ✅ |
+| 7.1 | ~~Narrative-CV canonical model (`narrative[]`)~~ → **prose sections** (`narrative-*` / `statement`) + localized headings + curate ops; `schemaVersion` 2 + migration | ✅ (superseded redesign) |
+| 7.2 | Safe prose rendering (HTML/PDF + Markdown + DOCX + LaTeX), `body` escaped | ✅ |
+| 7.3 | ~~"Narrative CV" starter layout~~ → **CV-model catalog** (`cvModels.ts`, 32 models, grouped picker) | ✅ (live E2E green) |
+| 7.4 | EU — ERC + MSCA structured models | ✅ |
+| 7.5 | US — NIH biosketch export (✅) + NSF model | ✅ |
+| 7.6 | Japan — JSPS/KAKENHI (researchmap / e-Rad) model | ✅ |
 | 7.7 | Funder export profiles — structured Markdown per funder (`erc`/`msca`/`nsf`/`jsps`): funder headings + track record + narrative + portal caveat | ✅ (pixel-faithful PDF = future) |
+| 7.8 | Catalog expansion — public-institution/job CVs (Europass, academic, rirekisho/shokumu, UN P.11) + industry/clinical (ICH-GCP investigator / FDA 1572, biotech R&D, physician, Medical Affairs) | ✅ |
+
+## Phase 8 — Post-merge hardening, deploy & QA (2026-06)
+
+| # | Item | Status |
+|---|---|---|
+| 8.1 | Three security audits + hardening (consent-gating, output escaping, public API, default-off curation client; non-root container, dropped caps, unpublished DB) | ✅ |
+| 8.2 | E2E expansion (auth · curate · export · publish · public formats · CV-model application) | ✅ |
+| 8.3 | Full export menu wired in the editor (PDF/DOCX/LaTeX/Markdown · BibTeX/CSL-JSON/JSON Résumé/JSON · NIH biosketch + ERC/MSCA/NSF/JSPS grant CVs) | ✅ |
+| 8.4 | Docker deployment verified end-to-end (image build → migration → DB-backed routes serving) | ✅ |
 
 ## Recommended execution order
 

@@ -37,6 +37,13 @@ ecosystem** (ORCID, OpenAlex / OurResearch, ROR, Crossref). Copy/paste and adapt
   Reusable (provenance + license).
 - **Responsible assessment.** Metrics default to none; field-normalized over
   h-index, consistent with DORA/CoARA.
+- **Funder-ready in one click.** A 32-model CV-model catalog reconfigures the CV
+  to the structure a given call or employer expects — grant funders (ERC, MSCA,
+  NIH/NSF, DFG, JSPS, the DORA-aligned narrative formats UKRI R4RI / Royal
+  Society / SNSF, …), public-institution / job CVs (Europass, academic,
+  rirekisho, UN P.11), and industry/clinical CVs (ICH-GCP investigator / FDA
+  1572, biotech R&D, physician, Medical Affairs) — reversibly, with the R4RI /
+  Royal-Society narrative modules as first-class prose sections.
 - **Gives back (planned v2).** "Not mine" corrections can flow upstream to
   improve the shared scholarly record.
 
@@ -46,7 +53,8 @@ ecosystem** (ORCID, OpenAlex / OurResearch, ROR, Crossref). Copy/paste and adapt
 |---|---|
 | License | Apache-2.0 (code); outputs licensable CC0/CC BY by the author |
 | Data sources | OpenAlex, ORCID (public API), Crossref, ROR, DataCite, Open Editors Plus |
-| Formats | HTML · PDF · DOCX · LaTeX · Markdown · BibTeX · CSL-JSON · JSON Résumé · NIH biosketch |
+| Formats | HTML · PDF · DOCX · LaTeX · Markdown · BibTeX · CSL-JSON · JSON Résumé · NIH biosketch · ERC/MSCA/NSF/JSPS grant CVs · raw JSON |
+| CV models | 32 one-click, reversible layouts: grant funders · public-institution/job CVs · industry/clinical CVs |
 | Privacy | GDPR + Japan APPI; per-field publish consent; export + delete |
 | Locales | 10 (en, zh, es, fr, de, ja, pt, it, ko, ru) |
 | Hosting | SaaS or self-host (Docker Compose, single VPS) |
