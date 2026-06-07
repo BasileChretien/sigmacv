@@ -37,8 +37,9 @@ metrics are opt-in, default-none, and field-normalized; and a published CV is a
 machine-readable artifact (schema.org JSON-LD, content-negotiated CSL-JSON and
 BibTeX) under an author-chosen reuse license. The tool natively supports the
 emerging **narrative-CV** formats (UKRI Résumé for Research and Innovation; the
-Royal Society Résumé for Researchers) and one-click structured layouts for major
-grant calls (ERC, MSCA, NIH/NSF, JSPS/KAKENHI). SigmaCV is also a **research
+Royal Society Résumé for Researchers) as first-class prose sections, and a
+catalog of one-click, reversible structured layouts for grant calls (ERC, MSCA,
+NIH/NSF, JSPS/KAKENHI, …), public institutions, and industry/clinical CVs. SigmaCV is also a **research
 vehicle**: with explicit, IRB-governed consent it records author-disambiguation
 corrections and self-presentation choices to support two pre-registered
 observational studies. The system is Apache-2.0 licensed, self-hostable via Docker
@@ -92,8 +93,9 @@ and (iii) embodies responsible-assessment principles by construction.
    BibTeX), carry provenance and an author-chosen reuse license, and are governed
    by per-field publish consent.
 4. Native support for **responsible-assessment outputs**: opt-in, default-none,
-   field-normalized metrics; narrative-CV modules; and one-click grant-CV layouts
-   for major funders.
+   field-normalized metrics; narrative-CV prose sections; and a catalog of
+   one-click, reversible CV-model layouts for grant funders, public institutions,
+   and industry/clinical roles.
 5. A **consent-gated research-vehicle design** that turns routine use (mine/not-mine
    corrections; CV-composition choices) into data for two pre-registered,
    IRB-governed observational studies, while defaulting all logging off.
@@ -122,7 +124,7 @@ identically across every output — a property that hand-maintained CVs lack.
 CoARA call for assessment that avoids journal-level proxies and values a broader
 range of contributions; narrative-CV frameworks operationalize this. SigmaCV
 encodes these as defaults (metrics off; field-normalized preferred) and as
-first-class features (narrative modules; funder layouts).
+first-class features (narrative prose sections; the CV-model catalog).
 
 ## 3. Design principles and architecture
 
@@ -193,14 +195,23 @@ that adding a key forces a value in every locale at compile time.
 - **Publish.** A *living* public page that re-syncs from open sources; it is
   machine-readable (schema.org JSON-LD; content-negotiated CSL-JSON / BibTeX /
   JSON) and indexable only on explicit opt-in.
-- **Narrative CV.** First-class modules following the R4RI / Royal Society
-  framing (contributions to the generation of knowledge; to the development of
-  individuals; to the wider research community; to broader society), authored by
-  the researcher with localized guidance prompts; rendered safely above the
-  sections.
-- **Grant-CV layouts.** One-click, reversible presets that reconfigure the CV to
-  the structure expected by major calls (ERC, MSCA, NIH/NSF, JSPS/KAKENHI), with a
-  clear caveat that final submission goes through each funder's own portal.
+- **Narrative / prose sections.** The R4RI / Royal Society contribution modules
+  (contributions to the generation of knowledge; to the development of
+  individuals; to the wider research community; to broader society) plus a generic
+  statement are first-class **prose sections** — a heading and free-text body —
+  added from the ordinary "Add a section" menu and managed like any other section
+  (reorder, show/hide, rename); the top Summary is the personal statement. Their
+  user-supplied body is escaped/safe-transformed by every renderer.
+- **CV-model catalog.** A catalog of one-click, reversible layouts that
+  reconfigure the canonical CV (selecting, ordering, and re-titling sections —
+  never deleting curated data) to the structure expected by a given call or
+  employer. It spans three categories: grant funders worldwide (ERC, MSCA,
+  Horizon, DFG, SNSF, NWO, ANR, Wellcome, UKRI R4RI, Royal Society, NIH, NSF,
+  JSPS/KAKENHI, AMED, NSFC, …), public-institution / job CVs (Europass, US/UK/DE
+  academic, the Japanese rirekisho and shokumu-keirekisho, UN P.11), and
+  industry / clinical CVs (ICH-GCP investigator CV for clinical trials / FDA Form
+  1572, biotech R&D résumé, physician CV, Medical Affairs). A clear caveat notes
+  that final submission for many funders goes through each funder's own portal.
 - **Opt-in metrics.** Default none; when shown, field-normalized indicators (mean
   field-weighted citation impact, top-percentile share) are preferred over the
   h-index, consistent with DORA.
@@ -226,8 +237,8 @@ that adding a key forces a value in every locale at compile time.
 ### 6.2 Responsible assessment
 
 Metrics default to none and prefer field-normalized indicators over journal-level
-proxies; self-attribution is identifier-driven; narrative modules and funder
-layouts make contribution-focused, funder-aligned CVs first-class. These choices
+proxies; self-attribution is identifier-driven; narrative prose sections and the CV-model
+catalog make contribution-focused, funder-aligned CVs first-class. These choices
 operationalize DORA/CoARA at the level of the tool's defaults.
 
 ### 6.3 Giving back to the commons (planned)
@@ -263,7 +274,7 @@ approval is recorded.
 SigmaCV is developed with a comprehensive automated test suite (≈‹N› unit and
 integration tests with an enforced coverage gate on the domain layer, plus
 end-to-end browser journeys covering authentication, curation, export, publishing,
-grant-preset application, and the machine-readable public formats). The codebase
+CV-model application, and the machine-readable public formats). The codebase
 underwent multiple security reviews focused on consent-gating, output escaping
 (JSON-LD/HTML/BibTeX), the machine-readable public API, and the (default-off)
 upstream-curation client; the production container is non-root with dropped

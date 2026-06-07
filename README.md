@@ -33,9 +33,27 @@ This repository currently implements the **MVP vertical slice**:
 - **Four templates + constrained customization** — `classic`, `modern`,
   `minimal`, `compact` (two-column), plus accent colour, font pairing (serif /
   sans / Palatino), and density.
-- **Multi-format export** — DOCX, LaTeX (`.tex`), and Markdown (YAML
-  frontmatter, Hugo-compatible) in addition to PDF, all from the same canonical
-  object and citeproc output so citations are identical everywhere.
+- **Full export set** — from the same canonical object and citeproc output (so
+  citations are identical everywhere): PDF, DOCX, LaTeX (`.tex`), Markdown (YAML
+  frontmatter, Hugo-compatible), BibTeX, CSL-JSON, JSON Résumé, the NIH
+  biosketch, and funder grant-CV drafts (ERC / MSCA / NSF / JSPS), plus the raw
+  canonical JSON.
+- **CV-model catalog** (`src/lib/canonical/cvModels.ts`) — 32 one-click,
+  reversible starting layouts in three categories: ~21 **grant funders**
+  worldwide (ERC, MSCA, Horizon, DFG, SNSF, NWO, ANR, Wellcome, UKRI R4RI, Royal
+  Society, NIH, NSF, JSPS, AMED, NSFC, …), ~7 **public-institution / job CVs**
+  (Europass, US/UK/DE academic, Japanese rirekisho + shokumu-keirekisho, UN
+  P.11), and ~4 **industry / clinical CVs** (ICH-GCP investigator / FDA 1572,
+  biotech R&D résumé, physician CV, Medical Affairs). Applying a model selects,
+  orders, and re-titles sections for that call/employer without deleting curated
+  data.
+- **Prose / narrative-CV sections** — the R4RI / Royal-Society contribution
+  modules (knowledge, individuals, community, society) and a generic statement
+  are ordinary free-text sections added from the normal "Add a section" menu (the
+  top Summary is the personal statement); no separate narrative panel.
+- **Machine-readable public CVs** — the public page (`/p/<slug>`) serves
+  schema.org JSON-LD and content-negotiates CSL-JSON / BibTeX / canonical JSON
+  (plus suffix paths) with a per-CV Open Graph image.
 - **"Not mine" vs "Hide"** — display hiding is distinct from a disambiguation
   assertion. "Not mine" persists in the canonical object, is logged as a
   distinct `disambiguation_assertion`, and is surfaced by
