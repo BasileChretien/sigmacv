@@ -38,8 +38,8 @@ This repository currently implements the **MVP vertical slice**:
   frontmatter, Hugo-compatible), BibTeX, CSL-JSON, JSON Résumé, the NIH
   biosketch, and funder grant-CV drafts (ERC / MSCA / NSF / JSPS), plus the raw
   canonical JSON.
-- **CV-model catalog** (`src/lib/canonical/cvModels.ts`) — 32 one-click,
-  reversible starting layouts in three categories: ~21 **grant funders**
+- **CV-model catalog** (`src/lib/canonical/cvModels.ts`) — 58 one-click,
+  reversible starting layouts in three categories: ~38 **grant funders**
   worldwide (ERC, MSCA, Horizon, DFG, SNSF, NWO, ANR, Wellcome, UKRI R4RI, Royal
   Society, NIH, NSF, JSPS, AMED, NSFC, …), ~7 **public-institution / job CVs**
   (Europass, US/UK/DE academic, Japanese rirekisho + shokumu-keirekisho, UN

@@ -118,15 +118,15 @@ ordinary **prose sections** (`narrative-knowledge` / `-individuals` / `-communit
 menu; each is a heading + free-text `body`, and the top Summary is the personal
 statement. This bumped the canonical `schemaVersion` to **2** (with a v1→v2
 migration). The "grant preset" mechanism generalized into the **CV-model catalog**
-(`canonical/cvModels.ts`): **32 models** across grant funders (~21),
-public-institution/job CVs (~7), and industry/clinical CVs (~4), applied via a
+(`canonical/cvModels.ts`): **58 models** across grant funders (~38),
+public-institution/job CVs (~10), and industry/clinical CVs (~10), applied via a
 grouped picker. Rows 7.1–7.3 below are superseded by this redesign.
 
 | # | Item | Status |
 |---|---|---|
 | 7.1 | ~~Narrative-CV canonical model (`narrative[]`)~~ → **prose sections** (`narrative-*` / `statement`) + localized headings + curate ops; `schemaVersion` 2 + migration | ✅ (superseded redesign) |
 | 7.2 | Safe prose rendering (HTML/PDF + Markdown + DOCX + LaTeX), `body` escaped | ✅ |
-| 7.3 | ~~"Narrative CV" starter layout~~ → **CV-model catalog** (`cvModels.ts`, 32 models, grouped picker) | ✅ (live E2E green) |
+| 7.3 | ~~"Narrative CV" starter layout~~ → **CV-model catalog** (`cvModels.ts`, 58 models, grouped picker) | ✅ (live E2E green) |
 | 7.4 | EU — ERC + MSCA structured models | ✅ |
 | 7.5 | US — NIH biosketch export (✅) + NSF model | ✅ |
 | 7.6 | Japan — JSPS/KAKENHI (researchmap / e-Rad) model | ✅ |
