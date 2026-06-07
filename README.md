@@ -68,7 +68,7 @@ This repository currently implements the **MVP vertical slice**:
   is a passwordless magic link).
 - **Living public CV page** — publish a public page at `/p/<slug>`, kept fresh
   by a **scheduled re-sync** (cron container → guarded `/api/internal/resync`).
-- **Editorial roles (OEP)** — optional, from a configurable `OEP_DATA_URL`.
+- **Editorial roles (OEP)** — from the Open Editors Plus dataset, bulk-imported into Postgres (`npm run oep:import`).
 - **Grants** — a funding section aggregated from OpenAlex grant fields.
 - **E2E harness** — Playwright journeys (`e2e/`) against a live app + Postgres.
 

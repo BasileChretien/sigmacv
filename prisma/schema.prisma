@@ -127,3 +127,22 @@ model RateLimitWindow {
 
   @@index([resetAt])
 }
+
+// Open Editors Plus reference data: journal editorial roles keyed by researcher
+// ORCID. Bulk-imported from the committed OEP seed (`npm run oep:import`, see
+// scripts/oep-import.ts) — ~347k rows, queried by `orcid` at CV-sync time to
+// populate the Editorial Roles section. This is STATIC reference data, not user
+// data: no relation to User, replaced wholesale on each import. Empty table =
+// the integration is simply a no-op (no editorial section), so the app runs
+// without it.
+model OepEditorialRole {
+  id        Int     @id @default(autoincrement())
+  orcid     String
+  journal   String
+  role      String
+  roleStd   String?
+  publisher String?
+  issn      String?
+
+  @@index([orcid])
+}

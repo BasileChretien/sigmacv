@@ -484,9 +484,10 @@ function buildGrantsSection(
 
 /**
  * Build the editorial-roles section. Roles come from the Open Editors Plus
- * dataset (OEP_DATA_URL) when configured; the user's own manually-added
- * editorial entries are always carried over too — so the section works even
- * with no OEP source. Returns null only when there are neither.
+ * dataset (the OepEditorialRole table, populated by `npm run oep:import`); the
+ * user's own manually-added editorial entries are always carried over too — so
+ * the section works even with no OEP data. Returns null only when there are
+ * neither.
  */
 function buildEditorialSection(
   roles: EditorialRole[],

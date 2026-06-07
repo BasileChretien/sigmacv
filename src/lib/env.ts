@@ -20,8 +20,6 @@ const EnvSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   EMAIL_SERVER: z.string().optional(), // SMTP URL, e.g. smtp://user:pass@host:587
   EMAIL_FROM: z.string().optional(), // e.g. "SigmaCV <no-reply@example.org>"
-  // Open Editors Plus dataset (JSON of editorial roles by ORCID). Optional.
-  OEP_DATA_URL: z.string().url().optional(),
   // Shared secret guarding the internal scheduled-resync endpoint. If unset the
   // endpoint is disabled (returns 503), so it's optional even in production.
   RESYNC_SECRET: z.string().min(16).optional(),
