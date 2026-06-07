@@ -495,6 +495,29 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(renderCvHtml(makeCv())).not.toContain("Generated from");
     });
 
+    it.skipIf(!hasApa)(
+      "exposes exactly one <footer> landmark even with provenance + license + attribution",
+      () => {
+        // a11y: the provenance block is the single contentinfo landmark; the
+        // license + attribution lines render as <p> (class-styled), never as
+        // additional <footer> landmarks that would dilute the landmark map.
+        const cv: CanonicalCv = {
+          ...withProvenance(makeCv()),
+          display: {
+            ...withProvenance(makeCv()).display,
+            cvLicense: "CC-BY-4.0",
+          },
+        };
+        const html = renderCvHtml(cv, { attribution: true });
+        // All three lines present…
+        expect(html).toContain('class="cv-provenance"');
+        expect(html).toContain('class="cv-license"');
+        expect(html).toContain('class="cv-attribution"');
+        // …but only the provenance one is a <footer> landmark.
+        expect((html.match(/<footer/g) ?? []).length).toBe(1);
+      },
+    );
+
     it("annotates a field-normalised metric with responsible-reading context", () => {
       const cv = makeCv();
       const withFwci: CanonicalCv = {
