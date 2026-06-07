@@ -44,6 +44,9 @@ export const SECTION_TYPES = [
   "peer-review",
   "editorial",
   "grants",
+  // Clinical trials where the account holder is an investigator (registry-sourced,
+  // name+org matched → review candidates). Non-prose entry section.
+  "clinical-trials",
   // ── Prose sections (free-text body, no items) ──────────────────────────────
   // The four R4RI / Royal-Society "narrative CV" contribution modules plus a
   // generic free-titled statement. They are first-class sections, managed like
@@ -98,24 +101,26 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
   conference: 4,
   datasets: 5,
   grants: 6,
+  // Clinical trials sit with the other research outputs, just after grants.
+  "clinical-trials": 7,
   // The four narrative contribution modules sit together just after grants.
-  "narrative-knowledge": 7,
-  "narrative-individuals": 8,
-  "narrative-community": 9,
-  "narrative-society": 10,
-  awards: 11,
-  talks: 12,
-  teaching: 13,
-  supervision: 14,
-  editorial: 15,
-  "peer-review": 16,
-  service: 17,
-  skills: 18,
-  languages: 19,
-  references: 20,
+  "narrative-knowledge": 8,
+  "narrative-individuals": 9,
+  "narrative-community": 10,
+  "narrative-society": 11,
+  awards: 12,
+  talks: 13,
+  teaching: 14,
+  supervision: 15,
+  editorial: 16,
+  "peer-review": 17,
+  service: 18,
+  skills: 19,
+  languages: 20,
+  references: 21,
   // A generic prose statement sits near the end, just before "Other".
-  statement: 21,
-  other: 22,
+  statement: 22,
+  other: 23,
 };
 
 /**
@@ -168,7 +173,22 @@ export const CvItemSchema = z.object({
   /** Stable id — e.g. the OpenAlex short id "W2741809807", or "position:…". */
   id: z.string(),
   /** Where the item came from. "manual" = user-entered; "orcid" = ORCID record. */
-  source: z.enum(["openalex", "orcid", "oep", "datacite", "derived", "manual"]),
+  source: z.enum([
+    "openalex",
+    "orcid",
+    "oep",
+    "datacite",
+    "crossref",
+    "openaire",
+    "dblp",
+    // National funder APIs (name+org matched → review candidates, never auto-included).
+    "ukri",
+    "nih",
+    "nsf",
+    "clinicaltrials",
+    "derived",
+    "manual",
+  ]),
   /** Full source identifier (e.g. OpenAlex URL form, ORCID put-code, or "manual"). */
   sourceId: z.string(),
   /** CSL-JSON payload handed to citeproc. Absent for non-citation items. */
@@ -420,6 +440,18 @@ export const CvOwnerSchema = z.object({
   metrics: OwnerMetricsSchema.optional(),
   /** Per-year works/citations (drives the optional charts). Default empty. */
   countsByYear: z.array(CountsByYearSchema).default([]),
+  /**
+   * Wikidata entity URI for the account holder, matched by ORCID (`wdt:P496`).
+   * Surfaced as a `sameAs` link in the public page's schema.org Person graph —
+   * never used for matching/highlighting. Optional + back-compat.
+   */
+  wikidataUri: z.string().max(2048).optional(),
+  /**
+   * Additional authority-file `sameAs` URIs discovered via Wikidata (the Wikidata
+   * entity itself plus any VIAF / ISNI links). Strengthens the public page's
+   * structured-data identity graph. Optional (consumers treat absent as empty).
+   */
+  wikidataSameAs: z.array(z.string().max(2048)).max(20).optional(),
 });
 export type CvOwner = z.infer<typeof CvOwnerSchema>;
 
@@ -586,6 +618,12 @@ export const PROVENANCE_SOURCES = [
   "oep",
   "crossref",
   "datacite",
+  "openaire",
+  "dblp",
+  "ukri",
+  "nih",
+  "nsf",
+  "clinicaltrials",
   "ror",
   "derived",
   "manual",
