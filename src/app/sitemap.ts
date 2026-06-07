@@ -5,6 +5,7 @@ import {
   LOCALE_SLUGS,
   SUPPORTED_LOCALES,
 } from "@/lib/i18n";
+import { LANDING_PAGE_IDS } from "@/lib/i18n/landingPages";
 import { absoluteUrl } from "@/lib/siteUrl";
 
 export const dynamic = "force-dynamic";
@@ -32,8 +33,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // locale, `${slug}/segment` otherwise.
   const landingPath = (segment: string) => (loc: string) =>
     loc === DEFAULT_UI_LOCALE ? segment : `${slug(loc)}/${segment}`;
-  const orcidToCvPath = landingPath("orcid-to-cv");
-  const nihBiosketchPath = landingPath("nih-biosketch");
 
   // Absolute hreflang maps (reciprocal + self) shared across each page's entries.
   const homeLanguages: Record<string, string> = {};
@@ -41,16 +40,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const privacyLanguages: Record<string, string> = {};
   const faqLanguages: Record<string, string> = {};
   const accessibilityLanguages: Record<string, string> = {};
-  const orcidToCvLanguages: Record<string, string> = {};
-  const nihBiosketchLanguages: Record<string, string> = {};
   for (const loc of SUPPORTED_LOCALES) {
     homeLanguages[loc] = absoluteUrl(homePath(loc));
     aboutLanguages[loc] = absoluteUrl(aboutPath(loc));
     privacyLanguages[loc] = absoluteUrl(privacyPath(loc));
     faqLanguages[loc] = absoluteUrl(faqPath(loc));
     accessibilityLanguages[loc] = absoluteUrl(accessibilityPath(loc));
-    orcidToCvLanguages[loc] = absoluteUrl(orcidToCvPath(loc));
-    nihBiosketchLanguages[loc] = absoluteUrl(nihBiosketchPath(loc));
   }
 
   const homeEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map((loc) => ({
@@ -91,23 +86,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   // High-intent SEO landing pages — primary acquisition surfaces, so a higher
-  // priority than the legal/info pages and a monthly change cadence.
-  const orcidToCvEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map(
-    (loc) => ({
-      url: absoluteUrl(orcidToCvPath(loc)),
-      changeFrequency: "monthly",
-      priority: loc === DEFAULT_UI_LOCALE ? 0.7 : 0.6,
-      alternates: { languages: orcidToCvLanguages },
-    }),
-  );
-
-  const nihBiosketchEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map(
-    (loc) => ({
-      url: absoluteUrl(nihBiosketchPath(loc)),
-      changeFrequency: "monthly",
-      priority: loc === DEFAULT_UI_LOCALE ? 0.7 : 0.6,
-      alternates: { languages: nihBiosketchLanguages },
-    }),
+  // priority than the legal/info pages and a monthly change cadence. Iterates
+  // LANDING_PAGE_IDS so any newly registered landing page is included here too.
+  const landingEntries: MetadataRoute.Sitemap = LANDING_PAGE_IDS.flatMap(
+    (segment) => {
+      const path = landingPath(segment);
+      const languages: Record<string, string> = {};
+      for (const loc of SUPPORTED_LOCALES) {
+        languages[loc] = absoluteUrl(path(loc));
+      }
+      return SUPPORTED_LOCALES.map((loc) => ({
+        url: absoluteUrl(path(loc)),
+        changeFrequency: "monthly" as const,
+        priority: loc === DEFAULT_UI_LOCALE ? 0.7 : 0.6,
+        alternates: { languages },
+      }));
+    },
   );
 
   // Opt-in indexable public CVs — the privacy-preserving organic-growth loop.
@@ -130,8 +124,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...privacyEntries,
     ...faqEntries,
     ...accessibilityEntries,
-    ...orcidToCvEntries,
-    ...nihBiosketchEntries,
+    ...landingEntries,
     ...cvEntries,
   ];
 }

@@ -49,13 +49,13 @@ export interface LandingStrings {
 
 const LANDING_I18N: Record<Locale, LandingStrings> = {
   "en-US": {
-    metaTitle: "SigmaCV — Free academic CV builder from your ORCID",
+    metaTitle: "SigmaCV — Free academic CV builder from ORCID & OpenAlex",
     metaDescription:
-      "Free, open-source academic CV builder. Auto-build a researcher CV from your ORCID and OpenAlex, pick a citation style, export to PDF, DOCX, LaTeX or Markdown.",
+      "Free, open-source academic CV builder. Auto-build your researcher CV from ORCID and OpenAlex, generate a formatted publication list, pick a citation style, and export to PDF, DOCX, LaTeX, Markdown or BibTeX.",
     eyebrow: "Open infrastructure for responsible research assessment",
     heroTitle: "Your academic CV, auto-built from the open research record.",
     heroSub:
-      "Clean, customizable CVs generated from OpenAlex, ORCID, Crossref and DataCite — curate what’s yours, pick a citation style, and export to PDF, DOCX, LaTeX or Markdown.",
+      "Clean, customizable academic CVs generated from OpenAlex, ORCID, Crossref and DataCite — curate what’s yours, pick a citation style, and export to PDF, DOCX, LaTeX, Markdown or BibTeX.",
     step1: "Sign in with your ORCID iD.",
     step2: "Publications populate automatically from OpenAlex.",
     step3: "Curate, style, and export — or publish a living page.",
@@ -74,11 +74,11 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     languageLabel: "Language",
     featuresTitle: "Everything in one canonical CV",
     features: [
-      { title: "Auto-pulled from open data", body: "Publications, metrics and grants imported from OpenAlex and ORCID — no copy-paste." },
+      { title: "Auto-pulled from ORCID & OpenAlex", body: "Publications, metrics and grants imported from OpenAlex and ORCID — no copy-paste." },
       { title: "One object, every format", body: "A single canonical CV renders to identical citations everywhere via CSL." },
       { title: "Highlighted by identifier", body: "Your name is highlighted by ORCID / OpenAlex ID — never by a name string." },
       { title: "58 one-click layouts", body: "Funder, institution and industry CV layouts — UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC and an ICH-GCP investigator CV." },
-      { title: "Export anywhere", body: "PDF, DOCX, LaTeX, Markdown, BibTeX, CSL-JSON, JSON Résumé and an NIH biosketch." },
+      { title: "Export to PDF, DOCX, LaTeX & more", body: "PDF, DOCX, LaTeX, Markdown, BibTeX, CSL-JSON, JSON Résumé and an NIH biosketch." },
       { title: "Living public page", body: "Publish a machine-readable page that re-syncs from the open record. Ten languages." },
       { title: "Metrics, done responsibly", body: "Opt-in, field-normalized metrics — default none, DORA-aligned." },
     ],
