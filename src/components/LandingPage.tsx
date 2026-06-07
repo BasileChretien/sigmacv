@@ -2,10 +2,12 @@ import Link from "next/link";
 import { faqPageJsonLd } from "@/lib/faqJsonLd";
 import { asLocale } from "@/lib/i18n";
 import { type LandingPageId, landingPageStrings } from "@/lib/i18n/landingPages";
+import { serializeJsonLd } from "@/lib/jsonLd";
 import {
   localeHomePath,
   localeLandingPagePath,
 } from "@/lib/seo";
+import { absoluteUrl, SITE_URL } from "@/lib/siteUrl";
 import DocJsonLd from "./DocJsonLd";
 import SiteLinks from "./SiteLinks";
 
@@ -29,16 +31,31 @@ export default function LandingPage({
 }) {
   const loc = asLocale(locale);
   const s = landingPageStrings(page, loc);
+  const path = localeLandingPagePath(page, loc).replace(/^\//, "");
+  // BreadcrumbList: SigmaCV → this page, for a breadcrumb rich result in SERPs.
+  const breadcrumbJsonLd = serializeJsonLd({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "SigmaCV", item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: s.navLabel, item: absoluteUrl(path) },
+    ],
+  });
   return (
     <main className="doc-page" lang={loc}>
       <DocJsonLd
-        path={localeLandingPagePath(page, loc).replace(/^\//, "")}
+        path={path}
         name={s.heading}
         description={s.metaDescription}
         locale={loc}
       />
       {/* FAQPage structured data — the builder returns the full <script> tag. */}
       <div dangerouslySetInnerHTML={{ __html: faqPageJsonLd(s.faq) }} />
+      <script
+        type="application/ld+json"
+        // Server-rendered from static, non-user data — safe to inline.
+        dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }}
+      />
 
       <h1>{s.heading}</h1>
       <p>{s.subhead}</p>

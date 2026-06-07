@@ -9,7 +9,7 @@ import { asLocale, t } from "@/lib/i18n";
 import { accessibilityStrings } from "@/lib/i18n/accessibility";
 import { faqStrings } from "@/lib/i18n/faq";
 import { landingStrings } from "@/lib/i18n/landing";
-import { landingPageStrings } from "@/lib/i18n/landingPages";
+import { LANDING_PAGE_IDS, landingPageStrings } from "@/lib/i18n/landingPages";
 import {
   localeAboutPath,
   localeAccessibilityPath,
@@ -83,49 +83,64 @@ export default function Landing({ locale }: LandingProps) {
           </ol>
         </section>
 
-        <section className="auth-card card">
-          <h2 className="auth-card-title">{s.signInTitle}</h2>
-          <p className="auth-card-sub muted">{s.signInSub}</p>
+        <div className="hero-right">
+          <HeroGraphic />
+          <section className="auth-card card">
+            <h2 className="auth-card-title">{s.signInTitle}</h2>
+            <p className="auth-card-sub muted">{s.signInSub}</p>
 
-          <form action={signInWithOrcid}>
-            <button type="submit" className="btn btn-primary btn-lg auth-btn">
-              <OrcidMark />
-              {s.signInOrcid}
-            </button>
-          </form>
-
-          {enabledProviders.google || enabledProviders.email ? (
-            <div className="auth-divider">
-              <span>{s.orDivider}</span>
-            </div>
-          ) : null}
-
-          {enabledProviders.google ? (
-            <form action={signInWithGoogle}>
-              <button type="submit" className="btn auth-btn">
-                {s.continueGoogle}
+            <form action={signInWithOrcid}>
+              <button type="submit" className="btn btn-primary btn-lg auth-btn">
+                <OrcidMark />
+                {s.signInOrcid}
               </button>
             </form>
-          ) : null}
 
-          {enabledProviders.email ? (
-            <form action={signInWithEmail} className="auth-email-row">
-              <input
-                type="email"
-                name="email"
-                required
-                placeholder={s.emailPlaceholder}
-                aria-label={s.emailLabel}
-              />
-              <button type="submit" className="btn">
-                {s.emailButton}
-              </button>
-            </form>
-          ) : null}
+            {enabledProviders.google || enabledProviders.email ? (
+              <div className="auth-divider">
+                <span>{s.orDivider}</span>
+              </div>
+            ) : null}
 
-          <p className="auth-fineprint muted">{s.fineprint}</p>
-        </section>
+            {enabledProviders.google ? (
+              <form action={signInWithGoogle}>
+                <button type="submit" className="btn auth-btn">
+                  {s.continueGoogle}
+                </button>
+              </form>
+            ) : null}
+
+            {enabledProviders.email ? (
+              <form action={signInWithEmail} className="auth-email-row">
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder={s.emailPlaceholder}
+                  aria-label={s.emailLabel}
+                />
+                <button type="submit" className="btn">
+                  {s.emailButton}
+                </button>
+              </form>
+            ) : null}
+
+            <p className="auth-fineprint muted">{s.fineprint}</p>
+          </section>
+        </div>
       </main>
+
+      {/* Source strip: the open data sources the CV is built from. The names are
+          brand proper nouns (like "Σ"/"SigmaCV"), reinforcing the hero copy. */}
+      <div
+        className="source-strip"
+        aria-label="Open research data sources SigmaCV builds from"
+      >
+        <span className="source-pill">OpenAlex</span>
+        <span className="source-pill">ORCID</span>
+        <span className="source-pill">Crossref</span>
+        <span className="source-pill">DataCite</span>
+      </div>
 
       <section className="landing-section landing-features" aria-labelledby="features-h">
         <h2 id="features-h" className="landing-section-title">
@@ -169,24 +184,15 @@ export default function Landing({ locale }: LandingProps) {
           {s.exploreTitle}
         </h2>
         <ul className="explore-links">
-          <li>
-            <Link href={localeLandingPagePath("orcid-to-cv", loc)}>
-              {s.exploreOrcid}
-            </Link>
-            <span className="muted explore-desc">
-              {" — "}
-              {landingPageStrings("orcid-to-cv", loc).subhead}
-            </span>
-          </li>
-          <li>
-            <Link href={localeLandingPagePath("nih-biosketch", loc)}>
-              {s.exploreNih}
-            </Link>
-            <span className="muted explore-desc">
-              {" — "}
-              {landingPageStrings("nih-biosketch", loc).subhead}
-            </span>
-          </li>
+          {LANDING_PAGE_IDS.map((page) => {
+            const p = landingPageStrings(page, loc);
+            return (
+              <li key={page}>
+                <Link href={localeLandingPagePath(page, loc)}>{p.navLabel}</Link>
+                <span className="muted explore-desc">{p.subhead}</span>
+              </li>
+            );
+          })}
         </ul>
       </section>
 
@@ -247,6 +253,80 @@ function CreatorBody({
         </>
       ) : null}
     </>
+  );
+}
+
+/**
+ * Decorative hero brand graphic: a soft mesh field, four floating open-data
+ * "source" chips on connector lines converging into a central Σ medallion that
+ * sits over a faint CV-document silhouette — data flowing into a CV. Purely
+ * decorative (aria-hidden), reserved aspect-ratio (no layout shift), and
+ * motion-safe (loops freeze under prefers-reduced-motion via globals.css). The
+ * source names are brand proper nouns (like "Σ"/"SigmaCV"), not translated copy.
+ */
+function HeroGraphic() {
+  return (
+    <div className="hero-graphic" aria-hidden="true">
+      <span className="hg-blob hg-blob-1" />
+      <span className="hg-blob hg-blob-2" />
+      <span className="hg-blob hg-blob-3" />
+
+      <svg
+        className="hg-lines"
+        viewBox="0 0 480 420"
+        fill="none"
+        focusable="false"
+        role="presentation"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <linearGradient id="hgStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="var(--accent-400)" stopOpacity="0" />
+            <stop offset="45%" stopColor="var(--accent-500)" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="var(--accent-600)" stopOpacity="0.9" />
+          </linearGradient>
+        </defs>
+        <path
+          className="hg-line"
+          d="M120 70 C 190 110, 210 150, 240 200"
+          stroke="url(#hgStroke)"
+          strokeWidth="2"
+        />
+        <path
+          className="hg-line"
+          d="M372 96 C 300 130, 270 160, 244 198"
+          stroke="url(#hgStroke)"
+          strokeWidth="2"
+        />
+        <path
+          className="hg-line"
+          d="M96 300 C 170 270, 205 240, 236 214"
+          stroke="url(#hgStroke)"
+          strokeWidth="2"
+        />
+        <path
+          className="hg-line"
+          d="M388 326 C 312 290, 276 250, 246 216"
+          stroke="url(#hgStroke)"
+          strokeWidth="2"
+        />
+      </svg>
+
+      <span className="hg-doc">
+        <span className="hg-doc-line" />
+        <span className="hg-doc-line" />
+        <span className="hg-doc-line short" />
+        <span className="hg-doc-line" />
+        <span className="hg-doc-line short" />
+      </span>
+
+      <span className="hg-medallion">Σ</span>
+
+      <span className="hg-chip hg-chip-1">OpenAlex</span>
+      <span className="hg-chip hg-chip-2">ORCID</span>
+      <span className="hg-chip hg-chip-3">Crossref</span>
+      <span className="hg-chip hg-chip-4">DataCite</span>
+    </div>
   );
 }
 

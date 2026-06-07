@@ -40,6 +40,7 @@ export default function StructuredData({
       "@type": "SoftwareApplication",
       name: NAME,
       applicationCategory: "BusinessApplication",
+      applicationSubCategory: "Reference Application",
       operatingSystem: "Web",
       url: `${SITE_URL}/`,
       description,
@@ -61,6 +62,7 @@ export default function StructuredData({
         "@type": "Person",
         name: "Basile Chrétien",
         url: "https://orcid.org/0000-0002-7483-2489",
+        sameAs: ["https://orcid.org/0000-0002-7483-2489", ...sameAs],
       },
       ...(sameAs.length ? { sameAs } : {}),
     },
@@ -69,6 +71,11 @@ export default function StructuredData({
       "@id": `${SITE_URL}/#org`,
       name: NAME,
       url: `${SITE_URL}/`,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/icon.svg`,
+        contentUrl: `${SITE_URL}/icon.svg`,
+      },
       ...(sameAs.length ? { sameAs } : {}),
     },
   ];
