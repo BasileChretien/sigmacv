@@ -13,6 +13,7 @@ describe("landingStrings", () => {
   it("has a non-empty value for every field in every locale", () => {
     for (const loc of SUPPORTED_LOCALES) {
       for (const value of Object.values(landingStrings(loc))) {
+        // Strings and arrays (features/trust) both expose a positive length.
         expect(value.length).toBeGreaterThan(0);
       }
     }
@@ -23,6 +24,25 @@ describe("landingStrings", () => {
       const s = landingStrings(loc);
       expect(s.metaTitle).toContain("SigmaCV");
       expect(s.metaDescription.length).toBeGreaterThan(40);
+    }
+  });
+
+  it("has matching feature + trust card counts with non-empty title/body in every locale", () => {
+    const en = landingStrings("en-US");
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = landingStrings(loc);
+      // Same number of cards across locales (the showcase must line up).
+      expect(s.features).toHaveLength(en.features.length);
+      expect(s.trust).toHaveLength(en.trust.length);
+      for (const card of [...s.features, ...s.trust]) {
+        expect(card.title.length).toBeGreaterThan(0);
+        expect(card.body.length).toBeGreaterThan(0);
+      }
+      // Creator + explore strings present.
+      expect(s.creatorTitle.length).toBeGreaterThan(0);
+      expect(s.creatorBody).toContain("Basile Chrétien");
+      expect(s.exploreOrcid.length).toBeGreaterThan(0);
+      expect(s.exploreNih.length).toBeGreaterThan(0);
     }
   });
 });

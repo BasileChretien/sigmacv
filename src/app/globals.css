@@ -1752,6 +1752,67 @@ textarea.prose-body {
   font-size: var(--text-sm);
 }
 
+/* ── Landing showcase / trust / explore sections ─────────────────────────── */
+.landing-section {
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-8) var(--space-4);
+}
+.landing-section-title {
+  font-size: var(--text-2xl);
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 var(--space-6);
+}
+.feature-grid,
+.trust-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+.feature-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.trust-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.feature-card,
+.trust-card {
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+}
+.feature-card-title,
+.trust-card-title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  margin: 0 0 var(--space-2);
+}
+.feature-card-body,
+.trust-card-body {
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  margin: 0;
+}
+.creator-credit {
+  margin: var(--space-6) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.explore-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-base);
+}
+.explore-desc {
+  font-size: var(--text-sm);
+}
+
 /* ── About / doc pages ───────────────────────────────────────────────────── */
 .doc-page {
   max-width: 720px;

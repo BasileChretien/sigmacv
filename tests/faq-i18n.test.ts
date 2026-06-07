@@ -21,10 +21,10 @@ describe("faqStrings", () => {
     }
   });
 
-  it("has exactly 6 items with non-empty q/a in every locale", () => {
+  it("has exactly 7 items with non-empty q/a in every locale", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const { items } = faqStrings(loc);
-      expect(items).toHaveLength(6);
+      expect(items).toHaveLength(7);
       for (const item of items) {
         expect(item.q.length).toBeGreaterThan(0);
         expect(item.a.length).toBeGreaterThan(0);
@@ -43,6 +43,26 @@ describe("faqStrings", () => {
       expect(dataAnswer).toContain("Crossref");
       expect(dataAnswer).toContain("DataCite");
       expect(dataAnswer).toContain("Open Editors Plus");
+    }
+  });
+
+  it("includes the richer 'my CV data' answer with every source + ROR (index 3)", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      // The 4th item (index 3) is the detailed "where does MY CV data come from?"
+      const myDataItem = faqStrings(loc).items[3];
+      expect(myDataItem).toBeDefined();
+      const a = myDataItem?.a ?? "";
+      for (const proper of [
+        "OpenAlex",
+        "ORCID",
+        "Crossref",
+        "ROR",
+        "DataCite",
+        "Open Editors Plus",
+        "DOI",
+      ]) {
+        expect(a).toContain(proper);
+      }
     }
   });
 });
