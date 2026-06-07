@@ -181,6 +181,27 @@ describe("profilePageJsonLd", () => {
     expect(sameAs.some((u) => u.includes("me@example.org"))).toBe(false);
   });
 
+  it("adds Wikidata + VIAF/ISNI authority links to sameAs (safe-http guarded)", () => {
+    const cv = makeCv({
+      owner: {
+        wikidataUri: "http://www.wikidata.org/entity/Q6832241",
+        wikidataSameAs: [
+          "http://www.wikidata.org/entity/Q6832241",
+          "https://viaf.org/viaf/305009965",
+          "https://isni.org/isni/0000000114567890",
+          "javascript:alert(1)", // dropped by the safe-http guard
+        ],
+      },
+    });
+    const sameAs: string[] = JSON.parse(profilePageJsonLd(cv, "s")).mainEntity.sameAs;
+    expect(sameAs).toContain("http://www.wikidata.org/entity/Q6832241");
+    expect(sameAs).toContain("https://viaf.org/viaf/305009965");
+    expect(sameAs).toContain("https://isni.org/isni/0000000114567890");
+    // The Wikidata URI appears once despite being in both fields.
+    expect(sameAs.filter((u) => u === "http://www.wikidata.org/entity/Q6832241")).toHaveLength(1);
+    expect(sameAs.some((u) => u.startsWith("javascript:"))).toBe(false);
+  });
+
   it("adds the SPDX license URL to the ProfilePage when a license is chosen", () => {
     const parsed = JSON.parse(profilePageJsonLd(makeCv({ cvLicense: "CC-BY-4.0" }), "s"));
     expect(parsed.license).toBe("https://spdx.org/licenses/CC-BY-4.0.html");
