@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemNotMine } from "@/lib/canonical/curate";
+import { setItemIncluded, setItemNotMine } from "@/lib/canonical/curate";
 import { parseCanonicalCv } from "@/lib/canonical/schema";
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
@@ -188,6 +188,99 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       "Associate Editor, BMJ (2021–present)",
       "Reviewer, Lancet (2019–2022)",
     ]);
+  });
+
+  it("gives editorial roles stable, content-based ids (source = oep)", () => {
+    const cv = buildCanonicalCv({
+      id: "s",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      editorialRoles,
+    });
+    const editorial = cv.sections.find((s) => s.type === "editorial")!;
+    expect(editorial.items.map((i) => i.id)).toEqual([
+      "editorial:bmj:associate-editor",
+      "editorial:lancet:reviewer",
+    ]);
+    expect(editorial.items.every((i) => i.source === "oep")).toBe(true);
+  });
+
+  it("preserves Hide + 'not mine' + reason on editorial roles across a re-sync", () => {
+    const NOW = "2026-06-02T00:00:00.000Z";
+    const first = buildCanonicalCv({
+      id: "s",
+      resolved,
+      works: baseWorks,
+      now: NOW,
+      editorialRoles,
+    });
+    // OEP mis-attributed the BMJ editorship → mark it "not mine" with a reason;
+    // hide the Lancet one from the CV.
+    let curated = setItemNotMine(
+      first,
+      "editorial",
+      "editorial:bmj:associate-editor",
+      true,
+      { reason: "different-person", now: NOW },
+    );
+    curated = setItemIncluded(
+      curated,
+      "editorial",
+      "editorial:lancet:reviewer",
+      false,
+    );
+
+    // Re-sync with the dataset rows REORDERED — index-based ids would have moved
+    // the corrections onto the wrong roles; the stable id keeps them anchored.
+    const resynced = buildCanonicalCv({
+      id: "s",
+      resolved,
+      works: baseWorks,
+      now: "2026-07-01T00:00:00.000Z",
+      editorialRoles: [editorialRoles[1]!, editorialRoles[0]!],
+      previous: curated,
+    });
+    const ed = resynced.sections.find((s) => s.type === "editorial")!;
+    const bmj = ed.items.find((i) => i.id === "editorial:bmj:associate-editor")!;
+    const lancet = ed.items.find((i) => i.id === "editorial:lancet:reviewer")!;
+    expect(bmj.notMine).toBe(true);
+    expect(bmj.notMineReason).toBe("different-person");
+    expect(bmj.notMineAssertedAt).toBeDefined();
+    expect(lancet.included).toBe(false);
+  });
+
+  it("adds a new editorial role un-curated without disturbing existing curation", () => {
+    const NOW = "2026-06-02T00:00:00.000Z";
+    const first = buildCanonicalCv({
+      id: "s",
+      resolved,
+      works: baseWorks,
+      now: NOW,
+      editorialRoles,
+    });
+    const curated = setItemNotMine(
+      first,
+      "editorial",
+      "editorial:bmj:associate-editor",
+      true,
+      { now: NOW },
+    );
+    const resynced = buildCanonicalCv({
+      id: "s",
+      resolved,
+      works: baseWorks,
+      now: NOW,
+      editorialRoles: [...editorialRoles, { journal: "Nature", role: "Editor" }],
+      previous: curated,
+    });
+    const ed = resynced.sections.find((s) => s.type === "editorial")!;
+    expect(
+      ed.items.find((i) => i.id === "editorial:bmj:associate-editor")!.notMine,
+    ).toBe(true);
+    const nat = ed.items.find((i) => i.id === "editorial:nature:editor")!;
+    expect(nat.notMine).toBe(false);
+    expect(nat.included).toBe(true);
   });
 
   it("omits the extra sections when there's no positions/grant/editorial data", () => {

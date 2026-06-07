@@ -57,6 +57,15 @@ export default function ItemRow({
   const u = ui(locale);
   const isCitation = Boolean(item.csl);
   const isManual = item.source === "manual";
+  // "Not mine" is a disambiguation correction for an item a THIRD PARTY
+  // attributed to the account holder by identifier match: bibliographic works
+  // (citations, from OpenAlex), DataCite datasets/software, and Open Editors Plus
+  // editorial roles. ORCID records are self-asserted and manual entries are
+  // self-added, so those get Hide / Delete only. Inferred OpenAlex affiliations
+  // (a non-citation positions item) stay Hide-only too — they're not a discrete
+  // attributed output and must not leak into the upstream-curation read model.
+  const canMarkNotMine =
+    isCitation || item.source === "oep" || item.source === "datacite";
   const title = item.csl?.title ?? item.displayText ?? u.itemUntitled;
   const year = item.meta.year ?? "—";
   const venue =
@@ -157,9 +166,16 @@ export default function ItemRow({
             {sourceBadge}
           </div>
         ) : (
-          <div className="cv-item-meta">{sourceBadge}</div>
+          <div className="cv-item-meta">
+            {item.notMine ? (
+              <span className="cv-notmine-badge" title={t(locale, "notMineHint")}>
+                {t(locale, "notMineBadge")}
+              </span>
+            ) : null}
+            {sourceBadge}
+          </div>
         )}
-        {isCitation && item.notMine && onSetNotMineReason ? (
+        {canMarkNotMine && item.notMine && onSetNotMineReason ? (
           <select
             className="cv-reason-select"
             value={item.notMineReason ?? ""}
@@ -210,7 +226,7 @@ export default function ItemRow({
         >
           {item.included ? t(locale, "hide") : t(locale, "show")}
         </button>
-        {isCitation ? (
+        {canMarkNotMine ? (
           <button
             type="button"
             className={`mine-btn${item.notMine ? " is-restore" : ""}`}

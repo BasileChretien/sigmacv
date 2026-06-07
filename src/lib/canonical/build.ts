@@ -205,6 +205,10 @@ function makeEntryItem(
     included: prev?.included ?? true,
     notMine: prev?.notMine ?? false,
     notMineAssertedAt: prev?.notMineAssertedAt,
+    // Preserve the disambiguation reason across re-syncs (parity with the
+    // publications path) — entry items can be "not mine" too (e.g. an OEP
+    // editorial role attributed to the wrong ORCID).
+    notMineReason: prev?.notMineReason,
     order: prev?.order ?? order,
     authoredBySelf: false,
     selfNameVariants: [],
@@ -488,32 +492,44 @@ function buildGrantsSection(
  * user's own manually-added editorial entries are always carried over too — so
  * the section works even with no OEP data. Returns null only when there are
  * neither.
+ *
+ * Each OEP role gets a STABLE content-based id (journal + role) and goes through
+ * `makeEntryItem`, so the user's curation — Hide AND a "not mine" assertion (OEP
+ * attributed this editorship to the wrong ORCID) with its reason — survives a
+ * re-sync even if the dataset's row order changes. Editorial roles are a
+ * third-party identifier match, so "not mine" is a real disambiguation signal,
+ * exactly like publications.
  */
 function buildEditorialSection(
   roles: EditorialRole[],
-  prevIncluded: Map<string, boolean>,
+  prevItems: Map<string, CvItem>,
   manual: CvItem[],
   now: string,
 ): CvSection | null {
-  const items: CvItem[] = roles.map((r, i) => {
-    const id = `editorial:${i}`;
+  const key = (s: string) => normInstitution(s).replace(/[^a-z0-9]+/g, "-");
+  const items: CvItem[] = [];
+  let rank = 0;
+  for (const r of roles) {
     const years = r.startYear
       ? ` (${r.startYear}–${r.endYear ?? "present"})`
       : "";
-    return {
-      id,
-      source: "oep",
-      sourceId: "oep",
-      displayText: `${r.role}, ${r.journal}${years}`,
-      included: prevIncluded.get(id) ?? true,
-      notMine: false,
-      order: i,
-      authoredBySelf: false,
-      selfNameVariants: [],
-      meta: { lastVerifiedAt: now },
-    };
-  });
-  for (const m of manual) items.push({ ...m, order: items.length });
+    const id = `editorial:${key(r.journal)}:${key(r.role)}`;
+    items.push(
+      makeEntryItem(
+        id,
+        "oep",
+        "oep",
+        `${r.role}, ${r.journal}${years}`,
+        prevItems.get(id),
+        rank++,
+        undefined,
+        { lastVerifiedAt: now },
+      ),
+    );
+  }
+  for (const m of manual) {
+    items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
+  }
   if (items.length === 0) return null;
   return {
     id: "editorial",
@@ -776,9 +792,6 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     .sort((a, b) => a.order - b.order)
     .map((it, i) => ({ ...it, order: i }));
 
-  const prevIncluded = new Map<string, boolean>();
-  for (const [id, it] of prevItems) prevIncluded.set(id, it.included);
-
   // Split into Publications vs Preprints (so the CV doesn't double-count a
   // preprint and its published version, and matches academic convention).
   const pubItems = reindexItems(
@@ -881,7 +894,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   );
   const editorialSection = buildEditorialSection(
     args.editorialRoles ?? [],
-    prevIncluded,
+    prevItems,
     previousManualItems(previous, "editorial"),
     now,
   );
