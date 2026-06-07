@@ -625,6 +625,8 @@ export const PROVENANCE_SOURCES = [
   "nsf",
   "clinicaltrials",
   "ror",
+  // Provenance-only sources (enrich identity/affiliations, not CV items).
+  "wikidata",
   "derived",
   "manual",
 ] as const;

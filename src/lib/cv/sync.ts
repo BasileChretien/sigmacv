@@ -33,6 +33,14 @@ import {
 } from "@/lib/orcid/client";
 import { fetchDataciteOutputs } from "@/lib/datacite/client";
 import { fetchEditorialRoles } from "@/lib/oep/client";
+import { fetchOpenaireOutputs } from "@/lib/openaire/client";
+import { fetchDblpConferencePapers } from "@/lib/dblp/client";
+import { fetchCrossrefGrantsByOrcid } from "@/lib/crossref/client";
+import { fetchWikidataIdentity } from "@/lib/wikidata/client";
+import { fetchUkriGrants } from "@/lib/ukri/client";
+import { fetchNihGrants } from "@/lib/nih/client";
+import { fetchNsfGrants } from "@/lib/nsf/client";
+import { fetchClinicalTrials } from "@/lib/clinicaltrials/client";
 import { cvSlug } from "@/lib/render/slug";
 import { logCvSave } from "@/lib/research/log";
 
@@ -77,6 +85,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   const previous = previousParsed?.success ? previousParsed.data : null;
 
   const resolved = await resolveAuthorByOrcid(orcid);
+  const mailto = getEnv().OPENALEX_MAILTO;
   const [
     works,
     editorialRoles,
@@ -88,6 +97,10 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     service,
     peerReviews,
     dataciteOutputs,
+    openaireOutputs,
+    dblpConferencePapers,
+    crossrefGrants,
+    wikidataIdentity,
   ] = await Promise.all([
     resolved ? fetchWorksByAuthorIds(resolved.authorIds) : Promise.resolve([]),
     fetchEditorialRoles(orcid),
@@ -99,6 +112,33 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     fetchOrcidService(orcid),
     fetchOrcidPeerReviews(orcid),
     fetchDataciteOutputs(orcid),
+    // ORCID-matched supplements (auto-included): datasets/software, conference
+    // papers, Crossref grants; plus the owner's Wikidata identity for the page.
+    fetchOpenaireOutputs(orcid),
+    fetchDblpConferencePapers(orcid),
+    fetchCrossrefGrantsByOrcid(orcid, mailto),
+    fetchWikidataIdentity(orcid),
+  ]);
+
+  // Registries with NO ORCID (national funders + trial registries) are matched by
+  // NAME + organization, so their results are REVIEW CANDIDATES. Orgs come from
+  // OpenAlex affiliations + ORCID employments (a clinician's hospital is often in
+  // ORCID but not OpenAlex). Every client fails soft and early-returns without
+  // orgs, so this is safe even when the name/org set is empty.
+  const displayName = resolved?.displayName || fallbackName || "";
+  const matchOrgs = [
+    ...new Set(
+      [
+        ...(resolved?.affiliations ?? []).map((a) => a.institution),
+        ...employments.map((e) => e.organization),
+      ].filter((o): o is string => Boolean(o)),
+    ),
+  ];
+  const [ukriGrants, nihGrants, nsfGrants, clinicalTrials] = await Promise.all([
+    fetchUkriGrants(displayName, matchOrgs),
+    fetchNihGrants(displayName, matchOrgs),
+    fetchNsfGrants(displayName, matchOrgs),
+    fetchClinicalTrials(displayName, matchOrgs),
   ]);
 
   // Peer reviews carry the journal ISSN but not its name (ORCID records the
@@ -148,8 +188,30 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     service: inst.service,
     peerReviews,
     dataciteOutputs,
+    openaireOutputs,
+    dblpConferencePapers,
+    crossrefGrants,
+    nationalGrants: [...ukriGrants, ...nihGrants, ...nsfGrants],
+    clinicalTrials,
   });
   if (usedRor) cv = withRorProvenance(cv);
+
+  // Wikidata is an OWNER-LEVEL identity enrichment (sameAs links for the public
+  // page's schema.org graph), not a CV item — store it on the owner and record
+  // it as a provenance source (like ROR). Preserve the prior values when a
+  // re-sync's Wikidata fetch fails, so a transient miss never drops the links.
+  const wikidataUri = wikidataIdentity?.wikidataUri ?? previous?.owner.wikidataUri;
+  const wikidataSameAs = wikidataIdentity?.sameAs ?? previous?.owner.wikidataSameAs;
+  if (wikidataUri || (wikidataSameAs && wikidataSameAs.length > 0)) {
+    cv = {
+      ...cv,
+      owner: { ...cv.owner, wikidataUri, wikidataSameAs },
+      provenance: {
+        ...cv.provenance,
+        sources: [...new Set([...cv.provenance.sources, "wikidata" as const])],
+      },
+    };
+  }
 
   // Crossref: fill bibliographic gaps (journal, volume/issue, pages) on works
   // that have a DOI but incomplete OpenAlex metadata. Bounded + fails soft.
