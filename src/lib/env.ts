@@ -25,6 +25,12 @@ const EnvSchema = z.object({
   // (lower limits) when unset. Generate at https://graph.openaire.eu (account →
   // personal access token); store the REFRESH token only (never the access token).
   OPENAIRE_REFRESH_TOKEN: z.string().optional(),
+  // EPO Open Patent Services (OPS) — patents by inventor name. OAuth2
+  // client-credentials (consumer key + secret from a free OPS account at
+  // https://developers.epo.org). Optional — with neither set the patents client
+  // is dormant (makes NO call, returns []). OPS has no anonymous access.
+  EPO_OPS_KEY: z.string().optional(),
+  EPO_OPS_SECRET: z.string().optional(),
   // Shared secret guarding the internal scheduled-resync endpoint. If unset the
   // endpoint is disabled (returns 503), so it's optional even in production.
   RESYNC_SECRET: z.string().min(16).optional(),
