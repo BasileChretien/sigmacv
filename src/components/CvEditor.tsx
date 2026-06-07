@@ -541,7 +541,7 @@ export default function CvEditor({
             title={selectedModel?.description}
             onChange={(e) => setModelId(e.target.value)}
           >
-            <option value="">—</option>
+            <option value="">{eu.modelOptional}</option>
             {modelGroups.map((group) => (
               <optgroup
                 key={group.category}
@@ -572,6 +572,9 @@ export default function CvEditor({
           >
             {eu.modelApply}
           </button>
+          <p className="muted metric-preset-note grant-presets-help">
+            {eu.modelHelp}
+          </p>
           <p className="muted metric-preset-note grant-presets-note">
             {selectedModel ? selectedModel.description : eu.grantIntro}
           </p>

@@ -9,15 +9,21 @@ import { asLocale, t } from "@/lib/i18n";
 import { accessibilityStrings } from "@/lib/i18n/accessibility";
 import { faqStrings } from "@/lib/i18n/faq";
 import { landingStrings } from "@/lib/i18n/landing";
+import { landingPageStrings } from "@/lib/i18n/landingPages";
 import {
   localeAboutPath,
   localeAccessibilityPath,
   localeFaqPath,
+  localeLandingPagePath,
   localePrivacyPath,
 } from "@/lib/seo";
+import { getSiteLinks } from "@/lib/siteLinks";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SiteLinks from "./SiteLinks";
 import StructuredData from "./StructuredData";
+
+/** ORCID profile URL of SigmaCV's creator (links the "Built by a researcher" credit). */
+const CREATOR_ORCID_URL = "https://orcid.org/0000-0002-7483-2489";
 
 /**
  * The public marketing/landing markup, fully localized. Shared by the default
@@ -121,6 +127,69 @@ export default function Landing({ locale }: LandingProps) {
         </section>
       </main>
 
+      <section className="landing-section landing-features" aria-labelledby="features-h">
+        <h2 id="features-h" className="landing-section-title">
+          {s.featuresTitle}
+        </h2>
+        <ul className="feature-grid">
+          {s.features.map((f) => (
+            <li key={f.title} className="feature-card card">
+              <h3 className="feature-card-title">{f.title}</h3>
+              <p className="feature-card-body muted">{f.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="landing-section landing-trust" aria-labelledby="trust-h">
+        <h2 id="trust-h" className="landing-section-title">
+          {s.trustTitle}
+        </h2>
+        <ul className="trust-grid">
+          {s.trust.map((tr) => (
+            <li key={tr.title} className="trust-card card">
+              <h3 className="trust-card-title">{tr.title}</h3>
+              <p className="trust-card-body muted">{tr.body}</p>
+            </li>
+          ))}
+        </ul>
+        <p className="creator-credit">
+          <strong>{s.creatorTitle}</strong>{" "}
+          <CreatorBody
+            text={s.creatorBody}
+            orcidUrl={CREATOR_ORCID_URL}
+            aboutHref={localeAboutPath(loc)}
+            githubUrl={getSiteLinks().github}
+          />
+        </p>
+      </section>
+
+      <section className="landing-section landing-explore" aria-labelledby="explore-h">
+        <h2 id="explore-h" className="landing-section-title">
+          {s.exploreTitle}
+        </h2>
+        <ul className="explore-links">
+          <li>
+            <Link href={localeLandingPagePath("orcid-to-cv", loc)}>
+              {s.exploreOrcid}
+            </Link>
+            <span className="muted explore-desc">
+              {" — "}
+              {landingPageStrings("orcid-to-cv", loc).subhead}
+            </span>
+          </li>
+          <li>
+            <Link href={localeLandingPagePath("nih-biosketch", loc)}>
+              {s.exploreNih}
+            </Link>
+            <span className="muted explore-desc">
+              {" — "}
+              {landingPageStrings("nih-biosketch", loc).subhead}
+            </span>
+          </li>
+        </ul>
+      </section>
+
       <footer className="auth-footer">
         <span className="muted">{s.footer}</span>
         <Link className="footer-link" href={localePrivacyPath(loc)}>
@@ -135,6 +204,49 @@ export default function Landing({ locale }: LandingProps) {
         <SiteLinks locale={loc} />
       </footer>
     </div>
+  );
+}
+
+/** The creator name as it appears in every locale's `creatorBody` (proper noun,
+ *  never translated) — split on it to turn the name into an ORCID link. */
+const CREATOR_NAME = "Basile Chrétien";
+
+/**
+ * Renders the "Built by a researcher" body with the creator's name linked to
+ * their ORCID, then appends a small "About · GitHub" link row. The name token is
+ * identical across all ten locales (it's an untranslated proper noun), so a plain
+ * split on it works for every language.
+ */
+function CreatorBody({
+  text,
+  orcidUrl,
+  aboutHref,
+  githubUrl,
+}: {
+  text: string;
+  orcidUrl: string;
+  aboutHref: string;
+  githubUrl: string;
+}) {
+  const [before, after] = text.split(CREATOR_NAME);
+  return (
+    <>
+      {before}
+      <a href={orcidUrl} target="_blank" rel="noopener noreferrer">
+        {CREATOR_NAME}
+      </a>
+      {/* When the proper noun isn't present (defensive), fall back to plain text. */}
+      {after ?? ""}{" "}
+      <Link href={aboutHref}>About</Link>
+      {githubUrl ? (
+        <>
+          {" · "}
+          <a href={githubUrl} target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+        </>
+      ) : null}
+    </>
   );
 }
 

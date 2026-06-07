@@ -24,7 +24,10 @@ export const metadata: Metadata = {
   title: { default: home.metaTitle, template: "%s — SigmaCV" },
   description: home.metaDescription,
   keywords: [
+    "academic CV builder",
     "academic CV generator",
+    "academic CV from ORCID",
+    "free researcher CV maker",
     "ORCID CV",
     "OpenAlex CV",
     "free academic CV",
@@ -32,6 +35,7 @@ export const metadata: Metadata = {
     "CV from ORCID",
     "academic resume builder",
     "open source CV generator",
+    "NIH biosketch generator",
   ],
   alternates: {
     canonical: "/",

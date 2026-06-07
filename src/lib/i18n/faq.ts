@@ -41,6 +41,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         a: "From open research data sources: OpenAlex for publications and metrics, ORCID for your verified identity, Crossref and DataCite for metadata, and Open Editors Plus for editorial roles. SigmaCV reads only public metadata.",
       },
       {
+        q: "Where does my CV data come from?",
+        a: "SigmaCV assembles your CV from open scholarly sources: your publications, metrics and grants from OpenAlex; your identity plus positions, education, funding, peer-review and service from your ORCID record; bibliographic gap-fill from Crossref; institutions canonicalised via ROR; datasets & software from DataCite; and editorial roles from Open Editors Plus. You stay in control — curate, mark works “not mine”, or add a work by DOI; nothing is invented, and you choose what's shown.",
+      },
+      {
         q: "How do you know which publications are mine?",
         a: "Your work is matched by identifier — your ORCID iD or OpenAlex author ID — never by name string, which avoids the name-collision errors that plague name-based matching. You then curate the list, marking anything wrongly attributed as “not mine”.",
       },
@@ -73,6 +77,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       {
         q: "数据来自哪里？",
         a: "来自开放研究数据源：OpenAlex 提供论文和指标，ORCID 提供您的已验证身份，Crossref 和 DataCite 提供元数据，Open Editors Plus 提供编辑职务。SigmaCV 仅读取公开的元数据。",
+      },
+      {
+        q: "我的简历数据来自哪里？",
+        a: "SigmaCV 从开放的学术数据源汇集您的简历：论文、指标和资助来自 OpenAlex；身份信息以及职位、教育、资助、同行评审和服务来自您的 ORCID 记录；书目缺漏由 Crossref 补全；机构通过 ROR 规范化；数据集与软件来自 DataCite；编辑职务来自 Open Editors Plus。一切由您掌控——可以策划内容、将成果标记为“不是我的”，或通过 DOI 添加成果；没有任何内容是凭空捏造的，显示什么由您决定。",
       },
       {
         q: "你们如何知道哪些论文是我的？",
@@ -109,6 +117,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         a: "De fuentes de datos de investigación abiertos: OpenAlex para publicaciones y métricas, ORCID para tu identidad verificada, Crossref y DataCite para los metadatos, y Open Editors Plus para las funciones editoriales. SigmaCV solo lee metadatos públicos.",
       },
       {
+        q: "¿De dónde proceden los datos de mi CV?",
+        a: "SigmaCV compone tu CV a partir de fuentes académicas abiertas: tus publicaciones, métricas y financiación de OpenAlex; tu identidad junto con los puestos, la formación, la financiación, las revisiones por pares y los servicios de tu registro ORCID; la complementación bibliográfica de Crossref; las instituciones canonizadas mediante ROR; los conjuntos de datos y el software de DataCite; y las funciones editoriales de Open Editors Plus. Tú mantienes el control: selecciona, marca trabajos como «no es mío» o añade un trabajo por DOI; no se inventa nada y tú eliges qué se muestra.",
+      },
+      {
         q: "¿Cómo sabéis qué publicaciones son mías?",
         a: "Tu trabajo se identifica mediante identificador —tu iD ORCID o tu ID de autor de OpenAlex—, nunca por la cadena del nombre, lo que evita los errores de homonimia propios de la coincidencia por nombre. Después tú revisas la lista y marcas como «no es mío» todo lo atribuido por error.",
       },
@@ -141,6 +153,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       {
         q: "D'où proviennent les données ?",
         a: "De sources de données de recherche ouvertes : OpenAlex pour les publications et les métriques, ORCID pour votre identité vérifiée, Crossref et DataCite pour les métadonnées, et Open Editors Plus pour les fonctions éditoriales. SigmaCV ne lit que des métadonnées publiques.",
+      },
+      {
+        q: "D'où proviennent les données de mon CV ?",
+        a: "SigmaCV assemble votre CV à partir de sources scientifiques ouvertes : vos publications, métriques et financements depuis OpenAlex ; votre identité ainsi que vos postes, votre formation, vos financements, vos relectures par les pairs et vos services depuis votre fiche ORCID ; le complément bibliographique depuis Crossref ; les institutions normalisées via ROR ; les jeux de données et logiciels depuis DataCite ; et les fonctions éditoriales depuis Open Editors Plus. Vous gardez le contrôle — sélectionnez, marquez des travaux « pas de moi » ou ajoutez un travail par DOI ; rien n'est inventé, et c'est vous qui choisissez ce qui s'affiche.",
       },
       {
         q: "Comment savez-vous quelles publications sont les miennes ?",
@@ -177,6 +193,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         a: "Aus offenen Forschungsdatenquellen: OpenAlex für Publikationen und Metriken, ORCID für Ihre verifizierte Identität, Crossref und DataCite für Metadaten und Open Editors Plus für Herausgebertätigkeiten. SigmaCV liest ausschließlich öffentliche Metadaten.",
       },
       {
+        q: "Woher stammen die Daten meines Lebenslaufs?",
+        a: "SigmaCV stellt Ihren Lebenslauf aus offenen wissenschaftlichen Quellen zusammen: Ihre Publikationen, Metriken und Förderungen aus OpenAlex; Ihre Identität sowie Positionen, Ausbildung, Förderungen, Gutachtertätigkeiten und Dienste aus Ihrem ORCID-Datensatz; bibliografische Ergänzungen aus Crossref; über ROR vereinheitlichte Institutionen; Datensätze & Software aus DataCite; und Herausgebertätigkeiten aus Open Editors Plus. Sie behalten die Kontrolle — kuratieren, Arbeiten als „nicht von mir“ markieren oder eine Arbeit per DOI hinzufügen; nichts wird erfunden, und Sie entscheiden, was angezeigt wird.",
+      },
+      {
         q: "Woher wissen Sie, welche Publikationen von mir sind?",
         a: "Ihre Arbeiten werden anhand einer Kennung zugeordnet — Ihrer ORCID iD oder Ihrer OpenAlex-Autoren-ID —, niemals anhand der Namenszeichenkette, was die Namensverwechslungen vermeidet, die der namensbasierten Zuordnung anhaften. Anschließend kuratieren Sie die Liste und markieren fälschlich Zugeordnetes als „nicht von mir“.",
       },
@@ -209,6 +229,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       {
         q: "データはどこから来ますか？",
         a: "オープンな研究データソースからです。論文と指標は OpenAlex、検証済みの本人確認は ORCID、メタデータは Crossref と DataCite、編集者としての役割は Open Editors Plus を利用します。SigmaCV は公開されたメタデータのみを読み取ります。",
+      },
+      {
+        q: "私の CV のデータはどこから来ますか？",
+        a: "SigmaCV はオープンな学術ソースからあなたの CV を組み立てます。論文・指標・研究費は OpenAlex、本人情報に加えて職歴・学歴・研究費・査読・サービスはあなたの ORCID 記録、書誌情報の補完は Crossref、機関名の正規化は ROR、データセットとソフトウェアは DataCite、編集者としての役割は Open Editors Plus から取得します。主導権はあなたにあります——内容を整理し、業績を「自分のものではない」と印付けし、DOI で業績を追加できます。何かを勝手に作り出すことはなく、表示する内容はあなたが選びます。",
       },
       {
         q: "どの論文が自分のものか、どうやって判断しているのですか？",
@@ -245,6 +269,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         a: "De fontes de dados abertos de pesquisa: OpenAlex para publicações e métricas, ORCID para a sua identidade verificada, Crossref e DataCite para metadados, e Open Editors Plus para funções editoriais. O SigmaCV lê apenas metadados públicos.",
       },
       {
+        q: "De onde vêm os dados do meu currículo?",
+        a: "O SigmaCV monta o seu currículo a partir de fontes acadêmicas abertas: suas publicações, métricas e financiamentos do OpenAlex; sua identidade mais os cargos, a formação, os financiamentos, as revisões por pares e os serviços do seu registro ORCID; o complemento bibliográfico do Crossref; as instituições canonizadas via ROR; os conjuntos de dados e softwares do DataCite; e as funções editoriais do Open Editors Plus. Você mantém o controle — cure, marque trabalhos como «não é meu» ou adicione um trabalho por DOI; nada é inventado, e você escolhe o que é exibido.",
+      },
+      {
         q: "Como vocês sabem quais publicações são minhas?",
         a: "Seu trabalho é identificado por identificador — seu iD ORCID ou seu ID de autor do OpenAlex —, nunca pela cadeia do nome, o que evita os erros de homonímia típicos da correspondência por nome. Depois você cura a lista e marca como «não é meu» tudo o que for atribuído por engano.",
       },
@@ -277,6 +305,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       {
         q: "Da dove provengono i dati?",
         a: "Da fonti di dati di ricerca aperti: OpenAlex per pubblicazioni e metriche, ORCID per la tua identità verificata, Crossref e DataCite per i metadati e Open Editors Plus per gli incarichi editoriali. SigmaCV legge solo metadati pubblici.",
+      },
+      {
+        q: "Da dove provengono i dati del mio CV?",
+        a: "SigmaCV costruisce il tuo CV a partire da fonti accademiche aperte: le tue pubblicazioni, metriche e finanziamenti da OpenAlex; la tua identità più gli incarichi, la formazione, i finanziamenti, le revisioni tra pari e i servizi dal tuo record ORCID; il completamento bibliografico da Crossref; le istituzioni normalizzate tramite ROR; i set di dati e il software da DataCite; e gli incarichi editoriali da Open Editors Plus. Mantieni il controllo — cura, contrassegna i lavori come «non è mio» o aggiungi un lavoro tramite DOI; nulla viene inventato e sei tu a scegliere cosa mostrare.",
       },
       {
         q: "Come fate a sapere quali pubblicazioni sono mie?",
@@ -313,6 +345,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         a: "공개 연구 데이터 소스에서 가져옵니다. 논문과 지표는 OpenAlex, 검증된 신원은 ORCID, 메타데이터는 Crossref와 DataCite, 편집 활동은 Open Editors Plus를 이용합니다. SigmaCV는 공개된 메타데이터만 읽습니다.",
       },
       {
+        q: "제 CV 데이터는 어디에서 오나요?",
+        a: "SigmaCV는 공개 학술 소스에서 회원님의 CV를 구성합니다. 논문·지표·연구비는 OpenAlex에서, 신원과 함께 직위·학력·연구비·동료 심사·서비스는 회원님의 ORCID 기록에서, 서지 정보 보완은 Crossref에서, 기관명 표준화는 ROR에서, 데이터셋과 소프트웨어는 DataCite에서, 편집 활동은 Open Editors Plus에서 가져옵니다. 주도권은 회원님께 있습니다 — 내용을 선별하고, 업적을 ‘내 것이 아님’으로 표시하거나, DOI로 업적을 추가할 수 있습니다. 어떤 것도 임의로 만들어내지 않으며, 무엇을 표시할지는 회원님이 선택합니다.",
+      },
+      {
         q: "어떤 논문이 제 것인지 어떻게 아나요?",
         a: "회원님의 업적은 식별자(ORCID iD 또는 OpenAlex 저자 ID)로 매칭되며, 이름 문자열로는 절대 매칭하지 않습니다. 덕분에 이름 기반 매칭에서 흔한 동명이인 충돌 오류를 피할 수 있습니다. 이후 회원님이 목록을 선별하여 잘못 귀속된 항목을 ‘내 것이 아님’으로 표시합니다.",
       },
@@ -345,6 +381,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       {
         q: "Откуда берутся данные?",
         a: "Из открытых источников научных данных: OpenAlex для публикаций и метрик, ORCID для вашей подтверждённой личности, Crossref и DataCite для метаданных и Open Editors Plus для редакционных ролей. SigmaCV считывает только публичные метаданные.",
+      },
+      {
+        q: "Откуда берутся данные для моего резюме?",
+        a: "SigmaCV собирает ваше резюме из открытых научных источников: публикации, метрики и гранты — из OpenAlex; вашу личность, а также должности, образование, финансирование, рецензирование и службу — из вашей записи ORCID; восполнение библиографических пробелов — из Crossref; нормализацию организаций — через ROR; наборы данных и программное обеспечение — из DataCite; редакционные роли — из Open Editors Plus. Контроль остаётся за вами — курируйте, отмечайте работы как «не моё» или добавляйте работу по DOI; ничего не выдумывается, и вы сами выбираете, что показывать.",
       },
       {
         q: "Как вы определяете, какие публикации принадлежат мне?",
