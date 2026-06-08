@@ -92,7 +92,7 @@ ecosystem** (ORCID, OpenAlex / OurResearch, ROR, Crossref). Copy/paste and adapt
 
 ## Links to include
 
-- Site: <https://sigmacv.org>
+- Site: <https://sigmacv.org> _(planned — not yet live)_
 - Open-science & FAIR statement: [`docs/OPEN-SCIENCE.md`](OPEN-SCIENCE.md)
 - Self-hosting: [`DEPLOY.md`](../DEPLOY.md)
 - Contributing: [`CONTRIBUTING.md`](../CONTRIBUTING.md)

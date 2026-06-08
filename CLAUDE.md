@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Not a user guide.** This is AI-assistant / contributor guidance (architecture + operations notes), not user documentation. New here? Start with the **[README](README.md)**.
+
 ## Project: SigmaCV
 
 Open-source web app that auto-generates clean, customizable academic CVs from open research data (OpenAlex, ORCID, Crossref, Open Editors Plus). Free for individuals. _(Working name; ties to the Sigma-Score bibliometric index — may be renamed.)_

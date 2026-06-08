@@ -83,9 +83,9 @@ This is a living document. Items marked _planned_ are tracked in the
   **per-field publish consent**, account export, and account deletion.
 - SigmaCV doubles as a **research vehicle** (tool/infrastructure, author-
   disambiguation-error, and self-presentation studies). All research logging is
-  **consent-gated and off by default**, governed by an IRB protocol
-  ([`docs/irb/`](irb/sigmacv-protocol-aims.md)); confirmatory analyses are
-  pre-registered ([`docs/preregistration/`](preregistration/README.md)).
+  **consent-gated and off by default**, governed by an IRB protocol (internal);
+  confirmatory analyses are pre-registered
+  ([`docs/preregistration/`](preregistration/README.md)).
 
 ## How to engage
 
