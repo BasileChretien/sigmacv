@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { updateDisplay, updateOwner } from "@/lib/canonical/curate";
+import { setItemNotMine, updateDisplay, updateOwner } from "@/lib/canonical/curate";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -76,5 +76,27 @@ describe("projectCvForPublic", () => {
     projectCvForPublic(cv);
     expect(cv.owner.personal).toBeDefined();
     expect(cv.owner.contact?.email).toBe("me@example.org");
+  });
+
+  it("drops hidden / 'not mine' items and strips their research metadata", () => {
+    let cv = makeCv();
+    const sectionId = cv.sections[0]!.id;
+    const itemId = cv.sections[0]!.items[0]!.id;
+    cv = setItemNotMine(cv, sectionId, itemId, true, {
+      reason: "different-person",
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const pub = projectCvForPublic(cv);
+    // The disavowed work is absent from the public view…
+    expect(pub.sections.flatMap((s) => s.items).find((i) => i.id === itemId)).toBeUndefined();
+    // …and no remaining item carries the disambiguation reason/timestamp.
+    for (const s of pub.sections) {
+      for (const it of s.items) {
+        expect(it.notMineReason).toBeUndefined();
+        expect(it.notMineAssertedAt).toBeUndefined();
+      }
+    }
+    // The stored canonical doc is untouched (research signal preserved).
+    expect(cv.sections[0]!.items.find((i) => i.id === itemId)?.notMine).toBe(true);
   });
 });

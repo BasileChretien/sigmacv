@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
+import { MAX_TOTAL_CV_ITEMS, cvItemCount } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
@@ -46,6 +47,12 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     // Generic message — don't echo raw Zod issues (schema internals) to clients.
     return NextResponse.json({ error: "Invalid CV document" }, { status: 422 });
+  }
+  // The schema alone permits 60 × 10k items; cap the total before the (heavy,
+  // synchronous) citeproc render so an unsaved bomb document can't pin the event
+  // loop — the same ceiling the save path enforces.
+  if (cvItemCount(parsed.data) > MAX_TOTAL_CV_ITEMS) {
+    return NextResponse.json({ error: "CV has too many items" }, { status: 413 });
   }
 
   try {

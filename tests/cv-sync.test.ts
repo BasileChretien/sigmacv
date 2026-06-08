@@ -90,6 +90,7 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   CvNotFoundError,
   CvTooLargeError,
+  capCvItems,
   cvItemCount,
   getCvForUser,
   getPublicCv,
@@ -100,7 +101,7 @@ import {
   setPublishState,
   syncCvForUser,
 } from "@/lib/cv/sync";
-import type { CvItem } from "@/lib/canonical/schema";
+import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
 
@@ -339,6 +340,39 @@ describe("saveCvForUser", () => {
     mocks.findUnique.mockResolvedValue({ document: DOC });
     await expect(saveCvForUser("u1", bomb)).rejects.toBeInstanceOf(CvTooLargeError);
     expect(mocks.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("capCvItems", () => {
+  const mkSection = (id: string, count: number) =>
+    ({
+      id,
+      type: "publications",
+      title: id,
+      visible: true,
+      order: 0,
+      items: Array.from({ length: count }, (_, i) => ({ id: `${id}-${i}` })),
+    }) as unknown as CanonicalCv["sections"][number];
+  const mk = (counts: number[]) =>
+    ({ sections: counts.map((c, i) => mkSection(`s${i}`, c)) }) as unknown as CanonicalCv;
+
+  it("returns the same object when already under the cap", () => {
+    const cv = mk([3]);
+    expect(capCvItems(cv, 10)).toBe(cv);
+  });
+
+  it("trims later sections first, preserving section + item order", () => {
+    const out = capCvItems(mk([5, 5]), 7);
+    expect(out.sections[0]!.items).toHaveLength(5); // first section kept whole
+    expect(out.sections[1]!.items).toHaveLength(2); // second trimmed to fill budget
+    expect(cvItemCount(out)).toBe(7);
+  });
+
+  it("empties sections that fall entirely past the budget", () => {
+    const out = capCvItems(mk([10, 5]), 8);
+    expect(out.sections[0]!.items).toHaveLength(8);
+    expect(out.sections[1]!.items).toHaveLength(0);
+    expect(cvItemCount(out)).toBe(8);
   });
 });
 

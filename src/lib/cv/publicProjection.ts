@@ -1,4 +1,4 @@
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import { isHidden, type CanonicalCv } from "@/lib/canonical/schema";
 
 /**
  * Project a canonical CV for PUBLIC display (the `/p/[slug]` living page).
@@ -53,5 +53,16 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
     ...cv,
     // Personal (rirekisho) fields never auto-publish; contact is opt-in per field.
     owner: { ...cv.owner, contact, personal: undefined },
+    // Hidden / "not mine" items are never rendered — drop them from the public
+    // projection so a disavowed work (and its disambiguation reason + timestamp,
+    // an internal research signal) can't leak into the downloadable machine
+    // formats (json/csljson/bibtex), which serialize the projected object
+    // directly. The stored canonical doc keeps them for the owner + research.
+    sections: cv.sections.map((s) => ({
+      ...s,
+      items: s.items
+        .filter((it) => !isHidden(it))
+        .map((it) => ({ ...it, notMineReason: undefined, notMineAssertedAt: undefined })),
+    })),
   };
 }

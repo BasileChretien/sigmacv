@@ -70,6 +70,29 @@ export function cvItemCount(cv: Pick<CanonicalCv, "sections">): number {
   return cv.sections.reduce((n, s) => n + s.items.length, 0);
 }
 
+/**
+ * Trim a CV's items to at most `max` total across all sections, preserving
+ * section order and within-section order (later sections lose items first).
+ * Immutable; a no-op when already under the cap. Used to keep the sync path from
+ * persisting a document the public render couldn't safely handle, without ever
+ * failing the sync (fail-soft).
+ */
+export function capCvItems(cv: CanonicalCv, max: number): CanonicalCv {
+  if (cvItemCount(cv) <= max) return cv;
+  let remaining = max;
+  const sections = cv.sections.map((s) => {
+    if (remaining <= 0) return { ...s, items: [] };
+    if (s.items.length <= remaining) {
+      remaining -= s.items.length;
+      return s;
+    }
+    const items = s.items.slice(0, remaining);
+    remaining = 0;
+    return { ...s, items };
+  });
+  return { ...cv, sections };
+}
+
 /** Load + validate the user's canonical CV, or null if absent/corrupt. */
 export async function getCvForUser(userId: string): Promise<CanonicalCv | null> {
   const row = await prisma.cv.findUnique({ where: { userId } });
@@ -239,6 +262,12 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   // Crossref: fill bibliographic gaps (journal, volume/issue, pages) on works
   // that have a DOI but incomplete OpenAlex metadata. Bounded + fails soft.
   cv = await enrichCvWithCrossref(cv, getEnv().OPENALEX_MAILTO);
+
+  // Defence-in-depth: never persist a document above the public-render item cap.
+  // saveCvForUser enforces this for user saves; the sync/resync path writes via
+  // upsert directly, so cap here too — trimming (fail-soft), never failing. A
+  // real synced CV is far below the cap (bounded by the ~5k OpenAlex fetch cap).
+  cv = capCvItems(cv, MAX_TOTAL_CV_ITEMS);
 
   await prisma.cv.upsert({
     where: { userId },
