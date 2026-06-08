@@ -1,8 +1,4 @@
-import {
-  type FunderGrant,
-  matchesNameAndOrg,
-  personMatch,
-} from "@/lib/grants/match";
+import { type FunderGrant, matchesNameAndOrg, personMatch } from "@/lib/grants/match";
 import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 
@@ -30,10 +26,7 @@ function yearFromEpochMs(v: unknown): number | undefined {
   return Number.isFinite(y) ? y : undefined;
 }
 
-export async function fetchUkriGrants(
-  name: string,
-  orgs: string[],
-): Promise<FunderGrant[]> {
+export async function fetchUkriGrants(name: string, orgs: string[]): Promise<FunderGrant[]> {
   const person = personMatch(name, orgs);
   if (!person.surname || person.orgs.length === 0) return [];
 
@@ -60,15 +53,12 @@ export async function fetchUkriGrants(
       const comp = asRecord(asRecord(raw)?.projectComposition);
       const leadOrg = asRecord(comp?.leadResearchOrganisation);
       const orgName = typeof leadOrg?.name === "string" ? leadOrg.name : undefined;
-      const pis = Array.isArray(comp?.principalInvestigators)
-        ? comp.principalInvestigators
-        : [];
+      const pis = Array.isArray(comp?.principalInvestigators) ? comp.principalInvestigators : [];
       const matched = pis
         .map(asRecord)
         .some(
           (pi) =>
-            typeof pi?.fullName === "string" &&
-            matchesNameAndOrg(person, pi.fullName, orgName),
+            typeof pi?.fullName === "string" && matchesNameAndOrg(person, pi.fullName, orgName),
         );
       if (!matched) continue;
 

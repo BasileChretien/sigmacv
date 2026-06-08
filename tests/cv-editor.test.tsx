@@ -39,7 +39,9 @@ function expandAllSections() {
 describe("CvEditor (component)", () => {
   it("toggling a metric calls onChange with the metric + showMetrics on", () => {
     const onChange = vi.fn();
-    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />);
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
+    );
     fireEvent.click(screen.getByLabelText(/2-yr mean citedness/i));
     expect(onChange).toHaveBeenCalledTimes(1);
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
@@ -49,7 +51,9 @@ describe("CvEditor (component)", () => {
 
   it("changing the highlight style propagates to display.highlightStyle", () => {
     const onChange = vi.fn();
-    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />);
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
+    );
     fireEvent.change(screen.getByLabelText("Highlight style"), {
       target: { value: "underline" },
     });
@@ -76,7 +80,9 @@ describe("CvEditor (component)", () => {
 
   it("the responsible-metrics preset selects field-normalised indicators", () => {
     const onChange = vi.fn();
-    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />);
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
+    );
     fireEvent.click(screen.getByText(/responsible-metrics preset/i));
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
     expect(next.display.metrics).toEqual(["2yr_mean_citedness", "fwci_mean"]);
@@ -85,7 +91,9 @@ describe("CvEditor (component)", () => {
 
   it("offers an add-section button for a missing section and creates it", () => {
     const onChange = vi.fn();
-    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />);
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
+    );
     fireEvent.click(screen.getByText("+ Positions"));
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
     const positions = next.sections.find((s) => s.type === "positions");
@@ -94,7 +102,9 @@ describe("CvEditor (component)", () => {
   });
 
   it("offers a Skills add-section button", () => {
-    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+    );
     expect(screen.getByText("+ Skills")).toBeTruthy();
   });
 
@@ -117,7 +127,9 @@ describe("CvEditor (component)", () => {
   );
 
   it("collapses sections by default and expands on demand to show rows", () => {
-    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+    );
     // Collapsed: no item rows yet.
     expect(screen.queryAllByText("Hide").length).toBe(0);
     expandAllSections();
@@ -127,7 +139,9 @@ describe("CvEditor (component)", () => {
   });
 
   it("shows each item's data source", () => {
-    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+    );
     expandAllSections();
     expect(screen.getAllByText("OpenAlex").length).toBeGreaterThan(0);
   });
@@ -154,7 +168,9 @@ describe("CvEditor (component)", () => {
   });
 
   it("gives the Hide and Not-mine buttons an item-specific accessible name", () => {
-    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+    );
     expandAllSections();
     // The accessible name is "Hide: <title>" / "Not mine: <title>" (not the bare
     // verb), so a screen reader announces which entry the button acts on. A colon
@@ -180,7 +196,12 @@ describe("CvEditor (component)", () => {
         },
       ],
     } as unknown as OpenAlexWork;
-    const cv = buildCanonicalCv({ id: "rf", resolved, works: [conflict], now: "2026-06-02T00:00:00.000Z" });
+    const cv = buildCanonicalCv({
+      id: "rf",
+      resolved,
+      works: [conflict],
+      now: "2026-06-02T00:00:00.000Z",
+    });
     render(<CvEditor cv={cv} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
     expandAllSections();
     expect(screen.getByText(/⚠ review/)).toBeTruthy();
@@ -190,9 +211,13 @@ describe("CvEditor (component)", () => {
     const base = makeCv();
     const sectionId = base.sections[0]!.id;
     const id = base.sections[0]!.items[0]!.id;
-    const withNotMine = setItemNotMine(base, sectionId, id, true, { now: "2026-06-02T00:00:00.000Z" });
+    const withNotMine = setItemNotMine(base, sectionId, id, true, {
+      now: "2026-06-02T00:00:00.000Z",
+    });
     const onChange = vi.fn();
-    render(<CvEditor cv={withNotMine} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />);
+    render(
+      <CvEditor cv={withNotMine} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
+    );
     expandAllSections();
     // The accessible name uses a typographic apostrophe — match it loosely.
     fireEvent.change(screen.getByLabelText(/why isn.t this yours/i), {
@@ -224,7 +249,9 @@ describe("CvEditor (component)", () => {
 
   it("renders chrome in the INTERFACE locale (independent of the CV language)", () => {
     // CV language is en-US, but the interface is French → chrome is French.
-    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="fr-FR" onChange={vi.fn()} />);
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="fr-FR" onChange={vi.fn()} />,
+    );
     expandAllSections();
     // French chrome: the per-row curation button reads "Masquer".
     expect(screen.getAllByText("Masquer").length).toBeGreaterThan(0);
@@ -233,7 +260,9 @@ describe("CvEditor (component)", () => {
   it("the CV-language picker sets display.locale (not the interface language)", () => {
     const onChange = vi.fn();
     // Interface in French → the picker is labelled "Langue du CV".
-    render(<CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="fr-FR" onChange={onChange} />);
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="fr-FR" onChange={onChange} />,
+    );
     fireEvent.change(screen.getByLabelText(/langue du cv/i), {
       target: { value: "ja-JP" },
     });

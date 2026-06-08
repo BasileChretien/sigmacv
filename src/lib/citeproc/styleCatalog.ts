@@ -33,7 +33,10 @@ export const CSL_STYLE_CATALOG: CslStyleOption[] = [
   { id: "ieee", title: "IEEE" },
   { id: "vancouver", title: "Vancouver" },
   { id: "vancouver-superscript", title: "Vancouver (superscript)" },
-  { id: "council-of-science-editors-author-date", title: "Council of Science Editors (author–date)" },
+  {
+    id: "council-of-science-editors-author-date",
+    title: "Council of Science Editors (author–date)",
+  },
   { id: "american-medical-association", title: "AMA (American Medical Association)" },
 
   // Multidisciplinary flagship journals
@@ -61,8 +64,14 @@ export const CSL_STYLE_CATALOG: CslStyleOption[] = [
   { id: "plos-medicine", title: "PLOS Medicine" },
   { id: "british-journal-of-pharmacology", title: "British Journal of Pharmacology" },
   { id: "clinical-pharmacology-and-therapeutics", title: "Clinical Pharmacology & Therapeutics" },
-  { id: "british-journal-of-clinical-pharmacology", title: "British Journal of Clinical Pharmacology" },
-  { id: "european-journal-of-clinical-pharmacology", title: "European Journal of Clinical Pharmacology" },
+  {
+    id: "british-journal-of-clinical-pharmacology",
+    title: "British Journal of Clinical Pharmacology",
+  },
+  {
+    id: "european-journal-of-clinical-pharmacology",
+    title: "European Journal of Clinical Pharmacology",
+  },
   { id: "pharmacoepidemiology-and-drug-safety", title: "Pharmacoepidemiology & Drug Safety" },
   { id: "drug-safety", title: "Drug Safety" },
   { id: "fundamental-and-clinical-pharmacology", title: "Fundamental & Clinical Pharmacology" },
@@ -94,7 +103,10 @@ export const CSL_STYLE_CATALOG: CslStyleOption[] = [
 
   // Social sciences / humanities / economics
   { id: "american-sociological-association", title: "American Sociological Association (ASA)" },
-  { id: "american-political-science-association", title: "American Political Science Association (APSA)" },
+  {
+    id: "american-political-science-association",
+    title: "American Political Science Association (APSA)",
+  },
   { id: "american-psychological-association", title: "APA (American Psychological Association)" },
   { id: "chicago-annotated-bibliography", title: "Chicago (annotated bibliography)" },
   { id: "american-economic-association", title: "American Economic Association" },

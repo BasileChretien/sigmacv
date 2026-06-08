@@ -132,12 +132,7 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
  * alongside the `notMine` flag — it sharpens the author-disambiguation-error
  * study (a same-name collision is a very different error from a duplicate).
  */
-export const NOT_MINE_REASONS = [
-  "different-person",
-  "duplicate",
-  "wrong-field",
-  "other",
-] as const;
+export const NOT_MINE_REASONS = ["different-person", "duplicate", "wrong-field", "other"] as const;
 export const NotMineReasonSchema = z.enum(NOT_MINE_REASONS);
 export type NotMineReason = z.infer<typeof NotMineReasonSchema>;
 export const NOT_MINE_REASON_LABELS: Record<NotMineReason, string> = {
@@ -463,22 +458,11 @@ export const CvOwnerSchema = z.object({
 export type CvOwner = z.infer<typeof CvOwnerSchema>;
 
 /** Constrained customization options (kept tasteful + safe-to-inject). */
-export const TEMPLATES = [
-  "classic",
-  "modern",
-  "sidebar",
-  "ats",
-  "rirekisho",
-] as const;
+export const TEMPLATES = ["classic", "modern", "sidebar", "ats", "rirekisho"] as const;
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
 /** How the account holder's name is emphasised in their own works. */
-export const HIGHLIGHT_STYLES = [
-  "accent",
-  "bold",
-  "underline",
-  "accent-underline",
-] as const;
+export const HIGHLIGHT_STYLES = ["accent", "bold", "underline", "accent-underline"] as const;
 export type HighlightStyle = (typeof HIGHLIGHT_STYLES)[number];
 /** Curated accent swatches offered in the UI (any valid 6-digit hex is allowed). */
 export const ACCENT_PRESETS = [
@@ -570,9 +554,7 @@ export const DisplayChoicesSchema = z.object({
    * How publication/preprint entries are ordered. "custom" keeps the built/
    * dragged order (newest-first by default); other values re-sort at render.
    */
-  publicationOrder: z
-    .enum(["custom", "citations", "year-desc", "year-asc"])
-    .default("custom"),
+  publicationOrder: z.enum(["custom", "citations", "year-desc", "year-asc"]).default("custom"),
   /**
    * "Selected publications": cap the Publications section to the top N entries
    * (after ordering + the peer-reviewed-only filter), for a grant biosketch /
@@ -719,16 +701,10 @@ function migrateNarrativeToSections(doc: Record<string, unknown>): void {
     }, -1) + 1;
 
   const owner = (doc.owner ?? {}) as Record<string, unknown>;
-  const summaryEmpty =
-    typeof owner.summary !== "string" || owner.summary.trim().length === 0;
+  const summaryEmpty = typeof owner.summary !== "string" || owner.summary.trim().length === 0;
 
   let statementCount = 0;
-  const makeSection = (
-    type: CvSectionType,
-    title: string,
-    body: string,
-    visible: boolean,
-  ) => {
+  const makeSection = (type: CvSectionType, title: string, body: string, visible: boolean) => {
     // A unique id; `statement` can recur, so disambiguate the duplicates.
     const id = type === "statement" ? `statement:${statementCount++}` : type;
     sections.push({ id, type, title, visible, order: nextOrder++, items: [], body });

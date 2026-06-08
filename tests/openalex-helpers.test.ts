@@ -19,9 +19,7 @@ describe("shortId", () => {
 
 describe("normalizeOrcid", () => {
   it("strips the URL form to the bare iD", () => {
-    expect(normalizeOrcid("https://orcid.org/0000-0002-7483-2489")).toBe(
-      "0000-0002-7483-2489",
-    );
+    expect(normalizeOrcid("https://orcid.org/0000-0002-7483-2489")).toBe("0000-0002-7483-2489");
   });
   it("uppercases an X check digit", () => {
     expect(normalizeOrcid("0000-0002-1825-009x")).toBe("0000-0002-1825-009X");

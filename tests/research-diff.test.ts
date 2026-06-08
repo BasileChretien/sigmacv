@@ -2,11 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { setItemIncluded, setItemNotMine } from "@/lib/canonical/curate";
 import { pendingNotMineAssertions } from "@/lib/canonical/assertions";
-import {
-  compositionSnapshot,
-  diffIncludedChanges,
-  diffNotMineChanges,
-} from "@/lib/research/diff";
+import { compositionSnapshot, diffIncludedChanges, diffNotMineChanges } from "@/lib/research/diff";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -54,13 +50,10 @@ describe("diffNotMineChanges", () => {
     expect(diffNotMineChanges(before, hidden)).toEqual([]);
 
     // Asserting "not mine" IS.
-    const asserted = setItemNotMine(
-      before,
-      "publications",
-      "W4300000003",
-      true,
-      { reason: "different-person", now: "2026-06-02T00:00:00.000Z" },
-    );
+    const asserted = setItemNotMine(before, "publications", "W4300000003", true, {
+      reason: "different-person",
+      now: "2026-06-02T00:00:00.000Z",
+    });
     const changes = diffNotMineChanges(before, asserted);
     expect(changes).toHaveLength(1);
     expect(changes[0]).toMatchObject({
@@ -79,13 +72,9 @@ describe("diffNotMineChanges", () => {
 
 describe("pendingNotMineAssertions (v2 upstream-push read interface)", () => {
   it("surfaces asserted OpenAlex works joined with the owner's author ids", () => {
-    const cv = setItemNotMine(
-      makeCv(),
-      "publications",
-      "W4300000003",
-      true,
-      { now: "2026-06-02T00:00:00.000Z" },
-    );
+    const cv = setItemNotMine(makeCv(), "publications", "W4300000003", true, {
+      now: "2026-06-02T00:00:00.000Z",
+    });
     const pending = pendingNotMineAssertions(cv);
     expect(pending).toHaveLength(1);
     expect(pending[0]).toMatchObject({

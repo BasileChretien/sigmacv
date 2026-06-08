@@ -94,9 +94,7 @@ function parseConferencePapers(xml: string): DblpConferencePaper[] {
   return out;
 }
 
-export async function fetchDblpConferencePapers(
-  orcid: string,
-): Promise<DblpConferencePaper[]> {
+export async function fetchDblpConferencePapers(orcid: string): Promise<DblpConferencePaper[]> {
   const bare = normalizeOrcid(orcid);
   if (!bare) return [];
   try {

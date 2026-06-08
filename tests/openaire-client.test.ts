@@ -8,10 +8,7 @@ import { fetchOpenaireOutputs } from "@/lib/openaire/client";
 
 const ORCID = "0000-0002-7483-2489";
 
-function dataset(
-  id: string,
-  fields: Record<string, unknown>,
-): Record<string, unknown> {
+function dataset(id: string, fields: Record<string, unknown>): Record<string, unknown> {
   return { id, type: "dataset", ...fields };
 }
 
@@ -44,8 +41,7 @@ describe("fetchOpenaireOutputs", () => {
           type === "dataset"
             ? [
                 dataset("oa::1", {
-                  mainTitle:
-                    "Open Editors Plus 2026: Editorial Board Composition",
+                  mainTitle: "Open Editors Plus 2026: Editorial Board Composition",
                   publicationDate: "2026-04-08",
                   publisher: "Zenodo",
                   pids: [{ scheme: "doi", value: "10.5281/zenodo.19468383" }],
@@ -78,10 +74,7 @@ describe("fetchOpenaireOutputs", () => {
 
     const out = await fetchOpenaireOutputs(`https://orcid.org/${ORCID}`);
     expect(
-      urls.some(
-        (u) =>
-          u.includes("authorOrcid=0000-0002-7483-2489") && u.includes("type=dataset"),
-      ),
+      urls.some((u) => u.includes("authorOrcid=0000-0002-7483-2489") && u.includes("type=dataset")),
     ).toBe(true);
     expect(urls.some((u) => u.includes("type=software"))).toBe(true);
     expect(out).toEqual([
@@ -130,7 +123,10 @@ describe("fetchOpenaireOutputs", () => {
   });
 
   it("fails soft on non-OK and on thrown fetch", async () => {
-    vi.stubGlobal("fetch", vi.fn(() => new Response("err", { status: 500 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Response("err", { status: 500 })),
+    );
     expect(await fetchOpenaireOutputs(ORCID)).toEqual([]);
     vi.stubGlobal(
       "fetch",

@@ -13,8 +13,7 @@ import { logger } from "@/lib/log";
  * failure) this returns null and the client falls back to anonymous requests.
  */
 
-const TOKEN_ENDPOINT =
-  "https://services.openaire.eu/uoa-user-management/api/users/getAccessToken";
+const TOKEN_ENDPOINT = "https://services.openaire.eu/uoa-user-management/api/users/getAccessToken";
 
 /** Renew this many ms before the token actually expires (clock-skew margin). */
 const EXPIRY_MARGIN_MS = 60_000;
@@ -30,9 +29,7 @@ let cached: CachedToken | null = null;
  * A valid OpenAIRE access token, or null when none is configured / obtainable.
  * `now` is injectable for deterministic tests.
  */
-export async function getOpenaireAccessToken(
-  now: number = Date.now(),
-): Promise<string | null> {
+export async function getOpenaireAccessToken(now: number = Date.now()): Promise<string | null> {
   const refreshToken = getEnv().OPENAIRE_REFRESH_TOKEN;
   if (!refreshToken) return null;
   if (cached && cached.expiresAt > now + EXPIRY_MARGIN_MS) return cached.token;

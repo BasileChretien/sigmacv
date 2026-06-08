@@ -11,9 +11,7 @@ import type { CvItem } from "@/lib/canonical/schema";
  * self-asserted and manual entries self-added, so they get Hide / Delete only.
  * Every item gets Hide.
  */
-function makeItem(
-  over: Partial<CvItem> & Pick<CvItem, "id" | "source">,
-): CvItem {
+function makeItem(over: Partial<CvItem> & Pick<CvItem, "id" | "source">): CvItem {
   return {
     sourceId: over.source,
     displayText: "Item",
@@ -110,7 +108,9 @@ describe("ItemRow — 'not mine' eligibility", () => {
   });
 
   it("shows 'not mine' for ORCID-matched OpenAIRE + DBLP outputs", () => {
-    renderRow(makeItem({ id: "dataset:openaire:1", source: "openaire", displayText: "OpenAIRE dataset" }));
+    renderRow(
+      makeItem({ id: "dataset:openaire:1", source: "openaire", displayText: "OpenAIRE dataset" }),
+    );
     expect(screen.getByRole("button", { name: /not mine/i })).toBeTruthy();
     cleanup();
     renderRow(makeItem({ id: "conference:dblp:1", source: "dblp", displayText: "Conf paper" }));

@@ -6,10 +6,7 @@ import {
   type LandingPageStrings,
   landingPageStrings,
 } from "@/lib/i18n/landingPages";
-import {
-  landingPageLanguageAlternates,
-  localeLandingPagePath,
-} from "@/lib/seo";
+import { landingPageLanguageAlternates, localeLandingPagePath } from "@/lib/seo";
 
 /** Every scalar (non-array) field on the strings object. */
 function scalarFields(s: LandingPageStrings): string[] {
@@ -29,9 +26,7 @@ describe("landingPageStrings", () => {
     );
     // Unknown locale → English.
     for (const page of LANDING_PAGE_IDS) {
-      expect(landingPageStrings(page, "xx-XX")).toEqual(
-        landingPageStrings(page, "en-US"),
-      );
+      expect(landingPageStrings(page, "xx-XX")).toEqual(landingPageStrings(page, "en-US"));
     }
     // A non-default locale is actually translated (differs from English).
     expect(landingPageStrings("orcid-to-cv", "fr-FR").heading).not.toBe(
@@ -89,16 +84,10 @@ describe("landingPageStrings", () => {
 describe("SEO helpers for landing pages", () => {
   it("serves the bare segment for the default locale and /{slug}/segment otherwise", () => {
     expect(localeLandingPagePath("orcid-to-cv", "en-US")).toBe("/orcid-to-cv");
-    expect(localeLandingPagePath("orcid-to-cv", "fr-FR")).toBe(
-      "/fr/orcid-to-cv",
-    );
-    expect(localeLandingPagePath("nih-biosketch", "ja-JP")).toBe(
-      "/ja/nih-biosketch",
-    );
+    expect(localeLandingPagePath("orcid-to-cv", "fr-FR")).toBe("/fr/orcid-to-cv");
+    expect(localeLandingPagePath("nih-biosketch", "ja-JP")).toBe("/ja/nih-biosketch");
     // Unknown locale → default (bare) path.
-    expect(localeLandingPagePath("nih-biosketch", "xx-XX")).toBe(
-      "/nih-biosketch",
-    );
+    expect(localeLandingPagePath("nih-biosketch", "xx-XX")).toBe("/nih-biosketch");
   });
 
   it("maps every locale plus x-default for each landing page", () => {

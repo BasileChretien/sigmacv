@@ -59,10 +59,7 @@ export async function acquireResyncLock(
   const res = await prisma.cv.updateMany({
     where: {
       id: cvId,
-      OR: [
-        { resyncLockedAt: null },
-        { resyncLockedAt: { lt: new Date(now - staleMs) } },
-      ],
+      OR: [{ resyncLockedAt: null }, { resyncLockedAt: { lt: new Date(now - staleMs) } }],
     },
     data: { resyncLockedAt: new Date(now) },
   });
@@ -139,9 +136,7 @@ export async function resyncDueCvs(
       summary.synced += 1;
     } catch (err) {
       summary.failed += 1;
-      summary.errors.push(
-        `${cv.id}: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      summary.errors.push(`${cv.id}: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       await releaseResyncLock(cv.id);
     }

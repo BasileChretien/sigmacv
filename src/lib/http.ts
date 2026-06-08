@@ -85,7 +85,5 @@ export async function resilientFetch(
       }
     }
   }
-  throw lastErr instanceof Error
-    ? lastErr
-    : new Error(`Request to ${String(url)} failed`);
+  throw lastErr instanceof Error ? lastErr : new Error(`Request to ${String(url)} failed`);
 }

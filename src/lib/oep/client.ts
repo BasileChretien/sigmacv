@@ -22,9 +22,7 @@ export interface EditorialRole {
   endYear?: number;
 }
 
-export async function fetchEditorialRoles(
-  orcid: string,
-): Promise<EditorialRole[]> {
+export async function fetchEditorialRoles(orcid: string): Promise<EditorialRole[]> {
   const bare = normalizeOrcid(orcid);
   if (!bare) return [];
   try {

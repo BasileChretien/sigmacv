@@ -18,10 +18,7 @@ vi.mock("@/lib/log", () => ({
 }));
 
 import { __resetRateLimits } from "@/lib/rateLimit";
-import {
-  enforceRateLimit,
-  rateLimitPersistenceEnabled,
-} from "@/lib/rateLimitStore";
+import { enforceRateLimit, rateLimitPersistenceEnabled } from "@/lib/rateLimitStore";
 
 const tx = {
   rateLimitWindow: {

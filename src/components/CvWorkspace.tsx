@@ -46,11 +46,7 @@ interface CvWorkspaceProps {
   signOutAction: () => Promise<void>;
 }
 
-async function apiFetch(
-  url: string,
-  method: "POST" | "PATCH",
-  body?: unknown,
-): Promise<unknown> {
+async function apiFetch(url: string, method: "POST" | "PATCH", body?: unknown): Promise<unknown> {
   const res = await fetch(url, {
     method,
     headers: body ? { "Content-Type": "application/json" } : undefined,
@@ -58,9 +54,7 @@ async function apiFetch(
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(
-      (data as { error?: string }).error ?? `Request failed (${res.status})`,
-    );
+    throw new Error((data as { error?: string }).error ?? `Request failed (${res.status})`);
   }
   return data;
 }
@@ -91,9 +85,7 @@ export default function CvWorkspace({
   // client preference (localStorage), not part of the CV document. Initial value
   // mirrors the CV's language so first paint is sensible; a saved choice (read
   // after mount to avoid hydration mismatch) overrides it.
-  const [uiLocale, setUiLocale] = useState<Locale>(
-    asLocale(initialCv?.display.locale),
-  );
+  const [uiLocale, setUiLocale] = useState<Locale>(asLocale(initialCv?.display.locale));
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(UI_LOCALE_KEY);
@@ -228,12 +220,7 @@ export default function CvWorkspace({
           <span className="status muted" role="status" aria-live="polite">
             {status}
           </span>
-          <button
-            type="button"
-            className="btn"
-            onClick={handleSync}
-            disabled={syncing}
-          >
+          <button type="button" className="btn" onClick={handleSync} disabled={syncing}>
             {syncing ? t(uiLocale, "resyncing") : t(uiLocale, "resync")}
           </button>
           <button
@@ -242,11 +229,7 @@ export default function CvWorkspace({
             onClick={handleSave}
             disabled={!cv || saving || !dirty}
           >
-            {saving
-              ? t(uiLocale, "saving")
-              : dirty
-                ? t(uiLocale, "save")
-                : t(uiLocale, "saved")}
+            {saving ? t(uiLocale, "saving") : dirty ? t(uiLocale, "save") : t(uiLocale, "saved")}
           </button>
           <select
             className="export-format"
@@ -316,9 +299,7 @@ export default function CvWorkspace({
           <DisambiguationCoachmark
             locale={uiLocale}
             show={cv.sections.some(
-              (s) =>
-                (s.type === "publications" || s.type === "preprints") &&
-                s.items.length > 0,
+              (s) => (s.type === "publications" || s.type === "preprints") && s.items.length > 0,
             )}
           />
           {/* Mobile-only pane switch: on a phone the two panes stack and only
@@ -364,12 +345,7 @@ export default function CvWorkspace({
         <div className="cv-empty container" id="cv-main">
           <h2>{t(uiLocale, "emptyTitle")}</h2>
           <p className="muted">{t(uiLocale, "emptyBody")}</p>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSync}
-            disabled={syncing}
-          >
+          <button type="button" className="btn btn-primary" onClick={handleSync} disabled={syncing}>
             {syncing ? t(uiLocale, "resyncing") : t(uiLocale, "syncFromOpenAlex")}
           </button>
         </div>

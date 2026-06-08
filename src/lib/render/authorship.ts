@@ -62,16 +62,11 @@ const PREDICATES: Record<AuthorshipRole, (item: CvItem) => boolean> = {
  * exclusive (see positionRole) so their shares sum to 100% when all are shown;
  * "corresponding" is orthogonal and may overlap.
  */
-export function authorshipCounts(
-  cv: CanonicalCv,
-  roles: readonly string[],
-): AuthorshipCount[] {
+export function authorshipCounts(cv: CanonicalCv, roles: readonly string[]): AuthorshipCount[] {
   const items = countableWorks(cv).filter((it) => it.authoredBySelf);
   const total = items.length;
   return roles
-    .filter((r): r is AuthorshipRole =>
-      (AUTHORSHIP_ROLES as readonly string[]).includes(r),
-    )
+    .filter((r): r is AuthorshipRole => (AUTHORSHIP_ROLES as readonly string[]).includes(r))
     .map((role) => {
       const count = items.filter(PREDICATES[role]).length;
       return {

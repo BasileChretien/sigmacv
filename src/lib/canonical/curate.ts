@@ -54,9 +54,7 @@ export function setItemIncluded(
 ): CanonicalCv {
   return mapSection(cv, sectionId, (s) => ({
     ...s,
-    items: s.items.map((it) =>
-      it.id === itemId ? { ...it, included } : it,
-    ),
+    items: s.items.map((it) => (it.id === itemId ? { ...it, included } : it)),
   }));
 }
 
@@ -152,20 +150,12 @@ export function removeSection(cv: CanonicalCv, sectionId: string): CanonicalCv {
   return next.length === cv.sections.length ? cv : { ...cv, sections: next };
 }
 
-export function renameSection(
-  cv: CanonicalCv,
-  sectionId: string,
-  title: string,
-): CanonicalCv {
+export function renameSection(cv: CanonicalCv, sectionId: string, title: string): CanonicalCv {
   return mapSection(cv, sectionId, (s) => ({ ...s, title }));
 }
 
 /** Move a whole section up/down. */
-export function moveSection(
-  cv: CanonicalCv,
-  sectionId: string,
-  direction: Direction,
-): CanonicalCv {
+export function moveSection(cv: CanonicalCv, sectionId: string, direction: Direction): CanonicalCv {
   const sections = sortByOrder(cv.sections);
   const idx = sections.findIndex((s) => s.id === sectionId);
   if (idx < 0) return cv;
@@ -210,10 +200,7 @@ export function moveSectionTo(
  * caller omits (defensive) keep their existing relative order, appended at the
  * end, so a stale/partial list can never drop a section.
  */
-export function reorderSections(
-  cv: CanonicalCv,
-  orderedIds: readonly string[],
-): CanonicalCv {
+export function reorderSections(cv: CanonicalCv, orderedIds: readonly string[]): CanonicalCv {
   const sorted = sortByOrder(cv.sections);
   const byId = new Map(cv.sections.map((s) => [s.id, s]));
   const ordered: CvSection[] = [];
@@ -237,10 +224,7 @@ export function reorderSections(
 }
 
 /** Update one or more display choices (citation style, highlight, etc.). */
-export function updateDisplay(
-  cv: CanonicalCv,
-  patch: Partial<DisplayChoices>,
-): CanonicalCv {
+export function updateDisplay(cv: CanonicalCv, patch: Partial<DisplayChoices>): CanonicalCv {
   return { ...cv, display: { ...cv.display, ...patch } };
 }
 
@@ -267,9 +251,7 @@ export function savePreset(cv: CanonicalCv, name: string): CanonicalCv {
     id,
     name: trimmed,
     display: cv.display,
-    sectionVisibility: Object.fromEntries(
-      cv.sections.map((s) => [s.id, s.visible]),
-    ),
+    sectionVisibility: Object.fromEntries(cv.sections.map((s) => [s.id, s.visible])),
   };
   const others = (cv.presets ?? []).filter((p) => p.id !== id);
   return { ...cv, presets: [...others, preset] };
@@ -281,9 +263,7 @@ export function applyPreset(cv: CanonicalCv, id: string): CanonicalCv {
   const preset = (cv.presets ?? []).find((p) => p.id === id);
   if (!preset) return cv;
   const sections = cv.sections.map((s) =>
-    s.id in preset.sectionVisibility
-      ? { ...s, visible: preset.sectionVisibility[s.id]! }
-      : s,
+    s.id in preset.sectionVisibility ? { ...s, visible: preset.sectionVisibility[s.id]! } : s,
   );
   return { ...cv, display: { ...preset.display }, sections };
 }
@@ -307,9 +287,7 @@ export function setLocale(cv: CanonicalCv, locale: string): CanonicalCv {
     ...cv,
     display: { ...cv.display, locale },
     sections: cv.sections.map((s) =>
-      isDefaultSectionTitle(s.type, s.title)
-        ? { ...s, title: sectionTitle(locale, s.type) }
-        : s,
+      isDefaultSectionTitle(s.type, s.title) ? { ...s, title: sectionTitle(locale, s.type) } : s,
     ),
   };
 }
@@ -320,10 +298,7 @@ export function setLocale(cv: CanonicalCv, locale: string): CanonicalCv {
  * patches are merged with the existing sub-object so a partial update never
  * drops sibling fields. Immutable.
  */
-export function updateOwner(
-  cv: CanonicalCv,
-  patch: Partial<CvOwner>,
-): CanonicalCv {
+export function updateOwner(cv: CanonicalCv, patch: Partial<CvOwner>): CanonicalCv {
   const owner: CvOwner = { ...cv.owner, ...patch };
   if (patch.contact) owner.contact = { ...cv.owner.contact, ...patch.contact };
   if (patch.personal) owner.personal = { ...cv.owner.personal, ...patch.personal };
@@ -363,11 +338,7 @@ export function addManualEntry(
 
 /** Append a manual item to its section (creating the section if absent), giving
  *  it the next order. Shared by the free-text and structured add-entry paths. */
-function appendManualItem(
-  cv: CanonicalCv,
-  sectionType: CvSectionType,
-  item: CvItem,
-): CanonicalCv {
+function appendManualItem(cv: CanonicalCv, sectionType: CvSectionType, item: CvItem): CanonicalCv {
   const existing = cv.sections.find((s) => s.type === sectionType);
   if (existing) {
     const maxOrder = existing.items.reduce((m, it) => Math.max(m, it.order), -1);
@@ -423,10 +394,7 @@ function parseAuthors(raw: string | undefined): CslName[] {
  * through the SAME citeproc pipeline (and chosen citation style) as imported
  * works — no per-entry formatting. Returns null when the title is blank.
  */
-export function buildManualCsl(
-  id: string,
-  fields: ManualEntryFields,
-): CslItem | null {
+export function buildManualCsl(id: string, fields: ManualEntryFields): CslItem | null {
   const title = fields.title.trim();
   if (!title) return null;
 
@@ -438,8 +406,7 @@ export function buildManualCsl(
   const authors = parseAuthors(fields.authors);
   if (authors.length) csl.author = authors;
 
-  const year =
-    typeof fields.year === "string" ? parseInt(fields.year, 10) : fields.year;
+  const year = typeof fields.year === "string" ? parseInt(fields.year, 10) : fields.year;
   if (typeof year === "number" && Number.isFinite(year)) {
     csl.issued = { "date-parts": [[year]] };
   }
@@ -478,8 +445,7 @@ export function addStructuredEntry(
   const csl = buildManualCsl(id, fields);
   if (!csl) return cv;
 
-  const year =
-    typeof fields.year === "string" ? parseInt(fields.year, 10) : fields.year;
+  const year = typeof fields.year === "string" ? parseInt(fields.year, 10) : fields.year;
   return appendManualItem(cv, sectionType, {
     id,
     source: "manual",
@@ -503,11 +469,7 @@ export function addStructuredEntry(
  * the right section — Preprints if it's a preprint, else Publications — creating
  * the section if needed. The metadata is source-driven; only ownership is asserted.
  */
-export function addClaimedWork(
-  cv: CanonicalCv,
-  item: CvItem,
-  isPreprint: boolean,
-): CanonicalCv {
+export function addClaimedWork(cv: CanonicalCv, item: CvItem, isPreprint: boolean): CanonicalCv {
   return appendManualItem(cv, isPreprint ? "preprints" : "publications", item);
 }
 
@@ -515,18 +477,14 @@ export function addClaimedWork(
  * Whether the CV already contains a work with the given OpenAlex id or DOI, so
  * the "add by DOI" flow can refuse a duplicate rather than list it twice.
  */
-export function cvHasWork(
-  cv: CanonicalCv,
-  opts: { id?: string; doi?: string },
-): boolean {
+export function cvHasWork(cv: CanonicalCv, opts: { id?: string; doi?: string }): boolean {
   const doi = opts.doi?.toLowerCase();
   return cv.sections.some((s) =>
     s.items.some(
       (it) =>
         (opts.id !== undefined && it.id === opts.id) ||
         (doi !== undefined &&
-          (it.csl?.DOI?.toLowerCase() === doi ||
-            it.meta.doi?.toLowerCase() === doi)),
+          (it.csl?.DOI?.toLowerCase() === doi || it.meta.doi?.toLowerCase() === doi)),
     ),
   );
 }
@@ -536,16 +494,10 @@ export function cvHasWork(
  * its canonical order with a localized title. The user then adds entries via
  * the add-entry input. Used by the editor's "Add a section" menu.
  */
-export function addSection(
-  cv: CanonicalCv,
-  sectionType: CvSectionType,
-): CanonicalCv {
+export function addSection(cv: CanonicalCv, sectionType: CvSectionType): CanonicalCv {
   // A `statement` section can legitimately recur (the user titles each one), so
   // it is NOT deduplicated by type; every other type is single-instance.
-  if (
-    sectionType !== "statement" &&
-    cv.sections.some((s) => s.type === sectionType)
-  ) {
+  if (sectionType !== "statement" && cv.sections.some((s) => s.type === sectionType)) {
     return cv;
   }
   const isProse = isProseSectionType(sectionType);
@@ -577,11 +529,7 @@ export function addSection(
  * left untouched in practice (the editor only calls this for prose sections), but
  * the op itself simply writes `body` on whatever section id it's given.
  */
-export function setSectionBody(
-  cv: CanonicalCv,
-  sectionId: string,
-  body: string,
-): CanonicalCv {
+export function setSectionBody(cv: CanonicalCv, sectionId: string, body: string): CanonicalCv {
   const clamped = body.slice(0, PROSE_BODY_MAX);
   return mapSection(cv, sectionId, (s) => ({ ...s, body: clamped }));
 }
@@ -595,18 +543,12 @@ export function updateItemText(
 ): CanonicalCv {
   return mapSection(cv, sectionId, (s) => ({
     ...s,
-    items: s.items.map((it) =>
-      it.id === itemId ? { ...it, displayText } : it,
-    ),
+    items: s.items.map((it) => (it.id === itemId ? { ...it, displayText } : it)),
   }));
 }
 
 /** Remove an item from its section (used for user-added manual entries). */
-export function removeItem(
-  cv: CanonicalCv,
-  sectionId: string,
-  itemId: string,
-): CanonicalCv {
+export function removeItem(cv: CanonicalCv, sectionId: string, itemId: string): CanonicalCv {
   return mapSection(cv, sectionId, (s) => ({
     ...s,
     items: reindex(s.items.filter((it) => it.id !== itemId)),

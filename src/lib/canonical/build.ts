@@ -16,15 +16,8 @@ import {
   type OpenAlexAuthorship,
   type OpenAlexWork,
 } from "@/lib/openalex/types";
-import type {
-  ResolvedAffiliation,
-  ResolvedAuthor,
-} from "@/lib/openalex/resolveAuthor";
-import type {
-  OrcidFunding,
-  OrcidPeerReviewGroup,
-  OrcidPosition,
-} from "@/lib/orcid/client";
+import type { ResolvedAffiliation, ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
+import type { OrcidFunding, OrcidPeerReviewGroup, OrcidPosition } from "@/lib/orcid/client";
 import type { DataciteOutput } from "@/lib/datacite/client";
 import type { EditorialRole } from "@/lib/oep/client";
 import type { OpenaireOutput } from "@/lib/openaire/client";
@@ -250,9 +243,7 @@ function carryOverUserItems(
   if (!prevSection) return fetched;
   const ids = new Set(fetched.map((it) => it.id));
   const dois = new Set(
-    fetched
-      .map((it) => it.csl?.DOI?.toLowerCase())
-      .filter((d): d is string => Boolean(d)),
+    fetched.map((it) => it.csl?.DOI?.toLowerCase()).filter((d): d is string => Boolean(d)),
   );
   const carried = prevSection.items.filter(
     (it) =>
@@ -265,16 +256,11 @@ function carryOverUserItems(
 
 /** Normalize a list to a clean 0..n order, preserving relative order. */
 function reindexItems(items: CvItem[]): CvItem[] {
-  return [...items]
-    .sort((a, b) => a.order - b.order)
-    .map((it, i) => ({ ...it, order: i }));
+  return [...items].sort((a, b) => a.order - b.order).map((it, i) => ({ ...it, order: i }));
 }
 
 /** Apply a section's preserved title/visibility/order from the previous CV. */
-function mergeSection(
-  built: CvSection,
-  previous: CanonicalCv | null | undefined,
-): CvSection {
+function mergeSection(built: CvSection, previous: CanonicalCv | null | undefined): CvSection {
   const prev = previous?.sections.find((s) => s.id === built.id);
   if (!prev) return built;
   return { ...built, title: prev.title, visible: prev.visible, order: prev.order };
@@ -353,18 +339,25 @@ function buildPositionsSection(
   let rank = 0;
 
   const sortedEmp = [...employments].sort(
-    (a, b) =>
-      positionRecency(b.startYear, b.endYear) -
-      positionRecency(a.startYear, a.endYear),
+    (a, b) => positionRecency(b.startYear, b.endYear) - positionRecency(a.startYear, a.endYear),
   );
   for (const e of sortedEmp) {
     seen.add(normInstitution(e.organization));
     const id = `position:orcid:${e.putCode}`;
     items.push(
-      makeEntryItem(id, "orcid", e.putCode, formatPositionText(e), prevItems.get(id), rank++, e.startYear, {
-        rorId: e.rorId,
-        lastVerifiedAt: now,
-      }),
+      makeEntryItem(
+        id,
+        "orcid",
+        e.putCode,
+        formatPositionText(e),
+        prevItems.get(id),
+        rank++,
+        e.startYear,
+        {
+          rorId: e.rorId,
+          lastVerifiedAt: now,
+        },
+      ),
     );
   }
   for (const a of affiliations) {
@@ -430,9 +423,7 @@ function buildOrcidEntrySection(
   const items: CvItem[] = [];
   let rank = 0;
   const sorted = [...entries].sort(
-    (a, b) =>
-      positionRecency(b.startYear, b.endYear) -
-      positionRecency(a.startYear, a.endYear),
+    (a, b) => positionRecency(b.startYear, b.endYear) - positionRecency(a.startYear, a.endYear),
   );
   for (const e of sorted) {
     const id = `${opts.idPrefix}:orcid:${e.putCode}`;
@@ -599,12 +590,21 @@ function buildGrantsSection(
     const id = `grant:orcid:${f.putCode}`;
     const funder = resolveFunderIds(f, fundersByAward);
     items.push(
-      makeEntryItem(id, "orcid", f.putCode, formatFundingText(f), prevItems.get(id), rank++, f.startYear, {
-        lastVerifiedAt: now,
-        funderId: funder.funderId,
-        funderName: funder.funderName,
-        awardId: funder.awardId,
-      }),
+      makeEntryItem(
+        id,
+        "orcid",
+        f.putCode,
+        formatFundingText(f),
+        prevItems.get(id),
+        rank++,
+        f.startYear,
+        {
+          lastVerifiedAt: now,
+          funderId: funder.funderId,
+          funderName: funder.funderName,
+          awardId: funder.awardId,
+        },
+      ),
     );
   }
   const crSorted = [...crossrefGrants].sort((a, b) => (b.startYear ?? 0) - (a.startYear ?? 0));
@@ -612,23 +612,41 @@ function buildGrantsSection(
     if (g.award && seenAwards.has(g.award.trim().toLowerCase())) continue; // ORCID already has it
     const id = `grant:crossref:${g.doi.replace(/[^a-z0-9]+/gi, "-")}`;
     items.push(
-      makeEntryItem(id, "crossref", g.doi, formatCrossrefGrantText(g), prevItems.get(id), rank++, g.startYear, {
-        lastVerifiedAt: now,
-        funderId: g.funderId,
-        funderName: g.funderName,
-        awardId: g.award,
-      }),
+      makeEntryItem(
+        id,
+        "crossref",
+        g.doi,
+        formatCrossrefGrantText(g),
+        prevItems.get(id),
+        rank++,
+        g.startYear,
+        {
+          lastVerifiedAt: now,
+          funderId: g.funderId,
+          funderName: g.funderName,
+          awardId: g.award,
+        },
+      ),
     );
   }
   const natSorted = [...nationalGrants].sort((a, b) => (b.startYear ?? 0) - (a.startYear ?? 0));
   for (const g of natSorted) {
     const id = `grant:${g.source}:${g.externalId.replace(/[^a-z0-9]+/gi, "-")}`;
     const prev = prevItems.get(id);
-    const it = makeEntryItem(id, g.source, g.externalId, formatFunderGrantText(g), prev, rank++, g.startYear, {
-      lastVerifiedAt: now,
-      funderName: g.funder,
-      awardId: g.externalId,
-    });
+    const it = makeEntryItem(
+      id,
+      g.source,
+      g.externalId,
+      formatFunderGrantText(g),
+      prev,
+      rank++,
+      g.startYear,
+      {
+        lastVerifiedAt: now,
+        funderName: g.funder,
+        awardId: g.externalId,
+      },
+    );
     // NAME+org match → review candidate: hidden by default, flagged for review.
     items.push({
       ...it,
@@ -675,9 +693,7 @@ function buildEditorialSection(
   const items: CvItem[] = [];
   let rank = 0;
   for (const r of roles) {
-    const years = r.startYear
-      ? ` (${r.startYear}–${r.endYear ?? "present"})`
-      : "";
+    const years = r.startYear ? ` (${r.startYear}–${r.endYear ?? "present"})` : "";
     const id = `editorial:${key(r.journal)}:${key(r.role)}`;
     items.push(
       makeEntryItem(
@@ -882,9 +898,7 @@ export function reviewFlagFor(
  * location but openly licensed via an OA copy). Undefined when neither carries one.
  */
 export function workLicense(work: OpenAlexWork): string | undefined {
-  return (
-    work.primary_location?.license ?? work.best_oa_location?.license ?? undefined
-  );
+  return work.primary_location?.license ?? work.best_oa_location?.license ?? undefined;
 }
 
 /**
@@ -1013,8 +1027,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     if (isPreprint(work)) preprintIds.add(csl.id);
     // Match by id, else by DOI (id churn) to preserve hide / "not mine" decisions.
     const prev =
-      prevItems.get(csl.id) ??
-      (csl.DOI ? prevByDoi.get(csl.DOI.toLowerCase()) : undefined);
+      prevItems.get(csl.id) ?? (csl.DOI ? prevByDoi.get(csl.DOI.toLowerCase()) : undefined);
     return {
       id: csl.id,
       source: "openalex",

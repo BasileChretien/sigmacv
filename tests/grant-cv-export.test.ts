@@ -66,11 +66,7 @@ function fullCv(): CanonicalCv {
   // The narrative "knowledge" contribution is now a first-class prose section.
   cv = addSection(cv, "narrative-knowledge");
   const sec = cv.sections.find((s) => s.type === "narrative-knowledge")!;
-  cv = setSectionBody(
-    cv,
-    sec.id,
-    "I uncovered three previously unknown drug-safety signals.",
-  );
+  cv = setSectionBody(cv, sec.id, "I uncovered three previously unknown drug-safety signals.");
   return cv;
 }
 
@@ -173,9 +169,7 @@ describe.skipIf(!hasApa)("funder grant-CV export", () => {
         expect(md).toContain(h);
       }
       // The publications block is a numbered citeproc list.
-      expect(md).toMatch(
-        new RegExp(`${escapeRegExp(PUB_HEADING[id])}\\n\\n1\\. `),
-      );
+      expect(md).toMatch(new RegExp(`${escapeRegExp(PUB_HEADING[id])}\\n\\n1\\. `));
     },
   );
 
@@ -208,9 +202,7 @@ describe.skipIf(!hasApa)("funder grant-CV export", () => {
       const md = renderGrantCv(fullCv(), id);
       // Every catalog preset includes the narrative, and `knowledge`'s default
       // localized heading appears with its body.
-      expect(md).toContain(
-        "I uncovered three previously unknown drug-safety signals.",
-      );
+      expect(md).toContain("I uncovered three previously unknown drug-safety signals.");
       expect(md).toContain("Contributions to the generation of knowledge");
       expect(md).toContain("This is a SigmaCV draft");
       expect(md).toContain(FOOTER[id]);
@@ -223,9 +215,7 @@ describe.skipIf(!hasApa)("funder grant-CV export", () => {
       const md = renderGrantCv(bareCv(), id);
       expect(md).toContain("# Curriculum Vitae"); // empty-name fallback
       // Bare CV still has fixture publications → a populated track record.
-      expect(md).toMatch(
-        new RegExp(`${escapeRegExp(PUB_HEADING[id])}\\n\\n1\\. `),
-      );
+      expect(md).toMatch(new RegExp(`${escapeRegExp(PUB_HEADING[id])}\\n\\n1\\. `));
       // No header headline, no narrative heading.
       expect(md).not.toContain("*Senior Pharmacologist*");
       expect(md.endsWith("\n")).toBe(true);
@@ -290,7 +280,10 @@ describe.skipIf(!hasApa)("funder grant-CV export", () => {
     // The bullets did NOT get appended to the narrative block: the narrative
     // prose paragraph is not immediately followed by the funder bullets.
     const narrativeBlockEnd = md.indexOf("\n\n##", narrativeIdx);
-    const narrativeBlock = md.slice(narrativeIdx, narrativeBlockEnd < 0 ? undefined : narrativeBlockEnd);
+    const narrativeBlock = md.slice(
+      narrativeIdx,
+      narrativeBlockEnd < 0 ? undefined : narrativeBlockEnd,
+    );
     expect(narrativeBlock).not.toContain("national pharmacovigilance committee");
   });
 });

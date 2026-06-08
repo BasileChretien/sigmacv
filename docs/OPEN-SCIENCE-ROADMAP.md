@@ -25,37 +25,37 @@ Status keys: ✅ done · 🔜 in progress · ⬜ planned.
 
 ## Phase 0 — Repo hygiene & credibility (no code)
 
-| # | Item | Status |
-|---|---|---|
-| 0.1 | `CITATION.cff` | ✅ |
-| 0.2 | `.zenodo.json` + tagged release → software DOI | ✅ file · ⬜ release/DOI |
-| 0.3 | `codemeta.json` | ✅ |
-| 0.4 | `CONTRIBUTING.md` + `CODE_OF_CONDUCT.md` | ✅ |
-| 0.5 | `docs/OPEN-SCIENCE.md` (FAIR statement) + this roadmap | ✅ |
-| 0.6 | README: FAIR/citing section, badges, self-host callout | 🔜 |
-| 0.7 | Sign DORA / note CoARA alignment (maintainer action) | ⬜ |
+| #   | Item                                                   | Status                   |
+| --- | ------------------------------------------------------ | ------------------------ |
+| 0.1 | `CITATION.cff`                                         | ✅                       |
+| 0.2 | `.zenodo.json` + tagged release → software DOI         | ✅ file · ⬜ release/DOI |
+| 0.3 | `codemeta.json`                                        | ✅                       |
+| 0.4 | `CONTRIBUTING.md` + `CODE_OF_CONDUCT.md`               | ✅                       |
+| 0.5 | `docs/OPEN-SCIENCE.md` (FAIR statement) + this roadmap | ✅                       |
+| 0.6 | README: FAIR/citing section, badges, self-host callout | 🔜                       |
+| 0.7 | Sign DORA / note CoARA alignment (maintainer action)   | ⬜                       |
 
 ## Phase 1 — Canonical schema foundations (backbone; 2–5 depend on it)
 
-| # | Item | Files | Status |
-|---|---|---|---|
-| 1.1 | License field `display.cvLicense` (+ `license.ts` helper) | `canonical/schema.ts`, `canonical/license.ts` | ✅ |
-| 1.2 | Per-work `meta.license` from OpenAlex | `build.ts`, `openalex/*`, `schema.ts` | ✅ |
-| 1.3 | Persist ROR IDs → `meta.rorId` (+ on positions/affiliations) | `canonical/enrich.ts`, `schema.ts` | ✅ |
-| 1.4 | PMID extraction → `meta.pmid` | `build.ts`, `openalex/*`, `schema.ts` | ✅ |
-| 1.5 | Funder IDs on grants → `meta.funderId/funderName/awardId` (ORCID-driven + OpenAlex backfill) | `orcid/*`, `build.ts`, `schema.ts` | ✅ |
-| 1.6 | Per-item `meta.lastVerifiedAt` | `build.ts`, `schema.ts` | ✅ |
-| 1.7 | CRediT roles `meta.creditRoles` (optional, larger) | `schema.ts`, `build.ts` | ⬜ deferred |
+| #   | Item                                                                                         | Files                                         | Status      |
+| --- | -------------------------------------------------------------------------------------------- | --------------------------------------------- | ----------- |
+| 1.1 | License field `display.cvLicense` (+ `license.ts` helper)                                    | `canonical/schema.ts`, `canonical/license.ts` | ✅          |
+| 1.2 | Per-work `meta.license` from OpenAlex                                                        | `build.ts`, `openalex/*`, `schema.ts`         | ✅          |
+| 1.3 | Persist ROR IDs → `meta.rorId` (+ on positions/affiliations)                                 | `canonical/enrich.ts`, `schema.ts`            | ✅          |
+| 1.4 | PMID extraction → `meta.pmid`                                                                | `build.ts`, `openalex/*`, `schema.ts`         | ✅          |
+| 1.5 | Funder IDs on grants → `meta.funderId/funderName/awardId` (ORCID-driven + OpenAlex backfill) | `orcid/*`, `build.ts`, `schema.ts`            | ✅          |
+| 1.6 | Per-item `meta.lastVerifiedAt`                                                               | `build.ts`, `schema.ts`                       | ✅          |
+| 1.7 | CRediT roles `meta.creditRoles` (optional, larger)                                           | `schema.ts`, `build.ts`                       | ⬜ deferred |
 
 ## Phase 2 — FAIR public surface (depends on Phase 1)
 
-| # | Item | Files | Status |
-|---|---|---|---|
-| 2.1 | Enrich public JSON-LD → full schema.org/Person (affiliation/ROR, sameAs, license) | `lib/cv/publicJsonLd.ts` | ✅ |
-| 2.2 | Content negotiation on the public route (`ld+json`, CSL-JSON, BibTeX, JSON) + suffix paths | `lib/cv/publicFormats.ts`, `app/p/[slug]/route.ts` | ✅ |
-| 2.3 | Gate closed + rate-limit the machine-readable responses | route (reuses limiter + projection) | ✅ |
-| 2.4 | OG/Twitter meta tags + per-CV OG image (`/p/[slug]/og`) | `lib/cv/{publicMeta,ogImage}.ts` | ✅ |
-| 2.5 | Visible license line on the public HTML page | `lib/render/templates/shared.ts` | ✅ |
+| #   | Item                                                                                       | Files                                              | Status |
+| --- | ------------------------------------------------------------------------------------------ | -------------------------------------------------- | ------ |
+| 2.1 | Enrich public JSON-LD → full schema.org/Person (affiliation/ROR, sameAs, license)          | `lib/cv/publicJsonLd.ts`                           | ✅     |
+| 2.2 | Content negotiation on the public route (`ld+json`, CSL-JSON, BibTeX, JSON) + suffix paths | `lib/cv/publicFormats.ts`, `app/p/[slug]/route.ts` | ✅     |
+| 2.3 | Gate closed + rate-limit the machine-readable responses                                    | route (reuses limiter + projection)                | ✅     |
+| 2.4 | OG/Twitter meta tags + per-CV OG image (`/p/[slug]/og`)                                    | `lib/cv/{publicMeta,ogImage}.ts`                   | ✅     |
+| 2.5 | Visible license line on the public HTML page                                               | `lib/render/templates/shared.ts`                   | ✅     |
 
 ## Phase 3 — Interoperable export formats (renderer-switch pattern)
 
@@ -64,21 +64,21 @@ implementing `Renderer` → case in `getRenderer()` → add to `EXPORTABLE`
 (`api/cv/export/[format]/route.ts`) → i18n strings → tests across 10 locales.
 Closest analog: `render/bibtex.ts`.
 
-| # | Format | Status |
-|---|---|---|
-| 3.1 | CSL-JSON export (items already carry `csl`) — lowest effort | ✅ |
-| 3.2 | JSON Résumé | ✅ |
-| 3.3 | NIH SciENcv / biosketch (Markdown) | ✅ |
-| 3.4 | Europass | 🔜 structured **layout** shipped in the CV-model catalog (Phase 7.8); the official ELM JSON-LD export stays ⬜ deferred (controlled-vocabulary graph) |
+| #   | Format                                                      | Status                                                                                                                                                |
+| --- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3.1 | CSL-JSON export (items already carry `csl`) — lowest effort | ✅                                                                                                                                                    |
+| 3.2 | JSON Résumé                                                 | ✅                                                                                                                                                    |
+| 3.3 | NIH SciENcv / biosketch (Markdown)                          | ✅                                                                                                                                                    |
+| 3.4 | Europass                                                    | 🔜 structured **layout** shipped in the CV-model catalog (Phase 7.8); the official ELM JSON-LD export stays ⬜ deferred (controlled-vocabulary graph) |
 
 ## Phase 4 — Growth loop (public-page virality + SEO)
 
-| # | Item | Status |
-|---|---|---|
-| 4.1 | Tasteful "Made with SigmaCV" footer (opt-out, public page only) → referral backlink | ✅ |
-| 4.2 | SEO landing pages `/orcid-to-cv` + `/nih-biosketch` (×10 locales; native-review pending) | ✅ |
-| 4.3 | Strengthen JSON-LD entity graph (`sameAs` → OpenAlex + ORCID) | ✅ |
-| 4.4 | Library / CoARA / OpenAlex-user-group outreach kit ([`OUTREACH.md`](OUTREACH.md)) | ✅ |
+| #   | Item                                                                                     | Status |
+| --- | ---------------------------------------------------------------------------------------- | ------ |
+| 4.1 | Tasteful "Made with SigmaCV" footer (opt-out, public page only) → referral backlink      | ✅     |
+| 4.2 | SEO landing pages `/orcid-to-cv` + `/nih-biosketch` (×10 locales; native-review pending) | ✅     |
+| 4.3 | Strengthen JSON-LD entity graph (`sameAs` → OpenAlex + ORCID)                            | ✅     |
+| 4.4 | Library / CoARA / OpenAlex-user-group outreach kit ([`OUTREACH.md`](OUTREACH.md))        | ✅     |
 
 ## Phase 5 — Give back to the commons (flagship differentiator, v2)
 
@@ -86,19 +86,19 @@ Infrastructure exists today: `canonical/assertions.ts` exposes
 `pendingNotMineAssertions()` (read-only). Gated behind a feature flag until the
 OpenAlex curation API is confirmed available.
 
-| # | Item | Status |
-|---|---|---|
-| 5.1 | OpenAlex curation write-client (flag-gated, disabled by default) | ✅ scaffold |
-| 5.2 | Endpoint + explicit user opt-in + audit log + rate limit | ✅ |
-| 5.3 | Surface "your correction improved the shared record" in the UI | ⬜ deferred — feature disabled until API confirmed |
+| #   | Item                                                             | Status                                             |
+| --- | ---------------------------------------------------------------- | -------------------------------------------------- |
+| 5.1 | OpenAlex curation write-client (flag-gated, disabled by default) | ✅ scaffold                                        |
+| 5.2 | Endpoint + explicit user opt-in + audit log + rate limit         | ✅                                                 |
+| 5.3 | Surface "your correction improved the shared record" in the UI   | ⬜ deferred — feature disabled until API confirmed |
 
 ## Phase 6 — Research-vehicle hardening (parallel, tied to IRB)
 
-| # | Item | Status |
-|---|---|---|
-| 6.1 | Pre-registration scaffolds for studies 2 & 3 (`docs/preregistration/study-*.md`) | ✅ template (placeholders for the researcher) |
-| 6.2 | `RESEARCH_LOGGING_ENABLED` + `OPENALEX_CURATION_ENABLED` stay off until IRB / API | ✅ verified default-off |
-| 6.3 | Tool/infrastructure paper (paper 1); cite the Zenodo DOI from 0.2 | ⬜ maintainer action |
+| #   | Item                                                                              | Status                                        |
+| --- | --------------------------------------------------------------------------------- | --------------------------------------------- |
+| 6.1 | Pre-registration scaffolds for studies 2 & 3 (`docs/preregistration/study-*.md`)  | ✅ template (placeholders for the researcher) |
+| 6.2 | `RESEARCH_LOGGING_ENABLED` + `OPENALEX_CURATION_ENABLED` stay off until IRB / API | ✅ verified default-off                       |
+| 6.3 | Tool/infrastructure paper (paper 1); cite the Zenodo DOI from 0.2                 | ⬜ maintainer action                          |
 
 ## Phase 7 — Grant-application & job CVs (new direction, 2026-06)
 
@@ -122,25 +122,25 @@ migration). The "grant preset" mechanism generalized into the **CV-model catalog
 public-institution/job CVs (~10), and industry/clinical CVs (~10), applied via a
 grouped picker. Rows 7.1–7.3 below are superseded by this redesign.
 
-| # | Item | Status |
-|---|---|---|
-| 7.1 | ~~Narrative-CV canonical model (`narrative[]`)~~ → **prose sections** (`narrative-*` / `statement`) + localized headings + curate ops; `schemaVersion` 2 + migration | ✅ (superseded redesign) |
-| 7.2 | Safe prose rendering (HTML/PDF + Markdown + DOCX + LaTeX), `body` escaped | ✅ |
-| 7.3 | ~~"Narrative CV" starter layout~~ → **CV-model catalog** (`cvModels.ts`, 58 models, grouped picker) | ✅ (live E2E green) |
-| 7.4 | EU — ERC + MSCA structured models | ✅ |
-| 7.5 | US — NIH biosketch export (✅) + NSF model | ✅ |
-| 7.6 | Japan — JSPS/KAKENHI (researchmap / e-Rad) model | ✅ |
-| 7.7 | Funder export profiles — structured Markdown per funder (`erc`/`msca`/`nsf`/`jsps`): funder headings + track record + narrative + portal caveat | ✅ (pixel-faithful PDF = future) |
-| 7.8 | Catalog expansion — public-institution/job CVs (Europass, academic, rirekisho/shokumu, UN P.11) + industry/clinical (ICH-GCP investigator / FDA 1572, biotech R&D, physician, Medical Affairs) | ✅ |
+| #   | Item                                                                                                                                                                                           | Status                           |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| 7.1 | ~~Narrative-CV canonical model (`narrative[]`)~~ → **prose sections** (`narrative-*` / `statement`) + localized headings + curate ops; `schemaVersion` 2 + migration                           | ✅ (superseded redesign)         |
+| 7.2 | Safe prose rendering (HTML/PDF + Markdown + DOCX + LaTeX), `body` escaped                                                                                                                      | ✅                               |
+| 7.3 | ~~"Narrative CV" starter layout~~ → **CV-model catalog** (`cvModels.ts`, 58 models, grouped picker)                                                                                            | ✅ (live E2E green)              |
+| 7.4 | EU — ERC + MSCA structured models                                                                                                                                                              | ✅                               |
+| 7.5 | US — NIH biosketch export (✅) + NSF model                                                                                                                                                     | ✅                               |
+| 7.6 | Japan — JSPS/KAKENHI (researchmap / e-Rad) model                                                                                                                                               | ✅                               |
+| 7.7 | Funder export profiles — structured Markdown per funder (`erc`/`msca`/`nsf`/`jsps`): funder headings + track record + narrative + portal caveat                                                | ✅ (pixel-faithful PDF = future) |
+| 7.8 | Catalog expansion — public-institution/job CVs (Europass, academic, rirekisho/shokumu, UN P.11) + industry/clinical (ICH-GCP investigator / FDA 1572, biotech R&D, physician, Medical Affairs) | ✅                               |
 
 ## Phase 8 — Post-merge hardening, deploy & QA (2026-06)
 
-| # | Item | Status |
-|---|---|---|
-| 8.1 | Three security audits + hardening (consent-gating, output escaping, public API, default-off curation client; non-root container, dropped caps, unpublished DB) | ✅ |
-| 8.2 | E2E expansion (auth · curate · export · publish · public formats · CV-model application) | ✅ |
-| 8.3 | Full export menu wired in the editor (PDF/DOCX/LaTeX/Markdown · BibTeX/CSL-JSON/JSON Résumé/JSON · NIH biosketch + ERC/MSCA/NSF/JSPS grant CVs) | ✅ |
-| 8.4 | Docker deployment verified end-to-end (image build → migration → DB-backed routes serving) | ✅ |
+| #   | Item                                                                                                                                                           | Status |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 8.1 | Three security audits + hardening (consent-gating, output escaping, public API, default-off curation client; non-root container, dropped caps, unpublished DB) | ✅     |
+| 8.2 | E2E expansion (auth · curate · export · publish · public formats · CV-model application)                                                                       | ✅     |
+| 8.3 | Full export menu wired in the editor (PDF/DOCX/LaTeX/Markdown · BibTeX/CSL-JSON/JSON Résumé/JSON · NIH biosketch + ERC/MSCA/NSF/JSPS grant CVs)                | ✅     |
+| 8.4 | Docker deployment verified end-to-end (image build → migration → DB-backed routes serving)                                                                     | ✅     |
 
 ## Recommended execution order
 

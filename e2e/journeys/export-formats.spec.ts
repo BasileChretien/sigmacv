@@ -55,10 +55,7 @@ const CASES: FormatCase[] = [
   },
 ];
 
-test("authenticated export API serves the newer formats", async ({
-  page,
-  authedUserId,
-}) => {
+test("authenticated export API serves the newer formats", async ({ page, authedUserId }) => {
   expect(authedUserId).toBeTruthy(); // activates the authed-session fixture
   // Ensure the seeded CV is in place (the editor load also confirms auth works).
   await page.goto("/cv");

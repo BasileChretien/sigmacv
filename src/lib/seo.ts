@@ -73,16 +73,13 @@ export function faqLanguageAlternates(): Record<string, string> {
 /** /accessibility path for a locale: "/accessibility" for the default, "/{slug}/accessibility" otherwise. */
 export function localeAccessibilityPath(locale: string): string {
   const loc = asLocale(locale);
-  return loc === DEFAULT_UI_LOCALE
-    ? "/accessibility"
-    : `/${LOCALE_SLUGS[loc]}/accessibility`;
+  return loc === DEFAULT_UI_LOCALE ? "/accessibility" : `/${LOCALE_SLUGS[loc]}/accessibility`;
 }
 
 /** hreflang → path map for the /accessibility page (relative; resolved against metadataBase). */
 export function accessibilityLanguageAlternates(): Record<string, string> {
   const languages: Record<string, string> = {};
-  for (const loc of SUPPORTED_LOCALES)
-    languages[loc] = localeAccessibilityPath(loc);
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeAccessibilityPath(loc);
   languages["x-default"] = "/accessibility";
   return languages;
 }
@@ -94,18 +91,13 @@ export function accessibilityLanguageAlternates(): Record<string, string> {
  */
 export function localeLandingPagePath(segment: string, locale: string): string {
   const loc = asLocale(locale);
-  return loc === DEFAULT_UI_LOCALE
-    ? `/${segment}`
-    : `/${LOCALE_SLUGS[loc]}/${segment}`;
+  return loc === DEFAULT_UI_LOCALE ? `/${segment}` : `/${LOCALE_SLUGS[loc]}/${segment}`;
 }
 
 /** hreflang → path map for an SEO landing page (relative; resolved against metadataBase). */
-export function landingPageLanguageAlternates(
-  segment: string,
-): Record<string, string> {
+export function landingPageLanguageAlternates(segment: string): Record<string, string> {
   const languages: Record<string, string> = {};
-  for (const loc of SUPPORTED_LOCALES)
-    languages[loc] = localeLandingPagePath(segment, loc);
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeLandingPagePath(segment, loc);
   languages["x-default"] = `/${segment}`;
   return languages;
 }
@@ -116,10 +108,6 @@ export function ogLocale(locale: string): string {
 }
 
 /** OG `alternateLocale` list — every supported locale except `current`. */
-export function ogAlternateLocales(
-  current: Locale = DEFAULT_UI_LOCALE,
-): string[] {
-  return SUPPORTED_LOCALES.filter((l) => l !== current).map((l) =>
-    l.replace("-", "_"),
-  );
+export function ogAlternateLocales(current: Locale = DEFAULT_UI_LOCALE): string[] {
+  return SUPPORTED_LOCALES.filter((l) => l !== current).map((l) => l.replace("-", "_"));
 }

@@ -8,10 +8,7 @@ import {
   registerStyleXml,
 } from "@/lib/citeproc/assets";
 import { validateStyleXml } from "@/lib/citeproc/engine";
-import {
-  CustomStyleError,
-  resolveCslStyle,
-} from "@/lib/citeproc/customStyle";
+import { CustomStyleError, resolveCslStyle } from "@/lib/citeproc/customStyle";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { renderCvHtml } from "@/lib/render/html";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
@@ -117,7 +114,10 @@ describe("registerStyleXml / getStyleXml", () => {
 
 describe.skipIf(!hasApa)("resolveCslStyle", () => {
   it("resolves a bare independent style id", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => mockResponse(MINI_XML)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => mockResponse(MINI_XML)),
+    );
     const style = await resolveCslStyle("mini-test");
     expect(style).toMatchObject({ id: "mini-test", title: "Mini Test Style" });
     expect(style.xml).toContain("MINISTYLE");
@@ -141,9 +141,9 @@ describe.skipIf(!hasApa)("resolveCslStyle", () => {
   it("rejects URLs outside the allowed style hosts (SSRF guard)", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    await expect(
-      resolveCslStyle("https://evil.example.com/x.csl"),
-    ).rejects.toBeInstanceOf(CustomStyleError);
+    await expect(resolveCslStyle("https://evil.example.com/x.csl")).rejects.toBeInstanceOf(
+      CustomStyleError,
+    );
     expect(fetchMock).not.toHaveBeenCalled(); // rejected before any fetch
   });
 
@@ -159,28 +159,35 @@ describe.skipIf(!hasApa)("resolveCslStyle", () => {
   it("rejects an input that normalises to an empty slug", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    await expect(resolveCslStyle("!!!")).rejects.toThrow(
-      /citation style name, id, or URL/i,
-    );
+    await expect(resolveCslStyle("!!!")).rejects.toThrow(/citation style name, id, or URL/i);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("surfaces a 404 as a friendly error", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => mockResponse("", 404)));
-    await expect(resolveCslStyle("does-not-exist")).rejects.toThrow(
-      /no style found/i,
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => mockResponse("", 404)),
     );
+    await expect(resolveCslStyle("does-not-exist")).rejects.toThrow(/no style found/i);
   });
 
   it("rejects content that isn't a CSL style", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => mockResponse("<html></html>")));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => mockResponse("<html></html>")),
+    );
     await expect(resolveCslStyle("nature")).rejects.toThrow(/CSL style/i);
   });
 
   it("rejects a redirect to a disallowed host WITHOUT issuing the request to it (SSRF)", async () => {
     const headers = new Headers();
     headers.set("location", "http://169.254.169.254/latest/meta-data/");
-    const redirect = { ok: false, status: 302, headers, text: async () => "" } as unknown as Response;
+    const redirect = {
+      ok: false,
+      status: 302,
+      headers,
+      text: async () => "",
+    } as unknown as Response;
     const fetchMock = vi.fn(async () => redirect);
     vi.stubGlobal("fetch", fetchMock);
     await expect(resolveCslStyle("nature")).rejects.toThrow(/disallowed host/i);
@@ -206,7 +213,8 @@ describe.skipIf(!hasApa)("resolveCslStyle", () => {
     const headers = new Headers();
     headers.set("location", "https://www.zotero.org/styles/loop");
     const fetchMock = vi.fn(
-      async () => ({ ok: false, status: 302, headers, text: async () => "" }) as unknown as Response,
+      async () =>
+        ({ ok: false, status: 302, headers, text: async () => "" }) as unknown as Response,
     );
     vi.stubGlobal("fetch", fetchMock);
     await expect(resolveCslStyle("nature")).rejects.toThrow(/too many/i);
@@ -216,25 +224,27 @@ describe.skipIf(!hasApa)("resolveCslStyle", () => {
     const headers = new Headers();
     headers.set("location", "https://exa mple.org/x"); // space → invalid URL
     const fetchMock = vi.fn(
-      async () => ({ ok: false, status: 302, headers, text: async () => "" }) as unknown as Response,
+      async () =>
+        ({ ok: false, status: 302, headers, text: async () => "" }) as unknown as Response,
     );
     vi.stubGlobal("fetch", fetchMock);
     await expect(resolveCslStyle("nature")).rejects.toThrow(/invalid location/i);
   });
 
   it("rejects a note-only style via citeproc validation", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => mockResponse(NOTE_XML)));
-    await expect(resolveCslStyle("note-only")).rejects.toBeInstanceOf(
-      CustomStyleError,
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => mockResponse(NOTE_XML)),
     );
+    await expect(resolveCslStyle("note-only")).rejects.toBeInstanceOf(CustomStyleError);
   });
 
   it("derives the id from the input when the style has no <id>", async () => {
-    const noId = MINI_XML.replace(
-      /<id>[\s\S]*?<\/id>/,
-      "",
+    const noId = MINI_XML.replace(/<id>[\s\S]*?<\/id>/, "");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => mockResponse(noId)),
     );
-    vi.stubGlobal("fetch", vi.fn(async () => mockResponse(noId)));
     const style = await resolveCslStyle("from-input-slug");
     expect(style.id).toBe("from-input-slug");
   });
@@ -264,7 +274,10 @@ describe("resolveCslStyle — error handling (no citeproc needed)", () => {
   });
 
   it("reports a non-404 server error", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => mockResponse("", 500)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => mockResponse("", 500)),
+    );
     await expect(resolveCslStyle("nature")).rejects.toThrow(/returned 500/i);
   });
 
@@ -275,13 +288,19 @@ describe("resolveCslStyle — error handling (no citeproc needed)", () => {
       headers: new Headers({ "content-length": "700000" }),
       text: async () => "",
     } as unknown as Response;
-    vi.stubGlobal("fetch", vi.fn(async () => res));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res),
+    );
     await expect(resolveCslStyle("nature")).rejects.toThrow(/too large/i);
   });
 
   it("rejects a too-large body", async () => {
     const big = "x".repeat(600_001);
-    vi.stubGlobal("fetch", vi.fn(async () => mockResponse(big)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => mockResponse(big)),
+    );
     await expect(resolveCslStyle("nature")).rejects.toThrow(/too large/i);
   });
 
@@ -293,14 +312,12 @@ describe("resolveCslStyle — error handling (no citeproc needed)", () => {
   });
 
   it("rejects a dependent style with a malformed parent URL", async () => {
-    const dep = DEP_XML.replace(
-      "http://www.zotero.org/styles/mini-test",
-      "::::",
+    const dep = DEP_XML.replace("http://www.zotero.org/styles/mini-test", "::::");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => mockResponse(dep)),
     );
-    vi.stubGlobal("fetch", vi.fn(async () => mockResponse(dep)));
-    await expect(resolveCslStyle("dependent-test")).rejects.toThrow(
-      /invalid parent/i,
-    );
+    await expect(resolveCslStyle("dependent-test")).rejects.toThrow(/invalid parent/i);
   });
 
   it("rejects a dependent style whose parent is on a disallowed host", async () => {
@@ -308,10 +325,11 @@ describe("resolveCslStyle — error handling (no citeproc needed)", () => {
       "http://www.zotero.org/styles/mini-test",
       "https://evil.example.com/parent",
     );
-    vi.stubGlobal("fetch", vi.fn(async () => mockResponse(dep)));
-    await expect(resolveCslStyle("dependent-test")).rejects.toThrow(
-      /Zotero\/CSL repository/i,
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => mockResponse(dep)),
     );
+    await expect(resolveCslStyle("dependent-test")).rejects.toThrow(/Zotero\/CSL repository/i);
   });
 
   it("rejects when the parent doesn't resolve to a CSL style", async () => {
@@ -321,9 +339,7 @@ describe("resolveCslStyle — error handling (no citeproc needed)", () => {
       return mockResponse("<html>not csl</html>"); // parent fetch
     });
     vi.stubGlobal("fetch", fetchMock);
-    await expect(resolveCslStyle("dependent-test")).rejects.toThrow(
-      /parent style/i,
-    );
+    await expect(resolveCslStyle("dependent-test")).rejects.toThrow(/parent style/i);
   });
 });
 

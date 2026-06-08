@@ -33,9 +33,7 @@ function rorIri(rorId: string): string | undefined {
  * recent role. Returns null when there's no visible positions section/item.
  */
 function primaryPosition(cv: CanonicalCv): CvItem | null {
-  const section: CvSection | undefined = visibleSections(cv).find(
-    (s) => s.type === "positions",
-  );
+  const section: CvSection | undefined = visibleSections(cv).find((s) => s.type === "positions");
   if (!section) return null;
   const items = visibleItems(section);
   return items[0] ?? null;

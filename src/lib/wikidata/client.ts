@@ -29,14 +29,15 @@ function asRecord(v: unknown): Record<string, unknown> | undefined {
     ? (v as Record<string, unknown>)
     : undefined;
 }
-function bindingValue(binding: Record<string, unknown> | undefined, key: string): string | undefined {
+function bindingValue(
+  binding: Record<string, unknown> | undefined,
+  key: string,
+): string | undefined {
   const v = asRecord(binding?.[key])?.value;
   return typeof v === "string" && v.length > 0 ? v : undefined;
 }
 
-export async function fetchWikidataIdentity(
-  orcid: string,
-): Promise<WikidataIdentity | null> {
+export async function fetchWikidataIdentity(orcid: string): Promise<WikidataIdentity | null> {
   const bare = normalizeOrcid(orcid);
   if (!bare) return null;
 
@@ -65,9 +66,7 @@ export async function fetchWikidataIdentity(
     /* v8 ignore next -- defensive cap on a pathological response */
     if (text.length > MAX_BYTES) return null;
     const data = JSON.parse(text) as { results?: { bindings?: unknown[] } };
-    const bindings = Array.isArray(data.results?.bindings)
-      ? data.results.bindings
-      : [];
+    const bindings = Array.isArray(data.results?.bindings) ? data.results.bindings : [];
     if (bindings.length === 0) return null;
 
     let wikidataUri: string | undefined;

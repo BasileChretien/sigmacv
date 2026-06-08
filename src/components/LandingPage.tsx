@@ -3,10 +3,7 @@ import { faqPageJsonLd } from "@/lib/faqJsonLd";
 import { asLocale } from "@/lib/i18n";
 import { type LandingPageId, landingPageStrings } from "@/lib/i18n/landingPages";
 import { serializeJsonLd } from "@/lib/jsonLd";
-import {
-  localeHomePath,
-  localeLandingPagePath,
-} from "@/lib/seo";
+import { localeHomePath, localeLandingPagePath } from "@/lib/seo";
 import { absoluteUrl, SITE_URL } from "@/lib/siteUrl";
 import DocJsonLd from "./DocJsonLd";
 import SiteLinks from "./SiteLinks";
@@ -22,13 +19,7 @@ import SiteLinks from "./SiteLinks";
  * Q&A pairs rendered visibly. The primary CTA funnels to the homepage sign-in
  * card (matching how the other static pages link back home).
  */
-export default function LandingPage({
-  page,
-  locale,
-}: {
-  page: LandingPageId;
-  locale: string;
-}) {
+export default function LandingPage({ page, locale }: { page: LandingPageId; locale: string }) {
   const loc = asLocale(locale);
   const s = landingPageStrings(page, loc);
   const path = localeLandingPagePath(page, loc).replace(/^\//, "");
@@ -43,12 +34,7 @@ export default function LandingPage({
   });
   return (
     <main className="doc-page" lang={loc}>
-      <DocJsonLd
-        path={path}
-        name={s.heading}
-        description={s.metaDescription}
-        locale={loc}
-      />
+      <DocJsonLd path={path} name={s.heading} description={s.metaDescription} locale={loc} />
       {/* FAQPage structured data — the builder returns the full <script> tag. */}
       <div dangerouslySetInnerHTML={{ __html: faqPageJsonLd(s.faq) }} />
       <script

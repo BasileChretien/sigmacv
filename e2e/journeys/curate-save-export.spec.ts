@@ -21,9 +21,7 @@ test("curate → save → persist → export", async ({ page, authedUserId }) =>
   const parsed = safeParseCanonicalCv(row?.document);
   expect(parsed.success).toBe(true);
   if (parsed.success) {
-    const anyHidden = parsed.data.sections.some((s) =>
-      s.items.some((i) => i.included === false),
-    );
+    const anyHidden = parsed.data.sections.some((s) => s.items.some((i) => i.included === false));
     expect(anyHidden).toBe(true);
   }
 

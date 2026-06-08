@@ -2,11 +2,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { logger } from "@/lib/log";
 import { prisma } from "@/lib/db";
-import {
-  compositionSnapshot,
-  diffIncludedChanges,
-  diffNotMineChanges,
-} from "./diff";
+import { compositionSnapshot, diffIncludedChanges, diffNotMineChanges } from "./diff";
 import { isResearchLoggingEnabled } from "./enabled";
 
 /**
@@ -47,14 +43,13 @@ export async function logCvSave(
     if (!isResearchLoggingEnabled()) return;
     if (!(await hasConsent(userId))) return;
 
-    const events: Prisma.ResearchEventCreateManyInput[] = diffIncludedChanges(
-      prev,
-      next,
-    ).map((correction) => ({
-      userId,
-      type: "curation_correction",
-      payload: correction as unknown as Prisma.InputJsonValue,
-    }));
+    const events: Prisma.ResearchEventCreateManyInput[] = diffIncludedChanges(prev, next).map(
+      (correction) => ({
+        userId,
+        type: "curation_correction",
+        payload: correction as unknown as Prisma.InputJsonValue,
+      }),
+    );
 
     // Disambiguation assertions ("not mine") are a distinct, stronger signal.
     for (const assertion of diffNotMineChanges(prev, next)) {

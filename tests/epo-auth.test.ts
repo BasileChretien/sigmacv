@@ -10,10 +10,9 @@ function mockFetch(impl: (url: unknown, init?: RequestInit) => Response | Promis
   vi.stubGlobal("fetch", vi.fn(impl));
 }
 function tokenResponse(token: string, expiresIn: number | string = "1199") {
-  return new Response(
-    JSON.stringify({ access_token: token, expires_in: expiresIn }),
-    { status: 200 },
-  );
+  return new Response(JSON.stringify({ access_token: token, expires_in: expiresIn }), {
+    status: 200,
+  });
 }
 
 beforeEach(() => {

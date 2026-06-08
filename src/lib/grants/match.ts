@@ -11,8 +11,24 @@
 
 /** Name particles / stopwords that must not count as a matching token. */
 const STOPWORDS = new Set([
-  "the", "of", "and", "for",
-  "de", "da", "do", "van", "von", "der", "den", "la", "le", "el", "du", "di", "dos", "das",
+  "the",
+  "of",
+  "and",
+  "for",
+  "de",
+  "da",
+  "do",
+  "van",
+  "von",
+  "der",
+  "den",
+  "la",
+  "le",
+  "el",
+  "du",
+  "di",
+  "dos",
+  "das",
 ]);
 
 /** Lower-case, strip diacritics + punctuation, split into significant tokens. */
@@ -41,9 +57,7 @@ export function personMatch(displayName: string, orgs: string[]): PersonMatch {
   return {
     nameTokens: tokens,
     surname: tokens[tokens.length - 1] ?? "",
-    orgs: orgs
-      .map((o) => o.toLowerCase().trim())
-      .filter((o) => o.length > 2),
+    orgs: orgs.map((o) => o.toLowerCase().trim()).filter((o) => o.length > 2),
   };
 }
 

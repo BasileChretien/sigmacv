@@ -33,8 +33,7 @@ const ABOUT_I18N: Record<Locale, AboutStrings> = {
   },
   "zh-CN": {
     metaTitle: "关于",
-    metaDescription:
-      "SigmaCV 是负责任研究评价的开放基础设施——根据开放研究数据自动生成学术简历。",
+    metaDescription: "SigmaCV 是负责任研究评价的开放基础设施——根据开放研究数据自动生成学术简历。",
     heading: "关于 SigmaCV",
     intro:
       "SigmaCV 是负责任研究评价的开放基础设施。它根据开放研究数据——OpenAlex、ORCID、Crossref、DataCite 和 Open Editors Plus——自动生成简洁、可定制的学术简历，让您的简历始终与公开记录保持同步。对个人免费，且为开源（Apache-2.0）。",

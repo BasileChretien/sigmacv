@@ -1,8 +1,4 @@
-import {
-  type FunderGrant,
-  matchesNameAndOrg,
-  personMatch,
-} from "@/lib/grants/match";
+import { type FunderGrant, matchesNameAndOrg, personMatch } from "@/lib/grants/match";
 import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 
@@ -30,10 +26,7 @@ function yearFromMdy(v: unknown): number | undefined {
   return m ? Number(m[1]) : undefined;
 }
 
-export async function fetchNsfGrants(
-  name: string,
-  orgs: string[],
-): Promise<FunderGrant[]> {
+export async function fetchNsfGrants(name: string, orgs: string[]): Promise<FunderGrant[]> {
   const person = personMatch(name, orgs);
   if (!person.surname || person.orgs.length === 0) return [];
 
@@ -42,10 +35,7 @@ export async function fetchNsfGrants(
   // pdPIName matches as a prefix; "Last,First" is the documented form.
   url.searchParams.set("pdPIName", `${person.surname},${firstName}`);
   url.searchParams.set("rpp", "25");
-  url.searchParams.set(
-    "printFields",
-    "id,title,pdPIName,awardeeName,agency,startDate,expDate",
-  );
+  url.searchParams.set("printFields", "id,title,pdPIName,awardeeName,agency,startDate,expDate");
 
   try {
     const res = await resilientFetch(url, {
@@ -65,8 +55,7 @@ export async function fetchNsfGrants(
     for (const raw of awards) {
       const a = asRecord(raw);
       const pi = typeof a?.pdPIName === "string" ? a.pdPIName : undefined;
-      const orgName =
-        typeof a?.awardeeName === "string" ? a.awardeeName : undefined;
+      const orgName = typeof a?.awardeeName === "string" ? a.awardeeName : undefined;
       if (!pi || !matchesNameAndOrg(person, pi, orgName)) continue;
 
       const id = typeof a?.id === "string" ? a.id : undefined;

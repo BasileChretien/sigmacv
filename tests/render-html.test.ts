@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { addManualEntry, addSection, setItemIncluded, setSectionVisible, updateDisplay, updateOwner } from "@/lib/canonical/curate";
+import {
+  addManualEntry,
+  addSection,
+  setItemIncluded,
+  setSectionVisible,
+  updateDisplay,
+  updateOwner,
+} from "@/lib/canonical/curate";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { getRenderer } from "@/lib/render";
 import { htmlRenderer, renderCvHtml } from "@/lib/render/html";
@@ -103,10 +110,10 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
   });
 
   it("renders the sidebar template with the photo in a coloured aside", () => {
-    const withPhoto = updateOwner(
-      updateDisplay(makeCv(), { template: "sidebar" }),
-      { photo: "data:image/png;base64,iVBORw0KGgo=", headline: "Assistant Professor" },
-    );
+    const withPhoto = updateOwner(updateDisplay(makeCv(), { template: "sidebar" }), {
+      photo: "data:image/png;base64,iVBORw0KGgo=",
+      headline: "Assistant Professor",
+    });
     const html = renderCvHtml(withPhoto);
     expect(html).toContain("cv-sidebar-layout");
     expect(html).toContain('<img class="cv-photo"');
@@ -120,10 +127,21 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
       works,
       now: "2026-06-02T00:00:00.000Z",
       employments: [
-        { putCode: "200", organization: "Nagoya University", roleTitle: "Assistant Professor", startYear: 2024 },
+        {
+          putCode: "200",
+          organization: "Nagoya University",
+          roleTitle: "Assistant Professor",
+          startYear: 2024,
+        },
       ],
       education: [
-        { putCode: "400", organization: "University of Caen", roleTitle: "PharmD", startYear: 2008, endYear: 2014 },
+        {
+          putCode: "400",
+          organization: "University of Caen",
+          roleTitle: "PharmD",
+          startYear: 2008,
+          endYear: 2014,
+        },
       ],
     });
     const cv = updateOwner(updateDisplay(base, { template: "rirekisho" }), {
@@ -152,7 +170,12 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
 
   it("rirekisho fills the 年 column from the entry text for a manual history item without a structured year", () => {
     let cv = addSection(makeCv(), "education");
-    cv = addManualEntry(cv, "education", "MSc Public Health, Paris-Saclay (2018–2020)", "edu:withyear");
+    cv = addManualEntry(
+      cv,
+      "education",
+      "MSc Public Health, Paris-Saclay (2018–2020)",
+      "edu:withyear",
+    );
     cv = addManualEntry(cv, "education", "Certificate in Pedagogy", "edu:noyear");
     const html = renderCvHtml(updateDisplay(cv, { template: "rirekisho" }));
     // The first 4-digit year in the free text is surfaced into the 年 column…

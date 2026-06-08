@@ -41,11 +41,7 @@ import {
   updateDisplay,
   updateItemText,
 } from "@/lib/canonical/curate";
-import {
-  applyCvModel,
-  cvModelsByCategory,
-  type CvModelCategory,
-} from "@/lib/canonical/cvModels";
+import { applyCvModel, cvModelsByCategory, type CvModelCategory } from "@/lib/canonical/cvModels";
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { ui } from "@/lib/i18n/ui";
@@ -131,13 +127,7 @@ function MetricsNoteText({ text }: { text: string }) {
       {text.split(METRIC_LINK_RE).map((part, i) => {
         const link = RESPONSIBLE_METRIC_LINKS.find((l) => l.token === part);
         return link ? (
-          <a
-            key={i}
-            href={link.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={link.title}
-          >
+          <a key={i} href={link.href} target="_blank" rel="noopener noreferrer" title={link.title}>
             {part}
           </a>
         ) : (
@@ -277,14 +267,12 @@ export default function CvEditor({
       return next;
     });
 
-  const hasSection = (type: string): boolean =>
-    cv.sections.some((s) => s.type === type);
+  const hasSection = (type: string): boolean => cv.sections.some((s) => s.type === type);
 
   // Which section types the "Add a section" menu offers. A type is addable when
   // it isn't already present — EXCEPT `statement`, a free-titled prose block the
   // user can add as many times as they like (so it's always offered).
-  const isAddable = (type: CvSectionType): boolean =>
-    type === "statement" || !hasSection(type);
+  const isAddable = (type: CvSectionType): boolean => type === "statement" || !hasSection(type);
 
   function newId(type: string): string {
     const rand =
@@ -315,12 +303,7 @@ export default function CvEditor({
 
   // Citation-type sections where a STRUCTURED entry (title/authors/venue/…) is
   // useful — it renders through citeproc with the chosen style, like an import.
-  const STRUCTURED_SECTIONS = new Set([
-    "publications",
-    "preprints",
-    "conference",
-    "other",
-  ]);
+  const STRUCTURED_SECTIONS = new Set(["publications", "preprints", "conference", "other"]);
 
   function addEntry(type: CanonicalCv["sections"][number]["type"]) {
     const text = (drafts[type] ?? "").trim();
@@ -331,14 +314,8 @@ export default function CvEditor({
 
   // Structured (citation-style) manual entries: a small form whose fields build
   // a CSL item, so the entry renders through citeproc like an imported work.
-  const [structDrafts, setStructDrafts] = useState<
-    Record<string, ManualEntryFields>
-  >({});
-  const setStructField = (
-    type: string,
-    key: keyof ManualEntryFields,
-    value: string,
-  ) =>
+  const [structDrafts, setStructDrafts] = useState<Record<string, ManualEntryFields>>({});
+  const setStructField = (type: string, key: keyof ManualEntryFields, value: string) =>
     setStructDrafts((d) => ({
       ...d,
       [type]: { ...(d[type] ?? { title: "" }), [key]: value },
@@ -361,8 +338,7 @@ export default function CvEditor({
   function addLanguage() {
     const lang = langDraft.lang.trim();
     if (!lang) return;
-    const level =
-      langDraft.level === "__other__" ? langDraft.other.trim() : langDraft.level;
+    const level = langDraft.level === "__other__" ? langDraft.other.trim() : langDraft.level;
     const text = level ? `${lang} — ${level}` : lang;
     onChange(addManualEntry(cv, "languages", text, newId("languages")));
     setLangDraft({ lang: "", level: "C2 (CEFR)", other: "" });
@@ -379,12 +355,8 @@ export default function CvEditor({
   function addReference() {
     const name = refDraft.name.trim();
     if (!name) return;
-    const head = refDraft.affiliation.trim()
-      ? `${name}, ${refDraft.affiliation.trim()}`
-      : name;
-    const contact = [refDraft.email.trim(), refDraft.phone.trim()]
-      .filter(Boolean)
-      .join(" · ");
+    const head = refDraft.affiliation.trim() ? `${name}, ${refDraft.affiliation.trim()}` : name;
+    const contact = [refDraft.email.trim(), refDraft.phone.trim()].filter(Boolean).join(" · ");
     const text = contact ? `${head} · ${contact}` : head;
     onChange(addManualEntry(cv, "references", text, newId("references")));
     setRefDraft({ name: "", affiliation: "", email: "", phone: "" });
@@ -430,16 +402,12 @@ export default function CvEditor({
   const styleOptions = useMemo(() => {
     const base = availableStyles.length ? availableStyles : [cv.display.cslStyle];
     const withCustom =
-      customStyle && !base.includes(customStyle.id)
-        ? [...base, customStyle.id]
-        : base;
+      customStyle && !base.includes(customStyle.id) ? [...base, customStyle.id] : base;
     return withCustom;
   }, [availableStyles, customStyle, cv.display.cslStyle]);
 
   const styleLabel = (s: string): string =>
-    customStyle && s === customStyle.id
-      ? customStyle.title
-      : (STYLE_LABELS[s] ?? s);
+    customStyle && s === customStyle.id ? customStyle.title : (STYLE_LABELS[s] ?? s);
 
   // Resolve a style by id/name/URL (any Zotero/CSL style) and apply it.
   async function resolveAndApplyStyle(input: string) {
@@ -543,10 +511,7 @@ export default function CvEditor({
           >
             <option value="">{eu.modelOptional}</option>
             {modelGroups.map((group) => (
-              <optgroup
-                key={group.category}
-                label={modelGroupLabel(group.category)}
-              >
+              <optgroup key={group.category} label={modelGroupLabel(group.category)}>
                 {group.models.map((m) => (
                   <option key={m.id} value={m.id} title={m.description}>
                     {m.name}
@@ -561,20 +526,12 @@ export default function CvEditor({
             disabled={!selectedModel}
             onClick={() => {
               if (!selectedModel) return;
-              onChange(
-                applyCvModel(
-                  savePreset(cv, eu.modelSnapshot),
-                  selectedModel.id,
-                  cvLocale,
-                ),
-              );
+              onChange(applyCvModel(savePreset(cv, eu.modelSnapshot), selectedModel.id, cvLocale));
             }}
           >
             {eu.modelApply}
           </button>
-          <p className="muted metric-preset-note grant-presets-help">
-            {eu.modelHelp}
-          </p>
+          <p className="muted metric-preset-note grant-presets-help">{eu.modelHelp}</p>
           <p className="muted metric-preset-note grant-presets-note">
             {selectedModel ? selectedModel.description : eu.grantIntro}
           </p>
@@ -584,11 +541,7 @@ export default function CvEditor({
 
         <div className="field template-field">
           <span id="tpl-label">{u.templateLabel}</span>
-          <div
-            className="template-gallery"
-            role="radiogroup"
-            aria-labelledby="tpl-label"
-          >
+          <div className="template-gallery" role="radiogroup" aria-labelledby="tpl-label">
             {TEMPLATES.map((tpl) => {
               const selected = cv.display.template === tpl;
               return (
@@ -601,8 +554,7 @@ export default function CvEditor({
                   onClick={() =>
                     onChange(
                       updateDisplay(cv, {
-                        template:
-                          tpl as CanonicalCv["display"]["template"],
+                        template: tpl as CanonicalCv["display"]["template"],
                       }),
                     )
                   }
@@ -671,13 +623,11 @@ export default function CvEditor({
               ))}
             </optgroup>
             <optgroup label={u.journalStyles}>
-              {CSL_STYLE_CATALOG.filter((s) => !styleOptions.includes(s.id)).map(
-                (s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.title}
-                  </option>
-                ),
-              )}
+              {CSL_STYLE_CATALOG.filter((s) => !styleOptions.includes(s.id)).map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.title}
+                </option>
+              ))}
             </optgroup>
           </select>
           {styleAdding ? (
@@ -696,8 +646,7 @@ export default function CvEditor({
             onChange={(e) =>
               onChange(
                 updateDisplay(cv, {
-                  publicationOrder: e.target
-                    .value as CanonicalCv["display"]["publicationOrder"],
+                  publicationOrder: e.target.value as CanonicalCv["display"]["publicationOrder"],
                 }),
               )
             }
@@ -709,9 +658,7 @@ export default function CvEditor({
             <option value="citations">{t(locale, "sortCitations")}</option>
           </select>
           {cv.display.publicationOrder === "citations" ? (
-            <span className="field-hint muted">
-              {t(locale, "sortCitationsNote")}
-            </span>
+            <span className="field-hint muted">{t(locale, "sortCitationsNote")}</span>
           ) : null}
         </label>
 
@@ -743,8 +690,7 @@ export default function CvEditor({
             onChange={(e) =>
               onChange(
                 updateDisplay(cv, {
-                  fontPairing:
-                    e.target.value as CanonicalCv["display"]["fontPairing"],
+                  fontPairing: e.target.value as CanonicalCv["display"]["fontPairing"],
                 }),
               )
             }
@@ -764,8 +710,7 @@ export default function CvEditor({
             onChange={(e) =>
               onChange(
                 updateDisplay(cv, {
-                  density:
-                    e.target.value as CanonicalCv["display"]["density"],
+                  density: e.target.value as CanonicalCv["display"]["density"],
                 }),
               )
             }
@@ -796,9 +741,7 @@ export default function CvEditor({
               type="color"
               className="swatch-custom"
               value={cv.display.accentColor}
-              onChange={(e) =>
-                onChange(updateDisplay(cv, { accentColor: e.target.value }))
-              }
+              onChange={(e) => onChange(updateDisplay(cv, { accentColor: e.target.value }))}
               aria-label={u.customAccent}
               title={u.customAccent}
             />
@@ -809,9 +752,7 @@ export default function CvEditor({
           <input
             type="checkbox"
             checked={cv.display.highlightSelf}
-            onChange={(e) =>
-              onChange(updateDisplay(cv, { highlightSelf: e.target.checked }))
-            }
+            onChange={(e) => onChange(updateDisplay(cv, { highlightSelf: e.target.checked }))}
           />
           <span>{u.highlightSelf}</span>
         </label>
@@ -824,8 +765,7 @@ export default function CvEditor({
             onChange={(e) =>
               onChange(
                 updateDisplay(cv, {
-                  highlightStyle:
-                    e.target.value as CanonicalCv["display"]["highlightStyle"],
+                  highlightStyle: e.target.value as CanonicalCv["display"]["highlightStyle"],
                 }),
               )
             }
@@ -845,15 +785,10 @@ export default function CvEditor({
           <div className="metric-options">
             {METRIC_DEFS.map((m) => {
               const selected = cv.display.metrics.includes(m.key);
-              const values = (cv.owner.metrics ?? {}) as Record<
-                string,
-                number | undefined
-              >;
+              const values = (cv.owner.metrics ?? {}) as Record<string, number | undefined>;
               const raw = values[m.key];
               const value =
-                typeof raw === "number"
-                  ? formatMetricValue(m.key, raw, cvLocale)
-                  : null;
+                typeof raw === "number" ? formatMetricValue(m.key, raw, cvLocale) : null;
               const note = value ? ` — ${value}` : ` ${u.metricNoData}`;
               return (
                 <label key={m.key} className="field-inline">
@@ -944,9 +879,7 @@ export default function CvEditor({
           <input
             type="checkbox"
             checked={cv.display.showCharts}
-            onChange={(e) =>
-              onChange(updateDisplay(cv, { showCharts: e.target.checked }))
-            }
+            onChange={(e) => onChange(updateDisplay(cv, { showCharts: e.target.checked }))}
           />
           <span>{u.showCharts}</span>
         </label>
@@ -955,9 +888,7 @@ export default function CvEditor({
           <input
             type="checkbox"
             checked={cv.display.showOpenAccess}
-            onChange={(e) =>
-              onChange(updateDisplay(cv, { showOpenAccess: e.target.checked }))
-            }
+            onChange={(e) => onChange(updateDisplay(cv, { showOpenAccess: e.target.checked }))}
           />
           <span>{u.showOpenAccess}</span>
         </label>
@@ -966,9 +897,7 @@ export default function CvEditor({
           <input
             type="checkbox"
             checked={cv.display.showAuthorRole}
-            onChange={(e) =>
-              onChange(updateDisplay(cv, { showAuthorRole: e.target.checked }))
-            }
+            onChange={(e) => onChange(updateDisplay(cv, { showAuthorRole: e.target.checked }))}
           />
           <span>{u.showAuthorRole}</span>
         </label>
@@ -977,9 +906,7 @@ export default function CvEditor({
           <input
             type="checkbox"
             checked={cv.display.showCitationCounts}
-            onChange={(e) =>
-              onChange(updateDisplay(cv, { showCitationCounts: e.target.checked }))
-            }
+            onChange={(e) => onChange(updateDisplay(cv, { showCitationCounts: e.target.checked }))}
           />
           <span>{u.showCitationCounts}</span>
         </label>
@@ -988,9 +915,7 @@ export default function CvEditor({
           <input
             type="checkbox"
             checked={cv.display.showProvenance}
-            onChange={(e) =>
-              onChange(updateDisplay(cv, { showProvenance: e.target.checked }))
-            }
+            onChange={(e) => onChange(updateDisplay(cv, { showProvenance: e.target.checked }))}
           />
           <span>{u.showProvenance}</span>
         </label>
@@ -999,23 +924,17 @@ export default function CvEditor({
           <input
             type="checkbox"
             checked={cv.display.peerReviewedOnly}
-            onChange={(e) =>
-              onChange(updateDisplay(cv, { peerReviewedOnly: e.target.checked }))
-            }
+            onChange={(e) => onChange(updateDisplay(cv, { peerReviewedOnly: e.target.checked }))}
           />
           <span title={u.peerReviewedOnlyTitle}>{u.peerReviewedOnly}</span>
         </label>
-        <p className="muted metric-preset-note field-note">
-          {u.peerReviewedOnlyNote}
-        </p>
+        <p className="muted metric-preset-note field-note">{u.peerReviewedOnlyNote}</p>
 
         <label className="field-inline">
           <input
             type="checkbox"
             checked={cv.display.countLetters}
-            onChange={(e) =>
-              onChange(updateDisplay(cv, { countLetters: e.target.checked }))
-            }
+            onChange={(e) => onChange(updateDisplay(cv, { countLetters: e.target.checked }))}
           />
           <span title={u.countLettersTitle}>{u.countLetters}</span>
         </label>
@@ -1031,408 +950,393 @@ export default function CvEditor({
         values={sections.map((s) => s.id)}
         onReorder={(ids) => onChange(reorderSections(cv, ids))}
       >
-      {sections.map((section, si) => {
-        const items = [...section.items].sort((a, b) => a.order - b.order);
-        const shownCount = items.filter((i) => !isHidden(i)).length;
-        const isExpanded = expanded.has(section.id);
-        return (
-          <SectionCard key={section.id} value={section.id}>
-            {(controls) => (
-              <>
-            {/* The "add a publication by DOI" panel sits directly above the
+        {sections.map((section, si) => {
+          const items = [...section.items].sort((a, b) => a.order - b.order);
+          const shownCount = items.filter((i) => !isHidden(i)).length;
+          const isExpanded = expanded.has(section.id);
+          return (
+            <SectionCard key={section.id} value={section.id}>
+              {(controls) => (
+                <>
+                  {/* The "add a publication by DOI" panel sits directly above the
                 Publications section and moves with it when sections reorder. */}
-            {section.type === "publications" ? (
-              <ClaimByDoi locale={locale} onAdded={onClaimAdded} />
-            ) : null}
-          <div
-            className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}${
-              section.visible ? "" : " is-section-hidden"
-            }`}
-          >
-            <div className="section-head">
-              <span
-                className="drag-handle"
-                onPointerDown={(e) => controls.start(e)}
-                title={u.dragSection}
-                aria-hidden="true"
-              >
-                ⠿
-              </span>
-              <button
-                type="button"
-                className="section-toggle"
-                onClick={() => toggleExpanded(section.id)}
-                aria-expanded={isExpanded}
-                aria-label={t(locale, isExpanded ? "collapseSection" : "expandSection")}
-                title={t(locale, isExpanded ? "collapseSection" : "expandSection")}
-              >
-                {isExpanded ? "▾" : "▸"}
-              </button>
-              <input
-                className="section-title"
-                value={section.title}
-                onChange={(e) =>
-                  onChange(renameSection(cv, section.id, e.target.value))
-                }
-                aria-label={u.sectionTitleAria}
-              />
-              {isProseSectionType(section.type) ? null : (
-                <span className="section-count muted">
-                  {shownCount}/{items.length} {u.shownSuffix}
-                </span>
-              )}
-              <label className="field-inline">
-                <input
-                  type="checkbox"
-                  checked={section.visible}
-                  onChange={(e) =>
-                    onChange(
-                      setSectionVisible(cv, section.id, e.target.checked),
-                    )
-                  }
-                />
-                <span>{t(locale, "show")}</span>
-              </label>
-              <button
-                type="button"
-                className="icon-btn"
-                onClick={() => onChange(moveSection(cv, section.id, "up"))}
-                disabled={si === 0}
-                aria-label={u.moveSectionUp}
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                className="icon-btn"
-                onClick={() => onChange(moveSection(cv, section.id, "down"))}
-                disabled={si === sections.length - 1}
-                aria-label={u.moveSectionDown}
-              >
-                ↓
-              </button>
-              <button
-                type="button"
-                className="icon-btn danger"
-                onClick={() => onChange(removeSection(cv, section.id))}
-                aria-label={t(locale, "removeSection")}
-                title={t(locale, "removeSectionTitle")}
-              >
-                ×
-              </button>
-            </div>
-
-            {isExpanded && isProseSectionType(section.type) ? (
-              <label className="field prose-body-field">
-                <span className="muted">{eu.proseBody}</span>
-                <textarea
-                  className="prose-body"
-                  rows={6}
-                  value={section.body ?? ""}
-                  maxLength={PROSE_BODY_MAX}
-                  aria-label={`${section.title} — ${eu.proseBody}`}
-                  onChange={(e) =>
-                    onChange(
-                      setSectionBody(
-                        cv,
-                        section.id,
-                        e.target.value.slice(0, PROSE_BODY_MAX),
-                      ),
-                    )
-                  }
-                />
-                <span className="field-hint muted">
-                  {eu.proseBodyHint} ·{" "}
-                  {eu.proseCharsLeft.replace(
-                    "{n}",
-                    String(PROSE_BODY_MAX - (section.body ?? "").length),
-                  )}
-                </span>
-              </label>
-            ) : isExpanded ? (
-              <>
-            {items.length === 0 ? (
-              <p className="muted empty-note">{t(locale, "noItems")}</p>
-            ) : (
-              <ul className="cv-item-list">
-                {items.map((item, ii) => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    locale={locale}
-                    isFirst={ii === 0}
-                    isLast={ii === items.length - 1}
-                    onToggleIncluded={() =>
-                      onChange(
-                        setItemIncluded(
-                          cv,
-                          section.id,
-                          item.id,
-                          !item.included,
-                        ),
-                      )
-                    }
-                    onToggleNotMine={() =>
-                      onChange(
-                        setItemNotMine(cv, section.id, item.id, !item.notMine, {
-                          now: new Date().toISOString(),
-                        }),
-                      )
-                    }
-                    onSetNotMineReason={(reason) =>
-                      onChange(
-                        setItemNotMine(cv, section.id, item.id, true, {
-                          reason,
-                          now: new Date().toISOString(),
-                        }),
-                      )
-                    }
-                    onMoveUp={() =>
-                      onChange(moveItem(cv, section.id, item.id, "up"))
-                    }
-                    onMoveDown={() =>
-                      onChange(moveItem(cv, section.id, item.id, "down"))
-                    }
-                    onDragStart={() =>
-                      setDragItem({ sectionId: section.id, itemId: item.id })
-                    }
-                    onDropOver={() => {
-                      if (dragItem && dragItem.sectionId === section.id) {
-                        onChange(moveItemTo(cv, section.id, dragItem.itemId, ii));
-                      }
-                      setDragItem(null);
-                    }}
-                    onUpdateText={(text) =>
-                      onChange(updateItemText(cv, section.id, item.id, text))
-                    }
-                    onRemove={() =>
-                      onChange(removeItem(cv, section.id, item.id))
-                    }
-                  />
-                ))}
-              </ul>
-            )}
-
-            {MANUAL_SECTIONS.has(section.type) ? (
-              <div className="add-entry-row">
-                <input
-                  type="text"
-                  value={drafts[section.type] ?? ""}
-                  placeholder={
-                    section.type === "grants"
-                      ? u.grantsPlaceholder
-                      : t(locale, "addEntryPlaceholder")
-                  }
-                  onChange={(e) =>
-                    setDrafts((d) => ({ ...d, [section.type]: e.target.value }))
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addEntry(section.type);
-                    }
-                  }}
-                  aria-label={u.addEntryAria}
-                />
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => addEntry(section.type)}
-                  disabled={!(drafts[section.type] ?? "").trim()}
-                >
-                  {t(locale, "add")}
-                </button>
-              </div>
-            ) : null}
-
-            {STRUCTURED_SECTIONS.has(section.type) ? (
-              <details className="structured-entry">
-                <summary>{eu.structuredEntry}</summary>
-                <div className="structured-fields">
-                  <label className="field">
-                    <span>{eu.feTitle}</span>
-                    <input
-                      type="text"
-                      value={structDrafts[section.type]?.title ?? ""}
-                      onChange={(e) =>
-                        setStructField(section.type, "title", e.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="field">
-                    <span>{eu.feAuthors}</span>
-                    <textarea
-                      rows={2}
-                      value={structDrafts[section.type]?.authors ?? ""}
-                      placeholder={eu.feAuthorsHint}
-                      onChange={(e) =>
-                        setStructField(section.type, "authors", e.target.value)
-                      }
-                    />
-                    <span className="field-hint muted">{eu.feAuthorsHint}</span>
-                  </label>
-                  <div className="structured-row">
-                    <label className="field">
-                      <span>{eu.feVenue}</span>
-                      <input
-                        type="text"
-                        value={structDrafts[section.type]?.venue ?? ""}
-                        onChange={(e) =>
-                          setStructField(section.type, "venue", e.target.value)
-                        }
-                      />
-                    </label>
-                    <label className="field structured-year">
-                      <span>{eu.feYear}</span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        value={structDrafts[section.type]?.year ?? ""}
-                        onChange={(e) =>
-                          setStructField(section.type, "year", e.target.value)
-                        }
-                      />
-                    </label>
-                  </div>
-                  <label className="field">
-                    <span>{eu.feDoi}</span>
-                    <input
-                      type="text"
-                      value={structDrafts[section.type]?.doi ?? ""}
-                      onChange={(e) =>
-                        setStructField(section.type, "doi", e.target.value)
-                      }
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => addStructured(section.type)}
-                    disabled={!structDrafts[section.type]?.title?.trim()}
+                  {section.type === "publications" ? (
+                    <ClaimByDoi locale={locale} onAdded={onClaimAdded} />
+                  ) : null}
+                  <div
+                    className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}${
+                      section.visible ? "" : " is-section-hidden"
+                    }`}
                   >
-                    {eu.feAdd}
-                  </button>
-                </div>
-              </details>
-            ) : null}
+                    <div className="section-head">
+                      <span
+                        className="drag-handle"
+                        onPointerDown={(e) => controls.start(e)}
+                        title={u.dragSection}
+                        aria-hidden="true"
+                      >
+                        ⠿
+                      </span>
+                      <button
+                        type="button"
+                        className="section-toggle"
+                        onClick={() => toggleExpanded(section.id)}
+                        aria-expanded={isExpanded}
+                        aria-label={t(locale, isExpanded ? "collapseSection" : "expandSection")}
+                        title={t(locale, isExpanded ? "collapseSection" : "expandSection")}
+                      >
+                        {isExpanded ? "▾" : "▸"}
+                      </button>
+                      <input
+                        className="section-title"
+                        value={section.title}
+                        onChange={(e) => onChange(renameSection(cv, section.id, e.target.value))}
+                        aria-label={u.sectionTitleAria}
+                      />
+                      {isProseSectionType(section.type) ? null : (
+                        <span className="section-count muted">
+                          {shownCount}/{items.length} {u.shownSuffix}
+                        </span>
+                      )}
+                      <label className="field-inline">
+                        <input
+                          type="checkbox"
+                          checked={section.visible}
+                          onChange={(e) =>
+                            onChange(setSectionVisible(cv, section.id, e.target.checked))
+                          }
+                        />
+                        <span>{t(locale, "show")}</span>
+                      </label>
+                      <button
+                        type="button"
+                        className="icon-btn"
+                        onClick={() => onChange(moveSection(cv, section.id, "up"))}
+                        disabled={si === 0}
+                        aria-label={u.moveSectionUp}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-btn"
+                        onClick={() => onChange(moveSection(cv, section.id, "down"))}
+                        disabled={si === sections.length - 1}
+                        aria-label={u.moveSectionDown}
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-btn danger"
+                        onClick={() => onChange(removeSection(cv, section.id))}
+                        aria-label={t(locale, "removeSection")}
+                        title={t(locale, "removeSectionTitle")}
+                      >
+                        ×
+                      </button>
+                    </div>
 
-            {section.type === "languages" ? (
-              <div className="add-entry-row lang-row">
-                <input
-                  type="text"
-                  className="lang-name"
-                  value={langDraft.lang}
-                  placeholder={eu.langLabel}
-                  aria-label={eu.langLabel}
-                  onChange={(e) =>
-                    setLangDraft((d) => ({ ...d, lang: e.target.value }))
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addLanguage();
-                    }
-                  }}
-                />
-                <select
-                  value={langDraft.level}
-                  aria-label={eu.langLevel}
-                  onChange={(e) =>
-                    setLangDraft((d) => ({ ...d, level: e.target.value }))
-                  }
-                >
-                  {CEFR_LEVELS.map((c) => (
-                    <option key={c} value={`${c} (CEFR)`}>{`${c} (CEFR)`}</option>
-                  ))}
-                  <option value={eu.langNative}>{eu.langNative}</option>
-                  <option value="__other__">{eu.langOther}</option>
-                </select>
-                {langDraft.level === "__other__" ? (
-                  <input
-                    type="text"
-                    value={langDraft.other}
-                    placeholder="TOEFL iBT 110"
-                    aria-label={eu.langOther}
-                    onChange={(e) =>
-                      setLangDraft((d) => ({ ...d, other: e.target.value }))
-                    }
-                  />
-                ) : null}
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={addLanguage}
-                  disabled={!langDraft.lang.trim()}
-                >
-                  {eu.feAdd}
-                </button>
-              </div>
-            ) : null}
+                    {isExpanded && isProseSectionType(section.type) ? (
+                      <label className="field prose-body-field">
+                        <span className="muted">{eu.proseBody}</span>
+                        <textarea
+                          className="prose-body"
+                          rows={6}
+                          value={section.body ?? ""}
+                          maxLength={PROSE_BODY_MAX}
+                          aria-label={`${section.title} — ${eu.proseBody}`}
+                          onChange={(e) =>
+                            onChange(
+                              setSectionBody(
+                                cv,
+                                section.id,
+                                e.target.value.slice(0, PROSE_BODY_MAX),
+                              ),
+                            )
+                          }
+                        />
+                        <span className="field-hint muted">
+                          {eu.proseBodyHint} ·{" "}
+                          {eu.proseCharsLeft.replace(
+                            "{n}",
+                            String(PROSE_BODY_MAX - (section.body ?? "").length),
+                          )}
+                        </span>
+                      </label>
+                    ) : isExpanded ? (
+                      <>
+                        {items.length === 0 ? (
+                          <p className="muted empty-note">{t(locale, "noItems")}</p>
+                        ) : (
+                          <ul className="cv-item-list">
+                            {items.map((item, ii) => (
+                              <ItemRow
+                                key={item.id}
+                                item={item}
+                                locale={locale}
+                                isFirst={ii === 0}
+                                isLast={ii === items.length - 1}
+                                onToggleIncluded={() =>
+                                  onChange(setItemIncluded(cv, section.id, item.id, !item.included))
+                                }
+                                onToggleNotMine={() =>
+                                  onChange(
+                                    setItemNotMine(cv, section.id, item.id, !item.notMine, {
+                                      now: new Date().toISOString(),
+                                    }),
+                                  )
+                                }
+                                onSetNotMineReason={(reason) =>
+                                  onChange(
+                                    setItemNotMine(cv, section.id, item.id, true, {
+                                      reason,
+                                      now: new Date().toISOString(),
+                                    }),
+                                  )
+                                }
+                                onMoveUp={() => onChange(moveItem(cv, section.id, item.id, "up"))}
+                                onMoveDown={() =>
+                                  onChange(moveItem(cv, section.id, item.id, "down"))
+                                }
+                                onDragStart={() =>
+                                  setDragItem({ sectionId: section.id, itemId: item.id })
+                                }
+                                onDropOver={() => {
+                                  if (dragItem && dragItem.sectionId === section.id) {
+                                    onChange(moveItemTo(cv, section.id, dragItem.itemId, ii));
+                                  }
+                                  setDragItem(null);
+                                }}
+                                onUpdateText={(text) =>
+                                  onChange(updateItemText(cv, section.id, item.id, text))
+                                }
+                                onRemove={() => onChange(removeItem(cv, section.id, item.id))}
+                              />
+                            ))}
+                          </ul>
+                        )}
 
-            {section.type === "references" ? (
-              <div className="structured-fields reference-fields">
-                <div className="structured-row">
-                  <label className="field">
-                    <span>{eu.refName}</span>
-                    <input
-                      type="text"
-                      value={refDraft.name}
-                      onChange={(e) =>
-                        setRefDraft((d) => ({ ...d, name: e.target.value }))
-                      }
-                    />
-                  </label>
-                  <label className="field">
-                    <span>{eu.refAffiliation}</span>
-                    <input
-                      type="text"
-                      value={refDraft.affiliation}
-                      onChange={(e) =>
-                        setRefDraft((d) => ({ ...d, affiliation: e.target.value }))
-                      }
-                    />
-                  </label>
-                </div>
-                <div className="structured-row">
-                  <label className="field">
-                    <span>{eu.refEmail}</span>
-                    <input
-                      type="email"
-                      value={refDraft.email}
-                      onChange={(e) =>
-                        setRefDraft((d) => ({ ...d, email: e.target.value }))
-                      }
-                    />
-                  </label>
-                  <label className="field">
-                    <span>{eu.refPhone}</span>
-                    <input
-                      type="tel"
-                      value={refDraft.phone}
-                      onChange={(e) =>
-                        setRefDraft((d) => ({ ...d, phone: e.target.value }))
-                      }
-                    />
-                  </label>
-                </div>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={addReference}
-                  disabled={!refDraft.name.trim()}
-                >
-                  {eu.feAdd}
-                </button>
-              </div>
-            ) : null}
-              </>
-            ) : null}
-          </div>
-              </>
-            )}
-          </SectionCard>
-        );
-      })}
+                        {MANUAL_SECTIONS.has(section.type) ? (
+                          <div className="add-entry-row">
+                            <input
+                              type="text"
+                              value={drafts[section.type] ?? ""}
+                              placeholder={
+                                section.type === "grants"
+                                  ? u.grantsPlaceholder
+                                  : t(locale, "addEntryPlaceholder")
+                              }
+                              onChange={(e) =>
+                                setDrafts((d) => ({ ...d, [section.type]: e.target.value }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  addEntry(section.type);
+                                }
+                              }}
+                              aria-label={u.addEntryAria}
+                            />
+                            <button
+                              type="button"
+                              className="btn"
+                              onClick={() => addEntry(section.type)}
+                              disabled={!(drafts[section.type] ?? "").trim()}
+                            >
+                              {t(locale, "add")}
+                            </button>
+                          </div>
+                        ) : null}
+
+                        {STRUCTURED_SECTIONS.has(section.type) ? (
+                          <details className="structured-entry">
+                            <summary>{eu.structuredEntry}</summary>
+                            <div className="structured-fields">
+                              <label className="field">
+                                <span>{eu.feTitle}</span>
+                                <input
+                                  type="text"
+                                  value={structDrafts[section.type]?.title ?? ""}
+                                  onChange={(e) =>
+                                    setStructField(section.type, "title", e.target.value)
+                                  }
+                                />
+                              </label>
+                              <label className="field">
+                                <span>{eu.feAuthors}</span>
+                                <textarea
+                                  rows={2}
+                                  value={structDrafts[section.type]?.authors ?? ""}
+                                  placeholder={eu.feAuthorsHint}
+                                  onChange={(e) =>
+                                    setStructField(section.type, "authors", e.target.value)
+                                  }
+                                />
+                                <span className="field-hint muted">{eu.feAuthorsHint}</span>
+                              </label>
+                              <div className="structured-row">
+                                <label className="field">
+                                  <span>{eu.feVenue}</span>
+                                  <input
+                                    type="text"
+                                    value={structDrafts[section.type]?.venue ?? ""}
+                                    onChange={(e) =>
+                                      setStructField(section.type, "venue", e.target.value)
+                                    }
+                                  />
+                                </label>
+                                <label className="field structured-year">
+                                  <span>{eu.feYear}</span>
+                                  <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    value={structDrafts[section.type]?.year ?? ""}
+                                    onChange={(e) =>
+                                      setStructField(section.type, "year", e.target.value)
+                                    }
+                                  />
+                                </label>
+                              </div>
+                              <label className="field">
+                                <span>{eu.feDoi}</span>
+                                <input
+                                  type="text"
+                                  value={structDrafts[section.type]?.doi ?? ""}
+                                  onChange={(e) =>
+                                    setStructField(section.type, "doi", e.target.value)
+                                  }
+                                />
+                              </label>
+                              <button
+                                type="button"
+                                className="btn"
+                                onClick={() => addStructured(section.type)}
+                                disabled={!structDrafts[section.type]?.title?.trim()}
+                              >
+                                {eu.feAdd}
+                              </button>
+                            </div>
+                          </details>
+                        ) : null}
+
+                        {section.type === "languages" ? (
+                          <div className="add-entry-row lang-row">
+                            <input
+                              type="text"
+                              className="lang-name"
+                              value={langDraft.lang}
+                              placeholder={eu.langLabel}
+                              aria-label={eu.langLabel}
+                              onChange={(e) =>
+                                setLangDraft((d) => ({ ...d, lang: e.target.value }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  addLanguage();
+                                }
+                              }}
+                            />
+                            <select
+                              value={langDraft.level}
+                              aria-label={eu.langLevel}
+                              onChange={(e) =>
+                                setLangDraft((d) => ({ ...d, level: e.target.value }))
+                              }
+                            >
+                              {CEFR_LEVELS.map((c) => (
+                                <option key={c} value={`${c} (CEFR)`}>{`${c} (CEFR)`}</option>
+                              ))}
+                              <option value={eu.langNative}>{eu.langNative}</option>
+                              <option value="__other__">{eu.langOther}</option>
+                            </select>
+                            {langDraft.level === "__other__" ? (
+                              <input
+                                type="text"
+                                value={langDraft.other}
+                                placeholder="TOEFL iBT 110"
+                                aria-label={eu.langOther}
+                                onChange={(e) =>
+                                  setLangDraft((d) => ({ ...d, other: e.target.value }))
+                                }
+                              />
+                            ) : null}
+                            <button
+                              type="button"
+                              className="btn"
+                              onClick={addLanguage}
+                              disabled={!langDraft.lang.trim()}
+                            >
+                              {eu.feAdd}
+                            </button>
+                          </div>
+                        ) : null}
+
+                        {section.type === "references" ? (
+                          <div className="structured-fields reference-fields">
+                            <div className="structured-row">
+                              <label className="field">
+                                <span>{eu.refName}</span>
+                                <input
+                                  type="text"
+                                  value={refDraft.name}
+                                  onChange={(e) =>
+                                    setRefDraft((d) => ({ ...d, name: e.target.value }))
+                                  }
+                                />
+                              </label>
+                              <label className="field">
+                                <span>{eu.refAffiliation}</span>
+                                <input
+                                  type="text"
+                                  value={refDraft.affiliation}
+                                  onChange={(e) =>
+                                    setRefDraft((d) => ({ ...d, affiliation: e.target.value }))
+                                  }
+                                />
+                              </label>
+                            </div>
+                            <div className="structured-row">
+                              <label className="field">
+                                <span>{eu.refEmail}</span>
+                                <input
+                                  type="email"
+                                  value={refDraft.email}
+                                  onChange={(e) =>
+                                    setRefDraft((d) => ({ ...d, email: e.target.value }))
+                                  }
+                                />
+                              </label>
+                              <label className="field">
+                                <span>{eu.refPhone}</span>
+                                <input
+                                  type="tel"
+                                  value={refDraft.phone}
+                                  onChange={(e) =>
+                                    setRefDraft((d) => ({ ...d, phone: e.target.value }))
+                                  }
+                                />
+                              </label>
+                            </div>
+                            <button
+                              type="button"
+                              className="btn"
+                              onClick={addReference}
+                              disabled={!refDraft.name.trim()}
+                            >
+                              {eu.feAdd}
+                            </button>
+                          </div>
+                        ) : null}
+                      </>
+                    ) : null}
+                  </div>
+                </>
+              )}
+            </SectionCard>
+          );
+        })}
       </Reorder.Group>
 
       {ADDABLE_SECTIONS.some(isAddable) ? (

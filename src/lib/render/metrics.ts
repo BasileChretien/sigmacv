@@ -1,9 +1,5 @@
 import type { CanonicalCv, OwnerMetrics } from "@/lib/canonical/schema";
-import {
-  metricContext,
-  metricCoverageNote,
-  metricLabel,
-} from "@/lib/i18n/render";
+import { metricContext, metricCoverageNote, metricLabel } from "@/lib/i18n/render";
 import { countableWorks } from "./countable";
 
 /**
@@ -21,9 +17,7 @@ import { countableWorks } from "./countable";
 export function curatedMetrics(cv: CanonicalCv): OwnerMetrics {
   const base: OwnerMetrics = cv.owner.metrics ?? {};
   const works = countableWorks(cv);
-  const fwcis = works
-    .map((w) => w.meta.fwci)
-    .filter((x): x is number => typeof x === "number");
+  const fwcis = works.map((w) => w.meta.fwci).filter((x): x is number => typeof x === "number");
   const deciles = works
     .map((w) => w.meta.topDecile)
     .filter((x): x is boolean => typeof x === "boolean");
@@ -83,11 +77,7 @@ function formatValue(format: string, raw: number, locale: string): string {
  * ("mean over N works with FWCI") so a small/skewed sample isn't mistaken for a
  * precise field-normalized score.
  */
-function contextFor(
-  locale: string,
-  key: string,
-  values: OwnerMetrics,
-): string | undefined {
+function contextFor(locale: string, key: string, values: OwnerMetrics): string | undefined {
   const base = metricContext(locale, key);
   if (key !== "fwci_mean") return base;
   const coverage = metricCoverageNote(locale, values.fwci_n);

@@ -12,7 +12,10 @@ function mockJson(impl: (url: unknown, init?: RequestInit) => unknown) {
   );
 }
 function mockStatus(status: number) {
-  vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response("x", { status }))));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() => Promise.resolve(new Response("x", { status }))),
+  );
 }
 
 afterEach(() => {

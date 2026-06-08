@@ -30,10 +30,7 @@ const EXPORT_MAX = 60;
 const EXPORT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
 /** Export the saved canonical CV in the requested format. */
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ format: string }> },
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ format: string }> }) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,10 +38,7 @@ export async function GET(
 
   const { format } = await params;
   if (!ALL_FORMATS.includes(format)) {
-    return NextResponse.json(
-      { error: `Unsupported export format: ${format}` },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: `Unsupported export format: ${format}` }, { status: 400 });
   }
 
   const rl = await enforceRateLimit(`export:${session.user.id}`, EXPORT_MAX, EXPORT_WINDOW_MS);
@@ -88,9 +82,6 @@ export async function GET(
     });
   } catch (err) {
     logger.error("api.cv_export_failed", { format, err });
-    return NextResponse.json(
-      { error: "Failed to generate export." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to generate export." }, { status: 500 });
   }
 }

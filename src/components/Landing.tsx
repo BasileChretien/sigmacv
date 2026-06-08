@@ -1,10 +1,6 @@
 import Link from "next/link";
 import { enabledProviders } from "@/auth.config";
-import {
-  signInWithEmail,
-  signInWithGoogle,
-  signInWithOrcid,
-} from "@/app/auth-actions";
+import { signInWithEmail, signInWithGoogle, signInWithOrcid } from "@/app/auth-actions";
 import { asLocale, t } from "@/lib/i18n";
 import { accessibilityStrings } from "@/lib/i18n/accessibility";
 import { faqStrings } from "@/lib/i18n/faq";
@@ -168,10 +164,7 @@ export default function Landing({ locale }: LandingProps) {
 
       {/* Source strip: the open data sources the CV is built from. The names are
           brand proper nouns (like "Σ"/"SigmaCV"), reinforcing the hero copy. */}
-      <div
-        className="source-strip"
-        aria-label="Open research data sources SigmaCV builds from"
-      >
+      <div className="source-strip" aria-label="Open research data sources SigmaCV builds from">
         {SOURCE_LINKS.map((src) => (
           <a
             key={src.name}
@@ -285,8 +278,7 @@ function CreatorBody({
         {CREATOR_NAME}
       </a>
       {/* When the proper noun isn't present (defensive), fall back to plain text. */}
-      {after ?? ""}{" "}
-      <Link href={aboutHref}>About</Link>
+      {after ?? ""} <Link href={aboutHref}>About</Link>
       {githubUrl ? (
         <>
           {" · "}

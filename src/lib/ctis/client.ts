@@ -62,12 +62,9 @@ async function fetchMatchingTrial(
   const app = asRecord(data.authorizedApplication);
   const partI = asRecord(app?.authorizedPartI);
   const title =
-    str(
-      asRecord(asRecord(asRecord(partI?.trialDetails)?.clinicalTrialIdentifiers))?.fullTitle,
-    ) ?? str(data.ctNumber);
-  const sponsor = str(
-    asRecord(asRecord(toArray(partI?.sponsors)[0])?.organisation)?.name,
-  );
+    str(asRecord(asRecord(asRecord(partI?.trialDetails)?.clinicalTrialIdentifiers))?.fullTitle) ??
+    str(data.ctNumber);
+  const sponsor = str(asRecord(asRecord(toArray(partI?.sponsors)[0])?.organisation)?.name);
   const startYear = yearFromIso(data.startDateEU) ?? yearFromIso(data.decisionDate);
   const status = str(data.ctStatus);
 
@@ -76,9 +73,7 @@ async function fetchMatchingTrial(
       const site = asRecord(rawSite);
       const pi = asRecord(site?.personInfo);
       const fullName = [str(pi?.firstName), str(pi?.lastName)].filter(Boolean).join(" ");
-      const siteOrg = str(
-        asRecord(asRecord(site?.organisationAddressInfo)?.organisation)?.name,
-      );
+      const siteOrg = str(asRecord(asRecord(site?.organisationAddressInfo)?.organisation)?.name);
       if (fullName && matchesNameAndOrg(person, fullName, siteOrg)) {
         return {
           source: "ctis",
@@ -100,10 +95,7 @@ async function fetchMatchingTrial(
  * EU CTIS trials where the account holder is a site investigator, matched by
  * name + organization. Review candidates. Fails soft → [].
  */
-export async function fetchCtisTrials(
-  name: string,
-  orgs: string[],
-): Promise<ExternalTrial[]> {
+export async function fetchCtisTrials(name: string, orgs: string[]): Promise<ExternalTrial[]> {
   const person = personMatch(name, orgs);
   if (!person.surname || person.orgs.length === 0) return [];
 

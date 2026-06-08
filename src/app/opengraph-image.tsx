@@ -13,51 +13,47 @@ export const contentType = "image/png";
 export default function OpengraphImage() {
   const s = landingStrings("en-US");
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          padding: "72px",
-          background: "linear-gradient(135deg, #1f4fd8 0%, #11329e 100%)",
-          color: "#ffffff",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", fontSize: 44, fontWeight: 700 }}>
-          <span
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 72,
-              height: 72,
-              marginRight: 24,
-              borderRadius: 18,
-              background: "rgba(255,255,255,0.16)",
-              fontSize: 48,
-            }}
-          >
-            Σ
-          </span>
-          SigmaCV
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        padding: "72px",
+        background: "linear-gradient(135deg, #1f4fd8 0%, #11329e 100%)",
+        color: "#ffffff",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", fontSize: 44, fontWeight: 700 }}>
+        <span
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 72,
+            height: 72,
+            marginRight: 24,
+            borderRadius: 18,
+            background: "rgba(255,255,255,0.16)",
+            fontSize: 48,
+          }}
+        >
+          Σ
+        </span>
+        SigmaCV
+      </div>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.1 }}>
+          Free academic CV generator
         </div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.1 }}>
-            Free academic CV generator
-          </div>
-          <div style={{ fontSize: 34, marginTop: 20, color: "rgba(255,255,255,0.88)" }}>
-            Auto-built from ORCID &amp; OpenAlex · export PDF, DOCX, LaTeX, Markdown
-          </div>
-        </div>
-        <div style={{ fontSize: 26, color: "rgba(255,255,255,0.8)" }}>
-          {s.eyebrow}
+        <div style={{ fontSize: 34, marginTop: 20, color: "rgba(255,255,255,0.88)" }}>
+          Auto-built from ORCID &amp; OpenAlex · export PDF, DOCX, LaTeX, Markdown
         </div>
       </div>
-    ),
+      <div style={{ fontSize: 26, color: "rgba(255,255,255,0.8)" }}>{s.eyebrow}</div>
+    </div>,
     size,
   );
 }

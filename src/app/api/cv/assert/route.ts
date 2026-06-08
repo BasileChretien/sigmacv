@@ -3,10 +3,7 @@ import { auth } from "@/auth";
 import { pendingNotMineAssertions } from "@/lib/canonical/assertions";
 import { getCvForUser } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
-import {
-  isOpenAlexCurationEnabled,
-  submitCurationAssertions,
-} from "@/lib/openalex/assert";
+import { isOpenAlexCurationEnabled, submitCurationAssertions } from "@/lib/openalex/assert";
 import { recordCurationAudit } from "@/lib/openalex/curationAudit";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { readJsonBodyWithLimit } from "@/lib/readBody";

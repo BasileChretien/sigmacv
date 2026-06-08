@@ -29,9 +29,7 @@ function mock(opts: { sparql?: unknown; xml?: string; sparqlStatus?: number }) {
         );
       }
       if (u.includes("/pid/")) {
-        return Promise.resolve(
-          new Response(opts.xml ?? PERSON_XML, { status: 200 }),
-        );
+        return Promise.resolve(new Response(opts.xml ?? PERSON_XML, { status: 200 }));
       }
       return Promise.resolve(new Response("", { status: 404 }));
     }),

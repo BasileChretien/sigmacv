@@ -43,9 +43,7 @@ function matchInvestigator(
   person: ReturnType<typeof personMatch>,
 ): Match | null {
   const contacts = asRecord(ps.contactsLocationsModule);
-  const officials = Array.isArray(contacts?.overallOfficials)
-    ? contacts.overallOfficials
-    : [];
+  const officials = Array.isArray(contacts?.overallOfficials) ? contacts.overallOfficials : [];
   for (const raw of officials) {
     const o = asRecord(raw);
     const name = str(o?.name);
@@ -63,10 +61,7 @@ function matchInvestigator(
   return null;
 }
 
-export async function fetchClinicalTrials(
-  name: string,
-  orgs: string[],
-): Promise<ExternalTrial[]> {
+export async function fetchClinicalTrials(name: string, orgs: string[]): Promise<ExternalTrial[]> {
   const person = personMatch(name, orgs);
   if (!person.surname || person.orgs.length === 0) return [];
 

@@ -96,9 +96,7 @@ export function getEnv(): Env {
     }
     if (problems.length > 0) {
       throw new Error(
-        `Invalid production environment:\n${problems
-          .map((p) => `  - ${p}`)
-          .join("\n")}`,
+        `Invalid production environment:\n${problems.map((p) => `  - ${p}`).join("\n")}`,
       );
     }
   }

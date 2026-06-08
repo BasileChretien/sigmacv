@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import About from "@/components/About";
-import {
-  DEFAULT_UI_LOCALE,
-  NON_DEFAULT_LOCALE_SLUGS,
-  localeForSlug,
-} from "@/lib/i18n";
+import { DEFAULT_UI_LOCALE, NON_DEFAULT_LOCALE_SLUGS, localeForSlug } from "@/lib/i18n";
 import { aboutStrings } from "@/lib/i18n/about";
 import { aboutLanguageAlternates, localeAboutPath } from "@/lib/seo";
 

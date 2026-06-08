@@ -33,10 +33,7 @@ export async function DELETE(req: Request) {
     // the session cookie — clear it so no stale cookie can be re-associated
     // (e.g. if the same email later re-registers).
     const res = NextResponse.json({ ok: true });
-    for (const name of [
-      "authjs.session-token",
-      "__Secure-authjs.session-token",
-    ]) {
+    for (const name of ["authjs.session-token", "__Secure-authjs.session-token"]) {
       // Mirror the attributes Auth.js set the cookie with, so the browser
       // reliably overwrites/expires the original httpOnly+Secure session cookie.
       res.cookies.set(name, "", {
@@ -50,9 +47,6 @@ export async function DELETE(req: Request) {
     return res;
   } catch (err) {
     logger.error("api.account_delete_failed", { err });
-    return NextResponse.json(
-      { error: "Failed to delete account" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
   }
 }

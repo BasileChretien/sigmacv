@@ -1,8 +1,4 @@
-import {
-  type FunderGrant,
-  matchesNameAndOrg,
-  personMatch,
-} from "@/lib/grants/match";
+import { type FunderGrant, matchesNameAndOrg, personMatch } from "@/lib/grants/match";
 import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 
@@ -29,10 +25,7 @@ function yearFromIso(v: unknown): number | undefined {
   return Number.isFinite(y) && y > 1900 ? y : undefined;
 }
 
-export async function fetchNihGrants(
-  name: string,
-  orgs: string[],
-): Promise<FunderGrant[]> {
+export async function fetchNihGrants(name: string, orgs: string[]): Promise<FunderGrant[]> {
   const person = personMatch(name, orgs);
   if (!person.surname || person.orgs.length === 0) return [];
 
@@ -79,22 +72,17 @@ export async function fetchNihGrants(
       const rec = asRecord(raw);
       const org = asRecord(rec?.organization);
       const orgName = typeof org?.org_name === "string" ? org.org_name : undefined;
-      const pis = Array.isArray(rec?.principal_investigators)
-        ? rec.principal_investigators
-        : [];
+      const pis = Array.isArray(rec?.principal_investigators) ? rec.principal_investigators : [];
       const matched = pis
         .map(asRecord)
         .some(
           (pi) =>
-            typeof pi?.full_name === "string" &&
-            matchesNameAndOrg(person, pi.full_name, orgName),
+            typeof pi?.full_name === "string" && matchesNameAndOrg(person, pi.full_name, orgName),
         );
       if (!matched) continue;
 
-      const projectNum =
-        typeof rec?.project_num === "string" ? rec.project_num : undefined;
-      const title =
-        typeof rec?.project_title === "string" ? rec.project_title : undefined;
+      const projectNum = typeof rec?.project_num === "string" ? rec.project_num : undefined;
+      const title = typeof rec?.project_title === "string" ? rec.project_title : undefined;
       if (!projectNum || !title) continue;
 
       const agency = asRecord(rec?.agency_ic_admin);
@@ -102,8 +90,7 @@ export async function fetchNihGrants(
         source: "nih",
         externalId: projectNum,
         title,
-        funder:
-          typeof agency?.abbreviation === "string" ? agency.abbreviation : undefined,
+        funder: typeof agency?.abbreviation === "string" ? agency.abbreviation : undefined,
         org: orgName,
         startYear: yearFromIso(rec?.project_start_date),
         endYear: yearFromIso(rec?.project_end_date),

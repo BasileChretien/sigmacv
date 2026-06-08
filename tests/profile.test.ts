@@ -11,7 +11,8 @@ const resolved: ResolvedAuthor = {
   authorIds: ["A5001069481"],
   displayName: "Basile Chrétien",
 };
-const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+const PNG =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
 function emptyCv() {
   return buildCanonicalCv({ id: "p", resolved, works: [], now: "2026-06-02T00:00:00.000Z" });

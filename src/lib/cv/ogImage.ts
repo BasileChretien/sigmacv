@@ -56,7 +56,9 @@ function latestAffiliation(cv: CanonicalCv): string {
   const item = section.items.find((it) => it.included && it.notMine !== true);
   const text = item?.displayText;
   if (!text) return "";
-  return oneLine(text).replace(/\s*\([^()]*\)\s*$/, "").trim();
+  return oneLine(text)
+    .replace(/\s*\([^()]*\)\s*$/, "")
+    .trim();
 }
 
 /**

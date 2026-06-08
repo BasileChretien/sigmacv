@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Privacy from "@/components/Privacy";
-import {
-  DEFAULT_UI_LOCALE,
-  NON_DEFAULT_LOCALE_SLUGS,
-  localeForSlug,
-} from "@/lib/i18n";
+import { DEFAULT_UI_LOCALE, NON_DEFAULT_LOCALE_SLUGS, localeForSlug } from "@/lib/i18n";
 import { privacyStrings } from "@/lib/i18n/privacy";
 import { localePrivacyPath, privacyLanguageAlternates } from "@/lib/seo";
 

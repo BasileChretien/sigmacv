@@ -59,9 +59,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ previews });
   } catch (err) {
     logger.error("api.cv_preview_gallery_failed", { err });
-    return NextResponse.json(
-      { error: "Failed to render template previews" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to render template previews" }, { status: 500 });
   }
 }

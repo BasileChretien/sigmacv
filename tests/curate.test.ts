@@ -57,7 +57,13 @@ describe("addClaimedWork / cvHasWork", () => {
     order: 0,
     authoredBySelf: true,
     selfNameVariants: ["Basile Chrétien"],
-    meta: { year: 2021, claimed: true, matchBasis: "claimed", authorPosition: 1, peerReviewed: true },
+    meta: {
+      year: 2021,
+      claimed: true,
+      matchBasis: "claimed",
+      authorPosition: 1,
+      peerReviewed: true,
+    },
   };
 
   it("appends a claimed work to Publications", () => {
@@ -125,7 +131,9 @@ describe('"not mine" assertion is distinct from hide', () => {
     // included is untouched — orthogonal axes
     expect(a.included).toBe(true);
 
-    const retracted = setItemNotMine(asserted, SECTION, id, false, { now: "2026-07-01T00:00:00.000Z" });
+    const retracted = setItemNotMine(asserted, SECTION, id, false, {
+      now: "2026-07-01T00:00:00.000Z",
+    });
     const r = retracted.sections[0]!.items.find((i) => i.id === id)!;
     expect(r.notMine).toBe(false);
     expect(r.notMineAssertedAt).toBeUndefined();
@@ -141,7 +149,9 @@ describe('"not mine" assertion is distinct from hide', () => {
     expect(asserted.sections[0]!.items.find((i) => i.id === id)!.notMineReason).toBe(
       "different-person",
     );
-    const retracted = setItemNotMine(asserted, SECTION, id, false, { now: "2026-07-01T00:00:00.000Z" });
+    const retracted = setItemNotMine(asserted, SECTION, id, false, {
+      now: "2026-07-01T00:00:00.000Z",
+    });
     expect(retracted.sections[0]!.items.find((i) => i.id === id)!.notMineReason).toBeUndefined();
   });
 
@@ -155,7 +165,9 @@ describe('"not mine" assertion is distinct from hide', () => {
   it("is immutable", () => {
     const cv = makeCv();
     const snapshot = JSON.stringify(cv);
-    setItemNotMine(cv, SECTION, cv.sections[0]!.items[0]!.id, true, { now: "2026-06-02T00:00:00.000Z" });
+    setItemNotMine(cv, SECTION, cv.sections[0]!.items[0]!.id, true, {
+      now: "2026-06-02T00:00:00.000Z",
+    });
     expect(JSON.stringify(cv)).toBe(snapshot);
   });
 
@@ -175,21 +187,16 @@ describe("moveItem", () => {
     const items = [...cv.sections[0]!.items].sort((a, b) => a.order - b.order);
     const second = items[1]!.id;
     const next = moveItem(cv, SECTION, second, "up");
-    const reordered = [...next.sections[0]!.items].sort(
-      (a, b) => a.order - b.order,
-    );
+    const reordered = [...next.sections[0]!.items].sort((a, b) => a.order - b.order);
     expect(reordered[0]!.id).toBe(second);
     expect(reordered.map((i) => i.order)).toEqual([0, 1, 2]);
   });
 
   it("is a no-op at the boundary", () => {
     const cv = makeCv();
-    const first = [...cv.sections[0]!.items].sort((a, b) => a.order - b.order)[0]!
-      .id;
+    const first = [...cv.sections[0]!.items].sort((a, b) => a.order - b.order)[0]!.id;
     const next = moveItem(cv, SECTION, first, "up");
-    expect(
-      [...next.sections[0]!.items].sort((a, b) => a.order - b.order)[0]!.id,
-    ).toBe(first);
+    expect([...next.sections[0]!.items].sort((a, b) => a.order - b.order)[0]!.id).toBe(first);
   });
 });
 
@@ -321,15 +328,11 @@ describe("section ops + selectors", () => {
 
   it("setLocale re-localizes default section headings but preserves user renames", () => {
     const cv = makeCv();
-    expect(cv.sections.find((s) => s.type === "publications")!.title).toBe(
-      "Publications",
-    );
+    expect(cv.sections.find((s) => s.type === "publications")!.title).toBe("Publications");
     // Default heading → re-localized to the chosen language.
     const de = setLocale(cv, "de-DE");
     expect(de.display.locale).toBe("de-DE");
-    expect(de.sections.find((s) => s.type === "publications")!.title).toBe(
-      "Publikationen",
-    );
+    expect(de.sections.find((s) => s.type === "publications")!.title).toBe("Publikationen");
     // A heading the user renamed is never clobbered by a language switch.
     const renamed = renameSection(cv, SECTION, "My Selected Papers");
     const deRenamed = setLocale(renamed, "de-DE");
@@ -349,14 +352,15 @@ describe("section ops + selectors", () => {
     // Simulate a stale stored doc: publications pinned first, not customized.
     const stale: CanonicalCv = {
       ...cv,
-      sections: cv.sections.map((s) =>
-        s.type === "publications" ? { ...s, order: -5 } : s,
-      ),
+      sections: cv.sections.map((s) => (s.type === "publications" ? { ...s, order: -5 } : s)),
     };
     const ord = orderedSections(stale).map((s) => s.type);
     expect(ord.indexOf("positions")).toBeLessThan(ord.indexOf("publications"));
     // Once customized, the stored order wins.
-    const customized: CanonicalCv = { ...stale, display: { ...stale.display, sectionsCustomized: true } };
+    const customized: CanonicalCv = {
+      ...stale,
+      display: { ...stale.display, sectionsCustomized: true },
+    };
     expect(orderedSections(customized)[0]!.type).toBe("publications");
   });
 
@@ -398,7 +402,12 @@ describe("manual entries (add / edit / remove)", () => {
     const cv = makeCv(); // publications only
     expect(cv.sections.find((s) => s.type === "positions")).toBeUndefined();
 
-    const a = addManualEntry(cv, "positions", "Visiting Researcher, MIT (2023)", "position:manual:1");
+    const a = addManualEntry(
+      cv,
+      "positions",
+      "Visiting Researcher, MIT (2023)",
+      "position:manual:1",
+    );
     const pos = a.sections.find((s) => s.type === "positions")!;
     expect(pos.items).toHaveLength(1);
     expect(pos.items[0]).toMatchObject({
@@ -484,10 +493,10 @@ describe("manual entries (add / edit / remove)", () => {
 describe("named presets", () => {
   it("saves the current view (display + section visibility) and re-applies it", () => {
     const cv = makeCv();
-    const customized = updateDisplay(
-      setSectionVisible(cv, "publications", false),
-      { template: "modern", publicationsLimit: 5 },
-    );
+    const customized = updateDisplay(setSectionVisible(cv, "publications", false), {
+      template: "modern",
+      publicationsLimit: 5,
+    });
     const withPreset = savePreset(customized, "Grant biosketch");
     expect(withPreset.presets).toHaveLength(1);
     const preset = withPreset.presets[0]!;
@@ -496,25 +505,20 @@ describe("named presets", () => {
     expect(preset.sectionVisibility.publications).toBe(false);
 
     // Change the live view, then apply the preset to restore it.
-    const changed = updateDisplay(
-      setSectionVisible(withPreset, "publications", true),
-      { template: "classic", publicationsLimit: undefined },
-    );
+    const changed = updateDisplay(setSectionVisible(withPreset, "publications", true), {
+      template: "classic",
+      publicationsLimit: undefined,
+    });
     const restored = applyPreset(changed, preset.id);
     expect(restored.display.template).toBe("modern");
     expect(restored.display.publicationsLimit).toBe(5);
-    expect(
-      restored.sections.find((s) => s.id === "publications")!.visible,
-    ).toBe(false);
+    expect(restored.sections.find((s) => s.id === "publications")!.visible).toBe(false);
   });
 
   it("upserts by name, ignores a blank name, and deletes by id", () => {
     const cv = makeCv();
     const once = savePreset(cv, "Full CV");
-    const twice = savePreset(
-      updateDisplay(once, { template: "modern" }),
-      "Full CV",
-    );
+    const twice = savePreset(updateDisplay(once, { template: "modern" }), "Full CV");
     expect(twice.presets).toHaveLength(1); // upsert, not a duplicate
     expect(twice.presets[0]!.display.template).toBe("modern");
 

@@ -163,20 +163,10 @@ export default function ResearchConsentPrompt({
           </p>
           {error ? <p className="consent-error">{error}</p> : null}
           <div className="consent-actions">
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={accept}
-              disabled={busy}
-            >
+            <button type="button" className="btn btn-primary" onClick={accept} disabled={busy}>
               {s.yes}
             </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={declinePrompt}
-              disabled={busy}
-            >
+            <button type="button" className="btn" onClick={declinePrompt} disabled={busy}>
               {s.notNow}
             </button>
           </div>

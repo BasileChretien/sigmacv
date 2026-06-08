@@ -59,8 +59,7 @@ const FUNDINGS = {
             name: "University of Caen",
             // Disambiguated funder (FundRef) + a grant number → funderId + awardId.
             "disambiguated-organization": {
-              "disambiguated-organization-identifier":
-                "http://dx.doi.org/10.13039/501100001665",
+              "disambiguated-organization-identifier": "http://dx.doi.org/10.13039/501100001665",
               "disambiguation-source": "FUNDREF",
             },
           },
@@ -79,9 +78,7 @@ const FUNDINGS = {
           title: { title: { value: "Seed grant" } },
           organization: { name: "Local Org" },
           "external-ids": {
-            "external-id": [
-              { "external-id-type": "other", "external-id-value": "SEED-2020" },
-            ],
+            "external-id": [{ "external-id-type": "other", "external-id-value": "SEED-2020" }],
           },
         },
       ],
@@ -210,9 +207,7 @@ describe("fetchOrcidFundings", () => {
     const { fetchOrcidPositions, fetchOrcidFundings } = await freshClient();
     await fetchOrcidPositions("0000-0002-7483-2489");
     await fetchOrcidFundings("0000-0002-7483-2489");
-    const tokenCalls = fetchMock.mock.calls.filter((c) =>
-      String(c[0]).includes("/oauth/token"),
-    );
+    const tokenCalls = fetchMock.mock.calls.filter((c) => String(c[0]).includes("/oauth/token"));
     expect(tokenCalls).toHaveLength(1);
   });
 

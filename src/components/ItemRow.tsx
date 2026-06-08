@@ -85,9 +85,7 @@ export default function ItemRow({
   const title = item.csl?.title ?? item.displayText ?? u.itemUntitled;
   const year = item.meta.year ?? "—";
   const venue =
-    typeof item.csl?.["container-title"] === "string"
-      ? item.csl["container-title"]
-      : "";
+    typeof item.csl?.["container-title"] === "string" ? item.csl["container-title"] : "";
 
   // Where this entry's data came from (hover to see). "+ Crossref" when its
   // bibliographic gaps were filled by Crossref.
@@ -159,9 +157,7 @@ export default function ItemRow({
                   item.meta.matchBasis === "openalex-id" ? " is-weak-match" : ""
                 }`}
                 title={
-                  item.meta.matchBasis === "openalex-id"
-                    ? u.matchedByIdOnly
-                    : u.matchedByIdentifier
+                  item.meta.matchBasis === "openalex-id" ? u.matchedByIdOnly : u.matchedByIdentifier
                 }
               >
                 {t(locale, "youBadge")}
@@ -172,9 +168,7 @@ export default function ItemRow({
                 {t(locale, "notMineBadge")}
               </span>
             ) : null}
-            {item.authoredBySelf &&
-            item.meta.reviewFlag === "orcid-conflict" &&
-            !item.notMine ? (
+            {item.authoredBySelf && item.meta.reviewFlag === "orcid-conflict" && !item.notMine ? (
               <span className="cv-review-badge" title={t(locale, "reviewHint")}>
                 {t(locale, "reviewBadge")}
               </span>
@@ -203,9 +197,7 @@ export default function ItemRow({
             className="cv-reason-select"
             value={item.notMineReason ?? ""}
             onChange={(e) =>
-              onSetNotMineReason(
-                e.target.value ? (e.target.value as NotMineReason) : undefined,
-              )
+              onSetNotMineReason(e.target.value ? (e.target.value as NotMineReason) : undefined)
             }
             aria-label={t(locale, "reasonAria")}
             title={t(locale, "reasonAria")}
@@ -219,59 +211,59 @@ export default function ItemRow({
           </select>
         ) : null}
         <div className="cv-item-actions">
-        <button
-          type="button"
-          className="icon-btn"
-          onClick={onMoveUp}
-          disabled={isFirst}
-          aria-label={t(locale, "moveUp")}
-          title={t(locale, "moveUp")}
-        >
-          ↑
-        </button>
-        <button
-          type="button"
-          className="icon-btn"
-          onClick={onMoveDown}
-          disabled={isLast}
-          aria-label={t(locale, "moveDown")}
-          title={t(locale, "moveDown")}
-        >
-          ↓
-        </button>
-        <button
-          type="button"
-          className="mine-btn"
-          onClick={onToggleIncluded}
-          aria-pressed={!item.included}
-          aria-label={`${item.included ? t(locale, "hide") : t(locale, "show")}: ${title}`}
-          title={t(locale, "hideHint")}
-        >
-          {item.included ? t(locale, "hide") : t(locale, "show")}
-        </button>
-        {canMarkNotMine ? (
           <button
             type="button"
-            className={`mine-btn${item.notMine ? " is-restore" : ""}`}
-            onClick={onToggleNotMine}
-            aria-pressed={item.notMine}
-            aria-label={`${item.notMine ? t(locale, "mine") : t(locale, "notMine")}: ${title}`}
-            title={t(locale, "notMineHint")}
+            className="icon-btn"
+            onClick={onMoveUp}
+            disabled={isFirst}
+            aria-label={t(locale, "moveUp")}
+            title={t(locale, "moveUp")}
           >
-            {item.notMine ? t(locale, "mine") : t(locale, "notMine")}
+            ↑
           </button>
-        ) : null}
-        {isManual && onRemove ? (
           <button
             type="button"
-            className="mine-btn is-delete"
-            onClick={onRemove}
-            title={t(locale, "delete")}
-            aria-label={t(locale, "delete")}
+            className="icon-btn"
+            onClick={onMoveDown}
+            disabled={isLast}
+            aria-label={t(locale, "moveDown")}
+            title={t(locale, "moveDown")}
           >
-            {t(locale, "delete")}
+            ↓
           </button>
-        ) : null}
+          <button
+            type="button"
+            className="mine-btn"
+            onClick={onToggleIncluded}
+            aria-pressed={!item.included}
+            aria-label={`${item.included ? t(locale, "hide") : t(locale, "show")}: ${title}`}
+            title={t(locale, "hideHint")}
+          >
+            {item.included ? t(locale, "hide") : t(locale, "show")}
+          </button>
+          {canMarkNotMine ? (
+            <button
+              type="button"
+              className={`mine-btn${item.notMine ? " is-restore" : ""}`}
+              onClick={onToggleNotMine}
+              aria-pressed={item.notMine}
+              aria-label={`${item.notMine ? t(locale, "mine") : t(locale, "notMine")}: ${title}`}
+              title={t(locale, "notMineHint")}
+            >
+              {item.notMine ? t(locale, "mine") : t(locale, "notMine")}
+            </button>
+          ) : null}
+          {isManual && onRemove ? (
+            <button
+              type="button"
+              className="mine-btn is-delete"
+              onClick={onRemove}
+              title={t(locale, "delete")}
+              aria-label={t(locale, "delete")}
+            >
+              {t(locale, "delete")}
+            </button>
+          ) : null}
         </div>
       </div>
     </li>

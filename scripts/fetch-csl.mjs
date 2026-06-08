@@ -10,10 +10,8 @@ const ASSETS = join(__dirname, "..", "src", "lib", "citeproc", "assets");
 const STYLES_DIR = join(ASSETS, "styles");
 const LOCALES_DIR = join(ASSETS, "locales");
 
-const STYLES_BASE =
-  "https://raw.githubusercontent.com/citation-style-language/styles/master";
-const LOCALES_BASE =
-  "https://raw.githubusercontent.com/citation-style-language/locales/master";
+const STYLES_BASE = "https://raw.githubusercontent.com/citation-style-language/styles/master";
+const LOCALES_BASE = "https://raw.githubusercontent.com/citation-style-language/locales/master";
 
 // The starter set offered in the UI. Add more keys here as needed.
 // Use only INDEPENDENT styles (dependent styles need parent resolution, which
@@ -61,10 +59,7 @@ async function main() {
 
   console.log("Fetching CSL locales…");
   for (const l of LOCALES) {
-    await download(
-      `${LOCALES_BASE}/locales-${l}.xml`,
-      join(LOCALES_DIR, `locales-${l}.xml`),
-    );
+    await download(`${LOCALES_BASE}/locales-${l}.xml`, join(LOCALES_DIR, `locales-${l}.xml`));
   }
 
   console.log("Done. CSL assets are in src/lib/citeproc/assets/.");

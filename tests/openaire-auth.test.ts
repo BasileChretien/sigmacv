@@ -4,10 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const { getEnvMock } = vi.hoisted(() => ({ getEnvMock: vi.fn() }));
 vi.mock("@/lib/env", () => ({ getEnv: getEnvMock }));
 
-import {
-  getOpenaireAccessToken,
-  resetOpenaireTokenCache,
-} from "@/lib/openaire/auth";
+import { getOpenaireAccessToken, resetOpenaireTokenCache } from "@/lib/openaire/auth";
 
 function mockFetch(impl: (url: unknown) => Response | Promise<Response>) {
   vi.stubGlobal("fetch", vi.fn(impl));
@@ -45,9 +42,7 @@ describe("getOpenaireAccessToken", () => {
       return tokenResponse("access-1");
     });
     expect(await getOpenaireAccessToken(1000)).toBe("access-1");
-    expect(decodeURIComponent(calledUrl)).toContain(
-      "getAccessToken?refreshToken=refresh-xyz",
-    );
+    expect(decodeURIComponent(calledUrl)).toContain("getAccessToken?refreshToken=refresh-xyz");
   });
 
   it("caches the access token until shortly before expiry", async () => {

@@ -76,7 +76,12 @@ describe("profilePageJsonLd", () => {
   it("accepts a full ror.org URL form as-is (no double prefix)", () => {
     const cv = makeCv({
       employments: [
-        { putCode: "e", organization: "Nagoya University", startYear: 2024, rorId: "https://ror.org/04chrp450" },
+        {
+          putCode: "e",
+          organization: "Nagoya University",
+          startYear: 2024,
+          rorId: "https://ror.org/04chrp450",
+        },
       ],
     });
     const org = JSON.parse(profilePageJsonLd(cv, "s")).mainEntity.affiliation;
@@ -87,7 +92,12 @@ describe("profilePageJsonLd", () => {
   it("OMITS the @id when rorId is a foreign (non-ror.org) URL — never an attacker URL", () => {
     const cv = makeCv({
       employments: [
-        { putCode: "e", organization: "Evil Lab", startYear: 2024, rorId: "https://evil.example/x" },
+        {
+          putCode: "e",
+          organization: "Evil Lab",
+          startYear: 2024,
+          rorId: "https://evil.example/x",
+        },
       ],
     });
     const org = JSON.parse(profilePageJsonLd(cv, "s")).mainEntity.affiliation;
@@ -121,7 +131,13 @@ describe("profilePageJsonLd", () => {
   it("picks the most recent visible position (skips a hidden top one)", () => {
     let cv = makeCv({
       employments: [
-        { putCode: "cur", organization: "Current University", endYear: undefined, startYear: 2024, rorId: "04chrp450" },
+        {
+          putCode: "cur",
+          organization: "Current University",
+          endYear: undefined,
+          startYear: 2024,
+          rorId: "04chrp450",
+        },
         { putCode: "old", organization: "Older Institute", startYear: 2015, endYear: 2020 },
       ],
     });

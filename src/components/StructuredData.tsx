@@ -20,10 +20,7 @@ interface StructuredDataProps {
 
 const NAME = "SigmaCV";
 
-export default function StructuredData({
-  locale,
-  description,
-}: StructuredDataProps) {
+export default function StructuredData({ locale, description }: StructuredDataProps) {
   const { github, linkedin } = getSiteLinks();
   const sameAs = [github, linkedin].filter((u) => u.length > 0);
 

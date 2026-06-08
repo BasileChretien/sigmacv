@@ -10,15 +10,9 @@
   "license": "https://spdx.org/licenses/Apache-2.0",
   "version": "0.1.0",
   "dateModified": "2026-06-05",
-  "programmingLanguage": [
-    "TypeScript"
-  ],
+  "programmingLanguage": ["TypeScript"],
   "runtimePlatform": "Node.js",
-  "operatingSystem": [
-    "Linux",
-    "macOS",
-    "Windows"
-  ],
+  "operatingSystem": ["Linux", "macOS", "Windows"],
   "keywords": [
     "academic CV",
     "curriculum vitae",

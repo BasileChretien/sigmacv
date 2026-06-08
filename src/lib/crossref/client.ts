@@ -56,7 +56,10 @@ export async function fetchCrossrefGapFields(
   doi: string,
   mailto: string,
 ): Promise<CrossrefGapFields | null> {
-  const bare = doi.trim().toLowerCase().replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
+  const bare = doi
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
   if (!DOI_RE.test(bare)) return null;
 
   const url = new URL(`${CROSSREF_API}/${encodeURIComponent(bare)}`);
@@ -157,8 +160,7 @@ function parseGrantItem(raw: unknown): CrossrefGrant | null {
     funderName,
     funderId,
     startYear:
-      firstYearFromDateParts(project?.["award-start"]) ??
-      firstYearFromDateParts(work.issued),
+      firstYearFromDateParts(project?.["award-start"]) ?? firstYearFromDateParts(work.issued),
     endYear: firstYearFromDateParts(project?.["award-end"]),
   };
 }

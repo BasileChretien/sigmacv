@@ -51,7 +51,10 @@ describe("fetchJournalNamesByIssn", () => {
 
   it("fails soft to an empty map on an HTTP error", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.stubGlobal("fetch", vi.fn(async () => jsonRes({}, false, 404)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonRes({}, false, 404)),
+    );
     expect((await fetchJournalNamesByIssn(["1471-2415"])).size).toBe(0);
   });
 });

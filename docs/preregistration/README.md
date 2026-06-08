@@ -14,10 +14,12 @@ collected `ResearchEvent` rows. See `/privacy` and `src/lib/research/`.
 ## Studies
 
 ### 1. Tool / infrastructure paper
+
 - **Type:** descriptive (no confirmatory hypotheses); does not require user data.
 - **Source:** the canonical-object + single-renderer-interface design itself.
 
 ### 2. Author-disambiguation-error study
+
 - **Signal:** `disambiguation_assertion` events — "not mine" flips with a
   structured `reason`, the build-computed `reviewFlag`, `authoredBySelf`, and
   (planned) the identifier-match basis.
@@ -26,6 +28,7 @@ collected `ResearchEvent` rows. See `/privacy` and `src/lib/research/`.
   complete the placeholders, register, and freeze the script before analysis.
 
 ### 3. Self-presentation / metric-norms study
+
 - **Signal:** `composition_snapshot` events — template, citation style, locale,
   highlight, metrics shown, peer-reviewed-only, publication order, authorship
   table/roles, charts, fonts, and per-section visibility/order/counts.
@@ -34,6 +37,7 @@ collected `ResearchEvent` rows. See `/privacy` and `src/lib/research/`.
   placeholders, register, and freeze the script before analysis.
 
 ## Checklist before any confirmatory analysis
+
 - [ ] IRB protocol number recorded here
 - [ ] OSF (or equivalent) pre-registration link recorded here
 - [ ] Consent version(s) in scope documented

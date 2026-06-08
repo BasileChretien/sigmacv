@@ -18,9 +18,7 @@ export interface PendingNotMineAssertion {
   assertedAt?: string;
 }
 
-export function pendingNotMineAssertions(
-  cv: CanonicalCv,
-): PendingNotMineAssertion[] {
+export function pendingNotMineAssertions(cv: CanonicalCv): PendingNotMineAssertion[] {
   const out: PendingNotMineAssertion[] = [];
   for (const section of cv.sections) {
     for (const item of section.items) {

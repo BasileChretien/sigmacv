@@ -28,24 +28,16 @@ describe("ensure-db: isUsableDatabaseUrl", () => {
     expect(isUsableDatabaseUrl(undefined as unknown as string)).toBe(false);
     expect(isUsableDatabaseUrl("mysql://u:p@host/db")).toBe(false);
     expect(
-      isUsableDatabaseUrl(
-        "postgresql://placeholder:placeholder@localhost:5432/placeholder",
-      ),
+      isUsableDatabaseUrl("postgresql://placeholder:placeholder@localhost:5432/placeholder"),
     ).toBe(false);
   });
 });
 
 describe("ensure-db: parseDatabaseUrl", () => {
   it("reads quoted, single-quoted, and bare values", () => {
-    expect(parseDatabaseUrl('DATABASE_URL="postgresql://a/b"')).toBe(
-      "postgresql://a/b",
-    );
-    expect(parseDatabaseUrl("DATABASE_URL=postgresql://a/b")).toBe(
-      "postgresql://a/b",
-    );
-    expect(parseDatabaseUrl("X=1\nDATABASE_URL='postgres://x'\nY=2")).toBe(
-      "postgres://x",
-    );
+    expect(parseDatabaseUrl('DATABASE_URL="postgresql://a/b"')).toBe("postgresql://a/b");
+    expect(parseDatabaseUrl("DATABASE_URL=postgresql://a/b")).toBe("postgresql://a/b");
+    expect(parseDatabaseUrl("X=1\nDATABASE_URL='postgres://x'\nY=2")).toBe("postgres://x");
   });
 
   it("returns null when absent or empty", () => {

@@ -41,8 +41,16 @@ describe("buildResearchExport", () => {
   it("emits one pseudonymous row per pre-registered event, with no direct id", () => {
     const subjects = [
       subject("user_a", [
-        { type: "curation_correction", payload: { itemId: "i1" }, createdAt: at("2026-01-01T00:00:00Z") },
-        { type: "composition_snapshot", payload: { template: "modern" }, createdAt: at("2026-01-02T00:00:00Z") },
+        {
+          type: "curation_correction",
+          payload: { itemId: "i1" },
+          createdAt: at("2026-01-01T00:00:00Z"),
+        },
+        {
+          type: "composition_snapshot",
+          payload: { template: "modern" },
+          createdAt: at("2026-01-02T00:00:00Z"),
+        },
       ]),
     ];
     const rows = buildResearchExport(subjects, SALT);
@@ -95,9 +103,11 @@ describe("buildResearchExport", () => {
 
   it("drops non-consenting subjects (defence in depth)", () => {
     const subjects = [
-      subject("user_a", [
-        { type: "curation_correction", payload: {}, createdAt: at("2026-01-01T00:00:00Z") },
-      ], false),
+      subject(
+        "user_a",
+        [{ type: "curation_correction", payload: {}, createdAt: at("2026-01-01T00:00:00Z") }],
+        false,
+      ),
     ];
     expect(buildResearchExport(subjects, SALT)).toEqual([]);
   });
@@ -106,7 +116,11 @@ describe("buildResearchExport", () => {
     const subjects = [
       subject("user_a", [
         { type: "page_view", payload: {}, createdAt: at("2026-01-01T00:00:00Z") },
-        { type: "disambiguation_assertion", payload: { asserted: true }, createdAt: at("2026-01-03T00:00:00Z") },
+        {
+          type: "disambiguation_assertion",
+          payload: { asserted: true },
+          createdAt: at("2026-01-03T00:00:00Z"),
+        },
       ]),
     ];
     const rows = buildResearchExport(subjects, SALT);
@@ -220,8 +234,20 @@ describe("toJsonl", () => {
   });
   it("emits one JSON object per line with a trailing newline", () => {
     const out = toJsonl([
-      { subject: "p1", consentVersion: 1, eventType: "composition_snapshot", at: "2026-01-01T00:00:00.000Z", payload: { a: 1 } },
-      { subject: "p2", consentVersion: 2, eventType: "curation_correction", at: "2026-01-02T00:00:00.000Z", payload: { b: 2 } },
+      {
+        subject: "p1",
+        consentVersion: 1,
+        eventType: "composition_snapshot",
+        at: "2026-01-01T00:00:00.000Z",
+        payload: { a: 1 },
+      },
+      {
+        subject: "p2",
+        consentVersion: 2,
+        eventType: "curation_correction",
+        at: "2026-01-02T00:00:00.000Z",
+        payload: { b: 2 },
+      },
     ]);
     const lines = out.split("\n");
     expect(lines).toHaveLength(3); // 2 rows + trailing ""
@@ -239,7 +265,10 @@ describe("researchExportGate (hard, off by default)", () => {
   });
 
   it("is disabled when the flag is set but the IRB ref is missing", () => {
-    const g = researchExportGate({ RESEARCH_EXPORT_ENABLED: "true", RESEARCH_EXPORT_PSEUDONYM_SALT: SALT });
+    const g = researchExportGate({
+      RESEARCH_EXPORT_ENABLED: "true",
+      RESEARCH_EXPORT_PSEUDONYM_SALT: SALT,
+    });
     expect(g.enabled).toBe(false);
     if (!g.enabled) expect(g.reason).toMatch(/IRB_REF/);
   });

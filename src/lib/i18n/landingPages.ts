@@ -48,10 +48,7 @@ export interface LandingPageStrings {
   backLink: string;
 }
 
-const LANDING_PAGES_I18N: Record<
-  Locale,
-  Record<LandingPageId, LandingPageStrings>
-> = {
+const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageStrings>> = {
   "en-US": {
     "orcid-to-cv": {
       metaTitle: "Turn your ORCID iD into an academic CV",
@@ -478,7 +475,8 @@ const LANDING_PAGES_I18N: Record<
       metaDescription:
         "Una plantilla de CV académico gratuita que se rellena sola. SigmaCV construye tu CV a partir de ORCID y OpenAlex, da formato a las citas y exporta a PDF, DOCX, LaTeX o Markdown.",
       navLabel: "Plantilla de CV académico",
-      heading: "Una plantilla de CV académico gratuita, completada automáticamente desde tu registro de investigación",
+      heading:
+        "Una plantilla de CV académico gratuita, completada automáticamente desde tu registro de investigación",
       subhead:
         "En lugar de una plantilla de CV académico en blanco, inicia sesión con ORCID y SigmaCV crea un CV limpio y con citas formateadas a partir de tu registro científico abierto, listo para seleccionar y exportar.",
       bullets: [
@@ -842,11 +840,13 @@ const LANDING_PAGES_I18N: Record<
       backLink: "← Zurück zu SigmaCV",
     },
     "academic-cv-template": {
-      metaTitle: "Kostenlose akademische Lebenslaufvorlage, automatisch ausgefüllt aus Ihrem Verzeichnis",
+      metaTitle:
+        "Kostenlose akademische Lebenslaufvorlage, automatisch ausgefüllt aus Ihrem Verzeichnis",
       metaDescription:
         "Eine kostenlose akademische Lebenslaufvorlage, die sich selbst ausfüllt. SigmaCV erstellt Ihren Lebenslauf aus ORCID und OpenAlex, formatiert Zitate und exportiert als PDF, DOCX, LaTeX oder Markdown.",
       navLabel: "Akademische Lebenslaufvorlage",
-      heading: "Eine kostenlose akademische Lebenslaufvorlage, automatisch aus Ihrem Forschungsverzeichnis ausgefüllt",
+      heading:
+        "Eine kostenlose akademische Lebenslaufvorlage, automatisch aus Ihrem Forschungsverzeichnis ausgefüllt",
       subhead:
         "Statt einer leeren akademischen Lebenslaufvorlage melden Sie sich mit ORCID an, und SigmaCV erstellt aus Ihrem offenen Forschungsverzeichnis einen übersichtlichen, mit formatierten Zitaten versehenen Lebenslauf — bereit zum Auswählen und Exportieren.",
       bullets: [
@@ -1210,11 +1210,13 @@ const LANDING_PAGES_I18N: Record<
       backLink: "← Voltar ao SigmaCV",
     },
     "academic-cv-template": {
-      metaTitle: "Modelo de currículo acadêmico gratuito, preenchido automaticamente do seu registro",
+      metaTitle:
+        "Modelo de currículo acadêmico gratuito, preenchido automaticamente do seu registro",
       metaDescription:
         "Um modelo de currículo acadêmico gratuito que se preenche sozinho. O SigmaCV constrói seu currículo a partir do ORCID e do OpenAlex, formata as citações e exporta para PDF, DOCX, LaTeX ou Markdown.",
       navLabel: "Modelo de currículo acadêmico",
-      heading: "Um modelo de currículo acadêmico gratuito, preenchido automaticamente do seu registro de pesquisa",
+      heading:
+        "Um modelo de currículo acadêmico gratuito, preenchido automaticamente do seu registro de pesquisa",
       subhead:
         "Em vez de um modelo de currículo acadêmico em branco, entre com o ORCID e o SigmaCV monta um currículo limpo, com citações formatadas, a partir do seu registro de pesquisa aberto — pronto para curar e exportar.",
       bullets: [
@@ -1762,11 +1764,13 @@ const LANDING_PAGES_I18N: Record<
       backLink: "← Назад к SigmaCV",
     },
     "academic-cv-template": {
-      metaTitle: "Бесплатный шаблон академического резюме, автоматически заполненный из вашего профиля",
+      metaTitle:
+        "Бесплатный шаблон академического резюме, автоматически заполненный из вашего профиля",
       metaDescription:
         "Бесплатный шаблон академического резюме, который заполняется сам. SigmaCV формирует ваше резюме из ORCID и OpenAlex, форматирует ссылки и экспортирует в PDF, DOCX, LaTeX или Markdown.",
       navLabel: "Шаблон академического резюме",
-      heading: "Бесплатный шаблон академического резюме, автоматически заполненный из ваших научных записей",
+      heading:
+        "Бесплатный шаблон академического резюме, автоматически заполненный из ваших научных записей",
       subhead:
         "Вместо пустого шаблона академического резюме войдите через ORCID, и SigmaCV соберёт аккуратное резюме с отформатированными ссылками из ваших открытых научных записей — готовое к отбору и экспорту.",
       bullets: [
@@ -1895,9 +1899,6 @@ const LANDING_PAGES_I18N: Record<
 };
 
 /** Localized copy for a given SEO landing page (falls back to English). */
-export function landingPageStrings(
-  page: LandingPageId,
-  locale: string,
-): LandingPageStrings {
+export function landingPageStrings(page: LandingPageId, locale: string): LandingPageStrings {
   return LANDING_PAGES_I18N[asLocale(locale)][page];
 }

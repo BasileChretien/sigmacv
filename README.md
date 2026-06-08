@@ -98,11 +98,13 @@ EU VPS.
 ## Local development
 
 ### Prerequisites
+
 - Node.js ≥ 20
 - A PostgreSQL database (run one with `docker compose up -d postgres`, or use any local/managed Postgres)
 - An ORCID API client (sandbox is free — see below)
 
 ### Setup
+
 ```bash
 cp .env.example .env          # then fill in the values
 npm install                   # also runs `prisma generate`
@@ -113,6 +115,7 @@ npm run dev                   # http://localhost:3000
 ```
 
 ### Registering an ORCID sandbox client
+
 1. Create a sandbox account at <https://sandbox.orcid.org>.
 2. Go to **Developer Tools** and register an application.
 3. Set the redirect URI to `http://localhost:3000/api/auth/callback/orcid`.
@@ -123,14 +126,15 @@ npm run dev                   # http://localhost:3000
 > OpenAlex pull independently against a real iD.
 
 ## Scripts
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Start the dev server |
-| `npm run build` / `npm start` | Production build / serve |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | Run Vitest unit tests |
-| `npm run fetch-csl` | Download CSL styles + locale into `src/lib/citeproc/assets` |
-| `npm run db:migrate` | `prisma migrate dev` |
+
+| Command                       | What it does                                                |
+| ----------------------------- | ----------------------------------------------------------- |
+| `npm run dev`                 | Start the dev server                                        |
+| `npm run build` / `npm start` | Production build / serve                                    |
+| `npm run typecheck`           | `tsc --noEmit`                                              |
+| `npm test`                    | Run Vitest unit tests                                       |
+| `npm run fetch-csl`           | Download CSL styles + locale into `src/lib/citeproc/assets` |
+| `npm run db:migrate`          | `prisma migrate dev`                                        |
 
 ## End-to-end tests (Playwright)
 
@@ -147,13 +151,16 @@ npm run e2e:install                              # Chromium + deps
 npm run db:push:e2e                              # create the test schema
 npm run e2e
 ```
+
 The harness refuses to run unless `DATABASE_URL` names a `*_e2e` database.
 
 ## Deployment (Docker Compose)
+
 ```bash
 cp .env.example .env          # set AUTH_URL, SITE_ADDRESS (your domain), secrets
 docker compose up --build -d
 ```
+
 Caddy terminates TLS and proxies to the app; the app applies migrations on
 startup and renders PDFs in-process.
 
@@ -189,4 +196,5 @@ automatically). Machine-readable software metadata is also provided in
 release).
 
 ## License
+
 [Apache-2.0](LICENSE). Bundled CSL styles are CC BY-SA 3.0 — see [`NOTICE`](NOTICE).

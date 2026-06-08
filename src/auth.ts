@@ -44,11 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // The ORCID provider's `providerAccountId` IS the ORCID iD. Persist it onto
     // the user row so it's queryable (and used for OpenAlex resolution).
     async signIn({ user, account }) {
-      if (
-        account?.provider === "orcid" &&
-        user.id &&
-        account.providerAccountId
-      ) {
+      if (account?.provider === "orcid" && user.id && account.providerAccountId) {
         try {
           await prisma.user.update({
             where: { id: user.id },

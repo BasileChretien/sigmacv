@@ -11,15 +11,8 @@ import {
   enrichCvWithCrossref,
   withRorProvenance,
 } from "@/lib/canonical/enrich";
-import {
-  CanonicalCvSchema,
-  safeParseCanonicalCv,
-  type CanonicalCv,
-} from "@/lib/canonical/schema";
-import {
-  fetchJournalNamesByIssn,
-  fetchWorksByAuthorIds,
-} from "@/lib/openalex/client";
+import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
+import { fetchJournalNamesByIssn, fetchWorksByAuthorIds } from "@/lib/openalex/client";
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
 import { normalizeOrcid } from "@/lib/openalex/types";
 import {
@@ -82,9 +75,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   const now = new Date().toISOString();
 
   const existing = await prisma.cv.findUnique({ where: { userId } });
-  const previousParsed = existing
-    ? safeParseCanonicalCv(existing.document)
-    : null;
+  const previousParsed = existing ? safeParseCanonicalCv(existing.document) : null;
   const previous = previousParsed?.success ? previousParsed.data : null;
 
   const resolved = await resolveAuthorByOrcid(orcid);
@@ -152,9 +143,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   // publisher/Publons org). Resolve ISSNs → journal names so the section reads
   // by journal, not by publisher. Best-effort: unresolved ISSNs keep the
   // publisher fallback.
-  const prIssns = peerReviews
-    .map((p) => p.issn)
-    .filter((x): x is string => Boolean(x));
+  const prIssns = peerReviews.map((p) => p.issn).filter((x): x is string => Boolean(x));
   if (prIssns.length > 0) {
     const names = await fetchJournalNamesByIssn(prIssns);
     for (const pr of peerReviews) {
@@ -246,10 +235,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
 
 /** Persist a curated canonical document. Keyed by userId — never trusts a
  *  client-supplied user id (no IDOR). Requires an existing row. */
-export async function saveCvForUser(
-  userId: string,
-  doc: CanonicalCv,
-): Promise<CanonicalCv> {
+export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<CanonicalCv> {
   const validated = CanonicalCvSchema.parse(doc);
   const existing = await prisma.cv.findUnique({ where: { userId } });
   if (!existing) throw new CvNotFoundError();
@@ -377,7 +363,5 @@ export async function listIndexablePublicSlugs(): Promise<string[]> {
     where: { published: true, publicIndexable: true, publicSlug: { not: null } },
     select: { publicSlug: true },
   });
-  return rows
-    .map((r) => r.publicSlug)
-    .filter((s): s is string => typeof s === "string");
+  return rows.map((r) => r.publicSlug).filter((s): s is string => typeof s === "string");
 }

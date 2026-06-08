@@ -36,9 +36,7 @@ function nonEmpty(s: unknown): string | undefined {
   return typeof s === "string" && s.trim() ? s.trim() : undefined;
 }
 
-export async function fetchDataciteOutputs(
-  orcid: string,
-): Promise<DataciteOutput[]> {
+export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutput[]> {
   const bare = normalizeOrcid(orcid);
   const url = new URL(DATACITE_API);
   url.searchParams.set(
@@ -62,9 +60,7 @@ export async function fetchDataciteOutputs(
       const type = nonEmpty(attr?.types?.resourceTypeGeneral);
       const doi = nonEmpty(attr?.doi)?.toLowerCase();
       if (!type || !doi || !INCLUDE_TYPES.has(type) || seen.has(doi)) continue;
-      const title = nonEmpty(
-        Array.isArray(attr?.titles) ? attr.titles[0]?.title : undefined,
-      );
+      const title = nonEmpty(Array.isArray(attr?.titles) ? attr.titles[0]?.title : undefined);
       if (!title) continue;
       seen.add(doi);
       const yearRaw = attr?.publicationYear;

@@ -59,7 +59,13 @@ describe("fetchIctrpTrials", () => {
 
   it("falls back to the scientific title, then the trial id; dedups by trialId", async () => {
     findMany.mockResolvedValue([
-      row({ trialId: "jRCT1", publicTitle: "", scientificTitle: "A Japanese study", registrationYear: null, recruitmentStatus: null }),
+      row({
+        trialId: "jRCT1",
+        publicTitle: "",
+        scientificTitle: "A Japanese study",
+        registrationYear: null,
+        recruitmentStatus: null,
+      }),
       row({ trialId: "jRCT1", publicTitle: "", scientificTitle: "A Japanese study" }), // dup id
     ]);
     const trials = await fetchIctrpTrials("Jane Roe", ["University of Oxford"]);

@@ -1,6 +1,6 @@
 # render/templates
 
-The **HTML** templates — the on-screen CV and the source of truth for each template's visual identity. (The DOCX/LaTeX exports don't re-implement these; they *resemble* them via `render/templateStyle.ts`.)
+The **HTML** templates — the on-screen CV and the source of truth for each template's visual identity. (The DOCX/LaTeX exports don't re-implement these; they _resemble_ them via `render/templateStyle.ts`.)
 
 - **`index.ts`** — the template registry (`classic`, `modern`, `sidebar`, `ats`, `rirekisho`); the editor's thumbnail gallery picks from it.
 - **`shared.ts`** — the common builder (header, sections, citation list, charts, authorship table, name highlight, print CSS) that the templates configure. Most logic lives here.

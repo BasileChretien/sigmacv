@@ -101,9 +101,7 @@ async function fetchOutputsOfType(
  * The researcher's datasets & software from OpenAIRE, matched by author ORCID.
  * De-duplicated by OpenAIRE id. Fails soft → [].
  */
-export async function fetchOpenaireOutputs(
-  orcid: string,
-): Promise<OpenaireOutput[]> {
+export async function fetchOpenaireOutputs(orcid: string): Promise<OpenaireOutput[]> {
   const bare = normalizeOrcid(orcid);
   if (!bare) return [];
   try {

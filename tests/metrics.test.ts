@@ -67,10 +67,7 @@ describe("formattedMetrics", () => {
 
   it("shows selected metrics in catalog order (field-contextualized first)", () => {
     const cv = withMetrics({ showMetrics: true, metrics: ["h_index", "2yr_mean_citedness"] });
-    expect(formattedMetrics(cv).map((m) => m.label)).toEqual([
-      "2-yr mean citedness",
-      "h-index",
-    ]);
+    expect(formattedMetrics(cv).map((m) => m.label)).toEqual(["2-yr mean citedness", "h-index"]);
   });
 
   it("omits selected metrics that have no captured value", () => {
@@ -125,10 +122,7 @@ describe("formattedMetrics", () => {
       showMetrics: true,
       metrics: ["h_index", "fwci_mean"],
     });
-    expect(formattedMetrics(cv).map((m) => m.label)).toEqual([
-      "Mean work FWCI",
-      "h-index",
-    ]);
+    expect(formattedMetrics(cv).map((m) => m.label)).toEqual(["Mean work FWCI", "h-index"]);
   });
 
   it("drops a selected metric that has no captured value", () => {
@@ -208,8 +202,12 @@ describe("curatedMetrics (field-normalized measures follow curation)", () => {
 
   it("counts letters (peer-reviewed) in the FWCI recompute only when countLetters is on", () => {
     // A "letter" is peer-reviewed but identified by document type.
-    const mk = (fwci: number, type?: string) =>
-      ({ csl: {}, included: true, notMine: false, meta: { fwci, peerReviewed: true, type, citedByCount: 1 } });
+    const mk = (fwci: number, type?: string) => ({
+      csl: {},
+      included: true,
+      notMine: false,
+      meta: { fwci, peerReviewed: true, type, citedByCount: 1 },
+    });
     const cv = (countLetters: boolean) =>
       ({
         display: { countLetters },
@@ -224,7 +222,20 @@ describe("curatedMetrics (field-normalized measures follow curation)", () => {
     const withEditorial = {
       display: { countLetters: true },
       owner: { metrics: {} },
-      sections: [{ type: "publications", items: [mk(2), { csl: {}, included: true, notMine: false, meta: { fwci: 9, peerReviewed: false, type: "editorial" } }] }],
+      sections: [
+        {
+          type: "publications",
+          items: [
+            mk(2),
+            {
+              csl: {},
+              included: true,
+              notMine: false,
+              meta: { fwci: 9, peerReviewed: false, type: "editorial" },
+            },
+          ],
+        },
+      ],
     } as unknown as CanonicalCv;
     expect(curatedMetrics(withEditorial).fwci_n).toBe(1); // editorial excluded (non-peer-reviewed)
   });

@@ -202,9 +202,7 @@ function issnFromGroupId(value: unknown): string | undefined {
   return v && /^issn:/i.test(v) ? v.slice(5).trim() : undefined;
 }
 
-export async function fetchOrcidPeerReviews(
-  orcid: string,
-): Promise<OrcidPeerReviewGroup[]> {
+export async function fetchOrcidPeerReviews(orcid: string): Promise<OrcidPeerReviewGroup[]> {
   try {
     const data = await orcidGet<any>(orcid, "peer-reviews");
     const out: OrcidPeerReviewGroup[] = [];

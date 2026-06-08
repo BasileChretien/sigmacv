@@ -10,13 +10,7 @@ import { getSiteLinks } from "@/lib/siteLinks";
  * Deliberately part of the app chrome (editor / landing), NOT the rendered CV —
  * it must never appear on a user's exported or published CV.
  */
-export default function SupportLink({
-  className,
-  locale,
-}: {
-  className?: string;
-  locale: string;
-}) {
+export default function SupportLink({ className, locale }: { className?: string; locale: string }) {
   const url = getSiteLinks().coffee;
   if (!url) return null;
   const u = ui(locale);

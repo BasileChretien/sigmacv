@@ -54,7 +54,10 @@ const BODY = {
 
 describe("fetchDataciteOutputs", () => {
   it("keeps datasets/software, excludes articles, dedups by DOI", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => res(BODY)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(BODY)),
+    );
     const out = await fetchDataciteOutputs("0000-0002-7483-2489");
     expect(out.map((o) => o.type)).toEqual(["Dataset", "Software"]);
     expect(out[0]).toMatchObject({
@@ -76,7 +79,10 @@ describe("fetchDataciteOutputs", () => {
   });
 
   it("fails soft on an API error", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => res({}, false, 500)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res({}, false, 500)),
+    );
     expect(await fetchDataciteOutputs("0000-0002-7483-2489")).toEqual([]);
   });
 });

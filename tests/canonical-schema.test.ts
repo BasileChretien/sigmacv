@@ -93,9 +93,7 @@ describe("DisplayChoicesSchema", () => {
     expect(DisplayChoicesSchema.safeParse({ accentColor: "red" }).success).toBe(false);
     expect(DisplayChoicesSchema.safeParse({ accentColor: "#fff" }).success).toBe(false);
     // Guards against CSS injection via the colour value.
-    expect(
-      DisplayChoicesSchema.safeParse({ accentColor: "#000; } body{x" }).success,
-    ).toBe(false);
+    expect(DisplayChoicesSchema.safeParse({ accentColor: "#000; } body{x" }).success).toBe(false);
   });
 
   it("rejects unknown font / density values", () => {

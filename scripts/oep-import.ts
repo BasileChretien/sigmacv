@@ -21,12 +21,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const DEFAULT_SEED = path.join(
-  ROOT,
-  "prisma",
-  "seed-data",
-  "oep-editorial-roles.ndjson.gz",
-);
+const DEFAULT_SEED = path.join(ROOT, "prisma", "seed-data", "oep-editorial-roles.ndjson.gz");
 const SEED = process.argv[2] ?? DEFAULT_SEED;
 const BATCH = 5_000;
 
@@ -42,9 +37,7 @@ interface SeedRecord {
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    console.error(
-      "DATABASE_URL is not set. Run via `npm run oep:import` (loads .env).",
-    );
+    console.error("DATABASE_URL is not set. Run via `npm run oep:import` (loads .env).");
     process.exit(1);
   }
 

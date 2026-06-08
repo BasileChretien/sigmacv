@@ -135,7 +135,9 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
   }
   if (cv.owner.orcid) {
     children.push(
-      new Paragraph({ children: [new TextRun({ text: `ORCID: ${cv.owner.orcid}`, italics: true })] }),
+      new Paragraph({
+        children: [new TextRun({ text: `ORCID: ${cv.owner.orcid}`, italics: true })],
+      }),
     );
   }
   if (head.contact.length) {
@@ -227,8 +229,7 @@ export const docxRenderer: Renderer = {
   async render({ cv }: RenderInput): Promise<RenderResult> {
     return {
       format: "docx",
-      mimeType:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       filename: `${cvSlug(cv.owner.displayName)}-cv.docx`,
       buffer: await renderCvDocxBuffer(cv),
     };

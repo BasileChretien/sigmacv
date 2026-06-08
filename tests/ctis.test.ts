@@ -12,9 +12,7 @@ function mock(searchData: unknown, details: Record<string, unknown>) {
       }
       const ct = decodeURIComponent(u.split("/retrieve/")[1] ?? "");
       const d = details[ct];
-      return Promise.resolve(
-        new Response(JSON.stringify(d ?? {}), { status: d ? 200 : 404 }),
-      );
+      return Promise.resolve(new Response(JSON.stringify(d ?? {}), { status: d ? 200 : 404 }));
     }),
   );
 }
@@ -150,7 +148,13 @@ describe("fetchCtisTrials", () => {
   it("drops a trial whose sites have no matching investigator", async () => {
     mock(
       { data: [{ ctNumber: "2024-1" }] },
-      { "2024-1": detail("2024-1", { firstName: "Someone", lastName: "Else" }, "Columbia University") },
+      {
+        "2024-1": detail(
+          "2024-1",
+          { firstName: "Someone", lastName: "Else" },
+          "Columbia University",
+        ),
+      },
     );
     expect(await fetchCtisTrials("Dawn Hershman", ["Columbia University"])).toEqual([]);
   });
@@ -164,7 +168,11 @@ describe("fetchCtisTrials", () => {
           ctNumber: "A",
           authorizedApplication: {
             authorizedPartsII: [
-              { trialSites: [{ organisationAddressInfo: { organisation: { name: "Columbia University" } } }] },
+              {
+                trialSites: [
+                  { organisationAddressInfo: { organisation: { name: "Columbia University" } } },
+                ],
+              },
             ],
           },
         },
@@ -202,7 +210,10 @@ describe("fetchCtisTrials", () => {
 
   it("fails soft on a non-OK search and on a thrown fetch", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response("err", { status: 500 }))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(new Response("err", { status: 500 }))),
+    );
     expect(await fetchCtisTrials("Dawn Hershman", ["Columbia University"])).toEqual([]);
     vi.stubGlobal(
       "fetch",

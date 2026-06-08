@@ -43,7 +43,14 @@ function emptyCv(): CanonicalCv {
     owner: { displayName: "Wei Zhang", orcid: ME },
     display: { locale: "en-US" },
     sections: [
-      { id: "publications", type: "publications", title: "Publications", visible: true, order: 0, items: [] },
+      {
+        id: "publications",
+        type: "publications",
+        title: "Publications",
+        visible: true,
+        order: 0,
+        items: [],
+      },
     ],
   } as unknown as CanonicalCv;
 }
@@ -78,9 +85,16 @@ describe("previewClaim", () => {
     mocks.fetchWork.mockResolvedValue(work());
     const cv = emptyCv();
     cv.sections[0]!.items.push({
-      id: "W777", source: "openalex", sourceId: "x",
+      id: "W777",
+      source: "openalex",
+      sourceId: "x",
       csl: { id: "W777", type: "article-journal", DOI: "10.7/x" },
-      included: true, notMine: false, order: 0, authoredBySelf: true, selfNameVariants: [], meta: {},
+      included: true,
+      notMine: false,
+      order: 0,
+      authoredBySelf: true,
+      selfNameVariants: [],
+      meta: {},
     });
     mocks.getCv.mockResolvedValue(cv);
     expect((await previewClaim("u1", ME, "10.7/x")).alreadyInCv).toBe(true);
@@ -116,9 +130,16 @@ describe("addClaimByDoi", () => {
     mocks.fetchWork.mockResolvedValue(work());
     const cv = emptyCv();
     cv.sections[0]!.items.push({
-      id: "W777", source: "openalex", sourceId: "x",
+      id: "W777",
+      source: "openalex",
+      sourceId: "x",
       csl: { id: "W777", type: "article-journal", DOI: "10.7/x" },
-      included: true, notMine: false, order: 0, authoredBySelf: true, selfNameVariants: [], meta: {},
+      included: true,
+      notMine: false,
+      order: 0,
+      authoredBySelf: true,
+      selfNameVariants: [],
+      meta: {},
     });
     mocks.getCv.mockResolvedValue(cv);
     const r = await addClaimByDoi("u1", ME, "10.7/x", 0);

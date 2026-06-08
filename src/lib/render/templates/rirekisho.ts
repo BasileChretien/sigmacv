@@ -1,5 +1,14 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
-import { attributionFooter, commonCss, escapeHtml, licenseFooter, pageShell, photoHtml, provenanceFooter, sectionsHtml } from "./shared";
+import {
+  attributionFooter,
+  commonCss,
+  escapeHtml,
+  licenseFooter,
+  pageShell,
+  photoHtml,
+  provenanceFooter,
+  sectionsHtml,
+} from "./shared";
 import type { CvTemplate, RenderedSection, TemplateTheme } from "./types";
 
 /**
@@ -82,7 +91,10 @@ function headerTable(cv: CanonicalCv): string {
   const p = o.personal ?? {};
   const c = o.contact ?? {};
   const photo = o.photo ? photoHtml(cv) : "写真";
-  const contactBits = [c.email, c.phone].filter(Boolean).map((s) => escapeHtml(String(s))).join(" ／ ");
+  const contactBits = [c.email, c.phone]
+    .filter(Boolean)
+    .map((s) => escapeHtml(String(s)))
+    .join(" ／ ");
   return `<table class="rk">
   <tr>
     <td class="rk-label">ふりがな</td>

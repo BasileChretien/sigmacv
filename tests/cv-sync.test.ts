@@ -121,7 +121,10 @@ beforeEach(() => {
   mocks.logCvSave.mockResolvedValue(undefined);
   mocks.fetchEditorial.mockResolvedValue([]);
   // Enrichment is a pass-through here (its own behaviour is in enrich.test.ts).
-  mocks.canonicalizeInstitutions.mockImplementation(async (input) => ({ result: input, used: false }));
+  mocks.canonicalizeInstitutions.mockImplementation(async (input) => ({
+    result: input,
+    used: false,
+  }));
   mocks.enrichCvWithCrossref.mockImplementation(async (cv) => cv);
   mocks.fetchPeerReviews.mockResolvedValue([]);
   mocks.fetchJournalNames.mockResolvedValue(new Map<string, string>());
@@ -173,9 +176,7 @@ describe("syncCvForUser", () => {
     mocks.fetchPeerReviews.mockResolvedValue([
       { issn: "1471-2415", organization: "Springer Nature", count: 2 },
     ]);
-    mocks.fetchJournalNames.mockResolvedValue(
-      new Map([["1471-2415", "BMC Ophthalmology"]]),
-    );
+    mocks.fetchJournalNames.mockResolvedValue(new Map([["1471-2415", "BMC Ophthalmology"]]));
     const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
     expect(mocks.fetchJournalNames).toHaveBeenCalledWith(["1471-2415"]);
     const pr = cv.sections.find((s) => s.type === "peer-review");
@@ -204,13 +205,33 @@ describe("syncCvForUser", () => {
       { key: "conf/x/1", title: "A paper", venue: "JCDL", year: 2021 },
     ]);
     mocks.fetchNih.mockResolvedValue([
-      { source: "nih", externalId: "5R01", title: "NIH grant", funder: "NIGMS", org: "Nagoya University", startYear: 2021 },
+      {
+        source: "nih",
+        externalId: "5R01",
+        title: "NIH grant",
+        funder: "NIGMS",
+        org: "Nagoya University",
+        startYear: 2021,
+      },
     ]);
     mocks.fetchClinicalTrials.mockResolvedValue([
-      { source: "clinicaltrials", registryId: "NCT1", title: "A trial", org: "Nagoya University", startYear: 2020 },
+      {
+        source: "clinicaltrials",
+        registryId: "NCT1",
+        title: "A trial",
+        org: "Nagoya University",
+        startYear: 2020,
+      },
     ]);
     mocks.fetchEpo.mockResolvedValue([
-      { source: "epo", publicationNumber: "EP1", title: "A patent", applicants: ["Nagoya University"], inventors: ["Basile Chrétien"], year: 2023 },
+      {
+        source: "epo",
+        publicationNumber: "EP1",
+        title: "A patent",
+        applicants: ["Nagoya University"],
+        inventors: ["Basile Chrétien"],
+        year: 2023,
+      },
     ]);
     mocks.fetchWikidata.mockResolvedValue({
       wikidataUri: "http://www.wikidata.org/entity/Q1",
@@ -229,9 +250,7 @@ describe("syncCvForUser", () => {
       "Basile Chrétien",
       expect.arrayContaining(["Nagoya University"]),
     );
-    const nih = cv.sections
-      .find((s) => s.type === "grants")
-      ?.items.find((i) => i.source === "nih");
+    const nih = cv.sections.find((s) => s.type === "grants")?.items.find((i) => i.source === "nih");
     expect(nih?.included).toBe(false);
     expect(nih?.meta.reviewFlag).toBe("name-matched");
     // The registries were queried with the display name + an org.

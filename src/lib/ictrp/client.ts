@@ -19,10 +19,7 @@ import type { ExternalTrial } from "@/lib/trials/types";
 /** Cap the rows pulled for one researcher (the surname filter can be broad). */
 const MAX_ROWS = 50;
 
-export async function fetchIctrpTrials(
-  name: string,
-  orgs: string[],
-): Promise<ExternalTrial[]> {
+export async function fetchIctrpTrials(name: string, orgs: string[]): Promise<ExternalTrial[]> {
   const person = personMatch(name, orgs);
   if (!person.surname || person.orgs.length === 0) return [];
   try {

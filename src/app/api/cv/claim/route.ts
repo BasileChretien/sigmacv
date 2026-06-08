@@ -65,9 +65,7 @@ export async function POST(req: Request) {
   const { doi, confirm, selfAuthorIndex } = parsed.data;
   try {
     if (!confirm) {
-      return NextResponse.json(
-        await previewClaim(session.user.id, session.user.orcid, doi),
-      );
+      return NextResponse.json(await previewClaim(session.user.id, session.user.orcid, doi));
     }
     return NextResponse.json(
       await addClaimByDoi(session.user.id, session.user.orcid, doi, selfAuthorIndex),

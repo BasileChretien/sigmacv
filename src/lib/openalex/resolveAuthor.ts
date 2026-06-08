@@ -49,15 +49,11 @@ export interface ResolvedAuthor {
  * and self-highlighting matches against every id — and treat the record with
  * the most works as primary for the display name.
  */
-export async function resolveAuthorByOrcid(
-  orcid: string,
-): Promise<ResolvedAuthor | null> {
+export async function resolveAuthorByOrcid(orcid: string): Promise<ResolvedAuthor | null> {
   const authors = await fetchAuthorsByOrcid(orcid);
   if (authors.length === 0) return null;
 
-  const sorted = [...authors].sort(
-    (a, b) => (b.works_count ?? 0) - (a.works_count ?? 0),
-  );
+  const sorted = [...authors].sort((a, b) => (b.works_count ?? 0) - (a.works_count ?? 0));
 
   const authorIds = sorted.map((a) => shortId(a.id)).filter(Boolean);
   const primary = sorted[0];
@@ -77,9 +73,7 @@ export async function resolveAuthorByOrcid(
   for (const a of primary?.affiliations ?? []) {
     const institution = a.institution?.display_name?.trim();
     if (!institution) continue;
-    const years = (a.years ?? []).filter(
-      (y): y is number => typeof y === "number",
-    );
+    const years = (a.years ?? []).filter((y): y is number => typeof y === "number");
     affiliations.push({
       institution,
       startYear: years.length ? Math.min(...years) : undefined,

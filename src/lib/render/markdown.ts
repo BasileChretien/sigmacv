@@ -44,16 +44,8 @@ export function renderCvMarkdown(cv: CanonicalCv): string {
       if (items.length === 0) return "";
       const lines = items.map(({ item, entry }, i) => {
         let text = escapeMarkdown(entry);
-        if (
-          cv.display.highlightSelf &&
-          item.authoredBySelf &&
-          item.selfNameVariants.length > 0
-        ) {
-          text = wrapSelf(
-            text,
-            item.selfNameVariants.map(escapeMarkdown),
-            (s) => `**${s}**`,
-          );
+        if (cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0) {
+          text = wrapSelf(text, item.selfNameVariants.map(escapeMarkdown), (s) => `**${s}**`);
         }
         return `${i + 1}. ${text}`;
       });

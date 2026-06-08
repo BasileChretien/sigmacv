@@ -36,10 +36,7 @@ export interface ClaimAuthor {
 }
 
 /** The author list of a fetched work, for the picker. */
-export function claimAuthors(
-  work: OpenAlexWork,
-  resolved: ResolvedAuthor,
-): ClaimAuthor[] {
+export function claimAuthors(work: OpenAlexWork, resolved: ResolvedAuthor): ClaimAuthor[] {
   const { matches } = makeSelfMatcher(resolved);
   return (work.authorships ?? []).map((a, i) => ({
     position: i + 1,
@@ -49,10 +46,7 @@ export function claimAuthors(
 }
 
 /** 0-based index of the author identified by ORCID / OpenAlex id, or -1. */
-export function selfIndexById(
-  work: OpenAlexWork,
-  resolved: ResolvedAuthor,
-): number {
+export function selfIndexById(work: OpenAlexWork, resolved: ResolvedAuthor): number {
   const { matches } = makeSelfMatcher(resolved);
   return (work.authorships ?? []).findIndex(matches);
 }
@@ -100,8 +94,8 @@ export function buildClaimedItem(
   const variants: string[] = !authoredBySelf
     ? []
     : matchBasis === "claimed"
-      ? [selfAuth!.author?.display_name ?? selfAuth!.raw_author_name].filter(
-          (x): x is string => Boolean(x),
+      ? [selfAuth!.author?.display_name ?? selfAuth!.raw_author_name].filter((x): x is string =>
+          Boolean(x),
         )
       : selfNameVariants(work, matches);
 

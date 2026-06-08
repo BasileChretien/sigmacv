@@ -256,10 +256,7 @@ export function grantPresetStrings(locale: string): GrantStrings {
 }
 
 /** Localized name + description for one grant preset. */
-export function grantPresetLabel(
-  locale: string,
-  id: GrantPresetId,
-): GrantPresetStrings {
+export function grantPresetLabel(locale: string, id: GrantPresetId): GrantPresetStrings {
   return grantPresetStrings(locale)[id];
 }
 

@@ -53,9 +53,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ html });
   } catch (err) {
     logger.error("api.cv_preview_failed", { err });
-    return NextResponse.json(
-      { error: "Failed to render preview" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to render preview" }, { status: 500 });
   }
 }

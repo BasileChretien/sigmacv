@@ -41,10 +41,7 @@ const WORK_SELECT = [
   "grants",
 ].join(",");
 
-async function openAlexGet<T>(
-  path: string,
-  params: Record<string, string>,
-): Promise<T> {
+async function openAlexGet<T>(path: string, params: Record<string, string>): Promise<T> {
   const url = new URL(`${OPENALEX_API}${path}`);
   // Polite pool: identify ourselves on every request.
   url.searchParams.set("mailto", getEnv().OPENALEX_MAILTO);
@@ -70,14 +67,12 @@ async function openAlexGet<T>(
 }
 
 /** Find all OpenAlex author records carrying a given ORCID iD. */
-export async function fetchAuthorsByOrcid(
-  orcid: string,
-): Promise<OpenAlexAuthor[]> {
+export async function fetchAuthorsByOrcid(orcid: string): Promise<OpenAlexAuthor[]> {
   const bare = normalizeOrcid(orcid);
-  const data = await openAlexGet<OpenAlexListResponse<OpenAlexAuthor>>(
-    "/authors",
-    { filter: `orcid:${bare}`, "per-page": "50" },
-  );
+  const data = await openAlexGet<OpenAlexListResponse<OpenAlexAuthor>>("/authors", {
+    filter: `orcid:${bare}`,
+    "per-page": "50",
+  });
   return data.results ?? [];
 }
 
@@ -176,9 +171,7 @@ interface OpenAlexSource {
  * organization/publisher that ORCID records. Returns an issn → name map; ISSNs
  * that don't resolve are simply absent (the caller falls back). Fails soft.
  */
-export async function fetchJournalNamesByIssn(
-  issns: string[],
-): Promise<Map<string, string>> {
+export async function fetchJournalNamesByIssn(issns: string[]): Promise<Map<string, string>> {
   const out = new Map<string, string>();
   const unique = [...new Set(issns.map((s) => s.trim()).filter(Boolean))];
   if (unique.length === 0) return out;
@@ -188,14 +181,11 @@ export async function fetchJournalNamesByIssn(
   for (let i = 0; i < unique.length; i += CHUNK) {
     const batch = unique.slice(i, i + CHUNK);
     try {
-      const data = await openAlexGet<OpenAlexListResponse<OpenAlexSource>>(
-        "/sources",
-        {
-          filter: `issn:${batch.join("|")}`,
-          select: "display_name,issn,issn_l",
-          "per-page": "200",
-        },
-      );
+      const data = await openAlexGet<OpenAlexListResponse<OpenAlexSource>>("/sources", {
+        filter: `issn:${batch.join("|")}`,
+        select: "display_name,issn,issn_l",
+        "per-page": "200",
+      });
       for (const src of data.results ?? []) {
         const name = src.display_name?.trim();
         if (!name) continue;

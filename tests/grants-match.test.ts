@@ -10,10 +10,7 @@ describe("tokenize", () => {
 });
 
 describe("matchesNameAndOrg — never name-only", () => {
-  const person = personMatch("Basile Chrétien", [
-    "Nagoya University",
-    "CHU de Caen Normandie",
-  ]);
+  const person = personMatch("Basile Chrétien", ["Nagoya University", "CHU de Caen Normandie"]);
 
   it("matches when BOTH a name and an organization match", () => {
     expect(matchesNameAndOrg(person, "Basile Chretien", "Nagoya University, Japan")).toBe(true);

@@ -31,9 +31,7 @@ let cached: CachedToken | null = null;
  * A valid OPS access token, or null when no credentials are configured / the
  * exchange fails. `now` is injectable for deterministic tests.
  */
-export async function getEpoAccessToken(
-  now: number = Date.now(),
-): Promise<string | null> {
+export async function getEpoAccessToken(now: number = Date.now()): Promise<string | null> {
   const { EPO_OPS_KEY, EPO_OPS_SECRET } = getEnv();
   if (!EPO_OPS_KEY || !EPO_OPS_SECRET) return null;
   if (cached && cached.expiresAt > now + EXPIRY_MARGIN_MS) return cached.token;

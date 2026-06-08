@@ -27,10 +27,7 @@ function cleanVariants(variants: string[]): string[] {
   return [...seen].sort((a, b) => b.length - a.length);
 }
 
-export function highlightSelf(
-  entryHtml: string,
-  nameVariants: string[],
-): string {
+export function highlightSelf(entryHtml: string, nameVariants: string[]): string {
   const variants = cleanVariants(nameVariants);
   if (variants.length === 0) return entryHtml;
 

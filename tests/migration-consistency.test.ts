@@ -108,9 +108,7 @@ function parseMigrations(): {
   const tables = new Map<string, ParsedTable>();
   const indexes: Array<{ table: string; columns: string[]; unique: boolean }> = [];
 
-  for (const [, table, bodyRaw] of sql.matchAll(
-    /CREATE TABLE "(\w+)"\s*\(([\s\S]*?)\);/g,
-  )) {
+  for (const [, table, bodyRaw] of sql.matchAll(/CREATE TABLE "(\w+)"\s*\(([\s\S]*?)\);/g)) {
     const columns = new Set<string>();
     let pk: string[] = [];
     for (const line of (bodyRaw as string).split("\n")) {
@@ -118,17 +116,12 @@ function parseMigrations(): {
       const col = t.match(/^"(\w+)"\s+/);
       if (col) columns.add(col[1] as string);
       const pkm = t.match(/PRIMARY KEY \(([^)]*)\)/);
-      if (pkm)
-        pk = (pkm[1] as string)
-          .split(",")
-          .map((c) => c.trim().replace(/^"|"$/g, ""));
+      if (pkm) pk = (pkm[1] as string).split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
     }
     tables.set(table as string, { columns, pk });
   }
 
-  for (const [, table, col] of sql.matchAll(
-    /ALTER TABLE "(\w+)" ADD COLUMN "(\w+)"/g,
-  )) {
+  for (const [, table, col] of sql.matchAll(/ALTER TABLE "(\w+)" ADD COLUMN "(\w+)"/g)) {
     tables.get(table as string)?.columns.add(col as string);
   }
 
@@ -137,9 +130,7 @@ function parseMigrations(): {
   )) {
     indexes.push({
       table: table as string,
-      columns: (colList as string)
-        .split(",")
-        .map((c) => c.trim().replace(/^"|"$/g, "")),
+      columns: (colList as string).split(",").map((c) => c.trim().replace(/^"|"$/g, "")),
       unique: Boolean(uniq),
     });
   }
@@ -206,10 +197,7 @@ describe("prisma migrations match schema.prisma", () => {
     expect(tables.get("OepEditorialRole")?.columns).toContain("orcid");
     expect(
       indexes.some(
-        (i) =>
-          i.table === "OepEditorialRole" &&
-          i.columns.length === 1 &&
-          i.columns[0] === "orcid",
+        (i) => i.table === "OepEditorialRole" && i.columns.length === 1 && i.columns[0] === "orcid",
       ),
     ).toBe(true);
   });

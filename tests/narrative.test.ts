@@ -101,7 +101,10 @@ describe("prose-section curate ops (pure + immutable)", () => {
 describe.skipIf(!hasApa)("prose sections in the full HTML render", () => {
   it("renders heading + paragraphs and turns '- ' lines into <li> across every template", () => {
     for (const template of ["classic", "modern", "sidebar", "ats", "rirekisho"] as const) {
-      const [base] = withKnowledge(makeCv(), "First para.\n\n- item one\n- item two\nfollow up line");
+      const [base] = withKnowledge(
+        makeCv(),
+        "First para.\n\n- item one\n- item two\nfollow up line",
+      );
       let cv = renameSection(
         base,
         base.sections.find((s) => s.type === "narrative-knowledge")!.id,
@@ -197,7 +200,14 @@ describe("v1 → v2 migration: narrative[] → prose sections", () => {
       },
       display: { locale: "en-US" },
       sections: [
-        { id: "publications", type: "publications", title: "Publications", visible: true, order: 0, items: [] },
+        {
+          id: "publications",
+          type: "publications",
+          title: "Publications",
+          visible: true,
+          order: 0,
+          items: [],
+        },
       ],
       presets: [],
       narrative,
@@ -257,9 +267,7 @@ describe("v1 → v2 migration: narrative[] → prose sections", () => {
     const cv = parseCanonicalCv(doc);
     const statements = cv.sections.filter((s) => s.type === "statement");
     expect(statements).toHaveLength(2);
-    expect(statements.map((s) => s.body).sort()).toEqual(
-      ["career break note", "odd body"].sort(),
-    );
+    expect(statements.map((s) => s.body).sort()).toEqual(["career break note", "odd body"].sort());
   });
 
   it("appends converted sections AFTER existing ones", () => {
@@ -274,9 +282,7 @@ describe("v1 → v2 migration: narrative[] → prose sections", () => {
     // Non-array narrative → just dropped, no throw.
     expect(() => parseCanonicalCv(v1Doc("not-an-array" as unknown))).not.toThrow();
     // Array with junk entries → skipped, no throw.
-    const cv = parseCanonicalCv(
-      v1Doc([null, 42, { key: "knowledge", body: "ok" }] as unknown),
-    );
+    const cv = parseCanonicalCv(v1Doc([null, 42, { key: "knowledge", body: "ok" }] as unknown));
     expect(cv.sections.find((s) => s.type === "narrative-knowledge")!.body).toBe("ok");
   });
 

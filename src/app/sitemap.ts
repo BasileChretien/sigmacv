@@ -1,10 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listIndexablePublicSlugs } from "@/lib/cv/sync";
-import {
-  DEFAULT_UI_LOCALE,
-  LOCALE_SLUGS,
-  SUPPORTED_LOCALES,
-} from "@/lib/i18n";
+import { DEFAULT_UI_LOCALE, LOCALE_SLUGS, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { LANDING_PAGE_IDS } from "@/lib/i18n/landingPages";
 import { absoluteUrl } from "@/lib/siteUrl";
 
@@ -21,12 +17,10 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const slug = (loc: string) => LOCALE_SLUGS[loc as keyof typeof LOCALE_SLUGS];
   const homePath = (loc: string) => (loc === DEFAULT_UI_LOCALE ? "/" : slug(loc));
-  const aboutPath = (loc: string) =>
-    loc === DEFAULT_UI_LOCALE ? "about" : `${slug(loc)}/about`;
+  const aboutPath = (loc: string) => (loc === DEFAULT_UI_LOCALE ? "about" : `${slug(loc)}/about`);
   const privacyPath = (loc: string) =>
     loc === DEFAULT_UI_LOCALE ? "privacy" : `${slug(loc)}/privacy`;
-  const faqPath = (loc: string) =>
-    loc === DEFAULT_UI_LOCALE ? "faq" : `${slug(loc)}/faq`;
+  const faqPath = (loc: string) => (loc === DEFAULT_UI_LOCALE ? "faq" : `${slug(loc)}/faq`);
   const accessibilityPath = (loc: string) =>
     loc === DEFAULT_UI_LOCALE ? "accessibility" : `${slug(loc)}/accessibility`;
   // SEO landing pages share the same path shape: bare segment for the default
@@ -76,33 +70,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: { languages: faqLanguages },
   }));
 
-  const accessibilityEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map(
-    (loc) => ({
-      url: absoluteUrl(accessibilityPath(loc)),
-      changeFrequency: "yearly",
-      priority: loc === DEFAULT_UI_LOCALE ? 0.4 : 0.3,
-      alternates: { languages: accessibilityLanguages },
-    }),
-  );
+  const accessibilityEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map((loc) => ({
+    url: absoluteUrl(accessibilityPath(loc)),
+    changeFrequency: "yearly",
+    priority: loc === DEFAULT_UI_LOCALE ? 0.4 : 0.3,
+    alternates: { languages: accessibilityLanguages },
+  }));
 
   // High-intent SEO landing pages — primary acquisition surfaces, so a higher
   // priority than the legal/info pages and a monthly change cadence. Iterates
   // LANDING_PAGE_IDS so any newly registered landing page is included here too.
-  const landingEntries: MetadataRoute.Sitemap = LANDING_PAGE_IDS.flatMap(
-    (segment) => {
-      const path = landingPath(segment);
-      const languages: Record<string, string> = {};
-      for (const loc of SUPPORTED_LOCALES) {
-        languages[loc] = absoluteUrl(path(loc));
-      }
-      return SUPPORTED_LOCALES.map((loc) => ({
-        url: absoluteUrl(path(loc)),
-        changeFrequency: "monthly" as const,
-        priority: loc === DEFAULT_UI_LOCALE ? 0.7 : 0.6,
-        alternates: { languages },
-      }));
-    },
-  );
+  const landingEntries: MetadataRoute.Sitemap = LANDING_PAGE_IDS.flatMap((segment) => {
+    const path = landingPath(segment);
+    const languages: Record<string, string> = {};
+    for (const loc of SUPPORTED_LOCALES) {
+      languages[loc] = absoluteUrl(path(loc));
+    }
+    return SUPPORTED_LOCALES.map((loc) => ({
+      url: absoluteUrl(path(loc)),
+      changeFrequency: "monthly" as const,
+      priority: loc === DEFAULT_UI_LOCALE ? 0.7 : 0.6,
+      alternates: { languages },
+    }));
+  });
 
   // Opt-in indexable public CVs — the privacy-preserving organic-growth loop.
   // Best-effort: a DB hiccup must not break the (static-content) sitemap.

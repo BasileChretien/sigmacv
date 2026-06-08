@@ -15,9 +15,7 @@ export interface TemplatePreview {
  * font, highlight) are kept so the thumbnail matches what the user will get.
  */
 export function sampleForPreview(cv: CanonicalCv): CanonicalCv {
-  const sections = cv.sections
-    .slice(0, 4)
-    .map((s) => ({ ...s, items: s.items.slice(0, 2) }));
+  const sections = cv.sections.slice(0, 4).map((s) => ({ ...s, items: s.items.slice(0, 2) }));
   return {
     ...cv,
     sections,

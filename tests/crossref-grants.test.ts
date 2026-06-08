@@ -28,9 +28,7 @@ const WORK_LIST = {
         issued: { "date-parts": [[2019, 11, 1]] },
         project: [
           {
-            "project-title": [
-              { title: "Biocontainment Level 2 high-parameter FACS" },
-            ],
+            "project-title": [{ title: "Biocontainment Level 2 high-parameter FACS" }],
             "award-start": { "date-parts": [[2019, 11, 1]] },
             "award-end": { "date-parts": [[2024, 10, 31]] },
             funding: [
@@ -97,10 +95,7 @@ describe("fetchCrossrefGrantsByOrcid", () => {
       return new Response(JSON.stringify(WORK_LIST), { status: 200 });
     });
     // Accepts the URL form; normalized to the bare iD for the filter.
-    const grants = await fetchCrossrefGrantsByOrcid(
-      `https://orcid.org/${ORCID}`,
-      MAILTO,
-    );
+    const grants = await fetchCrossrefGrantsByOrcid(`https://orcid.org/${ORCID}`, MAILTO);
     const decoded = decodeURIComponent(calledUrl);
     expect(decoded).toContain("filter=orcid:0000-0001-9773-0023,type:grant");
     expect(decoded).toContain("mailto=test@example.org");

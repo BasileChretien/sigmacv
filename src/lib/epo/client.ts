@@ -16,8 +16,7 @@ import { getEpoAccessToken } from "./auth";
  * configured the client is dormant and returns []. Fails soft → [].
  */
 
-const SEARCH_ENDPOINT =
-  "https://ops.epo.org/3.2/rest-services/published-data/search/biblio";
+const SEARCH_ENDPOINT = "https://ops.epo.org/3.2/rest-services/published-data/search/biblio";
 const USER_AGENT = "SigmaCV (+https://github.com/BasileChretien/sigmacv)";
 // A 25-result biblio page is small; cap the body to reject a pathological response.
 const MAX_BYTES = 4_000_000;
@@ -45,10 +44,7 @@ function nodeText(v: unknown): string | undefined {
 }
 
 /** Find the `<document-id>` of a given type within a `<publication-reference>`. */
-function documentId(
-  pubRef: unknown,
-  type: string,
-): Record<string, unknown> | undefined {
+function documentId(pubRef: unknown, type: string): Record<string, unknown> | undefined {
   const ids = toArray(asRecord(pubRef)?.["document-id"]);
   return ids.map(asRecord).find((id) => id?.["@_document-id-type"] === type);
 }
@@ -96,10 +92,7 @@ function partyNames(
   return [...out];
 }
 
-function parsePatents(
-  xml: string,
-  person: ReturnType<typeof personMatch>,
-): PatentRecord[] {
+function parsePatents(xml: string, person: ReturnType<typeof personMatch>): PatentRecord[] {
   const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_" });
   const doc = parser.parse(xml) as Record<string, unknown>;
   const root = asRecord(doc["ops:world-patent-data"]);
@@ -136,10 +129,7 @@ function parsePatents(
  * Patents where the account holder is a named inventor, matched by name + an
  * applicant organization. Review candidates (no ORCID). Fails soft → [].
  */
-export async function fetchEpoPatents(
-  name: string,
-  orgs: string[],
-): Promise<PatentRecord[]> {
+export async function fetchEpoPatents(name: string, orgs: string[]): Promise<PatentRecord[]> {
   const person = personMatch(name, orgs);
   if (!person.surname || person.orgs.length === 0) return [];
   const token = await getEpoAccessToken();

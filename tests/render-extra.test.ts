@@ -28,7 +28,12 @@ const resolved: ResolvedAuthor = {
 const hasApa = listAvailableStyles().includes("apa");
 
 function makeCv(): CanonicalCv {
-  return buildCanonicalCv({ id: "rx", resolved, works: baseWorks, now: "2026-06-02T00:00:00.000Z" });
+  return buildCanonicalCv({
+    id: "rx",
+    resolved,
+    works: baseWorks,
+    now: "2026-06-02T00:00:00.000Z",
+  });
 }
 
 function withMetrics(): CanonicalCv {
@@ -130,16 +135,13 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     expect(buf.length).toBeGreaterThan(0);
   });
 
-
   it("escapes non-citation displayText in HTML (grants with special chars)", () => {
     const cv = buildCanonicalCv({
       id: "g",
       resolved,
       works: baseWorks,
       now: "2026-06-02T00:00:00.000Z",
-      fundings: [
-        { putCode: "1", title: "Foo & <Bar> Trust", organization: "X & Y" },
-      ],
+      fundings: [{ putCode: "1", title: "Foo & <Bar> Trust", organization: "X & Y" }],
       editorialRoles: [{ journal: "BMJ", role: "Editor", startYear: 2020 }] as EditorialRole[],
     });
     const html = renderCvHtml(cv);
@@ -272,16 +274,12 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       // Citations span two orders of magnitude (1 vs 100) within one chart.
       const cv = {
         display: { showCharts: true, locale: "en-US", countLetters: false },
-        sections: [
-          { type: "publications", items: [mk(2020, 1), mk(2021, 100)] },
-        ],
+        sections: [{ type: "publications", items: [mk(2020, 1), mk(2021, 100)] }],
       } as unknown as CanonicalCv;
       const html = renderChartsHtml(cv);
       // Axis is honestly labelled so a log scale isn't misread as linear.
       expect(html).toContain("(log)");
-      const heights = [...html.matchAll(/<rect[^>]*height="(\d+)"/g)].map((m) =>
-        Number(m[1]),
-      );
+      const heights = [...html.matchAll(/<rect[^>]*height="(\d+)"/g)].map((m) => Number(m[1]));
       const tallest = Math.max(...heights);
       const smallestVisible = Math.min(...heights.filter((h) => h > 0));
       // The value-1 citation bar would be ~1px on a linear scale next to the
@@ -360,15 +358,23 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     });
 
     it("counts letters (peer-reviewed) in the per-year charts only when countLetters is on", () => {
-      const item = (year: number, type?: string) =>
-        ({ csl: {}, included: true, notMine: false, meta: { year, peerReviewed: true, type, citedByCount: 0 } });
+      const item = (year: number, type?: string) => ({
+        csl: {},
+        included: true,
+        notMine: false,
+        meta: { year, peerReviewed: true, type, citedByCount: 0 },
+      });
       const cv = (countLetters: boolean) =>
         ({
           display: { countLetters },
           sections: [{ type: "publications", items: [item(2018), item(2019, "letter")] }],
         }) as unknown as CanonicalCv;
       expect(curatedCountsByYear(cv(false)).map((c) => c.year)).toEqual([2018]); // letter year off
-      expect(curatedCountsByYear(cv(true)).map((c) => c.year).sort()).toEqual([2018, 2019]); // on
+      expect(
+        curatedCountsByYear(cv(true))
+          .map((c) => c.year)
+          .sort(),
+      ).toEqual([2018, 2019]); // on
     });
 
     it("a wrongly-attributed old work marked 'not mine' leaves the charts (1993 case)", () => {
@@ -433,9 +439,7 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     });
 
     it("omits the OA badge when showOpenAccess is off", () => {
-      expect(renderCvHtml(cvWith({ showOpenAccess: false }))).not.toContain(
-        'title="Open access',
-      );
+      expect(renderCvHtml(cvWith({ showOpenAccess: false }))).not.toContain('title="Open access');
     });
 
     it("renders the author-role badge when enabled (first, corresponding)", () => {

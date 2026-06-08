@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  BUNDLED_LOCALES,
-  getLocaleXml,
-  listAvailableStyles,
-} from "@/lib/citeproc/assets";
+import { BUNDLED_LOCALES, getLocaleXml, listAvailableStyles } from "@/lib/citeproc/assets";
 
 // These assert against the vendored locale XML (committed by fetch-csl).
 const vendored = listAvailableStyles().length > 0;

@@ -13,11 +13,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function study(
-  nctId: string,
-  briefTitle: string,
-  extra: Record<string, unknown>,
-): unknown {
+function study(nctId: string, briefTitle: string, extra: Record<string, unknown>): unknown {
   return {
     protocolSection: {
       identificationModule: { nctId, briefTitle },
@@ -52,7 +48,11 @@ describe("fetchClinicalTrials", () => {
               affiliation: "Stanford University",
               role: "PRINCIPAL_INVESTIGATOR",
             },
-            { name: "Stephanie M Smith, MD", affiliation: "Stanford University", role: "STUDY_DIRECTOR" },
+            {
+              name: "Stephanie M Smith, MD",
+              affiliation: "Stanford University",
+              role: "STUDY_DIRECTOR",
+            },
           ],
         },
       }),
@@ -60,7 +60,11 @@ describe("fetchClinicalTrials", () => {
       study("NCT00000000", "Other", {
         contactsLocationsModule: {
           overallOfficials: [
-            { name: "Kathleen Sakamoto", affiliation: "Harvard University", role: "PRINCIPAL_INVESTIGATOR" },
+            {
+              name: "Kathleen Sakamoto",
+              affiliation: "Harvard University",
+              role: "PRINCIPAL_INVESTIGATOR",
+            },
           ],
         },
       }),
@@ -106,7 +110,10 @@ describe("fetchClinicalTrials", () => {
   });
 
   it("fails soft on a non-OK response", async () => {
-    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response("x", { status: 500 }))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(new Response("x", { status: 500 }))),
+    );
     expect(await fetchClinicalTrials("Dawn Hershman", ["Columbia University"])).toEqual([]);
   });
 

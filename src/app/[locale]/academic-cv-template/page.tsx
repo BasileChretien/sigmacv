@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import LandingPage from "@/components/LandingPage";
-import {
-  DEFAULT_UI_LOCALE,
-  NON_DEFAULT_LOCALE_SLUGS,
-  localeForSlug,
-} from "@/lib/i18n";
+import { DEFAULT_UI_LOCALE, NON_DEFAULT_LOCALE_SLUGS, localeForSlug } from "@/lib/i18n";
 import { landingPageStrings } from "@/lib/i18n/landingPages";
-import {
-  landingPageLanguageAlternates,
-  localeLandingPagePath,
-} from "@/lib/seo";
+import { landingPageLanguageAlternates, localeLandingPagePath } from "@/lib/seo";
 
 const PAGE = "academic-cv-template" as const;
 

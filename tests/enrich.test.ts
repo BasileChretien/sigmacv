@@ -61,7 +61,14 @@ function makeCv(items: CvItem[]): CanonicalCv {
     },
     display: DisplayChoicesSchema.parse({}),
     sections: [
-      { id: "publications", type: "publications", title: "Publications", visible: true, order: 0, items },
+      {
+        id: "publications",
+        type: "publications",
+        title: "Publications",
+        visible: true,
+        order: 0,
+        items,
+      },
     ],
     presets: [],
     provenance: { generatedAt: "t0", lastSyncedAt: "t0", sources: ["openalex"] },
@@ -174,8 +181,10 @@ function pos(org: string): OrcidPosition {
 describe("canonicalizeInstitutions", () => {
   it("rewrites institution names to ROR's canonical form across all arrays", async () => {
     mocks.resolveInstitution.mockImplementation(async (name: string) => {
-      if (name === "Nagoya Univ.") return { id: "https://ror.org/04chrp450", name: "Nagoya University" };
-      if (name === "CHU Caen") return { id: "https://ror.org/051kpcy16", name: "Caen University Hospital" };
+      if (name === "Nagoya Univ.")
+        return { id: "https://ror.org/04chrp450", name: "Nagoya University" };
+      if (name === "CHU Caen")
+        return { id: "https://ror.org/051kpcy16", name: "Caen University Hospital" };
       return null;
     });
     const aff: ResolvedAffiliation = { institution: "Nagoya Univ.", startYear: 2024 };

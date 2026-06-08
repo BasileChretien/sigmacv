@@ -111,9 +111,7 @@ async function main(): Promise<void> {
     }
     await flush();
 
-    console.log(
-      `ICTRP import: done — ${total} rows imported (${skipped} CT.gov/EU rows skipped).`,
-    );
+    console.log(`ICTRP import: done — ${total} rows imported (${skipped} CT.gov/EU rows skipped).`);
   } finally {
     await prisma.$disconnect();
   }
