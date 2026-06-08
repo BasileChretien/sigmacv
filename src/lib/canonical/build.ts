@@ -508,9 +508,9 @@ function formatFundingText(f: OrcidFunding): string {
 }
 
 /**
- * Index OpenAlex paper-level `grants[]` by award number (lower-cased) so a
+ * Index OpenAlex paper-level `awards[]` by award number (lower-cased) so a
  * person-attributed ORCID funding lacking a disambiguated identifier can borrow
- * the matching OpenAlex funder id/name. OpenAlex grants are NOT a standalone
+ * the matching OpenAlex funder id/name. OpenAlex awards are NOT a standalone
  * source (they're often co-authors' funding) — only used to attach identifiers
  * to a grant the user already asserted via ORCID.
  */
@@ -519,12 +519,12 @@ export function indexFundersByAward(
 ): Map<string, { funderId?: string; funderName?: string }> {
   const out = new Map<string, { funderId?: string; funderName?: string }>();
   for (const w of works) {
-    for (const g of w.grants ?? []) {
-      const award = g.award_id?.trim().toLowerCase();
+    for (const a of w.awards ?? []) {
+      const award = a.funder_award_id?.trim().toLowerCase();
       if (!award || out.has(award)) continue;
       out.set(award, {
-        funderId: g.funder ?? undefined,
-        funderName: g.funder_display_name ?? undefined,
+        funderId: a.funder_id ?? undefined,
+        funderName: a.funder_display_name ?? undefined,
       });
     }
   }
@@ -534,7 +534,7 @@ export function indexFundersByAward(
 /**
  * Resolve the interoperable funder identifiers for one ORCID funding record.
  * ORCID's own disambiguated-organization id + org name + award number are
- * authoritative; an OpenAlex `grants[]` match (by award number) fills only the
+ * authoritative; an OpenAlex `awards[]` match (by award number) fills only the
  * funder id/name that ORCID didn't carry. Never invents an identifier.
  */
 export function resolveFunderIds(
@@ -553,7 +553,7 @@ export function resolveFunderIds(
  * Grants & funding from the user's OWN ORCID funding records (person-attributed),
  * NOT OpenAlex paper-level awards (which are often co-authors'). Funder/award
  * identifiers come from ORCID's disambiguated organization + external ids, with
- * OpenAlex `grants[]` (matched by award number) filling a missing funder id only.
+ * OpenAlex `awards[]` (matched by award number) filling a missing funder id only.
  * Manual entries are carried over.
  */
 /** "<title>, <funder> (<years>)" for a Crossref Grant Linking System grant. */

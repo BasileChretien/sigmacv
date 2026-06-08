@@ -687,27 +687,27 @@ describe("buildCanonicalCv — external-source sections", () => {
 });
 
 describe("indexFundersByAward", () => {
-  it("indexes OpenAlex grants by lower-cased award number (first wins)", () => {
+  it("indexes OpenAlex awards by lower-cased award number (first wins)", () => {
     const ws = [
       {
         id: "https://openalex.org/W1",
-        grants: [
+        awards: [
           {
-            funder: "https://openalex.org/F1",
+            funder_id: "https://openalex.org/F1",
             funder_display_name: "Funder One",
-            award_id: "AB-1",
+            funder_award_id: "AB-1",
           },
           // Duplicate award number → the first entry is kept.
           {
-            funder: "https://openalex.org/F2",
+            funder_id: "https://openalex.org/F2",
             funder_display_name: "Funder Two",
-            award_id: "ab-1",
+            funder_award_id: "ab-1",
           },
           // No award id → skipped (can't be keyed).
-          { funder: "https://openalex.org/F3", award_id: null },
+          { funder_id: "https://openalex.org/F3", funder_award_id: null },
         ],
       },
-      // A work with no grants array at all.
+      // A work with no awards array at all.
       { id: "https://openalex.org/W2" },
     ] as unknown as OpenAlexWork[];
     const idx = indexFundersByAward(ws);
@@ -723,8 +723,12 @@ describe("resolveFunderIds", () => {
   const idx = indexFundersByAward([
     {
       id: "https://openalex.org/W1",
-      grants: [
-        { funder: "https://openalex.org/F1", funder_display_name: "OA Funder", award_id: "AB-1" },
+      awards: [
+        {
+          funder_id: "https://openalex.org/F1",
+          funder_display_name: "OA Funder",
+          funder_award_id: "AB-1",
+        },
       ],
     },
   ] as unknown as OpenAlexWork[]);

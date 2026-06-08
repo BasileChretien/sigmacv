@@ -92,16 +92,16 @@
       "doi": "https://doi.org/10.1000/example1",
       "pmid": "https://pubmed.ncbi.nlm.nih.gov/123456"
     },
-    "grants": [
+    "awards": [
       {
-        "funder": "https://openalex.org/F4320332161",
+        "funder_id": "https://openalex.org/F4320332161",
         "funder_display_name": "Agence Nationale de la Recherche",
-        "award_id": "ANR-18-CE17-0001"
+        "funder_award_id": "ANR-18-CE17-0001"
       },
       {
-        "funder": "https://openalex.org/F4320337357",
+        "funder_id": "https://openalex.org/F4320337357",
         "funder_display_name": "Co-author's funder",
-        "award_id": "OTHER-999"
+        "funder_award_id": "OTHER-999"
       }
     ]
   },
