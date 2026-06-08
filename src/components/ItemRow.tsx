@@ -23,6 +23,7 @@ const SOURCE_NAMES: Record<string, string> = {
   nsf: "NSF",
   clinicaltrials: "ClinicalTrials.gov",
   ctis: "EU CTIS",
+  ictrp: "WHO ICTRP",
   epo: "EPO",
   derived: "derived",
 };

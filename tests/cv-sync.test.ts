@@ -33,6 +33,7 @@ const mocks = vi.hoisted(() => ({
   fetchNsf: vi.fn(),
   fetchClinicalTrials: vi.fn(),
   fetchCtis: vi.fn(),
+  fetchIctrp: vi.fn(),
   fetchEpo: vi.fn(),
 }));
 
@@ -76,6 +77,7 @@ vi.mock("@/lib/nih/client", () => ({ fetchNihGrants: mocks.fetchNih }));
 vi.mock("@/lib/nsf/client", () => ({ fetchNsfGrants: mocks.fetchNsf }));
 vi.mock("@/lib/clinicaltrials/client", () => ({ fetchClinicalTrials: mocks.fetchClinicalTrials }));
 vi.mock("@/lib/ctis/client", () => ({ fetchCtisTrials: mocks.fetchCtis }));
+vi.mock("@/lib/ictrp/client", () => ({ fetchIctrpTrials: mocks.fetchIctrp }));
 vi.mock("@/lib/epo/client", () => ({ fetchEpoPatents: mocks.fetchEpo }));
 // Enrichment (ROR + Crossref) is covered by enrich.test.ts; keep it a no-op here.
 vi.mock("@/lib/canonical/enrich", () => ({
@@ -132,6 +134,7 @@ beforeEach(() => {
   mocks.fetchNsf.mockResolvedValue([]);
   mocks.fetchClinicalTrials.mockResolvedValue([]);
   mocks.fetchCtis.mockResolvedValue([]);
+  mocks.fetchIctrp.mockResolvedValue([]);
   mocks.fetchEpo.mockResolvedValue([]);
 });
 

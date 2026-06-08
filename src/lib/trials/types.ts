@@ -1,8 +1,9 @@
 /** A clinical trial the researcher appears on as an investigator (review
  *  candidate — matched by name + organization, never auto-trusted). */
 export interface ExternalTrial {
-  source: "clinicaltrials" | "ctis";
-  /** Registry id (NCT… for ClinicalTrials.gov, EUCT for CTIS). */
+  source: "clinicaltrials" | "ctis" | "ictrp";
+  /** Registry id (NCT… for ClinicalTrials.gov, EUCT for CTIS, the source-register
+   *  accession for WHO ICTRP — e.g. ISRCTN…, jRCT…, ChiCTR…). */
   registryId: string;
   title: string;
   status?: string;

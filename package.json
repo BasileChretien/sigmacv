@@ -21,6 +21,7 @@
     "resync": "node scripts/resync.mjs",
     "research:export": "dotenv -e .env -- tsx scripts/export-research-data.ts",
     "oep:import": "dotenv -e .env -- tsx scripts/oep-import.ts",
+    "ictrp:import": "dotenv -e .env -- tsx scripts/ictrp-import.ts",
     "db:generate": "prisma generate",
     "db:migrate": "dotenv -e .env -- prisma migrate dev",
     "db:push": "dotenv -e .env -- prisma db push",

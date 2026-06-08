@@ -191,6 +191,7 @@ export const CvItemSchema = z.object({
     "nsf",
     "clinicaltrials",
     "ctis",
+    "ictrp",
     "epo",
     "derived",
     "manual",
@@ -631,6 +632,7 @@ export const PROVENANCE_SOURCES = [
   "nsf",
   "clinicaltrials",
   "ctis",
+  "ictrp",
   "epo",
   "ror",
   // Provenance-only sources (enrich identity/affiliations, not CV items).
