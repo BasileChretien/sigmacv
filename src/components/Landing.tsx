@@ -46,6 +46,22 @@ const SOURCE_LINKS: { name: string; url: string }[] = [
 ];
 
 /**
+ * The six floating chips in the hero brand graphic, each cross-fading between two
+ * source names so all twelve sources appear over the animation loop (freezes on
+ * the first name under prefers-reduced-motion). The longer names sit on the three
+ * left-anchored chips (indices 0, 2, 4) so they extend into open space, not over
+ * the central medallion. Decorative (the chips are aria-hidden).
+ */
+const HERO_CHIPS: [string, string][] = [
+  ["OpenAlex", "Open Editors Plus"],
+  ["ORCID", "Wikidata"],
+  ["Crossref", "ClinicalTrials.gov"],
+  ["DataCite", "EU CTIS"],
+  ["OpenAIRE", "ROR"],
+  ["DBLP", "EPO"],
+];
+
+/**
  * The public marketing/landing markup, fully localized. Shared by the default
  * homepage ("/") and every localized variant ("/[locale]"). A server component:
  * it wires the shared sign-in server actions directly into the forms.
@@ -361,12 +377,12 @@ function HeroGraphic() {
 
       <span className="hg-medallion">Σ</span>
 
-      <span className="hg-chip hg-chip-1">OpenAlex</span>
-      <span className="hg-chip hg-chip-2">ORCID</span>
-      <span className="hg-chip hg-chip-3">Crossref</span>
-      <span className="hg-chip hg-chip-4">DataCite</span>
-      <span className="hg-chip hg-chip-5">OpenAIRE</span>
-      <span className="hg-chip hg-chip-6">DBLP</span>
+      {HERO_CHIPS.map(([first, second], i) => (
+        <span key={first} className={`hg-chip hg-chip-${i + 1}`}>
+          <span className="hg-chip-label hg-cyc-a">{first}</span>
+          <span className="hg-chip-label hg-cyc-b">{second}</span>
+        </span>
+      ))}
     </div>
   );
 }

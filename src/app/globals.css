@@ -2272,19 +2272,25 @@ textarea.prose-body {
 .hg-chip {
   position: absolute;
   z-index: 2;
-  display: inline-flex;
-  align-items: center;
+  /* Stack both labels in one grid cell so the chip sizes to the wider name and
+     never reflows as they cross-fade. */
+  display: inline-grid;
   padding: 0.4rem 0.75rem;
   border-radius: var(--radius-full);
   background: var(--surface);
   border: 1px solid var(--border-strong);
   box-shadow: var(--shadow);
-  color: var(--text-secondary);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
-  white-space: nowrap;
 }
-.hg-chip::before {
+.hg-chip-label {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+.hg-chip-label::before {
   content: "";
   width: 0.45rem;
   height: 0.45rem;
@@ -2292,6 +2298,13 @@ textarea.prose-body {
   border-radius: 50%;
   background: var(--accent-500);
   flex: none;
+}
+/* Each chip's two labels cross-fade (all sources appear over the loop). */
+.hg-cyc-a {
+  animation: hg-cyc-a 8s var(--ease) infinite;
+}
+.hg-cyc-b {
+  animation: hg-cyc-b 8s var(--ease) infinite;
 }
 .hg-chip-1 {
   top: 8%;
@@ -2322,6 +2335,49 @@ textarea.prose-body {
   top: 41%;
   right: 0%;
   animation: hg-float-b 9.5s var(--ease) infinite alternate-reverse;
+}
+/* Stagger the per-chip name swaps so they don't all flip in unison. */
+.hg-chip-2 .hg-chip-label {
+  animation-delay: -1.3s;
+}
+.hg-chip-3 .hg-chip-label {
+  animation-delay: -2.6s;
+}
+.hg-chip-4 .hg-chip-label {
+  animation-delay: -4s;
+}
+.hg-chip-5 .hg-chip-label {
+  animation-delay: -5.3s;
+}
+.hg-chip-6 .hg-chip-label {
+  animation-delay: -6.6s;
+}
+/* Cross-fade between the two names: each is held ~44% of the loop. */
+@keyframes hg-cyc-a {
+  0%,
+  44% {
+    opacity: 1;
+  }
+  50%,
+  94% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes hg-cyc-b {
+  0%,
+  44% {
+    opacity: 0;
+  }
+  50%,
+  94% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes hg-flow {
@@ -2426,11 +2482,20 @@ textarea.prose-body {
   .hg-blob,
   .hg-line,
   .hg-medallion,
-  .hg-chip {
+  .hg-chip,
+  .hg-chip-label {
     animation: none !important;
   }
   .hg-line {
     stroke-dasharray: none;
+  }
+  /* With the cross-fade frozen, show only each chip's first name (the second
+     would otherwise sit at full opacity, overlapping it). */
+  .hg-cyc-a {
+    opacity: 1 !important;
+  }
+  .hg-cyc-b {
+    opacity: 0 !important;
   }
   .auth-card .btn-primary::after {
     display: none;
