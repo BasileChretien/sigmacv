@@ -21,13 +21,13 @@ can get one in a couple of minutes at [orcid.org](https://orcid.org).
 ### Is it free?
 
 Yes. SigmaCV is free for individuals and open source under the Apache-2.0 licence.
-You can run your own copy, or use the hosted version when it launches.
+You can run your own copy, or use the free hosted version at [sigmacv.org](https://sigmacv.org).
 
 ### Is it live yet?
 
-Not as a hosted service — SigmaCV is **pre-launch**. You can run your own copy
-today (see the [README](../README.md)), and a free hosted version that anyone can
-sign in to is planned. ⭐ Star or watch the repository to hear when it opens.
+Yes — SigmaCV is **live at [sigmacv.org](https://sigmacv.org)**. Sign in with your
+ORCID iD to build your CV, free. You can also run your own copy (see the
+[README](../README.md)). ⭐ Star or watch the repository to follow development.
 
 ### Where does my CV data come from?
 

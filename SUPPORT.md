@@ -22,4 +22,4 @@ Please do **not** open a public issue for a security problem. See [SECURITY.md](
 
 ---
 
-_SigmaCV is pre-launch and maintained not-for-profit, so replies may take a little time — thank you for your patience._
+_SigmaCV is maintained not-for-profit, so replies may take a little time — thank you for your patience._
