@@ -47,10 +47,11 @@ help them build one:
 - **Anyone simply curious** about their own scholarly footprint.
 
 You do **not** need any technical skills to use SigmaCV. You sign in and click.
-The smoothest way in is your **ORCID iD** — a free, unique identifier for
-researchers (think of it as a permanent digital name tag that stays with you
-across jobs, name changes, and journals, from [orcid.org](https://orcid.org)).
-You can also sign in with a **Google** account or a plain **email link**.
+You sign in with your **ORCID iD** — a free, unique identifier for researchers
+(think of it as a permanent digital name tag that stays with you across jobs,
+name changes, and journals, from [orcid.org](https://orcid.org)). It's also what
+lets SigmaCV find _your_ work reliably. _(Self-hosters can optionally enable
+**Google** and **email magic-link** sign-in as well — see below.)_
 
 ## What you get
 
@@ -92,8 +93,8 @@ You can also sign in with a **Google** account or a plain **email link**.
 
 ## How it works, in five steps
 
-1. **Sign in** — with your **ORCID iD**, a **Google account**, or an **email
-   magic link** (a one-time link sent to your inbox — no password to remember).
+1. **Sign in** — with your **ORCID iD** (free, and it takes a minute to create
+   at [orcid.org](https://orcid.org); it's also how SigmaCV finds your work).
 2. **Your CV appears** — SigmaCV looks you up across open sources and assembles
    your publications and academic history automatically. No copy-paste.
 3. **Curate** — remove anything that isn't yours, reorder entries, and choose
@@ -235,7 +236,7 @@ repository lives at
 | ---------------------- | ----------------------------------------------------------------------------------------- |
 | **Framework**          | Next.js 15 (App Router) + TypeScript                                                      |
 | **Database**           | PostgreSQL + Prisma                                                                       |
-| **Auth**               | Auth.js v5 (ORCID / Google / email magic link)                                            |
+| **Auth**               | Auth.js v5 — ORCID iD (Google + email magic-link optional, off by default)                |
 | **Citations**          | `citeproc-js` — the Citation Style Language (CSL) engine that also powers Zotero/Mendeley |
 | **PDF rendering**      | Playwright (HTML → PDF, headless Chromium)                                                |
 | **Validation / tests** | Zod · Vitest (1,000+ unit & integration tests)                                            |
@@ -282,6 +283,12 @@ Client ID / Secret into `.env` (keep `ORCID_ENVIRONMENT=sandbox`).
 > Sandbox ORCID iDs have no OpenAlex records, so you'll see no real publications
 > in the sandbox. Use `ORCID_ENVIRONMENT=production` with a production ORCID
 > client to pull live data.
+
+**Optional extra sign-ins.** ORCID is always available and is the primary login.
+You can additionally enable **Google** (set `GOOGLE_CLIENT_ID` +
+`GOOGLE_CLIENT_SECRET`) and an **email magic link** (set `EMAIL_SERVER` to an
+SMTP URL + `EMAIL_FROM`). Each stays hidden until its credentials are present, so
+the default deployment is ORCID-only — no dead buttons.
 
 ### Common commands
 
