@@ -117,6 +117,13 @@ describe("DisplayChoicesSchema", () => {
     expect(DisplayChoicesSchema.safeParse({ density: "huge" }).success).toBe(false);
   });
 
+  it("constrains locale to a BCP-47 shape and falls back on an injection-shaped value", () => {
+    expect(DisplayChoicesSchema.parse({ locale: "fr-FR" }).locale).toBe("fr-FR");
+    // A value carrying markup is neutralized to the default, never stored verbatim.
+    expect(DisplayChoicesSchema.parse({ locale: 'en-US"><script>' }).locale).toBe("en-US");
+    expect(DisplayChoicesSchema.parse({ locale: "x".repeat(80) }).locale).toBe("en-US");
+  });
+
   it("defaults cvLicense to none and accepts known licenses / rejects unknown", () => {
     expect(DisplayChoicesSchema.parse({}).cvLicense).toBe("none");
     expect(DisplayChoicesSchema.safeParse({ cvLicense: "CC-BY-4.0" }).success).toBe(true);

@@ -506,8 +506,15 @@ export const DisplayChoicesSchema = z.object({
    * its `id`, this XML is used instead of a bundled style. Optional + back-compat.
    */
   customStyle: CustomStyleSchema.optional(),
-  /** Bundled locale, e.g. "en-US". */
-  locale: z.string().max(64).default("en-US"),
+  /** Bundled locale, e.g. "en-US". Constrained to a BCP-47-shaped tag (the UI
+   *  only offers the ten supported locales); `.catch` keeps an old/garbage stored
+   *  value loading by falling back to en-US instead of failing the whole CV read,
+   *  and neutralizes any injection-shaped value before it reaches Intl/JSON-LD. */
+  locale: z
+    .string()
+    .regex(/^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$/)
+    .default("en-US")
+    .catch("en-US"),
   highlightSelf: z.boolean().default(true),
   /** How the self-name is emphasised (colour / bold / underline). */
   highlightStyle: z.enum(HIGHLIGHT_STYLES).default("accent"),

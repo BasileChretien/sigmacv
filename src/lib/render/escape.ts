@@ -44,8 +44,24 @@ export function escapeMarkdown(s: string): string {
 export function safeHref(url: string | undefined | null): string {
   const u = (url ?? "").trim();
   if (!u) return "";
-  if (/^https?:\/\//i.test(u) || /^mailto:/i.test(u)) return u;
+  let candidate: string;
+  if (/^https?:\/\//i.test(u) || /^mailto:/i.test(u)) candidate = u;
   // A bare domain/path with no scheme → treat as https.
-  if (/^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}(\/|$)/i.test(u)) return `https://${u}`;
-  return "";
+  else if (/^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}(\/|$)/i.test(u)) candidate = `https://${u}`;
+  else return "";
+  // Strip any userinfo (`user:pass@`) from an http(s) authority so a credential
+  // a user pasted into a profile link can't leak into an href on the public page
+  // or a LaTeX `\url{}`. Only rewrite when userinfo is actually present, so URL
+  // normalization never alters otherwise-fine links.
+  if (/^https?:\/\/[^/?#@]*@/i.test(candidate)) {
+    try {
+      const parsed = new URL(candidate);
+      parsed.username = "";
+      parsed.password = "";
+      candidate = parsed.toString();
+    } catch {
+      return "";
+    }
+  }
+  return candidate;
 }

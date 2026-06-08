@@ -22,7 +22,11 @@ export async function GET() {
     );
   }
 
-  const [user, accounts, sessions, cv, researchEvents] = await Promise.all([
+  // Bound the in-memory export of the research log, but report the true total so
+  // a GDPR/APPI export is never SILENTLY incomplete (the cap is far above any
+  // realistic consent history; if it's ever hit the payload says so).
+  const RESEARCH_EVENT_CAP = 50_000;
+  const [user, accounts, sessions, cv, researchEvents, researchEventsTotal] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -45,13 +49,12 @@ export async function GET() {
       select: { expires: true },
     }),
     prisma.cv.findUnique({ where: { userId } }),
-    // Bound the export so a long-consenting user's research log can't force an
-    // unbounded query + in-memory JSON serialization (newest events first).
     prisma.researchEvent.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      take: 50_000,
+      take: RESEARCH_EVENT_CAP,
     }),
+    prisma.researchEvent.count({ where: { userId } }),
   ]);
 
   const payload = {
@@ -61,6 +64,10 @@ export async function GET() {
     sessions,
     cv: cv?.document ?? null,
     researchEvents,
+    researchEventsTotal,
+    // True only in the (unrealistic) event the cap was reached — tells the user
+    // the export is partial rather than leaving them to assume it is complete.
+    researchEventsTruncated: researchEventsTotal > researchEvents.length,
   };
 
   return new NextResponse(JSON.stringify(payload, null, 2), {
