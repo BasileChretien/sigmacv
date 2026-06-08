@@ -35,6 +35,10 @@ interface ItemRowProps {
   isLast: boolean;
   onToggleIncluded: () => void;
   onToggleNotMine: () => void;
+  /** Whether this item is shown in the CURRENT view/preset (per-view selection). */
+  shownInView?: boolean;
+  /** Toggle this item in/out of the current view only (not a global hide). */
+  onToggleInView?: () => void;
   /** Set/clear the structured reason for a "not mine" assertion. */
   onSetNotMineReason?: (reason: NotMineReason | undefined) => void;
   onMoveUp: () => void;
@@ -56,6 +60,8 @@ export default function ItemRow({
   isLast,
   onToggleIncluded,
   onToggleNotMine,
+  shownInView = true,
+  onToggleInView,
   onSetNotMineReason,
   onMoveUp,
   onMoveDown,
@@ -103,6 +109,8 @@ export default function ItemRow({
     "cv-item-row",
     isHidden(item) ? "is-excluded" : "",
     item.notMine ? "is-not-mine" : "",
+    // Shown on the CV but omitted from the CURRENT view/preset (cosmetic).
+    !isHidden(item) && onToggleInView && !shownInView ? "is-view-hidden" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -241,6 +249,18 @@ export default function ItemRow({
           >
             {item.included ? t(locale, "hide") : t(locale, "show")}
           </button>
+          {onToggleInView && item.included && !item.notMine ? (
+            <button
+              type="button"
+              className={`mine-btn is-view${shownInView ? "" : " is-restore"}`}
+              onClick={onToggleInView}
+              aria-pressed={!shownInView}
+              aria-label={`${shownInView ? t(locale, "viewExclude") : t(locale, "viewInclude")}: ${title}`}
+              title={t(locale, "viewScopeHint")}
+            >
+              {shownInView ? t(locale, "viewExclude") : t(locale, "viewInclude")}
+            </button>
+          ) : null}
           {canMarkNotMine ? (
             <button
               type="button"

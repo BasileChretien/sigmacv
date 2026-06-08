@@ -23,7 +23,9 @@ import {
   addStructuredEntry,
   type ManualEntryFields,
   applyPreset,
+  clearViewExclusions,
   deletePreset,
+  isItemShownInView,
   moveItem,
   moveItemTo,
   moveSection,
@@ -33,9 +35,11 @@ import {
   removeSection,
   renameSection,
   savePreset,
+  setItemInView,
   setItemIncluded,
   setItemNotMine,
   setLocale,
+  viewExcludedIds,
   setSectionBody,
   setSectionVisible,
   updateDisplay,
@@ -1066,6 +1070,34 @@ export default function CvEditor({
                       </label>
                     ) : isExpanded ? (
                       <>
+                        {viewExcludedIds(cv.display, section.id).size > 0 ? (
+                          <p className="view-selection-note muted">
+                            {t(locale, "viewCount")
+                              .replace(
+                                "{n}",
+                                String(
+                                  items.filter(
+                                    (it) =>
+                                      it.included &&
+                                      !it.notMine &&
+                                      isItemShownInView(cv.display, section.id, it.id),
+                                  ).length,
+                                ),
+                              )
+                              .replace(
+                                "{m}",
+                                String(items.filter((it) => it.included && !it.notMine).length),
+                              )}
+                            {" · "}
+                            <button
+                              type="button"
+                              className="linklike"
+                              onClick={() => onChange(clearViewExclusions(cv, section.id))}
+                            >
+                              {t(locale, "viewShowAll")}
+                            </button>
+                          </p>
+                        ) : null}
                         {items.length === 0 ? (
                           <p className="muted empty-note">{t(locale, "noItems")}</p>
                         ) : (
@@ -1085,6 +1117,17 @@ export default function CvEditor({
                                     setItemNotMine(cv, section.id, item.id, !item.notMine, {
                                       now: new Date().toISOString(),
                                     }),
+                                  )
+                                }
+                                shownInView={isItemShownInView(cv.display, section.id, item.id)}
+                                onToggleInView={() =>
+                                  onChange(
+                                    setItemInView(
+                                      cv,
+                                      section.id,
+                                      item.id,
+                                      !isItemShownInView(cv.display, section.id, item.id),
+                                    ),
                                   )
                                 }
                                 onSetNotMineReason={(reason) =>
