@@ -261,7 +261,7 @@ export const CvItemSchema = z.object({
     funderId: z.string().max(2048).optional(),
     /** Human-readable funder name for a grant item (OpenAlex `funder_display_name` / ORCID org name). */
     funderName: z.string().max(1000).optional(),
-    /** Award / grant number for a grant item (OpenAlex `award_id` / ORCID grant external id). */
+    /** Award / grant number for a grant item (OpenAlex `awards[].funder_award_id` / ORCID grant external id). */
     awardId: z.string().max(500).optional(),
     /**
      * ISO timestamp of the build that last fetched this item from a LIVE source
