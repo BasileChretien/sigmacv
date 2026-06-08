@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
   __resetPublicPageCache,
+  dedupePublicRender,
   getCachedPublicPage,
   invalidatePublicPage,
   isKnownMiss,
   rememberMiss,
   setCachedPublicPage,
+  type PublicPageEntry,
 } from "@/lib/cv/publicPageCache";
 
 afterEach(() => __resetPublicPageCache());
@@ -56,6 +58,31 @@ describe("publicPageCache", () => {
     // the most-recent survives.
     expect(getCachedPublicPage("big-0", 5000)).toBeNull();
     expect(getCachedPublicPage("big-29", 5000)).not.toBeNull();
+  });
+
+  describe("dedupePublicRender (single-flight)", () => {
+    it("coalesces concurrent renders of the same slug into one", async () => {
+      let calls = 0;
+      const render = () =>
+        new Promise<PublicPageEntry>((resolve) => {
+          calls++;
+          setTimeout(() => resolve({ html: "<x>", indexable: false }), 5);
+        });
+      const results = await Promise.all(
+        Array.from({ length: 5 }, () => dedupePublicRender("dup", render)),
+      );
+      expect(calls).toBe(1); // rendered once despite 5 concurrent callers
+      expect(results.every((r) => r.html === "<x>")).toBe(true);
+    });
+
+    it("renders fresh again once the in-flight render settles", async () => {
+      let calls = 0;
+      const render = () =>
+        Promise.resolve<PublicPageEntry>({ html: String(++calls), indexable: false });
+      await dedupePublicRender("dup2", render);
+      await dedupePublicRender("dup2", render);
+      expect(calls).toBe(2);
+    });
   });
 
   describe("negative cache (unknown slugs)", () => {

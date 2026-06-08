@@ -89,6 +89,8 @@ vi.mock("@/lib/canonical/enrich", () => ({
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   CvNotFoundError,
+  CvTooLargeError,
+  cvItemCount,
   getCvForUser,
   getPublicCv,
   getPublicCvForPage,
@@ -98,6 +100,7 @@ import {
   setPublishState,
   syncCvForUser,
 } from "@/lib/cv/sync";
+import type { CvItem } from "@/lib/canonical/schema";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
 
@@ -295,6 +298,47 @@ describe("saveCvForUser", () => {
     await saveCvForUser("u1", DOC);
     expect(mocks.update).toHaveBeenCalledTimes(1);
     expect(mocks.logCvSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a save that exceeds the total-item cap, before any DB write", async () => {
+    const mkItem = (i: number): CvItem => ({
+      id: `i${i}`,
+      source: "manual",
+      sourceId: "m",
+      included: true,
+      notMine: false,
+      order: i,
+      authoredBySelf: false,
+      selfNameVariants: [],
+      meta: {},
+    });
+    const bomb = {
+      ...DOC,
+      sections: [
+        {
+          id: "publications",
+          type: "publications" as const,
+          title: "P",
+          visible: true,
+          order: 0,
+          items: Array.from({ length: 10_000 }, (_, i) => mkItem(i)),
+        },
+        {
+          id: "preprints",
+          type: "preprints" as const,
+          title: "Pre",
+          visible: true,
+          order: 1,
+          items: Array.from({ length: 2_001 }, (_, i) => mkItem(i + 10_000)),
+        },
+      ],
+    };
+    expect(cvItemCount(bomb)).toBe(12_001);
+    // Each section is within the per-section cap, so Zod parse succeeds — the
+    // total-item cap is what rejects it, and it does so before touching the DB.
+    mocks.findUnique.mockResolvedValue({ document: DOC });
+    await expect(saveCvForUser("u1", bomb)).rejects.toBeInstanceOf(CvTooLargeError);
+    expect(mocks.update).not.toHaveBeenCalled();
   });
 });
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
-import { CvNotFoundError, getCvForUser, saveCvForUser } from "@/lib/cv/sync";
+import { CvNotFoundError, CvTooLargeError, getCvForUser, saveCvForUser } from "@/lib/cv/sync";
 import { validateStyleXml } from "@/lib/citeproc/engine";
 import { logger } from "@/lib/log";
 import { readJsonBodyWithLimit } from "@/lib/readBody";
@@ -80,6 +80,9 @@ export async function PATCH(req: Request) {
   } catch (err) {
     if (err instanceof CvNotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 409 });
+    }
+    if (err instanceof CvTooLargeError) {
+      return NextResponse.json({ error: "CV has too many items" }, { status: 413 });
     }
     logger.error("api.cv_patch_failed", { err });
     return NextResponse.json({ error: "Failed to save CV" }, { status: 500 });

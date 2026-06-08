@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { addClaimByDoi, previewClaim } from "@/lib/cv/claim";
-import { CvNotFoundError } from "@/lib/cv/sync";
+import { CvNotFoundError, CvTooLargeError } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { isSameOrigin } from "@/lib/security/origin";
@@ -73,6 +73,9 @@ export async function POST(req: Request) {
   } catch (err) {
     if (err instanceof CvNotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 409 });
+    }
+    if (err instanceof CvTooLargeError) {
+      return NextResponse.json({ error: "CV has too many items" }, { status: 413 });
     }
     logger.error("api.cv_claim_failed", { err });
     return NextResponse.json(

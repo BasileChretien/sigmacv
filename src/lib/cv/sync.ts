@@ -48,6 +48,28 @@ export class CvNotFoundError extends Error {
   }
 }
 
+/**
+ * Hard cap on the TOTAL number of items across all sections, enforced on SAVE
+ * only. A real auto-synced CV is far below this (bounded by the ~5k OpenAlex
+ * fetch cap), but a crafted document with tens of thousands of citeproc items
+ * would make a public-page render pin the single-process event loop. Reads are
+ * never rejected by this — only writes — so it can't make a stored CV vanish.
+ */
+export const MAX_TOTAL_CV_ITEMS = 12_000;
+
+/** Thrown when a save would exceed {@link MAX_TOTAL_CV_ITEMS}. */
+export class CvTooLargeError extends Error {
+  constructor() {
+    super("CV exceeds the maximum number of items.");
+    this.name = "CvTooLargeError";
+  }
+}
+
+/** Total items across all sections of a canonical CV. */
+export function cvItemCount(cv: Pick<CanonicalCv, "sections">): number {
+  return cv.sections.reduce((n, s) => n + s.items.length, 0);
+}
+
 /** Load + validate the user's canonical CV, or null if absent/corrupt. */
 export async function getCvForUser(userId: string): Promise<CanonicalCv | null> {
   const row = await prisma.cv.findUnique({ where: { userId } });
@@ -241,6 +263,10 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
  *  client-supplied user id (no IDOR). Requires an existing row. */
 export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<CanonicalCv> {
   const validated = CanonicalCvSchema.parse(doc);
+  // Bound total items on save so a crafted many-item document can't later pin the
+  // event loop on every public-page render (the per-section cap alone still
+  // allows 60 × 10k). Far above any real CV.
+  if (cvItemCount(validated) > MAX_TOTAL_CV_ITEMS) throw new CvTooLargeError();
   const existing = await prisma.cv.findUnique({ where: { userId } });
   if (!existing) throw new CvNotFoundError();
 

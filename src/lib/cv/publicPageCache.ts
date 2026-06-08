@@ -106,6 +106,36 @@ export function setCachedPublicPage(
   }
 }
 
+/**
+ * In-flight renders, keyed by slug. Coalesces concurrent anonymous hits on the
+ * SAME uncached slug so an expensive citeproc render runs once, not once per
+ * request — without this, N concurrent requests that all miss the cache before
+ * the first finishes would each run the full (event-loop-blocking) render.
+ */
+const inFlightRenders = new Map<string, Promise<PublicPageEntry>>();
+
+/**
+ * Run `render` for `slug` unless one is already in flight, in which case await
+ * the existing one and return its result. The in-flight entry clears when the
+ * render settles (success or failure), so a later request renders fresh.
+ */
+export function dedupePublicRender(
+  slug: string,
+  render: () => Promise<PublicPageEntry>,
+): Promise<PublicPageEntry> {
+  const existing = inFlightRenders.get(slug);
+  if (existing) return existing;
+  const p = (async () => {
+    try {
+      return await render();
+    } finally {
+      inFlightRenders.delete(slug);
+    }
+  })();
+  inFlightRenders.set(slug, p);
+  return p;
+}
+
 /** Drop a slug from the cache — call on any publish/unpublish/index change so
  *  the new state (including 404 after unpublish) takes effect immediately. Also
  *  clears the negative cache so a freshly-published slug appears at once. */
