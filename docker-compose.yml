@@ -46,6 +46,10 @@ services:
       ORCID_ENVIRONMENT: ${ORCID_ENVIRONMENT:-sandbox}
       OPENALEX_MAILTO: ${OPENALEX_MAILTO}
       RESYNC_SECRET: ${RESYNC_SECRET:-}
+      # EPO Open Patent Services (OAuth client-credentials) — enables the Patents
+      # section. Leave blank to keep the EPO client dormant (no call, no effect).
+      EPO_OPS_KEY: ${EPO_OPS_KEY:-}
+      EPO_OPS_SECRET: ${EPO_OPS_SECRET:-}
       RATE_LIMIT_PERSIST: ${RATE_LIMIT_PERSIST:-true}
       NODE_ENV: "production"
     expose:
