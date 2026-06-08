@@ -49,8 +49,28 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
         : undefined;
   }
 
+  // ONE per-section pass for the public view:
+  //  - drop hidden / "not mine" items (never rendered) and strip their
+  //    disambiguation reason + timestamp (an internal research signal) so neither
+  //    leaks into the machine downloads (json/csljson/bibtex serialize this object
+  //    directly); the stored canonical doc keeps them for the owner + research;
+  //  - drop the items the PUBLISHED view hid ("hide from this view"), so every
+  //    public format reflects what the owner published, not the full set.
+  const excludedItems = cv.display.excludedItems;
+  const sections = cv.sections.map((s) => {
+    const ex = excludedItems?.[s.id];
+    const exSet = ex?.length ? new Set(ex) : null;
+    return {
+      ...s,
+      items: s.items
+        .filter((it) => !isHidden(it) && !exSet?.has(it.id))
+        .map((it) => ({ ...it, notMineReason: undefined, notMineAssertedAt: undefined })),
+    };
+  });
+
   return {
     ...cv,
+    sections,
     // Personal (rirekisho) fields never auto-publish; contact is opt-in per field.
     // Metrics + per-year chart data honour the SAME display opt-ins as the HTML
     // render, so a machine-format download (.json) can't leak figures the owner
@@ -65,16 +85,7 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
     // Saved editor presets (named layout intents + display snapshots, possibly a
     // custom CSL XML blob) are an internal editor concept — never publish them.
     presets: [],
-    // Hidden / "not mine" items are never rendered — drop them from the public
-    // projection so a disavowed work (and its disambiguation reason + timestamp,
-    // an internal research signal) can't leak into the downloadable machine
-    // formats (json/csljson/bibtex), which serialize the projected object
-    // directly. The stored canonical doc keeps them for the owner + research.
-    sections: cv.sections.map((s) => ({
-      ...s,
-      items: s.items
-        .filter((it) => !isHidden(it))
-        .map((it) => ({ ...it, notMineReason: undefined, notMineAssertedAt: undefined })),
-    })),
+    // The per-view exclude-id list itself need not ship in the public json.
+    display: { ...cv.display, excludedItems: undefined },
   };
 }

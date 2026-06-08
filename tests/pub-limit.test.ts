@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
+import { setItemInView } from "@/lib/canonical/curate";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
@@ -59,5 +60,23 @@ describe.skipIf(!hasApa)("publicationsLimit (Selected publications / top-N)", ()
       display: { ...cv.display, publicationsLimit: 0 },
     };
     expect(pubCount(zero)).toBe(all);
+  });
+});
+
+describe.skipIf(!hasApa)("per-view excludedItems (hide from THIS view)", () => {
+  it("drops an excluded item from the rendered section (deny-list)", () => {
+    const cv = makeCv();
+    const all = pubCount(cv);
+    expect(all).toBeGreaterThanOrEqual(3);
+
+    // Hide one specific work from this view (a cosmetic per-view choice).
+    const hidden = setItemInView(cv, "publications", "W2", false);
+    expect(pubCount(hidden)).toBe(all - 1);
+
+    const prepared = prepareSections(hidden, "text").find(
+      (s) => s.section.type === "publications",
+    )!;
+    expect(prepared.items.some((p) => p.item.id === "W2")).toBe(false);
+    expect(prepared.items.some((p) => p.item.id === "W1")).toBe(true);
   });
 });

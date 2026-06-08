@@ -1126,6 +1126,44 @@ textarea.prose-body {
   background: var(--danger-soft);
   border-color: var(--danger);
 }
+/* Per-view "hide from this view" toggle — a dashed outline marks it as a
+   view-scoped (cosmetic) action, distinct from the global Hide / Not-mine. */
+.mine-btn.is-view {
+  color: var(--text-secondary);
+  border-style: dashed;
+}
+.mine-btn.is-view.is-restore {
+  color: var(--accent);
+  border-style: solid;
+}
+/* An item kept on the CV but omitted from the CURRENT view/preset only. */
+.cv-item-row.is-view-hidden {
+  opacity: 0.72;
+}
+.cv-item-row.is-view-hidden .cv-item-title {
+  color: var(--muted);
+}
+/* "Showing N of M in this view · Show all" line above a section's item list. */
+.view-selection-note {
+  font-size: var(--text-xs);
+  margin: var(--space-2) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+.linklike {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.linklike:hover {
+  opacity: 0.8;
+}
 
 /* Badges */
 .cv-self-badge,

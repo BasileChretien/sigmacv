@@ -6,9 +6,11 @@ import {
   addSection,
   addStructuredEntry,
   buildManualCsl,
+  clearViewExclusions,
   cvHasWork,
   applyPreset,
   deletePreset,
+  isItemShownInView,
   moveItem,
   moveItemTo,
   moveSection,
@@ -19,12 +21,15 @@ import {
   renameSection,
   reorderSections,
   savePreset,
+  setItemInView,
   setItemIncluded,
   setItemNotMine,
   setLocale,
   setSectionVisible,
+  showOnlyInView,
   updateDisplay,
   updateItemText,
+  viewExcludedIds,
   visibleItems,
   visibleSections,
 } from "@/lib/canonical/curate";
@@ -639,5 +644,64 @@ describe("addStructuredEntry", () => {
     expect(new Set(orders).size).toBe(orders.length); // unique, no collisions
     // blank title → unchanged reference
     expect(addStructuredEntry(cv, "publications", { title: "  " }, "p:m:3")).toBe(cv);
+  });
+});
+
+describe("per-view item selection (display.excludedItems)", () => {
+  const pubSection = (cv: CanonicalCv) => cv.sections.find((s) => s.type === "publications")!;
+
+  it("hides + re-shows a single item in the current view without touching curation", () => {
+    const base = makeCv();
+    const sec = pubSection(base);
+    const id = visibleItems(sec)[0]!.id;
+    expect(isItemShownInView(base.display, sec.id, id)).toBe(true);
+
+    const hidden = setItemInView(base, sec.id, id, false);
+    expect(isItemShownInView(hidden.display, sec.id, id)).toBe(false);
+    expect(hidden.display.excludedItems?.[sec.id]).toContain(id);
+    // Curation is untouched — the item is still "mine" + included (not a hide).
+    const item = pubSection(hidden).items.find((it) => it.id === id)!;
+    expect(item.included).toBe(true);
+    expect(item.notMine).toBe(false);
+
+    const shown = setItemInView(hidden, sec.id, id, true);
+    expect(isItemShownInView(shown.display, sec.id, id)).toBe(true);
+    // Pruned back to no-trace once the list is empty (back-compat clean).
+    expect(shown.display.excludedItems).toBeUndefined();
+  });
+
+  it("showOnlyInView keeps just the given ids; clearViewExclusions resets", () => {
+    const base = makeCv();
+    const sec = pubSection(base);
+    const ids = visibleItems(sec).map((it) => it.id);
+    expect(ids.length).toBeGreaterThan(1);
+    const keep = ids[0]!;
+
+    const only = showOnlyInView(base, sec.id, [keep]);
+    expect(viewExcludedIds(only.display, sec.id)).toEqual(new Set(ids.slice(1)));
+    expect(isItemShownInView(only.display, sec.id, keep)).toBe(true);
+
+    const cleared = clearViewExclusions(only, sec.id);
+    expect(cleared.display.excludedItems).toBeUndefined();
+  });
+
+  it("a saved preset captures + restores the per-view selection", () => {
+    const base = makeCv();
+    const sec = pubSection(base);
+    const id = visibleItems(sec)[0]!.id;
+    const short = savePreset(setItemInView(base, sec.id, id, false), "Short");
+    // Switch to a 'full' view (clear exclusions), then re-apply the saved short view.
+    const full = clearViewExclusions(short, sec.id);
+    expect(full.display.excludedItems).toBeUndefined();
+    const reapplied = applyPreset(full, short.presets[0]!.id);
+    expect(isItemShownInView(reapplied.display, sec.id, id)).toBe(false);
+  });
+
+  it("is immutable — the input CV is never mutated", () => {
+    const base = makeCv();
+    const sec = pubSection(base);
+    const id = visibleItems(sec)[0]!.id;
+    setItemInView(base, sec.id, id, false);
+    expect(base.display.excludedItems).toBeUndefined();
   });
 });

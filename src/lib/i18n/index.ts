@@ -546,6 +546,11 @@ const EN = {
   presetName: "Name this view (e.g. Grant biosketch)",
   applyPreset: "Apply",
   deletePreset: "Delete preset",
+  viewExclude: "Hide from view",
+  viewInclude: "Show in view",
+  viewScopeHint: "Affects the current view only — other saved views are unchanged",
+  viewCount: "{n} of {m} in this view",
+  viewShowAll: "Show all",
 } as const;
 
 export type ChromeKey = keyof typeof EN;
@@ -642,6 +647,11 @@ const ZH: Record<ChromeKey, string> = {
   presetName: "为此视图命名（如：基金简历）",
   applyPreset: "应用",
   deletePreset: "删除预设",
+  viewExclude: "从此视图隐藏",
+  viewInclude: "在此视图显示",
+  viewScopeHint: "仅影响当前视图——其他已保存的视图不变",
+  viewCount: "本视图显示 {n}/{m}",
+  viewShowAll: "全部显示",
 };
 
 const ES: Record<ChromeKey, string> = {
@@ -739,6 +749,11 @@ const ES: Record<ChromeKey, string> = {
   presetName: "Nombra esta vista (p. ej. Biosketch)",
   applyPreset: "Aplicar",
   deletePreset: "Eliminar preset",
+  viewExclude: "Ocultar de la vista",
+  viewInclude: "Mostrar en la vista",
+  viewScopeHint: "Solo afecta a la vista actual; las demás vistas guardadas no cambian",
+  viewCount: "{n} de {m} en esta vista",
+  viewShowAll: "Mostrar todo",
 };
 
 const FR: Record<ChromeKey, string> = {
@@ -837,6 +852,11 @@ const FR: Record<ChromeKey, string> = {
   presetName: "Nom de la vue (ex. CV de bourse)",
   applyPreset: "Appliquer",
   deletePreset: "Supprimer le préréglage",
+  viewExclude: "Retirer de la vue",
+  viewInclude: "Afficher dans la vue",
+  viewScopeHint: "N'affecte que la vue actuelle — vos autres vues enregistrées sont inchangées",
+  viewCount: "{n} sur {m} dans cette vue",
+  viewShowAll: "Tout afficher",
 };
 
 const DE: Record<ChromeKey, string> = {
@@ -935,6 +955,12 @@ const DE: Record<ChromeKey, string> = {
   presetName: "Name der Ansicht (z. B. Kurz-CV)",
   applyPreset: "Anwenden",
   deletePreset: "Voreinstellung löschen",
+  viewExclude: "Aus Ansicht entfernen",
+  viewInclude: "In Ansicht zeigen",
+  viewScopeHint:
+    "Betrifft nur die aktuelle Ansicht – andere gespeicherte Ansichten bleiben unverändert",
+  viewCount: "{n} von {m} in dieser Ansicht",
+  viewShowAll: "Alle anzeigen",
 };
 
 const JA: Record<ChromeKey, string> = {
@@ -1032,6 +1058,11 @@ const JA: Record<ChromeKey, string> = {
   presetName: "ビュー名（例：助成用CV）",
   applyPreset: "適用",
   deletePreset: "プリセットを削除",
+  viewExclude: "このビューで非表示",
+  viewInclude: "このビューで表示",
+  viewScopeHint: "現在のビューのみに影響します。保存済みの他のビューは変わりません",
+  viewCount: "このビューに {n}/{m} 件",
+  viewShowAll: "すべて表示",
 };
 
 const PT: Record<ChromeKey, string> = {
@@ -1129,6 +1160,11 @@ const PT: Record<ChromeKey, string> = {
   presetName: "Nome da visualização (ex.: Biosketch)",
   applyPreset: "Aplicar",
   deletePreset: "Excluir predefinição",
+  viewExclude: "Ocultar da vista",
+  viewInclude: "Mostrar na vista",
+  viewScopeHint: "Afeta apenas a vista atual — suas outras vistas salvas não mudam",
+  viewCount: "{n} de {m} nesta vista",
+  viewShowAll: "Mostrar tudo",
 };
 
 const IT: Record<ChromeKey, string> = {
@@ -1226,6 +1262,11 @@ const IT: Record<ChromeKey, string> = {
   presetName: "Nome della vista (es. Biosketch)",
   applyPreset: "Applica",
   deletePreset: "Elimina preset",
+  viewExclude: "Nascondi dalla vista",
+  viewInclude: "Mostra nella vista",
+  viewScopeHint: "Riguarda solo la vista corrente — le altre viste salvate restano invariate",
+  viewCount: "{n} di {m} in questa vista",
+  viewShowAll: "Mostra tutto",
 };
 
 const KO: Record<ChromeKey, string> = {
@@ -1323,6 +1364,11 @@ const KO: Record<ChromeKey, string> = {
   presetName: "보기 이름 (예: 연구비용 CV)",
   applyPreset: "적용",
   deletePreset: "프리셋 삭제",
+  viewExclude: "이 보기에서 숨기기",
+  viewInclude: "이 보기에 표시",
+  viewScopeHint: "현재 보기에만 적용됩니다 — 저장된 다른 보기는 변경되지 않습니다",
+  viewCount: "이 보기에 {n}/{m}",
+  viewShowAll: "모두 표시",
 };
 
 const RU: Record<ChromeKey, string> = {
@@ -1420,6 +1466,11 @@ const RU: Record<ChromeKey, string> = {
   presetName: "Название вида (напр. краткое CV)",
   applyPreset: "Применить",
   deletePreset: "Удалить пресет",
+  viewExclude: "Скрыть из вида",
+  viewInclude: "Показать в виде",
+  viewScopeHint: "Влияет только на текущий вид — другие сохранённые виды не меняются",
+  viewCount: "{n} из {m} в этом виде",
+  viewShowAll: "Показать все",
 };
 
 const DICTS: Record<Locale, Record<ChromeKey, string>> = {

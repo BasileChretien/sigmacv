@@ -80,6 +80,13 @@ export function prepareSections(
 
   const perSection = visibleSections(cv).map((section) => {
     let items = visibleItems(section).filter(keep);
+    // Per-view exclusions ("hide from THIS view" — a cosmetic display choice,
+    // distinct from "not mine"): drop them before ordering/limiting.
+    const excluded = cv.display.excludedItems?.[section.id];
+    if (excluded?.length) {
+      const set = new Set(excluded);
+      items = items.filter((it) => !set.has(it.id));
+    }
     if (CITATION_SECTIONS.has(section.type)) items = sortCitations(items);
     if (section.type === "publications" && limit > 0) {
       items = items.slice(0, limit);

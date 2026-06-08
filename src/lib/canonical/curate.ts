@@ -275,6 +275,73 @@ export function deletePreset(cv: CanonicalCv, id: string): CanonicalCv {
   return next.length === presets.length ? cv : { ...cv, presets: next };
 }
 
+// ─── Per-view item selection (display.excludedItems) ─────────────────────────
+// A preset captures the WHOLE `display`, so these per-view show/hide choices are
+// saved + restored with presets automatically — no preset-specific code needed.
+
+/** Immutable: set (or prune-when-empty) a section's exclusion list. */
+function withExcludedItems(cv: CanonicalCv, sectionId: string, ids: string[]): CanonicalCv {
+  const rest: Record<string, string[]> = { ...(cv.display.excludedItems ?? {}) };
+  if (ids.length === 0) delete rest[sectionId];
+  else rest[sectionId] = ids;
+  const excludedItems = Object.keys(rest).length > 0 ? rest : undefined;
+  return { ...cv, display: { ...cv.display, excludedItems } };
+}
+
+/** Item ids excluded from the current view for a section (empty if none). */
+export function viewExcludedIds(display: DisplayChoices, sectionId: string): Set<string> {
+  return new Set(display.excludedItems?.[sectionId] ?? []);
+}
+
+/** True if `itemId` is shown (not excluded) in the current view. */
+export function isItemShownInView(
+  display: DisplayChoices,
+  sectionId: string,
+  itemId: string,
+): boolean {
+  return !(display.excludedItems?.[sectionId] ?? []).includes(itemId);
+}
+
+/**
+ * Show or hide ONE item in the CURRENT view — a cosmetic per-view choice, NOT
+ * "not mine". Hiding adds it to the section's exclusion list; showing removes it.
+ * Immutable; empty lists are pruned so an untouched section leaves no trace.
+ */
+export function setItemInView(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  show: boolean,
+): CanonicalCv {
+  const existing = cv.display.excludedItems?.[sectionId] ?? [];
+  const next = show
+    ? existing.filter((id) => id !== itemId)
+    : existing.includes(itemId)
+      ? existing
+      : [...existing, itemId];
+  return withExcludedItems(cv, sectionId, next);
+}
+
+/** Show ALL of a section's items in the current view (clear its exclusions). */
+export function clearViewExclusions(cv: CanonicalCv, sectionId: string): CanonicalCv {
+  return withExcludedItems(cv, sectionId, []);
+}
+
+/**
+ * Show ONLY `keepIds` in the current view (hide every other currently-visible
+ * item in the section) — the "show just these" shortcut on top of the deny-list.
+ * A later-synced item, absent from the section now, is NOT pre-hidden.
+ */
+export function showOnlyInView(cv: CanonicalCv, sectionId: string, keepIds: string[]): CanonicalCv {
+  const section = cv.sections.find((s) => s.id === sectionId);
+  if (!section) return cv;
+  const keep = new Set(keepIds);
+  const excluded = visibleItems(section)
+    .map((it) => it.id)
+    .filter((id) => !keep.has(id));
+  return withExcludedItems(cv, sectionId, excluded);
+}
+
 /**
  * Switch the document language. Beyond setting `display.locale` (which drives
  * citeproc's citation language), this RE-LOCALIZES every section heading that
