@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemNotMine, updateDisplay, updateOwner } from "@/lib/canonical/curate";
+import { setItemInView, setItemNotMine, updateDisplay, updateOwner } from "@/lib/canonical/curate";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -122,5 +122,22 @@ describe("projectCvForPublic", () => {
     }
     // The stored canonical doc is untouched (research signal preserved).
     expect(cv.sections[0]!.items.find((i) => i.id === itemId)?.notMine).toBe(true);
+  });
+
+  it("applies the published view's exclusions and doesn't ship the exclude list", () => {
+    const cv = makeCv();
+    const sec = cv.sections.find((s) => s.type === "publications")!;
+    const id = sec.items[0]!.id;
+    const withExcl = setItemInView(cv, sec.id, id, false);
+    const pub = projectCvForPublic(withExcl);
+    const pubSec = pub.sections.find((s) => s.type === "publications")!;
+    // The excluded work is absent from the public output (all formats)…
+    expect(pubSec.items.some((it) => it.id === id)).toBe(false);
+    // …and the exclude-id list itself is not shipped in the public json.
+    expect(pub.display.excludedItems).toBeUndefined();
+    // Input is untouched (immutable).
+    expect(
+      withExcl.sections.find((s) => s.type === "publications")!.items.some((it) => it.id === id),
+    ).toBe(true);
   });
 });

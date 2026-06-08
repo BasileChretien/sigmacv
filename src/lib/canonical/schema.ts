@@ -569,6 +569,23 @@ export const DisplayChoicesSchema = z.object({
    */
   publicationsLimit: z.number().int().min(0).max(500).optional(),
   /**
+   * Per-view item EXCLUSIONS: `sectionId → [itemId, …]` hidden from THIS view
+   * only. A saved preset captures it with the rest of `display`, so different
+   * presets (full CV vs. a short grant CV) can show different subsets of the SAME
+   * curated data — no duplication, single source of truth.
+   *
+   * Distinct from curation: "not mine"/hidden (`included:false`) removes a work
+   * EVERYWHERE and carries a disambiguation research signal; this is a purely
+   * cosmetic per-view choice with no research meaning. It can only NARROW the
+   * already-visible set (a hidden / "not mine" work can never be resurfaced).
+   *
+   * Deny-list semantics: a work absent from the list shows by default, so a
+   * newly-synced publication appears automatically and the owner removes it if
+   * unwanted. Absent section ⇒ all its visible items show (back-compat: old docs
+   * carry no field).
+   */
+  excludedItems: z.record(z.string().max(200), z.array(z.string().max(200)).max(10_000)).optional(),
+  /**
    * True once the user has manually reordered sections (drag or ↑/↓). Until
    * then the build applies the canonical default order (Positions → Education →
    * Publications → …); afterwards the user's arrangement is preserved on re-sync.
