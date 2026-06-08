@@ -30,6 +30,20 @@ ENV DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public" \
     ORCID_CLIENT_SECRET="build" \
     ORCID_ENVIRONMENT="sandbox" \
     OPENALEX_MAILTO="build@example.com"
+# Public (NEXT_PUBLIC_*) config is INLINED into the client bundle at build time,
+# so it must be present now — the runtime env can't change an already-inlined
+# value, and `.env` is not in the build context (.dockerignore). Compose passes
+# these through `build.args` from the deploy `.env`; blank simply omits the
+# feature (e.g. no "buy me a coffee" link). NEXT_PUBLIC_SITE_URL falls back to
+# https://sigmacv.org in code when blank.
+ARG NEXT_PUBLIC_SITE_URL=""
+ARG NEXT_PUBLIC_BUYMEACOFFEE_URL=""
+ARG NEXT_PUBLIC_GITHUB_URL=""
+ARG NEXT_PUBLIC_LINKEDIN_URL=""
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    NEXT_PUBLIC_BUYMEACOFFEE_URL=$NEXT_PUBLIC_BUYMEACOFFEE_URL \
+    NEXT_PUBLIC_GITHUB_URL=$NEXT_PUBLIC_GITHUB_URL \
+    NEXT_PUBLIC_LINKEDIN_URL=$NEXT_PUBLIC_LINKEDIN_URL
 RUN npm run build
 
 # ─── Runtime stage ───────────────────────────────────────────────────────────
