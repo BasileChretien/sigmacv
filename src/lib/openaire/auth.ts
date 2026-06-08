@@ -1,4 +1,5 @@
 import { getEnv } from "@/lib/env";
+import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 
 /**
@@ -37,7 +38,13 @@ export async function getOpenaireAccessToken(now: number = Date.now()): Promise<
   try {
     const url = new URL(TOKEN_ENDPOINT);
     url.searchParams.set("refreshToken", refreshToken);
-    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    // Via the shared wrapper so a hung token server times out instead of
+    // stalling the sync; retries:0 keeps the single-attempt semantics.
+    const res = await resilientFetch(url, {
+      headers: { Accept: "application/json" },
+      timeoutMs: 12_000,
+      retries: 0,
+    });
     if (!res.ok) {
       logger.warn("openaire.token_exchange_failed", { status: res.status });
       return null;

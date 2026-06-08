@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "@/auth";
 import { pendingNotMineAssertions } from "@/lib/canonical/assertions";
 import { getCvForUser } from "@/lib/cv/sync";
@@ -17,6 +18,8 @@ const ASSERT_MAX = 5;
 const ASSERT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 // The confirm body is tiny ({ "confirm": true }); reject anything larger early.
 const MAX_BODY_BYTES = 2_000;
+// Require an explicit `{ confirm: true }` opt-in (validated, per the route convention).
+const AssertBodySchema = z.object({ confirm: z.literal(true) });
 
 /**
  * POST /api/cv/assert — push the signed-in user's "not mine" corrections UPSTREAM
@@ -49,8 +52,7 @@ export async function POST(req: Request) {
       ? NextResponse.json({ error: "Request too large" }, { status: 413 })
       : NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
-  const confirm = (read.value as { confirm?: unknown } | null)?.confirm;
-  if (confirm !== true) {
+  if (!AssertBodySchema.safeParse(read.value).success) {
     return NextResponse.json(
       { error: "Explicit confirmation required.", confirm: false },
       { status: 400 },

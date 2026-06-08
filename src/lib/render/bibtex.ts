@@ -31,9 +31,14 @@ function bibType(csl: CslItem): string {
   return TYPE_MAP[(csl.type ?? "").toLowerCase()] ?? "misc";
 }
 
-/** Escape BibTeX/LaTeX special characters in a text field (UTF-8 preserved). */
+/** Escape BibTeX/LaTeX special characters in a text field (UTF-8 preserved).
+ *  `~` and `^` map to their text-mode commands — a bare `\~`/`\^` is the tilde /
+ *  circumflex *accent* in LaTeX (it would accent the next letter), not a literal
+ *  character (matches the render/latex.ts escape table). */
 function esc(s: string): string {
-  return s.replace(/([&%$#_{}~^\\])/g, "\\$1");
+  return s.replace(/[&%$#_{}~^\\]/g, (c) =>
+    c === "~" ? "\\textasciitilde{}" : c === "^" ? "\\textasciicircum{}" : `\\${c}`,
+  );
 }
 
 function yearOf(csl: CslItem): string {

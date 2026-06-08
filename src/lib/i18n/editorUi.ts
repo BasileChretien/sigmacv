@@ -207,7 +207,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "Se obtiene de OpenAlex: las citas, el orden de autoría y el FWCI provienen de la fuente, por lo que cuenta en tus gráficos y tabla de autoría (pero no en los totales a nivel de autor de OpenAlex, como el índice h).",
     claimNotFound: "No se encontró en OpenAlex. Solo se pueden añadir así los trabajos que indexa.",
     claimAlready: "Ya está en tu CV.",
-    claimWhichAuthor: "¿Cuál autor eres?",
+    claimWhichAuthor: "¿Cuál de los autores eres?",
     claimError: "La búsqueda falló: inténtalo de nuevo.",
     proseBody: "Texto",
     proseBodyHint:
@@ -244,7 +244,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     tabPreview: "Aperçu",
     coachTitle: "Astuce : vérifiez que tout est bien à vous",
     coachBody:
-      "L’appariement des auteurs n’est pas parfait. Si une entrée n’est pas la vôtre, ouvrez-la et marquez-la « Pas la mienne » : elle est masquée de votre CV (jamais supprimée) et améliore l’appariement.",
+      "L’appariement des auteurs n’est pas parfait. Si une entrée n’est pas la vôtre, ouvrez-la et marquez-la « Pas à moi » : elle est masquée de votre CV (jamais supprimée) et améliore l’appariement.",
     coachGotIt: "Compris",
     langLabel: "Langue",
     langLevel: "Niveau",
@@ -406,7 +406,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     tabPreview: "Pré-visualização",
     coachTitle: "Dica: confirme que tudo é seu",
     coachBody:
-      "A correspondência de autores não é perfeita. Se uma entrada não for sua, abra-a e marque como “Não é minha” — ela fica oculta no seu currículo (nunca é excluída) e melhora a correspondência.",
+      "A correspondência de autores não é perfeita. Se uma entrada não for sua, abra-a e marque como “Não é meu” — ela fica oculta no seu currículo (nunca é excluída) e melhora a correspondência.",
     coachGotIt: "Entendi",
     langLabel: "Idioma",
     langLevel: "Nível",

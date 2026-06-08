@@ -27,8 +27,16 @@ export function splitSelf(text: string, variants: string[]): TextSegment[] {
   const cleaned = cleanVariants(variants);
   if (cleaned.length === 0) return [{ text, self: false }];
 
-  const pattern = new RegExp(`(${cleaned.map(escapeRegExp).join("|")})`, "g");
-  // String.split with a capturing group puts captures at odd indices.
+  // Match only at Unicode word boundaries so a short surname ("Li", "Berg") is
+  // not emphasized inside a longer word ("Library", "Bergström"), while accented
+  // names (Chrétien, Évora) still match. Mirrors the HTML highlighter
+  // (citeproc/highlight.ts); `\b` is ASCII-only so we use letter/number
+  // lookarounds with the `u` flag instead. The capturing group stays the only
+  // group, so String.split still puts captures at odd indices.
+  const pattern = new RegExp(
+    `(?<![\\p{L}\\p{N}])(${cleaned.map(escapeRegExp).join("|")})(?![\\p{L}\\p{N}])`,
+    "gu",
+  );
   return text
     .split(pattern)
     .map((part, i) => ({ text: part, self: i % 2 === 1 }))

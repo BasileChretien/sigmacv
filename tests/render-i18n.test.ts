@@ -131,7 +131,7 @@ describe.skipIf(!hasApa)("rendered CV output is fully localized", () => {
     expect(html).toContain("Citations / an");
     expect(html).toContain("FWCI moyen des travaux"); // metric label
     expect(html).toContain("moyenne mondiale"); // metric context
-    expect(html).toContain("évaluées par les pairs"); // authorship caption
+    expect(html).toContain("évalués par les pairs"); // authorship caption (agrees with "Rôles d’auteur")
     expect(html).toContain("Premier auteur"); // authorship role
     expect(html).toContain("Généré à partir de"); // provenance footer
     // English equivalents must be gone.

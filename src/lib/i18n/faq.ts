@@ -161,7 +161,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Comment savez-vous quelles publications sont les miennes ?",
-        a: "Vos travaux sont associés par identifiant — votre iD ORCID ou votre identifiant auteur OpenAlex —, jamais par la chaîne du nom, ce qui évite les erreurs d'homonymie inhérentes à l'association par nom. Vous révisez ensuite la liste et marquez « pas de moi » tout ce qui est attribué à tort.",
+        a: "Vos travaux sont associés par identifiant — votre iD ORCID ou votre identifiant auteur OpenAlex —, jamais par la chaîne du nom, ce qui évite les erreurs d'homonymie inhérentes à l'association par nom. Vous révisez ensuite la liste et marquez « pas à moi » tout ce qui est attribué à tort.",
       },
       {
         q: "Des métriques de citation ou le facteur d'impact seront-ils affichés ?",
@@ -271,11 +271,11 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "De onde vêm os dados do meu currículo?",
-        a: "O SigmaCV monta o seu currículo a partir de fontes acadêmicas abertas: suas publicações, métricas e financiamentos do OpenAlex; sua identidade mais os cargos, a formação, os financiamentos, as revisões por pares e os serviços do seu registro ORCID; o complemento bibliográfico do Crossref; as instituições canonizadas via ROR; os conjuntos de dados e softwares do DataCite; e as funções editoriais do Open Editors Plus. Você mantém o controle — cure, marque trabalhos como «não é meu» ou adicione um trabalho por DOI; nada é inventado, e você escolhe o que é exibido.",
+        a: "O SigmaCV monta o seu currículo a partir de fontes acadêmicas abertas: suas publicações, métricas e financiamentos do OpenAlex; sua identidade mais os cargos, a formação, os financiamentos, as revisões por pares e os serviços do seu registro ORCID; o complemento bibliográfico do Crossref; as instituições canonizadas via ROR; os conjuntos de dados e softwares do DataCite; e as funções editoriais do Open Editors Plus. Você mantém o controle — organize, marque trabalhos como “não é meu” ou adicione um trabalho por DOI; nada é inventado, e você escolhe o que é exibido.",
       },
       {
         q: "Como vocês sabem quais publicações são minhas?",
-        a: "Seu trabalho é identificado por identificador — seu iD ORCID ou seu ID de autor do OpenAlex —, nunca pela cadeia do nome, o que evita os erros de homonímia típicos da correspondência por nome. Depois você cura a lista e marca como «não é meu» tudo o que for atribuído por engano.",
+        a: "Seu trabalho é identificado por identificador — seu iD ORCID ou seu ID de autor do OpenAlex —, nunca pela cadeia do nome, o que evita os erros de homonímia típicos da correspondência por nome. Depois você organiza a lista e marca como “não é meu” tudo o que for atribuído por engano.",
       },
       {
         q: "Métricas de citação ou o Fator de Impacto serão exibidos?",

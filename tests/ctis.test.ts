@@ -208,6 +208,39 @@ describe("fetchCtisTrials", () => {
     expect(await fetchCtisTrials("Dawn Hershman", ["Columbia University"])).toEqual([]);
   });
 
+  it("keeps already-matched trials when a later detail returns invalid JSON", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: unknown) => {
+        const u = String(url);
+        if (u.includes("/search")) {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({ data: [{ ctNumber: "GOOD" }, { ctNumber: "BADJSON" }] }),
+              { status: 200 },
+            ),
+          );
+        }
+        const ct = decodeURIComponent(u.split("/retrieve/")[1] ?? "");
+        if (ct === "GOOD") {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify(
+                detail("GOOD", { firstName: "Dawn", lastName: "Hershman" }, "Columbia University"),
+              ),
+              { status: 200 },
+            ),
+          );
+        }
+        // HTTP 200 but an HTML error page → JSON.parse throws in the per-trial leg.
+        return Promise.resolve(new Response("<html>error</html>", { status: 200 }));
+      }),
+    );
+    const trials = await fetchCtisTrials("Dawn Hershman", ["Columbia University"]);
+    expect(trials.map((t) => t.registryId)).toEqual(["GOOD"]);
+  });
+
   it("fails soft on a non-OK search and on a thrown fetch", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.stubGlobal(

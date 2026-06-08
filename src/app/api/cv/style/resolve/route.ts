@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { CustomStyleError, resolveCslStyle } from "@/lib/citeproc/customStyle";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { isSameOrigin } from "@/lib/security/origin";
 
 export const runtime = "nodejs";
@@ -11,6 +12,9 @@ export const dynamic = "force-dynamic";
 // Each call makes 1–2 outbound fetches to the style repo — keep it modest.
 const STYLE_MAX = 30;
 const STYLE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+// Body is { input: string } (input itself is capped at 2048 chars below); this
+// byte ceiling is generous enough for any valid input yet bounds the read.
+const MAX_BODY_BYTES = 12_000;
 
 /**
  * Resolve a user-supplied CSL style (by repository id or URL) to an independent
@@ -34,14 +38,14 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const read = await readJsonBodyWithLimit(req, MAX_BODY_BYTES);
+  if (!read.ok) {
+    return read.tooLarge
+      ? NextResponse.json({ error: "Request too large" }, { status: 413 })
+      : NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const input = (body as { input?: unknown } | null)?.input;
+  const input = (read.value as { input?: unknown } | null)?.input;
   if (typeof input !== "string" || input.trim().length === 0) {
     return NextResponse.json(
       { error: "Provide a style id or URL (e.g. “nature”)." },

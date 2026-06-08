@@ -20,6 +20,18 @@ describe("splitSelf", () => {
     const segs = splitSelf("Basile Chrétien wrote it", ["Chrétien", "Basile Chrétien"]);
     expect(segs.find((s) => s.self)?.text).toBe("Basile Chrétien");
   });
+
+  it("does not emphasize a short surname embedded inside a longer word", () => {
+    // "Berg" must match only the standalone author, never inside "Bergström"
+    // (the word-boundary guard; matches the HTML highlighter's behaviour).
+    const segs = splitSelf("Bergström, A. & Berg, B.", ["Berg"]);
+    expect(segs.filter((s) => s.self).map((s) => s.text)).toEqual(["Berg"]);
+  });
+
+  it("still matches an accented surname at a word boundary", () => {
+    const segs = splitSelf("Évora, M. & Smith, J.", ["Évora"]);
+    expect(segs.filter((s) => s.self).map((s) => s.text)).toEqual(["Évora"]);
+  });
 });
 
 describe("wrapSelf", () => {
