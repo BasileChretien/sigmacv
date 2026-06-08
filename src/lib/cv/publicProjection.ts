@@ -52,7 +52,19 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
   return {
     ...cv,
     // Personal (rirekisho) fields never auto-publish; contact is opt-in per field.
-    owner: { ...cv.owner, contact, personal: undefined },
+    // Metrics + per-year chart data honour the SAME display opt-ins as the HTML
+    // render, so a machine-format download (.json) can't leak figures the owner
+    // chose not to show (metrics are "opt-in, default none").
+    owner: {
+      ...cv.owner,
+      contact,
+      personal: undefined,
+      metrics: cv.display.showMetrics ? cv.owner.metrics : undefined,
+      countsByYear: cv.display.showCharts ? cv.owner.countsByYear : [],
+    },
+    // Saved editor presets (named layout intents + display snapshots, possibly a
+    // custom CSL XML blob) are an internal editor concept — never publish them.
+    presets: [],
     // Hidden / "not mine" items are never rendered — drop them from the public
     // projection so a disavowed work (and its disambiguation reason + timestamp,
     // an internal research signal) can't leak into the downloadable machine

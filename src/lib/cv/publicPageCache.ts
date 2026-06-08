@@ -136,16 +136,88 @@ export function dedupePublicRender(
   return p;
 }
 
+// ─── OG social-card image cache ──────────────────────────────────────────────
+// The per-CV OG card is rendered to a PNG by a CPU-heavy rasterizer (Satori →
+// Resvg). Without a server cache, a flood of `/p/<slug>/og` hits (social-unfurl
+// scrapers or a synthetic flood) spends the shared public rate-limit budget on
+// image renders and starves the HTML page. Cache the PNG bytes per slug for a
+// short TTL (matching the client `max-age`) and single-flight concurrent renders.
+
+export interface OgImageEntry {
+  bytes: Uint8Array;
+  indexable: boolean;
+}
+
+interface OgRecord extends OgImageEntry {
+  expires: number;
+}
+
+const ogCache = new Map<string, OgRecord>();
+const OG_TTL_MS = 300_000; // 5 minutes — matches the route's Cache-Control max-age
+const OG_MAX_ENTRIES = 1000;
+const OG_MAX_TOTAL_BYTES = 64_000_000; // OG PNGs are ~50–150 KB; bound the store
+const ogInFlight = new Map<string, Promise<OgImageEntry>>();
+
+/** Cached OG PNG for a slug, or null on miss/expiry. */
+export function getCachedOgImage(slug: string, now: number = Date.now()): OgImageEntry | null {
+  const rec = ogCache.get(slug);
+  if (!rec) return null;
+  if (now >= rec.expires) {
+    ogCache.delete(slug);
+    return null;
+  }
+  return { bytes: rec.bytes, indexable: rec.indexable };
+}
+
+/** Cache an OG PNG for a slug, bounded by entry count + total bytes. */
+export function setCachedOgImage(
+  slug: string,
+  entry: OgImageEntry,
+  now: number = Date.now(),
+): void {
+  ogCache.set(slug, { bytes: entry.bytes, indexable: entry.indexable, expires: now + OG_TTL_MS });
+  let total = 0;
+  for (const r of ogCache.values()) total += r.bytes.length;
+  while (ogCache.size > OG_MAX_ENTRIES || total > OG_MAX_TOTAL_BYTES) {
+    const oldest = ogCache.keys().next().value;
+    /* v8 ignore next -- defensive: never evict the just-set entry / empty map */
+    if (oldest === undefined || oldest === slug) break;
+    total -= ogCache.get(oldest)!.bytes.length;
+    ogCache.delete(oldest);
+  }
+}
+
+/** Single-flight the (CPU-heavy) OG render for a slug, like dedupePublicRender. */
+export function dedupeOgImage(
+  slug: string,
+  render: () => Promise<OgImageEntry>,
+): Promise<OgImageEntry> {
+  const existing = ogInFlight.get(slug);
+  if (existing) return existing;
+  const p = (async () => {
+    try {
+      return await render();
+    } finally {
+      ogInFlight.delete(slug);
+    }
+  })();
+  ogInFlight.set(slug, p);
+  return p;
+}
+
 /** Drop a slug from the cache — call on any publish/unpublish/index change so
  *  the new state (including 404 after unpublish) takes effect immediately. Also
  *  clears the negative cache so a freshly-published slug appears at once. */
 export function invalidatePublicPage(slug: string): void {
   cache.delete(slug);
   missCache.delete(slug);
+  ogCache.delete(slug);
 }
 
 /** Test-only: clear the cache. */
 export function __resetPublicPageCache(): void {
   cache.clear();
   missCache.clear();
+  ogCache.clear();
+  ogInFlight.clear();
 }
