@@ -183,6 +183,26 @@ describe("syncCvForUser", () => {
     expect(pr?.items[0]?.displayText).toBe("BMC Ophthalmology — 2 reviews");
   });
 
+  it("keeps the publisher fallback for a peer review with no ISSN, without mutating the source", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue([]);
+    const groups = [
+      { issn: "1471-2415", organization: "Springer Nature", count: 2 },
+      { organization: "Some Society", count: 1 }, // no ISSN → the no-issn remap branch
+    ];
+    mocks.fetchPeerReviews.mockResolvedValue(groups);
+    mocks.fetchJournalNames.mockResolvedValue(new Map([["1471-2415", "BMC Ophthalmology"]]));
+    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.fetchJournalNames).toHaveBeenCalledWith(["1471-2415"]);
+    const texts =
+      cv.sections.find((s) => s.type === "peer-review")?.items.map((i) => i.displayText) ?? [];
+    expect(texts.some((t) => t?.includes("BMC Ophthalmology"))).toBe(true); // ISSN resolved
+    expect(texts.some((t) => t?.includes("Some Society"))).toBe(true); // publisher fallback kept
+    // The ORCID client's array was remapped immutably — the original is untouched.
+    expect((groups[0] as { journal?: string }).journal).toBeUndefined();
+  });
+
   it("builds an empty CV when the ORCID resolves to no OpenAlex author", async () => {
     mocks.findUnique.mockResolvedValue(null);
     mocks.resolveAuthor.mockResolvedValue(null);

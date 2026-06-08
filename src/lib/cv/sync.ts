@@ -144,11 +144,15 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   // by journal, not by publisher. Best-effort: unresolved ISSNs keep the
   // publisher fallback.
   const prIssns = peerReviews.map((p) => p.issn).filter((x): x is string => Boolean(x));
+  let resolvedPeerReviews = peerReviews;
   if (prIssns.length > 0) {
     const names = await fetchJournalNamesByIssn(prIssns);
-    for (const pr of peerReviews) {
-      if (pr.issn) pr.journal = names.get(pr.issn) ?? pr.journal;
-    }
+    // Immutable remap — never mutate the array returned by the ORCID client
+    // (the project-wide immutability invariant; a future cached/shared client
+    // result would otherwise be corrupted in place).
+    resolvedPeerReviews = peerReviews.map((pr) =>
+      pr.issn ? { ...pr, journal: names.get(pr.issn) ?? pr.journal } : pr,
+    );
   }
 
   // ROR: canonicalize free-text institution names BEFORE building so the same
@@ -182,7 +186,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     education: inst.education,
     distinctions: inst.distinctions,
     service: inst.service,
-    peerReviews,
+    peerReviews: resolvedPeerReviews,
     dataciteOutputs,
     openaireOutputs,
     dblpConferencePapers,
@@ -362,6 +366,9 @@ export async function listIndexablePublicSlugs(): Promise<string[]> {
   const rows = await prisma.cv.findMany({
     where: { published: true, publicIndexable: true, publicSlug: { not: null } },
     select: { publicSlug: true },
+    // Bound the sitemap so it can never grow into an unbounded scan/response as
+    // the number of indexable public pages grows (well above any near-term scale).
+    take: 50_000,
   });
   return rows.map((r) => r.publicSlug).filter((s): s is string => typeof s === "string");
 }

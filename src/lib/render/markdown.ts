@@ -9,7 +9,16 @@ import { prepareSections } from "./prepare";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
 function yamlString(s: string): string {
-  return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  // Double-quoted YAML scalar. Collapse newlines / control chars to a space so a
+  // multi-line value (e.g. a displayName containing "\n\n## Forged") can't break
+  // out of the single-line frontmatter block, then escape backslash and the
+  // quote so the scalar itself stays well-formed.
+  let oneLine = "";
+  for (const ch of s) {
+    const code = ch.charCodeAt(0);
+    oneLine += code < 0x20 || code === 0x7f ? " " : ch;
+  }
+  return `"${oneLine.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }
 
 /**
@@ -49,14 +58,16 @@ export function renderCvMarkdown(cv: CanonicalCv): string {
         }
         return `${i + 1}. ${text}`;
       });
-      return `## ${section.title}\n\n${lines.join("\n")}`;
+      return `## ${escapeMarkdown(section.title)}\n\n${lines.join("\n")}`;
     })
     .filter(Boolean)
     .join("\n\n");
 
   const head = textHeader(cv);
-  const name = cv.owner.displayName || fallbackTitle;
-  const heading = head.honorific ? `${head.honorific} ${name}` : name;
+  // displayName + honorific are user free-text — escape them so a name like
+  // "Doe\n\n## Forged" can't inject Markdown block structure into the export.
+  const name = escapeMarkdown(cv.owner.displayName || fallbackTitle);
+  const heading = head.honorific ? `${escapeMarkdown(head.honorific)} ${name}` : name;
   const headlineBlock = head.headline ? `*${escapeMarkdown(head.headline)}*\n\n` : "";
   const contactBlock = head.contact.length
     ? `${head.contact.map(escapeMarkdown).join(" · ")}\n\n`

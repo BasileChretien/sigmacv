@@ -43,11 +43,11 @@ const WORK_SELECT = [
 
 async function openAlexGet<T>(path: string, params: Record<string, string>): Promise<T> {
   const url = new URL(`${OPENALEX_API}${path}`);
+  const mailto = getEnv().OPENALEX_MAILTO;
   // Polite pool: identify ourselves on every request.
-  url.searchParams.set("mailto", getEnv().OPENALEX_MAILTO);
+  url.searchParams.set("mailto", mailto);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
-  const mailto = getEnv().OPENALEX_MAILTO;
   const res = await resilientFetch(url, {
     headers: {
       Accept: "application/json",

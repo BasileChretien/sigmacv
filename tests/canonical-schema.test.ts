@@ -27,6 +27,22 @@ describe("migrateCanonicalDocument", () => {
     const out = migrateCanonicalDocument(doc) as Record<string, unknown>;
     expect(out.schemaVersion).toBe(CANONICAL_SCHEMA_VERSION);
   });
+
+  it("does not mutate the caller's object (incl. nested owner) when upgrading", () => {
+    const doc = {
+      id: "x",
+      schemaVersion: 1,
+      owner: { summary: "" },
+      narrative: [{ key: "personal-statement", heading: "Bio", body: "My bio." }],
+    };
+    const snapshot = JSON.stringify(doc);
+    const out = migrateCanonicalDocument(doc) as Record<string, unknown>;
+    // The caller's object (and its nested owner) is untouched…
+    expect(JSON.stringify(doc)).toBe(snapshot);
+    expect(out).not.toBe(doc);
+    // …while the returned copy carries the migration (summary folded in).
+    expect((out.owner as { summary?: string }).summary).toBe("My bio.");
+  });
 });
 
 const validCv = {
@@ -133,6 +149,40 @@ describe("parseCanonicalCv", () => {
       sections: [{ ...validCv.sections[0], type: "nonsense" }],
     };
     expect(safeParseCanonicalCv(bad).success).toBe(false);
+  });
+
+  it("rejects an oversized item id (field-length cap, defence against payload abuse)", () => {
+    const bad = {
+      ...validCv,
+      sections: [
+        {
+          ...validCv.sections[0],
+          items: [
+            {
+              id: "W1".padEnd(2000, "x"), // > the 1024-char id cap
+              source: "openalex",
+              sourceId: "https://openalex.org/W1",
+              included: true,
+              order: 0,
+              authoredBySelf: false,
+              selfNameVariants: [],
+              meta: {},
+            },
+          ],
+        },
+      ],
+    };
+    expect(safeParseCanonicalCv(bad).success).toBe(false);
+  });
+
+  it("rejects an oversized section title and owner displayName", () => {
+    const longTitle = {
+      ...validCv,
+      sections: [{ ...validCv.sections[0], title: "T".repeat(2000) }],
+    };
+    expect(safeParseCanonicalCv(longTitle).success).toBe(false);
+    const longName = { ...validCv, owner: { ...validCv.owner, displayName: "N".repeat(2000) } };
+    expect(safeParseCanonicalCv(longName).success).toBe(false);
   });
 
   it("is backward compatible: an item without notMine parses to notMine=false", () => {

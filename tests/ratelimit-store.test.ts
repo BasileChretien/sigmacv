@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
   upsert: vi.fn(),
   update: vi.fn(),
+  updateMany: vi.fn(),
   warn: vi.fn(),
 }));
 
@@ -25,6 +26,7 @@ const tx = {
     findUnique: mocks.findUnique,
     upsert: mocks.upsert,
     update: mocks.update,
+    updateMany: mocks.updateMany,
   },
 };
 
@@ -33,6 +35,7 @@ beforeEach(() => {
   mocks.transaction.mockImplementation((cb: (t: typeof tx) => unknown) => cb(tx));
   mocks.upsert.mockResolvedValue({});
   mocks.update.mockResolvedValue({});
+  mocks.updateMany.mockResolvedValue({ count: 1 });
   __resetRateLimits();
   delete process.env.RATE_LIMIT_PERSIST;
 });
@@ -79,7 +82,7 @@ describe("enforceRateLimit — persistent (Postgres)", () => {
     expect(mocks.update).not.toHaveBeenCalled();
   });
 
-  it("increments within an active window", async () => {
+  it("atomically check-and-increments within an active window", async () => {
     mocks.findUnique.mockResolvedValue({
       key: "k",
       count: 2,
@@ -87,10 +90,27 @@ describe("enforceRateLimit — persistent (Postgres)", () => {
     });
     const r = await enforceRateLimit("k", 5, 60_000, 1000);
     expect(r.ok).toBe(true);
-    expect(mocks.update).toHaveBeenCalledWith({
-      where: { key: "k" },
+    // The cap is enforced inside the UPDATE's WHERE (count < max), pinned to the
+    // window we read — not a separate read-then-write that could lose an update.
+    expect(mocks.updateMany).toHaveBeenCalledWith({
+      where: { key: "k", count: { lt: 5 }, resetAt: new Date(61_000) },
       data: { count: { increment: 1 } },
     });
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+
+  it("denies when a concurrent request took the last slot (0 rows updated)", async () => {
+    mocks.findUnique.mockResolvedValue({
+      key: "k",
+      count: 4, // looked below the cap when read…
+      resetAt: new Date(61_000),
+    });
+    // …but the atomic conditional UPDATE affected 0 rows (another request
+    // already incremented to the cap), so this one is limited — no lost update.
+    mocks.updateMany.mockResolvedValue({ count: 0 });
+    const r = await enforceRateLimit("k", 5, 60_000, 1000);
+    expect(r.ok).toBe(false);
+    expect(r.retryAfterSec).toBe(60);
   });
 
   it("blocks at the cap and reports Retry-After (seconds)", async () => {

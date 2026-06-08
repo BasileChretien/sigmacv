@@ -45,7 +45,13 @@ export async function GET() {
       select: { expires: true },
     }),
     prisma.cv.findUnique({ where: { userId } }),
-    prisma.researchEvent.findMany({ where: { userId } }),
+    // Bound the export so a long-consenting user's research log can't force an
+    // unbounded query + in-memory JSON serialization (newest events first).
+    prisma.researchEvent.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 50_000,
+    }),
   ]);
 
   const payload = {

@@ -43,4 +43,28 @@ describe("highlightSelf", () => {
     const html = "Nobody, A. (2019).";
     expect(highlightSelf(html, [])).toBe(html);
   });
+
+  it("does not highlight a short surname inside a longer word", () => {
+    // A 2-char surname ("Li") must not match inside "Library" — only as a token.
+    const html = "Library science, by Li, B.";
+    const out = highlightSelf(html, ["Li"]);
+    expect(out).toContain("Library"); // untouched
+    expect(out).not.toContain('<span class="cv-self">Li</span>brary');
+    expect(out).toContain('<span class="cv-self">Li</span>, B.'); // standalone token
+  });
+
+  it("does not highlight a surname that is a prefix of a longer name", () => {
+    const html = "Bergström, A., & Berg, B.";
+    const out = highlightSelf(html, ["Berg"]);
+    expect(out).toContain("Bergström"); // not partially wrapped
+    expect(out).not.toContain('<span class="cv-self">Berg</span>ström');
+    expect(out).toContain('<span class="cv-self">Berg</span>, B.');
+  });
+
+  it("still matches names that begin/end with accented letters at a boundary", () => {
+    const html = "Évora, M., & Łukasz, K.";
+    const out = highlightSelf(html, ["Évora", "Łukasz"]);
+    expect(out).toContain('<span class="cv-self">Évora</span>, M.');
+    expect(out).toContain('<span class="cv-self">Łukasz</span>, K.');
+  });
 });

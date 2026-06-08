@@ -573,9 +573,12 @@ export function visibleItems(section: CvSection) {
  */
 export function orderedSections(cv: CanonicalCv): CvSection[] {
   if (cv.display.sectionsCustomized) return sortByOrder(cv.sections);
-  return [...cv.sections].sort(
-    (a, b) => DEFAULT_SECTION_ORDER[a.type] - DEFAULT_SECTION_ORDER[b.type],
-  );
+  // Fall back to a high order for any unrecognised type (e.g. a section type
+  // removed in a future schema version that survives in a stored doc) so the
+  // comparator can never return NaN — a NaN comparator makes the result of
+  // Array.prototype.sort implementation-defined.
+  const orderOf = (s: CvSection): number => DEFAULT_SECTION_ORDER[s.type] ?? 999;
+  return [...cv.sections].sort((a, b) => orderOf(a) - orderOf(b));
 }
 
 /** Visible sections that should appear, in effective display order. */
