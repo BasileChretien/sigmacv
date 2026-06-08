@@ -3,12 +3,14 @@ import { enabledProviders } from "@/auth.config";
 import { signInWithEmail, signInWithGoogle, signInWithOrcid } from "@/app/auth-actions";
 import { asLocale, t } from "@/lib/i18n";
 import { accessibilityStrings } from "@/lib/i18n/accessibility";
+import { contactStrings } from "@/lib/i18n/contact";
 import { faqStrings } from "@/lib/i18n/faq";
 import { landingStrings } from "@/lib/i18n/landing";
 import { LANDING_PAGE_IDS, landingPageStrings } from "@/lib/i18n/landingPages";
 import {
   localeAboutPath,
   localeAccessibilityPath,
+  localeContactPath,
   localeFaqPath,
   localeLandingPagePath,
   localePrivacyPath,
@@ -236,6 +238,9 @@ export default function Landing({ locale }: LandingProps) {
         <span className="muted">{s.footer}</span>
         <Link className="footer-link" href={localePrivacyPath(loc)}>
           {t(loc, "privacy")}
+        </Link>
+        <Link className="footer-link" href={localeContactPath(loc)}>
+          {contactStrings(loc).heading}
         </Link>
         <Link className="footer-link" href={localeFaqPath(loc)}>
           {faqStrings(loc).navLabel}
