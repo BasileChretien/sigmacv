@@ -292,14 +292,14 @@ function CreatorBody({
 }
 
 /**
- * Decorative hero brand graphic: luminous "data comets" travel connector rails
- * from six floating open-data source chips into a central Σ medallion, which
- * pulses as the CV silhouette fills in (with a self-name highlight) — open data
- * flowing into a CV. Each chip cross-fades between two of the twelve sources, so
- * all appear over the loop. Purely decorative (aria-hidden), reserved
- * aspect-ratio (no layout shift), and motion-safe (a self-contained
- * prefers-reduced-motion block freezes it to a settled state). Source names are
- * brand proper nouns (like "Σ"/"SigmaCV"), not translated copy.
+ * Decorative hero brand graphic: six floating open-data source chips around a
+ * central Σ medallion (soft core glow) that pulses as the CV silhouette fills in
+ * line by line, with a self-name highlight — open data assembling into a CV. Each
+ * chip cross-fades between two of the twelve sources, so all appear over the loop.
+ * Purely decorative (aria-hidden), reserved aspect-ratio (no layout shift), and
+ * motion-safe (a self-contained prefers-reduced-motion block freezes it to a
+ * settled state). Source names are brand proper nouns (like "Σ"/"SigmaCV"), not
+ * translated copy.
  */
 function HeroGraphic() {
   return (
@@ -317,37 +317,12 @@ function HeroGraphic() {
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          <linearGradient id="hgRail" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--accent-400)" stopOpacity="0" />
-            <stop offset="55%" stopColor="var(--accent-500)" stopOpacity="0.16" />
-            <stop offset="100%" stopColor="var(--accent-600)" stopOpacity="0.32" />
-          </linearGradient>
-          <linearGradient id="hgComet" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--accent-300)" stopOpacity="0" />
-            <stop offset="70%" stopColor="var(--accent-400)" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="var(--accent-600)" stopOpacity="1" />
-          </linearGradient>
           <radialGradient id="hgCore" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="var(--accent-400)" stopOpacity="0.55" />
             <stop offset="100%" stopColor="var(--accent-500)" stopOpacity="0" />
           </radialGradient>
         </defs>
-
         <circle className="hg-core-glow" cx="240" cy="206" r="92" fill="url(#hgCore)" />
-
-        {[
-          "M120 70 C 190 110, 210 150, 240 200",
-          "M372 96 C 300 130, 270 160, 244 198",
-          "M96 300 C 170 270, 205 240, 236 214",
-          "M388 326 C 312 290, 276 250, 246 216",
-          "M44 210 C 120 208, 182 206, 234 205",
-          "M436 206 C 360 206, 300 205, 246 205",
-        ].map((d, i) => (
-          <g key={d} className={`hg-conn hg-conn-${i + 1}`}>
-            <path className="hg-rail" d={d} stroke="url(#hgRail)" strokeWidth="1.5" />
-            <path className="hg-comet" d={d} stroke="url(#hgComet)" strokeWidth="2.5" />
-          </g>
-        ))}
       </svg>
 
       <span className="hg-doc">

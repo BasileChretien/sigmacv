@@ -2239,37 +2239,6 @@ textarea.prose-body {
   height: 100%;
   z-index: 1;
 }
-.hg-rail {
-  fill: none;
-  stroke-linecap: round;
-}
-.hg-comet {
-  fill: none;
-  stroke-linecap: round;
-  stroke-dasharray: 26 520;
-  stroke-dashoffset: 300;
-  opacity: 0;
-  filter: drop-shadow(0 0 3px var(--accent-ring));
-  animation: hg-travel var(--hg-cycle) var(--ease) infinite;
-}
-.hg-conn-1 .hg-comet {
-  animation-delay: 0s;
-}
-.hg-conn-2 .hg-comet {
-  animation-delay: calc(var(--hg-cycle) / -6);
-}
-.hg-conn-3 .hg-comet {
-  animation-delay: calc(var(--hg-cycle) / -3);
-}
-.hg-conn-4 .hg-comet {
-  animation-delay: calc(var(--hg-cycle) / -2);
-}
-.hg-conn-5 .hg-comet {
-  animation-delay: calc(var(--hg-cycle) / -1.5);
-}
-.hg-conn-6 .hg-comet {
-  animation-delay: calc(var(--hg-cycle) / -1.2);
-}
 .hg-core-glow {
   transform-box: fill-box;
   transform-origin: center;
@@ -2453,8 +2422,6 @@ textarea.prose-body {
   border-radius: 50%;
   background: var(--accent-500);
   flex: none;
-  box-shadow: 0 0 0 0 var(--accent-ring);
-  animation: hg-emit var(--hg-cycle) var(--ease) infinite;
 }
 .hg-cyc-a {
   animation: hg-cyc-a 8s var(--ease) infinite;
@@ -2473,8 +2440,10 @@ textarea.prose-body {
   animation: hg-float-b 8s var(--ease) infinite alternate;
 }
 .hg-chip-3 {
-  bottom: 22%;
-  left: 1%;
+  /* Crossref / ClinicalTrials.gov — the widest chip; sits centered BELOW the CV
+     card (clear of it), not over its corner. */
+  bottom: 4%;
+  left: 31%;
   animation: hg-float-b 9s var(--ease) infinite alternate-reverse;
 }
 .hg-chip-4 {
@@ -2506,42 +2475,6 @@ textarea.prose-body {
 }
 .hg-chip-6 .hg-chip-label {
   animation-delay: -6.6s;
-}
-.hg-chip-2 .hg-chip-label::before {
-  animation-delay: calc(var(--hg-cycle) / -6);
-}
-.hg-chip-3 .hg-chip-label::before {
-  animation-delay: calc(var(--hg-cycle) / -3);
-}
-.hg-chip-4 .hg-chip-label::before {
-  animation-delay: calc(var(--hg-cycle) / -2);
-}
-.hg-chip-5 .hg-chip-label::before {
-  animation-delay: calc(var(--hg-cycle) / -1.5);
-}
-.hg-chip-6 .hg-chip-label::before {
-  animation-delay: calc(var(--hg-cycle) / -1.2);
-}
-@keyframes hg-travel {
-  0% {
-    stroke-dashoffset: 300;
-    opacity: 0;
-  }
-  6% {
-    opacity: 1;
-  }
-  32% {
-    stroke-dashoffset: 26;
-    opacity: 1;
-  }
-  40% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-  }
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-  }
 }
 @keyframes hg-core {
   0% {
@@ -2633,17 +2566,6 @@ textarea.prose-body {
     transform: translate(-50%, -50%) scale(1);
   }
 }
-@keyframes hg-emit {
-  0% {
-    box-shadow: 0 0 0 0 var(--accent-ring);
-  }
-  12% {
-    box-shadow: 0 0 0 4px rgba(127, 127, 127, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(127, 127, 127, 0);
-  }
-}
 @keyframes hg-sheen {
   to {
     transform: rotate(360deg);
@@ -2717,7 +2639,6 @@ textarea.prose-body {
 }
 @media (prefers-reduced-motion: reduce) {
   .hg-blob,
-  .hg-conn .hg-comet,
   .hg-core-glow,
   .hg-doc-fill,
   .hg-doc-hl,
@@ -2737,7 +2658,6 @@ textarea.prose-body {
     opacity: 1 !important;
     transform: scaleX(1) !important;
   }
-  .hg-comet,
   .hg-doc-sweep,
   .hg-ring {
     opacity: 0 !important;
