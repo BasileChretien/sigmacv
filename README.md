@@ -3,7 +3,7 @@
 **A free, open-source tool that builds your academic CV for you — from the public research record.**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Status: pre-launch](https://img.shields.io/badge/status-pre--launch-orange.svg)](#-status-pre-launch)
+[![Status: live](https://img.shields.io/badge/status-live-2ea44f.svg)](https://sigmacv.org)
 [![Languages: 10](https://img.shields.io/badge/languages-10-teal.svg)](#available-in-10-languages)
 [![Metrics: DORA-aligned](https://img.shields.io/badge/metrics-DORA--aligned-8a4baa.svg)](https://sfdora.org/)
 [![Open science: FAIR](https://img.shields.io/badge/open%20science-FAIR-2ea44f.svg)](docs/OPEN-SCIENCE.md)
@@ -124,21 +124,20 @@ lets SigmaCV find _your_ work reliably. _(Self-hosters can optionally enable
 | **10 languages**              | English, 中文, Español, Français, Deutsch, 日本語, Português, Italiano, 한국어, Русский.                                                       |
 | **Responsible metrics**       | Off by default and opt-in; prefers field-normalized indicators; never shows a journal Impact Factor.                                           |
 
-## 🚧 Status: pre-launch
+## ✅ Status: live
 
-SigmaCV is open and working, but it is **not yet live as a hosted service.**
-There is no public sign-up link yet, and a free hosted version that anyone can
-sign in to is **planned, not confirmed.** We would rather say that plainly than
-point you at a page that doesn't work.
+SigmaCV is **live at [sigmacv.org](https://sigmacv.org)** — sign in with your
+ORCID iD and your CV is auto-built from the open record. It's free for
+individuals and open source. (The name "SigmaCV" is a working title, tied to the
+Sigma-Score bibliometric index, and may change.)
 
-What this means for you right now:
+What this means for you:
 
-- **If you're a researcher:** there's nothing for you to install — just
-  **star or watch this repository** to hear when a hosted version opens. (The
-  name "SigmaCV" is a working title, tied to the Sigma-Score bibliometric index,
-  and may change.)
-- **If you're technical** (or you have an IT team): you can **run your own copy
-  today** — see [For developers & self-hosting](#for-developers--self-hosting).
+- **If you're a researcher:** go to **[sigmacv.org](https://sigmacv.org)**, sign
+  in with ORCID, and build your CV — nothing to install. Star or watch this
+  repository to follow development.
+- **If you're technical** (or you have an IT team): you can also **run your own
+  copy** — see [For developers & self-hosting](#for-developers--self-hosting).
 
 ## Where your CV comes from
 
@@ -364,8 +363,8 @@ it automatically. Machine-readable software metadata is also provided in
 [`.zenodo.json`](.zenodo.json).
 
 > A citable **Zenodo software DOI will be minted at the first tagged release.**
-> Until then, please cite the repository directly. (This is pre-launch — no
-> release tag, and therefore no DOI, exists yet.)
+> Until then, please cite the repository directly (no release tag — and therefore
+> no DOI — exists yet).
 
 ## License
 
