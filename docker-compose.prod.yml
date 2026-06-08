@@ -12,6 +12,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # NEXT_PUBLIC_* are inlined into the client bundle at build time, so they
+      # must be passed as build args (the runtime `environment:` below can't
+      # change an inlined value). Read from the deploy `.env`; blank = omitted.
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
+        NEXT_PUBLIC_BUYMEACOFFEE_URL: ${NEXT_PUBLIC_BUYMEACOFFEE_URL:-}
+        NEXT_PUBLIC_GITHUB_URL: ${NEXT_PUBLIC_GITHUB_URL:-}
+        NEXT_PUBLIC_LINKEDIN_URL: ${NEXT_PUBLIC_LINKEDIN_URL:-}
     restart: unless-stopped
     # Hardening: the image already runs as non-root pwuser; also forbid privilege
     # escalation and drop all Linux capabilities (the app binds 3000 — no
