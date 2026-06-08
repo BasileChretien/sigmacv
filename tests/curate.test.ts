@@ -364,6 +364,27 @@ describe("section ops + selectors", () => {
     expect(orderedSections(customized)[0]!.type).toBe("publications");
   });
 
+  it("orderedSections tolerates an unknown section type without NaN ordering", () => {
+    const cv = buildCanonicalCv({ id: "ot", resolved, works, now: "2026-06-02T00:00:00.000Z" });
+    // A section type removed in a future schema version could survive in a
+    // stored doc; the default-order comparator must not return NaN (which makes
+    // Array.prototype.sort implementation-defined).
+    const alien = {
+      id: "future",
+      type: "future-type",
+      title: "Future",
+      visible: true,
+      order: 0,
+      items: [],
+    };
+    const patched = { ...cv, sections: [...cv.sections, alien] } as unknown as CanonicalCv;
+    expect(() => orderedSections(patched)).not.toThrow();
+    const out = orderedSections(patched);
+    expect(out).toHaveLength(cv.sections.length + 1);
+    // The unknown type sorts last (the 999 fallback order), after all known types.
+    expect(out[out.length - 1]!.type).toBe("future-type");
+  });
+
   it("marks sectionsCustomized once the user reorders a section", () => {
     const cv = buildCanonicalCv({
       id: "sc",

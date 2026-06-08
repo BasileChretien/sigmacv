@@ -217,6 +217,138 @@ describe("buildCanonicalCv", () => {
     expect(items.find((i) => i.id === "W_STALE")).toBeUndefined();
   });
 
+  it("a claimed PREPRINT OpenAlex later publishes is not listed in BOTH sections", () => {
+    const first = build();
+    const dupDoi = first.sections[0]!.items.find((i) => i.id === "W4300000001")!.csl!.DOI!;
+    // The user previously claimed this work while it was a preprint, so it sits
+    // in a Preprints section. OpenAlex now returns it as a published article
+    // (in `works` → Publications). It must appear once, not in both sections.
+    const stalePreprintClaim: CvItem = {
+      id: "W_PREPRINT_STALE",
+      source: "openalex",
+      sourceId: "https://openalex.org/W_PREPRINT_STALE",
+      csl: {
+        id: "W_PREPRINT_STALE",
+        type: "article-journal",
+        title: "Was a preprint",
+        DOI: dupDoi,
+      },
+      included: true,
+      notMine: false,
+      order: 0,
+      authoredBySelf: true,
+      selfNameVariants: [],
+      meta: { claimed: true, matchBasis: "claimed" },
+    };
+    const previous = {
+      ...first,
+      sections: [
+        ...first.sections,
+        {
+          id: "preprints",
+          type: "preprints" as const,
+          title: "Preprints",
+          visible: true,
+          order: 1,
+          items: [stalePreprintClaim],
+        },
+      ],
+    };
+    const resynced = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-08-01T00:00:00.000Z",
+      previous,
+    });
+    const allItems = resynced.sections.flatMap((s) => s.items);
+    expect(allItems.filter((i) => i.csl?.DOI?.toLowerCase() === dupDoi.toLowerCase())).toHaveLength(
+      1,
+    );
+    expect(allItems.find((i) => i.id === "W_PREPRINT_STALE")).toBeUndefined();
+  });
+
+  it("preserves a hide when the same DOI sat in two prior sections (no clobber)", () => {
+    const dupDoi = "10.1000/example1"; // the DOI of fetched work W4300000001
+    const hiddenOld: CvItem = {
+      id: "OLD_HIDDEN",
+      source: "openalex",
+      sourceId: "https://openalex.org/OLD_HIDDEN",
+      csl: { id: "OLD_HIDDEN", type: "article-journal", DOI: dupDoi },
+      included: true,
+      notMine: true, // user asserted "not mine" on this copy
+      notMineAssertedAt: "2026-01-01T00:00:00.000Z",
+      order: 0,
+      authoredBySelf: false,
+      selfNameVariants: [],
+      meta: { doi: dupDoi },
+    };
+    const visibleOld: CvItem = {
+      id: "OLD_VISIBLE",
+      source: "dblp",
+      sourceId: "dblp",
+      csl: { id: "OLD_VISIBLE", type: "paper-conference", DOI: dupDoi },
+      included: true,
+      notMine: false,
+      order: 0,
+      authoredBySelf: false,
+      selfNameVariants: [],
+      meta: { doi: dupDoi },
+    };
+    // Same DOI in two sections; the non-hidden copy is iterated LAST. With the
+    // old "last wins" DOI index, the hide would be lost on re-sync.
+    const previous = {
+      ...build(),
+      sections: [
+        {
+          id: "publications",
+          type: "publications" as const,
+          title: "Publications",
+          visible: true,
+          order: 0,
+          items: [hiddenOld],
+        },
+        {
+          id: "conference",
+          type: "conference" as const,
+          title: "Conference",
+          visible: true,
+          order: 4,
+          items: [visibleOld],
+        },
+      ],
+    };
+    const resynced = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-08-01T00:00:00.000Z",
+      previous,
+    });
+    // The fetched work (matched by DOI, not id) must inherit the "not mine" hide.
+    const rebuilt = resynced.sections
+      .flatMap((s) => s.items)
+      .find((i) => i.csl?.DOI?.toLowerCase() === dupDoi.toLowerCase())!;
+    expect(rebuilt.notMine).toBe(true);
+  });
+
+  it("disambiguates peer-review item ids for two ISSN-less venues with the same name", () => {
+    const cv = buildCanonicalCv({
+      id: "cv_pr",
+      resolved,
+      works: [],
+      now: "2026-06-02T00:00:00.000Z",
+      peerReviews: [
+        { organization: "Nature Publishing Group", count: 3 },
+        { organization: "Nature Publishing Group", count: 5 },
+      ],
+    });
+    const pr = cv.sections.find((s) => s.type === "peer-review")!;
+    const ids = pr.items.map((i) => i.id);
+    expect(pr.items).toHaveLength(2);
+    expect(new Set(ids).size).toBe(ids.length); // distinct ids, no collision
+  });
+
   it("appends newly-discovered works AFTER the user's curated order on re-sync", () => {
     const first = build();
     // Simulate the user reordering to: W3, W2, W1.

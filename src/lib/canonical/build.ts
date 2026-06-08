@@ -3,6 +3,7 @@ import {
   CanonicalCvSchema,
   DEFAULT_SECTION_ORDER,
   DisplayChoicesSchema,
+  isHidden,
   type CanonicalCv,
   type CvItem,
   type CvSection,
@@ -238,18 +239,19 @@ function carryOverUserItems(
   fetched: CvItem[],
   previous: CanonicalCv | null | undefined,
   sectionType: CvSection["type"],
+  fetchedIds: Set<string>,
+  fetchedDois: Set<string>,
 ): CvItem[] {
   const prevSection = previous?.sections.find((s) => s.type === sectionType);
   if (!prevSection) return fetched;
-  const ids = new Set(fetched.map((it) => it.id));
-  const dois = new Set(
-    fetched.map((it) => it.csl?.DOI?.toLowerCase()).filter((d): d is string => Boolean(d)),
-  );
+  // Supersede a carried claim/manual entry when OpenAlex now returns the same
+  // work in ANY fetched section (by id OR DOI) — not just this one — so a
+  // claimed preprint that becomes a published article isn't listed in both.
   const carried = prevSection.items.filter(
     (it) =>
       (it.source === "manual" || it.meta.claimed === true) &&
-      !ids.has(it.id) &&
-      !(it.csl?.DOI && dois.has(it.csl.DOI.toLowerCase())),
+      !fetchedIds.has(it.id) &&
+      !(it.csl?.DOI && fetchedDois.has(it.csl.DOI.toLowerCase())),
   );
   return carried.length ? [...fetched, ...carried] : fetched;
 }
@@ -459,11 +461,17 @@ function buildPeerReviewSection(
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
+  const seenIds = new Map<string, number>();
   for (const g of groups) {
     const label = g.journal ?? g.organization;
     // Stable id keyed by ISSN when available, else the label.
     const key = g.issn ?? normInstitution(label);
-    const id = `peer-review:orcid:${key.replace(/[^a-z0-9]+/g, "-")}`;
+    let id = `peer-review:orcid:${key.replace(/[^a-z0-9]+/g, "-")}`;
+    // Disambiguate two ISSN-less venues that normalize to the same label, so the
+    // second's curation isn't lost to an id collision with the first.
+    const dupe = seenIds.get(id) ?? 0;
+    seenIds.set(id, dupe + 1);
+    if (dupe > 0) id = `${id}-${dupe}`;
     const text = `${label} — ${g.count} review${g.count === 1 ? "" : "s"}`;
     items.push(
       makeEntryItem(id, "orcid", "peer-review", text, prevItems.get(id), rank++, undefined, {
@@ -1008,7 +1016,14 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     for (const it of s.items) {
       prevItems.set(it.id, it);
       const doi = it.csl?.DOI ?? it.meta.doi;
-      if (doi) prevByDoi.set(doi.toLowerCase(), it);
+      if (doi) {
+        const key = doi.toLowerCase();
+        const existing = prevByDoi.get(key);
+        // When the same DOI appears in two prior sections, keep the entry with
+        // the stronger curation signal (hidden / "not mine") so the DOI-index
+        // fallback can never silently drop a hide/disambiguation decision.
+        if (!existing || (isHidden(it) && !isHidden(existing))) prevByDoi.set(key, it);
+      }
     }
   }
   // New works are appended AFTER everything the user already curated (newest
@@ -1083,11 +1098,20 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
 
   // Split into Publications vs Preprints (so the CV doesn't double-count a
   // preprint and its published version, and matches academic convention).
+  // Global fetched id+DOI sets so a carried claim/manual item is superseded when
+  // OpenAlex now returns the same work in EITHER section (prevents a claimed
+  // preprint that became a published article from being listed in both).
+  const fetchedIds = new Set(ordered.map((it) => it.id));
+  const fetchedDois = new Set(
+    ordered.map((it) => it.csl?.DOI?.toLowerCase()).filter((d): d is string => Boolean(d)),
+  );
   const pubItems = reindexItems(
     carryOverUserItems(
       ordered.filter((it) => !preprintIds.has(it.id)),
       previous,
       "publications",
+      fetchedIds,
+      fetchedDois,
     ),
   );
   const preprintItems = reindexItems(
@@ -1095,6 +1119,8 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       ordered.filter((it) => preprintIds.has(it.id)),
       previous,
       "preprints",
+      fetchedIds,
+      fetchedDois,
     ),
   );
 
@@ -1247,9 +1273,21 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // silently vanish on every re-sync. Matched by id so a built section never
   // duplicates its carried-over twin; appended after the built sections.
   const builtIds = new Set(builtSections.map((s) => s.id));
-  const carriedSections: CvSection[] = (previous?.sections ?? []).filter(
-    (s) => !builtIds.has(s.id),
-  );
+  const carriedSections: CvSection[] = [];
+  for (const s of previous?.sections ?? []) {
+    if (builtIds.has(s.id)) continue;
+    // Drop any carried item this sync already produced elsewhere (by id or DOI):
+    // a claimed/manual entry OpenAlex now attributes moves into a built section,
+    // so the stale copy here (e.g. a claimed preprint that became published,
+    // leaving the built Preprints section empty) must not be resurrected.
+    const keptItems = s.items.filter(
+      (it) => !fetchedIds.has(it.id) && !(it.csl?.DOI && fetchedDois.has(it.csl.DOI.toLowerCase())),
+    );
+    // Only drop the section when FILTERING emptied a once-populated source
+    // section; originally-empty prose/user sections (a statement's body) stay.
+    if (keptItems.length === 0 && s.items.length > 0) continue;
+    carriedSections.push({ ...s, items: keptItems });
+  }
   const allSections = [...builtSections, ...carriedSections];
 
   // Localize default section headings to the chosen locale (genuine user

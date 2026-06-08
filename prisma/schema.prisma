@@ -74,6 +74,9 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  // Auth.js resolves a provider account by userId on sign-in, and the cascade
+  // delete filters by it — index so neither is a sequential scan as users grow.
+  @@index([userId])
 }
 
 model Session {
@@ -83,6 +86,10 @@ model Session {
   expires      DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Sessions are listed/cascade-deleted by userId (the data-export + account
+  // deletion paths); index so those don't scan the whole session table.
+  @@index([userId])
 }
 
 model VerificationToken {

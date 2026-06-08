@@ -30,7 +30,17 @@ export function rateLimit(
   const existing = buckets.get(key);
 
   if (!existing || now >= existing.resetAt) {
-    if (buckets.size >= MAX_BUCKETS) pruneExpired(now);
+    if (buckets.size >= MAX_BUCKETS) {
+      pruneExpired(now);
+      // Pruning frees nothing when every window is still fresh (e.g. a flood of
+      // distinct IPs within one window), so hard-bound the map by evicting the
+      // oldest bucket(s) — `buckets.set` below must never push size past the cap.
+      while (buckets.size >= MAX_BUCKETS) {
+        const oldest = buckets.keys().next().value;
+        if (oldest === undefined) break;
+        buckets.delete(oldest);
+      }
+    }
     buckets.set(key, { count: 1, resetAt: now + windowMs });
     return { ok: true, retryAfterSec: 0 };
   }
@@ -53,3 +63,11 @@ function pruneExpired(now: number): void {
 export function __resetRateLimits(): void {
   buckets.clear();
 }
+
+/** Test-only: current number of live buckets (to assert the hard bound). */
+export function __rateLimitBucketCount(): number {
+  return buckets.size;
+}
+
+/** Test-only: the map's hard cap. */
+export const __MAX_BUCKETS = MAX_BUCKETS;

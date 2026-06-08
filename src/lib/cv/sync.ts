@@ -48,6 +48,51 @@ export class CvNotFoundError extends Error {
   }
 }
 
+/**
+ * Hard cap on the TOTAL number of items across all sections, enforced on SAVE
+ * only. A real auto-synced CV is far below this (bounded by the ~5k OpenAlex
+ * fetch cap), but a crafted document with tens of thousands of citeproc items
+ * would make a public-page render pin the single-process event loop. Reads are
+ * never rejected by this — only writes — so it can't make a stored CV vanish.
+ */
+export const MAX_TOTAL_CV_ITEMS = 12_000;
+
+/** Thrown when a save would exceed {@link MAX_TOTAL_CV_ITEMS}. */
+export class CvTooLargeError extends Error {
+  constructor() {
+    super("CV exceeds the maximum number of items.");
+    this.name = "CvTooLargeError";
+  }
+}
+
+/** Total items across all sections of a canonical CV. */
+export function cvItemCount(cv: Pick<CanonicalCv, "sections">): number {
+  return cv.sections.reduce((n, s) => n + s.items.length, 0);
+}
+
+/**
+ * Trim a CV's items to at most `max` total across all sections, preserving
+ * section order and within-section order (later sections lose items first).
+ * Immutable; a no-op when already under the cap. Used to keep the sync path from
+ * persisting a document the public render couldn't safely handle, without ever
+ * failing the sync (fail-soft).
+ */
+export function capCvItems(cv: CanonicalCv, max: number): CanonicalCv {
+  if (cvItemCount(cv) <= max) return cv;
+  let remaining = max;
+  const sections = cv.sections.map((s) => {
+    if (remaining <= 0) return { ...s, items: [] };
+    if (s.items.length <= remaining) {
+      remaining -= s.items.length;
+      return s;
+    }
+    const items = s.items.slice(0, remaining);
+    remaining = 0;
+    return { ...s, items };
+  });
+  return { ...cv, sections };
+}
+
 /** Load + validate the user's canonical CV, or null if absent/corrupt. */
 export async function getCvForUser(userId: string): Promise<CanonicalCv | null> {
   const row = await prisma.cv.findUnique({ where: { userId } });
@@ -144,11 +189,15 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   // by journal, not by publisher. Best-effort: unresolved ISSNs keep the
   // publisher fallback.
   const prIssns = peerReviews.map((p) => p.issn).filter((x): x is string => Boolean(x));
+  let resolvedPeerReviews = peerReviews;
   if (prIssns.length > 0) {
     const names = await fetchJournalNamesByIssn(prIssns);
-    for (const pr of peerReviews) {
-      if (pr.issn) pr.journal = names.get(pr.issn) ?? pr.journal;
-    }
+    // Immutable remap — never mutate the array returned by the ORCID client
+    // (the project-wide immutability invariant; a future cached/shared client
+    // result would otherwise be corrupted in place).
+    resolvedPeerReviews = peerReviews.map((pr) =>
+      pr.issn ? { ...pr, journal: names.get(pr.issn) ?? pr.journal } : pr,
+    );
   }
 
   // ROR: canonicalize free-text institution names BEFORE building so the same
@@ -182,7 +231,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     education: inst.education,
     distinctions: inst.distinctions,
     service: inst.service,
-    peerReviews,
+    peerReviews: resolvedPeerReviews,
     dataciteOutputs,
     openaireOutputs,
     dblpConferencePapers,
@@ -214,6 +263,12 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   // that have a DOI but incomplete OpenAlex metadata. Bounded + fails soft.
   cv = await enrichCvWithCrossref(cv, getEnv().OPENALEX_MAILTO);
 
+  // Defence-in-depth: never persist a document above the public-render item cap.
+  // saveCvForUser enforces this for user saves; the sync/resync path writes via
+  // upsert directly, so cap here too — trimming (fail-soft), never failing. A
+  // real synced CV is far below the cap (bounded by the ~5k OpenAlex fetch cap).
+  cv = capCvItems(cv, MAX_TOTAL_CV_ITEMS);
+
   await prisma.cv.upsert({
     where: { userId },
     create: {
@@ -237,6 +292,10 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
  *  client-supplied user id (no IDOR). Requires an existing row. */
 export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<CanonicalCv> {
   const validated = CanonicalCvSchema.parse(doc);
+  // Bound total items on save so a crafted many-item document can't later pin the
+  // event loop on every public-page render (the per-section cap alone still
+  // allows 60 × 10k). Far above any real CV.
+  if (cvItemCount(validated) > MAX_TOTAL_CV_ITEMS) throw new CvTooLargeError();
   const existing = await prisma.cv.findUnique({ where: { userId } });
   if (!existing) throw new CvNotFoundError();
 
@@ -362,6 +421,9 @@ export async function listIndexablePublicSlugs(): Promise<string[]> {
   const rows = await prisma.cv.findMany({
     where: { published: true, publicIndexable: true, publicSlug: { not: null } },
     select: { publicSlug: true },
+    // Bound the sitemap so it can never grow into an unbounded scan/response as
+    // the number of indexable public pages grows (well above any near-term scale).
+    take: 50_000,
   });
   return rows.map((r) => r.publicSlug).filter((s): s is string => typeof s === "string");
 }

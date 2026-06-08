@@ -34,6 +34,14 @@ describe("safeHref", () => {
     expect(safeHref("")).toBe("");
     expect(safeHref(undefined)).toBe("");
   });
+  it("strips userinfo credentials so a pasted user:pass can't leak into an href", () => {
+    expect(safeHref("https://user:pass@example.com/path")).toBe("https://example.com/path");
+    expect(safeHref("http://u:p@example.org")).toBe("http://example.org/");
+    // A credential-bearing bare string (no scheme) is rejected outright.
+    expect(safeHref("user:pass@example.com/path")).toBe("");
+    // An @ in the PATH (not the authority) is left untouched.
+    expect(safeHref("https://example.org/u@x")).toBe("https://example.org/u@x");
+  });
 });
 
 describe("CvOwnerSchema", () => {

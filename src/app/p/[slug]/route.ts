@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPublicCvForPage } from "@/lib/cv/sync";
 import {
+  dedupePublicRender,
   getCachedPublicPage,
   isKnownMiss,
   rememberMiss,
@@ -139,24 +140,35 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     return machineResponse(serializePublicCv(cv, format, slug), slug, indexable);
   }
 
-  // Public living page → request the "Made with SigmaCV" referral footer (the
-  // owner can still opt out via display.publicAttribution). Export renderers
-  // never pass this, so PDF/DOCX/LaTeX/Markdown stay unbranded.
-  let html = renderCvHtml(cv, { attribution: true });
-  // OG/Twitter social-preview meta tags (public profile text only) into <head>.
-  // og:image points at the per-CV branded card (same slug, /og sub-route).
-  const head = publicMetaTags(cv, { imageUrl: absoluteUrl(`/p/${slug}/og`) });
-  if (indexable) {
-    // Inject ProfilePage/Person JSON-LD into the document head for rich results.
-    // It's data (not executed), so it's unaffected by the document's strict CSP.
-    html = html.replace(
-      "</head>",
-      `${head}<script type="application/ld+json">${profilePageJsonLd(cv, slug)}</script></head>`,
-    );
-  } else {
-    html = html.replace("</head>", `${head}</head>`);
-  }
+  // Coalesce concurrent renders of the same slug so the heavy citeproc render
+  // runs once even under a burst of anonymous hits on one uncached page.
+  const entry = await dedupePublicRender(slug, async () => {
+    // Re-check the cache inside the critical section: a concurrent request may
+    // have just rendered this slug while we awaited the DB read.
+    const fresh = getCachedPublicPage(slug);
+    if (fresh) return fresh;
 
-  setCachedPublicPage(slug, { html, indexable });
-  return publicPageResponse(html, indexable);
+    // Public living page → request the "Made with SigmaCV" referral footer (the
+    // owner can still opt out via display.publicAttribution). Export renderers
+    // never pass this, so PDF/DOCX/LaTeX/Markdown stay unbranded.
+    let html = renderCvHtml(cv, { attribution: true });
+    // OG/Twitter social-preview meta tags (public profile text only) into <head>.
+    // og:image points at the per-CV branded card (same slug, /og sub-route).
+    const head = publicMetaTags(cv, { imageUrl: absoluteUrl(`/p/${slug}/og`) });
+    if (indexable) {
+      // Inject ProfilePage/Person JSON-LD into the document head for rich results.
+      // It's data (not executed), so it's unaffected by the document's strict CSP.
+      html = html.replace(
+        "</head>",
+        `${head}<script type="application/ld+json">${profilePageJsonLd(cv, slug)}</script></head>`,
+      );
+    } else {
+      html = html.replace("</head>", `${head}</head>`);
+    }
+
+    const rendered = { html, indexable };
+    setCachedPublicPage(slug, rendered);
+    return rendered;
+  });
+  return publicPageResponse(entry.html, entry.indexable);
 }

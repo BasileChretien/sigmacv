@@ -85,4 +85,27 @@ describe("fetchDataciteOutputs", () => {
     );
     expect(await fetchDataciteOutputs("0000-0002-7483-2489")).toEqual([]);
   });
+
+  it("extracts the publisher name from the DataCite v2 object form", async () => {
+    const body = {
+      data: [
+        {
+          attributes: {
+            doi: "10.5281/zenodo.v2",
+            titles: [{ title: "v2 dataset" }],
+            publicationYear: 2024,
+            // Fabrica v2 returns a structured object instead of a plain string.
+            publisher: { name: "Zenodo", publisherIdentifier: "https://ror.org/x" },
+            types: { resourceTypeGeneral: "Dataset" },
+          },
+        },
+      ],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(body)),
+    );
+    const out = await fetchDataciteOutputs("0000-0002-7483-2489");
+    expect(out[0]?.publisher).toBe("Zenodo");
+  });
 });

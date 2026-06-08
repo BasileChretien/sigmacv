@@ -89,6 +89,9 @@ vi.mock("@/lib/canonical/enrich", () => ({
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   CvNotFoundError,
+  CvTooLargeError,
+  capCvItems,
+  cvItemCount,
   getCvForUser,
   getPublicCv,
   getPublicCvForPage,
@@ -98,6 +101,7 @@ import {
   setPublishState,
   syncCvForUser,
 } from "@/lib/cv/sync";
+import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
 
@@ -181,6 +185,26 @@ describe("syncCvForUser", () => {
     expect(mocks.fetchJournalNames).toHaveBeenCalledWith(["1471-2415"]);
     const pr = cv.sections.find((s) => s.type === "peer-review");
     expect(pr?.items[0]?.displayText).toBe("BMC Ophthalmology — 2 reviews");
+  });
+
+  it("keeps the publisher fallback for a peer review with no ISSN, without mutating the source", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue([]);
+    const groups = [
+      { issn: "1471-2415", organization: "Springer Nature", count: 2 },
+      { organization: "Some Society", count: 1 }, // no ISSN → the no-issn remap branch
+    ];
+    mocks.fetchPeerReviews.mockResolvedValue(groups);
+    mocks.fetchJournalNames.mockResolvedValue(new Map([["1471-2415", "BMC Ophthalmology"]]));
+    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.fetchJournalNames).toHaveBeenCalledWith(["1471-2415"]);
+    const texts =
+      cv.sections.find((s) => s.type === "peer-review")?.items.map((i) => i.displayText) ?? [];
+    expect(texts.some((t) => t?.includes("BMC Ophthalmology"))).toBe(true); // ISSN resolved
+    expect(texts.some((t) => t?.includes("Some Society"))).toBe(true); // publisher fallback kept
+    // The ORCID client's array was remapped immutably — the original is untouched.
+    expect((groups[0] as { journal?: string }).journal).toBeUndefined();
   });
 
   it("builds an empty CV when the ORCID resolves to no OpenAlex author", async () => {
@@ -275,6 +299,80 @@ describe("saveCvForUser", () => {
     await saveCvForUser("u1", DOC);
     expect(mocks.update).toHaveBeenCalledTimes(1);
     expect(mocks.logCvSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a save that exceeds the total-item cap, before any DB write", async () => {
+    const mkItem = (i: number): CvItem => ({
+      id: `i${i}`,
+      source: "manual",
+      sourceId: "m",
+      included: true,
+      notMine: false,
+      order: i,
+      authoredBySelf: false,
+      selfNameVariants: [],
+      meta: {},
+    });
+    const bomb = {
+      ...DOC,
+      sections: [
+        {
+          id: "publications",
+          type: "publications" as const,
+          title: "P",
+          visible: true,
+          order: 0,
+          items: Array.from({ length: 10_000 }, (_, i) => mkItem(i)),
+        },
+        {
+          id: "preprints",
+          type: "preprints" as const,
+          title: "Pre",
+          visible: true,
+          order: 1,
+          items: Array.from({ length: 2_001 }, (_, i) => mkItem(i + 10_000)),
+        },
+      ],
+    };
+    expect(cvItemCount(bomb)).toBe(12_001);
+    // Each section is within the per-section cap, so Zod parse succeeds — the
+    // total-item cap is what rejects it, and it does so before touching the DB.
+    mocks.findUnique.mockResolvedValue({ document: DOC });
+    await expect(saveCvForUser("u1", bomb)).rejects.toBeInstanceOf(CvTooLargeError);
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("capCvItems", () => {
+  const mkSection = (id: string, count: number) =>
+    ({
+      id,
+      type: "publications",
+      title: id,
+      visible: true,
+      order: 0,
+      items: Array.from({ length: count }, (_, i) => ({ id: `${id}-${i}` })),
+    }) as unknown as CanonicalCv["sections"][number];
+  const mk = (counts: number[]) =>
+    ({ sections: counts.map((c, i) => mkSection(`s${i}`, c)) }) as unknown as CanonicalCv;
+
+  it("returns the same object when already under the cap", () => {
+    const cv = mk([3]);
+    expect(capCvItems(cv, 10)).toBe(cv);
+  });
+
+  it("trims later sections first, preserving section + item order", () => {
+    const out = capCvItems(mk([5, 5]), 7);
+    expect(out.sections[0]!.items).toHaveLength(5); // first section kept whole
+    expect(out.sections[1]!.items).toHaveLength(2); // second trimmed to fill budget
+    expect(cvItemCount(out)).toBe(7);
+  });
+
+  it("empties sections that fall entirely past the budget", () => {
+    const out = capCvItems(mk([10, 5]), 8);
+    expect(out.sections[0]!.items).toHaveLength(8);
+    expect(out.sections[1]!.items).toHaveLength(0);
+    expect(cvItemCount(out)).toBe(8);
   });
 });
 

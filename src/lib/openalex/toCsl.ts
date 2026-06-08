@@ -52,6 +52,36 @@ export function hasCjk(text: string): boolean {
 }
 
 /**
+ * Lower-case nobiliary name particles (Dutch / German / Romance) that belong in
+ * CSL's `non-dropping-particle` rather than the given name, so a style renders
+ * "van der Berg, J." and sorts the entry under "B". Matched CASE-SENSITIVELY on
+ * the lower-case form — a capitalized homograph (e.g. the Vietnamese given name
+ * "Van" / surname "Le") is left as an ordinary name token, not a particle.
+ */
+const NAME_PARTICLES = new Set([
+  "van",
+  "von",
+  "der",
+  "den",
+  "de",
+  "del",
+  "della",
+  "di",
+  "da",
+  "dos",
+  "das",
+  "du",
+  "la",
+  "le",
+  "el",
+  "ten",
+  "ter",
+  "vom",
+  "zur",
+  "zum",
+]);
+
+/**
  * Heuristic name splitter: OpenAlex gives a single `display_name` rather than
  * structured given/family parts. We treat the last whitespace-separated token
  * as the family name and the rest as given. Single-token names (often
@@ -79,15 +109,41 @@ export function toCslName(raw: string | undefined | null): CslName {
   const parts = name.split(/\s+/);
   if (parts.length === 1) return { literal: name };
   const family = parts[parts.length - 1]!;
-  const given = parts.slice(0, -1).join(" ");
-  return { family, given };
+  const rest = parts.slice(0, -1);
+  // Promote a trailing run of lower-case particles (immediately before the family
+  // name) into `non-dropping-particle`, e.g. "Jan van der Berg" → given "Jan",
+  // particle "van der", family "Berg". A capitalized token never matches, so an
+  // ordinary "Given Family" name is unaffected.
+  let p = rest.length;
+  while (p > 0 && NAME_PARTICLES.has(rest[p - 1]!)) p--;
+  const given = rest.slice(0, p).join(" ");
+  const particle = rest.slice(p).join(" ");
+  if (particle) {
+    return given
+      ? { family, "non-dropping-particle": particle, given }
+      : { family, "non-dropping-particle": particle };
+  }
+  return { family, given: rest.join(" ") };
 }
 
 function toIssued(work: OpenAlexWork): CslDate | undefined {
   if (work.publication_date) {
     const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(work.publication_date);
     if (m) {
-      return { "date-parts": [[Number(m[1]), Number(m[2]), Number(m[3])]] };
+      const year = Number(m[1]);
+      const month = Number(m[2]);
+      const day = Number(m[3]);
+      // OpenAlex emits "YYYY-00-00" / "YYYY-MM-00" for year- or month-only
+      // records; month=0 / day=0 are invalid in CSL `date-parts` and make
+      // citeproc mis-render or silently drop the date. Degrade to the precision
+      // actually present rather than emitting a zero component.
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        return { "date-parts": [[year, month, day]] };
+      }
+      if (month >= 1 && month <= 12) {
+        return { "date-parts": [[year, month]] };
+      }
+      return { "date-parts": [[year]] };
     }
   }
   if (typeof work.publication_year === "number") {

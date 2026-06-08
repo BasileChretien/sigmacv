@@ -122,7 +122,7 @@ export async function resyncDueCvs(
       summary.skipped += 1;
       continue;
     }
-    const acquired = await acquireResyncLock(cv.id, Date.now());
+    const acquired = await acquireResyncLock(cv.id, now);
     if (!acquired) {
       summary.locked += 1;
       continue;

@@ -170,7 +170,7 @@ export const AUTHORSHIP_ROLE_LABELS: Record<AuthorshipRole, string> = {
 /** A single CV entry. For MVP these come from OpenAlex works. */
 export const CvItemSchema = z.object({
   /** Stable id — e.g. the OpenAlex short id "W2741809807", or "position:…". */
-  id: z.string(),
+  id: z.string().max(1024),
   /** Where the item came from. "manual" = user-entered; "orcid" = ORCID record. */
   source: z.enum([
     "openalex",
@@ -192,11 +192,11 @@ export const CvItemSchema = z.object({
     "manual",
   ]),
   /** Full source identifier (e.g. OpenAlex URL form, ORCID put-code, or "manual"). */
-  sourceId: z.string(),
+  sourceId: z.string().max(2048),
   /** CSL-JSON payload handed to citeproc. Absent for non-citation items. */
   csl: CslItemSchema.optional(),
   /** Plain display string for non-citation items (editorial roles, grants). */
-  displayText: z.string().optional(),
+  displayText: z.string().max(10_000).optional(),
   /**
    * DISPLAY curation. false = hidden from this CV (a work the user authored but
    * chose to leave off). Distinct from `notMine`. Never deletes the item.
@@ -231,8 +231,8 @@ export const CvItemSchema = z.object({
   /** Lightweight denormalized metadata for the curation UI and grouping. */
   meta: z.object({
     year: z.number().int().optional(),
-    type: z.string().optional(),
-    doi: z.string().optional(),
+    type: z.string().max(200).optional(),
+    doi: z.string().max(1000).optional(),
     citedByCount: z.number().int().optional(),
     /** Per-work field-weighted citation impact (OpenAlex `fwci`). Stored so the
      *  FWCI mean can be RECOMPUTED over the curated works (excluding "not mine"). */
@@ -241,28 +241,28 @@ export const CvItemSchema = z.object({
      *  percentile ≥ 90). Stored so top-10% share recomputes over curated works. */
     topDecile: z.boolean().optional(),
     /** Open-access status from OpenAlex ("gold"/"green"/"hybrid"/"bronze"/"diamond"). */
-    oaStatus: z.string().optional(),
+    oaStatus: z.string().max(200).optional(),
     /**
      * Reuse license of THIS work (e.g. "cc-by", "cc-by-nc-nd"), taken from the
      * OpenAlex location (`primary_location.license`, else `best_oa_location`).
      * Free-form (OpenAlex's own slug) — surfaced for FAIR/open-science display.
      */
-    license: z.string().optional(),
+    license: z.string().max(200).optional(),
     /** PubMed id (bare numeric, e.g. "12345678"), extracted from OpenAlex `ids.pmid`. */
-    pmid: z.string().optional(),
+    pmid: z.string().max(200).optional(),
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
-    rorId: z.string().optional(),
+    rorId: z.string().max(2048).optional(),
     /**
      * Funder identifier for a grant item (interoperable funding metadata). The
      * OpenAlex funder id (e.g. "https://openalex.org/F4320332161") or the ORCID
      * funding's disambiguated-organization identifier (FundRef/ROR/GRID). Additive
      * + optional — never invented; left undefined when the source carries none.
      */
-    funderId: z.string().optional(),
+    funderId: z.string().max(2048).optional(),
     /** Human-readable funder name for a grant item (OpenAlex `funder_display_name` / ORCID org name). */
-    funderName: z.string().optional(),
+    funderName: z.string().max(1000).optional(),
     /** Award / grant number for a grant item (OpenAlex `award_id` / ORCID grant external id). */
-    awardId: z.string().optional(),
+    awardId: z.string().max(500).optional(),
     /**
      * ISO timestamp of the build that last fetched this item from a LIVE source
      * (openalex/orcid/…). Per-item freshness for FAIR provenance; undefined for
@@ -270,7 +270,7 @@ export const CvItemSchema = z.object({
      */
     lastVerifiedAt: z.string().optional(),
     /** The account holder's authorship role on this work ("first"/"last"/"corresponding"). */
-    authorRole: z.string().optional(),
+    authorRole: z.string().max(200).optional(),
     /** Total number of authors on the work. */
     authorCount: z.number().int().optional(),
     /** The account holder's 1-based position among the authors (authorship table). */
@@ -306,7 +306,7 @@ export const CvItemSchema = z.object({
      * record lists a different ORCID on this paper). Advisory only — never hides
      * the item; the user decides. Free-form so new heuristics need no schema bump.
      */
-    reviewFlag: z.string().optional(),
+    reviewFlag: z.string().max(500).optional(),
   }),
 });
 export type CvItem = z.infer<typeof CvItemSchema>;
@@ -321,10 +321,10 @@ export function isHidden(item: Pick<CvItem, "included" | "notMine">): boolean {
 }
 
 export const CvSectionSchema = z.object({
-  id: z.string(),
+  id: z.string().max(200),
   type: CvSectionTypeSchema,
   /** User-editable section heading. */
-  title: z.string(),
+  title: z.string().max(1000),
   /** Section show/hide toggle. */
   visible: z.boolean(),
   order: z.number().int(),
@@ -407,11 +407,11 @@ export const PHOTO_DATA_URL_MAX = 1_400_000;
 
 export const CvOwnerSchema = z.object({
   /** Bare ORCID iD, e.g. "0000-0002-7483-2489". */
-  orcid: z.string(),
+  orcid: z.string().max(64),
   /** All OpenAlex author ids for this iD (one iD can map to several). */
-  openAlexAuthorIds: z.array(z.string()),
+  openAlexAuthorIds: z.array(z.string().max(256)).max(200),
   /** Header display only — never used for matching/highlighting. */
-  displayName: z.string(),
+  displayName: z.string().max(1000),
   /** An honorific/title prefix shown BEFORE the name, e.g. "Dr" (user-editable). */
   honorific: z.string().max(60).optional(),
   /** A short headline / role shown UNDER the name (user-editable). */
@@ -500,14 +500,21 @@ export const DisplayChoicesSchema = z.object({
   // template (e.g. minimal/compact/editorial) — they fall back to classic.
   template: z.enum(TEMPLATES).default("classic").catch("classic"),
   /** Bundled CSL style key, e.g. "apa" (see src/lib/citeproc/assets/styles). */
-  cslStyle: z.string().default("apa"),
+  cslStyle: z.string().max(200).default("apa"),
   /**
    * A user-added CSL style (from the Zotero/CSL repo). When `cslStyle` matches
    * its `id`, this XML is used instead of a bundled style. Optional + back-compat.
    */
   customStyle: CustomStyleSchema.optional(),
-  /** Bundled locale, e.g. "en-US". */
-  locale: z.string().default("en-US"),
+  /** Bundled locale, e.g. "en-US". Constrained to a BCP-47-shaped tag (the UI
+   *  only offers the ten supported locales); `.catch` keeps an old/garbage stored
+   *  value loading by falling back to en-US instead of failing the whole CV read,
+   *  and neutralizes any injection-shaped value before it reaches Intl/JSON-LD. */
+  locale: z
+    .string()
+    .regex(/^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$/)
+    .default("en-US")
+    .catch("en-US"),
   highlightSelf: z.boolean().default(true),
   /** How the self-name is emphasised (colour / bold / underline). */
   highlightStyle: z.enum(HIGHLIGHT_STYLES).default("accent"),
@@ -519,7 +526,7 @@ export const DisplayChoicesSchema = z.object({
   /** Master metrics toggle. Brief: metrics default to NONE. */
   showMetrics: z.boolean().default(false),
   /** Which metric keys to show (subset of METRIC_KEYS). Default none. */
-  metrics: z.array(z.string()).default([]),
+  metrics: z.array(z.string().max(64)).max(100).default([]),
   /** Show the publications/citations-per-year mini charts (HTML/PDF). Default off. */
   showCharts: z.boolean().default(false),
   /** Show an "Open Access" badge on OA publications (HTML/PDF). Default on. */
@@ -570,7 +577,7 @@ export const DisplayChoicesSchema = z.object({
   /** Show the authorship-position summary table (counts of first/last/…). Default off. */
   showAuthorshipTable: z.boolean().default(false),
   /** Which authorship roles to include in that table (subset of AUTHORSHIP_ROLES). */
-  authorshipRoles: z.array(z.string()).default([]),
+  authorshipRoles: z.array(z.string().max(64)).max(50).default([]),
   /** Accent colour (validated hex). */
   accentColor: z.string().regex(HEX_COLOR).default("#1f4fd8"),
   fontPairing: z.enum(FONT_PAIRINGS).default("serif"),
@@ -624,8 +631,8 @@ export const PROVENANCE_SOURCES = [
 ] as const;
 
 export const ProvenanceSchema = z.object({
-  generatedAt: z.string(),
-  lastSyncedAt: z.string().optional(),
+  generatedAt: z.string().max(64),
+  lastSyncedAt: z.string().max(64).optional(),
   /** Data sources that contributed to this CV. Back-compat: old ["openalex"]. */
   sources: z.array(z.enum(PROVENANCE_SOURCES)),
 });
@@ -649,7 +656,7 @@ export type CvPreset = z.infer<typeof CvPresetSchema>;
 
 export const CanonicalCvSchema = z.object({
   schemaVersion: z.literal(CANONICAL_SCHEMA_VERSION),
-  id: z.string(),
+  id: z.string().max(128),
   owner: CvOwnerSchema,
   display: DisplayChoicesSchema,
   // Bounded — a CV has at most a few dozen section types; the cap blocks a
@@ -700,7 +707,7 @@ function migrateNarrativeToSections(doc: Record<string, unknown>): void {
       return typeof o === "number" && o > m ? o : m;
     }, -1) + 1;
 
-  const owner = (doc.owner ?? {}) as Record<string, unknown>;
+  const owner = { ...((doc.owner ?? {}) as Record<string, unknown>) };
   const summaryEmpty = typeof owner.summary !== "string" || owner.summary.trim().length === 0;
 
   let statementCount = 0;
@@ -754,11 +761,15 @@ function migrateNarrativeToSections(doc: Record<string, unknown>): void {
  */
 export function migrateCanonicalDocument(input: unknown): unknown {
   if (!input || typeof input !== "object") return input;
-  const doc = input as Record<string, unknown>;
-  let version = typeof doc.schemaVersion === "number" ? doc.schemaVersion : 1;
-  // Only upgrade KNOWN older versions; a higher/unknown version is left untouched
-  // so validation can reject it (never clobber an unrecognised schemaVersion).
-  if (version >= CANONICAL_SCHEMA_VERSION) return doc;
+  const original = input as Record<string, unknown>;
+  let version = typeof original.schemaVersion === "number" ? original.schemaVersion : 1;
+  // Only upgrade KNOWN older versions; the current version (and any higher/unknown
+  // one — left for validation to reject) is returned untouched, never copied.
+  if (version >= CANONICAL_SCHEMA_VERSION) return original;
+  // Migration mutates as it upgrades — work on a shallow copy so the caller's
+  // object is never changed (immutability invariant; `owner` is likewise copied
+  // inside migrateNarrativeToSections).
+  const doc = { ...original };
   while (version < CANONICAL_SCHEMA_VERSION) {
     if (version < 2) migrateNarrativeToSections(doc);
     version++;

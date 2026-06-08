@@ -22,7 +22,7 @@ function asRecord(v: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 function str(v: unknown): string | undefined {
-  return typeof v === "string" && v.length > 0 ? v : undefined;
+  return typeof v === "string" && v.trim() ? v.trim() : undefined;
 }
 /** Year from a partial ISO date ("2021-02-23" | "2021-02" | "2021"). */
 function year(v: unknown): number | undefined {

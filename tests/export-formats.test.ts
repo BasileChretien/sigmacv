@@ -39,6 +39,23 @@ describe.skipIf(!hasApa)("export formats (need vendored CSL assets)", () => {
     expect(md).toContain("**Chrétien**"); // self name bolded
   });
 
+  it("Markdown: escapes metacharacters in section titles and the name heading", () => {
+    const base = makeCv();
+    const cv = {
+      ...base,
+      owner: { ...base.owner, displayName: "Doe\n\n## Forged" },
+      sections: base.sections.map((s) =>
+        s.type === "publications" ? { ...s, title: "Pubs [x](http://e.tld) keep" } : s,
+      ),
+    };
+    const md = renderCvMarkdown(cv);
+    // A name like "Doe\n\n## Forged" must not inject a real heading block.
+    expect(md).not.toMatch(/^## Forged/m);
+    // A renamed section title can't smuggle a Markdown link past the escaper.
+    expect(md).not.toContain("[x](http://e.tld)");
+    expect(md).toContain("## Pubs"); // the real heading still renders (escaped)
+  });
+
   it("LaTeX: accent colour, section rules, template-styled layout", () => {
     const tex = renderCvLatex(makeCv());
     expect(tex).toContain("\\documentclass[11pt,a4paper]{article}");

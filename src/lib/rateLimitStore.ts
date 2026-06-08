@@ -47,10 +47,23 @@ async function prismaRateLimit(
       };
     }
 
-    await tx.rateLimitWindow.update({
-      where: { key },
+    // Atomic check-and-increment: the cap is enforced INSIDE the UPDATE's WHERE
+    // (`count < max`), and `resetAt` pins the window we read. The row lock the
+    // UPDATE takes serializes concurrent requests for the same key, and READ
+    // COMMITTED re-evaluates the WHERE against the freshly-committed row — so two
+    // requests can't both slip past the cap (the lost update a separate
+    // read-then-write would allow). 0 rows updated means a concurrent request
+    // just took the last slot → treat this one as limited.
+    const res = await tx.rateLimitWindow.updateMany({
+      where: { key, count: { lt: max }, resetAt: row.resetAt },
       data: { count: { increment: 1 } },
     });
+    if (res.count === 0) {
+      return {
+        ok: false,
+        retryAfterSec: Math.ceil((row.resetAt.getTime() - now) / 1000),
+      };
+    }
     return { ok: true, retryAfterSec: 0 };
   });
 }

@@ -31,7 +31,22 @@ export function highlightSelf(entryHtml: string, nameVariants: string[]): string
   const variants = cleanVariants(nameVariants);
   if (variants.length === 0) return entryHtml;
 
-  const pattern = new RegExp(`(${variants.map(escapeRegExp).join("|")})`, "g");
+  // Match only at Unicode word boundaries so a short surname ("Li", "Berg")
+  // isn't highlighted inside a longer word ("Library", "Bergström"), while names
+  // that begin/end with accented letters (Chrétien, Évora) still match. `\b` is
+  // ASCII-only (it would break accented names), so use letter/number lookarounds
+  // with the `u` flag instead.
+  const pattern = new RegExp(
+    `(?<![\\p{L}\\p{N}])(${variants.map(escapeRegExp).join("|")})(?![\\p{L}\\p{N}])`,
+    "gu",
+  );
+
+  // Fast path: a plain-text entry (no markup/comments at all) has no tags to
+  // skip, so substitute directly — equivalent to the split below, and it avoids
+  // running the tag-split regex on the common no-markup citeproc output.
+  if (!entryHtml.includes("<")) {
+    return entryHtml.replace(pattern, `<span class="${CLASS}">$1</span>`);
+  }
 
   // Split on HTML comments and tags so we only substitute inside text segments.
   return entryHtml

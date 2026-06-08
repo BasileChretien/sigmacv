@@ -1,11 +1,17 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
   __resetPublicPageCache,
+  dedupeOgImage,
+  dedupePublicRender,
+  getCachedOgImage,
   getCachedPublicPage,
   invalidatePublicPage,
   isKnownMiss,
   rememberMiss,
+  setCachedOgImage,
   setCachedPublicPage,
+  type OgImageEntry,
+  type PublicPageEntry,
 } from "@/lib/cv/publicPageCache";
 
 afterEach(() => __resetPublicPageCache());
@@ -37,6 +43,90 @@ describe("publicPageCache", () => {
     }
     // The most recent insert is present; the cache did not grow without bound.
     expect(getCachedPublicPage("slug-2099", 5000)).not.toBeNull();
+  });
+
+  it("caches a large (expensive) render so repeat hits stay O(1)", () => {
+    const big = "x".repeat(3_000_000); // 3 MB — would have been skipped before
+    setCachedPublicPage("big", { html: big, indexable: false }, 5000);
+    expect(getCachedPublicPage("big", 5000)?.html.length).toBe(3_000_000);
+  });
+
+  it("bounds total cached bytes by evicting the oldest large renders", () => {
+    // One 10 MB string, stored by reference (cheap), inserted under 30 slugs so
+    // the cache's by-length accounting crosses the 256 MB budget.
+    const big = "x".repeat(10_000_000); // 10 MB
+    for (let i = 0; i < 30; i++) {
+      setCachedPublicPage(`big-${i}`, { html: big, indexable: false }, 5000);
+    }
+    // 30 × 10 MB = 300 MB > 256 MB budget → the oldest entries were evicted,
+    // the most-recent survives.
+    expect(getCachedPublicPage("big-0", 5000)).toBeNull();
+    expect(getCachedPublicPage("big-29", 5000)).not.toBeNull();
+  });
+
+  describe("dedupePublicRender (single-flight)", () => {
+    it("coalesces concurrent renders of the same slug into one", async () => {
+      let calls = 0;
+      const render = () =>
+        new Promise<PublicPageEntry>((resolve) => {
+          calls++;
+          setTimeout(() => resolve({ html: "<x>", indexable: false }), 5);
+        });
+      const results = await Promise.all(
+        Array.from({ length: 5 }, () => dedupePublicRender("dup", render)),
+      );
+      expect(calls).toBe(1); // rendered once despite 5 concurrent callers
+      expect(results.every((r) => r.html === "<x>")).toBe(true);
+    });
+
+    it("renders fresh again once the in-flight render settles", async () => {
+      let calls = 0;
+      const render = () =>
+        Promise.resolve<PublicPageEntry>({ html: String(++calls), indexable: false });
+      await dedupePublicRender("dup2", render);
+      await dedupePublicRender("dup2", render);
+      expect(calls).toBe(2);
+    });
+  });
+
+  describe("OG image cache", () => {
+    it("stores + returns OG bytes and expires after the 5-minute TTL", () => {
+      const bytes = new Uint8Array([1, 2, 3]);
+      setCachedOgImage("og1", { bytes, indexable: true }, 1000);
+      expect(getCachedOgImage("og1", 1500)?.bytes).toBe(bytes);
+      expect(getCachedOgImage("og1", 1500)?.indexable).toBe(true);
+      expect(getCachedOgImage("og1", 1000 + 301_000)).toBeNull();
+    });
+
+    it("invalidate clears the OG card too (publish-state change)", () => {
+      setCachedOgImage("og2", { bytes: new Uint8Array([1]), indexable: false }, 1000);
+      invalidatePublicPage("og2");
+      expect(getCachedOgImage("og2", 1100)).toBeNull();
+    });
+
+    it("bounds the OG cache by total bytes", () => {
+      const big = new Uint8Array(10_000_000); // 10 MB, stored by reference
+      for (let i = 0; i < 8; i++) {
+        setCachedOgImage(`ogbig-${i}`, { bytes: big, indexable: false }, 5000);
+      }
+      // 8 × 10 MB = 80 MB > 64 MB budget → the oldest were evicted.
+      expect(getCachedOgImage("ogbig-0", 5000)).toBeNull();
+      expect(getCachedOgImage("ogbig-7", 5000)).not.toBeNull();
+    });
+
+    it("single-flights concurrent OG renders for the same slug", async () => {
+      let calls = 0;
+      const render = () =>
+        new Promise<OgImageEntry>((resolve) => {
+          calls++;
+          setTimeout(() => resolve({ bytes: new Uint8Array([9]), indexable: false }), 5);
+        });
+      const results = await Promise.all(
+        Array.from({ length: 4 }, () => dedupeOgImage("ogdup", render)),
+      );
+      expect(calls).toBe(1);
+      expect(results.every((r) => r.bytes[0] === 9)).toBe(true);
+    });
   });
 
   describe("negative cache (unknown slugs)", () => {
