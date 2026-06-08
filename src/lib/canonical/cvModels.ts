@@ -1065,6 +1065,35 @@ export function applyCvModel(
 }
 
 /**
+ * Reset the section layout back to the default — the INVERSE of {@link applyCvModel}.
+ * Restores every section to its default order and default localized title
+ * (clearing any funder `titleOverrides`); shows the standard sections and hides
+ * the prose ones (`narrative-*` / `statement`, since a default data-driven CV
+ * has none); and returns the publication-display fields a model sets
+ * (limit / order / peer-reviewed-only) plus `sectionsCustomized` to their
+ * schema defaults. PURE + IMMUTABLE — it never touches item data or prose
+ * bodies, so re-applying a model (or re-showing a section) brings everything
+ * back. Used by the "(none)" option in the editor's CV-model picker.
+ */
+export function resetCvSections(cv: CanonicalCv, locale: string = cv.display.locale): CanonicalCv {
+  const sections = cv.sections.map((s) => ({
+    ...s,
+    visible: !isProseSectionType(s.type),
+    order: DEFAULT_SECTION_ORDER[s.type],
+    title: sectionTitle(locale, s.type),
+  }));
+  return updateDisplay(
+    { ...cv, sections },
+    {
+      sectionsCustomized: false,
+      peerReviewedOnly: false,
+      publicationOrder: "custom",
+      publicationsLimit: undefined,
+    },
+  );
+}
+
+/**
  * ───────────────────────────────────────────────────────────────────────────
  * Back-compat: the original four grant presets.
  * ───────────────────────────────────────────────────────────────────────────

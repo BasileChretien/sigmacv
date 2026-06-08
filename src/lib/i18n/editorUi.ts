@@ -62,7 +62,7 @@ export interface EditorExtraStrings {
   modelGrpInstitution: string;
   modelGrpIndustry: string;
   /** Placeholder/optional option in the CV-model picker (selecting it is a no-op). */
-  modelOptional: string;
+  modelNone: string;
   /** Helper line under the picker stressing it's optional. */
   modelHelp: string;
 }
@@ -117,7 +117,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpGrant: "Grant calls",
     modelGrpInstitution: "Public institutions",
     modelGrpIndustry: "Industry & clinical",
-    modelOptional: "— Optional: start from a layout —",
+    modelNone: "— None (default sections) —",
     modelHelp:
       "Optional. Pick a funder or institution layout to auto-arrange your sections — or just build your CV freely.",
   },
@@ -170,7 +170,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpGrant: "资助公募",
     modelGrpInstitution: "公共机构",
     modelGrpIndustry: "产业与临床",
-    modelOptional: "— 可选：从某个版式开始 —",
+    modelNone: "— 无（默认栏目）—",
     modelHelp: "可选。选择一个资助方或机构版式以自动排列你的栏目——或直接自由编排你的简历。",
   },
   "es-ES": {
@@ -223,7 +223,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpGrant: "Convocatorias de financiación",
     modelGrpInstitution: "Instituciones públicas",
     modelGrpIndustry: "Industria y clínica",
-    modelOptional: "— Opcional: parte de un diseño —",
+    modelNone: "— Ninguno (secciones predeterminadas) —",
     modelHelp:
       "Opcional. Elige un diseño de financiador o institución para ordenar tus secciones automáticamente, o crea tu CV libremente.",
   },
@@ -278,7 +278,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpGrant: "Appels à financement",
     modelGrpInstitution: "Institutions publiques",
     modelGrpIndustry: "Industrie et clinique",
-    modelOptional: "— Facultatif : partir d’une mise en page —",
+    modelNone: "— Aucun (sections par défaut) —",
     modelHelp:
       "Facultatif. Choisissez une mise en page de financeur ou d’institution pour organiser automatiquement vos sections — ou composez votre CV librement.",
   },
@@ -332,7 +332,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpGrant: "Förderausschreibungen",
     modelGrpInstitution: "Öffentliche Einrichtungen",
     modelGrpIndustry: "Industrie & Klinik",
-    modelOptional: "— Optional: mit einem Layout beginnen —",
+    modelNone: "— Keine (Standardabschnitte) —",
     modelHelp:
       "Optional. Wählen Sie ein Förderer- oder Institutionslayout, um Ihre Abschnitte automatisch anzuordnen — oder erstellen Sie Ihren Lebenslauf frei.",
   },
@@ -385,7 +385,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpGrant: "助成公募",
     modelGrpInstitution: "公的機関",
     modelGrpIndustry: "産業・臨床",
-    modelOptional: "— 任意：レイアウトから始める —",
+    modelNone: "— なし（既定のセクション）—",
     modelHelp:
       "任意です。助成機関や機関のレイアウトを選ぶとセクションが自動で並びます。自由に CV を作成することもできます。",
   },
@@ -439,7 +439,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpGrant: "Chamadas de financiamento",
     modelGrpInstitution: "Instituições públicas",
     modelGrpIndustry: "Indústria e clínica",
-    modelOptional: "— Opcional: comece a partir de um layout —",
+    modelNone: "— Nenhum (seções padrão) —",
     modelHelp:
       "Opcional. Escolha um layout de financiador ou instituição para organizar suas seções automaticamente — ou monte seu currículo livremente.",
   },
@@ -494,7 +494,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpGrant: "Bandi di finanziamento",
     modelGrpInstitution: "Istituzioni pubbliche",
     modelGrpIndustry: "Industria e clinica",
-    modelOptional: "— Facoltativo: parti da un layout —",
+    modelNone: "— Nessuno (sezioni predefinite) —",
     modelHelp:
       "Facoltativo. Scegli un layout di un ente finanziatore o di un’istituzione per disporre automaticamente le tue sezioni — oppure crea il tuo CV liberamente.",
   },
@@ -548,7 +548,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpGrant: "연구비 공모",
     modelGrpInstitution: "공공기관",
     modelGrpIndustry: "산업 및 임상",
-    modelOptional: "— 선택 사항: 레이아웃에서 시작 —",
+    modelNone: "— 없음 (기본 섹션) —",
     modelHelp:
       "선택 사항입니다. 지원기관이나 기관 레이아웃을 고르면 섹션이 자동으로 배치됩니다 — 또는 자유롭게 CV를 작성하세요.",
   },
@@ -601,7 +601,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpGrant: "Грантовые конкурсы",
     modelGrpInstitution: "Государственные учреждения",
     modelGrpIndustry: "Индустрия и клиника",
-    modelOptional: "— Необязательно: начать с макета —",
+    modelNone: "— Нет (разделы по умолчанию) —",
     modelHelp:
       "Необязательно. Выберите макет грантодателя или учреждения, чтобы автоматически расставить разделы, — или составьте резюме свободно.",
   },
