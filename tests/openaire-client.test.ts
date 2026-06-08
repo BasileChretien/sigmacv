@@ -113,6 +113,36 @@ describe("fetchOpenaireOutputs", () => {
     ]);
   });
 
+  it("still returns software results when the dataset fetch fails to parse", async () => {
+    // A dataset HTML error page → JSON.parse throws inside fetchOutputsOfType.
+    // With per-fetch isolation, the (valid) software results must still survive
+    // instead of being discarded by a Promise.all reject short-circuit.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: unknown) => {
+        const type = new URL(String(url)).searchParams.get("type");
+        if (type === "dataset") return new Response("<html>503</html>", { status: 200 });
+        return new Response(
+          JSON.stringify({
+            results: [{ id: "oa::sw", type: "software", mainTitle: "Survives", pids: [] }],
+          }),
+          { status: 200 },
+        );
+      }),
+    );
+    const out = await fetchOpenaireOutputs(ORCID);
+    expect(out).toEqual([
+      {
+        openaireId: "oa::sw",
+        title: "Survives",
+        type: "software",
+        doi: undefined,
+        year: undefined,
+        publisher: undefined,
+      },
+    ]);
+  });
+
   it("works anonymously when no access token is available", async () => {
     getTokenMock.mockResolvedValue(null);
     vi.stubGlobal(
@@ -120,6 +150,14 @@ describe("fetchOpenaireOutputs", () => {
       vi.fn(() => new Response(JSON.stringify({ results: [] }), { status: 200 })),
     );
     expect(await fetchOpenaireOutputs(ORCID)).toEqual([]);
+  });
+
+  it("fails soft when the token exchange itself throws", async () => {
+    getTokenMock.mockRejectedValue(new Error("token down"));
+    const spy = vi.fn();
+    vi.stubGlobal("fetch", spy);
+    expect(await fetchOpenaireOutputs(ORCID)).toEqual([]);
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it("fails soft on non-OK and on thrown fetch", async () => {

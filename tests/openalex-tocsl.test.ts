@@ -69,6 +69,52 @@ describe("toCslName", () => {
       given: "Владимир",
     });
   });
+
+  it("promotes lower-case nobiliary particles to non-dropping-particle (display form)", () => {
+    expect(toCslName("Jan van der Berg")).toEqual({
+      family: "Berg",
+      "non-dropping-particle": "van der",
+      given: "Jan",
+    });
+    expect(toCslName("Ludwig van Beethoven")).toEqual({
+      family: "Beethoven",
+      "non-dropping-particle": "van",
+      given: "Ludwig",
+    });
+    // No given name → particle + family only (still correct CSL).
+    expect(toCslName("von Neumann")).toEqual({
+      family: "Neumann",
+      "non-dropping-particle": "von",
+    });
+  });
+
+  it("does NOT treat a capitalized homograph as a particle (Vietnamese 'Van', Spanish 'De La')", () => {
+    expect(toCslName("Van Nguyen")).toEqual({ family: "Nguyen", given: "Van" });
+    expect(toCslName("Maria De La Cruz")).toEqual({ family: "Cruz", given: "Maria De La" });
+  });
+});
+
+describe("workToCsl — issued date precision", () => {
+  const mk = (publication_date?: string, publication_year?: number): OpenAlexWork =>
+    ({
+      id: "https://openalex.org/W1",
+      type: "article",
+      publication_date,
+      publication_year,
+    }) as unknown as OpenAlexWork;
+
+  it("emits year+month+day for a full date", () => {
+    expect(workToCsl(mk("2023-05-17", 2023)).issued).toEqual({ "date-parts": [[2023, 5, 17]] });
+  });
+  it("degrades a zero-month OpenAlex date ('2023-00-00') to year-only", () => {
+    expect(workToCsl(mk("2023-00-00", 2023)).issued).toEqual({ "date-parts": [[2023]] });
+  });
+  it("degrades a zero-day date ('2023-05-00') to year+month", () => {
+    expect(workToCsl(mk("2023-05-00", 2023)).issued).toEqual({ "date-parts": [[2023, 5]] });
+  });
+  it("falls back to publication_year when there is no date", () => {
+    expect(workToCsl(mk(undefined, 2020)).issued).toEqual({ "date-parts": [[2020]] });
+  });
 });
 
 describe("hasCjk", () => {

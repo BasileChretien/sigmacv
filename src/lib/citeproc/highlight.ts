@@ -41,6 +41,13 @@ export function highlightSelf(entryHtml: string, nameVariants: string[]): string
     "gu",
   );
 
+  // Fast path: a plain-text entry (no markup/comments at all) has no tags to
+  // skip, so substitute directly — equivalent to the split below, and it avoids
+  // running the tag-split regex on the common no-markup citeproc output.
+  if (!entryHtml.includes("<")) {
+    return entryHtml.replace(pattern, `<span class="${CLASS}">$1</span>`);
+  }
+
   // Split on HTML comments and tags so we only substitute inside text segments.
   return entryHtml
     .split(/(<!--[\s\S]*?-->|<[^>]+>)/g)

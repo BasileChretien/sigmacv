@@ -36,6 +36,14 @@ function nonEmpty(s: unknown): string | undefined {
   return typeof s === "string" && s.trim() ? s.trim() : undefined;
 }
 
+/** Publisher name, tolerating both the legacy string form and the DataCite
+ *  Fabrica v2 object form (`{ name, publisherIdentifier, ... }`). */
+function publisherName(v: unknown): string | undefined {
+  if (typeof v === "string") return nonEmpty(v);
+  if (typeof v === "object" && v !== null) return nonEmpty((v as Record<string, unknown>).name);
+  return undefined;
+}
+
 export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutput[]> {
   const bare = normalizeOrcid(orcid);
   const url = new URL(DATACITE_API);
@@ -70,7 +78,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
         title,
         type,
         year,
-        publisher: nonEmpty(attr?.publisher),
+        publisher: publisherName(attr?.publisher),
       });
     }
     return out;

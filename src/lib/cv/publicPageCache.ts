@@ -28,6 +28,11 @@ interface CacheRecord extends PublicPageEntry {
 const cache = new Map<string, CacheRecord>();
 const MAX_ENTRIES = 2000;
 const TTL_MS = 60_000; // 1 minute
+// Don't cache an unusually large render: a few multi-MB CVs (thousands of items)
+// could otherwise pin hundreds of MB of heap in the single app process. Such a
+// page still renders fresh on each hit, bounded by the route's per-IP + global
+// rate limits — only its in-memory caching is skipped.
+const MAX_CACHED_HTML_BYTES = 2_000_000;
 
 // Short negative cache for slugs that resolved to "not found" — so a flood of
 // random/invalid slugs (which bypass the render cache) doesn't hit the DB on
@@ -79,6 +84,11 @@ export function setCachedPublicPage(
   entry: PublicPageEntry,
   now: number = Date.now(),
 ): void {
+  if (entry.html.length > MAX_CACHED_HTML_BYTES) {
+    // Too large to cache safely — drop any stale entry and skip caching this one.
+    cache.delete(slug);
+    return;
+  }
   if (cache.size >= MAX_ENTRIES && !cache.has(slug)) {
     // Prune expired first; if still full, evict the oldest insertion.
     for (const [k, v] of cache) {

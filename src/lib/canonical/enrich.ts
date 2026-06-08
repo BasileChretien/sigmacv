@@ -63,7 +63,7 @@ export function mergeCslGaps(base: CslItem, supp: CrossrefGapFields): CslItem {
   if (empty(out.issue) && supp.issue) out.issue = supp.issue;
   if (empty(out.page) && supp.page) out.page = supp.page;
   if (empty(out.publisher) && supp.publisher) out.publisher = supp.publisher;
-  if ((out.ISSN === undefined || out.ISSN === "") && supp.ISSN) out.ISSN = supp.ISSN;
+  if (empty(out.ISSN) && supp.ISSN) out.ISSN = supp.ISSN;
   return out;
 }
 

@@ -117,6 +117,25 @@ describe("fetchClinicalTrials", () => {
     expect(await fetchClinicalTrials("Dawn Hershman", ["Columbia University"])).toEqual([]);
   });
 
+  it("drops a matched study whose nctId/title are whitespace-only", async () => {
+    // The investigator matches, but a blank id/title must not produce a garbage
+    // canonical entry (the `str` helper now trims before accepting a value).
+    mockStudies([
+      study("   ", "   ", {
+        contactsLocationsModule: {
+          overallOfficials: [
+            {
+              name: "Dawn L. Hershman",
+              affiliation: "Columbia University",
+              role: "PRINCIPAL_INVESTIGATOR",
+            },
+          ],
+        },
+      }),
+    ]);
+    expect(await fetchClinicalTrials("Dawn Hershman", ["Columbia University"])).toEqual([]);
+  });
+
   it("drops a matched study with no NCT id", async () => {
     vi.stubGlobal(
       "fetch",

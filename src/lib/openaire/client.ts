@@ -106,9 +106,12 @@ export async function fetchOpenaireOutputs(orcid: string): Promise<OpenaireOutpu
   if (!bare) return [];
   try {
     const token = await getOpenaireAccessToken();
+    // Isolate the two fetches: a failure of one type (e.g. an HTML 5xx page that
+    // fails JSON.parse) must not discard the other type's already-fetched results
+    // via Promise.all's reject short-circuit.
     const [datasets, software] = await Promise.all([
-      fetchOutputsOfType(bare, "dataset", token),
-      fetchOutputsOfType(bare, "software", token),
+      fetchOutputsOfType(bare, "dataset", token).catch(() => [] as OpenaireOutput[]),
+      fetchOutputsOfType(bare, "software", token).catch(() => [] as OpenaireOutput[]),
     ]);
     const seen = new Set<string>();
     const out: OpenaireOutput[] = [];

@@ -39,6 +39,16 @@ describe("publicPageCache", () => {
     expect(getCachedPublicPage("slug-2099", 5000)).not.toBeNull();
   });
 
+  it("skips caching an unusually large render (heap-pressure guard)", () => {
+    const huge = "<p>".repeat(800_000); // > 2 MB
+    setCachedPublicPage("big", { html: huge, indexable: false }, 5000);
+    // Not cached — it still renders fresh each hit, but can't pin heap.
+    expect(getCachedPublicPage("big", 5000)).toBeNull();
+    // A normal-sized render still caches.
+    setCachedPublicPage("small", { html: "<p>ok</p>", indexable: false }, 5000);
+    expect(getCachedPublicPage("small", 5000)).not.toBeNull();
+  });
+
   describe("negative cache (unknown slugs)", () => {
     it("remembers a miss, then expires it after the TTL", () => {
       expect(isKnownMiss("ghost", 1000)).toBe(false);
