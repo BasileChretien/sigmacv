@@ -12,13 +12,14 @@ public issue. We aim to acknowledge within a few days.
 
 ## Security posture
 
-The codebase has been through three independent multi-lens security audits
+The codebase has been through four independent multi-lens security audits
 (authentication/session, access control/IDOR, injection, XSS, secrets/config,
-SSRF, CSRF/cookies, infra/DoS, PII/data-leak, dependencies), each with adversarial
-verification of every finding. Across all three passes the **core threat model
-has been clean**: no confirmed account takeover, cross-user data leak, remote code
-execution, IDOR, SQL injection, or stored XSS. All findings from CRITICAL down to
-INFO have been remediated.
+SSRF, CSRF/cookies, infra/DoS, PII/data-leak, dependencies) — the most recent a
+multi-agent automated hardening pass (2026-06-08, see below) — each with
+adversarial verification of every finding. Across all passes the **core threat
+model has been clean**: no confirmed account takeover, cross-user data leak,
+remote code execution, IDOR, SQL injection, or stored XSS. All findings from
+CRITICAL down to INFO have been remediated.
 
 ### What is enforced
 
@@ -48,6 +49,38 @@ INFO have been remediated.
   behind per-field opt-in (default off); the data export omits tokens; the
   structured logger redacts sensitive keys recursively and reduces Errors to
   `{name, message}`.
+
+### 2026-06-08 hardening pass
+
+A fourth audit run by parallel specialist reviewers (security, type-safety,
+correctness, database, performance), each finding adversarially re-verified
+before it was applied, drove a further round of defence-in-depth fixes. Every
+change shipped with unit tests; the full suite and the `src/lib` coverage gate
+were kept green throughout.
+
+- **Abuse resistance** — the Postgres rate limiter now does an **atomic**
+  check-and-increment (the cap is enforced inside the `UPDATE … WHERE count <
+max`), closing a lost-update race where concurrent requests for one key could
+  both pass the cap. The Auth.js `Account`/`Session` foreign keys are indexed;
+  the sitemap and GDPR-export queries are bounded, and the export reports a
+  truncation flag + true total so it is **never silently incomplete**.
+- **Export injection** — the Markdown renderer escapes user free-text section
+  titles + name/honorific and collapses control characters in the YAML
+  frontmatter (a newline-bearing display name can no longer break out of the
+  frontmatter block); `safeHref` strips `user:pass@` userinfo so a pasted
+  credential can't leak into an `href` / LaTeX `\url{}`; previously-unbounded
+  canonical-document string fields are length-capped.
+- **Self-name highlighting** matches only at **Unicode word boundaries**, so a
+  short surname ("Li") can't false-highlight inside a longer word ("Library")
+  while accented / CJK names still match.
+- **Data integrity (re-sync)** — the source merge no longer (a) double-lists a
+  claimed preprint a source later publishes, (b) drops a "not mine" / hidden
+  decision when one DOI appears in two sections, or (c) collides curation between
+  two same-named review venues. Schema migrations are now fully immutable (they
+  never mutate the caller's stored document).
+- **Input validation** — `locale` is constrained to a BCP-47 shape with a safe
+  fallback, neutralising injection-shaped values before they reach `Intl` /
+  JSON-LD.
 
 ## Operator requirements (production)
 
