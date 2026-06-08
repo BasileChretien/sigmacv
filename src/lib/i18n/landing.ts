@@ -55,7 +55,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     eyebrow: "Open infrastructure for responsible research assessment",
     heroTitle: "Your academic CV, auto-built from the open research record.",
     heroSub:
-      "Clean, customizable academic CVs generated from OpenAlex, ORCID, Crossref and DataCite — curate what’s yours, pick a citation style, and export to PDF, DOCX, LaTeX, Markdown or BibTeX.",
+      "Clean, customizable academic CVs generated from OpenAlex, ORCID, Crossref, DataCite and more — curate what’s yours, pick a citation style, and export to PDF, DOCX, LaTeX, Markdown or BibTeX.",
     step1: "Sign in with your ORCID iD.",
     step2: "Publications populate automatically from OpenAlex.",
     step3: "Curate, style, and export — or publish a living page.",
@@ -102,7 +102,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     eyebrow: "面向负责任研究评价的开放基础设施",
     heroTitle: "您的学术简历，依据公开学术记录自动生成。",
     heroSub:
-      "依据 OpenAlex、ORCID、Crossref 和 DataCite 生成简洁、可定制的简历——整理属于您的成果，选择引用样式，并导出为 PDF、DOCX、LaTeX 或 Markdown。",
+      "依据 OpenAlex、ORCID、Crossref、DataCite 等多个开放数据源生成简洁、可定制的简历——整理属于您的成果，选择引用样式，并导出为 PDF、DOCX、LaTeX 或 Markdown。",
     step1: "使用您的 ORCID iD 登录。",
     step2: "论文将自动从 OpenAlex 填充。",
     step3: "整理、设置样式并导出——或发布一个持续更新的页面。",
@@ -149,7 +149,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     eyebrow: "Infraestructura abierta para una evaluación responsable de la investigación",
     heroTitle: "Tu CV académico, generado automáticamente desde el registro científico abierto.",
     heroSub:
-      "CV limpios y personalizables generados desde OpenAlex, ORCID, Crossref y DataCite: selecciona lo que es tuyo, elige un estilo de cita y exporta a PDF, DOCX, LaTeX o Markdown.",
+      "CV limpios y personalizables generados desde OpenAlex, ORCID, Crossref, DataCite y más: selecciona lo que es tuyo, elige un estilo de cita y exporta a PDF, DOCX, LaTeX o Markdown.",
     step1: "Inicia sesión con tu iD ORCID.",
     step2: "Las publicaciones se rellenan automáticamente desde OpenAlex.",
     step3: "Selecciona, da estilo y exporta, o publica una página viva.",
@@ -196,7 +196,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     eyebrow: "Infrastructure ouverte pour une évaluation responsable de la recherche",
     heroTitle: "Votre CV académique, généré automatiquement à partir du dossier scientifique ouvert.",
     heroSub:
-      "Des CV soignés et personnalisables générés depuis OpenAlex, ORCID, Crossref et DataCite — sélectionnez ce qui est à vous, choisissez un style de citation et exportez en PDF, DOCX, LaTeX ou Markdown.",
+      "Des CV soignés et personnalisables générés depuis OpenAlex, ORCID, Crossref, DataCite et bien d’autres — sélectionnez ce qui est à vous, choisissez un style de citation et exportez en PDF, DOCX, LaTeX ou Markdown.",
     step1: "Connectez-vous avec votre iD ORCID.",
     step2: "Les publications se remplissent automatiquement depuis OpenAlex.",
     step3: "Sélectionnez, mettez en forme et exportez — ou publiez une page vivante.",
@@ -243,7 +243,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     eyebrow: "Offene Infrastruktur für verantwortungsvolle Forschungsbewertung",
     heroTitle: "Ihr akademischer Lebenslauf, automatisch aus dem offenen Forschungsnachweis erstellt.",
     heroSub:
-      "Saubere, anpassbare Lebensläufe aus OpenAlex, ORCID, Crossref und DataCite — kuratieren Sie, was Ihnen gehört, wählen Sie einen Zitierstil und exportieren Sie als PDF, DOCX, LaTeX oder Markdown.",
+      "Saubere, anpassbare Lebensläufe aus OpenAlex, ORCID, Crossref, DataCite und mehr — kuratieren Sie, was Ihnen gehört, wählen Sie einen Zitierstil und exportieren Sie als PDF, DOCX, LaTeX oder Markdown.",
     step1: "Melden Sie sich mit Ihrer ORCID iD an.",
     step2: "Publikationen werden automatisch aus OpenAlex befüllt.",
     step3: "Kuratieren, gestalten und exportieren — oder eine lebende Seite veröffentlichen.",
@@ -290,7 +290,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     eyebrow: "責任ある研究評価のためのオープンインフラ",
     heroTitle: "あなたの学術 CV を、公開された研究記録から自動生成。",
     heroSub:
-      "OpenAlex・ORCID・Crossref・DataCite から、整って自由に編集できる CV を生成——自分の業績を整理し、引用スタイルを選び、PDF・DOCX・LaTeX・Markdown に書き出せます。",
+      "OpenAlex・ORCID・Crossref・DataCite など複数のオープンソースから、整って自由に編集できる CV を生成——自分の業績を整理し、引用スタイルを選び、PDF・DOCX・LaTeX・Markdown に書き出せます。",
     step1: "ORCID iD でサインインします。",
     step2: "論文が OpenAlex から自動的に取り込まれます。",
     step3: "整理・スタイル設定・書き出し——または更新され続けるページを公開。",
@@ -337,7 +337,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     eyebrow: "Infraestrutura aberta para avaliação responsável da pesquisa",
     heroTitle: "Seu currículo acadêmico, gerado automaticamente a partir do registro científico aberto.",
     heroSub:
-      "Currículos limpos e personalizáveis gerados a partir de OpenAlex, ORCID, Crossref e DataCite — organize o que é seu, escolha um estilo de citação e exporte para PDF, DOCX, LaTeX ou Markdown.",
+      "Currículos limpos e personalizáveis gerados a partir de OpenAlex, ORCID, Crossref, DataCite e mais — organize o que é seu, escolha um estilo de citação e exporte para PDF, DOCX, LaTeX ou Markdown.",
     step1: "Entre com o seu iD ORCID.",
     step2: "As publicações são preenchidas automaticamente a partir do OpenAlex.",
     step3: "Organize, estilize e exporte — ou publique uma página viva.",
@@ -384,7 +384,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     eyebrow: "Infrastruttura aperta per una valutazione responsabile della ricerca",
     heroTitle: "Il tuo CV accademico, generato automaticamente dal registro scientifico aperto.",
     heroSub:
-      "CV ordinati e personalizzabili generati da OpenAlex, ORCID, Crossref e DataCite — seleziona ciò che è tuo, scegli uno stile di citazione ed esporta in PDF, DOCX, LaTeX o Markdown.",
+      "CV ordinati e personalizzabili generati da OpenAlex, ORCID, Crossref, DataCite e altro ancora — seleziona ciò che è tuo, scegli uno stile di citazione ed esporta in PDF, DOCX, LaTeX o Markdown.",
     step1: "Accedi con il tuo iD ORCID.",
     step2: "Le pubblicazioni si popolano automaticamente da OpenAlex.",
     step3: "Seleziona, applica uno stile ed esporta — o pubblica una pagina viva.",
@@ -431,7 +431,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     eyebrow: "책임 있는 연구 평가를 위한 오픈 인프라",
     heroTitle: "공개된 연구 기록에서 자동으로 만드는 나의 학술 CV.",
     heroSub:
-      "OpenAlex·ORCID·Crossref·DataCite에서 생성되는 깔끔하고 맞춤형 CV — 본인의 업적을 정리하고, 인용 스타일을 선택하고, PDF·DOCX·LaTeX·Markdown으로 내보내세요.",
+      "OpenAlex·ORCID·Crossref·DataCite 등에서 생성되는 깔끔하고 맞춤형 CV — 본인의 업적을 정리하고, 인용 스타일을 선택하고, PDF·DOCX·LaTeX·Markdown으로 내보내세요.",
     step1: "ORCID iD로 로그인하세요.",
     step2: "논문이 OpenAlex에서 자동으로 채워집니다.",
     step3: "정리하고, 스타일을 지정하고, 내보내거나 — 지속 갱신되는 페이지를 공개하세요.",
@@ -478,7 +478,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     eyebrow: "Открытая инфраструктура для ответственной оценки исследований",
     heroTitle: "Ваше академическое резюме, автоматически собранное из открытой научной летописи.",
     heroSub:
-      "Аккуратные настраиваемые резюме на основе OpenAlex, ORCID, Crossref и DataCite — отберите свои работы, выберите стиль цитирования и экспортируйте в PDF, DOCX, LaTeX или Markdown.",
+      "Аккуратные настраиваемые резюме на основе OpenAlex, ORCID, Crossref, DataCite и других источников — отберите свои работы, выберите стиль цитирования и экспортируйте в PDF, DOCX, LaTeX или Markdown.",
     step1: "Войдите с помощью вашего ORCID iD.",
     step2: "Публикации автоматически загружаются из OpenAlex.",
     step3: "Отберите, оформите и экспортируйте — или опубликуйте живую страницу.",

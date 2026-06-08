@@ -2302,6 +2302,16 @@ textarea.prose-body {
   right: 5%;
   animation: hg-float-a 7.5s var(--ease) infinite alternate-reverse;
 }
+.hg-chip-5 {
+  top: 45%;
+  left: 0%;
+  animation: hg-float-a 8.5s var(--ease) infinite alternate;
+}
+.hg-chip-6 {
+  top: 41%;
+  right: 0%;
+  animation: hg-float-b 9.5s var(--ease) infinite alternate-reverse;
+}
 
 @keyframes hg-flow {
   to {

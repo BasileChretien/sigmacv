@@ -140,6 +140,14 @@ export default function Landing({ locale }: LandingProps) {
         <span className="source-pill">ORCID</span>
         <span className="source-pill">Crossref</span>
         <span className="source-pill">DataCite</span>
+        <span className="source-pill">OpenAIRE</span>
+        <span className="source-pill">DBLP</span>
+        <span className="source-pill">Open Editors Plus</span>
+        <span className="source-pill">ClinicalTrials.gov</span>
+        <span className="source-pill">EU CTIS</span>
+        <span className="source-pill">EPO</span>
+        <span className="source-pill">Wikidata</span>
+        <span className="source-pill">ROR</span>
       </div>
 
       <section className="landing-section landing-features" aria-labelledby="features-h">
@@ -310,6 +318,18 @@ function HeroGraphic() {
           stroke="url(#hgStroke)"
           strokeWidth="2"
         />
+        <path
+          className="hg-line"
+          d="M44 210 C 120 208, 182 206, 234 205"
+          stroke="url(#hgStroke)"
+          strokeWidth="2"
+        />
+        <path
+          className="hg-line"
+          d="M436 206 C 360 206, 300 205, 246 205"
+          stroke="url(#hgStroke)"
+          strokeWidth="2"
+        />
       </svg>
 
       <span className="hg-doc">
@@ -326,6 +346,8 @@ function HeroGraphic() {
       <span className="hg-chip hg-chip-2">ORCID</span>
       <span className="hg-chip hg-chip-3">Crossref</span>
       <span className="hg-chip hg-chip-4">DataCite</span>
+      <span className="hg-chip hg-chip-5">OpenAIRE</span>
+      <span className="hg-chip hg-chip-6">DBLP</span>
     </div>
   );
 }
