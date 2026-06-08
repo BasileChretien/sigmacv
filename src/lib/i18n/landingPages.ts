@@ -11,8 +11,8 @@ import { asLocale, type Locale } from "./index";
  * 2 FAQ items in the SAME order. Proper nouns (SigmaCV, OpenAlex, ORCID, NIH)
  * are kept untranslated.
  *
- * NOTE: the non-English copy below is machine-drafted and should get a
- * native-speaker review pass before launch.
+ * NOTE: the non-English copy below was machine-drafted, then reviewed and
+ * corrected in a per-locale native-speaker review pass.
  */
 
 /** Stable ids for the SEO landing pages (used as the URL path segment). */
@@ -399,7 +399,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "使用 ORCID 登录，SigmaCV 将一键式资助机构布局应用于您公开的学术记录——ERC、UKRI R4RI、NSF、NIH、SNSF 等，随时可整理和导出。",
       bullets: [
-        "58 种一键式资助机构、高校和行业布局，包括 UKRI R4RI、Royal Society、SNSF、NIH、NSF 和 ERC——可可逆应用。",
+        "58 种一键式资助机构、高校和行业布局，包括 UKRI R4RI、Royal Society、SNSF、NIH、NSF 和 ERC——可逆向应用。",
         "每种布局从您的 ORCID 和 OpenAlex 记录填充，并在全文保持一致的 CSL 引用。",
         "导出为 PDF、DOCX 或 LaTeX；对个人免费且开源，您可完全掌控显示内容。",
       ],
@@ -1336,7 +1336,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
         },
         {
           q: "Posso trocar de layout sem perder minhas edições?",
-          a: "Sim. Os layouts são aplicados de forma reversível ao mesmo currículo canônico, então você pode alternar entre formatos de financiadores e sua curação é preservada.",
+          a: "Sim. Os layouts são aplicados de forma reversível ao mesmo currículo canônico, então você pode alternar entre formatos de financiadores e sua curadoria é preservada.",
         },
       ],
       backLink: "← Voltar ao SigmaCV",
@@ -1798,7 +1798,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       navLabel: "OpenAlex-резюме",
       heading: "Создайте академическое резюме на основе вашего профиля OpenAlex",
       subhead:
-        "Войдите через ORCID, и SigmaCV считает ваши записи в OpenAlex, чтобы собрать аккуратное академическое резюме с отформатированными ссылками — сопоставление по идентификатору автора, готовое к отбору и экспорту.",
+        "Войдите через ORCID, и SigmaCV считывает ваши записи в OpenAlex, чтобы собрать аккуратное академическое резюме с отформатированными ссылками — сопоставление по идентификатору автора, готовое к отбору и экспорту.",
       bullets: [
         "Ваши работы из OpenAlex импортируются автоматически и сопоставляются по идентификатору автора OpenAlex / ORCID — никогда по имени.",
         "Метрики и сведения о грантах из OpenAlex доступны опционально и в нормированном по области виде — по умолчанию отключены, в соответствии с DORA.",
@@ -1854,7 +1854,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       bullets: [
         "Экспортируйте резюме в LaTeX с сопроводительной .bib-библиографией, сформированной из ваших публикаций в ORCID и OpenAlex.",
         "Ссылки форматируются через CSL, поэтому PDF, DOCX, LaTeX и Markdown выглядят одинаково.",
-        "Бесплатно для частных лиц и с открытым исходным кодом; вы куратируете содержание, а .tex компилируете самостоятельно.",
+        "Бесплатно для частных лиц и с открытым исходным кодом; вы курируете содержание, а .tex компилируете самостоятельно.",
       ],
       cta: "Создать LaTeX-резюме",
       faq: [
@@ -1878,7 +1878,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "Войдите через ORCID, и SigmaCV применит одним щелчком макет грантодателя к вашим открытым научным записям — ERC, UKRI R4RI, NSF, NIH, SNSF и другие — готово к отбору и экспорту.",
       bullets: [
-        "58 макетов одним щелчком для грантодателей, институций и индустрии, включая UKRI R4RI, Royal Society, SNSF, NIH, NSF и ERC — применяются обратимо.",
+        "58 макетов одним щелчком для грантодателей, учреждений и индустрии, включая UKRI R4RI, Royal Society, SNSF, NIH, NSF и ERC — применяются обратимо.",
         "Каждый макет заполняется из ваших записей в ORCID и OpenAlex с единообразными CSL-ссылками по всему документу.",
         "Экспорт в PDF, DOCX или LaTeX; бесплатно для частных лиц и с открытым исходным кодом — вы полностью контролируете содержание.",
       ],
@@ -1886,11 +1886,11 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "Какие форматы резюме для грантодателей поддерживает SigmaCV?",
-          a: "SigmaCV предлагает 58 макетов одним щелчком для грантодателей, институций и индустрии — включая UKRI R4RI, Royal Society, SNSF, NIH, NSF и ERC — каждый заполнен из ваших открытых научных записей.",
+          a: "SigmaCV предлагает 58 макетов одним щелчком для грантодателей, учреждений и индустрии — включая UKRI R4RI, Royal Society, SNSF, NIH, NSF и ERC — каждый заполнен из ваших открытых научных записей.",
         },
         {
           q: "Можно ли переключать макеты, не теряя правки?",
-          a: "Да. Макеты применяются обратимо к одному и тому же каноническому резюме, поэтому вы можете переключаться между форматами грантодателей, а ваша куратура сохраняется.",
+          a: "Да. Макеты применяются обратимо к одному и тому же каноническому резюме, поэтому вы можете переключаться между форматами грантодателей, а ваши правки сохраняются.",
         },
       ],
       backLink: "← Назад к SigmaCV",

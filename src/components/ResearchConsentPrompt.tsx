@@ -152,10 +152,11 @@ export default function ResearchConsentPrompt({
           role="dialog"
           aria-modal="true"
           aria-labelledby="consent-title"
+          aria-describedby="consent-desc"
           ref={dialogRef}
         >
           <h2 id="consent-title">{s.title}</h2>
-          <p>{s.blurb}</p>
+          <p id="consent-desc">{s.blurb}</p>
           <p className="consent-learn-more">
             <a href={localePrivacyPath(locale)} target="_blank" rel="noopener noreferrer">
               {t(locale, "privacy")}

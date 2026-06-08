@@ -130,7 +130,7 @@ const GRANT_I18N: Record<Locale, GrantStrings> = {
     nsf: {
       name: "NSF",
       description:
-        "Ein strukturierter Ausgangspunkt für einen Biographical Sketch der US-amerikanischen NSF (SciENcv-Struktur): Professional Preparation (Ausbildung), Appointments (Positionen), Products (~10 ausgewählte, begutachtete Arbeiten), Synergistic Activities (Dienst und Vorträge) sowie Förderungen und die narrativen Module. Es ist nur ein Entwurf — die NSF verlangt, dass der Biosketch über SciENcv auf Research.gov erstellt und zertifiziert wird, das die offizielle PDF erzeugt.",
+        "Ein strukturierter Ausgangspunkt für einen Biographical Sketch der US-amerikanischen NSF (SciENcv-Struktur): Professional Preparation (Ausbildung), Appointments (Positionen), Products (~10 ausgewählte, begutachtete Arbeiten), Synergistic Activities (Dienst und Vorträge) sowie Förderungen und die narrativen Module. Es ist nur ein Entwurf — die NSF verlangt, dass der Biosketch über SciENcv auf Research.gov erstellt und zertifiziert wird, das das offizielle PDF erzeugt.",
     },
     jsps: {
       name: "JSPS",

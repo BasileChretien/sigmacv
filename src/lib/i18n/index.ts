@@ -144,7 +144,7 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
   },
   "es-ES": {
     publications: "Publicaciones",
-    preprints: "Preimpresiones",
+    preprints: "Preprints",
     datasets: "Conjuntos de datos y software",
     positions: "Puestos",
     education: "Formación",
@@ -785,20 +785,20 @@ const FR: Record<ChromeKey, string> = {
   syncFromOpenAlex: "Synchroniser depuis OpenAlex",
   hide: "Masquer",
   show: "Afficher",
-  notMine: "Pas de moi",
-  mine: "De moi",
+  notMine: "Pas à moi",
+  mine: "À moi",
   moveUp: "Monter",
   moveDown: "Descendre",
   delete: "Supprimer",
   youBadge: "vous",
-  notMineBadge: "pas de moi",
+  notMineBadge: "pas à moi",
   reviewBadge: "⚠ à vérifier",
   reviewHint:
     "Cet enregistrement indique un ORCID différent pour l’auteur correspondant — vérifiez qu’il s’agit bien de vous.",
   hideHint: "Conserver mais ne pas afficher sur ce CV",
   notMineHint: "Ce travail m’est attribué à tort (corrige la notice)",
   reasonPrompt: "Pourquoi ? (facultatif)",
-  reasonAria: "Pourquoi n’est-ce pas de vous ?",
+  reasonAria: "Pourquoi n’est-ce pas à vous ?",
   noItems: "Aucun élément dans cette section.",
   addEntryPlaceholder: "Ajouter une entrée…",
   add: "Ajouter",
@@ -837,7 +837,7 @@ const FR: Record<ChromeKey, string> = {
   removeSectionTitle:
     "Retirer du CV. Les types réajoutables reviennent dans « Ajouter une section ».",
   editorHints:
-    "Astuce : glissez ⠿ pour réordonner · cliquez le chevron d’une section pour la réduire · « Masquer/Afficher » et « Pas de moi » contrôlent l’affichage · survolez une entrée pour voir sa source.",
+    "Astuce : glissez ⠿ pour réordonner · cliquez le chevron d’une section pour la réduire · « Masquer/Afficher » et « Pas à moi » contrôlent l’affichage · survolez une entrée pour voir sa source.",
   sortPublications: "Trier les publications",
   sortCustom: "Personnalisé (tel quel)",
   sortCitations: "Les plus citées d’abord",
@@ -1145,7 +1145,7 @@ const PT: Record<ChromeKey, string> = {
   removeSection: "Remover seção",
   removeSectionTitle: "Remover do CV. Tipos readicionáveis voltam para “Adicionar seção”.",
   editorHints:
-    "Dica: arraste ⠿ para reordenar · clique no chevron de uma seção para recolhê-la · «Ocultar/Mostrar» e «Não é meu» controlam o que aparece · passe o cursor sobre uma entrada para ver a fonte.",
+    "Dica: arraste ⠿ para reordenar · clique no chevron de uma seção para recolhê-la · “Ocultar/Mostrar” e “Não é meu” controlam o que aparece · passe o cursor sobre uma entrada para ver a fonte.",
   sortPublications: "Ordenar publicações",
   sortCustom: "Personalizado (conforme organizado)",
   sortCitations: "Mais citadas primeiro",
@@ -1538,7 +1538,7 @@ const CONSENT_I18N: Record<Locale, ConsentStrings> = {
   "fr-FR": {
     title: "Contribuer à la recherche ouverte ?",
     blurb:
-      "Aidez à améliorer l’évaluation responsable de la recherche. Avec votre consentement, SigmaCV enregistre vos corrections « de moi / pas de moi » et vos choix de composition de CV (jamais vos données privées) pour étudier la désambiguïsation des auteurs et les normes des indicateurs. C’est facultatif, désactivé par défaut, et vous pouvez le désactiver à tout moment dans votre compte.",
+      "Aidez à améliorer l’évaluation responsable de la recherche. Avec votre consentement, SigmaCV enregistre vos corrections « à moi / pas à moi » et vos choix de composition de CV (jamais vos données privées) pour étudier la désambiguïsation des auteurs et les normes des indicateurs. C’est facultatif, désactivé par défaut, et vous pouvez le désactiver à tout moment dans votre compte.",
     yes: "Oui, contribuer",
     notNow: "Plus tard",
     contribute: "Contribuer",
@@ -1568,7 +1568,7 @@ const CONSENT_I18N: Record<Locale, ConsentStrings> = {
   "pt-BR": {
     title: "Contribuir para a pesquisa aberta?",
     blurb:
-      "Ajude a melhorar a avaliação responsável da pesquisa. Com o seu consentimento, o SigmaCV registra suas correções «é meu / não é meu» e suas escolhas de composição do CV (nunca seus dados privados) para estudar a desambiguação de autores e as normas de métricas. É opcional, desativado por padrão, e você pode desativá-lo a qualquer momento na sua conta.",
+      "Ajude a melhorar a avaliação responsável da pesquisa. Com o seu consentimento, o SigmaCV registra suas correções “é meu / não é meu” e suas escolhas de composição do CV (nunca seus dados privados) para estudar a desambiguação de autores e as normas de métricas. É opcional, desativado por padrão, e você pode desativá-lo a qualquer momento na sua conta.",
     yes: "Sim, contribuir",
     notNow: "Agora não",
     contribute: "Contribuir",

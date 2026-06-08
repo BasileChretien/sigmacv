@@ -1,4 +1,5 @@
 import { getEnv } from "@/lib/env";
+import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 
 /**
@@ -38,7 +39,10 @@ export async function getEpoAccessToken(now: number = Date.now()): Promise<strin
 
   try {
     const basic = Buffer.from(`${EPO_OPS_KEY}:${EPO_OPS_SECRET}`).toString("base64");
-    const res = await fetch(TOKEN_ENDPOINT, {
+    // Via the shared wrapper so a hung token server times out instead of
+    // stalling the whole sync; retries:0 keeps the single-attempt semantics
+    // (a token exchange is not a good retry candidate).
+    const res = await resilientFetch(TOKEN_ENDPOINT, {
       method: "POST",
       headers: {
         Authorization: `Basic ${basic}`,
@@ -46,6 +50,8 @@ export async function getEpoAccessToken(now: number = Date.now()): Promise<strin
         Accept: "application/json",
       },
       body: "grant_type=client_credentials",
+      timeoutMs: 12_000,
+      retries: 0,
     });
     if (!res.ok) {
       logger.warn("epo.token_exchange_failed", { status: res.status });

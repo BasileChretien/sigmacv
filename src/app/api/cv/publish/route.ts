@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { CvNotFoundError, getPublishState, setPublishState } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { isSameOrigin } from "@/lib/security/origin";
 
 export const runtime = "nodejs";
@@ -13,6 +14,8 @@ const BodySchema = z.object({
   published: z.boolean(),
   indexable: z.boolean().optional(),
 });
+// The body is two booleans; reject anything larger early (streamed, not by header).
+const MAX_BODY_BYTES = 2_000;
 
 export async function GET() {
   const session = await auth();
@@ -40,13 +43,13 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const read = await readJsonBodyWithLimit(req, MAX_BODY_BYTES);
+  if (!read.ok) {
+    return read.tooLarge
+      ? NextResponse.json({ error: "Request too large" }, { status: 413 })
+      : NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
-  const parsed = BodySchema.safeParse(body);
+  const parsed = BodySchema.safeParse(read.value);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Expected { published: boolean, indexable?: boolean }" },

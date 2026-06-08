@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 
+const FOCUSABLE =
+  'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
+
 /**
  * GDPR/APPI self-service: withdraw research consent + data export + account
  * deletion. Opt-IN is handled by the onboarding prompt (ResearchConsentPrompt);
@@ -22,21 +25,46 @@ export default function AccountControls({ researchConsent, locale }: AccountCont
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState("");
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
 
-  // Move focus into the confirm dialog and close it on Escape (a11y; replaces
-  // the native window.confirm, which broke the app's visual language).
+  // Modal a11y for the destructive confirm: move focus in, TRAP Tab inside the
+  // dialog (WCAG 2.1.2 — focus must not escape a modal alertdialog), close on
+  // Escape, and restore focus to the trigger on close (WCAG 2.4.3). Replaces the
+  // native window.confirm, which broke the app's visual language.
   useEffect(() => {
     if (!confirmOpen) return;
+    restoreFocusRef.current = (document.activeElement as HTMLElement) ?? null;
     cancelRef.current?.focus();
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && !busy) setConfirmOpen(false);
+      if (e.key === "Escape" && !busy) {
+        setConfirmOpen(false);
+        return;
+      }
+      const dialog = dialogRef.current;
+      if (e.key !== "Tab" || !dialog) return;
+      const items = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (items.length === 0) return;
+      const first = items[0]!;
+      const last = items[items.length - 1]!;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      restoreFocusRef.current?.focus?.();
+    };
   }, [confirmOpen, busy]);
 
   async function stopContributing() {
     setConsenting(false); // optimistic
+    setError("");
     try {
       const res = await fetch("/api/account/consent", {
         method: "POST",
@@ -45,7 +73,10 @@ export default function AccountControls({ researchConsent, locale }: AccountCont
       });
       if (!res.ok) throw new Error("consent update failed");
     } catch {
+      // Surface the failure: a silently-reverted toggle would leave the user
+      // believing consent was withdrawn when the account flag is still set.
       setConsenting(true); // revert on failure
+      setError(u.consentWithdrawFailed);
     }
   }
 
@@ -89,6 +120,12 @@ export default function AccountControls({ researchConsent, locale }: AccountCont
         {u.deleteAccount}
       </button>
 
+      {error && !confirmOpen ? (
+        <p className="consent-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+
       {confirmOpen ? (
         <div className="consent-overlay" role="presentation">
           <div
@@ -96,9 +133,11 @@ export default function AccountControls({ researchConsent, locale }: AccountCont
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="delete-account-title"
+            aria-describedby="delete-account-desc"
+            ref={dialogRef}
           >
             <h2 id="delete-account-title">{u.deleteAccount}</h2>
-            <p>{u.deleteConfirm}</p>
+            <p id="delete-account-desc">{u.deleteConfirm}</p>
             {error ? <p className="consent-error">{error}</p> : null}
             <div className="consent-actions">
               <button

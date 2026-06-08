@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { isSameOrigin } from "@/lib/security/origin";
 import { RESEARCH_CONSENT_VERSION } from "@/lib/research/log";
 
@@ -10,6 +11,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const BodySchema = z.object({ consent: z.boolean() });
+// The body is a single boolean; reject anything larger early (streamed).
+const MAX_BODY_BYTES = 2_000;
 // Consent is a rare, deliberate action; a tight cap stops the withdrawal branch
 // (a transactional deleteMany) from being used as a write amplifier.
 const CONSENT_MAX = 20;
@@ -33,13 +36,13 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const read = await readJsonBodyWithLimit(req, MAX_BODY_BYTES);
+  if (!read.ok) {
+    return read.tooLarge
+      ? NextResponse.json({ error: "Request too large" }, { status: 413 })
+      : NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
-  const parsed = BodySchema.safeParse(body);
+  const parsed = BodySchema.safeParse(read.value);
   if (!parsed.success) {
     return NextResponse.json({ error: "Expected { consent: boolean }" }, { status: 422 });
   }

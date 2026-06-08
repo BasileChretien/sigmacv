@@ -72,6 +72,7 @@ export interface UiStrings {
   deleteAccount: string;
   deleteConfirm: string;
   deleteFailed: string;
+  consentWithdrawFailed: string;
   cancel: string;
   publishPublic: string;
   publicLive: string;
@@ -189,6 +190,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Permanently delete your account and all associated data? This cannot be undone.",
     deleteFailed: "Failed to delete account. Please try again.",
+    consentWithdrawFailed: "Failed to withdraw consent. Please try again.",
     cancel: "Cancel",
     publishPublic: "Publish public page",
     publicLive: "Public page is live",
@@ -305,6 +307,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteAccount: "删除账户",
     deleteConfirm: "永久删除你的账户及所有相关数据？此操作无法撤销。",
     deleteFailed: "删除账户失败。请重试。",
+    consentWithdrawFailed: "撤回同意失败。请重试。",
     cancel: "取消",
     publishPublic: "发布公开页面",
     publicLive: "公开页面已上线",
@@ -323,7 +326,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "PDF 完全匹配您的模板。LaTeX 接近匹配（可编辑源文件）。Word 和 Markdown 为纯文本，可编辑，不含模板样式。",
     exportGroupDocuments: "文档",
     exportGroupData: "数据",
-    exportGroupGrantCv: "基金简历（按资助方结构的草稿）",
+    exportGroupGrantCv: "资助方简历（按资助方样式组织的草稿）",
     exportPdf: "PDF — 可打印简历 (.pdf)",
     exportDocx: "Word — 纯文本，可编辑 (.docx)",
     exportLatexModern: "LaTeX — 可编辑源文件 (.tex)",
@@ -389,7 +392,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Por defecto, los preprints se conservan pero se listan en una sección «Preprints» aparte. Actívalo solo si quieres eliminarlos por completo.",
     countLetters: "Incluir cartas (correspondencia)",
     countLettersTitle:
-      "Las cartas/correspondencia de investigación publicadas en revistas están revisadas por pares, por lo que se listan y cuentan (gráficos, métricas, tabla de autoría) de forma predeterminada. Desactívalo para una vista solo de artículos que omite las cartas de la lista y las cifras. Las preimpresiones se controlan aparte (arriba).",
+      "Las cartas/correspondencia de investigación publicadas en revistas están revisadas por pares, por lo que se listan y cuentan (gráficos, métricas, tabla de autoría) de forma predeterminada. Desactívalo para una vista solo de artículos que omite las cartas de la lista y las cifras. Los preprints se controlan aparte (arriba).",
     countLettersNote:
       "Activado por defecto: las cartas están revisadas por pares. Desactivado = solo artículos.",
     shownSuffix: "mostrados",
@@ -423,6 +426,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "¿Eliminar permanentemente tu cuenta y todos los datos asociados? Esta acción no se puede deshacer.",
     deleteFailed: "No se pudo eliminar la cuenta. Inténtalo de nuevo.",
+    consentWithdrawFailed: "No se pudo retirar el consentimiento. Inténtalo de nuevo.",
     cancel: "Cancelar",
     publishPublic: "Publicar página pública",
     publicLive: "La página pública está activa",
@@ -543,6 +547,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Supprimer définitivement votre compte et toutes les données associées ? Cette action est irréversible.",
     deleteFailed: "Échec de la suppression du compte. Veuillez réessayer.",
+    consentWithdrawFailed: "Échec du retrait du consentement. Veuillez réessayer.",
     cancel: "Annuler",
     publishPublic: "Publier la page publique",
     publicLive: "La page publique est en ligne",
@@ -662,6 +667,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Ihr Konto und alle zugehörigen Daten dauerhaft löschen? Dies kann nicht rückgängig gemacht werden.",
     deleteFailed: "Konto konnte nicht gelöscht werden. Bitte erneut versuchen.",
+    consentWithdrawFailed: "Einwilligung konnte nicht widerrufen werden. Bitte erneut versuchen.",
     cancel: "Abbrechen",
     publishPublic: "Öffentliche Seite veröffentlichen",
     publicLive: "Öffentliche Seite ist online",
@@ -706,7 +712,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewRendering: "Vorschau wird erstellt…",
     previewEmpty: "Hier erscheint die Vorschau.",
     linksNav: "Links",
-    coffee: "☕ Spendier mir einen Kaffee",
+    coffee: "☕ Spendieren Sie mir einen Kaffee",
     supportTitle: "SigmaCV unterstützen",
   },
   "ja-JP": {
@@ -720,7 +726,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleLoadError: "そのスタイルを読み込めませんでした。",
     styleNetworkError: "ネットワークエラー — もう一度お試しください。",
     fontLabel: "フォント",
-    densityLabel: "行間",
+    densityLabel: "表示密度",
     accentLabel: "アクセント",
     customAccent: "カスタムアクセントカラー",
     highlightSelf: "自分の名前を強調表示",
@@ -780,6 +786,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "アカウントと関連するすべてのデータを完全に削除しますか？この操作は取り消せません。",
     deleteFailed: "アカウントの削除に失敗しました。もう一度お試しください。",
+    consentWithdrawFailed: "同意の撤回に失敗しました。もう一度お試しください。",
     cancel: "キャンセル",
     publishPublic: "公開ページを公開",
     publicLive: "公開ページは公開中です",
@@ -899,6 +906,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Excluir permanentemente sua conta e todos os dados associados? Isso não pode ser desfeito.",
     deleteFailed: "Falha ao excluir a conta. Tente novamente.",
+    consentWithdrawFailed: "Falha ao retirar o consentimento. Tente novamente.",
     cancel: "Cancelar",
     publishPublic: "Publicar página pública",
     publicLive: "A página pública está no ar",
@@ -1019,6 +1027,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Eliminare definitivamente il tuo account e tutti i dati associati? L’operazione non può essere annullata.",
     deleteFailed: "Eliminazione dell’account non riuscita. Riprova.",
+    consentWithdrawFailed: "Revoca del consenso non riuscita. Riprova.",
     cancel: "Annulla",
     publishPublic: "Pubblica pagina pubblica",
     publicLive: "La pagina pubblica è online",
@@ -1137,6 +1146,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "계정과 관련된 모든 데이터를 영구적으로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     deleteFailed: "계정 삭제에 실패했습니다. 다시 시도해 주세요.",
+    consentWithdrawFailed: "동의 철회에 실패했습니다. 다시 시도해 주세요.",
     cancel: "취소",
     publishPublic: "공개 페이지 게시",
     publicLive: "공개 페이지가 활성화되었습니다",
@@ -1255,6 +1265,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     deleteConfirm:
       "Безвозвратно удалить ваш аккаунт и все связанные данные? Это действие нельзя отменить.",
     deleteFailed: "Не удалось удалить аккаунт. Пожалуйста, попробуйте ещё раз.",
+    consentWithdrawFailed: "Не удалось отозвать согласие. Пожалуйста, попробуйте ещё раз.",
     cancel: "Отмена",
     publishPublic: "Опубликовать публичную страницу",
     publicLive: "Публичная страница активна",

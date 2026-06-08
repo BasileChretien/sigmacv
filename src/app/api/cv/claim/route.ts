@@ -5,6 +5,7 @@ import { addClaimByDoi, previewClaim } from "@/lib/cv/claim";
 import { CvNotFoundError, CvTooLargeError } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { isSameOrigin } from "@/lib/security/origin";
 
 export const runtime = "nodejs";
@@ -13,6 +14,8 @@ export const dynamic = "force-dynamic";
 // One OpenAlex fetch per call — lighter than a full sync, but still rate-limited.
 const CLAIM_MAX = 40;
 const CLAIM_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+// Body is a DOI (≤400) plus two small fields; reject larger early (streamed).
+const MAX_BODY_BYTES = 2_000;
 
 const BodySchema = z.object({
   doi: z.string().trim().min(1).max(400),
@@ -50,13 +53,13 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  const read = await readJsonBodyWithLimit(req, MAX_BODY_BYTES);
+  if (!read.ok) {
+    return read.tooLarge
+      ? NextResponse.json({ error: "Request too large" }, { status: 413 })
+      : NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
-  const parsed = BodySchema.safeParse(body);
+  const parsed = BodySchema.safeParse(read.value);
   if (!parsed.success) {
     // Generic message — don't echo raw Zod issues (internal schema paths).
     return NextResponse.json({ error: "Invalid request" }, { status: 422 });

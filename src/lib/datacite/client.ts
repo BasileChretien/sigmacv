@@ -55,7 +55,11 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
 
   try {
     const res = await resilientFetch(url, {
-      headers: { Accept: "application/vnd.api+json" },
+      headers: {
+        Accept: "application/vnd.api+json",
+        // Polite-pool identification (shared convention across all clients).
+        "User-Agent": "SigmaCV (+https://github.com/BasileChretien/sigmacv)",
+      },
       next: { revalidate: 3600 },
       timeoutMs: 12_000,
     });

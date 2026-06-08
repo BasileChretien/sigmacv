@@ -129,7 +129,13 @@ export async function fetchCtisTrials(name: string, orgs: string[]): Promise<Ext
     for (const ctNumber of ctNumbers) {
       if (seen.has(ctNumber)) continue;
       seen.add(ctNumber);
-      const trial = await fetchMatchingTrial(ctNumber, person);
+      // Per-trial fail-soft: a single bad detail (e.g. an HTML-200 error page
+      // that breaks JSON.parse, or a network blip mid-loop) must not discard the
+      // trials already matched — skip just that one.
+      const trial = await fetchMatchingTrial(ctNumber, person).catch((err) => {
+        logger.warn("ctis.detail_failed", { ctNumber, err });
+        return null;
+      });
       if (trial) out.push(trial);
     }
     return out;

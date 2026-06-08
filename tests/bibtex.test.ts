@@ -95,6 +95,23 @@ describe("cslItemsToBibtex", () => {
     expect(cslItemsToBibtex([])).toBe("");
   });
 
+  it("escapes a literal tilde/caret as text commands, not LaTeX accents", () => {
+    const tildy: CslItem = {
+      id: "WT",
+      type: "article-journal",
+      title: "Approximately ~5 °C and a^b notation",
+      author: [{ family: "Smith", given: "Jo" }],
+      issued: { "date-parts": [[2024]] },
+    };
+    const bib = cslItemsToBibtex([tildy]);
+    // A bare \~ / \^ would accent the next letter; the text-mode commands render
+    // a literal tilde / circumflex.
+    expect(bib).toContain("\\textasciitilde{}5");
+    expect(bib).toContain("a\\textasciicircum{}b");
+    expect(bib).not.toContain("\\~5");
+    expect(bib).not.toContain("a\\^b");
+  });
+
   it("strips braces/backslash from url + doi so a crafted value can't inject", () => {
     const evil: CslItem = {
       id: "WX",

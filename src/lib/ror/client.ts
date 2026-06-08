@@ -68,7 +68,11 @@ export async function resolveInstitution(name: string): Promise<RorOrg | null> {
 
   try {
     const res = await resilientFetch(url, {
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        // Polite-pool identification (shared convention across all clients).
+        "User-Agent": "SigmaCV (+https://github.com/BasileChretien/sigmacv)",
+      },
       next: { revalidate: 604_800 }, // the registry changes slowly
       timeoutMs: 10_000,
     });
