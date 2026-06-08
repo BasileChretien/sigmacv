@@ -8,6 +8,7 @@
 [![Metrics: DORA-aligned](https://img.shields.io/badge/metrics-DORA--aligned-8a4baa.svg)](https://sfdora.org/)
 [![Open science: FAIR](https://img.shields.io/badge/open%20science-FAIR-2ea44f.svg)](docs/OPEN-SCIENCE.md)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20594123.svg)](https://doi.org/10.5281/zenodo.20594123)
 [![Cite this repository](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
 
 Keeping an academic CV up to date is a chore. Every new paper, grant, talk, or
@@ -362,9 +363,12 @@ it automatically. Machine-readable software metadata is also provided in
 [`codemeta.json`](codemeta.json), and archival deposit is configured via
 [`.zenodo.json`](.zenodo.json).
 
-> A citable **Zenodo software DOI will be minted at the first tagged release.**
-> Until then, please cite the repository directly (no release tag — and therefore
-> no DOI — exists yet).
+SigmaCV is archived on **Zenodo** with a citable DOI. In papers, cite the
+**concept DOI** — [10.5281/zenodo.20594123](https://doi.org/10.5281/zenodo.20594123) —
+which always resolves to the latest version (the v0.1.0 release itself is
+[10.5281/zenodo.20594124](https://doi.org/10.5281/zenodo.20594124)).
+
+> Chrétien, B. (2026). _SigmaCV_ (v0.1.0). Zenodo. https://doi.org/10.5281/zenodo.20594123
 
 ## License
 

@@ -1,7 +1,7 @@
 {
   "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
   "@type": "SoftwareSourceCode",
-  "identifier": "SigmaCV",
+  "identifier": "https://doi.org/10.5281/zenodo.20594123",
   "name": "SigmaCV",
   "description": "Auto-generate clean, customizable academic CVs from open research data (OpenAlex, ORCID, Crossref, Open Editors Plus). Open infrastructure for responsible research assessment: one canonical CV object drives every output format, citations render through CSL, and the account holder is matched by persistent identifier rather than name string.",
   "codeRepository": "https://github.com/BasileChretien/sigmacv",
@@ -9,7 +9,8 @@
   "issueTracker": "https://github.com/BasileChretien/sigmacv/issues",
   "license": "https://spdx.org/licenses/Apache-2.0",
   "version": "0.1.0",
-  "dateModified": "2026-06-05",
+  "dateModified": "2026-06-08",
+  "datePublished": "2026-06-08",
   "programmingLanguage": ["TypeScript"],
   "runtimePlatform": "Node.js",
   "operatingSystem": ["Linux", "macOS", "Windows"],
