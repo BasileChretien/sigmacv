@@ -2156,20 +2156,21 @@ textarea.prose-body {
 
 /* ── Hero abstract brand graphic (decorative, motion-safe) ───────────────── */
 .hero-graphic {
+  --hg-cycle: 9s;
   position: relative;
   width: 100%;
   max-width: 520px;
-  aspect-ratio: 480 / 420; /* reserve space → no layout shift */
+  aspect-ratio: 480/420;
   justify-self: center;
   margin-inline: auto;
   isolation: isolate;
-  pointer-events: none; /* purely decorative; never traps clicks/focus */
+  pointer-events: none;
 }
 .hg-blob {
   position: absolute;
   border-radius: 50%;
   filter: blur(36px);
-  opacity: 0.6;
+  opacity: .6;
   mix-blend-mode: multiply;
 }
 .hg-blob-1 {
@@ -2177,7 +2178,7 @@ textarea.prose-body {
   height: 58%;
   top: -6%;
   left: -4%;
-  background: radial-gradient(circle at 30% 30%, var(--accent-300), transparent 70%);
+  background: radial-gradient(circle at 30% 30%,var(--accent-300),transparent 70%);
   animation: hg-drift-a 16s var(--ease) infinite alternate;
 }
 .hg-blob-2 {
@@ -2185,7 +2186,7 @@ textarea.prose-body {
   height: 52%;
   top: 8%;
   right: -6%;
-  background: radial-gradient(circle at 60% 40%, var(--accent-200), transparent 72%);
+  background: radial-gradient(circle at 60% 40%,var(--accent-200),transparent 72%);
   animation: hg-drift-b 20s var(--ease) infinite alternate;
 }
 .hg-blob-3 {
@@ -2193,13 +2194,13 @@ textarea.prose-body {
   height: 60%;
   bottom: -8%;
   left: 14%;
-  background: radial-gradient(circle at 50% 60%, var(--accent-100), transparent 70%);
+  background: radial-gradient(circle at 50% 60%,var(--accent-100),transparent 70%);
   animation: hg-drift-a 24s var(--ease) infinite alternate-reverse;
 }
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme:dark) {
   .hg-blob {
     mix-blend-mode: screen;
-    opacity: 0.42;
+    opacity: .42;
   }
 }
 .hg-lines {
@@ -2209,30 +2210,51 @@ textarea.prose-body {
   height: 100%;
   z-index: 1;
 }
-.hg-line {
-  stroke-dasharray: 7 230;
+.hg-rail {
+  fill: none;
   stroke-linecap: round;
-  animation: hg-flow 4.5s linear infinite;
 }
-.hg-line:nth-of-type(2) {
-  animation-delay: 0.6s;
+.hg-comet {
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 26 520;
+  stroke-dashoffset: 300;
+  opacity: 0;
+  filter: drop-shadow(0 0 3px var(--accent-ring));
+  animation: hg-travel var(--hg-cycle) var(--ease) infinite;
 }
-.hg-line:nth-of-type(3) {
-  animation-delay: 1.2s;
+.hg-conn-1 .hg-comet {
+  animation-delay: 0s;
 }
-.hg-line:nth-of-type(4) {
-  animation-delay: 1.8s;
+.hg-conn-2 .hg-comet {
+  animation-delay: calc(var(--hg-cycle)/-6);
+}
+.hg-conn-3 .hg-comet {
+  animation-delay: calc(var(--hg-cycle)/-3);
+}
+.hg-conn-4 .hg-comet {
+  animation-delay: calc(var(--hg-cycle)/-2);
+}
+.hg-conn-5 .hg-comet {
+  animation-delay: calc(var(--hg-cycle)/-1.5);
+}
+.hg-conn-6 .hg-comet {
+  animation-delay: calc(var(--hg-cycle)/-1.2);
+}
+.hg-core-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: .5;
+  animation: hg-core var(--hg-cycle) var(--ease) infinite;
 }
 .hg-doc {
   position: absolute;
-  /* Above the chips so a wide chip (e.g. "ClinicalTrials.gov") tucks BEHIND the
-     CV card rather than covering it — data flowing into the CV. */
   z-index: 3;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -46%) rotate(-4deg);
+  transform: translate(-50%,-46%) rotate(-4deg);
   width: 38%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 3/4;
   padding: 12% 10%;
   display: flex;
   flex-direction: column;
@@ -2240,10 +2262,16 @@ textarea.prose-body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-  opacity: 0.92;
+  box-shadow: var(--shadow),inset 0 1px 0 rgba(255,255,255,.5);
+  opacity: .92;
+}
+@media (prefers-color-scheme:dark) {
+  .hg-doc {
+    box-shadow: var(--shadow),inset 0 1px 0 rgba(255,255,255,.08);
+  }
 }
 .hg-doc-line {
+  position: relative;
   height: 5%;
   min-height: 3px;
   border-radius: var(--radius-full);
@@ -2252,32 +2280,109 @@ textarea.prose-body {
 .hg-doc-line.short {
   width: 62%;
 }
+.hg-doc-name {
+  background: transparent;
+  overflow: visible;
+}
+.hg-doc-fill {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg,var(--accent-500),var(--accent-400));
+  opacity: .85;
+  animation: hg-fill var(--hg-cycle) var(--ease) infinite;
+}
+.hg-doc-line:nth-child(1) .hg-doc-fill {
+  animation-delay: calc(var(--hg-cycle)*.02);
+}
+.hg-doc-name .hg-doc-fill {
+  animation-delay: calc(var(--hg-cycle)*.1);
+}
+.hg-doc-line:nth-child(3) .hg-doc-fill {
+  animation-delay: calc(var(--hg-cycle)*.18);
+}
+.hg-doc-line:nth-child(4) .hg-doc-fill {
+  animation-delay: calc(var(--hg-cycle)*.26);
+}
+.hg-doc-line:nth-child(5) .hg-doc-fill {
+  animation-delay: calc(var(--hg-cycle)*.34);
+}
+.hg-doc-hl {
+  position: absolute;
+  z-index: 0;
+  inset: -55% -4%;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 1px var(--accent-ring);
+  transform-origin: left center;
+  transform: scaleX(.35);
+  opacity: 0;
+  animation: hg-name-hl var(--hg-cycle) var(--ease) infinite;
+}
+@media (prefers-color-scheme:dark) {
+  .hg-doc-hl {
+    background: var(--accent-700);
+  }
+}
+.hg-doc-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background: linear-gradient(90deg,transparent 0%,rgba(255,255,255,.85) 50%,transparent 100%);
+  transform: translateX(-130%);
+  mix-blend-mode: overlay;
+  animation: hg-sweep var(--hg-cycle) var(--ease) infinite;
+}
 .hg-medallion {
   position: absolute;
   z-index: 4;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%,-50%);
   display: grid;
   place-items: center;
   width: 21%;
   aspect-ratio: 1;
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
+  background: linear-gradient(135deg,var(--accent-500),var(--accent-700));
   color: #fff;
+  box-shadow: var(--shadow-lg),inset 0 1px 0 rgba(255,255,255,.25);
+  animation: hg-bob 6s var(--ease) infinite alternate,hg-receive var(--hg-cycle) var(--ease) infinite;
+}
+.hg-medallion::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg,rgba(255,255,255,.22),transparent 28%,transparent 72%,rgba(255,255,255,.18));
+  opacity: .6;
+  mix-blend-mode: soft-light;
+  animation: hg-sheen 14s linear infinite;
+}
+.hg-glyph {
+  position: relative;
+  z-index: 1;
   font-weight: var(--weight-bold);
-  font-size: clamp(1.6rem, 5.5vw, 2.6rem);
+  font-size: clamp(1.6rem,5.5vw,2.6rem);
   line-height: 1;
-  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  animation: hg-bob 6s var(--ease) infinite alternate;
+}
+.hg-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--accent-300);
+  opacity: 0;
+  animation: hg-ring var(--hg-cycle) var(--ease) infinite;
 }
 .hg-chip {
   position: absolute;
   z-index: 2;
-  /* Stack both labels in one grid cell so the chip sizes to the wider name and
-     never reflows as they cross-fade. */
   display: inline-grid;
-  padding: 0.4rem 0.75rem;
+  padding: .4rem .75rem;
   border-radius: var(--radius-full);
   background: var(--surface);
   border: 1px solid var(--border-strong);
@@ -2286,7 +2391,7 @@ textarea.prose-body {
   font-weight: var(--weight-semibold);
 }
 .hg-chip-label {
-  grid-area: 1 / 1;
+  grid-area: 1/1;
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
@@ -2294,14 +2399,15 @@ textarea.prose-body {
 }
 .hg-chip-label::before {
   content: "";
-  width: 0.45rem;
-  height: 0.45rem;
-  margin-right: 0.45rem;
+  width: .45rem;
+  height: .45rem;
+  margin-right: .45rem;
   border-radius: 50%;
   background: var(--accent-500);
   flex: none;
+  box-shadow: 0 0 0 0 var(--accent-ring);
+  animation: hg-emit var(--hg-cycle) var(--ease) infinite;
 }
-/* Each chip's two labels cross-fade (all sources appear over the loop). */
 .hg-cyc-a {
   animation: hg-cyc-a 8s var(--ease) infinite;
 }
@@ -2338,7 +2444,6 @@ textarea.prose-body {
   right: 0%;
   animation: hg-float-b 9.5s var(--ease) infinite alternate-reverse;
 }
-/* Stagger the per-chip name swaps so they don't all flip in unison. */
 .hg-chip-2 .hg-chip-label {
   animation-delay: -1.3s;
 }
@@ -2354,14 +2459,148 @@ textarea.prose-body {
 .hg-chip-6 .hg-chip-label {
   animation-delay: -6.6s;
 }
-/* Cross-fade between the two names: each is held ~44% of the loop. */
-@keyframes hg-cyc-a {
-  0%,
-  44% {
+.hg-chip-2 .hg-chip-label::before {
+  animation-delay: calc(var(--hg-cycle)/-6);
+}
+.hg-chip-3 .hg-chip-label::before {
+  animation-delay: calc(var(--hg-cycle)/-3);
+}
+.hg-chip-4 .hg-chip-label::before {
+  animation-delay: calc(var(--hg-cycle)/-2);
+}
+.hg-chip-5 .hg-chip-label::before {
+  animation-delay: calc(var(--hg-cycle)/-1.5);
+}
+.hg-chip-6 .hg-chip-label::before {
+  animation-delay: calc(var(--hg-cycle)/-1.2);
+}
+@keyframes hg-travel {
+  0% {
+    stroke-dashoffset: 300;
+    opacity: 0;
+  }
+  6% {
     opacity: 1;
   }
-  50%,
-  94% {
+  32% {
+    stroke-dashoffset: 26;
+    opacity: 1;
+  }
+  40% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@keyframes hg-core {
+  0% {
+    opacity: .35;
+    transform: scale(.92);
+  }
+  34% {
+    opacity: .75;
+    transform: scale(1.06);
+  }
+  55% {
+    opacity: .4;
+    transform: scale(.96);
+  }
+  100% {
+    opacity: .35;
+    transform: scale(.92);
+  }
+}
+@keyframes hg-fill {
+  0% {
+    transform: scaleX(0);
+  }
+  30% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes hg-name-hl {
+  0%,12% {
+    opacity: 0;
+    transform: scaleX(.35);
+  }
+  22% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+@keyframes hg-sweep {
+  0%,22% {
+    transform: translateX(-130%);
+  }
+  40% {
+    transform: translateX(130%);
+  }
+  100% {
+    transform: translateX(130%);
+  }
+}
+@keyframes hg-ring {
+  0%,34% {
+    transform: scale(.7);
+    opacity: 0;
+  }
+  44% {
+    opacity: .55;
+  }
+  70% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+@keyframes hg-receive {
+  0%,36% {
+    transform: translate(-50%,-50%) scale(1);
+  }
+  43% {
+    transform: translate(-50%,-50%) scale(.965);
+  }
+  52% {
+    transform: translate(-50%,-50%) scale(1.012);
+  }
+  60%,100% {
+    transform: translate(-50%,-50%) scale(1);
+  }
+}
+@keyframes hg-emit {
+  0% {
+    box-shadow: 0 0 0 0 var(--accent-ring);
+  }
+  12% {
+    box-shadow: 0 0 0 4px rgba(127,127,127,0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(127,127,127,0);
+  }
+}
+@keyframes hg-sheen {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes hg-cyc-a {
+  0%,44% {
+    opacity: 1;
+  }
+  50%,94% {
     opacity: 0;
   }
   100% {
@@ -2369,30 +2608,22 @@ textarea.prose-body {
   }
 }
 @keyframes hg-cyc-b {
-  0%,
-  44% {
+  0%,44% {
     opacity: 0;
   }
-  50%,
-  94% {
+  50%,94% {
     opacity: 1;
   }
   100% {
     opacity: 0;
   }
 }
-
-@keyframes hg-flow {
-  to {
-    stroke-dashoffset: -237;
-  }
-}
 @keyframes hg-bob {
   from {
-    transform: translate(-50%, -52%);
+    transform: translate(-50%,-52%);
   }
   to {
-    transform: translate(-50%, -48%);
+    transform: translate(-50%,-48%);
   }
 }
 @keyframes hg-float-a {
@@ -2413,18 +2644,45 @@ textarea.prose-body {
 }
 @keyframes hg-drift-a {
   from {
-    transform: translate(0, 0) scale(1);
+    transform: translate(0,0) scale(1);
   }
   to {
-    transform: translate(14px, -12px) scale(1.06);
+    transform: translate(14px,-12px) scale(1.06);
   }
 }
 @keyframes hg-drift-b {
   from {
-    transform: translate(0, 0) scale(1);
+    transform: translate(0,0) scale(1);
   }
   to {
-    transform: translate(-16px, 10px) scale(1.05);
+    transform: translate(-16px,10px) scale(1.05);
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .hg-blob,.hg-conn .hg-comet,.hg-core-glow,.hg-doc-fill,.hg-doc-hl,.hg-doc-sweep,.hg-ring,.hg-medallion,.hg-medallion::before,.hg-chip,.hg-chip-label,.hg-chip-label::before {
+    animation: none!important;
+  }
+  .hg-doc-fill {
+    transform: scaleX(1)!important;
+  }
+  .hg-doc-hl {
+    opacity: 1!important;
+    transform: scaleX(1)!important;
+  }
+  .hg-comet,.hg-doc-sweep,.hg-ring {
+    opacity: 0!important;
+  }
+  .hg-core-glow {
+    opacity: .4!important;
+  }
+  .hg-medallion {
+    transform: translate(-50%,-50%)!important;
+  }
+  .hg-cyc-a {
+    opacity: 1!important;
+  }
+  .hg-cyc-b {
+    opacity: 0!important;
   }
 }
 
@@ -2480,24 +2738,6 @@ textarea.prose-body {
   .source-strip {
     animation: none !important;
     opacity: 1 !important;
-  }
-  .hg-blob,
-  .hg-line,
-  .hg-medallion,
-  .hg-chip,
-  .hg-chip-label {
-    animation: none !important;
-  }
-  .hg-line {
-    stroke-dasharray: none;
-  }
-  /* With the cross-fade frozen, show only each chip's first name (the second
-     would otherwise sit at full opacity, overlapping it). */
-  .hg-cyc-a {
-    opacity: 1 !important;
-  }
-  .hg-cyc-b {
-    opacity: 0 !important;
   }
   .auth-card .btn-primary::after {
     display: none;
