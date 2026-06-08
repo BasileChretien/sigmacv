@@ -85,6 +85,11 @@ You can also sign in with a **Google** account or a plain **email link**.
   Assessment.
 - **Available in 10 languages** (see [below](#available-in-10-languages)).
 
+<p align="center">
+  <img src="docs/images/curate.png" alt="Curation view: your works are added automatically and tagged 'You'; you can hide items, mark anything that isn't yours as 'not mine', and confirm review candidates such as clinical trials" width="780" />
+</p>
+<p align="center"><sub><em>You stay in control: keep, hide, mark "not mine", and confirm review candidates. (Illustrative.)</em></sub></p>
+
 ## How it works, in five steps
 
 1. **Sign in** — with your **ORCID iD**, a **Google account**, or an **email
@@ -335,6 +340,13 @@ kit and study preregistration drafts under [`docs/`](docs/). Highlights:
 - **Opt-in, field-normalized metrics** (default none), consistent with
   [DORA](https://sfdora.org/).
 - **No lock-in** — self-hostable end to end.
+
+## Questions or help?
+
+- **A question, or your CV looks wrong?** Open a [Feedback or question](https://github.com/BasileChretien/sigmacv/issues/new?template=feedback.yml) issue — no technical knowledge needed.
+- **Browse the [FAQ](docs/FAQ.md)** ("What is ORCID?", "Is it free?", "Where does my data come from?").
+- **Chat with us** in [Discussions](https://github.com/BasileChretien/sigmacv/discussions).
+- More options — and how to report a security issue privately — are in [`SUPPORT.md`](SUPPORT.md).
 
 ## Citing SigmaCV
 
