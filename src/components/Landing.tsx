@@ -215,6 +215,28 @@ export default function Landing({ locale }: LandingProps) {
             githubUrl={getSiteLinks().github}
           />
         </p>
+        {/* The creator is an individual DORA signatory; SigmaCV is built for
+            responsible research assessment. Official badge, self-hosted; the
+            black/white variants swap with the colour scheme. */}
+        <a
+          className="dora-badge"
+          href="https://sfdora.org/"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Supports DORA — the Declaration on Research Assessment"
+        >
+          <picture>
+            <source media="(prefers-color-scheme: dark)" srcSet="/dora-supporter-dark.webp" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/dora-supporter.webp"
+              alt="Supports DORA — the San Francisco Declaration on Research Assessment"
+              width={56}
+              height={56}
+              loading="lazy"
+            />
+          </picture>
+        </a>
       </section>
 
       <section className="landing-section landing-explore" aria-labelledby="explore-h">

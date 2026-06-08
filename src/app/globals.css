@@ -2002,6 +2002,22 @@ textarea.prose-body {
   color: var(--text-secondary);
   line-height: 1.6;
 }
+/* "Supports DORA" badge under the creator credit (the creator is a signatory). */
+.dora-badge {
+  display: inline-flex;
+  margin-top: var(--space-4);
+  border-radius: 50%;
+  opacity: 0.9;
+  transition: opacity var(--dur) var(--ease);
+}
+.dora-badge:hover {
+  opacity: 1;
+}
+.dora-badge img {
+  display: block;
+  width: 56px;
+  height: 56px;
+}
 .explore-links {
   list-style: none;
   margin: 0;
