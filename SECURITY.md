@@ -82,6 +82,39 @@ max`), closing a lost-update race where concurrent requests for one key could
   fallback, neutralising injection-shaped values before they reach `Intl` /
   JSON-LD.
 
+The same pass also ran **three adversarial penetration rounds** — independent
+attackers tasked to take over an account, exfiltrate data, and take the app down,
+each required to produce a working exploit or name the exact control that blocked
+it. The offensive result was **clean on the core threat model**: no account
+takeover, IDOR, CSRF bypass, stored XSS, SSRF, LaTeX/CSL RCE, prototype pollution,
+or PII leak — every attempt hit a specific defence (session-scoped queries +
+server-side identity reconciliation; fail-closed CSRF; the 80-bit slug + published
+gate; the SSRF host allowlist with per-hop re-validation; output-context escaping;
+`projectCvForPublic` as the sole public gate; `CslItem` `.strict()` + Zod-strip
+before any spread). The remaining findings were resource/abuse and consent-scope
+issues, now fixed:
+
+- **DoS / resource exhaustion** — bounded the previously-unbounded
+  `customStyleCache` (LRU) and hard-enforced the in-memory rate-limiter's bucket
+  cap; reworked the public-page cache to a total-byte budget so expensive renders
+  are cached (repeat hits O(1)) without unbounded heap; capped total CV items on
+  **every** write path (save + sync/resync) and in the live-preview render so a
+  many-item document can't pin the event loop; single-flighted public-page and OG
+  renders; added a slug-keyed, bounded **OG-image cache**; and fixed a PDF
+  concurrency-slot leak (a render error could permanently wedge PDF export).
+- **Public-export minimisation** — the machine formats (`/p/<slug>.json` etc.)
+  now drop hidden / "not mine" items (and their disambiguation reason/timestamp),
+  gate `metrics` + per-year chart data behind the owner's display opt-ins, and
+  strip saved editor presets — so a downloadable public file never exposes what
+  the owner disavowed or chose not to display.
+
+Accepted operational residuals (documented, low-risk): concurrent same-user saves
+are last-write-wins (a UX concern — identity fields are still server-reconciled, so
+not a security crossing); a coordinated 3-account PDF-slot monopoly is bounded by
+the per-user export limit and the 30 s render timeout; the machine formats are
+serialisation-only (DB-I/O-bound, absorbed by the rate limiter) and intentionally
+uncached.
+
 ## Operator requirements (production)
 
 Set these before exposing the app publicly (see `.env.production.example`):
