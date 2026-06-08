@@ -2225,7 +2225,9 @@ textarea.prose-body {
 }
 .hg-doc {
   position: absolute;
-  z-index: 1;
+  /* Above the chips so a wide chip (e.g. "ClinicalTrials.gov") tucks BEHIND the
+     CV card rather than covering it — data flowing into the CV. */
+  z-index: 3;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -46%) rotate(-4deg);
@@ -2252,7 +2254,7 @@ textarea.prose-body {
 }
 .hg-medallion {
   position: absolute;
-  z-index: 2;
+  z-index: 4;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
