@@ -40,9 +40,7 @@ test("prose section → add from menu → type body → save → preview → pub
   const parsed = safeParseCanonicalCv(row?.document);
   expect(parsed.success).toBe(true);
   if (parsed.success) {
-    const sec = parsed.data.sections.find(
-      (s) => s.type === "narrative-knowledge",
-    );
+    const sec = parsed.data.sections.find((s) => s.type === "narrative-knowledge");
     expect(sec?.body).toBe(MARKER);
   }
 

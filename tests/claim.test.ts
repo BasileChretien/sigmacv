@@ -23,7 +23,9 @@ function work(over: Partial<OpenAlexWork> = {}): OpenAlexWork {
     fwci: 1.8,
     // A real published article carries its journal venue; isPreprint() treats a
     // work with no venue as unpublished, so the fixture needs one.
-    primary_location: { source: { type: "journal", display_name: "British Journal of Clinical Pharmacology" } },
+    primary_location: {
+      source: { type: "journal", display_name: "British Journal of Clinical Pharmacology" },
+    },
     open_access: { is_oa: true, oa_status: "gold" },
     authorships: [
       {
@@ -45,7 +47,11 @@ function work(over: Partial<OpenAlexWork> = {}): OpenAlexWork {
 }
 
 const meById: ResolvedAuthor = { orcid: ME, authorIds: [], displayName: "Basile Chrétien" };
-const stranger: ResolvedAuthor = { orcid: "0000-0000-0000-0000", authorIds: [], displayName: "Nobody" };
+const stranger: ResolvedAuthor = {
+  orcid: "0000-0000-0000-0000",
+  authorIds: [],
+  displayName: "Nobody",
+};
 
 describe("bareDoiInput", () => {
   it("strips scheme / doi.org / doi: prefixes and lower-cases", () => {

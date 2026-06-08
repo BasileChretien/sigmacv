@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Faq from "@/components/Faq";
-import {
-  DEFAULT_UI_LOCALE,
-  NON_DEFAULT_LOCALE_SLUGS,
-  localeForSlug,
-} from "@/lib/i18n";
+import { DEFAULT_UI_LOCALE, NON_DEFAULT_LOCALE_SLUGS, localeForSlug } from "@/lib/i18n";
 import { faqStrings } from "@/lib/i18n/faq";
 import { faqLanguageAlternates, localeFaqPath } from "@/lib/seo";
 

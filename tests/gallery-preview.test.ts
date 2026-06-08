@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { TEMPLATES } from "@/lib/canonical/schema";
-import {
-  sampleForPreview,
-  templateGalleryPreviews,
-} from "@/lib/render/galleryPreview";
+import { sampleForPreview, templateGalleryPreviews } from "@/lib/render/galleryPreview";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";

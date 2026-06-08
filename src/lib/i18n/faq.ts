@@ -7,8 +7,9 @@ import { asLocale, type Locale } from "./index";
  * FAQPage JSON-LD builder.
  *
  * Every locale has the SAME 6 questions in the SAME order; proper nouns
- * (SigmaCV, OpenAlex, ORCID, Crossref, DataCite, Open Editors Plus) are kept
- * untranslated. `navLabel` is the short footer label.
+ * (SigmaCV, OpenAlex, ORCID, Crossref, DataCite, OpenAIRE, DBLP, Open Editors
+ * Plus, UKRI, NIH, NSF, ClinicalTrials.gov, Wikidata) are kept untranslated.
+ * `navLabel` is the short footer label.
  */
 export interface FaqStrings {
   metaTitle: string;
@@ -38,7 +39,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Where does the data come from?",
-        a: "From open research data sources: OpenAlex for publications and metrics, ORCID for your verified identity, Crossref and DataCite for metadata, and Open Editors Plus for editorial roles. SigmaCV reads only public metadata.",
+        a: "From open research data sources, read as public metadata only: OpenAlex for publications and metrics, ORCID for your verified identity, Crossref and DataCite for metadata, OpenAIRE for datasets and software, DBLP for conference papers, and Open Editors Plus for editorial roles. Grants also come from Crossref and the UKRI, NIH and NSF funder databases, and clinical trials from ClinicalTrials.gov — these registry matches are by name and organization, so you confirm them. Your public page can also link your Wikidata identity.",
       },
       {
         q: "Where does my CV data come from?",
@@ -76,7 +77,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "数据来自哪里？",
-        a: "来自开放研究数据源：OpenAlex 提供论文和指标，ORCID 提供您的已验证身份，Crossref 和 DataCite 提供元数据，Open Editors Plus 提供编辑职务。SigmaCV 仅读取公开的元数据。",
+        a: "来自开放研究数据源，仅读取公开元数据：OpenAlex 提供论文和指标，ORCID 提供您的已验证身份，Crossref 和 DataCite 提供元数据，OpenAIRE 提供数据集与软件，DBLP 提供会议论文，Open Editors Plus 提供编辑职务。资助还来自 Crossref 以及 UKRI、NIH 和 NSF 资助数据库，临床试验来自 ClinicalTrials.gov——这些注册库通过姓名和机构匹配，需由您确认。您的公开页面还可关联您的 Wikidata 身份。",
       },
       {
         q: "我的简历数据来自哪里？",
@@ -114,7 +115,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "¿De dónde proceden los datos?",
-        a: "De fuentes de datos de investigación abiertos: OpenAlex para publicaciones y métricas, ORCID para tu identidad verificada, Crossref y DataCite para los metadatos, y Open Editors Plus para las funciones editoriales. SigmaCV solo lee metadatos públicos.",
+        a: "De fuentes de datos de investigación abiertos, leyendo solo metadatos públicos: OpenAlex para publicaciones y métricas, ORCID para tu identidad verificada, Crossref y DataCite para los metadatos, OpenAIRE para conjuntos de datos y software, DBLP para comunicaciones en congresos, y Open Editors Plus para las funciones editoriales. Las subvenciones también provienen de Crossref y de las bases de datos de financiadores UKRI, NIH y NSF, y los ensayos clínicos de ClinicalTrials.gov: estas coincidencias de registro son por nombre y organización, así que tú las confirmas. Tu página pública también puede enlazar tu identidad de Wikidata.",
       },
       {
         q: "¿De dónde proceden los datos de mi CV?",
@@ -152,7 +153,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "D'où proviennent les données ?",
-        a: "De sources de données de recherche ouvertes : OpenAlex pour les publications et les métriques, ORCID pour votre identité vérifiée, Crossref et DataCite pour les métadonnées, et Open Editors Plus pour les fonctions éditoriales. SigmaCV ne lit que des métadonnées publiques.",
+        a: "De sources de données de recherche ouvertes, en ne lisant que des métadonnées publiques : OpenAlex pour les publications et les métriques, ORCID pour votre identité vérifiée, Crossref et DataCite pour les métadonnées, OpenAIRE pour les jeux de données et logiciels, DBLP pour les communications en congrès, et Open Editors Plus pour les fonctions éditoriales. Les financements proviennent aussi de Crossref et des bases de données des financeurs UKRI, NIH et NSF, et les essais cliniques de ClinicalTrials.gov — ces correspondances de registre se font par nom et organisation, vous les confirmez donc. Votre page publique peut aussi relier votre identité Wikidata.",
       },
       {
         q: "D'où proviennent les données de mon CV ?",
@@ -190,7 +191,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Woher stammen die Daten?",
-        a: "Aus offenen Forschungsdatenquellen: OpenAlex für Publikationen und Metriken, ORCID für Ihre verifizierte Identität, Crossref und DataCite für Metadaten und Open Editors Plus für Herausgebertätigkeiten. SigmaCV liest ausschließlich öffentliche Metadaten.",
+        a: "Aus offenen Forschungsdatenquellen, wobei ausschließlich öffentliche Metadaten gelesen werden: OpenAlex für Publikationen und Metriken, ORCID für Ihre verifizierte Identität, Crossref und DataCite für Metadaten, OpenAIRE für Datensätze und Software, DBLP für Konferenzbeiträge und Open Editors Plus für Herausgebertätigkeiten. Förderungen stammen außerdem aus Crossref sowie den Förderdatenbanken von UKRI, NIH und NSF, und klinische Studien aus ClinicalTrials.gov — diese Registertreffer erfolgen anhand von Name und Organisation, sodass Sie sie bestätigen. Ihre öffentliche Seite kann zudem Ihre Wikidata-Identität verknüpfen.",
       },
       {
         q: "Woher stammen die Daten meines Lebenslaufs?",
@@ -228,7 +229,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "データはどこから来ますか？",
-        a: "オープンな研究データソースからです。論文と指標は OpenAlex、検証済みの本人確認は ORCID、メタデータは Crossref と DataCite、編集者としての役割は Open Editors Plus を利用します。SigmaCV は公開されたメタデータのみを読み取ります。",
+        a: "オープンな研究データソースから、公開されたメタデータのみを読み取ります。論文と指標は OpenAlex、検証済みの本人確認は ORCID、メタデータは Crossref と DataCite、データセットとソフトウェアは OpenAIRE、会議論文は DBLP、編集者としての役割は Open Editors Plus を利用します。研究費は Crossref および UKRI・NIH・NSF の助成データベースからも、臨床試験は ClinicalTrials.gov から取得します——これらのレジストリは氏名と所属で照合されるため、あなたが確認します。公開ページではあなたの Wikidata の識別情報もリンクできます。",
       },
       {
         q: "私の CV のデータはどこから来ますか？",
@@ -266,7 +267,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "De onde vêm os dados?",
-        a: "De fontes de dados abertos de pesquisa: OpenAlex para publicações e métricas, ORCID para a sua identidade verificada, Crossref e DataCite para metadados, e Open Editors Plus para funções editoriais. O SigmaCV lê apenas metadados públicos.",
+        a: "De fontes de dados abertos de pesquisa, lendo apenas metadados públicos: OpenAlex para publicações e métricas, ORCID para a sua identidade verificada, Crossref e DataCite para metadados, OpenAIRE para conjuntos de dados e software, DBLP para apresentações em congressos, e Open Editors Plus para funções editoriais. Os financiamentos também vêm do Crossref e das bases de dados dos financiadores UKRI, NIH e NSF, e os ensaios clínicos do ClinicalTrials.gov — essas correspondências de registro são por nome e organização, portanto você as confirma. A sua página pública também pode vincular a sua identidade no Wikidata.",
       },
       {
         q: "De onde vêm os dados do meu currículo?",
@@ -304,7 +305,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Da dove provengono i dati?",
-        a: "Da fonti di dati di ricerca aperti: OpenAlex per pubblicazioni e metriche, ORCID per la tua identità verificata, Crossref e DataCite per i metadati e Open Editors Plus per gli incarichi editoriali. SigmaCV legge solo metadati pubblici.",
+        a: "Da fonti di dati di ricerca aperti, leggendo solo metadati pubblici: OpenAlex per pubblicazioni e metriche, ORCID per la tua identità verificata, Crossref e DataCite per i metadati, OpenAIRE per set di dati e software, DBLP per le comunicazioni a congressi e Open Editors Plus per gli incarichi editoriali. I finanziamenti provengono anche da Crossref e dalle banche dati dei finanziatori UKRI, NIH e NSF, e le sperimentazioni cliniche da ClinicalTrials.gov — queste corrispondenze di registro avvengono per nome e organizzazione, quindi le confermi tu. La tua pagina pubblica può anche collegare la tua identità Wikidata.",
       },
       {
         q: "Da dove provengono i dati del mio CV?",
@@ -342,7 +343,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "데이터는 어디에서 오나요?",
-        a: "공개 연구 데이터 소스에서 가져옵니다. 논문과 지표는 OpenAlex, 검증된 신원은 ORCID, 메타데이터는 Crossref와 DataCite, 편집 활동은 Open Editors Plus를 이용합니다. SigmaCV는 공개된 메타데이터만 읽습니다.",
+        a: "공개 연구 데이터 소스에서 공개된 메타데이터만 읽습니다. 논문과 지표는 OpenAlex, 검증된 신원은 ORCID, 메타데이터는 Crossref와 DataCite, 데이터셋과 소프트웨어는 OpenAIRE, 학술대회 발표는 DBLP, 편집 활동은 Open Editors Plus를 이용합니다. 연구비는 Crossref와 UKRI·NIH·NSF 연구비 데이터베이스에서도, 임상시험은 ClinicalTrials.gov에서 가져옵니다 — 이러한 등록부는 이름과 소속으로 매칭되므로 회원님이 확인합니다. 공개 페이지에는 회원님의 Wikidata 신원도 연결할 수 있습니다.",
       },
       {
         q: "제 CV 데이터는 어디에서 오나요?",
@@ -380,7 +381,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Откуда берутся данные?",
-        a: "Из открытых источников научных данных: OpenAlex для публикаций и метрик, ORCID для вашей подтверждённой личности, Crossref и DataCite для метаданных и Open Editors Plus для редакционных ролей. SigmaCV считывает только публичные метаданные.",
+        a: "Из открытых источников научных данных, считывая только публичные метаданные: OpenAlex для публикаций и метрик, ORCID для вашей подтверждённой личности, Crossref и DataCite для метаданных, OpenAIRE для наборов данных и программного обеспечения, DBLP для докладов на конференциях и Open Editors Plus для редакционных ролей. Гранты также поступают из Crossref и баз данных финансирующих организаций UKRI, NIH и NSF, а клинические испытания — из ClinicalTrials.gov; эти совпадения в реестрах выполняются по имени и организации, поэтому вы их подтверждаете. На вашей публичной странице также может быть указана ваша идентичность в Wikidata.",
       },
       {
         q: "Откуда берутся данные для моего резюме?",

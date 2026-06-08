@@ -52,15 +52,11 @@ test("CV-model picker → apply NSF → reversible snapshot + section selection/
     expect(doc.sections.find((s) => s.type === "education")?.title).toBe(
       "Professional Preparation",
     );
-    expect(doc.sections.find((s) => s.type === "publications")?.title).toBe(
-      "Products",
-    );
+    expect(doc.sections.find((s) => s.type === "publications")?.title).toBe("Products");
 
     // Exactly the model's wanted section types are visible.
     const want = new Set(NSF.sections);
-    const visibleTypes = new Set(
-      doc.sections.filter((s) => s.visible).map((s) => s.type),
-    );
+    const visibleTypes = new Set(doc.sections.filter((s) => s.visible).map((s) => s.type));
     for (const type of want) expect(visibleTypes.has(type)).toBe(true);
     for (const type of visibleTypes) expect(want.has(type as never)).toBe(true);
 

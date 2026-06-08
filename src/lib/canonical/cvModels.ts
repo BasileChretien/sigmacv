@@ -139,8 +139,7 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "grant",
     region: "EU",
     name: "MSCA Postdoctoral Fellowship",
-    description:
-      "Marie Skłodowska-Curie Postdoctoral Fellowship CV (EU Funding & Tenders portal).",
+    description: "Marie Skłodowska-Curie Postdoctoral Fellowship CV (EU Funding & Tenders portal).",
     sections: [
       "positions",
       "education",
@@ -176,8 +175,7 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "grant",
     region: "EU",
     name: "EMBO Fellowship",
-    description:
-      "EMBO long-term / postdoctoral fellowship CV + publication list.",
+    description: "EMBO long-term / postdoctoral fellowship CV + publication list.",
     sections: ["education", "positions", "publications", "awards"],
     display: BS10,
   },
@@ -225,8 +223,7 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "grant",
     region: "NL",
     name: "NWO (Dutch Research Council)",
-    description:
-      "Dutch Research Council CV with narrative evidence of esteem + academic profile.",
+    description: "Dutch Research Council CV with narrative evidence of esteem + academic profile.",
     sections: [
       "narrative-knowledge",
       "narrative-individuals",
@@ -247,14 +244,7 @@ export const CV_MODELS: readonly CvModel[] = [
     name: "ANR (France)",
     description:
       "French National Research Agency CV: recent career, selected publications, funding.",
-    sections: [
-      "positions",
-      "education",
-      "supervision",
-      "publications",
-      "grants",
-      "awards",
-    ],
+    sections: ["positions", "education", "supervision", "publications", "grants", "awards"],
     display: { publicationsLimit: 8, publicationOrder: "year-desc" },
   },
   {
@@ -271,8 +261,7 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "grant",
     region: "UK",
     name: "Wellcome Trust",
-    description:
-      "Wellcome Trust CV emphasising contributions and key outputs (narrative-leaning).",
+    description: "Wellcome Trust CV emphasising contributions and key outputs (narrative-leaning).",
     sections: [
       "narrative-knowledge",
       "narrative-individuals",
@@ -322,14 +311,7 @@ export const CV_MODELS: readonly CvModel[] = [
     name: "NIH biosketch (SciENcv)",
     description:
       "NIH biosketch (≤5 pages): Personal Statement = your Summary; Positions & Honors; Contributions to Science. Generate/certify the official PDF via SciENcv (eRA/Research.gov).",
-    sections: [
-      "education",
-      "positions",
-      "awards",
-      "service",
-      "talks",
-      "publications",
-    ],
+    sections: ["education", "positions", "awards", "service", "talks", "publications"],
     display: BS5,
     titleOverrides: {
       education: "Education / Training",
@@ -345,14 +327,7 @@ export const CV_MODELS: readonly CvModel[] = [
     name: "NSF biographical sketch (SciENcv)",
     description:
       "NSF biosketch: Professional Preparation, Appointments, Products (≤10), Synergistic Activities. Use SciENcv on Research.gov.",
-    sections: [
-      "education",
-      "positions",
-      "publications",
-      "service",
-      "talks",
-      "grants",
-    ],
+    sections: ["education", "positions", "publications", "service", "talks", "grants"],
     display: BS10,
     titleOverrides: {
       education: "Professional Preparation",
@@ -366,8 +341,7 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "grant",
     region: "US",
     name: "DOE / DOD / NASA biosketch",
-    description:
-      "US federal agency biosketch (DOE/DOD/NASA), SciENcv-style.",
+    description: "US federal agency biosketch (DOE/DOD/NASA), SciENcv-style.",
     sections: ["education", "positions", "publications", "service", "talks"],
     display: BS10,
   },
@@ -461,14 +435,7 @@ export const CV_MODELS: readonly CvModel[] = [
     name: "AMED (Japan medical research)",
     description:
       "AMED (Japan Agency for Medical Research & Development) CV — clinical/medical research emphasis.",
-    sections: [
-      "positions",
-      "education",
-      "publications",
-      "grants",
-      "awards",
-      "service",
-    ],
+    sections: ["positions", "education", "publications", "grants", "awards", "service"],
     display: BS10,
   },
   {
@@ -518,14 +485,7 @@ export const CV_MODELS: readonly CvModel[] = [
     region: "SE",
     name: "Vetenskapsrådet (Sweden)",
     description: "Swedish Research Council CV.",
-    sections: [
-      "education",
-      "positions",
-      "publications",
-      "grants",
-      "awards",
-      "supervision",
-    ],
+    sections: ["education", "positions", "publications", "grants", "awards", "supervision"],
     display: TR10,
   },
   {
@@ -543,14 +503,7 @@ export const CV_MODELS: readonly CvModel[] = [
     region: "IE",
     name: "Science Foundation Ireland",
     description: "Science Foundation Ireland CV.",
-    sections: [
-      "education",
-      "positions",
-      "publications",
-      "grants",
-      "awards",
-      "supervision",
-    ],
+    sections: ["education", "positions", "publications", "grants", "awards", "supervision"],
     display: TR10,
   },
   {
@@ -640,14 +593,7 @@ export const CV_MODELS: readonly CvModel[] = [
     region: "UK",
     name: "Cancer Research UK",
     description: "Cancer Research UK fellowship CV.",
-    sections: [
-      "positions",
-      "education",
-      "publications",
-      "grants",
-      "awards",
-      "supervision",
-    ],
+    sections: ["positions", "education", "publications", "grants", "awards", "supervision"],
     display: TR10,
   },
   {
@@ -655,8 +601,7 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "grant",
     region: "FR",
     name: "FRM / Fondation ARC (France, biomedical)",
-    description:
-      "Fondation pour la Recherche Médicale / Fondation ARC (French biomedical) CV.",
+    description: "Fondation pour la Recherche Médicale / Fondation ARC (French biomedical) CV.",
     sections: ["positions", "education", "publications", "grants", "awards"],
     display: TR10,
   },
@@ -692,8 +637,7 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "grant",
     region: "EU",
     name: "Leverhulme / VolkswagenStiftung",
-    description:
-      "Private European foundations (Leverhulme Trust, Volkswagen Foundation).",
+    description: "Private European foundations (Leverhulme Trust, Volkswagen Foundation).",
     sections: ["education", "positions", "publications", "grants", "awards"],
     display: TR10,
   },
@@ -704,16 +648,8 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "institution",
     region: "EU",
     name: "Europass CV",
-    description:
-      "EU-standard Europass CV (work experience, education, skills, languages).",
-    sections: [
-      "positions",
-      "education",
-      "skills",
-      "languages",
-      "publications",
-      "awards",
-    ],
+    description: "EU-standard Europass CV (work experience, education, skills, languages).",
+    sections: ["positions", "education", "skills", "languages", "publications", "awards"],
     display: FULL,
     titleOverrides: {
       positions: "Work experience",
@@ -724,8 +660,7 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "institution",
     region: "US",
     name: "US academic / faculty CV",
-    description:
-      "Comprehensive US academic / faculty CV (full publication list).",
+    description: "Comprehensive US academic / faculty CV (full publication list).",
     sections: [
       "education",
       "positions",
@@ -769,14 +704,7 @@ export const CV_MODELS: readonly CvModel[] = [
     region: "DE",
     name: "German academic CV (Lebenslauf)",
     description: "German academic Lebenslauf + publication list.",
-    sections: [
-      "education",
-      "positions",
-      "awards",
-      "publications",
-      "teaching",
-      "service",
-    ],
+    sections: ["education", "positions", "awards", "publications", "teaching", "service"],
     display: FULL,
     titleOverrides: {
       positions: "Beruflicher Werdegang / Positions",
@@ -787,16 +715,8 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "institution",
     region: "JP",
     name: "Japanese rirekisho (履歴書)",
-    description:
-      "Japanese 履歴書 (rirekisho) job CV — pairs with the rirekisho template.",
-    sections: [
-      "education",
-      "positions",
-      "awards",
-      "skills",
-      "languages",
-      "references",
-    ],
+    description: "Japanese 履歴書 (rirekisho) job CV — pairs with the rirekisho template.",
+    sections: ["education", "positions", "awards", "skills", "languages", "references"],
     display: FULL,
   },
   {
@@ -804,16 +724,8 @@ export const CV_MODELS: readonly CvModel[] = [
     category: "institution",
     region: "JP",
     name: "Japanese shokumu-keirekisho (職務経歴書)",
-    description:
-      "Japanese 職務経歴書 career-history CV (JREC-IN academic/research jobs).",
-    sections: [
-      "positions",
-      "education",
-      "publications",
-      "teaching",
-      "grants",
-      "skills",
-    ],
+    description: "Japanese 職務経歴書 career-history CV (JREC-IN academic/research jobs).",
+    sections: ["positions", "education", "publications", "teaching", "grants", "skills"],
     display: FULL,
   },
   {
@@ -852,15 +764,7 @@ export const CV_MODELS: readonly CvModel[] = [
     name: "NHS consultant / clinical CV (UK)",
     description:
       "UK NHS consultant / clinical-academic CV (GMC registration, CCT, clinical + academic record).",
-    sections: [
-      "education",
-      "positions",
-      "awards",
-      "service",
-      "publications",
-      "teaching",
-      "talks",
-    ],
+    sections: ["education", "positions", "awards", "service", "publications", "teaching", "talks"],
     display: FULL,
     titleOverrides: {
       education: "Qualifications, GMC registration & training",
@@ -934,15 +838,7 @@ export const CV_MODELS: readonly CvModel[] = [
     name: "Clinical / physician CV",
     description:
       "Clinical physician CV: qualifications, licences & board certifications, clinical appointments, then academic output.",
-    sections: [
-      "education",
-      "positions",
-      "awards",
-      "service",
-      "publications",
-      "teaching",
-      "talks",
-    ],
+    sections: ["education", "positions", "awards", "service", "publications", "teaching", "talks"],
     display: FULL,
     titleOverrides: {
       education: "Qualifications, licences & certifications",
@@ -1033,9 +929,7 @@ export const CV_MODELS: readonly CvModel[] = [
 ];
 
 /** Lookup by id (built once). */
-const MODEL_BY_ID: ReadonlyMap<string, CvModel> = new Map(
-  CV_MODELS.map((m) => [m.id, m]),
-);
+const MODEL_BY_ID: ReadonlyMap<string, CvModel> = new Map(CV_MODELS.map((m) => [m.id, m]));
 
 /** Whether `id` is a known CV-model id (runtime guard for untyped callers). */
 export function isCvModelId(id: string): boolean {
@@ -1075,11 +969,7 @@ export function cvModelsByCategory(): ReadonlyArray<{
  * the same one when the section already exists). Used by `applyCvModel` to
  * materialize the model's funder-rubric sections.
  */
-function ensureSection(
-  cv: CanonicalCv,
-  type: CvSectionType,
-  titleOverride?: string,
-): CanonicalCv {
+function ensureSection(cv: CanonicalCv, type: CvSectionType, titleOverride?: string): CanonicalCv {
   if (cv.sections.some((s) => s.type === type)) return cv;
   const newSection: CvSection = {
     id: type,
@@ -1139,9 +1029,7 @@ export function applyCvModel(
     if (override !== undefined && override !== section.title) {
       next = {
         ...next,
-        sections: next.sections.map((s) =>
-          s.id === section.id ? { ...s, title: override } : s,
-        ),
+        sections: next.sections.map((s) => (s.id === section.id ? { ...s, title: override } : s)),
       };
     }
   }
@@ -1149,9 +1037,7 @@ export function applyCvModel(
   // 3. Order: the wanted sections take the model's sequence (0..n-1); every
   //    other section keeps its relative order, appended after them. Operates on
   //    section TYPE → rank since a model is expressed in types.
-  const rankByType = new Map<CvSectionType, number>(
-    wanted.map((type, i) => [type, i]),
-  );
+  const rankByType = new Map<CvSectionType, number>(wanted.map((type, i) => [type, i]));
   const visibleCount = wanted.length;
   // Stable: hidden sections keep their existing relative order after the visible
   // block (sort by their current order, then assign sequential ranks).
@@ -1164,9 +1050,7 @@ export function applyCvModel(
   );
   const ordered: CvSection[] = next.sections.map((s) => ({
     ...s,
-    order: wantedSet.has(s.type)
-      ? rankByType.get(s.type)!
-      : hiddenRank.get(s.id)!,
+    order: wantedSet.has(s.type) ? rankByType.get(s.type)! : hiddenRank.get(s.id)!,
   }));
   next = {
     ...next,
@@ -1196,10 +1080,7 @@ export type GrantPresetId = (typeof GRANT_PRESET_IDS)[number];
 /** The legacy grant-preset config shape (always-present visibleSections + display). */
 export interface GrantPresetConfig {
   visibleSections: readonly CvSectionType[];
-  display: Pick<
-    DisplayChoices,
-    "publicationsLimit" | "publicationOrder" | "peerReviewedOnly"
-  >;
+  display: Pick<DisplayChoices, "publicationsLimit" | "publicationOrder" | "peerReviewedOnly">;
 }
 
 /**

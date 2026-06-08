@@ -3,8 +3,8 @@
 > **DRAFT v0.1** — a first structured draft to build on, not a finished manuscript.
 > Placeholders are marked `‹…›`. Fill in co-authors, the Zenodo DOI, and any
 > concrete usage/adoption figures before submission. Candidate venues:
-> *Quantitative Science Studies* (QSS), *Scientometrics*, *PeerJ Computer
-> Science*, *SoftwareX*, or *Journal of Open Source Software* (JOSS, for a short
+> _Quantitative Science Studies_ (QSS), _Scientometrics_, _PeerJ Computer
+> Science_, _SoftwareX_, or _Journal of Open Source Software_ (JOSS, for a short
 > software paper). This draft is written venue-agnostic and long-form; trim to
 > the target venue.
 
@@ -32,7 +32,7 @@ academic CV from open research data (OpenAlex, ORCID, Crossref, ROR, DataCite) a
 renders it to many formats from a single source of truth. SigmaCV is designed as
 **open, FAIR infrastructure for responsible research assessment** rather than a
 consumer product: the account holder is identified by persistent identifier
-(ORCID / OpenAlex ID) and *never* by name string; every record carries provenance;
+(ORCID / OpenAlex ID) and _never_ by name string; every record carries provenance;
 metrics are opt-in, default-none, and field-normalized; and a published CV is a
 machine-readable artifact (schema.org JSON-LD, content-negotiated CSL-JSON and
 BibTeX) under an author-chosen reuse license. The tool natively supports the
@@ -113,8 +113,8 @@ and in deriving every format from one canonical object.
 **Open scholarly metadata.** OpenAlex offers an open, queryable index that makes
 automated CV assembly feasible without proprietary databases; ORCID supplies the
 persistent identifier that anchors correct self-attribution; ROR canonicalizes
-institutions; Crossref and DataCite resolve DOIs. SigmaCV is a *consumer* of this
-commons and is designed to eventually *contribute back* (Section 6.3).
+institutions; Crossref and DataCite resolve DOIs. SigmaCV is a _consumer_ of this
+commons and is designed to eventually _contribute back_ (Section 6.3).
 
 **Citation rendering.** SigmaCV uses the Citation Style Language (CSL) via
 `citeproc-js` with the community CSL styles, so a single style choice applies
@@ -140,14 +140,14 @@ are byte-identical across formats.
 
 **(P2) Identifier-driven, never name-based.** Self-attribution (`authoredBySelf`)
 and self-name highlighting are computed by matching the account holder's ORCID and
-OpenAlex author identifiers against each work's authorships; the matched name *as
-printed on that work* is captured for highlighting. Name strings are never used to
+OpenAlex author identifiers against each work's authorships; the matched name _as
+printed on that work_ is captured for highlighting. Name strings are never used to
 decide ownership, eliminating a major source of disambiguation error for common
 names and CJK scripts and making the highlight robust across name variants.
 
 **(P3) Curation as immutable, reversible operations.** Curation ("not mine",
 reorder, show/hide, rename, style) is a set of pure functions that return new
-objects. "Not mine" *hides* a work and records a structured reason; it never
+objects. "Not mine" _hides_ a work and records a structured reason; it never
 deletes it, preserving the correction signal for research (Section 7) and for a
 future upstream push (Section 6.3).
 
@@ -192,7 +192,7 @@ that adding a key forces a value in every locale at compile time.
   templates and constrained customization (accent colour, fonts, density).
 - **Export.** PDF, DOCX, LaTeX, Markdown, BibTeX, CSL-JSON, JSON Résumé, and
   funder-structured Markdown drafts (NIH biosketch; ERC; MSCA; NSF; JSPS/KAKENHI).
-- **Publish.** A *living* public page that re-syncs from open sources; it is
+- **Publish.** A _living_ public page that re-syncs from open sources; it is
   machine-readable (schema.org JSON-LD; content-negotiated CSL-JSON / BibTeX /
   JSON) and indexable only on explicit opt-in.
 - **Narrative / prose sections.** The R4RI / Royal Society contribution modules
@@ -246,7 +246,7 @@ operationalize DORA/CoARA at the level of the tool's defaults.
 Because "not mine" corrections are preserved with their match basis and reason,
 they constitute high-quality author-disambiguation signal. A planned, opt-in,
 audited mechanism will push these corrections upstream to OpenAlex's curation
-interface, so routine CV curation *improves the shared scholarly graph* rather than
+interface, so routine CV curation _improves the shared scholarly graph_ rather than
 only consuming it. This capability is gated off by default pending confirmation of
 the upstream API and ethics review.
 
@@ -287,7 +287,7 @@ study / adoption analysis is future work — add figures once available.›
 - Accurate assembly depends on the completeness of open sources (OpenAlex/ORCID);
   works missing or misattributed upstream require manual correction (which the tool
   captures and will push back).
-- Funder-structured exports are faithful *drafts*; final submission uses each
+- Funder-structured exports are faithful _drafts_; final submission uses each
   funder's own system (e.g., SciENcv for NIH/NSF; the EU Funding & Tenders portal;
   e-Rad/researchmap for KAKENHI). Pixel-exact replicas of official templates are
   intentionally out of scope.
@@ -319,30 +319,35 @@ the open-science and assessment-reform communities.
 ---
 
 ### Acknowledgements
+
 ‹advisors, institutions, funders›
 
 ### Author contributions (CRediT)
+
 B.C.: conceptualization, software, methodology, writing — original draft. ‹others›
 
 ### Competing interests
+
 ‹none / declare›
 
 ### Data availability
+
 This paper describes software; no human-subject data is reported. Source code and
 metadata are available as in Section 10. The consent-gated research datasets
 (studies 2–3) are governed separately under their IRB protocol and pre-registration.
 
 ### References (to be formatted to the target venue)
+
 1. Declaration on Research Assessment (DORA). https://sfdora.org/
 2. Coalition for Advancing Research Assessment (CoARA). https://coara.eu/
-3. Hicks D., Wouters P., Waltman L., de Rijcke S., Rafols I. The Leiden Manifesto for research metrics. *Nature* 520, 429–431 (2015).
+3. Hicks D., Wouters P., Waltman L., de Rijcke S., Rafols I. The Leiden Manifesto for research metrics. _Nature_ 520, 429–431 (2015).
 4. Priem J., Piwowar H., Orr R. OpenAlex: a fully-open index of scholarly works, authors, venues, institutions, and concepts. arXiv:2205.01833 (2022).
 5. ORCID. https://orcid.org/
 6. Research Organization Registry (ROR). https://ror.org/
 7. Crossref. https://www.crossref.org/ ; DataCite. https://datacite.org/
 8. Citation Style Language (CSL). https://citationstyles.org/
-9. Wilkinson M. et al. The FAIR Guiding Principles for scientific data management and stewardship. *Scientific Data* 3, 160018 (2016).
-10. Barker M. et al. Introducing the FAIR Principles for research software (FAIR4RS). *Scientific Data* 9, 622 (2022).
+9. Wilkinson M. et al. The FAIR Guiding Principles for scientific data management and stewardship. _Scientific Data_ 3, 160018 (2016).
+10. Barker M. et al. Introducing the FAIR Principles for research software (FAIR4RS). _Scientific Data_ 9, 622 (2022).
 11. UK Research and Innovation. Résumé for Research and Innovation (R4RI).
 12. Royal Society. Résumé for Researchers.
 13. ‹add: relevant author-disambiguation, self-presentation, and CV-tool references›

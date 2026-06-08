@@ -2,11 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import Landing from "@/components/Landing";
-import {
-  DEFAULT_UI_LOCALE,
-  NON_DEFAULT_LOCALE_SLUGS,
-  localeForSlug,
-} from "@/lib/i18n";
+import { DEFAULT_UI_LOCALE, NON_DEFAULT_LOCALE_SLUGS, localeForSlug } from "@/lib/i18n";
 import { landingStrings } from "@/lib/i18n/landing";
 import { homeLanguageAlternates, ogAlternateLocales, ogLocale } from "@/lib/seo";
 

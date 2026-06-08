@@ -33,8 +33,6 @@ describe.skipIf(!hasApa)("renderBibliography (vendored CSL assets)", () => {
   });
 
   it("falls back to the default style for an unknown style key", () => {
-    expect(renderBibliography(items, "does-not-exist").length).toBe(
-      items.length,
-    );
+    expect(renderBibliography(items, "does-not-exist").length).toBe(items.length);
   });
 });

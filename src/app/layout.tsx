@@ -3,11 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { SITE_URL } from "@/lib/siteUrl";
 import { landingStrings } from "@/lib/i18n/landing";
-import {
-  homeLanguageAlternates,
-  ogAlternateLocales,
-  ogLocale,
-} from "@/lib/seo";
+import { homeLanguageAlternates, ogAlternateLocales, ogLocale } from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -78,11 +74,7 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
       <body>{children}</body>

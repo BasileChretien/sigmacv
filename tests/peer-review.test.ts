@@ -50,14 +50,20 @@ describe("isPeerReviewed (via build meta.peerReviewed)", () => {
 
   it("marks a type=preprint work as not peer-reviewed", () => {
     const cv = build([
-      work("Wpre", { type: "preprint", primary_location: { source: { display_name: "bioRxiv", type: "repository" } } }),
+      work("Wpre", {
+        type: "preprint",
+        primary_location: { source: { display_name: "bioRxiv", type: "repository" } },
+      }),
     ]);
     expect(flag(cv, "https://openalex.org/Wpre")).toBe(false);
   });
 
   it("marks a posted-content work (preprint leaking into Publications) as not peer-reviewed", () => {
     const cv = build([
-      work("Wposted", { type: "posted-content", primary_location: { source: { display_name: "Research Square", type: "repository" } } }),
+      work("Wposted", {
+        type: "posted-content",
+        primary_location: { source: { display_name: "Research Square", type: "repository" } },
+      }),
     ]);
     expect(flag(cv, "https://openalex.org/Wposted")).toBe(false);
   });
@@ -94,7 +100,9 @@ describe.skipIf(!hasApa)("peerReviewedOnly render filter (prepareSections)", () 
 
   it("keeps everything when the filter is off", () => {
     const prepared = prepareSections(cvWith(), "text");
-    const titles = prepared.flatMap((s) => s.items).map((i) => i.item.csl?.title ?? i.item.displayText);
+    const titles = prepared
+      .flatMap((s) => s.items)
+      .map((i) => i.item.csl?.title ?? i.item.displayText);
     expect(titles).toContain("Peer-reviewed paper");
     expect(titles).toContain("A preprint");
     expect(titles.some((t) => t?.includes("ANR grant"))).toBe(true);
@@ -117,7 +125,12 @@ describe.skipIf(!hasApa)("countLetters render filter (prepareSections)", () => {
   const article = work("Wj", { title: "Peer-reviewed paper" });
   const letter = work("Wl", { title: "A letter", type: "letter" }); // journal venue, type letter
   const cvWith = () =>
-    buildCanonicalCv({ id: "cl", resolved, works: [article, letter], now: "2026-06-02T00:00:00.000Z" });
+    buildCanonicalCv({
+      id: "cl",
+      resolved,
+      works: [article, letter],
+      now: "2026-06-02T00:00:00.000Z",
+    });
   const titles = (cv: ReturnType<typeof cvWith>) =>
     prepareSections(cv, "text")
       .flatMap((s) => s.items)

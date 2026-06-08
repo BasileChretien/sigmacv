@@ -16,11 +16,7 @@ import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
 import { publicMetaTags } from "@/lib/cv/publicMeta";
 import { renderCvHtml } from "@/lib/render/html";
 import { absoluteUrl } from "@/lib/siteUrl";
-import {
-  enforcePubPageRateLimit,
-  isValidPublicSlug,
-  tooManyRequests,
-} from "./pubRateLimit";
+import { enforcePubPageRateLimit, isValidPublicSlug, tooManyRequests } from "./pubRateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -94,10 +90,7 @@ function machineResponse(
  * noindex; when the owner opts in, we allow indexing, embed ProfilePage/Person
  * JSON-LD, and the machine formats advertise the same robots state.
  */
-export async function GET(
-  req: Request,
-  { params }: { params: Promise<{ slug: string }> },
-) {
+export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug: rawSlug } = await params;
 
   // An explicit suffix wins over Accept; otherwise negotiate (default html).

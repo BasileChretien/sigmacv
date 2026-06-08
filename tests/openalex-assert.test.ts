@@ -18,9 +18,7 @@ async function freshSubmit() {
   return (await import("@/lib/openalex/assert")).submitCurationAssertions;
 }
 
-function assertion(
-  over: Partial<PendingNotMineAssertion> = {},
-): PendingNotMineAssertion {
+function assertion(over: Partial<PendingNotMineAssertion> = {}): PendingNotMineAssertion {
   return {
     itemId: "item-1",
     openAlexWorkId: "https://openalex.org/W1",
@@ -209,9 +207,7 @@ describe("submitCurationAssertions — enabled", () => {
   });
 
   it("uses the shared resilientFetch wrapper by default (global fetch)", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(new Response("{}", { status: 200 }));
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
     const submitCurationAssertions = await freshSubmit();
     // No fetchImpl → exercises the `?? resilientFetch` default, which calls

@@ -1,4 +1,12 @@
-import { attributionFooter, commonCss, cvPageShell, headerHtml, licenseFooter, provenanceFooter, sectionsHtml } from "./shared";
+import {
+  attributionFooter,
+  commonCss,
+  cvPageShell,
+  headerHtml,
+  licenseFooter,
+  provenanceFooter,
+  sectionsHtml,
+} from "./shared";
 import type { CvTemplate, TemplateTheme } from "./types";
 
 /**

@@ -15,10 +15,7 @@ interface AccountControlsProps {
   locale: string;
 }
 
-export default function AccountControls({
-  researchConsent,
-  locale,
-}: AccountControlsProps) {
+export default function AccountControls({ researchConsent, locale }: AccountControlsProps) {
   const u = ui(locale);
   const [consenting, setConsenting] = useState(researchConsent);
   const [busy, setBusy] = useState(false);

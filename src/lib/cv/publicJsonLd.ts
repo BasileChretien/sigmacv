@@ -33,9 +33,7 @@ function rorIri(rorId: string): string | undefined {
  * recent role. Returns null when there's no visible positions section/item.
  */
 function primaryPosition(cv: CanonicalCv): CvItem | null {
-  const section: CvSection | undefined = visibleSections(cv).find(
-    (s) => s.type === "positions",
-  );
+  const section: CvSection | undefined = visibleSections(cv).find((s) => s.type === "positions");
   if (!section) return null;
   const items = visibleItems(section);
   return items[0] ?? null;
@@ -96,6 +94,15 @@ function sameAsUrls(cv: CanonicalCv, orcidUrl: string | undefined): string[] {
   }
   const website = safeHref(cv.owner.contact?.website);
   if (website) out.add(website);
+  // Wikidata entity + any VIAF / ISNI authority-file links it surfaced — the
+  // owner's canonical authority identities (matched by ORCID). Same safe-http(s)
+  // guard as the rest; the Set dedupes the Wikidata URI against wikidataSameAs.
+  const wikidata = safeHref(cv.owner.wikidataUri);
+  if (wikidata) out.add(wikidata);
+  for (const uri of cv.owner.wikidataSameAs ?? []) {
+    const href = safeHref(uri);
+    if (href) out.add(href);
+  }
   return [...out];
 }
 

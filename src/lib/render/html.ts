@@ -1,8 +1,4 @@
-import type {
-  CanonicalCv,
-  CvItem,
-  DisplayChoices,
-} from "@/lib/canonical/schema";
+import type { CanonicalCv, CvItem, DisplayChoices } from "@/lib/canonical/schema";
 import { highlightSelf } from "@/lib/citeproc/highlight";
 import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml } from "./escape";
@@ -19,20 +15,13 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
   const badges: string[] = [];
   if (display.showOpenAccess && item.meta.oaStatus) {
     const s = renderStrings(display.locale);
-    const title = s.badgeOpenAccessTitle.replace(
-      "{status}",
-      escapeHtml(item.meta.oaStatus),
-    );
+    const title = s.badgeOpenAccessTitle.replace("{status}", escapeHtml(item.meta.oaStatus));
     badges.push(
-      `<span class="cv-badge cv-badge-oa" title="${title}">${escapeHtml(
-        s.badgeOpenAccess,
-      )}</span>`,
+      `<span class="cv-badge cv-badge-oa" title="${title}">${escapeHtml(s.badgeOpenAccess)}</span>`,
     );
   }
   if (display.showAuthorRole && item.meta.authorRole) {
-    badges.push(
-      `<span class="cv-badge cv-badge-role">${escapeHtml(item.meta.authorRole)}</span>`,
-    );
+    badges.push(`<span class="cv-badge cv-badge-role">${escapeHtml(item.meta.authorRole)}</span>`);
   }
   if (display.showCitationCounts && typeof item.meta.citedByCount === "number") {
     const s = renderStrings(display.locale);
@@ -68,11 +57,7 @@ export function buildRenderedSections(cv: CanonicalCv): RenderedSection[] {
     section,
     items: items.map(({ item, entry }) => {
       let html = entry;
-      if (
-        cv.display.highlightSelf &&
-        item.authoredBySelf &&
-        item.selfNameVariants.length > 0
-      ) {
+      if (cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0) {
         html = highlightSelf(html, item.selfNameVariants);
       }
       html += itemBadges(item, cv.display);

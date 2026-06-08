@@ -300,8 +300,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     densityComfortable: "宽松",
     densityCompact: "紧凑",
     stopContributing: "停止向研究贡献数据",
-    stopContributingTitle:
-      "你当前正在向研究贡献匿名化的整理数据。点击以停止并关闭此功能。",
+    stopContributingTitle: "你当前正在向研究贡献匿名化的整理数据。点击以停止并关闭此功能。",
     exportData: "导出我的数据",
     deleteAccount: "删除账户",
     deleteConfirm: "永久删除你的账户及所有相关数据？此操作无法撤销。",
@@ -317,8 +316,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "电话",
     publicShowLocation: "所在地",
     allowIndexing: "允许搜索引擎索引此页面",
-    allowIndexingTitle:
-      "默认关闭。开启后，您的公开简历可能出现在搜索结果中（姓名、ORCID、论文）。",
+    allowIndexingTitle: "默认关闭。开启后，您的公开简历可能出现在搜索结果中（姓名、ORCID、论文）。",
     publishTitle:
       "在公开链接处创建此简历的可分享公开网页。它会随你的更新而重新同步。默认关闭；取消勾选可将其下线。",
     exportFormatTitle:
@@ -392,7 +390,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     countLetters: "Incluir cartas (correspondencia)",
     countLettersTitle:
       "Las cartas/correspondencia de investigación publicadas en revistas están revisadas por pares, por lo que se listan y cuentan (gráficos, métricas, tabla de autoría) de forma predeterminada. Desactívalo para una vista solo de artículos que omite las cartas de la lista y las cifras. Las preimpresiones se controlan aparte (arriba).",
-    countLettersNote: "Activado por defecto: las cartas están revisadas por pares. Desactivado = solo artículos.",
+    countLettersNote:
+      "Activado por defecto: las cartas están revisadas por pares. Desactivado = solo artículos.",
     shownSuffix: "mostrados",
     dragSection: "Arrastra para reordenar la sección",
     sectionTitleAria: "Título de la sección",
@@ -492,7 +491,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     metricsPreset: "Préréglage des indicateurs responsables",
     metricsPresetNote:
       "Indicateurs normalisés par discipline uniquement (DORA / Leiden) — évite les approximations à l’échelle de la revue comme l’Impact Factor.",
-    authorshipLabel: "Tableau récapitulatif des rôles d’auteur (articles évalués par les pairs uniquement)",
+    authorshipLabel:
+      "Tableau récapitulatif des rôles d’auteur (articles évalués par les pairs uniquement)",
     authorshipNote:
       "Ajoute un tableau comptabilisant la fréquence à laquelle vous êtes premier / dernier / auteur correspondant, etc. Les pré-publications ne sont pas comptabilisées.",
     authorshipResyncNote:
@@ -510,7 +510,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     countLetters: "Inclure les lettres (correspondance)",
     countLettersTitle:
       "Les lettres / correspondances de recherche publiées dans des revues sont évaluées par les pairs ; elles sont donc listées et comptées (graphiques, métriques, tableau de qualité d’auteur) par défaut. Désactivez pour une vue articles uniquement qui retire les lettres de la liste et des figures. Les prépublications sont gérées à part (ci-dessus).",
-    countLettersNote: "Activé par défaut — les lettres sont évaluées par les pairs. Désactivé = articles uniquement.",
+    countLettersNote:
+      "Activé par défaut — les lettres sont évaluées par les pairs. Désactivé = articles uniquement.",
     shownSuffix: "affiché(s)",
     dragSection: "Faire glisser pour réordonner la section",
     sectionTitleAria: "Titre de la section",
@@ -596,7 +597,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     yourStyles: "Ihre Stile",
     journalStyles: "Zeitschriften- & Gesellschaftsstile",
     styleLoading: "Stil wird geladen…",
-    stylePickHint: "Wählen Sie einen beliebigen Zeitschriftenstil — wird auf jedes Zitat angewendet.",
+    stylePickHint:
+      "Wählen Sie einen beliebigen Zeitschriftenstil — wird auf jedes Zitat angewendet.",
     styleLoadError: "Dieser Stil konnte nicht geladen werden.",
     styleNetworkError: "Netzwerkfehler — bitte erneut versuchen.",
     fontLabel: "Schriftart",
@@ -864,7 +866,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     countLetters: "Incluir cartas (correspondência)",
     countLettersTitle:
       "Cartas/correspondência de pesquisa publicadas em revistas são revisadas por pares, por isso são listadas e contadas (gráficos, métricas, tabela de autoria) por padrão. Desative para uma visão somente de artigos que remove as cartas da lista e das figuras. Preprints são controlados à parte (acima).",
-    countLettersNote: "Ativado por padrão — cartas são revisadas por pares. Desativado = somente artigos.",
+    countLettersNote:
+      "Ativado por padrão — cartas são revisadas por pares. Desativado = somente artigos.",
     shownSuffix: "exibido(s)",
     dragSection: "Arraste para reordenar a seção",
     sectionTitleAria: "Título da seção",
@@ -964,7 +967,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     metricsPreset: "Preimpostazione metriche responsabili",
     metricsPresetNote:
       "Solo indicatori normalizzati per disciplina (DORA / Leiden) — evita proxy a livello di rivista come l’Impact Factor.",
-    authorshipLabel: "Tabella riepilogativa delle paternità (solo lavori sottoposti a revisione paritaria)",
+    authorshipLabel:
+      "Tabella riepilogativa delle paternità (solo lavori sottoposti a revisione paritaria)",
     authorshipNote:
       "Aggiunge una tabella che conta quante volte sei primo / ultimo autore, autore corrispondente, ecc. I preprint non vengono conteggiati.",
     authorshipResyncNote:
@@ -982,7 +986,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     countLetters: "Includi lettere (corrispondenza)",
     countLettersTitle:
       "Le lettere / la corrispondenza di ricerca pubblicate su riviste sono sottoposte a revisione paritaria, quindi sono elencate e conteggiate (grafici, metriche, tabella di paternità) per impostazione predefinita. Disattiva per una vista solo articoli che rimuove le lettere dall’elenco e dalle figure. I preprint sono gestiti a parte (sopra).",
-    countLettersNote: "Attivo per impostazione predefinita — le lettere sono sottoposte a revisione. Disattivato = solo articoli.",
+    countLettersNote:
+      "Attivo per impostazione predefinita — le lettere sono sottoposte a revisione. Disattivato = solo articoli.",
     shownSuffix: "mostrati",
     dragSection: "Trascina per riordinare la sezione",
     sectionTitleAria: "Titolo della sezione",

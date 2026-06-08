@@ -44,13 +44,29 @@ const rich = (t: TemplateKey): CanonicalCv => {
 
 describe("docStyle", () => {
   it("maps each template to a distinct profile", () => {
-    expect(docStyle(withTemplate("classic"))).toMatchObject({ centeredHeader: true, accentName: false, plain: false });
-    expect(docStyle(withTemplate("modern"))).toMatchObject({ accentName: true, centeredHeader: false });
-    expect(docStyle(withTemplate("ats"))).toMatchObject({ plain: true, accentHeadings: false, serif: false });
+    expect(docStyle(withTemplate("classic"))).toMatchObject({
+      centeredHeader: true,
+      accentName: false,
+      plain: false,
+    });
+    expect(docStyle(withTemplate("modern"))).toMatchObject({
+      accentName: true,
+      centeredHeader: false,
+    });
+    expect(docStyle(withTemplate("ats"))).toMatchObject({
+      plain: true,
+      accentHeadings: false,
+      serif: false,
+    });
     expect(docStyle(withTemplate("sidebar"))).toMatchObject({ accentHeadings: true, plain: false });
-    expect(docStyle(withTemplate("rirekisho"))).toMatchObject({ accentHeadings: false, uppercaseHeadings: false });
+    expect(docStyle(withTemplate("rirekisho"))).toMatchObject({
+      accentHeadings: false,
+      uppercaseHeadings: false,
+    });
     // An unknown template falls back to the base profile.
-    expect(docStyle({ ...base, display: { ...base.display, template: "x" as TemplateKey } })).toMatchObject({
+    expect(
+      docStyle({ ...base, display: { ...base.display, template: "x" as TemplateKey } }),
+    ).toMatchObject({
       accentHeadings: true,
       twoColumn: false,
     });
@@ -130,7 +146,12 @@ describe("rich content (tables, photo) in exports", () => {
   });
 
   it("DOCX handles an empty name, an all-zero authorship table, and empty sections", async () => {
-    const noWorks = buildCanonicalCv({ id: "e", resolved, works: [], now: "2026-06-02T00:00:00.000Z" });
+    const noWorks = buildCanonicalCv({
+      id: "e",
+      resolved,
+      works: [],
+      now: "2026-06-02T00:00:00.000Z",
+    });
     const cv: CanonicalCv = {
       ...updateDisplay(noWorks, { showAuthorshipTable: true, authorshipRoles: ["first"] }),
       owner: { ...noWorks.owner, displayName: "" },

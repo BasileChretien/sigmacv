@@ -40,9 +40,7 @@ describe("workToCsl edge fields", () => {
 describe("build merges editorial + grants sections on re-sync", () => {
   it("preserves renamed/hidden editorial & grants sections", () => {
     const roles: EditorialRole[] = [{ journal: "BMJ", role: "Editor", startYear: 2020 }];
-    const fundings = [
-      { putCode: "9", title: "NIH R01", organization: "NIH", startYear: 2020 },
-    ];
+    const fundings = [{ putCode: "9", title: "NIH R01", organization: "NIH", startYear: 2020 }];
 
     const first = buildCanonicalCv({
       id: "m",

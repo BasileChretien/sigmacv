@@ -11,13 +11,9 @@ import Nodemailer from "next-auth/providers/nodemailer";
  * drop into the `providers` array later without touching anything else.
  */
 
-const ORCID_ENV =
-  process.env.ORCID_ENVIRONMENT === "production" ? "production" : "sandbox";
+const ORCID_ENV = process.env.ORCID_ENVIRONMENT === "production" ? "production" : "sandbox";
 
-const ORCID_BASE =
-  ORCID_ENV === "production"
-    ? "https://orcid.org"
-    : "https://sandbox.orcid.org";
+const ORCID_BASE = ORCID_ENV === "production" ? "https://orcid.org" : "https://sandbox.orcid.org";
 
 interface OrcidProfile {
   sub: string;
@@ -57,9 +53,7 @@ const orcidProvider: OIDCConfig<OrcidProfile> = {
   // start the flow when asked for an unsupported check, so verify with state only.
   checks: ["state"],
   profile(profile) {
-    const composed = [profile.given_name, profile.family_name]
-      .filter(Boolean)
-      .join(" ");
+    const composed = [profile.given_name, profile.family_name].filter(Boolean).join(" ");
     return {
       id: profile.sub,
       name: composed || profile.name || profile.sub,
@@ -72,10 +66,8 @@ const orcidProvider: OIDCConfig<OrcidProfile> = {
 // Optional providers, enabled only when their env vars are present, so the app
 // runs with just ORCID out of the box. ORCID stays the primary (data-bearing)
 // login; Google/email are alternate sign-ins.
-const googleEnabled =
-  !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
-const emailEnabled =
-  !!process.env.EMAIL_SERVER && !!process.env.EMAIL_FROM;
+const googleEnabled = !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
+const emailEnabled = !!process.env.EMAIL_SERVER && !!process.env.EMAIL_FROM;
 
 /** Which optional providers are active (used by the sign-in UI). */
 export const enabledProviders = {

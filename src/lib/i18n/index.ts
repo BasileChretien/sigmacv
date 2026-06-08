@@ -82,9 +82,7 @@ export function slugForLocale(locale: string): string {
 
 /** Locale for a URL slug, or undefined if the slug is unknown. */
 export function localeForSlug(slug: string): Locale | undefined {
-  return (Object.entries(LOCALE_SLUGS) as [Locale, string][]).find(
-    ([, s]) => s === slug,
-  )?.[0];
+  return (Object.entries(LOCALE_SLUGS) as [Locale, string][]).find(([, s]) => s === slug)?.[0];
 }
 
 // ─── CV content: default section titles ──────────────────────────────────────
@@ -102,6 +100,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "Peer Review",
     editorial: "Editorial Roles",
     grants: "Grants & Funding",
+    "clinical-trials": "Clinical Trials",
+    patents: "Patents",
     "narrative-knowledge": "Contributions to the generation of knowledge",
     "narrative-individuals": "Contributions to the development of individuals",
     "narrative-community": "Contributions to the wider research community",
@@ -127,6 +127,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "同行评审",
     editorial: "编辑职务",
     grants: "基金与资助",
+    "clinical-trials": "临床试验",
+    patents: "专利",
     "narrative-knowledge": "对知识创造的贡献",
     "narrative-individuals": "对个人发展的贡献",
     "narrative-community": "对更广泛研究共同体的贡献",
@@ -152,6 +154,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "Revisión por pares",
     editorial: "Funciones editoriales",
     grants: "Becas y financiación",
+    "clinical-trials": "Ensayos clínicos",
+    patents: "Patentes",
     "narrative-knowledge": "Contribuciones a la generación de conocimiento",
     "narrative-individuals": "Contribuciones al desarrollo de las personas",
     "narrative-community": "Contribuciones a la comunidad investigadora",
@@ -177,6 +181,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "Évaluation par les pairs",
     editorial: "Fonctions éditoriales",
     grants: "Financements et bourses",
+    "clinical-trials": "Essais cliniques",
+    patents: "Brevets",
     "narrative-knowledge": "Contributions à la production de connaissances",
     "narrative-individuals": "Contributions au développement des personnes",
     "narrative-community": "Contributions à la communauté scientifique",
@@ -202,6 +208,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "Begutachtung (Peer-Review)",
     editorial: "Herausgebertätigkeiten",
     grants: "Drittmittel & Förderung",
+    "clinical-trials": "Klinische Studien",
+    patents: "Patente",
     "narrative-knowledge": "Beiträge zur Schaffung von Wissen",
     "narrative-individuals": "Beiträge zur Entwicklung von Menschen",
     "narrative-community": "Beiträge zur weiteren Forschungsgemeinschaft",
@@ -227,6 +235,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "査読",
     editorial: "編集委員",
     grants: "助成金・研究費",
+    "clinical-trials": "臨床試験",
+    patents: "特許",
     "narrative-knowledge": "知の創出への貢献",
     "narrative-individuals": "人材育成への貢献",
     "narrative-community": "研究コミュニティ全体への貢献",
@@ -252,6 +262,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "Revisão por pares",
     editorial: "Funções editoriais",
     grants: "Bolsas e financiamento",
+    "clinical-trials": "Ensaios clínicos",
+    patents: "Patentes",
     "narrative-knowledge": "Contribuições para a geração de conhecimento",
     "narrative-individuals": "Contribuições para o desenvolvimento das pessoas",
     "narrative-community": "Contribuições para a comunidade de pesquisa",
@@ -277,6 +289,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "Revisione paritaria",
     editorial: "Incarichi editoriali",
     grants: "Finanziamenti e borse",
+    "clinical-trials": "Sperimentazioni cliniche",
+    patents: "Brevetti",
     "narrative-knowledge": "Contributi alla produzione di conoscenza",
     "narrative-individuals": "Contributi allo sviluppo delle persone",
     "narrative-community": "Contributi alla comunità di ricerca",
@@ -302,6 +316,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "동료 심사",
     editorial: "편집 활동",
     grants: "연구비 및 지원금",
+    "clinical-trials": "임상시험",
+    patents: "특허",
     "narrative-knowledge": "지식 창출에 대한 기여",
     "narrative-individuals": "개인의 성장에 대한 기여",
     "narrative-community": "넓은 연구 공동체에 대한 기여",
@@ -327,6 +343,8 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     "peer-review": "Рецензирование",
     editorial: "Редакционная деятельность",
     grants: "Гранты и финансирование",
+    "clinical-trials": "Клинические испытания",
+    patents: "Патенты",
     "narrative-knowledge": "Вклад в создание знаний",
     "narrative-individuals": "Вклад в развитие людей",
     "narrative-community": "Вклад в более широкое научное сообщество",
@@ -352,10 +370,7 @@ export function sectionTitle(locale: string, type: CvSectionType): string {
  * supported locale? Used to safely re-localize default titles when the locale
  * changes, while never clobbering a heading the user deliberately renamed.
  */
-export function isDefaultSectionTitle(
-  type: CvSectionType,
-  title: string,
-): boolean {
+export function isDefaultSectionTitle(type: CvSectionType, title: string): boolean {
   return SUPPORTED_LOCALES.some((loc) => SECTION_TITLES[loc][type] === title);
 }
 
@@ -491,7 +506,8 @@ const EN = {
   photo: "Photo",
   choosePhoto: "Choose…",
   removePhoto: "Remove",
-  photoHint: "A small headshot, shown on photo templates. Stored in your CV and deleted with your account.",
+  photoHint:
+    "A small headshot, shown on photo templates. Stored in your CV and deleted with your account.",
   email: "Email",
   phone: "Phone",
   website: "Website",
@@ -519,7 +535,8 @@ const EN = {
   sortPublications: "Sort publications",
   sortCustom: "Custom (as arranged)",
   sortCitations: "Most cited first",
-  sortCitationsNote: "Sorting by citations foregrounds your most-cited work — consider recency or relevance too.",
+  sortCitationsNote:
+    "Sorting by citations foregrounds your most-cited work — consider recency or relevance too.",
   sortYearDesc: "Newest first",
   sortYearAsc: "Oldest first",
   pubLimit: "Selected publications",
@@ -570,8 +587,7 @@ const ZH: Record<ChromeKey, string> = {
   youBadge: "你",
   notMineBadge: "不是我的",
   reviewBadge: "⚠ 待核查",
-  reviewHint:
-    "此记录中匹配的作者登记了不同的 ORCID——请确认确实是您本人。",
+  reviewHint: "此记录中匹配的作者登记了不同的 ORCID——请确认确实是您本人。",
   hideHint: "保留存档，但不显示在此简历上",
   notMineHint: "此成果被错误地归到我名下（用于更正记录）",
   reasonPrompt: "原因？（可选）",
@@ -684,7 +700,8 @@ const ES: Record<ChromeKey, string> = {
   photo: "Foto",
   choosePhoto: "Elegir…",
   removePhoto: "Quitar",
-  photoHint: "Una pequeña foto de perfil, mostrada en las plantillas con foto. Se guarda en tu CV y se elimina con tu cuenta.",
+  photoHint:
+    "Una pequeña foto de perfil, mostrada en las plantillas con foto. Se guarda en tu CV y se elimina con tu cuenta.",
   email: "Correo electrónico",
   phone: "Teléfono",
   website: "Sitio web",
@@ -711,7 +728,8 @@ const ES: Record<ChromeKey, string> = {
   sortPublications: "Ordenar publicaciones",
   sortCustom: "Personalizado (según el orden actual)",
   sortCitations: "Más citadas primero",
-  sortCitationsNote: "Ordenar por citas destaca tu trabajo más citado; ten en cuenta también la actualidad y la relevancia.",
+  sortCitationsNote:
+    "Ordenar por citas destaca tu trabajo más citado; ten en cuenta también la actualidad y la relevancia.",
   sortYearDesc: "Más recientes primero",
   sortYearAsc: "Más antiguas primero",
   pubLimit: "Publicaciones seleccionadas",
@@ -779,7 +797,8 @@ const FR: Record<ChromeKey, string> = {
   photo: "Photo",
   choosePhoto: "Choisir…",
   removePhoto: "Retirer",
-  photoHint: "Une petite photo d’identité, affichée sur les modèles avec photo. Stockée dans votre CV et supprimée avec votre compte.",
+  photoHint:
+    "Une petite photo d’identité, affichée sur les modèles avec photo. Stockée dans votre CV et supprimée avec votre compte.",
   email: "E-mail",
   phone: "Téléphone",
   website: "Site web",
@@ -800,13 +819,15 @@ const FR: Record<ChromeKey, string> = {
   expandSection: "Développer la section",
   collapseSection: "Réduire la section",
   removeSection: "Retirer la section",
-  removeSectionTitle: "Retirer du CV. Les types réajoutables reviennent dans « Ajouter une section ».",
+  removeSectionTitle:
+    "Retirer du CV. Les types réajoutables reviennent dans « Ajouter une section ».",
   editorHints:
     "Astuce : glissez ⠿ pour réordonner · cliquez le chevron d’une section pour la réduire · « Masquer/Afficher » et « Pas de moi » contrôlent l’affichage · survolez une entrée pour voir sa source.",
   sortPublications: "Trier les publications",
   sortCustom: "Personnalisé (tel quel)",
   sortCitations: "Les plus citées d’abord",
-  sortCitationsNote: "Trier par citations met en avant vos travaux les plus cités ; pensez aussi à l’actualité et à la pertinence.",
+  sortCitationsNote:
+    "Trier par citations met en avant vos travaux les plus cités ; pensez aussi à l’actualité et à la pertinence.",
   sortYearDesc: "Plus récentes d’abord",
   sortYearAsc: "Plus anciennes d’abord",
   pubLimit: "Publications sélectionnées",
@@ -874,7 +895,8 @@ const DE: Record<ChromeKey, string> = {
   photo: "Foto",
   choosePhoto: "Auswählen…",
   removePhoto: "Entfernen",
-  photoHint: "Ein kleines Porträtfoto, das in Vorlagen mit Foto angezeigt wird. In Ihrem Lebenslauf gespeichert und mit Ihrem Konto gelöscht.",
+  photoHint:
+    "Ein kleines Porträtfoto, das in Vorlagen mit Foto angezeigt wird. In Ihrem Lebenslauf gespeichert und mit Ihrem Konto gelöscht.",
   email: "E-Mail",
   phone: "Telefon",
   website: "Webseite",
@@ -895,13 +917,15 @@ const DE: Record<ChromeKey, string> = {
   expandSection: "Abschnitt ausklappen",
   collapseSection: "Abschnitt einklappen",
   removeSection: "Abschnitt entfernen",
-  removeSectionTitle: "Aus dem Lebenslauf entfernen. Wieder hinzufügbare Typen erscheinen erneut unter „Abschnitt hinzufügen“.",
+  removeSectionTitle:
+    "Aus dem Lebenslauf entfernen. Wieder hinzufügbare Typen erscheinen erneut unter „Abschnitt hinzufügen“.",
   editorHints:
     "Tipp: ⠿ ziehen zum Umsortieren · auf das Chevron eines Abschnitts klicken, um ihn einzuklappen · „Ausblenden/Anzeigen“ und „Nicht von mir“ steuern die Anzeige · mit dem Mauszeiger über einen Eintrag fahren, um die Quelle zu sehen.",
   sortPublications: "Publikationen sortieren",
   sortCustom: "Benutzerdefiniert (wie angeordnet)",
   sortCitations: "Meistzitierte zuerst",
-  sortCitationsNote: "Nach Zitationen zu sortieren hebt Ihre meistzitierten Arbeiten hervor – beachten Sie auch Aktualität und Relevanz.",
+  sortCitationsNote:
+    "Nach Zitationen zu sortieren hebt Ihre meistzitierten Arbeiten hervor – beachten Sie auch Aktualität und Relevanz.",
   sortYearDesc: "Neueste zuerst",
   sortYearAsc: "Älteste zuerst",
   pubLimit: "Ausgewählte Publikationen",
@@ -969,7 +993,8 @@ const JA: Record<ChromeKey, string> = {
   photo: "写真",
   choosePhoto: "選択…",
   removePhoto: "削除",
-  photoHint: "小さな顔写真。写真付きテンプレートで表示され、CV内に保存され、アカウント削除時に削除されます。",
+  photoHint:
+    "小さな顔写真。写真付きテンプレートで表示され、CV内に保存され、アカウント削除時に削除されます。",
   email: "メール",
   phone: "電話",
   website: "ウェブサイト",
@@ -996,7 +1021,8 @@ const JA: Record<ChromeKey, string> = {
   sortPublications: "論文の並び順",
   sortCustom: "カスタム（現在の並び）",
   sortCitations: "被引用数の多い順",
-  sortCitationsNote: "被引用数で並べ替えると最も引用された成果が前面に出ます。新しさや関連性も考慮してください。",
+  sortCitationsNote:
+    "被引用数で並べ替えると最も引用された成果が前面に出ます。新しさや関連性も考慮してください。",
   sortYearDesc: "新しい順",
   sortYearAsc: "古い順",
   pubLimit: "主要論文",
@@ -1064,7 +1090,8 @@ const PT: Record<ChromeKey, string> = {
   photo: "Foto",
   choosePhoto: "Escolher…",
   removePhoto: "Remover",
-  photoHint: "Uma pequena foto de perfil, exibida nos modelos com foto. Armazenada no seu currículo e excluída junto com sua conta.",
+  photoHint:
+    "Uma pequena foto de perfil, exibida nos modelos com foto. Armazenada no seu currículo e excluída junto com sua conta.",
   email: "E-mail",
   phone: "Telefone",
   website: "Site",
@@ -1091,7 +1118,8 @@ const PT: Record<ChromeKey, string> = {
   sortPublications: "Ordenar publicações",
   sortCustom: "Personalizado (conforme organizado)",
   sortCitations: "Mais citadas primeiro",
-  sortCitationsNote: "Ordenar por citações destaca seu trabalho mais citado — considere também atualidade e relevância.",
+  sortCitationsNote:
+    "Ordenar por citações destaca seu trabalho mais citado — considere também atualidade e relevância.",
   sortYearDesc: "Mais recentes primeiro",
   sortYearAsc: "Mais antigas primeiro",
   pubLimit: "Publicações selecionadas",
@@ -1159,7 +1187,8 @@ const IT: Record<ChromeKey, string> = {
   photo: "Foto",
   choosePhoto: "Scegli…",
   removePhoto: "Rimuovi",
-  photoHint: "Una piccola foto, mostrata nei modelli con foto. Memorizzata nel tuo CV ed eliminata con il tuo account.",
+  photoHint:
+    "Una piccola foto, mostrata nei modelli con foto. Memorizzata nel tuo CV ed eliminata con il tuo account.",
   email: "E-mail",
   phone: "Telefono",
   website: "Sito web",
@@ -1186,7 +1215,8 @@ const IT: Record<ChromeKey, string> = {
   sortPublications: "Ordina le pubblicazioni",
   sortCustom: "Personalizzato (come disposto)",
   sortCitations: "Più citate prima",
-  sortCitationsNote: "Ordinare per citazioni mette in primo piano i lavori più citati — valuta anche attualità e pertinenza.",
+  sortCitationsNote:
+    "Ordinare per citazioni mette in primo piano i lavori più citati — valuta anche attualità e pertinenza.",
   sortYearDesc: "Più recenti prima",
   sortYearAsc: "Più vecchie prima",
   pubLimit: "Pubblicazioni selezionate",
@@ -1254,7 +1284,8 @@ const KO: Record<ChromeKey, string> = {
   photo: "사진",
   choosePhoto: "선택…",
   removePhoto: "제거",
-  photoHint: "사진이 있는 템플릿에 표시되는 작은 증명사진입니다. CV에 저장되며 계정 삭제 시 함께 삭제됩니다.",
+  photoHint:
+    "사진이 있는 템플릿에 표시되는 작은 증명사진입니다. CV에 저장되며 계정 삭제 시 함께 삭제됩니다.",
   email: "이메일",
   phone: "전화",
   website: "웹사이트",
@@ -1281,7 +1312,8 @@ const KO: Record<ChromeKey, string> = {
   sortPublications: "논문 정렬",
   sortCustom: "사용자 지정(현재 배열대로)",
   sortCitations: "피인용 많은 순",
-  sortCitationsNote: "피인용 수로 정렬하면 가장 많이 인용된 연구가 부각됩니다 — 최신성과 관련성도 고려하세요.",
+  sortCitationsNote:
+    "피인용 수로 정렬하면 가장 많이 인용된 연구가 부각됩니다 — 최신성과 관련성도 고려하세요.",
   sortYearDesc: "최신순",
   sortYearAsc: "오래된순",
   pubLimit: "주요 논문",
@@ -1349,7 +1381,8 @@ const RU: Record<ChromeKey, string> = {
   photo: "Фото",
   choosePhoto: "Выбрать…",
   removePhoto: "Удалить",
-  photoHint: "Небольшое фото, отображается в шаблонах с фотографией. Хранится в вашем резюме и удаляется вместе с аккаунтом.",
+  photoHint:
+    "Небольшое фото, отображается в шаблонах с фотографией. Хранится в вашем резюме и удаляется вместе с аккаунтом.",
   email: "Эл. почта",
   phone: "Телефон",
   website: "Веб-сайт",
@@ -1376,7 +1409,8 @@ const RU: Record<ChromeKey, string> = {
   sortPublications: "Сортировать публикации",
   sortCustom: "Пользовательский (как расставлено)",
   sortCitations: "Сначала самые цитируемые",
-  sortCitationsNote: "Сортировка по цитированиям выдвигает самые цитируемые работы — учитывайте также свежесть и релевантность.",
+  sortCitationsNote:
+    "Сортировка по цитированиям выдвигает самые цитируемые работы — учитывайте также свежесть и релевантность.",
   sortYearDesc: "Сначала новые",
   sortYearAsc: "Сначала старые",
   pubLimit: "Избранные публикации",

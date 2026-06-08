@@ -34,7 +34,12 @@ describe("resolveInstitution", () => {
         res({
           items: [
             item("Wrong Univ", { score: 0.95, chosen: false }),
-            item("Nagoya University", { score: 0.9, chosen: true, cc: "JP", id: "https://ror.org/04chrp450" }),
+            item("Nagoya University", {
+              score: 0.9,
+              chosen: true,
+              cc: "JP",
+              id: "https://ror.org/04chrp450",
+            }),
           ],
         }),
       ),
@@ -97,7 +102,10 @@ describe("resolveInstitution", () => {
   });
 
   it("returns null on a non-ok response", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => res({}, { status: 500 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res({}, { status: 500 })),
+    );
     expect(await resolveInstitution("server error org")).toBeNull();
   });
 

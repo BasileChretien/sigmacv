@@ -1,8 +1,5 @@
 import type { CanonicalCv, CvItem, Provenance } from "@/lib/canonical/schema";
-import {
-  fetchCrossrefGapFields,
-  type CrossrefGapFields,
-} from "@/lib/crossref/client";
+import { fetchCrossrefGapFields, type CrossrefGapFields } from "@/lib/crossref/client";
 import { resolveInstitution } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
 import type { OrcidPosition } from "@/lib/orcid/client";
@@ -81,10 +78,7 @@ function needsCrossref(item: CvItem): boolean {
  * title. Bounded to {@link CROSSREF_MAX_ENRICH} lookups per call. Returns a new
  * CV (and the original, untouched, if nothing needed or could be enriched).
  */
-export async function enrichCvWithCrossref(
-  cv: CanonicalCv,
-  mailto: string,
-): Promise<CanonicalCv> {
+export async function enrichCvWithCrossref(cv: CanonicalCv, mailto: string): Promise<CanonicalCv> {
   // Collect (sectionIndex, itemIndex, doi) for every gap-having item, capped.
   const targets: Array<{ s: number; i: number; doi: string }> = [];
   cv.sections.forEach((section, s) => {
@@ -165,9 +159,7 @@ export async function canonicalizeInstitutions(
   if (names.size === 0) return { result: input, used: false };
 
   const unique = [...names];
-  const resolved = await mapBounded(unique, CONCURRENCY, (name) =>
-    resolveInstitution(name),
-  );
+  const resolved = await mapBounded(unique, CONCURRENCY, (name) => resolveInstitution(name));
 
   // name → { canonical name?, rorId } for every CONFIDENT ROR match. The name is
   // only recorded when ROR returned a DIFFERENT string (so identical names are

@@ -98,7 +98,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimLabel: "Add a publication by DOI",
     claimPlaceholder: "10.1016/… or a DOI link",
     claimFind: "Find",
-    claimNote: "Pulled from OpenAlex — citations, author order and FWCI come from the source, so it counts in your charts and authorship table (but not the OpenAlex author-level totals like h-index).",
+    claimNote:
+      "Pulled from OpenAlex — citations, author order and FWCI come from the source, so it counts in your charts and authorship table (but not the OpenAlex author-level totals like h-index).",
     claimNotFound: "Not found in OpenAlex. Only works it indexes can be added this way.",
     claimAlready: "Already in your CV.",
     claimWhichAuthor: "Which author are you?",
@@ -150,7 +151,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimLabel: "通过 DOI 添加论文",
     claimPlaceholder: "10.1016/… 或 DOI 链接",
     claimFind: "查找",
-    claimNote: "数据取自 OpenAlex——被引、作者顺序与 FWCI 均来自来源，因此会计入你的图表与作者贡献表（但不计入 h 指数等 OpenAlex 作者级总计）。",
+    claimNote:
+      "数据取自 OpenAlex——被引、作者顺序与 FWCI 均来自来源，因此会计入你的图表与作者贡献表（但不计入 h 指数等 OpenAlex 作者级总计）。",
     claimNotFound: "在 OpenAlex 中未找到。只能添加其已收录的论文。",
     claimAlready: "已在你的简历中。",
     claimWhichAuthor: "你是哪位作者？",
@@ -169,8 +171,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpInstitution: "公共机构",
     modelGrpIndustry: "产业与临床",
     modelOptional: "— 可选：从某个版式开始 —",
-    modelHelp:
-      "可选。选择一个资助方或机构版式以自动排列你的栏目——或直接自由编排你的简历。",
+    modelHelp: "可选。选择一个资助方或机构版式以自动排列你的栏目——或直接自由编排你的简历。",
   },
   "es-ES": {
     grpTemplate: "Plantilla y diseño",
@@ -180,8 +181,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     structuredEntry: "Añadir una entrada estructurada",
     feTitle: "Título",
     feAuthors: "Autores",
-    feAuthorsHint:
-      "Uno por línea o separados por «;» — preferiblemente «Apellido, Nombre».",
+    feAuthorsHint: "Uno por línea o separados por «;» — preferiblemente «Apellido, Nombre».",
     feVenue: "Revista / congreso",
     feYear: "Año",
     feDoi: "DOI o URL",
@@ -203,13 +203,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimLabel: "Añadir una publicación por DOI",
     claimPlaceholder: "10.1016/… o un enlace DOI",
     claimFind: "Buscar",
-    claimNote: "Se obtiene de OpenAlex: las citas, el orden de autoría y el FWCI provienen de la fuente, por lo que cuenta en tus gráficos y tabla de autoría (pero no en los totales a nivel de autor de OpenAlex, como el índice h).",
+    claimNote:
+      "Se obtiene de OpenAlex: las citas, el orden de autoría y el FWCI provienen de la fuente, por lo que cuenta en tus gráficos y tabla de autoría (pero no en los totales a nivel de autor de OpenAlex, como el índice h).",
     claimNotFound: "No se encontró en OpenAlex. Solo se pueden añadir así los trabajos que indexa.",
     claimAlready: "Ya está en tu CV.",
     claimWhichAuthor: "¿Cuál autor eres?",
     claimError: "La búsqueda falló: inténtalo de nuevo.",
     proseBody: "Texto",
-    proseBodyHint: "Línea en blanco = párrafo nuevo; las líneas que empiezan por «- » forman una lista.",
+    proseBodyHint:
+      "Línea en blanco = párrafo nuevo; las líneas que empiezan por «- » forman una lista.",
     proseCharsLeft: "Quedan {n} caracteres",
     grantLegend: "CV de subvención / financiador",
     grantIntro:
@@ -233,8 +235,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     structuredEntry: "Ajouter une entrée structurée",
     feTitle: "Titre",
     feAuthors: "Auteurs",
-    feAuthorsHint:
-      "Un par ligne ou séparés par « ; » — idéalement « Nom, Prénom ».",
+    feAuthorsHint: "Un par ligne ou séparés par « ; » — idéalement « Nom, Prénom ».",
     feVenue: "Revue / conférence",
     feYear: "Année",
     feDoi: "DOI ou URL",
@@ -256,13 +257,16 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimLabel: "Ajouter une publication par DOI",
     claimPlaceholder: "10.1016/… ou un lien DOI",
     claimFind: "Rechercher",
-    claimNote: "Récupéré depuis OpenAlex — citations, ordre des auteurs et FWCI proviennent de la source, donc la publication compte dans vos graphiques et votre tableau de paternité (mais pas dans les totaux au niveau auteur d’OpenAlex comme l’indice h).",
-    claimNotFound: "Introuvable dans OpenAlex. Seuls les travaux qu’il indexe peuvent être ajoutés ainsi.",
+    claimNote:
+      "Récupéré depuis OpenAlex — citations, ordre des auteurs et FWCI proviennent de la source, donc la publication compte dans vos graphiques et votre tableau de paternité (mais pas dans les totaux au niveau auteur d’OpenAlex comme l’indice h).",
+    claimNotFound:
+      "Introuvable dans OpenAlex. Seuls les travaux qu’il indexe peuvent être ajoutés ainsi.",
     claimAlready: "Déjà dans votre CV.",
     claimWhichAuthor: "Quel auteur êtes-vous ?",
     claimError: "Échec de la recherche — veuillez réessayer.",
     proseBody: "Texte",
-    proseBodyHint: "Ligne vide = nouveau paragraphe ; les lignes commençant par « - » forment une liste.",
+    proseBodyHint:
+      "Ligne vide = nouveau paragraphe ; les lignes commençant par « - » forment une liste.",
     proseCharsLeft: "{n} caractères restants",
     grantLegend: "CV de financement",
     grantIntro:
@@ -286,8 +290,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     structuredEntry: "Strukturierten Eintrag hinzufügen",
     feTitle: "Titel",
     feAuthors: "Autoren",
-    feAuthorsHint:
-      "Einer pro Zeile oder durch „;“ getrennt — idealerweise „Nachname, Vorname“.",
+    feAuthorsHint: "Einer pro Zeile oder durch „;“ getrennt — idealerweise „Nachname, Vorname“.",
     feVenue: "Zeitschrift / Konferenz",
     feYear: "Jahr",
     feDoi: "DOI oder URL",
@@ -309,8 +312,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimLabel: "Publikation per DOI hinzufügen",
     claimPlaceholder: "10.1016/… oder ein DOI-Link",
     claimFind: "Suchen",
-    claimNote: "Aus OpenAlex bezogen — Zitationen, Autorenreihenfolge und FWCI stammen aus der Quelle, daher zählt sie in Ihren Diagrammen und der Autorschaftstabelle (aber nicht in den Autoren-Gesamtwerten von OpenAlex wie dem h-Index).",
-    claimNotFound: "Nicht in OpenAlex gefunden. Nur dort indexierte Arbeiten können so hinzugefügt werden.",
+    claimNote:
+      "Aus OpenAlex bezogen — Zitationen, Autorenreihenfolge und FWCI stammen aus der Quelle, daher zählt sie in Ihren Diagrammen und der Autorschaftstabelle (aber nicht in den Autoren-Gesamtwerten von OpenAlex wie dem h-Index).",
+    claimNotFound:
+      "Nicht in OpenAlex gefunden. Nur dort indexierte Arbeiten können so hinzugefügt werden.",
     claimAlready: "Bereits in Ihrem Lebenslauf.",
     claimWhichAuthor: "Welcher Autor sind Sie?",
     claimError: "Suche fehlgeschlagen – bitte erneut versuchen.",
@@ -361,7 +366,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimLabel: "DOI で論文を追加",
     claimPlaceholder: "10.1016/… または DOI リンク",
     claimFind: "検索",
-    claimNote: "OpenAlex から取得します。被引用数・著者順・FWCI は出典由来なので、グラフや著者一覧表には反映されますが、h 指数などの OpenAlex 著者レベルの合計には反映されません。",
+    claimNote:
+      "OpenAlex から取得します。被引用数・著者順・FWCI は出典由来なので、グラフや著者一覧表には反映されますが、h 指数などの OpenAlex 著者レベルの合計には反映されません。",
     claimNotFound: "OpenAlex に見つかりません。OpenAlex が収録している論文のみ追加できます。",
     claimAlready: "すでに CV にあります。",
     claimWhichAuthor: "あなたはどの著者ですか？",
@@ -391,8 +397,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     structuredEntry: "Adicionar uma entrada estruturada",
     feTitle: "Título",
     feAuthors: "Autores",
-    feAuthorsHint:
-      "Um por linha ou separados por “;” — de preferência “Sobrenome, Nome”.",
+    feAuthorsHint: "Um por linha ou separados por “;” — de preferência “Sobrenome, Nome”.",
     feVenue: "Revista / congresso",
     feYear: "Ano",
     feDoi: "DOI ou URL",
@@ -414,8 +419,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimLabel: "Adicionar uma publicação por DOI",
     claimPlaceholder: "10.1016/… ou um link DOI",
     claimFind: "Buscar",
-    claimNote: "Obtido do OpenAlex — citações, ordem de autoria e FWCI vêm da fonte, então conta nos seus gráficos e na tabela de autoria (mas não nos totais por autor do OpenAlex, como o índice h).",
-    claimNotFound: "Não encontrado no OpenAlex. Só é possível adicionar assim os trabalhos que ele indexa.",
+    claimNote:
+      "Obtido do OpenAlex — citações, ordem de autoria e FWCI vêm da fonte, então conta nos seus gráficos e na tabela de autoria (mas não nos totais por autor do OpenAlex, como o índice h).",
+    claimNotFound:
+      "Não encontrado no OpenAlex. Só é possível adicionar assim os trabalhos que ele indexa.",
     claimAlready: "Já está no seu CV.",
     claimWhichAuthor: "Qual autor é você?",
     claimError: "Falha na busca — tente novamente.",
@@ -444,8 +451,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     structuredEntry: "Aggiungi una voce strutturata",
     feTitle: "Titolo",
     feAuthors: "Autori",
-    feAuthorsHint:
-      "Uno per riga o separati da «;» — preferibilmente «Cognome, Nome».",
+    feAuthorsHint: "Uno per riga o separati da «;» — preferibilmente «Cognome, Nome».",
     feVenue: "Rivista / convegno",
     feYear: "Anno",
     feDoi: "DOI o URL",
@@ -467,13 +473,16 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimLabel: "Aggiungi una pubblicazione tramite DOI",
     claimPlaceholder: "10.1016/… o un link DOI",
     claimFind: "Cerca",
-    claimNote: "Recuperato da OpenAlex — citazioni, ordine degli autori e FWCI provengono dalla fonte, quindi conta nei tuoi grafici e nella tabella di paternità (ma non nei totali a livello di autore di OpenAlex come l’indice h).",
-    claimNotFound: "Non trovato in OpenAlex. Solo i lavori che indicizza possono essere aggiunti così.",
+    claimNote:
+      "Recuperato da OpenAlex — citazioni, ordine degli autori e FWCI provengono dalla fonte, quindi conta nei tuoi grafici e nella tabella di paternità (ma non nei totali a livello di autore di OpenAlex come l’indice h).",
+    claimNotFound:
+      "Non trovato in OpenAlex. Solo i lavori che indicizza possono essere aggiunti così.",
     claimAlready: "Già presente nel tuo CV.",
     claimWhichAuthor: "Quale autore sei?",
     claimError: "Ricerca non riuscita — riprova.",
     proseBody: "Testo",
-    proseBodyHint: "Riga vuota = nuovo paragrafo; le righe che iniziano con «- » diventano un elenco.",
+    proseBodyHint:
+      "Riga vuota = nuovo paragrafo; le righe che iniziano con «- » diventano un elenco.",
     proseCharsLeft: "{n} caratteri rimasti",
     grantLegend: "CV per finanziamenti",
     grantIntro:
@@ -519,8 +528,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimLabel: "DOI로 논문 추가",
     claimPlaceholder: "10.1016/… 또는 DOI 링크",
     claimFind: "찾기",
-    claimNote: "OpenAlex에서 가져옵니다 — 피인용 수, 저자 순서, FWCI가 출처에서 오므로 그래프와 저자 표에는 반영되지만 h-지수 등 OpenAlex 저자 수준 합계에는 반영되지 않습니다.",
-    claimNotFound: "OpenAlex에서 찾을 수 없습니다. OpenAlex가 색인한 논문만 이렇게 추가할 수 있습니다.",
+    claimNote:
+      "OpenAlex에서 가져옵니다 — 피인용 수, 저자 순서, FWCI가 출처에서 오므로 그래프와 저자 표에는 반영되지만 h-지수 등 OpenAlex 저자 수준 합계에는 반영되지 않습니다.",
+    claimNotFound:
+      "OpenAlex에서 찾을 수 없습니다. OpenAlex가 색인한 논문만 이렇게 추가할 수 있습니다.",
     claimAlready: "이미 CV에 있습니다.",
     claimWhichAuthor: "본인은 어느 저자인가요?",
     claimError: "조회 실패 — 다시 시도해 주세요.",
@@ -549,8 +560,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     structuredEntry: "Добавить структурированную запись",
     feTitle: "Название",
     feAuthors: "Авторы",
-    feAuthorsHint:
-      "По одному в строке или через «;» — желательно «Фамилия, Имя».",
+    feAuthorsHint: "По одному в строке или через «;» — желательно «Фамилия, Имя».",
     feVenue: "Журнал / конференция",
     feYear: "Год",
     feDoi: "DOI или URL",
@@ -572,7 +582,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     claimLabel: "Добавить публикацию по DOI",
     claimPlaceholder: "10.1016/… или ссылка DOI",
     claimFind: "Найти",
-    claimNote: "Берётся из OpenAlex — цитирования, порядок авторов и FWCI из источника, поэтому работа учитывается в ваших графиках и таблице авторства (но не в авторских итогах OpenAlex, таких как индекс Хирша).",
+    claimNote:
+      "Берётся из OpenAlex — цитирования, порядок авторов и FWCI из источника, поэтому работа учитывается в ваших графиках и таблице авторства (но не в авторских итогах OpenAlex, таких как индекс Хирша).",
     claimNotFound: "Не найдено в OpenAlex. Так можно добавить только индексируемые им работы.",
     claimAlready: "Уже есть в вашем CV.",
     claimWhichAuthor: "Какой из авторов — вы?",

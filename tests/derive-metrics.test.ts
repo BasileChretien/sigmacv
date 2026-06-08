@@ -27,9 +27,7 @@ describe("computeDerivedMetrics", () => {
 
   // OpenAlex returns `cited_by_percentile_year` as a {min, max} range — there is
   // no `.value`. Reading only `.value` is why the metric was always empty.
-  function pctWork(
-    p: { min?: number; max?: number; value?: number } | null,
-  ): OpenAlexWork {
+  function pctWork(p: { min?: number; max?: number; value?: number } | null): OpenAlexWork {
     return {
       id: `https://openalex.org/Wp${p?.min ?? p?.max ?? p?.value ?? "x"}`,
       fwci: null,
@@ -39,10 +37,7 @@ describe("computeDerivedMetrics", () => {
 
   it("reads the {min, max} percentile RANGE (the real OpenAlex shape)", () => {
     // midpoint 91.5 ≥ 90 (top-10%); midpoint 40.5 is not → 1 of 2.
-    const m = computeDerivedMetrics([
-      pctWork({ min: 91, max: 92 }),
-      pctWork({ min: 40, max: 41 }),
-    ]);
+    const m = computeDerivedMetrics([pctWork({ min: 91, max: 92 }), pctWork({ min: 40, max: 41 })]);
     expect(m.top10pct_share).toBeCloseTo(0.5, 5);
   });
 

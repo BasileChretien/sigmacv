@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemIncluded, setItemNotMine, updateDisplay, updateOwner } from "@/lib/canonical/curate";
+import {
+  setItemIncluded,
+  setItemNotMine,
+  updateDisplay,
+  updateOwner,
+} from "@/lib/canonical/curate";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import {
   chooseFormatFromAccept,

@@ -36,11 +36,7 @@ export function splitSelf(text: string, variants: string[]): TextSegment[] {
 }
 
 /** Wrap self segments with a formatter (e.g. `**${s}**` for Markdown). */
-export function wrapSelf(
-  text: string,
-  variants: string[],
-  wrap: (s: string) => string,
-): string {
+export function wrapSelf(text: string, variants: string[], wrap: (s: string) => string): string {
   return splitSelf(text, variants)
     .map((seg) => (seg.self ? wrap(seg.text) : seg.text))
     .join("");

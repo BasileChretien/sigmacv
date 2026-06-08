@@ -59,8 +59,7 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     rights:
       "You can access and export all your data (a one-click JSON export), correct it in the editor, withdraw research consent, and delete your account and all associated data at any time — directly from the app. Under the GDPR and APPI you also have the right to lodge a complaint with your data-protection authority.",
     contactHeading: "Contact",
-    contact:
-      "Questions or requests: reach the maintainer via the SigmaCV GitHub repository.",
+    contact: "Questions or requests: reach the maintainer via the SigmaCV GitHub repository.",
     updatedNote:
       "We may update this notice; material changes to research logging require renewed consent.",
     backLink: "← Back to SigmaCV",
@@ -91,8 +90,7 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
       "您可以访问并导出您的所有数据（一键 JSON 导出）、在编辑器中更正数据、撤回研究同意，并可随时删除您的账户及所有关联数据——均可直接在应用内完成。根据 GDPR 和 APPI，您还有权向您的数据保护机构提出投诉。",
     contactHeading: "联系方式",
     contact: "如有问题或请求：请通过 SigmaCV GitHub 仓库联系维护者。",
-    updatedNote:
-      "我们可能会更新本声明；对研究日志记录的实质性变更需要重新征得同意。",
+    updatedNote: "我们可能会更新本声明；对研究日志记录的实质性变更需要重新征得同意。",
     backLink: "← 返回 SigmaCV",
   },
   "es-ES": {
@@ -151,8 +149,7 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     rights:
       "Vous pouvez accéder à toutes vos données et les exporter (un export JSON en un clic), les corriger dans l'éditeur, retirer votre consentement à la recherche, et supprimer votre compte et toutes les données associées à tout moment — directement depuis l'application. Au titre du GDPR et de l'APPI, vous avez également le droit d'introduire une réclamation auprès de votre autorité de protection des données.",
     contactHeading: "Contact",
-    contact:
-      "Questions ou demandes : contactez le mainteneur via le dépôt GitHub de SigmaCV.",
+    contact: "Questions ou demandes : contactez le mainteneur via le dépôt GitHub de SigmaCV.",
     updatedNote:
       "Nous pouvons mettre à jour le présent avis ; toute modification substantielle de la journalisation à des fins de recherche nécessite un nouveau consentement.",
     backLink: "← Retour à SigmaCV",
@@ -213,8 +210,7 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     rights:
       "お客様は、ご自身のすべてのデータにアクセスしてエクスポートすること（ワンクリックでの JSON エクスポート）、エディターでデータを修正すること、研究目的の同意を撤回すること、ならびにアカウントおよび関連するすべてのデータをいつでも削除することができ、これらはすべてアプリから直接行えます。GDPR および APPI のもとで、お客様にはデータ保護当局に苦情を申し立てる権利もあります。",
     contactHeading: "お問い合わせ",
-    contact:
-      "ご質問やご請求は、SigmaCV の GitHub リポジトリを通じて運営者までご連絡ください。",
+    contact: "ご質問やご請求は、SigmaCV の GitHub リポジトリを通じて運営者までご連絡ください。",
     updatedNote:
       "当方は本通知を更新する場合があります。研究目的のログ記録に関する重大な変更については、改めて同意が必要となります。",
     backLink: "← SigmaCV に戻る",
@@ -306,8 +302,7 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     rights:
       "귀하는 앱에서 직접 언제든지 모든 데이터를 열람하고 내보내며(원클릭 JSON 내보내기), 편집기에서 이를 수정하고, 연구 동의를 철회하며, 계정과 관련된 모든 데이터를 삭제할 수 있습니다. GDPR 및 APPI에 따라 귀하는 또한 귀하의 데이터 보호 감독 기관에 민원을 제기할 권리가 있습니다.",
     contactHeading: "문의처",
-    contact:
-      "질문이나 요청 사항: SigmaCV GitHub 저장소를 통해 관리자에게 연락해 주십시오.",
+    contact: "질문이나 요청 사항: SigmaCV GitHub 저장소를 통해 관리자에게 연락해 주십시오.",
     updatedNote:
       "당사는 본 고지를 업데이트할 수 있으며, 연구 로깅에 대한 실질적 변경에는 새로운 동의가 필요합니다.",
     backLink: "← SigmaCV로 돌아가기",
@@ -337,8 +332,7 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     rights:
       "Вы можете получить доступ ко всем своим данным и экспортировать их (экспорт в JSON одним щелчком), исправить их в редакторе, отозвать согласие на исследования, а также удалить свою учётную запись и все связанные с ней данные в любое время — непосредственно в приложении. В соответствии с GDPR и APPI вы также имеете право подать жалобу в свой орган по защите данных.",
     contactHeading: "Контакты",
-    contact:
-      "Вопросы или запросы: свяжитесь с сопровождающим через репозиторий SigmaCV на GitHub.",
+    contact: "Вопросы или запросы: свяжитесь с сопровождающим через репозиторий SigmaCV на GitHub.",
     updatedNote:
       "Мы можем обновлять настоящее уведомление; существенные изменения в ведении исследовательских журналов требуют повторного согласия.",
     backLink: "← Назад к SigmaCV",

@@ -48,7 +48,10 @@ export interface ResolvedStyle {
 }
 
 function sanitizeId(value: string): string {
-  return value.replace(/[^a-z0-9-]/gi, "").toLowerCase().slice(0, 128);
+  return value
+    .replace(/[^a-z0-9-]/gi, "")
+    .toLowerCase()
+    .slice(0, 128);
 }
 
 /** Build the Zotero repository URL for a bare style id/slug. */
@@ -130,7 +133,9 @@ async function fetchStyleText(url: URL): Promise<string> {
         throw new CustomStyleError("The style URL redirected to a disallowed host.");
       }
       res = await fetch(current, {
-        headers: { Accept: "application/vnd.citationstyles.style+xml, application/xml, text/xml, */*" },
+        headers: {
+          Accept: "application/vnd.citationstyles.style+xml, application/xml, text/xml, */*",
+        },
         signal: controller.signal,
         redirect: "manual",
       });
@@ -181,9 +186,7 @@ function extractLinkTags(xml: string): string[] {
 
 /** The href of a `rel="independent-parent"` link, if this is a dependent style. */
 function dependentParentHref(xml: string): string | null {
-  const dep = extractLinkTags(xml).find((t) =>
-    /rel=["']independent-parent["']/i.test(t),
-  );
+  const dep = extractLinkTags(xml).find((t) => /rel=["']independent-parent["']/i.test(t));
   if (!dep) return null;
   return /href=["']([^"']+)["']/i.exec(dep)?.[1] ?? null;
 }

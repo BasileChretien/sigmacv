@@ -54,9 +54,7 @@ export async function previewClaim(
   }
   const resolved = await resolveOrFallback(orcid);
   const saved = await getCvForUser(userId);
-  const alreadyInCv = saved
-    ? cvHasWork(saved, { id: shortId(work.id), doi })
-    : false;
+  const alreadyInCv = saved ? cvHasWork(saved, { id: shortId(work.id), doi }) : false;
   return {
     found: true,
     alreadyInCv,
@@ -92,9 +90,6 @@ export async function addClaimByDoi(
 
   const resolved = await resolveOrFallback(orcid);
   const item = buildClaimedItem(work, resolved, { selfAuthorIndex });
-  const cv = await saveCvForUser(
-    userId,
-    addClaimedWork(saved, item, claimedIsPreprint(work)),
-  );
+  const cv = await saveCvForUser(userId, addClaimedWork(saved, item, claimedIsPreprint(work)));
   return { found: true, added: true, alreadyInCv: false, cv };
 }

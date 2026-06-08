@@ -11,15 +11,8 @@ import {
   enrichCvWithCrossref,
   withRorProvenance,
 } from "@/lib/canonical/enrich";
-import {
-  CanonicalCvSchema,
-  safeParseCanonicalCv,
-  type CanonicalCv,
-} from "@/lib/canonical/schema";
-import {
-  fetchJournalNamesByIssn,
-  fetchWorksByAuthorIds,
-} from "@/lib/openalex/client";
+import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
+import { fetchJournalNamesByIssn, fetchWorksByAuthorIds } from "@/lib/openalex/client";
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
 import { normalizeOrcid } from "@/lib/openalex/types";
 import {
@@ -33,6 +26,17 @@ import {
 } from "@/lib/orcid/client";
 import { fetchDataciteOutputs } from "@/lib/datacite/client";
 import { fetchEditorialRoles } from "@/lib/oep/client";
+import { fetchOpenaireOutputs } from "@/lib/openaire/client";
+import { fetchDblpConferencePapers } from "@/lib/dblp/client";
+import { fetchCrossrefGrantsByOrcid } from "@/lib/crossref/client";
+import { fetchWikidataIdentity } from "@/lib/wikidata/client";
+import { fetchUkriGrants } from "@/lib/ukri/client";
+import { fetchNihGrants } from "@/lib/nih/client";
+import { fetchNsfGrants } from "@/lib/nsf/client";
+import { fetchClinicalTrials } from "@/lib/clinicaltrials/client";
+import { fetchCtisTrials } from "@/lib/ctis/client";
+import { fetchIctrpTrials } from "@/lib/ictrp/client";
+import { fetchEpoPatents } from "@/lib/epo/client";
 import { cvSlug } from "@/lib/render/slug";
 import { logCvSave } from "@/lib/research/log";
 
@@ -71,12 +75,11 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   const now = new Date().toISOString();
 
   const existing = await prisma.cv.findUnique({ where: { userId } });
-  const previousParsed = existing
-    ? safeParseCanonicalCv(existing.document)
-    : null;
+  const previousParsed = existing ? safeParseCanonicalCv(existing.document) : null;
   const previous = previousParsed?.success ? previousParsed.data : null;
 
   const resolved = await resolveAuthorByOrcid(orcid);
+  const mailto = getEnv().OPENALEX_MAILTO;
   const [
     works,
     editorialRoles,
@@ -88,6 +91,10 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     service,
     peerReviews,
     dataciteOutputs,
+    openaireOutputs,
+    dblpConferencePapers,
+    crossrefGrants,
+    wikidataIdentity,
   ] = await Promise.all([
     resolved ? fetchWorksByAuthorIds(resolved.authorIds) : Promise.resolve([]),
     fetchEditorialRoles(orcid),
@@ -99,15 +106,44 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     fetchOrcidService(orcid),
     fetchOrcidPeerReviews(orcid),
     fetchDataciteOutputs(orcid),
+    // ORCID-matched supplements (auto-included): datasets/software, conference
+    // papers, Crossref grants; plus the owner's Wikidata identity for the page.
+    fetchOpenaireOutputs(orcid),
+    fetchDblpConferencePapers(orcid),
+    fetchCrossrefGrantsByOrcid(orcid, mailto),
+    fetchWikidataIdentity(orcid),
   ]);
+
+  // Registries with NO ORCID (national funders + trial registries) are matched by
+  // NAME + organization, so their results are REVIEW CANDIDATES. Orgs come from
+  // OpenAlex affiliations + ORCID employments (a clinician's hospital is often in
+  // ORCID but not OpenAlex). Every client fails soft and early-returns without
+  // orgs, so this is safe even when the name/org set is empty.
+  const displayName = resolved?.displayName || fallbackName || "";
+  const matchOrgs = [
+    ...new Set(
+      [
+        ...(resolved?.affiliations ?? []).map((a) => a.institution),
+        ...employments.map((e) => e.organization),
+      ].filter((o): o is string => Boolean(o)),
+    ),
+  ];
+  const [ctgovTrials, ctisTrials, ictrpTrials, ukriGrants, nihGrants, nsfGrants, patents] =
+    await Promise.all([
+      fetchClinicalTrials(displayName, matchOrgs),
+      fetchCtisTrials(displayName, matchOrgs),
+      fetchIctrpTrials(displayName, matchOrgs),
+      fetchUkriGrants(displayName, matchOrgs),
+      fetchNihGrants(displayName, matchOrgs),
+      fetchNsfGrants(displayName, matchOrgs),
+      fetchEpoPatents(displayName, matchOrgs),
+    ]);
 
   // Peer reviews carry the journal ISSN but not its name (ORCID records the
   // publisher/Publons org). Resolve ISSNs → journal names so the section reads
   // by journal, not by publisher. Best-effort: unresolved ISSNs keep the
   // publisher fallback.
-  const prIssns = peerReviews
-    .map((p) => p.issn)
-    .filter((x): x is string => Boolean(x));
+  const prIssns = peerReviews.map((p) => p.issn).filter((x): x is string => Boolean(x));
   if (prIssns.length > 0) {
     const names = await fetchJournalNamesByIssn(prIssns);
     for (const pr of peerReviews) {
@@ -148,8 +184,31 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     service: inst.service,
     peerReviews,
     dataciteOutputs,
+    openaireOutputs,
+    dblpConferencePapers,
+    crossrefGrants,
+    nationalGrants: [...ukriGrants, ...nihGrants, ...nsfGrants],
+    clinicalTrials: [...ctgovTrials, ...ctisTrials, ...ictrpTrials],
+    patents,
   });
   if (usedRor) cv = withRorProvenance(cv);
+
+  // Wikidata is an OWNER-LEVEL identity enrichment (sameAs links for the public
+  // page's schema.org graph), not a CV item — store it on the owner and record
+  // it as a provenance source (like ROR). Preserve the prior values when a
+  // re-sync's Wikidata fetch fails, so a transient miss never drops the links.
+  const wikidataUri = wikidataIdentity?.wikidataUri ?? previous?.owner.wikidataUri;
+  const wikidataSameAs = wikidataIdentity?.sameAs ?? previous?.owner.wikidataSameAs;
+  if (wikidataUri || (wikidataSameAs && wikidataSameAs.length > 0)) {
+    cv = {
+      ...cv,
+      owner: { ...cv.owner, wikidataUri, wikidataSameAs },
+      provenance: {
+        ...cv.provenance,
+        sources: [...new Set([...cv.provenance.sources, "wikidata" as const])],
+      },
+    };
+  }
 
   // Crossref: fill bibliographic gaps (journal, volume/issue, pages) on works
   // that have a DOI but incomplete OpenAlex metadata. Bounded + fails soft.
@@ -176,10 +235,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
 
 /** Persist a curated canonical document. Keyed by userId — never trusts a
  *  client-supplied user id (no IDOR). Requires an existing row. */
-export async function saveCvForUser(
-  userId: string,
-  doc: CanonicalCv,
-): Promise<CanonicalCv> {
+export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<CanonicalCv> {
   const validated = CanonicalCvSchema.parse(doc);
   const existing = await prisma.cv.findUnique({ where: { userId } });
   if (!existing) throw new CvNotFoundError();
@@ -307,7 +363,5 @@ export async function listIndexablePublicSlugs(): Promise<string[]> {
     where: { published: true, publicIndexable: true, publicSlug: { not: null } },
     select: { publicSlug: true },
   });
-  return rows
-    .map((r) => r.publicSlug)
-    .filter((s): s is string => typeof s === "string");
+  return rows.map((r) => r.publicSlug).filter((s): s is string => typeof s === "string");
 }

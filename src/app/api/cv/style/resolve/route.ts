@@ -60,9 +60,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
     logger.error("api.cv_style_resolve_failed", { err });
-    return NextResponse.json(
-      { error: "Could not resolve that style." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Could not resolve that style." }, { status: 500 });
   }
 }

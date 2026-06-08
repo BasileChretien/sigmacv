@@ -20,8 +20,17 @@ const EnvSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   EMAIL_SERVER: z.string().optional(), // SMTP URL, e.g. smtp://user:pass@host:587
   EMAIL_FROM: z.string().optional(), // e.g. "SigmaCV <no-reply@example.org>"
-  // Open Editors Plus dataset (JSON of editorial roles by ORCID). Optional.
-  OEP_DATA_URL: z.string().url().optional(),
+  // OpenAIRE Graph API: a 1-month refresh token, exchanged for short-lived (1h)
+  // access tokens for higher rate limits. Optional — the client works anonymously
+  // (lower limits) when unset. Generate at https://graph.openaire.eu (account →
+  // personal access token); store the REFRESH token only (never the access token).
+  OPENAIRE_REFRESH_TOKEN: z.string().optional(),
+  // EPO Open Patent Services (OPS) — patents by inventor name. OAuth2
+  // client-credentials (consumer key + secret from a free OPS account at
+  // https://developers.epo.org). Optional — with neither set the patents client
+  // is dormant (makes NO call, returns []). OPS has no anonymous access.
+  EPO_OPS_KEY: z.string().optional(),
+  EPO_OPS_SECRET: z.string().optional(),
   // Shared secret guarding the internal scheduled-resync endpoint. If unset the
   // endpoint is disabled (returns 503), so it's optional even in production.
   RESYNC_SECRET: z.string().min(16).optional(),
@@ -87,9 +96,7 @@ export function getEnv(): Env {
     }
     if (problems.length > 0) {
       throw new Error(
-        `Invalid production environment:\n${problems
-          .map((p) => `  - ${p}`)
-          .join("\n")}`,
+        `Invalid production environment:\n${problems.map((p) => `  - ${p}`).join("\n")}`,
       );
     }
   }

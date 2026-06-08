@@ -30,11 +30,7 @@ const TYPE_MAP: Record<string, string> = {
 function mapType(work: OpenAlexWork): string {
   const crossref = work.type_crossref?.toLowerCase();
   const oa = work.type?.toLowerCase();
-  return (
-    (crossref && TYPE_MAP[crossref]) ||
-    (oa && TYPE_MAP[oa]) ||
-    "article-journal"
-  );
+  return (crossref && TYPE_MAP[crossref]) || (oa && TYPE_MAP[oa]) || "article-journal";
 }
 
 /**

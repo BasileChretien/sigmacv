@@ -48,9 +48,7 @@ export const BUNDLED_LOCALES = [
  */
 function resolveLocaleKey(lang: string | undefined): string {
   const primary = (lang ?? "").toLowerCase().split("-")[0];
-  const match = BUNDLED_LOCALES.find(
-    (l) => l.toLowerCase().split("-")[0] === primary,
-  );
+  const match = BUNDLED_LOCALES.find((l) => l.toLowerCase().split("-")[0] === primary);
   return match ?? DEFAULT_LOCALE;
 }
 
@@ -81,9 +79,7 @@ export function getStyleXml(styleKey: string): string {
 
   if (key !== DEFAULT_STYLE) return getStyleXml(DEFAULT_STYLE);
   /* v8 ignore next 3 -- defensive: assets are vendored by fetch-csl */
-  throw new Error(
-    `CSL style "${key}" not found at ${path}. Run \`npm run fetch-csl\`.`,
-  );
+  throw new Error(`CSL style "${key}" not found at ${path}. Run \`npm run fetch-csl\`.`);
 }
 
 /**
@@ -122,9 +118,7 @@ export function getLocaleXml(lang?: string): string {
   if (!existsSync(path)) {
     if (key !== DEFAULT_LOCALE) return getLocaleXml(DEFAULT_LOCALE);
     /* v8 ignore next 4 -- defensive: en-US is vendored by fetch-csl */
-    throw new Error(
-      `CSL locale not found at ${path}. Run \`npm run fetch-csl\`.`,
-    );
+    throw new Error(`CSL locale not found at ${path}. Run \`npm run fetch-csl\`.`);
   }
   const xml = readFileSync(path, "utf8");
   localeCache.set(key, xml);

@@ -78,9 +78,7 @@ test("public content negotiation: Accept + suffix formats, contact field stays p
 
   const cslRes = await req.get(`/p/${slug}.csl.json`);
   expect(cslRes.status()).toBe(200);
-  expect(cslRes.headers()["content-type"]).toContain(
-    "application/vnd.citationstyles.csl+json",
-  );
+  expect(cslRes.headers()["content-type"]).toContain("application/vnd.citationstyles.csl+json");
   const cslParsed = JSON.parse(await cslRes.text()) as unknown;
   expect(Array.isArray(cslParsed)).toBe(true);
 

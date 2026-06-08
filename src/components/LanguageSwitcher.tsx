@@ -19,10 +19,7 @@ interface LanguageSwitcherProps {
   label: string;
 }
 
-export default function LanguageSwitcher({
-  current,
-  label,
-}: LanguageSwitcherProps) {
+export default function LanguageSwitcher({ current, label }: LanguageSwitcherProps) {
   const router = useRouter();
   const value = asLocale(current);
 

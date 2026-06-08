@@ -64,16 +64,11 @@ function sectionItems(
       title: escapeLatex(section.title),
       lines: items.map(({ item, entry }) => {
         const highlight =
-          cv.display.highlightSelf &&
-          item.authoredBySelf &&
-          item.selfNameVariants.length > 0;
+          cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0;
         const variants = item.selfNameVariants.map(escapeLatex);
         return latexifyEntry(
           entry,
-          highlight
-            ? (escaped) =>
-                wrapSelf(escaped, variants, (s) => `\\textbf{${s}}`)
-            : null,
+          highlight ? (escaped) => wrapSelf(escaped, variants, (s) => `\\textbf{${s}}`) : null,
         );
       }),
     }));
@@ -94,9 +89,7 @@ function yearTableLatex(cv: CanonicalCv): string {
     .slice(-12);
   if (data.length < 2) return "";
   const s = renderStrings(cv.display.locale);
-  const rows = data
-    .map((d) => `${d.year} & ${d.works} & ${d.citations} \\\\`)
-    .join("\n");
+  const rows = data.map((d) => `${d.year} & ${d.works} & ${d.citations} \\\\`).join("\n");
   return [
     "\\medskip\\noindent\\begin{tabular}{@{}lrr@{}}",
     ` & \\textbf{${escapeLatex(s.chartPublicationsPerYear)}} & \\textbf{${escapeLatex(s.chartCitationsPerYear)}} \\\\`,
@@ -166,9 +159,10 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
 
   // Plain (ATS) ⇒ no accent anywhere; otherwise accent headings/rule and links.
   const headColor = style.accentHeadings && !style.plain ? "\\color{cvaccent}" : "";
-  const rule = style.accentHeadings && !style.plain
-    ? "[{\\color{cvaccent}\\titlerule[1pt]}]"
-    : "[{\\titlerule}]";
+  const rule =
+    style.accentHeadings && !style.plain
+      ? "[{\\color{cvaccent}\\titlerule[1pt]}]"
+      : "[{\\titlerule}]";
   const nameColor = style.accentName && !style.plain ? "\\color{cvaccent}" : "";
   const linkColor = style.plain ? "black" : "cvaccent";
 
@@ -210,14 +204,10 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
     ? `\\begin{center}\n${headerLines.join("\n")}\n\\end{center}`
     : headerLines.join("\n");
 
-  const summaryPar = head.summary
-    ? `\\medskip\n${escapeLatex(head.summary)}\\par\n`
-    : "";
+  const summaryPar = head.summary ? `\\medskip\n${escapeLatex(head.summary)}\\par\n` : "";
 
   // Charts + authorship render as tables (LaTeX can't draw the bar charts).
-  const tables = [yearTableLatex(cv), authorshipTableLatex(cv)]
-    .filter(Boolean)
-    .join("\n");
+  const tables = [yearTableLatex(cv), authorshipTableLatex(cv)].filter(Boolean).join("\n");
 
   // A photo can't be embedded in a standalone .tex; leave a ready-to-use line
   // the author can enable once they save the image next to this file.

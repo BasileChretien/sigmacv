@@ -65,7 +65,9 @@ function contactHtml(cv: CanonicalCv): string {
   if (c.location) parts.push(escapeHtml(c.location));
   if (c.email) {
     const href = safeHref(`mailto:${c.email}`);
-    parts.push(href ? `<a href="${escapeHtml(href)}">${escapeHtml(c.email)}</a>` : escapeHtml(c.email));
+    parts.push(
+      href ? `<a href="${escapeHtml(href)}">${escapeHtml(c.email)}</a>` : escapeHtml(c.email),
+    );
   }
   if (c.phone) parts.push(escapeHtml(c.phone));
   if (c.website) {
@@ -81,12 +83,8 @@ function contactHtml(cv: CanonicalCv): string {
       return href ? `<a href="${escapeHtml(href)}">${label}</a>` : label;
     })
     .filter(Boolean);
-  const contactLine = parts.length
-    ? `<div class="cv-contact">${parts.join(" · ")}</div>`
-    : "";
-  const linksLine = links.length
-    ? `<div class="cv-links">${links.join(" · ")}</div>`
-    : "";
+  const contactLine = parts.length ? `<div class="cv-contact">${parts.join(" · ")}</div>` : "";
+  const linksLine = links.length ? `<div class="cv-links">${links.join(" · ")}</div>` : "";
   return contactLine + linksLine;
 }
 
@@ -115,12 +113,7 @@ export function cvPageShell(cv: CanonicalCv, css: string, body: string): string 
   return pageShell(cvDocTitle(cv), css, body, cv.display.locale);
 }
 
-export function pageShell(
-  title: string,
-  css: string,
-  body: string,
-  lang = "en",
-): string {
+export function pageShell(title: string, css: string, body: string, lang = "en"): string {
   return `<!DOCTYPE html>
 <html lang="${escapeHtml(lang)}">
 <head>
@@ -287,9 +280,7 @@ export function commonCss(theme: TemplateTheme): string {
  * text-first templates (classic/minimal/compact/ats) omit it.
  */
 export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): string {
-  const name = escapeHtml(
-    cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle,
-  );
+  const name = escapeHtml(cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle);
   // Honorific (e.g. "Dr") sits inline BEFORE the name on the same line; the
   // headline/role is a separate line UNDER the name.
   const honorific = cv.owner.honorific
@@ -308,9 +299,7 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
         .map(
           (m) =>
             `${escapeHtml(m.label)}: ${escapeHtml(m.value)}${
-              m.context
-                ? ` <span class="cv-metric-context">(${escapeHtml(m.context)})</span>`
-                : ""
+              m.context ? ` <span class="cv-metric-context">(${escapeHtml(m.context)})</span>` : ""
             }`,
         )
         .join(" · ")}</div>`
@@ -402,9 +391,7 @@ export function licenseFooter(cv: CanonicalCv): string {
   if (!info) return "";
   const href = safeHref(info.url);
   const name = escapeHtml(info.name);
-  const label = href
-    ? `<a href="${escapeHtml(href)}" rel="license">${name}</a>`
-    : name;
+  const label = href ? `<a href="${escapeHtml(href)}" rel="license">${name}</a>` : name;
   return `<p class="cv-license">${label}</p>`;
 }
 
@@ -431,9 +418,7 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
   /* v8 ignore next -- SITE_URL is always a safe https origin */
   if (!href) return "";
   const madeWith = escapeHtml(renderStrings(cv.display.locale).madeWith);
-  return `<p class="cv-attribution">${madeWith} <a href="${escapeHtml(
-    href,
-  )}">SigmaCV</a></p>`;
+  return `<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
 }
 
 /**
@@ -474,9 +459,7 @@ export function proseBodyHtml(body: string): string {
       let textRun: string[] = [];
       const flushText = () => {
         if (textRun.length === 0) return;
-        out.push(
-          `<p>${textRun.map((t) => escapeHtml(t)).join("<br />")}</p>`,
-        );
+        out.push(`<p>${textRun.map((t) => escapeHtml(t)).join("<br />")}</p>`);
         textRun = [];
       };
       for (const rawLine of lines) {

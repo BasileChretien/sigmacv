@@ -44,6 +44,12 @@ export const SECTION_TYPES = [
   "peer-review",
   "editorial",
   "grants",
+  // Clinical trials where the account holder is an investigator (registry-sourced,
+  // name+org matched → review candidates). Non-prose entry section.
+  "clinical-trials",
+  // Patents where the account holder is an inventor (EPO OPS, name+org matched →
+  // review candidates). Non-prose entry section.
+  "patents",
   // ── Prose sections (free-text body, no items) ──────────────────────────────
   // The four R4RI / Royal-Society "narrative CV" contribution modules plus a
   // generic free-titled statement. They are first-class sections, managed like
@@ -98,24 +104,27 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
   conference: 4,
   datasets: 5,
   grants: 6,
-  // The four narrative contribution modules sit together just after grants.
-  "narrative-knowledge": 7,
-  "narrative-individuals": 8,
-  "narrative-community": 9,
-  "narrative-society": 10,
-  awards: 11,
-  talks: 12,
-  teaching: 13,
-  supervision: 14,
-  editorial: 15,
-  "peer-review": 16,
-  service: 17,
-  skills: 18,
-  languages: 19,
-  references: 20,
+  // Clinical trials + patents sit with the other research outputs, after grants.
+  "clinical-trials": 7,
+  patents: 8,
+  // The four narrative contribution modules sit together next.
+  "narrative-knowledge": 9,
+  "narrative-individuals": 10,
+  "narrative-community": 11,
+  "narrative-society": 12,
+  awards: 13,
+  talks: 14,
+  teaching: 15,
+  supervision: 16,
+  editorial: 17,
+  "peer-review": 18,
+  service: 19,
+  skills: 20,
+  languages: 21,
+  references: 22,
   // A generic prose statement sits near the end, just before "Other".
-  statement: 21,
-  other: 22,
+  statement: 23,
+  other: 24,
 };
 
 /**
@@ -123,12 +132,7 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
  * alongside the `notMine` flag — it sharpens the author-disambiguation-error
  * study (a same-name collision is a very different error from a duplicate).
  */
-export const NOT_MINE_REASONS = [
-  "different-person",
-  "duplicate",
-  "wrong-field",
-  "other",
-] as const;
+export const NOT_MINE_REASONS = ["different-person", "duplicate", "wrong-field", "other"] as const;
 export const NotMineReasonSchema = z.enum(NOT_MINE_REASONS);
 export type NotMineReason = z.infer<typeof NotMineReasonSchema>;
 export const NOT_MINE_REASON_LABELS: Record<NotMineReason, string> = {
@@ -168,7 +172,25 @@ export const CvItemSchema = z.object({
   /** Stable id — e.g. the OpenAlex short id "W2741809807", or "position:…". */
   id: z.string(),
   /** Where the item came from. "manual" = user-entered; "orcid" = ORCID record. */
-  source: z.enum(["openalex", "orcid", "oep", "datacite", "derived", "manual"]),
+  source: z.enum([
+    "openalex",
+    "orcid",
+    "oep",
+    "datacite",
+    "crossref",
+    "openaire",
+    "dblp",
+    // National funder APIs (name+org matched → review candidates, never auto-included).
+    "ukri",
+    "nih",
+    "nsf",
+    "clinicaltrials",
+    "ctis",
+    "ictrp",
+    "epo",
+    "derived",
+    "manual",
+  ]),
   /** Full source identifier (e.g. OpenAlex URL form, ORCID put-code, or "manual"). */
   sourceId: z.string(),
   /** CSL-JSON payload handed to citeproc. Absent for non-citation items. */
@@ -420,26 +442,27 @@ export const CvOwnerSchema = z.object({
   metrics: OwnerMetricsSchema.optional(),
   /** Per-year works/citations (drives the optional charts). Default empty. */
   countsByYear: z.array(CountsByYearSchema).default([]),
+  /**
+   * Wikidata entity URI for the account holder, matched by ORCID (`wdt:P496`).
+   * Surfaced as a `sameAs` link in the public page's schema.org Person graph —
+   * never used for matching/highlighting. Optional + back-compat.
+   */
+  wikidataUri: z.string().max(2048).optional(),
+  /**
+   * Additional authority-file `sameAs` URIs discovered via Wikidata (the Wikidata
+   * entity itself plus any VIAF / ISNI links). Strengthens the public page's
+   * structured-data identity graph. Optional (consumers treat absent as empty).
+   */
+  wikidataSameAs: z.array(z.string().max(2048)).max(20).optional(),
 });
 export type CvOwner = z.infer<typeof CvOwnerSchema>;
 
 /** Constrained customization options (kept tasteful + safe-to-inject). */
-export const TEMPLATES = [
-  "classic",
-  "modern",
-  "sidebar",
-  "ats",
-  "rirekisho",
-] as const;
+export const TEMPLATES = ["classic", "modern", "sidebar", "ats", "rirekisho"] as const;
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
 /** How the account holder's name is emphasised in their own works. */
-export const HIGHLIGHT_STYLES = [
-  "accent",
-  "bold",
-  "underline",
-  "accent-underline",
-] as const;
+export const HIGHLIGHT_STYLES = ["accent", "bold", "underline", "accent-underline"] as const;
 export type HighlightStyle = (typeof HIGHLIGHT_STYLES)[number];
 /** Curated accent swatches offered in the UI (any valid 6-digit hex is allowed). */
 export const ACCENT_PRESETS = [
@@ -531,9 +554,7 @@ export const DisplayChoicesSchema = z.object({
    * How publication/preprint entries are ordered. "custom" keeps the built/
    * dragged order (newest-first by default); other values re-sort at render.
    */
-  publicationOrder: z
-    .enum(["custom", "citations", "year-desc", "year-asc"])
-    .default("custom"),
+  publicationOrder: z.enum(["custom", "citations", "year-desc", "year-asc"]).default("custom"),
   /**
    * "Selected publications": cap the Publications section to the top N entries
    * (after ordering + the peer-reviewed-only filter), for a grant biosketch /
@@ -586,7 +607,18 @@ export const PROVENANCE_SOURCES = [
   "oep",
   "crossref",
   "datacite",
+  "openaire",
+  "dblp",
+  "ukri",
+  "nih",
+  "nsf",
+  "clinicaltrials",
+  "ctis",
+  "ictrp",
+  "epo",
   "ror",
+  // Provenance-only sources (enrich identity/affiliations, not CV items).
+  "wikidata",
   "derived",
   "manual",
 ] as const;
@@ -669,16 +701,10 @@ function migrateNarrativeToSections(doc: Record<string, unknown>): void {
     }, -1) + 1;
 
   const owner = (doc.owner ?? {}) as Record<string, unknown>;
-  const summaryEmpty =
-    typeof owner.summary !== "string" || owner.summary.trim().length === 0;
+  const summaryEmpty = typeof owner.summary !== "string" || owner.summary.trim().length === 0;
 
   let statementCount = 0;
-  const makeSection = (
-    type: CvSectionType,
-    title: string,
-    body: string,
-    visible: boolean,
-  ) => {
+  const makeSection = (type: CvSectionType, title: string, body: string, visible: boolean) => {
     // A unique id; `statement` can recur, so disambiguate the duplicates.
     const id = type === "statement" ? `statement:${statementCount++}` : type;
     sections.push({ id, type, title, visible, order: nextOrder++, items: [], body });

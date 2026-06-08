@@ -3,6 +3,7 @@
 React **client** components. The CV editor is fully client-side and talks to the server only through `app/api/cv/*` (load/save/preview/sync) — it never imports server-only `lib/` modules directly.
 
 ## The editor
+
 - **`CvWorkspace.tsx`** — top-level orchestrator: holds the working `CanonicalCv`, the export-format dropdown, and the mobile Editor/Preview tab toggle.
 - **`CvEditor.tsx`** + **`ItemRow.tsx`** — curation UI: "not mine" toggle, drag-and-drop reorder, section show/hide/rename, add-section menu. All edits go through the pure `lib/canonical/curate` ops (immutable).
 - **`ProfilePanel.tsx`** — editable header/profile fields; **`CvPreview.tsx`** — debounced live HTML preview via `api/cv/preview`.

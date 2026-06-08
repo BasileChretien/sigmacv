@@ -1,0 +1,28 @@
+name: Feedback or question
+description: Ask a question, share feedback, or report that your CV / publications look wrong — no technical knowledge needed.
+title: "[Feedback] "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time! You don't need any technical knowledge to fill this in — just tell us in your own words.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What's this about?
+      options:
+        - A question about using SigmaCV
+        - My publications / CV look wrong or incomplete
+        - A suggestion or feature idea
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Tell us more
+      description: Describe what you saw or what you'd like. If it's about your CV, your ORCID iD helps us check (optional).
+      placeholder: 'e.g. "Two papers on my CV aren''t mine — they belong to another researcher with the same name."'
+    validations:
+      required: true

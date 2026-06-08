@@ -1,0 +1,30 @@
+name: Bug report
+description: Report something that's broken or behaving incorrectly.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+  - type: input
+    id: environment
+    attributes:
+      label: Browser / device (if relevant)
+      placeholder: e.g. Chrome on Windows, Safari on iPhone
+  - type: textarea
+    id: technical
+    attributes:
+      label: Console errors or logs (optional, for developers)
+      render: shell

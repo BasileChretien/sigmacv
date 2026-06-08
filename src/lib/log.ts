@@ -43,12 +43,7 @@ function redact(fields: LogFields): LogFields {
 
 function emit(level: LogLevel, event: string, fields?: LogFields): void {
   const safe = fields ? redact(fields) : undefined;
-  const sink =
-    level === "error"
-      ? console.error
-      : level === "warn"
-        ? console.warn
-        : console.log;
+  const sink = level === "error" ? console.error : level === "warn" ? console.warn : console.log;
 
   if (process.env.NODE_ENV === "production") {
     let line: string;

@@ -45,7 +45,12 @@ const work2 = {
 } as unknown as OpenAlexWork;
 
 function localizedCv(locale: string): CanonicalCv {
-  const cv = buildCanonicalCv({ id: "i", resolved, works: [work, work2], now: "2026-06-02T00:00:00.000Z" });
+  const cv = buildCanonicalCv({
+    id: "i",
+    resolved,
+    works: [work, work2],
+    now: "2026-06-02T00:00:00.000Z",
+  });
   return {
     ...cv,
     owner: {
@@ -84,12 +89,8 @@ describe("renderStrings helpers", () => {
 
   it("removes the misleading 'field-normalised' claim from the 2-year metric", () => {
     // It's a JIF-analogue, not field-normalized — honesty fix (anti-DORA).
-    expect(metricContext("en-US", "2yr_mean_citedness")).toContain(
-      "not field-normalised",
-    );
-    expect(metricContext("en-US", "2yr_mean_citedness")).not.toMatch(
-      /^field-normalised/,
-    );
+    expect(metricContext("en-US", "2yr_mean_citedness")).toContain("not field-normalised");
+    expect(metricContext("en-US", "2yr_mean_citedness")).not.toMatch(/^field-normalised/);
     // FWCI keeps its (correct) field-normalized context.
     expect(metricContext("en-US", "fwci_mean")).toContain("world average");
   });
@@ -99,9 +100,7 @@ describe("renderStrings helpers", () => {
     expect(cvDocTitle(cv)).toBe("Basile Chrétien — Lebenslauf");
     const noName: CanonicalCv = { ...cv, owner: { ...cv.owner, displayName: "" } };
     expect(cvDocTitle(noName)).toBe("Lebenslauf");
-    expect(cvDocTitle({ ...noName, display: { ...cv.display, locale: "ja-JP" } })).toBe(
-      "履歴書",
-    );
+    expect(cvDocTitle({ ...noName, display: { ...cv.display, locale: "ja-JP" } })).toBe("履歴書");
   });
 
   it("builds a localized FWCI coverage note and omits it for empty N", () => {

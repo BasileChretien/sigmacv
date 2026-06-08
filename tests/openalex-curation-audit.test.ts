@@ -1,9 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHash, createHmac } from "node:crypto";
-import {
-  auditSubject,
-  recordCurationAudit,
-} from "@/lib/openalex/curationAudit";
+import { auditSubject, recordCurationAudit } from "@/lib/openalex/curationAudit";
 import { logger } from "@/lib/log";
 
 const ORIGINAL = { ...process.env };
@@ -49,7 +46,11 @@ describe("recordCurationAudit", () => {
 
   it("logs a structured audit line with subject, count and status (no raw id)", () => {
     const info = vi.spyOn(logger, "info").mockImplementation(() => {});
-    const record = recordCurationAudit("user-xyz", 3, { status: "ok", submitted: 3, httpStatus: 200 });
+    const record = recordCurationAudit("user-xyz", 3, {
+      status: "ok",
+      submitted: 3,
+      httpStatus: 200,
+    });
 
     expect(record.assertionCount).toBe(3);
     expect(record.status).toBe("ok");

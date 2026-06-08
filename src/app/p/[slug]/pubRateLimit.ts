@@ -32,22 +32,14 @@ export function clientIp(req: Request): string {
 }
 
 /** The outcome of the shared public-page rate-limit check. */
-export type PubRateLimitOutcome =
-  | { ok: true }
-  | { ok: false; retryAfterSec: number };
+export type PubRateLimitOutcome = { ok: true } | { ok: false; retryAfterSec: number };
 
 /**
  * Apply the per-IP then global public-page limit for `req`. Returns `{ ok: true }`
  * to proceed, or the `Retry-After` seconds when either ceiling is exceeded.
  */
-export async function enforcePubPageRateLimit(
-  req: Request,
-): Promise<PubRateLimitOutcome> {
-  const rl = await enforceRateLimit(
-    `pubpage:${clientIp(req)}`,
-    PUBPAGE_MAX,
-    PUBPAGE_WINDOW_MS,
-  );
+export async function enforcePubPageRateLimit(req: Request): Promise<PubRateLimitOutcome> {
+  const rl = await enforceRateLimit(`pubpage:${clientIp(req)}`, PUBPAGE_MAX, PUBPAGE_WINDOW_MS);
   if (!rl.ok) return { ok: false, retryAfterSec: rl.retryAfterSec };
   const grl = await enforceRateLimit(
     "pubpage:global",

@@ -109,7 +109,7 @@ export function chooseFormatFromAccept(accept: string | null | undefined): Publi
     if (entry) entries.push(entry);
   });
   // Sort by quality desc, then by original order asc (stable preference).
-  entries.sort((a, b) => (b.q - a.q) || (a.order - b.order));
+  entries.sort((a, b) => b.q - a.q || a.order - b.order);
   for (const entry of entries) {
     if (entry.q <= 0) continue;
     const format = ACCEPT_MAP[entry.type];

@@ -55,6 +55,11 @@ yarn-error.log*
 # ensure-db schema-sync fingerprint (local)
 .prisma-pushed
 
+# Raw Open Editors Plus parquet (~68MB). NOT committed — the small, filtered,
+# committed seed (prisma/seed-data/oep-editorial-roles.ndjson.gz) is derived from
+# it via scripts/oep-build-seed.py. Keep the parquet here locally to rebuild.
+/Open_editors_plus/
+
 # IRB / ethics application materials (may contain personal data; not for the public repo)
 /Ethics/
 /docs/irb/

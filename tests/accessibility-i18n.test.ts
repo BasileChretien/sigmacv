@@ -7,9 +7,7 @@ describe("accessibilityStrings", () => {
     expect(accessibilityStrings("en-US").heading).toBe("Accessibility");
     expect(accessibilityStrings("fr-FR").heading).toBe("Accessibilité");
     expect(accessibilityStrings("ja-JP").metaTitle).toBe("アクセシビリティ");
-    expect(accessibilityStrings("xx-XX").heading).toBe(
-      accessibilityStrings("en-US").heading,
-    );
+    expect(accessibilityStrings("xx-XX").heading).toBe(accessibilityStrings("en-US").heading);
   });
 
   it("has every field non-empty for all 10 locales", () => {

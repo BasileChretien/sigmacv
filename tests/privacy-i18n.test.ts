@@ -5,9 +5,7 @@ import { privacyStrings } from "@/lib/i18n/privacy";
 describe("privacyStrings", () => {
   it("localizes the privacy notice and falls back to English", () => {
     expect(privacyStrings("en-US").heading).toBe("Privacy & Data Protection");
-    expect(privacyStrings("fr-FR").heading).toBe(
-      "Confidentialité et protection des données",
-    );
+    expect(privacyStrings("fr-FR").heading).toBe("Confidentialité et protection des données");
     expect(privacyStrings("ja-JP").metaTitle).toBe("プライバシー");
     expect(privacyStrings("xx-XX").heading).toBe(privacyStrings("en-US").heading);
   });

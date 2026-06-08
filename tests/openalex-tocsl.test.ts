@@ -86,9 +86,7 @@ describe("workToCsl", () => {
     expect(csl.id).toBe("W4300000001");
     expect(csl.type).toBe("article-journal");
     expect(csl.title).toBe("A study of adverse drug reactions");
-    expect(csl["container-title"]).toBe(
-      "British Journal of Clinical Pharmacology",
-    );
+    expect(csl["container-title"]).toBe("British Journal of Clinical Pharmacology");
     expect(csl.volume).toBe("89");
     expect(csl.issue).toBe("5");
     expect(csl.page).toBe("1500-1510");

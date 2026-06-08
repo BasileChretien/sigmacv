@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or open-ended discussion
+    url: https://github.com/BasileChretien/sigmacv/discussions
+    about: Ask a question or start a discussion — no bug or feature required.
+  - name: Read the FAQ first
+    url: https://github.com/BasileChretien/sigmacv/blob/main/docs/FAQ.md
+    about: Many common questions (what is ORCID, is it free, where does my data come from) are answered here.
+  - name: Report a security issue privately
+    url: https://github.com/BasileChretien/sigmacv/security/policy
+    about: Please do NOT file security problems as public issues.

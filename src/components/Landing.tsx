@@ -1,15 +1,11 @@
 import Link from "next/link";
 import { enabledProviders } from "@/auth.config";
-import {
-  signInWithEmail,
-  signInWithGoogle,
-  signInWithOrcid,
-} from "@/app/auth-actions";
+import { signInWithEmail, signInWithGoogle, signInWithOrcid } from "@/app/auth-actions";
 import { asLocale, t } from "@/lib/i18n";
 import { accessibilityStrings } from "@/lib/i18n/accessibility";
 import { faqStrings } from "@/lib/i18n/faq";
 import { landingStrings } from "@/lib/i18n/landing";
-import { landingPageStrings } from "@/lib/i18n/landingPages";
+import { LANDING_PAGE_IDS, landingPageStrings } from "@/lib/i18n/landingPages";
 import {
   localeAboutPath,
   localeAccessibilityPath,
@@ -24,6 +20,42 @@ import StructuredData from "./StructuredData";
 
 /** ORCID profile URL of SigmaCV's creator (links the "Built by a researcher" credit). */
 const CREATOR_ORCID_URL = "https://orcid.org/0000-0002-7483-2489";
+
+/**
+ * The open-data sources the CV is built from, with their canonical homepages.
+ * Rendered as the linked "source strip" under the hero (proper-noun brand names,
+ * never translated). Order ≈ prominence.
+ */
+const SOURCE_LINKS: { name: string; url: string }[] = [
+  { name: "OpenAlex", url: "https://openalex.org" },
+  { name: "ORCID", url: "https://orcid.org" },
+  { name: "Crossref", url: "https://www.crossref.org" },
+  { name: "DataCite", url: "https://datacite.org" },
+  { name: "OpenAIRE", url: "https://www.openaire.eu" },
+  { name: "DBLP", url: "https://dblp.org" },
+  { name: "Open Editors Plus", url: "https://openeditors-plus.org" },
+  { name: "ClinicalTrials.gov", url: "https://clinicaltrials.gov" },
+  { name: "EU CTIS", url: "https://euclinicaltrials.eu" },
+  { name: "EPO", url: "https://www.epo.org" },
+  { name: "Wikidata", url: "https://www.wikidata.org" },
+  { name: "ROR", url: "https://ror.org" },
+];
+
+/**
+ * The six floating chips in the hero brand graphic, each cross-fading between two
+ * source names so all twelve sources appear over the animation loop (freezes on
+ * the first name under prefers-reduced-motion). The longer names sit on the three
+ * left-anchored chips (indices 0, 2, 4) so they extend into open space, not over
+ * the central medallion. Decorative (the chips are aria-hidden).
+ */
+const HERO_CHIPS: [string, string][] = [
+  ["OpenAlex", "Open Editors Plus"],
+  ["ORCID", "Wikidata"],
+  ["Crossref", "ClinicalTrials.gov"],
+  ["DataCite", "EU CTIS"],
+  ["OpenAIRE", "ROR"],
+  ["DBLP", "EPO"],
+];
 
 /**
  * The public marketing/landing markup, fully localized. Shared by the default
@@ -83,49 +115,68 @@ export default function Landing({ locale }: LandingProps) {
           </ol>
         </section>
 
-        <section className="auth-card card">
-          <h2 className="auth-card-title">{s.signInTitle}</h2>
-          <p className="auth-card-sub muted">{s.signInSub}</p>
+        <div className="hero-right">
+          <HeroGraphic />
+          <section className="auth-card card">
+            <h2 className="auth-card-title">{s.signInTitle}</h2>
+            <p className="auth-card-sub muted">{s.signInSub}</p>
 
-          <form action={signInWithOrcid}>
-            <button type="submit" className="btn btn-primary btn-lg auth-btn">
-              <OrcidMark />
-              {s.signInOrcid}
-            </button>
-          </form>
-
-          {enabledProviders.google || enabledProviders.email ? (
-            <div className="auth-divider">
-              <span>{s.orDivider}</span>
-            </div>
-          ) : null}
-
-          {enabledProviders.google ? (
-            <form action={signInWithGoogle}>
-              <button type="submit" className="btn auth-btn">
-                {s.continueGoogle}
+            <form action={signInWithOrcid}>
+              <button type="submit" className="btn btn-primary btn-lg auth-btn">
+                <OrcidMark />
+                {s.signInOrcid}
               </button>
             </form>
-          ) : null}
 
-          {enabledProviders.email ? (
-            <form action={signInWithEmail} className="auth-email-row">
-              <input
-                type="email"
-                name="email"
-                required
-                placeholder={s.emailPlaceholder}
-                aria-label={s.emailLabel}
-              />
-              <button type="submit" className="btn">
-                {s.emailButton}
-              </button>
-            </form>
-          ) : null}
+            {enabledProviders.google || enabledProviders.email ? (
+              <div className="auth-divider">
+                <span>{s.orDivider}</span>
+              </div>
+            ) : null}
 
-          <p className="auth-fineprint muted">{s.fineprint}</p>
-        </section>
+            {enabledProviders.google ? (
+              <form action={signInWithGoogle}>
+                <button type="submit" className="btn auth-btn">
+                  {s.continueGoogle}
+                </button>
+              </form>
+            ) : null}
+
+            {enabledProviders.email ? (
+              <form action={signInWithEmail} className="auth-email-row">
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder={s.emailPlaceholder}
+                  aria-label={s.emailLabel}
+                />
+                <button type="submit" className="btn">
+                  {s.emailButton}
+                </button>
+              </form>
+            ) : null}
+
+            <p className="auth-fineprint muted">{s.fineprint}</p>
+          </section>
+        </div>
       </main>
+
+      {/* Source strip: the open data sources the CV is built from. The names are
+          brand proper nouns (like "Σ"/"SigmaCV"), reinforcing the hero copy. */}
+      <div className="source-strip" aria-label="Open research data sources SigmaCV builds from">
+        {SOURCE_LINKS.map((src) => (
+          <a
+            key={src.name}
+            className="source-pill"
+            href={src.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {src.name}
+          </a>
+        ))}
+      </div>
 
       <section className="landing-section landing-features" aria-labelledby="features-h">
         <h2 id="features-h" className="landing-section-title">
@@ -169,24 +220,15 @@ export default function Landing({ locale }: LandingProps) {
           {s.exploreTitle}
         </h2>
         <ul className="explore-links">
-          <li>
-            <Link href={localeLandingPagePath("orcid-to-cv", loc)}>
-              {s.exploreOrcid}
-            </Link>
-            <span className="muted explore-desc">
-              {" — "}
-              {landingPageStrings("orcid-to-cv", loc).subhead}
-            </span>
-          </li>
-          <li>
-            <Link href={localeLandingPagePath("nih-biosketch", loc)}>
-              {s.exploreNih}
-            </Link>
-            <span className="muted explore-desc">
-              {" — "}
-              {landingPageStrings("nih-biosketch", loc).subhead}
-            </span>
-          </li>
+          {LANDING_PAGE_IDS.map((page) => {
+            const p = landingPageStrings(page, loc);
+            return (
+              <li key={page}>
+                <Link href={localeLandingPagePath(page, loc)}>{p.navLabel}</Link>
+                <span className="muted explore-desc">{p.subhead}</span>
+              </li>
+            );
+          })}
         </ul>
       </section>
 
@@ -236,8 +278,7 @@ function CreatorBody({
         {CREATOR_NAME}
       </a>
       {/* When the proper noun isn't present (defensive), fall back to plain text. */}
-      {after ?? ""}{" "}
-      <Link href={aboutHref}>About</Link>
+      {after ?? ""} <Link href={aboutHref}>About</Link>
       {githubUrl ? (
         <>
           {" · "}
@@ -247,6 +288,75 @@ function CreatorBody({
         </>
       ) : null}
     </>
+  );
+}
+
+/**
+ * Decorative hero brand graphic: six floating open-data source chips around a
+ * central Σ medallion (soft core glow) that pulses as the CV silhouette fills in
+ * line by line, with a self-name highlight — open data assembling into a CV. Each
+ * chip cross-fades between two of the twelve sources, so all appear over the loop.
+ * Purely decorative (aria-hidden), reserved aspect-ratio (no layout shift), and
+ * motion-safe (a self-contained prefers-reduced-motion block freezes it to a
+ * settled state). Source names are brand proper nouns (like "Σ"/"SigmaCV"), not
+ * translated copy.
+ */
+function HeroGraphic() {
+  return (
+    <div className="hero-graphic" aria-hidden="true">
+      <span className="hg-blob hg-blob-1" />
+      <span className="hg-blob hg-blob-2" />
+      <span className="hg-blob hg-blob-3" />
+
+      <svg
+        className="hg-lines"
+        viewBox="0 0 480 420"
+        fill="none"
+        focusable="false"
+        role="presentation"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <radialGradient id="hgCore" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="var(--accent-400)" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="var(--accent-500)" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle className="hg-core-glow" cx="240" cy="206" r="92" fill="url(#hgCore)" />
+      </svg>
+
+      <span className="hg-doc">
+        <span className="hg-doc-line">
+          <span className="hg-doc-fill" />
+        </span>
+        <span className="hg-doc-line hg-doc-name">
+          <span className="hg-doc-hl" />
+          <span className="hg-doc-fill" />
+          <span className="hg-doc-sweep" />
+        </span>
+        <span className="hg-doc-line short">
+          <span className="hg-doc-fill" />
+        </span>
+        <span className="hg-doc-line">
+          <span className="hg-doc-fill" />
+        </span>
+        <span className="hg-doc-line short">
+          <span className="hg-doc-fill" />
+        </span>
+      </span>
+
+      <span className="hg-medallion">
+        <span className="hg-ring" />
+        <span className="hg-glyph">Σ</span>
+      </span>
+
+      {HERO_CHIPS.map(([first, second], i) => (
+        <span key={first} className={`hg-chip hg-chip-${i + 1}`}>
+          <span className="hg-chip-label hg-cyc-a">{first}</span>
+          <span className="hg-chip-label hg-cyc-b">{second}</span>
+        </span>
+      ))}
+    </div>
   );
 }
 

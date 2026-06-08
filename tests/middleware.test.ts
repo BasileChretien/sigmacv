@@ -40,9 +40,7 @@ describe("app-shell CSP middleware", () => {
   it("uses a per-request nonce + strict-dynamic and forbids unsafe-eval in production", () => {
     vi.stubEnv("NODE_ENV", "production");
     const csp = cspFor();
-    expect(csp).toMatch(
-      /script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/,
-    );
+    expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
     expect(csp).not.toContain("'unsafe-eval'");
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     // The nonce decodes to 16 random bytes (raw-bytes base64, not a UUID string).

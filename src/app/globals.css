@@ -53,8 +53,9 @@
   --warn-text: #7a4e0c;
 
   /* ── Type ── */
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Helvetica, Arial, sans-serif;
+  --font-sans:
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
 
   --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;
@@ -128,7 +129,9 @@ body {
   font-family: var(--font-sans);
   font-size: var(--text-md);
   line-height: 1.5;
-  font-feature-settings: "cv05" 1, "ss01" 1;
+  font-feature-settings:
+    "cv05" 1,
+    "ss01" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -292,8 +295,11 @@ button {
   white-space: nowrap;
   text-decoration: none;
   box-shadow: var(--shadow-xs);
-  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease);
 }
 .btn:hover {
   background: var(--grey-50);
@@ -308,7 +314,9 @@ button {
   background: var(--accent-600);
   border-color: var(--accent-600);
   color: #fff;
-  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 .btn-primary:hover {
   background: var(--accent-700);
@@ -377,7 +385,9 @@ textarea {
   color: var(--text);
   font: inherit;
   font-size: var(--text-md);
-  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  transition:
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
 }
 textarea {
   height: auto;
@@ -791,7 +801,9 @@ textarea.prose-body {
   transform: scale(1.08);
 }
 .swatch.is-selected {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text);
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--text);
 }
 .swatch-custom {
   width: 1.6rem;
@@ -914,7 +926,9 @@ textarea.prose-body {
   border-radius: var(--radius-xs);
   font-size: var(--text-sm);
   cursor: pointer;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
 }
 .section-toggle:hover {
   background: var(--grey-150);
@@ -1006,7 +1020,9 @@ textarea.prose-body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
-  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+  transition:
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
     opacity var(--dur) var(--ease);
 }
 .cv-item-row:hover {
@@ -1057,7 +1073,9 @@ textarea.prose-body {
   background: var(--surface);
   color: var(--text-secondary);
   line-height: 1;
-  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
 .icon-btn:hover {
@@ -1085,7 +1103,9 @@ textarea.prose-body {
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--text-secondary);
-  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
 .mine-btn:hover {
@@ -1568,8 +1588,38 @@ textarea.prose-body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(1100px 480px at 12% -8%, var(--accent-50), transparent 60%),
-    radial-gradient(900px 420px at 100% 0%, #eef6ff, transparent 55%), var(--bg);
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(1200px 540px at 8% -10%, var(--accent-100), transparent 58%),
+    radial-gradient(1000px 480px at 102% -4%, var(--accent-50), transparent 55%),
+    radial-gradient(820px 620px at 50% 118%, var(--accent-50), transparent 60%), var(--bg);
+}
+/* Faint grid texture in the upper hero — "premium, not flat", masked to fade out. */
+.auth-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(920px 540px at 50% 0%, #000 0%, transparent 70%);
+  mask-image: radial-gradient(920px 540px at 50% 0%, #000 0%, transparent 70%);
+  opacity: 0.35;
+}
+@media (prefers-color-scheme: dark) {
+  .auth-shell {
+    background:
+      radial-gradient(1200px 540px at 8% -10%, rgba(94, 130, 247, 0.13), transparent 58%),
+      radial-gradient(1000px 480px at 102% -4%, rgba(94, 130, 247, 0.08), transparent 55%),
+      var(--bg);
+  }
+  .auth-shell::before {
+    opacity: 0.16;
+  }
 }
 .brand {
   display: inline-flex;
@@ -1585,19 +1635,35 @@ textarea.prose-body {
   width: 1.6rem;
   height: 1.6rem;
   border-radius: var(--radius-sm);
-  background: var(--accent-600);
+  background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
   color: #fff;
   font-weight: var(--weight-bold);
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 .auth-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-5) var(--space-8);
+  padding: var(--space-4) var(--space-8);
   max-width: 1180px;
   width: 100%;
   margin: 0 auto;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+}
+/* Full-bleed frosted strip behind the centered (max-width) nav. */
+.auth-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0 calc(50% - 50vw);
+  z-index: -1;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  border-bottom: 1px solid var(--border);
 }
 .auth-nav a {
   color: var(--text-secondary);
@@ -1631,28 +1697,71 @@ textarea.prose-body {
 .auth-main {
   flex: 1;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: var(--space-16);
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: var(--space-12);
   align-items: center;
-  max-width: 1080px;
+  max-width: 1120px;
   width: 100%;
   margin: 0 auto;
-  padding: var(--space-12) var(--space-8) var(--space-16);
+  padding: var(--space-16) var(--space-8) var(--space-12);
 }
+/* Eyebrow upgraded to a bordered pill with an accent dot (chip language). */
 .eyebrow {
-  display: inline-block;
-  margin-bottom: var(--space-4);
-  font-size: var(--text-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-100);
+  font-size: var(--text-2xs);
   font-weight: var(--weight-semibold);
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
   color: var(--accent-700);
 }
+.eyebrow::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--accent-500);
+  flex: none;
+}
+@media (prefers-color-scheme: dark) {
+  .eyebrow {
+    color: var(--accent-300);
+    border-color: transparent;
+  }
+}
 .hero-title {
-  font-size: var(--text-4xl);
-  line-height: 1.08;
+  font-size: clamp(2.25rem, 4.6vw, 3.25rem);
+  line-height: 1.05;
   letter-spacing: var(--tracking-tight);
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-5);
+  text-wrap: balance;
+}
+/* Optional gradient accent on a wrapped phrase (decoration over passing text). */
+.hero-title .grad {
+  color: var(--accent-700);
+  background: linear-gradient(120deg, var(--accent-600), var(--accent-400));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .hero-title .grad {
+    -webkit-text-fill-color: transparent;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  /* Lighter stops keep gradient text AA-legible on the dark background. */
+  .hero-title .grad {
+    color: var(--accent-300);
+    background: linear-gradient(120deg, var(--accent-300), var(--accent-200));
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
 }
 .hero-sub {
   max-width: 34rem;
@@ -1664,37 +1773,53 @@ textarea.prose-body {
 .hero-steps {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: var(--space-2) 0 0;
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 .hero-steps li {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  padding: var(--space-2) 0;
   font-size: var(--text-base);
   color: var(--text-secondary);
 }
 .step-n {
   display: grid;
   place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.65rem;
+  height: 1.65rem;
   flex: none;
   border-radius: var(--radius-full);
-  background: var(--accent-50);
-  color: var(--accent-700);
+  background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
+  color: #fff;
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
-  border: 1px solid var(--accent-100);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 .auth-card {
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
   justify-self: end;
-  box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 3;
+  box-shadow: var(--shadow-lg);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+/* Thin accent rail along the card's top edge to tie it to the brand. */
+.auth-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-400), var(--accent-600));
 }
 .auth-card-title {
   font-size: var(--text-xl);
@@ -1754,15 +1879,33 @@ textarea.prose-body {
 
 /* ── Landing showcase / trust / explore sections ─────────────────────────── */
 .landing-section {
-  max-width: 1080px;
+  max-width: 1120px;
   width: 100%;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-8) var(--space-4);
+  padding: var(--space-16) var(--space-8) var(--space-8);
+  position: relative;
+}
+/* Hairline divider above each subsequent section for vertical rhythm. */
+.landing-section + .landing-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--space-8);
+  right: var(--space-8);
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--border) 18%,
+    var(--border) 82%,
+    transparent
+  );
 }
 .landing-section-title {
-  font-size: var(--text-2xl);
+  font-size: clamp(1.5rem, 3vw, 2rem);
   letter-spacing: var(--tracking-tight);
-  margin: 0 0 var(--space-6);
+  margin: 0 0 var(--space-8);
+  text-wrap: balance;
 }
 .feature-grid,
 .trust-grid {
@@ -1780,8 +1923,28 @@ textarea.prose-body {
 }
 .feature-card,
 .trust-card {
-  padding: var(--space-5);
+  padding: var(--space-6);
   border-radius: var(--radius-lg);
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+.feature-card:hover,
+.trust-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+}
+/* Trust cards carry a left accent rail (the "why us" emphasis). */
+.trust-card {
+  border-left: 3px solid var(--accent-400);
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-card:hover,
+  .trust-card:hover {
+    transform: none;
+  }
 }
 .feature-card-title,
 .trust-card-title {
@@ -1806,11 +1969,38 @@ textarea.prose-body {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
   font-size: var(--text-base);
 }
+.explore-links li {
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+.explore-links li:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border-strong);
+}
+.explore-links a {
+  font-weight: var(--weight-semibold);
+}
 .explore-desc {
+  display: block;
+  margin-top: var(--space-2);
   font-size: var(--text-sm);
+}
+@media (prefers-reduced-motion: reduce) {
+  .explore-links li:hover {
+    transform: none;
+  }
 }
 
 /* ── About / doc pages ───────────────────────────────────────────────────── */
@@ -1853,7 +2043,9 @@ textarea.prose-body {
   height: 2rem;
   color: var(--muted);
   border-radius: var(--radius-sm);
-  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+  transition:
+    color var(--dur) var(--ease),
+    background var(--dur) var(--ease);
 }
 .icon-link:hover {
   color: var(--accent);
@@ -1891,13 +2083,653 @@ textarea.prose-body {
   .auth-main {
     grid-template-columns: 1fr;
     gap: var(--space-8);
-    padding-top: var(--space-8);
+    padding-top: var(--space-10);
+  }
+  .hero-right {
+    justify-items: stretch;
   }
   .auth-card {
     justify-self: stretch;
     max-width: none;
   }
   .hero-title {
-    font-size: var(--text-3xl);
+    font-size: clamp(1.9rem, 7vw, 2.4rem);
+  }
+  /* Keep the mobile funnel tight: the decorative graphic is non-essential, so
+     hide it rather than letting it push the sign-in card below the fold. */
+  .hero-graphic {
+    display: none;
+  }
+  .auth-nav {
+    padding: var(--space-3) var(--space-5);
+  }
+  .source-strip,
+  .landing-section {
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+  }
+}
+
+/* ── Hero right column: the full brand graphic above the sign-in card ─────── */
+.hero-right {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+}
+.hero-right .auth-card {
+  width: 100%;
+}
+@media (min-width: 861px) {
+  .hero-right .hero-graphic {
+    max-width: 360px;
+  }
+}
+
+/* Intermediate: tighten the graphic before the single-column flip. */
+@media (max-width: 1024px) and (min-width: 861px) {
+  .auth-main {
+    gap: var(--space-8);
+    grid-template-columns: 1fr 0.9fr;
+  }
+  .hero-right .hero-graphic {
+    max-width: 300px;
+  }
+}
+
+/* ── Source strip ("built from the open research record") ─────────────────── */
+.source-strip {
+  max-width: 1120px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-8) var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition:
+    border-color 0.15s var(--ease),
+    color 0.15s var(--ease),
+    transform 0.15s var(--ease);
+}
+.source-pill:hover,
+.source-pill:focus-visible {
+  border-color: var(--accent-500);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.source-pill::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--accent-500);
+  flex: none;
+}
+
+/* ── Hero abstract brand graphic (decorative, motion-safe) ───────────────── */
+.hero-graphic {
+  --hg-cycle: 9s;
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 480/420;
+  justify-self: center;
+  margin-inline: auto;
+  isolation: isolate;
+  pointer-events: none;
+}
+.hg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(36px);
+  opacity: 0.6;
+  mix-blend-mode: multiply;
+}
+.hg-blob-1 {
+  width: 58%;
+  height: 58%;
+  top: -6%;
+  left: -4%;
+  background: radial-gradient(circle at 30% 30%, var(--accent-300), transparent 70%);
+  animation: hg-drift-a 16s var(--ease) infinite alternate;
+}
+.hg-blob-2 {
+  width: 52%;
+  height: 52%;
+  top: 8%;
+  right: -6%;
+  background: radial-gradient(circle at 60% 40%, var(--accent-200), transparent 72%);
+  animation: hg-drift-b 20s var(--ease) infinite alternate;
+}
+.hg-blob-3 {
+  width: 60%;
+  height: 60%;
+  bottom: -8%;
+  left: 14%;
+  background: radial-gradient(circle at 50% 60%, var(--accent-100), transparent 70%);
+  animation: hg-drift-a 24s var(--ease) infinite alternate-reverse;
+}
+@media (prefers-color-scheme: dark) {
+  .hg-blob {
+    mix-blend-mode: screen;
+    opacity: 0.42;
+  }
+}
+.hg-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+.hg-core-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0.5;
+  animation: hg-core var(--hg-cycle) var(--ease) infinite;
+}
+.hg-doc {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -46%) rotate(-4deg);
+  width: 38%;
+  aspect-ratio: 3/4;
+  padding: 12% 10%;
+  display: flex;
+  flex-direction: column;
+  gap: 9%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  opacity: 0.92;
+}
+@media (prefers-color-scheme: dark) {
+  .hg-doc {
+    box-shadow:
+      var(--shadow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+}
+.hg-doc-line {
+  position: relative;
+  height: 5%;
+  min-height: 3px;
+  border-radius: var(--radius-full);
+  background: var(--grey-200);
+}
+.hg-doc-line.short {
+  width: 62%;
+}
+.hg-doc-name {
+  background: transparent;
+  overflow: visible;
+}
+.hg-doc-fill {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, var(--accent-500), var(--accent-400));
+  opacity: 0.85;
+  animation: hg-fill var(--hg-cycle) var(--ease) infinite;
+}
+.hg-doc-line:nth-child(1) .hg-doc-fill {
+  animation-delay: calc(var(--hg-cycle) * 0.02);
+}
+.hg-doc-name .hg-doc-fill {
+  animation-delay: calc(var(--hg-cycle) * 0.1);
+}
+.hg-doc-line:nth-child(3) .hg-doc-fill {
+  animation-delay: calc(var(--hg-cycle) * 0.18);
+}
+.hg-doc-line:nth-child(4) .hg-doc-fill {
+  animation-delay: calc(var(--hg-cycle) * 0.26);
+}
+.hg-doc-line:nth-child(5) .hg-doc-fill {
+  animation-delay: calc(var(--hg-cycle) * 0.34);
+}
+.hg-doc-hl {
+  position: absolute;
+  z-index: 0;
+  inset: -55% -4%;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 1px var(--accent-ring);
+  transform-origin: left center;
+  transform: scaleX(0.35);
+  opacity: 0;
+  animation: hg-name-hl var(--hg-cycle) var(--ease) infinite;
+}
+@media (prefers-color-scheme: dark) {
+  .hg-doc-hl {
+    background: var(--accent-700);
+  }
+}
+.hg-doc-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 100%
+  );
+  transform: translateX(-130%);
+  mix-blend-mode: overlay;
+  animation: hg-sweep var(--hg-cycle) var(--ease) infinite;
+}
+.hg-medallion {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 21%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
+  color: #fff;
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  animation:
+    hg-bob 6s var(--ease) infinite alternate,
+    hg-receive var(--hg-cycle) var(--ease) infinite;
+}
+.hg-medallion::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.22),
+    transparent 28%,
+    transparent 72%,
+    rgba(255, 255, 255, 0.18)
+  );
+  opacity: 0.6;
+  mix-blend-mode: soft-light;
+  animation: hg-sheen 14s linear infinite;
+}
+.hg-glyph {
+  position: relative;
+  z-index: 1;
+  font-weight: var(--weight-bold);
+  font-size: clamp(1.6rem, 5.5vw, 2.6rem);
+  line-height: 1;
+}
+.hg-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--accent-300);
+  opacity: 0;
+  animation: hg-ring var(--hg-cycle) var(--ease) infinite;
+}
+.hg-chip {
+  position: absolute;
+  z-index: 2;
+  display: inline-grid;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+.hg-chip-label {
+  grid-area: 1/1;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+.hg-chip-label::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  background: var(--accent-500);
+  flex: none;
+}
+.hg-cyc-a {
+  animation: hg-cyc-a 8s var(--ease) infinite;
+}
+.hg-cyc-b {
+  animation: hg-cyc-b 8s var(--ease) infinite;
+}
+.hg-chip-1 {
+  top: 8%;
+  left: 4%;
+  animation: hg-float-a 7s var(--ease) infinite alternate;
+}
+.hg-chip-2 {
+  top: 13%;
+  right: 2%;
+  animation: hg-float-b 8s var(--ease) infinite alternate;
+}
+.hg-chip-3 {
+  /* Crossref / ClinicalTrials.gov — the widest chip; sits low-LEFT, below the CV
+     card (clear of it), not over its corner. */
+  bottom: 4%;
+  left: 6%;
+  animation: hg-float-b 9s var(--ease) infinite alternate-reverse;
+}
+.hg-chip-4 {
+  bottom: 12%;
+  right: 5%;
+  animation: hg-float-a 7.5s var(--ease) infinite alternate-reverse;
+}
+.hg-chip-5 {
+  top: 45%;
+  left: 0%;
+  animation: hg-float-a 8.5s var(--ease) infinite alternate;
+}
+.hg-chip-6 {
+  top: 41%;
+  right: 0%;
+  animation: hg-float-b 9.5s var(--ease) infinite alternate-reverse;
+}
+.hg-chip-2 .hg-chip-label {
+  animation-delay: -1.3s;
+}
+.hg-chip-3 .hg-chip-label {
+  animation-delay: -2.6s;
+}
+.hg-chip-4 .hg-chip-label {
+  animation-delay: -4s;
+}
+.hg-chip-5 .hg-chip-label {
+  animation-delay: -5.3s;
+}
+.hg-chip-6 .hg-chip-label {
+  animation-delay: -6.6s;
+}
+@keyframes hg-core {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  34% {
+    opacity: 0.75;
+    transform: scale(1.06);
+  }
+  55% {
+    opacity: 0.4;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+}
+@keyframes hg-fill {
+  0% {
+    transform: scaleX(0);
+  }
+  30% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes hg-name-hl {
+  0%,
+  12% {
+    opacity: 0;
+    transform: scaleX(0.35);
+  }
+  22% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+@keyframes hg-sweep {
+  0%,
+  22% {
+    transform: translateX(-130%);
+  }
+  40% {
+    transform: translateX(130%);
+  }
+  100% {
+    transform: translateX(130%);
+  }
+}
+@keyframes hg-ring {
+  0%,
+  34% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  44% {
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+@keyframes hg-receive {
+  0%,
+  36% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  43% {
+    transform: translate(-50%, -50%) scale(0.965);
+  }
+  52% {
+    transform: translate(-50%, -50%) scale(1.012);
+  }
+  60%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes hg-sheen {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes hg-cyc-a {
+  0%,
+  44% {
+    opacity: 1;
+  }
+  50%,
+  94% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes hg-cyc-b {
+  0%,
+  44% {
+    opacity: 0;
+  }
+  50%,
+  94% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hg-bob {
+  from {
+    transform: translate(-50%, -52%);
+  }
+  to {
+    transform: translate(-50%, -48%);
+  }
+}
+@keyframes hg-float-a {
+  from {
+    transform: translateY(-5px);
+  }
+  to {
+    transform: translateY(6px);
+  }
+}
+@keyframes hg-float-b {
+  from {
+    transform: translateY(6px);
+  }
+  to {
+    transform: translateY(-6px);
+  }
+}
+@keyframes hg-drift-a {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(14px, -12px) scale(1.06);
+  }
+}
+@keyframes hg-drift-b {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(-16px, 10px) scale(1.05);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hg-blob,
+  .hg-core-glow,
+  .hg-doc-fill,
+  .hg-doc-hl,
+  .hg-doc-sweep,
+  .hg-ring,
+  .hg-medallion,
+  .hg-medallion::before,
+  .hg-chip,
+  .hg-chip-label,
+  .hg-chip-label::before {
+    animation: none !important;
+  }
+  .hg-doc-fill {
+    transform: scaleX(1) !important;
+  }
+  .hg-doc-hl {
+    opacity: 1 !important;
+    transform: scaleX(1) !important;
+  }
+  .hg-doc-sweep,
+  .hg-ring {
+    opacity: 0 !important;
+  }
+  .hg-core-glow {
+    opacity: 0.4 !important;
+  }
+  .hg-medallion {
+    transform: translate(-50%, -50%) !important;
+  }
+  .hg-cyc-a {
+    opacity: 1 !important;
+  }
+  .hg-cyc-b {
+    opacity: 0 !important;
+  }
+}
+
+/* ── Hero entrance (single gentle fade-up) ───────────────────────────────── */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.hero {
+  animation: hero-rise 0.5s var(--ease) both;
+}
+.hero-right {
+  animation: hero-rise 0.5s var(--ease) 0.08s both;
+}
+.source-strip {
+  animation: hero-rise 0.5s var(--ease) 0.16s both;
+}
+
+/* Tasteful one-shot sheen across the primary CTA on hover. */
+.auth-card .btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+.auth-card .btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.6s var(--ease);
+}
+.auth-card .btn-primary:hover::after {
+  transform: translateX(120%);
+}
+
+/* Reduced motion: freeze the graphic in its settled state, show entrance content.
+   The global `*{animation:none}` already disables the loops; these restore the
+   final/visible state so nothing is stuck mid-animation or at opacity:0. */
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .hero-right,
+  .source-strip {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .auth-card .btn-primary::after {
+    display: none;
   }
 }

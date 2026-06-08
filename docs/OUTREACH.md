@@ -49,16 +49,16 @@ ecosystem** (ORCID, OpenAlex / OurResearch, ROR, Crossref). Copy/paste and adapt
 
 ## Key facts (for a slide or email)
 
-| | |
-|---|---|
-| License | Apache-2.0 (code); outputs licensable CC0/CC BY by the author |
-| Data sources | OpenAlex, ORCID (public API), Crossref, ROR, DataCite, Open Editors Plus |
-| Formats | HTML · PDF · DOCX · LaTeX · Markdown · BibTeX · CSL-JSON · JSON Résumé · NIH biosketch · ERC/MSCA/NSF/JSPS grant CVs · raw JSON |
-| CV models | 58 one-click, reversible layouts: grant funders · public-institution/job CVs · industry/clinical CVs |
-| Privacy | GDPR + Japan APPI; per-field publish consent; export + delete |
-| Locales | 10 (en, zh, es, fr, de, ja, pt, it, ko, ru) |
-| Hosting | SaaS or self-host (Docker Compose, single VPS) |
-| Cite | [`CITATION.cff`](../CITATION.cff) · DOI via Zenodo (on release) |
+|              |                                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| License      | Apache-2.0 (code); outputs licensable CC0/CC BY by the author                                                                   |
+| Data sources | OpenAlex, ORCID (public API), Crossref, ROR, DataCite, Open Editors Plus                                                        |
+| Formats      | HTML · PDF · DOCX · LaTeX · Markdown · BibTeX · CSL-JSON · JSON Résumé · NIH biosketch · ERC/MSCA/NSF/JSPS grant CVs · raw JSON |
+| CV models    | 58 one-click, reversible layouts: grant funders · public-institution/job CVs · industry/clinical CVs                            |
+| Privacy      | GDPR + Japan APPI; per-field publish consent; export + delete                                                                   |
+| Locales      | 10 (en, zh, es, fr, de, ja, pt, it, ko, ru)                                                                                     |
+| Hosting      | SaaS or self-host (Docker Compose, single VPS)                                                                                  |
+| Cite         | [`CITATION.cff`](../CITATION.cff) · DOI via Zenodo (on release)                                                                 |
 
 ## Suggested channels
 
@@ -92,7 +92,7 @@ ecosystem** (ORCID, OpenAlex / OurResearch, ROR, Crossref). Copy/paste and adapt
 
 ## Links to include
 
-- Site: <https://sigmacv.org>
+- Site: <https://sigmacv.org> _(planned — not yet live)_
 - Open-science & FAIR statement: [`docs/OPEN-SCIENCE.md`](OPEN-SCIENCE.md)
 - Self-hosting: [`DEPLOY.md`](../DEPLOY.md)
 - Contributing: [`CONTRIBUTING.md`](../CONTRIBUTING.md)

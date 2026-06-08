@@ -1,5 +1,6 @@
 import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
+import { normalizeOrcid } from "@/lib/openalex/types";
 import type { CslItem } from "@/types/csl";
 
 /**
@@ -55,7 +56,10 @@ export async function fetchCrossrefGapFields(
   doi: string,
   mailto: string,
 ): Promise<CrossrefGapFields | null> {
-  const bare = doi.trim().toLowerCase().replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
+  const bare = doi
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
   if (!DOI_RE.test(bare)) return null;
 
   const url = new URL(`${CROSSREF_API}/${encodeURIComponent(bare)}`);
@@ -93,5 +97,113 @@ export async function fetchCrossrefGapFields(
   } catch (err) {
     logger.warn("crossref.fetch_failed", { err });
     return null;
+  }
+}
+
+// ── Grant Linking System: grants registered against a researcher's ORCID ─────
+
+/** Cap for the grant LIST response (≤50 small records). */
+const MAX_GRANT_LIST_BYTES = 2_000_000;
+
+/** A registered grant from the Crossref Grant Linking System (`type:grant`). */
+export interface CrossrefGrant {
+  /** The grant's own DOI (e.g. "10.35802/218300"). */
+  doi: string;
+  /** The funder's award number, when present. */
+  award?: string;
+  title: string;
+  funderName?: string;
+  /** Open Funder Registry DOI (e.g. "10.13039/100010269"), when present. */
+  funderId?: string;
+  startYear?: number;
+  endYear?: number;
+}
+
+function asRecord(v: unknown): Record<string, unknown> | undefined {
+  return typeof v === "object" && v !== null && !Array.isArray(v)
+    ? (v as Record<string, unknown>)
+    : undefined;
+}
+
+/** Year from a Crossref `{ "date-parts": [[YYYY, MM, DD]] }` value. */
+function firstYearFromDateParts(v: unknown): number | undefined {
+  const dateParts = asRecord(v)?.["date-parts"];
+  const first = Array.isArray(dateParts) ? dateParts[0] : undefined;
+  const year = Array.isArray(first) ? first[0] : undefined;
+  return typeof year === "number" ? year : undefined;
+}
+
+/** Map one Crossref `type:grant` work to a normalized {@link CrossrefGrant}. */
+function parseGrantItem(raw: unknown): CrossrefGrant | null {
+  const work = asRecord(raw);
+  const doi = typeof work?.DOI === "string" ? work.DOI : undefined;
+  if (!work || !doi) return null;
+  // `project` is an array (always one element in practice); its fields optional.
+  const project = Array.isArray(work.project) ? asRecord(work.project[0]) : undefined;
+  const titleEntry =
+    project && Array.isArray(project["project-title"])
+      ? asRecord(project["project-title"][0])
+      : undefined;
+  const title = typeof titleEntry?.title === "string" ? titleEntry.title : undefined;
+  if (!title) return null;
+  const funding =
+    project && Array.isArray(project.funding) ? asRecord(project.funding[0]) : undefined;
+  const funder = asRecord(funding?.funder);
+  const funderName = typeof funder?.name === "string" ? funder.name : undefined;
+  const funderIds = Array.isArray(funder?.id) ? funder.id : [];
+  const funderDoiEntry = funderIds.map(asRecord).find((e) => e?.["id-type"] === "DOI");
+  const funderId = typeof funderDoiEntry?.id === "string" ? funderDoiEntry.id : undefined;
+  return {
+    doi,
+    award: typeof work.award === "string" ? work.award : undefined,
+    title,
+    funderName,
+    funderId,
+    startYear:
+      firstYearFromDateParts(project?.["award-start"]) ?? firstYearFromDateParts(work.issued),
+    endYear: firstYearFromDateParts(project?.["award-end"]),
+  };
+}
+
+/**
+ * Grants registered against the person's ORCID in the Crossref Grant Linking
+ * System (`type:grant`). ORCID-matched (the funder deposited the iD), so these
+ * are reliable enough to auto-include. Fails soft → []. Coverage is sparse (a
+ * growing set of funders), so this SUPPLEMENTS the ORCID-funding + OpenAlex
+ * grant signals — it never replaces them.
+ */
+export async function fetchCrossrefGrantsByOrcid(
+  orcid: string,
+  mailto: string,
+): Promise<CrossrefGrant[]> {
+  const bare = normalizeOrcid(orcid);
+  if (!bare) return [];
+
+  const url = new URL(CROSSREF_API);
+  url.searchParams.set("filter", `orcid:${bare},type:grant`);
+  url.searchParams.set("rows", "50");
+  url.searchParams.set("mailto", mailto);
+
+  try {
+    const res = await resilientFetch(url, {
+      next: { revalidate: 86_400 },
+      timeoutMs: 12_000,
+    });
+    if (!res.ok) return [];
+    const body = await res.text();
+    /* v8 ignore next -- defensive cap on a pathological response */
+    if (body.length > MAX_GRANT_LIST_BYTES) return [];
+    const data = JSON.parse(body) as { message?: { items?: unknown[] } };
+    const items = data.message?.items;
+    const list = Array.isArray(items) ? items : [];
+    const out: CrossrefGrant[] = [];
+    for (const item of list) {
+      const grant = parseGrantItem(item);
+      if (grant) out.push(grant);
+    }
+    return out;
+  } catch (err) {
+    logger.warn("crossref.grants_fetch_failed", { err });
+    return [];
   }
 }

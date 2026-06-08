@@ -86,8 +86,7 @@ describe("CV-model catalog", () => {
   });
 
   it("counts: grant + institution + industry models", () => {
-    const byCat = (c: CvModelCategory) =>
-      CV_MODELS.filter((m) => m.category === c).length;
+    const byCat = (c: CvModelCategory) => CV_MODELS.filter((m) => m.category === c).length;
     expect(byCat("grant")).toBe(38);
     expect(byCat("institution")).toBe(10);
     expect(byCat("industry")).toBe(10);
@@ -113,9 +112,7 @@ describe("CV-model catalog", () => {
       for (const t of m.sections) {
         expect(SECTION_TYPE_SET.has(t), `${m.id}/${t}`).toBe(true);
       }
-      expect(new Set(m.sections).size, `${m.id} no dup sections`).toBe(
-        m.sections.length,
-      );
+      expect(new Set(m.sections).size, `${m.id} no dup sections`).toBe(m.sections.length);
     }
   });
 
@@ -292,9 +289,7 @@ describe("applyCvModel", () => {
     expect(next.sections.find((s) => s.type === "service")!.title).toBe(
       "Institutional responsibilities & commissions of trust",
     );
-    expect(next.sections.find((s) => s.type === "awards")!.title).toBe(
-      "Fellowships & awards",
-    );
+    expect(next.sections.find((s) => s.type === "awards")!.title).toBe("Fellowships & awards");
   });
 
   it("NSF titleOverrides include 'Professional Preparation' + 'Products'", () => {
@@ -302,9 +297,7 @@ describe("applyCvModel", () => {
     expect(next.sections.find((s) => s.type === "education")!.title).toBe(
       "Professional Preparation",
     );
-    expect(next.sections.find((s) => s.type === "publications")!.title).toBe(
-      "Products",
-    );
+    expect(next.sections.find((s) => s.type === "publications")!.title).toBe("Products");
   });
 
   it("CCV creates a `statement` prose section with the override title", () => {
@@ -315,9 +308,9 @@ describe("applyCvModel", () => {
     expect(stmt.title).toBe("Personal statement");
     expect(stmt.visible).toBe(true);
     // The narrative-knowledge override applies too.
-    expect(
-      next.sections.find((s) => s.type === "narrative-knowledge")!.title,
-    ).toBe("Most significant contributions & experiences");
+    expect(next.sections.find((s) => s.type === "narrative-knowledge")!.title).toBe(
+      "Most significant contributions & experiences",
+    );
   });
 
   it("is fully reversible via a snapshot preset (round-trip restores the view)", () => {
@@ -344,9 +337,9 @@ describe("applyCvModel", () => {
     const sec = cv.sections.find((s) => s.type === "narrative-knowledge")!;
     cv = setSectionBody(cv, sec.id, "My real contributions.");
     const next = applyCvModel(cv, "snsf");
-    expect(
-      next.sections.find((s) => s.type === "narrative-knowledge")!.body,
-    ).toBe("My real contributions.");
+    expect(next.sections.find((s) => s.type === "narrative-knowledge")!.body).toBe(
+      "My real contributions.",
+    );
   });
 
   it("does not duplicate prose sections when applied twice", () => {
@@ -362,8 +355,8 @@ describe("applyCvModel", () => {
     const cv = makeCv("fr-FR");
     const next = applyCvModel(cv, "snsf");
     // narrative-society has no override in SNSF → localized default title.
-    expect(
-      next.sections.find((s) => s.type === "narrative-society")!.title,
-    ).toBe("Contributions à la société au sens large");
+    expect(next.sections.find((s) => s.type === "narrative-society")!.title).toBe(
+      "Contributions à la société au sens large",
+    );
   });
 });

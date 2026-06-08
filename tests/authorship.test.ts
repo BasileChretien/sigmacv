@@ -38,7 +38,9 @@ function build(works: OpenAlexWork[]) {
 describe("build: author position + corresponding", () => {
   it("records the 1-based author position and corresponding flag", () => {
     const cv = build([work("W1", 2, 5, true)]);
-    const item = cv.sections.flatMap((s) => s.items).find((i) => i.sourceId === "https://openalex.org/W1")!;
+    const item = cv.sections
+      .flatMap((s) => s.items)
+      .find((i) => i.sourceId === "https://openalex.org/W1")!;
     expect(item.meta.authorPosition).toBe(2);
     expect(item.meta.authorCount).toBe(5);
     expect(item.meta.isCorresponding).toBe(true);
@@ -50,7 +52,9 @@ describe("build: no-venue work is treated as a preprint", () => {
     const noVenue = work("Wnv", 1, 1);
     noVenue.primary_location = { source: undefined };
     const cv = build([noVenue]);
-    const item = cv.sections.flatMap((s) => s.items).find((i) => i.sourceId === "https://openalex.org/Wnv")!;
+    const item = cv.sections
+      .flatMap((s) => s.items)
+      .find((i) => i.sourceId === "https://openalex.org/Wnv")!;
     expect(item.meta.peerReviewed).toBe(false);
     expect(cv.sections.find((s) => s.type === "preprints")?.items.length).toBe(1);
   });

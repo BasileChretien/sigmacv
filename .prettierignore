@@ -1,0 +1,12 @@
+# Generated + vendored — never reformat
+src/generated/
+src/lib/citeproc/assets/
+package-lock.json
+prisma/seed-data/
+prisma/migrations/
+
+# Build / test / tooling output
+.next/
+out/
+coverage/
+.preview/

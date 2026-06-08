@@ -8,14 +8,14 @@
 
 ## Administrative
 
-| | |
-|---|---|
-| Title | ‹final title› |
-| Authors | Basile Chrétien ‹+ co-authors› |
-| IRB protocol № | ‹recorded after approval› |
-| Consent version(s) in scope | ‹e.g. v1› (`researchConsentVersion`) |
-| OSF registration DOI | ‹recorded at registration› |
-| Analysis script (frozen) | ‹repo path + commit hash, committed before data access› |
+|                             |                                                         |
+| --------------------------- | ------------------------------------------------------- |
+| Title                       | ‹final title›                                           |
+| Authors                     | Basile Chrétien ‹+ co-authors›                          |
+| IRB protocol №              | ‹recorded after approval›                               |
+| Consent version(s) in scope | ‹e.g. v1› (`researchConsentVersion`)                    |
+| OSF registration DOI        | ‹recorded at registration›                              |
+| Analysis script (frozen)    | ‹repo path + commit hash, committed before data access› |
 
 ## Background & rationale
 

@@ -14,12 +14,16 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "fetch-csl": "node scripts/fetch-csl.mjs",
     "resync": "node scripts/resync.mjs",
     "research:export": "dotenv -e .env -- tsx scripts/export-research-data.ts",
+    "oep:import": "dotenv -e .env -- tsx scripts/oep-import.ts",
+    "ictrp:import": "dotenv -e .env -- tsx scripts/ictrp-import.ts",
     "db:generate": "prisma generate",
     "db:migrate": "dotenv -e .env -- prisma migrate dev",
     "db:push": "dotenv -e .env -- prisma db push",
@@ -27,7 +31,11 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:install": "playwright install --with-deps chromium",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "prepare": "husky || true"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs,css,json,md,yml,yaml}": "prettier --write"
   },
   "overrides": {
     "postcss": "^8.5.10",
@@ -40,6 +48,7 @@
     "@prisma/client": "^7.8.0",
     "citeproc": "^2.4.63",
     "docx": "^9.0.0",
+    "fast-xml-parser": "^4.5.6",
     "motion": "^12.40.0",
     "next": "^15.1.6",
     "next-auth": "^5.0.0-beta.25",
@@ -62,7 +71,10 @@
     "@vitest/coverage-v8": "^4.1.8",
     "dotenv": "^16.4.7",
     "dotenv-cli": "^8.0.0",
+    "husky": "^9.1.7",
     "jsdom": "^25.0.1",
+    "lint-staged": "^17.0.7",
+    "prettier": "^3.8.3",
     "prisma": "^7.8.0",
     "tsx": "^4.22.4",
     "typescript": "^5.7.3",

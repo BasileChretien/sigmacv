@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemNotMine } from "@/lib/canonical/curate";
+import { setItemIncluded, setItemNotMine } from "@/lib/canonical/curate";
 import { parseCanonicalCv } from "@/lib/canonical/schema";
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
@@ -20,14 +20,36 @@ const resolved: ResolvedAuthor = {
 
 // Self-asserted ORCID funding records (person-attributed, unlike OpenAlex awards).
 const fundings: OrcidFunding[] = [
-  { putCode: "100", title: "PARANAC", organization: "University of Caen Normandy", type: "contract" },
-  { putCode: "101", title: "ML-Driven PBL", organization: "Nagoya University", type: "grant", startYear: 2025 },
+  {
+    putCode: "100",
+    title: "PARANAC",
+    organization: "University of Caen Normandy",
+    type: "contract",
+  },
+  {
+    putCode: "101",
+    title: "ML-Driven PBL",
+    organization: "Nagoya University",
+    type: "grant",
+    startYear: 2025,
+  },
 ];
 
 // ORCID employment history.
 const employments: OrcidPosition[] = [
-  { putCode: "200", organization: "Nagoya University", roleTitle: "Assistant Professor", startYear: 2024 },
-  { putCode: "201", organization: "CHU de Caen", roleTitle: "Pharmacist", startYear: 2012, endYear: 2024 },
+  {
+    putCode: "200",
+    organization: "Nagoya University",
+    roleTitle: "Assistant Professor",
+    startYear: 2024,
+  },
+  {
+    putCode: "201",
+    organization: "CHU de Caen",
+    roleTitle: "Pharmacist",
+    startYear: 2012,
+    endYear: 2024,
+  },
 ];
 
 const editorialRoles: EditorialRole[] = [
@@ -50,12 +72,8 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(grants).toBeDefined();
     expect(grants!.items).toHaveLength(2);
     // Newest funding (2025) first.
-    expect(grants!.items[0]!.displayText).toBe(
-      "ML-Driven PBL, Nagoya University (2025)",
-    );
-    expect(grants!.items[1]!.displayText).toBe(
-      "PARANAC, University of Caen Normandy",
-    );
+    expect(grants!.items[0]!.displayText).toBe("ML-Driven PBL, Nagoya University (2025)");
+    expect(grants!.items[1]!.displayText).toBe("PARANAC, University of Caen Normandy");
     expect(grants!.items[0]!.source).toBe("orcid");
     expect(grants!.items[0]!.csl).toBeUndefined();
   });
@@ -77,7 +95,12 @@ describe("non-citation sections (positions + grants + editorial)", () => {
         },
         // ORCID has only an award number; the matching OpenAlex grant (same award
         // number, in the fixture) backfills the funder id + name.
-        { putCode: "101", title: "ML-Driven PBL", organization: "Nagoya University", awardId: "ANR-18-CE17-0001" },
+        {
+          putCode: "101",
+          title: "ML-Driven PBL",
+          organization: "Nagoya University",
+          awardId: "ANR-18-CE17-0001",
+        },
         // No award/funder info at all → identifiers stay undefined (never invented).
         { putCode: "102", title: "Bare grant", organization: "Some Org" },
       ],
@@ -86,9 +109,7 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     const byPut = (pc: string) => grants.items.find((i) => i.sourceId === pc)!;
 
     // ORCID-supplied identifiers win.
-    expect(byPut("100").meta.funderId).toBe(
-      "FUNDREF:http://dx.doi.org/10.13039/501100001665",
-    );
+    expect(byPut("100").meta.funderId).toBe("FUNDREF:http://dx.doi.org/10.13039/501100001665");
     expect(byPut("100").meta.awardId).toBe("ANR-18-CE17-0001");
     expect(byPut("100").meta.funderName).toBe("University of Caen Normandy");
 
@@ -152,14 +173,24 @@ describe("non-citation sections (positions + grants + editorial)", () => {
         ...resolved,
         // OpenAlex affiliation carrying a ROR id (set during ROR enrichment).
         affiliations: [
-          { institution: "Université de Caen", startYear: 2010, rorId: "https://ror.org/051kpcy16" },
+          {
+            institution: "Université de Caen",
+            startYear: 2010,
+            rorId: "https://ror.org/051kpcy16",
+          },
         ],
       },
       works: baseWorks,
       now: "2026-06-02T00:00:00.000Z",
       // ORCID employment carrying a ROR id.
       employments: [
-        { putCode: "200", organization: "Nagoya University", roleTitle: "Assistant Professor", startYear: 2024, rorId: "https://ror.org/04chrp450" },
+        {
+          putCode: "200",
+          organization: "Nagoya University",
+          roleTitle: "Assistant Professor",
+          startYear: 2024,
+          rorId: "https://ror.org/04chrp450",
+        },
       ],
       fundings,
     });
@@ -188,6 +219,85 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       "Associate Editor, BMJ (2021–present)",
       "Reviewer, Lancet (2019–2022)",
     ]);
+  });
+
+  it("gives editorial roles stable, content-based ids (source = oep)", () => {
+    const cv = buildCanonicalCv({
+      id: "s",
+      resolved,
+      works: baseWorks,
+      now: "2026-06-02T00:00:00.000Z",
+      editorialRoles,
+    });
+    const editorial = cv.sections.find((s) => s.type === "editorial")!;
+    expect(editorial.items.map((i) => i.id)).toEqual([
+      "editorial:bmj:associate-editor",
+      "editorial:lancet:reviewer",
+    ]);
+    expect(editorial.items.every((i) => i.source === "oep")).toBe(true);
+  });
+
+  it("preserves Hide + 'not mine' + reason on editorial roles across a re-sync", () => {
+    const NOW = "2026-06-02T00:00:00.000Z";
+    const first = buildCanonicalCv({
+      id: "s",
+      resolved,
+      works: baseWorks,
+      now: NOW,
+      editorialRoles,
+    });
+    // OEP mis-attributed the BMJ editorship → mark it "not mine" with a reason;
+    // hide the Lancet one from the CV.
+    let curated = setItemNotMine(first, "editorial", "editorial:bmj:associate-editor", true, {
+      reason: "different-person",
+      now: NOW,
+    });
+    curated = setItemIncluded(curated, "editorial", "editorial:lancet:reviewer", false);
+
+    // Re-sync with the dataset rows REORDERED — index-based ids would have moved
+    // the corrections onto the wrong roles; the stable id keeps them anchored.
+    const resynced = buildCanonicalCv({
+      id: "s",
+      resolved,
+      works: baseWorks,
+      now: "2026-07-01T00:00:00.000Z",
+      editorialRoles: [editorialRoles[1]!, editorialRoles[0]!],
+      previous: curated,
+    });
+    const ed = resynced.sections.find((s) => s.type === "editorial")!;
+    const bmj = ed.items.find((i) => i.id === "editorial:bmj:associate-editor")!;
+    const lancet = ed.items.find((i) => i.id === "editorial:lancet:reviewer")!;
+    expect(bmj.notMine).toBe(true);
+    expect(bmj.notMineReason).toBe("different-person");
+    expect(bmj.notMineAssertedAt).toBeDefined();
+    expect(lancet.included).toBe(false);
+  });
+
+  it("adds a new editorial role un-curated without disturbing existing curation", () => {
+    const NOW = "2026-06-02T00:00:00.000Z";
+    const first = buildCanonicalCv({
+      id: "s",
+      resolved,
+      works: baseWorks,
+      now: NOW,
+      editorialRoles,
+    });
+    const curated = setItemNotMine(first, "editorial", "editorial:bmj:associate-editor", true, {
+      now: NOW,
+    });
+    const resynced = buildCanonicalCv({
+      id: "s",
+      resolved,
+      works: baseWorks,
+      now: NOW,
+      editorialRoles: [...editorialRoles, { journal: "Nature", role: "Editor" }],
+      previous: curated,
+    });
+    const ed = resynced.sections.find((s) => s.type === "editorial")!;
+    expect(ed.items.find((i) => i.id === "editorial:bmj:associate-editor")!.notMine).toBe(true);
+    const nat = ed.items.find((i) => i.id === "editorial:nature:editor")!;
+    expect(nat.notMine).toBe(false);
+    expect(nat.included).toBe(true);
   });
 
   it("omits the extra sections when there's no positions/grant/editorial data", () => {
@@ -228,13 +338,30 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       now: "2026-06-02T00:00:00.000Z",
       employments,
       invitedPositions: [
-        { putCode: "300", organization: "Harvard", roleTitle: "Visiting Scholar", startYear: 2019, endYear: 2020 },
+        {
+          putCode: "300",
+          organization: "Harvard",
+          roleTitle: "Visiting Scholar",
+          startYear: 2019,
+          endYear: 2020,
+        },
       ],
       education: [
-        { putCode: "400", organization: "University of Caen", roleTitle: "PharmD", startYear: 2008, endYear: 2014 },
+        {
+          putCode: "400",
+          organization: "University of Caen",
+          roleTitle: "PharmD",
+          startYear: 2008,
+          endYear: 2014,
+        },
       ],
       distinctions: [
-        { putCode: "500", organization: "French Society of Pharmacology", roleTitle: "Young Investigator Award", startYear: 2021 },
+        {
+          putCode: "500",
+          organization: "French Society of Pharmacology",
+          roleTitle: "Young Investigator Award",
+          startYear: 2021,
+        },
       ],
       service: [
         { putCode: "600", organization: "ISoP", roleTitle: "Committee Member", startYear: 2022 },
@@ -254,9 +381,7 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(byType("awards")!.items[0]!.displayText).toBe(
       "Young Investigator Award, French Society of Pharmacology (2021)",
     );
-    expect(byType("service")!.items[0]!.displayText).toBe(
-      "Committee Member, ISoP (2022–present)",
-    );
+    expect(byType("service")!.items[0]!.displayText).toBe("Committee Member, ISoP (2022–present)");
     // Invited positions get their own "Invited Talks" section (not merged into
     // Positions), so visiting/invited roles aren't buried under employment.
     expect(
@@ -265,9 +390,7 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       ),
     ).toBe(true);
     expect(
-      byType("positions")?.items.some((i) =>
-        i.displayText?.includes("Visiting Scholar"),
-      ) ?? false,
+      byType("positions")?.items.some((i) => i.displayText?.includes("Visiting Scholar")) ?? false,
     ).toBe(false);
     // Peer review labelled by JOURNAL (resolved name), publisher only as fallback.
     const pr = byType("peer-review")!.items.map((i) => i.displayText);
@@ -282,16 +405,26 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       works: baseWorks,
       now: "2026-06-02T00:00:00.000Z",
       dataciteOutputs: [
-        { doi: "10.5281/zenodo.9", title: "PV signal toolkit", type: "Software", year: 2024, publisher: "Zenodo" },
-        { doi: "10.5281/zenodo.8", title: "VigiBase extract", type: "Dataset", year: 2023, publisher: "Zenodo" },
+        {
+          doi: "10.5281/zenodo.9",
+          title: "PV signal toolkit",
+          type: "Software",
+          year: 2024,
+          publisher: "Zenodo",
+        },
+        {
+          doi: "10.5281/zenodo.8",
+          title: "VigiBase extract",
+          type: "Dataset",
+          year: 2023,
+          publisher: "Zenodo",
+        },
       ],
     });
     const datasets = cv.sections.find((s) => s.type === "datasets")!;
     expect(datasets.items).toHaveLength(2);
     // Newest first; format "<title>. <publisher> (<year>) [<type>]".
-    expect(datasets.items[0]!.displayText).toBe(
-      "PV signal toolkit. Zenodo (2024) [Software]",
-    );
+    expect(datasets.items[0]!.displayText).toBe("PV signal toolkit. Zenodo (2024) [Software]");
     expect(datasets.items[0]!.source).toBe("datacite");
     expect(datasets.items[0]!.meta.doi).toBe("10.5281/zenodo.9");
   });
@@ -331,7 +464,9 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       now: "2026-06-02T00:00:00.000Z",
     });
     const pubId = first.sections[0]!.items[0]!.id;
-    const asserted = setItemNotMine(first, "publications", pubId, true, { now: "2026-06-02T00:00:00.000Z" });
+    const asserted = setItemNotMine(first, "publications", pubId, true, {
+      now: "2026-06-02T00:00:00.000Z",
+    });
 
     // OpenAlex re-issues the SAME work (same DOI) under a different id.
     const churned = { ...withDoi!, id: `${withDoi!.id}-v2` };
@@ -356,7 +491,13 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       now: "2026-06-02T00:00:00.000Z",
       fundings,
       education: [
-        { putCode: "400", organization: "University of Caen", roleTitle: "PharmD", startYear: 2008, endYear: 2014 },
+        {
+          putCode: "400",
+          organization: "University of Caen",
+          roleTitle: "PharmD",
+          startYear: 2008,
+          endYear: 2014,
+        },
         // A 2nd, more-recent entry so buildOrcidEntrySection's recency sort runs.
         { putCode: "401", organization: "Nagoya University", roleTitle: "MPH", startYear: 2024 },
       ],
@@ -379,9 +520,18 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     const withManual: CanonicalCv = {
       ...first,
       sections: first.sections.map((s) => {
-        if (s.type === "education") return { ...s, items: [...s.items, manual("education:manual:1", "Self-taught Rust")] };
-        if (s.type === "peer-review") return { ...s, items: [...s.items, manual("peer-review:manual:1", "Grant review panel — NIH")] };
-        if (s.type === "grants") return { ...s, items: [...s.items, manual("grant:manual:1", "Internal seed fund (2020)")] };
+        if (s.type === "education")
+          return { ...s, items: [...s.items, manual("education:manual:1", "Self-taught Rust")] };
+        if (s.type === "peer-review")
+          return {
+            ...s,
+            items: [...s.items, manual("peer-review:manual:1", "Grant review panel — NIH")],
+          };
+        if (s.type === "grants")
+          return {
+            ...s,
+            items: [...s.items, manual("grant:manual:1", "Internal seed fund (2020)")],
+          };
         return s;
       }),
     };
@@ -394,7 +544,13 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       now: "2026-07-01T00:00:00.000Z",
       fundings,
       education: [
-        { putCode: "400", organization: "University of Caen", roleTitle: "PharmD", startYear: 2008, endYear: 2014 },
+        {
+          putCode: "400",
+          organization: "University of Caen",
+          roleTitle: "PharmD",
+          startYear: 2008,
+          endYear: 2014,
+        },
       ],
       peerReviews: [{ organization: "BMJ", count: 5 }],
       previous: withManual,
@@ -437,7 +593,14 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       ...base,
       sections: [
         ...base.sections,
-        { id: "editorial", type: "editorial", title: "Editorial Roles", visible: true, order: 7, items: [manual] },
+        {
+          id: "editorial",
+          type: "editorial",
+          title: "Editorial Roles",
+          visible: true,
+          order: 7,
+          items: [manual],
+        },
       ],
     };
     const resynced = buildCanonicalCv({
@@ -576,10 +739,20 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       fundings,
       editorialRoles,
       education: [
-        { putCode: "400", organization: "University of Caen", roleTitle: "PharmD", startYear: 2008 },
+        {
+          putCode: "400",
+          organization: "University of Caen",
+          roleTitle: "PharmD",
+          startYear: 2008,
+        },
       ],
       distinctions: [
-        { putCode: "500", organization: "French Society of Pharmacology", roleTitle: "Young Investigator Award", startYear: 2021 },
+        {
+          putCode: "500",
+          organization: "French Society of Pharmacology",
+          roleTitle: "Young Investigator Award",
+          startYear: 2021,
+        },
       ],
       dataciteOutputs: [
         { doi: "10.5281/zenodo.1", title: "A dataset", type: "Dataset", year: 2023 },
@@ -606,9 +779,7 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     // Simulate an OLD stored doc with publications pinned first + no custom flag.
     const stale: CanonicalCv = {
       ...first,
-      sections: first.sections.map((s) =>
-        s.type === "publications" ? { ...s, order: 0 } : s,
-      ),
+      sections: first.sections.map((s) => (s.type === "publications" ? { ...s, order: 0 } : s)),
     };
     const resynced = buildCanonicalCv({
       id: "ord1",
@@ -634,9 +805,7 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     const reordered: CanonicalCv = {
       ...first,
       display: { ...first.display, sectionsCustomized: true },
-      sections: first.sections.map((s) =>
-        s.type === "publications" ? { ...s, order: -1 } : s,
-      ),
+      sections: first.sections.map((s) => (s.type === "publications" ? { ...s, order: -1 } : s)),
     };
     const resynced = buildCanonicalCv({
       id: "ord2",

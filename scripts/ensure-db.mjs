@@ -39,10 +39,7 @@ export function parseDatabaseUrl(envText) {
   const m = envText.match(/^\s*DATABASE_URL\s*=\s*(.+?)\s*$/m);
   if (!m) return null;
   let v = m[1].trim();
-  if (
-    (v.startsWith('"') && v.endsWith('"')) ||
-    (v.startsWith("'") && v.endsWith("'"))
-  ) {
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
     v = v.slice(1, -1);
   }
   return v || null;
@@ -79,8 +76,7 @@ function readFileSafe(path) {
 }
 
 function main() {
-  const dbUrl =
-    process.env.DATABASE_URL ?? parseDatabaseUrl(readFileSafe(ENV_PATH));
+  const dbUrl = process.env.DATABASE_URL ?? parseDatabaseUrl(readFileSafe(ENV_PATH));
   if (!isUsableDatabaseUrl(dbUrl)) {
     console.log("[ensure-db] No usable DATABASE_URL — skipping DB sync.");
     return;
@@ -97,9 +93,7 @@ function main() {
     return; // schema unchanged since the last successful push → fast no-op
   }
 
-  console.log(
-    "[ensure-db] Prisma schema changed — syncing the database (prisma db push)…",
-  );
+  console.log("[ensure-db] Prisma schema changed — syncing the database (prisma db push)…");
   // `prisma db push` syncs the schema AND regenerates the client (Prisma 7 has
   // no `--skip-generate` flag), so no separate generate step is needed.
   const res = spawnSync("npx", dbPushArgs(), { stdio: "inherit", shell: true });
@@ -120,6 +114,5 @@ function main() {
 }
 
 const invokedDirectly =
-  Boolean(process.argv[1]) &&
-  import.meta.url === pathToFileURL(process.argv[1]).href;
+  Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (invokedDirectly) main();

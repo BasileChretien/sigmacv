@@ -1,10 +1,7 @@
 import type { CanonicalCv, CvItem, CvSection } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { DEFAULT_STYLE, isBundledStyle, registerStyleXml } from "@/lib/citeproc/assets";
-import {
-  renderBibliography,
-  type CiteprocOutputFormat,
-} from "@/lib/citeproc/engine";
+import { renderBibliography, type CiteprocOutputFormat } from "@/lib/citeproc/engine";
 import type { CslItem } from "@/types/csl";
 import { escapeHtml } from "./escape";
 
@@ -97,16 +94,9 @@ export function prepareSections(
   // section, each list is contiguous (Publications 1..K, Preprints 1..M).
   // Author–date styles (APA) carry no numbers, so their output is unchanged.
   return perSection.map(({ section, items }) => {
-    const cslItems = items
-      .map((i) => i.csl)
-      .filter((c): c is CslItem => Boolean(c));
+    const cslItems = items.map((i) => i.csl).filter((c): c is CslItem => Boolean(c));
     const entries = cslItems.length
-      ? renderBibliography(
-          cslItems,
-          styleKey,
-          cv.display.locale,
-          outputFormat,
-        )
+      ? renderBibliography(cslItems, styleKey, cv.display.locale, outputFormat)
       : [];
     const byId = new Map(entries.map((e) => [e.id, e.content]));
     return {

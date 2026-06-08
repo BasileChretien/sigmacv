@@ -1,10 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { resilientFetch } from "@/lib/http";
 
-function res(
-  status: number,
-  headers: Record<string, string> = {},
-): Response {
+function res(status: number, headers: Record<string, string> = {}): Response {
   return {
     ok: status >= 200 && status < 300,
     status,
@@ -46,17 +43,13 @@ describe("resilientFetch", () => {
       throw new Error("ECONNRESET");
     });
     vi.stubGlobal("fetch", f);
-    await expect(
-      resilientFetch("https://x.test", { retries: 1 }),
-    ).rejects.toThrow(/ECONNRESET/);
+    await expect(resilientFetch("https://x.test", { retries: 1 })).rejects.toThrow(/ECONNRESET/);
     expect(f).toHaveBeenCalledTimes(2);
   });
 
   it("honors Retry-After on 429", async () => {
     let n = 0;
-    const f = vi.fn(async () =>
-      ++n < 2 ? res(429, { "retry-after": "0" }) : res(200),
-    );
+    const f = vi.fn(async () => (++n < 2 ? res(429, { "retry-after": "0" }) : res(200)));
     vi.stubGlobal("fetch", f);
     const r = await resilientFetch("https://x.test", { retries: 1 });
     expect(r.status).toBe(200);
@@ -67,15 +60,11 @@ describe("resilientFetch", () => {
       (_url: string | URL, init: RequestInit) =>
         new Promise<Response>((_resolve, reject) => {
           (init.signal as AbortSignal).addEventListener("abort", () =>
-            reject(
-              Object.assign(new Error("aborted"), { name: "AbortError" }),
-            ),
+            reject(Object.assign(new Error("aborted"), { name: "AbortError" })),
           );
         }),
     );
     vi.stubGlobal("fetch", f);
-    await expect(
-      resilientFetch("https://x.test", { retries: 0, timeoutMs: 30 }),
-    ).rejects.toThrow();
+    await expect(resilientFetch("https://x.test", { retries: 0, timeoutMs: 30 })).rejects.toThrow();
   });
 });

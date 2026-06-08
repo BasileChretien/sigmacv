@@ -5,10 +5,7 @@ import {
   type CvSectionType,
 } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
-import {
-  GRANT_PRESETS,
-  type GrantPresetId,
-} from "@/lib/canonical/cvModels";
+import { GRANT_PRESETS, type GrantPresetId } from "@/lib/canonical/cvModels";
 import { wrapSelf } from "./emphasize";
 import { escapeMarkdown } from "./escape";
 import { prepareSections } from "./prepare";
@@ -141,26 +138,15 @@ function bulletList(cv: CanonicalCv, type: CvSectionType): string[] {
 /** The track-record / products list: every visible PUBLICATION entry, run
  *  through citeproc text and self-name-bolded — already capped to the preset's
  *  `publicationsLimit` and ordered by `prepareSections`. */
-function publicationLines(
-  cv: CanonicalCv,
-  prepared: PreparedSection[],
-): string[] {
+function publicationLines(cv: CanonicalCv, prepared: PreparedSection[]): string[] {
   const lines: string[] = [];
   for (const { section, items } of prepared) {
     if (section.type !== "publications") continue;
     for (const { item, entry } of items) {
       if (!item.csl) continue;
       let text = escapeMarkdown(entry);
-      if (
-        cv.display.highlightSelf &&
-        item.authoredBySelf &&
-        item.selfNameVariants.length > 0
-      ) {
-        text = wrapSelf(
-          text,
-          item.selfNameVariants.map(escapeMarkdown),
-          (s) => `**${s}**`,
-        );
+      if (cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0) {
+        text = wrapSelf(text, item.selfNameVariants.map(escapeMarkdown), (s) => `**${s}**`);
       }
       lines.push(`${lines.length + 1}. ${text}`);
     }
@@ -176,10 +162,7 @@ function publicationLines(
 function narrativeBlocks(cv: CanonicalCv): string[] {
   return visibleSections(cv)
     .filter((s) => isProseSectionType(s.type) && (s.body ?? "").trim().length > 0)
-    .map(
-      (s) =>
-        `## ${escapeMarkdown(s.title)}\n\n${escapeMarkdown((s.body ?? "").trim())}`,
-    );
+    .map((s) => `## ${escapeMarkdown(s.title)}\n\n${escapeMarkdown((s.body ?? "").trim())}`);
 }
 
 /**

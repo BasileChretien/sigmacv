@@ -42,10 +42,7 @@ function bars(points: Point[], fill: string): string {
   const labelEvery = points.length > 8 ? 2 : 1; // avoid crowding x-axis labels
   return points
     .map((p, i) => {
-      const h =
-        logMax > 0
-          ? Math.round((Math.log1p(Math.max(0, p.value)) / logMax) * CHART_H)
-          : 0;
+      const h = logMax > 0 ? Math.round((Math.log1p(Math.max(0, p.value)) / logMax) * CHART_H) : 0;
       const x = i * (BAR_W + GAP);
       const y = CHART_H - h;
       const showLabel = i % labelEvery === 0 || i === points.length - 1;
@@ -86,7 +83,11 @@ export function curatedCountsByYear(
     e.citations += item.meta.citedByCount ?? 0;
     byYear.set(year, e);
   }
-  return [...byYear.entries()].map(([year, v]) => ({ year, works: v.works, citations: v.citations }));
+  return [...byYear.entries()].map(([year, v]) => ({
+    year,
+    works: v.works,
+    citations: v.citations,
+  }));
 }
 
 /** Per-year publication + citation points (last 12 years), or null when charts

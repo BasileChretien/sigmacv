@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import { GRANT_PRESET_IDS } from "@/lib/canonical/cvModels";
-import {
-  grantPresetLabel,
-  grantPresetList,
-  grantPresetStrings,
-} from "@/lib/i18n/grantPresets";
+import { grantPresetLabel, grantPresetList, grantPresetStrings } from "@/lib/i18n/grantPresets";
 import { editorUi } from "@/lib/i18n/editorUi";
 
 describe("grant-preset i18n", () => {
@@ -15,10 +11,7 @@ describe("grant-preset i18n", () => {
       const strings = grantPresetStrings(loc);
       for (const id of GRANT_PRESET_IDS) {
         expect(strings[id].name.length, `${loc}/${id} name`).toBeGreaterThan(0);
-        expect(
-          strings[id].description.length,
-          `${loc}/${id} description`,
-        ).toBeGreaterThan(0);
+        expect(strings[id].description.length, `${loc}/${id} description`).toBeGreaterThan(0);
       }
       // Exactly the four preset ids, no extras/missing.
       expect(Object.keys(strings).sort()).toEqual([...GRANT_PRESET_IDS].sort());
@@ -38,10 +31,9 @@ describe("grant-preset i18n", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const strings = grantPresetStrings(loc);
       for (const id of GRANT_PRESET_IDS) {
-        expect(
-          strings[id].description,
-          `${loc}/${id} mentions its funder portal`,
-        ).toContain(PORTAL_CAVEAT[id]);
+        expect(strings[id].description, `${loc}/${id} mentions its funder portal`).toContain(
+          PORTAL_CAVEAT[id],
+        );
       }
     }
   });
@@ -61,9 +53,7 @@ describe("grant-preset i18n", () => {
   });
 
   it("falls back to English for an unknown locale", () => {
-    expect(grantPresetStrings("xx-XX").erc.name).toBe(
-      grantPresetStrings("en-US").erc.name,
-    );
+    expect(grantPresetStrings("xx-XX").erc.name).toBe(grantPresetStrings("en-US").erc.name);
     expect(grantPresetLabel("zz-ZZ", "msca").description).toBe(
       grantPresetStrings("en-US").msca.description,
     );
@@ -93,10 +83,7 @@ describe("grant-preset i18n", () => {
       expect(eu.modelApply.length, `${loc} modelApply`).toBeGreaterThan(0);
       expect(eu.modelSnapshot.length, `${loc} modelSnapshot`).toBeGreaterThan(0);
       expect(eu.modelGrpGrant.length, `${loc} modelGrpGrant`).toBeGreaterThan(0);
-      expect(
-        eu.modelGrpInstitution.length,
-        `${loc} modelGrpInstitution`,
-      ).toBeGreaterThan(0);
+      expect(eu.modelGrpInstitution.length, `${loc} modelGrpInstitution`).toBeGreaterThan(0);
       expect(eu.modelGrpIndustry.length, `${loc} modelGrpIndustry`).toBeGreaterThan(0);
     }
   });

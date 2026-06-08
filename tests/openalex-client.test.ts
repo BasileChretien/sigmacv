@@ -45,9 +45,7 @@ describe("fetchWorksByAuthorIds", () => {
 
   it("paginates with the cursor and OR-joins author ids", async () => {
     fetchMock
-      .mockResolvedValueOnce(
-        jsonResponse({ results: [{ id: "W1" }], meta: { next_cursor: "c2" } }),
-      )
+      .mockResolvedValueOnce(jsonResponse({ results: [{ id: "W1" }], meta: { next_cursor: "c2" } }))
       .mockResolvedValueOnce(
         jsonResponse({ results: [{ id: "W2" }], meta: { next_cursor: null } }),
       );

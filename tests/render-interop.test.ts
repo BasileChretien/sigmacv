@@ -1,19 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import {
-  addManualEntry,
-  setItemNotMine,
-  updateDisplay,
-  updateOwner,
-} from "@/lib/canonical/curate";
+import { addManualEntry, setItemNotMine, updateDisplay, updateOwner } from "@/lib/canonical/curate";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { cvCslItems, renderCvCslJson, csljsonRenderer } from "@/lib/render/csljson";
-import {
-  buildJsonResume,
-  renderCvJsonResume,
-  jsonresumeRenderer,
-} from "@/lib/render/jsonresume";
+import { buildJsonResume, renderCvJsonResume, jsonresumeRenderer } from "@/lib/render/jsonresume";
 import { renderCvBiosketch, biosketchRenderer } from "@/lib/render/biosketch";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";

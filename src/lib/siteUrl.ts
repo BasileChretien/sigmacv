@@ -9,9 +9,7 @@
 const FALLBACK_SITE_URL = "https://sigmacv.org";
 
 /** Resolve + normalize a site origin (strips trailing slashes). */
-export function resolveSiteUrl(
-  raw: string | undefined = process.env.NEXT_PUBLIC_SITE_URL,
-): string {
+export function resolveSiteUrl(raw: string | undefined = process.env.NEXT_PUBLIC_SITE_URL): string {
   const value = (raw ?? "").trim();
   const base = value.length > 0 ? value : FALLBACK_SITE_URL;
   return base.replace(/\/+$/, "");

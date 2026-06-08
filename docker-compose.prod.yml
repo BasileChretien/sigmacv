@@ -35,7 +35,6 @@ services:
       # Durable, cross-instance rate limiting (survives restarts). Default on.
       RATE_LIMIT_PERSIST: ${RATE_LIMIT_PERSIST:-true}
       # Optional features (leave blank to disable).
-      OEP_DATA_URL: ${OEP_DATA_URL:-}
       RESYNC_SECRET: ${RESYNC_SECRET:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}

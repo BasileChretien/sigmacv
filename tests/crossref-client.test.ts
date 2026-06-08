@@ -53,7 +53,9 @@ describe("fetchCrossrefGapFields", () => {
   });
 
   it("normalises a DOI URL to its bare form before requesting", async () => {
-    const fetchMock = vi.fn(async (_url: URL | string) => res(JSON.stringify({ "container-title": "X" })));
+    const fetchMock = vi.fn(async (_url: URL | string) =>
+      res(JSON.stringify({ "container-title": "X" })),
+    );
     vi.stubGlobal("fetch", fetchMock);
     await fetchCrossrefGapFields("https://dx.doi.org/10.5555/Test", MAILTO);
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("10.5555%2Ftest");
@@ -68,26 +70,39 @@ describe("fetchCrossrefGapFields", () => {
   });
 
   it("returns null on a non-ok response", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => res("", { status: 404 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res("", { status: 404 })),
+    );
     expect(await fetchCrossrefGapFields("10.1000/x", MAILTO)).toBeNull();
   });
 
   it("returns null when no gap fields are present", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => res(JSON.stringify({ title: "Only a title" }))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(JSON.stringify({ title: "Only a title" }))),
+    );
     expect(await fetchCrossrefGapFields("10.1000/x", MAILTO)).toBeNull();
   });
 
   it("rejects an oversized declared content-length", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => res(JSON.stringify({ "container-title": "X" }), { headers: { "content-length": "999999" } })),
+      vi.fn(async () =>
+        res(JSON.stringify({ "container-title": "X" }), {
+          headers: { "content-length": "999999" },
+        }),
+      ),
     );
     expect(await fetchCrossrefGapFields("10.1000/x", MAILTO)).toBeNull();
   });
 
   it("rejects an oversized body", async () => {
     const big = `{"container-title":"${"x".repeat(200_001)}"}`;
-    vi.stubGlobal("fetch", vi.fn(async () => res(big)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(big)),
+    );
     expect(await fetchCrossrefGapFields("10.1000/x", MAILTO)).toBeNull();
   });
 
@@ -102,7 +117,10 @@ describe("fetchCrossrefGapFields", () => {
   });
 
   it("returns null on unparseable JSON", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => res("<<not json>>")));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res("<<not json>>")),
+    );
     expect(await fetchCrossrefGapFields("10.1000/x", MAILTO)).toBeNull();
   });
 });

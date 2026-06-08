@@ -127,3 +127,47 @@ model RateLimitWindow {
 
   @@index([resetAt])
 }
+
+// Open Editors Plus reference data: journal editorial roles keyed by researcher
+// ORCID. Bulk-imported from the committed OEP seed (`npm run oep:import`, see
+// scripts/oep-import.ts) — ~347k rows, queried by `orcid` at CV-sync time to
+// populate the Editorial Roles section. This is STATIC reference data, not user
+// data: no relation to User, replaced wholesale on each import. Empty table =
+// the integration is simply a no-op (no editorial section), so the app runs
+// without it.
+model OepEditorialRole {
+  id        Int     @id @default(autoincrement())
+  orcid     String
+  journal   String
+  role      String
+  roleStd   String?
+  publisher String?
+  issn      String?
+
+  @@index([orcid])
+}
+
+// WHO ICTRP reference data: clinical trials from the ~17 national registries
+// (ISRCTN, jRCT, ChiCTR, CTRI, ANZCTR, …) that ClinicalTrials.gov and EU CTIS do
+// NOT cover. DORMANT by default — there is NO committed seed (WHO's terms forbid
+// redistribution and require a weekly refresh). The maintainer downloads the free
+// WHO ICTRP weekly export, converts it to NDJSON and runs `npm run ictrp:import`
+// (see scripts/ictrp-import.ts), which also drops any CT.gov / EU-CTR / CTIS rows
+// to avoid double-listing trials already pulled directly. Empty table = no-op.
+// Queried by contact surname at CV-sync time, then name+org matched in-app.
+// ICTRP has no ORCID and only "contact" (not PI) names, so hits are review
+// candidates. Static reference data — no relation to User; replaced on import.
+model IctrpTrial {
+  id                Int     @id @default(autoincrement())
+  trialId           String
+  sourceRegister    String
+  publicTitle       String
+  scientificTitle   String?
+  primarySponsor    String?
+  contactName       String
+  contactNameLower  String
+  recruitmentStatus String?
+  registrationYear  Int?
+
+  @@index([contactNameLower])
+}

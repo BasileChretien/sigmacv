@@ -134,7 +134,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartCitationsPerYear: "Citas / año",
     chartLogScale: "(log)",
     authorshipCaption: "Autoría (revisado por pares)",
-    authorshipCorrespondingNote: "Los datos de autor de correspondencia (OpenAlex) suelen estar incompletos.",
+    authorshipCorrespondingNote:
+      "Los datos de autor de correspondencia (OpenAlex) suelen estar incompletos.",
     provClassificationNote: "La clasificación revisado por pares/preimpresión es heurística.",
     provGeneratedFrom: "Generado a partir de",
     provOn: "el",
@@ -147,7 +148,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acceso abierto ({status})",
     badgeCitations: "{n} citas",
-    badgeCitationsTitle: "Recuento bruto de citas — sin normalización por campo (varía por campo y antigüedad)",
+    badgeCitationsTitle:
+      "Recuento bruto de citas — sin normalización por campo (varía por campo y antigüedad)",
     metric2yr: "Citación media a 2 años",
     metricFwci: "FWCI medio por trabajo",
     metricHIndex: "índice h",
@@ -171,7 +173,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartCitationsPerYear: "Citations / an",
     chartLogScale: "(log)",
     authorshipCaption: "Qualité d’auteur (évaluées par les pairs)",
-    authorshipCorrespondingNote: "Les données d’auteur correspondant (OpenAlex) sont souvent incomplètes.",
+    authorshipCorrespondingNote:
+      "Les données d’auteur correspondant (OpenAlex) sont souvent incomplètes.",
     provClassificationNote: "La distinction évalué par les pairs / prépublication est heuristique.",
     provGeneratedFrom: "Généré à partir de",
     provOn: "le",
@@ -184,7 +187,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accès libre ({status})",
     badgeCitations: "{n} citations",
-    badgeCitationsTitle: "Nombre brut de citations — non normalisé par domaine (varie selon le domaine et l’ancienneté)",
+    badgeCitationsTitle:
+      "Nombre brut de citations — non normalisé par domaine (varie selon le domaine et l’ancienneté)",
     metric2yr: "Citations moyennes sur 2 ans",
     metricFwci: "FWCI moyen des travaux",
     metricHIndex: "indice h",
@@ -192,7 +196,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "Travaux",
     metricCitations: "Citations",
     metricContextFwci: "1,0 = moyenne mondiale pour le domaine et l’année",
-    metricContext2yr: "taux de citation sur 2 ans — non normalisé par domaine (varie selon le domaine)",
+    metricContext2yr:
+      "taux de citation sur 2 ans — non normalisé par domaine (varie selon le domaine)",
     metricFwciCoverage: "moyenne sur {n} travaux avec FWCI",
     roleFirst: "Premier auteur",
     roleSecond: "Deuxième auteur",
@@ -208,7 +213,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartCitationsPerYear: "Zitationen / Jahr",
     chartLogScale: "(log)",
     authorshipCaption: "Autorschaft (begutachtet)",
-    authorshipCorrespondingNote: "Angaben zum korrespondierenden Autor (OpenAlex) sind oft unvollständig.",
+    authorshipCorrespondingNote:
+      "Angaben zum korrespondierenden Autor (OpenAlex) sind oft unvollständig.",
     provClassificationNote: "Die Einstufung begutachtet/Preprint erfolgt heuristisch.",
     provGeneratedFrom: "Erstellt aus",
     provOn: "am",
@@ -221,7 +227,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open Access ({status})",
     badgeCitations: "{n} Zitationen",
-    badgeCitationsTitle: "Reine Zitationszahl — nicht feldnormiert (variiert je nach Fach und Alter)",
+    badgeCitationsTitle:
+      "Reine Zitationszahl — nicht feldnormiert (variiert je nach Fach und Alter)",
     metric2yr: "Mittlere Zitationsrate (2 Jahre)",
     metricFwci: "Mittlerer FWCI",
     metricHIndex: "h-Index",
@@ -282,7 +289,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartCitationsPerYear: "Citações / ano",
     chartLogScale: "(log)",
     authorshipCaption: "Autoria (revisado por pares)",
-    authorshipCorrespondingNote: "Os dados de autor correspondente (OpenAlex) costumam estar incompletos.",
+    authorshipCorrespondingNote:
+      "Os dados de autor correspondente (OpenAlex) costumam estar incompletos.",
     provClassificationNote: "A classificação revisado por pares/preprint é heurística.",
     provGeneratedFrom: "Gerado a partir de",
     provOn: "em",
@@ -295,7 +303,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acesso aberto ({status})",
     badgeCitations: "{n} citações",
-    badgeCitationsTitle: "Contagem bruta de citações — não normalizada por área (varia por área e idade)",
+    badgeCitationsTitle:
+      "Contagem bruta de citações — não normalizada por área (varia por área e idade)",
     metric2yr: "Citação média em 2 anos",
     metricFwci: "FWCI médio dos trabalhos",
     metricHIndex: "índice h",
@@ -303,7 +312,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "Trabalhos",
     metricCitations: "Citações",
     metricContextFwci: "1,0 = média mundial para a área e o ano",
-    metricContext2yr: "taxa de citação em 2 anos — não normalizada por área (varia conforme a área)",
+    metricContext2yr:
+      "taxa de citação em 2 anos — não normalizada por área (varia conforme a área)",
     metricFwciCoverage: "média sobre {n} trabalhos com FWCI",
     roleFirst: "Primeiro autor",
     roleSecond: "Segundo autor",
@@ -319,7 +329,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     chartCitationsPerYear: "Citazioni / anno",
     chartLogScale: "(log)",
     authorshipCaption: "Paternità (sottoposto a revisione paritaria)",
-    authorshipCorrespondingNote: "I dati sull’autore corrispondente (OpenAlex) sono spesso incompleti.",
+    authorshipCorrespondingNote:
+      "I dati sull’autore corrispondente (OpenAlex) sono spesso incompleti.",
     provClassificationNote: "La classificazione con revisione paritaria/preprint è euristica.",
     provGeneratedFrom: "Generato da",
     provOn: "il",
@@ -332,7 +343,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accesso aperto ({status})",
     badgeCitations: "{n} citazioni",
-    badgeCitationsTitle: "Conteggio grezzo delle citazioni — non normalizzato per campo (varia per campo ed età)",
+    badgeCitationsTitle:
+      "Conteggio grezzo delle citazioni — non normalizzato per campo (varia per campo ed età)",
     metric2yr: "Citazioni medie a 2 anni",
     metricFwci: "FWCI medio dei lavori",
     metricHIndex: "indice h",
@@ -340,7 +352,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricWorks: "Lavori",
     metricCitations: "Citazioni",
     metricContextFwci: "1,0 = media mondiale per campo e anno",
-    metricContext2yr: "tasso di citazione a 2 anni — non normalizzato per campo (varia per disciplina)",
+    metricContext2yr:
+      "tasso di citazione a 2 anni — non normalizzato per campo (varia per disciplina)",
     metricFwciCoverage: "media su {n} lavori con FWCI",
     roleFirst: "Primo autore",
     roleSecond: "Secondo autore",
@@ -406,7 +419,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Открытый доступ ({status})",
     badgeCitations: "{n} цитирований",
-    badgeCitationsTitle: "Сырое число цитирований — без нормализации по области (зависит от области и возраста)",
+    badgeCitationsTitle:
+      "Сырое число цитирований — без нормализации по области (зависит от области и возраста)",
     metric2yr: "Средняя цитируемость за 2 года",
     metricFwci: "Средний FWCI работы",
     metricHIndex: "h-индекс",
@@ -460,10 +474,7 @@ export function metricContext(locale: string, key: string): string | undefined {
  * Localized "mean over N works with FWCI" coverage note. Returns undefined when
  * N is not a positive number, so callers can omit it cleanly.
  */
-export function metricCoverageNote(
-  locale: string,
-  n: number | undefined,
-): string | undefined {
+export function metricCoverageNote(locale: string, n: number | undefined): string | undefined {
   if (typeof n !== "number" || n <= 0) return undefined;
   return renderStrings(locale).metricFwciCoverage.replace("{n}", String(n));
 }

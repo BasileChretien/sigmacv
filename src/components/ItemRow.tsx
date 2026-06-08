@@ -15,6 +15,16 @@ const SOURCE_NAMES: Record<string, string> = {
   orcid: "ORCID",
   oep: "Open Editors Plus",
   datacite: "DataCite",
+  openaire: "OpenAIRE",
+  dblp: "DBLP",
+  crossref: "Crossref",
+  ukri: "UKRI",
+  nih: "NIH",
+  nsf: "NSF",
+  clinicaltrials: "ClinicalTrials.gov",
+  ctis: "EU CTIS",
+  ictrp: "WHO ICTRP",
+  epo: "EPO",
   derived: "derived",
 };
 
@@ -57,12 +67,25 @@ export default function ItemRow({
   const u = ui(locale);
   const isCitation = Boolean(item.csl);
   const isManual = item.source === "manual";
+  // "Not mine" is a disambiguation correction for an item a THIRD PARTY
+  // attributed to the account holder by IDENTIFIER match: bibliographic works
+  // (citations, from OpenAlex), DataCite + OpenAIRE datasets/software, DBLP
+  // conference papers (ORCID→PID matched), and Open Editors Plus editorial roles.
+  // ORCID records are self-asserted and manual entries are self-added, so those
+  // get Hide / Delete only. The NAME+org-matched registries (UKRI/NIH/NSF grants,
+  // clinical trials) are review candidates curated via Hide/Show — there is no
+  // identifier to contradict, so they never expose a "not mine" disambiguation
+  // claim. Inferred OpenAlex affiliations (a positions item) stay Hide-only too.
+  const canMarkNotMine =
+    isCitation ||
+    item.source === "oep" ||
+    item.source === "datacite" ||
+    item.source === "openaire" ||
+    item.source === "dblp";
   const title = item.csl?.title ?? item.displayText ?? u.itemUntitled;
   const year = item.meta.year ?? "—";
   const venue =
-    typeof item.csl?.["container-title"] === "string"
-      ? item.csl["container-title"]
-      : "";
+    typeof item.csl?.["container-title"] === "string" ? item.csl["container-title"] : "";
 
   // Where this entry's data came from (hover to see). "+ Crossref" when its
   // bibliographic gaps were filled by Crossref.
@@ -134,9 +157,7 @@ export default function ItemRow({
                   item.meta.matchBasis === "openalex-id" ? " is-weak-match" : ""
                 }`}
                 title={
-                  item.meta.matchBasis === "openalex-id"
-                    ? u.matchedByIdOnly
-                    : u.matchedByIdentifier
+                  item.meta.matchBasis === "openalex-id" ? u.matchedByIdOnly : u.matchedByIdentifier
                 }
               >
                 {t(locale, "youBadge")}
@@ -147,9 +168,7 @@ export default function ItemRow({
                 {t(locale, "notMineBadge")}
               </span>
             ) : null}
-            {item.authoredBySelf &&
-            item.meta.reviewFlag === "orcid-conflict" &&
-            !item.notMine ? (
+            {item.authoredBySelf && item.meta.reviewFlag === "orcid-conflict" && !item.notMine ? (
               <span className="cv-review-badge" title={t(locale, "reviewHint")}>
                 {t(locale, "reviewBadge")}
               </span>
@@ -157,16 +176,28 @@ export default function ItemRow({
             {sourceBadge}
           </div>
         ) : (
-          <div className="cv-item-meta">{sourceBadge}</div>
+          <div className="cv-item-meta">
+            {item.notMine ? (
+              <span className="cv-notmine-badge" title={t(locale, "notMineHint")}>
+                {t(locale, "notMineBadge")}
+              </span>
+            ) : null}
+            {/* Name+org-matched registry candidate (grants / trials): flag for
+                review. Hidden by default until the user confirms it's theirs. */}
+            {item.meta.reviewFlag === "name-matched" ? (
+              <span className="cv-review-badge" title={t(locale, "reviewHint")}>
+                {t(locale, "reviewBadge")}
+              </span>
+            ) : null}
+            {sourceBadge}
+          </div>
         )}
-        {isCitation && item.notMine && onSetNotMineReason ? (
+        {canMarkNotMine && item.notMine && onSetNotMineReason ? (
           <select
             className="cv-reason-select"
             value={item.notMineReason ?? ""}
             onChange={(e) =>
-              onSetNotMineReason(
-                e.target.value ? (e.target.value as NotMineReason) : undefined,
-              )
+              onSetNotMineReason(e.target.value ? (e.target.value as NotMineReason) : undefined)
             }
             aria-label={t(locale, "reasonAria")}
             title={t(locale, "reasonAria")}
@@ -180,59 +211,59 @@ export default function ItemRow({
           </select>
         ) : null}
         <div className="cv-item-actions">
-        <button
-          type="button"
-          className="icon-btn"
-          onClick={onMoveUp}
-          disabled={isFirst}
-          aria-label={t(locale, "moveUp")}
-          title={t(locale, "moveUp")}
-        >
-          ↑
-        </button>
-        <button
-          type="button"
-          className="icon-btn"
-          onClick={onMoveDown}
-          disabled={isLast}
-          aria-label={t(locale, "moveDown")}
-          title={t(locale, "moveDown")}
-        >
-          ↓
-        </button>
-        <button
-          type="button"
-          className="mine-btn"
-          onClick={onToggleIncluded}
-          aria-pressed={!item.included}
-          aria-label={`${item.included ? t(locale, "hide") : t(locale, "show")}: ${title}`}
-          title={t(locale, "hideHint")}
-        >
-          {item.included ? t(locale, "hide") : t(locale, "show")}
-        </button>
-        {isCitation ? (
           <button
             type="button"
-            className={`mine-btn${item.notMine ? " is-restore" : ""}`}
-            onClick={onToggleNotMine}
-            aria-pressed={item.notMine}
-            aria-label={`${item.notMine ? t(locale, "mine") : t(locale, "notMine")}: ${title}`}
-            title={t(locale, "notMineHint")}
+            className="icon-btn"
+            onClick={onMoveUp}
+            disabled={isFirst}
+            aria-label={t(locale, "moveUp")}
+            title={t(locale, "moveUp")}
           >
-            {item.notMine ? t(locale, "mine") : t(locale, "notMine")}
+            ↑
           </button>
-        ) : null}
-        {isManual && onRemove ? (
           <button
             type="button"
-            className="mine-btn is-delete"
-            onClick={onRemove}
-            title={t(locale, "delete")}
-            aria-label={t(locale, "delete")}
+            className="icon-btn"
+            onClick={onMoveDown}
+            disabled={isLast}
+            aria-label={t(locale, "moveDown")}
+            title={t(locale, "moveDown")}
           >
-            {t(locale, "delete")}
+            ↓
           </button>
-        ) : null}
+          <button
+            type="button"
+            className="mine-btn"
+            onClick={onToggleIncluded}
+            aria-pressed={!item.included}
+            aria-label={`${item.included ? t(locale, "hide") : t(locale, "show")}: ${title}`}
+            title={t(locale, "hideHint")}
+          >
+            {item.included ? t(locale, "hide") : t(locale, "show")}
+          </button>
+          {canMarkNotMine ? (
+            <button
+              type="button"
+              className={`mine-btn${item.notMine ? " is-restore" : ""}`}
+              onClick={onToggleNotMine}
+              aria-pressed={item.notMine}
+              aria-label={`${item.notMine ? t(locale, "mine") : t(locale, "notMine")}: ${title}`}
+              title={t(locale, "notMineHint")}
+            >
+              {item.notMine ? t(locale, "mine") : t(locale, "notMine")}
+            </button>
+          ) : null}
+          {isManual && onRemove ? (
+            <button
+              type="button"
+              className="mine-btn is-delete"
+              onClick={onRemove}
+              title={t(locale, "delete")}
+              aria-label={t(locale, "delete")}
+            >
+              {t(locale, "delete")}
+            </button>
+          ) : null}
         </div>
       </div>
     </li>

@@ -14,12 +14,7 @@ interface DocJsonLdProps {
   locale: string;
 }
 
-export default function DocJsonLd({
-  path,
-  name,
-  description,
-  locale,
-}: DocJsonLdProps) {
+export default function DocJsonLd({ path, name, description, locale }: DocJsonLdProps) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",

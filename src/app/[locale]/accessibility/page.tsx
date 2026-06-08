@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Accessibility from "@/components/Accessibility";
-import {
-  DEFAULT_UI_LOCALE,
-  NON_DEFAULT_LOCALE_SLUGS,
-  localeForSlug,
-} from "@/lib/i18n";
+import { DEFAULT_UI_LOCALE, NON_DEFAULT_LOCALE_SLUGS, localeForSlug } from "@/lib/i18n";
 import { accessibilityStrings } from "@/lib/i18n/accessibility";
-import {
-  accessibilityLanguageAlternates,
-  localeAccessibilityPath,
-} from "@/lib/seo";
+import { accessibilityLanguageAlternates, localeAccessibilityPath } from "@/lib/seo";
 
 /** Localized Accessibility page (/fr/accessibility, /ja/accessibility, …) — a
  *  crawlable URL per language with reciprocal hreflang. The default (en-US)

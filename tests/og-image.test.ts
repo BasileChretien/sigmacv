@@ -36,7 +36,12 @@ describe("ogImageProps", () => {
         { headline: "Assistant Professor of Pharmacology" },
         {
           employments: [
-            { putCode: "200", organization: "Nagoya University", roleTitle: "Assistant Professor", startYear: 2024 },
+            {
+              putCode: "200",
+              organization: "Nagoya University",
+              roleTitle: "Assistant Professor",
+              startYear: 2024,
+            },
           ],
           display: { accentColor: "#0f766e" },
         },
@@ -56,7 +61,9 @@ describe("ogImageProps", () => {
   });
 
   it("uses the summary as the headline when no headline is set", () => {
-    const props = ogImageProps(makeCv({ headline: undefined, summary: "I study adverse drug reactions." }));
+    const props = ogImageProps(
+      makeCv({ headline: undefined, summary: "I study adverse drug reactions." }),
+    );
     expect(props.headline).toBe("I study adverse drug reactions.");
   });
 
@@ -91,8 +98,19 @@ describe("ogImageProps", () => {
       {},
       {
         employments: [
-          { putCode: "200", organization: "Nagoya University", roleTitle: "Assistant Professor", startYear: 2024 },
-          { putCode: "201", organization: "CHU de Caen", roleTitle: "Pharmacist", startYear: 2012, endYear: 2024 },
+          {
+            putCode: "200",
+            organization: "Nagoya University",
+            roleTitle: "Assistant Professor",
+            startYear: 2024,
+          },
+          {
+            putCode: "201",
+            organization: "CHU de Caen",
+            roleTitle: "Pharmacist",
+            startYear: 2012,
+            endYear: 2024,
+          },
         ],
       },
     );
@@ -115,7 +133,12 @@ describe("ogImageProps", () => {
       {},
       {
         employments: [
-          { putCode: "200", organization: "Nagoya University", roleTitle: "Assistant Professor", startYear: 2024 },
+          {
+            putCode: "200",
+            organization: "Nagoya University",
+            roleTitle: "Assistant Professor",
+            startYear: 2024,
+          },
         ],
       },
     );

@@ -23,9 +23,7 @@ export interface DerivedMetrics {
 export function computeDerivedMetrics(works: OpenAlexWork[]): DerivedMetrics {
   const out: DerivedMetrics = {};
 
-  const fwcis = works
-    .map((w) => w.fwci)
-    .filter((x): x is number => typeof x === "number");
+  const fwcis = works.map((w) => w.fwci).filter((x): x is number => typeof x === "number");
   if (fwcis.length > 0) {
     out.fwci_mean = fwcis.reduce((a, b) => a + b, 0) / fwcis.length;
     out.fwci_n = fwcis.length;
@@ -39,8 +37,7 @@ export function computeDerivedMetrics(works: OpenAlexWork[]): DerivedMetrics {
     .map((w) => percentileOf(w.cited_by_percentile_year))
     .filter((x): x is number => typeof x === "number");
   if (percentiles.length > 0) {
-    out.top10pct_share =
-      percentiles.filter((v) => v >= 90).length / percentiles.length;
+    out.top10pct_share = percentiles.filter((v) => v >= 90).length / percentiles.length;
   }
 
   return out;

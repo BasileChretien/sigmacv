@@ -1,11 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getPublicCvForPage } from "@/lib/cv/sync";
 import { ogImageProps } from "@/lib/cv/ogImage";
-import {
-  enforcePubPageRateLimit,
-  isValidPublicSlug,
-  tooManyRequests,
-} from "../pubRateLimit";
+import { enforcePubPageRateLimit, isValidPublicSlug, tooManyRequests } from "../pubRateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,55 +46,61 @@ export async function GET(
   const { name, headline, affiliation, accentColor } = ogImageProps(cv);
 
   const image = new ImageResponse(
-    (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        padding: "72px",
+        background: "#ffffff",
+        color: "#0f172a",
+        fontFamily: "sans-serif",
+      }}
+    >
+      {/* Accent bar across the top. */}
+      <div style={{ display: "flex", width: "100%", height: 14, background: accentColor }} />
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ fontSize: 76, fontWeight: 700, lineHeight: 1.05 }}>{name}</div>
+        {headline ? (
+          <div style={{ fontSize: 36, marginTop: 24, color: "#334155" }}>{headline}</div>
+        ) : null}
+        {affiliation ? (
+          <div style={{ fontSize: 30, marginTop: 14, color: "#64748b" }}>{affiliation}</div>
+        ) : null}
+      </div>
+
+      {/* SigmaCV wordmark. */}
       <div
         style={{
-          width: "100%",
-          height: "100%",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          padding: "72px",
-          background: "#ffffff",
-          color: "#0f172a",
-          fontFamily: "sans-serif",
+          alignItems: "center",
+          fontSize: 30,
+          fontWeight: 700,
+          color: accentColor,
         }}
       >
-        {/* Accent bar across the top. */}
-        <div style={{ display: "flex", width: "100%", height: 14, background: accentColor }} />
-
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 76, fontWeight: 700, lineHeight: 1.05 }}>{name}</div>
-          {headline ? (
-            <div style={{ fontSize: 36, marginTop: 24, color: "#334155" }}>{headline}</div>
-          ) : null}
-          {affiliation ? (
-            <div style={{ fontSize: 30, marginTop: 14, color: "#64748b" }}>{affiliation}</div>
-          ) : null}
-        </div>
-
-        {/* SigmaCV wordmark. */}
-        <div style={{ display: "flex", alignItems: "center", fontSize: 30, fontWeight: 700, color: accentColor }}>
-          <span
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 48,
-              height: 48,
-              marginRight: 16,
-              borderRadius: 12,
-              background: accentColor,
-              color: "#ffffff",
-              fontSize: 32,
-            }}
-          >
-            Σ
-          </span>
-          SigmaCV
-        </div>
+        <span
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 48,
+            height: 48,
+            marginRight: 16,
+            borderRadius: 12,
+            background: accentColor,
+            color: "#ffffff",
+            fontSize: 32,
+          }}
+        >
+          Σ
+        </span>
+        SigmaCV
       </div>
-    ),
+    </div>,
     SIZE,
   );
 

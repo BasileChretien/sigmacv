@@ -30,11 +30,7 @@ export async function seedSession(userId: string): Promise<string> {
 }
 
 /** Seed a schema-valid CV using the real build pipeline + the unit fixtures. */
-export async function seedCv(
-  userId: string,
-  works: OpenAlexWork[],
-  name = "Basile Chrétien",
-) {
+export async function seedCv(userId: string, works: OpenAlexWork[], name = "Basile Chrétien") {
   const cv = buildCanonicalCv({
     id: randomUUID(),
     resolved: {

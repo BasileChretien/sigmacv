@@ -168,7 +168,9 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
           <input
             type="email"
             value={contact.email ?? ""}
-            onChange={(e) => onChange(updateOwner(cv, { contact: { email: e.target.value || undefined } }))}
+            onChange={(e) =>
+              onChange(updateOwner(cv, { contact: { email: e.target.value || undefined } }))
+            }
           />
         </label>
         <label className="field">
@@ -176,7 +178,9 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
           <input
             type="tel"
             value={contact.phone ?? ""}
-            onChange={(e) => onChange(updateOwner(cv, { contact: { phone: e.target.value || undefined } }))}
+            onChange={(e) =>
+              onChange(updateOwner(cv, { contact: { phone: e.target.value || undefined } }))
+            }
           />
         </label>
         <label className="field">
@@ -184,7 +188,9 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
           <input
             type="url"
             value={contact.website ?? ""}
-            onChange={(e) => onChange(updateOwner(cv, { contact: { website: e.target.value || undefined } }))}
+            onChange={(e) =>
+              onChange(updateOwner(cv, { contact: { website: e.target.value || undefined } }))
+            }
           />
         </label>
         <label className="field">
@@ -192,7 +198,9 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
           <input
             type="text"
             value={contact.location ?? ""}
-            onChange={(e) => onChange(updateOwner(cv, { contact: { location: e.target.value || undefined } }))}
+            onChange={(e) =>
+              onChange(updateOwner(cv, { contact: { location: e.target.value || undefined } }))
+            }
           />
         </label>
       </div>
@@ -238,7 +246,11 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
             <input
               type="text"
               value={personal.phoneticName ?? ""}
-              onChange={(e) => onChange(updateOwner(cv, { personal: { phoneticName: e.target.value || undefined } }))}
+              onChange={(e) =>
+                onChange(
+                  updateOwner(cv, { personal: { phoneticName: e.target.value || undefined } }),
+                )
+              }
             />
           </label>
           <label className="field">
@@ -246,7 +258,11 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
             <input
               type="text"
               value={personal.dateOfBirth ?? ""}
-              onChange={(e) => onChange(updateOwner(cv, { personal: { dateOfBirth: e.target.value || undefined } }))}
+              onChange={(e) =>
+                onChange(
+                  updateOwner(cv, { personal: { dateOfBirth: e.target.value || undefined } }),
+                )
+              }
             />
           </label>
           <label className="field">
@@ -254,7 +270,9 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
             <input
               type="text"
               value={personal.gender ?? ""}
-              onChange={(e) => onChange(updateOwner(cv, { personal: { gender: e.target.value || undefined } }))}
+              onChange={(e) =>
+                onChange(updateOwner(cv, { personal: { gender: e.target.value || undefined } }))
+              }
             />
           </label>
           <label className="field">
@@ -262,7 +280,11 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
             <input
               type="text"
               value={personal.nationality ?? ""}
-              onChange={(e) => onChange(updateOwner(cv, { personal: { nationality: e.target.value || undefined } }))}
+              onChange={(e) =>
+                onChange(
+                  updateOwner(cv, { personal: { nationality: e.target.value || undefined } }),
+                )
+              }
             />
           </label>
           <label className="field profile-address">
@@ -270,7 +292,9 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
             <input
               type="text"
               value={personal.address ?? ""}
-              onChange={(e) => onChange(updateOwner(cv, { personal: { address: e.target.value || undefined } }))}
+              onChange={(e) =>
+                onChange(updateOwner(cv, { personal: { address: e.target.value || undefined } }))
+              }
             />
           </label>
         </div>

@@ -27,10 +27,12 @@ export function escapeHtml(s: string): string {
  * citations and URLs render unchanged.
  */
 export function escapeMarkdown(s: string): string {
-  return s
-    .replace(/([\\`*_[\]])/g, "\\$1")
-    // A run of '#' at the very start of a line would otherwise become a heading.
-    .replace(/^(\s*)(#+)/gm, "$1\\$2");
+  return (
+    s
+      .replace(/([\\`*_[\]])/g, "\\$1")
+      // A run of '#' at the very start of a line would otherwise become a heading.
+      .replace(/^(\s*)(#+)/gm, "$1\\$2")
+  );
 }
 
 /**

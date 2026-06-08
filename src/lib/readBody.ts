@@ -6,9 +6,7 @@
  * Returns a discriminated result so the caller maps it to 413 (too large) vs 400
  * (invalid JSON) without leaking internals.
  */
-export type ReadBodyResult =
-  | { ok: true; value: unknown }
-  | { ok: false; tooLarge: boolean };
+export type ReadBodyResult = { ok: true; value: unknown } | { ok: false; tooLarge: boolean };
 
 export async function readJsonBodyWithLimit(
   req: Request,

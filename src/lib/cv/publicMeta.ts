@@ -30,9 +30,7 @@ function isHighSurrogate(code: number): boolean {
  * when neither is set, so the caller can omit the og:description tag entirely.
  */
 export function publicMetaDescription(cv: CanonicalCv): string {
-  const parts = [cv.owner.headline, cv.owner.summary]
-    .map((p) => oneLine(p ?? ""))
-    .filter(Boolean);
+  const parts = [cv.owner.headline, cv.owner.summary].map((p) => oneLine(p ?? "")).filter(Boolean);
   const joined = parts.join(" — ");
   if (joined.length <= DESCRIPTION_MAX) return joined;
   // Trim at the limit and add an ellipsis (cut on a word boundary when possible).
@@ -65,10 +63,7 @@ function nameTag(name: string, content: string): string {
 export function publicMetaTags(cv: CanonicalCv, opts: { imageUrl?: string } = {}): string {
   const title = oneLine(cv.owner.displayName || "Curriculum Vitae");
   const description = publicMetaDescription(cv);
-  const tags: string[] = [
-    ogTag("og:type", "profile"),
-    ogTag("og:title", title),
-  ];
+  const tags: string[] = [ogTag("og:type", "profile"), ogTag("og:title", title)];
   if (description) tags.push(ogTag("og:description", description));
   if (opts.imageUrl) tags.push(ogTag("og:image", opts.imageUrl));
   tags.push(nameTag("twitter:card", opts.imageUrl ? "summary_large_image" : "summary"));

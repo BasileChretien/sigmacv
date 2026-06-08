@@ -20,8 +20,7 @@ const FONT_STACKS: Record<FontPairing, string> = {
   // System UI sans, Inter-class metrics where present.
   sans: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   // Humanist serif with a generous x-height — great for CVs.
-  palatino:
-    '"Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia, serif',
+  palatino: '"Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia, serif',
 };
 
 /** CSS for the self-name `.cv-self` span, per highlight-style choice. */
