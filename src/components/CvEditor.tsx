@@ -45,7 +45,12 @@ import {
   updateDisplay,
   updateItemText,
 } from "@/lib/canonical/curate";
-import { applyCvModel, cvModelsByCategory, type CvModelCategory } from "@/lib/canonical/cvModels";
+import {
+  applyCvModel,
+  cvModelsByCategory,
+  resetCvSections,
+  type CvModelCategory,
+} from "@/lib/canonical/cvModels";
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { ui } from "@/lib/i18n/ui";
@@ -260,6 +265,9 @@ export default function CvEditor({
   const selectedModel = modelId
     ? modelGroups.flatMap((g) => g.models).find((m) => m.id === modelId)
     : undefined;
+  // "(None)" is selected (no model) AND the layout is currently customized →
+  // the Apply button resets the section layout back to the default.
+  const canResetModel = !modelId && cv.display.sectionsCustomized;
   // Sections are COLLAPSED by default (compact list that's easy to scan +
   // reorder); the chevron expands one. Only ids in this set are expanded.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -513,7 +521,7 @@ export default function CvEditor({
             title={selectedModel?.description}
             onChange={(e) => setModelId(e.target.value)}
           >
-            <option value="">{eu.modelOptional}</option>
+            <option value="">{eu.modelNone}</option>
             {modelGroups.map((group) => (
               <optgroup key={group.category} label={modelGroupLabel(group.category)}>
                 {group.models.map((m) => (
@@ -527,10 +535,16 @@ export default function CvEditor({
           <button
             type="button"
             className="btn btn-sm"
-            disabled={!selectedModel}
+            disabled={!selectedModel && !canResetModel}
             onClick={() => {
-              if (!selectedModel) return;
-              onChange(applyCvModel(savePreset(cv, eu.modelSnapshot), selectedModel.id, cvLocale));
+              if (selectedModel) {
+                onChange(
+                  applyCvModel(savePreset(cv, eu.modelSnapshot), selectedModel.id, cvLocale),
+                );
+              } else if (canResetModel) {
+                // "(None)": revert the funder layout back to the default sections.
+                onChange(resetCvSections(savePreset(cv, eu.modelSnapshot), cvLocale));
+              }
             }}
           >
             {eu.modelApply}

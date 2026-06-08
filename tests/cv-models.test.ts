@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CanonicalCvSchema,
+  DEFAULT_SECTION_ORDER,
   SECTION_TYPES,
   isProseSectionType,
   type CanonicalCv,
@@ -14,9 +15,11 @@ import {
   cvModelList,
   cvModelsByCategory,
   isCvModelId,
+  resetCvSections,
   type CvModelCategory,
 } from "@/lib/canonical/cvModels";
 import { setSectionBody, applyPreset, savePreset } from "@/lib/canonical/curate";
+import { sectionTitle } from "@/lib/i18n";
 
 const SECTION_TYPE_SET = new Set<string>(SECTION_TYPES);
 
@@ -358,5 +361,62 @@ describe("applyCvModel", () => {
     expect(next.sections.find((s) => s.type === "narrative-society")!.title).toBe(
       "Contributions à la société au sens large",
     );
+  });
+});
+
+describe("resetCvSections", () => {
+  it("restores default visibility/order/title and clears model display + sectionsCustomized", () => {
+    // CCV hides sections, reorders, creates prose modules, overrides titles, and
+    // sets narrative display (limit 5, peer-reviewed-only).
+    const reset = resetCvSections(applyCvModel(makeCv(), "ccv"));
+    expect(reset.display.sectionsCustomized).toBe(false);
+    expect(reset.display.peerReviewedOnly).toBe(false);
+    expect(reset.display.publicationOrder).toBe("custom");
+    expect(reset.display.publicationsLimit).toBeUndefined();
+    for (const s of reset.sections) {
+      // Standard sections visible, prose (narrative-*/statement) hidden.
+      expect(s.visible, `${s.type} visible`).toBe(!isProseSectionType(s.type));
+      expect(s.order, `${s.type} order`).toBe(DEFAULT_SECTION_ORDER[s.type]);
+      expect(s.title, `${s.type} title`).toBe(sectionTitle("en-US", s.type));
+    }
+  });
+
+  it("clears a funder titleOverride back to the localized default", () => {
+    const reset = resetCvSections(applyCvModel(makeCv(), "nsf")); // renames publications→"Products"
+    expect(reset.sections.find((s) => s.type === "publications")!.title).toBe(
+      sectionTitle("en-US", "publications"),
+    );
+  });
+
+  it("uses the CV's locale for the restored default titles", () => {
+    const reset = resetCvSections(applyCvModel(makeCv("fr-FR"), "nsf"));
+    expect(reset.sections.find((s) => s.type === "education")!.title).toBe(
+      sectionTitle("fr-FR", "education"),
+    );
+  });
+
+  it("is pure and preserves item data + prose bodies (hide, never delete)", () => {
+    let cv = applyCvModel(makeCv(), "ccv");
+    const nk = cv.sections.find((s) => s.type === "narrative-knowledge")!;
+    cv = setSectionBody(cv, nk.id, "My real contributions.");
+    const snapshot = JSON.stringify(cv);
+    const reset = resetCvSections(cv);
+    expect(JSON.stringify(cv)).toBe(snapshot); // input untouched
+    // Prose body kept even though the section is now hidden.
+    const resetNk = reset.sections.find((s) => s.type === "narrative-knowledge")!;
+    expect(resetNk.visible).toBe(false);
+    expect(resetNk.body).toBe("My real contributions.");
+    // Curated item data untouched across every section.
+    for (const before of cv.sections) {
+      const after = reset.sections.find((s) => s.id === before.id)!;
+      expect(after.items).toEqual(before.items);
+    }
+  });
+
+  it("round-trips: apply a model then reset returns to the default visible set", () => {
+    const base = makeCv();
+    const reset = resetCvSections(applyCvModel(base, "ukri-r4ri")); // pure-narrative model
+    // Every standard section the base had is visible again; no prose shown.
+    expect(visibleTypes(reset)).toEqual(visibleTypes(base));
   });
 });
