@@ -2440,10 +2440,10 @@ textarea.prose-body {
   animation: hg-float-b 8s var(--ease) infinite alternate;
 }
 .hg-chip-3 {
-  /* Crossref / ClinicalTrials.gov — the widest chip; sits centered BELOW the CV
+  /* Crossref / ClinicalTrials.gov — the widest chip; sits low-LEFT, below the CV
      card (clear of it), not over its corner. */
   bottom: 4%;
-  left: 31%;
+  left: 6%;
   animation: hg-float-b 9s var(--ease) infinite alternate-reverse;
 }
 .hg-chip-4 {
