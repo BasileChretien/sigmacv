@@ -1,5 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { BUNDLED_LOCALES, getLocaleXml, listAvailableStyles } from "@/lib/citeproc/assets";
+import {
+  BUNDLED_LOCALES,
+  __customStyleCacheSize,
+  __resetCustomStyleCache,
+  getLocaleXml,
+  getStyleXml,
+  listAvailableStyles,
+  registerStyleXml,
+} from "@/lib/citeproc/assets";
+
+describe("registerStyleXml — custom-style cache is bounded (LRU)", () => {
+  it("evicts oldest entries under a flood of distinct custom styles", () => {
+    __resetCustomStyleCache();
+    for (let i = 0; i < 300; i++) registerStyleXml(`evict-${i}`, `<style>${i}</style>`);
+    // The cache is hard-bounded (no unbounded heap growth)…
+    expect(__customStyleCacheSize()).toBeLessThanOrEqual(256);
+    // …and still accepts/serves the most-recent style.
+    expect(getStyleXml("evict-299")).toBe("<style>299</style>");
+    __resetCustomStyleCache();
+  });
+});
 
 // These assert against the vendored locale XML (committed by fetch-csl).
 const vendored = listAvailableStyles().length > 0;

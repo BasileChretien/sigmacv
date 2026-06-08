@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { __resetRateLimits, rateLimit } from "@/lib/rateLimit";
+import {
+  __MAX_BUCKETS,
+  __rateLimitBucketCount,
+  __resetRateLimits,
+  rateLimit,
+} from "@/lib/rateLimit";
 
 describe("rateLimit", () => {
   it("allows up to max within the window, then blocks", () => {
@@ -33,5 +38,13 @@ describe("rateLimit", () => {
     for (let i = 0; i < 10001; i++) rateLimit(`k${i}`, 1, 1000, 1000);
     // A new key at t=5000 trips the size cap → pruneExpired removes the stale ones.
     expect(rateLimit("trigger", 1, 1000, 5000).ok).toBe(true);
+  });
+
+  it("hard-bounds the bucket map even when no buckets are expired", () => {
+    __resetRateLimits();
+    // A flood of distinct keys all FRESH within one long window — pruneExpired
+    // finds nothing to remove, so the map must be capped by eviction instead.
+    for (let i = 0; i < __MAX_BUCKETS + 50; i++) rateLimit(`fresh-${i}`, 1, 60_000, 1000);
+    expect(__rateLimitBucketCount()).toBeLessThanOrEqual(__MAX_BUCKETS);
   });
 });

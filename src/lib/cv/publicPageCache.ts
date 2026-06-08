@@ -28,11 +28,19 @@ interface CacheRecord extends PublicPageEntry {
 const cache = new Map<string, CacheRecord>();
 const MAX_ENTRIES = 2000;
 const TTL_MS = 60_000; // 1 minute
-// Don't cache an unusually large render: a few multi-MB CVs (thousands of items)
-// could otherwise pin hundreds of MB of heap in the single app process. Such a
-// page still renders fresh on each hit, bounded by the route's per-IP + global
-// rate limits — only its in-memory caching is skipped.
-const MAX_CACHED_HTML_BYTES = 2_000_000;
+// Total in-memory budget for cached rendered HTML. Bounds the heap the cache can
+// hold regardless of individual entry sizes — so a few multi-MB CV renders can't
+// pin gigabytes — WHILE still caching large/expensive renders so repeat anonymous
+// hits stay O(1) (the main DoS defence for the public page: an expensive render
+// is paid at most once per TTL, not on every hit).
+const MAX_TOTAL_BYTES = 256_000_000;
+
+/** Sum of cached HTML lengths (chars). */
+function cachedHtmlBytes(): number {
+  let total = 0;
+  for (const rec of cache.values()) total += rec.html.length;
+  return total;
+}
 
 // Short negative cache for slugs that resolved to "not found" — so a flood of
 // random/invalid slugs (which bypass the render cache) doesn't hit the DB on
@@ -84,22 +92,18 @@ export function setCachedPublicPage(
   entry: PublicPageEntry,
   now: number = Date.now(),
 ): void {
-  if (entry.html.length > MAX_CACHED_HTML_BYTES) {
-    // Too large to cache safely — drop any stale entry and skip caching this one.
-    cache.delete(slug);
-    return;
-  }
-  if (cache.size >= MAX_ENTRIES && !cache.has(slug)) {
-    // Prune expired first; if still full, evict the oldest insertion.
-    for (const [k, v] of cache) {
-      if (now >= v.expires) cache.delete(k);
-    }
-    if (cache.size >= MAX_ENTRIES) {
-      const oldest = cache.keys().next().value;
-      if (oldest !== undefined) cache.delete(oldest);
-    }
-  }
   cache.set(slug, { html: entry.html, indexable: entry.indexable, expires: now + TTL_MS });
+  // Evict oldest insertions until within BOTH the entry-count and total-byte
+  // budgets, so large/expensive renders stay cached without letting a few
+  // multi-MB CVs pin unbounded heap.
+  let total = cachedHtmlBytes();
+  while (cache.size > MAX_ENTRIES || total > MAX_TOTAL_BYTES) {
+    const oldest = cache.keys().next().value;
+    /* v8 ignore next -- defensive: never evict the just-set entry / empty map */
+    if (oldest === undefined || oldest === slug) break;
+    total -= cache.get(oldest)!.html.length;
+    cache.delete(oldest);
+  }
 }
 
 /** Drop a slug from the cache — call on any publish/unpublish/index change so

@@ -39,14 +39,23 @@ describe("publicPageCache", () => {
     expect(getCachedPublicPage("slug-2099", 5000)).not.toBeNull();
   });
 
-  it("skips caching an unusually large render (heap-pressure guard)", () => {
-    const huge = "<p>".repeat(800_000); // > 2 MB
-    setCachedPublicPage("big", { html: huge, indexable: false }, 5000);
-    // Not cached — it still renders fresh each hit, but can't pin heap.
-    expect(getCachedPublicPage("big", 5000)).toBeNull();
-    // A normal-sized render still caches.
-    setCachedPublicPage("small", { html: "<p>ok</p>", indexable: false }, 5000);
-    expect(getCachedPublicPage("small", 5000)).not.toBeNull();
+  it("caches a large (expensive) render so repeat hits stay O(1)", () => {
+    const big = "x".repeat(3_000_000); // 3 MB — would have been skipped before
+    setCachedPublicPage("big", { html: big, indexable: false }, 5000);
+    expect(getCachedPublicPage("big", 5000)?.html.length).toBe(3_000_000);
+  });
+
+  it("bounds total cached bytes by evicting the oldest large renders", () => {
+    // One 10 MB string, stored by reference (cheap), inserted under 30 slugs so
+    // the cache's by-length accounting crosses the 256 MB budget.
+    const big = "x".repeat(10_000_000); // 10 MB
+    for (let i = 0; i < 30; i++) {
+      setCachedPublicPage(`big-${i}`, { html: big, indexable: false }, 5000);
+    }
+    // 30 × 10 MB = 300 MB > 256 MB budget → the oldest entries were evicted,
+    // the most-recent survives.
+    expect(getCachedPublicPage("big-0", 5000)).toBeNull();
+    expect(getCachedPublicPage("big-29", 5000)).not.toBeNull();
   });
 
   describe("negative cache (unknown slugs)", () => {

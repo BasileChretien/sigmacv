@@ -24,6 +24,12 @@ const styleCache = new Map<string, string>();
  * shadow or poison a bundled one (`getStyleXml` always prefers vendored).
  */
 const customStyleCache = new Map<string, string>();
+/** Hard cap on the in-process custom-style cache. Each entry is up to 600 KB
+ *  (the schema cap on a custom style's XML), so without a bound an authenticated
+ *  user could grow process heap unboundedly by registering many distinct styles.
+ *  The canonical document is the durable store, so evicting here only costs a
+ *  re-register on the next render. */
+const CUSTOM_STYLE_CACHE_MAX = 256;
 /** Parsed locale XML cached per resolved locale file (e.g. "fr-FR"). */
 const localeCache = new Map<string, string>();
 
@@ -93,7 +99,23 @@ export function registerStyleXml(id: string, xml: string): void {
   const key = sanitizeKey(id);
   if (!key || !xml) return;
   if (existsSync(vendoredStylePath(key))) return;
+  // Bound the cache (LRU by insertion order) so a flood of distinct custom
+  // styles can't grow process heap without limit.
+  if (!customStyleCache.has(key) && customStyleCache.size >= CUSTOM_STYLE_CACHE_MAX) {
+    const oldest = customStyleCache.keys().next().value;
+    if (oldest !== undefined) customStyleCache.delete(oldest);
+  }
   customStyleCache.set(key, xml);
+}
+
+/** Test-only: current size of the in-process custom-style cache. */
+export function __customStyleCacheSize(): number {
+  return customStyleCache.size;
+}
+
+/** Test-only: clear the custom-style cache. */
+export function __resetCustomStyleCache(): void {
+  customStyleCache.clear();
 }
 
 /** True if `styleKey` is one of the vendored (bundled) styles shipped on disk. */
