@@ -31,7 +31,11 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:install": "playwright install --with-deps chromium",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "prepare": "husky || true"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs,css,json,md,yml,yaml}": "prettier --write"
   },
   "overrides": {
     "postcss": "^8.5.10",
@@ -67,7 +71,9 @@
     "@vitest/coverage-v8": "^4.1.8",
     "dotenv": "^16.4.7",
     "dotenv-cli": "^8.0.0",
+    "husky": "^9.1.7",
     "jsdom": "^25.0.1",
+    "lint-staged": "^17.0.7",
     "prettier": "^3.8.3",
     "prisma": "^7.8.0",
     "tsx": "^4.22.4",
