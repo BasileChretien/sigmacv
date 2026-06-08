@@ -86,6 +86,7 @@ The FAIR/open-science work is implemented (full status in [`docs/OPEN-SCIENCE-RO
 - [ ] **Before ANY confirmatory research analysis** — complete the placeholders in `docs/preregistration/study-2-*.md` and `study-3-*.md`, register on OSF, record the **IRB № + OSF DOI**, and freeze the analysis script _before_ touching data. Keep `RESEARCH_LOGGING_ENABLED` off until IRB approval, and **bump `RESEARCH_CONSENT_VERSION`** when you turn it on so users re-consent under the approved terms.
 - [ ] **Tool / infrastructure paper** (paper #1) — cite the Zenodo DOI above.
 - [ ] **Outreach** — the reusable kit is in [`docs/OUTREACH.md`](docs/OUTREACH.md) (libraries / DORA-CoARA / OpenAlex user group).
+- [ ] **When the hosted site (`sigmacv.org`) goes live** — switch the canonical project URL back from the GitHub repo to `https://sigmacv.org`: the `url` field in `CITATION.cff` + `codemeta.json` (currently pointed at the repo to avoid a dead link), drop the _"(planned — not yet live)"_ qualifier on the `Site:` line in `docs/OUTREACH.md`, and check the in-app FAQ / README for any "hosted instance" wording to update.
 
 > Deferred features (not blockers; tracked in the roadmap): Europass export (controlled-vocabulary ELM graph), CRediT roles (no per-author source in OpenAlex), and the upstream-curation UI (feature disabled).
 

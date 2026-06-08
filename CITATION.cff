@@ -12,7 +12,8 @@ authors:
       Department of International Medical Education, Nagoya University
       Graduate School of Medicine, Nagoya, Japan
 repository-code: "https://github.com/BasileChretien/sigmacv"
-url: "https://sigmacv.org"
+# Main project URL — points to the repo until the hosted site (sigmacv.org) is live.
+url: "https://github.com/BasileChretien/sigmacv"
 abstract: >-
   SigmaCV auto-generates clean, customizable academic CVs from open
   research data (OpenAlex, ORCID, Crossref, Open Editors Plus). It is
