@@ -81,6 +81,15 @@ export async function GET(_req: Request, { params }: { params: Promise<{ format:
       },
     });
   } catch (err) {
+    // All PDF render slots are busy — tell the client to retry rather than 500.
+    // Matched by name to avoid statically importing the (Playwright-heavy) pdf
+    // module into this route, which lazily loads renderers per format.
+    if (err instanceof Error && err.name === "PdfBusyError") {
+      return NextResponse.json(
+        { error: "The PDF renderer is busy. Please try again in a moment." },
+        { status: 503, headers: { "Retry-After": "30" } },
+      );
+    }
     logger.error("api.cv_export_failed", { format, err });
     return NextResponse.json({ error: "Failed to generate export." }, { status: 500 });
   }

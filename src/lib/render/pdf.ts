@@ -8,6 +8,14 @@ const PDF_CONCURRENCY_LIMIT = 3;
 const PDF_TIMEOUT_MS = 30_000;
 let activeRenders = 0;
 
+/** Thrown when the concurrent-render slots are full; the route maps it to 503. */
+export class PdfBusyError extends Error {
+  constructor() {
+    super("PDF renderer is busy — please try again in a moment.");
+    this.name = "PdfBusyError";
+  }
+}
+
 /**
  * PDF renderer. Composes the HTML renderer (no separate pipeline) and prints
  * the result with headless Chromium via Playwright.
@@ -24,35 +32,41 @@ export const pdfRenderer: Renderer = {
   format: "pdf",
   async render({ cv }: RenderInput): Promise<RenderResult> {
     if (activeRenders >= PDF_CONCURRENCY_LIMIT) {
-      throw new Error("PDF renderer is busy — please try again in a moment.");
+      throw new PdfBusyError();
     }
     activeRenders += 1;
-
-    const html = renderCvHtml(cv);
-    const browser = await chromium.launch({
-      args: ["--no-sandbox", "--disable-dev-shm-usage"],
-    });
+    // The decrement MUST bracket everything after the increment — a throw from
+    // renderCvHtml or chromium.launch (both before the browser exists) would
+    // otherwise leak a slot and, after PDF_CONCURRENCY_LIMIT such errors,
+    // permanently wedge PDF export.
     try {
-      // The CV is static HTML — no scripts needed, so disable JS entirely.
-      const context = await browser.newContext({ javaScriptEnabled: false });
-      const page = await context.newPage();
-      await page.setContent(html, {
-        waitUntil: "load",
-        timeout: PDF_TIMEOUT_MS,
+      const html = renderCvHtml(cv);
+      const browser = await chromium.launch({
+        args: ["--no-sandbox", "--disable-dev-shm-usage"],
       });
-      const pdf = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        margin: { top: "16mm", bottom: "16mm", left: "14mm", right: "14mm" },
-      });
-      return {
-        format: "pdf",
-        mimeType: "application/pdf",
-        filename: `${cvSlug(cv.owner.displayName)}-cv.pdf`,
-        buffer: Buffer.from(pdf),
-      };
+      try {
+        // The CV is static HTML — no scripts needed, so disable JS entirely.
+        const context = await browser.newContext({ javaScriptEnabled: false });
+        const page = await context.newPage();
+        await page.setContent(html, {
+          waitUntil: "load",
+          timeout: PDF_TIMEOUT_MS,
+        });
+        const pdf = await page.pdf({
+          format: "A4",
+          printBackground: true,
+          margin: { top: "16mm", bottom: "16mm", left: "14mm", right: "14mm" },
+        });
+        return {
+          format: "pdf",
+          mimeType: "application/pdf",
+          filename: `${cvSlug(cv.owner.displayName)}-cv.pdf`,
+          buffer: Buffer.from(pdf),
+        };
+      } finally {
+        await browser.close();
+      }
     } finally {
-      await browser.close();
       activeRenders -= 1;
     }
   },
