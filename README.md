@@ -99,6 +99,11 @@ You can also sign in with a **Google** account or a plain **email link**.
    web page that keeps itself up to date. Missing a paper? Add it by its **DOI**
    (the short permanent identifier, like `10.1000/xyz`, printed on most articles).
 
+<p align="center">
+  <img src="docs/images/homepage.png" alt="The SigmaCV homepage: sign in with your ORCID iD and your CV builds itself from open research data" width="820" />
+</p>
+<p align="center"><sub><em>The SigmaCV homepage — sign in and your CV builds itself from the open record.</em></sub></p>
+
 ## Features at a glance
 
 | Feature                       | What it means for you                                                                                                                          |
