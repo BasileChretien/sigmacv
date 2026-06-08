@@ -38,7 +38,11 @@ const WORK_SELECT = [
   "best_oa_location",
   "biblio",
   "ids",
-  "grants",
+  // NOTE: OpenAlex removed `grants` from the selectable `/works` fields (it was
+  // restructured into awards/funders); selecting it now 400s the ENTIRE request.
+  // Paper-level grant data is therefore no longer fetched here — grant items come
+  // from ORCID funding + Crossref + the national funder APIs instead, and
+  // `build.ts` reads `work.grants ?? []`, so the field's absence is already safe.
 ].join(",");
 
 async function openAlexGet<T>(path: string, params: Record<string, string>): Promise<T> {
