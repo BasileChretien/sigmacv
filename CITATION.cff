@@ -14,6 +14,14 @@ authors:
 repository-code: "https://github.com/BasileChretien/sigmacv"
 # Main project URL — the live hosted site.
 url: "https://sigmacv.org"
+doi: "10.5281/zenodo.20594123"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.20594123"
+    description: Concept DOI — always resolves to the latest version of SigmaCV.
+  - type: doi
+    value: "10.5281/zenodo.20594124"
+    description: Versioned DOI for the SigmaCV v0.1.0 release.
 abstract: >-
   SigmaCV auto-generates clean, customizable academic CVs from open
   research data (OpenAlex, ORCID, Crossref, Open Editors Plus). It is
@@ -34,4 +42,4 @@ keywords:
   - CSL
 license: Apache-2.0
 version: 0.1.0
-date-released: "2026-06-05"
+date-released: "2026-06-08"
