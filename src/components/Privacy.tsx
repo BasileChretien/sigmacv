@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { asLocale } from "@/lib/i18n";
+import { CONTACT_EMAIL, contactStrings } from "@/lib/i18n/contact";
 import { privacyStrings } from "@/lib/i18n/privacy";
-import { localeHomePath, localePrivacyPath } from "@/lib/seo";
+import { localeContactPath, localeHomePath, localePrivacyPath } from "@/lib/seo";
 import DocJsonLd from "./DocJsonLd";
 
 /**
@@ -33,18 +34,30 @@ export default function Privacy({ locale }: { locale: string }) {
       <h2>{s.purposeHeading}</h2>
       <p>{s.purpose}</p>
 
+      <h2>{s.sharingHeading}</h2>
+      <p>{s.sharing}</p>
+
       <h2>{s.researchHeading}</h2>
       <p>{s.research}</p>
 
       <h2>{s.retentionHeading}</h2>
       <p>{s.retention}</p>
 
+      <h2>{s.securityHeading}</h2>
+      <p>{s.security}</p>
+
       <h2>{s.rightsHeading}</h2>
       <p>{s.rights}</p>
 
       <h2>{s.contactHeading}</h2>
       <p>{s.contact}</p>
+      <p>
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        {" · "}
+        <Link href={localeContactPath(loc)}>{contactStrings(loc).heading}</Link>
+      </p>
 
+      <p className="muted">{s.authoritativeNote}</p>
       <p className="muted">{s.updatedNote}</p>
 
       <p className="doc-back muted">

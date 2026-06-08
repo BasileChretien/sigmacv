@@ -56,6 +56,20 @@ export function privacyLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+/** /contact path for a locale: "/contact" for the default, "/{slug}/contact" otherwise. */
+export function localeContactPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/contact" : `/${LOCALE_SLUGS[loc]}/contact`;
+}
+
+/** hreflang → path map for the /contact page (relative; resolved against metadataBase). */
+export function contactLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeContactPath(loc);
+  languages["x-default"] = "/contact";
+  return languages;
+}
+
 /** /faq path for a locale: "/faq" for the default, "/{slug}/faq" otherwise. */
 export function localeFaqPath(locale: string): string {
   const loc = asLocale(locale);

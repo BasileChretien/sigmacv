@@ -3,10 +3,12 @@ import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import {
   aboutLanguageAlternates,
   accessibilityLanguageAlternates,
+  contactLanguageAlternates,
   faqLanguageAlternates,
   homeLanguageAlternates,
   localeAboutPath,
   localeAccessibilityPath,
+  localeContactPath,
   localeFaqPath,
   localeHomePath,
   localePrivacyPath,
@@ -68,6 +70,22 @@ describe("localePrivacyPath / privacyLanguageAlternates", () => {
     expect(langs["x-default"]).toBe("/privacy");
     expect(langs["en-US"]).toBe("/privacy");
     expect(langs["de-DE"]).toBe("/de/privacy");
+    expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
+  });
+});
+
+describe("localeContactPath / contactLanguageAlternates", () => {
+  it("serves /contact for the default and /{slug}/contact for others", () => {
+    expect(localeContactPath("en-US")).toBe("/contact");
+    expect(localeContactPath("fr-FR")).toBe("/fr/contact");
+    expect(localeContactPath("ja-JP")).toBe("/ja/contact");
+    expect(localeContactPath("xx-XX")).toBe("/contact");
+  });
+  it("maps every locale plus x-default", () => {
+    const langs = contactLanguageAlternates();
+    expect(langs["x-default"]).toBe("/contact");
+    expect(langs["en-US"]).toBe("/contact");
+    expect(langs["de-DE"]).toBe("/de/contact");
     expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
   });
 });
