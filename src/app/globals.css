@@ -2133,6 +2133,17 @@ textarea.prose-body {
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--text-secondary);
+  text-decoration: none;
+  transition:
+    border-color 0.15s var(--ease),
+    color 0.15s var(--ease),
+    transform 0.15s var(--ease);
+}
+.source-pill:hover,
+.source-pill:focus-visible {
+  border-color: var(--accent-500);
+  color: var(--text-primary);
+  transform: translateY(-1px);
 }
 .source-pill::before {
   content: "";

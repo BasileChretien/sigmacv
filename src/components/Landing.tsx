@@ -26,6 +26,26 @@ import StructuredData from "./StructuredData";
 const CREATOR_ORCID_URL = "https://orcid.org/0000-0002-7483-2489";
 
 /**
+ * The open-data sources the CV is built from, with their canonical homepages.
+ * Rendered as the linked "source strip" under the hero (proper-noun brand names,
+ * never translated). Order ≈ prominence.
+ */
+const SOURCE_LINKS: { name: string; url: string }[] = [
+  { name: "OpenAlex", url: "https://openalex.org" },
+  { name: "ORCID", url: "https://orcid.org" },
+  { name: "Crossref", url: "https://www.crossref.org" },
+  { name: "DataCite", url: "https://datacite.org" },
+  { name: "OpenAIRE", url: "https://www.openaire.eu" },
+  { name: "DBLP", url: "https://dblp.org" },
+  { name: "Open Editors Plus", url: "https://openeditors-plus.org" },
+  { name: "ClinicalTrials.gov", url: "https://clinicaltrials.gov" },
+  { name: "EU CTIS", url: "https://euclinicaltrials.eu" },
+  { name: "EPO", url: "https://www.epo.org" },
+  { name: "Wikidata", url: "https://www.wikidata.org" },
+  { name: "ROR", url: "https://ror.org" },
+];
+
+/**
  * The public marketing/landing markup, fully localized. Shared by the default
  * homepage ("/") and every localized variant ("/[locale]"). A server component:
  * it wires the shared sign-in server actions directly into the forms.
@@ -136,18 +156,17 @@ export default function Landing({ locale }: LandingProps) {
         className="source-strip"
         aria-label="Open research data sources SigmaCV builds from"
       >
-        <span className="source-pill">OpenAlex</span>
-        <span className="source-pill">ORCID</span>
-        <span className="source-pill">Crossref</span>
-        <span className="source-pill">DataCite</span>
-        <span className="source-pill">OpenAIRE</span>
-        <span className="source-pill">DBLP</span>
-        <span className="source-pill">Open Editors Plus</span>
-        <span className="source-pill">ClinicalTrials.gov</span>
-        <span className="source-pill">EU CTIS</span>
-        <span className="source-pill">EPO</span>
-        <span className="source-pill">Wikidata</span>
-        <span className="source-pill">ROR</span>
+        {SOURCE_LINKS.map((src) => (
+          <a
+            key={src.name}
+            className="source-pill"
+            href={src.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {src.name}
+          </a>
+        ))}
       </div>
 
       <section className="landing-section landing-features" aria-labelledby="features-h">
