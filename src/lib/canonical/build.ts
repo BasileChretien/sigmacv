@@ -327,6 +327,10 @@ function makeEntryItem(
     source,
     sourceId,
     displayText,
+    // A user edit of the line (positions/education) is preserved across re-sync,
+    // exactly like `included`/`order` — while `displayText` above keeps refreshing
+    // from the live source underneath, so "revert to source" stays meaningful.
+    displayTextOverride: prev?.displayTextOverride,
     included: prev?.included ?? true,
     notMine: prev?.notMine ?? false,
     notMineAssertedAt: prev?.notMineAssertedAt,

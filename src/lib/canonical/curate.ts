@@ -718,6 +718,35 @@ export function setSectionBody(cv: CanonicalCv, sectionId: string, body: string)
   return mapSection(cv, sectionId, (s) => ({ ...s, body: clamped }));
 }
 
+/**
+ * Set (or clear) a USER OVERRIDE of a SOURCE-DERIVED entry's display text — the
+ * editable title on a Positions / Education line that came from ORCID/OpenAlex.
+ * A meaningful value is stored in `displayTextOverride` (shown everywhere in
+ * place of the source-built `displayText`, and carried across re-sync); a BLANK
+ * value — OR text equal to the current source text — CLEARS the override, so the
+ * line reverts to the live source value. Pure + immutable; a no-op for an unknown
+ * section/item id. Manual entries instead edit `displayText` directly via
+ * {@link updateItemText}.
+ */
+export function setItemTextOverride(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  text: string,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const trimmed = text.trim();
+      // Blank, or identical to the source line → no override (revert to source).
+      const override =
+        trimmed.length === 0 || trimmed === (it.displayText ?? "").trim() ? undefined : text;
+      return { ...it, displayTextOverride: override };
+    }),
+  }));
+}
+
 /** Edit an item's free-text display string (manual entries). */
 export function updateItemText(
   cv: CanonicalCv,

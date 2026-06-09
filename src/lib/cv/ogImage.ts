@@ -1,4 +1,4 @@
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import { itemDisplayText, type CanonicalCv } from "@/lib/canonical/schema";
 
 /**
  * Display props for the per-CV Open Graph / social-share card (`/p/<slug>/og`).
@@ -54,7 +54,7 @@ function latestAffiliation(cv: CanonicalCv): string {
   if (!section) return "";
   // Items are built most-recent-first; take the first visible one.
   const item = section.items.find((it) => it.included && it.notMine !== true);
-  const text = item?.displayText;
+  const text = item ? itemDisplayText(item) : undefined;
   if (!text) return "";
   return oneLine(text)
     .replace(/\s*\([^()]*\)\s*$/, "")

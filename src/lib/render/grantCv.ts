@@ -1,5 +1,6 @@
 import {
   isProseSectionType,
+  itemDisplayText,
   type CanonicalCv,
   type CvItem,
   type CvSectionType,
@@ -119,9 +120,9 @@ const FUNDER_PORTAL: Record<GrantPresetId, string> = {
   jsps: "e-Rad (researcher record maintained in researchmap)",
 };
 
-/** A non-citation entry's plain display string. */
+/** A non-citation entry's plain display string (user override, else source). */
 function entryText(item: CvItem): string {
-  return (item.displayText ?? "").trim();
+  return (itemDisplayText(item) ?? "").trim();
 }
 
 /** Bullet list of a section's visible items' display text. Empty when the

@@ -439,6 +439,23 @@ input[type="radio"] {
   width: auto;
 }
 
+/* Editable source-derived entry (positions/education): the text input plus its
+   "revert to source" control, laid out in a row so the input fills the width. */
+.cv-item-edit-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.cv-item-edit-wrap .cv-item-edit {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cv-item-revert {
+  flex: 0 0 auto;
+  font-size: var(--text-md);
+  line-height: 1;
+}
+
 /* ── Cards ───────────────────────────────────────────────────────────────── */
 .card {
   background: var(--surface);

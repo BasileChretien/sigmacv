@@ -107,6 +107,10 @@ export interface UiStrings {
   dragItem: string;
   manualPlaceholder: string;
   entryTextAria: string;
+  /** Short button label: revert a source-derived entry's edited text to source. */
+  revertToSource: string;
+  /** Tooltip/aria for the revert control on an edited Positions/Education line. */
+  revertToSourceHint: string;
   matchedByIdentifier: string;
   matchedByIdOnly: string;
   photoTooLarge: string;
@@ -228,6 +232,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Drag to reorder",
     manualPlaceholder: "e.g. Visiting Researcher, MIT (2023)",
     entryTextAria: "Entry text",
+    revertToSource: "Revert",
+    revertToSourceHint: "Discard your edit and restore the original text from ORCID/OpenAlex",
     matchedByIdentifier: "Matched by your identifier",
     matchedByIdOnly: "Matched by OpenAlex ID only — not ORCID-confirmed; review",
     photoTooLarge: "That image is too large — try a smaller one.",
@@ -344,6 +350,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "拖动以重新排序",
     manualPlaceholder: "例如：访问研究员，MIT（2023）",
     entryTextAria: "条目文本",
+    revertToSource: "还原",
+    revertToSourceHint: "放弃你的修改，恢复来自 ORCID/OpenAlex 的原始文本",
     matchedByIdentifier: "通过你的标识符匹配",
     matchedByIdOnly: "仅通过 OpenAlex ID 匹配——未经 ORCID 确认，请核查",
     photoTooLarge: "该图片过大——请尝试较小的图片。",
@@ -464,6 +472,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Arrastra para reordenar",
     manualPlaceholder: "p. ej. Investigador visitante, MIT (2023)",
     entryTextAria: "Texto de la entrada",
+    revertToSource: "Restaurar",
+    revertToSourceHint: "Descartar tu edición y restaurar el texto original de ORCID/OpenAlex",
     matchedByIdentifier: "Coincidencia por tu identificador",
     matchedByIdOnly: "Coincidencia solo por ID de OpenAlex — sin confirmar por ORCID; revísalo",
     photoTooLarge: "Esa imagen es demasiado grande; prueba con una más pequeña.",
@@ -585,6 +595,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Faire glisser pour réordonner",
     manualPlaceholder: "p. ex. Chercheur invité, MIT (2023)",
     entryTextAria: "Texte de l’entrée",
+    revertToSource: "Rétablir",
+    revertToSourceHint:
+      "Annuler votre modification et rétablir le texte d’origine d’ORCID/OpenAlex",
     matchedByIdentifier: "Identifié par votre identifiant",
     matchedByIdOnly: "Identifié par l’ID OpenAlex seul — non confirmé par ORCID ; à vérifier",
     photoTooLarge: "Cette image est trop volumineuse — essayez-en une plus petite.",
@@ -705,6 +718,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Ziehen, um neu anzuordnen",
     manualPlaceholder: "z. B. Gastforscher:in, MIT (2023)",
     entryTextAria: "Eintragstext",
+    revertToSource: "Zurücksetzen",
+    revertToSourceHint:
+      "Bearbeitung verwerfen und den Originaltext aus ORCID/OpenAlex wiederherstellen",
     matchedByIdentifier: "Anhand Ihrer Kennung zugeordnet",
     matchedByIdOnly: "Nur über OpenAlex-ID zugeordnet — nicht per ORCID bestätigt; bitte prüfen",
     photoTooLarge: "Dieses Bild ist zu groß — versuchen Sie ein kleineres.",
@@ -824,6 +840,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "ドラッグして並べ替え",
     manualPlaceholder: "例：客員研究員、MIT（2023）",
     entryTextAria: "項目テキスト",
+    revertToSource: "元に戻す",
+    revertToSourceHint: "編集を破棄して、ORCID/OpenAlex の元のテキストに戻します",
     matchedByIdentifier: "あなたの識別子で一致",
     matchedByIdOnly: "OpenAlex ID のみで一致 — ORCID 未確認。確認してください",
     photoTooLarge: "この画像は大きすぎます — もっと小さいものをお試しください。",
@@ -944,6 +962,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Arraste para reordenar",
     manualPlaceholder: "ex.: Pesquisador Visitante, MIT (2023)",
     entryTextAria: "Texto da entrada",
+    revertToSource: "Reverter",
+    revertToSourceHint: "Descartar sua edição e restaurar o texto original do ORCID/OpenAlex",
     matchedByIdentifier: "Correspondência pelo seu identificador",
     matchedByIdOnly: "Correspondência apenas por ID do OpenAlex — não confirmada por ORCID; revise",
     photoTooLarge: "Essa imagem é muito grande — tente uma menor.",
@@ -1065,6 +1085,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Trascina per riordinare",
     manualPlaceholder: "ad es. Ricercatore in visita, MIT (2023)",
     entryTextAria: "Testo della voce",
+    revertToSource: "Ripristina",
+    revertToSourceHint: "Annulla la tua modifica e ripristina il testo originale da ORCID/OpenAlex",
     matchedByIdentifier: "Abbinato tramite il tuo identificativo",
     matchedByIdOnly: "Abbinato solo tramite ID OpenAlex — non confermato da ORCID; verifica",
     photoTooLarge: "Quell’immagine è troppo grande — provane una più piccola.",
@@ -1184,6 +1206,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "드래그하여 순서 변경",
     manualPlaceholder: "예: 방문 연구원, MIT (2023)",
     entryTextAria: "항목 텍스트",
+    revertToSource: "되돌리기",
+    revertToSourceHint: "편집을 취소하고 ORCID/OpenAlex의 원래 텍스트로 복원합니다",
     matchedByIdentifier: "내 식별자로 매칭됨",
     matchedByIdOnly: "OpenAlex ID로만 매칭됨 — ORCID 미확인. 확인하세요",
     photoTooLarge: "이미지가 너무 큽니다 — 더 작은 이미지를 사용해 보세요.",
@@ -1303,6 +1327,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Перетащите, чтобы изменить порядок",
     manualPlaceholder: "напр. Приглашённый исследователь, MIT (2023)",
     entryTextAria: "Текст записи",
+    revertToSource: "Сбросить",
+    revertToSourceHint: "Отменить правку и восстановить исходный текст из ORCID/OpenAlex",
     matchedByIdentifier: "Сопоставлено по вашему идентификатору",
     matchedByIdOnly: "Сопоставлено только по OpenAlex ID — не подтверждено ORCID; проверьте",
     photoTooLarge: "Это изображение слишком большое — попробуйте поменьше.",

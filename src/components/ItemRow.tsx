@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   isHidden,
+  itemDisplayText,
   NOT_MINE_REASONS,
   type CvItem,
   type CvSectionType,
@@ -40,7 +41,7 @@ const SOURCE_NAMES: Record<string, string> = {
 function DupFacts({ item, locale }: { item: CvItem; locale: Locale }) {
   const ds = dupStrings(locale);
   const u = ui(locale);
-  const title = item.csl?.title ?? item.displayText ?? u.itemUntitled;
+  const title = item.csl?.title ?? itemDisplayText(item) ?? u.itemUntitled;
   const authors = (item.csl?.author ?? [])
     .map((a) =>
       typeof a.family === "string" ? a.family : typeof a.literal === "string" ? a.literal : "",
@@ -129,6 +130,13 @@ interface ItemRowProps {
   onDropOver?: () => void;
   /** Edit a manual entry's text (only passed for source === "manual"). */
   onUpdateText?: (text: string) => void;
+  /**
+   * Set/clear the user override of a SOURCE-DERIVED entry's text — the editable
+   * title on a Positions/Education line from ORCID/OpenAlex. Passing "" reverts
+   * to the live source text. Only acted on for non-citation positions/education
+   * rows (the editor passes it for every row; the gate lives here).
+   */
+  onSetTextOverride?: (text: string) => void;
   /** Delete a manual entry (only passed for source === "manual"). */
   onRemove?: () => void;
 }
@@ -155,6 +163,7 @@ export default function ItemRow({
   onDragStart,
   onDropOver,
   onUpdateText,
+  onSetTextOverride,
   onRemove,
 }: ItemRowProps) {
   const u = ui(locale);
@@ -206,7 +215,14 @@ export default function ItemRow({
     item.source === "openaire" ||
     item.source === "dblp" ||
     (sectionType === "positions" && !isManual);
-  const title = item.csl?.title ?? item.displayText ?? u.itemUntitled;
+  // Source-derived Positions / Education lines (built from ORCID/OpenAlex) are
+  // free-text the user may refine: an editable title backed by `displayTextOverride`
+  // (the source value keeps refreshing underneath and is restored by clearing the
+  // field). Citation rows are excluded (they render only through citeproc); manual
+  // rows use the `onUpdateText` path below.
+  const canEditText =
+    !isCitation && !isManual && (sectionType === "positions" || sectionType === "education");
+  const title = item.csl?.title ?? itemDisplayText(item) ?? u.itemUntitled;
   const year = item.meta.year ?? "—";
   const venue =
     typeof item.csl?.["container-title"] === "string" ? item.csl["container-title"] : "";
@@ -274,6 +290,27 @@ export default function ItemRow({
             placeholder={u.manualPlaceholder}
             aria-label={u.entryTextAria}
           />
+        ) : canEditText && onSetTextOverride ? (
+          <div className="cv-item-edit-wrap">
+            <input
+              className="cv-item-edit"
+              value={itemDisplayText(item) ?? ""}
+              onChange={(e) => onSetTextOverride(e.target.value)}
+              placeholder={u.manualPlaceholder}
+              aria-label={u.entryTextAria}
+            />
+            {item.displayTextOverride !== undefined ? (
+              <button
+                type="button"
+                className="icon-btn cv-item-revert"
+                onClick={() => onSetTextOverride("")}
+                title={u.revertToSourceHint}
+                aria-label={u.revertToSource}
+              >
+                ↺
+              </button>
+            ) : null}
+          </div>
         ) : (
           <div className="cv-item-title">{title}</div>
         )}

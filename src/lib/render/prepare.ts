@@ -1,4 +1,9 @@
-import type { CanonicalCv, CvItem, CvSection } from "@/lib/canonical/schema";
+import {
+  itemDisplayText,
+  type CanonicalCv,
+  type CvItem,
+  type CvSection,
+} from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { DEFAULT_STYLE, isBundledStyle, registerStyleXml } from "@/lib/citeproc/assets";
 import { renderBibliography, type CiteprocOutputFormat } from "@/lib/citeproc/engine";
@@ -110,7 +115,7 @@ export function prepareSections(
       section,
       items: items.map((item) => {
         if (item.csl) return { item, entry: byId.get(item.id) ?? "" };
-        const text = item.displayText ?? "";
+        const text = itemDisplayText(item) ?? "";
         // citeproc HTML is already markup; plain displayText must be escaped for HTML.
         return {
           item,

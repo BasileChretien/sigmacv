@@ -1,4 +1,9 @@
-import type { CanonicalCv, CvItem, CvSection } from "@/lib/canonical/schema";
+import {
+  itemDisplayText,
+  type CanonicalCv,
+  type CvItem,
+  type CvSection,
+} from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import type { CslItem } from "@/types/csl";
 import { cvSlug } from "./slug";
@@ -52,7 +57,7 @@ function doiUrl(csl: CslItem): string | undefined {
 /** A non-citation entry's plain text, or a citation's title — what to list when
  *  a section maps to a flat string-only JSON Résumé field (work/education/…). */
 function entryText(item: CvItem): string {
-  return (item.displayText ?? item.csl?.title ?? "").trim();
+  return (itemDisplayText(item) ?? item.csl?.title ?? "").trim();
 }
 
 function sectionByType(cv: CanonicalCv, type: CvSection["type"]): CvSection | undefined {

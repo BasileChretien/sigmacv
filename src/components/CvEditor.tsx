@@ -41,6 +41,7 @@ import {
   setItemInView,
   setItemIncluded,
   setItemNotMine,
+  setItemTextOverride,
   setLocale,
   viewExcludedIds,
   setSectionBody,
@@ -1331,6 +1332,9 @@ export default function CvEditor({
                                 }}
                                 onUpdateText={(text) =>
                                   onChange(updateItemText(cv, section.id, item.id, text))
+                                }
+                                onSetTextOverride={(text) =>
+                                  onChange(setItemTextOverride(cv, section.id, item.id, text))
                                 }
                                 onRemove={() => onChange(removeItem(cv, section.id, item.id))}
                               />

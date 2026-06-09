@@ -240,6 +240,18 @@ export const CvItemSchema = z.object({
   /** Plain display string for non-citation items (editorial roles, grants). */
   displayText: z.string().max(10_000).optional(),
   /**
+   * USER OVERRIDE of the display string for a SOURCE-DERIVED entry (a Positions /
+   * Education line built from ORCID/OpenAlex). When set it REPLACES `displayText`
+   * everywhere the entry is shown, while `displayText` keeps being rebuilt from the
+   * live source on every re-sync underneath — so a user edit (a) survives re-sync
+   * (carried over in `build.ts` like `included`) and (b) can always be reverted to
+   * the current source text by clearing it (see `setItemTextOverride`). Bounded
+   * like `displayText`; optional + back-compat (an item without it renders the
+   * source text exactly as before). NEVER set on citation items — those render
+   * only through citeproc; the field is read only via {@link itemDisplayText}.
+   */
+  displayTextOverride: z.string().max(10_000).optional(),
+  /**
    * DISPLAY curation. false = hidden from this CV (a work the user authored but
    * chose to leave off). Distinct from `notMine`. Never deletes the item.
    */
@@ -380,6 +392,20 @@ export type CvItem = z.infer<typeof CvItemSchema>;
  */
 export function isHidden(item: Pick<CvItem, "included" | "notMine">): boolean {
   return !item.included || item.notMine === true;
+}
+
+/**
+ * The effective display string for a non-citation entry item: the user's
+ * `displayTextOverride` when set, otherwise the source-built `displayText`. Every
+ * renderer and the editor route through this so a user's edit of a Positions /
+ * Education line shows everywhere, while the source value keeps refreshing
+ * underneath (and can be restored by clearing the override). Returns undefined
+ * for items that carry neither (e.g. citation items, which render via citeproc).
+ */
+export function itemDisplayText(
+  item: Pick<CvItem, "displayText" | "displayTextOverride">,
+): string | undefined {
+  return item.displayTextOverride ?? item.displayText;
 }
 
 export const CvSectionSchema = z.object({

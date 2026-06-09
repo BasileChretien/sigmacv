@@ -1,4 +1,4 @@
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import { itemDisplayText, type CanonicalCv } from "@/lib/canonical/schema";
 import {
   attributionFooter,
   commonCss,
@@ -136,7 +136,7 @@ function historyTable(sections: RenderedSection[]): string {
     if (!rs || rs.items.length === 0) return;
     rows.push(`<tr><td class="rk-year"></td><td class="rk-center">${heading}</td></tr>`);
     for (const ri of rs.items) {
-      const text = ri.item.displayText ?? "";
+      const text = itemDisplayText(ri.item) ?? "";
       // 年 column: the structured meta.year (set for ORCID/OpenAlex entries), else
       // the first 4-digit year found in the free text — so a manually-typed line
       // like "PharmD … (2007–2016)" still fills the form's year column.

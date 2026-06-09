@@ -1,4 +1,9 @@
-import type { CanonicalCv, CvItem, CvSectionType } from "@/lib/canonical/schema";
+import {
+  itemDisplayText,
+  type CanonicalCv,
+  type CvItem,
+  type CvSectionType,
+} from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { wrapSelf } from "./emphasize";
 import { escapeMarkdown } from "./escape";
@@ -24,9 +29,9 @@ import type { Renderer, RenderInput, RenderResult } from "./types";
  * the account holder's name bolded on their own works.
  */
 
-/** A non-citation entry's plain display string. */
+/** A non-citation entry's plain display string (user override, else source). */
 function entryText(item: CvItem): string {
-  return (item.displayText ?? "").trim();
+  return (itemDisplayText(item) ?? "").trim();
 }
 
 /** Bullet list of a section's visible items' display text (positions, awards,
