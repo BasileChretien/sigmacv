@@ -156,9 +156,12 @@ services:
       TMPDIR: /var/lib/plausible/tmp
       # Public URL of the Plausible instance, e.g. https://plausible.sigmacv.org
       BASE_URL: ${PLAUSIBLE_BASE_URL}
-      # openssl rand -base64 64
+      # openssl rand -base64 48 | tr -d '\n'
       SECRET_KEY_BASE: ${PLAUSIBLE_SECRET_KEY_BASE}
-      # openssl rand -base64 32  (enables 2FA vault; optional)
+      # REQUIRED — Plausible v3 won't boot if blank (must be Base64 32 bytes, not
+      # hex). openssl rand -base64 32 | tr -d '\n'. Plausible enforces it, so the
+      # compose default stays empty rather than `:?` (which would block the whole
+      # stack, analytics profile or not).
       TOTP_VAULT_KEY: ${PLAUSIBLE_TOTP_VAULT_KEY:-}
       # Keep "false" only for first-run registration, then set "true" and redeploy
       # so the public instance can't be signed up to by strangers.
@@ -224,6 +227,11 @@ services:
       # Set SITE_ADDRESS to your domain (e.g. cv.example.org) for automatic TLS,
       # or leave as :80 for local/plain HTTP.
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      # Analytics subdomains — the Caddyfile reads these from the container env.
+      # Default to internal-only ports so the blocks stay dormant until you set
+      # real hostnames in .env (then Caddy auto-issues their TLS certs).
+      PLAUSIBLE_ADDRESS: ${PLAUSIBLE_ADDRESS:-:8081}
+      ADMIN_ADDRESS: ${ADMIN_ADDRESS:-:8082}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
