@@ -1209,12 +1209,10 @@ export default function CvEditor({
                                 }
                                 duplicateGroup={
                                   item.meta.duplicateOf
-                                    ? dupGroups
-                                        .get(item.meta.duplicateOf.groupId)
-                                        ?.map((m) => ({
-                                          item: m.item,
-                                          sectionTitle: m.sectionTitle,
-                                        }))
+                                    ? dupGroups.get(item.meta.duplicateOf.groupId)?.map((m) => ({
+                                        item: m.item,
+                                        sectionTitle: m.sectionTitle,
+                                      }))
                                     : undefined
                                 }
                                 onKeepOnly={(keepId) => {
