@@ -300,6 +300,54 @@ describe("ItemRow — duplicate comparison", () => {
     expect(screen.getByRole("button", { name: /keep both/i })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /keep all/i })).toBeNull();
   });
+
+  it("opens the panel via the controlled `dupOpen` prop (editor review focus)", () => {
+    render(
+      <ul>
+        <ItemRow
+          item={preprint()}
+          locale="en-US"
+          sectionType="preprints"
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          duplicateGroup={threeMember()}
+          dupOpen
+          onMoveUp={noop}
+          onMoveDown={noop}
+        />
+      </ul>,
+    );
+    // Panel is open WITHOUT a badge click (the editor drives it).
+    expect(screen.getByText("My Published Article")).toBeTruthy();
+  });
+
+  it("delegates the badge click to onDupToggle when controlled", () => {
+    let toggles = 0;
+    render(
+      <ul>
+        <ItemRow
+          item={preprint()}
+          locale="en-US"
+          sectionType="preprints"
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          duplicateGroup={threeMember()}
+          dupOpen={false}
+          onDupToggle={() => (toggles += 1)}
+          onMoveUp={noop}
+          onMoveDown={noop}
+        />
+      </ul>,
+    );
+    expect(screen.queryByText("My Published Article")).toBeNull(); // closed (controlled)
+    fireEvent.click(screen.getByRole("button", { name: /possible duplicate/i }));
+    expect(toggles).toBe(1);
+    expect(screen.queryByText("My Published Article")).toBeNull(); // parent decides — still closed
+  });
 });
 
 describe("ItemRow — Positions section", () => {

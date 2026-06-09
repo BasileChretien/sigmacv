@@ -113,6 +113,14 @@ interface ItemRowProps {
   onKeepOnly?: (itemId: string) => void;
   /** "Keep all" — dismiss the whole group so it isn't re-flagged on re-sync. */
   onKeepAll?: () => void;
+  /** Controlled open-state of the compare panel — the editor drives this so it
+   *  can focus a duplicate (banner jump) and auto-advance to the next one.
+   *  When omitted, the badge toggles the panel locally (uncontrolled). */
+  dupOpen?: boolean;
+  /** Badge click handler when `dupOpen` is controlled. */
+  onDupToggle?: () => void;
+  /** Ref to this row's <li>, so the editor can scroll it into view during review. */
+  rowRef?: (el: HTMLLIElement | null) => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   /** Drag-and-drop reorder: this row started being dragged. */
@@ -139,6 +147,9 @@ export default function ItemRow({
   duplicateGroup,
   onKeepOnly,
   onKeepAll,
+  dupOpen,
+  onDupToggle,
+  rowRef,
   onMoveUp,
   onMoveDown,
   onDragStart,
@@ -148,8 +159,14 @@ export default function ItemRow({
 }: ItemRowProps) {
   const u = ui(locale);
   const ds = dupStrings(locale);
-  // The "possible duplicate" explainer is collapsed until the badge is clicked.
-  const [dupExpanded, setDupExpanded] = useState(false);
+  // The compare panel is open when the editor focuses this duplicate (controlled
+  // via `dupOpen`), or when the user clicks the badge (uncontrolled fallback).
+  const [localDupOpen, setLocalDupOpen] = useState(false);
+  const isDupOpen = dupOpen ?? localDupOpen;
+  const toggleDup = () => {
+    if (dupOpen !== undefined) onDupToggle?.();
+    else setLocalDupOpen((v) => !v);
+  };
   const dup = item.meta.duplicateOf;
   // Only nag about a VISIBLE duplicate the user hasn't resolved yet.
   const showDupBadge = item.meta.reviewFlag === "duplicate" && !!dup && !isHidden(item);
@@ -157,8 +174,8 @@ export default function ItemRow({
     <button
       type="button"
       className="cv-review-badge is-duplicate"
-      onClick={() => setDupExpanded((v) => !v)}
-      aria-expanded={dupExpanded}
+      onClick={toggleDup}
+      aria-expanded={isDupOpen}
       title={ds.badgeHint}
     >
       {ds.badge}
@@ -212,12 +229,16 @@ export default function ItemRow({
     item.notMine ? "is-not-mine" : "",
     // Shown on the CV but omitted from the CURRENT view/preset (cosmetic).
     !isHidden(item) && onToggleInView && !shownInView ? "is-view-hidden" : "",
+    // The duplicate currently being reviewed (panel open) — highlighted so the
+    // banner-jump / auto-advance lands the eye on the right row.
+    showDupBadge && isDupOpen ? "is-dup-active" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
   return (
     <li
+      ref={rowRef}
       className={rowClass}
       onDragOver={onDropOver ? (e) => e.preventDefault() : undefined}
       onDrop={
@@ -315,7 +336,7 @@ export default function ItemRow({
             full facts for EVERY member of the group (2, 3, or more); "Keep this
             one" under any member keeps it and hides the rest (kept on file);
             "Keep all" dismisses the whole group (survives re-sync). */}
-        {showDupBadge && dup && dupExpanded && duplicateGroup && duplicateGroup.length >= 2 ? (
+        {showDupBadge && dup && isDupOpen && duplicateGroup && duplicateGroup.length >= 2 ? (
           <div className="cv-dup-panel" role="group" aria-label={ds.panelAria}>
             <p className="cv-dup-why muted">{dupReasonText(locale, dup.tier, dup.relationship)}</p>
             <p className="cv-dup-prompt">{ds.comparePrompt}</p>
