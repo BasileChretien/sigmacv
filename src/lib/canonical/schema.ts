@@ -307,6 +307,13 @@ export const CvItemSchema = z.object({
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
     rorId: z.string().max(2048).optional(),
     /**
+     * Canonical institution NAME for a positions/education entry (ORCID org or
+     * OpenAlex affiliation, post-ROR canonicalization). Stored so a renderer can
+     * locate the institution substring inside the formatted line and link it to
+     * its ROR record. Additive + optional; not used for matching.
+     */
+    institution: z.string().max(500).optional(),
+    /**
      * Funder identifier for a grant item (interoperable funding metadata). The
      * OpenAlex funder id (e.g. "https://openalex.org/F4320332161") or the ORCID
      * funding's disambiguated-organization identifier (FundRef/ROR/GRID). Additive

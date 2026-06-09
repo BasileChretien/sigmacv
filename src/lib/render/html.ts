@@ -1,7 +1,7 @@
 import type { CanonicalCv, CvItem, DisplayChoices } from "@/lib/canonical/schema";
 import { highlightSelf } from "@/lib/citeproc/highlight";
 import { renderStrings } from "@/lib/i18n/render";
-import { escapeHtml } from "./escape";
+import { escapeHtml, safeHref } from "./escape";
 import { prepareSections } from "./prepare";
 import { cvSlug } from "./slug";
 import { getTemplate, resolveTheme } from "./templates";
@@ -39,6 +39,40 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
   return badges.length ? `<span class="cv-badges">${badges.join("")}</span>` : "";
 }
 
+/** The canonical ROR IRI shape: `https://ror.org/<id>` (lowercase alnum body). */
+const ROR_IRI = /^https:\/\/ror\.org\/[0-9a-z]+$/;
+
+/** Canonical ROR href for a stored id (full URL or bare body), or null. */
+function rorHref(rorId: string | undefined): string | null {
+  if (!rorId) return null;
+  const candidate = ROR_IRI.test(rorId) ? rorId : `https://ror.org/${rorId.trim()}`;
+  return ROR_IRI.test(candidate) ? safeHref(candidate) : null;
+}
+
+/**
+ * Link a Positions/Education entry to its ROR organization record. The
+ * institution NAME inside the already-escaped line is wrapped in a quiet `<a>`;
+ * if it can't be located (e.g. the user edited the title and dropped the name), a
+ * small trailing "ROR" link is appended so the persistent identifier stays
+ * reachable. Links only — no image / external resource — so it needs no CSP
+ * relaxation. Returns the html unchanged when the item carries no ROR id.
+ */
+function withRorLink(html: string, item: CvItem, locale: string): string {
+  const href = rorHref(item.meta.rorId);
+  if (!href) return html;
+  const title = escapeHtml(renderStrings(locale).rorRecordTitle);
+  const open = `<a class="cv-ror-link" href="${href}" title="${title}">`;
+  const org = item.meta.institution?.trim();
+  if (org) {
+    const esc = escapeHtml(org);
+    const at = html.lastIndexOf(esc);
+    if (at >= 0) {
+      return `${html.slice(0, at)}${open}${esc}</a>${html.slice(at + esc.length)}`;
+    }
+  }
+  return `${html} ${open}ROR</a>`;
+}
+
 /**
  * Render the canonical object to a standalone HTML document.
  *
@@ -53,17 +87,24 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
  * templates (renderCvHtml) and the animated web export.
  */
 export function buildRenderedSections(cv: CanonicalCv): RenderedSection[] {
-  return prepareSections(cv, "html").map(({ section, items }) => ({
-    section,
-    items: items.map(({ item, entry }) => {
-      let html = entry;
-      if (cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0) {
-        html = highlightSelf(html, item.selfNameVariants);
-      }
-      html += itemBadges(item, cv.display);
-      return { item, html };
-    }),
-  }));
+  return prepareSections(cv, "html").map(({ section, items }) => {
+    // Link the institution name to its ROR record on every Positions/Education
+    // line, across all HTML templates. (The rirekisho template builds its own
+    // 学歴・職歴 table from plain text, so it naturally opts out.)
+    const linkRor = section.type === "positions" || section.type === "education";
+    return {
+      section,
+      items: items.map(({ item, entry }) => {
+        let html = entry;
+        if (cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0) {
+          html = highlightSelf(html, item.selfNameVariants);
+        }
+        html += itemBadges(item, cv.display);
+        if (linkRor) html = withRorLink(html, item, cv.display.locale);
+        return { item, html };
+      }),
+    };
+  });
 }
 
 export function renderCvHtml(cv: CanonicalCv, opts?: RenderOpts): string {

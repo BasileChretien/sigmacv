@@ -309,6 +309,7 @@ function makeEntryItem(
   /** Extra meta (ROR id, freshness, funder ids) for items from a live source fetch. */
   extraMeta?: {
     rorId?: string;
+    institution?: string;
     lastVerifiedAt?: string;
     funderId?: string;
     funderName?: string;
@@ -318,6 +319,7 @@ function makeEntryItem(
   const meta: CvItem["meta"] = {};
   if (year) meta.year = year;
   if (extraMeta?.rorId) meta.rorId = extraMeta.rorId;
+  if (extraMeta?.institution) meta.institution = extraMeta.institution;
   if (extraMeta?.lastVerifiedAt) meta.lastVerifiedAt = extraMeta.lastVerifiedAt;
   if (extraMeta?.funderId) meta.funderId = extraMeta.funderId;
   if (extraMeta?.funderName) meta.funderName = extraMeta.funderName;
@@ -390,6 +392,7 @@ function buildPositionsSection(
         e.startYear,
         {
           rorId: e.rorId,
+          institution: e.organization,
           lastVerifiedAt: now,
         },
       ),
@@ -408,6 +411,7 @@ function buildPositionsSection(
     const prev = prevItems.get(id);
     const item = makeEntryItem(id, "openalex", "openalex", text, prev, rank++, a.startYear, {
       rorId: a.rorId,
+      institution: a.institution,
       lastVerifiedAt: now,
     });
     items.push({ ...item, included: prev?.included ?? false });
@@ -466,6 +470,7 @@ function buildOrcidEntrySection(
     items.push(
       makeEntryItem(id, "orcid", e.putCode, text, opts.prevItems.get(id), rank++, e.startYear, {
         rorId: e.rorId,
+        institution: e.organization,
         lastVerifiedAt: opts.now,
       }),
     );
