@@ -6,11 +6,11 @@ import { SITE_URL } from "@/lib/siteUrl";
 import { landingStrings } from "@/lib/i18n/landing";
 import { homeLanguageAlternates, ogAlternateLocales, ogLocale } from "@/lib/seo";
 
-// Cookieless, first-party analytics (self-hosted Plausible). Rendered only when
-// BOTH are configured at build time (blank on local/dev → no script, no calls).
-// DOMAIN is the data-domain (e.g. sigmacv.org); SRC is the script URL served by
-// the Plausible container (e.g. https://plausible.sigmacv.org/js/script.js).
-const PLAUSIBLE_DOMAIN = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
+// Cookieless, first-party analytics (self-hosted Plausible CE v3). Rendered only
+// when configured at build time (blank on local/dev → no script, no calls). SRC
+// is the per-site script URL from the Plausible dashboard, e.g.
+// https://plausible.sigmacv.org/js/pa-<id>.js — the site is baked into that
+// script, so v3 needs no data-domain attribute.
 const PLAUSIBLE_SRC = process.env.NEXT_PUBLIC_PLAUSIBLE_SRC;
 
 const inter = Inter({
@@ -86,14 +86,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={inter.variable}>
       <body>
-        {PLAUSIBLE_DOMAIN && PLAUSIBLE_SRC && (
+        {PLAUSIBLE_SRC && (
           <>
-            <Script defer data-domain={PLAUSIBLE_DOMAIN} src={PLAUSIBLE_SRC} />
-            {/* Queue stub so window.plausible() custom events fire even before
-                the async script loads. The `||` guard never clobbers the real
-                function, so load order is irrelevant. */}
+            <Script async src={PLAUSIBLE_SRC} />
+            {/* Plausible v3 init stub (the exact snippet the dashboard provides).
+                The queue captures window.plausible(...) custom events fired before
+                the async script loads; the `||` guards never clobber the real fns. */}
             <Script id="plausible-init" strategy="afterInteractive">
-              {`window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}`}
+              {`window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()`}
             </Script>
           </>
         )}
