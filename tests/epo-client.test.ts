@@ -107,16 +107,17 @@ describe("fetchEpoPatents", () => {
   });
 
   it("keeps only inventor+applicant-org matches; parses epodoc + docdb numbers", async () => {
-    let calledUrl = "";
+    const urls: string[] = [];
     vi.stubGlobal(
       "fetch",
       vi.fn((url: unknown) => {
-        calledUrl = String(url);
+        urls.push(String(url));
         return Promise.resolve(new Response(BIBLIO_XML, { status: 200 }));
       }),
     );
     const patents = await fetchEpoPatents("Helen Smith", ["University of York"]);
-    // Wrong-org and title-less patents are dropped.
+    // Wrong-org and title-less patents are dropped; the two name-order queries
+    // return the same doc, so it's merged (de-duped) — not listed twice.
     expect(patents).toEqual([
       {
         source: "epo",
@@ -135,7 +136,59 @@ describe("fetchEpoPatents", () => {
         year: 2024,
       },
     ]);
-    expect(decodeURIComponent(calledUrl.replace(/\+/g, " "))).toContain('q=in="Helen Smith"');
+    // Both the as-given and the surname-first phrase are queried.
+    const decoded = urls.map((u) => decodeURIComponent(u.replace(/\+/g, " ")));
+    expect(decoded.some((u) => u.includes('q=in="Helen Smith"'))).toBe(true);
+    expect(decoded.some((u) => u.includes('q=in="smith helen"'))).toBe(true);
+  });
+
+  it("finds a patent indexed surname-first that the as-given query misses", async () => {
+    const EMPTY_XML = `<?xml version="1.0"?>
+<ops:world-patent-data xmlns:ops="http://ops.epo.org" xmlns="http://www.epo.org/exchange">
+  <ops:biblio-search total-result-count="0"><ops:search-result><exchange-documents></exchange-documents></ops:search-result></ops:biblio-search>
+</ops:world-patent-data>`;
+    const SURNAME_FIRST_XML = `<?xml version="1.0"?>
+<ops:world-patent-data xmlns:ops="http://ops.epo.org" xmlns="http://www.epo.org/exchange">
+  <ops:biblio-search total-result-count="1"><ops:search-result><exchange-documents>
+    <exchange-document><bibliographic-data>
+      <publication-reference><document-id document-id-type="epodoc"><doc-number>EP4238559</doc-number><date>20230907</date></document-id></publication-reference>
+      <invention-title lang="en">Surname-indexed invention</invention-title>
+      <parties>
+        <applicants><applicant><applicant-name><name>University of York</name></applicant-name></applicant></applicants>
+        <inventors><inventor><inventor-name><name>SMITH HELEN</name></inventor-name></inventor></inventors>
+      </parties>
+    </bibliographic-data></exchange-document>
+  </exchange-documents></ops:search-result></ops:biblio-search>
+</ops:world-patent-data>`;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: unknown) => {
+        const decoded = decodeURIComponent(String(url).replace(/\+/g, " "));
+        // as-given "Helen Smith" → nothing; surname-first "smith helen" → the patent.
+        const xml = decoded.includes('in="smith helen"') ? SURNAME_FIRST_XML : EMPTY_XML;
+        return Promise.resolve(new Response(xml, { status: 200 }));
+      }),
+    );
+    const patents = await fetchEpoPatents("Helen Smith", ["University of York"]);
+    expect(patents.map((p) => p.publicationNumber)).toEqual(["EP4238559"]);
+  });
+
+  it("issues a single inventor query for a one-token (mononym) name", async () => {
+    const calls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: unknown) => {
+        calls.push(String(url));
+        return Promise.resolve(
+          new Response(
+            `<ops:world-patent-data xmlns:ops="http://ops.epo.org" xmlns="http://www.epo.org/exchange"><ops:biblio-search><ops:search-result><exchange-documents></exchange-documents></ops:search-result></ops:biblio-search></ops:world-patent-data>`,
+            { status: 200 },
+          ),
+        );
+      }),
+    );
+    await fetchEpoPatents("Madonna", ["Some Org"]);
+    expect(calls).toHaveLength(1); // as-given == surname-first → de-duped to one query
   });
 
   it("handles a single-result response (exchange-document not an array)", async () => {

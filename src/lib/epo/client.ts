@@ -126,6 +126,31 @@ function parsePatents(xml: string, person: ReturnType<typeof personMatch>): Pate
 }
 
 /**
+ * Inventor-name query phrases to try, de-duplicated case-insensitively: the name
+ * AS GIVEN plus a SURNAME-FIRST variant ("Basile Chrétien" → also
+ * "chretien basile"). EPO's inventor index is largely surname-first, so the
+ * as-given phrase alone misses many patents (and can even surface different
+ * ones), so we query both orderings and merge.
+ */
+function inventorQueries(name: string, person: ReturnType<typeof personMatch>): string[] {
+  const asGiven = name.replace(/"/g, "").trim();
+  const surnameFirst = [
+    person.surname,
+    ...person.nameTokens.filter((t) => t !== person.surname),
+  ].join(" ");
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const q of [asGiven, surnameFirst]) {
+    const key = q.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(q);
+    }
+  }
+  return out;
+}
+
+/**
  * Patents where the account holder is a named inventor, matched by name + an
  * applicant organization. Review candidates (no ORCID). Fails soft → [].
  */
@@ -136,23 +161,35 @@ export async function fetchEpoPatents(name: string, orgs: string[]): Promise<Pat
   if (!token) return []; // no credentials → dormant (OPS has no anonymous access)
 
   try {
-    const url = new URL(SEARCH_ENDPOINT);
-    url.searchParams.set("q", `in="${name.replace(/"/g, "")}"`);
-    const res = await resilientFetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/exchange+xml",
-        "X-OPS-Range": "1-25",
-        "User-Agent": USER_AGENT,
-      },
-      next: { revalidate: 86_400 },
-      timeoutMs: 12_000,
-    });
-    if (!res.ok) return [];
-    const body = await res.text();
-    /* v8 ignore next -- defensive cap on a pathological response */
-    if (body.length > MAX_BYTES) return [];
-    return parsePatents(body, person);
+    const out: PatentRecord[] = [];
+    const seen = new Set<string>();
+    // Query both the as-given and a surname-first name phrase (EPO indexes
+    // inventors largely surname-first), then merge; parsePatents' name+org gate
+    // keeps only the real matches. A bad/empty response on one phrase is skipped.
+    for (const query of inventorQueries(name, person)) {
+      const url = new URL(SEARCH_ENDPOINT);
+      url.searchParams.set("q", `in="${query}"`);
+      const res = await resilientFetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/exchange+xml",
+          "X-OPS-Range": "1-25",
+          "User-Agent": USER_AGENT,
+        },
+        next: { revalidate: 86_400 },
+        timeoutMs: 12_000,
+      });
+      if (!res.ok) continue;
+      const body = await res.text();
+      /* v8 ignore next -- defensive cap on a pathological response */
+      if (body.length > MAX_BYTES) continue;
+      for (const patent of parsePatents(body, person)) {
+        if (seen.has(patent.publicationNumber)) continue;
+        seen.add(patent.publicationNumber);
+        out.push(patent);
+      }
+    }
+    return out;
   } catch (err) {
     logger.warn("epo.search_failed", { err });
     return [];
