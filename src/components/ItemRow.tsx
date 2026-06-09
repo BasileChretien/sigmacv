@@ -181,6 +181,14 @@ export default function ItemRow({
                 {t(locale, "reviewBadge")}
               </span>
             ) : null}
+            {/* ORCID-listed work OpenAlex didn't attribute: a hidden review
+                candidate. Badge shows only while still pending — confirm with
+                "Show" (which includes it) or mark "not mine". */}
+            {item.meta.reviewFlag === "orcid-doi" && !item.included && !item.notMine ? (
+              <span className="cv-review-badge" title={t(locale, "reviewHint")}>
+                {t(locale, "reviewBadge")}
+              </span>
+            ) : null}
             {sourceBadge}
           </div>
         ) : (

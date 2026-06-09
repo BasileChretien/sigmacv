@@ -767,3 +767,197 @@ describe("resolveFunderIds", () => {
     });
   });
 });
+
+describe("ORCID-discovered review candidates", () => {
+  /** A minimal OpenAlex work (published article unless `type`/no-venue says else). */
+  function discWork(
+    shortId: string,
+    bareDoi: string,
+    over: { type?: string; venue?: string | null } = {},
+  ): OpenAlexWork {
+    return {
+      id: `https://openalex.org/${shortId}`,
+      doi: `https://doi.org/${bareDoi}`,
+      title: `Work ${shortId}`,
+      display_name: `Work ${shortId}`,
+      publication_year: 2022,
+      type: over.type ?? "article",
+      authorships: [],
+      primary_location:
+        over.venue === null
+          ? null
+          : { source: { display_name: over.venue ?? "J. Test", type: "journal" } },
+    } as unknown as OpenAlexWork;
+  }
+
+  const pubItems = (cv: ReturnType<typeof build>) =>
+    cv.sections.find((s) => s.type === "publications")?.items ?? [];
+  const find = (cv: ReturnType<typeof build>, id: string) =>
+    cv.sections.flatMap((s) => s.items).find((i) => i.id === id);
+
+  it("adds a discovered work as a hidden 'orcid-doi' review candidate", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      orcidDiscoveredWorks: [discWork("W900", "10.9/a")],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const cand = find(cv, "W900")!;
+    expect(cand.included).toBe(false);
+    expect(cand.notMine).toBe(false);
+    expect(cand.source).toBe("openalex");
+    expect(cand.meta.reviewFlag).toBe("orcid-doi");
+    expect(cand.csl?.DOI).toBe("10.9/a");
+    expect(pubItems(cv).map((i) => i.id)).toContain("W900");
+  });
+
+  it("routes a discovered preprint to the Preprints section", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      orcidDiscoveredWorks: [discWork("W901", "10.9/b", { type: "preprint" })],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const pre = cv.sections.find((s) => s.type === "preprints");
+    expect(pre?.items.find((i) => i.id === "W901")?.meta.reviewFlag).toBe("orcid-doi");
+    expect(pubItems(cv).find((i) => i.id === "W901")).toBeUndefined();
+  });
+
+  it("skips a discovered work the primary author pull already returned (attributed wins)", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [discWork("W902", "10.9/c")], // attributed via author id
+      orcidDiscoveredWorks: [discWork("W902b", "10.9/c")], // same DOI, different id
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const ids = pubItems(cv).map((i) => i.id);
+    expect(ids).toContain("W902");
+    expect(ids).not.toContain("W902b");
+    expect(find(cv, "W902")!.meta.reviewFlag).toBeUndefined(); // a normal included work
+    expect(find(cv, "W902")!.included).toBe(true);
+  });
+
+  it("persists a discovered candidate across re-sync when discovery returns nothing", () => {
+    const first = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      orcidDiscoveredWorks: [discWork("W903", "10.9/d")],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const second = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      orcidDiscoveredWorks: [], // ORCID hiccup — nothing discovered this sync
+      now: "2026-07-01T00:00:00.000Z",
+      previous: first,
+    });
+    const cand = find(second, "W903");
+    expect(cand?.included).toBe(false);
+    expect(cand?.meta.reviewFlag).toBe("orcid-doi");
+  });
+
+  it("does not rebuild a candidate already in the CV (no duplication)", () => {
+    const first = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      orcidDiscoveredWorks: [discWork("W904", "10.9/e")],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const second = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      orcidDiscoveredWorks: [discWork("W904", "10.9/e")], // same one re-offered
+      now: "2026-07-01T00:00:00.000Z",
+      previous: first,
+    });
+    expect(pubItems(second).filter((i) => i.id === "W904")).toHaveLength(1);
+  });
+
+  it("does not resurface an unconfirmed (hidden) candidate when OpenAlex later attributes it", () => {
+    const first = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      orcidDiscoveredWorks: [discWork("W905", "10.9/f")],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const second = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [discWork("W905", "10.9/f")], // now attributed via author id
+      orcidDiscoveredWorks: [],
+      now: "2026-07-01T00:00:00.000Z",
+      previous: first,
+    });
+    const items = pubItems(second).filter((i) => i.id === "W905");
+    expect(items).toHaveLength(1); // not double-listed
+    expect(items[0]!.included).toBe(false); // stays as the user left it (hidden)
+    // The "orcid-doi" flag is dropped: it's now a normal (if hidden) attributed work.
+    expect(items[0]!.meta.reviewFlag).toBeUndefined();
+  });
+
+  it("keeps an explicit 'not mine' on a candidate after attribution", () => {
+    const first = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      orcidDiscoveredWorks: [discWork("W906", "10.9/g")],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const asserted = {
+      ...first,
+      sections: first.sections.map((s) => ({
+        ...s,
+        items: s.items.map((it) =>
+          it.id === "W906"
+            ? { ...it, notMine: true, notMineAssertedAt: "2026-06-03T00:00:00.000Z" }
+            : it,
+        ),
+      })),
+    };
+    const second = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [discWork("W906", "10.9/g")],
+      orcidDiscoveredWorks: [],
+      now: "2026-07-01T00:00:00.000Z",
+      previous: asserted,
+    });
+    const item = find(second, "W906")!;
+    expect(item.notMine).toBe(true);
+    expect(item.included).toBe(false); // not resurfaced
+  });
+
+  it("keeps a confirmed (shown) candidate included after attribution", () => {
+    const first = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      orcidDiscoveredWorks: [discWork("W907", "10.9/h")],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const confirmed = {
+      ...first,
+      sections: first.sections.map((s) => ({
+        ...s,
+        items: s.items.map((it) => (it.id === "W907" ? { ...it, included: true } : it)),
+      })),
+    };
+    const second = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [discWork("W907", "10.9/h")],
+      orcidDiscoveredWorks: [],
+      now: "2026-07-01T00:00:00.000Z",
+      previous: confirmed,
+    });
+    expect(find(second, "W907")!.included).toBe(true);
+  });
+});

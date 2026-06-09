@@ -269,6 +269,46 @@ function awardIdOf(f: any): string | undefined {
   return undefined;
 }
 
+/**
+ * DOIs from one ORCID `external-ids` block, lower-cased. ORCID records both a
+ * group-level (merged) id list and per-summary lists; we read whichever is given.
+ * Only `external-id-type === "doi"` values are returned.
+ */
+function doisFromExternalIds(extIds: any): string[] {
+  const out: string[] = [];
+  for (const e of toArray(extIds?.["external-id"])) {
+    const type = nonEmpty(e?.["external-id-type"])?.toLowerCase();
+    if (type !== "doi") continue;
+    const value = nonEmpty(e?.["external-id-value"]);
+    if (value) out.push(value.toLowerCase());
+  }
+  return out;
+}
+
+/**
+ * The DOIs of the user's PUBLIC works as recorded in their ORCID profile. ORCID
+ * groups works by identifier; the DOI sits on the group's merged `external-ids`
+ * and/or each `work-summary`. Used to discover works OpenAlex didn't attribute to
+ * the author (the diff lives in cv/orcidDiscovery). Returns a de-duplicated list
+ * of lower-cased DOI strings; fails soft → [].
+ */
+export async function fetchOrcidWorkDois(orcid: string): Promise<string[]> {
+  try {
+    const data = await orcidGet<any>(orcid, "works");
+    const seen = new Set<string>();
+    for (const group of toArray(data?.group)) {
+      for (const d of doisFromExternalIds(group?.["external-ids"])) seen.add(d);
+      for (const ws of toArray(group?.["work-summary"])) {
+        for (const d of doisFromExternalIds(ws?.["external-ids"])) seen.add(d);
+      }
+    }
+    return [...seen];
+  } catch (err) {
+    logger.warn("orcid.works_fetch_failed", { err });
+    return [];
+  }
+}
+
 /** Fetch the user's PUBLIC funding/grants from ORCID (fails soft → []). */
 export async function fetchOrcidFundings(orcid: string): Promise<OrcidFunding[]> {
   try {

@@ -147,3 +147,32 @@ describe("ItemRow — name+org review candidates", () => {
     expect(screen.getByText("ClinicalTrials.gov")).toBeTruthy();
   });
 });
+
+describe("ItemRow — ORCID-discovered review candidates", () => {
+  const orcidDoiCandidate = (over: Partial<CvItem> = {}) =>
+    makeItem({
+      id: "W9000001",
+      source: "openalex",
+      csl: {
+        id: "W9000001",
+        type: "article-journal",
+        title: "An ORCID-listed paper",
+      } as CvItem["csl"],
+      included: false, // discovered candidates start hidden
+      meta: { reviewFlag: "orcid-doi" },
+      ...over,
+    });
+
+  it("flags a hidden orcid-doi candidate for review, offering Show AND 'not mine'", () => {
+    renderRow(orcidDoiCandidate());
+    expect(document.querySelector(".cv-review-badge")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^show/i })).toBeTruthy();
+    // It's a citation (OpenAlex) → "not mine" IS offered (unlike name-matched registries).
+    expect(screen.getByRole("button", { name: /not mine/i })).toBeTruthy();
+  });
+
+  it("drops the review badge once the candidate is confirmed (included)", () => {
+    renderRow(orcidDoiCandidate({ included: true }));
+    expect(document.querySelector(".cv-review-badge")).toBeNull();
+  });
+});

@@ -344,3 +344,67 @@ describe("ORCID extra public sections", () => {
     expect(await fetchOrcidPeerReviews("0000-0002-7483-2489")).toEqual([]);
   });
 });
+
+const WORKS = {
+  group: [
+    {
+      // DOI on the group's merged external-ids; a non-DOI id is ignored. The
+      // summary repeats the same DOI in a different case → de-duplicated.
+      "external-ids": {
+        "external-id": [
+          { "external-id-type": "doi", "external-id-value": "10.1/AAA" },
+          { "external-id-type": "eid", "external-id-value": "2-s2.0-1" },
+        ],
+      },
+      "work-summary": [
+        {
+          "put-code": 1,
+          "external-ids": {
+            "external-id": [{ "external-id-type": "doi", "external-id-value": "10.1/aaa" }],
+          },
+        },
+      ],
+    },
+    {
+      // DOI only on the summary (no group-level external-ids).
+      "work-summary": [
+        {
+          "put-code": 2,
+          "external-ids": {
+            "external-id": [{ "external-id-type": "DOI", "external-id-value": "10.2/BbB" }],
+          },
+        },
+      ],
+    },
+    {
+      // No DOI anywhere → contributes nothing.
+      "external-ids": {
+        "external-id": [{ "external-id-type": "pmid", "external-id-value": "123" }],
+      },
+      "work-summary": [{ "put-code": 3 }],
+    },
+  ],
+};
+
+describe("fetchOrcidWorkDois", () => {
+  function routeWorks(works: Response) {
+    return vi.fn(async (url: URL | string) => {
+      const u = url.toString();
+      if (u.includes("/oauth/token")) return res(TOKEN_BODY);
+      if (u.includes("/works")) return works;
+      return res({});
+    });
+  }
+
+  it("collects DOIs from group + summary external-ids, lower-cased and de-duped", async () => {
+    vi.stubGlobal("fetch", routeWorks(res(WORKS)));
+    const { fetchOrcidWorkDois } = await freshClient();
+    expect(await fetchOrcidWorkDois("0000-0002-7483-2489")).toEqual(["10.1/aaa", "10.2/bbb"]);
+  });
+
+  it("returns [] when the works API errors (fails soft)", async () => {
+    vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
+    const { fetchOrcidWorkDois } = await freshClient();
+    expect(await fetchOrcidWorkDois("0000-0002-7483-2489")).toEqual([]);
+  });
+});
