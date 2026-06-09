@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Reorder, useDragControls, type DragControls } from "motion/react";
 import {
   ACCENT_PRESETS,
@@ -187,6 +187,28 @@ function SectionCard({
   );
 }
 
+/**
+ * Pending (visible, unresolved) duplicates in DOCUMENT order — across every
+ * section, top to bottom — each tagged with a monotonic `pos` so "the next one"
+ * is well-defined for the review flow. Order matches what the editor renders
+ * (`orderedSections` + within-section `order`).
+ */
+function orderedPendingDups(
+  cv: CanonicalCv,
+): Array<{ id: string; sectionId: string; pos: number }> {
+  const out: Array<{ id: string; sectionId: string; pos: number }> = [];
+  let pos = 0;
+  for (const s of orderedSections(cv)) {
+    for (const it of [...s.items].sort((a, b) => a.order - b.order)) {
+      const here = pos++;
+      if (it.meta.reviewFlag === "duplicate" && !isHidden(it)) {
+        out.push({ id: it.id, sectionId: s.id, pos: here });
+      }
+    }
+  }
+  return out;
+}
+
 export default function CvEditor({
   cv,
   availableStyles,
@@ -235,6 +257,35 @@ export default function CvEditor({
     }
     return groups;
   }, [itemIndex]);
+
+  // ── Duplicate REVIEW flow ──────────────────────────────────────────────────
+  // The id of the duplicate currently being reviewed (its compare panel is open).
+  // Lifted here so the section banner can jump to a duplicate and so resolving one
+  // can auto-advance to the next. `null` = nothing focused.
+  const [reviewDupId, setReviewDupId] = useState<string | null>(null);
+  // Live refs to each duplicate row's <li>, for scroll-into-view on focus.
+  const dupRowRefs = useRef(new Map<string, HTMLLIElement>());
+
+  // Scroll the focused duplicate into view (section auto-expanded first, so its
+  // row is mounted by the time this effect runs).
+  useEffect(() => {
+    if (!reviewDupId) return;
+    dupRowRefs.current.get(reviewDupId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [reviewDupId]);
+
+  // After resolving the current duplicate, focus the NEXT pending one (document
+  // order, wrapping), expanding its section; clear focus when none remain.
+  const advanceAfter = (next: CanonicalCv, resolvedId: string) => {
+    const curPos = orderedPendingDups(cv).find((d) => d.id === resolvedId)?.pos ?? -1;
+    const remaining = orderedPendingDups(next);
+    const target = remaining.find((d) => d.pos > curPos) ?? remaining[0] ?? null;
+    if (target) {
+      setExpanded((prev) => new Set(prev).add(target.sectionId));
+      setReviewDupId(target.id);
+    } else {
+      setReviewDupId(null);
+    }
+  };
 
   // Locale-aware option labels (built from the chrome dictionary).
   const TEMPLATE_LABELS: Record<string, string> = {
@@ -1067,7 +1118,13 @@ export default function CvEditor({
                           title={ds.summary.replace("{n}", String(dupCount))}
                           aria-label={ds.summary.replace("{n}", String(dupCount))}
                           onClick={() => {
-                            if (!isExpanded) toggleExpanded(section.id);
+                            // Open the section and jump straight to its first
+                            // pending duplicate (panel open + scrolled into view).
+                            setExpanded((prev) => new Set(prev).add(section.id));
+                            const first = orderedPendingDups(cv).find(
+                              (d) => d.sectionId === section.id,
+                            );
+                            if (first) setReviewDupId(first.id);
                           }}
                         >
                           ⚠ {dupCount}
@@ -1218,6 +1275,15 @@ export default function CvEditor({
                                       }))
                                     : undefined
                                 }
+                                dupOpen={reviewDupId === item.id}
+                                onDupToggle={() =>
+                                  setReviewDupId((cur) => (cur === item.id ? null : item.id))
+                                }
+                                rowRef={(el) => {
+                                  const m = dupRowRefs.current;
+                                  if (el) m.set(item.id, el);
+                                  else m.delete(item.id);
+                                }}
                                 onKeepOnly={(keepId) => {
                                   const members = item.meta.duplicateOf
                                     ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
@@ -1237,17 +1303,18 @@ export default function CvEditor({
                                     next = clearDuplicateFlag(next, keep.sectionId, keep.item.id);
                                   }
                                   onChange(next);
+                                  advanceAfter(next, item.id);
                                 }}
                                 onKeepAll={() => {
                                   const members = item.meta.duplicateOf
                                     ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
                                     : [];
-                                  onChange(
-                                    dismissDuplicateGroup(
-                                      cv,
-                                      members.map((m) => m.item.id),
-                                    ),
+                                  const next = dismissDuplicateGroup(
+                                    cv,
+                                    members.map((m) => m.item.id),
                                   );
+                                  onChange(next);
+                                  advanceAfter(next, item.id);
                                 }}
                                 onMoveUp={() => onChange(moveItem(cv, section.id, item.id, "up"))}
                                 onMoveDown={() =>
