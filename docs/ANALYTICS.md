@@ -80,9 +80,14 @@ RESET ROLE;
 ### 3. Secrets + env
 
 Fill the **Analytics** block in `.env` (template: `.env.production.example`).
-Generate: `PLAUSIBLE_SECRET_KEY_BASE` = `openssl rand -base64 64`;
-`METABASE_DB_PASSWORD` / `PLAUSIBLE_DB_PASSWORD` = `openssl rand -base64 24`;
-optional `PLAUSIBLE_TOTP_VAULT_KEY` = `openssl rand -base64 32`.
+Generate the secrets, piping each through `| tr -d '\n'` so it stays on one line:
+
+- `PLAUSIBLE_SECRET_KEY_BASE` = `openssl rand -base64 48` (≥ 64 chars)
+- `PLAUSIBLE_TOTP_VAULT_KEY` = `openssl rand -base64 32` — **REQUIRED**: Plausible
+  v3 refuses to boot if it's blank, and it must be Base64-encoded 32 bytes (**not**
+  hex), or you'll get `TOTP_VAULT_KEY must be Base64 encoded 32 bytes`.
+- `METABASE_DB_PASSWORD` / `PLAUSIBLE_DB_PASSWORD` = `openssl rand -base64 24`
+
 Set `NEXT_PUBLIC_PLAUSIBLE_DOMAIN=sigmacv.org` and
 `NEXT_PUBLIC_PLAUSIBLE_SRC=https://plausible.sigmacv.org/js/script.js`.
 
