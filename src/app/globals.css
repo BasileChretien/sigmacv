@@ -1241,15 +1241,11 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 }
 /* Two entries side-by-side (stacks on narrow screens). */
 .cv-dup-compare {
+  /* Wraps to fit a group of 2, 3 or more members; stacks on narrow screens. */
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--space-2);
   margin-bottom: var(--space-2);
-}
-@media (max-width: 640px) {
-  .cv-dup-compare {
-    grid-template-columns: 1fr;
-  }
 }
 .cv-dup-entry {
   display: flex;
@@ -1259,6 +1255,11 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   background: var(--surface, #fff);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+}
+/* The entry whose row was clicked to open the panel. */
+.cv-dup-entry.is-self {
+  border-color: #f0dcae;
+  box-shadow: inset 0 0 0 1px #f0dcae;
 }
 .cv-dup-facts {
   display: flex;

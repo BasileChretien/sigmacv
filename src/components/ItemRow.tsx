@@ -105,17 +105,14 @@ interface ItemRowProps {
   onToggleInView?: () => void;
   /** Set/clear the structured reason for a "not mine" assertion. */
   onSetNotMineReason?: (reason: NotMineReason | undefined) => void;
-  /** The other entry this item likely duplicates (full data, resolved by the
-   *  editor), shown side-by-side so the user can compare and choose. */
-  duplicatePartner?: CvItem;
-  /** Localized name of the section the partner entry lives in (e.g. "Preprints"). */
-  duplicatePartnerSection?: string;
-  /** "Keep this one" on THIS entry → keep it, hide the partner. */
-  onKeepThis?: () => void;
-  /** "Keep this one" on the PARTNER entry → keep the partner, hide this one. */
-  onKeepPartner?: () => void;
-  /** "Keep both" — dismiss the duplicate flag so it isn't re-raised on re-sync. */
-  onDupKeepBoth?: () => void;
+  /** Every member of this item's duplicate GROUP (≥2, including this row's item),
+   *  with full data + localized section name — resolved by the editor and shown
+   *  side-by-side so the user can compare them all and choose which to keep. */
+  duplicateGroup?: ReadonlyArray<{ item: CvItem; sectionTitle: string }>;
+  /** "Keep this one" on a group member → keep it, hide the rest of the group. */
+  onKeepOnly?: (itemId: string) => void;
+  /** "Keep all" — dismiss the whole group so it isn't re-flagged on re-sync. */
+  onKeepAll?: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   /** Drag-and-drop reorder: this row started being dragged. */
@@ -139,11 +136,9 @@ export default function ItemRow({
   shownInView = true,
   onToggleInView,
   onSetNotMineReason,
-  duplicatePartner,
-  duplicatePartnerSection,
-  onKeepThis,
-  onKeepPartner,
-  onDupKeepBoth,
+  duplicateGroup,
+  onKeepOnly,
+  onKeepAll,
   onMoveUp,
   onMoveDown,
   onDragStart,
@@ -317,59 +312,50 @@ export default function ItemRow({
           </div>
         )}
         {/* Possible-duplicate COMPARISON. Advisory: NEVER auto-removes. Shows the
-            full facts for BOTH entries side-by-side; "Keep this one" under either
-            keeps that entry and hides the other (kept on file); "Keep both"
-            dismisses the pair (survives re-sync). */}
-        {showDupBadge && dup && dupExpanded ? (
+            full facts for EVERY member of the group (2, 3, or more); "Keep this
+            one" under any member keeps it and hides the rest (kept on file);
+            "Keep all" dismisses the whole group (survives re-sync). */}
+        {showDupBadge && dup && dupExpanded && duplicateGroup && duplicateGroup.length >= 2 ? (
           <div className="cv-dup-panel" role="group" aria-label={ds.panelAria}>
             <p className="cv-dup-why muted">{dupReasonText(locale, dup.tier, dup.relationship)}</p>
             <p className="cv-dup-prompt">{ds.comparePrompt}</p>
             <div className="cv-dup-compare">
-              <div className="cv-dup-entry">
-                <DupFacts item={item} locale={locale} />
-                {onKeepThis && duplicatePartner ? (
-                  <button
-                    type="button"
-                    className="mine-btn is-restore cv-dup-keep"
-                    onClick={onKeepThis}
-                    title={ds.keepThisHint}
+              {duplicateGroup.map((member) => {
+                const isSelf = member.item.id === item.id;
+                return (
+                  <div
+                    className={`cv-dup-entry${isSelf ? " is-self" : ""}`}
+                    key={member.item.id}
                   >
-                    {ds.keepThis}
-                  </button>
-                ) : null}
-              </div>
-              {duplicatePartner ? (
-                <div className="cv-dup-entry">
-                  <DupFacts item={duplicatePartner} locale={locale} />
-                  <div className="cv-dup-entry-where muted">
-                    {duplicatePartnerSection
-                      ? ds.otherIn.replace("{s}", duplicatePartnerSection)
-                      : null}
-                    {isHidden(duplicatePartner) ? (
-                      <span className="cv-dup-hidden-tag"> · {ds.hiddenTag}</span>
+                    <DupFacts item={member.item} locale={locale} />
+                    <div className="cv-dup-entry-where muted">
+                      {isSelf ? ds.thisEntryTag : ds.otherIn.replace("{s}", member.sectionTitle)}
+                      {isHidden(member.item) ? (
+                        <span className="cv-dup-hidden-tag"> · {ds.hiddenTag}</span>
+                      ) : null}
+                    </div>
+                    {onKeepOnly ? (
+                      <button
+                        type="button"
+                        className="mine-btn is-restore cv-dup-keep"
+                        onClick={() => onKeepOnly(member.item.id)}
+                        title={ds.keepThisHint}
+                      >
+                        {ds.keepThis}
+                      </button>
                     ) : null}
                   </div>
-                  {onKeepPartner ? (
-                    <button
-                      type="button"
-                      className="mine-btn is-restore cv-dup-keep"
-                      onClick={onKeepPartner}
-                      title={ds.keepThisHint}
-                    >
-                      {ds.keepThis}
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
+                );
+              })}
             </div>
-            {onDupKeepBoth ? (
+            {onKeepAll ? (
               <button
                 type="button"
                 className="mine-btn cv-dup-keepboth"
-                onClick={onDupKeepBoth}
-                title={ds.keepBothHint}
+                onClick={onKeepAll}
+                title={duplicateGroup.length > 2 ? ds.keepAllHint : ds.keepBothHint}
               >
-                {ds.keepBoth}
+                {duplicateGroup.length > 2 ? ds.keepAll : ds.keepBoth}
               </button>
             ) : null}
           </div>

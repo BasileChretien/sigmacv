@@ -623,6 +623,41 @@ export function clearDuplicateFlag(
 }
 
 /**
+ * "Keep all" for a duplicate GROUP of N≥2 members — dismiss EVERY pair among the
+ * members (so the detector can never re-form the cluster) and clear all their
+ * hints now. This is the only path that records the group as a non-duplicate
+ * (the research false-positive signal); "keep only one" instead hides the rest,
+ * which the detector already ignores, so it needs no dismissal. Pure + immutable;
+ * a no-op for fewer than 2 resolvable ids. Keyed by stable DOI/PMID anchors so it
+ * survives re-sync id churn, exactly like {@link dismissDuplicate}.
+ */
+export function dismissDuplicateGroup(cv: CanonicalCv, itemIds: readonly string[]): CanonicalCv {
+  const ids = new Set(itemIds);
+  const members: CvItem[] = [];
+  for (const s of cv.sections) for (const it of s.items) if (ids.has(it.id)) members.push(it);
+  if (members.length < 2) return cv;
+
+  const keys = new Set(cv.display.dismissedDuplicates ?? []);
+  for (let i = 0; i < members.length; i++) {
+    for (let j = i + 1; j < members.length; j++) {
+      keys.add(duplicatePairKey(members[i]!, members[j]!));
+    }
+  }
+  return {
+    ...cv,
+    display: { ...cv.display, dismissedDuplicates: [...keys] },
+    sections: cv.sections.map((s) => ({
+      ...s,
+      items: s.items.map((it) =>
+        ids.has(it.id) && (it.meta.reviewFlag === "duplicate" || it.meta.duplicateOf !== undefined)
+          ? { ...it, meta: clearedDuplicateHint(it) }
+          : it,
+      ),
+    })),
+  };
+}
+
+/**
  * Whether the CV already contains a work with the given OpenAlex id or DOI, so
  * the "add by DOI" flow can refuse a duplicate rather than list it twice.
  */

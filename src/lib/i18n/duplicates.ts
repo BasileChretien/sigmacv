@@ -3,31 +3,38 @@ import type { DuplicateRelationship, DuplicateTier } from "@/lib/canonical/schem
 
 /**
  * Editor strings for the duplicate-detection feature: the per-row "possible
- * duplicate" badge, the side-by-side compare-and-choose panel (full facts for
- * BOTH entries + a "keep this one" choice on each), and the per-section summary.
- * Kept in its own module — like `ui.ts`/`render.ts` — rather than the giant
- * chrome dictionary. Typed as `Record<Locale, DuplicateStrings>` so a missing
- * translation is a COMPILE error: the feature can't ship untranslated.
+ * duplicate" badge, the compare-and-choose panel (full facts for EVERY member of
+ * a duplicate group + a "keep this one" choice on each, plus "keep all"), and the
+ * per-section summary. Kept in its own module — like `ui.ts`/`render.ts` — rather
+ * than the giant chrome dictionary. Typed as `Record<Locale, DuplicateStrings>`
+ * so a missing translation is a COMPILE error: the feature can't ship
+ * untranslated.
  *
  * The `relX`/`tierX` keys are the explanatory phrase for WHY a pair was flagged;
  * `dupReasonText` selects one from `(tier, relationship)`. The copy deliberately
  * NEVER implies an error for legitimate-both cases (preprint↔published, errata,
- * translations) — the user compares both and decides which to keep.
+ * translations) — the user compares the members and decides which to keep.
  */
 export interface DuplicateStrings {
   badge: string;
   badgeHint: string;
   panelAria: string;
+  /** "Keep both" — for a 2-member group. */
   keepBoth: string;
   keepBothHint: string;
-  /** Heading above the two compared entries. */
+  /** "Keep all" — for a group of 3+ members. */
+  keepAll: string;
+  keepAllHint: string;
+  /** Tag marking the entry the open panel belongs to (the row that was clicked). */
+  thisEntryTag: string;
+  /** Heading above the compared entries. */
   comparePrompt: string;
-  /** "Keep this one" — keep this entry, hide the other. */
+  /** "Keep this one" — keep this entry, hide the rest of the group. */
   keepThis: string;
   keepThisHint: string;
-  /** Where the other entry lives, `{s}` = section name (e.g. "in Preprints"). */
+  /** Where another entry lives, `{s}` = section name (e.g. "in Preprints"). */
   otherIn: string;
-  /** Tag shown when the other entry is currently hidden from the CV. */
+  /** Tag shown when an entry is currently hidden from the CV. */
   hiddenTag: string;
   peerReviewedTag: string;
   notPeerReviewedTag: string;
@@ -54,9 +61,12 @@ const EN: DuplicateStrings = {
   panelAria: "Compare possible duplicate entries",
   keepBoth: "Keep both",
   keepBothHint: "These are distinct — keep both on the CV and don’t flag this pair again.",
+  keepAll: "Keep all",
+  keepAllHint: "These are all distinct — keep them all and don’t flag this group again.",
+  thisEntryTag: "this entry",
   comparePrompt: "Which entry do you want to keep?",
   keepThis: "Keep this one",
-  keepThisHint: "Keep this entry and hide the other (kept on file, not deleted).",
+  keepThisHint: "Keep this entry and hide the others (kept on file, not deleted).",
   otherIn: "in {s}",
   hiddenTag: "hidden",
   peerReviewedTag: "peer-reviewed",
@@ -81,9 +91,12 @@ const ZH: DuplicateStrings = {
   panelAria: "对比疑似重复的条目",
   keepBoth: "两者都保留",
   keepBothHint: "二者不同——在简历中都保留，且不再对此对进行标记。",
+  keepAll: "全部保留",
+  keepAllHint: "它们各不相同——全部保留，且不再标记该组。",
+  thisEntryTag: "此条目",
   comparePrompt: "您想保留哪一条？",
   keepThis: "保留此条",
-  keepThisHint: "保留此条目并隐藏另一条（仍会留档，不会删除）。",
+  keepThisHint: "保留此条目并隐藏其余条目（仍会留档，不会删除）。",
   otherIn: "位于{s}",
   hiddenTag: "已隐藏",
   peerReviewedTag: "经同行评审",
@@ -109,9 +122,12 @@ const ES: DuplicateStrings = {
   panelAria: "Comparar posibles entradas duplicadas",
   keepBoth: "Conservar ambos",
   keepBothHint: "Son distintos — consérvalos ambos en el CV y no vuelvas a marcar este par.",
+  keepAll: "Conservar todas",
+  keepAllHint: "Son todas distintas — consérvalas y no vuelvas a marcar este grupo.",
+  thisEntryTag: "esta entrada",
   comparePrompt: "¿Qué entrada quieres conservar?",
   keepThis: "Conservar esta",
-  keepThisHint: "Conserva esta entrada y oculta la otra (se conserva archivada, no se borra).",
+  keepThisHint: "Conserva esta entrada y oculta las demás (se conserva archivada, no se borra).",
   otherIn: "en {s}",
   hiddenTag: "oculta",
   peerReviewedTag: "revisado por pares",
@@ -138,9 +154,13 @@ const FR: DuplicateStrings = {
   keepBoth: "Garder les deux",
   keepBothHint:
     "Ce sont des travaux distincts — gardez les deux au CV et ne signalez plus cette paire.",
+  keepAll: "Tout garder",
+  keepAllHint:
+    "Ce sont des travaux distincts — gardez-les tous et ne signalez plus ce groupe.",
+  thisEntryTag: "cette entrée",
   comparePrompt: "Quelle entrée voulez-vous conserver ?",
   keepThis: "Garder celle-ci",
-  keepThisHint: "Garder cette entrée et masquer l’autre (conservée au dossier, non supprimée).",
+  keepThisHint: "Garder cette entrée et masquer les autres (conservée au dossier, non supprimée).",
   otherIn: "dans {s}",
   hiddenTag: "masquée",
   peerReviewedTag: "évalué par les pairs",
@@ -170,10 +190,14 @@ const DE: DuplicateStrings = {
   keepBoth: "Beide behalten",
   keepBothHint:
     "Sie sind verschieden — beide im Lebenslauf behalten und dieses Paar nicht erneut melden.",
+  keepAll: "Alle behalten",
+  keepAllHint:
+    "Sie sind alle verschieden — alle behalten und diese Gruppe nicht erneut melden.",
+  thisEntryTag: "dieser Eintrag",
   comparePrompt: "Welchen Eintrag möchten Sie behalten?",
   keepThis: "Diesen behalten",
   keepThisHint:
-    "Diesen Eintrag behalten und den anderen ausblenden (bleibt gespeichert, nicht gelöscht).",
+    "Diesen Eintrag behalten und die anderen ausblenden (bleibt gespeichert, nicht gelöscht).",
   otherIn: "in {s}",
   hiddenTag: "ausgeblendet",
   peerReviewedTag: "begutachtet",
@@ -201,9 +225,12 @@ const JA: DuplicateStrings = {
   panelAria: "重複の可能性がある項目を見比べる",
   keepBoth: "両方残す",
   keepBothHint: "これらは別物です——両方を CV に残し、この組み合わせを今後は表示しません。",
-  comparePrompt: "どちらの項目を残しますか？",
+  keepAll: "すべて残す",
+  keepAllHint: "これらはすべて別物です——すべて残し、このグループを今後は表示しません。",
+  thisEntryTag: "この項目",
+  comparePrompt: "どの項目を残しますか？",
   keepThis: "これを残す",
-  keepThisHint: "この項目を残し、もう一方を非表示にします（記録は保持し、削除はしません）。",
+  keepThisHint: "この項目を残し、ほかを非表示にします（記録は保持し、削除はしません）。",
   otherIn: "{s} 内",
   hiddenTag: "非表示",
   peerReviewedTag: "査読あり",
@@ -229,9 +256,12 @@ const PT: DuplicateStrings = {
   panelAria: "Comparar possíveis entradas duplicadas",
   keepBoth: "Manter ambos",
   keepBothHint: "São distintos — mantenha ambos no currículo e não sinalize este par novamente.",
+  keepAll: "Manter todas",
+  keepAllHint: "São todas distintas — mantenha-as e não sinalize este grupo novamente.",
+  thisEntryTag: "esta entrada",
   comparePrompt: "Qual entrada você quer manter?",
   keepThis: "Manter esta",
-  keepThisHint: "Mantém esta entrada e oculta a outra (mantida em arquivo, não excluída).",
+  keepThisHint: "Mantém esta entrada e oculta as demais (mantida em arquivo, não excluída).",
   otherIn: "em {s}",
   hiddenTag: "oculta",
   peerReviewedTag: "revisado por pares",
@@ -257,9 +287,12 @@ const IT: DuplicateStrings = {
   panelAria: "Confronta le possibili voci duplicate",
   keepBoth: "Tieni entrambi",
   keepBothHint: "Sono distinti — tienili entrambi nel CV e non segnalare più questa coppia.",
+  keepAll: "Tieni tutte",
+  keepAllHint: "Sono tutte distinte — tienile tutte e non segnalare più questo gruppo.",
+  thisEntryTag: "questa voce",
   comparePrompt: "Quale voce vuoi mantenere?",
   keepThis: "Mantieni questa",
-  keepThisHint: "Mantieni questa voce e nascondi l’altra (resta archiviata, non eliminata).",
+  keepThisHint: "Mantieni questa voce e nascondi le altre (resta archiviata, non eliminata).",
   otherIn: "in {s}",
   hiddenTag: "nascosta",
   peerReviewedTag: "sottoposto a revisione paritaria",
@@ -287,9 +320,12 @@ const KO: DuplicateStrings = {
   panelAria: "중복 가능성이 있는 항목 비교",
   keepBoth: "둘 다 유지",
   keepBothHint: "서로 다른 업적입니다 — 둘 다 CV에 유지하고 이 쌍을 다시 표시하지 않습니다.",
+  keepAll: "모두 유지",
+  keepAllHint: "모두 서로 다른 업적입니다 — 모두 유지하고 이 그룹을 다시 표시하지 않습니다.",
+  thisEntryTag: "이 항목",
   comparePrompt: "어느 항목을 남기시겠어요?",
   keepThis: "이 항목 남기기",
-  keepThisHint: "이 항목을 남기고 다른 항목을 숨깁니다(기록은 보관, 삭제 아님).",
+  keepThisHint: "이 항목을 남기고 나머지를 숨깁니다(기록은 보관, 삭제 아님).",
   otherIn: "{s}에 있음",
   hiddenTag: "숨김",
   peerReviewedTag: "동료 심사",
@@ -315,9 +351,12 @@ const RU: DuplicateStrings = {
   panelAria: "Сравнить возможные дубликаты записей",
   keepBoth: "Оставить обе",
   keepBothHint: "Это разные работы — оставьте обе в резюме и больше не отмечайте эту пару.",
+  keepAll: "Оставить все",
+  keepAllHint: "Это разные работы — оставьте все и больше не отмечайте эту группу.",
+  thisEntryTag: "эта запись",
   comparePrompt: "Какую запись оставить?",
   keepThis: "Оставить эту",
-  keepThisHint: "Оставить эту запись и скрыть другую (останется в архиве, не удаляется).",
+  keepThisHint: "Оставить эту запись и скрыть остальные (останется в архиве, не удаляется).",
   otherIn: "в разделе {s}",
   hiddenTag: "скрыта",
   peerReviewedTag: "рецензировано",

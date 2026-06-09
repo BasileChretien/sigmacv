@@ -27,7 +27,7 @@ import {
   clearDuplicateFlag,
   clearViewExclusions,
   deletePreset,
-  dismissDuplicate,
+  dismissDuplicateGroup,
   isItemShownInView,
   moveItem,
   moveItemTo,
@@ -204,15 +204,36 @@ export default function CvEditor({
   const ds = dupStrings(locale);
 
   // Index every item by id with its full data + section (the editor owns the
-  // whole CV; ItemRow only knows its own item). Used to show a duplicate's
-  // PARTNER entry side-by-side and to act on it across sections.
+  // whole CV; ItemRow only knows its own item). Used to resolve a duplicate's
+  // group members side-by-side and to act on them across sections.
+  type Located = { item: CvItem; sectionId: string; sectionTitle: string };
   const itemIndex = useMemo(() => {
-    const m = new Map<string, { item: CvItem; sectionId: string; sectionTitle: string }>();
+    const m = new Map<string, Located>();
     for (const s of cv.sections) {
       for (const it of s.items) m.set(it.id, { item: it, sectionId: s.id, sectionTitle: s.title });
     }
     return m;
   }, [cv.sections]);
+
+  // Resolve each duplicate GROUP (keyed by `duplicateOf.groupId`, the
+  // representative's id) → all its located members (the representative + every
+  // flagged member). A cluster can be 2, 3 or more items across sections.
+  const dupGroups = useMemo(() => {
+    const groups = new Map<string, Located[]>();
+    const push = (gid: string, entry: Located | undefined) => {
+      if (!entry) return;
+      const list = groups.get(gid) ?? [];
+      if (!list.some((e) => e.item.id === entry.item.id)) list.push(entry);
+      groups.set(gid, list);
+    };
+    for (const loc of itemIndex.values()) {
+      const gid = loc.item.meta.duplicateOf?.groupId;
+      if (!gid) continue;
+      push(gid, loc); // the flagged member
+      push(gid, itemIndex.get(gid)); // the representative (carries no flag itself)
+    }
+    return groups;
+  }, [itemIndex]);
 
   // Locale-aware option labels (built from the chrome dictionary).
   const TEMPLATE_LABELS: Record<string, string> = {
@@ -1186,53 +1207,39 @@ export default function CvEditor({
                                     }),
                                   )
                                 }
-                                duplicatePartner={
+                                duplicateGroup={
                                   item.meta.duplicateOf
-                                    ? itemIndex.get(item.meta.duplicateOf.itemId)?.item
+                                    ? dupGroups
+                                        .get(item.meta.duplicateOf.groupId)
+                                        ?.map((m) => ({ item: m.item, sectionTitle: m.sectionTitle }))
                                     : undefined
                                 }
-                                duplicatePartnerSection={
-                                  item.meta.duplicateOf
-                                    ? itemIndex.get(item.meta.duplicateOf.itemId)?.sectionTitle
-                                    : undefined
-                                }
-                                onKeepThis={() => {
-                                  const partner = item.meta.duplicateOf
-                                    ? itemIndex.get(item.meta.duplicateOf.itemId)
-                                    : undefined;
-                                  // Hide the partner and clear this row's badge now
-                                  // (the resolving action is on another row). If the
-                                  // partner can't be resolved, still clear the badge
-                                  // so it never gets stuck.
-                                  onChange(
-                                    clearDuplicateFlag(
-                                      partner
-                                        ? setItemIncluded(
-                                            cv,
-                                            partner.sectionId,
-                                            partner.item.id,
-                                            false,
-                                          )
-                                        : cv,
-                                      section.id,
-                                      item.id,
-                                    ),
-                                  );
+                                onKeepOnly={(keepId) => {
+                                  const members = item.meta.duplicateOf
+                                    ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
+                                    : [];
+                                  // Hide every OTHER member; clear the kept member's
+                                  // badge so it resolves immediately. No dismissal:
+                                  // the detector ignores the now-hidden members, so
+                                  // the cluster won't re-form.
+                                  let next = cv;
+                                  for (const m of members) {
+                                    if (m.item.id !== keepId) {
+                                      next = setItemIncluded(next, m.sectionId, m.item.id, false);
+                                    }
+                                  }
+                                  const keep = members.find((m) => m.item.id === keepId);
+                                  if (keep) {
+                                    next = clearDuplicateFlag(next, keep.sectionId, keep.item.id);
+                                  }
+                                  onChange(next);
                                 }}
-                                onKeepPartner={() =>
-                                  // Hide THIS row and clear its (now-moot) badge, so
-                                  // re-showing it later doesn't auto-open the panel.
-                                  onChange(
-                                    clearDuplicateFlag(
-                                      setItemIncluded(cv, section.id, item.id, false),
-                                      section.id,
-                                      item.id,
-                                    ),
-                                  )
-                                }
-                                onDupKeepBoth={() =>
-                                  onChange(dismissDuplicate(cv, section.id, item.id))
-                                }
+                                onKeepAll={() => {
+                                  const members = item.meta.duplicateOf
+                                    ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
+                                    : [];
+                                  onChange(dismissDuplicateGroup(cv, members.map((m) => m.item.id)));
+                                }}
                                 onMoveUp={() => onChange(moveItem(cv, section.id, item.id, "up"))}
                                 onMoveDown={() =>
                                   onChange(moveItem(cv, section.id, item.id, "down"))

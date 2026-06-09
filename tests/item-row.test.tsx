@@ -226,11 +226,23 @@ describe("ItemRow — duplicate comparison", () => {
     meta: { year: 2024, doi: "10.1/x", peerReviewed: true, citedByCount: 12 },
   });
 
-  function renderDup(h: {
-    onKeepThis?: () => void;
-    onKeepPartner?: () => void;
-    onKeepBoth?: () => void;
-  }) {
+  const dataset = makeItem({
+    id: "D1",
+    source: "datacite",
+    displayText: "My Genome Dataset",
+    meta: { year: 2024, doi: "10.5555/d" },
+  });
+
+  const threeMember = () => [
+    { item: preprint(), sectionTitle: "Preprints" },
+    { item: published, sectionTitle: "Publications" },
+    { item: dataset, sectionTitle: "Datasets & Software" },
+  ];
+
+  function renderGroup(
+    group: Array<{ item: CvItem; sectionTitle: string }>,
+    h: { onKeepOnly?: (id: string) => void; onKeepAll?: () => void } = {},
+  ) {
     render(
       <ul>
         <ItemRow
@@ -241,11 +253,9 @@ describe("ItemRow — duplicate comparison", () => {
           isLast
           onToggleIncluded={noop}
           onToggleNotMine={noop}
-          duplicatePartner={published}
-          duplicatePartnerSection="Publications"
-          onKeepThis={h.onKeepThis ?? noop}
-          onKeepPartner={h.onKeepPartner ?? noop}
-          onDupKeepBoth={h.onKeepBoth ?? noop}
+          duplicateGroup={group}
+          onKeepOnly={h.onKeepOnly ?? (() => {})}
+          onKeepAll={h.onKeepAll ?? noop}
           onMoveUp={noop}
           onMoveDown={noop}
         />
@@ -253,34 +263,39 @@ describe("ItemRow — duplicate comparison", () => {
     );
   }
 
-  it("expands to show the full facts of BOTH entries", () => {
-    renderDup({});
+  it("expands to show the full facts of EVERY member of a 3-item group", () => {
+    renderGroup(threeMember());
     fireEvent.click(screen.getByRole("button", { name: /possible duplicate/i }));
-    // The partner's complete info is shown (title, venue, citations, section).
     expect(screen.getByText("My Published Article")).toBeTruthy();
+    expect(screen.getByText("My Genome Dataset")).toBeTruthy();
     expect(screen.getByText(/Nature/)).toBeTruthy();
     expect(screen.getByText(/12 citations/)).toBeTruthy();
     expect(screen.getByText(/in Publications/)).toBeTruthy();
-    // …and why it was flagged.
+    expect(screen.getByText(/in Datasets/)).toBeTruthy();
+    expect(screen.getByText(/this entry/i)).toBeTruthy(); // the clicked (preprint) row
     expect(screen.getByText(/one is a preprint of the other/i)).toBeTruthy();
   });
 
-  it("offers a 'Keep this one' choice on each entry plus 'Keep both'", () => {
+  it("offers 'Keep this one' on each member and 'Keep all' for 3+", () => {
     let kept = "";
-    renderDup({
-      onKeepThis: () => (kept = "this"),
-      onKeepPartner: () => (kept = "partner"),
-      onKeepBoth: () => (kept = "both"),
-    });
+    renderGroup(threeMember(), { onKeepOnly: (id) => (kept = id), onKeepAll: () => (kept = "all") });
     fireEvent.click(screen.getByRole("button", { name: /possible duplicate/i }));
     const keepButtons = screen.getAllByRole("button", { name: /keep this one/i });
-    expect(keepButtons).toHaveLength(2);
-    fireEvent.click(keepButtons[0]!); // keep THIS entry
-    expect(kept).toBe("this");
-    fireEvent.click(keepButtons[1]!); // keep the PARTNER entry
-    expect(kept).toBe("partner");
-    fireEvent.click(screen.getByRole("button", { name: /keep both/i }));
-    expect(kept).toBe("both");
+    expect(keepButtons).toHaveLength(3);
+    fireEvent.click(keepButtons[1]!); // keep the PUBLISHED entry (group order)
+    expect(kept).toBe("W_pub");
+    fireEvent.click(screen.getByRole("button", { name: /keep all/i }));
+    expect(kept).toBe("all");
+  });
+
+  it("labels the keep-everything action 'Keep both' for a 2-member group", () => {
+    renderGroup([
+      { item: preprint(), sectionTitle: "Preprints" },
+      { item: published, sectionTitle: "Publications" },
+    ]);
+    fireEvent.click(screen.getByRole("button", { name: /possible duplicate/i }));
+    expect(screen.getByRole("button", { name: /keep both/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /keep all/i })).toBeNull();
   });
 });
 
