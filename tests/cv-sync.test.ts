@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   logCvSave: vi.fn(),
   canonicalizeInstitutions: vi.fn(),
   enrichCvWithCrossref: vi.fn(),
+  enrichCvWithIcite: vi.fn(),
   fetchPeerReviews: vi.fn(),
   fetchJournalNames: vi.fn(),
   fetchOpenaire: vi.fn(),
@@ -87,6 +88,7 @@ vi.mock("@/lib/cv/orcidDiscovery", () => ({ discoverOrcidOnlyWorks: mocks.discov
 vi.mock("@/lib/canonical/enrich", () => ({
   canonicalizeInstitutions: mocks.canonicalizeInstitutions,
   enrichCvWithCrossref: mocks.enrichCvWithCrossref,
+  enrichCvWithIcite: mocks.enrichCvWithIcite,
   withRorProvenance: (cv: unknown) => cv,
 }));
 
@@ -134,6 +136,7 @@ beforeEach(() => {
     used: false,
   }));
   mocks.enrichCvWithCrossref.mockImplementation(async (cv) => cv);
+  mocks.enrichCvWithIcite.mockImplementation(async (cv) => cv);
   mocks.fetchPeerReviews.mockResolvedValue([]);
   mocks.fetchJournalNames.mockResolvedValue(new Map<string, string>());
   mocks.fetchOpenaire.mockResolvedValue([]);

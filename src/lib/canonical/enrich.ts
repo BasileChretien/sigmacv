@@ -1,5 +1,6 @@
 import type { CanonicalCv, CvItem, Provenance } from "@/lib/canonical/schema";
 import { fetchCrossrefGapFields, type CrossrefGapFields } from "@/lib/crossref/client";
+import { fetchRcrByPmids } from "@/lib/icite/client";
 import { resolveInstitution } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
 import type { OrcidPosition } from "@/lib/orcid/client";
@@ -122,6 +123,45 @@ export async function enrichCvWithCrossref(cv: CanonicalCv, mailto: string): Pro
     sections,
     provenance: withSource(cv.provenance, "crossref"),
   };
+}
+
+// ─── NIH iCite RCR enrichment ────────────────────────────────────────────────
+
+const ICITE_MAX_ENRICH = 500;
+
+/**
+ * Fold the NIH iCite Relative Citation Ratio onto works that carry a PMID but no
+ * RCR yet (one batched lookup — the client chunks internally), capped at
+ * {@link ICITE_MAX_ENRICH} works. RCR is field-normalized but BIOMEDICAL-ONLY;
+ * stored so the opt-in RCR-mean metric recomputes over the curated works.
+ * Fail-soft + immutable: returns the original CV untouched when nothing matches
+ * or the lookup yields nothing.
+ */
+export async function enrichCvWithIcite(cv: CanonicalCv): Promise<CanonicalCv> {
+  const pmids: string[] = [];
+  for (const section of cv.sections) {
+    for (const item of section.items) {
+      if (pmids.length >= ICITE_MAX_ENRICH) break;
+      if (item.meta.pmid && item.meta.rcr === undefined) pmids.push(item.meta.pmid);
+    }
+  }
+  if (pmids.length === 0) return cv;
+
+  const rcrByPmid = await fetchRcrByPmids(pmids);
+  if (rcrByPmid.size === 0) return cv;
+
+  let changed = false;
+  const sections = cv.sections.map((section) => ({
+    ...section,
+    items: section.items.map((item) => {
+      if (!item.meta.pmid || item.meta.rcr !== undefined) return item;
+      const rcr = rcrByPmid.get(item.meta.pmid);
+      if (rcr === undefined) return item;
+      changed = true;
+      return { ...item, meta: { ...item.meta, rcr } };
+    }),
+  }));
+  return changed ? { ...cv, sections } : cv;
 }
 
 // ─── ROR institution-name canonicalization ───────────────────────────────────

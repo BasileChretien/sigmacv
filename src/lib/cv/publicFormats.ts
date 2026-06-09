@@ -18,21 +18,33 @@ import { profilePageJsonLd } from "./publicJsonLd";
 export const PUBLIC_FORMATS = ["html", "jsonld", "csljson", "bibtex", "json"] as const;
 export type PublicFormat = (typeof PUBLIC_FORMATS)[number];
 
-/** Media type for each machine format (html is served by the page route itself). */
-const CONTENT_TYPE: Record<Exclude<PublicFormat, "html">, string> = {
-  jsonld: "application/ld+json; charset=utf-8",
-  csljson: "application/vnd.citationstyles.csl+json; charset=utf-8",
-  bibtex: "application/x-bibtex; charset=utf-8",
-  json: "application/json; charset=utf-8",
+/**
+ * Per machine-format metadata — the single source of truth for each format's
+ * media type and filename extension. Reused by the serializer (response
+ * Content-Type + Content-Disposition) AND by FAIR Signposting (`describedby`
+ * typed links in `signposting.ts`). `mediaType` carries NO charset: the response
+ * Content-Type appends "; charset=utf-8" below, whereas an RFC 8288 `Link` `type`
+ * parameter wants the bare media type.
+ */
+export const PUBLIC_FORMAT_META: Record<
+  Exclude<PublicFormat, "html">,
+  { mediaType: string; extension: string }
+> = {
+  jsonld: { mediaType: "application/ld+json", extension: "jsonld" },
+  csljson: { mediaType: "application/vnd.citationstyles.csl+json", extension: "csl.json" },
+  bibtex: { mediaType: "application/x-bibtex", extension: "bib" },
+  json: { mediaType: "application/json", extension: "json" },
 };
 
-/** Filename extension (suffix path + Content-Disposition) for each machine format. */
-const EXTENSION: Record<Exclude<PublicFormat, "html">, string> = {
-  jsonld: "jsonld",
-  csljson: "csl.json",
-  bibtex: "bib",
-  json: "json",
-};
+/** Media type (with charset) for each machine format — derived from the metadata. */
+const CONTENT_TYPE = Object.fromEntries(
+  Object.entries(PUBLIC_FORMAT_META).map(([f, m]) => [f, `${m.mediaType}; charset=utf-8`]),
+) as Record<Exclude<PublicFormat, "html">, string>;
+
+/** Filename extension (suffix path + Content-Disposition) — derived from the metadata. */
+const EXTENSION = Object.fromEntries(
+  Object.entries(PUBLIC_FORMAT_META).map(([f, m]) => [f, m.extension]),
+) as Record<Exclude<PublicFormat, "html">, string>;
 
 /**
  * Trailing path suffixes that force a machine format, longest-first so

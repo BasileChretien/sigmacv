@@ -1098,6 +1098,8 @@ function buildWorkCvItem(
         work.open_access?.is_oa && work.open_access.oa_status
           ? work.open_access.oa_status
           : undefined,
+      // OA determination (open/closed/unknown) for the honest OA-share denominator.
+      oaIsOpen: typeof work.open_access?.is_oa === "boolean" ? work.open_access.is_oa : undefined,
       // Reuse license + PubMed id (FAIR / open-science surfacing).
       license: workLicense(work),
       pmid: workPmid(work),

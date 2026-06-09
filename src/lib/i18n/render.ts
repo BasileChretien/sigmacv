@@ -29,6 +29,8 @@ export interface RenderStrings {
   badgeOpenAccess: string;
   /** Accessible title/tooltip for the OA badge; "{status}" → the OA status. */
   badgeOpenAccessTitle: string;
+  /** Profile-level open-access share line; "{pct}" → the rounded percentage. */
+  openAccessShare: string;
   /** Per-entry citation-count badge; "{n}" → the (locale-formatted) count. */
   badgeCitations: string;
   /** Tooltip caveat on the citation pill (raw counts aren't field-normalised). */
@@ -43,6 +45,12 @@ export interface RenderStrings {
   metricContext2yr: string;
   /** Coverage note appended to mean-FWCI; "{n}" is replaced with the work count. */
   metricFwciCoverage: string;
+  /** Label for the NIH iCite mean-RCR metric. */
+  metricRcr: string;
+  /** Responsible-reading context for mean-RCR (benchmark + biomedical caveat). */
+  metricContextRcr: string;
+  /** Coverage note appended to mean-RCR; "{n}" is replaced with the work count. */
+  metricRcrCoverage: string;
   roleFirst: string;
   roleSecond: string;
   roleThird: string;
@@ -74,6 +82,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open access ({status})",
+    openAccessShare: "{pct}% open access",
     badgeCitations: "{n} citations",
     badgeCitationsTitle: "Raw citation count — not field-normalised (varies by field and age)",
     metric2yr: "2-yr mean citedness",
@@ -85,6 +94,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextFwci: "1.0 = world average for field & year",
     metricContext2yr: "2-year citation rate — not field-normalised (varies by field)",
     metricFwciCoverage: "mean over {n} works with FWCI",
+    metricRcr: "Mean RCR",
+    metricContextRcr: "1.0 = NIH-funded average; biomedical (PMID) works only",
+    metricRcrCoverage: "mean over {n} works with RCR",
     roleFirst: "First author",
     roleSecond: "Second author",
     roleThird: "Third author",
@@ -112,6 +124,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "简历",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "开放获取（{status}）",
+    openAccessShare: "{pct}% 开放获取",
     badgeCitations: "被引 {n}",
     badgeCitationsTitle: "原始被引次数——未经领域标准化（因领域与年代而异）",
     metric2yr: "两年平均被引率",
@@ -123,6 +136,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextFwci: "1.0 = 同领域同年度的全球平均水平",
     metricContext2yr: "两年期被引率 — 非领域归一化（因领域而异）",
     metricFwciCoverage: "基于 {n} 篇有 FWCI 的成果的均值",
+    metricRcr: "平均 RCR",
+    metricContextRcr: "1.0 = NIH 资助论文的平均水平；仅限生物医学（PMID）成果",
+    metricRcrCoverage: "基于 {n} 篇有 RCR 的成果的均值",
     roleFirst: "第一作者",
     roleSecond: "第二作者",
     roleThird: "第三作者",
@@ -151,6 +167,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acceso abierto ({status})",
+    openAccessShare: "{pct}% en acceso abierto",
     badgeCitations: "{n} citas",
     badgeCitationsTitle:
       "Recuento bruto de citas — sin normalización por campo (varía por campo y antigüedad)",
@@ -163,6 +180,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextFwci: "1,0 = media mundial del campo y año",
     metricContext2yr: "tasa de citación a 2 años — no normalizada por campo (varía según el campo)",
     metricFwciCoverage: "media sobre {n} trabajos con FWCI",
+    metricRcr: "RCR medio",
+    metricContextRcr:
+      "1,0 = media de artículos financiados por los NIH; solo trabajos biomédicos (PMID)",
+    metricRcrCoverage: "media sobre {n} trabajos con RCR",
     roleFirst: "Primer autor",
     roleSecond: "Segundo autor",
     roleThird: "Tercer autor",
@@ -191,6 +212,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accès libre ({status})",
+    openAccessShare: "{pct} % en libre accès",
     badgeCitations: "{n} citations",
     badgeCitationsTitle:
       "Nombre brut de citations — non normalisé par domaine (varie selon le domaine et l’ancienneté)",
@@ -204,6 +226,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContext2yr:
       "taux de citation sur 2 ans — non normalisé par domaine (varie selon le domaine)",
     metricFwciCoverage: "moyenne sur {n} travaux avec FWCI",
+    metricRcr: "RCR moyen",
+    metricContextRcr:
+      "1,0 = moyenne des articles financés par les NIH ; uniquement les travaux biomédicaux (PMID)",
+    metricRcrCoverage: "moyenne sur {n} travaux avec RCR",
     roleFirst: "Premier auteur",
     roleSecond: "Deuxième auteur",
     roleThird: "Troisième auteur",
@@ -232,6 +258,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Lebenslauf",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open Access ({status})",
+    openAccessShare: "{pct} % Open Access",
     badgeCitations: "{n} Zitationen",
     badgeCitationsTitle:
       "Reine Zitationszahl — nicht feldnormiert (variiert je nach Fach und Alter)",
@@ -244,6 +271,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextFwci: "1,0 = Weltdurchschnitt für Fachgebiet & Jahr",
     metricContext2yr: "2-Jahres-Zitationsrate — nicht fachnormiert (variiert je nach Fach)",
     metricFwciCoverage: "Mittel über {n} Werke mit FWCI",
+    metricRcr: "Mittlerer RCR",
+    metricContextRcr:
+      "1,0 = Durchschnitt NIH-geförderter Arbeiten; nur biomedizinische (PMID) Arbeiten",
+    metricRcrCoverage: "Mittel über {n} Werke mit RCR",
     roleFirst: "Erstautor",
     roleSecond: "Zweitautor",
     roleThird: "Drittautor",
@@ -271,6 +302,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "履歴書",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "オープンアクセス（{status}）",
+    openAccessShare: "オープンアクセス {pct}%",
     badgeCitations: "被引用 {n}",
     badgeCitationsTitle: "被引用数の生の値 — 分野正規化なし（分野・年代で変動）",
     metric2yr: "2年間平均被引用度",
@@ -282,6 +314,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextFwci: "1.0 = 分野・年の世界平均",
     metricContext2yr: "2年間の被引用率 — 分野正規化なし（分野により大きく異なる）",
     metricFwciCoverage: "FWCIのある{n}件の業績による平均",
+    metricRcr: "平均 RCR",
+    metricContextRcr: "1.0 = NIH 助成論文の平均；生物医学（PMID）業績のみ",
+    metricRcrCoverage: "RCRのある{n}件の業績による平均",
     roleFirst: "筆頭著者",
     roleSecond: "第二著者",
     roleThird: "第三著者",
@@ -310,6 +345,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acesso aberto ({status})",
+    openAccessShare: "{pct}% em acesso aberto",
     badgeCitations: "{n} citações",
     badgeCitationsTitle:
       "Contagem bruta de citações — não normalizada por área (varia por área e idade)",
@@ -323,6 +359,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContext2yr:
       "taxa de citação em 2 anos — não normalizada por área (varia conforme a área)",
     metricFwciCoverage: "média sobre {n} trabalhos com FWCI",
+    metricRcr: "RCR médio",
+    metricContextRcr:
+      "1,0 = média de artigos financiados pelo NIH; apenas trabalhos biomédicos (PMID)",
+    metricRcrCoverage: "média sobre {n} trabalhos com RCR",
     roleFirst: "Primeiro autor",
     roleSecond: "Segundo autor",
     roleThird: "Terceiro autor",
@@ -351,6 +391,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accesso aperto ({status})",
+    openAccessShare: "{pct}% ad accesso aperto",
     badgeCitations: "{n} citazioni",
     badgeCitationsTitle:
       "Conteggio grezzo delle citazioni — non normalizzato per campo (varia per campo ed età)",
@@ -364,6 +405,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContext2yr:
       "tasso di citazione a 2 anni — non normalizzato per campo (varia per disciplina)",
     metricFwciCoverage: "media su {n} lavori con FWCI",
+    metricRcr: "RCR medio",
+    metricContextRcr: "1,0 = media degli articoli finanziati dai NIH; solo lavori biomedici (PMID)",
+    metricRcrCoverage: "media su {n} lavori con RCR",
     roleFirst: "Primo autore",
     roleSecond: "Secondo autore",
     roleThird: "Terzo autore",
@@ -391,6 +435,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "이력서",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "오픈 액세스 ({status})",
+    openAccessShare: "오픈 액세스 {pct}%",
     badgeCitations: "인용 {n}회",
     badgeCitationsTitle: "원시 피인용 수 — 분야 정규화 안 됨 (분야·연도에 따라 다름)",
     metric2yr: "2년 평균 피인용도",
@@ -402,6 +447,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextFwci: "1.0 = 분야 및 연도별 세계 평균",
     metricContext2yr: "2년 피인용률 — 분야 정규화 아님 (분야별로 크게 다름)",
     metricFwciCoverage: "FWCI가 있는 {n}편 논문 기준 평균",
+    metricRcr: "평균 RCR",
+    metricContextRcr: "1.0 = NIH 지원 논문 평균; 생의학(PMID) 논문만",
+    metricRcrCoverage: "RCR가 있는 {n}편 논문 기준 평균",
     roleFirst: "제1저자",
     roleSecond: "제2저자",
     roleThird: "제3저자",
@@ -429,6 +477,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Резюме",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Открытый доступ ({status})",
+    openAccessShare: "{pct}% в открытом доступе",
     badgeCitations: "{n} цитирований",
     badgeCitationsTitle:
       "Сырое число цитирований — без нормализации по области (зависит от области и возраста)",
@@ -441,6 +490,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextFwci: "1,0 = среднемировой уровень для области и года",
     metricContext2yr: "цитируемость за 2 года — без нормализации по области (зависит от области)",
     metricFwciCoverage: "среднее по {n} работам с FWCI",
+    metricRcr: "Средний RCR",
+    metricContextRcr:
+      "1,0 = среднее для статей, финансируемых NIH; только биомедицинские работы (PMID)",
+    metricRcrCoverage: "среднее по {n} работам с RCR",
     roleFirst: "Первый автор",
     roleSecond: "Второй автор",
     roleThird: "Третий автор",
@@ -464,6 +517,7 @@ export function metricLabel(locale: string, key: string): string {
   const map: Record<string, string> = {
     "2yr_mean_citedness": s.metric2yr,
     fwci_mean: s.metricFwci,
+    rcr_mean: s.metricRcr,
     h_index: s.metricHIndex,
     i10_index: s.metricI10,
     works_count: s.metricWorks,
@@ -477,6 +531,7 @@ export function metricContext(locale: string, key: string): string | undefined {
   const s = renderStrings(locale);
   const map: Record<string, string> = {
     fwci_mean: s.metricContextFwci,
+    rcr_mean: s.metricContextRcr,
     "2yr_mean_citedness": s.metricContext2yr,
   };
   return map[key];
@@ -489,6 +544,13 @@ export function metricContext(locale: string, key: string): string | undefined {
 export function metricCoverageNote(locale: string, n: number | undefined): string | undefined {
   if (typeof n !== "number" || n <= 0) return undefined;
   return renderStrings(locale).metricFwciCoverage.replace("{n}", String(n));
+}
+
+/** Localized "mean over N works with RCR" coverage note (RCR counterpart of
+ *  {@link metricCoverageNote}). Undefined when N is not a positive number. */
+export function metricRcrCoverageNote(locale: string, n: number | undefined): string | undefined {
+  if (typeof n !== "number" || n <= 0) return undefined;
+  return renderStrings(locale).metricRcrCoverage.replace("{n}", String(n));
 }
 
 /** Map an authorship role to its localized label. */

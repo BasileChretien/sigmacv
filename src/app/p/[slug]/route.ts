@@ -14,6 +14,7 @@ import {
   type PublicFormat,
 } from "@/lib/cv/publicFormats";
 import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
+import { signpostingLinkHeader } from "@/lib/cv/signposting";
 import { publicMetaTags } from "@/lib/cv/publicMeta";
 import { renderCvHtml } from "@/lib/render/html";
 import { absoluteUrl } from "@/lib/siteUrl";
@@ -28,11 +29,14 @@ function robotsTag(indexable: boolean): string {
 }
 
 /** Build the public-page HTTP response with the hardened security headers. */
-function publicPageResponse(html: string, indexable: boolean): NextResponse {
+function publicPageResponse(html: string, indexable: boolean, links?: string): NextResponse {
   return new NextResponse(html, {
     status: 200,
     headers: {
       "Content-Type": "text/html; charset=utf-8",
+      // FAIR Signposting: advertise the author pid(s), typed machine
+      // representations, resource type, and license in the response headers.
+      ...(links ? { Link: links } : {}),
       // Indexing requires the owner's explicit, separate opt-in. Without it the
       // page stays noindex so names/ORCID/publications don't enter search
       // engines on a blanket publish toggle (GDPR/APPI).
@@ -64,11 +68,15 @@ function machineResponse(
   serialized: { contentType: string; body: string; extension: string },
   slug: string,
   indexable: boolean,
+  links?: string,
 ): NextResponse {
   return new NextResponse(serialized.body, {
     status: 200,
     headers: {
       "Content-Type": serialized.contentType,
+      // Same FAIR Signposting typed links as the HTML page (the metadata
+      // representations carry the discovery links too).
+      ...(links ? { Link: links } : {}),
       "X-Robots-Tag": robotsTag(indexable),
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
@@ -120,7 +128,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   // cheaper to produce and would multiply cache keys, so they skip it.
   if (format === "html") {
     const cached = getCachedPublicPage(slug);
-    if (cached) return publicPageResponse(cached.html, cached.indexable);
+    if (cached) return publicPageResponse(cached.html, cached.indexable, cached.signposting);
   }
 
   // Negative cache: a recently-unknown slug skips the DB read (random-slug flood
@@ -136,8 +144,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   // getPublicCvForPage already returns the projectCvForPublic() projection.
   const { cv, indexable } = record;
 
+  // FAIR Signposting typed links — same for the HTML page and every machine
+  // representation served from this slug.
+  const signposting = signpostingLinkHeader(cv, slug);
+
   if (format !== "html") {
-    return machineResponse(serializePublicCv(cv, format, slug), slug, indexable);
+    return machineResponse(serializePublicCv(cv, format, slug), slug, indexable, signposting);
   }
 
   // Coalesce concurrent renders of the same slug so the heavy citeproc render
@@ -166,9 +178,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       html = html.replace("</head>", `${head}</head>`);
     }
 
-    const rendered = { html, indexable };
+    const rendered = { html, indexable, signposting };
     setCachedPublicPage(slug, rendered);
     return rendered;
   });
-  return publicPageResponse(entry.html, entry.indexable);
+  return publicPageResponse(entry.html, entry.indexable, entry.signposting);
 }

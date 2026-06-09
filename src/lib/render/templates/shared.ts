@@ -4,7 +4,7 @@ import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
 import { renderChartsHtml } from "../charts";
 import { escapeHtml, safeHref } from "../escape";
-import { formattedMetrics } from "../metrics";
+import { formattedMetrics, openAccessShare } from "../metrics";
 import { SITE_URL } from "@/lib/siteUrl";
 import type { RenderOpts } from "../types";
 import type { RenderedSection, TemplateTheme } from "./types";
@@ -311,11 +311,19 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
         )
         .join(" · ")}</div>`
     : "";
+  // Profile-level open-access share — opt-in (display.showOpenAccess), shown only
+  // when works carry an OA determination. Pairs with the per-entry OA badges.
+  const oaShare = openAccessShare(cv);
+  const oaShareLine = oaShare
+    ? `<div class="cv-oa-share">${escapeHtml(
+        renderStrings(cv.display.locale).openAccessShare.replace("{pct}", String(oaShare.pct)),
+      )}</div>`
+    : "";
   const summary = cv.owner.summary
     ? `<p class="cv-summary">${escapeHtml(cv.owner.summary)}</p>`
     : "";
   const photo = opts.photo ? photoHtml(cv) : "";
-  const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}${metricsLine}</div>`;
+  const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}${metricsLine}${oaShareLine}</div>`;
   return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${renderChartsHtml(cv)}${authorshipTableHtml(cv)}${summary}</header>`;
 }
 
