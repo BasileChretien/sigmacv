@@ -59,6 +59,7 @@ import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
+import { trackEvent } from "@/lib/analytics/track";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
@@ -606,13 +607,15 @@ export default function CvEditor({
                   role="radio"
                   aria-checked={selected}
                   className={`tpl-card${selected ? " is-selected" : ""}`}
-                  onClick={() =>
+                  onClick={() => {
+                    // Cookieless product signal: which template (only on change).
+                    if (!selected) trackEvent("Template", { template: tpl });
                     onChange(
                       updateDisplay(cv, {
                         template: tpl as CanonicalCv["display"]["template"],
                       }),
-                    )
-                  }
+                    );
+                  }}
                   title={TEMPLATE_LABELS[tpl] ?? tpl}
                 >
                   <span className="tpl-preview">

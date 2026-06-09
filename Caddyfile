@@ -22,3 +22,28 @@
 		header_up X-Forwarded-For {remote_host}
 	}
 }
+
+# ── Analytics (optional) ──────────────────────────────────────────────────────
+# Both blocks default to an INTERNAL-only port (8081/8082) when their address env
+# var is unset, so they're dormant + unreachable from the internet until you set a
+# real hostname and add its DNS A-record. See docs/ANALYTICS.md.
+
+# Plausible. Publicly reachable BY DESIGN: every visitor's browser fetches the
+# tracking script (/js/script.js) and posts events (/api/event). The dashboard at
+# / is guarded by Plausible's own login, so no extra auth here. Set
+# PLAUSIBLE_ADDRESS to e.g. plausible.sigmacv.org for automatic TLS.
+{$PLAUSIBLE_ADDRESS::8081} {
+	encode gzip zstd
+	reverse_proxy plausible:8000
+}
+
+# Metabase dashboards. Guarded by Metabase's own login. Set ADMIN_ADDRESS to e.g.
+# admin.sigmacv.org. To add a second factor at the edge, uncomment basic_auth and
+# supply a hash from `docker run --rm caddy:2-alpine caddy hash-password`.
+{$ADMIN_ADDRESS::8082} {
+	encode gzip zstd
+	# basic_auth {
+	# 	{$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
+	# }
+	reverse_proxy metabase:3000
+}
