@@ -13,6 +13,7 @@ import {
   TEMPLATES,
   isProseSectionType,
   type CanonicalCv,
+  type CvItem,
   type CvSectionType,
   type CustomStyle,
 } from "@/lib/canonical/schema";
@@ -23,6 +24,7 @@ import {
   addStructuredEntry,
   type ManualEntryFields,
   applyPreset,
+  clearDuplicateFlag,
   clearViewExclusions,
   deletePreset,
   dismissDuplicate,
@@ -201,12 +203,13 @@ export default function CvEditor({
   const eu = editorUi(locale);
   const ds = dupStrings(locale);
 
-  // Resolve a duplicate's representative id → its title (the editor owns the
-  // whole CV; ItemRow only knows its own item). Cheap map over all items.
-  const titleById = useMemo(() => {
-    const m = new Map<string, string>();
+  // Index every item by id with its full data + section (the editor owns the
+  // whole CV; ItemRow only knows its own item). Used to show a duplicate's
+  // PARTNER entry side-by-side and to act on it across sections.
+  const itemIndex = useMemo(() => {
+    const m = new Map<string, { item: CvItem; sectionId: string; sectionTitle: string }>();
     for (const s of cv.sections) {
-      for (const it of s.items) m.set(it.id, it.csl?.title ?? it.displayText ?? "");
+      for (const it of s.items) m.set(it.id, { item: it, sectionId: s.id, sectionTitle: s.title });
     }
     return m;
   }, [cv.sections]);
@@ -1183,17 +1186,48 @@ export default function CvEditor({
                                     }),
                                   )
                                 }
-                                duplicateTitle={
+                                duplicatePartner={
                                   item.meta.duplicateOf
-                                    ? titleById.get(item.meta.duplicateOf.itemId)
+                                    ? itemIndex.get(item.meta.duplicateOf.itemId)?.item
                                     : undefined
                                 }
-                                onDupConfirm={() =>
+                                duplicatePartnerSection={
+                                  item.meta.duplicateOf
+                                    ? itemIndex.get(item.meta.duplicateOf.itemId)?.sectionTitle
+                                    : undefined
+                                }
+                                onKeepThis={() => {
+                                  const partner = item.meta.duplicateOf
+                                    ? itemIndex.get(item.meta.duplicateOf.itemId)
+                                    : undefined;
+                                  // Hide the partner and clear this row's badge now
+                                  // (the resolving action is on another row). If the
+                                  // partner can't be resolved, still clear the badge
+                                  // so it never gets stuck.
                                   onChange(
-                                    setItemNotMine(cv, section.id, item.id, true, {
-                                      reason: "duplicate",
-                                      now: new Date().toISOString(),
-                                    }),
+                                    clearDuplicateFlag(
+                                      partner
+                                        ? setItemIncluded(
+                                            cv,
+                                            partner.sectionId,
+                                            partner.item.id,
+                                            false,
+                                          )
+                                        : cv,
+                                      section.id,
+                                      item.id,
+                                    ),
+                                  );
+                                }}
+                                onKeepPartner={() =>
+                                  // Hide THIS row and clear its (now-moot) badge, so
+                                  // re-showing it later doesn't auto-open the panel.
+                                  onChange(
+                                    clearDuplicateFlag(
+                                      setItemIncluded(cv, section.id, item.id, false),
+                                      section.id,
+                                      item.id,
+                                    ),
                                   )
                                 }
                                 onDupKeepBoth={() =>

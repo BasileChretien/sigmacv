@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import ItemRow from "@/components/ItemRow";
 import type { CvItem, CvSectionType } from "@/lib/canonical/schema";
 
@@ -184,6 +184,103 @@ describe("ItemRow — ORCID-discovered review candidates", () => {
   it("drops the review badge once the candidate is confirmed (included)", () => {
     renderRow(orcidDoiCandidate({ included: true }));
     expect(document.querySelector(".cv-review-badge")).toBeNull();
+  });
+});
+
+describe("ItemRow — duplicate comparison", () => {
+  const preprint = () =>
+    makeItem({
+      id: "W_pre",
+      source: "openalex",
+      csl: {
+        id: "W_pre",
+        type: "article-journal",
+        title: "My Preprint",
+        author: [{ family: "Smith" }],
+        DOI: "10.1101/x",
+      } as CvItem["csl"],
+      meta: {
+        year: 2023,
+        doi: "10.1101/x",
+        peerReviewed: false,
+        reviewFlag: "duplicate",
+        duplicateOf: {
+          itemId: "W_pub",
+          tier: "strong",
+          relationship: "preprint-of",
+          groupId: "W_pub",
+        },
+      },
+    });
+  const published = makeItem({
+    id: "W_pub",
+    source: "openalex",
+    csl: {
+      id: "W_pub",
+      type: "article-journal",
+      title: "My Published Article",
+      author: [{ family: "Smith" }],
+      DOI: "10.1/x",
+      "container-title": "Nature",
+    } as CvItem["csl"],
+    meta: { year: 2024, doi: "10.1/x", peerReviewed: true, citedByCount: 12 },
+  });
+
+  function renderDup(h: {
+    onKeepThis?: () => void;
+    onKeepPartner?: () => void;
+    onKeepBoth?: () => void;
+  }) {
+    render(
+      <ul>
+        <ItemRow
+          item={preprint()}
+          locale="en-US"
+          sectionType="preprints"
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          duplicatePartner={published}
+          duplicatePartnerSection="Publications"
+          onKeepThis={h.onKeepThis ?? noop}
+          onKeepPartner={h.onKeepPartner ?? noop}
+          onDupKeepBoth={h.onKeepBoth ?? noop}
+          onMoveUp={noop}
+          onMoveDown={noop}
+        />
+      </ul>,
+    );
+  }
+
+  it("expands to show the full facts of BOTH entries", () => {
+    renderDup({});
+    fireEvent.click(screen.getByRole("button", { name: /possible duplicate/i }));
+    // The partner's complete info is shown (title, venue, citations, section).
+    expect(screen.getByText("My Published Article")).toBeTruthy();
+    expect(screen.getByText(/Nature/)).toBeTruthy();
+    expect(screen.getByText(/12 citations/)).toBeTruthy();
+    expect(screen.getByText(/in Publications/)).toBeTruthy();
+    // …and why it was flagged.
+    expect(screen.getByText(/one is a preprint of the other/i)).toBeTruthy();
+  });
+
+  it("offers a 'Keep this one' choice on each entry plus 'Keep both'", () => {
+    let kept = "";
+    renderDup({
+      onKeepThis: () => (kept = "this"),
+      onKeepPartner: () => (kept = "partner"),
+      onKeepBoth: () => (kept = "both"),
+    });
+    fireEvent.click(screen.getByRole("button", { name: /possible duplicate/i }));
+    const keepButtons = screen.getAllByRole("button", { name: /keep this one/i });
+    expect(keepButtons).toHaveLength(2);
+    fireEvent.click(keepButtons[0]!); // keep THIS entry
+    expect(kept).toBe("this");
+    fireEvent.click(keepButtons[1]!); // keep the PARTNER entry
+    expect(kept).toBe("partner");
+    fireEvent.click(screen.getByRole("button", { name: /keep both/i }));
+    expect(kept).toBe("both");
   });
 });
 

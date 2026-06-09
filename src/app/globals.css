@@ -1222,7 +1222,7 @@ button.cv-review-badge.is-duplicate {
 button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   border-color: var(--warn-text);
 }
-/* Inline explainer + actions, shown when the duplicate badge is expanded. */
+/* Compare-and-choose panel, shown when the duplicate badge is expanded. */
 .cv-dup-panel {
   margin: var(--space-2) 0;
   padding: var(--space-2) var(--space-3);
@@ -1231,14 +1231,62 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   border-radius: var(--radius-sm);
 }
 .cv-dup-why {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-xs);
+}
+.cv-dup-prompt {
   margin: 0 0 var(--space-2);
   font-size: var(--text-sm);
-  color: var(--text-secondary);
+  font-weight: var(--weight-semibold);
 }
-.cv-dup-actions {
-  display: flex;
-  flex-wrap: wrap;
+/* Two entries side-by-side (stacks on narrow screens). */
+.cv-dup-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+@media (max-width: 640px) {
+  .cv-dup-compare {
+    grid-template-columns: 1fr;
+  }
+}
+.cv-dup-entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.cv-dup-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.cv-dup-facts-title {
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+.cv-dup-facts-authors,
+.cv-dup-facts-meta {
+  font-size: var(--text-xs);
+}
+.cv-dup-facts-doi {
+  font-size: var(--text-xs);
+  word-break: break-all;
+}
+.cv-dup-entry-where {
+  font-size: var(--text-2xs);
+}
+.cv-dup-keep {
+  align-self: flex-start;
+  margin-top: auto;
+}
+.cv-dup-keepboth {
+  display: inline-flex;
 }
 /* Per-section duplicate indicator in the section header (jumps to the list). */
 .section-dup-flag {

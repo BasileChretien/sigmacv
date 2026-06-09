@@ -599,6 +599,30 @@ function clearedDuplicateHint(it: CvItem): CvItem["meta"] {
 }
 
 /**
+ * Clear an item's advisory duplicate hint WITHOUT dismissing the pair — used when
+ * the user keeps THIS entry and hides the OTHER one. The badge lives on this row
+ * but the resolving action (hiding the partner) happens on a different row, so
+ * this clears the badge optimistically. No dismissal key is recorded: the
+ * detector already ignores the now-hidden partner, so the pair won't re-flag, and
+ * "keep both" stays the only path that marks a pair as a non-duplicate (keeping
+ * the research false-positive signal honest). No-op if there's no hint.
+ */
+export function clearDuplicateFlag(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+): CanonicalCv {
+  const item = cv.sections.find((s) => s.id === sectionId)?.items.find((it) => it.id === itemId);
+  if (!item || (item.meta.reviewFlag !== "duplicate" && item.meta.duplicateOf === undefined)) {
+    return cv; // nothing to clear (preserve identity → no needless re-render)
+  }
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => (it.id === itemId ? { ...it, meta: clearedDuplicateHint(it) } : it)),
+  }));
+}
+
+/**
  * Whether the CV already contains a work with the given OpenAlex id or DOI, so
  * the "add by DOI" flow can refuse a duplicate rather than list it twice.
  */

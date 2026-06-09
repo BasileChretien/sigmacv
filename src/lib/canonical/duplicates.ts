@@ -358,11 +358,11 @@ function fuzzyEdge(fa: FlatItem, fb: FlatItem): Edge | null {
 
 const TIER_RANK: Record<DuplicateTier, number> = { exact: 3, related: 2, strong: 1, weak: 0 };
 
-/** Completeness score — the higher, the better the "keep" candidate. Advisory. */
+/** Completeness score — the higher, the better the "keep" candidate. Advisory.
+ *  (Only visible items reach here — hidden ones are filtered out of detection.) */
 function completeness(f: FlatItem): number {
   const it = f.item;
   let s = 0;
-  if (!isHidden(it)) s += 5; // a visible item should win, so the badge lands on the hidden/other one
   if (it.meta.peerReviewed) s += 3;
   if (it.csl?.DOI ?? it.meta.doi) s += 2;
   if (it.csl?.["container-title"]) s += 1;
@@ -402,6 +402,12 @@ export function detectDuplicates(cv: CanonicalCv, opts: DetectOptions = {}): Dup
   const flat: FlatItem[] = [];
   for (const s of cv.sections) {
     for (const item of s.items) {
+      // A hidden / "not mine" item is already resolved — it's off the CV, so the
+      // duplication no longer shows. Skipping it means hiding ONE of a pair
+      // makes the flag disappear on the next build (the surviving item is alone),
+      // so "keep this one" needs no extra bookkeeping; only "keep both" (both
+      // still visible) requires an explicit dismissal.
+      if (isHidden(item)) continue;
       flat.push({
         item,
         sectionId: s.id,
@@ -689,6 +695,7 @@ export function relationCandidateDois(cv: CanonicalCv, limit = 60): string[] {
   for (const s of cv.sections) {
     if (s.type !== "preprints") continue;
     for (const it of s.items) {
+      if (isHidden(it)) continue; // a hidden preprint is already resolved — don't spend a lookup on it
       if (add(normDoi(it.csl?.DOI ?? it.meta.doi))) return out;
     }
   }

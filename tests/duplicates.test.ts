@@ -699,7 +699,7 @@ describe("annotateDuplicates", () => {
     expect(cleared.sections[0]!.items[0]!.meta.duplicateOf).toBeUndefined();
   });
 
-  it("does not annotate an item already flagged for another reason", () => {
+  it("does not annotate a (visible) item already flagged for another reason", () => {
     const cv = makeCv([
       {
         id: "publications",
@@ -709,18 +709,40 @@ describe("annotateDuplicates", () => {
           cite(
             "W2",
             { title: "Dup", doi: "10.1/d" },
-            { meta: { doi: "10.1/d", reviewFlag: "orcid-doi" }, included: false },
+            { meta: { doi: "10.1/d", reviewFlag: "orcid-conflict" } },
           ),
         ],
       },
     ]);
     const out = annotateDuplicates(cv);
     const w2 = out.sections[0]!.items[1]!;
-    // The existing review flag owns the slot — no hidden duplicate hint is added.
-    expect(w2.meta.reviewFlag).toBe("orcid-doi");
+    // The existing review flag owns the slot — no duplicate hint is added on top.
+    expect(w2.meta.reviewFlag).toBe("orcid-conflict");
     expect(w2.meta.duplicateOf).toBeUndefined();
     // …and the representative stays clean.
     expect(out.sections[0]!.items[0]!.meta.reviewFlag).toBeUndefined();
+  });
+
+  it("ignores hidden / 'not mine' items, so hiding one resolves the pair", () => {
+    const visible = cite("W1", {
+      title: "Resolve Me",
+      doi: "10.1/r",
+      peerReviewed: true,
+      container: "J",
+    });
+    const hidden = cite("W2", { title: "Resolve Me", doi: "10.1/r" }, { included: false });
+    expect(
+      detectDuplicates(
+        makeCv([{ id: "publications", type: "publications", items: [visible, hidden] }]),
+      ),
+    ).toHaveLength(0);
+
+    const notMine = cite("W3", { title: "Resolve Me", doi: "10.1/r" }, { notMine: true });
+    expect(
+      detectDuplicates(
+        makeCv([{ id: "publications", type: "publications", items: [visible, notMine] }]),
+      ),
+    ).toHaveLength(0);
   });
 
   it("honors a dismissed pair (keep both)", () => {
@@ -811,6 +833,23 @@ describe("relationCandidateDois", () => {
     // No duplicate group at all, yet the preprint DOI is a relation candidate.
     expect(detectDuplicates(cv)).toHaveLength(0);
     expect(relationCandidateDois(cv)).toEqual(["10.1101/x"]);
+  });
+
+  it("excludes a hidden preprint from the relation candidates", () => {
+    const cv = makeCv([
+      {
+        id: "preprints",
+        type: "preprints",
+        items: [
+          cite(
+            "PRE",
+            { title: "Hidden Preprint", doi: "10.1101/h", year: 2023 },
+            { included: false },
+          ),
+        ],
+      },
+    ]);
+    expect(relationCandidateDois(cv)).toEqual([]);
   });
 
   it("stops collecting at the supplied limit", () => {

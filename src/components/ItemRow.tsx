@@ -31,6 +31,59 @@ const SOURCE_NAMES: Record<string, string> = {
   derived: "derived",
 };
 
+/**
+ * A compact factual summary of ONE entry, shown for both sides of the
+ * duplicate-comparison panel so the user can see the full picture (title,
+ * authors, year, venue, source, peer-review status, citations, DOI) and decide
+ * which to keep. Read-only; works for citation and non-citation items alike.
+ */
+function DupFacts({ item, locale }: { item: CvItem; locale: Locale }) {
+  const ds = dupStrings(locale);
+  const u = ui(locale);
+  const title = item.csl?.title ?? item.displayText ?? u.itemUntitled;
+  const authors = (item.csl?.author ?? [])
+    .map((a) =>
+      typeof a.family === "string" ? a.family : typeof a.literal === "string" ? a.literal : "",
+    )
+    .filter(Boolean);
+  const authorLine = authors.length
+    ? authors.slice(0, 3).join(", ") + (authors.length > 3 ? " et al." : "")
+    : "";
+  const venue =
+    typeof item.csl?.["container-title"] === "string" ? item.csl["container-title"] : "";
+  const sourceLabel =
+    item.source === "manual"
+      ? t(locale, "sourceManual")
+      : (SOURCE_NAMES[item.source] ?? item.source);
+  const doi = item.csl?.DOI ?? item.meta.doi;
+  // Only build a doi.org link from a well-formed DOI — defence-in-depth so a
+  // malformed/untrusted value can never become a non-DOI href.
+  const doiLink = doi && /^10\.\d{4,9}\/\S+$/.test(doi) ? `https://doi.org/${doi}` : undefined;
+  const facts: string[] = [];
+  if (item.meta.year !== undefined) facts.push(String(item.meta.year));
+  if (venue) facts.push(venue);
+  facts.push(sourceLabel);
+  if (item.meta.peerReviewed === true) facts.push(ds.peerReviewedTag);
+  else if (item.meta.peerReviewed === false) facts.push(ds.notPeerReviewedTag);
+  if (typeof item.meta.citedByCount === "number") {
+    facts.push(`${item.meta.citedByCount} ${ds.citesTag}`);
+  }
+  return (
+    <div className="cv-dup-facts">
+      <div className="cv-dup-facts-title">{title}</div>
+      {authorLine ? <div className="cv-dup-facts-authors muted">{authorLine}</div> : null}
+      <div className="cv-dup-facts-meta muted">{facts.join(" · ")}</div>
+      {doiLink ? (
+        <a className="cv-dup-facts-doi" href={doiLink} target="_blank" rel="noopener noreferrer">
+          doi.org/{doi}
+        </a>
+      ) : doi ? (
+        <span className="cv-dup-facts-doi muted">{doi}</span>
+      ) : null}
+    </div>
+  );
+}
+
 interface ItemRowProps {
   item: CvItem;
   locale: Locale;
@@ -52,10 +105,15 @@ interface ItemRowProps {
   onToggleInView?: () => void;
   /** Set/clear the structured reason for a "not mine" assertion. */
   onSetNotMineReason?: (reason: NotMineReason | undefined) => void;
-  /** Title of the representative this item duplicates (resolved by the editor). */
-  duplicateTitle?: string;
-  /** "These are the same" — assert this item is a duplicate (not-mine + reason). */
-  onDupConfirm?: () => void;
+  /** The other entry this item likely duplicates (full data, resolved by the
+   *  editor), shown side-by-side so the user can compare and choose. */
+  duplicatePartner?: CvItem;
+  /** Localized name of the section the partner entry lives in (e.g. "Preprints"). */
+  duplicatePartnerSection?: string;
+  /** "Keep this one" on THIS entry → keep it, hide the partner. */
+  onKeepThis?: () => void;
+  /** "Keep this one" on the PARTNER entry → keep the partner, hide this one. */
+  onKeepPartner?: () => void;
   /** "Keep both" — dismiss the duplicate flag so it isn't re-raised on re-sync. */
   onDupKeepBoth?: () => void;
   onMoveUp: () => void;
@@ -81,8 +139,10 @@ export default function ItemRow({
   shownInView = true,
   onToggleInView,
   onSetNotMineReason,
-  duplicateTitle,
-  onDupConfirm,
+  duplicatePartner,
+  duplicatePartnerSection,
+  onKeepThis,
+  onKeepPartner,
   onDupKeepBoth,
   onMoveUp,
   onMoveDown,
@@ -256,47 +316,62 @@ export default function ItemRow({
             {sourceBadge}
           </div>
         )}
-        {/* Possible-duplicate explainer + actions. Advisory: NEVER auto-removes.
-            "Keep both" dismisses the flag (survives re-sync); "Hide this one"
-            leaves it off the CV; "These are the same" asserts a duplicate
-            (the disambiguation-correction signal). */}
+        {/* Possible-duplicate COMPARISON. Advisory: NEVER auto-removes. Shows the
+            full facts for BOTH entries side-by-side; "Keep this one" under either
+            keeps that entry and hides the other (kept on file); "Keep both"
+            dismisses the pair (survives re-sync). */}
         {showDupBadge && dup && dupExpanded ? (
           <div className="cv-dup-panel" role="group" aria-label={ds.panelAria}>
-            <p className="cv-dup-why">
-              {ds.looksLike} <strong>{duplicateTitle ?? u.itemUntitled}</strong>
-              {" — "}
-              {dupReasonText(locale, dup.tier, dup.relationship)}
-            </p>
-            <div className="cv-dup-actions">
-              {onDupKeepBoth ? (
-                <button
-                  type="button"
-                  className="mine-btn is-restore"
-                  onClick={onDupKeepBoth}
-                  title={ds.keepBothHint}
-                >
-                  {ds.keepBoth}
-                </button>
-              ) : null}
-              <button
-                type="button"
-                className="mine-btn"
-                onClick={onToggleIncluded}
-                title={t(locale, "hideHint")}
-              >
-                {ds.hideThis}
-              </button>
-              {canMarkNotMine && onDupConfirm ? (
-                <button
-                  type="button"
-                  className="mine-btn is-delete"
-                  onClick={onDupConfirm}
-                  title={ds.confirmHint}
-                >
-                  {ds.confirm}
-                </button>
+            <p className="cv-dup-why muted">{dupReasonText(locale, dup.tier, dup.relationship)}</p>
+            <p className="cv-dup-prompt">{ds.comparePrompt}</p>
+            <div className="cv-dup-compare">
+              <div className="cv-dup-entry">
+                <DupFacts item={item} locale={locale} />
+                {onKeepThis && duplicatePartner ? (
+                  <button
+                    type="button"
+                    className="mine-btn is-restore cv-dup-keep"
+                    onClick={onKeepThis}
+                    title={ds.keepThisHint}
+                  >
+                    {ds.keepThis}
+                  </button>
+                ) : null}
+              </div>
+              {duplicatePartner ? (
+                <div className="cv-dup-entry">
+                  <DupFacts item={duplicatePartner} locale={locale} />
+                  <div className="cv-dup-entry-where muted">
+                    {duplicatePartnerSection
+                      ? ds.otherIn.replace("{s}", duplicatePartnerSection)
+                      : null}
+                    {isHidden(duplicatePartner) ? (
+                      <span className="cv-dup-hidden-tag"> · {ds.hiddenTag}</span>
+                    ) : null}
+                  </div>
+                  {onKeepPartner ? (
+                    <button
+                      type="button"
+                      className="mine-btn is-restore cv-dup-keep"
+                      onClick={onKeepPartner}
+                      title={ds.keepThisHint}
+                    >
+                      {ds.keepThis}
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
             </div>
+            {onDupKeepBoth ? (
+              <button
+                type="button"
+                className="mine-btn cv-dup-keepboth"
+                onClick={onDupKeepBoth}
+                title={ds.keepBothHint}
+              >
+                {ds.keepBoth}
+              </button>
+            ) : null}
           </div>
         ) : null}
         {canMarkNotMine && item.notMine && onSetNotMineReason ? (

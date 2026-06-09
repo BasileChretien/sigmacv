@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dismissDuplicate } from "@/lib/canonical/curate";
+import { clearDuplicateFlag, dismissDuplicate } from "@/lib/canonical/curate";
 import { annotateDuplicates, duplicatePairKey } from "@/lib/canonical/duplicates";
 import {
   CANONICAL_SCHEMA_VERSION,
@@ -81,5 +81,23 @@ describe("dismissDuplicate", () => {
     expect(dismissDuplicate(cv, "publications", "W1")).toBe(cv); // W1 is the representative
     expect(dismissDuplicate(cv, "publications", "missing")).toBe(cv);
     expect(dismissDuplicate(cv, "missing", "W2")).toBe(cv);
+  });
+});
+
+describe("clearDuplicateFlag", () => {
+  it("clears the hint without recording a dismissal (keep this / hide the other)", () => {
+    const cv = dupCv();
+    expect(cv.sections[0]!.items[1]!.meta.reviewFlag).toBe("duplicate"); // pre-condition
+    const out = clearDuplicateFlag(cv, "publications", "W2");
+    const w2 = out.sections[0]!.items[1]!;
+    expect(w2.meta.reviewFlag).toBeUndefined();
+    expect(w2.meta.duplicateOf).toBeUndefined();
+    // NOT a dismissal — the false-positive signal stays for "keep both" only.
+    expect(out.display.dismissedDuplicates).toBeUndefined();
+  });
+
+  it("is a no-op for an item with no duplicate hint", () => {
+    const cv = dupCv();
+    expect(clearDuplicateFlag(cv, "publications", "W1")).toBe(cv); // the representative
   });
 });
