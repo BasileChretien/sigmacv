@@ -136,15 +136,28 @@ SELECT count(*) FILTER (WHERE "lastSyncedAt" > now() - interval '7 days') AS fre
        count(*) AS total
 FROM "Cv";
 
--- AGGREGATE affiliation distribution (top owner affiliations across all CVs).
--- Aggregate only — never expose per-person rows on a dashboard.
-SELECT aff ->> 'name' AS affiliation, count(*) AS cvs
-FROM "Cv", LATERAL jsonb_array_elements(document -> 'owner' -> 'affiliations') AS aff
+-- Total curated items across all CVs (document.sections[].items[])
+SELECT count(*) AS items
+FROM "Cv",
+     LATERAL jsonb_array_elements(document -> 'sections') AS s,
+     LATERAL jsonb_array_elements(s -> 'items') AS i;
+
+-- AGGREGATE institution distribution by ROR id across all CV items.
+-- Affiliations are NOT a flat owner field: they live on item meta.rorId
+-- (ROR-enriched) and in the positions/employment sections. Aggregate only —
+-- never expose per-person rows on a dashboard.
+SELECT i -> 'meta' ->> 'rorId' AS ror_id, count(*) AS items
+FROM "Cv",
+     LATERAL jsonb_array_elements(document -> 'sections') AS s,
+     LATERAL jsonb_array_elements(s -> 'items') AS i
+WHERE i -> 'meta' ->> 'rorId' IS NOT NULL
 GROUP BY 1 ORDER BY 2 DESC LIMIT 25;
 ```
 
-> The affiliation JSON path mirrors `CanonicalCv`; adjust if the schema differs.
-> Confirm the exact path against `src/lib/canonical/schema.ts` before relying on it.
+> Item paths follow `CanonicalCv` (`document.sections[].items[].meta`) — see
+> `src/lib/canonical/schema.ts`. There is no flat `owner.affiliations`: ROR ids
+> resolve to institution names via ROR, and name-level breakdowns are best built
+> interactively from the positions/employment section items once connected.
 
 ---
 
