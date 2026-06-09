@@ -278,7 +278,10 @@ describe("ItemRow — duplicate comparison", () => {
 
   it("offers 'Keep this one' on each member and 'Keep all' for 3+", () => {
     let kept = "";
-    renderGroup(threeMember(), { onKeepOnly: (id) => (kept = id), onKeepAll: () => (kept = "all") });
+    renderGroup(threeMember(), {
+      onKeepOnly: (id) => (kept = id),
+      onKeepAll: () => (kept = "all"),
+    });
     fireEvent.click(screen.getByRole("button", { name: /possible duplicate/i }));
     const keepButtons = screen.getAllByRole("button", { name: /keep this one/i });
     expect(keepButtons).toHaveLength(3);

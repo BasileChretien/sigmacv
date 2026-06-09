@@ -155,8 +155,7 @@ const FR: DuplicateStrings = {
   keepBothHint:
     "Ce sont des travaux distincts — gardez les deux au CV et ne signalez plus cette paire.",
   keepAll: "Tout garder",
-  keepAllHint:
-    "Ce sont des travaux distincts — gardez-les tous et ne signalez plus ce groupe.",
+  keepAllHint: "Ce sont des travaux distincts — gardez-les tous et ne signalez plus ce groupe.",
   thisEntryTag: "cette entrée",
   comparePrompt: "Quelle entrée voulez-vous conserver ?",
   keepThis: "Garder celle-ci",
@@ -191,8 +190,7 @@ const DE: DuplicateStrings = {
   keepBothHint:
     "Sie sind verschieden — beide im Lebenslauf behalten und dieses Paar nicht erneut melden.",
   keepAll: "Alle behalten",
-  keepAllHint:
-    "Sie sind alle verschieden — alle behalten und diese Gruppe nicht erneut melden.",
+  keepAllHint: "Sie sind alle verschieden — alle behalten und diese Gruppe nicht erneut melden.",
   thisEntryTag: "dieser Eintrag",
   comparePrompt: "Welchen Eintrag möchten Sie behalten?",
   keepThis: "Diesen behalten",

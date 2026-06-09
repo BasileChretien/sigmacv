@@ -77,7 +77,11 @@ function groupCv(): CanonicalCv {
         order: 0,
         // Distinct DOIs (a real preprint+published+mirror cluster matched by
         // title/year), so the three pairwise dismissal keys are distinct.
-        items: [cite("W1", "10.1/a", true), cite("W2", "10.1/b", false), cite("W3", "10.1/c", false)],
+        items: [
+          cite("W1", "10.1/a", true),
+          cite("W2", "10.1/b", false),
+          cite("W3", "10.1/c", false),
+        ],
       },
       {
         // A non-member section so the op leaves unrelated items untouched.
@@ -117,7 +121,9 @@ describe("dismissDuplicateGroup", () => {
       expect(it.meta.duplicateOf).toBeUndefined();
     }
     const reannotated = annotateDuplicates(out);
-    expect(reannotated.sections[0]!.items.every((it) => it.meta.reviewFlag === undefined)).toBe(true);
+    expect(reannotated.sections[0]!.items.every((it) => it.meta.reviewFlag === undefined)).toBe(
+      true,
+    );
   });
 
   it("is a no-op for fewer than two resolvable ids", () => {

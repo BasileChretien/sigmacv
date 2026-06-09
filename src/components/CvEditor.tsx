@@ -1211,7 +1211,10 @@ export default function CvEditor({
                                   item.meta.duplicateOf
                                     ? dupGroups
                                         .get(item.meta.duplicateOf.groupId)
-                                        ?.map((m) => ({ item: m.item, sectionTitle: m.sectionTitle }))
+                                        ?.map((m) => ({
+                                          item: m.item,
+                                          sectionTitle: m.sectionTitle,
+                                        }))
                                     : undefined
                                 }
                                 onKeepOnly={(keepId) => {
@@ -1238,7 +1241,12 @@ export default function CvEditor({
                                   const members = item.meta.duplicateOf
                                     ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
                                     : [];
-                                  onChange(dismissDuplicateGroup(cv, members.map((m) => m.item.id)));
+                                  onChange(
+                                    dismissDuplicateGroup(
+                                      cv,
+                                      members.map((m) => m.item.id),
+                                    ),
+                                  );
                                 }}
                                 onMoveUp={() => onChange(moveItem(cv, section.id, item.id, "up"))}
                                 onMoveDown={() =>

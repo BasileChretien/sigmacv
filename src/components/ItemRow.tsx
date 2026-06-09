@@ -323,10 +323,7 @@ export default function ItemRow({
               {duplicateGroup.map((member) => {
                 const isSelf = member.item.id === item.id;
                 return (
-                  <div
-                    className={`cv-dup-entry${isSelf ? " is-self" : ""}`}
-                    key={member.item.id}
-                  >
+                  <div className={`cv-dup-entry${isSelf ? " is-self" : ""}`} key={member.item.id}>
                     <DupFacts item={member.item} locale={locale} />
                     <div className="cv-dup-entry-where muted">
                       {isSelf ? ds.thisEntryTag : ds.otherIn.replace("{s}", member.sectionTitle)}
