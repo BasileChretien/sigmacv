@@ -5,6 +5,7 @@ import {
   isHidden,
   NOT_MINE_REASONS,
   type CvItem,
+  type CvSectionType,
   type NotMineReason,
 } from "@/lib/canonical/schema";
 import { reasonLabel, t, type Locale } from "@/lib/i18n";
@@ -33,6 +34,14 @@ const SOURCE_NAMES: Record<string, string> = {
 interface ItemRowProps {
   item: CvItem;
   locale: Locale;
+  /**
+   * The type of the section this row sits in. Used to decide whether "not mine"
+   * is offered for Positions entries (which carry no third-party identifier on
+   * the item itself, so the section is what distinguishes a Positions ORCID
+   * employment from, say, an Education one). Optional — back-compat for callers
+   * that don't pass it; "not mine" then falls back to the source-based rule.
+   */
+  sectionType?: CvSectionType;
   isFirst: boolean;
   isLast: boolean;
   onToggleIncluded: () => void;
@@ -64,6 +73,7 @@ interface ItemRowProps {
 export default function ItemRow({
   item,
   locale,
+  sectionType,
   isFirst,
   isLast,
   onToggleIncluded,
@@ -105,17 +115,25 @@ export default function ItemRow({
   // attributed to the account holder by IDENTIFIER match: bibliographic works
   // (citations, from OpenAlex), DataCite + OpenAIRE datasets/software, DBLP
   // conference papers (ORCID→PID matched), and Open Editors Plus editorial roles.
-  // ORCID records are self-asserted and manual entries are self-added, so those
-  // get Hide / Delete only. The NAME+org-matched registries (UKRI/NIH/NSF grants,
-  // clinical trials) are review candidates curated via Hide/Show — there is no
-  // identifier to contradict, so they never expose a "not mine" disambiguation
-  // claim. Inferred OpenAlex affiliations (a positions item) stay Hide-only too.
+  // The NAME+org-matched registries (UKRI/NIH/NSF grants, clinical trials) are
+  // review candidates curated via Hide/Show — there is no identifier to
+  // contradict, so they never expose a "not mine" disambiguation claim.
+  //
+  // Positions are a special case: BOTH the OpenAlex-inferred affiliations (a
+  // third party attributed an institution to the account holder by author id —
+  // often noisy) AND the self-asserted ORCID employments expose "not mine", so a
+  // wrong institution can be corrected uniformly. Only the section distinguishes
+  // a Positions ORCID employment from an Education one (the item carries no
+  // section context), hence the `sectionType` check. Manual entries stay
+  // Delete-only everywhere — a self-typed row has no source attribution to
+  // contradict, and it already has an explicit Delete action.
   const canMarkNotMine =
     isCitation ||
     item.source === "oep" ||
     item.source === "datacite" ||
     item.source === "openaire" ||
-    item.source === "dblp";
+    item.source === "dblp" ||
+    (sectionType === "positions" && !isManual);
   const title = item.csl?.title ?? item.displayText ?? u.itemUntitled;
   const year = item.meta.year ?? "—";
   const venue =

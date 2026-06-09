@@ -2,13 +2,15 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import ItemRow from "@/components/ItemRow";
-import type { CvItem } from "@/lib/canonical/schema";
+import type { CvItem, CvSectionType } from "@/lib/canonical/schema";
 
 /**
- * The "not mine" control is offered only for items an EXTERNAL source attributed
- * to the account holder by identifier match (OpenAlex / DataCite / Open Editors
- * Plus) — where a wrong match is a real disambiguation error. ORCID records are
- * self-asserted and manual entries self-added, so they get Hide / Delete only.
+ * The "not mine" control is offered for items an EXTERNAL source attributed to
+ * the account holder by identifier match (OpenAlex / DataCite / Open Editors
+ * Plus) — where a wrong match is a real disambiguation error — AND for every
+ * Positions row except manual ones (a wrong institution, whether OpenAlex-
+ * inferred or self-asserted in ORCID, can be corrected). Manual entries and
+ * non-Positions ORCID records (education, awards, …) get Hide / Delete only.
  * Every item gets Hide.
  */
 function makeItem(over: Partial<CvItem> & Pick<CvItem, "id" | "source">): CvItem {
@@ -26,16 +28,18 @@ function makeItem(over: Partial<CvItem> & Pick<CvItem, "id" | "source">): CvItem
 }
 
 const noop = () => {};
-function renderRow(item: CvItem) {
+function renderRow(item: CvItem, sectionType?: CvSectionType) {
   render(
     <ul>
       <ItemRow
         item={item}
         locale="en-US"
+        sectionType={sectionType}
         isFirst
         isLast
         onToggleIncluded={noop}
         onToggleNotMine={noop}
+        onRemove={item.source === "manual" ? noop : undefined}
         onMoveUp={noop}
         onMoveDown={noop}
       />
@@ -76,18 +80,24 @@ describe("ItemRow — 'not mine' eligibility", () => {
     expect(screen.getByRole("button", { name: /not mine/i })).toBeTruthy();
   });
 
-  it("offers Hide but NOT 'not mine' for self-asserted ORCID + manual items", () => {
+  it("offers Hide but NOT 'not mine' for non-Positions ORCID + manual items", () => {
+    // A self-asserted ORCID record OUTSIDE Positions (e.g. Education) is not a
+    // third-party attribution → Hide only.
     renderRow(
       makeItem({
-        id: "position:orcid:1",
+        id: "education:orcid:1",
         source: "orcid",
-        displayText: "Pharmacist, CHU de Caen",
+        displayText: "PharmD, Université de Caen",
       }),
+      "education",
     );
     expect(screen.getByRole("button", { name: /^hide/i })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /not mine/i })).toBeNull();
     cleanup();
-    renderRow(makeItem({ id: "skills:manual:1", source: "manual", displayText: "Python" }));
+    renderRow(
+      makeItem({ id: "skills:manual:1", source: "manual", displayText: "Python" }),
+      "skills",
+    );
     expect(screen.getByRole("button", { name: /^hide/i })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /not mine/i })).toBeNull();
   });
@@ -174,5 +184,50 @@ describe("ItemRow — ORCID-discovered review candidates", () => {
   it("drops the review badge once the candidate is confirmed (included)", () => {
     renderRow(orcidDoiCandidate({ included: true }));
     expect(document.querySelector(".cv-review-badge")).toBeNull();
+  });
+});
+
+describe("ItemRow — Positions section", () => {
+  it("offers 'not mine' for a self-asserted ORCID employment in Positions", () => {
+    renderRow(
+      makeItem({
+        id: "position:orcid:1",
+        source: "orcid",
+        displayText: "Pharmacist, CHU de Caen",
+      }),
+      "positions",
+    );
+    expect(screen.getByRole("button", { name: /^hide/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /not mine/i })).toBeTruthy();
+  });
+
+  it("offers 'not mine' for an OpenAlex-inferred affiliation in Positions", () => {
+    renderRow(
+      makeItem({
+        id: "position:openalex:nagoya-university",
+        source: "openalex",
+        sourceId: "openalex",
+        displayText: "Nagoya University (2019–present)",
+        included: false, // inferred affiliations start hidden
+      }),
+      "positions",
+    );
+    // Hidden affiliations are still actionable in the editor → Show + 'not mine'.
+    expect(screen.getByRole("button", { name: /^show/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /not mine/i })).toBeTruthy();
+  });
+
+  it("keeps a manual Positions entry Delete-only (no 'not mine')", () => {
+    renderRow(
+      makeItem({
+        id: "position:manual:1",
+        source: "manual",
+        displayText: "Visiting Researcher, Somewhere",
+      }),
+      "positions",
+    );
+    expect(screen.getByRole("button", { name: /^hide/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /delete/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /not mine/i })).toBeNull();
   });
 });
