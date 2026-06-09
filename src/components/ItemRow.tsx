@@ -113,14 +113,6 @@ interface ItemRowProps {
   onKeepOnly?: (itemId: string) => void;
   /** "Keep all" — dismiss the whole group so it isn't re-flagged on re-sync. */
   onKeepAll?: () => void;
-  /** Controlled open-state of the compare panel — the editor drives this so it
-   *  can focus a duplicate (banner jump) and auto-advance to the next one.
-   *  When omitted, the badge toggles the panel locally (uncontrolled). */
-  dupOpen?: boolean;
-  /** Badge click handler when `dupOpen` is controlled. */
-  onDupToggle?: () => void;
-  /** Ref to this row's <li>, so the editor can scroll it into view during review. */
-  rowRef?: (el: HTMLLIElement | null) => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   /** Drag-and-drop reorder: this row started being dragged. */
