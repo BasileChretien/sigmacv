@@ -184,6 +184,46 @@ describe("parseCanonicalCv", () => {
     expect(parsed.success && parsed.data.sections[0]!.items[0]!.meta.reviewFlag).toBeUndefined();
   });
 
+  it("round-trips meta.duplicateOf + display.dismissedDuplicates and degrades a bogus tier", () => {
+    const withDup = {
+      ...validCv,
+      display: { ...validCv.display, dismissedDuplicates: ["10.1/a|10.1/b"] },
+      sections: [
+        {
+          ...validCv.sections[0],
+          items: [
+            {
+              id: "W2",
+              source: "openalex",
+              sourceId: "https://openalex.org/W2",
+              included: true,
+              order: 0,
+              authoredBySelf: false,
+              selfNameVariants: [],
+              meta: {
+                reviewFlag: "duplicate",
+                duplicateOf: {
+                  itemId: "W1",
+                  tier: "some-future-tier",
+                  relationship: "bogus-rel",
+                  groupId: "W1",
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const parsed = safeParseCanonicalCv(withDup);
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.display.dismissedDuplicates).toEqual(["10.1/a|10.1/b"]);
+    const dup = parsed.data.sections[0]!.items[0]!.meta.duplicateOf!;
+    expect(dup.itemId).toBe("W1");
+    expect(dup.tier).toBe("weak"); // unknown tier degrades via .catch
+    expect(dup.relationship).toBeUndefined(); // unknown relationship degrades
+  });
+
   it("rejects an oversized item id (field-length cap, defence against payload abuse)", () => {
     const bad = {
       ...validCv,

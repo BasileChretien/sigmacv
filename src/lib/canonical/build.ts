@@ -9,6 +9,7 @@ import {
   type CvSection,
   type ReviewFlag,
 } from "./schema";
+import { annotateDuplicates } from "./duplicates";
 import { computeDerivedMetrics, workTopDecile } from "@/lib/openalex/deriveMetrics";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName, workToCsl } from "@/lib/openalex/toCsl";
@@ -1453,6 +1454,13 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     },
   };
 
+  // Cross-source duplicate detection: a PURE, fail-soft pass over the fully
+  // assembled object (sees every section, unlike the per-source dedupers). It
+  // annotates likely-duplicate items with an advisory hint and never hides
+  // anything. Identifier + heuristic tiers run here (no I/O); the Crossref
+  // `relation` tier is layered on in cv/sync via annotateDuplicates(relations).
+  const annotated = annotateDuplicates(cv);
+
   // Guarantee the output satisfies the load-bearing schema.
-  return CanonicalCvSchema.parse(cv);
+  return CanonicalCvSchema.parse(annotated);
 }

@@ -13,7 +13,7 @@ vi.mock("@/lib/db", () => ({
 }));
 
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemIncluded, setItemNotMine } from "@/lib/canonical/curate";
+import { setItemIncluded, setItemNotMine, updateDisplay } from "@/lib/canonical/curate";
 import { logCvSave } from "@/lib/research/log";
 import { isResearchLoggingEnabled } from "@/lib/research/enabled";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
@@ -94,6 +94,21 @@ describe("logCvSave", () => {
     await logCvSave("u1", prev, next);
     const events = mocks.createMany.mock.calls[0]![0].data as Array<{ type: string }>;
     expect(events.map((e) => e.type)).toContain("disambiguation_assertion");
+  });
+
+  it("logs a 'keep both' dismissal as a data-minimized duplicate_dismissal", async () => {
+    mocks.findUnique.mockResolvedValue({ researchConsent: true });
+    const prev = base();
+    const next = updateDisplay(prev, { dismissedDuplicates: ["a|b", "c|d"] });
+    await logCvSave("u1", prev, next);
+    const events = mocks.createMany.mock.calls[0]![0].data as Array<{
+      type: string;
+      payload: unknown;
+    }>;
+    const dismissal = events.find((e) => e.type === "duplicate_dismissal");
+    expect(dismissal).toBeDefined();
+    // A count only — no pair keys / identifiers in the payload.
+    expect(dismissal!.payload).toEqual({ count: 2 });
   });
 
   it("never throws even if the DB write fails", async () => {

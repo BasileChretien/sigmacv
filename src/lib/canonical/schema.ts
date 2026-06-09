@@ -175,10 +175,39 @@ export const AUTHORSHIP_ROLE_LABELS: Record<AuthorshipRole, string> = {
  * `undefined` (the field's `.catch`), never failing the whole CV read.
  *  - "orcid-conflict": an own work whose authorship lists a DIFFERENT ORCID;
  *  - "name-matched": a name+org-matched registry candidate (grants/trials/patents);
- *  - "orcid-doi": a work listed in the user's ORCID that OpenAlex didn't attribute.
+ *  - "orcid-doi": a work listed in the user's ORCID that OpenAlex didn't attribute;
+ *  - "duplicate": this item likely duplicates another listed work (see `duplicateOf`).
  */
-export const REVIEW_FLAGS = ["orcid-conflict", "name-matched", "orcid-doi"] as const;
+export const REVIEW_FLAGS = ["orcid-conflict", "name-matched", "orcid-doi", "duplicate"] as const;
 export type ReviewFlag = (typeof REVIEW_FLAGS)[number];
+
+/**
+ * Confidence tier of a duplicate hint (`meta.duplicateOf.tier`), most→least:
+ *  - "exact": a normalized identifier (DOI/PMID/registry/award) is equal;
+ *  - "related": a publisher/registry-asserted relationship (e.g. Crossref preprint-of);
+ *  - "strong": title + authors + year all agree;
+ *  - "weak": title similarity only.
+ * Closed enum so the value is typed everywhere; an unknown stored value degrades
+ * to "weak" (the field's `.catch`) rather than failing the CV read.
+ */
+export const DUPLICATE_TIERS = ["exact", "related", "strong", "weak"] as const;
+export type DuplicateTier = (typeof DUPLICATE_TIERS)[number];
+
+/**
+ * The typed relationship a duplicate has to its representative
+ * (`meta.duplicateOf.relationship`), from the duplicate's perspective. Drives
+ * the editor's explanatory copy (a preprint↔published pair reads very differently
+ * from a translation or an erratum — and many are legitimately listed twice).
+ */
+export const DUPLICATE_RELATIONSHIPS = [
+  "same-work",
+  "preprint-of",
+  "published-version-of",
+  "version-of",
+  "translation-of",
+  "erratum-of",
+] as const;
+export type DuplicateRelationship = (typeof DUPLICATE_RELATIONSHIPS)[number];
 
 /** A single CV entry. For MVP these come from OpenAlex works. */
 export const CvItemSchema = z.object({
@@ -320,6 +349,26 @@ export const CvItemSchema = z.object({
      * `undefined` rather than failing the CV read.
      */
     reviewFlag: z.enum(REVIEW_FLAGS).optional().catch(undefined),
+    /**
+     * Cross-source DUPLICATE hint (set with `reviewFlag === "duplicate"`). Points
+     * at the richer/"representative" item this one likely duplicates, with the
+     * detector's confidence tier + typed relationship. ADVISORY only — never
+     * hides the item; the user decides. RECOMPUTED every build (never trusted
+     * stale); a "not a duplicate" dismissal is persisted separately in
+     * `display.dismissedDuplicates`. Closed enums (no untrusted free-text); an
+     * unknown stored value degrades rather than failing the whole CV read.
+     */
+    duplicateOf: z
+      .object({
+        /** Item id of the representative (the work to keep). */
+        itemId: z.string().max(1024),
+        tier: z.enum(DUPLICATE_TIERS).catch("weak"),
+        relationship: z.enum(DUPLICATE_RELATIONSHIPS).optional().catch(undefined),
+        /** Stable id of the duplicate group (the representative's id). */
+        groupId: z.string().max(1024),
+      })
+      .optional()
+      .catch(undefined),
   }),
 });
 export type CvItem = z.infer<typeof CvItemSchema>;
@@ -598,6 +647,18 @@ export const DisplayChoicesSchema = z.object({
    * carry no field).
    */
   excludedItems: z.record(z.string().max(200), z.array(z.string().max(200)).max(10_000)).optional(),
+  /**
+   * Pair keys the user dismissed as "not a duplicate" ("keep both"). The
+   * detector never re-flags a dismissed pair, so the decision SURVIVES re-sync
+   * (the verdict itself is recomputed every build; only this human choice is
+   * persisted). Each key is the order-independent `"<anchorA>|<anchorB>"` of the
+   * two items, anchored by normalized DOI/PMID (stable across id churn) else id —
+   * see `duplicates.ts` `duplicatePairKey`. Bounded; back-compat (old docs omit
+   * it). Travels with `display`, so a preset snapshots it like other view state.
+   * `.catch(undefined)`: a corrupt / over-cap stored value degrades to "no
+   * dismissals remembered" (badges re-appear) rather than failing the CV read.
+   */
+  dismissedDuplicates: z.array(z.string().max(2200)).max(20_000).optional().catch(undefined),
   /**
    * True once the user has manually reordered sections (drag or ↑/↓). Until
    * then the build applies the canonical default order (Positions → Education →

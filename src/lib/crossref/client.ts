@@ -1,6 +1,7 @@
 import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 import { normalizeOrcid } from "@/lib/openalex/types";
+import { normDoi, type DoiRelation } from "@/lib/canonical/duplicates";
 import type { CslItem } from "@/types/csl";
 
 /**
@@ -97,6 +98,73 @@ export async function fetchCrossrefGapFields(
   } catch (err) {
     logger.warn("crossref.fetch_failed", { err });
     return null;
+  }
+}
+
+// ── Relation lookup: preprint ↔ published-version links (duplicate detection) ─
+
+/** Crossref `relation` keys that mean "the same work, a different version". */
+const RELATION_KINDS: Record<string, DoiRelation["kind"]> = {
+  "is-preprint-of": "preprint-pair",
+  "has-preprint": "preprint-pair",
+  "is-version-of": "version",
+  "has-version": "version",
+};
+
+function relationDois(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const out: string[] = [];
+  for (const entry of value) {
+    const rec = asRecord(entry);
+    if (rec?.["id-type"] === "doi" && typeof rec.id === "string") {
+      const norm = normDoi(rec.id);
+      if (norm) out.push(norm);
+    }
+  }
+  return out;
+}
+
+/**
+ * The publisher-asserted preprint/version relationships for a DOI, from
+ * Crossref's `message.relation`. This is the gold-standard signal for the
+ * preprint↔published-version duplicate (different DOIs, so identifier matching
+ * can't catch it). Normalized DOIs out. Fails soft → [] (a miss just leaves the
+ * pair to the heuristic tiers). Cached 24h (bibliographic data is static).
+ */
+export async function fetchCrossrefRelations(doi: string, mailto: string): Promise<DoiRelation[]> {
+  const bare = normDoi(doi);
+  if (!bare || !DOI_RE.test(bare)) return [];
+
+  const url = new URL(`${CROSSREF_API}/${encodeURIComponent(bare)}`);
+  url.searchParams.set("mailto", mailto);
+  // Only the relation field is needed — keep the response tiny (a full work
+  // record is tens of kB; we may issue dozens of these per sync).
+  url.searchParams.set("select", "relation");
+
+  try {
+    const res = await resilientFetch(url, {
+      next: { revalidate: 86_400 },
+      timeoutMs: 12_000,
+    });
+    if (!res.ok) return [];
+    const body = await res.text();
+    if (body.length > MAX_BYTES) return [];
+    const data = JSON.parse(body) as { message?: { relation?: Record<string, unknown> } };
+    const relation = data.message?.relation;
+    if (!relation) return [];
+    const out: DoiRelation[] = [];
+    const seen = new Set<string>();
+    for (const [key, kind] of Object.entries(RELATION_KINDS)) {
+      for (const target of relationDois(relation[key])) {
+        if (seen.has(target)) continue;
+        seen.add(target);
+        out.push({ target, kind });
+      }
+    }
+    return out;
+  } catch (err) {
+    logger.warn("crossref.relations_fetch_failed", { err });
+    return [];
   }
 }
 

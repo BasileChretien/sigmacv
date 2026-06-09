@@ -2,7 +2,12 @@ import type { Prisma } from "@/generated/prisma/client";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { logger } from "@/lib/log";
 import { prisma } from "@/lib/db";
-import { compositionSnapshot, diffIncludedChanges, diffNotMineChanges } from "./diff";
+import {
+  compositionSnapshot,
+  diffDuplicateDismissals,
+  diffIncludedChanges,
+  diffNotMineChanges,
+} from "./diff";
 import { isResearchLoggingEnabled } from "./enabled";
 
 /**
@@ -57,6 +62,17 @@ export async function logCvSave(
         userId,
         type: "disambiguation_assertion",
         payload: assertion as unknown as Prisma.InputJsonValue,
+      });
+    }
+
+    // "Keep both" dismissals — the detector's false-positive signal (a count
+    // only, no identifiers), letting the de-duplication study measure precision.
+    const dismissals = diffDuplicateDismissals(prev, next);
+    if (dismissals > 0) {
+      events.push({
+        userId,
+        type: "duplicate_dismissal",
+        payload: { count: dismissals } as unknown as Prisma.InputJsonValue,
       });
     }
 

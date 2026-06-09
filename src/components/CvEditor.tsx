@@ -25,6 +25,7 @@ import {
   applyPreset,
   clearViewExclusions,
   deletePreset,
+  dismissDuplicate,
   isItemShownInView,
   moveItem,
   moveItemTo,
@@ -55,6 +56,7 @@ import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
+import { dupStrings } from "@/lib/i18n/duplicates";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
@@ -197,6 +199,17 @@ export default function CvEditor({
   const cvLocale = asLocale(cv.display.locale);
   const u = ui(locale);
   const eu = editorUi(locale);
+  const ds = dupStrings(locale);
+
+  // Resolve a duplicate's representative id → its title (the editor owns the
+  // whole CV; ItemRow only knows its own item). Cheap map over all items.
+  const titleById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const s of cv.sections) {
+      for (const it of s.items) m.set(it.id, it.csl?.title ?? it.displayText ?? "");
+    }
+    return m;
+  }, [cv.sections]);
 
   // Locale-aware option labels (built from the chrome dictionary).
   const TEMPLATE_LABELS: Record<string, string> = {
@@ -971,6 +984,10 @@ export default function CvEditor({
         {sections.map((section, si) => {
           const items = [...section.items].sort((a, b) => a.order - b.order);
           const shownCount = items.filter((i) => !isHidden(i)).length;
+          // Pending (visible, unresolved) duplicate hints in this section.
+          const dupCount = items.filter(
+            (i) => i.meta.reviewFlag === "duplicate" && !isHidden(i),
+          ).length;
           const isExpanded = expanded.has(section.id);
           return (
             <SectionCard key={section.id} value={section.id}>
@@ -1016,6 +1033,19 @@ export default function CvEditor({
                           {shownCount}/{items.length} {u.shownSuffix}
                         </span>
                       )}
+                      {dupCount > 0 ? (
+                        <button
+                          type="button"
+                          className="section-dup-flag"
+                          title={ds.summary.replace("{n}", String(dupCount))}
+                          aria-label={ds.summary.replace("{n}", String(dupCount))}
+                          onClick={() => {
+                            if (!isExpanded) toggleExpanded(section.id);
+                          }}
+                        >
+                          ⚠ {dupCount}
+                        </button>
+                      ) : null}
                       <label className="field-inline">
                         <input
                           type="checkbox"
@@ -1151,6 +1181,22 @@ export default function CvEditor({
                                       now: new Date().toISOString(),
                                     }),
                                   )
+                                }
+                                duplicateTitle={
+                                  item.meta.duplicateOf
+                                    ? titleById.get(item.meta.duplicateOf.itemId)
+                                    : undefined
+                                }
+                                onDupConfirm={() =>
+                                  onChange(
+                                    setItemNotMine(cv, section.id, item.id, true, {
+                                      reason: "duplicate",
+                                      now: new Date().toISOString(),
+                                    }),
+                                  )
+                                }
+                                onDupKeepBoth={() =>
+                                  onChange(dismissDuplicate(cv, section.id, item.id))
                                 }
                                 onMoveUp={() => onChange(moveItem(cv, section.id, item.id, "up"))}
                                 onMoveDown={() =>

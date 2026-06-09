@@ -16,6 +16,7 @@ import { fetchJournalNamesByIssn, fetchWorksByAuthorIds } from "@/lib/openalex/c
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
 import { normalizeOrcid } from "@/lib/openalex/types";
 import { discoverOrcidOnlyWorks } from "@/lib/cv/orcidDiscovery";
+import { annotateDuplicatesWithRelations } from "@/lib/cv/duplicateRelations";
 import {
   fetchOrcidDistinctions,
   fetchOrcidEducation,
@@ -277,6 +278,11 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   // Crossref: fill bibliographic gaps (journal, volume/issue, pages) on works
   // that have a DOI but incomplete OpenAlex metadata. Bounded + fails soft.
   cv = await enrichCvWithCrossref(cv, getEnv().OPENALEX_MAILTO);
+
+  // Upgrade duplicate hints with Crossref's publisher-asserted preprint↔published
+  // relationships (the build already ran the identifier + heuristic tiers). The
+  // lookup is targeted at ambiguous pairs only and fails soft.
+  cv = await annotateDuplicatesWithRelations(cv, getEnv().OPENALEX_MAILTO);
 
   // Defence-in-depth: never persist a document above the public-render item cap.
   // saveCvForUser enforces this for user saves; the sync/resync path writes via

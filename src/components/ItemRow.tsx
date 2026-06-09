@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   isHidden,
   NOT_MINE_REASONS,
@@ -8,6 +9,7 @@ import {
 } from "@/lib/canonical/schema";
 import { reasonLabel, t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
+import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 
 /** Proper-noun data-source names (not translated); "manual" is localized below. */
 const SOURCE_NAMES: Record<string, string> = {
@@ -41,6 +43,12 @@ interface ItemRowProps {
   onToggleInView?: () => void;
   /** Set/clear the structured reason for a "not mine" assertion. */
   onSetNotMineReason?: (reason: NotMineReason | undefined) => void;
+  /** Title of the representative this item duplicates (resolved by the editor). */
+  duplicateTitle?: string;
+  /** "These are the same" — assert this item is a duplicate (not-mine + reason). */
+  onDupConfirm?: () => void;
+  /** "Keep both" — dismiss the duplicate flag so it isn't re-raised on re-sync. */
+  onDupKeepBoth?: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   /** Drag-and-drop reorder: this row started being dragged. */
@@ -63,6 +71,9 @@ export default function ItemRow({
   shownInView = true,
   onToggleInView,
   onSetNotMineReason,
+  duplicateTitle,
+  onDupConfirm,
+  onDupKeepBoth,
   onMoveUp,
   onMoveDown,
   onDragStart,
@@ -71,6 +82,23 @@ export default function ItemRow({
   onRemove,
 }: ItemRowProps) {
   const u = ui(locale);
+  const ds = dupStrings(locale);
+  // The "possible duplicate" explainer is collapsed until the badge is clicked.
+  const [dupExpanded, setDupExpanded] = useState(false);
+  const dup = item.meta.duplicateOf;
+  // Only nag about a VISIBLE duplicate the user hasn't resolved yet.
+  const showDupBadge = item.meta.reviewFlag === "duplicate" && !!dup && !isHidden(item);
+  const dupBadge = showDupBadge ? (
+    <button
+      type="button"
+      className="cv-review-badge is-duplicate"
+      onClick={() => setDupExpanded((v) => !v)}
+      aria-expanded={dupExpanded}
+      title={ds.badgeHint}
+    >
+      {ds.badge}
+    </button>
+  ) : null;
   const isCitation = Boolean(item.csl);
   const isManual = item.source === "manual";
   // "Not mine" is a disambiguation correction for an item a THIRD PARTY
@@ -189,6 +217,7 @@ export default function ItemRow({
                 {t(locale, "reviewBadge")}
               </span>
             ) : null}
+            {dupBadge}
             {sourceBadge}
           </div>
         ) : (
@@ -205,9 +234,53 @@ export default function ItemRow({
                 {t(locale, "reviewBadge")}
               </span>
             ) : null}
+            {dupBadge}
             {sourceBadge}
           </div>
         )}
+        {/* Possible-duplicate explainer + actions. Advisory: NEVER auto-removes.
+            "Keep both" dismisses the flag (survives re-sync); "Hide this one"
+            leaves it off the CV; "These are the same" asserts a duplicate
+            (the disambiguation-correction signal). */}
+        {showDupBadge && dup && dupExpanded ? (
+          <div className="cv-dup-panel" role="group" aria-label={ds.panelAria}>
+            <p className="cv-dup-why">
+              {ds.looksLike} <strong>{duplicateTitle ?? u.itemUntitled}</strong>
+              {" — "}
+              {dupReasonText(locale, dup.tier, dup.relationship)}
+            </p>
+            <div className="cv-dup-actions">
+              {onDupKeepBoth ? (
+                <button
+                  type="button"
+                  className="mine-btn is-restore"
+                  onClick={onDupKeepBoth}
+                  title={ds.keepBothHint}
+                >
+                  {ds.keepBoth}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="mine-btn"
+                onClick={onToggleIncluded}
+                title={t(locale, "hideHint")}
+              >
+                {ds.hideThis}
+              </button>
+              {canMarkNotMine && onDupConfirm ? (
+                <button
+                  type="button"
+                  className="mine-btn is-delete"
+                  onClick={onDupConfirm}
+                  title={ds.confirmHint}
+                >
+                  {ds.confirm}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
         {canMarkNotMine && item.notMine && onSetNotMineReason ? (
           <select
             className="cv-reason-select"

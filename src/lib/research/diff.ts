@@ -68,6 +68,9 @@ export interface NotMineAssertion {
   reason?: string;
   /** The disambiguation hint the build computed, if any (e.g. "orcid-conflict"). */
   reviewFlag?: string;
+  /** When this was a detected DUPLICATE, the detector's confidence tier — pairs
+   *  the detector's hypothesis with the user's adjudication (true-positive yield). */
+  duplicateTier?: string;
   /** How the (now-disputed) self-match was made: "orcid" | "openalex-id" | "both". */
   matchBasis?: string;
   meta: {
@@ -105,12 +108,28 @@ export function diffNotMineChanges(
         assertedAt: it.notMineAssertedAt,
         reason: it.notMineReason,
         reviewFlag: it.meta.reviewFlag,
+        duplicateTier: it.meta.duplicateOf?.tier,
         matchBasis: it.meta.matchBasis,
         meta: { year: it.meta.year, type: it.meta.type, doi: it.meta.doi },
       });
     }
   }
   return out;
+}
+
+/**
+ * How many duplicate pairs the user newly dismissed ("keep both") between two
+ * states — the detector's FALSE-POSITIVE signal (the negative label that lets
+ * the de-duplication study measure precision). Data-minimized: a count only, no
+ * identifiers. Returns 0 when there's no prior state or no new dismissals.
+ */
+export function diffDuplicateDismissals(prev: CanonicalCv | null, next: CanonicalCv): number {
+  if (!prev) return 0;
+  const before = new Set(prev.display.dismissedDuplicates ?? []);
+  const after = next.display.dismissedDuplicates ?? [];
+  let added = 0;
+  for (const key of after) if (!before.has(key)) added++;
+  return added;
 }
 
 export interface CompositionSnapshot {

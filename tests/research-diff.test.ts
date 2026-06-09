@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { setItemIncluded, setItemNotMine } from "@/lib/canonical/curate";
 import { pendingNotMineAssertions } from "@/lib/canonical/assertions";
-import { compositionSnapshot, diffIncludedChanges, diffNotMineChanges } from "@/lib/research/diff";
+import { updateDisplay } from "@/lib/canonical/curate";
+import {
+  compositionSnapshot,
+  diffDuplicateDismissals,
+  diffIncludedChanges,
+  diffNotMineChanges,
+} from "@/lib/research/diff";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -67,6 +73,57 @@ describe("diffNotMineChanges", () => {
 
   it("ignores items with no previous state", () => {
     expect(diffNotMineChanges(null, makeCv())).toEqual([]);
+  });
+
+  it("records the detector tier when a confirmed duplicate is asserted", () => {
+    const base = makeCv();
+    const pubs = base.sections.find((s) => s.id === "publications")!;
+    const itemId = pubs.items[0]!.id;
+    const withHint = {
+      ...base,
+      sections: base.sections.map((s) =>
+        s.id === "publications"
+          ? {
+              ...s,
+              items: s.items.map((it, i) =>
+                i === 0
+                  ? {
+                      ...it,
+                      meta: {
+                        ...it.meta,
+                        reviewFlag: "duplicate" as const,
+                        duplicateOf: { itemId: "W_rep", tier: "exact" as const, groupId: "W_rep" },
+                      },
+                    }
+                  : it,
+              ),
+            }
+          : s,
+      ),
+    };
+    const asserted = setItemNotMine(withHint, "publications", itemId, true, {
+      reason: "duplicate",
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const changes = diffNotMineChanges(withHint, asserted);
+    expect(changes[0]).toMatchObject({
+      reviewFlag: "duplicate",
+      duplicateTier: "exact",
+      reason: "duplicate",
+    });
+  });
+});
+
+describe("diffDuplicateDismissals", () => {
+  it("counts only newly-added 'keep both' dismissals", () => {
+    const before = updateDisplay(makeCv(), { dismissedDuplicates: ["a|b"] });
+    const after = updateDisplay(before, { dismissedDuplicates: ["a|b", "c|d", "e|f"] });
+    expect(diffDuplicateDismissals(before, after)).toBe(2);
+    expect(diffDuplicateDismissals(before, before)).toBe(0);
+  });
+
+  it("returns 0 when there is no previous state", () => {
+    expect(diffDuplicateDismissals(null, makeCv())).toBe(0);
   });
 });
 
