@@ -97,6 +97,7 @@ export interface UiStrings {
   exportBibtex: string;
   exportCslJson: string;
   exportJsonResume: string;
+  exportRoCrate: string;
   exportJson: string;
   exportBiosketch: string;
   exportErc: string;
@@ -222,6 +223,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportBibtex: "BibTeX — publication list (.bib)",
     exportCslJson: "CSL-JSON — citations interchange (.json)",
     exportJsonResume: "JSON Résumé — standard schema (.json)",
+    exportRoCrate: "RO-Crate — research object package (.zip)",
     exportJson: "JSON — raw CV data (.json)",
     exportBiosketch: "NIH biosketch — draft (.md)",
     exportErc: "ERC — track record (.md)",
@@ -340,6 +342,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportBibtex: "BibTeX — 论文列表 (.bib)",
     exportCslJson: "CSL-JSON — 引用交换格式 (.json)",
     exportJsonResume: "JSON Résumé — 标准架构 (.json)",
+    exportRoCrate: "RO-Crate — 研究对象包 (.zip)",
     exportJson: "JSON — 简历原始数据 (.json)",
     exportBiosketch: "NIH biosketch — 草稿 (.md)",
     exportErc: "ERC — 业绩记录 (.md)",
@@ -462,6 +465,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportBibtex: "BibTeX — lista de publicaciones (.bib)",
     exportCslJson: "CSL-JSON — intercambio de citas (.json)",
     exportJsonResume: "JSON Résumé — esquema estándar (.json)",
+    exportRoCrate: "RO-Crate — paquete de objeto de investigación (.zip)",
     exportJson: "JSON — datos del CV (.json)",
     exportBiosketch: "NIH biosketch — borrador (.md)",
     exportErc: "ERC — trayectoria (.md)",
@@ -585,6 +589,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportBibtex: "BibTeX — liste de publications (.bib)",
     exportCslJson: "CSL-JSON — échange de citations (.json)",
     exportJsonResume: "JSON Résumé — schéma standard (.json)",
+    exportRoCrate: "RO-Crate — objet de recherche (.zip)",
     exportJson: "JSON — données du CV (.json)",
     exportBiosketch: "NIH biosketch — brouillon (.md)",
     exportErc: "ERC — parcours (.md)",
@@ -708,6 +713,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportBibtex: "BibTeX — Publikationsliste (.bib)",
     exportCslJson: "CSL-JSON — Zitations-Austausch (.json)",
     exportJsonResume: "JSON Résumé — Standardschema (.json)",
+    exportRoCrate: "RO-Crate — Forschungsobjekt-Paket (.zip)",
     exportJson: "JSON — Lebenslauf-Daten (.json)",
     exportBiosketch: "NIH biosketch — Entwurf (.md)",
     exportErc: "ERC — Werdegang (.md)",
@@ -830,6 +836,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportBibtex: "BibTeX — 論文リスト (.bib)",
     exportCslJson: "CSL-JSON — 引用交換形式 (.json)",
     exportJsonResume: "JSON Résumé — 標準スキーマ (.json)",
+    exportRoCrate: "RO-Crate — 研究オブジェクト (.zip)",
     exportJson: "JSON — CV データ (.json)",
     exportBiosketch: "NIH biosketch — 下書き (.md)",
     exportErc: "ERC — 業績 (.md)",
@@ -952,6 +959,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportBibtex: "BibTeX — lista de publicações (.bib)",
     exportCslJson: "CSL-JSON — intercâmbio de citações (.json)",
     exportJsonResume: "JSON Résumé — esquema padrão (.json)",
+    exportRoCrate: "RO-Crate — pacote de objeto de pesquisa (.zip)",
     exportJson: "JSON — dados do currículo (.json)",
     exportBiosketch: "NIH biosketch — rascunho (.md)",
     exportErc: "ERC — trajetória (.md)",
@@ -1075,6 +1083,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportBibtex: "BibTeX — elenco pubblicazioni (.bib)",
     exportCslJson: "CSL-JSON — interscambio di citazioni (.json)",
     exportJsonResume: "JSON Résumé — schema standard (.json)",
+    exportRoCrate: "RO-Crate — oggetto di ricerca (.zip)",
     exportJson: "JSON — dati del CV (.json)",
     exportBiosketch: "NIH biosketch — bozza (.md)",
     exportErc: "ERC — percorso (.md)",
@@ -1196,6 +1205,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportBibtex: "BibTeX — 논문 목록 (.bib)",
     exportCslJson: "CSL-JSON — 인용 교환 형식 (.json)",
     exportJsonResume: "JSON Résumé — 표준 스키마 (.json)",
+    exportRoCrate: "RO-Crate — 연구 객체 패키지 (.zip)",
     exportJson: "JSON — 이력서 데이터 (.json)",
     exportBiosketch: "NIH biosketch — 초안 (.md)",
     exportErc: "ERC — 연구 실적 (.md)",
@@ -1317,6 +1327,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportBibtex: "BibTeX — список публикаций (.bib)",
     exportCslJson: "CSL-JSON — обмен ссылками (.json)",
     exportJsonResume: "JSON Résumé — стандартная схема (.json)",
+    exportRoCrate: "RO-Crate — исследовательский объект (.zip)",
     exportJson: "JSON — данные резюме (.json)",
     exportBiosketch: "NIH biosketch — черновик (.md)",
     exportErc: "ERC — научный путь (.md)",

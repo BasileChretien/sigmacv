@@ -18,6 +18,7 @@ const EXPORTABLE: readonly RenderFormat[] = [
   "bibtex",
   "csljson",
   "jsonresume",
+  "ro-crate",
   "biosketch",
   "erc",
   "msca",
