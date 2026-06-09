@@ -2,27 +2,44 @@ import { asLocale, type Locale } from "./index";
 import type { DuplicateRelationship, DuplicateTier } from "@/lib/canonical/schema";
 
 /**
- * Editor strings for the duplicate-detection feature (the per-row "possible
- * duplicate" badge + explainer + actions, and the per-section summary). Kept in
- * its own module — like `ui.ts`/`render.ts` — rather than the giant chrome
- * dictionary. Typed as `Record<Locale, DuplicateStrings>` so a missing
- * translation is a COMPILE error: the feature can't ship untranslated.
+ * Editor strings for the duplicate-detection feature: the per-row "possible
+ * duplicate" badge, the compare-and-choose panel (full facts for EVERY member of
+ * a duplicate group + a "keep this one" choice on each, plus "keep all"), and the
+ * per-section summary. Kept in its own module — like `ui.ts`/`render.ts` — rather
+ * than the giant chrome dictionary. Typed as `Record<Locale, DuplicateStrings>`
+ * so a missing translation is a COMPILE error: the feature can't ship
+ * untranslated.
  *
  * The `relX`/`tierX` keys are the explanatory phrase for WHY a pair was flagged;
  * `dupReasonText` selects one from `(tier, relationship)`. The copy deliberately
  * NEVER implies an error for legitimate-both cases (preprint↔published, errata,
- * translations) — it leads with "keep both".
+ * translations) — the user compares the members and decides which to keep.
  */
 export interface DuplicateStrings {
   badge: string;
   badgeHint: string;
   panelAria: string;
-  looksLike: string;
-  confirm: string;
-  confirmHint: string;
+  /** "Keep both" — for a 2-member group. */
   keepBoth: string;
   keepBothHint: string;
-  hideThis: string;
+  /** "Keep all" — for a group of 3+ members. */
+  keepAll: string;
+  keepAllHint: string;
+  /** Tag marking the entry the open panel belongs to (the row that was clicked). */
+  thisEntryTag: string;
+  /** Heading above the compared entries. */
+  comparePrompt: string;
+  /** "Keep this one" — keep this entry, hide the rest of the group. */
+  keepThis: string;
+  keepThisHint: string;
+  /** Where another entry lives, `{s}` = section name (e.g. "in Preprints"). */
+  otherIn: string;
+  /** Tag shown when an entry is currently hidden from the CV. */
+  hiddenTag: string;
+  peerReviewedTag: string;
+  notPeerReviewedTag: string;
+  /** Unit label after a citation count, e.g. "12 citations". */
+  citesTag: string;
   /** Section summary; `{n}` = count. */
   summary: string;
   review: string;
@@ -40,15 +57,21 @@ export interface DuplicateStrings {
 const EN: DuplicateStrings = {
   badge: "⚠ possible duplicate",
   badgeHint:
-    "This might be the same work as another entry. Click to review — nothing is removed automatically.",
-  panelAria: "Possible duplicate details",
-  looksLike: "Looks like the same work as",
-  confirm: "These are the same",
-  confirmHint:
-    "Marks this entry as a duplicate and removes it from the CV (kept on file). The other entry stays.",
+    "This might be the same work as another entry. Click to compare — nothing is removed automatically.",
+  panelAria: "Compare possible duplicate entries",
   keepBoth: "Keep both",
   keepBothHint: "These are distinct — keep both on the CV and don’t flag this pair again.",
-  hideThis: "Hide this one",
+  keepAll: "Keep all",
+  keepAllHint: "These are all distinct — keep them all and don’t flag this group again.",
+  thisEntryTag: "this entry",
+  comparePrompt: "Which entry do you want to keep?",
+  keepThis: "Keep this one",
+  keepThisHint: "Keep this entry and hide the others (kept on file, not deleted).",
+  otherIn: "in {s}",
+  hiddenTag: "hidden",
+  peerReviewedTag: "peer-reviewed",
+  notPeerReviewedTag: "not peer-reviewed",
+  citesTag: "citations",
   summary: "{n} possible duplicates to review",
   review: "Review",
   relPreprintOf: "one is a preprint of the other — many researchers list both",
@@ -64,14 +87,21 @@ const EN: DuplicateStrings = {
 
 const ZH: DuplicateStrings = {
   badge: "⚠ 疑似重复",
-  badgeHint: "这可能与另一条目是同一成果。点击核查——不会自动删除任何内容。",
-  panelAria: "疑似重复详情",
-  looksLike: "似乎与以下条目为同一成果：",
-  confirm: "这是重复项",
-  confirmHint: "将此条目标记为重复并从简历中移除（仍会留档）。另一条目保留。",
+  badgeHint: "这可能与另一条目是同一成果。点击对比——不会自动删除任何内容。",
+  panelAria: "对比疑似重复的条目",
   keepBoth: "两者都保留",
   keepBothHint: "二者不同——在简历中都保留，且不再对此对进行标记。",
-  hideThis: "隐藏此项",
+  keepAll: "全部保留",
+  keepAllHint: "它们各不相同——全部保留，且不再标记该组。",
+  thisEntryTag: "此条目",
+  comparePrompt: "您想保留哪一条？",
+  keepThis: "保留此条",
+  keepThisHint: "保留此条目并隐藏其余条目（仍会留档，不会删除）。",
+  otherIn: "位于{s}",
+  hiddenTag: "已隐藏",
+  peerReviewedTag: "经同行评审",
+  notPeerReviewedTag: "未经同行评审",
+  citesTag: "次被引",
   summary: "有 {n} 个疑似重复待核查",
   review: "核查",
   relPreprintOf: "其中之一是另一项的预印本——许多研究者会两者都列出",
@@ -88,15 +118,21 @@ const ZH: DuplicateStrings = {
 const ES: DuplicateStrings = {
   badge: "⚠ posible duplicado",
   badgeHint:
-    "Podría ser el mismo trabajo que otra entrada. Haz clic para revisar — no se elimina nada automáticamente.",
-  panelAria: "Detalles del posible duplicado",
-  looksLike: "Parece el mismo trabajo que",
-  confirm: "Son el mismo",
-  confirmHint:
-    "Marca esta entrada como duplicada y la quita del CV (se conserva archivada). La otra entrada permanece.",
+    "Podría ser el mismo trabajo que otra entrada. Haz clic para comparar — no se elimina nada automáticamente.",
+  panelAria: "Comparar posibles entradas duplicadas",
   keepBoth: "Conservar ambos",
   keepBothHint: "Son distintos — consérvalos ambos en el CV y no vuelvas a marcar este par.",
-  hideThis: "Ocultar este",
+  keepAll: "Conservar todas",
+  keepAllHint: "Son todas distintas — consérvalas y no vuelvas a marcar este grupo.",
+  thisEntryTag: "esta entrada",
+  comparePrompt: "¿Qué entrada quieres conservar?",
+  keepThis: "Conservar esta",
+  keepThisHint: "Conserva esta entrada y oculta las demás (se conserva archivada, no se borra).",
+  otherIn: "en {s}",
+  hiddenTag: "oculta",
+  peerReviewedTag: "revisado por pares",
+  notPeerReviewedTag: "sin revisión por pares",
+  citesTag: "citas",
   summary: "{n} posibles duplicados para revisar",
   review: "Revisar",
   relPreprintOf: "uno es un preprint del otro — muchos investigadores listan ambos",
@@ -113,16 +149,22 @@ const ES: DuplicateStrings = {
 const FR: DuplicateStrings = {
   badge: "⚠ doublon possible",
   badgeHint:
-    "Il pourrait s’agir du même travail qu’une autre entrée. Cliquez pour vérifier — rien n’est supprimé automatiquement.",
-  panelAria: "Détails du doublon possible",
-  looksLike: "Semble être le même travail que",
-  confirm: "Ce sont les mêmes",
-  confirmHint:
-    "Marque cette entrée comme doublon et la retire du CV (conservée au dossier). L’autre entrée reste.",
+    "Il pourrait s’agir du même travail qu’une autre entrée. Cliquez pour comparer — rien n’est supprimé automatiquement.",
+  panelAria: "Comparer les entrées en double possibles",
   keepBoth: "Garder les deux",
   keepBothHint:
     "Ce sont des travaux distincts — gardez les deux au CV et ne signalez plus cette paire.",
-  hideThis: "Masquer celle-ci",
+  keepAll: "Tout garder",
+  keepAllHint: "Ce sont des travaux distincts — gardez-les tous et ne signalez plus ce groupe.",
+  thisEntryTag: "cette entrée",
+  comparePrompt: "Quelle entrée voulez-vous conserver ?",
+  keepThis: "Garder celle-ci",
+  keepThisHint: "Garder cette entrée et masquer les autres (conservée au dossier, non supprimée).",
+  otherIn: "dans {s}",
+  hiddenTag: "masquée",
+  peerReviewedTag: "évalué par les pairs",
+  notPeerReviewedTag: "non évalué par les pairs",
+  citesTag: "citations",
   summary: "{n} doublons possibles à vérifier",
   review: "Vérifier",
   relPreprintOf:
@@ -142,16 +184,23 @@ const FR: DuplicateStrings = {
 const DE: DuplicateStrings = {
   badge: "⚠ mögliches Duplikat",
   badgeHint:
-    "Dies könnte dieselbe Arbeit wie ein anderer Eintrag sein. Zum Prüfen klicken — es wird nichts automatisch entfernt.",
-  panelAria: "Details zum möglichen Duplikat",
-  looksLike: "Sieht aus wie dieselbe Arbeit wie",
-  confirm: "Sind identisch",
-  confirmHint:
-    "Markiert diesen Eintrag als Duplikat und entfernt ihn aus dem Lebenslauf (bleibt gespeichert). Der andere Eintrag bleibt.",
+    "Dies könnte dieselbe Arbeit wie ein anderer Eintrag sein. Zum Vergleichen klicken — es wird nichts automatisch entfernt.",
+  panelAria: "Mögliche doppelte Einträge vergleichen",
   keepBoth: "Beide behalten",
   keepBothHint:
     "Sie sind verschieden — beide im Lebenslauf behalten und dieses Paar nicht erneut melden.",
-  hideThis: "Diesen ausblenden",
+  keepAll: "Alle behalten",
+  keepAllHint: "Sie sind alle verschieden — alle behalten und diese Gruppe nicht erneut melden.",
+  thisEntryTag: "dieser Eintrag",
+  comparePrompt: "Welchen Eintrag möchten Sie behalten?",
+  keepThis: "Diesen behalten",
+  keepThisHint:
+    "Diesen Eintrag behalten und die anderen ausblenden (bleibt gespeichert, nicht gelöscht).",
+  otherIn: "in {s}",
+  hiddenTag: "ausgeblendet",
+  peerReviewedTag: "begutachtet",
+  notPeerReviewedTag: "nicht begutachtet",
+  citesTag: "Zitationen",
   summary: "{n} mögliche Duplikate zu prüfen",
   review: "Prüfen",
   relPreprintOf: "eines ist ein Preprint des anderen — viele Forschende führen beide auf",
@@ -170,14 +219,21 @@ const DE: DuplicateStrings = {
 const JA: DuplicateStrings = {
   badge: "⚠ 重複の可能性",
   badgeHint:
-    "別の項目と同一の成果かもしれません。クリックして確認してください。自動では削除されません。",
-  panelAria: "重複の可能性の詳細",
-  looksLike: "次と同一の成果のようです：",
-  confirm: "同一です",
-  confirmHint: "この項目を重複として CV から外します（記録は保持）。もう一方の項目は残ります。",
+    "別の項目と同一の成果かもしれません。クリックして見比べてください。自動では削除されません。",
+  panelAria: "重複の可能性がある項目を見比べる",
   keepBoth: "両方残す",
   keepBothHint: "これらは別物です——両方を CV に残し、この組み合わせを今後は表示しません。",
-  hideThis: "これを非表示",
+  keepAll: "すべて残す",
+  keepAllHint: "これらはすべて別物です——すべて残し、このグループを今後は表示しません。",
+  thisEntryTag: "この項目",
+  comparePrompt: "どの項目を残しますか？",
+  keepThis: "これを残す",
+  keepThisHint: "この項目を残し、ほかを非表示にします（記録は保持し、削除はしません）。",
+  otherIn: "{s} 内",
+  hiddenTag: "非表示",
+  peerReviewedTag: "査読あり",
+  notPeerReviewedTag: "査読なし",
+  citesTag: "被引用",
   summary: "確認が必要な重複候補が {n} 件",
   review: "確認",
   relPreprintOf: "一方が他方のプレプリントです——両方を記載する研究者も多くいます",
@@ -194,15 +250,21 @@ const JA: DuplicateStrings = {
 const PT: DuplicateStrings = {
   badge: "⚠ possível duplicata",
   badgeHint:
-    "Pode ser o mesmo trabalho que outra entrada. Clique para revisar — nada é removido automaticamente.",
-  panelAria: "Detalhes da possível duplicata",
-  looksLike: "Parece o mesmo trabalho que",
-  confirm: "São o mesmo",
-  confirmHint:
-    "Marca esta entrada como duplicata e a remove do currículo (mantida em arquivo). A outra entrada permanece.",
+    "Pode ser o mesmo trabalho que outra entrada. Clique para comparar — nada é removido automaticamente.",
+  panelAria: "Comparar possíveis entradas duplicadas",
   keepBoth: "Manter ambos",
   keepBothHint: "São distintos — mantenha ambos no currículo e não sinalize este par novamente.",
-  hideThis: "Ocultar este",
+  keepAll: "Manter todas",
+  keepAllHint: "São todas distintas — mantenha-as e não sinalize este grupo novamente.",
+  thisEntryTag: "esta entrada",
+  comparePrompt: "Qual entrada você quer manter?",
+  keepThis: "Manter esta",
+  keepThisHint: "Mantém esta entrada e oculta as demais (mantida em arquivo, não excluída).",
+  otherIn: "em {s}",
+  hiddenTag: "oculta",
+  peerReviewedTag: "revisado por pares",
+  notPeerReviewedTag: "sem revisão por pares",
+  citesTag: "citações",
   summary: "{n} possíveis duplicatas para revisar",
   review: "Revisar",
   relPreprintOf: "um é um preprint do outro — muitos pesquisadores listam ambos",
@@ -219,15 +281,21 @@ const PT: DuplicateStrings = {
 const IT: DuplicateStrings = {
   badge: "⚠ possibile duplicato",
   badgeHint:
-    "Potrebbe essere lo stesso lavoro di un’altra voce. Fai clic per verificare — non viene rimosso nulla automaticamente.",
-  panelAria: "Dettagli del possibile duplicato",
-  looksLike: "Sembra lo stesso lavoro di",
-  confirm: "Sono lo stesso",
-  confirmHint:
-    "Contrassegna questa voce come duplicato e la rimuove dal CV (resta archiviata). L’altra voce rimane.",
+    "Potrebbe essere lo stesso lavoro di un’altra voce. Fai clic per confrontare — non viene rimosso nulla automaticamente.",
+  panelAria: "Confronta le possibili voci duplicate",
   keepBoth: "Tieni entrambi",
   keepBothHint: "Sono distinti — tienili entrambi nel CV e non segnalare più questa coppia.",
-  hideThis: "Nascondi questo",
+  keepAll: "Tieni tutte",
+  keepAllHint: "Sono tutte distinte — tienile tutte e non segnalare più questo gruppo.",
+  thisEntryTag: "questa voce",
+  comparePrompt: "Quale voce vuoi mantenere?",
+  keepThis: "Mantieni questa",
+  keepThisHint: "Mantieni questa voce e nascondi le altre (resta archiviata, non eliminata).",
+  otherIn: "in {s}",
+  hiddenTag: "nascosta",
+  peerReviewedTag: "sottoposto a revisione paritaria",
+  notPeerReviewedTag: "senza revisione paritaria",
+  citesTag: "citazioni",
   summary: "{n} possibili duplicati da verificare",
   review: "Verifica",
   relPreprintOf: "uno è un preprint dell’altro — molti ricercatori elencano entrambi",
@@ -246,15 +314,21 @@ const IT: DuplicateStrings = {
 const KO: DuplicateStrings = {
   badge: "⚠ 중복 가능성",
   badgeHint:
-    "다른 항목과 동일한 업적일 수 있습니다. 클릭하여 검토하세요 — 자동으로 삭제되지 않습니다.",
-  panelAria: "중복 가능성 세부정보",
-  looksLike: "다음과 동일한 업적으로 보입니다:",
-  confirm: "동일합니다",
-  confirmHint:
-    "이 항목을 중복으로 표시하고 CV에서 제외합니다(기록은 보관). 다른 항목은 유지됩니다.",
+    "다른 항목과 동일한 업적일 수 있습니다. 클릭하여 비교하세요 — 자동으로 삭제되지 않습니다.",
+  panelAria: "중복 가능성이 있는 항목 비교",
   keepBoth: "둘 다 유지",
   keepBothHint: "서로 다른 업적입니다 — 둘 다 CV에 유지하고 이 쌍을 다시 표시하지 않습니다.",
-  hideThis: "이 항목 숨기기",
+  keepAll: "모두 유지",
+  keepAllHint: "모두 서로 다른 업적입니다 — 모두 유지하고 이 그룹을 다시 표시하지 않습니다.",
+  thisEntryTag: "이 항목",
+  comparePrompt: "어느 항목을 남기시겠어요?",
+  keepThis: "이 항목 남기기",
+  keepThisHint: "이 항목을 남기고 나머지를 숨깁니다(기록은 보관, 삭제 아님).",
+  otherIn: "{s}에 있음",
+  hiddenTag: "숨김",
+  peerReviewedTag: "동료 심사",
+  notPeerReviewedTag: "동료 심사 없음",
+  citesTag: "회 인용",
   summary: "검토할 중복 가능성 {n}건",
   review: "검토",
   relPreprintOf: "하나가 다른 하나의 프리프린트입니다 — 많은 연구자가 둘 다 기재합니다",
@@ -271,15 +345,21 @@ const KO: DuplicateStrings = {
 const RU: DuplicateStrings = {
   badge: "⚠ возможный дубликат",
   badgeHint:
-    "Возможно, это та же работа, что и другая запись. Нажмите для проверки — ничего не удаляется автоматически.",
-  panelAria: "Сведения о возможном дубликате",
-  looksLike: "Похоже на ту же работу, что и",
-  confirm: "Это одно и то же",
-  confirmHint:
-    "Помечает запись как дубликат и убирает её из резюме (остаётся в архиве). Другая запись сохраняется.",
+    "Возможно, это та же работа, что и другая запись. Нажмите, чтобы сравнить — ничего не удаляется автоматически.",
+  panelAria: "Сравнить возможные дубликаты записей",
   keepBoth: "Оставить обе",
   keepBothHint: "Это разные работы — оставьте обе в резюме и больше не отмечайте эту пару.",
-  hideThis: "Скрыть эту",
+  keepAll: "Оставить все",
+  keepAllHint: "Это разные работы — оставьте все и больше не отмечайте эту группу.",
+  thisEntryTag: "эта запись",
+  comparePrompt: "Какую запись оставить?",
+  keepThis: "Оставить эту",
+  keepThisHint: "Оставить эту запись и скрыть остальные (останется в архиве, не удаляется).",
+  otherIn: "в разделе {s}",
+  hiddenTag: "скрыта",
+  peerReviewedTag: "рецензировано",
+  notPeerReviewedTag: "без рецензирования",
+  citesTag: "цитирований",
   summary: "Возможных дубликатов для проверки: {n}",
   review: "Проверить",
   relPreprintOf: "одна — препринт другой; многие исследователи указывают обе",

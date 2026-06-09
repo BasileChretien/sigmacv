@@ -13,6 +13,7 @@ import {
   TEMPLATES,
   isProseSectionType,
   type CanonicalCv,
+  type CvItem,
   type CvSectionType,
   type CustomStyle,
 } from "@/lib/canonical/schema";
@@ -23,9 +24,10 @@ import {
   addStructuredEntry,
   type ManualEntryFields,
   applyPreset,
+  clearDuplicateFlag,
   clearViewExclusions,
   deletePreset,
-  dismissDuplicate,
+  dismissDuplicateGroup,
   isItemShownInView,
   moveItem,
   moveItemTo,
@@ -202,15 +204,37 @@ export default function CvEditor({
   const eu = editorUi(locale);
   const ds = dupStrings(locale);
 
-  // Resolve a duplicate's representative id → its title (the editor owns the
-  // whole CV; ItemRow only knows its own item). Cheap map over all items.
-  const titleById = useMemo(() => {
-    const m = new Map<string, string>();
+  // Index every item by id with its full data + section (the editor owns the
+  // whole CV; ItemRow only knows its own item). Used to resolve a duplicate's
+  // group members side-by-side and to act on them across sections.
+  type Located = { item: CvItem; sectionId: string; sectionTitle: string };
+  const itemIndex = useMemo(() => {
+    const m = new Map<string, Located>();
     for (const s of cv.sections) {
-      for (const it of s.items) m.set(it.id, it.csl?.title ?? it.displayText ?? "");
+      for (const it of s.items) m.set(it.id, { item: it, sectionId: s.id, sectionTitle: s.title });
     }
     return m;
   }, [cv.sections]);
+
+  // Resolve each duplicate GROUP (keyed by `duplicateOf.groupId`, the
+  // representative's id) → all its located members (the representative + every
+  // flagged member). A cluster can be 2, 3 or more items across sections.
+  const dupGroups = useMemo(() => {
+    const groups = new Map<string, Located[]>();
+    const push = (gid: string, entry: Located | undefined) => {
+      if (!entry) return;
+      const list = groups.get(gid) ?? [];
+      if (!list.some((e) => e.item.id === entry.item.id)) list.push(entry);
+      groups.set(gid, list);
+    };
+    for (const loc of itemIndex.values()) {
+      const gid = loc.item.meta.duplicateOf?.groupId;
+      if (!gid) continue;
+      push(gid, loc); // the flagged member
+      push(gid, itemIndex.get(gid)); // the representative (carries no flag itself)
+    }
+    return groups;
+  }, [itemIndex]);
 
   // Locale-aware option labels (built from the chrome dictionary).
   const TEMPLATE_LABELS: Record<string, string> = {
@@ -1186,22 +1210,45 @@ export default function CvEditor({
                                     }),
                                   )
                                 }
-                                duplicateTitle={
+                                duplicateGroup={
                                   item.meta.duplicateOf
-                                    ? titleById.get(item.meta.duplicateOf.itemId)
+                                    ? dupGroups.get(item.meta.duplicateOf.groupId)?.map((m) => ({
+                                        item: m.item,
+                                        sectionTitle: m.sectionTitle,
+                                      }))
                                     : undefined
                                 }
-                                onDupConfirm={() =>
+                                onKeepOnly={(keepId) => {
+                                  const members = item.meta.duplicateOf
+                                    ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
+                                    : [];
+                                  // Hide every OTHER member; clear the kept member's
+                                  // badge so it resolves immediately. No dismissal:
+                                  // the detector ignores the now-hidden members, so
+                                  // the cluster won't re-form.
+                                  let next = cv;
+                                  for (const m of members) {
+                                    if (m.item.id !== keepId) {
+                                      next = setItemIncluded(next, m.sectionId, m.item.id, false);
+                                    }
+                                  }
+                                  const keep = members.find((m) => m.item.id === keepId);
+                                  if (keep) {
+                                    next = clearDuplicateFlag(next, keep.sectionId, keep.item.id);
+                                  }
+                                  onChange(next);
+                                }}
+                                onKeepAll={() => {
+                                  const members = item.meta.duplicateOf
+                                    ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
+                                    : [];
                                   onChange(
-                                    setItemNotMine(cv, section.id, item.id, true, {
-                                      reason: "duplicate",
-                                      now: new Date().toISOString(),
-                                    }),
-                                  )
-                                }
-                                onDupKeepBoth={() =>
-                                  onChange(dismissDuplicate(cv, section.id, item.id))
-                                }
+                                    dismissDuplicateGroup(
+                                      cv,
+                                      members.map((m) => m.item.id),
+                                    ),
+                                  );
+                                }}
                                 onMoveUp={() => onChange(moveItem(cv, section.id, item.id, "up"))}
                                 onMoveDown={() =>
                                   onChange(moveItem(cv, section.id, item.id, "down"))

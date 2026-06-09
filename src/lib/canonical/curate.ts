@@ -599,6 +599,65 @@ function clearedDuplicateHint(it: CvItem): CvItem["meta"] {
 }
 
 /**
+ * Clear an item's advisory duplicate hint WITHOUT dismissing the pair — used when
+ * the user keeps THIS entry and hides the OTHER one. The badge lives on this row
+ * but the resolving action (hiding the partner) happens on a different row, so
+ * this clears the badge optimistically. No dismissal key is recorded: the
+ * detector already ignores the now-hidden partner, so the pair won't re-flag, and
+ * "keep both" stays the only path that marks a pair as a non-duplicate (keeping
+ * the research false-positive signal honest). No-op if there's no hint.
+ */
+export function clearDuplicateFlag(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+): CanonicalCv {
+  const item = cv.sections.find((s) => s.id === sectionId)?.items.find((it) => it.id === itemId);
+  if (!item || (item.meta.reviewFlag !== "duplicate" && item.meta.duplicateOf === undefined)) {
+    return cv; // nothing to clear (preserve identity → no needless re-render)
+  }
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => (it.id === itemId ? { ...it, meta: clearedDuplicateHint(it) } : it)),
+  }));
+}
+
+/**
+ * "Keep all" for a duplicate GROUP of N≥2 members — dismiss EVERY pair among the
+ * members (so the detector can never re-form the cluster) and clear all their
+ * hints now. This is the only path that records the group as a non-duplicate
+ * (the research false-positive signal); "keep only one" instead hides the rest,
+ * which the detector already ignores, so it needs no dismissal. Pure + immutable;
+ * a no-op for fewer than 2 resolvable ids. Keyed by stable DOI/PMID anchors so it
+ * survives re-sync id churn, exactly like {@link dismissDuplicate}.
+ */
+export function dismissDuplicateGroup(cv: CanonicalCv, itemIds: readonly string[]): CanonicalCv {
+  const ids = new Set(itemIds);
+  const members: CvItem[] = [];
+  for (const s of cv.sections) for (const it of s.items) if (ids.has(it.id)) members.push(it);
+  if (members.length < 2) return cv;
+
+  const keys = new Set(cv.display.dismissedDuplicates ?? []);
+  for (let i = 0; i < members.length; i++) {
+    for (let j = i + 1; j < members.length; j++) {
+      keys.add(duplicatePairKey(members[i]!, members[j]!));
+    }
+  }
+  return {
+    ...cv,
+    display: { ...cv.display, dismissedDuplicates: [...keys] },
+    sections: cv.sections.map((s) => ({
+      ...s,
+      items: s.items.map((it) =>
+        ids.has(it.id) && (it.meta.reviewFlag === "duplicate" || it.meta.duplicateOf !== undefined)
+          ? { ...it, meta: clearedDuplicateHint(it) }
+          : it,
+      ),
+    })),
+  };
+}
+
+/**
  * Whether the CV already contains a work with the given OpenAlex id or DOI, so
  * the "add by DOI" flow can refuse a duplicate rather than list it twice.
  */

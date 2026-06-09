@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import ItemRow from "@/components/ItemRow";
 import type { CvItem, CvSectionType } from "@/lib/canonical/schema";
 
@@ -184,6 +184,121 @@ describe("ItemRow — ORCID-discovered review candidates", () => {
   it("drops the review badge once the candidate is confirmed (included)", () => {
     renderRow(orcidDoiCandidate({ included: true }));
     expect(document.querySelector(".cv-review-badge")).toBeNull();
+  });
+});
+
+describe("ItemRow — duplicate comparison", () => {
+  const preprint = () =>
+    makeItem({
+      id: "W_pre",
+      source: "openalex",
+      csl: {
+        id: "W_pre",
+        type: "article-journal",
+        title: "My Preprint",
+        author: [{ family: "Smith" }],
+        DOI: "10.1101/x",
+      } as CvItem["csl"],
+      meta: {
+        year: 2023,
+        doi: "10.1101/x",
+        peerReviewed: false,
+        reviewFlag: "duplicate",
+        duplicateOf: {
+          itemId: "W_pub",
+          tier: "strong",
+          relationship: "preprint-of",
+          groupId: "W_pub",
+        },
+      },
+    });
+  const published = makeItem({
+    id: "W_pub",
+    source: "openalex",
+    csl: {
+      id: "W_pub",
+      type: "article-journal",
+      title: "My Published Article",
+      author: [{ family: "Smith" }],
+      DOI: "10.1/x",
+      "container-title": "Nature",
+    } as CvItem["csl"],
+    meta: { year: 2024, doi: "10.1/x", peerReviewed: true, citedByCount: 12 },
+  });
+
+  const dataset = makeItem({
+    id: "D1",
+    source: "datacite",
+    displayText: "My Genome Dataset",
+    meta: { year: 2024, doi: "10.5555/d" },
+  });
+
+  const threeMember = () => [
+    { item: preprint(), sectionTitle: "Preprints" },
+    { item: published, sectionTitle: "Publications" },
+    { item: dataset, sectionTitle: "Datasets & Software" },
+  ];
+
+  function renderGroup(
+    group: Array<{ item: CvItem; sectionTitle: string }>,
+    h: { onKeepOnly?: (id: string) => void; onKeepAll?: () => void } = {},
+  ) {
+    render(
+      <ul>
+        <ItemRow
+          item={preprint()}
+          locale="en-US"
+          sectionType="preprints"
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          duplicateGroup={group}
+          onKeepOnly={h.onKeepOnly ?? (() => {})}
+          onKeepAll={h.onKeepAll ?? noop}
+          onMoveUp={noop}
+          onMoveDown={noop}
+        />
+      </ul>,
+    );
+  }
+
+  it("expands to show the full facts of EVERY member of a 3-item group", () => {
+    renderGroup(threeMember());
+    fireEvent.click(screen.getByRole("button", { name: /possible duplicate/i }));
+    expect(screen.getByText("My Published Article")).toBeTruthy();
+    expect(screen.getByText("My Genome Dataset")).toBeTruthy();
+    expect(screen.getByText(/Nature/)).toBeTruthy();
+    expect(screen.getByText(/12 citations/)).toBeTruthy();
+    expect(screen.getByText(/in Publications/)).toBeTruthy();
+    expect(screen.getByText(/in Datasets/)).toBeTruthy();
+    expect(screen.getByText(/this entry/i)).toBeTruthy(); // the clicked (preprint) row
+    expect(screen.getByText(/one is a preprint of the other/i)).toBeTruthy();
+  });
+
+  it("offers 'Keep this one' on each member and 'Keep all' for 3+", () => {
+    let kept = "";
+    renderGroup(threeMember(), {
+      onKeepOnly: (id) => (kept = id),
+      onKeepAll: () => (kept = "all"),
+    });
+    fireEvent.click(screen.getByRole("button", { name: /possible duplicate/i }));
+    const keepButtons = screen.getAllByRole("button", { name: /keep this one/i });
+    expect(keepButtons).toHaveLength(3);
+    fireEvent.click(keepButtons[1]!); // keep the PUBLISHED entry (group order)
+    expect(kept).toBe("W_pub");
+    fireEvent.click(screen.getByRole("button", { name: /keep all/i }));
+    expect(kept).toBe("all");
+  });
+
+  it("labels the keep-everything action 'Keep both' for a 2-member group", () => {
+    renderGroup([
+      { item: preprint(), sectionTitle: "Preprints" },
+      { item: published, sectionTitle: "Publications" },
+    ]);
+    fireEvent.click(screen.getByRole("button", { name: /possible duplicate/i }));
+    expect(screen.getByRole("button", { name: /keep both/i })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /keep all/i })).toBeNull();
   });
 });
 

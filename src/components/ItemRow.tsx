@@ -31,6 +31,59 @@ const SOURCE_NAMES: Record<string, string> = {
   derived: "derived",
 };
 
+/**
+ * A compact factual summary of ONE entry, shown for both sides of the
+ * duplicate-comparison panel so the user can see the full picture (title,
+ * authors, year, venue, source, peer-review status, citations, DOI) and decide
+ * which to keep. Read-only; works for citation and non-citation items alike.
+ */
+function DupFacts({ item, locale }: { item: CvItem; locale: Locale }) {
+  const ds = dupStrings(locale);
+  const u = ui(locale);
+  const title = item.csl?.title ?? item.displayText ?? u.itemUntitled;
+  const authors = (item.csl?.author ?? [])
+    .map((a) =>
+      typeof a.family === "string" ? a.family : typeof a.literal === "string" ? a.literal : "",
+    )
+    .filter(Boolean);
+  const authorLine = authors.length
+    ? authors.slice(0, 3).join(", ") + (authors.length > 3 ? " et al." : "")
+    : "";
+  const venue =
+    typeof item.csl?.["container-title"] === "string" ? item.csl["container-title"] : "";
+  const sourceLabel =
+    item.source === "manual"
+      ? t(locale, "sourceManual")
+      : (SOURCE_NAMES[item.source] ?? item.source);
+  const doi = item.csl?.DOI ?? item.meta.doi;
+  // Only build a doi.org link from a well-formed DOI — defence-in-depth so a
+  // malformed/untrusted value can never become a non-DOI href.
+  const doiLink = doi && /^10\.\d{4,9}\/\S+$/.test(doi) ? `https://doi.org/${doi}` : undefined;
+  const facts: string[] = [];
+  if (item.meta.year !== undefined) facts.push(String(item.meta.year));
+  if (venue) facts.push(venue);
+  facts.push(sourceLabel);
+  if (item.meta.peerReviewed === true) facts.push(ds.peerReviewedTag);
+  else if (item.meta.peerReviewed === false) facts.push(ds.notPeerReviewedTag);
+  if (typeof item.meta.citedByCount === "number") {
+    facts.push(`${item.meta.citedByCount} ${ds.citesTag}`);
+  }
+  return (
+    <div className="cv-dup-facts">
+      <div className="cv-dup-facts-title">{title}</div>
+      {authorLine ? <div className="cv-dup-facts-authors muted">{authorLine}</div> : null}
+      <div className="cv-dup-facts-meta muted">{facts.join(" · ")}</div>
+      {doiLink ? (
+        <a className="cv-dup-facts-doi" href={doiLink} target="_blank" rel="noopener noreferrer">
+          doi.org/{doi}
+        </a>
+      ) : doi ? (
+        <span className="cv-dup-facts-doi muted">{doi}</span>
+      ) : null}
+    </div>
+  );
+}
+
 interface ItemRowProps {
   item: CvItem;
   locale: Locale;
@@ -52,12 +105,14 @@ interface ItemRowProps {
   onToggleInView?: () => void;
   /** Set/clear the structured reason for a "not mine" assertion. */
   onSetNotMineReason?: (reason: NotMineReason | undefined) => void;
-  /** Title of the representative this item duplicates (resolved by the editor). */
-  duplicateTitle?: string;
-  /** "These are the same" — assert this item is a duplicate (not-mine + reason). */
-  onDupConfirm?: () => void;
-  /** "Keep both" — dismiss the duplicate flag so it isn't re-raised on re-sync. */
-  onDupKeepBoth?: () => void;
+  /** Every member of this item's duplicate GROUP (≥2, including this row's item),
+   *  with full data + localized section name — resolved by the editor and shown
+   *  side-by-side so the user can compare them all and choose which to keep. */
+  duplicateGroup?: ReadonlyArray<{ item: CvItem; sectionTitle: string }>;
+  /** "Keep this one" on a group member → keep it, hide the rest of the group. */
+  onKeepOnly?: (itemId: string) => void;
+  /** "Keep all" — dismiss the whole group so it isn't re-flagged on re-sync. */
+  onKeepAll?: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   /** Drag-and-drop reorder: this row started being dragged. */
@@ -81,9 +136,9 @@ export default function ItemRow({
   shownInView = true,
   onToggleInView,
   onSetNotMineReason,
-  duplicateTitle,
-  onDupConfirm,
-  onDupKeepBoth,
+  duplicateGroup,
+  onKeepOnly,
+  onKeepAll,
   onMoveUp,
   onMoveDown,
   onDragStart,
@@ -256,47 +311,50 @@ export default function ItemRow({
             {sourceBadge}
           </div>
         )}
-        {/* Possible-duplicate explainer + actions. Advisory: NEVER auto-removes.
-            "Keep both" dismisses the flag (survives re-sync); "Hide this one"
-            leaves it off the CV; "These are the same" asserts a duplicate
-            (the disambiguation-correction signal). */}
-        {showDupBadge && dup && dupExpanded ? (
+        {/* Possible-duplicate COMPARISON. Advisory: NEVER auto-removes. Shows the
+            full facts for EVERY member of the group (2, 3, or more); "Keep this
+            one" under any member keeps it and hides the rest (kept on file);
+            "Keep all" dismisses the whole group (survives re-sync). */}
+        {showDupBadge && dup && dupExpanded && duplicateGroup && duplicateGroup.length >= 2 ? (
           <div className="cv-dup-panel" role="group" aria-label={ds.panelAria}>
-            <p className="cv-dup-why">
-              {ds.looksLike} <strong>{duplicateTitle ?? u.itemUntitled}</strong>
-              {" — "}
-              {dupReasonText(locale, dup.tier, dup.relationship)}
-            </p>
-            <div className="cv-dup-actions">
-              {onDupKeepBoth ? (
-                <button
-                  type="button"
-                  className="mine-btn is-restore"
-                  onClick={onDupKeepBoth}
-                  title={ds.keepBothHint}
-                >
-                  {ds.keepBoth}
-                </button>
-              ) : null}
+            <p className="cv-dup-why muted">{dupReasonText(locale, dup.tier, dup.relationship)}</p>
+            <p className="cv-dup-prompt">{ds.comparePrompt}</p>
+            <div className="cv-dup-compare">
+              {duplicateGroup.map((member) => {
+                const isSelf = member.item.id === item.id;
+                return (
+                  <div className={`cv-dup-entry${isSelf ? " is-self" : ""}`} key={member.item.id}>
+                    <DupFacts item={member.item} locale={locale} />
+                    <div className="cv-dup-entry-where muted">
+                      {isSelf ? ds.thisEntryTag : ds.otherIn.replace("{s}", member.sectionTitle)}
+                      {isHidden(member.item) ? (
+                        <span className="cv-dup-hidden-tag"> · {ds.hiddenTag}</span>
+                      ) : null}
+                    </div>
+                    {onKeepOnly ? (
+                      <button
+                        type="button"
+                        className="mine-btn is-restore cv-dup-keep"
+                        onClick={() => onKeepOnly(member.item.id)}
+                        title={ds.keepThisHint}
+                      >
+                        {ds.keepThis}
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+            {onKeepAll ? (
               <button
                 type="button"
-                className="mine-btn"
-                onClick={onToggleIncluded}
-                title={t(locale, "hideHint")}
+                className="mine-btn cv-dup-keepboth"
+                onClick={onKeepAll}
+                title={duplicateGroup.length > 2 ? ds.keepAllHint : ds.keepBothHint}
               >
-                {ds.hideThis}
+                {duplicateGroup.length > 2 ? ds.keepAll : ds.keepBoth}
               </button>
-              {canMarkNotMine && onDupConfirm ? (
-                <button
-                  type="button"
-                  className="mine-btn is-delete"
-                  onClick={onDupConfirm}
-                  title={ds.confirmHint}
-                >
-                  {ds.confirm}
-                </button>
-              ) : null}
-            </div>
+            ) : null}
           </div>
         ) : null}
         {canMarkNotMine && item.notMine && onSetNotMineReason ? (
