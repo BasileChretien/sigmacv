@@ -227,6 +227,11 @@ services:
       # Set SITE_ADDRESS to your domain (e.g. cv.example.org) for automatic TLS,
       # or leave as :80 for local/plain HTTP.
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      # Analytics subdomains — the Caddyfile reads these from the container env.
+      # Default to internal-only ports so the blocks stay dormant until you set
+      # real hostnames in .env (then Caddy auto-issues their TLS certs).
+      PLAUSIBLE_ADDRESS: ${PLAUSIBLE_ADDRESS:-:8081}
+      ADMIN_ADDRESS: ${ADMIN_ADDRESS:-:8082}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
