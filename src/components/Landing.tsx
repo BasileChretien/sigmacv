@@ -7,12 +7,14 @@ import { contactStrings } from "@/lib/i18n/contact";
 import { faqStrings } from "@/lib/i18n/faq";
 import { landingStrings } from "@/lib/i18n/landing";
 import { LANDING_PAGE_IDS, landingPageStrings } from "@/lib/i18n/landingPages";
+import { principlesStrings } from "@/lib/i18n/principles";
 import {
   localeAboutPath,
   localeAccessibilityPath,
   localeContactPath,
   localeFaqPath,
   localeLandingPagePath,
+  localePrinciplesPath,
   localePrivacyPath,
 } from "@/lib/seo";
 import { getSiteLinks } from "@/lib/siteLinks";
@@ -266,6 +268,9 @@ export default function Landing({ locale }: LandingProps) {
         </Link>
         <Link className="footer-link" href={localeFaqPath(loc)}>
           {faqStrings(loc).navLabel}
+        </Link>
+        <Link className="footer-link" href={localePrinciplesPath(loc)}>
+          {principlesStrings(loc).navLabel}
         </Link>
         <Link className="footer-link" href={localeAccessibilityPath(loc)}>
           {accessibilityStrings(loc).navLabel}

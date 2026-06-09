@@ -90,6 +90,41 @@ ecosystem** (ORCID, OpenAlex / OurResearch, ROR, Crossref). Copy/paste and adapt
 >
 > Thanks, [you]
 
+## Barcelona Declaration — supporter request
+
+SigmaCV is a **data/service/infrastructure provider**, so the fitting track is the
+Barcelona Declaration's **"supporter"** status (research-performing/funding orgs
+_sign_; infrastructure/service providers _express support_) — not "signatory".
+Email <contact@barcelona-declaration.org>. Until SigmaCV is listed, public wording
+stays **"aligned with"** (see the README badge + [`OPEN-SCIENCE.md`](OPEN-SCIENCE.md));
+upgrade to "supporter" only once confirmed.
+
+> Subject: Expression of support — SigmaCV (open research information infrastructure)
+>
+> Dear Barcelona Declaration team,
+>
+> I'm writing on behalf of **SigmaCV** (<https://sigmacv.org>), an open-source
+> service that auto-builds academic CVs **entirely from open research information**
+> — OpenAlex, ORCID, Crossref, DataCite and ROR — and publishes every CV as open,
+> machine-readable metadata (schema.org JSON-LD, content-negotiated CSL-JSON/BibTeX,
+> FAIR Signposting). As a **service / infrastructure provider**, we would like to
+> formally **express our support** for the Barcelona Declaration.
+>
+> The Declaration's commitments are already how we operate: openness is the default
+> for the information we produce, we depend on and build with open research
+> infrastructures, authorship is matched by persistent identifier rather than name,
+> and every record carries provenance. Our public stance is documented at
+> <https://sigmacv.org/principles> and in our open-science statement.
+>
+> In the interest of full transparency: SigmaCV is an **independent, single-
+> maintainer open-source project** (Apache-2.0), not (yet) an institution — so I
+> completely understand if supporter listing has criteria we don't meet today.
+> Either way I'd be grateful to know how SigmaCV could be listed among supporters,
+> and happy to provide anything you need.
+>
+> With thanks and in support of open research information,
+> [your name] — creator/maintainer, SigmaCV · ORCID [your ORCID] · <https://sigmacv.org>
+
 ## Links to include
 
 - Site: <https://sigmacv.org>

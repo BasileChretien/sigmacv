@@ -6,6 +6,7 @@ import {
   formatMetricValue,
   formattedMetrics,
   metricsLineText,
+  openAccessShare,
 } from "@/lib/render/metrics";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -123,6 +124,21 @@ describe("formattedMetrics", () => {
       metrics: ["h_index", "fwci_mean"],
     });
     expect(formattedMetrics(cv).map((m) => m.label)).toEqual(["Mean work FWCI", "h-index"]);
+  });
+
+  it("shows the iCite RCR mean with its biomedical caveat + coverage", () => {
+    const cv = makeCv();
+    const withRcr: CanonicalCv = {
+      ...cv,
+      owner: { ...cv.owner, metrics: { rcr_mean: 1.5, rcr_n: 20 } },
+      display: { ...cv.display, showMetrics: true, metrics: ["rcr_mean"] },
+    };
+    const rcr = formattedMetrics(withRcr)[0];
+    expect(rcr?.label).toBe("Mean RCR");
+    expect(rcr?.value).toBe("1.5");
+    expect(rcr?.context).toContain("NIH-funded average");
+    expect(rcr?.context).toContain("biomedical");
+    expect(rcr?.context).toContain("mean over 20 works with RCR");
   });
 
   it("drops a selected metric that has no captured value", () => {
@@ -263,5 +279,57 @@ describe("curatedMetrics (field-normalized measures follow curation)", () => {
     });
     expect(m.fwci_mean).toBe(1.84);
     expect(m.fwci_n).toBe(73);
+  });
+
+  it("recomputes the RCR mean / N over curated works carrying a per-work RCR", () => {
+    const mk = (rcr?: number) => ({
+      csl: {},
+      included: true,
+      notMine: false,
+      meta: { peerReviewed: true, ...(rcr !== undefined ? { rcr } : {}) },
+    });
+    const cv = {
+      display: { countLetters: true },
+      owner: { metrics: {} },
+      sections: [{ type: "publications", items: [mk(2), mk(1), mk(undefined)] }],
+    } as unknown as CanonicalCv;
+    const m = curatedMetrics(cv);
+    expect(m.rcr_mean).toBeCloseTo(1.5, 5); // (2 + 1) / 2 — the work without RCR excluded
+    expect(m.rcr_n).toBe(2);
+  });
+});
+
+describe("openAccessShare (opt-in profile-level OA share)", () => {
+  const mk = (oaIsOpen: boolean | undefined, extra: Record<string, unknown> = {}) => ({
+    csl: {},
+    included: true,
+    notMine: false,
+    meta: { peerReviewed: true, oaIsOpen, ...extra },
+  });
+  const cv = (showOpenAccess: boolean, items: unknown[]): CanonicalCv =>
+    ({
+      display: { showOpenAccess, countLetters: true },
+      owner: { metrics: {} },
+      sections: [{ type: "publications", items }],
+    }) as unknown as CanonicalCv;
+
+  it("returns null when the toggle is off, even with data", () => {
+    expect(openAccessShare(cv(false, [mk(true), mk(false)]))).toBeNull();
+  });
+
+  it("returns null when no countable work carries an OA determination", () => {
+    expect(openAccessShare(cv(true, [mk(undefined), mk(undefined)]))).toBeNull();
+    expect(openAccessShare(cv(true, []))).toBeNull();
+  });
+
+  it("computes the share only over works with a determination (closed ≠ unknown)", () => {
+    // 2 open, 1 closed, 1 undetermined → known = 3, open = 2, pct = 67.
+    const share = openAccessShare(cv(true, [mk(true), mk(false), mk(true), mk(undefined)]));
+    expect(share).toEqual({ open: 2, known: 3, pct: 67 });
+  });
+
+  it("counts only curated, countable works (drops 'not mine')", () => {
+    const share = openAccessShare(cv(true, [mk(true), { ...mk(false), notMine: true }]));
+    expect(share).toEqual({ open: 1, known: 1, pct: 100 });
   });
 });

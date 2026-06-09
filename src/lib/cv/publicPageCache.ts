@@ -19,6 +19,13 @@
 export interface PublicPageEntry {
   html: string;
   indexable: boolean;
+  /**
+   * Precomputed FAIR Signposting `Link` header value for this page. Cached
+   * alongside the HTML because the cache-HIT path has no `CanonicalCv` to rebuild
+   * it from. Optional only so cache-mechanics tests need not synthesize one — the
+   * public route always populates it on the render path.
+   */
+  signposting?: string;
 }
 
 interface CacheRecord extends PublicPageEntry {
@@ -83,7 +90,7 @@ export function getCachedPublicPage(
     cache.delete(slug);
     return null;
   }
-  return { html: rec.html, indexable: rec.indexable };
+  return { html: rec.html, indexable: rec.indexable, signposting: rec.signposting };
 }
 
 /** Cache a rendered page for a slug (only ever called for a published 200). */
@@ -92,7 +99,12 @@ export function setCachedPublicPage(
   entry: PublicPageEntry,
   now: number = Date.now(),
 ): void {
-  cache.set(slug, { html: entry.html, indexable: entry.indexable, expires: now + TTL_MS });
+  cache.set(slug, {
+    html: entry.html,
+    indexable: entry.indexable,
+    signposting: entry.signposting,
+    expires: now + TTL_MS,
+  });
   // Evict oldest insertions until within BOTH the entry-count and total-byte
   // budgets, so large/expensive renders stay cached without letting a few
   // multi-MB CVs pin unbounded heap.

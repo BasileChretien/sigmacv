@@ -7,6 +7,7 @@
 [![Languages: 10](https://img.shields.io/badge/languages-10-teal.svg)](#available-in-10-languages)
 [![Metrics: DORA-aligned](https://img.shields.io/badge/metrics-DORA--aligned-8a4baa.svg)](https://sfdora.org/)
 [![Open science: FAIR](https://img.shields.io/badge/open%20science-FAIR-2ea44f.svg)](docs/OPEN-SCIENCE.md)
+[![Open research info: Barcelona-aligned](https://img.shields.io/badge/open%20research%20info-Barcelona--aligned-2ea44f.svg)](https://barcelona-declaration.org/)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20594123.svg)](https://doi.org/10.5281/zenodo.20594123)
 [![Cite this repository](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)

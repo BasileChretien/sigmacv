@@ -442,6 +442,14 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(renderCvHtml(cvWith({ showOpenAccess: false }))).not.toContain('title="Open access');
     });
 
+    it("renders the profile OA share when showOpenAccess and works carry OA data", () => {
+      expect(renderCvHtml(cvWith({ showOpenAccess: true }))).toContain("100% open access");
+    });
+
+    it("omits the profile OA share when showOpenAccess is off", () => {
+      expect(renderCvHtml(cvWith({ showOpenAccess: false }))).not.toContain("100% open access");
+    });
+
     it("renders the author-role badge when enabled (first, corresponding)", () => {
       const html = renderCvHtml(cvWith({ showAuthorRole: true }));
       expect(html).toContain(">first, corresponding</span>");

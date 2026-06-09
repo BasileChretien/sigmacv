@@ -11,9 +11,11 @@ import {
   localeContactPath,
   localeFaqPath,
   localeHomePath,
+  localePrinciplesPath,
   localePrivacyPath,
   ogAlternateLocales,
   ogLocale,
+  principlesLanguageAlternates,
   privacyLanguageAlternates,
 } from "@/lib/seo";
 
@@ -118,6 +120,22 @@ describe("localeAccessibilityPath / accessibilityLanguageAlternates", () => {
     expect(langs["x-default"]).toBe("/accessibility");
     expect(langs["en-US"]).toBe("/accessibility");
     expect(langs["de-DE"]).toBe("/de/accessibility");
+    expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
+  });
+});
+
+describe("localePrinciplesPath / principlesLanguageAlternates", () => {
+  it("serves /principles for the default and /{slug}/principles for others", () => {
+    expect(localePrinciplesPath("en-US")).toBe("/principles");
+    expect(localePrinciplesPath("fr-FR")).toBe("/fr/principles");
+    expect(localePrinciplesPath("ja-JP")).toBe("/ja/principles");
+    expect(localePrinciplesPath("xx-XX")).toBe("/principles");
+  });
+  it("maps every locale plus x-default", () => {
+    const langs = principlesLanguageAlternates();
+    expect(langs["x-default"]).toBe("/principles");
+    expect(langs["en-US"]).toBe("/principles");
+    expect(langs["de-DE"]).toBe("/de/principles");
     expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
   });
 });

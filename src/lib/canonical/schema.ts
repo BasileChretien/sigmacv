@@ -296,6 +296,12 @@ export const CvItemSchema = z.object({
     topDecile: z.boolean().optional(),
     /** Open-access status from OpenAlex ("gold"/"green"/"hybrid"/"bronze"/"diamond"). */
     oaStatus: z.string().max(200).optional(),
+    /** Whether OpenAlex DETERMINED this work's open-access state at build time:
+     *  true = open, false = closed, undefined = no determination (or a CV synced
+     *  before this field existed). Lets the profile OA share use an honest
+     *  denominator — `oaStatus` alone is OA-only, so "closed" and "unknown" are
+     *  otherwise indistinguishable. */
+    oaIsOpen: z.boolean().optional(),
     /**
      * Reuse license of THIS work (e.g. "cc-by", "cc-by-nc-nd"), taken from the
      * OpenAlex location (`primary_location.license`, else `best_oa_location`).
@@ -304,6 +310,10 @@ export const CvItemSchema = z.object({
     license: z.string().max(200).optional(),
     /** PubMed id (bare numeric, e.g. "12345678"), extracted from OpenAlex `ids.pmid`. */
     pmid: z.string().max(200).optional(),
+    /** NIH iCite Relative Citation Ratio for this work (keyed by PMID), folded in
+     *  by the iCite enrichment. Field-normalized but biomedical-only; stored so the
+     *  RCR mean recomputes over the curated works. */
+    rcr: z.number().optional(),
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
     rorId: z.string().max(2048).optional(),
     /**
@@ -453,6 +463,10 @@ export const OwnerMetricsSchema = z.object({
   fwci_mean: z.number().optional(),
   fwci_n: z.number().int().optional(), // works the FWCI mean was computed over
   top10pct_share: z.number().optional(), // 0..1
+  // Mean NIH iCite Relative Citation Ratio over works with a PMID + RCR.
+  // Field-normalized but BIOMEDICAL-ONLY (PMID-keyed) — surfaced opt-in with a caveat.
+  rcr_mean: z.number().optional(),
+  rcr_n: z.number().int().optional(), // works the RCR mean was computed over
 });
 export type OwnerMetrics = z.infer<typeof OwnerMetricsSchema>;
 
@@ -624,8 +638,10 @@ export const DisplayChoicesSchema = z.object({
   metrics: z.array(z.string().max(64)).max(100).default([]),
   /** Show the publications/citations-per-year mini charts (HTML/PDF). Default off. */
   showCharts: z.boolean().default(false),
-  /** Show an "Open Access" badge on OA publications (HTML/PDF). Default on. */
-  showOpenAccess: z.boolean().default(true),
+  /** Show an "Open Access" badge on OA publications (HTML/PDF). Opt-in, default
+   *  off — consistent with the metrics-default-none, DORA-aligned stance (an OA
+   *  indicator is factual, not evaluative, but stays the user's explicit choice). */
+  showOpenAccess: z.boolean().default(false),
   /** Show the account holder's authorship role (first/last/corresponding). Default off. */
   showAuthorRole: z.boolean().default(false),
   /** Show a per-entry citation count on publications/preprints (HTML/PDF). Default off. */

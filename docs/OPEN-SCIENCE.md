@@ -77,6 +77,36 @@ This is a living document. Items marked _planned_ are tracked in the
   flow back to improve the shared scholarly record (_planned, v2_) — the tool
   gives back to the commons rather than only consuming it.
 
+## Standards & principles we align with
+
+SigmaCV is built on, and helps put into practice, the open-science and
+responsible-assessment frameworks below. A public, plain-language version of this
+list lives at **[/principles](https://sigmacv.org/principles)**.
+
+- **[Barcelona Declaration on Open Research Information](https://barcelona-declaration.org/)
+  (2024)** — SigmaCV runs entirely on open research information (OpenAlex, ORCID,
+  Crossref, DataCite) and publishes every CV as open, machine-readable metadata —
+  the openness the Declaration champions.
+- **[DORA](https://sfdora.org/)** — research is assessed on its own merits:
+  metrics are opt-in and default to none, and field-normalized measures are
+  preferred over journal-based proxies such as the Journal Impact Factor.
+- **[CoARA](https://coara.eu/)** — narrative and contribution-focused CVs are
+  first-class (UKRI R4RI, Royal Society, SNSF, NWO, Wellcome), supporting the move
+  to qualitative, responsible assessment.
+- **[Leiden Manifesto](https://doi.org/10.1038/520429a)** — quantitative
+  indicators stay optional and contextual, supporting expert judgement rather than
+  replacing it.
+- **[Hong Kong Principles](https://doi.org/10.1371/journal.pbio.3000737)** — open
+  access, open data and code, and (where available) retraction status are surfaced,
+  rewarding the transparency and reliability the Principles promote.
+- **[The Metric Tide](https://doi.org/10.13140/RG.2.1.4929.1363)** — when metrics
+  appear they carry their provenance and limitations, reflecting the dimensions of
+  responsible metrics: robustness, humility, transparency, diversity, reflexivity.
+- **[FAIR](https://www.go-fair.org/fair-principles/) &
+  [FAIR4RS](https://doi.org/10.15497/RDA00068)** — the CVs are Findable, Accessible,
+  Interoperable and Reusable (persistent identifiers, schema.org, content-negotiated
+  machine formats), and SigmaCV itself follows FAIR for Research Software.
+
 ## Privacy, consent & research ethics
 
 - Personal data is handled under **GDPR and Japan APPI**: data minimization,

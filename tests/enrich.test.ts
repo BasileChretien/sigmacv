@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   fetchCrossrefGapFields: vi.fn(),
   resolveInstitution: vi.fn(),
+  fetchRcrByPmids: vi.fn(),
 }));
 vi.mock("@/lib/crossref/client", () => ({
   fetchCrossrefGapFields: mocks.fetchCrossrefGapFields,
@@ -10,10 +11,14 @@ vi.mock("@/lib/crossref/client", () => ({
 vi.mock("@/lib/ror/client", () => ({
   resolveInstitution: mocks.resolveInstitution,
 }));
+vi.mock("@/lib/icite/client", () => ({
+  fetchRcrByPmids: mocks.fetchRcrByPmids,
+}));
 
 import {
   canonicalizeInstitutions,
   enrichCvWithCrossref,
+  enrichCvWithIcite,
   mergeCslGaps,
   withRorProvenance,
   type InstitutionBundle,
@@ -27,6 +32,7 @@ import type { OrcidPosition } from "@/lib/orcid/client";
 beforeEach(() => {
   mocks.fetchCrossrefGapFields.mockReset();
   mocks.resolveInstitution.mockReset();
+  mocks.fetchRcrByPmids.mockReset();
 });
 
 // ─── test fixtures ───────────────────────────────────────────────────────────
@@ -169,6 +175,59 @@ describe("enrichCvWithCrossref", () => {
     );
     await enrichCvWithCrossref(makeCv(items), "ci@example.org");
     expect(mocks.fetchCrossrefGapFields).toHaveBeenCalledTimes(50);
+  });
+});
+
+// ─── enrichCvWithIcite (NIH iCite RCR) ────────────────────────────────────────
+
+describe("enrichCvWithIcite", () => {
+  const withPmid = (id: string, pmid?: string, rcr?: number): CvItem => ({
+    ...pub(id),
+    meta: { ...(pmid ? { pmid } : {}), ...(rcr !== undefined ? { rcr } : {}) },
+  });
+
+  it("folds RCR onto works with a PMID, leaving others untouched", async () => {
+    mocks.fetchRcrByPmids.mockResolvedValue(
+      new Map([
+        ["111", 1.5],
+        ["333", 2.0],
+      ]),
+    );
+    const cv = makeCv([
+      withPmid("W1", "111"), // looked up + filled
+      withPmid("W2"), // no PMID → never looked up, never filled
+      withPmid("W3", "333"), // looked up + filled
+      withPmid("W4", "999"), // looked up but iCite has no RCR → stays empty
+      withPmid("W5", "555", 0.5), // already has an RCR → not looked up, kept as-is
+    ]);
+    const out = await enrichCvWithIcite(cv);
+    const items = out.sections[0]!.items;
+    expect(items[0]!.meta.rcr).toBe(1.5);
+    expect(items[1]!.meta.rcr).toBeUndefined();
+    expect(items[2]!.meta.rcr).toBe(2.0);
+    expect(items[3]!.meta.rcr).toBeUndefined(); // PMID not returned by iCite
+    expect(items[4]!.meta.rcr).toBe(0.5); // pre-existing RCR preserved
+    // Only PMIDs lacking an existing RCR are looked up.
+    expect(mocks.fetchRcrByPmids).toHaveBeenCalledWith(["111", "333", "999"]);
+  });
+
+  it("does not look up works that already carry an RCR", async () => {
+    const cv = makeCv([withPmid("W1", "111", 0.9)]);
+    const out = await enrichCvWithIcite(cv);
+    expect(out).toBe(cv);
+    expect(mocks.fetchRcrByPmids).not.toHaveBeenCalled();
+  });
+
+  it("returns the original CV when iCite yields nothing", async () => {
+    mocks.fetchRcrByPmids.mockResolvedValue(new Map());
+    const cv = makeCv([withPmid("W1", "111")]);
+    expect(await enrichCvWithIcite(cv)).toBe(cv);
+  });
+
+  it("returns the original CV (no lookup) when no work has a PMID", async () => {
+    const cv = makeCv([withPmid("W1")]);
+    expect(await enrichCvWithIcite(cv)).toBe(cv);
+    expect(mocks.fetchRcrByPmids).not.toHaveBeenCalled();
   });
 });
 

@@ -1,14 +1,20 @@
 import type { CanonicalCv, OwnerMetrics } from "@/lib/canonical/schema";
-import { metricContext, metricCoverageNote, metricLabel } from "@/lib/i18n/render";
+import {
+  metricContext,
+  metricCoverageNote,
+  metricLabel,
+  metricRcrCoverageNote,
+} from "@/lib/i18n/render";
 import { countableWorks } from "./countable";
 
 /**
  * Metrics adjusted for curation. The FIELD-NORMALIZED measures we DERIVE from
- * per-work data (FWCI mean + its coverage N, top-10% share) are recomputed over
- * the CURATED, non-preprint works, so works marked "not mine" / hidden — and the
- * preprint section — no longer inflate them.
- * They need the per-work `fwci`/`topDecile` captured at build (a CV synced before
- * those fields existed has none → we keep the author-level value until re-sync).
+ * per-work data (FWCI mean + its coverage N, top-10% share, and the NIH iCite RCR
+ * mean + its coverage N) are recomputed over the CURATED, non-preprint works, so
+ * works marked "not mine" / hidden — and the preprint section — no longer inflate
+ * them. They need the per-work `fwci`/`topDecile`/`rcr` captured at build/enrich (a
+ * CV synced before those fields existed has none → we keep the author-level value
+ * until re-sync).
  *
  * OpenAlex's OFFICIAL author numbers (h-index, i10, works/citation counts, 2-yr
  * mean citedness) are LEFT AS-IS: they are OpenAlex's own author-level figures,
@@ -21,6 +27,7 @@ export function curatedMetrics(cv: CanonicalCv): OwnerMetrics {
   const deciles = works
     .map((w) => w.meta.topDecile)
     .filter((x): x is boolean => typeof x === "boolean");
+  const rcrs = works.map((w) => w.meta.rcr).filter((x): x is number => typeof x === "number");
   return {
     ...base,
     ...(fwcis.length > 0
@@ -28,6 +35,9 @@ export function curatedMetrics(cv: CanonicalCv): OwnerMetrics {
       : {}),
     ...(deciles.length > 0
       ? { top10pct_share: deciles.filter(Boolean).length / deciles.length }
+      : {}),
+    ...(rcrs.length > 0
+      ? { rcr_mean: rcrs.reduce((a, b) => a + b, 0) / rcrs.length, rcr_n: rcrs.length }
       : {}),
   };
 }
@@ -40,6 +50,9 @@ export function curatedMetrics(cv: CanonicalCv): OwnerMetrics {
 export const METRIC_DEFS = [
   { key: "2yr_mean_citedness", format: "decimal" },
   { key: "fwci_mean", format: "decimal" },
+  // NIH iCite Relative Citation Ratio — field-normalized but biomedical-only
+  // (PMID-keyed); opt-in with a caveat in its responsible-reading context.
+  { key: "rcr_mean", format: "decimal" },
   // NOTE: a by-year citation percentile ("top 10%") was removed from the
   // selectable catalog — it is NOT field-normalised and reads ~100% for most
   // active researchers (most works globally are barely cited), which looked
@@ -79,8 +92,14 @@ function formatValue(format: string, raw: number, locale: string): string {
  */
 function contextFor(locale: string, key: string, values: OwnerMetrics): string | undefined {
   const base = metricContext(locale, key);
-  if (key !== "fwci_mean") return base;
-  const coverage = metricCoverageNote(locale, values.fwci_n);
+  // Both field-normalized means append their coverage ("mean over N works …") so a
+  // small/skewed sample isn't mistaken for a precise score.
+  const coverage =
+    key === "fwci_mean"
+      ? metricCoverageNote(locale, values.fwci_n)
+      : key === "rcr_mean"
+        ? metricRcrCoverageNote(locale, values.rcr_n)
+        : undefined;
   if (!coverage) return base;
   return base ? `${base} · ${coverage}` : coverage;
 }
@@ -114,6 +133,33 @@ export function formattedMetrics(cv: CanonicalCv): FormattedMetric[] {
       };
     })
     .filter((m): m is FormattedMetric => m !== null);
+}
+
+export interface OpenAccessShare {
+  /** Countable works OpenAlex determined are open access. */
+  open: number;
+  /** Countable works carrying an OA determination (the honest denominator). */
+  known: number;
+  /** Open-access percentage, 0–100, rounded. */
+  pct: number;
+}
+
+/**
+ * Share of the CURATED, countable works that are open access. Computed ONLY over
+ * works whose OA state OpenAlex actually determined (`meta.oaIsOpen` defined), so
+ * "closed" and "not-yet-determined" are never conflated. Mirrors the per-work OA
+ * badge: both are gated on `display.showOpenAccess` (opt-in).
+ *
+ * Returns null when the toggle is off, or when no countable work carries a
+ * determination yet (e.g. a CV synced before `oaIsOpen` existed → re-sync to
+ * populate) — so the caller shows nothing rather than a misleading 0%.
+ */
+export function openAccessShare(cv: CanonicalCv): OpenAccessShare | null {
+  if (!cv.display.showOpenAccess) return null;
+  const known = countableWorks(cv).filter((w) => typeof w.meta.oaIsOpen === "boolean");
+  if (known.length === 0) return null;
+  const open = known.filter((w) => w.meta.oaIsOpen === true).length;
+  return { open, known: known.length, pct: Math.round((open / known.length) * 100) };
 }
 
 /** A " · "-joined plain-text metrics line (empty string if none to show). */

@@ -9,6 +9,7 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   canonicalizeInstitutions,
   enrichCvWithCrossref,
+  enrichCvWithIcite,
   withRorProvenance,
 } from "@/lib/canonical/enrich";
 import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
@@ -278,6 +279,10 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   // Crossref: fill bibliographic gaps (journal, volume/issue, pages) on works
   // that have a DOI but incomplete OpenAlex metadata. Bounded + fails soft.
   cv = await enrichCvWithCrossref(cv, getEnv().OPENALEX_MAILTO);
+
+  // NIH iCite: fold the Relative Citation Ratio onto works with a PMID (opt-in
+  // biomedical field-normalized metric). Bounded + fails soft.
+  cv = await enrichCvWithIcite(cv);
 
   // Upgrade duplicate hints with Crossref's publisher-asserted preprint↔published
   // relationships (the build already ran the identifier + heuristic tiers). The

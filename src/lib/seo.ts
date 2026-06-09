@@ -98,6 +98,20 @@ export function accessibilityLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+/** /principles path for a locale: "/principles" for the default, "/{slug}/principles" otherwise. */
+export function localePrinciplesPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/principles" : `/${LOCALE_SLUGS[loc]}/principles`;
+}
+
+/** hreflang → path map for the /principles page (relative; resolved against metadataBase). */
+export function principlesLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localePrinciplesPath(loc);
+  languages["x-default"] = "/principles";
+  return languages;
+}
+
 /**
  * Path for an SEO landing page in a given locale: "/{segment}" for the default
  * locale, "/{slug}/{segment}" otherwise. `segment` is the bare path id, e.g.

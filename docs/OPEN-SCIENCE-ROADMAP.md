@@ -4,6 +4,10 @@ A sequenced plan for making SigmaCV more **findable, accessible, interoperable,
 and reusable**, and for turning that openness into adoption. Companion to
 [`OPEN-SCIENCE.md`](OPEN-SCIENCE.md).
 
+> **Wave 1 (phases 0–8 below) is complete.** Active work continues in
+> [`OPEN-SCIENCE-ROADMAP-2.md`](OPEN-SCIENCE-ROADMAP-2.md) (wave 2: declarations &
+> registries, RO-Crate, Signposting, snapshot DOIs, OA/retraction surfacing, …).
+
 Status keys: ✅ done · 🔜 in progress · ⬜ planned.
 
 ## Cross-cutting requirements (every code phase)
