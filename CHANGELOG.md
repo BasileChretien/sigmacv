@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CycloneDX SBOM** generated on release (`npm run sbom`) and attached to GitHub
   releases, plus a **Software Heritage** archival badge — software supply-chain
   transparency.
+- **Published canonical JSON Schema** at `/schema/cv/v2.json`, derived from the
+  source-of-truth Zod schema (`npm run gen:schema`), so other tools can validate and
+  adopt the CV format.
 
 ### Changed
 

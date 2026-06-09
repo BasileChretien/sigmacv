@@ -44,8 +44,10 @@ This is a living document. Items marked _planned_ are tracked in the
   OpenAlex IDs, DOIs, ROR for institutions, with CSL-JSON / JSON Résumé /
   funder-CV exports and richer identifier coverage (PMID, Funder Registry,
   CRediT) _planned_.
-- The **canonical CV JSON Schema is published** as a versioned, documented
-  artifact so other tools can adopt it (_planned_).
+- The **canonical CV JSON Schema is published** as a versioned, self-contained
+  artifact at [`/schema/cv/v2.json`](https://sigmacv.org/schema/cv/v2.json) (derived
+  from the source-of-truth Zod schema) so other tools can validate and adopt the
+  format.
 
 ### Reusable
 
