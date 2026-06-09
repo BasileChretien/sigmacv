@@ -52,6 +52,8 @@ export interface RenderStrings {
   roleCorresponding: string;
   /** Prefix of the public-page "Made with SigmaCV" footer; "SigmaCV" follows untranslated. */
   madeWith: string;
+  /** Tooltip/aria for the institution→ROR-record link on a positions/education line. */
+  rorRecordTitle: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -91,6 +93,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Last author",
     roleCorresponding: "Corresponding author",
     madeWith: "Made with",
+    rorRecordTitle: "ROR organization record",
   },
   "zh-CN": {
     chartPublicationsPerYear: "年度发表数",
@@ -128,6 +131,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "末位作者",
     roleCorresponding: "通讯作者",
     madeWith: "制作工具：",
+    rorRecordTitle: "ROR 机构记录",
   },
   "es-ES": {
     chartPublicationsPerYear: "Publicaciones / año",
@@ -167,6 +171,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Último autor",
     roleCorresponding: "Autor de correspondencia",
     madeWith: "Hecho con",
+    rorRecordTitle: "Ficha de la organización en ROR",
   },
   "fr-FR": {
     chartPublicationsPerYear: "Publications / an",
@@ -207,6 +212,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Dernier auteur",
     roleCorresponding: "Auteur correspondant",
     madeWith: "Créé avec",
+    rorRecordTitle: "Fiche de l’organisation dans ROR",
   },
   "de-DE": {
     chartPublicationsPerYear: "Publikationen / Jahr",
@@ -246,6 +252,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Letztautor",
     roleCorresponding: "Korrespondierender Autor",
     madeWith: "Erstellt mit",
+    rorRecordTitle: "ROR-Organisationseintrag",
   },
   "ja-JP": {
     chartPublicationsPerYear: "年別論文数",
@@ -283,6 +290,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "最終著者",
     roleCorresponding: "責任著者",
     madeWith: "作成ツール：",
+    rorRecordTitle: "ROR 機関レコード",
   },
   "pt-BR": {
     chartPublicationsPerYear: "Publicações / ano",
@@ -323,6 +331,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Último autor",
     roleCorresponding: "Autor correspondente",
     madeWith: "Feito com",
+    rorRecordTitle: "Registro da organização no ROR",
   },
   "it-IT": {
     chartPublicationsPerYear: "Pubblicazioni / anno",
@@ -363,6 +372,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Ultimo autore",
     roleCorresponding: "Autore corrispondente",
     madeWith: "Creato con",
+    rorRecordTitle: "Scheda dell’organizzazione su ROR",
   },
   "ko-KR": {
     chartPublicationsPerYear: "연도별 논문 수",
@@ -400,6 +410,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "마지막 저자",
     roleCorresponding: "교신저자",
     madeWith: "제작 도구:",
+    rorRecordTitle: "ROR 기관 레코드",
   },
   "ru-RU": {
     chartPublicationsPerYear: "Публикации / год",
@@ -438,6 +449,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Последний автор",
     roleCorresponding: "Автор для корреспонденции",
     madeWith: "Создано с помощью",
+    rorRecordTitle: "Запись организации в ROR",
   },
 };
 
