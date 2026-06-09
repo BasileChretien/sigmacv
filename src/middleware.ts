@@ -19,10 +19,24 @@ export function middleware(request: NextRequest): NextResponse {
   // base64-ing the 36-char UUID *string* (which only encodes hex ASCII).
   const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
 
+  // Self-hosted analytics (Plausible) lives on a different origin and posts
+  // pageviews there via fetch(), so its origin MUST be in connect-src — otherwise
+  // the hardened `connect-src 'self'` silently blocks every event. Derived from
+  // the configured script URL (build-time-inlined); unset/blank → no addition.
+  let analyticsOrigin = "";
+  try {
+    const analyticsSrc = process.env.NEXT_PUBLIC_PLAUSIBLE_SRC;
+    if (analyticsSrc) analyticsOrigin = new URL(analyticsSrc).origin;
+  } catch {
+    analyticsOrigin = "";
+  }
+
   const scriptSrc = isDev
     ? "'self' 'unsafe-eval' 'unsafe-inline'"
     : `'self' 'nonce-${nonce}' 'strict-dynamic'`;
-  const connectSrc = isDev ? "'self' ws: wss:" : "'self'";
+  const connectSrc = isDev
+    ? "'self' ws: wss:"
+    : `'self'${analyticsOrigin ? ` ${analyticsOrigin}` : ""}`;
 
   const csp = [
     "default-src 'self'",
