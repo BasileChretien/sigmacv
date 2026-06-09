@@ -10,6 +10,7 @@
 [![Open research info: Barcelona-aligned](https://img.shields.io/badge/open%20research%20info-Barcelona--aligned-2ea44f.svg)](https://barcelona-declaration.org/)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20594123.svg)](https://doi.org/10.5281/zenodo.20594123)
+[![Archived: Software Heritage](https://archive.softwareheritage.org/badge/origin/https://github.com/BasileChretien/sigmacv/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/BasileChretien/sigmacv)
 [![Cite this repository](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
 
 Keeping an academic CV up to date is a chore. Every new paper, grant, talk, or

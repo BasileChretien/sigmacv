@@ -1,0 +1,35 @@
+name: Release SBOM
+
+# On each published GitHub release, generate a CycloneDX SBOM and attach it as a
+# release asset — software supply-chain transparency (FAIR4RS / OpenSSF aligned).
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write # upload the SBOM asset onto the release
+
+jobs:
+  sbom:
+    name: CycloneDX SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # postinstall runs `prisma generate`; prisma.config.ts has a placeholder
+      # DATABASE_URL fallback, so this works without a database (same as CI).
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate CycloneDX SBOM
+        run: npm run sbom
+
+      - name: Attach SBOM to the release
+        run: gh release upload "${{ github.event.release.tag_name }}" sbom.cdx.json --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
