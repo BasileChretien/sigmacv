@@ -144,6 +144,30 @@ describe("pendingNotMineAssertions (v2 upstream-push read interface)", () => {
   it("returns nothing when no assertions exist", () => {
     expect(pendingNotMineAssertions(makeCv())).toEqual([]);
   });
+
+  it("excludes a 'not mine' OpenAlex affiliation (a Positions row, not a work)", () => {
+    // An OpenAlex-inferred affiliation shares source "openalex" but is NOT a work
+    // (no CSL, literal "openalex" sourceId). Marking it "not mine" is a valid
+    // local correction, but it must never leak into the works-curation push.
+    const withAffil = buildCanonicalCv({
+      id: "cv_a",
+      resolved: {
+        ...resolved,
+        affiliations: [{ institution: "Nagoya University", startYear: 2019 }],
+      },
+      works,
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const positions = withAffil.sections.find((s) => s.type === "positions");
+    const affil = positions?.items.find((it) => it.source === "openalex");
+    expect(affil).toBeTruthy();
+    const asserted = setItemNotMine(withAffil, positions!.id, affil!.id, true, {
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const pending = pendingNotMineAssertions(asserted);
+    expect(pending.some((p) => p.itemId === affil!.id)).toBe(false);
+    expect(pending.some((p) => p.openAlexWorkId === "openalex")).toBe(false);
+  });
 });
 
 describe("compositionSnapshot", () => {

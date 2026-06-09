@@ -1151,6 +1151,7 @@ export default function CvEditor({
                                 key={item.id}
                                 item={item}
                                 locale={locale}
+                                sectionType={section.type}
                                 isFirst={ii === 0}
                                 isLast={ii === items.length - 1}
                                 onToggleIncluded={() =>

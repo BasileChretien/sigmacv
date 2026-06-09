@@ -22,7 +22,12 @@ export function pendingNotMineAssertions(cv: CanonicalCv): PendingNotMineAsserti
   const out: PendingNotMineAssertion[] = [];
   for (const section of cv.sections) {
     for (const item of section.items) {
-      if (item.notMine && item.source === "openalex") {
+      // Only real WORKS qualify for an upstream works-curation push. An
+      // OpenAlex-inferred AFFILIATION (a Positions row) also has source
+      // "openalex" but carries no CSL and a literal "openalex" sourceId, not a
+      // work URL — marking it "not mine" is a valid local correction but is NOT
+      // a work the push could target, so it must never leak in here.
+      if (item.notMine && item.source === "openalex" && item.csl) {
         out.push({
           itemId: item.id,
           openAlexWorkId: item.sourceId,
