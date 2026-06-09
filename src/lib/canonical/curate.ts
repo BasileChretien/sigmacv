@@ -13,6 +13,7 @@ import {
 } from "./schema";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName } from "@/lib/openalex/toCsl";
+import { duplicatePairKey } from "./duplicates";
 import type { CslItem, CslName } from "@/types/csl";
 
 /**
@@ -538,6 +539,63 @@ export function addStructuredEntry(
  */
 export function addClaimedWork(cv: CanonicalCv, item: CvItem, isPreprint: boolean): CanonicalCv {
   return appendManualItem(cv, isPreprint ? "preprints" : "publications", item);
+}
+
+/**
+ * "Keep both" — dismiss a detected duplicate so the detector never re-flags this
+ * pair (the decision must survive re-sync, unlike the recomputed verdict). It
+ * (1) records the order-independent pair key in `display.dismissedDuplicates`
+ * (keyed by stable DOI/PMID anchors so it survives id churn) and (2) clears the
+ * item's advisory hint now so the badge disappears immediately. Pure + immutable;
+ * a no-op when the item carries no duplicate hint. Locating the representative
+ * spans sections (a duplicate group can cross Publications/Preprints/Datasets).
+ */
+export function dismissDuplicate(cv: CanonicalCv, sectionId: string, itemId: string): CanonicalCv {
+  const section = cv.sections.find((s) => s.id === sectionId);
+  const item = section?.items.find((it) => it.id === itemId);
+  const dup = item?.meta.duplicateOf;
+  if (!item || !dup) return cv;
+
+  let rep: CvItem | undefined;
+  for (const s of cv.sections) {
+    const found = s.items.find((it) => it.id === dup.itemId);
+    if (found) {
+      rep = found;
+      break;
+    }
+  }
+  // The representative should always exist (same build), but stay defensive.
+  /* v8 ignore next -- representative is always present in a freshly-built CV */
+  if (!rep) return cv;
+
+  const key = duplicatePairKey(item, rep);
+  const existing = cv.display.dismissedDuplicates ?? [];
+  const dismissedDuplicates = existing.includes(key) ? existing : [...existing, key];
+
+  return {
+    ...cv,
+    display: { ...cv.display, dismissedDuplicates },
+    sections: cv.sections.map((s) =>
+      s.id === sectionId
+        ? {
+            ...s,
+            items: s.items.map((it) =>
+              it.id === itemId ? { ...it, meta: clearedDuplicateHint(it) } : it,
+            ),
+          }
+        : s,
+    ),
+  };
+}
+
+/** A copy of an item's `meta` with the duplicate hint removed (other review
+ *  flags preserved; a bare "duplicate" flag cleared). */
+function clearedDuplicateHint(it: CvItem): CvItem["meta"] {
+  const { duplicateOf: _drop, ...rest } = it.meta;
+  return {
+    ...rest,
+    reviewFlag: it.meta.reviewFlag === "duplicate" ? undefined : it.meta.reviewFlag,
+  };
 }
 
 /**

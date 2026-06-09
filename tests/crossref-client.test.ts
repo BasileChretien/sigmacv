@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchCrossrefGapFields } from "@/lib/crossref/client";
+import { fetchCrossrefGapFields, fetchCrossrefRelations } from "@/lib/crossref/client";
 
 function res(body: string, init?: { status?: number; headers?: Record<string, string> }): Response {
   const status = init?.status ?? 200;
@@ -122,5 +122,83 @@ describe("fetchCrossrefGapFields", () => {
       vi.fn(async () => res("<<not json>>")),
     );
     expect(await fetchCrossrefGapFields("10.1000/x", MAILTO)).toBeNull();
+  });
+});
+
+describe("fetchCrossrefRelations", () => {
+  it("maps preprint/version relations to normalized targets", async () => {
+    const body = JSON.stringify({
+      message: {
+        relation: {
+          "has-preprint": [{ "id-type": "doi", id: "10.1101/Pre.123" }],
+          "is-version-of": [{ "id-type": "doi", id: "https://doi.org/10.5555/VOR" }],
+          "is-supplement-to": [{ "id-type": "doi", id: "10.9/ignored" }],
+        },
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(body)),
+    );
+    const out = await fetchCrossrefRelations("10.1234/work", MAILTO);
+    expect(out).toEqual([
+      { target: "10.1101/pre.123", kind: "preprint-pair" },
+      { target: "10.5555/vor", kind: "version" },
+    ]);
+  });
+
+  it("returns [] for an invalid DOI without fetching", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await fetchCrossrefRelations("nope", MAILTO)).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns [] when there is no relation block, a non-ok response, or a throw", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(JSON.stringify({ message: {} }))),
+    );
+    expect(await fetchCrossrefRelations("10.1234/x", MAILTO)).toEqual([]);
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res("", { status: 500 })),
+    );
+    expect(await fetchCrossrefRelations("10.1234/x", MAILTO)).toEqual([]);
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("down");
+      }),
+    );
+    expect(await fetchCrossrefRelations("10.1234/x", MAILTO)).toEqual([]);
+  });
+
+  it("rejects an oversized body", async () => {
+    const big = `{"message":{"relation":{}},"pad":"${"x".repeat(200_001)}"}`;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(big)),
+    );
+    expect(await fetchCrossrefRelations("10.1234/x", MAILTO)).toEqual([]);
+  });
+
+  it("dedupes a target that appears under two relation keys", async () => {
+    const body = JSON.stringify({
+      message: {
+        relation: {
+          "is-preprint-of": [{ "id-type": "doi", id: "10.1/same" }],
+          "has-version": [{ "id-type": "doi", id: "10.1/same" }],
+        },
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(body)),
+    );
+    const out = await fetchCrossrefRelations("10.1234/x", MAILTO);
+    expect(out).toEqual([{ target: "10.1/same", kind: "preprint-pair" }]);
   });
 });

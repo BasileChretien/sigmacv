@@ -301,6 +301,7 @@ describe("researchExportGate (hard, off by default)", () => {
       "curation_correction",
       "disambiguation_assertion",
       "composition_snapshot",
+      "duplicate_dismissal",
     ]);
   });
 });

@@ -1211,6 +1211,49 @@ textarea.prose-body {
   border-color: #f0dcae;
   cursor: help;
 }
+/* The "possible duplicate" badge is a button (toggles the explainer), so it
+   gets a pointer cursor rather than the `help` cursor used by the static ones. */
+button.cv-review-badge.is-duplicate {
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+}
+button.cv-review-badge.is-duplicate[aria-expanded="true"] {
+  border-color: var(--warn-text);
+}
+/* Inline explainer + actions, shown when the duplicate badge is expanded. */
+.cv-dup-panel {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid #f0dcae;
+  background: var(--warn-soft);
+  border-radius: var(--radius-sm);
+}
+.cv-dup-why {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.cv-dup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+/* Per-section duplicate indicator in the section header (jumps to the list). */
+.section-dup-flag {
+  margin-left: var(--space-2);
+  padding: 0.1rem 0.45rem;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.4;
+  border-radius: var(--radius-full);
+  border: 1px solid #f0dcae;
+  color: var(--warn-text);
+  background: var(--warn-soft);
+  cursor: pointer;
+  white-space: nowrap;
+}
 .cv-source-badge {
   /* grey-700 (not grey-600) so this small 0.625rem text clears WCAG 1.4.3
      (4.5:1) on the grey-100 chip background. */
