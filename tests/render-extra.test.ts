@@ -77,6 +77,7 @@ describe("render format catalog", () => {
       "bibtex",
       "csljson",
       "jsonresume",
+      "ro-crate",
       "biosketch",
       "erc",
       "msca",

@@ -27,6 +27,8 @@ export async function getRenderer(format: RenderFormat): Promise<Renderer> {
       return (await import("./csljson")).csljsonRenderer;
     case "jsonresume":
       return (await import("./jsonresume")).jsonresumeRenderer;
+    case "ro-crate":
+      return (await import("./rocrate")).rocrateRenderer;
     case "biosketch":
       return (await import("./biosketch")).biosketchRenderer;
     case "erc":

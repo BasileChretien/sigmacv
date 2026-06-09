@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Published canonical JSON Schema** at `/schema/cv/v2.json`, derived from the
   source-of-truth Zod schema (`npm run gen:schema`), so other tools can validate and
   adopt the CV format.
+- **RO-Crate export** — download a CV as a Research Object Crate (`.crate.zip`): an
+  `ro-crate-metadata.json` (JSON-LD) describing the CV, its author (by ORCID) and
+  license, bundled with the canonical JSON, CSL-JSON, BibTeX and HTML.
 
 ### Changed
 

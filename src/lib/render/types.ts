@@ -18,6 +18,7 @@ export const RENDER_FORMATS = [
   "bibtex",
   "csljson",
   "jsonresume",
+  "ro-crate",
   "biosketch",
   "erc",
   "msca",

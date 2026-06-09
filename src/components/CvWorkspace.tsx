@@ -27,6 +27,7 @@ type ExportFormat =
   | "bibtex"
   | "csljson"
   | "jsonresume"
+  | "ro-crate"
   | "json"
   | "biosketch"
   | "erc"
@@ -252,6 +253,7 @@ export default function CvWorkspace({
               <option value="bibtex">{ui(uiLocale).exportBibtex}</option>
               <option value="csljson">{ui(uiLocale).exportCslJson}</option>
               <option value="jsonresume">{ui(uiLocale).exportJsonResume}</option>
+              <option value="ro-crate">{ui(uiLocale).exportRoCrate}</option>
               <option value="json">{ui(uiLocale).exportJson}</option>
             </optgroup>
             <optgroup label={ui(uiLocale).exportGroupGrantCv}>
