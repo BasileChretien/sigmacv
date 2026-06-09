@@ -87,7 +87,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable}>
       <body>
         {PLAUSIBLE_DOMAIN && PLAUSIBLE_SRC && (
-          <Script defer data-domain={PLAUSIBLE_DOMAIN} src={PLAUSIBLE_SRC} />
+          <>
+            <Script defer data-domain={PLAUSIBLE_DOMAIN} src={PLAUSIBLE_SRC} />
+            {/* Queue stub so window.plausible() custom events fire even before
+                the async script loads. The `||` guard never clobbers the real
+                function, so load order is irrelevant. */}
+            <Script id="plausible-init" strategy="afterInteractive">
+              {`window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}`}
+            </Script>
+          </>
         )}
         {children}
       </body>

@@ -167,9 +167,19 @@ Add a second factor at the edge for the Metabase block: uncomment `basic_auth`
 in `Caddyfile`, set `ADMIN_USER` + `ADMIN_PASSWORD_HASH` (generate the hash with
 `docker run --rm caddy:2-alpine caddy hash-password`), redeploy.
 
-## Not yet wired (Phase 3)
+## Feature-usage custom events
 
-Feature-usage **custom events** (which export format / template / source) are not
-emitted yet. They'll be added as cookieless Plausible custom events
-(`window.plausible('export', {props:{format}})`) carrying only format/template
-ids — never user or content data, and never on the `ResearchEvent` path.
+Cookieless Plausible custom events fire from the editor via the
+`trackEvent()` helper (`src/lib/analytics/track.ts`). They carry only neutral
+product signals — never personal data, CV content, or a mine/not-mine correction
+(those stay on the consent + IRB-gated `ResearchEvent` path):
+
+| Event      | Props                                   | Fired when                       |
+| ---------- | --------------------------------------- | -------------------------------- |
+| `Export`   | `format` (pdf/docx/latex/markdown/html) | a CV is exported                 |
+| `Template` | `template` (classic/modern/…)           | a different template is selected |
+| `Publish`  | `indexable` (bool)                      | a public page is published       |
+
+They appear under **Goals / Custom events** in the Plausible dashboard once you
+add them there (Site settings → Goals → Custom event). No extra deploy needed —
+the `window.plausible()` queue stub is already in the root layout.
