@@ -87,11 +87,11 @@ function withRorLink(html: string, item: CvItem, locale: string): string {
  * templates (renderCvHtml) and the animated web export.
  */
 export function buildRenderedSections(cv: CanonicalCv): RenderedSection[] {
-  // The institution→ROR link is a Sidebar-template touch on Positions/Education
-  // lines only (keeps ATS plain and doesn't clutter the other templates).
-  const sidebarRor = cv.display.template === "sidebar";
   return prepareSections(cv, "html").map(({ section, items }) => {
-    const linkRor = sidebarRor && (section.type === "positions" || section.type === "education");
+    // Link the institution name to its ROR record on every Positions/Education
+    // line, across all HTML templates. (The rirekisho template builds its own
+    // 学歴・職歴 table from plain text, so it naturally opts out.)
+    const linkRor = section.type === "positions" || section.type === "education";
     return {
       section,
       items: items.map(({ item, entry }) => {

@@ -230,9 +230,9 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-badge-role { color: var(--cv-muted); background: #f2f3f5; border: 1px solid var(--cv-rule); text-transform: lowercase; }
   .cv-badge-cites { color: #1e40af; background: #dbeafe; border: 1px solid #93c5fd; font-variant-numeric: tabular-nums; }
 
-  /* Institution → ROR record link on a Positions/Education line (Sidebar
-     template). A quiet dotted underline marks the name as linked on screen; print
-     drops the dotting so the line reads clean (the PDF anchor still resolves). */
+  /* Institution → ROR record link on a Positions/Education line (all templates).
+     A quiet dotted underline marks the name as linked on screen; print drops the
+     dotting so the line reads clean (the PDF anchor still resolves). */
   .cv-ror-link { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--cv-rule-strong); }
   .cv-ror-link:hover { color: var(--cv-accent); border-bottom-color: var(--cv-accent); }
 

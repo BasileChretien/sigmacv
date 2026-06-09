@@ -62,9 +62,19 @@ describe("sidebar institution → ROR link", () => {
     expect(html).toContain(">Université de Caen Normandie</a>");
   });
 
-  it("does NOT link on non-sidebar templates (e.g. classic, ats)", () => {
-    expect(sectionHtml(makeCv({ template: "classic" }), "positions")).not.toContain("cv-ror-link");
-    expect(sectionHtml(makeCv({ template: "ats" }), "positions")).not.toContain("cv-ror-link");
+  it("links on every standard template (classic, modern, sidebar, ats)", () => {
+    for (const template of ["classic", "modern", "sidebar", "ats"] as const) {
+      const html = sectionHtml(makeCv({ template }), "positions");
+      expect(html.includes('<a class="cv-ror-link" href="https://ror.org/04chrp450"')).toBe(true);
+    }
+  });
+
+  it("rirekisho builds its own history table from plain text (no inline ROR link)", () => {
+    const html = renderCvHtml(makeCv({ template: "rirekisho" }));
+    expect(html).toContain("Nagoya University"); // present in the 学歴・職歴 table…
+    // …but not wrapped in a ROR <a> (the bare ".cv-ror-link" CSS rule is always
+    // in <style>, so assert the absence of the actual link element).
+    expect(html).not.toContain('<a class="cv-ror-link"');
   });
 
   it("adds no link when the entry has no ROR id", () => {
