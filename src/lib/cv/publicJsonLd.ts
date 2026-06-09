@@ -1,5 +1,10 @@
 import { licenseInfo } from "@/lib/canonical/license";
-import type { CanonicalCv, CvItem, CvSection } from "@/lib/canonical/schema";
+import {
+  itemDisplayText,
+  type CanonicalCv,
+  type CvItem,
+  type CvSection,
+} from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { safeHref } from "@/lib/render/escape";
@@ -47,7 +52,7 @@ function primaryPosition(cv: CanonicalCv): CvItem | null {
  */
 function affiliationOrg(cv: CanonicalCv): Record<string, unknown> | undefined {
   const pos = primaryPosition(cv);
-  const name = pos?.displayText?.trim();
+  const name = pos ? itemDisplayText(pos)?.trim() : undefined;
   if (!name) return undefined;
   const org: Record<string, unknown> = { "@type": "Organization", name };
   const rorId = pos?.meta.rorId?.trim();

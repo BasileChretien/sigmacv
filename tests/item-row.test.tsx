@@ -394,3 +394,81 @@ describe("ItemRow — Positions section", () => {
     expect(screen.queryByRole("button", { name: /not mine/i })).toBeNull();
   });
 });
+
+describe("ItemRow — editable source-derived titles", () => {
+  function renderEditable(
+    item: CvItem,
+    sectionType: CvSectionType,
+    onSetTextOverride: (text: string) => void = noop,
+  ) {
+    render(
+      <ul>
+        <ItemRow
+          item={item}
+          locale="en-US"
+          sectionType={sectionType}
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          onSetTextOverride={onSetTextOverride}
+          onMoveUp={noop}
+          onMoveDown={noop}
+        />
+      </ul>,
+    );
+  }
+
+  it("renders an editable input for an ORCID position and reports edits", () => {
+    let got = "";
+    renderEditable(
+      makeItem({ id: "position:orcid:1", source: "orcid", displayText: "Pharmacist, CHU de Caen" }),
+      "positions",
+      (t) => (got = t),
+    );
+    const input = screen.getByLabelText(/entry text/i) as HTMLInputElement;
+    expect(input.value).toBe("Pharmacist, CHU de Caen");
+    fireEvent.change(input, { target: { value: "Hospital Pharmacist, CHU de Caen" } });
+    expect(got).toBe("Hospital Pharmacist, CHU de Caen");
+  });
+
+  it("shows the override value + a revert control that clears it", () => {
+    let got = "untouched";
+    renderEditable(
+      makeItem({
+        id: "education:orcid:1",
+        source: "orcid",
+        displayText: "PharmD, Université de Caen",
+        displayTextOverride: "PharmD (Hons), Caen",
+      }),
+      "education",
+      (t) => (got = t),
+    );
+    const input = screen.getByLabelText(/entry text/i) as HTMLInputElement;
+    expect(input.value).toBe("PharmD (Hons), Caen"); // the override, not the source
+    fireEvent.click(screen.getByRole("button", { name: /revert/i }));
+    expect(got).toBe(""); // "" → setItemTextOverride reverts to the live source text
+  });
+
+  it("hides the revert control until an override exists", () => {
+    renderEditable(
+      makeItem({ id: "position:orcid:2", source: "orcid", displayText: "Role, Org" }),
+      "positions",
+    );
+    expect(screen.getByLabelText(/entry text/i)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /revert/i })).toBeNull();
+  });
+
+  it("does NOT offer the editable input for a citation row (static title kept)", () => {
+    renderEditable(
+      makeItem({
+        id: "w1",
+        source: "openalex",
+        csl: { id: "w1", type: "article-journal", title: "A paper" } as CvItem["csl"],
+      }),
+      "publications",
+    );
+    expect(screen.queryByLabelText(/entry text/i)).toBeNull();
+    expect(document.querySelector(".cv-item-title")).toBeTruthy();
+  });
+});
