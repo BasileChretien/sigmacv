@@ -11,14 +11,17 @@ function res(body: unknown, init?: { status?: number }): Response {
   } as unknown as Response;
 }
 
+// Mirrors ROR's **v2** affiliation-match item: the name lives in a typed
+// `names[]` array (not a `name` string) and the country under `locations[]`.
+// Building the v1 shape here is exactly what masked the production bug.
 function item(name: string, opts: { id?: string; score?: number; chosen?: boolean; cc?: string }) {
   return {
     score: opts.score,
     chosen: opts.chosen,
     organization: {
       id: opts.id ?? `https://ror.org/${name.replace(/\s+/g, "")}`,
-      name,
-      country: opts.cc ? { country_code: opts.cc } : undefined,
+      names: [{ types: ["ror_display", "label"], value: name, lang: "en" }],
+      locations: opts.cc ? [{ geonames_details: { country_code: opts.cc } }] : undefined,
     },
   };
 }
@@ -52,27 +55,29 @@ describe("resolveInstitution", () => {
     });
   });
 
-  it("falls back to the highest score above threshold when nothing is chosen", async () => {
+  it("links NOTHING when no candidate is chosen, even with high scores (ambiguous)", async () => {
+    // Mirrors "CHU de Caen": several near-tied, NON-chosen hits for the wrong
+    // cities. A score threshold here picks a wrong institution, so we require
+    // ROR's own `chosen` flag and leave the position unlinked when it's absent.
     vi.stubGlobal(
       "fetch",
       vi.fn(async () =>
         res({
           items: [
-            item("Low Match", { score: 0.5 }),
-            item("Best Match", { score: 0.88 }),
-            item("Mid Match", { score: 0.82 }),
+            item("Centre Hospitalier Universitaire de Nice", { score: 0.86, chosen: false }),
+            item("Centre Hospitalier Universitaire de Rennes", { score: 0.86, chosen: false }),
+            item("Centre Hospitalier Universitaire de Nantes", { score: 0.86, chosen: false }),
           ],
         }),
       ),
     );
-    const org = await resolveInstitution("best match institute");
-    expect(org?.name).toBe("Best Match");
+    expect(await resolveInstitution("CHU de Caen")).toBeNull();
   });
 
-  it("returns null when no match clears the score threshold", async () => {
+  it("returns null when there are no matches at all", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => res({ items: [item("Weak", { score: 0.4 })] })),
+      vi.fn(async () => res({ items: [item("Weak", { score: 0.4, chosen: false })] })),
     );
     expect(await resolveInstitution("something obscure")).toBeNull();
   });
@@ -119,11 +124,99 @@ describe("resolveInstitution", () => {
     expect(await resolveInstitution("offline org")).toBeNull();
   });
 
-  it("ignores a match that lacks an id or name", async () => {
+  it("ignores a match that lacks an id (has a v2 name but no id)", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => res({ items: [{ chosen: true, organization: { name: "No Id" } }] })),
+      vi.fn(async () =>
+        res({
+          items: [
+            { chosen: true, organization: { names: [{ types: ["ror_display"], value: "No Id" }] } },
+          ],
+        }),
+      ),
     );
     expect(await resolveInstitution("no id org")).toBeNull();
+  });
+
+  it("ignores a match that lacks any name (has an id but no names[])", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        res({ items: [{ chosen: true, organization: { id: "https://ror.org/x" } }] }),
+      ),
+    );
+    expect(await resolveInstitution("no name org")).toBeNull();
+  });
+
+  // REGRESSION (prod bug): ROR moved to the v2 schema — name in `names[]`
+  // (tagged "ror_display"), country under `locations[]`. The client used to read
+  // the v1 `organization.name`/`country`, which were undefined, so it discarded
+  // EVERY match and no position was ever ROR-linked. This pins the real v2 shape.
+  it("parses the real ROR v2 response (names[] ror_display + locations[])", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        res({
+          items: [
+            {
+              score: 1.0,
+              chosen: true,
+              organization: {
+                id: "https://ror.org/04chrp450",
+                names: [
+                  { lang: null, types: ["alias"], value: "Nagoya Daigaku" },
+                  { lang: "en", types: ["ror_display", "label"], value: "Nagoya University" },
+                  { lang: "ja", types: ["label"], value: "名古屋大学" },
+                ],
+                locations: [{ geonames_details: { country_code: "JP" } }],
+              },
+            },
+          ],
+        }),
+      ),
+    );
+    expect(await resolveInstitution("Nagoya Univ.")).toEqual({
+      id: "https://ror.org/04chrp450",
+      name: "Nagoya University", // ror_display chosen over the alias / ja label
+      countryCode: "JP",
+    });
+  });
+
+  it("falls back through the v2 name types (label, then any value)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        res({
+          items: [
+            {
+              chosen: true,
+              organization: {
+                id: "https://ror.org/lbl",
+                names: [{ types: ["label"], value: "Labelled U" }], // no ror_display
+              },
+            },
+          ],
+        }),
+      ),
+    );
+    expect((await resolveInstitution("labelled"))?.name).toBe("Labelled U");
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        res({
+          items: [
+            {
+              chosen: true,
+              organization: {
+                id: "https://ror.org/val",
+                names: [{ types: [], value: "Bare Value U" }], // neither ror_display nor label
+              },
+            },
+          ],
+        }),
+      ),
+    );
+    expect((await resolveInstitution("bare value"))?.name).toBe("Bare Value U");
   });
 });
