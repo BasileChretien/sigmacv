@@ -15,10 +15,10 @@ import { logger } from "@/lib/log";
  * process to keep a re-sync from re-querying the same handful of institutions.
  */
 
-const ROR_API = "https://api.ror.org/organizations";
-// ROR scores its matches 0..1; only trust a confident hit when there's no
-// explicitly "chosen" match. Below this we keep the user's original string.
-const SCORE_THRESHOLD = 0.8;
+// ROR's **v2** API. The legacy v1 endpoint now also serves v2-shaped
+// organizations (names in a `names[]` array, country under `locations[]`), and
+// v1 is being retired — so we target v2 explicitly and parse that schema.
+const ROR_API = "https://api.ror.org/v2/organizations";
 
 export interface RorOrg {
   /** ROR id, e.g. "https://ror.org/04xxxxxx". */
@@ -29,14 +29,40 @@ export interface RorOrg {
   countryCode?: string;
 }
 
+/** One name entry in the ROR **v2** schema: a value tagged with one or more
+ *  types ("ror_display", "label", "alias") and an optional language. */
+interface RorV2Name {
+  value?: string;
+  types?: string[];
+  lang?: string | null;
+}
+
 interface RorAffiliationItem {
   score?: number;
   chosen?: boolean;
+  /**
+   * ROR's **v2** organization object. The display name moved from a single
+   * `name` string (v1) into a typed `names[]` array, and the country moved under
+   * `locations[].geonames_details` — reading the old v1 shape silently dropped
+   * EVERY match (`organization.name` was always undefined). See {@link rorDisplayName}.
+   */
   organization?: {
     id?: string;
-    name?: string;
-    country?: { country_code?: string };
+    names?: RorV2Name[];
+    locations?: Array<{ geonames_details?: { country_code?: string } }>;
   };
+}
+
+/**
+ * The display name from a ROR v2 `names[]` array. ROR tags exactly one entry
+ * `ror_display`; fall back to a `label`, then to any value. Returns undefined
+ * when there is no usable name (such a match is ignored by the caller).
+ */
+function rorDisplayName(names: RorV2Name[] | undefined): string | undefined {
+  if (!Array.isArray(names)) return undefined;
+  const byType = (type: string) =>
+    names.find((n) => Array.isArray(n.types) && n.types.includes(type) && n.value)?.value;
+  return byType("ror_display") ?? byType("label") ?? names.find((n) => n.value)?.value;
 }
 
 const cache = new Map<string, RorOrg | null>();
@@ -45,13 +71,18 @@ function cacheKey(name: string): string {
   return name.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Trust ONLY ROR's own confident single match (`chosen: true`).
+ *
+ * ROR's affiliation matcher sets `chosen` when one organization is the clear
+ * best match. When it is ABSENT the candidates are ambiguous — typically several
+ * near-tied hits (e.g. "CHU de Caen" returns Nice / Rennes / Nantes all at 0.86,
+ * none of them Caen). A self-rolled score threshold over those manufactures a
+ * confident-looking WRONG link, which is worse than no link — so we link nothing
+ * unless ROR chose one. The user keeps their original institution string.
+ */
 function pickMatch(items: RorAffiliationItem[]): RorAffiliationItem | undefined {
-  const chosen = items.find((i) => i.chosen === true);
-  if (chosen) return chosen;
-  const best = items
-    .filter((i) => typeof i.score === "number" && i.score >= SCORE_THRESHOLD)
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
-  return best;
+  return items.find((i) => i.chosen === true);
 }
 
 /**
@@ -83,9 +114,10 @@ export async function resolveInstitution(name: string): Promise<RorOrg | null> {
     const data = (await res.json()) as { items?: RorAffiliationItem[] };
     const match = pickMatch(Array.isArray(data.items) ? data.items : []);
     const org = match?.organization;
+    const name = rorDisplayName(org?.names);
     const result: RorOrg | null =
-      org?.id && org.name
-        ? { id: org.id, name: org.name, countryCode: org.country?.country_code }
+      org?.id && name
+        ? { id: org.id, name, countryCode: org.locations?.[0]?.geonames_details?.country_code }
         : null;
     cache.set(key, result);
     return result;
