@@ -1,0 +1,162 @@
+# Analytics (cookieless, first-party, self-hosted)
+
+How SigmaCV measures usage **without** breaking its own privacy promise. Two
+self-hosted tools, both in `docker-compose.yml` behind an `analytics` profile:
+
+| Tool          | Answers                                                                                         | Data source                                  | Reached at              |
+| ------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------- | ----------------------- |
+| **Plausible** | live visitors, daily traffic, referrers, countries, devices, top pages                          | a cookieless tag on the site                 | `plausible.sigmacv.org` |
+| **Metabase**  | signups/day, provider mix, publish rate, sync health, **aggregate** affiliation distribution, … | a **read-only** role on the SigmaCV Postgres | `admin.sigmacv.org`     |
+
+**Scope is aggregate-only.** Never build per-identified-person profiles here;
+anything tied to the research questions (mine/not-mine corrections) stays inside
+the consent + IRB-gated `ResearchEvent` pipeline (`src/lib/research/`), not this.
+
+**Privacy posture.** Everything is cookieless and first-party — no third parties,
+no cross-site tracking. This keeps the privacy notice's "no cookie banner needed"
+claim accurate (see `src/lib/i18n/privacy.ts`). Plausible's script sets no cookies
+and stores no persistent identifier.
+
+---
+
+## What runs where
+
+All five analytics containers are **internal-only** (`expose`, never `ports`) and
+gated behind the Compose `analytics` profile, so a plain `docker compose up -d`
+does **not** start them and behaves exactly as before.
+
+- `plausible` (app) + `plausible_db` (its config Postgres) + `plausible_events_db`
+  (ClickHouse event store, tuned for <16 GB RAM — fine on the 8 GB VPS).
+- `metabase` (BI) + `metabase_db` (its own config Postgres — holds dashboards,
+  NOT analytics data).
+
+Caddy fronts two extra site blocks: `plausible.sigmacv.org` (public — the tracking
+script + event endpoint must be reachable; the dashboard is guarded by Plausible's
+own login) and `admin.sigmacv.org` (Metabase, guarded by Metabase's own login).
+
+---
+
+## One-time setup
+
+### 1. DNS
+
+Add two A-records pointing at the VPS (same IP as `sigmacv.org`):
+
+```
+plausible.sigmacv.org   A   <vps-ip>
+admin.sigmacv.org       A   <vps-ip>
+```
+
+### 2. Read-only DB role (for Metabase)
+
+Metabase reads the SigmaCV DB through a role that physically cannot write. Run
+once, inside the running Postgres container, with a strong password
+(`openssl rand -base64 24`):
+
+```bash
+docker compose exec postgres psql -U sigmacv -d sigmacv
+```
+
+```sql
+CREATE ROLE metabase_ro LOGIN PASSWORD 'CHANGE_ME';
+GRANT CONNECT ON DATABASE sigmacv TO metabase_ro;
+GRANT USAGE ON SCHEMA public TO metabase_ro;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO metabase_ro;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO metabase_ro;
+```
+
+Verify it's read-only:
+
+```sql
+SET ROLE metabase_ro;
+SELECT count(*) FROM "User";          -- works
+INSERT INTO "User"(id) VALUES ('x');  -- ERROR: permission denied  ✅
+RESET ROLE;
+```
+
+> Run the `ALTER DEFAULT PRIVILEGES` line as the table owner (`sigmacv`) so
+> future tables (e.g. a later `UsageEvent`) are auto-granted SELECT.
+
+### 3. Secrets + env
+
+Fill the **Analytics** block in `.env` (template: `.env.production.example`).
+Generate: `PLAUSIBLE_SECRET_KEY_BASE` = `openssl rand -base64 64`;
+`METABASE_DB_PASSWORD` / `PLAUSIBLE_DB_PASSWORD` = `openssl rand -base64 24`;
+optional `PLAUSIBLE_TOTP_VAULT_KEY` = `openssl rand -base64 32`.
+Set `NEXT_PUBLIC_PLAUSIBLE_DOMAIN=sigmacv.org` and
+`NEXT_PUBLIC_PLAUSIBLE_SRC=https://plausible.sigmacv.org/js/script.js`.
+
+> Only set the two `NEXT_PUBLIC_PLAUSIBLE_*` vars when you actually run the
+> analytics profile — otherwise the site ships a tracking tag pointing at a host
+> that isn't running.
+
+### 4. Deploy with the analytics profile
+
+```bash
+git pull
+docker compose --profile analytics up -d --build
+```
+
+The `--build` rebuilds the app so the (build-time-inlined) `NEXT_PUBLIC_PLAUSIBLE_*`
+tag is baked in. Omit `--profile analytics` on future deploys to leave analytics
+untouched; include it whenever you want the analytics containers reconciled.
+
+### 5. First-run app setup
+
+- **Plausible** → visit `https://plausible.sigmacv.org`, register your admin
+  account, then add a site with domain **`sigmacv.org`**. Now set
+  `PLAUSIBLE_DISABLE_REGISTRATION=true` in `.env` and
+  `docker compose --profile analytics up -d` again so no stranger can sign up.
+- **Metabase** → visit `https://admin.sigmacv.org`, create the admin user, then
+  **Add a database** → PostgreSQL:
+  - Host `postgres`, Port `5432`, Database `sigmacv`
+  - User `metabase_ro`, Password = the role password from step 2.
+
+---
+
+## Starter Metabase questions (SQL, read-only)
+
+```sql
+-- Signups per day
+SELECT date_trunc('day', "createdAt") AS day, count(*)
+FROM "User" GROUP BY 1 ORDER BY 1;
+
+-- Sign-in provider mix
+SELECT provider, count(DISTINCT "userId")
+FROM "Account" GROUP BY 1 ORDER BY 2 DESC;
+
+-- Publish + indexable rates
+SELECT count(*) FILTER (WHERE published) AS published,
+       count(*) FILTER (WHERE "publicIndexable") AS indexable,
+       count(*) AS total
+FROM "Cv";
+
+-- Sync freshness (CVs synced in last 7 days)
+SELECT count(*) FILTER (WHERE "lastSyncedAt" > now() - interval '7 days') AS fresh,
+       count(*) AS total
+FROM "Cv";
+
+-- AGGREGATE affiliation distribution (top owner affiliations across all CVs).
+-- Aggregate only — never expose per-person rows on a dashboard.
+SELECT aff ->> 'name' AS affiliation, count(*) AS cvs
+FROM "Cv", LATERAL jsonb_array_elements(document -> 'owner' -> 'affiliations') AS aff
+GROUP BY 1 ORDER BY 2 DESC LIMIT 25;
+```
+
+> The affiliation JSON path mirrors `CanonicalCv`; adjust if the schema differs.
+> Confirm the exact path against `src/lib/canonical/schema.ts` before relying on it.
+
+---
+
+## Optional hardening
+
+Add a second factor at the edge for the Metabase block: uncomment `basic_auth`
+in `Caddyfile`, set `ADMIN_USER` + `ADMIN_PASSWORD_HASH` (generate the hash with
+`docker run --rm caddy:2-alpine caddy hash-password`), redeploy.
+
+## Not yet wired (Phase 3)
+
+Feature-usage **custom events** (which export format / template / source) are not
+emitted yet. They'll be added as cookieless Plausible custom events
+(`window.plausible('export', {props:{format}})`) carrying only format/template
+ids — never user or content data, and never on the `ResearchEvent` path.
