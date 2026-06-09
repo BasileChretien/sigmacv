@@ -20,6 +20,7 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "sbom": "npx --yes @cyclonedx/cyclonedx-npm@4 --output-format JSON --output-file sbom.cdx.json --omit dev --mc-type application",
+    "gen:schema": "tsx scripts/gen-cv-schema.ts",
     "fetch-csl": "node scripts/fetch-csl.mjs",
     "resync": "node scripts/resync.mjs",
     "research:export": "dotenv -e .env -- tsx scripts/export-research-data.ts",
@@ -79,7 +80,8 @@
     "prisma": "^7.8.0",
     "tsx": "^4.22.4",
     "typescript": "^5.7.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.8",
+    "zod-to-json-schema": "^3.25.2"
   },
   "engines": {
     "node": ">=20.19.0"

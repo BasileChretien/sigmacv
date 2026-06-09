@@ -116,6 +116,8 @@ npm test               # vitest run — full unit/integration suite (~800 tests)
 npm run coverage       # vitest run --coverage — ENFORCES the gate (see below)
 npm run e2e            # Playwright E2E (needs e2e DB; e2e:install first)
 npm run fetch-csl      # vendor the CSL styles + en-US locale into citeproc assets
+npm run gen:schema     # regenerate public/schema/cv/v2.json from the Zod canonical schema
+npm run sbom           # write a CycloneDX SBOM (sbom.cdx.json); release.yml attaches it to GitHub releases
 ```
 
 Run a single test file / case:
@@ -127,6 +129,12 @@ npx vitest tests/curate.test.ts                       # watch one file
 ```
 
 **Verify loop after any `src/lib` change:** `npm run typecheck` then `npm run coverage`. The coverage gate (configured in `vitest.config.ts`, scoped to `src/lib/**`) fails the run below **stmts 98 / branches 87 / funcs 99 / lines 99**. The codebase convention for genuinely unreachable defensive branches is an inline `/* v8 ignore next N -- reason */` comment (grep for examples). One-off QA artifacts (throwaway `.preview/` files, `tests/_*_gen.test.ts`, `scripts/_*.mjs`) must be removed before committing.
+
+**After changing the canonical schema (`src/lib/canonical/schema.ts`):** run `npm run gen:schema` and commit the regenerated **`public/schema/cv/v2.json`** — the published JSON Schema (served at `/schema/cv/v2.json`, derived from the Zod schema). `tests/cv-json-schema.test.ts` fails if the committed file drifts. (Same spirit as the `db:push` gotcha: a generated artifact that must be re-synced.)
+
+**Changelog & releases:** record notable user-facing changes in `CHANGELOG.md` (Keep a Changelog; the `[Unreleased]` section). Each published GitHub release auto-attaches a CycloneDX SBOM (`.github/workflows/release.yml`).
+
+**Open-science / FAIR work** is tracked in [`docs/OPEN-SCIENCE-ROADMAP-2.md`](docs/OPEN-SCIENCE-ROADMAP-2.md) (wave 2, in progress) and stated in [`docs/OPEN-SCIENCE.md`](docs/OPEN-SCIENCE.md).
 
 ## Where the code lives (`src/`)
 
