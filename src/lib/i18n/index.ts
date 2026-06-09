@@ -487,6 +487,10 @@ const EN = {
   reviewBadge: "⚠ review",
   reviewHint:
     "This record lists a different ORCID for the matching author — check that it’s really yours.",
+  reviewHintOrcidDoi:
+    "Listed in your ORCID record but not attributed to you by OpenAlex — review it: “Show” to add it to your CV, or mark it “not mine”.",
+  reviewHintNameMatched:
+    "Matched to you by name and organization, not a verified identifier — review it: “Show” it if it’s yours, otherwise leave it hidden.",
   hideHint: "Keep on file but leave it off this CV",
   notMineHint: "This work is wrongly attributed to me (corrects the record)",
   reasonPrompt: "Why? (optional)",
@@ -593,6 +597,10 @@ const ZH: Record<ChromeKey, string> = {
   notMineBadge: "不是我的",
   reviewBadge: "⚠ 待核查",
   reviewHint: "此记录中匹配的作者登记了不同的 ORCID——请确认确实是您本人。",
+  reviewHintOrcidDoi:
+    "此论文在您的 ORCID 记录中，但 OpenAlex 未将其归到您名下——请核查：点击“显示”加入简历，或标记为“非本人”。",
+  reviewHintNameMatched:
+    "通过姓名和机构匹配到您名下（非经验证的标识符）——请核查：若确为您本人，点击“显示”，否则保持隐藏。",
   hideHint: "保留存档，但不显示在此简历上",
   notMineHint: "此成果被错误地归到我名下（用于更正记录）",
   reasonPrompt: "原因？（可选）",
@@ -693,6 +701,10 @@ const ES: Record<ChromeKey, string> = {
   reviewBadge: "⚠ revisar",
   reviewHint:
     "Este registro indica un ORCID distinto para el autor coincidente: comprueba que realmente es tuyo.",
+  reviewHintOrcidDoi:
+    "Aparece en tu registro de ORCID pero OpenAlex no te la atribuyó — revísala: «Mostrar» para añadirla a tu CV, o márcala como «no es mía».",
+  reviewHintNameMatched:
+    "Coincide contigo por nombre y organización, no por un identificador verificado — revísalo: «Mostrar» si es tuyo; si no, déjalo oculto.",
   hideHint: "Mantener archivado pero no mostrar en este CV",
   notMineHint: "Este trabajo se me atribuye por error (corrige el registro)",
   reasonPrompt: "¿Por qué? (opcional)",
@@ -795,6 +807,10 @@ const FR: Record<ChromeKey, string> = {
   reviewBadge: "⚠ à vérifier",
   reviewHint:
     "Cet enregistrement indique un ORCID différent pour l’auteur correspondant — vérifiez qu’il s’agit bien de vous.",
+  reviewHintOrcidDoi:
+    "Présente dans votre dossier ORCID mais non attribuée à vous par OpenAlex — à vérifier : « Afficher » pour l’ajouter à votre CV, ou marquez « pas la mienne ».",
+  reviewHintNameMatched:
+    "Associé à vous par nom et organisation, sans identifiant vérifié — à vérifier : « Afficher » s’il est de vous, sinon laissez-le masqué.",
   hideHint: "Conserver mais ne pas afficher sur ce CV",
   notMineHint: "Ce travail m’est attribué à tort (corrige la notice)",
   reasonPrompt: "Pourquoi ? (facultatif)",
@@ -898,6 +914,10 @@ const DE: Record<ChromeKey, string> = {
   reviewBadge: "⚠ prüfen",
   reviewHint:
     "Dieser Eintrag nennt eine andere ORCID für den übereinstimmenden Autor – prüfen Sie, ob er wirklich von Ihnen ist.",
+  reviewHintOrcidDoi:
+    "In Ihrem ORCID-Datensatz vorhanden, aber von OpenAlex nicht Ihnen zugeordnet – bitte prüfen: „Einblenden“, um sie zum Lebenslauf hinzuzufügen, oder als „nicht von mir“ markieren.",
+  reviewHintNameMatched:
+    "Über Name und Organisation zugeordnet, nicht über eine verifizierte Kennung – bitte prüfen: „Einblenden“, wenn er von Ihnen ist, sonst ausgeblendet lassen.",
   hideHint: "Behalten, aber nicht in diesem Lebenslauf anzeigen",
   notMineHint: "Diese Arbeit wird mir fälschlich zugeschrieben (korrigiert den Eintrag)",
   reasonPrompt: "Warum? (optional)",
@@ -1002,6 +1022,10 @@ const JA: Record<ChromeKey, string> = {
   reviewBadge: "⚠ 要確認",
   reviewHint:
     "この記録では一致した著者に別の ORCID が登録されています。本当にあなたのものか確認してください。",
+  reviewHintOrcidDoi:
+    "あなたの ORCID 記録にありますが、OpenAlex があなたの業績として紐づけていません。確認してください：「表示」で CV に追加するか、「自分のものではない」にしてください。",
+  reviewHintNameMatched:
+    "氏名と所属で照合されています（検証済みの識別子ではありません）。確認してください：あなたのものなら「表示」、そうでなければ非表示のままにしてください。",
   hideHint: "保持したままこの CV には表示しない",
   notMineHint: "この業績は誤って自分に帰属されています（記録を修正します）",
   reasonPrompt: "理由は？（任意）",
@@ -1104,6 +1128,10 @@ const PT: Record<ChromeKey, string> = {
   reviewBadge: "⚠ revisar",
   reviewHint:
     "Este registro indica um ORCID diferente para o autor correspondente — confirme que é realmente seu.",
+  reviewHintOrcidDoi:
+    "Consta no seu registro ORCID, mas o OpenAlex não a atribuiu a você — revise: «Mostrar» para adicioná-la ao currículo ou marque como «não é minha».",
+  reviewHintNameMatched:
+    "Associado a você por nome e organização, não por um identificador verificado — revise: «Mostrar» se for seu; caso contrário, deixe oculto.",
   hideHint: "Manter arquivado, mas não exibir neste currículo",
   notMineHint: "Este trabalho é atribuído a mim por engano (corrige o registro)",
   reasonPrompt: "Por quê? (opcional)",
@@ -1206,6 +1234,10 @@ const IT: Record<ChromeKey, string> = {
   reviewBadge: "⚠ da verificare",
   reviewHint:
     "Questo record indica un ORCID diverso per l’autore corrispondente: verifica che sia davvero tuo.",
+  reviewHintOrcidDoi:
+    "Presente nel tuo profilo ORCID ma non attribuita a te da OpenAlex — da verificare: «Mostra» per aggiungerla al CV oppure segnala «non è mia».",
+  reviewHintNameMatched:
+    "Abbinato a te per nome e organizzazione, non tramite un identificatore verificato — da verificare: «Mostra» se è tuo, altrimenti lascialo nascosto.",
   hideHint: "Conserva in archivio ma non mostrare in questo CV",
   notMineHint: "Questo lavoro mi è attribuito per errore (corregge il record)",
   reasonPrompt: "Perché? (facoltativo)",
@@ -1308,6 +1340,10 @@ const KO: Record<ChromeKey, string> = {
   reviewBadge: "⚠ 확인 필요",
   reviewHint:
     "이 기록은 일치하는 저자에 대해 다른 ORCID를 표시합니다. 정말 본인의 것인지 확인하세요.",
+  reviewHintOrcidDoi:
+    "귀하의 ORCID 기록에 있지만 OpenAlex가 귀하의 업적으로 연결하지 않았습니다. 확인하세요: ‘표시’로 CV에 추가하거나 ‘내 것이 아님’으로 표시하세요.",
+  reviewHintNameMatched:
+    "이름과 소속으로 매칭되었습니다(검증된 식별자가 아님). 확인하세요: 본인의 것이면 ‘표시’, 아니면 숨김 상태로 두세요.",
   hideHint: "보관하되 이 CV에는 표시하지 않음",
   notMineHint: "이 업적은 잘못 제 것으로 표시되었습니다 (기록을 정정합니다)",
   reasonPrompt: "이유는? (선택)",
@@ -1410,6 +1446,10 @@ const RU: Record<ChromeKey, string> = {
   reviewBadge: "⚠ проверить",
   reviewHint:
     "В этой записи для совпавшего автора указан другой ORCID — убедитесь, что это действительно вы.",
+  reviewHintOrcidDoi:
+    "Есть в вашей записи ORCID, но OpenAlex не привязал её к вам — проверьте: «Показать», чтобы добавить в резюме, или отметьте «не моя».",
+  reviewHintNameMatched:
+    "Сопоставлено с вами по имени и организации, без проверенного идентификатора — проверьте: «Показать», если это ваше, иначе оставьте скрытым.",
   hideHint: "Оставить в архиве, но не показывать в этом резюме",
   notMineHint: "Эта работа ошибочно приписана мне (исправляет запись)",
   reasonPrompt: "Почему? (необязательно)",
