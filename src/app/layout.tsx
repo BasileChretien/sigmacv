@@ -1,9 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { SITE_URL } from "@/lib/siteUrl";
 import { landingStrings } from "@/lib/i18n/landing";
 import { homeLanguageAlternates, ogAlternateLocales, ogLocale } from "@/lib/seo";
+
+// Cookieless, first-party analytics (self-hosted Plausible). Rendered only when
+// BOTH are configured at build time (blank on local/dev → no script, no calls).
+// DOMAIN is the data-domain (e.g. sigmacv.org); SRC is the script URL served by
+// the Plausible container (e.g. https://plausible.sigmacv.org/js/script.js).
+const PLAUSIBLE_DOMAIN = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
+const PLAUSIBLE_SRC = process.env.NEXT_PUBLIC_PLAUSIBLE_SRC;
 
 const inter = Inter({
   subsets: ["latin"],
@@ -77,7 +85,20 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body>{children}</body>
+      <body>
+        {PLAUSIBLE_DOMAIN && PLAUSIBLE_SRC && (
+          <>
+            <Script defer data-domain={PLAUSIBLE_DOMAIN} src={PLAUSIBLE_SRC} />
+            {/* Queue stub so window.plausible() custom events fire even before
+                the async script loads. The `||` guard never clobbers the real
+                function, so load order is irrelevant. */}
+            <Script id="plausible-init" strategy="afterInteractive">
+              {`window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}`}
+            </Script>
+          </>
+        )}
+        {children}
+      </body>
     </html>
   );
 }

@@ -6,6 +6,7 @@ import { updateDisplay } from "@/lib/canonical/curate";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
+import { trackEvent } from "@/lib/analytics/track";
 
 const UI_LOCALE_KEY = "sigmacv:uiLocale";
 import AccountControls from "./AccountControls";
@@ -184,6 +185,8 @@ export default function CvWorkspace({
       const ok = await handleSave();
       if (!ok) return;
     }
+    // Cookieless product signal: which export format. No personal/CV data.
+    trackEvent("Export", { format: exportFormat });
     window.location.href = `/api/cv/export/${exportFormat}`;
   }, [dirty, handleSave, exportFormat]);
 

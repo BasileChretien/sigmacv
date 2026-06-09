@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
+import { trackEvent } from "@/lib/analytics/track";
 
 interface PublicContactFlags {
   email: boolean;
@@ -56,6 +57,10 @@ export default function PublishControls({
         setPublished(data.published);
         setSlug(data.publicSlug);
         setIndexable(data.indexable);
+        if (data.published) {
+          // Cookieless product signal: a public page was published. No identifiers.
+          trackEvent("Publish", { indexable: data.indexable });
+        }
       }
     } finally {
       setBusy(false);

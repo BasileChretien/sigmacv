@@ -1,0 +1,3 @@
+# Container-mounted configs are read on Linux (ClickHouse) — force LF regardless
+# of a contributor's core.autocrlf so the files are byte-stable across OSes.
+clickhouse/*.xml text eol=lf
