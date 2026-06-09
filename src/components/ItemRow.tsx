@@ -185,7 +185,7 @@ export default function ItemRow({
                 candidate. Badge shows only while still pending — confirm with
                 "Show" (which includes it) or mark "not mine". */}
             {item.meta.reviewFlag === "orcid-doi" && !item.included && !item.notMine ? (
-              <span className="cv-review-badge" title={t(locale, "reviewHint")}>
+              <span className="cv-review-badge" title={t(locale, "reviewHintOrcidDoi")}>
                 {t(locale, "reviewBadge")}
               </span>
             ) : null}
@@ -201,7 +201,7 @@ export default function ItemRow({
             {/* Name+org-matched registry candidate (grants / trials): flag for
                 review. Hidden by default until the user confirms it's theirs. */}
             {item.meta.reviewFlag === "name-matched" ? (
-              <span className="cv-review-badge" title={t(locale, "reviewHint")}>
+              <span className="cv-review-badge" title={t(locale, "reviewHintNameMatched")}>
                 {t(locale, "reviewBadge")}
               </span>
             ) : null}
