@@ -19,6 +19,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
+    "sbom": "npx --yes @cyclonedx/cyclonedx-npm@4 --output-format JSON --output-file sbom.cdx.json --omit dev --mc-type application",
     "fetch-csl": "node scripts/fetch-csl.mjs",
     "resync": "node scripts/resync.mjs",
     "research:export": "dotenv -e .env -- tsx scripts/export-research-data.ts",
