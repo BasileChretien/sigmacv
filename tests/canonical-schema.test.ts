@@ -158,6 +158,32 @@ describe("parseCanonicalCv", () => {
     expect(safeParseCanonicalCv(bad).success).toBe(false);
   });
 
+  it("degrades an unknown meta.reviewFlag to undefined instead of failing the read", () => {
+    const withBogusFlag = {
+      ...validCv,
+      sections: [
+        {
+          ...validCv.sections[0],
+          items: [
+            {
+              id: "W1",
+              source: "openalex",
+              sourceId: "https://openalex.org/W1",
+              included: true,
+              order: 0,
+              authoredBySelf: false,
+              selfNameVariants: [],
+              meta: { reviewFlag: "some-future-or-crafted-flag" },
+            },
+          ],
+        },
+      ],
+    };
+    const parsed = safeParseCanonicalCv(withBogusFlag);
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.sections[0]!.items[0]!.meta.reviewFlag).toBeUndefined();
+  });
+
   it("rejects an oversized item id (field-length cap, defence against payload abuse)", () => {
     const bad = {
       ...validCv,

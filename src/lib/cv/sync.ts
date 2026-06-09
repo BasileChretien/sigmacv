@@ -15,6 +15,7 @@ import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib
 import { fetchJournalNamesByIssn, fetchWorksByAuthorIds } from "@/lib/openalex/client";
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
 import { normalizeOrcid } from "@/lib/openalex/types";
+import { discoverOrcidOnlyWorks } from "@/lib/cv/orcidDiscovery";
 import {
   fetchOrcidDistinctions,
   fetchOrcidEducation,
@@ -173,16 +174,29 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
       ].filter((o): o is string => Boolean(o)),
     ),
   ];
-  const [ctgovTrials, ctisTrials, ictrpTrials, ukriGrants, nihGrants, nsfGrants, patents] =
-    await Promise.all([
-      fetchClinicalTrials(displayName, matchOrgs),
-      fetchCtisTrials(displayName, matchOrgs),
-      fetchIctrpTrials(displayName, matchOrgs),
-      fetchUkriGrants(displayName, matchOrgs),
-      fetchNihGrants(displayName, matchOrgs),
-      fetchNsfGrants(displayName, matchOrgs),
-      fetchEpoPatents(displayName, matchOrgs),
-    ]);
+  const [
+    ctgovTrials,
+    ctisTrials,
+    ictrpTrials,
+    ukriGrants,
+    nihGrants,
+    nsfGrants,
+    patents,
+    orcidDiscoveredWorks,
+  ] = await Promise.all([
+    fetchClinicalTrials(displayName, matchOrgs),
+    fetchCtisTrials(displayName, matchOrgs),
+    fetchIctrpTrials(displayName, matchOrgs),
+    fetchUkriGrants(displayName, matchOrgs),
+    fetchNihGrants(displayName, matchOrgs),
+    fetchNsfGrants(displayName, matchOrgs),
+    fetchEpoPatents(displayName, matchOrgs),
+    // Works the user lists in ORCID that OpenAlex didn't attribute to their
+    // author profile — surfaced as hidden review candidates. Only genuinely-new
+    // DOIs are fetched (already-known ones are carried over by the build), so a
+    // steady-state re-sync issues no extra OpenAlex calls.
+    discoverOrcidOnlyWorks({ orcid, openAlexWorks: works, previous }),
+  ]);
 
   // Peer reviews carry the journal ISSN but not its name (ORCID records the
   // publisher/Publons org). Resolve ISSNs → journal names so the section reads
@@ -222,6 +236,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
           displayName: fallbackName ?? "",
         },
     works,
+    orcidDiscoveredWorks,
     now,
     previous,
     editorialRoles,

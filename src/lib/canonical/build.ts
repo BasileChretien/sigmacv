@@ -7,10 +7,12 @@ import {
   type CanonicalCv,
   type CvItem,
   type CvSection,
+  type ReviewFlag,
 } from "./schema";
 import { computeDerivedMetrics, workTopDecile } from "@/lib/openalex/deriveMetrics";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName, workToCsl } from "@/lib/openalex/toCsl";
+import type { CslItem } from "@/types/csl";
 import {
   normalizeOrcid,
   shortId,
@@ -35,6 +37,14 @@ export interface BuildArgs {
   id: string;
   resolved: ResolvedAuthor;
   works: OpenAlexWork[];
+  /**
+   * Works the user lists in ORCID that OpenAlex did NOT attribute to their author
+   * profile (resolved back through OpenAlex by DOI — see cv/orcidDiscovery). Added
+   * to Publications/Preprints as REVIEW CANDIDATES: hidden by default with
+   * `meta.reviewFlag = "orcid-doi"`, never auto-included. Superseded automatically
+   * once OpenAlex attributes the work (it then arrives in `works`).
+   */
+  orcidDiscoveredWorks?: OpenAlexWork[];
   /** ISO timestamp; caller supplies for determinism/testing. */
   now: string;
   /** Previous canonical object, to preserve curation + display on re-sync. */
@@ -228,12 +238,30 @@ function previousManualItems(
 }
 
 /**
- * User-added publication/preprint items the fresh pull didn't return — manual
- * structured entries AND DOI-claimed works (`meta.claimed`). They must survive a
- * re-sync: `mergeSection` only preserves a section's chrome (title/visibility/
- * order), not items, so without this they would silently vanish. De-duped against
- * the freshly-fetched set by id AND DOI, so once OpenAlex finally attributes a
- * claimed work, the properly-attributed fetched copy supersedes the claim.
+ * Whether a previous publication/preprint item is USER-OWNED state that the fresh
+ * OpenAlex pull won't reproduce and so must be carried across a re-sync:
+ *  - manual structured entries (`source === "manual"`);
+ *  - DOI-claimed works (`meta.claimed`);
+ *  - ORCID-discovered review candidates (`meta.reviewFlag === "orcid-doi"`) —
+ *    persisted so a transient ORCID/OpenAlex hiccup never drops a candidate the
+ *    user already reviewed/confirmed (they are re-discovered only when genuinely
+ *    new; see cv/orcidDiscovery). This DELIBERATELY includes ones marked
+ *    "not mine": dropping a rejected candidate would let the discovery diff (which
+ *    excludes only DOIs already in the CV) re-surface it as a fresh candidate and
+ *    lose the disambiguation signal — so we keep it (hidden) to honour
+ *    "not mine hides, never deletes". Bounded by the user's finite ORCID record.
+ */
+function isCarriableUserItem(it: CvItem): boolean {
+  return it.source === "manual" || it.meta.claimed === true || it.meta.reviewFlag === "orcid-doi";
+}
+
+/**
+ * User-owned publication/preprint items the fresh pull didn't return (see
+ * {@link isCarriableUserItem}). They must survive a re-sync: `mergeSection` only
+ * preserves a section's chrome (title/visibility/order), not items, so without
+ * this they would silently vanish. De-duped against the freshly-fetched set by id
+ * AND DOI, so once OpenAlex finally attributes a claimed/discovered work, the
+ * properly-attributed fetched copy supersedes it.
  */
 function carryOverUserItems(
   fetched: CvItem[],
@@ -244,12 +272,12 @@ function carryOverUserItems(
 ): CvItem[] {
   const prevSection = previous?.sections.find((s) => s.type === sectionType);
   if (!prevSection) return fetched;
-  // Supersede a carried claim/manual entry when OpenAlex now returns the same
-  // work in ANY fetched section (by id OR DOI) — not just this one — so a
-  // claimed preprint that becomes a published article isn't listed in both.
+  // Supersede a carried entry when OpenAlex now returns the same work in ANY
+  // fetched section (by id OR DOI) — not just this one — so a claimed/discovered
+  // preprint that becomes a published article isn't listed in both.
   const carried = prevSection.items.filter(
     (it) =>
-      (it.source === "manual" || it.meta.claimed === true) &&
+      isCarriableUserItem(it) &&
       !fetchedIds.has(it.id) &&
       !(it.csl?.DOI && fetchedDois.has(it.csl.DOI.toLowerCase())),
   );
@@ -894,7 +922,7 @@ export function isPeerReviewed(work: OpenAlexWork): boolean {
 export function reviewFlagFor(
   selfAuth: OpenAlexAuthorship | undefined,
   ownerOrcid: string,
-): string | undefined {
+): ReviewFlag | undefined {
   if (!selfAuth || !ownerOrcid) return undefined;
   const authOrcid = normalizeOrcid(selfAuth.author?.orcid);
   return authOrcid && authOrcid !== ownerOrcid ? "orcid-conflict" : undefined;
@@ -999,6 +1027,88 @@ function byRecency(a: OpenAlexWork, b: OpenAlexWork): number {
   return (a.title ?? "").localeCompare(b.title ?? "");
 }
 
+interface WorkItemOptions {
+  /** Pre-computed CSL (callers already need `csl.id`/`csl.DOI`). */
+  csl: CslItem;
+  /** Prior curation for this work (preserves included / "not mine" / order). */
+  prev?: CvItem;
+  /** Order to assign when there is no prior curation. */
+  order: number;
+  /** `included` when there is no prior curation (review candidates start hidden). */
+  defaultIncluded: boolean;
+  /**
+   * Forced `meta.reviewFlag` (review candidates). When omitted the orcid-conflict
+   * heuristic applies (an own work whose authorship lists a different ORCID).
+   */
+  reviewFlagOverride?: ReviewFlag;
+}
+
+/**
+ * Build a publication/preprint CvItem from one OpenAlex work. The metadata —
+ * year, citations, FWCI, author position, peer-reviewed status — is entirely
+ * source-driven (un-paddable). Shared by the primary author-id pull and the
+ * ORCID-discovered review candidates so the two can never drift apart.
+ */
+function buildWorkCvItem(
+  work: OpenAlexWork,
+  matcher: ReturnType<typeof makeSelfMatcher>,
+  ownerOrcid: string,
+  now: string,
+  opts: WorkItemOptions,
+): CvItem {
+  const { matches, basisFor } = matcher;
+  const { csl, prev, order, defaultIncluded, reviewFlagOverride } = opts;
+  const selfIndex = (work.authorships ?? []).findIndex(matches);
+  const selfAuth = selfIndex >= 0 ? work.authorships![selfIndex] : undefined;
+  const authoredBySelf = Boolean(selfAuth);
+  return {
+    id: csl.id,
+    source: "openalex",
+    sourceId: work.id,
+    csl,
+    // Keep the user's earlier display + disambiguation decisions on re-sync, so a
+    // re-pull never resurfaces a hidden or asserted-not-mine work.
+    included: prev?.included ?? defaultIncluded,
+    notMine: prev?.notMine ?? false,
+    notMineAssertedAt: prev?.notMineAssertedAt,
+    notMineReason: prev?.notMineReason,
+    order: prev ? prev.order : order,
+    authoredBySelf,
+    selfNameVariants: authoredBySelf ? selfNameVariants(work, matches) : [],
+    meta: {
+      year: work.publication_year ?? undefined,
+      type: work.type ?? undefined,
+      doi: csl.DOI,
+      citedByCount: work.cited_by_count,
+      // Per-work field-normalized data, stored so the FWCI mean + top-10% share
+      // recompute over the CURATED works (excluding "not mine"/hidden).
+      fwci: typeof work.fwci === "number" ? work.fwci : undefined,
+      topDecile: workTopDecile(work),
+      oaStatus:
+        work.open_access?.is_oa && work.open_access.oa_status
+          ? work.open_access.oa_status
+          : undefined,
+      // Reuse license + PubMed id (FAIR / open-science surfacing).
+      license: workLicense(work),
+      pmid: workPmid(work),
+      // Per-item freshness: this work came from a live OpenAlex fetch.
+      lastVerifiedAt: now,
+      authorRole: authorRoleLabel(selfAuth),
+      authorCount: work.authorships?.length,
+      // 1-based position of the account holder among the authors (authorship
+      // table) + corresponding flag.
+      authorPosition: authoredBySelf ? selfIndex + 1 : undefined,
+      isCorresponding: selfAuth?.is_corresponding === true ? true : undefined,
+      // Which identifier made the self-match (ORCID > OpenAlex id). Recorded so
+      // the disambiguation-error study can stratify errors by match strength.
+      matchBasis: selfAuth ? (basisFor(selfAuth) ?? undefined) : undefined,
+      peerReviewed: isPeerReviewed(work),
+      reviewFlag:
+        reviewFlagOverride ?? (authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined),
+    },
+  };
+}
+
 export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const { id, resolved, now, previous } = args;
   const { matches, basisFor } = makeSelfMatcher(resolved);
@@ -1033,78 +1143,70 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const maxPrevOrder = prevOrders.length > 0 ? Math.max(...prevOrders) : -1;
   let newItemRank = 0;
 
+  const matcher = { matches, basisFor };
   const preprintIds = new Set<string>();
   const items: CvItem[] = works.map((work) => {
     const csl = workToCsl(work);
-    const selfIndex = (work.authorships ?? []).findIndex(matches);
-    const selfAuth = selfIndex >= 0 ? work.authorships![selfIndex] : undefined;
-    const authoredBySelf = Boolean(selfAuth);
     if (isPreprint(work)) preprintIds.add(csl.id);
     // Match by id, else by DOI (id churn) to preserve hide / "not mine" decisions.
+    // When the prior item was an ORCID-discovered candidate, its curation
+    // (incl. an un-confirmed hidden state) is preserved like any other — a re-sync
+    // never resurfaces a hidden work. Its "orcid-doi" review flag is naturally
+    // dropped here (recomputed for a now-attributed work).
     const prev =
       prevItems.get(csl.id) ?? (csl.DOI ? prevByDoi.get(csl.DOI.toLowerCase()) : undefined);
-    return {
-      id: csl.id,
-      source: "openalex",
-      sourceId: work.id,
+    return buildWorkCvItem(work, matcher, ownerOrcid, now, {
       csl,
-      // Keep the user's earlier display + disambiguation decisions on re-sync,
-      // so a re-pull never resurfaces a hidden or asserted-not-mine work.
-      included: prev?.included ?? true,
-      notMine: prev?.notMine ?? false,
-      notMineAssertedAt: prev?.notMineAssertedAt,
-      // Preserve the user's disambiguation reason across re-syncs.
-      notMineReason: prev?.notMineReason,
-      order: prev ? prev.order : maxPrevOrder + 1 + newItemRank++,
-      authoredBySelf,
-      selfNameVariants: authoredBySelf ? selfNameVariants(work, matches) : [],
-      meta: {
-        year: work.publication_year ?? undefined,
-        type: work.type ?? undefined,
-        doi: csl.DOI,
-        citedByCount: work.cited_by_count,
-        // Per-work field-normalized data, stored so the FWCI mean + top-10%
-        // share recompute over the CURATED works (excluding "not mine"/hidden).
-        fwci: typeof work.fwci === "number" ? work.fwci : undefined,
-        topDecile: workTopDecile(work),
-        oaStatus:
-          work.open_access?.is_oa && work.open_access.oa_status
-            ? work.open_access.oa_status
-            : undefined,
-        // Reuse license + PubMed id (FAIR / open-science surfacing).
-        license: workLicense(work),
-        pmid: workPmid(work),
-        // Per-item freshness: this work came from a live OpenAlex fetch.
-        lastVerifiedAt: now,
-        authorRole: authorRoleLabel(selfAuth),
-        authorCount: work.authorships?.length,
-        // 1-based position of the account holder among the authors (for the
-        // authorship-summary table) + corresponding flag.
-        authorPosition: authoredBySelf ? selfIndex + 1 : undefined,
-        isCorresponding: selfAuth?.is_corresponding === true ? true : undefined,
-        // Which identifier made the self-match (ORCID > OpenAlex id). Recorded so
-        // the disambiguation-error study can stratify errors by match strength.
-        matchBasis: selfAuth ? (basisFor(selfAuth) ?? undefined) : undefined,
-        peerReviewed: isPeerReviewed(work),
-        reviewFlag: authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined,
-      },
-    };
+      prev,
+      order: maxPrevOrder + 1 + newItemRank++,
+      defaultIncluded: true,
+    });
   });
 
+  // The OpenAlex-attributed set fetched THIS sync (by id + DOI). Used to supersede
+  // carried claim/manual/discovered items, and to drop a discovered candidate the
+  // primary pull already returned.
+  const fetchedIds = new Set(items.map((it) => it.id));
+  const fetchedDois = new Set(
+    items.map((it) => it.csl?.DOI?.toLowerCase()).filter((d): d is string => Boolean(d)),
+  );
+
+  // ORCID-discovered review candidates: works the user lists in ORCID that the
+  // author-id pull missed (resolved back via OpenAlex by DOI). Added hidden, with
+  // a "orcid-doi" review flag. Skip any the primary pull already returned
+  // (attributed → it wins) or that the CV already has (carried over below, so
+  // never built twice). Identifiers/metadata only — never a name-string match.
+  const discovered: CvItem[] = [];
+  const seenDiscoveredDois = new Set<string>();
+  for (const work of dedupeWorks(args.orcidDiscoveredWorks ?? [])) {
+    const csl = workToCsl(work);
+    const doiKey = csl.DOI?.toLowerCase();
+    if (fetchedIds.has(csl.id) || (doiKey && fetchedDois.has(doiKey))) continue;
+    if (prevItems.has(csl.id) || (doiKey && prevByDoi.has(doiKey))) continue;
+    // Two discovered works can share a DOI (OpenAlex duplicate records); keep one.
+    if (doiKey && seenDiscoveredDois.has(doiKey)) continue;
+    if (doiKey) seenDiscoveredDois.add(doiKey);
+    if (isPreprint(work)) preprintIds.add(csl.id);
+    discovered.push(
+      buildWorkCvItem(work, matcher, ownerOrcid, now, {
+        csl,
+        order: maxPrevOrder + 1 + newItemRank++,
+        defaultIncluded: false,
+        reviewFlagOverride: "orcid-doi",
+      }),
+    );
+  }
+
   // Normalize order to a clean 0..n sequence (respecting any preserved order).
-  const ordered = [...items]
+  const ordered = [...items, ...discovered]
     .sort((a, b) => a.order - b.order)
     .map((it, i) => ({ ...it, order: i }));
 
   // Split into Publications vs Preprints (so the CV doesn't double-count a
   // preprint and its published version, and matches academic convention).
-  // Global fetched id+DOI sets so a carried claim/manual item is superseded when
-  // OpenAlex now returns the same work in EITHER section (prevents a claimed
-  // preprint that became a published article from being listed in both).
-  const fetchedIds = new Set(ordered.map((it) => it.id));
-  const fetchedDois = new Set(
-    ordered.map((it) => it.csl?.DOI?.toLowerCase()).filter((d): d is string => Boolean(d)),
-  );
+  // carryOverUserItems uses the fetched id+DOI sets so a carried claim/manual/
+  // discovered item is superseded when OpenAlex now returns the same work in
+  // EITHER section.
   const pubItems = reindexItems(
     carryOverUserItems(
       ordered.filter((it) => !preprintIds.has(it.id)),

@@ -167,6 +167,19 @@ export const AUTHORSHIP_ROLE_LABELS: Record<AuthorshipRole, string> = {
   corresponding: "Corresponding author",
 };
 
+/**
+ * Computed disambiguation/review hints on an item (`meta.reviewFlag`). Advisory
+ * only — never auto-hides; the user decides. A closed set so the value is typed
+ * everywhere (no magic strings) and can't carry untrusted text; adding a new
+ * heuristic is a one-line edit here. Stored docs with an unknown value degrade to
+ * `undefined` (the field's `.catch`), never failing the whole CV read.
+ *  - "orcid-conflict": an own work whose authorship lists a DIFFERENT ORCID;
+ *  - "name-matched": a name+org-matched registry candidate (grants/trials/patents);
+ *  - "orcid-doi": a work listed in the user's ORCID that OpenAlex didn't attribute.
+ */
+export const REVIEW_FLAGS = ["orcid-conflict", "name-matched", "orcid-doi"] as const;
+export type ReviewFlag = (typeof REVIEW_FLAGS)[number];
+
 /** A single CV entry. For MVP these come from OpenAlex works. */
 export const CvItemSchema = z.object({
   /** Stable id — e.g. the OpenAlex short id "W2741809807", or "position:…". */
@@ -301,12 +314,12 @@ export const CvItemSchema = z.object({
     /** True when this item's metadata was gap-filled from Crossref (source display). */
     enriched: z.boolean().optional(),
     /**
-     * A computed disambiguation hint surfacing works that MIGHT be misattributed,
-     * for proactive review (e.g. "orcid-conflict" = the matched OpenAlex author
-     * record lists a different ORCID on this paper). Advisory only — never hides
-     * the item; the user decides. Free-form so new heuristics need no schema bump.
+     * A computed disambiguation/review hint (see {@link REVIEW_FLAGS}). Advisory
+     * only — never hides the item; the user decides. A closed enum (typed
+     * everywhere, no untrusted free-text); an unknown stored value degrades to
+     * `undefined` rather than failing the CV read.
      */
-    reviewFlag: z.string().max(500).optional(),
+    reviewFlag: z.enum(REVIEW_FLAGS).optional().catch(undefined),
   }),
 });
 export type CvItem = z.infer<typeof CvItemSchema>;

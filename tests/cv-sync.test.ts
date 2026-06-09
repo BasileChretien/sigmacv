@@ -35,6 +35,7 @@ const mocks = vi.hoisted(() => ({
   fetchCtis: vi.fn(),
   fetchIctrp: vi.fn(),
   fetchEpo: vi.fn(),
+  discoverOrcid: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -79,6 +80,9 @@ vi.mock("@/lib/clinicaltrials/client", () => ({ fetchClinicalTrials: mocks.fetch
 vi.mock("@/lib/ctis/client", () => ({ fetchCtisTrials: mocks.fetchCtis }));
 vi.mock("@/lib/ictrp/client", () => ({ fetchIctrpTrials: mocks.fetchIctrp }));
 vi.mock("@/lib/epo/client", () => ({ fetchEpoPatents: mocks.fetchEpo }));
+// ORCID-DOI discovery has its own tests (orcid-discovery.test.ts); stub it here so
+// this orchestration test makes no network calls. Controllable via the hoisted mock.
+vi.mock("@/lib/cv/orcidDiscovery", () => ({ discoverOrcidOnlyWorks: mocks.discoverOrcid }));
 // Enrichment (ROR + Crossref) is covered by enrich.test.ts; keep it a no-op here.
 vi.mock("@/lib/canonical/enrich", () => ({
   canonicalizeInstitutions: mocks.canonicalizeInstitutions,
@@ -143,6 +147,7 @@ beforeEach(() => {
   mocks.fetchCtis.mockResolvedValue([]);
   mocks.fetchIctrp.mockResolvedValue([]);
   mocks.fetchEpo.mockResolvedValue([]);
+  mocks.discoverOrcid.mockResolvedValue([]);
 });
 
 describe("getCvForUser", () => {
@@ -205,6 +210,35 @@ describe("syncCvForUser", () => {
     expect(texts.some((t) => t?.includes("Some Society"))).toBe(true); // publisher fallback kept
     // The ORCID client's array was remapped immutably — the original is untouched.
     expect((groups[0] as { journal?: string }).journal).toBeUndefined();
+  });
+
+  it("feeds ORCID-discovered works in as hidden review candidates", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue([]);
+    mocks.discoverOrcid.mockResolvedValue([
+      {
+        id: "https://openalex.org/W9000001",
+        doi: "https://doi.org/10.9/orphan",
+        title: "An ORCID-listed paper OpenAlex missed",
+        display_name: "An ORCID-listed paper OpenAlex missed",
+        publication_year: 2022,
+        type: "article",
+        authorships: [],
+        primary_location: { source: { display_name: "J. Orphans", type: "journal" } },
+      },
+    ]);
+    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    // Discovery was queried with the freshly-pulled works + the (absent) previous CV.
+    expect(mocks.discoverOrcid).toHaveBeenCalledWith({
+      orcid: RESOLVED.orcid,
+      openAlexWorks: [],
+      previous: null,
+    });
+    const pubs = cv.sections.find((s) => s.type === "publications");
+    const cand = pubs?.items.find((i) => i.id === "W9000001");
+    expect(cand?.included).toBe(false);
+    expect(cand?.meta.reviewFlag).toBe("orcid-doi");
   });
 
   it("builds an empty CV when the ORCID resolves to no OpenAlex author", async () => {
