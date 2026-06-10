@@ -1,0 +1,50 @@
+# CodeQL — automated static analysis (SAST) for the JavaScript/TypeScript code.
+#
+# Completes the OpenSSF hardening alongside Scorecard + Dependabot + the SBOM:
+# scans for common vulnerability classes (injection, unsafe deserialization,
+# path traversal, etc.) on every push/PR to main and weekly, and uploads results
+# to the repo's Security ▸ Code scanning tab. Informational — it does not gate
+# merges. Actions are SHA-pinned (matching the other workflows).
+name: CodeQL
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "27 3 * * 1" # Mondays 03:27 UTC
+
+# Default to read-only; the job widens only what CodeQL needs.
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # upload SARIF to the code-scanning dashboard
+      actions: read # required for workflow run context (private repos)
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # JS + TS share one extractor; no build step is needed (interpreted).
+        language: ["javascript-typescript"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        with:
+          category: "/language:${{ matrix.language }}"
