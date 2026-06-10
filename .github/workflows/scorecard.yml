@@ -1,0 +1,60 @@
+# OpenSSF Scorecard — automated supply-chain security analysis.
+#
+# Runs the OpenSSF Scorecard checks (branch protection, pinned dependencies,
+# token permissions, dependency-update tooling, SAST, etc.) and publishes the
+# result so the repo can display a Scorecard badge and feed the public OpenSSF
+# REST API. Part of roadmap B4 (FAIR4RS / supply-chain trust).
+#
+# Uses third-party actions not certified by GitHub; all are pinned by commit SHA
+# (the Scorecard "Pinned-Dependencies" check rewards this, and it's the canonical
+# OpenSSF template style).
+name: Scorecard supply-chain security
+
+on:
+  # For the Branch-Protection check (only the default branch is evaluated).
+  branch_protection_rule:
+  # Keep the "Maintained" check fresh and re-publish weekly.
+  schedule:
+    - cron: "30 1 * * 6" # Saturdays 01:30 UTC
+  push:
+    branches: ["main"]
+
+# Default to read-only; the job widens only what it needs.
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # upload SARIF to the code-scanning dashboard
+      id-token: write # OIDC token to publish results (public-repo badge)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Public repository: publish results to the OpenSSF REST API so the
+          # repo can show a Scorecard badge. No PAT needed for a public repo.
+          publish_results: true
+
+      # Retain the SARIF as a build artifact for inspection (optional).
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      # Surface findings in the repo's Security ▸ Code scanning tab.
+      - name: Upload to code-scanning
+        uses: github/codeql-action/upload-sarif@e46ed2cbd01164d986452f91f178727624ae40d7 # v4.35.3
+        with:
+          sarif_file: results.sarif
