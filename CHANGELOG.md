@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Deeper SEO landing pages** — the seven landing pages (ORCID-to-CV, NIH
+  biosketch, academic CV template, OpenAlex CV, publication list, LaTeX CV, funder
+  CV templates) now carry comprehensive, crawlable content in all 10 languages: an
+  opening overview, a four-step "how it works" guide, a "why" section, an expanded
+  five-question FAQ, and links to related pages. Each page also emits `HowTo`
+  structured data (alongside the existing `FAQPage` and `BreadcrumbList`). The
+  non-English copy is an initial translation pending native-speaker review.
 - **`llms.txt` + `llms-full.txt`** served at the site root — a clean,
   authoritative, extractable description of what SigmaCV is, who it's for, its
   open data sources, export formats and key pages (plus a Q&A reference), so
