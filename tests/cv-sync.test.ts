@@ -14,6 +14,7 @@ Object.assign(process.env, {
 const mocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
   findMany: vi.fn(),
+  count: vi.fn(),
   upsert: vi.fn(),
   update: vi.fn(),
   fetchWorks: vi.fn(),
@@ -45,6 +46,7 @@ vi.mock("@/lib/db", () => ({
     cv: {
       findUnique: mocks.findUnique,
       findMany: mocks.findMany,
+      count: mocks.count,
       upsert: mocks.upsert,
       update: mocks.update,
     },
@@ -103,8 +105,10 @@ import {
   getCvForUser,
   getPublicCv,
   getPublicCvForPage,
+  getPublicCvRecord,
   getPublishState,
   listIndexablePublicSlugs,
+  listPublicCvRecords,
   saveCvForUser,
   setPublishState,
   syncCvForUser,
@@ -501,5 +505,36 @@ describe("getPublicCv", () => {
   it("returns null for a corrupt stored document", async () => {
     mocks.findUnique.mockResolvedValue({ published: true, document: { bad: 1 } });
     expect(await getPublicCv("slug")).toBeNull();
+  });
+});
+
+describe("OAI harvest helpers", () => {
+  it("listPublicCvRecords pages indexable CVs into records + total (skips corrupt rows)", async () => {
+    mocks.count.mockResolvedValue(3);
+    mocks.findMany.mockResolvedValue([
+      { publicSlug: "ada", updatedAt: new Date("2026-06-09T00:00:00Z"), document: DOC },
+      { publicSlug: "bad", updatedAt: new Date("2026-06-08T00:00:00Z"), document: { bad: 1 } },
+    ]);
+    const { records, total } = await listPublicCvRecords({ limit: 100, offset: 0 });
+    expect(total).toBe(3);
+    expect(records).toHaveLength(1); // the corrupt row is skipped
+    expect(records[0]).toMatchObject({ slug: "ada" });
+    expect(records[0]!.cv.owner.displayName).toBe("Basile Chrétien");
+  });
+
+  it("getPublicCvRecord requires published + indexable", async () => {
+    mocks.findUnique.mockResolvedValueOnce({
+      published: true,
+      publicIndexable: false,
+      document: DOC,
+    });
+    expect(await getPublicCvRecord("ada")).toBeNull();
+    mocks.findUnique.mockResolvedValueOnce({
+      published: true,
+      publicIndexable: true,
+      updatedAt: new Date("2026-06-09T00:00:00Z"),
+      document: DOC,
+    });
+    expect((await getPublicCvRecord("ada"))?.slug).toBe("ada");
   });
 });

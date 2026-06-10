@@ -14,6 +14,7 @@ import {
   withRorProvenance,
 } from "@/lib/canonical/enrich";
 import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
+import type { OaiRecordInput } from "@/lib/oai/oai";
 import { fetchJournalNamesByIssn, fetchWorksByAuthorIds } from "@/lib/openalex/client";
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
 import { normalizeOrcid } from "@/lib/openalex/types";
@@ -444,6 +445,61 @@ export async function getPublicCvForPage(
   const parsed = safeParseCanonicalCv(row.document);
   if (!parsed.success) return null;
   return { cv: projectCvForPublic(parsed.data), indexable: row.publicIndexable };
+}
+
+/**
+ * Indexable published CVs for OAI-PMH harvesting — a page of {slug, datestamp
+ * (row `updatedAt`), public-projected cv} plus the total matching count (for
+ * resumption). Gated on `publicIndexable` (the same discovery opt-in the sitemap
+ * uses). Stable order by slug so offset paging is consistent; `from`/`until`
+ * filter on `updatedAt`. Unparseable rows are skipped.
+ */
+export async function listPublicCvRecords(opts: {
+  limit: number;
+  offset: number;
+  from?: Date;
+  until?: Date;
+}): Promise<{ records: OaiRecordInput[]; total: number }> {
+  const where: Prisma.CvWhereInput = {
+    published: true,
+    publicIndexable: true,
+    publicSlug: { not: null },
+  };
+  if (opts.from || opts.until) {
+    where.updatedAt = {
+      ...(opts.from ? { gte: opts.from } : {}),
+      ...(opts.until ? { lte: opts.until } : {}),
+    };
+  }
+  const total = await prisma.cv.count({ where });
+  const rows = await prisma.cv.findMany({
+    where,
+    select: { publicSlug: true, updatedAt: true, document: true },
+    orderBy: { publicSlug: "asc" },
+    take: opts.limit,
+    skip: opts.offset,
+  });
+  const records: OaiRecordInput[] = [];
+  for (const row of rows) {
+    if (!row.publicSlug) continue;
+    const parsed = safeParseCanonicalCv(row.document);
+    if (!parsed.success) continue;
+    records.push({
+      slug: row.publicSlug,
+      datestamp: row.updatedAt,
+      cv: projectCvForPublic(parsed.data),
+    });
+  }
+  return { records, total };
+}
+
+/** A single OAI record by slug (published + indexable), or null. */
+export async function getPublicCvRecord(slug: string): Promise<OaiRecordInput | null> {
+  const row = await prisma.cv.findUnique({ where: { publicSlug: slug } });
+  if (!row || !row.published || !row.publicIndexable) return null;
+  const parsed = safeParseCanonicalCv(row.document);
+  if (!parsed.success) return null;
+  return { slug, datestamp: row.updatedAt, cv: projectCvForPublic(parsed.data) };
 }
 
 /** Public slugs that the owner has opted into search-engine indexing — for the

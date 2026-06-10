@@ -37,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Watch, by DOI) are shown by default with a prominent "Retracted" badge, and a new
   **"Hide retracted publications"** display toggle lets you exclude them entirely
   (from every output). When shown, the badge always makes the retraction clear.
+- **OAI-PMH endpoint** (`/api/oai`) — repositories and aggregators can harvest the
+  indexable public CVs as Dublin Core (`oai_dc`) over the standard OAI-PMH 2.0
+  protocol (Identify, ListMetadataFormats, ListIdentifiers, ListRecords, GetRecord),
+  with `from`/`until` selective harvesting and resumption tokens.
 
 ### Changed
 
