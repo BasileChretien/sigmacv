@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  type Guide,
+  type GuideBlock,
   GUIDE_SLUGS,
   getGuide,
   guideReadingMinutes,
@@ -12,11 +14,21 @@ import {
   guidesIndexBreadcrumbJsonLd,
   guidesItemListJsonLd,
 } from "@/lib/guides/jsonLd";
+import { localeLanguageCode, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { guidesNavLabel, GUIDES_NAV_LABEL } from "@/lib/i18n/guidesNav";
-import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import { LANDING_PAGE_IDS } from "@/lib/i18n/landingPages";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** A structural fingerprint of a guide body — type + (h2 id) + (cta href) + (list size). */
+function structure(blocks: GuideBlock[]): string[] {
+  return blocks.map((b) => {
+    if (b.type === "h2") return `h2#${b.id}`;
+    if (b.type === "cta") return `cta>${b.href}`;
+    if (b.type === "ul" || b.type === "ol") return `${b.type}:${b.items.length}`;
+    return b.type;
+  });
+}
 
 describe("guides content", () => {
   const guides = listGuides();
@@ -73,6 +85,50 @@ describe("guides content", () => {
   });
 });
 
+describe("guides localization (forced 10 locales)", () => {
+  const en = Object.fromEntries(listGuides("en-US").map((g) => [g.slug, g]));
+
+  it("every locale defines every guide with identical structure", () => {
+    expect(SUPPORTED_LOCALES).toHaveLength(10);
+    for (const loc of SUPPORTED_LOCALES) {
+      const guides = listGuides(loc);
+      expect(guides.map((g) => g.slug).sort()).toEqual([...GUIDE_SLUGS].sort());
+      for (const g of guides) {
+        const ref = en[g.slug]!;
+        // Structure (block types, anchors, CTA hrefs, list sizes) never drifts.
+        expect(structure(g.blocks)).toEqual(structure(ref.blocks));
+        expect(g.faq?.length ?? 0).toBe(ref.faq?.length ?? 0);
+        // Dates/cross-links are single-sourced, so identical across locales.
+        expect(g.datePublished).toBe(ref.datePublished);
+        expect(g.relatedGuides).toEqual(ref.relatedGuides);
+        // Prose is present and non-empty.
+        expect(g.title.trim().length).toBeGreaterThan(0);
+        expect(g.description.trim().length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("non-English locales actually differ from English", () => {
+    const enGuide = getGuide("how-to-write-an-academic-cv", "en-US")!;
+    const frGuide = getGuide("how-to-write-an-academic-cv", "fr-FR")!;
+    expect(frGuide.title).not.toBe(enGuide.title);
+  });
+
+  it("reading time stays sensible for CJK locales (no word spaces)", () => {
+    for (const loc of ["zh-CN", "ja-JP", "ko-KR"]) {
+      const g = getGuide("how-to-write-an-academic-cv", loc)!;
+      expect(guideWordCount(g)).toBeGreaterThan(50);
+      expect(guideReadingMinutes(g)).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it("unknown locale falls back to English content", () => {
+    const fallback = getGuide("how-to-write-an-academic-cv", "xx-XX")!;
+    const en = getGuide("how-to-write-an-academic-cv", "en-US")!;
+    expect(fallback.title).toBe(en.title);
+  });
+});
+
 describe("guides JSON-LD", () => {
   const guide = getGuide("how-to-write-an-academic-cv")!;
 
@@ -85,6 +141,16 @@ describe("guides JSON-LD", () => {
     expect(ld).toContain(`"datePublished":"${guide.datePublished}"`);
     expect(ld).toContain('"inLanguage":"en"');
     expect(ld).toContain("/guides/how-to-write-an-academic-cv");
+  });
+
+  it("localizes inLanguage + URL per locale", () => {
+    const frGuide = getGuide("how-to-write-an-academic-cv", "fr-FR")!;
+    const ld = guideArticleJsonLd(frGuide, "fr-FR");
+    expect(ld).toContain(`"inLanguage":"${localeLanguageCode("fr-FR")}"`);
+    expect(ld).toContain("/fr/guides/how-to-write-an-academic-cv");
+    const crumb = guideBreadcrumbJsonLd(frGuide, "fr-FR");
+    expect(crumb).toContain(guidesNavLabel("fr-FR"));
+    expect(crumb).toContain("/fr/guides/how-to-write-an-academic-cv");
   });
 
   it("builds a 3-level breadcrumb for a guide and 2-level for the index", () => {
@@ -101,6 +167,9 @@ describe("guides JSON-LD", () => {
     for (const g of listGuides()) {
       expect(list).toContain(`/guides/${g.slug}`);
     }
+    // Localized index list uses locale-prefixed URLs.
+    const fr = guidesItemListJsonLd(listGuides("fr-FR"), "fr-FR");
+    expect(fr).toContain("/fr/guides/how-to-write-an-academic-cv");
   });
 });
 
@@ -114,3 +183,7 @@ describe("guidesNavLabel", () => {
     expect(guidesNavLabel("xx-XX")).toBe(GUIDES_NAV_LABEL["en-US"]);
   });
 });
+
+// Keep a typed reference so `Guide` import is exercised even if assertions change.
+const _typecheck: Guide | undefined = getGuide("how-to-write-an-academic-cv");
+void _typecheck;

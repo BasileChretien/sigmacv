@@ -85,6 +85,12 @@ export function localeForSlug(slug: string): Locale | undefined {
   return (Object.entries(LOCALE_SLUGS) as [Locale, string][]).find(([, s]) => s === slug)?.[0];
 }
 
+/** Bare language code for a locale (the `inLanguage` / `lang` value): "fr-FR" → "fr". */
+export function localeLanguageCode(locale: string): string {
+  // Every supported locale is `xx-YY` with a two-letter language subtag.
+  return asLocale(locale).slice(0, 2);
+}
+
 // ─── CV content: default section titles ──────────────────────────────────────
 
 const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {

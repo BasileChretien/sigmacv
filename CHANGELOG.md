@@ -22,8 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Glossary** (`/glossary`) — plain-language "what is X" pages for the key terms
   behind an academic CV (ORCID, OpenAlex, FWCI, the h-index, CSL, the NIH
   biosketch, preprint, DORA, the Leiden Manifesto), each marked up as a schema.org
-  `DefinedTerm` with an FAQ and links to related terms, guides and tools. (English
-  for now.)
+  `DefinedTerm` with an FAQ and links to related terms, guides and tools — now in
+  **all 10 supported languages**, each a crawlable URL with reciprocal hreflang.
 - **Persona landing pages** (10 languages) — dedicated pages for specific
   applicants and career stages: a **PhD-application CV** (`/phd-cv`), **postdoc
   CV** (`/postdoc-cv`), **grad-school CV** (`/grad-school-cv`), **faculty/tenure
@@ -35,8 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   résumé, how to list publications, how long it should be, a CV for grad-school
   applications, using metrics responsibly (DORA / Leiden), and academic CV format
   by country. Each guide is a proper article with a named author, dates, an FAQ,
-  and links to related pages, and is included in the sitemap. (English for now;
-  more guides and translations to follow.)
+  and links to related pages, and is included in the sitemap — now in **all 10
+  supported languages**, each a crawlable URL with reciprocal hreflang.
 - **Localized institution names** — positions and education entries now show the
   institution in the CV's own language when ROR publishes a name for it (e.g.
   「名古屋大学」 on a Japanese CV, "Université de Nagoya" on a French one),

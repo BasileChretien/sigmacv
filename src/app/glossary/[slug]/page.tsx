@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import GlossaryTermPage from "@/components/GlossaryTermPage";
 import { GLOSSARY_SLUGS, getTerm } from "@/lib/glossary/glossary";
+import { glossaryTermLanguageAlternates } from "@/lib/seo";
 
-/** The glossary is a fixed, English-only set rendered as static pages. */
+/** The default-locale (en-US) glossary, rendered as static pages. */
 export const dynamicParams = false;
 
 export function generateStaticParams(): { slug: string }[] {
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     // The root layout's title template appends " — SigmaCV".
     title: term.title,
     description: term.description,
-    alternates: { canonical: `/glossary/${slug}` },
+    alternates: { canonical: `/glossary/${slug}`, languages: glossaryTermLanguageAlternates(slug) },
   };
 }
 
