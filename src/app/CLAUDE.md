@@ -5,7 +5,7 @@ Next.js 15 App Router: routes, server actions, and API handlers.
 ## Routes
 
 - Marketing/legal pages (`page.tsx`, `about/`, `privacy/`) are mirrored under **`[locale]/`** for the ten locales; the bare versions default to en-US. `manifest.ts`, `robots.ts`, `opengraph-image.tsx` are the PWA/SEO surfaces.
-- **`cv/page.tsx`** — the protected editor (server component that loads the CV, then hands off to the client `CvWorkspace`). Gated by `middleware.ts`.
+- **`cv/page.tsx`** — the protected editor (server component that loads the CV, then hands off to the client `CvWorkspace`). Gated by `proxy.ts` (the Next 16 rename of `middleware.ts`).
 - **`p/[slug]/route.ts`** — serves the living public CV page (re-syncs from sources).
 
 ## API (`app/api/**`)

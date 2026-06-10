@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { middleware } from "@/middleware";
+import { proxy } from "@/proxy";
 
 /**
  * Guards the app-shell Content-Security-Policy. A regression here is exactly
@@ -8,13 +8,16 @@ import { middleware } from "@/middleware";
  * style-src loses 'unsafe-inline', or img-src loses data:, or the dev
  * script-src is tightened, the browser blocks the styles/JS/images and the
  * app renders as raw unstyled HTML.
+ *
+ * (Next 16 renamed the `middleware` file convention to `proxy`; the exported
+ * function is `proxy` and the behaviour is identical.)
  */
 function cspFor(): string {
-  const res = middleware(new NextRequest("http://localhost:3000/"));
+  const res = proxy(new NextRequest("http://localhost:3000/"));
   return res.headers.get("content-security-policy") ?? "";
 }
 
-describe("app-shell CSP middleware", () => {
+describe("app-shell CSP proxy", () => {
   afterEach(() => vi.unstubAllEnvs());
 
   it("always permits the assets the rendered app needs", () => {
