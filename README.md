@@ -11,6 +11,8 @@
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20594123.svg)](https://doi.org/10.5281/zenodo.20594123)
 [![Archived: Software Heritage](https://archive.softwareheritage.org/badge/origin/https://github.com/BasileChretien/sigmacv/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/BasileChretien/sigmacv)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13146/badge)](https://www.bestpractices.dev/projects/13146)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/BasileChretien/sigmacv/badge)](https://scorecard.dev/viewer/?uri=github.com/BasileChretien/sigmacv)
 [![Cite this repository](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
 
 Keeping an academic CV up to date is a chore. Every new paper, grant, talk, or
