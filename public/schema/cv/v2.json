@@ -672,6 +672,9 @@
                     "rcr": {
                       "type": "number"
                     },
+                    "retracted": {
+                      "type": "boolean"
+                    },
                     "rorId": {
                       "type": "string",
                       "maxLength": 2048

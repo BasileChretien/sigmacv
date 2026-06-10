@@ -31,6 +31,10 @@ export interface RenderStrings {
   badgeOpenAccessTitle: string;
   /** Profile-level open-access share line; "{pct}" → the rounded percentage. */
   openAccessShare: string;
+  /** Inline "Retracted" badge label on a retracted publication entry. */
+  badgeRetracted: string;
+  /** Accessible title/tooltip for the retracted badge. */
+  badgeRetractedTitle: string;
   /** Per-entry citation-count badge; "{n}" → the (locale-formatted) count. */
   badgeCitations: string;
   /** Tooltip caveat on the citation pill (raw counts aren't field-normalised). */
@@ -83,6 +87,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open access ({status})",
     openAccessShare: "{pct}% open access",
+    badgeRetracted: "Retracted",
+    badgeRetractedTitle: "This work has been retracted (per Crossref / Retraction Watch)",
     badgeCitations: "{n} citations",
     badgeCitationsTitle: "Raw citation count — not field-normalised (varies by field and age)",
     metric2yr: "2-yr mean citedness",
@@ -125,6 +131,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "开放获取（{status}）",
     openAccessShare: "{pct}% 开放获取",
+    badgeRetracted: "已撤稿",
+    badgeRetractedTitle: "该成果已被撤稿（依据 Crossref／Retraction Watch）",
     badgeCitations: "被引 {n}",
     badgeCitationsTitle: "原始被引次数——未经领域标准化（因领域与年代而异）",
     metric2yr: "两年平均被引率",
@@ -168,6 +176,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acceso abierto ({status})",
     openAccessShare: "{pct}% en acceso abierto",
+    badgeRetracted: "Retractado",
+    badgeRetractedTitle: "Este trabajo ha sido retractado (según Crossref / Retraction Watch)",
     badgeCitations: "{n} citas",
     badgeCitationsTitle:
       "Recuento bruto de citas — sin normalización por campo (varía por campo y antigüedad)",
@@ -213,6 +223,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accès libre ({status})",
     openAccessShare: "{pct} % en libre accès",
+    badgeRetracted: "Rétracté",
+    badgeRetractedTitle: "Ce travail a été rétracté (selon Crossref / Retraction Watch)",
     badgeCitations: "{n} citations",
     badgeCitationsTitle:
       "Nombre brut de citations — non normalisé par domaine (varie selon le domaine et l’ancienneté)",
@@ -259,6 +271,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open Access ({status})",
     openAccessShare: "{pct} % Open Access",
+    badgeRetracted: "Zurückgezogen",
+    badgeRetractedTitle: "Diese Arbeit wurde zurückgezogen (laut Crossref / Retraction Watch)",
     badgeCitations: "{n} Zitationen",
     badgeCitationsTitle:
       "Reine Zitationszahl — nicht feldnormiert (variiert je nach Fach und Alter)",
@@ -303,6 +317,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "オープンアクセス（{status}）",
     openAccessShare: "オープンアクセス {pct}%",
+    badgeRetracted: "撤回済み",
+    badgeRetractedTitle: "この成果は撤回されています（Crossref／Retraction Watch による）",
     badgeCitations: "被引用 {n}",
     badgeCitationsTitle: "被引用数の生の値 — 分野正規化なし（分野・年代で変動）",
     metric2yr: "2年間平均被引用度",
@@ -346,6 +362,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acesso aberto ({status})",
     openAccessShare: "{pct}% em acesso aberto",
+    badgeRetracted: "Retratado",
+    badgeRetractedTitle: "Este trabalho foi retratado (segundo o Crossref / Retraction Watch)",
     badgeCitations: "{n} citações",
     badgeCitationsTitle:
       "Contagem bruta de citações — não normalizada por área (varia por área e idade)",
@@ -392,6 +410,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accesso aperto ({status})",
     openAccessShare: "{pct}% ad accesso aperto",
+    badgeRetracted: "Ritirato",
+    badgeRetractedTitle: "Questo lavoro è stato ritirato (secondo Crossref / Retraction Watch)",
     badgeCitations: "{n} citazioni",
     badgeCitationsTitle:
       "Conteggio grezzo delle citazioni — non normalizzato per campo (varia per campo ed età)",
@@ -436,6 +456,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "오픈 액세스 ({status})",
     openAccessShare: "오픈 액세스 {pct}%",
+    badgeRetracted: "철회됨",
+    badgeRetractedTitle: "이 성과는 철회되었습니다 (Crossref / Retraction Watch 기준)",
     badgeCitations: "인용 {n}회",
     badgeCitationsTitle: "원시 피인용 수 — 분야 정규화 안 됨 (분야·연도에 따라 다름)",
     metric2yr: "2년 평균 피인용도",
@@ -478,6 +500,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Открытый доступ ({status})",
     openAccessShare: "{pct}% в открытом доступе",
+    badgeRetracted: "Отозвано",
+    badgeRetractedTitle: "Эта работа была отозвана (по данным Crossref / Retraction Watch)",
     badgeCitations: "{n} цитирований",
     badgeCitationsTitle:
       "Сырое число цитирований — без нормализации по области (зависит от области и возраста)",

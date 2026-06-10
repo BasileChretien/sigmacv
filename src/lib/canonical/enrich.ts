@@ -1,5 +1,9 @@
-import type { CanonicalCv, CvItem, Provenance } from "@/lib/canonical/schema";
-import { fetchCrossrefGapFields, type CrossrefGapFields } from "@/lib/crossref/client";
+import { isHidden, type CanonicalCv, type CvItem, type Provenance } from "@/lib/canonical/schema";
+import {
+  fetchCrossrefGapFields,
+  fetchRetractionStatus,
+  type CrossrefGapFields,
+} from "@/lib/crossref/client";
 import { fetchRcrByPmids } from "@/lib/icite/client";
 import { resolveInstitution } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
@@ -162,6 +166,49 @@ export async function enrichCvWithIcite(cv: CanonicalCv): Promise<CanonicalCv> {
     }),
   }));
   return changed ? { ...cv, sections } : cv;
+}
+
+// ─── Retraction flagging (Crossref / Retraction Watch) ───────────────────────
+
+const RETRACTION_MAX_CHECK = 100;
+
+/**
+ * Flag works Crossref records as retracted (`meta.retracted`). Checks DOI-bearing,
+ * non-hidden items not already flagged, bounded to {@link RETRACTION_MAX_CHECK}
+ * lookups, concurrency-limited and fail-soft. Re-checks each sync so a newly
+ * retracted work gets flagged. Immutable; returns the original CV when nothing
+ * matched or nothing is retracted.
+ */
+export async function enrichCvWithRetractions(
+  cv: CanonicalCv,
+  mailto: string,
+): Promise<CanonicalCv> {
+  const targets: Array<{ s: number; i: number; doi: string }> = [];
+  cv.sections.forEach((section, s) => {
+    section.items.forEach((item, i) => {
+      if (targets.length >= RETRACTION_MAX_CHECK) return;
+      const doi = item.csl?.DOI;
+      if (doi && item.meta.retracted !== true && !isHidden(item)) targets.push({ s, i, doi });
+    });
+  });
+  if (targets.length === 0) return cv;
+
+  const results = await mapBounded(targets, CONCURRENCY, (t) =>
+    fetchRetractionStatus(t.doi, mailto),
+  );
+  const retracted = new Set<string>();
+  targets.forEach((t, idx) => {
+    if (results[idx]) retracted.add(`${t.s}:${t.i}`);
+  });
+  if (retracted.size === 0) return cv;
+
+  const sections = cv.sections.map((section, s) => ({
+    ...section,
+    items: section.items.map((item, i) =>
+      retracted.has(`${s}:${i}`) ? { ...item, meta: { ...item.meta, retracted: true } } : item,
+    ),
+  }));
+  return { ...cv, sections };
 }
 
 // ─── ROR institution-name canonicalization ───────────────────────────────────

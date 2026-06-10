@@ -13,6 +13,16 @@ export { cvSlug } from "./slug";
 /** Inline badges appended to a publication/preprint entry (HTML/PDF only). */
 function itemBadges(item: CvItem, display: DisplayChoices): string {
   const badges: string[] = [];
+  // Retraction is a research-integrity flag — always shown (never opt-out), and
+  // first so it can't be missed.
+  if (item.meta.retracted) {
+    const s = renderStrings(display.locale);
+    badges.push(
+      `<span class="cv-badge cv-badge-retracted" title="${escapeHtml(
+        s.badgeRetractedTitle,
+      )}">${escapeHtml(s.badgeRetracted)}</span>`,
+    );
+  }
   if (display.showOpenAccess && item.meta.oaStatus) {
     const s = renderStrings(display.locale);
     const title = s.badgeOpenAccessTitle.replace("{status}", escapeHtml(item.meta.oaStatus));

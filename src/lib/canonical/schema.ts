@@ -314,6 +314,10 @@ export const CvItemSchema = z.object({
      *  by the iCite enrichment. Field-normalized but biomedical-only; stored so the
      *  RCR mean recomputes over the curated works. */
     rcr: z.number().optional(),
+    /** True when Crossref records this work (by DOI) as RETRACTED — folded in by the
+     *  retraction enrichment (Crossref `updated-by`/`relation.is-retracted-by`,
+     *  publisher- or Retraction-Watch-sourced). Surfaced as a research-integrity flag. */
+    retracted: z.boolean().optional(),
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
     rorId: z.string().max(2048).optional(),
     /**

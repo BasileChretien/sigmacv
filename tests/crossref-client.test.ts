@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchCrossrefGapFields, fetchCrossrefRelations } from "@/lib/crossref/client";
+import {
+  fetchCrossrefGapFields,
+  fetchCrossrefRelations,
+  fetchRetractionStatus,
+} from "@/lib/crossref/client";
 
 function res(body: string, init?: { status?: number; headers?: Record<string, string> }): Response {
   const status = init?.status ?? 200;
@@ -200,5 +204,48 @@ describe("fetchCrossrefRelations", () => {
     );
     const out = await fetchCrossrefRelations("10.1234/x", MAILTO);
     expect(out).toEqual([{ target: "10.1/same", kind: "preprint-pair" }]);
+  });
+});
+
+describe("fetchRetractionStatus", () => {
+  const msg = (message: unknown) => JSON.stringify({ status: "ok", message });
+
+  it("detects a retraction via updated-by[].type", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(msg({ "updated-by": [{ type: "retraction", DOI: "10.1/notice" }] }))),
+    );
+    expect(await fetchRetractionStatus("10.1234/x", MAILTO)).toBe(true);
+  });
+
+  it("detects a retraction via relation.is-retracted-by", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(msg({ relation: { "is-retracted-by": [{ id: "10.1/notice" }] } }))),
+    );
+    expect(await fetchRetractionStatus("10.1234/x", MAILTO)).toBe(true);
+  });
+
+  it("returns false when there is no retraction signal", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(msg({ "updated-by": [{ type: "correction" }], relation: {} }))),
+    );
+    expect(await fetchRetractionStatus("10.1234/x", MAILTO)).toBe(false);
+  });
+
+  it("fails soft on an API error", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res("{}", { status: 500 })),
+    );
+    expect(await fetchRetractionStatus("10.1234/x", MAILTO)).toBe(false);
+  });
+
+  it("skips an invalid DOI without any request", async () => {
+    const f = vi.fn(async () => res("{}"));
+    vi.stubGlobal("fetch", f);
+    expect(await fetchRetractionStatus("not-a-doi", MAILTO)).toBe(false);
+    expect(f).not.toHaveBeenCalled();
   });
 });

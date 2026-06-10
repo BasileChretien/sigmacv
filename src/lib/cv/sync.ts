@@ -10,6 +10,7 @@ import {
   canonicalizeInstitutions,
   enrichCvWithCrossref,
   enrichCvWithIcite,
+  enrichCvWithRetractions,
   withRorProvenance,
 } from "@/lib/canonical/enrich";
 import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
@@ -283,6 +284,10 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
   // NIH iCite: fold the Relative Citation Ratio onto works with a PMID (opt-in
   // biomedical field-normalized metric). Bounded + fails soft.
   cv = await enrichCvWithIcite(cv);
+
+  // Crossref / Retraction Watch: flag retracted works (research-integrity signal).
+  // Bounded + fails soft.
+  cv = await enrichCvWithRetractions(cv, getEnv().OPENALEX_MAILTO);
 
   // Upgrade duplicate hints with Crossref's publisher-asserted preprint↔published
   // relationships (the build already ran the identifier + heuristic tiers). The
