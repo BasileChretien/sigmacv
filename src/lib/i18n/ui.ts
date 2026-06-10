@@ -34,6 +34,7 @@ export interface UiStrings {
   authorshipResyncNote: string;
   showCharts: string;
   showOpenAccess: string;
+  hideRetracted: string;
   showAuthorRole: string;
   showCitationCounts: string;
   showProvenance: string;
@@ -152,6 +153,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "⚠ These counts are empty for your existing publications. Click Re-sync (top right) to pull author positions from OpenAlex.",
     showCharts: "Show charts (publications & citations / year)",
     showOpenAccess: "Open-access badges",
+    hideRetracted: "Hide retracted publications",
     showAuthorRole: "Show my author role (first / last / corresponding)",
     showCitationCounts: "Show citation counts on each publication",
     showProvenance: "Data-provenance footer",
@@ -274,6 +276,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "⚠ 你现有的出版物没有这些统计数据。点击右上角的 Re-sync（重新同步），从 OpenAlex 拉取作者署名位置。",
     showCharts: "显示图表（每年出版物与引用数）",
     showOpenAccess: "开放获取标识",
+    hideRetracted: "隐藏已撤稿的出版物",
     showAuthorRole: "显示我的作者角色（第一／末位／通讯）",
     showCitationCounts: "在每篇论文上显示被引次数",
     showProvenance: "数据来源页脚",
@@ -393,6 +396,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "⚠ Estos recuentos están vacíos para tus publicaciones existentes. Haz clic en Resincronizar (arriba a la derecha) para obtener las posiciones de autoría desde OpenAlex.",
     showCharts: "Mostrar gráficos (publicaciones y citas / año)",
     showOpenAccess: "Distintivos de acceso abierto",
+    hideRetracted: "Ocultar publicaciones retractadas",
     showAuthorRole: "Mostrar mi rol de autor (primero / último / correspondencia)",
     showCitationCounts: "Mostrar el número de citas en cada publicación",
     showProvenance: "Pie de página con la procedencia de los datos",
@@ -517,6 +521,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "⚠ Ces décomptes sont vides pour vos publications existantes. Cliquez sur Resynchroniser (en haut à droite) pour récupérer les positions des auteurs depuis OpenAlex.",
     showCharts: "Afficher les graphiques (publications et citations / an)",
     showOpenAccess: "Badges de libre accès",
+    hideRetracted: "Masquer les publications rétractées",
     showAuthorRole: "Afficher mon rôle d’auteur (premier / dernier / correspondant)",
     showCitationCounts: "Afficher le nombre de citations sur chaque publication",
     showProvenance: "Pied de page sur la provenance des données",
@@ -642,6 +647,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "⚠ Diese Zählungen sind für Ihre bestehenden Publikationen leer. Klicken Sie auf Re-sync (oben rechts), um die Autorenpositionen von OpenAlex abzurufen.",
     showCharts: "Diagramme anzeigen (Publikationen & Zitationen / Jahr)",
     showOpenAccess: "Open-Access-Abzeichen",
+    hideRetracted: "Zurückgezogene Publikationen ausblenden",
     showAuthorRole: "Meine Autorenrolle anzeigen (Erst-/Letzt-/korrespondierend)",
     showCitationCounts: "Zitationszahl bei jeder Publikation anzeigen",
     showProvenance: "Fußzeile zur Datenherkunft",
@@ -765,6 +771,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "⚠ これらの集計は既存の論文では空です。右上の「Re-sync」をクリックして OpenAlex から著者の位置情報を取得してください。",
     showCharts: "グラフを表示（年別の論文数・被引用数）",
     showOpenAccess: "オープンアクセスバッジ",
+    hideRetracted: "撤回された出版物を非表示",
     showAuthorRole: "自分の著者役割を表示（筆頭・最終・責任著者）",
     showCitationCounts: "各論文に被引用数を表示",
     showProvenance: "データ出典フッター",
@@ -887,6 +894,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "⚠ Essas contagens estão vazias para suas publicações existentes. Clique em Re-sync (canto superior direito) para obter as posições de autoria do OpenAlex.",
     showCharts: "Mostrar gráficos (publicações e citações / ano)",
     showOpenAccess: "Selos de acesso aberto",
+    hideRetracted: "Ocultar publicações retratadas",
     showAuthorRole: "Mostrar meu papel de autoria (primeiro / último / correspondente)",
     showCitationCounts: "Mostrar o número de citações em cada publicação",
     showProvenance: "Rodapé de proveniência dos dados",
@@ -1011,6 +1019,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "⚠ Questi conteggi sono vuoti per le tue pubblicazioni esistenti. Fai clic su Re-sync (in alto a destra) per recuperare le posizioni degli autori da OpenAlex.",
     showCharts: "Mostra grafici (pubblicazioni e citazioni / anno)",
     showOpenAccess: "Badge ad accesso aperto",
+    hideRetracted: "Nascondi le pubblicazioni ritirate",
     showAuthorRole: "Mostra il mio ruolo di autore (primo / ultimo / corrispondente)",
     showCitationCounts: "Mostra il numero di citazioni per ogni pubblicazione",
     showProvenance: "Piè di pagina sulla provenienza dei dati",
@@ -1134,6 +1143,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "⚠ 기존 출판물에 대해서는 이 집계가 비어 있습니다. 우측 상단의 Re-sync를 클릭하여 OpenAlex에서 저자 위치를 가져오세요.",
     showCharts: "차트 표시 (연도별 출판물 및 인용 수)",
     showOpenAccess: "오픈 액세스 배지",
+    hideRetracted: "철회된 출판물 숨기기",
     showAuthorRole: "내 저자 역할 표시 (제1저자 / 마지막 저자 / 교신저자)",
     showCitationCounts: "각 논문에 피인용 수 표시",
     showProvenance: "데이터 출처 푸터",
@@ -1256,6 +1266,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "⚠ Для ваших текущих публикаций эти показатели пусты. Нажмите Re-sync (вверху справа), чтобы загрузить позиции авторов из OpenAlex.",
     showCharts: "Показать графики (публикации и цитирования по годам)",
     showOpenAccess: "Значки открытого доступа",
+    hideRetracted: "Скрывать отозванные публикации",
     showAuthorRole: "Показывать мою авторскую роль (первый / последний / корреспондирующий)",
     showCitationCounts: "Показывать число цитирований у каждой публикации",
     showProvenance: "Нижний колонтитул с источниками данных",

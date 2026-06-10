@@ -13,9 +13,15 @@ import type { Renderer, RenderInput, RenderResult } from "./types";
  * Keeping it in one place means the public + owner surfaces can never diverge.
  */
 export function cvCslItems(cv: CanonicalCv): CslItem[] {
+  // When the owner opts to hide retracted works, exclude them from the citation
+  // exports too (so the CSL-JSON / BibTeX lists match the rendered CV).
+  const hideRetracted = cv.display.hideRetracted === true;
   return visibleSections(cv)
     .flatMap((s) => visibleItems(s))
-    .filter((i): i is CvItem & { csl: CslItem } => Boolean(i.csl) && !i.notMine)
+    .filter(
+      (i): i is CvItem & { csl: CslItem } =>
+        Boolean(i.csl) && !i.notMine && !(hideRetracted && i.meta.retracted),
+    )
     .map((i) => i.csl);
 }
 

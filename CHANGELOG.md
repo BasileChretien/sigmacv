@@ -34,8 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`EducationalOccupationalCredential`) as structured schema.org entities, not just
   the bare `Person`.
 - **Retraction flags** — works recorded as retracted (via Crossref / Retraction
-  Watch, by DOI) now carry a prominent, always-shown "Retracted" badge — a
-  research-integrity signal that can't be opted out of.
+  Watch, by DOI) are shown by default with a prominent "Retracted" badge, and a new
+  **"Hide retracted publications"** display toggle lets you exclude them entirely
+  (from every output). When shown, the badge always makes the retraction clear.
 
 ### Changed
 

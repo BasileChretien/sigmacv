@@ -646,6 +646,10 @@ export const DisplayChoicesSchema = z.object({
    *  off — consistent with the metrics-default-none, DORA-aligned stance (an OA
    *  indicator is factual, not evaluative, but stays the user's explicit choice). */
   showOpenAccess: z.boolean().default(false),
+  /** Hide works flagged as retracted (`meta.retracted`) from every output. Default
+   *  off → retracted works are shown WITH the always-on "Retracted" badge; the user
+   *  can opt to exclude them entirely. */
+  hideRetracted: z.boolean().default(false),
   /** Show the account holder's authorship role (first/last/corresponding). Default off. */
   showAuthorRole: z.boolean().default(false),
   /** Show a per-entry citation count on publications/preprints (HTML/PDF). Default off. */
