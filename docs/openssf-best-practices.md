@@ -133,9 +133,10 @@ Legend: ✅ Met · 🟡 needs a one-time human action · ⬜ unmet (future).
 
 ## Future hardening (beyond passing)
 
-- **Pin all workflow actions by SHA** — `ci.yml` / `e2e.yml` / `release.yml`
-  currently use `@v4`-style tags; SHA-pinning them improves the Scorecard
-  "Pinned-Dependencies" score (the new `scorecard.yml` is already SHA-pinned).
+- ~~**Pin all workflow actions by SHA**~~ — **done**: `ci.yml` / `e2e.yml` /
+  `release.yml` / `scorecard.yml` all SHA-pin their actions (with `# vX.Y.Z`
+  comments), so the Scorecard "Pinned-Dependencies" check is satisfied repo-wide.
+  Dependabot's `github-actions` ecosystem keeps the pins current.
 - **CodeQL** workflow for automated SAST (`static_analysis_common_vulnerabilities`).
 - Consider **silver/gold** criteria later (signed releases, ≥2 maintainers,
   dependency monitoring already satisfied via `.github/dependabot.yml`).
