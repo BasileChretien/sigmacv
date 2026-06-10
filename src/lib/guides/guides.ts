@@ -667,6 +667,91 @@ const GUIDES: Guide[] = [
     relatedPages: ["openalex-cv", "academic-cv-template"],
     relatedGuides: ["how-to-write-an-academic-cv"],
   },
+  {
+    slug: "academic-cv-format-by-country",
+    title: "Academic CV format by country",
+    description:
+      "How academic CV conventions differ by country — the CV/résumé distinction, photos and personal details, length, Europass, and funder narrative formats — and how to adapt yours.",
+    datePublished: "2026-06-10",
+    dateModified: "2026-06-10",
+    blocks: [
+      {
+        type: "p",
+        text: "There is no single global standard for an academic CV. Conventions differ by country and institution — what the document is even called, whether it includes a photo, how long it runs, and which structured format a funder expects. This guide covers the main differences and how to adapt your CV to where you are applying.",
+      },
+      {
+        type: "h2",
+        id: "cv-vs-resume",
+        text: "The CV / résumé distinction varies",
+      },
+      {
+        type: "p",
+        text: 'In the US and Canada, an academic "CV" is the long, complete scholarly document, while a "résumé" is the short one- to two-page version for industry. In the UK and much of Europe, "CV" can mean either, and the academic version is simply understood from context. Match the term and length expected by the country and role you are applying to.',
+      },
+      {
+        type: "h2",
+        id: "photos-personal-details",
+        text: "Photos and personal details",
+      },
+      {
+        type: "p",
+        text: "This is the biggest cross-country difference. In parts of continental Europe, Asia and Latin America, a CV may be expected to include a photo, date of birth, or nationality. In the US and UK, these are deliberately omitted to reduce bias, and including them can work against you. When in doubt, follow the destination country's norm — and never include personal details a specific employer has asked you to leave out.",
+      },
+      {
+        type: "h2",
+        id: "length",
+        text: "Length expectations",
+      },
+      {
+        type: "p",
+        text: "A full academic CV has no fixed page limit and grows with your record, but expectations differ: some European applications favour a more concise CV, while US academic CVs are often exhaustive. Always defer to an explicit page limit when a call or employer specifies one.",
+      },
+      {
+        type: "h2",
+        id: "europass",
+        text: "Europass and structured formats",
+      },
+      {
+        type: "p",
+        text: "In the European Union, the Europass CV is a common structured template, and some institutions request it. Several countries and systems have their own expected layouts. Where a structured format is required, follow it exactly rather than submitting a free-form CV.",
+      },
+      {
+        type: "h2",
+        id: "funder-formats",
+        text: "Funder narrative CVs by region",
+      },
+      {
+        type: "p",
+        text: "Major funders increasingly require their own formats: the UKRI Résumé for Research and Innovation (R4RI) in the UK, the ERC CV in the EU, the SNSF format in Switzerland, and the NIH biosketch or NSF format in the US. These are narrative or tightly structured and differ from a standard CV — prepare them from your full record for each application.",
+      },
+      {
+        type: "h2",
+        id: "adapt",
+        text: "How to adapt your CV",
+      },
+      {
+        type: "p",
+        text: "Keep one complete, canonical CV and derive country- or funder-specific versions from it rather than maintaining several from scratch. SigmaCV builds that canonical CV from your open research record and applies one-click funder layouts (UKRI R4RI, ERC, SNSF, NIH, NSF and more) reversibly, so adapting to a country's expectations is a quick change, not a rewrite.",
+      },
+      {
+        type: "cta",
+        label: "Build your academic CV free",
+        href: "/",
+      },
+    ],
+    faq: [
+      {
+        q: "Should I put a photo on my academic CV?",
+        a: "It depends on the country. Some countries expect a photo and personal details; the US and UK academic norm is to omit them to reduce bias. Follow the convention of where you're applying.",
+      },
+      {
+        q: "Is an academic CV the same everywhere?",
+        a: "No. The term, expected length, inclusion of personal details, and required funder formats all vary by country. Adapt your CV to the destination country and institution.",
+      },
+    ],
+    relatedPages: ["academic-cv-template", "funder-cv-templates"],
+    relatedGuides: ["how-to-write-an-academic-cv", "academic-cv-vs-resume"],
+  },
 ];
 
 /** All guide slugs (for static params + validation). */
