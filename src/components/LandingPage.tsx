@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { faqPageJsonLd } from "@/lib/faqJsonLd";
 import { asLocale } from "@/lib/i18n";
-import { landingPageContent, LANDING_RELATED } from "@/lib/i18n/landingContent";
-import { type LandingPageId, landingPageStrings } from "@/lib/i18n/landingPages";
+import {
+  type AnyLandingPageId,
+  anyLandingPageContent,
+  anyLandingPageStrings,
+  anyLandingRelated,
+} from "@/lib/i18n/landingAll";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { localeHomePath, localeLandingPagePath } from "@/lib/seo";
 import { absoluteUrl, SITE_URL } from "@/lib/siteUrl";
@@ -24,10 +28,10 @@ import SiteLinks from "./SiteLinks";
  *  - FAQPage (the base + extra Q&A, matching what's rendered visibly).
  * The primary CTA funnels to the homepage sign-in card.
  */
-export default function LandingPage({ page, locale }: { page: LandingPageId; locale: string }) {
+export default function LandingPage({ page, locale }: { page: AnyLandingPageId; locale: string }) {
   const loc = asLocale(locale);
-  const s = landingPageStrings(page, loc);
-  const c = landingPageContent(page, loc);
+  const s = anyLandingPageStrings(page, loc);
+  const c = anyLandingPageContent(page, loc);
   const path = localeLandingPagePath(page, loc).replace(/^\//, "");
 
   // The visible FAQ (and its JSON-LD) is the base 2 Q&A plus the 3 extra entries.
@@ -58,7 +62,7 @@ export default function LandingPage({ page, locale }: { page: LandingPageId; loc
     })),
   });
 
-  const related = LANDING_RELATED[page];
+  const related = anyLandingRelated(page);
 
   return (
     <main className="doc-page" lang={loc}>
@@ -126,7 +130,7 @@ export default function LandingPage({ page, locale }: { page: LandingPageId; loc
           {related.map((id) => (
             <li key={id}>
               <Link href={localeLandingPagePath(id, loc)}>
-                {landingPageStrings(id, loc).navLabel}
+                {anyLandingPageStrings(id, loc).navLabel}
               </Link>
             </li>
           ))}
