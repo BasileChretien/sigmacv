@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { listIndexablePublicSlugs } from "@/lib/cv/sync";
 import { listGuides } from "@/lib/guides/guides";
 import { DEFAULT_UI_LOCALE, LOCALE_SLUGS, SUPPORTED_LOCALES } from "@/lib/i18n";
-import { LANDING_PAGE_IDS } from "@/lib/i18n/landingPages";
+import { ALL_LANDING_PAGE_IDS } from "@/lib/i18n/landingAll";
 import { absoluteUrl } from "@/lib/siteUrl";
 
 export const dynamic = "force-dynamic";
@@ -124,8 +124,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // High-intent SEO landing pages — primary acquisition surfaces, so a higher
   // priority than the legal/info pages and a monthly change cadence. Iterates
-  // LANDING_PAGE_IDS so any newly registered landing page is included here too.
-  const landingEntries: MetadataRoute.Sitemap = LANDING_PAGE_IDS.flatMap((segment) => {
+  // ALL_LANDING_PAGE_IDS (SEO + persona pages) so every landing page is here too.
+  const landingEntries: MetadataRoute.Sitemap = ALL_LANDING_PAGE_IDS.flatMap((segment) => {
     const path = landingPath(segment);
     const languages: Record<string, string> = {};
     for (const loc of SUPPORTED_LOCALES) {
