@@ -2193,6 +2193,26 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   margin-top: var(--space-8);
   font-size: var(--text-sm);
 }
+/* Landing-page lede + step list + related-links block (C1 content depth). */
+.doc-page .doc-lede {
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+}
+.doc-page ol {
+  color: var(--text-secondary);
+  line-height: 1.65;
+  padding-left: var(--space-6);
+}
+.doc-page ol li {
+  margin-bottom: var(--space-3);
+}
+.landing-related ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
 
 /* ── Site links / coffee ─────────────────────────────────────────────────── */
 .site-links {
