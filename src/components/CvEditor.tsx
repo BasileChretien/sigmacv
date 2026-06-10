@@ -57,6 +57,7 @@ import {
 } from "@/lib/canonical/cvModels";
 import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
+import { metricHint } from "@/lib/i18n/metricHints";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
@@ -901,7 +902,7 @@ export default function CvEditor({
                 typeof raw === "number" ? formatMetricValue(m.key, raw, cvLocale) : null;
               const note = value ? ` — ${value}` : ` ${u.metricNoData}`;
               return (
-                <label key={m.key} className="field-inline">
+                <label key={m.key} className="field-inline" title={metricHint(locale, m.key)}>
                   <input
                     type="checkbox"
                     checked={selected}
