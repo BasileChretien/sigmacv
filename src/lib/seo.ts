@@ -126,6 +126,20 @@ export function fairLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+/** /transparency path for a locale: "/transparency" for the default, "/{slug}/transparency" otherwise. */
+export function localeTransparencyPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/transparency" : `/${LOCALE_SLUGS[loc]}/transparency`;
+}
+
+/** hreflang → path map for the /transparency page (relative; resolved against metadataBase). */
+export function transparencyLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeTransparencyPath(loc);
+  languages["x-default"] = "/transparency";
+  return languages;
+}
+
 /**
  * Path for an SEO landing page in a given locale: "/{segment}" for the default
  * locale, "/{slug}/{segment}" otherwise. `segment` is the bare path id, e.g.

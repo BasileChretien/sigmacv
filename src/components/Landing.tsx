@@ -9,6 +9,7 @@ import { fairCvStrings } from "@/lib/i18n/fairCv";
 import { landingStrings } from "@/lib/i18n/landing";
 import { LANDING_PAGE_IDS, landingPageStrings } from "@/lib/i18n/landingPages";
 import { principlesStrings } from "@/lib/i18n/principles";
+import { transparencyStrings } from "@/lib/i18n/transparency";
 import {
   localeAboutPath,
   localeAccessibilityPath,
@@ -18,6 +19,7 @@ import {
   localeLandingPagePath,
   localePrinciplesPath,
   localePrivacyPath,
+  localeTransparencyPath,
 } from "@/lib/seo";
 import { getSiteLinks } from "@/lib/siteLinks";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -276,6 +278,9 @@ export default function Landing({ locale }: LandingProps) {
         </Link>
         <Link className="footer-link" href={localeFairPath(loc)}>
           {fairCvStrings(loc).navLabel}
+        </Link>
+        <Link className="footer-link" href={localeTransparencyPath(loc)}>
+          {transparencyStrings(loc).navLabel}
         </Link>
         <Link className="footer-link" href={localeAccessibilityPath(loc)}>
           {accessibilityStrings(loc).navLabel}
