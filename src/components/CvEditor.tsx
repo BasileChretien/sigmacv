@@ -55,7 +55,7 @@ import {
   resetCvSections,
   type CvModelCategory,
 } from "@/lib/canonical/cvModels";
-import { METRIC_DEFS, formatMetricValue } from "@/lib/render/metrics";
+import { METRIC_DEFS, curatedMetrics, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { metricHint } from "@/lib/i18n/metricHints";
 import { ui } from "@/lib/i18n/ui";
@@ -227,6 +227,14 @@ export default function CvEditor({
   const u = ui(locale);
   const eu = editorUi(locale);
   const ds = dupStrings(locale);
+
+  // Metric values for the picker's per-row preview. Use the SAME curated figures
+  // the CV actually renders (curatedMetrics), not the raw owner.metrics: the
+  // field-normalized means recomputed over the curated works — FWCI mean, top-10%
+  // share and especially the NIH iCite RCR mean — are NOT stored on owner.metrics
+  // (RCR has no author-level source at all), so reading owner.metrics directly
+  // made RCR always read "(no data)" even when the rendered CV showed a value.
+  const metricValues = curatedMetrics(cv) as Record<string, number | undefined>;
 
   // Index every item by id with its full data + section (the editor owns the
   // whole CV; ItemRow only knows its own item). Used to resolve a duplicate's
@@ -896,8 +904,7 @@ export default function CvEditor({
           <div className="metric-options">
             {METRIC_DEFS.map((m) => {
               const selected = cv.display.metrics.includes(m.key);
-              const values = (cv.owner.metrics ?? {}) as Record<string, number | undefined>;
-              const raw = values[m.key];
+              const raw = metricValues[m.key];
               const value =
                 typeof raw === "number" ? formatMetricValue(m.key, raw, cvLocale) : null;
               const note = value ? ` — ${value}` : ` ${u.metricNoData}`;

@@ -89,6 +89,26 @@ describe("CvEditor (component)", () => {
     expect(next.display.showMetrics).toBe(true);
   });
 
+  it("previews the RCR mean from per-work data even when owner.metrics has none", () => {
+    // The field-normalized means (RCR especially) are recomputed over the curated
+    // works at render time — they are NOT stored on owner.metrics (RCR has no
+    // author-level source at all). The picker must derive them the same way, or
+    // "Mean RCR" always reads "(no data)" even when the rendered CV shows a value.
+    const base = makeCv();
+    expect(base.owner.metrics?.rcr_mean).toBeUndefined(); // no author-level RCR
+    const withRcr: CanonicalCv = {
+      ...base,
+      sections: base.sections.map((s) =>
+        s.type === "publications"
+          ? { ...s, items: s.items.map((it) => ({ ...it, meta: { ...it.meta, rcr: 1.5 } })) }
+          : s,
+      ),
+    };
+    render(<CvEditor cv={withRcr} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    expect(screen.getByText(/Mean RCR.*1\.5/)).toBeTruthy();
+    expect(screen.queryByText(/Mean RCR.*no data/i)).toBeNull();
+  });
+
   it("offers an add-section button for a missing section and creates it", () => {
     const onChange = vi.fn();
     render(

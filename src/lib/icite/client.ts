@@ -27,7 +27,10 @@ async function fetchBatch(pmids: string[]): Promise<Map<string, number>> {
   const url = new URL(ICITE_API);
   url.searchParams.set("pmids", pmids.join(","));
   // We only need the RCR field; legacy=false returns the current RCR model.
-  url.searchParams.set("fl", "pmid,relative_citation_ratio");
+  // NOTE: in a field-filtered response iCite returns the RCR under the SHORT
+  // alias `rcr` (the full, unfiltered record uses `relative_citation_ratio`), so
+  // request `rcr` and read it below — with a fallback to the long name for safety.
+  url.searchParams.set("fl", "pmid,rcr");
   url.searchParams.set("legacy", "false");
   try {
     const res = await resilientFetch(url, {
@@ -40,7 +43,9 @@ async function fetchBatch(pmids: string[]): Promise<Map<string, number>> {
     for (const rec of Array.isArray(data?.data) ? data.data : []) {
       const pmid = rec?.pmid;
       const key = typeof pmid === "number" ? String(pmid) : typeof pmid === "string" ? pmid : "";
-      const rcr = num(rec?.relative_citation_ratio);
+      // iCite returns `rcr` in filtered responses; `relative_citation_ratio` in
+      // the full record. Accept either so we never silently drop the value again.
+      const rcr = num(rec?.rcr) ?? num(rec?.relative_citation_ratio);
       // RCR is null for very recent / sparsely-cited papers — only keep real values.
       if (key && rcr !== undefined) out.set(key, rcr);
     }
