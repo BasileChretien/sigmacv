@@ -4,7 +4,7 @@ Next.js 15 App Router application code. See the repository-root `CLAUDE.md` for 
 
 ## Layout
 
-- **`app/`** — routes + server actions + API. Public marketing/legal pages are duplicated under **`app/[locale]/`** for the ten supported locales; the bare versions default to en-US. `middleware.ts` handles locale resolution and gates `/cv` behind auth. API handlers under `app/api/**` are thin: they validate input (Zod), call into `lib/`, and shape responses — keep business logic in `lib/`, not in route files.
+- **`app/`** — routes + server actions + API. Public marketing/legal pages are duplicated under **`app/[locale]/`** for the ten supported locales; the bare versions default to en-US. `proxy.ts` (the Next 16 rename of `middleware.ts`) handles locale resolution and gates `/cv` behind auth. API handlers under `app/api/**` are thin: they validate input (Zod), call into `lib/`, and shape responses — keep business logic in `lib/`, not in route files.
 - **`lib/`** — all domain logic and the only tree the coverage gate measures. (Has its own `CLAUDE.md`.)
 - **`components/`** — React client components for the editor/preview and account/publish/consent controls.
 - **`generated/prisma/`** — generated Prisma client. **Build output — never hand-edit**; `postinstall` / `npm run db:generate` regenerates it.

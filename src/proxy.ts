@@ -12,8 +12,11 @@ import { NextResponse, type NextRequest } from "next/server";
  *
  * Excludes /api (JSON), Next static assets, and /p/ (the public CV document,
  * which carries its own CSP) — see `config.matcher`.
+ *
+ * Next 16 renamed the `middleware` file convention to `proxy` (same request
+ * interception, same `config` export); this is that file.
  */
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   const isDev = process.env.NODE_ENV !== "production";
   // Base64 of 16 RAW random bytes (128 bits) — stronger and more standard than
   // base64-ing the 36-char UUID *string* (which only encodes hex ASCII).

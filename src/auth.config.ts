@@ -101,7 +101,7 @@ export const authConfig = {
     signIn: "/",
   },
   callbacks: {
-    // Used by the (optional) middleware/`auth` wrapper for quick checks.
+    // Used by the (optional) proxy/`auth` wrapper for quick checks.
     authorized({ auth }) {
       return !!auth?.user;
     },
