@@ -224,7 +224,11 @@ const GUIDES: Guide[] = [
       },
     ],
     relatedPages: ["academic-cv-template", "orcid-to-cv", "publication-list"],
-    relatedGuides: ["academic-cv-vs-resume"],
+    relatedGuides: [
+      "academic-cv-vs-resume",
+      "how-to-list-publications-on-a-cv",
+      "how-long-should-an-academic-cv-be",
+    ],
   },
   {
     slug: "academic-cv-vs-resume",
@@ -305,6 +309,362 @@ const GUIDES: Guide[] = [
       },
     ],
     relatedPages: ["academic-cv-template", "orcid-to-cv"],
+    relatedGuides: ["how-to-write-an-academic-cv"],
+  },
+  {
+    slug: "how-to-list-publications-on-a-cv",
+    title: "How to list publications on an academic CV",
+    description:
+      "How to format and order the publications section of an academic CV: citation style, grouping by type, author order, highlighting your own name, preprints and under-review work, and what to avoid.",
+    datePublished: "2026-06-10",
+    dateModified: "2026-06-10",
+    blocks: [
+      {
+        type: "p",
+        text: "For most academic roles the publications section is the part of your CV that committees read most closely, so how you present it matters almost as much as what's in it. This guide covers citation style, ordering and grouping, making your own contribution clear, how to handle preprints and under-review work, and the mistakes that undermine an otherwise strong list.",
+      },
+      {
+        type: "h2",
+        id: "citation-style",
+        text: "Choose one citation style — and keep it",
+      },
+      {
+        type: "p",
+        text: "Pick a citation style appropriate to your field (for example APA, Vancouver, Chicago, or IEEE) and apply it to every entry. The single most common failure is mixing styles or formatting references by hand so that no two look quite alike. Formatting the whole list through one engine — the Citation Style Language (CSL), the standard behind reference managers like Zotero — guarantees consistency across your PDF, Word, and LaTeX CVs.",
+      },
+      {
+        type: "h2",
+        id: "order-and-grouping",
+        text: "Order and group your publications",
+      },
+      {
+        type: "ul",
+        items: [
+          "List works in reverse-chronological order (newest first).",
+          "Group by type when the list is long: peer-reviewed journal articles, preprints, book chapters, conference papers, datasets and software.",
+          "Keep the groups clearly labelled and separated so a reader can find peer-reviewed work instantly.",
+          "Be consistent about numbering — number every entry or none.",
+        ],
+      },
+      {
+        type: "h2",
+        id: "your-contribution",
+        text: "Make your own contribution clear",
+      },
+      {
+        type: "ul",
+        items: [
+          "Highlight your own name (e.g. in bold) in every author list.",
+          "Mark first-author, corresponding-author, and equal-contribution roles with a clear, explained notation.",
+          "Remember that author-order conventions differ by field — add a one-line note if your field's convention isn't obvious.",
+        ],
+      },
+      {
+        type: "h2",
+        id: "status",
+        text: "Preprints, under review, and in press",
+      },
+      {
+        type: "p",
+        text: 'List work honestly with its status. Preprints are increasingly accepted on CVs but should be labelled as preprints, and "under review" or "in press" items should say so. Never present non-peer-reviewed work as peer-reviewed, and don\'t list the same paper twice (e.g. as both a preprint and the published version) without making the relationship clear.',
+      },
+      {
+        type: "h2",
+        id: "identifiers",
+        text: "Include identifiers and links",
+      },
+      {
+        type: "p",
+        text: "Add a DOI (and a link) to each work so readers can find it, and put your ORCID iD in your header. Identifiers also let tools verify your authorship reliably — by identifier rather than by name, which matters for common and non-Latin-script names.",
+      },
+      {
+        type: "h2",
+        id: "avoid",
+        text: "What to avoid",
+      },
+      {
+        type: "ul",
+        items: [
+          "Mixing citation styles within one document.",
+          "Padding the list with minor or unrelated items.",
+          "Inconsistent forms of your own name across entries.",
+          "Broken or missing DOIs — check that every link resolves.",
+        ],
+      },
+      {
+        type: "h2",
+        id: "automate",
+        text: "Generate a formatted publication list automatically",
+      },
+      {
+        type: "p",
+        text: "SigmaCV pulls your publications from ORCID and OpenAlex (matched by identifier, not name), formats them in any CSL style with your own name highlighted, and exports the list to PDF, Word, LaTeX, Markdown or BibTeX — so every version of your CV is consistent and correct.",
+      },
+      {
+        type: "cta",
+        label: "Generate your publication list free",
+        href: "/",
+      },
+    ],
+    faq: [
+      {
+        q: "What citation style should I use for my CV's publications?",
+        a: "Use the style normal for your field (e.g. APA, Vancouver, Chicago, IEEE). What matters most is applying one style consistently across the whole list and every format of your CV.",
+      },
+      {
+        q: "Should I include preprints on my CV?",
+        a: "Yes — preprints are increasingly accepted — but label them clearly as preprints and keep them separate from peer-reviewed articles.",
+      },
+      {
+        q: "How do I show co-first or equal authorship?",
+        a: 'Mark the relevant authors with a symbol and explain it in a short legend (e.g. "* equal contribution"). Be consistent throughout the list.',
+      },
+    ],
+    relatedPages: ["publication-list", "orcid-to-cv"],
+    relatedGuides: ["how-to-write-an-academic-cv"],
+  },
+  {
+    slug: "how-long-should-an-academic-cv-be",
+    title: "How long should an academic CV be?",
+    description:
+      "How long an academic CV should be by career stage, when length is capped (funder and job short CVs), and why longer isn't better — plus how to keep one master CV and export shorter versions.",
+    datePublished: "2026-06-10",
+    dateModified: "2026-06-10",
+    blocks: [
+      {
+        type: "p",
+        text: "The short answer: an academic CV is as long as your record justifies, and it grows over your career. Unlike a résumé, there is no expectation that it fits on one or two pages. But length depends on career stage and context, and there are important exceptions.",
+      },
+      {
+        type: "h2",
+        id: "by-stage",
+        text: "Rules of thumb by career stage",
+      },
+      {
+        type: "ul",
+        items: [
+          "Master's / PhD applicant — roughly 2–4 pages.",
+          "PhD student / postdoc — roughly 3–6 pages.",
+          "Mid-career — often 6–10+ pages.",
+          "Senior faculty — well beyond ten pages; the publication and funding record drives the length.",
+        ],
+      },
+      {
+        type: "p",
+        text: "These are guidelines, not rules. A strong, well-organised four-page CV beats a padded eight-page one.",
+      },
+      {
+        type: "h2",
+        id: "capped",
+        text: "When length is capped",
+      },
+      {
+        type: "p",
+        text: 'Many funders and employers ask for a "short CV" with a strict page limit (often two pages), or a structured narrative format such as the NIH biosketch, UKRI\'s Résumé for Research and Innovation (R4RI), an ERC CV, or the Swiss SNSF format. When a call specifies a length or format, follow it exactly — exceeding the limit can get an application rejected unread.',
+      },
+      {
+        type: "h2",
+        id: "quality",
+        text: "Longer isn't better",
+      },
+      {
+        type: "p",
+        text: "Completeness is expected, but padding is not. Include what is relevant, order it so your strongest material is easy to find, and cut filler. Reviewers reward clarity and relevance, not page count.",
+      },
+      {
+        type: "h2",
+        id: "master-cv",
+        text: "Keep a master CV, export shorter versions",
+      },
+      {
+        type: "p",
+        text: 'The practical approach is to maintain one complete "master" CV and derive shorter or funder-specific versions from it. SigmaCV does this from a single canonical record: keep everything in one place, then apply a one-click layout (NIH, NSF, ERC, UKRI R4RI, and more) or trim sections for a specific call, reversibly, and export.',
+      },
+      {
+        type: "cta",
+        label: "Build your academic CV free",
+        href: "/",
+      },
+    ],
+    faq: [
+      {
+        q: "Is there a page limit for an academic CV?",
+        a: 'Generally no — a full academic CV is as long as your record justifies. The exception is funder/job "short CVs", which often cap length or require a narrative format; always follow the call\'s instructions.',
+      },
+      {
+        q: "How long should a PhD-application CV be?",
+        a: "Usually about 2–4 pages. At that stage, clear research experience and a few representative outputs matter more than length.",
+      },
+    ],
+    relatedPages: ["funder-cv-templates", "academic-cv-template"],
+    relatedGuides: ["how-to-write-an-academic-cv", "academic-cv-for-grad-school"],
+  },
+  {
+    slug: "academic-cv-for-grad-school",
+    title: "Academic CV for grad-school applications",
+    description:
+      "What to put on an academic CV for master's, PhD, or grad-school applications when you don't have many publications yet — and how to make a strong impression on an admissions committee.",
+    datePublished: "2026-06-10",
+    dateModified: "2026-06-10",
+    blocks: [
+      {
+        type: "p",
+        text: "If you're applying to a master's or PhD programme and worried your CV looks thin, that's completely normal — admissions committees don't expect a long publication list at this stage. They want evidence of potential: research experience, relevant skills, and a clear trajectory. Here's what to include and how to present it.",
+      },
+      {
+        type: "h2",
+        id: "what-to-include",
+        text: "What to include",
+      },
+      {
+        type: "ul",
+        items: [
+          "Education — degrees, institutions, dates, and your GPA or grade if it's strong; include your thesis or capstone title.",
+          "Research experience — labs, projects, and theses, with your role, methods, and outcomes.",
+          "Publications & presentations — any articles, preprints, posters, or conference talks, however early-stage.",
+          "Skills — laboratory, technical, statistical, programming, and languages relevant to the field.",
+          "Awards & scholarships — academic distinctions and funding.",
+          "Relevant experience — teaching, tutoring, relevant work, or volunteering.",
+          "References — or a note that they are available on request.",
+        ],
+      },
+      {
+        type: "h2",
+        id: "lead-with-research",
+        text: "Lead with research experience",
+      },
+      {
+        type: "p",
+        text: "Even without publications, research experience is your strongest card. For each project, say what the question was, what you did (techniques, analysis, your specific role), and what came of it. Concrete contributions read far better than a list of course names.",
+      },
+      {
+        type: "h2",
+        id: "length-and-format",
+        text: "Length and format",
+      },
+      {
+        type: "p",
+        text: "A grad-school application CV is usually 2–4 pages. Keep the formatting clean and consistent, use clear section headings, and tailor the emphasis to the programme you're applying to. It's fine to be short — don't pad.",
+      },
+      {
+        type: "h2",
+        id: "build",
+        text: "Build it from your record",
+      },
+      {
+        type: "p",
+        text: "SigmaCV assembles a clean academic CV from your ORCID and open data, so even your first publications, preprints, and posters are formatted correctly and consistently — and you can add anything by DOI. It's free and open source.",
+      },
+      {
+        type: "cta",
+        label: "Build your grad-school CV free",
+        href: "/",
+      },
+    ],
+    faq: [
+      {
+        q: "Do I need publications for a grad-school CV?",
+        a: "No. At the application stage, research experience, relevant skills, and a clear trajectory matter more than a publication list. Include any preprints or posters you do have, but their absence is expected.",
+      },
+      {
+        q: "How long should a grad-school application CV be?",
+        a: "Typically 2–4 pages. Keep it focused: clear research experience and a few representative items beat padding.",
+      },
+    ],
+    relatedPages: ["academic-cv-template", "orcid-to-cv"],
+    relatedGuides: ["how-to-write-an-academic-cv", "how-long-should-an-academic-cv-be"],
+  },
+  {
+    slug: "responsible-metrics-on-an-academic-cv",
+    title: "Using metrics responsibly on an academic CV (DORA & the Leiden Manifesto)",
+    description:
+      "How to present research metrics on a CV responsibly: why the Journal Impact Factor and h-index mislead, what field-normalized indicators add, and what DORA and the Leiden Manifesto recommend.",
+    datePublished: "2026-06-10",
+    dateModified: "2026-06-10",
+    blocks: [
+      {
+        type: "p",
+        text: "Metrics are a tempting shorthand on a CV, but they are easily misused — and committees increasingly expect researchers to use them responsibly. This guide explains which metrics mislead, which are more defensible, and what the main responsible-assessment frameworks recommend.",
+      },
+      {
+        type: "h2",
+        id: "journal-impact-factor",
+        text: "Why the Journal Impact Factor is the wrong tool",
+      },
+      {
+        type: "p",
+        text: "The Journal Impact Factor (JIF) measures a journal's average citations, not the quality or impact of your individual article. Citation distributions are highly skewed, so a single paper in a high-JIF journal tells a reader almost nothing about that paper. DORA — the San Francisco Declaration on Research Assessment — explicitly advises against using the JIF to assess individual research or researchers.",
+      },
+      {
+        type: "h2",
+        id: "h-index",
+        text: "The h-index and raw counts have limits",
+      },
+      {
+        type: "p",
+        text: "The h-index and raw citation counts depend heavily on field and career length, so they are not comparable across disciplines and disadvantage early-career researchers. They can also be inflated. If you include them, give context; never present them as a stand-alone measure of worth.",
+      },
+      {
+        type: "h2",
+        id: "field-normalized",
+        text: "Prefer field-normalized indicators",
+      },
+      {
+        type: "p",
+        text: "Field-normalized indicators — such as the Field-Weighted Citation Impact (FWCI) or the NIH iCite Relative Citation Ratio (RCR) — account for differences in citation rates between fields and over time, so they are more comparable than raw counts. They are still imperfect and should be read with context, never as the only signal.",
+      },
+      {
+        type: "h2",
+        id: "frameworks",
+        text: "What DORA and the Leiden Manifesto recommend",
+      },
+      {
+        type: "ul",
+        items: [
+          "DORA — do not use journal-based metrics (like the JIF) to assess individual contributions; assess research on its own merits.",
+          "The Leiden Manifesto — use quantitative indicators to support, not replace, expert judgement; account for field differences; keep data and methods transparent; and avoid misplaced concreteness.",
+        ],
+      },
+      {
+        type: "h2",
+        id: "practical-advice",
+        text: "Practical advice for your CV",
+      },
+      {
+        type: "ul",
+        items: [
+          "Lead with the work itself — what you did and why it matters — not with numbers.",
+          "If you include metrics, prefer field-normalized indicators and give context (field, time window, percentile).",
+          "Consider a short narrative description of your key contributions instead of, or alongside, numbers.",
+          "Never cite the Journal Impact Factor of the journals your papers appeared in.",
+        ],
+      },
+      {
+        type: "h2",
+        id: "sigmacv",
+        text: "Responsible metrics, by default",
+      },
+      {
+        type: "p",
+        text: "SigmaCV is built around this stance: metrics are off by default and opt-in, it prefers field-normalized indicators over raw counts, and it never shows a journal Impact Factor — aligned with DORA. You stay in control of whether any metric appears on your CV at all.",
+      },
+      {
+        type: "cta",
+        label: "Build a DORA-aligned CV free",
+        href: "/",
+      },
+    ],
+    faq: [
+      {
+        q: "Should I put my h-index on my CV?",
+        a: "It's optional and field-dependent. If you include it, give context and pair it with field-normalized indicators rather than presenting it alone; many committees discourage over-reliance on it.",
+      },
+      {
+        q: "Is it OK to list journal Impact Factors on a CV?",
+        a: "It's discouraged. DORA specifically advises against using the Journal Impact Factor to assess individual research, because it measures the journal, not your article.",
+      },
+    ],
+    relatedPages: ["openalex-cv", "academic-cv-template"],
     relatedGuides: ["how-to-write-an-academic-cv"],
   },
 ];

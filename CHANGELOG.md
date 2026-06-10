@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Guides** (`/guides`) — a new section of in-depth, free guides on writing,
-  formatting and automating an academic CV, starting with "How to write an
-  academic CV" and "Academic CV vs résumé". Each guide is a proper article with a
-  named author, dates, an FAQ, and links to related pages, and is included in the
-  sitemap. (English for now; more guides and translations to follow.)
+  formatting and automating an academic CV: how to write one, academic CV vs
+  résumé, how to list publications, how long it should be, a CV for grad-school
+  applications, and using metrics responsibly (DORA / Leiden). Each guide is a
+  proper article with a named author, dates, an FAQ, and links to related pages,
+  and is included in the sitemap. (English for now; more guides and translations
+  to follow.)
 - **Localized institution names** — positions and education entries now show the
   institution in the CV's own language when ROR publishes a name for it (e.g.
   「名古屋大学」 on a Japanese CV, "Université de Nagoya" on a French one),
