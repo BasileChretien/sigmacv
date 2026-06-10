@@ -63,6 +63,7 @@ _and_ **GEO** (Generative Engine Optimization — being the answer LLMs give).
 - Sitemap (per-entry hreflang) + `robots.ts` (all crawlers incl. GPTBot/ClaudeBot/PerplexityBot/Google-Extended allowed) + canonical + OG/Twitter + 10-locale hreflang.
 - `/p/[slug]` public CV pages with `ProfilePage`/`Person` JSON-LD + "Made with SigmaCV" referral footer; opt-in `publicIndexable`.
 - Fast stack (Next 16 / React 19.2), Plausible analytics, Zenodo DOI, registry submissions in flight (bio.tools/FAIRsharing/RSD), OUTREACH kit.
+- **`llms.txt` + `llms-full.txt`** (T1) served at the site root — the GEO foundation: authoritative, extractable description + Q&A for ChatGPT/Claude/Perplexity/Gemini, guarded by `tests/llms-txt.test.ts`.
 
 ---
 
@@ -79,7 +80,7 @@ _and_ **GEO** (Generative Engine Optimization — being the answer LLMs give).
 
 | #   | Item                                                                                                                                                                                                                                                                | Owner | Effort | Status |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ | ------ |
-| T1  | **`llms.txt` + `llms-full.txt`** (`public/`, served at root) — the clean, authoritative description of what SigmaCV is, who it's for, the formats, key pages, how to use/self-host. The one clearly-missing GEO foundation; perfectly on-brand. **Top first move.** | 🧑‍💻    | S      | ⬜     |
+| T1  | **`llms.txt` + `llms-full.txt`** (`public/`, served at root) — the clean, authoritative description of what SigmaCV is, who it's for, the formats, key pages, how to use/self-host. The one clearly-missing GEO foundation; perfectly on-brand. **Top first move.** | 🧑‍💻    | S      | ✅     |
 | T2  | **`HowTo` JSON-LD** on the how-to landing pages ("How to make an academic CV from your ORCID") — step entities → eligible for how-to rich results + clean LLM extraction.                                                                                           | 🧑‍💻    | S      | ⬜     |
 | T3  | **`BreadcrumbList` JSON-LD** + visible breadcrumbs on landing/guide pages — site structure signal.                                                                                                                                                                  | 🧑‍💻    | S      | ⬜     |
 | T4  | **Enrich `SoftwareApplication`** — add `featureList`, `screenshot`, `softwareVersion`, `operatingSystem: "Web"`, `inLanguage` (10). **Do NOT add `aggregateRating`** unless real, verifiable reviews exist.                                                         | 🧑‍💻    | S      | ⬜     |
