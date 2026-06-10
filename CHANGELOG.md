@@ -97,6 +97,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   top-10% share) are recomputed over the curated works at render time and are not
   stored there — so "Mean RCR" read "(no data)" even when the CV rendered a value.
   The picker now derives the same curated figures the CV displays.
+- **The "Responsible-metrics preset" now matches its label.** It promised
+  "field-normalised indicators only" but selected the (non-normalized, IF-like)
+  2-year mean citedness while omitting the field-normalized iCite RCR. It now
+  selects exactly the field-normalized indicators (FWCI mean + RCR mean), derived
+  from the single source of truth so it can't drift.
 
 ## [0.1.0] - 2026-06-08
 
