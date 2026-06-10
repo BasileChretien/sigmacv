@@ -333,6 +333,148 @@ const GLOSSARY: GlossaryTerm[] = [
     relatedPages: ["nih-biosketch", "funder-cv-templates"],
     relatedGuides: ["how-to-write-an-academic-cv"],
   },
+  {
+    slug: "preprint",
+    term: "preprint",
+    title: "What is a preprint?",
+    short:
+      "A preprint is a complete version of a scholarly paper shared publicly before, or instead of, formal peer review — typically on a server like arXiv, bioRxiv or medRxiv.",
+    description:
+      "A preprint is a research paper shared publicly before peer review. Here's what it is, why preprints matter, and how to list them on an academic CV.",
+    blocks: [
+      {
+        type: "p",
+        text: "A preprint is a full draft of a research paper made publicly available before — or without — formal peer review, usually on a dedicated server such as arXiv (physics, maths, CS), bioRxiv (biology) or medRxiv (medicine). It carries a DOI and can be cited.",
+      },
+      {
+        type: "p",
+        text: "Preprints speed up the sharing of results and establish priority, and they are increasingly accepted as legitimate scholarly output — but because they have not been peer-reviewed, they should always be identified as preprints.",
+      },
+      {
+        type: "h2",
+        id: "on-your-cv",
+        text: "Listing preprints on a CV",
+      },
+      {
+        type: "p",
+        text: "Include your preprints, but label them clearly and keep them separate from peer-reviewed articles — don't present a preprint as a published paper, and avoid listing the same work twice (as both a preprint and the version of record) without making the relationship explicit.",
+      },
+      {
+        type: "h2",
+        id: "sigmacv",
+        text: "Preprints in SigmaCV",
+      },
+      {
+        type: "p",
+        text: "SigmaCV pulls your preprints from the open record alongside your other work and lets you group and label them, so your CV represents them honestly.",
+      },
+      {
+        type: "cta",
+        label: "Generate a formatted publication list",
+        href: "/publication-list",
+      },
+    ],
+    faq: [
+      {
+        q: "Should I include preprints on my academic CV?",
+        a: "Yes — preprints are increasingly accepted output — but label them clearly as preprints and keep them separate from peer-reviewed publications.",
+      },
+    ],
+    relatedTerms: ["orcid"],
+    relatedPages: ["publication-list"],
+    relatedGuides: ["how-to-list-publications-on-a-cv"],
+  },
+  {
+    slug: "dora",
+    term: "DORA",
+    title: "What is DORA (the Declaration on Research Assessment)?",
+    short:
+      "DORA, the San Francisco Declaration on Research Assessment, is a global declaration calling for research to be assessed on its own merits rather than by journal-based metrics like the Journal Impact Factor.",
+    description:
+      "DORA (the San Francisco Declaration on Research Assessment) calls for responsible research assessment. Here's what it is and what it means for metrics on a CV.",
+    blocks: [
+      {
+        type: "p",
+        text: "DORA — the San Francisco Declaration on Research Assessment — is a 2012 declaration, now signed by thousands of organisations and individuals worldwide, that sets out recommendations for improving how research is evaluated. Its central message: do not use journal-based metrics, such as the Journal Impact Factor, as a proxy for the quality of individual articles or researchers.",
+      },
+      {
+        type: "p",
+        text: "Instead, DORA asks that research be assessed on its own merits, that a range of outputs and impacts be valued, and that the limitations of metrics be made explicit.",
+      },
+      {
+        type: "h2",
+        id: "on-your-cv",
+        text: "What DORA means for metrics on a CV",
+      },
+      {
+        type: "p",
+        text: "In practice: don't cite the Impact Factor of the journals your papers appeared in, lead with the work itself, and if you include metrics prefer field-normalized indicators with context. Many institutions and funders now assess applications in line with DORA.",
+      },
+      {
+        type: "h2",
+        id: "sigmacv",
+        text: "How SigmaCV aligns with DORA",
+      },
+      {
+        type: "p",
+        text: "SigmaCV is built to this stance: metrics are off by default and opt-in, it prefers field-normalized indicators over raw counts, and it never shows a journal Impact Factor.",
+      },
+      {
+        type: "cta",
+        label: "Read: using metrics responsibly",
+        href: "/guides/responsible-metrics-on-an-academic-cv",
+      },
+    ],
+    faq: [
+      {
+        q: "What does DORA say about the Journal Impact Factor?",
+        a: "DORA explicitly recommends against using journal-based metrics like the Journal Impact Factor to assess the quality of individual research or researchers, because the JIF measures the journal, not the article.",
+      },
+    ],
+    relatedTerms: ["fwci", "h-index"],
+    relatedGuides: ["responsible-metrics-on-an-academic-cv"],
+  },
+  {
+    slug: "leiden-manifesto",
+    term: "Leiden Manifesto",
+    title: "What is the Leiden Manifesto?",
+    short:
+      "The Leiden Manifesto for research metrics is a set of ten principles for using quantitative research metrics responsibly — to support, not replace, expert judgement.",
+    description:
+      "The Leiden Manifesto sets out ten principles for the responsible use of research metrics. Here's what it is and how it relates to assessing a CV.",
+    blocks: [
+      {
+        type: "p",
+        text: "The Leiden Manifesto for research metrics, published in Nature in 2015, is a set of ten principles for the responsible use of quantitative indicators in research assessment. Its core idea is that metrics should inform, not replace, expert judgement.",
+      },
+      {
+        type: "p",
+        text: "Among its principles: quantitative evaluation should support qualitative, expert assessment; measure performance against the mission of the group; account for differences between fields; keep data collection and analysis transparent; and recognise that indicators can be gamed and have systemic effects.",
+      },
+      {
+        type: "h2",
+        id: "on-your-cv",
+        text: "Why it matters for your CV",
+      },
+      {
+        type: "p",
+        text: "Like DORA, the Leiden Manifesto encourages reading metrics in context and not reducing a researcher to a single number. If you present metrics on a CV, choose field-normalized indicators, give context, and let your actual contributions lead.",
+      },
+      {
+        type: "cta",
+        label: "Read: using metrics responsibly",
+        href: "/guides/responsible-metrics-on-an-academic-cv",
+      },
+    ],
+    faq: [
+      {
+        q: "How is the Leiden Manifesto different from DORA?",
+        a: "Both promote responsible research assessment. DORA focuses on not misusing journal-based metrics (like the Impact Factor) for individual assessment; the Leiden Manifesto gives ten broader principles for using any quantitative metric responsibly alongside expert judgement.",
+      },
+    ],
+    relatedTerms: ["dora", "fwci", "h-index"],
+    relatedGuides: ["responsible-metrics-on-an-academic-cv"],
+  },
 ];
 
 /** All glossary slugs (for static params + validation). */
