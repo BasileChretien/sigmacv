@@ -11,10 +11,10 @@ _and_ **GEO** (Generative Engine Optimization — being the answer LLMs give).
 
 ## Honest reality check (read first — it sets the strategy)
 
-1. \*\*Rank for a competitive head term is won by _content depth_ + _topical authority_
-   - _off-page mentions/links_ over time — not by markup.** SigmaCV's technical/
-     structured-data foundations are already strong (see "Already done"); they earn
-     eligibility + machine-understanding, they do **not\*\* by themselves move rank.
+1. **Rank for a competitive head term is won by content depth, topical authority,
+   and off-page mentions/links over time — not by markup.** SigmaCV's technical /
+   structured-data foundations are already strong (see "Already done"); they earn
+   eligibility + machine-understanding, they do **not** by themselves move rank.
 2. **LLM visibility (GEO)** comes from (a) clear, extractable on-site content
    (definitions, Q&A, comparisons, `llms.txt`) **and** (b) being mentioned widely
    off-site (directories, listicles, Wikipedia/Wikidata, Reddit, docs) — which is
