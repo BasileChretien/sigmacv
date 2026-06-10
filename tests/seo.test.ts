@@ -15,10 +15,12 @@ import {
   localeHomePath,
   localePrinciplesPath,
   localePrivacyPath,
+  localeTransparencyPath,
   ogAlternateLocales,
   ogLocale,
   principlesLanguageAlternates,
   privacyLanguageAlternates,
+  transparencyLanguageAlternates,
 } from "@/lib/seo";
 
 describe("localeHomePath", () => {
@@ -154,6 +156,22 @@ describe("localeFairPath / fairLanguageAlternates", () => {
     expect(langs["x-default"]).toBe("/fair");
     expect(langs["en-US"]).toBe("/fair");
     expect(langs["de-DE"]).toBe("/de/fair");
+    expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
+  });
+});
+
+describe("localeTransparencyPath / transparencyLanguageAlternates", () => {
+  it("serves /transparency for the default and /{slug}/transparency for others", () => {
+    expect(localeTransparencyPath("en-US")).toBe("/transparency");
+    expect(localeTransparencyPath("fr-FR")).toBe("/fr/transparency");
+    expect(localeTransparencyPath("ja-JP")).toBe("/ja/transparency");
+    expect(localeTransparencyPath("xx-XX")).toBe("/transparency");
+  });
+  it("maps every locale plus x-default", () => {
+    const langs = transparencyLanguageAlternates();
+    expect(langs["x-default"]).toBe("/transparency");
+    expect(langs["en-US"]).toBe("/transparency");
+    expect(langs["de-DE"]).toBe("/de/transparency");
     expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
   });
 });

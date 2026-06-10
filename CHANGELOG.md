@@ -49,6 +49,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   machine-readable formats a published CV comes in (canonical JSON + schema,
   CSL-JSON/BibTeX, RO-Crate, documents, JSON-LD, OAI-PMH/Signposting), how to cite
   a CV, how repositories can harvest it, and how to self-host.
+- **Transparency page** (`/transparency`, 10 locales) — exactly where each CV
+  entry comes from (grouped open sources), how identifier vs. name+org matching
+  decides what's included, how a published CV refreshes, what is logged (nothing,
+  by default), and the controls you have over your data.
 
 ### Changed
 
