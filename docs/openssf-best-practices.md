@@ -101,15 +101,15 @@ Legend: ✅ Met · 🟡 needs a one-time human action · ⬜ unmet (future).
 
 ## Analysis
 
-| Criterion                                | Status | Answer / URL                                                                                                                        |
-| ---------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `static_analysis`                        | ✅     | TypeScript `strict` type-checking in CI (`npm run typecheck`); OpenSSF Scorecard SAST signal via `.github/workflows/scorecard.yml`. |
-| `static_analysis_common_vulnerabilities` | 🟡     | Type system + audits catch many classes; consider adding CodeQL for automated CVE-class SAST (future, see below).                   |
-| `static_analysis_fixed`                  | ✅     | Type/format issues fixed before merge (CI gate).                                                                                    |
-| `static_analysis_often`                  | ✅     | Runs on every push/PR.                                                                                                              |
-| `dynamic_analysis`                       | 🟡     | Playwright E2E exercises the running app; no dedicated fuzzing/DAST (passing level allows this; note as future hardening).          |
-| `dynamic_analysis_unsafe`                | N/A    | Memory-unsafe languages not used (TypeScript/Node).                                                                                 |
-| `dynamic_analysis_enable_assertions`     | ✅     | Zod runtime validation at all system boundaries acts as always-on assertions.                                                       |
+| Criterion                                | Status | Answer / URL                                                                                                                                                                |
+| ---------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `static_analysis`                        | ✅     | **CodeQL** SAST (`.github/workflows/codeql.yml`, push/PR/weekly) + TypeScript `strict` type-checking in CI (`npm run typecheck`) + the OpenSSF Scorecard signal.            |
+| `static_analysis_common_vulnerabilities` | ✅     | **CodeQL** scans for common vulnerability classes (injection, unsafe deserialization, path traversal, etc.) on every push/PR + weekly, results in Security ▸ Code scanning. |
+| `static_analysis_fixed`                  | ✅     | Type/format issues fixed before merge (CI gate).                                                                                                                            |
+| `static_analysis_often`                  | ✅     | Runs on every push/PR.                                                                                                                                                      |
+| `dynamic_analysis`                       | 🟡     | Playwright E2E exercises the running app; no dedicated fuzzing/DAST (passing level allows this; note as future hardening).                                                  |
+| `dynamic_analysis_unsafe`                | N/A    | Memory-unsafe languages not used (TypeScript/Node).                                                                                                                         |
+| `dynamic_analysis_enable_assertions`     | ✅     | Zod runtime validation at all system boundaries acts as always-on assertions.                                                                                               |
 
 ---
 
@@ -134,9 +134,10 @@ Legend: ✅ Met · 🟡 needs a one-time human action · ⬜ unmet (future).
 ## Future hardening (beyond passing)
 
 - ~~**Pin all workflow actions by SHA**~~ — **done**: `ci.yml` / `e2e.yml` /
-  `release.yml` / `scorecard.yml` all SHA-pin their actions (with `# vX.Y.Z`
-  comments), so the Scorecard "Pinned-Dependencies" check is satisfied repo-wide.
-  Dependabot's `github-actions` ecosystem keeps the pins current.
-- **CodeQL** workflow for automated SAST (`static_analysis_common_vulnerabilities`).
+  `release.yml` / `scorecard.yml` / `codeql.yml` all SHA-pin their actions (with
+  `# vX.Y.Z` comments), so the Scorecard "Pinned-Dependencies" check is satisfied
+  repo-wide. Dependabot's `github-actions` ecosystem keeps the pins current.
+- ~~**CodeQL** workflow for automated SAST~~ — **done**: `.github/workflows/codeql.yml`
+  (push/PR/weekly, JS+TS, results in Security ▸ Code scanning).
 - Consider **silver/gold** criteria later (signed releases, ≥2 maintainers,
   dependency monitoring already satisfied via `.github/dependabot.yml`).

@@ -41,9 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   indexable public CVs as Dublin Core (`oai_dc`) over the standard OAI-PMH 2.0
   protocol (Identify, ListMetadataFormats, ListIdentifiers, ListRecords, GetRecord),
   with `from`/`until` selective harvesting and resumption tokens.
-- **OpenSSF Scorecard** workflow (`.github/workflows/scorecard.yml`) and
-  **Dependabot** automated dependency updates (`.github/dependabot.yml`) — software
-  supply-chain security signals, with drafted OpenSSF Best Practices answers in
+- **OpenSSF Scorecard** workflow (`.github/workflows/scorecard.yml`), **Dependabot**
+  automated dependency updates (`.github/dependabot.yml`), and a **CodeQL** static
+  analysis workflow (`.github/workflows/codeql.yml`) — software supply-chain +
+  SAST security signals, with drafted OpenSSF Best Practices answers in
   `docs/openssf-best-practices.md`.
 - **"FAIR for your CV" page** (`/fair`, 10 locales) — a public explainer of the
   machine-readable formats a published CV comes in (canonical JSON + schema,
