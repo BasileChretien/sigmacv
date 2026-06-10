@@ -5,6 +5,7 @@ import { asLocale, t } from "@/lib/i18n";
 import { accessibilityStrings } from "@/lib/i18n/accessibility";
 import { contactStrings } from "@/lib/i18n/contact";
 import { faqStrings } from "@/lib/i18n/faq";
+import { fairCvStrings } from "@/lib/i18n/fairCv";
 import { landingStrings } from "@/lib/i18n/landing";
 import { LANDING_PAGE_IDS, landingPageStrings } from "@/lib/i18n/landingPages";
 import { principlesStrings } from "@/lib/i18n/principles";
@@ -12,6 +13,7 @@ import {
   localeAboutPath,
   localeAccessibilityPath,
   localeContactPath,
+  localeFairPath,
   localeFaqPath,
   localeLandingPagePath,
   localePrinciplesPath,
@@ -271,6 +273,9 @@ export default function Landing({ locale }: LandingProps) {
         </Link>
         <Link className="footer-link" href={localePrinciplesPath(loc)}>
           {principlesStrings(loc).navLabel}
+        </Link>
+        <Link className="footer-link" href={localeFairPath(loc)}>
+          {fairCvStrings(loc).navLabel}
         </Link>
         <Link className="footer-link" href={localeAccessibilityPath(loc)}>
           {accessibilityStrings(loc).navLabel}

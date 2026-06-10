@@ -8,8 +8,9 @@ export const dynamic = "force-dynamic";
 
 /**
  * Public sitemap. Lists only crawlable, indexable URLs: the homepage, /about,
- * /privacy, /faq, /accessibility, /principles AND the SEO landing pages (/orcid-to-cv,
- * /nih-biosketch) in every language (each with per-entry hreflang `alternates`).
+ * /privacy, /faq, /accessibility, /principles, /fair AND the SEO landing pages
+ * (/orcid-to-cv, /nih-biosketch) in every language (each with per-entry hreflang
+ * `alternates`).
  * Public CVs (/p/*) are included ONLY when their owner opted into indexing
  * (publicIndexable) — the privacy-preserving growth loop. Excludes the
  * auth-gated editor (/cv) and all /api + Next internals.
@@ -27,6 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     loc === DEFAULT_UI_LOCALE ? "accessibility" : `${slug(loc)}/accessibility`;
   const principlesPath = (loc: string) =>
     loc === DEFAULT_UI_LOCALE ? "principles" : `${slug(loc)}/principles`;
+  const fairPath = (loc: string) => (loc === DEFAULT_UI_LOCALE ? "fair" : `${slug(loc)}/fair`);
   // SEO landing pages share the same path shape: bare segment for the default
   // locale, `${slug}/segment` otherwise.
   const landingPath = (segment: string) => (loc: string) =>
@@ -40,6 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const faqLanguages: Record<string, string> = {};
   const accessibilityLanguages: Record<string, string> = {};
   const principlesLanguages: Record<string, string> = {};
+  const fairLanguages: Record<string, string> = {};
   for (const loc of SUPPORTED_LOCALES) {
     homeLanguages[loc] = absoluteUrl(homePath(loc));
     aboutLanguages[loc] = absoluteUrl(aboutPath(loc));
@@ -48,6 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     faqLanguages[loc] = absoluteUrl(faqPath(loc));
     accessibilityLanguages[loc] = absoluteUrl(accessibilityPath(loc));
     principlesLanguages[loc] = absoluteUrl(principlesPath(loc));
+    fairLanguages[loc] = absoluteUrl(fairPath(loc));
   }
 
   const homeEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map((loc) => ({
@@ -99,6 +103,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: { languages: principlesLanguages },
   }));
 
+  const fairEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map((loc) => ({
+    url: absoluteUrl(fairPath(loc)),
+    changeFrequency: "yearly",
+    priority: loc === DEFAULT_UI_LOCALE ? 0.5 : 0.4,
+    alternates: { languages: fairLanguages },
+  }));
+
   // High-intent SEO landing pages — primary acquisition surfaces, so a higher
   // priority than the legal/info pages and a monthly change cadence. Iterates
   // LANDING_PAGE_IDS so any newly registered landing page is included here too.
@@ -138,6 +149,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...faqEntries,
     ...accessibilityEntries,
     ...principlesEntries,
+    ...fairEntries,
     ...landingEntries,
     ...cvEntries,
   ];
