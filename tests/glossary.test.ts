@@ -1,15 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { GUIDE_SLUGS } from "@/lib/guides/guides";
-import { GLOSSARY_SLUGS, getTerm, listTerms } from "@/lib/glossary/glossary";
+import { type GlossaryTerm, GLOSSARY_SLUGS, getTerm, listTerms } from "@/lib/glossary/glossary";
 import {
   definedTermJsonLd,
   definedTermSetJsonLd,
   glossaryIndexBreadcrumbJsonLd,
   glossaryTermBreadcrumbJsonLd,
 } from "@/lib/glossary/jsonLd";
+import type { GuideBlock } from "@/lib/guides/guides";
+import { GUIDE_SLUGS } from "@/lib/guides/guides";
+import { localeLanguageCode, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { GLOSSARY_NAV_LABEL, glossaryNavLabel } from "@/lib/i18n/guidesNav";
-import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import { LANDING_PAGE_IDS } from "@/lib/i18n/landingPages";
+
+function structure(blocks: GuideBlock[]): string[] {
+  return blocks.map((b) => {
+    if (b.type === "h2") return `h2#${b.id}`;
+    if (b.type === "cta") return `cta>${b.href}`;
+    if (b.type === "ul" || b.type === "ol") return `${b.type}:${b.items.length}`;
+    return b.type;
+  });
+}
 
 describe("glossary content", () => {
   const terms = listTerms();
@@ -55,6 +65,34 @@ describe("glossary content", () => {
   });
 });
 
+describe("glossary localization (forced 10 locales)", () => {
+  const en = Object.fromEntries(listTerms("en-US").map((t) => [t.slug, t]));
+
+  it("every locale defines every term with identical structure", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const terms = listTerms(loc);
+      expect(terms.map((t) => t.slug).sort()).toEqual([...GLOSSARY_SLUGS].sort());
+      for (const t of terms) {
+        const ref = en[t.slug]!;
+        expect(structure(t.blocks)).toEqual(structure(ref.blocks));
+        expect(t.faq?.length ?? 0).toBe(ref.faq?.length ?? 0);
+        expect(t.relatedTerms).toEqual(ref.relatedTerms);
+        for (const v of [t.term, t.title, t.short, t.description]) {
+          expect(v.trim().length).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  it("non-English locales actually differ from English", () => {
+    expect(getTerm("orcid", "fr-FR")!.title).not.toBe(getTerm("orcid", "en-US")!.title);
+  });
+
+  it("unknown locale falls back to English", () => {
+    expect(getTerm("orcid", "xx-XX")!.title).toBe(getTerm("orcid", "en-US")!.title);
+  });
+});
+
 describe("glossary JSON-LD", () => {
   const term = getTerm("orcid")!;
 
@@ -64,6 +102,16 @@ describe("glossary JSON-LD", () => {
     expect(ld).toContain('"name":"ORCID"');
     expect(ld).toContain('"inDefinedTermSet"');
     expect(ld).toContain("/glossary/orcid");
+    expect(ld).toContain('"inLanguage":"en"');
+  });
+
+  it("localizes inLanguage + URL per locale", () => {
+    const fr = definedTermJsonLd(getTerm("orcid", "fr-FR")!, "fr-FR");
+    expect(fr).toContain(`"inLanguage":"${localeLanguageCode("fr-FR")}"`);
+    expect(fr).toContain("/fr/glossary/orcid");
+    const crumb = glossaryTermBreadcrumbJsonLd(getTerm("orcid", "fr-FR")!, "fr-FR");
+    expect(crumb).toContain(glossaryNavLabel("fr-FR"));
+    expect(crumb).toContain("/fr/glossary/orcid");
   });
 
   it("builds breadcrumbs (3-level term, 2-level index)", () => {
@@ -76,6 +124,8 @@ describe("glossary JSON-LD", () => {
     const ld = definedTermSetJsonLd(listTerms());
     expect(ld).toContain('"@type":"DefinedTermSet"');
     for (const t of listTerms()) expect(ld).toContain(`/glossary/${t.slug}`);
+    // Localized set uses locale-prefixed URLs.
+    expect(definedTermSetJsonLd(listTerms("fr-FR"), "fr-FR")).toContain("/fr/glossary/orcid");
   });
 });
 
@@ -88,3 +138,6 @@ describe("glossaryNavLabel", () => {
     expect(glossaryNavLabel("xx-XX")).toBe(GLOSSARY_NAV_LABEL["en-US"]);
   });
 });
+
+const _typecheck: GlossaryTerm | undefined = getTerm("orcid");
+void _typecheck;

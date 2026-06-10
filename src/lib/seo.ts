@@ -158,6 +158,82 @@ export function landingPageLanguageAlternates(segment: string): Record<string, s
   return languages;
 }
 
+// ─── Guides + glossary (localized authority content, I1) ─────────────────────
+
+/** /guides index path for a locale: "/guides" for the default, "/{slug}/guides" otherwise. */
+export function localeGuidesIndexPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/guides" : `/${LOCALE_SLUGS[loc]}/guides`;
+}
+
+/** hreflang → path map for the /guides index. */
+export function guidesIndexLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeGuidesIndexPath(loc);
+  languages["x-default"] = "/guides";
+  return languages;
+}
+
+/** A guide path for a locale: "/guides/{slug}" for the default, "/{loc}/guides/{slug}" otherwise. */
+export function localeGuidePath(slug: string, locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? `/guides/${slug}` : `/${LOCALE_SLUGS[loc]}/guides/${slug}`;
+}
+
+/** hreflang → path map for a single guide. */
+export function guideLanguageAlternates(slug: string): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeGuidePath(slug, loc);
+  languages["x-default"] = `/guides/${slug}`;
+  return languages;
+}
+
+/** /glossary index path for a locale: "/glossary" for the default, "/{slug}/glossary" otherwise. */
+export function localeGlossaryIndexPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/glossary" : `/${LOCALE_SLUGS[loc]}/glossary`;
+}
+
+/** hreflang → path map for the /glossary index. */
+export function glossaryIndexLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeGlossaryIndexPath(loc);
+  languages["x-default"] = "/glossary";
+  return languages;
+}
+
+/** A term path for a locale: "/glossary/{slug}" for the default, "/{loc}/glossary/{slug}" otherwise. */
+export function localeGlossaryTermPath(slug: string, locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? `/glossary/${slug}` : `/${LOCALE_SLUGS[loc]}/glossary/${slug}`;
+}
+
+/** hreflang → path map for a single glossary term. */
+export function glossaryTermLanguageAlternates(slug: string): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeGlossaryTermPath(slug, loc);
+  languages["x-default"] = `/glossary/${slug}`;
+  return languages;
+}
+
+/**
+ * Rewrite an internal content href (CTA links inside guides/glossary) to its
+ * localized equivalent for `locale`. The homepage, landing-page segments, guide
+ * and glossary links all gain the locale prefix; external/anchor/mail links are
+ * left untouched. For the default locale every result is the original path, so
+ * the bare routes are unaffected.
+ */
+export function localizeContentHref(href: string, locale: string): string {
+  if (!href.startsWith("/")) return href; // external, anchor, mailto, …
+  if (href === "/") return localeHomePath(locale);
+  if (href.startsWith("/guides/")) return localeGuidePath(href.slice("/guides/".length), locale);
+  if (href.startsWith("/glossary/")) {
+    return localeGlossaryTermPath(href.slice("/glossary/".length), locale);
+  }
+  // A bare single segment (e.g. "/orcid-to-cv") is an SEO landing page.
+  return localeLandingPagePath(href.slice(1), locale);
+}
+
 /** Open Graph locale tag (underscored): "fr-FR" → "fr_FR". */
 export function ogLocale(locale: string): string {
   return asLocale(locale).replace("-", "_");

@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import GlossaryIndex, {
-  GLOSSARY_INDEX_DESCRIPTION,
-  GLOSSARY_INDEX_TITLE,
-} from "@/components/GlossaryIndex";
+import GlossaryIndex from "@/components/GlossaryIndex";
+import { guidesChrome } from "@/lib/i18n/guidesChrome";
+import { glossaryIndexLanguageAlternates } from "@/lib/seo";
+
+const chrome = guidesChrome("en-US");
 
 export const metadata: Metadata = {
   // The root layout's title template appends " — SigmaCV".
-  title: GLOSSARY_INDEX_TITLE,
-  description: GLOSSARY_INDEX_DESCRIPTION,
-  alternates: { canonical: "/glossary" },
+  title: chrome.glossaryIndexTitle,
+  description: chrome.glossaryIndexDescription,
+  alternates: { canonical: "/glossary", languages: glossaryIndexLanguageAlternates() },
 };
 
 export default function GlossaryPage() {

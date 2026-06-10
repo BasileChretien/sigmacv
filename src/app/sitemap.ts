@@ -4,6 +4,12 @@ import { listGuides } from "@/lib/guides/guides";
 import { listTerms } from "@/lib/glossary/glossary";
 import { DEFAULT_UI_LOCALE, LOCALE_SLUGS, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { ALL_LANDING_PAGE_IDS } from "@/lib/i18n/landingAll";
+import {
+  localeGlossaryIndexPath,
+  localeGlossaryTermPath,
+  localeGuidePath,
+  localeGuidesIndexPath,
+} from "@/lib/seo";
 import { absoluteUrl } from "@/lib/siteUrl";
 
 export const dynamic = "force-dynamic";
@@ -140,30 +146,57 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   });
 
-  // Guides (English-only authority content): the index + each cornerstone guide.
-  const guides = listGuides();
+  // Guides (localized authority content): the index + each cornerstone guide,
+  // one crawlable URL per language with reciprocal hreflang `alternates`.
+  const guidesIndexLanguages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) {
+    guidesIndexLanguages[loc] = absoluteUrl(localeGuidesIndexPath(loc));
+  }
   const guidesEntries: MetadataRoute.Sitemap = [
-    {
-      url: absoluteUrl("guides"),
-      changeFrequency: "weekly",
-      priority: 0.7,
-    },
-    ...guides.map((g) => ({
-      url: absoluteUrl(`guides/${g.slug}`),
-      lastModified: g.dateModified,
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
+    ...SUPPORTED_LOCALES.map((loc) => ({
+      url: absoluteUrl(localeGuidesIndexPath(loc)),
+      changeFrequency: "weekly" as const,
+      priority: loc === DEFAULT_UI_LOCALE ? 0.7 : 0.6,
+      alternates: { languages: guidesIndexLanguages },
     })),
+    ...listGuides().flatMap((g) => {
+      const languages: Record<string, string> = {};
+      for (const loc of SUPPORTED_LOCALES)
+        languages[loc] = absoluteUrl(localeGuidePath(g.slug, loc));
+      return SUPPORTED_LOCALES.map((loc) => ({
+        url: absoluteUrl(localeGuidePath(g.slug, loc)),
+        lastModified: g.dateModified,
+        changeFrequency: "monthly" as const,
+        priority: loc === DEFAULT_UI_LOCALE ? 0.7 : 0.6,
+        alternates: { languages },
+      }));
+    }),
   ];
 
-  // Glossary (English-only concept pages): the index + each term.
+  // Glossary (localized concept pages): the index + each term, per language.
+  const glossaryIndexLanguages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) {
+    glossaryIndexLanguages[loc] = absoluteUrl(localeGlossaryIndexPath(loc));
+  }
   const glossaryEntries: MetadataRoute.Sitemap = [
-    { url: absoluteUrl("glossary"), changeFrequency: "monthly", priority: 0.6 },
-    ...listTerms().map((t) => ({
-      url: absoluteUrl(`glossary/${t.slug}`),
-      changeFrequency: "yearly" as const,
-      priority: 0.6,
+    ...SUPPORTED_LOCALES.map((loc) => ({
+      url: absoluteUrl(localeGlossaryIndexPath(loc)),
+      changeFrequency: "monthly" as const,
+      priority: loc === DEFAULT_UI_LOCALE ? 0.6 : 0.5,
+      alternates: { languages: glossaryIndexLanguages },
     })),
+    ...listTerms().flatMap((t) => {
+      const languages: Record<string, string> = {};
+      for (const loc of SUPPORTED_LOCALES) {
+        languages[loc] = absoluteUrl(localeGlossaryTermPath(t.slug, loc));
+      }
+      return SUPPORTED_LOCALES.map((loc) => ({
+        url: absoluteUrl(localeGlossaryTermPath(t.slug, loc)),
+        changeFrequency: "yearly" as const,
+        priority: loc === DEFAULT_UI_LOCALE ? 0.6 : 0.5,
+        alternates: { languages },
+      }));
+    }),
   ];
 
   // Opt-in indexable public CVs — the privacy-preserving organic-growth loop.
