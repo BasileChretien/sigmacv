@@ -81,6 +81,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-work **open-access badges are now opt-in** (default off), consistent with the
   metrics-default-none, DORA-aligned stance.
 
+### Fixed
+
+- **NIH iCite RCR now actually populates.** The iCite client read the value under
+  `relative_citation_ratio`, but a field-filtered iCite response returns it under
+  the short alias `rcr`, so the Relative Citation Ratio was never stored and "Mean
+  RCR" always read "(no data)". The client now reads `rcr` (with a fallback to the
+  long name). After a re-sync, biomedical works with a PMID carry their RCR.
+- **The editor's metric picker shows the RCR value when present.** The picker read
+  author-level `owner.metrics`, but the field-normalized means (RCR, FWCI mean,
+  top-10% share) are recomputed over the curated works at render time and are not
+  stored there — so "Mean RCR" read "(no data)" even when the CV rendered a value.
+  The picker now derives the same curated figures the CV displays.
+
 ## [0.1.0] - 2026-06-08
 
 Initial public release of SigmaCV — open infrastructure for responsible research
