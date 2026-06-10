@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Wikidata entity link** in the homepage structured data — the
+  `Organization` and `SoftwareApplication` JSON-LD now list SigmaCV's Wikidata
+  item ([Q140158386](https://www.wikidata.org/wiki/Q140158386)) under `sameAs`, so
+  search engines and LLM knowledge graphs resolve the site and its Wikidata record
+  as one entity.
 - **"Who it's for" section on the homepage** (10 languages) — four audience cards
   (students & grad-school applicants, PhD students & postdocs, faculty &
   principal investigators, and clinicians / librarians / research offices) make it

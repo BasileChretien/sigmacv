@@ -23,10 +23,17 @@ const NAME = "SigmaCV";
 // Kept in step with CITATION.cff / codemeta.json on each release.
 const APP_VERSION = "0.1.0";
 const DATE_PUBLISHED = "2026-06-08";
+// The Wikidata item for SigmaCV (the software/project entity). Surfacing it as
+// `sameAs` closes the loop with Wikidata's own official-website statement, which
+// helps search + LLM knowledge graphs resolve SigmaCV as one entity.
+const WIKIDATA_ENTITY = "https://www.wikidata.org/wiki/Q140158386";
 
 export default function StructuredData({ locale, description }: StructuredDataProps) {
   const { github, linkedin } = getSiteLinks();
   const sameAs = [github, linkedin].filter((u) => u.length > 0);
+  // The project/software entity also resolves to its Wikidata item (the author,
+  // a Person, does not — that's the ORCID on `author.sameAs`).
+  const entitySameAs = [...sameAs, WIKIDATA_ENTITY];
 
   const graph = [
     {
@@ -69,7 +76,7 @@ export default function StructuredData({ locale, description }: StructuredDataPr
         url: "https://orcid.org/0000-0002-7483-2489",
         sameAs: ["https://orcid.org/0000-0002-7483-2489", ...sameAs],
       },
-      ...(sameAs.length ? { sameAs } : {}),
+      sameAs: entitySameAs,
     },
     {
       "@type": "Organization",
@@ -81,7 +88,7 @@ export default function StructuredData({ locale, description }: StructuredDataPr
         url: `${SITE_URL}/icon.svg`,
         contentUrl: `${SITE_URL}/icon.svg`,
       },
-      ...(sameAs.length ? { sameAs } : {}),
+      sameAs: entitySameAs,
     },
   ];
 
