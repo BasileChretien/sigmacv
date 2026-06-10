@@ -57,7 +57,7 @@ import {
 } from "@/lib/canonical/cvModels";
 import { METRIC_DEFS, curatedMetrics, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
-import { metricHint } from "@/lib/i18n/metricHints";
+import { FIELD_NORMALIZED_METRICS, metricHint } from "@/lib/i18n/metricHints";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
@@ -941,7 +941,14 @@ export default function CvEditor({
               onClick={() =>
                 onChange(
                   updateDisplay(cv, {
-                    metrics: ["2yr_mean_citedness", "fwci_mean"],
+                    // Exactly the field-normalized indicators (DORA / Leiden), in
+                    // catalog order — derived from the single source of truth so it
+                    // matches the note's "field-normalised only" promise and can't
+                    // drift. Deliberately excludes raw / IF-like measures (e.g. the
+                    // 2-year mean citedness). RCR only renders where there's data.
+                    metrics: METRIC_DEFS.filter((d) => FIELD_NORMALIZED_METRICS.has(d.key)).map(
+                      (d) => d.key,
+                    ),
                     showMetrics: true,
                   }),
                 )

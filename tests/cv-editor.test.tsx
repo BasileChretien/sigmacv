@@ -85,7 +85,10 @@ describe("CvEditor (component)", () => {
     );
     fireEvent.click(screen.getByText(/responsible-metrics preset/i));
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
-    expect(next.display.metrics).toEqual(["2yr_mean_citedness", "fwci_mean"]);
+    // Exactly the field-normalized indicators (FIELD_NORMALIZED_METRICS), in
+    // catalog order — NOT the non-normalized 2-year mean citedness, and now
+    // including the iCite RCR. Matches the preset's "field-normalised only" note.
+    expect(next.display.metrics).toEqual(["fwci_mean", "rcr_mean"]);
     expect(next.display.showMetrics).toBe(true);
   });
 
