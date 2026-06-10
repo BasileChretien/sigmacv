@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Publish nudge** (10 languages) — a gentle, dismissible prompt in the editor
+  invites you to publish a free, shareable public CV page. It appears only while
+  your CV is unpublished, never publishes on your behalf (its button just takes
+  you to the publish toggle — publishing stays a deliberate choice), and stays
+  hidden once you publish or dismiss it.
 - **More landing pages for common searches** (10 languages) — a page for turning a
   **Google Scholar** profile into a CV (honest about the open path: Scholar has no
   API, so SigmaCV uses ORCID/OpenAlex), an **ERC CV** page, and an **"import

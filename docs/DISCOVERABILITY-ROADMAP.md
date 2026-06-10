@@ -77,12 +77,30 @@ _and_ **GEO** (Generative Engine Optimization — being the answer LLMs give).
 
 ## Phase 0 — Measure & target (you can't rank what you don't track)
 
-| #   | Item                                                                                                                                                                                                                                                                                                | Owner | Effort | Status |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ | ------ |
-| M1  | **Google Search Console** + **Bing Webmaster Tools** — verify the domain, submit `sitemap.xml`, watch Coverage/Performance. The single most important measurement surface. _(Done 2026-06-10: GSC domain property verified via Porkbun DNS TXT + `sitemap.xml` submitted; Bing imported from GSC.)_ | 🙋    | S      | ✅     |
-| M2  | **Keyword universe** — finalize the target table below (head + long-tail + question intents, split student vs researcher, per locale). Pick 1 primary + 2–3 secondary terms per page.                                                                                                               | 👥    | S      | ⬜     |
-| M3  | **Rank + LLM baseline** — record today's Google position for the head terms and, for each of ChatGPT / Claude / Perplexity / Gemini, whether SigmaCV is named for "best academic CV builder" etc. Re-check monthly.                                                                                 | 🙋    | S      | ⬜     |
-| M4  | **Funnel tracking** — Plausible goals for organic-search and LLM-referral landings → sign-in → publish, so we see which content converts.                                                                                                                                                           | 🧑‍💻    | S      | ⬜     |
+| #   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Owner | Effort | Status |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ | ------ |
+| M1  | **Google Search Console** + **Bing Webmaster Tools** — verify the domain, submit `sitemap.xml`, watch Coverage/Performance. The single most important measurement surface. _(Done 2026-06-10: GSC domain property verified via Porkbun DNS TXT + `sitemap.xml` submitted; Bing imported from GSC.)_                                                                                                                                                                   | 🙋    | S      | ✅     |
+| M2  | **Keyword universe** — finalize the target table below (head + long-tail + question intents, split student vs researcher, per locale). Pick 1 primary + 2–3 secondary terms per page.                                                                                                                                                                                                                                                                                 | 👥    | S      | ⬜     |
+| M3  | **Rank + LLM baseline** — record today's Google position for the head terms and, for each of ChatGPT / Claude / Perplexity / Gemini, whether SigmaCV is named for "best academic CV builder" etc. Re-check monthly.                                                                                                                                                                                                                                                   | 🙋    | S      | ⬜     |
+| M4  | **Funnel tracking** — Plausible goals for organic-search and LLM-referral landings → sign-in → publish, so we see which content converts. _(Done 2026-06-11: cookieless `Sign in` event (with `method`) added to the landing auth buttons, completing the landing → **sign-in** → publish funnel — `Publish` already fired; a `Publish nudge` event measures F1. Source/medium is native Plausible. 🙋 create the goals in the dashboard: see "Funnel goals" below.)_ | 🧑‍💻    | S      | ✅     |
+
+### Funnel goals (🙋 — Plausible dashboard, one-time)
+
+The app now fires three cookieless custom events; turn them into **goals** in the
+Plausible site settings (Goals → Add goal → "Custom event") so the funnel and
+conversion rates show up:
+
+| Goal (custom event) | Fires when                                                   | Useful breakdown     |
+| ------------------- | ------------------------------------------------------------ | -------------------- |
+| `Sign in`           | a visitor clicks any sign-in button (ORCID / Google / email) | property `method`    |
+| `Publish nudge`     | a visitor clicks the in-editor publish nudge's CTA           | property `action`    |
+| `Publish`           | a CV is published                                            | property `indexable` |
+
+With these plus Plausible's native **Sources** (organic search vs. an LLM
+referrer) you can read the whole landing → **sign-in** → **publish** funnel and
+see which content actually converts. No personal data is sent — only the neutral
+product signals above. (Then optionally build a Plausible **Funnel**:
+pageview → `Sign in` → `Publish`.)
 
 ## Phase 1 — Technical & structured-data hygiene (finish the gaps)
 
@@ -138,10 +156,10 @@ _and_ **GEO** (Generative Engine Optimization — being the answer LLMs give).
 
 ## Phase 6 — The `/p/[slug]` organic flywheel (compounding long-tail)
 
-| #   | Item                                                                                                                                                                                     | Owner | Effort | Status |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ | ------ |
-| F1  | **Nudge publishing** — every published, indexable CV is a page ranking for "{name} academic CV" and builds topical authority. Add a gentle, consensual in-app prompt to publish + share. | 🧑‍💻    | M      | ⬜     |
-| F2  | **Make public CVs best-in-class SEO targets** — confirm titles/meta/OG per CV, fast render, the "Made with SigmaCV" referral link (exists). Each is also a live demo of the product.     | 🧑‍💻    | S      | ⬜     |
+| #   | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Owner | Effort | Status |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ | ------ |
+| F1  | **Nudge publishing** — every published, indexable CV is a page ranking for "{name} academic CV" and builds topical authority. Add a gentle, consensual in-app prompt to publish + share. _(Done 2026-06-11: a dismissible `PublishNudge` banner above the editor panes, shown only while the CV is unpublished, in all 10 locales. Consensual — its CTA scrolls to / focuses / pulses the existing publish toggle rather than publishing for the user, and it's suppressed once published or dismissed (per-browser).)_ | 🧑‍💻    | M      | ✅     |
+| F2  | **Make public CVs best-in-class SEO targets** — confirm titles/meta/OG per CV, fast render, the "Made with SigmaCV" referral link (exists). Each is also a live demo of the product.                                                                                                                                                                                                                                                                                                                                    | 🧑‍💻    | S      | ⬜     |
 
 ## Phase 7 — International (you already have 10 locales)
 
