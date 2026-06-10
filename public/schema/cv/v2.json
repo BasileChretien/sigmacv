@@ -259,6 +259,10 @@
           "type": "boolean",
           "default": false
         },
+        "hideRetracted": {
+          "type": "boolean",
+          "default": false
+        },
         "showAuthorRole": {
           "type": "boolean",
           "default": false
@@ -872,6 +876,10 @@
                 "default": false
               },
               "showOpenAccess": {
+                "type": "boolean",
+                "default": false
+              },
+              "hideRetracted": {
                 "type": "boolean",
                 "default": false
               },

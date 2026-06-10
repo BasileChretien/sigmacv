@@ -465,6 +465,20 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(html).toContain(">Retracted</span>");
     });
 
+    it("excludes retracted works from the render when hideRetracted is on", () => {
+      const base = cvWith({ hideRetracted: true });
+      const cv: CanonicalCv = {
+        ...base,
+        sections: base.sections.map((s) => ({
+          ...s,
+          items: s.items.map((it) => ({ ...it, meta: { ...it.meta, retracted: true } })),
+        })),
+      };
+      const html = renderCvHtml(cv);
+      expect(html).not.toContain("An OA paper");
+      expect(html).not.toContain("cv-badge-retracted");
+    });
+
     it("renders the author-role badge when enabled (first, corresponding)", () => {
       const html = renderCvHtml(cvWith({ showAuthorRole: true }));
       expect(html).toContain(">first, corresponding</span>");

@@ -1006,6 +1006,15 @@ export default function CvEditor({
         <label className="field-inline">
           <input
             type="checkbox"
+            checked={cv.display.hideRetracted}
+            onChange={(e) => onChange(updateDisplay(cv, { hideRetracted: e.target.checked }))}
+          />
+          <span>{u.hideRetracted}</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
             checked={cv.display.showAuthorRole}
             onChange={(e) => onChange(updateDisplay(cv, { showAuthorRole: e.target.checked }))}
           />

@@ -56,8 +56,10 @@ export function prepareSections(
   // Both mirror countableWorks so the listing matches the figures.
   const peerOnly = cv.display.peerReviewedOnly;
   const countLetters = cv.display.countLetters !== false; // default on
+  const hideRetracted = cv.display.hideRetracted === true;
   const keep = (item: CvItem): boolean => {
     if (!item.csl) return true; // non-citation entries untouched
+    if (hideRetracted && item.meta.retracted) return false; // user opted to exclude retractions
     if (peerOnly && item.meta.peerReviewed === false) return false; // strict: drop non-peer-reviewed
     if (item.meta.type === "letter" && !countLetters) return false; // articles-only: drop letters
     return true;

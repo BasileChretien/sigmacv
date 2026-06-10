@@ -98,6 +98,29 @@ describe.skipIf(!hasApa)("CSL-JSON renderer", () => {
     expect(cvCslItems(corrected).length).toBe(before - 1);
   });
 
+  it("keeps retracted works by default, drops them only when hideRetracted is on", () => {
+    const cv = makeCv();
+    const id = cv.sections[0]!.items[0]!.id;
+    const before = cvCslItems(cv).length;
+    const flagged: CanonicalCv = {
+      ...cv,
+      sections: cv.sections.map((s) =>
+        s.id === "publications"
+          ? {
+              ...s,
+              items: s.items.map((it) =>
+                it.id === id ? { ...it, meta: { ...it.meta, retracted: true } } : it,
+              ),
+            }
+          : s,
+      ),
+    };
+    // Shown by default (with the badge in the rendered CV).
+    expect(cvCslItems(flagged).length).toBe(before);
+    // Excluded once the owner opts to hide retractions.
+    expect(cvCslItems(updateDisplay(flagged, { hideRetracted: true })).length).toBe(before - 1);
+  });
+
   it("renders an empty array for a CV with no citations", () => {
     const cv = makeCv();
     const empty: CanonicalCv = { ...cv, sections: [] };
