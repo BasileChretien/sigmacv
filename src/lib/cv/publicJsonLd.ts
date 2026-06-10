@@ -70,6 +70,46 @@ function affiliationOrg(cv: CanonicalCv): Record<string, unknown> | undefined {
   return org;
 }
 
+/** Visible items of the first visible section of `type`, or []. */
+function visibleSectionItems(cv: CanonicalCv, type: CvSection["type"]): CvItem[] {
+  const section = visibleSections(cv).find((s) => s.type === type);
+  return section ? visibleItems(section) : [];
+}
+
+/**
+ * schema.org `MonetaryGrant` entities for the visible Grants section — funding the
+ * researcher received, with the funder Organization (`@id` only when the stored
+ * funder id is a safe http(s) IRI) and the award id as `identifier`.
+ */
+function fundingEntities(cv: CanonicalCv): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const item of visibleSectionItems(cv, "grants")) {
+    const name = itemDisplayText(item)?.trim();
+    if (!name) continue;
+    const grant: Record<string, unknown> = { "@type": "MonetaryGrant", name };
+    const award = item.meta.awardId?.trim();
+    if (award) grant.identifier = award;
+    const funderName = item.meta.funderName?.trim();
+    if (funderName) {
+      const funder: Record<string, unknown> = { "@type": "Organization", name: funderName };
+      const fid = item.meta.funderId?.trim();
+      const href = fid ? safeHref(fid) : "";
+      if (href) funder["@id"] = href;
+      grant.funder = funder;
+    }
+    out.push(grant);
+  }
+  return out;
+}
+
+/** schema.org entities (one `@type` per item) from a section's visible item labels. */
+function labelledEntities(cv: CanonicalCv, type: CvSection["type"], schemaType: string) {
+  return visibleSectionItems(cv, type)
+    .map((it) => itemDisplayText(it)?.trim())
+    .filter((n): n is string => Boolean(n))
+    .map((name) => ({ "@type": schemaType, name }));
+}
+
 /**
  * `sameAs` URLs for the Person: the ORCID profile, the OpenAlex author
  * profile(s), the owner's explicit profile links, and a public website — every
@@ -142,6 +182,16 @@ export function profilePageJsonLd(cv: CanonicalCv, slug: string): string {
     person.affiliation = org;
     person.worksFor = org;
   }
+
+  // Richer entity graph: funding (grants), occupations (positions) and education
+  // credentials — so a published CV's funding, roles and education are
+  // machine-readable, not just the bare Person identity.
+  const funding = fundingEntities(cv);
+  if (funding.length > 0) person.funding = funding;
+  const occupations = labelledEntities(cv, "positions", "Occupation");
+  if (occupations.length > 0) person.hasOccupation = occupations;
+  const credentials = labelledEntities(cv, "education", "EducationalOccupationalCredential");
+  if (credentials.length > 0) person.hasCredential = credentials;
 
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",

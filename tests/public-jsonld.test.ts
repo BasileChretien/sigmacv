@@ -229,4 +229,102 @@ describe("profilePageJsonLd", () => {
       JSON.parse(profilePageJsonLd(makeCv({ cvLicense: "all-rights-reserved" }), "s")).license,
     ).toBeUndefined();
   });
+
+  // ─── C6: richer schema.org entity graph (grants / positions / education) ──────
+  const mkItem = (id: string, displayText: string, meta: Record<string, unknown> = {}) => ({
+    id,
+    source: "orcid",
+    sourceId: id,
+    included: true,
+    notMine: false,
+    order: 0,
+    authoredBySelf: false,
+    selfNameVariants: [],
+    displayText,
+    meta,
+  });
+  const withGraphSections = (cv: CanonicalCv): CanonicalCv =>
+    ({
+      ...cv,
+      sections: [
+        ...cv.sections,
+        {
+          id: "positions",
+          type: "positions",
+          title: "Positions",
+          visible: true,
+          order: 90,
+          items: [mkItem("p1", "Researcher, Nagoya University"), mkItem("p2", "")],
+        },
+        {
+          id: "grants",
+          type: "grants",
+          title: "Grants",
+          visible: true,
+          order: 91,
+          items: [
+            mkItem("g1", "Grant A", {
+              funderName: "NIH",
+              awardId: "R01-123",
+              funderId: "https://doi.org/10.13039/100000002",
+            }),
+            mkItem("g2", "Grant B", { funderName: "DFG" }),
+            mkItem("g3", "Grant C"),
+            mkItem("g4", ""),
+            mkItem("g5", "Grant E", { funderName: "X", funderId: "not-a-url" }),
+          ],
+        },
+        {
+          id: "education",
+          type: "education",
+          title: "Education",
+          visible: true,
+          order: 92,
+          items: [mkItem("e1", "PhD, University of Caen")],
+        },
+      ],
+    }) as unknown as CanonicalCv;
+
+  it("emits hasOccupation, funding (MonetaryGrant) and hasCredential from the sections", () => {
+    const person = JSON.parse(profilePageJsonLd(withGraphSections(makeCv()), "s")).mainEntity;
+
+    // Occupations from positions (the blank-label one is filtered out).
+    expect(person.hasOccupation).toHaveLength(1);
+    expect(person.hasOccupation[0]).toEqual({
+      "@type": "Occupation",
+      name: "Researcher, Nagoya University",
+    });
+
+    // Credential from education.
+    expect(person.hasCredential).toEqual([
+      { "@type": "EducationalOccupationalCredential", name: "PhD, University of Caen" },
+    ]);
+
+    // Funding: 4 grants (the blank-label one dropped).
+    expect(person.funding).toHaveLength(4);
+    // A: funder name + safe @id + award identifier.
+    expect(person.funding[0]).toEqual({
+      "@type": "MonetaryGrant",
+      name: "Grant A",
+      identifier: "R01-123",
+      funder: { "@type": "Organization", name: "NIH", "@id": "https://doi.org/10.13039/100000002" },
+    });
+    // B: funder name only (no award, no funder @id).
+    expect(person.funding[1]).toEqual({
+      "@type": "MonetaryGrant",
+      name: "Grant B",
+      funder: { "@type": "Organization", name: "DFG" },
+    });
+    // C: no funder at all.
+    expect(person.funding[2]).toEqual({ "@type": "MonetaryGrant", name: "Grant C" });
+    // E: non-http funder id is dropped, name kept.
+    expect(person.funding[3].funder).toEqual({ "@type": "Organization", name: "X" });
+  });
+
+  it("omits funding/occupation/credential when those sections are absent", () => {
+    const person = JSON.parse(profilePageJsonLd(makeCv(), "s")).mainEntity;
+    expect(person.funding).toBeUndefined();
+    expect(person.hasOccupation).toBeUndefined();
+    expect(person.hasCredential).toBeUndefined();
+  });
 });
