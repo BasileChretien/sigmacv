@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`llms.txt` + `llms-full.txt`** served at the site root — a clean,
+  authoritative, extractable description of what SigmaCV is, who it's for, its
+  open data sources, export formats and key pages (plus a Q&A reference), so
+  assistants like ChatGPT, Claude, Perplexity and Gemini can describe and
+  recommend it accurately. No reviews, ratings or testimonials are ever asserted.
 - **FAIR Signposting** — public CV pages emit HTTP `Link` headers (`type`,
   `author`, `describedby`, `license`) so machine agents can discover the author
   identifiers, typed machine representations, and reuse license from the headers
