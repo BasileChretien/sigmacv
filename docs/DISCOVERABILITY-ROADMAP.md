@@ -67,6 +67,7 @@ _and_ **GEO** (Generative Engine Optimization — being the answer LLMs give).
 - **Deepened 7 landing pages** (C1) ×10 locales — intro + 4-step how-to + why + 5-FAQ + related-page links via the new `src/lib/i18n/landingContent.ts`; `LandingPage.tsx` now also emits `HowTo` JSON-LD (T2) and hub-and-spoke internal links (part of T6). Non-English copy machine-drafted, flagged for native review.
 - **Enriched homepage `SoftwareApplication`** (T4) — `softwareVersion`, `datePublished`, `inLanguage` ×10, real `screenshot` (`public/screenshot-home.webp`); no `aggregateRating`. (`SearchAction` deliberately skipped — no on-site search.)
 - **Homepage "who it's for" personas** (C2) ×10 locales — students & grad applicants / PhD & postdocs / faculty & PIs / clinicians & research staff, via the new `src/lib/i18n/landingAudience.ts`; homepage copy in `landing.ts` already strong (hero + 3-step how-it-works + features + trust + explore links).
+- **Wikidata entity** (G2) — item [Q140158386](https://www.wikidata.org/wiki/Q140158386) created (official site / repo / DOI / license / TypeScript); its QID is wired into the homepage `Organization` + `SoftwareApplication` `sameAs` (`components/StructuredData.tsx`) so site↔Wikidata cross-reference for entity recognition.
 
 ---
 
@@ -113,13 +114,13 @@ _and_ **GEO** (Generative Engine Optimization — being the answer LLMs give).
 
 ## Phase 4 — GEO (be the answer LLMs give)
 
-| #   | Item                                                                                                                                                                                                      | Owner | Effort | Status |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ | ------ |
-| G1  | **`llms.txt`** (= T1) + structure all key content as clean **Q&A / definitions / comparisons** (the shapes LLMs extract verbatim).                                                                        | 🧑‍💻    | S      | ⬜     |
-| G2  | **Wikidata item** for SigmaCV (software entity: instance-of, license, repo, official site, based-on OpenAlex/ORCID) — a structured fact LLMs and search both consume.                                     | 👥    | S      | ⬜     |
-| G3  | **Wikipedia** — only once genuinely notable (independent coverage); otherwise contribute SigmaCV as a citation/external link on relevant articles (academic CV, ORCID, OpenAlex). No self-promotion spam. | 🙋    | M      | ⏸      |
-| G4  | **Listed where LLMs retrieve** — AlternativeTo, Product Hunt, G2/Capterra, SaaSHub, "awesome-open-science"/"awesome-research-tools" GitHub lists, ORCID integrations directory.                           | 🙋    | M      | ⬜     |
-| G5  | **Monitor LLM answers monthly** (M3 loop) and close gaps the models reveal (missing comparison, unclear pricing, etc.).                                                                                   | 👥    | XL     | ⬜     |
+| #   | Item                                                                                                                                                                                                                                                                                                        | Owner | Effort | Status |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ | ------ |
+| G1  | **`llms.txt`** (= T1) + structure all key content as clean **Q&A / definitions / comparisons** (the shapes LLMs extract verbatim).                                                                                                                                                                          | 🧑‍💻    | S      | ⬜     |
+| G2  | **Wikidata item** for SigmaCV (software entity: instance-of, license, repo, official site, based-on OpenAlex/ORCID) — a structured fact LLMs and search both consume. _(Item created: [Q140158386](https://www.wikidata.org/wiki/Q140158386); wired into the homepage `sameAs` JSON-LD to close the loop.)_ | 👥    | S      | ✅     |
+| G3  | **Wikipedia** — only once genuinely notable (independent coverage); otherwise contribute SigmaCV as a citation/external link on relevant articles (academic CV, ORCID, OpenAlex). No self-promotion spam.                                                                                                   | 🙋    | M      | ⏸      |
+| G4  | **Listed where LLMs retrieve** — AlternativeTo, Product Hunt, G2/Capterra, SaaSHub, "awesome-open-science"/"awesome-research-tools" GitHub lists, ORCID integrations directory.                                                                                                                             | 🙋    | M      | ⬜     |
+| G5  | **Monitor LLM answers monthly** (M3 loop) and close gaps the models reveal (missing comparison, unclear pricing, etc.).                                                                                                                                                                                     | 👥    | XL     | ⬜     |
 
 ## Phase 5 — Off-page authority & backlinks (dominant lever)
 
