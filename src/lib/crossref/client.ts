@@ -101,6 +101,47 @@ export async function fetchCrossrefGapFields(
   }
 }
 
+/**
+ * Whether Crossref records this DOI as RETRACTED. Checks both retraction
+ * pathways in the default Crossref JSON (not CSL): `message.updated-by[]` with
+ * `type === "retraction"` (publisher- or Retraction-Watch-sourced) and
+ * `message.relation["is-retracted-by"]`. Joins the polite pool and fails soft
+ * (returns false) so a Crossref hiccup never breaks a sync.
+ */
+export async function fetchRetractionStatus(doi: string, mailto: string): Promise<boolean> {
+  const bare = doi
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
+  if (!DOI_RE.test(bare)) return false;
+
+  const url = new URL(`${CROSSREF_API}/${encodeURIComponent(bare)}`);
+  url.searchParams.set("mailto", mailto);
+
+  try {
+    const res = await resilientFetch(url, {
+      next: { revalidate: 86_400 },
+      timeoutMs: 12_000,
+    });
+    if (!res.ok) return false;
+    const message =
+      (JSON.parse(await res.text()) as { message?: Record<string, unknown> }).message ?? {};
+    const updatedBy = message["updated-by"];
+    if (
+      Array.isArray(updatedBy) &&
+      updatedBy.some((u) => (u as { type?: unknown } | null)?.type === "retraction")
+    ) {
+      return true;
+    }
+    const relation = message.relation as Record<string, unknown> | undefined;
+    const retractedBy = relation?.["is-retracted-by"];
+    return Array.isArray(retractedBy) ? retractedBy.length > 0 : Boolean(retractedBy);
+  } catch (err) {
+    logger.warn("crossref.retraction_fetch_failed", { err });
+    return false;
+  }
+}
+
 // ── Relation lookup: preprint ↔ published-version links (duplicate detection) ─
 
 /** Crossref `relation` keys that mean "the same work, a different version". */

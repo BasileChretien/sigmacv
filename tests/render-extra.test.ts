@@ -451,6 +451,20 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(renderCvHtml(cvWith({ showOpenAccess: false }))).not.toContain("100% open access");
     });
 
+    it("always shows a Retracted badge for a retracted work (even with badges off)", () => {
+      const base = cvWith({ showOpenAccess: false });
+      const cv: CanonicalCv = {
+        ...base,
+        sections: base.sections.map((s) => ({
+          ...s,
+          items: s.items.map((it) => ({ ...it, meta: { ...it.meta, retracted: true } })),
+        })),
+      };
+      const html = renderCvHtml(cv);
+      expect(html).toContain("cv-badge-retracted");
+      expect(html).toContain(">Retracted</span>");
+    });
+
     it("renders the author-role badge when enabled (first, corresponding)", () => {
       const html = renderCvHtml(cvWith({ showAuthorRole: true }));
       expect(html).toContain(">first, corresponding</span>");

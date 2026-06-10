@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   fetchCrossrefGapFields: vi.fn(),
+  fetchRetractionStatus: vi.fn(),
   resolveInstitution: vi.fn(),
   fetchRcrByPmids: vi.fn(),
 }));
 vi.mock("@/lib/crossref/client", () => ({
   fetchCrossrefGapFields: mocks.fetchCrossrefGapFields,
+  fetchRetractionStatus: mocks.fetchRetractionStatus,
 }));
 vi.mock("@/lib/ror/client", () => ({
   resolveInstitution: mocks.resolveInstitution,
@@ -19,6 +21,7 @@ import {
   canonicalizeInstitutions,
   enrichCvWithCrossref,
   enrichCvWithIcite,
+  enrichCvWithRetractions,
   mergeCslGaps,
   withRorProvenance,
   type InstitutionBundle,
@@ -31,6 +34,7 @@ import type { OrcidPosition } from "@/lib/orcid/client";
 
 beforeEach(() => {
   mocks.fetchCrossrefGapFields.mockReset();
+  mocks.fetchRetractionStatus.mockReset();
   mocks.resolveInstitution.mockReset();
   mocks.fetchRcrByPmids.mockReset();
 });
@@ -228,6 +232,40 @@ describe("enrichCvWithIcite", () => {
     const cv = makeCv([withPmid("W1")]);
     expect(await enrichCvWithIcite(cv)).toBe(cv);
     expect(mocks.fetchRcrByPmids).not.toHaveBeenCalled();
+  });
+});
+
+// ─── enrichCvWithRetractions (Crossref / Retraction Watch) ───────────────────
+
+describe("enrichCvWithRetractions", () => {
+  it("flags works Crossref reports as retracted, by DOI", async () => {
+    mocks.fetchRetractionStatus.mockImplementation(async (doi: string) => doi === "10.1/x");
+    const cv = makeCv([
+      pub("W1", csl({ id: "W1", DOI: "10.1/x" })),
+      pub("W2", csl({ id: "W2", DOI: "10.1/y" })),
+      pub("W3", csl({ id: "W3" })), // no DOI → not checked
+    ]);
+    const items = (await enrichCvWithRetractions(cv, "ci@example.org")).sections[0]!.items;
+    expect(items[0]!.meta.retracted).toBe(true);
+    expect(items[1]!.meta.retracted).toBeUndefined();
+    expect(items[2]!.meta.retracted).toBeUndefined();
+    expect(mocks.fetchRetractionStatus).toHaveBeenCalledTimes(2); // only DOI-bearing items
+  });
+
+  it("returns the original CV when nothing is retracted", async () => {
+    mocks.fetchRetractionStatus.mockResolvedValue(false);
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1/x" }))]);
+    expect(await enrichCvWithRetractions(cv, "ci@example.org")).toBe(cv);
+  });
+
+  it("does not re-check an already-flagged or hidden work", async () => {
+    mocks.fetchRetractionStatus.mockResolvedValue(true);
+    const flagged = { ...pub("W1", csl({ DOI: "10.1/x" })), meta: { retracted: true } };
+    const hidden = { ...pub("W2", csl({ DOI: "10.1/y" })), included: false };
+    const cv = makeCv([flagged, hidden]);
+    const out = await enrichCvWithRetractions(cv, "ci@example.org");
+    expect(out).toBe(cv);
+    expect(mocks.fetchRetractionStatus).not.toHaveBeenCalled();
   });
 });
 
