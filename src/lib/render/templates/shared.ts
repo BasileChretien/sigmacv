@@ -124,9 +124,33 @@ export function pageShell(title: string, css: string, body: string, lang = "en")
 <style>${css}</style>
 </head>
 <body>
-${body}
+${externalizeLinks(body)}
 </body>
 </html>`;
+}
+
+/**
+ * Make every anchor in a rendered CV document open in a new browsing context
+ * (`target="_blank"`) and sever the opener (`rel="noopener noreferrer"`, which
+ * also blocks reverse-tabnabbing). Run ONCE over the assembled body so the
+ * citation DOI/URL links (from citeproc) and the hand-built links (contact,
+ * website, ORCID, ROR, license, attribution) behave identically in the live
+ * preview iframe, the public page, and the PDF.
+ *
+ * Attribute-preserving: an anchor that already declares a `target`/`rel` keeps
+ * it (so `rel="license"` survives), and the new attributes are APPENDED at the
+ * end of the start tag, so existing markup/prefix-shaped assertions are
+ * unchanged. Anchor attribute values are HTML-escaped upstream, so a literal
+ * `>` never occurs inside one — `[^>]*` safely captures the whole attribute
+ * list, and CSS/text (no `<a` token) is never matched.
+ */
+export function externalizeLinks(html: string): string {
+  return html.replace(/<a\b([^>]*)>/gi, (_match, attrs: string) => {
+    let extra = "";
+    if (!/\btarget\s*=/i.test(attrs)) extra += ' target="_blank"';
+    if (!/\brel\s*=/i.test(attrs)) extra += ' rel="noopener noreferrer"';
+    return `<a${attrs}${extra}>`;
+  });
 }
 
 /** Reset + bibliography + self-highlight CSS common to every template. */

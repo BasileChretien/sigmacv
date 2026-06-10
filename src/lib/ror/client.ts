@@ -23,11 +23,39 @@ const ROR_API = "https://api.ror.org/v2/organizations";
 export interface RorOrg {
   /** ROR id, e.g. "https://ror.org/04xxxxxx". */
   id: string;
-  /** Canonical organization name. */
+  /** Canonical organization name (ROR's `ror_display`). */
   name: string;
   /** ISO country code, when available. */
   countryCode?: string;
+  /**
+   * Localized display names by language subtag (e.g. `{ ja: "名古屋大学" }`),
+   * restricted to the UI languages we support ({@link DISPLAY_NAME_LANGS}). Lets
+   * a rendered CV show the institution in the CV's own language when ROR carries
+   * one, falling back to `name` otherwise. Absent when ROR has no usable
+   * localized variant.
+   */
+  names?: Record<string, string>;
 }
+
+/**
+ * The language subtags we keep a localized institution name for — the subtags of
+ * `SUPPORTED_LOCALES` (see `src/lib/i18n`). Held as a literal so this low-level
+ * client doesn't pull in the UI i18n bundle; `tests/ror-localized-names.test.ts`
+ * asserts the two stay in sync, so adding a UI locale fails the build until this
+ * is updated too.
+ */
+export const DISPLAY_NAME_LANGS: ReadonlySet<string> = new Set([
+  "en",
+  "zh",
+  "es",
+  "fr",
+  "de",
+  "ja",
+  "pt",
+  "it",
+  "ko",
+  "ru",
+]);
 
 /** One name entry in the ROR **v2** schema: a value tagged with one or more
  *  types ("ror_display", "label", "alias") and an optional language. */
@@ -63,6 +91,30 @@ function rorDisplayName(names: RorV2Name[] | undefined): string | undefined {
   const byType = (type: string) =>
     names.find((n) => Array.isArray(n.types) && n.types.includes(type) && n.value)?.value;
   return byType("ror_display") ?? byType("label") ?? names.find((n) => n.value)?.value;
+}
+
+/**
+ * Build a `lang → value` map of localized display names from a ROR v2 `names[]`
+ * array, restricted to {@link DISPLAY_NAME_LANGS}. Prefers a `ror_display`/
+ * `label` value over an `alias`, and the first usable value wins per language.
+ * Returns undefined when there's no localized name in a supported language.
+ */
+function rorLocalizedNames(names: RorV2Name[] | undefined): Record<string, string> | undefined {
+  if (!Array.isArray(names)) return undefined;
+  const out: Record<string, string> = {};
+  // Two passes so a `label`/`ror_display` always wins over an `alias` for a
+  // given language, regardless of array order.
+  for (const preferred of [true, false]) {
+    for (const n of names) {
+      const lang = n.lang?.toLowerCase().trim();
+      const value = n.value?.trim();
+      if (!lang || !value || !DISPLAY_NAME_LANGS.has(lang) || out[lang]) continue;
+      const isPreferred =
+        Array.isArray(n.types) && (n.types.includes("ror_display") || n.types.includes("label"));
+      if (isPreferred === preferred) out[lang] = value;
+    }
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 const cache = new Map<string, RorOrg | null>();
@@ -117,7 +169,12 @@ export async function resolveInstitution(name: string): Promise<RorOrg | null> {
     const name = rorDisplayName(org?.names);
     const result: RorOrg | null =
       org?.id && name
-        ? { id: org.id, name, countryCode: org.locations?.[0]?.geonames_details?.country_code }
+        ? {
+            id: org.id,
+            name,
+            countryCode: org.locations?.[0]?.geonames_details?.country_code,
+            names: rorLocalizedNames(org.names),
+          }
         : null;
     cache.set(key, result);
     return result;

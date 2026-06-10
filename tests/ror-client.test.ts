@@ -52,6 +52,7 @@ describe("resolveInstitution", () => {
       id: "https://ror.org/04chrp450",
       name: "Nagoya University",
       countryCode: "JP",
+      names: { en: "Nagoya University" },
     });
   });
 
@@ -179,6 +180,9 @@ describe("resolveInstitution", () => {
       id: "https://ror.org/04chrp450",
       name: "Nagoya University", // ror_display chosen over the alias / ja label
       countryCode: "JP",
+      // The multilingual labels are captured for locale-aware rendering (the
+      // `alias` is langless → ignored).
+      names: { en: "Nagoya University", ja: "名古屋大学" },
     });
   });
 

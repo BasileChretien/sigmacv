@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
 import { listIndexablePublicSlugs } from "@/lib/cv/sync";
+import { listGuides } from "@/lib/guides/guides";
+import { listTerms } from "@/lib/glossary/glossary";
 import { DEFAULT_UI_LOCALE, LOCALE_SLUGS, SUPPORTED_LOCALES } from "@/lib/i18n";
-import { LANDING_PAGE_IDS } from "@/lib/i18n/landingPages";
+import { ALL_LANDING_PAGE_IDS } from "@/lib/i18n/landingAll";
 import { absoluteUrl } from "@/lib/siteUrl";
 
 export const dynamic = "force-dynamic";
@@ -123,8 +125,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // High-intent SEO landing pages — primary acquisition surfaces, so a higher
   // priority than the legal/info pages and a monthly change cadence. Iterates
-  // LANDING_PAGE_IDS so any newly registered landing page is included here too.
-  const landingEntries: MetadataRoute.Sitemap = LANDING_PAGE_IDS.flatMap((segment) => {
+  // ALL_LANDING_PAGE_IDS (SEO + persona pages) so every landing page is here too.
+  const landingEntries: MetadataRoute.Sitemap = ALL_LANDING_PAGE_IDS.flatMap((segment) => {
     const path = landingPath(segment);
     const languages: Record<string, string> = {};
     for (const loc of SUPPORTED_LOCALES) {
@@ -137,6 +139,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       alternates: { languages },
     }));
   });
+
+  // Guides (English-only authority content): the index + each cornerstone guide.
+  const guides = listGuides();
+  const guidesEntries: MetadataRoute.Sitemap = [
+    {
+      url: absoluteUrl("guides"),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    ...guides.map((g) => ({
+      url: absoluteUrl(`guides/${g.slug}`),
+      lastModified: g.dateModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  ];
+
+  // Glossary (English-only concept pages): the index + each term.
+  const glossaryEntries: MetadataRoute.Sitemap = [
+    { url: absoluteUrl("glossary"), changeFrequency: "monthly", priority: 0.6 },
+    ...listTerms().map((t) => ({
+      url: absoluteUrl(`glossary/${t.slug}`),
+      changeFrequency: "yearly" as const,
+      priority: 0.6,
+    })),
+  ];
 
   // Opt-in indexable public CVs — the privacy-preserving organic-growth loop.
   // Best-effort: a DB hiccup must not break the (static-content) sitemap.
@@ -163,6 +191,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...fairEntries,
     ...transparencyEntries,
     ...landingEntries,
+    ...guidesEntries,
+    ...glossaryEntries,
     ...cvEntries,
   ];
 }

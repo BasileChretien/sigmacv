@@ -9,6 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Glossary** (`/glossary`) — plain-language "what is X" pages for the key terms
+  behind an academic CV (ORCID, OpenAlex, FWCI, the h-index, CSL, the NIH
+  biosketch), each marked up as a schema.org `DefinedTerm` with an FAQ and links
+  to related terms, guides and tools. (English for now.)
+- **Persona landing pages** (10 languages) — dedicated pages for specific
+  applicants and career stages: a **PhD-application CV** (`/phd-cv`), **postdoc
+  CV** (`/postdoc-cv`), **grad-school CV** (`/grad-school-cv`), **faculty/tenure
+  CV** (`/faculty-cv`) and **research CV** (`/research-cv`), each speaking to that
+  searcher's needs, with the same depth and structured data as the other landing
+  pages.
+- **Guides** (`/guides`) — a new section of in-depth, free guides on writing,
+  formatting and automating an academic CV: how to write one, academic CV vs
+  résumé, how to list publications, how long it should be, a CV for grad-school
+  applications, and using metrics responsibly (DORA / Leiden). Each guide is a
+  proper article with a named author, dates, an FAQ, and links to related pages,
+  and is included in the sitemap. (English for now; more guides and translations
+  to follow.)
+- **Localized institution names** — positions and education entries now show the
+  institution in the CV's own language when ROR publishes a name for it (e.g.
+  「名古屋大学」 on a Japanese CV, "Université de Nagoya" on a French one),
+  falling back to ROR's canonical display name otherwise. The choice is made at
+  render time, so switching the CV language re-localizes without a re-sync, and
+  the ROR record link still wraps the displayed name. A hand-edited line is left
+  exactly as the user wrote it. Variants populate on the next re-sync.
+- **Wikidata entity link** in the homepage structured data — the
+  `Organization` and `SoftwareApplication` JSON-LD now list SigmaCV's Wikidata
+  item ([Q140158386](https://www.wikidata.org/wiki/Q140158386)) under `sameAs`, so
+  search engines and LLM knowledge graphs resolve the site and its Wikidata record
+  as one entity.
 - **"Who it's for" section on the homepage** (10 languages) — four audience cards
   (students & grad-school applicants, PhD students & postdocs, faculty &
   principal investigators, and clinicians / librarians / research offices) make it
@@ -97,6 +126,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publication / preprint links are now clickable and open in a new tab** —
+  across the live preview, the public page and the PDF. citeproc emitted DOIs and
+  URLs as plain text, so a reader couldn't follow a publication to its source; the
+  citation engine now renders them as `<a>` links, every link in a rendered CV
+  carries `target="_blank" rel="noopener noreferrer"`, and the preview iframe is
+  allowed to open those links in a new tab (without re-enabling scripts on the
+  sandboxed CV markup). Hand-built links (contact, website, ORCID, ROR, licence)
+  open in a new tab too.
 - **NIH iCite RCR now actually populates.** The iCite client read the value under
   `relative_citation_ratio`, but a field-filtered iCite response returns it under
   the short alias `rcr`, so the Relative Citation Ratio was never stored and "Mean

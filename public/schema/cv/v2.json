@@ -715,6 +715,17 @@
                       "type": "string",
                       "maxLength": 500
                     },
+                    "institutionNames": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string",
+                        "maxLength": 35
+                      },
+                      "additionalProperties": {
+                        "type": "string",
+                        "maxLength": 500
+                      }
+                    },
                     "funderId": {
                       "type": "string",
                       "maxLength": 2048
