@@ -92,6 +92,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publication / preprint links are now clickable and open in a new tab** —
+  across the live preview, the public page and the PDF. citeproc emitted DOIs and
+  URLs as plain text, so a reader couldn't follow a publication to its source; the
+  citation engine now renders them as `<a>` links, every link in a rendered CV
+  carries `target="_blank" rel="noopener noreferrer"`, and the preview iframe is
+  allowed to open those links in a new tab (without re-enabling scripts on the
+  sandboxed CV markup). Hand-built links (contact, website, ORCID, ROR, licence)
+  open in a new tab too.
 - **NIH iCite RCR now actually populates.** The iCite client read the value under
   `relative_citation_ratio`, but a field-filtered iCite response returns it under
   the short alias `rcr`, so the Relative Citation Ratio was never stored and "Mean
