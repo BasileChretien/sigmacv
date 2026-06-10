@@ -2016,6 +2016,33 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   font-size: var(--text-xs);
   line-height: 1.45;
 }
+/* "Don't have an ORCID iD yet?" helper under the sign-in button: a native
+   <details> disclosure (no client JS). The prompt reads as a quiet link; the
+   explainer + register CTA reveal on expand. */
+.orcid-help {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+}
+.orcid-help > summary {
+  cursor: pointer;
+  width: fit-content;
+  color: var(--accent);
+}
+.orcid-help > summary:hover {
+  text-decoration: underline;
+}
+.orcid-help-body {
+  margin-top: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+.orcid-help-body p {
+  margin: 0 0 var(--space-2);
+}
+.orcid-help-cta {
+  font-weight: var(--weight-semibold);
+}
 .auth-footer {
   display: flex;
   align-items: center;

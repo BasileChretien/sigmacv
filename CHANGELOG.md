@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   principal investigators, and clinicians / librarians / research offices) make it
   immediately clear who SigmaCV serves. Non-English copy is an initial translation
   pending native-speaker review.
+- **"Don't have an ORCID iD yet?" helper** on the sign-in card (10 languages) — a
+  collapsible explainer for visitors without an ORCID iD (students, early-career
+  and lower-income-country researchers): what an ORCID iD is, why it matters (it's
+  how SigmaCV reliably finds your work), and a link to register a free iD. Non-English
+  copy is an initial translation pending native-speaker review.
 - **Richer `SoftwareApplication` structured data** on the homepage — now declares
   the software version, publication date, the ten supported `inLanguage` values,
   and an app `screenshot`, on top of the existing free-offer, licence and feature
