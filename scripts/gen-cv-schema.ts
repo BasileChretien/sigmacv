@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from "zod";
 import { CANONICAL_SCHEMA_VERSION, CanonicalCvSchema } from "@/lib/canonical/schema";
 
 /**
@@ -20,11 +20,16 @@ export const CV_SCHEMA_ID = "https://sigmacv.org/schema/cv/v2.json";
 
 /** Build the published JSON Schema object from the Zod canonical schema. Pure. */
 export function buildCanonicalCvJsonSchema(): Record<string, unknown> {
-  const generated = zodToJsonSchema(CanonicalCvSchema, {
-    target: "jsonSchema7",
-    // Inline reused subschemas → one self-contained document (no `definitions`),
+  const generated = z.toJSONSchema(CanonicalCvSchema, {
+    // Keep draft-07 (matches the published artifact + the drift-guard test).
+    target: "draft-7",
+    // Describe the INPUT shape so fields with a `.default()` stay optional, as
+    // the previous generator emitted them (a produced CV has them, but a
+    // consumer validating a partial document should not be forced to supply them).
+    io: "input",
+    // Inline reused subschemas → one self-contained document (no `$defs`),
     // which the widest range of validators and editors consume directly.
-    $refStrategy: "none",
+    reused: "inline",
   }) as Record<string, unknown>;
   return {
     ...generated,

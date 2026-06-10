@@ -1,4 +1,5 @@
 {
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
     "schemaVersion": {
@@ -17,12 +18,12 @@
           "maxLength": 64
         },
         "openAlexAuthorIds": {
+          "maxItems": 200,
           "type": "array",
           "items": {
             "type": "string",
             "maxLength": 256
-          },
-          "maxItems": 200
+          }
         },
         "displayName": {
           "type": "string",
@@ -64,10 +65,11 @@
               "type": "string",
               "maxLength": 200
             }
-          },
-          "additionalProperties": false
+          }
         },
         "links": {
+          "default": [],
+          "maxItems": 20,
           "type": "array",
           "items": {
             "type": "object",
@@ -81,11 +83,8 @@
                 "maxLength": 2048
               }
             },
-            "required": ["label", "url"],
-            "additionalProperties": false
-          },
-          "maxItems": 20,
-          "default": []
+            "required": ["label", "url"]
+          }
         },
         "personal": {
           "type": "object",
@@ -110,8 +109,7 @@
               "type": "string",
               "maxLength": 400
             }
-          },
-          "additionalProperties": false
+          }
         },
         "metrics": {
           "type": "object",
@@ -120,22 +118,32 @@
               "type": "number"
             },
             "h_index": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
             },
             "i10_index": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
             },
             "works_count": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
             },
             "cited_by_count": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
             },
             "fwci_mean": {
               "type": "number"
             },
             "fwci_n": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
             },
             "top10pct_share": {
               "type": "number"
@@ -144,59 +152,64 @@
               "type": "number"
             },
             "rcr_n": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
             }
-          },
-          "additionalProperties": false
+          }
         },
         "countsByYear": {
+          "default": [],
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
               "year": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
               "works": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
               "citations": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               }
             },
-            "required": ["year", "works", "citations"],
-            "additionalProperties": false
-          },
-          "default": []
+            "required": ["year", "works", "citations"]
+          }
         },
         "wikidataUri": {
           "type": "string",
           "maxLength": 2048
         },
         "wikidataSameAs": {
+          "maxItems": 20,
           "type": "array",
           "items": {
             "type": "string",
             "maxLength": 2048
-          },
-          "maxItems": 20
+          }
         }
       },
-      "required": ["orcid", "openAlexAuthorIds", "displayName"],
-      "additionalProperties": false
+      "required": ["orcid", "openAlexAuthorIds", "displayName"]
     },
     "display": {
       "type": "object",
       "properties": {
         "template": {
+          "default": "classic",
           "type": "string",
-          "enum": ["classic", "modern", "sidebar", "ats", "rirekisho"],
-          "default": "classic"
+          "enum": ["classic", "modern", "sidebar", "ats", "rirekisho"]
         },
         "cslStyle": {
+          "default": "apa",
           "type": "string",
-          "maxLength": 200,
-          "default": "apa"
+          "maxLength": 200
         },
         "customStyle": {
           "type": "object",
@@ -216,77 +229,76 @@
               "maxLength": 600000
             }
           },
-          "required": ["id", "title", "xml"],
-          "additionalProperties": false
+          "required": ["id", "title", "xml"]
         },
         "locale": {
+          "default": "en-US",
           "type": "string",
-          "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
-          "default": "en-US"
+          "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$"
         },
         "highlightSelf": {
-          "type": "boolean",
-          "default": true
+          "default": true,
+          "type": "boolean"
         },
         "highlightStyle": {
+          "default": "accent",
           "type": "string",
-          "enum": ["accent", "bold", "underline", "accent-underline"],
-          "default": "accent"
+          "enum": ["accent", "bold", "underline", "accent-underline"]
         },
         "cvLicense": {
+          "default": "none",
           "type": "string",
-          "enum": ["none", "CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "all-rights-reserved"],
-          "default": "none"
+          "enum": ["none", "CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "all-rights-reserved"]
         },
         "showMetrics": {
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "type": "boolean"
         },
         "metrics": {
+          "default": [],
+          "maxItems": 100,
           "type": "array",
           "items": {
             "type": "string",
             "maxLength": 64
-          },
-          "maxItems": 100,
-          "default": []
+          }
         },
         "showCharts": {
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "type": "boolean"
         },
         "showOpenAccess": {
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "type": "boolean"
         },
         "hideRetracted": {
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "type": "boolean"
         },
         "showAuthorRole": {
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "type": "boolean"
         },
         "showCitationCounts": {
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "type": "boolean"
         },
         "showProvenance": {
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "type": "boolean"
         },
         "peerReviewedOnly": {
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "type": "boolean"
         },
         "countLetters": {
-          "type": "boolean",
-          "default": true
+          "default": true,
+          "type": "boolean"
         },
         "publicationOrder": {
+          "default": "custom",
           "type": "string",
-          "enum": ["custom", "citations", "year-desc", "year-asc"],
-          "default": "custom"
+          "enum": ["custom", "citations", "year-desc", "year-asc"]
         },
         "publicationsLimit": {
           "type": "integer",
@@ -295,85 +307,85 @@
         },
         "excludedItems": {
           "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "maxLength": 200
+          },
           "additionalProperties": {
+            "maxItems": 10000,
             "type": "array",
             "items": {
               "type": "string",
               "maxLength": 200
-            },
-            "maxItems": 10000
-          },
-          "propertyNames": {
-            "maxLength": 200
+            }
           }
         },
         "dismissedDuplicates": {
+          "maxItems": 20000,
           "type": "array",
           "items": {
             "type": "string",
             "maxLength": 2200
-          },
-          "maxItems": 20000
+          }
         },
         "sectionsCustomized": {
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "type": "boolean"
         },
         "showAuthorshipTable": {
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "type": "boolean"
         },
         "authorshipRoles": {
+          "default": [],
+          "maxItems": 50,
           "type": "array",
           "items": {
             "type": "string",
             "maxLength": 64
-          },
-          "maxItems": 50,
-          "default": []
+          }
         },
         "accentColor": {
+          "default": "#1f4fd8",
           "type": "string",
-          "pattern": "^#[0-9a-fA-F]{6}$",
-          "default": "#1f4fd8"
+          "pattern": "^#[0-9a-fA-F]{6}$"
         },
         "fontPairing": {
+          "default": "serif",
           "type": "string",
-          "enum": ["serif", "sans", "palatino"],
-          "default": "serif"
+          "enum": ["serif", "sans", "palatino"]
         },
         "density": {
+          "default": "comfortable",
           "type": "string",
-          "enum": ["comfortable", "compact"],
-          "default": "comfortable"
+          "enum": ["comfortable", "compact"]
         },
         "publicContact": {
+          "default": {},
           "type": "object",
           "properties": {
             "email": {
-              "type": "boolean",
-              "default": false
+              "default": false,
+              "type": "boolean"
             },
             "phone": {
-              "type": "boolean",
-              "default": false
+              "default": false,
+              "type": "boolean"
             },
             "location": {
-              "type": "boolean",
-              "default": false
+              "default": false,
+              "type": "boolean"
             }
-          },
-          "additionalProperties": false,
-          "default": {}
+          }
         },
         "publicAttribution": {
-          "type": "boolean",
-          "default": true
+          "default": true,
+          "type": "boolean"
         }
-      },
-      "additionalProperties": false
+      }
     },
     "sections": {
+      "maxItems": 60,
       "type": "array",
       "items": {
         "type": "object",
@@ -420,9 +432,12 @@
             "type": "boolean"
           },
           "order": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "items": {
+            "maxItems": 10000,
             "type": "array",
             "items": {
               "type": "object",
@@ -492,7 +507,7 @@
                             "type": "string"
                           }
                         },
-                        "additionalProperties": true
+                        "additionalProperties": {}
                       }
                     },
                     "editor": {
@@ -519,7 +534,7 @@
                             "type": "string"
                           }
                         },
-                        "additionalProperties": true
+                        "additionalProperties": {}
                       }
                     },
                     "issued": {
@@ -530,7 +545,14 @@
                           "items": {
                             "type": "array",
                             "items": {
-                              "type": ["number", "string"]
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
                             }
                           }
                         },
@@ -541,7 +563,7 @@
                           "type": "string"
                         }
                       },
-                      "additionalProperties": true
+                      "additionalProperties": {}
                     },
                     "container-title": {
                       "type": "string"
@@ -611,8 +633,8 @@
                   "type": "boolean"
                 },
                 "notMine": {
-                  "type": "boolean",
-                  "default": false
+                  "default": false,
+                  "type": "boolean"
                 },
                 "notMineAssertedAt": {
                   "type": "string"
@@ -622,24 +644,28 @@
                   "enum": ["different-person", "duplicate", "wrong-field", "other"]
                 },
                 "order": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 },
                 "authoredBySelf": {
                   "type": "boolean"
                 },
                 "selfNameVariants": {
+                  "maxItems": 100,
                   "type": "array",
                   "items": {
                     "type": "string",
                     "maxLength": 300
-                  },
-                  "maxItems": 100
+                  }
                 },
                 "meta": {
                   "type": "object",
                   "properties": {
                     "year": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     },
                     "type": {
                       "type": "string",
@@ -650,7 +676,9 @@
                       "maxLength": 1000
                     },
                     "citedByCount": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     },
                     "fwci": {
                       "type": "number"
@@ -707,10 +735,14 @@
                       "maxLength": 200
                     },
                     "authorCount": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     },
                     "authorPosition": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     },
                     "isCorresponding": {
                       "type": "boolean"
@@ -740,6 +772,7 @@
                           "maxLength": 1024
                         },
                         "tier": {
+                          "default": "weak",
                           "type": "string",
                           "enum": ["exact", "related", "strong", "weak"]
                         },
@@ -759,11 +792,9 @@
                           "maxLength": 1024
                         }
                       },
-                      "required": ["itemId", "groupId"],
-                      "additionalProperties": false
+                      "required": ["itemId", "groupId"]
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
               },
               "required": [
@@ -775,22 +806,20 @@
                 "authoredBySelf",
                 "selfNameVariants",
                 "meta"
-              ],
-              "additionalProperties": false
-            },
-            "maxItems": 10000
+              ]
+            }
           },
           "body": {
             "type": "string",
             "maxLength": 8000
           }
         },
-        "required": ["id", "type", "title", "visible", "order", "items"],
-        "additionalProperties": false
-      },
-      "maxItems": 60
+        "required": ["id", "type", "title", "visible", "order", "items"]
+      }
     },
     "presets": {
+      "default": [],
+      "maxItems": 20,
       "type": "array",
       "items": {
         "type": "object",
@@ -809,14 +838,14 @@
             "type": "object",
             "properties": {
               "template": {
+                "default": "classic",
                 "type": "string",
-                "enum": ["classic", "modern", "sidebar", "ats", "rirekisho"],
-                "default": "classic"
+                "enum": ["classic", "modern", "sidebar", "ats", "rirekisho"]
               },
               "cslStyle": {
+                "default": "apa",
                 "type": "string",
-                "maxLength": 200,
-                "default": "apa"
+                "maxLength": 200
               },
               "customStyle": {
                 "type": "object",
@@ -836,77 +865,76 @@
                     "maxLength": 600000
                   }
                 },
-                "required": ["id", "title", "xml"],
-                "additionalProperties": false
+                "required": ["id", "title", "xml"]
               },
               "locale": {
+                "default": "en-US",
                 "type": "string",
-                "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
-                "default": "en-US"
+                "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$"
               },
               "highlightSelf": {
-                "type": "boolean",
-                "default": true
+                "default": true,
+                "type": "boolean"
               },
               "highlightStyle": {
+                "default": "accent",
                 "type": "string",
-                "enum": ["accent", "bold", "underline", "accent-underline"],
-                "default": "accent"
+                "enum": ["accent", "bold", "underline", "accent-underline"]
               },
               "cvLicense": {
+                "default": "none",
                 "type": "string",
-                "enum": ["none", "CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "all-rights-reserved"],
-                "default": "none"
+                "enum": ["none", "CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "all-rights-reserved"]
               },
               "showMetrics": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "metrics": {
+                "default": [],
+                "maxItems": 100,
                 "type": "array",
                 "items": {
                   "type": "string",
                   "maxLength": 64
-                },
-                "maxItems": 100,
-                "default": []
+                }
               },
               "showCharts": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "showOpenAccess": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "hideRetracted": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "showAuthorRole": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "showCitationCounts": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "showProvenance": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "peerReviewedOnly": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "countLetters": {
-                "type": "boolean",
-                "default": true
+                "default": true,
+                "type": "boolean"
               },
               "publicationOrder": {
+                "default": "custom",
                 "type": "string",
-                "enum": ["custom", "citations", "year-desc", "year-asc"],
-                "default": "custom"
+                "enum": ["custom", "citations", "year-desc", "year-asc"]
               },
               "publicationsLimit": {
                 "type": "integer",
@@ -915,97 +943,96 @@
               },
               "excludedItems": {
                 "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "maxLength": 200
+                },
                 "additionalProperties": {
+                  "maxItems": 10000,
                   "type": "array",
                   "items": {
                     "type": "string",
                     "maxLength": 200
-                  },
-                  "maxItems": 10000
-                },
-                "propertyNames": {
-                  "maxLength": 200
+                  }
                 }
               },
               "dismissedDuplicates": {
+                "maxItems": 20000,
                 "type": "array",
                 "items": {
                   "type": "string",
                   "maxLength": 2200
-                },
-                "maxItems": 20000
+                }
               },
               "sectionsCustomized": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "showAuthorshipTable": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "authorshipRoles": {
+                "default": [],
+                "maxItems": 50,
                 "type": "array",
                 "items": {
                   "type": "string",
                   "maxLength": 64
-                },
-                "maxItems": 50,
-                "default": []
+                }
               },
               "accentColor": {
+                "default": "#1f4fd8",
                 "type": "string",
-                "pattern": "^#[0-9a-fA-F]{6}$",
-                "default": "#1f4fd8"
+                "pattern": "^#[0-9a-fA-F]{6}$"
               },
               "fontPairing": {
+                "default": "serif",
                 "type": "string",
-                "enum": ["serif", "sans", "palatino"],
-                "default": "serif"
+                "enum": ["serif", "sans", "palatino"]
               },
               "density": {
+                "default": "comfortable",
                 "type": "string",
-                "enum": ["comfortable", "compact"],
-                "default": "comfortable"
+                "enum": ["comfortable", "compact"]
               },
               "publicContact": {
+                "default": {},
                 "type": "object",
                 "properties": {
                   "email": {
-                    "type": "boolean",
-                    "default": false
+                    "default": false,
+                    "type": "boolean"
                   },
                   "phone": {
-                    "type": "boolean",
-                    "default": false
+                    "default": false,
+                    "type": "boolean"
                   },
                   "location": {
-                    "type": "boolean",
-                    "default": false
+                    "default": false,
+                    "type": "boolean"
                   }
-                },
-                "additionalProperties": false,
-                "default": {}
+                }
               },
               "publicAttribution": {
-                "type": "boolean",
-                "default": true
+                "default": true,
+                "type": "boolean"
               }
-            },
-            "additionalProperties": false
+            }
           },
           "sectionVisibility": {
+            "default": {},
             "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
             "additionalProperties": {
               "type": "boolean"
-            },
-            "default": {}
+            }
           }
         },
-        "required": ["id", "name", "display"],
-        "additionalProperties": false
-      },
-      "maxItems": 20,
-      "default": []
+        "required": ["id", "name", "display"]
+      }
     },
     "provenance": {
       "type": "object",
@@ -1045,13 +1072,10 @@
           }
         }
       },
-      "required": ["generatedAt", "sources"],
-      "additionalProperties": false
+      "required": ["generatedAt", "sources"]
     }
   },
   "required": ["schemaVersion", "id", "owner", "display", "sections", "provenance"],
-  "additionalProperties": false,
-  "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://sigmacv.org/schema/cv/v2.json",
   "title": "SigmaCV canonical CV",
   "description": "The canonical CV object SigmaCV produces and validates (schemaVersion 2). Derived from the Zod schema; source at https://github.com/BasileChretien/sigmacv."

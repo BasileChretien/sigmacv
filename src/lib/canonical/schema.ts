@@ -744,7 +744,10 @@ export const DisplayChoicesSchema = z.object({
       phone: z.boolean().default(false),
       location: z.boolean().default(false),
     })
-    .default({}),
+    // zod 4: `.prefault({})` applies the default to the INPUT before parsing, so
+    // the nested `.default(false)`s still fill the three booleans — matching the
+    // zod 3 `.default({})` behaviour (object `.default()` was retyped in zod 4).
+    .prefault({}),
   /**
    * Show the small "Made with SigmaCV" attribution footer on the PUBLIC living
    * page (`/p/[slug]`) only — a referral backlink to the site root. Opt-OUT:

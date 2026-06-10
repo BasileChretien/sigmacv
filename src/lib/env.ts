@@ -10,11 +10,11 @@ import { z } from "zod";
 const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
   AUTH_SECRET: z.string().min(1),
-  AUTH_URL: z.string().url().optional(),
+  AUTH_URL: z.url().optional(),
   ORCID_CLIENT_ID: z.string().min(1),
   ORCID_CLIENT_SECRET: z.string().min(1),
   ORCID_ENVIRONMENT: z.enum(["sandbox", "production"]).default("sandbox"),
-  OPENALEX_MAILTO: z.string().email(),
+  OPENALEX_MAILTO: z.email(),
   // Optional alternate logins (enabled only when present).
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
@@ -47,7 +47,7 @@ const EnvSchema = z.object({
   // Where the (PROVISIONAL) curation request is POSTed when enabled. Optional
   // even when enabled: if absent the write-client reports an error rather than
   // guessing a production URL.
-  OPENALEX_CURATION_ENDPOINT: z.string().url().optional(),
+  OPENALEX_CURATION_ENDPOINT: z.url().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
