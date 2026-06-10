@@ -53,6 +53,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   entry comes from (grouped open sources), how identifier vs. name+org matching
   decides what's included, how a published CV refreshes, what is logged (nothing,
   by default), and the controls you have over your data.
+- **Per-metric field-normalisation tooltips** in the editor's metric picker (10
+  locales) — hovering a metric explains whether it is field-normalised (FWCI, RCR
+  — preferred under DORA / the Leiden Manifesto) or not (h-index, raw counts),
+  putting responsible-reading guidance at the point of choice.
 
 ### Changed
 
