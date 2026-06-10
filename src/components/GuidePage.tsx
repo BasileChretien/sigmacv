@@ -1,61 +1,17 @@
 import Link from "next/link";
 import { faqPageJsonLd } from "@/lib/faqJsonLd";
-import {
-  GUIDE_AUTHOR,
-  type Guide,
-  type GuideBlock,
-  getGuide,
-  guideReadingMinutes,
-} from "@/lib/guides/guides";
+import { GUIDE_AUTHOR, type Guide, getGuide, guideReadingMinutes } from "@/lib/guides/guides";
 import { guideArticleJsonLd, guideBreadcrumbJsonLd } from "@/lib/guides/jsonLd";
 import { landingPageStrings } from "@/lib/i18n/landingPages";
 import { localeLandingPagePath } from "@/lib/seo";
+import { renderContentBlock } from "./contentBlocks";
 
 /**
  * Renders one long-form guide (English-only) with the `doc-page` chrome. Emits
  * Article + BreadcrumbList + (optional) FAQPage JSON-LD, a named-author byline
- * for E-E-A-T, the structured body blocks, and hub-and-spoke links to related
- * guides and landing pages.
+ * for E-E-A-T, the structured body blocks (via the shared `renderContentBlock`),
+ * and hub-and-spoke links to related guides and landing pages.
  */
-function renderBlock(block: GuideBlock) {
-  switch (block.type) {
-    case "h2":
-      return (
-        <h2 key={block.id} id={block.id}>
-          {block.text}
-        </h2>
-      );
-    case "h3":
-      return <h3 key={block.text}>{block.text}</h3>;
-    case "p":
-      return <p key={block.text}>{block.text}</p>;
-    case "ul":
-      return (
-        <ul key={block.items[0]}>
-          {block.items.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      );
-    case "ol":
-      return (
-        <ol key={block.items[0]}>
-          {block.items.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ol>
-      );
-    case "cta":
-      return (
-        <p key={block.label}>
-          <Link className="btn btn-primary" href={block.href}>
-            {block.label}
-          </Link>
-        </p>
-      );
-  }
-}
-
 const LOCALE = "en-US";
 
 function formatDate(iso: string): string {
@@ -103,7 +59,7 @@ export default function GuidePage({ guide }: { guide: Guide }) {
       </p>
       <p className="doc-lede">{guide.description}</p>
 
-      {guide.blocks.map(renderBlock)}
+      {guide.blocks.map(renderContentBlock)}
 
       {guide.faq && guide.faq.length > 0 ? (
         <section className="guide-faq">
