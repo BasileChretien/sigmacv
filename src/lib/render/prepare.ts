@@ -1,4 +1,5 @@
 import {
+  displayInstitution,
   itemDisplayText,
   type CanonicalCv,
   type CvItem,
@@ -21,6 +22,23 @@ export interface PreparedItem {
 export interface PreparedSection {
   section: CvSection;
   items: PreparedItem[];
+}
+
+/**
+ * The non-citation line text (positions / education), with the institution name
+ * localized to the CV's language when ROR carries a variant for it. Skipped when
+ * the user has overridden the line (their text is authoritative) or when the
+ * canonical name isn't a substring of the line. Mirrors `withRorLink`'s
+ * `lastIndexOf` lookup so the ROR link still wraps the now-localized name.
+ */
+function localizeInstitutionLine(item: CvItem, locale: string): string {
+  const text = itemDisplayText(item) ?? "";
+  if (item.displayTextOverride) return text;
+  const base = item.meta.institution?.trim();
+  const display = displayInstitution(item, locale);
+  if (!base || !display || display === base) return text;
+  const at = text.lastIndexOf(base);
+  return at >= 0 ? text.slice(0, at) + display + text.slice(at + base.length) : text;
 }
 
 /**
@@ -117,7 +135,7 @@ export function prepareSections(
       section,
       items: items.map((item) => {
         if (item.csl) return { item, entry: byId.get(item.id) ?? "" };
-        const text = itemDisplayText(item) ?? "";
+        const text = localizeInstitutionLine(item, cv.display.locale);
         // citeproc HTML is already markup; plain displayText must be escaped for HTML.
         return {
           item,
