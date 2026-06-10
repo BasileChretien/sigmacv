@@ -72,7 +72,7 @@
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.7.0",
     "@vitest/coverage-v8": "^4.1.8",
-    "dotenv": "^16.4.7",
+    "dotenv": "^17.4.2",
     "dotenv-cli": "^8.0.0",
     "husky": "^9.1.7",
     "jsdom": "^25.0.1",
