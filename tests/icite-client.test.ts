@@ -9,14 +9,16 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("fetchRcrByPmids", () => {
   it("maps PMID → RCR, dropping null RCRs (recent papers) and keeping reals", async () => {
+    // iCite returns the RCR under the SHORT alias `rcr` in a field-filtered
+    // response (what this client requests) — NOT `relative_citation_ratio`.
     vi.stubGlobal(
       "fetch",
       vi.fn(async () =>
         res({
           data: [
-            { pmid: 111, relative_citation_ratio: 1.5 },
-            { pmid: 222, relative_citation_ratio: null }, // too recent → no RCR
-            { pmid: 333, relative_citation_ratio: 2.0 },
+            { pmid: 111, rcr: 1.5 },
+            { pmid: 222, rcr: null }, // too recent → no RCR
+            { pmid: 333, rcr: 2.0 },
           ],
         }),
       ),
@@ -26,6 +28,15 @@ describe("fetchRcrByPmids", () => {
     expect(map.get("333")).toBe(2.0);
     expect(map.has("222")).toBe(false);
     expect(map.size).toBe(2);
+  });
+
+  it("falls back to the full-record `relative_citation_ratio` field name", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res({ data: [{ pmid: 999, relative_citation_ratio: 4.2 }] })),
+    );
+    const map = await fetchRcrByPmids(["999"]);
+    expect(map.get("999")).toBe(4.2);
   });
 
   it("ignores non-numeric PMIDs and makes no call when none are valid", async () => {
@@ -59,8 +70,8 @@ describe("fetchRcrByPmids", () => {
       vi.fn(async () =>
         res({
           data: [
-            { pmid: "444", relative_citation_ratio: 3.0 }, // string pmid form
-            { relative_citation_ratio: 9.9 }, // no pmid → skipped
+            { pmid: "444", rcr: 3.0 }, // string pmid form
+            { rcr: 9.9 }, // no pmid → skipped
           ],
         }),
       ),
