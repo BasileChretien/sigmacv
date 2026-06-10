@@ -2225,6 +2225,41 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   gap: var(--space-4);
 }
 
+/* ── Guides (/guides surface, B1) ────────────────────────────────────────── */
+.breadcrumbs {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  margin-bottom: var(--space-4);
+}
+.guide-byline {
+  font-size: var(--text-sm);
+  margin-top: calc(-1 * var(--space-2));
+}
+.guide-list {
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+.guide-list-item {
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+}
+.guide-list-title {
+  font-size: var(--text-lg);
+  margin: 0 0 var(--space-2);
+}
+.guide-list-desc {
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  margin: 0 0 var(--space-2);
+}
+.guide-list-meta {
+  font-size: var(--text-xs);
+  margin: 0;
+}
+
 /* ── Site links / coffee ─────────────────────────────────────────────────── */
 .site-links {
   display: inline-flex;

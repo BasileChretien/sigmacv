@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listIndexablePublicSlugs } from "@/lib/cv/sync";
+import { listGuides } from "@/lib/guides/guides";
 import { DEFAULT_UI_LOCALE, LOCALE_SLUGS, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { LANDING_PAGE_IDS } from "@/lib/i18n/landingPages";
 import { absoluteUrl } from "@/lib/siteUrl";
@@ -138,6 +139,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   });
 
+  // Guides (English-only authority content): the index + each cornerstone guide.
+  const guides = listGuides();
+  const guidesEntries: MetadataRoute.Sitemap = [
+    {
+      url: absoluteUrl("guides"),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    ...guides.map((g) => ({
+      url: absoluteUrl(`guides/${g.slug}`),
+      lastModified: g.dateModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  ];
+
   // Opt-in indexable public CVs — the privacy-preserving organic-growth loop.
   // Best-effort: a DB hiccup must not break the (static-content) sitemap.
   let cvEntries: MetadataRoute.Sitemap = [];
@@ -163,6 +180,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...fairEntries,
     ...transparencyEntries,
     ...landingEntries,
+    ...guidesEntries,
     ...cvEntries,
   ];
 }
