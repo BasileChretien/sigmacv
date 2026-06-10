@@ -82,7 +82,11 @@ describe("landingAll facade", () => {
   it("includes both the original SEO pages and the persona pages", () => {
     for (const id of LANDING_PAGE_IDS) expect(ALL_LANDING_PAGE_IDS).toContain(id);
     for (const id of PERSONA_PAGE_IDS) expect(ALL_LANDING_PAGE_IDS).toContain(id);
-    expect(ALL_LANDING_PAGE_IDS).toHaveLength(LANDING_PAGE_IDS.length + PERSONA_PAGE_IDS.length);
+    // ALL also includes the topic family (see tests/topic-pages-i18n.test.ts for
+    // the exact 3-family count), so this is a lower bound, not an equality.
+    expect(ALL_LANDING_PAGE_IDS.length).toBeGreaterThanOrEqual(
+      LANDING_PAGE_IDS.length + PERSONA_PAGE_IDS.length,
+    );
   });
 
   it("routes accessors correctly for both families", () => {
