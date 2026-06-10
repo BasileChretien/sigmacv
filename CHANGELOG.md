@@ -45,6 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **Dependabot** automated dependency updates (`.github/dependabot.yml`) — software
   supply-chain security signals, with drafted OpenSSF Best Practices answers in
   `docs/openssf-best-practices.md`.
+- **"FAIR for your CV" page** (`/fair`, 10 locales) — a public explainer of the
+  machine-readable formats a published CV comes in (canonical JSON + schema,
+  CSL-JSON/BibTeX, RO-Crate, documents, JSON-LD, OAI-PMH/Signposting), how to cite
+  a CV, how repositories can harvest it, and how to self-host.
 
 ### Changed
 
