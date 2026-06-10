@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **RO-Crate export** — download a CV as a Research Object Crate (`.crate.zip`): an
   `ro-crate-metadata.json` (JSON-LD) describing the CV, its author (by ORCID) and
   license, bundled with the canonical JSON, CSL-JSON, BibTeX and HTML.
+- **Richer public JSON-LD** — a published, indexable CV now exposes its funding
+  (`MonetaryGrant` with funder + award id), positions (`Occupation`) and education
+  (`EducationalOccupationalCredential`) as structured schema.org entities, not just
+  the bare `Person`.
 
 ### Changed
 
