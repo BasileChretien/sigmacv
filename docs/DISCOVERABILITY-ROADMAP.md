@@ -73,12 +73,12 @@ _and_ **GEO** (Generative Engine Optimization — being the answer LLMs give).
 
 ## Phase 0 — Measure & target (you can't rank what you don't track)
 
-| #   | Item                                                                                                                                                                                                                | Owner | Effort | Status |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ | ------ |
-| M1  | **Google Search Console** + **Bing Webmaster Tools** — verify the domain, submit `sitemap.xml`, watch Coverage/Performance. The single most important measurement surface.                                          | 🙋    | S      | ⬜     |
-| M2  | **Keyword universe** — finalize the target table below (head + long-tail + question intents, split student vs researcher, per locale). Pick 1 primary + 2–3 secondary terms per page.                               | 👥    | S      | ⬜     |
-| M3  | **Rank + LLM baseline** — record today's Google position for the head terms and, for each of ChatGPT / Claude / Perplexity / Gemini, whether SigmaCV is named for "best academic CV builder" etc. Re-check monthly. | 🙋    | S      | ⬜     |
-| M4  | **Funnel tracking** — Plausible goals for organic-search and LLM-referral landings → sign-in → publish, so we see which content converts.                                                                           | 🧑‍💻    | S      | ⬜     |
+| #   | Item                                                                                                                                                                                                                                                                                                | Owner | Effort | Status |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ | ------ |
+| M1  | **Google Search Console** + **Bing Webmaster Tools** — verify the domain, submit `sitemap.xml`, watch Coverage/Performance. The single most important measurement surface. _(Done 2026-06-10: GSC domain property verified via Porkbun DNS TXT + `sitemap.xml` submitted; Bing imported from GSC.)_ | 🙋    | S      | ✅     |
+| M2  | **Keyword universe** — finalize the target table below (head + long-tail + question intents, split student vs researcher, per locale). Pick 1 primary + 2–3 secondary terms per page.                                                                                                               | 👥    | S      | ⬜     |
+| M3  | **Rank + LLM baseline** — record today's Google position for the head terms and, for each of ChatGPT / Claude / Perplexity / Gemini, whether SigmaCV is named for "best academic CV builder" etc. Re-check monthly.                                                                                 | 🙋    | S      | ⬜     |
+| M4  | **Funnel tracking** — Plausible goals for organic-search and LLM-referral landings → sign-in → publish, so we see which content converts.                                                                                                                                                           | 🧑‍💻    | S      | ⬜     |
 
 ## Phase 1 — Technical & structured-data hygiene (finish the gaps)
 
