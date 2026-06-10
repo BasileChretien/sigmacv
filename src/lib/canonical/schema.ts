@@ -328,6 +328,14 @@ export const CvItemSchema = z.object({
      */
     institution: z.string().max(500).optional(),
     /**
+     * Localized institution display names by language subtag (e.g.
+     * `{ ja: "名古屋大学", fr: "Université de Nagoya" }`), from ROR's multilingual
+     * `names[]`, restricted to the UI languages. A renderer shows the variant in
+     * the CV's own language when present, falling back to {@link institution}
+     * (ROR's `ror_display`). Additive + optional; populated on re-sync.
+     */
+    institutionNames: z.record(z.string().max(35), z.string().max(500)).optional(),
+    /**
      * Funder identifier for a grant item (interoperable funding metadata). The
      * OpenAlex funder id (e.g. "https://openalex.org/F4320332161") or the ORCID
      * funding's disambiguated-organization identifier (FundRef/ROR/GRID). Additive
@@ -427,6 +435,22 @@ export function itemDisplayText(
   item: Pick<CvItem, "displayText" | "displayTextOverride">,
 ): string | undefined {
   return item.displayTextOverride ?? item.displayText;
+}
+
+/**
+ * The institution NAME to display for a positions/education item in a given CV
+ * locale: ROR's localized variant in the CV's language (`meta.institutionNames`)
+ * when one exists, otherwise the canonical `meta.institution` (ROR `ror_display`,
+ * not forced to English). Pure; the renderers use it both to substitute the name
+ * into the formatted line and to locate it for the ROR link, so the two stay in
+ * agreement. Returns undefined only when the item carries no institution at all.
+ */
+export function displayInstitution(item: Pick<CvItem, "meta">, locale: string): string | undefined {
+  const base = item.meta.institution;
+  const names = item.meta.institutionNames;
+  if (!base || !names) return base;
+  const lang = locale.split("-")[0]?.toLowerCase();
+  return (lang ? names[lang] : undefined) ?? base;
 }
 
 export const CvSectionSchema = z.object({

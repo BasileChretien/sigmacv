@@ -310,6 +310,7 @@ function makeEntryItem(
   extraMeta?: {
     rorId?: string;
     institution?: string;
+    institutionNames?: Record<string, string>;
     lastVerifiedAt?: string;
     funderId?: string;
     funderName?: string;
@@ -320,6 +321,7 @@ function makeEntryItem(
   if (year) meta.year = year;
   if (extraMeta?.rorId) meta.rorId = extraMeta.rorId;
   if (extraMeta?.institution) meta.institution = extraMeta.institution;
+  if (extraMeta?.institutionNames) meta.institutionNames = extraMeta.institutionNames;
   if (extraMeta?.lastVerifiedAt) meta.lastVerifiedAt = extraMeta.lastVerifiedAt;
   if (extraMeta?.funderId) meta.funderId = extraMeta.funderId;
   if (extraMeta?.funderName) meta.funderName = extraMeta.funderName;
@@ -393,6 +395,7 @@ function buildPositionsSection(
         {
           rorId: e.rorId,
           institution: e.organization,
+          institutionNames: e.institutionNames,
           lastVerifiedAt: now,
         },
       ),
@@ -412,6 +415,7 @@ function buildPositionsSection(
     const item = makeEntryItem(id, "openalex", "openalex", text, prev, rank++, a.startYear, {
       rorId: a.rorId,
       institution: a.institution,
+      institutionNames: a.institutionNames,
       lastVerifiedAt: now,
     });
     items.push({ ...item, included: prev?.included ?? false });
@@ -471,6 +475,7 @@ function buildOrcidEntrySection(
       makeEntryItem(id, "orcid", e.putCode, text, opts.prevItems.get(id), rank++, e.startYear, {
         rorId: e.rorId,
         institution: e.organization,
+        institutionNames: e.institutionNames,
         lastVerifiedAt: opts.now,
       }),
     );

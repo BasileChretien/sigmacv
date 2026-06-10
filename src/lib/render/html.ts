@@ -1,4 +1,9 @@
-import type { CanonicalCv, CvItem, DisplayChoices } from "@/lib/canonical/schema";
+import {
+  displayInstitution,
+  type CanonicalCv,
+  type CvItem,
+  type DisplayChoices,
+} from "@/lib/canonical/schema";
 import { highlightSelf } from "@/lib/citeproc/highlight";
 import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml, safeHref } from "./escape";
@@ -72,7 +77,9 @@ function withRorLink(html: string, item: CvItem, locale: string): string {
   if (!href) return html;
   const title = escapeHtml(renderStrings(locale).rorRecordTitle);
   const open = `<a class="cv-ror-link" href="${href}" title="${title}">`;
-  const org = item.meta.institution?.trim();
+  // Match against the localized name actually rendered into the line (prepare.ts
+  // swaps in the CV-language variant), so the link still wraps the institution.
+  const org = displayInstitution(item, locale)?.trim();
   if (org) {
     const esc = escapeHtml(org);
     const at = html.lastIndexOf(esc);

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Localized institution names** — positions and education entries now show the
+  institution in the CV's own language when ROR publishes a name for it (e.g.
+  「名古屋大学」 on a Japanese CV, "Université de Nagoya" on a French one),
+  falling back to ROR's canonical display name otherwise. The choice is made at
+  render time, so switching the CV language re-localizes without a re-sync, and
+  the ROR record link still wraps the displayed name. A hand-edited line is left
+  exactly as the user wrote it. Variants populate on the next re-sync.
 - **Wikidata entity link** in the homepage structured data — the
   `Organization` and `SoftwareApplication` JSON-LD now list SigmaCV's Wikidata
   item ([Q140158386](https://www.wikidata.org/wiki/Q140158386)) under `sameAs`, so

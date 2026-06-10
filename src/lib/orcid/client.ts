@@ -24,6 +24,8 @@ export interface OrcidPosition {
   endYear?: number;
   /** ROR id of the canonicalized organization, set during ROR enrichment. */
   rorId?: string;
+  /** Localized org names by language subtag (from ROR), set during ROR enrichment. */
+  institutionNames?: Record<string, string>;
 }
 
 export interface OrcidFunding {
