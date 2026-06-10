@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listIndexablePublicSlugs } from "@/lib/cv/sync";
 import { listGuides } from "@/lib/guides/guides";
+import { listTerms } from "@/lib/glossary/glossary";
 import { DEFAULT_UI_LOCALE, LOCALE_SLUGS, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { ALL_LANDING_PAGE_IDS } from "@/lib/i18n/landingAll";
 import { absoluteUrl } from "@/lib/siteUrl";
@@ -155,6 +156,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
+  // Glossary (English-only concept pages): the index + each term.
+  const glossaryEntries: MetadataRoute.Sitemap = [
+    { url: absoluteUrl("glossary"), changeFrequency: "monthly", priority: 0.6 },
+    ...listTerms().map((t) => ({
+      url: absoluteUrl(`glossary/${t.slug}`),
+      changeFrequency: "yearly" as const,
+      priority: 0.6,
+    })),
+  ];
+
   // Opt-in indexable public CVs — the privacy-preserving organic-growth loop.
   // Best-effort: a DB hiccup must not break the (static-content) sitemap.
   let cvEntries: MetadataRoute.Sitemap = [];
@@ -181,6 +192,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...transparencyEntries,
     ...landingEntries,
     ...guidesEntries,
+    ...glossaryEntries,
     ...cvEntries,
   ];
 }
