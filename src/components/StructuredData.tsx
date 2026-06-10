@@ -1,3 +1,4 @@
+import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { getSiteLinks } from "@/lib/siteLinks";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -19,6 +20,9 @@ interface StructuredDataProps {
 }
 
 const NAME = "SigmaCV";
+// Kept in step with CITATION.cff / codemeta.json on each release.
+const APP_VERSION = "0.1.0";
+const DATE_PUBLISHED = "2026-06-08";
 
 export default function StructuredData({ locale, description }: StructuredDataProps) {
   const { github, linkedin } = getSiteLinks();
@@ -41,10 +45,14 @@ export default function StructuredData({ locale, description }: StructuredDataPr
       operatingSystem: "Web",
       url: `${SITE_URL}/`,
       description,
-      inLanguage: locale,
+      // The app's UI/output is available in all ten supported languages.
+      inLanguage: [...SUPPORTED_LOCALES],
       isAccessibleForFree: true,
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       license: "https://spdx.org/licenses/Apache-2.0",
+      softwareVersion: APP_VERSION,
+      datePublished: DATE_PUBLISHED,
+      screenshot: `${SITE_URL}/screenshot-home.webp`,
       featureList: [
         "Auto-import publications, metrics and grants from OpenAlex and ORCID",
         "Identical CSL citations across every export format",

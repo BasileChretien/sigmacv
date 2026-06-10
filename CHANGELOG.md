@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Richer `SoftwareApplication` structured data** on the homepage — now declares
+  the software version, publication date, the ten supported `inLanguage` values,
+  and an app `screenshot`, on top of the existing free-offer, licence and feature
+  list. (No `aggregateRating` — SigmaCV never asserts ratings it cannot verify.)
 - **Deeper SEO landing pages** — the seven landing pages (ORCID-to-CV, NIH
   biosketch, academic CV template, OpenAlex CV, publication list, LaTeX CV, funder
   CV templates) now carry comprehensive, crawlable content in all 10 languages: an
