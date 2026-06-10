@@ -10,6 +10,7 @@ import { glossaryNavLabel, guidesNavLabel } from "@/lib/i18n/guidesNav";
 import { landingAudience } from "@/lib/i18n/landingAudience";
 import { landingStrings } from "@/lib/i18n/landing";
 import { LANDING_PAGE_IDS, landingPageStrings } from "@/lib/i18n/landingPages";
+import { orcidHelp } from "@/lib/i18n/orcidHelp";
 import { principlesStrings } from "@/lib/i18n/principles";
 import { transparencyStrings } from "@/lib/i18n/transparency";
 import {
@@ -30,6 +31,9 @@ import StructuredData from "./StructuredData";
 
 /** ORCID profile URL of SigmaCV's creator (links the "Built by a researcher" credit). */
 const CREATOR_ORCID_URL = "https://orcid.org/0000-0002-7483-2489";
+
+/** Where the "Don't have an ORCID iD yet?" helper sends visitors to register a free iD. */
+const ORCID_REGISTER_URL = "https://orcid.org/register";
 
 /**
  * The open-data sources the CV is built from, with their canonical homepages.
@@ -85,6 +89,7 @@ export default function Landing({ locale }: LandingProps) {
   const loc = asLocale(locale);
   const s = landingStrings(loc);
   const audience = landingAudience(loc);
+  const help = orcidHelp(loc);
 
   return (
     <div className="auth-shell" lang={loc}>
@@ -138,6 +143,25 @@ export default function Landing({ locale }: LandingProps) {
                 {s.signInOrcid}
               </button>
             </form>
+
+            {/* Helper for visitors without an ORCID iD (students, early-career and
+                LMIC researchers): a native <details> so it's crawlable and needs no
+                client JS. Summary is the always-visible prompt; expanding reveals
+                what ORCID is + a link to register a free iD. */}
+            <details className="orcid-help">
+              <summary>{help.question}</summary>
+              <div className="orcid-help-body">
+                <p>{help.explainer}</p>
+                <a
+                  className="orcid-help-cta"
+                  href={ORCID_REGISTER_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {help.cta} <span aria-hidden="true">→</span>
+                </a>
+              </div>
+            </details>
 
             {enabledProviders.google || enabledProviders.email ? (
               <div className="auth-divider">
