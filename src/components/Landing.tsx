@@ -6,6 +6,7 @@ import { accessibilityStrings } from "@/lib/i18n/accessibility";
 import { contactStrings } from "@/lib/i18n/contact";
 import { faqStrings } from "@/lib/i18n/faq";
 import { fairCvStrings } from "@/lib/i18n/fairCv";
+import { landingAudience } from "@/lib/i18n/landingAudience";
 import { landingStrings } from "@/lib/i18n/landing";
 import { LANDING_PAGE_IDS, landingPageStrings } from "@/lib/i18n/landingPages";
 import { principlesStrings } from "@/lib/i18n/principles";
@@ -82,6 +83,7 @@ interface LandingProps {
 export default function Landing({ locale }: LandingProps) {
   const loc = asLocale(locale);
   const s = landingStrings(loc);
+  const audience = landingAudience(loc);
 
   return (
     <div className="auth-shell" lang={loc}>
@@ -195,6 +197,20 @@ export default function Landing({ locale }: LandingProps) {
             <li key={f.title} className="feature-card card">
               <h3 className="feature-card-title">{f.title}</h3>
               <p className="feature-card-body muted">{f.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="landing-section landing-audience" aria-labelledby="audience-h">
+        <h2 id="audience-h" className="landing-section-title">
+          {audience.heading}
+        </h2>
+        <ul className="audience-grid">
+          {audience.personas.map((p) => (
+            <li key={p.title} className="audience-card card">
+              <h3 className="audience-card-title">{p.title}</h3>
+              <p className="audience-card-body muted">{p.body}</p>
             </li>
           ))}
         </ul>
