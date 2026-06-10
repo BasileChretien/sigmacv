@@ -14,6 +14,7 @@ import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
 import DisambiguationCoachmark from "./DisambiguationCoachmark";
 import PublishControls from "./PublishControls";
+import PublishNudge from "./PublishNudge";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
 import SupportLink from "./SupportLink";
 
@@ -307,6 +308,7 @@ export default function CvWorkspace({
               (s) => (s.type === "publications" || s.type === "preprints") && s.items.length > 0,
             )}
           />
+          <PublishNudge published={published} locale={uiLocale} />
           {/* Mobile-only pane switch: on a phone the two panes stack and only
               the active one shows, so you don't scroll past the whole editor to
               reach the preview. On desktop both panes show and these hide. */}

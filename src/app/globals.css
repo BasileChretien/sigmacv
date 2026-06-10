@@ -2995,3 +2995,55 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
     display: none;
   }
 }
+
+/* ── Publish nudge (F1): a gentle, dismissible prompt above the editor panes,
+      shown only while the CV is unpublished. ── */
+.publish-nudge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-200);
+  border-radius: var(--radius-md);
+}
+.publish-nudge-text {
+  min-width: 0;
+  flex: 1 1 24rem;
+}
+.publish-nudge-text strong {
+  display: block;
+  font-size: var(--text-base);
+  color: var(--text);
+}
+.publish-nudge-text p {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.publish-nudge-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Brief pulse on the publish toggle when the nudge CTA points the user at it
+   (auto-disabled under prefers-reduced-motion by the global rule above). */
+@keyframes publish-toggle-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--accent-ring);
+  }
+  50% {
+    box-shadow: 0 0 0 4px var(--accent-ring);
+  }
+}
+.publish-toggle-highlight {
+  border-radius: var(--radius-sm);
+  animation: publish-toggle-pulse 0.6s ease-in-out 2;
+}

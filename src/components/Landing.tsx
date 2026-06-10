@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SignInButton from "@/components/SignInButton";
 import { enabledProviders } from "@/auth.config";
 import { signInWithEmail, signInWithGoogle, signInWithOrcid } from "@/app/auth-actions";
 import { asLocale, t } from "@/lib/i18n";
@@ -138,10 +139,10 @@ export default function Landing({ locale }: LandingProps) {
             <p className="auth-card-sub muted">{s.signInSub}</p>
 
             <form action={signInWithOrcid}>
-              <button type="submit" className="btn btn-primary btn-lg auth-btn">
+              <SignInButton method="orcid" className="btn btn-primary btn-lg auth-btn">
                 <OrcidMark />
                 {s.signInOrcid}
-              </button>
+              </SignInButton>
             </form>
 
             {/* Helper for visitors without an ORCID iD (students, early-career and
@@ -171,9 +172,9 @@ export default function Landing({ locale }: LandingProps) {
 
             {enabledProviders.google ? (
               <form action={signInWithGoogle}>
-                <button type="submit" className="btn auth-btn">
+                <SignInButton method="google" className="btn auth-btn">
                   {s.continueGoogle}
-                </button>
+                </SignInButton>
               </form>
             ) : null}
 
@@ -186,9 +187,9 @@ export default function Landing({ locale }: LandingProps) {
                   placeholder={s.emailPlaceholder}
                   aria-label={s.emailLabel}
                 />
-                <button type="submit" className="btn">
+                <SignInButton method="email" className="btn">
                   {s.emailButton}
-                </button>
+                </SignInButton>
               </form>
             ) : null}
 
