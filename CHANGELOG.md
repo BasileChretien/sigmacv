@@ -14,9 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   biosketch), each marked up as a schema.org `DefinedTerm` with an FAQ and links
   to related terms, guides and tools. (English for now.)
 - **Persona landing pages** (10 languages) — dedicated pages for specific
-  applicants: a **PhD-application CV** (`/phd-cv`) and a **postdoc CV**
-  (`/postdoc-cv`), each speaking to that searcher's needs, with the same depth and
-  structured data as the other landing pages. (More personas to follow.)
+  applicants and career stages: a **PhD-application CV** (`/phd-cv`), **postdoc
+  CV** (`/postdoc-cv`), **grad-school CV** (`/grad-school-cv`), **faculty/tenure
+  CV** (`/faculty-cv`) and **research CV** (`/research-cv`), each speaking to that
+  searcher's needs, with the same depth and structured data as the other landing
+  pages.
 - **Guides** (`/guides`) — a new section of in-depth, free guides on writing,
   formatting and automating an academic CV: how to write one, academic CV vs
   résumé, how to list publications, how long it should be, a CV for grad-school
