@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **More landing pages for common searches** (10 languages) — a page for turning a
+  **Google Scholar** profile into a CV (honest about the open path: Scholar has no
+  API, so SigmaCV uses ORCID/OpenAlex), an **ERC CV** page, and an **"import
+  publications to your CV"** page — each with the same depth and structured data as
+  the other landing pages.
 - **Glossary** (`/glossary`) — plain-language "what is X" pages for the key terms
   behind an academic CV (ORCID, OpenAlex, FWCI, the h-index, CSL, the NIH
   biosketch, preprint, DORA, the Leiden Manifesto), each marked up as a schema.org
