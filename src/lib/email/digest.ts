@@ -137,17 +137,18 @@ export async function sendDueDigests(
       ?.locale;
     const locale = asLocale(typeof rawLocale === "string" ? rawLocale : undefined);
 
+    const unsubscribeUrl = `${baseUrl}/api/email/unsubscribe?token=${buildUnsubscribeToken(user.id)}`;
     const content = buildDigestContent({
       report,
       locale,
       editorUrl: `${baseUrl}/cv`,
-      unsubscribeUrl: `${baseUrl}/api/email/unsubscribe?token=${buildUnsubscribeToken(user.id)}`,
+      unsubscribeUrl,
     });
     const ok = await sendMail({
       to: user.email!,
       subject: content.subject,
       text: content.text,
-      unsubscribeUrl: `${baseUrl}/api/email/unsubscribe?token=${buildUnsubscribeToken(user.id)}`,
+      unsubscribeUrl,
     });
     if (ok) {
       summary.sent++;
