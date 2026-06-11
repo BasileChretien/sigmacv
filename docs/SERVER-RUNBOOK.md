@@ -364,3 +364,37 @@ chmod +x /etc/cron.daily/sigmacv-error-digest
   This is your accountability evidence (Art. 5(2)).
 - **On receipt:** acknowledge same week, set a calendar reminder at day 21,
   close by day 30.
+
+---
+
+## 9. Disaster recovery — rebuild the VPS from scratch (RTO)
+
+The accepted availability posture is a **single VPS** (no standby): a dead
+server means downtime until a rebuild, and that is fine for this service. What
+must NOT be lost is the data — which is why §2's tested backups + offsite copy
+exist. Target **RTO ≈ 2–3 hours**, **RPO ≤ 24 h** (nightly dump).
+
+Rebuild recipe (assumes the offsite backup and this repo are reachable):
+
+1. **Provision** a new Hetzner VPS (same region), point DNS `sigmacv.org` (+
+   `plausible.` subdomain) at the new IP. Caddy re-issues TLS automatically
+   once DNS resolves.
+2. **Harden** (same as the original: §4) — create user, SSH keys only,
+   fail2ban, ufw (22/80/443), unattended-upgrades.
+3. **Install Docker + compose plugin**, `git clone` the repo into `~/sigmacv`.
+4. **Recreate `.env`** from the password manager (it is never in git):
+   `POSTGRES_PASSWORD`, `AUTH_SECRET`, `AUTH_URL`, ORCID prod credentials,
+   `OPENALEX_MAILTO`, `RATE_LIMIT_PERSIST=true`, analytics secrets.
+5. `docker compose up -d --build`, then `npm run db:migrate` path (fresh DB →
+   migration history applies, including `Cv.lastSyncReport`).
+6. **Restore data**: copy the newest offsite dump and restore into the live DB
+   (reverse of §2b — restore into `sigmacv`, not `restore_test`).
+7. **Re-import reference data**: `npm run oep:import` (§3); ICTRP only if the
+   WHO agreement is active.
+8. **Verify**: sign in with ORCID, load `/cv`, export a PDF, check `/p/<slug>`
+   of a published CV, confirm Plausible ingests, re-enable the backup cron +
+   offsite `rclone` job, and confirm UptimeRobot goes green.
+
+**Practice note:** §2's monthly test-restore already rehearses the only step
+with real data-loss risk (6). The rest is deterministic provisioning; don't
+over-engineer beyond this while the service has no SLA.

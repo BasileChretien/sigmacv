@@ -21,6 +21,8 @@ export interface EditorExtraStrings {
   feYear: string;
   feDoi: string;
   feAdd: string;
+  /** "This is my work" checkbox on the structured-entry form (self-highlight). */
+  feSelfWork: string;
   // Mobile Editor/Preview tabs.
   tabEditor: string;
   tabPreview: string;
@@ -81,6 +83,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feYear: "Year",
     feDoi: "DOI or URL",
     feAdd: "Add entry",
+    feSelfWork: "This is my work — highlight my name",
     tabEditor: "Editor",
     tabPreview: "Preview",
     coachTitle: "Tip: check these are all yours",
@@ -134,6 +137,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feYear: "年份",
     feDoi: "DOI 或网址",
     feAdd: "添加条目",
+    feSelfWork: "这是我的作品——高亮我的名字",
     tabEditor: "编辑",
     tabPreview: "预览",
     coachTitle: "提示：确认这些都是您的成果",
@@ -186,6 +190,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feYear: "Año",
     feDoi: "DOI o URL",
     feAdd: "Añadir entrada",
+    feSelfWork: "Es un trabajo mío: resaltar mi nombre",
     tabEditor: "Editor",
     tabPreview: "Vista previa",
     coachTitle: "Consejo: comprueba que todo es tuyo",
@@ -240,6 +245,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feYear: "Année",
     feDoi: "DOI ou URL",
     feAdd: "Ajouter l’entrée",
+    feSelfWork: "C’est mon travail — surligner mon nom",
     tabEditor: "Éditeur",
     tabPreview: "Aperçu",
     coachTitle: "Astuce : vérifiez que tout est bien à vous",
@@ -295,6 +301,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feYear: "Jahr",
     feDoi: "DOI oder URL",
     feAdd: "Eintrag hinzufügen",
+    feSelfWork: "Das ist meine Arbeit — meinen Namen hervorheben",
     tabEditor: "Editor",
     tabPreview: "Vorschau",
     coachTitle: "Tipp: Prüfen Sie, ob alles von Ihnen stammt",
@@ -349,6 +356,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feYear: "年",
     feDoi: "DOI または URL",
     feAdd: "エントリを追加",
+    feSelfWork: "自分の業績（自分の名前を強調表示）",
     tabEditor: "エディタ",
     tabPreview: "プレビュー",
     coachTitle: "ヒント：すべてご自身の業績か確認してください",
@@ -402,6 +410,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feYear: "Ano",
     feDoi: "DOI ou URL",
     feAdd: "Adicionar entrada",
+    feSelfWork: "É um trabalho meu — destacar meu nome",
     tabEditor: "Editor",
     tabPreview: "Pré-visualização",
     coachTitle: "Dica: confirme que tudo é seu",
@@ -456,6 +465,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feYear: "Anno",
     feDoi: "DOI o URL",
     feAdd: "Aggiungi voce",
+    feSelfWork: "È un mio lavoro — evidenzia il mio nome",
     tabEditor: "Editor",
     tabPreview: "Anteprima",
     coachTitle: "Suggerimento: verifica che sia tutto tuo",
@@ -511,6 +521,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feYear: "연도",
     feDoi: "DOI 또는 URL",
     feAdd: "항목 추가",
+    feSelfWork: "내 업적입니다 — 내 이름 강조",
     tabEditor: "편집기",
     tabPreview: "미리보기",
     coachTitle: "팁: 모두 본인의 성과인지 확인하세요",
@@ -565,6 +576,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feYear: "Год",
     feDoi: "DOI или URL",
     feAdd: "Добавить запись",
+    feSelfWork: "Это моя работа — выделить моё имя",
     tabEditor: "Редактор",
     tabPreview: "Предпросмотр",
     coachTitle: "Совет: убедитесь, что всё это ваше",

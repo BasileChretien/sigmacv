@@ -280,8 +280,9 @@ export function deletePreset(cv: CanonicalCv, id: string): CanonicalCv {
 // A preset captures the WHOLE `display`, so these per-view show/hide choices are
 // saved + restored with presets automatically — no preset-specific code needed.
 
-/** Immutable: set (or prune-when-empty) a section's exclusion list. */
-function withExcludedItems(cv: CanonicalCv, sectionId: string, ids: string[]): CanonicalCv {
+/** Immutable: set (or prune-when-empty) a section's exclusion list. Exported
+ *  for the bulk ops (`bulkCurate.ts`), which rewrite a whole list at once. */
+export function withExcludedItems(cv: CanonicalCv, sectionId: string, ids: string[]): CanonicalCv {
   const rest: Record<string, string[]> = { ...(cv.display.excludedItems ?? {}) };
   if (ids.length === 0) delete rest[sectionId];
   else rest[sectionId] = ids;
@@ -499,6 +500,41 @@ export function buildManualCsl(id: string, fields: ManualEntryFields): CslItem |
 }
 
 /**
+ * Printed-name variants for a USER-ASSERTED self author on a manual entry, so
+ * the highlighter can wrap the right substring in any citation style. citeproc
+ * renders names in style-specific forms ("Chrétien, B.", "B. Chrétien"), and
+ * the reliably-present token is the FAMILY name — so it is always included,
+ * alongside the raw input and both name orders. Reuses the same name splitter
+ * as the CSL build (handles CJK and "Family, Given").
+ */
+export function manualSelfNameVariants(rawName: string): string[] {
+  const raw = rawName.trim();
+  if (!raw) return [];
+  const name = toCslName(raw);
+  const variants = new Set<string>([raw]);
+  if (typeof name.family === "string" && name.family) {
+    variants.add(name.family);
+    if (typeof name.given === "string" && name.given) {
+      variants.add(`${name.family}, ${name.given}`);
+      variants.add(`${name.given} ${name.family}`);
+    }
+  }
+  return [...variants].filter((v) => v.length >= 2);
+}
+
+/** Options for {@link addStructuredEntry}. */
+export interface StructuredEntryOptions {
+  /**
+   * The author name (as typed in the form) that IS the account holder. When set,
+   * the entry is marked `authoredBySelf` with `matchBasis: "claimed"` — the same
+   * user-asserted basis as the claim-by-DOI flow (NEVER an automatic name match;
+   * the user ticked "this is my work" and chose which author they are) — and the
+   * self-name highlight applies to it like any imported work.
+   */
+  selfAuthorName?: string;
+}
+
+/**
  * Add a STRUCTURED manual entry to the section of the given type. Builds a CSL
  * item (rendered via citeproc, consistent with the chosen style) rather than a
  * free-text string. Preserved across re-sync like every manual item. No-op when
@@ -509,10 +545,13 @@ export function addStructuredEntry(
   sectionType: CvSectionType,
   fields: ManualEntryFields,
   id: string,
+  opts: StructuredEntryOptions = {},
 ): CanonicalCv {
   const csl = buildManualCsl(id, fields);
   if (!csl) return cv;
 
+  const selfName = opts.selfAuthorName?.trim();
+  const authoredBySelf = Boolean(selfName);
   const year = typeof fields.year === "string" ? parseInt(fields.year, 10) : fields.year;
   return appendManualItem(cv, sectionType, {
     id,
@@ -522,12 +561,13 @@ export function addStructuredEntry(
     included: true,
     notMine: false,
     order: 0,
-    authoredBySelf: false,
-    selfNameVariants: [],
+    authoredBySelf,
+    selfNameVariants: selfName ? manualSelfNameVariants(selfName) : [],
     meta: {
       year: typeof year === "number" && Number.isFinite(year) ? year : undefined,
       type: csl.type,
       doi: csl.DOI,
+      matchBasis: authoredBySelf ? "claimed" : undefined,
     },
   });
 }

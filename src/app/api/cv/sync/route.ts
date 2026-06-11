@@ -38,12 +38,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const cv = await syncCvForUser({
+    const { cv, report } = await syncCvForUser({
       userId: session.user.id,
       orcid: session.user.orcid,
       fallbackName: session.user.name ?? "",
     });
-    return NextResponse.json({ cv });
+    return NextResponse.json({ cv, report });
   } catch (err) {
     logger.error("api.cv_sync_failed", { err });
     return NextResponse.json(

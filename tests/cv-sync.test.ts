@@ -105,6 +105,7 @@ import {
   capCvItems,
   cvItemCount,
   getCvForUser,
+  getLastSyncReport,
   getPublicCv,
   getPublicCvForPage,
   getPublicCvRecord,
@@ -185,10 +186,64 @@ describe("syncCvForUser", () => {
     mocks.findUnique.mockResolvedValue(null); // no existing row
     mocks.resolveAuthor.mockResolvedValue(RESOLVED);
     mocks.fetchWorks.mockResolvedValue(works);
-    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
     expect(cv.sections[0]!.type).toBe("publications");
     expect(mocks.upsert).toHaveBeenCalledTimes(1);
     expect(mocks.fetchEditorial).toHaveBeenCalled();
+  });
+
+  it("reports the first sync as initial (no per-item flood) and persists the report", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    const { report } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(report.initial).toBe(true);
+    expect(report.addedTotal).toBeGreaterThan(0);
+    expect(report.added).toEqual([]);
+    expect(report.sourceCounts?.openalex).toBe(works.length);
+    expect(report.timingsMs?.["openalex.works"]).toBeTypeOf("number");
+    const upsertArg = mocks.upsert.mock.calls[0]![0] as {
+      create: { lastSyncReport?: unknown };
+      update: { lastSyncReport?: unknown };
+    };
+    expect(upsertArg.create.lastSyncReport).toEqual(report);
+    expect(upsertArg.update.lastSyncReport).toEqual(report);
+  });
+
+  it("reports what a re-sync changed relative to the stored document", async () => {
+    // Previous document was built WITHOUT the first work → the re-sync adds it.
+    const prevDoc = buildCanonicalCv({
+      id: "cv_1",
+      resolved: RESOLVED,
+      works: works.slice(1),
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    mocks.findUnique.mockResolvedValue({ id: "cv_1", document: prevDoc });
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    const { report } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(report.initial).toBe(false);
+    expect(report.addedTotal).toBe(1);
+    expect(report.removedTotal).toBe(0);
+    expect(report.added).toHaveLength(1);
+    expect(report.added[0]!.title.length).toBeGreaterThan(0);
+  });
+
+  it("getLastSyncReport returns the stored report and degrades a corrupt one to null", async () => {
+    const stored = {
+      syncedAt: "2026-06-11T00:00:00.000Z",
+      initial: false,
+      addedTotal: 2,
+      removedTotal: 0,
+      added: [],
+      reviewCandidates: 1,
+    };
+    mocks.findUnique.mockResolvedValue({ lastSyncReport: stored });
+    expect(await getLastSyncReport("u1")).toEqual(stored);
+    mocks.findUnique.mockResolvedValue({ lastSyncReport: { garbage: true } });
+    expect(await getLastSyncReport("u1")).toBeNull();
+    mocks.findUnique.mockResolvedValue(null);
+    expect(await getLastSyncReport("u1")).toBeNull();
   });
 
   it("labels peer reviews by resolved journal name, not the publisher", async () => {
@@ -199,7 +254,7 @@ describe("syncCvForUser", () => {
       { issn: "1471-2415", organization: "Springer Nature", count: 2 },
     ]);
     mocks.fetchJournalNames.mockResolvedValue(new Map([["1471-2415", "BMC Ophthalmology"]]));
-    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
     expect(mocks.fetchJournalNames).toHaveBeenCalledWith(["1471-2415"]);
     const pr = cv.sections.find((s) => s.type === "peer-review");
     expect(pr?.items[0]?.displayText).toBe("BMC Ophthalmology — 2 reviews");
@@ -215,7 +270,7 @@ describe("syncCvForUser", () => {
     ];
     mocks.fetchPeerReviews.mockResolvedValue(groups);
     mocks.fetchJournalNames.mockResolvedValue(new Map([["1471-2415", "BMC Ophthalmology"]]));
-    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
     expect(mocks.fetchJournalNames).toHaveBeenCalledWith(["1471-2415"]);
     const texts =
       cv.sections.find((s) => s.type === "peer-review")?.items.map((i) => i.displayText) ?? [];
@@ -241,7 +296,7 @@ describe("syncCvForUser", () => {
         primary_location: { source: { display_name: "J. Orphans", type: "journal" } },
       },
     ]);
-    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
     // Discovery was queried with the freshly-pulled works + the (absent) previous CV.
     expect(mocks.discoverOrcid).toHaveBeenCalledWith({
       orcid: RESOLVED.orcid,
@@ -277,7 +332,7 @@ describe("syncCvForUser", () => {
       },
     ]);
     mocks.fetchOrcidWorkTypes.mockResolvedValue({ "10.7/poster": "conference-poster" });
-    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
     expect(mocks.fetchOrcidWorkTypes).toHaveBeenCalledWith(RESOLVED.orcid);
     const other = cv.sections.find((s) => s.type === "other");
     expect(other?.items.find((i) => i.id === "WPOSTER")?.meta.peerReviewed).toBe(false);
@@ -287,7 +342,7 @@ describe("syncCvForUser", () => {
   it("builds an empty CV when the ORCID resolves to no OpenAlex author", async () => {
     mocks.findUnique.mockResolvedValue(null);
     mocks.resolveAuthor.mockResolvedValue(null);
-    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid, fallbackName: "X" });
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid, fallbackName: "X" });
     expect(cv.owner.displayName).toBe("X");
     expect(mocks.fetchWorks).not.toHaveBeenCalled();
   });
@@ -340,7 +395,7 @@ describe("syncCvForUser", () => {
       awards: [],
     });
 
-    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
 
     expect(cv.sections.find((s) => s.type === "datasets")).toBeDefined();
     expect(cv.sections.find((s) => s.type === "conference")).toBeDefined();
