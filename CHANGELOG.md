@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **Public `.json` data minimization** — the machine-readable public CV download
+  (`/p/<slug>.json`) no longer carries fields it had no reason to expose: the
+  embedded profile photo (a ~1 MB base64 headshot, dropped from the machine file
+  even though the HTML page may still render it) and the resolved custom CSL XML
+  blob are stripped; and the internal disambiguation/research signals on each
+  work (`reviewFlag`, `duplicateOf`, `matchBasis`, `claimed`) plus the owner's
+  `dismissedDuplicates` curation bookkeeping are stripped at the single public
+  projection gate — these advisory hints (e.g. "this attribution is doubtful")
+  were never on the rendered page and must not leak into a downloadable file.
+- **DBLP PID allow-list** — the DBLP person id resolved from a SPARQL response is
+  now shape-validated (`[A-Za-z0-9/_-]`, no `..`) before it is interpolated into
+  the profile-fetch URL, so a malformed/hostile value can't add a query, fragment,
+  or traversal segment that re-points the outbound request (defense-in-depth).
 - **HSTS at the edge** — Caddy now sends `Strict-Transport-Security` on every
   response. The header was previously configured in `next.config.ts` but never
   emitted in the Docker deployment (its `AUTH_URL` condition is evaluated at

@@ -54,7 +54,15 @@ async function resolvePid(orcid: string): Promise<string | null> {
   const value = asRecord(first?.author)?.value;
   if (typeof value !== "string") return null;
   const m = /\/pid\/(.+)$/.exec(value);
-  return m ? (m[1] as string) : null;
+  if (!m) return null;
+  const pid = m[1] as string;
+  // The PID is interpolated into `https://dblp.org/pid/${pid}.xml`. A DBLP PID is
+  // a slash-delimited path of word chars (e.g. "92/1116", "h/JohnEHopcroft"), so
+  // the slash is a legitimate separator (can't encodeURIComponent it). Allow-list
+  // the shape and reject "." segments so a hostile/garbled SPARQL value can't add
+  // a query/fragment/traversal that re-points the outbound request.
+  if (!/^[A-Za-z0-9][A-Za-z0-9/_-]*$/.test(pid) || pid.includes("..")) return null;
+  return pid;
 }
 
 /** DOI from a DBLP `<ee>` value (string or array of links). */

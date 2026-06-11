@@ -124,6 +124,67 @@ describe("projectCvForPublic", () => {
     expect(cv.sections[0]!.items.find((i) => i.id === itemId)?.notMine).toBe(true);
   });
 
+  it("strips internal disambiguation/research signals from public items but keeps render fields", () => {
+    const base = makeCv();
+    const sec = base.sections.find((s) => s.type === "publications")!;
+    const first = sec.items[0]!;
+    // Inject the internal signals onto an INCLUDED (public) item, plus a
+    // renderer-used meta field that must survive.
+    const cv = {
+      ...base,
+      sections: base.sections.map((s) =>
+        s.id !== sec.id
+          ? s
+          : {
+              ...s,
+              items: s.items.map((it) =>
+                it.id !== first.id
+                  ? it
+                  : {
+                      ...it,
+                      meta: {
+                        ...it.meta,
+                        reviewFlag: "orcid-conflict" as const,
+                        matchBasis: "claimed" as const,
+                        claimed: true,
+                        duplicateOf: {
+                          itemId: "other",
+                          tier: "strong" as const,
+                          groupId: "other",
+                        },
+                        authorRole: "first", // a render field — must be KEPT
+                      },
+                    },
+              ),
+            },
+      ),
+    };
+    const pub = projectCvForPublic(cv);
+    const pubItem = pub.sections
+      .find((s) => s.id === sec.id)!
+      .items.find((it) => it.id === first.id)!;
+    // The four internal signals are gone from the public projection…
+    expect(pubItem.meta.reviewFlag).toBeUndefined();
+    expect(pubItem.meta.matchBasis).toBeUndefined();
+    expect(pubItem.meta.claimed).toBeUndefined();
+    expect(pubItem.meta.duplicateOf).toBeUndefined();
+    // …but a renderer-used meta field is preserved.
+    expect(pubItem.meta.authorRole).toBe("first");
+    // Input untouched (immutable).
+    expect(
+      cv.sections.find((s) => s.id === sec.id)!.items.find((it) => it.id === first.id)!.meta
+        .reviewFlag,
+    ).toBe("orcid-conflict");
+  });
+
+  it("strips dismissedDuplicates (internal curation bookkeeping) from the public display", () => {
+    const cv = updateDisplay(makeCv(), { dismissedDuplicates: ["a|b", "c|d"] });
+    const pub = projectCvForPublic(cv);
+    expect(pub.display.dismissedDuplicates).toBeUndefined();
+    // Input untouched.
+    expect(cv.display.dismissedDuplicates).toEqual(["a|b", "c|d"]);
+  });
+
   it("applies the published view's exclusions and doesn't ship the exclude list", () => {
     const cv = makeCv();
     const sec = cv.sections.find((s) => s.type === "publications")!;
