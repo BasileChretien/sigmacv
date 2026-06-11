@@ -5,6 +5,7 @@ import {
   HEAD_TERM_PAGE_IDS,
   getHeadTermMeta,
   headTermContent,
+  headTermPageForLocale,
   headTermRelated,
   headTermStrings,
   isHeadTermPageId,
@@ -95,5 +96,13 @@ describe("head-term pages", () => {
 
   it("HEAD_TERM_META has an entry for every id", () => {
     expect(Object.keys(HEAD_TERM_META).sort()).toEqual([...HEAD_TERM_PAGE_IDS].sort());
+  });
+
+  it("maps a locale to its head-term page (en-US / unknown → none)", () => {
+    expect(headTermPageForLocale("fr-FR")).toBe("cv-academique");
+    expect(headTermPageForLocale("de-DE")).toBe("wissenschaftlicher-lebenslauf");
+    expect(headTermPageForLocale("ja-JP")).toBe("gakujutsu-cv");
+    expect(headTermPageForLocale("en-US")).toBeUndefined();
+    expect(headTermPageForLocale("xx-XX")).toBeUndefined();
   });
 });

@@ -164,9 +164,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     // owner can still opt out via display.publicAttribution). Export renderers
     // never pass this, so PDF/DOCX/LaTeX/Markdown stay unbranded.
     let html = renderCvHtml(cv, { attribution: true });
-    // OG/Twitter social-preview meta tags (public profile text only) into <head>.
-    // og:image points at the per-CV branded card (same slug, /og sub-route).
-    const head = publicMetaTags(cv, { imageUrl: absoluteUrl(`/p/${slug}/og`) });
+    // SEO + OG/Twitter meta (public profile text only) into <head>: canonical +
+    // og:url for this page, a description for the SERP snippet, and og:image
+    // pointing at the per-CV branded card (same slug, /og sub-route).
+    const head = publicMetaTags(cv, {
+      imageUrl: absoluteUrl(`/p/${slug}/og`),
+      pageUrl: absoluteUrl(`/p/${slug}`),
+    });
     if (indexable) {
       // Inject ProfilePage/Person JSON-LD into the document head for rich results.
       // It's data (not executed), so it's unaffected by the document's strict CSP.

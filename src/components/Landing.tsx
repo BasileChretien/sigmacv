@@ -8,6 +8,7 @@ import { contactStrings } from "@/lib/i18n/contact";
 import { faqStrings } from "@/lib/i18n/faq";
 import { fairCvStrings } from "@/lib/i18n/fairCv";
 import { glossaryNavLabel, guidesNavLabel } from "@/lib/i18n/guidesNav";
+import { headTermPageForLocale, headTermStrings } from "@/lib/i18n/headTermPages";
 import { landingAudience } from "@/lib/i18n/landingAudience";
 import { landingStrings } from "@/lib/i18n/landing";
 import { LANDING_PAGE_IDS, landingPageStrings } from "@/lib/i18n/landingPages";
@@ -20,6 +21,8 @@ import {
   localeContactPath,
   localeFairPath,
   localeFaqPath,
+  localeGlossaryIndexPath,
+  localeGuidesIndexPath,
   localeLandingPagePath,
   localePrinciplesPath,
   localePrivacyPath,
@@ -91,6 +94,8 @@ export default function Landing({ locale }: LandingProps) {
   const s = landingStrings(loc);
   const audience = landingAudience(loc);
   const help = orcidHelp(loc);
+  // This locale's native head-term landing page (e.g. fr-FR → "cv-academique"), if any.
+  const headTerm = headTermPageForLocale(loc);
 
   return (
     <div className="auth-shell" lang={loc}>
@@ -301,6 +306,16 @@ export default function Landing({ locale }: LandingProps) {
               </li>
             );
           })}
+          {/* This locale's native head-term page (e.g. /fr/cv-academique) — a prominent
+              inbound link so it isn't reachable only via the sitemap. */}
+          {headTerm ? (
+            <li key={headTerm}>
+              <Link href={localeLandingPagePath(headTerm, loc)}>
+                {headTermStrings(headTerm).navLabel}
+              </Link>
+              <span className="muted explore-desc">{headTermStrings(headTerm).subhead}</span>
+            </li>
+          ) : null}
         </ul>
       </section>
 
@@ -315,10 +330,10 @@ export default function Landing({ locale }: LandingProps) {
         <Link className="footer-link" href={localeFaqPath(loc)}>
           {faqStrings(loc).navLabel}
         </Link>
-        <Link className="footer-link" href="/guides">
+        <Link className="footer-link" href={localeGuidesIndexPath(loc)}>
           {guidesNavLabel(loc)}
         </Link>
-        <Link className="footer-link" href="/glossary">
+        <Link className="footer-link" href={localeGlossaryIndexPath(loc)}>
           {glossaryNavLabel(loc)}
         </Link>
         <Link className="footer-link" href={localePrinciplesPath(loc)}>

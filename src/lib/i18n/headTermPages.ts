@@ -1,4 +1,4 @@
-import type { Locale } from "./index";
+import { asLocale, type Locale } from "./index";
 import type { LandingPageContent } from "./landingContent";
 import type { LandingPageId, LandingPageStrings } from "./landingPages";
 import { HEAD_TERM_CONTENT, HEAD_TERM_STRINGS } from "./headTermContent";
@@ -106,6 +106,13 @@ export const HEAD_TERM_META: Record<HeadTermPageId, HeadTermMeta> = {
 /** True if `id` is a head-term page id. */
 export function isHeadTermPageId(id: string): id is HeadTermPageId {
   return (HEAD_TERM_PAGE_IDS as readonly string[]).includes(id);
+}
+
+/** The head-term page for a locale (e.g. fr-FR → "cv-academique"), if one exists.
+ *  en-US has none (the head term is English — served by the existing pages). */
+export function headTermPageForLocale(locale: string): HeadTermPageId | undefined {
+  const loc = asLocale(locale);
+  return HEAD_TERM_PAGE_IDS.find((id) => HEAD_TERM_META[id].locale === loc);
 }
 
 /** Structural meta for a head-term page. */

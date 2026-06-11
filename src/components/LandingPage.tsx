@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { faqPageJsonLd } from "@/lib/faqJsonLd";
 import { asLocale } from "@/lib/i18n";
+import { headTermPageForLocale } from "@/lib/i18n/headTermPages";
 import {
   type AnyLandingPageId,
   anyLandingPageContent,
@@ -62,7 +63,13 @@ export default function LandingPage({ page, locale }: { page: AnyLandingPageId; 
     })),
   });
 
-  const related = anyLandingRelated(page);
+  // Hub-and-spoke related links, plus this locale's native head-term page (if any)
+  // so it isn't an orphan — every localized landing/persona/topic page links to it.
+  const headTerm = headTermPageForLocale(loc);
+  const related: readonly AnyLandingPageId[] =
+    headTerm && headTerm !== page
+      ? [...anyLandingRelated(page), headTerm]
+      : anyLandingRelated(page);
 
   return (
     <main className="doc-page" lang={loc}>
@@ -79,6 +86,11 @@ export default function LandingPage({ page, locale }: { page: AnyLandingPageId; 
         // Server-rendered from static, non-user data — safe to inline.
         dangerouslySetInnerHTML={{ __html: howToJsonLd }}
       />
+
+      <nav className="breadcrumbs" aria-label="Breadcrumb">
+        <Link href={localeHomePath(loc)}>SigmaCV</Link> <span aria-hidden="true">›</span>{" "}
+        {s.navLabel}
+      </nav>
 
       <h1>{s.heading}</h1>
       <p className="doc-lede">{s.subhead}</p>
