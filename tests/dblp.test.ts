@@ -92,8 +92,11 @@ describe("fetchDblpConferencePapers", () => {
     // verbatim into `https://dblp.org/pid/${pid}.xml`, re-point the outbound
     // request. The PID allow-list must reject it so no profile fetch happens.
     const fetchSpy = vi.fn((url: unknown) => {
-      const u = String(url);
-      if (u.includes("sparql.dblp.org")) {
+      // Route on the parsed host (not a substring match) so the mock dispatch
+      // itself is unambiguous — a SPARQL request gets the binding, anything else
+      // (a profile fetch) gets an empty 200.
+      const host = new URL(String(url)).hostname;
+      if (host === "sparql.dblp.org") {
         return Promise.resolve(
           new Response(
             JSON.stringify({
@@ -113,7 +116,7 @@ describe("fetchDblpConferencePapers", () => {
     expect(await fetchDblpConferencePapers(ORCID)).toEqual([]);
     // Only the SPARQL call was made; the /pid/ profile fetch was never attempted.
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(String(fetchSpy.mock.calls[0]![0])).toContain("sparql.dblp.org");
+    expect(new URL(String(fetchSpy.mock.calls[0]![0])).hostname).toBe("sparql.dblp.org");
   });
 
   it("fails soft when the profile fetch throws", async () => {
