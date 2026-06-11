@@ -24,9 +24,16 @@ const nextConfig: NextConfig = {
 
   // citeproc reads CSL style + locale XML from disk at runtime. Make sure the
   // standalone trace includes the vendored assets for the routes that render.
+  // playwright-core resolves browsers.json with a dynamic require the file
+  // tracer can't see; without it the standalone server can't even load
+  // `playwright`, and every PDF export 500s (dev is unaffected — it resolves
+  // from the real node_modules).
   outputFileTracingIncludes: {
     "/api/cv/preview": ["./src/lib/citeproc/assets/**/*"],
-    "/api/cv/export/[format]": ["./src/lib/citeproc/assets/**/*"],
+    "/api/cv/export/[format]": [
+      "./src/lib/citeproc/assets/**/*",
+      "./node_modules/playwright-core/browsers.json",
+    ],
     "/p/[slug]": ["./src/lib/citeproc/assets/**/*"],
     "/api/internal/resync": ["./src/lib/citeproc/assets/**/*"],
   },
