@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **HSTS at the edge** — Caddy now sends `Strict-Transport-Security` on every
+  response. The header was previously configured in `next.config.ts` but never
+  emitted in the Docker deployment (its `AUTH_URL` condition is evaluated at
+  build time, when the variable isn't set), so production served without HSTS.
+- **No default Plausible DB password** — the optional analytics profile no
+  longer falls back to `postgres` when `PLAUSIBLE_DB_PASSWORD` is unset; it now
+  fails closed (Postgres refuses a blank password).
+- **`nofollow ugc` on user-typed CV links** — the free-text website and profile
+  links on a published CV no longer pass link equity (spam-CV SEO hardening);
+  identifier-derived links (DOI, ORCID, ROR) are unchanged.
+
 ### Added
 
 - **Product Hunt launch kit** — a ready-to-use kit for launching SigmaCV on Product
@@ -14,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the maker's first comment, a gallery shot list with branded graphics
   (`docs/images/product-hunt-*`), a launch-day playbook, and a pre-launch checklist.
   Supports the discoverability roadmap (tool directories / listed where LLMs retrieve).
+- **Server operations runbook** (`docs/SERVER-RUNBOOK.md`) — copy-paste VPS
+  checklist: env audit, backup test-restore, OEP import check, SSH/fail2ban/
+  unattended-upgrades hardening, image-refresh cadence, disk/log rotation,
+  uptime + error alerting, and GDPR data-subject-request handling.
 
 - **Academic CV examples gallery** (`/examples`) — illustrative example CVs by field and
   career stage (biology, computer science, psychology, economics, chemistry, physics,

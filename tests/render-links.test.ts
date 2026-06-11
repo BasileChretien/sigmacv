@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
+import { updateOwner } from "@/lib/canonical/curate";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { renderBibliography } from "@/lib/citeproc/engine";
 import { renderCvHtml } from "@/lib/render/html";
@@ -101,5 +102,28 @@ describe.skipIf(!hasApa)("renderCvHtml link behaviour (needs vendored CSL assets
     expect(html).toMatch(
       /<a href="https:\/\/orcid\.org\/0000-0002-7483-2489" target="_blank" rel="noopener noreferrer"/,
     );
+  });
+
+  it("marks user-typed links (website + profile links) nofollow ugc, but not DOI links", () => {
+    const withUserLinks = updateOwner(cv, {
+      contact: { website: "https://me.example.org" },
+      links: [{ label: "Blog", url: "https://blog.example.org" }],
+    });
+    const html = renderCvHtml(withUserLinks);
+    // Free-text URLs the owner controls must not pass link equity from /p/ pages…
+    expect(html).toMatch(
+      /<a href="https:\/\/me\.example\.org" rel="nofollow ugc noopener noreferrer" target="_blank">/,
+    );
+    expect(html).toMatch(
+      /<a href="https:\/\/blog\.example\.org" rel="nofollow ugc noopener noreferrer" target="_blank">Blog</,
+    );
+    // …while identifier-derived links (DOI) keep the plain externalizeLinks rel.
+    expect(html).toMatch(
+      /<a href="https:\/\/doi\.org\/10\.1000\/example1" target="_blank" rel="noopener noreferrer"/,
+    );
+    // externalizeLinks must not double rel/target on the pre-declared anchors.
+    const blogAnchor = html.match(/<a [^>]*blog\.example\.org[^>]*>/)?.[0] ?? "";
+    expect(blogAnchor.match(/rel=/g)).toHaveLength(1);
+    expect(blogAnchor.match(/target=/g)).toHaveLength(1);
   });
 });

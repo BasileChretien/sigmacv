@@ -123,8 +123,12 @@ First build pulls the Playwright/Chromium base image (large) — give it a few m
   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
   ```
 - **Stop / start:** `docker compose -f docker-compose.prod.yml down` / `… up -d`
-- **Backups:** handled by Neon (managed). Nothing on the VPS holds state except
-  Caddy's certs (in a named volume).
+- **Backups:** handled by Neon (managed) **in this variant only**. Nothing on
+  the VPS holds state except Caddy's certs (in a named volume). ⚠️ If you run
+  the self-hosted `docker-compose.yml` variant instead (the production
+  sigmacv.org setup), Postgres lives on the box: you own backups — daily
+  `pg_dump` cron + periodic test-restores + an offsite copy. Step-by-step in
+  [`docs/SERVER-RUNBOOK.md`](docs/SERVER-RUNBOOK.md).
 - **Database schema changes:** re-run `prisma db push` against the prod DB
   (until migrations are committed — see below).
 
@@ -149,3 +153,5 @@ First build pulls the Playwright/Chromium base image (large) — give it a few m
   apply them automatically (today it's a no-op and the schema is `db push`-ed).
 - **Self-hosted Postgres alternative:** use `docker-compose.yml` (it runs its own
   `postgres` service) instead of `docker-compose.prod.yml`, and drop `DATABASE_URL`.
+  This is what production sigmacv.org runs. Day-2 operations (env audit, backup
+  test-restore, hardening, monitoring) are in [`docs/SERVER-RUNBOOK.md`](docs/SERVER-RUNBOOK.md).

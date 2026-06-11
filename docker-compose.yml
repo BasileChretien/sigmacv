@@ -98,7 +98,12 @@ services:
     restart: unless-stopped
     profiles: ["analytics"]
     environment:
-      POSTGRES_PASSWORD: ${PLAUSIBLE_DB_PASSWORD:-postgres}
+      # REQUIRED when the `analytics` profile is active. Empty default — NOT `:?`
+      # (which would break a normal non-analytics `docker compose up`) and NOT a
+      # well-known fallback: Postgres refuses to initdb with a blank password, so
+      # an unset var fails closed instead of booting as postgres/postgres. Set it
+      # in `.env` before `--profile analytics up`.
+      POSTGRES_PASSWORD: ${PLAUSIBLE_DB_PASSWORD:-}
     volumes:
       - plausible_db_data:/var/lib/postgresql/data
     healthcheck:
@@ -166,7 +171,7 @@ services:
       # Keep "false" only for first-run registration, then set "true" and redeploy
       # so the public instance can't be signed up to by strangers.
       DISABLE_REGISTRATION: ${PLAUSIBLE_DISABLE_REGISTRATION:-true}
-      DATABASE_URL: postgres://postgres:${PLAUSIBLE_DB_PASSWORD:-postgres}@plausible_db:5432/plausible_db
+      DATABASE_URL: postgres://postgres:${PLAUSIBLE_DB_PASSWORD:-}@plausible_db:5432/plausible_db
       CLICKHOUSE_DATABASE_URL: http://plausible_events_db:8123/plausible_events_db
     expose:
       - "8000"
