@@ -3,12 +3,14 @@ import { listIndexablePublicSlugs } from "@/lib/cv/sync";
 import { listGuides } from "@/lib/guides/guides";
 import { listTerms } from "@/lib/glossary/glossary";
 import { DEFAULT_UI_LOCALE, LOCALE_SLUGS, SUPPORTED_LOCALES } from "@/lib/i18n";
+import { HEAD_TERM_META, HEAD_TERM_PAGE_IDS } from "@/lib/i18n/headTermPages";
 import { ALL_LANDING_PAGE_IDS } from "@/lib/i18n/landingAll";
 import {
   localeGlossaryIndexPath,
   localeGlossaryTermPath,
   localeGuidePath,
   localeGuidesIndexPath,
+  localeLandingPagePath,
 } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/siteUrl";
 
@@ -199,6 +201,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   ];
 
+  // Native head-term landing pages (I1) — single-locale, each at its own native
+  // URL (/fr/cv-academique, …), so one entry per page (no ×10, no hreflang cluster).
+  const headTermEntries: MetadataRoute.Sitemap = HEAD_TERM_PAGE_IDS.map((slug) => {
+    const meta = HEAD_TERM_META[slug];
+    return {
+      url: absoluteUrl(localeLandingPagePath(slug, meta.locale)),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    };
+  });
+
   // Opt-in indexable public CVs — the privacy-preserving organic-growth loop.
   // Best-effort: a DB hiccup must not break the (static-content) sitemap.
   let cvEntries: MetadataRoute.Sitemap = [];
@@ -226,6 +239,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...landingEntries,
     ...guidesEntries,
     ...glossaryEntries,
+    ...headTermEntries,
     ...cvEntries,
   ];
 }

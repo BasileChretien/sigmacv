@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Native head-term landing pages** — dedicated pages that target each market's own
+  search term for an academic CV, at a native URL: **CV académique** (`/fr/cv-academique`),
+  **wissenschaftlicher Lebenslauf** (`/de/…`), **CV académico** (`/es/…`), **CV accademico**
+  (`/it/…`), **currículo acadêmico** (`/pt/…`), **академическое резюме** (`/ru/…`),
+  **学术简历** (`/zh/…`), **アカデミックCV** (`/ja/…`) and **학술 CV** (`/ko/…`), each with
+  native-first copy and full landing-page structured data. Copy is machine-drafted,
+  flagged for native review.
 - **Research Resource Identifier (RRID)** — SigmaCV is now registered in the
   [SciCrunch](https://scicrunch.org/) registry as **RRID:SCR_028552**, so papers
   can cite the tool unambiguously. Recorded in `CITATION.cff`, `codemeta.json`
