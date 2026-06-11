@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Research Resource Identifier (RRID)** — SigmaCV is now registered in the
+  [SciCrunch](https://scicrunch.org/) registry as **RRID:SCR_028552**, so papers
+  can cite the tool unambiguously. Recorded in `CITATION.cff`, `codemeta.json`
+  and the README (badge + "Citing" section).
 - **Publish nudge** (10 languages) — a gentle, dismissible prompt in the editor
   invites you to publish a free, shareable public CV page. It appears only while
   your CV is unpublished, never publishes on your behalf (its button just takes
