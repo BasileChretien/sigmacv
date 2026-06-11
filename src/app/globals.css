@@ -2287,6 +2287,66 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   margin: 0;
 }
 
+/* ── Examples gallery (illustrative CVs) ──────────────────────────────────── */
+.example-disclaimer {
+  font-size: var(--text-sm);
+  border-left: 3px solid var(--border-strong);
+  padding-left: var(--space-3);
+  margin: var(--space-4) 0;
+}
+.cv-example {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin: var(--space-5) 0;
+}
+.cv-example-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.cv-example-name {
+  font-size: var(--text-lg);
+  margin: 0;
+}
+.cv-example-creds {
+  font-weight: 400;
+  font-size: var(--text-md);
+}
+.cv-example-headline {
+  margin: var(--space-2) 0 0;
+  font-weight: 500;
+}
+.cv-example-affil {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+}
+.cv-example-section {
+  margin-top: var(--space-5);
+}
+.cv-example-section h3 {
+  font-size: var(--text-md);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-2);
+  margin: 0 0 var(--space-3);
+}
+.cv-example-section ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.cv-example-section li {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.example-cta {
+  margin-top: var(--space-6);
+}
+
 /* ── Site links / coffee ─────────────────────────────────────────────────── */
 .site-links {
   display: inline-flex;
