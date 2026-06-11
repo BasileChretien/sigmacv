@@ -10,6 +10,13 @@
 		max_size 10MB
 	}
 
+	# HSTS at the edge, where TLS actually terminates. Sent unconditionally:
+	# browsers MUST ignore an STS header received over plain HTTP (RFC 6797 §8.1),
+	# so local `:80` runs are unaffected. next.config.ts only emits this header
+	# when AUTH_URL is https at BUILD time — never true in the Docker build, where
+	# AUTH_URL is runtime-only — so the edge has to set it.
+	header Strict-Transport-Security "max-age=63072000; includeSubDomains"
+
 	# /api/internal/* (the secret-guarded resync endpoint) is machine-to-machine
 	# only — the cron container reaches it directly at http://app:3000 on the
 	# internal Docker network. Never expose it publicly, even with the Bearer guard.

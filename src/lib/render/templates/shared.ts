@@ -58,6 +58,16 @@ export function photoHtml(cv: CanonicalCv): string {
   return `<img class="cv-photo" src="${escapeHtml(photo)}" alt="${alt}" />`;
 }
 
+/**
+ * User-typed URLs (the free-text website + extra profile links) are the only
+ * anchors on a published CV whose target the account holder fully controls, so
+ * they carry `nofollow ugc` — a spam CV must not pass link equity from our
+ * domain. Identifier-derived links (DOI, ORCID, ROR, license) stay plain
+ * `noopener noreferrer`, appended by `externalizeLinks`, which skips anchors
+ * that already declare a rel — hence the full rel is spelled out here.
+ */
+const UGC_REL = ' rel="nofollow ugc noopener noreferrer"';
+
 /** The contact line: location · email · phone · website (+ extra links). */
 function contactHtml(cv: CanonicalCv): string {
   const c = cv.owner.contact ?? {};
@@ -74,13 +84,13 @@ function contactHtml(cv: CanonicalCv): string {
     // Only render the website when it resolves to a SAFE href; an unsafe scheme
     // (javascript:/data:/…) is dropped entirely rather than shown as raw text.
     const href = safeHref(c.website);
-    if (href) parts.push(`<a href="${escapeHtml(href)}">${escapeHtml(c.website)}</a>`);
+    if (href) parts.push(`<a href="${escapeHtml(href)}"${UGC_REL}>${escapeHtml(c.website)}</a>`);
   }
   const links = (cv.owner.links ?? [])
     .map((l) => {
       const href = safeHref(l.url);
       const label = escapeHtml(l.label || l.url);
-      return href ? `<a href="${escapeHtml(href)}">${label}</a>` : label;
+      return href ? `<a href="${escapeHtml(href)}"${UGC_REL}>${label}</a>` : label;
     })
     .filter(Boolean);
   const contactLine = parts.length ? `<div class="cv-contact">${parts.join(" · ")}</div>` : "";
