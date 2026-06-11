@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **PDF export failed in production** (`{"error":"Failed to generate export."}`)
+  — the standalone (Docker) build's file trace dropped
+  `playwright-core/browsers.json`, which Playwright loads via a dynamic require
+  the tracer can't follow, so the PDF renderer could not even load `playwright`
+  at runtime. The file is now pinned into the export route's
+  `outputFileTracingIncludes`. Dev servers were unaffected (they resolve from
+  the real `node_modules`), which is why the regression only showed up deployed.
+
 ### Security
 
 - **Public `.json` data minimization** — the machine-readable public CV download
