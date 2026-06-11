@@ -103,4 +103,19 @@ describe("publicMetaTags", () => {
     expect(html).toContain('property="og:image" content="https://x/og.png"');
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
   });
+
+  it("emits canonical, og:url and a standard description when a page URL is given", () => {
+    const html = publicMetaTags(makeCv({ headline: "Researcher" }), {
+      pageUrl: "https://sigmacv.org/p/abc",
+    });
+    expect(html).toContain('<link rel="canonical" href="https://sigmacv.org/p/abc" />');
+    expect(html).toContain('property="og:url" content="https://sigmacv.org/p/abc"');
+    expect(html).toContain('name="description" content="Researcher"');
+  });
+
+  it("omits canonical/og:url when no page URL is given", () => {
+    const html = publicMetaTags(makeCv({ headline: "Researcher" }));
+    expect(html).not.toContain("canonical");
+    expect(html).not.toContain("og:url");
+  });
 });

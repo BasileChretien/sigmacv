@@ -56,14 +56,25 @@ function nameTag(name: string, content: string): string {
 }
 
 /**
- * Build the OG/Twitter meta-tag block for a public CV. `imageUrl` (optional) is
- * referenced as og:image when supplied. The display name drives og:title; the
- * description tag is omitted when there's no headline/summary.
+ * Build the SEO + OG/Twitter meta-tag block for a public CV.
+ * - `pageUrl` (optional): emits `<link rel="canonical">` + `og:url` (consolidates
+ *   the HTML page against its `.json`/`.bib`/… content-negotiated representations).
+ * - `imageUrl` (optional): referenced as og:image.
+ * The display name drives the title; a standard `<meta name="description">` (for the
+ * SERP snippet) mirrors og:description, and both are omitted when there's no
+ * headline/summary. The document `<title>` itself is set by the renderer.
  */
-export function publicMetaTags(cv: CanonicalCv, opts: { imageUrl?: string } = {}): string {
+export function publicMetaTags(
+  cv: CanonicalCv,
+  opts: { imageUrl?: string; pageUrl?: string } = {},
+): string {
   const title = oneLine(cv.owner.displayName || "Curriculum Vitae");
   const description = publicMetaDescription(cv);
-  const tags: string[] = [ogTag("og:type", "profile"), ogTag("og:title", title)];
+  const tags: string[] = [];
+  if (opts.pageUrl) tags.push(`<link rel="canonical" href="${escapeHtml(opts.pageUrl)}" />`);
+  if (description) tags.push(nameTag("description", description));
+  tags.push(ogTag("og:type", "profile"), ogTag("og:title", title));
+  if (opts.pageUrl) tags.push(ogTag("og:url", opts.pageUrl));
   if (description) tags.push(ogTag("og:description", description));
   if (opts.imageUrl) tags.push(ogTag("og:image", opts.imageUrl));
   tags.push(nameTag("twitter:card", opts.imageUrl ? "summary_large_image" : "summary"));
