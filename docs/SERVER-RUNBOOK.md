@@ -62,13 +62,18 @@ docker compose exec app sh -c '
 If you ever ran the analytics profile before 2026-06-11: `plausible_db` used to
 default its password to `postgres` when `PLAUSIBLE_DB_PASSWORD` was unset. The
 compose default is now empty (fails closed), but **an already-initialized volume
-keeps its old password** — rotate it once:
+keeps its old password** — rotate it once (_done on sigmacv.org 2026-06-11_).
+Use a **hex** password — it's embedded in Plausible's `postgres://` URL, where
+base64's `+`/`/`/`=` break authentication (crash-loop on `invalid_password`):
 
 ```bash
-grep -q '^PLAUSIBLE_DB_PASSWORD=' .env && echo "var present" || echo "ADD PLAUSIBLE_DB_PASSWORD to .env first"
-docker compose --profile analytics exec plausible_db \
-  psql -U postgres -c "ALTER USER postgres PASSWORD '<the value you put in .env>';"
-docker compose --profile analytics up -d   # restart Plausible with the new URL
+PW=$(openssl rand -hex 24)
+grep -q '^PLAUSIBLE_DB_PASSWORD=' .env \
+  && sed -i "s|^PLAUSIBLE_DB_PASSWORD=.*|PLAUSIBLE_DB_PASSWORD=\"$PW\"|" .env \
+  || printf 'PLAUSIBLE_DB_PASSWORD="%s"\n' "$PW" >> .env
+docker compose exec -T plausible_db \
+  psql -U postgres -c "ALTER USER postgres PASSWORD '$PW';" </dev/null
+docker compose up -d plausible   # RECREATE (a plain restart keeps the old URL)
 ```
 
 ---
