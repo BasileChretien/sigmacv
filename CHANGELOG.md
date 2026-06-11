@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Redesigned link-preview (Open Graph) cards.** The social-share images shown
+  when a SigmaCV link is pasted into Slack/Teams/X/LinkedIn etc. got a modern
+  brand refresh. The site-wide card (all ten locales) now mirrors the homepage
+  hero: deep indigo gradient with soft glows, the Σ medallion wordmark, real
+  extra-bold typography (Google-font subsets, with a safe fallback), open-data
+  source chips, and a CV-document mock featuring the signature identifier-driven
+  self-name highlight. Public CV pages (`/p/<slug>`) get a matching light card
+  tinted by the CV's accent colour, with an initials avatar (CJK-aware),
+  headline/affiliation lines, and a Σ watermark.
+
 - **ORCID work types now refine section placement.** Classification into the
   Preprints section was previously driven only by OpenAlex venue heuristics, which
   treat any repository-deposited or venue-less work as a "preprint" — so

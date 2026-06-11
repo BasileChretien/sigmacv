@@ -1,4 +1,3 @@
-import { ImageResponse } from "next/og";
 import { getPublicCvForPage } from "@/lib/cv/sync";
 import {
   dedupeOgImage,
@@ -9,11 +8,10 @@ import {
 } from "@/lib/cv/publicPageCache";
 import { ogImageProps } from "@/lib/cv/ogImage";
 import { enforcePubPageRateLimit, isValidPublicSlug, tooManyRequests } from "../pubRateLimit";
+import { renderCvOgImage } from "./card";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const SIZE = { width: 1200, height: 630 };
 
 /** OG PNG response with the page route's privacy/robots headers. */
 function ogResponse(bytes: Uint8Array, indexable: boolean): Response {
@@ -39,7 +37,7 @@ function ogResponse(bytes: Uint8Array, indexable: boolean): Response {
  * (`/p/<slug>/og`). Looks the CV up via the SAME `getPublicCvForPage` path the
  * page route uses and 404s when it isn't published (fail closed — never renders
  * an unpublished CV's name). All display branching lives in the tested
- * `ogImageProps` helper; this handler is intentionally thin JSX.
+ * `ogImageProps` helper; the layout JSX lives in the colocated `card.tsx`.
  *
  * Only default/system fonts are used — no remote font fetch — so the card stays
  * self-contained and fast. The robots posture mirrors the page route: the owner
@@ -84,78 +82,11 @@ export async function GET(
   const entry = await dedupeOgImage(slug, async () => {
     const fresh = getCachedOgImage(slug);
     if (fresh) return fresh;
-    const { name, headline, affiliation, accentColor } = ogImageProps(cv);
-    const image = renderOgImage(name, headline, affiliation, accentColor);
+    const image = renderCvOgImage(ogImageProps(cv));
     const bytes = new Uint8Array(await image.arrayBuffer());
     const e = { bytes, indexable };
     setCachedOgImage(slug, e);
     return e;
   });
   return ogResponse(entry.bytes, entry.indexable);
-}
-
-function renderOgImage(
-  name: string,
-  headline: string | undefined,
-  affiliation: string | undefined,
-  accentColor: string,
-): ImageResponse {
-  return new ImageResponse(
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        padding: "72px",
-        background: "#ffffff",
-        color: "#0f172a",
-        fontFamily: "sans-serif",
-      }}
-    >
-      {/* Accent bar across the top. */}
-      <div style={{ display: "flex", width: "100%", height: 14, background: accentColor }} />
-
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ fontSize: 76, fontWeight: 700, lineHeight: 1.05 }}>{name}</div>
-        {headline ? (
-          <div style={{ fontSize: 36, marginTop: 24, color: "#334155" }}>{headline}</div>
-        ) : null}
-        {affiliation ? (
-          <div style={{ fontSize: 30, marginTop: 14, color: "#64748b" }}>{affiliation}</div>
-        ) : null}
-      </div>
-
-      {/* SigmaCV wordmark. */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          fontSize: 30,
-          fontWeight: 700,
-          color: accentColor,
-        }}
-      >
-        <span
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 48,
-            height: 48,
-            marginRight: 16,
-            borderRadius: 12,
-            background: accentColor,
-            color: "#ffffff",
-            fontSize: 32,
-          }}
-        >
-          Σ
-        </span>
-        SigmaCV
-      </div>
-    </div>,
-    SIZE,
-  );
 }

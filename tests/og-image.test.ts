@@ -48,6 +48,7 @@ describe("ogImageProps", () => {
       ),
     );
     expect(props.name).toBe("Basile Chrétien");
+    expect(props.initials).toBe("BC");
     expect(props.headline).toBe("Assistant Professor of Pharmacology");
     // Affiliation taken from the most-recent visible position, with the trailing
     // "(years)" suffix stripped for a clean card.
@@ -58,6 +59,20 @@ describe("ogImageProps", () => {
   it("falls back to a generic name when displayName is empty", () => {
     const props = ogImageProps(makeCv({ displayName: "" }));
     expect(props.name).toBe("Curriculum Vitae");
+    expect(props.initials).toBe("CV");
+  });
+
+  it("derives a single-letter monogram for a one-word name", () => {
+    expect(ogImageProps(makeCv({ displayName: "Plato" })).initials).toBe("P");
+  });
+
+  it("uses only the first character for CJK names", () => {
+    expect(ogImageProps(makeCv({ displayName: "山田太郎" })).initials).toBe("山");
+    expect(ogImageProps(makeCv({ displayName: "김 철수" })).initials).toBe("김");
+  });
+
+  it("monograms first + last word for multi-word names", () => {
+    expect(ogImageProps(makeCv({ displayName: "Jane Mary Doe" })).initials).toBe("JD");
   });
 
   it("uses the summary as the headline when no headline is set", () => {
