@@ -130,7 +130,8 @@ FROM "User" GROUP BY 1 ORDER BY 1;
 SELECT provider, count(DISTINCT "userId")
 FROM "Account" GROUP BY 1 ORDER BY 2 DESC;
 
--- Publish + indexable rates
+-- Publish + indexable rates  → render as a TABLE, not a Number: this returns
+-- three columns, and a scalar card silently shows only `published`, hiding the rest.
 SELECT count(*) FILTER (WHERE published) AS published,
        count(*) FILTER (WHERE "publicIndexable") AS indexable,
        count(*) AS total
@@ -147,22 +148,97 @@ FROM "Cv",
      LATERAL jsonb_array_elements(document -> 'sections') AS s,
      LATERAL jsonb_array_elements(s -> 'items') AS i;
 
--- AGGREGATE institution distribution by ROR id across all CV items.
--- Affiliations are NOT a flat owner field: they live on item meta.rorId
--- (ROR-enriched) and in the positions/employment sections. Aggregate only —
--- never expose per-person rows on a dashboard.
-SELECT i -> 'meta' ->> 'rorId' AS ror_id, count(*) AS items
+-- AGGREGATE institution distribution across all CV items.
+-- Affiliations are NOT a flat owner field: they live on item meta.rorId +
+-- meta.institution (ROR-enriched) in the positions/employment sections.
+-- Group by the ROR id (stable key — collapses name variants) but DISPLAY the
+-- canonical institution name, falling back to the raw id when no name was
+-- stored. Aggregate only — never expose per-person rows on a dashboard.
+SELECT coalesce(max(i -> 'meta' ->> 'institution'), i -> 'meta' ->> 'rorId') AS institution,
+       count(*) AS items
 FROM "Cv",
      LATERAL jsonb_array_elements(document -> 'sections') AS s,
      LATERAL jsonb_array_elements(s -> 'items') AS i
 WHERE i -> 'meta' ->> 'rorId' IS NOT NULL
-GROUP BY 1 ORDER BY 2 DESC LIMIT 25;
+GROUP BY i -> 'meta' ->> 'rorId'
+ORDER BY 2 DESC LIMIT 25;
+
+-- Works by source  → Row. Which external client actually contributed each item.
+-- NOTE: `source` is an item TOP-LEVEL field (i->>'source'), NOT under meta.
+SELECT i ->> 'source' AS source, count(*) AS items
+FROM "Cv",
+     LATERAL jsonb_array_elements(document -> 'sections') AS s,
+     LATERAL jsonb_array_elements(s -> 'items') AS i
+WHERE i ->> 'source' IS NOT NULL
+GROUP BY 1 ORDER BY 2 DESC;
+
+-- Review candidates by flag  → Row. Curation / disambiguation load: name-matched
+-- (registry/funder, no ORCID), orcid-doi (ORCID work OpenAlex missed), duplicate.
+-- This is the aggregate counterpart to the consent-gated paper-#2 corrections.
+SELECT i -> 'meta' ->> 'reviewFlag' AS flag, count(*) AS items
+FROM "Cv",
+     LATERAL jsonb_array_elements(document -> 'sections') AS s,
+     LATERAL jsonb_array_elements(s -> 'items') AS i
+WHERE i -> 'meta' ->> 'reviewFlag' IS NOT NULL
+GROUP BY 1 ORDER BY 2 DESC;
+
+-- Work-type mix  → Row. Distribution of OpenAlex/Crossref work types.
+SELECT i -> 'meta' ->> 'type' AS work_type, count(*) AS items
+FROM "Cv",
+     LATERAL jsonb_array_elements(document -> 'sections') AS s,
+     LATERAL jsonb_array_elements(s -> 'items') AS i
+WHERE i -> 'meta' ->> 'type' IS NOT NULL
+GROUP BY 1 ORDER BY 2 DESC LIMIT 15;
+
+-- CV locale mix  → Row. Which UI locale each CV is composed in (i18n/SEO signal).
+SELECT coalesce(document -> 'display' ->> 'locale', '(none)') AS locale, count(*) AS cvs
+FROM "Cv" GROUP BY 1 ORDER BY 2 DESC;
+
+-- Open-access share (%)  → Number. Share of items with a known OA status that are
+-- open (meta.oaIsOpen). The FAIR (D1) story in one figure.
+SELECT round(100.0 * count(*) FILTER (WHERE i -> 'meta' ->> 'oaIsOpen' = 'true')
+             / nullif(count(*) FILTER (WHERE i -> 'meta' ->> 'oaIsOpen' IS NOT NULL), 0), 1) AS oa_share_pct
+FROM "Cv",
+     LATERAL jsonb_array_elements(document -> 'sections') AS s,
+     LATERAL jsonb_array_elements(s -> 'items') AS i;
+
+-- CVs showing metrics (opt-in)  → Number. Metrics default OFF; this tracks adoption
+-- of the responsible-metrics opt-in (display.showMetrics).
+SELECT count(*) FILTER (WHERE (document -> 'display' ->> 'showMetrics')::boolean) AS cvs_with_metrics
+FROM "Cv";
+
+-- Sync funnel  → Funnel (funnel.dimension=step, funnel.metric=n). Activation
+-- through the core journey; the last step (published) is the SEO/living-page goal.
+SELECT step, n FROM (VALUES
+  (1, 'Users',           (SELECT count(*) FROM "User")),
+  (2, 'ORCID connected', (SELECT count(*) FROM "User" WHERE orcid IS NOT NULL)),
+  (3, 'Has a CV',        (SELECT count(DISTINCT "userId") FROM "Cv")),
+  (4, 'Synced',          (SELECT count(*) FROM "Cv" WHERE "lastSyncedAt" IS NOT NULL)),
+  (5, 'Published',       (SELECT count(*) FROM "Cv" WHERE published))
+) t(ord, step, n) ORDER BY ord;
+
+-- Items per CV  → Table. Content richness per synced CV (median is more honest than
+-- the mean — one power user with 200+ items skews the average up).
+WITH per AS (
+  SELECT c.id,
+         count(*) AS items,
+         count(*) FILTER (WHERE (i.value ->> 'included')::boolean) AS included
+  FROM "Cv" c,
+       LATERAL jsonb_array_elements(coalesce(c.document -> 'sections', '[]'::jsonb)) AS s,
+       LATERAL jsonb_array_elements(coalesce(s -> 'items', '[]'::jsonb)) AS i
+  GROUP BY c.id
+)
+SELECT (percentile_cont(0.5) WITHIN GROUP (ORDER BY items))::numeric(10,1) AS median_items,
+       round(avg(items), 1) AS avg_items,
+       min(items) AS min_items, max(items) AS max_items,
+       round(avg(included), 1) AS avg_included
+FROM per;
 ```
 
 > Item paths follow `CanonicalCv` (`document.sections[].items[].meta`) — see
-> `src/lib/canonical/schema.ts`. There is no flat `owner.affiliations`: ROR ids
-> resolve to institution names via ROR, and name-level breakdowns are best built
-> interactively from the positions/employment section items once connected.
+> `src/lib/canonical/schema.ts`. There is no flat `owner.affiliations`:
+> `meta.institution` is the ROR canonical display name (`ror_display`) stored
+> next to `meta.rorId` at enrichment time, so no live ROR lookup is needed.
 
 ---
 
