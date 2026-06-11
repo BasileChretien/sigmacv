@@ -16,6 +16,8 @@
 [![Cite this repository](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
 [![RRID:SCR_028552](https://img.shields.io/badge/RRID-SCR__028552-blue.svg)](https://scicrunch.org/resolver/RRID:SCR_028552)
 
+[![Featured on Product Hunt](https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1168394&theme=light)](https://www.producthunt.com/posts/sigmacv)
+
 Keeping an academic CV up to date is a chore. Every new paper, grant, talk, or
 editorial role means another manual edit — formatting citations by hand,
 hunting down details, and redoing the whole thing in a different layout every

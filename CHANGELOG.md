@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Product Hunt launch kit** — a ready-to-use kit for launching SigmaCV on Product
+  Hunt (`docs/product-hunt-launch-kit.md`): tagline/description options, topics,
+  the maker's first comment, a gallery shot list with branded graphics
+  (`docs/images/product-hunt-*`), a launch-day playbook, and a pre-launch checklist.
+  Supports the discoverability roadmap (tool directories / listed where LLMs retrieve).
+
 - **Academic CV examples gallery** (`/examples`) — illustrative example CVs by field and
   career stage (biology, computer science, psychology, economics, chemistry, physics,
   history, public health), for grad-school applicants, PhD students, postdocs and
