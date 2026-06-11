@@ -65,18 +65,34 @@ function rorHref(rorId: string | undefined): string | null {
 }
 
 /**
- * Link a Positions/Education entry to its ROR organization record. The
- * institution NAME inside the already-escaped line is wrapped in a quiet `<a>`;
- * if it can't be located (e.g. the user edited the title and dropped the name), a
- * small trailing "ROR" link is appended so the persistent identifier stays
- * reachable. Links only — no image / external resource — so it needs no CSP
- * relaxation. Returns the html unchanged when the item carries no ROR id.
+ * The href the institution NAME should point at: its own homepage when ROR
+ * recorded one (`meta.institutionUrl`, re-validated through `safeHref`), else the
+ * ROR record (a persistent identifier that never rots). `isSite` tells the caller
+ * which it got, so the tooltip can describe the target. Returns null when the
+ * item carries neither a usable website nor a ROR id.
+ */
+function institutionHref(item: CvItem): { href: string; isSite: boolean } | null {
+  const site = safeHref(item.meta.institutionUrl);
+  if (site) return { href: site, isSite: true };
+  const ror = rorHref(item.meta.rorId);
+  if (ror) return { href: ror, isSite: false };
+  return null;
+}
+
+/**
+ * Link a Positions/Education entry's institution. The institution NAME inside the
+ * already-escaped line is wrapped in a quiet `<a>` pointing at the institution's
+ * homepage (per ROR) or, failing that, the ROR record. If the name can't be
+ * located (e.g. the user edited the title and dropped it), a small trailing "ROR"
+ * link is appended so the persistent identifier stays reachable. Links only — no
+ * image / external resource — so it needs no CSP relaxation; `externalizeLinks`
+ * adds `target`/`rel` uniformly. Returns the html unchanged when the item carries
+ * no institution link at all.
  */
 function withRorLink(html: string, item: CvItem, locale: string): string {
-  const href = rorHref(item.meta.rorId);
-  if (!href) return html;
-  const title = escapeHtml(renderStrings(locale).rorRecordTitle);
-  const open = `<a class="cv-ror-link" href="${href}" title="${title}">`;
+  const link = institutionHref(item);
+  if (!link) return html;
+  const strings = renderStrings(locale);
   // Match against the localized name actually rendered into the line (prepare.ts
   // swaps in the CV-language variant), so the link still wraps the institution.
   const org = displayInstitution(item, locale)?.trim();
@@ -84,10 +100,18 @@ function withRorLink(html: string, item: CvItem, locale: string): string {
     const esc = escapeHtml(org);
     const at = html.lastIndexOf(esc);
     if (at >= 0) {
+      const title = escapeHtml(link.isSite ? strings.institutionSiteTitle : strings.rorRecordTitle);
+      const open = `<a class="cv-ror-link" href="${link.href}" title="${title}">`;
       return `${html.slice(0, at)}${open}${esc}</a>${html.slice(at + esc.length)}`;
     }
   }
-  return `${html} ${open}ROR</a>`;
+  // No locatable institution name → surface the ROR persistent identifier as a
+  // small trailing link (the website is meant to sit behind the name, not a token).
+  const ror = rorHref(item.meta.rorId);
+  /* v8 ignore next -- a stored institutionUrl always comes with a valid rorId */
+  if (!ror) return html;
+  const title = escapeHtml(strings.rorRecordTitle);
+  return `${html} <a class="cv-ror-link" href="${ror}" title="${title}">ROR</a>`;
 }
 
 /**

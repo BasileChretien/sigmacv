@@ -33,6 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   links on a published CV no longer pass link equity (spam-CV SEO hardening);
   identifier-derived links (DOI, ORCID, ROR) are unchanged.
 
+### Changed
+
+- **Institution links open the institution's website** — on Positions and
+  Education entries the institution name now links to its own homepage when ROR
+  records one (from ROR's `links[].website`), instead of the ROR registry page.
+  The ROR record stays reachable as the persistent identifier: it is the fallback
+  when ROR has no website on file, and the small trailing "ROR" link shown when
+  the institution name was edited out of the line.
+
 ### Fixed
 
 - **Research consent re-consent is now enforced** — the consent gate that guards

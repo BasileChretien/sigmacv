@@ -18,6 +18,8 @@ export interface ResolvedAffiliation {
   rorId?: string;
   /** Localized institution names by language subtag (from ROR), set during ROR enrichment. */
   institutionNames?: Record<string, string>;
+  /** Institution homepage (ROR `links[].website`), set during ROR enrichment. */
+  institutionUrl?: string;
 }
 
 /** Per-year works + citation counts for the optional mini charts. */

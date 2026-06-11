@@ -254,7 +254,7 @@ export async function canonicalizeInstitutions(
   // be persisted even when the name didn't change.
   const matched = new Map<
     string,
-    { name?: string; rorId?: string; names?: Record<string, string> }
+    { name?: string; rorId?: string; names?: Record<string, string>; website?: string }
   >();
   unique.forEach((name, idx) => {
     const org = resolved[idx];
@@ -266,6 +266,9 @@ export async function canonicalizeInstitutions(
       // when the canonical name equals the user's free text — a ja CV can still
       // show 名古屋大学 for an item whose stored name is "Nagoya University".
       names: org.names,
+      // The institution homepage (when ROR records one) — captured on any
+      // confident match, like the rorId; the renderer prefers it as the link.
+      website: org.website,
     });
   });
   if (matched.size === 0) return { result: input, used: false };
@@ -281,6 +284,7 @@ export async function canonicalizeInstitutions(
       organization: m.name ?? p.organization,
       rorId: m.rorId ?? p.rorId,
       institutionNames: m.names ?? p.institutionNames,
+      institutionUrl: m.website ?? p.institutionUrl,
     };
   };
   const mapAff = (a: ResolvedAffiliation): ResolvedAffiliation => {
@@ -291,6 +295,7 @@ export async function canonicalizeInstitutions(
       institution: m.name ?? a.institution,
       rorId: m.rorId ?? a.rorId,
       institutionNames: m.names ?? a.institutionNames,
+      institutionUrl: m.website ?? a.institutionUrl,
     };
   };
 

@@ -66,6 +66,8 @@ export interface RenderStrings {
   madeWith: string;
   /** Tooltip/aria for the institution→ROR-record link on a positions/education line. */
   rorRecordTitle: string;
+  /** Tooltip/aria when the institution name links to its own homepage (ROR `links.website`). */
+  institutionSiteTitle: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -112,6 +114,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleCorresponding: "Corresponding author",
     madeWith: "Made with",
     rorRecordTitle: "ROR organization record",
+    institutionSiteTitle: "Institution website",
   },
   "zh-CN": {
     chartPublicationsPerYear: "年度发表数",
@@ -156,6 +159,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleCorresponding: "通讯作者",
     madeWith: "制作工具：",
     rorRecordTitle: "ROR 机构记录",
+    institutionSiteTitle: "机构网站",
   },
   "es-ES": {
     chartPublicationsPerYear: "Publicaciones / año",
@@ -203,6 +207,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleCorresponding: "Autor de correspondencia",
     madeWith: "Hecho con",
     rorRecordTitle: "Ficha de la organización en ROR",
+    institutionSiteTitle: "Sitio web de la institución",
   },
   "fr-FR": {
     chartPublicationsPerYear: "Publications / an",
@@ -251,6 +256,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleCorresponding: "Auteur correspondant",
     madeWith: "Créé avec",
     rorRecordTitle: "Fiche de l’organisation dans ROR",
+    institutionSiteTitle: "Site web de l’établissement",
   },
   "de-DE": {
     chartPublicationsPerYear: "Publikationen / Jahr",
@@ -298,6 +304,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleCorresponding: "Korrespondierender Autor",
     madeWith: "Erstellt mit",
     rorRecordTitle: "ROR-Organisationseintrag",
+    institutionSiteTitle: "Website der Einrichtung",
   },
   "ja-JP": {
     chartPublicationsPerYear: "年別論文数",
@@ -342,6 +349,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleCorresponding: "責任著者",
     madeWith: "作成ツール：",
     rorRecordTitle: "ROR 機関レコード",
+    institutionSiteTitle: "機関ウェブサイト",
   },
   "pt-BR": {
     chartPublicationsPerYear: "Publicações / ano",
@@ -390,6 +398,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleCorresponding: "Autor correspondente",
     madeWith: "Feito com",
     rorRecordTitle: "Registro da organização no ROR",
+    institutionSiteTitle: "Site da instituição",
   },
   "it-IT": {
     chartPublicationsPerYear: "Pubblicazioni / anno",
@@ -437,6 +446,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleCorresponding: "Autore corrispondente",
     madeWith: "Creato con",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
+    institutionSiteTitle: "Sito web dell’istituzione",
   },
   "ko-KR": {
     chartPublicationsPerYear: "연도별 논문 수",
@@ -481,6 +491,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleCorresponding: "교신저자",
     madeWith: "제작 도구:",
     rorRecordTitle: "ROR 기관 레코드",
+    institutionSiteTitle: "기관 웹사이트",
   },
   "ru-RU": {
     chartPublicationsPerYear: "Публикации / год",
@@ -527,6 +538,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleCorresponding: "Автор для корреспонденции",
     madeWith: "Создано с помощью",
     rorRecordTitle: "Запись организации в ROR",
+    institutionSiteTitle: "Сайт организации",
   },
 };
 
