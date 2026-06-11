@@ -44,10 +44,14 @@ vehicle**: with explicit, IRB-governed consent it records author-disambiguation
 corrections and self-presentation choices to support two pre-registered
 observational studies. The system is Apache-2.0 licensed, self-hostable via Docker
 Compose, and privacy-first (GDPR / Japan APPI: per-field publish consent, data
-export, account deletion). We describe the architecture, the FAIR and
-responsible-assessment design decisions, and the privacy/ethics model, and we
-discuss limitations and a roadmap that includes pushing curation corrections back
-to the open scholarly graph.
+export, account deletion). On a 390-researcher public-data sample we show why
+identifier matching is indispensable: a researcher's printed name collides with a
+median of 13 distinct OpenAlex author identities in an East-Asian-affiliated
+stratum (maximum 15,833) versus 2 for Anglophone names, so name-based attribution
+is untenable precisely for the researchers most exposed to romanization. We
+describe the architecture, the FAIR and responsible-assessment design decisions,
+and the privacy/ethics model, and we discuss limitations and a roadmap that
+includes pushing curation corrections back to the open scholarly graph.
 
 **Keywords:** academic CV; curriculum vitae; research assessment; responsible
 metrics; FAIR; open infrastructure; ORCID; OpenAlex; author disambiguation;
@@ -87,7 +91,11 @@ and (iii) embodies responsible-assessment principles by construction.
 2. **Identifier-driven self-attribution and name highlighting**: the account
    holder is matched to authorships by ORCID / OpenAlex identifier, never by name
    string, which avoids the systematic errors of name matching for common names
-   and non-Latin scripts.
+   and non-Latin scripts. We substantiate this empirically (Section 3.5): in a
+   390-researcher public-data sample, the median name in an East-Asian-affiliated
+   stratum collides with 13 distinct OpenAlex author identities (30% with ≥ 100)
+   versus 2 for Anglophone names — so name-based attribution is untenable for
+   exactly the populations most exposed to romanization-driven collisions.
 3. A **FAIR-by-design public surface**: published CVs are machine-readable
    (schema.org `Person`/`ProfilePage` JSON-LD, content-negotiated CSL-JSON and
    BibTeX), carry provenance and an author-chosen reuse license, and are governed
@@ -164,6 +172,77 @@ rate-limited fetch wrapper. PDF rendering is performed by printing the HTML
 template through headless Chromium (Playwright). The whole stack is packaged for a
 single-VPS deployment via Docker Compose (application + Postgres + Caddy for
 automatic TLS).
+
+### 3.5 Empirical justification of (P2): the name-collision burden
+
+The identifier-only rule (P2) is not merely a robustness preference: without it, a
+CV tool cannot attribute works correctly at all for a large class of researchers.
+To quantify this we measured the **name-collision burden** on public OpenAlex
+metadata — for a researcher with a given printed name, how many _distinct_ OpenAlex
+author identities share that name and would therefore be conflated by any
+name-string attribution. This is a mechanical property of the matching strategy,
+computed entirely from public bibliographic metadata; it is **not** an
+attribution-error rate and uses no human adjudication (see the boundary note
+below).
+
+**Method.** From OpenAlex (snapshot 2026-06-11) we drew a reproducible random
+sample (`sample` with a fixed `seed`) of ORCID-bearing author profiles, stratified
+by last-known-institution country into three name-origin groups — East Asian
+(JP/CN/KR/TW/HK), Anglophone (US/GB/AU/CA/NZ/IE), and Other European
+(FR/DE/ES/IT/PT/NL/SE/PL/BR) — with _n_ = 130 each (390 total). For each sampled
+researcher we queried OpenAlex for the number of distinct author entities whose
+display name matches theirs under OpenAlex's token-based name search; because
+OpenAlex author entities are themselves disambiguated, this count approximates the
+number of distinct real people sharing the name. The analysis script and the raw
+per-author data are released for reproducibility
+(`scripts/benchmark-namesake-ambiguity.ts`; `docs/paper/benchmark/`).
+
+**Results (Table 1, Figure 1).** Name-collision burden is heavy and starkly
+unequal across name origins.
+
+| Stratum (n=130 each)           | Median |  IQR  |   p90 |        Max |  ≥2 | ≥10 | ≥100 |
+| ------------------------------ | -----: | :---: | ----: | ---------: | --: | --: | ---: |
+| East Asian (JP/CN/KR/TW/HK)    | **13** | 4–197 | 2,330 | **15,833** | 88% | 60% |  30% |
+| Anglophone (US/GB/AU/CA/NZ/IE) |      2 | 1–10  |    38 |      4,369 | 65% | 25% |   6% |
+| Other European (FR/DE/ES/…/BR) |      2 |  1–4  |    15 |      4,369 | 57% | 18% |   3% |
+| **All strata (n=390)**         |      4 | 1–17  |   289 |     15,833 | 70% | 34% |  13% |
+
+_Table 1. Distinct OpenAlex author identities sharing a sampled researcher's
+printed name (OpenAlex 2026-06-11; the count includes the researcher, so a value
+of 1 is unambiguous). "≥2/≥10/≥100" are the share of researchers whose name
+collides with at least that many identities._
+
+![Figure 1. Name-collision burden by name-origin stratum (log scale).](benchmark/namesake-figure.svg)
+
+_Figure 1. Name-collision burden by stratum (log scale; box = IQR, whisker =
+p10–p90, ● = maximum). Rendered SVG at `docs/paper/benchmark/namesake-figure.svg`._
+
+The median researcher in the East-Asian-affiliated stratum shares a printed name
+with 13 distinct OpenAlex identities (IQR 4–197; 90th percentile 2,330), and 30%
+share a name with ≥ 100 identities; the most ambiguous sampled name ("J Zhang")
+collides with 15,833 distinct author profiles. By contrast, the median Anglophone
+and Other-European researcher shares a name with only 2 identities. Name-based
+attribution would therefore conflate the median East-Asian-affiliated account
+holder with a dozen other people — and a sizeable minority with hundreds to
+thousands — making correct name-based CV assembly impossible for exactly the
+populations most exposed to romanization. Identifier matching (P2) collapses every
+one of these sets to a single, correct author.
+
+Two features make the measured gap **conservative**. First, country is only a
+proxy for name origin: the heavy tails _within_ the Anglophone and Other-European
+strata are themselves romanized East-Asian names held by researchers at Western
+institutions (e.g., "Xiang Li", "Ping Xu", "Qing Zhu"), so cross-origin leakage
+attenuates the between-group difference rather than inflating it. Second, the count
+is restricted to entities OpenAlex has _already_ disambiguated; any residual
+under-splitting would only increase real-world conflation.
+
+**Boundary with the planned disambiguation study.** This benchmark measures _name
+ambiguity_ on public data — a property of names, not of any source's mistakes. The
+complementary question — the real rate at which even identifier-anchored
+attribution is wrong, its distortion of bibliometric indicators, and its equity
+dimensions — requires researchers' own per-work adjudications and is the subject of
+a separate, consent-based, IRB-governed study (Section 7), which this paper sets up
+but does not pre-empt.
 
 ## 4. Implementation
 
@@ -271,8 +350,9 @@ approval is recorded.
 
 ## 8. Quality assurance and verification
 
-SigmaCV is developed with a comprehensive automated test suite (≈‹N› unit and
-integration tests with an enforced coverage gate on the domain layer, plus
+SigmaCV is developed with a comprehensive automated test suite (more than 1,300
+unit and integration tests with an enforced coverage gate on the domain layer —
+statements ≥ 98%, branches ≥ 87%, functions ≥ 99%, lines ≥ 99% — plus
 end-to-end browser journeys covering authentication, curation, export, publishing,
 CV-model application, and the machine-readable public formats). The codebase
 underwent multiple security reviews focused on consent-gating, output escaping
@@ -297,7 +377,7 @@ study / adoption analysis is future work — add figures once available.›
 
 ## 10. Availability and reproducibility
 
-- **Source:** ‹https://github.com/BasileChretien/sigmacv› — Apache-2.0.
+- **Source:** https://github.com/BasileChretien/sigmacv — Apache-2.0.
 - **Archive / DOI:** Zenodo ‹DOI on first tagged release›.
 - **Cite:** see `CITATION.cff`; machine-readable metadata in `codemeta.json`.
 - **Run it:** self-hostable via Docker Compose on a single VPS (see `DEPLOY.md`);

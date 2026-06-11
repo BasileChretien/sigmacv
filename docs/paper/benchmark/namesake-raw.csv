@@ -1,0 +1,391 @@
+group,openalex_id,display_name,country,works_count,cjk_script,namesake_all,namesake_orcid
+east_asian,A5112031462,"Pengyang Cai",CN,9,false,2,1
+east_asian,A5003876143,"Zipeng Zhao",CN,125,false,11,7
+east_asian,A5042017093,"Lu-ping Cheng",CN,10,false,13,1
+east_asian,A5136263203,"Yi Huang",CN,1,false,3445,470
+east_asian,A5086569994,"Iwai Ohbayashi",JP,15,false,1,1
+east_asian,A5085365355,"Jinhong Yang",CN,61,true,23,8
+east_asian,A5114234536,"Bin Wen",CN,17,false,1420,106
+east_asian,A5002308028,"Hongman Hou",CN,157,false,3,1
+east_asian,A5043500985,"Hirofumi Hinode",JP,323,true,1,1
+east_asian,A5100337013,"Jing Li",CN,30,false,5835,1097
+east_asian,A5103283453,"Yichu Wang",CN,16,false,12,4
+east_asian,A5033456996,"Yongcheng Ji",CN,89,false,19,2
+east_asian,A5062124442,"Linke Huang",CN,20,false,3,2
+east_asian,A5102923655,"Lihua Chen",CN,28,false,119,34
+east_asian,A5068279597,"Rui Tan",CN,4,false,250,33
+east_asian,A5074540917,"Jiahong Lv",ID,11,false,5,2
+east_asian,A5103057628,"Mingbo Wang",CN,32,false,15,2
+east_asian,A5034307533,"Huiping Zhang",US,31,false,65,20
+east_asian,A5101690382,"Keke Liu",US,68,false,40,7
+east_asian,A5082919190,"Seungyub Lee",KR,59,false,2,2
+east_asian,A5074939929,"Nicholas Brooke",NZ,45,false,10,3
+east_asian,A5037408325,"Seung-Geun Jung",KR,14,false,1,1
+east_asian,A5103014680,"Xiao Gao",CN,37,false,897,40
+east_asian,A5100704651,"Xiaoqi Chen",CN,45,false,45,8
+east_asian,A5101402429,"Xiangkun Kong",CN,1,false,8,4
+east_asian,A5103068457,"Yijun He",GB,68,false,37,11
+east_asian,A5048705470,"Ruimin Gao",HK,90,false,19,5
+east_asian,A5101473004,"Yi Ding",CN,5,false,1090,159
+east_asian,A5100369928,"Chen Li",CN,60,false,7961,1040
+east_asian,A5015740321,"Chenxi Liang",JO,9,false,13,5
+east_asian,A5069005825,"Meixu Lei",CN,4,false,1,1
+east_asian,A5086054502,"Ji-Hye Oh",KR,14,false,29,7
+east_asian,A5043268273,"Y.I. Choi",KR,4,false,7,1
+east_asian,A5101602632,"Jae-Il Park",US,64,false,21,2
+east_asian,A5003008239,"Kenta Sasaki",JP,46,false,11,4
+east_asian,A5000263913,"Eui‐Nam Huh",KR,542,false,24,4
+east_asian,A5080436531,"Wanxue You",CN,47,false,1,1
+east_asian,A5008715589,"Bingqian Zhang",SG,2,false,38,7
+east_asian,A5101747126,"Yu Rao",CN,178,false,109,14
+east_asian,A5015693360,"Woonsung Baek",JP,5,false,1,1
+east_asian,A5103001353,"Beibei Shao",SG,49,false,10,1
+east_asian,A5100987260,"Ying Zhang",CN,3,false,3879,772
+east_asian,A5102983562,"Kyeong Wan Woo",KR,50,false,4,1
+east_asian,A5065133468,"Akihito Yokosuka",JP,141,false,2,1
+east_asian,A5115604729,"Qian Wang",CN,3,false,2509,527
+east_asian,A5004990806,"Afonso M. Paiva",JP,44,false,1,1
+east_asian,A5019066346,"Shenjie Zhang",CN,2,false,8,1
+east_asian,A5103134585,"Ke Lv",CN,81,false,85,7
+east_asian,A5041440862,"Gaohong Yin",CN,23,false,1,1
+east_asian,A5025664920,"Norma Latif Fitriyani",KR,94,false,2,1
+east_asian,A5025437423,"Cuiping Xue",CN,8,false,3,1
+east_asian,A5056766347,"Marcos Galván",JP,74,false,12,3
+east_asian,A5055617476,"Tom Gorham",JP,3,false,4,1
+east_asian,A5037234550,"Yuseok Ban",KR,45,false,2,2
+east_asian,A5101613767,"Mowen Xie",CN,32,false,8,2
+east_asian,A5101830537,"Pingli Wang",CN,107,false,18,3
+east_asian,A5103183446,"Li Peng",CN,4,false,3816,605
+east_asian,A5134187614,"Chengyin Tu",CN,1,false,5,3
+east_asian,A5016359274,"Qiang Gao",CN,102,true,566,115
+east_asian,A5101639858,"Teruhisa Komatsu",CN,125,false,7,2
+east_asian,A5078531600,"Zimiao Ren",CN,3,false,1,1
+east_asian,A5047217451,"Xiaoqin Shen",CN,104,false,13,4
+east_asian,A5083514129,"Tao Wu",CN,20,false,1076,200
+east_asian,A5113519678,"Yu Huang",TW,28,false,4484,564
+east_asian,A5052701049,"Ruicong Xu",JP,54,false,2,1
+east_asian,A5032097795,"Ding Meizhou",CN,31,false,2,1
+east_asian,A5031884818,"Changsheng Hu",CN,158,false,8,1
+east_asian,A5026176683,"Keiko Katagiri",JP,47,false,4,1
+east_asian,A5009337933,"Liumeng Xue",HK,50,false,9,1
+east_asian,A5054470358,"Zheng-Duan Li",CN,2,false,6,1
+east_asian,A5100698417,"Tao Yang",CN,10,false,1557,316
+east_asian,A5057058327,"Yucheng Chen",CN,98,false,39,10
+east_asian,A5074769765,"Decai Lin",CN,36,false,2,1
+east_asian,A5038385267,"Zhengcai Liu",CN,71,false,4,1
+east_asian,A5028289173,"Xin Yu",CN,71,false,3401,316
+east_asian,A5016492835,"Bing Xu",CN,2,false,961,97
+east_asian,A5043365234,"J-G Liu",CN,13,false,189,6
+east_asian,A5060650741,"Amelie M. Vanderstock",AU,5,false,1,1
+east_asian,A5057538877,"J Zhang",CN,4,false,15833,646
+east_asian,A5013789724,"Chuanjun Wang",CN,67,false,15,6
+east_asian,A5039294978,"Xu Han",CN,2,false,1251,270
+east_asian,A5044924134,"Jingwen Liu",CN,4,false,118,32
+east_asian,A5101405410,"Fei Xu",CN,79,false,973,147
+east_asian,A5100445170,"Yu Wang",CN,73,false,8852,1454
+east_asian,A5103026977,"Zhigang Cheng",CN,1,false,17,7
+east_asian,A5100454200,"Jie Liu",CN,71,false,2673,628
+east_asian,A5074619038,"Dongju Gao",CN,5,false,2,1
+east_asian,A5002577378,"Yi Bu",CN,206,false,121,8
+east_asian,A5101232609,"Yufan Chu",CN,5,false,2,1
+east_asian,A5100622278,"Ping Xu",CN,15,false,1452,117
+east_asian,A5067248512,"Xuyan Huang",CN,17,false,6,2
+east_asian,A5051061060,"Chaoran Sun",CN,14,false,14,5
+east_asian,A5035435336,"Siwen Wei",CN,16,false,13,1
+east_asian,A5080206729,"Zhiyi Pan",CN,24,false,16,5
+east_asian,A5056758022,"Luwen Cui",CN,10,false,3,1
+east_asian,A5136522572,"Dianyou Li",CN,1,false,12,2
+east_asian,A5062071148,"J. W. Liu",CN,9,false,287,13
+east_asian,A5100331048,"Xiang Li",US,52,false,4369,800
+east_asian,A5102147063,"Weilong Yin",CN,26,false,4,3
+east_asian,A5136035211,"Dandan Wang",CN,1,false,310,105
+east_asian,A5041056367,"Wei Zha",CN,45,false,87,7
+east_asian,A5038979005,"Zijian Li",HK,24,false,130,45
+east_asian,A5042892603,"Liqing Peng",CN,2,false,9,5
+east_asian,A5003975510,"Bruna Borges de Cerqueira",BR,4,false,1,1
+east_asian,A5093317862,"Guofang Tao",CN,1,false,5,2
+east_asian,A5023320871,"Qun Lin",AU,260,false,199,6
+east_asian,A5102015885,"Xin Ma",CN,14,false,983,118
+east_asian,A5013325850,"Tomohiro Hosoi",JP,29,false,10,2
+east_asian,A5033779037,"Jeongsoo Lee",KR,6,false,9,3
+east_asian,A5120151657,"Hadil Najib Ahmed HadiAbduljalil",CN,1,false,1,1
+east_asian,A5073815943,"Yicheng Dai",CN,17,false,1,1
+east_asian,A5061663648,"Mei Nakahara",JP,1,false,1,1
+east_asian,A5030676080,"Jenn-Kuo Tsai",TW,3,false,1,1
+east_asian,A5046250328,"Ran Xiong",CN,2,false,46,7
+east_asian,A5008557689,"Kentaro Koga",JP,12,false,11,1
+east_asian,A5100571978,"Jing Guo",CN,39,false,1598,222
+east_asian,A5103127734,"Bin Jiang",CN,62,false,678,85
+east_asian,A5100765237,"Mei Chen",AU,17,false,2328,196
+east_asian,A5101278989,"Zhu Xiaoxiao",CN,8,false,41,13
+east_asian,A5075890891,"Michael Jonathan",JP,48,false,251,18
+east_asian,A5056547755,"Wu Jian",CN,35,false,2351,246
+east_asian,A5058377107,"Hanliang Fu",CN,76,false,1,1
+east_asian,A5000852794,"Guocai Liu",US,116,false,7,1
+east_asian,A5102018589,"Hiroyuki Kaneko",JP,78,false,28,5
+east_asian,A5040206500,"Xiangxiang Kong",CN,52,false,11,2
+east_asian,A5100459433,"Xiaoyan Li",CN,4,false,367,116
+east_asian,A5030322725,"Xiugui Sheng",CN,112,false,4,2
+east_asian,A5100622555,"Haiwei Wang",CN,61,false,35,14
+east_asian,A5103183959,"Weichao Zhang",CN,23,false,34,10
+east_asian,A5000635320,"Han-Rong Xia",CN,5,false,2,1
+anglophone,A5087667857,"Quang H. Tran",US,46,false,1,1
+anglophone,A5049273530,"Sandra Buitrago",US,31,false,56,5
+anglophone,A5004214366,"Frank G. Yanowitz",US,71,false,1,1
+anglophone,A5003876143,"Zipeng Zhao",CN,125,false,11,7
+anglophone,A5135148773,"Huan Huang",US,1,false,385,45
+anglophone,A5136411322,"Andrei Stanishevsky",US,1,false,3,2
+anglophone,A5088523588,"Amanda M. Gengler",US,20,false,5,1
+anglophone,A5077859649,"Hannah Linane",IE,6,false,1,1
+anglophone,A5138159767,"Nataša Todorović",CA,1,false,20,7
+anglophone,A5077273239,"Ruzanna Shkhyan",US,22,false,1,1
+anglophone,A5025613890,"Nicholas Martindale",GB,16,false,2,1
+anglophone,A5066237959,"Matthew Nelson",US,62,false,69,17
+anglophone,A5135738324,"Qing Zhu",US,1,false,1413,111
+anglophone,A5067634115,"Karessa Manning",US,25,false,1,1
+anglophone,A5000526436,"Barret Elward",US,9,false,1,1
+anglophone,A5033180219,"Thomas E. Wood",US,21,false,16,1
+anglophone,A5103283453,"Yichu Wang",CN,16,false,12,4
+anglophone,A5029357130,"Caoimhe Tiernan",IE,14,false,1,1
+anglophone,A5079514173,"Bal S. Virdee",GB,383,false,3,1
+anglophone,A5010219243,"Gary Bolton",US,28,false,15,2
+anglophone,A5016121784,"Anthony Frempong‐Boadu",US,95,false,2,1
+anglophone,A5136085917,"Colin A. Ellis",US,1,false,6,2
+anglophone,A5053607840,"Donald Detchou",US,109,false,1,1
+anglophone,A5081645876,"Bryan Dalton",IE,4,false,4,2
+anglophone,A5081493072,"Bayliss J. Camp",US,20,false,1,1
+anglophone,A5135713548,"Марина Володимирівна Гончарук",US,2,false,1,1
+anglophone,A5009874161,"Michael Connerty",PL,21,false,1,1
+anglophone,A5045135284,"Mario Fernández Navarro",GB,22,false,1,1
+anglophone,A5111270934,"Salman Javed Arain",GB,3,false,2,1
+anglophone,A5003394998,"Vinh La",US,16,false,34,5
+anglophone,A5136190969,"Yasmin B. Elhabashy",US,1,false,2,1
+anglophone,A5034307533,"Huiping Zhang",US,31,false,65,20
+anglophone,A5084631013,"Casey P. O’Brien",US,75,false,2,1
+anglophone,A5051547862,"Santanu S. Dey",US,205,false,13,1
+anglophone,A5101690382,"Keke Liu",US,68,false,40,7
+anglophone,A5059638724,"Samuel D. Juárez-Escamilla",US,8,false,1,1
+anglophone,A5001873485,"Carolien Mossel",US,12,false,1,1
+anglophone,A5093800564,"А. А. Chaplygin",US,5,false,2,1
+anglophone,A5136467565,"Vyvan Nguyen",US,1,false,1,1
+anglophone,A5061259260,"Robert D. Cooper",US,158,false,2,1
+anglophone,A5074939929,"Nicholas Brooke",NZ,45,false,10,3
+anglophone,A5015905890,"William R. Kennedy",US,343,false,4,2
+anglophone,A5103014680,"Xiao Gao",CN,37,false,897,40
+anglophone,A5050342174,"Carlos Cuerpo",US,12,false,2,1
+anglophone,A5135578776,"Andrew J. McElrone",US,2,false,2,2
+anglophone,A5053540222,"Katja M. Schmalenberger",US,59,false,2,2
+anglophone,A5063774728,"Rachel McCluskey",IE,6,false,1,1
+anglophone,A5103068457,"Yijun He",GB,68,false,37,11
+anglophone,A5048592247,"Yannick Woudstra",DK,20,false,1,1
+anglophone,A5048705470,"Ruimin Gao",HK,90,false,19,5
+anglophone,A5011674891,"Veronika Hrušková",CZ,14,false,6,1
+anglophone,A5080504688,"Gillian K. Myburgh",GB,9,false,1,1
+anglophone,A5070404388,"Andrea Arredondo-Navarro",US,6,false,2,1
+anglophone,A5070059331,"Jeanette P. Brown",US,37,false,1,1
+anglophone,A5002665222,"Richard Lathe",US,191,false,1,1
+anglophone,A5101602632,"Jae-Il Park",US,64,false,21,2
+anglophone,A5136643574,"Tatyana Chtanova",AU,1,false,2,2
+anglophone,A5029994416,"Omar Meziab",US,34,false,2,2
+anglophone,A5045719865,"Gal Chechik",GB,293,false,2,1
+anglophone,A5033724749,"Jamal Rashid",US,15,false,36,7
+anglophone,A5015431975,"Zhewen Guo",US,21,false,1,1
+anglophone,A5017489661,"Luis Jean Carlo Cisneros García",US,1,false,1,1
+anglophone,A5101747126,"Yu Rao",CN,178,false,109,14
+anglophone,A5137652460,"Daniella N. DellaGiustina",US,1,false,3,1
+anglophone,A5024657279,"Ravi Banthia",GB,21,false,1,1
+anglophone,A5030485115,"Manoj Atolia",US,80,false,1,1
+anglophone,A5051696369,"Jasvinder S. Bhatia",US,9,false,1,1
+anglophone,A5003073274,"Vikram K. Iyengar",US,34,false,1,1
+anglophone,A5081417447,"Timothy J. Pfeiffer",US,41,false,2,1
+anglophone,A5051542173,"Alejandra Juno Rodríguez Villar",US,17,false,5,2
+anglophone,A5136896138,"Beth A. McCormick",US,1,false,2,2
+anglophone,A5010568596,"Marin E. Chambers",US,17,false,1,1
+anglophone,A5137051957,"Germán Ferreira",US,1,false,6,2
+anglophone,A5049237612,"Pnina Brodt",CA,288,false,1,1
+anglophone,A5056087428,"John Pham",US,20,false,20,5
+anglophone,A5091466519,"Joel C. Morgenlander",US,86,false,1,1
+anglophone,A5051297338,"Elizabeth C. Cooney",CA,44,false,4,1
+anglophone,A5074567616,"Kristin Baughman",US,54,false,1,1
+anglophone,A5021783426,"Lorraine Dearden",GB,267,false,7,1
+anglophone,A5027996730,"Arthur Mouco",CA,8,false,3,2
+anglophone,A5137580578,"Banu K. Arun",US,3,false,7,1
+anglophone,A5044561030,"B.G. Lewis",US,15,false,4,1
+anglophone,A5087703496,"Audrey Gutierrez",US,21,false,6,3
+anglophone,A5027605695,"Tianyin Xu",US,155,false,9,3
+anglophone,A5076991426,"Sebastián Pizarro",US,27,false,36,8
+anglophone,A5040329129,"Brian Johnston",GB,31,false,38,9
+anglophone,A5076094838,"Pier Luigi Ingrassia",CH,137,false,4,1
+anglophone,A5108167290,"H. Potti",GB,762,false,25,5
+anglophone,A5100662115,"Yongkeun Park",US,16,false,21,3
+anglophone,A5020369255,"Kotchaphorn Mangkalaphiban",US,10,false,1,1
+anglophone,A5082562573,"Renata Fayzullina",US,1,false,2,1
+anglophone,A5027354723,"Yvonne Kelly",IE,12,false,15,5
+anglophone,A5083514129,"Tao Wu",CN,20,false,1076,200
+anglophone,A5077588453,"Jessica Eastman",GB,7,false,5,2
+anglophone,A5031927372,"Natalia Kamuz",GB,2,false,1,1
+anglophone,A5021798261,"Tamara Sandouka",CA,3,false,1,1
+anglophone,A5044338760,"Ian A. Smith",US,9,false,13,4
+anglophone,A5010547541,"Margaret Haerr",US,37,false,1,1
+anglophone,A5055737768,"Magdalena Minnion",GB,38,false,1,1
+anglophone,A5086698495,"Cai Liang",US,1,false,492,27
+anglophone,A5059948436,"Phoebe Kahn",US,3,false,2,1
+anglophone,A5030757313,"Nicholas Jordan",US,331,false,17,2
+anglophone,A5021534126,"H. S. Ahluwalia",US,256,false,7,1
+anglophone,A5074769765,"Decai Lin",CN,36,false,2,1
+anglophone,A5116393226,"Bethany Probert",GB,1,false,1,1
+anglophone,A5092066567,"Kari L. Sheward",US,4,false,1,1
+anglophone,A5015462536,"Buxuan Li",US,21,false,2,1
+anglophone,A5078571103,"Otto Lamminpää",US,22,false,5,1
+anglophone,A5015223850,"Yingxiao Shi",US,23,false,5,2
+anglophone,A5060650741,"Amelie M. Vanderstock",AU,5,false,1,1
+anglophone,A5080873119,"Juliet Colón",US,9,false,1,1
+anglophone,A5046783847,"P. S. Kasibhatla",US,175,false,2,1
+anglophone,A5002583379,"Evan Ruzanski",US,31,false,1,1
+anglophone,A5134882620,"Baljit Kaur",US,1,false,45,11
+anglophone,A5040997855,"Robyn Carter",AU,32,false,8,2
+anglophone,A5133827273,"Ruthra Ganeshanandha",AU,1,false,1,1
+anglophone,A5019329293,"Danilo Oliveira da Silva",BR,3,false,8,2
+anglophone,A5072890033,"Shelley Rowe",AU,16,false,2,1
+anglophone,A5072189370,"Eyob Mulat-Weldemeskel",GB,21,false,3,1
+anglophone,A5018458106,"Macaulay Ojeaga",US,9,false,1,1
+anglophone,A5094190648,"Danielle Westnedge",US,2,false,1,1
+anglophone,A5100622278,"Ping Xu",CN,15,false,1452,117
+anglophone,A5072336218,"P B Raksin",US,40,false,2,1
+anglophone,A5078151753,"Rohan Poulter",AU,77,false,1,1
+anglophone,A5068462137,"Valeriu Bortnov",US,6,false,1,1
+anglophone,A5019535178,"Gabriëlla A. M. Ten Have",US,43,false,2,1
+anglophone,A5078452873,"Christy M. Finke",US,458,false,1,1
+anglophone,A5074131288,"Jeffrey A. SoRelle",US,95,false,5,1
+anglophone,A5045353047,"Chenguang Ji",US,2,false,7,1
+anglophone,A5100331048,"Xiang Li",US,52,false,4369,800
+other_european,A5001928532,"Maria Elisiane Esmeraldo Feitosa",BR,4,false,1,1
+other_european,A5001167896,"Martin Glas",DE,450,false,11,2
+other_european,A5101592514,"Estela Giménez",ES,37,false,17,3
+other_european,A5106531296,"Géssyca Karoline Cardoso Wanzeler",FR,1,false,1,1
+other_european,A5025996246,"Laura Rodríguez Alonso",ES,7,false,4,1
+other_european,A5006080876,"Ioannis Lampouras",DE,6,false,1,1
+other_european,A5075230320,"Hanna Mamzer",PL,55,false,4,1
+other_european,A5002507251,"Igor Belluschi",IT,61,false,1,1
+other_european,A5032986469,"Guido Gottardi",IT,240,false,6,1
+other_european,A5037005584,"Wineke Remijnse",NL,4,false,4,1
+other_european,A5086899613,"Krzysztof Skorupski",PL,59,false,3,2
+other_european,A5001798318,"Reinaldo Onofre dos Santos",BR,38,false,2,1
+other_european,A5022294592,"Jaqueline Jackson Braga",BR,8,false,1,1
+other_european,A5137210755,"Jennifer Moyón",ES,6,false,7,3
+other_european,A5051017879,"Giovani Bernardo Costa",BR,16,false,1,1
+other_european,A5136912503,"Afra Nasir Binhindi Alshuweihi",FR,2,false,1,1
+other_european,A5003713369,"Carolina Chabrera",ES,44,false,1,1
+other_european,A5092810152,"Antonio Panassiti",NL,5,false,1,1
+other_european,A5055124440,"Jose M. Nadal-Serrano",ES,7,false,1,1
+other_european,A5002724347,"Melanie Dudek",DE,1,false,2,1
+other_european,A5009874161,"Michael Connerty",PL,21,false,1,1
+other_european,A5040167960,"Willie Langeland",NL,51,false,2,1
+other_european,A5063069143,"Constanta Olteanu",SE,112,false,2,1
+other_european,A5002516152,"Christophe Martinsons",FR,215,false,13,1
+other_european,A5020776312,"Bishweshwar Bhattacharjee",BR,15,false,1,1
+other_european,A5064360947,"Oliver Terwolbeck",DE,10,false,1,1
+other_european,A5107436290,"Alessandro Trolli",IT,1,false,1,1
+other_european,A5030579384,"André Costa Meireles",BR,6,false,1,1
+other_european,A5083993438,"Adrian Stelmasiak",PL,48,false,2,1
+other_european,A5024162996,"Joeri W. van Straalen",NL,19,false,1,1
+other_european,A5053773404,"Iryna Boliukh",PL,6,false,1,1
+other_european,A5009845761,"E. Piconcelli",IT,343,false,29,1
+other_european,A5075472370,"Gabrielly Dos Santos Mazini",BR,3,false,1,1
+other_european,A5079940392,"Marjô Cadó Bessa",BR,37,false,2,1
+other_european,A5030567361,"Jonatas B. C. Chagas",BR,24,false,2,1
+other_european,A5048592247,"Yannick Woudstra",DK,20,false,1,1
+other_european,A5000746651,"Magdalena Mróz",PL,8,false,10,3
+other_european,A5039399336,"Glaucia Cristina Pelegrini Mena",BR,1,false,1,1
+other_european,A5025738145,"Elaine Cátia Falcade Maschio",BR,28,false,3,1
+other_european,A5082629226,"Débora Nunes de Sá",BR,7,false,3,1
+other_european,A5011167472,"Flávia Furlan Granato",BR,3,false,3,1
+other_european,A5067551008,"Leidiane Raimundo Cordeiro",BR,9,false,2,1
+other_european,A5118647265,"Joaquín Monge Castillero",ES,3,false,2,1
+other_european,A5000269157,"Piotr Radomski",PL,17,false,11,5
+other_european,A5046599074,"Massimiliano Cardinale",IT,183,false,9,2
+other_european,A5017489661,"Luis Jean Carlo Cisneros García",US,1,false,1,1
+other_european,A5101827522,"Tobias Schneider",DE,13,false,58,14
+other_european,A5031083788,"Michael Mirtl",DE,78,false,9,1
+other_european,A5042524200,"A. Corradini",IT,9,false,17,1
+other_european,A5056439282,"Augusto Luis Mendes de Mattos Carpena",BR,2,false,1,1
+other_european,A5103001353,"Beibei Shao",SG,49,false,10,1
+other_european,A5036669161,"Sabina Puławska-Obiedowska",PL,14,false,1,1
+other_european,A5060908573,"Ricardo Braga‐Neto",BR,21,false,1,1
+other_european,A5061706890,"Diego M. Vieira",DE,14,false,1,1
+other_european,A5103105442,"T. Tan",SG,78,false,528,51
+other_european,A5076009328,"Áurea Regina Alves Ignácio",BR,59,false,3,1
+other_european,A5137565748,"Christoph Kolbitsch",DE,2,false,13,3
+other_european,A5037092238,"M. Furlani",SE,54,false,12,1
+other_european,A5031894590,"Carsten Herskind",DE,226,false,4,1
+other_european,A5013251901,"Wioletta Jachym",PL,9,false,1,1
+other_european,A5102720026,"Clóvis Vergara de Almeida Martins Costa",BR,1,false,1,1
+other_european,A5060602215,"Bruno Laviolle",FR,190,false,4,1
+other_european,A5046004565,"E. Abate",BR,8,false,19,1
+other_european,A5004242070,"Arkadiusz Krawiec",PL,62,false,1,1
+other_european,A5052230591,"Juliette Brauer",DE,3,false,1,1
+other_european,A5060635011,"I. Hunstad",IT,40,false,1,1
+other_european,A5086623048,"Marcin Szczot",SE,38,false,1,1
+other_european,A5080318958,"Maria Elena Maccari",DE,41,false,2,1
+other_european,A5001760537,"Bo-Göran Wallner",SE,5,false,1,1
+other_european,A5108167290,"H. Potti",GB,762,false,25,5
+other_european,A5027794505,"Michael Severin",DE,32,false,4,1
+other_european,A5120553087,"Mikel Ibeas",ES,1,false,2,1
+other_european,A5015386340,"Andressa da Silva Barboza",BR,33,false,2,2
+other_european,A5041265433,"Bárbara Fadel",BR,43,false,1,1
+other_european,A5025170028,"Carme Roura‐Mir",ES,29,false,3,1
+other_european,A5011764148,"Karla Rogal Ruggieri",BR,10,false,2,1
+other_european,A5047704236,"Luciane Graziele Pereira Ferrero",BR,13,false,1,1
+other_european,A5058352028,"Carmen Freitas",PT,13,false,36,4
+other_european,A5084041025,"Mikhael Yosia",ID,41,false,1,1
+other_european,A5029500766,"Debora Urrutia Dias",BR,1,false,1,1
+other_european,A5050997714,"C. Garberi",IT,3,false,6,1
+other_european,A5027147108,"Menelaos Karpathiotakis",IT,9,false,1,1
+other_european,A5115576749,"Krzysztof Kujawski",PL,1,false,4,2
+other_european,A5087098883,"Santiago Alonso-García",ES,173,false,11,2
+other_european,A5031893632,"Carina Cornesse",DE,52,false,1,1
+other_european,A5074769765,"Decai Lin",CN,36,false,2,1
+other_european,A5093113404,"Sylwia Wojtulewicz",PL,1,false,1,1
+other_european,A5067023331,"Łukasz Szabłowski",PL,78,false,2,1
+other_european,A5042318464,"Alfonso Giuseppe Tortorella",IT,25,false,1,1
+other_european,A5089085863,"M. Hosadyna-Kondracka",PL,15,false,1,1
+other_european,A5136581318,"Rafaela de Lima Nava",BR,1,false,1,1
+other_european,A5078961797,"Jair Sábio de Oliveira",BR,13,false,4,1
+other_european,A5103094758,"Alessandro Donati",IT,59,false,6,2
+other_european,A5002134033,"Michał Sypuła",PL,86,false,3,1
+other_european,A5079006970,"Beata Tepper",PL,14,false,1,1
+other_european,A5078953949,"Hassan Jumaa",DE,221,false,12,2
+other_european,A5111072060,"E. Castillo",ES,7,false,627,57
+other_european,A5058736011,"Sofia Urt",BR,5,false,2,1
+other_european,A5101927510,"Elena Olivieri",IT,7,false,4,1
+other_european,A5019329293,"Danilo Oliveira da Silva",BR,3,false,8,2
+other_european,A5035837385,"Manfred Hajek",DE,107,false,1,1
+other_european,A5013061325,"Patrícia Bet",BR,33,false,1,1
+other_european,A5045010317,"Titus von der Malsburg",DE,66,false,5,1
+other_european,A5050653287,"Carlos Eduardo dos Reis Veloso",BR,37,false,2,1
+other_european,A5047412596,"Giovanna Lourenço Luges da Silva",BR,1,false,1,1
+other_european,A5023318735,"Uxío-Breogán Diéguez Cequiel",ES,49,false,2,1
+other_european,A5047619461,"Alessandro Catalini",IT,27,false,1,1
+other_european,A5056545370,"Sabrina Oliveira da Silva",BR,6,false,15,2
+other_european,A5027128301,"Pan Lu",SE,38,false,230,28
+other_european,A5006916482,"Beatriz Luchiari",BR,25,false,2,1
+other_european,A5102866700,"J. P. M. van der Valk",NL,18,false,4,2
+other_european,A5001611615,"Joana Rita Frias",PT,1,false,1,1
+other_european,A5001911738,"Silke Kniffert",DE,14,false,1,1
+other_european,A5002888966,"Mayara Simonelly Costa do Santos",BR,7,false,1,1
+other_european,A5027647352,"Ana Frade",PT,23,false,26,2
+other_european,A5117171826,"Silvana Bollis",BR,1,false,2,1
+other_european,A5043400259,"Julia Leszkowicz",PL,13,false,3,1
+other_european,A5100331048,"Xiang Li",US,52,false,4369,800
+other_european,A5005518443,"Ana Lúcia Trevisan",BR,32,false,4,1
+other_european,A5135954857,"Raphael Itzykson",FR,4,false,3,3
+other_european,A5088310067,"E. Calloni",IT,524,false,40,1
+other_european,A5003975510,"Bruna Borges de Cerqueira",BR,4,false,1,1
+other_european,A5064848846,"Domitille Bordeau",ES,1,false,1,1
+other_european,A5032805301,"Maximilian Dölling",DE,22,false,1,1
+other_european,A5019880543,"Ruth Rocha Franco",BR,51,false,1,1
+other_european,A5088008024,"Víctor Astolfi",ES,2,false,3,1
+other_european,A5078000093,"Flaviano da Costa Cirino",BR,1,false,1,1
+other_european,A5070322493,"Gustavo Gomes Agripino",BR,51,false,2,1
+other_european,A5043873101,"Karnajit Sen",DE,7,false,1,1
+other_european,A5071593104,"Ana Paula Mendes Lopes",BR,19,false,2,1
