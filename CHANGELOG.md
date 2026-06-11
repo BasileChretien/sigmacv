@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Academic CV examples gallery** (`/examples`) — illustrative example CVs by field and
+  career stage (biology, computer science, psychology, economics, chemistry, physics,
+  history, public health), for grad-school applicants, PhD students, postdocs and
+  faculty. Each shows a **fictional** researcher with fabricated publications (clearly
+  labelled an illustrative example), with the author's own name highlighted, and links
+  to building your own. English for now.
 - **Native head-term landing pages** — dedicated pages that target each market's own
   search term for an academic CV, at a native URL: **CV académique** (`/fr/cv-academique`),
   **wissenschaftlicher Lebenslauf** (`/de/…`), **CV académico** (`/es/…`), **CV accademico**

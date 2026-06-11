@@ -42,3 +42,23 @@ export const GLOSSARY_NAV_LABEL: Record<Locale, string> = {
 export function glossaryNavLabel(locale: string): string {
   return GLOSSARY_NAV_LABEL[asLocale(locale)];
 }
+
+/** Localized label for the "Examples" footer link (→ /examples; the examples
+ *  themselves are English-only, but the label reads naturally in every UI language). */
+export const EXAMPLES_NAV_LABEL: Record<Locale, string> = {
+  "en-US": "Examples",
+  "zh-CN": "示例",
+  "es-ES": "Ejemplos",
+  "fr-FR": "Exemples",
+  "de-DE": "Beispiele",
+  "ja-JP": "実例",
+  "pt-BR": "Exemplos",
+  "it-IT": "Esempi",
+  "ko-KR": "예시",
+  "ru-RU": "Примеры",
+};
+
+/** The "Examples" nav label for a locale (falls back to English). */
+export function examplesNavLabel(locale: string): string {
+  return EXAMPLES_NAV_LABEL[asLocale(locale)];
+}
