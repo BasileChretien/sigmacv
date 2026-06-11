@@ -90,11 +90,14 @@ page gains an email option) — that's the easiest end-to-end SMTP test:
    score (target ≥ 9/10; fix whatever it flags — usually a missing DNS record).
 2. **Magic link to yourself:** sign in by email, confirm delivery to your inbox
    (not spam).
-3. **Digest dry-run:** opt in via the editor's "Email updates" toggle, then
+3. **Digest dry-run:** opt in via the editor's "Email updates" toggle, then run
+   the call from INSIDE the Docker network (Caddy 404s `/api/internal/*` from
+   outside, and the app port isn't published to the host). The `digest-cron`
+   container has both curl and the secret:
 
    ```bash
-   curl -fsS -X POST -H "Authorization: Bearer $RESYNC_SECRET" \
-     http://localhost:3000/api/internal/digest
+   docker compose exec -T digest-cron sh -c \
+     'curl -fsS -X POST -H "Authorization: Bearer $RESYNC_SECRET" http://app:3000/api/internal/digest'
    ```
 
    Expect `{"ok":true,"configured":true,...}`. A real digest only sends when a
