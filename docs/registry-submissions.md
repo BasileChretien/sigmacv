@@ -75,7 +75,13 @@ We register the published JSON Schema (a reusable _model/format_), not the app.
 | Related records  | Implemented by **SigmaCV** (tool); relates to CSL, schema.org `Person`, JSON Résumé, ORCID                                                                                                                                                                                              |
 | Contact          | Basile Chrétien (ORCID + email above)                                                                                                                                                                                                                                                   |
 
-## 3. RRID via SciCrunch
+## 3. RRID via SciCrunch ✅ DONE — `RRID:SCR_028552`
+
+> **Status (2026-06-11):** approved by the SciCrunch curation team and wired into
+> `CITATION.cff`, `codemeta.json`, and `README.md` (badge + Citing section).
+> Resolves at <https://scicrunch.org/resolver/RRID:SCR_028552>. Remaining manual
+> step for the owner: log in to SciCrunch → **My Account → Home → "Associate
+> ORCID iD"** to link ownership.
 
 **Submit at:** <https://scicrunch.org/> → "Contribute" → **Resource**. Required:
 name, URL, description (the rest optional). Anyone may register; **claim ownership**

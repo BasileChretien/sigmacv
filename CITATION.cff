@@ -22,6 +22,11 @@ identifiers:
   - type: doi
     value: "10.5281/zenodo.20594124"
     description: Versioned DOI for the SigmaCV v0.1.0 release.
+  - type: other
+    value: "RRID:SCR_028552"
+    description: >-
+      Research Resource Identifier (RRID) for SigmaCV in the SciCrunch
+      registry — resolves at https://scicrunch.org/resolver/RRID:SCR_028552.
 abstract: >-
   SigmaCV auto-generates clean, customizable academic CVs from open
   research data (OpenAlex, ORCID, Crossref, Open Editors Plus). It is

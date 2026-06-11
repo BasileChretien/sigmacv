@@ -14,6 +14,7 @@
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13146/badge)](https://www.bestpractices.dev/projects/13146)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/BasileChretien/sigmacv/badge)](https://scorecard.dev/viewer/?uri=github.com/BasileChretien/sigmacv)
 [![Cite this repository](https://img.shields.io/badge/cite-CITATION.cff-informational.svg)](CITATION.cff)
+[![RRID:SCR_028552](https://img.shields.io/badge/RRID-SCR__028552-blue.svg)](https://scicrunch.org/resolver/RRID:SCR_028552)
 
 Keeping an academic CV up to date is a chore. Every new paper, grant, talk, or
 editorial role means another manual edit — formatting citations by hand,
@@ -373,6 +374,10 @@ which always resolves to the latest version (the v0.1.0 release itself is
 [10.5281/zenodo.20594124](https://doi.org/10.5281/zenodo.20594124)).
 
 > Chrétien, B. (2026). _SigmaCV_ (v0.1.0). Zenodo. https://doi.org/10.5281/zenodo.20594123
+
+To refer to the tool itself unambiguously, SigmaCV is registered in the
+[SciCrunch](https://scicrunch.org/) resource registry as
+**[RRID:SCR_028552](https://scicrunch.org/resolver/RRID:SCR_028552)**.
 
 ## License
 
