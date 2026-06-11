@@ -99,7 +99,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
       "アカデミックCVの書き方、フォーマット、自動化に関する実践的・最新のガイド——記載すべき内容、適切な長さ、文献リストの書き方などを解説します。",
     glossaryIndexTitle: "アカデミックCV用語集",
     glossaryIndexDescription:
-      "アカデミックCVの背景にある主要な用語のわかりやすい解説——ORCID、OpenAlex、引用指標（FWCI、h-index）、Citation Style Language、NIH biosketachなど。",
+      "アカデミックCVの背景にある主要な用語のわかりやすい解説——ORCID、OpenAlex、引用指標（FWCI、h-index）、Citation Style Language、NIH biosketchなど。",
     byline: "著者：",
     minRead: "分で読めます",
     faqHeading: "よくある質問",

@@ -794,15 +794,14 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
     },
     "leiden-manifesto": {
       term: "Leiden Manifesto",
-      short:
-        "《莱顿科研指标宣言》（Leiden Manifesto）是一套关于负责任地使用定量科研指标的十项原则——旨在辅助而非替代专家判断。",
+      short: "《莱顿宣言》是一套关于负责任地使用定量科研指标的十项原则，旨在辅助而非替代专家判断。",
       title: "什么是 Leiden Manifesto？",
       description:
-        "《莱顿科研指标宣言》提出了负责任使用科研指标的十项原则。以下介绍它是什么及其与简历评估的关系。",
+        "《莱顿宣言》提出了负责任使用科研指标的十项原则。以下介绍它是什么及其与简历评估的关系。",
       blocks: [
         {
           type: "p",
-          text: "《莱顿科研指标宣言》（Leiden Manifesto）于 2015 年发表于 Nature，是一套关于在科研评估中负责任地使用定量指标的十项原则。其核心理念是：指标应为专家判断提供信息，而非取而代之。",
+          text: "《莱顿宣言》（Leiden Manifesto）于 2015 年发表于 Nature，是一套关于在科研评估中负责任地使用定量指标的十项原则。其核心理念是：指标应为专家判断提供信息，而非取而代之。",
         },
         {
           type: "p",
@@ -825,8 +824,8 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       ],
       faq: [
         {
-          q: "Leiden Manifesto 与 DORA 有何不同？",
-          a: "两者均倡导负责任的科研评估。DORA 侧重于不滥用期刊级别指标（如影响因子）进行个人评估；Leiden Manifesto 则提出了十项更广泛的原则，涵盖如何在专家判断的基础上负责任地使用任何定量指标。",
+          q: "《莱顿宣言》与 DORA 有何不同？",
+          a: "两者均倡导负责任的科研评估。DORA 侧重于不滥用期刊级别指标（如影响因子）进行个人评估；《莱顿宣言》则提出了十项更广泛的原则，涵盖如何在专家判断的基础上负责任地使用任何定量指标。",
         },
       ],
     },
@@ -855,7 +854,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "ORCID es el ancla fiable de un currículum académico. Al ser un identificador y no un nombre, las herramientas pueden recuperar sus publicaciones verificadas y vincular su trabajo sin las coincidencias falsas que aquejan a las búsquedas basadas en nombre —lo que más importa en el caso de nombres comunes y nombres escritos en alfabetos no latinos.",
+          text: "ORCID es el ancla fiable de un currículum académico. Al ser un identificador y no un nombre, las herramientas pueden recuperar sus publicaciones verificadas y vincular su trabajo sin las coincidencias falsas que aquejan a las búsquedas basadas en el nombre —lo que más importa en el caso de nombres comunes y nombres escritos en alfabetos no latinos.",
         },
         {
           type: "h2",
@@ -889,7 +888,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       blocks: [
         {
           type: "p",
-          text: "OpenAlex es un catálogo gratuito y totalmente abierto de la literatura de investigación global —obras, autores, instituciones, publicaciones y conceptos— construido y mantenido por la organización sin ánimo de lucro OurResearch. Indexa cientos de millones de obras y ofrece una API abierta y datos abiertos, como sucesor del Microsoft Academic Graph, que fue discontinuado.",
+          text: "OpenAlex es un catálogo gratuito y totalmente abierto de la literatura de investigación global —obras, autores, instituciones, publicaciones y conceptos— construido y mantenido por la organización sin ánimo de lucro OurResearch. Indexa cientos de millones de obras y ofrece una API abierta y datos abiertos, como sucesor del Microsoft Academic Graph, cuya producción se interrumpió.",
         },
         {
           type: "p",
@@ -1073,7 +1072,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       blocks: [
         {
           type: "p",
-          text: "Un NIH biosketch es un CV breve y estructurado que los Institutos Nacionales de Salud de EE. UU. (NIH) exigen en las solicitudes de financiación. Suele estar limitado a cinco páginas y tiene secciones establecidas: formación y entrenamiento, cargos y distinciones, una declaración personal opcional y una sección de «contribuciones a la ciencia» que destaca un puñado de contribuciones, cada una con hasta cuatro publicaciones de respaldo.",
+          text: "Un NIH biosketch es un CV breve y estructurado que los Institutos Nacionales de Salud de EE. UU. (NIH) exigen en las solicitudes de financiación. Suele estar limitado a cinco páginas y tiene secciones establecidas: formación , cargos y distinciones, una declaración personal opcional y una sección de «contribuciones a la ciencia» que destaca un puñado de contribuciones, cada una con hasta cuatro publicaciones de respaldo.",
         },
         {
           type: "p",
@@ -1294,14 +1293,14 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
     openalex: {
       term: "OpenAlex",
       short:
-        "OpenAlex est un catalogue gratuit et ouvert des travaux académiques, auteurs, institutions et revues du monde entier, géré par l'organisation à but non lucratif OurResearch.",
+        "OpenAlex est un catalogue gratuit et ouvert des travaux académiques, auteurs, institutions et lieux de publication du monde entier, géré par l'organisation à but non lucratif OurResearch.",
       title: "Qu'est-ce qu'OpenAlex ?",
       description:
         "OpenAlex est un index libre et totalement ouvert des travaux académiques, auteurs et institutions. Découvrez ce qu'il est, comment il se compare aux bases de données propriétaires et comment il alimente votre CV.",
       blocks: [
         {
           type: "p",
-          text: "OpenAlex est un catalogue gratuit et totalement ouvert de la littérature scientifique mondiale — travaux, auteurs, institutions, revues et concepts — construit et maintenu par l'organisation à but non lucratif OurResearch. Il indexe des centaines de millions de travaux et propose une API ouverte ainsi que des données ouvertes, en tant que successeur du Microsoft Academic Graph, aujourd'hui abandonné.",
+          text: "OpenAlex est un catalogue gratuit et totalement ouvert de la littérature scientifique mondiale — travaux, auteurs, institutions, lieux de publication et concepts — construit et maintenu par l'organisation à but non lucratif OurResearch. Il indexe des centaines de millions de travaux et propose une API ouverte ainsi que des données ouvertes, en tant que successeur du Microsoft Academic Graph, aujourd'hui abandonné.",
         },
         {
           type: "p",
@@ -1389,7 +1388,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       term: "h-index",
       short:
         "L'indice h (h-index) est le plus grand nombre h tel que vous avez h publications chacune citée au moins h fois.",
-      title: "Qu'est-ce que l'indice h (h-index) ?",
+      title: "Qu'est-ce que l'indice h ?",
       description:
         "L'indice h est un indicateur au niveau du chercheur qui combine production et citations — mais il présente des limites réelles. Découvrez ce qu'il mesure et comment le traiter sur un CV.",
       blocks: [
@@ -2302,14 +2301,14 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
     "nih-biosketch": {
       term: "NIH biosketch",
       short:
-        "NIH biosketachは、米国国立衛生研究所（NIH）がグラント申請で求める短く構造化されたCVで、科学への貢献と選択した業績を強調します。",
-      title: "NIH biosketachとは何か",
+        "NIH biosketchは、米国国立衛生研究所（NIH）がグラント申請で求める短く構造化されたCVで、科学への貢献と選択した業績を強調します。",
+      title: "NIH biosketchとは何か",
       description:
-        "NIH biosketachはNIHのグラント申請で求められる短く構造化されたCVです。その内容、完全なアカデミックCVとの違い、そして作成方法を解説します。",
+        "NIH biosketchはNIHのグラント申請で求められる短く構造化されたCVです。その内容、完全なアカデミックCVとの違い、そして作成方法を解説します。",
       blocks: [
         {
           type: "p",
-          text: "NIH biosketachは、米国国立衛生研究所（NIH）がグラント申請で求める短く構造化されたCVです。通常5ページに制限され、定められたセクションがあります：教育・訓練、職歴・栄誉、任意の個人陳述、そして最大4本の関連業績を伴ういくつかの貢献をハイライトする「科学への貢献」セクション。",
+          text: "NIH biosketchは、米国国立衛生研究所（NIH）がグラント申請で求める短く構造化されたCVです。通常5ページに制限され、定められたセクションがあります：教育・訓練、職歴・栄誉、任意の個人陳述、そして最大4本の関連業績を伴ういくつかの貢献をハイライトする「科学への貢献」セクション。",
         },
         {
           type: "p",
@@ -2318,11 +2317,11 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         {
           type: "h2",
           id: "vs-cv",
-          text: "Biosketachと完全なアカデミックCVの違い",
+          text: "Biosketchと完全なアカデミックCVの違い",
         },
         {
           type: "p",
-          text: "biosketachは完全なアカデミックCVよりはるかに短くナラティブであり、NIH固有の形式に従います。実践的なアプローチは、完全なCVを保持し、各申請のためにそこからbiosketachを派生させることです。",
+          text: "biosketchは完全なアカデミックCVよりはるかに短くナラティブであり、NIH固有の形式に従います。実践的なアプローチは、完全なCVを保持し、各申請のためにそこからbiosketchを派生させることです。",
         },
         {
           type: "h2",
@@ -2331,17 +2330,17 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "SigmaCV は、ORCIDとOpenAlexの記録からNIHスタイルのbiosketachを作成します。業績は自動的に取得され、エクスポートの前に貢献と選択業績をキュレーションできます。",
+          text: "SigmaCV は、ORCIDとOpenAlexの記録からNIHスタイルのbiosketchを作成します。業績は自動的に取得され、エクスポートの前に貢献と選択業績をキュレーションできます。",
         },
         {
           type: "cta",
-          label: "NIH biosketachを生成",
+          label: "NIH biosketchを生成",
           href: "/nih-biosketch",
         },
       ],
       faq: [
         {
-          q: "NIH biosketachはどのくらいの長さですか？",
+          q: "NIH biosketchはどのくらいの長さですか？",
           a: "通常最大5ページです。特定の資金調達機会に合わせた最新のNIHの指示とフォームに常に従ってください。",
         },
       ],
@@ -2743,7 +2742,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "O SigmaCV elabora um biosketch no estilo NIH a partir do seu registro no ORCID e no OpenAlex: suas publicações são importadas automaticamente e você curadoria as contribuições e publicações selecionadas antes de exportar.",
+          text: "O SigmaCV elabora um biosketch no estilo NIH a partir do seu registro no ORCID e no OpenAlex: suas publicações são importadas automaticamente e você faz a curadoria das contribuições e publicações selecionadas antes de exportar.",
         },
         {
           type: "cta",
@@ -3171,10 +3170,10 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       ],
     },
     preprint: {
-      term: "preprint",
+      term: "Pre-stampa",
       short:
-        "Un preprint (o pre-stampa) è una versione completa di un articolo accademico resa pubblica prima, o in alternativa, della revisione formale da parte dei pari — tipicamente su un server come arXiv, bioRxiv o medRxiv.",
-      title: "Che cos'è un preprint?",
+        "Un pre-stampa (preprint) è una versione completa di un articolo accademico resa pubblica prima, o in alternativa, della revisione formale da parte dei pari — tipicamente su un server come arXiv, bioRxiv o medRxiv.",
+      title: "Che cos'è un pre-stampa?",
       description:
         "Un preprint è un articolo di ricerca condiviso pubblicamente prima della revisione tra pari. Scopri cos'è, perché i preprint sono importanti e come elencarli in un curriculum vitae accademico.",
       blocks: [
@@ -3347,7 +3346,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       faq: [
         {
           q: "ORCID는 유료입니까?",
-          a: "아닙니다. orcid.org에서 ORCID iD를 등록하는 것은 무료이며, 약 1분이면 완료됩니다.",
+          a: "아니요, orcid.org에서 ORCID iD를 등록하는 것은 무료이며 약 1분이면 완료됩니다.",
         },
       ],
     },
@@ -3394,7 +3393,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       faq: [
         {
           q: "OpenAlex는 유료입니까?",
-          a: "아닙니다. OpenAlex는 무료 API와 공개 데이터 라이선스를 갖춘 완전 공개 서비스입니다.",
+          a: "아니요, OpenAlex는 무료 API와 공개 데이터 라이선스를 갖춘 완전 공개 서비스입니다.",
         },
       ],
     },
@@ -3585,7 +3584,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       term: "프리프린트",
       short:
         "프리프린트는 정식 동료 심사 전 또는 그 대신 공개적으로 공유된 학술 논문의 완성 버전으로, 보통 arXiv, bioRxiv, medRxiv 같은 서버에 게재됩니다.",
-      title: "프리프린트(preprint)란 무엇입니까?",
+      title: "프리프린트란 무엇입니까?",
       description:
         "프리프린트는 동료 심사 전에 공개적으로 공유된 연구 논문입니다. 프리프린트가 무엇인지, 왜 중요한지, 학술 CV에 어떻게 기재해야 하는지 설명합니다.",
       blocks: [
@@ -3813,7 +3812,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       term: "FWCI",
       short:
         "Взвешенный с учётом области показатель цитирования (FWCI) сравнивает цитируемость работы со средним мировым уровнем для работ той же области, типа и года — значение 1,0 означает ровно среднее.",
-      title: "Что такое взвешенный с учётом области воздействия цитирования (FWCI)?",
+      title: "Что такое взвешенный по области показатель цитирования (FWCI)?",
       description:
         "Взвешенный с учётом области показатель цитирования (FWCI) — нормализованная по области метрика цитирования, где 1,0 соответствует среднемировому уровню. Что она означает и как ответственно использовать её в резюме.",
       blocks: [
@@ -3828,7 +3827,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         {
           type: "h2",
           id: "vs-h-index",
-          text: "FWCI и индекс Хирша: сравнение",
+          text: "FWCI, индекс Хирша и абсолютные показатели: сравнение",
         },
         {
           type: "p",
@@ -3969,7 +3968,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Biosketch значительно короче и нарративнее, чем полное академическое резюме, и составляется в строгом формате NIH. Практический подход — вести полное резюме и готовить biosketch на его основе для каждой заявки.",
+          text: "Biosketch значительно короче и нарративнее, чем полное академическое резюме, и составляется в специальном формате NIH. Практический подход — вести полное резюме и готовить biosketch на его основе для каждой заявки.",
         },
         {
           type: "h2",
