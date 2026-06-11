@@ -70,6 +70,20 @@ services:
     command:
       - 'while true; do sleep "${RESYNC_INTERVAL_SECONDS:-3600}"; curl -fsS -X POST -H "Authorization: Bearer ${RESYNC_SECRET}" http://app:3000/api/internal/resync || true; done'
 
+  # Daily ping for the opt-in re-sync digest emails (per-user monthly cadence
+  # lives server-side). No-op when RESYNC_SECRET or SMTP is unset.
+  digest-cron:
+    image: curlimages/curl:8.11.1
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      RESYNC_SECRET: ${RESYNC_SECRET:-}
+      DIGEST_INTERVAL_SECONDS: ${DIGEST_INTERVAL_SECONDS:-86400}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - 'while true; do sleep "${DIGEST_INTERVAL_SECONDS:-86400}"; curl -fsS -X POST -H "Authorization: Bearer ${RESYNC_SECRET}" http://app:3000/api/internal/digest || true; done'
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped

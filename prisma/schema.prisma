@@ -31,6 +31,13 @@ model User {
   // agreed to, and when). Null until they first opt in.
   researchConsentAt      DateTime?
   researchConsentVersion Int?
+  // Opt-IN re-sync digest email ("your last sync changed N items"). Default
+  // OFF (GDPR/APPI data minimization); toggled in the account controls and by
+  // the one-click unsubscribe link in every digest.
+  digestOptIn     Boolean   @default(false)
+  // When the last digest was sent — per-user monthly cadence + dedupe (only a
+  // report newer than this is ever mailed).
+  digestSentAt    DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

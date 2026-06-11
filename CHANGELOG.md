@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Opt-in re-sync digest email.** A new account toggle (default OFF) emails
+  you when a scheduled re-sync actually changed your CV — new entries (with up
+  to five titles), review candidates, removals — in your CV's own language, at
+  most once a month, with a one-click unsubscribe (RFC 8058) in every mail.
+  Powered by the per-sync change report below; dormant unless SMTP
+  (`EMAIL_SERVER`/`EMAIL_FROM`) is configured. New `digest-cron` compose
+  sidecar pings the secret-guarded `/api/internal/digest` daily; the per-user
+  monthly cadence lives server-side, so container restarts can't starve it.
 - **"What changed in your last sync" report.** Every sync now records what it
   changed — newly-appeared items (with their section), items the sources no
   longer list, and how many arrived as review candidates — plus per-source item

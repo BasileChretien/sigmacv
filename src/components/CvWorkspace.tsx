@@ -45,6 +45,8 @@ interface CvWorkspaceProps {
   availableStyles: string[];
   userName: string;
   researchConsent: boolean;
+  /** Re-sync digest email opt-in (account toggle). */
+  digestOptIn?: boolean;
   /** Whether the research-logging programme is active (off until IRB approval). */
   researchEnabled: boolean;
   published: boolean;
@@ -72,6 +74,7 @@ export default function CvWorkspace({
   availableStyles,
   userName,
   researchConsent,
+  digestOptIn = false,
   researchEnabled,
   published,
   publicSlug,
@@ -226,7 +229,11 @@ export default function CvWorkspace({
               if (cv) update(updateDisplay(cv, { publicContact: next }));
             }}
           />
-          <AccountControls researchConsent={researchConsent} locale={uiLocale} />
+          <AccountControls
+            researchConsent={researchConsent}
+            digestOptIn={digestOptIn}
+            locale={uiLocale}
+          />
         </div>
         <div className="cv-topbar-actions">
           {/* Persistent polite live region so screen readers announce
