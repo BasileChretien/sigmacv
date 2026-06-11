@@ -128,3 +128,49 @@ describe("sidebar institution → ROR link", () => {
     expect(html).toContain(".cv-ror-link");
   });
 });
+
+describe("institution → website link (ROR links.website)", () => {
+  it("links the institution name to its homepage when ROR records one", () => {
+    const html = sectionHtml(
+      makeCv({ emp: { institutionUrl: "https://en.nagoya-u.ac.jp/" } }),
+      "positions",
+    );
+    expect(html).toContain(
+      '<a class="cv-ror-link" href="https://en.nagoya-u.ac.jp/" title="Institution website">Nagoya University</a>',
+    );
+    // The website REPLACES the ROR record as the name's target.
+    expect(html).not.toContain('href="https://ror.org/04chrp450"');
+  });
+
+  it("falls back to the ROR record when no website is stored", () => {
+    const html = sectionHtml(makeCv({ emp: { institutionUrl: undefined } }), "positions");
+    expect(html).toContain(
+      '<a class="cv-ror-link" href="https://ror.org/04chrp450" title="ROR organization record">Nagoya University</a>',
+    );
+  });
+
+  it("upgrades a bare-domain website to https via safeHref", () => {
+    const html = sectionHtml(makeCv({ emp: { institutionUrl: "en.nagoya-u.ac.jp" } }), "positions");
+    expect(html).toContain('href="https://en.nagoya-u.ac.jp"');
+  });
+
+  it("ignores an unsafe website scheme and falls back to the ROR record", () => {
+    const html = sectionHtml(
+      makeCv({ emp: { institutionUrl: "javascript:alert(1)" } }),
+      "positions",
+    );
+    expect(html).not.toContain("javascript:");
+    expect(html).toContain('href="https://ror.org/04chrp450"');
+  });
+
+  it("keeps the trailing fallback on the ROR record even when a website exists", () => {
+    let cv = makeCv({ emp: { institutionUrl: "https://en.nagoya-u.ac.jp/" } });
+    const section = cv.sections.find((s) => s.type === "positions")!;
+    cv = setItemTextOverride(cv, section.id, section.items[0]!.id, "Group Leader (org not named)");
+    const html = sectionHtml(cv, "positions");
+    // The trailing PID token always points at ROR, never the website.
+    expect(html).toContain('<a class="cv-ror-link" href="https://ror.org/04chrp450"');
+    expect(html).toContain(">ROR</a>");
+    expect(html).not.toContain("en.nagoya-u.ac.jp");
+  });
+});

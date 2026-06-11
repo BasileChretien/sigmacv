@@ -336,6 +336,15 @@ export const CvItemSchema = z.object({
      */
     institutionNames: z.record(z.string().max(35), z.string().max(500)).optional(),
     /**
+     * The institution's homepage URL, from ROR's `links[]` (`type:"website"`),
+     * captured on a confident ROR match. A renderer links the institution name to
+     * this site — the click target a reader expects — in preference to the ROR
+     * record page; the ROR id (`rorId`) remains the persistent identifier and the
+     * link fallback when no website is recorded. Additive + optional; only an
+     * http(s) URL ROR carried, re-validated at render via `safeHref`.
+     */
+    institutionUrl: z.string().max(2048).optional(),
+    /**
      * Funder identifier for a grant item (interoperable funding metadata). The
      * OpenAlex funder id (e.g. "https://openalex.org/F4320332161") or the ORCID
      * funding's disambiguated-organization identifier (FundRef/ROR/GRID). Additive

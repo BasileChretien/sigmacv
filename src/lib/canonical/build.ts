@@ -311,6 +311,7 @@ function makeEntryItem(
     rorId?: string;
     institution?: string;
     institutionNames?: Record<string, string>;
+    institutionUrl?: string;
     lastVerifiedAt?: string;
     funderId?: string;
     funderName?: string;
@@ -322,6 +323,7 @@ function makeEntryItem(
   if (extraMeta?.rorId) meta.rorId = extraMeta.rorId;
   if (extraMeta?.institution) meta.institution = extraMeta.institution;
   if (extraMeta?.institutionNames) meta.institutionNames = extraMeta.institutionNames;
+  if (extraMeta?.institutionUrl) meta.institutionUrl = extraMeta.institutionUrl;
   if (extraMeta?.lastVerifiedAt) meta.lastVerifiedAt = extraMeta.lastVerifiedAt;
   if (extraMeta?.funderId) meta.funderId = extraMeta.funderId;
   if (extraMeta?.funderName) meta.funderName = extraMeta.funderName;
@@ -396,6 +398,7 @@ function buildPositionsSection(
           rorId: e.rorId,
           institution: e.organization,
           institutionNames: e.institutionNames,
+          institutionUrl: e.institutionUrl,
           lastVerifiedAt: now,
         },
       ),
@@ -416,6 +419,7 @@ function buildPositionsSection(
       rorId: a.rorId,
       institution: a.institution,
       institutionNames: a.institutionNames,
+      institutionUrl: a.institutionUrl,
       lastVerifiedAt: now,
     });
     items.push({ ...item, included: prev?.included ?? false });
@@ -476,6 +480,7 @@ function buildOrcidEntrySection(
         rorId: e.rorId,
         institution: e.organization,
         institutionNames: e.institutionNames,
+        institutionUrl: e.institutionUrl,
         lastVerifiedAt: opts.now,
       }),
     );

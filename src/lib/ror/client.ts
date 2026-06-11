@@ -35,6 +35,14 @@ export interface RorOrg {
    * localized variant.
    */
   names?: Record<string, string>;
+  /**
+   * The organization's homepage, from ROR's `links[]` (`type:"website"`), when
+   * present and an http(s) URL. Lets a renderer link the institution NAME to its
+   * own site (the click target a reader expects) in preference to the ROR record
+   * page; the ROR `id` stays the persistent identifier. Absent when ROR records
+   * no website (some organizations only carry a Wikipedia link, or none).
+   */
+  website?: string;
 }
 
 /**
@@ -78,6 +86,8 @@ interface RorAffiliationItem {
     id?: string;
     names?: RorV2Name[];
     locations?: Array<{ geonames_details?: { country_code?: string } }>;
+    /** External links; ROR tags each `"website"` or `"wikipedia"`. */
+    links?: Array<{ type?: string; value?: string }>;
   };
 }
 
@@ -115,6 +125,20 @@ function rorLocalizedNames(names: RorV2Name[] | undefined): Record<string, strin
     }
   }
   return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/**
+ * The organization homepage from a ROR v2 `links[]` array: the first
+ * `type:"website"` entry whose value is an http(s) URL, or undefined. ROR also
+ * tags `"wikipedia"` links, which we ignore here. `safeHref` at render time is
+ * the second guard against anything unexpected.
+ */
+function rorWebsite(
+  links: Array<{ type?: string; value?: string }> | undefined,
+): string | undefined {
+  if (!Array.isArray(links)) return undefined;
+  const url = links.find((l) => l.type === "website")?.value?.trim();
+  return url && /^https?:\/\//i.test(url) ? url : undefined;
 }
 
 const cache = new Map<string, RorOrg | null>();
@@ -174,6 +198,7 @@ export async function resolveInstitution(name: string): Promise<RorOrg | null> {
             name,
             countryCode: org.locations?.[0]?.geonames_details?.country_code,
             names: rorLocalizedNames(org.names),
+            website: rorWebsite(org.links),
           }
         : null;
     cache.set(key, result);

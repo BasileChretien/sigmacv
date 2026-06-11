@@ -186,6 +186,54 @@ describe("resolveInstitution", () => {
     });
   });
 
+  it("captures the institution homepage from links[] (type:website)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        res({
+          items: [
+            {
+              chosen: true,
+              organization: {
+                id: "https://ror.org/04chrp450",
+                names: [{ types: ["ror_display"], value: "Nagoya University", lang: "en" }],
+                links: [
+                  { type: "wikipedia", value: "https://en.wikipedia.org/wiki/Nagoya_University" },
+                  { type: "website", value: "http://en.nagoya-u.ac.jp/" },
+                ],
+              },
+            },
+          ],
+        }),
+      ),
+    );
+    expect((await resolveInstitution("Nagoya"))?.website).toBe("http://en.nagoya-u.ac.jp/");
+  });
+
+  it("ignores a non-website link or a non-http website value", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        res({
+          items: [
+            {
+              chosen: true,
+              organization: {
+                id: "https://ror.org/x",
+                names: [{ types: ["ror_display"], value: "No Site U", lang: "en" }],
+                links: [
+                  { type: "wikipedia", value: "https://en.wikipedia.org/wiki/X" },
+                  { type: "website", value: "ftp://nope.example" }, // not http(s)
+                ],
+              },
+            },
+          ],
+        }),
+      ),
+    );
+    expect((await resolveInstitution("no site"))?.website).toBeUndefined();
+  });
+
   it("falls back through the v2 name types (label, then any value)", async () => {
     vi.stubGlobal(
       "fetch",

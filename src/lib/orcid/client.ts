@@ -26,6 +26,8 @@ export interface OrcidPosition {
   rorId?: string;
   /** Localized org names by language subtag (from ROR), set during ROR enrichment. */
   institutionNames?: Record<string, string>;
+  /** Organization homepage (ROR `links[].website`), set during ROR enrichment. */
+  institutionUrl?: string;
 }
 
 export interface OrcidFunding {

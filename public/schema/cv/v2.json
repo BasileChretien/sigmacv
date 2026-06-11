@@ -726,6 +726,10 @@
                         "maxLength": 500
                       }
                     },
+                    "institutionUrl": {
+                      "type": "string",
+                      "maxLength": 2048
+                    },
                     "funderId": {
                       "type": "string",
                       "maxLength": 2048

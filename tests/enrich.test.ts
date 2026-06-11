@@ -335,6 +335,31 @@ describe("canonicalizeInstitutions", () => {
     expect(result.employments[0]!.organization).toBe("Exact Name");
     expect(result.employments[0]!.rorId).toBe("https://ror.org/x");
   });
+
+  it("threads the ROR-recorded website onto every matched array as institutionUrl", async () => {
+    mocks.resolveInstitution.mockResolvedValue({
+      id: "https://ror.org/04chrp450",
+      name: "Nagoya University",
+      website: "http://en.nagoya-u.ac.jp/",
+    });
+    const aff: ResolvedAffiliation = { institution: "Nagoya Univ.", startYear: 2024 };
+    const { result } = await canonicalizeInstitutions({
+      ...emptyBundle,
+      employments: [pos("Nagoya Univ.")],
+      affiliations: [aff],
+    });
+    expect(result.employments[0]!.institutionUrl).toBe("http://en.nagoya-u.ac.jp/");
+    expect(result.affiliations[0]!.institutionUrl).toBe("http://en.nagoya-u.ac.jp/");
+  });
+
+  it("leaves institutionUrl undefined when ROR records no website", async () => {
+    mocks.resolveInstitution.mockResolvedValue({ id: "https://ror.org/x", name: "No Site U" });
+    const { result } = await canonicalizeInstitutions({
+      ...emptyBundle,
+      employments: [pos("No Site U")],
+    });
+    expect(result.employments[0]!.institutionUrl).toBeUndefined();
+  });
 });
 
 // ─── withRorProvenance ────────────────────────────────────────────────────────
