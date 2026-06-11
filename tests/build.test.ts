@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildCanonicalCv, indexFundersByAward, resolveFunderIds } from "@/lib/canonical/build";
+import {
+  buildCanonicalCv,
+  indexFundersByAward,
+  orcidTypeClass,
+  resolveFunderIds,
+} from "@/lib/canonical/build";
 import { parseCanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -11,6 +16,7 @@ import type { CrossrefGrant } from "@/lib/crossref/client";
 import type { FunderGrant } from "@/lib/grants/match";
 import type { ExternalTrial } from "@/lib/trials/types";
 import type { PatentRecord } from "@/lib/patents/types";
+import { sectionTitle } from "@/lib/i18n";
 import worksFixture from "./fixtures/openalex-works.json";
 
 const works = worksFixture as unknown as OpenAlexWork[];
@@ -959,5 +965,204 @@ describe("ORCID-discovered review candidates", () => {
       previous: confirmed,
     });
     expect(find(second, "W907")!.included).toBe(true);
+  });
+});
+
+describe("orcidTypeClass", () => {
+  it("classifies publication / preprint / other-output, else undefined", () => {
+    // Publications (incl. conference-paper).
+    for (const t of ["journal-article", "conference-paper", "book-chapter", "report", "manual"]) {
+      expect(orcidTypeClass(t)).toBe("publication");
+    }
+    // Preprints / working papers.
+    expect(orcidTypeClass("preprint")).toBe("preprint");
+    expect(orcidTypeClass("working-paper")).toBe("preprint");
+    // Non-publication outputs → routed to "Other Research Outputs".
+    for (const t of [
+      "conference-poster",
+      "conference-abstract",
+      "lecture-speech",
+      "data-set",
+      "software",
+    ]) {
+      expect(orcidTypeClass(t)).toBe("other-output");
+    }
+    // Case/whitespace-insensitive.
+    expect(orcidTypeClass("  Journal-Article ")).toBe("publication");
+    // No usable signal.
+    expect(orcidTypeClass(undefined)).toBeUndefined();
+    expect(orcidTypeClass("")).toBeUndefined();
+    expect(orcidTypeClass("some-future-type")).toBeUndefined();
+  });
+});
+
+describe("buildCanonicalCv — ORCID work-type section routing", () => {
+  /** A work with a DOI but NO published venue, so `isPreprint` flags it. */
+  function venuelessWork(shortId: string, bareDoi: string): OpenAlexWork {
+    return {
+      id: `https://openalex.org/${shortId}`,
+      doi: `https://doi.org/${bareDoi}`,
+      title: `Work ${shortId}`,
+      display_name: `Work ${shortId}`,
+      publication_year: 2024,
+      type: "article",
+      authorships: [
+        {
+          author_position: "first",
+          author: {
+            id: "https://openalex.org/A5001069481",
+            display_name: "Basile Chrétien",
+            orcid: "https://orcid.org/0000-0002-7483-2489",
+          },
+          raw_author_name: "Basile Chrétien",
+        },
+      ],
+      // No primary_location.source.display_name → isPreprint() === true.
+      primary_location: null,
+    } as unknown as OpenAlexWork;
+  }
+  const sectionOf = (cv: ReturnType<typeof build>, type: string) =>
+    cv.sections.find((s) => s.type === type);
+  const itemIn = (cv: ReturnType<typeof build>, type: string, id: string) =>
+    sectionOf(cv, type)?.items.find((i) => i.id === id);
+
+  it("rescues a venue-less work ORCID types as a journal-article into Publications", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [venuelessWork("WPUB", "10.7/rescue")],
+      orcidWorkTypes: { "10.7/rescue": "journal-article" },
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const item = itemIn(cv, "publications", "WPUB")!;
+    expect(item).toBeDefined();
+    expect(item.meta.peerReviewed).toBe(true); // forced consistent with a publication
+    // NOT in Preprints (and there is no Preprints section since it was the only work).
+    expect(sectionOf(cv, "preprints")).toBeUndefined();
+  });
+
+  it("keeps a non-journal publication type's source peerReviewed (book-chapter)", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [venuelessWork("WBC", "10.7/chapter")],
+      orcidWorkTypes: { "10.7/chapter": "book-chapter" },
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const item = itemIn(cv, "publications", "WBC")!;
+    expect(item).toBeDefined();
+    // Not forced true — a venue-less book-chapter keeps isPeerReviewed() === false.
+    expect(item.meta.peerReviewed).toBe(false);
+  });
+
+  it("pulls a poster/lecture out of Preprints into Other Research Outputs (peerReviewed:false)", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [venuelessWork("WPOS", "10.7/poster")],
+      orcidWorkTypes: { "10.7/poster": "lecture-speech" },
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const other = sectionOf(cv, "other")!;
+    // Heading is the localized DEFAULT for `other` (so it isn't stuck in English
+    // on a non-English CV) — not a fixed "Other Research Outputs" string.
+    expect(other.title).toBe(sectionTitle(cv.display.locale, "other"));
+    expect(other.items.find((i) => i.id === "WPOS")?.meta.peerReviewed).toBe(false);
+    // Not mis-filed as a preprint.
+    expect(sectionOf(cv, "preprints")).toBeUndefined();
+    expect(itemIn(cv, "publications", "WPOS")).toBeUndefined();
+  });
+
+  it("drops an ORCID 'data-set' output whose DOI is also a Datasets item (no double-list)", () => {
+    const dupDoi = "10.5281/zenodo.dup";
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [venuelessWork("WDATA", dupDoi)],
+      orcidWorkTypes: { [dupDoi]: "data-set" },
+      dataciteOutputs: [
+        {
+          doi: dupDoi,
+          title: "The dataset",
+          type: "Dataset",
+          year: 2024,
+          publisher: "Zenodo",
+        },
+      ] as unknown as DataciteOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    // The DataCite copy is in Datasets; the work-item is dropped from Other.
+    const ds = sectionOf(cv, "datasets")!;
+    expect(ds.items.some((i) => i.meta.doi?.toLowerCase() === dupDoi)).toBe(true);
+    expect(sectionOf(cv, "other")).toBeUndefined(); // nothing left → no Other section
+    expect(cv.sections.flatMap((s) => s.items).filter((i) => i.id === "WDATA")).toHaveLength(0);
+  });
+
+  it("keeps an ORCID 'preprint' in Preprints (unchanged)", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [venuelessWork("WPRE", "10.7/pre")],
+      orcidWorkTypes: { "10.7/pre": "preprint" },
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    expect(itemIn(cv, "preprints", "WPRE")).toBeDefined();
+    expect(sectionOf(cv, "other")).toBeUndefined();
+  });
+
+  it("leaves routing UNCHANGED when there is no ORCID type for the DOI (regression guard)", () => {
+    // Same venue-less work, but no orcidWorkTypes entry → isPreprint() decides.
+    const withType = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [venuelessWork("WNONE", "10.7/none")],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    // Falls to Preprints exactly as today (venue-less → isPreprint true).
+    expect(itemIn(withType, "preprints", "WNONE")).toBeDefined();
+    expect(sectionOf(withType, "other")).toBeUndefined();
+    expect(itemIn(withType, "publications", "WNONE")).toBeUndefined();
+  });
+
+  it("routes an ORCID-DISCOVERED poster into Other but keeps it a hidden 'orcid-doi' candidate", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      orcidDiscoveredWorks: [venuelessWork("WDISC", "10.7/disc")],
+      orcidWorkTypes: { "10.7/disc": "conference-poster" },
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const item = itemIn(cv, "other", "WDISC")!;
+    expect(item).toBeDefined();
+    expect(item.included).toBe(false); // stays a hidden review candidate
+    expect(item.meta.reviewFlag).toBe("orcid-doi"); // flag unchanged by routing
+    expect(item.meta.peerReviewed).toBe(false);
+  });
+
+  it("preserves a user-hidden Other Research Outputs item across re-sync", () => {
+    const first = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [venuelessWork("WKEEP", "10.7/keep")],
+      orcidWorkTypes: { "10.7/keep": "data-set" },
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    // User hides the Other item.
+    const curated = {
+      ...first,
+      sections: first.sections.map((s) =>
+        s.type === "other" ? { ...s, items: s.items.map((it) => ({ ...it, included: false })) } : s,
+      ),
+    };
+    const resynced = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [venuelessWork("WKEEP", "10.7/keep")],
+      orcidWorkTypes: { "10.7/keep": "data-set" },
+      now: "2026-07-01T00:00:00.000Z",
+      previous: curated,
+    });
+    expect(itemIn(resynced, "other", "WKEEP")?.included).toBe(false); // hide survives
   });
 });

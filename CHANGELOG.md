@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **ORCID work types now refine section placement.** Classification into the
+  Preprints section was previously driven only by OpenAlex venue heuristics, which
+  treat any repository-deposited or venue-less work as a "preprint" — so
+  self-deposited conference posters, lecture/teaching materials, and datasets
+  (often on Zenodo) were mis-filed there. The build now reads each work's
+  author-asserted ORCID work type (matched by DOI) and uses it to route the work:
+  posters, conference abstracts, talks/teaching, datasets, software, and similar
+  non-publication outputs go to a new **Other Research Outputs** section instead of
+  Preprints (and are dropped if the same DOI is already listed as a Dataset or
+  Conference item); a venue-less work ORCID marks as a publication
+  (journal article, book chapter, report, …) is rescued into **Publications**; and
+  ORCID preprints/working papers stay in Preprints. Works with no ORCID type signal
+  are unchanged. Fail-soft: an ORCID hiccup simply leaves the existing routing in
+  place.
+
 ### Fixed
 
 - **PDF export failed in production** (`{"error":"Failed to generate export."}`)

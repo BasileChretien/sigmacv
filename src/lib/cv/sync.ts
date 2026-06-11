@@ -28,6 +28,7 @@ import {
   fetchOrcidPeerReviews,
   fetchOrcidPositions,
   fetchOrcidService,
+  fetchOrcidWorkTypes,
 } from "@/lib/orcid/client";
 import { fetchDataciteOutputs } from "@/lib/datacite/client";
 import { fetchEditorialRoles } from "@/lib/oep/client";
@@ -145,6 +146,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     dblpConferencePapers,
     crossrefGrants,
     wikidataIdentity,
+    orcidWorkTypes,
   ] = await Promise.all([
     resolved ? fetchWorksByAuthorIds(resolved.authorIds) : Promise.resolve([]),
     fetchEditorialRoles(orcid),
@@ -162,6 +164,11 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     fetchDblpConferencePapers(orcid),
     fetchCrossrefGrantsByOrcid(orcid, mailto),
     fetchWikidataIdentity(orcid),
+    // ORCID self-asserted work TYPES (DOI → type) — refine section placement so
+    // posters/talks/datasets aren't mis-filed as preprints. This re-traverses
+    // /works; the orcidDiscovery pass also hits /works, so the Next fetch cache
+    // (orcidGet `revalidate: 3600`) serves one of them from cache, not the network.
+    fetchOrcidWorkTypes(orcid),
   ]);
 
   // Registries with NO ORCID (national funders + trial registries) are matched by
@@ -241,6 +248,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
         },
     works,
     orcidDiscoveredWorks,
+    orcidWorkTypes,
     now,
     previous,
     editorialRoles,

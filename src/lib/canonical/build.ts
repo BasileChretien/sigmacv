@@ -46,6 +46,18 @@ export interface BuildArgs {
    * once OpenAlex attributes the work (it then arrives in `works`).
    */
   orcidDiscoveredWorks?: OpenAlexWork[];
+  /**
+   * ORCID self-asserted work TYPE per DOI (bare-lowercased DOI → ORCID work-type
+   * string, e.g. "journal-article" / "conference-poster" / "data-set"). ORCID's
+   * controlled vocabulary is richer than OpenAlex's venue heuristics, so — matched
+   * by DOI only — it REFINES section placement on top of `isPreprint(work)`:
+   * publication types are rescued into Publications even when venue-less, preprint
+   * types stay in Preprints, and non-publication outputs (posters, talks, datasets,
+   * software) are pulled out of Preprints into an "Other Research Outputs" section.
+   * A DOI absent from this map (or an unknown/empty type) leaves the existing
+   * OpenAlex-only routing unchanged. Optional + fail-soft (empty = no override).
+   */
+  orcidWorkTypes?: Record<string, string>;
   /** ISO timestamp; caller supplies for determinism/testing. */
   now: string;
   /** Previous canonical object, to preserve curation + display on re-sync. */
@@ -288,6 +300,18 @@ function carryOverUserItems(
 /** Normalize a list to a clean 0..n order, preserving relative order. */
 function reindexItems(items: CvItem[]): CvItem[] {
   return [...items].sort((a, b) => a.order - b.order).map((it, i) => ({ ...it, order: i }));
+}
+
+/** Bare-lowercased DOIs of a built section's items (csl.DOI or meta.doi). Used to
+ *  avoid double-listing an ORCID "other-output" work whose DOI is already a
+ *  Dataset (DataCite/OpenAIRE) or Conference (DBLP) item this sync. */
+function sectionDois(section: CvSection | null): Set<string> {
+  const out = new Set<string>();
+  for (const it of section?.items ?? []) {
+    const doi = it.csl?.DOI ?? it.meta.doi;
+    if (doi) out.add(doi.toLowerCase());
+  }
+  return out;
 }
 
 /** Apply a section's preserved title/visibility/order from the previous CV. */
@@ -933,6 +957,77 @@ export function isPeerReviewed(work: OpenAlexWork): boolean {
   return Boolean(work.primary_location?.source?.display_name);
 }
 
+// ── ORCID work-type → CV-section routing ────────────────────────────────────
+// ORCID's self-asserted, controlled work-type vocabulary, partitioned into the
+// three CV destinations. A type NOT in any set yields no signal (undefined →
+// fall back to the OpenAlex-only `isPreprint` routing). See {@link orcidTypeClass}.
+
+/** ORCID types that are bona-fide PUBLICATIONS — rescued into the Publications
+ *  section even when OpenAlex finds no venue (`conference-paper` included). */
+const ORCID_PUBLICATION_TYPES = new Set([
+  "journal-article",
+  "conference-paper",
+  "book",
+  "book-chapter",
+  "edited-book",
+  "dissertation-thesis",
+  "report",
+  "magazine-article",
+  "newspaper-article",
+  "dictionary-entry",
+  "encyclopedia-entry",
+  "translation",
+  "manual",
+  "newsletter-article",
+]);
+
+/** ORCID types that ARE preprints / unpublished working papers (→ Preprints). */
+const ORCID_PREPRINT_TYPES = new Set(["preprint", "working-paper"]);
+
+/** ORCID types that are NON-publication research outputs — pulled out of
+ *  Preprints into the "Other Research Outputs" section (posters, abstracts,
+ *  talks/teaching, datasets, software, standards, websites, …). */
+const ORCID_OTHER_OUTPUT_TYPES = new Set([
+  "conference-poster",
+  "conference-abstract",
+  "lecture-speech",
+  "data-set",
+  "software",
+  "research-tool",
+  "physical-object",
+  "data-management-plan",
+  "other",
+  "online-resource",
+  "website",
+  "annotation",
+  "research-technique",
+  "standards-and-policy",
+  "technical-standard",
+  "registered-copyright",
+]);
+
+/**
+ * The CV-routing class for an ORCID self-asserted work `type` (matched by DOI in
+ * the build), or `undefined` when ORCID carries no usable signal (no entry /
+ * empty / a type outside the three known sets) — in which case the existing
+ * OpenAlex-only `isPreprint` routing stands. `conference-paper` is a
+ * `"publication"`; `conference-poster`/`conference-abstract` are `"other-output"`.
+ *  - "publication"  → Publications (overrides `isPreprint`, e.g. a venue-less work);
+ *  - "preprint"     → Preprints;
+ *  - "other-output" → Other Research Outputs (unless its DOI is already a Dataset
+ *                     or Conference item this sync — then the work is dropped).
+ */
+export function orcidTypeClass(
+  orcidType: string | undefined,
+): "publication" | "preprint" | "other-output" | undefined {
+  const t = orcidType?.trim().toLowerCase();
+  if (!t) return undefined;
+  if (ORCID_PUBLICATION_TYPES.has(t)) return "publication";
+  if (ORCID_PREPRINT_TYPES.has(t)) return "preprint";
+  if (ORCID_OTHER_OUTPUT_TYPES.has(t)) return "other-output";
+  return undefined;
+}
+
 /**
  * A soft disambiguation hint for proactive review. The work matched as the
  * account holder's (typically by OpenAlex author id), but THIS paper lists a
@@ -1061,6 +1156,13 @@ interface WorkItemOptions {
    * heuristic applies (an own work whose authorship lists a different ORCID).
    */
   reviewFlagOverride?: ReviewFlag;
+  /**
+   * Forced `meta.peerReviewed`, used when ORCID's work type reclassifies where a
+   * work lands: `true` for a publication-type rescue (journal-article /
+   * conference-paper), `false` for an "Other Research Outputs" item. Omitted
+   * (undefined) keeps the source heuristic `isPeerReviewed(work)`.
+   */
+  peerReviewedOverride?: boolean;
 }
 
 /**
@@ -1077,7 +1179,7 @@ function buildWorkCvItem(
   opts: WorkItemOptions,
 ): CvItem {
   const { matches, basisFor } = matcher;
-  const { csl, prev, order, defaultIncluded, reviewFlagOverride } = opts;
+  const { csl, prev, order, defaultIncluded, reviewFlagOverride, peerReviewedOverride } = opts;
   const selfIndex = (work.authorships ?? []).findIndex(matches);
   const selfAuth = selfIndex >= 0 ? work.authorships![selfIndex] : undefined;
   const authoredBySelf = Boolean(selfAuth);
@@ -1124,7 +1226,7 @@ function buildWorkCvItem(
       // Which identifier made the self-match (ORCID > OpenAlex id). Recorded so
       // the disambiguation-error study can stratify errors by match strength.
       matchBasis: selfAuth ? (basisFor(selfAuth) ?? undefined) : undefined,
-      peerReviewed: isPeerReviewed(work),
+      peerReviewed: peerReviewedOverride ?? isPeerReviewed(work),
       reviewFlag:
         reviewFlagOverride ?? (authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined),
     },
@@ -1166,10 +1268,43 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   let newItemRank = 0;
 
   const matcher = { matches, basisFor };
+  const orcidWorkTypes = args.orcidWorkTypes ?? {};
+  /** ORCID-asserted routing class for a work, matched by DOI (bare, lower-cased)
+   *  — or undefined when ORCID carries no usable signal for it. */
+  const orcidClassFor = (csl: CslItem) =>
+    csl.DOI ? orcidTypeClass(orcidWorkTypes[csl.DOI.toLowerCase()]) : undefined;
+  // Per-item routing buckets (by csl.id). `preprintIds` keeps existing behaviour
+  // (OpenAlex `isPreprint` heuristic) as the FALLBACK; the ORCID class, when
+  // present, overrides it: a publication is rescued out of Preprints, a preprint
+  // stays, and a non-publication output is pulled into "Other Research Outputs".
   const preprintIds = new Set<string>();
+  const otherOutputIds = new Set<string>();
+  /** Route one work item by ORCID class (over OpenAlex's `isPreprint`) and return
+   *  the matching `peerReviewedOverride` to pass to {@link buildWorkCvItem}. */
+  const routeWork = (work: OpenAlexWork, csl: CslItem): { peerReviewedOverride?: boolean } => {
+    const cls = orcidClassFor(csl);
+    if (cls === "publication") {
+      // journal-article / conference-paper are peer-reviewed; other publication
+      // types keep the source heuristic (book chapters, reports, theses, …).
+      const t = orcidWorkTypes[csl.DOI!.toLowerCase()];
+      const peer = t === "journal-article" || t === "conference-paper" ? true : undefined;
+      return { peerReviewedOverride: peer };
+    }
+    if (cls === "preprint") {
+      preprintIds.add(csl.id);
+      return {};
+    }
+    if (cls === "other-output") {
+      otherOutputIds.add(csl.id);
+      return { peerReviewedOverride: false };
+    }
+    // No ORCID signal → unchanged: OpenAlex `isPreprint` decides the split.
+    if (isPreprint(work)) preprintIds.add(csl.id);
+    return {};
+  };
   const items: CvItem[] = works.map((work) => {
     const csl = workToCsl(work);
-    if (isPreprint(work)) preprintIds.add(csl.id);
+    const { peerReviewedOverride } = routeWork(work, csl);
     // Match by id, else by DOI (id churn) to preserve hide / "not mine" decisions.
     // When the prior item was an ORCID-discovered candidate, its curation
     // (incl. an un-confirmed hidden state) is preserved like any other — a re-sync
@@ -1182,6 +1317,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       prev,
       order: maxPrevOrder + 1 + newItemRank++,
       defaultIncluded: true,
+      peerReviewedOverride,
     });
   });
 
@@ -1208,13 +1344,17 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     // Two discovered works can share a DOI (OpenAlex duplicate records); keep one.
     if (doiKey && seenDiscoveredDois.has(doiKey)) continue;
     if (doiKey) seenDiscoveredDois.add(doiKey);
-    if (isPreprint(work)) preprintIds.add(csl.id);
+    // Route by ORCID class exactly like the primary pull. The candidate STAYS a
+    // hidden review candidate (`defaultIncluded:false`, `orcid-doi` flag) whatever
+    // section it lands in — routing only changes its bucket, never its state.
+    const { peerReviewedOverride } = routeWork(work, csl);
     discovered.push(
       buildWorkCvItem(work, matcher, ownerOrcid, now, {
         csl,
         order: maxPrevOrder + 1 + newItemRank++,
         defaultIncluded: false,
         reviewFlagOverride: "orcid-doi",
+        peerReviewedOverride,
       }),
     );
   }
@@ -1224,14 +1364,43 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     .sort((a, b) => a.order - b.order)
     .map((it, i) => ({ ...it, order: i }));
 
-  // Split into Publications vs Preprints (so the CV doesn't double-count a
-  // preprint and its published version, and matches academic convention).
-  // carryOverUserItems uses the fetched id+DOI sets so a carried claim/manual/
-  // discovered item is superseded when OpenAlex now returns the same work in
-  // EITHER section.
+  // Build the Datasets (DataCite/OpenAIRE) + Conference (DBLP) sections FIRST, so
+  // their item DOIs are known before the works split: an ORCID "other-output"
+  // work whose DOI is already one of these is DROPPED rather than double-listed
+  // in "Other Research Outputs".
+  const datasetsSection = buildDatasetsSection(
+    args.dataciteOutputs ?? [],
+    args.openaireOutputs ?? [],
+    prevItems,
+    previousManualItems(previous, "datasets"),
+    now,
+  );
+  const conferenceSection = buildConferenceSection(
+    args.dblpConferencePapers ?? [],
+    prevItems,
+    previousManualItems(previous, "conference"),
+    now,
+  );
+  const datasetConferenceDois = new Set<string>([
+    ...sectionDois(datasetsSection),
+    ...sectionDois(conferenceSection),
+  ]);
+
+  // Route every work into exactly ONE of Publications / Preprints / Other
+  // Research Outputs. The default split is OpenAlex's `isPreprint` heuristic;
+  // ORCID's work type (captured in `preprintIds`/`otherOutputIds` above) overrides
+  // it. An "other-output" work already produced as a Dataset/Conference item this
+  // sync is dropped (not double-listed). carryOverUserItems uses the fetched
+  // id+DOI sets so a carried claim/manual/discovered item is superseded when
+  // OpenAlex now returns the same work in EITHER section.
+  const isOtherOutput = (it: CvItem): boolean => {
+    if (!otherOutputIds.has(it.id)) return false;
+    const doi = it.csl?.DOI?.toLowerCase();
+    return !(doi && datasetConferenceDois.has(doi)); // drop ones already listed
+  };
   const pubItems = reindexItems(
     carryOverUserItems(
-      ordered.filter((it) => !preprintIds.has(it.id)),
+      ordered.filter((it) => !preprintIds.has(it.id) && !otherOutputIds.has(it.id)),
       previous,
       "publications",
       fetchedIds,
@@ -1246,6 +1415,9 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       fetchedIds,
       fetchedDois,
     ),
+  );
+  const otherItems = reindexItems(
+    carryOverUserItems(ordered.filter(isOtherOutput), previous, "other", fetchedIds, fetchedDois),
   );
 
   const publicationsSection = mergeSection(
@@ -1270,6 +1442,29 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
             visible: true,
             order: 1,
             items: preprintItems,
+          },
+          previous,
+        )
+      : null;
+
+  // "Other Research Outputs": ORCID-typed non-publication outputs (posters,
+  // talks/teaching, datasets, software, …) that would otherwise mis-file as
+  // preprints. A work-item section (CSL) like Publications/Preprints, so it
+  // renders consistently. Only built when non-empty. The title is the en-US
+  // DEFAULT for `other` ("Other") so the post-build localization pass
+  // (isDefaultSectionTitle → sectionTitle) re-localizes the heading per locale
+  // (fr "Autres", ja "その他", …) — a fixed "Other Research Outputs" string would
+  // be treated as a user rename and stay English on a non-English CV.
+  const otherOutputsSection: CvSection | null =
+    otherItems.length > 0
+      ? mergeSection(
+          {
+            id: "other",
+            type: "other",
+            title: sectionTitle("en-US", "other"),
+            visible: true,
+            order: DEFAULT_SECTION_ORDER.other,
+            items: otherItems,
           },
           previous,
         )
@@ -1347,19 +1542,8 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     indexFundersByAward(works),
   );
 
-  const datasetsSection = buildDatasetsSection(
-    args.dataciteOutputs ?? [],
-    args.openaireOutputs ?? [],
-    prevItems,
-    previousManualItems(previous, "datasets"),
-    now,
-  );
-  const conferenceSection = buildConferenceSection(
-    args.dblpConferencePapers ?? [],
-    prevItems,
-    previousManualItems(previous, "conference"),
-    now,
-  );
+  // (datasetsSection + conferenceSection are built earlier, before the works
+  // split, so their DOIs can suppress double-listed "other-output" works.)
   const clinicalTrialsSection = buildClinicalTrialsSection(
     args.clinicalTrials ?? [],
     prevItems,
@@ -1376,6 +1560,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const builtSections: CvSection[] = [
     publicationsSection,
     preprintsSection,
+    otherOutputsSection,
     conferenceSection ? mergeSection(conferenceSection, previous) : null,
     datasetsSection ? mergeSection(datasetsSection, previous) : null,
     positionsSection ? mergeSection(positionsSection, previous) : null,

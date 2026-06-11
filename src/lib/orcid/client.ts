@@ -313,6 +313,40 @@ export async function fetchOrcidWorkDois(orcid: string): Promise<string[]> {
   }
 }
 
+/**
+ * Map of the user's PUBLIC works keyed by **bare-lowercased DOI** → that work's
+ * self-asserted ORCID work `type` (e.g. "journal-article", "conference-poster",
+ * "data-set", "lecture-speech", "preprint"). ORCID's controlled work-type
+ * vocabulary is richer than OpenAlex's venue heuristics, so the build uses it
+ * (matched by DOI) to refine section placement — rescuing venue-less publications
+ * from Preprints and pulling posters / talks / datasets out of it. ORCID groups
+ * works by identifier; each `work-summary` carries its own `type` and DOIs. The
+ * first non-empty type wins on a DOI conflict. Identifier-only — never a name
+ * match. Fails soft → {} (no override → existing OpenAlex routing stands).
+ */
+export async function fetchOrcidWorkTypes(orcid: string): Promise<Record<string, string>> {
+  try {
+    const data = await orcidGet<any>(orcid, "works");
+    const out: Record<string, string> = {};
+    for (const group of toArray(data?.group)) {
+      for (const ws of toArray(group?.["work-summary"])) {
+        const type = nonEmpty(ws?.type)?.toLowerCase();
+        if (!type) continue;
+        // doisFromExternalIds already lower-cases; strip a scheme/doi.org prefix
+        // so the key matches the build's bare-lowercased csl.DOI (toCsl `bareDoi`).
+        for (const d of doisFromExternalIds(ws?.["external-ids"])) {
+          const bare = d.replace(/^https?:\/\/(dx\.)?doi\.org\//, "").replace(/^doi:\s*/, "");
+          if (bare && !out[bare]) out[bare] = type; // first non-empty wins
+        }
+      }
+    }
+    return out;
+  } catch (err) {
+    logger.warn("orcid.work_types_fetch_failed", { err });
+    return {};
+  }
+}
+
 /** Fetch the user's PUBLIC funding/grants from ORCID (fails soft → []). */
 export async function fetchOrcidFundings(orcid: string): Promise<OrcidFunding[]> {
   try {
