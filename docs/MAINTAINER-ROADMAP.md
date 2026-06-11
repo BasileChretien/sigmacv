@@ -64,11 +64,10 @@ academic trust networks, not ads.
 
 ### 1c. Retention loop (the missing product piece — code, queued)
 
-- The **re-sync digest email** ("your last sync found 2 new publications and
-  1 review candidate") is the single highest-leverage growth feature not yet
-  built. The data side now exists (`Cv.lastSyncReport`, shipped 2026-06).
-  🧑‍💻 Code task for a future session: opt-in email per user, monthly cron,
-  unsubscribe link, SMTP already configured for auth mail.
+- ✅ **Built 2026-06-11** (PR #118): the **re-sync digest email** — opt-in toggle,
+  monthly per-user cadence, one-click unsubscribe, 10 locales. 🙋 To turn it ON:
+  the free outbound-SMTP setup (SMTP2GO + Porkbun DNS) in [`EMAIL-SETUP.md`](EMAIL-SETUP.md)
+  — sigmacv.org has no SMTP today (Porkbun reroute is inbound-only).
 - 🔁 **Watch the funnel monthly** (Plausible + Metabase): visit → sign-in →
   sync complete → export/publish → return visit. The sign-in and publish-nudge
   events exist (PR #97). Decide one improvement per month from the worst step —
