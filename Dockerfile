@@ -78,6 +78,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/src/lib/citeproc/assets ./src/lib/citeproc/assets
+# playwright-core loads browsers.json via a dynamic require that Next's output
+# file tracer can drop; without it `require("playwright")` throws and every PDF
+# export 500s. next.config.ts pins it into the trace, but copy it explicitly
+# too so the PDF renderer never depends on tracer behavior.
+COPY --from=builder /app/node_modules/playwright-core/browsers.json ./node_modules/playwright-core/browsers.json
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
