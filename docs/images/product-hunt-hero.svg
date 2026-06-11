@@ -1,0 +1,109 @@
+<svg width="1270" height="760" viewBox="0 0 1270 760" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a5fe6"/>
+      <stop offset="1" stop-color="#1d3690"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#dce6ff" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#dce6ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="cardShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="18" stdDeviation="28" flood-color="#1a1d24" flood-opacity="0.12"/>
+    </filter>
+    <filter id="badgeShadow" x="-60%" y="-60%" width="220%" height="220%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#1d3690" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect width="1270" height="760" fill="#ffffff"/>
+  <circle cx="1080" cy="150" r="400" fill="url(#glow)"/>
+  <circle cx="40" cy="700" r="260" fill="#f3f6ff"/>
+  <rect x="0" y="752" width="1270" height="8" fill="url(#logoGrad)"/>
+
+  <!-- header: logomark + wordmark -->
+  <g>
+    <rect x="80" y="70" width="62" height="62" rx="17" fill="url(#logoGrad)"/>
+    <text x="111" y="114" font-size="38" font-weight="700" fill="#ffffff" text-anchor="middle">Σ</text>
+    <text x="158" y="113" font-size="31" font-weight="700">
+      <tspan fill="#1a1d24">Sigma</tspan><tspan fill="#2b4fd6">CV</tspan>
+    </text>
+  </g>
+
+  <!-- headline (highlighter drawn first, behind the text) -->
+  <rect x="76" y="352" width="352" height="30" rx="8" fill="#dbe4ff" opacity="0.85"/>
+  <text x="80" y="300" font-size="62" font-weight="800" fill="#1a1d24" letter-spacing="-1">Your academic CV,</text>
+  <text x="80" y="375" font-size="62" font-weight="800" fill="#2b4fd6" letter-spacing="-1">auto-built.</text>
+
+  <!-- subhead -->
+  <text x="82" y="440" font-size="22" fill="#4a505c">Publications, grants, datasets &amp; more —</text>
+  <text x="82" y="471" font-size="22" fill="#4a505c">pulled from <tspan font-weight="700" fill="#2d323c">12 open research sources.</tspan></text>
+
+  <!-- chips -->
+  <g font-size="18.5" font-weight="600">
+    <rect x="80" y="518" width="80" height="46" rx="23" fill="#eef3ff" stroke="#cfdcff"/>
+    <text x="120" y="547" fill="#2240b4" text-anchor="middle">Free</text>
+
+    <rect x="174" y="518" width="156" height="46" rx="23" fill="#eef3ff" stroke="#cfdcff"/>
+    <text x="252" y="547" fill="#2240b4" text-anchor="middle">Open-source</text>
+
+    <rect x="344" y="518" width="226" height="46" rx="23" fill="#eef3ff" stroke="#cfdcff"/>
+    <circle cx="372" cy="541" r="7" fill="#A6CE39"/>
+    <text x="388" y="547" fill="#2240b4">Sign in with ORCID</text>
+  </g>
+
+  <!-- footer url -->
+  <text x="82" y="700" font-size="23" font-weight="700" fill="#2b4fd6">sigmacv.org</text>
+
+  <!-- ====== product card ====== -->
+  <rect x="744" y="120" width="430" height="520" rx="24" fill="#eef3ff"/>
+  <g filter="url(#cardShadow)">
+    <rect x="704" y="150" width="430" height="500" rx="24" fill="#ffffff" stroke="#e8eaee"/>
+  </g>
+
+  <!-- card header -->
+  <circle cx="752" cy="202" r="23" fill="url(#logoGrad)"/>
+  <text x="752" y="209" font-size="17" font-weight="700" fill="#ffffff" text-anchor="middle">JR</text>
+  <text x="788" y="197" font-size="21" font-weight="700" fill="#1a1d24">Dr. Jordan A. Rivera</text>
+  <text x="788" y="221" font-size="14" fill="#646b78">Neuroscience · Academic CV</text>
+  <line x1="734" y1="248" x2="1104" y2="248" stroke="#eef0f3" stroke-width="1.5"/>
+  <text x="734" y="284" font-size="13" font-weight="700" fill="#2b4fd6" letter-spacing="1.6">PUBLICATIONS</text>
+
+  <!-- publication entries -->
+  <g>
+    <!-- 1 -->
+    <text x="734" y="312" font-size="14.5" font-weight="600" fill="#2d323c">Cortical dynamics of memory consolidation</text>
+    <rect x="734" y="322" width="92" height="20" rx="6" fill="#dce6ff"/>
+    <text x="740" y="337" font-size="12.5" font-weight="700" fill="#2240b4">Rivera J.A.</text>
+    <text x="834" y="337" font-size="12.5" fill="#646b78">Chen L., Okafor M. · 2025</text>
+    <!-- 2 -->
+    <text x="734" y="382" font-size="14.5" font-weight="600" fill="#2d323c">A field-normalized index for research impact</text>
+    <rect x="734" y="392" width="92" height="20" rx="6" fill="#dce6ff"/>
+    <text x="740" y="407" font-size="12.5" font-weight="700" fill="#2240b4">Rivera J.A.</text>
+    <text x="834" y="407" font-size="12.5" fill="#646b78">Müller S., Tan W. · 2024</text>
+    <!-- 3 -->
+    <text x="734" y="452" font-size="14.5" font-weight="600" fill="#2d323c">Open metadata &amp; research assessment reform</text>
+    <rect x="734" y="462" width="92" height="20" rx="6" fill="#dce6ff"/>
+    <text x="740" y="477" font-size="12.5" font-weight="700" fill="#2240b4">Rivera J.A.</text>
+    <text x="834" y="477" font-size="12.5" fill="#646b78">Dubois A., Park J. · 2024</text>
+    <!-- 4 -->
+    <text x="734" y="522" font-size="14.5" font-weight="600" fill="#2d323c">Author disambiguation by identifier, at scale</text>
+    <rect x="734" y="532" width="92" height="20" rx="6" fill="#dce6ff"/>
+    <text x="740" y="547" font-size="12.5" font-weight="700" fill="#2240b4">Rivera J.A.</text>
+    <text x="834" y="547" font-size="12.5" fill="#646b78">Okafor M., Sato K. · 2023</text>
+  </g>
+
+  <line x1="734" y1="576" x2="1104" y2="576" stroke="#eef0f3" stroke-width="1.5"/>
+  <text x="734" y="606" font-size="13.5" font-weight="600" fill="#2b4fd6">+ 142 more, matched by your ORCID iD</text>
+
+  <!-- floating auto-synced badge -->
+  <g filter="url(#badgeShadow)">
+    <rect x="960" y="132" width="150" height="38" rx="19" fill="url(#logoGrad)"/>
+  </g>
+  <g transform="translate(986,151)" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round">
+    <path d="M 6 0 A 6 6 0 1 1 1.4 -5.9"/>
+    <path d="M 1.4 -5.9 l -0.4 4.2 l 4.1 -1.1 z" fill="#ffffff" stroke="none"/>
+  </g>
+  <text x="1004" y="156" font-size="13.5" font-weight="700" fill="#ffffff">Auto-synced</text>
+</svg>

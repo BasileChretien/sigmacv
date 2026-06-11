@@ -1,0 +1,80 @@
+<svg width="1270" height="760" viewBox="0 0 1270 760" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a5fe6"/><stop offset="1" stop-color="#1d3690"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#dce6ff" stop-opacity="0.7"/><stop offset="1" stop-color="#dce6ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="cardShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="14" stdDeviation="22" flood-color="#1a1d24" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+
+  <rect width="1270" height="760" fill="#ffffff"/>
+  <circle cx="1130" cy="130" r="340" fill="url(#glow)"/>
+  <rect x="0" y="752" width="1270" height="8" fill="url(#logoGrad)"/>
+
+  <rect x="80" y="64" width="56" height="56" rx="16" fill="url(#logoGrad)"/>
+  <text x="108" y="104" font-size="34" font-weight="700" fill="#ffffff" text-anchor="middle">Σ</text>
+  <text x="150" y="103" font-size="28" font-weight="700"><tspan fill="#1a1d24">Sigma</tspan><tspan fill="#2b4fd6">CV</tspan></text>
+
+  <text x="80" y="184" font-size="54" font-weight="800" fill="#1a1d24" letter-spacing="-1">Metrics <tspan fill="#2b4fd6">off by default.</tspan></text>
+  <text x="82" y="224" font-size="20" fill="#4a505c">Opt in only if you want them. When on, SigmaCV prefers field-normalized</text>
+  <text x="82" y="252" font-size="20" fill="#4a505c">indicators over raw counts — and never shows a journal Impact Factor.</text>
+
+  <!-- left: metrics panel card -->
+  <g filter="url(#cardShadow)">
+    <rect x="80" y="298" width="540" height="392" rx="18" fill="#ffffff" stroke="#e8eaee"/>
+  </g>
+  <text x="112" y="338" font-size="13" font-weight="700" fill="#2b4fd6" letter-spacing="1.2">METRICS (OPTIONAL — NONE BY DEFAULT)</text>
+
+  <!-- checked: FWCI -->
+  <rect x="112" y="360" width="22" height="22" rx="6" fill="#2b4fd6"/>
+  <path d="M 117 371 l 4 4 l 7 -8" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="146" y="378" font-size="17" font-weight="600" fill="#2d323c">Mean work FWCI</text>
+  <rect x="300" y="362" width="118" height="20" rx="6" fill="#eef3ff"/>
+  <text x="310" y="377" font-size="12" font-weight="600" fill="#2240b4">field-normalized</text>
+  <text x="588" y="378" font-size="16" fill="#646b78" text-anchor="end">1.4</text>
+
+  <!-- checked: RCR -->
+  <rect x="112" y="406" width="22" height="22" rx="6" fill="#2b4fd6"/>
+  <path d="M 117 417 l 4 4 l 7 -8" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="146" y="424" font-size="17" font-weight="600" fill="#2d323c">Mean RCR</text>
+  <rect x="246" y="408" width="118" height="20" rx="6" fill="#eef3ff"/>
+  <text x="256" y="423" font-size="12" font-weight="600" fill="#2240b4">field-normalized</text>
+  <text x="588" y="424" font-size="16" fill="#646b78" text-anchor="end">1.6</text>
+
+  <!-- unchecked rows -->
+  <g>
+    <rect x="112" y="452" width="22" height="22" rx="6" fill="#ffffff" stroke="#cfd6e2" stroke-width="1.6"/>
+    <text x="146" y="470" font-size="17" fill="#4a505c">h-index</text><text x="588" y="470" font-size="16" fill="#9aa1ad" text-anchor="end">14</text>
+    <rect x="112" y="498" width="22" height="22" rx="6" fill="#ffffff" stroke="#cfd6e2" stroke-width="1.6"/>
+    <text x="146" y="516" font-size="17" fill="#4a505c">i10-index</text><text x="588" y="516" font-size="16" fill="#9aa1ad" text-anchor="end">18</text>
+    <rect x="112" y="544" width="22" height="22" rx="6" fill="#ffffff" stroke="#cfd6e2" stroke-width="1.6"/>
+    <text x="146" y="562" font-size="17" fill="#4a505c">Works</text><text x="588" y="562" font-size="16" fill="#9aa1ad" text-anchor="end">116</text>
+    <rect x="112" y="590" width="22" height="22" rx="6" fill="#ffffff" stroke="#cfd6e2" stroke-width="1.6"/>
+    <text x="146" y="608" font-size="17" fill="#4a505c">Citations</text><text x="588" y="608" font-size="16" fill="#9aa1ad" text-anchor="end">1,487</text>
+  </g>
+  <rect x="112" y="640" width="232" height="34" rx="17" fill="#ffffff" stroke="#b9ccff"/>
+  <text x="228" y="662" font-size="14" font-weight="600" fill="#2240b4" text-anchor="middle">Responsible-metrics preset</text>
+
+  <!-- right: principles -->
+  <g>
+    <circle cx="676" cy="372" r="17" fill="#e6f4ec"/>
+    <path d="M 669 372 l 5 5 l 9 -10" fill="none" stroke="#1a7f4b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="708" y="379" font-size="19" font-weight="600" fill="#2d323c">Off by default — fully opt-in</text>
+
+    <circle cx="676" cy="434" r="17" fill="#e6f4ec"/>
+    <path d="M 669 434 l 5 5 l 9 -10" fill="none" stroke="#1a7f4b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="708" y="441" font-size="19" font-weight="600" fill="#2d323c">Field-normalized (FWCI, RCR), not raw counts</text>
+
+    <circle cx="676" cy="496" r="17" fill="#fcebe9"/>
+    <path d="M 670 490 l 12 12 M 682 490 l -12 12" fill="none" stroke="#c0362c" stroke-width="2.6" stroke-linecap="round"/>
+    <text x="708" y="503" font-size="19" font-weight="600" fill="#2d323c">Never a journal Impact Factor</text>
+  </g>
+  <rect x="660" y="552" width="430" height="46" rx="23" fill="#eef3ff"/>
+  <text x="684" y="581" font-size="16" font-weight="600" fill="#2240b4">Aligned with DORA &amp; the Leiden Manifesto</text>
+
+  <text x="80" y="712" font-size="22" font-weight="700" fill="#2b4fd6">sigmacv.org</text>
+</svg>
