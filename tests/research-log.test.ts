@@ -14,7 +14,7 @@ vi.mock("@/lib/db", () => ({
 
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { setItemIncluded, setItemNotMine, updateDisplay } from "@/lib/canonical/curate";
-import { logCvSave } from "@/lib/research/log";
+import { logCvSave, RESEARCH_CONSENT_VERSION } from "@/lib/research/log";
 import { isResearchLoggingEnabled } from "@/lib/research/enabled";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -73,8 +73,25 @@ describe("logCvSave", () => {
     expect(mocks.findUnique).not.toHaveBeenCalled();
   });
 
+  it("writes nothing when the stored consent version is stale (re-consent required)", async () => {
+    // Opted in, but under an OLDER consent version than the current one. Bumping
+    // RESEARCH_CONSENT_VERSION (documented re-enable step) must force re-consent:
+    // stale consent does NOT authorise logging under the new terms.
+    mocks.findUnique.mockResolvedValue({
+      researchConsent: true,
+      researchConsentVersion: RESEARCH_CONSENT_VERSION - 1,
+    });
+    const prev = base();
+    const next = setItemIncluded(prev, "publications", "W4300000001", false);
+    await logCvSave("u1", prev, next);
+    expect(mocks.createMany).not.toHaveBeenCalled();
+  });
+
   it("logs a hide as curation_correction + a composition snapshot (with consent)", async () => {
-    mocks.findUnique.mockResolvedValue({ researchConsent: true });
+    mocks.findUnique.mockResolvedValue({
+      researchConsent: true,
+      researchConsentVersion: RESEARCH_CONSENT_VERSION,
+    });
     const prev = base();
     const next = setItemIncluded(prev, "publications", "W4300000001", false);
     await logCvSave("u1", prev, next);
@@ -86,7 +103,10 @@ describe("logCvSave", () => {
   });
 
   it("logs a 'not mine' flip as a distinct disambiguation_assertion", async () => {
-    mocks.findUnique.mockResolvedValue({ researchConsent: true });
+    mocks.findUnique.mockResolvedValue({
+      researchConsent: true,
+      researchConsentVersion: RESEARCH_CONSENT_VERSION,
+    });
     const prev = base();
     const next = setItemNotMine(prev, "publications", "W4300000003", true, {
       now: "2026-06-02T00:00:00.000Z",
@@ -97,7 +117,10 @@ describe("logCvSave", () => {
   });
 
   it("logs a 'keep both' dismissal as a data-minimized duplicate_dismissal", async () => {
-    mocks.findUnique.mockResolvedValue({ researchConsent: true });
+    mocks.findUnique.mockResolvedValue({
+      researchConsent: true,
+      researchConsentVersion: RESEARCH_CONSENT_VERSION,
+    });
     const prev = base();
     const next = updateDisplay(prev, { dismissedDuplicates: ["a|b", "c|d"] });
     await logCvSave("u1", prev, next);
@@ -112,7 +135,10 @@ describe("logCvSave", () => {
   });
 
   it("never throws even if the DB write fails", async () => {
-    mocks.findUnique.mockResolvedValue({ researchConsent: true });
+    mocks.findUnique.mockResolvedValue({
+      researchConsent: true,
+      researchConsentVersion: RESEARCH_CONSENT_VERSION,
+    });
     mocks.createMany.mockRejectedValue(new Error("db down"));
     vi.spyOn(console, "error").mockImplementation(() => {});
     await expect(logCvSave("u1", base(), base())).resolves.toBeUndefined();

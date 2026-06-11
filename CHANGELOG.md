@@ -33,6 +33,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   links on a published CV no longer pass link equity (spam-CV SEO hardening);
   identifier-derived links (DOI, ORCID, ROR) are unchanged.
 
+### Fixed
+
+- **Research consent re-consent is now enforced** — the consent gate that guards
+  ALL research logging (off in production) now requires the user's stored
+  `researchConsentVersion` to match the current `RESEARCH_CONSENT_VERSION`, not
+  just a `true` flag. Previously, bumping the version (the documented step when
+  re-enabling logging under a new IRB protocol) would NOT have forced re-consent:
+  a user who agreed under the old terms would have been logged under the new ones.
+  Stale consent no longer authorises logging (GDPR/APPI; IRB audit trail).
+- **Atomic persistent rate limiter** — the Postgres-backed limiter
+  (`RATE_LIMIT_PERSIST=true`) now opens each fixed window with a single atomic
+  `INSERT … ON CONFLICT DO UPDATE` instead of a read-then-write. The previous
+  read (`findUnique`) then write (`upsert`) had a TOCTOU gap where two concurrent
+  first-requests could both observe "no row" and both open the window at count 1,
+  letting one extra request past the cap at each window boundary. The in-memory
+  limiter (single-instance default) was already race-free.
+
 ### Added
 
 - **Product Hunt launch kit** — a ready-to-use kit for launching SigmaCV on Product

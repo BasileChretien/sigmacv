@@ -28,9 +28,12 @@ export const RESEARCH_CONSENT_VERSION = 1;
 async function hasConsent(userId: string): Promise<boolean> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { researchConsent: true },
+    select: { researchConsent: true, researchConsentVersion: true },
   });
-  return user?.researchConsent === true;
+  // Consent must be CURRENT: a bumped RESEARCH_CONSENT_VERSION (the documented
+  // re-enable step) invalidates consent given under the old terms, so the user
+  // re-consents before logging resumes. Stale consent never authorises logging.
+  return user?.researchConsent === true && user.researchConsentVersion === RESEARCH_CONSENT_VERSION;
 }
 
 /**

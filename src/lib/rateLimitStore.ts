@@ -18,54 +18,42 @@ import { prisma } from "@/lib/db";
 import { logger } from "@/lib/log";
 import { rateLimit, type RateLimitResult } from "@/lib/rateLimit";
 
-/** Persistent fixed-window limiter. Read-modify-write inside one transaction so
- *  concurrent requests for the same key can't both slip past the cap. */
+/** Persistent fixed-window limiter. A single atomic `INSERT … ON CONFLICT DO
+ *  UPDATE` so concurrent requests for the same key can't both slip past the cap.
+ *
+ *  A read-then-write (findUnique then upsert) has a TOCTOU gap: two requests can
+ *  both read "no row" (or a stale window) and both open a fresh window at
+ *  `count = 1`, letting both through. Folding the read and the conditional write
+ *  into ONE statement closes that gap — `ON CONFLICT` takes a row lock and the
+ *  CASE re-evaluates against the freshly-committed row, so a stale/elapsed
+ *  window resets to 1 while an active one counts up. The request is allowed iff
+ *  the resulting count is within the cap (an over-cap request still increments,
+ *  but `resetAt` is pinned so it only ever reports "limited"). */
 async function prismaRateLimit(
   key: string,
   max: number,
   windowMs: number,
   now: number,
 ): Promise<RateLimitResult> {
-  return prisma.$transaction(async (tx) => {
-    const row = await tx.rateLimitWindow.findUnique({ where: { key } });
-
-    // Fresh window: no row yet, or the previous window has elapsed.
-    if (!row || now >= row.resetAt.getTime()) {
-      const resetAt = new Date(now + windowMs);
-      await tx.rateLimitWindow.upsert({
-        where: { key },
-        create: { key, count: 1, resetAt },
-        update: { count: 1, resetAt },
-      });
-      return { ok: true, retryAfterSec: 0 };
-    }
-
-    if (row.count >= max) {
-      return {
-        ok: false,
-        retryAfterSec: Math.ceil((row.resetAt.getTime() - now) / 1000),
-      };
-    }
-
-    // Atomic check-and-increment: the cap is enforced INSIDE the UPDATE's WHERE
-    // (`count < max`), and `resetAt` pins the window we read. The row lock the
-    // UPDATE takes serializes concurrent requests for the same key, and READ
-    // COMMITTED re-evaluates the WHERE against the freshly-committed row — so two
-    // requests can't both slip past the cap (the lost update a separate
-    // read-then-write would allow). 0 rows updated means a concurrent request
-    // just took the last slot → treat this one as limited.
-    const res = await tx.rateLimitWindow.updateMany({
-      where: { key, count: { lt: max }, resetAt: row.resetAt },
-      data: { count: { increment: 1 } },
-    });
-    if (res.count === 0) {
-      return {
-        ok: false,
-        retryAfterSec: Math.ceil((row.resetAt.getTime() - now) / 1000),
-      };
-    }
-    return { ok: true, retryAfterSec: 0 };
-  });
+  const nowDate = new Date(now);
+  const resetAt = new Date(now + windowMs);
+  const rows = await prisma.$queryRaw<{ count: number; resetAt: Date }[]>`
+    INSERT INTO "RateLimitWindow" ("key", "count", "resetAt")
+    VALUES (${key}, 1, ${resetAt})
+    ON CONFLICT ("key") DO UPDATE SET
+      "count" = CASE
+        WHEN "RateLimitWindow"."resetAt" <= ${nowDate} THEN 1
+        ELSE "RateLimitWindow"."count" + 1
+      END,
+      "resetAt" = CASE
+        WHEN "RateLimitWindow"."resetAt" <= ${nowDate} THEN ${resetAt}
+        ELSE "RateLimitWindow"."resetAt"
+      END
+    RETURNING "count", "resetAt"
+  `;
+  const row = rows[0]!;
+  if (row.count <= max) return { ok: true, retryAfterSec: 0 };
+  return { ok: false, retryAfterSec: Math.ceil((row.resetAt.getTime() - now) / 1000) };
 }
 
 /** True when persistent (cross-instance) rate limiting is requested. */
