@@ -149,6 +149,32 @@ describe("serializePublicCv", () => {
     expect(parsed.owner.orcid).toBe("0000-0002-7483-2489");
   });
 
+  it("json → strips the embedded photo and the custom-style XML blob", () => {
+    // The shared projection keeps owner.photo + display.customStyle because the
+    // public HTML page renders from the same object; the machine .json must not
+    // carry the ~1 MB headshot or the (up to 600 KB) CSL XML payload.
+    const projected = publicCv();
+    const withExtras: CanonicalCv = {
+      ...projected,
+      owner: { ...projected.owner, photo: "data:image/png;base64,iVBORw0KGgo=" },
+      display: {
+        ...projected.display,
+        cslStyle: "custom-x",
+        customStyle: { id: "custom-x", title: "My Style", xml: "<style>SECRET-XML</style>" },
+      },
+    };
+    const parsed = JSON.parse(serializePublicCv(withExtras, "json", "s").body) as CanonicalCv;
+    expect(parsed.owner.photo).toBeUndefined();
+    expect(parsed.display.customStyle).toBeUndefined();
+    // The raw XML blob must be absent from the serialized body entirely.
+    expect(serializePublicCv(withExtras, "json", "s").body).not.toContain("SECRET-XML");
+    // Non-stripped display fields survive (the style id is still useful provenance).
+    expect(parsed.display.cslStyle).toBe("custom-x");
+    // Input untouched (immutable serializer).
+    expect(withExtras.owner.photo).toBe("data:image/png;base64,iVBORw0KGgo=");
+    expect(withExtras.display.customStyle?.xml).toBe("<style>SECRET-XML</style>");
+  });
+
   it("csljson → a JSON array of CSL items", () => {
     const out = serializePublicCv(publicCv(), "csljson", "s");
     expect(out.contentType).toContain("application/vnd.citationstyles.csl+json");

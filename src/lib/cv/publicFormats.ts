@@ -150,6 +150,19 @@ export interface SerializedPublicCv {
 }
 
 /**
+ * Drop the two fields the SHARED public projection has to retain for the HTML
+ * page (owner.photo, display.customStyle) but which must not ship in the raw
+ * `.json` machine download. Pure + immutable — returns a shallow copy.
+ */
+function stripJsonOnlyFields(cv: CanonicalCv): CanonicalCv {
+  return {
+    ...cv,
+    owner: { ...cv.owner, photo: undefined },
+    display: { ...cv.display, customStyle: undefined },
+  };
+}
+
+/**
  * Serialize an already-public-projected CV to a machine format. `slug` is only
  * needed by the JSON-LD URL. Pure — no IO. The `html` format is served by the
  * page route directly, so it is not produced here (callers handle html first).
@@ -165,7 +178,15 @@ export function serializePublicCv(
       return { ...meta, body: profilePageJsonLd(cv, slug) };
     case "json":
       // The open canonical object itself (already projected — no personal data).
-      return { ...meta, body: JSON.stringify(cv) };
+      // Two fields the SHARED projection must keep because the public HTML page
+      // renders from the same object, but a machine consumer has no use for and
+      // which don't belong in a downloadable file, are dropped here:
+      //  - owner.photo: a ~1 MB embedded base64 headshot. It is only visible on
+      //    the HTML page when a photo template is chosen; the raw blob should not
+      //    ship unconditionally in the .json (data minimization — GDPR/APPI).
+      //  - display.customStyle: the resolved CSL XML payload (up to 600 KB) is a
+      //    rendering implementation detail, not CV content.
+      return { ...meta, body: JSON.stringify(stripJsonOnlyFields(cv)) };
     case "csljson":
       return { ...meta, body: JSON.stringify(publicCslItems(cv)) };
     case "bibtex":

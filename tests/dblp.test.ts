@@ -87,6 +87,38 @@ describe("fetchDblpConferencePapers", () => {
     ]);
   });
 
+  it("rejects a malformed PID (query/fragment/traversal) without fetching the profile", async () => {
+    // A hostile/garbled SPARQL value carrying a query string would, if passed
+    // verbatim into `https://dblp.org/pid/${pid}.xml`, re-point the outbound
+    // request. The PID allow-list must reject it so no profile fetch happens.
+    const fetchSpy = vi.fn((url: unknown) => {
+      // Route on the parsed host (not a substring match) so the mock dispatch
+      // itself is unambiguous — a SPARQL request gets the binding, anything else
+      // (a profile fetch) gets an empty 200.
+      const host = new URL(String(url)).hostname;
+      if (host === "sparql.dblp.org") {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              results: {
+                bindings: [
+                  { author: { type: "uri", value: "https://dblp.org/pid/00/1?x=../../internal" } },
+                ],
+              },
+            }),
+            { status: 200 },
+          ),
+        );
+      }
+      return Promise.resolve(new Response("", { status: 200 }));
+    });
+    vi.stubGlobal("fetch", fetchSpy);
+    expect(await fetchDblpConferencePapers(ORCID)).toEqual([]);
+    // Only the SPARQL call was made; the /pid/ profile fetch was never attempted.
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(new URL(String(fetchSpy.mock.calls[0]![0])).hostname).toBe("sparql.dblp.org");
+  });
+
   it("fails soft when the profile fetch throws", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.stubGlobal(

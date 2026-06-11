@@ -64,7 +64,28 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
       ...s,
       items: s.items
         .filter((it) => !isHidden(it) && !exSet?.has(it.id))
-        .map((it) => ({ ...it, notMineReason: undefined, notMineAssertedAt: undefined })),
+        .map((it) => ({
+          ...it,
+          notMineReason: undefined,
+          notMineAssertedAt: undefined,
+          // Internal disambiguation/research signals — advisory hints surfaced
+          // only in the editor, never on any public render — must not leak into
+          // the machine downloads either (same reasoning as notMineReason above):
+          //  - reviewFlag/duplicateOf: "this work may be mis-attributed / a dup",
+          //  - matchBasis/claimed: HOW the work was matched ("claimed" = the user
+          //    asserted ownership with no identifier match).
+          // Publishing these on a public CV would expose authorship-attribution
+          // doubt the owner never chose to share. The other meta fields
+          // (authorRole, peerReviewed, institution, …) ARE used by the renderers,
+          // so strip surgically rather than dropping the whole meta object.
+          meta: {
+            ...it.meta,
+            reviewFlag: undefined,
+            duplicateOf: undefined,
+            matchBasis: undefined,
+            claimed: undefined,
+          },
+        })),
     };
   });
 
@@ -85,7 +106,10 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
     // Saved editor presets (named layout intents + display snapshots, possibly a
     // custom CSL XML blob) are an internal editor concept — never publish them.
     presets: [],
-    // The per-view exclude-id list itself need not ship in the public json.
-    display: { ...cv.display, excludedItems: undefined },
+    // Internal editor bookkeeping that has no place in the public json:
+    //  - excludedItems: the per-view exclude-id deny-list (already applied above),
+    //  - dismissedDuplicates: the pairs the owner marked "not a duplicate" — a
+    //    record of internal curation decisions, never public-facing.
+    display: { ...cv.display, excludedItems: undefined, dismissedDuplicates: undefined },
   };
 }
