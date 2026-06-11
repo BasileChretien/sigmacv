@@ -86,7 +86,10 @@ Generate the secrets, piping each through `| tr -d '\n'` so it stays on one line
 - `PLAUSIBLE_TOTP_VAULT_KEY` = `openssl rand -base64 32` — **REQUIRED**: Plausible
   v3 refuses to boot if it's blank, and it must be Base64-encoded 32 bytes (**not**
   hex), or you'll get `TOTP_VAULT_KEY must be Base64 encoded 32 bytes`.
-- `METABASE_DB_PASSWORD` / `PLAUSIBLE_DB_PASSWORD` = `openssl rand -base64 24`
+- `METABASE_DB_PASSWORD` / `PLAUSIBLE_DB_PASSWORD` = `openssl rand -hex 24` —
+  **hex, not base64**: `PLAUSIBLE_DB_PASSWORD` is embedded in a `postgres://`
+  URL, where base64's `+`/`/`/`=` break authentication (Plausible crash-loops
+  with `invalid_password`).
 
 Set `NEXT_PUBLIC_PLAUSIBLE_DOMAIN=sigmacv.org` and
 `NEXT_PUBLIC_PLAUSIBLE_SRC=https://plausible.sigmacv.org/js/script.js`.
