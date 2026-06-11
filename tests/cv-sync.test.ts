@@ -39,6 +39,7 @@ const mocks = vi.hoisted(() => ({
   fetchIctrp: vi.fn(),
   fetchEpo: vi.fn(),
   discoverOrcid: vi.fn(),
+  fetchOrcidWorkTypes: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -69,6 +70,7 @@ vi.mock("@/lib/orcid/client", () => ({
   fetchOrcidDistinctions: vi.fn(async () => []),
   fetchOrcidService: vi.fn(async () => []),
   fetchOrcidPeerReviews: mocks.fetchPeerReviews,
+  fetchOrcidWorkTypes: mocks.fetchOrcidWorkTypes,
 }));
 vi.mock("@/lib/datacite/client", () => ({ fetchDataciteOutputs: vi.fn(async () => []) }));
 // New external-source clients have their own tests; stub them here so this
@@ -158,6 +160,7 @@ beforeEach(() => {
   mocks.fetchIctrp.mockResolvedValue([]);
   mocks.fetchEpo.mockResolvedValue([]);
   mocks.discoverOrcid.mockResolvedValue([]);
+  mocks.fetchOrcidWorkTypes.mockResolvedValue({});
 });
 
 describe("getCvForUser", () => {
@@ -249,6 +252,36 @@ describe("syncCvForUser", () => {
     const cand = pubs?.items.find((i) => i.id === "W9000001");
     expect(cand?.included).toBe(false);
     expect(cand?.meta.reviewFlag).toBe("orcid-doi");
+  });
+
+  it("threads ORCID work types into the build to route a poster out of Preprints", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    // A venue-less work (isPreprint → true) the user lists; ORCID types it a poster.
+    mocks.fetchWorks.mockResolvedValue([
+      {
+        id: "https://openalex.org/WPOSTER",
+        doi: "https://doi.org/10.7/poster",
+        title: "A conference poster",
+        display_name: "A conference poster",
+        publication_year: 2024,
+        type: "article",
+        authorships: [
+          {
+            author_position: "first",
+            author: { id: "https://openalex.org/A5001069481", display_name: "Basile Chrétien" },
+            raw_author_name: "Basile Chrétien",
+          },
+        ],
+        primary_location: null,
+      },
+    ]);
+    mocks.fetchOrcidWorkTypes.mockResolvedValue({ "10.7/poster": "conference-poster" });
+    const cv = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.fetchOrcidWorkTypes).toHaveBeenCalledWith(RESOLVED.orcid);
+    const other = cv.sections.find((s) => s.type === "other");
+    expect(other?.items.find((i) => i.id === "WPOSTER")?.meta.peerReviewed).toBe(false);
+    expect(cv.sections.find((s) => s.type === "preprints")).toBeUndefined();
   });
 
   it("builds an empty CV when the ORCID resolves to no OpenAlex author", async () => {

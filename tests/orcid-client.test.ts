@@ -408,3 +408,103 @@ describe("fetchOrcidWorkDois", () => {
     expect(await fetchOrcidWorkDois("0000-0002-7483-2489")).toEqual([]);
   });
 });
+
+const WORK_TYPES = {
+  group: [
+    {
+      "work-summary": [
+        {
+          // journal-article on a bare DOI (lower-cased), plus a non-DOI id ignored.
+          "put-code": 1,
+          type: "journal-article",
+          "external-ids": {
+            "external-id": [
+              { "external-id-type": "doi", "external-id-value": "10.1000/Aaa" },
+              { "external-id-type": "eid", "external-id-value": "2-s2.0-1" },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      // A poster typed via a DOI carried as a doi.org URL → scheme stripped.
+      "work-summary": [
+        {
+          "put-code": 2,
+          type: "conference-poster",
+          "external-ids": {
+            "external-id": [
+              { "external-id-type": "doi", "external-id-value": "https://doi.org/10.2000/BbB" },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      // Missing type → skipped (no entry for its DOI).
+      "work-summary": [
+        {
+          "put-code": 3,
+          "external-ids": {
+            "external-id": [{ "external-id-type": "doi", "external-id-value": "10.3000/ccc" }],
+          },
+        },
+      ],
+    },
+    {
+      // Two summaries assert different types for the SAME DOI → first wins.
+      "work-summary": [
+        {
+          "put-code": 4,
+          type: "data-set",
+          "external-ids": {
+            "external-id": [{ "external-id-type": "doi", "external-id-value": "10.4000/dup" }],
+          },
+        },
+        {
+          "put-code": 5,
+          type: "software",
+          "external-ids": {
+            "external-id": [{ "external-id-type": "doi", "external-id-value": "10.4000/dup" }],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+describe("fetchOrcidWorkTypes", () => {
+  function routeWorks(works: Response) {
+    return vi.fn(async (url: URL | string) => {
+      const u = url.toString();
+      if (u.includes("/oauth/token")) return res(TOKEN_BODY);
+      if (u.includes("/works")) return works;
+      return res({});
+    });
+  }
+
+  it("maps bare-lowercased DOI → ORCID work type (URL scheme stripped, first wins)", async () => {
+    vi.stubGlobal("fetch", routeWorks(res(WORK_TYPES)));
+    const { fetchOrcidWorkTypes } = await freshClient();
+    const types = await fetchOrcidWorkTypes("0000-0002-7483-2489");
+    expect(types).toEqual({
+      "10.1000/aaa": "journal-article",
+      "10.2000/bbb": "conference-poster",
+      "10.4000/dup": "data-set", // first non-empty summary wins on conflict
+    });
+    // The missing-type DOI contributes nothing.
+    expect(types["10.3000/ccc"]).toBeUndefined();
+  });
+
+  it("returns {} when the works API errors (fails soft)", async () => {
+    vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
+    const { fetchOrcidWorkTypes } = await freshClient();
+    expect(await fetchOrcidWorkTypes("0000-0002-7483-2489")).toEqual({});
+  });
+
+  it("returns {} on malformed JSON (no group array)", async () => {
+    vi.stubGlobal("fetch", routeWorks(res({ unexpected: true })));
+    const { fetchOrcidWorkTypes } = await freshClient();
+    expect(await fetchOrcidWorkTypes("0000-0002-7483-2489")).toEqual({});
+  });
+});
