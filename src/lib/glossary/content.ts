@@ -655,7 +655,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       term: "NIH biosketch",
       short:
         "NIH 个人简介（NIH biosketch）是美国国立卫生研究院（NIH）在基金申请中要求提交的简短、结构化简历，重点突出您对科学的贡献及精选发表成果。",
-      title: "什么是 NIH 个人简介（NIH biosketch）？",
+      title: "什么是 NIH 个人简介？",
       description:
         "NIH 个人简介（NIH biosketch）是 NIH 基金申请中要求的简短、结构化简历。以下介绍其包含内容、与完整学术简历的区别，以及如何准备。",
       blocks: [
@@ -795,7 +795,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
     "leiden-manifesto": {
       term: "Leiden Manifesto",
       short: "《莱顿宣言》是一套关于负责任地使用定量科研指标的十项原则，旨在辅助而非替代专家判断。",
-      title: "什么是 Leiden Manifesto？",
+      title: "什么是《莱顿宣言》？",
       description:
         "《莱顿宣言》提出了负责任使用科研指标的十项原则。以下介绍它是什么及其与简历评估的关系。",
       blocks: [
@@ -863,7 +863,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Usted inicia sesión en SigmaCV con su ORCID iD. SigmaCV lee su registro público de ORCID, resuelve su perfil de autor en OpenAlex y compila su CV —identificando su trabajo por identificador, nunca por nombre—. Solo lee metadatos públicos y nunca escribe nada en ORCID.",
+          text: "Usted inicia sesión en SigmaCV con su ORCID iD. SigmaCV lee su registro público de ORCID, resuelve su perfil de autor en OpenAlex y compila su currículum —identificando su trabajo por identificador, nunca por nombre—. Solo lee metadatos públicos y nunca escribe nada en ORCID.",
         },
         {
           type: "cta",
@@ -1085,7 +1085,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Un biosketch es mucho más breve y narrativo que un currículum académico completo, y sigue el formato específico del NIH. El enfoque práctico es mantener un CV completo y derivar el biosketch de él para cada solicitud.",
+          text: "Un biosketch es mucho más breve y narrativo que un currículum académico completo, y sigue el formato específico del NIH. El enfoque práctico es mantener un currículum completo y derivar el biosketch de él para cada solicitud.",
         },
         {
           type: "h2",
@@ -1275,7 +1275,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Vous vous connectez à SigmaCV avec votre ORCID iD. SigmaCV lit votre profil ORCID public, résout votre profil auteur OpenAlex et assemble votre CV — en associant vos travaux par identifiant, jamais par nom. Il ne lit que les métadonnées publiques et n'écrit jamais rien dans ORCID.",
+          text: "Vous vous connectez à SigmaCV avec votre ORCID iD. SigmaCV lit votre profil ORCID public, identifie votre profil d'auteur OpenAlex et assemble votre CV — en associant vos travaux par identifiant, jamais par nom. Il ne lit que les métadonnées publiques et n'écrit jamais rien dans ORCID.",
         },
         {
           type: "cta",
@@ -1322,7 +1322,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "SigmaCV résout votre identifiant auteur OpenAlex à partir de votre ORCID iD, importe vos travaux et — uniquement si vous y consentez — calcule des indicateurs normalisés par le champ à partir des données OpenAlex, désactivés par défaut et alignés avec DORA.",
+          text: "SigmaCV identifie votre identifiant d'auteur OpenAlex à partir de votre ORCID iD, importe vos travaux et — uniquement si vous y consentez — calcule des indicateurs normalisés par le champ à partir des données OpenAlex, désactivés par défaut et alignés avec DORA.",
         },
         {
           type: "cta",
@@ -1764,7 +1764,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Feldnormierung ist wichtig, weil die Zitierungsraten zwischen Fachgebieten enorm variieren – ein vielzitiertes Mathematikpapier und ein vielzitiertes biomedizinisches Papier haben sehr unterschiedliche rohe Zählwerte. Der FWCI bringt sie auf eine vergleichbare Skala.",
+          text: "Feldnormierung ist wichtig, weil die Zitierungsraten zwischen Fachgebieten enorm variieren – ein vielzitiertes Mathematikartikel und ein vielzitiertes biomedizinischer Artikel haben sehr unterschiedliche rohe Zählwerte. Der FWCI bringt sie auf eine vergleichbare Skala.",
         },
         {
           type: "h2",
@@ -1803,7 +1803,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         "Der h-Index ist die größte Zahl h, für die Sie h Publikationen haben, die jeweils mindestens h-mal zitiert wurden.",
       title: "Was ist der h-Index?",
       description:
-        "Der h-Index ist eine Metrik auf Forscher-Ebene, die Output und Zitierungen kombiniert – aber er hat echte Grenzen. Hier erfahren Sie, was er misst und wie Sie ihn im Lebenslauf behandeln sollten.",
+        "Der h-Index ist eine Metrik auf Forscherebene, die Output und Zitierungen kombiniert – aber er hat echte Grenzen. Hier erfahren Sie, was er misst und wie Sie ihn im Lebenslauf behandeln sollten.",
       blocks: [
         {
           type: "p",
@@ -1897,7 +1897,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       blocks: [
         {
           type: "p",
-          text: "Ein NIH Biosketch ist ein kurzer, strukturierter Lebenslauf, den das US-amerikanische National Institutes of Health (NIH) in Förderanträgen verlangt. Er ist in der Regel auf fünf Seiten begrenzt und hat festgelegte Abschnitte: Ausbildung und Training, Positionen und Ehrungen, eine optionale persönliche Stellungnahme und einen Abschnitt „Contributions to Science“, der einige Beiträge hervorhebt, jeweils mit bis zu vier unterstützenden Publikationen.",
+          text: "Ein NIH Biosketch ist ein kurzer, strukturierter Lebenslauf, den das US-amerikanische National Institutes of Health (NIH) in Förderanträgen verlangt. Er ist in der Regel auf fünf Seiten begrenzt und hat festgelegte Abschnitte: Ausbildung, Positionen und Ehrungen, eine optionale persönliche Stellungnahme und einen Abschnitt „Contributions to Science“, der einige Beiträge hervorhebt, jeweils mit bis zu vier unterstützenden Publikationen.",
         },
         {
           type: "p",
@@ -1957,7 +1957,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Nehmen Sie Ihre Preprints auf, aber kennzeichnen Sie sie klar und halten Sie sie von begutachteten Artikeln getrennt – stellen Sie einen Preprint nicht als veröffentlichtes Papier dar, und vermeiden Sie es, dieselbe Arbeit zweimal aufzuführen (sowohl als Preprint als auch als Verlagsversion), ohne die Beziehung ausdrücklich zu machen.",
+          text: "Nehmen Sie Ihre Preprints auf, aber kennzeichnen Sie sie klar und halten Sie sie von begutachteten Artikeln getrennt – stellen Sie einen Preprint nicht als veröffentlichter Artikel dar, und vermeiden Sie es, dieselbe Arbeit zweimal aufzuführen (sowohl als Preprint als auch als Verlagsversion), ohne die Beziehung ausdrücklich zu machen.",
         },
         {
           type: "h2",
@@ -3277,7 +3277,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Tra i suoi principi: la valutazione quantitativa deve supportare quella qualitativa e degli esperti; la performance deve essere misurata rispetto alla missione del gruppo; devono essere tenute in considerazione le differenze tra campi disciplinari; la raccolta dei dati e le analisi devono essere trasparenti; e si deve riconoscere che gli indicatori possono essere manipolati e hanno effetti sistemici.",
+          text: "Tra i suoi principi: la valutazione quantitativa deve supportare quella qualitativa e degli esperti; la performance deve essere misurata rispetto alla missione del gruppo di ricerca; devono essere tenute in considerazione le differenze tra campi disciplinari; la raccolta dei dati e le analisi devono essere trasparenti; e si deve riconoscere che gli indicatori possono essere manipolati e hanno effetti sistemici.",
         },
         {
           type: "h2",
@@ -4006,7 +4006,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Препринты ускоряют распространение результатов и устанавливают приоритет; они всё шире признаются законным научным выходом — однако, поскольку они не прошли рецензирование, их всегда следует идентифицировать как препринты.",
+          text: "Препринты ускоряют распространение результатов и устанавливают приоритет; они всё шире признаются полноценным научным результатом — однако, поскольку они не прошли рецензирование, их всегда следует идентифицировать как препринты.",
         },
         {
           type: "h2",
@@ -4053,7 +4053,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Вместо этого DORA призывает оценивать исследования по их собственным достоинствам, признавать разнообразие научных выходов и их воздействия, а также явно указывать на ограничения метрик.",
+          text: "Вместо этого DORA призывает оценивать исследования по их собственным достоинствам, признавать разнообразие научных результатов и их воздействия, а также явно указывать на ограничения метрик.",
         },
         {
           type: "h2",
@@ -4100,7 +4100,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Среди его принципов: количественная оценка должна поддерживать качественную, экспертную; измерять деятельность следует применительно к миссии группы; необходимо учитывать различия между областями; сбор и анализ данных должны быть прозрачными; следует признавать, что показатели поддаются манипуляции и оказывают системное воздействие.",
+          text: "Среди его принципов: количественная оценка должна поддерживать качественную, экспертную; оценивать эффективность в соответствии с миссией группы; необходимо учитывать различия между областями; сбор и анализ данных должны быть прозрачными; следует признавать, что показатели поддаются манипуляции и оказывают системное воздействие.",
         },
         {
           type: "h2",

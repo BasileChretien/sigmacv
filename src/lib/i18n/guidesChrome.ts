@@ -101,7 +101,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     glossaryIndexDescription:
       "アカデミックCVの背景にある主要な用語のわかりやすい解説——ORCID、OpenAlex、引用指標（FWCI、h-index）、Citation Style Language、NIH biosketchなど。",
     byline: "著者：",
-    minRead: "分で読めます",
+    minRead: "分",
     faqHeading: "よくある質問",
     relatedHeading: "関連",
     allGuides: "すべてのガイド",
@@ -146,7 +146,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     glossaryIndexDescription:
       "학술 CV의 핵심 용어에 대한 평이한 해설 — ORCID, OpenAlex, 인용 지표(FWCI, h-index), Citation Style Language, NIH biosketch 등.",
     byline: "작성자",
-    minRead: "분 읽기",
+    minRead: "분 소요",
     faqHeading: "자주 묻는 질문",
     relatedHeading: "관련 항목",
     allGuides: "전체 가이드",
