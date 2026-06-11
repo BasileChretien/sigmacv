@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ui } from "@/lib/i18n/ui";
+import { workspaceUi } from "@/lib/i18n/workspaceUi";
 
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -15,12 +16,20 @@ const FOCUSABLE =
  */
 interface AccountControlsProps {
   researchConsent: boolean;
+  /** Re-sync digest email opt-in (default false; toggled here). */
+  digestOptIn?: boolean;
   locale: string;
 }
 
-export default function AccountControls({ researchConsent, locale }: AccountControlsProps) {
+export default function AccountControls({
+  researchConsent,
+  digestOptIn = false,
+  locale,
+}: AccountControlsProps) {
   const u = ui(locale);
+  const wu = workspaceUi(locale);
   const [consenting, setConsenting] = useState(researchConsent);
+  const [digest, setDigest] = useState(digestOptIn);
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState("");
@@ -80,6 +89,22 @@ export default function AccountControls({ researchConsent, locale }: AccountCont
     }
   }
 
+  async function toggleDigest(optIn: boolean) {
+    setDigest(optIn); // optimistic
+    setError("");
+    try {
+      const res = await fetch("/api/account/digest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ optIn }),
+      });
+      if (!res.ok) throw new Error("digest update failed");
+    } catch {
+      setDigest(!optIn); // revert on failure, and say so
+      setError(wu.dgFailed);
+    }
+  }
+
   async function confirmDelete() {
     setBusy(true);
     setError("");
@@ -95,6 +120,10 @@ export default function AccountControls({ researchConsent, locale }: AccountCont
 
   return (
     <div className="account-controls">
+      <label className="field-inline digest-toggle" title={wu.dgHint}>
+        <input type="checkbox" checked={digest} onChange={(e) => toggleDigest(e.target.checked)} />
+        <span>{wu.dgLabel}</span>
+      </label>
       {consenting ? (
         <button
           type="button"

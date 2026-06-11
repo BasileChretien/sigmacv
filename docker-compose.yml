@@ -61,6 +61,10 @@ services:
       ORCID_ENVIRONMENT: ${ORCID_ENVIRONMENT:-sandbox}
       OPENALEX_MAILTO: ${OPENALEX_MAILTO}
       RESYNC_SECRET: ${RESYNC_SECRET:-}
+      # SMTP for magic-link sign-in AND the opt-in re-sync digest emails.
+      # Leave blank to keep both dormant (no email login, no digests).
+      EMAIL_SERVER: ${EMAIL_SERVER:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
       # EPO Open Patent Services (OAuth client-credentials) — enables the Patents
       # section. Leave blank to keep the EPO client dormant (no call, no effect).
       EPO_OPS_KEY: ${EPO_OPS_KEY:-}
@@ -84,6 +88,22 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       - 'while true; do sleep "${RESYNC_INTERVAL_SECONDS:-3600}"; curl -fsS -X POST -H "Authorization: Bearer ${RESYNC_SECRET}" http://app:3000/api/internal/resync || true; done'
+
+  # Daily ping for the opt-in re-sync digest emails. The PER-USER cadence
+  # (monthly at most, only when a sync changed something) lives server-side in
+  # digestSentAt — so a container restart can never starve the schedule. No-op
+  # when RESYNC_SECRET or SMTP (EMAIL_SERVER/EMAIL_FROM) is unset.
+  digest-cron:
+    image: curlimages/curl:8.11.1
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      RESYNC_SECRET: ${RESYNC_SECRET:-}
+      DIGEST_INTERVAL_SECONDS: ${DIGEST_INTERVAL_SECONDS:-86400}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - 'while true; do sleep "${DIGEST_INTERVAL_SECONDS:-86400}"; curl -fsS -X POST -H "Authorization: Bearer ${RESYNC_SECRET}" http://app:3000/api/internal/digest || true; done'
 
   # ── Analytics ───────────────────────────────────────────────────────────────
   # Cookieless, first-party, self-hosted. Plausible = traffic; Metabase =

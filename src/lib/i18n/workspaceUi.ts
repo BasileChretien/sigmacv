@@ -42,6 +42,10 @@ export interface WorkspaceUiStrings {
   bulkNoMatches: string;
   /** Aria prefix for a row's selection checkbox ("Select: <title>"). */
   bulkSelectRow: string;
+  // ── Re-sync digest email (account toggle) ──────────────────────────────────
+  dgLabel: string;
+  dgHint: string;
+  dgFailed: string;
 }
 
 const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
@@ -75,6 +79,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     bulkExcludeView: "Hide from this view",
     bulkNoMatches: "No entries match the filter.",
     bulkSelectRow: "Select",
+    dgLabel: "Email updates",
+    dgHint:
+      "Email me when a re-sync changes my CV — at most one a month, only when something changed. Unsubscribe anytime.",
+    dgFailed: "Could not update the email preference — please try again.",
   },
   "zh-CN": {
     srLastSync: "上次同步",
@@ -106,6 +114,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     bulkExcludeView: "从此视图中隐藏",
     bulkNoMatches: "没有符合筛选条件的条目。",
     bulkSelectRow: "选择",
+    dgLabel: "邮件通知",
+    dgHint: "当重新同步更改我的简历时发邮件通知;每月最多一封,仅在有变化时发送,可随时退订。",
+    dgFailed: "无法更新邮件设置——请重试。",
   },
   "es-ES": {
     srLastSync: "Última sincronización",
@@ -137,6 +148,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     bulkExcludeView: "Ocultar de esta vista",
     bulkNoMatches: "Ninguna entrada coincide con el filtro.",
     bulkSelectRow: "Seleccionar",
+    dgLabel: "Avisos por correo",
+    dgHint:
+      "Recibir un correo cuando una sincronización cambie mi CV: como máximo uno al mes y solo si hay cambios. Baja en cualquier momento.",
+    dgFailed: "No se pudo actualizar la preferencia de correo; inténtelo de nuevo.",
   },
   "fr-FR": {
     srLastSync: "Dernière synchronisation",
@@ -169,6 +184,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     bulkExcludeView: "Masquer de cette vue",
     bulkNoMatches: "Aucune entrée ne correspond au filtre.",
     bulkSelectRow: "Sélectionner",
+    dgLabel: "Alertes e-mail",
+    dgHint:
+      "Recevoir un e-mail quand une synchronisation modifie mon CV — au plus un par mois, seulement en cas de changement. Désinscription à tout moment.",
+    dgFailed: "Impossible de mettre à jour la préférence e-mail — réessayez.",
   },
   "de-DE": {
     srLastSync: "Letzte Synchronisierung",
@@ -200,6 +219,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     bulkExcludeView: "In dieser Ansicht ausblenden",
     bulkNoMatches: "Keine Einträge entsprechen dem Filter.",
     bulkSelectRow: "Auswählen",
+    dgLabel: "E-Mail-Updates",
+    dgHint:
+      "E-Mail erhalten, wenn eine Synchronisierung den CV ändert — höchstens eine pro Monat, nur bei Änderungen. Jederzeit abbestellbar.",
+    dgFailed: "E-Mail-Einstellung konnte nicht gespeichert werden — bitte erneut versuchen.",
   },
   "ja-JP": {
     srLastSync: "前回の同期",
@@ -231,6 +254,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     bulkExcludeView: "このビューから外す",
     bulkNoMatches: "絞り込みに一致する項目はありません。",
     bulkSelectRow: "選択",
+    dgLabel: "メール通知",
+    dgHint:
+      "再同期でCVが変わったときにメールで通知(変更があった場合のみ、月1通まで。いつでも解除可能)。",
+    dgFailed: "メール設定を更新できませんでした。もう一度お試しください。",
   },
   "pt-BR": {
     srLastSync: "Última sincronização",
@@ -262,6 +289,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     bulkExcludeView: "Ocultar desta visualização",
     bulkNoMatches: "Nenhum item corresponde ao filtro.",
     bulkSelectRow: "Selecionar",
+    dgLabel: "Avisos por e-mail",
+    dgHint:
+      "Receber e-mail quando uma sincronização alterar meu CV — no máximo um por mês, apenas quando algo mudar. Cancele quando quiser.",
+    dgFailed: "Não foi possível atualizar a preferência de e-mail — tente novamente.",
   },
   "it-IT": {
     srLastSync: "Ultima sincronizzazione",
@@ -293,6 +324,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     bulkExcludeView: "Nascondi da questa vista",
     bulkNoMatches: "Nessuna voce corrisponde al filtro.",
     bulkSelectRow: "Seleziona",
+    dgLabel: "Avvisi e-mail",
+    dgHint:
+      "Ricevi un’e-mail quando una sincronizzazione modifica il CV — al massimo una al mese, solo in caso di modifiche. Disiscrizione in qualsiasi momento.",
+    dgFailed: "Impossibile aggiornare la preferenza e-mail: riprova.",
   },
   "ko-KR": {
     srLastSync: "마지막 동기화",
@@ -324,6 +359,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     bulkExcludeView: "이 보기에서 숨기기",
     bulkNoMatches: "필터와 일치하는 항목이 없습니다.",
     bulkSelectRow: "선택",
+    dgLabel: "이메일 알림",
+    dgHint:
+      "재동기화로 CV가 바뀌면 이메일로 알림 — 변경이 있을 때만 월 1회 이하로 발송됩니다. 언제든지 해지할 수 있습니다.",
+    dgFailed: "이메일 설정을 업데이트하지 못했습니다. 다시 시도해 주세요.",
   },
   "ru-RU": {
     srLastSync: "Последняя синхронизация",
@@ -355,6 +394,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     bulkExcludeView: "Скрыть из этого вида",
     bulkNoMatches: "Нет записей, соответствующих фильтру.",
     bulkSelectRow: "Выбрать",
+    dgLabel: "Почтовые уведомления",
+    dgHint:
+      "Письмо, когда синхронизация меняет CV — не чаще раза в месяц и только при изменениях. Отписаться можно в любой момент.",
+    dgFailed: "Не удалось обновить настройку почты — попробуйте ещё раз.",
   },
 };
 
