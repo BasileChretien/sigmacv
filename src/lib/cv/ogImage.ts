@@ -12,6 +12,8 @@ import { itemDisplayText, type CanonicalCv } from "@/lib/canonical/schema";
 export interface OgImageProps {
   /** Large name line. Falls back to a generic label when no display name. */
   name: string;
+  /** 1–2 character monogram for the avatar circle (derived from `name`). */
+  initials: string;
   /** Short role line under the name (headline → summary), or "" when none. */
   headline: string;
   /** Most-recent visible affiliation/position line, or "" when none. */
@@ -61,6 +63,24 @@ function latestAffiliation(cv: CanonicalCv): string {
     .trim();
 }
 
+/** CJK scripts (Han / Kana / Hangul) — names there don't use latin-style initials. */
+const CJK = /[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff\uac00-\ud7af]/;
+
+/**
+ * 1–2 character monogram for the OG avatar: first letters of the first and last
+ * words ("Basile Chrétien" → "BC"), a single word's first letter, and for CJK
+ * names just the first character (initials aren't a CJK convention).
+ */
+function nameInitials(name: string): string {
+  const words = oneLine(name).split(" ").filter(Boolean);
+  /* v8 ignore next 2 -- callers always pass a non-empty (fallback-defaulted) name. */
+  const first = [...(words[0] ?? "")][0] ?? "";
+  if (!first) return "";
+  if (CJK.test(name) || words.length === 1) return first.toUpperCase();
+  const last = [...words[words.length - 1]!][0] ?? "";
+  return (first + last).toUpperCase();
+}
+
 /**
  * Extract the OG-card display props from a (public-projected) canonical CV.
  * Pure: no I/O, no mutation. The headline prefers the user's headline, then the
@@ -72,6 +92,7 @@ export function ogImageProps(cv: CanonicalCv): OgImageProps {
   const rawHeadline = cv.owner.headline || cv.owner.summary || "";
   return {
     name: truncate(name, HEADLINE_MAX),
+    initials: nameInitials(name),
     headline: truncate(rawHeadline, HEADLINE_MAX),
     affiliation: truncate(latestAffiliation(cv), AFFILIATION_MAX),
     /* v8 ignore next -- accentColor is a schema-validated, defaulted hex; the
