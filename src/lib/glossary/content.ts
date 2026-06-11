@@ -655,7 +655,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       term: "NIH biosketch",
       short:
         "NIH 个人简介（NIH biosketch）是美国国立卫生研究院（NIH）在基金申请中要求提交的简短、结构化简历，重点突出您对科学的贡献及精选发表成果。",
-      title: "什么是 NIH 个人简介（NIH biosketch）？",
+      title: "什么是 NIH 个人简介？",
       description:
         "NIH 个人简介（NIH biosketch）是 NIH 基金申请中要求的简短、结构化简历。以下介绍其包含内容、与完整学术简历的区别，以及如何准备。",
       blocks: [
@@ -794,15 +794,14 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
     },
     "leiden-manifesto": {
       term: "Leiden Manifesto",
-      short:
-        "《莱顿科研指标宣言》（Leiden Manifesto）是一套关于负责任地使用定量科研指标的十项原则——旨在辅助而非替代专家判断。",
-      title: "什么是 Leiden Manifesto？",
+      short: "《莱顿宣言》是一套关于负责任地使用定量科研指标的十项原则，旨在辅助而非替代专家判断。",
+      title: "什么是《莱顿宣言》？",
       description:
-        "《莱顿科研指标宣言》提出了负责任使用科研指标的十项原则。以下介绍它是什么及其与简历评估的关系。",
+        "《莱顿宣言》提出了负责任使用科研指标的十项原则。以下介绍它是什么及其与简历评估的关系。",
       blocks: [
         {
           type: "p",
-          text: "《莱顿科研指标宣言》（Leiden Manifesto）于 2015 年发表于 Nature，是一套关于在科研评估中负责任地使用定量指标的十项原则。其核心理念是：指标应为专家判断提供信息，而非取而代之。",
+          text: "《莱顿宣言》（Leiden Manifesto）于 2015 年发表于 Nature，是一套关于在科研评估中负责任地使用定量指标的十项原则。其核心理念是：指标应为专家判断提供信息，而非取而代之。",
         },
         {
           type: "p",
@@ -825,8 +824,8 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       ],
       faq: [
         {
-          q: "Leiden Manifesto 与 DORA 有何不同？",
-          a: "两者均倡导负责任的科研评估。DORA 侧重于不滥用期刊级别指标（如影响因子）进行个人评估；Leiden Manifesto 则提出了十项更广泛的原则，涵盖如何在专家判断的基础上负责任地使用任何定量指标。",
+          q: "《莱顿宣言》与 DORA 有何不同？",
+          a: "两者均倡导负责任的科研评估。DORA 侧重于不滥用期刊级别指标（如影响因子）进行个人评估；《莱顿宣言》则提出了十项更广泛的原则，涵盖如何在专家判断的基础上负责任地使用任何定量指标。",
         },
       ],
     },
@@ -855,7 +854,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "ORCID es el ancla fiable de un currículum académico. Al ser un identificador y no un nombre, las herramientas pueden recuperar sus publicaciones verificadas y vincular su trabajo sin las coincidencias falsas que aquejan a las búsquedas basadas en nombre —lo que más importa en el caso de nombres comunes y nombres escritos en alfabetos no latinos.",
+          text: "ORCID es el ancla fiable de un currículum académico. Al ser un identificador y no un nombre, las herramientas pueden recuperar sus publicaciones verificadas y vincular su trabajo sin las coincidencias falsas que aquejan a las búsquedas basadas en el nombre —lo que más importa en el caso de nombres comunes y nombres escritos en alfabetos no latinos.",
         },
         {
           type: "h2",
@@ -864,7 +863,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Usted inicia sesión en SigmaCV con su ORCID iD. SigmaCV lee su registro público de ORCID, resuelve su perfil de autor en OpenAlex y compila su CV —identificando su trabajo por identificador, nunca por nombre—. Solo lee metadatos públicos y nunca escribe nada en ORCID.",
+          text: "Usted inicia sesión en SigmaCV con su ORCID iD. SigmaCV lee su registro público de ORCID, resuelve su perfil de autor en OpenAlex y compila su currículum —identificando su trabajo por identificador, nunca por nombre—. Solo lee metadatos públicos y nunca escribe nada en ORCID.",
         },
         {
           type: "cta",
@@ -889,7 +888,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       blocks: [
         {
           type: "p",
-          text: "OpenAlex es un catálogo gratuito y totalmente abierto de la literatura de investigación global —obras, autores, instituciones, publicaciones y conceptos— construido y mantenido por la organización sin ánimo de lucro OurResearch. Indexa cientos de millones de obras y ofrece una API abierta y datos abiertos, como sucesor del Microsoft Academic Graph, que fue discontinuado.",
+          text: "OpenAlex es un catálogo gratuito y totalmente abierto de la literatura de investigación global —obras, autores, instituciones, publicaciones y conceptos— construido y mantenido por la organización sin ánimo de lucro OurResearch. Indexa cientos de millones de obras y ofrece una API abierta y datos abiertos, como sucesor del Microsoft Academic Graph, cuya producción se interrumpió.",
         },
         {
           type: "p",
@@ -1073,7 +1072,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       blocks: [
         {
           type: "p",
-          text: "Un NIH biosketch es un CV breve y estructurado que los Institutos Nacionales de Salud de EE. UU. (NIH) exigen en las solicitudes de financiación. Suele estar limitado a cinco páginas y tiene secciones establecidas: formación y entrenamiento, cargos y distinciones, una declaración personal opcional y una sección de «contribuciones a la ciencia» que destaca un puñado de contribuciones, cada una con hasta cuatro publicaciones de respaldo.",
+          text: "Un NIH biosketch es un CV breve y estructurado que los Institutos Nacionales de Salud de EE. UU. (NIH) exigen en las solicitudes de financiación. Suele estar limitado a cinco páginas y tiene secciones establecidas: formación , cargos y distinciones, una declaración personal opcional y una sección de «contribuciones a la ciencia» que destaca un puñado de contribuciones, cada una con hasta cuatro publicaciones de respaldo.",
         },
         {
           type: "p",
@@ -1086,7 +1085,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Un biosketch es mucho más breve y narrativo que un currículum académico completo, y sigue el formato específico del NIH. El enfoque práctico es mantener un CV completo y derivar el biosketch de él para cada solicitud.",
+          text: "Un biosketch es mucho más breve y narrativo que un currículum académico completo, y sigue el formato específico del NIH. El enfoque práctico es mantener un currículum completo y derivar el biosketch de él para cada solicitud.",
         },
         {
           type: "h2",
@@ -1276,7 +1275,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Vous vous connectez à SigmaCV avec votre ORCID iD. SigmaCV lit votre profil ORCID public, résout votre profil auteur OpenAlex et assemble votre CV — en associant vos travaux par identifiant, jamais par nom. Il ne lit que les métadonnées publiques et n'écrit jamais rien dans ORCID.",
+          text: "Vous vous connectez à SigmaCV avec votre ORCID iD. SigmaCV lit votre profil ORCID public, identifie votre profil d'auteur OpenAlex et assemble votre CV — en associant vos travaux par identifiant, jamais par nom. Il ne lit que les métadonnées publiques et n'écrit jamais rien dans ORCID.",
         },
         {
           type: "cta",
@@ -1294,14 +1293,14 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
     openalex: {
       term: "OpenAlex",
       short:
-        "OpenAlex est un catalogue gratuit et ouvert des travaux académiques, auteurs, institutions et revues du monde entier, géré par l'organisation à but non lucratif OurResearch.",
+        "OpenAlex est un catalogue gratuit et ouvert des travaux académiques, auteurs, institutions et lieux de publication du monde entier, géré par l'organisation à but non lucratif OurResearch.",
       title: "Qu'est-ce qu'OpenAlex ?",
       description:
         "OpenAlex est un index libre et totalement ouvert des travaux académiques, auteurs et institutions. Découvrez ce qu'il est, comment il se compare aux bases de données propriétaires et comment il alimente votre CV.",
       blocks: [
         {
           type: "p",
-          text: "OpenAlex est un catalogue gratuit et totalement ouvert de la littérature scientifique mondiale — travaux, auteurs, institutions, revues et concepts — construit et maintenu par l'organisation à but non lucratif OurResearch. Il indexe des centaines de millions de travaux et propose une API ouverte ainsi que des données ouvertes, en tant que successeur du Microsoft Academic Graph, aujourd'hui abandonné.",
+          text: "OpenAlex est un catalogue gratuit et totalement ouvert de la littérature scientifique mondiale — travaux, auteurs, institutions, lieux de publication et concepts — construit et maintenu par l'organisation à but non lucratif OurResearch. Il indexe des centaines de millions de travaux et propose une API ouverte ainsi que des données ouvertes, en tant que successeur du Microsoft Academic Graph, aujourd'hui abandonné.",
         },
         {
           type: "p",
@@ -1323,7 +1322,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "SigmaCV résout votre identifiant auteur OpenAlex à partir de votre ORCID iD, importe vos travaux et — uniquement si vous y consentez — calcule des indicateurs normalisés par le champ à partir des données OpenAlex, désactivés par défaut et alignés avec DORA.",
+          text: "SigmaCV identifie votre identifiant d'auteur OpenAlex à partir de votre ORCID iD, importe vos travaux et — uniquement si vous y consentez — calcule des indicateurs normalisés par le champ à partir des données OpenAlex, désactivés par défaut et alignés avec DORA.",
         },
         {
           type: "cta",
@@ -1389,7 +1388,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       term: "h-index",
       short:
         "L'indice h (h-index) est le plus grand nombre h tel que vous avez h publications chacune citée au moins h fois.",
-      title: "Qu'est-ce que l'indice h (h-index) ?",
+      title: "Qu'est-ce que l'indice h ?",
       description:
         "L'indice h est un indicateur au niveau du chercheur qui combine production et citations — mais il présente des limites réelles. Découvrez ce qu'il mesure et comment le traiter sur un CV.",
       blocks: [
@@ -1765,7 +1764,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Feldnormierung ist wichtig, weil die Zitierungsraten zwischen Fachgebieten enorm variieren – ein vielzitiertes Mathematikpapier und ein vielzitiertes biomedizinisches Papier haben sehr unterschiedliche rohe Zählwerte. Der FWCI bringt sie auf eine vergleichbare Skala.",
+          text: "Feldnormierung ist wichtig, weil die Zitierungsraten zwischen Fachgebieten enorm variieren – ein vielzitiertes Mathematikartikel und ein vielzitiertes biomedizinischer Artikel haben sehr unterschiedliche rohe Zählwerte. Der FWCI bringt sie auf eine vergleichbare Skala.",
         },
         {
           type: "h2",
@@ -1804,7 +1803,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         "Der h-Index ist die größte Zahl h, für die Sie h Publikationen haben, die jeweils mindestens h-mal zitiert wurden.",
       title: "Was ist der h-Index?",
       description:
-        "Der h-Index ist eine Metrik auf Forscher-Ebene, die Output und Zitierungen kombiniert – aber er hat echte Grenzen. Hier erfahren Sie, was er misst und wie Sie ihn im Lebenslauf behandeln sollten.",
+        "Der h-Index ist eine Metrik auf Forscherebene, die Output und Zitierungen kombiniert – aber er hat echte Grenzen. Hier erfahren Sie, was er misst und wie Sie ihn im Lebenslauf behandeln sollten.",
       blocks: [
         {
           type: "p",
@@ -1898,7 +1897,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       blocks: [
         {
           type: "p",
-          text: "Ein NIH Biosketch ist ein kurzer, strukturierter Lebenslauf, den das US-amerikanische National Institutes of Health (NIH) in Förderanträgen verlangt. Er ist in der Regel auf fünf Seiten begrenzt und hat festgelegte Abschnitte: Ausbildung und Training, Positionen und Ehrungen, eine optionale persönliche Stellungnahme und einen Abschnitt „Contributions to Science“, der einige Beiträge hervorhebt, jeweils mit bis zu vier unterstützenden Publikationen.",
+          text: "Ein NIH Biosketch ist ein kurzer, strukturierter Lebenslauf, den das US-amerikanische National Institutes of Health (NIH) in Förderanträgen verlangt. Er ist in der Regel auf fünf Seiten begrenzt und hat festgelegte Abschnitte: Ausbildung, Positionen und Ehrungen, eine optionale persönliche Stellungnahme und einen Abschnitt „Contributions to Science“, der einige Beiträge hervorhebt, jeweils mit bis zu vier unterstützenden Publikationen.",
         },
         {
           type: "p",
@@ -1958,7 +1957,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Nehmen Sie Ihre Preprints auf, aber kennzeichnen Sie sie klar und halten Sie sie von begutachteten Artikeln getrennt – stellen Sie einen Preprint nicht als veröffentlichtes Papier dar, und vermeiden Sie es, dieselbe Arbeit zweimal aufzuführen (sowohl als Preprint als auch als Verlagsversion), ohne die Beziehung ausdrücklich zu machen.",
+          text: "Nehmen Sie Ihre Preprints auf, aber kennzeichnen Sie sie klar und halten Sie sie von begutachteten Artikeln getrennt – stellen Sie einen Preprint nicht als veröffentlichter Artikel dar, und vermeiden Sie es, dieselbe Arbeit zweimal aufzuführen (sowohl als Preprint als auch als Verlagsversion), ohne die Beziehung ausdrücklich zu machen.",
         },
         {
           type: "h2",
@@ -2302,14 +2301,14 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
     "nih-biosketch": {
       term: "NIH biosketch",
       short:
-        "NIH biosketachは、米国国立衛生研究所（NIH）がグラント申請で求める短く構造化されたCVで、科学への貢献と選択した業績を強調します。",
-      title: "NIH biosketachとは何か",
+        "NIH biosketchは、米国国立衛生研究所（NIH）がグラント申請で求める短く構造化されたCVで、科学への貢献と選択した業績を強調します。",
+      title: "NIH biosketchとは何か",
       description:
-        "NIH biosketachはNIHのグラント申請で求められる短く構造化されたCVです。その内容、完全なアカデミックCVとの違い、そして作成方法を解説します。",
+        "NIH biosketchはNIHのグラント申請で求められる短く構造化されたCVです。その内容、完全なアカデミックCVとの違い、そして作成方法を解説します。",
       blocks: [
         {
           type: "p",
-          text: "NIH biosketachは、米国国立衛生研究所（NIH）がグラント申請で求める短く構造化されたCVです。通常5ページに制限され、定められたセクションがあります：教育・訓練、職歴・栄誉、任意の個人陳述、そして最大4本の関連業績を伴ういくつかの貢献をハイライトする「科学への貢献」セクション。",
+          text: "NIH biosketchは、米国国立衛生研究所（NIH）がグラント申請で求める短く構造化されたCVです。通常5ページに制限され、定められたセクションがあります：教育・訓練、職歴・栄誉、任意の個人陳述、そして最大4本の関連業績を伴ういくつかの貢献をハイライトする「科学への貢献」セクション。",
         },
         {
           type: "p",
@@ -2318,11 +2317,11 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         {
           type: "h2",
           id: "vs-cv",
-          text: "Biosketachと完全なアカデミックCVの違い",
+          text: "Biosketchと完全なアカデミックCVの違い",
         },
         {
           type: "p",
-          text: "biosketachは完全なアカデミックCVよりはるかに短くナラティブであり、NIH固有の形式に従います。実践的なアプローチは、完全なCVを保持し、各申請のためにそこからbiosketachを派生させることです。",
+          text: "biosketchは完全なアカデミックCVよりはるかに短くナラティブであり、NIH固有の形式に従います。実践的なアプローチは、完全なCVを保持し、各申請のためにそこからbiosketchを派生させることです。",
         },
         {
           type: "h2",
@@ -2331,17 +2330,17 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "SigmaCV は、ORCIDとOpenAlexの記録からNIHスタイルのbiosketachを作成します。業績は自動的に取得され、エクスポートの前に貢献と選択業績をキュレーションできます。",
+          text: "SigmaCV は、ORCIDとOpenAlexの記録からNIHスタイルのbiosketchを作成します。業績は自動的に取得され、エクスポートの前に貢献と選択業績をキュレーションできます。",
         },
         {
           type: "cta",
-          label: "NIH biosketachを生成",
+          label: "NIH biosketchを生成",
           href: "/nih-biosketch",
         },
       ],
       faq: [
         {
-          q: "NIH biosketachはどのくらいの長さですか？",
+          q: "NIH biosketchはどのくらいの長さですか？",
           a: "通常最大5ページです。特定の資金調達機会に合わせた最新のNIHの指示とフォームに常に従ってください。",
         },
       ],
@@ -2743,7 +2742,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "O SigmaCV elabora um biosketch no estilo NIH a partir do seu registro no ORCID e no OpenAlex: suas publicações são importadas automaticamente e você curadoria as contribuições e publicações selecionadas antes de exportar.",
+          text: "O SigmaCV elabora um biosketch no estilo NIH a partir do seu registro no ORCID e no OpenAlex: suas publicações são importadas automaticamente e você faz a curadoria das contribuições e publicações selecionadas antes de exportar.",
         },
         {
           type: "cta",
@@ -3171,10 +3170,10 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       ],
     },
     preprint: {
-      term: "preprint",
+      term: "Pre-stampa",
       short:
-        "Un preprint (o pre-stampa) è una versione completa di un articolo accademico resa pubblica prima, o in alternativa, della revisione formale da parte dei pari — tipicamente su un server come arXiv, bioRxiv o medRxiv.",
-      title: "Che cos'è un preprint?",
+        "Un pre-stampa (preprint) è una versione completa di un articolo accademico resa pubblica prima, o in alternativa, della revisione formale da parte dei pari — tipicamente su un server come arXiv, bioRxiv o medRxiv.",
+      title: "Che cos'è un pre-stampa?",
       description:
         "Un preprint è un articolo di ricerca condiviso pubblicamente prima della revisione tra pari. Scopri cos'è, perché i preprint sono importanti e come elencarli in un curriculum vitae accademico.",
       blocks: [
@@ -3278,7 +3277,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Tra i suoi principi: la valutazione quantitativa deve supportare quella qualitativa e degli esperti; la performance deve essere misurata rispetto alla missione del gruppo; devono essere tenute in considerazione le differenze tra campi disciplinari; la raccolta dei dati e le analisi devono essere trasparenti; e si deve riconoscere che gli indicatori possono essere manipolati e hanno effetti sistemici.",
+          text: "Tra i suoi principi: la valutazione quantitativa deve supportare quella qualitativa e degli esperti; la performance deve essere misurata rispetto alla missione del gruppo di ricerca; devono essere tenute in considerazione le differenze tra campi disciplinari; la raccolta dei dati e le analisi devono essere trasparenti; e si deve riconoscere che gli indicatori possono essere manipolati e hanno effetti sistemici.",
         },
         {
           type: "h2",
@@ -3347,7 +3346,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       faq: [
         {
           q: "ORCID는 유료입니까?",
-          a: "아닙니다. orcid.org에서 ORCID iD를 등록하는 것은 무료이며, 약 1분이면 완료됩니다.",
+          a: "아니요, orcid.org에서 ORCID iD를 등록하는 것은 무료이며 약 1분이면 완료됩니다.",
         },
       ],
     },
@@ -3394,7 +3393,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       faq: [
         {
           q: "OpenAlex는 유료입니까?",
-          a: "아닙니다. OpenAlex는 무료 API와 공개 데이터 라이선스를 갖춘 완전 공개 서비스입니다.",
+          a: "아니요, OpenAlex는 무료 API와 공개 데이터 라이선스를 갖춘 완전 공개 서비스입니다.",
         },
       ],
     },
@@ -3585,7 +3584,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       term: "프리프린트",
       short:
         "프리프린트는 정식 동료 심사 전 또는 그 대신 공개적으로 공유된 학술 논문의 완성 버전으로, 보통 arXiv, bioRxiv, medRxiv 같은 서버에 게재됩니다.",
-      title: "프리프린트(preprint)란 무엇입니까?",
+      title: "프리프린트란 무엇입니까?",
       description:
         "프리프린트는 동료 심사 전에 공개적으로 공유된 연구 논문입니다. 프리프린트가 무엇인지, 왜 중요한지, 학술 CV에 어떻게 기재해야 하는지 설명합니다.",
       blocks: [
@@ -3813,7 +3812,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
       term: "FWCI",
       short:
         "Взвешенный с учётом области показатель цитирования (FWCI) сравнивает цитируемость работы со средним мировым уровнем для работ той же области, типа и года — значение 1,0 означает ровно среднее.",
-      title: "Что такое взвешенный с учётом области воздействия цитирования (FWCI)?",
+      title: "Что такое взвешенный по области показатель цитирования (FWCI)?",
       description:
         "Взвешенный с учётом области показатель цитирования (FWCI) — нормализованная по области метрика цитирования, где 1,0 соответствует среднемировому уровню. Что она означает и как ответственно использовать её в резюме.",
       blocks: [
@@ -3828,7 +3827,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         {
           type: "h2",
           id: "vs-h-index",
-          text: "FWCI и индекс Хирша: сравнение",
+          text: "FWCI, индекс Хирша и абсолютные показатели: сравнение",
         },
         {
           type: "p",
@@ -3969,7 +3968,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Biosketch значительно короче и нарративнее, чем полное академическое резюме, и составляется в строгом формате NIH. Практический подход — вести полное резюме и готовить biosketch на его основе для каждой заявки.",
+          text: "Biosketch значительно короче и нарративнее, чем полное академическое резюме, и составляется в специальном формате NIH. Практический подход — вести полное резюме и готовить biosketch на его основе для каждой заявки.",
         },
         {
           type: "h2",
@@ -4007,7 +4006,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Препринты ускоряют распространение результатов и устанавливают приоритет; они всё шире признаются законным научным выходом — однако, поскольку они не прошли рецензирование, их всегда следует идентифицировать как препринты.",
+          text: "Препринты ускоряют распространение результатов и устанавливают приоритет; они всё шире признаются полноценным научным результатом — однако, поскольку они не прошли рецензирование, их всегда следует идентифицировать как препринты.",
         },
         {
           type: "h2",
@@ -4054,7 +4053,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Вместо этого DORA призывает оценивать исследования по их собственным достоинствам, признавать разнообразие научных выходов и их воздействия, а также явно указывать на ограничения метрик.",
+          text: "Вместо этого DORA призывает оценивать исследования по их собственным достоинствам, признавать разнообразие научных результатов и их воздействия, а также явно указывать на ограничения метрик.",
         },
         {
           type: "h2",
@@ -4101,7 +4100,7 @@ export const GLOSSARY_CONTENT: Record<Locale, Record<GlossarySlug, GlossaryConte
         },
         {
           type: "p",
-          text: "Среди его принципов: количественная оценка должна поддерживать качественную, экспертную; измерять деятельность следует применительно к миссии группы; необходимо учитывать различия между областями; сбор и анализ данных должны быть прозрачными; следует признавать, что показатели поддаются манипуляции и оказывают системное воздействие.",
+          text: "Среди его принципов: количественная оценка должна поддерживать качественную, экспертную; оценивать эффективность в соответствии с миссией группы; необходимо учитывать различия между областями; сбор и анализ данных должны быть прозрачными; следует признавать, что показатели поддаются манипуляции и оказывают системное воздействие.",
         },
         {
           type: "h2",

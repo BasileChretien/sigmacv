@@ -740,7 +740,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         {
           type: "ul",
           items: [
-            "按时间倒序列出成果，可按类型分组（期刊论文、预印本、书章、会议论文、数据集、软件）。",
+            "按时间倒序列出成果，可按类型分组（期刊论文、预印本、书籍章节、会议论文、数据集、软件）。",
             "全文使用统一的引用格式，并在简历的各个版本中保持一致。",
             "在每条作者列表中突出显示您的姓名，使贡献一目了然。",
             "附上 DOI（及链接），以便读者查阅原文。",
@@ -750,7 +750,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "格式不一致是最常见的失误。通过单一引用格式引擎对所有参考文献进行格式化——引文格式语言（CSL）是 Zotero 等工具背后的标准——可确保您的 Word、PDF 和 LaTeX 简历格式完全一致。",
+          text: "格式不一致是最常见的失误。使用同一种引用格式来格式化所有参考文献——引文格式语言（CSL）是 Zotero 等工具背后的标准——可确保您的 Word、PDF 和 LaTeX 简历格式完全一致。",
         },
         {
           type: "h2",
@@ -916,7 +916,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       blocks: [
         {
           type: "p",
-          text: "对于大多数学术岗位，发表成果部分是评审委员会最仔细阅读的内容，因此呈现方式几乎与内容本身同等重要。本指南涵盖引用格式、排序与分组、如何清晰体现个人贡献、如何处理预印本和审稿中成果，以及可能削弱一份本可出色的列表的常见错误。",
+          text: "对于大多数学术岗位，发表成果部分是评审委员会最仔细阅读的内容，因此呈现方式几乎与内容本身同等重要。本指南涵盖引用格式、排序与分组、如何清晰体现个人贡献、如何处理预印本和审稿中成果，以及可能影响列表质量的常见错误。",
         },
         {
           type: "h2",
@@ -936,7 +936,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           type: "ul",
           items: [
             "按时间倒序列出成果（最新在前）。",
-            "列表较长时按类型分组：同行评审期刊论文、预印本、书章、会议论文、数据集与软件。",
+            "列表较长时按类型分组：同行评审期刊论文、预印本、书籍章节、会议论文、数据集与软件。",
             "各分组标注清晰、分隔明显，使读者能够快速定位同行评审成果。",
             "编号方式保持一致——要么全部编号，要么全部不编号。",
           ],
@@ -970,7 +970,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "为每项成果附上 DOI（及链接），并在页眉处注明您的 ORCID iD。标识符还可使工具通过标识符而非姓名可靠地验证您的著作权——这对于常见姓名及非拉丁文字姓名尤为重要。",
+          text: "为每项成果附上 DOI（及链接），并在页眉处注明您的 ORCID iD。标识符还可使工具通过标识符而非姓名可靠地验证您的作者身份——这对于常见姓名及非拉丁文字姓名尤为重要。",
         },
         {
           type: "h2",
@@ -1320,7 +1320,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           a: "这取决于国家惯例。部分国家要求附照片和个人信息；美国和英国的学术惯例是省略这些内容以减少偏见。请遵循您所申请地区的惯例。",
         },
         {
-          q: "学术简历的标准在各国是否相同？",
+          q: "学术简历在各国都一样吗？",
           a: "不相同。术语、预期篇幅、个人信息的纳入与否，以及资助机构要求的格式，在各国之间均有所不同。请根据目标国和机构调整您的简历。",
         },
       ],
@@ -1330,15 +1330,15 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     "how-to-write-an-academic-cv": {
       title: "Cómo redactar un currículum vítae académico",
       description:
-        "Guía práctica para redactar un currículum vítae académico: qué incluir, cómo ordenar y formatear cada sección, cuánto debe medir, cómo listar las publicaciones y cómo varían las convenciones según la etapa profesional y el país.",
+        "Guía práctica para redactar un currículum vítae académico: qué incluir, cómo ordenar y formatear cada sección, qué extensión debe tener, cómo listar las publicaciones y cómo varían las convenciones según la etapa profesional y el país.",
       blocks: [
         {
           type: "p",
-          text: "El currículum vítae académico es el documento estándar para solicitar puestos de investigación y docencia, programas de posgrado, becas y financiación. A diferencia de un résumé de una o dos páginas, es un registro completo y en constante actualización de su trayectoria académica —su formación, publicaciones, financiación obtenida, docencia y servicios prestados— y sigue creciendo a lo largo de toda su carrera.",
+          text: "El currículum vítae académico es el documento estándar para solicitar puestos de investigación y docencia, programas de posgrado, becas y financiación. A diferencia de un «résumé» de una o dos páginas, es un registro completo y en constante actualización de su trayectoria académica —su formación, publicaciones, financiación obtenida, docencia y servicios prestados— y sigue creciendo a lo largo de toda su carrera.",
         },
         {
           type: "p",
-          text: "Esta guía trata qué incluir, cómo ordenar y formatear cada sección, cuánto debe extenderse un currículum académico, cómo listar las publicaciones y cómo varían las convenciones según la etapa profesional y el país. Si prefiere no construirlo a mano, puede generarlo automáticamente a partir de su registro ORCID; véase el último apartado.",
+          text: "Esta guía trata qué incluir, cómo ordenar y formatear cada sección, qué extensión debe tener un currículum académico, cómo listar las publicaciones y cómo varían las convenciones según la etapa profesional y el país. Si prefiere no construirlo a mano, puede generarlo automáticamente a partir de su registro ORCID; véase el último apartado.",
         },
         {
           type: "h2",
@@ -1347,7 +1347,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "El currículum vítae es una biografía académica exhaustiva. Su función es documentar toda la amplitud de sus contribuciones académicas para que un comité de selección, un organismo financiador o un panel de admisiones pueda evaluar su historial. Mientras que un résumé se adapta y recorta para un puesto concreto, el currículum académico es exhaustivo y acumulativo: se va ampliando con el tiempo y rara vez se elimina nada.",
+          text: "El currículum vítae es una biografía académica exhaustiva. Su función es documentar toda la amplitud de sus contribuciones académicas para que un comité de selección, un organismo financiador o un panel de admisiones pueda evaluar su historial. Mientras que un «résumé» se adapta y recorta para un puesto concreto, el currículum académico es exhaustivo y acumulativo: se va ampliando con el tiempo y rara vez se elimina nada.",
         },
         {
           type: "p",
@@ -1368,7 +1368,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
             "Encabezado: nombre, puesto actual y datos de contacto profesional (y su ORCID iD).",
             "Intereses/resumen de investigación: unas pocas líneas que enmarquen su trabajo (opcional; más habitual al inicio de la carrera).",
             "Formación académica: títulos en orden cronológico inverso, con institución, fechas y título de la tesis.",
-            "Nombramientos/puestos: cargos académicos y los profesionales más relevantes.",
+            "Nombramientos/puestos: cargos académicos y cargos profesionales relevantes.",
             "Publicaciones: el elemento central para la mayoría de los puestos de investigación (véase más adelante).",
             "Becas y financiación: ayudas concedidas, con entidad financiadora, título, importe y fechas.",
             "Premios y distinciones: becas, galardones y reconocimientos.",
@@ -1414,11 +1414,11 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         {
           type: "h2",
           id: "how-long",
-          text: "¿Cuánto debe medir un currículum académico?",
+          text: "¿Cuánto debe tener un currículum académico?",
         },
         {
           type: "p",
-          text: "No existe un límite de páginas fijo: un currículum académico es tan extenso como lo justifique su historial, y crece con el tiempo. Como orientación aproximada: un candidato a máster o doctorado puede tener 2–4 páginas; un posdoctorado, 3–6; y un catedrático con experiencia, bastante más de diez. La excepción son los «currículos breves» para convocatorias de financiación o empleo, que suelen limitar la extensión (p. ej., dos páginas) o emplean un formato narrativo como el biosketch del NIH, el Résumé for Research and Innovation (R4RI) de UKRI o el currículum del ERC. Cuando una convocatoria especifique un formato o límite de páginas, sígalo exactamente.",
+          text: "No existe un límite de páginas fijo: un currículum académico es tan extenso como lo justifique su historial, y crece con el tiempo. Como orientación aproximada: un candidato a máster o doctorado puede tener 2–4 páginas; un posdoctorado, 3–6; y un profesor titular con experiencia, bastante más de diez. La excepción son los «currículos breves» para convocatorias de financiación o empleo, que suelen limitar la extensión (p. ej., dos páginas) o emplean un formato narrativo como el biosketch del NIH, el Résumé for Research and Innovation (R4RI) de UKRI o el currículum del ERC. Cuando una convocatoria especifique un formato o límite de páginas, sígalo exactamente.",
         },
         {
           type: "h2",
@@ -1429,8 +1429,8 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           type: "ul",
           items: [
             "Estudiantes y candidatos a posgrado: destaque la formación, su tesis o proyecto de investigación, cualquier publicación o comunicación, habilidades relevantes y referencias; es perfectamente válido que sea breve.",
-            "Doctorandos y posdoctorados: lidere con publicaciones, actividad en congresos, financiación/becas y docencia; manténgalo actualizado para plazos continuos de empleo y financiación.",
-            "Profesores titulares e investigadores principales: dé protagonismo a becas, publicaciones, supervisión y servicios/liderazgo; espere un documento largo y seccionalizado, además de un currículum breve aparte para los organismos financiadores.",
+            "Doctorandos y posdoctorados: dé prioridad a las publicaciones, actividad en congresos, financiación/becas y docencia; manténgalo actualizado para plazos continuos de empleo y financiación.",
+            "Profesores titulares e investigadores principales: dé protagonismo a becas, publicaciones, supervisión y servicios/liderazgo; espere un documento largo y dividido en secciones, además de un currículum breve aparte para los organismos financiadores.",
           ],
         },
         {
@@ -1465,7 +1465,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Mantener actualizado un currículum académico es un trabajo repetitivo y manual. SigmaCV (gratuito y de código abierto) lo construye por usted a partir de sus registros en ORCID y OpenAlex —identificando su trabajo por identificador, nunca por nombre—, formatea todas las citas de manera coherente y exporta a PDF, Word, LaTeX, Markdown o BibTeX, o bien a una página pública activa que se resincroniza automáticamente. Las métricas están desactivadas por defecto y son normalizadas por campo, en línea con DORA, y sus datos le pertenecen (consentimiento por campo, exportación, eliminación).",
+          text: "Mantener actualizado un currículum académico es un trabajo repetitivo y manual. SigmaCV (gratuito y de código abierto) lo construye por usted a partir de sus registros en ORCID y OpenAlex —identificando su trabajo por identificador, nunca por nombre—, formatea todas las citas de manera coherente y exporta a PDF, Word, LaTeX, Markdown o BibTeX, o bien a una página pública activa que se resincroniza automáticamente. Las métricas están desactivadas por defecto y están normalizadas por campo, en línea con DORA, y sus datos le pertenecen (consentimiento por campo, exportación, eliminación).",
         },
         {
           type: "cta",
@@ -1475,7 +1475,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       ],
       faq: [
         {
-          q: "¿Cuánto debe medir un currículum académico?",
+          q: "¿Cuánto debe tener un currículum académico?",
           a: "No existe un límite fijo; crece con su historial. Un candidato a doctorado suele tener 2–4 páginas; un posdoctorado, 3–6; y un académico de mayor trayectoria, bastante más. Los «currículos breves» para financiación o empleo pueden limitar la extensión o requerir un formato narrativo (p. ej., biosketch del NIH, R4RI de UKRI, ERC); siga siempre las instrucciones de la convocatoria.",
         },
         {
@@ -1488,7 +1488,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           q: "¿Puedo generar un currículum académico automáticamente?",
-          a: "Sí. SigmaCV construye un currículum académico a partir de sus registros en ORCID y OpenAlex (identificado por identificador, no por nombre), formatea las citas y exporta a PDF, DOCX, LaTeX, Markdown o BibTeX: gratuito y de código abierto.",
+          a: "Sí. SigmaCV construye un currículum académico a partir de sus registros en ORCID y OpenAlex (asociado por identificador, no por nombre), formatea las citas y exporta a PDF, DOCX, LaTeX, Markdown o BibTeX: gratuito y de código abierto.",
         },
       ],
     },
@@ -1530,7 +1530,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           items: [
             "Empleos académicos, posdoctorados, solicitudes de doctorado/posgrado, becas y ayudas → un currículum académico.",
             "Puestos en la industria y la mayoría de los roles no académicos → un résumé adaptado a la oferta.",
-            "Roles «alt-ac» e industria próxima a la investigación → a menudo un híbrido: un documento de extensión de résumé que aún destaca las producciones científicas más relevantes.",
+            "Roles «alt-ac» e industria próxima a la investigación → a menudo un híbrido: un documento de la extensión de un «résumé» que aún destaca las producciones científicas más relevantes.",
           ],
         },
         {
@@ -1584,7 +1584,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Elija un estilo de cita apropiado para su campo (por ejemplo, APA, Vancouver, Chicago o IEEE) y aplíquelo a cada entrada. El fallo más frecuente es mezclar estilos o formatear las referencias a mano, de modo que no hay dos que tengan el mismo aspecto. Formatear toda la lista a través de un único motor —el Citation Style Language (CSL), el estándar que subyace a gestores de referencias como Zotero— garantiza la coherencia en sus CVs en PDF, Word y LaTeX.",
+          text: "Elija un estilo de cita apropiado para su campo (por ejemplo, APA, Vancouver, Chicago o IEEE) y aplíquelo a cada entrada. El fallo más frecuente es mezclar estilos o formatear las referencias a mano, de modo que no hay dos que tengan el mismo aspecto. Formatear toda la lista a través de un único motor —el Citation Style Language (CSL), el estándar que subyace a gestores de referencias como Zotero— garantiza la coherencia en sus currículos en PDF, Word y LaTeX.",
         },
         {
           type: "h2",
@@ -1620,7 +1620,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Liste los trabajos honestamente indicando su estado. Los preprints son cada vez más aceptados en los CVs, pero deben etiquetarse como tales, y los trabajos «en revisión» o «en prensa» deben indicarlo. Nunca presente como revisado por pares un trabajo que no lo sea, y no liste el mismo artículo dos veces (p. ej., como preprint y como versión publicada) sin aclarar la relación entre ambos.",
+          text: "Liste los trabajos honestamente indicando su estado. Los preprints son cada vez más aceptados en los currículos, pero deben etiquetarse como tales, y los trabajos «en revisión» o «en prensa» deben indicarlo. Nunca presente como revisado por pares un trabajo que no lo sea, y no liste el mismo artículo dos veces (p. ej., como preprint y como versión publicada) sin aclarar la relación entre ambos.",
         },
         {
           type: "h2",
@@ -1652,7 +1652,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "SigmaCV extrae sus publicaciones de ORCID y OpenAlex (identificadas por identificador, no por nombre), las formatea con cualquier estilo CSL con su propio nombre resaltado y exporta la lista a PDF, Word, LaTeX, Markdown o BibTeX, de modo que todas las versiones de su currículum sean coherentes y correctas.",
+          text: "SigmaCV extrae sus publicaciones de ORCID y OpenAlex (asociadas por identificador, no por nombre), las formatea con cualquier estilo CSL con su propio nombre resaltado y exporta la lista a PDF, Word, LaTeX, Markdown o BibTeX, de modo que todas las versiones de su currículum sean coherentes y correctas.",
         },
         {
           type: "cta",
@@ -1676,7 +1676,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       ],
     },
     "how-long-should-an-academic-cv-be": {
-      title: "¿Cuánto debe medir un currículum académico?",
+      title: "¿Cuánto debe tener un currículum académico?",
       description:
         "Qué extensión debe tener un currículum académico según la etapa profesional, cuándo se limita la extensión (currículos breves para financiación y empleo) y por qué más páginas no es mejor, además de cómo mantener un CV maestro y exportar versiones más cortas.",
       blocks: [
@@ -1833,7 +1833,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "El factor de impacto de revista (Journal Impact Factor, JIF) mide las citas promedio de una revista, no la calidad o el impacto de su artículo individual. Las distribuciones de citas están muy sesgadas, por lo que un único artículo en una revista con JIF elevado no dice casi nada al lector sobre ese artículo concreto. DORA —la Declaración de San Francisco sobre Evaluación de la Investigación— aconseja explícitamente no utilizar el JIF para evaluar investigaciones o investigadores individuales.",
+          text: "El factor de impacto de revista (Journal Impact Factor, JIF) mide el promedio de citas de una revista, no la calidad o el impacto de su artículo individual. Las distribuciones de citas están muy sesgadas, por lo que un único artículo en una revista con JIF elevado no dice casi nada al lector sobre ese artículo concreto. DORA —la Declaración de San Francisco sobre Evaluación de la Investigación— aconseja explícitamente no utilizar el JIF para evaluar investigaciones o investigadores individuales.",
         },
         {
           type: "h2",
@@ -1862,7 +1862,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           type: "ul",
           items: [
             "DORA: no utilice métricas basadas en revistas (como el JIF) para evaluar contribuciones individuales; evalúe la investigación por sus propios méritos.",
-            "El Leiden Manifesto: use indicadores cuantitativos para apoyar, no para sustituir, el juicio de los expertos; tenga en cuenta las diferencias entre campos; mantenga los datos y los métodos transparentes; y evite la concretud fuera de lugar.",
+            "El Leiden Manifesto: use indicadores cuantitativos para apoyar, no para sustituir, el juicio de los expertos; tenga en cuenta las diferencias entre campos; mantenga los datos y los métodos transparentes; y evite la concreción fuera de lugar.",
           ],
         },
         {
@@ -1908,11 +1908,11 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     "academic-cv-format-by-country": {
       title: "Formato del currículum académico según el país",
       description:
-        "Cómo varían las convenciones del currículum académico según el país: la distinción CV/résumé, fotografías y datos personales, extensión, Europass y formatos narrativos para organismos financiadores, y cómo adaptar el suyo.",
+        "Cómo varían las convenciones del currículum académico según el país: la distinción «CV»/«résumé», fotografías y datos personales, extensión, Europass y formatos narrativos para organismos financiadores, y cómo adaptar el suyo.",
       blocks: [
         {
           type: "p",
-          text: "No existe un único estándar global para el currículum académico. Las convenciones varían según el país y la institución: cómo se denomina el documento, si incluye fotografía, cuánto se extiende y qué formato estructurado exige un organismo financiador. Esta guía repasa las principales diferencias y cómo adaptar su CV al lugar al que solicita.",
+          text: "No existe un único estándar global para el currículum académico. Las convenciones varían según el país y la institución: cómo se denomina el documento, si incluye fotografía, qué extensión tiene y qué formato estructurado exige un organismo financiador. Esta guía repasa las principales diferencias y cómo adaptar su CV al lugar al que solicita.",
         },
         {
           type: "h2",
@@ -1939,7 +1939,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Un currículum académico completo no tiene un límite fijo de páginas y crece con su historial, pero las expectativas difieren: algunas solicitudes europeas prefieren un CV más conciso, mientras que los CVs académicos estadounidenses suelen ser exhaustivos. Siga siempre un límite de páginas explícito cuando una convocatoria o un empleador lo especifiquen.",
+          text: "Un currículum académico completo no tiene un límite fijo de páginas y crece con su historial, pero las expectativas difieren: algunas solicitudes europeas prefieren un CV más conciso, mientras que los currículos académicos estadounidenses suelen ser exhaustivos. Siga siempre un límite de páginas explícito cuando una convocatoria o un empleador lo especifiquen.",
         },
         {
           type: "h2",
@@ -1957,7 +1957,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Los principales organismos financiadores exigen cada vez más sus propios formatos: el Résumé for Research and Innovation (R4RI) de UKRI en el Reino Unido, el CV del ERC en la UE, el formato del SNSF en Suiza, y el biosketch del NIH o el formato del NSF en EE. UU. Estos son narrativos o muy estructurados y difieren de un CV estándar: prepárelos a partir de su historial completo para cada solicitud.",
+          text: "Los principales organismos financiadores exigen cada vez más sus propios formatos: el Résumé for Research and Innovation (R4RI) de UKRI en el Reino Unido, el CV del ERC en la UE, el formato del SNSF en Suiza, y el biosketch del NIH o el formato del NSF en EE. UU. Estos son narrativos o muy estructurados y difieren de un currículum estándar: prepárelos a partir de su historial completo para cada solicitud.",
         },
         {
           type: "h2",
@@ -2020,7 +2020,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "La plupart des CVs académiques sont construits à partir des mêmes éléments de base. Incluez les sections pertinentes pour votre domaine et votre stade de carrière, et omettez celles que vous n'avez pas encore de contenu à remplir :",
+          text: "La plupart des CVs académiques sont construits à partir des mêmes éléments de base. Incluez les sections pertinentes pour votre domaine et votre stade de carrière, et omettez celles pour lesquelles vous n'avez pas encore de contenu :",
         },
         {
           type: "ul",
@@ -2063,7 +2063,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
             "Utilisez un style de citation unique et cohérent, et maintenez-le identique dans chaque version de votre CV.",
             "Mettez votre propre nom en évidence dans chaque liste d'auteurs afin que votre contribution soit visible d'un coup d'œil.",
             "Incluez les DOIs (et les liens) afin que les lecteurs puissent retrouver le travail.",
-            "Indiquez clairement et honnêtement les travaux soumis à des revues, sous presse ou en préprint.",
+            "Indiquez clairement et honnêtement les travaux en cours d'évaluation, sous presse ou en préprint.",
             "Ne gonflez pas la liste — la qualité et la pertinence priment sur le volume.",
           ],
         },
@@ -2088,7 +2088,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         {
           type: "ul",
           items: [
-            "Étudiants & candidats à l'école doctorale — mettez en valeur la formation, votre thèse ou projet de recherche, les publications ou communications éventuelles, les compétences pertinentes et les références ; il est tout à fait normal d'être court.",
+            "Étudiants & candidats à l'école doctorale — mettez en valeur la formation, votre thèse ou projet de recherche, les publications ou communications éventuelles, les compétences pertinentes et les références ; il est tout à fait normal que le CV soit court.",
             "Doctorants & post-doctorants — commencez par les publications, l'activité en conférences, les financements/bourses et l'enseignement ; tenez le CV à jour pour les candidatures en continu aux postes et aux bourses.",
             "Enseignants-chercheurs & directeurs de recherche — mettez en avant les financements, les publications, l'encadrement et les activités de service/direction ; prévoyez un document long et sectionné ainsi qu'un CV court séparé pour les financeurs.",
           ],
@@ -2100,7 +2100,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Les conventions varient. Aux États-Unis et au Canada, un « CV » académique désigne le long document scientifique (un « résumé » en est la version courte pour l'industrie), tandis qu'en grande partie de l'Europe le terme « CV » peut désigner l'un ou l'autre. Certains pays attendent une photo, une date de naissance ou une nationalité ; beaucoup d'autres — et la plupart des contextes académiques américains et britanniques — omettent délibérément les données personnelles pour réduire les biais. Les candidats européens utilisent parfois le format Europass, et les grands financeurs exigent de plus en plus leurs propres CVs narratifs. En cas de doute, conformez-vous aux normes du pays et de l'institution visés.",
+          text: "Les conventions varient. Aux États-Unis et au Canada, un « CV » académique désigne le long document scientifique (un « résumé » en est la version courte pour l'industrie), tandis qu'dans une grande partie de l'Europe le terme « CV » peut désigner l'un ou l'autre. Certains pays attendent une photo, une date de naissance ou une nationalité ; beaucoup d'autres — et la plupart des contextes académiques américains et britanniques — omettent délibérément les données personnelles pour réduire les biais. Les candidats européens utilisent parfois le format Europass, et les grands financeurs exigent de plus en plus leurs propres CVs narratifs. En cas de doute, conformez-vous aux normes du pays et de l'institution visés.",
         },
         {
           type: "h2",
@@ -2125,7 +2125,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Tenir un CV académique à jour est un travail répétitif et manuel. SigmaCV (gratuit et open source) le génère pour vous à partir de votre profil ORCID et OpenAlex — en associant vos travaux par identifiant, jamais par nom — formate chaque citation de façon cohérente et exporte vers PDF, Word, LaTeX, Markdown ou BibTeX, ou vers une page publique vivante qui se resynchronise. Les indicateurs sont désactivés par défaut et normalisés par le champ, en accord avec DORA, et vos données vous appartiennent (consentement par champ, export, suppression).",
+          text: "Tenir un CV académique à jour est un travail répétitif et manuel. SigmaCV (gratuit et open source) le génère pour vous à partir de votre profil ORCID et OpenAlex — en associant vos travaux par identifiant, jamais par nom — formate chaque citation de façon cohérente et exporte vers PDF, Word, LaTeX, Markdown ou BibTeX, ou vers une page publique vivante qui se resynchronise. Les indicateurs sont désactivés par défaut et normalisés par le champ, en accord avec DORA, et vos données vous appartiennent (consentement par type de donnée, export, suppression).",
         },
         {
           type: "cta",
@@ -2139,7 +2139,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           a: "Il n'y a pas de limite fixe ; il s'allonge avec votre parcours. Un candidat au doctorat a souvent 2–4 pages, un post-doctorant 3–6, et un académique expérimenté bien davantage. Les « CV courts » exigés par des financeurs ou des employeurs peuvent limiter la longueur ou imposer un format narratif (par exemple NIH biosketch, UKRI R4RI, ERC) — respectez toujours les consignes de l'appel.",
         },
         {
-          q: "Quelle est la différence entre un CV académique et un résumé (résumé) ?",
+          q: "Quelle est la différence entre un CV académique et un résumé ?",
           a: "Un CV académique est un dossier complet et cumulatif de votre vie scientifique (formation, publications, financements, enseignement, service) et peut s'étendre sur de nombreuses pages ; un résumé est un document court, adapté et d'une à deux pages pour les postes hors académie.",
         },
         {
@@ -2163,7 +2163,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Un CV académique (curriculum vitae) est un dossier complet et cumulatif de votre vie scientifique : formation, publications, financements, enseignement, communications et activités de service. Un résumé est un bref résumé très ciblé — généralement d'une ou deux pages — destiné à un poste non académique spécifique.",
+          text: "Un CV académique (curriculum vitae) est un dossier complet et cumulatif de votre vie scientifique : formation, publications, financements, enseignement, communications et activités de service. Un résumé est un document bref et très ciblé — généralement d'une ou deux pages — destiné à un poste non académique spécifique.",
         },
         {
           type: "h2",
@@ -2244,7 +2244,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Choisissez un style de citation adapté à votre domaine (par exemple APA, Vancouver, Chicago ou IEEE) et appliquez-le à chaque entrée. L'erreur la plus fréquente est de mélanger les styles ou de mettre en forme les références à la main, de sorte qu'aucune deux ne se ressemblent vraiment. Mettre en forme l'ensemble de la liste via un seul moteur — le Citation Style Language (CSL), le standard qui sous-tend les gestionnaires de références comme Zotero — garantit la cohérence de vos CVs PDF, Word et LaTeX.",
+          text: "Choisissez un style de citation adapté à votre domaine (par exemple APA, Vancouver, Chicago ou IEEE) et appliquez-le à chaque entrée. L'erreur la plus fréquente est de mélanger les styles ou de mettre en forme les références à la main, de sorte que deux d'entre elles ne se ressemblent vraiment. Mettre en forme l'ensemble de la liste via un seul moteur — le Citation Style Language (CSL), le standard qui sous-tend les gestionnaires de références comme Zotero — garantit la cohérence de vos CVs PDF, Word et LaTeX.",
         },
         {
           type: "h2",
@@ -2330,7 +2330,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           a: "Oui — les préprints sont de plus en plus acceptés — mais étiquetez-les clairement comme préprints et séparez-les des articles évalués par les pairs.",
         },
         {
-          q: "Comment indiquer une co-première authorship ou une contribution égale ?",
+          q: "Comment indiquer une statut de co-premier auteur ou une contribution égale ?",
           a: "Marquez les auteurs concernés avec un symbole et expliquez-le dans une courte légende (par exemple « * contribution égale »). Soyez cohérent dans l'ensemble de la liste.",
         },
       ],
@@ -2448,7 +2448,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Un CV pour une candidature en école doctorale fait généralement 2–4 pages. Veillez à une mise en forme propre et cohérente, utilisez des titres de sections clairs et adaptez l'accent au programme visé. Être court, c'est bien — ne pas gonfler.",
+          text: "Un CV pour une candidature en école doctorale fait généralement 2–4 pages. Veillez à une mise en forme propre et cohérente, utilisez des titres de sections clairs et adaptez l'accent au programme visé. Un CV concis est une bonne chose — ne pas gonfler.",
         },
         {
           type: "h2",
@@ -2654,7 +2654,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       blocks: [
         {
           type: "p",
-          text: "Ein akademischer Lebenslauf (Curriculum Vitae) ist das Standarddokument für Bewerbungen auf Forschungs- und Lehrpositionen, Graduiertenprogramme, Stipendien und Förderanträge. Anders als ein ein- oder zweiseitiger Résumé ist er eine vollständige, wachsende Aufzeichnung Ihres wissenschaftlichen Lebens – Ausbildung, Publikationen, Fördermittel, Lehrtätigkeit und Gremienarbeit – und er wächst im Laufe Ihrer Karriere stetig an.",
+          text: "Ein akademischer Lebenslauf (Curriculum Vitae) ist das Standarddokument für Bewerbungen auf Forschungs- und Lehrpositionen, Graduiertenprogramme, Stipendien und Förderanträge. Anders als einem ein- oder zweiseitigen Résumé ist er eine vollständige, wachsende Aufzeichnung Ihres wissenschaftlichen Lebens – Ausbildung, Publikationen, Fördermittel, Lehrtätigkeit und Gremienarbeit – und er wächst im Laufe Ihrer Karriere stetig an.",
         },
         {
           type: "p",
@@ -2692,7 +2692,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
             "Publikationen – das Herzstück für die meisten Forschungspositionen (siehe unten).",
             "Drittmittel & Förderung – eingeworbene Fördermittel mit Fördergeber, Titel, Betrag und Laufzeit.",
             "Auszeichnungen & Ehrungen – Stipendien, Preise und Auszeichnungen.",
-            "Lehre – gelehrte Kurse, Gastvorlesungen und Lehraufgaben.",
+            "Lehre – gehaltene Kurse, Gastvorlesungen und Lehraufgaben.",
             "Betreuung & Mentoring – betreute Studierende und Nachwuchswissenschaftler.",
             "Vorträge – eingeladene Vorträge, Konferenzbeiträge und Poster.",
             "Gremienarbeit – Gutachtertätigkeit, Herausgeberrollen, Ausschüsse und Öffentlichkeitsarbeit.",
@@ -2895,7 +2895,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       blocks: [
         {
           type: "p",
-          text: "Für die meisten akademischen Positionen ist der Publikationsabschnitt der Teil Ihres Lebenslaufs, den Kommissionen am genauesten lesen – daher ist die Darstellung fast ebenso wichtig wie der Inhalt. Dieser Leitfaden behandelt Zitierstil, Anordnung und Gruppierung, wie Sie Ihren eigenen Beitrag erkennbar machen, den Umgang mit Preprints und eingereichten Arbeiten sowie die Fehler, die eine ansonsten starke Liste untergraben.",
+          text: "Für die meisten akademischen Positionen ist der Publikationsabschnitt der Teil Ihres Lebenslaufs, den die Kommissionen am genauesten lesen – daher ist die Darstellung fast ebenso wichtig wie der Inhalt. Dieser Leitfaden behandelt Zitierstil, Anordnung und Gruppierung, wie Sie Ihren eigenen Beitrag erkennbar machen, den Umgang mit Preprints und eingereichten Arbeiten sowie die Fehler, die eine ansonsten starke Liste untergraben.",
         },
         {
           type: "h2",
@@ -2940,7 +2940,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Führen Sie Arbeiten ehrlich mit ihrem Status auf. Preprints werden auf Lebensläufen zunehmend akzeptiert, sollten aber als Preprints gekennzeichnet werden, und „eingereicht“ oder „im Druck“ sollte entsprechend angegeben werden. Stellen Sie nie nicht-begutachtete Arbeiten als begutachtete dar und führen Sie dasselbe Papier nicht zweimal auf (z. B. sowohl als Preprint als auch als veröffentlichte Version), ohne die Beziehung deutlich zu machen.",
+          text: "Führen Sie Arbeiten ehrlich mit ihrem Status auf. Preprints werden auf Lebensläufen zunehmend akzeptiert, sollten aber als Preprints gekennzeichnet werden, und „eingereicht“ oder „im Druck“ sollte entsprechend angegeben werden. Stellen Sie nie nicht-begutachtete Arbeiten als begutachtete dar und führen Sie denselben Artikel nicht zweimal auf (z. B. sowohl als Preprint als auch als veröffentlichte Version), ohne die Beziehung deutlich zu machen.",
         },
         {
           type: "h2",
@@ -3020,7 +3020,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Dies sind Orientierungswerte, keine Regeln. Ein starker, gut gegliederter viersseitiger Lebenslauf übertrifft einen aufgeblähten achtseitigen.",
+          text: "Dies sind Orientierungswerte, keine Regeln. Ein starker, gut gegliederter vierseitiger Lebenslauf übertrifft einen aufgeblähten achtseitigen.",
         },
         {
           type: "h2",
@@ -3047,7 +3047,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Der praktische Ansatz besteht darin, einen vollständigen „Stamm“-Lebenslauf zu pflegen und kürzere oder fördergeber-spezifische Versionen davon abzuleiten. SigmaCV macht dies aus einem einzigen kanonischen Profil heraus: Bewahren Sie alles an einem Ort, wenden Sie dann ein Ein-Klick-Layout an (NIH, NSF, ERC, UKRI R4RI und mehr) oder kürzen Sie Abschnitte für eine bestimmte Ausschreibung – reversibel und mit Exportfunktion.",
+          text: "Der praktische Ansatz besteht darin, einen vollständigen „Stamm-Lebenslauf“ zu pflegen und kürzere oder fördergeber-spezifische Versionen davon abzuleiten. SigmaCV macht dies aus einem einzigen kanonischen Profil heraus: Bewahren Sie alles an einem Ort, wenden Sie dann ein Ein-Klick-Layout an (NIH, NSF, ERC, UKRI R4RI und mehr) oder kürzen Sie Abschnitte für eine bestimmte Ausschreibung – reversibel und mit Exportfunktion.",
         },
         {
           type: "cta",
@@ -3067,7 +3067,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       ],
     },
     "academic-cv-for-grad-school": {
-      title: "Akademischer Lebenslauf für Bewerbungen ans Graduierteninstitut",
+      title: "Akademischer Lebenslauf für Bewerbungen für die Graduiertenschule",
       description:
         "Was in einen akademischen Lebenslauf für Master-, Promotions- oder Graduiertenstudiumsbewerbungen gehört, wenn man noch nicht viele Publikationen hat – und wie man einen Zulassungsausschuss überzeugend beeindruckt.",
       blocks: [
@@ -3083,7 +3083,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         {
           type: "ul",
           items: [
-            "Ausbildung – Abschlüsse, Institutionen, Daten und Ihre Note, wenn sie gut ist; fügen Sie Ihren Abschlussarbeits- oder Abschlussprojetttitel hinzu.",
+            "Ausbildung – Abschlüsse, Institutionen, Daten und Ihre Note, wenn sie gut ist; fügen Sie Ihren Abschlussarbeits- oder Abschlussprojekttitel hinzu.",
             "Forschungserfahrung – Labors, Projekte und Abschlussarbeiten mit Ihrer Rolle, Methoden und Ergebnissen.",
             "Publikationen & Vorträge – etwaige Artikel, Preprints, Poster oder Konferenzvorträge, auch in frühem Stadium.",
             "Kompetenzen – Labor-, technische, statistische, Programmier- und Sprachkompetenzen, die für das Fachgebiet relevant sind.",
@@ -3153,7 +3153,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Der Journal Impact Factor (JIF) misst die durchschnittlichen Zitierungen einer Zeitschrift, nicht die Qualität oder Wirkung Ihres einzelnen Artikels. Zitierungsverteilungen sind stark linksschieft, sodass ein einzelnes Papier in einer Zeitschrift mit hohem JIF einem Leser kaum etwas über diesen Artikel aussagt. DORA – die San Francisco Declaration on Research Assessment – rät ausdrücklich davon ab, den JIF zur Bewertung einzelner Forschungsleistungen oder Forschender zu verwenden.",
+          text: "Der Journal Impact Factor (JIF) misst die durchschnittlichen Zitierungen einer Zeitschrift, nicht die Qualität oder Wirkung Ihres einzelnen Artikels. Zitierungsverteilungen sind stark linksschieft, sodass ein einzelnen Artikel in einer Zeitschrift mit hohem JIF einem Leser kaum etwas über diesen Artikel aussagt. DORA – die San Francisco Declaration on Research Assessment – rät ausdrücklich davon ab, den JIF zur Bewertung einzelner Forschungsleistungen oder Forschender zu verwenden.",
         },
         {
           type: "h2",
@@ -3389,7 +3389,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "一貫性の欠如は最も多く見られる失敗です。Citation Style Language（CSL）——Zoteroなどのツールのベースとなっているオープンスタンダードあるいは標準——を通じてすべての参考文献をフォーマットすることで、Word、PDF、LaTeX版のCVが同一の見た目になります。",
+          text: "一貫性の欠如は最も多く見られる失敗です。Citation Style Language（CSL）——Zoteroなどのツールのベースとなっているオープンスタンダード——を通じてすべての参考文献をフォーマットすることで、Word、PDF、LaTeX版のCVが同一の見た目になります。",
         },
         {
           type: "h2",
@@ -3398,7 +3398,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "固定されたページ制限はありません——アカデミックCVは実績に見合う長さであり、時間とともに増えていきます。目安として、修士・博士課程の申請者は2〜4ページ、ポスドクは3〜6ページ、シニアプロフェッサーはそれを大幅に超えることもあります。例外は、資金提供機関や求人の「ショートCV」で、多くは長さが制限されています（例：2ページ）。あるいはNIH biosketch、UKRI R4RI（Résumé for Research and Innovation）、ERC CVのようなナラティブ形式を使用します。公募が形式やページ数を指定している場合は、それに厳密に従ってください。",
+          text: "固定されたページ制限はありません——アカデミックCVは実績に見合う長さであり、時間とともに増えていきます。目安として、修士・博士課程の申請者は2〜4ページ、ポスドクは3〜6ページ、シニアプロフェッサーはそれを大幅に超えることもあります。例外は、資金提供機関や求人の「ショートCV」で、多くは長さが制限されています（例：2ページ）。あるいはNIH biosketch、UKRIのRésumé for Research and Innovation (R4RI)、ERC CVのようなナラティブ形式を使用します。公募が形式やページ数を指定している場合は、それに厳密に従ってください。",
         },
         {
           type: "h2",
@@ -3689,7 +3689,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "多くの資金提供機関や雇用主は、厳格なページ制限（多くの場合2ページ）の「ショートCV」、またはNIH biosketch、UKRI R4RI（Résumé for Research and Innovation）、ERC CV、スイスSNSF形式のような構造化されたナラティブ形式を求めます。公募が長さや形式を指定している場合は厳密に従ってください——制限を超えると申請書が未読で却下されることもあります。",
+          text: "多くの資金提供機関や雇用主は、厳格なページ制限（多くの場合2ページ）の「ショートCV」、またはNIH biosketch、UKRIのRésumé for Research and Innovation (R4RI)、ERC CV、スイスSNSF形式のような構造化されたナラティブ形式を求めます。公募が長さや形式を指定している場合は厳密に従ってください——制限を超えると申請書が未読で却下されることもあります。",
         },
         {
           type: "h2",
@@ -3876,7 +3876,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       faq: [
         {
           q: "CVにh-indexを記載すべきですか？",
-          a: "任意であり、分野によって異なります。記載する場合は文脈を与え、単独で提示せず分野規準化指標と組み合わせてください。多くの委員会は単一の数値への過度の依存を勧めていません。",
+          a: "任意であり、分野によって異なります。記載する場合は文脈を与え、単独で提示せず分野規準化指標と組み合わせてください。多くの委員会は単一の数値への過度の依存しないよう推奨しています。",
         },
         {
           q: "CVにジャーナルのインパクトファクターを記載してもよいですか？",
@@ -3936,7 +3936,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "主要な資金提供機関はそれぞれ独自の形式を求めることが増えています。英国のUKRI R4RI（Résumé for Research and Innovation）、EUのERC CV、スイスのSNSF形式、米国のNIH biosketやNSF形式などです。これらはナラティブまたは厳格に構造化されており、標準CVとは異なります——各応募のために完全な記録から準備してください。",
+          text: "主要な資金提供機関はそれぞれ独自の形式を求めることが増えています。英国のUKRI R4RI（Résumé for Research and Innovation）、EUのERC CV、スイスのSNSF形式、米国のNIH biosketchchやNSF形式などです。これらはナラティブまたは厳格に構造化されており、標準CVとは異なります——各応募のために完全な記録から準備してください。",
         },
         {
           type: "h2",
@@ -4184,7 +4184,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         {
           type: "h2",
           id: "build-either",
-          text: "Gere qualquer um a partir do seu registro de pesquisa",
+          text: "Gere um ou outro a partir do seu registro de pesquisa",
         },
         {
           type: "p",
@@ -4321,7 +4321,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       blocks: [
         {
           type: "p",
-          text: "A resposta breve: um currículo acadêmico é tão longo quanto seu histórico justifica e cresce ao longo da carreira. Ao contrário de um résumé, não há expectativa de que caiba em uma ou duas páginas. Mas a extensão depende da etapa da carreira e do contexto, e há exceções importantes.",
+          text: "Resumidamente, um currículo acadêmico é tão longo quanto seu histórico justifica e cresce ao longo da carreira. Ao contrário de um résumé, não há expectativa de que caiba em uma ou duas páginas. Mas a extensão depende da etapa da carreira e do contexto, e há exceções importantes.",
         },
         {
           type: "h2",
@@ -4500,7 +4500,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           type: "ul",
           items: [
             "DORA — não use métricas baseadas em periódicos (como o JIF) para avaliar contribuições individuais; avalie a pesquisa pelos seus próprios méritos.",
-            "O Leiden Manifesto — use indicadores quantitativos para apoiar, e não substituir, o julgamento especializado; leve em conta as diferenças entre áreas; mantenha os dados e métodos transparentes; e evite a concretude equivocada.",
+            "O Leiden Manifesto — use indicadores quantitativos para apoiar, e não substituir, o julgamento especializado; leve em conta as diferenças entre áreas; mantenha os dados e métodos transparentes; e evite a falsa concretude.",
           ],
         },
         {
@@ -4632,7 +4632,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       blocks: [
         {
           type: "p",
-          text: "Il curriculum vitae accademico (curriculum vitae) è il documento standard per le candidature a posizioni di ricerca e insegnamento, programmi di dottorato, fellowship e finanziamenti. A differenza di un résumé di una o due pagine, è un registro completo e in continua evoluzione della propria vita scientifica — formazione, pubblicazioni, finanziamenti, attività didattica e servizi — e cresce nel corso dell'intera carriera.",
+          text: "Il curriculum vitae accademico (curriculum vitae) è il documento standard per le candidature a posizioni di ricerca e insegnamento, programmi di dottorato, fellowship e finanziamenti. A differenza di un résumé di una o due pagine, è un registro completo e in continua evoluzione della propria vita scientifica — formazione, pubblicazioni, finanziamenti, attività didattica e servizioo — e cresce nel corso dell'intera carriera.",
         },
         {
           type: "p",
@@ -4692,7 +4692,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "La lista delle pubblicazioni è la sezione su cui la maggior parte delle commissioni si sofferma di più, quindi è importante renderla scorrevole nella lettura e inequivocabile:",
+          text: "La lista delle pubblicazioni è la sezione su cui la maggior parte delle commissioni si sofferma di più, quindi è importante renderla di facile consultazione e inequivocabile:",
         },
         {
           type: "ul",
@@ -4701,8 +4701,8 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
             "Utilizzare uno stile citazionale coerente per tutta la lista e mantenerlo identico in ogni versione del CV.",
             "Mettere in evidenza il proprio nome in ogni lista di autori affinché il contributo sia immediatamente visibile.",
             "Includere i DOI (e i link) per consentire ai lettori di trovare l'opera.",
-            "Indicare chiaramente e onestamente le opere in revisione, in press o i preprint.",
-            "Non gonfiare la lista — la qualità e la pertinenza comunicano meglio del volume.",
+            "Indicare chiaramente e onestamente le opere in revisione, in corso di stampa o i preprint.",
+            "Non gonfiare la lista — la qualità e la pertinenza sono più apprezzate del volume.",
           ],
         },
         {
@@ -4727,7 +4727,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           type: "ul",
           items: [
             "Studenti e candidati alla scuola di dottorato — mettere in evidenza la formazione, la tesi o il progetto di ricerca, eventuali pubblicazioni o presentazioni, le competenze rilevanti e le referenze; è accettabile essere brevi.",
-            "Dottorandi e postdoc — dare risalto alle pubblicazioni, all'attività congressuale, ai finanziamenti/fellowship e alla didattica; tenerlo aggiornato per le scadenze continue di candidature e grant.",
+            "Dottorandi e postdoc — dare risalto alle pubblicazioni, all'attività congressuale, ai finanziamenti/fellowship e alla didattica; tenerlo aggiornato per le scadenze continue di candidature e di finanziamenti.",
             "Docenti e principal investigator — mettere in primo piano finanziamenti, pubblicazioni, supervisione e servizio/leadership; è atteso un documento lungo e articolato in sezioni, accompagnato da un CV breve separato per gli enti finanziatori.",
           ],
         },
@@ -4786,7 +4786,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           q: "Si può generare automaticamente un curriculum vitae accademico?",
-          a: "Sì. SigmaCV costruisce un CV accademico a partire dal tuo profilo ORCID e OpenAlex (abbinato per identificatore, non per nome), formatta le citazioni ed esporta in PDF, DOCX, LaTeX, Markdown o BibTeX — gratuitamente e con codice aperto.",
+          a: "Sì. SigmaCV costruisce un CV accademico a partire dal tuo profilo ORCID e OpenAlex (abbinato per identificatore, non per nome), formatta le citazioni ed esporta in PDF, DOCX, LaTeX, Markdown o BibTeX — gratuitamente e open source.",
         },
       ],
     },
@@ -4882,7 +4882,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Scegliere uno stile citazionale appropriato al proprio campo (ad esempio APA, Vancouver, Chicago o IEEE) e applicarlo a ogni voce. Il difetto più comune è mescolare stili o formattare i riferimenti manualmente, così che nessuno abbia lo stesso aspetto. Formattare l'intera lista attraverso un unico motore — il Citation Style Language (CSL), lo standard alla base di gestori bibliografici come Zotero — garantisce la coerenza tra le versioni PDF, Word e LaTeX del CV.",
+          text: "Scegliere uno stile citazionale appropriato al proprio campo (ad esempio APA, Vancouver, Chicago o IEEE) e applicarlo a ogni voce. Il difetto più comune è mescolare stili o formattare i riferimenti manualmente, con il risultato che la formattazione non è mai del tutto uniforme. Formattare l'intera lista attraverso un unico motore — il Citation Style Language (CSL), lo standard alla base di gestori bibliografici come Zotero — garantisce la coerenza tra le versioni PDF, Word e LaTeX del CV.",
         },
         {
           type: "h2",
@@ -4893,8 +4893,8 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           type: "ul",
           items: [
             "Elencare le opere in ordine cronologico inverso (dalla più recente).",
-            "Raggruppare per tipo quando la lista è lunga: articoli su riviste peer-reviewed, preprint, capitoli di libro, comunicazioni a congresso, dataset e software.",
-            "Etichettare e separare chiaramente i gruppi affinché il lettore possa trovare immediatamente le opere peer-reviewed.",
+            "Raggruppare per tipo quando la lista è lunga: articoli su riviste sottoposti a revisione paritaria, preprint, capitoli di libro, comunicazioni a congresso, dataset e software.",
+            "Etichettare e separare chiaramente i gruppi affinché il lettore possa trovare immediatamente le opere sottoposte a revisione paritaria.",
             "Essere coerenti nella numerazione — numerare tutte le voci o nessuna.",
           ],
         },
@@ -4908,17 +4908,17 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           items: [
             "Evidenziare il proprio nome (ad esempio in grassetto) in ogni lista di autori.",
             "Indicare i ruoli di primo autore, autore corrispondente e contributo equivalente con una notazione chiara e spiegata.",
-            "Ricordare che le convenzioni sull'ordine degli autori variano a seconda del campo — aggiungere una breve nota se la convenzione del proprio settore non è immediatamente ovvia.",
+            "Ricordare che le convenzioni sull'ordine degli autori variano a seconda del settore — aggiungere una breve nota se la convenzione del proprio settore non è immediatamente ovvia.",
           ],
         },
         {
           type: "h2",
           id: "status",
-          text: "Preprint, opere in revisione e in press",
+          text: "Preprint, opere in revisione e in corso di stampa",
         },
         {
           type: "p",
-          text: "Elencare le opere onestamente con il relativo stato. I preprint sono sempre più accettati nei CV ma devono essere etichettati come tali, e le voci «in revisione» o «in press» devono indicarlo esplicitamente. Non presentare mai un'opera non sottoposta a revisione tra pari come pubblicata, e non elencare la stessa opera due volte (ad esempio come preprint e come versione pubblicata) senza chiarire la relazione.",
+          text: "Elencare le opere onestamente con il relativo stato. I preprint sono sempre più accettati nei CV ma devono essere etichettati come tali, e le voci «in revisione» o «in press» devono indicarlo esplicitamente. Non presentare mai un'opera non sottoposta a revisione paritaria come se lo fosse, e non elencare la stessa opera due volte (ad esempio come preprint e come versione pubblicata) senza chiarire la relazione.",
         },
         {
           type: "h2",
@@ -4965,7 +4965,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           q: "Devo includere i preprint nel CV?",
-          a: "Sì — i preprint sono sempre più accettati — ma etichettarli chiaramente come tali e tenerli separati dagli articoli peer-reviewed.",
+          a: "Sì — i preprint sono sempre più accettati — ma etichettarli chiaramente come tali e tenerli separati dagli articoli sottoposti a revisione paritaria.",
         },
         {
           q: "Come si indica la co-primo-autorialità o il contributo equivalente?",
@@ -5016,7 +5016,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "La completezza è attesa, ma il gonfiaggio non lo è. Includere ciò che è rilevante, ordinarlo in modo che il materiale più forte sia facile da trovare e tagliare il superfluo. I revisori premiano la chiarezza e la pertinenza, non il numero di pagine.",
+          text: "La completezza è attesa, ma non il riempimento superfluo. Includere ciò che è rilevante, ordinarlo in modo che il materiale più forte sia facile da trovare e tagliare il superfluo. I revisori premiano la chiarezza e la pertinenza, non il numero di pagine.",
         },
         {
           type: "h2",
@@ -5357,7 +5357,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         {
           type: "ul",
           items: [
-            "역연대순으로 저작물을 나열하고, 필요에 따라 유형별(학술지 논문, 프리프린트, 단행본 챕터, 학술대회 논문, 데이터셋, 소프트웨어)로 그룹화합니다.",
+            "역연대순으로 저작물을 나열하고, 필요에 따라 유형별(학술지 논문, 프리프린트, 북챕터, 학술대회 논문, 데이터셋, 소프트웨어)로 그룹화합니다.",
             "전체에 걸쳐 하나의 일관된 인용 스타일을 사용하고, CV의 모든 버전에서 동일하게 유지합니다.",
             "각 저자 목록에서 귀하의 이름을 강조 표시하여 기여도를 한눈에 파악할 수 있게 합니다.",
             "독자가 저작물을 찾을 수 있도록 DOI(및 링크)를 포함합니다.",
@@ -5367,7 +5367,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "일관성은 가장 흔한 실패 지점입니다. 단일 인용 스타일로 — Citation Style Language(CSL)는 Zotero 같은 도구 이면의 표준입니다 — 모든 참고문헌을 형식화하면 Word, PDF, LaTeX CV가 모두 동일하게 표시됩니다.",
+          text: "일관성은 가장 흔한 실패 지점입니다. 단일 인용 스타일로 — Citation Style Language(CSL)는 Zotero 같은 도구에서 사용하는 표준입니다 — 모든 참고문헌을 형식화하면 Word, PDF, LaTeX CV가 모두 동일하게 표시됩니다.",
         },
         {
           type: "h2",
@@ -5498,7 +5498,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "학술 CV를 이력서로 바꾸려면, 짧은 요약으로 시작하고, 가장 관련성 높은 경험과 몇 가지 대표적인 성과물만 유지하며, 학술적 성취를 영향력과 이전 가능한 역량으로 표현하고, 1~2페이지로 압축하십시오. 완전한 CV를 마스터 기록으로 유지하고 그로부터 더 짧은 문서를 도출하십시오.",
+          text: "학술 CV를 이력서로 바꾸려면, 짧은 요약으로 시작하고, 가장 관련성 높은 경험과 몇 가지 대표적인 성과물만 유지하며, 학술적 성취를 영향력과 활용 가능한 역량으로 표현하고, 1~2페이지로 압축하십시오. 완전한 CV를 마스터 기록으로 유지하고 그로부터 더 짧은 문서를 도출하십시오.",
         },
         {
           type: "h2",
@@ -5542,7 +5542,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "귀하의 분야에 적합한 인용 스타일(예: APA, Vancouver, Chicago, IEEE)을 선택하고 모든 항목에 적용하십시오. 가장 흔한 실수는 스타일을 혼용하거나 참고문헌을 수동으로 형식화하여 모든 항목이 조금씩 다르게 보이는 것입니다. 하나의 엔진 — Citation Style Language(CSL), Zotero 같은 참고문헌 관리 도구 이면의 표준 — 으로 전체 목록을 형식화하면 PDF, Word, LaTeX CV 전반의 일관성이 보장됩니다.",
+          text: "귀하의 분야에 적합한 인용 스타일(예: APA, Vancouver, Chicago, IEEE)을 선택하고 모든 항목에 적용하십시오. 가장 흔한 실수는 스타일을 혼용하거나 참고문헌을 수동으로 형식화하여 모든 항목이 조금씩 다르게 보이는 것입니다. 하나의 엔진 — Citation Style Language(CSL), Zotero 같은 참고문헌 관리 도구에서 사용하는 표준 — 으로 전체 목록을 형식화하면 PDF, Word, LaTeX CV 전반의 일관성이 보장됩니다.",
         },
         {
           type: "h2",
@@ -5553,7 +5553,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           type: "ul",
           items: [
             "역연대순(최신순)으로 저작물을 나열합니다.",
-            "목록이 길 경우 유형별로 그룹화합니다: 동료 심사 학술지 논문, 프리프린트, 단행본 챕터, 학술대회 논문, 데이터셋 및 소프트웨어.",
+            "목록이 길 경우 유형별로 그룹화합니다: 동료 심사 학술지 논문, 프리프린트, 북챕터, 학술대회 논문, 데이터셋 및 소프트웨어.",
             "독자가 동료 심사 저작물을 즉시 찾을 수 있도록 그룹을 명확히 레이블링하고 구분합니다.",
             "번호 매기기에 일관성을 유지합니다 — 모든 항목에 번호를 매기거나 전혀 매기지 않습니다.",
           ],
@@ -5567,7 +5567,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
           type: "ul",
           items: [
             "모든 저자 목록에서 귀하의 이름을 강조 표시합니다(예: 굵게).",
-            "제1저자, 교신저자, 공동 제1저자 역할을 명확하고 설명이 포함된 표기로 나타냅니다.",
+            "제1저자, 교신저자, 동등 기여 역할을 명확하고 설명이 포함된 표기로 나타냅니다.",
             "저자 순서 관례가 분야마다 다르다는 점을 기억하십시오 — 귀하 분야의 관례가 명확하지 않다면 한 줄의 주석을 추가하십시오.",
           ],
         },
@@ -5685,7 +5685,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "실용적인 접근은 하나의 완전한 '마스터' CV를 유지하고 그로부터 더 짧거나 기관별 버전을 도출하는 것입니다. SigmaCV는 단일 표준 기록에서 이를 가능하게 합니다: 모든 내용을 한 곳에 유지하면서 원클릭 레이아웃(NIH, NSF, ERC, UKRI R4RI 등)을 적용하거나 특정 공모를 위해 섹션을 가역적으로 조정하고 내보낼 수 있습니다.",
+          text: "실용적인 접근은 하나의 완전한 '마스터' CV를 유지하고 그로부터 더 짧거나 기관별 버전을 도출하는 것입니다. SigmaCV는 단일 표준 기록에서 이를 가능하게 합니다: 모든 내용을 한 곳에 유지하면서 원클릭 레이아웃(NIH, NSF, ERC, UKRI R4RI 등)을 적용하거나 특정 공모를 위해 섹션을 되돌릴 수 있도록 조정하고 내보낼 수 있습니다.",
         },
         {
           type: "cta",
@@ -5781,7 +5781,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       blocks: [
         {
           type: "p",
-          text: "지표는 CV에서 매력적인 단축키처럼 보이지만 쉽게 남용될 수 있으며, 위원회는 점점 더 연구자가 책임감 있게 사용하기를 기대합니다. 이 가이드는 어떤 지표가 오해를 유발하고, 어떤 지표가 더 신뢰할 수 있으며, 주요 책임 평가 프레임워크가 권고하는 내용을 설명합니다.",
+          text: "지표는 CV에서 매력적인 간편한 척도처럼 보이지만 쉽게 남용될 수 있으며, 위원회는 점점 더 연구자가 책임감 있게 사용하기를 기대합니다. 이 가이드는 어떤 지표가 오해를 유발하고, 어떤 지표가 더 신뢰할 수 있으며, 주요 책임 평가 프레임워크가 권고하는 내용을 설명합니다.",
         },
         {
           type: "h2",
@@ -6026,7 +6026,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Единообразие — наиболее частая точка сбоя. Оформление всех ссылок через единый стиль цитирования — Citation Style Language (CSL) является стандартом, лежащим в основе таких инструментов, как Zotero, — гарантирует, что ваши Word-, PDF- и LaTeX-резюме будут выглядеть идентично.",
+          text: "Единообразие — самая распространённая ошибка. Оформление всех ссылок через единый стиль цитирования — Citation Style Language (CSL) является стандартом, лежащим в основе таких инструментов, как Zotero, — гарантирует, что ваши резюме в форматах Word, PDF и LaTeX будут выглядеть идентично.",
         },
         {
           type: "h2",
@@ -6057,7 +6057,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Требования различаются. В США и Канаде академическое «CV» — это полный научный документ («résumé» — его краткая версия для промышленности), тогда как во многих европейских странах понятие «CV» может означать и то, и другое. В одних странах принято включать фотографию, дату рождения или гражданство; во многих других — а также в большинстве академических контекстов США и Великобритании — личные данные намеренно опускаются во избежание предвзятости. Европейские соискатели иногда используют формат Europass, а крупные финансирующие организации всё чаще требуют собственных нарративных форматов резюме. В случае сомнений ориентируйтесь на нормы страны и учреждения, в которое вы подаёте заявку.",
+          text: "Принятые нормы различаются. В США и Канаде академическое «CV» — это полный научный документ («résumé» — его краткая версия для промышленности), тогда как во многих европейских странах понятие «CV» может означать и то, и другое. В одних странах принято включать фотографию, дату рождения или гражданство; во многих других — а также в большинстве академических контекстов США и Великобритании — личные данные намеренно опускаются во избежание предвзятости. Европейские соискатели иногда используют формат Europass, а крупные финансирующие организации всё чаще требуют собственных нарративных форматов резюме. В случае сомнений ориентируйтесь на нормы страны и учреждения, в которое вы подаёте заявку.",
         },
         {
           type: "h2",
@@ -6072,7 +6072,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
             "Устаревание резюме между подачами заявлений.",
             "Игнорирование требуемого формата или лимита страниц, предписанных конкурсом.",
             "Опора на совпадение имени для идентификации публикаций — распространённые и нелатинские имена легко спутать с работами другого автора.",
-            "Опечатки и нерабочие ссылки — вычитывайте текст и проверяйте, что каждый DOI разрешается корректно.",
+            "Опечатки и нерабочие ссылки — вычитывайте текст и проверяйте, что каждый DOI корректно работает.",
           ],
         },
         {
@@ -6101,7 +6101,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           q: "Как следует оформлять список публикаций в академическом резюме?",
-          a: "Перечисляйте работы в обратном хронологическом порядке, при необходимости группируя по типу, с использованием единого стиля цитирования, с выделенным именем автора и указанием DOI. Чётко помечайте препринты и работы на рецензировании; не раздувайте список.",
+          a: "Перечисляйте работы в обратном хронологическом порядке, при необходимости группируя по типу, с использованием единого стиля цитирования, с выделенным вашим именем и указанием DOI. Чётко помечайте препринты и работы на рецензировании; не раздувайте список.",
         },
         {
           q: "Можно ли автоматически сформировать академическое резюме?",
@@ -6157,7 +6157,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Чтобы превратить академическое резюме в résumé, начните с краткого резюмирующего раздела, оставьте только наиболее актуальный опыт и несколько репрезентативных результатов, переведите академические достижения в формат воздействия и передаваемых навыков и сократите документ до одной-двух страниц. Сохраняйте полное резюме как основной документ и создавайте на его основе более краткие версии.",
+          text: "Чтобы превратить академическое резюме в résumé, начните с краткого резюмирующего раздела, оставьте только наиболее актуальный опыт и несколько репрезентативных результатов, опишите академические достижения с точки зрения их влияния и передаваемых навыков и сократите документ до одной-двух страниц. Сохраняйте полное резюме как основной документ и создавайте на его основе более краткие версии.",
         },
         {
           type: "h2",
@@ -6166,7 +6166,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "SigmaCV формирует академическое резюме на основе ваших записей в ORCID и OpenAlex и экспортирует его в различных форматах и с одним нажатием применяет различные макеты — так вы можете вести одну каноническую запись и получать нужную версию для каждой заявки. Это бесплатно, с открытым исходным кодом и с приоритетом конфиденциальности.",
+          text: "SigmaCV формирует академическое резюме на основе ваших записей в ORCID и OpenAlex и экспортирует его в различных форматах и предлагает готовые макеты, которые применяются одним нажатием — так вы можете вести одну каноническую запись и получать нужную версию для каждой заявки. Это бесплатно, с открытым исходным кодом и с приоритетом конфиденциальности.",
         },
         {
           type: "cta",
@@ -6201,7 +6201,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Выберите стиль цитирования, принятый в вашей области (например APA, Vancouver, Chicago или IEEE), и применяйте его к каждой записи. Наиболее распространённая ошибка — смешение стилей или ручное оформление ссылок, при котором ни одна из них не выглядит так же, как другие. Оформление всего списка через единый механизм — Citation Style Language (CSL), являющийся стандартом для менеджеров библиографий, таких как Zotero, — гарантирует единообразие в ваших PDF-, Word- и LaTeX-резюме.",
+          text: "Выберите стиль цитирования, принятый в вашей области (например APA, Vancouver, Chicago или IEEE), и применяйте его к каждой записи. Наиболее распространённая ошибка — смешение стилей или ручное оформление ссылок, при котором ни одна из них не выглядит так же, как другие. Оформление всего списка через единый механизм — Citation Style Language (CSL), являющийся стандартом для менеджеров библиографий, таких как Zotero, — гарантирует единообразие в ваших резюме в форматах PDF, Word и LaTeX.",
         },
         {
           type: "h2",
@@ -6259,7 +6259,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
             "Смешения стилей цитирования в рамках одного документа.",
             "Раздувания списка незначительными или не относящимися к делу записями.",
             "Непоследовательного написания собственного имени в разных записях.",
-            "Нерабочих или отсутствующих DOI — проверяйте, что каждая ссылка разрешается корректно.",
+            "Нерабочих или отсутствующих DOI — проверяйте, что каждая ссылка корректно работает.",
           ],
         },
         {
@@ -6335,7 +6335,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Полнота обязательна, но «раздутость» — нет. Включайте то, что актуально, располагайте материал так, чтобы самое сильное было легко найти, и устраняйте наполнитель. Рецензенты ценят ясность и значимость, а не количество страниц.",
+          text: "Полнота обязательна, но «раздутость» — нет. Включайте то, что актуально, располагайте материал так, чтобы самое сильное было легко найти, и избегайте лишней информации. Рецензенты ценят ясность и значимость, а не количество страниц.",
         },
         {
           type: "h2",
@@ -6429,7 +6429,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           q: "Каким должно быть резюме для поступления в аспирантуру?",
-          a: "Обычно 2–4 страницы. Сосредоточьтесь на главном: чётко представленный исследовательский опыт и несколько репрезентативных материалов лучше наполнителя.",
+          a: "Обычно 2–4 страницы. Сосредоточьтесь на главном: чётко представленный исследовательский опыт и несколько репрезентативных материалов лучше избыточной информации.",
         },
       ],
     },
@@ -6468,7 +6468,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
         },
         {
           type: "p",
-          text: "Нормализованные по области показатели — такие как FWCI (Field-Weighted Citation Impact) или NIH iCite Relative Citation Ratio (RCR) — учитывают различия в интенсивности цитирования между областями и в динамике времени, поэтому они более сопоставимы, чем абсолютные значения. Они также несовершенны и должны восприниматься в контексте, а не как единственный сигнал.",
+          text: "Нормализованные по области показатели — такие как FWCI (Field-Weighted Citation Impact) или NIH iCite Relative Citation Ratio (RCR) — учитывают различия в интенсивности цитирования между областями и в динамике времени, поэтому они более сопоставимы, чем абсолютные значения. Они также несовершенны и должны восприниматься в контексте, а не как единственный показатель.",
         },
         {
           type: "h2",
