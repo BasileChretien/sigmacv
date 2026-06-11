@@ -45,6 +45,7 @@ import { fetchIctrpTrials } from "@/lib/ictrp/client";
 import { fetchEpoPatents } from "@/lib/epo/client";
 import { cvSlug } from "@/lib/render/slug";
 import { logCvSave } from "@/lib/research/log";
+import { computeSyncReport, safeParseSyncReport, type SyncReport } from "./syncReport";
 
 /** Thrown when a save is attempted before the user has a CV row. */
 export class CvNotFoundError extends Error {
@@ -117,19 +118,38 @@ interface SyncOptions {
   fallbackName?: string;
 }
 
+/** What a sync returns: the rebuilt document plus its "what changed" report. */
+export interface SyncResult {
+  cv: CanonicalCv;
+  report: SyncReport;
+}
+
 /**
  * Resolve OpenAlex author id(s) from the ORCID iD, pull works, (re)build the
- * canonical object — preserving prior curation + display choices — and persist.
+ * canonical object — preserving prior curation + display choices — and persist,
+ * along with a {@link SyncReport} of what changed (surfaced in the editor).
  */
-export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
+export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   const { userId, orcid, fallbackName } = opts;
   const now = new Date().toISOString();
+  const startedAt = Date.now();
+
+  // Per-source fetch durations. Every client fails SOFT (an upstream hiccup
+  // yields [], never a throw), so a wall-clock spike or a zero count in the
+  // report is the only observable trace of a struggling source.
+  const timingsMs: Record<string, number> = {};
+  const timed = <T>(key: string, p: Promise<T>): Promise<T> => {
+    const t0 = Date.now();
+    return p.finally(() => {
+      timingsMs[key] = Math.round(Date.now() - t0);
+    });
+  };
 
   const existing = await prisma.cv.findUnique({ where: { userId } });
   const previousParsed = existing ? safeParseCanonicalCv(existing.document) : null;
   const previous = previousParsed?.success ? previousParsed.data : null;
 
-  const resolved = await resolveAuthorByOrcid(orcid);
+  const resolved = await timed("openalex.resolveAuthor", resolveAuthorByOrcid(orcid));
   const mailto = getEnv().OPENALEX_MAILTO;
   const [
     works,
@@ -148,27 +168,30 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     wikidataIdentity,
     orcidWorkTypes,
   ] = await Promise.all([
-    resolved ? fetchWorksByAuthorIds(resolved.authorIds) : Promise.resolve([]),
-    fetchEditorialRoles(orcid),
-    fetchOrcidPositions(orcid),
-    fetchOrcidFundings(orcid),
-    fetchOrcidInvitedPositions(orcid),
-    fetchOrcidEducation(orcid),
-    fetchOrcidDistinctions(orcid),
-    fetchOrcidService(orcid),
-    fetchOrcidPeerReviews(orcid),
-    fetchDataciteOutputs(orcid),
+    timed(
+      "openalex.works",
+      resolved ? fetchWorksByAuthorIds(resolved.authorIds) : Promise.resolve([]),
+    ),
+    timed("oep", fetchEditorialRoles(orcid)),
+    timed("orcid.positions", fetchOrcidPositions(orcid)),
+    timed("orcid.fundings", fetchOrcidFundings(orcid)),
+    timed("orcid.invited", fetchOrcidInvitedPositions(orcid)),
+    timed("orcid.education", fetchOrcidEducation(orcid)),
+    timed("orcid.distinctions", fetchOrcidDistinctions(orcid)),
+    timed("orcid.service", fetchOrcidService(orcid)),
+    timed("orcid.peerReviews", fetchOrcidPeerReviews(orcid)),
+    timed("datacite", fetchDataciteOutputs(orcid)),
     // ORCID-matched supplements (auto-included): datasets/software, conference
     // papers, Crossref grants; plus the owner's Wikidata identity for the page.
-    fetchOpenaireOutputs(orcid),
-    fetchDblpConferencePapers(orcid),
-    fetchCrossrefGrantsByOrcid(orcid, mailto),
-    fetchWikidataIdentity(orcid),
+    timed("openaire", fetchOpenaireOutputs(orcid)),
+    timed("dblp", fetchDblpConferencePapers(orcid)),
+    timed("crossref.grants", fetchCrossrefGrantsByOrcid(orcid, mailto)),
+    timed("wikidata", fetchWikidataIdentity(orcid)),
     // ORCID self-asserted work TYPES (DOI → type) — refine section placement so
     // posters/talks/datasets aren't mis-filed as preprints. This re-traverses
     // /works; the orcidDiscovery pass also hits /works, so the Next fetch cache
     // (orcidGet `revalidate: 3600`) serves one of them from cache, not the network.
-    fetchOrcidWorkTypes(orcid),
+    timed("orcid.workTypes", fetchOrcidWorkTypes(orcid)),
   ]);
 
   // Registries with NO ORCID (national funders + trial registries) are matched by
@@ -195,18 +218,18 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
     patents,
     orcidDiscoveredWorks,
   ] = await Promise.all([
-    fetchClinicalTrials(displayName, matchOrgs),
-    fetchCtisTrials(displayName, matchOrgs),
-    fetchIctrpTrials(displayName, matchOrgs),
-    fetchUkriGrants(displayName, matchOrgs),
-    fetchNihGrants(displayName, matchOrgs),
-    fetchNsfGrants(displayName, matchOrgs),
-    fetchEpoPatents(displayName, matchOrgs),
+    timed("clinicaltrials", fetchClinicalTrials(displayName, matchOrgs)),
+    timed("ctis", fetchCtisTrials(displayName, matchOrgs)),
+    timed("ictrp", fetchIctrpTrials(displayName, matchOrgs)),
+    timed("ukri", fetchUkriGrants(displayName, matchOrgs)),
+    timed("nih", fetchNihGrants(displayName, matchOrgs)),
+    timed("nsf", fetchNsfGrants(displayName, matchOrgs)),
+    timed("epo", fetchEpoPatents(displayName, matchOrgs)),
     // Works the user lists in ORCID that OpenAlex didn't attribute to their
     // author profile — surfaced as hidden review candidates. Only genuinely-new
     // DOIs are fetched (already-known ones are carried over by the build), so a
     // steady-state re-sync issues no extra OpenAlex calls.
-    discoverOrcidOnlyWorks({ orcid, openAlexWorks: works, previous }),
+    timed("orcid.discovery", discoverOrcidOnlyWorks({ orcid, openAlexWorks: works, previous })),
   ]);
 
   // Peer reviews carry the journal ISSN but not its name (ORCID records the
@@ -288,26 +311,69 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
 
   // Crossref: fill bibliographic gaps (journal, volume/issue, pages) on works
   // that have a DOI but incomplete OpenAlex metadata. Bounded + fails soft.
-  cv = await enrichCvWithCrossref(cv, getEnv().OPENALEX_MAILTO);
+  cv = await timed("enrich.crossref", enrichCvWithCrossref(cv, getEnv().OPENALEX_MAILTO));
 
   // NIH iCite: fold the Relative Citation Ratio onto works with a PMID (opt-in
   // biomedical field-normalized metric). Bounded + fails soft.
-  cv = await enrichCvWithIcite(cv);
+  cv = await timed("enrich.icite", enrichCvWithIcite(cv));
 
   // Crossref / Retraction Watch: flag retracted works (research-integrity signal).
   // Bounded + fails soft.
-  cv = await enrichCvWithRetractions(cv, getEnv().OPENALEX_MAILTO);
+  cv = await timed("enrich.retractions", enrichCvWithRetractions(cv, getEnv().OPENALEX_MAILTO));
 
   // Upgrade duplicate hints with Crossref's publisher-asserted preprint↔published
   // relationships (the build already ran the identifier + heuristic tiers). The
   // lookup is targeted at ambiguous pairs only and fails soft.
-  cv = await annotateDuplicatesWithRelations(cv, getEnv().OPENALEX_MAILTO);
+  cv = await timed(
+    "enrich.duplicates",
+    annotateDuplicatesWithRelations(cv, getEnv().OPENALEX_MAILTO),
+  );
 
   // Defence-in-depth: never persist a document above the public-render item cap.
   // saveCvForUser enforces this for user saves; the sync/resync path writes via
   // upsert directly, so cap here too — trimming (fail-soft), never failing. A
   // real synced CV is far below the cap (bounded by the ~5k OpenAlex fetch cap).
   cv = capCvItems(cv, MAX_TOTAL_CV_ITEMS);
+
+  // Items each source contributed to THIS build. A zero from a normally-rich
+  // source is the user-visible trace of a silent fail-soft (the clients log the
+  // error server-side but deliver an empty array).
+  const sourceCounts: Record<string, number> = {
+    openalex: works.length,
+    "orcid.positions": employments.length,
+    "orcid.fundings": fundings.length,
+    "orcid.invited": invitedPositions.length,
+    "orcid.education": education.length,
+    "orcid.distinctions": distinctions.length,
+    "orcid.service": service.length,
+    "orcid.peerReviews": peerReviews.length,
+    "orcid.discovery": orcidDiscoveredWorks.length,
+    oep: editorialRoles.length,
+    datacite: dataciteOutputs.length,
+    openaire: openaireOutputs.length,
+    dblp: dblpConferencePapers.length,
+    "crossref.grants": crossrefGrants.length,
+    clinicaltrials: ctgovTrials.length,
+    ctis: ctisTrials.length,
+    ictrp: ictrpTrials.length,
+    ukri: ukriGrants.length,
+    nih: nihGrants.length,
+    nsf: nsfGrants.length,
+    epo: patents.length,
+  };
+
+  const report = computeSyncReport(previous, cv, { syncedAt: now, sourceCounts, timingsMs });
+
+  // Sync-performance + outcome observability (one structured line per sync).
+  logger.info("cv.sync.completed", {
+    ms: Date.now() - startedAt,
+    added: report.addedTotal,
+    removed: report.removedTotal,
+    reviewCandidates: report.reviewCandidates,
+    initial: report.initial,
+    timingsMs,
+    sourceCounts,
+  });
 
   await prisma.cv.upsert({
     where: { userId },
@@ -317,15 +383,28 @@ export async function syncCvForUser(opts: SyncOptions): Promise<CanonicalCv> {
       document: cv as unknown as Prisma.InputJsonValue,
       schemaVersion: cv.schemaVersion,
       lastSyncedAt: new Date(),
+      lastSyncReport: report as unknown as Prisma.InputJsonValue,
     },
     update: {
       document: cv as unknown as Prisma.InputJsonValue,
       schemaVersion: cv.schemaVersion,
       lastSyncedAt: new Date(),
+      lastSyncReport: report as unknown as Prisma.InputJsonValue,
     },
   });
 
-  return cv;
+  return { cv, report };
+}
+
+/** The persisted report of the user's last sync, or null (never synced, or a
+ *  legacy/corrupt value — `safeParseSyncReport` degrades rather than throws). */
+export async function getLastSyncReport(userId: string): Promise<SyncReport | null> {
+  const row = await prisma.cv.findUnique({
+    where: { userId },
+    select: { lastSyncReport: true },
+  });
+  if (!row?.lastSyncReport) return null;
+  return safeParseSyncReport(row.lastSyncReport);
 }
 
 /** Persist a curated canonical document. Keyed by userId — never trusts a

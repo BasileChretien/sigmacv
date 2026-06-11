@@ -50,6 +50,14 @@ import {
   updateItemText,
 } from "@/lib/canonical/curate";
 import {
+  filterSectionItems,
+  notMineEligibleIds,
+  setItemsInView,
+  setItemsIncluded,
+  setItemsNotMine,
+  type BulkFilter,
+} from "@/lib/canonical/bulkCurate";
+import {
   applyCvModel,
   cvModelsByCategory,
   resetCvSections,
@@ -60,11 +68,13 @@ import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { FIELD_NORMALIZED_METRICS, metricHint } from "@/lib/i18n/metricHints";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
+import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
 import { trackEvent } from "@/lib/analytics/track";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
+import CvHealthPanel from "./CvHealthPanel";
 import ItemRow from "./ItemRow";
 import ProfilePanel from "./ProfilePanel";
 
@@ -226,6 +236,7 @@ export default function CvEditor({
   const cvLocale = asLocale(cv.display.locale);
   const u = ui(locale);
   const eu = editorUi(locale);
+  const wu = workspaceUi(locale);
   const ds = dupStrings(locale);
 
   // Metric values for the picker's per-row preview. Use the SAME curated figures
@@ -367,6 +378,44 @@ export default function CvEditor({
   // "(None)" is selected (no model) AND the layout is currently customized →
   // the Apply button resets the section layout back to the default.
   const canResetModel = !modelId && cv.display.sectionsCustomized;
+  // ── Bulk curation ──────────────────────────────────────────────────────────
+  // One section at a time can be in bulk-selection mode: rows grow checkboxes,
+  // a filter narrows the list, and the action bar applies Hide/Show/"not mine"/
+  // view-exclude to the whole selection through the pure bulk ops. Drag and
+  // per-row reorder are disabled while filtering (moving within a filtered
+  // subset would be ambiguous).
+  const [bulkSectionId, setBulkSectionId] = useState<string | null>(null);
+  const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
+  const [bulkText, setBulkText] = useState("");
+  const [bulkYearFrom, setBulkYearFrom] = useState("");
+  const [bulkYearTo, setBulkYearTo] = useState("");
+  const [bulkFlagged, setBulkFlagged] = useState(false);
+  const bulkFilter: BulkFilter = {
+    text: bulkText.trim() || undefined,
+    yearFrom: /^\d{4}$/.test(bulkYearFrom) ? Number(bulkYearFrom) : undefined,
+    yearTo: /^\d{4}$/.test(bulkYearTo) ? Number(bulkYearTo) : undefined,
+    flaggedOnly: bulkFlagged || undefined,
+  };
+  const enterBulk = (sectionId: string) => {
+    setBulkSectionId(sectionId);
+    setBulkSelected(new Set());
+    setBulkText("");
+    setBulkYearFrom("");
+    setBulkYearTo("");
+    setBulkFlagged(false);
+  };
+  const exitBulk = () => {
+    setBulkSectionId(null);
+    setBulkSelected(new Set());
+  };
+  /** Apply a bulk op to the current selection, then clear the selection. */
+  const applyToSelection = (fn: (doc: CanonicalCv, ids: string[]) => CanonicalCv) => {
+    const ids = [...bulkSelected];
+    if (ids.length === 0) return;
+    onChange(fn(cv, ids));
+    setBulkSelected(new Set());
+  };
+
   // Sections are COLLAPSED by default (compact list that's easy to scan +
   // reorder); the chevron expands one. Only ids in this set are expanded.
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -426,16 +475,39 @@ export default function CvEditor({
   // Structured (citation-style) manual entries: a small form whose fields build
   // a CSL item, so the entry renders through citeproc like an imported work.
   const [structDrafts, setStructDrafts] = useState<Record<string, ManualEntryFields>>({});
+  // "This is my work" per section type: checkbox + (for multi-author entries)
+  // which typed author is the account holder. USER-asserted ownership — the
+  // entry gets matchBasis "claimed" and the self-name highlight, like a
+  // claim-by-DOI; never an automatic name match.
+  const [structSelf, setStructSelf] = useState<Record<string, boolean>>({});
+  const [structSelfName, setStructSelfName] = useState<Record<string, string>>({});
   const setStructField = (type: string, key: keyof ManualEntryFields, value: string) =>
     setStructDrafts((d) => ({
       ...d,
       [type]: { ...(d[type] ?? { title: "" }), [key]: value },
     }));
+  /** Author names as typed in the form (the same split the CSL build uses). */
+  const structAuthors = (type: string): string[] =>
+    (structDrafts[type]?.authors ?? "")
+      .split(/[;\n]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
   function addStructured(type: CanonicalCv["sections"][number]["type"]) {
     const fields = structDrafts[type];
     if (!fields?.title?.trim()) return;
-    onChange(addStructuredEntry(cv, type, fields, newId(type)));
+    let selfAuthorName: string | undefined;
+    if (structSelf[type]) {
+      const authors = structAuthors(type);
+      const chosen = structSelfName[type];
+      // The picked author if still present, else the first typed author, else
+      // the account holder's display name (no authors typed at all).
+      selfAuthorName =
+        chosen && authors.includes(chosen) ? chosen : (authors[0] ?? cv.owner.displayName);
+    }
+    onChange(addStructuredEntry(cv, type, fields, newId(type), { selfAuthorName }));
     setStructDrafts((d) => ({ ...d, [type]: { title: "" } }));
+    setStructSelf((s) => ({ ...s, [type]: false }));
+    setStructSelfName((s) => ({ ...s, [type]: "" }));
   }
 
   // Languages: a language + a proficiency (CEFR level / native / a test+score),
@@ -1075,6 +1147,8 @@ export default function CvEditor({
         <p className="muted metric-preset-note field-note">{u.countLettersNote}</p>
       </fieldset>
 
+      <CvHealthPanel cv={cv} locale={locale} />
+
       <p className="editor-hint">{t(locale, "editorHints")}</p>
 
       <Reorder.Group
@@ -1087,6 +1161,15 @@ export default function CvEditor({
         {sections.map((section, si) => {
           const items = [...section.items].sort((a, b) => a.order - b.order);
           const shownCount = items.filter((i) => !isHidden(i)).length;
+          // Bulk-selection mode for THIS section: filter narrows the rendered
+          // list; reorder affordances are disabled (moving within a filtered
+          // subset would be ambiguous).
+          const bulkActive = bulkSectionId === section.id;
+          const canBulk = !isProseSectionType(section.type) && items.length >= 5;
+          const listItems = bulkActive ? filterSectionItems(section, bulkFilter) : items;
+          const bulkEligibleNotMine = bulkActive
+            ? notMineEligibleIds(section, [...bulkSelected])
+            : [];
           // Pending (visible, unresolved) duplicate hints in this section.
           const dupCount = items.filter(
             (i) => i.meta.reviewFlag === "duplicate" && !isHidden(i),
@@ -1251,18 +1334,166 @@ export default function CvEditor({
                             </button>
                           </p>
                         ) : null}
+                        {canBulk ? (
+                          <div className="bulk-bar">
+                            {!bulkActive ? (
+                              <button
+                                type="button"
+                                className="btn btn-sm"
+                                onClick={() => enterBulk(section.id)}
+                              >
+                                {wu.bulkSelect}
+                              </button>
+                            ) : (
+                              <>
+                                <div className="bulk-filters">
+                                  <input
+                                    type="search"
+                                    className="bulk-filter-text"
+                                    value={bulkText}
+                                    placeholder={wu.bulkFilterText}
+                                    aria-label={wu.bulkFilterText}
+                                    onChange={(e) => setBulkText(e.target.value)}
+                                  />
+                                  <input
+                                    type="number"
+                                    className="bulk-year"
+                                    value={bulkYearFrom}
+                                    placeholder={wu.bulkYearFrom}
+                                    aria-label={wu.bulkYearFrom}
+                                    onChange={(e) => setBulkYearFrom(e.target.value)}
+                                  />
+                                  <input
+                                    type="number"
+                                    className="bulk-year"
+                                    value={bulkYearTo}
+                                    placeholder={wu.bulkYearTo}
+                                    aria-label={wu.bulkYearTo}
+                                    onChange={(e) => setBulkYearTo(e.target.value)}
+                                  />
+                                  <label className="field-inline">
+                                    <input
+                                      type="checkbox"
+                                      checked={bulkFlagged}
+                                      onChange={(e) => setBulkFlagged(e.target.checked)}
+                                    />
+                                    <span>{wu.bulkFlaggedOnly}</span>
+                                  </label>
+                                </div>
+                                <div className="bulk-actions">
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm"
+                                    onClick={() =>
+                                      setBulkSelected(new Set(listItems.map((i) => i.id)))
+                                    }
+                                  >
+                                    {wu.bulkSelectAll.replace("{n}", String(listItems.length))}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm"
+                                    disabled={bulkSelected.size === 0}
+                                    onClick={() => setBulkSelected(new Set())}
+                                  >
+                                    {wu.bulkClear}
+                                  </button>
+                                  <span className="muted bulk-count">
+                                    {wu.bulkSelected.replace("{n}", String(bulkSelected.size))}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm"
+                                    disabled={bulkSelected.size === 0}
+                                    onClick={() =>
+                                      applyToSelection((doc, ids) =>
+                                        setItemsIncluded(doc, section.id, ids, false),
+                                      )
+                                    }
+                                  >
+                                    {wu.bulkHide}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm"
+                                    disabled={bulkSelected.size === 0}
+                                    onClick={() =>
+                                      applyToSelection((doc, ids) =>
+                                        setItemsIncluded(doc, section.id, ids, true),
+                                      )
+                                    }
+                                  >
+                                    {wu.bulkShow}
+                                  </button>
+                                  {bulkEligibleNotMine.length > 0 ? (
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm"
+                                      onClick={() =>
+                                        applyToSelection((doc) =>
+                                          setItemsNotMine(
+                                            doc,
+                                            section.id,
+                                            bulkEligibleNotMine,
+                                            true,
+                                            {
+                                              now: new Date().toISOString(),
+                                            },
+                                          ),
+                                        )
+                                      }
+                                    >
+                                      {wu.bulkNotMine}
+                                    </button>
+                                  ) : null}
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm"
+                                    disabled={bulkSelected.size === 0}
+                                    onClick={() =>
+                                      applyToSelection((doc, ids) =>
+                                        setItemsInView(doc, section.id, ids, false),
+                                      )
+                                    }
+                                  >
+                                    {wu.bulkExcludeView}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm bulk-done"
+                                    onClick={exitBulk}
+                                  >
+                                    {wu.bulkDone}
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ) : null}
                         {items.length === 0 ? (
                           <p className="muted empty-note">{t(locale, "noItems")}</p>
+                        ) : bulkActive && listItems.length === 0 ? (
+                          <p className="muted empty-note">{wu.bulkNoMatches}</p>
                         ) : (
                           <ul className="cv-item-list">
-                            {items.map((item, ii) => (
+                            {listItems.map((item, ii) => (
                               <ItemRow
                                 key={item.id}
                                 item={item}
                                 locale={locale}
                                 sectionType={section.type}
-                                isFirst={ii === 0}
-                                isLast={ii === items.length - 1}
+                                isFirst={bulkActive || ii === 0}
+                                isLast={bulkActive || ii === listItems.length - 1}
+                                selectable={bulkActive}
+                                selected={bulkSelected.has(item.id)}
+                                onSelectedChange={(sel) =>
+                                  setBulkSelected((prev) => {
+                                    const next = new Set(prev);
+                                    if (sel) next.add(item.id);
+                                    else next.delete(item.id);
+                                    return next;
+                                  })
+                                }
                                 onToggleIncluded={() =>
                                   onChange(setItemIncluded(cv, section.id, item.id, !item.included))
                                 }
@@ -1345,15 +1576,21 @@ export default function CvEditor({
                                 onMoveDown={() =>
                                   onChange(moveItem(cv, section.id, item.id, "down"))
                                 }
-                                onDragStart={() =>
-                                  setDragItem({ sectionId: section.id, itemId: item.id })
+                                onDragStart={
+                                  bulkActive
+                                    ? undefined
+                                    : () => setDragItem({ sectionId: section.id, itemId: item.id })
                                 }
-                                onDropOver={() => {
-                                  if (dragItem && dragItem.sectionId === section.id) {
-                                    onChange(moveItemTo(cv, section.id, dragItem.itemId, ii));
-                                  }
-                                  setDragItem(null);
-                                }}
+                                onDropOver={
+                                  bulkActive
+                                    ? undefined
+                                    : () => {
+                                        if (dragItem && dragItem.sectionId === section.id) {
+                                          onChange(moveItemTo(cv, section.id, dragItem.itemId, ii));
+                                        }
+                                        setDragItem(null);
+                                      }
+                                }
                                 onUpdateText={(text) =>
                                   onChange(updateItemText(cv, section.id, item.id, text))
                                 }
@@ -1457,6 +1694,50 @@ export default function CvEditor({
                                   }
                                 />
                               </label>
+                              {/* User-ASSERTED ownership (matchBasis "claimed"), so
+                                  the entry self-highlights like an imported work —
+                                  never an automatic name match. */}
+                              <label className="field-inline">
+                                <input
+                                  type="checkbox"
+                                  checked={structSelf[section.type] ?? false}
+                                  onChange={(e) =>
+                                    setStructSelf((s) => ({
+                                      ...s,
+                                      [section.type]: e.target.checked,
+                                    }))
+                                  }
+                                />
+                                <span>{eu.feSelfWork}</span>
+                              </label>
+                              {structSelf[section.type] &&
+                              structAuthors(section.type).length > 1 ? (
+                                <label className="field">
+                                  <span>{eu.claimWhichAuthor}</span>
+                                  <select
+                                    value={
+                                      structSelfName[section.type] &&
+                                      structAuthors(section.type).includes(
+                                        structSelfName[section.type]!,
+                                      )
+                                        ? structSelfName[section.type]
+                                        : structAuthors(section.type)[0]
+                                    }
+                                    onChange={(e) =>
+                                      setStructSelfName((s) => ({
+                                        ...s,
+                                        [section.type]: e.target.value,
+                                      }))
+                                    }
+                                  >
+                                    {structAuthors(section.type).map((a) => (
+                                      <option key={a} value={a}>
+                                        {a}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                              ) : null}
                               <button
                                 type="button"
                                 className="btn"

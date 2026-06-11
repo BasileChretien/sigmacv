@@ -107,6 +107,10 @@ model Cv {
   document      Json
   schemaVersion Int       @default(1)
   lastSyncedAt  DateTime?
+  // "What changed" report of the last sync (added/removed items, review
+  // candidates, per-source counts + timings) — shown in the editor. Validated
+  // on read by SyncReportSchema; a corrupt value degrades to "no report".
+  lastSyncReport Json?
   // Living public page: published flag + a stable public slug.
   published     Boolean   @default(false)
   publicSlug    String?   @unique

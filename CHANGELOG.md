@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **"What changed in your last sync" report.** Every sync now records what it
+  changed — newly-appeared items (with their section), items the sources no
+  longer list, and how many arrived as review candidates — plus per-source item
+  counts and fetch timings. The editor shows it as a dismissible banner (first
+  sync gets a one-line import summary), so a re-sync silently merging three new
+  works into a 400-item CV is no longer invisible. Persisted per user
+  (`Cv.lastSyncReport`) and returned by `POST /api/cv/sync`.
+- **Bulk curation.** Sections with five or more entries get a "Select multiple"
+  mode: filter by title/venue text, year range, or review-flagged-only, then
+  hide/show, mark "not mine" (eligible entries only, same per-row rule), or
+  exclude the whole selection from the current view in one action. Keeps
+  curation cost roughly constant in career length for prolific authors.
+- **CV health checklist.** A compact "needs your attention" panel above the
+  sections lists outstanding review candidates, unresolved duplicate hints,
+  ORCID conflicts, and still-visible retracted works — factual counts only, no
+  score. Hidden when there is nothing to do.
+- **"This is my work" on structured manual entries.** A hand-entered
+  publication can now be marked as the account holder's own (choosing which
+  typed author is them) — it self-highlights like an imported work and records
+  the same user-asserted `matchBasis: "claimed"` as the add-by-DOI flow.
+
 ### Changed
 
 - **Redesigned link-preview (Open Graph) cards.** The social-share images shown
@@ -35,6 +58,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   place.
 
 ### Fixed
+
+- **The ja-JP grants placeholder suggested a French funder** (ANR JCJC); each
+  locale's example now names a familiar national funder (科研費, NSFC, DFG,
+  NRF, CNPq, PRIN, AEI, РНФ, NIH; fr-FR keeps ANR).
 
 - **PDF export failed in production** (`{"error":"Failed to generate export."}`)
   — the standalone (Docker) build's file trace dropped

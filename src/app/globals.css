@@ -3107,3 +3107,113 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   border-radius: var(--radius-sm);
   animation: publish-toggle-pulse 0.6s ease-in-out 2;
 }
+
+/* ── Sync-report banner ("what changed in your last sync") ─────────────────── */
+.sync-report-banner {
+  margin: var(--space-2) auto;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: var(--text-sm);
+}
+.sync-report-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.sync-report-dismiss {
+  margin-left: auto;
+}
+.sync-pill {
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  font-size: var(--text-xs);
+  background: var(--surface);
+}
+.sync-pill.is-review {
+  color: var(--warn-text);
+  background: var(--warn-soft);
+  border-color: #f0dcae;
+}
+.sync-report-details {
+  margin-top: var(--space-1);
+}
+.sync-report-details summary {
+  cursor: pointer;
+  font-size: var(--text-xs);
+}
+.sync-report-list {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-4);
+  font-size: var(--text-xs);
+}
+.sync-report-list li {
+  margin: 0.15rem 0;
+}
+.sync-report-flag {
+  margin-left: var(--space-1);
+  font-size: var(--text-2xs);
+  padding: 0 0.35rem;
+  border-radius: var(--radius-full);
+  border: 1px solid #f0dcae;
+}
+
+/* ── CV-health checklist ("needs your attention") ──────────────────────────── */
+.cv-health-panel {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid #f0dcae;
+  border-radius: var(--radius-md);
+  background: var(--warn-soft);
+  font-size: var(--text-sm);
+}
+.cv-health-title {
+  color: var(--warn-text);
+  font-size: var(--text-sm);
+}
+.cv-health-list {
+  margin: var(--space-1) 0;
+  padding-left: var(--space-4);
+}
+.cv-health-list li {
+  margin: 0.1rem 0;
+}
+.cv-health-hint {
+  margin: 0;
+  font-size: var(--text-xs);
+}
+
+/* ── Bulk-curation bar ─────────────────────────────────────────────────────── */
+.bulk-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-2) 0;
+}
+.bulk-filters,
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.bulk-filter-text {
+  flex: 1 1 12rem;
+  min-width: 9rem;
+}
+.bulk-year {
+  width: 6.5rem;
+}
+.bulk-count {
+  font-size: var(--text-xs);
+}
+.bulk-done {
+  margin-left: auto;
+}
+.bulk-check {
+  margin-top: 0.4rem;
+  flex: none;
+}

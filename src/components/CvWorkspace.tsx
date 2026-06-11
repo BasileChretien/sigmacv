@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { safeParseSyncReport, type SyncReport } from "@/lib/cv/syncReport";
 import { updateDisplay } from "@/lib/canonical/curate";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
@@ -17,6 +18,7 @@ import PublishControls from "./PublishControls";
 import PublishNudge from "./PublishNudge";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
 import SupportLink from "./SupportLink";
+import SyncReportBanner from "./SyncReportBanner";
 
 // Mirrors the API's EXPORTABLE list in app/api/cv/export/[format]/route.ts
 // (the RenderFormats minus "html", plus the raw-canonical "json").
@@ -38,6 +40,8 @@ type ExportFormat =
 
 interface CvWorkspaceProps {
   initialCv: CanonicalCv | null;
+  /** The persisted "what changed" report of the last sync (null = none yet). */
+  initialSyncReport?: SyncReport | null;
   availableStyles: string[];
   userName: string;
   researchConsent: boolean;
@@ -64,6 +68,7 @@ async function apiFetch(url: string, method: "POST" | "PATCH", body?: unknown): 
 
 export default function CvWorkspace({
   initialCv,
+  initialSyncReport = null,
   availableStyles,
   userName,
   researchConsent,
@@ -74,6 +79,7 @@ export default function CvWorkspace({
   signOutAction,
 }: CvWorkspaceProps) {
   const [cv, setCv] = useState<CanonicalCv | null>(initialCv);
+  const [syncReport, setSyncReport] = useState<SyncReport | null>(initialSyncReport);
   const [previewHtml, setPreviewHtml] = useState("");
   const [previewLoading, setPreviewLoading] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -169,8 +175,11 @@ export default function CvWorkspace({
     try {
       const data = (await apiFetch("/api/cv/sync", "POST")) as {
         cv: CanonicalCv;
+        report?: unknown;
       };
       setCv(data.cv);
+      // Shape-validated: a report the client can't parse degrades to "none".
+      setSyncReport(safeParseSyncReport(data.report));
       setDirty(false);
       setStatus(t(uiLocale, "syncedStatus"));
     } catch (err) {
@@ -309,6 +318,7 @@ export default function CvWorkspace({
             )}
           />
           <PublishNudge published={published} locale={uiLocale} />
+          <SyncReportBanner report={syncReport} locale={uiLocale} />
           {/* Mobile-only pane switch: on a phone the two panes stack and only
               the active one shows, so you don't scroll past the whole editor to
               reach the preview. On desktop both panes show and these hide. */}

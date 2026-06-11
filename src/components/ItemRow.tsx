@@ -12,6 +12,7 @@ import {
 import { reasonLabel, t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
+import { workspaceUi } from "@/lib/i18n/workspaceUi";
 
 /** Proper-noun data-source names (not translated); "manual" is localized below. */
 const SOURCE_NAMES: Record<string, string> = {
@@ -139,6 +140,12 @@ interface ItemRowProps {
   onSetTextOverride?: (text: string) => void;
   /** Delete a manual entry (only passed for source === "manual"). */
   onRemove?: () => void;
+  /** Bulk-selection mode: render a leading checkbox instead of drag affordances. */
+  selectable?: boolean;
+  /** Whether this row is in the current bulk selection. */
+  selected?: boolean;
+  /** Toggle this row's membership in the bulk selection. */
+  onSelectedChange?: (selected: boolean) => void;
 }
 
 export default function ItemRow({
@@ -165,8 +172,12 @@ export default function ItemRow({
   onUpdateText,
   onSetTextOverride,
   onRemove,
+  selectable = false,
+  selected = false,
+  onSelectedChange,
 }: ItemRowProps) {
   const u = ui(locale);
+  const wu = workspaceUi(locale);
   const ds = dupStrings(locale);
   // The compare panel is open when the editor focuses this duplicate (controlled
   // via `dupOpen`), or when the user clicks the badge (uncontrolled fallback).
@@ -267,6 +278,15 @@ export default function ItemRow({
           : undefined
       }
     >
+      {selectable ? (
+        <input
+          type="checkbox"
+          className="bulk-check"
+          checked={selected}
+          onChange={(e) => onSelectedChange?.(e.target.checked)}
+          aria-label={`${wu.bulkSelectRow}: ${title}`}
+        />
+      ) : null}
       {onDragStart ? (
         <span
           className="drag-handle"
