@@ -48,6 +48,9 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       EMAIL_SERVER: ${EMAIL_SERVER:-}
       EMAIL_FROM: ${EMAIL_FROM:-}
+      # Email LOGIN opt-in ("true" to offer magic-link sign-in). Default off:
+      # SMTP alone powers only the digest mailer — registration stays ORCID-only.
+      EMAIL_LOGIN_ENABLED: ${EMAIL_LOGIN_ENABLED:-}
       # EPO Open Patent Services (OAuth client-credentials) — enables the Patents
       # section. Leave blank to keep the EPO client dormant (no call, no effect).
       EPO_OPS_KEY: ${EPO_OPS_KEY:-}

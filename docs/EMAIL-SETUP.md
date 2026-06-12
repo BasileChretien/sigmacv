@@ -82,8 +82,10 @@ git pull
 docker compose up -d --build          # needs the #117/#118 image anyway
 ```
 
-Setting `EMAIL_SERVER` also enables **email magic-link sign-in** (the sign-in
-page gains an email option) — that's the easiest end-to-end SMTP test:
+Email LOGIN stays OFF by default (registration is ORCID-only): `EMAIL_SERVER`
+alone powers only the digest mailer. For the one-time mail-tester check below,
+temporarily add `EMAIL_LOGIN_ENABLED="true"` to `.env` + `docker compose up -d`
+(recreates with the flag), run the test, then remove the flag the same way:
 
 1. **Spam-score check:** go to <https://www.mail-tester.com>, copy its
    throwaway address, enter it in the SigmaCV email-sign-in box, then check the
