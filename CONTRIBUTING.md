@@ -9,6 +9,8 @@ By participating you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Ways to contribute
 
+- **Start with a [`good first issue`](https://github.com/BasileChretien/sigmacv/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)** —
+  scoped, self-contained tasks with pointers to the exact files involved.
 - **Report a bug or request a feature** — open an issue with steps to reproduce
   (for bugs) or a concrete use case (for features).
 - **Improve a translation** — UI and render strings live in `src/lib/i18n/*` as
@@ -37,9 +39,21 @@ By participating you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Development workflow
 
+A working dev environment in ~15 minutes:
+
 ```bash
-npm install
-npm run dev          # Next dev server (auto-syncs the DB schema)
+git clone https://github.com/BasileChretien/sigmacv && cd sigmacv
+cp .env.example .env   # then fill in: a Postgres URL (free Neon tier works),
+                       # ORCID sandbox client id/secret, and OPENALEX_MAILTO
+npm install            # also generates the Prisma client
+npm run fetch-csl      # vendor the CSL citation styles (one-time)
+npm run dev            # Next dev server (auto-syncs the DB schema)
+```
+
+Most pure-logic work (renderers, curation ops, i18n, external clients) needs no
+running server at all — the test suite mocks every network call and Prisma:
+
+```bash
 npm run typecheck    # tsc --noEmit — run after every code change
 npm test             # vitest run — full unit/integration suite
 npm run coverage     # ENFORCES the coverage gate on src/lib/**
@@ -56,6 +70,15 @@ Before opening a PR:
 4. Commits follow [Conventional Commits](https://www.conventionalcommits.org/)
    (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, …).
 5. Remove one-off QA artifacts (`.preview/` files, throwaway test/script files).
+
+## Looking for a co-maintainer
+
+SigmaCV is live at [sigmacv.org](https://sigmacv.org) and currently maintained by
+one person. If you care about open research infrastructure and responsible
+assessment and would like to **co-maintain** — triaging issues, reviewing PRs,
+sharing release duties — please open an issue or email the maintainer (contact
+in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)). A track record of a few merged
+PRs here is the natural on-ramp.
 
 ## Security
 

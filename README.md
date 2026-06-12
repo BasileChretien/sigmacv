@@ -333,9 +333,14 @@ configured before exposing it publicly — is in
 
 Contributions are very welcome — bug reports, new templates, and especially
 **translating the interface.** The internationalization records require a value
-in all 10 locales, so the build itself catches a missing translation. Please read
-**[`CONTRIBUTING.md`](CONTRIBUTING.md)** and
+in all 10 locales, so the build itself catches a missing translation. Start with
+a [`good first issue`](https://github.com/BasileChretien/sigmacv/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22),
+and please read **[`CONTRIBUTING.md`](CONTRIBUTING.md)** and
 **[`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)** (Contributor Covenant 2.1) first.
+
+> 🤝 **Looking for a co-maintainer.** SigmaCV is run by a single maintainer; if
+> open research infrastructure is your thing, see
+> [CONTRIBUTING.md](CONTRIBUTING.md#looking-for-a-co-maintainer).
 
 ## Open science & FAIR
 

@@ -106,11 +106,11 @@ months), and **never gate P1 on adoption** (it's an infrastructure paper).
 
 ### 3b. Papers 2 & 3 (disambiguation errors; self-presentation) — IRB first
 
-- 🔴 **Finish the pre-registration placeholders** in
-  `docs/preregistration/study-2-*.md` and `study-3-*.md` — they are the actual
-  blocker for everything downstream. Freeze hypotheses, outcomes, and the
-  analysis plan; pick the minimal event set (already implemented in
-  `research/diff.ts`).
+- ✅ **Pre-registration placeholders drafted** (v1.0, 2026-06-12, this repo): both
+  study templates now carry concrete hypotheses, models, stopping rules and
+  sensitivity analyses grounded in the implemented `research/diff.ts` signal.
+  🔴 Remaining: PI review — confirm/amend the hypotheses as your genuine
+  pre-analysis positions, then register on OSF after IRB approval.
 - 🟠 **Submit the Nagoya IRB application** (観察研究専門審査委員会 route, one
   observational protocol covering both studies, electronic informed consent —
   the parameters are already worked out in your IRB notes). Confirm the
@@ -147,10 +147,13 @@ CI); it's **bus factor 1** plus **funding = your wallet**.
   Zenodo DOI, RRID, OpenSSF badge — exactly what their reviewers score. Watch
   for the next cycle and prepare the 2-page proposal from the README +
   `OPEN-SCIENCE.md` (a session of work, mostly assembly).
-- 🟠 **NLnet / NGI Zero Commons** — EU-hosted, GDPR-exemplary, open source;
-  small grants (€5–50k), lightweight application (a web form). This one is low
-  effort — apply this month. Covers the VPS for years and could fund a paid
-  accessibility audit.
+- ⛔ **NLnet / NGI Zero Commons: CLOSED** — the 13th and final call ended
+  June 1, 2026; the remaining 2026 NGI calls (Taler, Fediversity) do not fit.
+  → 🟠 **Primary target: CZI EOSS Cycle 6 — LOI due Oct 18, 2026**
+  ($100–400k/2 yrs; biomedical relevance required — lean on the pharmacist/
+  pharmacoepidemiology profile, NIH biosketch + iCite RCR + clinical-trial
+  features). Use the 4 months to grow the adoption numbers the LOI will cite;
+  a draft LOI skeleton is prepared (kept locally, outside the repo).
 - 🟡 Second ring: OpenAIRE open calls, Invest in Open Infrastructure, Mozilla
   Technology Fund; and institutional in-kind support (Nagoya or UNICAEN
   hosting/credits — ask, the FAIR portfolio makes it an easy yes).
@@ -159,10 +162,9 @@ CI); it's **bus factor 1** plus **funding = your wallet**.
 
 ### 5b. Bus factor & community
 
-- 🟠 **Make the repo contributor-ready**: 5–10 `good-first-issue`s (there are
-  real ones: i18n key additions, template tweaks, a11y fixes), a CONTRIBUTING
-  pass that says how to get a dev environment in 15 minutes, and a "looking
-  for a co-maintainer" line in the README.
+- ✅ **Repo contributor-ready** (2026-06-12): 15-minute setup + co-maintainer
+  call in CONTRIBUTING/README, and six scoped issues seeded (#123–#128, four
+  labelled good-first-issue).
 - 🟡 **Recruit one co-maintainer** from wherever §1 outreach bites (the
   CoARA/OpenAlex communities are full of research-software engineers). This
   also unblocks the deferred OpenSSF _silver_ badge, which requires a second
