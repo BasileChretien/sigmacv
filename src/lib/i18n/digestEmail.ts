@@ -21,6 +21,11 @@ export interface DigestEmailStrings {
   dgCta: string;
   /** Unsubscribe lead-in; the one-click URL follows on its own line. */
   dgUnsub: string;
+  // ── Contact-email confirmation (double opt-in) ─────────────────────────────
+  ceSubject: string;
+  /** Lead-in; the confirmation URL follows on its own line. */
+  ceIntro: string;
+  ceIgnore: string;
 }
 
 const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
@@ -34,6 +39,9 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgMore: "…and {n} more",
     dgCta: "Review and curate them in the editor:",
     dgUnsub: "Stop these emails (one click):",
+    ceSubject: "SigmaCV: confirm your notification email",
+    ceIntro: "Click the link below to confirm this address for your re-sync digest emails:",
+    ceIgnore: "If you didn't request this, just ignore this email — nothing will be sent.",
   },
   "zh-CN": {
     dgSubject: "SigmaCV:您的简历有 {n} 处更新",
@@ -45,6 +53,9 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgMore: "……另有 {n} 条",
     dgCta: "请在编辑器中查看并整理:",
     dgUnsub: "停止接收此类邮件(一键退订):",
+    ceSubject: "SigmaCV:请确认您的通知邮箱",
+    ceIntro: "请点击下方链接,确认使用此邮箱接收同步摘要邮件:",
+    ceIgnore: "如果这不是您本人操作,请忽略此邮件,我们不会发送任何内容。",
   },
   "es-ES": {
     dgSubject: "SigmaCV: {n} novedades en su CV",
@@ -56,6 +67,10 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgMore: "…y {n} más",
     dgCta: "Revíselas en el editor:",
     dgUnsub: "Dejar de recibir estos correos (un clic):",
+    ceSubject: "SigmaCV: confirme su correo de notificaciones",
+    ceIntro:
+      "Haga clic en el enlace para confirmar esta dirección para los resúmenes de sincronización:",
+    ceIgnore: "Si no lo solicitó, ignore este correo: no se enviará nada.",
   },
   "fr-FR": {
     dgSubject: "SigmaCV : {n} nouveautés dans votre CV",
@@ -68,6 +83,11 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgMore: "…et {n} de plus",
     dgCta: "Vérifiez-les dans l’éditeur :",
     dgUnsub: "Ne plus recevoir ces e-mails (un clic) :",
+    ceSubject: "SigmaCV : confirmez votre adresse de notification",
+    ceIntro:
+      "Cliquez sur le lien ci-dessous pour confirmer cette adresse pour les e-mails de synthèse :",
+    ceIgnore:
+      "Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail — rien ne sera envoyé.",
   },
   "de-DE": {
     dgSubject: "SigmaCV: {n} Neuerungen in Ihrem CV",
@@ -80,6 +100,11 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgMore: "…und {n} weitere",
     dgCta: "Prüfen Sie sie im Editor:",
     dgUnsub: "Diese E-Mails abbestellen (ein Klick):",
+    ceSubject: "SigmaCV: Bestätigen Sie Ihre Benachrichtigungsadresse",
+    ceIntro:
+      "Klicken Sie auf den Link unten, um diese Adresse für die Synchronisierungs-Digests zu bestätigen:",
+    ceIgnore:
+      "Falls Sie das nicht angefordert haben, ignorieren Sie diese E-Mail — es wird nichts gesendet.",
   },
   "ja-JP": {
     dgSubject: "SigmaCV:CVに {n} 件の更新があります",
@@ -91,6 +116,10 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgMore: "…ほか {n} 件",
     dgCta: "エディタで確認・整理してください:",
     dgUnsub: "このメールの配信を停止する(ワンクリック):",
+    ceSubject: "SigmaCV:通知用メールアドレスの確認",
+    ceIntro:
+      "同期ダイジェストの受信先としてこのアドレスを確認するには、以下のリンクをクリックしてください:",
+    ceIgnore: "心当たりがない場合は、このメールを無視してください。何も送信されません。",
   },
   "pt-BR": {
     dgSubject: "SigmaCV: {n} novidades no seu CV",
@@ -102,6 +131,9 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgMore: "…e mais {n}",
     dgCta: "Revise no editor:",
     dgUnsub: "Parar de receber estes e-mails (um clique):",
+    ceSubject: "SigmaCV: confirme seu e-mail de notificações",
+    ceIntro: "Clique no link abaixo para confirmar este endereço para os resumos de sincronização:",
+    ceIgnore: "Se você não solicitou isso, ignore este e-mail — nada será enviado.",
   },
   "it-IT": {
     dgSubject: "SigmaCV: {n} novità nel tuo CV",
@@ -114,6 +146,10 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgMore: "…e altre {n}",
     dgCta: "Verificale nell’editor:",
     dgUnsub: "Interrompi queste e-mail (un clic):",
+    ceSubject: "SigmaCV: conferma la tua e-mail di notifica",
+    ceIntro:
+      "Fai clic sul link qui sotto per confermare questo indirizzo per i riepiloghi di sincronizzazione:",
+    ceIgnore: "Se non l’hai richiesto, ignora questa e-mail: non verrà inviato nulla.",
   },
   "ko-KR": {
     dgSubject: "SigmaCV: CV에 {n}건의 업데이트",
@@ -125,6 +161,9 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgMore: "…외 {n}건",
     dgCta: "편집기에서 확인하고 정리하세요:",
     dgUnsub: "이 이메일 수신 중지(원클릭):",
+    ceSubject: "SigmaCV: 알림 이메일 확인",
+    ceIntro: "동기화 다이제스트 수신 주소로 이 이메일을 확인하려면 아래 링크를 클릭하세요:",
+    ceIgnore: "요청하지 않으셨다면 이 메일을 무시하세요. 아무것도 발송되지 않습니다.",
   },
   "ru-RU": {
     dgSubject: "SigmaCV: {n} обновлений в вашем CV",
@@ -137,6 +176,10 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgMore: "…и ещё {n}",
     dgCta: "Проверьте их в редакторе:",
     dgUnsub: "Отписаться от этих писем (в один клик):",
+    ceSubject: "SigmaCV: подтвердите адрес для уведомлений",
+    ceIntro: "Нажмите на ссылку ниже, чтобы подтвердить этот адрес для дайджестов синхронизации:",
+    ceIgnore:
+      "Если вы этого не запрашивали, просто проигнорируйте это письмо — ничего отправлено не будет.",
   },
 };
 

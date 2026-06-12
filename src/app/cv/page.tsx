@@ -3,7 +3,7 @@ import { auth, signOut } from "@/auth";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { getCvForUser, getLastSyncReport, getPublishState, syncCvForUser } from "@/lib/cv/sync";
 import type { SyncReport } from "@/lib/cv/syncReport";
-import { getDigestOptIn } from "@/lib/email/digest";
+import { getDigestPrefs } from "@/lib/email/digest";
 import { logger } from "@/lib/log";
 import { isResearchLoggingEnabled } from "@/lib/research/enabled";
 import CvWorkspace from "@/components/CvWorkspace";
@@ -38,7 +38,7 @@ export default async function CvPage() {
 
   const availableStyles = listAvailableStyles();
   const publish = await getPublishState(session.user.id);
-  const digestOptIn = await getDigestOptIn(session.user.id);
+  const digestPrefs = await getDigestPrefs(session.user.id);
 
   async function handleSignOut() {
     "use server";
@@ -52,7 +52,10 @@ export default async function CvPage() {
       availableStyles={availableStyles}
       userName={session.user.name ?? session.user.orcid ?? "Researcher"}
       researchConsent={session.user.researchConsent ?? false}
-      digestOptIn={digestOptIn}
+      digestOptIn={digestPrefs.optIn}
+      digestContactEmail={digestPrefs.contactEmail}
+      digestContactEmailVerified={digestPrefs.contactEmailVerified}
+      accountEmail={digestPrefs.accountEmail}
       researchEnabled={isResearchLoggingEnabled()}
       published={publish.published}
       publicSlug={publish.publicSlug}

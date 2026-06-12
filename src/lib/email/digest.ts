@@ -5,6 +5,7 @@ import { asLocale } from "@/lib/i18n";
 import { digestEmail } from "@/lib/i18n/digestEmail";
 import { safeParseSyncReport, type SyncReport } from "@/lib/cv/syncReport";
 import { isMailerConfigured, sendMail } from "./mailer";
+import { buildConfirmToken, verifyConfirmToken } from "./confirmToken";
 import { buildUnsubscribeToken, verifyUnsubscribeToken } from "./unsubscribeToken";
 
 /**
@@ -83,6 +84,21 @@ export function buildDigestContent(opts: {
   };
 }
 
+/**
+ * Where a user's digests go: the CONFIRMED contact address first (the
+ * double-opt-in notification email), else the Auth.js login email. An
+ * UNCONFIRMED contact address is never used — null means undeliverable
+ * (common for ORCID-only sign-ins, which rarely carry an email).
+ */
+export function digestAddress(user: {
+  email: string | null;
+  contactEmail: string | null;
+  contactEmailVerifiedAt: Date | null;
+}): string | null {
+  if (user.contactEmail && user.contactEmailVerifiedAt) return user.contactEmail;
+  return user.email ?? null;
+}
+
 export interface DigestRunSummary {
   /** False when EMAIL_SERVER/EMAIL_FROM are unset (feature dormant). */
   configured: boolean;
@@ -90,6 +106,9 @@ export interface DigestRunSummary {
   sent: number;
   /** Opted-in users whose report wasn't due (no changes / too recent / stale). */
   notDue: number;
+  /** Opted-in users with no deliverable address (no login email, no CONFIRMED
+   *  contact email) — the gap the contact-email field exists to close. */
+  noAddress: number;
   failed: number;
 }
 
@@ -106,6 +125,7 @@ export async function sendDueDigests(
     considered: 0,
     sent: 0,
     notDue: 0,
+    noAddress: 0,
     failed: 0,
   };
   if (!summary.configured) return summary;
@@ -113,10 +133,12 @@ export async function sendDueDigests(
   const now = opts.now ?? new Date();
   const baseUrl = getEnv().AUTH_URL ?? "http://localhost:3000";
   const users = await prisma.user.findMany({
-    where: { digestOptIn: true, email: { not: null } },
+    where: { digestOptIn: true },
     select: {
       id: true,
       email: true,
+      contactEmail: true,
+      contactEmailVerifiedAt: true,
       digestSentAt: true,
       cv: { select: { lastSyncReport: true, document: true } },
     },
@@ -125,6 +147,11 @@ export async function sendDueDigests(
 
   for (const user of users) {
     summary.considered++;
+    const to = digestAddress(user);
+    if (!to) {
+      summary.noAddress++;
+      continue;
+    }
     const report = safeParseSyncReport(user.cv?.lastSyncReport ?? null);
     if (!digestEligible(report, user.digestSentAt, now)) {
       summary.notDue++;
@@ -145,7 +172,7 @@ export async function sendDueDigests(
       unsubscribeUrl,
     });
     const ok = await sendMail({
-      to: user.email!,
+      to,
       subject: content.subject,
       text: content.text,
       unsubscribeUrl,
@@ -162,18 +189,89 @@ export async function sendDueDigests(
   return summary;
 }
 
-/** The user's digest opt-in flag (false when the user is unknown). */
-export async function getDigestOptIn(userId: string): Promise<boolean> {
+/** Everything the account-controls digest UI needs (zeroed for unknown users). */
+export interface DigestPrefs {
+  optIn: boolean;
+  /** The user-set notification address (pending or confirmed), if any. */
+  contactEmail: string | null;
+  /** Whether that address has been confirmed via the emailed link. */
+  contactEmailVerified: boolean;
+  /** The Auth.js login email — the fallback delivery address. */
+  accountEmail: string | null;
+}
+
+/** The user's digest preferences (account page / editor toggle). */
+export async function getDigestPrefs(userId: string): Promise<DigestPrefs> {
   const row = await prisma.user.findUnique({
     where: { id: userId },
-    select: { digestOptIn: true },
+    select: { digestOptIn: true, contactEmail: true, contactEmailVerifiedAt: true, email: true },
   });
-  return row?.digestOptIn ?? false;
+  return {
+    optIn: row?.digestOptIn ?? false,
+    contactEmail: row?.contactEmail ?? null,
+    contactEmailVerified: Boolean(row?.contactEmail && row?.contactEmailVerifiedAt),
+    accountEmail: row?.email ?? null,
+  };
 }
 
 /** Set the digest opt-in (account-settings toggle; authenticated route). */
 export async function setDigestOptIn(userId: string, optIn: boolean): Promise<void> {
   await prisma.user.update({ where: { id: userId }, data: { digestOptIn: optIn } });
+}
+
+/**
+ * Set (or clear, with "") the user's contact email. A new address is stored
+ * PENDING — `contactEmailVerifiedAt` is reset and a confirmation link is
+ * mailed to the address itself (double opt-in: digests only ever go to an
+ * address whose owner clicked that link). Returns whether the confirmation
+ * mail was handed to SMTP (false also when the mailer is unconfigured).
+ */
+export async function requestContactEmail(
+  userId: string,
+  email: string,
+  locale: string,
+): Promise<{ confirmationSent: boolean }> {
+  if (email === "") {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { contactEmail: null, contactEmailVerifiedAt: null },
+    });
+    return { confirmationSent: false };
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { contactEmail: email, contactEmailVerifiedAt: null },
+  });
+
+  const dg = digestEmail(asLocale(locale));
+  const baseUrl = getEnv().AUTH_URL ?? "http://localhost:3000";
+  const confirmUrl = `${baseUrl}/api/email/confirm?token=${buildConfirmToken(userId, email)}`;
+  const confirmationSent = await sendMail({
+    to: email,
+    subject: dg.ceSubject,
+    text: [dg.dgGreeting, "", dg.ceIntro, confirmUrl, "", dg.ceIgnore, ""].join("\n"),
+  });
+  return { confirmationSent };
+}
+
+/**
+ * Confirm a contact email from the mailed link (no session — the signed token
+ * is the authorization). Only succeeds while the token's address is STILL the
+ * user's pending contact email, so a stale link can never verify an address
+ * the user has since replaced. Idempotent for repeat clicks.
+ */
+export async function confirmContactEmailByToken(
+  token: unknown,
+  now = Date.now(),
+): Promise<boolean> {
+  const verified = verifyConfirmToken(token, now);
+  if (!verified) return false;
+  const { count } = await prisma.user.updateMany({
+    where: { id: verified.userId, contactEmail: verified.email },
+    data: { contactEmailVerifiedAt: new Date(now) },
+  });
+  return count > 0;
 }
 
 /**

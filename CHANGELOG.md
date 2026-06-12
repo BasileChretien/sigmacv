@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Notification email for digests (double opt-in).** ORCID sign-in rarely
+  provides an email address, so opted-in users often had nowhere to receive
+  the re-sync digest. Turning on "Email updates" now reveals an address field:
+  the entered address is stored pending and gets a confirmation link (signed,
+  expiring token); only a confirmed address is ever used, with the login email
+  as fallback. Included in the account data export; the digest run reports
+  addressless opt-ins (`noAddress`).
+
 ### Changed
 
 - **Registration is ORCID-only by default again.** Configuring SMTP

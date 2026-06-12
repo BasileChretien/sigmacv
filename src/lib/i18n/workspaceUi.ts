@@ -46,6 +46,15 @@ export interface WorkspaceUiStrings {
   dgLabel: string;
   dgHint: string;
   dgFailed: string;
+  // ── Contact email for digests (field shown only while the toggle is ON) ────
+  dgEmailLabel: string;
+  dgEmailSave: string;
+  dgEmailPending: string;
+  dgEmailVerified: string;
+  dgEmailNone: string;
+  /** Fallback notice; {e} = the account's login email. */
+  dgEmailUsing: string;
+  dgEmailFailed: string;
 }
 
 const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
@@ -83,6 +92,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgHint:
       "Email me when a re-sync changes my CV — at most one a month, only when something changed. Unsubscribe anytime.",
     dgFailed: "Could not update the email preference — please try again.",
+    dgEmailLabel: "Send digests to",
+    dgEmailSave: "Confirm address",
+    dgEmailPending: "Confirmation sent — check that inbox and click the link.",
+    dgEmailVerified: "Confirmed",
+    dgEmailNone: "Add an email address to receive digests.",
+    dgEmailUsing: "Digests will go to your account email ({e}).",
+    dgEmailFailed: "Could not save the address — please try again.",
   },
   "zh-CN": {
     srLastSync: "上次同步",
@@ -117,6 +133,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgLabel: "邮件通知",
     dgHint: "当重新同步更改我的简历时发邮件通知;每月最多一封,仅在有变化时发送,可随时退订。",
     dgFailed: "无法更新邮件设置——请重试。",
+    dgEmailLabel: "摘要发送至",
+    dgEmailSave: "确认地址",
+    dgEmailPending: "确认邮件已发送——请到该邮箱点击链接。",
+    dgEmailVerified: "已确认",
+    dgEmailNone: "请添加邮箱地址以接收摘要。",
+    dgEmailUsing: "摘要将发送到您的账户邮箱({e})。",
+    dgEmailFailed: "无法保存地址——请重试。",
   },
   "es-ES": {
     srLastSync: "Última sincronización",
@@ -152,6 +175,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgHint:
       "Recibir un correo cuando una sincronización cambie mi CV: como máximo uno al mes y solo si hay cambios. Baja en cualquier momento.",
     dgFailed: "No se pudo actualizar la preferencia de correo; inténtelo de nuevo.",
+    dgEmailLabel: "Enviar resúmenes a",
+    dgEmailSave: "Confirmar dirección",
+    dgEmailPending: "Confirmación enviada: revise esa bandeja y haga clic en el enlace.",
+    dgEmailVerified: "Confirmada",
+    dgEmailNone: "Añada un correo para recibir los resúmenes.",
+    dgEmailUsing: "Los resúmenes irán a su correo de cuenta ({e}).",
+    dgEmailFailed: "No se pudo guardar la dirección; inténtelo de nuevo.",
   },
   "fr-FR": {
     srLastSync: "Dernière synchronisation",
@@ -188,6 +218,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgHint:
       "Recevoir un e-mail quand une synchronisation modifie mon CV — au plus un par mois, seulement en cas de changement. Désinscription à tout moment.",
     dgFailed: "Impossible de mettre à jour la préférence e-mail — réessayez.",
+    dgEmailLabel: "Envoyer les synthèses à",
+    dgEmailSave: "Confirmer l’adresse",
+    dgEmailPending: "Confirmation envoyée — ouvrez cette boîte et cliquez sur le lien.",
+    dgEmailVerified: "Confirmée",
+    dgEmailNone: "Ajoutez une adresse e-mail pour recevoir les synthèses.",
+    dgEmailUsing: "Les synthèses iront à l’adresse de votre compte ({e}).",
+    dgEmailFailed: "Impossible d’enregistrer l’adresse — réessayez.",
   },
   "de-DE": {
     srLastSync: "Letzte Synchronisierung",
@@ -223,6 +260,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgHint:
       "E-Mail erhalten, wenn eine Synchronisierung den CV ändert — höchstens eine pro Monat, nur bei Änderungen. Jederzeit abbestellbar.",
     dgFailed: "E-Mail-Einstellung konnte nicht gespeichert werden — bitte erneut versuchen.",
+    dgEmailLabel: "Digests senden an",
+    dgEmailSave: "Adresse bestätigen",
+    dgEmailPending: "Bestätigung gesendet — Postfach öffnen und Link anklicken.",
+    dgEmailVerified: "Bestätigt",
+    dgEmailNone: "Fügen Sie eine E-Mail-Adresse hinzu, um Digests zu erhalten.",
+    dgEmailUsing: "Digests gehen an Ihre Konto-E-Mail ({e}).",
+    dgEmailFailed: "Adresse konnte nicht gespeichert werden — bitte erneut versuchen.",
   },
   "ja-JP": {
     srLastSync: "前回の同期",
@@ -258,6 +302,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgHint:
       "再同期でCVが変わったときにメールで通知(変更があった場合のみ、月1通まで。いつでも解除可能)。",
     dgFailed: "メール設定を更新できませんでした。もう一度お試しください。",
+    dgEmailLabel: "ダイジェストの送信先",
+    dgEmailSave: "アドレスを確認",
+    dgEmailPending: "確認メールを送信しました。受信箱のリンクをクリックしてください。",
+    dgEmailVerified: "確認済み",
+    dgEmailNone: "ダイジェストを受け取るにはメールアドレスを追加してください。",
+    dgEmailUsing: "ダイジェストはアカウントのメール({e})に送信されます。",
+    dgEmailFailed: "アドレスを保存できませんでした。もう一度お試しください。",
   },
   "pt-BR": {
     srLastSync: "Última sincronização",
@@ -293,6 +344,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgHint:
       "Receber e-mail quando uma sincronização alterar meu CV — no máximo um por mês, apenas quando algo mudar. Cancele quando quiser.",
     dgFailed: "Não foi possível atualizar a preferência de e-mail — tente novamente.",
+    dgEmailLabel: "Enviar resumos para",
+    dgEmailSave: "Confirmar endereço",
+    dgEmailPending: "Confirmação enviada — abra essa caixa e clique no link.",
+    dgEmailVerified: "Confirmado",
+    dgEmailNone: "Adicione um e-mail para receber os resumos.",
+    dgEmailUsing: "Os resumos irão para o e-mail da sua conta ({e}).",
+    dgEmailFailed: "Não foi possível salvar o endereço — tente novamente.",
   },
   "it-IT": {
     srLastSync: "Ultima sincronizzazione",
@@ -328,6 +386,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgHint:
       "Ricevi un’e-mail quando una sincronizzazione modifica il CV — al massimo una al mese, solo in caso di modifiche. Disiscrizione in qualsiasi momento.",
     dgFailed: "Impossibile aggiornare la preferenza e-mail: riprova.",
+    dgEmailLabel: "Invia i riepiloghi a",
+    dgEmailSave: "Conferma indirizzo",
+    dgEmailPending: "Conferma inviata: apri quella casella e fai clic sul link.",
+    dgEmailVerified: "Confermato",
+    dgEmailNone: "Aggiungi un indirizzo e-mail per ricevere i riepiloghi.",
+    dgEmailUsing: "I riepiloghi andranno all’e-mail del tuo account ({e}).",
+    dgEmailFailed: "Impossibile salvare l’indirizzo: riprova.",
   },
   "ko-KR": {
     srLastSync: "마지막 동기화",
@@ -363,6 +428,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgHint:
       "재동기화로 CV가 바뀌면 이메일로 알림 — 변경이 있을 때만 월 1회 이하로 발송됩니다. 언제든지 해지할 수 있습니다.",
     dgFailed: "이메일 설정을 업데이트하지 못했습니다. 다시 시도해 주세요.",
+    dgEmailLabel: "다이제스트 수신 주소",
+    dgEmailSave: "주소 확인",
+    dgEmailPending: "확인 메일을 보냈습니다. 해당 받은편지함에서 링크를 클릭하세요.",
+    dgEmailVerified: "확인됨",
+    dgEmailNone: "다이제스트를 받으려면 이메일 주소를 추가하세요.",
+    dgEmailUsing: "다이제스트는 계정 이메일({e})로 발송됩니다.",
+    dgEmailFailed: "주소를 저장하지 못했습니다. 다시 시도해 주세요.",
   },
   "ru-RU": {
     srLastSync: "Последняя синхронизация",
@@ -398,6 +470,14 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgHint:
       "Письмо, когда синхронизация меняет CV — не чаще раза в месяц и только при изменениях. Отписаться можно в любой момент.",
     dgFailed: "Не удалось обновить настройку почты — попробуйте ещё раз.",
+    dgEmailLabel: "Куда присылать дайджесты",
+    dgEmailSave: "Подтвердить адрес",
+    dgEmailPending:
+      "Письмо с подтверждением отправлено — откройте этот ящик и перейдите по ссылке.",
+    dgEmailVerified: "Подтверждён",
+    dgEmailNone: "Добавьте адрес электронной почты, чтобы получать дайджесты.",
+    dgEmailUsing: "Дайджесты будут приходить на адрес аккаунта ({e}).",
+    dgEmailFailed: "Не удалось сохранить адрес — попробуйте ещё раз.",
   },
 };
 
