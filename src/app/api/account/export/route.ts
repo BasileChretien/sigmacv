@@ -36,6 +36,8 @@ export async function GET() {
         orcid: true,
         researchConsent: true,
         digestOptIn: true,
+        contactEmail: true,
+        contactEmailVerifiedAt: true,
         createdAt: true,
       },
     }),

@@ -39,12 +39,16 @@ import {
   DIGEST_MIN_INTERVAL_MS,
   DIGEST_TITLES_MAX,
   buildDigestContent,
+  confirmContactEmailByToken,
+  digestAddress,
   digestEligible,
-  getDigestOptIn,
+  getDigestPrefs,
+  requestContactEmail,
   sendDueDigests,
   setDigestOptIn,
   unsubscribeByToken,
 } from "@/lib/email/digest";
+import { buildConfirmToken } from "@/lib/email/confirmToken";
 import { buildUnsubscribeToken, verifyUnsubscribeToken } from "@/lib/email/unsubscribeToken";
 import { isMailerConfigured, sendMail } from "@/lib/email/mailer";
 import { isAuthorizedInternalRequest, safeSecretEqual } from "@/lib/security/internalAuth";
@@ -210,10 +214,39 @@ describe("buildDigestContent", () => {
   });
 });
 
+describe("digestAddress", () => {
+  it("prefers a CONFIRMED contact email, falls back to the login email", () => {
+    const verified = new Date("2026-06-12T00:00:00.000Z");
+    expect(
+      digestAddress({
+        email: "login@x.org",
+        contactEmail: "me@y.org",
+        contactEmailVerifiedAt: verified,
+      }),
+    ).toBe("me@y.org");
+    // Unconfirmed contact email is NEVER used (double opt-in).
+    expect(
+      digestAddress({
+        email: "login@x.org",
+        contactEmail: "me@y.org",
+        contactEmailVerifiedAt: null,
+      }),
+    ).toBe("login@x.org");
+    expect(
+      digestAddress({ email: null, contactEmail: "me@y.org", contactEmailVerifiedAt: null }),
+    ).toBeNull();
+    expect(
+      digestAddress({ email: null, contactEmail: null, contactEmailVerifiedAt: null }),
+    ).toBeNull();
+  });
+});
+
 describe("sendDueDigests", () => {
   const baseUser = {
     id: "u1",
     email: "a@example.org",
+    contactEmail: null as string | null,
+    contactEmailVerifiedAt: null as Date | null,
     digestSentAt: null as Date | null,
     cv: {
       lastSyncReport: makeReport(),
@@ -232,7 +265,14 @@ describe("sendDueDigests", () => {
       },
     ]);
     const summary = await sendDueDigests({ now: NOW });
-    expect(summary).toEqual({ configured: true, considered: 3, sent: 1, notDue: 2, failed: 0 });
+    expect(summary).toEqual({
+      configured: true,
+      considered: 3,
+      sent: 1,
+      notDue: 2,
+      noAddress: 0,
+      failed: 0,
+    });
     expect(mocks.sendMail).toHaveBeenCalledTimes(1);
     const mail = mocks.sendMail.mock.calls[0]![0] as { to: string; subject: string; text: string };
     expect(mail.to).toBe("a@example.org");
@@ -242,6 +282,29 @@ describe("sendDueDigests", () => {
       where: { id: "u1" },
       data: { digestSentAt: NOW },
     });
+  });
+
+  it("delivers to a CONFIRMED contact email and counts addressless opt-ins", async () => {
+    mocks.findMany.mockResolvedValue([
+      {
+        ...baseUser,
+        email: null, // ORCID sign-in: no login email…
+        contactEmail: "me@lab.example",
+        contactEmailVerifiedAt: new Date("2026-06-01T00:00:00.000Z"), // …but a confirmed contact
+      },
+      { ...baseUser, id: "u2", email: null }, // opted in, nowhere to send
+      {
+        ...baseUser,
+        id: "u3",
+        email: null,
+        contactEmail: "pending@lab.example", // entered but never confirmed
+      },
+    ]);
+    const summary = await sendDueDigests({ now: NOW });
+    expect(summary.sent).toBe(1);
+    expect(summary.noAddress).toBe(2); // the unconfirmed address counts as none
+    const mail = mocks.sendMail.mock.calls[0]![0] as { to: string };
+    expect(mail.to).toBe("me@lab.example");
   });
 
   it("does not stamp digestSentAt when the send fails (retries next run)", async () => {
@@ -270,11 +333,34 @@ describe("sendDueDigests", () => {
 });
 
 describe("opt-in helpers", () => {
-  it("getDigestOptIn defaults to false for an unknown user", async () => {
+  it("getDigestPrefs zeroes for an unknown user and maps verification", async () => {
     mocks.findUnique.mockResolvedValue(null);
-    expect(await getDigestOptIn("nobody")).toBe(false);
-    mocks.findUnique.mockResolvedValue({ digestOptIn: true });
-    expect(await getDigestOptIn("u1")).toBe(true);
+    expect(await getDigestPrefs("nobody")).toEqual({
+      optIn: false,
+      contactEmail: null,
+      contactEmailVerified: false,
+      accountEmail: null,
+    });
+    mocks.findUnique.mockResolvedValue({
+      digestOptIn: true,
+      contactEmail: "me@lab.example",
+      contactEmailVerifiedAt: new Date("2026-06-01T00:00:00.000Z"),
+      email: "login@x.org",
+    });
+    expect(await getDigestPrefs("u1")).toEqual({
+      optIn: true,
+      contactEmail: "me@lab.example",
+      contactEmailVerified: true,
+      accountEmail: "login@x.org",
+    });
+    // A pending (unverified) address reports verified: false.
+    mocks.findUnique.mockResolvedValue({
+      digestOptIn: true,
+      contactEmail: "me@lab.example",
+      contactEmailVerifiedAt: null,
+      email: null,
+    });
+    expect((await getDigestPrefs("u1")).contactEmailVerified).toBe(false);
   });
 
   it("setDigestOptIn writes the flag", async () => {
@@ -293,5 +379,49 @@ describe("opt-in helpers", () => {
       where: { id: "u1" },
       data: { digestOptIn: false },
     });
+  });
+});
+
+describe("contact-email flow (double opt-in)", () => {
+  it("setting an address stores it PENDING and mails the confirmation link", async () => {
+    const result = await requestContactEmail("u1", "me@lab.example", "fr-FR");
+    expect(result.confirmationSent).toBe(true);
+    expect(mocks.update).toHaveBeenCalledWith({
+      where: { id: "u1" },
+      data: { contactEmail: "me@lab.example", contactEmailVerifiedAt: null },
+    });
+    const mail = mocks.sendMail.mock.calls[0]![0] as { to: string; subject: string; text: string };
+    expect(mail.to).toBe("me@lab.example");
+    expect(mail.subject).toContain("confirmez"); // CV-locale (fr) confirmation copy
+    expect(mail.text).toContain("https://cv.example.org/api/email/confirm?token=");
+  });
+
+  it('clearing with "" wipes both fields and sends nothing', async () => {
+    const result = await requestContactEmail("u1", "", "en-US");
+    expect(result.confirmationSent).toBe(false);
+    expect(mocks.update).toHaveBeenCalledWith({
+      where: { id: "u1" },
+      data: { contactEmail: null, contactEmailVerifiedAt: null },
+    });
+    expect(mocks.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("confirms only while the token's address is still the pending one", async () => {
+    const token = buildConfirmToken("u1", "me@lab.example");
+    expect(await confirmContactEmailByToken(token)).toBe(true);
+    const arg = mocks.updateMany.mock.calls[0]![0] as {
+      where: { id: string; contactEmail: string };
+      data: { contactEmailVerifiedAt: Date };
+    };
+    expect(arg.where).toEqual({ id: "u1", contactEmail: "me@lab.example" });
+    expect(arg.data.contactEmailVerifiedAt).toBeInstanceOf(Date);
+    // The user has since changed the address → updateMany matches nothing.
+    mocks.updateMany.mockResolvedValue({ count: 0 });
+    expect(await confirmContactEmailByToken(token)).toBe(false);
+    // Garbage and CROSS-PURPOSE tokens never reach the database.
+    mocks.updateMany.mockClear();
+    expect(await confirmContactEmailByToken("garbage")).toBe(false);
+    expect(await confirmContactEmailByToken(buildUnsubscribeToken("u1"))).toBe(false);
+    expect(mocks.updateMany).not.toHaveBeenCalled();
   });
 });

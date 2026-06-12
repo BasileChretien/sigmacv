@@ -18,18 +18,34 @@ interface AccountControlsProps {
   researchConsent: boolean;
   /** Re-sync digest email opt-in (default false; toggled here). */
   digestOptIn?: boolean;
+  /** User-set notification address (pending or confirmed), if any. */
+  digestContactEmail?: string | null;
+  /** Whether that address was confirmed via the emailed link. */
+  digestContactEmailVerified?: boolean;
+  /** Auth.js login email — the fallback delivery address (often null for ORCID). */
+  accountEmail?: string | null;
   locale: string;
 }
 
 export default function AccountControls({
   researchConsent,
   digestOptIn = false,
+  digestContactEmail = null,
+  digestContactEmailVerified = false,
+  accountEmail = null,
   locale,
 }: AccountControlsProps) {
   const u = ui(locale);
   const wu = workspaceUi(locale);
   const [consenting, setConsenting] = useState(researchConsent);
   const [digest, setDigest] = useState(digestOptIn);
+  // Contact-email state: the saved (server-side) address + its verification,
+  // and the input draft. Saving stores the address PENDING and triggers the
+  // double-opt-in confirmation mail — only a confirmed address is ever used.
+  const [savedEmail, setSavedEmail] = useState<string | null>(digestContactEmail);
+  const [emailVerified, setEmailVerified] = useState(digestContactEmailVerified);
+  const [emailDraft, setEmailDraft] = useState(digestContactEmail ?? "");
+  const [emailBusy, setEmailBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState("");
@@ -105,6 +121,36 @@ export default function AccountControls({
     }
   }
 
+  async function saveContactEmail() {
+    const email = emailDraft.trim();
+    setEmailBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/account/contact-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, locale }),
+      });
+      if (!res.ok) throw new Error("contact email update failed");
+      setSavedEmail(email || null);
+      setEmailVerified(false); // a new/changed address is pending until confirmed
+    } catch {
+      setError(wu.dgEmailFailed);
+    } finally {
+      setEmailBusy(false);
+    }
+  }
+
+  // One status line for the contact-email row: confirmed / awaiting the
+  // confirmation click / falling back to the login email / no address at all.
+  const emailStatus = savedEmail
+    ? emailVerified && emailDraft.trim() === savedEmail
+      ? wu.dgEmailVerified
+      : wu.dgEmailPending
+    : accountEmail
+      ? wu.dgEmailUsing.replace("{e}", accountEmail)
+      : wu.dgEmailNone;
+
   async function confirmDelete() {
     setBusy(true);
     setError("");
@@ -124,6 +170,30 @@ export default function AccountControls({
         <input type="checkbox" checked={digest} onChange={(e) => toggleDigest(e.target.checked)} />
         <span>{wu.dgLabel}</span>
       </label>
+      {/* The notification-address field exists only while digests are ON —
+          opting in is what makes an address relevant (the user's requested UX). */}
+      {digest ? (
+        <span className="digest-email-row">
+          <input
+            type="email"
+            className="digest-email-input"
+            value={emailDraft}
+            placeholder="you@university.edu"
+            aria-label={wu.dgEmailLabel}
+            title={wu.dgEmailLabel}
+            onChange={(e) => setEmailDraft(e.target.value)}
+          />
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={saveContactEmail}
+            disabled={emailBusy || emailDraft.trim() === (savedEmail ?? "")}
+          >
+            {wu.dgEmailSave}
+          </button>
+          <span className="muted digest-email-status">{emailStatus}</span>
+        </span>
+      ) : null}
       {consenting ? (
         <button
           type="button"

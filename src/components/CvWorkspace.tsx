@@ -47,6 +47,12 @@ interface CvWorkspaceProps {
   researchConsent: boolean;
   /** Re-sync digest email opt-in (account toggle). */
   digestOptIn?: boolean;
+  /** User-set digest notification address (pending or confirmed), if any. */
+  digestContactEmail?: string | null;
+  /** Whether that address was confirmed via the emailed link. */
+  digestContactEmailVerified?: boolean;
+  /** Auth.js login email (fallback digest delivery; often null for ORCID). */
+  accountEmail?: string | null;
   /** Whether the research-logging programme is active (off until IRB approval). */
   researchEnabled: boolean;
   published: boolean;
@@ -75,6 +81,9 @@ export default function CvWorkspace({
   userName,
   researchConsent,
   digestOptIn = false,
+  digestContactEmail = null,
+  digestContactEmailVerified = false,
+  accountEmail = null,
   researchEnabled,
   published,
   publicSlug,
@@ -232,6 +241,9 @@ export default function CvWorkspace({
           <AccountControls
             researchConsent={researchConsent}
             digestOptIn={digestOptIn}
+            digestContactEmail={digestContactEmail}
+            digestContactEmailVerified={digestContactEmailVerified}
+            accountEmail={accountEmail}
             locale={uiLocale}
           />
         </div>

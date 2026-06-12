@@ -35,6 +35,12 @@ model User {
   // OFF (GDPR/APPI data minimization); toggled in the account controls and by
   // the one-click unsubscribe link in every digest.
   digestOptIn     Boolean   @default(false)
+  // User-set NOTIFICATION address for digests — separate from Auth.js's
+  // login-identity `email` (which ORCID sign-in rarely supplies). Only used
+  // for sending once confirmed (double opt-in): `contactEmailVerifiedAt` is
+  // stamped by the emailed confirmation link and cleared on every change.
+  contactEmail           String?
+  contactEmailVerifiedAt DateTime?
   // When the last digest was sent — per-user monthly cadence + dedupe (only a
   // report newer than this is ever mailed).
   digestSentAt    DateTime?
