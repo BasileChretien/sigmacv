@@ -67,7 +67,14 @@ const orcidProvider: OIDCConfig<OrcidProfile> = {
 // runs with just ORCID out of the box. ORCID stays the primary (data-bearing)
 // login; Google/email are alternate sign-ins.
 const googleEnabled = !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
-const emailEnabled = !!process.env.EMAIL_SERVER && !!process.env.EMAIL_FROM;
+// Email LOGIN is a separate, explicit opt-in on top of SMTP: EMAIL_SERVER/
+// EMAIL_FROM alone power only the outbound mailer (re-sync digests), so
+// configuring SMTP no longer silently adds a registration path. Keep
+// EMAIL_LOGIN_ENABLED unset for ORCID-only sign-up.
+const emailEnabled =
+  !!process.env.EMAIL_SERVER &&
+  !!process.env.EMAIL_FROM &&
+  process.env.EMAIL_LOGIN_ENABLED === "true";
 
 /** Which optional providers are active (used by the sign-in UI). */
 export const enabledProviders = {

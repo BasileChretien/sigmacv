@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Registration is ORCID-only by default again.** Configuring SMTP
+  (`EMAIL_SERVER`/`EMAIL_FROM`) no longer auto-enables magic-link email
+  sign-in — SMTP alone now powers only the opt-in digest mailer. Email login
+  is a separate, explicit `EMAIL_LOGIN_ENABLED="true"` opt-in.
+
 ### Added
 
 - **Opt-in re-sync digest email.** A new account toggle (default OFF) emails
