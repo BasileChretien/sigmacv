@@ -8,15 +8,12 @@
 > Companion docs: [`OUTREACH.md`](OUTREACH.md) (ready-to-use outreach kit),
 > [`DISCOVERABILITY-ROADMAP.md`](DISCOVERABILITY-ROADMAP.md) (SEO/GEO — largely
 > executed), [`OPEN-SCIENCE-ROADMAP-2.md`](OPEN-SCIENCE-ROADMAP-2.md) (FAIR —
-> complete), `docs/preregistration/` (study 2 & 3 templates).
+> complete).
 
 **The one-paragraph strategy.** The code is in good shape and live; the binding
-constraints are now (1) **users** — papers 2 and 3 are adoption-gated, and the
-viral loop (public CVs) needs seed traffic; (2) the **research programme's slow
-external clocks** — IRB review and the P1 submission take months and should
-start now, in parallel with growth, not after it; (3) **sustainability** — a
-solo-maintained live service with a research programme attached needs a second
-pair of hands and a funding line before it needs any new feature.
+constraints are now (1) **users** — the viral loop (public CVs) needs seed
+traffic; and (2) **sustainability** — a solo-maintained live service needs a
+second pair of hands and a funding line before it needs any new feature.
 
 Legend: 🔴 do this week · 🟠 this month · 🟡 this quarter · 🔁 recurring.
 
@@ -44,8 +41,8 @@ academic trust networks, not ads.
   one polite follow-up after ~2 weeks.
 - 🟡 **One conference presence**: a poster or tool-demo at an open-science /
   scientometrics venue (e.g. STI/ENID, FORCE11, OAI workshop, or a national
-  open-science day in FR/JP). The P1 preprint is the abstract. Archive the
-  poster on Zenodo so it has a DOI and a link back.
+  open-science day in FR/JP). Archive the poster on Zenodo so it has a DOI and
+  a link back.
 
 ### 1b. Community / direct channels
 
@@ -59,8 +56,8 @@ academic trust networks, not ads.
   free backlinks. Don't spend more than the prepared kit on it.
 - 🟡 **Use your own networks**: Nagoya international-education colleagues
   (every incoming researcher needs a CV), the Caen pharmacology group
-  (Dolladille/Fedrizzi co-author network), and your own email signature +
-  paper bylines pointing at sigmacv.org.
+  (the Caen pharmacology group), and your own email signature pointing at
+  sigmacv.org.
 
 ### 1c. Retention loop (the missing product piece — code, queued)
 
@@ -79,59 +76,6 @@ No paid ads, no consumer-growth features that compromise the research design,
 no new data sources for growth's sake, no second SEO wave until the human
 channels have been worked. The public-CV attribution footer is the compounding
 asset; everything above is about seeding it.
-
----
-
-## 3. Research programme
-
-Two principles: **start the slow clocks now** (IRB + journal review run in
-months), and **never gate P1 on adoption** (it's an infrastructure paper).
-
-### 3a. Paper 1 (tool/infrastructure → QSS)
-
-- 🔴 **Commit the benchmark work** sitting uncommitted in the working tree
-  (`scripts/benchmark-namesake-ambiguity.ts`, `docs/paper/benchmark/`, the
-  draft edits). It contains the strongest novel result (namesake burden:
-  E-Asian median 13 vs Anglophone 2) and is currently protected by nothing.
-- 🔴 **Decide co-authors** (your call, flagged open since June): solo vs
-  inviting e.g. Dolladille for the quantitative section. Decide venue order:
-  QSS first; fallback PLOS ONE / JASIST.
-- 🟠 **Mint the version DOI**: cut the tagged release so Zenodo deposits it,
-  write the DOI back into `CITATION.cff` / `.zenodo.json` / README (the
-  documented one-time release task), and cite that DOI in the paper.
-- 🟠 **Preprint immediately on submission** (SocArXiv or arXiv cs.DL) — the
-  preprint _is_ the outreach asset for §1.
-- 🟡 After acceptance: update the citing metadata everywhere; notify the
-  registries (bio.tools, FAIRsharing/RSD when their IDs arrive).
-
-### 3b. Papers 2 & 3 (disambiguation errors; self-presentation) — IRB first
-
-- ✅ **Pre-registration placeholders drafted** (v1.0, 2026-06-12, this repo): both
-  study templates now carry concrete hypotheses, models, stopping rules and
-  sensitivity analyses grounded in the implemented `research/diff.ts` signal.
-  🔴 Remaining: PI review — confirm/amend the hypotheses as your genuine
-  pre-analysis positions, then register on OSF after IRB approval.
-- 🟠 **Submit the Nagoya IRB application** (観察研究専門審査委員会 route, one
-  observational protocol covering both studies, electronic informed consent —
-  the parameters are already worked out in your IRB notes). Confirm the
-  研究責任者 (faculty PI) — that conversation is the long pole; have it now.
-- 🟠 **Register both studies on OSF** once the IRB number exists; record IRB №
-  - OSF DOIs in the repo; freeze the analysis scripts before any data.
-- 🟡 **Only then**: set `RESEARCH_LOGGING_ENABLED`, bump
-  `RESEARCH_CONSENT_VERSION` (forced re-consent under approved terms), and let
-  data accrue. The consent gate and de-identified export pipeline are already
-  built and audited — do not touch them before approval.
-- 🔁 While waiting: every adoption action in §1 is also a sample-size action
-  for P2/P3. Nothing else to do here — by design.
-
-### 3c. Sigma-Score (the namesake debt)
-
-- 🟡 Decide: either give Sigma-Score a short methods preprint of its own
-  (definition, rationale vs FWCI/RCR, worked examples — it currently ships as
-  an opt-in metric with no citable definition), or rename the project before
-  the brand accretes further. Keeping an eponymous, undefined metric in a
-  responsible-metrics tool is the one internal inconsistency a reviewer will
-  poke.
 
 ---
 
@@ -157,8 +101,7 @@ CI); it's **bus factor 1** plus **funding = your wallet**.
 - 🟡 Second ring: OpenAIRE open calls, Invest in Open Infrastructure, Mozilla
   Technology Fund; and institutional in-kind support (Nagoya or UNICAEN
   hosting/credits — ask, the FAIR portfolio makes it an easy yes).
-- 🔁 Put grant deadlines in the calendar; one application per quarter max —
-  this must not crowd out the papers.
+- 🔁 Put grant deadlines in the calendar; one application per quarter max.
 
 ### 5b. Bus factor & community
 
@@ -188,9 +131,9 @@ CI); it's **bus factor 1** plus **funding = your wallet**.
 
 ## Sequencing cheat-sheet (first 4 weeks)
 
-| Week | Growth (§1)                                 | Research (§3)                            | Sustainability (§5)                   |
-| ---- | ------------------------------------------- | ---------------------------------------- | ------------------------------------- |
-| 1    | Email Laurent (library ask)                 | Commit benchmark; decide P1 co-authors   | —                                     |
-| 2    | First 5 outreach emails from OUTREACH.md    | Finish pre-registration placeholders     | NLnet application                     |
-| 3    | First community post (Bluesky/Mastodon)     | 研究責任者 conversation → IRB submission | good-first-issues + CONTRIBUTING pass |
-| 4    | Product Hunt (if not yet fired); follow-ups | Zenodo version DOI; P1 submission prep   | Continuity note                       |
+| Week | Growth (§1)                                 | Sustainability (§5)                   |
+| ---- | ------------------------------------------- | ------------------------------------- |
+| 1    | Email Laurent (library ask)                 | —                                     |
+| 2    | First 5 outreach emails from OUTREACH.md    | NLnet application                     |
+| 3    | First community post (Bluesky/Mastodon)     | good-first-issues + CONTRIBUTING pass |
+| 4    | Product Hunt (if not yet fired); follow-ups | Continuity note                       |

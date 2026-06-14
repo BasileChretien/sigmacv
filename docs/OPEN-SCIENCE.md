@@ -113,11 +113,9 @@ list lives at **[/principles](https://sigmacv.org/principles)**.
 
 - Personal data is handled under **GDPR and Japan APPI**: data minimization,
   **per-field publish consent**, account export, and account deletion.
-- SigmaCV doubles as a **research vehicle** (tool/infrastructure, author-
-  disambiguation-error, and self-presentation studies). All research logging is
-  **consent-gated and off by default**, governed by an IRB protocol (internal);
-  confirmatory analyses are pre-registered
-  ([`docs/preregistration/`](preregistration/README.md)).
+- SigmaCV also includes **consent-gated research logging**, off by default and
+  governed by an IRB protocol (internal). Any confirmatory analysis is
+  pre-registered and runs only after ethics approval.
 
 ## How to engage
 

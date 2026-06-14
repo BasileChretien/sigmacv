@@ -98,11 +98,9 @@ OpenAlex curation API is confirmed available.
 
 ## Phase 6 — Research-vehicle hardening (parallel, tied to IRB)
 
-| #   | Item                                                                              | Status                                        |
-| --- | --------------------------------------------------------------------------------- | --------------------------------------------- |
-| 6.1 | Pre-registration scaffolds for studies 2 & 3 (`docs/preregistration/study-*.md`)  | ✅ template (placeholders for the researcher) |
-| 6.2 | `RESEARCH_LOGGING_ENABLED` + `OPENALEX_CURATION_ENABLED` stay off until IRB / API | ✅ verified default-off                       |
-| 6.3 | Tool/infrastructure paper (paper 1); cite the Zenodo DOI from 0.2                 | ⬜ maintainer action                          |
+| #   | Item                                                                              | Status                  |
+| --- | --------------------------------------------------------------------------------- | ----------------------- |
+| 6.2 | `RESEARCH_LOGGING_ENABLED` + `OPENALEX_CURATION_ENABLED` stay off until IRB / API | ✅ verified default-off |
 
 ## Phase 7 — Grant-application & job CVs (new direction, 2026-06)
 
