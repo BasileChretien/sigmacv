@@ -10,7 +10,7 @@ Open-source web app that auto-generates clean, customizable academic CVs from op
 
 ## Why this exists (context, not feature scope)
 
-Beyond a useful tool, this is open infrastructure for **responsible research assessment** and a **research vehicle**. It should support three papers: (1) a tool/infrastructure paper; (2) an author-disambiguation-error study built from user "mine/not-mine" corrections; (3) a self-presentation / metric-norms study built from CV-composition choices. Design decisions should keep that data available (with consent). Do not optimize for raw consumer growth at the expense of these.
+Beyond a useful tool, this is open infrastructure for **responsible research assessment**, run not-for-profit. It also includes consent-gated research logging (a **research vehicle**), so design decisions should keep that data available only with explicit consent. Do not optimize for raw consumer growth at the expense of these.
 
 ## What it does (user flow)
 
@@ -83,8 +83,7 @@ The FAIR/open-science work is implemented (full status in [`docs/OPEN-SCIENCE-RO
 
 - [ ] **Mint the software DOI** — cut a tagged GitHub release so Zenodo deposits it (config in `.zenodo.json`). Then write the DOI back into `CITATION.cff`, `.zenodo.json`, and the README "Citing" section, and bump `version`/`date-released` in `CITATION.cff` + `codemeta.json` + `.zenodo.json` to match the tag.
 - [ ] **Sign DORA** (<https://sfdora.org/>) and record CoARA alignment; the stance is already stated in [`docs/OPEN-SCIENCE.md`](docs/OPEN-SCIENCE.md).
-- [ ] **Before ANY confirmatory research analysis** — complete the placeholders in `docs/preregistration/study-2-*.md` and `study-3-*.md`, register on OSF, record the **IRB № + OSF DOI**, and freeze the analysis script _before_ touching data. Keep `RESEARCH_LOGGING_ENABLED` off until IRB approval, and **bump `RESEARCH_CONSENT_VERSION`** when you turn it on so users re-consent under the approved terms.
-- [ ] **Tool / infrastructure paper** (paper #1) — cite the Zenodo DOI above.
+- [ ] **Research logging stays OFF** — keep `RESEARCH_LOGGING_ENABLED` unset until any consent-gated research use is approved under IRB, and **bump `RESEARCH_CONSENT_VERSION`** when you turn it on so users re-consent under the approved terms.
 - [ ] **Outreach** — the reusable kit is in [`docs/OUTREACH.md`](docs/OUTREACH.md) (libraries / DORA-CoARA / OpenAlex user group).
 - [x] **Hosted site is live** — canonical project URL switched from the GitHub repo to `https://sigmacv.org` (the `url` field in `CITATION.cff` + `codemeta.json`; `repository-code`/`codeRepository`/`issueTracker` stay on GitHub), and the "pre-launch / not-yet-live" wording dropped across the README (status badge + section + citing note), `docs/OUTREACH.md`, `docs/FAQ.md`, and `SUPPORT.md`. The in-app FAQ (`src/lib/i18n/faq.ts`) already said "use the hosted instance," now accurate.
 

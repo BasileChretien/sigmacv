@@ -70,5 +70,14 @@ yarn-error.log*
 # Researcher data exports (pseudonymised human-subjects data — NEVER commit)
 /research-export/
 
+# Research paper drafts, study preregistration plans, and the namesake benchmark
+# (kept local only — not for the public repo)
+/docs/paper/
+/docs/preregistration/
+/scripts/benchmark-namesake-ambiguity.ts
+
+# Throwaway QA / design-preview artifacts (per CLAUDE.md, never committed)
+/.preview/
+
 # Local Claude Code config (preview launch profile etc.)
 /.claude/

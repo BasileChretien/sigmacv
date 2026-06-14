@@ -217,10 +217,8 @@ of research evaluation: metrics are off by default, field-normalized indicators
 are preferred over raw counts, and a journal's Impact Factor is never shown.
 
 It is also a **research vehicle**: with explicit consent and under ethics-board
-oversight, the project can support open-science studies — for example, on how
-often automated tools confuse same-named authors, and on how researchers choose
-to present themselves. None of that happens without your consent and approved
-ethics review.
+oversight, the project can support open-science research. None of that happens
+without your consent and approved ethics review.
 
 SigmaCV was created by **Basile Chrétien** (PharmD, MSc, MPH) of Nagoya
 University.
@@ -349,7 +347,7 @@ SigmaCV is built to the
 produces and the software itself. The full statement is in
 [`docs/OPEN-SCIENCE.md`](docs/OPEN-SCIENCE.md), with a sequenced roadmap in
 [`docs/OPEN-SCIENCE-ROADMAP.md`](docs/OPEN-SCIENCE-ROADMAP.md), and the outreach
-kit and study preregistration drafts under [`docs/`](docs/). Highlights:
+kit under [`docs/`](docs/). Highlights:
 
 - **Identifier-driven, never name-based** matching, so records resolve
   unambiguously.
