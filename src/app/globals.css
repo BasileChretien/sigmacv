@@ -1806,8 +1806,10 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   position: sticky;
   top: 0;
   z-index: 50;
+  /* Bare property only — adding -webkit-backdrop-filter alongside makes
+     lightningcss (Next 16's CSS minifier) drop BOTH declarations. It adds
+     vendor prefixes itself per browser targets. */
   backdrop-filter: saturate(140%) blur(10px);
-  -webkit-backdrop-filter: saturate(140%) blur(10px);
 }
 /* Full-bleed frosted strip behind the centered (max-width) nav. */
 .auth-nav::before {
