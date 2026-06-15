@@ -112,7 +112,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
       },
       { title: "Open-source", body: "Apache-2.0 and auditable — read or self-host every line." },
     ],
-    creatorTitle: "Built by a researcher",
+    creatorTitle: "Built by a researcher, for researchers",
     creatorBody:
       "Created by Basile Chrétien (PharmD, MSc, MPH) as not-for-profit open infrastructure for responsible research assessment.",
     exploreTitle: "Explore",
@@ -176,7 +176,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
       },
       { title: "开源", body: "Apache-2.0 且可审计——可阅读或自行托管每一行代码。" },
     ],
-    creatorTitle: "由一位研究者打造",
+    creatorTitle: "由研究者打造，为研究者而生",
     creatorBody:
       "由 Basile Chrétien（PharmD, MSc, MPH）创建，作为面向负责任研究评价的非营利开放基础设施。",
     exploreTitle: "了解更多",
@@ -247,7 +247,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
       },
       { title: "Código abierto", body: "Apache-2.0 y auditable — lee o autoaloja cada línea." },
     ],
-    creatorTitle: "Creado por un investigador",
+    creatorTitle: "Creado por un investigador, para investigadores",
     creatorBody:
       "Creado por Basile Chrétien (PharmD, MSc, MPH) como infraestructura abierta sin ánimo de lucro para una evaluación responsable de la investigación.",
     exploreTitle: "Explorar",
@@ -325,7 +325,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Apache-2.0 et auditable — lisez ou hébergez vous-même chaque ligne.",
       },
     ],
-    creatorTitle: "Conçu par un chercheur",
+    creatorTitle: "Conçu par un chercheur, pour les chercheurs",
     creatorBody:
       "Créé par Basile Chrétien (PharmD, MSc, MPH) comme infrastructure ouverte à but non lucratif au service d'une évaluation responsable de la recherche.",
     exploreTitle: "Explorer",
@@ -400,7 +400,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Apache-2.0 und auditierbar — lesen oder hosten Sie jede Zeile selbst.",
       },
     ],
-    creatorTitle: "Von einem Forscher gebaut",
+    creatorTitle: "Von einem Forscher für Forschende gebaut",
     creatorBody:
       "Erstellt von Basile Chrétien (PharmD, MSc, MPH) als gemeinnützige offene Infrastruktur für verantwortungsvolle Forschungsbewertung.",
     exploreTitle: "Entdecken",
@@ -474,7 +474,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Apache-2.0 で監査可能——すべての行を読むことも自己ホストすることもできます。",
       },
     ],
-    creatorTitle: "研究者が作りました",
+    creatorTitle: "研究者が、研究者のために作りました",
     creatorBody:
       "責任ある研究評価のための非営利のオープンインフラとして、Basile Chrétien（PharmD, MSc, MPH）が制作しました。",
     exploreTitle: "さらに見る",
@@ -549,7 +549,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Apache-2.0 e auditável — leia ou hospede cada linha você mesmo.",
       },
     ],
-    creatorTitle: "Feito por um pesquisador",
+    creatorTitle: "Feito por um pesquisador, para pesquisadores",
     creatorBody:
       "Criado por Basile Chrétien (PharmD, MSc, MPH) como infraestrutura aberta sem fins lucrativos para a avaliação responsável da pesquisa.",
     exploreTitle: "Explorar",
@@ -626,7 +626,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Apache-2.0 e verificabile — leggi o ospita autonomamente ogni riga.",
       },
     ],
-    creatorTitle: "Creato da un ricercatore",
+    creatorTitle: "Creato da un ricercatore, per i ricercatori",
     creatorBody:
       "Creato da Basile Chrétien (PharmD, MSc, MPH) come infrastruttura aperta senza scopo di lucro per una valutazione responsabile della ricerca.",
     exploreTitle: "Esplora",
@@ -697,7 +697,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Apache-2.0이며 감사 가능 — 모든 줄을 읽거나 직접 호스팅할 수 있습니다.",
       },
     ],
-    creatorTitle: "연구자가 만들었습니다",
+    creatorTitle: "연구자가 연구자를 위해 만들었습니다",
     creatorBody:
       "책임 있는 연구 평가를 위한 비영리 오픈 인프라로서 Basile Chrétien(PharmD, MSc, MPH)이 만들었습니다.",
     exploreTitle: "더 알아보기",
@@ -771,7 +771,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Apache-2.0 и поддаётся аудиту — читайте или размещайте у себя каждую строку.",
       },
     ],
-    creatorTitle: "Создано исследователем",
+    creatorTitle: "Создано исследователем для исследователей",
     creatorBody:
       "Создано Basile Chrétien (PharmD, MSc, MPH) как некоммерческая открытая инфраструктура для ответственной оценки исследований.",
     exploreTitle: "Узнать больше",
