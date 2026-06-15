@@ -27,10 +27,18 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
   let orcidConflicts = 0;
   let retractedVisible = 0;
 
+  // Review candidates the user triaged with "Keep hidden" are resolved — they
+  // stay hidden and no longer count toward the outstanding-decisions total.
+  const dismissed = new Set(cv.display.dismissedReviewCandidates ?? []);
   for (const s of cv.sections) {
     for (const it of s.items) {
       const flag = it.meta.reviewFlag;
-      if ((flag === "name-matched" || flag === "orcid-doi") && !it.included && !it.notMine) {
+      if (
+        (flag === "name-matched" || flag === "orcid-doi") &&
+        !it.included &&
+        !it.notMine &&
+        !dismissed.has(it.id)
+      ) {
         pendingReviewCandidates++;
       }
       if (flag === "duplicate" && !isHidden(it)) pendingDuplicates++;

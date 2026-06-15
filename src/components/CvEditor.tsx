@@ -28,6 +28,7 @@ import {
   clearViewExclusions,
   deletePreset,
   dismissDuplicateGroup,
+  dismissReviewCandidate,
   isItemShownInView,
   moveItem,
   moveItemTo,
@@ -63,6 +64,7 @@ import {
   resetCvSections,
   type CvModelCategory,
 } from "@/lib/canonical/cvModels";
+import { similarVisibleForOrcidCandidates } from "@/lib/canonical/duplicates";
 import { METRIC_DEFS, curatedMetrics, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
 import { FIELD_NORMALIZED_METRICS, metricHint } from "@/lib/i18n/metricHints";
@@ -74,7 +76,7 @@ import { trackEvent } from "@/lib/analytics/track";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, sectionTitle, t } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
-import CvHealthPanel from "./CvHealthPanel";
+import CvHealthPanel, { type CvHealthCategory } from "./CvHealthPanel";
 import ItemRow from "./ItemRow";
 import ProfilePanel from "./ProfilePanel";
 
@@ -221,6 +223,50 @@ function orderedPendingDups(
   return out;
 }
 
+/** A jump target inside the editor: which section to expand + which row to focus. */
+type HealthTarget = { sectionId: string; itemId: string };
+
+/**
+ * The first outstanding item of each CV-health category, in document order, so
+ * the "Needs your attention" checklist can jump straight to one. The predicates
+ * mirror `computeCvHealth` (cv/health.ts) — keep the two in sync.
+ */
+function firstHealthTargets(cv: CanonicalCv): Record<CvHealthCategory, HealthTarget | undefined> {
+  const dismissed = new Set(cv.display.dismissedReviewCandidates ?? []);
+  const out: Record<CvHealthCategory, HealthTarget | undefined> = {
+    review: undefined,
+    duplicates: undefined,
+    conflicts: undefined,
+    retracted: undefined,
+  };
+  for (const s of orderedSections(cv)) {
+    for (const it of [...s.items].sort((a, b) => a.order - b.order)) {
+      const flag = it.meta.reviewFlag;
+      const here: HealthTarget = { sectionId: s.id, itemId: it.id };
+      if (
+        !out.review &&
+        (flag === "name-matched" || flag === "orcid-doi") &&
+        !it.included &&
+        !it.notMine &&
+        !dismissed.has(it.id)
+      ) {
+        out.review = here;
+      }
+      if (!out.duplicates && flag === "duplicate" && !isHidden(it)) out.duplicates = here;
+      if (!out.conflicts && flag === "orcid-conflict" && !isHidden(it)) out.conflicts = here;
+      if (
+        !out.retracted &&
+        it.meta.retracted === true &&
+        !isHidden(it) &&
+        !cv.display.hideRetracted
+      ) {
+        out.retracted = here;
+      }
+    }
+  }
+  return out;
+}
+
 export default function CvEditor({
   cv,
   availableStyles,
@@ -294,6 +340,18 @@ export default function CvEditor({
     dupRowRefs.current.get(reviewDupId)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [reviewDupId]);
 
+  // ── CV-health checklist jump ────────────────────────────────────────────────
+  // When the user clicks a "Needs your attention" row, scroll its first item
+  // into view and briefly flash it. The `n` nonce makes a repeat click on the
+  // same row re-run the effect; the flash auto-clears after a moment.
+  const [focusItem, setFocusItem] = useState<{ id: string; n: number } | null>(null);
+  useEffect(() => {
+    if (!focusItem) return;
+    dupRowRefs.current.get(focusItem.id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const handle = setTimeout(() => setFocusItem(null), 1600);
+    return () => clearTimeout(handle);
+  }, [focusItem]);
+
   // After resolving the current duplicate, focus the NEXT pending one (document
   // order, wrapping), expanding its section; clear focus when none remain.
   const advanceAfter = (next: CanonicalCv, resolvedId: string) => {
@@ -305,6 +363,30 @@ export default function CvEditor({
       setReviewDupId(target.id);
     } else {
       setReviewDupId(null);
+    }
+  };
+
+  // ── CV-health checklist ─────────────────────────────────────────────────────
+  // Review candidates the user kept hidden (resolved, no longer flagged), the
+  // first item of each outstanding category (for the checklist jump), and the
+  // "you may already have this" matches for pending ORCID-discovered candidates.
+  const dismissedReview = useMemo(
+    () => new Set(cv.display.dismissedReviewCandidates ?? []),
+    [cv.display.dismissedReviewCandidates],
+  );
+  const healthTargets = useMemo(() => firstHealthTargets(cv), [cv]);
+  const orcidSimilar = useMemo(() => similarVisibleForOrcidCandidates(cv), [cv]);
+
+  /** Jump to the first outstanding item of a health category: expand its section
+   *  and scroll it into view (duplicates also open their compare panel). */
+  const resolveHealth = (category: CvHealthCategory) => {
+    const target = healthTargets[category];
+    if (!target) return;
+    setExpanded((prev) => new Set(prev).add(target.sectionId));
+    if (category === "duplicates") {
+      setReviewDupId(target.itemId);
+    } else {
+      setFocusItem((prev) => ({ id: target.itemId, n: (prev?.n ?? 0) + 1 }));
     }
   };
 
@@ -1147,7 +1229,7 @@ export default function CvEditor({
         <p className="muted metric-preset-note field-note">{u.countLettersNote}</p>
       </fieldset>
 
-      <CvHealthPanel cv={cv} locale={locale} />
+      <CvHealthPanel cv={cv} locale={locale} onResolve={resolveHealth} />
 
       <p className="editor-hint">{t(locale, "editorHints")}</p>
 
@@ -1540,6 +1622,12 @@ export default function CvEditor({
                                   if (el) m.set(item.id, el);
                                   else m.delete(item.id);
                                 }}
+                                reviewDismissed={dismissedReview.has(item.id)}
+                                similarTitle={orcidSimilar.get(item.id)}
+                                onDismissReview={() =>
+                                  onChange(dismissReviewCandidate(cv, section.id, item.id))
+                                }
+                                flash={focusItem?.id === item.id}
                                 onKeepOnly={(keepId) => {
                                   const members = item.meta.duplicateOf
                                     ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])

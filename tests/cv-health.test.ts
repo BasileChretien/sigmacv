@@ -61,6 +61,19 @@ describe("computeCvHealth", () => {
     expect(health.total).toBe(2);
   });
 
+  it("stops counting a review candidate once it is kept hidden (dismissed)", () => {
+    const items = [
+      makeItem({ id: "W1", included: false, meta: { reviewFlag: "orcid-doi" } }),
+      makeItem({ id: "G1", included: false, meta: { reviewFlag: "name-matched" } }),
+    ];
+    expect(computeCvHealth(makeCv(items)).pendingReviewCandidates).toBe(2);
+    // "Keep hidden" records the id in display.dismissedReviewCandidates → resolved.
+    expect(
+      computeCvHealth(makeCv(items, { dismissedReviewCandidates: ["W1", "G1"] }))
+        .pendingReviewCandidates,
+    ).toBe(0);
+  });
+
   it("counts visible duplicate hints and ORCID conflicts, ignoring hidden ones", () => {
     const dupMeta = {
       reviewFlag: "duplicate" as const,

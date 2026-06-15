@@ -663,6 +663,73 @@ export function annotateDuplicates(cv: CanonicalCv, opts: DetectOptions = {}): C
 }
 
 /**
+ * For each still-pending ORCID-discovered review candidate
+ * (`reviewFlag === "orcid-doi"`, hidden and not marked "not mine"), the display
+ * title of the first item ALREADY ON the CV (a shown item) that looks like the
+ * same work — a shared DOI/PMID, or a closely matching title. These candidates
+ * are exactly the ones another source (Crossref gap-fill, a manual entry, DBLP)
+ * may already cover, so this lets the editor warn "you may already have this"
+ * before the user clicks Show. Pure + advisory; compares only against SHOWN
+ * items (a hidden entry isn't "present" on the CV). Returns an empty map when
+ * there is nothing to flag.
+ */
+export function similarVisibleForOrcidCandidates(cv: CanonicalCv): Map<string, string> {
+  const out = new Map<string, string>();
+  try {
+    // Index the shown items by identifier + normalized title (built once).
+    const doiTitles = new Map<string, string>();
+    const pmidTitles = new Map<string, string>();
+    const titled: Array<{ base: string; title: string }> = [];
+    const titleOf = (it: CvItem): string =>
+      (typeof it.csl?.title === "string" ? it.csl.title : undefined) ?? it.displayText ?? "";
+    for (const s of cv.sections) {
+      for (const it of s.items) {
+        if (isHidden(it)) continue;
+        const title = titleOf(it);
+        const doi = normDoi(it.csl?.DOI ?? it.meta.doi);
+        if (doi && !doiTitles.has(doi)) doiTitles.set(doi, title);
+        const pmid = normPmid(it.meta.pmid);
+        if (pmid && !pmidTitles.has(pmid)) pmidTitles.set(pmid, title);
+        const base = normTitle(title).base;
+        if (base) titled.push({ base, title });
+      }
+    }
+
+    for (const s of cv.sections) {
+      for (const it of s.items) {
+        if (it.meta.reviewFlag !== "orcid-doi" || it.included || it.notMine) continue;
+        const doi = normDoi(it.csl?.DOI ?? it.meta.doi);
+        const byDoi = doi ? doiTitles.get(doi) : undefined;
+        if (byDoi !== undefined) {
+          out.set(it.id, byDoi);
+          continue;
+        }
+        const pmid = normPmid(it.meta.pmid);
+        const byPmid = pmid ? pmidTitles.get(pmid) : undefined;
+        if (byPmid !== undefined) {
+          out.set(it.id, byPmid);
+          continue;
+        }
+        const base = normTitle(titleOf(it)).base;
+        if (!base) continue;
+        const match = titled.find(
+          (v) =>
+            v.base === base ||
+            titleTokenJaccard(base, v.base) >= 0.9 ||
+            trigramSim(base, v.base) >= 0.85,
+        );
+        if (match) out.set(it.id, match.title);
+      }
+    }
+    return out;
+    /* v8 ignore next 4 -- fail-soft: a malformed item must never break the editor */
+  } catch {
+    // Advisory only — never let a malformed item break the editor.
+    return out;
+  }
+}
+
+/**
  * DOIs worth a Crossref `relation` lookup, bounded by `limit`. Two sources:
  *  (a) members of any fuzzy (strong/weak) group — title-similar but not yet
  *      identifier-linked pairs the publisher might confirm or refute; and

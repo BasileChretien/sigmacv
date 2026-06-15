@@ -146,6 +146,19 @@ interface ItemRowProps {
   selected?: boolean;
   /** Toggle this row's membership in the bulk selection. */
   onSelectedChange?: (selected: boolean) => void;
+  /** True when this review candidate was triaged with "Keep hidden" — its review
+   *  badge + the "Keep hidden" action are suppressed (the decision is recorded). */
+  reviewDismissed?: boolean;
+  /** For a pending ORCID-discovered candidate: the display title of a work
+   *  already shown on the CV that looks like the same one — surfaced as an
+   *  advisory "you may already have this" note. */
+  similarTitle?: string;
+  /** "Keep hidden" on a pending review candidate (orcid-doi / name-matched):
+   *  keep it off the CV and stop flagging it for review, with no "not mine" claim. */
+  onDismissReview?: () => void;
+  /** Briefly highlight this row — set when the CV-health checklist jumps the
+   *  user here, so the just-scrolled-to item stands out. */
+  flash?: boolean;
 }
 
 export default function ItemRow({
@@ -175,6 +188,10 @@ export default function ItemRow({
   selectable = false,
   selected = false,
   onSelectedChange,
+  reviewDismissed = false,
+  similarTitle,
+  onDismissReview,
+  flash = false,
 }: ItemRowProps) {
   const u = ui(locale);
   const wu = workspaceUi(locale);
@@ -190,6 +207,14 @@ export default function ItemRow({
   const dup = item.meta.duplicateOf;
   // Only nag about a VISIBLE duplicate the user hasn't resolved yet.
   const showDupBadge = item.meta.reviewFlag === "duplicate" && !!dup && !isHidden(item);
+  // A still-pending review candidate the user can Show / mark "not mine" / keep
+  // hidden: an ORCID-discovered work or a name+org-matched registry entry that
+  // is hidden, not asserted "not mine", and not already dismissed ("Keep hidden").
+  const isPendingReviewCandidate =
+    (item.meta.reviewFlag === "orcid-doi" || item.meta.reviewFlag === "name-matched") &&
+    !item.included &&
+    !item.notMine &&
+    !reviewDismissed;
   const dupBadge = showDupBadge ? (
     <button
       type="button"
@@ -259,6 +284,8 @@ export default function ItemRow({
     // The duplicate currently being reviewed (panel open) — highlighted so the
     // banner-jump / auto-advance lands the eye on the right row.
     showDupBadge && isDupOpen ? "is-dup-active" : "",
+    // Briefly highlighted after a CV-health checklist jump.
+    flash ? "is-flash" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -362,8 +389,8 @@ export default function ItemRow({
             ) : null}
             {/* ORCID-listed work OpenAlex didn't attribute: a hidden review
                 candidate. Badge shows only while still pending — confirm with
-                "Show" (which includes it) or mark "not mine". */}
-            {item.meta.reviewFlag === "orcid-doi" && !item.included && !item.notMine ? (
+                "Show" (includes it), mark "not mine", or "Keep hidden". */}
+            {item.meta.reviewFlag === "orcid-doi" && isPendingReviewCandidate ? (
               <span className="cv-review-badge" title={t(locale, "reviewHintOrcidDoi")}>
                 {t(locale, "reviewBadge")}
               </span>
@@ -379,8 +406,9 @@ export default function ItemRow({
               </span>
             ) : null}
             {/* Name+org-matched registry candidate (grants / trials): flag for
-                review. Hidden by default until the user confirms it's theirs. */}
-            {item.meta.reviewFlag === "name-matched" ? (
+                review. Hidden by default until the user confirms it's theirs;
+                suppressed once triaged with "Keep hidden". */}
+            {item.meta.reviewFlag === "name-matched" && !reviewDismissed ? (
               <span className="cv-review-badge" title={t(locale, "reviewHintNameMatched")}>
                 {t(locale, "reviewBadge")}
               </span>
@@ -389,6 +417,13 @@ export default function ItemRow({
             {sourceBadge}
           </div>
         )}
+        {/* "You may already have this": a pending ORCID-discovered candidate
+            whose title/identifier matches a work already shown on the CV. */}
+        {similarTitle && item.meta.reviewFlag === "orcid-doi" && isPendingReviewCandidate ? (
+          <p className="cv-review-similar muted">
+            {t(locale, "reviewSimilarShown").replace("{title}", similarTitle)}
+          </p>
+        ) : null}
         {/* Possible-duplicate COMPARISON. Advisory: NEVER auto-removes. Shows the
             full facts for EVERY member of the group (2, 3, or more); "Keep this
             one" under any member keeps it and hides the rest (kept on file);
@@ -506,6 +541,17 @@ export default function ItemRow({
               title={t(locale, "notMineHint")}
             >
               {item.notMine ? t(locale, "mine") : t(locale, "notMine")}
+            </button>
+          ) : null}
+          {isPendingReviewCandidate && onDismissReview ? (
+            <button
+              type="button"
+              className="mine-btn"
+              onClick={onDismissReview}
+              aria-label={`${t(locale, "reviewKeepHidden")}: ${title}`}
+              title={t(locale, "reviewKeepHiddenHint")}
+            >
+              {t(locale, "reviewKeepHidden")}
             </button>
           ) : null}
           {isManual && onRemove ? (

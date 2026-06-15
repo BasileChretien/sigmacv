@@ -328,6 +328,14 @@
             "maxLength": 2200
           }
         },
+        "dismissedReviewCandidates": {
+          "maxItems": 20000,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 1024
+          }
+        },
         "sectionsCustomized": {
           "default": false,
           "type": "boolean"
@@ -977,6 +985,14 @@
                 "items": {
                   "type": "string",
                   "maxLength": 2200
+                }
+              },
+              "dismissedReviewCandidates": {
+                "maxItems": 20000,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 1024
                 }
               },
               "sectionsCustomized": {

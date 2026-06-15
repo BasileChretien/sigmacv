@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **"Needs your attention" checklist now jumps you to the item.** Each row of
+  the editor's CV-health panel (review candidates, possible duplicates, ORCID
+  conflicts, shown retracted works) is a link: clicking it expands the relevant
+  section and scrolls the first such entry into view (duplicates open their
+  compare panel), instead of leaving you to hunt through collapsed sections.
+- **"Keep hidden" for review candidates.** An ORCID-listed work OpenAlex didn't
+  attribute (or a name+org-matched grant/trial) can now be triaged a third way —
+  besides "Show" and "not mine" — to keep it off your CV and stop flagging it,
+  without recording a "not mine" disambiguation claim. The decision is kept in
+  your display state, survives re-sync, and is never published.
+- **"You may already have this" hint on ORCID-discovered candidates.** A pending
+  ORCID-listed work whose DOI/PMID or title matches an entry already shown on
+  your CV is flagged inline, so a likely duplicate is obvious before you add it.
+
 - **Notification email for digests (double opt-in).** ORCID sign-in rarely
   provides an email address, so opted-in users often had nowhere to receive
   the re-sync digest. Turning on "Email updates" now reveals an address field:

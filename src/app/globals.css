@@ -1326,6 +1326,35 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   box-shadow: 0 0 0 2px #f0dcae;
   scroll-margin-top: var(--space-4);
 }
+/* Transient highlight after a "Needs your attention" checklist jump, so the
+   just-scrolled-to row stands out for a moment. */
+.cv-item-row.is-flash {
+  border-radius: var(--radius-sm);
+  scroll-margin-top: var(--space-4);
+  animation: cv-row-flash 1.6s ease-out;
+}
+@keyframes cv-row-flash {
+  0%,
+  35% {
+    box-shadow: 0 0 0 2px var(--accent, #2563eb);
+    background: var(--accent-soft, rgba(37, 99, 235, 0.08));
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    background: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cv-item-row.is-flash {
+    animation: none;
+    box-shadow: 0 0 0 2px var(--accent, #2563eb);
+  }
+}
+/* "You may already have this" note under a pending ORCID-discovered candidate. */
+.cv-review-similar {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+}
 .cv-source-badge {
   /* grey-700 (not grey-600) so this small 0.625rem text clears WCAG 1.4.3
      (4.5:1) on the grey-100 chip background. */
@@ -3182,6 +3211,23 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 }
 .cv-health-list li {
   margin: 0.1rem 0;
+}
+/* Each checklist row links to the first such item (expand its section + scroll
+   to it). Styled as an inline text link, not a button, so the panel still reads
+   as prose. */
+.cv-health-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--warn-text);
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.cv-health-link:hover {
+  text-decoration-thickness: 2px;
 }
 .cv-health-hint {
   margin: 0;

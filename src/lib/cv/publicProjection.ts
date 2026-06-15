@@ -108,8 +108,14 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
     presets: [],
     // Internal editor bookkeeping that has no place in the public json:
     //  - excludedItems: the per-view exclude-id deny-list (already applied above),
-    //  - dismissedDuplicates: the pairs the owner marked "not a duplicate" — a
-    //    record of internal curation decisions, never public-facing.
-    display: { ...cv.display, excludedItems: undefined, dismissedDuplicates: undefined },
+    //  - dismissedDuplicates: the pairs the owner marked "not a duplicate",
+    //  - dismissedReviewCandidates: review candidates the owner kept hidden —
+    //    all records of internal curation decisions, never public-facing.
+    display: {
+      ...cv.display,
+      excludedItems: undefined,
+      dismissedDuplicates: undefined,
+      dismissedReviewCandidates: undefined,
+    },
   };
 }
