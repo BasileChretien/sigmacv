@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { safeParseSyncReport, type SyncReport } from "@/lib/cv/syncReport";
 import { updateDisplay } from "@/lib/canonical/curate";
@@ -10,6 +10,11 @@ import { editorUi } from "@/lib/i18n/editorUi";
 import { trackEvent } from "@/lib/analytics/track";
 
 const UI_LOCALE_KEY = "sigmacv:uiLocale";
+// Persist the working document this long after edits settle. Longer than the
+// live-preview debounce (350 ms) so a burst of edits coalesces into one write,
+// keeping us well under the save rate limit (120/hour). The manual Save button
+// stays as an immediate-save fallback.
+const AUTOSAVE_DELAY_MS = 1500;
 import AccountControls from "./AccountControls";
 import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
@@ -102,6 +107,12 @@ export default function CvWorkspace({
   // Which pane is visible on narrow screens (both show side-by-side on desktop).
   const [pane, setPane] = useState<"editor" | "preview">("editor");
 
+  // Refs let the debounced auto-save read the latest document and avoid
+  // overlapping writes without re-creating the debounce timer on every keystroke.
+  const cvRef = useRef(cv);
+  cvRef.current = cv;
+  const savingRef = useRef(false);
+
   // INTERFACE language — independent of the CV's own (rendered) language. It's a
   // client preference (localStorage), not part of the CV document. Initial value
   // mirrors the CV's language so first paint is sensible; a saved choice (read
@@ -165,21 +176,56 @@ export default function CvWorkspace({
   );
 
   const handleSave = useCallback(async (): Promise<boolean> => {
-    if (!cv) return false;
+    if (!cv || savingRef.current) return false;
+    const snapshot = cv;
+    savingRef.current = true;
     setSaving(true);
     setStatus("");
     try {
-      await apiFetch("/api/cv", "PATCH", { document: cv });
-      setDirty(false);
+      await apiFetch("/api/cv", "PATCH", { document: snapshot });
+      // Only clear the dirty flag if nothing was edited while the save was in
+      // flight; otherwise the pending auto-save persists the newer document.
+      if (cvRef.current === snapshot) setDirty(false);
       setStatus(t(uiLocale, "savedStatus"));
       return true;
     } catch (err) {
+      // Leave the document dirty so the Save button + navigate-away guard still
+      // protect the edit; do not auto-retry in a loop.
       setStatus(err instanceof Error ? err.message : t(uiLocale, "saveFailed"));
       return false;
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   }, [cv, uiLocale]);
+
+  // Keep a stable handle to the latest save callback so the debounce effect
+  // below doesn't reset its timer every time `cv`/`uiLocale` change.
+  const handleSaveRef = useRef(handleSave);
+  handleSaveRef.current = handleSave;
+
+  // Auto-save: persist a short while after edits settle. Re-scheduled on every
+  // edit (debounce). A successful save clears `dirty` (which short-circuits this
+  // effect); a failed save leaves it dirty without auto-retrying in a loop — the
+  // next edit, or the Save button, re-triggers it.
+  useEffect(() => {
+    if (!cv || !dirty) return;
+    const handle = setTimeout(() => {
+      void handleSaveRef.current();
+    }, AUTOSAVE_DELAY_MS);
+    return () => clearTimeout(handle);
+  }, [cv, dirty]);
+
+  // Guard against losing unsaved edits (or an in-flight save) on navigate-away.
+  useEffect(() => {
+    if (!dirty && !saving) return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty, saving]);
 
   const handleSync = useCallback(async () => {
     setSyncing(true);
