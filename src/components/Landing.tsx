@@ -1,17 +1,18 @@
 import Link from "next/link";
+import "./landing/beams.css";
+import "./landing/home.css";
 import SignInButton from "@/components/SignInButton";
 import { enabledProviders } from "@/auth.config";
 import { signInWithEmail, signInWithGoogle, signInWithOrcid } from "@/app/auth-actions";
 import { asLocale, t } from "@/lib/i18n";
 import { accessibilityStrings } from "@/lib/i18n/accessibility";
-import { contactStrings } from "@/lib/i18n/contact";
+import { CONTACT_EMAIL, contactStrings } from "@/lib/i18n/contact";
 import { faqStrings } from "@/lib/i18n/faq";
 import { fairCvStrings } from "@/lib/i18n/fairCv";
 import { examplesNavLabel, glossaryNavLabel, guidesNavLabel } from "@/lib/i18n/guidesNav";
-import { headTermPageForLocale, headTermStrings } from "@/lib/i18n/headTermPages";
 import { landingAudience } from "@/lib/i18n/landingAudience";
+import { landingFlow } from "@/lib/i18n/landingFlow";
 import { landingStrings } from "@/lib/i18n/landing";
-import { LANDING_PAGE_IDS, landingPageStrings } from "@/lib/i18n/landingPages";
 import { orcidHelp } from "@/lib/i18n/orcidHelp";
 import { principlesStrings } from "@/lib/i18n/principles";
 import { transparencyStrings } from "@/lib/i18n/transparency";
@@ -30,59 +31,31 @@ import {
 } from "@/lib/seo";
 import { getSiteLinks } from "@/lib/siteLinks";
 import LanguageSwitcher from "./LanguageSwitcher";
-import SiteLinks from "./SiteLinks";
 import StructuredData from "./StructuredData";
+import HeroBeams from "./landing/HeroBeams";
+import Curate from "./landing/Curate";
+import StyleSwitch from "./landing/StyleSwitch";
+import Export from "./landing/Export";
+import CreatorAvatar from "./landing/CreatorAvatar";
 
 /** ORCID profile URL of SigmaCV's creator (links the "Built by a researcher" credit). */
 const CREATOR_ORCID_URL = "https://orcid.org/0000-0002-7483-2489";
-
-/** Where the "Don't have an ORCID iD yet?" helper sends visitors to register a free iD. */
+/** Where "Don't have an ORCID iD yet?" sends visitors to register a free iD. */
 const ORCID_REGISTER_URL = "https://orcid.org/register";
-
-/**
- * The open-data sources the CV is built from, with their canonical homepages.
- * Rendered as the linked "source strip" under the hero (proper-noun brand names,
- * never translated). Order ≈ prominence.
- */
-const SOURCE_LINKS: { name: string; url: string }[] = [
-  { name: "OpenAlex", url: "https://openalex.org" },
-  { name: "ORCID", url: "https://orcid.org" },
-  { name: "Crossref", url: "https://www.crossref.org" },
-  { name: "DataCite", url: "https://datacite.org" },
-  { name: "OpenAIRE", url: "https://www.openaire.eu" },
-  { name: "DBLP", url: "https://dblp.org" },
-  { name: "Open Editors Plus", url: "https://openeditors-plus.org" },
-  { name: "ClinicalTrials.gov", url: "https://clinicaltrials.gov" },
-  { name: "EU CTIS", url: "https://euclinicaltrials.eu" },
-  { name: "EPO", url: "https://www.epo.org" },
-  { name: "Wikidata", url: "https://www.wikidata.org" },
-  { name: "ROR", url: "https://ror.org" },
-];
-
-/**
- * The six floating chips in the hero brand graphic, each cross-fading between two
- * source names so all twelve sources appear over the animation loop (freezes on
- * the first name under prefers-reduced-motion). The longer names sit on the three
- * left-anchored chips (indices 0, 2, 4) so they extend into open space, not over
- * the central medallion. Decorative (the chips are aria-hidden).
- */
-const HERO_CHIPS: [string, string][] = [
-  ["OpenAlex", "Open Editors Plus"],
-  ["ORCID", "Wikidata"],
-  ["Crossref", "ClinicalTrials.gov"],
-  ["DataCite", "EU CTIS"],
-  ["OpenAIRE", "ROR"],
-  ["DBLP", "EPO"],
-];
 
 /**
  * The public marketing/landing markup, fully localized. Shared by the default
  * homepage ("/") and every localized variant ("/[locale]"). A server component:
  * it wires the shared sign-in server actions directly into the forms.
  *
- * `lang` is set on the root element so assistive tech and crawlers read the
- * subtree in the correct language even though the single root <html> stays en
- * (App Router allows only one <html>).
+ * Composition: hero (headline + sign-in card + the looping "Beams" graphic), a
+ * slim "who it's for" band, three "how it works" feature rows each with a
+ * self-looping animation (Curate / Style / Export), a trust section, the creator
+ * credit (photo + links + DORA), a closing CTA, and the footer. The CV-assembly
+ * animations are decorative (aria-hidden); all visible page copy comes from i18n.
+ *
+ * `lang` is set on the root so assistive tech and crawlers read the subtree in
+ * the correct language even though the single root <html> stays en.
  */
 interface LandingProps {
   /** The BCP-47 locale to render (e.g. "fr-FR"). */
@@ -93,395 +66,314 @@ export default function Landing({ locale }: LandingProps) {
   const loc = asLocale(locale);
   const s = landingStrings(loc);
   const audience = landingAudience(loc);
+  const flow = landingFlow(loc);
   const help = orcidHelp(loc);
-  // This locale's native head-term landing page (e.g. fr-FR → "cv-academique"), if any.
-  const headTerm = headTermPageForLocale(loc);
+  const links = getSiteLinks();
+
+  const footerLinks: { label: string; href: string }[] = [
+    { label: t(loc, "privacy"), href: localePrivacyPath(loc) },
+    { label: contactStrings(loc).heading, href: localeContactPath(loc) },
+    { label: faqStrings(loc).navLabel, href: localeFaqPath(loc) },
+    { label: guidesNavLabel(loc), href: localeGuidesIndexPath(loc) },
+    { label: glossaryNavLabel(loc), href: localeGlossaryIndexPath(loc) },
+    { label: examplesNavLabel(loc), href: "/examples" },
+    { label: principlesStrings(loc).navLabel, href: localePrinciplesPath(loc) },
+    { label: fairCvStrings(loc).navLabel, href: localeFairPath(loc) },
+    { label: transparencyStrings(loc).navLabel, href: localeTransparencyPath(loc) },
+    { label: accessibilityStrings(loc).navLabel, href: localeAccessibilityPath(loc) },
+  ];
+
+  const figFor = (i: number) => (i === 0 ? <Curate /> : i === 1 ? <StyleSwitch /> : <Export />);
 
   return (
-    <div className="auth-shell" lang={loc}>
-      <a href="#auth-main" className="skip-link">
+    <div className="hp2" lang={loc}>
+      <a href="#hp2-main" className="skip-link">
         {t(loc, "skipToContent")}
       </a>
       <StructuredData locale={loc} description={s.metaDescription} />
-      <header className="auth-nav">
-        <span className="brand">
-          <span className="brand-mark" aria-hidden="true">
+
+      <header className="hp2-nav">
+        <span className="hp2-brand">
+          <span className="hp2-brand-mark" aria-hidden="true">
             Σ
           </span>
           SigmaCV
         </span>
-        <div className="auth-nav-right">
+        <span className="hp2-nav-links">
           <Link href={localeAboutPath(loc)}>{s.about}</Link>
           <LanguageSwitcher current={loc} label={s.languageLabel} />
-        </div>
+        </span>
       </header>
 
-      <main className="auth-main" id="auth-main">
-        <section className="hero">
-          <span className="eyebrow">{s.eyebrow}</span>
-          <h1 className="hero-title">{s.heroTitle}</h1>
-          <p className="hero-sub">{s.heroSub}</p>
-          <ol className="hero-steps">
-            <li>
-              <span className="step-n">1</span>
-              {s.step1}
-            </li>
-            <li>
-              <span className="step-n">2</span>
-              {s.step2}
-            </li>
-            <li>
-              <span className="step-n">3</span>
-              {s.step3}
-            </li>
-          </ol>
+      <main id="hp2-main">
+        {/* ── Hero ───────────────────────────────────────────────── */}
+        <section className="hp2-hero">
+          <div className="hp2-hero-copy">
+            <span className="hp2-eyebrow">{s.eyebrow}</span>
+            <h1 className="hp2-h1">{s.heroTitle}</h1>
+            <p className="hp2-sub">{s.heroSub}</p>
+
+            <div className="hp2-signin">
+              <div className="hp2-signin-head">
+                <h2 className="hp2-signin-title">{s.signInTitle}</h2>
+                <span className="hp2-signin-sub">{s.signInSub}</span>
+              </div>
+
+              <form action={signInWithOrcid}>
+                <SignInButton method="orcid" className="hp2-btn hp2-btn-primary">
+                  <OrcidMark />
+                  {s.signInOrcid}
+                </SignInButton>
+              </form>
+
+              <details className="hp2-help">
+                <summary>{help.question}</summary>
+                <div className="hp2-help-body">
+                  <p>{help.explainer}</p>
+                  <a
+                    className="hp2-help-cta"
+                    href={ORCID_REGISTER_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {help.cta} <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+              </details>
+
+              {enabledProviders.google || enabledProviders.email ? (
+                <div className="auth-divider">
+                  <span>{s.orDivider}</span>
+                </div>
+              ) : null}
+
+              {enabledProviders.google ? (
+                <form action={signInWithGoogle}>
+                  <SignInButton method="google" className="hp2-btn">
+                    {s.continueGoogle}
+                  </SignInButton>
+                </form>
+              ) : null}
+
+              {enabledProviders.email ? (
+                <form action={signInWithEmail} className="auth-email-row">
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    placeholder={s.emailPlaceholder}
+                    aria-label={s.emailLabel}
+                  />
+                  <SignInButton method="email" className="hp2-btn">
+                    {s.emailButton}
+                  </SignInButton>
+                </form>
+              ) : null}
+
+              <p className="hp2-fine">{s.fineprint}</p>
+            </div>
+          </div>
+
+          <div className="hp2-hero-fig">
+            <HeroBeams />
+          </div>
         </section>
 
-        <div className="hero-right">
-          <HeroGraphic />
-          <section className="auth-card card">
-            <h2 className="auth-card-title">{s.signInTitle}</h2>
-            <p className="auth-card-sub muted">{s.signInSub}</p>
+        {/* ── Who it's for ───────────────────────────────────────── */}
+        <section className="hp2-who" aria-label={audience.heading}>
+          <span className="hp2-who-label">{audience.heading}</span>
+          <span className="hp2-who-chips">
+            {audience.personas.map((p) => (
+              <span key={p.title} className="hp2-who-chip">
+                {p.title}
+              </span>
+            ))}
+          </span>
+        </section>
 
-            <form action={signInWithOrcid}>
-              <SignInButton method="orcid" className="btn btn-primary btn-lg auth-btn">
-                <OrcidMark />
-                {s.signInOrcid}
-              </SignInButton>
-            </form>
+        {/* ── How it works ───────────────────────────────────────── */}
+        <section className="hp2-howhead">
+          <h2 className="hp2-howhead-title">{flow.howTitle}</h2>
+          <p className="hp2-howhead-sub">{flow.howSub}</p>
+        </section>
 
-            {/* Helper for visitors without an ORCID iD (students, early-career and
-                LMIC researchers): a native <details> so it's crawlable and needs no
-                client JS. Summary is the always-visible prompt; expanding reveals
-                what ORCID is + a link to register a free iD. */}
-            <details className="orcid-help">
-              <summary>{help.question}</summary>
-              <div className="orcid-help-body">
-                <p>{help.explainer}</p>
+        {flow.steps.map((step, i) => (
+          <section key={step.title} className={`hp2-feature${i === 1 ? " hp2-feature-rev" : ""}`}>
+            <div className="hp2-feature-copy">
+              <span className="hp2-step">{String(i + 1).padStart(2, "0")}</span>
+              <h3 className="hp2-feature-title">{step.title}</h3>
+              <p className="hp2-feature-body">{step.body}</p>
+              <ul className="hp2-feature-points">
+                {step.points.map((pt) => (
+                  <li key={pt}>{pt}</li>
+                ))}
+              </ul>
+              {i === 1 ? (
+                <Link
+                  className="hp2-feature-link"
+                  href={localeLandingPagePath("funder-cv-templates", loc)}
+                >
+                  {flow.templatesCta} <span aria-hidden="true">→</span>
+                </Link>
+              ) : null}
+            </div>
+            <div className="hp2-feature-fig">{figFor(i)}</div>
+          </section>
+        ))}
+
+        {/* ── Why / trust ────────────────────────────────────────── */}
+        <section className="hp2-trust">
+          <h2 className="hp2-trust-title">{s.trustTitle}</h2>
+          <ul className="hp2-trust-grid">
+            {s.trust.map((tr) => (
+              <li key={tr.title} className="hp2-trust-card">
+                <h3>{tr.title}</h3>
+                <p>{tr.body}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* ── Creator credit + DORA ──────────────────────────────── */}
+        <section className="hp2-creator">
+          <div className="hp2-creator-card">
+            <CreatorAvatar />
+            <div className="hp2-creator-text">
+              <strong>{s.creatorTitle}</strong>
+              <p>
+                {s.creatorBody} <Link href={localeAboutPath(loc)}>{s.about}</Link>
+              </p>
+              <div className="hp2-creator-links">
                 <a
-                  className="orcid-help-cta"
-                  href={ORCID_REGISTER_URL}
+                  className="hp2-soc"
+                  href={CREATOR_ORCID_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {help.cta} <span aria-hidden="true">→</span>
+                  <OrcidMark /> ORCID
                 </a>
+                {links.linkedin ? (
+                  <a
+                    className="hp2-soc"
+                    href={links.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <LinkedInMark /> LinkedIn
+                  </a>
+                ) : null}
+                <a className="hp2-soc" href={`mailto:${CONTACT_EMAIL}`}>
+                  <MailMark /> Email
+                </a>
+                {links.coffee ? (
+                  <a
+                    className="hp2-coffee hp2-coffee-sm"
+                    href={links.coffee}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    ☕ Buy me a coffee
+                  </a>
+                ) : null}
               </div>
-            </details>
-
-            {enabledProviders.google || enabledProviders.email ? (
-              <div className="auth-divider">
-                <span>{s.orDivider}</span>
-              </div>
-            ) : null}
-
-            {enabledProviders.google ? (
-              <form action={signInWithGoogle}>
-                <SignInButton method="google" className="btn auth-btn">
-                  {s.continueGoogle}
-                </SignInButton>
-              </form>
-            ) : null}
-
-            {enabledProviders.email ? (
-              <form action={signInWithEmail} className="auth-email-row">
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  placeholder={s.emailPlaceholder}
-                  aria-label={s.emailLabel}
+            </div>
+            <a
+              className="hp2-dora"
+              href="https://sfdora.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Supports DORA — the San Francisco Declaration on Research Assessment"
+            >
+              <picture>
+                <source media="(prefers-color-scheme: dark)" srcSet="/dora-supporter-dark.webp" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/dora-supporter.webp"
+                  alt="Supports DORA — the San Francisco Declaration on Research Assessment"
+                  width={64}
+                  height={64}
+                  loading="lazy"
                 />
-                <SignInButton method="email" className="btn">
-                  {s.emailButton}
-                </SignInButton>
-              </form>
-            ) : null}
+              </picture>
+            </a>
+          </div>
+        </section>
 
-            <p className="auth-fineprint muted">{s.fineprint}</p>
-          </section>
-        </div>
+        {/* ── Closing CTA ────────────────────────────────────────── */}
+        <section className="hp2-cta">
+          <h2>{flow.ctaTitle}</h2>
+          <form action={signInWithOrcid}>
+            <SignInButton method="orcid" className="hp2-btn hp2-btn-primary hp2-cta-btn">
+              <OrcidMark />
+              {s.signInOrcid}
+            </SignInButton>
+          </form>
+          <span className="hp2-cta-fine">{s.signInSub}</span>
+        </section>
       </main>
 
-      {/* Source strip: the open data sources the CV is built from. The names are
-          brand proper nouns (like "Σ"/"SigmaCV"), reinforcing the hero copy. */}
-      <div className="source-strip" aria-label="Open research data sources SigmaCV builds from">
-        {SOURCE_LINKS.map((src) => (
-          <a
-            key={src.name}
-            className="source-pill"
-            href={src.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {src.name}
+      <footer className="hp2-foot">
+        <span className="hp2-foot-copy">{s.footer}</span>
+        <nav className="hp2-foot-links">
+          {footerLinks.map((l) => (
+            <Link key={l.href} href={l.href}>
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+        {links.github ? (
+          <a className="hp2-foot-gh" href={links.github} target="_blank" rel="noopener noreferrer">
+            <GitHubMark /> GitHub
           </a>
-        ))}
-      </div>
-
-      <section className="landing-section landing-features" aria-labelledby="features-h">
-        <h2 id="features-h" className="landing-section-title">
-          {s.featuresTitle}
-        </h2>
-        <ul className="feature-grid">
-          {s.features.map((f) => (
-            <li key={f.title} className="feature-card card">
-              <h3 className="feature-card-title">{f.title}</h3>
-              <p className="feature-card-body muted">{f.body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="landing-section landing-audience" aria-labelledby="audience-h">
-        <h2 id="audience-h" className="landing-section-title">
-          {audience.heading}
-        </h2>
-        <ul className="audience-grid">
-          {audience.personas.map((p) => (
-            <li key={p.title} className="audience-card card">
-              <h3 className="audience-card-title">{p.title}</h3>
-              <p className="audience-card-body muted">{p.body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="landing-section landing-trust" aria-labelledby="trust-h">
-        <h2 id="trust-h" className="landing-section-title">
-          {s.trustTitle}
-        </h2>
-        <ul className="trust-grid">
-          {s.trust.map((tr) => (
-            <li key={tr.title} className="trust-card card">
-              <h3 className="trust-card-title">{tr.title}</h3>
-              <p className="trust-card-body muted">{tr.body}</p>
-            </li>
-          ))}
-        </ul>
-        <p className="creator-credit">
-          <strong>{s.creatorTitle}</strong>{" "}
-          <CreatorBody
-            text={s.creatorBody}
-            orcidUrl={CREATOR_ORCID_URL}
-            aboutHref={localeAboutPath(loc)}
-            githubUrl={getSiteLinks().github}
-          />
-        </p>
-        {/* The creator is an individual DORA signatory; SigmaCV is built for
-            responsible research assessment. Official badge, self-hosted; the
-            black/white variants swap with the colour scheme. */}
-        <a
-          className="dora-badge"
-          href="https://sfdora.org/"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Supports DORA — the Declaration on Research Assessment"
-        >
-          <picture>
-            <source media="(prefers-color-scheme: dark)" srcSet="/dora-supporter-dark.webp" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/dora-supporter.webp"
-              alt="Supports DORA — the San Francisco Declaration on Research Assessment"
-              width={56}
-              height={56}
-              loading="lazy"
-            />
-          </picture>
-        </a>
-      </section>
-
-      <section className="landing-section landing-explore" aria-labelledby="explore-h">
-        <h2 id="explore-h" className="landing-section-title">
-          {s.exploreTitle}
-        </h2>
-        <ul className="explore-links">
-          {LANDING_PAGE_IDS.map((page) => {
-            const p = landingPageStrings(page, loc);
-            return (
-              <li key={page}>
-                <Link href={localeLandingPagePath(page, loc)}>{p.navLabel}</Link>
-                <span className="muted explore-desc">{p.subhead}</span>
-              </li>
-            );
-          })}
-          {/* This locale's native head-term page (e.g. /fr/cv-academique) — a prominent
-              inbound link so it isn't reachable only via the sitemap. */}
-          {headTerm ? (
-            <li key={headTerm}>
-              <Link href={localeLandingPagePath(headTerm, loc)}>
-                {headTermStrings(headTerm).navLabel}
-              </Link>
-              <span className="muted explore-desc">{headTermStrings(headTerm).subhead}</span>
-            </li>
-          ) : null}
-        </ul>
-      </section>
-
-      <footer className="auth-footer">
-        <span className="muted">{s.footer}</span>
-        <Link className="footer-link" href={localePrivacyPath(loc)}>
-          {t(loc, "privacy")}
-        </Link>
-        <Link className="footer-link" href={localeContactPath(loc)}>
-          {contactStrings(loc).heading}
-        </Link>
-        <Link className="footer-link" href={localeFaqPath(loc)}>
-          {faqStrings(loc).navLabel}
-        </Link>
-        <Link className="footer-link" href={localeGuidesIndexPath(loc)}>
-          {guidesNavLabel(loc)}
-        </Link>
-        <Link className="footer-link" href={localeGlossaryIndexPath(loc)}>
-          {glossaryNavLabel(loc)}
-        </Link>
-        <Link className="footer-link" href="/examples">
-          {examplesNavLabel(loc)}
-        </Link>
-        <Link className="footer-link" href={localePrinciplesPath(loc)}>
-          {principlesStrings(loc).navLabel}
-        </Link>
-        <Link className="footer-link" href={localeFairPath(loc)}>
-          {fairCvStrings(loc).navLabel}
-        </Link>
-        <Link className="footer-link" href={localeTransparencyPath(loc)}>
-          {transparencyStrings(loc).navLabel}
-        </Link>
-        <Link className="footer-link" href={localeAccessibilityPath(loc)}>
-          {accessibilityStrings(loc).navLabel}
-        </Link>
-        <SiteLinks locale={loc} />
+        ) : null}
       </footer>
-    </div>
-  );
-}
-
-/** The creator name as it appears in every locale's `creatorBody` (proper noun,
- *  never translated) — split on it to turn the name into an ORCID link. */
-const CREATOR_NAME = "Basile Chrétien";
-
-/**
- * Renders the "Built by a researcher" body with the creator's name linked to
- * their ORCID, then appends a small "About · GitHub" link row. The name token is
- * identical across all ten locales (it's an untranslated proper noun), so a plain
- * split on it works for every language.
- */
-function CreatorBody({
-  text,
-  orcidUrl,
-  aboutHref,
-  githubUrl,
-}: {
-  text: string;
-  orcidUrl: string;
-  aboutHref: string;
-  githubUrl: string;
-}) {
-  const [before, after] = text.split(CREATOR_NAME);
-  return (
-    <>
-      {before}
-      <a href={orcidUrl} target="_blank" rel="noopener noreferrer">
-        {CREATOR_NAME}
-      </a>
-      {/* When the proper noun isn't present (defensive), fall back to plain text. */}
-      {after ?? ""} <Link href={aboutHref}>About</Link>
-      {githubUrl ? (
-        <>
-          {" · "}
-          <a href={githubUrl} target="_blank" rel="noopener noreferrer">
-            GitHub
-          </a>
-        </>
-      ) : null}
-    </>
-  );
-}
-
-/**
- * Decorative hero brand graphic: six floating open-data source chips around a
- * central Σ medallion (soft core glow) that pulses as the CV silhouette fills in
- * line by line, with a self-name highlight — open data assembling into a CV. Each
- * chip cross-fades between two of the twelve sources, so all appear over the loop.
- * Purely decorative (aria-hidden), reserved aspect-ratio (no layout shift), and
- * motion-safe (a self-contained prefers-reduced-motion block freezes it to a
- * settled state). Source names are brand proper nouns (like "Σ"/"SigmaCV"), not
- * translated copy.
- */
-function HeroGraphic() {
-  return (
-    <div className="hero-graphic" aria-hidden="true">
-      <span className="hg-blob hg-blob-1" />
-      <span className="hg-blob hg-blob-2" />
-      <span className="hg-blob hg-blob-3" />
-
-      <svg
-        className="hg-lines"
-        viewBox="0 0 480 420"
-        fill="none"
-        focusable="false"
-        role="presentation"
-        preserveAspectRatio="xMidYMid meet"
-      >
-        <defs>
-          <radialGradient id="hgCore" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="var(--accent-400)" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="var(--accent-500)" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        <circle className="hg-core-glow" cx="240" cy="206" r="92" fill="url(#hgCore)" />
-      </svg>
-
-      <span className="hg-doc">
-        <span className="hg-doc-line">
-          <span className="hg-doc-fill" />
-        </span>
-        <span className="hg-doc-line hg-doc-name">
-          <span className="hg-doc-hl" />
-          <span className="hg-doc-fill" />
-          <span className="hg-doc-sweep" />
-        </span>
-        <span className="hg-doc-line short">
-          <span className="hg-doc-fill" />
-        </span>
-        <span className="hg-doc-line">
-          <span className="hg-doc-fill" />
-        </span>
-        <span className="hg-doc-line short">
-          <span className="hg-doc-fill" />
-        </span>
-      </span>
-
-      <span className="hg-medallion">
-        <span className="hg-ring" />
-        <span className="hg-glyph">Σ</span>
-      </span>
-
-      {HERO_CHIPS.map(([first, second], i) => (
-        <span key={first} className={`hg-chip hg-chip-${i + 1}`}>
-          <span className="hg-chip-label hg-cyc-a">{first}</span>
-          <span className="hg-chip-label hg-cyc-b">{second}</span>
-        </span>
-      ))}
     </div>
   );
 }
 
 function OrcidMark() {
   return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 256 256"
-      aria-hidden="true"
-      style={{ display: "inline-block" }}
-    >
-      <circle cx="128" cy="128" r="128" fill="#ffffff" opacity="0.18" />
+    <svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true">
+      <circle cx="128" cy="128" r="128" fill="#A6CE39" />
       <path
-        fill="currentColor"
+        fill="#fff"
         d="M86 70a14 14 0 1 1-28 0 14 14 0 0 1 28 0zM72 96h22v98H72zM118 96h42c34 0 52 24 52 49 0 27-21 49-52 49h-42zm22 20v58h18c24 0 30-18 30-29 0-18-11-29-31-29z"
       />
+    </svg>
+  );
+}
+
+function LinkedInMark() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M4.98 3.5a2.5 2.5 0 1 1-.02 5 2.5 2.5 0 0 1 .02-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21H9z" />
+    </svg>
+  );
+}
+
+function MailMark() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
+    </svg>
+  );
+}
+
+function GitHubMark() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
     </svg>
   );
 }
