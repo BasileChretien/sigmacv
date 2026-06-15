@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Auto-save in the editor.** Curation and styling changes now persist
+  automatically a moment after you stop editing — no need to click Save. Edits
+  are coalesced into a single write (debounced, well under the save rate limit),
+  and the browser warns before you leave the page with an unsaved change still
+  in flight. The Save button stays as an immediate-save fallback and a clear
+  saved/saving indicator; a failed save keeps your changes pending (no silent
+  data loss, no retry storm) and re-tries on your next edit.
 - **"Needs your attention" checklist now jumps you to the item.** Each row of
   the editor's CV-health panel (review candidates, possible duplicates, ORCID
   conflicts, shown retracted works) is a link: clicking it expands the relevant
