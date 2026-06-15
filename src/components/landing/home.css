@@ -410,10 +410,18 @@
   gap: 0.35rem;
   padding: 0.35rem 0.85rem;
   border-radius: var(--radius-full);
-  background: var(--warn-soft);
-  color: var(--warn-text);
+  /* Buy Me a Coffee brand colours (fixed, like the ORCID green) — same in light + dark */
+  background: #ffdd00;
+  color: #000;
   font-weight: var(--weight-semibold);
   text-decoration: none;
+}
+.hp2-coffee:hover {
+  background: #ffd000;
+}
+/* Beat `.hp2-creator-text a` (accent colour) so the brand text + currentColor icon stay black. */
+.hp2-creator-text .hp2-coffee {
+  color: #000;
 }
 
 /* ── Feature benefit bullets ───────────────────────────────────────── */
