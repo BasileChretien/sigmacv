@@ -750,6 +750,20 @@ export const DisplayChoicesSchema = z.object({
    */
   dismissedDuplicates: z.array(z.string().max(2200)).max(20_000).optional().catch(undefined),
   /**
+   * Item ids of review candidates the user triaged with "Keep hidden": an
+   * ORCID-discovered work (`reviewFlag === "orcid-doi"`) or a name+org-matched
+   * registry candidate (`"name-matched"`) they want OFF the CV WITHOUT recording
+   * a "not mine" disambiguation claim (it may well be theirs — they just don't
+   * want it shown, and don't want it flagged again). The review badge + the
+   * CV-health checklist stop nagging about a dismissed id while it stays hidden.
+   * Keyed by item id, which is stable across re-sync for both flavours
+   * (orcid-doi items carry over whole; name-matched ids are content-derived), so
+   * the decision SURVIVES re-sync. Bounded; back-compat (old docs omit it).
+   * `.catch(undefined)`: a corrupt / over-cap value degrades to "nothing
+   * dismissed" (badges re-appear) rather than failing the CV read.
+   */
+  dismissedReviewCandidates: z.array(z.string().max(1024)).max(20_000).optional().catch(undefined),
+  /**
    * True once the user has manually reordered sections (drag or ↑/↓). Until
    * then the build applies the canonical default order (Positions → Education →
    * Publications → …); afterwards the user's arrangement is preserved on re-sync.

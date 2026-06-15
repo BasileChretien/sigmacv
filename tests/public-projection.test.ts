@@ -185,6 +185,14 @@ describe("projectCvForPublic", () => {
     expect(cv.display.dismissedDuplicates).toEqual(["a|b", "c|d"]);
   });
 
+  it("strips dismissedReviewCandidates (kept-hidden review decisions) from the public display", () => {
+    const cv = updateDisplay(makeCv(), { dismissedReviewCandidates: ["W1", "G2"] });
+    const pub = projectCvForPublic(cv);
+    expect(pub.display.dismissedReviewCandidates).toBeUndefined();
+    // Input untouched.
+    expect(cv.display.dismissedReviewCandidates).toEqual(["W1", "G2"]);
+  });
+
   it("applies the published view's exclusions and doesn't ship the exclude list", () => {
     const cv = makeCv();
     const sec = cv.sections.find((s) => s.type === "publications")!;

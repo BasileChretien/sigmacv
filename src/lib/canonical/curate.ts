@@ -698,6 +698,38 @@ export function dismissDuplicateGroup(cv: CanonicalCv, itemIds: readonly string[
 }
 
 /**
+ * "Keep hidden" on a review candidate (an ORCID-discovered `orcid-doi` work, or
+ * a name+org-matched `name-matched` registry entry): the user has triaged it and
+ * wants it OFF the CV without nagging — and WITHOUT recording a "not mine"
+ * disambiguation claim (it may well be theirs; they just don't want it shown).
+ * Records the item id in `display.dismissedReviewCandidates` so the review badge
+ * and the CV-health checklist stop flagging it, and keeps the item hidden
+ * (`included:false`). Pure + immutable. The decision survives re-sync (the id is
+ * stable for both flavours). A no-op when the item is absent or already
+ * dismissed (preserve identity → no needless re-render).
+ */
+export function dismissReviewCandidate(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+): CanonicalCv {
+  const item = cv.sections.find((s) => s.id === sectionId)?.items.find((it) => it.id === itemId);
+  if (!item) return cv;
+  const existing = cv.display.dismissedReviewCandidates ?? [];
+  if (existing.includes(itemId) && !item.included) return cv;
+  const dismissedReviewCandidates = existing.includes(itemId) ? existing : [...existing, itemId];
+  return {
+    ...cv,
+    display: { ...cv.display, dismissedReviewCandidates },
+    sections: cv.sections.map((s) =>
+      s.id === sectionId
+        ? { ...s, items: s.items.map((it) => (it.id === itemId ? { ...it, included: false } : it)) }
+        : s,
+    ),
+  };
+}
+
+/**
  * Whether the CV already contains a work with the given OpenAlex id or DOI, so
  * the "add by DOI" flow can refuse a duplicate rather than list it twice.
  */
