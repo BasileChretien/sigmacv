@@ -293,3 +293,67 @@ describe("CvEditor (component)", () => {
     expect(next.display.locale).toBe("ja-JP");
   });
 });
+
+describe("CvEditor — subdivided regions layout (variant)", () => {
+  it("defaults to the classic single-scroll layout (no part tabs)", () => {
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+    );
+    expect(screen.queryByRole("tablist")).toBeNull();
+    // Classic shows the style controls (template gallery radiogroup) inline.
+    expect(screen.getByRole("radiogroup")).toBeTruthy();
+  });
+
+  it('variant="regions" renders Content / Design / Profile tabs, Content active', () => {
+    render(
+      <CvEditor
+        cv={makeCv()}
+        availableStyles={["apa"]}
+        uiLocale="en-US"
+        onChange={vi.fn()}
+        variant="regions"
+      />,
+    );
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual([
+      "Content",
+      "Design",
+      "Profile",
+    ]);
+    // Only the active (Content) panel is in the a11y tree; the Design panel — and
+    // so its template-gallery radiogroup — is `hidden` until selected.
+    expect(screen.getByRole("tabpanel", { name: "Content" })).toBeTruthy();
+    expect(screen.queryByRole("tabpanel", { name: "Design" })).toBeNull();
+    expect(screen.queryByRole("radiogroup")).toBeNull();
+  });
+
+  it("switching to the Design tab reveals the style controls and hides Content", () => {
+    render(
+      <CvEditor
+        cv={makeCv()}
+        availableStyles={["apa"]}
+        uiLocale="en-US"
+        onChange={vi.fn()}
+        variant="regions"
+      />,
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Design" }));
+    expect(screen.getByRole("tabpanel", { name: "Design" })).toBeTruthy();
+    expect(screen.queryByRole("tabpanel", { name: "Content" })).toBeNull();
+    expect(screen.getByRole("radiogroup")).toBeTruthy(); // template gallery now visible
+  });
+
+  it("localises the part-tab labels to the interface language", () => {
+    render(
+      <CvEditor
+        cv={makeCv()}
+        availableStyles={["apa"]}
+        uiLocale="fr-FR"
+        onChange={vi.fn()}
+        variant="regions"
+      />,
+    );
+    expect(screen.getByRole("tab", { name: "Contenu" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Apparence" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Profil" })).toBeTruthy();
+  });
+});

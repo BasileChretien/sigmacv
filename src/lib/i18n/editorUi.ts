@@ -67,6 +67,14 @@ export interface EditorExtraStrings {
   modelNone: string;
   /** Helper line under the picker stressing it's optional. */
   modelHelp: string;
+  // Subdivided "regions" editor layout (opt-in CvEditor variant).
+  /** Collapsible "Presets & models" group head (Design region). */
+  grpPresets: string;
+  /** Top-level part tabs (Content / Design / Profile) + their tablist label. */
+  regionContent: string;
+  regionDesign: string;
+  regionProfile: string;
+  regionsAria: string;
 }
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
@@ -123,6 +131,11 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— None (default sections) —",
     modelHelp:
       "Optional. Pick a funder or institution layout to auto-arrange your sections — or just build your CV freely.",
+    grpPresets: "Presets & models",
+    regionContent: "Content",
+    regionDesign: "Design",
+    regionProfile: "Profile",
+    regionsAria: "Editor sections",
   },
   "zh-CN": {
     grpTemplate: "模板与排版",
@@ -176,6 +189,11 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpIndustry: "产业与临床",
     modelNone: "— 无（默认栏目）—",
     modelHelp: "可选。选择一个资助方或机构版式以自动排列你的栏目——或直接自由编排你的简历。",
+    grpPresets: "预设与模型",
+    regionContent: "内容",
+    regionDesign: "外观",
+    regionProfile: "个人资料",
+    regionsAria: "编辑器区域",
   },
   "es-ES": {
     grpTemplate: "Plantilla y diseño",
@@ -231,6 +249,11 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Ninguno (secciones predeterminadas) —",
     modelHelp:
       "Opcional. Elige un diseño de financiador o institución para ordenar tus secciones automáticamente, o crea tu CV libremente.",
+    grpPresets: "Ajustes guardados y modelos",
+    regionContent: "Contenido",
+    regionDesign: "Diseño",
+    regionProfile: "Perfil",
+    regionsAria: "Secciones del editor",
   },
   "fr-FR": {
     grpTemplate: "Modèle et mise en page",
@@ -287,6 +310,11 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Aucun (sections par défaut) —",
     modelHelp:
       "Facultatif. Choisissez une mise en page de financeur ou d’institution pour organiser automatiquement vos sections — ou composez votre CV librement.",
+    grpPresets: "Préréglages et modèles",
+    regionContent: "Contenu",
+    regionDesign: "Apparence",
+    regionProfile: "Profil",
+    regionsAria: "Sections de l’éditeur",
   },
   "de-DE": {
     grpTemplate: "Vorlage & Layout",
@@ -342,6 +370,11 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Keine (Standardabschnitte) —",
     modelHelp:
       "Optional. Wählen Sie ein Förderer- oder Institutionslayout, um Ihre Abschnitte automatisch anzuordnen — oder erstellen Sie Ihren Lebenslauf frei.",
+    grpPresets: "Voreinstellungen & Modelle",
+    regionContent: "Inhalt",
+    regionDesign: "Design",
+    regionProfile: "Profil",
+    regionsAria: "Editor-Bereiche",
   },
   "ja-JP": {
     grpTemplate: "テンプレートとレイアウト",
@@ -396,6 +429,11 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— なし（既定のセクション）—",
     modelHelp:
       "任意です。助成機関や機関のレイアウトを選ぶとセクションが自動で並びます。自由に CV を作成することもできます。",
+    grpPresets: "プリセットとモデル",
+    regionContent: "内容",
+    regionDesign: "デザイン",
+    regionProfile: "プロフィール",
+    regionsAria: "エディターのセクション",
   },
   "pt-BR": {
     grpTemplate: "Modelo e layout",
@@ -451,6 +489,11 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Nenhum (seções padrão) —",
     modelHelp:
       "Opcional. Escolha um layout de financiador ou instituição para organizar suas seções automaticamente — ou monte seu currículo livremente.",
+    grpPresets: "Predefinições e modelos",
+    regionContent: "Conteúdo",
+    regionDesign: "Aparência",
+    regionProfile: "Perfil",
+    regionsAria: "Seções do editor",
   },
   "it-IT": {
     grpTemplate: "Modello e layout",
@@ -507,6 +550,11 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Nessuno (sezioni predefinite) —",
     modelHelp:
       "Facoltativo. Scegli un layout di un ente finanziatore o di un’istituzione per disporre automaticamente le tue sezioni — oppure crea il tuo CV liberamente.",
+    grpPresets: "Preimpostazioni e modelli",
+    regionContent: "Contenuto",
+    regionDesign: "Aspetto",
+    regionProfile: "Profilo",
+    regionsAria: "Sezioni dell’editor",
   },
   "ko-KR": {
     grpTemplate: "템플릿 및 레이아웃",
@@ -562,6 +610,11 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— 없음 (기본 섹션) —",
     modelHelp:
       "선택 사항입니다. 지원기관이나 기관 레이아웃을 고르면 섹션이 자동으로 배치됩니다 — 또는 자유롭게 CV를 작성하세요.",
+    grpPresets: "프리셋 및 모델",
+    regionContent: "콘텐츠",
+    regionDesign: "디자인",
+    regionProfile: "프로필",
+    regionsAria: "편집기 섹션",
   },
   "ru-RU": {
     grpTemplate: "Шаблон и вёрстка",
@@ -616,6 +669,11 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Нет (разделы по умолчанию) —",
     modelHelp:
       "Необязательно. Выберите макет грантодателя или учреждения, чтобы автоматически расставить разделы, — или составьте резюме свободно.",
+    grpPresets: "Пресеты и модели",
+    regionContent: "Содержание",
+    regionDesign: "Оформление",
+    regionProfile: "Профиль",
+    regionsAria: "Разделы редактора",
   },
 };
 

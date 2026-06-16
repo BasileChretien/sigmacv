@@ -416,6 +416,7 @@ export default function CvWorkspace({
                 uiLocale={uiLocale}
                 onChange={update}
                 onClaimAdded={handleClaimAdded}
+                variant="regions"
               />
             </section>
             <section className="cv-workspace-pane" data-pane="preview">

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Editor panel is now subdivided into Content / Design / Profile.** The CV
+  editor's left panel — previously one long scroll mixing identity fields,
+  styling controls, and content curation — is now split into three labelled
+  parts you switch between, with a persistent "needs your attention" strip that
+  stays visible above them and jumps you to the flagged item (switching to
+  Content first). The Design part groups its settings (Presets, Template,
+  Metrics, Display) into collapsible sections so the rarely-touched options stay
+  out of the way. Keyboard- and screen-reader-accessible (proper tabs with arrow
+  navigation; reduced-motion respected). The rendered CV and every control are
+  unchanged — only the panel's layout.
+
 ### Added
 
 - **Auto-save in the editor.** Curation and styling changes now persist
