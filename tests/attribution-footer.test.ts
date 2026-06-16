@@ -40,6 +40,33 @@ describe("attributionFooter", () => {
     expect(html).not.toContain("nofollow");
   });
 
+  it("includes a visible 'living CV' line with the last-synced date (public path only)", () => {
+    const html = attributionFooter(makeCv(), { attribution: true });
+    expect(html).toContain('class="cv-living"');
+    expect(html).toContain("Updated"); // en-US livingNote prefix
+    expect(html).toContain("2026"); // the formatted last-synced date
+    // Absent on the export path (the whole footer is "").
+    expect(attributionFooter(makeCv())).not.toContain("cv-living");
+  });
+
+  it("localizes the living-CV line", () => {
+    const fr = updateDisplay(makeCv(), { locale: "fr-FR" });
+    const html = attributionFooter(fr, { attribution: true });
+    expect(html).toContain("Mis à jour le"); // fr-FR livingNote prefix
+    expect(html).toContain('class="cv-living"');
+  });
+
+  it("omits the living-CV line when the CV has no sync timestamp", () => {
+    const base = makeCv();
+    const noSync: CanonicalCv = {
+      ...base,
+      provenance: { ...base.provenance, lastSyncedAt: undefined },
+    };
+    const html = attributionFooter(noSync, { attribution: true });
+    expect(html).not.toContain("cv-living");
+    expect(html).toContain('class="cv-attribution"'); // the backlink still renders
+  });
+
   it("renders nothing when the attribution flag is absent (the export path)", () => {
     expect(attributionFooter(makeCv())).toBe("");
     expect(attributionFooter(makeCv(), {})).toBe("");
@@ -68,14 +95,16 @@ describe("attributionFooter", () => {
 
 describe.skipIf(!hasApa)("attribution footer in the full rendered document", () => {
   it("appears only when renderCvHtml is called with { attribution: true }", () => {
-    // Public living page passes the flag → footer present.
+    // Public living page passes the flag → footer + living line present.
     const pub = renderCvHtml(makeCv(), { attribution: true });
     expect(pub).toContain('class="cv-attribution"');
+    expect(pub).toContain('class="cv-living"');
     expect(pub).toContain(`href="${SITE_URL}"`);
 
-    // Export / default path passes no opts → unbranded, no footer.
+    // Export / default path passes no opts → unbranded, no footer, no living line.
     const exported = renderCvHtml(makeCv());
     expect(exported).not.toContain('class="cv-attribution"');
+    expect(exported).not.toContain('class="cv-living"');
   });
 
   it("is absent on the public path when the owner opted out", () => {

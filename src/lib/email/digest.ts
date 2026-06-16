@@ -59,8 +59,10 @@ export function buildDigestContent(opts: {
   locale: string;
   editorUrl: string;
   unsubscribeUrl: string;
+  /** The public `/p/` URL when the CV is published — leads the call-to-action. */
+  publicUrl?: string;
 }): DigestContent {
-  const { report, editorUrl, unsubscribeUrl } = opts;
+  const { report, editorUrl, unsubscribeUrl, publicUrl } = opts;
   const dg = digestEmail(opts.locale);
   const n = (s: string, count: number) => s.replace("{n}", String(count));
 
@@ -76,6 +78,9 @@ export function buildDigestContent(opts: {
   }
   if (report.reviewCandidates > 0) lines.push(`• ${n(dg.dgReview, report.reviewCandidates)}`);
   if (report.removedTotal > 0) lines.push(`• ${n(dg.dgRemoved, report.removedTotal)}`);
+  // Lead with the public living page (what the user shares + is proud of) when it
+  // is published; the editor link follows for curation. Editor-only otherwise.
+  if (publicUrl) lines.push("", dg.dgViewPage, publicUrl);
   lines.push("", dg.dgCta, editorUrl, "", "—", dg.dgUnsub, unsubscribeUrl, "");
 
   return {
@@ -140,7 +145,9 @@ export async function sendDueDigests(
       contactEmail: true,
       contactEmailVerifiedAt: true,
       digestSentAt: true,
-      cv: { select: { lastSyncReport: true, document: true } },
+      cv: {
+        select: { lastSyncReport: true, document: true, published: true, publicSlug: true },
+      },
     },
     take: opts.limit ?? DEFAULT_BATCH,
   });
@@ -165,11 +172,15 @@ export async function sendDueDigests(
     const locale = asLocale(typeof rawLocale === "string" ? rawLocale : undefined);
 
     const unsubscribeUrl = `${baseUrl}/api/email/unsubscribe?token=${buildUnsubscribeToken(user.id)}`;
+    // A published CV gets its living public page surfaced as the primary CTA.
+    const publicUrl =
+      user.cv?.published && user.cv.publicSlug ? `${baseUrl}/p/${user.cv.publicSlug}` : undefined;
     const content = buildDigestContent({
       report,
       locale,
       editorUrl: `${baseUrl}/cv`,
       unsubscribeUrl,
+      publicUrl,
     });
     const ok = await sendMail({
       to,

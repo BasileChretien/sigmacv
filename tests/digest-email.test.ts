@@ -212,6 +212,33 @@ describe("buildDigestContent", () => {
     expect(text).not.toContain("– "); // blank title not listed
     expect(text).not.toContain("vérification"); // no review line when zero
   });
+
+  it("leads with the public living page when the CV is published", () => {
+    const { text } = buildDigestContent({
+      report: makeReport(),
+      locale: "en-US",
+      editorUrl: "https://cv.example.org/cv",
+      unsubscribeUrl: "https://cv.example.org/u",
+      publicUrl: "https://cv.example.org/p/jane-doe",
+    });
+    expect(text).toContain("See it on your living public page:");
+    expect(text).toContain("https://cv.example.org/p/jane-doe");
+    // The public-page CTA precedes the editor "curate" CTA (compare the labels —
+    // the host "https://cv.example.org" itself contains "/cv").
+    expect(text.indexOf("living public page")).toBeLessThan(text.indexOf("in the editor"));
+  });
+
+  it("omits the public-page CTA when there is no public URL", () => {
+    const { text } = buildDigestContent({
+      report: makeReport(),
+      locale: "en-US",
+      editorUrl: "https://cv.example.org/cv",
+      unsubscribeUrl: "https://cv.example.org/u",
+    });
+    expect(text).not.toContain("living public page");
+    expect(text).not.toContain("/p/");
+    expect(text).toContain("https://cv.example.org/cv");
+  });
 });
 
 describe("digestAddress", () => {
@@ -282,6 +309,15 @@ describe("sendDueDigests", () => {
       where: { id: "u1" },
       data: { digestSentAt: NOW },
     });
+  });
+
+  it("surfaces the public page URL when the CV is published", async () => {
+    mocks.findMany.mockResolvedValue([
+      { ...baseUser, cv: { ...baseUser.cv, published: true, publicSlug: "jane-doe" } },
+    ]);
+    await sendDueDigests({ now: NOW });
+    const mail = mocks.sendMail.mock.calls[0]![0] as { text: string };
+    expect(mail.text).toContain("https://cv.example.org/p/jane-doe");
   });
 
   it("delivers to a CONFIRMED contact email and counts addressless opt-ins", async () => {

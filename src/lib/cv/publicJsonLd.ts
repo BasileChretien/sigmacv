@@ -152,7 +152,9 @@ function sameAsUrls(cv: CanonicalCv, orcidUrl: string | undefined): string[] {
 }
 
 /**
- * ProfilePage + Person JSON-LD for an opt-in indexable public CV. Only the
+ * ProfilePage + Person JSON-LD for a published public CV (emitted whether or not
+ * the owner opted into search indexing — it's structured data, not a crawl
+ * permission; the page's `noindex` robots tag governs search inclusion). Only the
  * account holder's own already-public identity (name, headline, ORCID, current
  * affiliation, profile links) is described — never anyone else's. Operates on
  * the PUBLIC-projected CV, so contact/personal fields the owner has not opted to
@@ -200,6 +202,10 @@ export function profilePageJsonLd(cv: CanonicalCv, slug: string): string {
     inLanguage: cv.display.locale,
     mainEntity: person,
   };
+
+  // When the living page last re-synced from the open record (ISO 8601). Surfaces
+  // the page's "freshness" to consumers — the core value of a living CV.
+  if (cv.provenance.lastSyncedAt) jsonLd.dateModified = cv.provenance.lastSyncedAt;
 
   // Whole-CV reuse license (FAIR): the SPDX URL when the owner chose a linkable
   // license; "none"/"all-rights-reserved" have no URL and are simply omitted.

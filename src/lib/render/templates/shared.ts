@@ -295,10 +295,13 @@ export function commonCss(theme: TemplateTheme): string {
      contentinfo region; reset its UA bottom margin to keep the footnote tight. */
   .cv-license { margin: 1rem 0 0; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
   .cv-license a { color: var(--cv-muted); text-decoration: underline; text-underline-offset: 0.15em; }
+  /* "Living CV" line — public page ONLY. Tells a visitor the page is current
+     ("Updated <date> · updates automatically"); a quiet footnote, not a landmark. */
+  .cv-living { margin: 1.4rem 0 0; font-size: 0.66rem; color: var(--cv-muted); letter-spacing: 0.01em; }
   /* "Made with SigmaCV" referral line — public living page ONLY (never in an
      export). A quiet brand backlink under the document (a paragraph, not a
      landmark). */
-  .cv-attribution { margin: 1rem 0 0; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
+  .cv-attribution { margin: 0.3rem 0 0; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
   .cv-attribution a { color: var(--cv-accent); text-decoration: none; }
   a { color: inherit; }
 
@@ -466,8 +469,18 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
   // guard keeps an unexpected non-http value from ever reaching the href.
   /* v8 ignore next -- SITE_URL is always a safe https origin */
   if (!href) return "";
-  const madeWith = escapeHtml(renderStrings(cv.display.locale).madeWith);
-  return `<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
+  const s = renderStrings(cv.display.locale);
+  // The "living CV" signal: a visible "Updated <date> · updates automatically"
+  // line so a visitor (a hiring committee, a collaborator) can see the page is
+  // CURRENT — the whole point of a living page, otherwise invisible. Rides the
+  // same public-page-only + owner-opt-out gating as the attribution backlink;
+  // omitted until the CV has a sync timestamp.
+  const synced = formatSyncDate(cv.provenance.lastSyncedAt, cv.display.locale);
+  const living = synced
+    ? `<p class="cv-living">${escapeHtml(s.livingNote.replace("{date}", synced))}</p>`
+    : "";
+  const madeWith = escapeHtml(s.madeWith);
+  return `${living}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
 }
 
 /**

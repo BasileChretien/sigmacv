@@ -807,6 +807,36 @@ input[type="radio"] {
   padding: var(--space-2) 0 var(--space-1);
   border-top: 1px solid var(--border);
 }
+/* "Your page is live" share card inside the Publish popover. */
+.publish-live {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-1) var(--space-3) var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.publish-live-url {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--accent);
+  word-break: break-all;
+  text-decoration: none;
+}
+.publish-live-url:hover {
+  text-decoration: underline;
+}
+.publish-live-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.publish-live-hint {
+  margin: 0;
+  font-size: var(--text-xs);
+}
 .publish-panel .public-contact-consent legend {
   display: block;
   float: none;

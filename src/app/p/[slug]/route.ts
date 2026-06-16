@@ -171,16 +171,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       imageUrl: absoluteUrl(`/p/${slug}/og`),
       pageUrl: absoluteUrl(`/p/${slug}`),
     });
-    if (indexable) {
-      // Inject ProfilePage/Person JSON-LD into the document head for rich results.
-      // It's data (not executed), so it's unaffected by the document's strict CSP.
-      html = html.replace(
-        "</head>",
-        `${head}<script type="application/ld+json">${profilePageJsonLd(cv, slug)}</script></head>`,
-      );
-    } else {
-      html = html.replace("</head>", `${head}</head>`);
-    }
+    // Inject ProfilePage/Person JSON-LD into the document head. It's DATA, not a
+    // crawl permission — emit it whether or not the owner opted into indexing (the
+    // X-Robots-Tag `noindex` still keeps the page out of search results). This way
+    // tools/agents the owner deliberately shares the link with can read a
+    // structured profile even on a published-but-unindexed page. It's data (not
+    // executed), so it's unaffected by the document's strict CSP.
+    html = html.replace(
+      "</head>",
+      `${head}<script type="application/ld+json">${profilePageJsonLd(cv, slug)}</script></head>`,
+    );
 
     const rendered = { html, indexable, signposting };
     setCachedPublicPage(slug, rendered);

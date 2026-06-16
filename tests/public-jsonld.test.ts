@@ -44,6 +44,20 @@ describe("profilePageJsonLd", () => {
     expect(parsed.mainEntity.sameAs).toContain("https://orcid.org/0000-0002-7483-2489");
   });
 
+  it("includes dateModified from the last sync timestamp (living-page freshness)", () => {
+    const parsed = JSON.parse(profilePageJsonLd(makeCv(), "s"));
+    expect(parsed.dateModified).toBe("2026-06-02T00:00:00.000Z");
+  });
+
+  it("omits dateModified when there is no sync timestamp", () => {
+    const base = makeCv();
+    const noSync: CanonicalCv = {
+      ...base,
+      provenance: { ...base.provenance, lastSyncedAt: undefined },
+    };
+    expect(JSON.parse(profilePageJsonLd(noSync, "s")).dateModified).toBeUndefined();
+  });
+
   it("escapes < so it is safe inside an HTML <script> element", () => {
     const json = profilePageJsonLd(makeCv({ owner: { displayName: "</script><b>x" } }), "s");
     expect(json).not.toContain("</script>");
