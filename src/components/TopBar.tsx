@@ -5,6 +5,7 @@ import { ui } from "@/lib/i18n/ui";
 import AccountMenu from "./AccountMenu";
 import PublishMenu from "./PublishMenu";
 import SupportLink from "./SupportLink";
+import ThemeToggle from "./ThemeToggle";
 
 /** Exportable formats — mirrors the EXPORTABLE list the API route accepts. */
 export type ExportFormat =
@@ -201,6 +202,8 @@ export default function TopBar({
             ))}
           </select>
         </span>
+
+        <ThemeToggle locale={locale} />
 
         <PublishMenu
           locale={locale}

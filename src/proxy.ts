@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { THEME_INIT_SHA256 } from "@/lib/themeInit";
 
 /**
  * App-shell Content-Security-Policy.
@@ -34,9 +35,12 @@ export function proxy(request: NextRequest): NextResponse {
     analyticsOrigin = "";
   }
 
+  // The static no-flash theme script (themeInit.ts) is inline and has no nonce,
+  // so under `strict-dynamic` it's allow-listed by its sha256 hash. (Dev already
+  // permits 'unsafe-inline', so the hash is only needed in production.)
   const scriptSrc = isDev
     ? "'self' 'unsafe-eval' 'unsafe-inline'"
-    : `'self' 'nonce-${nonce}' 'strict-dynamic'`;
+    : `'self' 'nonce-${nonce}' 'sha256-${THEME_INIT_SHA256}' 'strict-dynamic'`;
   const connectSrc = isDev
     ? "'self' ws: wss:"
     : `'self'${analyticsOrigin ? ` ${analyticsOrigin}` : ""}`;
