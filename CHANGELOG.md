@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Dark-mode contrast in the editor.** A handful of editor controls (the
+  save-status pill, source/“you” badges, hover states on icon and “mine”
+  buttons, the section-toggle hover, the drag handle, scrollbar thumbs and the
+  publish dot) used fixed grey values that didn’t invert in dark mode, so they
+  showed light-on-dark — washed out or hard to read. They now use the same
+  semantic surface/border/muted tokens as everything else, so they’re correct in
+  dark mode and pixel-identical in light mode.
+
 ### Added
 
 - **A shared header and footer now connect every page.** The marketing and
