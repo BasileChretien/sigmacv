@@ -734,6 +734,27 @@ input[type="radio"] {
 .publish-dot.is-live {
   background: var(--success, #22c55e);
 }
+/* Unpublished: a calm accent pulse on the trigger dot invites the user to publish
+   a shareable public page — a "there's value here" cue, not a flashy one. It stops
+   the moment the page goes live (steady green). Reduced-motion → accent, no motion. */
+.publish-trigger .publish-dot:not(.is-live) {
+  background: var(--accent-500);
+  animation: publish-pulse 2.6s ease-in-out infinite;
+}
+@keyframes publish-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-500) 50%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent-500) 0%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .publish-trigger .publish-dot:not(.is-live) {
+    animation: none;
+  }
+}
 
 /* ── Menu panel internals ── */
 .menu-header {
