@@ -78,6 +78,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **"Why SigmaCV" is now a scannable four-up.** The homepage trust section was three
+  text-heavy cards (with "no ads" said twice). It's now four compact, icon-led cards
+  with minimal copy — **Free · Private · Open source · Responsible** — adding the
+  responsible-metrics point (opt-in, DORA-aligned) that sets SigmaCV apart for
+  researchers. The detail still lives on the Privacy / Principles / Transparency pages.
 - **First-run prompts no longer pile up.** A brand-new user could land in the
   editor facing three onboarding prompts at once — the “what changed in your
   sync” banner, the “check these are yours” coachmark, and the “publish your
