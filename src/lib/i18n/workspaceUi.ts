@@ -15,6 +15,10 @@ export interface WorkspaceUiStrings {
   srAdded: string;
   srRemoved: string;
   srReview: string;
+  /** Title on the clickable review pill — jumps to the next item to review. */
+  srReviewJump: string;
+  /** "+{n} more" — overflow count when the additions list is summarized by section. */
+  srMore: string;
   srDetails: string;
   srDismiss: string;
   srNoTitle: string;
@@ -68,6 +72,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     srAdded: "{n} new",
     srRemoved: "{n} no longer in the sources",
     srReview: "{n} to review",
+    srReviewJump: "Jump to the next item to review",
+    srMore: "+{n} more",
     srDetails: "Show what’s new",
     srDismiss: "Dismiss",
     srNoTitle: "(untitled)",
@@ -112,6 +118,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     srAdded: "新增 {n} 条",
     srRemoved: "{n} 条已不在数据源中",
     srReview: "{n} 条待审核",
+    srReviewJump: "跳转到下一个待审核项",
+    srMore: "另有 {n} 条",
     srDetails: "查看新增内容",
     srDismiss: "关闭",
     srNoTitle: "（无标题）",
@@ -156,6 +164,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     srAdded: "{n} nuevas",
     srRemoved: "{n} ya no están en las fuentes",
     srReview: "{n} por revisar",
+    srReviewJump: "Ir al siguiente elemento por revisar",
+    srMore: "+{n} más",
     srDetails: "Ver novedades",
     srDismiss: "Descartar",
     srNoTitle: "(sin título)",
@@ -201,6 +211,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     srAdded: "{n} nouvelles",
     srRemoved: "{n} absentes des sources",
     srReview: "{n} à vérifier",
+    srReviewJump: "Aller au prochain élément à vérifier",
+    srMore: "+{n} de plus",
     srDetails: "Voir les nouveautés",
     srDismiss: "Fermer",
     srNoTitle: "(sans titre)",
@@ -246,6 +258,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     srAdded: "{n} neu",
     srRemoved: "{n} nicht mehr in den Quellen",
     srReview: "{n} zu prüfen",
+    srReviewJump: "Zum nächsten zu prüfenden Eintrag springen",
+    srMore: "+{n} weitere",
     srDetails: "Neues anzeigen",
     srDismiss: "Schließen",
     srNoTitle: "(ohne Titel)",
@@ -291,6 +305,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     srAdded: "新規 {n} 件",
     srRemoved: "{n} 件がソースから消失",
     srReview: "要確認 {n} 件",
+    srReviewJump: "次の要確認項目へ移動",
+    srMore: "他 {n} 件",
     srDetails: "新着を表示",
     srDismiss: "閉じる",
     srNoTitle: "（無題）",
@@ -336,6 +352,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     srAdded: "{n} novos",
     srRemoved: "{n} não estão mais nas fontes",
     srReview: "{n} para revisar",
+    srReviewJump: "Ir para o próximo item a revisar",
+    srMore: "+{n} mais",
     srDetails: "Ver novidades",
     srDismiss: "Dispensar",
     srNoTitle: "(sem título)",
@@ -381,6 +399,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     srAdded: "{n} nuove",
     srRemoved: "{n} non più nelle fonti",
     srReview: "{n} da verificare",
+    srReviewJump: "Vai al prossimo elemento da verificare",
+    srMore: "+{n} altri",
     srDetails: "Mostra le novità",
     srDismiss: "Chiudi",
     srNoTitle: "(senza titolo)",
@@ -426,6 +446,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     srAdded: "신규 {n}개",
     srRemoved: "{n}개가 소스에서 사라짐",
     srReview: "검토 필요 {n}개",
+    srReviewJump: "다음 검토 항목으로 이동",
+    srMore: "외 {n}개",
     srDetails: "새 항목 보기",
     srDismiss: "닫기",
     srNoTitle: "(제목 없음)",
@@ -471,6 +493,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     srAdded: "{n} новых",
     srRemoved: "{n} больше нет в источниках",
     srReview: "{n} на проверку",
+    srReviewJump: "Перейти к следующему элементу на проверку",
+    srMore: "+{n} ещё",
     srDetails: "Показать новое",
     srDismiss: "Закрыть",
     srNoTitle: "(без названия)",

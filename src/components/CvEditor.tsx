@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState, type KeyboardEvent } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { asLocale } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
@@ -31,14 +31,15 @@ interface CvEditorProps {
   variant?: "classic" | "regions";
 }
 
-export default function CvEditor({
-  cv,
-  availableStyles,
-  uiLocale,
-  onChange,
-  onClaimAdded = () => {},
-  variant = "classic",
-}: CvEditorProps) {
+/** Imperative surface CvWorkspace uses to drive the sync banner's "jump to item". */
+export interface CvEditorHandle {
+  jumpToItem: (itemId: string) => void;
+}
+
+const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
+  { cv, availableStyles, uiLocale, onChange, onClaimAdded = () => {}, variant = "classic" },
+  ref,
+) {
   // Editor chrome follows the INTERFACE language; the CV's own language is
   // cv.display.locale, edited via the "CV language" picker inside StyleControls.
   const locale = asLocale(uiLocale);
@@ -54,6 +55,15 @@ export default function CvEditor({
   // leading tab; a CV-health jump still routes to Content (where the rows live).
   const [activePart, setActivePart] = useState<EditorPart>("profile");
   const tablistRef = useRef<HTMLDivElement>(null);
+
+  // The sync banner (in CvWorkspace) jumps to a specific item; route it through
+  // the Content part first so the target row is mounted before it scrolls.
+  useImperativeHandle(ref, () => ({
+    jumpToItem: (itemId: string) => {
+      setActivePart("content");
+      sectionsRef.current?.jumpToItem(itemId);
+    },
+  }));
 
   const profilePanel = <ProfilePanel cv={cv} locale={locale} onChange={onChange} />;
   const sectionsList = (
@@ -176,4 +186,6 @@ export default function CvEditor({
       </div>
     </div>
   );
-}
+});
+
+export default CvEditor;

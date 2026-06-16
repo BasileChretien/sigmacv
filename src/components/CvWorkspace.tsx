@@ -15,7 +15,7 @@ const UI_LOCALE_KEY = "sigmacv:uiLocale";
 // stays as an immediate-save fallback.
 const AUTOSAVE_DELAY_MS = 1500;
 import { selectOnboardingStep, type OnboardingStep } from "@/lib/onboardingSequence";
-import CvEditor from "./CvEditor";
+import CvEditor, { type CvEditorHandle } from "./CvEditor";
 import CvPreview from "./CvPreview";
 import DisambiguationCoachmark, { COACHMARK_DISMISS_KEY } from "./DisambiguationCoachmark";
 import PublishNudge, { PUBLISH_NUDGE_DISMISS_KEY } from "./PublishNudge";
@@ -109,6 +109,8 @@ export default function CvWorkspace({
   const cvRef = useRef(cv);
   cvRef.current = cv;
   const savingRef = useRef(false);
+  // Lets the sync banner jump the editor to a "to review" item across components.
+  const editorRef = useRef<CvEditorHandle>(null);
 
   // INTERFACE language — independent of the CV's own (rendered) language. It's a
   // client preference (localStorage), not part of the CV document. Initial value
@@ -350,6 +352,7 @@ export default function CvWorkspace({
             locale={uiLocale}
             suppressed={activeOnboarding !== "syncReport"}
             onDismissed={advanceOnboarding}
+            onFocusItem={(id) => editorRef.current?.jumpToItem(id)}
           />
           <DisambiguationCoachmark
             locale={uiLocale}
@@ -390,6 +393,7 @@ export default function CvWorkspace({
           <div className="cv-workspace" id="cv-main" data-active-pane={pane}>
             <section className="cv-workspace-pane" data-pane="editor">
               <CvEditor
+                ref={editorRef}
                 cv={cv}
                 availableStyles={availableStyles}
                 uiLocale={uiLocale}

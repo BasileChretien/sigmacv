@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   SYNC_REPORT_MAX_ITEMS,
+  SYNC_REPORT_SUMMARY_THRESHOLD,
   SyncReportSchema,
+  addedBySectionType,
   computeSyncReport,
+  reviewEntries,
   safeParseSyncReport,
+  type SyncReport,
 } from "@/lib/cv/syncReport";
 import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 
@@ -185,5 +189,37 @@ describe("safeParseSyncReport", () => {
         reviewCandidates: 0,
       }),
     ).toBeNull();
+  });
+});
+
+describe("reviewEntries / addedBySectionType", () => {
+  const base: SyncReport = {
+    syncedAt: NOW,
+    initial: false,
+    addedTotal: 4,
+    removedTotal: 0,
+    added: [
+      { sectionType: "publications", itemId: "W1", title: "a" },
+      { sectionType: "grants", itemId: "G1", title: "b", reviewFlag: "name-matched" },
+      { sectionType: "publications", itemId: "W2", title: "c" },
+      { sectionType: "publications", itemId: "W3", title: "d", reviewFlag: "orcid-doi" },
+    ],
+    reviewCandidates: 2,
+  };
+
+  it("reviewEntries keeps only the review-flagged additions, in order", () => {
+    expect(reviewEntries(base).map((e) => e.itemId)).toEqual(["G1", "W3"]);
+  });
+
+  it("addedBySectionType groups additions and sorts by count desc", () => {
+    expect(addedBySectionType(base)).toEqual([
+      { sectionType: "publications", count: 3 },
+      { sectionType: "grants", count: 1 },
+    ]);
+  });
+
+  it("the summary threshold is a positive integer", () => {
+    expect(Number.isInteger(SYNC_REPORT_SUMMARY_THRESHOLD)).toBe(true);
+    expect(SYNC_REPORT_SUMMARY_THRESHOLD).toBeGreaterThan(0);
   });
 });

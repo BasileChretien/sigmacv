@@ -2814,6 +2814,22 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .sync-report-list li {
   margin: 0.15rem 0;
 }
+/* Clickable variant of the review pill — jumps to the next "to review" item. */
+.sync-pill.is-action {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--text-xs);
+}
+.sync-pill.is-action:hover {
+  border-color: var(--warn-text);
+}
+/* Summarized additions (per-section counts) shown above the threshold. */
+.sync-report-summary {
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  font-size: var(--text-xs);
+  color: var(--text);
+}
 .sync-report-flag {
   margin-left: var(--space-1);
   font-size: var(--text-2xs);
