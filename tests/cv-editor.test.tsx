@@ -304,7 +304,7 @@ describe("CvEditor — subdivided regions layout (variant)", () => {
     expect(screen.getByRole("radiogroup")).toBeTruthy();
   });
 
-  it('variant="regions" renders Content / Design / Profile tabs, Content active', () => {
+  it('variant="regions" renders Profile / Design / Content tabs, Profile active', () => {
     render(
       <CvEditor
         cv={makeCv()}
@@ -315,13 +315,13 @@ describe("CvEditor — subdivided regions layout (variant)", () => {
       />,
     );
     expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual([
-      "Content",
-      "Design",
       "Profile",
+      "Design",
+      "Content",
     ]);
-    // Only the active (Content) panel is in the a11y tree; the Design panel — and
+    // Only the active (Profile) panel is in the a11y tree; the Design panel — and
     // so its template-gallery radiogroup — is `hidden` until selected.
-    expect(screen.getByRole("tabpanel", { name: "Content" })).toBeTruthy();
+    expect(screen.getByRole("tabpanel", { name: "Profile" })).toBeTruthy();
     expect(screen.queryByRole("tabpanel", { name: "Design" })).toBeNull();
     expect(screen.queryByRole("radiogroup")).toBeNull();
   });

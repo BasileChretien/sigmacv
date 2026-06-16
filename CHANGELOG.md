@@ -99,6 +99,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   your CV is unpublished, the **Publish** control's dot shows a calm accent pulse
   (reduced-motion-safe) inviting you to share your page; it settles to a steady
   green once you're live.
+- **Editor parts reordered to Profile · Design · Content.** The editor's segmented
+  control now leads with **Profile** (Design stays in the middle, Content moves to
+  the end), and the editor opens on Profile. The rendered CV and every control are
+  unchanged — only the order and the default tab.
 - **First-run prompts no longer pile up.** A brand-new user could land in the
   editor facing three onboarding prompts at once — the “what changed in your
   sync” banner, the “check these are yours” coachmark, and the “publish your
