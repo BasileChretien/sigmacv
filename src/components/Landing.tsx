@@ -209,6 +209,7 @@ export default function Landing({ locale }: LandingProps) {
           >
             <div className="hp2-feature-copy">
               <span className="hp2-step">{String(i + 1).padStart(2, "0")}</span>
+              {i === 3 ? <span className="hp2-optional">{flow.optionalLabel}</span> : null}
               <h3 className="hp2-feature-title">{step.title}</h3>
               <p className="hp2-feature-body">{step.body}</p>
               <ul className="hp2-feature-points">
