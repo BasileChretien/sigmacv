@@ -5,6 +5,8 @@ import { principlesStrings } from "@/lib/i18n/principles";
 import { localeFairPath, localeHomePath, localePrinciplesPath } from "@/lib/seo";
 import DocJsonLd from "./DocJsonLd";
 import SiteLinks from "./SiteLinks";
+import SiteFooter from "./SiteFooter";
+import SiteHeader from "./SiteHeader";
 
 /**
  * The machine-readable formats a published CV is offered in, in display order.
@@ -30,40 +32,44 @@ export default function FairCv({ locale }: { locale: string }) {
   const loc = asLocale(locale);
   const s = fairCvStrings(loc);
   return (
-    <main className="doc-page" lang={loc}>
-      <DocJsonLd
-        path={localeFairPath(loc).replace(/^\//, "")}
-        name={s.heading}
-        description={s.metaDescription}
-        locale={loc}
-      />
-      <h1>{s.heading}</h1>
-      <p>{s.intro}</p>
+    <div className="site-shell" lang={loc}>
+      <SiteHeader locale={loc} />
+      <main className="doc-page" id="site-main">
+        <DocJsonLd
+          path={localeFairPath(loc).replace(/^\//, "")}
+          name={s.heading}
+          description={s.metaDescription}
+          locale={loc}
+        />
+        <h1>{s.heading}</h1>
+        <p>{s.intro}</p>
 
-      <p className="muted">{s.lead}</p>
-      <ul className="principles-list">
-        {FORMATS.map((f) => (
-          <li key={f.key}>
-            <strong>{f.name}</strong>
-            {" — "}
-            {s[f.key]}
-          </li>
-        ))}
-      </ul>
+        <p className="muted">{s.lead}</p>
+        <ul className="principles-list">
+          {FORMATS.map((f) => (
+            <li key={f.key}>
+              <strong>{f.name}</strong>
+              {" — "}
+              {s[f.key]}
+            </li>
+          ))}
+        </ul>
 
-      <p>{s.cite}</p>
-      <p>{s.repositories}</p>
-      <p>{s.selfHost}</p>
+        <p>{s.cite}</p>
+        <p>{s.repositories}</p>
+        <p>{s.selfHost}</p>
 
-      <p>
-        {s.more} <Link href={localePrinciplesPath(loc)}>{principlesStrings(loc).navLabel}</Link>
-      </p>
+        <p>
+          {s.more} <Link href={localePrinciplesPath(loc)}>{principlesStrings(loc).navLabel}</Link>
+        </p>
 
-      <SiteLinks className="site-links about-links" locale={loc} />
+        <SiteLinks className="site-links about-links" locale={loc} />
 
-      <p className="doc-back muted">
-        <Link href={localeHomePath(loc)}>{s.backLink}</Link>
-      </p>
-    </main>
+        <p className="doc-back muted">
+          <Link href={localeHomePath(loc)}>{s.backLink}</Link>
+        </p>
+      </main>
+      <SiteFooter locale={loc} />
+    </div>
   );
 }

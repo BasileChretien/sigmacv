@@ -2683,6 +2683,127 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   }
 }
 
+/* ── Shared site chrome (SiteHeader / SiteFooter) ────────────────────────────
+   Used on every public page EXCEPT the homepage (which keeps its hero-integrated
+   nav/footer). Visually matches the homepage's `.hp2-nav` / `.hp2-foot` so the
+   surfaces feel like one product. Semantic tokens throughout for dark mode. */
+.site-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-6);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text);
+  text-decoration: none;
+}
+.site-brand:hover {
+  color: var(--accent-700);
+}
+.site-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
+  color: #fff;
+  font-weight: var(--weight-bold);
+}
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.site-nav a:not(.site-nav-cta) {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.site-nav a:not(.site-nav-cta):hover {
+  color: var(--text);
+}
+.site-nav-cta {
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  background: var(--accent-600);
+  color: #fff;
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.site-nav-cta:hover {
+  background: var(--accent-700);
+}
+@media (max-width: 640px) {
+  .site-nav a:not(.site-nav-cta),
+  .site-nav .lang-switcher {
+    display: none;
+  }
+}
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+  max-width: 1180px;
+  width: 100%;
+  margin: auto auto 0;
+  padding: var(--space-8) var(--space-6);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.site-footer-copy {
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+.site-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2) var(--space-4);
+}
+.site-footer-links a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.site-footer-links a:hover {
+  color: var(--text);
+}
+.site-footer-gh {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+.site-footer-gh:hover {
+  color: var(--text);
+}
+
 /* ── About / doc pages ───────────────────────────────────────────────────── */
 .doc-page {
   max-width: 720px;

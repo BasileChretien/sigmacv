@@ -3,6 +3,8 @@ import { asLocale } from "@/lib/i18n";
 import { aboutStrings } from "@/lib/i18n/about";
 import { localeAboutPath, localeHomePath } from "@/lib/seo";
 import DocJsonLd from "./DocJsonLd";
+import SiteFooter from "./SiteFooter";
+import SiteHeader from "./SiteHeader";
 import SiteLinks from "./SiteLinks";
 
 /**
@@ -15,24 +17,28 @@ export default function About({ locale }: { locale: string }) {
   const loc = asLocale(locale);
   const s = aboutStrings(loc);
   return (
-    <main className="doc-page" lang={loc}>
-      <DocJsonLd
-        path={localeAboutPath(loc).replace(/^\//, "")}
-        name={s.heading}
-        description={s.metaDescription}
-        locale={loc}
-      />
-      <h1>{s.heading}</h1>
-      <p>{s.intro}</p>
-      <p>{s.privacy}</p>
-      <h2>{s.whoHeading}</h2>
-      <p>{s.maintainer}</p>
+    <div className="site-shell" lang={loc}>
+      <SiteHeader locale={loc} />
+      <main className="doc-page" id="site-main">
+        <DocJsonLd
+          path={localeAboutPath(loc).replace(/^\//, "")}
+          name={s.heading}
+          description={s.metaDescription}
+          locale={loc}
+        />
+        <h1>{s.heading}</h1>
+        <p>{s.intro}</p>
+        <p>{s.privacy}</p>
+        <h2>{s.whoHeading}</h2>
+        <p>{s.maintainer}</p>
 
-      <SiteLinks className="site-links about-links" locale={loc} />
+        <SiteLinks className="site-links about-links" locale={loc} />
 
-      <p className="doc-back muted">
-        <Link href={localeHomePath(loc)}>{s.backLink}</Link>
-      </p>
-    </main>
+        <p className="doc-back muted">
+          <Link href={localeHomePath(loc)}>{s.backLink}</Link>
+        </p>
+      </main>
+      <SiteFooter locale={loc} />
+    </div>
   );
 }

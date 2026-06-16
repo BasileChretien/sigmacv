@@ -10,6 +10,8 @@ import {
 } from "@/lib/seo";
 import DocJsonLd from "./DocJsonLd";
 import SiteLinks from "./SiteLinks";
+import SiteFooter from "./SiteFooter";
+import SiteHeader from "./SiteHeader";
 
 /**
  * The open sources a CV is built from, grouped, in display order. Source NAMES
@@ -35,52 +37,56 @@ export default function Transparency({ locale }: { locale: string }) {
   const loc = asLocale(locale);
   const s = transparencyStrings(loc);
   return (
-    <main className="doc-page" lang={loc}>
-      <DocJsonLd
-        path={localeTransparencyPath(loc).replace(/^\//, "")}
-        name={s.heading}
-        description={s.metaDescription}
-        locale={loc}
-      />
-      <h1>{s.heading}</h1>
-      <p>{s.intro}</p>
+    <div className="site-shell" lang={loc}>
+      <SiteHeader locale={loc} />
+      <main className="doc-page" id="site-main">
+        <DocJsonLd
+          path={localeTransparencyPath(loc).replace(/^\//, "")}
+          name={s.heading}
+          description={s.metaDescription}
+          locale={loc}
+        />
+        <h1>{s.heading}</h1>
+        <p>{s.intro}</p>
 
-      <h2>{s.sourcesHeading}</h2>
-      <p className="muted">{s.sourcesLead}</p>
-      <ul className="principles-list">
-        {SOURCES.map((src) => (
-          <li key={src.key}>
-            <strong>{src.name}</strong>
-            {" — "}
-            {s[src.key]}
-          </li>
-        ))}
-      </ul>
+        <h2>{s.sourcesHeading}</h2>
+        <p className="muted">{s.sourcesLead}</p>
+        <ul className="principles-list">
+          {SOURCES.map((src) => (
+            <li key={src.key}>
+              <strong>{src.name}</strong>
+              {" — "}
+              {s[src.key]}
+            </li>
+          ))}
+        </ul>
 
-      <h2>{s.matchingHeading}</h2>
-      <p>{s.matchingBody}</p>
+        <h2>{s.matchingHeading}</h2>
+        <p>{s.matchingBody}</p>
 
-      <h2>{s.refreshHeading}</h2>
-      <p>{s.refreshBody}</p>
+        <h2>{s.refreshHeading}</h2>
+        <p>{s.refreshBody}</p>
 
-      <h2>{s.logHeading}</h2>
-      <p>{s.logBody}</p>
+        <h2>{s.logHeading}</h2>
+        <p>{s.logBody}</p>
 
-      <h2>{s.controlHeading}</h2>
-      <p>{s.controlBody}</p>
+        <h2>{s.controlHeading}</h2>
+        <p>{s.controlBody}</p>
 
-      <p>{s.more}</p>
-      <p>
-        <Link href={localePrivacyPath(loc)}>{t(loc, "privacy")}</Link>
-        {" · "}
-        <Link href={localePrinciplesPath(loc)}>{principlesStrings(loc).navLabel}</Link>
-      </p>
+        <p>{s.more}</p>
+        <p>
+          <Link href={localePrivacyPath(loc)}>{t(loc, "privacy")}</Link>
+          {" · "}
+          <Link href={localePrinciplesPath(loc)}>{principlesStrings(loc).navLabel}</Link>
+        </p>
 
-      <SiteLinks className="site-links about-links" locale={loc} />
+        <SiteLinks className="site-links about-links" locale={loc} />
 
-      <p className="doc-back muted">
-        <Link href={localeHomePath(loc)}>{s.backLink}</Link>
-      </p>
-    </main>
+        <p className="doc-back muted">
+          <Link href={localeHomePath(loc)}>{s.backLink}</Link>
+        </p>
+      </main>
+      <SiteFooter locale={loc} />
+    </div>
   );
 }
