@@ -856,6 +856,64 @@ export function setItemRoleTitle(
   }));
 }
 
+/**
+ * Set (or clear) the USER institution NAME for a source-derived positions/
+ * education entry — the editor's "Institution" field. Stored in
+ * `meta.institutionOverride` (wins over the source `meta.institution`, carried
+ * across re-sync); a BLANK value, or one equal to the source name, CLEARS it
+ * (revert to source). Editing it makes the text authoritative, so its ROR
+ * auto-link/localized variant no longer applies. The line is re-derived in place.
+ * Pure + immutable; a no-op for an unknown id or a non-re-derivable item.
+ */
+export function setItemInstitution(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  name: string,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const trimmed = name.trim();
+      const override =
+        trimmed.length === 0 || trimmed === (it.meta.institution ?? "").trim() ? undefined : name;
+      const meta = { ...it.meta, institutionOverride: override };
+      const next: CvItem = { ...it, meta };
+      const line = rederiveEntryLine(next);
+      return line === undefined ? next : { ...next, displayText: line };
+    }),
+  }));
+}
+
+/**
+ * Set (or clear) the USER date range for a source-derived positions/education
+ * entry — the editor's start/end year + "Ongoing" controls. A `range` object is
+ * stored in `meta.dateRangeOverride` (replacing the source dates; an absent
+ * `endYear` means ongoing/present), carried across re-sync; passing `null`
+ * CLEARS it (revert to the source dates). The line is re-derived in place. Pure +
+ * immutable; a no-op for an unknown id or a non-re-derivable item.
+ */
+export function setItemDateRange(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  range: { startYear?: number; endYear?: number } | null,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const override =
+        range === null ? undefined : { startYear: range.startYear, endYear: range.endYear };
+      const meta = { ...it.meta, dateRangeOverride: override };
+      const next: CvItem = { ...it, meta };
+      const line = rederiveEntryLine(next);
+      return line === undefined ? next : { ...next, displayText: line };
+    }),
+  }));
+}
+
 /** Edit an item's free-text display string (manual entries). */
 export function updateItemText(
   cv: CanonicalCv,

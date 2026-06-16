@@ -367,6 +367,26 @@ export const CvItemSchema = z.object({
     /** End year of a positions/education entry's date range; undefined = ongoing ("present"). */
     endYear: z.number().int().optional(),
     /**
+     * USER edit of the institution NAME for a source-derived positions/education
+     * entry. Carried across re-sync (like {@link roleTitleOverride}) and wins over
+     * the source {@link institution}. Editing it makes the text authoritative —
+     * its ROR auto-link/localized variant no longer applies (the user's spelling
+     * is shown verbatim). Cleared (blank, or equal to the source name) to revert.
+     */
+    institutionOverride: z.string().max(500).optional(),
+    /**
+     * USER edit of the date range for a source-derived positions/education entry.
+     * When set it REPLACES the source {@link startYear}/{@link endYear} entirely;
+     * an absent `endYear` inside it means ongoing/"present". Carried across re-sync;
+     * cleared to revert to the source dates. The effective range is {@link itemDateRange}.
+     */
+    dateRangeOverride: z
+      .object({
+        startYear: z.number().int().optional(),
+        endYear: z.number().int().optional(),
+      })
+      .optional(),
+    /**
      * Funder identifier for a grant item (interoperable funding metadata). The
      * OpenAlex funder id (e.g. "https://openalex.org/F4320332161") or the ORCID
      * funding's disambiguated-organization identifier (FundRef/ROR/GRID). Additive
@@ -478,6 +498,31 @@ export function itemDisplayText(
  */
 export function itemRoleTitle(item: Pick<CvItem, "meta">): string | undefined {
   return item.meta.roleTitleOverride ?? item.meta.roleTitle;
+}
+
+/**
+ * The effective institution NAME for a positions/education item: the user's
+ * `meta.institutionOverride` when set, otherwise the source `meta.institution`.
+ * A renderer localizes + ROR-links the SOURCE name only; an override is shown
+ * verbatim (the user's spelling wins, no link).
+ */
+export function itemInstitution(item: Pick<CvItem, "meta">): string | undefined {
+  return item.meta.institutionOverride ?? item.meta.institution;
+}
+
+/**
+ * The effective date range for a positions/education item: the user's
+ * `meta.dateRangeOverride` when set (an absent `endYear` = ongoing), otherwise
+ * the source `meta.startYear`/`meta.endYear`. Used to re-derive the line and to
+ * localize the "present"/"until" term at render.
+ */
+export function itemDateRange(item: Pick<CvItem, "meta">): {
+  startYear?: number;
+  endYear?: number;
+} {
+  return (
+    item.meta.dateRangeOverride ?? { startYear: item.meta.startYear, endYear: item.meta.endYear }
+  );
 }
 
 /**

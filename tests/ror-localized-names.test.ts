@@ -161,6 +161,17 @@ describe.skipIf(!hasApa)("locale-aware institution rendering", () => {
     expect(html).toContain("Université de Nagoya");
   });
 
+  it("localizes the ongoing date term to the CV language (fr-FR: present → présent)", () => {
+    const html = renderCvHtml(updateDisplay(cvWithPosition(), { locale: "fr-FR" }));
+    expect(html).toContain("2020–présent");
+    expect(html).not.toContain("2020–present");
+  });
+
+  it("keeps the English date term for an en-US CV", () => {
+    const html = renderCvHtml(updateDisplay(cvWithPosition(), { locale: "en-US" }));
+    expect(html).toContain("2020–present");
+  });
+
   it("does NOT localize when the user has overridden the line", () => {
     let cv = updateDisplay(cvWithPosition(), { locale: "ja-JP" });
     cv = setItemTextOverride(

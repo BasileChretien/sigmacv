@@ -1,5 +1,5 @@
 import type { CvItem } from "./schema";
-import { itemRoleTitle } from "./schema";
+import { itemDateRange, itemInstitution, itemRoleTitle } from "./schema";
 
 /**
  * Structured parts of a Positions / Education line. The role, department and
@@ -14,11 +14,31 @@ export interface EntryLineParts {
   endYear?: number;
 }
 
-/** Year range like "(2012–2024)" / "(2024–present)". Empty if no years. */
+/** Year range like "(2012–2024)" / "(2024–present)". Empty if no years. The
+ *  English form is what `build`/`curate` bake into `displayText`; a renderer
+ *  swaps the locale-dependent term via {@link localizedYearRange}. */
 export function yearRange(start?: number, end?: number): string {
   if (start && end) return `(${start}–${end})`;
   if (start) return `(${start}–present)`;
   if (end) return `(until ${end})`;
+  return "";
+}
+
+/**
+ * Same shape as {@link yearRange} but with the CV language's terms: `present`
+ * for an open end, and `untilTemplate` (a "{year}" placeholder) for an end-only
+ * range. A closed numeric range carries no words, so it's identical across
+ * locales — the renderer only substitutes when this differs from the English form.
+ */
+export function localizedYearRange(
+  start: number | undefined,
+  end: number | undefined,
+  present: string,
+  untilTemplate: string,
+): string {
+  if (start && end) return `(${start}–${end})`;
+  if (start) return `(${start}–${present})`;
+  if (end) return `(${untilTemplate.replace("{year}", String(end))})`;
   return "";
 }
 
@@ -45,13 +65,14 @@ export function formatEntryLine(p: EntryLineParts): string {
  * caller to leave the existing `displayText` untouched.
  */
 export function rederiveEntryLine(item: CvItem): string | undefined {
-  const institution = item.meta.institution;
+  const institution = itemInstitution(item);
   if (!institution) return undefined;
+  const { startYear, endYear } = itemDateRange(item);
   return formatEntryLine({
     roleTitle: itemRoleTitle(item),
     department: item.meta.department,
     institution,
-    startYear: item.meta.startYear,
-    endYear: item.meta.endYear,
+    startYear,
+    endYear,
   });
 }

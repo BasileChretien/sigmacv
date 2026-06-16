@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Edit a position's institution and dates, too.** Each position and education
+  entry now has an **"Edit details"** panel to correct the **institution name** and
+  the **start/end year** — with an **"Ongoing"** toggle for current roles. Like the
+  role field, your edits are kept across re-syncs (the source value refreshes
+  underneath, one click reverts), and the date range now reads in your CV's
+  language ("present"/"until" localized across all ten languages and every export).
+  Editing the institution name shows it verbatim (its automatic ROR link steps
+  aside for your wording). Entries from before this change show "Re-sync to edit
+  dates" until their next sync.
 - **Your CV refreshes itself when you open the editor.** Opening `/cv` now
   re-syncs from the open sources in the background when your CV has gone stale
   (more than ~12 hours since its last sync) — your saved CV appears instantly and
