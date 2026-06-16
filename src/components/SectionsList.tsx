@@ -186,6 +186,9 @@ function prefersReducedMotion(): boolean {
 export interface SectionsListHandle {
   /** Expand + scroll to the first outstanding item of a CV-health category. */
   resolveHealth: (category: CvHealthCategory) => void;
+  /** Expand + scroll to a SPECIFIC item by id — used by the sync banner's
+   *  "to review" jump. No-op if the id isn't in the current CV. */
+  jumpToItem: (itemId: string) => void;
 }
 
 interface SectionsListProps {
@@ -321,10 +324,19 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
     }
   };
 
-  // Expose the cross-region jump to the editor (the persistent CV-health panel
-  // lives outside this component and drives it). Re-created each render so it
-  // always closes over the current `healthTargets`.
-  useImperativeHandle(ref, () => ({ resolveHealth }));
+  /** Expand the section holding `itemId` and scroll+flash that row (the sync
+   *  banner's "to review" jump targets a specific item, not a health category). */
+  const jumpToItem = (itemId: string) => {
+    const sectionId = itemIndex.get(itemId)?.sectionId;
+    if (!sectionId) return;
+    setExpanded((prev) => new Set(prev).add(sectionId));
+    setFocusItem((prev) => ({ id: itemId, n: (prev?.n ?? 0) + 1 }));
+  };
+
+  // Expose the cross-region jumps to the editor (the persistent CV-health panel
+  // and the sync banner live outside this component and drive them). Re-created
+  // each render so they always close over the current `healthTargets`/index.
+  useImperativeHandle(ref, () => ({ resolveHealth, jumpToItem }));
 
   const hasSection = (type: string): boolean => cv.sections.some((s) => s.type === type);
 

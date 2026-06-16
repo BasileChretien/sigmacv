@@ -58,6 +58,38 @@ export const SyncReportSchema = z.object({
 });
 export type SyncReport = z.infer<typeof SyncReportSchema>;
 
+/**
+ * Above this many added items, the banner summarizes the additions by section
+ * ("Publications 9 · Grants 4") instead of listing every title — so a big
+ * first-week sync (or a backfill) never floods the editor with a long list.
+ */
+export const SYNC_REPORT_SUMMARY_THRESHOLD = 12;
+
+/**
+ * The added entries that arrived as review candidates — the action-worthy ones.
+ * New non-flagged items are auto-included and need no decision; these are what
+ * the banner foregrounds and lets the user jump to.
+ */
+export function reviewEntries(report: SyncReport): SyncReportEntry[] {
+  return report.added.filter((e) => e.reviewFlag !== undefined);
+}
+
+/**
+ * Added entries grouped by section, most-added first — drives the summarized
+ * banner when there are too many additions to list. Counts are over the stored
+ * sample (≤ {@link SYNC_REPORT_MAX_ITEMS}); the banner appends a "+N more" when
+ * `addedTotal` exceeds what was stored.
+ */
+export function addedBySectionType(
+  report: SyncReport,
+): Array<{ sectionType: SyncReportEntry["sectionType"]; count: number }> {
+  const counts = new Map<SyncReportEntry["sectionType"], number>();
+  for (const e of report.added) counts.set(e.sectionType, (counts.get(e.sectionType) ?? 0) + 1);
+  return [...counts.entries()]
+    .map(([sectionType, count]) => ({ sectionType, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
 function entryTitle(item: CvItem): string {
   const title = item.csl?.title ?? itemDisplayText(item) ?? "";
   return title.slice(0, TITLE_MAX);

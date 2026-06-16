@@ -82,4 +82,57 @@ describe("SyncReportBanner", () => {
     expect(screen.getByText("Dernière synchronisation")).toBeTruthy();
     expect(screen.getByText("3 nouvelles")).toBeTruthy();
   });
+
+  it("makes 'to review' a button that jumps to the review item", () => {
+    const jumps: string[] = [];
+    render(
+      <SyncReportBanner report={REPORT} locale="en-US" onFocusItem={(id) => jumps.push(id)} />,
+    );
+    const btn = screen.getByRole("button", { name: /to review/i });
+    fireEvent.click(btn);
+    expect(jumps).toEqual(["G1"]); // the only review-flagged added entry
+  });
+
+  it("summarizes additions by section above the threshold instead of listing them", () => {
+    const many: SyncReport = {
+      ...REPORT,
+      addedTotal: 20,
+      reviewCandidates: 0,
+      added: [
+        ...Array.from({ length: 12 }, (_, i) => ({
+          sectionType: "publications" as const,
+          itemId: `P${i}`,
+          title: `Paper ${i}`,
+        })),
+        ...Array.from({ length: 8 }, (_, i) => ({
+          sectionType: "grants" as const,
+          itemId: `G${i}`,
+          title: `Grant ${i}`,
+        })),
+      ],
+    };
+    const { container } = render(<SyncReportBanner report={many} locale="en-US" />);
+    fireEvent.click(screen.getByText("Show what’s new"));
+    const summary = container.querySelector(".sync-report-summary");
+    expect(summary?.textContent).toMatch(/12/);
+    expect(summary?.textContent).toMatch(/8/);
+    // Per-section counts, not a 20-row flat list.
+    expect(screen.queryByText(/Paper 0/)).toBeNull();
+  });
+
+  it("appends '+N more' when additions exceed the stored sample", () => {
+    const big: SyncReport = {
+      ...REPORT,
+      addedTotal: 70,
+      reviewCandidates: 0,
+      added: Array.from({ length: 50 }, (_, i) => ({
+        sectionType: "publications" as const,
+        itemId: `W${i}`,
+        title: `W${i}`,
+      })),
+    };
+    const { container } = render(<SyncReportBanner report={big} locale="en-US" />);
+    fireEvent.click(screen.getByText("Show what’s new"));
+    expect(container.querySelector(".sync-report-summary")?.textContent).toMatch(/20 more/); // 70 − 50
+  });
 });
