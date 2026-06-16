@@ -32,6 +32,8 @@ export interface LandingStrings {
   about: string;
   footer: string;
   languageLabel: string;
+  /** Header CTA button → sign-in (e.g. "Build my CV"). */
+  ctaBuild: string;
   /** Features-showcase section heading. */
   featuresTitle: string;
   /** Concise feature cards (title + one-line body). Same count in every locale. */
@@ -75,6 +77,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     about: "About",
     footer: "© SigmaCV · open source",
     languageLabel: "Language",
+    ctaBuild: "Build my CV",
     featuresTitle: "Everything in one canonical CV",
     features: [
       {
@@ -146,6 +149,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     about: "关于",
     footer: "© SigmaCV · 开源",
     languageLabel: "语言",
+    ctaBuild: "创建我的简历",
     featuresTitle: "全部汇聚于一个规范化简历",
     features: [
       {
@@ -212,6 +216,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     about: "Acerca de",
     footer: "© SigmaCV · código abierto",
     languageLabel: "Idioma",
+    ctaBuild: "Crear mi CV",
     featuresTitle: "Todo en un único CV canónico",
     features: [
       {
@@ -286,6 +291,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     about: "À propos",
     footer: "© SigmaCV · open source",
     languageLabel: "Langue",
+    ctaBuild: "Créer mon CV",
     featuresTitle: "Tout dans un seul CV canonique",
     features: [
       {
@@ -366,6 +372,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     about: "Über",
     footer: "© SigmaCV · quelloffen",
     languageLabel: "Sprache",
+    ctaBuild: "Meinen Lebenslauf erstellen",
     featuresTitle: "Alles in einem kanonischen Lebenslauf",
     features: [
       {
@@ -441,6 +448,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     about: "概要",
     footer: "© SigmaCV · オープンソース",
     languageLabel: "言語",
+    ctaBuild: "CVを作成",
     featuresTitle: "すべてを一つの正規化 CV に",
     features: [
       {
@@ -517,6 +525,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     about: "Sobre",
     footer: "© SigmaCV · código aberto",
     languageLabel: "Idioma",
+    ctaBuild: "Criar meu CV",
     featuresTitle: "Tudo em um único currículo canônico",
     features: [
       {
@@ -592,6 +601,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     about: "Informazioni",
     footer: "© SigmaCV · open source",
     languageLabel: "Lingua",
+    ctaBuild: "Crea il mio CV",
     featuresTitle: "Tutto in un unico CV canonico",
     features: [
       {
@@ -670,6 +680,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     about: "소개",
     footer: "© SigmaCV · 오픈소스",
     languageLabel: "언어",
+    ctaBuild: "내 CV 만들기",
     featuresTitle: "하나의 정규화된 CV에 모두",
     features: [
       {
@@ -743,6 +754,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     about: "О проекте",
     footer: "© SigmaCV · открытый код",
     languageLabel: "Язык",
+    ctaBuild: "Создать резюме",
     featuresTitle: "Всё в одном каноническом резюме",
     features: [
       {

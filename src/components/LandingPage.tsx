@@ -13,6 +13,8 @@ import { localeHomePath, localeLandingPagePath } from "@/lib/seo";
 import { absoluteUrl, SITE_URL } from "@/lib/siteUrl";
 import DocJsonLd from "./DocJsonLd";
 import SiteLinks from "./SiteLinks";
+import SiteFooter from "./SiteFooter";
+import SiteHeader from "./SiteHeader";
 
 /**
  * A high-intent SEO landing page, localized. Shared by the bare routes
@@ -72,88 +74,92 @@ export default function LandingPage({ page, locale }: { page: AnyLandingPageId; 
       : anyLandingRelated(page);
 
   return (
-    <main className="doc-page" lang={loc}>
-      <DocJsonLd path={path} name={s.heading} description={s.metaDescription} locale={loc} />
-      {/* FAQPage structured data — the builder returns the full <script> tag. */}
-      <div dangerouslySetInnerHTML={{ __html: faqPageJsonLd(faq) }} />
-      <script
-        type="application/ld+json"
-        // Server-rendered from static, non-user data — safe to inline.
-        dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }}
-      />
-      <script
-        type="application/ld+json"
-        // Server-rendered from static, non-user data — safe to inline.
-        dangerouslySetInnerHTML={{ __html: howToJsonLd }}
-      />
+    <div className="site-shell" lang={loc}>
+      <SiteHeader locale={loc} />
+      <main className="doc-page" id="site-main">
+        <DocJsonLd path={path} name={s.heading} description={s.metaDescription} locale={loc} />
+        {/* FAQPage structured data — the builder returns the full <script> tag. */}
+        <div dangerouslySetInnerHTML={{ __html: faqPageJsonLd(faq) }} />
+        <script
+          type="application/ld+json"
+          // Server-rendered from static, non-user data — safe to inline.
+          dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }}
+        />
+        <script
+          type="application/ld+json"
+          // Server-rendered from static, non-user data — safe to inline.
+          dangerouslySetInnerHTML={{ __html: howToJsonLd }}
+        />
 
-      <nav className="breadcrumbs" aria-label="Breadcrumb">
-        <Link href={localeHomePath(loc)}>SigmaCV</Link> <span aria-hidden="true">›</span>{" "}
-        {s.navLabel}
-      </nav>
+        <nav className="breadcrumbs" aria-label="Breadcrumb">
+          <Link href={localeHomePath(loc)}>SigmaCV</Link> <span aria-hidden="true">›</span>{" "}
+          {s.navLabel}
+        </nav>
 
-      <h1>{s.heading}</h1>
-      <p className="doc-lede">{s.subhead}</p>
+        <h1>{s.heading}</h1>
+        <p className="doc-lede">{s.subhead}</p>
 
-      {c.intro.map((para) => (
-        <p key={para}>{para}</p>
-      ))}
-
-      <ul>
-        {s.bullets.map((bullet) => (
-          <li key={bullet}>{bullet}</li>
-        ))}
-      </ul>
-
-      <p>
-        <Link className="btn btn-primary" href={localeHomePath(loc)}>
-          {s.cta}
-        </Link>
-      </p>
-
-      <section>
-        <h2>{c.stepsHeading}</h2>
-        <ol>
-          {c.steps.map((step) => (
-            <li key={step.title}>
-              <strong>{step.title}.</strong> {step.body}
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section>
-        <h2>{c.whyHeading}</h2>
-        {c.why.map((para) => (
+        {c.intro.map((para) => (
           <p key={para}>{para}</p>
         ))}
-      </section>
 
-      {faq.map((item) => (
-        <section key={item.q}>
-          <h2>{item.q}</h2>
-          <p>{item.a}</p>
-        </section>
-      ))}
-
-      <section className="landing-related">
-        <h2>{c.relatedHeading}</h2>
         <ul>
-          {related.map((id) => (
-            <li key={id}>
-              <Link href={localeLandingPagePath(id, loc)}>
-                {anyLandingPageStrings(id, loc).navLabel}
-              </Link>
-            </li>
+          {s.bullets.map((bullet) => (
+            <li key={bullet}>{bullet}</li>
           ))}
         </ul>
-      </section>
 
-      <SiteLinks className="site-links about-links" locale={loc} />
+        <p>
+          <Link className="btn btn-primary" href={localeHomePath(loc)}>
+            {s.cta}
+          </Link>
+        </p>
 
-      <p className="doc-back muted">
-        <Link href={localeHomePath(loc)}>{s.backLink}</Link>
-      </p>
-    </main>
+        <section>
+          <h2>{c.stepsHeading}</h2>
+          <ol>
+            {c.steps.map((step) => (
+              <li key={step.title}>
+                <strong>{step.title}.</strong> {step.body}
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section>
+          <h2>{c.whyHeading}</h2>
+          {c.why.map((para) => (
+            <p key={para}>{para}</p>
+          ))}
+        </section>
+
+        {faq.map((item) => (
+          <section key={item.q}>
+            <h2>{item.q}</h2>
+            <p>{item.a}</p>
+          </section>
+        ))}
+
+        <section className="landing-related">
+          <h2>{c.relatedHeading}</h2>
+          <ul>
+            {related.map((id) => (
+              <li key={id}>
+                <Link href={localeLandingPagePath(id, loc)}>
+                  {anyLandingPageStrings(id, loc).navLabel}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <SiteLinks className="site-links about-links" locale={loc} />
+
+        <p className="doc-back muted">
+          <Link href={localeHomePath(loc)}>{s.backLink}</Link>
+        </p>
+      </main>
+      <SiteFooter locale={loc} />
+    </div>
   );
 }

@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A shared header and footer now connect every page.** The marketing and
+  reference pages — the SEO landing pages, guides, glossary, examples, and the
+  About / Privacy / FAQ / Accessibility / FAIR / Transparency / Principles pages —
+  were previously dead ends: no top bar, no way to reach the guides, sign-in, or
+  each other without the browser back button. They now share a sticky header (a
+  clickable brand back to home, links to Guides / Examples / About, the language
+  switcher, and a **Build my CV** call to action) and a full footer (every
+  secondary destination). Localized across all ten languages; the header stays
+  statically rendered, so the crawlable pages keep their SEO. The homepage keeps
+  its own hero-integrated nav and footer, which the shared chrome is styled to
+  match.
 - **Clearer trust at the two moments that matter most.** The sign-in card now states,
   right under the ORCID button, that we only read your public ORCID record — never
   post, never write anything back. And the **Publish** control now spells out what

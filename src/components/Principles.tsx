@@ -4,6 +4,8 @@ import { type PrinciplesStrings, principlesStrings } from "@/lib/i18n/principles
 import { localeHomePath, localePrinciplesPath } from "@/lib/seo";
 import DocJsonLd from "./DocJsonLd";
 import SiteLinks from "./SiteLinks";
+import SiteFooter from "./SiteFooter";
+import SiteHeader from "./SiteHeader";
 
 /**
  * The frameworks SigmaCV aligns with, in display order. Names + canonical URLs
@@ -58,36 +60,40 @@ export default function Principles({ locale }: { locale: string }) {
   const loc = asLocale(locale);
   const s = principlesStrings(loc);
   return (
-    <main className="doc-page" lang={loc}>
-      <DocJsonLd
-        path={localePrinciplesPath(loc).replace(/^\//, "")}
-        name={s.heading}
-        description={s.metaDescription}
-        locale={loc}
-      />
-      <h1>{s.heading}</h1>
-      <p>{s.intro}</p>
+    <div className="site-shell" lang={loc}>
+      <SiteHeader locale={loc} />
+      <main className="doc-page" id="site-main">
+        <DocJsonLd
+          path={localePrinciplesPath(loc).replace(/^\//, "")}
+          name={s.heading}
+          description={s.metaDescription}
+          locale={loc}
+        />
+        <h1>{s.heading}</h1>
+        <p>{s.intro}</p>
 
-      <p className="muted">{s.lead}</p>
-      <ul className="principles-list">
-        {FRAMEWORKS.map((f) => (
-          <li key={f.key}>
-            <a href={f.url} target="_blank" rel="noopener noreferrer">
-              {f.name}
-            </a>
-            {" — "}
-            {s[f.key]}
-          </li>
-        ))}
-      </ul>
+        <p className="muted">{s.lead}</p>
+        <ul className="principles-list">
+          {FRAMEWORKS.map((f) => (
+            <li key={f.key}>
+              <a href={f.url} target="_blank" rel="noopener noreferrer">
+                {f.name}
+              </a>
+              {" — "}
+              {s[f.key]}
+            </li>
+          ))}
+        </ul>
 
-      <p>{s.more}</p>
+        <p>{s.more}</p>
 
-      <SiteLinks className="site-links about-links" locale={loc} />
+        <SiteLinks className="site-links about-links" locale={loc} />
 
-      <p className="doc-back muted">
-        <Link href={localeHomePath(loc)}>{s.backLink}</Link>
-      </p>
-    </main>
+        <p className="doc-back muted">
+          <Link href={localeHomePath(loc)}>{s.backLink}</Link>
+        </p>
+      </main>
+      <SiteFooter locale={loc} />
+    </div>
   );
 }
