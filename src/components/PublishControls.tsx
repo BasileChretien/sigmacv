@@ -39,9 +39,16 @@ export default function PublishControls({
   const [indexable, setIndexable] = useState(initialIndexable);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  // A polite live-region message (copy confirmation / publish error) so the
+  // outcome is announced to assistive tech, not conveyed only visually.
+  const [announce, setAnnounce] = useState("");
+  // Site origin for the shareable absolute URL. Lazy-initialised on the client
+  // (this control only ever mounts inside the already-open Publish popover).
+  const [origin] = useState(() => (typeof window !== "undefined" ? window.location.origin : ""));
 
   async function update(next: boolean, nextIndexable: boolean) {
     setBusy(true);
+    setAnnounce("");
     try {
       const res = await fetch("/api/cv/publish", {
         method: "POST",
@@ -61,7 +68,13 @@ export default function PublishControls({
           // Cookieless product signal: a public page was published. No identifiers.
           trackEvent("Publish", { indexable: data.indexable });
         }
+      } else {
+        // Surface the failure (previously swallowed) so the user isn't left
+        // believing a publish/unpublish succeeded when it didn't.
+        setAnnounce(u.publishError);
       }
+    } catch {
+      setAnnounce(u.publishError);
     } finally {
       setBusy(false);
     }
@@ -72,13 +85,14 @@ export default function PublishControls({
 
   async function copyLink() {
     if (!slug) return;
-    const url = `${window.location.origin}/p/${slug}`;
+    const url = `${origin || window.location.origin}/p/${slug}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      setAnnounce(u.linkCopied);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      // clipboard may be unavailable; ignore
+      // clipboard may be unavailable; ignore (non-critical)
     }
   }
 
@@ -94,14 +108,35 @@ export default function PublishControls({
         />
         <span>{published ? u.publicLive : u.publishPublic}</span>
       </label>
+      {/* Polite live region (always mounted): copy confirmation / publish error. */}
+      <span className="visually-hidden" role="status" aria-live="polite">
+        {announce}
+      </span>
       {published && slug ? (
         <>
-          <a className="link-btn" href={`/p/${slug}`} target="_blank" rel="noreferrer">
-            {u.openPage}
-          </a>
-          <button type="button" className="link-btn" onClick={copyLink}>
-            {copied ? u.linkCopied : u.copyLink}
-          </button>
+          {/* "Your page is live" share card — the link, prominent + copyable, with
+              a nudge to share it. The retention hook made tangible at the moment
+              of publishing. */}
+          <div className="publish-live">
+            <a
+              className="publish-live-url"
+              href={`/p/${slug}`}
+              target="_blank"
+              rel="noreferrer"
+              title={u.openPage}
+            >
+              {origin ? `${origin.replace(/^https?:\/\//, "")}/p/${slug}` : `/p/${slug}`}
+            </a>
+            <div className="publish-live-actions">
+              <a className="btn btn-sm" href={`/p/${slug}`} target="_blank" rel="noreferrer">
+                {u.openPage}
+              </a>
+              <button type="button" className="btn btn-sm" onClick={copyLink}>
+                {copied ? u.linkCopied : u.copyLink}
+              </button>
+            </div>
+            <p className="publish-live-hint muted">{u.shareHint}</p>
+          </div>
           <label className="field-inline" title={u.allowIndexingTitle}>
             <input
               type="checkbox"

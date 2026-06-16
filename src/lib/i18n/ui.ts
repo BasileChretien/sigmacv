@@ -80,6 +80,10 @@ export interface UiStrings {
   openPage: string;
   copyLink: string;
   linkCopied: string;
+  /** One-line hint under a published page's link, nudging the owner to share it. */
+  shareHint: string;
+  /** Error shown when publishing/unpublishing the public page fails. */
+  publishError: string;
   publishTitle: string;
   allowIndexing: string;
   allowIndexingTitle: string;
@@ -204,6 +208,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Open page",
     copyLink: "Copy link",
     linkCopied: "Link copied!",
+    shareHint: "Add it to your ORCID record, website, or email signature.",
+    publishError: "Couldn’t update the public page — please try again.",
     publicContactLegend: "Show on the public page",
     publicShowEmail: "Email",
     publicShowPhone: "Phone",
@@ -325,6 +331,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "打开页面",
     copyLink: "复制链接",
     linkCopied: "链接已复制！",
+    shareHint: "可将其添加到您的 ORCID 记录、网站或邮件签名中。",
+    publishError: "无法更新公开页面——请重试。",
     publicContactLegend: "在公开页面显示",
     publicShowEmail: "电子邮箱",
     publicShowPhone: "电话",
@@ -448,6 +456,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Abrir página",
     copyLink: "Copiar enlace",
     linkCopied: "¡Enlace copiado!",
+    shareHint: "Añádelo a tu registro ORCID, tu web o tu firma de correo.",
+    publishError: "No se pudo actualizar la página pública: inténtalo de nuevo.",
     publicContactLegend: "Mostrar en la página pública",
     publicShowEmail: "Correo electrónico",
     publicShowPhone: "Teléfono",
@@ -573,6 +583,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Ouvrir la page",
     copyLink: "Copier le lien",
     linkCopied: "Lien copié !",
+    shareHint: "Ajoutez-le à votre fiche ORCID, votre site ou votre signature e-mail.",
+    publishError: "Impossible de mettre à jour la page publique — veuillez réessayer.",
     publicContactLegend: "Afficher sur la page publique",
     publicShowEmail: "E-mail",
     publicShowPhone: "Téléphone",
@@ -698,6 +710,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Seite öffnen",
     copyLink: "Link kopieren",
     linkCopied: "Link kopiert!",
+    shareHint: "Fügen Sie ihn Ihrem ORCID-Eintrag, Ihrer Website oder E-Mail-Signatur hinzu.",
+    publishError:
+      "Die öffentliche Seite konnte nicht aktualisiert werden — bitte erneut versuchen.",
     publicContactLegend: "Auf der öffentlichen Seite anzeigen",
     publicShowEmail: "E-Mail",
     publicShowPhone: "Telefon",
@@ -822,6 +837,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "ページを開く",
     copyLink: "リンクをコピー",
     linkCopied: "リンクをコピーしました！",
+    shareHint: "ORCID レコード、ウェブサイト、メール署名に追加できます。",
+    publishError: "公開ページを更新できませんでした。もう一度お試しください。",
     publicContactLegend: "公開ページに表示",
     publicShowEmail: "メール",
     publicShowPhone: "電話",
@@ -946,6 +963,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Abrir página",
     copyLink: "Copiar link",
     linkCopied: "Link copiado!",
+    shareHint: "Adicione-o ao seu registro ORCID, site ou assinatura de e-mail.",
+    publishError: "Não foi possível atualizar a página pública — tente novamente.",
     publicContactLegend: "Mostrar na página pública",
     publicShowEmail: "E-mail",
     publicShowPhone: "Telefone",
@@ -1071,6 +1090,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Apri pagina",
     copyLink: "Copia link",
     linkCopied: "Link copiato!",
+    shareHint: "Aggiungilo al tuo profilo ORCID, al tuo sito o alla firma email.",
+    publishError: "Impossibile aggiornare la pagina pubblica — riprova.",
     publicContactLegend: "Mostra nella pagina pubblica",
     publicShowEmail: "E-mail",
     publicShowPhone: "Telefono",
@@ -1194,6 +1215,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "페이지 열기",
     copyLink: "링크 복사",
     linkCopied: "링크가 복사되었습니다!",
+    shareHint: "ORCID 기록, 웹사이트 또는 이메일 서명에 추가하세요.",
+    publishError: "공개 페이지를 업데이트하지 못했습니다. 다시 시도해 주세요.",
     publicContactLegend: "공개 페이지에 표시",
     publicShowEmail: "이메일",
     publicShowPhone: "전화",
@@ -1317,6 +1340,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     openPage: "Открыть страницу",
     copyLink: "Скопировать ссылку",
     linkCopied: "Ссылка скопирована!",
+    shareHint: "Добавьте её в свой профиль ORCID, на сайт или в подпись в эл. письме.",
+    publishError: "Не удалось обновить публичную страницу — попробуйте ещё раз.",
     publicContactLegend: "Показывать на публичной странице",
     publicShowEmail: "Эл. почта",
     publicShowPhone: "Телефон",

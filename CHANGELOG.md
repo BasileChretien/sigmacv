@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   opted into search indexing — so tools and assistants you deliberately share the
   link with can read a structured profile (search engines still stay out unless
   you opt in).
+- **A share moment when you publish.** Once your page is live, the Publish menu now
+  shows the link prominently with one-tap **Open page** / **Copy link** and a nudge
+  to add it to your ORCID record, website, or email signature — so the living page
+  is something you actually share. Copying now announces itself to screen readers,
+  and a failed publish/unpublish is surfaced instead of silently swallowed.
 
 ### Changed
 
