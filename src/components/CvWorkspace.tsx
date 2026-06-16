@@ -14,12 +14,13 @@ const UI_LOCALE_KEY = "sigmacv:uiLocale";
 // keeping us well under the save rate limit (120/hour). The manual Save button
 // stays as an immediate-save fallback.
 const AUTOSAVE_DELAY_MS = 1500;
+import { selectOnboardingStep, type OnboardingStep } from "@/lib/onboardingSequence";
 import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
-import DisambiguationCoachmark from "./DisambiguationCoachmark";
-import PublishNudge from "./PublishNudge";
+import DisambiguationCoachmark, { COACHMARK_DISMISS_KEY } from "./DisambiguationCoachmark";
+import PublishNudge, { PUBLISH_NUDGE_DISMISS_KEY } from "./PublishNudge";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
-import SyncReportBanner from "./SyncReportBanner";
+import SyncReportBanner, { SYNC_REPORT_DISMISS_KEY } from "./SyncReportBanner";
 import TopBar, { type ExportFormat } from "./TopBar";
 
 interface CvWorkspaceProps {
@@ -237,6 +238,37 @@ export default function CvWorkspace({
     }
   }, [uiLocale]);
 
+  // ── Onboarding sequencer ────────────────────────────────────────────────
+  // The first-run prompts (the "what changed" sync banner, the disambiguation
+  // coachmark, the publish nudge) used to stack and overwhelm. Show ONE at a
+  // time, highest-priority first; dismissing the active one reveals the next.
+  const hasPublications = !!cv?.sections.some(
+    (s) => (s.type === "publications" || s.type === "preprints") && s.items.length > 0,
+  );
+  const [onboardingTick, setOnboardingTick] = useState(0);
+  const [activeOnboarding, setActiveOnboarding] = useState<OnboardingStep | null>(null);
+  const advanceOnboarding = useCallback(() => setOnboardingTick((n) => n + 1), []);
+  useEffect(() => {
+    const read = (key: string): string | null => {
+      try {
+        return window.localStorage.getItem(key);
+      } catch {
+        return null;
+      }
+    };
+    setActiveOnboarding(
+      selectOnboardingStep({
+        syncReport:
+          !!syncReport &&
+          (syncReport.addedTotal > 0 || syncReport.removedTotal > 0) &&
+          read(SYNC_REPORT_DISMISS_KEY) !== syncReport.syncedAt,
+        coachmark: hasPublications && read(COACHMARK_DISMISS_KEY) !== "1",
+        publishNudge: !published && read(PUBLISH_NUDGE_DISMISS_KEY) !== "1",
+      }),
+    );
+    // onboardingTick re-reads localStorage after a dismissal advances the queue.
+  }, [syncReport, published, hasPublications, onboardingTick]);
+
   const handleExport = useCallback(async () => {
     // Export uses the SAVED document — don't download a stale file if the
     // save failed.
@@ -288,14 +320,24 @@ export default function CvWorkspace({
 
       {cv ? (
         <>
+          <SyncReportBanner
+            report={syncReport}
+            locale={uiLocale}
+            suppressed={activeOnboarding !== "syncReport"}
+            onDismissed={advanceOnboarding}
+          />
           <DisambiguationCoachmark
             locale={uiLocale}
-            show={cv.sections.some(
-              (s) => (s.type === "publications" || s.type === "preprints") && s.items.length > 0,
-            )}
+            show={hasPublications}
+            suppressed={activeOnboarding !== "coachmark"}
+            onDismissed={advanceOnboarding}
           />
-          <PublishNudge published={published} locale={uiLocale} />
-          <SyncReportBanner report={syncReport} locale={uiLocale} />
+          <PublishNudge
+            published={published}
+            locale={uiLocale}
+            suppressed={activeOnboarding !== "publishNudge"}
+            onDismissed={advanceOnboarding}
+          />
           {/* Mobile-only pane switch: on a phone the two panes stack and only
               the active one shows, so you don't scroll past the whole editor to
               reach the preview. On desktop both panes show and these hide. */}

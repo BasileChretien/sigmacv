@@ -70,6 +70,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **First-run prompts no longer pile up.** A brand-new user could land in the
+  editor facing three onboarding prompts at once — the “what changed in your
+  sync” banner, the “check these are yours” coachmark, and the “publish your
+  page” nudge — all competing for attention. They’re now shown **one at a time**
+  in a sensible order (what just synced → review tip → publish), each revealing
+  the next only when you dismiss it, so the first run feels calm instead of busy.
 - **Editor top bar tidied up.** The toolbar above the editor — which had grown to
   mix the document actions with publish settings and account/GDPR controls — now
   leads with a single primary **Export** control (the format chooser fused to the

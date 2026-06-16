@@ -6,11 +6,15 @@ import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 
 /** Per-report dismissal (keyed by the report's syncedAt) survives reloads. */
-const DISMISS_KEY = "sigmacv:syncReportDismissed";
+export const SYNC_REPORT_DISMISS_KEY = "sigmacv:syncReportDismissed";
 
 interface SyncReportBannerProps {
   report: SyncReport | null;
   locale: Locale;
+  /** Held back by the onboarding sequencer so prompts don't stack. */
+  suppressed?: boolean;
+  /** Notifies the sequencer to advance to the next prompt. */
+  onDismissed?: () => void;
 }
 
 /**
@@ -19,7 +23,12 @@ interface SyncReportBannerProps {
  * invisible; this surfaces the additions (and new review candidates) once, and
  * stays dismissed for that report. Renders nothing when the sync changed nothing.
  */
-export default function SyncReportBanner({ report, locale }: SyncReportBannerProps) {
+export default function SyncReportBanner({
+  report,
+  locale,
+  suppressed = false,
+  onDismissed,
+}: SyncReportBannerProps) {
   const wu = workspaceUi(locale);
   // Start hidden and reveal after mount so SSR and the first client render
   // agree (the dismissal lives in localStorage, which the server can't read).
@@ -27,23 +36,24 @@ export default function SyncReportBanner({ report, locale }: SyncReportBannerPro
   useEffect(() => {
     if (!report) return;
     try {
-      setVisible(window.localStorage.getItem(DISMISS_KEY) !== report.syncedAt);
+      setVisible(window.localStorage.getItem(SYNC_REPORT_DISMISS_KEY) !== report.syncedAt);
     } catch {
       setVisible(true); // storage unavailable — show it
     }
   }, [report]);
 
-  if (!report || !visible) return null;
+  if (suppressed || !report || !visible) return null;
   const changed = report.addedTotal > 0 || report.removedTotal > 0;
   if (!changed) return null;
 
   const dismiss = () => {
     setVisible(false);
     try {
-      window.localStorage.setItem(DISMISS_KEY, report.syncedAt);
+      window.localStorage.setItem(SYNC_REPORT_DISMISS_KEY, report.syncedAt);
     } catch {
       /* non-fatal — the banner just reappears next visit */
     }
+    onDismissed?.();
   };
 
   const syncedDate = new Date(report.syncedAt);
