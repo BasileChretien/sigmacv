@@ -754,6 +754,28 @@
                       "type": "string",
                       "maxLength": 2048
                     },
+                    "roleTitle": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "roleTitleOverride": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "department": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "startYear": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "endYear": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
                     "funderId": {
                       "type": "string",
                       "maxLength": 2048

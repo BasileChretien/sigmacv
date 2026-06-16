@@ -484,6 +484,17 @@ input[type="radio"] {
   font-size: var(--text-md);
   line-height: 1;
 }
+/* Read-only institution shown beside the editable "Role / title" field, so the
+   role has visible context (full dates remain in the line/preview). */
+.cv-item-edit-context {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
 
 /* ── Cards ───────────────────────────────────────────────────────────────── */
 .card {

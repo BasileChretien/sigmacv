@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A fillable “Role / title” for each position.** Positions and education entries
+  now carry the **role/title as its own field** — pulled from ORCID when available
+  (e.g. “Assistant Professor”), and an inviting **“Add your title…”** blank to fill
+  when a source (such as an OpenAlex-inferred affiliation) doesn’t provide one. Your
+  edit is kept across re-syncs while the source value keeps refreshing underneath
+  (one click reverts to it), and the institution and dates stay sourced from
+  ORCID/ROR. The role is stored as structured data, not just text. Localized in all
+  ten languages.
 - **Animated showcase styles for your public page.** Your living public CV page
   (the shareable `/p/…` link) can now use one of **nine optional animated styles**
   — Prism, Pop, Neon, Synthwave, Terminal, Riso, Aura, Mesh and Marquee — chosen

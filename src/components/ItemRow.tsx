@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import {
+  displayInstitution,
   isHidden,
   itemDisplayText,
+  itemRoleTitle,
   NOT_MINE_REASONS,
   type CvItem,
   type CvSectionType,
@@ -138,6 +140,13 @@ interface ItemRowProps {
    * rows (the editor passes it for every row; the gate lives here).
    */
   onSetTextOverride?: (text: string) => void;
+  /**
+   * Set/clear the user's structured role on a SOURCE-DERIVED Positions/Education
+   * entry — the editor's "Role / title" field. Passing "" reverts to the source
+   * role. The editor passes it for every row; the gate (positions/education) lives
+   * here.
+   */
+  onSetRole?: (role: string) => void;
   /** Delete a manual entry (only passed for source === "manual"). */
   onRemove?: () => void;
   /** Bulk-selection mode: render a leading checkbox instead of drag affordances. */
@@ -184,6 +193,7 @@ export default function ItemRow({
   onDropOver,
   onUpdateText,
   onSetTextOverride,
+  onSetRole,
   onRemove,
   selectable = false,
   selected = false,
@@ -259,6 +269,9 @@ export default function ItemRow({
   const canEditText =
     !isCitation && !isManual && (sectionType === "positions" || sectionType === "education");
   const title = item.csl?.title ?? itemDisplayText(item) ?? u.itemUntitled;
+  // Institution name (ROR-localized) shown as read-only context beside the
+  // editable role, so "Add your title…" has something to attach to.
+  const institution = displayInstitution(item, locale);
   const year = item.meta.year ?? "—";
   const venue =
     typeof item.csl?.["container-title"] === "string" ? item.csl["container-title"] : "";
@@ -337,6 +350,37 @@ export default function ItemRow({
             placeholder={u.manualPlaceholder}
             aria-label={u.entryTextAria}
           />
+        ) : canEditText && onSetRole && item.displayTextOverride === undefined ? (
+          // Source-derived Positions/Education: a dedicated, fillable "Role / title"
+          // field (the institution + dates come from ORCID/ROR and show as context
+          // + in the preview). An empty field invites the missing role; the revert
+          // restores the source role. A legacy whole-line override (below) takes
+          // over the row until it's cleared.
+          <div className="cv-item-edit-wrap">
+            <input
+              className="cv-item-edit cv-item-role"
+              value={itemRoleTitle(item) ?? ""}
+              onChange={(e) => onSetRole(e.target.value)}
+              placeholder={u.rolePlaceholder}
+              aria-label={u.roleAria}
+            />
+            {institution ? (
+              <span className="cv-item-edit-context" title={institution}>
+                · {institution}
+              </span>
+            ) : null}
+            {item.meta.roleTitleOverride !== undefined ? (
+              <button
+                type="button"
+                className="icon-btn cv-item-revert"
+                onClick={() => onSetRole("")}
+                title={u.revertToSourceHint}
+                aria-label={u.revertToSource}
+              >
+                ↺
+              </button>
+            ) : null}
+          </div>
         ) : canEditText && onSetTextOverride ? (
           <div className="cv-item-edit-wrap">
             <input
