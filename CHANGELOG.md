@@ -31,6 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A light/dark theme switch.** The site followed your OS appearance with no way
+  to override it; now a compact **System / Light / Dark** control sits in the
+  homepage nav, the shared header, and the editor top bar. **System** is the
+  default (still follows your OS, and updates live when it flips), and a manual
+  choice persists across visits. A tiny pre-paint script applies your choice
+  before the first render, so there's no flash of the wrong theme — and because
+  it's static and allow-listed by its hash in the CSP, the marketing pages stay
+  statically rendered. If JS is off (or the script is ever blocked), dark mode
+  still follows your OS, so nothing regresses.
 - **A shared header and footer now connect every page.** The marketing and
   reference pages — the SEO landing pages, guides, glossary, examples, and the
   About / Privacy / FAQ / Accessibility / FAIR / Transparency / Principles pages —

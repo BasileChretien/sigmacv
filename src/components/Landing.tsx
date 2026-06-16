@@ -31,6 +31,7 @@ import {
 } from "@/lib/seo";
 import { getSiteLinks } from "@/lib/siteLinks";
 import LanguageSwitcher from "./LanguageSwitcher";
+import ThemeToggle from "./ThemeToggle";
 import StructuredData from "./StructuredData";
 import HeroBeams from "./landing/HeroBeams";
 import Curate from "./landing/Curate";
@@ -102,6 +103,7 @@ export default function Landing({ locale }: LandingProps) {
         <span className="hp2-nav-links">
           <Link href={localeAboutPath(loc)}>{s.about}</Link>
           <LanguageSwitcher current={loc} label={s.languageLabel} />
+          <ThemeToggle locale={loc} />
         </span>
       </header>
 

@@ -5,6 +5,7 @@ import "./globals.css";
 import { SITE_URL } from "@/lib/siteUrl";
 import { landingStrings } from "@/lib/i18n/landing";
 import { homeLanguageAlternates, ogAlternateLocales, ogLocale } from "@/lib/seo";
+import { THEME_INIT_SCRIPT } from "@/lib/themeInit";
 
 // Cookieless, first-party analytics (self-hosted Plausible CE v3). Rendered only
 // when configured at build time (blank on local/dev → no script, no calls). SRC
@@ -84,8 +85,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
+    // suppressHydrationWarning: the no-flash init script sets data-theme on <html>
+    // before React hydrates, so the attribute legitimately differs from SSR.
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body>
+        {/* No-flash theme bootstrap — must run before paint. Static content,
+            allow-listed by its sha256 in the CSP (see proxy.ts / themeInit.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         {PLAUSIBLE_SRC && (
           <>
             <Script async src={PLAUSIBLE_SRC} />

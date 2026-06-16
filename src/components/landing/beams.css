@@ -1132,8 +1132,23 @@
 }
 
 /* ── Dark-mode pass for the light panel ── */
+/* Dark hero graphic: explicit choice ([data-theme="dark"]) + system fallback
+   (:root:not([data-theme])), mirroring the token strategy in globals.css. */
+:root[data-theme="dark"] .mx-panel-light {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%),
+    radial-gradient(120% 90% at 50% -12%, rgba(94, 130, 247, 0.12), transparent 60%), var(--surface);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 40px rgba(0, 0, 0, 0.3);
+}
+:root[data-theme="dark"] .mb-vignette {
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
 @media (prefers-color-scheme: dark) {
-  .mx-panel-light {
+  :root:not([data-theme]) .mx-panel-light {
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%),
       radial-gradient(120% 90% at 50% -12%, rgba(94, 130, 247, 0.12), transparent 60%),
@@ -1142,7 +1157,7 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.05),
       inset 0 0 40px rgba(0, 0, 0, 0.3);
   }
-  .mb-vignette {
+  :root:not([data-theme]) .mb-vignette {
     box-shadow:
       inset 0 0 30px rgba(0, 0, 0, 0.35),
       inset 0 0 0 1px rgba(255, 255, 255, 0.03);
