@@ -305,7 +305,7 @@ button {
   /* Semantic surface tokens (NOT raw --grey-*) so the hover inverts in dark mode
      instead of painting near-white. Identical to --grey-50/100 in light mode. */
   background: var(--surface-2);
-  border-color: var(--grey-400);
+  border-color: var(--border-strong);
   text-decoration: none;
 }
 .btn:active {
@@ -406,7 +406,7 @@ select {
   cursor: pointer;
 }
 ::placeholder {
-  color: var(--grey-500);
+  color: var(--muted);
 }
 input:disabled,
 select:disabled,
@@ -510,7 +510,7 @@ input[type="radio"] {
   gap: 0.35em;
   padding: 0.15rem 0.55rem;
   border-radius: var(--radius-full);
-  background: var(--grey-100);
+  background: var(--surface-sunken);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
 }
@@ -721,7 +721,7 @@ input[type="radio"] {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: var(--radius-full);
-  background: var(--grey-300);
+  background: var(--border-strong);
 }
 .publish-dot.is-live {
   background: var(--success, #22c55e);
@@ -949,7 +949,7 @@ input[type="radio"] {
   width: 10px;
 }
 .cv-workspace-pane::-webkit-scrollbar-thumb {
-  background: var(--grey-300);
+  background: var(--border-strong);
   border-radius: 999px;
   border: 3px solid var(--surface);
 }
@@ -1264,7 +1264,7 @@ textarea.prose-body {
     color var(--dur) var(--ease);
 }
 .section-toggle:hover {
-  background: var(--grey-150);
+  background: var(--surface-sunken);
   color: var(--text);
 }
 .section-title {
@@ -1291,7 +1291,7 @@ textarea.prose-body {
   font-variant-numeric: tabular-nums;
   padding: 0.1rem 0.45rem;
   border-radius: var(--radius-full);
-  background: var(--grey-100);
+  background: var(--surface-sunken);
 }
 .section-block.is-expanded > .cv-item-list {
   padding: var(--space-3);
@@ -1309,7 +1309,7 @@ textarea.prose-body {
 .drag-handle {
   flex: none;
   cursor: grab;
-  color: var(--grey-400);
+  color: var(--muted);
   user-select: none;
   /* Pointer-driven reorder (Motion): claim the gesture so a touch-drag from the
      handle starts a reorder instead of scrolling the panel. */
@@ -1412,8 +1412,8 @@ textarea.prose-body {
     color var(--dur) var(--ease);
 }
 .icon-btn:hover {
-  background: var(--grey-100);
-  border-color: var(--grey-400);
+  background: var(--surface-sunken);
+  border-color: var(--border-strong);
   color: var(--text);
 }
 .icon-btn:disabled {
@@ -1442,8 +1442,8 @@ textarea.prose-body {
     color var(--dur) var(--ease);
 }
 .mine-btn:hover {
-  background: var(--grey-100);
-  border-color: var(--grey-400);
+  background: var(--surface-sunken);
+  border-color: var(--border-strong);
 }
 .mine-btn.is-restore {
   color: var(--accent);
@@ -1681,10 +1681,11 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   font-size: var(--text-xs);
 }
 .cv-source-badge {
-  /* grey-700 (not grey-600) so this small 0.625rem text clears WCAG 1.4.3
-     (4.5:1) on the grey-100 chip background. */
+  /* text-secondary (grey-700) so this small 0.625rem text clears WCAG 1.4.3
+     (4.5:1) on the surface-sunken (grey-100) chip background; both are semantic
+     tokens, so the contrast holds when they invert in dark mode. */
   color: var(--text-secondary);
-  background: var(--grey-100);
+  background: var(--surface-sunken);
   border-color: var(--border);
   font-weight: var(--weight-medium);
   font-size: 0.625rem;
@@ -2687,7 +2688,7 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 }
 .icon-link:hover {
   color: var(--accent);
-  background: var(--grey-100);
+  background: var(--surface-sunken);
 }
 .coffee-btn {
   display: inline-flex;
