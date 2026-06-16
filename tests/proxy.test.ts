@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { proxy } from "@/proxy";
+import { THEME_INIT_SHA256 } from "@/lib/themeInit";
 
 /**
  * Guards the app-shell Content-Security-Policy. A regression here is exactly
@@ -43,7 +44,12 @@ describe("app-shell CSP proxy", () => {
   it("uses a per-request nonce + strict-dynamic and forbids unsafe-eval in production", () => {
     vi.stubEnv("NODE_ENV", "production");
     const csp = cspFor();
-    expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
+    // nonce + the static theme-init script's sha256 (allow-listed under
+    // strict-dynamic so the no-flash bootstrap runs without a nonce).
+    expect(csp).toMatch(
+      /script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'sha256-[A-Za-z0-9+/=]+' 'strict-dynamic'/,
+    );
+    expect(csp).toContain(`'sha256-${THEME_INIT_SHA256}'`);
     expect(csp).not.toContain("'unsafe-eval'");
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
     // The nonce decodes to 16 random bytes (raw-bytes base64, not a UUID string).

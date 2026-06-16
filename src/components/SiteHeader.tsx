@@ -4,6 +4,7 @@ import { landingStrings } from "@/lib/i18n/landing";
 import { localeHomePath } from "@/lib/seo";
 import { siteHeaderLinks } from "@/lib/siteNav";
 import LanguageSwitcher from "./LanguageSwitcher";
+import ThemeToggle from "./ThemeToggle";
 
 /**
  * Shared top bar for every public page EXCEPT the homepage (which keeps its own
@@ -43,6 +44,7 @@ export default function SiteHeader({ locale }: { locale: string }) {
             </Link>
           ))}
           <LanguageSwitcher current={loc} label={s.languageLabel} />
+          <ThemeToggle locale={loc} />
           <Link href={home} className="site-nav-cta">
             {s.ctaBuild}
           </Link>
