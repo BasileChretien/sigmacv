@@ -71,6 +71,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The re-sync digest now points at your living page.** When your CV is published,
   the "new entries" email leads with a link to your public page — the thing you
   share — with the editor link kept as the secondary "review and curate" action.
+- **PDF exports are now tagged (accessible).** The exported PDF carries a proper
+  structure tree (headings, lists, links) and a document outline derived from the
+  CV's semantic HTML, plus its language — so screen readers can navigate it and it
+  reflows, instead of being an untagged flat page. No change to how the PDF looks.
 
 ### Changed
 

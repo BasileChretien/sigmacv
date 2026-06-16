@@ -56,6 +56,13 @@ export const pdfRenderer: Renderer = {
           format: "A4",
           printBackground: true,
           margin: { top: "16mm", bottom: "16mm", left: "14mm", right: "14mm" },
+          // Accessibility: emit a TAGGED PDF (structure tree from the HTML's
+          // headings/lists/links + the document's `<html lang>`) plus a document
+          // outline, so screen readers and "reflow" can navigate the CV. The
+          // source HTML is already semantic (h1/h2, lang on <html>), so the tags
+          // are meaningful rather than a flat blob.
+          tagged: true,
+          outline: true,
         });
         return {
           format: "pdf",
