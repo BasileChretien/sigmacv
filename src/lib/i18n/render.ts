@@ -25,6 +25,10 @@ export interface RenderStrings {
   sourceManualEntries: string;
   sourceDerived: string;
   cvFallbackTitle: string;
+  /** Date-range term for an ongoing position/education entry ("…–present"). */
+  datePresent: string;
+  /** Date-range term for an end-only range; "{year}" → the end year ("until {year}"). */
+  dateUntil: string;
   /** Short label inside the open-access badge on a publication entry. */
   badgeOpenAccess: string;
   /** Accessible title/tooltip for the OA badge; "{status}" → the OA status. */
@@ -74,6 +78,8 @@ export interface RenderStrings {
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
   "en-US": {
+    datePresent: "present",
+    dateUntil: "until {year}",
     chartPublicationsPerYear: "Publications / year",
     chartCitationsPerYear: "Citations / year",
     chartLogScale: "(log)",
@@ -120,6 +126,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Institution website",
   },
   "zh-CN": {
+    datePresent: "至今",
+    dateUntil: "至 {year}",
     chartPublicationsPerYear: "年度发表数",
     chartCitationsPerYear: "年度被引数",
     chartLogScale: "(对数)",
@@ -166,6 +174,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "机构网站",
   },
   "es-ES": {
+    datePresent: "presente",
+    dateUntil: "hasta {year}",
     chartPublicationsPerYear: "Publicaciones / año",
     chartCitationsPerYear: "Citas / año",
     chartLogScale: "(log)",
@@ -215,6 +225,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Sitio web de la institución",
   },
   "fr-FR": {
+    datePresent: "présent",
+    dateUntil: "jusqu’en {year}",
     chartPublicationsPerYear: "Publications / an",
     chartCitationsPerYear: "Citations / an",
     chartLogScale: "(log)",
@@ -265,6 +277,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Site web de l’établissement",
   },
   "de-DE": {
+    datePresent: "heute",
+    dateUntil: "bis {year}",
     chartPublicationsPerYear: "Publikationen / Jahr",
     chartCitationsPerYear: "Zitationen / Jahr",
     chartLogScale: "(log)",
@@ -314,6 +328,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Website der Einrichtung",
   },
   "ja-JP": {
+    datePresent: "現在",
+    dateUntil: "{year} まで",
     chartPublicationsPerYear: "年別論文数",
     chartCitationsPerYear: "年別被引用数",
     chartLogScale: "(対数)",
@@ -360,6 +376,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "機関ウェブサイト",
   },
   "pt-BR": {
+    datePresent: "presente",
+    dateUntil: "até {year}",
     chartPublicationsPerYear: "Publicações / ano",
     chartCitationsPerYear: "Citações / ano",
     chartLogScale: "(log)",
@@ -410,6 +428,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Site da instituição",
   },
   "it-IT": {
+    datePresent: "presente",
+    dateUntil: "fino al {year}",
     chartPublicationsPerYear: "Pubblicazioni / anno",
     chartCitationsPerYear: "Citazioni / anno",
     chartLogScale: "(log)",
@@ -459,6 +479,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Sito web dell’istituzione",
   },
   "ko-KR": {
+    datePresent: "현재",
+    dateUntil: "{year}까지",
     chartPublicationsPerYear: "연도별 논문 수",
     chartCitationsPerYear: "연도별 피인용 수",
     chartLogScale: "(로그)",
@@ -505,6 +527,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "기관 웹사이트",
   },
   "ru-RU": {
+    datePresent: "наст. время",
+    dateUntil: "до {year}",
     chartPublicationsPerYear: "Публикации / год",
     chartCitationsPerYear: "Цитирования / год",
     chartLogScale: "(лог.)",
