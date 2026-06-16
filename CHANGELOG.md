@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A clearer “what’s new” after a sync.** The post-sync banner now leads with the
+  items that need a decision: **“N to review”** is a button that jumps straight to
+  each review candidate (and cycles through them), while newly auto-included items
+  stay quiet. When a sync brings in many items at once, the list collapses to
+  per-section counts (“Publications 9 · Grants 4”) with a “+N more”, so a big sync
+  never floods the editor. Localized in all ten languages.
+- **The homepage marks publishing as optional.** Step 04 (“Publish a living page”)
+  now carries an **“Optional”** badge — the first three steps already produce a
+  complete CV. Localized in all ten languages.
 - **A fillable “Role / title” for each position.** Positions and education entries
   now carry the **role/title as its own field** — pulled from ORCID when available
   (e.g. “Assistant Professor”), and an inviting **“Add your title…”** blank to fill
@@ -34,6 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The Role / title field accepts spaces.** Typing a multi-word role such as
+  “Group Leader” works again — the field was wiping a trailing space on every
+  keystroke, so you could never get past the first word.
 - **A failed save or sync now reads as an error, not a success.** The editor’s
   status indicator showed the same neutral/green dot for “Saved.” and for
   “Sync failed.” — so a failure could be mistaken for success at a glance. The
