@@ -108,6 +108,9 @@ export default function PublishControls({
         />
         <span>{published ? u.publicLive : u.publishPublic}</span>
       </label>
+      {/* What publishing exposes — shown BEFORE the toggle is flipped, so the
+          (irreversible-feeling) public exposure is a fully-informed choice. */}
+      <p className="publish-summary muted">{u.publicSummary}</p>
       {/* Polite live region (always mounted): copy confirmation / publish error. */}
       <span className="visually-hidden" role="status" aria-live="polite">
         {announce}

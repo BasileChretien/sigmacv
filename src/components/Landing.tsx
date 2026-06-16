@@ -125,6 +125,7 @@ export default function Landing({ locale }: LandingProps) {
                   {s.signInOrcid}
                 </SignInButton>
               </form>
+              <p className="hp2-signin-trust">{s.orcidTrust}</p>
 
               <details className="hp2-help">
                 <summary>{help.question}</summary>

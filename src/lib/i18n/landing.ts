@@ -20,6 +20,8 @@ export interface LandingStrings {
   signInTitle: string;
   signInSub: string;
   signInOrcid: string;
+  /** Trust line shown directly under the ORCID sign-in button. */
+  orcidTrust: string;
   orDivider: string;
   continueGoogle: string;
   emailPlaceholder: string;
@@ -62,6 +64,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     signInTitle: "Sign in",
     signInSub: "Free for individuals · open source",
     signInOrcid: "Sign in with ORCID",
+    orcidTrust: "We only read your public ORCID record — never post, never write anything back.",
     orDivider: "or",
     continueGoogle: "Continue with Google",
     emailPlaceholder: "you@university.edu",
@@ -133,6 +136,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     signInTitle: "登录",
     signInSub: "个人免费 · 开源",
     signInOrcid: "使用 ORCID 登录",
+    orcidTrust: "我们仅读取您公开的 ORCID 记录——绝不发布、绝不写入任何内容。",
     orDivider: "或",
     continueGoogle: "使用 Google 继续",
     emailPlaceholder: "you@university.edu",
@@ -197,6 +201,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     signInTitle: "Iniciar sesión",
     signInSub: "Gratis para particulares · código abierto",
     signInOrcid: "Iniciar sesión con ORCID",
+    orcidTrust: "Solo leemos tu registro público de ORCID: nunca publicamos ni escribimos nada.",
     orDivider: "o",
     continueGoogle: "Continuar con Google",
     emailPlaceholder: "tu@universidad.edu",
@@ -269,6 +274,8 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     signInTitle: "Se connecter",
     signInSub: "Gratuit pour les particuliers · open source",
     signInOrcid: "Se connecter avec ORCID",
+    orcidTrust:
+      "Nous lisons seulement votre fiche ORCID publique — jamais de publication ni d’écriture.",
     orDivider: "ou",
     continueGoogle: "Continuer avec Google",
     emailPlaceholder: "vous@universite.edu",
@@ -347,6 +354,8 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     signInTitle: "Anmelden",
     signInSub: "Kostenlos für Einzelpersonen · quelloffen",
     signInOrcid: "Mit ORCID anmelden",
+    orcidTrust:
+      "Wir lesen nur Ihren öffentlichen ORCID-Eintrag — wir posten und schreiben nie etwas zurück.",
     orDivider: "oder",
     continueGoogle: "Mit Google fortfahren",
     emailPlaceholder: "sie@universitaet.edu",
@@ -421,6 +430,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     signInTitle: "サインイン",
     signInSub: "個人は無料 · オープンソース",
     signInOrcid: "ORCID でサインイン",
+    orcidTrust: "公開されている ORCID の記録を読み取るだけです。投稿も書き込みも一切行いません。",
     orDivider: "または",
     continueGoogle: "Google で続行",
     emailPlaceholder: "you@university.edu",
@@ -496,6 +506,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     signInTitle: "Entrar",
     signInSub: "Gratuito para indivíduos · código aberto",
     signInOrcid: "Entrar com ORCID",
+    orcidTrust: "Lemos apenas seu registro público do ORCID — nunca publicamos nem gravamos nada.",
     orDivider: "ou",
     continueGoogle: "Continuar com o Google",
     emailPlaceholder: "voce@universidade.edu",
@@ -570,6 +581,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     signInTitle: "Accedi",
     signInSub: "Gratuito per i privati · open source",
     signInOrcid: "Accedi con ORCID",
+    orcidTrust: "Leggiamo solo il tuo record ORCID pubblico — non pubblichiamo né scriviamo nulla.",
     orDivider: "oppure",
     continueGoogle: "Continua con Google",
     emailPlaceholder: "tu@universita.edu",
@@ -647,6 +659,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     signInTitle: "로그인",
     signInSub: "개인 무료 · 오픈소스",
     signInOrcid: "ORCID로 로그인",
+    orcidTrust: "공개된 ORCID 기록만 읽습니다. 게시하거나 무언가를 기록하는 일은 없습니다.",
     orDivider: "또는",
     continueGoogle: "Google로 계속하기",
     emailPlaceholder: "you@university.edu",
@@ -718,6 +731,8 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     signInTitle: "Войти",
     signInSub: "Бесплатно для частных лиц · открытый код",
     signInOrcid: "Войти через ORCID",
+    orcidTrust:
+      "Мы только читаем ваш публичный профиль ORCID — ничего не публикуем и не записываем.",
     orDivider: "или",
     continueGoogle: "Продолжить с Google",
     emailPlaceholder: "you@university.edu",

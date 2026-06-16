@@ -837,6 +837,12 @@ input[type="radio"] {
   margin: 0;
   font-size: var(--text-xs);
 }
+/* "What becomes public" summary shown at the publish toggle. */
+.publish-summary {
+  margin: var(--space-1) var(--space-3) var(--space-2);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
 .publish-panel .public-contact-consent legend {
   display: block;
   float: none;
@@ -1537,6 +1543,15 @@ textarea.prose-body {
   background: var(--warn-soft);
   border-color: #f0dcae;
   cursor: help;
+}
+/* Soft variant: a "probably yours" candidate (ORCID-listed / name-matched), not
+   a real conflict — a calm, neutral chip with no amber alarm. Semantic tokens so
+   it inverts correctly in dark mode. */
+.cv-review-badge--soft {
+  color: var(--muted);
+  background: var(--surface-2);
+  border-color: var(--border);
+  font-weight: var(--weight-medium);
 }
 /* The "possible duplicate" badge is a button (toggles the explainer), so it
    gets a pointer cursor rather than the `help` cursor used by the static ones. */
