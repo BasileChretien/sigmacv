@@ -77,6 +77,8 @@ export interface UiStrings {
   cancel: string;
   publishPublic: string;
   publicLive: string;
+  /** Plain-language summary of what publishing exposes (shown at the toggle). */
+  publicSummary: string;
   openPage: string;
   copyLink: string;
   linkCopied: string;
@@ -205,6 +207,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     cancel: "Cancel",
     publishPublic: "Publish public page",
     publicLive: "Public page is live",
+    publicSummary:
+      "Publishing shows your name, ORCID, and kept publications. Your email, phone, and location stay private unless you opt in below.",
     openPage: "Open page",
     copyLink: "Copy link",
     linkCopied: "Link copied!",
@@ -328,6 +332,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     cancel: "取消",
     publishPublic: "发布公开页面",
     publicLive: "公开页面已上线",
+    publicSummary:
+      "发布后会显示您的姓名、ORCID 和保留的论文。除非您在下方勾选,否则邮箱、电话和所在地不会公开。",
     openPage: "打开页面",
     copyLink: "复制链接",
     linkCopied: "链接已复制！",
@@ -453,6 +459,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     cancel: "Cancelar",
     publishPublic: "Publicar página pública",
     publicLive: "La página pública está activa",
+    publicSummary:
+      "Al publicar se muestran tu nombre, ORCID y las publicaciones que conservaste. Tu correo, teléfono y ubicación quedan privados salvo que los actives abajo.",
     openPage: "Abrir página",
     copyLink: "Copiar enlace",
     linkCopied: "¡Enlace copiado!",
@@ -580,6 +588,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     cancel: "Annuler",
     publishPublic: "Publier la page publique",
     publicLive: "La page publique est en ligne",
+    publicSummary:
+      "La publication affiche votre nom, votre ORCID et les publications conservées. Vos e-mail, téléphone et localisation restent privés, sauf si vous les activez ci-dessous.",
     openPage: "Ouvrir la page",
     copyLink: "Copier le lien",
     linkCopied: "Lien copié !",
@@ -707,6 +717,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     cancel: "Abbrechen",
     publishPublic: "Öffentliche Seite veröffentlichen",
     publicLive: "Öffentliche Seite ist online",
+    publicSummary:
+      "Beim Veröffentlichen werden Ihr Name, Ihre ORCID und die behaltenen Publikationen angezeigt. E-Mail, Telefon und Standort bleiben privat, sofern Sie sie unten nicht aktivieren.",
     openPage: "Seite öffnen",
     copyLink: "Link kopieren",
     linkCopied: "Link kopiert!",
@@ -834,6 +846,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     cancel: "キャンセル",
     publishPublic: "公開ページを公開",
     publicLive: "公開ページは公開中です",
+    publicSummary:
+      "公開すると、氏名・ORCID・残した業績が表示されます。メール・電話・所在地は、下で許可しない限り非公開のままです。",
     openPage: "ページを開く",
     copyLink: "リンクをコピー",
     linkCopied: "リンクをコピーしました！",
@@ -960,6 +974,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     cancel: "Cancelar",
     publishPublic: "Publicar página pública",
     publicLive: "A página pública está no ar",
+    publicSummary:
+      "Ao publicar, mostram-se seu nome, ORCID e as publicações mantidas. E-mail, telefone e localização ficam privados, a menos que você os ative abaixo.",
     openPage: "Abrir página",
     copyLink: "Copiar link",
     linkCopied: "Link copiado!",
@@ -1087,6 +1103,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     cancel: "Annulla",
     publishPublic: "Pubblica pagina pubblica",
     publicLive: "La pagina pubblica è online",
+    publicSummary:
+      "Pubblicando si mostrano nome, ORCID e le pubblicazioni mantenute. E-mail, telefono e posizione restano privati, salvo che tu li attivi qui sotto.",
     openPage: "Apri pagina",
     copyLink: "Copia link",
     linkCopied: "Link copiato!",
@@ -1212,6 +1230,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     cancel: "취소",
     publishPublic: "공개 페이지 게시",
     publicLive: "공개 페이지가 활성화되었습니다",
+    publicSummary:
+      "공개하면 이름, ORCID, 보관한 논문이 표시됩니다. 이메일·전화·위치는 아래에서 동의하지 않으면 비공개로 유지됩니다.",
     openPage: "페이지 열기",
     copyLink: "링크 복사",
     linkCopied: "링크가 복사되었습니다!",
@@ -1337,6 +1357,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     cancel: "Отмена",
     publishPublic: "Опубликовать публичную страницу",
     publicLive: "Публичная страница активна",
+    publicSummary:
+      "При публикации показываются имя, ORCID и оставленные публикации. Эл. почта, телефон и местоположение остаются скрытыми, если вы не включите их ниже.",
     openPage: "Открыть страницу",
     copyLink: "Скопировать ссылку",
     linkCopied: "Ссылка скопирована!",

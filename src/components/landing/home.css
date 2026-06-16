@@ -184,6 +184,13 @@
   line-height: 1.5;
   color: var(--muted);
 }
+/* Trust line directly under the ORCID sign-in button. */
+.hp2-signin-trust {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--muted);
+}
 .hp2-hero-fig {
   width: 100%;
   max-width: 460px;

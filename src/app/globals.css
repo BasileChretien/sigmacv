@@ -837,6 +837,12 @@ input[type="radio"] {
   margin: 0;
   font-size: var(--text-xs);
 }
+/* "What becomes public" summary shown at the publish toggle. */
+.publish-summary {
+  margin: var(--space-1) var(--space-3) var(--space-2);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
 .publish-panel .public-contact-consent legend {
   display: block;
   float: none;
