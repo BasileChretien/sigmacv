@@ -17,6 +17,9 @@ export default async function CvPage() {
 
   let cv = await getCvForUser(session.user.id);
   let syncReport: SyncReport | null = null;
+  // Distinguishes "the first auto-sync failed" from "you legitimately have no CV
+  // yet" so the client can show a retryable error state, not the empty state.
+  let initialSyncFailed = false;
 
   // First visit: auto-populate from OpenAlex so the user sees a CV immediately.
   if (!cv && session.user.orcid) {
@@ -30,6 +33,7 @@ export default async function CvPage() {
       syncReport = result.report;
     } catch (err) {
       logger.error("cv.initial_sync_failed", { err });
+      initialSyncFailed = true;
     }
   } else {
     // Returning visit: show what the last (manual or scheduled) sync changed.
@@ -49,6 +53,7 @@ export default async function CvPage() {
     <CvWorkspace
       initialCv={cv}
       initialSyncReport={syncReport}
+      initialSyncFailed={initialSyncFailed}
       availableStyles={availableStyles}
       userName={session.user.name ?? session.user.orcid ?? "Researcher"}
       researchConsent={session.user.researchConsent ?? false}

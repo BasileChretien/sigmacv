@@ -480,6 +480,10 @@ const EN = {
   emptyBody:
     "We couldn’t find publications for your ORCID iD on OpenAlex yet. Try syncing — new records can take time to appear, and sandbox ORCID iDs have no OpenAlex profile.",
   syncFromOpenAlex: "Sync from OpenAlex",
+  syncErrorTitle: "We couldn’t reach OpenAlex",
+  syncErrorBody:
+    "Something went wrong fetching your publications — this is usually temporary and not a problem with your account. Please try again.",
+  syncRetry: "Try again",
   // item row
   hide: "Hide",
   show: "Show",
@@ -600,6 +604,9 @@ const ZH: Record<ChromeKey, string> = {
   emptyBody:
     "我们尚未在 OpenAlex 上找到与您的 ORCID iD 关联的论文。请尝试同步——新记录可能需要一些时间才会显示，而沙盒 ORCID iD 没有 OpenAlex 档案。",
   syncFromOpenAlex: "从 OpenAlex 同步",
+  syncErrorTitle: "无法连接 OpenAlex",
+  syncErrorBody: "获取您的论文时出错——这通常是暂时的，与您的账户无关。请重试。",
+  syncRetry: "重试",
   hide: "隐藏",
   show: "显示",
   notMine: "不是我的",
@@ -707,6 +714,10 @@ const ES: Record<ChromeKey, string> = {
   emptyBody:
     "Todavía no encontramos publicaciones para tu iD ORCID en OpenAlex. Prueba a sincronizar: los nuevos registros pueden tardar en aparecer, y los iD ORCID de prueba no tienen perfil en OpenAlex.",
   syncFromOpenAlex: "Sincronizar desde OpenAlex",
+  syncErrorTitle: "No pudimos conectar con OpenAlex",
+  syncErrorBody:
+    "Algo salió mal al obtener tus publicaciones; suele ser temporal y no es un problema de tu cuenta. Inténtalo de nuevo.",
+  syncRetry: "Reintentar",
   hide: "Ocultar",
   show: "Mostrar",
   notMine: "No es mío",
@@ -817,6 +828,10 @@ const FR: Record<ChromeKey, string> = {
   emptyBody:
     "Nous n’avons pas encore trouvé de publications pour votre iD ORCID sur OpenAlex. Essayez de synchroniser — les nouveaux enregistrements peuvent mettre du temps à apparaître, et les iD ORCID de test n’ont pas de profil OpenAlex.",
   syncFromOpenAlex: "Synchroniser depuis OpenAlex",
+  syncErrorTitle: "Impossible de joindre OpenAlex",
+  syncErrorBody:
+    "Une erreur s’est produite lors de la récupération de vos publications — c’est généralement temporaire et sans rapport avec votre compte. Veuillez réessayer.",
+  syncRetry: "Réessayer",
   hide: "Masquer",
   show: "Afficher",
   notMine: "Pas à moi",
@@ -928,6 +943,10 @@ const DE: Record<ChromeKey, string> = {
   emptyBody:
     "Wir haben für Ihre ORCID iD noch keine Publikationen auf OpenAlex gefunden. Versuchen Sie zu synchronisieren – neue Einträge können einige Zeit benötigen, und Sandbox-ORCID-iDs haben kein OpenAlex-Profil.",
   syncFromOpenAlex: "Von OpenAlex synchronisieren",
+  syncErrorTitle: "OpenAlex ist nicht erreichbar",
+  syncErrorBody:
+    "Beim Abrufen Ihrer Publikationen ist ein Fehler aufgetreten – das ist meist vorübergehend und kein Problem mit Ihrem Konto. Bitte versuchen Sie es erneut.",
+  syncRetry: "Erneut versuchen",
   hide: "Ausblenden",
   show: "Anzeigen",
   notMine: "Nicht von mir",
@@ -1040,6 +1059,10 @@ const JA: Record<ChromeKey, string> = {
   emptyBody:
     "OpenAlex 上であなたの ORCID iD に紐づく論文がまだ見つかりません。同期をお試しください。新しい記録は反映に時間がかかることがあり、サンドボックスの ORCID iD には OpenAlex プロフィールがありません。",
   syncFromOpenAlex: "OpenAlex から同期",
+  syncErrorTitle: "OpenAlex に接続できませんでした",
+  syncErrorBody:
+    "論文の取得中に問題が発生しました。多くの場合一時的なもので、アカウントの問題ではありません。もう一度お試しください。",
+  syncRetry: "再試行",
   hide: "非表示",
   show: "表示",
   notMine: "自分のではない",
@@ -1150,6 +1173,10 @@ const PT: Record<ChromeKey, string> = {
   emptyBody:
     "Ainda não encontramos publicações para o seu iD ORCID no OpenAlex. Tente sincronizar — novos registros podem demorar a aparecer, e iDs ORCID de teste não têm perfil no OpenAlex.",
   syncFromOpenAlex: "Sincronizar do OpenAlex",
+  syncErrorTitle: "Não foi possível conectar ao OpenAlex",
+  syncErrorBody:
+    "Algo deu errado ao buscar suas publicações — geralmente é temporário e não é um problema com sua conta. Tente novamente.",
+  syncRetry: "Tentar novamente",
   hide: "Ocultar",
   show: "Mostrar",
   notMine: "Não é meu",
@@ -1260,6 +1287,10 @@ const IT: Record<ChromeKey, string> = {
   emptyBody:
     "Non abbiamo ancora trovato pubblicazioni per il tuo iD ORCID su OpenAlex. Prova a sincronizzare: i nuovi record possono richiedere tempo per comparire e gli iD ORCID di prova non hanno un profilo OpenAlex.",
   syncFromOpenAlex: "Sincronizza da OpenAlex",
+  syncErrorTitle: "Impossibile raggiungere OpenAlex",
+  syncErrorBody:
+    "Si è verificato un errore durante il recupero delle tue pubblicazioni — di solito è temporaneo e non dipende dal tuo account. Riprova.",
+  syncRetry: "Riprova",
   hide: "Nascondi",
   show: "Mostra",
   notMine: "Non è mio",
@@ -1370,6 +1401,10 @@ const KO: Record<ChromeKey, string> = {
   emptyBody:
     "OpenAlex에서 회원님의 ORCID iD에 연결된 논문을 아직 찾지 못했습니다. 동기화를 시도해 보세요. 새 기록은 표시되기까지 시간이 걸릴 수 있으며, 샌드박스 ORCID iD에는 OpenAlex 프로필이 없습니다.",
   syncFromOpenAlex: "OpenAlex에서 동기화",
+  syncErrorTitle: "OpenAlex에 연결할 수 없습니다",
+  syncErrorBody:
+    "논문을 가져오는 중 문제가 발생했습니다. 보통 일시적인 문제이며 계정과는 무관합니다. 다시 시도해 주세요.",
+  syncRetry: "다시 시도",
   hide: "숨기기",
   show: "표시",
   notMine: "내 것이 아님",
@@ -1480,6 +1515,10 @@ const RU: Record<ChromeKey, string> = {
   emptyBody:
     "Мы пока не нашли публикаций для вашего ORCID iD в OpenAlex. Попробуйте синхронизировать — новые записи могут появляться не сразу, а у тестовых ORCID iD нет профиля в OpenAlex.",
   syncFromOpenAlex: "Синхронизировать с OpenAlex",
+  syncErrorTitle: "Не удалось подключиться к OpenAlex",
+  syncErrorBody:
+    "Произошла ошибка при загрузке ваших публикаций — обычно это временно и не связано с вашим аккаунтом. Пожалуйста, попробуйте снова.",
+  syncRetry: "Повторить",
   hide: "Скрыть",
   show: "Показать",
   notMine: "Не моё",

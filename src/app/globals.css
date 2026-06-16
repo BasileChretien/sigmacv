@@ -2207,6 +2207,17 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .cv-empty .btn-primary {
   margin-top: var(--space-4);
 }
+/* Distinct, retryable error state (a failed sync) — a warm warning border + a
+   warning-toned heading so it reads as "something went wrong, try again" rather
+   than the neutral "no CV yet" empty state. Semantic tokens (dark-mode-correct). */
+.cv-empty-error {
+  border: 1px solid var(--warn-text);
+  border-radius: var(--radius-lg);
+  background: var(--warn-soft);
+}
+.cv-empty-error h2 {
+  color: var(--warn-text);
+}
 
 .lang-switcher {
   font: inherit;
