@@ -22,7 +22,7 @@ export interface LandingStep {
 export interface LandingFlow {
   howTitle: string;
   howSub: string;
-  /** Three steps: Curate, Style, Export (same count in every locale). */
+  /** Four steps: Curate, Style, Export, Publish (same count in every locale). */
   steps: LandingStep[];
   /** Label for the link to the funder-cv-templates landing page. */
   templatesCta: string;
@@ -33,7 +33,7 @@ export interface LandingFlow {
 const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
   "en-US": {
     howTitle: "How it works",
-    howSub: "From the open record to a CV you control — in three steps.",
+    howSub: "From the open record to a CV you control, step by step.",
     steps: [
       {
         title: "Curate what's yours",
@@ -58,8 +58,17 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         body: "One canonical CV, every format — all from the same structured document, so they never drift apart.",
         points: [
           "Pixel-perfect PDF, editable DOCX, LaTeX, Markdown",
-          "Publish a living public page that re-syncs from the record",
+          "Identical citations in every format — never re-typed",
           "Your data is portable — full export any time",
+        ],
+      },
+      {
+        title: "Publish a living page",
+        body: "Share one public page that re-syncs from the open record as your work grows — always current, no re-upload. Online only; your exports never change.",
+        points: [
+          "A clean public URL that updates itself as new work appears",
+          "Per-field publish consent — unpublish or go private anytime",
+          "Optional animated showcase styles — web-only, sober by default",
         ],
       },
     ],
@@ -68,7 +77,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
   },
   "zh-CN": {
     howTitle: "工作原理",
-    howSub: "从公开学术记录到你掌控的简历——只需三步。",
+    howSub: "从公开学术记录到你掌控的简历——一步一步来。",
     steps: [
       {
         title: "管理属于你的内容",
@@ -93,8 +102,17 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         body: "一份规范化简历，导出任意格式——全部源自同一结构化文档，永不脱节。",
         points: [
           "精美 PDF、可编辑 DOCX、LaTeX、Markdown",
-          "发布可随记录自动同步的在线公开页",
+          "所有格式中引用完全一致——无需重新录入",
           "数据可携——随时完整导出",
+        ],
+      },
+      {
+        title: "发布在线主页",
+        body: "分享一个随你的成果增长而自动同步公开记录的在线页面——始终最新，无需重新上传。仅在线显示；导出文件不会改变。",
+        points: [
+          "干净的公开网址，随新成果出现自动更新",
+          "逐项发布授权——随时取消发布或转为私密",
+          "可选的动画展示样式——仅在线，默认朴素",
         ],
       },
     ],
@@ -103,7 +121,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
   },
   "es-ES": {
     howTitle: "Cómo funciona",
-    howSub: "Del registro abierto a un CV que controlas — en tres pasos.",
+    howSub: "Del registro abierto a un CV que controlas, paso a paso.",
     steps: [
       {
         title: "Selecciona lo que es tuyo",
@@ -128,8 +146,17 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         body: "Un CV canónico, todos los formatos — todos del mismo documento estructurado, así nunca divergen.",
         points: [
           "PDF impecable, DOCX editable, LaTeX, Markdown",
-          "Publica una página pública que se resincroniza con el registro",
+          "Citas idénticas en todos los formatos — sin volver a escribirlas",
           "Tus datos son portables — exportación completa cuando quieras",
+        ],
+      },
+      {
+        title: "Publica una página viva",
+        body: "Comparte una página pública que se resincroniza con el registro abierto a medida que crece tu trabajo — siempre al día, sin volver a subir nada. Solo en línea; tus exportaciones no cambian.",
+        points: [
+          "Una URL pública limpia que se actualiza al aparecer trabajos nuevos",
+          "Consentimiento de publicación por campo — despublica o hazla privada cuando quieras",
+          "Estilos animados opcionales — solo en la web, sobrios por defecto",
         ],
       },
     ],
@@ -138,7 +165,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
   },
   "fr-FR": {
     howTitle: "Comment ça marche",
-    howSub: "Du registre ouvert à un CV que vous maîtrisez — en trois étapes.",
+    howSub: "Du registre ouvert à un CV que vous maîtrisez, étape par étape.",
     steps: [
       {
         title: "Sélectionnez ce qui est à vous",
@@ -163,8 +190,17 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         body: "Un CV canonique, tous les formats — tous issus du même document structuré, sans jamais diverger.",
         points: [
           "PDF impeccable, DOCX modifiable, LaTeX, Markdown",
-          "Publiez une page publique vivante qui se resynchronise",
+          "Des citations identiques dans tous les formats — jamais ressaisies",
           "Vos données sont portables — export complet à tout moment",
+        ],
+      },
+      {
+        title: "Publiez une page vivante",
+        body: "Partagez une page publique qui se resynchronise avec le registre ouvert à mesure que vos travaux s'enrichissent — toujours à jour, sans réimport. En ligne uniquement ; vos exports ne changent jamais.",
+        points: [
+          "Une URL publique nette qui se met à jour quand de nouveaux travaux paraissent",
+          "Consentement de publication par champ — dépubliez ou passez en privé à tout moment",
+          "Styles animés en option — web uniquement, sobres par défaut",
         ],
       },
     ],
@@ -173,7 +209,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
   },
   "de-DE": {
     howTitle: "So funktioniert's",
-    howSub: "Vom offenen Forschungsnachweis zu einem CV, den Sie steuern — in drei Schritten.",
+    howSub: "Vom offenen Forschungsnachweis zu einem CV, den Sie steuern — Schritt für Schritt.",
     steps: [
       {
         title: "Kuratieren Sie, was Ihnen gehört",
@@ -198,8 +234,17 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         body: "Ein kanonischer CV, jedes Format — alle aus demselben strukturierten Dokument, ohne je auseinanderzudriften.",
         points: [
           "Pixelgenaues PDF, editierbares DOCX, LaTeX, Markdown",
-          "Veröffentlichen Sie eine lebende öffentliche Seite, die sich neu synchronisiert",
+          "Identische Zitate in jedem Format — nie neu getippt",
           "Ihre Daten sind portabel — jederzeit vollständiger Export",
+        ],
+      },
+      {
+        title: "Veröffentlichen Sie eine lebende Seite",
+        body: "Teilen Sie eine öffentliche Seite, die sich mit dem offenen Nachweis neu synchronisiert, während Ihre Arbeit wächst — stets aktuell, ohne erneutes Hochladen. Nur online; Ihre Exporte ändern sich nie.",
+        points: [
+          "Eine saubere öffentliche URL, die sich bei neuen Arbeiten selbst aktualisiert",
+          "Feldweise Veröffentlichungsfreigabe — jederzeit zurückziehen oder privat schalten",
+          "Optionale animierte Showcase-Stile — nur im Web, standardmäßig schlicht",
         ],
       },
     ],
@@ -208,7 +253,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
   },
   "ja-JP": {
     howTitle: "仕組み",
-    howSub: "公開された研究記録から、あなたが管理できる CV へ——3 ステップで。",
+    howSub: "公開された研究記録から、あなたが管理できる CV へ——ステップごとに。",
     steps: [
       {
         title: "自分のものを取捨選択",
@@ -233,8 +278,17 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         body: "正規の CV ひとつであらゆる形式へ——同じ構造化文書から生成されるため、ずれません。",
         points: [
           "精緻な PDF、編集可能な DOCX、LaTeX、Markdown",
-          "記録から再同期する公開ページを公開",
+          "すべての形式で引用が同一——再入力不要",
           "データは持ち出し可能——いつでも完全エクスポート",
+        ],
+      },
+      {
+        title: "公開ページを公開",
+        body: "成果の増加に合わせて公開記録から再同期される公開ページを共有——常に最新で、再アップロード不要。オンライン限定で、書き出しは変わりません。",
+        points: [
+          "新しい成果が出るたびに自動更新される、すっきりした公開 URL",
+          "項目ごとの公開同意——いつでも非公開化・取り下げ可能",
+          "任意のアニメーション表示スタイル——ウェブ限定、既定はシンプル",
         ],
       },
     ],
@@ -243,7 +297,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
   },
   "pt-BR": {
     howTitle: "Como funciona",
-    howSub: "Do registro aberto a um currículo que você controla — em três passos.",
+    howSub: "Do registro aberto a um currículo que você controla, passo a passo.",
     steps: [
       {
         title: "Faça a curadoria do que é seu",
@@ -268,8 +322,17 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         body: "Um currículo canônico, todos os formatos — todos do mesmo documento estruturado, sem nunca divergir.",
         points: [
           "PDF impecável, DOCX editável, LaTeX, Markdown",
-          "Publique uma página pública viva que se ressincroniza",
+          "Citações idênticas em todos os formatos — sem redigitar",
           "Seus dados são portáveis — exportação completa quando quiser",
+        ],
+      },
+      {
+        title: "Publique uma página viva",
+        body: "Compartilhe uma página pública que se ressincroniza com o registro aberto conforme seu trabalho cresce — sempre atual, sem reenviar. Somente on-line; suas exportações nunca mudam.",
+        points: [
+          "Uma URL pública limpa que se atualiza quando surgem novos trabalhos",
+          "Consentimento de publicação por campo — despublique ou torne privada quando quiser",
+          "Estilos animados opcionais — somente na web, sóbrios por padrão",
         ],
       },
     ],
@@ -278,7 +341,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
   },
   "it-IT": {
     howTitle: "Come funziona",
-    howSub: "Dal registro aperto a un CV che controlli tu — in tre passi.",
+    howSub: "Dal registro aperto a un CV che controlli tu, passo dopo passo.",
     steps: [
       {
         title: "Cura ciò che è tuo",
@@ -303,8 +366,17 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         body: "Un CV canonico, ogni formato — tutti dallo stesso documento strutturato, senza mai divergere.",
         points: [
           "PDF impeccabile, DOCX modificabile, LaTeX, Markdown",
-          "Pubblica una pagina pubblica viva che si risincronizza",
+          "Citazioni identiche in ogni formato — mai riscritte",
           "I tuoi dati sono portabili — esportazione completa quando vuoi",
+        ],
+      },
+      {
+        title: "Pubblica una pagina viva",
+        body: "Condividi una pagina pubblica che si risincronizza con il registro aperto man mano che il tuo lavoro cresce — sempre aggiornata, senza ricaricare nulla. Solo online; le tue esportazioni non cambiano mai.",
+        points: [
+          "Un URL pubblico pulito che si aggiorna quando compaiono nuovi lavori",
+          "Consenso alla pubblicazione per campo — annulla la pubblicazione o rendi privata quando vuoi",
+          "Stili animati opzionali — solo web, sobri per impostazione predefinita",
         ],
       },
     ],
@@ -313,7 +385,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
   },
   "ko-KR": {
     howTitle: "이용 방법",
-    howSub: "공개된 연구 기록에서 당신이 관리하는 CV까지 — 단 3단계로.",
+    howSub: "공개된 연구 기록에서 당신이 관리하는 CV까지 — 한 단계씩.",
     steps: [
       {
         title: "내 것만 선별하기",
@@ -338,8 +410,17 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         body: "하나의 표준 CV로 모든 형식을 — 동일한 구조화 문서에서 생성되어 서로 어긋나지 않습니다.",
         points: [
           "완벽한 PDF, 편집 가능한 DOCX, LaTeX, Markdown",
-          "기록에서 재동기화되는 살아있는 공개 페이지 게시",
+          "모든 형식에서 동일한 인용 — 다시 입력할 필요 없음",
           "데이터는 이동 가능 — 언제든 전체 내보내기",
+        ],
+      },
+      {
+        title: "살아있는 공개 페이지 게시",
+        body: "성과가 늘어남에 따라 공개 기록에서 재동기화되는 공개 페이지를 공유하세요 — 항상 최신이며 다시 올릴 필요가 없습니다. 온라인 전용이며, 내보내기는 바뀌지 않습니다.",
+        points: [
+          "새 성과가 나오면 스스로 업데이트되는 깔끔한 공개 URL",
+          "항목별 게시 동의 — 언제든 게시 취소하거나 비공개로 전환",
+          "선택적 애니메이션 쇼케이스 스타일 — 웹 전용, 기본은 차분하게",
         ],
       },
     ],
@@ -348,7 +429,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
   },
   "ru-RU": {
     howTitle: "Как это работает",
-    howSub: "От открытого реестра к резюме, которым управляете вы, — за три шага.",
+    howSub: "От открытого реестра к резюме, которым управляете вы, — шаг за шагом.",
     steps: [
       {
         title: "Отберите своё",
@@ -373,8 +454,17 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         body: "Одно каноническое резюме, любой формат — всё из одного структурированного документа, без расхождений.",
         points: [
           "Идеальный PDF, редактируемый DOCX, LaTeX, Markdown",
-          "Опубликуйте живую публичную страницу с пересинхронизацией",
+          "Идентичные ссылки во всех форматах — без повторного ввода",
           "Ваши данные переносимы — полный экспорт в любой момент",
+        ],
+      },
+      {
+        title: "Опубликуйте живую страницу",
+        body: "Поделитесь публичной страницей, которая пересинхронизируется с открытым реестром по мере роста ваших работ — всегда актуальна, без повторной загрузки. Только онлайн; ваши экспортируемые файлы не меняются.",
+        points: [
+          "Аккуратный публичный URL, обновляющийся при появлении новых работ",
+          "Согласие на публикацию по каждому полю — в любой момент снимите с публикации или сделайте приватной",
+          "Дополнительные анимированные стили — только в вебе, по умолчанию сдержанные",
         ],
       },
     ],

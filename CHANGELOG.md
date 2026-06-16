@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The default stays **“Match my document.”** A new **Document / Public page**
   toggle on the editor preview shows exactly how the page will look. Localized in
   all ten languages.
+- **The homepage now shows the living public page.** A fourth **“Publish a living
+  page”** step in the “How it works” flow introduces the re-syncing public page —
+  with an animated preview of the optional showcase styles and a clear “online
+  only; exports stay clean” note. Localized in all ten languages.
 
 ### Fixed
 
