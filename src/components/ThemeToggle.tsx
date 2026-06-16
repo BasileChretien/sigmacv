@@ -2,51 +2,51 @@
 
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
-import { THEME_STORAGE_KEY, type ThemeChoice } from "@/lib/themeInit";
-
-/** Resolve a choice to the concrete palette to paint ("system" → OS preference). */
-function resolve(choice: ThemeChoice): "light" | "dark" {
-  if (choice === "light" || choice === "dark") return choice;
-  return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
+import { THEME_STORAGE_KEY } from "@/lib/themeInit";
 
 /**
- * Site-wide appearance control: System / Light / Dark. The no-flash init script
- * (themeInit.ts) has already set `data-theme` before paint; this just lets the
- * user override it. The choice persists in localStorage and is applied by setting
- * `data-theme` on <html>; "system" follows the OS (the init script's media-query
- * listener keeps it live). A compact segmented control — icons with localized
- * accessible names.
+ * Light / Dark appearance toggle. The system preference is auto-detected and
+ * applied on first visit by the no-flash init script (themeInit.ts) — there's no
+ * explicit "System" control; the toggle simply shows the sun (light) and moon
+ * (dark), with the currently-applied one highlighted. Picking one stores an
+ * explicit choice; until then the page keeps following the OS (and the highlight
+ * tracks it if the OS flips).
  */
 export default function ThemeToggle({ locale }: { locale: string }) {
-  // Start as "system" so SSR and first client render agree; the real stored
-  // choice is read after mount (the painted theme is already correct via the
-  // init script, so there's no flash regardless).
-  const [choice, setChoice] = useState<ThemeChoice>("system");
+  // The applied palette. SSR renders "light"; the real value is read after mount
+  // from data-theme (already set before paint by the init script), so no flash.
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-      if (stored === "light" || stored === "dark" || stored === "system") setChoice(stored);
-    } catch {
-      /* storage unavailable — keep system */
-    }
+    const fromAttr = document.documentElement.getAttribute("data-theme");
+    setTheme(fromAttr === "dark" ? "dark" : "light");
+    // While the user hasn't chosen explicitly, keep the highlight in sync with the
+    // OS (the init script already updates the actual theme on this same event).
+    if (typeof window.matchMedia !== "function") return; // e.g. jsdom / old browsers
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onOsChange = () => {
+      try {
+        const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+        if (stored !== "light" && stored !== "dark") setTheme(mq.matches ? "dark" : "light");
+      } catch {
+        /* storage unavailable — leave as-is */
+      }
+    };
+    mq.addEventListener("change", onOsChange);
+    return () => mq.removeEventListener("change", onOsChange);
   }, []);
 
-  const choose = (next: ThemeChoice) => {
-    setChoice(next);
+  const choose = (next: "light" | "dark") => {
+    setTheme(next);
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {
       /* non-fatal — just won't persist */
     }
-    document.documentElement.setAttribute("data-theme", resolve(next));
+    document.documentElement.setAttribute("data-theme", next);
   };
 
-  const options: { value: ThemeChoice; label: string; icon: React.ReactNode }[] = [
-    { value: "system", label: t(locale, "themeSystem"), icon: <SystemIcon /> },
+  const options: { value: "light" | "dark"; label: string; icon: React.ReactNode }[] = [
     { value: "light", label: t(locale, "themeLight"), icon: <SunIcon /> },
     { value: "dark", label: t(locale, "themeDark"), icon: <MoonIcon /> },
   ];
@@ -57,8 +57,8 @@ export default function ThemeToggle({ locale }: { locale: string }) {
         <button
           key={o.value}
           type="button"
-          className={`theme-toggle-btn${choice === o.value ? " is-active" : ""}`}
-          aria-pressed={choice === o.value}
+          className={`theme-toggle-btn${theme === o.value ? " is-active" : ""}`}
+          aria-pressed={theme === o.value}
           aria-label={o.label}
           title={o.label}
           onClick={() => choose(o.value)}
@@ -67,25 +67,6 @@ export default function ThemeToggle({ locale }: { locale: string }) {
         </button>
       ))}
     </div>
-  );
-}
-
-function SystemIcon() {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="2" y="3" width="20" height="14" rx="2" />
-      <path d="M8 21h8M12 17v4" />
-    </svg>
   );
 }
 
