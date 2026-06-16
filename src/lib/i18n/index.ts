@@ -490,7 +490,12 @@ const EN = {
   delete: "Delete",
   youBadge: "you",
   notMineBadge: "not mine",
+  // `reviewBadge` (⚠) is reserved for a genuine ORCID *conflict* (a different
+  // iD on the matching author). `reviewBadgeSoft` is the calm, neutral cue for
+  // "probably yours" candidates (ORCID-listed / name-matched) that just want a
+  // glance — no alarm.
   reviewBadge: "⚠ review",
+  reviewBadgeSoft: "Review",
   reviewHint:
     "This record lists a different ORCID for the matching author — check that it’s really yours.",
   reviewHintOrcidDoi:
@@ -605,6 +610,7 @@ const ZH: Record<ChromeKey, string> = {
   youBadge: "你",
   notMineBadge: "不是我的",
   reviewBadge: "⚠ 待核查",
+  reviewBadgeSoft: "待核查",
   reviewHint: "此记录中匹配的作者登记了不同的 ORCID——请确认确实是您本人。",
   reviewHintOrcidDoi:
     "此论文在您的 ORCID 记录中，但 OpenAlex 未将其归到您名下——请核查：点击“显示”加入简历，标记为“非本人”，或点击“保持隐藏”将其留在简历之外。",
@@ -711,6 +717,7 @@ const ES: Record<ChromeKey, string> = {
   youBadge: "tú",
   notMineBadge: "no es mío",
   reviewBadge: "⚠ revisar",
+  reviewBadgeSoft: "Revisar",
   reviewHint:
     "Este registro indica un ORCID distinto para el autor coincidente: comprueba que realmente es tuyo.",
   reviewHintOrcidDoi:
@@ -820,6 +827,7 @@ const FR: Record<ChromeKey, string> = {
   youBadge: "vous",
   notMineBadge: "pas à moi",
   reviewBadge: "⚠ à vérifier",
+  reviewBadgeSoft: "À vérifier",
   reviewHint:
     "Cet enregistrement indique un ORCID différent pour l’auteur correspondant — vérifiez qu’il s’agit bien de vous.",
   reviewHintOrcidDoi:
@@ -930,6 +938,7 @@ const DE: Record<ChromeKey, string> = {
   youBadge: "Sie",
   notMineBadge: "nicht von mir",
   reviewBadge: "⚠ prüfen",
+  reviewBadgeSoft: "Prüfen",
   reviewHint:
     "Dieser Eintrag nennt eine andere ORCID für den übereinstimmenden Autor – prüfen Sie, ob er wirklich von Ihnen ist.",
   reviewHintOrcidDoi:
@@ -1041,6 +1050,7 @@ const JA: Record<ChromeKey, string> = {
   youBadge: "あなた",
   notMineBadge: "自分のではない",
   reviewBadge: "⚠ 要確認",
+  reviewBadgeSoft: "要確認",
   reviewHint:
     "この記録では一致した著者に別の ORCID が登録されています。本当にあなたのものか確認してください。",
   reviewHintOrcidDoi:
@@ -1150,6 +1160,7 @@ const PT: Record<ChromeKey, string> = {
   youBadge: "você",
   notMineBadge: "não é meu",
   reviewBadge: "⚠ revisar",
+  reviewBadgeSoft: "Revisar",
   reviewHint:
     "Este registro indica um ORCID diferente para o autor correspondente — confirme que é realmente seu.",
   reviewHintOrcidDoi:
@@ -1259,6 +1270,7 @@ const IT: Record<ChromeKey, string> = {
   youBadge: "tu",
   notMineBadge: "non è mio",
   reviewBadge: "⚠ da verificare",
+  reviewBadgeSoft: "Da verificare",
   reviewHint:
     "Questo record indica un ORCID diverso per l’autore corrispondente: verifica che sia davvero tuo.",
   reviewHintOrcidDoi:
@@ -1368,6 +1380,7 @@ const KO: Record<ChromeKey, string> = {
   youBadge: "본인",
   notMineBadge: "내 것이 아님",
   reviewBadge: "⚠ 확인 필요",
+  reviewBadgeSoft: "확인 필요",
   reviewHint:
     "이 기록은 일치하는 저자에 대해 다른 ORCID를 표시합니다. 정말 본인의 것인지 확인하세요.",
   reviewHintOrcidDoi:
@@ -1477,6 +1490,7 @@ const RU: Record<ChromeKey, string> = {
   youBadge: "вы",
   notMineBadge: "не моё",
   reviewBadge: "⚠ проверить",
+  reviewBadgeSoft: "Проверить",
   reviewHint:
     "В этой записи для совпавшего автора указан другой ORCID — убедитесь, что это действительно вы.",
   reviewHintOrcidDoi:

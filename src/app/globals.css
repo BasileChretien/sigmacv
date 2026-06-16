@@ -1544,6 +1544,15 @@ textarea.prose-body {
   border-color: #f0dcae;
   cursor: help;
 }
+/* Soft variant: a "probably yours" candidate (ORCID-listed / name-matched), not
+   a real conflict — a calm, neutral chip with no amber alarm. Semantic tokens so
+   it inverts correctly in dark mode. */
+.cv-review-badge--soft {
+  color: var(--muted);
+  background: var(--surface-2);
+  border-color: var(--border);
+  font-weight: var(--weight-medium);
+}
 /* The "possible duplicate" badge is a button (toggles the explainer), so it
    gets a pointer cursor rather than the `help` cursor used by the static ones. */
 button.cv-review-badge.is-duplicate {

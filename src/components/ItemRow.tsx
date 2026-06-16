@@ -391,8 +391,11 @@ export default function ItemRow({
                 candidate. Badge shows only while still pending — confirm with
                 "Show" (includes it), mark "not mine", or "Keep hidden". */}
             {item.meta.reviewFlag === "orcid-doi" && isPendingReviewCandidate ? (
-              <span className="cv-review-badge" title={t(locale, "reviewHintOrcidDoi")}>
-                {t(locale, "reviewBadge")}
+              <span
+                className="cv-review-badge cv-review-badge--soft"
+                title={t(locale, "reviewHintOrcidDoi")}
+              >
+                {t(locale, "reviewBadgeSoft")}
               </span>
             ) : null}
             {dupBadge}
@@ -409,8 +412,11 @@ export default function ItemRow({
                 review. Hidden by default until the user confirms it's theirs;
                 suppressed once triaged with "Keep hidden". */}
             {item.meta.reviewFlag === "name-matched" && !reviewDismissed ? (
-              <span className="cv-review-badge" title={t(locale, "reviewHintNameMatched")}>
-                {t(locale, "reviewBadge")}
+              <span
+                className="cv-review-badge cv-review-badge--soft"
+                title={t(locale, "reviewHintNameMatched")}
+              >
+                {t(locale, "reviewBadgeSoft")}
               </span>
             ) : null}
             {dupBadge}

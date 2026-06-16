@@ -139,7 +139,10 @@ describe("ItemRow — name+org review candidates", () => {
         meta: { reviewFlag: "name-matched" },
       }),
     );
-    expect(document.querySelector(".cv-review-badge")).toBeTruthy();
+    // A "probably yours" candidate gets the calm, neutral chip — no ⚠ alarm.
+    expect(document.querySelector(".cv-review-badge--soft")).toBeTruthy();
+    expect(screen.getByText("Review")).toBeTruthy();
+    expect(screen.queryByText(/⚠/)).toBeNull();
     expect(screen.getByRole("button", { name: /^show/i })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /not mine/i })).toBeNull();
   });
@@ -175,7 +178,10 @@ describe("ItemRow — ORCID-discovered review candidates", () => {
 
   it("flags a hidden orcid-doi candidate for review, offering Show AND 'not mine'", () => {
     renderRow(orcidDoiCandidate());
-    expect(document.querySelector(".cv-review-badge")).toBeTruthy();
+    // Probably yours (listed in your ORCID) → neutral chip, not the ⚠ alarm.
+    expect(document.querySelector(".cv-review-badge--soft")).toBeTruthy();
+    expect(screen.getByText("Review")).toBeTruthy();
+    expect(screen.queryByText(/⚠/)).toBeNull();
     expect(screen.getByRole("button", { name: /^show/i })).toBeTruthy();
     // It's a citation (OpenAlex) → "not mine" IS offered (unlike name-matched registries).
     expect(screen.getByRole("button", { name: /not mine/i })).toBeTruthy();

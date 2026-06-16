@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   becomes public (your name, ORCID, and the publications you've kept) and that your
   email, phone, and location stay private unless you opt in — shown _before_ you
   publish, not after.
+- **Calmer review cues.** The ⚠ warning badge is now reserved for a genuine ORCID
+  _conflict_ (a different iD on the matching author). Works that are probably yours —
+  listed in your ORCID record, or matched to you by name and organization — get a
+  quiet, neutral **Review** chip instead, so the editor stops looking alarming about
+  records that are most likely fine. The **Buy me a coffee** link also now explains,
+  on hover, that SigmaCV is free and not-for-profit and a coffee helps cover its
+  running costs.
 - **Your published CV page now shows it's a _living_ page.** A public `/p/…` page
   carries a visible "Updated _<date>_ · updates automatically" line, so a visitor
   (a hiring committee, a collaborator) can see at a glance that it's current — the

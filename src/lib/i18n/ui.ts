@@ -256,7 +256,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewEmpty: "Preview will appear here.",
     linksNav: "Links",
     coffee: "☕ Buy me a coffee",
-    supportTitle: "Support SigmaCV",
+    supportTitle: "SigmaCV is free and not-for-profit — a coffee helps cover its running costs.",
   },
   "zh-CN": {
     styleLegend: "样式",
@@ -380,7 +380,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewEmpty: "预览将显示在此处。",
     linksNav: "链接",
     coffee: "☕ 请我喝杯咖啡",
-    supportTitle: "支持 SigmaCV",
+    supportTitle: "SigmaCV 免费且非营利——一杯咖啡有助于支付运营成本。",
   },
   "es-ES": {
     styleLegend: "Estilo",
@@ -508,7 +508,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewEmpty: "La vista previa aparecerá aquí.",
     linksNav: "Enlaces",
     coffee: "☕ Invítame a un café",
-    supportTitle: "Apoya a SigmaCV",
+    supportTitle: "SigmaCV es gratuito y sin ánimo de lucro: un café ayuda a cubrir sus costes.",
   },
   "fr-FR": {
     styleLegend: "Style",
@@ -638,7 +638,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewEmpty: "L’aperçu apparaîtra ici.",
     linksNav: "Liens",
     coffee: "☕ Offrez-moi un café",
-    supportTitle: "Soutenir SigmaCV",
+    supportTitle: "SigmaCV est gratuit et à but non lucratif — un café aide à payer les frais.",
   },
   "de-DE": {
     styleLegend: "Stil",
@@ -768,7 +768,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewEmpty: "Hier erscheint die Vorschau.",
     linksNav: "Links",
     coffee: "☕ Spendieren Sie mir einen Kaffee",
-    supportTitle: "SigmaCV unterstützen",
+    supportTitle: "SigmaCV ist kostenlos und gemeinnützig — ein Kaffee deckt die Betriebskosten.",
   },
   "ja-JP": {
     styleLegend: "スタイル",
@@ -895,7 +895,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewEmpty: "プレビューはここに表示されます。",
     linksNav: "リンク",
     coffee: "☕ コーヒーをおごる",
-    supportTitle: "SigmaCV を支援する",
+    supportTitle: "SigmaCV は無料・非営利です。コーヒー一杯が運営費の支えになります。",
   },
   "pt-BR": {
     styleLegend: "Estilo",
@@ -1023,7 +1023,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewEmpty: "A prévia aparecerá aqui.",
     linksNav: "Links",
     coffee: "☕ Pague-me um café",
-    supportTitle: "Apoie o SigmaCV",
+    supportTitle: "O SigmaCV é gratuito e sem fins lucrativos — um café ajuda a cobrir os custos.",
   },
   "it-IT": {
     styleLegend: "Stile",
@@ -1152,7 +1152,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewEmpty: "L’anteprima apparirà qui.",
     linksNav: "Link",
     coffee: "☕ Offrimi un caffè",
-    supportTitle: "Sostieni SigmaCV",
+    supportTitle: "SigmaCV è gratuito e senza scopo di lucro: un caffè aiuta a coprire i costi.",
   },
   "ko-KR": {
     styleLegend: "스타일",
@@ -1279,7 +1279,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewEmpty: "여기에 미리보기가 표시됩니다.",
     linksNav: "링크",
     coffee: "☕ 커피 한 잔 사주기",
-    supportTitle: "SigmaCV 후원하기",
+    supportTitle: "SigmaCV는 무료이며 비영리입니다 — 커피 한 잔이 운영 비용에 보탬이 됩니다.",
   },
   "ru-RU": {
     styleLegend: "Стиль",
@@ -1406,7 +1406,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     previewEmpty: "Здесь появится предпросмотр.",
     linksNav: "Ссылки",
     coffee: "☕ Купите мне кофе",
-    supportTitle: "Поддержать SigmaCV",
+    supportTitle: "SigmaCV бесплатен и некоммерческий — чашка кофе помогает покрыть расходы.",
   },
 };
 
