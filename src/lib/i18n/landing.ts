@@ -40,7 +40,8 @@ export interface LandingStrings {
   features: { title: string; body: string }[];
   /** Trust / "why SigmaCV" section heading. */
   trustTitle: string;
-  /** Trust cards (Free / Privacy-first / Open-source). Same count in every locale. */
+  /** Trust cards (Free / Private / Open source / Responsible) — minimal copy;
+   *  an icon is added per card by position. Same count (4) in every locale. */
   trust: { title: string; body: string }[];
   /** "Built by a researcher" heading + body (creator linked to ORCID). */
   creatorTitle: string;
@@ -111,12 +112,10 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     ],
     trustTitle: "Why SigmaCV",
     trust: [
-      { title: "Free", body: "Free for individuals. No ads, no upsells." },
-      {
-        title: "Privacy-first",
-        body: "Your data is yours — per-field publish consent, full export, account deletion (GDPR + Japan APPI). No ads, no data-selling.",
-      },
-      { title: "Open-source", body: "Apache-2.0 and auditable — read or self-host every line." },
+      { title: "Free", body: "For individuals, always." },
+      { title: "Private", body: "Your data, your control." },
+      { title: "Open source", body: "Apache-2.0, auditable." },
+      { title: "Responsible", body: "Opt-in, DORA-aligned metrics." },
     ],
     creatorTitle: "Built by a researcher, for researchers",
     creatorBody:
@@ -177,12 +176,10 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     ],
     trustTitle: "为什么选择 SigmaCV",
     trust: [
-      { title: "免费", body: "对个人免费。无广告，无附加销售。" },
-      {
-        title: "隐私优先",
-        body: "您的数据属于您——逐字段发布同意、完整导出、账户删除（GDPR + 日本 APPI）。无广告，不出售数据。",
-      },
-      { title: "开源", body: "Apache-2.0 且可审计——可阅读或自行托管每一行代码。" },
+      { title: "免费", body: "永久面向个人。" },
+      { title: "隐私", body: "您的数据由您掌控。" },
+      { title: "开源", body: "Apache-2.0，可审计。" },
+      { title: "负责任", body: "可选、符合 DORA 的指标。" },
     ],
     creatorTitle: "由研究者打造，为研究者而生",
     creatorBody:
@@ -250,12 +247,10 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     ],
     trustTitle: "Por qué SigmaCV",
     trust: [
-      { title: "Gratis", body: "Gratis para particulares. Sin anuncios ni ventas adicionales." },
-      {
-        title: "Privacidad ante todo",
-        body: "Tus datos son tuyos — consentimiento de publicación por campo, exportación completa, eliminación de cuenta (RGPD + APPI de Japón). Sin anuncios, sin venta de datos.",
-      },
-      { title: "Código abierto", body: "Apache-2.0 y auditable — lee o autoaloja cada línea." },
+      { title: "Gratis", body: "Para particulares, siempre." },
+      { title: "Privado", body: "Tus datos, tu control." },
+      { title: "Código abierto", body: "Apache-2.0, auditable." },
+      { title: "Responsable", body: "Métricas opcionales, alineadas con DORA." },
     ],
     creatorTitle: "Creado por un investigador, para investigadores",
     creatorBody:
@@ -325,18 +320,10 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     ],
     trustTitle: "Pourquoi SigmaCV",
     trust: [
-      {
-        title: "Gratuit",
-        body: "Gratuit pour les particuliers. Sans publicité ni ventes additionnelles.",
-      },
-      {
-        title: "Confidentialité d'abord",
-        body: "Vos données vous appartiennent — consentement de publication par champ, export complet, suppression du compte (RGPD + APPI du Japon). Sans publicité, sans revente de données.",
-      },
-      {
-        title: "Open source",
-        body: "Apache-2.0 et auditable — lisez ou hébergez vous-même chaque ligne.",
-      },
+      { title: "Gratuit", body: "Pour les particuliers, toujours." },
+      { title: "Confidentiel", body: "Vos données, votre contrôle." },
+      { title: "Open source", body: "Apache-2.0, auditable." },
+      { title: "Responsable", body: "Métriques optionnelles, alignées DORA." },
     ],
     creatorTitle: "Conçu par un chercheur, pour les chercheurs",
     creatorBody:
@@ -406,15 +393,10 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     ],
     trustTitle: "Warum SigmaCV",
     trust: [
-      { title: "Kostenlos", body: "Kostenlos für Einzelpersonen. Keine Werbung, kein Upselling." },
-      {
-        title: "Datenschutz zuerst",
-        body: "Ihre Daten gehören Ihnen — feldweise Veröffentlichungs-Einwilligung, vollständiger Export, Kontolöschung (DSGVO + Japans APPI). Keine Werbung, kein Datenverkauf.",
-      },
-      {
-        title: "Quelloffen",
-        body: "Apache-2.0 und auditierbar — lesen oder hosten Sie jede Zeile selbst.",
-      },
+      { title: "Kostenlos", body: "Für Einzelne, immer." },
+      { title: "Privat", body: "Ihre Daten, Ihre Kontrolle." },
+      { title: "Open Source", body: "Apache-2.0, prüfbar." },
+      { title: "Verantwortungsvoll", body: "Opt-in-Metriken, DORA-konform." },
     ],
     creatorTitle: "Von einem Forscher für Forschende gebaut",
     creatorBody:
@@ -482,15 +464,10 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     ],
     trustTitle: "SigmaCV を選ぶ理由",
     trust: [
-      { title: "無料", body: "個人は無料。広告やアップセルはありません。" },
-      {
-        title: "プライバシー優先",
-        body: "データはあなたのもの——項目ごとの公開同意、完全なエクスポート、アカウント削除（GDPR + 日本の APPI）。広告なし、データ販売なし。",
-      },
-      {
-        title: "オープンソース",
-        body: "Apache-2.0 で監査可能——すべての行を読むことも自己ホストすることもできます。",
-      },
+      { title: "無料", body: "個人はずっと無料。" },
+      { title: "プライバシー", body: "データはあなたの管理下に。" },
+      { title: "オープンソース", body: "Apache-2.0、検証可能。" },
+      { title: "責任ある評価", body: "任意・DORA準拠の指標。" },
     ],
     creatorTitle: "研究者が、研究者のために作りました",
     creatorBody:
@@ -559,15 +536,10 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     ],
     trustTitle: "Por que o SigmaCV",
     trust: [
-      { title: "Gratuito", body: "Gratuito para indivíduos. Sem anúncios, sem vendas adicionais." },
-      {
-        title: "Privacidade em primeiro lugar",
-        body: "Seus dados são seus — consentimento de publicação por campo, exportação completa, exclusão de conta (GDPR + APPI do Japão). Sem anúncios, sem venda de dados.",
-      },
-      {
-        title: "Código aberto",
-        body: "Apache-2.0 e auditável — leia ou hospede cada linha você mesmo.",
-      },
+      { title: "Gratuito", body: "Para indivíduos, sempre." },
+      { title: "Privado", body: "Seus dados, seu controle." },
+      { title: "Código aberto", body: "Apache-2.0, auditável." },
+      { title: "Responsável", body: "Métricas opcionais, alinhadas à DORA." },
     ],
     creatorTitle: "Feito por um pesquisador, para pesquisadores",
     creatorBody:
@@ -635,18 +607,10 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     ],
     trustTitle: "Perché SigmaCV",
     trust: [
-      {
-        title: "Gratuito",
-        body: "Gratuito per i privati. Niente pubblicità, niente vendite aggiuntive.",
-      },
-      {
-        title: "Privacy prima di tutto",
-        body: "I tuoi dati sono tuoi — consenso alla pubblicazione campo per campo, esportazione completa, eliminazione dell'account (GDPR + APPI del Giappone). Niente pubblicità, nessuna vendita di dati.",
-      },
-      {
-        title: "Open source",
-        body: "Apache-2.0 e verificabile — leggi o ospita autonomamente ogni riga.",
-      },
+      { title: "Gratis", body: "Per i singoli, sempre." },
+      { title: "Privato", body: "I tuoi dati, il tuo controllo." },
+      { title: "Open source", body: "Apache-2.0, verificabile." },
+      { title: "Responsabile", body: "Metriche facoltative, in linea con DORA." },
     ],
     creatorTitle: "Creato da un ricercatore, per i ricercatori",
     creatorBody:
@@ -711,15 +675,10 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     ],
     trustTitle: "왜 SigmaCV인가",
     trust: [
-      { title: "무료", body: "개인에게 무료. 광고도, 끼워팔기도 없습니다." },
-      {
-        title: "프라이버시 우선",
-        body: "데이터는 회원님의 것입니다 — 항목별 게시 동의, 전체 내보내기, 계정 삭제(GDPR + 일본 APPI). 광고 없음, 데이터 판매 없음.",
-      },
-      {
-        title: "오픈소스",
-        body: "Apache-2.0이며 감사 가능 — 모든 줄을 읽거나 직접 호스팅할 수 있습니다.",
-      },
+      { title: "무료", body: "개인은 항상 무료." },
+      { title: "프라이버시", body: "내 데이터, 내 통제." },
+      { title: "오픈 소스", body: "Apache-2.0, 감사 가능." },
+      { title: "책임 있는 평가", body: "선택적, DORA 정렬 지표." },
     ],
     creatorTitle: "연구자가 연구자를 위해 만들었습니다",
     creatorBody:
@@ -788,15 +747,10 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     ],
     trustTitle: "Почему SigmaCV",
     trust: [
-      { title: "Бесплатно", body: "Бесплатно для частных лиц. Без рекламы и допродаж." },
-      {
-        title: "Конфиденциальность прежде всего",
-        body: "Ваши данные принадлежат вам — согласие на публикацию по каждому полю, полный экспорт, удаление учётной записи (GDPR + APPI Японии). Без рекламы, без продажи данных.",
-      },
-      {
-        title: "Открытый код",
-        body: "Apache-2.0 и поддаётся аудиту — читайте или размещайте у себя каждую строку.",
-      },
+      { title: "Бесплатно", body: "Для частных лиц, всегда." },
+      { title: "Приватно", body: "Ваши данные под вашим контролем." },
+      { title: "Открытый код", body: "Apache-2.0, можно проверить." },
+      { title: "Ответственно", body: "Метрики по желанию, по принципам DORA." },
     ],
     creatorTitle: "Создано исследователем для исследователей",
     creatorBody:
