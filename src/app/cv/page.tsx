@@ -1,7 +1,14 @@
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
-import { getCvForUser, getLastSyncReport, getPublishState, syncCvForUser } from "@/lib/cv/sync";
+import {
+  getCvForUser,
+  getLastSyncReport,
+  getLastSyncedAt,
+  getPublishState,
+  isStaleSince,
+  syncCvForUser,
+} from "@/lib/cv/sync";
 import type { SyncReport } from "@/lib/cv/syncReport";
 import { getDigestPrefs } from "@/lib/email/digest";
 import { logger } from "@/lib/log";
@@ -20,6 +27,10 @@ export default async function CvPage() {
   // Distinguishes "the first auto-sync failed" from "you legitimately have no CV
   // yet" so the client can show a retryable error state, not the empty state.
   let initialSyncFailed = false;
+  // When true, the client refreshes from the sources in the BACKGROUND after the
+  // (cached) CV renders — a freshness-gated "sync on connect". The first-visit
+  // path below already synced fresh, so it stays false there.
+  let autoSync = false;
 
   // First visit: auto-populate from OpenAlex so the user sees a CV immediately.
   if (!cv && session.user.orcid) {
@@ -36,8 +47,10 @@ export default async function CvPage() {
       initialSyncFailed = true;
     }
   } else {
-    // Returning visit: show what the last (manual or scheduled) sync changed.
+    // Returning visit: show what the last (manual or scheduled) sync changed, and
+    // auto-refresh in the background if the CV has gone stale (> ~12h).
     syncReport = await getLastSyncReport(session.user.id);
+    autoSync = isStaleSince(await getLastSyncedAt(session.user.id), Date.now());
   }
 
   const availableStyles = listAvailableStyles();
@@ -54,6 +67,7 @@ export default async function CvPage() {
       initialCv={cv}
       initialSyncReport={syncReport}
       initialSyncFailed={initialSyncFailed}
+      autoSyncOnLoad={autoSync}
       availableStyles={availableStyles}
       userName={session.user.name ?? session.user.orcid ?? "Researcher"}
       researchConsent={session.user.researchConsent ?? false}

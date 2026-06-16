@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Your CV refreshes itself when you open the editor.** Opening `/cv` now
+  re-syncs from the open sources in the background when your CV has gone stale
+  (more than ~12 hours since its last sync) — your saved CV appears instantly and
+  the “what’s new” banner shows up if anything changed. No waiting, and frequent
+  visits don’t re-sync needlessly.
 - **A clearer “what’s new” after a sync.** The post-sync banner now leads with the
   items that need a decision: **“N to review”** is a button that jumps straight to
   each review candidate (and cycles through them), while newly auto-included items

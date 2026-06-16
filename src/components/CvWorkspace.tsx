@@ -30,6 +30,10 @@ interface CvWorkspaceProps {
   /** True when the server's first auto-sync threw — show a retryable error
    *  state instead of the "no CV yet" empty state. */
   initialSyncFailed?: boolean;
+  /** Freshness-gated "sync on connect": when the server flags the CV as stale
+   *  on this open (> ~12h since the last sync), refresh in the background once
+   *  after mount. The cached CV renders immediately; the banner updates after. */
+  autoSyncOnLoad?: boolean;
   availableStyles: string[];
   userName: string;
   researchConsent: boolean;
@@ -66,6 +70,7 @@ export default function CvWorkspace({
   initialCv,
   initialSyncReport = null,
   initialSyncFailed = false,
+  autoSyncOnLoad = false,
   availableStyles,
   userName,
   researchConsent,
@@ -263,6 +268,17 @@ export default function CvWorkspace({
       setSyncing(false);
     }
   }, [uiLocale, showStatus]);
+
+  // Freshness-gated background "sync on connect": when the server flags the CV as
+  // stale on this open (> ~12h), refresh from the sources once after mount. The
+  // cached CV is already on screen; the "what's new" banner appears when it lands.
+  // The ref guards against React's dev double-invoke.
+  const autoSyncRan = useRef(false);
+  useEffect(() => {
+    if (autoSyncRan.current || !autoSyncOnLoad || !initialCv) return;
+    autoSyncRan.current = true;
+    void handleSync();
+  }, [autoSyncOnLoad, initialCv, handleSync]);
 
   // ── Onboarding sequencer ────────────────────────────────────────────────
   // The first-run prompts (the "what changed" sync banner, the disambiguation
