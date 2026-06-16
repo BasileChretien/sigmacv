@@ -3,13 +3,13 @@ import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import { landingFlow, type LandingFlow } from "@/lib/i18n/landingFlow";
 
 /**
- * Guards the homepage "how it works" flow copy (Curate / Style / Export steps +
- * CTA). Typing forces every locale/field to exist; these checks pin the step and
- * bullet counts, non-emptiness, universal-token preservation, and the EN
- * fallback — same convention as landing-audience-i18n / orcid-help-i18n.
+ * Guards the homepage "how it works" flow copy (Curate / Style / Export /
+ * Publish steps + CTA). Typing forces every locale/field to exist; these checks
+ * pin the step and bullet counts, non-emptiness, universal-token preservation,
+ * and the EN fallback — same convention as landing-audience-i18n / orcid-help-i18n.
  */
 describe("landingFlow", () => {
-  it("defines heading, 3 steps (3 bullets each) and CTAs for all 10 locales", () => {
+  it("defines heading, 4 steps (3 bullets each) and CTAs for all 10 locales", () => {
     expect(SUPPORTED_LOCALES).toHaveLength(10);
     for (const loc of SUPPORTED_LOCALES) {
       const f: LandingFlow = landingFlow(loc);
@@ -17,7 +17,7 @@ describe("landingFlow", () => {
       expect(f.howSub.length).toBeGreaterThan(0);
       expect(f.templatesCta.length).toBeGreaterThan(0);
       expect(f.ctaTitle.length).toBeGreaterThan(0);
-      expect(f.steps).toHaveLength(3);
+      expect(f.steps).toHaveLength(4);
       for (const step of f.steps) {
         expect(step.title.length).toBeGreaterThan(0);
         expect(step.body.length).toBeGreaterThan(0);

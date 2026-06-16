@@ -37,6 +37,7 @@ import HeroBeams from "./landing/HeroBeams";
 import Curate from "./landing/Curate";
 import StyleSwitch from "./landing/StyleSwitch";
 import Export from "./landing/Export";
+import PublicStyles from "./landing/PublicStyles";
 import CreatorAvatar from "./landing/CreatorAvatar";
 
 /** ORCID profile URL of SigmaCV's creator (links the "Built by a researcher" credit). */
@@ -84,7 +85,8 @@ export default function Landing({ locale }: LandingProps) {
     { label: accessibilityStrings(loc).navLabel, href: localeAccessibilityPath(loc) },
   ];
 
-  const figFor = (i: number) => (i === 0 ? <Curate /> : i === 1 ? <StyleSwitch /> : <Export />);
+  const figFor = (i: number) =>
+    i === 0 ? <Curate /> : i === 1 ? <StyleSwitch /> : i === 2 ? <Export /> : <PublicStyles />;
 
   return (
     <div className="hp2" lang={loc}>
@@ -201,7 +203,10 @@ export default function Landing({ locale }: LandingProps) {
         </section>
 
         {flow.steps.map((step, i) => (
-          <section key={step.title} className={`hp2-feature${i === 1 ? " hp2-feature-rev" : ""}`}>
+          <section
+            key={step.title}
+            className={`hp2-feature${i % 2 === 1 ? " hp2-feature-rev" : ""}`}
+          >
             <div className="hp2-feature-copy">
               <span className="hp2-step">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="hp2-feature-title">{step.title}</h3>
