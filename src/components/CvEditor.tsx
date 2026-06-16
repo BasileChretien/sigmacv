@@ -11,7 +11,7 @@ import StyleControls from "./StyleControls";
 
 /** The three task clusters of the subdivided ("regions") editor layout. */
 type EditorPart = "content" | "design" | "profile";
-const EDITOR_PARTS: readonly EditorPart[] = ["content", "design", "profile"];
+const EDITOR_PARTS: readonly EditorPart[] = ["profile", "design", "content"];
 
 interface CvEditorProps {
   cv: CanonicalCv;
@@ -50,7 +50,9 @@ export default function CvEditor({
   // Content part so the target row is mounted + laid out before it scrolls.
   const sectionsRef = useRef<SectionsListHandle>(null);
 
-  const [activePart, setActivePart] = useState<EditorPart>("content");
+  // Open on the first part (Profile) so the segmented control opens on its
+  // leading tab; a CV-health jump still routes to Content (where the rows live).
+  const [activePart, setActivePart] = useState<EditorPart>("profile");
   const tablistRef = useRef<HTMLDivElement>(null);
 
   const profilePanel = <ProfilePanel cv={cv} locale={locale} onChange={onChange} />;
