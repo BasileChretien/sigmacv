@@ -302,12 +302,14 @@ button {
     transform var(--dur-fast) var(--ease);
 }
 .btn:hover {
-  background: var(--grey-50);
+  /* Semantic surface tokens (NOT raw --grey-*) so the hover inverts in dark mode
+     instead of painting near-white. Identical to --grey-50/100 in light mode. */
+  background: var(--surface-2);
   border-color: var(--grey-400);
   text-decoration: none;
 }
 .btn:active {
-  background: var(--grey-100);
+  background: var(--surface-sunken);
   transform: translateY(0.5px);
 }
 .btn-primary {
@@ -333,7 +335,7 @@ button {
   color: var(--text-secondary);
 }
 .btn-ghost:hover {
-  background: var(--grey-100);
+  background: var(--surface-2);
   border-color: transparent;
 }
 .btn-danger {
@@ -557,6 +559,284 @@ input[type="radio"] {
 .link-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── Restructured editor top bar (Popover-based) ─────────────────────────────
+   Additive: new `.topbar*` / `.popover*` / `.menu*` classes only; the classic
+   `.cv-topbar` is untouched. Previewed at /design-preview/topbar; ships by
+   swapping the header in CvWorkspace for <TopBar/>. */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 3.25rem;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.topbar-brand strong {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.topbar-divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 0.4rem var(--space-1);
+  background: var(--border);
+}
+/* Quiet, glanceable auto-save status — muted text + a dot, never a pill. */
+.tb-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tb-status-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: var(--radius-full);
+  background: var(--success, var(--accent-600));
+}
+/* Export split: the format select fused to the primary Export button. */
+.export-split {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+.export-split .export-format {
+  height: 1.875rem;
+  border: 1px solid var(--border-strong);
+  border-right: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  /* `background-color` (NOT the `background` shorthand) so the base select's
+     dropdown chevron survives. A tint distinct from the Export button + a hover
+     state make it obvious this segment is a chooser, not a label. */
+  background-color: var(--surface-2);
+  max-width: 11rem;
+}
+.export-split .export-format:hover {
+  background-color: var(--surface-sunken);
+  border-color: var(--accent-600);
+}
+.export-split .export-btn {
+  /* Match the format select's height so the split control reads as one unit
+     (the base .btn is taller). */
+  height: 1.875rem;
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: none;
+}
+/* The support (coffee) button keeps its brand yellow but shrinks to the bar's
+   control height; the landing-page coffee button (default 2rem) is unaffected. */
+.topbar .coffee-btn {
+  height: 1.875rem;
+}
+
+/* ── Popover (accessible disclosure: button + role=dialog panel) ── */
+.popover {
+  position: relative;
+  display: inline-flex;
+}
+.popover-panel {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  z-index: 50;
+  /* Explicit width — NOT `max-content`, which collapses when the panel's
+     children use width:100% (the stretched menu items / hosted controls). */
+  width: min(20rem, 92vw);
+  padding: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.popover-end {
+  right: 0;
+}
+.popover-start {
+  left: 0;
+}
+
+/* ── Menu triggers (Publish / Account) ── */
+.menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 1.875rem;
+  padding: 0 var(--space-2);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.menu-trigger:hover,
+.menu-trigger[aria-expanded="true"] {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.menu-trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.menu-trigger .caret {
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+.menu-trigger-label {
+  white-space: nowrap;
+}
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: var(--radius-full);
+  background: var(--accent-600);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: var(--weight-semibold);
+}
+.avatar-lg {
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: var(--text-sm);
+}
+.publish-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--grey-300);
+}
+.publish-dot.is-live {
+  background: var(--success, #22c55e);
+}
+
+/* ── Menu panel internals ── */
+.menu-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-3);
+}
+.menu-header-name {
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+}
+.menu-section {
+  display: flex;
+  flex-direction: column;
+}
+.menu-section form {
+  display: contents;
+}
+.menu-divider {
+  height: 1px;
+  margin: var(--space-1) calc(-1 * var(--space-2));
+  background: var(--border);
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+}
+.menu-item:hover {
+  background: var(--surface-2);
+  text-decoration: none;
+}
+/* Host the existing AccountControls / PublishControls (authored as inline
+   top-bar rows) as a stacked menu list inside the popover panels. */
+.account-panel .account-controls,
+.publish-panel .account-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.account-panel .account-controls .field-inline,
+.publish-panel .account-controls .field-inline,
+.account-panel .link-btn,
+.publish-panel .link-btn {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+}
+.account-panel .digest-email-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+/* Stack the per-field contact-consent fieldset vertically inside the popover —
+   the base rule is a horizontal inline-flex with a `display:contents` legend,
+   which overflows the narrow panel (clipping "Location") and squishes the
+   legend word-by-word. */
+.publish-panel .public-contact-consent {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  margin: var(--space-1) var(--space-3) var(--space-1);
+  padding: var(--space-2) 0 var(--space-1);
+  border-top: 1px solid var(--border);
+}
+.publish-panel .public-contact-consent legend {
+  display: block;
+  float: none;
+  width: 100%;
+  padding: 0;
+  margin-bottom: var(--space-1);
+  white-space: normal;
+  font-size: var(--text-xs);
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--muted);
+}
+.publish-panel .public-contact-consent .field-inline {
+  display: flex;
+  width: 100%;
+  padding: var(--space-1) 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .popover-panel {
+    transition: none;
+  }
+}
+@media (max-width: 880px) {
+  .topbar {
+    gap: var(--space-2);
+  }
+  .tb-status,
+  .topbar-divider {
+    display: none;
+  }
 }
 
 /* ── Research-consent onboarding ─────────────────────────────────────────── */
