@@ -63,7 +63,8 @@ export interface WorkspaceUiStrings {
 const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   "en-US": {
     srLastSync: "Last sync",
-    srInitial: "Imported {n} entries from the open record — review the flagged ones below.",
+    srInitial:
+      "Imported {n} entries from the open record. Your CV is ready — reviewing the flagged ones below is optional.",
     srAdded: "{n} new",
     srRemoved: "{n} no longer in the sources",
     srReview: "{n} to review",
@@ -107,7 +108,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   },
   "zh-CN": {
     srLastSync: "上次同步",
-    srInitial: "已从公开记录导入 {n} 条条目——请检查下方带标记的条目。",
+    srInitial: "已从公开记录导入 {n} 条条目。您的简历已就绪——下方带标记的条目可按需查看。",
     srAdded: "新增 {n} 条",
     srRemoved: "{n} 条已不在数据源中",
     srReview: "{n} 条待审核",
@@ -150,7 +151,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   },
   "es-ES": {
     srLastSync: "Última sincronización",
-    srInitial: "Se importaron {n} entradas del registro abierto: revise abajo las marcadas.",
+    srInitial:
+      "Se importaron {n} entradas del registro abierto. Tu CV ya está listo: revisar las marcadas abajo es opcional.",
     srAdded: "{n} nuevas",
     srRemoved: "{n} ya no están en las fuentes",
     srReview: "{n} por revisar",
@@ -195,7 +197,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   "fr-FR": {
     srLastSync: "Dernière synchronisation",
     srInitial:
-      "{n} entrées importées depuis les sources ouvertes — vérifiez ci-dessous celles qui sont signalées.",
+      "{n} entrées importées depuis les sources ouvertes. Votre CV est prêt — vérifier les éléments signalés ci-dessous est facultatif.",
     srAdded: "{n} nouvelles",
     srRemoved: "{n} absentes des sources",
     srReview: "{n} à vérifier",
@@ -239,7 +241,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   },
   "de-DE": {
     srLastSync: "Letzte Synchronisierung",
-    srInitial: "{n} Einträge aus den offenen Quellen importiert — prüfen Sie unten die markierten.",
+    srInitial:
+      "{n} Einträge aus den offenen Quellen importiert. Ihr Lebenslauf ist fertig — das Prüfen der markierten Einträge unten ist optional.",
     srAdded: "{n} neu",
     srRemoved: "{n} nicht mehr in den Quellen",
     srReview: "{n} zu prüfen",
@@ -283,7 +286,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   },
   "ja-JP": {
     srLastSync: "前回の同期",
-    srInitial: "公開データから {n} 件を取り込みました。下のフラグ付き項目をご確認ください。",
+    srInitial:
+      "公開データから {n} 件を取り込みました。CV はすでに利用可能です。下のフラグ付き項目の確認は任意です。",
     srAdded: "新規 {n} 件",
     srRemoved: "{n} 件がソースから消失",
     srReview: "要確認 {n} 件",
@@ -327,7 +331,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   },
   "pt-BR": {
     srLastSync: "Última sincronização",
-    srInitial: "{n} itens importados do registro aberto — confira abaixo os sinalizados.",
+    srInitial:
+      "{n} itens importados do registro aberto. Seu CV já está pronto — revisar os sinalizados abaixo é opcional.",
     srAdded: "{n} novos",
     srRemoved: "{n} não estão mais nas fontes",
     srReview: "{n} para revisar",
@@ -371,7 +376,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   },
   "it-IT": {
     srLastSync: "Ultima sincronizzazione",
-    srInitial: "Importate {n} voci dal registro aperto — controlla qui sotto quelle segnalate.",
+    srInitial:
+      "Importate {n} voci dal registro aperto. Il tuo CV è già pronto: rivedere quelle segnalate qui sotto è facoltativo.",
     srAdded: "{n} nuove",
     srRemoved: "{n} non più nelle fonti",
     srReview: "{n} da verificare",
@@ -415,7 +421,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   },
   "ko-KR": {
     srLastSync: "마지막 동기화",
-    srInitial: "공개 기록에서 {n}개 항목을 가져왔습니다. 아래 표시된 항목을 확인하세요.",
+    srInitial:
+      "공개 기록에서 {n}개 항목을 가져왔습니다. CV가 준비되었습니다 — 아래 표시된 항목 검토는 선택 사항입니다.",
     srAdded: "신규 {n}개",
     srRemoved: "{n}개가 소스에서 사라짐",
     srReview: "검토 필요 {n}개",
@@ -459,7 +466,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   },
   "ru-RU": {
     srLastSync: "Последняя синхронизация",
-    srInitial: "Импортировано {n} записей из открытых источников — проверьте отмеченные ниже.",
+    srInitial:
+      "Импортировано {n} записей из открытых источников. Ваше резюме готово — проверять отмеченные ниже необязательно.",
     srAdded: "{n} новых",
     srRemoved: "{n} больше нет в источниках",
     srReview: "{n} на проверку",
