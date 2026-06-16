@@ -7,6 +7,7 @@ import {
   DENSITIES,
   FONT_PAIRINGS,
   HIGHLIGHT_STYLES,
+  PUBLIC_STYLES,
   TEMPLATES,
   type CanonicalCv,
   type CustomStyle,
@@ -127,6 +128,7 @@ function StyleGroup({
   title,
   headInClassic = true,
   defaultOpen = true,
+  onToggle,
   children,
 }: {
   grouped: boolean;
@@ -135,11 +137,18 @@ function StyleGroup({
   headInClassic?: boolean;
   /** Initial open state in `grouped` mode (rarely-touched groups start closed). */
   defaultOpen?: boolean;
+  /** Fired (grouped mode only) when the `<details>` opens/closes — lets a group
+   *  lazily load heavy content (the public-style thumbnails) on first open. */
+  onToggle?: (open: boolean) => void;
   children: ReactNode;
 }) {
   if (grouped) {
     return (
-      <details className="cv-style-group" open={defaultOpen}>
+      <details
+        className="cv-style-group"
+        open={defaultOpen}
+        onToggle={(e) => onToggle?.((e.currentTarget as HTMLDetailsElement).open)}
+      >
         <summary className="cv-style-group-head">{title}</summary>
         <div className="cv-style-group-body">{children}</div>
       </details>
@@ -180,6 +189,20 @@ export default function StyleControls({
     sidebar: u.tplSidebar,
     ats: u.tplAts,
     rirekisho: "Japanese (履歴書)",
+  };
+  // Public-page showcase styles. "match" is localized ("Match my document"); the
+  // animated styles are proper names, shown as-is (like the CV-model names).
+  const PUBLIC_STYLE_LABELS: Record<string, string> = {
+    match: eu.publicStyleMatch,
+    prism: "Prism",
+    pop: "Pop",
+    neon: "Neon",
+    synthwave: "Synthwave",
+    terminal: "Terminal",
+    riso: "Riso",
+    aura: "Aura",
+    mesh: "Mesh",
+    marquee: "Marquee",
   };
   const HIGHLIGHT_STYLE_LABELS: Record<string, string> = {
     accent: u.hlAccent,
@@ -242,6 +265,11 @@ export default function StyleControls({
   // *look* (accent/font/highlight/language) changes — not on every content edit,
   // so typing doesn't hammer the renderer.
   const [tplPreviews, setTplPreviews] = useState<Record<string, string>>({});
+  // Public-page-style thumbnails — fetched lazily, only once the "Public page
+  // style" group is opened (in classic/ungrouped mode it's always considered
+  // open). Keyed on the same visual choices as the template gallery.
+  const [stylePreviews, setStylePreviews] = useState<Record<string, string>>({});
+  const [stylesOpen, setStylesOpen] = useState(!grouped);
   const { accentColor, fontPairing, highlightStyle } = cv.display;
   const styleLocale = cv.display.locale;
   useEffect(() => {
@@ -272,6 +300,35 @@ export default function StyleControls({
     // Intentionally not keyed on the whole document — only on the visual choices.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accentColor, fontPairing, highlightStyle, styleLocale]);
+
+  // Public-page-style thumbnails — fetched only after the group is opened, so a
+  // user who never opens it pays nothing (each call renders 10 styles).
+  useEffect(() => {
+    if (!stylesOpen) return;
+    let cancelled = false;
+    const handle = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/cv/preview/styles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ document: cv }),
+        });
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as { stylePreviews?: { style: string; html: string }[] };
+        if (cancelled) return;
+        const map: Record<string, string> = {};
+        for (const p of data.stylePreviews ?? []) map[p.style] = p.html;
+        setStylePreviews(map);
+      } catch {
+        /* thumbnails are best-effort — the in-pane "Public page" preview is the source of truth */
+      }
+    }, 500);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stylesOpen, accentColor, fontPairing, highlightStyle, styleLocale]);
 
   // Dropdown options = bundled styles + the current custom style (if any).
   const styleOptions = useMemo(() => {
@@ -658,6 +715,62 @@ export default function StyleControls({
             ))}
           </select>
         </label>
+      </StyleGroup>
+
+      <StyleGroup
+        grouped={grouped}
+        title={eu.grpPublicStyle}
+        defaultOpen={false}
+        onToggle={setStylesOpen}
+      >
+        <p className="muted metric-preset-note field-note">{eu.publicStyleNote}</p>
+        <div className="field template-field">
+          <div className="template-gallery" role="radiogroup" aria-label={eu.grpPublicStyle}>
+            {PUBLIC_STYLES.map((style) => {
+              const selected = (cv.display.publicStyle ?? "match") === style;
+              const label = PUBLIC_STYLE_LABELS[style] ?? style;
+              return (
+                <button
+                  key={style}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  className={`tpl-card${selected ? " is-selected" : ""}`}
+                  onClick={() => {
+                    if (!selected) trackEvent("PublicStyle", { style });
+                    onChange(
+                      updateDisplay(cv, {
+                        publicStyle: style as CanonicalCv["display"]["publicStyle"],
+                      }),
+                    );
+                  }}
+                  title={style === "match" ? eu.publicStyleMatchHint : label}
+                >
+                  <span className="tpl-preview">
+                    {stylePreviews[style] ? (
+                      <iframe
+                        className="tpl-frame"
+                        srcDoc={stylePreviews[style]}
+                        title={label}
+                        sandbox=""
+                        scrolling="no"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="tpl-skeleton" aria-hidden="true" />
+                    )}
+                    {style !== "match" ? (
+                      <span className="tpl-badge">{eu.publicStyleAnimated}</span>
+                    ) : null}
+                  </span>
+                  <span className="tpl-name">{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </StyleGroup>
 
       <StyleGroup grouped={grouped} title={eu.grpMetrics} defaultOpen={false}>

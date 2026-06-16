@@ -16,7 +16,7 @@ import {
 import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
 import { signpostingLinkHeader } from "@/lib/cv/signposting";
 import { publicMetaTags } from "@/lib/cv/publicMeta";
-import { renderCvHtml } from "@/lib/render/html";
+import { renderPublicCvHtml } from "@/lib/render/publicStyles";
 import { absoluteUrl } from "@/lib/siteUrl";
 import { enforcePubPageRateLimit, isValidPublicSlug, tooManyRequests } from "./pubRateLimit";
 
@@ -163,7 +163,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     // Public living page → request the "Made with SigmaCV" referral footer (the
     // owner can still opt out via display.publicAttribution). Export renderers
     // never pass this, so PDF/DOCX/LaTeX/Markdown stay unbranded.
-    let html = renderCvHtml(cv, { attribution: true });
+    // The living public page may use an animated showcase style (display.publicStyle);
+    // "match" (default) renders with the document template. Exports never call this.
+    let html = renderPublicCvHtml(cv, { attribution: true });
     // SEO + OG/Twitter meta (public profile text only) into <head>: canonical +
     // og:url for this page, a description for the SERP snippet, and og:image
     // pointing at the per-CV branded card (same slug, /og sub-route).

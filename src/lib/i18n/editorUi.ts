@@ -12,6 +12,16 @@ export interface EditorExtraStrings {
   grpCitations: string;
   grpMetrics: string;
   grpDisplay: string;
+  // Public-page-only animated "showcase style" picker + preview-surface toggle.
+  grpPublicStyle: string;
+  publicStyleNote: string;
+  publicStyleMatch: string;
+  publicStyleMatchHint: string;
+  publicStyleAnimated: string;
+  previewSurfaceLabel: string;
+  previewSurfaceDocument: string;
+  previewSurfacePublic: string;
+  publishStyleTip: string;
   // Structured manual-entry form.
   structuredEntry: string;
   feTitle: string;
@@ -79,6 +89,16 @@ export interface EditorExtraStrings {
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
   "en-US": {
+    grpPublicStyle: "Public page style",
+    publicStyleNote:
+      "Animated styling for your shareable public page only — your PDF, DOCX and LaTeX exports stay clean.",
+    publicStyleMatch: "Match my document",
+    publicStyleMatchHint: "No animation — your public page mirrors your document template.",
+    publicStyleAnimated: "Animated",
+    previewSurfaceLabel: "Preview",
+    previewSurfaceDocument: "Document",
+    previewSurfacePublic: "Public page",
+    publishStyleTip: "Personalise how your public page looks under Design → Public page style.",
     grpTemplate: "Template & layout",
     grpCitations: "Citations & language",
     grpMetrics: "Metrics & authorship",
@@ -138,6 +158,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Editor sections",
   },
   "zh-CN": {
+    grpPublicStyle: "公开页面样式",
+    publicStyleNote: "动画样式仅用于可分享的公开页面——你的 PDF、DOCX 和 LaTeX 导出保持简洁不变。",
+    publicStyleMatch: "与文档一致",
+    publicStyleMatchHint: "无动画——公开页面与你的文档模板保持一致。",
+    publicStyleAnimated: "动画",
+    previewSurfaceLabel: "预览",
+    previewSurfaceDocument: "文档",
+    previewSurfacePublic: "公开页面",
+    publishStyleTip: "在“设计 → 公开页面样式”中个性化你的公开页面外观。",
     grpTemplate: "模板与排版",
     grpCitations: "引用与语言",
     grpMetrics: "指标与作者贡献",
@@ -196,6 +225,17 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "编辑器区域",
   },
   "es-ES": {
+    grpPublicStyle: "Estilo de la página pública",
+    publicStyleNote:
+      "Estilo animado solo para tu página pública: tus exportaciones PDF, DOCX y LaTeX se mantienen limpias.",
+    publicStyleMatch: "Igual que mi documento",
+    publicStyleMatchHint: "Sin animación: tu página pública refleja la plantilla de tu documento.",
+    publicStyleAnimated: "Animado",
+    previewSurfaceLabel: "Vista previa",
+    previewSurfaceDocument: "Documento",
+    previewSurfacePublic: "Página pública",
+    publishStyleTip:
+      "Personaliza el aspecto de tu página pública en Diseño → Estilo de la página pública.",
     grpTemplate: "Plantilla y diseño",
     grpCitations: "Citas e idioma",
     grpMetrics: "Métricas y autoría",
@@ -256,6 +296,18 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Secciones del editor",
   },
   "fr-FR": {
+    grpPublicStyle: "Style de la page publique",
+    publicStyleNote:
+      "Style animé réservé à votre page publique partageable — vos exports PDF, DOCX et LaTeX restent sobres.",
+    publicStyleMatch: "Comme mon document",
+    publicStyleMatchHint:
+      "Sans animation — votre page publique reprend le modèle de votre document.",
+    publicStyleAnimated: "Animé",
+    previewSurfaceLabel: "Aperçu",
+    previewSurfaceDocument: "Document",
+    previewSurfacePublic: "Page publique",
+    publishStyleTip:
+      "Personnalisez l’apparence de votre page publique dans Design → Style de la page publique.",
     grpTemplate: "Modèle et mise en page",
     grpCitations: "Citations et langue",
     grpMetrics: "Indicateurs et rôles d’auteur",
@@ -317,6 +369,18 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Sections de l’éditeur",
   },
   "de-DE": {
+    grpPublicStyle: "Stil der öffentlichen Seite",
+    publicStyleNote:
+      "Animierter Stil nur für Ihre teilbare öffentliche Seite – Ihre PDF-, DOCX- und LaTeX-Exporte bleiben schlicht.",
+    publicStyleMatch: "Wie mein Dokument",
+    publicStyleMatchHint:
+      "Keine Animation – Ihre öffentliche Seite übernimmt Ihre Dokumentvorlage.",
+    publicStyleAnimated: "Animiert",
+    previewSurfaceLabel: "Vorschau",
+    previewSurfaceDocument: "Dokument",
+    previewSurfacePublic: "Öffentliche Seite",
+    publishStyleTip:
+      "Gestalten Sie das Aussehen Ihrer öffentlichen Seite unter Design → Stil der öffentlichen Seite.",
     grpTemplate: "Vorlage & Layout",
     grpCitations: "Zitate & Sprache",
     grpMetrics: "Metriken & Autorenschaft",
@@ -377,6 +441,18 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Editor-Bereiche",
   },
   "ja-JP": {
+    grpPublicStyle: "公開ページのスタイル",
+    publicStyleNote:
+      "共有用の公開ページにのみ適用されるアニメーションスタイルです。PDF・DOCX・LaTeX の書き出しはそのまま（シンプル）です。",
+    publicStyleMatch: "ドキュメントに合わせる",
+    publicStyleMatchHint:
+      "アニメーションなし — 公開ページはドキュメントのテンプレートと同じ表示になります。",
+    publicStyleAnimated: "アニメーション",
+    previewSurfaceLabel: "プレビュー",
+    previewSurfaceDocument: "ドキュメント",
+    previewSurfacePublic: "公開ページ",
+    publishStyleTip:
+      "「デザイン → 公開ページのスタイル」で公開ページの見た目をカスタマイズできます。",
     grpTemplate: "テンプレートとレイアウト",
     grpCitations: "引用と言語",
     grpMetrics: "指標と著者の役割",
@@ -436,6 +512,17 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "エディターのセクション",
   },
   "pt-BR": {
+    grpPublicStyle: "Estilo da página pública",
+    publicStyleNote:
+      "Estilo animado apenas para sua página pública compartilhável — suas exportações em PDF, DOCX e LaTeX permanecem limpas.",
+    publicStyleMatch: "Igual ao meu documento",
+    publicStyleMatchHint: "Sem animação — sua página pública espelha o modelo do seu documento.",
+    publicStyleAnimated: "Animado",
+    previewSurfaceLabel: "Pré-visualização",
+    previewSurfaceDocument: "Documento",
+    previewSurfacePublic: "Página pública",
+    publishStyleTip:
+      "Personalize a aparência da sua página pública em Design → Estilo da página pública.",
     grpTemplate: "Modelo e layout",
     grpCitations: "Citações e idioma",
     grpMetrics: "Métricas e autoria",
@@ -496,6 +583,18 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Seções do editor",
   },
   "it-IT": {
+    grpPublicStyle: "Stile della pagina pubblica",
+    publicStyleNote:
+      "Stile animato solo per la tua pagina pubblica condivisibile — le esportazioni in PDF, DOCX e LaTeX restano pulite.",
+    publicStyleMatch: "Come il mio documento",
+    publicStyleMatchHint:
+      "Nessuna animazione — la pagina pubblica rispecchia il modello del tuo documento.",
+    publicStyleAnimated: "Animato",
+    previewSurfaceLabel: "Anteprima",
+    previewSurfaceDocument: "Documento",
+    previewSurfacePublic: "Pagina pubblica",
+    publishStyleTip:
+      "Personalizza l’aspetto della tua pagina pubblica in Design → Stile della pagina pubblica.",
     grpTemplate: "Modello e layout",
     grpCitations: "Citazioni e lingua",
     grpMetrics: "Metriche e ruoli d’autore",
@@ -557,6 +656,16 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Sezioni dell’editor",
   },
   "ko-KR": {
+    grpPublicStyle: "공개 페이지 스타일",
+    publicStyleNote:
+      "공유용 공개 페이지에만 적용되는 애니메이션 스타일입니다. PDF·DOCX·LaTeX 내보내기는 그대로(깔끔하게) 유지됩니다.",
+    publicStyleMatch: "문서와 동일하게",
+    publicStyleMatchHint: "애니메이션 없음 — 공개 페이지가 문서 템플릿과 동일하게 표시됩니다.",
+    publicStyleAnimated: "애니메이션",
+    previewSurfaceLabel: "미리보기",
+    previewSurfaceDocument: "문서",
+    previewSurfacePublic: "공개 페이지",
+    publishStyleTip: "‘디자인 → 공개 페이지 스타일’에서 공개 페이지 모양을 꾸밀 수 있습니다.",
     grpTemplate: "템플릿 및 레이아웃",
     grpCitations: "인용 및 언어",
     grpMetrics: "지표 및 저자 역할",
@@ -617,6 +726,17 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "편집기 섹션",
   },
   "ru-RU": {
+    grpPublicStyle: "Стиль публичной страницы",
+    publicStyleNote:
+      "Анимированный стиль только для вашей публичной страницы для обмена — экспорт в PDF, DOCX и LaTeX остаётся без оформления.",
+    publicStyleMatch: "Как в документе",
+    publicStyleMatchHint: "Без анимации — публичная страница повторяет шаблон вашего документа.",
+    publicStyleAnimated: "Анимированный",
+    previewSurfaceLabel: "Предпросмотр",
+    previewSurfaceDocument: "Документ",
+    previewSurfacePublic: "Публичная страница",
+    publishStyleTip:
+      "Настройте внешний вид публичной страницы в разделе «Дизайн → Стиль публичной страницы».",
     grpTemplate: "Шаблон и вёрстка",
     grpCitations: "Цитирование и язык",
     grpMetrics: "Метрики и авторство",

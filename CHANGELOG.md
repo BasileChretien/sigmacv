@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Animated showcase styles for your public page.** Your living public CV page
+  (the shareable `/p/…` link) can now use one of **nine optional animated styles**
+  — Prism, Pop, Neon, Synthwave, Terminal, Riso, Aura, Mesh and Marquee — chosen
+  in the editor under **Design → Public page style**. They are **web-only and
+  never change your PDF, DOCX or LaTeX exports** (those stay clean); each adapts
+  to your chosen accent colour, font and photo, ships a `prefers-reduced-motion`
+  fallback, and renders under the same strict no-JavaScript page security policy.
+  The default stays **“Match my document.”** A new **Document / Public page**
+  toggle on the editor preview shows exactly how the page will look. Localized in
+  all ten languages.
+
 ### Fixed
 
 - **A failed save or sync now reads as an error, not a success.** The editor’s
