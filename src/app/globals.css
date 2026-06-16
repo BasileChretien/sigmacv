@@ -495,6 +495,44 @@ input[type="radio"] {
   color: var(--muted);
   font-size: var(--text-sm);
 }
+/* "Edit details" disclosure (institution + dates) on a positions/education row. */
+.cv-item-details {
+  margin-top: var(--space-1);
+}
+.cv-item-details > summary {
+  cursor: pointer;
+  width: fit-content;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.cv-item-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.cv-item-dates {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.cv-item-year {
+  width: 5rem;
+  flex: 0 0 auto;
+}
+.cv-item-ongoing {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+  font-size: var(--text-sm);
+}
+.cv-item-dates-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
 
 /* ── Cards ───────────────────────────────────────────────────────────────── */
 .card {

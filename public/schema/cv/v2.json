@@ -776,6 +776,25 @@
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
                     },
+                    "institutionOverride": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "dateRangeOverride": {
+                      "type": "object",
+                      "properties": {
+                        "startYear": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "endYear": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      }
+                    },
                     "funderId": {
                       "type": "string",
                       "maxLength": 2048

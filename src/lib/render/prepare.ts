@@ -1,13 +1,16 @@
 import {
   displayInstitution,
+  itemDateRange,
   itemDisplayText,
   type CanonicalCv,
   type CvItem,
   type CvSection,
 } from "@/lib/canonical/schema";
+import { localizedYearRange, yearRange } from "@/lib/canonical/entryLine";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { DEFAULT_STYLE, isBundledStyle, registerStyleXml } from "@/lib/citeproc/assets";
 import { renderBibliography, type CiteprocOutputFormat } from "@/lib/citeproc/engine";
+import { renderStrings } from "@/lib/i18n/render";
 import type { CslItem } from "@/types/csl";
 import { escapeHtml } from "./escape";
 
@@ -25,20 +28,37 @@ export interface PreparedSection {
 }
 
 /**
- * The non-citation line text (positions / education), with the institution name
- * localized to the CV's language when ROR carries a variant for it. Skipped when
- * the user has overridden the line (their text is authoritative) or when the
- * canonical name isn't a substring of the line. Mirrors `withRorLink`'s
- * `lastIndexOf` lookup so the ROR link still wraps the now-localized name.
+ * The non-citation line text (positions / education), localized to the CV's
+ * language: the institution name swapped for ROR's variant when one exists, and
+ * the date-range term ("present" / "until …") swapped for the CV-language form.
+ * Both bake an English/canonical value into `displayText` at build time and are
+ * localized here so all formats agree; skipped when the user overrode the whole
+ * line (their text is authoritative). Mirrors `withRorLink`'s `lastIndexOf` lookup
+ * so the ROR link still wraps the now-localized institution name.
  */
-function localizeInstitutionLine(item: CvItem, locale: string): string {
-  const text = itemDisplayText(item) ?? "";
+function localizeEntryLine(item: CvItem, locale: string): string {
+  let text = itemDisplayText(item) ?? "";
   if (item.displayTextOverride) return text;
+  // Institution: swap the source name for ROR's localized variant.
   const base = item.meta.institution?.trim();
   const display = displayInstitution(item, locale);
-  if (!base || !display || display === base) return text;
-  const at = text.lastIndexOf(base);
-  return at >= 0 ? text.slice(0, at) + display + text.slice(at + base.length) : text;
+  if (base && display && display !== base) {
+    const at = text.lastIndexOf(base);
+    if (at >= 0) text = text.slice(0, at) + display + text.slice(at + base.length);
+  }
+  // Date term: swap the English "present"/"until" baked into the line for the
+  // CV-language term (a closed numeric range carries no words, so it's unchanged).
+  const { startYear, endYear } = itemDateRange(item);
+  const en = yearRange(startYear, endYear);
+  if (en) {
+    const rs = renderStrings(locale);
+    const loc = localizedYearRange(startYear, endYear, rs.datePresent, rs.dateUntil);
+    if (loc !== en) {
+      const at = text.lastIndexOf(en);
+      if (at >= 0) text = text.slice(0, at) + loc + text.slice(at + en.length);
+    }
+  }
+  return text;
 }
 
 /**
@@ -135,7 +155,7 @@ export function prepareSections(
       section,
       items: items.map((item) => {
         if (item.csl) return { item, entry: byId.get(item.id) ?? "" };
-        const text = localizeInstitutionLine(item, cv.display.locale);
+        const text = localizeEntryLine(item, cv.display.locale);
         // citeproc HTML is already markup; plain displayText must be escaped for HTML.
         return {
           item,

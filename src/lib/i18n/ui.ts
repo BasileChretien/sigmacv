@@ -119,6 +119,18 @@ export interface UiStrings {
   rolePlaceholder: string;
   /** Aria-label for the editable "Role / title" field on a positions/education entry. */
   roleAria: string;
+  /** Summary label of the "Edit details" disclosure on a positions/education row. */
+  editDetails: string;
+  /** Aria-label for the editable institution-name field. */
+  institutionAria: string;
+  /** Aria-label for the start-year field. */
+  startYearAria: string;
+  /** Aria-label for the end-year field. */
+  endYearAria: string;
+  /** Label for the "ongoing / present" checkbox (no end year). */
+  ongoingLabel: string;
+  /** Note shown when a legacy entry has no structured dates yet to edit. */
+  resyncForDates: string;
   /** Short button label: revert a source-derived entry's edited text to source. */
   revertToSource: string;
   /** Tooltip/aria for the revert control on an edited Positions/Education line. */
@@ -136,6 +148,12 @@ export interface UiStrings {
 
 const UI_I18N: Record<Locale, UiStrings> = {
   "en-US": {
+    editDetails: "Edit details",
+    institutionAria: "Institution",
+    startYearAria: "Start year",
+    endYearAria: "End year",
+    ongoingLabel: "Ongoing",
+    resyncForDates: "Re-sync to edit dates",
     styleLegend: "Style",
     templateLabel: "Template",
     citationLabel: "Citation style",
@@ -265,6 +283,12 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV is free and not-for-profit — a coffee helps cover its running costs.",
   },
   "zh-CN": {
+    editDetails: "编辑详情",
+    institutionAria: "机构",
+    startYearAria: "起始年份",
+    endYearAria: "结束年份",
+    ongoingLabel: "至今",
+    resyncForDates: "重新同步以编辑日期",
     styleLegend: "样式",
     templateLabel: "模板",
     citationLabel: "引用样式",
@@ -391,6 +415,12 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV 免费且非营利——一杯咖啡有助于支付运营成本。",
   },
   "es-ES": {
+    editDetails: "Editar detalles",
+    institutionAria: "Institución",
+    startYearAria: "Año de inicio",
+    endYearAria: "Año de fin",
+    ongoingLabel: "En curso",
+    resyncForDates: "Vuelve a sincronizar para editar las fechas",
     styleLegend: "Estilo",
     templateLabel: "Plantilla",
     citationLabel: "Estilo de citas",
@@ -521,6 +551,12 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV es gratuito y sin ánimo de lucro: un café ayuda a cubrir sus costes.",
   },
   "fr-FR": {
+    editDetails: "Modifier les détails",
+    institutionAria: "Établissement",
+    startYearAria: "Année de début",
+    endYearAria: "Année de fin",
+    ongoingLabel: "En cours",
+    resyncForDates: "Resynchronisez pour modifier les dates",
     styleLegend: "Style",
     templateLabel: "Modèle",
     citationLabel: "Style de citation",
@@ -653,6 +689,12 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV est gratuit et à but non lucratif — un café aide à payer les frais.",
   },
   "de-DE": {
+    editDetails: "Details bearbeiten",
+    institutionAria: "Einrichtung",
+    startYearAria: "Startjahr",
+    endYearAria: "Endjahr",
+    ongoingLabel: "Laufend",
+    resyncForDates: "Zum Bearbeiten der Daten neu synchronisieren",
     styleLegend: "Stil",
     templateLabel: "Vorlage",
     citationLabel: "Zitierstil",
@@ -785,6 +827,12 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV ist kostenlos und gemeinnützig — ein Kaffee deckt die Betriebskosten.",
   },
   "ja-JP": {
+    editDetails: "詳細を編集",
+    institutionAria: "所属機関",
+    startYearAria: "開始年",
+    endYearAria: "終了年",
+    ongoingLabel: "継続中",
+    resyncForDates: "日付を編集するには再同期してください",
     styleLegend: "スタイル",
     templateLabel: "テンプレート",
     citationLabel: "引用スタイル",
@@ -914,6 +962,12 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV は無料・非営利です。コーヒー一杯が運営費の支えになります。",
   },
   "pt-BR": {
+    editDetails: "Editar detalhes",
+    institutionAria: "Instituição",
+    startYearAria: "Ano de início",
+    endYearAria: "Ano de término",
+    ongoingLabel: "Em andamento",
+    resyncForDates: "Sincronize novamente para editar as datas",
     styleLegend: "Estilo",
     templateLabel: "Modelo",
     citationLabel: "Estilo de citação",
@@ -1044,6 +1098,12 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "O SigmaCV é gratuito e sem fins lucrativos — um café ajuda a cobrir os custos.",
   },
   "it-IT": {
+    editDetails: "Modifica dettagli",
+    institutionAria: "Istituzione",
+    startYearAria: "Anno di inizio",
+    endYearAria: "Anno di fine",
+    ongoingLabel: "In corso",
+    resyncForDates: "Risincronizza per modificare le date",
     styleLegend: "Stile",
     templateLabel: "Modello",
     citationLabel: "Stile di citazione",
@@ -1175,6 +1235,12 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV è gratuito e senza scopo di lucro: un caffè aiuta a coprire i costi.",
   },
   "ko-KR": {
+    editDetails: "세부 정보 편집",
+    institutionAria: "기관",
+    startYearAria: "시작 연도",
+    endYearAria: "종료 연도",
+    ongoingLabel: "진행 중",
+    resyncForDates: "날짜를 편집하려면 다시 동기화하세요",
     styleLegend: "스타일",
     templateLabel: "템플릿",
     citationLabel: "인용 스타일",
@@ -1304,6 +1370,12 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV는 무료이며 비영리입니다 — 커피 한 잔이 운영 비용에 보탬이 됩니다.",
   },
   "ru-RU": {
+    editDetails: "Изменить детали",
+    institutionAria: "Организация",
+    startYearAria: "Год начала",
+    endYearAria: "Год окончания",
+    ongoingLabel: "По наст. время",
+    resyncForDates: "Синхронизируйте заново, чтобы изменить даты",
     styleLegend: "Стиль",
     templateLabel: "Шаблон",
     citationLabel: "Стиль цитирования",

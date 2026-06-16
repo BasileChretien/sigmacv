@@ -4,7 +4,9 @@ import { useState } from "react";
 import {
   displayInstitution,
   isHidden,
+  itemDateRange,
   itemDisplayText,
+  itemInstitution,
   itemRoleTitle,
   NOT_MINE_REASONS,
   type CvItem,
@@ -15,6 +17,12 @@ import { reasonLabel, t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
+
+/** Parse a year-field value to an integer, or undefined when blank/non-numeric. */
+function parseYear(v: string): number | undefined {
+  const n = Number.parseInt(v, 10);
+  return Number.isFinite(n) ? n : undefined;
+}
 
 /** Proper-noun data-source names (not translated); "manual" is localized below. */
 const SOURCE_NAMES: Record<string, string> = {
@@ -147,6 +155,12 @@ interface ItemRowProps {
    * here.
    */
   onSetRole?: (role: string) => void;
+  /** Set/clear the institution-name override on a source-derived positions/
+   *  education entry — the "Edit details" disclosure. Passing "" reverts to source. */
+  onSetInstitution?: (name: string) => void;
+  /** Set/replace the date-range override (an omitted `endYear` = ongoing), or
+   *  clear it with `null` (revert to the source dates). */
+  onSetDateRange?: (range: { startYear?: number; endYear?: number } | null) => void;
   /** Delete a manual entry (only passed for source === "manual"). */
   onRemove?: () => void;
   /** Bulk-selection mode: render a leading checkbox instead of drag affordances. */
@@ -194,6 +208,8 @@ export default function ItemRow({
   onUpdateText,
   onSetTextOverride,
   onSetRole,
+  onSetInstitution,
+  onSetDateRange,
   onRemove,
   selectable = false,
   selected = false,
@@ -272,6 +288,14 @@ export default function ItemRow({
   // Institution name (ROR-localized) shown as read-only context beside the
   // editable role, so "Add your title…" has something to attach to.
   const institution = displayInstitution(item, locale);
+  // "Edit details" date controls: the effective range + whether it's ongoing, and
+  // whether this entry has structured dates yet (legacy items need a re-sync first).
+  const { startYear: dateStart, endYear: dateEnd } = itemDateRange(item);
+  const ongoing = dateEnd === undefined;
+  const hasStructuredDates =
+    item.meta.startYear !== undefined ||
+    item.meta.endYear !== undefined ||
+    item.meta.dateRangeOverride !== undefined;
   const year = item.meta.year ?? "—";
   const venue =
     typeof item.csl?.["container-title"] === "string" ? item.csl["container-title"] : "";
@@ -356,31 +380,120 @@ export default function ItemRow({
           // + in the preview). An empty field invites the missing role; the revert
           // restores the source role. A legacy whole-line override (below) takes
           // over the row until it's cleared.
-          <div className="cv-item-edit-wrap">
-            <input
-              className="cv-item-edit cv-item-role"
-              value={itemRoleTitle(item) ?? ""}
-              onChange={(e) => onSetRole(e.target.value)}
-              placeholder={u.rolePlaceholder}
-              aria-label={u.roleAria}
-            />
-            {institution ? (
-              <span className="cv-item-edit-context" title={institution}>
-                · {institution}
-              </span>
+          <>
+            <div className="cv-item-edit-wrap">
+              <input
+                className="cv-item-edit cv-item-role"
+                value={itemRoleTitle(item) ?? ""}
+                onChange={(e) => onSetRole(e.target.value)}
+                placeholder={u.rolePlaceholder}
+                aria-label={u.roleAria}
+              />
+              {institution ? (
+                <span className="cv-item-edit-context" title={institution}>
+                  · {institution}
+                </span>
+              ) : null}
+              {item.meta.roleTitleOverride !== undefined ? (
+                <button
+                  type="button"
+                  className="icon-btn cv-item-revert"
+                  onClick={() => onSetRole("")}
+                  title={u.revertToSourceHint}
+                  aria-label={u.revertToSource}
+                >
+                  ↺
+                </button>
+              ) : null}
+            </div>
+            {onSetInstitution && onSetDateRange ? (
+              <details className="cv-item-details">
+                <summary>{u.editDetails}</summary>
+                <div className="cv-item-details-body">
+                  <div className="cv-item-edit-wrap">
+                    <input
+                      className="cv-item-edit"
+                      value={itemInstitution(item) ?? ""}
+                      onChange={(e) => onSetInstitution(e.target.value)}
+                      placeholder={u.institutionAria}
+                      aria-label={u.institutionAria}
+                    />
+                    {item.meta.institutionOverride !== undefined ? (
+                      <button
+                        type="button"
+                        className="icon-btn cv-item-revert"
+                        onClick={() => onSetInstitution("")}
+                        title={u.revertToSourceHint}
+                        aria-label={u.revertToSource}
+                      >
+                        ↺
+                      </button>
+                    ) : null}
+                  </div>
+                  {hasStructuredDates ? (
+                    <div className="cv-item-dates">
+                      <input
+                        className="cv-item-year"
+                        type="number"
+                        inputMode="numeric"
+                        value={dateStart ?? ""}
+                        onChange={(e) =>
+                          onSetDateRange({
+                            startYear: parseYear(e.target.value),
+                            endYear: ongoing ? undefined : dateEnd,
+                          })
+                        }
+                        aria-label={u.startYearAria}
+                        placeholder={u.startYearAria}
+                      />
+                      <span aria-hidden="true">–</span>
+                      <input
+                        className="cv-item-year"
+                        type="number"
+                        inputMode="numeric"
+                        value={ongoing ? "" : (dateEnd ?? "")}
+                        disabled={ongoing}
+                        onChange={(e) =>
+                          onSetDateRange({
+                            startYear: dateStart,
+                            endYear: parseYear(e.target.value),
+                          })
+                        }
+                        aria-label={u.endYearAria}
+                        placeholder={u.endYearAria}
+                      />
+                      <label className="cv-item-ongoing">
+                        <input
+                          type="checkbox"
+                          checked={ongoing}
+                          onChange={(e) =>
+                            onSetDateRange({
+                              startYear: dateStart,
+                              endYear: e.target.checked ? undefined : (dateEnd ?? dateStart),
+                            })
+                          }
+                        />
+                        {u.ongoingLabel}
+                      </label>
+                      {item.meta.dateRangeOverride !== undefined ? (
+                        <button
+                          type="button"
+                          className="icon-btn cv-item-revert"
+                          onClick={() => onSetDateRange(null)}
+                          title={u.revertToSourceHint}
+                          aria-label={u.revertToSource}
+                        >
+                          ↺
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <p className="cv-item-dates-note">{u.resyncForDates}</p>
+                  )}
+                </div>
+              </details>
             ) : null}
-            {item.meta.roleTitleOverride !== undefined ? (
-              <button
-                type="button"
-                className="icon-btn cv-item-revert"
-                onClick={() => onSetRole("")}
-                title={u.revertToSourceHint}
-                aria-label={u.revertToSource}
-              >
-                ↺
-              </button>
-            ) : null}
-          </div>
+          </>
         ) : canEditText && onSetTextOverride ? (
           <div className="cv-item-edit-wrap">
             <input

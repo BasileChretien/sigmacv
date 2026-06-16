@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemRoleTitle } from "@/lib/canonical/curate";
-import { formatEntryLine, rederiveEntryLine } from "@/lib/canonical/entryLine";
+import { setItemDateRange, setItemInstitution, setItemRoleTitle } from "@/lib/canonical/curate";
+import { formatEntryLine, localizedYearRange, rederiveEntryLine } from "@/lib/canonical/entryLine";
 import {
+  itemDateRange,
+  itemInstitution,
   itemRoleTitle,
   type CanonicalCv,
   type CvItem,
@@ -259,5 +261,101 @@ describe("re-sync preserves the role edit", () => {
     const item = positionsSection(second).items.find((i) => i.id === oa.id)!;
     expect(item.meta.roleTitleOverride).toBe("Visiting Researcher");
     expect(item.displayText).toBe("Visiting Researcher, MIT (2019–2021)");
+  });
+});
+
+describe("editable institution + dates", () => {
+  it("itemInstitution / itemDateRange resolve the override over the source", () => {
+    const item = orcidPosition(build());
+    expect(itemInstitution(item)).toBe("Nagoya University");
+    expect(itemDateRange(item)).toEqual({ startYear: 2022, endYear: undefined });
+    const o: CvItem = {
+      ...item,
+      meta: {
+        ...item.meta,
+        institutionOverride: "Nagoya Univ.",
+        dateRangeOverride: { startYear: 2021, endYear: 2024 },
+      },
+    };
+    expect(itemInstitution(o)).toBe("Nagoya Univ.");
+    expect(itemDateRange(o)).toEqual({ startYear: 2021, endYear: 2024 });
+  });
+
+  it("localizedYearRange uses the locale's present/until terms", () => {
+    expect(localizedYearRange(2022, undefined, "présent", "jusqu’en {year}")).toBe(
+      "(2022–présent)",
+    );
+    expect(localizedYearRange(undefined, 2024, "présent", "jusqu’en {year}")).toBe(
+      "(jusqu’en 2024)",
+    );
+    expect(localizedYearRange(2020, 2024, "présent", "jusqu’en {year}")).toBe("(2020–2024)");
+    expect(localizedYearRange(undefined, undefined, "x", "y {year}")).toBe("");
+  });
+
+  it("setItemInstitution overrides the name (source untouched) and re-derives", () => {
+    const cv = build();
+    const { id: sid } = positionsSection(cv);
+    const item = orcidPosition(cv);
+    const updated = findItem(setItemInstitution(cv, sid, item.id, "Nagoya Univ."), sid, item.id);
+    expect(updated.meta.institutionOverride).toBe("Nagoya Univ.");
+    expect(updated.meta.institution).toBe("Nagoya University");
+    expect(updated.displayText).toBe(
+      "Assistant Professor, International Medical Education, Nagoya Univ. (2022–present)",
+    );
+  });
+
+  it("setItemInstitution clears on blank or equal-to-source (revert)", () => {
+    const cv = build();
+    const { id: sid } = positionsSection(cv);
+    const item = orcidPosition(cv);
+    const edited = setItemInstitution(cv, sid, item.id, "Nagoya Univ.");
+    const reverted = findItem(setItemInstitution(edited, sid, item.id, "  "), sid, item.id);
+    expect(reverted.meta.institutionOverride).toBeUndefined();
+    expect(reverted.displayText).toBe(item.displayText);
+  });
+
+  it("setItemDateRange overrides the dates, and an omitted end = ongoing", () => {
+    const cv = build();
+    const { id: sid } = positionsSection(cv);
+    const item = orcidPosition(cv);
+    const closed = findItem(
+      setItemDateRange(cv, sid, item.id, { startYear: 2020, endYear: 2023 }),
+      sid,
+      item.id,
+    );
+    expect(closed.meta.dateRangeOverride).toEqual({ startYear: 2020, endYear: 2023 });
+    expect(closed.displayText).toBe(
+      "Assistant Professor, International Medical Education, Nagoya University (2020–2023)",
+    );
+    const ongoing = findItem(setItemDateRange(cv, sid, item.id, { startYear: 2020 }), sid, item.id);
+    expect(ongoing.displayText).toBe(
+      "Assistant Professor, International Medical Education, Nagoya University (2020–present)",
+    );
+  });
+
+  it("setItemDateRange(null) reverts to the source dates", () => {
+    const cv = build();
+    const { id: sid } = positionsSection(cv);
+    const item = orcidPosition(cv);
+    const edited = setItemDateRange(cv, sid, item.id, { startYear: 1999, endYear: 2000 });
+    const reverted = findItem(setItemDateRange(edited, sid, item.id, null), sid, item.id);
+    expect(reverted.meta.dateRangeOverride).toBeUndefined();
+    expect(reverted.displayText).toBe(item.displayText);
+  });
+
+  it("carries institution + date overrides across re-sync", () => {
+    const first = build();
+    const { id: sid } = positionsSection(first);
+    let edited = setItemInstitution(first, sid, "position:orcid:emp1", "Nagoya Univ.");
+    edited = setItemDateRange(edited, sid, "position:orcid:emp1", {
+      startYear: 2021,
+      endYear: 2024,
+    });
+    const item = orcidPosition(build({ previous: edited }));
+    expect(item.meta.institutionOverride).toBe("Nagoya Univ.");
+    expect(item.meta.dateRangeOverride).toEqual({ startYear: 2021, endYear: 2024 });
+    expect(item.displayText).toBe(
+      "Assistant Professor, International Medical Education, Nagoya Univ. (2021–2024)",
+    );
   });
 });
