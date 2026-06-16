@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Editor top bar tidied up.** The toolbar above the editor — which had grown to
+  mix the document actions with publish settings and account/GDPR controls — now
+  leads with a single primary **Export** control (the format chooser fused to the
+  button) and a quiet auto-save indicator. **Publish** settings and the whole
+  **account** area (sign out, email-digest preferences, data export, and the
+  destructive account deletion) collapse into menus, so the bar stays compact and
+  the irreversible "Delete account" is no longer one click away in the chrome. The
+  menus are keyboard- and screen-reader-accessible (dialog disclosures, not menus,
+  since they contain form fields; reduced-motion respected). Also fixes a
+  dark-mode bug where buttons turned white on hover.
 - **Editor panel is now subdivided into Content / Design / Profile.** The CV
   editor's left panel — previously one long scroll mixing identity fields,
   styling controls, and content curation — is now split into three labelled

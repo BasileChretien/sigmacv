@@ -4,8 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { safeParseSyncReport, type SyncReport } from "@/lib/cv/syncReport";
 import { updateDisplay } from "@/lib/canonical/curate";
-import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/lib/i18n";
-import { ui } from "@/lib/i18n/ui";
+import { asLocale, t, type Locale } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { trackEvent } from "@/lib/analytics/track";
 
@@ -15,33 +14,13 @@ const UI_LOCALE_KEY = "sigmacv:uiLocale";
 // keeping us well under the save rate limit (120/hour). The manual Save button
 // stays as an immediate-save fallback.
 const AUTOSAVE_DELAY_MS = 1500;
-import AccountControls from "./AccountControls";
 import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
 import DisambiguationCoachmark from "./DisambiguationCoachmark";
-import PublishControls from "./PublishControls";
 import PublishNudge from "./PublishNudge";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
-import SupportLink from "./SupportLink";
 import SyncReportBanner from "./SyncReportBanner";
-
-// Mirrors the API's EXPORTABLE list in app/api/cv/export/[format]/route.ts
-// (the RenderFormats minus "html", plus the raw-canonical "json").
-type ExportFormat =
-  | "pdf"
-  | "docx"
-  | "latex"
-  | "markdown"
-  | "bibtex"
-  | "csljson"
-  | "jsonresume"
-  | "ro-crate"
-  | "json"
-  | "biosketch"
-  | "erc"
-  | "msca"
-  | "nsf"
-  | "jsps";
+import TopBar, { type ExportFormat } from "./TopBar";
 
 interface CvWorkspaceProps {
   initialCv: CanonicalCv | null;
@@ -267,112 +246,34 @@ export default function CvWorkspace({
       {researchEnabled ? (
         <ResearchConsentPrompt initialConsent={researchConsent} locale={uiLocale} />
       ) : null}
-      <header className="cv-topbar">
-        <div className="cv-topbar-left">
-          <strong>SigmaCV</strong>
-          <span className="muted">·</span>
-          <span className="muted">{userName}</span>
-          <PublishControls
-            initialPublished={published}
-            initialSlug={publicSlug}
-            initialIndexable={publicIndexable}
-            locale={uiLocale}
-            publicContact={
-              cv?.display.publicContact ?? { email: false, phone: false, location: false }
-            }
-            onPublicContactChange={(next) => {
-              if (cv) update(updateDisplay(cv, { publicContact: next }));
-            }}
-          />
-          <AccountControls
-            researchConsent={researchConsent}
-            digestOptIn={digestOptIn}
-            digestContactEmail={digestContactEmail}
-            digestContactEmailVerified={digestContactEmailVerified}
-            accountEmail={accountEmail}
-            locale={uiLocale}
-          />
-        </div>
-        <div className="cv-topbar-actions">
-          {/* Persistent polite live region so screen readers announce
-              "Saved." / "Synced…" without a focus change. */}
-          <span className="status muted" role="status" aria-live="polite">
-            {status}
-          </span>
-          <button type="button" className="btn" onClick={handleSync} disabled={syncing}>
-            {syncing ? t(uiLocale, "resyncing") : t(uiLocale, "resync")}
-          </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={handleSave}
-            disabled={!cv || saving || !dirty}
-          >
-            {saving ? t(uiLocale, "saving") : dirty ? t(uiLocale, "save") : t(uiLocale, "saved")}
-          </button>
-          <select
-            className="export-format"
-            value={exportFormat}
-            onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
-            aria-label={t(uiLocale, "exportFormat")}
-            title={ui(uiLocale).exportFormatTitle}
-            disabled={!cv}
-          >
-            <optgroup label={ui(uiLocale).exportGroupDocuments}>
-              <option value="pdf">{ui(uiLocale).exportPdf}</option>
-              <option value="docx">{ui(uiLocale).exportDocx}</option>
-              <option value="latex">{ui(uiLocale).exportLatexModern}</option>
-              <option value="markdown">{ui(uiLocale).exportMarkdown}</option>
-            </optgroup>
-            <optgroup label={ui(uiLocale).exportGroupData}>
-              <option value="bibtex">{ui(uiLocale).exportBibtex}</option>
-              <option value="csljson">{ui(uiLocale).exportCslJson}</option>
-              <option value="jsonresume">{ui(uiLocale).exportJsonResume}</option>
-              <option value="ro-crate">{ui(uiLocale).exportRoCrate}</option>
-              <option value="json">{ui(uiLocale).exportJson}</option>
-            </optgroup>
-            <optgroup label={ui(uiLocale).exportGroupGrantCv}>
-              <option value="biosketch">{ui(uiLocale).exportBiosketch}</option>
-              <option value="erc">{ui(uiLocale).exportErc}</option>
-              <option value="msca">{ui(uiLocale).exportMsca}</option>
-              <option value="nsf">{ui(uiLocale).exportNsf}</option>
-              <option value="jsps">{ui(uiLocale).exportJsps}</option>
-            </optgroup>
-          </select>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleExport}
-            disabled={!cv || saving || syncing}
-          >
-            {t(uiLocale, "exportLabel")}
-          </button>
-          <span className="ui-lang" title={t(uiLocale, "uiLanguageHint")}>
-            <span className="ui-lang-icon" aria-hidden="true">
-              🌐
-            </span>
-            <select
-              className="lang-switcher"
-              value={uiLocale}
-              onChange={(e) => changeUiLocale(e.target.value)}
-              aria-label={t(uiLocale, "uiLanguage")}
-              title={t(uiLocale, "uiLanguageHint")}
-            >
-              {SUPPORTED_LOCALES.map((loc) => (
-                <option key={loc} value={loc}>
-                  {LOCALE_LABELS[loc]}
-                </option>
-              ))}
-            </select>
-          </span>
-          <SupportLink locale={uiLocale} />
-          <form action={signOutAction}>
-            <button type="submit" className="btn">
-              {t(uiLocale, "signOut")}
-            </button>
-          </form>
-        </div>
-      </header>
+      <TopBar
+        userName={userName}
+        locale={uiLocale}
+        status={status}
+        saving={saving}
+        syncing={syncing}
+        dirty={dirty}
+        hasCv={!!cv}
+        onSync={handleSync}
+        onSave={handleSave}
+        exportFormat={exportFormat}
+        onExportFormatChange={setExportFormat}
+        onExport={handleExport}
+        onChangeLocale={changeUiLocale}
+        published={published}
+        publicSlug={publicSlug}
+        publicIndexable={publicIndexable}
+        publicContact={cv?.display.publicContact ?? { email: false, phone: false, location: false }}
+        onPublicContactChange={(next) => {
+          if (cv) update(updateDisplay(cv, { publicContact: next }));
+        }}
+        researchConsent={researchConsent}
+        digestOptIn={digestOptIn}
+        digestContactEmail={digestContactEmail}
+        digestContactEmailVerified={digestContactEmailVerified}
+        accountEmail={accountEmail}
+        signOutAction={signOutAction}
+      />
 
       {cv ? (
         <>

@@ -55,6 +55,9 @@ export interface WorkspaceUiStrings {
   /** Fallback notice; {e} = the account's login email. */
   dgEmailUsing: string;
   dgEmailFailed: string;
+  // ── Restructured top bar: Publish menu trigger ─────────────────────────────
+  tbPublish: string;
+  tbPublished: string;
 }
 
 const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
@@ -99,6 +102,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailNone: "Add an email address to receive digests.",
     dgEmailUsing: "Digests will go to your account email ({e}).",
     dgEmailFailed: "Could not save the address — please try again.",
+    tbPublish: "Publish",
+    tbPublished: "Published",
   },
   "zh-CN": {
     srLastSync: "上次同步",
@@ -140,6 +145,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailNone: "请添加邮箱地址以接收摘要。",
     dgEmailUsing: "摘要将发送到您的账户邮箱({e})。",
     dgEmailFailed: "无法保存地址——请重试。",
+    tbPublish: "发布",
+    tbPublished: "已发布",
   },
   "es-ES": {
     srLastSync: "Última sincronización",
@@ -182,6 +189,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailNone: "Añada un correo para recibir los resúmenes.",
     dgEmailUsing: "Los resúmenes irán a su correo de cuenta ({e}).",
     dgEmailFailed: "No se pudo guardar la dirección; inténtelo de nuevo.",
+    tbPublish: "Publicar",
+    tbPublished: "Publicado",
   },
   "fr-FR": {
     srLastSync: "Dernière synchronisation",
@@ -225,6 +234,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailNone: "Ajoutez une adresse e-mail pour recevoir les synthèses.",
     dgEmailUsing: "Les synthèses iront à l’adresse de votre compte ({e}).",
     dgEmailFailed: "Impossible d’enregistrer l’adresse — réessayez.",
+    tbPublish: "Publier",
+    tbPublished: "Publié",
   },
   "de-DE": {
     srLastSync: "Letzte Synchronisierung",
@@ -267,6 +278,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailNone: "Fügen Sie eine E-Mail-Adresse hinzu, um Digests zu erhalten.",
     dgEmailUsing: "Digests gehen an Ihre Konto-E-Mail ({e}).",
     dgEmailFailed: "Adresse konnte nicht gespeichert werden — bitte erneut versuchen.",
+    tbPublish: "Veröffentlichen",
+    tbPublished: "Veröffentlicht",
   },
   "ja-JP": {
     srLastSync: "前回の同期",
@@ -309,6 +322,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailNone: "ダイジェストを受け取るにはメールアドレスを追加してください。",
     dgEmailUsing: "ダイジェストはアカウントのメール({e})に送信されます。",
     dgEmailFailed: "アドレスを保存できませんでした。もう一度お試しください。",
+    tbPublish: "公開",
+    tbPublished: "公開中",
   },
   "pt-BR": {
     srLastSync: "Última sincronização",
@@ -351,6 +366,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailNone: "Adicione um e-mail para receber os resumos.",
     dgEmailUsing: "Os resumos irão para o e-mail da sua conta ({e}).",
     dgEmailFailed: "Não foi possível salvar o endereço — tente novamente.",
+    tbPublish: "Publicar",
+    tbPublished: "Publicado",
   },
   "it-IT": {
     srLastSync: "Ultima sincronizzazione",
@@ -393,6 +410,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailNone: "Aggiungi un indirizzo e-mail per ricevere i riepiloghi.",
     dgEmailUsing: "I riepiloghi andranno all’e-mail del tuo account ({e}).",
     dgEmailFailed: "Impossibile salvare l’indirizzo: riprova.",
+    tbPublish: "Pubblica",
+    tbPublished: "Pubblicato",
   },
   "ko-KR": {
     srLastSync: "마지막 동기화",
@@ -435,6 +454,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailNone: "다이제스트를 받으려면 이메일 주소를 추가하세요.",
     dgEmailUsing: "다이제스트는 계정 이메일({e})로 발송됩니다.",
     dgEmailFailed: "주소를 저장하지 못했습니다. 다시 시도해 주세요.",
+    tbPublish: "게시",
+    tbPublished: "게시됨",
   },
   "ru-RU": {
     srLastSync: "Последняя синхронизация",
@@ -478,6 +499,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailNone: "Добавьте адрес электронной почты, чтобы получать дайджесты.",
     dgEmailUsing: "Дайджесты будут приходить на адрес аккаунта ({e}).",
     dgEmailFailed: "Не удалось сохранить адрес — попробуйте ещё раз.",
+    tbPublish: "Опубликовать",
+    tbPublished: "Опубликовано",
   },
 };
 
