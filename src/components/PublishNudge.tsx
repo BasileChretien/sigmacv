@@ -5,12 +5,16 @@ import { trackEvent } from "@/lib/analytics/track";
 import { publishNudgeStrings } from "@/lib/i18n/publishNudge";
 
 /** Per-browser flag so a dismissed (or acted-on) nudge stays gone across reloads. */
-const DISMISS_KEY = "sigmacv:publish-nudge-dismissed";
+export const PUBLISH_NUDGE_DISMISS_KEY = "sigmacv:publish-nudge-dismissed";
 
 interface PublishNudgeProps {
   /** Whether the CV is already published — the nudge never shows if so. */
   published: boolean;
   locale: string;
+  /** Held back by the onboarding sequencer so prompts don't stack. */
+  suppressed?: boolean;
+  /** Notifies the sequencer to advance to the next prompt. */
+  onDismissed?: () => void;
 }
 
 /**
@@ -21,7 +25,12 @@ interface PublishNudgeProps {
  * consent-sensitive action in this product. Dismissal persists per browser, and
  * it is suppressed entirely once the page is published.
  */
-export default function PublishNudge({ published, locale }: PublishNudgeProps) {
+export default function PublishNudge({
+  published,
+  locale,
+  suppressed = false,
+  onDismissed,
+}: PublishNudgeProps) {
   const s = publishNudgeStrings(locale);
   // Gate rendering on a client-side check so we never flash the nudge to someone
   // who dismissed it before (and avoid an SSR/client hydration mismatch).
@@ -30,22 +39,23 @@ export default function PublishNudge({ published, locale }: PublishNudgeProps) {
 
   useEffect(() => {
     try {
-      if (window.localStorage.getItem(DISMISS_KEY) === "1") setDismissed(true);
+      if (window.localStorage.getItem(PUBLISH_NUDGE_DISMISS_KEY) === "1") setDismissed(true);
     } catch {
       /* localStorage blocked (private mode) — fine, just show the nudge */
     }
     setChecked(true);
   }, []);
 
-  if (published || dismissed || !checked) return null;
+  if (suppressed || published || dismissed || !checked) return null;
 
   const dismiss = () => {
     setDismissed(true);
     try {
-      window.localStorage.setItem(DISMISS_KEY, "1");
+      window.localStorage.setItem(PUBLISH_NUDGE_DISMISS_KEY, "1");
     } catch {
       /* dismissal just won't persist across reloads — acceptable */
     }
+    onDismissed?.();
   };
 
   const goToPublish = () => {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { editorUi } from "@/lib/i18n/editorUi";
 
-const DISMISS_KEY = "sigmacv:coachmarkDismissed";
+export const COACHMARK_DISMISS_KEY = "sigmacv:coachmarkDismissed";
 
 /**
  * A one-time, dismissible hint pointing the user at the "Not mine" curation
@@ -16,30 +16,37 @@ const DISMISS_KEY = "sigmacv:coachmarkDismissed";
 export default function DisambiguationCoachmark({
   locale,
   show,
+  suppressed = false,
+  onDismissed,
 }: {
   locale: string;
   show: boolean;
+  /** Held back by the onboarding sequencer so prompts don't stack. */
+  suppressed?: boolean;
+  /** Notifies the sequencer to advance to the next prompt. */
+  onDismissed?: () => void;
 }) {
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
     try {
-      setDismissed(window.localStorage.getItem(DISMISS_KEY) === "1");
+      setDismissed(window.localStorage.getItem(COACHMARK_DISMISS_KEY) === "1");
     } catch {
       /* storage unavailable — leave it hidden */
     }
   }, []);
 
-  if (!show || dismissed) return null;
+  if (suppressed || !show || dismissed) return null;
 
   const eu = editorUi(locale);
   const dismiss = () => {
     setDismissed(true);
     try {
-      window.localStorage.setItem(DISMISS_KEY, "1");
+      window.localStorage.setItem(COACHMARK_DISMISS_KEY, "1");
     } catch {
       /* non-fatal */
     }
+    onDismissed?.();
   };
 
   return (
