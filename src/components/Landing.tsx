@@ -226,8 +226,11 @@ export default function Landing({ locale }: LandingProps) {
         <section className="hp2-trust">
           <h2 className="hp2-trust-title">{s.trustTitle}</h2>
           <ul className="hp2-trust-grid">
-            {s.trust.map((tr) => (
+            {s.trust.map((tr, i) => (
               <li key={tr.title} className="hp2-trust-card">
+                <span className="hp2-trust-icon" aria-hidden="true">
+                  {trustIcon(i)}
+                </span>
                 <h3>{tr.title}</h3>
                 <p>{tr.body}</p>
               </li>
@@ -397,6 +400,54 @@ function CoffeeMark() {
       <line x1="6" y1="2" x2="6" y2="4" />
       <line x1="10" y1="2" x2="10" y2="4" />
       <line x1="14" y1="2" x2="14" y2="4" />
+    </svg>
+  );
+}
+
+/** Icon for trust card `i` — Free / Private / Open source / Responsible. */
+function trustIcon(i: number) {
+  const common = {
+    width: 22,
+    height: 22,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+  // Free: heart (generous / not-for-profit).
+  if (i === 0)
+    return (
+      <svg {...common}>
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1 7.8 7.8 7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z" />
+      </svg>
+    );
+  // Private: shield.
+  if (i === 1)
+    return (
+      <svg {...common}>
+        <path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z" />
+        <path d="m9 12 2 2 4-4" />
+      </svg>
+    );
+  // Open source: code brackets.
+  if (i === 2)
+    return (
+      <svg {...common}>
+        <path d="m16 18 4-6-4-6" />
+        <path d="m8 6-4 6 4 6" />
+      </svg>
+    );
+  // Responsible: balance scale (responsible research assessment).
+  return (
+    <svg {...common}>
+      <path d="M12 3v18" />
+      <path d="M5 7h14" />
+      <path d="M7 3h10" />
+      <path d="m5 7-3 6a3 3 0 0 0 6 0z" />
+      <path d="m19 7-3 6a3 3 0 0 0 6 0z" />
     </svg>
   );
 }
