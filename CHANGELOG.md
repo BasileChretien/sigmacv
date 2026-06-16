@@ -78,6 +78,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **"Why SigmaCV" is now a scannable four-up.** The homepage trust section was three
+  text-heavy cards (with "no ads" said twice). It's now four compact, icon-led cards
+  with minimal copy — **Free · Private · Open source · Responsible** — adding the
+  responsible-metrics point (opt-in, DORA-aligned) that sets SigmaCV apart for
+  researchers. The detail still lives on the Privacy / Principles / Transparency pages.
+- **Publishing is framed as something you'd want, not a disclosure.** The publish
+  summary used to lead with what gets _exposed_; it now leads with the benefit — a
+  living public page, one link that always re-syncs to your latest work, for your
+  email signature / ORCID / website — then keeps the privacy reassurance. And while
+  your CV is unpublished, the **Publish** control's dot shows a calm accent pulse
+  (reduced-motion-safe) inviting you to share your page; it settles to a steady
+  green once you're live.
 - **Editor parts reordered to Profile · Design · Content.** The editor's segmented
   control now leads with **Profile** (Design stays in the middle, Content moves to
   the end), and the editor opens on Profile. The rendered CV and every control are
