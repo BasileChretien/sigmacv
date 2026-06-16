@@ -1,5 +1,6 @@
-import { TEMPLATES, type CanonicalCv } from "@/lib/canonical/schema";
+import { PUBLIC_STYLES, TEMPLATES, type CanonicalCv } from "@/lib/canonical/schema";
 import { renderCvHtml } from "./html";
+import { renderPublicCvHtml } from "./publicStyles";
 
 /** One template's thumbnail: its key + the rendered (real) HTML of the sample. */
 export interface TemplatePreview {
@@ -33,5 +34,25 @@ export function templateGalleryPreviews(cv: CanonicalCv): TemplatePreview[] {
   return TEMPLATES.map((template) => ({
     template,
     html: renderCvHtml({ ...base, display: { ...base.display, template } }),
+  }));
+}
+
+/** One public-page-style thumbnail: its key + the rendered (real) sample HTML. */
+export interface StylePreview {
+  style: string;
+  html: string;
+}
+
+/**
+ * Render the (trimmed) sample CV in EVERY public-page style (incl. "match",
+ * which renders with the document template), for the editor's "Public page
+ * style" picker thumbnails. Animated styles render their static first frame —
+ * the in-pane "Public page" preview shows the live motion.
+ */
+export function publicStyleGalleryPreviews(cv: CanonicalCv): StylePreview[] {
+  const base = sampleForPreview(cv);
+  return PUBLIC_STYLES.map((style) => ({
+    style,
+    html: renderPublicCvHtml({ ...base, display: { ...base.display, publicStyle: style } }),
   }));
 }

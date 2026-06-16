@@ -206,6 +206,22 @@
           "type": "string",
           "enum": ["classic", "modern", "sidebar", "ats", "rirekisho"]
         },
+        "publicStyle": {
+          "default": "match",
+          "type": "string",
+          "enum": [
+            "match",
+            "prism",
+            "pop",
+            "neon",
+            "synthwave",
+            "terminal",
+            "riso",
+            "aura",
+            "mesh",
+            "marquee"
+          ]
+        },
         "cslStyle": {
           "default": "apa",
           "type": "string",
@@ -864,6 +880,22 @@
                 "default": "classic",
                 "type": "string",
                 "enum": ["classic", "modern", "sidebar", "ats", "rirekisho"]
+              },
+              "publicStyle": {
+                "default": "match",
+                "type": "string",
+                "enum": [
+                  "match",
+                  "prism",
+                  "pop",
+                  "neon",
+                  "synthwave",
+                  "terminal",
+                  "riso",
+                  "aura",
+                  "mesh",
+                  "marquee"
+                ]
               },
               "cslStyle": {
                 "default": "apa",

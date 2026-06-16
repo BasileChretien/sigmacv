@@ -1926,12 +1926,55 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 }
 /* The preview box clips a down-scaled, real render of the page top. */
 .tpl-preview {
+  position: relative;
   width: 125px;
   height: 166px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 4px;
   background: #ffffff;
+}
+/* "Animated" badge on a public-page-style thumbnail. */
+.tpl-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(17, 19, 26, 0.72);
+  border-radius: 999px;
+  padding: 0.1em 0.5em;
+  pointer-events: none;
+}
+/* Preview-surface toggle (Document | Public page) above the preview pane. */
+.preview-surface {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3) 0;
+}
+.preview-surface-label {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.preview-surface-btn {
+  font: inherit;
+  font-size: var(--text-xs);
+  padding: 0.2em 0.7em;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.preview-surface-btn.is-active {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--surface-sunken);
+  font-weight: var(--weight-medium);
 }
 .tpl-frame {
   width: 780px;

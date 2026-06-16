@@ -7,6 +7,7 @@ import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { isSameOrigin } from "@/lib/security/origin";
 import { renderCvHtml } from "@/lib/render/html";
+import { renderPublicCvHtml } from "@/lib/render/publicStyles";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,7 +57,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const html = renderCvHtml(parsed.data);
+    // `surface: "public"` previews the living public page (applies the chosen
+    // animated publicStyle, or the document template when "match"); the default
+    // previews the document render the exports use.
+    const surface = (read.value as { surface?: unknown } | null)?.surface;
+    const html = surface === "public" ? renderPublicCvHtml(parsed.data) : renderCvHtml(parsed.data);
     return NextResponse.json({ html });
   } catch (err) {
     logger.error("api.cv_preview_failed", { err });

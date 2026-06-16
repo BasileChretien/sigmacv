@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
+import { editorUi } from "@/lib/i18n/editorUi";
 import { trackEvent } from "@/lib/analytics/track";
 
 interface PublicContactFlags {
@@ -34,6 +35,7 @@ export default function PublishControls({
   onPublicContactChange,
 }: PublishControlsProps) {
   const u = ui(locale);
+  const eu = editorUi(locale);
   const [published, setPublished] = useState(initialPublished);
   const [slug, setSlug] = useState(initialSlug);
   const [indexable, setIndexable] = useState(initialIndexable);
@@ -111,6 +113,8 @@ export default function PublishControls({
       {/* What publishing exposes — shown BEFORE the toggle is flipped, so the
           (irreversible-feeling) public exposure is a fully-informed choice. */}
       <p className="publish-summary muted">{u.publicSummary}</p>
+      {/* Pointer to the public-page-only animated showcase styles (Design tab). */}
+      <p className="publish-style-tip muted">{eu.publishStyleTip}</p>
       {/* Polite live region (always mounted): copy confirmation / publish error. */}
       <span className="visually-hidden" role="status" aria-live="polite">
         {announce}

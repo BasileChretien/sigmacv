@@ -605,6 +605,24 @@ export type CvOwner = z.infer<typeof CvOwnerSchema>;
 
 /** Constrained customization options (kept tasteful + safe-to-inject). */
 export const TEMPLATES = ["classic", "modern", "sidebar", "ats", "rirekisho"] as const;
+/**
+ * Online-only animated "showcase" styles for the public living page (`/p/[slug]`).
+ * `"match"` (default) renders the public page with the document `template`; the
+ * other keys apply an animated, web-only style. These NEVER affect any export
+ * (PDF/DOCX/LaTeX/Markdown) — those always use the document `template`.
+ */
+export const PUBLIC_STYLES = [
+  "match",
+  "prism",
+  "pop",
+  "neon",
+  "synthwave",
+  "terminal",
+  "riso",
+  "aura",
+  "mesh",
+  "marquee",
+] as const;
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
 /** How the account holder's name is emphasised in their own works. */
@@ -621,6 +639,7 @@ export const ACCENT_PRESETS = [
 ] as const;
 
 export type TemplateKey = (typeof TEMPLATES)[number];
+export type PublicStyleKey = (typeof PUBLIC_STYLES)[number];
 export type FontPairing = (typeof FONT_PAIRINGS)[number];
 export type Density = (typeof DENSITIES)[number];
 
@@ -645,6 +664,13 @@ export const DisplayChoicesSchema = z.object({
   // .catch keeps old saved CVs loading if they reference a since-removed
   // template (e.g. minimal/compact/editorial) — they fall back to classic.
   template: z.enum(TEMPLATES).default("classic").catch("classic"),
+  /**
+   * Public-page-only showcase style (see PUBLIC_STYLES). `"match"` (default)
+   * renders the living public page with the document `template`; any other key
+   * applies an animated, web-only style. Never affects exports. `.catch` keeps
+   * old/garbage values loading by falling back to "match".
+   */
+  publicStyle: z.enum(PUBLIC_STYLES).default("match").catch("match"),
   /** Bundled CSL style key, e.g. "apa" (see src/lib/citeproc/assets/styles). */
   cslStyle: z.string().max(200).default("apa"),
   /**

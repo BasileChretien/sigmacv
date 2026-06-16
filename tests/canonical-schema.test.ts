@@ -78,6 +78,7 @@ describe("DisplayChoicesSchema", () => {
     const d = DisplayChoicesSchema.parse({});
     expect(d).toEqual({
       template: "classic",
+      publicStyle: "match",
       cslStyle: "apa",
       locale: "en-US",
       highlightSelf: true,

@@ -301,7 +301,7 @@ describe("CvEditor — subdivided regions layout (variant)", () => {
     );
     expect(screen.queryByRole("tablist")).toBeNull();
     // Classic shows the style controls (template gallery radiogroup) inline.
-    expect(screen.getByRole("radiogroup")).toBeTruthy();
+    expect(screen.getByRole("radiogroup", { name: "Template" })).toBeTruthy();
   });
 
   it('variant="regions" renders Profile / Design / Content tabs, Profile active', () => {
@@ -339,7 +339,7 @@ describe("CvEditor — subdivided regions layout (variant)", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Design" }));
     expect(screen.getByRole("tabpanel", { name: "Design" })).toBeTruthy();
     expect(screen.queryByRole("tabpanel", { name: "Content" })).toBeNull();
-    expect(screen.getByRole("radiogroup")).toBeTruthy(); // template gallery now visible
+    expect(screen.getByRole("radiogroup", { name: "Template" })).toBeTruthy(); // template gallery now visible
   });
 
   it("localises the part-tab labels to the interface language", () => {

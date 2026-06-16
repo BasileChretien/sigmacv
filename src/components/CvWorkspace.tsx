@@ -100,6 +100,9 @@ export default function CvWorkspace({
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
   // Which pane is visible on narrow screens (both show side-by-side on desktop).
   const [pane, setPane] = useState<"editor" | "preview">("editor");
+  // Which surface the preview renders: the document (export) render, or the
+  // living public page (which applies the chosen animated publicStyle).
+  const [previewSurface, setPreviewSurface] = useState<"document" | "public">("document");
 
   // Refs let the debounced auto-save read the latest document and avoid
   // overlapping writes without re-creating the debounce timer on every keystroke.
@@ -141,6 +144,7 @@ export default function CvWorkspace({
       try {
         const data = (await apiFetch("/api/cv/preview", "POST", {
           document: cv,
+          surface: previewSurface,
         })) as { html?: string };
         setPreviewHtml(data.html ?? "");
       } catch {
@@ -150,10 +154,20 @@ export default function CvWorkspace({
       }
     }, 350);
     return () => clearTimeout(handle);
-  }, [cv]);
+  }, [cv, previewSurface]);
 
   const update = useCallback(
     (next: CanonicalCv) => {
+      // Picking an animated public style flips the preview to the public page so
+      // the choice is visible (it never shows on the document/export render).
+      const prev = cvRef.current;
+      if (
+        prev &&
+        next.display.publicStyle !== prev.display.publicStyle &&
+        next.display.publicStyle !== "match"
+      ) {
+        setPreviewSurface("public");
+      }
       setCv(next);
       setDirty(true);
       showStatus("");
@@ -385,6 +399,33 @@ export default function CvWorkspace({
               />
             </section>
             <section className="cv-workspace-pane" data-pane="preview">
+              {/* Toggle the preview between the document (export) render and the
+                  living public page (which applies the chosen animated style). */}
+              <div
+                className="preview-surface"
+                role="group"
+                aria-label={editorUi(uiLocale).previewSurfaceLabel}
+              >
+                <span className="preview-surface-label">
+                  {editorUi(uiLocale).previewSurfaceLabel}
+                </span>
+                <button
+                  type="button"
+                  className={`preview-surface-btn${previewSurface === "document" ? " is-active" : ""}`}
+                  aria-pressed={previewSurface === "document"}
+                  onClick={() => setPreviewSurface("document")}
+                >
+                  {editorUi(uiLocale).previewSurfaceDocument}
+                </button>
+                <button
+                  type="button"
+                  className={`preview-surface-btn${previewSurface === "public" ? " is-active" : ""}`}
+                  aria-pressed={previewSurface === "public"}
+                  onClick={() => setPreviewSurface("public")}
+                >
+                  {editorUi(uiLocale).previewSurfacePublic}
+                </button>
+              </div>
               <CvPreview html={previewHtml} loading={previewLoading} locale={uiLocale} />
             </section>
           </div>
