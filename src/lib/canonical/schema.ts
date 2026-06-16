@@ -345,6 +345,28 @@ export const CvItemSchema = z.object({
      */
     institutionUrl: z.string().max(2048).optional(),
     /**
+     * SOURCE role/title for a positions/education entry (ORCID `role-title`, e.g.
+     * "Assistant Professor", "PharmD"). Refreshed from the source each build, like
+     * {@link CvItem.displayText}. Undefined when the source carries none (e.g. an
+     * OpenAlex-inferred affiliation, which has no job title). Read as discrete data
+     * by the editor (the fillable "Role / title" field) and the public JSON-LD.
+     */
+    roleTitle: z.string().max(500).optional(),
+    /**
+     * USER edit of the role/title for a source-derived positions/education entry —
+     * the value typed into the editor's "Role / title" field. Carried across
+     * re-sync (like {@link CvItem.displayTextOverride}) and wins over the source
+     * {@link roleTitle}; a blank value, or one equal to the source role, clears it
+     * (revert to source). The effective role is {@link itemRoleTitle}.
+     */
+    roleTitleOverride: z.string().max(500).optional(),
+    /** Source department/sub-unit for a positions/education entry (ORCID `department-name`). */
+    department: z.string().max(500).optional(),
+    /** Start year of a positions/education entry's date range (for re-deriving the line). */
+    startYear: z.number().int().optional(),
+    /** End year of a positions/education entry's date range; undefined = ongoing ("present"). */
+    endYear: z.number().int().optional(),
+    /**
      * Funder identifier for a grant item (interoperable funding metadata). The
      * OpenAlex funder id (e.g. "https://openalex.org/F4320332161") or the ORCID
      * funding's disambiguated-organization identifier (FundRef/ROR/GRID). Additive
@@ -444,6 +466,18 @@ export function itemDisplayText(
   item: Pick<CvItem, "displayText" | "displayTextOverride">,
 ): string | undefined {
   return item.displayTextOverride ?? item.displayText;
+}
+
+/**
+ * The effective role/title for a positions/education item: the user's
+ * `meta.roleTitleOverride` when set, otherwise the source-built `meta.roleTitle`.
+ * The editor binds the "Role / title" field to this (so a user edit shows while
+ * the source value refreshes underneath, restorable by clearing the override),
+ * and the line re-derive ({@link rederiveEntryLine}) uses it. Returns undefined
+ * when the item has neither (e.g. an OpenAlex position the user hasn't titled).
+ */
+export function itemRoleTitle(item: Pick<CvItem, "meta">): string | undefined {
+  return item.meta.roleTitleOverride ?? item.meta.roleTitle;
 }
 
 /**

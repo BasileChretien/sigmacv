@@ -38,6 +38,7 @@ import {
   setItemInView,
   setItemIncluded,
   setItemNotMine,
+  setItemRoleTitle,
   setItemTextOverride,
   viewExcludedIds,
   setSectionBody,
@@ -945,6 +946,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                 }
                                 onSetTextOverride={(text) =>
                                   onChange(setItemTextOverride(cv, section.id, item.id, text))
+                                }
+                                onSetRole={(role) =>
+                                  onChange(setItemRoleTitle(cv, section.id, item.id, role))
                                 }
                                 onRemove={() => onChange(removeItem(cv, section.id, item.id))}
                               />

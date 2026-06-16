@@ -10,6 +10,7 @@ import {
   type ReviewFlag,
 } from "./schema";
 import { annotateDuplicates } from "./duplicates";
+import { formatEntryLine } from "./entryLine";
 import { computeDerivedMetrics, workTopDecile } from "@/lib/openalex/deriveMetrics";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName, workToCsl } from "@/lib/openalex/toCsl";
@@ -229,14 +230,6 @@ function buildConferenceSection(
   };
 }
 
-/** Year range like "(2012–2024)" / "(2024–present)". Empty if no years. */
-function yearRange(start?: number, end?: number): string {
-  if (start && end) return `(${start}–${end})`;
-  if (start) return `(${start}–present)`;
-  if (end) return `(until ${end})`;
-  return "";
-}
-
 function normInstitution(s: string): string {
   return s.toLowerCase().replace(/\s+/g, " ").trim();
 }
@@ -340,6 +333,11 @@ function makeEntryItem(
     funderId?: string;
     funderName?: string;
     awardId?: string;
+    /** Source role/title + department + date range for positions/education entries. */
+    roleTitle?: string;
+    department?: string;
+    startYear?: number;
+    endYear?: number;
   },
 ): CvItem {
   const meta: CvItem["meta"] = {};
@@ -352,6 +350,15 @@ function makeEntryItem(
   if (extraMeta?.funderId) meta.funderId = extraMeta.funderId;
   if (extraMeta?.funderName) meta.funderName = extraMeta.funderName;
   if (extraMeta?.awardId) meta.awardId = extraMeta.awardId;
+  if (extraMeta?.roleTitle) meta.roleTitle = extraMeta.roleTitle;
+  if (extraMeta?.department) meta.department = extraMeta.department;
+  // `!= null` (not truthiness) so a structured year is stored faithfully — the
+  // line re-derive in `curate.ts` reads these back and must agree with the build.
+  if (extraMeta?.startYear != null) meta.startYear = extraMeta.startYear;
+  if (extraMeta?.endYear != null) meta.endYear = extraMeta.endYear;
+  // A user edit of the role (positions/education) survives re-sync, exactly like
+  // `displayTextOverride` — while the source `roleTitle` above keeps refreshing.
+  if (prev?.meta.roleTitleOverride) meta.roleTitleOverride = prev.meta.roleTitleOverride;
   return {
     id,
     source,
@@ -375,11 +382,19 @@ function makeEntryItem(
   };
 }
 
-function formatPositionText(p: OrcidPosition): string {
-  const head = [p.roleTitle, p.department].filter(Boolean).join(", ");
-  const label = head ? `${head}, ${p.organization}` : p.organization;
-  const yrs = yearRange(p.startYear, p.endYear);
-  return yrs ? `${label} ${yrs}` : label;
+/**
+ * The Positions / Education line for an ORCID entry. `role` defaults to the
+ * source `role-title` but a caller passes the user's effective role (override ??
+ * source) so an edited title re-derives identically to {@link rederiveEntryLine}.
+ */
+function formatPositionText(p: OrcidPosition, role: string | undefined = p.roleTitle): string {
+  return formatEntryLine({
+    roleTitle: role,
+    department: p.department,
+    institution: p.organization,
+    startYear: p.startYear,
+    endYear: p.endYear,
+  });
 }
 
 /** "present"/current positions first, then by start year descending. */
@@ -409,13 +424,15 @@ function buildPositionsSection(
   for (const e of sortedEmp) {
     seen.add(normInstitution(e.organization));
     const id = `position:orcid:${e.putCode}`;
+    const prev = prevItems.get(id);
+    const effectiveRole = prev?.meta.roleTitleOverride ?? e.roleTitle;
     items.push(
       makeEntryItem(
         id,
         "orcid",
         e.putCode,
-        formatPositionText(e),
-        prevItems.get(id),
+        formatPositionText(e, effectiveRole),
+        prev,
         rank++,
         e.startYear,
         {
@@ -423,6 +440,10 @@ function buildPositionsSection(
           institution: e.organization,
           institutionNames: e.institutionNames,
           institutionUrl: e.institutionUrl,
+          roleTitle: e.roleTitle,
+          department: e.department,
+          startYear: e.startYear,
+          endYear: e.endYear,
           lastVerifiedAt: now,
         },
       ),
@@ -432,18 +453,26 @@ function buildPositionsSection(
     if (seen.has(normInstitution(a.institution))) continue;
     seen.add(normInstitution(a.institution));
     const id = `position:openalex:${normInstitution(a.institution).replace(/[^a-z0-9]+/g, "-")}`;
-    const yrs = yearRange(a.startYear, a.endYear);
-    const text = yrs ? `${a.institution} ${yrs}` : a.institution;
+    // OpenAlex affiliations carry no job title; honour a role the user typed in
+    // (carried as `roleTitleOverride`), else the line is just institution + years.
+    const prev = prevItems.get(id);
+    const text = formatEntryLine({
+      roleTitle: prev?.meta.roleTitleOverride,
+      institution: a.institution,
+      startYear: a.startYear,
+      endYear: a.endYear,
+    });
     // OpenAlex affiliations are inferred from papers and are NOISY (they include
     // co-authors' institutions / spurious years). They default to HIDDEN, but we
     // respect a user who explicitly un-hid one (prev.included === true) so the
     // choice survives re-sync. New ones start hidden.
-    const prev = prevItems.get(id);
     const item = makeEntryItem(id, "openalex", "openalex", text, prev, rank++, a.startYear, {
       rorId: a.rorId,
       institution: a.institution,
       institutionNames: a.institutionNames,
       institutionUrl: a.institutionUrl,
+      startYear: a.startYear,
+      endYear: a.endYear,
       lastVerifiedAt: now,
     });
     items.push({ ...item, included: prev?.included ?? false });
@@ -498,13 +527,22 @@ function buildOrcidEntrySection(
   );
   for (const e of sorted) {
     const id = `${opts.idPrefix}:orcid:${e.putCode}`;
-    const text = opts.singleYear ? formatAwardText(e) : formatPositionText(e);
+    const prev = opts.prevItems.get(id);
+    // Awards are points-in-time (the "role" is the award name) — left as-is.
+    // Range entries (education/talks/service) carry a structured, editable role.
+    const isRange = !opts.singleYear;
+    const effectiveRole = isRange ? (prev?.meta.roleTitleOverride ?? e.roleTitle) : undefined;
+    const text = opts.singleYear ? formatAwardText(e) : formatPositionText(e, effectiveRole);
     items.push(
-      makeEntryItem(id, "orcid", e.putCode, text, opts.prevItems.get(id), rank++, e.startYear, {
+      makeEntryItem(id, "orcid", e.putCode, text, prev, rank++, e.startYear, {
         rorId: e.rorId,
         institution: e.organization,
         institutionNames: e.institutionNames,
         institutionUrl: e.institutionUrl,
+        roleTitle: isRange ? e.roleTitle : undefined,
+        department: isRange ? e.department : undefined,
+        startYear: isRange ? e.startYear : undefined,
+        endYear: isRange ? e.endYear : undefined,
         lastVerifiedAt: opts.now,
       }),
     );

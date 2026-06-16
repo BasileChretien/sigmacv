@@ -115,6 +115,10 @@ export interface UiStrings {
   dragItem: string;
   manualPlaceholder: string;
   entryTextAria: string;
+  /** Placeholder inviting the user to add a missing role on a positions/education line. */
+  rolePlaceholder: string;
+  /** Aria-label for the editable "Role / title" field on a positions/education entry. */
+  roleAria: string;
   /** Short button label: revert a source-derived entry's edited text to source. */
   revertToSource: string;
   /** Tooltip/aria for the revert control on an edited Positions/Education line. */
@@ -246,6 +250,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Drag to reorder",
     manualPlaceholder: "e.g. Visiting Researcher, MIT (2023)",
     entryTextAria: "Entry text",
+    rolePlaceholder: "Add your title…",
+    roleAria: "Role or title",
     revertToSource: "Revert",
     revertToSourceHint: "Discard your edit and restore the original text from ORCID/OpenAlex",
     matchedByIdentifier: "Matched by your identifier",
@@ -370,6 +376,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "拖动以重新排序",
     manualPlaceholder: "例如：访问研究员，MIT（2023）",
     entryTextAria: "条目文本",
+    rolePlaceholder: "添加你的职称…",
+    roleAria: "职务或头衔",
     revertToSource: "还原",
     revertToSourceHint: "放弃你的修改，恢复来自 ORCID/OpenAlex 的原始文本",
     matchedByIdentifier: "通过你的标识符匹配",
@@ -498,6 +506,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Arrastra para reordenar",
     manualPlaceholder: "p. ej. Investigador visitante, MIT (2023)",
     entryTextAria: "Texto de la entrada",
+    rolePlaceholder: "Añade tu cargo…",
+    roleAria: "Cargo o título",
     revertToSource: "Restaurar",
     revertToSourceHint: "Descartar tu edición y restaurar el texto original de ORCID/OpenAlex",
     matchedByIdentifier: "Coincidencia por tu identificador",
@@ -627,6 +637,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Faire glisser pour réordonner",
     manualPlaceholder: "p. ex. Chercheur invité, MIT (2023)",
     entryTextAria: "Texte de l’entrée",
+    rolePlaceholder: "Ajoutez votre fonction…",
+    roleAria: "Fonction ou intitulé",
     revertToSource: "Rétablir",
     revertToSourceHint:
       "Annuler votre modification et rétablir le texte d’origine d’ORCID/OpenAlex",
@@ -757,6 +769,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Ziehen, um neu anzuordnen",
     manualPlaceholder: "z. B. Gastforscher:in, MIT (2023)",
     entryTextAria: "Eintragstext",
+    rolePlaceholder: "Titel hinzufügen…",
+    roleAria: "Rolle oder Titel",
     revertToSource: "Zurücksetzen",
     revertToSourceHint:
       "Bearbeitung verwerfen und den Originaltext aus ORCID/OpenAlex wiederherstellen",
@@ -885,6 +899,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "ドラッグして並べ替え",
     manualPlaceholder: "例：客員研究員、MIT（2023）",
     entryTextAria: "項目テキスト",
+    rolePlaceholder: "役職を追加…",
+    roleAria: "役職・肩書き",
     revertToSource: "元に戻す",
     revertToSourceHint: "編集を破棄して、ORCID/OpenAlex の元のテキストに戻します",
     matchedByIdentifier: "あなたの識別子で一致",
@@ -1013,6 +1029,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Arraste para reordenar",
     manualPlaceholder: "ex.: Pesquisador Visitante, MIT (2023)",
     entryTextAria: "Texto da entrada",
+    rolePlaceholder: "Adicione seu cargo…",
+    roleAria: "Cargo ou título",
     revertToSource: "Reverter",
     revertToSourceHint: "Descartar sua edição e restaurar o texto original do ORCID/OpenAlex",
     matchedByIdentifier: "Correspondência pelo seu identificador",
@@ -1142,6 +1160,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Trascina per riordinare",
     manualPlaceholder: "ad es. Ricercatore in visita, MIT (2023)",
     entryTextAria: "Testo della voce",
+    rolePlaceholder: "Aggiungi il tuo ruolo…",
+    roleAria: "Ruolo o titolo",
     revertToSource: "Ripristina",
     revertToSourceHint: "Annulla la tua modifica e ripristina il testo originale da ORCID/OpenAlex",
     matchedByIdentifier: "Abbinato tramite il tuo identificativo",
@@ -1269,6 +1289,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "드래그하여 순서 변경",
     manualPlaceholder: "예: 방문 연구원, MIT (2023)",
     entryTextAria: "항목 텍스트",
+    rolePlaceholder: "직함 추가…",
+    roleAria: "직책 또는 직함",
     revertToSource: "되돌리기",
     revertToSourceHint: "편집을 취소하고 ORCID/OpenAlex의 원래 텍스트로 복원합니다",
     matchedByIdentifier: "내 식별자로 매칭됨",
@@ -1396,6 +1418,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     dragItem: "Перетащите, чтобы изменить порядок",
     manualPlaceholder: "напр. Приглашённый исследователь, MIT (2023)",
     entryTextAria: "Текст записи",
+    rolePlaceholder: "Добавьте должность…",
+    roleAria: "Должность или звание",
     revertToSource: "Сбросить",
     revertToSourceHint: "Отменить правку и восстановить исходный текст из ORCID/OpenAlex",
     matchedByIdentifier: "Сопоставлено по вашему идентификатору",

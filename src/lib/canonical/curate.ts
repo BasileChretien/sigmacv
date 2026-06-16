@@ -14,6 +14,7 @@ import {
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName } from "@/lib/openalex/toCsl";
 import { duplicatePairKey } from "./duplicates";
+import { rederiveEntryLine } from "./entryLine";
 import type { CslItem, CslName } from "@/types/csl";
 
 /**
@@ -815,6 +816,39 @@ export function setItemTextOverride(
       const override =
         trimmed.length === 0 || trimmed === (it.displayText ?? "").trim() ? undefined : text;
       return { ...it, displayTextOverride: override };
+    }),
+  }));
+}
+
+/**
+ * Set (or clear) the USER role/title for a source-derived Positions / Education
+ * entry — the value typed into the editor's "Role / title" field. A meaningful
+ * value is stored in `meta.roleTitleOverride` (shown in place of the source
+ * `meta.roleTitle`, carried across re-sync); a BLANK value — OR text equal to the
+ * current source role — CLEARS it, reverting to the source role. The line
+ * `displayText` is re-derived in place from the item's structured `meta` so the
+ * change shows everywhere immediately (and `build.ts` re-derives it identically on
+ * the next re-sync). Pure + immutable; a no-op for an unknown section/item id, or
+ * for an item that carries no institution (cannot be re-derived).
+ */
+export function setItemRoleTitle(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  role: string,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const trimmed = role.trim();
+      // Blank, or identical to the source role → no override (revert to source).
+      const override =
+        trimmed.length === 0 || trimmed === (it.meta.roleTitle ?? "").trim() ? undefined : trimmed;
+      const meta = { ...it.meta, roleTitleOverride: override };
+      const next: CvItem = { ...it, meta };
+      const line = rederiveEntryLine(next);
+      return line === undefined ? next : { ...next, displayText: line };
     }),
   }));
 }
