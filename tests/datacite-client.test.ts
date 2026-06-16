@@ -86,6 +86,75 @@ describe("fetchDataciteOutputs", () => {
     expect(await fetchDataciteOutputs("0000-0002-7483-2489")).toEqual([]);
   });
 
+  it("collects Zenodo concept/version sibling DOIs from relatedIdentifiers", async () => {
+    const body = {
+      data: [
+        {
+          attributes: {
+            doi: "10.5281/zenodo.20594124", // a per-version DOI
+            titles: [{ title: "SigmaCV v0.1.0" }],
+            publicationYear: 2026,
+            publisher: "Zenodo",
+            types: { resourceTypeGeneral: "Software" },
+            relatedIdentifiers: [
+              // The concept DOI — the sibling we must reconcile (bare DOI form).
+              {
+                relatedIdentifier: "10.5281/zenodo.20594123",
+                relatedIdentifierType: "DOI",
+                relationType: "IsVersionOf",
+              },
+              // A non-DOI related id → ignored.
+              {
+                relatedIdentifier: "https://github.com/BasileChretien/sigmacv",
+                relatedIdentifierType: "URL",
+                relationType: "IsSupplementTo",
+              },
+              // A citation relation → ignored (not a version/identity link).
+              {
+                relatedIdentifier: "10.1/cited",
+                relatedIdentifierType: "DOI",
+                relationType: "Cites",
+              },
+              // URL form of a DOI with a version relation → normalized + kept.
+              {
+                relatedIdentifier: "https://doi.org/10.5281/ZENODO.20594125",
+                relatedIdentifierType: "DOI",
+                relationType: "HasVersion",
+              },
+              // Duplicate of the concept DOI under another relation → collapsed.
+              {
+                relatedIdentifier: "10.5281/zenodo.20594123",
+                relatedIdentifierType: "DOI",
+                relationType: "IsIdenticalTo",
+              },
+              // Empty identifier → skipped.
+              {
+                relatedIdentifier: "  ",
+                relatedIdentifierType: "DOI",
+                relationType: "IsVersionOf",
+              },
+            ],
+          },
+        },
+      ],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(body)),
+    );
+    const out = await fetchDataciteOutputs("0000-0002-7483-2489");
+    expect(out[0]?.relatedDois).toEqual(["10.5281/zenodo.20594123", "10.5281/zenodo.20594125"]);
+  });
+
+  it("omits relatedDois when there are no version/identity siblings", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(BODY)),
+    );
+    const out = await fetchDataciteOutputs("0000-0002-7483-2489");
+    expect(out[0]?.relatedDois).toBeUndefined();
+  });
+
   it("extracts the publisher name from the DataCite v2 object form", async () => {
     const body = {
       data: [

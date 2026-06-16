@@ -307,6 +307,27 @@ function sectionDois(section: CvSection | null): Set<string> {
   return out;
 }
 
+/** Every DOI (bare-lowercased) that identifies a dataset/software deposit already
+ *  surfaced in the Datasets & Software section — each DataCite output's own DOI
+ *  PLUS its Zenodo concept↔version siblings, and each OpenAIRE output's DOI. The
+ *  OpenAlex-indexed copy of such a deposit (which often carries the sibling DOI,
+ *  Zenodo minting both a concept and per-version DOI) is then dropped from the
+ *  works rather than mis-filed in Preprints or double-listed. */
+function collectDatasetDepositDois(
+  datacite: DataciteOutput[],
+  openaire: OpenaireOutput[],
+): Set<string> {
+  const out = new Set<string>();
+  for (const o of datacite) {
+    if (o.doi) out.add(o.doi.toLowerCase());
+    for (const r of o.relatedDois ?? []) out.add(r.toLowerCase());
+  }
+  for (const o of openaire) {
+    if (o.doi) out.add(o.doi.toLowerCase());
+  }
+  return out;
+}
+
 /** Apply a section's preserved title/visibility/order from the previous CV. */
 function mergeSection(built: CvSection, previous: CanonicalCv | null | undefined): CvSection {
   const prev = previous?.sections.find((s) => s.id === built.id);
@@ -1095,6 +1116,26 @@ export function orcidTypeClass(
   return undefined;
 }
 
+/** OpenAlex `type` values that denote a NON-article research output (a dataset or
+ *  supplementary materials). OpenAlex has no "software" type — a Zenodo software
+ *  deposit is typed "dataset" — and such a venue-less / repository-hosted work
+ *  would otherwise fall to `isPreprint` and mis-file in Preprints. */
+const OPENALEX_OTHER_OUTPUT_TYPES = new Set(["dataset", "supplementary-materials"]);
+
+/**
+ * The CV-routing class for an OpenAlex work by its own `type`, or `undefined` when
+ * it carries no non-article signal (→ the OpenAlex-only `isPreprint` routing
+ * stands). Consulted in the no-ORCID-signal fallback so a dataset/software output
+ * lands in "Other Research Outputs" rather than Preprints. Keyed on `type` ONLY,
+ * never on `source.type === "repository"`, which would wrongly capture
+ * arXiv/bioRxiv preprints (also repository-hosted). An ORCID type, when present,
+ * still takes precedence over this (see {@link routeWork}).
+ */
+export function openalexTypeClass(work: OpenAlexWork): "other-output" | undefined {
+  const t = (work.type ?? "").trim().toLowerCase();
+  return OPENALEX_OTHER_OUTPUT_TYPES.has(t) ? "other-output" : undefined;
+}
+
 /**
  * A soft disambiguation hint for proactive review. The work matched as the
  * account holder's (typically by OpenAlex author id), but THIS paper lists a
@@ -1365,7 +1406,13 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       otherOutputIds.add(csl.id);
       return { peerReviewedOverride: false };
     }
-    // No ORCID signal → unchanged: OpenAlex `isPreprint` decides the split.
+    // No ORCID signal → OpenAlex's own `type` can still pull a non-article output
+    // (dataset / supplementary materials) out of Preprints into Other Research
+    // Outputs; otherwise the `isPreprint` heuristic decides the split.
+    if (openalexTypeClass(work) === "other-output") {
+      otherOutputIds.add(csl.id);
+      return { peerReviewedOverride: false };
+    }
     if (isPreprint(work)) preprintIds.add(csl.id);
     return {};
   };
@@ -1453,6 +1500,22 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     ...sectionDois(conferenceSection),
   ]);
 
+  // The OpenAlex-indexed copy of a Zenodo/DataCite deposit already surfaced in the
+  // Datasets & Software section is a duplicate (it would otherwise mis-file in
+  // Preprints because Zenodo is a `repository`). Drop it from the works entirely —
+  // matched on the deposit's own DOI OR a concept↔version sibling, so the copy is
+  // recognised whichever Zenodo DOI it carries. Falls through untouched when
+  // DataCite hasn't indexed the deposit yet (then `openalexTypeClass` still keeps a
+  // dataset/software work out of Preprints, in Other Research Outputs).
+  const datasetDepositDois = collectDatasetDepositDois(
+    args.dataciteOutputs ?? [],
+    args.openaireOutputs ?? [],
+  );
+  const orderedDeduped = ordered.filter((it) => {
+    const doi = it.csl?.DOI?.toLowerCase();
+    return !(doi && datasetDepositDois.has(doi));
+  });
+
   // Route every work into exactly ONE of Publications / Preprints / Other
   // Research Outputs. The default split is OpenAlex's `isPreprint` heuristic;
   // ORCID's work type (captured in `preprintIds`/`otherOutputIds` above) overrides
@@ -1467,7 +1530,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   };
   const pubItems = reindexItems(
     carryOverUserItems(
-      ordered.filter((it) => !preprintIds.has(it.id) && !otherOutputIds.has(it.id)),
+      orderedDeduped.filter((it) => !preprintIds.has(it.id) && !otherOutputIds.has(it.id)),
       previous,
       "publications",
       fetchedIds,
@@ -1476,7 +1539,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   );
   const preprintItems = reindexItems(
     carryOverUserItems(
-      ordered.filter((it) => preprintIds.has(it.id)),
+      orderedDeduped.filter((it) => preprintIds.has(it.id)),
       previous,
       "preprints",
       fetchedIds,
@@ -1484,7 +1547,13 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     ),
   );
   const otherItems = reindexItems(
-    carryOverUserItems(ordered.filter(isOtherOutput), previous, "other", fetchedIds, fetchedDois),
+    carryOverUserItems(
+      orderedDeduped.filter(isOtherOutput),
+      previous,
+      "other",
+      fetchedIds,
+      fetchedDois,
+    ),
   );
 
   const publicationsSection = mergeSection(

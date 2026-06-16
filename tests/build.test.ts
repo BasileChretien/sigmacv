@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCanonicalCv,
   indexFundersByAward,
+  openalexTypeClass,
   orcidTypeClass,
   resolveFunderIds,
 } from "@/lib/canonical/build";
@@ -1164,5 +1165,175 @@ describe("buildCanonicalCv — ORCID work-type section routing", () => {
       previous: curated,
     });
     expect(itemIn(resynced, "other", "WKEEP")?.included).toBe(false); // hide survives
+  });
+});
+
+describe("openalexTypeClass", () => {
+  it("routes OpenAlex dataset / supplementary-materials to other-output, else undefined", () => {
+    expect(openalexTypeClass({ type: "dataset" } as OpenAlexWork)).toBe("other-output");
+    expect(openalexTypeClass({ type: "supplementary-materials" } as OpenAlexWork)).toBe(
+      "other-output",
+    );
+    // Case/whitespace-insensitive.
+    expect(openalexTypeClass({ type: " Dataset " } as OpenAlexWork)).toBe("other-output");
+    // Article-like and preprints carry no non-article signal (must NOT leave their bucket).
+    for (const t of ["article", "journal-article", "preprint", "posted-content", "other"]) {
+      expect(openalexTypeClass({ type: t } as OpenAlexWork)).toBeUndefined();
+    }
+    expect(openalexTypeClass({} as OpenAlexWork)).toBeUndefined();
+    expect(openalexTypeClass({ type: "" } as OpenAlexWork)).toBeUndefined();
+  });
+});
+
+describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () => {
+  /** A venue-less work (so `isPreprint` flags it) with a chosen OpenAlex `type`. */
+  function typedWork(shortId: string, bareDoi: string, type: string): OpenAlexWork {
+    return {
+      id: `https://openalex.org/${shortId}`,
+      doi: `https://doi.org/${bareDoi}`,
+      title: `Work ${shortId}`,
+      display_name: `Work ${shortId}`,
+      publication_year: 2026,
+      type,
+      authorships: [
+        {
+          author_position: "first",
+          author: {
+            id: "https://openalex.org/A5001069481",
+            display_name: "Basile Chrétien",
+            orcid: "https://orcid.org/0000-0002-7483-2489",
+          },
+          raw_author_name: "Basile Chrétien",
+        },
+      ],
+      // Zenodo is a repository in OpenAlex; here we simulate the venue-less case
+      // (no source.display_name) so isPreprint() === true without the fix.
+      primary_location: null,
+    } as unknown as OpenAlexWork;
+  }
+  const sectionOf = (cv: ReturnType<typeof build>, type: string) =>
+    cv.sections.find((s) => s.type === type);
+  const itemIn = (cv: ReturnType<typeof build>, type: string, id: string) =>
+    sectionOf(cv, type)?.items.find((i) => i.id === id);
+  const allItemsWithId = (cv: ReturnType<typeof build>, id: string) =>
+    cv.sections.flatMap((s) => s.items).filter((i) => i.id === id);
+
+  it("pulls an OpenAlex dataset/software work out of Preprints into Other Research Outputs", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [typedWork("WSOFT", "10.5281/zenodo.soft", "dataset")],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const other = sectionOf(cv, "other")!;
+    expect(other.items.find((i) => i.id === "WSOFT")?.meta.peerReviewed).toBe(false);
+    expect(sectionOf(cv, "preprints")).toBeUndefined();
+    expect(itemIn(cv, "publications", "WSOFT")).toBeUndefined();
+  });
+
+  it("leaves a genuine OpenAlex preprint in Preprints (type-gated, not repository-gated)", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [typedWork("WPRE2", "10.7/pre2", "preprint")],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    expect(itemIn(cv, "preprints", "WPRE2")).toBeDefined();
+    expect(sectionOf(cv, "other")).toBeUndefined();
+  });
+
+  it("lets an ORCID publication type override the OpenAlex dataset type (→ Publications)", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [typedWork("WOV", "10.7/ov", "dataset")],
+      orcidWorkTypes: { "10.7/ov": "journal-article" },
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    expect(itemIn(cv, "publications", "WOV")).toBeDefined();
+    expect(sectionOf(cv, "other")).toBeUndefined();
+    expect(sectionOf(cv, "preprints")).toBeUndefined();
+  });
+
+  it("drops the OpenAlex copy of a Zenodo deposit already in Datasets via a concept↔version DOI sibling", () => {
+    const conceptDoi = "10.5281/zenodo.concept";
+    const versionDoi = "10.5281/zenodo.version";
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      // OpenAlex indexed the VERSION DOI and (Zenodo = repository) would mis-file it.
+      works: [typedWork("WZEN", versionDoi, "dataset")],
+      dataciteOutputs: [
+        {
+          doi: conceptDoi,
+          title: "SigmaCV",
+          type: "Software",
+          year: 2026,
+          publisher: "Zenodo",
+          relatedDois: [versionDoi],
+        },
+      ] as unknown as DataciteOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const ds = sectionOf(cv, "datasets")!;
+    expect(ds.items.some((i) => i.meta.doi?.toLowerCase() === conceptDoi)).toBe(true);
+    // The OpenAlex duplicate is DROPPED from every works section (not just relocated).
+    expect(allItemsWithId(cv, "WZEN")).toHaveLength(0);
+    expect(sectionOf(cv, "preprints")).toBeUndefined();
+    expect(sectionOf(cv, "other")).toBeUndefined();
+  });
+
+  it("drops an OpenAlex dataset work whose own DOI matches a DataCite Datasets item", () => {
+    const doi = "10.5281/zenodo.same";
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [typedWork("WSAME", doi, "dataset")],
+      dataciteOutputs: [
+        { doi, title: "Same", type: "Software", year: 2026, publisher: "Zenodo" },
+      ] as unknown as DataciteOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    expect(allItemsWithId(cv, "WSAME")).toHaveLength(0);
+    expect(sectionOf(cv, "datasets")?.items.some((i) => i.meta.doi?.toLowerCase() === doi)).toBe(
+      true,
+    );
+  });
+
+  it("drops an OpenAlex dataset work whose DOI matches an OpenAIRE output", () => {
+    const doi = "10.5281/zenodo.oa";
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [typedWork("WOA", doi, "dataset")],
+      openaireOutputs: [
+        { openaireId: "oai::1", title: "OA soft", type: "software", doi, year: 2026 },
+      ] as unknown as OpenaireOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    expect(allItemsWithId(cv, "WOA")).toHaveLength(0);
+  });
+
+  it("preserves a user-hidden OpenAlex dataset Other item across re-sync", () => {
+    const first = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [typedWork("WH", "10.7/h-data", "dataset")],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const curated = {
+      ...first,
+      sections: first.sections.map((s) =>
+        s.type === "other" ? { ...s, items: s.items.map((it) => ({ ...it, included: false })) } : s,
+      ),
+    };
+    const resynced = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [typedWork("WH", "10.7/h-data", "dataset")],
+      now: "2026-07-01T00:00:00.000Z",
+      previous: curated,
+    });
+    expect(itemIn(resynced, "other", "WH")?.included).toBe(false); // hide survives
   });
 });

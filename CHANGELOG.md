@@ -57,6 +57,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Your software and datasets no longer land in “Preprints.”** A Zenodo (or other
+  repository) deposit — like a software release or a dataset — was being filed
+  under Preprints, because OpenAlex tags everything from a repository as a preprint
+  and has no “software” type. Such outputs now route to **Datasets & Software** (or
+  **Other Research Outputs** when DataCite hasn’t indexed them yet), never Preprints.
+  When the same deposit is already listed in Datasets & Software (matched through
+  your ORCID on DataCite), the duplicate OpenAlex copy is now dropped — even when
+  Zenodo’s **concept DOI and version DOI differ**, which previously defeated the
+  de-duplication and showed the work twice.
 - **The Role / title field accepts spaces.** Typing a multi-word role such as
   “Group Leader” works again — the field was wiping a trailing space on every
   keystroke, so you could never get past the first word.

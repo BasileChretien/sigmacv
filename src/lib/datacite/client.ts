@@ -18,7 +18,27 @@ export interface DataciteOutput {
   type: string; // resourceTypeGeneral, e.g. "Dataset" | "Software"
   year?: number;
   publisher?: string;
+  /**
+   * Sibling DOIs that identify the SAME deposit under another DOI — Zenodo mints a
+   * concept DOI plus a per-version DOI. Bare + lower-cased. Lets the build
+   * reconcile (and drop) the OpenAlex-indexed copy whichever sibling it carries.
+   * Omitted when there are none.
+   */
+  relatedDois?: string[];
 }
+
+// DataCite relationType values that mark the same deposit under another DOI
+// (concept↔version, identical). Citation/supplement relations (Cites,
+// IsSupplementTo, References, …) are deliberately EXCLUDED — they point at
+// genuinely different works and must not be deduped against. Compared lower-cased.
+const VERSION_RELATIONS = new Set([
+  "isversionof",
+  "hasversion",
+  "isnewversionof",
+  "ispreviousversionof",
+  "isidenticalto",
+  "isvariantformof",
+]);
 
 // Output kinds we surface (exclude article-like types already in Publications).
 const INCLUDE_TYPES = new Set([
@@ -42,6 +62,29 @@ function publisherName(v: unknown): string | undefined {
   if (typeof v === "string") return nonEmpty(v);
   if (typeof v === "object" && v !== null) return nonEmpty((v as Record<string, unknown>).name);
   return undefined;
+}
+
+/** "https://doi.org/10.5281/Zenodo.1" → "10.5281/zenodo.1" (bare, lower-cased). */
+function bareDoiLower(s: unknown): string | undefined {
+  const raw = nonEmpty(s);
+  return raw ? raw.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "").toLowerCase() : undefined;
+}
+
+/** Sibling DOIs (concept↔version / identical) of a DataCite record, deduped. */
+function relatedDoisOf(attr: any): string[] {
+  const rels = Array.isArray(attr?.relatedIdentifiers) ? attr.relatedIdentifiers : [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const r of rels) {
+    if (nonEmpty(r?.relatedIdentifierType)?.toLowerCase() !== "doi") continue;
+    if (!VERSION_RELATIONS.has(nonEmpty(r?.relationType)?.toLowerCase() ?? "")) continue;
+    const doi = bareDoiLower(r?.relatedIdentifier);
+    if (doi && !seen.has(doi)) {
+      seen.add(doi);
+      out.push(doi);
+    }
+  }
+  return out;
 }
 
 export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutput[]> {
@@ -77,12 +120,14 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
       seen.add(doi);
       const yearRaw = attr?.publicationYear;
       const year = Number.isFinite(Number(yearRaw)) ? Number(yearRaw) : undefined;
+      const relatedDois = relatedDoisOf(attr);
       out.push({
         doi,
         title,
         type,
         year,
         publisher: publisherName(attr?.publisher),
+        ...(relatedDois.length ? { relatedDois } : {}),
       });
     }
     return out;
