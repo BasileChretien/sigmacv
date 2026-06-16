@@ -17,6 +17,8 @@ export interface DigestEmailStrings {
   dgRemoved: string;
   /** Continuation line under the (capped) title list. */
   dgMore: string;
+  /** Public-page CTA (only when the CV is published); the /p/ URL follows. */
+  dgViewPage: string;
   /** Call to action; the editor URL follows on its own line. */
   dgCta: string;
   /** Unsubscribe lead-in; the one-click URL follows on its own line. */
@@ -37,6 +39,7 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgReview: "{n} entries are waiting for your review",
     dgRemoved: "{n} entries are no longer listed by the sources",
     dgMore: "…and {n} more",
+    dgViewPage: "See it on your living public page:",
     dgCta: "Review and curate them in the editor:",
     dgUnsub: "Stop these emails (one click):",
     ceSubject: "SigmaCV: confirm your notification email",
@@ -51,6 +54,7 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgReview: "{n} 条等待您审核",
     dgRemoved: "{n} 条已不在数据源中",
     dgMore: "……另有 {n} 条",
+    dgViewPage: "在您的动态公开页面查看:",
     dgCta: "请在编辑器中查看并整理:",
     dgUnsub: "停止接收此类邮件(一键退订):",
     ceSubject: "SigmaCV:请确认您的通知邮箱",
@@ -65,6 +69,7 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgReview: "{n} entradas esperan su revisión",
     dgRemoved: "{n} entradas ya no figuran en las fuentes",
     dgMore: "…y {n} más",
+    dgViewPage: "Véalo en su página pública dinámica:",
     dgCta: "Revíselas en el editor:",
     dgUnsub: "Dejar de recibir estos correos (un clic):",
     ceSubject: "SigmaCV: confirme su correo de notificaciones",
@@ -81,6 +86,7 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgReview: "{n} entrées attendent votre vérification",
     dgRemoved: "{n} entrées ne figurent plus dans les sources",
     dgMore: "…et {n} de plus",
+    dgViewPage: "Voyez-les sur votre page publique vivante :",
     dgCta: "Vérifiez-les dans l’éditeur :",
     dgUnsub: "Ne plus recevoir ces e-mails (un clic) :",
     ceSubject: "SigmaCV : confirmez votre adresse de notification",
@@ -98,6 +104,7 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgReview: "{n} Einträge warten auf Ihre Prüfung",
     dgRemoved: "{n} Einträge sind nicht mehr in den Quellen",
     dgMore: "…und {n} weitere",
+    dgViewPage: "Sehen Sie es auf Ihrer lebenden öffentlichen Seite:",
     dgCta: "Prüfen Sie sie im Editor:",
     dgUnsub: "Diese E-Mails abbestellen (ein Klick):",
     ceSubject: "SigmaCV: Bestätigen Sie Ihre Benachrichtigungsadresse",
@@ -114,6 +121,7 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgReview: "確認待ち {n} 件",
     dgRemoved: "ソースに存在しなくなった項目 {n} 件",
     dgMore: "…ほか {n} 件",
+    dgViewPage: "公開中のライブページで確認:",
     dgCta: "エディタで確認・整理してください:",
     dgUnsub: "このメールの配信を停止する(ワンクリック):",
     ceSubject: "SigmaCV:通知用メールアドレスの確認",
@@ -129,6 +137,7 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgReview: "{n} itens aguardam sua revisão",
     dgRemoved: "{n} itens não constam mais nas fontes",
     dgMore: "…e mais {n}",
+    dgViewPage: "Veja na sua página pública dinâmica:",
     dgCta: "Revise no editor:",
     dgUnsub: "Parar de receber estes e-mails (um clique):",
     ceSubject: "SigmaCV: confirme seu e-mail de notificações",
@@ -144,6 +153,7 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgReview: "{n} voci attendono la tua verifica",
     dgRemoved: "{n} voci non risultano più nelle fonti",
     dgMore: "…e altre {n}",
+    dgViewPage: "Guardala sulla tua pagina pubblica dinamica:",
     dgCta: "Verificale nell’editor:",
     dgUnsub: "Interrompi queste e-mail (un clic):",
     ceSubject: "SigmaCV: conferma la tua e-mail di notifica",
@@ -159,6 +169,7 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgReview: "검토 대기 {n}건",
     dgRemoved: "소스에서 사라진 항목 {n}건",
     dgMore: "…외 {n}건",
+    dgViewPage: "공개된 라이브 페이지에서 확인하세요:",
     dgCta: "편집기에서 확인하고 정리하세요:",
     dgUnsub: "이 이메일 수신 중지(원클릭):",
     ceSubject: "SigmaCV: 알림 이메일 확인",
@@ -174,6 +185,7 @@ const DIGEST_EMAIL: Record<Locale, DigestEmailStrings> = {
     dgReview: "{n} записей ждут вашей проверки",
     dgRemoved: "{n} записей больше нет в источниках",
     dgMore: "…и ещё {n}",
+    dgViewPage: "Посмотрите на своей живой публичной странице:",
     dgCta: "Проверьте их в редакторе:",
     dgUnsub: "Отписаться от этих писем (в один клик):",
     ceSubject: "SigmaCV: подтвердите адрес для уведомлений",
