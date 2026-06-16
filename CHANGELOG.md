@@ -78,6 +78,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Publishing is framed as something you'd want, not a disclosure.** The publish
+  summary used to lead with what gets _exposed_; it now leads with the benefit — a
+  living public page, one link that always re-syncs to your latest work, for your
+  email signature / ORCID / website — then keeps the privacy reassurance. And while
+  your CV is unpublished, the **Publish** control's dot shows a calm accent pulse
+  (reduced-motion-safe) inviting you to share your page; it settles to a steady
+  green once you're live.
 - **First-run prompts no longer pile up.** A brand-new user could land in the
   editor facing three onboarding prompts at once — the “what changed in your
   sync” banner, the “check these are yours” coachmark, and the “publish your
