@@ -112,6 +112,33 @@ export async function getCvForUser(userId: string): Promise<CanonicalCv | null> 
   return parsed.data;
 }
 
+/**
+ * A CV opened in the editor auto-refreshes in the background when it hasn't
+ * synced within this window. The scheduled cron already keeps PUBLISHED CVs
+ * current every 24h; this keeps any CV reasonably fresh whenever its owner opens
+ * it, without syncing on every page load (most opens have no new upstream data).
+ */
+export const EDITOR_SYNC_STALE_MS = 12 * 60 * 60 * 1000;
+
+/**
+ * Whether a CV last synced at `lastSyncedAt` is stale enough to auto-refresh on
+ * opening the editor: never synced, or older than {@link EDITOR_SYNC_STALE_MS}.
+ * Pure (time passed in) so the freshness policy is unit-testable.
+ */
+export function isStaleSince(lastSyncedAt: Date | null, now: number): boolean {
+  return lastSyncedAt === null || now - lastSyncedAt.getTime() > EDITOR_SYNC_STALE_MS;
+}
+
+/** The timestamp of the user's last sync (null = never synced / no CV row). A
+ *  cheap single-column read used to decide the editor's background auto-sync. */
+export async function getLastSyncedAt(userId: string): Promise<Date | null> {
+  const row = await prisma.cv.findUnique({
+    where: { userId },
+    select: { lastSyncedAt: true },
+  });
+  return row?.lastSyncedAt ?? null;
+}
+
 interface SyncOptions {
   userId: string;
   orcid: string;

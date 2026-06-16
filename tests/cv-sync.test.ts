@@ -102,10 +102,13 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   CvNotFoundError,
   CvTooLargeError,
+  EDITOR_SYNC_STALE_MS,
   capCvItems,
   cvItemCount,
   getCvForUser,
   getLastSyncReport,
+  getLastSyncedAt,
+  isStaleSince,
   getPublicCv,
   getPublicCvForPage,
   getPublicCvRecord,
@@ -178,6 +181,32 @@ describe("getCvForUser", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     mocks.findUnique.mockResolvedValue({ document: { nope: true } });
     expect(await getCvForUser("u1")).toBeNull();
+  });
+});
+
+describe("isStaleSince / getLastSyncedAt", () => {
+  const NOW_MS = Date.parse("2026-06-16T12:00:00.000Z");
+
+  it("treats a never-synced CV as stale", () => {
+    expect(isStaleSince(null, NOW_MS)).toBe(true);
+  });
+
+  it("is fresh within the window, stale past it, fresh exactly at the edge", () => {
+    expect(isStaleSince(new Date(NOW_MS - (EDITOR_SYNC_STALE_MS - 1000)), NOW_MS)).toBe(false);
+    expect(isStaleSince(new Date(NOW_MS - (EDITOR_SYNC_STALE_MS + 1000)), NOW_MS)).toBe(true);
+    expect(isStaleSince(new Date(NOW_MS - EDITOR_SYNC_STALE_MS), NOW_MS)).toBe(false);
+  });
+
+  it("getLastSyncedAt returns the row's timestamp, or null when absent", async () => {
+    const ts = new Date(NOW_MS);
+    mocks.findUnique.mockResolvedValue({ lastSyncedAt: ts });
+    expect(await getLastSyncedAt("u1")).toBe(ts);
+
+    mocks.findUnique.mockResolvedValue({ lastSyncedAt: null });
+    expect(await getLastSyncedAt("u1")).toBeNull();
+
+    mocks.findUnique.mockResolvedValue(null);
+    expect(await getLastSyncedAt("u1")).toBeNull();
   });
 });
 
