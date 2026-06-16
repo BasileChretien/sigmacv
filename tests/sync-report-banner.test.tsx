@@ -49,7 +49,10 @@ describe("SyncReportBanner", () => {
         locale="en-US"
       />,
     );
+    // The first-import message reassures: the CV is ready and review is optional.
     expect(screen.getByText(/Imported 42 entries/)).toBeTruthy();
+    expect(screen.getByText(/your CV is ready/i)).toBeTruthy();
+    expect(screen.getByText(/is optional/i)).toBeTruthy();
     expect(screen.queryByText("Show what’s new")).toBeNull();
   });
 
