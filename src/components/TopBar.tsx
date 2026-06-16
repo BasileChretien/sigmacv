@@ -37,6 +37,8 @@ export interface TopBarProps {
   // ── Document state ──
   /** Localized save/sync status text ("Saved." / "Saving…"); "" when idle. */
   status: string;
+  /** Outcome of the status message — drives the dot colour (green/red). */
+  statusKind?: "ok" | "error" | "";
   saving: boolean;
   syncing: boolean;
   dirty: boolean;
@@ -76,6 +78,7 @@ export default function TopBar({
   userName,
   locale,
   status,
+  statusKind = "",
   saving,
   syncing,
   dirty,
@@ -110,7 +113,11 @@ export default function TopBar({
       <div className="topbar-actions">
         {/* Quiet, glanceable auto-save status. Persistent live region (never
             unmounted) so screen readers hear "Saved." / "Synced…" politely. */}
-        <span className="tb-status" role="status" aria-live="polite">
+        <span
+          className={`tb-status${statusKind ? ` tb-status--${statusKind}` : ""}`}
+          role="status"
+          aria-live="polite"
+        >
           {status ? (
             <>
               <span className="tb-status-dot" aria-hidden="true" />

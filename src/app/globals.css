@@ -608,6 +608,14 @@ input[type="radio"] {
   border-radius: var(--radius-full);
   background: var(--success, var(--accent-600));
 }
+/* Failure (a failed save or sync) reads as red — distinct from the neutral/green
+   "Saved." dot, so an error isn't mistaken for success. Semantic danger token. */
+.tb-status--error {
+  color: var(--danger-text);
+}
+.tb-status--error .tb-status-dot {
+  background: var(--danger-text);
+}
 /* Export split: the format select fused to the primary Export button. */
 .export-split {
   display: inline-flex;

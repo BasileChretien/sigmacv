@@ -90,6 +90,13 @@ export default function CvWorkspace({
   // we have no CV to show — drives the distinct, retryable error state.
   const [syncError, setSyncError] = useState(initialSyncFailed);
   const [status, setStatus] = useState("");
+  // Outcome of the current status message, so the top bar can show a green/red
+  // dot instead of the same neutral one for both "Saved." and "Sync failed."
+  const [statusKind, setStatusKind] = useState<"ok" | "error" | "">("");
+  const showStatus = useCallback((message: string, kind: "ok" | "error" | "" = "") => {
+    setStatus(message);
+    setStatusKind(message ? kind : "");
+  }, []);
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
   // Which pane is visible on narrow screens (both show side-by-side on desktop).
   const [pane, setPane] = useState<"editor" | "preview">("editor");
@@ -145,11 +152,14 @@ export default function CvWorkspace({
     return () => clearTimeout(handle);
   }, [cv]);
 
-  const update = useCallback((next: CanonicalCv) => {
-    setCv(next);
-    setDirty(true);
-    setStatus("");
-  }, []);
+  const update = useCallback(
+    (next: CanonicalCv) => {
+      setCv(next);
+      setDirty(true);
+      showStatus("");
+    },
+    [showStatus],
+  );
 
   // A DOI-claimed work is appended + SAVED server-side, so adopt the returned CV
   // and stay clean (no pending save) rather than marking the doc dirty.
@@ -157,9 +167,9 @@ export default function CvWorkspace({
     (next: CanonicalCv) => {
       setCv(next);
       setDirty(false);
-      setStatus(t(uiLocale, "savedStatus"));
+      showStatus(t(uiLocale, "savedStatus"), "ok");
     },
-    [uiLocale],
+    [uiLocale, showStatus],
   );
 
   const handleSave = useCallback(async (): Promise<boolean> => {
@@ -167,24 +177,24 @@ export default function CvWorkspace({
     const snapshot = cv;
     savingRef.current = true;
     setSaving(true);
-    setStatus("");
+    showStatus("");
     try {
       await apiFetch("/api/cv", "PATCH", { document: snapshot });
       // Only clear the dirty flag if nothing was edited while the save was in
       // flight; otherwise the pending auto-save persists the newer document.
       if (cvRef.current === snapshot) setDirty(false);
-      setStatus(t(uiLocale, "savedStatus"));
+      showStatus(t(uiLocale, "savedStatus"), "ok");
       return true;
     } catch (err) {
       // Leave the document dirty so the Save button + navigate-away guard still
       // protect the edit; do not auto-retry in a loop.
-      setStatus(err instanceof Error ? err.message : t(uiLocale, "saveFailed"));
+      showStatus(err instanceof Error ? err.message : t(uiLocale, "saveFailed"), "error");
       return false;
     } finally {
       savingRef.current = false;
       setSaving(false);
     }
-  }, [cv, uiLocale]);
+  }, [cv, uiLocale, showStatus]);
 
   // Keep a stable handle to the latest save callback so the debounce effect
   // below doesn't reset its timer every time `cv`/`uiLocale` change.
@@ -216,7 +226,7 @@ export default function CvWorkspace({
 
   const handleSync = useCallback(async () => {
     setSyncing(true);
-    setStatus("");
+    showStatus("");
     try {
       const data = (await apiFetch("/api/cv/sync", "POST")) as {
         cv: CanonicalCv;
@@ -227,16 +237,16 @@ export default function CvWorkspace({
       setSyncReport(safeParseSyncReport(data.report));
       setDirty(false);
       setSyncError(false);
-      setStatus(t(uiLocale, "syncedStatus"));
+      showStatus(t(uiLocale, "syncedStatus"), "ok");
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : t(uiLocale, "syncFailed"));
+      showStatus(err instanceof Error ? err.message : t(uiLocale, "syncFailed"), "error");
       // With no CV on screen, a transient status line is easy to miss and looks
       // like "you have no works" — surface a distinct, retryable error instead.
       if (!cvRef.current) setSyncError(true);
     } finally {
       setSyncing(false);
     }
-  }, [uiLocale]);
+  }, [uiLocale, showStatus]);
 
   // ── Onboarding sequencer ────────────────────────────────────────────────
   // The first-run prompts (the "what changed" sync banner, the disambiguation
@@ -293,6 +303,7 @@ export default function CvWorkspace({
         userName={userName}
         locale={uiLocale}
         status={status}
+        statusKind={statusKind}
         saving={saving}
         syncing={syncing}
         dirty={dirty}
