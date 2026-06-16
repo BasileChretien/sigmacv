@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Your published CV page now shows it's a _living_ page.** A public `/p/…` page
+  carries a visible "Updated _<date>_ · updates automatically" line, so a visitor
+  (a hiring committee, a collaborator) can see at a glance that it's current — the
+  whole point of a living CV, which a static PDF can't convey. The page also now
+  emits schema.org structured data (with a `dateModified`) whether or not you've
+  opted into search indexing — so tools and assistants you deliberately share the
+  link with can read a structured profile (search engines still stay out unless
+  you opt in).
+
 ### Changed
 
 - **Editor top bar tidied up.** The toolbar above the editor — which had grown to
