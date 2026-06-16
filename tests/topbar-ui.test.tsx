@@ -67,4 +67,15 @@ describe("TopBar (restructured editor top bar)", () => {
     expect(status.getAttribute("aria-live")).toBe("polite");
     expect(status.textContent).toContain("Saved.");
   });
+
+  it("marks a failed status distinctly (red) and a successful one not", () => {
+    const { container, rerender } = render(
+      <TopBar {...baseProps} status="Sync failed." statusKind="error" />,
+    );
+    expect(container.querySelector(".tb-status--error")).toBeTruthy();
+
+    rerender(<TopBar {...baseProps} status="Saved." statusKind="ok" />);
+    expect(container.querySelector(".tb-status--error")).toBeNull();
+    expect(container.querySelector(".tb-status--ok")).toBeTruthy();
+  });
 });

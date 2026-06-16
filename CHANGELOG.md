@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A failed save or sync now reads as an error, not a success.** The editor’s
+  status indicator showed the same neutral/green dot for “Saved.” and for
+  “Sync failed.” — so a failure could be mistaken for success at a glance. The
+  dot (and text) now turn **red** on failure and stay green on success.
 - **A failed first sync no longer looks like “you have no publications.”** When the
   very first import from OpenAlex failed (a network hiccup, OpenAlex briefly down),
   the editor showed the same neutral “No CV yet” empty state as a genuinely empty
