@@ -287,6 +287,20 @@
   text-transform: uppercase;
   color: var(--accent-600);
 }
+/* "Optional" pill beside the Publish step's number — signals step 4 isn't required. */
+.hp2-optional {
+  display: inline-block;
+  margin-left: 0.6rem;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--accent-600);
+  border: 1px solid var(--accent-600);
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem;
+  vertical-align: 0.12em;
+}
 .hp2-feature-title {
   font-size: clamp(1.4rem, 3vw, 2rem);
   font-weight: var(--weight-bold);

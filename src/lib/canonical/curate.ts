@@ -843,8 +843,11 @@ export function setItemRoleTitle(
       if (it.id !== itemId) return it;
       const trimmed = role.trim();
       // Blank, or identical to the source role → no override (revert to source).
+      // Otherwise store the RAW value (not the trimmed one) so a trailing space
+      // isn't stripped on every keystroke — the user must be able to type the
+      // space in "Group Leader". Edge whitespace is harmless and trimmed on render.
       const override =
-        trimmed.length === 0 || trimmed === (it.meta.roleTitle ?? "").trim() ? undefined : trimmed;
+        trimmed.length === 0 || trimmed === (it.meta.roleTitle ?? "").trim() ? undefined : role;
       const meta = { ...it.meta, roleTitleOverride: override };
       const next: CvItem = { ...it, meta };
       const line = rederiveEntryLine(next);

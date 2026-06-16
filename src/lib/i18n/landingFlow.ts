@@ -28,6 +28,8 @@ export interface LandingFlow {
   templatesCta: string;
   /** Closing call-to-action heading. */
   ctaTitle: string;
+  /** Short "Optional" badge on the Publish step (step 4 is not required). */
+  optionalLabel: string;
 }
 
 const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
@@ -74,6 +76,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
     ],
     templatesCta: "Browse all 58 funder, job & industry templates",
     ctaTitle: "Build your CV from the open research record.",
+    optionalLabel: "Optional",
   },
   "zh-CN": {
     howTitle: "工作原理",
@@ -118,6 +121,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
     ],
     templatesCta: "浏览全部 58 种资助方、求职与行业模板",
     ctaTitle: "用公开学术记录构建你的简历。",
+    optionalLabel: "可选",
   },
   "es-ES": {
     howTitle: "Cómo funciona",
@@ -162,6 +166,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
     ],
     templatesCta: "Explora las 58 plantillas para financiadores, empleo e industria",
     ctaTitle: "Crea tu CV a partir del registro abierto.",
+    optionalLabel: "Opcional",
   },
   "fr-FR": {
     howTitle: "Comment ça marche",
@@ -206,6 +211,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
     ],
     templatesCta: "Parcourir les 58 modèles financeurs, emploi et industrie",
     ctaTitle: "Construisez votre CV à partir du registre ouvert.",
+    optionalLabel: "Facultatif",
   },
   "de-DE": {
     howTitle: "So funktioniert's",
@@ -250,6 +256,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
     ],
     templatesCta: "Alle 58 Vorlagen für Förderer, Job und Industrie ansehen",
     ctaTitle: "Erstellen Sie Ihren CV aus dem offenen Forschungsnachweis.",
+    optionalLabel: "Optional",
   },
   "ja-JP": {
     howTitle: "仕組み",
@@ -294,6 +301,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
     ],
     templatesCta: "助成機関・求職・業界向けの全 58 テンプレートを見る",
     ctaTitle: "公開された研究記録から CV を作成。",
+    optionalLabel: "任意",
   },
   "pt-BR": {
     howTitle: "Como funciona",
@@ -338,6 +346,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
     ],
     templatesCta: "Veja todos os 58 modelos para financiadores, emprego e indústria",
     ctaTitle: "Monte seu currículo a partir do registro aberto.",
+    optionalLabel: "Opcional",
   },
   "it-IT": {
     howTitle: "Come funziona",
@@ -382,6 +391,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
     ],
     templatesCta: "Sfoglia tutti i 58 modelli per finanziatori, lavoro e industria",
     ctaTitle: "Crea il tuo CV dal registro aperto.",
+    optionalLabel: "Facoltativo",
   },
   "ko-KR": {
     howTitle: "이용 방법",
@@ -426,6 +436,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
     ],
     templatesCta: "연구비·구직·산업용 58개 템플릿 모두 보기",
     ctaTitle: "공개된 연구 기록으로 CV를 만드세요.",
+    optionalLabel: "선택 사항",
   },
   "ru-RU": {
     howTitle: "Как это работает",
@@ -470,6 +481,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
     ],
     templatesCta: "Посмотреть все 58 шаблонов: фонды, работа и индустрия",
     ctaTitle: "Создайте резюме из открытого реестра.",
+    optionalLabel: "Необязательно",
   },
 };
 

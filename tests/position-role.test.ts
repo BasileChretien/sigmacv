@@ -161,6 +161,16 @@ describe("setItemRoleTitle", () => {
     expect(updated.displayText).toBe("Visiting Researcher, MIT (2019–2021)");
   });
 
+  it("preserves a trailing space so a multi-word role can be typed", () => {
+    const cv = build();
+    const { id: sid } = positionsSection(cv);
+    const item = orcidPosition(cv);
+    // Mid-typing "Group Leader": after "Group " the trailing space must survive —
+    // storing the trimmed value would wipe it on every keystroke, blocking the space.
+    const updated = findItem(setItemRoleTitle(cv, sid, item.id, "Group "), sid, item.id);
+    expect(updated.meta.roleTitleOverride).toBe("Group ");
+  });
+
   it("clears the override on a blank value (revert to source)", () => {
     const cv = build();
     const { id: sid } = positionsSection(cv);
