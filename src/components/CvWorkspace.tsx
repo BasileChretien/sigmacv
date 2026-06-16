@@ -26,6 +26,9 @@ interface CvWorkspaceProps {
   initialCv: CanonicalCv | null;
   /** The persisted "what changed" report of the last sync (null = none yet). */
   initialSyncReport?: SyncReport | null;
+  /** True when the server's first auto-sync threw — show a retryable error
+   *  state instead of the "no CV yet" empty state. */
+  initialSyncFailed?: boolean;
   availableStyles: string[];
   userName: string;
   researchConsent: boolean;
@@ -61,6 +64,7 @@ async function apiFetch(url: string, method: "POST" | "PATCH", body?: unknown): 
 export default function CvWorkspace({
   initialCv,
   initialSyncReport = null,
+  initialSyncFailed = false,
   availableStyles,
   userName,
   researchConsent,
@@ -81,6 +85,9 @@ export default function CvWorkspace({
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  // True when a sync (the server's first auto-sync, or a manual retry) failed and
+  // we have no CV to show — drives the distinct, retryable error state.
+  const [syncError, setSyncError] = useState(initialSyncFailed);
   const [status, setStatus] = useState("");
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
   // Which pane is visible on narrow screens (both show side-by-side on desktop).
@@ -218,9 +225,13 @@ export default function CvWorkspace({
       // Shape-validated: a report the client can't parse degrades to "none".
       setSyncReport(safeParseSyncReport(data.report));
       setDirty(false);
+      setSyncError(false);
       setStatus(t(uiLocale, "syncedStatus"));
     } catch (err) {
       setStatus(err instanceof Error ? err.message : t(uiLocale, "syncFailed"));
+      // With no CV on screen, a transient status line is easy to miss and looks
+      // like "you have no works" — surface a distinct, retryable error instead.
+      if (!cvRef.current) setSyncError(true);
     } finally {
       setSyncing(false);
     }
@@ -325,6 +336,14 @@ export default function CvWorkspace({
             </section>
           </div>
         </>
+      ) : syncError ? (
+        <div className="cv-empty cv-empty-error container" id="cv-main" role="alert">
+          <h2>{t(uiLocale, "syncErrorTitle")}</h2>
+          <p className="muted">{t(uiLocale, "syncErrorBody")}</p>
+          <button type="button" className="btn btn-primary" onClick={handleSync} disabled={syncing}>
+            {syncing ? t(uiLocale, "resyncing") : t(uiLocale, "syncRetry")}
+          </button>
+        </div>
       ) : (
         <div className="cv-empty container" id="cv-main">
           <h2>{t(uiLocale, "emptyTitle")}</h2>

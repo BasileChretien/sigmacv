@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A failed first sync no longer looks like “you have no publications.”** When the
+  very first import from OpenAlex failed (a network hiccup, OpenAlex briefly down),
+  the editor showed the same neutral “No CV yet” empty state as a genuinely empty
+  profile, with the real error buried in a status line that vanished on refresh —
+  so a brand-new user could think the tool simply found nothing for them. A failed
+  sync now shows a distinct, clearly-worded **“We couldn’t reach OpenAlex”** state
+  (reassuring them their account is fine) with a **Try again** button, separate from
+  the empty state. Localized in all ten languages.
 - **Dark-mode contrast in the editor.** A handful of editor controls (the
   save-status pill, source/“you” badges, hover states on icon and “mine”
   buttons, the section-toggle hover, the drag handle, scrollbar thumbs and the
