@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   opted their own page into search indexing** — the same consent that lets search
   engines find their page. Nothing changes visibly on the page, and a co-author
   who unpublishes or turns off indexing is delinked automatically.
+- **A "Living CV" badge for your README, site, or email signature.** Once your
+  page is published, the publish panel has a new **"Get a badge"** section: a small,
+  always-current SVG badge (a standard pill, a compact chip, or a richer card with
+  your name and the month it last synced) that links back to your living public CV.
+  Pick a style and light/dark/auto theme, preview it live, and copy a ready-made
+  **Markdown / HTML / image-URL** snippet. It shows only your already-public data
+  and **stops working the moment you unpublish**, it makes no third-party requests,
+  and it is **deliberately metric-free** (no h-index or citation count) in keeping
+  with the project's DORA stance — it advertises openness and freshness, not a rank.
+  The badge also carries the same FAIR Signposting links as the public page, and
+  the panel chrome is localized across all ten languages.
 - **Edit a position's institution and dates, too.** Each position and education
   entry now has an **"Edit details"** panel to correct the **institution name** and
   the **start/end year** — with an **"Ongoing"** toggle for current roles. Like the
