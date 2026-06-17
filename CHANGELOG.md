@@ -65,7 +65,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   When the same deposit is already listed in Datasets & Software (matched through
   your ORCID on DataCite), the duplicate OpenAlex copy is now dropped — even when
   Zenodo’s **concept DOI and version DOI differ**, which previously defeated the
-  de-duplication and showed the work twice.
+  de-duplication and showed the work twice. We also now find your DataCite deposits
+  whether your ORCID is recorded in its **bare** (`0000-…`) or full-URL form (Zenodo
+  stores the bare form, so these were being missed entirely), and **collapse a
+  deposit’s concept and version DOIs into a single entry** instead of listing every
+  release.
 - **The Role / title field accepts spaces.** Typing a multi-word role such as
   “Group Leader” works again — the field was wiping a trailing space on every
   keystroke, so you could never get past the first word.

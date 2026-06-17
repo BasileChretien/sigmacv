@@ -78,6 +78,19 @@ describe("fetchDataciteOutputs", () => {
     expect(String(f.mock.calls[0]?.[0])).toContain("0000-0002-7483-2489");
   });
 
+  it("matches BOTH the URL and bare forms of the ORCID nameIdentifier", async () => {
+    // Zenodo (passing through a bare `.zenodo.json` orcid) registers the ORCID as
+    // the bare "0000-…" value, while others use the "https://orcid.org/…" URL form;
+    // the indexed value is matched verbatim, so querying only the URL form silently
+    // misses every record stored bare. The query must cover both.
+    const f = vi.fn(async (_url: URL | string) => res({ data: [] }));
+    vi.stubGlobal("fetch", f);
+    await fetchDataciteOutputs("0000-0002-7483-2489");
+    const q = decodeURIComponent(String(f.mock.calls[0]?.[0]));
+    expect(q).toContain('"https://orcid.org/0000-0002-7483-2489"'); // URL form
+    expect(q).toContain('"0000-0002-7483-2489"'); // bare form (quote-delimited)
+  });
+
   it("fails soft on an API error", async () => {
     vi.stubGlobal(
       "fetch",

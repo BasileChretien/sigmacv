@@ -1183,6 +1183,28 @@ describe("openalexTypeClass", () => {
     expect(openalexTypeClass({} as OpenAlexWork)).toBeUndefined();
     expect(openalexTypeClass({ type: "" } as OpenAlexWork)).toBeUndefined();
   });
+
+  it("treats a repository-hosted 'other' work as other-output (Zenodo deposit), not a venue 'other'", () => {
+    // OpenAlex types a Zenodo software deposit as `other` on a `repository` source.
+    const repoOther = {
+      type: "other",
+      primary_location: { source: { type: "repository", display_name: "Zenodo" } },
+    } as unknown as OpenAlexWork;
+    expect(openalexTypeClass(repoOther)).toBe("other-output");
+    // "other" with a real venue (e.g. a journal) is miscellany — left untouched so it
+    // doesn't get pulled out of Publications.
+    const venueOther = {
+      type: "other",
+      primary_location: { source: { type: "journal", display_name: "Some Journal" } },
+    } as unknown as OpenAlexWork;
+    expect(openalexTypeClass(venueOther)).toBeUndefined();
+    // A repository PREPRINT (arXiv/bioRxiv) is typed "preprint", not "other" → untouched.
+    const repoPreprint = {
+      type: "preprint",
+      primary_location: { source: { type: "repository", display_name: "arXiv" } },
+    } as unknown as OpenAlexWork;
+    expect(openalexTypeClass(repoPreprint)).toBeUndefined();
+  });
 });
 
 describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () => {
@@ -1335,5 +1357,96 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
       previous: curated,
     });
     expect(itemIn(resynced, "other", "WH")?.included).toBe(false); // hide survives
+  });
+
+  it("routes a repository-hosted OpenAlex 'other' deposit out of Preprints (no DataCite match)", () => {
+    // OpenAlex types a Zenodo software deposit `other` on a `repository` source. When
+    // DataCite hasn't indexed it (so it can't be deduped into Datasets & Software), it
+    // must still leave Preprints for Other Research Outputs.
+    const repoOther = {
+      ...typedWork("WRO", "10.5281/zenodo.norient", "other"),
+      primary_location: { source: { type: "repository", display_name: "Zenodo" } },
+    } as unknown as OpenAlexWork;
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [repoOther],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    expect(itemIn(cv, "other", "WRO")).toBeDefined();
+    expect(sectionOf(cv, "preprints")).toBeUndefined();
+    expect(itemIn(cv, "publications", "WRO")).toBeUndefined();
+  });
+
+  it("collapses Zenodo concept↔version DataCite siblings into one Datasets & Software entry", () => {
+    const concept = "10.5281/zenodo.concept2";
+    const version = "10.5281/zenodo.version2";
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      // OpenAlex indexed BOTH the concept and version DOIs (typed `other`).
+      works: [typedWork("WC", concept, "other"), typedWork("WV", version, "other")],
+      // DataCite returns both sibling records (concept self-refs; version → concept).
+      dataciteOutputs: [
+        {
+          doi: concept,
+          title: "SigmaCV",
+          type: "Software",
+          year: 2026,
+          publisher: "Zenodo",
+          relatedDois: [concept],
+        },
+        {
+          doi: version,
+          title: "SigmaCV",
+          type: "Software",
+          year: 2026,
+          publisher: "Zenodo",
+          relatedDois: [concept],
+        },
+      ] as unknown as DataciteOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const ds = sectionOf(cv, "datasets")!;
+    // ONE entry per deposit (the concept DOI), not the concept AND the version.
+    expect(ds.items).toHaveLength(1);
+    expect(ds.items[0]?.meta.doi?.toLowerCase()).toBe(concept);
+    // Both OpenAlex copies (concept + version) are dropped — nothing in Preprints/Other.
+    expect(allItemsWithId(cv, "WC")).toHaveLength(0);
+    expect(allItemsWithId(cv, "WV")).toHaveLength(0);
+    expect(sectionOf(cv, "preprints")).toBeUndefined();
+    expect(sectionOf(cv, "other")).toBeUndefined();
+  });
+
+  it("keeps the newest version when sibling records share a concept that's absent", () => {
+    // Two versions of one deposit, neither being the concept record (concept DOI not
+    // returned) → collapse to the NEWEST by year.
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      dataciteOutputs: [
+        {
+          doi: "10.5281/zenodo.v1",
+          title: "Thing",
+          type: "Dataset",
+          year: 2024,
+          publisher: "Zenodo",
+          relatedDois: ["10.5281/zenodo.cpt"],
+        },
+        {
+          doi: "10.5281/zenodo.v2",
+          title: "Thing",
+          type: "Dataset",
+          year: 2026,
+          publisher: "Zenodo",
+          relatedDois: ["10.5281/zenodo.cpt"],
+        },
+      ] as unknown as DataciteOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const ds = sectionOf(cv, "datasets")!;
+    expect(ds.items).toHaveLength(1);
+    expect(ds.items[0]?.meta.doi?.toLowerCase()).toBe("10.5281/zenodo.v2");
   });
 });
