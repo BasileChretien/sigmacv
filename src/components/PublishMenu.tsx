@@ -25,6 +25,8 @@ interface PublishMenuProps {
     slug: string | null;
     indexable: boolean;
   }) => void;
+  /** Deep-link to the editor's public-page-style picker (closes this menu first). */
+  onEditPublicStyle?: () => void;
 }
 
 /**
@@ -42,6 +44,7 @@ export default function PublishMenu({
   publicContact,
   onPublicContactChange,
   onPublishStateChange,
+  onEditPublicStyle,
 }: PublishMenuProps) {
   const u = ui(locale);
   const wu = workspaceUi(locale);
@@ -61,7 +64,7 @@ export default function PublishMenu({
         </>
       }
     >
-      {() => (
+      {(close) => (
         <PublishControls
           initialPublished={published}
           initialSlug={slug}
@@ -70,6 +73,14 @@ export default function PublishMenu({
           publicContact={publicContact}
           onPublicContactChange={onPublicContactChange}
           onPublishStateChange={onPublishStateChange}
+          onEditPublicStyle={
+            onEditPublicStyle
+              ? () => {
+                  close();
+                  onEditPublicStyle();
+                }
+              : undefined
+          }
         />
       )}
     </Popover>

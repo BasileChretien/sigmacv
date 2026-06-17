@@ -66,6 +66,8 @@ export interface TopBarProps {
     slug: string | null;
     indexable: boolean;
   }) => void;
+  /** Deep-link from the Publish menu to the editor's public-page-style picker. */
+  onEditPublicStyle?: () => void;
   // ── Account (hosted in the Account menu) ──
   researchConsent: boolean;
   digestOptIn?: boolean;
@@ -104,6 +106,7 @@ export default function TopBar({
   publicContact,
   onPublicContactChange,
   onPublishStateChange,
+  onEditPublicStyle,
   researchConsent,
   digestOptIn,
   digestContactEmail,
@@ -222,6 +225,7 @@ export default function TopBar({
           publicContact={publicContact}
           onPublicContactChange={onPublicContactChange}
           onPublishStateChange={onPublishStateChange}
+          onEditPublicStyle={onEditPublicStyle}
         />
 
         {/* Share/embed lives on its OWN trigger, shown only once the page is live —

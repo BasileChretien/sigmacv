@@ -332,6 +332,14 @@ export default function CvWorkspace({
     window.location.href = `/api/cv/export/${exportFormat}`;
   }, [dirty, handleSave, exportFormat]);
 
+  // Deep-link from the Publish menu to the public-page-style picker: on a phone,
+  // make sure the editor pane (not the preview) is showing, then jump the editor
+  // to the Design part and reveal that group.
+  const handleEditPublicStyle = useCallback(() => {
+    setPane("editor");
+    editorRef.current?.jumpToPublicStyle();
+  }, []);
+
   return (
     <div className="cv-page" lang={uiLocale}>
       <a href="#cv-main" className="skip-link">
@@ -369,6 +377,7 @@ export default function CvWorkspace({
             if (cv) update(updateDisplay(cv, { publicContact: next }));
           }}
           onPublishStateChange={setPublishState}
+          onEditPublicStyle={handleEditPublicStyle}
           researchConsent={researchConsent}
           digestOptIn={digestOptIn}
           digestContactEmail={digestContactEmail}

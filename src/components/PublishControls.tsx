@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
+import { editorUi } from "@/lib/i18n/editorUi";
 import { trackEvent } from "@/lib/analytics/track";
 
 interface PublicContactFlags {
@@ -26,6 +27,10 @@ interface PublishControlsProps {
     slug: string | null;
     indexable: boolean;
   }) => void;
+  /** Deep-link to the editor's public-page-style picker (the publish surface is
+      where the "style my public page" job naturally begins). Optional so the
+      control still works standalone. */
+  onEditPublicStyle?: () => void;
 }
 
 /**
@@ -45,8 +50,10 @@ export default function PublishControls({
   publicContact,
   onPublicContactChange,
   onPublishStateChange,
+  onEditPublicStyle,
 }: PublishControlsProps) {
   const u = ui(locale);
+  const eu = editorUi(locale);
   const [published, setPublished] = useState(initialPublished);
   const [slug, setSlug] = useState(initialSlug);
   const [indexable, setIndexable] = useState(initialIndexable);
@@ -159,6 +166,18 @@ export default function PublishControls({
               <span>{u.publicShowLocation}</span>
             </label>
           </fieldset>
+          {/* Deep-link to the editor's public-page-style picker — styling the
+              living page is a publish-side job, so offer the jump right here once
+              the page is live (closes this menu, opens + scrolls to that group). */}
+          {onEditPublicStyle ? (
+            <button
+              type="button"
+              className="btn btn-sm publish-style-cta"
+              onClick={onEditPublicStyle}
+            >
+              {eu.publishStyleTip} <span aria-hidden="true">→</span>
+            </button>
+          ) : null}
         </>
       ) : null}
     </div>
