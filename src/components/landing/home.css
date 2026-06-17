@@ -150,6 +150,12 @@
   color: #fff;
   box-shadow: var(--shadow-sm);
 }
+/* Disabled / in-flight sign-in: dim + not-allowed, but keep the label legible so
+   the "Signing in…" text reads clearly during the OAuth redirect. */
+.hp2-btn:disabled {
+  cursor: progress;
+  opacity: 0.75;
+}
 .hp2-help {
   margin: var(--space-3) 0 0;
   font-size: var(--text-sm);
@@ -184,6 +190,29 @@
   line-height: 1.5;
   color: var(--muted);
 }
+/* Email magic-link form: visible label + persistent helper (placeholder is not a
+   label). The input + submit stay on one row via the shared .auth-email-row. */
+.hp2-email-form {
+  margin-top: var(--space-3);
+}
+.hp2-email-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+/* The shared .auth-email-row carries its own top margin (for the old label-less
+   layout); zero it here so the input sits snug under the visible label. */
+.hp2-email-form .auth-email-row {
+  margin-top: 0;
+}
+.hp2-email-help {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--muted);
+}
 /* Trust line directly under the ORCID sign-in button. */
 .hp2-signin-trust {
   margin: var(--space-2) 0 0;
@@ -195,6 +224,73 @@
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
+}
+
+/* ── Auth feedback pages (sign-in error / check-your-email) ─────────────────
+   Standalone centred card reusing the landing shell + tokens. */
+.hp2-auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-8);
+}
+.hp2-auth-card {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(8px);
+}
+.hp2-auth-mark {
+  width: 2.4rem;
+  height: 2.4rem;
+  margin: 0 auto var(--space-4);
+  font-size: 1.3rem;
+}
+.hp2-auth-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 var(--space-2);
+}
+.hp2-auth-intro {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+}
+.hp2-auth-msg {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.hp2-auth-hint {
+  margin: 0 0 var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.hp2-auth-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+.hp2-auth-btn {
+  width: auto;
+  text-decoration: none;
+}
+.hp2-auth-link {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--accent-700);
+  text-decoration: none;
+}
+.hp2-auth-link:hover {
+  text-decoration: underline;
 }
 
 /* ── Sources strip ─────────────────────────────────────────────────── */
