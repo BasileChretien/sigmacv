@@ -19,6 +19,8 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -214,11 +216,28 @@ function clockworkCss(_t: TemplateTheme): string {
   }`;
 }
 
+const clockworkMascotCss = `
+  /* Mascot: an original little brass "cog automaton" with one eye. Appearance only. */
+  .sigma-mascot { width:46px; height:46px; border-radius:50%;
+    background: radial-gradient(circle at 38% 34%, #e7c878, #b88a2e 70%, #8a6d2e);
+    box-shadow: 0 0 0 3px #5a4420, 0 7px 16px -7px rgba(0,0,0,0.6); }
+  .sigma-mascot::before { content:""; position:absolute; inset:-5px; border-radius:50%; z-index:-1;
+    background: repeating-conic-gradient(#c9a44c 0deg 10deg, transparent 10deg 24deg);
+    -webkit-mask: radial-gradient(transparent 60%, #000 62% 76%, transparent 78%);
+    mask: radial-gradient(transparent 60%, #000 62% 76%, transparent 78%); }
+  .sigma-mascot::after { content:""; position:absolute; top:50%; left:50%; width:17px; height:17px; border-radius:50%;
+    background: radial-gradient(circle at 36% 32%, #6a5a3a 0 12%, #2a2118 32%, #0c0a06); transform:translate(-50%,-50%);
+    box-shadow: inset 0 0 0 2px #e7c878; }
+  .sigma-mascot i { top:-13px; left:50%; width:3px; height:11px; background:#8a6d2e; transform:translateX(-50%); }
+  .sigma-mascot i::before { content:""; position:absolute; top:-6px; left:50%; width:7px; height:7px; border-radius:50%;
+    background: radial-gradient(circle at 40% 35%, #e7c878, #8a6d2e); transform:translateX(-50%); }`;
+
 export const clockworkTemplate: CvTemplate = {
   key: "clockwork",
   render(cv, sections, theme, opts) {
-    const css = commonCss(theme) + clockworkCss(theme);
+    const css = commonCss(theme) + clockworkCss(theme) + mascotBaseCss() + clockworkMascotCss;
     const body =
+      mascotHtml(cv) +
       `<div class="ck-rail" aria-hidden="true"></div>` +
       `<div class="ck-cords" aria-hidden="true"><span class="ck-cord ck-c1"></span><span class="ck-cord ck-c2"></span><span class="ck-cord ck-c3"></span></div>` +
       `<div class="ck-gear ck-gear-a" aria-hidden="true"></div>` +

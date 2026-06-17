@@ -24,6 +24,12 @@ interface CvHealthPanelProps {
    * text. The editor owns the navigation (section expand + scroll/focus).
    */
   onResolve?: (category: CvHealthCategory) => void;
+  /**
+   * Bulk "they're all mine" for the likely-misattributed row: confirm every flagged
+   * work at once (keeps them shown, stops flagging). The safe escape hatch for a
+   * high-namesake user facing several flags. When omitted, the shortcut is hidden.
+   */
+  onConfirmAllMisattributed?: () => void;
 }
 
 /**
@@ -33,7 +39,12 @@ interface CvHealthPanelProps {
  * collapsed sections. Each row links to the first such item. Renders nothing
  * when there is nothing to do.
  */
-export default function CvHealthPanel({ cv, locale, onResolve }: CvHealthPanelProps) {
+export default function CvHealthPanel({
+  cv,
+  locale,
+  onResolve,
+  onConfirmAllMisattributed,
+}: CvHealthPanelProps) {
   const wu = workspaceUi(locale);
   const health = useMemo(() => computeCvHealth(cv), [cv]);
   if (health.total === 0) return null;
@@ -70,6 +81,16 @@ export default function CvHealthPanel({ cv, locale, onResolve }: CvHealthPanelPr
               ) : (
                 text
               )}
+              {r.key === "misattributed" && onConfirmAllMisattributed ? (
+                <button
+                  type="button"
+                  className="cv-health-bulk"
+                  onClick={onConfirmAllMisattributed}
+                  title={wu.hpMisAllMine}
+                >
+                  {wu.hpMisAllMine}
+                </button>
+              ) : null}
             </li>
           );
         })}

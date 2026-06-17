@@ -32,19 +32,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **An optional mascot companion for your living page.** Turn on a small SigmaCV
+  character that rides the page as visitors scroll — it travels down as they read
+  and back up when they scroll up — with a different design for each playful
+  atmosphere (a pixel bot on **Arcade**, a seed sprite on **Meadow**, a neon drone
+  on **Cyberpunk**, a brass automaton on **Clockwork**). It's **off by default** and
+  offered only on those playful styles — never on the credible ones, and never on
+  any export. Like everything on the public page it's 100% CSS-only (no JavaScript)
+  and fully respectful: it's decorative (`aria-hidden`), tints itself with your
+  accent, and is hidden automatically for visitors who prefer reduced motion, on
+  narrow screens, and in print.
 - **We now flag publications that may not be yours.** Open databases like OpenAlex
   match papers to authors automatically and, to avoid missing any, lean toward
   over-merging — so a paper by a different researcher with a similar name can land
   on your profile (most common for widely-shared and non-Latin-script names). SigmaCV
   now spots these: when a work was matched only by an OpenAlex author profile (no
-  confirming ORCID) **and** it disagrees with the rest of your record on two strong
-  signals — it shares **no co-authors** with your other work **and** sits in a clearly
-  **different research field** — it gets a calm "Review" badge and a count in the
-  "Needs your attention" checklist. Nothing is ever removed automatically: you decide,
-  keeping it or marking it "not mine". The check is deliberately conservative (it
-  would rather miss a few than wrongly question a paper that's yours), uses only your
-  own profile signals (never any inference about names or origin), and these flags
-  never appear on your public page or exports.
+  confirming ORCID) **and** it disagrees with the rest of your record — it shares
+  **no co-authors** with your other work, plus either a clearly **different research
+  field** or an **institution you've never been affiliated with** — it gets a calm
+  "Review" badge that explains exactly why, and a count in the "Needs your attention"
+  checklist. Nothing is ever removed automatically: confirm it with **"Yes, it's
+  mine"** (it stays, and we stop asking), mark it **"not mine"**, or hide it — and if
+  you share a common name and see several, **"They're all mine"** clears them in one
+  click. The check is deliberately conservative (it would rather miss a few than
+  wrongly question a paper that's yours), uses only your own profile signals (never
+  any inference about names or origin), and these flags never appear on your public
+  page or exports.
+- **Three richly-animated styles for your published living page.** **Arcade** (a
+  bright retro-platformer stage with parallax clouds, spinning coins, and entries
+  that jump into place), **Meadow** (a hand-painted pastoral scene with rolling
+  hills, a breathing sun, drifting clouds, and falling petals), and **Cyberpunk**
+  (a neon-noir city with falling digital rain, a chromatic-aberration glitch on
+  your name, and holographic shimmer). All original art — genre homages, not the
+  trademarked works that inspired them. As always: 100% CSS-only under the strict
+  no-JS CSP, accent-aware, full reduced-motion fallback, and never affects exports.
 - **A "Clockwork" steampunk style for your published living page.** A dark
   brass-and-iron look where electric cords hang from a ceiling rail with glowing
   Edison bulbs that gently sway, brass gears turn slowly behind the page, your name

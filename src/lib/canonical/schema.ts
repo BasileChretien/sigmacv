@@ -197,15 +197,18 @@ export type ReviewFlag = (typeof REVIEW_FLAGS)[number];
  * and so the consent-gated disambiguation-error study can learn which signals
  * actually predict a confirmed "not mine".
  *  - "no-coauthor-overlap": shares no co-author (by ORCID) with the profile's
- *    identifier-confirmed works;
+ *    identifier-confirmed works (the mandatory anchor — see misattribution.ts);
  *  - "different-field": its OpenAlex research field AND domain are absent from the
  *    profile's confirmed works (a cross-domain mismatch, e.g. medicine vs literature);
+ *  - "affiliation-novel": its author-affiliation institution(s) (by ROR) never appear
+ *    among the account holder's known institutions (confirmed works + positions);
  *  - "pre-career": published well before the account holder's earliest confirmed work
  *    (a corroborator only — never enough to flag on its own).
  */
 export const MISATTRIBUTION_SIGNALS = [
   "no-coauthor-overlap",
   "different-field",
+  "affiliation-novel",
   "pre-career",
 ] as const;
 export type MisattributionSignal = (typeof MISATTRIBUTION_SIGNALS)[number];
@@ -525,6 +528,15 @@ export const CvItemSchema = z.object({
       .optional()
       .catch(undefined),
     /**
+     * ROR ids of the institutions on the account holder's OWN authorship of this work
+     * (their affiliation as printed on this paper, from OpenAlex). Denormalized source
+     * metadata; used only by the misattribution heuristic's affiliation check (does
+     * this paper's institution ever match one the user is actually associated with).
+     * Bounded; institutions without a ROR contribute nothing. STRIPPED from the public
+     * projection (internal signal, not a render input).
+     */
+    workInstitutions: z.array(z.string().max(2048)).max(50).optional().catch(undefined),
+    /**
      * Misattribution hint (set with `reviewFlag === "likely-misattributed"`): an
      * OpenAlex-author-id-only match (no confirming ORCID on the paper) that disagrees
      * with the rest of the identifier-confirmed profile on ≥2 strong signals — a
@@ -795,7 +807,24 @@ export const PUBLIC_STYLES = [
   "mesh",
   "marquee",
   "clockwork",
+  "arcade",
+  "meadow",
+  "cyberpunk",
 ] as const;
+/**
+ * The public-page styles that can show the optional scroll-following SigmaCV
+ * "mascot" companion (`display.showMascot`). Only the playful/expressive styles —
+ * never the credible ones (folio/meridian/trajectory/lumina), where a moving
+ * cartoon would undercut a document people send to hiring committees. Each listed
+ * style draws its OWN original character; styles not listed here ignore
+ * `showMascot` entirely (a structural gate, not just a UI one).
+ */
+export const MASCOT_STYLES = ["arcade", "meadow", "cyberpunk", "clockwork"] as const;
+export type MascotStyleKey = (typeof MASCOT_STYLES)[number];
+/** Whether a public style draws the optional mascot companion. */
+export function isMascotStyle(style: string): style is MascotStyleKey {
+  return (MASCOT_STYLES as readonly string[]).includes(style);
+}
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
 /** How the account holder's name is emphasised in their own works. */
@@ -844,6 +873,15 @@ export const DisplayChoicesSchema = z.object({
    * old/garbage values loading by falling back to "match".
    */
   publicStyle: z.enum(PUBLIC_STYLES).default("match").catch("match"),
+  /**
+   * Opt-in scroll-following "mascot" companion on the living public page. OFF by
+   * default. Only the playful styles in MASCOT_STYLES draw it (the credible styles
+   * never do, even if this is true — a structural gate). Decorative + aria-hidden,
+   * and hidden under `prefers-reduced-motion`, on narrow viewports, and in print;
+   * it never appears on any export (those use the document template). `.catch`
+   * keeps old/garbage docs loading.
+   */
+  showMascot: z.boolean().default(false).catch(false),
   /** Bundled CSL style key, e.g. "apa" (see src/lib/citeproc/assets/styles). */
   cslStyle: z.string().max(200).default("apa"),
   /**
