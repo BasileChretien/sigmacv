@@ -43,7 +43,7 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
   "en-US": {
     heading: "Get a badge",
     intro:
-      "Add a small badge for your site, README, or email signature that links to your living CV. It shows only your public data and stops working if you unpublish.",
+      "A small badge for your README, site, or email signature. Shows only public data; stops if you unpublish.",
     styleLabel: "Style",
     themeLabel: "Theme",
     styleStandard: "Standard",
@@ -63,8 +63,7 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
   },
   "zh-CN": {
     heading: "获取徽章",
-    intro:
-      "为你的网站、README 或邮件签名添加一个小徽章，链接到你的动态简历。它只显示你的公开数据，取消发布后即失效。",
+    intro: "适用于 README、网站或邮件签名的小徽章。仅显示公开数据，取消发布后失效。",
     styleLabel: "样式",
     themeLabel: "主题",
     styleStandard: "标准",
@@ -85,7 +84,7 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
   "es-ES": {
     heading: "Obtén una insignia",
     intro:
-      "Añade una pequeña insignia para tu sitio, README o firma de correo que enlace con tu CV vivo. Solo muestra tus datos públicos y deja de funcionar si dejas de publicar.",
+      "Una pequeña insignia para tu README, sitio o firma de correo. Solo muestra datos públicos; deja de funcionar si dejas de publicar.",
     styleLabel: "Estilo",
     themeLabel: "Tema",
     styleStandard: "Estándar",
@@ -106,7 +105,7 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
   "fr-FR": {
     heading: "Obtenir un badge",
     intro:
-      "Ajoutez un petit badge à votre site, votre README ou votre signature d'e-mail, qui renvoie vers votre CV vivant. Il n'affiche que vos données publiques et cesse de fonctionner si vous dépubliez.",
+      "Un petit badge pour votre README, site ou signature d'e-mail. N'affiche que des données publiques ; cesse de fonctionner si vous dépubliez.",
     styleLabel: "Style",
     themeLabel: "Thème",
     styleStandard: "Standard",
@@ -127,7 +126,7 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
   "de-DE": {
     heading: "Badge erhalten",
     intro:
-      "Fügen Sie Ihrer Website, Ihrem README oder Ihrer E-Mail-Signatur ein kleines Badge hinzu, das auf Ihren lebenden Lebenslauf verweist. Es zeigt nur Ihre öffentlichen Daten und funktioniert nicht mehr, wenn Sie die Veröffentlichung zurücknehmen.",
+      "Ein kleines Badge für README, Website oder E-Mail-Signatur. Zeigt nur öffentliche Daten; funktioniert nicht mehr, wenn Sie die Veröffentlichung zurücknehmen.",
     styleLabel: "Stil",
     themeLabel: "Design",
     styleStandard: "Standard",
@@ -148,7 +147,7 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
   "ja-JP": {
     heading: "バッジを取得",
     intro:
-      "あなたのサイト・README・メール署名に、動的 CV へのリンクになる小さなバッジを追加できます。公開データのみを表示し、公開を取り消すと無効になります。",
+      "README・サイト・メール署名向けの小さなバッジ。公開データのみを表示し、公開を取り消すと無効になります。",
     styleLabel: "スタイル",
     themeLabel: "テーマ",
     styleStandard: "標準",
@@ -169,7 +168,7 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
   "pt-BR": {
     heading: "Obter um selo",
     intro:
-      "Adicione um pequeno selo ao seu site, README ou assinatura de e-mail que leva ao seu currículo vivo. Ele mostra apenas seus dados públicos e para de funcionar se você cancelar a publicação.",
+      "Um pequeno selo para seu README, site ou assinatura de e-mail. Mostra apenas dados públicos; para de funcionar se você cancelar a publicação.",
     styleLabel: "Estilo",
     themeLabel: "Tema",
     styleStandard: "Padrão",
@@ -190,7 +189,7 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
   "it-IT": {
     heading: "Ottieni un badge",
     intro:
-      "Aggiungi un piccolo badge al tuo sito, README o firma email che rimanda al tuo CV vivo. Mostra solo i tuoi dati pubblici e smette di funzionare se annulli la pubblicazione.",
+      "Un piccolo badge per il tuo README, sito o firma email. Mostra solo dati pubblici; smette di funzionare se annulli la pubblicazione.",
     styleLabel: "Stile",
     themeLabel: "Tema",
     styleStandard: "Standard",
@@ -211,7 +210,7 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
   "ko-KR": {
     heading: "배지 받기",
     intro:
-      "웹사이트, README 또는 이메일 서명에 살아 있는 이력서로 연결되는 작은 배지를 추가하세요. 공개 데이터만 표시하며, 게시를 취소하면 작동하지 않습니다.",
+      "README, 웹사이트, 이메일 서명용 작은 배지. 공개 데이터만 표시하며, 게시를 취소하면 작동하지 않습니다.",
     styleLabel: "스타일",
     themeLabel: "테마",
     styleStandard: "표준",
@@ -232,7 +231,7 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
   "ru-RU": {
     heading: "Получить значок",
     intro:
-      "Добавьте небольшой значок на ваш сайт, README или в подпись e-mail со ссылкой на ваше «живое» резюме. Он показывает только ваши публичные данные и перестаёт работать, если вы отмените публикацию.",
+      "Небольшой значок для README, сайта или подписи e-mail. Показывает только публичные данные; перестаёт работать при отмене публикации.",
     styleLabel: "Стиль",
     themeLabel: "Тема",
     styleStandard: "Стандарт",

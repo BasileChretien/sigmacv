@@ -265,8 +265,8 @@ export default function PublishControls({
                 {b.copyLink}
               </button>
             </div>
-            <div className="badge-qr">
-              <span className="badge-qr-label">{b.qrLabel}</span>
+            <details className="badge-qr">
+              <summary>{b.qrLabel}</summary>
               <p className="badge-qr-hint muted">{b.qrHint}</p>
               <div className="badge-qr-row">
                 {/* eslint-disable-next-line @next/next/no-img-element -- a printable
@@ -285,7 +285,7 @@ export default function PublishControls({
                   </button>
                 </div>
               </div>
-            </div>
+            </details>
           </details>
           <label className="field-inline" title={u.allowIndexingTitle}>
             <input
