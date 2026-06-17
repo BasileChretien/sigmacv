@@ -344,7 +344,7 @@ export default function CvWorkspace({
       const blob = await res.blob();
       const disposition = res.headers.get("Content-Disposition") ?? "";
       const named = /filename="?([^";]+)"?/.exec(disposition);
-      const filename = named?.[1] ?? `cv.${exportFormat}`;
+      const filename = named?.[1]?.trim() || `cv.${exportFormat}`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

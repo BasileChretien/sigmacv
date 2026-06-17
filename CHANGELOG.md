@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Defense-in-depth hardening on the public-page error responses.** A three-
+  reviewer security pass found no exploitable issues, and closed a few hardening
+  gaps: the styled 404 / 429 notice pages now carry the live page's anti-framing
+  headers (`X-Frame-Options: DENY` + `frame-ancestors 'none'`); the OG-card 404
+  picks up the `noindex` / `no-store` / `nosniff` / `no-referrer` headers it was
+  missing; and the notice helper escapes its text for defense in depth.
+
 ### Added
 
 - **A gentle nudge away from a metrics-heavy header.** The editor's metrics

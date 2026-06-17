@@ -57,7 +57,15 @@ export async function GET(
   const notFound = () =>
     new Response("This CV is not available.", {
       status: 404,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        // Match the rest of the /p/ family: never index or cache a stale /
+        // unpublished card's 404.
+        "X-Robots-Tag": "noindex, nofollow",
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "no-referrer",
+      },
     });
 
   // Reject crafted slugs before the DB lookup (server slugs always match).
