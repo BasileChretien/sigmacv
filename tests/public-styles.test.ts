@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { updateDisplay } from "@/lib/canonical/curate";
-import { PUBLIC_STYLES, type CanonicalCv } from "@/lib/canonical/schema";
+import {
+  MASCOT_STYLES,
+  PUBLIC_STYLES,
+  isMascotStyle,
+  type CanonicalCv,
+} from "@/lib/canonical/schema";
 import { publicStyleGalleryPreviews } from "@/lib/render/galleryPreview";
 import { renderCvHtml } from "@/lib/render/html";
 import { PUBLIC_STYLE_KEYS, getPublicStyle, renderPublicCvHtml } from "@/lib/render/publicStyles";
@@ -23,8 +28,8 @@ const base = buildCanonicalCv({ id: "ps", resolved, works, now: "2026-06-02T00:0
 const withPhoto: CanonicalCv = { ...base, owner: { ...base.owner, photo: PNG_1x1 } };
 
 describe("public-page showcase styles", () => {
-  it("registers all 13 animated styles", () => {
-    expect(PUBLIC_STYLE_KEYS).toHaveLength(13);
+  it("registers all 17 animated styles", () => {
+    expect(PUBLIC_STYLE_KEYS).toHaveLength(17);
     expect(PUBLIC_STYLE_KEYS).toEqual(
       expect.arrayContaining([
         "folio",
@@ -40,6 +45,10 @@ describe("public-page showcase styles", () => {
         "aura",
         "mesh",
         "marquee",
+        "clockwork",
+        "arcade",
+        "meadow",
+        "cyberpunk",
       ]),
     );
   });
@@ -99,5 +108,59 @@ describe("accentSpectrum", () => {
     const css = accentSpectrum(["--x", "--y"], { l: 0.6, c: 0.18, accentFirst: false });
     expect(css).toContain("--x: oklch(from var(--cv-accent) 0.6 0.18 calc(h + 0));");
     expect(css).toContain("--y: oklch(from var(--cv-accent) 0.6 0.18 calc(h + 180));");
+  });
+});
+
+describe("mascot companion (display.showMascot)", () => {
+  it("defaults showMascot to false", () => {
+    expect(base.display.showMascot).toBe(false);
+  });
+
+  it("every animated style except the credible four is mascot-capable", () => {
+    expect([...MASCOT_STYLES]).toHaveLength(13);
+    for (const s of MASCOT_STYLES) expect(isMascotStyle(s)).toBe(true);
+    // `match` + the credible styles are NOT mascot-capable (structural gate).
+    for (const s of ["match", "folio", "meridian", "trajectory", "lumina"]) {
+      expect(isMascotStyle(s)).toBe(false);
+    }
+  });
+
+  it.each([...MASCOT_STYLES])(
+    "renders exactly ONE aria-hidden Σ mascot with per-section hats, scroll-driven + reduced-motion-safe: %s",
+    (style) => {
+      const cv = updateDisplay(withPhoto, { publicStyle: style, showMascot: true });
+      const html = renderPublicCvHtml(cv);
+      // Exactly ONE mascot per document — the Σ-logo body with stacked per-section hats.
+      expect(html.match(/<div class="sm" aria-hidden="true"><b class="sm-fig">/g)).toHaveLength(1);
+      // It carries a section-typed hat (one per rendered section).
+      expect(html).toMatch(/class="sm-hat sm-hat--[a-z-]+"/);
+      // Travels with the scroll (`scroll(root)`) and binds each hat to its section's
+      // `view()` timeline (hoisted via `timeline-scope`); all gated, CSS-only.
+      expect(html).toContain("animation-timeline: scroll(root)");
+      expect(html).toContain("timeline-scope:");
+      expect(html).toContain("@supports (animation-timeline: view())");
+      expect(html).not.toMatch(/<script/i);
+      // Hidden under reduced motion (and the page declares the media query).
+      expect(html).toContain("prefers-reduced-motion");
+    },
+  );
+
+  it("omits the mascot element when not opted in, even on an eligible style", () => {
+    const cv = updateDisplay(withPhoto, { publicStyle: "arcade", showMascot: false });
+    // The eligible style always ships the (unused) mascot CSS; the mascot ELEMENT
+    // must be absent when not opted in.
+    expect(renderPublicCvHtml(cv)).not.toContain('<div class="sm" aria-hidden');
+  });
+
+  it("never renders the mascot on a credible style, even if opted in", () => {
+    const cv = updateDisplay(withPhoto, { publicStyle: "folio", showMascot: true });
+    expect(renderPublicCvHtml(cv)).not.toContain('<div class="sm" aria-hidden');
+  });
+
+  it("never leaks the mascot into a document/export render", () => {
+    // Exports go through the document template (renderCvHtml), which has no mascot —
+    // even with showMascot on and an eligible public style selected.
+    const cv = updateDisplay(withPhoto, { publicStyle: "arcade", showMascot: true });
+    expect(renderCvHtml(cv)).not.toContain('<div class="sm" aria-hidden');
   });
 });

@@ -15,6 +15,9 @@ export interface CvHealth {
   pendingDuplicates: number;
   /** Visible own works whose authorship lists a DIFFERENT ORCID iD. */
   orcidConflicts: number;
+  /** Visible works flagged likely-misattributed (a probable same-name over-merge),
+   *  not yet dismissed via "keep hidden". */
+  likelyMisattributed: number;
   /** Visible works flagged retracted while `display.hideRetracted` is off. */
   retractedVisible: number;
   /** Sum of the above — 0 means nothing awaits the user. */
@@ -25,6 +28,7 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
   let pendingReviewCandidates = 0;
   let pendingDuplicates = 0;
   let orcidConflicts = 0;
+  let likelyMisattributed = 0;
   let retractedVisible = 0;
 
   // Review candidates the user triaged with "Keep hidden" are resolved — they
@@ -43,6 +47,9 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
       }
       if (flag === "duplicate" && !isHidden(it)) pendingDuplicates++;
       if (flag === "orcid-conflict" && !isHidden(it)) orcidConflicts++;
+      if (flag === "likely-misattributed" && !isHidden(it) && !dismissed.has(it.id)) {
+        likelyMisattributed++;
+      }
       if (it.meta.retracted === true && !isHidden(it) && !cv.display.hideRetracted) {
         retractedVisible++;
       }
@@ -53,7 +60,13 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
     pendingReviewCandidates,
     pendingDuplicates,
     orcidConflicts,
+    likelyMisattributed,
     retractedVisible,
-    total: pendingReviewCandidates + pendingDuplicates + orcidConflicts + retractedVisible,
+    total:
+      pendingReviewCandidates +
+      pendingDuplicates +
+      orcidConflicts +
+      likelyMisattributed +
+      retractedVisible,
   };
 }

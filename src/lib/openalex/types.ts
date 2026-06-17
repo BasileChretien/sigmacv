@@ -46,6 +46,10 @@ export interface OpenAlexAuthorship {
   };
   /** Name exactly as printed on the work. */
   raw_author_name?: string;
+  /** Institutions OpenAlex attached to THIS authorship (the author's affiliation on
+   *  this work). Carried inside `authorships` (no extra `select` needed); used by the
+   *  misattribution heuristic's affiliation check. */
+  institutions?: { id?: string; ror?: string | null; display_name?: string }[];
 }
 
 export interface OpenAlexSource {
@@ -121,6 +125,18 @@ export interface OpenAlexWork {
   } | null;
   /** Awards/grants on the work (award number + funder id/name). OpenAlex `awards[]`. */
   awards?: OpenAlexAward[] | null;
+  /**
+   * The work's single best-matching research topic, with its place in OpenAlex's
+   * taxonomy (topic → subfield → field → domain). Used only to reduce a work to its
+   * FIELD + DOMAIN for the misattribution heuristic (cross-domain mismatch). Not
+   * always populated (older / unclassified works).
+   */
+  primary_topic?: {
+    id?: string;
+    display_name?: string;
+    field?: { id?: string; display_name?: string } | null;
+    domain?: { id?: string; display_name?: string } | null;
+  } | null;
 }
 
 export interface OpenAlexListResponse<T> {

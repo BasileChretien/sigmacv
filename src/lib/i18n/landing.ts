@@ -6,6 +6,34 @@ import { asLocale, type Locale } from "./index";
  * crawlable, user-facing-before-login surface, so its strings double as the
  * localized SEO title/description for each `/[locale]` variant.
  */
+/**
+ * Copy for the sign-in error page (`/auth/error`, wired via Auth.js
+ * `pages.error`). `messages` is keyed by Auth.js error code; unknown codes fall
+ * back to `messages.Default`. Kept friendly and non-leaky — never echoes the raw
+ * provider error or any token.
+ */
+export interface AuthErrorStrings {
+  /** SEO/page <title> and the single visible <h1>. */
+  metaTitle: string;
+  /** One-line lead under the heading. */
+  intro: string;
+  /** Human-readable message per Auth.js error code (Default is the fallback). */
+  messages: {
+    Configuration: string;
+    AccessDenied: string;
+    Verification: string;
+    OAuthSignin: string;
+    OAuthCallback: string;
+    Default: string;
+  };
+  /** "Try again" primary action (returns to the homepage sign-in). */
+  tryAgain: string;
+  /** Hint suggesting the ORCID sign-in as the reliable path. */
+  useOrcidHint: string;
+  /** Secondary "Back to home" link label. */
+  backHome: string;
+}
+
 export interface LandingStrings {
   /** <title> for this locale's homepage (SEO). */
   metaTitle: string;
@@ -28,6 +56,17 @@ export interface LandingStrings {
   emailButton: string;
   /** Accessible name for the email sign-in input (placeholder is not a label). */
   emailLabel: string;
+  /** Visible field label shown above the email input. */
+  emailFieldLabel: string;
+  /** Persistent helper under the email input explaining the magic-link flow. */
+  emailHelper: string;
+  /** Busy label while a sign-in is redirecting (button "Signing in…" state). */
+  signingIn: string;
+  /** Email magic-link "check your inbox" confirmation: heading + body. */
+  checkInboxTitle: string;
+  checkInboxBody: string;
+  /** Localized sign-in error page (Auth.js `pages.error`). */
+  authError: AuthErrorStrings;
   fineprint: string;
   about: string;
   footer: string;
@@ -73,6 +112,32 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailPlaceholder: "you@university.edu",
     emailButton: "Email link",
     emailLabel: "Email address",
+    emailFieldLabel: "Email address",
+    emailHelper: "We’ll email you a one-time sign-in link — no password needed.",
+    signingIn: "Signing in…",
+    checkInboxTitle: "Check your inbox",
+    checkInboxBody:
+      "We’ve sent a one-time sign-in link to your email. Open it on this device to finish signing in. The link expires shortly; you can close this tab.",
+    authError: {
+      metaTitle: "Sign-in problem",
+      intro: "We couldn’t finish signing you in.",
+      messages: {
+        Configuration:
+          "Sign-in is temporarily misconfigured on our side. Please try again in a moment.",
+        AccessDenied:
+          "Sign-in was cancelled or access wasn’t granted. You can try again whenever you’re ready.",
+        Verification:
+          "That sign-in link has expired or was already used. Request a fresh link and try again.",
+        OAuthSignin:
+          "We couldn’t reach the sign-in provider. This is usually temporary — please try again.",
+        OAuthCallback:
+          "Something went wrong while completing sign-in (often an expired or interrupted request). Please try again.",
+        Default: "Something went wrong while signing in. Please try again.",
+      },
+      tryAgain: "Try again",
+      useOrcidHint: "Signing in with your ORCID iD is the most reliable option.",
+      backHome: "Back to home",
+    },
     fineprint:
       "Open source · Apache-2.0. SigmaCV reads only public research metadata and never logs your choices without explicit consent.",
     about: "About",
@@ -144,6 +209,27 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailPlaceholder: "you@university.edu",
     emailButton: "邮件链接",
     emailLabel: "电子邮件地址",
+    emailFieldLabel: "电子邮件地址",
+    emailHelper: "我们会向您发送一次性登录链接——无需密码。",
+    signingIn: "正在登录…",
+    checkInboxTitle: "请查收邮箱",
+    checkInboxBody:
+      "我们已向您的邮箱发送了一次性登录链接。请在本设备上打开它以完成登录。该链接将很快过期；您可以关闭此标签页。",
+    authError: {
+      metaTitle: "登录出现问题",
+      intro: "我们无法完成您的登录。",
+      messages: {
+        Configuration: "我们这边的登录暂时配置有误。请稍后再试。",
+        AccessDenied: "登录已取消或未获授权。您可以在准备好后重试。",
+        Verification: "该登录链接已过期或已被使用。请重新获取链接后再试。",
+        OAuthSignin: "我们无法连接登录服务提供方。通常这是暂时性问题——请重试。",
+        OAuthCallback: "完成登录时出错（通常是请求过期或被中断）。请重试。",
+        Default: "登录时出错。请重试。",
+      },
+      tryAgain: "重试",
+      useOrcidHint: "使用您的 ORCID iD 登录是最可靠的方式。",
+      backHome: "返回首页",
+    },
     fineprint: "开源 · Apache-2.0。SigmaCV 仅读取公开的研究元数据，未经明确同意绝不记录您的选择。",
     about: "关于",
     footer: "© SigmaCV · 开源",
@@ -208,6 +294,32 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailPlaceholder: "tu@universidad.edu",
     emailButton: "Enlace por correo",
     emailLabel: "Correo electrónico",
+    emailFieldLabel: "Correo electrónico",
+    emailHelper: "Te enviaremos un enlace de inicio de sesión de un solo uso — sin contraseña.",
+    signingIn: "Iniciando sesión…",
+    checkInboxTitle: "Revisa tu bandeja de entrada",
+    checkInboxBody:
+      "Hemos enviado un enlace de inicio de sesión de un solo uso a tu correo. Ábrelo en este dispositivo para completar el acceso. El enlace caduca en breve; puedes cerrar esta pestaña.",
+    authError: {
+      metaTitle: "Problema al iniciar sesión",
+      intro: "No pudimos completar tu inicio de sesión.",
+      messages: {
+        Configuration:
+          "El inicio de sesión está temporalmente mal configurado por nuestra parte. Inténtalo de nuevo en un momento.",
+        AccessDenied:
+          "Se canceló el inicio de sesión o no se concedió el acceso. Puedes intentarlo de nuevo cuando quieras.",
+        Verification:
+          "Ese enlace de inicio de sesión ha caducado o ya se usó. Solicita un enlace nuevo e inténtalo otra vez.",
+        OAuthSignin:
+          "No pudimos contactar con el proveedor de inicio de sesión. Suele ser temporal — inténtalo de nuevo.",
+        OAuthCallback:
+          "Algo salió mal al completar el inicio de sesión (a menudo una solicitud caducada o interrumpida). Inténtalo de nuevo.",
+        Default: "Algo salió mal al iniciar sesión. Inténtalo de nuevo.",
+      },
+      tryAgain: "Intentar de nuevo",
+      useOrcidHint: "Iniciar sesión con tu iD ORCID es la opción más fiable.",
+      backHome: "Volver al inicio",
+    },
     fineprint:
       "Código abierto · Apache-2.0. SigmaCV solo lee metadatos públicos de investigación y nunca registra tus decisiones sin consentimiento explícito.",
     about: "Acerca de",
@@ -281,6 +393,32 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailPlaceholder: "vous@universite.edu",
     emailButton: "Lien par e-mail",
     emailLabel: "Adresse e-mail",
+    emailFieldLabel: "Adresse e-mail",
+    emailHelper: "Nous vous enverrons un lien de connexion à usage unique — sans mot de passe.",
+    signingIn: "Connexion…",
+    checkInboxTitle: "Vérifiez votre boîte de réception",
+    checkInboxBody:
+      "Nous avons envoyé un lien de connexion à usage unique à votre adresse e-mail. Ouvrez-le sur cet appareil pour terminer la connexion. Le lien expire sous peu ; vous pouvez fermer cet onglet.",
+    authError: {
+      metaTitle: "Problème de connexion",
+      intro: "Nous n’avons pas pu finaliser votre connexion.",
+      messages: {
+        Configuration:
+          "La connexion est temporairement mal configurée de notre côté. Veuillez réessayer dans un instant.",
+        AccessDenied:
+          "La connexion a été annulée ou l’accès n’a pas été accordé. Vous pouvez réessayer quand vous le souhaitez.",
+        Verification:
+          "Ce lien de connexion a expiré ou a déjà été utilisé. Demandez un nouveau lien et réessayez.",
+        OAuthSignin:
+          "Nous n’avons pas pu joindre le fournisseur de connexion. C’est généralement temporaire — veuillez réessayer.",
+        OAuthCallback:
+          "Une erreur s’est produite lors de la finalisation de la connexion (souvent une requête expirée ou interrompue). Veuillez réessayer.",
+        Default: "Une erreur s’est produite lors de la connexion. Veuillez réessayer.",
+      },
+      tryAgain: "Réessayer",
+      useOrcidHint: "Se connecter avec votre iD ORCID est l’option la plus fiable.",
+      backHome: "Retour à l’accueil",
+    },
     fineprint:
       "Open source · Apache-2.0. SigmaCV ne lit que des métadonnées de recherche publiques et n’enregistre jamais vos choix sans consentement explicite.",
     about: "À propos",
@@ -354,6 +492,32 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailPlaceholder: "sie@universitaet.edu",
     emailButton: "E-Mail-Link",
     emailLabel: "E-Mail-Adresse",
+    emailFieldLabel: "E-Mail-Adresse",
+    emailHelper: "Wir senden Ihnen einen einmaligen Anmeldelink — ganz ohne Passwort.",
+    signingIn: "Anmeldung läuft…",
+    checkInboxTitle: "Prüfen Sie Ihren Posteingang",
+    checkInboxBody:
+      "Wir haben einen einmaligen Anmeldelink an Ihre E-Mail-Adresse gesendet. Öffnen Sie ihn auf diesem Gerät, um die Anmeldung abzuschließen. Der Link läuft bald ab; Sie können diesen Tab schließen.",
+    authError: {
+      metaTitle: "Anmeldeproblem",
+      intro: "Wir konnten Ihre Anmeldung nicht abschließen.",
+      messages: {
+        Configuration:
+          "Die Anmeldung ist auf unserer Seite vorübergehend falsch konfiguriert. Bitte versuchen Sie es gleich erneut.",
+        AccessDenied:
+          "Die Anmeldung wurde abgebrochen oder der Zugriff wurde nicht gewährt. Sie können es jederzeit erneut versuchen.",
+        Verification:
+          "Dieser Anmeldelink ist abgelaufen oder wurde bereits verwendet. Fordern Sie einen neuen Link an und versuchen Sie es erneut.",
+        OAuthSignin:
+          "Wir konnten den Anmeldeanbieter nicht erreichen. Das ist meist vorübergehend — bitte versuchen Sie es erneut.",
+        OAuthCallback:
+          "Beim Abschließen der Anmeldung ist etwas schiefgegangen (oft eine abgelaufene oder unterbrochene Anfrage). Bitte versuchen Sie es erneut.",
+        Default: "Bei der Anmeldung ist etwas schiefgegangen. Bitte versuchen Sie es erneut.",
+      },
+      tryAgain: "Erneut versuchen",
+      useOrcidHint: "Die Anmeldung mit Ihrer ORCID iD ist die zuverlässigste Option.",
+      backHome: "Zurück zur Startseite",
+    },
     fineprint:
       "Quelloffen · Apache-2.0. SigmaCV liest nur öffentliche Forschungsmetadaten und protokolliert Ihre Entscheidungen niemals ohne ausdrückliche Einwilligung.",
     about: "Über",
@@ -425,6 +589,32 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailPlaceholder: "you@university.edu",
     emailButton: "メールリンク",
     emailLabel: "メールアドレス",
+    emailFieldLabel: "メールアドレス",
+    emailHelper: "一度だけ使えるサインインリンクをメールで送ります——パスワードは不要です。",
+    signingIn: "サインインしています…",
+    checkInboxTitle: "メールをご確認ください",
+    checkInboxBody:
+      "一度だけ使えるサインインリンクをメールでお送りしました。サインインを完了するには、この端末でリンクを開いてください。リンクはまもなく失効します。このタブは閉じてかまいません。",
+    authError: {
+      metaTitle: "サインインの問題",
+      intro: "サインインを完了できませんでした。",
+      messages: {
+        Configuration:
+          "現在こちら側でサインインの設定に一時的な不具合があります。しばらくしてからもう一度お試しください。",
+        AccessDenied:
+          "サインインがキャンセルされたか、アクセスが許可されませんでした。準備ができたらもう一度お試しください。",
+        Verification:
+          "このサインインリンクは有効期限切れか、すでに使用されています。新しいリンクを取得してもう一度お試しください。",
+        OAuthSignin:
+          "サインインプロバイダーに接続できませんでした。多くの場合は一時的な問題です——もう一度お試しください。",
+        OAuthCallback:
+          "サインインの完了中に問題が発生しました（多くはリクエストの期限切れや中断によるものです）。もう一度お試しください。",
+        Default: "サインイン中に問題が発生しました。もう一度お試しください。",
+      },
+      tryAgain: "もう一度試す",
+      useOrcidHint: "ORCID iD でのサインインが最も確実です。",
+      backHome: "ホームに戻る",
+    },
     fineprint:
       "オープンソース · Apache-2.0。SigmaCV は公開された研究メタデータのみを読み取り、明示的な同意なしにあなたの選択を記録することはありません。",
     about: "概要",
@@ -497,6 +687,32 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailPlaceholder: "voce@universidade.edu",
     emailButton: "Link por e-mail",
     emailLabel: "Endereço de e-mail",
+    emailFieldLabel: "Endereço de e-mail",
+    emailHelper: "Enviaremos um link de acesso de uso único por e-mail — sem necessidade de senha.",
+    signingIn: "Entrando…",
+    checkInboxTitle: "Verifique sua caixa de entrada",
+    checkInboxBody:
+      "Enviamos um link de acesso de uso único para o seu e-mail. Abra-o neste dispositivo para concluir o login. O link expira em breve; você pode fechar esta aba.",
+    authError: {
+      metaTitle: "Problema ao entrar",
+      intro: "Não conseguimos concluir o seu login.",
+      messages: {
+        Configuration:
+          "O login está temporariamente mal configurado do nosso lado. Tente novamente em instantes.",
+        AccessDenied:
+          "O login foi cancelado ou o acesso não foi concedido. Você pode tentar novamente quando quiser.",
+        Verification:
+          "Esse link de acesso expirou ou já foi usado. Solicite um novo link e tente de novo.",
+        OAuthSignin:
+          "Não conseguimos contatar o provedor de login. Costuma ser temporário — tente novamente.",
+        OAuthCallback:
+          "Algo deu errado ao concluir o login (muitas vezes uma solicitação expirada ou interrompida). Tente novamente.",
+        Default: "Algo deu errado ao entrar. Tente novamente.",
+      },
+      tryAgain: "Tentar novamente",
+      useOrcidHint: "Entrar com o seu iD ORCID é a opção mais confiável.",
+      backHome: "Voltar para o início",
+    },
     fineprint:
       "Código aberto · Apache-2.0. O SigmaCV lê apenas metadados públicos de pesquisa e nunca registra suas escolhas sem consentimento explícito.",
     about: "Sobre",
@@ -568,6 +784,32 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailPlaceholder: "tu@universita.edu",
     emailButton: "Link via e-mail",
     emailLabel: "Indirizzo e-mail",
+    emailFieldLabel: "Indirizzo e-mail",
+    emailHelper: "Ti invieremo un link di accesso monouso via e-mail — senza password.",
+    signingIn: "Accesso in corso…",
+    checkInboxTitle: "Controlla la tua casella di posta",
+    checkInboxBody:
+      "Abbiamo inviato un link di accesso monouso alla tua e-mail. Aprilo su questo dispositivo per completare l’accesso. Il link scade a breve; puoi chiudere questa scheda.",
+    authError: {
+      metaTitle: "Problema di accesso",
+      intro: "Non siamo riusciti a completare l’accesso.",
+      messages: {
+        Configuration:
+          "L’accesso è temporaneamente configurato male dalla nostra parte. Riprova tra un momento.",
+        AccessDenied:
+          "L’accesso è stato annullato o non è stato concesso. Puoi riprovare quando vuoi.",
+        Verification:
+          "Quel link di accesso è scaduto o è già stato usato. Richiedi un nuovo link e riprova.",
+        OAuthSignin:
+          "Non siamo riusciti a contattare il provider di accesso. Di solito è temporaneo — riprova.",
+        OAuthCallback:
+          "Qualcosa è andato storto durante il completamento dell’accesso (spesso una richiesta scaduta o interrotta). Riprova.",
+        Default: "Qualcosa è andato storto durante l’accesso. Riprova.",
+      },
+      tryAgain: "Riprova",
+      useOrcidHint: "Accedere con il tuo iD ORCID è l’opzione più affidabile.",
+      backHome: "Torna alla home",
+    },
     fineprint:
       "Open source · Apache-2.0. SigmaCV legge solo metadati di ricerca pubblici e non registra mai le tue scelte senza consenso esplicito.",
     about: "Informazioni",
@@ -639,6 +881,32 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailPlaceholder: "you@university.edu",
     emailButton: "이메일 링크",
     emailLabel: "이메일 주소",
+    emailFieldLabel: "이메일 주소",
+    emailHelper: "일회용 로그인 링크를 이메일로 보내드립니다 — 비밀번호가 필요 없습니다.",
+    signingIn: "로그인 중…",
+    checkInboxTitle: "이메일을 확인하세요",
+    checkInboxBody:
+      "일회용 로그인 링크를 이메일로 보냈습니다. 로그인을 완료하려면 이 기기에서 링크를 여세요. 링크는 곧 만료됩니다. 이 탭은 닫아도 됩니다.",
+    authError: {
+      metaTitle: "로그인 문제",
+      intro: "로그인을 완료하지 못했습니다.",
+      messages: {
+        Configuration:
+          "현재 저희 측 로그인 설정에 일시적인 문제가 있습니다. 잠시 후 다시 시도하세요.",
+        AccessDenied:
+          "로그인이 취소되었거나 접근이 허용되지 않았습니다. 원하실 때 다시 시도하세요.",
+        Verification:
+          "해당 로그인 링크가 만료되었거나 이미 사용되었습니다. 새 링크를 요청해 다시 시도하세요.",
+        OAuthSignin:
+          "로그인 제공자에 연결하지 못했습니다. 보통 일시적인 문제입니다 — 다시 시도하세요.",
+        OAuthCallback:
+          "로그인을 완료하는 중 문제가 발생했습니다(대개 요청이 만료되었거나 중단된 경우입니다). 다시 시도하세요.",
+        Default: "로그인 중 문제가 발생했습니다. 다시 시도하세요.",
+      },
+      tryAgain: "다시 시도",
+      useOrcidHint: "ORCID iD로 로그인하는 것이 가장 안정적입니다.",
+      backHome: "홈으로 돌아가기",
+    },
     fineprint:
       "오픈소스 · Apache-2.0. SigmaCV는 공개된 연구 메타데이터만 읽으며, 명시적 동의 없이 회원님의 선택을 기록하지 않습니다.",
     about: "소개",
@@ -708,6 +976,32 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailPlaceholder: "you@university.edu",
     emailButton: "Ссылка по эл. почте",
     emailLabel: "Адрес эл. почты",
+    emailFieldLabel: "Адрес эл. почты",
+    emailHelper: "Мы отправим вам одноразовую ссылку для входа — пароль не нужен.",
+    signingIn: "Выполняется вход…",
+    checkInboxTitle: "Проверьте почту",
+    checkInboxBody:
+      "Мы отправили одноразовую ссылку для входа на вашу почту. Откройте её на этом устройстве, чтобы завершить вход. Ссылка скоро истечёт; эту вкладку можно закрыть.",
+    authError: {
+      metaTitle: "Проблема со входом",
+      intro: "Не удалось завершить вход.",
+      messages: {
+        Configuration:
+          "Вход временно настроен неправильно на нашей стороне. Пожалуйста, повторите попытку через мгновение.",
+        AccessDenied:
+          "Вход был отменён или доступ не предоставлен. Вы можете повторить попытку в любое время.",
+        Verification:
+          "Срок действия этой ссылки для входа истёк, или она уже использована. Запросите новую ссылку и повторите попытку.",
+        OAuthSignin:
+          "Не удалось связаться с поставщиком входа. Обычно это временно — пожалуйста, повторите попытку.",
+        OAuthCallback:
+          "При завершении входа произошла ошибка (часто из-за истёкшего или прерванного запроса). Пожалуйста, повторите попытку.",
+        Default: "При входе произошла ошибка. Пожалуйста, повторите попытку.",
+      },
+      tryAgain: "Повторить попытку",
+      useOrcidHint: "Вход через ваш ORCID iD — самый надёжный вариант.",
+      backHome: "На главную",
+    },
     fineprint:
       "Открытый код · Apache-2.0. SigmaCV читает только публичные метаданные исследований и никогда не записывает ваши действия без явного согласия.",
     about: "О проекте",

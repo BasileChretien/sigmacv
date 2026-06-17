@@ -3,22 +3,7 @@
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
-import { badgeUi } from "@/lib/i18n/badgeUi";
 import { trackEvent } from "@/lib/analytics/track";
-
-/** Launder a `<select>` value into a known badge style/theme by returning LITERAL
- *  constants (never the raw DOM string), so the value that reaches the badge URL is
- *  provably one of the allowed tokens — mirrors the server's `parseBadgeOptions`. */
-function asBadgeStyle(v: string): string {
-  if (v === "flat") return "flat";
-  if (v === "card") return "card";
-  return "pill";
-}
-function asBadgeTheme(v: string): string {
-  if (v === "light") return "light";
-  if (v === "dark") return "dark";
-  return "auto";
-}
 
 interface PublicContactFlags {
   email: boolean;
@@ -35,19 +20,27 @@ interface PublishControlsProps {
   publicContact: PublicContactFlags;
   onPublicContactChange: (next: PublicContactFlags) => void;
   /** Notifies the parent of publish/slug/indexing changes so a host indicator
-      (e.g. the top-bar trigger) can reflect them without a reload. Optional so
-      this control still works standalone. */
+      (e.g. the top-bar trigger + the Share menu's visibility) can reflect them
+      without a reload. Optional so this control still works standalone. */
   onPublishStateChange?: (next: {
     published: boolean;
     slug: string | null;
     indexable: boolean;
   }) => void;
+  /** Deep-link to the editor's public-page-style picker (the publish surface is
+      where the "style my public page" job naturally begins). Optional so the
+      control still works standalone. */
+  onEditPublicStyle?: () => void;
 }
 
 /**
- * Publish toggle for the living public CV page. Publishing exposes the curated
- * CV (name, ORCID, and the public-research publications you've kept) — all
- * already-public data. Unpublish hides it again.
+ * Publish control for the living public CV page: the on/off decision plus the
+ * visibility/privacy settings (search indexing + per-field contact consent).
+ *
+ * The share/embed job — the public link, the "Living CV" badge and the QR — lives
+ * on its OWN surface (`ShareMenu` → `ShareControls`), shown in the top bar once the
+ * page is live. Keeping it out of here is deliberate: this popover is a focused,
+ * short publish decision, not a share dashboard.
  */
 export default function PublishControls({
   initialPublished,
@@ -57,25 +50,16 @@ export default function PublishControls({
   publicContact,
   onPublicContactChange,
   onPublishStateChange,
+  onEditPublicStyle,
 }: PublishControlsProps) {
   const u = ui(locale);
   const eu = editorUi(locale);
-  const b = badgeUi(locale);
   const [published, setPublished] = useState(initialPublished);
   const [slug, setSlug] = useState(initialSlug);
   const [indexable, setIndexable] = useState(initialIndexable);
   const [busy, setBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
-  // "Get a badge" embed-panel choices (the rendered badge label stays the brand
-  // term "Living CV"; only the panel chrome is localized).
-  const [badgeStyle, setBadgeStyle] = useState("pill");
-  const [badgeTheme, setBadgeTheme] = useState("auto");
-  // A polite live-region message (copy confirmation / publish error) so the
-  // outcome is announced to assistive tech, not conveyed only visually.
+  // A polite live-region message (publish error) for assistive tech.
   const [announce, setAnnounce] = useState("");
-  // Site origin for the shareable absolute URL. Lazy-initialised on the client
-  // (this control only ever mounts inside the already-open Publish popover).
-  const [origin] = useState(() => (typeof window !== "undefined" ? window.location.origin : ""));
 
   async function update(next: boolean, nextIndexable: boolean) {
     setBusy(true);
@@ -95,7 +79,7 @@ export default function PublishControls({
         setPublished(data.published);
         setSlug(data.publicSlug);
         setIndexable(data.indexable);
-        // Keep the host (top-bar trigger) in lockstep with the panel's state.
+        // Keep the host (top-bar trigger + Share menu visibility) in lockstep.
         onPublishStateChange?.({
           published: data.published,
           slug: data.publicSlug,
@@ -106,8 +90,7 @@ export default function PublishControls({
           trackEvent("Publish", { indexable: data.indexable });
         }
       } else {
-        // Surface the failure (previously swallowed) so the user isn't left
-        // believing a publish/unpublish succeeded when it didn't.
+        // Surface the failure so the user isn't left believing it succeeded.
         setAnnounce(u.publishError);
       }
     } catch {
@@ -120,50 +103,12 @@ export default function PublishControls({
   // Unpublishing always clears indexing; publishing keeps the prior choice.
   const toggle = (next: boolean) => update(next, next ? indexable : false);
 
-  async function copyLink() {
-    if (!slug) return;
-    const url = `${origin || window.location.origin}/p/${slug}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setAnnounce(u.linkCopied);
-      window.setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // clipboard may be unavailable; ignore (non-critical)
-    }
-  }
-
-  /** Copy an embed snippet (markdown / html / image url) + a cookieless signal. */
-  async function copySnippet(text: string, format: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      setAnnounce(u.linkCopied);
-      // Neutral product signal only — which snippet format, never identifiers.
-      trackEvent("Badge snippet copied", { format });
-    } catch {
-      // clipboard may be unavailable; ignore (non-critical)
-    }
-  }
-
-  // The preview <img> uses a RELATIVE src (`badgeSrc`, no window.location) so it is
-  // not a location→DOM flow. The copyable Markdown/HTML snippets need the ABSOLUTE
-  // URL, but those only ever reach the clipboard — never the DOM.
-  const base = origin || (typeof window !== "undefined" ? window.location.origin : "");
-  const badgeQuery = `style=${badgeStyle}&theme=${badgeTheme}`;
-  const badgeSrc = slug ? `/p/${slug}/badge.svg?${badgeQuery}` : "";
-  const pageUrl = slug ? `${base}/p/${slug}` : "";
-  const badgeUrl = slug ? `${base}${badgeSrc}` : "";
-  const badgeAlt = "Living CV";
-  const badgeMarkdown = `[![${badgeAlt}](${badgeUrl})](${pageUrl})`;
-  const badgeHtml = `<a href="${pageUrl}"><img src="${badgeUrl}" alt="${badgeAlt}" /></a>`;
-  // QR of the public page URL (relative src for the preview/download; absolute for
-  // the copyable URL). For posters, slides, and business cards.
-  const qrSrc = slug ? `/p/${slug}/qr.svg` : "";
-  const qrUrl = slug ? `${base}${qrSrc}` : "";
-
   return (
     <div className="account-controls">
-      <label className="field-inline" title={u.publishTitle}>
+      {/* The (un)publish decision is the most consequential, privacy-significant
+          control in this panel — give it emphasis distinct from the secondary
+          visibility checkboxes below, instead of an identical bare field row. */}
+      <label className="field-inline publish-main-toggle" title={u.publishTitle}>
         <input
           type="checkbox"
           data-testid="publish-toggle"
@@ -176,117 +121,16 @@ export default function PublishControls({
       {/* What publishing exposes — shown BEFORE the toggle is flipped, so the
           (irreversible-feeling) public exposure is a fully-informed choice. */}
       <p className="publish-summary muted">{u.publicSummary}</p>
-      {/* Pointer to the public-page-only animated showcase styles (Design tab). */}
-      <p className="publish-style-tip muted">{eu.publishStyleTip}</p>
-      {/* Polite live region (always mounted): copy confirmation / publish error. */}
-      <span className="visually-hidden" role="status" aria-live="polite">
-        {announce}
-      </span>
+      {/* Publish failure: a VISIBLE assertive alert (was a visually-hidden polite
+          region — a sighted user only saw the checkbox snap back, with no message,
+          and an error the user must act on shouldn't queue behind other speech). */}
+      {announce ? (
+        <p className="consent-error" role="alert">
+          {announce}
+        </p>
+      ) : null}
       {published && slug ? (
         <>
-          {/* "Your page is live" share card — the link, prominent + copyable, with
-              a nudge to share it. The retention hook made tangible at the moment
-              of publishing. */}
-          <div className="publish-live">
-            <a
-              className="publish-live-url"
-              href={`/p/${slug}`}
-              target="_blank"
-              rel="noreferrer"
-              title={u.openPage}
-            >
-              {origin ? `${origin.replace(/^https?:\/\//, "")}/p/${slug}` : `/p/${slug}`}
-            </a>
-            <div className="publish-live-actions">
-              <a className="btn btn-sm" href={`/p/${slug}`} target="_blank" rel="noreferrer">
-                {u.openPage}
-              </a>
-              <button type="button" className="btn btn-sm" onClick={copyLink}>
-                {copied ? u.linkCopied : u.copyLink}
-              </button>
-            </div>
-            <p className="publish-live-hint muted">{u.shareHint}</p>
-          </div>
-          {/* "Get a badge" — the embeddable Living-CV badge (README / site / email
-              signature) that drives organic, peer-to-peer distribution. Collapsed
-              by default to keep the publish panel calm. */}
-          <details className="badge-panel">
-            <summary>{b.heading}</summary>
-            <p className="badge-panel-intro muted">{b.intro}</p>
-            <div className="badge-controls">
-              <label>
-                {b.styleLabel}
-                <select
-                  value={badgeStyle}
-                  onChange={(e) => setBadgeStyle(asBadgeStyle(e.target.value))}
-                >
-                  <option value="pill">{b.styleStandard}</option>
-                  <option value="flat">{b.styleCompact}</option>
-                  <option value="card">{b.styleCard}</option>
-                </select>
-              </label>
-              <label>
-                {b.themeLabel}
-                <select
-                  value={badgeTheme}
-                  onChange={(e) => setBadgeTheme(asBadgeTheme(e.target.value))}
-                >
-                  <option value="auto">{b.themeAuto}</option>
-                  <option value="light">{b.themeLight}</option>
-                  <option value="dark">{b.themeDark}</option>
-                </select>
-              </label>
-            </div>
-            <div className="badge-preview">
-              {/* eslint-disable-next-line @next/next/no-img-element -- a third-party-
-                  cacheable SVG badge, not a Next-optimized asset. */}
-              <img src={badgeSrc} alt={b.previewAlt} />
-            </div>
-            <div className="badge-actions">
-              <button
-                type="button"
-                className="btn btn-sm"
-                onClick={() => copySnippet(badgeMarkdown, "markdown")}
-              >
-                {b.copyMarkdown}
-              </button>
-              <button
-                type="button"
-                className="btn btn-sm"
-                onClick={() => copySnippet(badgeHtml, "html")}
-              >
-                {b.copyHtml}
-              </button>
-              <button
-                type="button"
-                className="btn btn-sm"
-                onClick={() => copySnippet(badgeUrl, "url")}
-              >
-                {b.copyLink}
-              </button>
-            </div>
-            <details className="badge-qr">
-              <summary>{b.qrLabel}</summary>
-              <p className="badge-qr-hint muted">{b.qrHint}</p>
-              <div className="badge-qr-row">
-                {/* eslint-disable-next-line @next/next/no-img-element -- a printable
-                    QR image, not a Next-optimized asset. */}
-                <img className="badge-qr-img" src={qrSrc} alt={b.qrAlt} width={84} height={84} />
-                <div className="badge-actions">
-                  <a className="btn btn-sm" href={qrSrc} download="sigmacv-qr.svg">
-                    {b.downloadQr}
-                  </a>
-                  <button
-                    type="button"
-                    className="btn btn-sm"
-                    onClick={() => copySnippet(qrUrl, "qr")}
-                  >
-                    {b.copyLink}
-                  </button>
-                </div>
-              </div>
-            </details>
-          </details>
           <label className="field-inline" title={u.allowIndexingTitle}>
             <input
               type="checkbox"
@@ -329,6 +173,18 @@ export default function PublishControls({
               <span>{u.publicShowLocation}</span>
             </label>
           </fieldset>
+          {/* Deep-link to the editor's public-page-style picker — styling the
+              living page is a publish-side job, so offer the jump right here once
+              the page is live (closes this menu, opens + scrolls to that group). */}
+          {onEditPublicStyle ? (
+            <button
+              type="button"
+              className="btn btn-sm publish-style-cta"
+              onClick={onEditPublicStyle}
+            >
+              {eu.publishStyleTip} <span aria-hidden="true">→</span>
+            </button>
+          ) : null}
         </>
       ) : null}
     </div>

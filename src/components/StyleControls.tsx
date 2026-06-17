@@ -7,6 +7,7 @@ import {
   DENSITIES,
   FONT_PAIRINGS,
   HIGHLIGHT_STYLES,
+  isMascotStyle,
   PUBLIC_STYLES,
   TEMPLATES,
   type CanonicalCv,
@@ -27,7 +28,13 @@ import {
 } from "@/lib/canonical/cvModels";
 import { METRIC_DEFS, curatedMetrics, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
-import { FIELD_NORMALIZED_METRICS, metricHint } from "@/lib/i18n/metricHints";
+import {
+  FIELD_NORMALIZED_METRICS,
+  METRICS_CROWDING_THRESHOLD,
+  metricHint,
+  metricsCrowdingNote,
+  metricsNudge,
+} from "@/lib/i18n/metricHints";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { trackEvent } from "@/lib/analytics/track";
@@ -207,6 +214,10 @@ export default function StyleControls({
     aura: "Aura",
     mesh: "Mesh",
     marquee: "Marquee",
+    clockwork: "Clockwork",
+    arcade: "Arcade",
+    meadow: "Meadow",
+    cyberpunk: "Cyberpunk",
   };
   const HIGHLIGHT_STYLE_LABELS: Record<string, string> = {
     accent: u.hlAccent,
@@ -478,53 +489,7 @@ export default function StyleControls({
         </div>
       </StyleGroup>
 
-      <StyleGroup grouped={grouped} title={eu.grpTemplate}>
-        <div className="field template-field">
-          <span id="tpl-label">{u.templateLabel}</span>
-          <div className="template-gallery" role="radiogroup" aria-labelledby="tpl-label">
-            {TEMPLATES.map((tpl) => {
-              const selected = cv.display.template === tpl;
-              return (
-                <button
-                  key={tpl}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  className={`tpl-card${selected ? " is-selected" : ""}`}
-                  onClick={() => {
-                    // Cookieless product signal: which template (only on change).
-                    if (!selected) trackEvent("Template", { template: tpl });
-                    onChange(
-                      updateDisplay(cv, {
-                        template: tpl as CanonicalCv["display"]["template"],
-                      }),
-                    );
-                  }}
-                  title={TEMPLATE_LABELS[tpl] ?? tpl}
-                >
-                  <span className="tpl-preview">
-                    {tplPreviews[tpl] ? (
-                      <iframe
-                        className="tpl-frame"
-                        srcDoc={tplPreviews[tpl]}
-                        title={TEMPLATE_LABELS[tpl] ?? tpl}
-                        sandbox=""
-                        scrolling="no"
-                        tabIndex={-1}
-                        aria-hidden="true"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className="tpl-skeleton" aria-hidden="true" />
-                    )}
-                  </span>
-                  <span className="tpl-name">{TEMPLATE_LABELS[tpl] ?? tpl}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
+      <StyleGroup grouped={grouped} title={eu.grpLook}>
         <label className="field">
           <span>{t(locale, "cvLanguage")}</span>
           <select
@@ -721,6 +686,55 @@ export default function StyleControls({
         </label>
       </StyleGroup>
 
+      <StyleGroup grouped={grouped} title={eu.grpDocLayout}>
+        <p className="muted metric-preset-note field-note">{eu.docLayoutNote}</p>
+        <div className="field template-field">
+          <span id="tpl-label">{u.templateLabel}</span>
+          <div className="template-gallery" role="radiogroup" aria-labelledby="tpl-label">
+            {TEMPLATES.map((tpl) => {
+              const selected = cv.display.template === tpl;
+              return (
+                <button
+                  key={tpl}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  className={`tpl-card${selected ? " is-selected" : ""}`}
+                  onClick={() => {
+                    // Cookieless product signal: which template (only on change).
+                    if (!selected) trackEvent("Template", { template: tpl });
+                    onChange(
+                      updateDisplay(cv, {
+                        template: tpl as CanonicalCv["display"]["template"],
+                      }),
+                    );
+                  }}
+                  title={TEMPLATE_LABELS[tpl] ?? tpl}
+                >
+                  <span className="tpl-preview">
+                    {tplPreviews[tpl] ? (
+                      <iframe
+                        className="tpl-frame"
+                        srcDoc={tplPreviews[tpl]}
+                        title={TEMPLATE_LABELS[tpl] ?? tpl}
+                        sandbox=""
+                        scrolling="no"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="tpl-skeleton" aria-hidden="true" />
+                    )}
+                  </span>
+                  <span className="tpl-name">{TEMPLATE_LABELS[tpl] ?? tpl}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </StyleGroup>
+
       <StyleGroup
         grouped={grouped}
         title={eu.grpPublicStyle}
@@ -775,9 +789,27 @@ export default function StyleControls({
             })}
           </div>
         </div>
+        {isMascotStyle(cv.display.publicStyle ?? "") ? (
+          <>
+            <label className="field-inline mascot-toggle">
+              <input
+                type="checkbox"
+                checked={cv.display.showMascot ?? false}
+                onChange={(e) => onChange(updateDisplay(cv, { showMascot: e.target.checked }))}
+              />
+              <span>{eu.mascotLabel}</span>
+            </label>
+            <p className="muted metric-preset-note field-note">{eu.mascotHint}</p>
+          </>
+        ) : null}
       </StyleGroup>
 
       <StyleGroup grouped={grouped} title={eu.grpMetrics} defaultOpen={false}>
+        {/* Responsible-metrics framing: metrics are optional and the narrative
+            leads (DORA). A gentle nudge at the point of choice, not a block. */}
+        <p className="muted metric-preset-note field-note metrics-nudge">
+          <MetricsNoteText text={metricsNudge(locale)} />
+        </p>
         <div className="field metric-picker">
           <span>{u.metricsLabel}</span>
           <div className="metric-options">
@@ -813,6 +845,13 @@ export default function StyleControls({
               );
             })}
           </div>
+          {/* Contextual caution once the strip turns metrics-heavy — steers back
+              toward a short, readable header without removing any choice. */}
+          {cv.display.metrics.length >= METRICS_CROWDING_THRESHOLD ? (
+            <p className="metric-preset-note field-note metrics-crowding-note">
+              {metricsCrowdingNote(locale)}
+            </p>
+          ) : null}
           <div className="metric-preset">
             <button
               type="button"

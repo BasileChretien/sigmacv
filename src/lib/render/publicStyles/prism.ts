@@ -18,6 +18,8 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -31,7 +33,11 @@ function prismCss(_theme: TemplateTheme): string {
     --cv-ink: #f6f7ff; --cv-ink-2: #d2d5f2; --cv-muted: #a7abdb; --cv-faint: #888cc4;
     --cv-rule: rgba(255,255,255,0.14); --cv-rule-strong: rgba(255,255,255,0.26);
     --cv-page: #07060f;
-    --neon-1:#ff2db4; --neon-2:#8b3cff; --neon-3:#15d3ff; --neon-4:#23ff9c; --neon-5:#ffb13d;
+    /* --neon-2 lightened from #8b3cff (only 3.84:1 as the 5n+5 heading text on the
+       dark glass plate) to #a96bff (5.7:1). This is the non-oklch fallback literal;
+       where relative-color is supported accentSpectrum re-derives it at L=0.74
+       (a light vivid that already passes on the dark plate). */
+    --neon-1:#ff2db4; --neon-2:#a96bff; --neon-3:#15d3ff; --neon-4:#23ff9c; --neon-5:#ffb13d;
   }
   body { background: #07060f; color: var(--cv-ink); min-height: 100vh; overflow-x: hidden; }
   .cv { max-width: none; margin: 0; padding: 0; }
@@ -150,6 +156,146 @@ function prismCss(_theme: TemplateTheme): string {
   }`;
 }
 
+const prismMascotSkin = `
+  /* --- Prism mascot: cut-glass crystal body -------------------------------- */
+
+  /* Shimmer / sparkle keyframes */
+  @keyframes pm-shimmer {
+    0%   { opacity: 0;   transform: translateX(-120%) rotate(28deg); }
+    30%  { opacity: 0.85; }
+    70%  { opacity: 0.85; }
+    100% { opacity: 0;   transform: translateX(180%)  rotate(28deg); }
+  }
+  @keyframes pm-spark1 {
+    0%,100% { opacity: 0; transform: scale(0.5) rotate(0deg);   }
+    50%      { opacity: 1; transform: scale(1.3) rotate(180deg); }
+  }
+  @keyframes pm-spark2 {
+    0%,100% { opacity: 0; transform: scale(0.4) rotate(45deg);  }
+    50%      { opacity: 1; transform: scale(1.1) rotate(225deg); }
+  }
+  @keyframes pm-glow-pulse {
+    0%,100% { box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.72),
+      inset 0 -1px 0 rgba(200,180,255,0.18),
+      0 0 0 1px rgba(200,190,255,0.38),
+      0 6px 18px -4px rgba(130,80,255,0.55),
+      0 0 28px 4px rgba(120,200,255,0.18); }
+    50%      { box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.88),
+      inset 0 -1px 0 rgba(200,180,255,0.28),
+      0 0 0 1px rgba(220,210,255,0.6),
+      0 8px 26px -4px rgba(160,80,255,0.75),
+      0 0 42px 8px rgba(100,220,255,0.28); }
+  }
+
+  /* BODY — translucent faceted glass */
+  .sm-fig {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    /* Multi-stop glass gradient: bright top highlight → translucent mid → faint bottom */
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255,255,255,0.70)  0%,
+        rgba(200,185,255,0.38) 22%,
+        rgba(130,160,255,0.22) 48%,
+        rgba(80,200,255,0.16)  72%,
+        rgba(180,100,255,0.28) 100%
+      );
+    /* Frosted-glass blur so the neon nebula bleeds through beautifully */
+    backdrop-filter: blur(2px) saturate(1.4);
+    -webkit-backdrop-filter: blur(2px) saturate(1.4);
+    /* 1 px translucent-white border = the bevelled crystal edge */
+    border: 1px solid rgba(255,255,255,0.55);
+    overflow: hidden;
+    /* Pulsing iridescent glow */
+    animation: pm-glow-pulse 3.2s ease-in-out infinite;
+  }
+
+  /* Σ — a solid white glyph with a dark crystal edge + iridescent glow, so it
+     reads clearly on the near-white frosted glass (a transparent rainbow-clip
+     glyph vanished against the light body). */
+  .sm-fig::before {
+    content: "Σ";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 900; line-height: 1;
+    color: #fff;
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    -webkit-text-stroke: 0.6px rgba(70,30,130,0.62);
+    text-shadow:
+      0 0 5px rgba(255,45,180,0.95),
+      0 0 10px rgba(21,211,255,0.72),
+      0 1px 2px rgba(35,20,70,0.7);
+  }
+
+  /* FEET — two small iridescent rounded nubs */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: -5px; left: 50%;
+    transform: translateX(-50%);
+    width: 20px; height: 6px;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(90deg,
+      rgba(139,60,255,0.55) 0%,
+      rgba(21,211,255,0.55) 50%,
+      rgba(139,60,255,0.55) 100%
+    );
+    border: 1px solid rgba(255,255,255,0.4);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    box-shadow: 0 2px 6px rgba(100,80,220,0.4);
+  }
+
+  /* DECO — diagonal shimmer streak sweeping across the face */
+  .sm-deco {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .sm-deco::before {
+    content: "";
+    position: absolute;
+    top: -50%; left: -30%;
+    width: 28%; height: 200%;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(255,255,255,0.55) 40%,
+      rgba(200,240,255,0.72) 50%,
+      rgba(255,255,255,0.55) 60%,
+      transparent 100%
+    );
+    transform: rotate(28deg) translateX(-120%);
+    animation: pm-shimmer 3.8s ease-in-out infinite;
+  }
+
+  /* DECO — four-point sparkle: top-right corner */
+  .sm-deco::after {
+    content: "✦";
+    position: absolute;
+    top: 1px; right: 2px;
+    font-size: 9px; line-height: 1;
+    color: rgba(255,255,255,0.92);
+    filter: drop-shadow(0 0 3px rgba(200,220,255,1));
+    animation: pm-spark1 2.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sm-fig { animation: none !important; }
+    .sm-fig::before { animation: none !important; }
+    .sm-deco::before { animation: none !important; }
+    .sm-deco::after  { animation: none !important; }
+  }`;
+
 export const prismTemplate: CvTemplate = {
   key: "prism",
   render(cv, sections, theme, opts) {
@@ -159,8 +305,11 @@ export const prismTemplate: CvTemplate = {
       accentSpectrum(["--neon-1", "--neon-2", "--neon-3", "--neon-4", "--neon-5"], {
         l: 0.74,
         c: 0.2,
-      });
+      }) +
+      mascotBaseCss() +
+      prismMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="prism-bg" aria-hidden="true"></div>` +
       `<div class="prism-progress" aria-hidden="true"></div>` +
       `<div class="prism-plate">` +

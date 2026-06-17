@@ -69,7 +69,15 @@ export default function AccountControls({
       const dialog = dialogRef.current;
       if (e.key !== "Tab" || !dialog) return;
       const items = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE));
-      if (items.length === 0) return;
+      if (items.length === 0) {
+        // While the delete is in flight BOTH buttons are disabled, so FOCUSABLE
+        // (which excludes :disabled) finds nothing. Keep focus on the dialog
+        // itself instead of letting Tab escape the open modal mid-irreversible
+        // action (WCAG 2.1.2 / 2.4.3).
+        e.preventDefault();
+        dialog.focus();
+        return;
+      }
       const first = items[0]!;
       const last = items[items.length - 1]!;
       if (e.shiftKey && document.activeElement === first) {
@@ -234,10 +242,15 @@ export default function AccountControls({
             aria-labelledby="delete-account-title"
             aria-describedby="delete-account-desc"
             ref={dialogRef}
+            tabIndex={-1}
           >
             <h2 id="delete-account-title">{u.deleteAccount}</h2>
             <p id="delete-account-desc">{u.deleteConfirm}</p>
-            {error ? <p className="consent-error">{error}</p> : null}
+            {error ? (
+              <p className="consent-error" role="alert">
+                {error}
+              </p>
+            ) : null}
             <div className="consent-actions">
               <button
                 type="button"

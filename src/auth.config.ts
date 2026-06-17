@@ -106,6 +106,13 @@ export const authConfig = {
   providers,
   pages: {
     signIn: "/",
+    // Friendly, branded, noindex error page that maps the `?error=<code>` query
+    // param to readable copy (instead of Auth.js's bare default error screen).
+    error: "/auth/error",
+    // Magic-link "check your inbox" confirmation. Auth.js redirects here after a
+    // successful `signIn("email", …)` so the user isn't left on the homepage
+    // wondering whether anything happened. Inert unless email login is enabled.
+    verifyRequest: "/auth/check-email",
   },
   callbacks: {
     // Used by the (optional) proxy/`auth` wrapper for quick checks.

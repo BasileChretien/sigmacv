@@ -452,6 +452,15 @@ export function reasonLabel(locale: string, reason: NotMineReason): string {
 // ─── Chrome dictionary ───────────────────────────────────────────────────────
 
 const EN = {
+  reviewMine: "Yes, it's mine",
+  reviewMineHint: "Confirm this work is yours — it stays on your CV and we stop flagging it.",
+  misWhyPrefix: "May not be yours —",
+  misWhyCoauthor: "no co-authors in common with your other work",
+  misWhyField: "a different research field",
+  misWhyAffiliation: "an institution not seen elsewhere in your record",
+  misWhyYear: "published outside the years of your other work",
+  reviewHintMisattributed:
+    "Matched to you only by an OpenAlex author profile (no confirming ORCID), and it differs from the rest of your work — no shared co-authors and a different research field. It may belong to a researcher with a similar name. Keep it if it’s yours, or mark it “not mine”.",
   // topbar
   appTagline: "open academic CVs",
   resync: "Re-sync",
@@ -464,6 +473,8 @@ const EN = {
   saveFailed: "Save failed.",
   syncFailed: "Sync failed.",
   exportLabel: "Export",
+  exporting: "Exporting…",
+  exportFailed: "Export failed.",
   exportFormat: "Export format",
   signOut: "Sign out",
   language: "Language",
@@ -582,6 +593,15 @@ const EN = {
 export type ChromeKey = keyof typeof EN;
 
 const ZH: Record<ChromeKey, string> = {
+  reviewMine: "是我的",
+  reviewMineHint: "确认这是您的作品——它将保留在简历中，我们不再提示。",
+  misWhyPrefix: "可能不是您的——",
+  misWhyCoauthor: "与您的其他作品没有共同合作者",
+  misWhyField: "研究领域不同",
+  misWhyAffiliation: "出现了您记录中其他地方未见的机构",
+  misWhyYear: "发表年份不在您其他作品的时间范围内",
+  reviewHintMisattributed:
+    "仅通过 OpenAlex 作者档案匹配到您（无确认的 ORCID），且与您的其他成果不符——没有共同合作者，研究领域也不同。它可能属于与您同名的其他研究者。若确为您本人请保留，否则标记为“不是我的”。",
   appTagline: "开放的学术简历",
   resync: "重新同步",
   resyncing: "同步中…",
@@ -593,6 +613,8 @@ const ZH: Record<ChromeKey, string> = {
   saveFailed: "保存失败。",
   syncFailed: "同步失败。",
   exportLabel: "导出",
+  exporting: "导出中…",
+  exportFailed: "导出失败。",
   exportFormat: "导出格式",
   signOut: "退出登录",
   language: "语言",
@@ -696,6 +718,15 @@ const ZH: Record<ChromeKey, string> = {
 };
 
 const ES: Record<ChromeKey, string> = {
+  reviewMine: "Sí, es mío",
+  reviewMineHint: "Confirma que este trabajo es tuyo: permanece en tu CV y dejamos de marcarlo.",
+  misWhyPrefix: "Puede que no sea tuyo:",
+  misWhyCoauthor: "sin coautores en común con tus otros trabajos",
+  misWhyField: "un campo de investigación distinto",
+  misWhyAffiliation: "una institución que no aparece en el resto de tu historial",
+  misWhyYear: "publicado fuera de los años de tus otros trabajos",
+  reviewHintMisattributed:
+    "Coincide con usted solo por un perfil de autor de OpenAlex (sin un ORCID que lo confirme) y no encaja con el resto de su trabajo: sin coautores en común y de un campo distinto. Podría pertenecer a otro investigador con un nombre similar. Consérvelo si es suyo o márquelo como «no es mío».",
   appTagline: "CV académicos abiertos",
   resync: "Resincronizar",
   resyncing: "Sincronizando…",
@@ -707,6 +738,8 @@ const ES: Record<ChromeKey, string> = {
   saveFailed: "Error al guardar.",
   syncFailed: "Error de sincronización.",
   exportLabel: "Exportar",
+  exporting: "Exportando…",
+  exportFailed: "La exportación falló.",
   exportFormat: "Formato de exportación",
   signOut: "Cerrar sesión",
   language: "Idioma",
@@ -814,6 +847,16 @@ const ES: Record<ChromeKey, string> = {
 };
 
 const FR: Record<ChromeKey, string> = {
+  reviewMine: "Oui, c'est à moi",
+  reviewMineHint:
+    "Confirmez que ce travail est le vôtre : il reste sur votre CV et nous cessons de le signaler.",
+  misWhyPrefix: "Peut-être pas le vôtre :",
+  misWhyCoauthor: "aucun co-auteur commun avec vos autres travaux",
+  misWhyField: "un domaine de recherche différent",
+  misWhyAffiliation: "un établissement absent du reste de votre profil",
+  misWhyYear: "publié en dehors des années de vos autres travaux",
+  reviewHintMisattributed:
+    "Rattaché à vous uniquement via un profil auteur OpenAlex (sans ORCID le confirmant) et il ne correspond pas au reste de vos travaux : aucun co-auteur commun et un domaine différent. Il peut appartenir à un chercheur portant un nom similaire. Conservez-le s’il est de vous, sinon marquez « pas le mien ».",
   appTagline: "CV académiques ouverts",
   resync: "Resynchroniser",
   resyncing: "Synchronisation…",
@@ -825,6 +868,8 @@ const FR: Record<ChromeKey, string> = {
   saveFailed: "Échec de l’enregistrement.",
   syncFailed: "Échec de la synchronisation.",
   exportLabel: "Exporter",
+  exporting: "Exportation…",
+  exportFailed: "L’export a échoué.",
   exportFormat: "Format d’export",
   signOut: "Se déconnecter",
   language: "Langue",
@@ -933,6 +978,16 @@ const FR: Record<ChromeKey, string> = {
 };
 
 const DE: Record<ChromeKey, string> = {
+  reviewMine: "Ja, gehört mir",
+  reviewMineHint:
+    "Bestätigen Sie, dass diese Arbeit Ihre ist – sie bleibt im Lebenslauf und wird nicht mehr markiert.",
+  misWhyPrefix: "Möglicherweise nicht Ihre Arbeit –",
+  misWhyCoauthor: "keine gemeinsamen Koautoren mit Ihren anderen Arbeiten",
+  misWhyField: "ein anderes Forschungsgebiet",
+  misWhyAffiliation: "eine Einrichtung, die sonst nicht in Ihrem Profil vorkommt",
+  misWhyYear: "außerhalb der Jahre Ihrer anderen Arbeiten veröffentlicht",
+  reviewHintMisattributed:
+    "Ihnen nur über ein OpenAlex-Autorenprofil zugeordnet (ohne bestätigende ORCID) und passt nicht zum Rest Ihrer Arbeiten – keine gemeinsamen Koautoren und ein anderes Fachgebiet. Es könnte zu einer Person mit ähnlichem Namen gehören. Behalten Sie es, wenn es Ihres ist, oder markieren Sie es als „nicht meins“.",
   appTagline: "Offene akademische Lebensläufe",
   resync: "Neu synchronisieren",
   resyncing: "Synchronisiere…",
@@ -944,6 +999,8 @@ const DE: Record<ChromeKey, string> = {
   saveFailed: "Speichern fehlgeschlagen.",
   syncFailed: "Synchronisation fehlgeschlagen.",
   exportLabel: "Exportieren",
+  exporting: "Exportiere…",
+  exportFailed: "Export fehlgeschlagen.",
   exportFormat: "Exportformat",
   signOut: "Abmelden",
   language: "Sprache",
@@ -1053,6 +1110,15 @@ const DE: Record<ChromeKey, string> = {
 };
 
 const JA: Record<ChromeKey, string> = {
+  reviewMine: "自分のものです",
+  reviewMineHint: "この業績がご自身のものだと確認します。CV に残り、以後フラグは表示されません。",
+  misWhyPrefix: "あなたのものでない可能性：",
+  misWhyCoauthor: "他の業績と共通の共著者がいない",
+  misWhyField: "研究分野が異なる",
+  misWhyAffiliation: "経歴の他の箇所に見られない所属機関",
+  misWhyYear: "他の業績の年代から外れた発表年",
+  reviewHintMisattributed:
+    "OpenAlex の著者プロフィールだけで照合されており（確認できる ORCID がありません）、ほかの業績とも一致しません（共著者の重なりがなく、研究分野も異なります）。氏名の似た別の研究者のものである可能性があります。ご自身のものなら残し、そうでなければ「自分のものではない」と設定してください。",
   appTagline: "オープンな学術 CV",
   resync: "再同期",
   resyncing: "同期中…",
@@ -1064,6 +1130,8 @@ const JA: Record<ChromeKey, string> = {
   saveFailed: "保存に失敗しました。",
   syncFailed: "同期に失敗しました。",
   exportLabel: "エクスポート",
+  exporting: "エクスポート中…",
+  exportFailed: "エクスポートに失敗しました。",
   exportFormat: "エクスポート形式",
   signOut: "サインアウト",
   language: "言語",
@@ -1171,6 +1239,16 @@ const JA: Record<ChromeKey, string> = {
 };
 
 const PT: Record<ChromeKey, string> = {
+  reviewMine: "Sim, é meu",
+  reviewMineHint:
+    "Confirme que este trabalho é seu — ele permanece no seu CV e deixamos de sinalizá-lo.",
+  misWhyPrefix: "Pode não ser seu —",
+  misWhyCoauthor: "sem coautores em comum com seus outros trabalhos",
+  misWhyField: "uma área de pesquisa diferente",
+  misWhyAffiliation: "uma instituição que não aparece no resto do seu histórico",
+  misWhyYear: "publicado fora dos anos dos seus outros trabalhos",
+  reviewHintMisattributed:
+    "Associado a você apenas por um perfil de autor do OpenAlex (sem um ORCID que confirme) e não combina com o restante do seu trabalho: sem coautores em comum e de uma área diferente. Pode pertencer a outro pesquisador com nome parecido. Mantenha se for seu ou marque como “não é meu”.",
   appTagline: "Currículos acadêmicos abertos",
   resync: "Ressincronizar",
   resyncing: "Sincronizando…",
@@ -1182,6 +1260,8 @@ const PT: Record<ChromeKey, string> = {
   saveFailed: "Falha ao salvar.",
   syncFailed: "Falha na sincronização.",
   exportLabel: "Exportar",
+  exporting: "Exportando…",
+  exportFailed: "Falha na exportação.",
   exportFormat: "Formato de exportação",
   signOut: "Sair",
   language: "Idioma",
@@ -1289,6 +1369,15 @@ const PT: Record<ChromeKey, string> = {
 };
 
 const IT: Record<ChromeKey, string> = {
+  reviewMine: "Sì, è mio",
+  reviewMineHint: "Conferma che questo lavoro è tuo: resta nel tuo CV e smettiamo di segnalarlo.",
+  misWhyPrefix: "Potrebbe non essere tuo —",
+  misWhyCoauthor: "nessun coautore in comune con i tuoi altri lavori",
+  misWhyField: "un ambito di ricerca diverso",
+  misWhyAffiliation: "un'istituzione assente dal resto del tuo profilo",
+  misWhyYear: "pubblicato al di fuori degli anni dei tuoi altri lavori",
+  reviewHintMisattributed:
+    "Associato a te solo tramite un profilo autore OpenAlex (senza un ORCID di conferma) e non corrisponde al resto del tuo lavoro: nessun coautore in comune e un ambito diverso. Potrebbe appartenere a un ricercatore con un nome simile. Tienilo se è tuo, altrimenti segnalalo come «non è mio».",
   appTagline: "CV accademici aperti",
   resync: "Risincronizza",
   resyncing: "Sincronizzazione…",
@@ -1300,6 +1389,8 @@ const IT: Record<ChromeKey, string> = {
   saveFailed: "Salvataggio non riuscito.",
   syncFailed: "Sincronizzazione non riuscita.",
   exportLabel: "Esporta",
+  exporting: "Esportazione…",
+  exportFailed: "Esportazione non riuscita.",
   exportFormat: "Formato di esportazione",
   signOut: "Esci",
   language: "Lingua",
@@ -1407,6 +1498,15 @@ const IT: Record<ChromeKey, string> = {
 };
 
 const KO: Record<ChromeKey, string> = {
+  reviewMine: "내 것이 맞습니다",
+  reviewMineHint: "이 업적이 본인의 것임을 확인합니다. CV에 그대로 남고 더 이상 표시하지 않습니다.",
+  misWhyPrefix: "본인의 것이 아닐 수 있습니다 —",
+  misWhyCoauthor: "다른 업적과 공동저자가 겹치지 않음",
+  misWhyField: "연구 분야가 다름",
+  misWhyAffiliation: "기록의 다른 곳에 없는 소속 기관",
+  misWhyYear: "다른 업적의 연도 범위를 벗어나 발표됨",
+  reviewHintMisattributed:
+    "OpenAlex 저자 프로필로만 매칭되었고(확인된 ORCID 없음) 다른 업적과도 맞지 않습니다 — 공동저자가 겹치지 않고 연구 분야도 다릅니다. 이름이 비슷한 다른 연구자의 것일 수 있습니다. 본인 것이면 그대로 두고, 아니면 ‘내 것이 아님’으로 표시하세요.",
   appTagline: "오픈 학술 CV",
   resync: "다시 동기화",
   resyncing: "동기화 중…",
@@ -1418,6 +1518,8 @@ const KO: Record<ChromeKey, string> = {
   saveFailed: "저장에 실패했습니다.",
   syncFailed: "동기화에 실패했습니다.",
   exportLabel: "내보내기",
+  exporting: "내보내는 중…",
+  exportFailed: "내보내기에 실패했습니다.",
   exportFormat: "내보내기 형식",
   signOut: "로그아웃",
   language: "언어",
@@ -1525,6 +1627,16 @@ const KO: Record<ChromeKey, string> = {
 };
 
 const RU: Record<ChromeKey, string> = {
+  reviewMine: "Да, это моё",
+  reviewMineHint:
+    "Подтвердите, что эта работа ваша — она останется в CV, и мы перестанем её отмечать.",
+  misWhyPrefix: "Возможно, не ваша работа —",
+  misWhyCoauthor: "нет общих соавторов с другими вашими работами",
+  misWhyField: "другая область исследований",
+  misWhyAffiliation: "учреждение, которого нет в остальной части вашего профиля",
+  misWhyYear: "опубликовано вне периода ваших других работ",
+  reviewHintMisattributed:
+    "Сопоставлено с вами только по профилю автора OpenAlex (без подтверждающего ORCID) и не совпадает с остальными вашими работами — нет общих соавторов и другая область. Возможно, принадлежит другому исследователю с похожим именем. Оставьте, если это ваша работа, иначе отметьте «не моё».",
   appTagline: "Открытые академические резюме",
   resync: "Синхронизировать",
   resyncing: "Синхронизация…",
@@ -1536,6 +1648,8 @@ const RU: Record<ChromeKey, string> = {
   saveFailed: "Не удалось сохранить.",
   syncFailed: "Не удалось синхронизировать.",
   exportLabel: "Экспорт",
+  exporting: "Экспорт…",
+  exportFailed: "Не удалось выполнить экспорт.",
   exportFormat: "Формат экспорта",
   signOut: "Выйти",
   language: "Язык",

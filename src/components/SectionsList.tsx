@@ -24,6 +24,7 @@ import {
   addSection,
   clearDuplicateFlag,
   clearViewExclusions,
+  confirmMisattribution,
   dismissDuplicateGroup,
   dismissReviewCandidate,
   isItemShownInView,
@@ -146,6 +147,7 @@ function firstHealthTargets(cv: CanonicalCv): Record<CvHealthCategory, HealthTar
     review: undefined,
     duplicates: undefined,
     conflicts: undefined,
+    misattributed: undefined,
     retracted: undefined,
   };
   for (const s of orderedSections(cv)) {
@@ -163,6 +165,14 @@ function firstHealthTargets(cv: CanonicalCv): Record<CvHealthCategory, HealthTar
       }
       if (!out.duplicates && flag === "duplicate" && !isHidden(it)) out.duplicates = here;
       if (!out.conflicts && flag === "orcid-conflict" && !isHidden(it)) out.conflicts = here;
+      if (
+        !out.misattributed &&
+        flag === "likely-misattributed" &&
+        !isHidden(it) &&
+        !dismissed.has(it.id)
+      ) {
+        out.misattributed = here;
+      }
       if (
         !out.retracted &&
         it.meta.retracted === true &&
@@ -903,6 +913,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                 similarTitle={orcidSimilar.get(item.id)}
                                 onDismissReview={() =>
                                   onChange(dismissReviewCandidate(cv, section.id, item.id))
+                                }
+                                onConfirmMine={() =>
+                                  onChange(confirmMisattribution(cv, section.id, item.id))
                                 }
                                 flash={focusItem?.id === item.id}
                                 onKeepOnly={(keepId) => {

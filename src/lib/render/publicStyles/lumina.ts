@@ -29,6 +29,15 @@ function luminaCss(_t: TemplateTheme): string {
        --cv-muted, so they stay legible — the failure mode this style guards. */
     --cv-ink:#edeef1; --cv-ink-2:#c9cdd6; --cv-muted:#aab1bd; --cv-faint:#9aa1ad;
     --cv-rule: rgba(255,255,255,0.09); --cv-rule-strong: rgba(255,255,255,0.16); --cv-page:#070708;
+    /* A LIGHT accent for link text on the near-black stage. The page --cv-accent
+       is floored DARK (≥4.7:1 vs WHITE), so accent-coloured text reads at only
+       ~3.0:1 on #070708 — the accent-on-dark trap. The literal #7aa2ff fallback
+       is ~8.1:1; the oklch line (where supported) re-lightens the user's own
+       accent hue to L≈0.82 (≥9:1). */
+    --cv-accent-light: #7aa2ff;
+  }
+  @supports (color: oklch(from red l c h)) {
+    :root { --cv-accent-light: oklch(from var(--cv-accent) 0.82 0.16 h); }
   }
   body {
     min-height:100vh; color:var(--cv-ink);
@@ -82,7 +91,7 @@ function luminaCss(_t: TemplateTheme): string {
     font-family: ui-serif, "Iowan Old Style", Georgia, serif;
     font-style: italic; font-weight: 400; color: var(--cv-ink-2); margin-top: 0.55rem; letter-spacing: 0.005em;
   }
-  header.cv-header .cv-ids a, ol.cv-bib > li a { color: var(--cv-accent); text-decoration: none; }
+  header.cv-header .cv-ids a, ol.cv-bib > li a { color: var(--cv-accent-light); text-decoration: none; }
   header.cv-header .cv-ids a:hover, ol.cv-bib > li a:hover { text-decoration: underline; text-underline-offset: 0.18em; }
   header.cv-header .cv-summary { color: var(--cv-ink-2); max-width: 60ch; }
   .cv-self {

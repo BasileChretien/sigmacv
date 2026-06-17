@@ -12,6 +12,8 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -42,8 +44,11 @@ function risoCss(_t: TemplateTheme): string {
   section.cv-section { margin-top: 2.1rem; }
   section.cv-section > h2 { display:inline-block; color:#f4eede; background: var(--riso-blue); padding:0.28em 0.7em;
     font-size:0.78rem; font-weight:800; text-transform:uppercase; letter-spacing:0.12em; margin:0 0 0.85rem; transform: rotate(-1.2deg); }
-  section.cv-section:nth-of-type(3n+1) > h2 { background: var(--riso-pink); transform: rotate(1deg); }
-  section.cv-section:nth-of-type(3n+3) > h2 { background: var(--riso-teal); transform: rotate(-0.6deg); }
+  /* Paper ink reads on the blue block (5.8:1) but FAILS on the lighter teal
+     (2.27:1) and pink (3.03:1) ink blocks → flip those to dark ink (teal 6.2:1,
+     pink 4.6:1) the way the amber chip pattern does elsewhere. */
+  section.cv-section:nth-of-type(3n+1) > h2 { background: var(--riso-pink); color: var(--cv-ink); transform: rotate(1deg); }
+  section.cv-section:nth-of-type(3n+3) > h2 { background: var(--riso-teal); color: var(--cv-ink); transform: rotate(-0.6deg); }
 
   ol.cv-bib > li { position:relative; padding-left:1.6em; text-indent:0; }
   ol.cv-bib > li::before { content:"●"; position:absolute; left:0; color: var(--riso-pink); font-size:0.7em; top:0.28em; }
@@ -80,6 +85,75 @@ function risoCss(_t: TemplateTheme): string {
   }`;
 }
 
+const risoMascotSkin = `
+  /* ── Riso mascot skin: flat spot-colour screen-print look ── */
+
+  /* BODY — flat riso-blue rectangle, matte, no shadow, no gradient */
+  .sm-fig {
+    background: #1f3bff;
+    border-radius: 6px;
+    filter: contrast(1.05) saturate(0.95);
+    box-shadow: none;
+  }
+
+  /* Σ mark — flat cream/paper colour, no shadow, looks inked */
+  .sm-fig::before {
+    color: #f4eede;
+    text-shadow: none;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  /* FEET — two flat pink ink blobs */
+  .sm-fig::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22px;
+    height: 5px;
+    background: #1f3bff;
+    border-radius: 0 0 4px 4px;
+    box-shadow: -7px 0 0 0 #1f3bff, 7px 0 0 0 #1f3bff;
+  }
+
+  /* MISREGISTRATION GHOST — pink copy of the body, offset behind */
+  .sm-deco {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background: #ff2d87;
+    transform: translate(3px, 3px);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* GRAIN LAYER — faint halftone-style dot noise on the pink ghost */
+  .sm-deco::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background-image:
+      radial-gradient(circle, rgba(36,28,52,0.18) 1px, transparent 1.5px);
+    background-size: 3px 3px;
+    background-position: 1px 1px;
+  }
+
+  /* Second accent bleed — tiny riso-pink sliver peeking out bottom-right */
+  .sm-deco::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 4px;
+    border-radius: 2px;
+    background: #ff2d87;
+    opacity: 0.7;
+  }`;
+
 export const risoTemplate: CvTemplate = {
   key: "riso",
   render(cv, sections, theme, opts) {
@@ -89,8 +163,11 @@ export const risoTemplate: CvTemplate = {
       accentSpectrum(["--riso-pink", "--riso-blue", "--riso-teal", "--riso-yellow"], {
         l: 0.58,
         c: 0.2,
-      });
+      }) +
+      mascotBaseCss() +
+      risoMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="riso-grain" aria-hidden="true"></div>` +
       `<div class="riso-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +

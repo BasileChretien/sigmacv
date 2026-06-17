@@ -27,6 +27,8 @@ export interface WorkspaceUiStrings {
   hpReview: string;
   hpDuplicates: string;
   hpConflicts: string;
+  hpMisattributed: string;
+  hpMisAllMine: string;
   hpRetracted: string;
   hpHint: string;
   // ── Bulk-curation bar ──────────────────────────────────────────────────────
@@ -62,10 +64,12 @@ export interface WorkspaceUiStrings {
   // ── Restructured top bar: Publish menu trigger ─────────────────────────────
   tbPublish: string;
   tbPublished: string;
+  tbShare: string;
 }
 
 const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
   "en-US": {
+    hpMisAllMine: "They're all mine",
     srLastSync: "Last sync",
     srInitial:
       "Imported {n} entries from the open record. Your CV is ready — reviewing the flagged ones below is optional.",
@@ -81,6 +85,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} review candidates waiting for a decision",
     hpDuplicates: "{n} possible duplicates to resolve",
     hpConflicts: "{n} works listing a different ORCID iD",
+    hpMisattributed: "{n} works that may not be yours to review",
     hpRetracted: "{n} retracted works still shown",
     hpHint: "Select one to jump straight to it.",
     bulkSelect: "Select multiple",
@@ -111,8 +116,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Could not save the address — please try again.",
     tbPublish: "Publish",
     tbPublished: "Published",
+    tbShare: "Share",
   },
   "zh-CN": {
+    hpMisAllMine: "都是我的",
     srLastSync: "上次同步",
     srInitial: "已从公开记录导入 {n} 条条目。您的简历已就绪——下方带标记的条目可按需查看。",
     srAdded: "新增 {n} 条",
@@ -127,6 +134,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} 条候选条目等待确认",
     hpDuplicates: "{n} 条疑似重复待处理",
     hpConflicts: "{n} 条作品标注了不同的 ORCID iD",
+    hpMisattributed: "{n} 条可能不属于您的作品待核查",
     hpRetracted: "{n} 条已撤稿的作品仍在显示",
     hpHint: "点击任意一项即可直接跳转处理。",
     bulkSelect: "批量选择",
@@ -156,8 +164,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "无法保存地址——请重试。",
     tbPublish: "发布",
     tbPublished: "已发布",
+    tbShare: "分享",
   },
   "es-ES": {
+    hpMisAllMine: "Todos son míos",
     srLastSync: "Última sincronización",
     srInitial:
       "Se importaron {n} entradas del registro abierto. Tu CV ya está listo: revisar las marcadas abajo es opcional.",
@@ -173,6 +183,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} entradas candidatas esperan una decisión",
     hpDuplicates: "{n} posibles duplicados por resolver",
     hpConflicts: "{n} trabajos con un ORCID iD distinto",
+    hpMisattributed: "{n} trabajos que podrían no ser tuyos por revisar",
     hpRetracted: "{n} trabajos retractados aún visibles",
     hpHint: "Selecciona uno para ir directamente a él.",
     bulkSelect: "Selección múltiple",
@@ -203,8 +214,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "No se pudo guardar la dirección; inténtelo de nuevo.",
     tbPublish: "Publicar",
     tbPublished: "Publicado",
+    tbShare: "Compartir",
   },
   "fr-FR": {
+    hpMisAllMine: "Tous sont à moi",
     srLastSync: "Dernière synchronisation",
     srInitial:
       "{n} entrées importées depuis les sources ouvertes. Votre CV est prêt — vérifier les éléments signalés ci-dessous est facultatif.",
@@ -220,6 +233,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} entrées candidates en attente de décision",
     hpDuplicates: "{n} doublons possibles à résoudre",
     hpConflicts: "{n} travaux portant un ORCID iD différent",
+    hpMisattributed: "{n} travaux qui ne sont peut-être pas les vôtres à vérifier",
     hpRetracted: "{n} travaux rétractés encore affichés",
     hpHint: "Sélectionnez-en un pour y accéder directement.",
     bulkSelect: "Sélection multiple",
@@ -250,8 +264,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Impossible d’enregistrer l’adresse — réessayez.",
     tbPublish: "Publier",
     tbPublished: "Publié",
+    tbShare: "Partager",
   },
   "de-DE": {
+    hpMisAllMine: "Alle gehören mir",
     srLastSync: "Letzte Synchronisierung",
     srInitial:
       "{n} Einträge aus den offenen Quellen importiert. Ihr Lebenslauf ist fertig — das Prüfen der markierten Einträge unten ist optional.",
@@ -267,6 +283,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} Kandidaten warten auf eine Entscheidung",
     hpDuplicates: "{n} mögliche Duplikate zu klären",
     hpConflicts: "{n} Arbeiten mit einer anderen ORCID iD",
+    hpMisattributed: "{n} Arbeiten, die möglicherweise nicht von Ihnen sind",
     hpRetracted: "{n} zurückgezogene Arbeiten noch sichtbar",
     hpHint: "Wählen Sie einen aus, um direkt dorthin zu springen.",
     bulkSelect: "Mehrfachauswahl",
@@ -297,8 +314,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Adresse konnte nicht gespeichert werden — bitte erneut versuchen.",
     tbPublish: "Veröffentlichen",
     tbPublished: "Veröffentlicht",
+    tbShare: "Teilen",
   },
   "ja-JP": {
+    hpMisAllMine: "すべて自分のものです",
     srLastSync: "前回の同期",
     srInitial:
       "公開データから {n} 件を取り込みました。CV はすでに利用可能です。下のフラグ付き項目の確認は任意です。",
@@ -314,6 +333,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "確認待ちの候補が {n} 件",
     hpDuplicates: "重複の可能性が {n} 件",
     hpConflicts: "別の ORCID iD が記載された業績が {n} 件",
+    hpMisattributed: "あなたのものでない可能性がある業績が {n} 件",
     hpRetracted: "撤回済みの業績が {n} 件表示されています",
     hpHint: "項目を選ぶと該当箇所へ直接移動します。",
     bulkSelect: "複数選択",
@@ -344,8 +364,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "アドレスを保存できませんでした。もう一度お試しください。",
     tbPublish: "公開",
     tbPublished: "公開中",
+    tbShare: "共有",
   },
   "pt-BR": {
+    hpMisAllMine: "Todos são meus",
     srLastSync: "Última sincronização",
     srInitial:
       "{n} itens importados do registro aberto. Seu CV já está pronto — revisar os sinalizados abaixo é opcional.",
@@ -361,6 +383,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} itens candidatos aguardando decisão",
     hpDuplicates: "{n} possíveis duplicatas a resolver",
     hpConflicts: "{n} trabalhos com um ORCID iD diferente",
+    hpMisattributed: "{n} trabalhos que podem não ser seus para revisar",
     hpRetracted: "{n} trabalhos retratados ainda exibidos",
     hpHint: "Selecione um para ir direto até ele.",
     bulkSelect: "Seleção múltipla",
@@ -391,8 +414,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Não foi possível salvar o endereço — tente novamente.",
     tbPublish: "Publicar",
     tbPublished: "Publicado",
+    tbShare: "Compartilhar",
   },
   "it-IT": {
+    hpMisAllMine: "Sono tutti miei",
     srLastSync: "Ultima sincronizzazione",
     srInitial:
       "Importate {n} voci dal registro aperto. Il tuo CV è già pronto: rivedere quelle segnalate qui sotto è facoltativo.",
@@ -408,6 +433,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} voci candidate in attesa di decisione",
     hpDuplicates: "{n} possibili duplicati da risolvere",
     hpConflicts: "{n} lavori con un ORCID iD diverso",
+    hpMisattributed: "{n} lavori che potrebbero non essere tuoi da verificare",
     hpRetracted: "{n} lavori ritrattati ancora visibili",
     hpHint: "Selezionane uno per andarci direttamente.",
     bulkSelect: "Selezione multipla",
@@ -438,8 +464,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Impossibile salvare l’indirizzo: riprova.",
     tbPublish: "Pubblica",
     tbPublished: "Pubblicato",
+    tbShare: "Condividi",
   },
   "ko-KR": {
+    hpMisAllMine: "모두 내 것입니다",
     srLastSync: "마지막 동기화",
     srInitial:
       "공개 기록에서 {n}개 항목을 가져왔습니다. CV가 준비되었습니다 — 아래 표시된 항목 검토는 선택 사항입니다.",
@@ -455,6 +483,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "결정 대기 중인 후보 {n}개",
     hpDuplicates: "중복 가능성 {n}개",
     hpConflicts: "다른 ORCID iD가 기재된 업적 {n}개",
+    hpMisattributed: "본인의 것이 아닐 수 있는 업적 {n}개",
     hpRetracted: "철회된 업적 {n}개가 아직 표시됨",
     hpHint: "항목을 선택하면 해당 위치로 바로 이동합니다.",
     bulkSelect: "여러 항목 선택",
@@ -485,8 +514,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "주소를 저장하지 못했습니다. 다시 시도해 주세요.",
     tbPublish: "게시",
     tbPublished: "게시됨",
+    tbShare: "공유",
   },
   "ru-RU": {
+    hpMisAllMine: "Все мои",
     srLastSync: "Последняя синхронизация",
     srInitial:
       "Импортировано {n} записей из открытых источников. Ваше резюме готово — проверять отмеченные ниже необязательно.",
@@ -502,6 +533,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} записей-кандидатов ждут решения",
     hpDuplicates: "{n} возможных дубликатов",
     hpConflicts: "{n} работ с другим ORCID iD",
+    hpMisattributed: "{n} работ, которые могут быть не вашими",
     hpRetracted: "{n} отозванных работ всё ещё отображаются",
     hpHint: "Выберите пункт, чтобы перейти прямо к нему.",
     bulkSelect: "Выбрать несколько",
@@ -533,6 +565,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Не удалось сохранить адрес — попробуйте ещё раз.",
     tbPublish: "Опубликовать",
     tbPublished: "Опубликовано",
+    tbShare: "Поделиться",
   },
 };
 

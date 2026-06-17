@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { t } from "@/lib/i18n";
+import { usePopoverGroup } from "./PopoverGroup";
 
 interface PopoverProps {
   /** Locale for the built-in close button's accessible label. */
@@ -32,6 +33,13 @@ interface PopoverProps {
  * `alertdialog` nested inside) takes Escape precedence and suppresses the
  * outside-click dismissal automatically (it lives inside the panel subtree).
  * The open/close transition is gated behind `prefers-reduced-motion`.
+ *
+ * Inside a `PopoverGroup` the open state is hoisted to the group so only one
+ * sibling is open at a time and a shared scrim dismisses clicks the document
+ * listener can't see (over the preview `<iframe>`); used standalone it falls
+ * back to its own local open state. The document outside-click listener is kept
+ * regardless — it covers clicks on the top bar itself, which sits above the
+ * scrim.
  */
 export default function Popover({
   locale,
@@ -44,11 +52,20 @@ export default function Popover({
   align = "end",
   children,
 }: PopoverProps) {
-  const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const reduce = useReducedMotion();
+
+  // Open state lives in the enclosing PopoverGroup when present (one-open
+  // invariant + shared scrim); otherwise it's local to this instance.
+  const group = usePopoverGroup();
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = group ? group.openId === panelId : localOpen;
+  const setOpen = (next: boolean) => {
+    if (group) group.setOpenId(next ? panelId : null);
+    else setLocalOpen(next);
+  };
 
   const close = () => setOpen(false);
   // Close and hand focus back to the trigger — used by the explicit ✕ so a
@@ -77,6 +94,7 @@ export default function Popover({
       document.removeEventListener("pointerdown", onPointerDown, true);
       document.removeEventListener("keydown", onKey);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   return (
@@ -90,7 +108,7 @@ export default function Popover({
         aria-controls={open ? panelId : undefined}
         aria-label={triggerAriaLabel}
         title={triggerTitle}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(!open)}
       >
         {trigger}
       </button>
@@ -103,8 +121,20 @@ export default function Popover({
             className={`popover-panel popover-${align}${panelClassName ? ` ${panelClassName}` : ""}`}
             initial={reduce ? false : { opacity: 0, y: -4, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -4, scale: 0.98 }}
-            transition={{ duration: reduce ? 0 : 0.14, ease: "easeOut" }}
+            // Exit is quicker than enter and eased simply: the user already
+            // decided to leave, so the panel retracts toward its trigger (see
+            // `transform-origin` on .popover-end/.popover-start) without lingering.
+            exit={
+              reduce
+                ? { opacity: 0 }
+                : {
+                    opacity: 0,
+                    y: -4,
+                    scale: 0.98,
+                    transition: { duration: 0.11, ease: "easeOut" },
+                  }
+            }
+            transition={{ duration: reduce ? 0 : 0.16, ease: [0.23, 1, 0.32, 1] }}
           >
             {/* Explicit, always-visible dismiss. Outside-click and Escape still
                 work, but a discoverable ✕ means the panel is never a trap —

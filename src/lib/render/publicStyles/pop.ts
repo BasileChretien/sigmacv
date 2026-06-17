@@ -18,6 +18,8 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -71,9 +73,15 @@ function popCss(_theme: TemplateTheme): string {
   @keyframes pop-flow { to { background-position: 280% 50%; } }
   @keyframes pop-wobble { 25% { transform: rotate(-1.4deg); } 75% { transform: rotate(1.4deg); } }
   header.cv-header .cv-headline { color: var(--cv-ink-2); font-weight: 700; margin-top: 0.35rem; }
-  header.cv-header .cv-ids a { color: var(--pop-2); font-weight: 700; }
+  /* ID/DOI links: a fixed dark purple (7.3:1 on the near-white page). NOT tied to
+     --pop-2, whose spectrum value is a LIGHT L=0.72 vivid (~2:1 on this page) and
+     whose literal fallback #8b5cff is only 3.94:1 — both fail as body-link text. */
+  header.cv-header .cv-ids a { color: #6321d6; font-weight: 700; }
 
-  .cv-self { color: var(--pop-1) !important; font-weight: 800; }
+  /* Self-name = the floored accent directly (always ≥4.7:1 on white via
+     ensureReadableOnWhite). Using --cv-accent rather than --pop-1 avoids the
+     non-oklch fallback path where --pop-1 is the literal #ff4d8d (2.98:1). */
+  .cv-self { color: var(--cv-accent) !important; font-weight: 800; }
   .cv-photo { width: 120px; height: 120px; border-radius: 42% 58% 58% 42% / 42% 42% 58% 58%; border: 5px solid #fff; box-shadow: 0 12px 30px -8px var(--pop-2); }
 
   /* ---- Candy-chip section headings (rounded pills, per-section hue) ------ */
@@ -81,14 +89,18 @@ function popCss(_theme: TemplateTheme): string {
   section.cv-section > h2 {
     display: inline-block;
     font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
-    color: #fff; margin: 0 0 0.85rem; padding: 0.32em 0.95em;
+    /* Dark ink on the candy chips (small text → WCAG-AA 4.5:1). The pink chip
+       (default --pop-1) reads white at only 3.14:1; a deep-wine ink is 5.47:1.
+       The amber chip already used this dark-text pattern; the cyan/green/purple
+       variants below mirror it. */
+    color: #40000f; margin: 0 0 0.85rem; padding: 0.32em 0.95em;
     border-radius: 999px; background: var(--pop-1);
     box-shadow: 0 6px 16px -6px var(--pop-1);
   }
-  section.cv-section:nth-of-type(5n+2) > h2 { background: var(--pop-3); box-shadow: 0 6px 16px -6px var(--pop-3); }
-  section.cv-section:nth-of-type(5n+3) > h2 { background: var(--pop-4); box-shadow: 0 6px 16px -6px var(--pop-4); }
+  section.cv-section:nth-of-type(5n+2) > h2 { background: var(--pop-3); box-shadow: 0 6px 16px -6px var(--pop-3); color: #08323f; }
+  section.cv-section:nth-of-type(5n+3) > h2 { background: var(--pop-4); box-shadow: 0 6px 16px -6px var(--pop-4); color: #053524; }
   section.cv-section:nth-of-type(5n+4) > h2 { background: var(--pop-5); box-shadow: 0 6px 16px -6px var(--pop-5); color: #3a2a00; }
-  section.cv-section:nth-of-type(5n+5) > h2 { background: var(--pop-2); box-shadow: 0 6px 16px -6px var(--pop-2); }
+  section.cv-section:nth-of-type(5n+5) > h2 { background: var(--pop-2); box-shadow: 0 6px 16px -6px var(--pop-2); color: #0d0033; }
 
   /* ---- Coloured publication dots + fun underlines ------------------------ */
   ol.cv-bib > li { position: relative; padding-left: 1.6em; text-indent: 0; }
@@ -99,7 +111,9 @@ function popCss(_theme: TemplateTheme): string {
   ol.cv-bib > li:nth-child(4n+2)::before { background: var(--pop-3); }
   ol.cv-bib > li:nth-child(4n+3)::before { background: var(--pop-4); }
   ol.cv-bib > li:nth-child(4n)::before { background: var(--pop-5); }
-  ol.cv-bib > li a { color: var(--pop-2); text-decoration: underline; text-decoration-color: var(--pop-3); text-decoration-thickness: 0.18em; text-underline-offset: 0.18em; }
+  /* Bib link text: the same fixed dark purple as the ID links (7.3:1 on the
+     near-white page). The bright --pop-3 stays as the decorative underline only. */
+  ol.cv-bib > li a { color: #6321d6; text-decoration: underline; text-decoration-color: var(--pop-3); text-decoration-thickness: 0.18em; text-underline-offset: 0.18em; }
 
   /* ---- Bouncy scroll reveals + progress --------------------------------- */
   @keyframes pop-in { from { opacity: 0; transform: translateY(40px) scale(0.94); } to { opacity: 1; transform: none; } }
@@ -140,14 +154,111 @@ function popCss(_theme: TemplateTheme): string {
   }`;
 }
 
+const popMascotSkin = `
+  /* ---- Pop mascot: comic-book character ---------------------------------- */
+  @keyframes sm-pop-bounce {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%       { transform: translateY(-4px) rotate(2deg); }
+  }
+  @keyframes sm-pop-shine {
+    0%, 100% { opacity: 0.85; transform: translate(3px, 3px) scale(1); }
+    50%       { opacity: 1;    transform: translate(3px, 2px) scale(1.08); }
+  }
+
+  /* Body: saturated blue with heavy 3px comic-ink border + hard offset drop-shadow */
+  .sm-fig {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: #1a6efc;
+    border: 3px solid #111;
+    box-shadow: 6px 6px 0 #111;
+    overflow: visible;
+    animation: sm-pop-bounce 2.8s ease-in-out infinite;
+  }
+
+  /* Σ glyph: bold white with black outline via -webkit-text-stroke */
+  .sm-fig::before {
+    content: "Σ";
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 900; line-height: 1;
+    color: #fff;
+    -webkit-text-stroke: 1.5px #111;
+    text-shadow: none;
+    z-index: 2;
+  }
+
+  /* Feet: two small rounded nubs at the bottom */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 22px; height: 7px;
+    background: #111;
+    border-radius: 0 0 6px 6px;
+    box-shadow: -8px 0 0 #111, 8px 0 0 #111;
+    z-index: 1;
+  }
+
+  /* .sm-deco: halftone dots across the body */
+  .sm-deco {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-image:
+      radial-gradient(circle, rgba(0,0,0,0.22) 1.5px, transparent 1.5px);
+    background-size: 6px 6px;
+    background-position: 1px 1px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* .sm-deco::before: white shine highlight (top-left crescent) */
+  .sm-deco::before {
+    content: "";
+    position: absolute;
+    top: 5px; left: 6px;
+    width: 10px; height: 7px;
+    background: rgba(255,255,255,0.72);
+    border-radius: 50% 50% 30% 30%;
+    transform: rotate(-20deg);
+    z-index: 3;
+    animation: sm-pop-shine 2.8s ease-in-out infinite;
+  }
+
+  /* .sm-deco::after: punchy yellow starburst accent dot (bottom-right) */
+  .sm-deco::after {
+    content: "";
+    position: absolute;
+    bottom: 4px; right: 4px;
+    width: 7px; height: 7px;
+    background: #ffb02e;
+    border: 1.5px solid #111;
+    border-radius: 50%;
+    z-index: 3;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sm-fig { animation: none; }
+    .sm-deco::before { animation: none; }
+  }`;
+
 export const popTemplate: CvTemplate = {
   key: "pop",
   render(cv, sections, theme, opts) {
     const css =
       commonCss(theme) +
       popCss(theme) +
-      accentSpectrum(["--pop-1", "--pop-2", "--pop-3", "--pop-4", "--pop-5"], { l: 0.72, c: 0.19 });
+      accentSpectrum(["--pop-1", "--pop-2", "--pop-3", "--pop-4", "--pop-5"], {
+        l: 0.72,
+        c: 0.19,
+      }) +
+      mascotBaseCss() +
+      popMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="pop-blobs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>` +
       `<div class="pop-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +

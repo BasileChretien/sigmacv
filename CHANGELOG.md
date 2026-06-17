@@ -7,8 +7,174 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Defense-in-depth hardening on the public-page error responses.** A three-
+  reviewer security pass found no exploitable issues, and closed a few hardening
+  gaps: the styled 404 / 429 notice pages now carry the live page's anti-framing
+  headers (`X-Frame-Options: DENY` + `frame-ancestors 'none'`); the OG-card 404
+  picks up the `noindex` / `no-store` / `nosniff` / `no-referrer` headers it was
+  missing; and the notice helper escapes its text for defense in depth.
+
 ### Added
 
+- **A gentle nudge away from a metrics-heavy header.** The editor's metrics
+  section now opens with a short, DORA-aligned line — metrics are optional, and
+  readers tend to weigh your narrative and the work itself over scores, so show
+  them sparingly — with "DORA" linked to the declaration. And if you switch on
+  four or more metrics at once, a quiet callout appears suggesting a shorter strip
+  reads better and keeps the focus on your work. Neither removes any choice — they
+  just steer toward a calmer header at the moment you're deciding. Localized in all
+  ten languages.
+
+- **Signing in now tells you what's happening.** If a sign-in fails (an OAuth
+  hiccup, a denied permission, a provider being down) you land on a clear, friendly
+  page that explains what went wrong and offers to try again, instead of a bare
+  fallback. The sign-in buttons show a "Signing in…" state while they work (so the
+  page never looks frozen and a double-click can't double-submit), and the email
+  magic-link flow ends on a "check your inbox" confirmation. Localized in all ten
+  languages.
+
+- **Exporting shows progress — and tells you if it fails.** The Export button now
+  shows an "Exporting…" state while your file is being produced (the PDF render can
+  take a few seconds) and a failure surfaces a message in-app instead of dumping a
+  raw error page. Localized in all ten languages.
+
+- **A friendly page when a public CV link doesn't resolve.** Following a mistyped
+  or unpublished `/p/…` link, or hitting the rate limit, now shows a small branded
+  page with a way back to SigmaCV, rather than a bare line of text.
+
+### Changed
+
+- **The top of the CV now leads with the person, not a wall of statistics.** When
+  you turned on metrics, charts and the authorship table, they stacked directly
+  under your name — and on the dark public-page styles the two bright white cards
+  (publication/citation charts and the authorship breakdown) out-shouted your
+  name, which made the header hard to read. Now your **summary** sits right under
+  your identity and ahead of those cards, so a reader meets who you are and what
+  you do before the numbers. The metric strip is tidied into one line that
+  **leads with your % open access**, and each field-normalised metric (FWCI, RCR)
+  keeps its short interpretation note inline (e.g. "1.0 = world average for field
+  & year") while the longer coverage detail ("mean over N works") moves to a
+  hover tooltip — shorter, upright (no more faint italics) and more legible. Tiny
+  chart/table captions were nudged up to a readable size. The charts were
+  simplified too: the **citations-per-year chart is gone** (on a recent window it
+  is depressed by citation lag — the latest years look empty regardless of impact
+  — so it misled more than it informed), and the remaining **publications-per-year
+  chart now uses a plain linear scale** instead of a hard-to-read logarithmic one.
+  Applies to every template and the public page; the chart simplification also
+  carries into the DOCX export, the PDF mirrors the live page, and the LaTeX
+  year-by-year table (which shows explicit numbers, not bars) is unchanged.
+
+### Fixed
+
+- **The top-bar menus (Publish / Share / Account) now close when you click
+  anywhere.** Clicking on the CV preview left a menu stubbornly open, because the
+  preview is a self-contained frame whose clicks never reached the page that was
+  listening for them — and the preview is the biggest, most natural place to
+  click. Now a single invisible layer sits over the preview while a menu is open,
+  so clicking it (or anywhere else, or pressing Escape, or the ✕) dismisses the
+  menu cleanly. Only one menu is open at a time, switching between them is a
+  single click, and the panels collapse toward the button they belong to.
+
+- **Contrast and readability fixes across light, dark and the public-page styles
+  (WCAG AA).** In dark mode, links and accent text were too faint to read (and the
+  theme-toggle's own active state nearly vanished) — accent colours are now floored
+  for dark surfaces, and the soft "hint"/badge callouts read as dark panels instead
+  of bright lavender boxes. On the public-page showcase styles, several heading
+  chips, section titles and links sat below AA (some white-on-pastel headings were
+  nearly unreadable); those are darkened to clear the bar. The travelling Σ mascot
+  is now visible on every skin (it was hard to see on the arcade and mesh looks),
+  and in-text profile/contact/ID links keep a visible underline on screen and in
+  the PDF, so a link is never signalled by colour alone.
+
+- **The public CV reads well on a phone.** The header now stacks so your **name
+  leads** instead of being squeezed beside your photo, and the page uses tighter
+  margins on small screens. Charts and the publication trend now carry their data
+  in text for screen-reader and touch users, the sections sit in a proper `main`
+  landmark, and the co-authors block is a real heading.
+
+- **Editor reliability & accessibility.** The "publish your page" prompt's button
+  now actually opens the Publish menu and focuses the toggle (it previously did
+  nothing); a publish failure shows a visible message rather than silently snapping
+  the toggle back; the delete-account dialog can no longer lose keyboard focus mid-
+  deletion; and small controls (colour swatches, the delete-preset ×, the theme
+  toggle) meet the minimum touch-target size. Localized pages also declare their
+  language for assistive tech.
+
+### Changed
+
+- **The editor's Design controls are reorganised so your two outputs read
+  clearly.** The styling that affects everything — fonts, colours, density,
+  citation style, metrics — now sits together under **Look & typography**, and
+  the two choices that belong to one output each get their own clearly-labelled
+  group placed side by side: **Document layout** (the template behind your PDF,
+  DOCX, LaTeX and Markdown exports) and **Public page style** (the animated look
+  of your shareable page). Everything stays inside the one Design tab — the
+  shared settings live in a single place, so your document and your public page
+  can't silently fall out of sync. Localized in all ten languages.
+
+- **The Publish control is now a focused on/off decision.** The publish popover
+  had grown crowded — toggle, live link, badge + QR embed, and privacy settings
+  all stacked together (and ran off the screen). The share/embed tools — your
+  public link, the "Living CV" badge, and the QR — now live on their own **Share**
+  button that appears in the top bar once your page is live, so the Publish
+  popover stays short: just the on/off toggle and the visibility settings (search
+  indexing + which contact fields are public). The contact toggles sit in a
+  tidier row, and every top-bar menu now scrolls internally instead of overflowing
+  the viewport. Localized in all ten languages.
+
+- **Jump straight from Publish to styling your public page.** Once your page is
+  live, the Publish menu now has a one-click link that takes you directly to the
+  **Public page style** picker in the editor — it switches to the Design view,
+  opens that group, and scrolls it into view, so you don't have to hunt for it
+  after publishing.
+
+### Added
+
+- **An optional SigmaCV-logo mascot that travels your living page.** Turn on a
+  single little **SigmaCV logo** (the Σ mark, brought to life) that **rides down the
+  left of the page with the scroll** and **changes its hat to match the section
+  you're reading**: a mortarboard on Education, a coin on Grants, a microphone on
+  Talks, a star on Awards, goggles on Datasets, a lightbulb on Patents, and more.
+  There's just **one** mascot per page, and it's **skinned to each style's
+  atmosphere** (a neon Σ on Cyberpunk, a brass Σ on Clockwork, a pixel Σ on
+  Arcade…). It's available on **all the animated styles** — never on the credible
+  styles (Folio/Meridian/Trajectory/Lumina) or in any export — **off by default**,
+  100% CSS-only (no JavaScript, even for this), decorative (`aria-hidden`), and
+  hidden automatically for visitors who prefer reduced motion, on narrow screens,
+  and in print.
+- **We now flag publications that may not be yours.** Open databases like OpenAlex
+  match papers to authors automatically and, to avoid missing any, lean toward
+  over-merging — so a paper by a different researcher with a similar name can land
+  on your profile (most common for widely-shared and non-Latin-script names). SigmaCV
+  now spots these: when a work was matched only by an OpenAlex author profile (no
+  confirming ORCID) **and** it disagrees with the rest of your record — it shares
+  **no co-authors** with your other work, plus either a clearly **different research
+  field** or an **institution you've never been affiliated with** — it gets a calm
+  "Review" badge that explains exactly why, and a count in the "Needs your attention"
+  checklist. Nothing is ever removed automatically: confirm it with **"Yes, it's
+  mine"** (it stays, and we stop asking), mark it **"not mine"**, or hide it — and if
+  you share a common name and see several, **"They're all mine"** clears them in one
+  click. The check is deliberately conservative (it would rather miss a few than
+  wrongly question a paper that's yours), uses only your own profile signals (never
+  any inference about names or origin), and these flags never appear on your public
+  page or exports.
+- **Three richly-animated styles for your published living page.** **Arcade** (a
+  bright retro-platformer stage with parallax clouds, spinning coins, and entries
+  that jump into place), **Meadow** (a hand-painted pastoral scene with rolling
+  hills, a breathing sun, drifting clouds, and falling petals), and **Cyberpunk**
+  (a neon-noir city with falling digital rain, a chromatic-aberration glitch on
+  your name, and holographic shimmer). All original art — genre homages, not the
+  trademarked works that inspired them. As always: 100% CSS-only under the strict
+  no-JS CSP, accent-aware, full reduced-motion fallback, and never affects exports.
+- **A "Clockwork" steampunk style for your published living page.** A dark
+  brass-and-iron look where electric cords hang from a ceiling rail with glowing
+  Edison bulbs that gently sway, brass gears turn slowly behind the page, your name
+  sits on an engraved brass nameplate, and each entry is marked with a rivet. Like
+  every public-page style it is 100% CSS-only under the strict no-JS CSP, tints its
+  lamp glow with your accent colour, ships a full reduced-motion fallback, and never
+  affects exports.
 - **Four new styles for your published living page.** The public page (`/p/[slug]`)
   gains four polished, credible looks designed to read well to a hiring committee —
   **Folio** (a typeset scholarly-journal feel in warm serif), **Meridian** (austere

@@ -186,6 +186,9 @@ interface ItemRowProps {
   /** "Keep hidden" on a pending review candidate (orcid-doi / name-matched):
    *  keep it off the CV and stop flagging it for review, with no "not mine" claim. */
   onDismissReview?: () => void;
+  /** "Yes, it's mine" on a likely-misattributed work: confirm it's the user's, keep
+   *  it shown, and stop flagging it (records the id; no "not mine" claim). */
+  onConfirmMine?: () => void;
   /** Briefly highlight this row — set when the CV-health checklist jumps the
    *  user here, so the just-scrolled-to item stands out. */
   flash?: boolean;
@@ -225,6 +228,7 @@ export default function ItemRow({
   reviewDismissed = false,
   similarTitle,
   onDismissReview,
+  onConfirmMine,
   flash = false,
 }: ItemRowProps) {
   const u = ui(locale);
@@ -262,6 +266,23 @@ export default function ItemRow({
   ) : null;
   const isCitation = Boolean(item.csl);
   const isManual = item.source === "manual";
+  // A still-flagged likely-misattributed work the user can confirm ("Yes, it's
+  // mine"), disclaim ("not mine") or hide — shown, not asserted not-mine, not yet
+  // dismissed. Its tooltip names exactly which signals fired (blame-free, factual).
+  const isMisattributed =
+    item.meta.reviewFlag === "likely-misattributed" && !item.notMine && !reviewDismissed;
+  const misattributionWhy = (() => {
+    const clauseKey = {
+      "no-coauthor-overlap": "misWhyCoauthor",
+      "different-field": "misWhyField",
+      "affiliation-novel": "misWhyAffiliation",
+      "pre-career": "misWhyYear",
+    } as const;
+    const clauses = (item.meta.misattribution?.signals ?? []).map((s) => t(locale, clauseKey[s]));
+    return clauses.length
+      ? `${t(locale, "misWhyPrefix")} ${clauses.join("; ")}.`
+      : t(locale, "reviewHintMisattributed");
+  })();
   // "Not mine" is a disambiguation correction for an item a THIRD PARTY
   // attributed to the account holder by IDENTIFIER match: bibliographic works
   // (citations, from OpenAlex), DataCite + OpenAIRE datasets/software, DBLP
@@ -588,6 +609,15 @@ export default function ItemRow({
                 {t(locale, "reviewBadge")}
               </span>
             ) : null}
+            {/* Likely a same-name over-merge: matched only by an OpenAlex author
+                profile and out of step with the rest of the profile. Calm soft
+                badge (not the ⚠ conflict cue); the tooltip names exactly why;
+                silenced once confirmed ("Yes, it's mine") or "kept hidden". */}
+            {isMisattributed ? (
+              <span className="cv-review-badge cv-review-badge--soft" title={misattributionWhy}>
+                {t(locale, "reviewBadgeSoft")}
+              </span>
+            ) : null}
             {/* ORCID-listed work OpenAlex didn't attribute: a hidden review
                 candidate. Badge shows only while still pending — confirm with
                 "Show" (includes it), mark "not mine", or "Keep hidden". */}
@@ -736,6 +766,17 @@ export default function ItemRow({
               title={t(locale, "viewScopeHint")}
             >
               {shownInView ? t(locale, "viewExclude") : t(locale, "viewInclude")}
+            </button>
+          ) : null}
+          {isMisattributed && onConfirmMine ? (
+            <button
+              type="button"
+              className="mine-btn"
+              onClick={onConfirmMine}
+              aria-label={`${t(locale, "reviewMine")}: ${title}`}
+              title={t(locale, "reviewMineHint")}
+            >
+              {t(locale, "reviewMine")}
             </button>
           ) : null}
           {canMarkNotMine ? (

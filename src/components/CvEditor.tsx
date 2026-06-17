@@ -1,7 +1,15 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useRef, useState, type KeyboardEvent } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { confirmAllMisattributed } from "@/lib/canonical/curate";
 import { asLocale } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
 import CvHealthPanel, { type CvHealthCategory } from "./CvHealthPanel";
@@ -34,6 +42,9 @@ interface CvEditorProps {
 /** Imperative surface CvWorkspace uses to drive the sync banner's "jump to item". */
 export interface CvEditorHandle {
   jumpToItem: (itemId: string) => void;
+  /** Deep-link from the Publish menu: switch to the Design part and reveal +
+   *  scroll to the Public-page-style group. */
+  jumpToPublicStyle: () => void;
 }
 
 const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
@@ -55,6 +66,8 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   // leading tab; a CV-health jump still routes to Content (where the rows live).
   const [activePart, setActivePart] = useState<EditorPart>("profile");
   const tablistRef = useRef<HTMLDivElement>(null);
+  // Bumped by jumpToPublicStyle() to (re)trigger the reveal effect below.
+  const [publicStyleFocusTick, setPublicStyleFocusTick] = useState(0);
 
   // The sync banner (in CvWorkspace) jumps to a specific item; route it through
   // the Content part first so the target row is mounted before it scrolls.
@@ -63,7 +76,34 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       setActivePart("content");
       sectionsRef.current?.jumpToItem(itemId);
     },
+    // Deep-link from the Publish menu: open the Design part, then (in the effect
+    // below, once that panel is visible) reveal + scroll to the public-style group.
+    jumpToPublicStyle: () => {
+      setActivePart("design");
+      setPublicStyleFocusTick((n) => n + 1);
+    },
   }));
+
+  // Reveal + scroll to the public-page-style group after a jumpToPublicStyle().
+  // The Design panel is always mounted (toggled via `hidden`), so we wait one
+  // frame for it to become visible, then locate the public-style group by the one
+  // radiogroup that uses `aria-label` (the document-template gallery uses
+  // `aria-labelledby`), open its <details> — which lazy-loads its thumbnails via
+  // the existing onToggle — and scroll it into view. Reset to 0 so a later manual
+  // visit to Design doesn't re-trigger the scroll.
+  useEffect(() => {
+    if (publicStyleFocusTick === 0 || activePart !== "design") return;
+    const raf = requestAnimationFrame(() => {
+      const gallery = document.querySelector(".template-gallery[aria-label]");
+      if (gallery) {
+        const group = gallery.closest("details.cv-style-group");
+        if (group instanceof HTMLDetailsElement) group.open = true;
+        (group ?? gallery).scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      setPublicStyleFocusTick(0);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [publicStyleFocusTick, activePart]);
 
   const profilePanel = <ProfilePanel cv={cv} locale={locale} onChange={onChange} />;
   const sectionsList = (
@@ -90,6 +130,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
           cv={cv}
           locale={locale}
           onResolve={(cat) => sectionsRef.current?.resolveHealth(cat)}
+          onConfirmAllMisattributed={() => onChange(confirmAllMisattributed(cv))}
         />
         {sectionsList}
       </div>
@@ -127,7 +168,12 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     <div className="cv-editor cv-editor--regions">
       {/* Persistent "needs your attention" strip — always visible, never trapped
           inside a part. Renders nothing when there is nothing to act on. */}
-      <CvHealthPanel cv={cv} locale={locale} onResolve={jumpToHealth} />
+      <CvHealthPanel
+        cv={cv}
+        locale={locale}
+        onResolve={jumpToHealth}
+        onConfirmAllMisattributed={() => onChange(confirmAllMisattributed(cv))}
+      />
 
       <div className="cv-part-tabs" role="tablist" aria-label={eu.regionsAria} ref={tablistRef}>
         {EDITOR_PARTS.map((p) => {

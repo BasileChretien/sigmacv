@@ -1,4 +1,4 @@
-import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
+import { isMascotStyle, isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
@@ -220,13 +220,18 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-honorific { font: inherit; color: inherit; opacity: 1; letter-spacing: inherit; }
   .cv-headline { font-size: 1.2rem; font-weight: 500; color: var(--cv-ink-2); margin-top: 0.15rem; letter-spacing: 0; }
   .cv-ids { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.35rem; }
-  .cv-ids a { color: var(--cv-accent); text-decoration: none; }
+  .cv-ids a { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; }
   .cv-contact, .cv-links { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.3rem; line-height: 1.5; }
   .cv-links { margin-top: 0.1rem; }
-  .cv-contact a, .cv-links a { color: var(--cv-muted); text-decoration: none; }
+  .cv-contact a, .cv-links a { color: var(--cv-muted); text-decoration: underline; text-underline-offset: 0.15em; }
   .cv-summary { margin: 0.95rem 0 0; font-size: 0.95rem; color: var(--cv-ink-2); line-height: 1.55; }
   .cv-metrics { font-size: 0.8rem; color: var(--cv-muted); margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.15rem 1.1rem; }
-  .cv-metric-context { color: var(--cv-faint); font-style: italic; }
+  /* The metric's interpretation anchor ("1.0 = world average …"). Upright (not
+     italic) and at --cv-muted rather than --cv-faint: long italic fine-print is a
+     readability cost (dyslexia/low-vision) AND under-weights a responsible-reading
+     caveat that should be legible, not whispered. The coverage note rides its
+     title= tooltip, so this stays short. */
+  .cv-metric-context { color: var(--cv-muted); }
 
   section.cv-section { margin-top: var(--cv-space); }
   section.cv-section:first-of-type { margin-top: calc(var(--cv-space) * 0.6); }
@@ -274,17 +279,17 @@ export function commonCss(theme: TemplateTheme): string {
      so it stays legible on EVERY template — including ones with a coloured
      header/sidebar (where themed --cv-ink/--cv-muted could vanish). */
   .cv-authorship { border-collapse: separate; border-spacing: 0; margin-top: 0.9rem; font-size: 0.8rem; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.45rem 0.85rem 0.5rem; color: #374151; }
-  .cv-authorship caption { text-align: left; font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #6b7280; margin-bottom: 0.3rem; }
+  .cv-authorship caption { text-align: left; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #6b7280; margin-bottom: 0.3rem; }
   .cv-authorship td { padding: 0.14rem 1.1rem 0.14rem 0; color: #374151; }
   .cv-authorship .cv-authorship-n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #111827; padding-right: 0; }
   .cv-authorship .cv-authorship-pct { margin-left: 0.4rem; font-weight: 400; color: #6b7280; }
-  .cv-authorship-note { font-size: 0.62rem; color: var(--cv-faint); margin: 0.3rem 0 0; font-style: italic; }
+  .cv-authorship-note { font-size: 0.7rem; color: var(--cv-faint); margin: 0.3rem 0 0; }
   /* Charts sit in a guaranteed light card so the accent-coloured bars stay
      visible on EVERY template — including ones with a coloured header/sidebar
      (where accent bars would otherwise vanish into an accent background). */
   .cv-charts { display: inline-flex; flex-wrap: wrap; gap: 1.2rem 1.6rem; margin-top: 0.9rem; padding: 0.7rem 0.95rem; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; max-width: 100%; }
   .cv-chart { margin: 0; }
-  .cv-chart figcaption { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #374151; margin-bottom: 0.25rem; }
+  .cv-chart figcaption { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #374151; margin-bottom: 0.25rem; }
   .cv-chart svg { display: block; }
   .cv-chart rect { stroke: rgba(0, 0, 0, 0.12); stroke-width: 0.5; }
 
@@ -310,17 +315,36 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-coauthors-list { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 0.2rem 0.85rem; font-size: 0.78rem; }
   .cv-coauthors-list a { color: var(--cv-accent); text-decoration: none; }
   a { color: inherit; }
+  /* A visible keyboard-focus ring for every link on the public page + document.
+     Uses outline (not box-shadow) so it can't be clipped by an overflow/transform/
+     backdrop-filter ancestor on the animated styles, where the UA default ring is
+     faint or suppressed. */
+  a:focus-visible { outline: 2px solid var(--cv-accent); outline-offset: 2px; border-radius: 2px; }
 
   @page { size: A4; margin: 16mm 15mm; }
   @media print {
     .cv { padding: 0; max-width: none; }
     a { text-decoration: none; }
+    /* Keep in-text profile / contact / ID links underlined in the PDF so the
+       link affordance survives print (WCAG 1.4.1 — not signalled by colour). */
+    .cv-ids a, .cv-contact a, .cv-links a { text-decoration: underline; text-underline-offset: 0.15em; }
     .cv-ror-link { border-bottom: none; }
     section.cv-section { break-inside: auto; }
     section.cv-section > h2 { break-after: avoid; break-inside: avoid; }
     ol.cv-bib > li { break-inside: avoid; }
     header.cv-header { break-inside: avoid; break-after: avoid; }
     .cv-chart, figure.cv-chart { break-inside: avoid; }
+  }
+
+  /* Phones: stack the header so the NAME leads instead of being squeezed beside
+     the photo, and tighten the page gutter (the 52px desktop padding eats ~a
+     third of a 375px screen). The head text (name) is emitted before the optional
+     photo, so plain column keeps the name on top; showcase styles with their own
+     card (.cv padding:0) override the padding, but the header stack still applies. */
+  @media (max-width: 560px) {
+    .cv { padding: 28px 22px; }
+    .cv-headmain { flex-direction: column; align-items: flex-start; gap: 0.9rem; }
+    .cv-photo { width: 88px; height: 88px; }
   }`;
 }
 
@@ -343,31 +367,44 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
   const ids = orcid
     ? `<div class="cv-ids">ORCID: <a href="https://orcid.org/${orcid}">${orcid}</a></div>`
     : "";
-  const metrics = formattedMetrics(cv);
-  const metricsLine = metrics.length
-    ? `<div class="cv-metrics">${metrics
-        .map(
-          (m) =>
-            `${escapeHtml(m.label)}: ${escapeHtml(m.value)}${
-              m.context ? ` <span class="cv-metric-context">(${escapeHtml(m.context)})</span>` : ""
-            }`,
-        )
-        .join(" · ")}</div>`
-    : "";
-  // Profile-level open-access share — opt-in (display.showOpenAccess), shown only
-  // when works carry an OA determination. Pairs with the per-entry OA badges.
+  // One compact metric strip. The profile-level OPEN-ACCESS share LEADS it — an
+  // open-science behaviour, the figure most aligned with responsible assessment —
+  // followed by the user-selected metrics in catalog order. (OA is opt-in via
+  // display.showOpenAccess and independent of the metrics toggle, so the strip can
+  // appear with OA alone.) Each metric shows its interpretation ANCHOR inline
+  // ("1.0 = world average …"); the longer coverage note ("mean over N works …")
+  // rides a hover title so the line stays short and the reader meets the person
+  // before a wall of caveats.
   const oaShare = openAccessShare(cv);
-  const oaShareLine = oaShare
-    ? `<div class="cv-oa-share">${escapeHtml(
+  const chips: string[] = [];
+  if (oaShare) {
+    chips.push(
+      `<span class="cv-oa-share">${escapeHtml(
         renderStrings(cv.display.locale).openAccessShare.replace("{pct}", String(oaShare.pct)),
-      )}</div>`
-    : "";
+      )}</span>`,
+    );
+  }
+  for (const m of formattedMetrics(cv)) {
+    const context = m.context
+      ? ` <span class="cv-metric-context"${
+          m.coverageNote ? ` title="${escapeHtml(m.coverageNote)}"` : ""
+        }>(${escapeHtml(m.context)})</span>`
+      : "";
+    chips.push(`${escapeHtml(m.label)}: ${escapeHtml(m.value)}${context}`);
+  }
+  const metricsLine = chips.length ? `<div class="cv-metrics">${chips.join(" · ")}</div>` : "";
   const summary = cv.owner.summary
     ? `<p class="cv-summary">${escapeHtml(cv.owner.summary)}</p>`
     : "";
   const photo = opts.photo ? photoHtml(cv) : "";
-  const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}${metricsLine}${oaShareLine}</div>`;
-  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${renderChartsHtml(cv)}${authorshipTableHtml(cv)}${summary}</header>`;
+  // Identity-first head text: name → headline → ORCID → contact → compact metric
+  // strip. The narrative SUMMARY then leads the body of the header, ABOVE the
+  // charts + authorship cards, so a reader meets the person before the statistics
+  // (those bright cards out-shouted the name on the dark public styles). The
+  // sidebar template relies on this order too — its panel reads "identity →
+  // divider → bio", then the white cards.
+  const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}${metricsLine}</div>`;
+  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${renderChartsHtml(cv)}${authorshipTableHtml(cv)}</header>`;
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -509,7 +546,110 @@ export function coauthorLinksFooter(cv: CanonicalCv, opts: RenderOpts = {}): str
   const items = links
     .map((l) => `<li><a href="${escapeHtml(`/p/${l.slug}`)}">${escapeHtml(l.name)}</a></li>`)
     .join("");
-  return `<nav class="cv-coauthors" aria-label="${heading}"><p class="cv-coauthors-h">${heading}</p><ul class="cv-coauthors-list">${items}</ul></nav>`;
+  return `<nav class="cv-coauthors" aria-labelledby="cv-coauthors-h"><h2 id="cv-coauthors-h" class="cv-coauthors-h">${heading}</h2><ul class="cv-coauthors-list">${items}</ul></nav>`;
+}
+
+/** Max number of sections the mascot binds a hat to (CVs never approach this). */
+const MASCOT_MAX_SECTIONS = 30;
+
+/**
+ * Shared mascot CSS — ONE SigmaCV Σ-logo character that travels down the LEFT
+ * gutter WITH the scroll (`scroll(root)`) and SWAPS ITS HAT to match the section
+ * the reader is in. Each rendered `section.cv-section` names its own `view()`
+ * timeline (`--smN` by `:nth-of-type`); `.cv` hoists them with `timeline-scope`
+ * so the single mascot's Nth stacked hat (also by `:nth-of-type`) is driven by the
+ * Nth section's timeline — the hat cross-fades as each section enters view. The
+ * body is the literal logo (white Σ on the brand-blue square); each style skins
+ * `.sm-fig` for its atmosphere (this is only the default + the hats). ALL a11y
+ * guards live here: decorative (`aria-hidden` in markup), shown ONLY where
+ * scroll-driven animation is supported AND the viewport is wide enough, and HIDDEN
+ * under `prefers-reduced-motion`, on narrow viewports, and in print. Motion is
+ * transform/opacity only (compositor); it advances only as the visitor scrolls.
+ */
+export function mascotBaseCss(): string {
+  const n = MASCOT_MAX_SECTIONS;
+  const scope = Array.from({ length: n }, (_, i) => `--sm${i + 1}`).join(", ");
+  const sectionTimelines = Array.from(
+    { length: n },
+    (_, i) => `  section.cv-section:nth-of-type(${i + 1}) { view-timeline-name: --sm${i + 1}; }`,
+  ).join("\n");
+  const hatBindings = Array.from(
+    { length: n },
+    (_, i) =>
+      `    .sm-hat:nth-of-type(${i + 1}) { animation: sm-hatswap linear both; animation-timeline: --sm${i + 1}; animation-range: cover 0% cover 100%; }`,
+  ).join("\n");
+  return `
+  body { timeline-scope: ${scope}; }
+${sectionTimelines}
+  .sm { position: fixed; top: 0; left: max(0.6rem, calc(50vw - 470px)); width: 46px; height: 46px; z-index: 7; pointer-events: none; display: none; }
+  .sm, .sm * { box-sizing: border-box; }
+  /* Spare decorative layer (a style's skin may use it; transparent by default).
+     z-index:1 keeps a skin's body texture ABOVE the body fill but BELOW the Σ. */
+  .sm-deco { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  /* Hat anchor — a zero-height line at the body's CROWN (38px above .sm's base),
+     a SIBLING of .sm-fig so a skin's overflow:hidden on the body never clips the
+     hat, and bottom-anchored so every hat sits ON the head (worn), not floating. */
+  .sm-hats { position: absolute; left: 0; bottom: 38px; width: 38px; height: 0; }
+  /* The logo body (default skin; each style overrides .sm-fig for its atmosphere). */
+  .sm-fig { position: absolute; left: 0; bottom: 0; width: 38px; height: 38px; border-radius: 12px; background: #1f4fd8; isolation: isolate;
+    box-shadow: 0 5px 13px -4px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.16), 0 0 16px -3px var(--cv-accent, #1f4fd8); }
+  .sm-fig::before { content: "\\03A3"; position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center;
+    color: #fff; font: 800 23px/1 ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif; }
+  .sm-fig::after { content: ""; position: absolute; bottom: -3px; left: 10px; width: 6px; height: 5px; border-radius: 0 0 4px 4px;
+    background: #1f4fd8; box-shadow: 11px 0 0 #1f4fd8; }
+
+  /* Hats sit ON the crown (bottom-anchored to .sm-hats, growing upward), each
+     faded in by its section's timeline (≈one shown at a time). */
+  .sm-hat { position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%); opacity: 0; }
+  /* Default hat — a mortarboard (academic; for any section without a specific hat). */
+  .sm-hat { width: 20px; height: 4px; background: #21212e; border-radius: 2px; }
+  .sm-hat::before { content: ""; position: absolute; left: 50%; top: -4px; transform: translateX(-50%); width: 10px; height: 5px; background: #21212e; border-radius: 3px 3px 0 0; }
+  .sm-hat::after { content: ""; position: absolute; right: 1px; top: 0; width: 2px; height: 8px; background: #e7b34a; }
+  /* Grants — a gold coin. */
+  .sm-hat--grants { width: 13px; height: 13px; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #ffe08a, #d8a72b 72%); box-shadow: inset 0 0 0 1.5px #b5851f; }
+  .sm-hat--grants::before, .sm-hat--grants::after { content: none; }
+  /* Talks & conferences — a microphone. */
+  .sm-hat--talks, .sm-hat--conference { width: 9px; height: 11px; border-radius: 5px 5px 4px 4px; background: linear-gradient(#3a3a48, #1c1c26); }
+  .sm-hat--talks::before, .sm-hat--conference::before { content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); width: 2px; height: 6px; background: #2a2a36; }
+  .sm-hat--talks::after, .sm-hat--conference::after { content: none; }
+  /* Awards — a gold star. */
+  .sm-hat--awards { width: 15px; height: 15px; background: #ffce3a;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+  .sm-hat--awards::before, .sm-hat--awards::after { content: none; }
+  /* Datasets & software — goggles. */
+  .sm-hat--datasets { width: 8px; height: 8px; border-radius: 50%; background: #cfe6ff; border: 2px solid #2a2a36; box-shadow: 11px 0 0 #cfe6ff, 11px 0 0 2px #2a2a36; }
+  .sm-hat--datasets::before, .sm-hat--datasets::after { content: none; }
+  /* Patents — a lightbulb. */
+  .sm-hat--patents { width: 11px; height: 11px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 40% 35%, #fff6c2, #ffd84d 75%); box-shadow: 0 0 7px #ffd84d80; }
+  .sm-hat--patents::before { content: ""; position: absolute; left: 50%; bottom: -3px; transform: translateX(-50%); width: 6px; height: 3px; background: #8a8a96; border-radius: 0 0 2px 2px; }
+  .sm-hat--patents::after { content: none; }
+  /* Clinical trials — a red medical cross. */
+  .sm-hat--clinical-trials { width: 13px; height: 4px; background: #e5484d; border-radius: 1px; }
+  .sm-hat--clinical-trials::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 4px; height: 13px; background: #e5484d; border-radius: 1px; }
+  .sm-hat--clinical-trials::after { content: none; }
+  /* Teaching & supervision — an apple. */
+  .sm-hat--teaching, .sm-hat--supervision { width: 12px; height: 11px; border-radius: 48% 48% 52% 52%; background: radial-gradient(circle at 35% 32%, #ff7a7a, #d3322e 75%); }
+  .sm-hat--teaching::before, .sm-hat--supervision::before { content: ""; position: absolute; left: 52%; top: -3px; width: 2px; height: 4px; background: #6a4a2a; }
+  .sm-hat--teaching::after, .sm-hat--supervision::after { content: ""; position: absolute; left: 60%; top: -2px; width: 5px; height: 3px; border-radius: 0 80% 0 80%; background: #4fae54; }
+  /* Positions — a hard hat. */
+  .sm-hat--positions { width: 16px; height: 7px; border-radius: 8px 8px 0 0; background: linear-gradient(#ffce3a, #e0a91e); }
+  .sm-hat--positions::before { content: ""; position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); width: 20px; height: 3px; background: #e0a91e; border-radius: 2px; }
+  .sm-hat--positions::after { content: none; }
+  /* Editorial — a quill nib. */
+  .sm-hat--editorial { width: 4px; height: 14px; background: linear-gradient(#cfd6ea, #6b7390); border-radius: 60% 60% 0 0; transform: translateX(-50%) rotate(18deg); }
+  .sm-hat--editorial::before, .sm-hat--editorial::after { content: none; }
+
+  @keyframes sm-travel { from { transform: translateY(8vh); } to { transform: translateY(84vh); } }
+  @keyframes sm-hatswap { 0% { opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; } }
+  @supports (animation-timeline: scroll()) {
+    .sm { display: block; animation: sm-travel linear both; animation-timeline: scroll(root); }
+  }
+  @supports (animation-timeline: view()) {
+${hatBindings}
+  }
+  @media (max-width: 1024px) { .sm { display: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .sm { display: none !important; } }
+  @media print { .sm { display: none !important; } }`;
 }
 
 /**
@@ -571,24 +711,40 @@ export function proseBodyHtml(body: string): string {
 }
 
 /**
+ * The sections that will actually render: a PROSE section needs a non-blank body;
+ * a standard section needs at least one item. `sectionsHtml` AND the mascot's
+ * per-section hats both derive from THIS list, so their order/count stay in
+ * lockstep — the mascot's Nth hat is bound (by `:nth-of-type`, in `mascotBaseCss`)
+ * to the Nth rendered `section.cv-section`.
+ */
+function renderableSections(sections: RenderedSection[]): RenderedSection[] {
+  return sections.filter((rs) =>
+    isProseSectionType(rs.section.type)
+      ? (rs.section.body ?? "").trim().length > 0
+      : rs.items.length > 0,
+  );
+}
+
+/**
  * Section list markup (identical across templates; styled via CSS classes).
  * A PROSE section (`PROSE_SECTION_TYPES`) renders its heading + safe-transformed
- * `body` instead of a citation list; it is omitted when the body is blank. A
- * standard section renders its `items` as a numbered bibliography (omitted when
- * empty). The section heading + prose body are USER FREE-TEXT and are
- * HTML-escaped / safe-transformed — nothing is interpreted as raw HTML/markdown.
+ * `body` instead of a citation list. A standard section renders its `items` as a
+ * numbered bibliography. The section heading + prose body are USER FREE-TEXT and
+ * are HTML-escaped / safe-transformed — nothing is interpreted as raw HTML/markdown.
  */
-export function sectionsHtml(sections: RenderedSection[]): string {
-  return sections
+/**
+ * The section list WITHOUT the `<main>` landmark — for a template that supplies
+ * its own `<main>` (the Sidebar two-column layout wraps sections + footers in one
+ * `<main class="cv-main">`). Everything else should use `sectionsHtml`.
+ */
+export function sectionsHtmlRaw(sections: RenderedSection[]): string {
+  return renderableSections(sections)
     .map((rs) => {
       if (isProseSectionType(rs.section.type)) {
-        const body = (rs.section.body ?? "").trim();
-        if (body.length === 0) return "";
         return `<section class="cv-section cv-prose"><h2>${escapeHtml(
           rs.section.title,
         )}</h2><div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "")}</div></section>`;
       }
-      if (rs.items.length === 0) return "";
       const entries = rs.items
         .map((ri) => `<li><div class="csl-entry">${ri.html}</div></li>`)
         .join("\n");
@@ -597,4 +753,38 @@ export function sectionsHtml(sections: RenderedSection[]): string {
       )}</h2><ol class="cv-bib">\n${entries}\n</ol></section>`;
     })
     .join("\n");
+}
+
+/**
+ * The CV's sections wrapped in the `<main>` landmark (WCAG 1.3.1 / 2.4.1) — the
+ * primary-content region every template/style except Sidebar uses. No style
+ * relies on sections being direct children of `.cv`, so the wrapper is layout-
+ * neutral; `.cv-main` carries no shared styling (only Sidebar styles its own).
+ */
+export function sectionsHtml(sections: RenderedSection[]): string {
+  return `<main class="cv-main">${sectionsHtmlRaw(sections)}</main>`;
+}
+
+/**
+ * The optional SigmaCV-logo mascot — exactly ONE element per document. A single
+ * Σ-logo character travels down the left gutter WITH the scroll (`scroll(root)`)
+ * and carries one stacked hat per section; each hat is bound (by `:nth-of-type`,
+ * in `mascotBaseCss`) to its section's own `view()` timeline, so the visible hat
+ * cross-fades to match whichever section the reader is in — it changes its hat at
+ * every section. Decorative + `aria-hidden`, drawn entirely in CSS; each style
+ * skins `.sm-fig` to its atmosphere. Must be placed INSIDE `.cv` (which hoists the
+ * sections' timelines via `timeline-scope`). Returns "" unless the owner opted in
+ * AND the chosen style is mascot-capable — so it never reaches a credible style,
+ * and (since exports use the document template) never any export.
+ */
+export function mascotHtml(cv: CanonicalCv, sections: RenderedSection[]): string {
+  if (!cv.display.showMascot || !isMascotStyle(cv.display.publicStyle)) return "";
+  const hats = renderableSections(sections)
+    .map((rs) => `<i class="sm-hat sm-hat--${rs.section.type}"></i>`)
+    .join("");
+  // `.sm-deco` is a spare decorative layer each style's skin can use for texture,
+  // eyes, scanlines, etc. The hats live in a SIBLING wrapper (`.sm-hats`) — not
+  // inside `.sm-fig` — so a skin that clips its body with `overflow:hidden` can't
+  // clip the hat (which perches above the body).
+  return `<div class="sm" aria-hidden="true"><b class="sm-fig"><u class="sm-deco"></u></b><span class="sm-hats">${hats}</span></div>`;
 }

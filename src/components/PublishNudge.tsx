@@ -60,16 +60,31 @@ export default function PublishNudge({
 
   const goToPublish = () => {
     trackEvent("Publish nudge", { action: "cta" });
-    const toggle = document.querySelector<HTMLInputElement>('[data-testid="publish-toggle"]');
-    if (toggle) {
-      toggle.scrollIntoView({ behavior: "smooth", block: "center" });
-      toggle.focus();
-      const label = toggle.closest("label");
-      if (label) {
-        label.classList.add("publish-toggle-highlight");
-        window.setTimeout(() => label.classList.remove("publish-toggle-highlight"), 1800);
+    // The publish toggle lives inside the Publish popover, whose panel is
+    // unmounted while the menu is closed — so open the menu via its always-present
+    // trigger first, then focus the toggle once the panel has mounted. (Clicking
+    // the nudge CTA with the menu already open would otherwise find nothing.)
+    const trigger = document.querySelector<HTMLButtonElement>(".publish-trigger");
+    if (trigger && trigger.getAttribute("aria-expanded") !== "true") trigger.click();
+    // The panel mounts on the render after the trigger opens it; retry across a
+    // few frames so the focus/scroll lands once the toggle is actually in the DOM.
+    const MAX_FOCUS_RETRIES = 5;
+    let tries = 0;
+    const focusToggle = () => {
+      const toggle = document.querySelector<HTMLInputElement>('[data-testid="publish-toggle"]');
+      if (toggle) {
+        toggle.scrollIntoView({ behavior: "smooth", block: "center" });
+        toggle.focus();
+        const label = toggle.closest("label");
+        if (label) {
+          label.classList.add("publish-toggle-highlight");
+          window.setTimeout(() => label.classList.remove("publish-toggle-highlight"), 1800);
+        }
+      } else if (tries++ < MAX_FOCUS_RETRIES) {
+        window.requestAnimationFrame(focusToggle);
       }
-    }
+    };
+    window.requestAnimationFrame(focusToggle);
     dismiss();
   };
 

@@ -11,6 +11,8 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -23,6 +25,16 @@ function meshCss(_t: TemplateTheme): string {
     --cv-ink:#1b1733; --cv-ink-2:#46406a; --cv-muted:#6a648c; --cv-faint:#605a7d;
     --cv-rule: rgba(27,23,51,0.12); --cv-rule-strong: rgba(27,23,51,0.24); --cv-page:#f7f8fc;
     --m1:#6d7cff; --m2:#54d6ff; --m3:#ff8ad1; --m4:#ffd36b;
+    /* A contrast-HARDENED accent for the heading + link text. The content card is
+       translucent white over the pastel mesh, so its effective background can dip
+       below pure white; the page --cv-accent is only floored to ~4.45:1 vs WHITE,
+       so a near-threshold pale accent could fall under AA on a tinted card patch.
+       Forcing the accent to a deep L≈0.42 keeps the hue but clears 4.5:1 across the
+       whole card. Fallback = the (floored) --cv-accent for non-oklch browsers. */
+    --cv-accent-deep: var(--cv-accent);
+  }
+  @supports (color: oklch(from red l c h)) {
+    :root { --cv-accent-deep: oklch(from var(--cv-accent) 0.42 c h); }
   }
   body { min-height:100vh; color:var(--cv-ink); background:#f5f6fc; overflow-x:hidden; }
   .cv { max-width:none; padding:0; }
@@ -49,11 +61,11 @@ function meshCss(_t: TemplateTheme): string {
   }
   @keyframes mesh-flow { to { background-position: 220% 50%; } }
   header.cv-header .cv-headline { color:var(--cv-ink-2); font-weight:600; margin-top:0.3rem; }
-  header.cv-header .cv-ids a, ol.cv-bib > li a { color: var(--cv-accent); }
+  header.cv-header .cv-ids a, ol.cv-bib > li a { color: var(--cv-accent-deep); }
   .cv-photo { width:118px; height:118px; border-radius:24px; border:3px solid rgba(255,255,255,0.9);
     box-shadow: 0 14px 40px -12px rgba(70,50,140,0.5); }
 
-  section.cv-section > h2 { font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:0.14em; color:var(--cv-accent); margin:0 0 0.7rem; }
+  section.cv-section > h2 { font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:0.14em; color:var(--cv-accent-deep); margin:0 0 0.7rem; }
   ol.cv-bib > li { position:relative; padding-left:1.6em; text-indent:0; }
   ol.cv-bib > li::before { content:""; position:absolute; left:0; top:0.45em; width:8px; height:8px; border-radius:50%;
     background: linear-gradient(var(--m1), var(--m3)); }
@@ -79,14 +91,145 @@ function meshCss(_t: TemplateTheme): string {
   }`;
 }
 
+const meshMascotSkin = `
+  @keyframes sm-mesh-shift {
+    0%   { background-position: 0% 0%,   100% 0%,   100% 100%, 0% 100%; }
+    25%  { background-position: 8% 12%,  92% 8%,    96% 92%,  4% 88%;  }
+    50%  { background-position: 14% 6%,  86% 14%,   90% 88%,  10% 94%; }
+    75%  { background-position: 6% 14%,  94% 6%,    98% 96%,  2% 82%;  }
+    100% { background-position: 0% 0%,   100% 0%,   100% 100%, 0% 100%; }
+  }
+  @keyframes sm-bloom-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(1);    }
+    50%       { opacity: 0.85; transform: scale(1.18); }
+  }
+  @keyframes sm-sheen-slide {
+    from { transform: translateX(-110%) skewX(-18deg); }
+    to   { transform: translateX(210%)  skewX(-18deg); }
+  }
+
+  /* ── BODY: layered radial-gradient mesh, shifts positions slowly ── */
+  .sm-fig {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    background-image:
+      radial-gradient(ellipse 70% 70% at 0%   0%,   #7c8fff 0%, transparent 65%),
+      radial-gradient(ellipse 65% 65% at 100% 0%,   #54d6ff 0%, transparent 65%),
+      radial-gradient(ellipse 70% 70% at 100% 100%,  #e078f5 0%, transparent 65%),
+      radial-gradient(ellipse 65% 65% at 0%   100%,  #ffc6e5 0%, transparent 65%);
+    background-size: 120% 120%, 120% 120%, 120% 120%, 120% 120%;
+    background-color: #6b6fe6;
+    animation: sm-mesh-shift 14s ease-in-out infinite;
+    border-top:    1px solid rgba(255, 255, 255, 0.55);
+    border-left:   1px solid rgba(255, 255, 255, 0.30);
+    border-right:  1px solid rgba(180, 160, 255, 0.18);
+    border-bottom: 1px solid rgba(180, 160, 255, 0.18);
+    box-shadow:
+      0 0  0 1px  rgba(255, 255, 255, 0.18),
+      0 4px 14px -3px rgba(100, 80, 220, 0.55),
+      0 12px 32px -6px rgba(140, 80, 255, 0.40),
+      0 0  22px 0px  rgba(200, 140, 255, 0.22);
+    overflow: hidden;
+  }
+
+  /* ── Σ glyph: clean white, centred, bold ── */
+  .sm-fig::before {
+    content: "Σ";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-serif, Georgia, "Times New Roman", serif;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+    color: #fff;
+    /* Dark stroke + shadow so the white Σ clears the 3:1 graphic floor over the
+       light mesh body (was ~2.81:1 over the #8b8fff base, now darkened too). */
+    -webkit-text-stroke: 0.7px rgba(35, 18, 80, 0.9);
+    text-shadow:
+      0 1px 3px rgba(40, 18, 90, 0.85),
+      0 0  10px rgba(255, 255, 255, 0.35);
+    z-index: 3;
+  }
+
+  /* ── Feet: two soft violet-pink ovals ── */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22px;
+    height: 7px;
+    background: linear-gradient(90deg, #a78bfa 0%, #f0abfc 100%);
+    border-radius: 50%;
+    opacity: 0.75;
+    z-index: 0;
+  }
+
+  /* ── Bloom / outer glow halo ── */
+  .sm-deco {
+    position: absolute;
+    inset: -9px;
+    border-radius: 20px;
+    background:
+      radial-gradient(ellipse 80% 80% at 30% 30%, rgba(124, 143, 255, 0.38), transparent 70%),
+      radial-gradient(ellipse 80% 80% at 72% 68%, rgba(224, 120, 245, 0.32), transparent 70%);
+    animation: sm-bloom-pulse 6s ease-in-out infinite;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── Sheen: fast left-to-right glint every ~9 s ── */
+  .sm-deco::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0;
+    width: 38%;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.42) 48%,
+      rgba(255, 255, 255, 0.18) 52%,
+      transparent 100%
+    );
+    border-radius: inherit;
+    animation: sm-sheen-slide 9s ease-in-out infinite 2s;
+    z-index: 4;
+  }
+
+  /* ── Inner top-left corner highlight ── */
+  .sm-deco::after {
+    content: "";
+    position: absolute;
+    top: 4px; left: 5px;
+    width: 12px; height: 5px;
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: 4px;
+    filter: blur(2px);
+    z-index: 4;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sm-fig        { animation: none !important; }
+    .sm-deco       { animation: none !important; }
+    .sm-deco::before { animation: none !important; }
+  }`;
+
 export const meshTemplate: CvTemplate = {
   key: "mesh",
   render(cv, sections, theme, opts) {
     const css =
       commonCss(theme) +
       meshCss(theme) +
-      accentSpectrum(["--m1", "--m2", "--m3", "--m4"], { l: 0.8, c: 0.15 });
+      accentSpectrum(["--m1", "--m2", "--m3", "--m4"], { l: 0.8, c: 0.15 }) +
+      mascotBaseCss() +
+      meshMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="mesh-bg" aria-hidden="true"></div>` +
       `<div class="mesh-progress" aria-hidden="true"></div>` +
       `<div class="mesh-card">` +

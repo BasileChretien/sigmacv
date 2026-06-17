@@ -70,8 +70,19 @@ export interface FormattedMetric {
   key: string;
   label: string;
   value: string;
-  /** Short interpretive context — encourages responsible reading of the number. */
+  /**
+   * Short interpretation ANCHOR (e.g. "1.0 = world average for field & year") —
+   * the key a reader needs to read the number responsibly. Shown inline next to
+   * the value.
+   */
   context?: string;
+  /**
+   * Longer coverage/provenance note ("mean over N works with FWCI") for the
+   * field-normalized means. Kept SEPARATE from {@link context} so the header can
+   * show the short anchor inline and demote this audit detail to a hover title —
+   * the metric line stays short without losing the responsible-reading caveat.
+   */
+  coverageNote?: string;
 }
 
 function formatValue(format: string, raw: number, locale: string): string {
@@ -86,22 +97,16 @@ function formatValue(format: string, raw: number, locale: string): string {
 }
 
 /**
- * Responsible-reading context for a metric. For mean-FWCI we append the coverage
- * ("mean over N works with FWCI") so a small/skewed sample isn't mistaken for a
- * precise field-normalized score.
+ * Coverage/provenance note for a field-normalized mean — "mean over N works with
+ * FWCI/RCR" — so a small/skewed sample isn't mistaken for a precise score. Only
+ * the two field-normalized means carry one; everything else returns undefined.
+ * The header surfaces this on a hover title (not inline) to keep the metric line
+ * short while preserving the responsible-reading caveat.
  */
-function contextFor(locale: string, key: string, values: OwnerMetrics): string | undefined {
-  const base = metricContext(locale, key);
-  // Both field-normalized means append their coverage ("mean over N works …") so a
-  // small/skewed sample isn't mistaken for a precise score.
-  const coverage =
-    key === "fwci_mean"
-      ? metricCoverageNote(locale, values.fwci_n)
-      : key === "rcr_mean"
-        ? metricRcrCoverageNote(locale, values.rcr_n)
-        : undefined;
-  if (!coverage) return base;
-  return base ? `${base} · ${coverage}` : coverage;
+function coverageNoteFor(locale: string, key: string, values: OwnerMetrics): string | undefined {
+  if (key === "fwci_mean") return metricCoverageNote(locale, values.fwci_n);
+  if (key === "rcr_mean") return metricRcrCoverageNote(locale, values.rcr_n);
+  return undefined;
 }
 
 /** Format a raw metric value using its catalog format (for the editor preview). */
@@ -129,7 +134,8 @@ export function formattedMetrics(cv: CanonicalCv): FormattedMetric[] {
         key: def.key,
         label: metricLabel(locale, def.key),
         value: formatValue(def.format, raw, locale),
-        context: contextFor(locale, def.key, values),
+        context: metricContext(locale, def.key),
+        coverageNote: coverageNoteFor(locale, def.key, values),
       };
     })
     .filter((m): m is FormattedMetric => m !== null);

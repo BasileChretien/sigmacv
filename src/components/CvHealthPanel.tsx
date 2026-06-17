@@ -7,7 +7,12 @@ import type { Locale } from "@/lib/i18n";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 
 /** The four outstanding-decision categories the panel surfaces. */
-export type CvHealthCategory = "review" | "duplicates" | "conflicts" | "retracted";
+export type CvHealthCategory =
+  | "review"
+  | "duplicates"
+  | "conflicts"
+  | "misattributed"
+  | "retracted";
 
 interface CvHealthPanelProps {
   cv: CanonicalCv;
@@ -19,6 +24,12 @@ interface CvHealthPanelProps {
    * text. The editor owns the navigation (section expand + scroll/focus).
    */
   onResolve?: (category: CvHealthCategory) => void;
+  /**
+   * Bulk "they're all mine" for the likely-misattributed row: confirm every flagged
+   * work at once (keeps them shown, stops flagging). The safe escape hatch for a
+   * high-namesake user facing several flags. When omitted, the shortcut is hidden.
+   */
+  onConfirmAllMisattributed?: () => void;
 }
 
 /**
@@ -28,7 +39,12 @@ interface CvHealthPanelProps {
  * collapsed sections. Each row links to the first such item. Renders nothing
  * when there is nothing to do.
  */
-export default function CvHealthPanel({ cv, locale, onResolve }: CvHealthPanelProps) {
+export default function CvHealthPanel({
+  cv,
+  locale,
+  onResolve,
+  onConfirmAllMisattributed,
+}: CvHealthPanelProps) {
   const wu = workspaceUi(locale);
   const health = useMemo(() => computeCvHealth(cv), [cv]);
   if (health.total === 0) return null;
@@ -37,6 +53,11 @@ export default function CvHealthPanel({ cv, locale, onResolve }: CvHealthPanelPr
     { key: "review" as const, count: health.pendingReviewCandidates, label: wu.hpReview },
     { key: "duplicates" as const, count: health.pendingDuplicates, label: wu.hpDuplicates },
     { key: "conflicts" as const, count: health.orcidConflicts, label: wu.hpConflicts },
+    {
+      key: "misattributed" as const,
+      count: health.likelyMisattributed,
+      label: wu.hpMisattributed,
+    },
     { key: "retracted" as const, count: health.retractedVisible, label: wu.hpRetracted },
   ].filter((r) => r.count > 0);
 
@@ -60,6 +81,16 @@ export default function CvHealthPanel({ cv, locale, onResolve }: CvHealthPanelPr
               ) : (
                 text
               )}
+              {r.key === "misattributed" && onConfirmAllMisattributed ? (
+                <button
+                  type="button"
+                  className="cv-health-bulk"
+                  onClick={onConfirmAllMisattributed}
+                  title={wu.hpMisAllMine}
+                >
+                  {wu.hpMisAllMine}
+                </button>
+              ) : null}
             </li>
           );
         })}

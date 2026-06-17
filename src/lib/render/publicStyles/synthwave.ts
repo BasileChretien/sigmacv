@@ -12,6 +12,8 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -64,7 +66,12 @@ function synthCss(_t: TemplateTheme): string {
   .cv-self { color:#fff !important; font-weight:800; text-shadow:0 0 12px rgba(255,45,180,0.8); }
   .cv-photo { width:120px; height:120px; border-radius:50%; border:3px solid var(--cyan); box-shadow:0 0 26px var(--mag); }
 
-  section.cv-section > h2 { color: var(--mag); text-transform: uppercase; letter-spacing:0.18em; font-size:0.8rem; font-weight:800; margin:0 0 0.7rem; text-shadow:0 0 12px rgba(255,45,180,0.5); }
+  /* Heading magenta is a FIXED light tone (5.3:1+ even where the translucent
+     panel sits over the bright orange bottom of the sunset; the literal --mag
+     #ff2db4 fell to 3.78:1 there, and accentSpectrum remaps --mag to the user's
+     floored — i.e. dark — accent, which is worse on the dark panel). The cyan
+     headings/links are accentSpectrum's light L=0.72 derivations and already pass. */
+  section.cv-section > h2 { color: #ff79c6; text-transform: uppercase; letter-spacing:0.18em; font-size:0.8rem; font-weight:800; margin:0 0 0.7rem; text-shadow:0 0 12px rgba(255,45,180,0.5); }
   section.cv-section:nth-of-type(2n) > h2 { color: var(--cyan); text-shadow:0 0 12px rgba(59,240,255,0.5); }
   ol.cv-bib > li { position:relative; padding-left:1.7em; text-indent:0; }
   ol.cv-bib > li::before { content:""; position:absolute; left:0; top:0.4em; width:8px; height:8px; transform: rotate(45deg); background: var(--mag); box-shadow:0 0 8px var(--mag); }
@@ -104,14 +111,134 @@ function synthCss(_t: TemplateTheme): string {
   }`;
 }
 
+const synthwaveMascotSkin = `
+  /* ── Synthwave mascot skin ────────────────────────────────────────────── */
+
+  /* BODY — vertical purple→magenta gradient with chrome sheen */
+  .sm-fig {
+    background:
+      linear-gradient(160deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 28%) top/100% 42% no-repeat,
+      linear-gradient(180deg, #4b1080 0%, #8e1a7a 44%, #d4186a 76%, #ff2db4 100%);
+    border: 1.5px solid rgba(255,110,199,0.7);
+    border-radius: 6px 6px 4px 4px;
+    box-shadow:
+      0 0 0 1px rgba(59,240,255,0.35),
+      0 0 12px 2px rgba(255,46,180,0.65),
+      0 0 28px 6px rgba(139,26,122,0.45),
+      inset 0 1px 0 rgba(255,255,255,0.35);
+    overflow: hidden;
+  }
+
+  /* Σ — hot-pink with cyan chromatic offset */
+  .sm-fig::before {
+    content: "Σ";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.45em;
+    font-weight: 900;
+    font-style: normal;
+    color: #ff6ec7;
+    /* cyan chromatic ghost offset + hot-pink glow */
+    text-shadow:
+      -1.5px -1px 0 rgba(59,240,255,0.85),
+       1.5px  1px 0 rgba(255,110,199,0.6),
+       0 0 8px #ff6ec7,
+       0 0 20px rgba(255,46,180,0.9);
+    animation: sw-sigma-pulse 3.2s ease-in-out infinite;
+    z-index: 2;
+  }
+
+  /* FEET — hot-pink nubs */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 4px;
+    background: linear-gradient(90deg, #ff2db4, #3bf0ff, #ff2db4);
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 2px 6px rgba(255,46,180,0.7);
+    z-index: 2;
+  }
+
+  /* DECO — horizon grid + scanlines + sunset bloom (lower half of .sm-fig) */
+  .sm-deco {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 52%;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: 0 0 4px 4px;
+  }
+
+  /* sunset bloom behind the grid */
+  .sm-deco::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 120% 80% at 50% 110%, rgba(255,130,60,0.55) 0%, rgba(255,46,180,0.30) 45%, transparent 72%);
+  }
+
+  /* perspective horizon grid + scanline overlay */
+  .sm-deco::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* horizontal grid lines (vanishing) */
+    background-image:
+      linear-gradient(0deg,   rgba(59,240,255,0.55) 1px, transparent 1px),
+      linear-gradient(90deg,  rgba(255,46,180,0.45) 1px, transparent 1px),
+      /* dark scanline stripe every 3px for CRT texture */
+      repeating-linear-gradient(180deg, transparent 0px, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 3px);
+    background-size: 100% 18%, 25% 100%, 100% 3px;
+    transform: perspective(28px) rotateX(18deg);
+    transform-origin: bottom center;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.9) 40%, #000 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.9) 40%, #000 100%);
+    animation: sw-grid-scroll 1.4s linear infinite;
+  }
+
+  @keyframes sw-sigma-pulse {
+    0%, 100% {
+      text-shadow:
+        -1.5px -1px 0 rgba(59,240,255,0.85),
+         1.5px  1px 0 rgba(255,110,199,0.6),
+         0 0 8px #ff6ec7,
+         0 0 20px rgba(255,46,180,0.9);
+    }
+    50% {
+      text-shadow:
+        -2px -1.5px 0 rgba(59,240,255,1),
+         2px  1.5px 0 rgba(255,110,199,0.8),
+         0 0 14px #ff6ec7,
+         0 0 32px rgba(255,46,180,1);
+    }
+  }
+  @keyframes sw-grid-scroll {
+    to { background-position: 0 18%, 0 0, 0 3px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sm-fig::before, .sm-deco::after { animation: none !important; }
+  }`;
+
 export const synthwaveTemplate: CvTemplate = {
   key: "synthwave",
   render(cv, sections, theme, opts) {
     const css =
       commonCss(theme) +
       synthCss(theme) +
-      accentSpectrum(["--mag", "--cyan", "--orange", "--yellow"], { l: 0.72, c: 0.2 });
+      accentSpectrum(["--mag", "--cyan", "--orange", "--yellow"], { l: 0.72, c: 0.2 }) +
+      mascotBaseCss() +
+      synthwaveMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="sw-stars" aria-hidden="true"></div>` +
       `<div class="sw-sun" aria-hidden="true"></div>` +
       `<div class="sw-grid" aria-hidden="true"></div>` +

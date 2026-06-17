@@ -12,6 +12,8 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -82,14 +84,119 @@ function terminalCss(_t: TemplateTheme): string {
   }`;
 }
 
+const terminalMascotSkin = `
+  /* CRT monitor body — dark chassis with green phosphor bezel glow */
+  .sm-fig {
+    background: #050e07;
+    border-radius: 4px 4px 3px 3px;
+    box-shadow:
+      0 0 0 2px #0d2a14,
+      0 0 0 3px #1a4425,
+      0 0 12px 2px rgba(34,255,102,0.45),
+      0 0 28px 6px rgba(34,255,102,0.18),
+      inset 0 0 8px 2px rgba(34,255,102,0.08);
+    overflow: visible;
+  }
+  /* Phosphor-green Σ on the screen */
+  .sm-fig::before {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    color: #22ff66;
+    text-shadow:
+      0 0 4px #22ff66,
+      0 0 10px rgba(34,255,102,0.8),
+      0 0 20px rgba(34,255,102,0.5);
+    font-size: 1.35em;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  /* Tiny green pixel feet — two rectangles below the body */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 4px;
+    background: #0d2a14;
+    border-radius: 0 0 2px 2px;
+    box-shadow:
+      -8px 0 0 2px #0d2a14,
+      8px 0 0 2px #0d2a14,
+      -8px 2px 0 1px #22ff66,
+      8px 2px 0 1px #22ff66,
+      0 0 6px rgba(34,255,102,0.4);
+  }
+  /* Scanlines + blinking cursor block + screen bloom — all on .sm-deco */
+  .sm-deco {
+    position: absolute;
+    inset: 2px;
+    border-radius: 3px;
+    pointer-events: none;
+    /* phosphor-green scan-lines across the entire screen face */
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(34,255,102,0.07) 2px,
+        rgba(34,255,102,0.07) 3px
+      );
+    /* faint screen bloom overlay */
+    box-shadow:
+      inset 0 0 10px 3px rgba(34,255,102,0.12),
+      inset 0 0 3px 1px rgba(34,255,102,0.2);
+    overflow: hidden;
+  }
+  /* Blinking cursor block in the bottom-right of the screen */
+  .sm-deco::after {
+    content: "";
+    position: absolute;
+    bottom: 5px;
+    right: 6px;
+    width: 5px;
+    height: 7px;
+    background: #22ff66;
+    box-shadow: 0 0 4px rgba(34,255,102,0.9);
+    animation: sm-cursor-blink 1.1s steps(2, jump-none) infinite;
+  }
+  /* Subtle horizontal sweep beam across the screen */
+  .sm-deco::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(34,255,102,0.06) 48%,
+      rgba(34,255,102,0.11) 50%,
+      rgba(34,255,102,0.06) 52%,
+      transparent 100%
+    );
+    animation: sm-beam-sweep 4s linear infinite;
+  }
+  @keyframes sm-cursor-blink { 50% { opacity: 0; } }
+  @keyframes sm-beam-sweep {
+    0%   { transform: translateY(-110%); }
+    100% { transform: translateY(200%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sm-deco::after { animation: none; }
+    .sm-deco::before { animation: none; }
+  }`;
+
 export const terminalTemplate: CvTemplate = {
   key: "terminal",
   render(cv, sections, theme, opts) {
     const css =
       commonCss(theme) +
       terminalCss(theme) +
-      accentSpectrum(["--term", "--amber", "--cyan"], { l: 0.82, c: 0.17 });
+      accentSpectrum(["--term", "--amber", "--cyan"], { l: 0.82, c: 0.17 }) +
+      mascotBaseCss() +
+      terminalMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="crt" aria-hidden="true"></div>` +
       `<div class="term-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +

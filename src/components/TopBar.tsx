@@ -4,6 +4,7 @@ import { LOCALE_LABELS, SUPPORTED_LOCALES, t } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
 import AccountMenu from "./AccountMenu";
 import PublishMenu from "./PublishMenu";
+import ShareMenu from "./ShareMenu";
 import SupportLink from "./SupportLink";
 import ThemeToggle from "./ThemeToggle";
 
@@ -43,6 +44,9 @@ export interface TopBarProps {
   saving: boolean;
   syncing: boolean;
   dirty: boolean;
+  /** True while an export is being produced/downloaded — disables the Export CTA
+      and shows a progress label so it doesn't look frozen. */
+  exporting?: boolean;
   /** Whether a CV exists (gates Save/Export). */
   hasCv: boolean;
   // ── Primary actions ──
@@ -65,6 +69,8 @@ export interface TopBarProps {
     slug: string | null;
     indexable: boolean;
   }) => void;
+  /** Deep-link from the Publish menu to the editor's public-page-style picker. */
+  onEditPublicStyle?: () => void;
   // ── Account (hosted in the Account menu) ──
   researchConsent: boolean;
   digestOptIn?: boolean;
@@ -90,6 +96,7 @@ export default function TopBar({
   saving,
   syncing,
   dirty,
+  exporting = false,
   hasCv,
   onSync,
   onSave,
@@ -103,6 +110,7 @@ export default function TopBar({
   publicContact,
   onPublicContactChange,
   onPublishStateChange,
+  onEditPublicStyle,
   researchConsent,
   digestOptIn,
   digestContactEmail,
@@ -184,9 +192,10 @@ export default function TopBar({
             type="button"
             className="btn btn-primary export-btn"
             onClick={onExport}
-            disabled={!hasCv || saving || syncing}
+            disabled={!hasCv || saving || syncing || exporting}
+            aria-busy={exporting}
           >
-            {t(locale, "exportLabel")}
+            {exporting ? t(locale, "exporting") : t(locale, "exportLabel")}
           </button>
         </div>
 
@@ -221,7 +230,13 @@ export default function TopBar({
           publicContact={publicContact}
           onPublicContactChange={onPublicContactChange}
           onPublishStateChange={onPublishStateChange}
+          onEditPublicStyle={onEditPublicStyle}
         />
+
+        {/* Share/embed lives on its OWN trigger, shown only once the page is live —
+            the public link + the "Living CV" badge + QR. Keeps the Publish popover
+            a focused on/off decision instead of a share dashboard. */}
+        {published && publicSlug ? <ShareMenu locale={locale} slug={publicSlug} /> : null}
 
         {/* Funding ask — kept visible in the bar (brand yellow) but de-escalated:
             small, and parked at the far end away from the Export CTA so the two

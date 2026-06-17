@@ -23,7 +23,7 @@ describe("editorUi", () => {
 
   it("localizes a sample of keys", () => {
     expect(editorUi("fr-FR").tabPreview).toBe("Aperçu");
-    expect(editorUi("de-DE").grpTemplate).toBe("Vorlage & Layout");
+    expect(editorUi("de-DE").grpLook).toBe("Aussehen & Typografie");
     expect(editorUi("ja-JP").feTitle).toBe("タイトル");
   });
 });
