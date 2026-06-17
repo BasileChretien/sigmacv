@@ -315,6 +315,11 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-coauthors-list { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 0.2rem 0.85rem; font-size: 0.78rem; }
   .cv-coauthors-list a { color: var(--cv-accent); text-decoration: none; }
   a { color: inherit; }
+  /* A visible keyboard-focus ring for every link on the public page + document.
+     Uses outline (not box-shadow) so it can't be clipped by an overflow/transform/
+     backdrop-filter ancestor on the animated styles, where the UA default ring is
+     faint or suppressed. */
+  a:focus-visible { outline: 2px solid var(--cv-accent); outline-offset: 2px; border-radius: 2px; }
 
   @page { size: A4; margin: 16mm 15mm; }
   @media print {

@@ -51,6 +51,11 @@
   --danger-text: #962219;
   --warn-soft: #fbf0d9;
   --warn-text: #7a4e0c;
+  /* Panel BORDER tints for warn / danger callouts — tokenised (was an #f0dcae /
+     #f3cfc9 literal pasted ~11×) so they get a dark-mode value instead of a stale
+     light outline left on a darkened panel. */
+  --warn-border: #f0dcae;
+  --danger-border: #f3cfc9;
 
   /* ── Type ── */
   --font-sans:
@@ -248,6 +253,16 @@ button {
      --accent-600 directly, so they're unaffected by this re-point. */
   --accent: #6f8dff;
   --accent-hover: #93acff;
+  /* Soft-accent callouts (editor hints, the "You" badge, the metrics nudge) use
+     these ramp steps as tint + border + text; re-point them so the callouts read
+     as soft dark-blue panels, not bright lavender islands on dark chrome.
+     --accent-800 is left as-is — it's also the .btn-primary:active fill. */
+  --accent-50: rgba(94, 130, 247, 0.16);
+  --accent-100: rgba(94, 130, 247, 0.3);
+  --accent-200: rgba(94, 130, 247, 0.38);
+  --accent-900: #c4d6ff;
+  --warn-border: rgba(230, 192, 116, 0.32);
+  --danger-border: rgba(243, 165, 156, 0.32);
   --danger-soft: rgba(192, 54, 44, 0.22);
   --danger-text: #f3a59c;
   --warn-soft: rgba(122, 78, 12, 0.3);
@@ -277,6 +292,13 @@ button {
     /* See the data-theme="dark" block above: lighter accent for TEXT only. */
     --accent: #6f8dff;
     --accent-hover: #93acff;
+    /* See the data-theme="dark" block above: soft-callout ramp steps re-pointed. */
+    --accent-50: rgba(94, 130, 247, 0.16);
+    --accent-100: rgba(94, 130, 247, 0.3);
+    --accent-200: rgba(94, 130, 247, 0.38);
+    --accent-900: #c4d6ff;
+    --warn-border: rgba(230, 192, 116, 0.32);
+    --danger-border: rgba(243, 165, 156, 0.32);
     --danger-soft: rgba(192, 54, 44, 0.22);
     --danger-text: #f3a59c;
     --warn-soft: rgba(122, 78, 12, 0.3);
@@ -877,7 +899,7 @@ input[type="radio"] {
   background: var(--border-strong);
 }
 .publish-dot.is-live {
-  background: var(--success, #22c55e);
+  background: var(--success);
 }
 /* Published: the trigger reads as a clear green "live" status pill — distinct
    at a glance from the plain ghost "Publish" button (whose accent-pulse dot
@@ -1206,7 +1228,7 @@ input[type="radio"] {
   flex-wrap: wrap;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
-  background: var(--accent-soft, #eef2ff);
+  background: var(--accent-soft);
   border-bottom: 1px solid var(--border);
 }
 .consent-banner-text {
@@ -1335,6 +1357,12 @@ textarea.prose-body {
   color: var(--accent);
 }
 .preset-del {
+  /* ≥24px hit target (WCAG 2.5.8) — the bare padding gave only ~22px tall. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
   background: none;
   border: 0;
   padding: 0.2rem 0.45rem;
@@ -1416,8 +1444,9 @@ textarea.prose-body {
   flex-wrap: wrap;
 }
 .swatch {
-  width: 1.5rem;
-  height: 1.5rem;
+  /* ≥24px CSS-px target (WCAG 2.5.8) with headroom — was exactly 24px. */
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: var(--radius-full);
   border: 2px solid transparent;
   padding: 0;
@@ -1827,7 +1856,9 @@ textarea.prose-body {
   white-space: nowrap;
 }
 .cv-self-badge {
-  color: var(--accent-800);
+  /* --accent-900 (not -800) so the dark-mode soft-callout re-point covers this
+     badge's text too; in light both are dark navy on the accent-50 tint. */
+  color: var(--accent-900);
   background: var(--accent-50);
   border-color: var(--accent-100);
   text-transform: uppercase;
@@ -1838,21 +1869,21 @@ textarea.prose-body {
 .cv-self-badge.is-weak-match {
   color: var(--warn-text);
   background: var(--warn-soft);
-  border-color: #f0dcae;
+  border-color: var(--warn-border);
   border-style: dashed;
   cursor: help;
 }
 .cv-notmine-badge {
   color: var(--danger-text);
   background: var(--danger-soft);
-  border-color: #f3cfc9;
+  border-color: var(--danger-border);
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
 }
 .cv-review-badge {
   color: var(--warn-text);
   background: var(--warn-soft);
-  border-color: #f0dcae;
+  border-color: var(--warn-border);
   cursor: help;
 }
 /* Soft variant: a "probably yours" candidate (ORCID-listed / name-matched), not
@@ -1879,7 +1910,7 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .cv-dup-panel {
   margin: var(--space-2) 0;
   padding: var(--space-2) var(--space-3);
-  border-left: 3px solid #f0dcae;
+  border-left: 3px solid var(--warn-border);
   background: var(--warn-soft);
   border-radius: var(--radius-sm);
 }
@@ -1911,8 +1942,8 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 }
 /* The entry whose row was clicked to open the panel. */
 .cv-dup-entry.is-self {
-  border-color: #f0dcae;
-  box-shadow: inset 0 0 0 1px #f0dcae;
+  border-color: var(--warn-border);
+  box-shadow: inset 0 0 0 1px var(--warn-border);
 }
 .cv-dup-facts {
   display: flex;
@@ -1950,7 +1981,7 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   font-weight: var(--weight-semibold);
   line-height: 1.4;
   border-radius: var(--radius-full);
-  border: 1px solid #f0dcae;
+  border: 1px solid var(--warn-border);
   color: var(--warn-text);
   background: var(--warn-soft);
   cursor: pointer;
@@ -1959,7 +1990,7 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 /* The duplicate row currently under review (banner jump / auto-advance target). */
 .cv-item-row.is-dup-active {
   border-radius: var(--radius-sm);
-  box-shadow: 0 0 0 2px #f0dcae;
+  box-shadow: 0 0 0 2px var(--warn-border);
   scroll-margin-top: var(--space-4);
 }
 /* Transient highlight after a "Needs your attention" checklist jump, so the
@@ -1972,8 +2003,8 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 @keyframes cv-row-flash {
   0%,
   35% {
-    box-shadow: 0 0 0 2px var(--accent, #2563eb);
-    background: var(--accent-soft, rgba(37, 99, 235, 0.08));
+    box-shadow: 0 0 0 2px var(--accent);
+    background: var(--accent-soft);
   }
   100% {
     box-shadow: 0 0 0 0 transparent;
@@ -1983,7 +2014,7 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 @media (prefers-reduced-motion: reduce) {
   .cv-item-row.is-flash {
     animation: none;
-    box-shadow: 0 0 0 2px var(--accent, #2563eb);
+    box-shadow: 0 0 0 2px var(--accent);
   }
 }
 /* "You may already have this" note under a pending ORCID-discovered candidate. */
@@ -2610,8 +2641,8 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .theme-toggle-btn {
   display: grid;
   place-items: center;
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 1.75rem;
+  height: 1.75rem;
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);
@@ -3045,7 +3076,7 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .sync-pill.is-review {
   color: var(--warn-text);
   background: var(--warn-soft);
-  border-color: #f0dcae;
+  border-color: var(--warn-border);
 }
 .sync-report-details {
   margin-top: var(--space-1);
@@ -3083,14 +3114,14 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   font-size: var(--text-2xs);
   padding: 0 0.35rem;
   border-radius: var(--radius-full);
-  border: 1px solid #f0dcae;
+  border: 1px solid var(--warn-border);
 }
 
 /* ── CV-health checklist ("needs your attention") ──────────────────────────── */
 .cv-health-panel {
   margin: var(--space-2) 0;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid #f0dcae;
+  border: 1px solid var(--warn-border);
   border-radius: var(--radius-md);
   background: var(--warn-soft);
   font-size: var(--text-sm);
