@@ -108,7 +108,7 @@ const meshMascotSkin = `
       radial-gradient(ellipse 70% 70% at 100% 100%,  #e078f5 0%, transparent 65%),
       radial-gradient(ellipse 65% 65% at 0%   100%,  #ffc6e5 0%, transparent 65%);
     background-size: 120% 120%, 120% 120%, 120% 120%, 120% 120%;
-    background-color: #8b8fff;
+    background-color: #6b6fe6;
     animation: sm-mesh-shift 14s ease-in-out infinite;
     border-top:    1px solid rgba(255, 255, 255, 0.55);
     border-left:   1px solid rgba(255, 255, 255, 0.30);
@@ -135,9 +135,12 @@ const meshMascotSkin = `
     font-weight: 800;
     line-height: 1;
     color: #fff;
+    /* Dark stroke + shadow so the white Σ clears the 3:1 graphic floor over the
+       light mesh body (was ~2.81:1 over the #8b8fff base, now darkened too). */
+    -webkit-text-stroke: 0.7px rgba(35, 18, 80, 0.9);
     text-shadow:
-      0 1px 4px rgba(80, 40, 160, 0.60),
-      0 0  10px rgba(255, 255, 255, 0.45);
+      0 1px 3px rgba(40, 18, 90, 0.85),
+      0 0  10px rgba(255, 255, 255, 0.35);
     z-index: 3;
   }
 

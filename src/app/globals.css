@@ -199,7 +199,7 @@ button {
   top: -3rem;
   z-index: 100;
   padding: 0.5rem 0.9rem;
-  background: var(--accent);
+  background: var(--accent-600);
   color: #fff;
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
@@ -242,6 +242,12 @@ button {
   --muted: #99a0ac;
   --accent-soft: rgba(94, 130, 247, 0.18);
   --accent-ring: rgba(94, 130, 247, 0.45);
+  /* Link/accent TEXT needs a lighter accent on dark surfaces to clear AA (the
+     light-mode --accent-600 sits at ~2.5:1 on dark). Saturated brand FILLS that
+     carry white text (skip-link, active pane tab, .btn-primary) use
+     --accent-600 directly, so they're unaffected by this re-point. */
+  --accent: #6f8dff;
+  --accent-hover: #93acff;
   --danger-soft: rgba(192, 54, 44, 0.22);
   --danger-text: #f3a59c;
   --warn-soft: rgba(122, 78, 12, 0.3);
@@ -268,6 +274,9 @@ button {
     --muted: #99a0ac;
     --accent-soft: rgba(94, 130, 247, 0.18);
     --accent-ring: rgba(94, 130, 247, 0.45);
+    /* See the data-theme="dark" block above: lighter accent for TEXT only. */
+    --accent: #6f8dff;
+    --accent-hover: #93acff;
     --danger-soft: rgba(192, 54, 44, 0.22);
     --danger-text: #f3a59c;
     --warn-soft: rgba(122, 78, 12, 0.3);
@@ -1090,7 +1099,7 @@ input[type="radio"] {
   min-height: 3rem;
   padding: var(--space-3);
   margin-bottom: var(--space-2);
-  background: var(--surface-1, #ffffff);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
 }
@@ -2383,9 +2392,9 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   cursor: pointer;
 }
 .pane-tab.is-active {
-  background: var(--accent);
+  background: var(--accent-600);
   color: #ffffff;
-  border-color: var(--accent);
+  border-color: var(--accent-600);
 }
 .pane-tab:first-child {
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
@@ -2599,7 +2608,9 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 }
 .theme-toggle-btn.is-active {
   background: var(--surface-sunken);
-  color: var(--accent-700);
+  /* --accent is floored for readable contrast in both themes (dark-mode
+     --accent-700 read at ~2.1:1 on the inverted sunken surface). */
+  color: var(--accent);
 }
 .auth-divider {
   display: flex;
@@ -2770,7 +2781,7 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 /* Landing-page lede + step list + related-links block (C1 content depth). */
 .doc-page .doc-lede {
   font-size: var(--text-lg);
-  color: var(--text-primary);
+  color: var(--text);
 }
 .doc-page ol {
   color: var(--text-secondary);
@@ -3107,11 +3118,11 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   background: var(--surface-2);
   font: inherit;
   font-size: var(--text-xs);
-  color: var(--text-2);
+  color: var(--text-secondary);
   cursor: pointer;
 }
 .cv-health-bulk:hover {
-  background: var(--surface-3);
+  background: var(--surface-sunken);
 }
 .cv-health-hint {
   margin: 0;

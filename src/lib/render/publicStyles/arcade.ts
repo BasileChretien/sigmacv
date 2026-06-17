@@ -371,15 +371,17 @@ const arcadeMascotSkin = `
 
   /* Σ glyph: white, bold, hard 1px pixel drop-shadow (no blur = pixel-art) */
   .sm-fig::before {
-    /* content / font-size / position come from mascotBaseCss; we override style only */
-    color: #ffffff;
+    /* content / font-size / position come from mascotBaseCss; we override style only.
+       Dark glyph on the gold coin: white read at only 1.44:1 (WCAG 3:1 graphic
+       floor); near-black on #ffd23f is ~11.8:1. */
+    color: #1b1b1b;
     font-weight: 900;
-    /* hard stepped pixel shadow: right+down 1px, then 2px, building a staircase */
+    /* hard stepped pixel highlight (light staircase) keeps the 8-bit look on the dark glyph */
     text-shadow:
-      1px 0   #1b1b1b,
-      0   1px #1b1b1b,
-      1px 1px #1b1b1b,
-      2px 2px #1b1b1b;
+      1px 0   #ffe97a,
+      0   1px #ffe97a,
+      1px 1px #ffe97a,
+      2px 2px rgba(255, 233, 122, 0.6);
     /* keep it square-center on the body */
     font-size: 1.1rem;
     line-height: 1;

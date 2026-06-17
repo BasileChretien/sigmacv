@@ -220,10 +220,10 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-honorific { font: inherit; color: inherit; opacity: 1; letter-spacing: inherit; }
   .cv-headline { font-size: 1.2rem; font-weight: 500; color: var(--cv-ink-2); margin-top: 0.15rem; letter-spacing: 0; }
   .cv-ids { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.35rem; }
-  .cv-ids a { color: var(--cv-accent); text-decoration: none; }
+  .cv-ids a { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; }
   .cv-contact, .cv-links { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.3rem; line-height: 1.5; }
   .cv-links { margin-top: 0.1rem; }
-  .cv-contact a, .cv-links a { color: var(--cv-muted); text-decoration: none; }
+  .cv-contact a, .cv-links a { color: var(--cv-muted); text-decoration: underline; text-underline-offset: 0.15em; }
   .cv-summary { margin: 0.95rem 0 0; font-size: 0.95rem; color: var(--cv-ink-2); line-height: 1.55; }
   .cv-metrics { font-size: 0.8rem; color: var(--cv-muted); margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.15rem 1.1rem; }
   /* The metric's interpretation anchor ("1.0 = world average …"). Upright (not
@@ -320,6 +320,9 @@ export function commonCss(theme: TemplateTheme): string {
   @media print {
     .cv { padding: 0; max-width: none; }
     a { text-decoration: none; }
+    /* Keep in-text profile / contact / ID links underlined in the PDF so the
+       link affordance survives print (WCAG 1.4.1 — not signalled by colour). */
+    .cv-ids a, .cv-contact a, .cv-links a { text-decoration: underline; text-underline-offset: 0.15em; }
     .cv-ror-link { border-bottom: none; }
     section.cv-section { break-inside: auto; }
     section.cv-section > h2 { break-after: avoid; break-inside: avoid; }
