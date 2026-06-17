@@ -116,46 +116,49 @@ describe("mascot companion (display.showMascot)", () => {
     expect(base.display.showMascot).toBe(false);
   });
 
-  it("only the playful styles are mascot-capable", () => {
-    expect([...MASCOT_STYLES]).toEqual(["arcade", "meadow", "cyberpunk", "clockwork"]);
+  it("every animated style except the credible four is mascot-capable", () => {
+    expect([...MASCOT_STYLES]).toHaveLength(13);
     for (const s of MASCOT_STYLES) expect(isMascotStyle(s)).toBe(true);
-    // Credible / non-playful styles are NOT mascot-capable.
-    for (const s of ["match", "folio", "meridian", "trajectory", "lumina", "prism"]) {
+    // `match` + the credible styles are NOT mascot-capable (structural gate).
+    for (const s of ["match", "folio", "meridian", "trajectory", "lumina"]) {
       expect(isMascotStyle(s)).toBe(false);
     }
   });
 
   it.each([...MASCOT_STYLES])(
-    "renders an aria-hidden, scroll-driven, reduced-motion-safe mascot when opted in: %s",
+    "renders a per-section, aria-hidden, scroll-driven, reduced-motion-safe Σ mascot when opted in: %s",
     (style) => {
       const cv = updateDisplay(withPhoto, { publicStyle: style, showMascot: true });
       const html = renderPublicCvHtml(cv);
-      expect(html).toContain('class="sigma-mascot" aria-hidden="true"');
-      // Scroll-position-linked + gated behind @supports, and stays CSS-only.
-      expect(html).toContain("animation-timeline: scroll(root)");
-      expect(html).toContain("@supports (animation-timeline: scroll())");
+      // A per-section mascot element: the Σ-logo body (`.sm-fig`) + a section-typed
+      // hat (`.sm--<type>`), placed inside the section, decorative + aria-hidden.
+      expect(html).toMatch(/class="sm sm--[a-z-]+" aria-hidden="true"><b class="sm-fig">/);
+      // Hops to each heading via the section's own `view()` timeline (scroll-driven),
+      // gated behind @supports; stays CSS-only.
+      expect(html).toContain("animation-timeline: view()");
+      expect(html).toContain("@supports (animation-timeline: view())");
       expect(html).not.toMatch(/<script/i);
       // Hidden under reduced motion (and the page declares the media query).
       expect(html).toContain("prefers-reduced-motion");
     },
   );
 
-  it("omits the mascot when not opted in, even on a playful style", () => {
+  it("omits the mascot elements when not opted in, even on an eligible style", () => {
     const cv = updateDisplay(withPhoto, { publicStyle: "arcade", showMascot: false });
-    // The playful style always ships the (unused) mascot CSS; what must be absent
-    // when not opted in is the mascot ELEMENT itself.
-    expect(renderPublicCvHtml(cv)).not.toContain('class="sigma-mascot"');
+    // The eligible style always ships the (unused) mascot CSS; the mascot ELEMENTS
+    // must be absent when not opted in.
+    expect(renderPublicCvHtml(cv)).not.toContain('class="sm sm--');
   });
 
-  it("never renders the mascot on a non-playful style, even if opted in", () => {
+  it("never renders the mascot on a credible style, even if opted in", () => {
     const cv = updateDisplay(withPhoto, { publicStyle: "folio", showMascot: true });
-    expect(renderPublicCvHtml(cv)).not.toContain("sigma-mascot");
+    expect(renderPublicCvHtml(cv)).not.toContain('class="sm sm--');
   });
 
   it("never leaks the mascot into a document/export render", () => {
     // Exports go through the document template (renderCvHtml), which has no mascot —
-    // even with showMascot on and a playful public style selected.
+    // even with showMascot on and an eligible public style selected.
     const cv = updateDisplay(withPhoto, { publicStyle: "arcade", showMascot: true });
-    expect(renderCvHtml(cv)).not.toContain("sigma-mascot");
+    expect(renderCvHtml(cv)).not.toContain('class="sm sm--');
   });
 });

@@ -11,6 +11,7 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -77,12 +78,13 @@ export const neonTemplate: CvTemplate = {
     const css =
       commonCss(theme) +
       neonCss(theme) +
-      accentSpectrum(["--n1", "--n2", "--n3", "--n4", "--n5"], { l: 0.74, c: 0.2 });
+      accentSpectrum(["--n1", "--n2", "--n3", "--n4", "--n5"], { l: 0.74, c: 0.2 }) +
+      mascotBaseCss();
     const body =
       `<div class="neon-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

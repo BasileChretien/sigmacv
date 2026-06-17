@@ -12,6 +12,7 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -88,13 +89,14 @@ export const terminalTemplate: CvTemplate = {
     const css =
       commonCss(theme) +
       terminalCss(theme) +
-      accentSpectrum(["--term", "--amber", "--cyan"], { l: 0.82, c: 0.17 });
+      accentSpectrum(["--term", "--amber", "--cyan"], { l: 0.82, c: 0.17 }) +
+      mascotBaseCss();
     const body =
       `<div class="crt" aria-hidden="true"></div>` +
       `<div class="term-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

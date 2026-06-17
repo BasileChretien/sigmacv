@@ -12,6 +12,7 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -110,7 +111,8 @@ export const synthwaveTemplate: CvTemplate = {
     const css =
       commonCss(theme) +
       synthCss(theme) +
-      accentSpectrum(["--mag", "--cyan", "--orange", "--yellow"], { l: 0.72, c: 0.2 });
+      accentSpectrum(["--mag", "--cyan", "--orange", "--yellow"], { l: 0.72, c: 0.2 }) +
+      mascotBaseCss();
     const body =
       `<div class="sw-stars" aria-hidden="true"></div>` +
       `<div class="sw-sun" aria-hidden="true"></div>` +
@@ -118,7 +120,7 @@ export const synthwaveTemplate: CvTemplate = {
       `<div class="sw-progress" aria-hidden="true"></div>` +
       `<div class="sw-panel">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

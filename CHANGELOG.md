@@ -32,16 +32,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **An optional mascot companion for your living page.** Turn on a small SigmaCV
-  character that rides the page as visitors scroll — it travels down as they read
-  and back up when they scroll up — with a different design for each playful
-  atmosphere (a pixel bot on **Arcade**, a seed sprite on **Meadow**, a neon drone
-  on **Cyberpunk**, a brass automaton on **Clockwork**). It's **off by default** and
-  offered only on those playful styles — never on the credible ones, and never on
-  any export. Like everything on the public page it's 100% CSS-only (no JavaScript)
-  and fully respectful: it's decorative (`aria-hidden`), tints itself with your
-  accent, and is hidden automatically for visitors who prefer reduced motion, on
-  narrow screens, and in print.
+- **An optional, interactive SigmaCV-logo mascot for your living page.** Turn on a
+  little **SigmaCV logo** (the Σ mark, brought to life) that **hops down the left of
+  the page from section to section** as visitors scroll — and **swaps its hat for
+  each section**: a mortarboard on Education, a coin on Grants, a microphone on
+  Talks, a star on Awards, goggles on Datasets, a lightbulb on Patents, and more.
+  It's available on **all the animated styles** (it picks up each one's accent
+  colour) — never on the credible styles (Folio/Meridian/Trajectory/Lumina) or in
+  any export. It's **off by default**, 100% CSS-only (no JavaScript, even for this),
+  decorative (`aria-hidden`), and hidden automatically for visitors who prefer
+  reduced motion, on narrow screens, and in print.
 - **We now flag publications that may not be yours.** Open databases like OpenAlex
   match papers to authors automatically and, to avoid missing any, lean toward
   over-merging — so a paper by a different researcher with a similar name can land
