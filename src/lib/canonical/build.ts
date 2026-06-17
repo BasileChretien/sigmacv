@@ -122,6 +122,45 @@ function formatOpenaireText(o: OpenaireOutput): string {
 }
 
 /**
+ * Collapse Zenodo concept↔version sibling DataCite records to one entry per
+ * deposit. Zenodo mints a concept DOI plus a per-version DOI; each version
+ * references the concept (IsVersionOf) and the concept self-references, so records
+ * whose DOI sets connect are the same deposit — listing every version would clutter
+ * the CV. We keep the concept DOI (stable, resolves to the latest version), else the
+ * newest. Single-pass grouping suffices because every version carries the concept
+ * DOI, so all siblings share it.
+ */
+function collapseDataciteVersions(outputs: DataciteOutput[]): DataciteOutput[] {
+  const groups: { dois: Set<string>; members: DataciteOutput[] }[] = [];
+  for (const o of outputs) {
+    const ids = [o.doi.toLowerCase(), ...(o.relatedDois ?? []).map((d) => d.toLowerCase())];
+    const g = groups.find((grp) => ids.some((d) => grp.dois.has(d)));
+    if (g) {
+      ids.forEach((d) => g.dois.add(d));
+      g.members.push(o);
+    } else {
+      groups.push({ dois: new Set(ids), members: [o] });
+    }
+  }
+  return groups.map(({ members }) => {
+    if (members.length === 1) return members[0]!;
+    // The concept DOI is the one the siblings point to — its own DOI is referenced
+    // most across the group; tie-break on the newest year.
+    const refs = new Map<string, number>();
+    for (const m of members)
+      for (const r of m.relatedDois ?? [])
+        refs.set(r.toLowerCase(), (refs.get(r.toLowerCase()) ?? 0) + 1);
+    return members.reduce((best, m) => {
+      const s = refs.get(m.doi.toLowerCase()) ?? 0;
+      const bs = refs.get(best.doi.toLowerCase()) ?? 0;
+      if (s > bs) return m;
+      if (s === bs && (m.year ?? 0) > (best.year ?? 0)) return m;
+      return best;
+    });
+  });
+}
+
+/**
  * Datasets & Software section. DataCite is the primary source; OpenAIRE
  * SUPPLEMENTS it (both ORCID-matched, so auto-included), with anything DataCite
  * already lists deduplicated by DOI. Manual entries are carried over.
@@ -135,10 +174,16 @@ function buildDatasetsSection(
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
+  // DOIs DataCite covers — own + Zenodo concept↔version siblings — so an OpenAIRE
+  // record for ANY sibling is suppressed below (no cross-source duplicate).
   const seenDois = new Set<string>();
-  const sorted = [...outputs].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
-  for (const o of sorted) {
+  for (const o of outputs) {
     seenDois.add(o.doi.toLowerCase());
+    for (const r of o.relatedDois ?? []) seenDois.add(r.toLowerCase());
+  }
+  // One entry per deposit (concept DOI), not every version.
+  const sorted = collapseDataciteVersions(outputs).sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+  for (const o of sorted) {
     const id = `dataset:datacite:${o.doi.replace(/[^a-z0-9]+/gi, "-")}`;
     const it = makeEntryItem(
       id,
@@ -1124,17 +1169,23 @@ export function orcidTypeClass(
 const OPENALEX_OTHER_OUTPUT_TYPES = new Set(["dataset", "supplementary-materials"]);
 
 /**
- * The CV-routing class for an OpenAlex work by its own `type`, or `undefined` when
- * it carries no non-article signal (→ the OpenAlex-only `isPreprint` routing
- * stands). Consulted in the no-ORCID-signal fallback so a dataset/software output
- * lands in "Other Research Outputs" rather than Preprints. Keyed on `type` ONLY,
- * never on `source.type === "repository"`, which would wrongly capture
- * arXiv/bioRxiv preprints (also repository-hosted). An ORCID type, when present,
- * still takes precedence over this (see {@link routeWork}).
+ * The CV-routing class for an OpenAlex work, or `undefined` when it carries no
+ * non-article signal (→ the OpenAlex-only `isPreprint` routing stands). Consulted
+ * in the no-ORCID-signal fallback so a dataset/software output lands in "Other
+ * Research Outputs" rather than Preprints. Two signals:
+ *  - `type` is `dataset`/`supplementary-materials` (always non-article); OR
+ *  - `type` is the catch-all `other` AND the source is a `repository` — a Zenodo
+ *    software deposit is typed `other`, so this rescues it. Gated on the repository
+ *    source so a venue-bearing `other` (newsletter/editorial miscellany) stays put,
+ *    and never matches arXiv/bioRxiv preprints (typed `preprint`, not `other`).
+ * An ORCID type, when present, still takes precedence over this (see {@link routeWork}).
  */
 export function openalexTypeClass(work: OpenAlexWork): "other-output" | undefined {
   const t = (work.type ?? "").trim().toLowerCase();
-  return OPENALEX_OTHER_OUTPUT_TYPES.has(t) ? "other-output" : undefined;
+  if (OPENALEX_OTHER_OUTPUT_TYPES.has(t)) return "other-output";
+  const isRepository = (work.primary_location?.source?.type ?? "").toLowerCase() === "repository";
+  if (t === "other" && isRepository) return "other-output";
+  return undefined;
 }
 
 /**

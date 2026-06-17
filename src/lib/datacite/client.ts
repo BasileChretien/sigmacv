@@ -90,10 +90,13 @@ function relatedDoisOf(attr: any): string[] {
 export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutput[]> {
   const bare = normalizeOrcid(orcid);
   const url = new URL(DATACITE_API);
-  url.searchParams.set(
-    "query",
-    `creators.nameIdentifiers.nameIdentifier:"https://orcid.org/${bare}"`,
-  );
+  // Match BOTH the URL form ("https://orcid.org/X") and the BARE form ("X") of the
+  // ORCID nameIdentifier. The indexed value is matched verbatim, and depositors
+  // register either — Zenodo, passing through a bare `.zenodo.json` orcid, stores
+  // the bare form (scheme "ORCID"), so querying only the URL form silently misses
+  // every such record. The bare ORCID is globally unique, so OR-ing both is safe.
+  const field = "creators.nameIdentifiers.nameIdentifier";
+  url.searchParams.set("query", `(${field}:"https://orcid.org/${bare}" OR ${field}:"${bare}")`);
   url.searchParams.set("page[size]", "100");
 
   try {
