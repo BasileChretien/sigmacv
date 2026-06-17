@@ -31,7 +31,6 @@ reviews:
   path_filters:
     - "!src/generated/**" # generated Prisma client (never hand-edit)
     - "!src/lib/citeproc/assets/**" # vendored CSL styles + locale
-    - "!public/schema/cv/v2.json" # generated from the Zod canonical schema
     - "!prisma/migrations/**" # generated migrations
     - "!prisma/seed-data/**" # committed binary seed (OEP roles)
     - "!package-lock.json"
@@ -49,6 +48,14 @@ reviews:
         Any change here REQUIRES regenerating and committing
         public/schema/cv/v2.json (`npm run gen:schema`); call this out if the
         PR touches this file without updating that artifact.
+
+    - path: "public/schema/cv/v2.json"
+      instructions: >-
+        Generated artifact — the published JSON Schema produced by `npm run
+        gen:schema` from the Zod canonical schema (src/lib/canonical/schema.ts).
+        Do NOT review its contents line by line; only verify it was regenerated
+        in lockstep with any change to the canonical schema. CI's
+        tests/cv-json-schema.test.ts fails if the committed file drifts.
 
     - path: "src/lib/**"
       instructions: >-
