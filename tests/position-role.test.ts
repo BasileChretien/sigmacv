@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemDateRange, setItemInstitution, setItemRoleTitle } from "@/lib/canonical/curate";
+import {
+  setItemDateRange,
+  setItemDepartment,
+  setItemInstitution,
+  setItemRoleTitle,
+} from "@/lib/canonical/curate";
 import { formatEntryLine, localizedYearRange, rederiveEntryLine } from "@/lib/canonical/entryLine";
 import {
   itemDateRange,
+  itemDepartment,
   itemInstitution,
   itemRoleTitle,
   type CanonicalCv,
@@ -356,6 +362,59 @@ describe("editable institution + dates", () => {
     expect(item.meta.dateRangeOverride).toEqual({ startYear: 2021, endYear: 2024 });
     expect(item.displayText).toBe(
       "Assistant Professor, International Medical Education, Nagoya Univ. (2021–2024)",
+    );
+  });
+});
+
+describe("editable department", () => {
+  it("itemDepartment resolves the override over the source", () => {
+    const item = orcidPosition(build());
+    expect(itemDepartment(item)).toBe("International Medical Education");
+    const o: CvItem = { ...item, meta: { ...item.meta, departmentOverride: "Dept of X" } };
+    expect(itemDepartment(o)).toBe("Dept of X");
+  });
+
+  it("setItemDepartment overrides the department (source untouched) and re-derives", () => {
+    const cv = build();
+    const { id: sid } = positionsSection(cv);
+    const item = orcidPosition(cv);
+    const updated = findItem(setItemDepartment(cv, sid, item.id, "Pharmacology"), sid, item.id);
+    expect(updated.meta.departmentOverride).toBe("Pharmacology");
+    expect(updated.meta.department).toBe("International Medical Education");
+    expect(updated.displayText).toBe(
+      "Assistant Professor, Pharmacology, Nagoya University (2022–present)",
+    );
+  });
+
+  it("setItemDepartment clears on blank or equal-to-source (revert)", () => {
+    const cv = build();
+    const { id: sid } = positionsSection(cv);
+    const item = orcidPosition(cv);
+    const edited = setItemDepartment(cv, sid, item.id, "Pharmacology");
+    const reverted = findItem(setItemDepartment(edited, sid, item.id, "  "), sid, item.id);
+    expect(reverted.meta.departmentOverride).toBeUndefined();
+    expect(reverted.displayText).toBe(item.displayText);
+  });
+
+  it("can add a department to a position that has none", () => {
+    const cv = build({ employment: { ...employment, department: undefined } });
+    const { id: sid } = positionsSection(cv);
+    const item = orcidPosition(cv);
+    expect(item.displayText).toBe("Assistant Professor, Nagoya University (2022–present)");
+    const updated = findItem(setItemDepartment(cv, sid, item.id, "Pharmacology"), sid, item.id);
+    expect(updated.displayText).toBe(
+      "Assistant Professor, Pharmacology, Nagoya University (2022–present)",
+    );
+  });
+
+  it("carries the department override across re-sync", () => {
+    const first = build();
+    const { id: sid } = positionsSection(first);
+    const edited = setItemDepartment(first, sid, "position:orcid:emp1", "Pharmacology");
+    const item = orcidPosition(build({ previous: edited }));
+    expect(item.meta.departmentOverride).toBe("Pharmacology");
+    expect(item.displayText).toBe(
+      "Assistant Professor, Pharmacology, Nagoya University (2022–present)",
     );
   });
 });

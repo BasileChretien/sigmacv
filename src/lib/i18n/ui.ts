@@ -121,6 +121,8 @@ export interface UiStrings {
   roleAria: string;
   /** Summary label of the "Edit details" disclosure on a positions/education row. */
   editDetails: string;
+  /** Aria-label for the editable department/sub-unit field. */
+  departmentAria: string;
   /** Aria-label for the editable institution-name field. */
   institutionAria: string;
   /** Aria-label for the start-year field. */
@@ -149,6 +151,7 @@ export interface UiStrings {
 const UI_I18N: Record<Locale, UiStrings> = {
   "en-US": {
     editDetails: "Edit details",
+    departmentAria: "Department",
     institutionAria: "Institution",
     startYearAria: "Start year",
     endYearAria: "End year",
@@ -284,6 +287,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
   },
   "zh-CN": {
     editDetails: "编辑详情",
+    departmentAria: "部门",
     institutionAria: "机构",
     startYearAria: "起始年份",
     endYearAria: "结束年份",
@@ -416,6 +420,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
   },
   "es-ES": {
     editDetails: "Editar detalles",
+    departmentAria: "Departamento",
     institutionAria: "Institución",
     startYearAria: "Año de inicio",
     endYearAria: "Año de fin",
@@ -552,6 +557,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
   },
   "fr-FR": {
     editDetails: "Modifier les détails",
+    departmentAria: "Service / département",
     institutionAria: "Établissement",
     startYearAria: "Année de début",
     endYearAria: "Année de fin",
@@ -690,6 +696,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
   },
   "de-DE": {
     editDetails: "Details bearbeiten",
+    departmentAria: "Abteilung",
     institutionAria: "Einrichtung",
     startYearAria: "Startjahr",
     endYearAria: "Endjahr",
@@ -828,6 +835,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
   },
   "ja-JP": {
     editDetails: "詳細を編集",
+    departmentAria: "部門",
     institutionAria: "所属機関",
     startYearAria: "開始年",
     endYearAria: "終了年",
@@ -963,6 +971,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
   },
   "pt-BR": {
     editDetails: "Editar detalhes",
+    departmentAria: "Departamento",
     institutionAria: "Instituição",
     startYearAria: "Ano de início",
     endYearAria: "Ano de término",
@@ -1099,6 +1108,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
   },
   "it-IT": {
     editDetails: "Modifica dettagli",
+    departmentAria: "Dipartimento",
     institutionAria: "Istituzione",
     startYearAria: "Anno di inizio",
     endYearAria: "Anno di fine",
@@ -1236,6 +1246,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
   },
   "ko-KR": {
     editDetails: "세부 정보 편집",
+    departmentAria: "부서",
     institutionAria: "기관",
     startYearAria: "시작 연도",
     endYearAria: "종료 연도",
@@ -1371,6 +1382,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
   },
   "ru-RU": {
     editDetails: "Изменить детали",
+    departmentAria: "Подразделение",
     institutionAria: "Организация",
     startYearAria: "Год начала",
     endYearAria: "Год окончания",

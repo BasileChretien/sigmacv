@@ -766,6 +766,10 @@
                       "type": "string",
                       "maxLength": 500
                     },
+                    "departmentOverride": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
                     "startYear": {
                       "type": "integer",
                       "minimum": -9007199254740991,

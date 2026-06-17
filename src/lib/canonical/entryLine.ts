@@ -1,5 +1,5 @@
 import type { CvItem } from "./schema";
-import { itemDateRange, itemInstitution, itemRoleTitle } from "./schema";
+import { itemDateRange, itemDepartment, itemInstitution, itemRoleTitle } from "./schema";
 
 /**
  * Structured parts of a Positions / Education line. The role, department and
@@ -70,7 +70,7 @@ export function rederiveEntryLine(item: CvItem): string | undefined {
   const { startYear, endYear } = itemDateRange(item);
   return formatEntryLine({
     roleTitle: itemRoleTitle(item),
-    department: item.meta.department,
+    department: itemDepartment(item),
     institution,
     startYear,
     endYear,
