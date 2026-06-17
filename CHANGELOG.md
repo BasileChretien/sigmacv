@@ -30,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tidier row, and every top-bar menu now scrolls internally instead of overflowing
   the viewport. Localized in all ten languages.
 
+- **Jump straight from Publish to styling your public page.** Once your page is
+  live, the Publish menu now has a one-click link that takes you directly to the
+  **Public page style** picker in the editor — it switches to the Design view,
+  opens that group, and scrolls it into view, so you don't have to hunt for it
+  after publishing.
+
 ### Added
 
 - **An optional, interactive SigmaCV-logo mascot for your living page.** Turn on a
