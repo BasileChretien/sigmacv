@@ -79,7 +79,6 @@ const marqueeMascotSkin = `
     box-shadow:
       0 0 0 4px #111,       /* thick outer black frame */
       5px 5px 0 4px #111;   /* hard offset block shadow */
-    position: relative;
     overflow: hidden;
   }
 

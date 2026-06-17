@@ -546,57 +546,60 @@ export function mascotBaseCss(): string {
 ${sectionTimelines}
   .sm { position: fixed; top: 0; left: max(0.6rem, calc(50vw - 470px)); width: 46px; height: 46px; z-index: 7; pointer-events: none; display: none; }
   .sm, .sm * { box-sizing: border-box; }
-  /* Spare decorative layer (a style's skin may use it; transparent by default). */
-  .sm-deco { position: absolute; inset: 0; pointer-events: none; }
-  /* Hat wrapper — box-identical to .sm-fig so each hat's offsets are unchanged, but
-     a SIBLING of it, so a skin's overflow:hidden on .sm-fig never clips the hat. */
-  .sm-hats { position: absolute; left: 0; bottom: 0; width: 38px; height: 38px; }
+  /* Spare decorative layer (a style's skin may use it; transparent by default).
+     z-index:1 keeps a skin's body texture ABOVE the body fill but BELOW the Σ. */
+  .sm-deco { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  /* Hat anchor — a zero-height line at the body's CROWN (38px above .sm's base),
+     a SIBLING of .sm-fig so a skin's overflow:hidden on the body never clips the
+     hat, and bottom-anchored so every hat sits ON the head (worn), not floating. */
+  .sm-hats { position: absolute; left: 0; bottom: 38px; width: 38px; height: 0; }
   /* The logo body (default skin; each style overrides .sm-fig for its atmosphere). */
-  .sm-fig { position: absolute; left: 0; bottom: 0; width: 38px; height: 38px; border-radius: 12px; background: #1f4fd8;
+  .sm-fig { position: absolute; left: 0; bottom: 0; width: 38px; height: 38px; border-radius: 12px; background: #1f4fd8; isolation: isolate;
     box-shadow: 0 5px 13px -4px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.16), 0 0 16px -3px var(--cv-accent, #1f4fd8); }
-  .sm-fig::before { content: "\\03A3"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  .sm-fig::before { content: "\\03A3"; position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center;
     color: #fff; font: 800 23px/1 ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif; }
   .sm-fig::after { content: ""; position: absolute; bottom: -3px; left: 10px; width: 6px; height: 5px; border-radius: 0 0 4px 4px;
     background: #1f4fd8; box-shadow: 11px 0 0 #1f4fd8; }
 
-  /* Hats stack at the crown; each is faded by its section's timeline (≈one shown). */
-  .sm-hat { position: absolute; left: 50%; top: -10px; transform: translateX(-50%); opacity: 0; }
+  /* Hats sit ON the crown (bottom-anchored to .sm-hats, growing upward), each
+     faded in by its section's timeline (≈one shown at a time). */
+  .sm-hat { position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%); opacity: 0; }
   /* Default hat — a mortarboard (academic; for any section without a specific hat). */
   .sm-hat { width: 20px; height: 4px; background: #21212e; border-radius: 2px; }
   .sm-hat::before { content: ""; position: absolute; left: 50%; top: -4px; transform: translateX(-50%); width: 10px; height: 5px; background: #21212e; border-radius: 3px 3px 0 0; }
   .sm-hat::after { content: ""; position: absolute; right: 1px; top: 0; width: 2px; height: 8px; background: #e7b34a; }
   /* Grants — a gold coin. */
-  .sm-hat--grants { width: 13px; height: 13px; top: -12px; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #ffe08a, #d8a72b 72%); box-shadow: inset 0 0 0 1.5px #b5851f; }
+  .sm-hat--grants { width: 13px; height: 13px; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #ffe08a, #d8a72b 72%); box-shadow: inset 0 0 0 1.5px #b5851f; }
   .sm-hat--grants::before, .sm-hat--grants::after { content: none; }
   /* Talks & conferences — a microphone. */
-  .sm-hat--talks, .sm-hat--conference { width: 9px; height: 11px; top: -13px; border-radius: 5px 5px 4px 4px; background: linear-gradient(#3a3a48, #1c1c26); }
+  .sm-hat--talks, .sm-hat--conference { width: 9px; height: 11px; border-radius: 5px 5px 4px 4px; background: linear-gradient(#3a3a48, #1c1c26); }
   .sm-hat--talks::before, .sm-hat--conference::before { content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); width: 2px; height: 6px; background: #2a2a36; }
   .sm-hat--talks::after, .sm-hat--conference::after { content: none; }
   /* Awards — a gold star. */
-  .sm-hat--awards { width: 15px; height: 15px; top: -13px; background: #ffce3a;
+  .sm-hat--awards { width: 15px; height: 15px; background: #ffce3a;
     clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
   .sm-hat--awards::before, .sm-hat--awards::after { content: none; }
   /* Datasets & software — goggles. */
-  .sm-hat--datasets { width: 8px; height: 8px; top: -10px; border-radius: 50%; background: #cfe6ff; border: 2px solid #2a2a36; box-shadow: 11px 0 0 #cfe6ff, 11px 0 0 2px #2a2a36; }
+  .sm-hat--datasets { width: 8px; height: 8px; border-radius: 50%; background: #cfe6ff; border: 2px solid #2a2a36; box-shadow: 11px 0 0 #cfe6ff, 11px 0 0 2px #2a2a36; }
   .sm-hat--datasets::before, .sm-hat--datasets::after { content: none; }
   /* Patents — a lightbulb. */
-  .sm-hat--patents { width: 11px; height: 11px; top: -13px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 40% 35%, #fff6c2, #ffd84d 75%); box-shadow: 0 0 7px #ffd84d80; }
+  .sm-hat--patents { width: 11px; height: 11px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 40% 35%, #fff6c2, #ffd84d 75%); box-shadow: 0 0 7px #ffd84d80; }
   .sm-hat--patents::before { content: ""; position: absolute; left: 50%; bottom: -3px; transform: translateX(-50%); width: 6px; height: 3px; background: #8a8a96; border-radius: 0 0 2px 2px; }
   .sm-hat--patents::after { content: none; }
   /* Clinical trials — a red medical cross. */
-  .sm-hat--clinical-trials { width: 13px; height: 4px; top: -11px; background: #e5484d; border-radius: 1px; }
+  .sm-hat--clinical-trials { width: 13px; height: 4px; background: #e5484d; border-radius: 1px; }
   .sm-hat--clinical-trials::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 4px; height: 13px; background: #e5484d; border-radius: 1px; }
   .sm-hat--clinical-trials::after { content: none; }
   /* Teaching & supervision — an apple. */
-  .sm-hat--teaching, .sm-hat--supervision { width: 12px; height: 11px; top: -12px; border-radius: 48% 48% 52% 52%; background: radial-gradient(circle at 35% 32%, #ff7a7a, #d3322e 75%); }
+  .sm-hat--teaching, .sm-hat--supervision { width: 12px; height: 11px; border-radius: 48% 48% 52% 52%; background: radial-gradient(circle at 35% 32%, #ff7a7a, #d3322e 75%); }
   .sm-hat--teaching::before, .sm-hat--supervision::before { content: ""; position: absolute; left: 52%; top: -3px; width: 2px; height: 4px; background: #6a4a2a; }
   .sm-hat--teaching::after, .sm-hat--supervision::after { content: ""; position: absolute; left: 60%; top: -2px; width: 5px; height: 3px; border-radius: 0 80% 0 80%; background: #4fae54; }
   /* Positions — a hard hat. */
-  .sm-hat--positions { width: 16px; height: 7px; top: -10px; border-radius: 8px 8px 0 0; background: linear-gradient(#ffce3a, #e0a91e); }
+  .sm-hat--positions { width: 16px; height: 7px; border-radius: 8px 8px 0 0; background: linear-gradient(#ffce3a, #e0a91e); }
   .sm-hat--positions::before { content: ""; position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); width: 20px; height: 3px; background: #e0a91e; border-radius: 2px; }
   .sm-hat--positions::after { content: none; }
   /* Editorial — a quill nib. */
-  .sm-hat--editorial { width: 4px; height: 14px; top: -13px; background: linear-gradient(#cfd6ea, #6b7390); border-radius: 60% 60% 0 0; transform: translateX(-50%) rotate(18deg); }
+  .sm-hat--editorial { width: 4px; height: 14px; background: linear-gradient(#cfd6ea, #6b7390); border-radius: 60% 60% 0 0; transform: translateX(-50%) rotate(18deg); }
   .sm-hat--editorial::before, .sm-hat--editorial::after { content: none; }
 
   @keyframes sm-travel { from { transform: translateY(8vh); } to { transform: translateY(84vh); } }

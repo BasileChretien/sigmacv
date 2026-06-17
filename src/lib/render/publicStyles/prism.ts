@@ -205,36 +205,29 @@ const prismMascotSkin = `
     /* 1 px translucent-white border = the bevelled crystal edge */
     border: 1px solid rgba(255,255,255,0.55);
     overflow: hidden;
-    position: relative;
     /* Pulsing iridescent glow */
     animation: pm-glow-pulse 3.2s ease-in-out infinite;
   }
 
-  /* Σ — prismatic rainbow background-clip text */
+  /* Σ — a solid white glyph with a dark crystal edge + iridescent glow, so it
+     reads clearly on the near-white frosted glass (a transparent rainbow-clip
+     glyph vanished against the light body). */
   .sm-fig::before {
     content: "Σ";
     position: absolute;
     inset: 0;
+    z-index: 2;
     display: flex; align-items: center; justify-content: center;
     font-size: 20px; font-weight: 900; line-height: 1;
-    /* Full-spectrum rainbow, cycling */
-    background: linear-gradient(
-      135deg,
-      #ff2db4 0%,
-      #ff8c00 18%,
-      #ffe600 34%,
-      #23ff9c 50%,
-      #15d3ff 66%,
-      #8b3cff 82%,
-      #ff2db4 100%
-    );
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    /* Subtle drop-shadow to lift the glyph off the glass */
-    filter: drop-shadow(0 1px 3px rgba(255,255,255,0.6));
-    animation: prism-flow 5s linear infinite;
+    color: #fff;
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    -webkit-text-stroke: 0.6px rgba(70,30,130,0.62);
+    text-shadow:
+      0 0 5px rgba(255,45,180,0.95),
+      0 0 10px rgba(21,211,255,0.72),
+      0 1px 2px rgba(35,20,70,0.7);
   }
 
   /* FEET — two small iridescent rounded nubs */

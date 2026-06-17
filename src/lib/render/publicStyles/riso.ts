@@ -90,8 +90,6 @@ const risoMascotSkin = `
     background: #1f3bff;
     border-radius: 6px;
     filter: contrast(1.05) saturate(0.95);
-    position: relative;
-    z-index: 1;
     box-shadow: none;
   }
 
