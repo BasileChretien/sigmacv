@@ -19,6 +19,7 @@ import CvEditor, { type CvEditorHandle } from "./CvEditor";
 import CvPreview from "./CvPreview";
 import DisambiguationCoachmark, { COACHMARK_DISMISS_KEY } from "./DisambiguationCoachmark";
 import PublishNudge, { PUBLISH_NUDGE_DISMISS_KEY } from "./PublishNudge";
+import PopoverGroup from "./PopoverGroup";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
 import SyncReportBanner, { SYNC_REPORT_DISMISS_KEY } from "./SyncReportBanner";
 import TopBar, { type ExportFormat } from "./TopBar";
@@ -339,36 +340,43 @@ export default function CvWorkspace({
       {researchEnabled ? (
         <ResearchConsentPrompt initialConsent={researchConsent} locale={uiLocale} />
       ) : null}
-      <TopBar
-        userName={userName}
-        locale={uiLocale}
-        status={status}
-        statusKind={statusKind}
-        saving={saving}
-        syncing={syncing}
-        dirty={dirty}
-        hasCv={!!cv}
-        onSync={handleSync}
-        onSave={handleSave}
-        exportFormat={exportFormat}
-        onExportFormatChange={setExportFormat}
-        onExport={handleExport}
-        onChangeLocale={changeUiLocale}
-        published={publishState.published}
-        publicSlug={publishState.slug}
-        publicIndexable={publishState.indexable}
-        publicContact={cv?.display.publicContact ?? { email: false, phone: false, location: false }}
-        onPublicContactChange={(next) => {
-          if (cv) update(updateDisplay(cv, { publicContact: next }));
-        }}
-        onPublishStateChange={setPublishState}
-        researchConsent={researchConsent}
-        digestOptIn={digestOptIn}
-        digestContactEmail={digestContactEmail}
-        digestContactEmailVerified={digestContactEmailVerified}
-        accountEmail={accountEmail}
-        signOutAction={signOutAction}
-      />
+      {/* PopoverGroup keeps one menu open at a time and renders the shared
+          dismiss scrim as a sibling of the bar (so the bar stays clickable
+          above it, the preview iframe is covered below it). */}
+      <PopoverGroup>
+        <TopBar
+          userName={userName}
+          locale={uiLocale}
+          status={status}
+          statusKind={statusKind}
+          saving={saving}
+          syncing={syncing}
+          dirty={dirty}
+          hasCv={!!cv}
+          onSync={handleSync}
+          onSave={handleSave}
+          exportFormat={exportFormat}
+          onExportFormatChange={setExportFormat}
+          onExport={handleExport}
+          onChangeLocale={changeUiLocale}
+          published={publishState.published}
+          publicSlug={publishState.slug}
+          publicIndexable={publishState.indexable}
+          publicContact={
+            cv?.display.publicContact ?? { email: false, phone: false, location: false }
+          }
+          onPublicContactChange={(next) => {
+            if (cv) update(updateDisplay(cv, { publicContact: next }));
+          }}
+          onPublishStateChange={setPublishState}
+          researchConsent={researchConsent}
+          digestOptIn={digestOptIn}
+          digestContactEmail={digestContactEmail}
+          digestContactEmailVerified={digestContactEmailVerified}
+          accountEmail={accountEmail}
+          signOutAction={signOutAction}
+        />
+      </PopoverGroup>
 
       {cv ? (
         <>
