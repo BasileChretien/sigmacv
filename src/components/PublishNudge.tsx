@@ -68,6 +68,7 @@ export default function PublishNudge({
     if (trigger && trigger.getAttribute("aria-expanded") !== "true") trigger.click();
     // The panel mounts on the render after the trigger opens it; retry across a
     // few frames so the focus/scroll lands once the toggle is actually in the DOM.
+    const MAX_FOCUS_RETRIES = 5;
     let tries = 0;
     const focusToggle = () => {
       const toggle = document.querySelector<HTMLInputElement>('[data-testid="publish-toggle"]');
@@ -79,7 +80,7 @@ export default function PublishNudge({
           label.classList.add("publish-toggle-highlight");
           window.setTimeout(() => label.classList.remove("publish-toggle-highlight"), 1800);
         }
-      } else if (tries++ < 5) {
+      } else if (tries++ < MAX_FOCUS_RETRIES) {
         window.requestAnimationFrame(focusToggle);
       }
     };

@@ -338,12 +338,12 @@ export function commonCss(theme: TemplateTheme): string {
 
   /* Phones: stack the header so the NAME leads instead of being squeezed beside
      the photo, and tighten the page gutter (the 52px desktop padding eats ~a
-     third of a 375px screen). column-reverse puts the name above the photo while
-     keeping name-first source/reading order. Showcase styles with their own card
-     (.cv padding:0) override the padding; the header stack still applies. */
+     third of a 375px screen). The head text (name) is emitted before the optional
+     photo, so plain column keeps the name on top; showcase styles with their own
+     card (.cv padding:0) override the padding, but the header stack still applies. */
   @media (max-width: 560px) {
     .cv { padding: 28px 22px; }
-    .cv-headmain { flex-direction: column-reverse; align-items: flex-start; gap: 0.9rem; }
+    .cv-headmain { flex-direction: column; align-items: flex-start; gap: 0.9rem; }
     .cv-photo { width: 88px; height: 88px; }
   }`;
 }

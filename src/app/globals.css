@@ -2718,7 +2718,7 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   text-decoration: none;
 }
 .site-brand:hover {
-  color: var(--accent-700);
+  color: var(--accent);
 }
 .site-brand-mark {
   display: grid;
