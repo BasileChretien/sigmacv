@@ -83,7 +83,75 @@ function risoCss(_t: TemplateTheme): string {
 }
 
 const risoMascotSkin = `
-  .sm-fig { box-shadow: 2px 2px 0 rgba(40,40,120,0.25); filter: saturate(0.92) contrast(1.05); }`;
+  /* ── Riso mascot skin: flat spot-colour screen-print look ── */
+
+  /* BODY — flat riso-blue rectangle, matte, no shadow, no gradient */
+  .sm-fig {
+    background: #1f3bff;
+    border-radius: 6px;
+    filter: contrast(1.05) saturate(0.95);
+    position: relative;
+    z-index: 1;
+    box-shadow: none;
+  }
+
+  /* Σ mark — flat cream/paper colour, no shadow, looks inked */
+  .sm-fig::before {
+    color: #f4eede;
+    text-shadow: none;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  /* FEET — two flat pink ink blobs */
+  .sm-fig::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22px;
+    height: 5px;
+    background: #1f3bff;
+    border-radius: 0 0 4px 4px;
+    box-shadow: -7px 0 0 0 #1f3bff, 7px 0 0 0 #1f3bff;
+  }
+
+  /* MISREGISTRATION GHOST — pink copy of the body, offset behind */
+  .sm-deco {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background: #ff2d87;
+    transform: translate(3px, 3px);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* GRAIN LAYER — faint halftone-style dot noise on the pink ghost */
+  .sm-deco::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background-image:
+      radial-gradient(circle, rgba(36,28,52,0.18) 1px, transparent 1.5px);
+    background-size: 3px 3px;
+    background-position: 1px 1px;
+  }
+
+  /* Second accent bleed — tiny riso-pink sliver peeking out bottom-right */
+  .sm-deco::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 4px;
+    border-radius: 2px;
+    background: #ff2d87;
+    opacity: 0.7;
+  }`;
 
 export const risoTemplate: CvTemplate = {
   key: "riso",

@@ -74,8 +74,125 @@ function neonCss(_t: TemplateTheme): string {
 }
 
 const neonMascotSkin = `
-  .sm-fig { box-shadow: 0 0 0 2px var(--cv-accent, #1f4fd8), 0 0 14px var(--cv-accent, #1f4fd8), 0 0 28px color-mix(in srgb, var(--cv-accent, #1f4fd8) 40%, transparent); }
-  .sm-fig::before { text-shadow: 0 0 8px var(--cv-accent, #1f4fd8); }`;
+  @keyframes sm-neon-buzz {
+    0%,19%,21%,23%,25%,54%,56%,100% {
+      opacity: 1;
+      text-shadow:
+        0 0 4px #fff,
+        0 0 10px var(--cv-accent,#1f4fd8),
+        0 0 22px var(--cv-accent,#1f4fd8),
+        0 0 42px var(--cv-accent,#1f4fd8),
+        0 0 80px color-mix(in srgb,var(--cv-accent,#1f4fd8) 55%,transparent);
+    }
+    20%,24% {
+      opacity: 0.6;
+      text-shadow:
+        0 0 2px #fff,
+        0 0 6px var(--cv-accent,#1f4fd8),
+        0 0 14px var(--cv-accent,#1f4fd8);
+    }
+    55% {
+      opacity: 0.82;
+      text-shadow:
+        0 0 3px #fff,
+        0 0 8px var(--cv-accent,#1f4fd8),
+        0 0 18px var(--cv-accent,#1f4fd8);
+    }
+  }
+  @keyframes sm-border-pulse {
+    0%,100% { opacity: 1; }
+    48%,52% { opacity: 0.7; }
+  }
+
+  /* BODY — near-black box, neon tube border, outer bloom */
+  .sm-fig {
+    background: #0a0008;
+    border-radius: 8px;
+    border: 2px solid var(--cv-accent,#1f4fd8);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb,var(--cv-accent,#1f4fd8) 60%,transparent),
+      0 0 10px var(--cv-accent,#1f4fd8),
+      0 0 22px color-mix(in srgb,var(--cv-accent,#1f4fd8) 70%,transparent),
+      0 0 44px color-mix(in srgb,var(--cv-accent,#1f4fd8) 35%,transparent),
+      inset 0 0 8px color-mix(in srgb,var(--cv-accent,#1f4fd8) 12%,transparent);
+    animation: sm-border-pulse 4.7s ease-in-out infinite;
+  }
+
+  /* Σ as a bright glowing neon tube */
+  .sm-fig::before {
+    font-size: 18px;
+    font-weight: 900;
+    color: #fff;
+    -webkit-text-stroke: 0.5px color-mix(in srgb,var(--cv-accent,#1f4fd8) 80%,#fff);
+    text-shadow:
+      0 0 4px #fff,
+      0 0 10px var(--cv-accent,#1f4fd8),
+      0 0 22px var(--cv-accent,#1f4fd8),
+      0 0 42px var(--cv-accent,#1f4fd8),
+      0 0 80px color-mix(in srgb,var(--cv-accent,#1f4fd8) 55%,transparent);
+    animation: sm-neon-buzz 6.3s linear infinite;
+  }
+
+  /* FEET — two glow dots */
+  .sm-fig::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 4px;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow:
+      -6px 0 0 2px color-mix(in srgb,var(--cv-accent,#1f4fd8) 90%,#fff),
+       6px 0 0 2px color-mix(in srgb,var(--cv-accent,#1f4fd8) 90%,#fff),
+      -6px 0 6px 3px color-mix(in srgb,var(--cv-accent,#1f4fd8) 55%,transparent),
+       6px 0 6px 3px color-mix(in srgb,var(--cv-accent,#1f4fd8) 55%,transparent);
+  }
+
+  /* DECO — soft wall-reflection glow beneath the sign */
+  .sm-deco {
+    display: block;
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    height: 6px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center,
+      color-mix(in srgb,var(--cv-accent,#1f4fd8) 50%,transparent) 0%,
+      transparent 80%);
+    filter: blur(3px);
+    pointer-events: none;
+  }
+  .sm-deco::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: -16px;
+    left: 10%;
+    width: 80%;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center,
+      color-mix(in srgb,var(--cv-accent,#1f4fd8) 22%,transparent) 0%,
+      transparent 70%);
+    filter: blur(4px);
+  }
+  .sm-deco::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 4px;
+    left: 25%;
+    width: 50%;
+    height: 3px;
+    border-radius: 50%;
+    background: color-mix(in srgb,var(--cv-accent,#1f4fd8) 30%,transparent);
+    filter: blur(2px);
+  }`;
 
 export const neonTemplate: CvTemplate = {
   key: "neon",

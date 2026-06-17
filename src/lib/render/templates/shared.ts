@@ -546,6 +546,11 @@ export function mascotBaseCss(): string {
 ${sectionTimelines}
   .sm { position: fixed; top: 0; left: max(0.6rem, calc(50vw - 470px)); width: 46px; height: 46px; z-index: 7; pointer-events: none; display: none; }
   .sm, .sm * { box-sizing: border-box; }
+  /* Spare decorative layer (a style's skin may use it; transparent by default). */
+  .sm-deco { position: absolute; inset: 0; pointer-events: none; }
+  /* Hat wrapper — box-identical to .sm-fig so each hat's offsets are unchanged, but
+     a SIBLING of it, so a skin's overflow:hidden on .sm-fig never clips the hat. */
+  .sm-hats { position: absolute; left: 0; bottom: 0; width: 38px; height: 38px; }
   /* The logo body (default skin; each style overrides .sm-fig for its atmosphere). */
   .sm-fig { position: absolute; left: 0; bottom: 0; width: 38px; height: 38px; border-radius: 12px; background: #1f4fd8;
     box-shadow: 0 5px 13px -4px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.16), 0 0 16px -3px var(--cv-accent, #1f4fd8); }
@@ -722,5 +727,9 @@ export function mascotHtml(cv: CanonicalCv, sections: RenderedSection[]): string
   const hats = renderableSections(sections)
     .map((rs) => `<i class="sm-hat sm-hat--${rs.section.type}"></i>`)
     .join("");
-  return `<div class="sm" aria-hidden="true"><b class="sm-fig">${hats}</b></div>`;
+  // `.sm-deco` is a spare decorative layer each style's skin can use for texture,
+  // eyes, scanlines, etc. The hats live in a SIBLING wrapper (`.sm-hats`) — not
+  // inside `.sm-fig` — so a skin that clips its body with `overflow:hidden` can't
+  // clip the hat (which perches above the body).
+  return `<div class="sm" aria-hidden="true"><b class="sm-fig"><u class="sm-deco"></u></b><span class="sm-hats">${hats}</span></div>`;
 }

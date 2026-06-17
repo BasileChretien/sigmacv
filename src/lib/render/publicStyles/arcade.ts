@@ -333,7 +333,114 @@ function arcadeCss(_t: TemplateTheme): string {
 }
 
 const arcadeMascotSkin = `
-  .sm-fig { border-radius: 6px; box-shadow: 0 0 0 3px #1b1b1b, 5px 5px 0 3px rgba(0,0,0,0.22); image-rendering: pixelated; }`;
+  /* ===== Arcade mascot: chunky 8-bit coin-character pixel sprite ============
+     Markup: <div class="sm"><b class="sm-fig"><u class="sm-deco"></u><i class="sm-hat …">…</i></b></div>
+     - .sm-fig        = the BODY (coin-gold square with hard pixel outline + feet)
+     - .sm-fig::before = white Σ glyph (readable SigmaCV badge)
+     - .sm-fig::after  = two stubby FEET (dark pixel squares)
+     - .sm-deco        = eye band behind the hat
+     - .sm-deco::before/.sm-deco::after = two small black pixel eyes
+  ========================================================================= */
+
+  /* Body: coin-gold (#ffd23f) rectangle, hard 3px black pixel outline,
+     chunky diagonal hard-shadow, pixelated rendering so nothing anti-aliases. */
+  .sm-fig {
+    width: 38px; height: 38px;
+    background:
+      /* bright highlight strip top-left (faked 8-bit specular) */
+      linear-gradient(135deg, #ffe97a 0% 18%, transparent 19%),
+      /* base coin gold */
+      #ffd23f;
+    border-radius: 5px;
+    image-rendering: pixelated;
+    /* 3-layer pixel outline: hard black ring + offset hard drop-shadow */
+    box-shadow:
+      0 0 0 3px #1b1b1b,
+      5px 5px 0 3px rgba(0, 0, 0, 0.28),
+      /* inner bevel — 1px lighter gold on top-left, darker on bottom-right */
+      inset 2px 2px 0 #ffe97a,
+      inset -2px -2px 0 #c9920a;
+    /* subtle idle idle bounce */
+    animation: sm-arcade-bob 1.8s ease-in-out infinite;
+  }
+
+  @keyframes sm-arcade-bob {
+    0%, 100% { transform: translateY(0px);  }
+    50%       { transform: translateY(-5px); }
+  }
+
+  /* Σ glyph: white, bold, hard 1px pixel drop-shadow (no blur = pixel-art) */
+  .sm-fig::before {
+    /* content / font-size / position come from mascotBaseCss; we override style only */
+    color: #ffffff;
+    font-weight: 900;
+    /* hard stepped pixel shadow: right+down 1px, then 2px, building a staircase */
+    text-shadow:
+      1px 0   #1b1b1b,
+      0   1px #1b1b1b,
+      1px 1px #1b1b1b,
+      2px 2px #1b1b1b;
+    /* keep it square-center on the body */
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+
+  /* Two stubby feet: a wide dark bar split in two by a gap,
+     rendered as a hard-edged box-shadow sequence (no extra elements needed). */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: -7px; left: 6px;
+    width: 8px; height: 6px;
+    background: #1b1b1b;
+    border-radius: 0 0 2px 2px;
+    /* second foot via box-shadow offset */
+    box-shadow: 14px 0 0 #1b1b1b;
+  }
+
+  /* Eye band: a thin horizontal bar across the upper third of the body,
+     sitting just below the hat. No background — acts only as an anchor
+     for the ::before and ::after pseudo-eyes. */
+  .sm-deco {
+    position: absolute;
+    top: 10px; left: 0; right: 0;
+    height: 8px;
+    pointer-events: none;
+  }
+
+  /* Left eye: a chunky 6×6px black pixel square */
+  .sm-deco::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 6px;
+    width: 6px; height: 6px;
+    background: #1b1b1b;
+    border-radius: 1px;
+    /* tiny 1px white pixel highlight in top-right corner */
+    box-shadow: 3px -2px 0 1px #ffffff;
+  }
+
+  /* Right eye: mirrored */
+  .sm-deco::after {
+    content: "";
+    position: absolute;
+    top: 0; right: 6px;
+    width: 6px; height: 6px;
+    background: #1b1b1b;
+    border-radius: 1px;
+    box-shadow: -3px -2px 0 1px #ffffff;
+  }
+
+  /* Reduced-motion: freeze the bob */
+  @media (prefers-reduced-motion: reduce) {
+    .sm-fig { animation: none !important; }
+  }
+
+  /* Mobile: scale down slightly so it doesn't crowd the narrow viewport */
+  @media (max-width: 480px) {
+    .sm-fig { width: 32px; height: 32px; }
+    .sm-fig::before { font-size: 0.95rem; }
+  }`;
 
 export const arcadeTemplate: CvTemplate = {
   key: "arcade",

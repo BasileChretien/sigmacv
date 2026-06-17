@@ -153,8 +153,151 @@ function prismCss(_theme: TemplateTheme): string {
 }
 
 const prismMascotSkin = `
-  .sm-fig { box-shadow: inset 0 0 12px rgba(255,255,255,0.35), 0 0 0 1px rgba(255,255,255,0.45), 0 8px 22px -4px rgba(100,80,200,0.5); }
-  .sm-fig::before { text-shadow: 0 0 8px rgba(255,255,255,0.6); }`;
+  /* --- Prism mascot: cut-glass crystal body -------------------------------- */
+
+  /* Shimmer / sparkle keyframes */
+  @keyframes pm-shimmer {
+    0%   { opacity: 0;   transform: translateX(-120%) rotate(28deg); }
+    30%  { opacity: 0.85; }
+    70%  { opacity: 0.85; }
+    100% { opacity: 0;   transform: translateX(180%)  rotate(28deg); }
+  }
+  @keyframes pm-spark1 {
+    0%,100% { opacity: 0; transform: scale(0.5) rotate(0deg);   }
+    50%      { opacity: 1; transform: scale(1.3) rotate(180deg); }
+  }
+  @keyframes pm-spark2 {
+    0%,100% { opacity: 0; transform: scale(0.4) rotate(45deg);  }
+    50%      { opacity: 1; transform: scale(1.1) rotate(225deg); }
+  }
+  @keyframes pm-glow-pulse {
+    0%,100% { box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.72),
+      inset 0 -1px 0 rgba(200,180,255,0.18),
+      0 0 0 1px rgba(200,190,255,0.38),
+      0 6px 18px -4px rgba(130,80,255,0.55),
+      0 0 28px 4px rgba(120,200,255,0.18); }
+    50%      { box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.88),
+      inset 0 -1px 0 rgba(200,180,255,0.28),
+      0 0 0 1px rgba(220,210,255,0.6),
+      0 8px 26px -4px rgba(160,80,255,0.75),
+      0 0 42px 8px rgba(100,220,255,0.28); }
+  }
+
+  /* BODY — translucent faceted glass */
+  .sm-fig {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    /* Multi-stop glass gradient: bright top highlight → translucent mid → faint bottom */
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255,255,255,0.70)  0%,
+        rgba(200,185,255,0.38) 22%,
+        rgba(130,160,255,0.22) 48%,
+        rgba(80,200,255,0.16)  72%,
+        rgba(180,100,255,0.28) 100%
+      );
+    /* Frosted-glass blur so the neon nebula bleeds through beautifully */
+    backdrop-filter: blur(2px) saturate(1.4);
+    -webkit-backdrop-filter: blur(2px) saturate(1.4);
+    /* 1 px translucent-white border = the bevelled crystal edge */
+    border: 1px solid rgba(255,255,255,0.55);
+    overflow: hidden;
+    position: relative;
+    /* Pulsing iridescent glow */
+    animation: pm-glow-pulse 3.2s ease-in-out infinite;
+  }
+
+  /* Σ — prismatic rainbow background-clip text */
+  .sm-fig::before {
+    content: "Σ";
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 900; line-height: 1;
+    /* Full-spectrum rainbow, cycling */
+    background: linear-gradient(
+      135deg,
+      #ff2db4 0%,
+      #ff8c00 18%,
+      #ffe600 34%,
+      #23ff9c 50%,
+      #15d3ff 66%,
+      #8b3cff 82%,
+      #ff2db4 100%
+    );
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* Subtle drop-shadow to lift the glyph off the glass */
+    filter: drop-shadow(0 1px 3px rgba(255,255,255,0.6));
+    animation: prism-flow 5s linear infinite;
+  }
+
+  /* FEET — two small iridescent rounded nubs */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: -5px; left: 50%;
+    transform: translateX(-50%);
+    width: 20px; height: 6px;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(90deg,
+      rgba(139,60,255,0.55) 0%,
+      rgba(21,211,255,0.55) 50%,
+      rgba(139,60,255,0.55) 100%
+    );
+    border: 1px solid rgba(255,255,255,0.4);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    box-shadow: 0 2px 6px rgba(100,80,220,0.4);
+  }
+
+  /* DECO — diagonal shimmer streak sweeping across the face */
+  .sm-deco {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .sm-deco::before {
+    content: "";
+    position: absolute;
+    top: -50%; left: -30%;
+    width: 28%; height: 200%;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(255,255,255,0.55) 40%,
+      rgba(200,240,255,0.72) 50%,
+      rgba(255,255,255,0.55) 60%,
+      transparent 100%
+    );
+    transform: rotate(28deg) translateX(-120%);
+    animation: pm-shimmer 3.8s ease-in-out infinite;
+  }
+
+  /* DECO — four-point sparkle: top-right corner */
+  .sm-deco::after {
+    content: "✦";
+    position: absolute;
+    top: 1px; right: 2px;
+    font-size: 9px; line-height: 1;
+    color: rgba(255,255,255,0.92);
+    filter: drop-shadow(0 0 3px rgba(200,220,255,1));
+    animation: pm-spark1 2.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sm-fig { animation: none !important; }
+    .sm-fig::before { animation: none !important; }
+    .sm-deco::before { animation: none !important; }
+    .sm-deco::after  { animation: none !important; }
+  }`;
 
 export const prismTemplate: CvTemplate = {
   key: "prism",

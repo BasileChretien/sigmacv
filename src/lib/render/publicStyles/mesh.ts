@@ -82,7 +82,130 @@ function meshCss(_t: TemplateTheme): string {
 }
 
 const meshMascotSkin = `
-  .sm-fig { box-shadow: 0 6px 20px -4px rgba(120,80,255,0.45), 0 0 0 1px rgba(255,255,255,0.25); }`;
+  @keyframes sm-mesh-shift {
+    0%   { background-position: 0% 0%,   100% 0%,   100% 100%, 0% 100%; }
+    25%  { background-position: 8% 12%,  92% 8%,    96% 92%,  4% 88%;  }
+    50%  { background-position: 14% 6%,  86% 14%,   90% 88%,  10% 94%; }
+    75%  { background-position: 6% 14%,  94% 6%,    98% 96%,  2% 82%;  }
+    100% { background-position: 0% 0%,   100% 0%,   100% 100%, 0% 100%; }
+  }
+  @keyframes sm-bloom-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(1);    }
+    50%       { opacity: 0.85; transform: scale(1.18); }
+  }
+  @keyframes sm-sheen-slide {
+    from { transform: translateX(-110%) skewX(-18deg); }
+    to   { transform: translateX(210%)  skewX(-18deg); }
+  }
+
+  /* ── BODY: layered radial-gradient mesh, shifts positions slowly ── */
+  .sm-fig {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    background-image:
+      radial-gradient(ellipse 70% 70% at 0%   0%,   #7c8fff 0%, transparent 65%),
+      radial-gradient(ellipse 65% 65% at 100% 0%,   #54d6ff 0%, transparent 65%),
+      radial-gradient(ellipse 70% 70% at 100% 100%,  #e078f5 0%, transparent 65%),
+      radial-gradient(ellipse 65% 65% at 0%   100%,  #ffc6e5 0%, transparent 65%);
+    background-size: 120% 120%, 120% 120%, 120% 120%, 120% 120%;
+    background-color: #8b8fff;
+    animation: sm-mesh-shift 14s ease-in-out infinite;
+    border-top:    1px solid rgba(255, 255, 255, 0.55);
+    border-left:   1px solid rgba(255, 255, 255, 0.30);
+    border-right:  1px solid rgba(180, 160, 255, 0.18);
+    border-bottom: 1px solid rgba(180, 160, 255, 0.18);
+    box-shadow:
+      0 0  0 1px  rgba(255, 255, 255, 0.18),
+      0 4px 14px -3px rgba(100, 80, 220, 0.55),
+      0 12px 32px -6px rgba(140, 80, 255, 0.40),
+      0 0  22px 0px  rgba(200, 140, 255, 0.22);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Σ glyph: clean white, centred, bold ── */
+  .sm-fig::before {
+    content: "Σ";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-serif, Georgia, "Times New Roman", serif;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+    color: #fff;
+    text-shadow:
+      0 1px 4px rgba(80, 40, 160, 0.60),
+      0 0  10px rgba(255, 255, 255, 0.45);
+    z-index: 3;
+  }
+
+  /* ── Feet: two soft violet-pink ovals ── */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22px;
+    height: 7px;
+    background: linear-gradient(90deg, #a78bfa 0%, #f0abfc 100%);
+    border-radius: 50%;
+    opacity: 0.75;
+    z-index: 0;
+  }
+
+  /* ── Bloom / outer glow halo ── */
+  .sm-deco {
+    position: absolute;
+    inset: -9px;
+    border-radius: 20px;
+    background:
+      radial-gradient(ellipse 80% 80% at 30% 30%, rgba(124, 143, 255, 0.38), transparent 70%),
+      radial-gradient(ellipse 80% 80% at 72% 68%, rgba(224, 120, 245, 0.32), transparent 70%);
+    animation: sm-bloom-pulse 6s ease-in-out infinite;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── Sheen: fast left-to-right glint every ~9 s ── */
+  .sm-deco::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0;
+    width: 38%;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.42) 48%,
+      rgba(255, 255, 255, 0.18) 52%,
+      transparent 100%
+    );
+    border-radius: inherit;
+    animation: sm-sheen-slide 9s ease-in-out infinite 2s;
+    z-index: 4;
+  }
+
+  /* ── Inner top-left corner highlight ── */
+  .sm-deco::after {
+    content: "";
+    position: absolute;
+    top: 4px; left: 5px;
+    width: 12px; height: 5px;
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: 4px;
+    filter: blur(2px);
+    z-index: 4;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sm-fig        { animation: none !important; }
+    .sm-deco       { animation: none !important; }
+    .sm-deco::before { animation: none !important; }
+  }`;
 
 export const meshTemplate: CvTemplate = {
   key: "mesh",
