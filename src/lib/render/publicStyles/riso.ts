@@ -20,7 +20,7 @@ import { accentSpectrum } from "./kit";
 function risoCss(_t: TemplateTheme): string {
   return `
   :root {
-    --cv-ink:#241c34; --cv-ink-2:#43395c; --cv-muted:#6a5f86; --cv-faint:#8a7fa6;
+    --cv-ink:#241c34; --cv-ink-2:#43395c; --cv-muted:#6a5f86; --cv-faint:#645d86;
     --cv-rule: rgba(36,28,52,0.18); --cv-rule-strong: rgba(36,28,52,0.34); --cv-page:#f4eede;
     --riso-pink:#ff2d87; --riso-blue:#1f3bff; --riso-teal:#00b3a4; --riso-yellow:#ffc12e;
   }
@@ -51,7 +51,12 @@ function risoCss(_t: TemplateTheme): string {
   @keyframes riso-stamp { from{opacity:0;transform:translateY(16px) scale(1.05)} to{opacity:1;transform:none} }
   @keyframes riso-progress { to { transform: scaleX(1); } }
   @supports (animation-timeline: view()) {
-    section.cv-section { animation: riso-stamp steps(4) both; animation-timeline: view(); animation-range: entry 0% cover 22%; }
+    /* Stamp in the heading + each entry on their OWN geometry, never the whole
+       section. The old whole-section reveal scaled the block (scale 1.05) and
+       kept it faded at its top: on a tall section that overflowed UP into the
+       section above (the Education/Publications overlap) AND left the first
+       entries blurred while being read. Per-child reveals do neither. */
+    section.cv-section > h2, .cv-prose-body > * { animation: riso-stamp steps(4) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: riso-stamp linear both; animation-timeline: view(); animation-range: entry 0% entry 50%; }
   }
   @supports (animation-timeline: scroll()) {

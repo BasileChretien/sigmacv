@@ -52,7 +52,10 @@ function neonCss(_t: TemplateTheme): string {
   @keyframes neon-rise { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
   @keyframes neon-progress { to { transform: scaleX(1); } }
   @supports (animation-timeline: view()) {
-    section.cv-section { animation: neon-rise linear both; animation-timeline: view(); animation-range: entry 0% cover 24%; }
+    /* Reveal heading + entries on their own (small) geometry, never the whole
+       section — a tall section animated as one block stays faded at its top
+       while its first entries are already being read. */
+    section.cv-section > h2, .cv-prose-body > * { animation: neon-rise linear both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: neon-rise linear both; animation-timeline: view(); animation-range: entry 0% entry 52%; }
   }
   @supports (animation-timeline: scroll()) {
