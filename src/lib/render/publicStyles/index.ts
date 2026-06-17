@@ -14,11 +14,14 @@ import { buildRenderedSections, renderCvHtml } from "../html";
 import { resolveTheme } from "../templates";
 import type { CvTemplate } from "../templates/types";
 import type { RenderOpts } from "../types";
+import { arcadeTemplate } from "./arcade";
 import { auraTemplate } from "./aura";
 import { clockworkTemplate } from "./clockwork";
+import { cyberpunkTemplate } from "./cyberpunk";
 import { folioTemplate } from "./folio";
 import { luminaTemplate } from "./lumina";
 import { marqueeTemplate } from "./marquee";
+import { meadowTemplate } from "./meadow";
 import { meridianTemplate } from "./meridian";
 import { meshTemplate } from "./mesh";
 import { neonTemplate } from "./neon";
@@ -49,6 +52,9 @@ const REGISTRY: Record<AnimatedStyleKey, CvTemplate> = {
   mesh: meshTemplate,
   marquee: marqueeTemplate,
   clockwork: clockworkTemplate,
+  arcade: arcadeTemplate,
+  meadow: meadowTemplate,
+  cyberpunk: cyberpunkTemplate,
 };
 
 /** The animated style keys (everything except "match"), in catalog order. */

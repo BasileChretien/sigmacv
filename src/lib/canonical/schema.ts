@@ -795,6 +795,9 @@ export const PUBLIC_STYLES = [
   "mesh",
   "marquee",
   "clockwork",
+  "arcade",
+  "meadow",
+  "cyberpunk",
 ] as const;
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
