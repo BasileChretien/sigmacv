@@ -223,7 +223,8 @@
             "riso",
             "aura",
             "mesh",
-            "marquee"
+            "marquee",
+            "clockwork"
           ]
         },
         "cslStyle": {
@@ -963,7 +964,8 @@
                   "riso",
                   "aura",
                   "mesh",
-                  "marquee"
+                  "marquee",
+                  "clockwork"
                 ]
               },
               "cslStyle": {

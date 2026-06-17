@@ -207,6 +207,7 @@ export default function StyleControls({
     aura: "Aura",
     mesh: "Mesh",
     marquee: "Marquee",
+    clockwork: "Clockwork",
   };
   const HIGHLIGHT_STYLE_LABELS: Record<string, string> = {
     accent: u.hlAccent,

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A "Clockwork" steampunk style for your published living page.** A dark
+  brass-and-iron look where electric cords hang from a ceiling rail with glowing
+  Edison bulbs that gently sway, brass gears turn slowly behind the page, your name
+  sits on an engraved brass nameplate, and each entry is marked with a rivet. Like
+  every public-page style it is 100% CSS-only under the strict no-JS CSP, tints its
+  lamp glow with your accent colour, ships a full reduced-motion fallback, and never
+  affects exports.
 - **Four new styles for your published living page.** The public page (`/p/[slug]`)
   gains four polished, credible looks designed to read well to a hiring committee —
   **Folio** (a typeset scholarly-journal feel in warm serif), **Meridian** (austere
