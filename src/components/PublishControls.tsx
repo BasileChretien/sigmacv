@@ -6,6 +6,20 @@ import { editorUi } from "@/lib/i18n/editorUi";
 import { badgeUi } from "@/lib/i18n/badgeUi";
 import { trackEvent } from "@/lib/analytics/track";
 
+/** Launder a `<select>` value into a known badge style/theme by returning LITERAL
+ *  constants (never the raw DOM string), so the value that reaches the badge URL is
+ *  provably one of the allowed tokens — mirrors the server's `parseBadgeOptions`. */
+function asBadgeStyle(v: string): string {
+  if (v === "flat") return "flat";
+  if (v === "card") return "card";
+  return "pill";
+}
+function asBadgeTheme(v: string): string {
+  if (v === "light") return "light";
+  if (v === "dark") return "dark";
+  return "auto";
+}
+
 interface PublicContactFlags {
   email: boolean;
   phone: boolean;
@@ -198,7 +212,10 @@ export default function PublishControls({
             <div className="badge-controls">
               <label>
                 {b.styleLabel}
-                <select value={badgeStyle} onChange={(e) => setBadgeStyle(e.target.value)}>
+                <select
+                  value={badgeStyle}
+                  onChange={(e) => setBadgeStyle(asBadgeStyle(e.target.value))}
+                >
                   <option value="pill">{b.styleStandard}</option>
                   <option value="flat">{b.styleCompact}</option>
                   <option value="card">{b.styleCard}</option>
@@ -206,7 +223,10 @@ export default function PublishControls({
               </label>
               <label>
                 {b.themeLabel}
-                <select value={badgeTheme} onChange={(e) => setBadgeTheme(e.target.value)}>
+                <select
+                  value={badgeTheme}
+                  onChange={(e) => setBadgeTheme(asBadgeTheme(e.target.value))}
+                >
                   <option value="auto">{b.themeAuto}</option>
                   <option value="light">{b.themeLight}</option>
                   <option value="dark">{b.themeDark}</option>
