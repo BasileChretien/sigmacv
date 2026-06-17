@@ -26,6 +26,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -337,15 +338,19 @@ function meadowScene(): string {
   );
 }
 
+const meadowMascotSkin = `
+  .sm-fig { box-shadow: 0 7px 16px -6px rgba(60,50,20,0.5), 0 0 0 1px rgba(255,255,255,0.35); }`;
+
 export const meadowTemplate: CvTemplate = {
   key: "meadow",
   render(cv, sections, theme, opts) {
-    const css = commonCss(theme) + meadowCss(theme) + mascotBaseCss();
+    const css = commonCss(theme) + meadowCss(theme) + mascotBaseCss() + meadowMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       meadowScene() +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

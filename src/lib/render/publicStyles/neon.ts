@@ -12,6 +12,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -72,6 +73,10 @@ function neonCss(_t: TemplateTheme): string {
   }`;
 }
 
+const neonMascotSkin = `
+  .sm-fig { box-shadow: 0 0 0 2px var(--cv-accent, #1f4fd8), 0 0 14px var(--cv-accent, #1f4fd8), 0 0 28px color-mix(in srgb, var(--cv-accent, #1f4fd8) 40%, transparent); }
+  .sm-fig::before { text-shadow: 0 0 8px var(--cv-accent, #1f4fd8); }`;
+
 export const neonTemplate: CvTemplate = {
   key: "neon",
   render(cv, sections, theme, opts) {
@@ -79,12 +84,14 @@ export const neonTemplate: CvTemplate = {
       commonCss(theme) +
       neonCss(theme) +
       accentSpectrum(["--n1", "--n2", "--n3", "--n4", "--n5"], { l: 0.74, c: 0.2 }) +
-      mascotBaseCss();
+      mascotBaseCss() +
+      neonMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="neon-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

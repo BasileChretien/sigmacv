@@ -12,6 +12,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -80,6 +81,9 @@ function meshCss(_t: TemplateTheme): string {
   }`;
 }
 
+const meshMascotSkin = `
+  .sm-fig { box-shadow: 0 6px 20px -4px rgba(120,80,255,0.45), 0 0 0 1px rgba(255,255,255,0.25); }`;
+
 export const meshTemplate: CvTemplate = {
   key: "mesh",
   render(cv, sections, theme, opts) {
@@ -87,13 +91,15 @@ export const meshTemplate: CvTemplate = {
       commonCss(theme) +
       meshCss(theme) +
       accentSpectrum(["--m1", "--m2", "--m3", "--m4"], { l: 0.8, c: 0.15 }) +
-      mascotBaseCss();
+      mascotBaseCss() +
+      meshMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="mesh-bg" aria-hidden="true"></div>` +
       `<div class="mesh-progress" aria-hidden="true"></div>` +
       `<div class="mesh-card">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

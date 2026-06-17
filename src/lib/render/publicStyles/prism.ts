@@ -19,6 +19,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -151,6 +152,10 @@ function prismCss(_theme: TemplateTheme): string {
   }`;
 }
 
+const prismMascotSkin = `
+  .sm-fig { box-shadow: inset 0 0 12px rgba(255,255,255,0.35), 0 0 0 1px rgba(255,255,255,0.45), 0 8px 22px -4px rgba(100,80,200,0.5); }
+  .sm-fig::before { text-shadow: 0 0 8px rgba(255,255,255,0.6); }`;
+
 export const prismTemplate: CvTemplate = {
   key: "prism",
   render(cv, sections, theme, opts) {
@@ -161,13 +166,15 @@ export const prismTemplate: CvTemplate = {
         l: 0.74,
         c: 0.2,
       }) +
-      mascotBaseCss();
+      mascotBaseCss() +
+      prismMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="prism-bg" aria-hidden="true"></div>` +
       `<div class="prism-progress" aria-hidden="true"></div>` +
       `<div class="prism-plate">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

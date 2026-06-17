@@ -13,6 +13,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -98,15 +99,20 @@ function auraCss(_t: TemplateTheme): string {
   }`;
 }
 
+const auraMascotSkin = `
+  .sm-fig { box-shadow: 0 0 18px rgba(120,80,255,0.55), 0 0 36px rgba(60,200,255,0.32), 0 0 0 1px rgba(255,255,255,0.18); }
+  .sm-fig::before { text-shadow: 0 0 8px rgba(160,150,255,0.7); }`;
+
 export const auraTemplate: CvTemplate = {
   key: "aura",
   render(cv, sections, theme, opts) {
-    const css = commonCss(theme) + auraCss(theme) + mascotBaseCss();
+    const css = commonCss(theme) + auraCss(theme) + mascotBaseCss() + auraMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="aura-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

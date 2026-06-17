@@ -13,6 +13,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -105,6 +106,10 @@ function synthCss(_t: TemplateTheme): string {
   }`;
 }
 
+const synthwaveMascotSkin = `
+  .sm-fig { box-shadow: 0 0 0 2px #ff6ec7, 0 6px 18px -2px rgba(255,40,180,0.5), 0 0 18px rgba(255,110,199,0.5); }
+  .sm-fig::before { text-shadow: 0 0 8px #ff6ec7; }`;
+
 export const synthwaveTemplate: CvTemplate = {
   key: "synthwave",
   render(cv, sections, theme, opts) {
@@ -112,15 +117,17 @@ export const synthwaveTemplate: CvTemplate = {
       commonCss(theme) +
       synthCss(theme) +
       accentSpectrum(["--mag", "--cyan", "--orange", "--yellow"], { l: 0.72, c: 0.2 }) +
-      mascotBaseCss();
+      mascotBaseCss() +
+      synthwaveMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="sw-stars" aria-hidden="true"></div>` +
       `<div class="sw-sun" aria-hidden="true"></div>` +
       `<div class="sw-grid" aria-hidden="true"></div>` +
       `<div class="sw-progress" aria-hidden="true"></div>` +
       `<div class="sw-panel">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

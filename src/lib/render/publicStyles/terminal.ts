@@ -13,6 +13,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -83,6 +84,11 @@ function terminalCss(_t: TemplateTheme): string {
   }`;
 }
 
+const terminalMascotSkin = `
+  .sm-fig { background: #06140a; box-shadow: 0 0 0 1px rgba(34,255,120,0.55), 0 0 14px rgba(34,255,120,0.4); }
+  .sm-fig::before { color: #8dffb0; text-shadow: 0 0 7px #22ff66; }
+  .sm-fig::after { background: #06140a; box-shadow: 11px 0 0 #06140a; }`;
+
 export const terminalTemplate: CvTemplate = {
   key: "terminal",
   render(cv, sections, theme, opts) {
@@ -90,13 +96,15 @@ export const terminalTemplate: CvTemplate = {
       commonCss(theme) +
       terminalCss(theme) +
       accentSpectrum(["--term", "--amber", "--cyan"], { l: 0.82, c: 0.17 }) +
-      mascotBaseCss();
+      mascotBaseCss() +
+      terminalMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="crt" aria-hidden="true"></div>` +
       `<div class="term-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

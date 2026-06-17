@@ -13,6 +13,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -65,10 +66,13 @@ function marqueeCss(_t: TemplateTheme): string {
   }`;
 }
 
+const marqueeMascotSkin = `
+  .sm-fig { box-shadow: 0 0 0 2px #1f4fd8, 4px 4px 0 0 #111; }`;
+
 export const marqueeTemplate: CvTemplate = {
   key: "marquee",
   render(cv, sections, theme, opts) {
-    const css = commonCss(theme) + marqueeCss(theme) + mascotBaseCss();
+    const css = commonCss(theme) + marqueeCss(theme) + mascotBaseCss() + marqueeMascotSkin;
     const tag = escapeHtml(
       `${cv.owner.displayName || "Curriculum Vitæ"} — ${cv.owner.headline || "Curriculum Vitæ"}`,
     );
@@ -77,11 +81,12 @@ export const marqueeTemplate: CvTemplate = {
     const header = headerHtml(cv, { photo: true });
     // Slot the ribbon between the header and the sections.
     const body =
+      mascotHtml(cv, sections) +
       `<div class="mq-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       header +
       ribbon +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);
