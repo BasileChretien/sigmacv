@@ -8,6 +8,7 @@ import { cvSlug } from "./html";
 import { metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
 import type { PreparedSection } from "./prepare";
+import { ensureReadableOnWhite } from "./readableAccent";
 import { docStyle, type DocStyle } from "./templateStyle";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
@@ -74,10 +75,13 @@ function sectionItems(
     }));
 }
 
-/** Six-digit HEX (no #) for xcolor's \definecolor{...}{HTML}{...}. */
+/** Six-digit HEX (no #) for xcolor's \definecolor{...}{HTML}{...}. Floored to a
+ *  readable contrast on white so a pale accent can't render unreadable headings /
+ *  name, or a white-on-accent sidebar band, in the .tex (matches HTML/PDF). */
 function accentHex(cv: CanonicalCv): string {
   const raw = (cv.display.accentColor || "#1f4fd8").replace(/^#/, "");
-  return /^[0-9a-fA-F]{6}$/.test(raw) ? raw.toUpperCase() : "1F4FD8";
+  const safe = /^[0-9a-fA-F]{6}$/.test(raw) ? `#${raw}` : "#1f4fd8";
+  return ensureReadableOnWhite(safe).slice(1).toUpperCase();
 }
 
 /** Publications + citations per year as a LaTeX tabular (mirrors the HTML chart

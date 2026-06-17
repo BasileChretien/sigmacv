@@ -10,6 +10,7 @@ import { modernTemplate } from "./modern";
 import { rirekishoTemplate } from "./rirekisho";
 import { sidebarTemplate } from "./sidebar";
 import type { CvTemplate, TemplateTheme } from "./types";
+import { ensureReadableOnWhite } from "../readableAccent";
 
 export type { CvTemplate, RenderedItem, RenderedSection, TemplateTheme } from "./types";
 
@@ -64,7 +65,9 @@ export function resolveTheme(display: DisplayChoices): TemplateTheme {
   const compact = display.density === "compact";
   // Defence-in-depth: the schema validates accentColor, but this value is
   // interpolated raw into a <style> block, so re-check at the render boundary.
-  const accentColor = safeAccent(display.accentColor);
+  // Then floor its contrast so a too-light custom accent can't render an
+  // unreadable name/heading/link or white-on-accent sidebar (no-op for presets).
+  const accentColor = ensureReadableOnWhite(safeAccent(display.accentColor));
   return {
     accentColor,
     accentSoft: accentSoft(accentColor),

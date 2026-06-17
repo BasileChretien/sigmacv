@@ -66,6 +66,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A light accent colour can no longer make your name or headings unreadable.**
+  The accent colour picker has a free colour field, so it was possible to choose a
+  pale colour (a bright yellow, a light cyan) that rendered the Modern template’s
+  name, the Classic/Sidebar section headings, every link, and the Sidebar’s
+  white-on-colour panel at far below a readable contrast. The accent is now floored
+  to a readable contrast on white before it’s drawn — darkened just enough, keeping
+  its hue — so the document stays legible (and prints legibly) whatever colour you
+  pick. The six built-in accent swatches are already well above the floor and are
+  unchanged.
 - **Publication titles no longer show raw formatting tags like `<scp>`.** Some
   journals deposit a title with inline typographic markup — for example Wiley sets
   “VigiBase” in small caps as `<scp>VigiBase</scp>` — and that unsupported tag was
