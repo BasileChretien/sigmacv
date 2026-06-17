@@ -217,8 +217,108 @@ function clockworkCss(_t: TemplateTheme): string {
 }
 
 const clockworkMascotSkin = `
-  .sm-fig { box-shadow: 0 0 0 2px #8a6d2e, 0 0 0 3px #e7c878, 0 6px 14px -5px rgba(0,0,0,0.6); }
-  .sm-fig::before { text-shadow: 0 0 6px rgba(231,200,120,0.5); }`;
+  /* === Clockwork mascot: a cast-brass wind-up automaton === */
+
+  /* Body — lathe-turned brass cylinder with metallic sheen */
+  .sm-fig {
+    width: 38px; height: 38px;
+    background:
+      radial-gradient(ellipse 55% 35% at 36% 28%, rgba(255,245,200,0.55) 0%, transparent 60%),
+      radial-gradient(circle at 52% 52%, #e7c878 0%, #c9a44c 38%, #a07830 62%, #6b4e1a 86%, #3d2a0a 100%);
+    border-radius: 50%;
+    border: 2px solid #5c3d10;
+    box-shadow:
+      /* outer dark rim (iron bezel) */
+      0 0 0 3px #2a1d08,
+      /* thin brass highlight ring */
+      0 0 0 4.5px #c9a44c,
+      /* warm copper glow halo */
+      0 0 18px 5px rgba(184,115,51,0.55),
+      /* drop shadow */
+      0 7px 18px -4px rgba(0,0,0,0.75),
+      /* inner top-left polish sheen */
+      inset 0 2px 4px rgba(255,240,180,0.45),
+      /* inner bottom-right depth */
+      inset 0 -3px 6px rgba(0,0,0,0.45);
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+    position: relative;
+  }
+
+  /* Σ — stamped/engraved into the brass (inset shadow = recessed chisel mark) */
+  .sm-fig::before {
+    color: #3d2508;
+    text-shadow:
+      /* emboss: dark groove */
+      0 1px 0 rgba(0,0,0,0.85),
+      0 -1px 0 rgba(0,0,0,0.5),
+      /* highlight: tiny brass ridge on top-left edge of groove */
+      -1px -1px 0 rgba(231,200,120,0.5),
+      /* subtle warm inner glow so Σ stays readable at 40px */
+      0 0 3px rgba(100,55,10,0.3);
+    font-weight: 900;
+  }
+
+  /* Feet — two brass rivet studs */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: -7px; left: 50%; transform: translateX(-50%);
+    width: 22px; height: 7px;
+    background:
+      radial-gradient(circle at 30% 35%, #e7c878, #8a6d2e 70%) no-repeat 0 0 / 8px 7px,
+      radial-gradient(circle at 30% 35%, #e7c878, #8a6d2e 70%) no-repeat 14px 0 / 8px 7px;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6));
+  }
+
+  /* Bezel / rivet ring — a decorative ring of brass studs around the body */
+  .sm-deco {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    /* 8-stud ring via repeating-conic-gradient dot trick */
+    background:
+      repeating-conic-gradient(
+        transparent 0deg 41deg,
+        rgba(231,200,120,0.0) 41deg 44deg,
+        transparent 44deg 45deg
+      );
+    /* The actual studs: sparse radial dots on a conic path */
+    box-shadow:
+      /* 8 evenly-spaced rivet highlights (clock positions: 12,1:30,3,4:30,6,7:30,9,10:30) */
+       0  -15px  0 -4.5px #e7c878,
+      10px -11px 0 -4.5px #c9a44c,
+      15px   0   0 -4.5px #e7c878,
+      10px  11px 0 -4.5px #c9a44c,
+       0   15px  0 -4.5px #e7c878,
+     -10px  11px 0 -4.5px #c9a44c,
+     -15px   0   0 -4.5px #e7c878,
+     -10px -11px 0 -4.5px #c9a44c;
+    pointer-events: none;
+    animation: ck-mascot-tick 8s steps(8, end) infinite;
+  }
+  /* Subtle copper rim that ties the stud ring together */
+  .sm-deco::before {
+    content: "";
+    position: absolute; inset: 3px; border-radius: 50%;
+    border: 1px solid rgba(184,115,51,0.35);
+    box-shadow: 0 0 0 1px rgba(100,55,10,0.25) inset;
+  }
+  /* Outer warm glow ring (copper warmth) */
+  .sm-deco::after {
+    content: "";
+    position: absolute; inset: -3px; border-radius: 50%;
+    box-shadow: 0 0 12px 2px rgba(184,115,51,0.28), 0 0 24px 6px rgba(201,164,76,0.12);
+    pointer-events: none;
+  }
+
+  /* Tick: the rivet ring rotates one stud-step at a time — mechanical feel */
+  @keyframes ck-mascot-tick {
+    from { transform: rotate(0deg);   }
+    to   { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sm-deco { animation: none !important; }
+  }`;
 
 export const clockworkTemplate: CvTemplate = {
   key: "clockwork",

@@ -280,11 +280,114 @@ function cyberpunkCss(_t: TemplateTheme): string {
   }`;
 }
 
-/** Mascot skin — a neon Σ on a dark blue-violet body, glowing cyan. */
+/** Mascot skin — hovering neon hologram: glassy blue-violet body, neon-cyan Σ
+ *  with flicker, magenta rim light, scanline sweep, and a glowing under-shadow. */
 const cyberpunkMascotSkin = `
-  .sm-fig { background: linear-gradient(#1a0a2e, #0c1430); box-shadow: 0 0 0 1px rgba(120,230,255,0.5), 0 0 18px rgba(60,210,255,0.45); }
-  .sm-fig::before { color: #eafcff; text-shadow: 0 0 6px #41e7ff, 0 0 12px #41e7ff; }
-  .sm-fig::after { background: #140a26; box-shadow: 11px 0 0 #140a26; }`;
+  /* --- Hologram keyframes --- */
+  @keyframes sm-flicker {
+    0%,100% { opacity:1; text-shadow: 0 0 6px #45e7ff, 0 0 14px #45e7ff, 0 0 28px rgba(69,231,255,0.6); }
+    18%      { opacity:0.85; text-shadow: 0 0 4px #45e7ff, 0 0 10px #45e7ff; }
+    20%      { opacity:1;    text-shadow: 0 0 8px #45e7ff, 0 0 18px #45e7ff, 0 0 32px rgba(69,231,255,0.7); }
+    52%      { opacity:0.92; text-shadow: 0 0 5px #45e7ff, 0 0 12px #45e7ff; }
+    54%      { opacity:1;    text-shadow: 0 0 7px #45e7ff, 0 0 16px #45e7ff, 0 0 30px rgba(69,231,255,0.65); }
+  }
+  @keyframes sm-scan {
+    from { transform: translateY(-100%); }
+    to   { transform: translateY(400%); }
+  }
+  @keyframes sm-rim {
+    0%,100% { box-shadow:
+      0 0 0 1px rgba(69,231,255,0.55),
+      inset 0 0 0 1px rgba(69,231,255,0.18),
+      -2px 0 6px rgba(255,121,207,0.5),
+      2px 0 0 rgba(69,231,255,0.18),
+      0 6px 22px -4px rgba(69,231,255,0.55),
+      0 10px 36px -6px rgba(69,231,255,0.3); }
+    47% { box-shadow:
+      0 0 0 1px rgba(255,121,207,0.45),
+      inset 0 0 0 1px rgba(255,121,207,0.15),
+      -3px 0 8px rgba(255,121,207,0.65),
+      2px 0 0 rgba(69,231,255,0.12),
+      0 6px 20px -4px rgba(255,121,207,0.45),
+      0 10px 36px -6px rgba(69,231,255,0.25); }
+    49% { box-shadow:
+      0 0 0 1px rgba(69,231,255,0.7),
+      inset 0 0 0 1px rgba(69,231,255,0.22),
+      -2px 0 6px rgba(255,121,207,0.55),
+      2px 0 0 rgba(69,231,255,0.2),
+      0 6px 26px -4px rgba(69,231,255,0.65),
+      0 10px 40px -6px rgba(69,231,255,0.38); }
+  }
+
+  /* BODY — glassy dark blue-violet with holographic depth */
+  .sm-fig {
+    background:
+      linear-gradient(160deg,
+        rgba(100,180,255,0.12) 0%,
+        rgba(30,20,70,0.0) 35%,
+        rgba(10,8,30,0.0) 100%),
+      linear-gradient(180deg, #12103a 0%, #0a0820 55%, #060516 100%);
+    border-radius: 10px;
+    /* Rim light pulses between cyan (primary) and magenta (secondary) */
+    animation: sm-rim 4.8s steps(1) infinite;
+    /* Holographic glass sheen */
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  /* Σ GLYPH — neon cyan with flicker */
+  .sm-fig::before {
+    color: #c8f8ff;
+    font-weight: 900;
+    -webkit-text-stroke: 0.5px rgba(69,231,255,0.6);
+    animation: sm-flicker 3.6s steps(1) infinite;
+  }
+
+  /* FEET — deep violet, nearly invisible under the under-glow */
+  .sm-fig::after {
+    background: #0d0a22;
+    box-shadow: 11px 0 0 #0d0a22;
+    opacity: 0.85;
+  }
+
+  /* SCANLINE SWEEP — a bright horizontal band gliding top→bottom */
+  .sm-deco {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .sm-deco::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* Faint holographic horizontal raster lines */
+    background: repeating-linear-gradient(
+      180deg,
+      rgba(69,231,255,0.055) 0px,
+      rgba(69,231,255,0.055) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    border-radius: 10px;
+    pointer-events: none;
+  }
+  .sm-deco::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 30%;
+    /* Bright scanline band */
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(69,231,255,0.18) 40%,
+      rgba(69,231,255,0.28) 50%,
+      rgba(69,231,255,0.18) 60%,
+      transparent 100%
+    );
+    border-radius: 10px;
+    pointer-events: none;
+    animation: sm-scan 2.8s linear infinite;
+  }`;
 
 export const cyberpunkTemplate: CvTemplate = {
   key: "cyberpunk",

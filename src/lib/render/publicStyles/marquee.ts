@@ -67,7 +67,83 @@ function marqueeCss(_t: TemplateTheme): string {
 }
 
 const marqueeMascotSkin = `
-  .sm-fig { box-shadow: 0 0 0 2px #1f4fd8, 4px 4px 0 0 #111; }`;
+  /* ── Marquee mascot: bold kinetic-editorial skin ── */
+  @keyframes sm-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* BODY — logo-blue square, double ring, hard block shadow */
+  .sm-fig {
+    width: 38px; height: 38px;
+    background: #1f4fd8;
+    border-radius: 4px;
+    border: 2px solid #fff;
+    box-shadow:
+      0 0 0 4px #111,       /* thick outer black frame */
+      5px 5px 0 4px #111;   /* hard offset block shadow */
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Σ glyph — bold white, centred */
+  .sm-fig::before {
+    content: "Σ";
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    /* tweak vertical centring */
+    padding-bottom: 6px; /* leave room for the ticker stripe */
+  }
+
+  /* FEET — two small white squares at the bottom corners */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: 7px; left: 50%;
+    transform: translateX(-50%);
+    width: 16px; height: 3px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 1px;
+  }
+
+  /* DECO — ticker stripe across the bottom of the body */
+  .sm-deco {
+    display: block;
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 6px;
+    overflow: hidden;
+    background: #111;
+    border-radius: 0 0 2px 2px;
+  }
+  /* sliding white ticks inside the stripe */
+  .sm-deco::before {
+    content: "▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ";
+    display: block;
+    white-space: nowrap;
+    font-size: 5px;
+    line-height: 6px;
+    color: #fff;
+    opacity: 0.6;
+    letter-spacing: 2px;
+    animation: sm-ticker 3.2s linear infinite;
+    width: 200%;
+  }
+  /* right-edge fade */
+  .sm-deco::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, transparent 60%, #111 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sm-deco::before { animation: none; }
+  }`;
 
 export const marqueeTemplate: CvTemplate = {
   key: "marquee",

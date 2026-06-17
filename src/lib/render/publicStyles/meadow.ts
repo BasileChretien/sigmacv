@@ -339,7 +339,132 @@ function meadowScene(): string {
 }
 
 const meadowMascotSkin = `
-  .sm-fig { box-shadow: 0 7px 16px -6px rgba(60,50,20,0.5), 0 0 0 1px rgba(255,255,255,0.35); }`;
+  /* ── Meadow mascot: a cream-and-sage watercolour storybook sprite ─────── */
+
+  /* BODY — soft rounded square, watercolour cream-to-sage gradient,
+     no hard outline, only a blurred warm drop-shadow and a faint
+     sun-warm inner glow so it floats over the scene like a sticker. */
+  .sm-fig {
+    width: 38px; height: 38px;
+    border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%;   /* gently organic blob */
+    background: radial-gradient(
+      ellipse at 44% 38%,
+      #fff8e8 0%,
+      #fbf3df 28%,
+      #dcefc0 62%,
+      #cfe3b0 100%
+    );
+    border: none;
+    box-shadow:
+      0 0 0 2.5px rgba(255,255,255,0.72) inset,          /* soft inner highlight */
+      0 4px 18px -4px rgba(74, 90, 52, 0.45),            /* warm green drop shadow */
+      0 2px  8px -3px rgba(120, 96, 60, 0.28),           /* amber undertone shadow */
+      0 0   22px  4px rgba(255, 220, 120, 0.22);         /* sun-warm outer glow */
+    filter: drop-shadow(0 3px 6px rgba(60, 80, 30, 0.18));
+    animation: mw-mascot-float 6s ease-in-out infinite;
+  }
+  @keyframes mw-mascot-float {
+    0%, 100% { transform: translateY(0px) rotate(-1deg); }
+    50%       { transform: translateY(-3px) rotate(1deg); }
+  }
+
+  /* SIGMA — warm brown-green, soft text-shadow glow so Σ reads on the
+     cream body without a hard edge. Keep content/Σ from mascotBaseCss. */
+  .sm-fig::before {
+    color: #5a7a2e;
+    text-shadow:
+      0 0  5px rgba(255, 245, 200, 0.9),
+      0 1px 2px rgba(255, 255, 255, 0.7),
+      0 2px 6px rgba(90, 122, 46, 0.4);
+    font-weight: 800;
+  }
+
+  /* FEET — two tiny rounded sage-green toes peeking out at the bottom.
+     Achieved by shrinking and rounding the ::after pseudo-element and
+     splitting it with a border trick. */
+  .sm-fig::after {
+    content: "";
+    position: absolute;
+    bottom: -5px; left: 50%; transform: translateX(-50%);
+    width: 18px; height: 7px;
+    background: transparent;
+    border-radius: 0 0 40% 40%;
+    box-shadow:
+      -5px 0 0 5px #b5d48a,    /* left foot */
+       5px 0 0 5px #b5d48a;    /* right foot */
+    filter: drop-shadow(0 2px 2px rgba(74, 90, 52, 0.35));
+  }
+
+  /* DECO layer — rosy cheeks (::before) and a tiny leaf sprig (::after)
+     perched on top of the body. */
+  .sm-deco {
+    pointer-events: none;
+  }
+  /* Left cheek */
+  .sm-deco::before {
+    content: "";
+    position: absolute;
+    bottom: 8px; left: 4px;
+    width: 9px; height: 6px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 60%, rgba(245, 160, 130, 0.72), rgba(245, 160, 130, 0) 80%);
+    animation: mw-mascot-blush 6s ease-in-out infinite;
+  }
+  /* Right cheek */
+  .sm-deco::after {
+    content: "";
+    position: absolute;
+    bottom: 8px; right: 4px;
+    width: 9px; height: 6px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 60%, rgba(245, 160, 130, 0.72), rgba(245, 160, 130, 0) 80%);
+    animation: mw-mascot-blush 6s ease-in-out infinite;
+  }
+  @keyframes mw-mascot-blush {
+    0%, 100% { opacity: 0.75; }
+    50%       { opacity: 1; }
+  }
+
+  /* Tiny leaf sprig on top — rendered as a rotated before on .sm-hat
+     (which we must NOT change structurally per the layer contract),
+     so we use a ::before on .sm-fig offset to the top-centre instead,
+     placed above the Σ hat area. */
+  .sm-fig .sm-deco {
+    position: absolute;
+    top: -7px; left: 50%; transform: translateX(-50%);
+    width: 10px; height: 10px;
+    pointer-events: none;
+  }
+  /* The leaf itself (a small rotated teardrop). */
+  .sm-fig .sm-deco::before {
+    top: auto; bottom: auto;
+    left: 50%; transform: translateX(-50%) rotate(-30deg);
+    width: 10px; height: 13px;
+    border-radius: 0 80% 0 80%;
+    background: radial-gradient(circle at 35% 30%, #c8e8a0, #5d9a47 80%);
+    box-shadow: 0 1px 3px rgba(50, 90, 30, 0.35);
+    animation: mw-mascot-leaf 5s ease-in-out infinite;
+  }
+  /* A tiny stem behind the leaf. */
+  .sm-fig .sm-deco::after {
+    top: auto; bottom: auto;
+    left: 50%; transform: translateX(-40%) rotate(8deg);
+    width: 3px; height: 8px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #7bb35a, #4e8a3f);
+    box-shadow: none;
+    animation: none;
+    opacity: 0.85;
+  }
+  @keyframes mw-mascot-leaf {
+    0%, 100% { transform: translateX(-50%) rotate(-30deg) scale(1); }
+    50%       { transform: translateX(-50%) rotate(-22deg) scale(1.06); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sm-fig, .sm-fig .sm-deco::before { animation: none !important; }
+    .sm-deco::before, .sm-deco::after { animation: none !important; }
+  }`;
 
 export const meadowTemplate: CvTemplate = {
   key: "meadow",
