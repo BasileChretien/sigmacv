@@ -23,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   always-current SVG badge (a standard pill, a compact chip, or a richer card with
   your name and the month it last synced) that links back to your living public CV.
   Pick a style and light/dark/auto theme, preview it live, and copy a ready-made
-  **Markdown / HTML / image-URL** snippet. It shows only your already-public data
+  **Markdown / HTML / image-URL** snippet — plus a downloadable **QR code** for
+  posters, slides, and business cards. It shows only your already-public data
   and **stops working the moment you unpublish**, it makes no third-party requests,
   and it is **deliberately metric-free** (no h-index or citation count) in keeping
   with the project's DORA stance — it advertises openness and freshness, not a rank.

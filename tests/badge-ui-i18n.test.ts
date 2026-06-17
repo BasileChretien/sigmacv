@@ -17,6 +17,10 @@ const KEYS: (keyof BadgeUiStrings)[] = [
   "copyHtml",
   "copyLink",
   "previewAlt",
+  "qrLabel",
+  "qrHint",
+  "qrAlt",
+  "downloadQr",
 ];
 
 describe("badge panel i18n", () => {

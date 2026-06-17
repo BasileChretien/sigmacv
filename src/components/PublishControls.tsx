@@ -156,6 +156,10 @@ export default function PublishControls({
   const badgeAlt = "Living CV";
   const badgeMarkdown = `[![${badgeAlt}](${badgeUrl})](${pageUrl})`;
   const badgeHtml = `<a href="${pageUrl}"><img src="${badgeUrl}" alt="${badgeAlt}" /></a>`;
+  // QR of the public page URL (relative src for the preview/download; absolute for
+  // the copyable URL). For posters, slides, and business cards.
+  const qrSrc = slug ? `/p/${slug}/qr.svg` : "";
+  const qrUrl = slug ? `${base}${qrSrc}` : "";
 
   return (
     <div className="account-controls">
@@ -260,6 +264,27 @@ export default function PublishControls({
               >
                 {b.copyLink}
               </button>
+            </div>
+            <div className="badge-qr">
+              <span className="badge-qr-label">{b.qrLabel}</span>
+              <p className="badge-qr-hint muted">{b.qrHint}</p>
+              <div className="badge-qr-row">
+                {/* eslint-disable-next-line @next/next/no-img-element -- a printable
+                    QR image, not a Next-optimized asset. */}
+                <img className="badge-qr-img" src={qrSrc} alt={b.qrAlt} width={84} height={84} />
+                <div className="badge-actions">
+                  <a className="btn btn-sm" href={qrSrc} download="sigmacv-qr.svg">
+                    {b.downloadQr}
+                  </a>
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    onClick={() => copySnippet(qrUrl, "qr")}
+                  >
+                    {b.copyLink}
+                  </button>
+                </div>
+              </div>
             </div>
           </details>
           <label className="field-inline" title={u.allowIndexingTitle}>

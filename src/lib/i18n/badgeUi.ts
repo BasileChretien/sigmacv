@@ -32,6 +32,11 @@ export interface BadgeUiStrings {
   copyLink: string;
   /** Alt text for the live preview image. */
   previewAlt: string;
+  /** QR sub-section (posters / slides / business cards). */
+  qrLabel: string;
+  qrHint: string;
+  qrAlt: string;
+  downloadQr: string;
 }
 
 const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
@@ -51,6 +56,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     copyHtml: "Copy HTML",
     copyLink: "Copy image URL",
     previewAlt: "Living CV badge preview",
+    qrLabel: "QR code",
+    qrHint: "For posters, slides, and business cards.",
+    qrAlt: "QR code linking to your CV",
+    downloadQr: "Download QR",
   },
   "zh-CN": {
     heading: "获取徽章",
@@ -68,6 +77,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     copyHtml: "复制 HTML",
     copyLink: "复制图片链接",
     previewAlt: "动态简历徽章预览",
+    qrLabel: "二维码",
+    qrHint: "适用于海报、幻灯片和名片。",
+    qrAlt: "链接到你简历的二维码",
+    downloadQr: "下载二维码",
   },
   "es-ES": {
     heading: "Obtén una insignia",
@@ -85,6 +98,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     copyHtml: "Copiar HTML",
     copyLink: "Copiar URL de imagen",
     previewAlt: "Vista previa de la insignia de CV vivo",
+    qrLabel: "Código QR",
+    qrHint: "Para pósters, diapositivas y tarjetas de visita.",
+    qrAlt: "Código QR que enlaza con tu CV",
+    downloadQr: "Descargar QR",
   },
   "fr-FR": {
     heading: "Obtenir un badge",
@@ -102,6 +119,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     copyHtml: "Copier le HTML",
     copyLink: "Copier l'URL de l'image",
     previewAlt: "Aperçu du badge CV vivant",
+    qrLabel: "QR code",
+    qrHint: "Pour les posters, diapositives et cartes de visite.",
+    qrAlt: "QR code menant à votre CV",
+    downloadQr: "Télécharger le QR",
   },
   "de-DE": {
     heading: "Badge erhalten",
@@ -119,6 +140,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     copyHtml: "HTML kopieren",
     copyLink: "Bild-URL kopieren",
     previewAlt: "Vorschau des Lebenslauf-Badges",
+    qrLabel: "QR-Code",
+    qrHint: "Für Poster, Folien und Visitenkarten.",
+    qrAlt: "QR-Code, der zu Ihrem Lebenslauf führt",
+    downloadQr: "QR herunterladen",
   },
   "ja-JP": {
     heading: "バッジを取得",
@@ -136,6 +161,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     copyHtml: "HTML をコピー",
     copyLink: "画像 URL をコピー",
     previewAlt: "動的 CV バッジのプレビュー",
+    qrLabel: "QR コード",
+    qrHint: "ポスター・スライド・名刺向け。",
+    qrAlt: "あなたの CV へのリンク QR コード",
+    downloadQr: "QR をダウンロード",
   },
   "pt-BR": {
     heading: "Obter um selo",
@@ -153,6 +182,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     copyHtml: "Copiar HTML",
     copyLink: "Copiar URL da imagem",
     previewAlt: "Pré-visualização do selo de currículo vivo",
+    qrLabel: "QR code",
+    qrHint: "Para pôsteres, slides e cartões de visita.",
+    qrAlt: "QR code que leva ao seu currículo",
+    downloadQr: "Baixar QR",
   },
   "it-IT": {
     heading: "Ottieni un badge",
@@ -170,6 +203,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     copyHtml: "Copia HTML",
     copyLink: "Copia URL immagine",
     previewAlt: "Anteprima del badge CV vivo",
+    qrLabel: "Codice QR",
+    qrHint: "Per poster, diapositive e biglietti da visita.",
+    qrAlt: "Codice QR che rimanda al tuo CV",
+    downloadQr: "Scarica QR",
   },
   "ko-KR": {
     heading: "배지 받기",
@@ -187,6 +224,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     copyHtml: "HTML 복사",
     copyLink: "이미지 URL 복사",
     previewAlt: "살아 있는 이력서 배지 미리보기",
+    qrLabel: "QR 코드",
+    qrHint: "포스터, 슬라이드, 명함용.",
+    qrAlt: "당신의 이력서로 연결되는 QR 코드",
+    downloadQr: "QR 다운로드",
   },
   "ru-RU": {
     heading: "Получить значок",
@@ -204,6 +245,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     copyHtml: "Копировать HTML",
     copyLink: "Копировать URL изображения",
     previewAlt: "Предпросмотр значка живого резюме",
+    qrLabel: "QR-код",
+    qrHint: "Для постеров, слайдов и визиток.",
+    qrAlt: "QR-код со ссылкой на ваше резюме",
+    downloadQr: "Скачать QR",
   },
 };
 
