@@ -329,6 +329,17 @@ export function commonCss(theme: TemplateTheme): string {
     ol.cv-bib > li { break-inside: avoid; }
     header.cv-header { break-inside: avoid; break-after: avoid; }
     .cv-chart, figure.cv-chart { break-inside: avoid; }
+  }
+
+  /* Phones: stack the header so the NAME leads instead of being squeezed beside
+     the photo, and tighten the page gutter (the 52px desktop padding eats ~a
+     third of a 375px screen). column-reverse puts the name above the photo while
+     keeping name-first source/reading order. Showcase styles with their own card
+     (.cv padding:0) override the padding; the header stack still applies. */
+  @media (max-width: 560px) {
+    .cv { padding: 28px 22px; }
+    .cv-headmain { flex-direction: column-reverse; align-items: flex-start; gap: 0.9rem; }
+    .cv-photo { width: 88px; height: 88px; }
   }`;
 }
 
@@ -530,7 +541,7 @@ export function coauthorLinksFooter(cv: CanonicalCv, opts: RenderOpts = {}): str
   const items = links
     .map((l) => `<li><a href="${escapeHtml(`/p/${l.slug}`)}">${escapeHtml(l.name)}</a></li>`)
     .join("");
-  return `<nav class="cv-coauthors" aria-label="${heading}"><p class="cv-coauthors-h">${heading}</p><ul class="cv-coauthors-list">${items}</ul></nav>`;
+  return `<nav class="cv-coauthors" aria-labelledby="cv-coauthors-h"><h2 id="cv-coauthors-h" class="cv-coauthors-h">${heading}</h2><ul class="cv-coauthors-list">${items}</ul></nav>`;
 }
 
 /** Max number of sections the mascot binds a hat to (CVs never approach this). */
@@ -716,7 +727,12 @@ function renderableSections(sections: RenderedSection[]): RenderedSection[] {
  * numbered bibliography. The section heading + prose body are USER FREE-TEXT and
  * are HTML-escaped / safe-transformed — nothing is interpreted as raw HTML/markdown.
  */
-export function sectionsHtml(sections: RenderedSection[]): string {
+/**
+ * The section list WITHOUT the `<main>` landmark — for a template that supplies
+ * its own `<main>` (the Sidebar two-column layout wraps sections + footers in one
+ * `<main class="cv-main">`). Everything else should use `sectionsHtml`.
+ */
+export function sectionsHtmlRaw(sections: RenderedSection[]): string {
   return renderableSections(sections)
     .map((rs) => {
       if (isProseSectionType(rs.section.type)) {
@@ -732,6 +748,16 @@ export function sectionsHtml(sections: RenderedSection[]): string {
       )}</h2><ol class="cv-bib">\n${entries}\n</ol></section>`;
     })
     .join("\n");
+}
+
+/**
+ * The CV's sections wrapped in the `<main>` landmark (WCAG 1.3.1 / 2.4.1) — the
+ * primary-content region every template/style except Sidebar uses. No style
+ * relies on sections being direct children of `.cv`, so the wrapper is layout-
+ * neutral; `.cv-main` carries no shared styling (only Sidebar styles its own).
+ */
+export function sectionsHtml(sections: RenderedSection[]): string {
+  return `<main class="cv-main">${sectionsHtmlRaw(sections)}</main>`;
 }
 
 /**

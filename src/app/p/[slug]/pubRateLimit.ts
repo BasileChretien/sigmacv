@@ -1,4 +1,5 @@
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { publicNoticeResponse } from "./noticePage";
 
 /**
  * Shared rate-limit + client-IP helpers for the public living-page routes
@@ -50,15 +51,14 @@ export async function enforcePubPageRateLimit(req: Request): Promise<PubRateLimi
   return { ok: true };
 }
 
-/** A 429 response with a `Retry-After` header (plain text body). */
+/** A 429 response with a `Retry-After` header (styled, noindex HTML body). */
 export function tooManyRequests(retryAfterSec: number): Response {
-  return new Response("Too many requests. Please try again shortly.", {
-    status: 429,
-    headers: {
-      "Retry-After": String(retryAfterSec),
-      "Content-Type": "text/plain; charset=utf-8",
-    },
-  });
+  return publicNoticeResponse(
+    429,
+    "Too many requests",
+    "There have been a lot of requests to this page in a short time. Please wait a moment and try again.",
+    { "Retry-After": String(retryAfterSec) },
+  );
 }
 
 /**
