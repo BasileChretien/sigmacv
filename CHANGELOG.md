@@ -60,8 +60,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Your software and datasets no longer land in “Preprints.”** A Zenodo (or other
   repository) deposit — like a software release or a dataset — was being filed
   under Preprints, because OpenAlex tags everything from a repository as a preprint
-  and has no “software” type. Such outputs now route to **Datasets & Software** (or
-  **Other Research Outputs** when DataCite hasn’t indexed them yet), never Preprints.
+  and has no “software” type. Such outputs now route to **Datasets & Software**,
+  never Preprints — including software with no DataCite record (e.g. a **CRAN R
+  package**, whose DOI lives at Crossref), which OpenAlex tags as a dataset and which
+  now appears in Datasets & Software as a proper citation rather than in “Other
+  Research Outputs.” ORCID-typed datasets and software land there too.
   When the same deposit is already listed in Datasets & Software (matched through
   your ORCID on DataCite), the duplicate OpenAlex copy is now dropped — even when
   Zenodo’s **concept DOI and version DOI differ**, which previously defeated the

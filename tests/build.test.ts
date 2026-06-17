@@ -978,14 +978,18 @@ describe("orcidTypeClass", () => {
     // Preprints / working papers.
     expect(orcidTypeClass("preprint")).toBe("preprint");
     expect(orcidTypeClass("working-paper")).toBe("preprint");
-    // Non-publication outputs → routed to "Other Research Outputs".
+    // Datasets / software → routed to "Datasets & Software".
     for (const t of [
-      "conference-poster",
-      "conference-abstract",
-      "lecture-speech",
       "data-set",
       "software",
+      "research-tool",
+      "data-management-plan",
+      "physical-object",
     ]) {
+      expect(orcidTypeClass(t)).toBe("dataset");
+    }
+    // Other non-publication outputs → routed to "Other Research Outputs".
+    for (const t of ["conference-poster", "conference-abstract", "lecture-speech", "website"]) {
       expect(orcidTypeClass(t)).toBe("other-output");
     }
     // Case/whitespace-insensitive.
@@ -1141,7 +1145,7 @@ describe("buildCanonicalCv — ORCID work-type section routing", () => {
     expect(item.meta.peerReviewed).toBe(false);
   });
 
-  it("preserves a user-hidden Other Research Outputs item across re-sync", () => {
+  it("preserves a user-hidden Datasets & Software item across re-sync", () => {
     const first = buildCanonicalCv({
       id: "cv",
       resolved,
@@ -1149,11 +1153,13 @@ describe("buildCanonicalCv — ORCID work-type section routing", () => {
       orcidWorkTypes: { "10.7/keep": "data-set" },
       now: "2026-06-02T00:00:00.000Z",
     });
-    // User hides the Other item.
+    // User hides the Datasets & Software item.
     const curated = {
       ...first,
       sections: first.sections.map((s) =>
-        s.type === "other" ? { ...s, items: s.items.map((it) => ({ ...it, included: false })) } : s,
+        s.type === "datasets"
+          ? { ...s, items: s.items.map((it) => ({ ...it, included: false })) }
+          : s,
       ),
     };
     const resynced = buildCanonicalCv({
@@ -1164,18 +1170,18 @@ describe("buildCanonicalCv — ORCID work-type section routing", () => {
       now: "2026-07-01T00:00:00.000Z",
       previous: curated,
     });
-    expect(itemIn(resynced, "other", "WKEEP")?.included).toBe(false); // hide survives
+    expect(itemIn(resynced, "datasets", "WKEEP")?.included).toBe(false); // hide survives
   });
 });
 
 describe("openalexTypeClass", () => {
-  it("routes OpenAlex dataset / supplementary-materials to other-output, else undefined", () => {
-    expect(openalexTypeClass({ type: "dataset" } as OpenAlexWork)).toBe("other-output");
+  it("routes OpenAlex dataset → dataset, supplementary-materials → other-output, else undefined", () => {
+    expect(openalexTypeClass({ type: "dataset" } as OpenAlexWork)).toBe("dataset");
+    // Case/whitespace-insensitive.
+    expect(openalexTypeClass({ type: " Dataset " } as OpenAlexWork)).toBe("dataset");
     expect(openalexTypeClass({ type: "supplementary-materials" } as OpenAlexWork)).toBe(
       "other-output",
     );
-    // Case/whitespace-insensitive.
-    expect(openalexTypeClass({ type: " Dataset " } as OpenAlexWork)).toBe("other-output");
     // Article-like and preprints carry no non-article signal (must NOT leave their bucket).
     for (const t of ["article", "journal-article", "preprint", "posted-content", "other"]) {
       expect(openalexTypeClass({ type: t } as OpenAlexWork)).toBeUndefined();
@@ -1240,16 +1246,22 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
   const allItemsWithId = (cv: ReturnType<typeof build>, id: string) =>
     cv.sections.flatMap((s) => s.items).filter((i) => i.id === id);
 
-  it("pulls an OpenAlex dataset/software work out of Preprints into Other Research Outputs", () => {
+  it("routes an OpenAlex dataset/software work into Datasets & Software (CSL item), not Preprints", () => {
+    // A CRAN R package (or any software) OpenAlex types `dataset`, with no DataCite
+    // record — it must land in Datasets & Software as a citeproc-rendered work item.
     const cv = buildCanonicalCv({
       id: "cv",
       resolved,
-      works: [typedWork("WSOFT", "10.5281/zenodo.soft", "dataset")],
+      works: [typedWork("WSOFT", "10.32614/cran.package.example", "dataset")],
       now: "2026-06-02T00:00:00.000Z",
     });
-    const other = sectionOf(cv, "other")!;
-    expect(other.items.find((i) => i.id === "WSOFT")?.meta.peerReviewed).toBe(false);
+    const ds = sectionOf(cv, "datasets")!;
+    const item = ds.items.find((i) => i.id === "WSOFT")!;
+    expect(item).toBeDefined();
+    expect(item.csl).toBeDefined(); // a CSL work item, rendered via citeproc
+    expect(item.meta.peerReviewed).toBe(false);
     expect(sectionOf(cv, "preprints")).toBeUndefined();
+    expect(sectionOf(cv, "other")).toBeUndefined();
     expect(itemIn(cv, "publications", "WSOFT")).toBeUndefined();
   });
 
@@ -1336,7 +1348,7 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     expect(allItemsWithId(cv, "WOA")).toHaveLength(0);
   });
 
-  it("preserves a user-hidden OpenAlex dataset Other item across re-sync", () => {
+  it("preserves a user-hidden OpenAlex dataset (Datasets & Software) item across re-sync", () => {
     const first = buildCanonicalCv({
       id: "cv",
       resolved,
@@ -1346,7 +1358,9 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     const curated = {
       ...first,
       sections: first.sections.map((s) =>
-        s.type === "other" ? { ...s, items: s.items.map((it) => ({ ...it, included: false })) } : s,
+        s.type === "datasets"
+          ? { ...s, items: s.items.map((it) => ({ ...it, included: false })) }
+          : s,
       ),
     };
     const resynced = buildCanonicalCv({
@@ -1356,7 +1370,48 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
       now: "2026-07-01T00:00:00.000Z",
       previous: curated,
     });
-    expect(itemIn(resynced, "other", "WH")?.included).toBe(false); // hide survives
+    expect(itemIn(resynced, "datasets", "WH")?.included).toBe(false); // hide survives
+  });
+
+  it("routes an ORCID-typed software work into Datasets & Software (over the OpenAlex type)", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [typedWork("WORCSW", "10.7/orcid-sw", "article")], // OpenAlex type overridden by ORCID
+      orcidWorkTypes: { "10.7/orcid-sw": "software" },
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const item = itemIn(cv, "datasets", "WORCSW")!;
+    expect(item).toBeDefined();
+    expect(item.csl).toBeDefined();
+    expect(item.meta.peerReviewed).toBe(false);
+    expect(sectionOf(cv, "other")).toBeUndefined();
+    expect(itemIn(cv, "publications", "WORCSW")).toBeUndefined();
+  });
+
+  it("merges DataCite entries and OpenAlex dataset works in one Datasets & Software section", () => {
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [typedWork("WCRAN", "10.32614/cran.package.x", "dataset")],
+      dataciteOutputs: [
+        {
+          doi: "10.5281/zenodo.ds1",
+          title: "A dataset",
+          type: "Dataset",
+          year: 2025,
+          publisher: "Zenodo",
+        },
+      ] as unknown as DataciteOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const ds = sectionOf(cv, "datasets")!;
+    // DataCite entry (displayText, no csl) + OpenAlex work (csl) coexist.
+    expect(ds.items.some((i) => i.meta.doi?.toLowerCase() === "10.5281/zenodo.ds1" && !i.csl)).toBe(
+      true,
+    );
+    expect(ds.items.some((i) => i.id === "WCRAN" && i.csl)).toBe(true);
+    expect(ds.items).toHaveLength(2);
   });
 
   it("routes a repository-hosted OpenAlex 'other' deposit out of Preprints (no DataCite match)", () => {
