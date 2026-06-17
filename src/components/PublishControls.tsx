@@ -19,6 +19,14 @@ interface PublishControlsProps {
   /** Per-field consent for contact details on the public page (default off). */
   publicContact: PublicContactFlags;
   onPublicContactChange: (next: PublicContactFlags) => void;
+  /** Notifies the parent of publish/slug/indexing changes so a host indicator
+      (e.g. the top-bar trigger) can reflect them without a reload. Optional so
+      this control still works standalone. */
+  onPublishStateChange?: (next: {
+    published: boolean;
+    slug: string | null;
+    indexable: boolean;
+  }) => void;
 }
 
 /**
@@ -33,6 +41,7 @@ export default function PublishControls({
   locale,
   publicContact,
   onPublicContactChange,
+  onPublishStateChange,
 }: PublishControlsProps) {
   const u = ui(locale);
   const eu = editorUi(locale);
@@ -66,6 +75,12 @@ export default function PublishControls({
         setPublished(data.published);
         setSlug(data.publicSlug);
         setIndexable(data.indexable);
+        // Keep the host (top-bar trigger) in lockstep with the panel's state.
+        onPublishStateChange?.({
+          published: data.published,
+          slug: data.publicSlug,
+          indexable: data.indexable,
+        });
         if (data.published) {
           // Cookieless product signal: a public page was published. No identifiers.
           trackEvent("Publish", { indexable: data.indexable });

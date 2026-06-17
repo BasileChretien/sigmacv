@@ -39,6 +39,7 @@ export default function AccountMenu({
 }: AccountMenuProps) {
   return (
     <Popover
+      locale={locale}
       triggerClassName="menu-trigger account-trigger"
       triggerAriaLabel={userName}
       trigger={

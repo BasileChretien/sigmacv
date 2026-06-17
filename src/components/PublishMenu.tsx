@@ -18,6 +18,13 @@ interface PublishMenuProps {
   indexable: boolean;
   publicContact: PublicContactFlags;
   onPublicContactChange: (next: PublicContactFlags) => void;
+  /** Lifts publish/slug/indexing changes up so the bar's live-state indicator
+      (dot + label) updates immediately, instead of going stale until reload. */
+  onPublishStateChange: (next: {
+    published: boolean;
+    slug: string | null;
+    indexable: boolean;
+  }) => void;
 }
 
 /**
@@ -34,12 +41,14 @@ export default function PublishMenu({
   indexable,
   publicContact,
   onPublicContactChange,
+  onPublishStateChange,
 }: PublishMenuProps) {
   const u = ui(locale);
   const wu = workspaceUi(locale);
   return (
     <Popover
-      triggerClassName="menu-trigger publish-trigger"
+      locale={locale}
+      triggerClassName={`menu-trigger publish-trigger${published ? " is-published" : ""}`}
       panelLabel={u.publishPublic}
       panelClassName="publish-panel"
       trigger={
@@ -60,6 +69,7 @@ export default function PublishMenu({
           locale={locale}
           publicContact={publicContact}
           onPublicContactChange={onPublicContactChange}
+          onPublishStateChange={onPublishStateChange}
         />
       )}
     </Popover>

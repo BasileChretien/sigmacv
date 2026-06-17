@@ -58,6 +58,13 @@ export interface TopBarProps {
   publicIndexable: boolean;
   publicContact: PublicContactFlags;
   onPublicContactChange: (next: PublicContactFlags) => void;
+  /** Live publish-state updates from the Publish menu, so the trigger's dot +
+      label reflect the current state without waiting for a reload. */
+  onPublishStateChange: (next: {
+    published: boolean;
+    slug: string | null;
+    indexable: boolean;
+  }) => void;
   // ── Account (hosted in the Account menu) ──
   researchConsent: boolean;
   digestOptIn?: boolean;
@@ -95,6 +102,7 @@ export default function TopBar({
   publicIndexable,
   publicContact,
   onPublicContactChange,
+  onPublishStateChange,
   researchConsent,
   digestOptIn,
   digestContactEmail,
@@ -212,6 +220,7 @@ export default function TopBar({
           indexable={publicIndexable}
           publicContact={publicContact}
           onPublicContactChange={onPublicContactChange}
+          onPublishStateChange={onPublishStateChange}
         />
 
         {/* Funding ask — kept visible in the bar (brand yellow) but de-escalated:
