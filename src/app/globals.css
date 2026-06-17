@@ -753,6 +753,40 @@ input[type="radio"] {
 .popover-start {
   left: 0;
 }
+/* Always-visible dismiss in the top-right of every popover panel. Outside-click
+   and Escape still close it, but a discoverable ✕ means the panel is never a
+   trap — especially the Publish panel, whose most prominent row is the
+   (un)publish toggle, not an exit. */
+.popover-close {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  display: inline-grid;
+  place-items: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  padding: 0;
+  font-size: var(--text-xs);
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.popover-close:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.popover-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* Reserve room so the panel's first row never slides under the ✕. */
+.account-panel .menu-header,
+.publish-panel .account-controls > .field-inline:first-child {
+  padding-right: var(--space-6);
+}
 
 /* ── Menu triggers (Publish / Account) ── */
 .menu-trigger {
@@ -809,6 +843,23 @@ input[type="radio"] {
 }
 .publish-dot.is-live {
   background: var(--success, #22c55e);
+}
+/* Published: the trigger reads as a clear green "live" status pill — distinct
+   at a glance from the plain ghost "Publish" button (whose accent-pulse dot
+   invites the still-unpublished user to act). Removes the old ambiguity where
+   the two states differed only by a tiny dot and the near-identical words. */
+.publish-trigger.is-published {
+  color: var(--success-text);
+  background: var(--success-soft);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+}
+.publish-trigger.is-published:hover,
+.publish-trigger.is-published[aria-expanded="true"] {
+  color: var(--success-text);
+  background: color-mix(in srgb, var(--success) 16%, var(--surface));
+}
+.publish-trigger.is-published .caret {
+  color: var(--success-text);
 }
 /* Unpublished: a calm accent pulse on the trigger dot invites the user to publish
    a shareable public page — a "there's value here" cue, not a flashy one. It stops

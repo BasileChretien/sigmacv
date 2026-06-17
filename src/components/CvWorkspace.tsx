@@ -108,6 +108,14 @@ export default function CvWorkspace({
   // Which surface the preview renders: the document (export) render, or the
   // living public page (which applies the chosen animated publicStyle).
   const [previewSurface, setPreviewSurface] = useState<"document" | "public">("document");
+  // Publish state is owned here (seeded from the server props) so toggling it in
+  // the Publish menu updates the top-bar indicator and the publish nudge live,
+  // rather than going stale until the next page load.
+  const [publishState, setPublishState] = useState({
+    published,
+    slug: publicSlug,
+    indexable: publicIndexable,
+  });
 
   // Refs let the debounced auto-save read the latest document and avoid
   // overlapping writes without re-creating the debounce timer on every keystroke.
@@ -305,11 +313,11 @@ export default function CvWorkspace({
           (syncReport.addedTotal > 0 || syncReport.removedTotal > 0) &&
           read(SYNC_REPORT_DISMISS_KEY) !== syncReport.syncedAt,
         coachmark: hasPublications && read(COACHMARK_DISMISS_KEY) !== "1",
-        publishNudge: !published && read(PUBLISH_NUDGE_DISMISS_KEY) !== "1",
+        publishNudge: !publishState.published && read(PUBLISH_NUDGE_DISMISS_KEY) !== "1",
       }),
     );
     // onboardingTick re-reads localStorage after a dismissal advances the queue.
-  }, [syncReport, published, hasPublications, onboardingTick]);
+  }, [syncReport, publishState.published, hasPublications, onboardingTick]);
 
   const handleExport = useCallback(async () => {
     // Export uses the SAVED document — don't download a stale file if the
@@ -346,13 +354,14 @@ export default function CvWorkspace({
         onExportFormatChange={setExportFormat}
         onExport={handleExport}
         onChangeLocale={changeUiLocale}
-        published={published}
-        publicSlug={publicSlug}
-        publicIndexable={publicIndexable}
+        published={publishState.published}
+        publicSlug={publishState.slug}
+        publicIndexable={publishState.indexable}
         publicContact={cv?.display.publicContact ?? { email: false, phone: false, location: false }}
         onPublicContactChange={(next) => {
           if (cv) update(updateDisplay(cv, { publicContact: next }));
         }}
+        onPublishStateChange={setPublishState}
         researchConsent={researchConsent}
         digestOptIn={digestOptIn}
         digestContactEmail={digestContactEmail}
@@ -377,7 +386,7 @@ export default function CvWorkspace({
             onDismissed={advanceOnboarding}
           />
           <PublishNudge
-            published={published}
+            published={publishState.published}
             locale={uiLocale}
             suppressed={activeOnboarding !== "publishNudge"}
             onDismissed={advanceOnboarding}

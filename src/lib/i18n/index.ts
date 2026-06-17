@@ -576,6 +576,7 @@ const EN = {
   viewScopeHint: "Affects the current view only — other saved views are unchanged",
   viewCount: "{n} of {m} in this view",
   viewShowAll: "Show all",
+  close: "Close",
 } as const;
 
 export type ChromeKey = keyof typeof EN;
@@ -691,6 +692,7 @@ const ZH: Record<ChromeKey, string> = {
   viewScopeHint: "仅影响当前视图——其他已保存的视图不变",
   viewCount: "本视图显示 {n}/{m}",
   viewShowAll: "全部显示",
+  close: "关闭",
 };
 
 const ES: Record<ChromeKey, string> = {
@@ -808,6 +810,7 @@ const ES: Record<ChromeKey, string> = {
   viewScopeHint: "Solo afecta a la vista actual; las demás vistas guardadas no cambian",
   viewCount: "{n} de {m} en esta vista",
   viewShowAll: "Mostrar todo",
+  close: "Cerrar",
 };
 
 const FR: Record<ChromeKey, string> = {
@@ -926,6 +929,7 @@ const FR: Record<ChromeKey, string> = {
   viewScopeHint: "N'affecte que la vue actuelle — vos autres vues enregistrées sont inchangées",
   viewCount: "{n} sur {m} dans cette vue",
   viewShowAll: "Tout afficher",
+  close: "Fermer",
 };
 
 const DE: Record<ChromeKey, string> = {
@@ -1045,6 +1049,7 @@ const DE: Record<ChromeKey, string> = {
     "Betrifft nur die aktuelle Ansicht – andere gespeicherte Ansichten bleiben unverändert",
   viewCount: "{n} von {m} in dieser Ansicht",
   viewShowAll: "Alle anzeigen",
+  close: "Schließen",
 };
 
 const JA: Record<ChromeKey, string> = {
@@ -1162,6 +1167,7 @@ const JA: Record<ChromeKey, string> = {
   viewScopeHint: "現在のビューのみに影響します。保存済みの他のビューは変わりません",
   viewCount: "このビューに {n}/{m} 件",
   viewShowAll: "すべて表示",
+  close: "閉じる",
 };
 
 const PT: Record<ChromeKey, string> = {
@@ -1279,6 +1285,7 @@ const PT: Record<ChromeKey, string> = {
   viewScopeHint: "Afeta apenas a vista atual — suas outras vistas salvas não mudam",
   viewCount: "{n} de {m} nesta vista",
   viewShowAll: "Mostrar tudo",
+  close: "Fechar",
 };
 
 const IT: Record<ChromeKey, string> = {
@@ -1396,6 +1403,7 @@ const IT: Record<ChromeKey, string> = {
   viewScopeHint: "Riguarda solo la vista corrente — le altre viste salvate restano invariate",
   viewCount: "{n} di {m} in questa vista",
   viewShowAll: "Mostra tutto",
+  close: "Chiudi",
 };
 
 const KO: Record<ChromeKey, string> = {
@@ -1513,6 +1521,7 @@ const KO: Record<ChromeKey, string> = {
   viewScopeHint: "현재 보기에만 적용됩니다 — 저장된 다른 보기는 변경되지 않습니다",
   viewCount: "이 보기에 {n}/{m}",
   viewShowAll: "모두 표시",
+  close: "닫기",
 };
 
 const RU: Record<ChromeKey, string> = {
@@ -1630,6 +1639,7 @@ const RU: Record<ChromeKey, string> = {
   viewScopeHint: "Влияет только на текущий вид — другие сохранённые виды не меняются",
   viewCount: "{n} из {m} в этом виде",
   viewShowAll: "Показать все",
+  close: "Закрыть",
 };
 
 const DICTS: Record<Locale, Record<ChromeKey, string>> = {

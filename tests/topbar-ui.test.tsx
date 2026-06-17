@@ -22,6 +22,7 @@ const baseProps = {
   publicIndexable: false,
   publicContact: { email: false, phone: false, location: false },
   onPublicContactChange: vi.fn(),
+  onPublishStateChange: vi.fn(),
   researchConsent: false,
   digestOptIn: false,
   signOutAction: async () => {},
@@ -59,6 +60,36 @@ describe("TopBar (restructured editor top bar)", () => {
     fireEvent.click(container.querySelector<HTMLButtonElement>(".publish-trigger")!);
     expect(container.querySelector(".publish-panel")).toBeTruthy();
     expect(container.querySelector('[data-testid="publish-toggle"]')).toBeTruthy();
+  });
+
+  it("shows an unmistakable live state on the publish trigger when published", () => {
+    const { container, rerender } = render(<TopBar {...baseProps} published={false} />);
+    // Unpublished: no live styling, the dot is not green.
+    expect(container.querySelector(".publish-trigger.is-published")).toBeNull();
+    expect(container.querySelector(".publish-dot.is-live")).toBeNull();
+
+    rerender(<TopBar {...baseProps} published={true} publicSlug="ada" />);
+    // Published: the trigger reads as a green status pill with a live dot.
+    expect(container.querySelector(".publish-trigger.is-published")).toBeTruthy();
+    expect(container.querySelector(".publish-dot.is-live")).toBeTruthy();
+    expect(screen.getByText("Published")).toBeTruthy();
+  });
+
+  it("gives every popover an explicit close control that dismisses it", () => {
+    const { container } = render(<TopBar {...baseProps} />);
+    const trigger = container.querySelector<HTMLButtonElement>(".publish-trigger")!;
+    fireEvent.click(trigger);
+    expect(container.querySelector(".publish-panel")).toBeTruthy();
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+
+    const closeBtn = container.querySelector<HTMLButtonElement>(".popover-close");
+    expect(closeBtn).toBeTruthy();
+    expect(closeBtn!.getAttribute("aria-label")).toBe("Close");
+    // The ✕ is a way out independent of the (un)publish toggle: it collapses the
+    // dialog (the panel then exit-animates out) and returns focus to the trigger.
+    fireEvent.click(closeBtn!);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(trigger).toBe(document.activeElement);
   });
 
   it("keeps a persistent polite save-status live region", () => {
