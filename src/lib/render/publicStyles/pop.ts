@@ -19,6 +19,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -141,6 +142,10 @@ function popCss(_theme: TemplateTheme): string {
   }`;
 }
 
+const popMascotSkin = `
+  .sm-fig { box-shadow: 0 0 0 3px #111, 5px 5px 0 0 #111; }
+  .sm-fig::before { text-shadow: 1px 1px 0 rgba(0,0,0,0.25); }`;
+
 export const popTemplate: CvTemplate = {
   key: "pop",
   render(cv, sections, theme, opts) {
@@ -151,13 +156,15 @@ export const popTemplate: CvTemplate = {
         l: 0.72,
         c: 0.19,
       }) +
-      mascotBaseCss();
+      mascotBaseCss() +
+      popMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="pop-blobs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>` +
       `<div class="pop-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

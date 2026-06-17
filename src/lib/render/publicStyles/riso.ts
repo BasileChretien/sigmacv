@@ -13,6 +13,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -81,6 +82,9 @@ function risoCss(_t: TemplateTheme): string {
   }`;
 }
 
+const risoMascotSkin = `
+  .sm-fig { box-shadow: 2px 2px 0 rgba(40,40,120,0.25); filter: saturate(0.92) contrast(1.05); }`;
+
 export const risoTemplate: CvTemplate = {
   key: "riso",
   render(cv, sections, theme, opts) {
@@ -91,13 +95,15 @@ export const risoTemplate: CvTemplate = {
         l: 0.58,
         c: 0.2,
       }) +
-      mascotBaseCss();
+      mascotBaseCss() +
+      risoMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="riso-grain" aria-hidden="true"></div>` +
       `<div class="riso-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

@@ -37,6 +37,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -279,6 +280,12 @@ function cyberpunkCss(_t: TemplateTheme): string {
   }`;
 }
 
+/** Mascot skin — a neon Σ on a dark blue-violet body, glowing cyan. */
+const cyberpunkMascotSkin = `
+  .sm-fig { background: linear-gradient(#1a0a2e, #0c1430); box-shadow: 0 0 0 1px rgba(120,230,255,0.5), 0 0 18px rgba(60,210,255,0.45); }
+  .sm-fig::before { color: #eafcff; text-shadow: 0 0 6px #41e7ff, 0 0 12px #41e7ff; }
+  .sm-fig::after { background: #140a26; box-shadow: 11px 0 0 #140a26; }`;
+
 export const cyberpunkTemplate: CvTemplate = {
   key: "cyberpunk",
   render(cv, sections, theme, opts) {
@@ -290,15 +297,17 @@ export const cyberpunkTemplate: CvTemplate = {
         c: 0.19,
         accentFirst: false,
       }) +
-      mascotBaseCss();
+      mascotBaseCss() +
+      cyberpunkMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="cy-grid" aria-hidden="true"></div>` +
       `<div class="cy-haze" aria-hidden="true"></div>` +
       `<div class="cy-rain" aria-hidden="true"><span class="r1"></span><span class="r2"></span><span class="r3"></span></div>` +
       `<div class="cy-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>` +
       `<div class="cy-ticker" aria-hidden="true"></div>`;

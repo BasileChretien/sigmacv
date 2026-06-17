@@ -20,6 +20,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -215,18 +216,23 @@ function clockworkCss(_t: TemplateTheme): string {
   }`;
 }
 
+const clockworkMascotSkin = `
+  .sm-fig { box-shadow: 0 0 0 2px #8a6d2e, 0 0 0 3px #e7c878, 0 6px 14px -5px rgba(0,0,0,0.6); }
+  .sm-fig::before { text-shadow: 0 0 6px rgba(231,200,120,0.5); }`;
+
 export const clockworkTemplate: CvTemplate = {
   key: "clockwork",
   render(cv, sections, theme, opts) {
-    const css = commonCss(theme) + clockworkCss(theme) + mascotBaseCss();
+    const css = commonCss(theme) + clockworkCss(theme) + mascotBaseCss() + clockworkMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="ck-rail" aria-hidden="true"></div>` +
       `<div class="ck-cords" aria-hidden="true"><span class="ck-cord ck-c1"></span><span class="ck-cord ck-c2"></span><span class="ck-cord ck-c3"></span></div>` +
       `<div class="ck-gear ck-gear-a" aria-hidden="true"></div>` +
       `<div class="ck-gear ck-gear-b" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

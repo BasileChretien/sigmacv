@@ -1,4 +1,4 @@
-import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
+import { isMascotStyle, isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
@@ -512,91 +512,95 @@ export function coauthorLinksFooter(cv: CanonicalCv, opts: RenderOpts = {}): str
   return `<nav class="cv-coauthors" aria-label="${heading}"><p class="cv-coauthors-h">${heading}</p><ul class="cv-coauthors-list">${items}</ul></nav>`;
 }
 
+/** Max number of sections the mascot binds a hat to (CVs never approach this). */
+const MASCOT_MAX_SECTIONS = 30;
+
 /**
- * Shared mascot CSS — the SigmaCV Σ-logo companion that HOPS to each section
- * heading down the LEFT gutter and SWAPS ITS HAT by section type. One mascot per
- * `section.cv-section` (injected by `sectionsHtml({ mascot: true })`), each
- * hopping in via its OWN `view()` timeline as its heading arrives — so the motion
- * is scroll-driven (it advances only as the visitor scrolls). The body is the
- * literal logo (white Σ on the brand-blue rounded square); it picks up the
- * current style's flavour via a `var(--cv-accent)` glow. ALL the a11y/perf guards
- * live here so no style can forget them: decorative (`aria-hidden` in markup),
- * shown ONLY where scroll-driven animation is supported AND the viewport is wide
- * enough for the gutter, and fully HIDDEN under `prefers-reduced-motion`, on
- * narrow viewports, and in print. Motion is transform/opacity only (compositor).
+ * Shared mascot CSS — ONE SigmaCV Σ-logo character that travels down the LEFT
+ * gutter WITH the scroll (`scroll(root)`) and SWAPS ITS HAT to match the section
+ * the reader is in. Each rendered `section.cv-section` names its own `view()`
+ * timeline (`--smN` by `:nth-of-type`); `.cv` hoists them with `timeline-scope`
+ * so the single mascot's Nth stacked hat (also by `:nth-of-type`) is driven by the
+ * Nth section's timeline — the hat cross-fades as each section enters view. The
+ * body is the literal logo (white Σ on the brand-blue square); each style skins
+ * `.sm-fig` for its atmosphere (this is only the default + the hats). ALL a11y
+ * guards live here: decorative (`aria-hidden` in markup), shown ONLY where
+ * scroll-driven animation is supported AND the viewport is wide enough, and HIDDEN
+ * under `prefers-reduced-motion`, on narrow viewports, and in print. Motion is
+ * transform/opacity only (compositor); it advances only as the visitor scrolls.
  */
 export function mascotBaseCss(): string {
+  const n = MASCOT_MAX_SECTIONS;
+  const scope = Array.from({ length: n }, (_, i) => `--sm${i + 1}`).join(", ");
+  const sectionTimelines = Array.from(
+    { length: n },
+    (_, i) => `  section.cv-section:nth-of-type(${i + 1}) { view-timeline-name: --sm${i + 1}; }`,
+  ).join("\n");
+  const hatBindings = Array.from(
+    { length: n },
+    (_, i) =>
+      `    .sm-hat:nth-of-type(${i + 1}) { animation: sm-hatswap linear both; animation-timeline: --sm${i + 1}; animation-range: cover 0% cover 100%; }`,
+  ).join("\n");
   return `
-  section.cv-section { position: relative; }
-  .sm { position: absolute; top: 0.15em; left: -58px; width: 40px; height: 40px; z-index: 6; pointer-events: none; display: none; }
+  body { timeline-scope: ${scope}; }
+${sectionTimelines}
+  .sm { position: fixed; top: 0; left: max(0.6rem, calc(50vw - 470px)); width: 46px; height: 46px; z-index: 7; pointer-events: none; display: none; }
   .sm, .sm * { box-sizing: border-box; }
-  /* The logo body: white Σ on the brand-blue rounded square, with little feet. */
-  .sm-fig { position: absolute; left: 0; bottom: 0; width: 34px; height: 34px; border-radius: 11px; background: #1f4fd8;
-    box-shadow: 0 5px 12px -4px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.18), 0 0 16px -3px var(--cv-accent, #1f4fd8); }
+  /* The logo body (default skin; each style overrides .sm-fig for its atmosphere). */
+  .sm-fig { position: absolute; left: 0; bottom: 0; width: 38px; height: 38px; border-radius: 12px; background: #1f4fd8;
+    box-shadow: 0 5px 13px -4px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.16), 0 0 16px -3px var(--cv-accent, #1f4fd8); }
   .sm-fig::before { content: "\\03A3"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    color: #fff; font: 800 21px/1 ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif; }
-  .sm-fig::after { content: ""; position: absolute; bottom: -3px; left: 9px; width: 6px; height: 5px; border-radius: 0 0 4px 4px;
-    background: #1f4fd8; box-shadow: 10px 0 0 #1f4fd8; }
-  .sm-hat { position: absolute; left: 50%; top: -9px; transform: translateX(-50%); }
+    color: #fff; font: 800 23px/1 ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif; }
+  .sm-fig::after { content: ""; position: absolute; bottom: -3px; left: 10px; width: 6px; height: 5px; border-radius: 0 0 4px 4px;
+    background: #1f4fd8; box-shadow: 11px 0 0 #1f4fd8; }
 
-  /* Default hat — a mortarboard (academic). */
+  /* Hats stack at the crown; each is faded by its section's timeline (≈one shown). */
+  .sm-hat { position: absolute; left: 50%; top: -10px; transform: translateX(-50%); opacity: 0; }
+  /* Default hat — a mortarboard (academic; for any section without a specific hat). */
   .sm-hat { width: 20px; height: 4px; background: #21212e; border-radius: 2px; }
   .sm-hat::before { content: ""; position: absolute; left: 50%; top: -4px; transform: translateX(-50%); width: 10px; height: 5px; background: #21212e; border-radius: 3px 3px 0 0; }
   .sm-hat::after { content: ""; position: absolute; right: 1px; top: 0; width: 2px; height: 8px; background: #e7b34a; }
-
   /* Grants — a gold coin. */
-  .sm--grants .sm-hat { width: 13px; height: 13px; top: -12px; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #ffe08a, #d8a72b 72%); box-shadow: inset 0 0 0 1.5px #b5851f; }
-  .sm--grants .sm-hat::before, .sm--grants .sm-hat::after { content: none; }
-
+  .sm-hat--grants { width: 13px; height: 13px; top: -12px; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #ffe08a, #d8a72b 72%); box-shadow: inset 0 0 0 1.5px #b5851f; }
+  .sm-hat--grants::before, .sm-hat--grants::after { content: none; }
   /* Talks & conferences — a microphone. */
-  .sm--talks .sm-hat, .sm--conference .sm-hat { width: 9px; height: 11px; top: -13px; border-radius: 5px 5px 4px 4px; background: linear-gradient(#3a3a48, #1c1c26); }
-  .sm--talks .sm-hat::before, .sm--conference .sm-hat::before { content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); width: 2px; height: 6px; background: #2a2a36; }
-  .sm--talks .sm-hat::after, .sm--conference .sm-hat::after { content: none; }
-
+  .sm-hat--talks, .sm-hat--conference { width: 9px; height: 11px; top: -13px; border-radius: 5px 5px 4px 4px; background: linear-gradient(#3a3a48, #1c1c26); }
+  .sm-hat--talks::before, .sm-hat--conference::before { content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); width: 2px; height: 6px; background: #2a2a36; }
+  .sm-hat--talks::after, .sm-hat--conference::after { content: none; }
   /* Awards — a gold star. */
-  .sm--awards .sm-hat { width: 15px; height: 15px; top: -13px; background: #ffce3a;
+  .sm-hat--awards { width: 15px; height: 15px; top: -13px; background: #ffce3a;
     clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
-  .sm--awards .sm-hat::before, .sm--awards .sm-hat::after { content: none; }
-
+  .sm-hat--awards::before, .sm-hat--awards::after { content: none; }
   /* Datasets & software — goggles. */
-  .sm--datasets .sm-hat { width: 8px; height: 8px; top: -10px; border-radius: 50%; background: #cfe6ff; border: 2px solid #2a2a36; box-shadow: 11px 0 0 #cfe6ff, 11px 0 0 2px #2a2a36; }
-  .sm--datasets .sm-hat::before, .sm--datasets .sm-hat::after { content: none; }
-
+  .sm-hat--datasets { width: 8px; height: 8px; top: -10px; border-radius: 50%; background: #cfe6ff; border: 2px solid #2a2a36; box-shadow: 11px 0 0 #cfe6ff, 11px 0 0 2px #2a2a36; }
+  .sm-hat--datasets::before, .sm-hat--datasets::after { content: none; }
   /* Patents — a lightbulb. */
-  .sm--patents .sm-hat { width: 11px; height: 11px; top: -13px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 40% 35%, #fff6c2, #ffd84d 75%); box-shadow: 0 0 7px #ffd84d80; }
-  .sm--patents .sm-hat::before { content: ""; position: absolute; left: 50%; bottom: -3px; transform: translateX(-50%); width: 6px; height: 3px; background: #8a8a96; border-radius: 0 0 2px 2px; }
-  .sm--patents .sm-hat::after { content: none; }
-
+  .sm-hat--patents { width: 11px; height: 11px; top: -13px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 40% 35%, #fff6c2, #ffd84d 75%); box-shadow: 0 0 7px #ffd84d80; }
+  .sm-hat--patents::before { content: ""; position: absolute; left: 50%; bottom: -3px; transform: translateX(-50%); width: 6px; height: 3px; background: #8a8a96; border-radius: 0 0 2px 2px; }
+  .sm-hat--patents::after { content: none; }
   /* Clinical trials — a red medical cross. */
-  .sm--clinical-trials .sm-hat { width: 13px; height: 4px; top: -11px; background: #e5484d; border-radius: 1px; }
-  .sm--clinical-trials .sm-hat::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 4px; height: 13px; background: #e5484d; border-radius: 1px; }
-  .sm--clinical-trials .sm-hat::after { content: none; }
-
+  .sm-hat--clinical-trials { width: 13px; height: 4px; top: -11px; background: #e5484d; border-radius: 1px; }
+  .sm-hat--clinical-trials::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 4px; height: 13px; background: #e5484d; border-radius: 1px; }
+  .sm-hat--clinical-trials::after { content: none; }
   /* Teaching & supervision — an apple. */
-  .sm--teaching .sm-hat, .sm--supervision .sm-hat { width: 12px; height: 11px; top: -12px; border-radius: 48% 48% 52% 52%; background: radial-gradient(circle at 35% 32%, #ff7a7a, #d3322e 75%); }
-  .sm--teaching .sm-hat::before, .sm--supervision .sm-hat::before { content: ""; position: absolute; left: 52%; top: -3px; width: 2px; height: 4px; background: #6a4a2a; }
-  .sm--teaching .sm-hat::after, .sm--supervision .sm-hat::after { content: ""; position: absolute; left: 60%; top: -2px; width: 5px; height: 3px; border-radius: 0 80% 0 80%; background: #4fae54; }
-
+  .sm-hat--teaching, .sm-hat--supervision { width: 12px; height: 11px; top: -12px; border-radius: 48% 48% 52% 52%; background: radial-gradient(circle at 35% 32%, #ff7a7a, #d3322e 75%); }
+  .sm-hat--teaching::before, .sm-hat--supervision::before { content: ""; position: absolute; left: 52%; top: -3px; width: 2px; height: 4px; background: #6a4a2a; }
+  .sm-hat--teaching::after, .sm-hat--supervision::after { content: ""; position: absolute; left: 60%; top: -2px; width: 5px; height: 3px; border-radius: 0 80% 0 80%; background: #4fae54; }
   /* Positions — a hard hat. */
-  .sm--positions .sm-hat { width: 16px; height: 7px; top: -10px; border-radius: 8px 8px 0 0; background: linear-gradient(#ffce3a, #e0a91e); }
-  .sm--positions .sm-hat::before { content: ""; position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); width: 20px; height: 3px; background: #e0a91e; border-radius: 2px; }
-  .sm--positions .sm-hat::after { content: none; }
+  .sm-hat--positions { width: 16px; height: 7px; top: -10px; border-radius: 8px 8px 0 0; background: linear-gradient(#ffce3a, #e0a91e); }
+  .sm-hat--positions::before { content: ""; position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); width: 20px; height: 3px; background: #e0a91e; border-radius: 2px; }
+  .sm-hat--positions::after { content: none; }
+  /* Editorial — a quill nib. */
+  .sm-hat--editorial { width: 4px; height: 14px; top: -13px; background: linear-gradient(#cfd6ea, #6b7390); border-radius: 60% 60% 0 0; transform: translateX(-50%) rotate(18deg); }
+  .sm-hat--editorial::before, .sm-hat--editorial::after { content: none; }
 
-  @keyframes sm-in {
-    0% { opacity: 0; transform: translateY(-20px) scale(0.6, 1.4); }
-    55% { opacity: 1; transform: translateY(3px) scale(1.12, 0.88); }
-    75% { transform: translateY(0) scale(1, 1); }
-    100% { opacity: 1; transform: none; }
+  @keyframes sm-travel { from { transform: translateY(8vh); } to { transform: translateY(84vh); } }
+  @keyframes sm-hatswap { 0% { opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; } }
+  @supports (animation-timeline: scroll()) {
+    .sm { display: block; animation: sm-travel linear both; animation-timeline: scroll(root); }
   }
-  @keyframes sm-bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-2px) rotate(3deg); } }
   @supports (animation-timeline: view()) {
-    .sm {
-      display: block;
-      animation: sm-in cubic-bezier(0.34, 1.56, 0.64, 1) both;
-      animation-timeline: view();
-      animation-range: entry 2% cover 18%;
-    }
-    .sm-fig { animation: sm-bob 2.6s ease-in-out infinite; }
+${hatBindings}
   }
   @media (max-width: 1024px) { .sm { display: none !important; } }
   @media (prefers-reduced-motion: reduce) { .sm { display: none !important; } }
@@ -662,52 +666,61 @@ export function proseBodyHtml(body: string): string {
 }
 
 /**
- * Section list markup (identical across templates; styled via CSS classes).
- * A PROSE section (`PROSE_SECTION_TYPES`) renders its heading + safe-transformed
- * `body` instead of a citation list; it is omitted when the body is blank. A
- * standard section renders its `items` as a numbered bibliography (omitted when
- * empty). The section heading + prose body are USER FREE-TEXT and are
- * HTML-escaped / safe-transformed — nothing is interpreted as raw HTML/markdown.
+ * The sections that will actually render: a PROSE section needs a non-blank body;
+ * a standard section needs at least one item. `sectionsHtml` AND the mascot's
+ * per-section hats both derive from THIS list, so their order/count stay in
+ * lockstep — the mascot's Nth hat is bound (by `:nth-of-type`, in `mascotBaseCss`)
+ * to the Nth rendered `section.cv-section`.
  */
-/**
- * Per-section mascot markup (the Σ-logo companion that hops to each heading and
- * wears a section-typed hat). Decorative + `aria-hidden`; the section type is a
- * value from the closed `SECTION_TYPES` enum, so the class is safe. Drawn
- * entirely in CSS (`mascotBaseCss`). Emitted only when a public style opts in via
- * `sectionsHtml(sections, { mascot: true })` — exports never do, so the mascot
- * can never reach a PDF/DOCX/LaTeX/Markdown render.
- */
-function sectionMascot(type: string): string {
-  return `<span class="sm sm--${type}" aria-hidden="true"><b class="sm-fig"><i class="sm-hat"></i></b></span>`;
+function renderableSections(sections: RenderedSection[]): RenderedSection[] {
+  return sections.filter((rs) =>
+    isProseSectionType(rs.section.type)
+      ? (rs.section.body ?? "").trim().length > 0
+      : rs.items.length > 0,
+  );
 }
 
 /**
  * Section list markup (identical across templates; styled via CSS classes).
  * A PROSE section (`PROSE_SECTION_TYPES`) renders its heading + safe-transformed
- * `body` instead of a citation list; it is omitted when the body is blank. A
- * standard section renders its `items` as a numbered bibliography (omitted when
- * empty). The section heading + prose body are USER FREE-TEXT and are
- * HTML-escaped / safe-transformed — nothing is interpreted as raw HTML/markdown.
- * `opts.mascot` injects the per-section mascot companion (public styles only).
+ * `body` instead of a citation list. A standard section renders its `items` as a
+ * numbered bibliography. The section heading + prose body are USER FREE-TEXT and
+ * are HTML-escaped / safe-transformed — nothing is interpreted as raw HTML/markdown.
  */
-export function sectionsHtml(sections: RenderedSection[], opts: { mascot?: boolean } = {}): string {
-  return sections
+export function sectionsHtml(sections: RenderedSection[]): string {
+  return renderableSections(sections)
     .map((rs) => {
-      const m = opts.mascot ? sectionMascot(rs.section.type) : "";
       if (isProseSectionType(rs.section.type)) {
-        const body = (rs.section.body ?? "").trim();
-        if (body.length === 0) return "";
-        return `<section class="cv-section cv-prose">${m}<h2>${escapeHtml(
+        return `<section class="cv-section cv-prose"><h2>${escapeHtml(
           rs.section.title,
         )}</h2><div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "")}</div></section>`;
       }
-      if (rs.items.length === 0) return "";
       const entries = rs.items
         .map((ri) => `<li><div class="csl-entry">${ri.html}</div></li>`)
         .join("\n");
-      return `<section class="cv-section">${m}<h2>${escapeHtml(
+      return `<section class="cv-section"><h2>${escapeHtml(
         rs.section.title,
       )}</h2><ol class="cv-bib">\n${entries}\n</ol></section>`;
     })
     .join("\n");
+}
+
+/**
+ * The optional SigmaCV-logo mascot — exactly ONE element per document. A single
+ * Σ-logo character travels down the left gutter WITH the scroll (`scroll(root)`)
+ * and carries one stacked hat per section; each hat is bound (by `:nth-of-type`,
+ * in `mascotBaseCss`) to its section's own `view()` timeline, so the visible hat
+ * cross-fades to match whichever section the reader is in — it changes its hat at
+ * every section. Decorative + `aria-hidden`, drawn entirely in CSS; each style
+ * skins `.sm-fig` to its atmosphere. Must be placed INSIDE `.cv` (which hoists the
+ * sections' timelines via `timeline-scope`). Returns "" unless the owner opted in
+ * AND the chosen style is mascot-capable — so it never reaches a credible style,
+ * and (since exports use the document template) never any export.
+ */
+export function mascotHtml(cv: CanonicalCv, sections: RenderedSection[]): string {
+  if (!cv.display.showMascot || !isMascotStyle(cv.display.publicStyle)) return "";
+  const hats = renderableSections(sections)
+    .map((rs) => `<i class="sm-hat sm-hat--${rs.section.type}"></i>`)
+    .join("");
+  return `<div class="sm" aria-hidden="true"><b class="sm-fig">${hats}</b></div>`;
 }

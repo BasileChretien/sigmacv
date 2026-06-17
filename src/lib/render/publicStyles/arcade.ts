@@ -30,6 +30,7 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
+  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -331,11 +332,15 @@ function arcadeCss(_t: TemplateTheme): string {
   }`;
 }
 
+const arcadeMascotSkin = `
+  .sm-fig { border-radius: 6px; box-shadow: 0 0 0 3px #1b1b1b, 5px 5px 0 3px rgba(0,0,0,0.22); image-rendering: pixelated; }`;
+
 export const arcadeTemplate: CvTemplate = {
   key: "arcade",
   render(cv, sections, theme, opts) {
-    const css = commonCss(theme) + arcadeCss(theme) + mascotBaseCss();
+    const css = commonCss(theme) + arcadeCss(theme) + mascotBaseCss() + arcadeMascotSkin;
     const body =
+      mascotHtml(cv, sections) +
       `<div class="ar-sky" aria-hidden="true">` +
       `<div class="ar-stars"></div>` +
       `<div class="ar-clouds ar-clouds-far"><i></i></div>` +
@@ -353,7 +358,7 @@ export const arcadeTemplate: CvTemplate = {
       `<div class="ar-score" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
+      sectionsHtml(sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

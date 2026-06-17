@@ -48,16 +48,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **An optional, interactive SigmaCV-logo mascot for your living page.** Turn on a
-  little **SigmaCV logo** (the Σ mark, brought to life) that **hops down the left of
-  the page from section to section** as visitors scroll — and **swaps its hat for
-  each section**: a mortarboard on Education, a coin on Grants, a microphone on
+- **An optional SigmaCV-logo mascot that travels your living page.** Turn on a
+  single little **SigmaCV logo** (the Σ mark, brought to life) that **rides down the
+  left of the page with the scroll** and **changes its hat to match the section
+  you're reading**: a mortarboard on Education, a coin on Grants, a microphone on
   Talks, a star on Awards, goggles on Datasets, a lightbulb on Patents, and more.
-  It's available on **all the animated styles** (it picks up each one's accent
-  colour) — never on the credible styles (Folio/Meridian/Trajectory/Lumina) or in
-  any export. It's **off by default**, 100% CSS-only (no JavaScript, even for this),
-  decorative (`aria-hidden`), and hidden automatically for visitors who prefer
-  reduced motion, on narrow screens, and in print.
+  There's just **one** mascot per page, and it's **skinned to each style's
+  atmosphere** (a neon Σ on Cyberpunk, a brass Σ on Clockwork, a pixel Σ on
+  Arcade…). It's available on **all the animated styles** — never on the credible
+  styles (Folio/Meridian/Trajectory/Lumina) or in any export — **off by default**,
+  100% CSS-only (no JavaScript, even for this), decorative (`aria-hidden`), and
+  hidden automatically for visitors who prefer reduced motion, on narrow screens,
+  and in print.
 - **We now flag publications that may not be yours.** Open databases like OpenAlex
   match papers to authors automatically and, to avoid missing any, lean toward
   over-merging — so a paper by a different researcher with a similar name can land
