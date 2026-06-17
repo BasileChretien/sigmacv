@@ -72,7 +72,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   whether your ORCID is recorded in its **bare** (`0000-…`) or full-URL form (Zenodo
   stores the bare form, so these were being missed entirely), and **collapse a
   deposit’s concept and version DOIs into a single entry** instead of listing every
-  release.
+  release. Every Datasets & Software entry now **shows its DOI** — a clickable link
+  on the web (and the PDF), and the full `https://doi.org/…` in DOCX, LaTeX and
+  Markdown — matching the citation-style entries already in the section.
 - **The Role / title field accepts spaces.** Typing a multi-word role such as
   “Group Leader” works again — the field was wiping a trailing space on every
   keystroke, so you could never get past the first word.

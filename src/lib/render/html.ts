@@ -115,6 +115,26 @@ function withRorLink(html: string, item: CvItem, locale: string): string {
 }
 
 /**
+ * Linkify the trailing DOI URL on a Datasets & Software ENTRY line (DataCite /
+ * OpenAIRE), so it's clickable like the citeproc-rendered work entries in the same
+ * section. `formatDatasetText` appends `https://doi.org/<doi>` to the entry text;
+ * here we wrap that exact substring in an anchor (`externalizeLinks` later adds
+ * target/rel). No-op when the item has no DOI.
+ */
+function withDoiLink(html: string, item: CvItem): string {
+  const doi = item.meta.doi;
+  if (!doi) return html;
+  const url = `https://doi.org/${doi.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "")}`;
+  const esc = escapeHtml(url);
+  const at = html.lastIndexOf(esc);
+  /* v8 ignore next -- the URL is always present in a DataCite/OpenAIRE entry's text */
+  if (at < 0) return html;
+  return `${html.slice(0, at)}<a class="cv-doi-link" href="${esc}">${esc}</a>${html.slice(
+    at + esc.length,
+  )}`;
+}
+
+/**
  * Render the canonical object to a standalone HTML document.
  *
  * Single rendering path shared by the preview and (via the PDF renderer) the
@@ -133,10 +153,14 @@ export function buildRenderedSections(cv: CanonicalCv): RenderedSection[] {
     // line, across all HTML templates. (The rirekisho template builds its own
     // 学歴・職歴 table from plain text, so it naturally opts out.)
     const linkRor = section.type === "positions" || section.type === "education";
+    // Datasets & Software ENTRY rows (DataCite/OpenAIRE) carry a DOI in their text;
+    // make it clickable so they match the citeproc work rows in the same section.
+    const linkDoi = section.type === "datasets";
     return {
       section,
       items: items.map(({ item, entry }) => {
         let html = entry;
+        if (linkDoi && !item.csl) html = withDoiLink(html, item);
         if (cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0) {
           html = highlightSelf(html, item.selfNameVariants);
         }

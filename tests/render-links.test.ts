@@ -8,6 +8,7 @@ import { externalizeLinks } from "@/lib/render/templates/shared";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import type { CslItem } from "@/types/csl";
+import type { DataciteOutput } from "@/lib/datacite/client";
 import worksFixture from "./fixtures/openalex-works.json";
 
 const hasApa = listAvailableStyles().includes("apa");
@@ -73,6 +74,30 @@ describe.skipIf(!hasApa)("citeproc HTML output (needs vendored CSL assets)", () 
     const [entry] = renderBibliography([itemWithDoi], "apa", "en-US", "text");
     expect(entry?.content).not.toContain("<a ");
     expect(entry?.content).toContain("doi.org/10.1234/abcd.5678");
+  });
+});
+
+describe("renderCvHtml — Datasets & Software DOI links (no citeproc needed)", () => {
+  const resolved: ResolvedAuthor = {
+    orcid: "0000-0002-7483-2489",
+    authorIds: ["A5001069481"],
+    displayName: "Basile Chrétien",
+  };
+
+  it("makes a DataCite dataset entry's DOI a clickable link", () => {
+    const cv = buildCanonicalCv({
+      id: "cv_ds",
+      resolved,
+      works: [], // entry-line items only → no citeproc required
+      now: "2026-06-02T00:00:00.000Z",
+      dataciteOutputs: [
+        { doi: "10.5281/zenodo.42", title: "My toolkit", type: "Software", year: 2025 },
+      ] as unknown as DataciteOutput[],
+    });
+    const html = renderCvHtml(cv);
+    expect(html).toMatch(
+      /<a class="cv-doi-link" href="https:\/\/doi\.org\/10\.5281\/zenodo\.42" target="_blank" rel="noopener noreferrer">https:\/\/doi\.org\/10\.5281\/zenodo\.42<\/a>/,
+    );
   });
 });
 

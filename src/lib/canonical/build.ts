@@ -107,18 +107,26 @@ export interface BuildArgs {
   patents?: PatentRecord[];
 }
 
-/** "<title>. <publisher> (<year>) [<type>]" for a DataCite output. */
+/** "https://doi.org/<bare>" for a DOI in any form. */
+function doiUrl(doi: string): string {
+  return `https://doi.org/${doi.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "")}`;
+}
+
+/** "<title>. <publisher> (<year>) [<type>]. <doi-url>" for a DataCite output. The
+ *  DOI is shown verbatim and linkified in HTML (see render/html.ts `withDoiLink`). */
 function formatDatasetText(o: DataciteOutput): string {
   const head = o.publisher ? `${o.title}. ${o.publisher}` : o.title;
   const yr = o.year ? ` (${o.year})` : "";
-  return `${head}${yr} [${o.type}]`;
+  return `${head}${yr} [${o.type}]. ${doiUrl(o.doi)}`;
 }
 
-/** "<title>. <publisher> (<year>) [<type>]" for an OpenAIRE output. */
+/** "<title>. <publisher> (<year>) [<type>]. <doi-url>" for an OpenAIRE output
+ *  (the DOI is omitted when the product has none). */
 function formatOpenaireText(o: OpenaireOutput): string {
   const head = o.publisher ? `${o.title}. ${o.publisher}` : o.title;
   const yr = o.year ? ` (${o.year})` : "";
-  return `${head}${yr} [${o.type}]`;
+  const doi = o.doi ? `. ${doiUrl(o.doi)}` : "";
+  return `${head}${yr} [${o.type}]${doi}`;
 }
 
 /**
