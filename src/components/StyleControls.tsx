@@ -194,6 +194,10 @@ export default function StyleControls({
   // animated styles are proper names, shown as-is (like the CV-model names).
   const PUBLIC_STYLE_LABELS: Record<string, string> = {
     match: eu.publicStyleMatch,
+    folio: "Folio",
+    meridian: "Meridian",
+    trajectory: "Trajectory",
+    lumina: "Lumina",
     prism: "Prism",
     pop: "Pop",
     neon: "Neon",

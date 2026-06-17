@@ -718,6 +718,10 @@ export const TEMPLATES = ["classic", "modern", "sidebar", "ats", "rirekisho"] as
  */
 export const PUBLIC_STYLES = [
   "match",
+  "folio",
+  "meridian",
+  "trajectory",
+  "lumina",
   "prism",
   "pop",
   "neon",

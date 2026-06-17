@@ -211,6 +211,10 @@
           "type": "string",
           "enum": [
             "match",
+            "folio",
+            "meridian",
+            "trajectory",
+            "lumina",
             "prism",
             "pop",
             "neon",
@@ -947,6 +951,10 @@
                 "type": "string",
                 "enum": [
                   "match",
+                  "folio",
+                  "meridian",
+                  "trajectory",
+                  "lumina",
                   "prism",
                   "pop",
                   "neon",
