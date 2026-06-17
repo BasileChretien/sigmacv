@@ -3,7 +3,22 @@
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
+import { badgeUi } from "@/lib/i18n/badgeUi";
 import { trackEvent } from "@/lib/analytics/track";
+
+/** Launder a `<select>` value into a known badge style/theme by returning LITERAL
+ *  constants (never the raw DOM string), so the value that reaches the badge URL is
+ *  provably one of the allowed tokens — mirrors the server's `parseBadgeOptions`. */
+function asBadgeStyle(v: string): string {
+  if (v === "flat") return "flat";
+  if (v === "card") return "card";
+  return "pill";
+}
+function asBadgeTheme(v: string): string {
+  if (v === "light") return "light";
+  if (v === "dark") return "dark";
+  return "auto";
+}
 
 interface PublicContactFlags {
   email: boolean;
@@ -45,11 +60,16 @@ export default function PublishControls({
 }: PublishControlsProps) {
   const u = ui(locale);
   const eu = editorUi(locale);
+  const b = badgeUi(locale);
   const [published, setPublished] = useState(initialPublished);
   const [slug, setSlug] = useState(initialSlug);
   const [indexable, setIndexable] = useState(initialIndexable);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  // "Get a badge" embed-panel choices (the rendered badge label stays the brand
+  // term "Living CV"; only the panel chrome is localized).
+  const [badgeStyle, setBadgeStyle] = useState("pill");
+  const [badgeTheme, setBadgeTheme] = useState("auto");
   // A polite live-region message (copy confirmation / publish error) so the
   // outcome is announced to assistive tech, not conveyed only visually.
   const [announce, setAnnounce] = useState("");
@@ -113,6 +133,34 @@ export default function PublishControls({
     }
   }
 
+  /** Copy an embed snippet (markdown / html / image url) + a cookieless signal. */
+  async function copySnippet(text: string, format: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setAnnounce(u.linkCopied);
+      // Neutral product signal only — which snippet format, never identifiers.
+      trackEvent("Badge snippet copied", { format });
+    } catch {
+      // clipboard may be unavailable; ignore (non-critical)
+    }
+  }
+
+  // The preview <img> uses a RELATIVE src (`badgeSrc`, no window.location) so it is
+  // not a location→DOM flow. The copyable Markdown/HTML snippets need the ABSOLUTE
+  // URL, but those only ever reach the clipboard — never the DOM.
+  const base = origin || (typeof window !== "undefined" ? window.location.origin : "");
+  const badgeQuery = `style=${badgeStyle}&theme=${badgeTheme}`;
+  const badgeSrc = slug ? `/p/${slug}/badge.svg?${badgeQuery}` : "";
+  const pageUrl = slug ? `${base}/p/${slug}` : "";
+  const badgeUrl = slug ? `${base}${badgeSrc}` : "";
+  const badgeAlt = "Living CV";
+  const badgeMarkdown = `[![${badgeAlt}](${badgeUrl})](${pageUrl})`;
+  const badgeHtml = `<a href="${pageUrl}"><img src="${badgeUrl}" alt="${badgeAlt}" /></a>`;
+  // QR of the public page URL (relative src for the preview/download; absolute for
+  // the copyable URL). For posters, slides, and business cards.
+  const qrSrc = slug ? `/p/${slug}/qr.svg` : "";
+  const qrUrl = slug ? `${base}${qrSrc}` : "";
+
   return (
     <div className="account-controls">
       <label className="field-inline" title={u.publishTitle}>
@@ -159,6 +207,86 @@ export default function PublishControls({
             </div>
             <p className="publish-live-hint muted">{u.shareHint}</p>
           </div>
+          {/* "Get a badge" — the embeddable Living-CV badge (README / site / email
+              signature) that drives organic, peer-to-peer distribution. Collapsed
+              by default to keep the publish panel calm. */}
+          <details className="badge-panel">
+            <summary>{b.heading}</summary>
+            <p className="badge-panel-intro muted">{b.intro}</p>
+            <div className="badge-controls">
+              <label>
+                {b.styleLabel}
+                <select
+                  value={badgeStyle}
+                  onChange={(e) => setBadgeStyle(asBadgeStyle(e.target.value))}
+                >
+                  <option value="pill">{b.styleStandard}</option>
+                  <option value="flat">{b.styleCompact}</option>
+                  <option value="card">{b.styleCard}</option>
+                </select>
+              </label>
+              <label>
+                {b.themeLabel}
+                <select
+                  value={badgeTheme}
+                  onChange={(e) => setBadgeTheme(asBadgeTheme(e.target.value))}
+                >
+                  <option value="auto">{b.themeAuto}</option>
+                  <option value="light">{b.themeLight}</option>
+                  <option value="dark">{b.themeDark}</option>
+                </select>
+              </label>
+            </div>
+            <div className="badge-preview">
+              {/* eslint-disable-next-line @next/next/no-img-element -- a third-party-
+                  cacheable SVG badge, not a Next-optimized asset. */}
+              <img src={badgeSrc} alt={b.previewAlt} />
+            </div>
+            <div className="badge-actions">
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => copySnippet(badgeMarkdown, "markdown")}
+              >
+                {b.copyMarkdown}
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => copySnippet(badgeHtml, "html")}
+              >
+                {b.copyHtml}
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => copySnippet(badgeUrl, "url")}
+              >
+                {b.copyLink}
+              </button>
+            </div>
+            <div className="badge-qr">
+              <span className="badge-qr-label">{b.qrLabel}</span>
+              <p className="badge-qr-hint muted">{b.qrHint}</p>
+              <div className="badge-qr-row">
+                {/* eslint-disable-next-line @next/next/no-img-element -- a printable
+                    QR image, not a Next-optimized asset. */}
+                <img className="badge-qr-img" src={qrSrc} alt={b.qrAlt} width={84} height={84} />
+                <div className="badge-actions">
+                  <a className="btn btn-sm" href={qrSrc} download="sigmacv-qr.svg">
+                    {b.downloadQr}
+                  </a>
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    onClick={() => copySnippet(qrUrl, "qr")}
+                  >
+                    {b.copyLink}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </details>
           <label className="field-inline" title={u.allowIndexingTitle}>
             <input
               type="checkbox"
