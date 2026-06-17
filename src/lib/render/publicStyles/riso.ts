@@ -12,6 +12,7 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -89,13 +90,14 @@ export const risoTemplate: CvTemplate = {
       accentSpectrum(["--riso-pink", "--riso-blue", "--riso-teal", "--riso-yellow"], {
         l: 0.58,
         c: 0.2,
-      });
+      }) +
+      mascotBaseCss();
     const body =
       `<div class="riso-grain" aria-hidden="true"></div>` +
       `<div class="riso-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

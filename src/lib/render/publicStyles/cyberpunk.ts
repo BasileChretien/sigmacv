@@ -37,7 +37,6 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
-  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -280,21 +279,6 @@ function cyberpunkCss(_t: TemplateTheme): string {
   }`;
 }
 
-const cyberpunkMascotCss = `
-  /* Mascot: an original floating neon "drone" with an accent scan-eye. Appearance only. */
-  .sigma-mascot { width:46px; height:38px; border-radius:13px;
-    background: linear-gradient(#1a1430, #0c0a1d); border:1px solid rgba(120,230,255,0.5);
-    box-shadow: 0 0 14px rgba(80,220,255,0.35), inset 0 0 10px rgba(80,220,255,0.15); }
-  .sigma-mascot::before { content:""; position:absolute; top:50%; left:9px; right:9px; height:5px; transform:translateY(-50%);
-    border-radius:3px; background: linear-gradient(90deg, transparent, var(--cv-accent,#41e7ff), #ff5cc8, transparent);
-    box-shadow:0 0 9px var(--cv-accent,#41e7ff); }
-  .sigma-mascot::after { content:""; position:absolute; bottom:-7px; left:22%; right:22%; height:6px; border-radius:50%;
-    background: var(--cv-accent,#41e7ff); filter: blur(4px); opacity:0.55; }
-  .sigma-mascot i { top:-10px; left:50%; width:2px; height:10px; background:rgba(120,230,255,0.65); transform:translateX(-50%); }
-  .sigma-mascot i::before { content:""; position:absolute; top:-5px; left:50%; width:6px; height:6px; border-radius:50%;
-    background:#ff5cc8; transform:translateX(-50%); box-shadow:0 0 8px #ff5cc8; animation: sigma-blink 1.5s steps(1) infinite; }
-  @keyframes sigma-blink { 0%,62%{opacity:1} 63%,100%{opacity:0.25} }`;
-
 export const cyberpunkTemplate: CvTemplate = {
   key: "cyberpunk",
   render(cv, sections, theme, opts) {
@@ -306,17 +290,15 @@ export const cyberpunkTemplate: CvTemplate = {
         c: 0.19,
         accentFirst: false,
       }) +
-      mascotBaseCss() +
-      cyberpunkMascotCss;
+      mascotBaseCss();
     const body =
-      mascotHtml(cv) +
       `<div class="cy-grid" aria-hidden="true"></div>` +
       `<div class="cy-haze" aria-hidden="true"></div>` +
       `<div class="cy-rain" aria-hidden="true"><span class="r1"></span><span class="r2"></span><span class="r3"></span></div>` +
       `<div class="cy-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>` +
       `<div class="cy-ticker" aria-hidden="true"></div>`;

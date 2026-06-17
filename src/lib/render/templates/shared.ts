@@ -1,4 +1,4 @@
-import { isMascotStyle, isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
+import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
@@ -513,50 +513,94 @@ export function coauthorLinksFooter(cv: CanonicalCv, opts: RenderOpts = {}): str
 }
 
 /**
- * The optional scroll-following mascot companion. An empty, `aria-hidden`
- * element the playful public-page styles place in the gutter; each style draws
- * the character entirely in CSS (`.sigma-mascot` + `mascotBaseCss`). Returns ""
- * unless the owner opted in (`display.showMascot`) AND the chosen style is
- * mascot-capable (`MASCOT_STYLES`) — so it can never appear on a credible style,
- * and since exports always use the document template, never on any export.
- */
-export function mascotHtml(cv: CanonicalCv): string {
-  if (!cv.display.showMascot || !isMascotStyle(cv.display.publicStyle)) return "";
-  return `<div class="sigma-mascot" aria-hidden="true"><i></i></div>`;
-}
-
-/**
- * Shared mascot CSS — the scroll-follow + idle motion and ALL its a11y/perf
- * guardrails in ONE place, so no individual style can forget them. The mascot is
- * pinned to the right gutter and rides the page scroll position via
- * `scroll(root)` (it moves down as you scroll down and back up as you scroll up),
- * with a small idle bob on the default timeline. It animates only `translate` /
- * `rotate` / `scale` (compositor-cheap) and is SHOWN only when the browser
- * supports scroll-driven animation AND the viewport is wide enough; it is hidden
- * under `prefers-reduced-motion`, on narrow viewports (the gutter collapses), and
- * in print. Each style appends its own `.sigma-mascot` skin (appearance only).
+ * Shared mascot CSS — the SigmaCV Σ-logo companion that HOPS to each section
+ * heading down the LEFT gutter and SWAPS ITS HAT by section type. One mascot per
+ * `section.cv-section` (injected by `sectionsHtml({ mascot: true })`), each
+ * hopping in via its OWN `view()` timeline as its heading arrives — so the motion
+ * is scroll-driven (it advances only as the visitor scrolls). The body is the
+ * literal logo (white Σ on the brand-blue rounded square); it picks up the
+ * current style's flavour via a `var(--cv-accent)` glow. ALL the a11y/perf guards
+ * live here so no style can forget them: decorative (`aria-hidden` in markup),
+ * shown ONLY where scroll-driven animation is supported AND the viewport is wide
+ * enough for the gutter, and fully HIDDEN under `prefers-reduced-motion`, on
+ * narrow viewports, and in print. Motion is transform/opacity only (compositor).
  */
 export function mascotBaseCss(): string {
   return `
-  .sigma-mascot {
-    position: fixed; top: 0; right: max(0.6rem, calc(50vw - 480px));
-    width: 50px; height: 50px; z-index: 45; pointer-events: none;
-    will-change: transform; display: none;
+  section.cv-section { position: relative; }
+  .sm { position: absolute; top: 0.15em; left: -58px; width: 40px; height: 40px; z-index: 6; pointer-events: none; display: none; }
+  .sm, .sm * { box-sizing: border-box; }
+  /* The logo body: white Σ on the brand-blue rounded square, with little feet. */
+  .sm-fig { position: absolute; left: 0; bottom: 0; width: 34px; height: 34px; border-radius: 11px; background: #1f4fd8;
+    box-shadow: 0 5px 12px -4px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.18), 0 0 16px -3px var(--cv-accent, #1f4fd8); }
+  .sm-fig::before { content: "\\03A3"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #fff; font: 800 21px/1 ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif; }
+  .sm-fig::after { content: ""; position: absolute; bottom: -3px; left: 9px; width: 6px; height: 5px; border-radius: 0 0 4px 4px;
+    background: #1f4fd8; box-shadow: 10px 0 0 #1f4fd8; }
+  .sm-hat { position: absolute; left: 50%; top: -9px; transform: translateX(-50%); }
+
+  /* Default hat — a mortarboard (academic). */
+  .sm-hat { width: 20px; height: 4px; background: #21212e; border-radius: 2px; }
+  .sm-hat::before { content: ""; position: absolute; left: 50%; top: -4px; transform: translateX(-50%); width: 10px; height: 5px; background: #21212e; border-radius: 3px 3px 0 0; }
+  .sm-hat::after { content: ""; position: absolute; right: 1px; top: 0; width: 2px; height: 8px; background: #e7b34a; }
+
+  /* Grants — a gold coin. */
+  .sm--grants .sm-hat { width: 13px; height: 13px; top: -12px; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #ffe08a, #d8a72b 72%); box-shadow: inset 0 0 0 1.5px #b5851f; }
+  .sm--grants .sm-hat::before, .sm--grants .sm-hat::after { content: none; }
+
+  /* Talks & conferences — a microphone. */
+  .sm--talks .sm-hat, .sm--conference .sm-hat { width: 9px; height: 11px; top: -13px; border-radius: 5px 5px 4px 4px; background: linear-gradient(#3a3a48, #1c1c26); }
+  .sm--talks .sm-hat::before, .sm--conference .sm-hat::before { content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); width: 2px; height: 6px; background: #2a2a36; }
+  .sm--talks .sm-hat::after, .sm--conference .sm-hat::after { content: none; }
+
+  /* Awards — a gold star. */
+  .sm--awards .sm-hat { width: 15px; height: 15px; top: -13px; background: #ffce3a;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+  .sm--awards .sm-hat::before, .sm--awards .sm-hat::after { content: none; }
+
+  /* Datasets & software — goggles. */
+  .sm--datasets .sm-hat { width: 8px; height: 8px; top: -10px; border-radius: 50%; background: #cfe6ff; border: 2px solid #2a2a36; box-shadow: 11px 0 0 #cfe6ff, 11px 0 0 2px #2a2a36; }
+  .sm--datasets .sm-hat::before, .sm--datasets .sm-hat::after { content: none; }
+
+  /* Patents — a lightbulb. */
+  .sm--patents .sm-hat { width: 11px; height: 11px; top: -13px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 40% 35%, #fff6c2, #ffd84d 75%); box-shadow: 0 0 7px #ffd84d80; }
+  .sm--patents .sm-hat::before { content: ""; position: absolute; left: 50%; bottom: -3px; transform: translateX(-50%); width: 6px; height: 3px; background: #8a8a96; border-radius: 0 0 2px 2px; }
+  .sm--patents .sm-hat::after { content: none; }
+
+  /* Clinical trials — a red medical cross. */
+  .sm--clinical-trials .sm-hat { width: 13px; height: 4px; top: -11px; background: #e5484d; border-radius: 1px; }
+  .sm--clinical-trials .sm-hat::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 4px; height: 13px; background: #e5484d; border-radius: 1px; }
+  .sm--clinical-trials .sm-hat::after { content: none; }
+
+  /* Teaching & supervision — an apple. */
+  .sm--teaching .sm-hat, .sm--supervision .sm-hat { width: 12px; height: 11px; top: -12px; border-radius: 48% 48% 52% 52%; background: radial-gradient(circle at 35% 32%, #ff7a7a, #d3322e 75%); }
+  .sm--teaching .sm-hat::before, .sm--supervision .sm-hat::before { content: ""; position: absolute; left: 52%; top: -3px; width: 2px; height: 4px; background: #6a4a2a; }
+  .sm--teaching .sm-hat::after, .sm--supervision .sm-hat::after { content: ""; position: absolute; left: 60%; top: -2px; width: 5px; height: 3px; border-radius: 0 80% 0 80%; background: #4fae54; }
+
+  /* Positions — a hard hat. */
+  .sm--positions .sm-hat { width: 16px; height: 7px; top: -10px; border-radius: 8px 8px 0 0; background: linear-gradient(#ffce3a, #e0a91e); }
+  .sm--positions .sm-hat::before { content: ""; position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); width: 20px; height: 3px; background: #e0a91e; border-radius: 2px; }
+  .sm--positions .sm-hat::after { content: none; }
+
+  @keyframes sm-in {
+    0% { opacity: 0; transform: translateY(-20px) scale(0.6, 1.4); }
+    55% { opacity: 1; transform: translateY(3px) scale(1.12, 0.88); }
+    75% { transform: translateY(0) scale(1, 1); }
+    100% { opacity: 1; transform: none; }
   }
-  .sigma-mascot, .sigma-mascot * { box-sizing: border-box; }
-  .sigma-mascot i { display: block; position: absolute; }
-  @keyframes sigma-travel { from { translate: 0 7vh; } to { translate: 0 86vh; } }
-  @keyframes sigma-bob { 0%, 100% { rotate: -5deg; scale: 1; } 50% { rotate: 5deg; scale: 1.05; } }
-  @supports (animation-timeline: scroll()) {
-    .sigma-mascot {
+  @keyframes sm-bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-2px) rotate(3deg); } }
+  @supports (animation-timeline: view()) {
+    .sm {
       display: block;
-      animation: sigma-travel linear both, sigma-bob 2.1s ease-in-out infinite;
-      animation-timeline: scroll(root), auto;
+      animation: sm-in cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      animation-timeline: view();
+      animation-range: entry 2% cover 18%;
     }
+    .sm-fig { animation: sm-bob 2.6s ease-in-out infinite; }
   }
-  @media (max-width: 1000px) { .sigma-mascot { display: none !important; } }
-  @media (prefers-reduced-motion: reduce) { .sigma-mascot { display: none !important; } }
-  @media print { .sigma-mascot { display: none !important; } }`;
+  @media (max-width: 1024px) { .sm { display: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .sm { display: none !important; } }
+  @media print { .sm { display: none !important; } }`;
 }
 
 /**
@@ -625,13 +669,35 @@ export function proseBodyHtml(body: string): string {
  * empty). The section heading + prose body are USER FREE-TEXT and are
  * HTML-escaped / safe-transformed — nothing is interpreted as raw HTML/markdown.
  */
-export function sectionsHtml(sections: RenderedSection[]): string {
+/**
+ * Per-section mascot markup (the Σ-logo companion that hops to each heading and
+ * wears a section-typed hat). Decorative + `aria-hidden`; the section type is a
+ * value from the closed `SECTION_TYPES` enum, so the class is safe. Drawn
+ * entirely in CSS (`mascotBaseCss`). Emitted only when a public style opts in via
+ * `sectionsHtml(sections, { mascot: true })` — exports never do, so the mascot
+ * can never reach a PDF/DOCX/LaTeX/Markdown render.
+ */
+function sectionMascot(type: string): string {
+  return `<span class="sm sm--${type}" aria-hidden="true"><b class="sm-fig"><i class="sm-hat"></i></b></span>`;
+}
+
+/**
+ * Section list markup (identical across templates; styled via CSS classes).
+ * A PROSE section (`PROSE_SECTION_TYPES`) renders its heading + safe-transformed
+ * `body` instead of a citation list; it is omitted when the body is blank. A
+ * standard section renders its `items` as a numbered bibliography (omitted when
+ * empty). The section heading + prose body are USER FREE-TEXT and are
+ * HTML-escaped / safe-transformed — nothing is interpreted as raw HTML/markdown.
+ * `opts.mascot` injects the per-section mascot companion (public styles only).
+ */
+export function sectionsHtml(sections: RenderedSection[], opts: { mascot?: boolean } = {}): string {
   return sections
     .map((rs) => {
+      const m = opts.mascot ? sectionMascot(rs.section.type) : "";
       if (isProseSectionType(rs.section.type)) {
         const body = (rs.section.body ?? "").trim();
         if (body.length === 0) return "";
-        return `<section class="cv-section cv-prose"><h2>${escapeHtml(
+        return `<section class="cv-section cv-prose">${m}<h2>${escapeHtml(
           rs.section.title,
         )}</h2><div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "")}</div></section>`;
       }
@@ -639,7 +705,7 @@ export function sectionsHtml(sections: RenderedSection[]): string {
       const entries = rs.items
         .map((ri) => `<li><div class="csl-entry">${ri.html}</div></li>`)
         .join("\n");
-      return `<section class="cv-section"><h2>${escapeHtml(
+      return `<section class="cv-section">${m}<h2>${escapeHtml(
         rs.section.title,
       )}</h2><ol class="cv-bib">\n${entries}\n</ol></section>`;
     })

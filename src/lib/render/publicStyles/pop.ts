@@ -18,6 +18,7 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -146,13 +147,17 @@ export const popTemplate: CvTemplate = {
     const css =
       commonCss(theme) +
       popCss(theme) +
-      accentSpectrum(["--pop-1", "--pop-2", "--pop-3", "--pop-4", "--pop-5"], { l: 0.72, c: 0.19 });
+      accentSpectrum(["--pop-1", "--pop-2", "--pop-3", "--pop-4", "--pop-5"], {
+        l: 0.72,
+        c: 0.19,
+      }) +
+      mascotBaseCss();
     const body =
       `<div class="pop-blobs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>` +
       `<div class="pop-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

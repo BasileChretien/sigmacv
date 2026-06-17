@@ -11,6 +11,7 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -85,13 +86,14 @@ export const meshTemplate: CvTemplate = {
     const css =
       commonCss(theme) +
       meshCss(theme) +
-      accentSpectrum(["--m1", "--m2", "--m3", "--m4"], { l: 0.8, c: 0.15 });
+      accentSpectrum(["--m1", "--m2", "--m3", "--m4"], { l: 0.8, c: 0.15 }) +
+      mascotBaseCss();
     const body =
       `<div class="mesh-bg" aria-hidden="true"></div>` +
       `<div class="mesh-progress" aria-hidden="true"></div>` +
       `<div class="mesh-card">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

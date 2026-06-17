@@ -12,6 +12,7 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -100,12 +101,12 @@ function auraCss(_t: TemplateTheme): string {
 export const auraTemplate: CvTemplate = {
   key: "aura",
   render(cv, sections, theme, opts) {
-    const css = commonCss(theme) + auraCss(theme);
+    const css = commonCss(theme) + auraCss(theme) + mascotBaseCss();
     const body =
       `<div class="aura-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);
