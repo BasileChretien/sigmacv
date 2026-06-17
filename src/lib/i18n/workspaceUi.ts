@@ -63,6 +63,7 @@ export interface WorkspaceUiStrings {
   // ── Restructured top bar: Publish menu trigger ─────────────────────────────
   tbPublish: string;
   tbPublished: string;
+  tbShare: string;
 }
 
 const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
@@ -113,6 +114,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Could not save the address — please try again.",
     tbPublish: "Publish",
     tbPublished: "Published",
+    tbShare: "Share",
   },
   "zh-CN": {
     srLastSync: "上次同步",
@@ -159,6 +161,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "无法保存地址——请重试。",
     tbPublish: "发布",
     tbPublished: "已发布",
+    tbShare: "分享",
   },
   "es-ES": {
     srLastSync: "Última sincronización",
@@ -207,6 +210,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "No se pudo guardar la dirección; inténtelo de nuevo.",
     tbPublish: "Publicar",
     tbPublished: "Publicado",
+    tbShare: "Compartir",
   },
   "fr-FR": {
     srLastSync: "Dernière synchronisation",
@@ -255,6 +259,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Impossible d’enregistrer l’adresse — réessayez.",
     tbPublish: "Publier",
     tbPublished: "Publié",
+    tbShare: "Partager",
   },
   "de-DE": {
     srLastSync: "Letzte Synchronisierung",
@@ -303,6 +308,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Adresse konnte nicht gespeichert werden — bitte erneut versuchen.",
     tbPublish: "Veröffentlichen",
     tbPublished: "Veröffentlicht",
+    tbShare: "Teilen",
   },
   "ja-JP": {
     srLastSync: "前回の同期",
@@ -351,6 +357,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "アドレスを保存できませんでした。もう一度お試しください。",
     tbPublish: "公開",
     tbPublished: "公開中",
+    tbShare: "共有",
   },
   "pt-BR": {
     srLastSync: "Última sincronização",
@@ -399,6 +406,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Não foi possível salvar o endereço — tente novamente.",
     tbPublish: "Publicar",
     tbPublished: "Publicado",
+    tbShare: "Compartilhar",
   },
   "it-IT": {
     srLastSync: "Ultima sincronizzazione",
@@ -447,6 +455,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Impossibile salvare l’indirizzo: riprova.",
     tbPublish: "Pubblica",
     tbPublished: "Pubblicato",
+    tbShare: "Condividi",
   },
   "ko-KR": {
     srLastSync: "마지막 동기화",
@@ -495,6 +504,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "주소를 저장하지 못했습니다. 다시 시도해 주세요.",
     tbPublish: "게시",
     tbPublished: "게시됨",
+    tbShare: "공유",
   },
   "ru-RU": {
     srLastSync: "Последняя синхронизация",
@@ -544,6 +554,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     dgEmailFailed: "Не удалось сохранить адрес — попробуйте ещё раз.",
     tbPublish: "Опубликовать",
     tbPublished: "Опубликовано",
+    tbShare: "Поделиться",
   },
 };
 

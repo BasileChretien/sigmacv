@@ -746,6 +746,11 @@ input[type="radio"] {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+  /* Never exceed the viewport: a tall published Publish/Share panel scrolls
+     internally instead of running off the bottom of the screen. */
+  max-height: min(34rem, calc(100vh - var(--space-6) * 2));
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .popover-end {
   right: 0;
@@ -928,7 +933,8 @@ input[type="radio"] {
 /* Host the existing AccountControls / PublishControls (authored as inline
    top-bar rows) as a stacked menu list inside the popover panels. */
 .account-panel .account-controls,
-.publish-panel .account-controls {
+.publish-panel .account-controls,
+.share-panel .account-controls {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -955,11 +961,14 @@ input[type="radio"] {
    which overflows the narrow panel (clipping "Location") and squishes the
    legend word-by-word. */
 .publish-panel .public-contact-consent {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0;
-  margin: var(--space-1) var(--space-3) var(--space-1);
+  /* The three short contact toggles sit in a responsive grid (3-up where the
+     locale's labels fit, wrapping to 2-up otherwise) so they cost one or two
+     rows instead of three. */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-1) var(--space-3);
   padding: var(--space-2) 0 var(--space-1);
   border-top: 1px solid var(--border);
 }
@@ -1001,6 +1010,7 @@ input[type="radio"] {
 }
 .publish-panel .public-contact-consent legend {
   display: block;
+  grid-column: 1 / -1;
   float: none;
   width: 100%;
   padding: 0;

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The Publish control is now a focused on/off decision.** The publish popover
+  had grown crowded — toggle, live link, badge + QR embed, and privacy settings
+  all stacked together (and ran off the screen). The share/embed tools — your
+  public link, the "Living CV" badge, and the QR — now live on their own **Share**
+  button that appears in the top bar once your page is live, so the Publish
+  popover stays short: just the on/off toggle and the visibility settings (search
+  indexing + which contact fields are public). The contact toggles sit in a
+  tidier row, and every top-bar menu now scrolls internally instead of overflowing
+  the viewport. Localized in all ten languages.
+
 ### Added
 
 - **We now flag publications that may not be yours.** Open databases like OpenAlex

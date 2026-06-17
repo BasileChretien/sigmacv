@@ -4,6 +4,7 @@ import { LOCALE_LABELS, SUPPORTED_LOCALES, t } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
 import AccountMenu from "./AccountMenu";
 import PublishMenu from "./PublishMenu";
+import ShareMenu from "./ShareMenu";
 import SupportLink from "./SupportLink";
 import ThemeToggle from "./ThemeToggle";
 
@@ -222,6 +223,11 @@ export default function TopBar({
           onPublicContactChange={onPublicContactChange}
           onPublishStateChange={onPublishStateChange}
         />
+
+        {/* Share/embed lives on its OWN trigger, shown only once the page is live —
+            the public link + the "Living CV" badge + QR. Keeps the Publish popover
+            a focused on/off decision instead of a share dashboard. */}
+        {published && publicSlug ? <ShareMenu locale={locale} slug={publicSlug} /> : null}
 
         {/* Funding ask — kept visible in the bar (brand yellow) but de-escalated:
             small, and parked at the far end away from the Export CTA so the two
