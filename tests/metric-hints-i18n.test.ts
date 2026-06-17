@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { SUPPORTED_LOCALES } from "@/lib/i18n";
-import { FIELD_NORMALIZED_METRICS, metricHint } from "@/lib/i18n/metricHints";
+import {
+  FIELD_NORMALIZED_METRICS,
+  METRICS_CROWDING_THRESHOLD,
+  metricHint,
+  metricsCrowdingNote,
+  metricsNudge,
+} from "@/lib/i18n/metricHints";
 import { METRIC_KEYS } from "@/lib/render/metrics";
 
 describe("metricHint", () => {
@@ -32,5 +38,33 @@ describe("metricHint", () => {
     for (const key of FIELD_NORMALIZED_METRICS) {
       expect(METRIC_KEYS).toContain(key);
     }
+  });
+});
+
+describe("metricsNudge / metricsCrowdingNote (metrics onboarding copy)", () => {
+  it("gives a non-empty, DORA-referencing framing nudge for all 10 locales", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const n = metricsNudge(loc);
+      expect(n.length).toBeGreaterThan(0);
+      // "DORA" must appear verbatim so the editor can linkify it (MetricsNoteText).
+      expect(n).toContain("DORA");
+    }
+  });
+
+  it("gives a non-empty crowding caution for all 10 locales", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      expect(metricsCrowdingNote(loc).length).toBeGreaterThan(0);
+      // distinct guidance from the framing nudge
+      expect(metricsCrowdingNote(loc)).not.toBe(metricsNudge(loc));
+    }
+  });
+
+  it("falls back to English for an unknown locale", () => {
+    expect(metricsNudge("xx-XX")).toBe(metricsNudge("en-US"));
+    expect(metricsCrowdingNote("xx-XX")).toBe(metricsCrowdingNote("en-US"));
+  });
+
+  it("uses a metrics-heavy threshold above a sensible one-or-two-metric header", () => {
+    expect(METRICS_CROWDING_THRESHOLD).toBeGreaterThanOrEqual(3);
   });
 });

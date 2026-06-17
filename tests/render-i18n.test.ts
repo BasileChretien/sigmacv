@@ -127,8 +127,7 @@ describe.skipIf(!hasApa)("rendered CV output is fully localized", () => {
     // readers, hyphenation and crawlers treat it as French.
     expect(html).toContain('<html lang="fr-FR">');
     expect(html).not.toContain('<html lang="en">');
-    expect(html).toContain("Publications / an"); // chart caption
-    expect(html).toContain("Citations / an");
+    expect(html).toContain("Publications / an"); // chart caption (citations/year was dropped)
     expect(html).toContain("FWCI moyen des travaux"); // metric label
     expect(html).toContain("moyenne mondiale"); // metric context
     expect(html).toContain("évalués par les pairs"); // authorship caption (agrees with "Rôles d’auteur")

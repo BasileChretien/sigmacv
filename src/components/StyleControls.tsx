@@ -28,7 +28,13 @@ import {
 } from "@/lib/canonical/cvModels";
 import { METRIC_DEFS, curatedMetrics, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
-import { FIELD_NORMALIZED_METRICS, metricHint } from "@/lib/i18n/metricHints";
+import {
+  FIELD_NORMALIZED_METRICS,
+  METRICS_CROWDING_THRESHOLD,
+  metricHint,
+  metricsCrowdingNote,
+  metricsNudge,
+} from "@/lib/i18n/metricHints";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { trackEvent } from "@/lib/analytics/track";
@@ -799,6 +805,11 @@ export default function StyleControls({
       </StyleGroup>
 
       <StyleGroup grouped={grouped} title={eu.grpMetrics} defaultOpen={false}>
+        {/* Responsible-metrics framing: metrics are optional and the narrative
+            leads (DORA). A gentle nudge at the point of choice, not a block. */}
+        <p className="muted metric-preset-note field-note metrics-nudge">
+          <MetricsNoteText text={metricsNudge(locale)} />
+        </p>
         <div className="field metric-picker">
           <span>{u.metricsLabel}</span>
           <div className="metric-options">
@@ -834,6 +845,13 @@ export default function StyleControls({
               );
             })}
           </div>
+          {/* Contextual caution once the strip turns metrics-heavy — steers back
+              toward a short, readable header without removing any choice. */}
+          {cv.display.metrics.length >= METRICS_CROWDING_THRESHOLD ? (
+            <p className="metric-preset-note field-note metrics-crowding-note">
+              {metricsCrowdingNote(locale)}
+            </p>
+          ) : null}
           <div className="metric-preset">
             <button
               type="button"

@@ -34,15 +34,18 @@ const chartWidth = (points: Point[]): number => Math.max(points.length * (BAR_W 
 
 /** The bars + year labels (the SVG body), with a caller-supplied bar fill. */
 function bars(points: Point[], fill: string): string {
-  // Log scale (log1p, so a 0-count year maps to 0 height and there is no log(0)):
-  // a single-paper / few-citation year stays visible next to a 200-citation year,
-  // which a linear scale would flatten to ~1px. The <title> tooltip keeps the raw
-  // count, and the caption is labelled "(log)" so the axis isn't misread.
-  const logMax = Math.log1p(Math.max(0, ...points.map((p) => p.value)));
+  // LINEAR scale. The chart now shows only publications-per-year — small integers
+  // — so a linear axis is honest and legible at this size. (A log bar is
+  // undecodable to a reader without a y-axis, and the y-axis won't fit here; log
+  // was only there to keep a 1-citation year visible next to a 200-citation year,
+  // and the citations chart is gone — see chartPoints.) The <title> keeps the raw
+  // count for the hover tooltip.
+  const max = Math.max(0, ...points.map((p) => p.value));
   const labelEvery = points.length > 8 ? 2 : 1; // avoid crowding x-axis labels
   return points
     .map((p, i) => {
-      const h = logMax > 0 ? Math.round((Math.log1p(Math.max(0, p.value)) / logMax) * CHART_H) : 0;
+      /* v8 ignore next -- a charted year always has ≥1 publication, so max>0 */
+      const h = max > 0 ? Math.round((Math.max(0, p.value) / max) * CHART_H) : 0;
       const x = i * (BAR_W + GAP);
       const y = CHART_H - h;
       const showLabel = i % labelEvery === 0 || i === points.length - 1;
@@ -90,45 +93,46 @@ export function curatedCountsByYear(
   }));
 }
 
-/** Per-year publication + citation points (last 12 years), or null when charts
- *  are disabled / there's too little data. */
-function chartPoints(cv: CanonicalCv): { pubs: Point[]; cites: Point[] } | null {
+/**
+ * Per-year PUBLICATION points (last 12 years), or null when charts are disabled /
+ * there's too little data. Citations-per-year was deliberately dropped: on a
+ * recent-weighted window it is depressed by citation lag — the most recent years
+ * look near-empty regardless of the work's eventual impact — so a per-year
+ * citation bar misleads a reader more than it informs. Publications-per-year is an
+ * honest output/activity trace.
+ */
+function chartPoints(cv: CanonicalCv): Point[] | null {
   if (!cv.display.showCharts) return null;
   const data = curatedCountsByYear(cv)
     .sort((a, b) => a.year - b.year)
     .slice(-12);
   if (data.length < 2) return null;
-  return {
-    pubs: data.map((d) => ({ label: String(d.year), value: d.works })),
-    cites: data.map((d) => ({ label: String(d.year), value: d.citations })),
-  };
+  return data.map((d) => ({ label: String(d.year), value: d.works }));
 }
 
-/** Render the charts block, or "" when disabled / insufficient data. */
+/** Render the (single, publications-per-year) chart block, or "" when disabled /
+ *  insufficient data. */
 export function renderChartsHtml(cv: CanonicalCv): string {
   const pts = chartPoints(cv);
   if (!pts) return "";
   const s = renderStrings(cv.display.locale);
-  return `<div class="cv-charts">${barChart(`${s.chartPublicationsPerYear} ${s.chartLogScale}`, pts.pubs)}${barChart(`${s.chartCitationsPerYear} ${s.chartLogScale}`, pts.cites)}</div>`;
+  return `<div class="cv-charts">${barChart(s.chartPublicationsPerYear, pts)}</div>`;
 }
 
-/** The same charts as standalone SVGs for embedding in the DOCX (neutral bars,
- *  since the .docx is plain). Empty when charts are off / data is too sparse. */
+/** The same (single, publications-per-year) chart as a standalone SVG for
+ *  embedding in the DOCX (neutral bars, since the .docx is plain). Empty when
+ *  charts are off / data is too sparse. */
 export function cvChartSvgs(cv: CanonicalCv): ChartSvg[] {
   const pts = chartPoints(cv);
   if (!pts) return [];
   const s = renderStrings(cv.display.locale);
-  const mk = (caption: string, points: Point[]): ChartSvg => {
-    const width = chartWidth(points);
-    return {
-      caption,
+  const width = chartWidth(pts);
+  return [
+    {
+      caption: s.chartPublicationsPerYear,
       width,
       height: SVG_H,
-      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${SVG_H}" width="${width}" height="${SVG_H}">${bars(points, "#444444")}</svg>`,
-    };
-  };
-  return [
-    mk(`${s.chartPublicationsPerYear} ${s.chartLogScale}`, pts.pubs),
-    mk(`${s.chartCitationsPerYear} ${s.chartLogScale}`, pts.cites),
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${SVG_H}" width="${width}" height="${SVG_H}">${bars(pts, "#444444")}</svg>`,
+    },
   ];
 }
