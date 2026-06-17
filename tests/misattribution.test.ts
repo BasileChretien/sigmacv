@@ -34,11 +34,13 @@ function makeCv(items: CvItem[]): CanonicalCv {
   });
 }
 
-/** A dense, well-anchored owner profile: 5 co-authors, 3 field works, all oncology. */
+/** A dense, well-anchored owner profile: 5 co-authors, 3 field works, all oncology,
+ *  one known institution. */
 const PROFILE: OwnerProfile = {
   coauthors: new Set(["A", "B", "C", "D", "E"]),
   fields: new Set(["Oncology"]),
   domains: new Set(["Health Sciences"]),
+  institutions: new Set(["https://ror.org/known"]),
   fieldWorkCount: 3,
   earliestYear: 2015,
 };
@@ -64,14 +66,62 @@ describe("scoreMisattribution", () => {
     const v = scoreMisattribution(outlier(), PROFILE);
     expect(v.flagged).toBe(true);
     expect(v.signals).toEqual(["no-coauthor-overlap", "different-field"]);
-    expect(v.score).toBeCloseTo(0.9);
+    expect(v.score).toBeCloseTo(0.8);
   });
 
-  it("adds the pre-career corroborator and raises the score to 1", () => {
+  it("adds the pre-career corroborator and raises the score", () => {
     const v = scoreMisattribution(outlier({ year: 2005 }), PROFILE);
     expect(v.flagged).toBe(true);
     expect(v.signals).toEqual(["no-coauthor-overlap", "different-field", "pre-career"]);
-    expect(v.score).toBe(1);
+    expect(v.score).toBeCloseTo(0.9);
+  });
+
+  it("flags via affiliation (no co-author + a never-seen institution) even in-field", () => {
+    const v = scoreMisattribution(
+      outlier({
+        topic: { field: "Oncology", domain: "Health Sciences" }, // same field → no field signal
+        workInstitutions: ["https://ror.org/novel"],
+      }),
+      PROFILE,
+    );
+    expect(v.flagged).toBe(true);
+    expect(v.signals).toEqual(["no-coauthor-overlap", "affiliation-novel"]);
+    expect(v.score).toBeCloseTo(0.7);
+  });
+
+  it("does NOT fire affiliation-novel when the institution is a known one", () => {
+    const v = scoreMisattribution(
+      outlier({
+        topic: { field: "Oncology", domain: "Health Sciences" },
+        workInstitutions: ["https://ror.org/known"],
+      }),
+      PROFILE,
+    );
+    expect(v.flagged).toBe(false);
+  });
+
+  it("skips the affiliation check when the profile has no known institutions", () => {
+    const noInst: OwnerProfile = { ...PROFILE, institutions: new Set() };
+    const v = scoreMisattribution(
+      outlier({
+        topic: { field: "Oncology", domain: "Health Sciences" },
+        workInstitutions: ["https://ror.org/novel"],
+      }),
+      noInst,
+    );
+    expect(v.flagged).toBe(false);
+  });
+
+  it("never flags on affiliation alone (no-coauthor-overlap is mandatory)", () => {
+    const v = scoreMisattribution(
+      outlier({
+        coauthorOrcids: ["A"], // shares a co-author → mandatory signal absent
+        topic: { field: "Oncology", domain: "Health Sciences" },
+        workInstitutions: ["https://ror.org/novel"],
+      }),
+      PROFILE,
+    );
+    expect(v.flagged).toBe(false);
   });
 
   it("does NOT flag when only one strong signal fires (shares a co-author)", () => {
@@ -139,9 +189,13 @@ describe("buildOwnerProfile", () => {
           matchBasis: "orcid",
           coauthorOrcids: ["A", "B"],
           topic: { field: "Oncology", domain: "Health Sciences" },
+          workInstitutions: ["https://ror.org/aaa"],
           year: 2018,
         },
       }),
+      // A positions entry contributes its institution (by ROR) to the known set,
+      // even though it isn't an authored work.
+      makeItem({ id: "pos", meta: { rorId: "https://ror.org/BBB" } }),
       makeItem({
         id: "ok2",
         authoredBySelf: true,
@@ -160,6 +214,7 @@ describe("buildOwnerProfile", () => {
           matchBasis: "openalex-id",
           coauthorOrcids: ["Z"],
           topic: { field: "Law" },
+          workInstitutions: ["https://ror.org/zzz"], // openalex-id-only → NOT collected
           year: 1990,
         },
       }),
@@ -169,6 +224,9 @@ describe("buildOwnerProfile", () => {
     expect([...p.coauthors].sort()).toEqual(["A", "B", "C"]);
     expect([...p.fields].sort()).toEqual(["Immunology", "Oncology"]);
     expect([...p.domains]).toEqual(["Health Sciences"]);
+    // ror from a confirmed work + the positions entry, normalized; the openalex-id
+    // work's institution is excluded.
+    expect([...p.institutions].sort()).toEqual(["https://ror.org/aaa", "https://ror.org/bbb"]);
     expect(p.fieldWorkCount).toBe(2);
     expect(p.earliestYear).toBe(2012);
   });
@@ -201,7 +259,7 @@ describe("annotateMisattribution", () => {
     const c = flagOf(out, "cand");
     expect(c.meta.reviewFlag).toBe("likely-misattributed");
     expect(c.meta.misattribution?.signals).toEqual(["no-coauthor-overlap", "different-field"]);
-    expect(c.meta.misattribution?.score).toBeCloseTo(0.9);
+    expect(c.meta.misattribution?.score).toBeCloseTo(0.8);
   });
 
   it("is idempotent — re-annotating keeps the same flag", () => {

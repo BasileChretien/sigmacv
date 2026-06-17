@@ -157,6 +157,7 @@ describe("projectCvForPublic", () => {
                           signals: ["no-coauthor-overlap" as const, "different-field" as const],
                         },
                         topic: { field: "Oncology", domain: "Health Sciences" },
+                        workInstitutions: ["https://ror.org/04xxxx"],
                         authorRole: "first", // a render field — must be KEPT
                       },
                     },
@@ -175,6 +176,7 @@ describe("projectCvForPublic", () => {
     expect(pubItem.meta.duplicateOf).toBeUndefined();
     expect(pubItem.meta.misattribution).toBeUndefined();
     expect(pubItem.meta.topic).toBeUndefined();
+    expect(pubItem.meta.workInstitutions).toBeUndefined();
     // …but a renderer-used meta field is preserved.
     expect(pubItem.meta.authorRole).toBe("first");
     // Input untouched (immutable).

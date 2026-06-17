@@ -1246,6 +1246,21 @@ export function workTopic(work: OpenAlexWork): { field?: string; domain?: string
   return field || domain ? { field, domain } : undefined;
 }
 
+/**
+ * ROR ids of the institutions on the account holder's OWN authorship of a work
+ * (their affiliation as printed on this paper). Identifier-only — institutions
+ * without a ROR contribute nothing; deduped + bounded. Drives the misattribution
+ * affiliation check; never name-derived. Undefined when none carry a ROR.
+ */
+export function selfWorkInstitutions(
+  selfAuth: OpenAlexAuthorship | undefined,
+): string[] | undefined {
+  const rors = (selfAuth?.institutions ?? [])
+    .map((i) => i.ror?.trim())
+    .filter((r): r is string => !!r);
+  return rors.length ? [...new Set(rors)].slice(0, 50) : undefined;
+}
+
 /** A human label for the account holder's authorship role on a work, or undefined. */
 export function authorRoleLabel(a: OpenAlexAuthorship | undefined): string | undefined {
   if (!a) return undefined;
@@ -1441,6 +1456,9 @@ function buildWorkCvItem(
       // Primary research field/domain — denormalized for the misattribution
       // heuristic (cross-domain check); see annotateMisattribution.
       topic: workTopic(work),
+      // ROR ids of the user's affiliation on THIS paper — for the misattribution
+      // affiliation check; only set for own works that carry a ROR'd institution.
+      workInstitutions: authoredBySelf ? selfWorkInstitutions(selfAuth) : undefined,
       reviewFlag:
         reviewFlagOverride ?? (authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined),
     },

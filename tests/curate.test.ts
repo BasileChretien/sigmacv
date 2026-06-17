@@ -7,6 +7,8 @@ import {
   addStructuredEntry,
   buildManualCsl,
   clearViewExclusions,
+  confirmAllMisattributed,
+  confirmMisattribution,
   cvHasWork,
   applyPreset,
   deletePreset,
@@ -33,7 +35,7 @@ import {
   visibleItems,
   visibleSections,
 } from "@/lib/canonical/curate";
-import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
+import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -703,5 +705,69 @@ describe("per-view item selection (display.excludedItems)", () => {
     const id = visibleItems(sec)[0]!.id;
     setItemInView(base, sec.id, id, false);
     expect(base.display.excludedItems).toBeUndefined();
+  });
+});
+
+describe("confirmMisattribution / confirmAllMisattributed", () => {
+  function flagged(id: string): CvItem {
+    return {
+      id,
+      source: "openalex",
+      sourceId: `https://openalex.org/${id}`,
+      csl: { id, type: "article-journal", title: id },
+      included: true,
+      notMine: false,
+      order: 0,
+      authoredBySelf: true,
+      selfNameVariants: [],
+      meta: {
+        reviewFlag: "likely-misattributed",
+        misattribution: { score: 0.8, signals: ["no-coauthor-overlap", "different-field"] },
+      },
+    };
+  }
+  function cvWith(items: CvItem[]): CanonicalCv {
+    return CanonicalCvSchema.parse({
+      schemaVersion: 2,
+      id: "cv1",
+      owner: { orcid: "0000-0002-7483-2489", openAlexAuthorIds: [], displayName: "B" },
+      display: {},
+      sections: [
+        { id: "publications", type: "publications", title: "P", visible: true, order: 0, items },
+      ],
+      provenance: { generatedAt: "2026-06-17T00:00:00.000Z", sources: ["openalex"] },
+    });
+  }
+
+  it("confirmMisattribution records the id but keeps the work shown", () => {
+    const cv = confirmMisattribution(cvWith([flagged("W1")]), "publications", "W1");
+    expect(cv.display.dismissedReviewCandidates).toEqual(["W1"]);
+    // The work stays included — unlike "Keep hidden".
+    expect(cv.sections[0]!.items[0]!.included).toBe(true);
+  });
+
+  it("confirmMisattribution is a no-op for an unknown / already-dismissed id", () => {
+    const cv = cvWith([flagged("W1")]);
+    expect(confirmMisattribution(cv, "publications", "missing")).toBe(cv);
+    const once = confirmMisattribution(cv, "publications", "W1");
+    expect(confirmMisattribution(once, "publications", "W1")).toBe(once);
+  });
+
+  it("confirmAllMisattributed confirms every visible flagged work at once", () => {
+    const hiddenFlag = { ...flagged("W3"), included: false };
+    const cv = confirmAllMisattributed(cvWith([flagged("W1"), flagged("W2"), hiddenFlag]));
+    // W1 + W2 (visible) are confirmed; the hidden one is left alone.
+    expect(cv.display.dismissedReviewCandidates).toEqual(["W1", "W2"]);
+  });
+
+  it("confirmAllMisattributed is a no-op when nothing is outstanding", () => {
+    const cv = cvWith([
+      {
+        ...flagged("W1"),
+        meta: {},
+        // a plain work with no flag
+      },
+    ]);
+    expect(confirmAllMisattributed(cv)).toBe(cv);
   });
 });

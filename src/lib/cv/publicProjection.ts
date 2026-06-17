@@ -87,6 +87,7 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
             duplicateOf: undefined,
             misattribution: undefined,
             topic: undefined,
+            workInstitutions: undefined,
             matchBasis: undefined,
             claimed: undefined,
             // Raw co-author ORCID list is an internal resolution input only — the

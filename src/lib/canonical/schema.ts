@@ -197,15 +197,18 @@ export type ReviewFlag = (typeof REVIEW_FLAGS)[number];
  * and so the consent-gated disambiguation-error study can learn which signals
  * actually predict a confirmed "not mine".
  *  - "no-coauthor-overlap": shares no co-author (by ORCID) with the profile's
- *    identifier-confirmed works;
+ *    identifier-confirmed works (the mandatory anchor — see misattribution.ts);
  *  - "different-field": its OpenAlex research field AND domain are absent from the
  *    profile's confirmed works (a cross-domain mismatch, e.g. medicine vs literature);
+ *  - "affiliation-novel": its author-affiliation institution(s) (by ROR) never appear
+ *    among the account holder's known institutions (confirmed works + positions);
  *  - "pre-career": published well before the account holder's earliest confirmed work
  *    (a corroborator only — never enough to flag on its own).
  */
 export const MISATTRIBUTION_SIGNALS = [
   "no-coauthor-overlap",
   "different-field",
+  "affiliation-novel",
   "pre-career",
 ] as const;
 export type MisattributionSignal = (typeof MISATTRIBUTION_SIGNALS)[number];
@@ -524,6 +527,15 @@ export const CvItemSchema = z.object({
       })
       .optional()
       .catch(undefined),
+    /**
+     * ROR ids of the institutions on the account holder's OWN authorship of this work
+     * (their affiliation as printed on this paper, from OpenAlex). Denormalized source
+     * metadata; used only by the misattribution heuristic's affiliation check (does
+     * this paper's institution ever match one the user is actually associated with).
+     * Bounded; institutions without a ROR contribute nothing. STRIPPED from the public
+     * projection (internal signal, not a render input).
+     */
+    workInstitutions: z.array(z.string().max(2048)).max(50).optional().catch(undefined),
     /**
      * Misattribution hint (set with `reviewFlag === "likely-misattributed"`): an
      * OpenAlex-author-id-only match (no confirming ORCID on the paper) that disagrees

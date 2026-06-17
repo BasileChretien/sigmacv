@@ -21,14 +21,17 @@ import { type CanonicalCv, type CvItem, type MisattributionSignal } from "./sche
  *
  * PRECISION OVER RECALL by design: a wrong flag on a researcher's real paper is an
  * insult about their own work, so a work is flagged ONLY when it fails TWO strong,
- * independent checks against the profile's identifier-CONFIRMED works — it shares
- * no co-author AND sits in a different research field+domain. A temporal outlier
- * ("pre-career") only corroborates; it can never flag a work on its own. Same-field
- * namesakes are deliberately NOT caught here (that needs embeddings/an LLM judge,
- * out of scope) — the cost of a false positive outweighs that recall.
+ * independent checks. The first — sharing NO co-author with the confirmed works — is
+ * MANDATORY (the strongest structural signal); the second is either a different
+ * research field+domain OR an author-affiliation institution the user has never been
+ * associated with. A temporal outlier ("pre-career") only corroborates; it can never
+ * flag a work on its own. Same-field, same-network namesakes are deliberately NOT
+ * caught here (that needs embeddings/an LLM judge, out of scope) — the cost of a false
+ * positive outweighs that recall.
  *
  * Fairness: the heuristic uses only the user's OWN profile signals (co-authors,
- * field, year). It never infers, stores, or branches on name ethnicity/origin.
+ * field, institutions, year). It never infers, stores, or branches on name
+ * ethnicity/origin.
  */
 
 /** Confirmed-co-author set size below which the co-author check is too sparse to
@@ -46,10 +49,16 @@ const MAX_AUTHORS_FOR_COAUTHOR_CHECK = 25;
 const PRE_CAREER_GAP_YEARS = 5;
 
 const WEIGHTS: Record<MisattributionSignal, number> = {
-  "no-coauthor-overlap": 0.45,
-  "different-field": 0.45,
+  "no-coauthor-overlap": 0.4,
+  "different-field": 0.4,
+  "affiliation-novel": 0.3,
   "pre-career": 0.1,
 };
+
+/** Normalize a ROR id (URL or bare, any case / trailing slash) for set comparison. */
+function normRor(r: string): string {
+  return r.trim().toLowerCase().replace(/\/+$/, "");
+}
 
 /**
  * The account holder's profile, aggregated from their identifier-CONFIRMED works
@@ -66,6 +75,10 @@ export interface OwnerProfile {
   domains: ReadonlySet<string>;
   /** How many confirmed works carried a topic field (gates the field check). */
   fieldWorkCount: number;
+  /** Normalized ROR ids of institutions the user is associated with — from confirmed
+   *  works' affiliations AND every positions/education entry (gates + drives the
+   *  affiliation check). */
+  institutions: ReadonlySet<string>;
   /** Earliest publication year among confirmed works, or undefined. */
   earliestYear?: number;
 }
@@ -95,13 +108,19 @@ export function buildOwnerProfile(cv: CanonicalCv): OwnerProfile {
   const coauthors = new Set<string>();
   const fields = new Set<string>();
   const domains = new Set<string>();
+  const institutions = new Set<string>();
   let fieldWorkCount = 0;
   let earliestYear: number | undefined;
 
   for (const s of cv.sections) {
     for (const it of s.items) {
+      // The institution of a positions/education entry (ROR-canonicalized) is a place
+      // the user is genuinely associated with — collected from EVERY item, not just
+      // confirmed works, so a move/affiliation the user listed never looks "novel".
+      if (it.meta.rorId) institutions.add(normRor(it.meta.rorId));
       if (!isConfirmed(it)) continue;
       for (const o of it.meta.coauthorOrcids ?? []) coauthors.add(o);
+      for (const r of it.meta.workInstitutions ?? []) institutions.add(normRor(r));
       const field = it.meta.topic?.field;
       if (field) {
         fields.add(field);
@@ -116,13 +135,14 @@ export function buildOwnerProfile(cv: CanonicalCv): OwnerProfile {
     }
   }
 
-  return { coauthors, fields, domains, fieldWorkCount, earliestYear };
+  return { coauthors, fields, domains, institutions, fieldWorkCount, earliestYear };
 }
 
 /**
  * Score ONE candidate work against the owner profile. Pure. Returns which signals
- * fired and a 0..1 confidence; `flagged` is true only when BOTH strong signals
- * (no-coauthor-overlap AND different-field) fire — the high-precision bar.
+ * fired and a 0..1 confidence; `flagged` is true only when the MANDATORY
+ * no-coauthor-overlap fires together with at least one of {different-field,
+ * affiliation-novel} — the high-precision bar.
  */
 export function scoreMisattribution(
   item: CvItem,
@@ -158,6 +178,19 @@ export function scoreMisattribution(
     signals.push("different-field");
   }
 
+  // ── Strong (alternative 2nd signal): the user's affiliation on this paper is an
+  // institution (by ROR) that never appears among their known institutions. Gated on
+  // the user actually having known institutions; only evaluable when the candidate
+  // carries a ROR'd affiliation. ──
+  const candidateInstitutions = (item.meta.workInstitutions ?? []).map(normRor);
+  if (
+    profile.institutions.size > 0 &&
+    candidateInstitutions.length > 0 &&
+    candidateInstitutions.every((r) => !profile.institutions.has(r))
+  ) {
+    signals.push("affiliation-novel");
+  }
+
   // ── Corroborator: published well before the earliest confirmed work. Never
   // flags on its own (see `flagged` below); only adds confidence. ──
   const year = item.meta.year;
@@ -169,7 +202,11 @@ export function scoreMisattribution(
     signals.push("pre-career");
   }
 
-  const flagged = signals.includes("no-coauthor-overlap") && signals.includes("different-field");
+  // Mandatory no-coauthor-overlap + at least one other strong signal (field OR
+  // affiliation). pre-career corroborates only and can never trigger alone.
+  const flagged =
+    signals.includes("no-coauthor-overlap") &&
+    (signals.includes("different-field") || signals.includes("affiliation-novel"));
   const score = flagged
     ? Math.min(
         1,
@@ -185,8 +222,9 @@ export function scoreMisattribution(
  * recomputed (idempotent) every build. Pure + immutable + FAIL-SOFT: any error
  * returns the input unchanged so detection can never break a build.
  *
- * A scored candidate that clears the two-strong-signal bar gets
- * `meta.reviewFlag = "likely-misattributed"` + `meta.misattribution`; every other
+ * A scored candidate that clears the bar (no-coauthor-overlap + a field or
+ * affiliation mismatch) gets `meta.reviewFlag = "likely-misattributed"` +
+ * `meta.misattribution`; every other
  * item has any stale misattribution hint cleared. Items already carrying another
  * review flag are never touched (precedence — see {@link isScoreCandidate}).
  */

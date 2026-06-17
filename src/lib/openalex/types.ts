@@ -46,6 +46,10 @@ export interface OpenAlexAuthorship {
   };
   /** Name exactly as printed on the work. */
   raw_author_name?: string;
+  /** Institutions OpenAlex attached to THIS authorship (the author's affiliation on
+   *  this work). Carried inside `authorships` (no extra `select` needed); used by the
+   *  misattribution heuristic's affiliation check. */
+  institutions?: { id?: string; ror?: string | null; display_name?: string }[];
 }
 
 export interface OpenAlexSource {

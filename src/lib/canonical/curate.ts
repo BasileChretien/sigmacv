@@ -731,6 +731,55 @@ export function dismissReviewCandidate(
 }
 
 /**
+ * "Yes, it's mine" on a `likely-misattributed` work: the user has confirmed the
+ * heuristic was wrong and the paper IS theirs. UNLIKE "Keep hidden", the work stays
+ * SHOWN (`included` untouched) — we only record its id in
+ * `display.dismissedReviewCandidates` so the misattribution badge + the CV-health
+ * count stop flagging it. Pure + immutable; survives re-sync (the flag is recomputed
+ * every build but the dismissal silences it). No-op if already dismissed.
+ */
+export function confirmMisattribution(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+): CanonicalCv {
+  const item = cv.sections.find((s) => s.id === sectionId)?.items.find((it) => it.id === itemId);
+  if (!item) return cv;
+  const existing = cv.display.dismissedReviewCandidates ?? [];
+  if (existing.includes(itemId)) return cv;
+  return {
+    ...cv,
+    display: { ...cv.display, dismissedReviewCandidates: [...existing, itemId] },
+  };
+}
+
+/**
+ * Bulk "they're all mine": confirm EVERY visible, still-flagged
+ * `likely-misattributed` work at once (the escape hatch for a high-namesake user
+ * facing several flags). Records each id in `display.dismissedReviewCandidates`,
+ * leaving the works shown. Pure + immutable; only ever the SAFE direction (never a
+ * bulk hide/disown). No-op when nothing is outstanding.
+ */
+export function confirmAllMisattributed(cv: CanonicalCv): CanonicalCv {
+  const existing = cv.display.dismissedReviewCandidates ?? [];
+  const seen = new Set(existing);
+  const add: string[] = [];
+  for (const s of cv.sections) {
+    for (const it of s.items) {
+      if (it.meta.reviewFlag === "likely-misattributed" && !isHidden(it) && !seen.has(it.id)) {
+        add.push(it.id);
+        seen.add(it.id);
+      }
+    }
+  }
+  if (add.length === 0) return cv;
+  return {
+    ...cv,
+    display: { ...cv.display, dismissedReviewCandidates: [...existing, ...add] },
+  };
+}
+
+/**
  * Whether the CV already contains a work with the given OpenAlex id or DOI, so
  * the "add by DOI" flow can refuse a duplicate rather than list it twice.
  */

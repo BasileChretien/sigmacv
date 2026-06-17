@@ -3059,6 +3059,23 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .cv-health-link:hover {
   text-decoration-thickness: 2px;
 }
+/* Secondary "they're all mine" shortcut on the misattributed row — a quiet,
+   neutral chip next to the link so it reads as an optional escape hatch, not an
+   alarm. */
+.cv-health-bulk {
+  margin-left: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--text-2);
+  cursor: pointer;
+}
+.cv-health-bulk:hover {
+  background: var(--surface-3);
+}
 .cv-health-hint {
   margin: 0;
   font-size: var(--text-xs);
