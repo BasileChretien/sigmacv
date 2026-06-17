@@ -362,6 +362,13 @@ export const CvItemSchema = z.object({
     roleTitleOverride: z.string().max(500).optional(),
     /** Source department/sub-unit for a positions/education entry (ORCID `department-name`). */
     department: z.string().max(500).optional(),
+    /**
+     * USER edit of the department/sub-unit for a source-derived positions/education
+     * entry — the "Edit details" field. Carried across re-sync (like
+     * {@link roleTitleOverride}) and wins over the source {@link department}; a blank
+     * value, or one equal to the source, clears it. Effective value: {@link itemDepartment}.
+     */
+    departmentOverride: z.string().max(500).optional(),
     /** Start year of a positions/education entry's date range (for re-deriving the line). */
     startYear: z.number().int().optional(),
     /** End year of a positions/education entry's date range; undefined = ongoing ("present"). */
@@ -508,6 +515,14 @@ export function itemRoleTitle(item: Pick<CvItem, "meta">): string | undefined {
  */
 export function itemInstitution(item: Pick<CvItem, "meta">): string | undefined {
   return item.meta.institutionOverride ?? item.meta.institution;
+}
+
+/**
+ * The effective department/sub-unit for a positions/education item: the user's
+ * `meta.departmentOverride` when set, otherwise the source `meta.department`.
+ */
+export function itemDepartment(item: Pick<CvItem, "meta">): string | undefined {
+  return item.meta.departmentOverride ?? item.meta.department;
 }
 
 /**
