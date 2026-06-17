@@ -15,7 +15,10 @@ import { resolveTheme } from "../templates";
 import type { CvTemplate } from "../templates/types";
 import type { RenderOpts } from "../types";
 import { auraTemplate } from "./aura";
+import { folioTemplate } from "./folio";
+import { luminaTemplate } from "./lumina";
 import { marqueeTemplate } from "./marquee";
+import { meridianTemplate } from "./meridian";
 import { meshTemplate } from "./mesh";
 import { neonTemplate } from "./neon";
 import { popTemplate } from "./pop";
@@ -23,10 +26,18 @@ import { prismTemplate } from "./prism";
 import { risoTemplate } from "./riso";
 import { synthwaveTemplate } from "./synthwave";
 import { terminalTemplate } from "./terminal";
+import { trajectoryTemplate } from "./trajectory";
 
 type AnimatedStyleKey = Exclude<PublicStyleKey, "match">;
 
+// The four "credible / shareable" styles are listed first so they surface at the
+// top of the picker (the lever for getting more CVs published as living pages);
+// the expressive styles follow. Order here defines PUBLIC_STYLE_KEYS.
 const REGISTRY: Record<AnimatedStyleKey, CvTemplate> = {
+  folio: folioTemplate,
+  meridian: meridianTemplate,
+  trajectory: trajectoryTemplate,
+  lumina: luminaTemplate,
   prism: prismTemplate,
   pop: popTemplate,
   neon: neonTemplate,

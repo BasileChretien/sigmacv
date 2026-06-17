@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Four new styles for your published living page.** The public page (`/p/[slug]`)
+  gains four polished, credible looks designed to read well to a hiring committee —
+  **Folio** (a typeset scholarly-journal feel in warm serif), **Meridian** (austere
+  Swiss/monochrome minimalism with numbered sections), **Trajectory** (a career
+  timeline with a milestone rail), and **Lumina** (a refined dark cinematic stage) —
+  surfaced at the top of the style picker. Each is 100% CSS-only under the page's
+  strict no-JS CSP, rides your chosen accent colour, ships a full reduced-motion
+  fallback, and never affects exports (PDF/DOCX/LaTeX stay on your document template).
 - **Your public CV now links to co-authors who are also on SigmaCV.** When a
   co-author on one of your works has published their own search-indexable SigmaCV
   page, your public page's structured data (schema.org JSON-LD) now expresses that
