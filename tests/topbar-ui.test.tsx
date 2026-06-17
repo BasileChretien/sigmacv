@@ -75,6 +75,24 @@ describe("TopBar (restructured editor top bar)", () => {
     expect(screen.getByText("Published")).toBeTruthy();
   });
 
+  it("reveals a separate Share menu only once the page is published", () => {
+    const { container, rerender } = render(<TopBar {...baseProps} published={false} />);
+    // Unpublished: Publish + Account only — no Share trigger yet.
+    expect(container.querySelector(".share-trigger")).toBeNull();
+    expect(container.querySelectorAll('[aria-haspopup="dialog"]').length).toBe(2);
+
+    rerender(<TopBar {...baseProps} published={true} publicSlug="ada" />);
+    // Published: a third dialog trigger appears for the share/embed job.
+    const share = container.querySelector<HTMLButtonElement>(".share-trigger");
+    expect(share).toBeTruthy();
+    expect(container.querySelectorAll('[aria-haspopup="dialog"]').length).toBe(3);
+
+    // The public link + badge now live in the Share panel, not the Publish popover.
+    fireEvent.click(share!);
+    expect(container.querySelector(".share-panel")).toBeTruthy();
+    expect(container.querySelector(".publish-live")).toBeTruthy();
+  });
+
   it("gives every popover an explicit close control that dismisses it", () => {
     const { container } = render(<TopBar {...baseProps} />);
     const trigger = container.querySelector<HTMLButtonElement>(".publish-trigger")!;
