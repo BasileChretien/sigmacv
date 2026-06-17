@@ -405,6 +405,14 @@
         "publicAttribution": {
           "default": true,
           "type": "boolean"
+        },
+        "showCoauthorLinks": {
+          "default": false,
+          "type": "boolean"
+        },
+        "coauthorLinkable": {
+          "default": true,
+          "type": "boolean"
         }
       }
     },
@@ -831,6 +839,14 @@
                     "isCorresponding": {
                       "type": "boolean"
                     },
+                    "coauthorOrcids": {
+                      "maxItems": 300,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 50
+                      }
+                    },
                     "matchBasis": {
                       "type": "string",
                       "enum": ["orcid", "openalex-id", "both", "claimed"]
@@ -1123,6 +1139,14 @@
                 }
               },
               "publicAttribution": {
+                "default": true,
+                "type": "boolean"
+              },
+              "showCoauthorLinks": {
+                "default": false,
+                "type": "boolean"
+              },
+              "coauthorLinkable": {
                 "default": true,
                 "type": "boolean"
               }

@@ -103,6 +103,8 @@ describe("DisplayChoicesSchema", () => {
       density: "comfortable",
       publicContact: { email: false, phone: false, location: false },
       publicAttribution: true,
+      showCoauthorLinks: false,
+      coauthorLinkable: true,
     });
   });
 

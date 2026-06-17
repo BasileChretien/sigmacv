@@ -303,6 +303,12 @@ export function commonCss(theme: TemplateTheme): string {
      landmark). */
   .cv-attribution { margin: 0.3rem 0 0; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
   .cv-attribution a { color: var(--cv-accent); text-decoration: none; }
+  /* "Co-authors on SigmaCV" block — public living page ONLY (opt-in). A quiet
+     inline list of collaborators who also have a public SigmaCV CV. */
+  .cv-coauthors { margin: 1.4rem 0 0; }
+  .cv-coauthors-h { margin: 0 0 0.35rem; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cv-muted); }
+  .cv-coauthors-list { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 0.2rem 0.85rem; font-size: 0.78rem; }
+  .cv-coauthors-list a { color: var(--cv-accent); text-decoration: none; }
   a { color: inherit; }
 
   @page { size: A4; margin: 16mm 15mm; }
@@ -481,6 +487,29 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
     : "";
   const madeWith = escapeHtml(s.madeWith);
   return `${living}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
+}
+
+/**
+ * The public-page "Co-authors on SigmaCV" block: a short list of the account
+ * holder's co-authors who have their OWN published, search-indexable SigmaCV CV,
+ * each linking to their public page (`/p/<slug>`). Emitted ONLY when BOTH (a) the
+ * caller supplied resolved links (`opts.coauthorCvs` — the `/p/[slug]` route;
+ * exporters never do, so it stays off every PDF/DOCX/LaTeX/Markdown) AND (b) the
+ * owner opted in (`display.showCoauthorLinks`). "" otherwise.
+ *
+ * First-party `/p/<slug>` links only (slugs are server-validated upstream); names
+ * and slugs are HTML-escaped. A `<nav>` labelled by the heading rather than an
+ * `<h2>`, so it never disturbs the CV's section heading outline. "SigmaCV" in the
+ * heading is the brand name and is never translated.
+ */
+export function coauthorLinksFooter(cv: CanonicalCv, opts: RenderOpts = {}): string {
+  const links = opts.coauthorCvs ?? [];
+  if (links.length === 0 || !cv.display.showCoauthorLinks) return "";
+  const heading = escapeHtml(renderStrings(cv.display.locale).coauthorsHeading);
+  const items = links
+    .map((l) => `<li><a href="${escapeHtml(`/p/${l.slug}`)}">${escapeHtml(l.name)}</a></li>`)
+    .join("");
+  return `<nav class="cv-coauthors" aria-label="${heading}"><p class="cv-coauthors-h">${heading}</p><ul class="cv-coauthors-list">${items}</ul></nav>`;
 }
 
 /**

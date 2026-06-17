@@ -1,5 +1,6 @@
 import {
   attributionFooter,
+  coauthorLinksFooter,
   commonCss,
   cvPageShell,
   headerHtml,
@@ -77,7 +78,7 @@ export const atsTemplate: CvTemplate = {
   key: "ats",
   render(cv, sections, theme, opts) {
     const css = commonCss(theme) + atsCss(theme);
-    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}</div>`;
+    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}</div>`;
     return cvPageShell(cv, css, body);
   },
 };

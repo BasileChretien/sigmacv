@@ -135,14 +135,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   // protection). Cleared immediately when a slug is published.
   if (isKnownMiss(slug)) return notFound();
 
-  const record = await getPublicCvForPage(slug);
+  // resolveCoauthors: also resolve co-authors with their own public+indexable CV
+  // (for the JSON-LD `knows` graph). Only this route needs it; the OG card skips it.
+  const record = await getPublicCvForPage(slug, { resolveCoauthors: true });
   if (!record) {
     rememberMiss(slug);
     return notFound();
   }
 
   // getPublicCvForPage already returns the projectCvForPublic() projection.
-  const { cv, indexable } = record;
+  const { cv, indexable, coauthorCvs } = record;
 
   // FAIR Signposting typed links — same for the HTML page and every machine
   // representation served from this slug.
@@ -165,7 +167,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     // never pass this, so PDF/DOCX/LaTeX/Markdown stay unbranded.
     // The living public page may use an animated showcase style (display.publicStyle);
     // "match" (default) renders with the document template. Exports never call this.
-    let html = renderPublicCvHtml(cv, { attribution: true });
+    let html = renderPublicCvHtml(cv, { attribution: true, coauthorCvs });
     // SEO + OG/Twitter meta (public profile text only) into <head>: canonical +
     // og:url for this page, a description for the SERP snippet, and og:image
     // pointing at the per-CV branded card (same slug, /og sub-route).
@@ -181,7 +183,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     // executed), so it's unaffected by the document's strict CSP.
     html = html.replace(
       "</head>",
-      `${head}<script type="application/ld+json">${profilePageJsonLd(cv, slug)}</script></head>`,
+      `${head}<script type="application/ld+json">${profilePageJsonLd(cv, slug, coauthorCvs)}</script></head>`,
     );
 
     const rendered = { html, indexable, signposting };

@@ -6,6 +6,7 @@
  */
 import {
   attributionFooter,
+  coauthorLinksFooter,
   commonCss,
   cvPageShell,
   escapeHtml,
@@ -77,7 +78,7 @@ export const marqueeTemplate: CvTemplate = {
       header +
       ribbon +
       sectionsHtml(sections) +
-      `${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}` +
+      `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);
   },

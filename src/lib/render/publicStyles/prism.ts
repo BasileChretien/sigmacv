@@ -13,6 +13,7 @@
  */
 import {
   attributionFooter,
+  coauthorLinksFooter,
   commonCss,
   cvPageShell,
   headerHtml,
@@ -157,7 +158,7 @@ export const prismTemplate: CvTemplate = {
       `<div class="prism-plate">` +
       headerHtml(cv, { photo: true }) +
       sectionsHtml(sections) +
-      `${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}` +
+      `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);
   },

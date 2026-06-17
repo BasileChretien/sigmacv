@@ -65,6 +65,26 @@ describe("profilePageJsonLd", () => {
     expect(JSON.parse(json).mainEntity.name).toBe("</script><b>x");
   });
 
+  it("emits a `knows` graph for co-authors who have their own indexable SigmaCV CV", () => {
+    const json = profilePageJsonLd(makeCv(), "slug", [
+      { orcid: "0000-0001-2345-6789", slug: "jane-x", name: "Jane Coauthor" },
+    ]);
+    const knows = JSON.parse(json).mainEntity.knows;
+    expect(knows).toEqual([
+      {
+        "@type": "Person",
+        name: "Jane Coauthor",
+        identifier: "https://orcid.org/0000-0001-2345-6789",
+        sameAs: ["https://orcid.org/0000-0001-2345-6789"],
+        url: expect.stringContaining("/p/jane-x"),
+      },
+    ]);
+  });
+
+  it("omits `knows` when no co-authors were resolved", () => {
+    expect(JSON.parse(profilePageJsonLd(makeCv(), "s")).mainEntity.knows).toBeUndefined();
+  });
+
   it("emits affiliation/worksFor Organization with a ROR @id from the current position", () => {
     const cv = makeCv({
       employments: [
