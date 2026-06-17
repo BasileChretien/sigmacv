@@ -230,6 +230,10 @@
             "cyberpunk"
           ]
         },
+        "showMascot": {
+          "default": false,
+          "type": "boolean"
+        },
         "cslStyle": {
           "default": "apa",
           "type": "string",
@@ -1024,6 +1028,10 @@
                   "meadow",
                   "cyberpunk"
                 ]
+              },
+              "showMascot": {
+                "default": false,
+                "type": "boolean"
               },
               "cslStyle": {
                 "default": "apa",
