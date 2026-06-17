@@ -119,7 +119,6 @@ const meshMascotSkin = `
       0 4px 14px -3px rgba(100, 80, 220, 0.55),
       0 12px 32px -6px rgba(140, 80, 255, 0.40),
       0 0  22px 0px  rgba(200, 140, 255, 0.22);
-    position: relative;
     overflow: hidden;
   }
 

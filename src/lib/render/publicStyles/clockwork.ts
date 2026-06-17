@@ -241,7 +241,6 @@ const clockworkMascotSkin = `
       /* inner bottom-right depth */
       inset 0 -3px 6px rgba(0,0,0,0.45);
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
-    position: relative;
   }
 
   /* Σ — stamped/engraved into the brass (inset shadow = recessed chisel mark) */

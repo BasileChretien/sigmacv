@@ -96,7 +96,6 @@ const terminalMascotSkin = `
       0 0 28px 6px rgba(34,255,102,0.18),
       inset 0 0 8px 2px rgba(34,255,102,0.08);
     overflow: visible;
-    position: relative;
   }
   /* Phosphor-green Σ on the screen */
   .sm-fig::before {

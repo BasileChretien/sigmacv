@@ -121,7 +121,6 @@ const synthwaveMascotSkin = `
       0 0 12px 2px rgba(255,46,180,0.65),
       0 0 28px 6px rgba(139,26,122,0.45),
       inset 0 1px 0 rgba(255,255,255,0.35);
-    position: relative;
     overflow: hidden;
   }
 

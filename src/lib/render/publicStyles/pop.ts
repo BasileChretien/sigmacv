@@ -160,7 +160,6 @@ const popMascotSkin = `
     background: #1a6efc;
     border: 3px solid #111;
     box-shadow: 6px 6px 0 #111;
-    position: relative;
     overflow: visible;
     animation: sm-pop-bounce 2.8s ease-in-out infinite;
   }
