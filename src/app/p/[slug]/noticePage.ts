@@ -6,9 +6,11 @@
  * home instead.
  *
  * No external assets (works under the route's strict CSP), `noindex`, and it
- * NEVER reflects the requested slug (no user input in the body → no escaping
- * needed; the strings below are static).
+ * NEVER reflects the requested slug — every caller passes static copy. The
+ * heading/message are HTML-escaped anyway, so the helper stays injection-safe
+ * even if a future caller passes dynamic text.
  */
+import { escapeHtml } from "@/lib/render/escape";
 
 const NOTICE_CSS =
   "body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;max-width:34rem;margin:18vh auto 4rem;padding:0 1.25rem;color:#1f2430;line-height:1.55}" +
@@ -17,9 +19,12 @@ const NOTICE_CSS =
   "a{color:#1f4fd8;text-decoration:underline;text-underline-offset:.15em;font-weight:600}" +
   ".brand{font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;color:#6b7280;margin:0 0 1.5rem}";
 
-/** Build the full notice document. `heading`/`message` are static, trusted copy. */
+/** Build the full notice document. `heading`/`message` are escaped for defense in
+ *  depth (callers pass static copy today). */
 export function publicNoticeHtml(heading: string, message: string): string {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${heading} — SigmaCV</title><style>${NOTICE_CSS}</style></head><body><p class="brand">SigmaCV</p><h1>${heading}</h1><p>${message}</p><p><a href="/">Go to SigmaCV →</a></p></body></html>`;
+  const h = escapeHtml(heading);
+  const m = escapeHtml(message);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${h} — SigmaCV</title><style>${NOTICE_CSS}</style></head><body><p class="brand">SigmaCV</p><h1>${h}</h1><p>${m}</p><p><a href="/">Go to SigmaCV →</a></p></body></html>`;
 }
 
 /**
@@ -39,8 +44,12 @@ export function publicNoticeResponse(
       "Content-Type": "text/html; charset=utf-8",
       "X-Robots-Tag": "noindex, nofollow",
       "Cache-Control": "private, no-store",
-      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
+      // Mirror the hardened anti-framing posture of publicPageResponse so these
+      // error pages can't be iframed for clickjacking / UI-redress.
+      "Content-Security-Policy":
+        "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
       "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
       "Referrer-Policy": "no-referrer",
       ...extraHeaders,
     },
