@@ -36,6 +36,7 @@ import {
   removeSection,
   renameSection,
   setItemDateRange,
+  setItemDepartment,
   setItemInView,
   setItemIncluded,
   setItemInstitution,
@@ -963,6 +964,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                 }
                                 onSetRole={(role) =>
                                   onChange(setItemRoleTitle(cv, section.id, item.id, role))
+                                }
+                                onSetDepartment={(name) =>
+                                  onChange(setItemDepartment(cv, section.id, item.id, name))
                                 }
                                 onSetInstitution={(name) =>
                                   onChange(setItemInstitution(cv, section.id, item.id, name))

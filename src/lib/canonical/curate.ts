@@ -887,6 +887,36 @@ export function setItemInstitution(
 }
 
 /**
+ * Set (or clear) the USER department/sub-unit for a source-derived positions/
+ * education entry — the editor's "Department" field. Stored in
+ * `meta.departmentOverride` (wins over the source `meta.department`, carried across
+ * re-sync); a BLANK value, or one equal to the source, CLEARS it (revert to
+ * source). The raw value is stored (not trimmed) so a trailing space survives mid-
+ * typing. The line is re-derived in place. Pure + immutable; a no-op for an unknown
+ * id or a non-re-derivable item.
+ */
+export function setItemDepartment(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  name: string,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const trimmed = name.trim();
+      const override =
+        trimmed.length === 0 || trimmed === (it.meta.department ?? "").trim() ? undefined : name;
+      const meta = { ...it.meta, departmentOverride: override };
+      const next: CvItem = { ...it, meta };
+      const line = rederiveEntryLine(next);
+      return line === undefined ? next : { ...next, displayText: line };
+    }),
+  }));
+}
+
+/**
  * Set (or clear) the USER date range for a source-derived positions/education
  * entry — the editor's start/end year + "Ongoing" controls. A `range` object is
  * stored in `meta.dateRangeOverride` (replacing the source dates; an absent

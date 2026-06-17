@@ -426,6 +426,7 @@ function makeEntryItem(
   // re-sync, exactly like `displayTextOverride` — while the source values above
   // keep refreshing underneath, so "revert to source" stays meaningful.
   if (prev?.meta.roleTitleOverride) meta.roleTitleOverride = prev.meta.roleTitleOverride;
+  if (prev?.meta.departmentOverride) meta.departmentOverride = prev.meta.departmentOverride;
   if (prev?.meta.institutionOverride) meta.institutionOverride = prev.meta.institutionOverride;
   if (prev?.meta.dateRangeOverride) meta.dateRangeOverride = prev.meta.dateRangeOverride;
   return {

@@ -5,6 +5,7 @@ import {
   displayInstitution,
   isHidden,
   itemDateRange,
+  itemDepartment,
   itemDisplayText,
   itemInstitution,
   itemRoleTitle,
@@ -155,6 +156,9 @@ interface ItemRowProps {
    * here.
    */
   onSetRole?: (role: string) => void;
+  /** Set/clear the department override on a source-derived positions/education
+   *  entry — the "Edit details" disclosure. Passing "" reverts to source. */
+  onSetDepartment?: (name: string) => void;
   /** Set/clear the institution-name override on a source-derived positions/
    *  education entry — the "Edit details" disclosure. Passing "" reverts to source. */
   onSetInstitution?: (name: string) => void;
@@ -208,6 +212,7 @@ export default function ItemRow({
   onUpdateText,
   onSetTextOverride,
   onSetRole,
+  onSetDepartment,
   onSetInstitution,
   onSetDateRange,
   onRemove,
@@ -410,6 +415,28 @@ export default function ItemRow({
               <details className="cv-item-details">
                 <summary>{u.editDetails}</summary>
                 <div className="cv-item-details-body">
+                  {onSetDepartment ? (
+                    <div className="cv-item-edit-wrap">
+                      <input
+                        className="cv-item-edit"
+                        value={itemDepartment(item) ?? ""}
+                        onChange={(e) => onSetDepartment(e.target.value)}
+                        placeholder={u.departmentAria}
+                        aria-label={u.departmentAria}
+                      />
+                      {item.meta.departmentOverride !== undefined ? (
+                        <button
+                          type="button"
+                          className="icon-btn cv-item-revert"
+                          onClick={() => onSetDepartment("")}
+                          title={u.revertToSourceHint}
+                          aria-label={u.revertToSource}
+                        >
+                          ↺
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <div className="cv-item-edit-wrap">
                     <input
                       className="cv-item-edit"
