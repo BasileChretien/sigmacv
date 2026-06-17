@@ -79,6 +79,7 @@ describe("DisplayChoicesSchema", () => {
     expect(d).toEqual({
       template: "classic",
       publicStyle: "match",
+      showMascot: false,
       cslStyle: "apa",
       locale: "en-US",
       highlightSelf: true,

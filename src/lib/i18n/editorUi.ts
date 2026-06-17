@@ -18,6 +18,9 @@ export interface EditorExtraStrings {
   publicStyleMatch: string;
   publicStyleMatchHint: string;
   publicStyleAnimated: string;
+  /** Opt-in scroll-following mascot companion (playful styles only). */
+  mascotLabel: string;
+  mascotHint: string;
   previewSurfaceLabel: string;
   previewSurfaceDocument: string;
   previewSurfacePublic: string;
@@ -95,6 +98,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatch: "Match my document",
     publicStyleMatchHint: "No animation — your public page mirrors your document template.",
     publicStyleAnimated: "Animated",
+    mascotLabel: "Mascot companion",
+    mascotHint:
+      "A small character that follows the page as visitors scroll. Off by default; only on playful styles.",
     previewSurfaceLabel: "Preview",
     previewSurfaceDocument: "Document",
     previewSurfacePublic: "Public page",
@@ -163,6 +169,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatch: "与文档一致",
     publicStyleMatchHint: "无动画——公开页面与你的文档模板保持一致。",
     publicStyleAnimated: "动画",
+    mascotLabel: "吉祥物伙伴",
+    mascotHint: "访客滚动时跟随页面的小角色。默认关闭；仅用于活泼样式。",
     previewSurfaceLabel: "预览",
     previewSurfaceDocument: "文档",
     previewSurfacePublic: "公开页面",
@@ -231,6 +239,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatch: "Igual que mi documento",
     publicStyleMatchHint: "Sin animación: tu página pública refleja la plantilla de tu documento.",
     publicStyleAnimated: "Animado",
+    mascotLabel: "Mascota acompañante",
+    mascotHint:
+      "Un pequeño personaje que sigue la página al desplazarse. Desactivado por defecto; solo en estilos divertidos.",
     previewSurfaceLabel: "Vista previa",
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Página pública",
@@ -303,6 +314,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatchHint:
       "Sans animation — votre page publique reprend le modèle de votre document.",
     publicStyleAnimated: "Animé",
+    mascotLabel: "Mascotte compagnon",
+    mascotHint:
+      "Un petit personnage qui suit la page au défilement. Désactivé par défaut ; uniquement sur les styles ludiques.",
     previewSurfaceLabel: "Aperçu",
     previewSurfaceDocument: "Document",
     previewSurfacePublic: "Page publique",
@@ -376,6 +390,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatchHint:
       "Keine Animation – Ihre öffentliche Seite übernimmt Ihre Dokumentvorlage.",
     publicStyleAnimated: "Animiert",
+    mascotLabel: "Maskottchen-Begleiter",
+    mascotHint:
+      "Eine kleine Figur, die der Seite beim Scrollen folgt. Standardmäßig aus; nur bei verspielten Stilen.",
     previewSurfaceLabel: "Vorschau",
     previewSurfaceDocument: "Dokument",
     previewSurfacePublic: "Öffentliche Seite",
@@ -448,6 +465,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatchHint:
       "アニメーションなし — 公開ページはドキュメントのテンプレートと同じ表示になります。",
     publicStyleAnimated: "アニメーション",
+    mascotLabel: "マスコット",
+    mascotHint:
+      "スクロールに合わせてページを移動する小さなキャラクター。既定はオフ。遊び心のあるスタイルのみ。",
     previewSurfaceLabel: "プレビュー",
     previewSurfaceDocument: "ドキュメント",
     previewSurfacePublic: "公開ページ",
@@ -518,6 +538,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatch: "Igual ao meu documento",
     publicStyleMatchHint: "Sem animação — sua página pública espelha o modelo do seu documento.",
     publicStyleAnimated: "Animado",
+    mascotLabel: "Mascote companheira",
+    mascotHint:
+      "Um pequeno personagem que acompanha a página ao rolar. Desativado por padrão; apenas em estilos divertidos.",
     previewSurfaceLabel: "Pré-visualização",
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Página pública",
@@ -590,6 +613,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatchHint:
       "Nessuna animazione — la pagina pubblica rispecchia il modello del tuo documento.",
     publicStyleAnimated: "Animato",
+    mascotLabel: "Mascotte compagna",
+    mascotHint:
+      "Un piccolo personaggio che segue la pagina allo scorrimento. Disattivato per impostazione predefinita; solo negli stili giocosi.",
     previewSurfaceLabel: "Anteprima",
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Pagina pubblica",
@@ -662,6 +688,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatch: "문서와 동일하게",
     publicStyleMatchHint: "애니메이션 없음 — 공개 페이지가 문서 템플릿과 동일하게 표시됩니다.",
     publicStyleAnimated: "애니메이션",
+    mascotLabel: "마스코트 친구",
+    mascotHint:
+      "방문자가 스크롤하면 페이지를 따라다니는 작은 캐릭터. 기본적으로 꺼져 있으며, 경쾌한 스타일에서만 표시됩니다.",
     previewSurfaceLabel: "미리보기",
     previewSurfaceDocument: "문서",
     previewSurfacePublic: "공개 페이지",
@@ -732,6 +761,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatch: "Как в документе",
     publicStyleMatchHint: "Без анимации — публичная страница повторяет шаблон вашего документа.",
     publicStyleAnimated: "Анимированный",
+    mascotLabel: "Талисман-спутник",
+    mascotHint:
+      "Маленький персонаж, который следует за страницей при прокрутке. По умолчанию выключен; только в игривых стилях.",
     previewSurfaceLabel: "Предпросмотр",
     previewSurfaceDocument: "Документ",
     previewSurfacePublic: "Публичная страница",

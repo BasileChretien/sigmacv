@@ -7,6 +7,7 @@ import {
   DENSITIES,
   FONT_PAIRINGS,
   HIGHLIGHT_STYLES,
+  isMascotStyle,
   PUBLIC_STYLES,
   TEMPLATES,
   type CanonicalCv,
@@ -779,6 +780,19 @@ export default function StyleControls({
             })}
           </div>
         </div>
+        {isMascotStyle(cv.display.publicStyle ?? "") ? (
+          <>
+            <label className="field-inline mascot-toggle">
+              <input
+                type="checkbox"
+                checked={cv.display.showMascot ?? false}
+                onChange={(e) => onChange(updateDisplay(cv, { showMascot: e.target.checked }))}
+              />
+              <span>{eu.mascotLabel}</span>
+            </label>
+            <p className="muted metric-preset-note field-note">{eu.mascotHint}</p>
+          </>
+        ) : null}
       </StyleGroup>
 
       <StyleGroup grouped={grouped} title={eu.grpMetrics} defaultOpen={false}>

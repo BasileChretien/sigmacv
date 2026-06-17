@@ -1,4 +1,4 @@
-import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
+import { isMascotStyle, isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
@@ -510,6 +510,53 @@ export function coauthorLinksFooter(cv: CanonicalCv, opts: RenderOpts = {}): str
     .map((l) => `<li><a href="${escapeHtml(`/p/${l.slug}`)}">${escapeHtml(l.name)}</a></li>`)
     .join("");
   return `<nav class="cv-coauthors" aria-label="${heading}"><p class="cv-coauthors-h">${heading}</p><ul class="cv-coauthors-list">${items}</ul></nav>`;
+}
+
+/**
+ * The optional scroll-following mascot companion. An empty, `aria-hidden`
+ * element the playful public-page styles place in the gutter; each style draws
+ * the character entirely in CSS (`.sigma-mascot` + `mascotBaseCss`). Returns ""
+ * unless the owner opted in (`display.showMascot`) AND the chosen style is
+ * mascot-capable (`MASCOT_STYLES`) — so it can never appear on a credible style,
+ * and since exports always use the document template, never on any export.
+ */
+export function mascotHtml(cv: CanonicalCv): string {
+  if (!cv.display.showMascot || !isMascotStyle(cv.display.publicStyle)) return "";
+  return `<div class="sigma-mascot" aria-hidden="true"><i></i></div>`;
+}
+
+/**
+ * Shared mascot CSS — the scroll-follow + idle motion and ALL its a11y/perf
+ * guardrails in ONE place, so no individual style can forget them. The mascot is
+ * pinned to the right gutter and rides the page scroll position via
+ * `scroll(root)` (it moves down as you scroll down and back up as you scroll up),
+ * with a small idle bob on the default timeline. It animates only `translate` /
+ * `rotate` / `scale` (compositor-cheap) and is SHOWN only when the browser
+ * supports scroll-driven animation AND the viewport is wide enough; it is hidden
+ * under `prefers-reduced-motion`, on narrow viewports (the gutter collapses), and
+ * in print. Each style appends its own `.sigma-mascot` skin (appearance only).
+ */
+export function mascotBaseCss(): string {
+  return `
+  .sigma-mascot {
+    position: fixed; top: 0; right: max(0.6rem, calc(50vw - 480px));
+    width: 50px; height: 50px; z-index: 45; pointer-events: none;
+    will-change: transform; display: none;
+  }
+  .sigma-mascot, .sigma-mascot * { box-sizing: border-box; }
+  .sigma-mascot i { display: block; position: absolute; }
+  @keyframes sigma-travel { from { translate: 0 7vh; } to { translate: 0 86vh; } }
+  @keyframes sigma-bob { 0%, 100% { rotate: -5deg; scale: 1; } 50% { rotate: 5deg; scale: 1.05; } }
+  @supports (animation-timeline: scroll()) {
+    .sigma-mascot {
+      display: block;
+      animation: sigma-travel linear both, sigma-bob 2.1s ease-in-out infinite;
+      animation-timeline: scroll(root), auto;
+    }
+  }
+  @media (max-width: 1000px) { .sigma-mascot { display: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .sigma-mascot { display: none !important; } }
+  @media print { .sigma-mascot { display: none !important; } }`;
 }
 
 /**
