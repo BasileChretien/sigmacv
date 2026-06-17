@@ -131,13 +131,14 @@ export default function PublishControls({
     }
   }
 
-  // Absolute URLs for the badge image + the page it links to, plus ready-to-paste
-  // Markdown/HTML snippets. Only meaningful inside the published-and-slugged block.
+  // The preview <img> uses a RELATIVE src (`badgeSrc`, no window.location) so it is
+  // not a location→DOM flow. The copyable Markdown/HTML snippets need the ABSOLUTE
+  // URL, but those only ever reach the clipboard — never the DOM.
   const base = origin || (typeof window !== "undefined" ? window.location.origin : "");
+  const badgeQuery = `style=${badgeStyle}&theme=${badgeTheme}`;
+  const badgeSrc = slug ? `/p/${slug}/badge.svg?${badgeQuery}` : "";
   const pageUrl = slug ? `${base}/p/${slug}` : "";
-  const badgeUrl = slug
-    ? `${base}/p/${slug}/badge.svg?style=${badgeStyle}&theme=${badgeTheme}`
-    : "";
+  const badgeUrl = slug ? `${base}${badgeSrc}` : "";
   const badgeAlt = "Living CV";
   const badgeMarkdown = `[![${badgeAlt}](${badgeUrl})](${pageUrl})`;
   const badgeHtml = `<a href="${pageUrl}"><img src="${badgeUrl}" alt="${badgeAlt}" /></a>`;
@@ -215,7 +216,7 @@ export default function PublishControls({
             <div className="badge-preview">
               {/* eslint-disable-next-line @next/next/no-img-element -- a third-party-
                   cacheable SVG badge, not a Next-optimized asset. */}
-              <img src={badgeUrl} alt={b.previewAlt} />
+              <img src={badgeSrc} alt={b.previewAlt} />
             </div>
             <div className="badge-actions">
               <button
