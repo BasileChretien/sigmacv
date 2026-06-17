@@ -15,6 +15,7 @@ import {
   type NotMineReason,
 } from "@/lib/canonical/schema";
 import { reasonLabel, t, type Locale } from "@/lib/i18n";
+import { stripInlineMarkup } from "@/lib/text/markup";
 import { ui } from "@/lib/i18n/ui";
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
@@ -53,7 +54,9 @@ const SOURCE_NAMES: Record<string, string> = {
 function DupFacts({ item, locale }: { item: CvItem; locale: Locale }) {
   const ds = dupStrings(locale);
   const u = ui(locale);
-  const title = item.csl?.title ?? itemDisplayText(item) ?? u.itemUntitled;
+  // Flatten any kept inline tags (<i>/<sub>/…) — these read the raw CSL title,
+  // which only citeproc renders; here a tag would show as literal text.
+  const title = stripInlineMarkup(item.csl?.title ?? itemDisplayText(item) ?? u.itemUntitled);
   const authors = (item.csl?.author ?? [])
     .map((a) =>
       typeof a.family === "string" ? a.family : typeof a.literal === "string" ? a.literal : "",
@@ -289,7 +292,9 @@ export default function ItemRow({
   // rows use the `onUpdateText` path below.
   const canEditText =
     !isCitation && !isManual && (sectionType === "positions" || sectionType === "education");
-  const title = item.csl?.title ?? itemDisplayText(item) ?? u.itemUntitled;
+  // Flatten any kept inline tags (<i>/<sub>/…) — these read the raw CSL title,
+  // which only citeproc renders; here a tag would show as literal text.
+  const title = stripInlineMarkup(item.csl?.title ?? itemDisplayText(item) ?? u.itemUntitled);
   // Institution name (ROR-localized) shown as read-only context beside the
   // editable role, so "Add your title…" has something to attach to.
   const institution = displayInstitution(item, locale);

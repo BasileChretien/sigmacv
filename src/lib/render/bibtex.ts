@@ -1,6 +1,7 @@
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import type { CslItem, CslName } from "@/types/csl";
+import { stripInlineMarkup } from "@/lib/text/markup";
 import { cvSlug } from "./slug";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
@@ -96,13 +97,16 @@ function urlField(name: string, value: string): string | null {
 }
 function cslToBibtex(csl: CslItem, key: string): string {
   const type = bibType(csl);
-  const container = csl["container-title"] ?? "";
+  // .bib can't render inline tags — flatten any kept <i>/<sub>/… (and strip the
+  // unsupported ones already removed at build) to clean text for the file.
+  const container = csl["container-title"] ? stripInlineMarkup(csl["container-title"]) : "";
+  const title = csl.title ? stripInlineMarkup(csl.title) : "";
   const containerField =
     type === "inproceedings" || type === "incollection" ? "booktitle" : "journal";
 
   const lines: (string | null)[] = [
     field("author", authorsOf(csl), true), // already escaped per-name
-    csl.title ? `  title = {{${esc(csl.title)}}}` : null, // double braces protect case
+    title ? `  title = {{${esc(title)}}}` : null, // double braces protect case
     field("year", yearOf(csl)),
     field(containerField, container),
     field("volume", csl.volume ?? ""),

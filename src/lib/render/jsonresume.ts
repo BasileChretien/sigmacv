@@ -6,6 +6,7 @@ import {
 } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import type { CslItem } from "@/types/csl";
+import { stripInlineMarkup } from "@/lib/text/markup";
 import { cvSlug } from "./slug";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
@@ -57,7 +58,9 @@ function doiUrl(csl: CslItem): string | undefined {
 /** A non-citation entry's plain text, or a citation's title — what to list when
  *  a section maps to a flat string-only JSON Résumé field (work/education/…). */
 function entryText(item: CvItem): string {
-  return (itemDisplayText(item) ?? item.csl?.title ?? "").trim();
+  // A citation title may carry kept inline tags (<i>/<sub>); JSON Résumé is plain
+  // data, so flatten to text (non-citation displayText has no markup → unchanged).
+  return stripInlineMarkup(itemDisplayText(item) ?? item.csl?.title ?? "");
 }
 
 function sectionByType(cv: CanonicalCv, type: CvSection["type"]): CvSection | undefined {
@@ -83,8 +86,8 @@ function publicationsOf(cv: CanonicalCv): ResumePublication[] {
       // non-citation entries (no CSL) that might sit in a publications section.
       const csl = item.csl;
       if (!csl) continue;
-      const pub: ResumePublication = { name: (csl.title ?? "").trim() || "Untitled" };
-      const publisher = (csl["container-title"] ?? csl.publisher ?? "").trim();
+      const pub: ResumePublication = { name: stripInlineMarkup(csl.title ?? "") || "Untitled" };
+      const publisher = stripInlineMarkup(csl["container-title"] ?? csl.publisher ?? "");
       if (publisher) pub.publisher = publisher;
       const releaseDate = cslDate(csl);
       if (releaseDate) pub.releaseDate = releaseDate;

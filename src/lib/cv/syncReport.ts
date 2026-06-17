@@ -6,6 +6,7 @@ import {
   type CanonicalCv,
   type CvItem,
 } from "@/lib/canonical/schema";
+import { stripInlineMarkup } from "@/lib/text/markup";
 
 /**
  * The "what changed" report of a sync — computed by comparing the previous
@@ -91,7 +92,9 @@ export function addedBySectionType(
 }
 
 function entryTitle(item: CvItem): string {
-  const title = item.csl?.title ?? itemDisplayText(item) ?? "";
+  // The "what's new" banner is plain text — flatten any kept inline tags (<i>/…)
+  // so a title never shows a literal "<i>" in the banner.
+  const title = stripInlineMarkup(item.csl?.title ?? itemDisplayText(item) ?? "");
   return title.slice(0, TITLE_MAX);
 }
 

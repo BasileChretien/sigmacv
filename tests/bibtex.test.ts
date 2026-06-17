@@ -112,6 +112,22 @@ describe("cslItemsToBibtex", () => {
     expect(bib).not.toContain("a\\^b");
   });
 
+  it("flattens inline markup in the title + journal to plain text", () => {
+    const marked: CslItem = {
+      id: "WM",
+      type: "article-journal",
+      title: "Role of <i>TP53</i> in <scp>NSCLC</scp>",
+      author: [{ family: "Smith", given: "Jo" }],
+      "container-title": "Clinical and <scp>Translational</scp> Science",
+      issued: { "date-parts": [[2024]] },
+    };
+    const bib = cslItemsToBibtex([marked]);
+    expect(bib).toContain("title = {{Role of TP53 in NSCLC}}");
+    expect(bib).toContain("journal = {Clinical and Translational Science}");
+    expect(bib).not.toContain("<i>");
+    expect(bib).not.toContain("<scp>");
+  });
+
   it("strips braces/backslash from url + doi so a crafted value can't inject", () => {
     const evil: CslItem = {
       id: "WX",

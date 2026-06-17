@@ -190,4 +190,30 @@ describe("workToCsl", () => {
     } as unknown as OpenAlexWork);
     expect(csl.issued).toBeUndefined();
   });
+
+  it("drops citeproc-unsupported markup from the title + container (the <scp> case)", () => {
+    const csl = workToCsl({
+      id: "https://openalex.org/W779",
+      title:
+        "Consciousness Disturbances Reported With Clindamycin Versus Cefazolin in Surgical Patients: A Global Pharmacovigilance Analysis Using <scp>VigiBase</scp>",
+      type: "article",
+      primary_location: {
+        source: { display_name: "Clinical and <scp>Translational</scp> Science" },
+      },
+    } as unknown as OpenAlexWork);
+    expect(csl.title).toBe(
+      "Consciousness Disturbances Reported With Clindamycin Versus Cefazolin in Surgical Patients: A Global Pharmacovigilance Analysis Using VigiBase",
+    );
+    expect(csl["container-title"]).toBe("Clinical and Translational Science");
+  });
+
+  it("keeps citeproc-renderable markup in the title (<i> for italics)", () => {
+    const csl = workToCsl({
+      id: "https://openalex.org/W780",
+      title: "Role of <i>TP53</i> in <scp>NSCLC</scp>",
+      type: "article",
+    } as unknown as OpenAlexWork);
+    // <i> survives (citeproc italicizes it); <scp> is dropped to plain text.
+    expect(csl.title).toBe("Role of <i>TP53</i> in NSCLC");
+  });
 });
