@@ -4,7 +4,7 @@
  * MAXIMALIST / eccentric: a dark stage under a huge, slowly spinning + endlessly
  * hue-cycling spectrum nebula; an oversized name in a flowing iridescent
  * gradient; a frosted-glass plate; per-section NEON heading colours; colour-
- * cycling publication ticks; glowing links; bold rotate+rise scroll reveals.
+ * cycling publication ticks; glowing links; per-entry rise-in scroll reveals.
  * Loud, colourful, alive — but text sits on a solid glass plate so it stays
  * readable. 100% CSS-ONLY → runs under the strict public-page CSP (no JS).
  *
@@ -56,7 +56,9 @@ function prismCss(_theme: TemplateTheme): string {
   .prism-plate {
     position: relative; z-index: 1;
     max-width: 880px; margin: 8vh auto 12vh; padding: 56px 58px 64px;
-    background: rgba(11,10,22,0.56);
+    /* opaque enough that text stays readable where the bright nebula sits behind
+       the plate (raised from 0.56 — the spinning spectrum showed through too much). */
+    background: rgba(11,10,22,0.68);
     backdrop-filter: blur(30px) saturate(1.5); -webkit-backdrop-filter: blur(30px) saturate(1.5);
     border: 1px solid rgba(255,255,255,0.13); border-radius: 30px;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 50px 140px rgba(0,0,0,0.62);
@@ -90,7 +92,10 @@ function prismCss(_theme: TemplateTheme): string {
     position: sticky; top: 0; z-index: 3;
     font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.18em;
     margin: 0 0 0.75rem; padding: 0.55rem 0;
-    background: rgba(11,10,22,0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    /* Near-opaque so the publications scrolling UNDER this sticky label are
+       cleanly occluded, not left half-visible + blurred through a translucent
+       bar (the old rgba 0.5 made the top entries unreadable). */
+    background: rgba(11,10,22,0.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     color: var(--neon-1);
   }
   section.cv-section:nth-of-type(5n+2) > h2 { color: var(--neon-3); }
@@ -110,13 +115,16 @@ function prismCss(_theme: TemplateTheme): string {
   ol.cv-bib > li a { color: var(--neon-3); text-shadow: 0 0 10px rgba(21,211,255,0.4); }
 
   /* ---- Bold scroll reveals + progress ----------------------------------- */
-  @keyframes prism-in { from { opacity: 0; transform: translateY(42px) rotate(-2deg) scale(0.95); filter: blur(7px); } to { opacity: 1; transform: none; filter: none; } }
   @keyframes prism-in-li { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
   @keyframes prism-progress { to { transform: scaleX(1); } }
 
   @supports (animation-timeline: view()) {
-    section.cv-section { animation: prism-in linear both; animation-timeline: view(); animation-range: entry 0% cover 26%; }
-    ol.cv-bib > li { animation: prism-in-li linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
+    /* Reveal each entry on its OWN geometry, never the whole section: the old
+       whole-section reveal (prism-in: rotate + rise + blur 7px) keyed to a tall
+       section kept its TOP entries blurred + translated while they were already
+       in the reading zone. The sticky neon heading is intentionally not scroll-
+       revealed (sticky + view() is unreliable) — it's an always-present label. */
+    ol.cv-bib > li, .cv-prose-body > * { animation: prism-in-li linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
   }
   @supports (animation-timeline: scroll()) {
     .prism-progress {

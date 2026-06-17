@@ -22,7 +22,7 @@ function synthCss(_t: TemplateTheme): string {
   return `
   :root {
     color-scheme: dark;
-    --cv-ink:#ffe9ff; --cv-ink-2:#e3b9ff; --cv-muted:#c79be0; --cv-faint:#a87ec4;
+    --cv-ink:#ffe9ff; --cv-ink-2:#e3b9ff; --cv-muted:#c79be0; --cv-faint:#cbb0dd;
     --cv-rule: rgba(255,255,255,0.16); --cv-rule-strong: rgba(255,255,255,0.3); --cv-page:#16082e;
     --mag:#ff2db4; --cyan:#3bf0ff; --orange:#ff8a3d; --yellow:#ffe14d;
   }
@@ -48,7 +48,9 @@ function synthCss(_t: TemplateTheme): string {
 
   /* Dark glass content panel for legibility over the sky */
   .sw-panel { position: relative; z-index: 1; max-width: 820px; margin: 30vh auto 14vh; padding: 52px 56px 60px;
-    background: rgba(20,8,40,0.62); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    /* opaque enough that light text stays readable where the panel sits over the
+       bright orange lower end of the sunset gradient (background-attachment:fixed). */
+    background: rgba(20,8,40,0.74); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,0.14); border-radius: 22px; box-shadow: 0 0 70px rgba(255,45,180,0.25), inset 0 1px 0 rgba(255,255,255,0.14); }
 
   header.cv-header { margin-bottom: 1.8rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cv-rule); }
@@ -71,7 +73,10 @@ function synthCss(_t: TemplateTheme): string {
   @keyframes sw-in { from{opacity:0;transform:translateY(30px) scale(0.97)} to{opacity:1;transform:none} }
   @keyframes sw-progress { to { transform: scaleX(1); } }
   @supports (animation-timeline: view()) {
-    section.cv-section { animation: sw-in linear both; animation-timeline: view(); animation-range: entry 0% cover 24%; }
+    /* Reveal heading + entries on their own (small) geometry, never the whole
+       section — a tall section animated as one block stays dark/faded at its top
+       while its first entries are already in the reading zone. */
+    section.cv-section > h2, .cv-prose-body > * { animation: sw-in linear both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: sw-in linear both; animation-timeline: view(); animation-range: entry 0% entry 52%; }
   }
   @supports (animation-timeline: scroll()) {

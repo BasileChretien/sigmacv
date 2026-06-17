@@ -66,6 +66,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Animated public-page styles keep the top of your Publications readable.** On
+  the most motion-heavy living-page styles (Prism, Synthwave, Riso, Mesh and the
+  others), the scroll “reveal” was applied to each whole section at once. On a tall
+  section like Publications that meant its first entries stayed faded, dark or
+  blurred while you were already reading them — and on Prism they scrolled under a
+  see-through, blurred sticky heading you couldn’t read past, while Riso’s reveal
+  scaled the whole block so Education and Publications overlapped. The reveal now
+  animates each heading and entry on its own as it scrolls in (the same approach the
+  Terminal style already used), so the page is just as lively but the top of every
+  section is crisp and readable; Prism’s sticky heading is now opaque. Applies to
+  the public page only — exports were never affected.
+- **Better text contrast across the animated public-page styles.** A contrast pass
+  over all nine styles fixed several spots where small secondary text (the footer
+  provenance/licence/“made with” lines) sat below the WCAG AA readability threshold:
+  the footer text was darkened on the light styles (Pop, Riso, Mesh) and lightened on
+  the dark ones, and the translucent panels were made a little more opaque (Prism,
+  Synthwave) — with Aura’s colour glow toned down — so text stays legible where the
+  moving background is brightest. The styles look the same; the fine print is just
+  easier to read. Public page only.
 - **A light accent colour can no longer make your name or headings unreadable.**
   The accent colour picker has a free colour field, so it was possible to choose a
   pale colour (a bright yellow, a light cyan) that rendered the Modern template’s

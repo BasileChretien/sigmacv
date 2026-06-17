@@ -20,7 +20,7 @@ import { accentSpectrum } from "./kit";
 function meshCss(_t: TemplateTheme): string {
   return `
   :root {
-    --cv-ink:#1b1733; --cv-ink-2:#46406a; --cv-muted:#6a648c; --cv-faint:#8a84ad;
+    --cv-ink:#1b1733; --cv-ink-2:#46406a; --cv-muted:#6a648c; --cv-faint:#605a7d;
     --cv-rule: rgba(27,23,51,0.12); --cv-rule-strong: rgba(27,23,51,0.24); --cv-page:#f7f8fc;
     --m1:#6d7cff; --m2:#54d6ff; --m3:#ff8ad1; --m4:#ffd36b;
   }
@@ -61,7 +61,10 @@ function meshCss(_t: TemplateTheme): string {
   @keyframes mesh-in { from{opacity:0;transform:translateY(26px) scale(0.98)} to{opacity:1;transform:none} }
   @keyframes mesh-progress { to { transform: scaleX(1); } }
   @supports (animation-timeline: view()) {
-    section.cv-section { animation: mesh-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: entry 0% cover 26%; }
+    /* Reveal heading + entries on their own (small) geometry, never the whole
+       section — a tall section animated as one block stays faded/translated at
+       its top while its first entries are already in the reading zone. */
+    section.cv-section > h2, .cv-prose-body > * { animation: mesh-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: mesh-in ease-out both; animation-timeline: view(); animation-range: entry 0% entry 52%; }
   }
   @supports (animation-timeline: scroll()) {

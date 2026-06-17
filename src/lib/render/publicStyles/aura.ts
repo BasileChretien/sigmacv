@@ -21,7 +21,7 @@ function auraCss(_t: TemplateTheme): string {
   return `
   :root {
     color-scheme: dark;
-    --cv-ink:#eef0ff; --cv-ink-2:#c4c8ee; --cv-muted:#9398c6; --cv-faint:#777cab;
+    --cv-ink:#eef0ff; --cv-ink-2:#c4c8ee; --cv-muted:#9398c6; --cv-faint:#9ea3d4;
     --cv-rule: rgba(255,255,255,0.10); --cv-rule-strong: rgba(255,255,255,0.2); --cv-page:#0a0a14;
   }
   body { min-height:100vh; color:var(--cv-ink); background:
@@ -38,10 +38,14 @@ function auraCss(_t: TemplateTheme): string {
   header.cv-header { padding: 40px 40px 32px; margin-bottom: 1.4rem; }
   section.cv-section { padding: 26px 30px; margin-top: 1.4rem; }
   header.cv-header::before, section.cv-section::before {
-    content:""; position:absolute; inset:-45%; z-index:-1; filter: blur(46px); opacity:0.55;
+    /* The aura sits BEHIND the card content but in FRONT of the card's own
+       background, so it tints the text's backdrop directly. Dimmed (0.55 -> 0.4
+       opacity, lower gradient alphas) so the glow stays vivid at the card edges
+       without dropping body/secondary text below a readable contrast. */
+    content:""; position:absolute; inset:-45%; z-index:-1; filter: blur(46px); opacity:0.4;
     background:
-      radial-gradient(circle at 28% 30%, hsl(var(--h,265) 92% 62% / 0.9), transparent 52%),
-      radial-gradient(circle at 74% 68%, hsl(calc(var(--h,265) + 55) 92% 60% / 0.85), transparent 52%);
+      radial-gradient(circle at 28% 30%, hsl(var(--h,265) 92% 62% / 0.78), transparent 52%),
+      radial-gradient(circle at 74% 68%, hsl(calc(var(--h,265) + 55) 92% 60% / 0.72), transparent 52%);
     animation: aura-move 16s ease-in-out infinite alternate;
   }
   @keyframes aura-move { to { transform: translate(10%, 9%) rotate(18deg) scale(1.18); } }
@@ -70,7 +74,10 @@ function auraCss(_t: TemplateTheme): string {
   @keyframes aura-in { from{opacity:0;transform:translateY(28px) scale(0.97)} to{opacity:1;transform:none} }
   @keyframes aura-progress { to { transform: scaleX(1); } }
   @supports (animation-timeline: view()) {
-    section.cv-section { animation: aura-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: entry 0% cover 26%; }
+    /* Reveal heading + entries on their own (small) geometry, never the whole
+       card — a tall section card animated as one block stays faded at its top
+       while its first entries are already in the reading zone. */
+    section.cv-section > h2, .cv-prose-body > * { animation: aura-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: aura-in ease-out both; animation-timeline: view(); animation-range: entry 0% entry 52%; }
   }
   @supports (animation-timeline: scroll()) {

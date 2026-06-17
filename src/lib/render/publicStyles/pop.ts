@@ -27,7 +27,7 @@ import { accentSpectrum } from "./kit";
 function popCss(_theme: TemplateTheme): string {
   return `
   :root {
-    --cv-ink: #1a1330; --cv-ink-2: #4a4068; --cv-muted: #6b6390; --cv-faint: #8a83ad;
+    --cv-ink: #1a1330; --cv-ink-2: #4a4068; --cv-muted: #6b6390; --cv-faint: #6a628f;
     --cv-rule: #ecdcf0; --cv-page: #fff7fc;
     --pop-1:#ff4d8d; --pop-2:#8b5cff; --pop-3:#19c3ff; --pop-4:#1fd58a; --pop-5:#ffb02e;
   }
@@ -107,7 +107,12 @@ function popCss(_theme: TemplateTheme): string {
   @keyframes pop-progress { to { transform: scaleX(1); } }
 
   @supports (animation-timeline: view()) {
-    section.cv-section { animation: pop-in cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-timeline: view(); animation-range: entry 0% cover 24%; }
+    /* Reveal the heading + each entry on their OWN (small) geometry, never the
+       whole section. A tall section (e.g. Publications) animated as one block
+       stays faded/translated at its TOP while its first entries are already in
+       the reading zone (scroll-driven ranges scale with element height); per-
+       child reveals always finish low in the viewport, well before reading. */
+    section.cv-section > h2, .cv-prose-body > * { animation: pop-in cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: pop-in-li ease-out both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
   }
   @supports (animation-timeline: scroll()) {
