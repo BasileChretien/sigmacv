@@ -1038,6 +1038,20 @@ input[type="radio"] {
   font-size: var(--text-xs);
   line-height: 1.45;
 }
+/* The publish on/off row — the panel's most consequential, privacy-significant
+   control — gets an emphasis box + a slightly bolder label so it reads as the
+   primary decision, distinct from the secondary visibility checkboxes below it. */
+.publish-main-toggle {
+  align-items: center;
+  margin-bottom: var(--space-1);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  border-radius: var(--radius-sm);
+  font-weight: var(--weight-medium);
+}
+.publish-main-toggle > span {
+  font-size: var(--text-sm);
+}
 .publish-panel .public-contact-consent legend {
   display: block;
   grid-column: 1 / -1;
@@ -1978,13 +1992,15 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   font-size: var(--text-xs);
 }
 .cv-source-badge {
-  /* text-secondary (grey-700) so this small 0.625rem text clears WCAG 1.4.3
-     (4.5:1) on the surface-sunken (grey-100) chip background; both are semantic
-     tokens, so the contrast holds when they invert in dark mode. */
+  /* The always-present provenance label is the LOWEST-value thing in the meta
+     row, so render it as plain muted text (no pill) — it must never compete at
+     equal weight with the colour-coded, actionable review / duplicate badges
+     beside it. --text-secondary on the row surface clears WCAG 1.4.3 with room to
+     spare (higher than on the old grey chip); semantic tokens → holds in dark. */
   color: var(--text-secondary);
-  background: var(--surface-sunken);
-  border-color: var(--border);
-  font-weight: var(--weight-medium);
+  background: transparent;
+  border-color: transparent;
+  font-weight: 400;
   font-size: 0.625rem;
   cursor: help;
 }

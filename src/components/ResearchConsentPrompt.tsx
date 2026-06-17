@@ -162,7 +162,11 @@ export default function ResearchConsentPrompt({
               {t(locale, "privacy")}
             </a>
           </p>
-          {error ? <p className="consent-error">{error}</p> : null}
+          {error ? (
+            <p className="consent-error" role="alert">
+              {error}
+            </p>
+          ) : null}
           <div className="consent-actions">
             <button type="button" className="btn btn-primary" onClick={accept} disabled={busy}>
               {s.yes}
@@ -180,7 +184,11 @@ export default function ResearchConsentPrompt({
   return (
     <div className="consent-banner" role="region" aria-label={s.title}>
       <p className="consent-banner-text">{s.blurb}</p>
-      {error ? <span className="consent-error">{error}</span> : null}
+      {error ? (
+        <span className="consent-error" role="alert">
+          {error}
+        </span>
+      ) : null}
       <div className="consent-actions">
         <button
           type="button"

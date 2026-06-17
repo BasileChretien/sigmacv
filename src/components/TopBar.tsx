@@ -44,6 +44,9 @@ export interface TopBarProps {
   saving: boolean;
   syncing: boolean;
   dirty: boolean;
+  /** True while an export is being produced/downloaded — disables the Export CTA
+      and shows a progress label so it doesn't look frozen. */
+  exporting?: boolean;
   /** Whether a CV exists (gates Save/Export). */
   hasCv: boolean;
   // ── Primary actions ──
@@ -93,6 +96,7 @@ export default function TopBar({
   saving,
   syncing,
   dirty,
+  exporting = false,
   hasCv,
   onSync,
   onSave,
@@ -188,9 +192,10 @@ export default function TopBar({
             type="button"
             className="btn btn-primary export-btn"
             onClick={onExport}
-            disabled={!hasCv || saving || syncing}
+            disabled={!hasCv || saving || syncing || exporting}
+            aria-busy={exporting}
           >
-            {t(locale, "exportLabel")}
+            {exporting ? t(locale, "exporting") : t(locale, "exportLabel")}
           </button>
         </div>
 
