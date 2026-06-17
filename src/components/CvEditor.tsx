@@ -2,6 +2,7 @@
 
 import { forwardRef, useImperativeHandle, useRef, useState, type KeyboardEvent } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { confirmAllMisattributed } from "@/lib/canonical/curate";
 import { asLocale } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
 import CvHealthPanel, { type CvHealthCategory } from "./CvHealthPanel";
@@ -90,6 +91,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
           cv={cv}
           locale={locale}
           onResolve={(cat) => sectionsRef.current?.resolveHealth(cat)}
+          onConfirmAllMisattributed={() => onChange(confirmAllMisattributed(cv))}
         />
         {sectionsList}
       </div>
@@ -127,7 +129,12 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     <div className="cv-editor cv-editor--regions">
       {/* Persistent "needs your attention" strip — always visible, never trapped
           inside a part. Renders nothing when there is nothing to act on. */}
-      <CvHealthPanel cv={cv} locale={locale} onResolve={jumpToHealth} />
+      <CvHealthPanel
+        cv={cv}
+        locale={locale}
+        onResolve={jumpToHealth}
+        onConfirmAllMisattributed={() => onChange(confirmAllMisattributed(cv))}
+      />
 
       <div className="cv-part-tabs" role="tablist" aria-label={eu.regionsAria} ref={tablistRef}>
         {EDITOR_PARTS.map((p) => {

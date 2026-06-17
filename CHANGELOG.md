@@ -26,14 +26,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   over-merging — so a paper by a different researcher with a similar name can land
   on your profile (most common for widely-shared and non-Latin-script names). SigmaCV
   now spots these: when a work was matched only by an OpenAlex author profile (no
-  confirming ORCID) **and** it disagrees with the rest of your record on two strong
-  signals — it shares **no co-authors** with your other work **and** sits in a clearly
-  **different research field** — it gets a calm "Review" badge and a count in the
-  "Needs your attention" checklist. Nothing is ever removed automatically: you decide,
-  keeping it or marking it "not mine". The check is deliberately conservative (it
-  would rather miss a few than wrongly question a paper that's yours), uses only your
-  own profile signals (never any inference about names or origin), and these flags
-  never appear on your public page or exports.
+  confirming ORCID) **and** it disagrees with the rest of your record — it shares
+  **no co-authors** with your other work, plus either a clearly **different research
+  field** or an **institution you've never been affiliated with** — it gets a calm
+  "Review" badge that explains exactly why, and a count in the "Needs your attention"
+  checklist. Nothing is ever removed automatically: confirm it with **"Yes, it's
+  mine"** (it stays, and we stop asking), mark it **"not mine"**, or hide it — and if
+  you share a common name and see several, **"They're all mine"** clears them in one
+  click. The check is deliberately conservative (it would rather miss a few than
+  wrongly question a paper that's yours), uses only your own profile signals (never
+  any inference about names or origin), and these flags never appear on your public
+  page or exports.
 - **Three richly-animated styles for your published living page.** **Arcade** (a
   bright retro-platformer stage with parallax clouds, spinning coins, and entries
   that jump into place), **Meadow** (a hand-painted pastoral scene with rolling

@@ -5,6 +5,7 @@ import {
   openalexTypeClass,
   orcidTypeClass,
   resolveFunderIds,
+  selfWorkInstitutions,
 } from "@/lib/canonical/build";
 import { parseCanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
@@ -1503,5 +1504,24 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     const ds = sectionOf(cv, "datasets")!;
     expect(ds.items).toHaveLength(1);
     expect(ds.items[0]?.meta.doi?.toLowerCase()).toBe("10.5281/zenodo.v2");
+  });
+});
+
+describe("selfWorkInstitutions", () => {
+  it("returns deduped ROR ids from the self-authorship, or undefined when none", () => {
+    expect(selfWorkInstitutions(undefined)).toBeUndefined();
+    expect(selfWorkInstitutions({ institutions: [] })).toBeUndefined();
+    // No ROR on the institution → contributes nothing.
+    expect(selfWorkInstitutions({ institutions: [{ display_name: "Somewhere" }] })).toBeUndefined();
+    expect(
+      selfWorkInstitutions({
+        institutions: [
+          { ror: "https://ror.org/aaa" },
+          { ror: "https://ror.org/aaa" }, // dup collapses
+          { ror: "https://ror.org/bbb" },
+          { display_name: "no-ror" },
+        ],
+      }),
+    ).toEqual(["https://ror.org/aaa", "https://ror.org/bbb"]);
   });
 });

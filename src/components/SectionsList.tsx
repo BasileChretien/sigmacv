@@ -24,6 +24,7 @@ import {
   addSection,
   clearDuplicateFlag,
   clearViewExclusions,
+  confirmMisattribution,
   dismissDuplicateGroup,
   dismissReviewCandidate,
   isItemShownInView,
@@ -912,6 +913,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                 similarTitle={orcidSimilar.get(item.id)}
                                 onDismissReview={() =>
                                   onChange(dismissReviewCandidate(cv, section.id, item.id))
+                                }
+                                onConfirmMine={() =>
+                                  onChange(confirmMisattribution(cv, section.id, item.id))
                                 }
                                 flash={focusItem?.id === item.id}
                                 onKeepOnly={(keepId) => {
