@@ -34,6 +34,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   would rather miss a few than wrongly question a paper that's yours), uses only your
   own profile signals (never any inference about names or origin), and these flags
   never appear on your public page or exports.
+- **Three richly-animated styles for your published living page.** **Arcade** (a
+  bright retro-platformer stage with parallax clouds, spinning coins, and entries
+  that jump into place), **Meadow** (a hand-painted pastoral scene with rolling
+  hills, a breathing sun, drifting clouds, and falling petals), and **Cyberpunk**
+  (a neon-noir city with falling digital rain, a chromatic-aberration glitch on
+  your name, and holographic shimmer). All original art — genre homages, not the
+  trademarked works that inspired them. As always: 100% CSS-only under the strict
+  no-JS CSP, accent-aware, full reduced-motion fallback, and never affects exports.
 - **A "Clockwork" steampunk style for your published living page.** A dark
   brass-and-iron look where electric cords hang from a ceiling rail with glowing
   Edison bulbs that gently sway, brass gears turn slowly behind the page, your name

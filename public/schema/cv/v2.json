@@ -224,7 +224,10 @@
             "aura",
             "mesh",
             "marquee",
-            "clockwork"
+            "clockwork",
+            "arcade",
+            "meadow",
+            "cyberpunk"
           ]
         },
         "cslStyle": {
@@ -1003,7 +1006,10 @@
                   "aura",
                   "mesh",
                   "marquee",
-                  "clockwork"
+                  "clockwork",
+                  "arcade",
+                  "meadow",
+                  "cyberpunk"
                 ]
               },
               "cslStyle": {

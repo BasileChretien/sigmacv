@@ -208,6 +208,9 @@ export default function StyleControls({
     mesh: "Mesh",
     marquee: "Marquee",
     clockwork: "Clockwork",
+    arcade: "Arcade",
+    meadow: "Meadow",
+    cyberpunk: "Cyberpunk",
   };
   const HIGHLIGHT_STYLE_LABELS: Record<string, string> = {
     accent: u.hlAccent,
