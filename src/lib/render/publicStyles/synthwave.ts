@@ -66,7 +66,12 @@ function synthCss(_t: TemplateTheme): string {
   .cv-self { color:#fff !important; font-weight:800; text-shadow:0 0 12px rgba(255,45,180,0.8); }
   .cv-photo { width:120px; height:120px; border-radius:50%; border:3px solid var(--cyan); box-shadow:0 0 26px var(--mag); }
 
-  section.cv-section > h2 { color: var(--mag); text-transform: uppercase; letter-spacing:0.18em; font-size:0.8rem; font-weight:800; margin:0 0 0.7rem; text-shadow:0 0 12px rgba(255,45,180,0.5); }
+  /* Heading magenta is a FIXED light tone (5.3:1+ even where the translucent
+     panel sits over the bright orange bottom of the sunset; the literal --mag
+     #ff2db4 fell to 3.78:1 there, and accentSpectrum remaps --mag to the user's
+     floored — i.e. dark — accent, which is worse on the dark panel). The cyan
+     headings/links are accentSpectrum's light L=0.72 derivations and already pass. */
+  section.cv-section > h2 { color: #ff79c6; text-transform: uppercase; letter-spacing:0.18em; font-size:0.8rem; font-weight:800; margin:0 0 0.7rem; text-shadow:0 0 12px rgba(255,45,180,0.5); }
   section.cv-section:nth-of-type(2n) > h2 { color: var(--cyan); text-shadow:0 0 12px rgba(59,240,255,0.5); }
   ol.cv-bib > li { position:relative; padding-left:1.7em; text-indent:0; }
   ol.cv-bib > li::before { content:""; position:absolute; left:0; top:0.4em; width:8px; height:8px; transform: rotate(45deg); background: var(--mag); box-shadow:0 0 8px var(--mag); }

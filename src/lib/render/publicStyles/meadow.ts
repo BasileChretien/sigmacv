@@ -45,12 +45,19 @@ function meadowCss(_t: TemplateTheme): string {
     /* Pastoral palette. */
     --sky-top:#ffe9d4; --sky-mid:#fdf3e2; --sky-low:#cfe7ef; --sky-bot:#bfe0e7;
     --hill-far:#bcd79a; --hill-mid:#9ec977; --hill-near:#7bb35a; --hill-fore:#5d9a47;
-    --leaf:#4e8a3f; --sky-blue:#2f7aa6; --paper:#fbf6ea;
+    /* leaf / sky-blue darkened from #4e8a3f / #2f7aa6 so the bib/footer leaf links
+       (was 3.87:1) and the ID/contact sky links (4.37:1) clear WCAG-AA on the
+       lightest paper (#fbf6ea). Decorative uses (hill/leaf shapes, underlines)
+       just deepen slightly. */
+    --leaf:#3f7a31; --sky-blue:#2a6e96; --paper:#fbf6ea;
     --sun:#ffd27a;
     /* Sun + petals + headings pick up the user's accent, warmed toward gold. */
     --mw-sun: color-mix(in srgb, var(--cv-accent) 30%, #ffcf72);
     --mw-petal: color-mix(in srgb, var(--cv-accent) 36%, #ffd9c0);
-    --mw-gold: color-mix(in srgb, var(--cv-accent) 36%, #c98a2e);
+    /* Gold base darkened from #c98a2e (which made the gold heading / honorific /
+       self-name text only ~3.3:1 even after the accent mix) to #8f5e0e, so the
+       mixed result stays ≥5:1 on paper for every accent. */
+    --mw-gold: color-mix(in srgb, var(--cv-accent) 36%, #8f5e0e);
   }
   body {
     min-height:100vh; color:var(--cv-ink);

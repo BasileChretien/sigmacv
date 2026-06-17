@@ -73,9 +73,15 @@ function popCss(_theme: TemplateTheme): string {
   @keyframes pop-flow { to { background-position: 280% 50%; } }
   @keyframes pop-wobble { 25% { transform: rotate(-1.4deg); } 75% { transform: rotate(1.4deg); } }
   header.cv-header .cv-headline { color: var(--cv-ink-2); font-weight: 700; margin-top: 0.35rem; }
-  header.cv-header .cv-ids a { color: var(--pop-2); font-weight: 700; }
+  /* ID/DOI links: a fixed dark purple (7.3:1 on the near-white page). NOT tied to
+     --pop-2, whose spectrum value is a LIGHT L=0.72 vivid (~2:1 on this page) and
+     whose literal fallback #8b5cff is only 3.94:1 — both fail as body-link text. */
+  header.cv-header .cv-ids a { color: #6321d6; font-weight: 700; }
 
-  .cv-self { color: var(--pop-1) !important; font-weight: 800; }
+  /* Self-name = the floored accent directly (always ≥4.7:1 on white via
+     ensureReadableOnWhite). Using --cv-accent rather than --pop-1 avoids the
+     non-oklch fallback path where --pop-1 is the literal #ff4d8d (2.98:1). */
+  .cv-self { color: var(--cv-accent) !important; font-weight: 800; }
   .cv-photo { width: 120px; height: 120px; border-radius: 42% 58% 58% 42% / 42% 42% 58% 58%; border: 5px solid #fff; box-shadow: 0 12px 30px -8px var(--pop-2); }
 
   /* ---- Candy-chip section headings (rounded pills, per-section hue) ------ */
@@ -83,14 +89,18 @@ function popCss(_theme: TemplateTheme): string {
   section.cv-section > h2 {
     display: inline-block;
     font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
-    color: #fff; margin: 0 0 0.85rem; padding: 0.32em 0.95em;
+    /* Dark ink on the candy chips (small text → WCAG-AA 4.5:1). The pink chip
+       (default --pop-1) reads white at only 3.14:1; a deep-wine ink is 5.47:1.
+       The amber chip already used this dark-text pattern; the cyan/green/purple
+       variants below mirror it. */
+    color: #40000f; margin: 0 0 0.85rem; padding: 0.32em 0.95em;
     border-radius: 999px; background: var(--pop-1);
     box-shadow: 0 6px 16px -6px var(--pop-1);
   }
-  section.cv-section:nth-of-type(5n+2) > h2 { background: var(--pop-3); box-shadow: 0 6px 16px -6px var(--pop-3); }
-  section.cv-section:nth-of-type(5n+3) > h2 { background: var(--pop-4); box-shadow: 0 6px 16px -6px var(--pop-4); }
+  section.cv-section:nth-of-type(5n+2) > h2 { background: var(--pop-3); box-shadow: 0 6px 16px -6px var(--pop-3); color: #08323f; }
+  section.cv-section:nth-of-type(5n+3) > h2 { background: var(--pop-4); box-shadow: 0 6px 16px -6px var(--pop-4); color: #053524; }
   section.cv-section:nth-of-type(5n+4) > h2 { background: var(--pop-5); box-shadow: 0 6px 16px -6px var(--pop-5); color: #3a2a00; }
-  section.cv-section:nth-of-type(5n+5) > h2 { background: var(--pop-2); box-shadow: 0 6px 16px -6px var(--pop-2); }
+  section.cv-section:nth-of-type(5n+5) > h2 { background: var(--pop-2); box-shadow: 0 6px 16px -6px var(--pop-2); color: #0d0033; }
 
   /* ---- Coloured publication dots + fun underlines ------------------------ */
   ol.cv-bib > li { position: relative; padding-left: 1.6em; text-indent: 0; }
@@ -101,7 +111,9 @@ function popCss(_theme: TemplateTheme): string {
   ol.cv-bib > li:nth-child(4n+2)::before { background: var(--pop-3); }
   ol.cv-bib > li:nth-child(4n+3)::before { background: var(--pop-4); }
   ol.cv-bib > li:nth-child(4n)::before { background: var(--pop-5); }
-  ol.cv-bib > li a { color: var(--pop-2); text-decoration: underline; text-decoration-color: var(--pop-3); text-decoration-thickness: 0.18em; text-underline-offset: 0.18em; }
+  /* Bib link text: the same fixed dark purple as the ID links (7.3:1 on the
+     near-white page). The bright --pop-3 stays as the decorative underline only. */
+  ol.cv-bib > li a { color: #6321d6; text-decoration: underline; text-decoration-color: var(--pop-3); text-decoration-thickness: 0.18em; text-underline-offset: 0.18em; }
 
   /* ---- Bouncy scroll reveals + progress --------------------------------- */
   @keyframes pop-in { from { opacity: 0; transform: translateY(40px) scale(0.94); } to { opacity: 1; transform: none; } }

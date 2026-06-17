@@ -49,9 +49,13 @@ function arcadeCss(_t: TemplateTheme): string {
     --cv-page:#fffdf3;
     /* Bright primary platformer palette. */
     --sky-1:#5ec5ff; --sky-2:#9fe0ff; --sky-3:#cdf0ff;
-    --brick:#d2502a; --brick-dk:#a23717; --brick-lt:#f07a4f;
+    /* brick / pipe / grass-dk darkened from #d2502a / #2f9e44 / #258a36 so that
+       white-on-brick chips (was 4.27:1), white-on-pipe chips (3.45:1) and the
+       grass-dk link text on cream (4.32:1) all clear WCAG-AA 4.5:1 for the small
+       heading / link sizes. The deeper brick also lifts the (large) name to 5.1:1. */
+    --brick:#c1411f; --brick-dk:#a23717; --brick-lt:#f07a4f;
     --coin:#ffcf33; --coin-dk:#e0a200; --coin-hi:#fff2b0;
-    --grass:#3fb950; --grass-dk:#258a36; --pipe:#2f9e44;
+    --grass:#3fb950; --grass-dk:#1f7a2f; --pipe:#268038;
     --cloud:#ffffff; --outline:#1d1606; --star:#fff6c0;
     /* The user's accent tints the score/coin chrome; falls back to coin gold. */
     --score: var(--cv-accent, var(--coin));
