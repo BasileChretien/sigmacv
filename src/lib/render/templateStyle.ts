@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { ensureReadableOnWhite } from "./readableAccent";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
@@ -31,7 +32,11 @@ export interface DocStyle {
 
 /** Map the CV's template + display choices to a portable style profile. */
 export function docStyle(cv: CanonicalCv): DocStyle {
-  const accent = HEX.test(cv.display.accentColor) ? cv.display.accentColor : "#1f4fd8";
+  // Floor the accent's contrast on white so a too-light custom pick stays
+  // readable as headings / name / sidebar band in the exports (no-op for presets).
+  const accent = ensureReadableOnWhite(
+    HEX.test(cv.display.accentColor) ? cv.display.accentColor : "#1f4fd8",
+  );
   const accentHex = accent.slice(1).toUpperCase();
   const serif = cv.display.fontPairing !== "sans";
   const base: DocStyle = {
