@@ -15,6 +15,7 @@ import { resolveTheme } from "../templates";
 import type { CvTemplate } from "../templates/types";
 import type { RenderOpts } from "../types";
 import { auraTemplate } from "./aura";
+import { clockworkTemplate } from "./clockwork";
 import { folioTemplate } from "./folio";
 import { luminaTemplate } from "./lumina";
 import { marqueeTemplate } from "./marquee";
@@ -47,6 +48,7 @@ const REGISTRY: Record<AnimatedStyleKey, CvTemplate> = {
   aura: auraTemplate,
   mesh: meshTemplate,
   marquee: marqueeTemplate,
+  clockwork: clockworkTemplate,
 };
 
 /** The animated style keys (everything except "match"), in catalog order. */

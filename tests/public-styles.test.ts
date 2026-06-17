@@ -23,8 +23,8 @@ const base = buildCanonicalCv({ id: "ps", resolved, works, now: "2026-06-02T00:0
 const withPhoto: CanonicalCv = { ...base, owner: { ...base.owner, photo: PNG_1x1 } };
 
 describe("public-page showcase styles", () => {
-  it("registers all 13 animated styles", () => {
-    expect(PUBLIC_STYLE_KEYS).toHaveLength(13);
+  it("registers all 14 animated styles", () => {
+    expect(PUBLIC_STYLE_KEYS).toHaveLength(14);
     expect(PUBLIC_STYLE_KEYS).toEqual(
       expect.arrayContaining([
         "folio",
@@ -40,6 +40,7 @@ describe("public-page showcase styles", () => {
         "aura",
         "mesh",
         "marquee",
+        "clockwork",
       ]),
     );
   });
