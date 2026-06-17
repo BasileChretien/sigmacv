@@ -23,6 +23,7 @@ vi.mock("@/lib/db", () => ({
 }));
 
 import { buildCanonicalCv } from "@/lib/canonical/build";
+import { updateDisplay } from "@/lib/canonical/curate";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { resolveCoauthorCvs } from "@/lib/cv/coauthorLinks";
 import { getPublicCvForPage } from "@/lib/cv/sync";
@@ -85,6 +86,22 @@ function firstCitationItem(cv: CanonicalCv): CvItem | undefined {
     if (it) return it;
   }
   return undefined;
+}
+
+/** A target co-author's stored CV document (their own published+indexable CV). */
+function targetCvDoc(opts: { displayName?: string; linkable?: boolean } = {}): CanonicalCv {
+  let cv = buildCanonicalCv({
+    id: "t",
+    resolved: {
+      orcid: COAUTHOR_ORCID,
+      authorIds: [],
+      displayName: opts.displayName ?? "Jane Curated",
+    },
+    works: [],
+    now: "2026-06-17T00:00:00.000Z",
+  });
+  if (opts.linkable === false) cv = updateDisplay(cv, { coauthorLinkable: false });
+  return cv;
 }
 
 /** Force a specific co-author ORCID list onto the first citation item. */
@@ -185,6 +202,30 @@ describe("resolveCoauthorCvs", () => {
       { orcid: COAUTHOR_ORCID, name: null, cv: null },
     ]);
     expect(await resolveCoauthorCvs(makeCv())).toEqual([]);
+  });
+
+  it("excludes a co-author who opted out of being linked (coauthorLinkable=false)", async () => {
+    mocks.userFindMany.mockResolvedValue([
+      {
+        orcid: COAUTHOR_ORCID,
+        name: "Jane Account",
+        cv: { publicSlug: "jane-x", document: targetCvDoc({ linkable: false }) },
+      },
+    ]);
+    expect(await resolveCoauthorCvs(makeCv())).toEqual([]);
+  });
+
+  it("prefers the co-author's CV display name over the account name", async () => {
+    mocks.userFindMany.mockResolvedValue([
+      {
+        orcid: COAUTHOR_ORCID,
+        name: "Jane Account",
+        cv: { publicSlug: "jane-x", document: targetCvDoc({ displayName: "Jane Q. Curated" }) },
+      },
+    ]);
+    expect(await resolveCoauthorCvs(makeCv())).toEqual([
+      { orcid: COAUTHOR_ORCID, slug: "jane-x", name: "Jane Q. Curated" },
+    ]);
   });
 
   it("falls back to 'Researcher' when the user has no name", async () => {

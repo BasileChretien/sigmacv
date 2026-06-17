@@ -934,6 +934,22 @@ export const DisplayChoicesSchema = z.object({
    * only renderer that requests it.
    */
   publicAttribution: z.boolean().default(true),
+  /**
+   * Show a "Co-authors on SigmaCV" block on the PUBLIC living page (`/p/[slug]`)
+   * listing the account holder's co-authors who ALSO have their own published,
+   * search-indexable SigmaCV CV (resolved server-side by ORCID, never by name).
+   * Opt-IN: default OFF — the block touches third parties and sends traffic away,
+   * so the owner enables it deliberately. Public page only (never in an export).
+   */
+  showCoauthorLinks: z.boolean().default(false),
+  /**
+   * Whether THIS CV may be linked TO from other users' co-author blocks / JSON-LD
+   * `knows` graphs (i.e. listed as their on-SigmaCV co-author). Opt-OUT: default
+   * ON — a link is only ever made to a published + search-indexable page (already
+   * a public-discovery choice), but this gives the owner an explicit switch to NOT
+   * be listed as a collaborator elsewhere. Read by `resolveCoauthorCvs`.
+   */
+  coauthorLinkable: z.boolean().default(true),
 });
 export type DisplayChoices = z.infer<typeof DisplayChoicesSchema>;
 

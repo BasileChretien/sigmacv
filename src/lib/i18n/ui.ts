@@ -34,6 +34,10 @@ export interface UiStrings {
   authorshipResyncNote: string;
   showCharts: string;
   showOpenAccess: string;
+  /** Editor toggle: show the public-page "Co-authors on SigmaCV" block (opt-in). */
+  showCoauthorLinks: string;
+  /** Editor toggle: allow other SigmaCV CVs to link to this one (opt-out, default on). */
+  coauthorLinkable: string;
   hideRetracted: string;
   showAuthorRole: string;
   showCitationCounts: string;
@@ -150,6 +154,8 @@ export interface UiStrings {
 
 const UI_I18N: Record<Locale, UiStrings> = {
   "en-US": {
+    showCoauthorLinks: "Show co-authors who are on SigmaCV",
+    coauthorLinkable: "Let other SigmaCV CVs link to mine",
     editDetails: "Edit details",
     departmentAria: "Department",
     institutionAria: "Institution",
@@ -286,6 +292,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV is free and not-for-profit — a coffee helps cover its running costs.",
   },
   "zh-CN": {
+    showCoauthorLinks: "显示也在 SigmaCV 的合作者",
+    coauthorLinkable: "允许其他 SigmaCV 简历链接到我的简历",
     editDetails: "编辑详情",
     departmentAria: "部门",
     institutionAria: "机构",
@@ -419,6 +427,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV 免费且非营利——一杯咖啡有助于支付运营成本。",
   },
   "es-ES": {
+    showCoauthorLinks: "Mostrar coautores que están en SigmaCV",
+    coauthorLinkable: "Permitir que otros CV de SigmaCV enlacen al mío",
     editDetails: "Editar detalles",
     departmentAria: "Departamento",
     institutionAria: "Institución",
@@ -556,6 +566,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV es gratuito y sin ánimo de lucro: un café ayuda a cubrir sus costes.",
   },
   "fr-FR": {
+    showCoauthorLinks: "Afficher les co-auteurs présents sur SigmaCV",
+    coauthorLinkable: "Autoriser d'autres CV SigmaCV à pointer vers le mien",
     editDetails: "Modifier les détails",
     departmentAria: "Service / département",
     institutionAria: "Établissement",
@@ -695,6 +707,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV est gratuit et à but non lucratif — un café aide à payer les frais.",
   },
   "de-DE": {
+    showCoauthorLinks: "Mitautor:innen auf SigmaCV anzeigen",
+    coauthorLinkable: "Anderen SigmaCV-Lebensläufen erlauben, auf meinen zu verlinken",
     editDetails: "Details bearbeiten",
     departmentAria: "Abteilung",
     institutionAria: "Einrichtung",
@@ -834,6 +848,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV ist kostenlos und gemeinnützig — ein Kaffee deckt die Betriebskosten.",
   },
   "ja-JP": {
+    showCoauthorLinks: "SigmaCV を使う共著者を表示",
+    coauthorLinkable: "他の SigmaCV CV から自分の CV へのリンクを許可する",
     editDetails: "詳細を編集",
     departmentAria: "部門",
     institutionAria: "所属機関",
@@ -970,6 +986,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV は無料・非営利です。コーヒー一杯が運営費の支えになります。",
   },
   "pt-BR": {
+    showCoauthorLinks: "Mostrar coautores que estão no SigmaCV",
+    coauthorLinkable: "Permitir que outros CVs do SigmaCV criem links para o meu",
     editDetails: "Editar detalhes",
     departmentAria: "Departamento",
     institutionAria: "Instituição",
@@ -1107,6 +1125,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "O SigmaCV é gratuito e sem fins lucrativos — um café ajuda a cobrir os custos.",
   },
   "it-IT": {
+    showCoauthorLinks: "Mostra i coautori presenti su SigmaCV",
+    coauthorLinkable: "Consenti ad altri CV SigmaCV di collegarsi al mio",
     editDetails: "Modifica dettagli",
     departmentAria: "Dipartimento",
     institutionAria: "Istituzione",
@@ -1245,6 +1265,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV è gratuito e senza scopo di lucro: un caffè aiuta a coprire i costi.",
   },
   "ko-KR": {
+    showCoauthorLinks: "SigmaCV를 사용하는 공저자 표시",
+    coauthorLinkable: "다른 SigmaCV 이력서가 내 이력서로 연결하도록 허용",
     editDetails: "세부 정보 편집",
     departmentAria: "부서",
     institutionAria: "기관",
@@ -1381,6 +1403,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV는 무료이며 비영리입니다 — 커피 한 잔이 운영 비용에 보탬이 됩니다.",
   },
   "ru-RU": {
+    showCoauthorLinks: "Показывать соавторов из SigmaCV",
+    coauthorLinkable: "Разрешить другим резюме SigmaCV ссылаться на моё",
     editDetails: "Изменить детали",
     departmentAria: "Подразделение",
     institutionAria: "Организация",

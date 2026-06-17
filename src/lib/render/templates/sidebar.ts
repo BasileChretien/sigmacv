@@ -1,5 +1,6 @@
 import {
   attributionFooter,
+  coauthorLinksFooter,
   commonCss,
   cvPageShell,
   headerHtml,
@@ -176,7 +177,7 @@ export const sidebarTemplate: CvTemplate = {
       `<div class="cv">` +
       `<div class="cv-sidebar-layout">` +
       `<aside class="cv-sidebar">${headerHtml(cv, { photo: true })}</aside>` +
-      `<main class="cv-main">${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${attributionFooter(cv, opts)}</main>` +
+      `<main class="cv-main">${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}</main>` +
       `</div>` +
       `</div>`;
     return cvPageShell(cv, css, body);

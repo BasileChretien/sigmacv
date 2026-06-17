@@ -70,6 +70,8 @@ export interface RenderStrings {
   madeWith: string;
   /** Public-page "living CV" line; "{date}" is the localized last-synced date. */
   livingNote: string;
+  /** Heading for the public-page "Co-authors on SigmaCV" block (opt-in); "SigmaCV" stays untranslated. */
+  coauthorsHeading: string;
   /** Tooltip/aria for the institution→ROR-record link on a positions/education line. */
   rorRecordTitle: string;
   /** Tooltip/aria when the institution name links to its own homepage (ROR `links.website`). */
@@ -78,6 +80,7 @@ export interface RenderStrings {
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
   "en-US": {
+    coauthorsHeading: "Co-authors on SigmaCV",
     datePresent: "present",
     dateUntil: "until {year}",
     chartPublicationsPerYear: "Publications / year",
@@ -126,6 +129,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Institution website",
   },
   "zh-CN": {
+    coauthorsHeading: "也在 SigmaCV 的合作者",
     datePresent: "至今",
     dateUntil: "至 {year}",
     chartPublicationsPerYear: "年度发表数",
@@ -174,6 +178,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "机构网站",
   },
   "es-ES": {
+    coauthorsHeading: "Coautores en SigmaCV",
     datePresent: "presente",
     dateUntil: "hasta {year}",
     chartPublicationsPerYear: "Publicaciones / año",
@@ -225,6 +230,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Sitio web de la institución",
   },
   "fr-FR": {
+    coauthorsHeading: "Co-auteurs sur SigmaCV",
     datePresent: "présent",
     dateUntil: "jusqu’en {year}",
     chartPublicationsPerYear: "Publications / an",
@@ -277,6 +283,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Site web de l’établissement",
   },
   "de-DE": {
+    coauthorsHeading: "Mitautor:innen auf SigmaCV",
     datePresent: "heute",
     dateUntil: "bis {year}",
     chartPublicationsPerYear: "Publikationen / Jahr",
@@ -328,6 +335,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Website der Einrichtung",
   },
   "ja-JP": {
+    coauthorsHeading: "SigmaCV を使う共著者",
     datePresent: "現在",
     dateUntil: "{year} まで",
     chartPublicationsPerYear: "年別論文数",
@@ -376,6 +384,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "機関ウェブサイト",
   },
   "pt-BR": {
+    coauthorsHeading: "Coautores no SigmaCV",
     datePresent: "presente",
     dateUntil: "até {year}",
     chartPublicationsPerYear: "Publicações / ano",
@@ -428,6 +437,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Site da instituição",
   },
   "it-IT": {
+    coauthorsHeading: "Coautori su SigmaCV",
     datePresent: "presente",
     dateUntil: "fino al {year}",
     chartPublicationsPerYear: "Pubblicazioni / anno",
@@ -479,6 +489,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Sito web dell’istituzione",
   },
   "ko-KR": {
+    coauthorsHeading: "SigmaCV를 사용하는 공저자",
     datePresent: "현재",
     dateUntil: "{year}까지",
     chartPublicationsPerYear: "연도별 논문 수",
@@ -527,6 +538,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "기관 웹사이트",
   },
   "ru-RU": {
+    coauthorsHeading: "Соавторы в SigmaCV",
     datePresent: "наст. время",
     dateUntil: "до {year}",
     chartPublicationsPerYear: "Публикации / год",

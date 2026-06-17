@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import { safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
 import { normalizeOrcid } from "@/lib/openalex/types";
 
 /**
@@ -65,14 +65,23 @@ export async function resolveCoauthorCvs(cv: CanonicalCv): Promise<CoauthorCvLin
         orcid: { in: orcids },
         cv: { published: true, publicIndexable: true, publicSlug: { not: null } },
       },
-      select: { orcid: true, name: true, cv: { select: { publicSlug: true } } },
+      select: { orcid: true, name: true, cv: { select: { publicSlug: true, document: true } } },
     });
     const links: CoauthorCvLink[] = [];
     for (const row of rows) {
       const orcid = normalizeOrcid(row.orcid);
       const slug = row.cv?.publicSlug ?? "";
       if (!ORCID_RE.test(orcid) || !SLUG_RE.test(slug)) continue;
-      links.push({ orcid, slug, name: row.name?.trim() || "Researcher" });
+      // The co-author's own opt-out: a published+indexable page can still decline
+      // to be listed as someone else's on-SigmaCV co-author (display.coauthorLinkable).
+      // Prefer their CV's curated display name; fall back to the account name.
+      const parsed = safeParseCanonicalCv(row.cv?.document);
+      if (parsed.success && parsed.data.display.coauthorLinkable === false) continue;
+      const name =
+        (parsed.success ? parsed.data.owner.displayName?.trim() : "") ||
+        row.name?.trim() ||
+        "Researcher";
+      links.push({ orcid, slug, name });
     }
     // Deterministic order (stable JSON-LD + render cache): by name, then ORCID.
     links.sort((a, b) => a.name.localeCompare(b.name) || a.orcid.localeCompare(b.orcid));

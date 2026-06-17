@@ -1,6 +1,7 @@
 import { itemDisplayText, type CanonicalCv } from "@/lib/canonical/schema";
 import {
   attributionFooter,
+  coauthorLinksFooter,
   commonCss,
   escapeHtml,
   licenseFooter,
@@ -170,7 +171,7 @@ export const rirekishoTemplate: CvTemplate = {
   ${sectionsHtml(rest)}
   ${provenanceFooter(cv)}
   ${licenseFooter(cv)}
-  ${attributionFooter(cv, opts)}
+  ${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}
 </div>`;
     return pageShell(`${cv.owner.displayName || "履歴書"} — 履歴書`, css, body, "ja");
   },

@@ -167,7 +167,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     // never pass this, so PDF/DOCX/LaTeX/Markdown stay unbranded.
     // The living public page may use an animated showcase style (display.publicStyle);
     // "match" (default) renders with the document template. Exports never call this.
-    let html = renderPublicCvHtml(cv, { attribution: true });
+    let html = renderPublicCvHtml(cv, { attribution: true, coauthorCvs });
     // SEO + OG/Twitter meta (public profile text only) into <head>: canonical +
     // og:url for this page, a description for the SERP snippet, and og:image
     // pointing at the per-CV branded card (same slug, /og sub-route).

@@ -405,6 +405,14 @@
         "publicAttribution": {
           "default": true,
           "type": "boolean"
+        },
+        "showCoauthorLinks": {
+          "default": false,
+          "type": "boolean"
+        },
+        "coauthorLinkable": {
+          "default": true,
+          "type": "boolean"
         }
       }
     },
@@ -1131,6 +1139,14 @@
                 }
               },
               "publicAttribution": {
+                "default": true,
+                "type": "boolean"
+              },
+              "showCoauthorLinks": {
+                "default": false,
+                "type": "boolean"
+              },
+              "coauthorLinkable": {
                 "default": true,
                 "type": "boolean"
               }
