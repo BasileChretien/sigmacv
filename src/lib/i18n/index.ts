@@ -452,6 +452,8 @@ export function reasonLabel(locale: string, reason: NotMineReason): string {
 // ─── Chrome dictionary ───────────────────────────────────────────────────────
 
 const EN = {
+  reviewHintMisattributed:
+    "Matched to you only by an OpenAlex author profile (no confirming ORCID), and it differs from the rest of your work — no shared co-authors and a different research field. It may belong to a researcher with a similar name. Keep it if it’s yours, or mark it “not mine”.",
   // topbar
   appTagline: "open academic CVs",
   resync: "Re-sync",
@@ -582,6 +584,8 @@ const EN = {
 export type ChromeKey = keyof typeof EN;
 
 const ZH: Record<ChromeKey, string> = {
+  reviewHintMisattributed:
+    "仅通过 OpenAlex 作者档案匹配到您（无确认的 ORCID），且与您的其他成果不符——没有共同合作者，研究领域也不同。它可能属于与您同名的其他研究者。若确为您本人请保留，否则标记为“不是我的”。",
   appTagline: "开放的学术简历",
   resync: "重新同步",
   resyncing: "同步中…",
@@ -696,6 +700,8 @@ const ZH: Record<ChromeKey, string> = {
 };
 
 const ES: Record<ChromeKey, string> = {
+  reviewHintMisattributed:
+    "Coincide con usted solo por un perfil de autor de OpenAlex (sin un ORCID que lo confirme) y no encaja con el resto de su trabajo: sin coautores en común y de un campo distinto. Podría pertenecer a otro investigador con un nombre similar. Consérvelo si es suyo o márquelo como «no es mío».",
   appTagline: "CV académicos abiertos",
   resync: "Resincronizar",
   resyncing: "Sincronizando…",
@@ -814,6 +820,8 @@ const ES: Record<ChromeKey, string> = {
 };
 
 const FR: Record<ChromeKey, string> = {
+  reviewHintMisattributed:
+    "Rattaché à vous uniquement via un profil auteur OpenAlex (sans ORCID le confirmant) et il ne correspond pas au reste de vos travaux : aucun co-auteur commun et un domaine différent. Il peut appartenir à un chercheur portant un nom similaire. Conservez-le s’il est de vous, sinon marquez « pas le mien ».",
   appTagline: "CV académiques ouverts",
   resync: "Resynchroniser",
   resyncing: "Synchronisation…",
@@ -933,6 +941,8 @@ const FR: Record<ChromeKey, string> = {
 };
 
 const DE: Record<ChromeKey, string> = {
+  reviewHintMisattributed:
+    "Ihnen nur über ein OpenAlex-Autorenprofil zugeordnet (ohne bestätigende ORCID) und passt nicht zum Rest Ihrer Arbeiten – keine gemeinsamen Koautoren und ein anderes Fachgebiet. Es könnte zu einer Person mit ähnlichem Namen gehören. Behalten Sie es, wenn es Ihres ist, oder markieren Sie es als „nicht meins“.",
   appTagline: "Offene akademische Lebensläufe",
   resync: "Neu synchronisieren",
   resyncing: "Synchronisiere…",
@@ -1053,6 +1063,8 @@ const DE: Record<ChromeKey, string> = {
 };
 
 const JA: Record<ChromeKey, string> = {
+  reviewHintMisattributed:
+    "OpenAlex の著者プロフィールだけで照合されており（確認できる ORCID がありません）、ほかの業績とも一致しません（共著者の重なりがなく、研究分野も異なります）。氏名の似た別の研究者のものである可能性があります。ご自身のものなら残し、そうでなければ「自分のものではない」と設定してください。",
   appTagline: "オープンな学術 CV",
   resync: "再同期",
   resyncing: "同期中…",
@@ -1171,6 +1183,8 @@ const JA: Record<ChromeKey, string> = {
 };
 
 const PT: Record<ChromeKey, string> = {
+  reviewHintMisattributed:
+    "Associado a você apenas por um perfil de autor do OpenAlex (sem um ORCID que confirme) e não combina com o restante do seu trabalho: sem coautores em comum e de uma área diferente. Pode pertencer a outro pesquisador com nome parecido. Mantenha se for seu ou marque como “não é meu”.",
   appTagline: "Currículos acadêmicos abertos",
   resync: "Ressincronizar",
   resyncing: "Sincronizando…",
@@ -1289,6 +1303,8 @@ const PT: Record<ChromeKey, string> = {
 };
 
 const IT: Record<ChromeKey, string> = {
+  reviewHintMisattributed:
+    "Associato a te solo tramite un profilo autore OpenAlex (senza un ORCID di conferma) e non corrisponde al resto del tuo lavoro: nessun coautore in comune e un ambito diverso. Potrebbe appartenere a un ricercatore con un nome simile. Tienilo se è tuo, altrimenti segnalalo come «non è mio».",
   appTagline: "CV accademici aperti",
   resync: "Risincronizza",
   resyncing: "Sincronizzazione…",
@@ -1407,6 +1423,8 @@ const IT: Record<ChromeKey, string> = {
 };
 
 const KO: Record<ChromeKey, string> = {
+  reviewHintMisattributed:
+    "OpenAlex 저자 프로필로만 매칭되었고(확인된 ORCID 없음) 다른 업적과도 맞지 않습니다 — 공동저자가 겹치지 않고 연구 분야도 다릅니다. 이름이 비슷한 다른 연구자의 것일 수 있습니다. 본인 것이면 그대로 두고, 아니면 ‘내 것이 아님’으로 표시하세요.",
   appTagline: "오픈 학술 CV",
   resync: "다시 동기화",
   resyncing: "동기화 중…",
@@ -1525,6 +1543,8 @@ const KO: Record<ChromeKey, string> = {
 };
 
 const RU: Record<ChromeKey, string> = {
+  reviewHintMisattributed:
+    "Сопоставлено с вами только по профилю автора OpenAlex (без подтверждающего ORCID) и не совпадает с остальными вашими работами — нет общих соавторов и другая область. Возможно, принадлежит другому исследователю с похожим именем. Оставьте, если это ваша работа, иначе отметьте «не моё».",
   appTagline: "Открытые академические резюме",
   resync: "Синхронизировать",
   resyncing: "Синхронизация…",

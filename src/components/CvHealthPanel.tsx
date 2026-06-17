@@ -7,7 +7,12 @@ import type { Locale } from "@/lib/i18n";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 
 /** The four outstanding-decision categories the panel surfaces. */
-export type CvHealthCategory = "review" | "duplicates" | "conflicts" | "retracted";
+export type CvHealthCategory =
+  | "review"
+  | "duplicates"
+  | "conflicts"
+  | "misattributed"
+  | "retracted";
 
 interface CvHealthPanelProps {
   cv: CanonicalCv;
@@ -37,6 +42,11 @@ export default function CvHealthPanel({ cv, locale, onResolve }: CvHealthPanelPr
     { key: "review" as const, count: health.pendingReviewCandidates, label: wu.hpReview },
     { key: "duplicates" as const, count: health.pendingDuplicates, label: wu.hpDuplicates },
     { key: "conflicts" as const, count: health.orcidConflicts, label: wu.hpConflicts },
+    {
+      key: "misattributed" as const,
+      count: health.likelyMisattributed,
+      label: wu.hpMisattributed,
+    },
     { key: "retracted" as const, count: health.retractedVisible, label: wu.hpRetracted },
   ].filter((r) => r.count > 0);
 

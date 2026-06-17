@@ -176,10 +176,39 @@ export const AUTHORSHIP_ROLE_LABELS: Record<AuthorshipRole, string> = {
  *  - "orcid-conflict": an own work whose authorship lists a DIFFERENT ORCID;
  *  - "name-matched": a name+org-matched registry candidate (grants/trials/patents);
  *  - "orcid-doi": a work listed in the user's ORCID that OpenAlex didn't attribute;
- *  - "duplicate": this item likely duplicates another listed work (see `duplicateOf`).
+ *  - "duplicate": this item likely duplicates another listed work (see `duplicateOf`);
+ *  - "likely-misattributed": an OpenAlex-author-id-only match (no confirming ORCID on
+ *    the paper) that disagrees with the rest of the profile on ≥2 strong signals —
+ *    a probable over-merge of a same-name researcher (see `misattribution`).
  */
-export const REVIEW_FLAGS = ["orcid-conflict", "name-matched", "orcid-doi", "duplicate"] as const;
+export const REVIEW_FLAGS = [
+  "orcid-conflict",
+  "name-matched",
+  "orcid-doi",
+  "duplicate",
+  "likely-misattributed",
+] as const;
 export type ReviewFlag = (typeof REVIEW_FLAGS)[number];
+
+/**
+ * The independent signals a work can fail against the rest of the account
+ * holder's profile, fed into `meta.misattribution`. A closed enum (typed, no
+ * untrusted free-text); stored so the editor can explain WHY a work was flagged
+ * and so the consent-gated disambiguation-error study can learn which signals
+ * actually predict a confirmed "not mine".
+ *  - "no-coauthor-overlap": shares no co-author (by ORCID) with the profile's
+ *    identifier-confirmed works;
+ *  - "different-field": its OpenAlex research field AND domain are absent from the
+ *    profile's confirmed works (a cross-domain mismatch, e.g. medicine vs literature);
+ *  - "pre-career": published well before the account holder's earliest confirmed work
+ *    (a corroborator only — never enough to flag on its own).
+ */
+export const MISATTRIBUTION_SIGNALS = [
+  "no-coauthor-overlap",
+  "different-field",
+  "pre-career",
+] as const;
+export type MisattributionSignal = (typeof MISATTRIBUTION_SIGNALS)[number];
 
 /**
  * Confidence tier of a duplicate hint (`meta.duplicateOf.tier`), most→least:
@@ -476,6 +505,40 @@ export const CvItemSchema = z.object({
         relationship: z.enum(DUPLICATE_RELATIONSHIPS).optional().catch(undefined),
         /** Stable id of the duplicate group (the representative's id). */
         groupId: z.string().max(1024),
+      })
+      .optional()
+      .catch(undefined),
+    /**
+     * The work's primary OpenAlex research topic, reduced to its FIELD and DOMAIN
+     * display names (e.g. `{ field: "Oncology", domain: "Health Sciences" }`) — the
+     * top two levels of OpenAlex's topic taxonomy. Denormalized source metadata
+     * (like {@link authorRole}); used only by the misattribution heuristic to detect
+     * a cross-domain mismatch with the rest of the profile. Optional — absent for
+     * older records or works OpenAlex hasn't topic-classified. STRIPPED from the
+     * public projection (internal signal, not a render input).
+     */
+    topic: z
+      .object({
+        field: z.string().max(300).optional(),
+        domain: z.string().max(300).optional(),
+      })
+      .optional()
+      .catch(undefined),
+    /**
+     * Misattribution hint (set with `reviewFlag === "likely-misattributed"`): an
+     * OpenAlex-author-id-only match (no confirming ORCID on the paper) that disagrees
+     * with the rest of the identifier-confirmed profile on ≥2 strong signals — a
+     * probable over-merge of a same-name researcher. `score` (0..1) ranks confidence;
+     * `signals` lists which checks fired (see {@link MISATTRIBUTION_SIGNALS}), driving
+     * the editor's "why" copy and the consent-gated disambiguation study. ADVISORY
+     * only — never hides the item; the user decides. RECOMPUTED every build (never
+     * trusted stale). STRIPPED from the public projection. An unknown stored value
+     * degrades to `undefined` rather than failing the whole CV read.
+     */
+    misattribution: z
+      .object({
+        score: z.number().min(0).max(1),
+        signals: z.array(z.enum(MISATTRIBUTION_SIGNALS)).max(MISATTRIBUTION_SIGNALS.length),
       })
       .optional()
       .catch(undefined),

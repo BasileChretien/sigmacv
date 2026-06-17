@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **We now flag publications that may not be yours.** Open databases like OpenAlex
+  match papers to authors automatically and, to avoid missing any, lean toward
+  over-merging — so a paper by a different researcher with a similar name can land
+  on your profile (most common for widely-shared and non-Latin-script names). SigmaCV
+  now spots these: when a work was matched only by an OpenAlex author profile (no
+  confirming ORCID) **and** it disagrees with the rest of your record on two strong
+  signals — it shares **no co-authors** with your other work **and** sits in a clearly
+  **different research field** — it gets a calm "Review" badge and a count in the
+  "Needs your attention" checklist. Nothing is ever removed automatically: you decide,
+  keeping it or marking it "not mine". The check is deliberately conservative (it
+  would rather miss a few than wrongly question a paper that's yours), uses only your
+  own profile signals (never any inference about names or origin), and these flags
+  never appear on your public page or exports.
 - **A "Clockwork" steampunk style for your published living page.** A dark
   brass-and-iron look where electric cords hang from a ceiling rail with glowing
   Edison bulbs that gently sway, brass gears turn slowly behind the page, your name
