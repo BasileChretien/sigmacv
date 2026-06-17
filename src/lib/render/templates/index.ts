@@ -51,6 +51,49 @@ function safeAccent(color: string): string {
   return HEX_COLOR.test(color) ? color : "#1f4fd8";
 }
 
+/**
+ * Darken an accent toward black until it has at least `min` WCAG contrast vs
+ * white. The accent colour is user-chosen (`accentColor` is validated only as a
+ * hex — the picker has a free colour input), and it is used BOTH as text on
+ * white (the Modern name, Classic/Sidebar headings, every link) AND as the
+ * Sidebar's panel background under white text. Contrast is symmetric, so a
+ * single "readable on white" floor makes both safe across every template.
+ *
+ * A no-op for any reasonably-saturated accent — all six `ACCENT_PRESETS` already
+ * clear ~5:1, comfortably above the 4.7 floor — so it only ever rescues a
+ * too-light custom pick (e.g. a pale yellow at ~1.4:1, otherwise an unreadable
+ * name/heading/sidebar). Hue is preserved by scaling the channels toward black;
+ * only lightness drops.
+ */
+function ensureReadableOnWhite(hex: string, min = 4.7): string {
+  const rgb = [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+  const lum = (c: number[]): number => {
+    const f = c.map((v) => {
+      const s = v / 255;
+      return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * f[0]! + 0.7152 * f[1]! + 0.0722 * f[2]!;
+  };
+  // Contrast of `c` against white (white luminance = 1).
+  const contrast = (c: number[]): number => 1.05 / (lum(c) + 0.05);
+  if (contrast(rgb) >= min) return hex;
+  // Largest scale toward black (k in [0,1]) that still clears the floor — darken
+  // as little as needed. Binary search converges to ~5 decimals in 24 steps.
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 24; i++) {
+    const k = (lo + hi) / 2;
+    if (contrast(rgb.map((c) => c * k)) >= min) lo = k;
+    else hi = k;
+  }
+  const toHex = (v: number): string => Math.round(v).toString(16).padStart(2, "0");
+  return `#${rgb.map((c) => toHex(c * lo)).join("")}`;
+}
+
 /** A low-opacity tint of the (already-validated) accent for rules/fills. */
 function accentSoft(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -64,7 +107,9 @@ export function resolveTheme(display: DisplayChoices): TemplateTheme {
   const compact = display.density === "compact";
   // Defence-in-depth: the schema validates accentColor, but this value is
   // interpolated raw into a <style> block, so re-check at the render boundary.
-  const accentColor = safeAccent(display.accentColor);
+  // Then floor its contrast so a too-light custom accent can't render an
+  // unreadable name/heading/link or white-on-accent sidebar (no-op for presets).
+  const accentColor = ensureReadableOnWhite(safeAccent(display.accentColor));
   return {
     accentColor,
     accentSoft: accentSoft(accentColor),
