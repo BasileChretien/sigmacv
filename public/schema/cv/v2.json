@@ -831,6 +831,14 @@
                     "isCorresponding": {
                       "type": "boolean"
                     },
+                    "coauthorOrcids": {
+                      "maxItems": 300,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 50
+                      }
+                    },
                     "matchBasis": {
                       "type": "string",
                       "enum": ["orcid", "openalex-id", "both", "claimed"]

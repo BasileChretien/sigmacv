@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Your public CV now links to co-authors who are also on SigmaCV.** When a
+  co-author on one of your works has published their own search-indexable SigmaCV
+  page, your public page's structured data (schema.org JSON-LD) now expresses that
+  collaboration as a `knows` link to their profile — building a discoverable web
+  of researcher CVs for search and AI answer engines. Matching is by **ORCID
+  identifier only** (never by name), and a co-author is linked **only if they
+  opted their own page into search indexing** — the same consent that lets search
+  engines find their page. Nothing changes visibly on the page, and a co-author
+  who unpublishes or turns off indexing is delinked automatically.
 - **Edit a position's institution and dates, too.** Each position and education
   entry now has an **"Edit details"** panel to correct the **institution name** and
   the **start/end year** — with an **"Ongoing"** toggle for current roles. Like the

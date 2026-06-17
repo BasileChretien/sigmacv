@@ -84,6 +84,12 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
             duplicateOf: undefined,
             matchBasis: undefined,
             claimed: undefined,
+            // Raw co-author ORCID list is an internal resolution input only — the
+            // public JSON-LD surfaces just the resolved `knows` links (co-authors
+            // with their OWN published+indexable CV), never this full identifier
+            // set. Resolution reads the stored (unprojected) doc, so stripping it
+            // here keeps it out of the machine downloads (json/csljson/bibtex).
+            coauthorOrcids: undefined,
           },
         })),
     };

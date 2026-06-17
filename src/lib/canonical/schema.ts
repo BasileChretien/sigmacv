@@ -419,6 +419,17 @@ export const CvItemSchema = z.object({
     /** Whether the account holder is a corresponding author on this work. */
     isCorresponding: z.boolean().optional(),
     /**
+     * Bare ORCID iDs of this work's CO-AUTHORS (the account holder's own ORCID
+     * excluded), captured from OpenAlex authorships at build time. Identifier
+     * data ONLY — never a name. Drives server-side resolution of co-authors who
+     * ALSO have a published + search-indexable SigmaCV CV, surfaced solely as
+     * schema.org `knows` links in the public JSON-LD (never an inline citation
+     * link, never name-matched). STRIPPED by {@link projectCvForPublic} so the
+     * raw list never reaches the machine downloads; resolution runs on the
+     * stored (unprojected) document, server-side only. Bounded at build.
+     */
+    coauthorOrcids: z.array(z.string().max(50)).max(300).optional(),
+    /**
      * Which identifier matched the account holder on this work: "orcid" (strong),
      * "openalex-id", "both", or "claimed" (no identifier match — the user asserted
      * ownership when adding the work by DOI). Recorded so the disambiguation-error

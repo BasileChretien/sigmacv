@@ -3,6 +3,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { invalidatePublicPage } from "@/lib/cv/publicPageCache";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
+import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks";
 import { logger } from "@/lib/log";
 import { getEnv } from "@/lib/env";
 import { buildCanonicalCv } from "@/lib/canonical/build";
@@ -550,15 +551,22 @@ export async function getPublicCv(slug: string): Promise<CanonicalCv | null> {
   return projectCvForPublic(parsed.data);
 }
 
-/** Like getPublicCv, but also returns the indexing opt-in for robots/JSON-LD. */
+/** Like getPublicCv, but also returns the indexing opt-in for robots/JSON-LD,
+ *  and (when `resolveCoauthors`) the co-authors who have their OWN published,
+ *  indexable SigmaCV CV — resolved from the UNPROJECTED document (the projection
+ *  strips the raw co-author ORCID list) for the public JSON-LD `knows` graph.
+ *  Only the page route asks for this; the OG-card path leaves it off to skip the
+ *  extra query. */
 export async function getPublicCvForPage(
   slug: string,
-): Promise<{ cv: CanonicalCv; indexable: boolean } | null> {
+  opts?: { resolveCoauthors?: boolean },
+): Promise<{ cv: CanonicalCv; indexable: boolean; coauthorCvs: CoauthorCvLink[] } | null> {
   const row = await prisma.cv.findUnique({ where: { publicSlug: slug } });
   if (!row || !row.published) return null;
   const parsed = safeParseCanonicalCv(row.document);
   if (!parsed.success) return null;
-  return { cv: projectCvForPublic(parsed.data), indexable: row.publicIndexable };
+  const coauthorCvs = opts?.resolveCoauthors ? await resolveCoauthorCvs(parsed.data) : [];
+  return { cv: projectCvForPublic(parsed.data), indexable: row.publicIndexable, coauthorCvs };
 }
 
 /**
