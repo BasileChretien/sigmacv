@@ -90,7 +90,7 @@
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  color: var(--accent-700);
+  color: var(--accent);
 }
 .hp2-h1 {
   font-size: clamp(2rem, 4.4vw, 3.1rem);
@@ -150,13 +150,19 @@
   color: #fff;
   box-shadow: var(--shadow-sm);
 }
+/* Disabled / in-flight sign-in: dim + not-allowed, but keep the label legible so
+   the "Signing in…" text reads clearly during the OAuth redirect. */
+.hp2-btn:disabled {
+  cursor: progress;
+  opacity: 0.75;
+}
 .hp2-help {
   margin: var(--space-3) 0 0;
   font-size: var(--text-sm);
 }
 .hp2-help summary {
   cursor: pointer;
-  color: var(--accent-700);
+  color: var(--accent);
   font-weight: var(--weight-medium);
 }
 .hp2-help-body {
@@ -171,7 +177,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  color: var(--accent-700);
+  color: var(--accent);
   font-weight: var(--weight-semibold);
   text-decoration: none;
 }
@@ -180,6 +186,29 @@
 }
 .hp2-fine {
   margin: var(--space-4) 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--muted);
+}
+/* Email magic-link form: visible label + persistent helper (placeholder is not a
+   label). The input + submit stay on one row via the shared .auth-email-row. */
+.hp2-email-form {
+  margin-top: var(--space-3);
+}
+.hp2-email-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+/* The shared .auth-email-row carries its own top margin (for the old label-less
+   layout); zero it here so the input sits snug under the visible label. */
+.hp2-email-form .auth-email-row {
+  margin-top: 0;
+}
+.hp2-email-help {
+  margin: var(--space-1) 0 0;
   font-size: var(--text-xs);
   line-height: 1.5;
   color: var(--muted);
@@ -195,6 +224,73 @@
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
+}
+
+/* ── Auth feedback pages (sign-in error / check-your-email) ─────────────────
+   Standalone centred card reusing the landing shell + tokens. */
+.hp2-auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-8);
+}
+.hp2-auth-card {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(8px);
+}
+.hp2-auth-mark {
+  width: 2.4rem;
+  height: 2.4rem;
+  margin: 0 auto var(--space-4);
+  font-size: 1.3rem;
+}
+.hp2-auth-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 var(--space-2);
+}
+.hp2-auth-intro {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+}
+.hp2-auth-msg {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.hp2-auth-hint {
+  margin: 0 0 var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.hp2-auth-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+.hp2-auth-btn {
+  width: auto;
+  text-decoration: none;
+}
+.hp2-auth-link {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--accent);
+  text-decoration: none;
+}
+.hp2-auth-link:hover {
+  text-decoration: underline;
 }
 
 /* ── Sources strip ─────────────────────────────────────────────────── */
@@ -374,7 +470,7 @@
   height: 2.5rem;
   margin-bottom: var(--space-2);
   border-radius: var(--radius-full);
-  color: var(--accent-700);
+  color: var(--accent);
   background: var(--accent-50);
 }
 .hp2-trust-card h3 {
@@ -505,7 +601,7 @@
   margin-top: var(--space-4);
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
-  color: var(--accent-700);
+  color: var(--accent);
   text-decoration: none;
 }
 .hp2-feature-link:hover {
@@ -560,7 +656,7 @@
   line-height: 1.55;
 }
 .hp2-creator-text a {
-  color: var(--accent-700);
+  color: var(--accent);
   font-weight: var(--weight-medium);
 }
 .hp2-dora {
@@ -627,7 +723,7 @@
   font-style: normal;
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
-  color: var(--accent-700);
+  color: var(--accent);
 }
 .cu-count-from {
   animation: cu-count-a 11s var(--ease) infinite;
@@ -1041,7 +1137,7 @@
   place-items: center;
   font-size: var(--text-2xs);
   font-weight: var(--weight-semibold);
-  color: var(--accent-700);
+  color: var(--accent);
   opacity: 0;
 }
 .sy-cite-name.c1 {
@@ -1636,7 +1732,7 @@
   text-decoration: none;
 }
 .hp2-soc:hover {
-  color: var(--accent-700);
+  color: var(--accent);
 }
 .hp2-soc svg {
   flex: none;
@@ -1666,7 +1762,7 @@
   font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
-  color: var(--accent-700);
+  color: var(--accent);
 }
 .cu-sec-count {
   position: relative;
@@ -1720,7 +1816,7 @@
   flex: none;
   font-size: var(--text-2xs);
   font-weight: var(--weight-semibold);
-  color: var(--accent-700);
+  color: var(--accent);
   background: var(--accent-soft);
   border: 1px solid var(--accent-100);
   border-radius: var(--radius-full);
@@ -1774,7 +1870,7 @@
 .sy-metric {
   font-size: var(--text-2xs);
   font-weight: var(--weight-bold);
-  color: var(--accent-700);
+  color: var(--accent);
   background: var(--accent-soft);
   border-radius: var(--radius-full);
   padding: 0.15rem 0.45rem;
@@ -1811,7 +1907,7 @@
 .ex-h {
   font-size: var(--text-2xs);
   font-weight: var(--weight-semibold);
-  color: var(--accent-700);
+  color: var(--accent);
   margin-top: 0.15rem;
 }
 .ex-t {
@@ -1878,7 +1974,7 @@
   font-style: normal;
   font-size: var(--text-2xs);
   font-weight: var(--weight-semibold);
-  color: var(--accent-700);
+  color: var(--accent);
   background: var(--accent-soft);
   border: 1px solid var(--accent-100);
   border-radius: var(--radius-full);
@@ -1897,7 +1993,7 @@
   flex: none;
   font-size: var(--text-2xs);
   font-weight: var(--weight-semibold);
-  color: var(--accent-700);
+  color: var(--accent);
   background: var(--accent-soft);
   border: 1px solid var(--accent-100);
   border-radius: var(--radius-full);
@@ -1915,7 +2011,7 @@
   font-weight: var(--weight-medium);
 }
 .hp2-foot-gh:hover {
-  color: var(--accent-700);
+  color: var(--accent);
 }
 .hp2-foot-gh svg {
   flex: none;

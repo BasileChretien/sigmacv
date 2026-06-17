@@ -104,6 +104,10 @@ export default function CvWorkspace({
     setStatusKind(message ? kind : "");
   }, []);
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
+  // True while an export is being produced + downloaded (the PDF render is the
+  // slow one) so the Export button can disable + show progress instead of looking
+  // frozen and inviting re-clicks.
+  const [exporting, setExporting] = useState(false);
   // Which pane is visible on narrow screens (both show side-by-side on desktop).
   const [pane, setPane] = useState<"editor" | "preview">("editor");
   // Which surface the preview renders: the document (export) render, or the
@@ -329,8 +333,32 @@ export default function CvWorkspace({
     }
     // Cookieless product signal: which export format. No personal/CV data.
     trackEvent("Export", { format: exportFormat });
-    window.location.href = `/api/cv/export/${exportFormat}`;
-  }, [dirty, handleSave, exportFormat]);
+    // Fetch the file as a blob (rather than navigating to it) so the button can
+    // show progress during the slow PDF render AND a failure surfaces in-app
+    // instead of dumping a raw API error page in the tab.
+    setExporting(true);
+    showStatus("");
+    try {
+      const res = await fetch(`/api/cv/export/${exportFormat}`);
+      if (!res.ok) throw new Error(`export failed: ${res.status}`);
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") ?? "";
+      const named = /filename="?([^";]+)"?/.exec(disposition);
+      const filename = named?.[1] ?? `cv.${exportFormat}`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      showStatus(t(uiLocale, "exportFailed"), "error");
+    } finally {
+      setExporting(false);
+    }
+  }, [dirty, handleSave, exportFormat, showStatus, uiLocale]);
 
   // Deep-link from the Publish menu to the public-page-style picker: on a phone,
   // make sure the editor pane (not the preview) is showing, then jump the editor
@@ -366,6 +394,7 @@ export default function CvWorkspace({
           exportFormat={exportFormat}
           onExportFormatChange={setExportFormat}
           onExport={handleExport}
+          exporting={exporting}
           onChangeLocale={changeUiLocale}
           published={publishState.published}
           publicSlug={publishState.slug}

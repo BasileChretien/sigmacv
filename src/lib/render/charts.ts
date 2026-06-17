@@ -60,9 +60,13 @@ function bars(points: Point[], fill: string): string {
 /** HTML <figure> chart (accent bars via the CSS variable). */
 function barChart(title: string, points: Point[]): string {
   const width = chartWidth(points);
+  // Fold the data series into the accessible name so the chart isn't content-free
+  // to a screen-reader or touch user (the per-bar counts otherwise live only in the
+  // mouse-hover <title> tooltips — WCAG 1.1.1).
+  const series = points.map((p) => `${p.label}: ${p.value}`).join(", ");
   return `<figure class="cv-chart">
   <figcaption>${escapeXml(title)}</figcaption>
-  <svg viewBox="0 0 ${width} ${SVG_H}" width="${width}" height="${SVG_H}" role="img" aria-label="${escapeXml(title)}">${bars(points, "var(--cv-accent)")}</svg>
+  <svg viewBox="0 0 ${width} ${SVG_H}" width="${width}" height="${SVG_H}" role="img" aria-label="${escapeXml(`${title}. ${series}`)}">${bars(points, "var(--cv-accent)")}</svg>
 </figure>`;
 }
 

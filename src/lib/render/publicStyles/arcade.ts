@@ -49,9 +49,13 @@ function arcadeCss(_t: TemplateTheme): string {
     --cv-page:#fffdf3;
     /* Bright primary platformer palette. */
     --sky-1:#5ec5ff; --sky-2:#9fe0ff; --sky-3:#cdf0ff;
-    --brick:#d2502a; --brick-dk:#a23717; --brick-lt:#f07a4f;
+    /* brick / pipe / grass-dk darkened from #d2502a / #2f9e44 / #258a36 so that
+       white-on-brick chips (was 4.27:1), white-on-pipe chips (3.45:1) and the
+       grass-dk link text on cream (4.32:1) all clear WCAG-AA 4.5:1 for the small
+       heading / link sizes. The deeper brick also lifts the (large) name to 5.1:1. */
+    --brick:#c1411f; --brick-dk:#a23717; --brick-lt:#f07a4f;
     --coin:#ffcf33; --coin-dk:#e0a200; --coin-hi:#fff2b0;
-    --grass:#3fb950; --grass-dk:#258a36; --pipe:#2f9e44;
+    --grass:#3fb950; --grass-dk:#1f7a2f; --pipe:#268038;
     --cloud:#ffffff; --outline:#1d1606; --star:#fff6c0;
     /* The user's accent tints the score/coin chrome; falls back to coin gold. */
     --score: var(--cv-accent, var(--coin));
@@ -371,15 +375,17 @@ const arcadeMascotSkin = `
 
   /* Σ glyph: white, bold, hard 1px pixel drop-shadow (no blur = pixel-art) */
   .sm-fig::before {
-    /* content / font-size / position come from mascotBaseCss; we override style only */
-    color: #ffffff;
+    /* content / font-size / position come from mascotBaseCss; we override style only.
+       Dark glyph on the gold coin: white read at only 1.44:1 (WCAG 3:1 graphic
+       floor); near-black on #ffd23f is ~11.8:1. */
+    color: #1b1b1b;
     font-weight: 900;
-    /* hard stepped pixel shadow: right+down 1px, then 2px, building a staircase */
+    /* hard stepped pixel highlight (light staircase) keeps the 8-bit look on the dark glyph */
     text-shadow:
-      1px 0   #1b1b1b,
-      0   1px #1b1b1b,
-      1px 1px #1b1b1b,
-      2px 2px #1b1b1b;
+      1px 0   #ffe97a,
+      0   1px #ffe97a,
+      1px 1px #ffe97a,
+      2px 2px rgba(255, 233, 122, 0.6);
     /* keep it square-center on the body */
     font-size: 1.1rem;
     line-height: 1;

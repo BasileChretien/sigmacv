@@ -124,7 +124,11 @@ export default function Landing({ locale }: LandingProps) {
               </div>
 
               <form action={signInWithOrcid}>
-                <SignInButton method="orcid" className="hp2-btn hp2-btn-primary">
+                <SignInButton
+                  method="orcid"
+                  className="hp2-btn hp2-btn-primary"
+                  pendingLabel={s.signingIn}
+                >
                   <OrcidMark />
                   {s.signInOrcid}
                 </SignInButton>
@@ -154,24 +158,34 @@ export default function Landing({ locale }: LandingProps) {
 
               {enabledProviders.google ? (
                 <form action={signInWithGoogle}>
-                  <SignInButton method="google" className="hp2-btn">
+                  <SignInButton method="google" className="hp2-btn" pendingLabel={s.signingIn}>
                     {s.continueGoogle}
                   </SignInButton>
                 </form>
               ) : null}
 
               {enabledProviders.email ? (
-                <form action={signInWithEmail} className="auth-email-row">
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    placeholder={s.emailPlaceholder}
-                    aria-label={s.emailLabel}
-                  />
-                  <SignInButton method="email" className="hp2-btn">
-                    {s.emailButton}
-                  </SignInButton>
+                <form action={signInWithEmail} className="hp2-email-form">
+                  <label className="hp2-email-label" htmlFor="hp2-email">
+                    {s.emailFieldLabel}
+                  </label>
+                  <div className="auth-email-row">
+                    <input
+                      id="hp2-email"
+                      type="email"
+                      name="email"
+                      required
+                      placeholder={s.emailPlaceholder}
+                      aria-label={s.emailLabel}
+                      aria-describedby="hp2-email-help"
+                    />
+                    <SignInButton method="email" className="hp2-btn" pendingLabel={s.signingIn}>
+                      {s.emailButton}
+                    </SignInButton>
+                  </div>
+                  <p id="hp2-email-help" className="hp2-email-help">
+                    {s.emailHelper}
+                  </p>
                 </form>
               ) : null}
 
@@ -315,7 +329,11 @@ export default function Landing({ locale }: LandingProps) {
         <section className="hp2-cta">
           <h2>{flow.ctaTitle}</h2>
           <form action={signInWithOrcid}>
-            <SignInButton method="orcid" className="hp2-btn hp2-btn-primary hp2-cta-btn">
+            <SignInButton
+              method="orcid"
+              className="hp2-btn hp2-btn-primary hp2-cta-btn"
+              pendingLabel={s.signingIn}
+            >
               <OrcidMark />
               {s.signInOrcid}
             </SignInButton>

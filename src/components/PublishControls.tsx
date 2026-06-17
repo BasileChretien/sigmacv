@@ -105,7 +105,10 @@ export default function PublishControls({
 
   return (
     <div className="account-controls">
-      <label className="field-inline" title={u.publishTitle}>
+      {/* The (un)publish decision is the most consequential, privacy-significant
+          control in this panel — give it emphasis distinct from the secondary
+          visibility checkboxes below, instead of an identical bare field row. */}
+      <label className="field-inline publish-main-toggle" title={u.publishTitle}>
         <input
           type="checkbox"
           data-testid="publish-toggle"
@@ -118,10 +121,14 @@ export default function PublishControls({
       {/* What publishing exposes — shown BEFORE the toggle is flipped, so the
           (irreversible-feeling) public exposure is a fully-informed choice. */}
       <p className="publish-summary muted">{u.publicSummary}</p>
-      {/* Polite live region (always mounted): publish error. */}
-      <span className="visually-hidden" role="status" aria-live="polite">
-        {announce}
-      </span>
+      {/* Publish failure: a VISIBLE assertive alert (was a visually-hidden polite
+          region — a sighted user only saw the checkbox snap back, with no message,
+          and an error the user must act on shouldn't queue behind other speech). */}
+      {announce ? (
+        <p className="consent-error" role="alert">
+          {announce}
+        </p>
+      ) : null}
       {published && slug ? (
         <>
           <label className="field-inline" title={u.allowIndexingTitle}>

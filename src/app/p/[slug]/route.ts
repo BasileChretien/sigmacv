@@ -19,6 +19,7 @@ import { publicMetaTags } from "@/lib/cv/publicMeta";
 import { renderPublicCvHtml } from "@/lib/render/publicStyles";
 import { absoluteUrl } from "@/lib/siteUrl";
 import { enforcePubPageRateLimit, isValidPublicSlug, tooManyRequests } from "./pubRateLimit";
+import { publicNoticeResponse } from "./noticePage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -113,10 +114,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   if (!rl.ok) return tooManyRequests(rl.retryAfterSec);
 
   const notFound = () =>
-    new NextResponse("This CV is not available.", {
-      status: 404,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    });
+    publicNoticeResponse(
+      404,
+      "This CV isn't available",
+      "The link may be mistyped, or the page may have been unpublished — the owner of a living CV can turn its public page off at any time.",
+    );
 
   // Validate the stripped slug against the server-generated slug shape BEFORE
   // any DB lookup or use in the Content-Disposition header. Server slugs always

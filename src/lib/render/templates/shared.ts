@@ -220,10 +220,10 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-honorific { font: inherit; color: inherit; opacity: 1; letter-spacing: inherit; }
   .cv-headline { font-size: 1.2rem; font-weight: 500; color: var(--cv-ink-2); margin-top: 0.15rem; letter-spacing: 0; }
   .cv-ids { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.35rem; }
-  .cv-ids a { color: var(--cv-accent); text-decoration: none; }
+  .cv-ids a { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; }
   .cv-contact, .cv-links { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.3rem; line-height: 1.5; }
   .cv-links { margin-top: 0.1rem; }
-  .cv-contact a, .cv-links a { color: var(--cv-muted); text-decoration: none; }
+  .cv-contact a, .cv-links a { color: var(--cv-muted); text-decoration: underline; text-underline-offset: 0.15em; }
   .cv-summary { margin: 0.95rem 0 0; font-size: 0.95rem; color: var(--cv-ink-2); line-height: 1.55; }
   .cv-metrics { font-size: 0.8rem; color: var(--cv-muted); margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.15rem 1.1rem; }
   /* The metric's interpretation anchor ("1.0 = world average …"). Upright (not
@@ -315,17 +315,36 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-coauthors-list { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 0.2rem 0.85rem; font-size: 0.78rem; }
   .cv-coauthors-list a { color: var(--cv-accent); text-decoration: none; }
   a { color: inherit; }
+  /* A visible keyboard-focus ring for every link on the public page + document.
+     Uses outline (not box-shadow) so it can't be clipped by an overflow/transform/
+     backdrop-filter ancestor on the animated styles, where the UA default ring is
+     faint or suppressed. */
+  a:focus-visible { outline: 2px solid var(--cv-accent); outline-offset: 2px; border-radius: 2px; }
 
   @page { size: A4; margin: 16mm 15mm; }
   @media print {
     .cv { padding: 0; max-width: none; }
     a { text-decoration: none; }
+    /* Keep in-text profile / contact / ID links underlined in the PDF so the
+       link affordance survives print (WCAG 1.4.1 — not signalled by colour). */
+    .cv-ids a, .cv-contact a, .cv-links a { text-decoration: underline; text-underline-offset: 0.15em; }
     .cv-ror-link { border-bottom: none; }
     section.cv-section { break-inside: auto; }
     section.cv-section > h2 { break-after: avoid; break-inside: avoid; }
     ol.cv-bib > li { break-inside: avoid; }
     header.cv-header { break-inside: avoid; break-after: avoid; }
     .cv-chart, figure.cv-chart { break-inside: avoid; }
+  }
+
+  /* Phones: stack the header so the NAME leads instead of being squeezed beside
+     the photo, and tighten the page gutter (the 52px desktop padding eats ~a
+     third of a 375px screen). The head text (name) is emitted before the optional
+     photo, so plain column keeps the name on top; showcase styles with their own
+     card (.cv padding:0) override the padding, but the header stack still applies. */
+  @media (max-width: 560px) {
+    .cv { padding: 28px 22px; }
+    .cv-headmain { flex-direction: column; align-items: flex-start; gap: 0.9rem; }
+    .cv-photo { width: 88px; height: 88px; }
   }`;
 }
 
@@ -527,7 +546,7 @@ export function coauthorLinksFooter(cv: CanonicalCv, opts: RenderOpts = {}): str
   const items = links
     .map((l) => `<li><a href="${escapeHtml(`/p/${l.slug}`)}">${escapeHtml(l.name)}</a></li>`)
     .join("");
-  return `<nav class="cv-coauthors" aria-label="${heading}"><p class="cv-coauthors-h">${heading}</p><ul class="cv-coauthors-list">${items}</ul></nav>`;
+  return `<nav class="cv-coauthors" aria-labelledby="cv-coauthors-h"><h2 id="cv-coauthors-h" class="cv-coauthors-h">${heading}</h2><ul class="cv-coauthors-list">${items}</ul></nav>`;
 }
 
 /** Max number of sections the mascot binds a hat to (CVs never approach this). */
@@ -713,7 +732,12 @@ function renderableSections(sections: RenderedSection[]): RenderedSection[] {
  * numbered bibliography. The section heading + prose body are USER FREE-TEXT and
  * are HTML-escaped / safe-transformed — nothing is interpreted as raw HTML/markdown.
  */
-export function sectionsHtml(sections: RenderedSection[]): string {
+/**
+ * The section list WITHOUT the `<main>` landmark — for a template that supplies
+ * its own `<main>` (the Sidebar two-column layout wraps sections + footers in one
+ * `<main class="cv-main">`). Everything else should use `sectionsHtml`.
+ */
+export function sectionsHtmlRaw(sections: RenderedSection[]): string {
   return renderableSections(sections)
     .map((rs) => {
       if (isProseSectionType(rs.section.type)) {
@@ -729,6 +753,16 @@ export function sectionsHtml(sections: RenderedSection[]): string {
       )}</h2><ol class="cv-bib">\n${entries}\n</ol></section>`;
     })
     .join("\n");
+}
+
+/**
+ * The CV's sections wrapped in the `<main>` landmark (WCAG 1.3.1 / 2.4.1) — the
+ * primary-content region every template/style except Sidebar uses. No style
+ * relies on sections being direct children of `.cv`, so the wrapper is layout-
+ * neutral; `.cv-main` carries no shared styling (only Sidebar styles its own).
+ */
+export function sectionsHtml(sections: RenderedSection[]): string {
+  return `<main class="cv-main">${sectionsHtmlRaw(sections)}</main>`;
 }
 
 /**

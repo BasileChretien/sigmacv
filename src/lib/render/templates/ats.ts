@@ -48,8 +48,11 @@ function atsCss(_theme: TemplateTheme): string {
   .cv-summary { margin-top: 0.8rem; }
 
   /* Section headings: plain bold, standard case, no transforms/rules/markers. */
+  /* Section headings sit ABOVE the headline (1.1rem) and clearly above body — with
+     colour stripped for parser safety, size + weight are the only hierarchy cues,
+     so the heading must be the largest of the three (was 1.05rem, below the headline). */
   section.cv-section > h2 {
-    font-size: 1.05rem; font-weight: bold; text-transform: none;
+    font-size: 1.18rem; font-weight: bold; text-transform: none;
     letter-spacing: 0; border: 0; color: #000; margin: 0 0 0.4rem;
   }
   section.cv-section > h2::after { content: none; }

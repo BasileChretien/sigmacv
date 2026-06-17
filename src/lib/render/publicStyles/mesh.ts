@@ -25,6 +25,16 @@ function meshCss(_t: TemplateTheme): string {
     --cv-ink:#1b1733; --cv-ink-2:#46406a; --cv-muted:#6a648c; --cv-faint:#605a7d;
     --cv-rule: rgba(27,23,51,0.12); --cv-rule-strong: rgba(27,23,51,0.24); --cv-page:#f7f8fc;
     --m1:#6d7cff; --m2:#54d6ff; --m3:#ff8ad1; --m4:#ffd36b;
+    /* A contrast-HARDENED accent for the heading + link text. The content card is
+       translucent white over the pastel mesh, so its effective background can dip
+       below pure white; the page --cv-accent is only floored to ~4.45:1 vs WHITE,
+       so a near-threshold pale accent could fall under AA on a tinted card patch.
+       Forcing the accent to a deep L≈0.42 keeps the hue but clears 4.5:1 across the
+       whole card. Fallback = the (floored) --cv-accent for non-oklch browsers. */
+    --cv-accent-deep: var(--cv-accent);
+  }
+  @supports (color: oklch(from red l c h)) {
+    :root { --cv-accent-deep: oklch(from var(--cv-accent) 0.42 c h); }
   }
   body { min-height:100vh; color:var(--cv-ink); background:#f5f6fc; overflow-x:hidden; }
   .cv { max-width:none; padding:0; }
@@ -51,11 +61,11 @@ function meshCss(_t: TemplateTheme): string {
   }
   @keyframes mesh-flow { to { background-position: 220% 50%; } }
   header.cv-header .cv-headline { color:var(--cv-ink-2); font-weight:600; margin-top:0.3rem; }
-  header.cv-header .cv-ids a, ol.cv-bib > li a { color: var(--cv-accent); }
+  header.cv-header .cv-ids a, ol.cv-bib > li a { color: var(--cv-accent-deep); }
   .cv-photo { width:118px; height:118px; border-radius:24px; border:3px solid rgba(255,255,255,0.9);
     box-shadow: 0 14px 40px -12px rgba(70,50,140,0.5); }
 
-  section.cv-section > h2 { font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:0.14em; color:var(--cv-accent); margin:0 0 0.7rem; }
+  section.cv-section > h2 { font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:0.14em; color:var(--cv-accent-deep); margin:0 0 0.7rem; }
   ol.cv-bib > li { position:relative; padding-left:1.6em; text-indent:0; }
   ol.cv-bib > li::before { content:""; position:absolute; left:0; top:0.45em; width:8px; height:8px; border-radius:50%;
     background: linear-gradient(var(--m1), var(--m3)); }
@@ -108,7 +118,7 @@ const meshMascotSkin = `
       radial-gradient(ellipse 70% 70% at 100% 100%,  #e078f5 0%, transparent 65%),
       radial-gradient(ellipse 65% 65% at 0%   100%,  #ffc6e5 0%, transparent 65%);
     background-size: 120% 120%, 120% 120%, 120% 120%, 120% 120%;
-    background-color: #8b8fff;
+    background-color: #6b6fe6;
     animation: sm-mesh-shift 14s ease-in-out infinite;
     border-top:    1px solid rgba(255, 255, 255, 0.55);
     border-left:   1px solid rgba(255, 255, 255, 0.30);
@@ -135,9 +145,12 @@ const meshMascotSkin = `
     font-weight: 800;
     line-height: 1;
     color: #fff;
+    /* Dark stroke + shadow so the white Σ clears the 3:1 graphic floor over the
+       light mesh body (was ~2.81:1 over the #8b8fff base, now darkened too). */
+    -webkit-text-stroke: 0.7px rgba(35, 18, 80, 0.9);
     text-shadow:
-      0 1px 4px rgba(80, 40, 160, 0.60),
-      0 0  10px rgba(255, 255, 255, 0.45);
+      0 1px 3px rgba(40, 18, 90, 0.85),
+      0 0  10px rgba(255, 255, 255, 0.35);
     z-index: 3;
   }
 

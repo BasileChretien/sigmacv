@@ -11,11 +11,20 @@ describe("landingStrings", () => {
   });
 
   it("has a non-empty value for every field in every locale", () => {
-    for (const loc of SUPPORTED_LOCALES) {
-      for (const value of Object.values(landingStrings(loc))) {
-        // Strings and arrays (features/trust) both expose a positive length.
+    // Recurse so nested records (e.g. authError.messages) are checked too: every
+    // leaf string must be non-empty, every array must have length, in every locale.
+    const expectNonEmpty = (value: unknown): void => {
+      if (typeof value === "string") {
         expect(value.length).toBeGreaterThan(0);
+      } else if (Array.isArray(value)) {
+        expect(value.length).toBeGreaterThan(0);
+        for (const item of value) expectNonEmpty(item);
+      } else if (value && typeof value === "object") {
+        for (const v of Object.values(value)) expectNonEmpty(v);
       }
+    };
+    for (const loc of SUPPORTED_LOCALES) {
+      expectNonEmpty(landingStrings(loc));
     }
   });
 

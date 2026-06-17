@@ -44,8 +44,11 @@ function risoCss(_t: TemplateTheme): string {
   section.cv-section { margin-top: 2.1rem; }
   section.cv-section > h2 { display:inline-block; color:#f4eede; background: var(--riso-blue); padding:0.28em 0.7em;
     font-size:0.78rem; font-weight:800; text-transform:uppercase; letter-spacing:0.12em; margin:0 0 0.85rem; transform: rotate(-1.2deg); }
-  section.cv-section:nth-of-type(3n+1) > h2 { background: var(--riso-pink); transform: rotate(1deg); }
-  section.cv-section:nth-of-type(3n+3) > h2 { background: var(--riso-teal); transform: rotate(-0.6deg); }
+  /* Paper ink reads on the blue block (5.8:1) but FAILS on the lighter teal
+     (2.27:1) and pink (3.03:1) ink blocks → flip those to dark ink (teal 6.2:1,
+     pink 4.6:1) the way the amber chip pattern does elsewhere. */
+  section.cv-section:nth-of-type(3n+1) > h2 { background: var(--riso-pink); color: var(--cv-ink); transform: rotate(1deg); }
+  section.cv-section:nth-of-type(3n+3) > h2 { background: var(--riso-teal); color: var(--cv-ink); transform: rotate(-0.6deg); }
 
   ol.cv-bib > li { position:relative; padding-left:1.6em; text-indent:0; }
   ol.cv-bib > li::before { content:"●"; position:absolute; left:0; color: var(--riso-pink); font-size:0.7em; top:0.28em; }

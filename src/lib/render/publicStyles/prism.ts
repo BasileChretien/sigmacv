@@ -33,7 +33,11 @@ function prismCss(_theme: TemplateTheme): string {
     --cv-ink: #f6f7ff; --cv-ink-2: #d2d5f2; --cv-muted: #a7abdb; --cv-faint: #888cc4;
     --cv-rule: rgba(255,255,255,0.14); --cv-rule-strong: rgba(255,255,255,0.26);
     --cv-page: #07060f;
-    --neon-1:#ff2db4; --neon-2:#8b3cff; --neon-3:#15d3ff; --neon-4:#23ff9c; --neon-5:#ffb13d;
+    /* --neon-2 lightened from #8b3cff (only 3.84:1 as the 5n+5 heading text on the
+       dark glass plate) to #a96bff (5.7:1). This is the non-oklch fallback literal;
+       where relative-color is supported accentSpectrum re-derives it at L=0.74
+       (a light vivid that already passes on the dark plate). */
+    --neon-1:#ff2db4; --neon-2:#a96bff; --neon-3:#15d3ff; --neon-4:#23ff9c; --neon-5:#ffb13d;
   }
   body { background: #07060f; color: var(--cv-ink); min-height: 100vh; overflow-x: hidden; }
   .cv { max-width: none; margin: 0; padding: 0; }

@@ -18,6 +18,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   just steer toward a calmer header at the moment you're deciding. Localized in all
   ten languages.
 
+- **Signing in now tells you what's happening.** If a sign-in fails (an OAuth
+  hiccup, a denied permission, a provider being down) you land on a clear, friendly
+  page that explains what went wrong and offers to try again, instead of a bare
+  fallback. The sign-in buttons show a "Signing in…" state while they work (so the
+  page never looks frozen and a double-click can't double-submit), and the email
+  magic-link flow ends on a "check your inbox" confirmation. Localized in all ten
+  languages.
+
+- **Exporting shows progress — and tells you if it fails.** The Export button now
+  shows an "Exporting…" state while your file is being produced (the PDF render can
+  take a few seconds) and a failure surfaces a message in-app instead of dumping a
+  raw error page. Localized in all ten languages.
+
+- **A friendly page when a public CV link doesn't resolve.** Following a mistyped
+  or unpublished `/p/…` link, or hitting the rate limit, now shows a small branded
+  page with a way back to SigmaCV, rather than a bare line of text.
+
 ### Changed
 
 - **The top of the CV now leads with the person, not a wall of statistics.** When
@@ -50,6 +67,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   so clicking it (or anywhere else, or pressing Escape, or the ✕) dismisses the
   menu cleanly. Only one menu is open at a time, switching between them is a
   single click, and the panels collapse toward the button they belong to.
+
+- **Contrast and readability fixes across light, dark and the public-page styles
+  (WCAG AA).** In dark mode, links and accent text were too faint to read (and the
+  theme-toggle's own active state nearly vanished) — accent colours are now floored
+  for dark surfaces, and the soft "hint"/badge callouts read as dark panels instead
+  of bright lavender boxes. On the public-page showcase styles, several heading
+  chips, section titles and links sat below AA (some white-on-pastel headings were
+  nearly unreadable); those are darkened to clear the bar. The travelling Σ mascot
+  is now visible on every skin (it was hard to see on the arcade and mesh looks),
+  and in-text profile/contact/ID links keep a visible underline on screen and in
+  the PDF, so a link is never signalled by colour alone.
+
+- **The public CV reads well on a phone.** The header now stacks so your **name
+  leads** instead of being squeezed beside your photo, and the page uses tighter
+  margins on small screens. Charts and the publication trend now carry their data
+  in text for screen-reader and touch users, the sections sit in a proper `main`
+  landmark, and the co-authors block is a real heading.
+
+- **Editor reliability & accessibility.** The "publish your page" prompt's button
+  now actually opens the Publish menu and focuses the toggle (it previously did
+  nothing); a publish failure shows a visible message rather than silently snapping
+  the toggle back; the delete-account dialog can no longer lose keyboard focus mid-
+  deletion; and small controls (colour swatches, the delete-preset ×, the theme
+  toggle) meet the minimum touch-target size. Localized pages also declare their
+  language for assistive tech.
 
 ### Changed
 
