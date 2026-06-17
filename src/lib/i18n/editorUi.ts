@@ -8,7 +8,9 @@ import { asLocale, type Locale } from "./index";
  */
 export interface EditorExtraStrings {
   // Grouped style-panel headings.
-  grpTemplate: string;
+  grpLook: string;
+  grpDocLayout: string;
+  docLayoutNote: string;
   grpCitations: string;
   grpMetrics: string;
   grpDisplay: string;
@@ -105,7 +107,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "Document",
     previewSurfacePublic: "Public page",
     publishStyleTip: "Personalise how your public page looks under Design → Public page style.",
-    grpTemplate: "Template & layout",
+    grpLook: "Look & typography",
+    grpDocLayout: "Document layout",
+    docLayoutNote:
+      "The layout for your PDF, DOCX, LaTeX and Markdown exports — and your public page when it’s set to match.",
     grpCitations: "Citations & language",
     grpMetrics: "Metrics & authorship",
     grpDisplay: "Sections & visibility",
@@ -176,7 +181,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "文档",
     previewSurfacePublic: "公开页面",
     publishStyleTip: "在“设计 → 公开页面样式”中个性化你的公开页面外观。",
-    grpTemplate: "模板与排版",
+    grpLook: "样式与排版",
+    grpDocLayout: "文档版式",
+    docLayoutNote:
+      "用于你的 PDF、DOCX、LaTeX 和 Markdown 导出——当公开页面设为“与文档一致”时也会采用此版式。",
     grpCitations: "引用与语言",
     grpMetrics: "指标与作者贡献",
     grpDisplay: "栏目与显示",
@@ -248,7 +256,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfacePublic: "Página pública",
     publishStyleTip:
       "Personaliza el aspecto de tu página pública en Diseño → Estilo de la página pública.",
-    grpTemplate: "Plantilla y diseño",
+    grpLook: "Aspecto y tipografía",
+    grpDocLayout: "Diseño del documento",
+    docLayoutNote:
+      "El diseño de tus exportaciones PDF, DOCX, LaTeX y Markdown, y de tu página pública cuando está configurada para coincidir.",
     grpCitations: "Citas e idioma",
     grpMetrics: "Métricas y autoría",
     grpDisplay: "Secciones y visibilidad",
@@ -323,7 +334,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfacePublic: "Page publique",
     publishStyleTip:
       "Personnalisez l’apparence de votre page publique dans Design → Style de la page publique.",
-    grpTemplate: "Modèle et mise en page",
+    grpLook: "Aspect et typographie",
+    grpDocLayout: "Mise en page du document",
+    docLayoutNote:
+      "La mise en page de vos exports PDF, DOCX, LaTeX et Markdown — et de votre page publique lorsqu’elle est réglée sur « comme mon document ».",
     grpCitations: "Citations et langue",
     grpMetrics: "Indicateurs et rôles d’auteur",
     grpDisplay: "Sections et affichage",
@@ -399,7 +413,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfacePublic: "Öffentliche Seite",
     publishStyleTip:
       "Gestalten Sie das Aussehen Ihrer öffentlichen Seite unter Design → Stil der öffentlichen Seite.",
-    grpTemplate: "Vorlage & Layout",
+    grpLook: "Aussehen & Typografie",
+    grpDocLayout: "Dokumentlayout",
+    docLayoutNote:
+      "Das Layout für Ihre PDF-, DOCX-, LaTeX- und Markdown-Exporte — und für Ihre öffentliche Seite, wenn sie auf „wie mein Dokument“ eingestellt ist.",
     grpCitations: "Zitate & Sprache",
     grpMetrics: "Metriken & Autorenschaft",
     grpDisplay: "Abschnitte & Sichtbarkeit",
@@ -474,7 +491,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfacePublic: "公開ページ",
     publishStyleTip:
       "「デザイン → 公開ページのスタイル」で公開ページの見た目をカスタマイズできます。",
-    grpTemplate: "テンプレートとレイアウト",
+    grpLook: "外観と書体",
+    grpDocLayout: "ドキュメントのレイアウト",
+    docLayoutNote:
+      "PDF・DOCX・LaTeX・Markdown の書き出しに使われるレイアウトです。公開ページを「ドキュメントに合わせる」に設定している場合はそちらにも適用されます。",
     grpCitations: "引用と言語",
     grpMetrics: "指標と著者の役割",
     grpDisplay: "セクションと表示",
@@ -547,7 +567,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfacePublic: "Página pública",
     publishStyleTip:
       "Personalize a aparência da sua página pública em Design → Estilo da página pública.",
-    grpTemplate: "Modelo e layout",
+    grpLook: "Estilo e tipografia",
+    grpDocLayout: "Layout do documento",
+    docLayoutNote:
+      "O layout das suas exportações em PDF, DOCX, LaTeX e Markdown — e da sua página pública quando definida como “igual ao documento”.",
     grpCitations: "Citações e idioma",
     grpMetrics: "Métricas e autoria",
     grpDisplay: "Seções e visibilidade",
@@ -622,7 +645,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfacePublic: "Pagina pubblica",
     publishStyleTip:
       "Personalizza l’aspetto della tua pagina pubblica in Design → Stile della pagina pubblica.",
-    grpTemplate: "Modello e layout",
+    grpLook: "Stile e tipografia",
+    grpDocLayout: "Layout del documento",
+    docLayoutNote:
+      "Il layout per le tue esportazioni in PDF, DOCX, LaTeX e Markdown — e per la tua pagina pubblica quando è impostata su «come il mio documento».",
     grpCitations: "Citazioni e lingua",
     grpMetrics: "Metriche e ruoli d’autore",
     grpDisplay: "Sezioni e visibilità",
@@ -696,7 +722,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "문서",
     previewSurfacePublic: "공개 페이지",
     publishStyleTip: "‘디자인 → 공개 페이지 스타일’에서 공개 페이지 모양을 꾸밀 수 있습니다.",
-    grpTemplate: "템플릿 및 레이아웃",
+    grpLook: "스타일 및 글꼴",
+    grpDocLayout: "문서 레이아웃",
+    docLayoutNote:
+      "PDF·DOCX·LaTeX·Markdown 내보내기에 사용되는 레이아웃입니다. 공개 페이지를 ‘문서와 동일하게’로 설정한 경우에도 적용됩니다.",
     grpCitations: "인용 및 언어",
     grpMetrics: "지표 및 저자 역할",
     grpDisplay: "섹션 및 표시",
@@ -770,7 +799,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfacePublic: "Публичная страница",
     publishStyleTip:
       "Настройте внешний вид публичной страницы в разделе «Дизайн → Стиль публичной страницы».",
-    grpTemplate: "Шаблон и вёрстка",
+    grpLook: "Стиль и шрифты",
+    grpDocLayout: "Макет документа",
+    docLayoutNote:
+      "Макет для экспорта в PDF, DOCX, LaTeX и Markdown — и для публичной страницы, когда выбран вариант «как в документе».",
     grpCitations: "Цитирование и язык",
     grpMetrics: "Метрики и авторство",
     grpDisplay: "Разделы и видимость",

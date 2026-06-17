@@ -20,6 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The editor's Design controls are reorganised so your two outputs read
+  clearly.** The styling that affects everything — fonts, colours, density,
+  citation style, metrics — now sits together under **Look & typography**, and
+  the two choices that belong to one output each get their own clearly-labelled
+  group placed side by side: **Document layout** (the template behind your PDF,
+  DOCX, LaTeX and Markdown exports) and **Public page style** (the animated look
+  of your shareable page). Everything stays inside the one Design tab — the
+  shared settings live in a single place, so your document and your public page
+  can't silently fall out of sync. Localized in all ten languages.
+
 - **The Publish control is now a focused on/off decision.** The publish popover
   had grown crowded — toggle, live link, badge + QR embed, and privacy settings
   all stacked together (and ran off the screen). The share/embed tools — your

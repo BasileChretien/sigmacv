@@ -483,53 +483,7 @@ export default function StyleControls({
         </div>
       </StyleGroup>
 
-      <StyleGroup grouped={grouped} title={eu.grpTemplate}>
-        <div className="field template-field">
-          <span id="tpl-label">{u.templateLabel}</span>
-          <div className="template-gallery" role="radiogroup" aria-labelledby="tpl-label">
-            {TEMPLATES.map((tpl) => {
-              const selected = cv.display.template === tpl;
-              return (
-                <button
-                  key={tpl}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  className={`tpl-card${selected ? " is-selected" : ""}`}
-                  onClick={() => {
-                    // Cookieless product signal: which template (only on change).
-                    if (!selected) trackEvent("Template", { template: tpl });
-                    onChange(
-                      updateDisplay(cv, {
-                        template: tpl as CanonicalCv["display"]["template"],
-                      }),
-                    );
-                  }}
-                  title={TEMPLATE_LABELS[tpl] ?? tpl}
-                >
-                  <span className="tpl-preview">
-                    {tplPreviews[tpl] ? (
-                      <iframe
-                        className="tpl-frame"
-                        srcDoc={tplPreviews[tpl]}
-                        title={TEMPLATE_LABELS[tpl] ?? tpl}
-                        sandbox=""
-                        scrolling="no"
-                        tabIndex={-1}
-                        aria-hidden="true"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className="tpl-skeleton" aria-hidden="true" />
-                    )}
-                  </span>
-                  <span className="tpl-name">{TEMPLATE_LABELS[tpl] ?? tpl}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
+      <StyleGroup grouped={grouped} title={eu.grpLook}>
         <label className="field">
           <span>{t(locale, "cvLanguage")}</span>
           <select
@@ -724,6 +678,55 @@ export default function StyleControls({
             ))}
           </select>
         </label>
+      </StyleGroup>
+
+      <StyleGroup grouped={grouped} title={eu.grpDocLayout}>
+        <p className="muted metric-preset-note field-note">{eu.docLayoutNote}</p>
+        <div className="field template-field">
+          <span id="tpl-label">{u.templateLabel}</span>
+          <div className="template-gallery" role="radiogroup" aria-labelledby="tpl-label">
+            {TEMPLATES.map((tpl) => {
+              const selected = cv.display.template === tpl;
+              return (
+                <button
+                  key={tpl}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  className={`tpl-card${selected ? " is-selected" : ""}`}
+                  onClick={() => {
+                    // Cookieless product signal: which template (only on change).
+                    if (!selected) trackEvent("Template", { template: tpl });
+                    onChange(
+                      updateDisplay(cv, {
+                        template: tpl as CanonicalCv["display"]["template"],
+                      }),
+                    );
+                  }}
+                  title={TEMPLATE_LABELS[tpl] ?? tpl}
+                >
+                  <span className="tpl-preview">
+                    {tplPreviews[tpl] ? (
+                      <iframe
+                        className="tpl-frame"
+                        srcDoc={tplPreviews[tpl]}
+                        title={TEMPLATE_LABELS[tpl] ?? tpl}
+                        sandbox=""
+                        scrolling="no"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="tpl-skeleton" aria-hidden="true" />
+                    )}
+                  </span>
+                  <span className="tpl-name">{TEMPLATE_LABELS[tpl] ?? tpl}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </StyleGroup>
 
       <StyleGroup
