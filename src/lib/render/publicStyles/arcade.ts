@@ -30,7 +30,6 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
-  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -332,24 +331,11 @@ function arcadeCss(_t: TemplateTheme): string {
   }`;
 }
 
-const arcadeMascotCss = `
-  /* Mascot: an original blocky pixel "arcade bot" head (gold/dark, accent antenna). Appearance only. */
-  .sigma-mascot { background: #ffd23f; border-radius: 5px;
-    box-shadow: 0 0 0 4px #1b1b1b, 5px 5px 0 4px rgba(0,0,0,0.22), inset 0 0 0 3px #ff8c1a;
-    image-rendering: pixelated; }
-  .sigma-mascot::before { content:""; position:absolute; top:15px; left:11px; width:8px; height:9px;
-    background:#1b1b1b; box-shadow: 19px 0 0 #1b1b1b; }
-  .sigma-mascot::after { content:""; position:absolute; bottom:9px; left:13px; width:24px; height:5px; background:#1b1b1b; }
-  .sigma-mascot i { top:-13px; left:50%; width:3px; height:13px; background:#1b1b1b; transform:translateX(-50%); }
-  .sigma-mascot i::before { content:""; position:absolute; top:-7px; left:50%; width:9px; height:9px; border-radius:50%;
-    background: var(--cv-accent,#ff3b3b); transform:translateX(-50%); box-shadow:0 0 7px var(--cv-accent,#ff3b3b); }`;
-
 export const arcadeTemplate: CvTemplate = {
   key: "arcade",
   render(cv, sections, theme, opts) {
-    const css = commonCss(theme) + arcadeCss(theme) + mascotBaseCss() + arcadeMascotCss;
+    const css = commonCss(theme) + arcadeCss(theme) + mascotBaseCss();
     const body =
-      mascotHtml(cv) +
       `<div class="ar-sky" aria-hidden="true">` +
       `<div class="ar-stars"></div>` +
       `<div class="ar-clouds ar-clouds-far"><i></i></div>` +
@@ -367,7 +353,7 @@ export const arcadeTemplate: CvTemplate = {
       `<div class="ar-score" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

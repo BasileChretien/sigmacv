@@ -18,6 +18,7 @@ import {
   cvPageShell,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -159,13 +160,14 @@ export const prismTemplate: CvTemplate = {
       accentSpectrum(["--neon-1", "--neon-2", "--neon-3", "--neon-4", "--neon-5"], {
         l: 0.74,
         c: 0.2,
-      });
+      }) +
+      mascotBaseCss();
     const body =
       `<div class="prism-bg" aria-hidden="true"></div>` +
       `<div class="prism-progress" aria-hidden="true"></div>` +
       `<div class="prism-plate">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

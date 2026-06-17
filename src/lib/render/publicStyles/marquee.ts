@@ -12,6 +12,7 @@ import {
   escapeHtml,
   headerHtml,
   licenseFooter,
+  mascotBaseCss,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -67,7 +68,7 @@ function marqueeCss(_t: TemplateTheme): string {
 export const marqueeTemplate: CvTemplate = {
   key: "marquee",
   render(cv, sections, theme, opts) {
-    const css = commonCss(theme) + marqueeCss(theme);
+    const css = commonCss(theme) + marqueeCss(theme) + mascotBaseCss();
     const tag = escapeHtml(
       `${cv.owner.displayName || "Curriculum Vitæ"} — ${cv.owner.headline || "Curriculum Vitæ"}`,
     );
@@ -80,7 +81,7 @@ export const marqueeTemplate: CvTemplate = {
       `<div class="cv">` +
       header +
       ribbon +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

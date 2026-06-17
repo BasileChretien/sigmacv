@@ -812,14 +812,30 @@ export const PUBLIC_STYLES = [
   "cyberpunk",
 ] as const;
 /**
- * The public-page styles that can show the optional scroll-following SigmaCV
- * "mascot" companion (`display.showMascot`). Only the playful/expressive styles —
- * never the credible ones (folio/meridian/trajectory/lumina), where a moving
- * cartoon would undercut a document people send to hiring committees. Each listed
- * style draws its OWN original character; styles not listed here ignore
- * `showMascot` entirely (a structural gate, not just a UI one).
+ * The public-page styles that can show the optional SigmaCV "mascot" companion
+ * (`display.showMascot`) — a Σ-logo character that hops to each section heading
+ * down the left gutter and swaps its hat by section type. Every ANIMATED style
+ * EXCEPT the four credible ones (folio/meridian/trajectory/lumina), where a
+ * hopping cartoon would undercut a document people send to hiring committees, and
+ * except `match` (which has no animated style of its own). Styles not listed here
+ * ignore `showMascot` entirely (a structural gate, not just a UI one), so the
+ * mascot can never appear on a credible style or in any export.
  */
-export const MASCOT_STYLES = ["arcade", "meadow", "cyberpunk", "clockwork"] as const;
+export const MASCOT_STYLES = [
+  "prism",
+  "pop",
+  "neon",
+  "synthwave",
+  "terminal",
+  "riso",
+  "aura",
+  "mesh",
+  "marquee",
+  "clockwork",
+  "arcade",
+  "meadow",
+  "cyberpunk",
+] as const;
 export type MascotStyleKey = (typeof MASCOT_STYLES)[number];
 /** Whether a public style draws the optional mascot companion. */
 export function isMascotStyle(style: string): style is MascotStyleKey {

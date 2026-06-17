@@ -100,7 +100,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleAnimated: "Animated",
     mascotLabel: "Mascot companion",
     mascotHint:
-      "A small character that follows the page as visitors scroll. Off by default; only on playful styles.",
+      "A SigmaCV character that hops along your sections, changing its hat at each one. Off by default; on the animated styles.",
     previewSurfaceLabel: "Preview",
     previewSurfaceDocument: "Document",
     previewSurfacePublic: "Public page",
@@ -170,7 +170,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleMatchHint: "无动画——公开页面与你的文档模板保持一致。",
     publicStyleAnimated: "动画",
     mascotLabel: "吉祥物伙伴",
-    mascotHint: "访客滚动时跟随页面的小角色。默认关闭；仅用于活泼样式。",
+    mascotHint:
+      "一个 SigmaCV 角色，会沿着各栏目跳动，并在每个栏目更换帽子。默认关闭；用于动画样式。",
     previewSurfaceLabel: "预览",
     previewSurfaceDocument: "文档",
     previewSurfacePublic: "公开页面",
@@ -241,7 +242,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleAnimated: "Animado",
     mascotLabel: "Mascota acompañante",
     mascotHint:
-      "Un pequeño personaje que sigue la página al desplazarse. Desactivado por defecto; solo en estilos divertidos.",
+      "Un personaje de SigmaCV que salta por tus secciones y cambia de sombrero en cada una. Desactivado por defecto; en los estilos animados.",
     previewSurfaceLabel: "Vista previa",
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Página pública",
@@ -316,7 +317,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleAnimated: "Animé",
     mascotLabel: "Mascotte compagnon",
     mascotHint:
-      "Un petit personnage qui suit la page au défilement. Désactivé par défaut ; uniquement sur les styles ludiques.",
+      "Un personnage SigmaCV qui saute le long de vos sections et change de chapeau à chacune. Désactivé par défaut ; sur les styles animés.",
     previewSurfaceLabel: "Aperçu",
     previewSurfaceDocument: "Document",
     previewSurfacePublic: "Page publique",
@@ -392,7 +393,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleAnimated: "Animiert",
     mascotLabel: "Maskottchen-Begleiter",
     mascotHint:
-      "Eine kleine Figur, die der Seite beim Scrollen folgt. Standardmäßig aus; nur bei verspielten Stilen.",
+      "Eine SigmaCV-Figur, die durch deine Abschnitte hüpft und in jedem den Hut wechselt. Standardmäßig aus; auf den animierten Stilen.",
     previewSurfaceLabel: "Vorschau",
     previewSurfaceDocument: "Dokument",
     previewSurfacePublic: "Öffentliche Seite",
@@ -467,7 +468,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleAnimated: "アニメーション",
     mascotLabel: "マスコット",
     mascotHint:
-      "スクロールに合わせてページを移動する小さなキャラクター。既定はオフ。遊び心のあるスタイルのみ。",
+      "セクションごとに飛び移り、帽子を変える SigmaCV のキャラクター。既定はオフ。アニメーションスタイルで利用できます。",
     previewSurfaceLabel: "プレビュー",
     previewSurfaceDocument: "ドキュメント",
     previewSurfacePublic: "公開ページ",
@@ -540,7 +541,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleAnimated: "Animado",
     mascotLabel: "Mascote companheira",
     mascotHint:
-      "Um pequeno personagem que acompanha a página ao rolar. Desativado por padrão; apenas em estilos divertidos.",
+      "Um personagem do SigmaCV que pula pelas suas seções e troca de chapéu em cada uma. Desativado por padrão; nos estilos animados.",
     previewSurfaceLabel: "Pré-visualização",
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Página pública",
@@ -615,7 +616,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleAnimated: "Animato",
     mascotLabel: "Mascotte compagna",
     mascotHint:
-      "Un piccolo personaggio che segue la pagina allo scorrimento. Disattivato per impostazione predefinita; solo negli stili giocosi.",
+      "Un personaggio SigmaCV che salta tra le tue sezioni cambiando cappello a ognuna. Disattivato per impostazione predefinita; sugli stili animati.",
     previewSurfaceLabel: "Anteprima",
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Pagina pubblica",
@@ -690,7 +691,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleAnimated: "애니메이션",
     mascotLabel: "마스코트 친구",
     mascotHint:
-      "방문자가 스크롤하면 페이지를 따라다니는 작은 캐릭터. 기본적으로 꺼져 있으며, 경쾌한 스타일에서만 표시됩니다.",
+      "섹션을 따라 뛰어다니며 섹션마다 모자를 바꾸는 SigmaCV 캐릭터. 기본적으로 꺼져 있으며, 애니메이션 스타일에서 사용할 수 있습니다.",
     previewSurfaceLabel: "미리보기",
     previewSurfaceDocument: "문서",
     previewSurfacePublic: "공개 페이지",
@@ -763,7 +764,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     publicStyleAnimated: "Анимированный",
     mascotLabel: "Талисман-спутник",
     mascotHint:
-      "Маленький персонаж, который следует за страницей при прокрутке. По умолчанию выключен; только в игривых стилях.",
+      "Персонаж SigmaCV, который прыгает по вашим разделам и меняет шляпу в каждом. По умолчанию выключен; на анимированных стилях.",
     previewSurfaceLabel: "Предпросмотр",
     previewSurfaceDocument: "Документ",
     previewSurfacePublic: "Публичная страница",

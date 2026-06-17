@@ -26,7 +26,6 @@ import {
   headerHtml,
   licenseFooter,
   mascotBaseCss,
-  mascotHtml,
   provenanceFooter,
   sectionsHtml,
 } from "@/lib/render/templates/shared";
@@ -338,30 +337,15 @@ function meadowScene(): string {
   );
 }
 
-const meadowMascotCss = `
-  /* Mascot: an original round "seed sprite" with an accent leaf (soft, nature). Appearance only. */
-  .sigma-mascot { width:44px; height:44px; border-radius:50%;
-    background: radial-gradient(circle at 38% 32%, #fff6e2, #e9d6a8 70%, #cdb47e);
-    box-shadow: 0 7px 16px -7px rgba(60,50,20,0.55), inset 0 -3px 6px rgba(150,120,60,0.3); }
-  .sigma-mascot::before { content:""; position:absolute; top:20px; left:13px; width:5px; height:6px; border-radius:50%;
-    background:#4a3a22; box-shadow: 13px 0 0 #4a3a22; }
-  .sigma-mascot::after { content:""; position:absolute; top:28px; left:50%; width:9px; height:5px;
-    border-bottom:2px solid #4a3a22; border-radius:0 0 9px 9px; transform:translateX(-50%); }
-  .sigma-mascot i { top:-12px; left:50%; width:16px; height:16px; transform:translateX(-50%) rotate(-20deg);
-    background: var(--cv-accent,#7bbf5a); border-radius:0 100% 0 100%;
-    box-shadow:0 0 8px color-mix(in srgb, var(--cv-accent,#7bbf5a) 55%, transparent); }
-  .sigma-mascot i::before { content:""; position:absolute; bottom:-2px; left:1px; width:2px; height:8px; background:#6a8f3f; transform:rotate(18deg); }`;
-
 export const meadowTemplate: CvTemplate = {
   key: "meadow",
   render(cv, sections, theme, opts) {
-    const css = commonCss(theme) + meadowCss(theme) + mascotBaseCss() + meadowMascotCss;
+    const css = commonCss(theme) + meadowCss(theme) + mascotBaseCss();
     const body =
-      mascotHtml(cv) +
       meadowScene() +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(sections, { mascot: cv.display.showMascot }) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);
