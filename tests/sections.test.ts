@@ -423,8 +423,10 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     });
     const datasets = cv.sections.find((s) => s.type === "datasets")!;
     expect(datasets.items).toHaveLength(2);
-    // Newest first; format "<title>. <publisher> (<year>) [<type>]".
-    expect(datasets.items[0]!.displayText).toBe("PV signal toolkit. Zenodo (2024) [Software]");
+    // Newest first; format "<title>. <publisher> (<year>) [<type>]. <doi-url>".
+    expect(datasets.items[0]!.displayText).toBe(
+      "PV signal toolkit. Zenodo (2024) [Software]. https://doi.org/10.5281/zenodo.9",
+    );
     expect(datasets.items[0]!.source).toBe("datacite");
     expect(datasets.items[0]!.meta.doi).toBe("10.5281/zenodo.9");
   });
