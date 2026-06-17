@@ -100,6 +100,29 @@ describe("computeSyncReport", () => {
     expect(report.reviewCandidates).toBe(1);
   });
 
+  it("flattens inline markup in a stored entry title (the banner is plain text)", () => {
+    const next = makeCv([
+      {
+        id: "publications",
+        type: "publications",
+        items: [
+          makeItem({
+            id: "W9",
+            csl: {
+              id: "W9",
+              type: "article-journal",
+              title: "Role of <i>TP53</i> in <scp>NSCLC</scp>",
+            },
+          }),
+        ],
+      },
+    ]);
+    // Not the first sync (prev exists), so per-item entries are recorded.
+    const prev = makeCv([{ id: "publications", type: "publications", items: [] }]);
+    const report = computeSyncReport(prev, next, { syncedAt: NOW });
+    expect(report.added[0]?.title).toBe("Role of TP53 in NSCLC");
+  });
+
   it("a curation flip (hide / not-mine) is never an add or a remove", () => {
     const prev = makeCv([
       { id: "publications", type: "publications", items: [makeItem({ id: "W1" })] },

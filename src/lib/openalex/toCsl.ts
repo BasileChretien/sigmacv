@@ -1,4 +1,5 @@
 import type { CslItem, CslName, CslDate } from "@/types/csl";
+import { stripUnsupportedMarkup } from "@/lib/text/markup";
 import { shortId, type OpenAlexWork } from "./types";
 
 /**
@@ -180,13 +181,17 @@ export function workToCsl(work: OpenAlexWork): CslItem {
   const item: CslItem = {
     id,
     type: mapType(work),
-    title: work.title ?? work.display_name ?? "Untitled",
+    // Scholarly metadata embeds inline markup (e.g. Wiley's "<scp>VigiBase</scp>"
+    // small caps). citeproc renders the tags it knows (<i>/<b>/<sup>/<sub>) and
+    // leaks the rest as visible text, so drop the unsupported tags but keep the
+    // renderable ones — italics/scripts survive, "<scp>" never shows.
+    title: stripUnsupportedMarkup(work.title ?? work.display_name ?? "Untitled"),
   };
 
   if (authors.length) item.author = authors;
   const issued = toIssued(work);
   if (issued) item.issued = issued;
-  if (source?.display_name) item["container-title"] = source.display_name;
+  if (source?.display_name) item["container-title"] = stripUnsupportedMarkup(source.display_name);
   if (work.biblio?.volume) item.volume = work.biblio.volume;
   if (work.biblio?.issue) item.issue = work.biblio.issue;
   const page = pageRange(work);

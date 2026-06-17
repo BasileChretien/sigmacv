@@ -211,6 +211,38 @@ describe.skipIf(!hasApa)("JSON Résumé renderer", () => {
     expect(p.releaseDate).toBe("2022-03-04"); // full date
   });
 
+  it("flattens inline markup in publication name + publisher (plain JSON)", () => {
+    const cv = makeCv();
+    const withCsl: CanonicalCv = {
+      ...cv,
+      sections: cv.sections.map((s) =>
+        s.type === "publications"
+          ? {
+              ...s,
+              items: s.items.map((it, i) =>
+                i === 0
+                  ? {
+                      ...it,
+                      csl: {
+                        id: it.id,
+                        type: "article-journal",
+                        title: "Role of <i>TP53</i> in <scp>NSCLC</scp>",
+                        "container-title": "Clinical and <scp>Translational</scp> Science",
+                        issued: { "date-parts": [[2022]] },
+                      },
+                    }
+                  : it,
+              ),
+            }
+          : s,
+      ),
+    };
+    const j = buildJsonResume(withCsl) as { publications: Array<Record<string, string>> };
+    const p = j.publications.find((x) => x.name === "Role of TP53 in NSCLC")!;
+    expect(p).toBeTruthy();
+    expect(p.publisher).toBe("Clinical and Translational Science");
+  });
+
   it("handles a citation with no title, no date, no publisher", () => {
     const cv = makeCv();
     const minimal: CanonicalCv = {

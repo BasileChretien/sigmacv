@@ -57,6 +57,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publication titles no longer show raw formatting tags like `<scp>`.** Some
+  journals deposit a title with inline typographic markup — for example Wiley sets
+  “VigiBase” in small caps as `<scp>VigiBase</scp>` — and that unsupported tag was
+  leaking into the title on your CV (e.g. “…Analysis Using <scp>VigiBase</scp>”).
+  Such tags are now removed when your CV is built, while genuine emphasis your
+  citation style can render — italics, superscripts, subscripts (`<i>`, `<sup>`,
+  `<sub>`) — is preserved. Takes effect on your next re-sync.
 - **You can now add dates to a degree that ORCID listed without any.** Education
   entries (and positions) whose source carried no dates used to dead-end on a
   “Re-sync to edit dates” note — but re-syncing never helped when ORCID simply has
