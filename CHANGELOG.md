@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Your public CV now links to co-authors who are also on SigmaCV.** When a
+  co-author on one of your works has published their own search-indexable SigmaCV
+  page, your public page's structured data (schema.org JSON-LD) now expresses that
+  collaboration as a `knows` link to their profile — building a discoverable web
+  of researcher CVs for search and AI answer engines. Matching is by **ORCID
+  identifier only** (never by name), and a co-author is linked **only if they
+  opted their own page into search indexing** — the same consent that lets search
+  engines find their page. Nothing changes visibly on the page, and a co-author
+  who unpublishes or turns off indexing is delinked automatically.
 - **Edit a position's institution and dates, too.** Each position and education
   entry now has an **"Edit details"** panel to correct the **institution name** and
   the **start/end year** — with an **"Ongoing"** toggle for current roles. Like the
@@ -76,6 +85,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Synthwave) — with Aura’s colour glow toned down — so text stays legible where the
   moving background is brightest. The styles look the same; the fine print is just
   easier to read. Public page only.
+- **A light accent colour can no longer make your name or headings unreadable.**
+  The accent colour picker has a free colour field, so it was possible to choose a
+  pale colour (a bright yellow, a light cyan) that rendered the Modern template’s
+  name, the Classic/Sidebar section headings, every link, and the Sidebar’s
+  white-on-colour panel at far below a readable contrast. The accent is now floored
+  to a readable contrast on white before it’s drawn — darkened just enough, keeping
+  its hue — so the document stays legible (and prints legibly) whatever colour you
+  pick. The six built-in accent swatches are already well above the floor and are
+  unchanged.
 - **Publication titles no longer show raw formatting tags like `<scp>`.** Some
   journals deposit a title with inline typographic markup — for example Wiley sets
   “VigiBase” in small caps as `<scp>VigiBase</scp>` — and that unsupported tag was

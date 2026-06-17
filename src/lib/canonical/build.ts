@@ -1292,6 +1292,31 @@ export function selfNameVariants(
   return [...out];
 }
 
+/**
+ * Upper bound on co-author ORCIDs stored per work. Bounds the document size on
+ * hyper-authorship papers (consortia with hundreds/thousands of authors); the
+ * chance a co-author past this cap is a SigmaCV user when none before it are is
+ * negligible. Kept ≤ the schema's `.max(300)` so a build never fails validation.
+ */
+const MAX_COAUTHOR_ORCIDS = 256;
+
+/**
+ * Bare ORCID iDs of a work's co-authors — the account holder's own ORCID
+ * excluded — deduped, in author order, capped. Identifier-only (an authorship
+ * with no ORCID contributes nothing); never name-derived. Drives the public
+ * JSON-LD `knows` graph; see {@link CvItem.meta.coauthorOrcids}.
+ */
+export function collectCoauthorOrcids(work: OpenAlexWork, ownerOrcid: string): string[] {
+  const out = new Set<string>();
+  for (const a of work.authorships ?? []) {
+    const orcid = normalizeOrcid(a.author?.orcid);
+    if (!orcid || orcid === ownerOrcid) continue;
+    out.add(orcid);
+    if (out.size >= MAX_COAUTHOR_ORCIDS) break;
+  }
+  return [...out];
+}
+
 function dedupeWorks(works: OpenAlexWork[]): OpenAlexWork[] {
   const seen = new Set<string>();
   const out: OpenAlexWork[] = [];
@@ -1353,6 +1378,7 @@ function buildWorkCvItem(
   const selfIndex = (work.authorships ?? []).findIndex(matches);
   const selfAuth = selfIndex >= 0 ? work.authorships![selfIndex] : undefined;
   const authoredBySelf = Boolean(selfAuth);
+  const coauthors = collectCoauthorOrcids(work, ownerOrcid);
   return {
     id: csl.id,
     source: "openalex",
@@ -1393,6 +1419,9 @@ function buildWorkCvItem(
       // table) + corresponding flag.
       authorPosition: authoredBySelf ? selfIndex + 1 : undefined,
       isCorresponding: selfAuth?.is_corresponding === true ? true : undefined,
+      // Co-author ORCIDs (identifier-only) for the public JSON-LD `knows` graph;
+      // omitted when none of the co-authors carry an ORCID.
+      coauthorOrcids: coauthors.length ? coauthors : undefined,
       // Which identifier made the self-match (ORCID > OpenAlex id). Recorded so
       // the disambiguation-error study can stratify errors by match strength.
       matchBasis: selfAuth ? (basisFor(selfAuth) ?? undefined) : undefined,

@@ -896,6 +896,24 @@ export default function StyleControls({
         <label className="field-inline">
           <input
             type="checkbox"
+            checked={cv.display.showCoauthorLinks}
+            onChange={(e) => onChange(updateDisplay(cv, { showCoauthorLinks: e.target.checked }))}
+          />
+          <span>{u.showCoauthorLinks}</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.coauthorLinkable !== false}
+            onChange={(e) => onChange(updateDisplay(cv, { coauthorLinkable: e.target.checked }))}
+          />
+          <span>{u.coauthorLinkable}</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
             checked={cv.display.hideRetracted}
             onChange={(e) => onChange(updateDisplay(cv, { hideRetracted: e.target.checked }))}
           />

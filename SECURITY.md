@@ -151,3 +151,33 @@ Research logging is **off by default** and double-gated (a master switch +
 explicit per-user consent). Logged events are minimised structured signals (no
 names/emails/ORCIDs). The researcher export is **offline only** (no network
 route), triple-env/IRB-gated, and pseudonymised. See `src/lib/research/CLAUDE.md`.
+
+## Co-author linking (public CV)
+
+The public living page (`/p/[slug]`) can link a researcher's co-authors to their
+own SigmaCV CV — as schema.org `knows` links in the page JSON-LD, and (opt-in) as a
+visible "Co-authors on SigmaCV" list. The consent model is deliberately conservative:
+
+- **Identifier-only.** A co-author is matched by **ORCID** (`src/lib/cv/coauthorLinks.ts`),
+  never by name string — the same invariant as self-name highlighting. A co-author
+  with no ORCID, or whose ORCID does not resolve to a SigmaCV account, is never linked.
+- **Indexability-gated (load-bearing).** A link is only ever made to a co-author CV
+  that is **`published` AND `publicIndexable`** — one whose owner already consented to
+  public search discovery. Linking a published-but-unindexed page would leak its
+  unguessable capability slug, so it is never done.
+- **Target opt-out.** A published+indexable owner can still decline to be listed as
+  anyone's on-SigmaCV co-author via `display.coauthorLinkable` (default on); the
+  resolver honours it per render.
+- **Owner opt-in for the visible block.** `display.showCoauthorLinks` is default
+  **off** — the visible list never appears unless the owner enables it.
+- **No enumeration oracle.** Resolution is **server-side only** (no public ORCID→slug
+  endpoint), fail-soft (a DB hiccup yields no links, never an error), and **ephemeral**:
+  resolved slugs are never written into the stored document, so an unpublish / index-off
+  / opt-out / account deletion delinks on the next render.
+- **Data minimisation.** Raw co-author ORCIDs captured at build (`meta.coauthorOrcids`)
+  are **stripped in `projectCvForPublic`**, so they never reach the public machine
+  downloads; only the resolved links to consenting, indexable co-authors are surfaced.
+
+Residual: the dedicated control is modelled as an **opt-out** (default linkable), since
+a link is only ever made to an already-search-indexable page; a stricter opt-in default
+is a one-line change if the threat model tightens.

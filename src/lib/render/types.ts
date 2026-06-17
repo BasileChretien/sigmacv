@@ -40,6 +40,14 @@ export interface RenderOpts {
    * `/p/[slug]` route sets this; exporters never do.
    */
   attribution?: boolean;
+  /**
+   * Co-authors who have their OWN published, search-indexable SigmaCV CV, resolved
+   * server-side (`resolveCoauthorCvs`). Only the `/p/[slug]` route sets this;
+   * exporters never do, so the co-author block stays off every PDF/DOCX/LaTeX.
+   * Rendered only when the owner opted in (`display.showCoauthorLinks`). Inline
+   * structural shape so the render layer takes no dependency on `lib/cv`.
+   */
+  coauthorCvs?: readonly { orcid: string; slug: string; name: string }[];
 }
 
 export interface RenderInput {

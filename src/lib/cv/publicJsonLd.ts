@@ -9,6 +9,7 @@ import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { safeHref } from "@/lib/render/escape";
 import { absoluteUrl } from "@/lib/siteUrl";
+import type { CoauthorCvLink } from "@/lib/cv/coauthorLinks";
 
 /** The canonical ROR IRI shape: `https://ror.org/<id>` (lowercase alnum body). */
 const ROR_IRI = /^https:\/\/ror\.org\/[0-9a-z]+$/;
@@ -152,6 +153,32 @@ function sameAsUrls(cv: CanonicalCv, orcidUrl: string | undefined): string[] {
 }
 
 /**
+ * schema.org `knows` Person nodes for co-authors who have their OWN published,
+ * search-indexable SigmaCV CV (resolved by ORCID identifier upstream, never by
+ * name). Each carries the co-author's ORCID IRI (`@id`-style `identifier` +
+ * `sameAs`) and the URL of their SigmaCV profile — the cross-CV collaboration
+ * graph for search / answer engines. Every URL passes the `safeHref` scheme
+ * guard; a node without a safe ORCID IRI AND profile URL is dropped.
+ */
+function knowsEntities(links: readonly CoauthorCvLink[]): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const link of links) {
+    const orcidIri = safeHref(`https://orcid.org/${link.orcid}`);
+    const profileUrl = safeHref(absoluteUrl(`p/${link.slug}`));
+    /* v8 ignore next -- defensive: resolveCoauthorCvs already guarantees a URL-safe ORCID iD + slug */
+    if (!orcidIri || !profileUrl) continue;
+    out.push({
+      "@type": "Person",
+      name: link.name,
+      identifier: orcidIri,
+      sameAs: [orcidIri],
+      url: profileUrl,
+    });
+  }
+  return out;
+}
+
+/**
  * ProfilePage + Person JSON-LD for a published public CV (emitted whether or not
  * the owner opted into search indexing — it's structured data, not a crawl
  * permission; the page's `noindex` robots tag governs search inclusion). Only the
@@ -163,7 +190,11 @@ function sameAsUrls(cv: CanonicalCv, orcidUrl: string | undefined): string[] {
  * Returned as a JSON string with "<" escaped to "<" so it is safe to embed
  * inside an HTML <script> element even if a field contained "</script>".
  */
-export function profilePageJsonLd(cv: CanonicalCv, slug: string): string {
+export function profilePageJsonLd(
+  cv: CanonicalCv,
+  slug: string,
+  coauthorCvs: readonly CoauthorCvLink[] = [],
+): string {
   const owner = cv.owner;
   const orcidUrl = owner.orcid ? `https://orcid.org/${owner.orcid}` : undefined;
 
@@ -194,6 +225,13 @@ export function profilePageJsonLd(cv: CanonicalCv, slug: string): string {
   if (occupations.length > 0) person.hasOccupation = occupations;
   const credentials = labelledEntities(cv, "education", "EducationalOccupationalCredential");
   if (credentials.length > 0) person.hasCredential = credentials;
+
+  // Co-authors who also have a public, indexable SigmaCV CV → schema.org `knows`
+  // (the cross-CV collaboration graph). Empty for almost every CV today; grows
+  // with adoption. Resolved by ORCID, server-side, gated on the co-author's own
+  // indexing consent — see resolveCoauthorCvs.
+  const knows = knowsEntities(coauthorCvs);
+  if (knows.length > 0) person.knows = knows;
 
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
