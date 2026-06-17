@@ -72,6 +72,9 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
           // only in the editor, never on any public render — must not leak into
           // the machine downloads either (same reasoning as notMineReason above):
           //  - reviewFlag/duplicateOf: "this work may be mis-attributed / a dup",
+          //  - misattribution: the "probably someone else's" score + which signals
+          //    fired (an internal disambiguation/research signal),
+          //  - topic: the work's field/domain, kept only as a misattribution input,
           //  - matchBasis/claimed: HOW the work was matched ("claimed" = the user
           //    asserted ownership with no identifier match).
           // Publishing these on a public CV would expose authorship-attribution
@@ -82,6 +85,8 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
             ...it.meta,
             reviewFlag: undefined,
             duplicateOf: undefined,
+            misattribution: undefined,
+            topic: undefined,
             matchBasis: undefined,
             claimed: undefined,
             // Raw co-author ORCID list is an internal resolution input only — the

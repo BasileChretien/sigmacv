@@ -27,6 +27,7 @@ export interface WorkspaceUiStrings {
   hpReview: string;
   hpDuplicates: string;
   hpConflicts: string;
+  hpMisattributed: string;
   hpRetracted: string;
   hpHint: string;
   // ── Bulk-curation bar ──────────────────────────────────────────────────────
@@ -81,6 +82,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} review candidates waiting for a decision",
     hpDuplicates: "{n} possible duplicates to resolve",
     hpConflicts: "{n} works listing a different ORCID iD",
+    hpMisattributed: "{n} works that may not be yours to review",
     hpRetracted: "{n} retracted works still shown",
     hpHint: "Select one to jump straight to it.",
     bulkSelect: "Select multiple",
@@ -127,6 +129,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} 条候选条目等待确认",
     hpDuplicates: "{n} 条疑似重复待处理",
     hpConflicts: "{n} 条作品标注了不同的 ORCID iD",
+    hpMisattributed: "{n} 条可能不属于您的作品待核查",
     hpRetracted: "{n} 条已撤稿的作品仍在显示",
     hpHint: "点击任意一项即可直接跳转处理。",
     bulkSelect: "批量选择",
@@ -173,6 +176,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} entradas candidatas esperan una decisión",
     hpDuplicates: "{n} posibles duplicados por resolver",
     hpConflicts: "{n} trabajos con un ORCID iD distinto",
+    hpMisattributed: "{n} trabajos que podrían no ser tuyos por revisar",
     hpRetracted: "{n} trabajos retractados aún visibles",
     hpHint: "Selecciona uno para ir directamente a él.",
     bulkSelect: "Selección múltiple",
@@ -220,6 +224,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} entrées candidates en attente de décision",
     hpDuplicates: "{n} doublons possibles à résoudre",
     hpConflicts: "{n} travaux portant un ORCID iD différent",
+    hpMisattributed: "{n} travaux qui ne sont peut-être pas les vôtres à vérifier",
     hpRetracted: "{n} travaux rétractés encore affichés",
     hpHint: "Sélectionnez-en un pour y accéder directement.",
     bulkSelect: "Sélection multiple",
@@ -267,6 +272,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} Kandidaten warten auf eine Entscheidung",
     hpDuplicates: "{n} mögliche Duplikate zu klären",
     hpConflicts: "{n} Arbeiten mit einer anderen ORCID iD",
+    hpMisattributed: "{n} Arbeiten, die möglicherweise nicht von Ihnen sind",
     hpRetracted: "{n} zurückgezogene Arbeiten noch sichtbar",
     hpHint: "Wählen Sie einen aus, um direkt dorthin zu springen.",
     bulkSelect: "Mehrfachauswahl",
@@ -314,6 +320,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "確認待ちの候補が {n} 件",
     hpDuplicates: "重複の可能性が {n} 件",
     hpConflicts: "別の ORCID iD が記載された業績が {n} 件",
+    hpMisattributed: "あなたのものでない可能性がある業績が {n} 件",
     hpRetracted: "撤回済みの業績が {n} 件表示されています",
     hpHint: "項目を選ぶと該当箇所へ直接移動します。",
     bulkSelect: "複数選択",
@@ -361,6 +368,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} itens candidatos aguardando decisão",
     hpDuplicates: "{n} possíveis duplicatas a resolver",
     hpConflicts: "{n} trabalhos com um ORCID iD diferente",
+    hpMisattributed: "{n} trabalhos que podem não ser seus para revisar",
     hpRetracted: "{n} trabalhos retratados ainda exibidos",
     hpHint: "Selecione um para ir direto até ele.",
     bulkSelect: "Seleção múltipla",
@@ -408,6 +416,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} voci candidate in attesa di decisione",
     hpDuplicates: "{n} possibili duplicati da risolvere",
     hpConflicts: "{n} lavori con un ORCID iD diverso",
+    hpMisattributed: "{n} lavori che potrebbero non essere tuoi da verificare",
     hpRetracted: "{n} lavori ritrattati ancora visibili",
     hpHint: "Selezionane uno per andarci direttamente.",
     bulkSelect: "Selezione multipla",
@@ -455,6 +464,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "결정 대기 중인 후보 {n}개",
     hpDuplicates: "중복 가능성 {n}개",
     hpConflicts: "다른 ORCID iD가 기재된 업적 {n}개",
+    hpMisattributed: "본인의 것이 아닐 수 있는 업적 {n}개",
     hpRetracted: "철회된 업적 {n}개가 아직 표시됨",
     hpHint: "항목을 선택하면 해당 위치로 바로 이동합니다.",
     bulkSelect: "여러 항목 선택",
@@ -502,6 +512,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpReview: "{n} записей-кандидатов ждут решения",
     hpDuplicates: "{n} возможных дубликатов",
     hpConflicts: "{n} работ с другим ORCID iD",
+    hpMisattributed: "{n} работ, которые могут быть не вашими",
     hpRetracted: "{n} отозванных работ всё ещё отображаются",
     hpHint: "Выберите пункт, чтобы перейти прямо к нему.",
     bulkSelect: "Выбрать несколько",

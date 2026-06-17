@@ -10,6 +10,7 @@ import {
   type ReviewFlag,
 } from "./schema";
 import { annotateDuplicates } from "./duplicates";
+import { annotateMisattribution } from "./misattribution";
 import { formatEntryLine, rederiveEntryLine } from "./entryLine";
 import { computeDerivedMetrics, workTopDecile } from "@/lib/openalex/deriveMetrics";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
@@ -1234,6 +1235,17 @@ export function workPmid(work: OpenAlexWork): string | undefined {
   return m ? m[1] : undefined;
 }
 
+/**
+ * The work's primary topic reduced to FIELD + DOMAIN display names, or undefined
+ * when OpenAlex carries neither (older/unclassified works). Stored on the item for
+ * the misattribution heuristic's cross-domain check; never invented.
+ */
+export function workTopic(work: OpenAlexWork): { field?: string; domain?: string } | undefined {
+  const field = work.primary_topic?.field?.display_name?.trim() || undefined;
+  const domain = work.primary_topic?.domain?.display_name?.trim() || undefined;
+  return field || domain ? { field, domain } : undefined;
+}
+
 /** A human label for the account holder's authorship role on a work, or undefined. */
 export function authorRoleLabel(a: OpenAlexAuthorship | undefined): string | undefined {
   if (!a) return undefined;
@@ -1426,6 +1438,9 @@ function buildWorkCvItem(
       // the disambiguation-error study can stratify errors by match strength.
       matchBasis: selfAuth ? (basisFor(selfAuth) ?? undefined) : undefined,
       peerReviewed: peerReviewedOverride ?? isPeerReviewed(work),
+      // Primary research field/domain — denormalized for the misattribution
+      // heuristic (cross-domain check); see annotateMisattribution.
+      topic: workTopic(work),
       reviewFlag:
         reviewFlagOverride ?? (authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined),
     },
@@ -1947,6 +1962,12 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // `relation` tier is layered on in cv/sync via annotateDuplicates(relations).
   const annotated = annotateDuplicates(cv);
 
+  // Misattribution detection: a PURE, fail-soft pass flagging OpenAlex-author-id-only
+  // matches that disagree with the rest of the identifier-confirmed profile (a probable
+  // same-name over-merge). Runs AFTER duplicates so a stronger flag (duplicate /
+  // orcid-conflict) always keeps the slot; advisory only, never hides anything.
+  const withMisattribution = annotateMisattribution(annotated);
+
   // Guarantee the output satisfies the load-bearing schema.
-  return CanonicalCvSchema.parse(annotated);
+  return CanonicalCvSchema.parse(withMisattribution);
 }

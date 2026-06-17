@@ -36,9 +36,32 @@ describe("computeCvHealth", () => {
       pendingReviewCandidates: 0,
       pendingDuplicates: 0,
       orcidConflicts: 0,
+      likelyMisattributed: 0,
       retractedVisible: 0,
       total: 0,
     });
+  });
+
+  it("counts visible likely-misattributed works, ignoring hidden and dismissed ones", () => {
+    const items = [
+      makeItem({
+        id: "M1",
+        authoredBySelf: true,
+        meta: { reviewFlag: "likely-misattributed", misattribution: { score: 0.9, signals: [] } },
+      }),
+      // hidden → resolved
+      makeItem({
+        id: "M2",
+        included: false,
+        authoredBySelf: true,
+        meta: { reviewFlag: "likely-misattributed" },
+      }),
+    ];
+    expect(computeCvHealth(makeCv(items)).likelyMisattributed).toBe(1);
+    // "Keep hidden" silences it via dismissedReviewCandidates.
+    expect(
+      computeCvHealth(makeCv(items, { dismissedReviewCandidates: ["M1"] })).likelyMisattributed,
+    ).toBe(0);
   });
 
   it("counts undecided review candidates (hidden, not yet shown nor disowned)", () => {

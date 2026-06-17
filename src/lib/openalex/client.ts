@@ -42,6 +42,10 @@ const WORK_SELECT = [
   // id/name). We use it only to attach funder identifiers to a user's own ORCID
   // grants (see build.ts `indexFundersByAward`), never as a standalone source.
   "awards",
+  // Primary research topic (field + domain), reduced and stored on the item for the
+  // misattribution heuristic's cross-domain check. Rides the existing request (no
+  // extra call); `select` keeps the payload small.
+  "primary_topic",
 ].join(",");
 
 async function openAlexGet<T>(path: string, params: Record<string, string>): Promise<T> {

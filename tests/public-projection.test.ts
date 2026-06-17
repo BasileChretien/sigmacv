@@ -152,6 +152,11 @@ describe("projectCvForPublic", () => {
                           tier: "strong" as const,
                           groupId: "other",
                         },
+                        misattribution: {
+                          score: 0.9,
+                          signals: ["no-coauthor-overlap" as const, "different-field" as const],
+                        },
+                        topic: { field: "Oncology", domain: "Health Sciences" },
                         authorRole: "first", // a render field — must be KEPT
                       },
                     },
@@ -163,11 +168,13 @@ describe("projectCvForPublic", () => {
     const pubItem = pub.sections
       .find((s) => s.id === sec.id)!
       .items.find((it) => it.id === first.id)!;
-    // The four internal signals are gone from the public projection…
+    // The internal signals are gone from the public projection…
     expect(pubItem.meta.reviewFlag).toBeUndefined();
     expect(pubItem.meta.matchBasis).toBeUndefined();
     expect(pubItem.meta.claimed).toBeUndefined();
     expect(pubItem.meta.duplicateOf).toBeUndefined();
+    expect(pubItem.meta.misattribution).toBeUndefined();
+    expect(pubItem.meta.topic).toBeUndefined();
     // …but a renderer-used meta field is preserved.
     expect(pubItem.meta.authorRole).toBe("first");
     // Input untouched (immutable).

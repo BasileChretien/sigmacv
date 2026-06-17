@@ -588,6 +588,19 @@ export default function ItemRow({
                 {t(locale, "reviewBadge")}
               </span>
             ) : null}
+            {/* Likely a same-name over-merge: matched only by an OpenAlex author
+                profile and out of step with the rest of the profile. Calm soft
+                badge (not the ⚠ conflict cue); silenced once "kept hidden". */}
+            {item.meta.reviewFlag === "likely-misattributed" &&
+            !item.notMine &&
+            !reviewDismissed ? (
+              <span
+                className="cv-review-badge cv-review-badge--soft"
+                title={t(locale, "reviewHintMisattributed")}
+              >
+                {t(locale, "reviewBadgeSoft")}
+              </span>
+            ) : null}
             {/* ORCID-listed work OpenAlex didn't attribute: a hidden review
                 candidate. Badge shows only while still pending — confirm with
                 "Show" (includes it), mark "not mine", or "Keep hidden". */}
