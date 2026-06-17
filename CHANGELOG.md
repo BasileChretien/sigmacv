@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The top-bar menus (Publish / Share / Account) now close when you click
+  anywhere.** Clicking on the CV preview left a menu stubbornly open, because the
+  preview is a self-contained frame whose clicks never reached the page that was
+  listening for them — and the preview is the biggest, most natural place to
+  click. Now a single invisible layer sits over the preview while a menu is open,
+  so clicking it (or anywhere else, or pressing Escape, or the ✕) dismisses the
+  menu cleanly. Only one menu is open at a time, switching between them is a
+  single click, and the panels collapse toward the button they belong to.
+
 ### Changed
 
 - **The Publish control is now a focused on/off decision.** The publish popover

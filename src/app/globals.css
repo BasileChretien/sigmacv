@@ -650,6 +650,11 @@ input[type="radio"] {
   padding: var(--space-2) var(--space-4);
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+  /* Own stacking context above `.popover-scrim` (z 40): the bar + its open
+     panel stay clickable, so switching menus is one gesture, while the scrim
+     below absorbs dismiss clicks over the page/preview. */
+  position: relative;
+  z-index: 50;
 }
 .topbar-brand strong {
   font-size: var(--text-lg);
@@ -752,11 +757,27 @@ input[type="radio"] {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+/* Collapse the panel toward the trigger it belongs to (its aligned top corner)
+   rather than its own centre, so the open/close scale reads as the panel
+   retracting into its button. */
 .popover-end {
   right: 0;
+  transform-origin: top right;
 }
 .popover-start {
   left: 0;
+  transform-origin: top left;
+}
+/* Transparent full-viewport dismiss layer for the top-bar menus (see
+   PopoverGroup). Sits above the page + the sandboxed preview <iframe> — whose
+   clicks never reach the parent document — but below the bar (z 50), so a click
+   anywhere outside an open menu closes it. Invisible by design: these are
+   non-modal popovers over a live document, so no dim or blur. */
+.popover-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: transparent;
 }
 /* Always-visible dismiss in the top-right of every popover panel. Outside-click
    and Escape still close it, but a discoverable ✕ means the panel is never a
