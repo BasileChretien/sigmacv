@@ -478,3 +478,104 @@ describe("ItemRow — editable source-derived titles", () => {
     expect(document.querySelector(".cv-item-title")).toBeTruthy();
   });
 });
+
+describe("ItemRow — structured role / institution / dates editor", () => {
+  // The "Edit details" disclosure (role + institution + department + dates) is the
+  // structured editor for source-derived Positions/Education rows: passed onSetRole
+  // + onSetInstitution + onSetDateRange, with no whole-line `displayTextOverride`.
+  function renderStructured(
+    item: CvItem,
+    sectionType: CvSectionType,
+    handlers: {
+      onSetRole?: (role: string) => void;
+      onSetInstitution?: (name: string) => void;
+      onSetDepartment?: (name: string) => void;
+      onSetDateRange?: (range: { startYear?: number; endYear?: number } | null) => void;
+    } = {},
+  ) {
+    render(
+      <ul>
+        <ItemRow
+          item={item}
+          locale="en-US"
+          sectionType={sectionType}
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          onSetRole={handlers.onSetRole ?? noop}
+          onSetInstitution={handlers.onSetInstitution ?? noop}
+          onSetDepartment={handlers.onSetDepartment ?? noop}
+          onSetDateRange={handlers.onSetDateRange ?? noop}
+          onMoveUp={noop}
+          onMoveDown={noop}
+        />
+      </ul>,
+    );
+  }
+
+  // An ORCID education entry whose source listed only the institution — a degree
+  // with no dates, the common case that used to dead-end on "Re-sync to edit dates".
+  const datelessEducation = (over: Partial<CvItem> = {}) =>
+    makeItem({
+      id: "education:orcid:1",
+      source: "orcid",
+      displayText: "PharmD, Université de Caen",
+      meta: { institution: "Université de Caen", roleTitle: "PharmD" },
+      ...over,
+    });
+
+  it("lets you ADD dates to an education entry the source listed without any", () => {
+    let got: { startYear?: number; endYear?: number } | null | undefined;
+    renderStructured(datelessEducation(), "education", {
+      onSetDateRange: (r) => (got = r),
+    });
+    // No dead-end note — the editable year fields are offered instead.
+    expect(screen.queryByText(/re-sync to edit dates/i)).toBeNull();
+    const start = screen.getByLabelText(/start year/i) as HTMLInputElement;
+    const end = screen.getByLabelText(/end year/i) as HTMLInputElement;
+    // An entry with no dates is NOT pre-marked "ongoing": the end field is editable.
+    expect(start.value).toBe("");
+    expect(end.value).toBe("");
+    expect(end.disabled).toBe(false);
+    fireEvent.change(start, { target: { value: "2007" } });
+    expect(got).toEqual({ startYear: 2007, endYear: undefined });
+  });
+
+  it("still shows the re-sync note for a legacy entry with no structured institution", () => {
+    // No meta.institution → the line can't be re-derived, so dates can't be added
+    // until a re-sync populates the structured fields.
+    renderStructured(
+      makeItem({
+        id: "education:orcid:2",
+        source: "orcid",
+        displayText: "PharmD, Université de Caen (2007–2016)",
+        meta: {},
+      }),
+      "education",
+    );
+    expect(screen.getByText(/re-sync to edit dates/i)).toBeTruthy();
+    expect(screen.queryByLabelText(/start year/i)).toBeNull();
+  });
+
+  it("pre-fills the existing range and marks an open end as ongoing", () => {
+    renderStructured(
+      makeItem({
+        id: "position:orcid:1",
+        source: "orcid",
+        displayText: "Assistant Professor, Nagoya University (2022–present)",
+        meta: {
+          institution: "Nagoya University",
+          roleTitle: "Assistant Professor",
+          startYear: 2022,
+        },
+      }),
+      "positions",
+    );
+    const start = screen.getByLabelText(/start year/i) as HTMLInputElement;
+    const end = screen.getByLabelText(/end year/i) as HTMLInputElement;
+    expect(start.value).toBe("2022");
+    expect(end.value).toBe(""); // open end
+    expect(end.disabled).toBe(true); // ongoing → end disabled
+  });
+});

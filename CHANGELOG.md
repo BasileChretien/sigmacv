@@ -57,6 +57,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **You can now add dates to a degree that ORCID listed without any.** Education
+  entries (and positions) whose source carried no dates used to dead-end on a
+  “Re-sync to edit dates” note — but re-syncing never helped when ORCID simply has
+  no dates for that degree. The **start/end year** fields are now offered for any
+  entry with a known institution, so you can fill a range in directly; an entry with
+  no dates yet starts with an editable (not pre-“Ongoing”) end year. The re-sync note
+  remains only for older entries that lack the structured institution needed to
+  rebuild the line.
 - **Your software and datasets no longer land in “Preprints.”** A Zenodo (or other
   repository) deposit — like a software release or a dataset — was being filed
   under Preprints, because OpenAlex tags everything from a repository as a preprint
