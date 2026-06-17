@@ -1118,18 +1118,24 @@ const ORCID_PUBLICATION_TYPES = new Set([
 /** ORCID types that ARE preprints / unpublished working papers (→ Preprints). */
 const ORCID_PREPRINT_TYPES = new Set(["preprint", "working-paper"]);
 
-/** ORCID types that are NON-publication research outputs — pulled out of
+/** ORCID types that are DATASETS or SOFTWARE — routed to the Datasets & Software
+ *  section (alongside DataCite/OpenAIRE), not Other Research Outputs. */
+const ORCID_DATASET_TYPES = new Set([
+  "data-set",
+  "software",
+  "research-tool",
+  "data-management-plan",
+  "physical-object",
+]);
+
+/** ORCID types that are other NON-publication research outputs — pulled out of
  *  Preprints into the "Other Research Outputs" section (posters, abstracts,
- *  talks/teaching, datasets, software, standards, websites, …). */
+ *  talks/teaching, standards, websites, …). Datasets/software go to Datasets &
+ *  Software instead (see {@link ORCID_DATASET_TYPES}). */
 const ORCID_OTHER_OUTPUT_TYPES = new Set([
   "conference-poster",
   "conference-abstract",
   "lecture-speech",
-  "data-set",
-  "software",
-  "research-tool",
-  "physical-object",
-  "data-management-plan",
   "other",
   "online-resource",
   "website",
@@ -1153,36 +1159,32 @@ const ORCID_OTHER_OUTPUT_TYPES = new Set([
  */
 export function orcidTypeClass(
   orcidType: string | undefined,
-): "publication" | "preprint" | "other-output" | undefined {
+): "publication" | "preprint" | "dataset" | "other-output" | undefined {
   const t = orcidType?.trim().toLowerCase();
   if (!t) return undefined;
   if (ORCID_PUBLICATION_TYPES.has(t)) return "publication";
   if (ORCID_PREPRINT_TYPES.has(t)) return "preprint";
+  if (ORCID_DATASET_TYPES.has(t)) return "dataset";
   if (ORCID_OTHER_OUTPUT_TYPES.has(t)) return "other-output";
   return undefined;
 }
 
-/** OpenAlex `type` values that denote a NON-article research output (a dataset or
- *  supplementary materials). OpenAlex has no "software" type — a Zenodo software
- *  deposit is typed "dataset" — and such a venue-less / repository-hosted work
- *  would otherwise fall to `isPreprint` and mis-file in Preprints. */
-const OPENALEX_OTHER_OUTPUT_TYPES = new Set(["dataset", "supplementary-materials"]);
-
 /**
  * The CV-routing class for an OpenAlex work, or `undefined` when it carries no
  * non-article signal (→ the OpenAlex-only `isPreprint` routing stands). Consulted
- * in the no-ORCID-signal fallback so a dataset/software output lands in "Other
- * Research Outputs" rather than Preprints. Two signals:
- *  - `type` is `dataset`/`supplementary-materials` (always non-article); OR
- *  - `type` is the catch-all `other` AND the source is a `repository` — a Zenodo
- *    software deposit is typed `other`, so this rescues it. Gated on the repository
- *    source so a venue-bearing `other` (newsletter/editorial miscellany) stays put,
- *    and never matches arXiv/bioRxiv preprints (typed `preprint`, not `other`).
+ * in the no-ORCID-signal fallback so a non-article output leaves Preprints. Signals:
+ *  - `type` is `dataset` → `"dataset"` (Datasets & Software). OpenAlex has no
+ *    "software" type, so software (e.g. a CRAN package) also arrives typed `dataset`.
+ *  - `type` is `supplementary-materials`, OR the catch-all `other` on a `repository`
+ *    source (a Zenodo deposit OpenAlex couldn't type) → `"other-output"` (Other
+ *    Research Outputs). Gated on the repository source so venue-bearing `other`
+ *    miscellany stays put, and never matches arXiv/bioRxiv preprints (typed `preprint`).
  * An ORCID type, when present, still takes precedence over this (see {@link routeWork}).
  */
-export function openalexTypeClass(work: OpenAlexWork): "other-output" | undefined {
+export function openalexTypeClass(work: OpenAlexWork): "dataset" | "other-output" | undefined {
   const t = (work.type ?? "").trim().toLowerCase();
-  if (OPENALEX_OTHER_OUTPUT_TYPES.has(t)) return "other-output";
+  if (t === "dataset") return "dataset";
+  if (t === "supplementary-materials") return "other-output";
   const isRepository = (work.primary_location?.source?.type ?? "").toLowerCase() === "repository";
   if (t === "other" && isRepository) return "other-output";
   return undefined;
@@ -1439,6 +1441,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // stays, and a non-publication output is pulled into "Other Research Outputs".
   const preprintIds = new Set<string>();
   const otherOutputIds = new Set<string>();
+  const datasetWorkIds = new Set<string>();
   /** Route one work item by ORCID class (over OpenAlex's `isPreprint`) and return
    *  the matching `peerReviewedOverride` to pass to {@link buildWorkCvItem}. */
   const routeWork = (work: OpenAlexWork, csl: CslItem): { peerReviewedOverride?: boolean } => {
@@ -1454,14 +1457,24 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       preprintIds.add(csl.id);
       return {};
     }
+    if (cls === "dataset") {
+      datasetWorkIds.add(csl.id);
+      return { peerReviewedOverride: false };
+    }
     if (cls === "other-output") {
       otherOutputIds.add(csl.id);
       return { peerReviewedOverride: false };
     }
-    // No ORCID signal → OpenAlex's own `type` can still pull a non-article output
-    // (dataset / supplementary materials) out of Preprints into Other Research
-    // Outputs; otherwise the `isPreprint` heuristic decides the split.
-    if (openalexTypeClass(work) === "other-output") {
+    // No ORCID signal → OpenAlex's own `type` still routes a non-article output:
+    // a `dataset` (incl. software, e.g. a CRAN package) into Datasets & Software,
+    // a repository `other` / supplementary materials into Other Research Outputs;
+    // otherwise the `isPreprint` heuristic decides the split.
+    const oaCls = openalexTypeClass(work);
+    if (oaCls === "dataset") {
+      datasetWorkIds.add(csl.id);
+      return { peerReviewedOverride: false };
+    }
+    if (oaCls === "other-output") {
       otherOutputIds.add(csl.id);
       return { peerReviewedOverride: false };
     }
@@ -1534,11 +1547,16 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // their item DOIs are known before the works split: an ORCID "other-output"
   // work whose DOI is already one of these is DROPPED rather than double-listed
   // in "Other Research Outputs".
-  const datasetsSection = buildDatasetsSection(
+  // DataCite/OpenAIRE entry items for Datasets & Software. Manual items are NOT
+  // pulled in here ([] below): the final `datasets` section (assembled after the
+  // works split) merges these entries with OpenAlex-identified dataset/software
+  // works, and carryOverUserItems handles manual/claimed carry-over once for the
+  // combined section.
+  const datasetEntrySection = buildDatasetsSection(
     args.dataciteOutputs ?? [],
     args.openaireOutputs ?? [],
     prevItems,
-    previousManualItems(previous, "datasets"),
+    [],
     now,
   );
   const conferenceSection = buildConferenceSection(
@@ -1548,7 +1566,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     now,
   );
   const datasetConferenceDois = new Set<string>([
-    ...sectionDois(datasetsSection),
+    ...sectionDois(datasetEntrySection),
     ...sectionDois(conferenceSection),
   ]);
 
@@ -1582,7 +1600,9 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   };
   const pubItems = reindexItems(
     carryOverUserItems(
-      orderedDeduped.filter((it) => !preprintIds.has(it.id) && !otherOutputIds.has(it.id)),
+      orderedDeduped.filter(
+        (it) => !preprintIds.has(it.id) && !otherOutputIds.has(it.id) && !datasetWorkIds.has(it.id),
+      ),
       previous,
       "publications",
       fetchedIds,
@@ -1607,6 +1627,40 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       fetchedDois,
     ),
   );
+
+  // Datasets & Software: DataCite/OpenAIRE entry items + OpenAlex-identified
+  // dataset/software WORKS (CSL items — e.g. a CRAN package OpenAlex types
+  // `dataset`, which DataCite never has). The renderer dispatches per item
+  // (`item.csl` → citeproc, else the entry line), so a mixed section renders
+  // correctly. A work already surfaced as a DataCite/OpenAIRE deposit was dropped
+  // from `orderedDeduped` above (by DOI), so entries and works never double-list.
+  const datasetWorkItems = orderedDeduped.filter((it) => datasetWorkIds.has(it.id));
+  const datasetItems = reindexItems(
+    carryOverUserItems(
+      [...(datasetEntrySection?.items ?? []), ...datasetWorkItems].map((it, i) => ({
+        ...it,
+        order: i,
+      })),
+      previous,
+      "datasets",
+      fetchedIds,
+      fetchedDois,
+    ),
+  );
+  const datasetsSection: CvSection | null =
+    datasetItems.length > 0
+      ? mergeSection(
+          {
+            id: "datasets",
+            type: "datasets",
+            title: "Datasets & Software",
+            visible: true,
+            order: DEFAULT_SECTION_ORDER.datasets,
+            items: datasetItems,
+          },
+          previous,
+        )
+      : null;
 
   const publicationsSection = mergeSection(
     {
@@ -1730,8 +1784,9 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     indexFundersByAward(works),
   );
 
-  // (datasetsSection + conferenceSection are built earlier, before the works
-  // split, so their DOIs can suppress double-listed "other-output" works.)
+  // (the conference section + the DataCite/OpenAIRE dataset entries are built
+  // before the works split so their DOIs can suppress double-listed works; the
+  // final `datasetsSection` is assembled just above, after the split.)
   const clinicalTrialsSection = buildClinicalTrialsSection(
     args.clinicalTrials ?? [],
     prevItems,
@@ -1750,7 +1805,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     preprintsSection,
     otherOutputsSection,
     conferenceSection ? mergeSection(conferenceSection, previous) : null,
-    datasetsSection ? mergeSection(datasetsSection, previous) : null,
+    datasetsSection,
     positionsSection ? mergeSection(positionsSection, previous) : null,
     educationSection ? mergeSection(educationSection, previous) : null,
     awardsSection ? mergeSection(awardsSection, previous) : null,
