@@ -293,14 +293,26 @@ export default function ItemRow({
   // Institution name (ROR-localized) shown as read-only context beside the
   // editable role, so "Add your title…" has something to attach to.
   const institution = displayInstitution(item, locale);
-  // "Edit details" date controls: the effective range + whether it's ongoing, and
-  // whether this entry has structured dates yet (legacy items need a re-sync first).
+  // "Edit details" date controls: the effective range + whether it's ongoing.
   const { startYear: dateStart, endYear: dateEnd } = itemDateRange(item);
-  const ongoing = dateEnd === undefined;
+  // "Ongoing" (open end) means a START year with no end. An entry with NO dates at
+  // all is NOT ongoing, so its empty form shows an editable end field instead of a
+  // disabled, pre-checked "ongoing" one — the common case when ADDING dates to a
+  // degree that ORCID listed without them.
+  const ongoing = dateStart !== undefined && dateEnd === undefined;
+  // Whether the entry already has structured dates baked into meta (a current
+  // build, or a carried-over override). Legacy items predate this.
   const hasStructuredDates =
     item.meta.startYear !== undefined ||
     item.meta.endYear !== undefined ||
     item.meta.dateRangeOverride !== undefined;
+  // Dates are editable — and can be ADDED when the source supplied none — whenever
+  // the line is re-derivable from structured meta, i.e. the entry has an effective
+  // institution (every ORCID/OpenAlex position & education entry does). ORCID
+  // degrees frequently carry no dates; without this they'd dead-end on the re-sync
+  // note below with no way to add a range. Only a legacy entry with no structured
+  // institution (whose line can't be re-derived) still needs a re-sync first.
+  const datesEditable = Boolean(itemInstitution(item)) || hasStructuredDates;
   const year = item.meta.year ?? "—";
   const venue =
     typeof item.csl?.["container-title"] === "string" ? item.csl["container-title"] : "";
@@ -457,7 +469,7 @@ export default function ItemRow({
                       </button>
                     ) : null}
                   </div>
-                  {hasStructuredDates ? (
+                  {datesEditable ? (
                     <div className="cv-item-dates">
                       <input
                         className="cv-item-year"
