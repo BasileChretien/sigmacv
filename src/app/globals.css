@@ -1451,6 +1451,22 @@ textarea.prose-body {
   margin-top: var(--space-1);
   color: var(--danger-text);
 }
+/* Responsible-metrics onboarding (the metric picker). The framing nudge is a
+   quiet muted line above the picker; the crowding caution is a soft accent
+   callout that appears only once many metrics are enabled — it steers toward a
+   short, readable header, it does not block any choice. */
+.metrics-nudge {
+  margin-top: var(--space-1);
+}
+.metrics-crowding-note {
+  display: block;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  color: var(--accent-900);
+  background: var(--accent-50);
+  border: 1px solid var(--accent-100);
+  border-radius: var(--radius);
+}
 .metric-options {
   display: flex;
   flex-direction: column;

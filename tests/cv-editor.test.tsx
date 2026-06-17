@@ -49,6 +49,30 @@ describe("CvEditor (component)", () => {
     expect(next.display.showMetrics).toBe(true);
   });
 
+  it("shows the responsible-metrics framing nudge in the metrics controls", () => {
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+    );
+    // The nudge text is split around a DORA link, so match a phrase that lives in
+    // a single text node ("…show them sparingly, if at all.").
+    expect(screen.getByText(/show them sparingly/i)).toBeTruthy();
+  });
+
+  it("surfaces the crowding caution only when the header is metrics-heavy", () => {
+    const light = updateDisplay(makeCv(), { metrics: ["fwci_mean"], showMetrics: true });
+    const { rerender } = render(
+      <CvEditor cv={light} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+    );
+    expect(screen.queryByText(/A shorter strip reads better/i)).toBeNull();
+
+    const heavy = updateDisplay(makeCv(), {
+      metrics: ["fwci_mean", "rcr_mean", "h_index", "i10_index"],
+      showMetrics: true,
+    });
+    rerender(<CvEditor cv={heavy} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    expect(screen.getByText(/A shorter strip reads better/i)).toBeTruthy();
+  });
+
   it("changing the highlight style propagates to display.highlightStyle", () => {
     const onChange = vi.fn();
     render(

@@ -250,46 +250,22 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       };
     }
 
-    it("renders SVG charts when enabled", () => {
+    it("renders the publications SVG chart when enabled (no citations chart)", () => {
       const html = renderCvHtml(withCharts(true));
-      // The figure block + captions only appear when charts actually render
+      // The figure block + caption only appear when charts actually render
       // (the `.cv-charts` CSS rule is always present in the stylesheet).
       expect(html).toContain('<figure class="cv-chart">');
       expect(html).toContain("Publications / year");
-      expect(html).toContain("Citations / year");
       expect(html).toContain("<svg");
+      // Citations/year was dropped (citation lag makes recent bars wrong).
+      expect(html).not.toContain("Citations / year");
     });
 
     it("omits charts when disabled", () => {
       expect(renderCvHtml(withCharts(false))).not.toContain("Publications / year");
     });
 
-    it("scales bars logarithmically and labels the axis", () => {
-      const mk = (year: number, cites: number) =>
-        ({
-          csl: {},
-          included: true,
-          notMine: false,
-          meta: { year, citedByCount: cites },
-        }) as unknown as CanonicalCv["sections"][number]["items"][number];
-      // Citations span two orders of magnitude (1 vs 100) within one chart.
-      const cv = {
-        display: { showCharts: true, locale: "en-US", countLetters: false },
-        sections: [{ type: "publications", items: [mk(2020, 1), mk(2021, 100)] }],
-      } as unknown as CanonicalCv;
-      const html = renderChartsHtml(cv);
-      // Axis is honestly labelled so a log scale isn't misread as linear.
-      expect(html).toContain("(log)");
-      const heights = [...html.matchAll(/<rect[^>]*height="(\d+)"/g)].map((m) => Number(m[1]));
-      const tallest = Math.max(...heights);
-      const smallestVisible = Math.min(...heights.filter((h) => h > 0));
-      // The value-1 citation bar would be ~1px on a linear scale next to the
-      // value-100 bar; log1p keeps it clearly visible (≈10px of the 64px height).
-      expect(tallest).toBe(64);
-      expect(smallestVisible).toBeGreaterThan(3);
-    });
-
-    it("renders zero-height bars when every value is 0 (no log(0))", () => {
+    it("scales the publications bars linearly (no log scale, no log label)", () => {
       const mk = (year: number) =>
         ({
           csl: {},
@@ -297,13 +273,23 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
           notMine: false,
           meta: { year, citedByCount: 0 },
         }) as unknown as CanonicalCv["sections"][number]["items"][number];
-      // Two years of work but no citations at all → the citations chart's logMax
-      // is 0, so its bars must flatten to height 0 rather than divide-by-zero.
+      // 1 publication in 2020, 4 in 2021 → a LINEAR scale makes the 2020 bar
+      // exactly 1/4 the height of the (full-height) 2021 bar. A log1p scale would
+      // give a different (compressed) ratio, so this pins the scale to linear.
       const cv = {
         display: { showCharts: true, locale: "en-US", countLetters: false },
-        sections: [{ type: "publications", items: [mk(2020), mk(2021)] }],
+        sections: [
+          {
+            type: "publications",
+            items: [mk(2020), mk(2021), mk(2021), mk(2021), mk(2021)],
+          },
+        ],
       } as unknown as CanonicalCv;
-      expect(renderChartsHtml(cv)).toContain('height="0"');
+      const html = renderChartsHtml(cv);
+      expect(html).not.toContain("(log)");
+      const heights = [...html.matchAll(/<rect[^>]*height="(\d+)"/g)].map((m) => Number(m[1]));
+      expect(Math.max(...heights)).toBe(64); // the 4-publication year fills the chart
+      expect(heights).toContain(16); // the 1-publication year is exactly 1/4 height
     });
 
     it("omits charts with fewer than two years of data", () => {
@@ -569,6 +555,51 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       const html = renderCvHtml(withFwci);
       expect(html).toContain("Mean work FWCI: 1.8");
       expect(html).toContain("1.0 = world average");
+    });
+
+    it("leads the metric strip with open access, demotes the coverage note to a hover title, and places the summary above the cards", () => {
+      const works = [2019, 2020, 2021].map(
+        (year, i) =>
+          ({
+            id: `https://openalex.org/Woa${i}`,
+            title: `OA work ${i}`,
+            display_name: `OA work ${i}`,
+            type: "article",
+            publication_year: year,
+            cited_by_count: i,
+            authorships: [{ author: { id: "https://openalex.org/A5001069481" } }],
+            primary_location: { source: { display_name: "J. Test", type: "journal" } },
+            open_access: { is_oa: true, oa_status: "gold" },
+          }) as unknown as OpenAlexWork,
+      );
+      const base = buildCanonicalCv({ id: "oa", resolved, works, now: "2026-06-02T00:00:00.000Z" });
+      const cv: CanonicalCv = {
+        ...base,
+        owner: {
+          ...base.owner,
+          summary: "Drug-safety signal detection.",
+          // h_index carries no responsible-reading anchor → exercises the
+          // no-context branch in the strip.
+          metrics: { fwci_mean: 1.4, fwci_n: 97, h_index: 9 },
+        },
+        display: {
+          ...base.display,
+          showCharts: true,
+          showOpenAccess: true,
+          showMetrics: true,
+          metrics: ["fwci_mean", "h_index"],
+        },
+      };
+      const html = renderCvHtml(cv);
+      // Open access leads the strip, before the field-normalised metric.
+      expect(html.indexOf("open access")).toBeLessThan(html.indexOf("Mean work FWCI"));
+      // The coverage note rides a hover title — not the inline parenthetical.
+      expect(html).toContain('title="mean over 97 works with FWCI"');
+      expect(html).not.toContain("· mean over 97 works with FWCI)");
+      // A no-context metric still renders its label/value.
+      expect(html).toContain("h-index: 9");
+      // The narrative summary now precedes the charts + authorship cards.
+      expect(html.indexOf('class="cv-summary"')).toBeLessThan(html.indexOf('class="cv-charts"'));
     });
   });
 });

@@ -103,8 +103,10 @@ describe("formattedMetrics", () => {
     };
     const fwci = formattedMetrics(withCoverage)[0];
     expect(fwci?.value).toBe("1.8");
+    // The anchor is the inline `context`; the coverage rides a separate field
+    // (the header surfaces it as a hover title, not inline).
     expect(fwci?.context).toContain("1.0 = world average");
-    expect(fwci?.context).toContain("mean over 73 works with FWCI");
+    expect(fwci?.coverageNote).toContain("mean over 73 works with FWCI");
   });
 
   it("omits FWCI coverage when fwci_n is absent", () => {
@@ -138,7 +140,7 @@ describe("formattedMetrics", () => {
     expect(rcr?.value).toBe("1.5");
     expect(rcr?.context).toContain("NIH-funded average");
     expect(rcr?.context).toContain("biomedical");
-    expect(rcr?.context).toContain("mean over 20 works with RCR");
+    expect(rcr?.coverageNote).toContain("mean over 20 works with RCR");
   });
 
   it("drops a selected metric that has no captured value", () => {

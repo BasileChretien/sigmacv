@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A gentle nudge away from a metrics-heavy header.** The editor's metrics
+  section now opens with a short, DORA-aligned line — metrics are optional, and
+  readers tend to weigh your narrative and the work itself over scores, so show
+  them sparingly — with "DORA" linked to the declaration. And if you switch on
+  four or more metrics at once, a quiet callout appears suggesting a shorter strip
+  reads better and keeps the focus on your work. Neither removes any choice — they
+  just steer toward a calmer header at the moment you're deciding. Localized in all
+  ten languages.
+
+### Changed
+
+- **The top of the CV now leads with the person, not a wall of statistics.** When
+  you turned on metrics, charts and the authorship table, they stacked directly
+  under your name — and on the dark public-page styles the two bright white cards
+  (publication/citation charts and the authorship breakdown) out-shouted your
+  name, which made the header hard to read. Now your **summary** sits right under
+  your identity and ahead of those cards, so a reader meets who you are and what
+  you do before the numbers. The metric strip is tidied into one line that
+  **leads with your % open access**, and each field-normalised metric (FWCI, RCR)
+  keeps its short interpretation note inline (e.g. "1.0 = world average for field
+  & year") while the longer coverage detail ("mean over N works") moves to a
+  hover tooltip — shorter, upright (no more faint italics) and more legible. Tiny
+  chart/table captions were nudged up to a readable size. The charts were
+  simplified too: the **citations-per-year chart is gone** (on a recent window it
+  is depressed by citation lag — the latest years look empty regardless of impact
+  — so it misled more than it informed), and the remaining **publications-per-year
+  chart now uses a plain linear scale** instead of a hard-to-read logarithmic one.
+  Applies to every template and the public page; the chart simplification also
+  carries into the DOCX export, the PDF mirrors the live page, and the LaTeX
+  year-by-year table (which shows explicit numbers, not bars) is unchanged.
+
 ### Fixed
 
 - **The top-bar menus (Publish / Share / Account) now close when you click
