@@ -1,0 +1,134 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit configuration for SigmaCV.
+# Complements (does not replace) the existing review stack: CodeQL, OpenSSF
+# Scorecard, `npm run typecheck`/`coverage`, and the in-editor review agents.
+# Tuned to SigmaCV's load-bearing conventions (see CLAUDE.md / SECURITY.md).
+
+language: "en-US"
+early_access: false
+
+reviews:
+  # Additive reviewer on top of CodeQL + the local agents — keep signal high,
+  # noise low. Flip to "assertive" if you want broader (chattier) coverage.
+  profile: "chill"
+  # Don't gate merges; branch protection already requires green checks.
+  request_changes_workflow: false
+  high_level_summary: true
+  changed_files_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: true
+  abort_on_close: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+
+  # Exclude generated / vendored / build artifacts from review.
+  path_filters:
+    - "!src/generated/**" # generated Prisma client (never hand-edit)
+    - "!src/lib/citeproc/assets/**" # vendored CSL styles + locale
+    - "!public/schema/cv/v2.json" # generated from the Zod canonical schema
+    - "!prisma/migrations/**" # generated migrations
+    - "!prisma/seed-data/**" # committed binary seed (OEP roles)
+    - "!package-lock.json"
+    - "!sbom.cdx.json"
+    - "!coverage/**"
+    - "!test-results/**"
+    - "!.next/**"
+    - "!**/*.min.js"
+
+  path_instructions:
+    - path: "src/lib/canonical/schema.ts"
+      instructions: >-
+        This is the canonical CV schema — the single source of truth that every
+        renderer derives from. Flag any breaking/removed field or changed shape.
+        Any change here REQUIRES regenerating and committing
+        public/schema/cv/v2.json (`npm run gen:schema`); call this out if the
+        PR touches this file without updating that artifact.
+
+    - path: "src/lib/**"
+      instructions: >-
+        This is the only path the coverage gate covers (stmts 98 / branches 87 /
+        funcs 99 / lines 99, enforced by vitest.config.ts). New or changed logic
+        needs unit tests. Genuinely unreachable defensive branches must be marked
+        with an inline `/* v8 ignore next N -- reason */` comment, not left
+        uncovered. Prefer immutable update patterns (return new objects; do not
+        mutate inputs).
+
+    - path: "src/lib/{openalex,orcid,crossref,datacite,ror,oep,dblp,openaire,nih,nsf,ukri,epo,ictrp,ctis,clinicaltrials,trials,wikidata,icite,oai}/**"
+      instructions: >-
+        External-data clients must (1) route requests through src/lib/http.ts
+        with a polite-pool mailto / User-Agent, and (2) be FAIL-SOFT — a single
+        source hiccuping must never break a sync or throw out of the client.
+        Flag any unguarded fetch, missing timeout/try-catch, or error that
+        propagates and could abort an entire sync.
+
+    - path: "src/lib/**"
+      instructions: >-
+        Self-name highlighting and author matching MUST use an author identifier
+        (ORCID / OpenAlex ID), NEVER a name string. Flag any matching, filtering,
+        or highlighting done by comparing display names.
+
+    - path: "src/lib/grants/**"
+      instructions: >-
+        Identifier-matched outputs (ORCID/DOI) auto-include. Name+org-matched
+        outputs are REVIEW CANDIDATES: they must be built `included: false` with
+        `meta.reviewFlag = "name-matched"` and never auto-included. Name-only
+        (no org) must never match. Flag any deviation.
+
+    - path: "src/lib/i18n/**"
+      instructions: >-
+        Ten locales: en-US, zh-CN, es-ES, fr-FR, de-DE, ja-JP, pt-BR, it-IT,
+        ko-KR, ru-RU. Every new string key must have a value in ALL ten locales
+        (TypeScript fails the build otherwise). Flag added keys missing any
+        locale, and flag English copy left as a placeholder in other locales.
+
+    - path: "src/lib/render/**"
+      instructions: >-
+        HTML / PDF / DOCX / LaTeX / Markdown all derive from the canonical CV
+        object — there are no per-format data pipelines. Flag any renderer that
+        re-derives or diverges from the canonical model instead of consuming it,
+        and any citation rendering that bypasses the shared citeproc/CSL path.
+
+    - path: "src/lib/research/**"
+      instructions: >-
+        Consent-gated research logging. It must stay behind explicit consent and
+        OFF by default; flag anything that logs research data without a consent
+        check or that lowers the consent bar. Bumping behaviour should bump
+        RESEARCH_CONSENT_VERSION.
+
+    - path: "src/app/api/**"
+      instructions: >-
+        Validate all input at the boundary (Zod). Confirm auth/authorization and
+        rate limiting where appropriate. No secrets in source — env only. Error
+        responses must not leak internal/sensitive detail. Personal data is under
+        GDPR + Japan APPI: enforce data minimization and per-field publish
+        consent; flag any field published without consent.
+
+  tools:
+    gitleaks:
+      enabled: true # secret scanning — aligns with the mandatory no-secrets rule
+    actionlint:
+      enabled: true # 5 workflows under .github/workflows
+    eslint:
+      enabled: false # project uses tsc + prettier, no eslint config (would misfire)
+    biome:
+      enabled: false
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  learnings:
+    scope: "auto"
+  # Teach CodeRabbit the project conventions it should review against.
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "**/CLAUDE.md"
+      - "SECURITY.md"
+      - "CONTRIBUTING.md"
