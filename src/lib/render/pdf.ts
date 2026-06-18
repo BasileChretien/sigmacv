@@ -9,16 +9,17 @@ const PDF_TIMEOUT_MS = 30_000;
 let activeRenders = 0;
 
 /**
- * The printed page margin. VERTICAL ONLY: the horizontal gutter is owned by the
- * template's `.cv` box (max-width + side padding) so the PDF's text column is
- * identical to the editor preview (WYSIWYG). MUST stay in lockstep with the
- * `@page { margin: <top> 0 }` rule in the shared template CSS — left/right are 0
- * here precisely so `.cv`'s auto margins centre it. `tests/pdf-page-geometry`
- * fails if this and the CSS `@page` margin ever drift apart.
+ * The printed page margin: ZERO on every side. Every margin a template wants comes
+ * from its OWN box (the centred templates' `.cv` padding; the Sidebar's panel +
+ * main-column padding), so the PDF renders the SAME box as the on-screen editor
+ * preview with no page gutter to diverge — and full-bleed templates (the Sidebar's
+ * coloured panel) reach the page edges exactly as they do on screen. MUST stay in
+ * lockstep with the `@page { margin: 0 }` rule in the shared template CSS;
+ * `tests/pdf-page-geometry` fails if they drift apart.
  */
 export const PDF_PAGE_MARGIN = {
-  top: "16mm",
-  bottom: "16mm",
+  top: "0",
+  bottom: "0",
   left: "0",
   right: "0",
 } as const;
