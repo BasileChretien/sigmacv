@@ -88,6 +88,7 @@ describe("DisplayChoicesSchema", () => {
       showMetrics: false,
       metrics: [],
       showCharts: false,
+      showResearchAreas: false,
       showOpenAccess: false,
       summaryBlockPosition: "header",
       hideRetracted: false,

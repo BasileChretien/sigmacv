@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **Credentials pasted into a profile link or website no longer leak into your CV.**
+  If a URL with embedded `user:password@` userinfo was entered for your website or a
+  profile link, that credential could show up in the visible contact line and in the
+  plain Markdown / LaTeX / DOCX exports. The userinfo is now stripped from the
+  displayed URL everywhere (the clickable link was already protected).
+
 - **Defense-in-depth hardening on the public-page error responses.** A three-
   reviewer security pass found no exploitable issues, and closed a few hardening
   gaps: the styled 404 / 429 notice pages now carry the live page's anti-framing
@@ -27,6 +33,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The "Choose your public-page design" hint no longer overflows the Publish
   popover.** The tip text was shortened (all ten languages) and the button now wraps
   instead of forcing the panel wider (it was running off the side).
+- **The "Neon" living-page style is now a cool-video-game arcade screen.** The
+  public page rendered in the Neon style gained a fixed pink + cyan arcade palette,
+  glowing HUD corner brackets pinned to the screen, faint rolling CRT scanlines, a
+  Tron-style perspective grid floor, an igniting neon-tube header frame with a light
+  running around it, publication panels that drop in and re-light on hover, rising
+  sparks and a sweeping beam — all CSS-only under the strict public-page CSP, with
+  the body copy kept crisp/legible and full `prefers-reduced-motion` + print
+  fallbacks. Affects only the `neon` public style; no export or document template
+  changes.
+- **The "Cyberpunk" living-page style is a full Arcane-flavoured arcade screen.**
+  A complete redesign of the `cyberpunk` public style into a Zaun/hextech "brawler"
+  aesthetic (genre & mood only — original CSS, no character likeness or trademarks):
+  a fixed pink + teal + brass palette on a near-black Zaun base; cinematic god-rays,
+  a chiaroscuro vignette, film grain, rising shimmer-embers and a toxic smog glow;
+  falling neon data-rain; a riveted hextech metal header plate; the name slams in
+  then glitch-flickers with a pink/teal chromatic split; graffiti hex section
+  headings; heavy energy-edged riveted entry plates that slam in and charge up on
+  hover; a hexagon "hextech-core" portrait; and a game HUD (glowing corner brackets,
+  a top energy-cell bar, a bottom data ticker, a sweeping radar, CRT scanlines, and
+  a pink->teal->brass progress beam). All CSS-only under the strict public-page CSP,
+  body copy kept crisp/AA-legible, with full `prefers-reduced-motion` + print
+  fallbacks. Affects only the `cyberpunk` public style; no export/document changes.
 - **The CV header now leads with you, not your numbers.** The optional metrics
   strip moved below your summary and is laid out one metric per line — each with its
   plain-language meaning ("1.0 = world average for field & year") and its coverage
@@ -60,6 +88,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fully readable to screen readers and résumé parsers), and omitted from the
   parser-safe ATS template. The plain DOCX/Markdown/LaTeX exports gain the cleaner
   auto-labels (no icons).
+
+- **Your public CV is now a research hub people can cite from and subscribe to.**
+  Six additions to the living public page (`/p/<slug>`):
+  - **Cite any publication in one click.** Every work gets a quiet "Cite" disclosure
+    that downloads that single reference as BibTeX, RIS, or CSL-JSON — no need to grab
+    the whole bibliography.
+  - **Follow a researcher's output by RSS/Atom.** Each living page now publishes a
+    feed at `/p/<slug>/feed.xml` of recent works, discoverable by feed readers and
+    linked from a "Subscribe" line on the page.
+  - **An automatic "Research areas" summary.** An opt-in chip row of your most
+    frequent fields, computed from open data (not a self-reported skills list, and
+    excluding works you've hidden or marked "not mine"). Off by default.
+  - **Read the abstract and jump to the open-access full text** inline under each
+    work, as no-JS disclosures and links.
+  - **Pin "Selected publications."** Star individual works in the editor to float
+    them to the top of their section with a quiet "Selected" mark; the pin survives
+    re-sync.
+  - **Filter a long publication list by year or open access** with server-rendered
+    facet links (e.g. `?since=2021&oa=1`) — no JavaScript required.
+
+  Everything here is localized in the ten supported languages, stays off every
+  exported PDF/DOCX/LaTeX, and respects the page's strict no-JavaScript security
+  policy.
 
 - **Move — or hide — the research summary.** The block under your name (the metrics
   strip, the publications-per-year chart and the authorship breakdown) now has a

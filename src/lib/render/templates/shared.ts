@@ -3,7 +3,7 @@ import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
 import { renderChartsHtml } from "../charts";
-import { escapeHtml, safeHref } from "../escape";
+import { displayUrl, escapeHtml, safeHref } from "../escape";
 import { formattedMetrics, openAccessShare } from "../metrics";
 import { iconSvg, resolveLink, type IconName } from "../icons";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -92,7 +92,7 @@ function contactHtml(cv: CanonicalCv): string {
     const href = safeHref(c.website);
     if (href)
       parts.push(
-        `<a href="${escapeHtml(href)}"${UGC_REL}>${ico("website")}${escapeHtml(c.website)}</a>`,
+        `<a href="${escapeHtml(href)}"${UGC_REL}>${ico("website")}${escapeHtml(displayUrl(c.website))}</a>`,
       );
   }
   const links = (cv.owner.links ?? [])
@@ -105,7 +105,9 @@ function contactHtml(cv: CanonicalCv): string {
       const { icon, service } = resolveLink(l.url);
       const labelText = l.label || (withIcons ? service : undefined) || l.url;
       if (!labelText && !href) return "";
-      const body = `${ico(icon)}${escapeHtml(labelText)}`;
+      // displayUrl strips any user:pass@ userinfo when the label IS the raw URL (an
+      // unlabelled link); a plain label/service name passes through unchanged.
+      const body = `${ico(icon)}${escapeHtml(displayUrl(labelText))}`;
       return href ? `<a href="${escapeHtml(href)}"${UGC_REL}>${body}</a>` : body;
     })
     .filter(Boolean);
@@ -383,6 +385,47 @@ export function commonCss(theme: TemplateTheme): string {
      faint or suppressed. */
   a:focus-visible { outline: 2px solid var(--cv-accent); outline-offset: 2px; border-radius: 2px; }
 
+  /* ── Research areas: a quiet chip row of the owner's most frequent OpenAlex
+     fields (opt-in; from owner.researchAreas). Bordered pills (no fill) so they
+     read on every template incl. the dark public styles. ─────────────────────── */
+  .cv-areas { margin: 0.85rem 0 0; }
+  .cv-areas-label { display: block; margin: 0 0 0.35rem; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cv-muted); }
+  ul.cv-areas-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem 0.4rem; }
+  .cv-area { font-size: 0.74rem; line-height: 1.4; padding: 0.12em 0.62em; border-radius: 999px; color: var(--cv-ink-2); border: 1px solid var(--cv-rule-strong); }
+
+  /* ── Per-publication tools (public living page only): a no-JS "Cite" disclosure
+     (BibTeX/RIS/CSL-JSON downloads), an open-access "Full text" link, and an
+     "Abstract" disclosure. Quiet + small; text-indent:0 escapes the bib hanging
+     indent (see the badges note). ───────────────────────────────────────────── */
+  .cv-itemtools { margin: 0.32rem 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.7rem; font-size: 0.72rem; text-indent: 0; }
+  .cv-itemtools details { display: inline; }
+  .cv-itemtools summary { display: inline; cursor: pointer; color: var(--cv-muted); list-style: none; -webkit-user-select: none; user-select: none; }
+  .cv-itemtools summary::-webkit-details-marker { display: none; }
+  .cv-itemtools summary::after { content: " \\25BE"; font-size: 0.85em; }
+  .cv-itemtools details[open] summary::after { content: " \\25B4"; }
+  .cv-cite-fmts { margin-left: 0.45rem; display: inline-flex; flex-wrap: wrap; gap: 0.1rem 0.6rem; }
+  .cv-itemtools a { color: var(--cv-accent); text-decoration: none; }
+  .cv-itemtools a:hover { text-decoration: underline; }
+  .cv-fulltext::before { content: "\\2197 "; }
+  .cv-abstract { flex-basis: 100%; }
+  .cv-abstract > p { margin: 0.4rem 0 0; font-size: 0.8rem; line-height: 1.5; color: var(--cv-ink-2); max-width: 64ch; }
+
+  /* Featured / "Selected" star badge — a fixed light pill (like the OA/cites
+     badges) so it stays legible on every template. */
+  .cv-badge-featured { color: #92600a; background: #fdf3d6; border: 1px solid #f0d488; }
+
+  /* ── View filter bar (public living page only): server-rendered facet chips
+     (year ranges + open-access) that set query params on the same page. ──────── */
+  .cv-filterbar { margin: 0 0 1.1rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 0.45rem; font-size: 0.76rem; }
+  .cv-filter-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cv-muted); margin-right: 0.15rem; }
+  .cv-filterbar a { color: var(--cv-ink-2); text-decoration: none; padding: 0.12em 0.62em; border-radius: 999px; border: 1px solid var(--cv-rule-strong); }
+  .cv-filterbar a:hover { border-color: var(--cv-accent); color: var(--cv-accent); }
+  .cv-filterbar a[aria-current="true"] { background: var(--cv-accent); color: #fff; border-color: var(--cv-accent); }
+
+  /* Public-page "Subscribe" (Atom/RSS) line — a quiet footnote near the living line. */
+  .cv-subscribe { margin: 0.3rem 0 0; font-size: 0.66rem; color: var(--cv-muted); letter-spacing: 0.01em; }
+  .cv-subscribe a { color: var(--cv-accent); text-decoration: none; }
+
   @page { size: A4; margin: 16mm 15mm; }
   @media print {
     .cv { padding: 0; max-width: none; }
@@ -391,6 +434,8 @@ export function commonCss(theme: TemplateTheme): string {
        link affordance survives print (WCAG 1.4.1 — not signalled by colour). */
     .cv-ids a, .cv-contact a, .cv-links a { text-decoration: underline; text-underline-offset: 0.15em; }
     .cv-ror-link { border-bottom: none; }
+    /* Interactive web-only affordances never belong in the printed/PDF CV. */
+    .cv-itemtools, .cv-filterbar, .cv-subscribe { display: none !important; }
     section.cv-section { break-inside: auto; }
     section.cv-section > h2 { break-after: avoid; break-inside: avoid; }
     ol.cv-bib > li { break-inside: avoid; }
@@ -408,6 +453,21 @@ export function commonCss(theme: TemplateTheme): string {
     .cv-headmain { flex-direction: column; align-items: flex-start; gap: 0.9rem; }
     .cv-photo { width: 88px; height: 88px; }
   }`;
+}
+
+/**
+ * The aggregated "Research areas" chip row — the owner's most frequent OpenAlex
+ * topic FIELDS (`owner.researchAreas`), shown only when the owner opts in
+ * (`display.showResearchAreas`) and the aggregate is non-empty. Field names are
+ * HTML-escaped and ordered most-frequent-first (as computed at build). "" otherwise.
+ */
+function researchAreasHtml(cv: CanonicalCv): string {
+  if (!cv.display.showResearchAreas) return "";
+  const areas = cv.owner.researchAreas ?? [];
+  if (areas.length === 0) return "";
+  const label = escapeHtml(renderStrings(cv.display.locale).researchAreasLabel);
+  const chips = areas.map((a) => `<li class="cv-area">${escapeHtml(a.field)}</li>`).join("");
+  return `<div class="cv-areas"><span class="cv-areas-label">${label}</span><ul class="cv-areas-list">${chips}</ul></div>`;
 }
 
 /**
@@ -440,8 +500,12 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
   // sectionsHtmlRaw); "hidden" suppresses it. The narrative SUMMARY still leads the
   // header body so the reader meets the person before any statistics.
   const block = cv.display.summaryBlockPosition === "header" ? researchSummaryBody(cv) : "";
+  // Research-area chips sit just under the summary (person → their fields →
+  // statistics), opt-in and "" when off. They describe the person (not the metrics),
+  // so they stay in the header regardless of the research-summary block's placement.
+  const areas = researchAreasHtml(cv);
   const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}</div>`;
-  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${block}</header>`;
+  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${areas}${block}</header>`;
 }
 
 /**
@@ -626,7 +690,14 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
     ? `<p class="cv-living">${escapeHtml(s.livingNote.replace("{date}", synced))}</p>`
     : "";
   const madeWith = escapeHtml(s.madeWith);
-  return `${living}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
+  // "Subscribe" (Atom/RSS) link to this living CV's feed — the public follow
+  // primitive. Shown only when the route supplied a feed href (`opts.feedHref`).
+  const subscribe = opts.feedHref
+    ? `<p class="cv-subscribe"><a href="${escapeHtml(opts.feedHref)}">${escapeHtml(
+        s.subscribeLabel,
+      )}</a></p>`
+    : "";
+  return `${living}${subscribe}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
 }
 
 /**
