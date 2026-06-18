@@ -5,7 +5,7 @@ import { curatedCountsByYear } from "./charts";
 import { wrapSelf } from "./emphasize";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
-import { metricsLineText } from "./metrics";
+import { isSummaryBlockHidden, metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
 import type { PreparedSection } from "./prepare";
 import { ensureReadableOnWhite } from "./readableAccent";
@@ -152,7 +152,10 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
   }
   for (const c of head.contact) contactBits.push(escapeLatex(c));
   const contactLine = contactBits.join("  \\textbullet{}  ");
-  const metricsRaw = metricsLineText(cv);
+  // The plain LaTeX export keeps its fixed layout but honours the "hidden"
+  // placement (suppress the metrics line + the chart/authorship tables).
+  const summaryHidden = isSummaryBlockHidden(cv);
+  const metricsRaw = summaryHidden ? "" : metricsLineText(cv);
 
   const blocks = sectionItems(cv, sections).map(
     ({ title, lines }) =>
@@ -211,7 +214,9 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
   const summaryPar = head.summary ? `\\medskip\n${escapeLatex(head.summary)}\\par\n` : "";
 
   // Charts + authorship render as tables (LaTeX can't draw the bar charts).
-  const tables = [yearTableLatex(cv), authorshipTableLatex(cv)].filter(Boolean).join("\n");
+  const tables = summaryHidden
+    ? ""
+    : [yearTableLatex(cv), authorshipTableLatex(cv)].filter(Boolean).join("\n");
 
   // A photo can't be embedded in a standalone .tex; leave a ready-to-use line
   // the author can enable once they save the image next to this file.
@@ -232,7 +237,8 @@ function buildSidebarLatex(cv: CanonicalCv, style: DocStyle): string {
     (cv.owner.honorific ? `${cv.owner.honorific} ` : "") +
       (cv.owner.displayName || renderStrings(cv.display.locale).cvFallbackTitle),
   );
-  const metricsRaw = metricsLineText(cv);
+  const summaryHidden = isSummaryBlockHidden(cv);
+  const metricsRaw = summaryHidden ? "" : metricsLineText(cv);
 
   // Joined with line breaks BETWEEN items (no leading/trailing \\, which would
   // trigger "no line here to end" in the paracol column).
@@ -247,7 +253,9 @@ function buildSidebarLatex(cv: CanonicalCv, style: DocStyle): string {
     .join(" \\\\[6pt]\n");
 
   const summaryPar = head.summary ? `${escapeLatex(head.summary)}\\par\\medskip\n` : "";
-  const tables = [yearTableLatex(cv), authorshipTableLatex(cv)].filter(Boolean).join("\n");
+  const tables = summaryHidden
+    ? ""
+    : [yearTableLatex(cv), authorshipTableLatex(cv)].filter(Boolean).join("\n");
   const blocks = sectionItems(cv, sections)
     .map(
       ({ title, lines }) =>

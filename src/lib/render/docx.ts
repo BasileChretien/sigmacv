@@ -17,7 +17,7 @@ import { cvChartSvgs } from "./charts";
 import { splitSelf } from "./emphasize";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
-import { metricsLineText } from "./metrics";
+import { isSummaryBlockHidden, metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
@@ -143,7 +143,10 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
   if (head.contact.length) {
     children.push(new Paragraph({ children: [new TextRun(head.contact.join("  ·  "))] }));
   }
-  const metrics = metricsLineText(cv);
+  // The plain .docx keeps its fixed layout but honours the "hidden" placement
+  // (drop the metrics line, the charts, and the authorship table).
+  const summaryHidden = isSummaryBlockHidden(cv);
+  const metrics = summaryHidden ? "" : metricsLineText(cv);
   if (metrics) {
     children.push(
       new Paragraph({
@@ -153,12 +156,13 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
     );
   }
 
-  children.push(...chartParagraphs(cv));
+  if (!summaryHidden) children.push(...chartParagraphs(cv));
 
   // Authorship summary: role · "N (P%)", with the denominator in the caption.
-  const authorRows = cv.display.showAuthorshipTable
-    ? authorshipCounts(cv, cv.display.authorshipRoles)
-    : [];
+  const authorRows =
+    !summaryHidden && cv.display.showAuthorshipTable
+      ? authorshipCounts(cv, cv.display.authorshipRoles)
+      : [];
   if (authorRows.length > 0 && !authorRows.every((r) => r.count === 0)) {
     const total = authorRows[0]!.total; // guard above guarantees a row
     children.push(
