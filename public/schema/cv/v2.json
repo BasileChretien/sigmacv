@@ -407,6 +407,10 @@
           "default": false,
           "type": "boolean"
         },
+        "showOutputLedger": {
+          "default": false,
+          "type": "boolean"
+        },
         "authorshipRoles": {
           "default": [],
           "maxItems": 50,
@@ -1236,6 +1240,10 @@
                 "type": "boolean"
               },
               "showAuthorshipTable": {
+                "default": false,
+                "type": "boolean"
+              },
+              "showOutputLedger": {
                 "default": false,
                 "type": "boolean"
               },

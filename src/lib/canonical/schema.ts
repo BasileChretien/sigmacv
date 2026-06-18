@@ -1088,6 +1088,14 @@ export const DisplayChoicesSchema = z.object({
   sectionsCustomized: z.boolean().default(false),
   /** Show the authorship-position summary table (counts of first/last/…). Default off. */
   showAuthorshipTable: z.boolean().default(false),
+  /**
+   * Show the "research output" ledger — a compact count of the breadth of outputs
+   * by type (publications, preprints, conference papers, datasets/software,
+   * patents, clinical trials) in the research-summary block. Reframes output as
+   * breadth of contribution rather than a single headline number. Default off, and
+   * (like the rest of the summary block) it follows `summaryBlockPosition`.
+   */
+  showOutputLedger: z.boolean().default(false),
   /** Which authorship roles to include in that table (subset of AUTHORSHIP_ROLES). */
   authorshipRoles: z.array(z.string().max(64)).max(50).default([]),
   /** Accent colour (validated hex). */

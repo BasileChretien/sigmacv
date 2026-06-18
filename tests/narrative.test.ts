@@ -112,7 +112,7 @@ describe.skipIf(!hasApa)("prose sections in the full HTML render", () => {
       );
       cv = updateDisplay(cv, { template });
       const html = renderCvHtml(cv);
-      expect(html, template).toContain('cv-prose"><h2>');
+      expect(html, template).toContain('cv-prose"><h2 id="sec-');
       expect(html, template).toContain("Key contributions");
       expect(html, template).toContain("<p>First para.</p>");
       expect(html, template).toContain(

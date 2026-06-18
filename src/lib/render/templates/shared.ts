@@ -1,4 +1,11 @@
-import { isMascotStyle, isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
+import {
+  isHidden,
+  isMascotStyle,
+  isProseSectionType,
+  type CanonicalCv,
+  type CvSectionType,
+} from "@/lib/canonical/schema";
+import { sectionTitle } from "@/lib/i18n";
 import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
@@ -294,6 +301,10 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-metric { line-height: 1.45; }
   .cv-metric-label { color: var(--cv-ink-2); font-weight: 600; }
   .cv-metric-value { color: var(--cv-ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+  /* The research-output ledger: a wrapped row of "N <Type>" breadth counts. */
+  ul.cv-ledger { list-style: none; margin: 0.5rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: 0.78rem; color: var(--cv-muted); }
+  .cv-ledger-item { white-space: nowrap; }
+  .cv-ledger-n { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--cv-ink-2); }
   /* The metric's interpretation anchor ("1.0 = world average …") and its coverage
      caveat ("mean over N works …"). Upright (not italic — long italic fine-print is
      a readability cost for dyslexia/low-vision), demoted in colour, and always
@@ -305,6 +316,12 @@ export function commonCss(theme: TemplateTheme): string {
   section.cv-section { margin-top: var(--cv-space); }
   section.cv-section:first-of-type { margin-top: calc(var(--cv-space) * 0.6); }
   section.cv-section > h2 { font-size: 0.95rem; font-weight: 600; color: var(--cv-ink); margin: 0 0 0.65rem; }
+  /* Quiet "#" permalink to each section heading — a screen-only navigation aid,
+     revealed on heading hover or keyboard focus, suppressed in print. */
+  .cv-anchor { margin-left: 0.35em; opacity: 0; text-decoration: none; font-weight: 400; color: var(--cv-muted); }
+  section.cv-section > h2:hover .cv-anchor, .cv-anchor:focus-visible { opacity: 1; }
+  .cv-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  @media print { .cv-anchor { display: none; } }
 
   /* Prose section body (funder narrative contributions / a free statement).
      Reads as running prose: the section heading (the shared h2) then escaped
@@ -468,7 +485,8 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-cite-fmts { margin-left: 0.45rem; display: inline-flex; flex-wrap: wrap; gap: 0.1rem 0.6rem; }
   .cv-itemtools a { color: var(--cv-accent); text-decoration: none; }
   .cv-itemtools a:hover { text-decoration: underline; }
-  .cv-fulltext::before { content: "\\2197 "; }
+  .cv-fulltext::before,
+  .cv-pubmed::before { content: "\\2197 "; }
   .cv-abstract { flex-basis: 100%; }
   /* The expanded abstract is a clearly CONTAINED callout card, so a long abstract
      reads as a distinct block rather than a wall of text spilling down the left of
@@ -602,6 +620,46 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
   return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${areas}${block}</header>`;
 }
 
+/** Research-output section types counted by the breadth ledger, in display order. */
+const LEDGER_TYPES: readonly CvSectionType[] = [
+  "publications",
+  "preprints",
+  "conference",
+  "datasets",
+  "patents",
+  "clinical-trials",
+];
+
+/**
+ * The "research output" ledger: an opt-in, compact count of the breadth of the
+ * owner's outputs by type — only types with at least one visible item — e.g.
+ * "12 Publications · 3 Datasets & Software · 2 Patents". It reframes output as
+ * breadth of contribution (R4RI-style) rather than a single headline number.
+ * Counts only VISIBLE items (honours hide / "not mine"), uses the locale's section
+ * labels, and returns "" when off or empty. Part of the research-summary block, so
+ * it follows `summaryBlockPosition`.
+ */
+export function outputLedgerHtml(cv: CanonicalCv): string {
+  if (!cv.display.showOutputLedger) return "";
+  const locale = cv.display.locale;
+  const numFmt = new Intl.NumberFormat(locale);
+  const items: string[] = [];
+  for (const type of LEDGER_TYPES) {
+    const count = cv.sections
+      .filter((s) => s.visible && s.type === type)
+      .reduce((n, s) => n + s.items.filter((it) => !isHidden(it)).length, 0);
+    if (count === 0) continue;
+    items.push(
+      `<li class="cv-ledger-item"><span class="cv-ledger-n">${escapeHtml(
+        numFmt.format(count),
+      )}</span> ${escapeHtml(sectionTitle(locale, type))}</li>`,
+    );
+  }
+  if (items.length === 0) return "";
+  const label = escapeHtml(renderStrings(locale).outputSummaryLabel);
+  return `<ul class="cv-ledger" aria-label="${label}">${items.join("")}</ul>`;
+}
+
 /**
  * The research-summary block BODY: the one-per-line metric list followed by the
  * grouped publications/year chart + authorship-table row. ONE METRIC PER LINE for
@@ -640,11 +698,12 @@ export function researchSummaryBody(cv: CanonicalCv): string {
     );
   }
   const metricsLine = rows.length ? `<ul class="cv-metrics">${rows.join("")}</ul>` : "";
+  const ledger = outputLedgerHtml(cv);
   const charts = renderChartsHtml(cv);
   const authorship = authorshipTableHtml(cv);
   const research =
     charts || authorship ? `<div class="cv-research">${charts}${authorship}</div>` : "";
-  return `${metricsLine}${research}`;
+  return `${metricsLine}${ledger}${research}`;
 }
 
 /**
@@ -1029,6 +1088,29 @@ function renderableSections(sections: RenderedSection[]): RenderedSection[] {
   );
 }
 
+/** A stable, HTML-id-safe anchor target for a section heading (e.g. "publications"
+ *  → "sec-publications"), so a served page can be deep-linked to a section. */
+function sectionAnchorId(sectionId: string): string {
+  const slug = sectionId
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `sec-${slug || "section"}`;
+}
+
+/**
+ * A section's `<h2>` carrying a stable `id` and a quiet, hover-revealed permalink
+ * (a "#" deep-link to that id). The visible "#" is `aria-hidden`; the link's
+ * accessible name is the (visually-hidden) section title, so a screen reader reads
+ * "Publications, link" rather than "number sign". The permalink is suppressed in
+ * print (it's a screen-only navigation affordance) — see commonCss.
+ */
+function sectionHeadingHtml(sectionId: string, title: string): string {
+  const id = sectionAnchorId(sectionId);
+  const label = escapeHtml(title);
+  return `<h2 id="${id}">${label}<a class="cv-anchor" href="#${id}"><span class="cv-sr-only">${label}</span><span aria-hidden="true">#</span></a></h2>`;
+}
+
 /**
  * Section list markup (identical across templates; styled via CSS classes).
  * A PROSE section (`PROSE_SECTION_TYPES`) renders its heading + safe-transformed
@@ -1045,9 +1127,10 @@ export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): s
   const body = renderableSections(sections)
     .map((rs) => {
       if (isProseSectionType(rs.section.type)) {
-        return `<section class="cv-section cv-prose"><h2>${escapeHtml(
+        return `<section class="cv-section cv-prose">${sectionHeadingHtml(
+          rs.section.id,
           rs.section.title,
-        )}</h2><div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "")}</div></section>`;
+        )}<div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "")}</div></section>`;
       }
       // Positions/Education render structured two-line records (a block .cv-entry),
       // so they skip the inline .csl-entry wrapper and tag the list .cv-history (the
@@ -1060,9 +1143,10 @@ export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): s
         )
         .join("\n");
       const olClass = isHistory ? "cv-bib cv-history" : "cv-bib";
-      return `<section class="cv-section"><h2>${escapeHtml(
+      return `<section class="cv-section">${sectionHeadingHtml(
+        rs.section.id,
         rs.section.title,
-      )}</h2><ol class="${olClass}">\n${entries}\n</ol></section>`;
+      )}<ol class="${olClass}">\n${entries}\n</ol></section>`;
     })
     .join("\n");
   // The research-summary block, when the user moved it out of the header, renders
