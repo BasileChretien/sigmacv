@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A long Positions/Education title no longer pushes its dates onto a separate
+  line.** When a role or degree title was long enough to wrap, the date range
+  dropped below it onto its own line; now the dates stay pinned to the top-right of
+  the first line and the title wraps beneath them — the way a clean academic CV
+  reads. (The parser-safe ATS template, with its inline dates, is unchanged.)
 - **Reverted the preview scrollbar-hiding change.** It wasn't the cause of the
   preview/PDF font difference (the bundled font above is), and hiding the scrollbar
   made it harder to tell the preview can scroll — the scrollbar is back.

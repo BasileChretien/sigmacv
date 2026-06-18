@@ -155,6 +155,15 @@ describe("structured two-line entry layout", () => {
     const full = renderCvHtml(makeCv({ template: "ats" }));
     expect(full).toContain(".cv-entry-dates { margin-inline-start: 0; }");
   });
+
+  it("keeps the date on the role's first line (lead flex-basis 0, so a long role wraps under it)", () => {
+    // `flex: 1 1 0` (NOT `1 1 auto`): the lead starts at width 0 and grows, so the
+    // dates always fit on the first line top-right and a long role wraps within its
+    // own column — instead of the dates being bumped onto their own line below.
+    expect(renderCvHtml(makeCv())).toContain(
+      ".cv-entry-lead { flex: 1 1 0; min-width: 0; font-weight: 600;",
+    );
+  });
 });
 
 describe("fallback to the flat line", () => {
