@@ -2565,6 +2565,13 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .profile-link-row .btn {
   flex: 0 0 auto;
 }
+.profile-link-hint {
+  display: block;
+  font-size: var(--text-2xs);
+  color: var(--muted);
+  line-height: 1.35;
+  margin-top: var(--space-1);
+}
 .profile-rirekisho {
   grid-column: 1 / -1;
   margin-top: var(--space-2);

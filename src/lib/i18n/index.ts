@@ -552,6 +552,8 @@ const EN = {
   addLink: "Add link",
   linkLabel: "Label",
   linkUrl: "URL",
+  linkLabelHint:
+    "Optional — links to GitHub, LinkedIn, ORCID and other known services are recognised and labelled automatically.",
   rirekishoDetails: "Japanese CV (rirekisho) details",
   furigana: "Name (furigana)",
   dateOfBirth: "Date of birth",
@@ -681,6 +683,7 @@ const ZH: Record<ChromeKey, string> = {
   addLink: "添加链接",
   linkLabel: "标签",
   linkUrl: "网址",
+  linkLabelHint: "可选——指向 GitHub、LinkedIn、ORCID 等已知服务的链接会被自动识别并加标签。",
   rirekishoDetails: "日式简历（履历书）信息",
   furigana: "姓名（假名读音）",
   dateOfBirth: "出生日期",
@@ -809,6 +812,8 @@ const ES: Record<ChromeKey, string> = {
   addLink: "Añadir enlace",
   linkLabel: "Etiqueta",
   linkUrl: "URL",
+  linkLabelHint:
+    "Opcional: los enlaces a GitHub, LinkedIn, ORCID y otros servicios conocidos se reconocen y etiquetan automáticamente.",
   rirekishoDetails: "Datos del CV japonés (rirekisho)",
   furigana: "Nombre (lectura fonética)",
   dateOfBirth: "Fecha de nacimiento",
@@ -939,6 +944,8 @@ const FR: Record<ChromeKey, string> = {
   addLink: "Ajouter un lien",
   linkLabel: "Libellé",
   linkUrl: "URL",
+  linkLabelHint:
+    "Facultatif — les liens vers GitHub, LinkedIn, ORCID et d’autres services connus sont reconnus et étiquetés automatiquement.",
   rirekishoDetails: "Détails CV japonais (rirekisho)",
   furigana: "Nom (furigana)",
   dateOfBirth: "Date de naissance",
@@ -1070,6 +1077,8 @@ const DE: Record<ChromeKey, string> = {
   addLink: "Link hinzufügen",
   linkLabel: "Bezeichnung",
   linkUrl: "URL",
+  linkLabelHint:
+    "Optional – Links zu GitHub, LinkedIn, ORCID und anderen bekannten Diensten werden automatisch erkannt und beschriftet.",
   rirekishoDetails: "Angaben zum japanischen Lebenslauf (Rirekisho)",
   furigana: "Name (phonetische Lesung)",
   dateOfBirth: "Geburtsdatum",
@@ -1201,6 +1210,8 @@ const JA: Record<ChromeKey, string> = {
   addLink: "リンクを追加",
   linkLabel: "ラベル",
   linkUrl: "URL",
+  linkLabelHint:
+    "任意 — GitHub・LinkedIn・ORCID など既知のサービスへのリンクは自動的に認識してラベル付けします。",
   rirekishoDetails: "履歴書の個人情報",
   furigana: "ふりがな",
   dateOfBirth: "生年月日",
@@ -1331,6 +1342,8 @@ const PT: Record<ChromeKey, string> = {
   addLink: "Adicionar link",
   linkLabel: "Rótulo",
   linkUrl: "URL",
+  linkLabelHint:
+    "Opcional — links para GitHub, LinkedIn, ORCID e outros serviços conhecidos são reconhecidos e rotulados automaticamente.",
   rirekishoDetails: "Dados do currículo japonês (rirekisho)",
   furigana: "Nome (leitura fonética)",
   dateOfBirth: "Data de nascimento",
@@ -1460,6 +1473,8 @@ const IT: Record<ChromeKey, string> = {
   addLink: "Aggiungi link",
   linkLabel: "Etichetta",
   linkUrl: "URL",
+  linkLabelHint:
+    "Facoltativo — i link a GitHub, LinkedIn, ORCID e altri servizi noti vengono riconosciuti ed etichettati automaticamente.",
   rirekishoDetails: "Dettagli del CV giapponese (rirekisho)",
   furigana: "Nome (lettura fonetica)",
   dateOfBirth: "Data di nascita",
@@ -1589,6 +1604,8 @@ const KO: Record<ChromeKey, string> = {
   addLink: "링크 추가",
   linkLabel: "라벨",
   linkUrl: "URL",
+  linkLabelHint:
+    "선택 사항 — GitHub, LinkedIn, ORCID 등 알려진 서비스로 연결되는 링크는 자동으로 인식되어 라벨이 지정됩니다.",
   rirekishoDetails: "일본식 이력서(리레키쇼) 정보",
   furigana: "이름 (발음 표기)",
   dateOfBirth: "생년월일",
@@ -1719,6 +1736,8 @@ const RU: Record<ChromeKey, string> = {
   addLink: "Добавить ссылку",
   linkLabel: "Подпись",
   linkUrl: "URL",
+  linkLabelHint:
+    "Необязательно — ссылки на GitHub, LinkedIn, ORCID и другие известные сервисы распознаются и подписываются автоматически.",
   rirekishoDetails: "Данные японского резюме (рирэкисё)",
   furigana: "Имя (фонетическое чтение)",
   dateOfBirth: "Дата рождения",

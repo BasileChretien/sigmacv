@@ -62,15 +62,19 @@ export async function POST(req: Request) {
     // animated publicStyle, or the document template when "match"); the default
     // previews the document render the exports use.
     const surface = (read.value as { surface?: unknown } | null)?.surface;
-    // So the editor's document preview shows the opt-in QR exactly as the export
-    // will: resolve the public-page URL only when the page is actually published.
-    const ps = await getPublishState(session.user.id);
-    const publicPageUrl =
-      ps.published && ps.publicSlug ? absoluteUrl(`p/${ps.publicSlug}`) : undefined;
-    const html =
-      surface === "public"
-        ? renderPublicCvHtml(parsed.data)
-        : renderCvHtml(parsed.data, { publicPageUrl });
+    let html: string;
+    if (surface === "public") {
+      html = renderPublicCvHtml(parsed.data);
+    } else {
+      // So the editor's document preview shows the opt-in QR exactly as the export
+      // will: resolve the public-page URL only when the page is actually published.
+      // Only the document surface needs it, so the publish-state DB read is skipped
+      // on the (heavier) public-surface path.
+      const ps = await getPublishState(session.user.id);
+      const publicPageUrl =
+        ps.published && ps.publicSlug ? absoluteUrl(`p/${ps.publicSlug}`) : undefined;
+      html = renderCvHtml(parsed.data, { publicPageUrl });
+    }
     return NextResponse.json({ html });
   } catch (err) {
     logger.error("api.cv_preview_failed", { err });
