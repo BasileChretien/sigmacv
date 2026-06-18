@@ -8,16 +8,16 @@ import { formattedMetrics, openAccessShare } from "../metrics";
 import { iconSvg, resolveLink, type IconName } from "../icons";
 import { SITE_URL } from "@/lib/siteUrl";
 import { qrSvg } from "@/lib/cv/qrSvg";
-import { SOURCE_SERIF_4_FACE_CSS } from "../fonts/sourceSerif4";
+import { bundledFaceCss } from "../bundledFonts";
 import type { RenderOpts } from "../types";
 import type { RenderedSection, TemplateTheme } from "./types";
 
-/** The embedded `@font-face` block, emitted only when the resolved font stack
- *  actually uses the bundled font (the "serif" pairing) — so a sans/palatino CV
- *  never carries the ~134 KB of font data. Keeps the preview, the PDF and every
+/** The embedded `@font-face` block for the chosen font — emitted only when the
+ *  resolved font stack actually leads with a bundled font, so a render carries ONLY
+ *  the font it displays (each is ~110–135 KB). Keeps the preview, the PDF and every
  *  visitor's view on the IDENTICAL typeface (see `scripts/fetch-fonts.mjs`). */
 function bundledFontFaceCss(theme: TemplateTheme): string {
-  return theme.fontFamily.includes("Source Serif 4") ? SOURCE_SERIF_4_FACE_CSS : "";
+  return bundledFaceCss(theme.fontFamily);
 }
 
 export { escapeHtml };

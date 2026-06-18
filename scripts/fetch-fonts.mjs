@@ -1,66 +1,76 @@
 /**
- * Vendor the bundled CV body font (Source Serif 4) into a generated, committed TS
- * module of base64 `@font-face` data URIs.
+ * Vendor the selectable CV body fonts into generated, committed TS modules of
+ * base64 `@font-face` data URIs (one module per font: `FACE_CSS`).
  *
  * Why bundle: the editor preview renders in the visitor's browser, the PDF renders
  * server-side in headless Chromium (Linux). A bare `font-family: …, serif` stack
- * resolves to a DIFFERENT installed font in each (e.g. Palatino Linotype on Windows
- * vs a Linux serif on the server), so the preview and the PDF — and every visitor's
- * view — looked different. Embedding the font makes the typeface IDENTICAL
- * everywhere, independent of installed fonts. (The CSP allows `font-src data:`.)
+ * resolves to a DIFFERENT installed font in each (e.g. Palatino on Windows vs a
+ * Linux serif on the server), so the preview and the PDF looked different.
+ * Embedding the font makes the typeface IDENTICAL everywhere, independent of
+ * installed fonts, for EVERY font the design panel offers. (CSP: `font-src data:`.)
  *
- * Scope: the LATIN subset, upright + italic, of the VARIABLE font (one file covers
- * every weight via the `wght` axis). Latin covers en/fr/de/es/pt/it fully;
- * Cyrillic/CJK glyphs fall back to the system serif per-glyph (graceful).
+ * Scope per font: the LATIN subset, upright + italic, of the VARIABLE font (one
+ * file covers every weight via the `wght` axis). Latin covers en/fr/de/es/pt/it;
+ * Cyrillic/CJK fall back to a system font per-glyph (graceful).
  *
- * Font: Source Serif 4 (SIL Open Font License 1.1) — © Adobe. Fetched from the
- * pinned `@fontsource-variable/source-serif-4@5` files on jsDelivr.
+ * Fonts (all SIL Open Font License 1.1), fetched from the pinned
+ * `@fontsource-variable/*@5` files on jsDelivr:
+ *   - Source Serif 4 (© Adobe)   — refined contemporary serif (default)
+ *   - Inter (© Rasmus Andersson) — clean modern sans
+ *   - EB Garamond (© Georg Duffner / Octavio Pardo) — classic old-style serif
  *
- * Run `npm run fetch-fonts` to regenerate `src/lib/render/fonts/sourceSerif4.ts`
- * (committed, like the vendored CSL assets). No network at render time.
+ * Run `npm run fetch-fonts` to regenerate `src/lib/render/fonts/<key>.ts`.
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 
-const BASE = "https://cdn.jsdelivr.net/npm/@fontsource-variable/source-serif-4@5/files";
-const SOURCES = [
-  { style: "normal", file: "source-serif-4-latin-wght-normal.woff2" },
-  { style: "italic", file: "source-serif-4-latin-wght-italic.woff2" },
-];
-// Google Fonts' "latin" subset range (Basic Latin + Latin-1 + common punctuation).
+// Google Fonts' "latin" subset range (matches the @fontsource latin files).
 const UNICODE_RANGE =
   "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD";
-const OUT = "src/lib/render/fonts/sourceSerif4.ts";
 
-async function dataUri(file) {
-  const res = await fetch(`${BASE}/${file}`);
+// key → generated module; family → CSS font-family name; pkg → @fontsource slug.
+const FONTS = [
+  { key: "sourceSerif4", family: "Source Serif 4", pkg: "source-serif-4" },
+  { key: "inter", family: "Inter", pkg: "inter" },
+  { key: "ebGaramond", family: "EB Garamond", pkg: "eb-garamond" },
+];
+
+async function dataUri(pkg, style) {
+  const file = `${pkg}-latin-wght-${style}.woff2`;
+  const res = await fetch(
+    `https://cdn.jsdelivr.net/npm/@fontsource-variable/${pkg}@5/files/${file}`,
+  );
   if (!res.ok) throw new Error(`fetch ${file}: ${res.status}`);
-  const buf = Buffer.from(await res.arrayBuffer());
-  return `data:font/woff2;base64,${buf.toString("base64")}`;
+  return `data:font/woff2;base64,${Buffer.from(await res.arrayBuffer()).toString("base64")}`;
+}
+
+function face(family, style, uri) {
+  // The variable `wght` axis (200..900) serves every weight the templates ask for
+  // (400 body, 600 headings, 700 self-name).
+  return (
+    `@font-face{font-family:'${family}';font-style:${style};font-weight:200 900;` +
+    `font-display:swap;src:url(${uri}) format('woff2');unicode-range:${UNICODE_RANGE};}`
+  );
 }
 
 async function main() {
-  const faces = [];
-  for (const { style, file } of SOURCES) {
-    const uri = await dataUri(file);
-    // One @font-face per style; the variable `wght` axis (200..900) serves every
-    // weight the templates ask for (400 body, 600 headings, 700 self-name).
-    faces.push(
-      `@font-face{font-family:'Source Serif 4';font-style:${style};font-weight:200 900;` +
-        `font-display:swap;src:url(${uri}) format('woff2');unicode-range:${UNICODE_RANGE};}`,
+  mkdirSync("src/lib/render/fonts", { recursive: true });
+  for (const { key, family, pkg } of FONTS) {
+    const css =
+      face(family, "normal", await dataUri(pkg, "normal")) +
+      face(family, "italic", await dataUri(pkg, "italic"));
+    const banner =
+      "// GENERATED by `npm run fetch-fonts` — do not edit by hand.\n" +
+      `// ${family} (SIL OFL 1.1), latin subset, variable upright + italic. Embedded so the\n` +
+      "// editor preview, the server-rendered PDF and every visitor's view render the\n" +
+      "// IDENTICAL typeface regardless of installed fonts.\n";
+    writeFileSync(
+      `src/lib/render/fonts/${key}.ts`,
+      `${banner}\nexport const FACE_CSS = ${JSON.stringify(css)};\n`,
+    );
+    console.log(
+      `[fetch-fonts] ${family} → src/lib/render/fonts/${key}.ts (${Math.round(css.length / 1024)} KB)`,
     );
   }
-  mkdirSync("src/lib/render/fonts", { recursive: true });
-  const banner =
-    "// GENERATED by `npm run fetch-fonts` — do not edit by hand.\n" +
-    "// Source Serif 4 (SIL OFL 1.1, © Adobe), latin subset, variable upright + italic.\n" +
-    "// Embedded so the editor preview, the server-rendered PDF, and every visitor's\n" +
-    "// view render the IDENTICAL typeface regardless of installed fonts.\n";
-  writeFileSync(
-    OUT,
-    `${banner}\nexport const SOURCE_SERIF_4_FACE_CSS = ${JSON.stringify(faces.join(""))};\n`,
-  );
-  const kb = Math.round(faces.join("").length / 1024);
-  console.log(`[fetch-fonts] wrote ${OUT} (${kb} KB of embedded @font-face CSS)`);
 }
 
 main().catch((e) => {
