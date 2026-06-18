@@ -101,6 +101,80 @@ export async function fetchCrossrefGapFields(
   }
 }
 
+// ── Abstract gap-fill (Crossref JATS abstract → bounded plain text) ───────────
+
+/** Cap on the extracted abstract (chars) — matches the OpenAlex reconstruction cap. */
+const ABSTRACT_MAX = 5000;
+
+/** A single code point from a numeric entity, or a space for an invalid value. */
+function safeCodePoint(n: number): string {
+  if (!Number.isInteger(n) || n < 0 || n > 0x10ffff) return " ";
+  try {
+    return String.fromCodePoint(n);
+  } catch {
+    /* v8 ignore next -- the range guard above already excludes the throwing cases */
+    return " ";
+  }
+}
+
+/**
+ * Crossref's `message.abstract` is JATS XML (e.g. `<jats:p>Background…</jats:p>`).
+ * Reduce it to bounded plain text: drop a redundant leading "Abstract" heading, strip
+ * all tags, decode the basic + numeric entities, collapse whitespace, cap. Pure;
+ * exported for testing.
+ */
+export function crossrefAbstractText(jats: string): string {
+  const decoded = jats
+    .replace(/<jats:title>\s*abstract\s*<\/jats:title>/gi, " ")
+    .replace(/<[^>]+>/g, " ") // strip JATS / HTML tags
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h: string) => safeCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d: string) => safeCodePoint(Number(d)))
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&") // decode &amp; LAST so "&amp;lt;" → "&lt;", never "<"
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!decoded) return "";
+  return decoded.length > ABSTRACT_MAX ? `${decoded.slice(0, ABSTRACT_MAX).trimEnd()}…` : decoded;
+}
+
+/**
+ * Fetch a work's abstract from Crossref by DOI — gap-fill for works OpenAlex has no
+ * abstract for. Uses `select=abstract` so the response is tiny (many may be issued
+ * per sync). Returns bounded plain text, or null on miss / failure / no abstract.
+ * Joins the polite pool; fails soft.
+ */
+export async function fetchCrossrefAbstract(doi: string, mailto: string): Promise<string | null> {
+  const bare = doi
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
+  if (!DOI_RE.test(bare)) return null;
+
+  const url = new URL(`${CROSSREF_API}/${encodeURIComponent(bare)}`);
+  url.searchParams.set("select", "abstract");
+  url.searchParams.set("mailto", mailto);
+
+  try {
+    const res = await resilientFetch(url, {
+      next: { revalidate: 86_400 },
+      timeoutMs: 12_000,
+    });
+    if (!res.ok) return null;
+    const body = await res.text();
+    if (body.length > MAX_BYTES) return null;
+    const data = JSON.parse(body) as { message?: { abstract?: unknown } };
+    const raw = data.message?.abstract;
+    if (typeof raw !== "string" || !raw.trim()) return null;
+    return crossrefAbstractText(raw) || null;
+  } catch (err) {
+    logger.warn("crossref.abstract_fetch_failed", { err });
+    return null;
+  }
+}
+
 /**
  * Whether Crossref records this DOI as RETRACTED. Checks both retraction
  * pathways in the default Crossref JSON (not CSL): `message.updated-by[]` with

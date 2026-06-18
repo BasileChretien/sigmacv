@@ -1438,7 +1438,15 @@ function buildWorkCvItem(
   opts: WorkItemOptions,
 ): CvItem {
   const { matches, basisFor } = matcher;
-  const { csl, prev, order, defaultIncluded, reviewFlagOverride, peerReviewedOverride } = opts;
+  const { prev, order, defaultIncluded, reviewFlagOverride, peerReviewedOverride } = opts;
+  // Persist a previously gap-filled abstract (Crossref) across re-sync: OpenAlex
+  // rebuilds the CSL each sync WITHOUT an abstract for many works, so without this
+  // carry the Crossref abstract pass would re-fetch the same works forever. OpenAlex's
+  // own abstract (when present) always wins.
+  const csl: CslItem =
+    !opts.csl.abstract && prev?.csl?.abstract
+      ? { ...opts.csl, abstract: prev.csl.abstract }
+      : opts.csl;
   const selfIndex = (work.authorships ?? []).findIndex(matches);
   const selfAuth = selfIndex >= 0 ? work.authorships![selfIndex] : undefined;
   const authoredBySelf = Boolean(selfAuth);
