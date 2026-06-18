@@ -139,6 +139,20 @@ describe.skipIf(!hasApa)("doc QR in the full rendered document", () => {
     expect(renderCvLatex(ats, { publicPageUrl: PUBLIC_URL })).not.toContain("\\qrcode");
   });
 
+  it("LaTeX: strips any user:pass@ credentials from the QR URL (defense-in-depth)", () => {
+    // publicPageUrl is system-generated and never carries userinfo, but the QR URL
+    // is run through safeHref before emission so a credential can never reach the
+    // \qrcode{} / \url{} output even if one somehow appeared.
+    const optedIn = updateDisplay(makeCv(), { showDocQr: true });
+    const tex = renderCvLatex(optedIn, {
+      publicPageUrl: "https://user:pass@sigmacv.org/p/abc-def",
+    });
+    expect(tex).toContain("\\qrcode[height=2.2cm]{https://sigmacv.org/p/abc-def}");
+    expect(tex).toContain("\\url{https://sigmacv.org/p/abc-def}");
+    expect(tex).not.toContain("user:pass");
+    expect(tex).not.toContain("pass@");
+  });
+
   it("LaTeX: also emits the QR in the two-column sidebar layout", () => {
     const sidebar = updateDisplay(makeCv(), { showDocQr: true, template: "sidebar" });
     const tex = renderCvLatex(sidebar, { publicPageUrl: PUBLIC_URL });
