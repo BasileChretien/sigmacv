@@ -91,6 +91,10 @@ export function isProseSectionType(type: CvSectionType): boolean {
 /** Mirror of the `body` cap (`CvSectionSchema.body`) — used by the prose editor. */
 export const PROSE_BODY_MAX = 8000;
 
+/** Cap for the owner's private notes (`CanonicalCv.notes`) — shared by the
+ *  schema, the `setNotes` curate op, and the editor textarea so all three agree. */
+export const NOTES_MAX = 10000;
+
 /**
  * Canonical default ordering of sections on a fresh CV (standard academic
  * sequence). Single source of truth — the build applies it to newly-created
@@ -1246,6 +1250,13 @@ export const CanonicalCvSchema = z.object({
   sections: z.array(CvSectionSchema).max(60),
   /** Saved named view-presets (optional; back-compat: old docs have none). */
   presets: z.array(CvPresetSchema).max(20).default([]),
+  /**
+   * Owner-only private notes — a free-text scratchpad (drafts, reminders, todos)
+   * that is NEVER rendered, exported, or published. Optional + bounded. Stripped
+   * by `projectCvForPublic` so it can't leak into the public page or any machine
+   * download; no renderer reads it.
+   */
+  notes: z.string().max(NOTES_MAX).optional(),
   provenance: ProvenanceSchema,
 });
 export type CanonicalCv = z.infer<typeof CanonicalCvSchema>;

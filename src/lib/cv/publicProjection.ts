@@ -118,6 +118,10 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
     // Saved editor presets (named layout intents + display snapshots, possibly a
     // custom CSL XML blob) are an internal editor concept — never publish them.
     presets: [],
+    // Owner-only private notes (a scratchpad) are never rendered, exported, or
+    // published by design — strip them so they can't leak into the public page or
+    // any machine download (the raw `json` format echoes this object verbatim).
+    notes: undefined,
     // Internal editor bookkeeping that has no place in the public json:
     //  - excludedItems: the per-view exclude-id deny-list (already applied above),
     //  - dismissedDuplicates: the pairs the owner marked "not a duplicate",

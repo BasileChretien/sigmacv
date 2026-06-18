@@ -27,6 +27,7 @@ import {
   setItemIncluded,
   setItemNotMine,
   setLocale,
+  setNotes,
   setSectionPageBreak,
   setSectionVisible,
   showOnlyInView,
@@ -36,7 +37,12 @@ import {
   visibleItems,
   visibleSections,
 } from "@/lib/canonical/curate";
-import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
+import {
+  CanonicalCvSchema,
+  NOTES_MAX,
+  type CanonicalCv,
+  type CvItem,
+} from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -68,6 +74,29 @@ describe("setSectionPageBreak", () => {
     expect(setSectionPageBreak(cv, SECTION, false)).toBe(cv);
     const on = setSectionPageBreak(cv, SECTION, true);
     expect(setSectionPageBreak(on, SECTION, true)).toBe(on);
+  });
+});
+
+describe("setNotes", () => {
+  it("stores the owner's private notes immutably", () => {
+    const cv = makeCv();
+    const next = setNotes(cv, "remember to add the 2025 talk");
+    expect(next.notes).toBe("remember to add the 2025 talk");
+    expect(cv.notes).toBeUndefined(); // input untouched
+    // The result still validates against the canonical schema.
+    expect(CanonicalCvSchema.safeParse(next).success).toBe(true);
+  });
+
+  it("clears the field (undefined, not empty string) for blank/whitespace text", () => {
+    const cv = setNotes(makeCv(), "draft");
+    expect(setNotes(cv, "").notes).toBeUndefined();
+    expect(setNotes(cv, "   \n\t ").notes).toBeUndefined();
+  });
+
+  it("caps over-long notes so the result stays schema-valid", () => {
+    const next = setNotes(makeCv(), "x".repeat(NOTES_MAX + 500));
+    expect(next.notes).toHaveLength(NOTES_MAX);
+    expect(CanonicalCvSchema.safeParse(next).success).toBe(true);
   });
 });
 

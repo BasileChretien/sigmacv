@@ -1,5 +1,6 @@
 import {
   DEFAULT_SECTION_ORDER,
+  NOTES_MAX,
   PROSE_BODY_MAX,
   isHidden,
   isProseSectionType,
@@ -425,6 +426,18 @@ export function updateOwner(cv: CanonicalCv, patch: Partial<CvOwner>): Canonical
   if (patch.contact) owner.contact = { ...cv.owner.contact, ...patch.contact };
   if (patch.personal) owner.personal = { ...cv.owner.personal, ...patch.personal };
   return { ...cv, owner };
+}
+
+/**
+ * Set the owner's private notes (a never-published scratchpad). Blank/whitespace
+ * text clears the field entirely (stored as `undefined`, not `""`); non-blank text
+ * is capped at `NOTES_MAX` so the result always satisfies the schema's `max`
+ * bound (a pasted over-long note can't make the document fail validation/save).
+ * The notes are stripped by `projectCvForPublic`, so nothing here ever reaches a
+ * public render or machine download. Pure + immutable.
+ */
+export function setNotes(cv: CanonicalCv, text: string): CanonicalCv {
+  return { ...cv, notes: text.trim() ? text.slice(0, NOTES_MAX) : undefined };
 }
 
 // ─── Manual entries (user-authored positions / grants / skills / …) ──────────

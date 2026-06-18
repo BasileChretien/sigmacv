@@ -2542,6 +2542,16 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .profile-summary {
   width: 100%;
 }
+.profile-notes {
+  width: 100%;
+}
+.profile-notes-hint {
+  display: block;
+  font-size: var(--text-2xs);
+  color: var(--muted);
+  line-height: 1.35;
+  margin-top: var(--space-1);
+}
 .profile-grid {
   grid-column: 1 / -1;
   display: grid;

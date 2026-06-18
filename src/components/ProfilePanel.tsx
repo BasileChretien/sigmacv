@@ -2,8 +2,8 @@
 
 import { useRef, useState } from "react";
 import type { CanonicalCv, CvLink } from "@/lib/canonical/schema";
-import { PHOTO_DATA_URL_MAX } from "@/lib/canonical/schema";
-import { updateOwner } from "@/lib/canonical/curate";
+import { PHOTO_DATA_URL_MAX, NOTES_MAX } from "@/lib/canonical/schema";
+import { updateOwner, setNotes } from "@/lib/canonical/curate";
 import { t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
 import { resolveLink } from "@/lib/render/icons";
@@ -246,6 +246,18 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
         </button>
         <span className="muted profile-link-hint">{t(locale, "linkLabelHint")}</span>
       </div>
+
+      <label className="field">
+        <span>{t(locale, "privateNotes")}</span>
+        <textarea
+          className="profile-notes"
+          rows={3}
+          maxLength={NOTES_MAX}
+          value={cv.notes ?? ""}
+          onChange={(e) => onChange(setNotes(cv, e.target.value))}
+        />
+        <span className="muted profile-notes-hint">{t(locale, "privateNotesHint")}</span>
+      </label>
 
       <details className="profile-rirekisho">
         <summary>{t(locale, "rirekishoDetails")}</summary>
