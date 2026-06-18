@@ -85,7 +85,7 @@ export type RenderOpts = PublicExtrasOpts & {
    * route ONLY; exporters never set it, so it stays off every PDF/DOCX/LaTeX/Markdown.
    * Inline structural shape so the render layer takes no dependency on `lib/cv`.
    */
-  recentlyAdded?: readonly { title: string; sectionType: string }[];
+  recentlyAdded?: readonly { itemId: string; title: string; sectionType: string }[];
 };
 
 export interface RenderInput {

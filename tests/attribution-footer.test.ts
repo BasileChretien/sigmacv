@@ -49,23 +49,29 @@ describe("attributionFooter", () => {
     expect(attributionFooter(makeCv())).not.toContain("cv-living");
   });
 
-  it("shows a 'What's new' strip from recentlyAdded (public path only)", () => {
+  it("shows a 'What's new' strip whose items deep-link to the entry (public path only)", () => {
     const html = attributionFooter(makeCv(), {
       attribution: true,
       recentlyAdded: [
-        { title: "Brand new finding", sectionType: "publications" },
-        { title: "A fresh dataset", sectionType: "datasets" },
+        { itemId: "W4300000001", title: "Brand new finding", sectionType: "publications" },
+        {
+          itemId: "publication:doi:10.5281/zenodo.1",
+          title: "A fresh dataset",
+          sectionType: "datasets",
+        },
       ],
     });
     expect(html).toContain('class="cv-whatsnew"');
     expect(html).toContain(renderStrings("en-US").whatsNewLabel);
-    expect(html).toContain("Brand new finding · A fresh dataset");
+    // Each title is a same-page link to the entry's sanitized anchor.
+    expect(html).toContain('<a href="#item-w4300000001">Brand new finding</a>');
+    expect(html).toContain('<a href="#item-publication-doi-10-5281-zenodo-1">A fresh dataset</a>');
     // No strip when nothing was added.
     expect(attributionFooter(makeCv(), { attribution: true })).not.toContain("cv-whatsnew");
     // Off the export path entirely (the whole footer is "").
     expect(
       attributionFooter(makeCv(), {
-        recentlyAdded: [{ title: "X", sectionType: "publications" }],
+        recentlyAdded: [{ itemId: "X", title: "X", sectionType: "publications" }],
       }),
     ).not.toContain("cv-whatsnew");
   });

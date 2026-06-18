@@ -439,6 +439,11 @@ export function commonCss(theme: TemplateTheme): string {
      line. Public page only; never printed (rides attributionFooter's gating). */
   .cv-whatsnew { margin: 0.4rem 0 0; font-size: 0.66rem; color: var(--cv-muted); letter-spacing: 0.01em; }
   .cv-whatsnew-label { font-weight: 600; }
+  .cv-whatsnew a { color: inherit; text-decoration: underline; text-underline-offset: 0.15em; }
+  /* A "What's new" link jumps to the entry above. Offset the landing so a sticky
+     heading can't hide it, and tint it briefly so the visitor sees which one. */
+  .cv-bib > li { scroll-margin-top: 1.5rem; }
+  .cv-bib > li:target { background: rgba(127, 127, 127, 0.12); border-radius: 6px; }
   /* "Made with SigmaCV" referral line — public living page ONLY (never in an
      export). A quiet brand backlink under the document (a paragraph, not a
      landmark). */
@@ -851,10 +856,15 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
   // page's whole value). Resolved server-side (`opts.recentlyAdded`, public route
   // only); "" when nothing new arrived, on the initial import, or on exports.
   const recent = opts.recentlyAdded ?? [];
+  // Each title links to the entry's anchor in the content above (`#item-<id>`), so a
+  // visitor can jump straight to the full citation + tools. Same-page fragment links
+  // (no external nav); titles are HTML-escaped.
   const whatsNew = recent.length
     ? `<p class="cv-whatsnew"><span class="cv-whatsnew-label">${escapeHtml(
         s.whatsNewLabel,
-      )}</span> ${recent.map((r) => escapeHtml(r.title)).join(" · ")}</p>`
+      )}</span> ${recent
+        .map((r) => `<a href="#${itemAnchorId(r.itemId)}">${escapeHtml(r.title)}</a>`)
+        .join(" · ")}</p>`
     : "";
   const madeWith = escapeHtml(s.madeWith);
   // "Subscribe" affordance for this living CV's Atom feed (the public follow
@@ -1112,6 +1122,17 @@ function sectionAnchorId(sectionId: string): string {
   return `sec-${slug || "section"}`;
 }
 
+/** A stable, HTML-id-safe anchor target for a CV ENTRY (e.g. a publication), so the
+ *  public "What's new" strip can deep-link to it (`#item-<id>`). Mirrors
+ *  `sectionAnchorId`; exported for the strip renderer to build matching hrefs. */
+export function itemAnchorId(itemId: string): string {
+  const slug = itemId
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `item-${slug || "entry"}`;
+}
+
 /**
  * A section's `<h2>` carrying a stable `id` and a quiet, hover-revealed permalink
  * (a "#" deep-link to that id). The visible "#" is `aria-hidden`; the link's
@@ -1152,9 +1173,15 @@ export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): s
       // <ol class="cv-bib"> so the public showcase styles' entry styling still binds.
       const isHistory = rs.section.type === "positions" || rs.section.type === "education";
       const entries = rs.items
-        .map((ri) =>
-          isHistory ? `<li>${ri.html}</li>` : `<li><div class="csl-entry">${ri.html}</div></li>`,
-        )
+        .map((ri) => {
+          // A stable per-entry id so the public "What's new" strip can deep-link to
+          // this exact work (the link target, with its full citation + tools). Inert
+          // on exports (just an id attribute); the highlight is screen-only.
+          const id = itemAnchorId(ri.item.id);
+          return isHistory
+            ? `<li id="${id}">${ri.html}</li>`
+            : `<li id="${id}"><div class="csl-entry">${ri.html}</div></li>`;
+        })
         .join("\n");
       const olClass = isHistory ? "cv-bib cv-history" : "cv-bib";
       return `<section class="cv-section">${sectionHeadingHtml(

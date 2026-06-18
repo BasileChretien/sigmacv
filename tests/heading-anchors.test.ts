@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { buildRenderedSections } from "@/lib/render/html";
-import { sectionsHtmlRaw } from "@/lib/render/templates/shared";
+import { itemAnchorId, sectionsHtmlRaw } from "@/lib/render/templates/shared";
 import type { CanonicalCv, CvSection } from "@/lib/canonical/schema";
 
 const resolved = {
@@ -56,5 +56,19 @@ describe("section heading anchors", () => {
     const html = render(cv);
     expect(html).toContain('id="sec-w-ird-id"');
     expect(html).toContain('id="sec-section"');
+  });
+});
+
+describe("entry anchors (deep-link target for the What's new strip)", () => {
+  it("sanitizes an item id and falls back when it slugs to empty", () => {
+    expect(itemAnchorId("W4300000001")).toBe("item-w4300000001");
+    expect(itemAnchorId("publication:doi:10.5281/zenodo.1")).toBe(
+      "item-publication-doi-10-5281-zenodo-1",
+    );
+    expect(itemAnchorId("!!!")).toBe("item-entry");
+  });
+
+  it("gives every rendered entry <li> a stable id", () => {
+    expect(render(baseCv)).toMatch(/<li id="item-[a-z0-9-]+">/);
   });
 });
