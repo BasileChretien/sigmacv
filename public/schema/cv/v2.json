@@ -302,6 +302,15 @@
         "showOpenAccessShare": {
           "type": "boolean"
         },
+        "summaryBlockPosition": {
+          "default": "header",
+          "type": "string",
+          "enum": ["header", "top", "bottom", "hidden"]
+        },
+        "summaryHeading": {
+          "type": "string",
+          "maxLength": 120
+        },
         "hideRetracted": {
           "default": false,
           "type": "boolean"
@@ -1103,6 +1112,15 @@
               },
               "showOpenAccessShare": {
                 "type": "boolean"
+              },
+              "summaryBlockPosition": {
+                "default": "header",
+                "type": "string",
+                "enum": ["header", "top", "bottom", "hidden"]
+              },
+              "summaryHeading": {
+                "type": "string",
+                "maxLength": 120
               },
               "hideRetracted": {
                 "default": false,

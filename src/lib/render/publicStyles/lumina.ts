@@ -181,7 +181,7 @@ export const luminaTemplate: CvTemplate = {
       `<div class="lumina-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(cv, sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

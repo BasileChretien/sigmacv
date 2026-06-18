@@ -410,7 +410,7 @@ export const cyberpunkTemplate: CvTemplate = {
       `<div class="cy-progress" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(cv, sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>` +
       `<div class="cy-ticker" aria-hidden="true"></div>`;

@@ -181,3 +181,14 @@ export function metricsLineText(cv: CanonicalCv): string {
     .map((m) => `${m.label}: ${m.value}`)
     .join(" · ");
 }
+
+/**
+ * Whether the research-summary block (metrics + chart + authorship) is suppressed
+ * everywhere — the "hidden" placement. The plain exports (Markdown/LaTeX/DOCX) honour
+ * this to drop the block; the HTML/PDF renderer additionally supports the top/bottom
+ * placements (the layout-faithful surface), so for those formats "hidden" is the one
+ * placement that changes their otherwise-fixed structure.
+ */
+export function isSummaryBlockHidden(cv: CanonicalCv): boolean {
+  return cv.display.summaryBlockPosition === "hidden";
+}

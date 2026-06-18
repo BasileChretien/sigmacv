@@ -878,6 +878,17 @@ export const CustomStyleSchema = z.object({
 });
 export type CustomStyle = z.infer<typeof CustomStyleSchema>;
 
+/**
+ * Where the optional "research summary" block (metrics strip + publications/year
+ * chart + authorship table) renders. "header" = the historical behaviour (in the
+ * header, with no heading); "top" / "bottom" = its OWN labelled block (with a
+ * heading) right after the header or after the last section; "hidden" = suppressed
+ * everywhere. Default "header" so a CV saved before this option renders unchanged.
+ */
+export const SUMMARY_BLOCK_POSITIONS = ["header", "top", "bottom", "hidden"] as const;
+export const SummaryBlockPositionSchema = z.enum(SUMMARY_BLOCK_POSITIONS);
+export type SummaryBlockPosition = z.infer<typeof SummaryBlockPositionSchema>;
+
 export const DisplayChoicesSchema = z.object({
   // .catch keeps old saved CVs loading if they reference a since-removed
   // template (e.g. minimal/compact/editorial) — they fall back to classic.
@@ -938,6 +949,14 @@ export const DisplayChoicesSchema = z.object({
    *  (`showOpenAccessShare ?? showOpenAccess`), so a CV published before the split
    *  renders byte-identically; setting it explicitly decouples the two. */
   showOpenAccessShare: z.boolean().optional(),
+  /** Where the research-summary block (metrics + chart + authorship) renders.
+   *  Default "header" = unchanged behaviour, so existing CVs are byte-identical.
+   *  ".catch" keeps an unknown stored value from breaking the load. */
+  summaryBlockPosition: SummaryBlockPositionSchema.default("header").catch("header"),
+  /** Optional heading shown ABOVE the research-summary block when it renders as its
+   *  own section ("top"/"bottom"). Blank → a localized default ("Research summary").
+   *  Ignored in the "header"/"hidden" positions. User free-text → escaped at render. */
+  summaryHeading: z.string().max(120).optional(),
   /** Hide works flagged as retracted (`meta.retracted`) from every output. Default
    *  off → retracted works are shown WITH the always-on "Retracted" badge; the user
    *  can opt to exclude them entirely. */
