@@ -831,6 +831,7 @@ export const PUBLIC_STYLES = [
   "meridian",
   "trajectory",
   "lumina",
+  "chronicle",
   "prism",
   "pop",
   "neon",

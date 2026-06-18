@@ -16,6 +16,7 @@ import type { CvTemplate } from "../templates/types";
 import type { RenderOpts } from "../types";
 import { arcadeTemplate } from "./arcade";
 import { auraTemplate } from "./aura";
+import { chronicleTemplate } from "./chronicle";
 import { clockworkTemplate } from "./clockwork";
 import { cyberpunkTemplate } from "./cyberpunk";
 import { folioTemplate } from "./folio";
@@ -42,6 +43,7 @@ const REGISTRY: Record<AnimatedStyleKey, CvTemplate> = {
   meridian: meridianTemplate,
   trajectory: trajectoryTemplate,
   lumina: luminaTemplate,
+  chronicle: chronicleTemplate,
   prism: prismTemplate,
   pop: popTemplate,
   neon: neonTemplate,
