@@ -17,6 +17,13 @@ import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
 import { signpostingLinkHeader } from "@/lib/cv/signposting";
 import { publicMetaTags } from "@/lib/cv/publicMeta";
 import { renderPublicCvHtml } from "@/lib/render/publicStyles";
+import {
+  filterCvForView,
+  isFilterActive,
+  parseViewFilters,
+  viewFilterBarHtml,
+} from "@/lib/cv/viewFilter";
+import type { CanonicalCv } from "@/lib/canonical/schema";
 import { absoluteUrl } from "@/lib/siteUrl";
 import { enforcePubPageRateLimit, isValidPublicSlug, tooManyRequests } from "./pubRateLimit";
 import { publicNoticeResponse } from "./noticePage";
@@ -110,6 +117,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     ? suffix.format
     : chooseFormatFromAccept(req.headers.get("accept"));
 
+  // Server-side "filtered view" (?since=/?type=/?oa=) for the HTML page only — the
+  // no-JS CSP rules out client-side filtering, so the route narrows the CV and the
+  // facet bar links set these params (machine formats ignore them).
+  const url = new URL(req.url);
+  const filters = parseViewFilters(url.searchParams);
+  const active = isFilterActive(filters);
+
   const rl = await enforcePubPageRateLimit(req);
   if (!rl.ok) return tooManyRequests(rl.retryAfterSec);
 
@@ -127,8 +141,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   if (!isValidPublicSlug(slug)) return notFound();
 
   // HTML has a render cache (the heavy citeproc path). Machine formats are
-  // cheaper to produce and would multiply cache keys, so they skip it.
-  if (format === "html") {
+  // cheaper to produce and would multiply cache keys, so they skip it. A FILTERED
+  // view also skips the cache (it keys on slug alone) and renders fresh.
+  if (format === "html" && !active) {
     const cached = getCachedPublicPage(slug);
     if (cached) return publicPageResponse(cached.html, cached.indexable, cached.signposting);
   }
@@ -156,39 +171,60 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     return machineResponse(serializePublicCv(cv, format, slug), slug, indexable, signposting);
   }
 
-  // Coalesce concurrent renders of the same slug so the heavy citeproc render
-  // runs once even under a burst of anonymous hits on one uncached page.
+  // Build the public HTML for a given VIEW of the CV (the full doc, or a narrowed
+  // one under an active filter). Public-page-only chrome — the per-publication
+  // Cite/Abstract/Full-text affordance (publicExtras + slug), the "Subscribe" feed
+  // link (feedHref), and the server-rendered filter bar — is added here; exporters
+  // never set these opts, so PDF/DOCX/LaTeX/Markdown stay clean.
+  const feedHref = absoluteUrl(`/p/${slug}/feed.xml`);
+  const renderView = (viewCv: CanonicalCv): string => {
+    // The living public page may use an animated showcase style (display.publicStyle);
+    // "match" (default) renders with the document template. Exports never call this.
+    let html = renderPublicCvHtml(viewCv, {
+      attribution: true,
+      coauthorCvs,
+      publicExtras: true,
+      slug,
+      feedHref,
+    });
+    // The view-filter bar is built from the FULL CV (so every facet is always
+    // reachable, even from a filtered view) and injected just above the sections —
+    // one consistent anchor (`<main class="cv-main">`) across every template/style.
+    const bar = viewFilterBarHtml(cv, filters, cv.display.locale);
+    if (bar) html = html.replace('<main class="cv-main">', `${bar}<main class="cv-main">`);
+    // SEO + OG/Twitter meta (public profile text only) into <head>: canonical +
+    // og:url, a SERP description, og:image (the per-CV branded card), and the Atom
+    // feed's alternate <link> so feed readers discover it.
+    const head = publicMetaTags(cv, {
+      imageUrl: absoluteUrl(`/p/${slug}/og`),
+      pageUrl: absoluteUrl(`/p/${slug}`),
+      feedUrl: feedHref,
+    });
+    // Inject ProfilePage/Person JSON-LD into the document head. It's DATA, not a
+    // crawl permission — emit it whether or not the owner opted into indexing (the
+    // X-Robots-Tag `noindex` still keeps the page out of search results). It's data
+    // (not executed), so it's unaffected by the document's strict CSP.
+    return html.replace(
+      "</head>",
+      `${head}<script type="application/ld+json">${profilePageJsonLd(cv, slug, coauthorCvs)}</script></head>`,
+    );
+  };
+
+  // A FILTERED view renders fresh and is neither cached nor deduped (both key on
+  // slug alone, so a filtered render must never be stored under or coalesced with
+  // the plain page).
+  if (active) {
+    return publicPageResponse(renderView(filterCvForView(cv, filters)), indexable, signposting);
+  }
+
+  // Coalesce concurrent renders of the same (unfiltered) slug so the heavy citeproc
+  // render runs once even under a burst of anonymous hits on one uncached page.
   const entry = await dedupePublicRender(slug, async () => {
     // Re-check the cache inside the critical section: a concurrent request may
     // have just rendered this slug while we awaited the DB read.
     const fresh = getCachedPublicPage(slug);
     if (fresh) return fresh;
-
-    // Public living page → request the "Made with SigmaCV" referral footer (the
-    // owner can still opt out via display.publicAttribution). Export renderers
-    // never pass this, so PDF/DOCX/LaTeX/Markdown stay unbranded.
-    // The living public page may use an animated showcase style (display.publicStyle);
-    // "match" (default) renders with the document template. Exports never call this.
-    let html = renderPublicCvHtml(cv, { attribution: true, coauthorCvs });
-    // SEO + OG/Twitter meta (public profile text only) into <head>: canonical +
-    // og:url for this page, a description for the SERP snippet, and og:image
-    // pointing at the per-CV branded card (same slug, /og sub-route).
-    const head = publicMetaTags(cv, {
-      imageUrl: absoluteUrl(`/p/${slug}/og`),
-      pageUrl: absoluteUrl(`/p/${slug}`),
-    });
-    // Inject ProfilePage/Person JSON-LD into the document head. It's DATA, not a
-    // crawl permission — emit it whether or not the owner opted into indexing (the
-    // X-Robots-Tag `noindex` still keeps the page out of search results). This way
-    // tools/agents the owner deliberately shares the link with can read a
-    // structured profile even on a published-but-unindexed page. It's data (not
-    // executed), so it's unaffected by the document's strict CSP.
-    html = html.replace(
-      "</head>",
-      `${head}<script type="application/ld+json">${profilePageJsonLd(cv, slug, coauthorCvs)}</script></head>`,
-    );
-
-    const rendered = { html, indexable, signposting };
+    const rendered = { html: renderView(cv), indexable, signposting };
     setCachedPublicPage(slug, rendered);
     return rendered;
   });

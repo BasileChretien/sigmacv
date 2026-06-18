@@ -1247,6 +1247,43 @@ export function workTopic(work: OpenAlexWork): { field?: string; domain?: string
 }
 
 /**
+ * Open-access full-text URL for a work (OpenAlex `open_access.oa_url`): a direct
+ * link to the freely-readable version, surfaced under the entry on the public page.
+ * Only kept for an OA work with an http(s) URL within bounds (the render layer
+ * re-validates via `safeHref`); undefined otherwise. Never invented.
+ */
+export function workOaUrl(work: OpenAlexWork): string | undefined {
+  if (!work.open_access?.is_oa) return undefined;
+  const url = work.open_access.oa_url?.trim();
+  if (!url) return undefined;
+  return /^https?:\/\//i.test(url) && url.length <= 2048 ? url : undefined;
+}
+
+/**
+ * Aggregate the account holder's most frequent research FIELDS (OpenAlex
+ * `primary_topic.field`, via `meta.topic`) across the CURATED works — `{field,
+ * count}` sorted by count desc then name, capped. Pure + data-minimised: only the
+ * fields of works actually ON the CV are counted (hidden / "not mine" works are
+ * skipped, so a same-name over-merge in an unrelated field can't pollute it), and
+ * only the aggregate is stored — the raw per-item topics stay stripped from the
+ * public projection. Drives the owner-level "Research areas" summary.
+ */
+export function computeResearchAreas(sections: CvSection[]): { field: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const s of sections) {
+    for (const it of s.items) {
+      if (!it.included || it.notMine) continue;
+      const field = it.meta.topic?.field?.trim();
+      if (field) counts.set(field, (counts.get(field) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()]
+    .map(([field, count]) => ({ field, count }))
+    .sort((a, b) => b.count - a.count || a.field.localeCompare(b.field))
+    .slice(0, 12);
+}
+
+/**
  * ROR ids of the institutions on the account holder's OWN authorship of a work
  * (their affiliation as printed on this paper). Identifier-only — institutions
  * without a ROR contribute nothing; deduped + bounded. Drives the misattribution
@@ -1417,6 +1454,9 @@ function buildWorkCvItem(
     notMine: prev?.notMine ?? false,
     notMineAssertedAt: prev?.notMineAssertedAt,
     notMineReason: prev?.notMineReason,
+    // "Selected / featured" pin is a display choice — carry it across re-sync
+    // (undefined ⇒ not pinned; the field is omitted from the stored item).
+    featured: prev?.featured,
     order: prev ? prev.order : order,
     authoredBySelf,
     selfNameVariants: authoredBySelf ? selfNameVariants(work, matches) : [],
@@ -1435,6 +1475,8 @@ function buildWorkCvItem(
           : undefined,
       // OA determination (open/closed/unknown) for the honest OA-share denominator.
       oaIsOpen: typeof work.open_access?.is_oa === "boolean" ? work.open_access.is_oa : undefined,
+      // Direct open-access full-text link (public-page "Full text" affordance).
+      oaUrl: workOaUrl(work),
       // Reuse license + PubMed id (FAIR / open-science surfacing).
       license: workLicense(work),
       pmid: workPmid(work),
@@ -1943,6 +1985,9 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // must survive a re-sync. displayName is OpenAlex-derived but user-editable —
   // keep the user's value once set.
   const prevOwner = previous?.owner;
+  // Data-minimised "research areas" aggregate from the curated works (recomputed
+  // every build; the raw per-item topics stay stripped from the public projection).
+  const researchAreas = computeResearchAreas(sections);
 
   const cv: CanonicalCv = {
     schemaVersion: CANONICAL_SCHEMA_VERSION,
@@ -1961,6 +2006,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       // Author-record metrics + field-normalized aggregates derived from works.
       metrics: { ...(resolved.metrics ?? {}), ...computeDerivedMetrics(works) },
       countsByYear: resolved.countsByYear ?? [],
+      researchAreas: researchAreas.length ? researchAreas : undefined,
     },
     display,
     sections,

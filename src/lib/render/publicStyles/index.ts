@@ -74,5 +74,10 @@ export function getPublicStyle(key: AnimatedStyleKey): CvTemplate {
 export function renderPublicCvHtml(cv: CanonicalCv, opts?: RenderOpts): string {
   const style = cv.display.publicStyle;
   if (style === "match") return renderCvHtml(cv, opts);
-  return REGISTRY[style].render(cv, buildRenderedSections(cv), resolveTheme(cv.display), opts);
+  return REGISTRY[style].render(
+    cv,
+    buildRenderedSections(cv, opts),
+    resolveTheme(cv.display),
+    opts,
+  );
 }

@@ -115,6 +115,8 @@ interface ItemRowProps {
   isLast: boolean;
   onToggleIncluded: () => void;
   onToggleNotMine: () => void;
+  /** Pin / unpin this publication as a "selected / featured" work (citation rows only). */
+  onToggleFeatured?: () => void;
   /** Whether this item is shown in the CURRENT view/preset (per-view selection). */
   shownInView?: boolean;
   /** Toggle this item in/out of the current view only (not a global hide). */
@@ -202,6 +204,7 @@ export default function ItemRow({
   isLast,
   onToggleIncluded,
   onToggleNotMine,
+  onToggleFeatured,
   shownInView = true,
   onToggleInView,
   onSetNotMineReason,
@@ -746,6 +749,18 @@ export default function ItemRow({
           >
             ↓
           </button>
+          {isCitation && onToggleFeatured ? (
+            <button
+              type="button"
+              className={`mine-btn is-feature${item.featured ? " is-on" : ""}`}
+              onClick={onToggleFeatured}
+              aria-pressed={Boolean(item.featured)}
+              aria-label={`${u.featureItem}: ${title}`}
+              title={u.featureItem}
+            >
+              {item.featured ? "★" : "☆"}
+            </button>
+          ) : null}
           <button
             type="button"
             className="mine-btn"

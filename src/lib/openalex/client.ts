@@ -26,6 +26,10 @@ const WORK_SELECT = [
   "display_name",
   "publication_year",
   "publication_date",
+  // Inverted-index abstract — reconstructed into a bounded `csl.abstract` for the
+  // public page's expandable-abstract affordance (toCsl.ts). Adds to the payload but
+  // rides the existing request (no extra call).
+  "abstract_inverted_index",
   "type",
   "type_crossref",
   "language",
