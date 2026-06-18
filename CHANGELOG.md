@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The editor preview now matches the PDF exactly (true WYSIWYG).** The live
+  preview previously rendered the CV at the width of the editor pane, so on a
+  smaller window it wrapped differently from the exported PDF — and on a narrow
+  pane it even flipped to the stacked mobile layout. The preview now renders as a
+  scaled A4 page, so line breaks, spacing, and layout are identical to what you
+  export. The print page box was unified with the on-screen one so the PDF's text
+  column lines up with the preview (only the top/bottom page margin differs, as it
+  must repeat on every printed page).
+
 ### Fixed
 
 - **PDF export works again.** A Playwright dependency bump changed the bundled

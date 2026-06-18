@@ -8,6 +8,21 @@ const PDF_CONCURRENCY_LIMIT = 3;
 const PDF_TIMEOUT_MS = 30_000;
 let activeRenders = 0;
 
+/**
+ * The printed page margin. VERTICAL ONLY: the horizontal gutter is owned by the
+ * template's `.cv` box (max-width + side padding) so the PDF's text column is
+ * identical to the editor preview (WYSIWYG). MUST stay in lockstep with the
+ * `@page { margin: <top> 0 }` rule in the shared template CSS — left/right are 0
+ * here precisely so `.cv`'s auto margins centre it. `tests/pdf-page-geometry`
+ * fails if this and the CSS `@page` margin ever drift apart.
+ */
+export const PDF_PAGE_MARGIN = {
+  top: "16mm",
+  bottom: "16mm",
+  left: "0",
+  right: "0",
+} as const;
+
 /** Thrown when the concurrent-render slots are full; the route maps it to 503. */
 export class PdfBusyError extends Error {
   constructor() {
@@ -55,7 +70,11 @@ export const pdfRenderer: Renderer = {
         const pdf = await page.pdf({
           format: "A4",
           printBackground: true,
-          margin: { top: "16mm", bottom: "16mm", left: "14mm", right: "14mm" },
+          // Vertical page margin only; the horizontal gutter is owned by the
+          // template's `.cv` box so the printed text column is pixel-identical to
+          // the editor preview. See PDF_PAGE_MARGIN — kept in lockstep with the
+          // `@page { margin: … 0 }` rule in the shared CSS by a unit test.
+          margin: PDF_PAGE_MARGIN,
           // Accessibility: emit a TAGGED PDF (structure tree from the HTML's
           // headings/lists/links + the document's `<html lang>`) plus a document
           // outline, so screen readers and "reflow" can navigate the CV. The
