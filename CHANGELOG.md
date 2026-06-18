@@ -18,6 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The "Cyberpunk" living-page style is a full Arcane-flavoured arcade screen.**
+  A complete redesign of the `cyberpunk` public style into a Zaun/hextech "brawler"
+  aesthetic (genre & mood only — original CSS, no character likeness or trademarks):
+  a fixed pink + teal + brass palette on a near-black Zaun base; cinematic god-rays,
+  a chiaroscuro vignette, film grain, rising shimmer-embers and a toxic smog glow;
+  falling neon data-rain; a riveted hextech metal header plate; the name slams in
+  then glitch-flickers with a pink/teal chromatic split; graffiti hex section
+  headings; heavy energy-edged riveted entry plates that slam in and charge up on
+  hover; a hexagon "hextech-core" portrait; and a game HUD (glowing corner brackets,
+  a top energy-cell bar, a bottom data ticker, a sweeping radar, CRT scanlines, and
+  a pink->teal->brass progress beam). All CSS-only under the strict public-page CSP,
+  body copy kept crisp/AA-legible, with full `prefers-reduced-motion` + print
+  fallbacks. Affects only the `cyberpunk` public style; no export/document changes.
 - **The CV header now leads with you, not your numbers.** The optional metrics
   strip moved below your summary and is laid out one metric per line — each with its
   plain-language meaning ("1.0 = world average for field & year") and its coverage
