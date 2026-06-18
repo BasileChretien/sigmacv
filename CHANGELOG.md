@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The editor preview now wraps text exactly like the PDF.** The preview iframe
+  is A4-wide and scrolls internally, so on platforms with classic scrollbars (e.g.
+  Windows) the scrollbar stole ~15px and the preview wrapped fewer words per line
+  than the scrollbar-free PDF. The preview's scrollbar is now hidden so its text
+  column uses the full page width — matching the export — while scrolling still
+  works.
+- **The research-summary block now has the same gap below it as every other
+  section.** When placed in its own labelled block (above or below the sections),
+  it sat flush against the next section's heading on templates that tuck their
+  first section up (the Sidebar); it now keeps a full section-sized gap.
+
 ### Changed
 
 - **Positions, Education and diplomas now read as two-line records instead of one

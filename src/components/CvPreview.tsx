@@ -20,6 +20,21 @@ export function fitScale(availWidth: number): number {
   return Math.min(1, availWidth / A4_WIDTH_PX);
 }
 
+/** Scrollbar-hiding CSS injected into the preview iframe. The iframe is exactly A4
+ *  wide and scrolls its (taller) content internally; a classic OS scrollbar (e.g.
+ *  Windows) would reserve ~15px and lay the text out NARROWER than the A4 PDF, so
+ *  the preview would wrap fewer words per line than the export. Hiding the scrollbar
+ *  reclaims that width (content lays out at the full A4 width = the PDF), while
+ *  wheel/touch scrolling still works. */
+const HIDE_SCROLLBAR_STYLE =
+  "<style>html{scrollbar-width:none}html::-webkit-scrollbar{width:0;height:0}</style>";
+
+/** Inject the scrollbar-hiding style into a rendered CV document (before `</head>`),
+ *  so the preview's text column matches the PDF's exactly. No-op if there's no head. */
+export function hideIframeScrollbar(doc: string): string {
+  return doc.includes("</head>") ? doc.replace("</head>", `${HIDE_SCROLLBAR_STYLE}</head>`) : doc;
+}
+
 export default function CvPreview({ html, loading, locale }: CvPreviewProps) {
   const u = ui(locale);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,7 +88,7 @@ export default function CvPreview({ html, loading, locale }: CvPreviewProps) {
           <iframe
             title={u.previewTitle}
             className={`cv-preview-frame${loading ? " is-loading" : ""}`}
-            srcDoc={html}
+            srcDoc={hideIframeScrollbar(html)}
             sandbox="allow-popups allow-popups-to-escape-sandbox"
             style={{
               width: A4_WIDTH_PX,
