@@ -79,10 +79,43 @@ export interface RenderStrings {
   rorRecordTitle: string;
   /** Tooltip/aria when the institution name links to its own homepage (ROR `links.website`). */
   institutionSiteTitle: string;
+  /** Header label for the aggregated "Research areas" chip row (opt-in). */
+  researchAreasLabel: string;
+  /** Public-page per-publication "Cite" disclosure label. */
+  citeLabel: string;
+  /** Public-page per-publication "Abstract" disclosure label. */
+  abstractLabel: string;
+  /** Public-page per-publication open-access "Full text" link label. */
+  fullTextLabel: string;
+  /** "Selected" star badge on a featured publication. */
+  badgeFeatured: string;
+  /** Tooltip for the featured-publication star badge. */
+  badgeFeaturedTitle: string;
+  /** Public-page "Subscribe" (Atom/RSS feed) link label. */
+  subscribeLabel: string;
+  /** Leading label of the public-page view-filter bar. */
+  filterLabel: string;
+  /** Filter chip: clear all filters / show everything. */
+  filterAll: string;
+  /** Filter chip for a year cutoff; "{year}" -> the start year ("Since 2021"). */
+  filterSince: string;
+  /** Filter chip: open-access works only. */
+  filterOpenAccess: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
   "en-US": {
+    researchAreasLabel: "Research areas",
+    citeLabel: "Cite",
+    abstractLabel: "Abstract",
+    fullTextLabel: "Full text",
+    badgeFeatured: "Selected",
+    badgeFeaturedTitle: "Selected / featured publication",
+    subscribeLabel: "Subscribe",
+    filterLabel: "Filter",
+    filterAll: "All",
+    filterSince: "Since {year}",
+    filterOpenAccess: "Open access",
     coauthorsHeading: "Co-authors on SigmaCV",
     datePresent: "present",
     dateUntil: "until {year}",
@@ -132,6 +165,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Institution website",
   },
   "zh-CN": {
+    researchAreasLabel: "研究领域",
+    citeLabel: "引用",
+    abstractLabel: "摘要",
+    fullTextLabel: "全文",
+    badgeFeatured: "精选",
+    badgeFeaturedTitle: "精选 / 重点论文",
+    subscribeLabel: "订阅",
+    filterLabel: "筛选",
+    filterAll: "全部",
+    filterSince: "{year} 年起",
+    filterOpenAccess: "开放获取",
     coauthorsHeading: "也在 SigmaCV 的合作者",
     datePresent: "至今",
     dateUntil: "至 {year}",
@@ -181,6 +225,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "机构网站",
   },
   "es-ES": {
+    researchAreasLabel: "Áreas de investigación",
+    citeLabel: "Citar",
+    abstractLabel: "Resumen",
+    fullTextLabel: "Texto completo",
+    badgeFeatured: "Destacada",
+    badgeFeaturedTitle: "Publicación destacada / seleccionada",
+    subscribeLabel: "Suscribirse",
+    filterLabel: "Filtrar",
+    filterAll: "Todas",
+    filterSince: "Desde {year}",
+    filterOpenAccess: "Acceso abierto",
     coauthorsHeading: "Coautores en SigmaCV",
     datePresent: "presente",
     dateUntil: "hasta {year}",
@@ -233,6 +288,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Sitio web de la institución",
   },
   "fr-FR": {
+    researchAreasLabel: "Domaines de recherche",
+    citeLabel: "Citer",
+    abstractLabel: "Résumé",
+    fullTextLabel: "Texte intégral",
+    badgeFeatured: "Sélection",
+    badgeFeaturedTitle: "Publication sélectionnée / mise en avant",
+    subscribeLabel: "S'abonner",
+    filterLabel: "Filtrer",
+    filterAll: "Tout",
+    filterSince: "Depuis {year}",
+    filterOpenAccess: "Libre accès",
     coauthorsHeading: "Co-auteurs sur SigmaCV",
     datePresent: "présent",
     dateUntil: "jusqu’en {year}",
@@ -286,6 +352,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Site web de l’établissement",
   },
   "de-DE": {
+    researchAreasLabel: "Forschungsgebiete",
+    citeLabel: "Zitieren",
+    abstractLabel: "Zusammenfassung",
+    fullTextLabel: "Volltext",
+    badgeFeatured: "Ausgewählt",
+    badgeFeaturedTitle: "Ausgewählte / hervorgehobene Publikation",
+    subscribeLabel: "Abonnieren",
+    filterLabel: "Filtern",
+    filterAll: "Alle",
+    filterSince: "Seit {year}",
+    filterOpenAccess: "Open Access",
     coauthorsHeading: "Mitautor:innen auf SigmaCV",
     datePresent: "heute",
     dateUntil: "bis {year}",
@@ -338,6 +415,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Website der Einrichtung",
   },
   "ja-JP": {
+    researchAreasLabel: "研究分野",
+    citeLabel: "引用",
+    abstractLabel: "要旨",
+    fullTextLabel: "全文",
+    badgeFeatured: "選定",
+    badgeFeaturedTitle: "選定／注目の論文",
+    subscribeLabel: "購読",
+    filterLabel: "絞り込み",
+    filterAll: "すべて",
+    filterSince: "{year}年以降",
+    filterOpenAccess: "オープンアクセス",
     coauthorsHeading: "SigmaCV を使う共著者",
     datePresent: "現在",
     dateUntil: "{year} まで",
@@ -387,6 +475,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "機関ウェブサイト",
   },
   "pt-BR": {
+    researchAreasLabel: "Áreas de pesquisa",
+    citeLabel: "Citar",
+    abstractLabel: "Resumo",
+    fullTextLabel: "Texto completo",
+    badgeFeatured: "Destaque",
+    badgeFeaturedTitle: "Publicação em destaque / selecionada",
+    subscribeLabel: "Assinar",
+    filterLabel: "Filtrar",
+    filterAll: "Todas",
+    filterSince: "Desde {year}",
+    filterOpenAccess: "Acesso aberto",
     coauthorsHeading: "Coautores no SigmaCV",
     datePresent: "presente",
     dateUntil: "até {year}",
@@ -440,6 +539,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Site da instituição",
   },
   "it-IT": {
+    researchAreasLabel: "Aree di ricerca",
+    citeLabel: "Cita",
+    abstractLabel: "Abstract",
+    fullTextLabel: "Testo completo",
+    badgeFeatured: "In evidenza",
+    badgeFeaturedTitle: "Pubblicazione selezionata / in evidenza",
+    subscribeLabel: "Iscriviti",
+    filterLabel: "Filtra",
+    filterAll: "Tutte",
+    filterSince: "Dal {year}",
+    filterOpenAccess: "Accesso aperto",
     coauthorsHeading: "Coautori su SigmaCV",
     datePresent: "presente",
     dateUntil: "fino al {year}",
@@ -492,6 +602,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Sito web dell’istituzione",
   },
   "ko-KR": {
+    researchAreasLabel: "연구 분야",
+    citeLabel: "인용",
+    abstractLabel: "초록",
+    fullTextLabel: "전문",
+    badgeFeatured: "선정",
+    badgeFeaturedTitle: "선정 / 주요 논문",
+    subscribeLabel: "구독",
+    filterLabel: "필터",
+    filterAll: "전체",
+    filterSince: "{year}년 이후",
+    filterOpenAccess: "오픈 액세스",
     coauthorsHeading: "SigmaCV를 사용하는 공저자",
     datePresent: "현재",
     dateUntil: "{year}까지",
@@ -541,6 +662,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "기관 웹사이트",
   },
   "ru-RU": {
+    researchAreasLabel: "Области исследований",
+    citeLabel: "Цитировать",
+    abstractLabel: "Аннотация",
+    fullTextLabel: "Полный текст",
+    badgeFeatured: "Избранное",
+    badgeFeaturedTitle: "Избранная / рекомендуемая публикация",
+    subscribeLabel: "Подписаться",
+    filterLabel: "Фильтр",
+    filterAll: "Все",
+    filterSince: "С {year}",
+    filterOpenAccess: "Открытый доступ",
     coauthorsHeading: "Соавторы в SigmaCV",
     datePresent: "наст. время",
     dateUntil: "до {year}",

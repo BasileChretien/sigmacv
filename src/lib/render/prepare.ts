@@ -132,7 +132,16 @@ export function prepareSections(
       const set = new Set(excluded);
       items = items.filter((it) => !set.has(it.id));
     }
-    if (CITATION_SECTIONS.has(section.type)) items = sortCitations(items);
+    if (CITATION_SECTIONS.has(section.type)) {
+      items = sortCitations(items);
+      // "Selected / featured" works pin to the TOP of the section (stable, ahead of
+      // the order above) — a hand-picked "Selected publications" set leads, and the
+      // pins land within the publicationsLimit cap below rather than being dropped.
+      const featured = items.filter((it) => it.featured);
+      if (featured.length && featured.length < items.length) {
+        items = [...featured, ...items.filter((it) => !it.featured)];
+      }
+    }
     if (section.type === "publications" && limit > 0) {
       items = items.slice(0, limit);
     }

@@ -89,6 +89,25 @@ export function setItemNotMine(
   }));
 }
 
+/**
+ * Pin / unpin a publication as "selected / featured". A pure display-curation
+ * choice: a featured work sorts to the TOP of its section (ahead of the normal
+ * order) and is marked with a quiet "Selected" star at render — the equivalent of
+ * a CV's hand-picked "Selected publications" list. Survives re-sync (`build.ts`
+ * carries `featured` like `included`). Distinct from `included`/`notMine`.
+ */
+export function setItemFeatured(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  featured: boolean,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => (it.id === itemId ? { ...it, featured } : it)),
+  }));
+}
+
 /** Move an item up/down within its section. */
 export function moveItem(
   cv: CanonicalCv,

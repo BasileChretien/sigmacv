@@ -48,6 +48,26 @@ export interface RenderOpts {
    * structural shape so the render layer takes no dependency on `lib/cv`.
    */
   coauthorCvs?: readonly { orcid: string; slug: string; name: string }[];
+  /**
+   * Public-page-only per-publication chrome. When true, each citation entry gets a
+   * no-JS "Cite" disclosure (BibTeX / RIS / CSL-JSON download links), an open-access
+   * "Full text" link (when the work has one), and an "Abstract" disclosure (when one
+   * was reconstructed). Requires `slug` to build the cite hrefs. Only the `/p/[slug]`
+   * route sets it; exporters never do, so PDF/DOCX/LaTeX stay clean.
+   */
+  publicExtras?: boolean;
+  /**
+   * The public capability slug — needed to build the per-item cite hrefs
+   * (`/p/<slug>/cite?...`). Set only by the `/p/[slug]` route alongside
+   * `publicExtras`.
+   */
+  slug?: string;
+  /**
+   * Href of this CV's Atom feed (`/p/<slug>/feed.xml`). When set, a quiet
+   * "Subscribe" link is added to the public-page footer. Only the `/p/[slug]` route
+   * sets it; exporters never do.
+   */
+  feedHref?: string;
 }
 
 export interface RenderInput {
