@@ -1,5 +1,6 @@
 import { isHidden, type CanonicalCv, type CvItem, type Provenance } from "@/lib/canonical/schema";
 import {
+  fetchCrossrefAbstract,
   fetchCrossrefGapFields,
   fetchRetractionStatus,
   type CrossrefGapFields,
@@ -127,6 +128,51 @@ export async function enrichCvWithCrossref(cv: CanonicalCv, mailto: string): Pro
     sections,
     provenance: withSource(cv.provenance, "crossref"),
   };
+}
+
+// ─── Crossref abstract gap-fill ──────────────────────────────────────────────
+
+const ABSTRACT_MAX_ENRICH = 100;
+
+/**
+ * Fill missing abstracts from Crossref for citation works that have a DOI but no
+ * abstract yet (OpenAlex carries no abstract for many works — older records, some
+ * types). Bounded to {@link ABSTRACT_MAX_ENRICH} lookups per call (each a tiny
+ * `select=abstract` query), concurrency-limited, fail-soft and immutable. Skips
+ * hidden / non-citation items. A gap-filled abstract is PERSISTED across re-sync by
+ * `build.ts`, so once filled a work is no longer a target (no perpetual re-fetch).
+ */
+export async function enrichCvWithAbstracts(cv: CanonicalCv, mailto: string): Promise<CanonicalCv> {
+  const targets: Array<{ s: number; i: number; doi: string }> = [];
+  cv.sections.forEach((section, s) => {
+    section.items.forEach((item, i) => {
+      if (targets.length >= ABSTRACT_MAX_ENRICH) return;
+      const csl = item.csl;
+      if (csl?.DOI && !csl.abstract && !isHidden(item)) targets.push({ s, i, doi: csl.DOI });
+    });
+  });
+  if (targets.length === 0) return cv;
+
+  const fetched = await mapBounded(targets, CONCURRENCY, (t) =>
+    fetchCrossrefAbstract(t.doi, mailto),
+  );
+
+  const abstracts = new Map<string, string>();
+  targets.forEach((t, idx) => {
+    const abs = fetched[idx];
+    if (abs) abstracts.set(`${t.s}:${t.i}`, abs);
+  });
+  if (abstracts.size === 0) return cv;
+
+  const sections = cv.sections.map((section, s) => ({
+    ...section,
+    items: section.items.map((item, i) => {
+      const abs = abstracts.get(`${s}:${i}`);
+      return abs && item.csl ? { ...item, csl: { ...item.csl, abstract: abs } } : item;
+    }),
+  }));
+
+  return { ...cv, sections, provenance: withSource(cv.provenance, "crossref") };
 }
 
 // ─── NIH iCite RCR enrichment ────────────────────────────────────────────────

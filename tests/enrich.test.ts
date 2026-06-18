@@ -2,12 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   fetchCrossrefGapFields: vi.fn(),
+  fetchCrossrefAbstract: vi.fn(),
   fetchRetractionStatus: vi.fn(),
   resolveInstitution: vi.fn(),
   fetchRcrByPmids: vi.fn(),
 }));
 vi.mock("@/lib/crossref/client", () => ({
   fetchCrossrefGapFields: mocks.fetchCrossrefGapFields,
+  fetchCrossrefAbstract: mocks.fetchCrossrefAbstract,
   fetchRetractionStatus: mocks.fetchRetractionStatus,
 }));
 vi.mock("@/lib/ror/client", () => ({
@@ -19,6 +21,7 @@ vi.mock("@/lib/icite/client", () => ({
 
 import {
   canonicalizeInstitutions,
+  enrichCvWithAbstracts,
   enrichCvWithCrossref,
   enrichCvWithIcite,
   enrichCvWithRetractions,
@@ -34,6 +37,7 @@ import type { OrcidPosition } from "@/lib/orcid/client";
 
 beforeEach(() => {
   mocks.fetchCrossrefGapFields.mockReset();
+  mocks.fetchCrossrefAbstract.mockReset();
   mocks.fetchRetractionStatus.mockReset();
   mocks.resolveInstitution.mockReset();
   mocks.fetchRcrByPmids.mockReset();
@@ -179,6 +183,47 @@ describe("enrichCvWithCrossref", () => {
     );
     await enrichCvWithCrossref(makeCv(items), "ci@example.org");
     expect(mocks.fetchCrossrefGapFields).toHaveBeenCalledTimes(50);
+  });
+});
+
+// ─── enrichCvWithAbstracts (Crossref abstract gap-fill) ───────────────────────
+
+describe("enrichCvWithAbstracts", () => {
+  const MAILTO = "ci@example.org";
+
+  it("fills missing abstracts for DOI works, skipping has-abstract / hidden / no-DOI", async () => {
+    mocks.fetchCrossrefAbstract.mockImplementation(async (doi: string) =>
+      doi === "10.1/needs" ? "A fetched abstract." : null,
+    );
+    const items: CvItem[] = [
+      pub("W1", csl({ DOI: "10.1/needs" })), // no abstract → filled
+      pub("W2", csl({ DOI: "10.1/has", abstract: "Already here." })), // has abstract → skipped
+      { ...pub("W3", csl({ DOI: "10.1/hidden" })), included: false }, // hidden → skipped
+      pub("W4", csl({})), // no DOI → skipped
+    ];
+    const out = await enrichCvWithAbstracts(makeCv(items), MAILTO);
+    const abs = (id: string) => out.sections[0]!.items.find((i) => i.id === id)!.csl?.abstract;
+    expect(abs("W1")).toBe("A fetched abstract.");
+    expect(abs("W2")).toBe("Already here.");
+    expect(abs("W3")).toBeUndefined();
+    // Only the one needing work was fetched (hidden / has-abstract / no-DOI skipped).
+    expect(mocks.fetchCrossrefAbstract).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchCrossrefAbstract).toHaveBeenCalledWith("10.1/needs", MAILTO);
+    expect(out.provenance.sources).toContain("crossref");
+  });
+
+  it("returns the original CV when nothing needs an abstract", async () => {
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1/x", abstract: "Here." }))]);
+    const out = await enrichCvWithAbstracts(cv, MAILTO);
+    expect(out).toBe(cv);
+    expect(mocks.fetchCrossrefAbstract).not.toHaveBeenCalled();
+  });
+
+  it("returns the original CV when Crossref yields no abstracts", async () => {
+    mocks.fetchCrossrefAbstract.mockResolvedValue(null);
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1/x" }))]);
+    const out = await enrichCvWithAbstracts(cv, MAILTO);
+    expect(out).toBe(cv);
   });
 });
 

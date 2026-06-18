@@ -9,6 +9,7 @@ import { getEnv } from "@/lib/env";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   canonicalizeInstitutions,
+  enrichCvWithAbstracts,
   enrichCvWithCrossref,
   enrichCvWithIcite,
   enrichCvWithRetractions,
@@ -340,6 +341,11 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   // Crossref: fill bibliographic gaps (journal, volume/issue, pages) on works
   // that have a DOI but incomplete OpenAlex metadata. Bounded + fails soft.
   cv = await timed("enrich.crossref", enrichCvWithCrossref(cv, getEnv().OPENALEX_MAILTO));
+
+  // Crossref: fill MISSING abstracts (OpenAlex carries none for many works), so the
+  // public page's expandable abstract appears on more entries. Bounded + fails soft;
+  // a filled abstract persists across re-sync (build.ts), so it isn't re-fetched.
+  cv = await timed("enrich.abstracts", enrichCvWithAbstracts(cv, getEnv().OPENALEX_MAILTO));
 
   // NIH iCite: fold the Relative Citation Ratio onto works with a PMID (opt-in
   // biomedical field-normalized metric). Bounded + fails soft.
