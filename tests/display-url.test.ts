@@ -9,6 +9,11 @@ describe("displayUrl", () => {
     expect(displayUrl("http://u@example.org")).toBe("http://example.org");
   });
 
+  it("strips ALL userinfo when the password itself contains @ (multi-@ authority)", () => {
+    expect(displayUrl("https://user:pa@ss@example.org/path")).toBe("https://example.org/path");
+    expect(displayUrl("https://user:p@ssw@rd@example.org/path")).toBe("https://example.org/path");
+  });
+
   it("leaves a normal URL, a plain label, and a mailto unchanged", () => {
     expect(displayUrl("https://example.org/p")).toBe("https://example.org/p");
     expect(displayUrl("GitHub")).toBe("GitHub");
