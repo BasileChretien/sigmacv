@@ -65,7 +65,7 @@ function meshCss(_t: TemplateTheme): string {
   .cv-photo { width:118px; height:118px; border-radius:24px; border:3px solid rgba(255,255,255,0.9);
     box-shadow: 0 14px 40px -12px rgba(70,50,140,0.5); }
 
-  section.cv-section > h2 { font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:0.14em; color:var(--cv-accent-deep); margin:0 0 0.7rem; }
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:0.14em; color:var(--cv-accent-deep); margin:0 0 0.7rem; }
   ol.cv-bib > li { position:relative; padding-left:1.6em; text-indent:0; }
   ol.cv-bib > li::before { content:""; position:absolute; left:0; top:0.45em; width:8px; height:8px; border-radius:50%;
     background: linear-gradient(var(--m1), var(--m3)); }
@@ -76,7 +76,7 @@ function meshCss(_t: TemplateTheme): string {
     /* Reveal heading + entries on their own (small) geometry, never the whole
        section — a tall section animated as one block stays faded/translated at
        its top while its first entries are already in the reading zone. */
-    section.cv-section > h2, .cv-prose-body > * { animation: mesh-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * { animation: mesh-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: mesh-in ease-out both; animation-timeline: view(); animation-range: entry 0% entry 52%; }
   }
   @supports (animation-timeline: scroll()) {

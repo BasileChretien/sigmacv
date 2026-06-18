@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { MAX_TOTAL_CV_ITEMS, cvItemCount, getPublishState } from "@/lib/cv/sync";
@@ -17,6 +18,15 @@ export const dynamic = "force-dynamic";
 const PREVIEW_MAX = 240;
 const PREVIEW_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const MAX_BODY_BYTES = 8_000_000;
+
+// The request envelope: the canonical document (validated separately, below) plus
+// which surface to preview. `surface` is constrained to the two known values at the
+// route boundary; anything else (including absent) falls back to "document" — the
+// same lenient default as before, now made explicit and type-safe.
+const PreviewBodySchema = z.object({
+  document: z.unknown(),
+  surface: z.enum(["document", "public"]).catch("document"),
+});
 
 /** Render a (possibly unsaved) canonical document to HTML for live preview. */
 export async function POST(req: Request) {
@@ -43,9 +53,9 @@ export async function POST(req: Request) {
       : NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = CanonicalCvSchema.safeParse(
-    (read.value as { document?: unknown } | null)?.document,
-  );
+  const body = PreviewBodySchema.safeParse(read.value);
+  const surface = body.success ? body.data.surface : "document";
+  const parsed = CanonicalCvSchema.safeParse(body.success ? body.data.document : undefined);
   if (!parsed.success) {
     // Generic message — don't echo raw Zod issues (schema internals) to clients.
     return NextResponse.json({ error: "Invalid CV document" }, { status: 422 });
@@ -60,17 +70,20 @@ export async function POST(req: Request) {
   try {
     // `surface: "public"` previews the living public page (applies the chosen
     // animated publicStyle, or the document template when "match"); the default
-    // previews the document render the exports use.
-    const surface = (read.value as { surface?: unknown } | null)?.surface;
-    // So the editor's document preview shows the opt-in QR exactly as the export
-    // will: resolve the public-page URL only when the page is actually published.
-    const ps = await getPublishState(session.user.id);
-    const publicPageUrl =
-      ps.published && ps.publicSlug ? absoluteUrl(`p/${ps.publicSlug}`) : undefined;
-    const html =
-      surface === "public"
-        ? renderPublicCvHtml(parsed.data)
-        : renderCvHtml(parsed.data, { publicPageUrl });
+    // ("document") previews the render the exports use.
+    let html: string;
+    if (surface === "public") {
+      html = renderPublicCvHtml(parsed.data);
+    } else {
+      // So the editor's document preview shows the opt-in QR exactly as the export
+      // will: resolve the public-page URL only when the page is actually published.
+      // Only the document surface needs it, so the publish-state DB read is skipped
+      // on the (heavier) public-surface path.
+      const ps = await getPublishState(session.user.id);
+      const publicPageUrl =
+        ps.published && ps.publicSlug ? absoluteUrl(`p/${ps.publicSlug}`) : undefined;
+      html = renderCvHtml(parsed.data, { publicPageUrl });
+    }
     return NextResponse.json({ html });
   } catch (err) {
     logger.error("api.cv_preview_failed", { err });

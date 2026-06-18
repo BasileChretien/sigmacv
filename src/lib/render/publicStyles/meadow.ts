@@ -244,19 +244,19 @@ function meadowCss(_t: TemplateTheme): string {
 
   /* ---- Sections: hand-painted leaf headings + soft bullets --------------- */
   section.cv-section { margin-top:2.4rem; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position:relative; display:flex; align-items:center; gap:0.6em;
     font-size:0.92rem; font-weight:700; text-transform:uppercase; letter-spacing:0.14em;
     color: var(--mw-gold); margin:0 0 1rem; padding-bottom:0.5rem;
   }
   /* A small soft leaf before each heading. */
-  section.cv-section > h2::before {
+  section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
     content:""; flex:none; width:0.78em; height:0.6em; border-radius:0 100% 0 100%;
     background: radial-gradient(circle at 30% 30%, #b6d98c, var(--leaf) 75%);
     transform: rotate(-12deg);
   }
   /* A warm watercolour underline that gets brushed in on reveal. */
-  section.cv-section > h2::after {
+  section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content:""; position:absolute; left:0; bottom:0; width:100%; height:3px; border-radius:3px; transform-origin:0 50%;
     background: linear-gradient(90deg, var(--mw-gold) 0 2.4rem, var(--cv-rule) 2.4rem);
   }
@@ -282,11 +282,11 @@ function meadowCss(_t: TemplateTheme): string {
   @keyframes mw-float  { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
   @keyframes mw-brush  { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @supports (animation-timeline: view()) {
-    section.cv-section > h2, .cv-prose-body > * {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * {
       animation: mw-settle cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: cover 0% cover 12%;
     }
-    section.cv-section > h2::after {
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
       animation: mw-brush cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: cover 2% cover 16%;
     }
@@ -298,8 +298,8 @@ function meadowCss(_t: TemplateTheme): string {
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; }
-    section.cv-section > h2, ol.cv-bib > li, .cv-prose-body > * { opacity:1 !important; transform:none !important; filter:none !important; }
-    section.cv-section > h2::after { transform: scaleX(1) !important; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, ol.cv-bib > li, .cv-prose-body > * { opacity:1 !important; transform:none !important; filter:none !important; }
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform: scaleX(1) !important; }
   }
 
   @media (max-width: 560px) {

@@ -522,8 +522,12 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
     ? `<div class="cv-headline">${escapeHtml(cv.owner.headline)}</div>`
     : "";
   const orcid = cv.owner.orcid ? escapeHtml(cv.owner.orcid) : "";
+  // The ORCID iD line leads with the green iD icon (its brand guidelines call for it),
+  // suppressed on the parser-safe ATS template like the other contact icons. The icon
+  // is decorative (aria-hidden); the "ORCID:" text keeps the accessible label.
+  const orcidIco = orcid && cv.display.template !== "ats" ? iconSvg("orcid") : "";
   const ids = orcid
-    ? `<div class="cv-ids">ORCID: <a href="https://orcid.org/${orcid}">${orcid}</a></div>`
+    ? `<div class="cv-ids">${orcidIco}ORCID: <a href="https://orcid.org/${orcid}">${orcid}</a></div>`
     : "";
   const summary = cv.owner.summary
     ? `<p class="cv-summary">${escapeHtml(cv.owner.summary)}</p>`

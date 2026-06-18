@@ -108,13 +108,13 @@ function luminaCss(_t: TemplateTheme): string {
 
   /* ---- Sections ---- */
   section.cv-section { margin-top: 3rem; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position: relative; display: inline-block;
     font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.26em;
     color: var(--cv-ink); margin: 0 0 1.1rem; padding-bottom: 0.55rem;
   }
   /* The accent underline that SWEEPS in on reveal (origin-left scaleX). */
-  section.cv-section > h2::after {
+  section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content:""; position:absolute; left:0; bottom:0; height:1.5px; width:100%;
     background: linear-gradient(90deg, var(--cv-accent), transparent);
     transform: scaleX(0); transform-origin: 0 50%;
@@ -139,11 +139,11 @@ function luminaCss(_t: TemplateTheme): string {
     /* Per-HEADING and per-ENTRY only — NEVER the whole tall section (the
        scroll-reveal trap: a tall section's range scales with its height and
        strands the top). */
-    section.cv-section > h2 {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h {
       animation: lumina-rise cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%;
     }
-    section.cv-section > h2::after {
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
       animation: lumina-sweep cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: entry 4% cover 16%;
     }
@@ -165,8 +165,8 @@ function luminaCss(_t: TemplateTheme): string {
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; }
-    section.cv-section > h2, ol.cv-bib > li, .cv-prose-body p { opacity:1 !important; transform:none !important; }
-    section.cv-section > h2::after { transform: scaleX(1) !important; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, ol.cv-bib > li, .cv-prose-body p { opacity:1 !important; transform:none !important; }
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform: scaleX(1) !important; }
     .lumina-spot { display:none; }
     .lumina-progress { display:none; }
   }`;

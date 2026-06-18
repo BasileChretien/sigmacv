@@ -140,7 +140,7 @@ function sidebarCss(_theme: TemplateTheme): string {
 
   /* Quiet uppercase accent labels with a short accent underline drawn via
      ::after — the rhythm marker down the right column. */
-  .cv-main section.cv-section > h2 {
+  .cv-main section.cv-section > h2, .cv-main .cv-summary-block > .cv-summary-h {
     font-size: 0.74rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -150,7 +150,8 @@ function sidebarCss(_theme: TemplateTheme): string {
     padding-bottom: 0.3rem;
     position: relative;
   }
-  .cv-main section.cv-section > h2::after {
+  .cv-main section.cv-section > h2::after,
+  .cv-main .cv-summary-block > .cv-summary-h::after {
     content: "";
     position: absolute;
     left: 0;

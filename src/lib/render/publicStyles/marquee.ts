@@ -39,9 +39,9 @@ function marqueeCss(_t: TemplateTheme): string {
   @keyframes mq { to { transform: translateX(-50%); } }
 
   section.cv-section { margin-top:2.2rem; }
-  section.cv-section > h2 { display:flex; align-items:center; gap:0.55rem; font-size:clamp(1.05rem,2.6vw,1.55rem); font-weight:800;
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { display:flex; align-items:center; gap:0.55rem; font-size:clamp(1.05rem,2.6vw,1.55rem); font-weight:800;
     text-transform:uppercase; letter-spacing:-0.01em; color:var(--cv-ink); margin:0 0 0.7rem; padding-bottom:0.3rem; border-bottom:3px solid var(--cv-accent); }
-  section.cv-section > h2::before { content:""; width:0.7em; height:0.7em; border-radius:50%; background:var(--cv-accent); flex:none; }
+  section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before { content:""; width:0.7em; height:0.7em; border-radius:50%; background:var(--cv-accent); flex:none; }
   ol.cv-bib > li { position:relative; padding-left:1.6em; text-indent:0; }
   ol.cv-bib > li::before { content:"\\2192"; position:absolute; left:0; color:var(--cv-accent); font-weight:800; }
 
@@ -51,7 +51,7 @@ function marqueeCss(_t: TemplateTheme): string {
     /* Reveal heading + entries on their own (small) geometry, never the whole
        section — a tall section animated as one block stays faded/slid at its top
        while its first entries are already in the reading zone. */
-    section.cv-section > h2, .cv-prose-body > * { animation: mq-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * { animation: mq-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: mq-in ease-out both; animation-timeline: view(); animation-range: entry 0% entry 50%; }
   }
   @supports (animation-timeline: scroll()) {

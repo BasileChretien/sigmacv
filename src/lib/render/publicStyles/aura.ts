@@ -67,7 +67,7 @@ function auraCss(_t: TemplateTheme): string {
   .cv-self { color:#fff !important; font-weight:800; text-shadow:0 0 14px rgba(150,170,255,0.7); }
   .cv-photo { width:118px; height:118px; border-radius:24px; border:1px solid rgba(255,255,255,0.25); box-shadow:0 12px 40px -10px rgba(0,0,0,0.6); }
 
-  section.cv-section > h2 { font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:0.16em; margin:0 0 0.7rem;
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:0.16em; margin:0 0 0.7rem;
     color:#fff; }
   ol.cv-bib > li { position:relative; padding-left:1.6em; text-indent:0; }
   ol.cv-bib > li::before { content:""; position:absolute; left:0; top:0.5em; width:7px; height:7px; border-radius:50%;
@@ -79,7 +79,7 @@ function auraCss(_t: TemplateTheme): string {
     /* Reveal heading + entries on their own (small) geometry, never the whole
        card — a tall section card animated as one block stays faded at its top
        while its first entries are already in the reading zone. */
-    section.cv-section > h2, .cv-prose-body > * { animation: aura-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * { animation: aura-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: aura-in ease-out both; animation-timeline: view(); animation-range: entry 0% entry 52%; }
   }
   @supports (animation-timeline: scroll()) {

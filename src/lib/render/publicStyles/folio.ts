@@ -104,7 +104,7 @@ function folioCss(_t: TemplateTheme): string {
 
   /* ---- Sections: numbered like a journal contents page ---- */
   section.cv-section { margin-top: 2.8rem; counter-increment: folio; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position: relative; display: flex; align-items: baseline; gap: 0.85rem;
     font-family: var(--folio-serif);
     font-size: 0.82rem; font-weight: 600; text-transform: uppercase;
@@ -119,14 +119,14 @@ function folioCss(_t: TemplateTheme): string {
     flex: none; min-width: 1.6em; padding-top: 0.05em;
   }
   /* Thin accent hairline drawn under each heading (animated to draw in). */
-  section.cv-section > h2::after {
+  section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content: ""; position: absolute; left: 0; right: 0; bottom: 0;
     height: 1px; background: var(--cv-rule-strong);
     transform-origin: 0 50%;
   }
   /* The accent tint only on the leading segment of the rule, so colour reads
      without ever sitting under body text. */
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     background-image: linear-gradient(90deg, var(--folio-accent) 0 2.2rem, transparent 2.2rem);
     background-size: 100% 2px; background-position: 0 100%; background-repeat: no-repeat;
   }
@@ -167,11 +167,11 @@ function folioCss(_t: TemplateTheme): string {
   /* Per-heading + per-entry reveals only (small geometry) — never the whole tall
      section (the scroll-reveal trap). Reference terminal.ts lines 62-65. */
   @supports (animation-timeline: view()) {
-    section.cv-section > h2 {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h {
       animation: folio-settle cubic-bezier(0.22, 1, 0.36, 1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%;
     }
-    section.cv-section > h2::after {
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
       animation: folio-rule cubic-bezier(0.22, 1, 0.36, 1) both;
       animation-timeline: view(); animation-range: entry 0% cover 14%;
     }
@@ -183,9 +183,9 @@ function folioCss(_t: TemplateTheme): string {
 
   @media (prefers-reduced-motion: reduce) {
     *,*::before,*::after { animation: none !important; }
-    section.cv-section > h2,
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h,
     ol.cv-bib > li { opacity: 1 !important; transform: none !important; filter: none !important; }
-    section.cv-section > h2::after { transform: none !important; }
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform: none !important; }
   }`;
 }
 

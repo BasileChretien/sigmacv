@@ -30,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sidebar column), about two per line when there's room — each with its leading icon
   (LinkedIn, GitHub, ORCID, etc. auto-detected). The parser-safe ATS template keeps
   its single plain-text line.
+- **A label for a profile link is now optional.** Because recognised services
+  (GitHub, LinkedIn, ORCID, Google Scholar, …) are detected from the URL and named
+  automatically, the link editor now leads with the URL field and treats the label as
+  an optional override — when a service is recognised its name shows as the field's
+  placeholder, and a short note spells out that you can leave it blank. Any label you
+  do set still wins.
 - **The "Choose your public-page design" hint no longer overflows the Publish
   popover.** The tip text was shortened (all ten languages) and the button now wraps
   instead of forcing the panel wider (it was running off the side).
@@ -67,6 +73,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The research-summary heading now matches your other section titles.** When you
+  move the research-summary block to its own section ("top"/"bottom"), its heading is
+  now rendered in the exact same font, size, weight, casing, colour and accent
+  treatment as your real section titles (Publications, Education, …), on every
+  template and every public-page style — instead of a plain mismatched heading.
+- **The ORCID iD on your CV header now shows the green ORCID icon.** The dedicated
+  "ORCID: …" line in the header gained the official green iD mark, matching the icons
+  already shown for your other contact details and profile links. It's decorative
+  (screen readers still read the "ORCID" label and the iD) and, like the other icons,
+  omitted from the parser-safe ATS template.
 - **Profile links are usable again — and the editor fields no longer collapse.** On a
   narrow profile panel the "label" and "URL" inputs in the Links editor shrank to a
   sliver next to the "Remove link" button, making a link effectively impossible to

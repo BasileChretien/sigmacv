@@ -6,6 +6,7 @@ import { PHOTO_DATA_URL_MAX } from "@/lib/canonical/schema";
 import { updateOwner } from "@/lib/canonical/curate";
 import { t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
+import { resolveLink } from "@/lib/render/icons";
 
 interface ProfilePanelProps {
   cv: CanonicalCv;
@@ -207,35 +208,43 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
 
       <div className="field">
         <span>{t(locale, "links")}</span>
-        {links.map((l, i) => (
-          <div key={i} className="profile-link-row">
-            <input
-              type="text"
-              placeholder={t(locale, "linkLabel")}
-              value={l.label}
-              onChange={(e) => setLink(i, { label: e.target.value })}
-              aria-label={t(locale, "linkLabel")}
-            />
-            <input
-              type="url"
-              placeholder={t(locale, "linkUrl")}
-              value={l.url}
-              onChange={(e) => setLink(i, { url: e.target.value })}
-              aria-label={t(locale, "linkUrl")}
-            />
-            <button
-              type="button"
-              className="btn btn-sm"
-              onClick={() => removeLink(i)}
-              aria-label={t(locale, "removeLink")}
-            >
-              {t(locale, "removeLink")}
-            </button>
-          </div>
-        ))}
+        {links.map((l, i) => {
+          // The label is OPTIONAL: a recognised service (GitHub, LinkedIn, ORCID, …)
+          // is auto-detected from the URL and used as the visible name when the label
+          // is blank — so its detected name shows as the placeholder here. URL is the
+          // primary field, hence it comes first.
+          const detected = resolveLink(l.url).service;
+          return (
+            <div key={i} className="profile-link-row">
+              <input
+                type="url"
+                placeholder={t(locale, "linkUrl")}
+                value={l.url}
+                onChange={(e) => setLink(i, { url: e.target.value })}
+                aria-label={t(locale, "linkUrl")}
+              />
+              <input
+                type="text"
+                placeholder={detected ?? t(locale, "linkLabel")}
+                value={l.label}
+                onChange={(e) => setLink(i, { label: e.target.value })}
+                aria-label={t(locale, "linkLabel")}
+              />
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => removeLink(i)}
+                aria-label={t(locale, "removeLink")}
+              >
+                {t(locale, "removeLink")}
+              </button>
+            </div>
+          );
+        })}
         <button type="button" className="btn btn-sm" onClick={addLink}>
           {t(locale, "addLink")}
         </button>
+        <span className="muted profile-link-hint">{t(locale, "linkLabelHint")}</span>
       </div>
 
       <details className="profile-rirekisho">

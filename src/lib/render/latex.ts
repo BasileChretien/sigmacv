@@ -4,6 +4,7 @@ import { authorshipCounts } from "./authorship";
 import { curatedCountsByYear } from "./charts";
 import { wrapSelf } from "./emphasize";
 import { textHeader } from "./headerText";
+import { safeHref } from "./escape";
 import { cvSlug } from "./html";
 import { isSummaryBlockHidden, metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
@@ -44,13 +45,17 @@ function sanitizeUrlForLatex(url: string): string {
  * `qrcode` package (no image file, so a standalone .tex still works), beside the
  * human-readable `\url{}`. Returns the conditional package line + the body block,
  * both "" unless the owner opted in AND the caller supplied the published page URL
- * (never on the ATS template). The slug URL has no LaTeX specials, but it is still
- * run through sanitizeUrlForLatex defensively.
+ * (never on the ATS template). The URL is run through `safeHref` first (strips any
+ * unsafe scheme / `user:pass@` credentials, matching the HTML footer) and then
+ * `sanitizeUrlForLatex` defensively — the slug URL has no LaTeX specials anyway.
  */
 function docQrLatex(cv: CanonicalCv, opts?: RenderOpts): { pkg: string; body: string } {
   const url = opts?.publicPageUrl;
   if (!url || !cv.display.showDocQr || cv.display.template === "ats") return { pkg: "", body: "" };
-  const safe = sanitizeUrlForLatex(url);
+  const href = safeHref(url);
+  /* v8 ignore next -- publicPageUrl is always a safe absoluteUrl() https origin */
+  if (!href) return { pkg: "", body: "" };
+  const safe = sanitizeUrlForLatex(href);
   const s = renderStrings(cv.display.locale);
   return {
     pkg: "\\usepackage{qrcode}",

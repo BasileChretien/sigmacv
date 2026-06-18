@@ -71,7 +71,7 @@ function synthCss(_t: TemplateTheme): string {
      #ff2db4 fell to 3.78:1 there, and accentSpectrum remaps --mag to the user's
      floored — i.e. dark — accent, which is worse on the dark panel). The cyan
      headings/links are accentSpectrum's light L=0.72 derivations and already pass. */
-  section.cv-section > h2 { color: #ff79c6; text-transform: uppercase; letter-spacing:0.18em; font-size:0.8rem; font-weight:800; margin:0 0 0.7rem; text-shadow:0 0 12px rgba(255,45,180,0.5); }
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { color: #ff79c6; text-transform: uppercase; letter-spacing:0.18em; font-size:0.8rem; font-weight:800; margin:0 0 0.7rem; text-shadow:0 0 12px rgba(255,45,180,0.5); }
   section.cv-section:nth-of-type(2n) > h2 { color: var(--cyan); text-shadow:0 0 12px rgba(59,240,255,0.5); }
   ol.cv-bib > li { position:relative; padding-left:1.7em; text-indent:0; }
   ol.cv-bib > li::before { content:""; position:absolute; left:0; top:0.4em; width:8px; height:8px; transform: rotate(45deg); background: var(--mag); box-shadow:0 0 8px var(--mag); }
@@ -83,7 +83,7 @@ function synthCss(_t: TemplateTheme): string {
     /* Reveal heading + entries on their own (small) geometry, never the whole
        section — a tall section animated as one block stays dark/faded at its top
        while its first entries are already in the reading zone. */
-    section.cv-section > h2, .cv-prose-body > * { animation: sw-in linear both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * { animation: sw-in linear both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: sw-in linear both; animation-timeline: view(); animation-range: entry 0% entry 52%; }
   }
   @supports (animation-timeline: scroll()) {

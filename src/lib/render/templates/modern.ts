@@ -60,7 +60,7 @@ function modernCss(_theme: TemplateTheme): string {
   }
 
   /* SECTION LABELS — the accent left-bar is the signature. */
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;

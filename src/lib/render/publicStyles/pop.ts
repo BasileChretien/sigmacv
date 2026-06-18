@@ -86,7 +86,7 @@ function popCss(_theme: TemplateTheme): string {
 
   /* ---- Candy-chip section headings (rounded pills, per-section hue) ------ */
   section.cv-section { margin-top: 2.1rem; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     display: inline-block;
     font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
     /* Dark ink on the candy chips (small text → WCAG-AA 4.5:1). The pink chip
@@ -126,7 +126,7 @@ function popCss(_theme: TemplateTheme): string {
        stays faded/translated at its TOP while its first entries are already in
        the reading zone (scroll-driven ranges scale with element height); per-
        child reveals always finish low in the viewport, well before reading. */
-    section.cv-section > h2, .cv-prose-body > * { animation: pop-in cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * { animation: pop-in cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: pop-in-li ease-out both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
   }
   @supports (animation-timeline: scroll()) {
@@ -139,7 +139,7 @@ function popCss(_theme: TemplateTheme): string {
   }
 
   /* --- extra ambient motion --- */
-  section.cv-section > h2 { animation: pop-chip 4s ease-in-out infinite; }
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { animation: pop-chip 4s ease-in-out infinite; }
   ol.cv-bib > li::before { animation: pop-dot 2.6s ease-in-out infinite; }
   .pop-blobs i:nth-child(4) { width: 240px; height: 240px; background: var(--pop-4); top: 30%; left: 40%; animation: pop-bob 20s ease-in-out infinite; }
   .pop-blobs i:nth-child(5) { width: 170px; height: 170px; background: var(--pop-2); top: 68%; right: 32%; animation: pop-bob 13s ease-in-out infinite reverse; }
