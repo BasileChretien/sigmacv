@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Deep-linkable section headings on the living page.** Each section heading now
+  has a stable id and a quiet "#" permalink that appears on hover (or keyboard
+  focus), so a visitor can copy a link straight to your Publications, Grants, or
+  any other section. It's a screen-only navigation aid — accessible (the link is
+  announced with the section's name) and never printed, so exports are unchanged.
+
 - **A "Font size" control in the design panel.** A new size selector (85%–120%)
   scales the whole CV's typography up or down in proportion — every section's
   headings, name, body and gaps grow or shrink together — so you can fit more on a
