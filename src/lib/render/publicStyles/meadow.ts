@@ -244,7 +244,7 @@ function meadowCss(_t: TemplateTheme): string {
 
   /* ---- Sections: hand-painted leaf headings + soft bullets --------------- */
   section.cv-section { margin-top:2.4rem; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position:relative; display:flex; align-items:center; gap:0.6em;
     font-size:0.92rem; font-weight:700; text-transform:uppercase; letter-spacing:0.14em;
     color: var(--mw-gold); margin:0 0 1rem; padding-bottom:0.5rem;

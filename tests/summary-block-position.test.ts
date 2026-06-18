@@ -108,6 +108,27 @@ describe("research-summary block placement (HTML)", () => {
   });
 });
 
+describe("research-summary heading matches the section-title styling", () => {
+  // The moved block stays a <div> (so it can't shift the mascot's section:nth-of-type
+  // counting), which means its <h2> can't match `section.cv-section > h2` on its own.
+  // Each template that restyles section headings must therefore GROUP the summary
+  // heading into the same rule, so it shares the font / weight / case / colour.
+  it("groups the summary heading into the section-heading rule for each template", () => {
+    const classic = renderCvHtml(cvAt("top")); // classic is the default template
+    expect(classic).toContain("section.cv-section > h2, .cv-summary-block > .cv-summary-h");
+
+    const modern = renderCvHtml(cvAt("top", { template: "modern" }));
+    expect(modern).toContain("section.cv-section > h2, .cv-summary-block > .cv-summary-h");
+
+    const sidebar = renderCvHtml(cvAt("top", { template: "sidebar" }));
+    expect(sidebar).toContain(
+      ".cv-main section.cv-section > h2, .cv-main .cv-summary-block > .cv-summary-h",
+    );
+    // Sidebar's accent underline (drawn with ::after) is shared too.
+    expect(sidebar).toContain(".cv-main .cv-summary-block > .cv-summary-h::after");
+  });
+});
+
 describe("research-summary block — plain exports honour 'hidden'", () => {
   it("Markdown drops the metrics line when hidden", () => {
     expect(renderCvMarkdown(cvAt("header"))).toContain("Mean work FWCI");

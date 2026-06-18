@@ -102,7 +102,7 @@ function meridianCss(_t: TemplateTheme): string {
     content: ""; position: absolute; top: -1px; left: 0;
     width: 30px; height: 2px; background: var(--cv-accent);
   }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     display: flex; align-items: baseline; gap: 0.85em;
     font-family: var(--mer-sans);
     font-size: 0.95rem; font-weight: 600; color: var(--cv-ink);
@@ -145,7 +145,7 @@ function meridianCss(_t: TemplateTheme): string {
       animation: mer-tick 360ms ease-out both;
       animation-timeline: view(); animation-range: entry 0% cover 8%;
     }
-    section.cv-section > h2 {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h {
       animation: mer-rise 420ms ease-out both;
       animation-timeline: view(); animation-range: entry 0% cover 10%;
     }

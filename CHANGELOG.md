@@ -73,6 +73,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The research-summary heading now matches your other section titles.** When you
+  move the research-summary block to its own section ("top"/"bottom"), its heading is
+  now rendered in the exact same font, size, weight, casing, colour and accent
+  treatment as your real section titles (Publications, Education, …), on every
+  template and every public-page style — instead of a plain mismatched heading.
 - **The ORCID iD on your CV header now shows the green ORCID icon.** The dedicated
   "ORCID: …" line in the header gained the official green iD mark, matching the icons
   already shown for your other contact details and profile links. It's decorative

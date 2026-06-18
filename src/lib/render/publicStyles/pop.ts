@@ -86,7 +86,7 @@ function popCss(_theme: TemplateTheme): string {
 
   /* ---- Candy-chip section headings (rounded pills, per-section hue) ------ */
   section.cv-section { margin-top: 2.1rem; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     display: inline-block;
     font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
     /* Dark ink on the candy chips (small text → WCAG-AA 4.5:1). The pink chip
@@ -139,7 +139,7 @@ function popCss(_theme: TemplateTheme): string {
   }
 
   /* --- extra ambient motion --- */
-  section.cv-section > h2 { animation: pop-chip 4s ease-in-out infinite; }
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { animation: pop-chip 4s ease-in-out infinite; }
   ol.cv-bib > li::before { animation: pop-dot 2.6s ease-in-out infinite; }
   .pop-blobs i:nth-child(4) { width: 240px; height: 240px; background: var(--pop-4); top: 30%; left: 40%; animation: pop-bob 20s ease-in-out infinite; }
   .pop-blobs i:nth-child(5) { width: 170px; height: 170px; background: var(--pop-2); top: 68%; right: 32%; animation: pop-bob 13s ease-in-out infinite reverse; }

@@ -88,7 +88,7 @@ function trajectoryCss(_t: TemplateTheme): string {
      every heading (Publications / Education / Grants / …) and any order — no
      nth-child, no hardcoded years. ---- */
   section.cv-section { position: relative; margin-top: 2.6rem; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position: relative; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.01em;
     color: var(--cv-ink); margin: 0 0 0.9rem; text-transform: none;
   }
@@ -126,7 +126,7 @@ function trajectoryCss(_t: TemplateTheme): string {
      reveal ENHANCES an already-visible default: the @media reduced-motion block
      and the no-@supports default both leave everything fully opaque. */
   @supports (animation-timeline: view()) {
-    section.cv-section > h2 { animation: traj-head-in cubic-bezier(0.22,1,0.36,1) both;
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h { animation: traj-head-in cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%; }
     section.cv-section > h2::before { animation: traj-node-in cubic-bezier(0.34,1.2,0.4,1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%; }

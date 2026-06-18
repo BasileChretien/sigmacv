@@ -66,7 +66,7 @@ function rirekishoCss(_theme: TemplateTheme): string {
      plain flush-left list, and headings become bold + underlined to echo the
      form's ruled aesthetic without borrowing the accent colour. */
   section.cv-section ol.cv-bib > li { padding-left: 0; text-indent: 0; }
-  section.cv-section > h2 { font-size: 1rem; font-weight: 700; color: var(--cv-ink); border-bottom: 1.5px solid #2b2b2b; padding-bottom: 0.22rem; letter-spacing: 0.08em; }
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { font-size: 1rem; font-weight: 700; color: var(--cv-ink); border-bottom: 1.5px solid #2b2b2b; padding-bottom: 0.22rem; letter-spacing: 0.08em; }
 
   @media print {
     /* Keep the faint form tints (label column, 写真 ground, history band) in the

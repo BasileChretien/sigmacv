@@ -244,7 +244,7 @@ function arcadeCss(_t: TemplateTheme): string {
 
   /* ===== Sections: chunky brick-plate headings ============================ */
   section.cv-section { margin-top: 2.2rem; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     display:inline-block; margin:0 0 1rem; padding:0.4em 0.85em;
     font-size:0.82rem; font-weight:900; text-transform:uppercase; letter-spacing:0.12em;
     color:#fff; background: var(--brick);

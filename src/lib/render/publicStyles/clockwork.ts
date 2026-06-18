@@ -145,7 +145,7 @@ function clockworkCss(_t: TemplateTheme): string {
 
   /* ---- Sections: brass plate headings + rivet bullets -------------------- */
   section.cv-section { margin-top:2.6rem; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position:relative; display:flex; align-items:center; gap:0.65em;
     font-size:0.86rem; font-weight:700; text-transform:uppercase; letter-spacing:0.2em;
     color: var(--brass-lt); margin:0 0 1rem; padding-bottom:0.55rem;
@@ -182,7 +182,7 @@ function clockworkCss(_t: TemplateTheme): string {
   @keyframes ck-rise { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
   @keyframes ck-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @supports (animation-timeline: view()) {
-    section.cv-section > h2 {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h {
       animation: ck-stamp cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%;
     }

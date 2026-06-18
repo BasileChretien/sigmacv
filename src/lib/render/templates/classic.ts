@@ -77,7 +77,7 @@ function classicCss(_theme: TemplateTheme): string {
   /* ---- Section headings: classic uppercase accent rule, LEFT-aligned --- */
   /* Section bodies stay left-aligned for readability; only the header above
      is centred — this asymmetry is the classic treatment. */
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     font-size: 0.82rem;
     font-weight: 700;
     text-transform: uppercase;

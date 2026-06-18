@@ -51,7 +51,7 @@ function atsCss(_theme: TemplateTheme): string {
   /* Section headings sit ABOVE the headline (1.1rem) and clearly above body — with
      colour stripped for parser safety, size + weight are the only hierarchy cues,
      so the heading must be the largest of the three (was 1.05rem, below the headline). */
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     font-size: 1.18rem; font-weight: bold; text-transform: none;
     letter-spacing: 0; border: 0; color: #000; margin: 0 0 0.4rem;
   }

@@ -254,7 +254,7 @@ function cyberpunkCss(_t: TemplateTheme): string {
 
   /* ---- Sections: graffiti-stencil hex headings --------------------------- */
   section.cv-section { margin-top: 2.6rem; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position:relative; display:inline-block;
     font-size:1.1rem; font-weight:900; text-transform:uppercase; letter-spacing:0.14em;
     color: var(--pink); margin:0 0 1.15rem; padding-bottom:0.55rem;
@@ -318,7 +318,7 @@ function cyberpunkCss(_t: TemplateTheme): string {
   }
   @keyframes cy-progress { to { transform: scaleX(1); } }
 
-  section.cv-section > h2 { animation: cy-head-in 0.6s ease-out both; }
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { animation: cy-head-in 0.6s ease-out both; }
   .cv-prose-body > * { animation: cy-slam 0.6s ease-out both; }
   .cv-prose-body > *:nth-child(2) { animation-delay: 0.08s; }
   .cv-prose-body > *:nth-child(3) { animation-delay: 0.16s; }

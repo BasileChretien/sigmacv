@@ -94,7 +94,7 @@ function prismCss(_theme: TemplateTheme): string {
   .cv-photo { width: 120px; height: 120px; border-radius: 18px; border: 2px solid rgba(255,255,255,0.45); box-shadow: 0 0 12px var(--neon-1), 0 0 34px rgba(255,45,180,0.4); }
 
   /* ---- Neon, per-section heading colours (sticky glass) ------------------ */
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position: sticky; top: 0; z-index: 3;
     font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.18em;
     margin: 0 0 0.75rem; padding: 0.55rem 0;

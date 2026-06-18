@@ -42,7 +42,7 @@ function risoCss(_t: TemplateTheme): string {
 
   /* Heading as a solid ink block */
   section.cv-section { margin-top: 2.1rem; }
-  section.cv-section > h2 { display:inline-block; color:#f4eede; background: var(--riso-blue); padding:0.28em 0.7em;
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { display:inline-block; color:#f4eede; background: var(--riso-blue); padding:0.28em 0.7em;
     font-size:0.78rem; font-weight:800; text-transform:uppercase; letter-spacing:0.12em; margin:0 0 0.85rem; transform: rotate(-1.2deg); }
   /* Paper ink reads on the blue block (5.8:1) but FAILS on the lighter teal
      (2.27:1) and pink (3.03:1) ink blocks → flip those to dark ink (teal 6.2:1,
@@ -80,7 +80,7 @@ function risoCss(_t: TemplateTheme): string {
     *,*::before,*::after { animation:none !important; }
     section.cv-section, ol.cv-bib > li { opacity:1 !important; transform:none !important; }
     header.cv-header h1 { text-shadow: 3px -2px 0 rgba(31,59,255,0.9) !important; }
-    section.cv-section > h2 { transform: rotate(-1.2deg); }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h { transform: rotate(-1.2deg); }
     .riso-progress { display:none; }
   }`;
 }

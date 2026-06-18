@@ -108,7 +108,7 @@ function luminaCss(_t: TemplateTheme): string {
 
   /* ---- Sections ---- */
   section.cv-section { margin-top: 3rem; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position: relative; display: inline-block;
     font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.26em;
     color: var(--cv-ink); margin: 0 0 1.1rem; padding-bottom: 0.55rem;
@@ -139,7 +139,7 @@ function luminaCss(_t: TemplateTheme): string {
     /* Per-HEADING and per-ENTRY only — NEVER the whole tall section (the
        scroll-reveal trap: a tall section's range scales with its height and
        strands the top). */
-    section.cv-section > h2 {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h {
       animation: lumina-rise cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%;
     }

@@ -53,7 +53,7 @@ function terminalCss(_t: TemplateTheme): string {
   .cv-self { color:#eafff4 !important; font-weight:700; text-shadow:0 0 10px rgba(57,255,140,0.8); }
   .cv-photo { width:112px; height:112px; border-radius:6px; border:1px solid var(--term); box-shadow:0 0 16px rgba(57,255,140,0.4); filter: grayscale(1) contrast(1.08) brightness(1.05); }
 
-  section.cv-section > h2 { color: var(--amber); text-transform: uppercase; letter-spacing:0.2em; font-size:0.8rem; font-weight:700; margin:0 0 0.7rem; }
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { color: var(--amber); text-transform: uppercase; letter-spacing:0.2em; font-size:0.8rem; font-weight:700; margin:0 0 0.7rem; }
   section.cv-section > h2::before { content:"// "; color: var(--term); }
   ol.cv-bib > li { position:relative; padding-left:1.6em; text-indent:0; }
   ol.cv-bib > li::before { content:"$"; position:absolute; left:0; color: var(--term); opacity:0.8; }
@@ -63,7 +63,7 @@ function terminalCss(_t: TemplateTheme): string {
   @keyframes term-progress { to { transform: scaleX(1); } }
 
   @supports (animation-timeline: view()) {
-    section.cv-section > h2 { animation: term-glitch 600ms steps(3) both; animation-timeline: view(); animation-range: entry 0% entry 30%; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h { animation: term-glitch 600ms steps(3) both; animation-timeline: view(); animation-range: entry 0% entry 30%; }
     ol.cv-bib > li { animation: term-rise linear both; animation-timeline: view(); animation-range: entry 0% entry 50%; }
   }
   @supports (animation-timeline: scroll()) {
@@ -78,7 +78,7 @@ function terminalCss(_t: TemplateTheme): string {
 
   @media (prefers-reduced-motion: reduce) {
     *,*::before,*::after { animation:none !important; }
-    section.cv-section > h2 { clip-path:none !important; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h { clip-path:none !important; }
     ol.cv-bib > li { opacity:1 !important; transform:none !important; }
     .crt { display:none; } .term-progress { display:none; }
   }`;

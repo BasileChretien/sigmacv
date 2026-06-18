@@ -173,7 +173,7 @@ function neonCss(_t: TemplateTheme): string {
     50%     { box-shadow: 0 0 20px var(--n2), 0 0 60px var(--n1), 0 0 96px -8px var(--n2); border-color: var(--n2); } }
 
   /* ---- Section headings: pink (cyan on alternate sections) + pulse + slide -- */
-  section.cv-section > h2 { position:relative; display:inline-block; color: var(--n1); text-transform:uppercase; letter-spacing:0.18em;
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { position:relative; display:inline-block; color: var(--n1); text-transform:uppercase; letter-spacing:0.18em;
     font-size:0.82rem; font-weight:800; margin:0 0 0.9rem; padding-bottom:0.4rem; text-shadow:0 0 7px var(--n1), 0 0 18px var(--n1), 0 0 36px var(--n1); }
   section.cv-section > h2::after { content:""; position:absolute; left:0; right:0; bottom:0; height:2px; border-radius:2px;
     background: linear-gradient(90deg, transparent, currentColor, transparent); background-size:220% 100%;
@@ -224,7 +224,7 @@ function neonCss(_t: TemplateTheme): string {
      the heading keeps a gentle glow pulse. Time-based (not scroll-driven) so the
      drop is visible on first paint in EVERY browser, including content already
      on screen. The reading text settles still afterwards. */
-  section.cv-section > h2 { animation: neon-strike 0.8s ease-out both, neon-head-pulse 3s ease-in-out 0.9s infinite; }
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h { animation: neon-strike 0.8s ease-out both, neon-head-pulse 3s ease-in-out 0.9s infinite; }
   .cv-prose-body > * { animation: neon-fall 0.72s ease-out both; }
   .cv-prose-body > *:nth-child(2) { animation-delay: 0.1s; }
   .cv-prose-body > *:nth-child(3) { animation-delay: 0.18s; }

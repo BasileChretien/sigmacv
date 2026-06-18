@@ -104,7 +104,7 @@ function folioCss(_t: TemplateTheme): string {
 
   /* ---- Sections: numbered like a journal contents page ---- */
   section.cv-section { margin-top: 2.8rem; counter-increment: folio; }
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position: relative; display: flex; align-items: baseline; gap: 0.85rem;
     font-family: var(--folio-serif);
     font-size: 0.82rem; font-weight: 600; text-transform: uppercase;
@@ -126,7 +126,7 @@ function folioCss(_t: TemplateTheme): string {
   }
   /* The accent tint only on the leading segment of the rule, so colour reads
      without ever sitting under body text. */
-  section.cv-section > h2 {
+  section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     background-image: linear-gradient(90deg, var(--folio-accent) 0 2.2rem, transparent 2.2rem);
     background-size: 100% 2px; background-position: 0 100%; background-repeat: no-repeat;
   }
@@ -167,7 +167,7 @@ function folioCss(_t: TemplateTheme): string {
   /* Per-heading + per-entry reveals only (small geometry) — never the whole tall
      section (the scroll-reveal trap). Reference terminal.ts lines 62-65. */
   @supports (animation-timeline: view()) {
-    section.cv-section > h2 {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h {
       animation: folio-settle cubic-bezier(0.22, 1, 0.36, 1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%;
     }
