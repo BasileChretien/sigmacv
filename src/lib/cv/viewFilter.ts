@@ -1,6 +1,6 @@
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import { escapeHtml } from "@/lib/render/escape";
-import { renderStrings } from "@/lib/i18n/render";
+import { renderStrings, type RenderStrings } from "@/lib/i18n/render";
 
 /**
  * Server-side "filtered view" of a public living CV (`/p/[slug]?since=…&oa=1`).
@@ -8,15 +8,15 @@ import { renderStrings } from "@/lib/i18n/render";
  * narrows the (already public-projected) CV here before rendering and shows a small
  * facet bar of links that set the same query params. Pure + immutable.
  *
- * Engine supports `since` (min year), `type` (CSL/OpenAlex type token) and `oa`
- * (open-access only); the rendered bar surfaces year cutoffs + open-access (the
- * facets that need no per-type label catalogue — `type` stays URL-addressable).
+ * Engine supports `since` (min year), `type` (a bucketed work-type facet) and `oa`
+ * (open-access only); the rendered bar surfaces year cutoffs, work-type chips
+ * (Articles / Preprints / … — only the buckets actually present), and open-access.
  */
 
 export interface ViewFilters {
   /** Minimum publication year (inclusive). */
   since?: number;
-  /** Exact `meta.type` token (e.g. "article", "preprint"). URL-addressable. */
+  /** A work-type BUCKET key (article/preprint/review/conference/book/dataset). */
   type?: string;
   /** Open-access works only. */
   oa?: boolean;
@@ -25,14 +25,60 @@ export interface ViewFilters {
 /** Citation sections the filters apply to (others are never narrowed). */
 const CITATION_SECTIONS = new Set(["publications", "preprints", "datasets", "conference"]);
 
+/**
+ * Work-type FACETS: a small, stable set of buckets that collapse OpenAlex's many raw
+ * `type` tokens (and Crossref synonyms) into a handful of meaningful filters, in the
+ * order they appear in the bar. The bucket KEY is what rides `?type=`; matching is by
+ * bucket membership, so synonyms ("posted-content" ≈ "preprint", "book-chapter" ≈
+ * "book") collapse cleanly and an unknown/rare type simply gets no chip.
+ */
+const TYPE_BUCKETS: ReadonlyArray<{ key: string; raw: ReadonlySet<string> }> = [
+  { key: "article", raw: new Set(["article", "journal-article", "article-journal"]) },
+  { key: "preprint", raw: new Set(["preprint", "posted-content"]) },
+  { key: "review", raw: new Set(["review"]) },
+  { key: "conference", raw: new Set(["proceedings-article", "paper-conference", "conference"]) },
+  {
+    key: "book",
+    raw: new Set(["book", "book-chapter", "chapter", "monograph", "reference-entry"]),
+  },
+  { key: "dataset", raw: new Set(["dataset"]) },
+];
+const TYPE_KEYS: ReadonlySet<string> = new Set(TYPE_BUCKETS.map((b) => b.key));
+
+/** The work-type bucket a raw `meta.type` token belongs to, or undefined. */
+function bucketOf(rawType: string | undefined): string | undefined {
+  if (!rawType) return undefined;
+  const t = rawType.toLowerCase();
+  for (const b of TYPE_BUCKETS) if (b.raw.has(t)) return b.key;
+  return undefined;
+}
+
+/** Localized chip label for a work-type bucket key. */
+function typeLabel(s: RenderStrings, key: string): string {
+  switch (key) {
+    case "article":
+      return s.filterTypeArticle;
+    case "preprint":
+      return s.filterTypePreprint;
+    case "review":
+      return s.filterTypeReview;
+    case "conference":
+      return s.filterTypeConference;
+    case "book":
+      return s.filterTypeBook;
+    default:
+      return s.filterTypeDataset; // "dataset"
+  }
+}
+
 /** Parse + validate filters from a request's query params (defensive: bad values
  *  are ignored, never thrown). */
 export function parseViewFilters(params: URLSearchParams): ViewFilters {
   const f: ViewFilters = {};
   const since = Number.parseInt(params.get("since") ?? "", 10);
   if (Number.isInteger(since) && since >= 1000 && since <= 9999) f.since = since;
-  const type = params.get("type");
-  if (type && /^[a-z][a-z-]{0,39}$/i.test(type)) f.type = type.toLowerCase();
+  const type = params.get("type")?.toLowerCase();
+  if (type && TYPE_KEYS.has(type)) f.type = type;
   if (params.get("oa") === "1") f.oa = true;
   return f;
 }
@@ -45,7 +91,7 @@ export function isFilterActive(f: ViewFilters): boolean {
 function keepItem(it: CvItem, f: ViewFilters): boolean {
   if (!it.csl) return true; // never filter non-citation entries
   if (f.since !== undefined && (it.meta.year ?? 0) < f.since) return false;
-  if (f.type !== undefined && (it.meta.type ?? "").toLowerCase() !== f.type) return false;
+  if (f.type !== undefined && bucketOf(it.meta.type) !== f.type) return false;
   if (f.oa === true && it.meta.oaIsOpen !== true) return false;
   return true;
 }
@@ -65,17 +111,25 @@ export function filterCvForView(cv: CanonicalCv, f: ViewFilters): CanonicalCv {
   };
 }
 
-/** The facets actually present in the CV: a couple of year cutoffs (relative to
- *  the most recent work) and whether any work is open access. */
-export function viewFilterFacets(cv: CanonicalCv): { years: number[]; hasOa: boolean } {
+/** The facets actually present in the CV: a couple of year cutoffs (relative to the
+ *  most recent work), the work-type buckets present (in canonical order), and whether
+ *  any work is open access. */
+export function viewFilterFacets(cv: CanonicalCv): {
+  years: number[];
+  types: string[];
+  hasOa: boolean;
+} {
   let max = 0;
   let hasOa = false;
+  const present = new Set<string>();
   for (const s of cv.sections) {
     if (!CITATION_SECTIONS.has(s.type)) continue;
     for (const it of s.items) {
       if (!it.csl) continue;
       if (typeof it.meta.year === "number" && it.meta.year > max) max = it.meta.year;
       if (it.meta.oaIsOpen === true) hasOa = true;
+      const bucket = bucketOf(it.meta.type);
+      if (bucket) present.add(bucket);
     }
   }
   const years: number[] = [];
@@ -85,7 +139,9 @@ export function viewFilterFacets(cv: CanonicalCv): { years: number[]; hasOa: boo
       if (cutoff > 1900) years.push(cutoff);
     }
   }
-  return { years, hasOa };
+  // Buckets in their canonical order, restricted to those actually present.
+  const types = TYPE_BUCKETS.map((b) => b.key).filter((k) => present.has(k));
+  return { years, types, hasOa };
 }
 
 /** Serialize filters back to a query string (`?since=…&oa=1`), or "?" when empty
@@ -105,20 +161,31 @@ function queryString(f: ViewFilters): string {
  * route just above the sections; styled by `commonCss` (`.cv-filterbar`).
  */
 export function viewFilterBarHtml(cv: CanonicalCv, f: ViewFilters, locale: string): string {
-  const { years, hasOa } = viewFilterFacets(cv);
-  if (years.length === 0 && !hasOa) return "";
+  const { years, types, hasOa } = viewFilterFacets(cv);
+  if (years.length === 0 && types.length === 0 && !hasOa) return "";
   const s = renderStrings(locale);
   const chip = (label: string, next: ViewFilters, active: boolean): string =>
     `<a href="${escapeHtml(queryString(next))}"${active ? ' aria-current="true"' : ""}>${escapeHtml(
       label,
     )}</a>`;
   const parts: string[] = [`<span class="cv-filter-label">${escapeHtml(s.filterLabel)}</span>`];
-  // Year group: "All" clears the cutoff; each cutoff sets `since`.
-  parts.push(chip(s.filterAll, { ...f, since: undefined }, f.since === undefined));
-  for (const y of years) {
-    parts.push(chip(s.filterSince.replace("{year}", String(y)), { ...f, since: y }, f.since === y));
+  // Year group (only when there are cutoffs to offer): "All" clears the cutoff,
+  // each cutoff sets `since`.
+  if (years.length) {
+    parts.push(chip(s.filterAll, { ...f, since: undefined }, f.since === undefined));
+    for (const y of years) {
+      parts.push(
+        chip(s.filterSince.replace("{year}", String(y)), { ...f, since: y }, f.since === y),
+      );
+    }
   }
-  // Access: an open-access toggle (preserves the active year).
+  // Work-type chips: each toggles its bucket (active → clear), preserving year/oa.
+  for (const tk of types) {
+    parts.push(
+      chip(typeLabel(s, tk), { ...f, type: f.type === tk ? undefined : tk }, f.type === tk),
+    );
+  }
+  // Access: an open-access toggle (preserves the active year/type).
   if (hasOa) {
     parts.push(chip(s.filterOpenAccess, { ...f, oa: f.oa ? undefined : true }, f.oa === true));
   }

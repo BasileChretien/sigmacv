@@ -96,8 +96,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Pin "Selected publications."** Star individual works in the editor to float
     them to the top of their section with a quiet "Selected" mark; the pin survives
     re-sync.
-  - **Filter a long publication list by year or open access** with server-rendered
-    facet links (e.g. `?since=2021&oa=1`) — no JavaScript required.
+  - **Filter a long publication list by year, work type, or open access** with
+    server-rendered facet links (e.g. `?since=2021&type=review&oa=1`) — no JavaScript
+    required. Work-type chips (Articles / Preprints / Reviews / Conference / Books /
+    Datasets) appear only for the types you actually have.
 
   Everything here is localized in the ten supported languages, stays off every
   exported PDF/DOCX/LaTeX, and respects the page's strict no-JavaScript security
