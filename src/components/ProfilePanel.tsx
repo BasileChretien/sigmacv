@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { CanonicalCv, CvLink } from "@/lib/canonical/schema";
-import { PHOTO_DATA_URL_MAX } from "@/lib/canonical/schema";
+import { PHOTO_DATA_URL_MAX, NOTES_MAX } from "@/lib/canonical/schema";
 import { updateOwner, setNotes } from "@/lib/canonical/curate";
 import { t, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
@@ -252,6 +252,7 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
         <textarea
           className="profile-notes"
           rows={3}
+          maxLength={NOTES_MAX}
           value={cv.notes ?? ""}
           onChange={(e) => onChange(setNotes(cv, e.target.value))}
         />

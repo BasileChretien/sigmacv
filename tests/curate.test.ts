@@ -37,7 +37,12 @@ import {
   visibleItems,
   visibleSections,
 } from "@/lib/canonical/curate";
-import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
+import {
+  CanonicalCvSchema,
+  NOTES_MAX,
+  type CanonicalCv,
+  type CvItem,
+} from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -86,6 +91,12 @@ describe("setNotes", () => {
     const cv = setNotes(makeCv(), "draft");
     expect(setNotes(cv, "").notes).toBeUndefined();
     expect(setNotes(cv, "   \n\t ").notes).toBeUndefined();
+  });
+
+  it("caps over-long notes so the result stays schema-valid", () => {
+    const next = setNotes(makeCv(), "x".repeat(NOTES_MAX + 500));
+    expect(next.notes).toHaveLength(NOTES_MAX);
+    expect(CanonicalCvSchema.safeParse(next).success).toBe(true);
   });
 });
 
