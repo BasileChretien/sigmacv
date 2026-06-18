@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The "Neon" living-page style is now a cool-video-game arcade screen.** The
+  public page rendered in the Neon style gained a fixed pink + cyan arcade palette,
+  glowing HUD corner brackets pinned to the screen, faint rolling CRT scanlines, a
+  Tron-style perspective grid floor, an igniting neon-tube header frame with a light
+  running around it, publication panels that drop in and re-light on hover, rising
+  sparks and a sweeping beam — all CSS-only under the strict public-page CSP, with
+  the body copy kept crisp/legible and full `prefers-reduced-motion` + print
+  fallbacks. Affects only the `neon` public style; no export or document template
+  changes.
 - **The "Cyberpunk" living-page style is a full Arcane-flavoured arcade screen.**
   A complete redesign of the `cyberpunk` public style into a Zaun/hextech "brawler"
   aesthetic (genre & mood only — original CSS, no character likeness or trademarks):
