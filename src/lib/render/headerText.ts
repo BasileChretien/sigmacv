@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { resolveLink } from "./icons";
 
 /**
  * Format-agnostic header fields for the TEXT renderers (Markdown / LaTeX / DOCX).
@@ -24,7 +25,10 @@ export function textHeader(cv: CanonicalCv): TextHeader {
   for (const l of cv.owner.links ?? []) {
     const url = (l.url ?? "").trim();
     if (!url) continue;
-    contact.push(l.label?.trim() ? `${l.label.trim()}: ${url}` : url);
+    // The text formats have no icons, but a bare URL still reads better auto-labelled
+    // with its detected service ("GitHub: https://github.com/…") than as a raw URL.
+    const label = l.label?.trim() || resolveLink(url).service;
+    contact.push(label ? `${label}: ${url}` : url);
   }
   return {
     honorific: cv.owner.honorific?.trim() || undefined,

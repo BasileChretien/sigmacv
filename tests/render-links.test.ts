@@ -140,8 +140,10 @@ describe.skipIf(!hasApa)("renderCvHtml link behaviour (needs vendored CSL assets
       /<a href="https:\/\/me\.example\.org" rel="nofollow ugc noopener noreferrer" target="_blank">/,
     );
     expect(html).toMatch(
-      /<a href="https:\/\/blog\.example\.org" rel="nofollow ugc noopener noreferrer" target="_blank">Blog</,
+      /<a href="https:\/\/blog\.example\.org" rel="nofollow ugc noopener noreferrer" target="_blank">/,
     );
+    // The label still renders (now after a decorative contact-link icon).
+    expect(html).toContain(">Blog</a>");
     // …while identifier-derived links (DOI) keep the plain externalizeLinks rel.
     expect(html).toMatch(
       /<a href="https:\/\/doi\.org\/10\.1000\/example1" target="_blank" rel="noopener noreferrer"/,

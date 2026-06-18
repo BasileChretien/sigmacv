@@ -5,6 +5,7 @@ import { authorshipCounts } from "../authorship";
 import { renderChartsHtml } from "../charts";
 import { escapeHtml, safeHref } from "../escape";
 import { formattedMetrics, openAccessShare } from "../metrics";
+import { iconSvg, resolveLink, type IconName } from "../icons";
 import { SITE_URL } from "@/lib/siteUrl";
 import type { RenderOpts } from "../types";
 import type { RenderedSection, TemplateTheme } from "./types";
@@ -68,29 +69,44 @@ export function photoHtml(cv: CanonicalCv): string {
  */
 const UGC_REL = ' rel="nofollow ugc noopener noreferrer"';
 
-/** The contact line: location · email · phone · website (+ extra links). */
+/** The contact line: location · email · phone · website (+ extra links). Each item
+ *  gains a small decorative icon (the link icon auto-detected from its host) EXCEPT
+ *  on the parser-safe ATS template; the visible text is unchanged everywhere. */
 function contactHtml(cv: CanonicalCv): string {
   const c = cv.owner.contact ?? {};
+  // Icons are decorative inline SVG; suppress them on ATS (a glyph between text runs
+  // adds nothing a résumé parser reads and risks tripping it). `ico("")` → "".
+  const withIcons = cv.display.template !== "ats";
+  const ico = (name: IconName): string => (withIcons ? iconSvg(name) : "");
   const parts: string[] = [];
-  if (c.location) parts.push(escapeHtml(c.location));
+  if (c.location) parts.push(`${ico("location")}${escapeHtml(c.location)}`);
   if (c.email) {
     const href = safeHref(`mailto:${c.email}`);
-    parts.push(
-      href ? `<a href="${escapeHtml(href)}">${escapeHtml(c.email)}</a>` : escapeHtml(c.email),
-    );
+    const body = `${ico("email")}${escapeHtml(c.email)}`;
+    parts.push(href ? `<a href="${escapeHtml(href)}">${body}</a>` : body);
   }
-  if (c.phone) parts.push(escapeHtml(c.phone));
+  if (c.phone) parts.push(`${ico("phone")}${escapeHtml(c.phone)}`);
   if (c.website) {
     // Only render the website when it resolves to a SAFE href; an unsafe scheme
     // (javascript:/data:/…) is dropped entirely rather than shown as raw text.
     const href = safeHref(c.website);
-    if (href) parts.push(`<a href="${escapeHtml(href)}"${UGC_REL}>${escapeHtml(c.website)}</a>`);
+    if (href)
+      parts.push(
+        `<a href="${escapeHtml(href)}"${UGC_REL}>${ico("website")}${escapeHtml(c.website)}</a>`,
+      );
   }
   const links = (cv.owner.links ?? [])
     .map((l) => {
       const href = safeHref(l.url);
-      const label = escapeHtml(l.label || l.url);
-      return href ? `<a href="${escapeHtml(href)}"${UGC_REL}>${label}</a>` : label;
+      // Detection reads the URL host ONLY (never trusts/mutates it — the href is
+      // still safeHref-validated). It picks the icon and, when icons show, an
+      // auto-label for a bare URL ("GitHub") — allowlist-gated so a label can't
+      // claim a service the URL doesn't point to; ATS keeps the literal URL.
+      const { icon, service } = resolveLink(l.url);
+      const labelText = l.label || (withIcons ? service : undefined) || l.url;
+      if (!labelText && !href) return "";
+      const body = `${ico(icon)}${escapeHtml(labelText)}`;
+      return href ? `<a href="${escapeHtml(href)}"${UGC_REL}>${body}</a>` : body;
     })
     .filter(Boolean);
   const contactLine = parts.length ? `<div class="cv-contact">${parts.join(" · ")}</div>` : "";
@@ -224,6 +240,12 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-contact, .cv-links { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.3rem; line-height: 1.5; }
   .cv-links { margin-top: 0.1rem; }
   .cv-contact a, .cv-links a { color: var(--cv-muted); text-decoration: underline; text-underline-offset: 0.15em; }
+  /* Decorative inline contact/link icons — monochrome via currentColor, so each
+     glyph takes the colour of its surrounding text on every template + dark style
+     (ORCID is the one exception, rendered in its brand green). Sized to the text,
+     nudged onto the baseline, with a thin gap; SVG carries no text-decoration, so
+     the link underline applies only to the label text beside it. */
+  .cv-ico { width: 1em; height: 1em; vertical-align: -0.125em; margin-right: 0.3em; }
   .cv-summary { margin: 0.95rem 0 0; font-size: 0.95rem; color: var(--cv-ink-2); line-height: 1.55; }
   /* Profile metric strip — ONE METRIC PER LINE (a list, not a " · "-joined run) so
      each metric is a discrete, screen-reader-navigable item, and its interpretation
