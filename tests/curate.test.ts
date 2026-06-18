@@ -575,6 +575,44 @@ describe("named presets", () => {
     expect(deletePreset(twice, "preset:nope")).toBe(twice); // unknown → no-op
     expect(applyPreset(cv, "preset:nope")).toBe(cv); // unknown → no-op
   });
+
+  it("captures and restores each version's SECTION ORDER", () => {
+    const cv = makeCv();
+    const ids = orderedSections(cv).map((s) => s.id);
+    // Version A — a distinct order (last section moved to the front), saved.
+    const aIds = [ids[ids.length - 1]!, ...ids.slice(0, -1)];
+    const versionA = savePreset(reorderSections(cv, aIds), "A");
+    const aId = versionA.presets!.find((p) => p.name === "A")!.id;
+    expect(versionA.presets!.find((p) => p.id === aId)!.sectionOrder).toEqual(aIds);
+
+    // Reorder differently afterwards (first section moved to the back).
+    const bIds = [...aIds.slice(1), aIds[0]!];
+    const versionB = reorderSections(versionA, bIds);
+    expect(orderedSections(versionB).map((s) => s.id)).toEqual(bIds);
+
+    // Applying version A restores ITS section order on top of the same data.
+    const restored = applyPreset(versionB, aId);
+    expect(orderedSections(restored).map((s) => s.id)).toEqual(aIds);
+  });
+
+  it("leaves the order untouched for a legacy preset with no saved order", () => {
+    const cv = makeCv();
+    const reordered = reorderSections(cv, [...orderedSections(cv).map((s) => s.id)].reverse());
+    const before = orderedSections(reordered).map((s) => s.id);
+    const legacy: CanonicalCv = {
+      ...reordered,
+      presets: [
+        {
+          id: "preset:legacy",
+          name: "Legacy",
+          display: reordered.display,
+          sectionVisibility: {},
+          sectionOrder: [],
+        },
+      ],
+    };
+    expect(orderedSections(applyPreset(legacy, "preset:legacy")).map((s) => s.id)).toEqual(before);
+  });
 });
 
 describe("removeSection", () => {

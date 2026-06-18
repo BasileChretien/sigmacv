@@ -285,19 +285,33 @@ export function savePreset(cv: CanonicalCv, name: string): CanonicalCv {
     name: trimmed,
     display: cv.display,
     sectionVisibility: Object.fromEntries(cv.sections.map((s) => [s.id, s.visible])),
+    // Snapshot the EFFECTIVE section order (what the user currently sees), so the
+    // preset restores this version's section sequence, not just its visibility.
+    sectionOrder: orderedSections(cv).map((s) => s.id),
   };
   const others = (cv.presets ?? []).filter((p) => p.id !== id);
   return { ...cv, presets: [...others, preset] };
 }
 
-/** Apply a saved preset: restore its display choices + section visibility. The
- *  underlying items/curation are untouched. No-op if the id is unknown. */
+/** Apply a saved preset: restore its display choices, section visibility and (for
+ *  presets saved with one) section order. The underlying items/curation are
+ *  untouched. No-op if the id is unknown. */
 export function applyPreset(cv: CanonicalCv, id: string): CanonicalCv {
   const preset = (cv.presets ?? []).find((p) => p.id === id);
   if (!preset) return cv;
-  const sections = cv.sections.map((s) =>
-    s.id in preset.sectionVisibility ? { ...s, visible: preset.sectionVisibility[s.id]! } : s,
-  );
+  // Section order: a section in the preset's snapshot takes that index; any newer
+  // section (added since the preset was saved) sorts after, keeping its relative
+  // order. Empty snapshot (legacy preset) ⇒ order untouched.
+  const order = preset.sectionOrder ?? [];
+  const orderIndex = new Map(order.map((sid, i) => [sid, i]));
+  const sections = cv.sections.map((s) => {
+    const visible = s.id in preset.sectionVisibility ? preset.sectionVisibility[s.id]! : s.visible;
+    if (order.length === 0) return { ...s, visible };
+    return { ...s, visible, order: orderIndex.get(s.id) ?? order.length + s.order };
+  });
+  // Restore the display verbatim — it already carries the `sectionsCustomized`
+  // flag from the same state the order was snapshotted in, so a custom order
+  // renders and a default-order snapshot stays default (no flag to force here).
   return { ...cv, display: { ...preset.display }, sections };
 }
 

@@ -1226,6 +1226,13 @@ export const CvPresetSchema = z.object({
   display: DisplayChoicesSchema,
   /** sectionId → visible, captured when the preset was saved. */
   sectionVisibility: z.record(z.string(), z.boolean()).default({}),
+  /**
+   * Section ids in their effective order when the preset was saved, so a version
+   * can lead with different sections (e.g. a teaching CV opening with Teaching vs.
+   * a research CV opening with Publications). Empty for presets saved before this
+   * field existed → applying them leaves the current order untouched (back-compat).
+   */
+  sectionOrder: z.array(z.string().max(200)).max(500).default([]),
 });
 export type CvPreset = z.infer<typeof CvPresetSchema>;
 

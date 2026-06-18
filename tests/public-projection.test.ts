@@ -87,7 +87,9 @@ describe("projectCvForPublic", () => {
         metrics: { h_index: 5 },
         countsByYear: [{ year: 2020, works: 1, citations: 2 }],
       },
-      presets: [{ id: "p1", name: "Grant", display: base.display, sectionVisibility: {} }],
+      presets: [
+        { id: "p1", name: "Grant", display: base.display, sectionVisibility: {}, sectionOrder: [] },
+      ],
     };
     // Opt-ins OFF (defaults): the .json machine format must not leak the figures
     // or the saved presets.
