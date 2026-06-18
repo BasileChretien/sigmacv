@@ -49,6 +49,27 @@ describe("attributionFooter", () => {
     expect(attributionFooter(makeCv())).not.toContain("cv-living");
   });
 
+  it("shows a 'What's new' strip from recentlyAdded (public path only)", () => {
+    const html = attributionFooter(makeCv(), {
+      attribution: true,
+      recentlyAdded: [
+        { title: "Brand new finding", sectionType: "publications" },
+        { title: "A fresh dataset", sectionType: "datasets" },
+      ],
+    });
+    expect(html).toContain('class="cv-whatsnew"');
+    expect(html).toContain(renderStrings("en-US").whatsNewLabel);
+    expect(html).toContain("Brand new finding · A fresh dataset");
+    // No strip when nothing was added.
+    expect(attributionFooter(makeCv(), { attribution: true })).not.toContain("cv-whatsnew");
+    // Off the export path entirely (the whole footer is "").
+    expect(
+      attributionFooter(makeCv(), {
+        recentlyAdded: [{ title: "X", sectionType: "publications" }],
+      }),
+    ).not.toContain("cv-whatsnew");
+  });
+
   it("localizes the living-CV line", () => {
     const fr = updateDisplay(makeCv(), { locale: "fr-FR" });
     const html = attributionFooter(fr, { attribution: true });

@@ -435,6 +435,10 @@ export function commonCss(theme: TemplateTheme): string {
   /* "Living CV" line — public page ONLY. Tells a visitor the page is current
      ("Updated <date> · updates automatically"); a quiet footnote, not a landmark. */
   .cv-living { margin: 1.4rem 0 0; font-size: 0.66rem; color: var(--cv-muted); letter-spacing: 0.01em; }
+  /* "What's new" — the most recent sync's additions, a footnote beside the living
+     line. Public page only; never printed (rides attributionFooter's gating). */
+  .cv-whatsnew { margin: 0.4rem 0 0; font-size: 0.66rem; color: var(--cv-muted); letter-spacing: 0.01em; }
+  .cv-whatsnew-label { font-weight: 600; }
   /* "Made with SigmaCV" referral line — public living page ONLY (never in an
      export). A quiet brand backlink under the document (a paragraph, not a
      landmark). */
@@ -842,6 +846,16 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
   const living = synced
     ? `<p class="cv-living">${escapeHtml(s.livingNote.replace("{date}", synced))}</p>`
     : "";
+  // "What's new": the confirmed, still-visible works the most recent sync added —
+  // a concrete, visitor-facing proof the page actually updates itself (the living
+  // page's whole value). Resolved server-side (`opts.recentlyAdded`, public route
+  // only); "" when nothing new arrived, on the initial import, or on exports.
+  const recent = opts.recentlyAdded ?? [];
+  const whatsNew = recent.length
+    ? `<p class="cv-whatsnew"><span class="cv-whatsnew-label">${escapeHtml(
+        s.whatsNewLabel,
+      )}</span> ${recent.map((r) => escapeHtml(r.title)).join(" · ")}</p>`
+    : "";
   const madeWith = escapeHtml(s.madeWith);
   // "Subscribe" affordance for this living CV's Atom feed (the public follow
   // primitive). A browser can't natively "subscribe" to a feed — clicking a bare
@@ -856,7 +870,7 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
         opts.feedHref,
       )}</a></span></details>`
     : "";
-  return `${living}${subscribe}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
+  return `${living}${whatsNew}${subscribe}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
 }
 
 /**

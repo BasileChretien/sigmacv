@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A "What's new" line on the living public page.** Next to the "Updated …"
+  line, a published page now shows the works your most recent sync actually added
+  (e.g. "Recently added: <title> · <title>") — concrete proof to a visitor that the
+  page keeps itself current. It lists only confirmed, still-visible additions
+  (never unconfirmed review candidates, never anything you've since hidden, and
+  never the first import), and like the rest of the living-page footer it never
+  appears on exports. Localized in all ten languages.
+
 - **Terms of Use.** A new `/terms` page (and `/[locale]/terms` for the other nine
   languages) sets out the contract for the hosted service that the privacy notice
   already presupposed: acceptance, what the free/open-source service is, accounts
