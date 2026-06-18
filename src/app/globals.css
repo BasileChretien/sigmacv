@@ -2550,12 +2550,20 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 }
 .profile-link-row {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-2);
   margin-bottom: var(--space-2);
 }
 .profile-link-row input {
-  flex: 1 1 auto;
+  /* A real flex-basis + wrap keeps each field usable: on a narrow profile panel
+     the label/URL fields drop onto their own rows instead of collapsing to a
+     sliver next to the "Remove link" button (which made links impossible to type). */
+  flex: 1 1 9rem;
   min-width: 0;
+}
+.profile-link-row .btn {
+  flex: 0 0 auto;
 }
 .profile-rirekisho {
   grid-column: 1 / -1;
