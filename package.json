@@ -22,6 +22,7 @@
     "sbom": "npx --yes @cyclonedx/cyclonedx-npm@4 --output-format JSON --output-file sbom.cdx.json --omit dev --mc-type application",
     "gen:schema": "tsx scripts/gen-cv-schema.ts",
     "fetch-csl": "node scripts/fetch-csl.mjs",
+    "fetch-fonts": "node scripts/fetch-fonts.mjs",
     "resync": "node scripts/resync.mjs",
     "research:export": "dotenv -e .env -- tsx scripts/export-research-data.ts",
     "oep:import": "dotenv -e .env -- tsx scripts/oep-import.ts",

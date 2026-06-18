@@ -55,9 +55,10 @@ function publicPageResponse(html: string, indexable: boolean, links?: string): N
       "Cache-Control": "private, no-store",
       // Defence-in-depth as an HTTP header (stronger than the in-document meta
       // CSP, and able to set frame-ancestors). Mirrors the document's policy:
-      // no scripts, inline styles only, data: images; never framed.
+      // no scripts, inline styles only, data: images + data: fonts (the bundled
+      // body font is an embedded @font-face data URI); never framed.
       "Content-Security-Policy":
-        "default-src 'none'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+        "default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
       // Don't leak the unguessable capability slug to external links via Referer.

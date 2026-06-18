@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The CV now uses a bundled body font (Source Serif 4), so the preview, the PDF
+  and every visitor's view look identical.** The serif templates previously relied
+  on whatever serif each device happened to have installed — so the on-screen
+  preview (e.g. Palatino on Windows) and the server-rendered PDF (a Linux serif)
+  used different typefaces and wrapped text differently. The font is now embedded in
+  the document itself, so the typeface and line-breaks are the same everywhere,
+  regardless of operating system. (The font ships for Latin scripts; Cyrillic and
+  CJK gracefully fall back to a system serif per character.)
+
 ### Fixed
 
 - **A long Positions/Education title no longer pushes its dates onto a separate
@@ -14,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dropped below it onto its own line; now the dates stay pinned to the top-right of
   the first line and the title wraps beneath them — the way a clean academic CV
   reads. (The parser-safe ATS template, with its inline dates, is unchanged.)
+- **Reverted the preview scrollbar-hiding change.** It wasn't the cause of the
+  preview/PDF font difference (the bundled font above is), and hiding the scrollbar
+  made it harder to tell the preview can scroll — the scrollbar is back.
 
 - **The editor preview now wraps text exactly like the PDF.** The preview iframe
   is A4-wide and scrolls internally, so on platforms with classic scrollbars (e.g.

@@ -8,8 +8,17 @@ import { formattedMetrics, openAccessShare } from "../metrics";
 import { iconSvg, resolveLink, type IconName } from "../icons";
 import { SITE_URL } from "@/lib/siteUrl";
 import { qrSvg } from "@/lib/cv/qrSvg";
+import { SOURCE_SERIF_4_FACE_CSS } from "../fonts/sourceSerif4";
 import type { RenderOpts } from "../types";
 import type { RenderedSection, TemplateTheme } from "./types";
+
+/** The embedded `@font-face` block, emitted only when the resolved font stack
+ *  actually uses the bundled font (the "serif" pairing) — so a sans/palatino CV
+ *  never carries the ~134 KB of font data. Keeps the preview, the PDF and every
+ *  visitor's view on the IDENTICAL typeface (see `scripts/fetch-fonts.mjs`). */
+function bundledFontFaceCss(theme: TemplateTheme): string {
+  return theme.fontFamily.includes("Source Serif 4") ? SOURCE_SERIF_4_FACE_CSS : "";
+}
 
 export { escapeHtml };
 
@@ -162,7 +171,7 @@ export function pageShell(title: string, css: string, body: string, lang = "en")
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:;" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:;" />
 <title>${escapeHtml(title)}</title>
 <style>${css}</style>
 </head>
@@ -199,6 +208,7 @@ export function externalizeLinks(html: string): string {
 /** Reset + bibliography + self-highlight CSS common to every template. */
 export function commonCss(theme: TemplateTheme): string {
   return `
+  ${bundledFontFaceCss(theme)}
   :root {
     /* A CV is a light document. Declare it light-only so a browser's auto
        dark-mode never inverts the page (white→dark) in the preview iframe or

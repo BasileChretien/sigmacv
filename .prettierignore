@@ -1,6 +1,7 @@
 # Generated + vendored — never reformat
 src/generated/
 src/lib/citeproc/assets/
+src/lib/render/fonts/
 package-lock.json
 prisma/seed-data/
 prisma/migrations/
