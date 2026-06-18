@@ -24,6 +24,19 @@ citeproc-js
   Source:  https://github.com/Juris-M/citeproc-js
   License: Common Public Attribution License (CPAL) 1.0
 
+Contact-line icon path data (src/lib/render/icons.ts)
+  Brand marks (GitHub, LinkedIn, ORCID, Mastodon, ResearchGate, Bluesky, X,
+  YouTube):
+    Source:  Simple Icons — https://github.com/simple-icons/simple-icons
+    License: CC0 1.0 (the SVG artwork). The depicted logos remain the trademarks
+             of their respective owners; they are shown small, unaltered in
+             shape, single-colour, and solely to IDENTIFY a service the account
+             holder has linked to (nominative use) — not implying any affiliation
+             with or endorsement by those owners.
+  Generic glyphs (email, phone, location, website, link, academic cap):
+    Source:  Material Design Icons — https://github.com/Templarian/MaterialDesign
+    License: Apache License, Version 2.0
+
 ────────────────────────────────────────────────────────────────────────────
 Data sources accessed at runtime (not bundled)
 ────────────────────────────────────────────────────────────────────────────
