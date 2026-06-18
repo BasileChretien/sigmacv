@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Saved versions now remember their section order.** A named preset (your
+  "full CV", "grant biosketch", "teaching CV"…) already captured the template,
+  styling, metrics and which sections show; it now also captures the _order_ of
+  your sections, so different versions can lead with different sections (e.g. a
+  teaching version opening with Teaching, a research version opening with
+  Publications) off the same underlying data. Existing presets are unaffected —
+  applying one saved before this change leaves your current order untouched.
+
 ### Added
 
 - **Manual page breaks for the PDF.** Each section in the content editor now has a

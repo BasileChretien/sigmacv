@@ -1351,6 +1351,15 @@
             "additionalProperties": {
               "type": "boolean"
             }
+          },
+          "sectionOrder": {
+            "default": [],
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            }
           }
         },
         "required": ["id", "name", "display"]
