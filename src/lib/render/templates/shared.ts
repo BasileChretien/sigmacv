@@ -111,8 +111,16 @@ function contactHtml(cv: CanonicalCv): string {
       return href ? `<a href="${escapeHtml(href)}"${UGC_REL}>${body}</a>` : body;
     })
     .filter(Boolean);
-  const contactLine = parts.length ? `<div class="cv-contact">${parts.join(" · ")}</div>` : "";
-  const linksLine = links.length ? `<div class="cv-links">${links.join(" · ")}</div>` : "";
+  // Non-ATS templates lay the items out as a responsive grid — one item per line
+  // when the header is narrow (e.g. the sidebar column), ~two per line when there
+  // is room — each a discrete chip with its leading icon. ATS keeps the
+  // parser-safe single " · "-separated line (a real text separator survives the
+  // plain-text extraction a résumé parser runs).
+  const wrap = (s: string): string => `<span class="cv-citem">${s}</span>`;
+  const contactInner = withIcons ? parts.map(wrap).join("") : parts.join(" · ");
+  const linksInner = withIcons ? links.map(wrap).join("") : links.join(" · ");
+  const contactLine = parts.length ? `<div class="cv-contact">${contactInner}</div>` : "";
+  const linksLine = links.length ? `<div class="cv-links">${linksInner}</div>` : "";
   return contactLine + linksLine;
 }
 
@@ -239,8 +247,15 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-headline { font-size: 1.2rem; font-weight: 500; color: var(--cv-ink-2); margin-top: 0.15rem; letter-spacing: 0; }
   .cv-ids { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.35rem; }
   .cv-ids a { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; }
-  .cv-contact, .cv-links { font-size: 0.82rem; color: var(--cv-muted); margin-top: 0.3rem; line-height: 1.5; }
-  .cv-links { margin-top: 0.1rem; }
+  /* Contact + profile links: a responsive grid — one item per line in a narrow
+     header (e.g. the sidebar column), ~two per line when there is room — each a
+     chip with its leading icon. min(100%,…) keeps a single column from
+     overflowing a container narrower than the track. */
+  .cv-contact, .cv-links { font-size: 0.82rem; color: var(--cv-muted); line-height: 1.5; margin-top: 0.4rem;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 0.25rem 1.25rem; }
+  .cv-links { margin-top: 0.25rem; }
+  .cv-citem { display: inline-flex; align-items: center; min-width: 0; }
+  .cv-citem > a { min-width: 0; overflow-wrap: anywhere; }
   .cv-contact a, .cv-links a { color: var(--cv-muted); text-decoration: underline; text-underline-offset: 0.15em; }
   /* Decorative inline contact/link icons — monochrome via currentColor, so each
      glyph takes the colour of its surrounding text on every template + dark style

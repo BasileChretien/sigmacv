@@ -106,7 +106,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceLabel: "Preview",
     previewSurfaceDocument: "Document",
     previewSurfacePublic: "Public page",
-    publishStyleTip: "Personalise how your public page looks under Design → Public page style.",
+    publishStyleTip: "Choose your public-page design here.",
     grpLook: "Look & typography",
     grpDocLayout: "Document layout",
     docLayoutNote:
@@ -180,7 +180,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceLabel: "预览",
     previewSurfaceDocument: "文档",
     previewSurfacePublic: "公开页面",
-    publishStyleTip: "在“设计 → 公开页面样式”中个性化你的公开页面外观。",
+    publishStyleTip: "在此选择你的公开页面设计。",
     grpLook: "样式与排版",
     grpDocLayout: "文档版式",
     docLayoutNote:
@@ -254,8 +254,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceLabel: "Vista previa",
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Página pública",
-    publishStyleTip:
-      "Personaliza el aspecto de tu página pública en Diseño → Estilo de la página pública.",
+    publishStyleTip: "Elige aquí el diseño de tu página pública.",
     grpLook: "Aspecto y tipografía",
     grpDocLayout: "Diseño del documento",
     docLayoutNote:
@@ -332,8 +331,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceLabel: "Aperçu",
     previewSurfaceDocument: "Document",
     previewSurfacePublic: "Page publique",
-    publishStyleTip:
-      "Personnalisez l’apparence de votre page publique dans Design → Style de la page publique.",
+    publishStyleTip: "Choisissez ici le design de votre page publique.",
     grpLook: "Aspect et typographie",
     grpDocLayout: "Mise en page du document",
     docLayoutNote:
@@ -411,8 +409,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceLabel: "Vorschau",
     previewSurfaceDocument: "Dokument",
     previewSurfacePublic: "Öffentliche Seite",
-    publishStyleTip:
-      "Gestalten Sie das Aussehen Ihrer öffentlichen Seite unter Design → Stil der öffentlichen Seite.",
+    publishStyleTip: "Wählen Sie hier das Design Ihrer öffentlichen Seite.",
     grpLook: "Aussehen & Typografie",
     grpDocLayout: "Dokumentlayout",
     docLayoutNote:
@@ -489,8 +486,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceLabel: "プレビュー",
     previewSurfaceDocument: "ドキュメント",
     previewSurfacePublic: "公開ページ",
-    publishStyleTip:
-      "「デザイン → 公開ページのスタイル」で公開ページの見た目をカスタマイズできます。",
+    publishStyleTip: "ここで公開ページのデザインを選べます。",
     grpLook: "外観と書体",
     grpDocLayout: "ドキュメントのレイアウト",
     docLayoutNote:
@@ -565,8 +561,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceLabel: "Pré-visualização",
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Página pública",
-    publishStyleTip:
-      "Personalize a aparência da sua página pública em Design → Estilo da página pública.",
+    publishStyleTip: "Escolha aqui o design da sua página pública.",
     grpLook: "Estilo e tipografia",
     grpDocLayout: "Layout do documento",
     docLayoutNote:
@@ -643,8 +638,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceLabel: "Anteprima",
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Pagina pubblica",
-    publishStyleTip:
-      "Personalizza l’aspetto della tua pagina pubblica in Design → Stile della pagina pubblica.",
+    publishStyleTip: "Scegli qui il design della tua pagina pubblica.",
     grpLook: "Stile e tipografia",
     grpDocLayout: "Layout del documento",
     docLayoutNote:
@@ -721,7 +715,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceLabel: "미리보기",
     previewSurfaceDocument: "문서",
     previewSurfacePublic: "공개 페이지",
-    publishStyleTip: "‘디자인 → 공개 페이지 스타일’에서 공개 페이지 모양을 꾸밀 수 있습니다.",
+    publishStyleTip: "여기에서 공개 페이지 디자인을 선택하세요.",
     grpLook: "스타일 및 글꼴",
     grpDocLayout: "문서 레이아웃",
     docLayoutNote:
@@ -797,8 +791,7 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceLabel: "Предпросмотр",
     previewSurfaceDocument: "Документ",
     previewSurfacePublic: "Публичная страница",
-    publishStyleTip:
-      "Настройте внешний вид публичной страницы в разделе «Дизайн → Стиль публичной страницы».",
+    publishStyleTip: "Выберите здесь дизайн публичной страницы.",
     grpLook: "Стиль и шрифты",
     grpDocLayout: "Макет документа",
     docLayoutNote:

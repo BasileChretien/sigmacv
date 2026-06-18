@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Contact details now read as a clean, icon-led list.** Instead of one cramped
+  "·"-separated run, each contact item (location, email, phone, website) and each
+  profile link sits in a responsive grid — one per line in a narrow header (e.g. the
+  sidebar column), about two per line when there's room — each with its leading icon
+  (LinkedIn, GitHub, ORCID, etc. auto-detected). The parser-safe ATS template keeps
+  its single plain-text line.
+- **The "Choose your public-page design" hint no longer overflows the Publish
+  popover.** The tip text was shortened (all ten languages) and the button now wraps
+  instead of forcing the panel wider (it was running off the side).
 - **The "Neon" living-page style is now a cool-video-game arcade screen.** The
   public page rendered in the Neon style gained a fixed pink + cyan arcade palette,
   glowing HUD corner brackets pinned to the screen, faint rolling CRT scanlines, a
