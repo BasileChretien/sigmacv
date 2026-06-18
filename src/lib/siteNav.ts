@@ -6,6 +6,7 @@ import { fairCvStrings } from "@/lib/i18n/fairCv";
 import { examplesNavLabel, glossaryNavLabel, guidesNavLabel } from "@/lib/i18n/guidesNav";
 import { landingStrings } from "@/lib/i18n/landing";
 import { principlesStrings } from "@/lib/i18n/principles";
+import { termsStrings } from "@/lib/i18n/terms";
 import { transparencyStrings } from "@/lib/i18n/transparency";
 import {
   localeAboutPath,
@@ -17,6 +18,7 @@ import {
   localeGuidesIndexPath,
   localePrinciplesPath,
   localePrivacyPath,
+  localeTermsPath,
   localeTransparencyPath,
 } from "@/lib/seo";
 
@@ -45,13 +47,15 @@ export function siteHeaderLinks(locale: string): SiteNavLink[] {
 }
 
 /**
- * The full footer link set (privacy, contact, FAQ, guides, glossary, examples,
- * principles, FAIR, transparency, accessibility) — every secondary destination,
- * reachable from any page. Mirrors what the homepage footer has always shown.
+ * The full footer link set (privacy, terms, contact, FAQ, guides, glossary,
+ * examples, principles, FAIR, transparency, accessibility) — every secondary
+ * destination, reachable from any page. Mirrors what the homepage footer has
+ * always shown; the two legal notices (privacy, terms) lead the set.
  */
 export function siteFooterLinks(locale: string): SiteNavLink[] {
   return [
     { label: t(locale, "privacy"), href: localePrivacyPath(locale) },
+    { label: termsStrings(locale).navLabel, href: localeTermsPath(locale) },
     { label: contactStrings(locale).heading, href: localeContactPath(locale) },
     { label: faqStrings(locale).navLabel, href: localeFaqPath(locale) },
     { label: guidesNavLabel(locale), href: localeGuidesIndexPath(locale) },

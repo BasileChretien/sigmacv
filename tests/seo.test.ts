@@ -15,11 +15,13 @@ import {
   localeHomePath,
   localePrinciplesPath,
   localePrivacyPath,
+  localeTermsPath,
   localeTransparencyPath,
   ogAlternateLocales,
   ogLocale,
   principlesLanguageAlternates,
   privacyLanguageAlternates,
+  termsLanguageAlternates,
   transparencyLanguageAlternates,
 } from "@/lib/seo";
 
@@ -76,6 +78,22 @@ describe("localePrivacyPath / privacyLanguageAlternates", () => {
     expect(langs["x-default"]).toBe("/privacy");
     expect(langs["en-US"]).toBe("/privacy");
     expect(langs["de-DE"]).toBe("/de/privacy");
+    expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
+  });
+});
+
+describe("localeTermsPath / termsLanguageAlternates", () => {
+  it("serves /terms for the default and /{slug}/terms for others", () => {
+    expect(localeTermsPath("en-US")).toBe("/terms");
+    expect(localeTermsPath("fr-FR")).toBe("/fr/terms");
+    expect(localeTermsPath("ja-JP")).toBe("/ja/terms");
+    expect(localeTermsPath("xx-XX")).toBe("/terms");
+  });
+  it("maps every locale plus x-default", () => {
+    const langs = termsLanguageAlternates();
+    expect(langs["x-default"]).toBe("/terms");
+    expect(langs["en-US"]).toBe("/terms");
+    expect(langs["de-DE"]).toBe("/de/terms");
     expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
   });
 });

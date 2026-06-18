@@ -17,6 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   never the first import), and like the rest of the living-page footer it never
   appears on exports. Localized in all ten languages.
 
+- **Terms of Use.** A new `/terms` page (and `/[locale]/terms` for the other nine
+  languages) sets out the contract for the hosted service that the privacy notice
+  already presupposed: acceptance, what the free/open-source service is, accounts
+  and eligibility, your content and the limited licence you grant to host and
+  display it, acceptable use, a disclaimer that auto-generated CV data (from
+  OpenAlex/ORCID/Crossref/DataCite) must be reviewed before you rely on or publish
+  it, an "as-is" no-warranty clause, limitation of liability, suspension and
+  termination, changes, intellectual property (the code stays under its open-source
+  licence on GitHub; the SigmaCV name/branding do not), a pointer to the privacy
+  notice, and governing law (Japan, where the operator is established, while
+  expressly preserving the mandatory consumer-protection rights of your country of
+  residence — e.g. in the EU). Linked from the site footer next to Privacy, listed
+  in the sitemap with reciprocal hreflang, and localized into all ten languages.
+
 - **Per-publication structured data on the living public page.** The public page's
   JSON-LD now describes each visible work as its own machine-readable entity —
   publications, preprints and conference papers as `ScholarlyArticle`, and the

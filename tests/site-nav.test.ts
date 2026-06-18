@@ -10,11 +10,12 @@ describe("siteNav — shared header/footer link sets", () => {
     expect(links.every((l) => l.label.length > 0)).toBe(true);
   });
 
-  it("builds the full footer link set (10 destinations) for en-US", () => {
+  it("builds the full footer link set (11 destinations) for en-US", () => {
     const links = siteFooterLinks("en-US");
-    expect(links).toHaveLength(10);
+    expect(links).toHaveLength(11);
     expect(links.map((l) => l.href)).toEqual([
       "/privacy",
+      "/terms",
       "/contact",
       "/faq",
       "/guides",
@@ -43,7 +44,7 @@ describe("siteNav — shared header/footer link sets", () => {
       const header = siteHeaderLinks(loc);
       const footer = siteFooterLinks(loc);
       expect(header).toHaveLength(3);
-      expect(footer).toHaveLength(10);
+      expect(footer).toHaveLength(11);
       expect(
         [...header, ...footer].every((l) => l.label.length > 0 && l.href.startsWith("/")),
       ).toBe(true);

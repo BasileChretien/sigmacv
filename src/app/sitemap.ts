@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Public sitemap. Lists only crawlable, indexable URLs: the homepage, /about,
- * /privacy, /faq, /accessibility, /principles, /fair, /transparency AND the SEO
+ * /privacy, /terms, /faq, /accessibility, /principles, /fair, /transparency AND the SEO
  * landing pages (/orcid-to-cv, /nih-biosketch) in every language (each with
  * per-entry hreflang `alternates`).
  * Public CVs (/p/*) are included ONLY when their owner opted into indexing
@@ -32,6 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const aboutPath = (loc: string) => (loc === DEFAULT_UI_LOCALE ? "about" : `${slug(loc)}/about`);
   const privacyPath = (loc: string) =>
     loc === DEFAULT_UI_LOCALE ? "privacy" : `${slug(loc)}/privacy`;
+  const termsPath = (loc: string) => (loc === DEFAULT_UI_LOCALE ? "terms" : `${slug(loc)}/terms`);
   const contactPath = (loc: string) =>
     loc === DEFAULT_UI_LOCALE ? "contact" : `${slug(loc)}/contact`;
   const faqPath = (loc: string) => (loc === DEFAULT_UI_LOCALE ? "faq" : `${slug(loc)}/faq`);
@@ -51,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const homeLanguages: Record<string, string> = {};
   const aboutLanguages: Record<string, string> = {};
   const privacyLanguages: Record<string, string> = {};
+  const termsLanguages: Record<string, string> = {};
   const contactLanguages: Record<string, string> = {};
   const faqLanguages: Record<string, string> = {};
   const accessibilityLanguages: Record<string, string> = {};
@@ -61,6 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     homeLanguages[loc] = absoluteUrl(homePath(loc));
     aboutLanguages[loc] = absoluteUrl(aboutPath(loc));
     privacyLanguages[loc] = absoluteUrl(privacyPath(loc));
+    termsLanguages[loc] = absoluteUrl(termsPath(loc));
     contactLanguages[loc] = absoluteUrl(contactPath(loc));
     faqLanguages[loc] = absoluteUrl(faqPath(loc));
     accessibilityLanguages[loc] = absoluteUrl(accessibilityPath(loc));
@@ -88,6 +91,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "yearly",
     priority: loc === DEFAULT_UI_LOCALE ? 0.4 : 0.3,
     alternates: { languages: privacyLanguages },
+  }));
+
+  const termsEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map((loc) => ({
+    url: absoluteUrl(termsPath(loc)),
+    changeFrequency: "yearly",
+    priority: loc === DEFAULT_UI_LOCALE ? 0.4 : 0.3,
+    alternates: { languages: termsLanguages },
   }));
 
   const contactEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map((loc) => ({
@@ -242,6 +252,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...homeEntries,
     ...aboutEntries,
     ...privacyEntries,
+    ...termsEntries,
     ...contactEntries,
     ...faqEntries,
     ...accessibilityEntries,

@@ -56,6 +56,20 @@ export function privacyLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+/** /terms path for a locale: "/terms" for the default, "/{slug}/terms" otherwise. */
+export function localeTermsPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/terms" : `/${LOCALE_SLUGS[loc]}/terms`;
+}
+
+/** hreflang → path map for the /terms page (relative; resolved against metadataBase). */
+export function termsLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeTermsPath(loc);
+  languages["x-default"] = "/terms";
+  return languages;
+}
+
 /** /contact path for a locale: "/contact" for the default, "/{slug}/contact" otherwise. */
 export function localeContactPath(locale: string): string {
   const loc = asLocale(locale);
