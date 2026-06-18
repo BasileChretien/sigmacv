@@ -27,33 +27,45 @@ function makeCv(): CanonicalCv {
   });
 }
 
-/** Pull the `@page` margin shorthand out of the rendered document CSS. */
-function pageMargin(html: string): { vertical: string; horizontal: string } {
+/**
+ * Resolve the `@page` margin shorthand from the rendered document CSS to its four
+ * edges, per CSS rules (1 value = all; 2 = `v h`; 3 = `top h bottom`; 4 = `top
+ * right bottom left`). Resolving ALL FOUR edges — not just the first two tokens —
+ * is deliberate: a 3- or 4-value form with asymmetric top/bottom (or left/right)
+ * would otherwise pass the lockstep checks below while actually breaking the
+ * "vertical-only, symmetric" invariant.
+ */
+function pageMargin(html: string): { top: string; right: string; bottom: string; left: string } {
   const shorthand = html.match(/@page\s*\{[^}]*\bmargin:\s*([^;}]+)/)?.[1]?.trim();
   if (!shorthand) throw new Error("no `@page { … margin: … }` rule found in the rendered CSS");
-  // `margin: <v> <h>` (or a single value applying to both).
-  const parts = shorthand.split(/\s+/);
-  const vertical = parts[0];
-  if (!vertical) throw new Error("empty `@page` margin shorthand");
-  return { vertical, horizontal: parts[1] ?? vertical };
+  const p = shorthand.split(/\s+/);
+  const top = p[0];
+  if (!top || p.length > 4) {
+    throw new Error(`unexpected \`@page\` margin shorthand: "${shorthand}"`);
+  }
+  return { top, right: p[1] ?? top, bottom: p[2] ?? top, left: p[3] ?? p[1] ?? top };
 }
 
 describe("PDF/preview page geometry stays in lockstep", () => {
   const css = pageMargin(renderCvHtml(makeCv()));
 
   it("keeps the page margin vertical-only (gutter must come from .cv, not the page)", () => {
-    // pdf.ts side.
+    // pdf.ts side: no horizontal margin, symmetric vertical.
     expect(PDF_PAGE_MARGIN.left).toBe("0");
     expect(PDF_PAGE_MARGIN.right).toBe("0");
     expect(PDF_PAGE_MARGIN.top).toBe(PDF_PAGE_MARGIN.bottom);
-    // CSS @page side.
-    expect(css.horizontal).toBe("0");
+    // CSS @page side: every edge checked, so an asymmetric 3-/4-value shorthand
+    // (e.g. a different top vs bottom) can't slip past.
+    expect(css.left).toBe("0");
+    expect(css.right).toBe("0");
+    expect(css.top).toBe(css.bottom);
   });
 
   it("matches the Playwright margin (pdf.ts) to the CSS @page margin", () => {
     // The same vertical value in both places — change one without the other and
     // the PDF's vertical rhythm no longer matches what the template intends.
-    expect(css.vertical).toBe(PDF_PAGE_MARGIN.top);
+    expect(css.top).toBe(PDF_PAGE_MARGIN.top);
+    expect(css.bottom).toBe(PDF_PAGE_MARGIN.bottom);
   });
 });
 
