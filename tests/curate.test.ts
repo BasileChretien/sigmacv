@@ -577,8 +577,18 @@ describe("named presets", () => {
   });
 
   it("captures and restores each version's SECTION ORDER", () => {
-    const cv = makeCv();
+    const cv = buildCanonicalCv({
+      id: "order-test",
+      resolved,
+      works,
+      employments: [
+        { putCode: "e1", organization: "University A", startYear: 2020 },
+        { putCode: "e2", organization: "Institute B", startYear: 2015, endYear: 2020 },
+      ],
+      now: "2026-06-02T00:00:00.000Z",
+    });
     const ids = orderedSections(cv).map((s) => s.id);
+    expect(ids.length).toBeGreaterThan(1); // a meaningful reorder needs ≥2 sections
     // Version A — a distinct order (last section moved to the front), saved.
     const aIds = [ids[ids.length - 1]!, ...ids.slice(0, -1)];
     const versionA = savePreset(reorderSections(cv, aIds), "A");
@@ -595,23 +605,41 @@ describe("named presets", () => {
     expect(orderedSections(restored).map((s) => s.id)).toEqual(aIds);
   });
 
-  it("leaves the order untouched for a legacy preset with no saved order", () => {
-    const cv = makeCv();
-    const reordered = reorderSections(cv, [...orderedSections(cv).map((s) => s.id)].reverse());
+  it("leaves a customized order untouched for a legacy preset (saved before order capture)", () => {
+    const cv = buildCanonicalCv({
+      id: "legacy-test",
+      resolved,
+      works,
+      employments: [
+        { putCode: "e1", organization: "University A", startYear: 2020 },
+        { putCode: "e2", organization: "Institute B", startYear: 2015, endYear: 2020 },
+      ],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    // The user has customized their live order. Reorder relative to the RAW order
+    // (what reorderSections compares against) so it can't no-op: first → last.
+    const raw = [...cv.sections].sort((a, b) => a.order - b.order).map((s) => s.id);
+    const reordered = reorderSections(cv, [...raw.slice(1), raw[0]!]);
+    expect(reordered.display.sectionsCustomized).toBe(true);
     const before = orderedSections(reordered).map((s) => s.id);
+    // …and applies a LEGACY preset (no saved order) whose display was captured
+    // when ordering was NOT customized. Restoring it must NOT flip the live
+    // customized flag back to default and silently reorder the CV.
     const legacy: CanonicalCv = {
       ...reordered,
       presets: [
         {
           id: "preset:legacy",
           name: "Legacy",
-          display: reordered.display,
+          display: { ...reordered.display, sectionsCustomized: false },
           sectionVisibility: {},
           sectionOrder: [],
         },
       ],
     };
-    expect(orderedSections(applyPreset(legacy, "preset:legacy")).map((s) => s.id)).toEqual(before);
+    const applied = applyPreset(legacy, "preset:legacy");
+    expect(applied.display.sectionsCustomized).toBe(true); // live flag preserved
+    expect(orderedSections(applied).map((s) => s.id)).toEqual(before); // order untouched
   });
 });
 
