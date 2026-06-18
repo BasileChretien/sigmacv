@@ -179,6 +179,9 @@ export function safeParseSyncReport(input: unknown): SyncReport | null {
 
 /** One entry of the public "What's new" strip. */
 export interface RecentAddition {
+  /** The canonical item id — lets the public "What's new" strip deep-link to the
+   *  entry in the rendered CV (`#item-<id>`). */
+  itemId: string;
   title: string;
   sectionType: CvSectionType;
 }
@@ -207,7 +210,7 @@ export function publicRecentAdditions(
   for (const entry of report.added) {
     if (entry.reviewFlag) continue;
     if (!visibleIds.has(entry.itemId)) continue;
-    out.push({ title: entry.title, sectionType: entry.sectionType });
+    out.push({ itemId: entry.itemId, title: entry.title, sectionType: entry.sectionType });
     if (out.length >= max) break;
   }
   return out;

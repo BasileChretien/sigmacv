@@ -274,14 +274,14 @@ describe("publicRecentAdditions", () => {
 
   it("keeps confirmed, still-visible additions; drops flagged and hidden ones", () => {
     expect(publicRecentAdditions(report, cv)).toEqual([
-      { title: "Paper one", sectionType: "publications" },
-      { title: "Paper four", sectionType: "publications" },
+      { itemId: "W1", title: "Paper one", sectionType: "publications" },
+      { itemId: "W4", title: "Paper four", sectionType: "publications" },
     ]);
   });
 
   it("caps to `max`, in document order", () => {
     expect(publicRecentAdditions(report, cv, 1)).toEqual([
-      { title: "Paper one", sectionType: "publications" },
+      { itemId: "W1", title: "Paper one", sectionType: "publications" },
     ]);
   });
 

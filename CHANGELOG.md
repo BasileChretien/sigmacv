@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **"What's new" entries are now clickable.** Each title in the living page's
+  "Recently added" line links straight to that entry in the page above, where you
+  can read the full citation and open its abstract, cite and full-text tools. The
+  jumped-to entry is briefly highlighted. Every CV entry now carries a stable
+  anchor; it's a same-page link (no JavaScript) and never appears on exports.
+
 - **"Review new works before they appear" (opt-in).** A new design toggle changes
   how re-syncs treat works they've never seen. By default SigmaCV keeps adding
   newly-found publications automatically (the living-CV behaviour). Turn this on and
