@@ -422,9 +422,18 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-filterbar a:hover { border-color: var(--cv-accent); color: var(--cv-accent); }
   .cv-filterbar a[aria-current="true"] { background: var(--cv-accent); color: #fff; border-color: var(--cv-accent); }
 
-  /* Public-page "Subscribe" (Atom/RSS) line — a quiet footnote near the living line. */
+  /* Public-page "Subscribe" (Atom/RSS) affordance — a quiet footnote near the living
+     line. A no-JS <details>: the summary is the "Subscribe" toggle; opening it reveals
+     the feed URL to paste into a reader (browsers can't natively subscribe to a feed). */
   .cv-subscribe { margin: 0.3rem 0 0; font-size: 0.66rem; color: var(--cv-muted); letter-spacing: 0.01em; }
-  .cv-subscribe a { color: var(--cv-accent); text-decoration: none; }
+  .cv-subscribe summary { display: inline; cursor: pointer; color: var(--cv-accent); list-style: none; -webkit-user-select: none; user-select: none; }
+  .cv-subscribe summary::-webkit-details-marker { display: none; }
+  .cv-subscribe summary::after { content: " \\25BE"; font-size: 0.85em; }
+  .cv-subscribe[open] summary::after { content: " \\25B4"; }
+  .cv-subscribe-how { display: block; margin-top: 0.25rem; }
+  /* The feed URL: a link (so a feed-reader extension can handle a click) that is also
+     one-click-selectable for copy-paste into a reader. */
+  .cv-subscribe-url { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; word-break: break-all; -webkit-user-select: all; user-select: all; }
 
   @page { size: A4; margin: 16mm 15mm; }
   @media print {
@@ -690,12 +699,18 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
     ? `<p class="cv-living">${escapeHtml(s.livingNote.replace("{date}", synced))}</p>`
     : "";
   const madeWith = escapeHtml(s.madeWith);
-  // "Subscribe" (Atom/RSS) link to this living CV's feed — the public follow
-  // primitive. Shown only when the route supplied a feed href (`opts.feedHref`).
+  // "Subscribe" affordance for this living CV's Atom feed (the public follow
+  // primitive). A browser can't natively "subscribe" to a feed — clicking a bare
+  // feed.xml link just shows raw XML — so this is a no-JS <details> disclosure: the
+  // summary toggles open to reveal the feed URL to paste into a reader (the URL is
+  // also a link, for readers that handle feed clicks via an extension). Shown only
+  // when the route supplied a feed href (`opts.feedHref`).
   const subscribe = opts.feedHref
-    ? `<p class="cv-subscribe"><a href="${escapeHtml(opts.feedHref)}">${escapeHtml(
-        s.subscribeLabel,
-      )}</a></p>`
+    ? `<details class="cv-subscribe"><summary>${escapeHtml(s.subscribeLabel)}</summary>` +
+      `<span class="cv-subscribe-how">${escapeHtml(s.subscribeHint)} ` +
+      `<a class="cv-subscribe-url" href="${escapeHtml(opts.feedHref)}">${escapeHtml(
+        opts.feedHref,
+      )}</a></span></details>`
     : "";
   return `${living}${subscribe}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
 }

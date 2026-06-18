@@ -93,6 +93,8 @@ export interface RenderStrings {
   badgeFeaturedTitle: string;
   /** Public-page "Subscribe" (Atom/RSS feed) link label. */
   subscribeLabel: string;
+  /** Hint shown when the public-page "Subscribe" disclosure is opened — explains that the feed URL goes into an RSS reader. */
+  subscribeHint: string;
   /** Leading label of the public-page view-filter bar. */
   filterLabel: string;
   /** Filter chip: clear all filters / show everything. */
@@ -119,6 +121,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeFeatured: "Selected",
     badgeFeaturedTitle: "Selected / featured publication",
     subscribeLabel: "Subscribe",
+    subscribeHint: "Add this feed URL to your RSS reader:",
     filterLabel: "Filter",
     filterAll: "All",
     filterSince: "Since {year}",
@@ -185,6 +188,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeFeatured: "精选",
     badgeFeaturedTitle: "精选 / 重点论文",
     subscribeLabel: "订阅",
+    subscribeHint: "将此订阅源网址添加到您的 RSS 阅读器：",
     filterLabel: "筛选",
     filterAll: "全部",
     filterSince: "{year} 年起",
@@ -251,6 +255,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeFeatured: "Destacada",
     badgeFeaturedTitle: "Publicación destacada / seleccionada",
     subscribeLabel: "Suscribirse",
+    subscribeHint: "Añade esta URL de feed a tu lector de RSS:",
     filterLabel: "Filtrar",
     filterAll: "Todas",
     filterSince: "Desde {year}",
@@ -320,6 +325,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeFeatured: "Sélection",
     badgeFeaturedTitle: "Publication sélectionnée / mise en avant",
     subscribeLabel: "S'abonner",
+    subscribeHint: "Ajoutez cette URL de flux à votre lecteur RSS :",
     filterLabel: "Filtrer",
     filterAll: "Tout",
     filterSince: "Depuis {year}",
@@ -390,6 +396,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeFeatured: "Ausgewählt",
     badgeFeaturedTitle: "Ausgewählte / hervorgehobene Publikation",
     subscribeLabel: "Abonnieren",
+    subscribeHint: "Füge diese Feed-URL zu deinem RSS-Reader hinzu:",
     filterLabel: "Filtern",
     filterAll: "Alle",
     filterSince: "Seit {year}",
@@ -459,6 +466,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeFeatured: "選定",
     badgeFeaturedTitle: "選定／注目の論文",
     subscribeLabel: "購読",
+    subscribeHint: "このフィードのURLをRSSリーダーに追加してください：",
     filterLabel: "絞り込み",
     filterAll: "すべて",
     filterSince: "{year}年以降",
@@ -525,6 +533,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeFeatured: "Destaque",
     badgeFeaturedTitle: "Publicação em destaque / selecionada",
     subscribeLabel: "Assinar",
+    subscribeHint: "Adicione esta URL de feed ao seu leitor de RSS:",
     filterLabel: "Filtrar",
     filterAll: "Todas",
     filterSince: "Desde {year}",
@@ -595,6 +604,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeFeatured: "In evidenza",
     badgeFeaturedTitle: "Pubblicazione selezionata / in evidenza",
     subscribeLabel: "Iscriviti",
+    subscribeHint: "Aggiungi questo URL del feed al tuo lettore RSS:",
     filterLabel: "Filtra",
     filterAll: "Tutte",
     filterSince: "Dal {year}",
@@ -664,6 +674,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeFeatured: "선정",
     badgeFeaturedTitle: "선정 / 주요 논문",
     subscribeLabel: "구독",
+    subscribeHint: "이 피드 URL을 RSS 리더에 추가하세요:",
     filterLabel: "필터",
     filterAll: "전체",
     filterSince: "{year}년 이후",
@@ -730,6 +741,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeFeatured: "Избранное",
     badgeFeaturedTitle: "Избранная / рекомендуемая публикация",
     subscribeLabel: "Подписаться",
+    subscribeHint: "Добавьте этот URL ленты в свой RSS-ридер:",
     filterLabel: "Фильтр",
     filterAll: "Все",
     filterSince: "С {year}",
