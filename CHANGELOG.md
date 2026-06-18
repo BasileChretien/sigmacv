@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Person/ProfilePage identity. No effect on exports; nothing new is shown on the
   page itself.
 
+- **A "PubMed" link on the living public page.** Each publication that carries a
+  PubMed id now shows a small "PubMed" link alongside the existing Cite / Full
+  text / Abstract tools, next to the DOI — a one-click jump to the record on
+  PubMed for biomedical readers. Public page only (never on exports), and only
+  when the id is present.
+
 - **A "Font size" control in the design panel.** A new size selector (85%–120%)
   scales the whole CV's typography up or down in proportion — every section's
   headings, name, body and gaps grow or shrink together — so you can fit more on a
