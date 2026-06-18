@@ -315,13 +315,17 @@ export function commonCss(theme: TemplateTheme): string {
   /* The structured two-line entry (positionEntryHtml): a prominent LEAD line — the
      role (or the institution when no role is known) — with the date range pushed to
      the right edge, over a quieter "department · institution" line. The head is a
-     wrapping flex row: the lead fills and wraps, the dates stay right (logical
-     margin → RTL-safe) and, on a narrow column, wrap to their own right line rather
-     than colliding with a long role. The whole record lives in one ol.cv-bib > li,
-     so the existing print "break-inside: avoid" keeps it intact across a page. */
+     flex row: the LEAD has flex-basis 0 (flex 1 1 0) so the dates always sit on
+     the FIRST line, top-right, and a long role wraps onto further lines WITHIN its
+     own column instead of bumping the dates down to their own line. (flex-basis
+     auto would size the lead to its un-wrapped width, overflow the row and wrap the
+     dates below — the bug this fixes.) align-items baseline keeps the dates on
+     the role's first baseline. flex-wrap stays as a last-resort fallback for an
+     unbreakable role wider than the column. The whole record lives in one
+     ol.cv-bib > li, so the print "break-inside: avoid" keeps it intact on a page. */
   .cv-entry { text-indent: 0; }
   .cv-entry-head { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 1rem; row-gap: 0.1rem; }
-  .cv-entry-lead { flex: 1 1 auto; min-width: 0; font-weight: 600; color: var(--cv-ink); }
+  .cv-entry-lead { flex: 1 1 0; min-width: 0; font-weight: 600; color: var(--cv-ink); }
   .cv-entry-dates { flex: 0 0 auto; margin-inline-start: auto; color: var(--cv-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cv-entry-sub { color: var(--cv-muted); font-size: 0.92em; line-height: 1.4; margin-top: 0.1rem; }
   .cv-entry-lead .cv-ror-link, .cv-entry-sub .cv-ror-link { color: inherit; }
