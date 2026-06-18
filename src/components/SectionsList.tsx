@@ -65,7 +65,8 @@ import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
-import { narrativeGuidance } from "@/lib/i18n/narrativeGuidance";
+import { narrativeEvidence } from "@/lib/canonical/narrativeEvidence";
+import { narrativeGuidance, narrativeEvidenceLabel } from "@/lib/i18n/narrativeGuidance";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
 import type { CvHealthCategory } from "./CvHealthPanel";
@@ -671,6 +672,21 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                             {narrativeGuidance(locale, section.type)}
                           </span>
                         ) : null}
+                        {/* Evidence to draw on: counts of the owner's relevant outputs
+                            for this module (publications/datasets for "knowledge", etc.),
+                            so concrete contributions are at hand. Editor-only. */}
+                        {(() => {
+                          const ev = narrativeEvidence(cv, section.type);
+                          if (ev.length === 0) return null;
+                          return (
+                            <span className="field-hint narrative-evidence muted">
+                              {narrativeEvidenceLabel(locale)}{" "}
+                              {ev
+                                .map((e) => `${e.count} ${sectionTitle(locale, e.type)}`)
+                                .join(" · ")}
+                            </span>
+                          );
+                        })()}
                         <textarea
                           className="prose-body"
                           rows={6}

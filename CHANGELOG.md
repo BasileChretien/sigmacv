@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Your evidence, surfaced under each narrative module.** Below the writing prompt
+  on each "Résumé for Researchers" section, the editor now shows the relevant
+  outputs you already have — e.g. "You can draw on: 32 Publications · 6 Datasets &
+  Software" under Contributions to knowledge, or your supervision and teaching
+  counts under Contributions to individuals — so you can weave concrete
+  contributions into the prose instead of recalling them from memory. It counts
+  only what's actually on your CV (hidden / "not mine" items don't count),
+  editor-only, localized in all ten languages.
+
 - **Writing guidance for narrative-CV sections.** The four "Résumé for Researchers"
   / R4RI narrative modules (contributions to knowledge, to individuals, to the
   research community, and to society) now show a short prompt in the editor

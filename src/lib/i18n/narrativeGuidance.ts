@@ -122,3 +122,22 @@ const NARRATIVE_GUIDANCE: Record<Locale, Record<NarrativeKey, string>> = {
 export function narrativeGuidance(locale: string, type: CvSectionType): string | undefined {
   return (NARRATIVE_GUIDANCE[asLocale(locale)] as Record<string, string>)[type];
 }
+
+/** Lead-in for the evidence hint under a narrative module ("You can draw on: 12
+ *  Publications · 3 Datasets & Software"). */
+const NARRATIVE_EVIDENCE_LABEL: Record<Locale, string> = {
+  "en-US": "You can draw on:",
+  "zh-CN": "你可以引用：",
+  "es-ES": "Puedes apoyarte en:",
+  "fr-FR": "Vous pouvez vous appuyer sur :",
+  "de-DE": "Du kannst dich stützen auf:",
+  "ja-JP": "活用できる実績：",
+  "pt-BR": "Você pode recorrer a:",
+  "it-IT": "Puoi attingere a:",
+  "ko-KR": "활용할 수 있는 자료:",
+  "ru-RU": "Можно опереться на:",
+};
+
+export function narrativeEvidenceLabel(locale: string): string {
+  return NARRATIVE_EVIDENCE_LABEL[asLocale(locale)];
+}
