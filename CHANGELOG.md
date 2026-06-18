@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Per-publication structured data on the living public page.** The public page's
+  JSON-LD now describes each visible work as its own machine-readable entity —
+  publications, preprints and conference papers as `ScholarlyArticle`, and the
+  datasets/software section as `Dataset` / `SoftwareSourceCode` — each keyed by its
+  DOI (`https://doi.org/…`) with the year, venue and an open-access flag, and
+  attributed to the account holder. This makes a published CV's outputs
+  discoverable by search and answer engines (e.g. Google Dataset Search) and lets
+  them attribute the works to the right researcher, on top of the existing
+  Person/ProfilePage identity. No effect on exports; nothing new is shown on the
+  page itself.
+
 - **A "Font size" control in the design panel.** A new size selector (85%–120%)
   scales the whole CV's typography up or down in proportion — every section's
   headings, name, body and gaps grow or shrink together — so you can fit more on a
