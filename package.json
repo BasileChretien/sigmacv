@@ -6,9 +6,9 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "predev": "node scripts/ensure-db.mjs",
+    "predev": "node scripts/ensure-db.mjs && node scripts/ensure-playwright.mjs",
     "dev": "next dev",
-    "predev:public": "node scripts/ensure-db.mjs",
+    "predev:public": "node scripts/ensure-db.mjs && node scripts/ensure-playwright.mjs",
     "dev:public": "next dev -H ::",
     "db:sync": "node scripts/ensure-db.mjs",
     "build": "next build",

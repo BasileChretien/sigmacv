@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **PDF export works again.** A Playwright dependency bump changed the bundled
+  Chromium revision without updating the Docker runtime's Playwright base image, so
+  the headless browser the PDF renderer launches no longer existed and every PDF
+  export failed with "Export failed". The runtime base image is back in lockstep
+  with the `playwright` package, and a CI check now fails the build if the two ever
+  drift apart again.
+
 ### Security
 
 - **Credentials pasted into a profile link or website no longer leak into your CV.**
