@@ -1,9 +1,14 @@
 import {
   displayInstitution,
+  itemDateRange,
+  itemDepartment,
+  itemInstitution,
+  itemRoleTitle,
   type CanonicalCv,
   type CvItem,
   type DisplayChoices,
 } from "@/lib/canonical/schema";
+import { bareYearRange } from "@/lib/canonical/entryLine";
 import { highlightSelf } from "@/lib/citeproc/highlight";
 import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml, safeHref } from "./escape";
@@ -127,6 +132,62 @@ function withRorLink(html: string, item: CvItem, locale: string): string {
 }
 
 /**
+ * The institution NAME as a (possibly linked) HTML span for a Positions/Education
+ * entry. The SOURCE name is localized for the CV language (`displayInstitution`)
+ * and wrapped in the same quiet `<a class="cv-ror-link">` `withRorLink` builds —
+ * pointing at the institution homepage (per ROR) or its ROR record. A user
+ * `institutionOverride` is shown verbatim and UNLINKED (their spelling wins, and
+ * the source's ROR id no longer necessarily names it). "" when no institution.
+ */
+function institutionSpanHtml(item: CvItem, locale: string): string {
+  const override = item.meta.institutionOverride?.trim();
+  if (override) return escapeHtml(override);
+  const name = displayInstitution(item, locale)?.trim();
+  /* v8 ignore next -- unreachable: positionEntryHtml gates on a non-blank institution */
+  if (!name) return "";
+  const esc = escapeHtml(name);
+  const link = institutionHref(item);
+  if (!link) return esc;
+  const strings = renderStrings(locale);
+  const title = escapeHtml(link.isSite ? strings.institutionSiteTitle : strings.rorRecordTitle);
+  return `<a class="cv-ror-link" href="${link.href}" title="${title}">${esc}</a>`;
+}
+
+/** The CV-language bare date range ("2012–2024" / "2018–present") for an entry's
+ *  right-aligned date slot, or "" when no year is known. */
+function entryDatesText(item: CvItem, locale: string): string {
+  const { startYear, endYear } = itemDateRange(item);
+  const rs = renderStrings(locale);
+  return bareYearRange(startYear, endYear, rs.datePresent, rs.dateUntil);
+}
+
+/**
+ * A Positions / Education entry as a structured TWO-LINE record (HTML/PDF only):
+ * a prominent lead line — the role, with the date range pushed to the right edge —
+ * over a quieter "department · institution" line. Built straight from the
+ * structured `meta` (role / department / institution / dates), so it needs NONE of
+ * the flat-string substring hacks (`localizeEntryLine` / `withRorLink`): the
+ * institution is localized + ROR-linked here and the dates localized here. When the
+ * role is absent (the common OpenAlex case yielding only an institution), the
+ * institution is promoted to the lead line and the sub-line is dropped — so a
+ * sparse entry collapses to a single clean line instead of an empty role slot.
+ */
+function positionEntryHtml(item: CvItem, locale: string): string {
+  const role = itemRoleTitle(item)?.trim();
+  const dept = itemDepartment(item)?.trim();
+  const inst = institutionSpanHtml(item, locale);
+  const dates = entryDatesText(item, locale);
+  const datesHtml = dates ? `<span class="cv-entry-dates">${escapeHtml(dates)}</span>` : "";
+  // Role leads when known; otherwise the institution becomes the lead line.
+  const lead = role ? escapeHtml(role) : inst;
+  const subParts = role ? [dept ? escapeHtml(dept) : "", inst] : [dept ? escapeHtml(dept) : ""];
+  const sub = subParts.filter(Boolean).join(" · ");
+  const head = `<div class="cv-entry-head"><span class="cv-entry-lead">${lead}</span>${datesHtml}</div>`;
+  const subLine = sub ? `<div class="cv-entry-sub">${sub}</div>` : "";
+  return `<div class="cv-entry">${head}${subLine}</div>`;
+}
+
+/**
  * Linkify the trailing DOI URL on a Datasets & Software ENTRY line (DataCite /
  * OpenAIRE), so it's clickable like the citeproc-rendered work entries in the same
  * section. `formatDatasetText` appends `https://doi.org/<doi>` to the entry text;
@@ -209,23 +270,31 @@ function itemToolsHtml(item: CvItem, slug: string, locale: string): string {
 export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): RenderedSection[] {
   const publicExtras = Boolean(opts?.publicExtras && opts.slug);
   return prepareSections(cv, "html").map(({ section, items }) => {
-    // Link the institution name to its ROR record on every Positions/Education
-    // line, across all HTML templates. (The rirekisho template builds its own
-    // 学歴・職歴 table from plain text, so it naturally opts out.)
-    const linkRor = section.type === "positions" || section.type === "education";
+    // Positions/Education entries render as a structured two-line record (built
+    // from the source meta) — see positionEntryHtml. The flat-string ROR link
+    // (withRorLink) is only the FALLBACK for these sections now (a user free-text
+    // override, or an entry with no institution to anchor the structured layout).
+    // (The rirekisho template builds its own 学歴・職歴 table from plain text, so it
+    // naturally opts out — it never goes through buildRenderedSections.)
+    const isHistory = section.type === "positions" || section.type === "education";
     // Datasets & Software ENTRY rows (DataCite/OpenAIRE) carry a DOI in their text;
     // make it clickable so they match the citeproc work rows in the same section.
     const linkDoi = section.type === "datasets";
     return {
       section,
       items: items.map(({ item, entry }) => {
+        // Structured two-line layout for a source-derived history entry; fall back
+        // to the flat line when the user typed an override or there's no institution.
+        if (isHistory && !item.displayTextOverride && itemInstitution(item)) {
+          return { item, html: positionEntryHtml(item, cv.display.locale) };
+        }
         let html = entry;
         if (linkDoi && !item.csl) html = withDoiLink(html, item);
         if (cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0) {
           html = highlightSelf(html, item.selfNameVariants);
         }
         html += itemBadges(item, cv.display);
-        if (linkRor) html = withRorLink(html, item, cv.display.locale);
+        if (isHistory) html = withRorLink(html, item, cv.display.locale);
         // Public-page-only: a no-JS Cite/Abstract/Full-text affordance per work.
         if (publicExtras) html += itemToolsHtml(item, opts!.slug!, cv.display.locale);
         return { item, html };

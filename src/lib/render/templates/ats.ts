@@ -62,6 +62,15 @@ function atsCss(_theme: TemplateTheme): string {
   ol.cv-bib > li { padding-left: 0; text-indent: 0; }
   ol.cv-bib > li a { color: #000; text-decoration: none; }
 
+  /* Positions/Education two-line records: keep them PARSER-SAFE. The dates sit
+     inline right after the role (no right-aligned column a résumé parser could
+     mis-associate with the wrong row), reading order stays role → dates → org, and
+     every ink token is forced black like the rest of this template. */
+  .cv-entry-lead { flex: 0 1 auto; font-weight: bold; }
+  .cv-entry-dates { margin-inline-start: 0; }
+  .cv-entry-lead, .cv-entry-dates, .cv-entry-sub { color: #000; }
+  .cv-entry-sub { font-size: 1em; }
+
   /* Links black, undecorated everywhere. */
   a { color: #000; text-decoration: none; }
 

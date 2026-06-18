@@ -43,6 +43,25 @@ export function localizedYearRange(
 }
 
 /**
+ * The CV-language year range WITHOUT the enclosing parentheses, for the two-line
+ * Positions / Education layout where the dates sit in their own right-aligned slot
+ * rather than trailing the line in `(…)`. Same words as {@link localizedYearRange}
+ * (`present` for an open end, `untilTemplate` for an end-only range). "" when no
+ * year is known, so the renderer can omit the date slot entirely.
+ */
+export function bareYearRange(
+  start: number | undefined,
+  end: number | undefined,
+  present: string,
+  untilTemplate: string,
+): string {
+  if (start && end) return `${start}–${end}`;
+  if (start) return `${start}–${present}`;
+  if (end) return untilTemplate.replace("{year}", String(end));
+  return "";
+}
+
+/**
  * Format a Positions / Education line from its structured parts:
  * "<role>, <department>, <institution> (<years>)". The role and department are
  * optional; the institution always appears verbatim so a renderer can find it.
