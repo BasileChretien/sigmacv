@@ -788,6 +788,17 @@ input[type="radio"] {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+/* The "choose your public-page design" hint is a full-width text button; let it
+   wrap so it never forces the popover wider (it was overflowing horizontally). */
+.btn.publish-style-cta {
+  display: block;
+  width: 100%;
+  white-space: normal;
+  text-align: left;
+  height: auto;
+  min-height: 0;
+  line-height: 1.35;
+}
 /* Collapse the panel toward the trigger it belongs to (its aligned top corner)
    rather than its own centre, so the open/close scale reads as the panel
    retracting into its button. */
