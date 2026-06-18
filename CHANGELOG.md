@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Per-publication structured data on the living public page.** The public page's
+  JSON-LD now describes each visible work as its own machine-readable entity —
+  publications, preprints and conference papers as `ScholarlyArticle`, and the
+  datasets/software section as `Dataset` / `SoftwareSourceCode` — each keyed by its
+  DOI (`https://doi.org/…`) with the year, venue and an open-access flag, and
+  attributed to the account holder. This makes a published CV's outputs
+  discoverable by search and answer engines (e.g. Google Dataset Search) and lets
+  them attribute the works to the right researcher, on top of the existing
+  Person/ProfilePage identity. No effect on exports; nothing new is shown on the
+  page itself.
+
+- **A "PubMed" link on the living public page.** Each publication that carries a
+  PubMed id now shows a small "PubMed" link alongside the existing Cite / Full
+  text / Abstract tools, next to the DOI — a one-click jump to the record on
+  PubMed for biomedical readers. Public page only (never on exports), and only
+  when the id is present.
+
 - **A "research output" summary (opt-in).** A new design toggle shows a compact
   breadth-of-output line in the research-summary block — counts by type for the
   outputs you actually have (e.g. "12 Publications · 3 Datasets & Software · 2

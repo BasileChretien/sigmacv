@@ -113,6 +113,60 @@ describe.skipIf(!hasApa)("per-publication tools (publicExtras)", () => {
   });
 });
 
+describe.skipIf(!hasApa)("per-publication PubMed link (publicExtras)", () => {
+  const pmWork = () =>
+    ({
+      ...work("W1"),
+      ids: { pmid: "https://pubmed.ncbi.nlm.nih.gov/39123456" },
+    }) as unknown as OpenAlexWork;
+  const pubHtml = (cv: CanonicalCv): string =>
+    buildRenderedSections(cv, { publicExtras: true, slug: "abc" }).find(
+      (s) => s.section.type === "publications",
+    )!.items[0]!.html;
+
+  it("links to PubMed when the work carries a numeric PubMed id", () => {
+    const cv = buildCanonicalCv({
+      id: "pm",
+      resolved,
+      works: [pmWork()],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    expect(cv.sections.find((s) => s.type === "publications")!.items[0]!.meta.pmid).toBe(
+      "39123456",
+    );
+    expect(pubHtml(cv)).toContain(
+      'class="cv-pubmed" href="https://pubmed.ncbi.nlm.nih.gov/39123456/"',
+    );
+  });
+
+  it("omits the link with no id, and the numeric guard rejects a non-numeric stored id", () => {
+    // W1 has no ids.pmid → no link.
+    expect(pubHtml(makeCv())).not.toContain("cv-pubmed");
+
+    // Defensive: a hand-edited / stored non-numeric pmid never yields a link.
+    const base = buildCanonicalCv({
+      id: "bad",
+      resolved,
+      works: [pmWork()],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const bad: CanonicalCv = {
+      ...base,
+      sections: base.sections.map((sec) =>
+        sec.type === "publications"
+          ? {
+              ...sec,
+              items: sec.items.map((it, i) =>
+                i === 0 ? { ...it, meta: { ...it.meta, pmid: "39; DROP" } } : it,
+              ),
+            }
+          : sec,
+      ),
+    };
+    expect(pubHtml(bad)).not.toContain("cv-pubmed");
+  });
+});
+
 describe("attributionFooter subscribe affordance", () => {
   it("renders a no-JS disclosure revealing the feed URL, only with a feed href", () => {
     const cv = makeCv();

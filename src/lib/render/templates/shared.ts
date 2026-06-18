@@ -479,7 +479,8 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-cite-fmts { margin-left: 0.45rem; display: inline-flex; flex-wrap: wrap; gap: 0.1rem 0.6rem; }
   .cv-itemtools a { color: var(--cv-accent); text-decoration: none; }
   .cv-itemtools a:hover { text-decoration: underline; }
-  .cv-fulltext::before { content: "\\2197 "; }
+  .cv-fulltext::before,
+  .cv-pubmed::before { content: "\\2197 "; }
   .cv-abstract { flex-basis: 100%; }
   /* The expanded abstract is a clearly CONTAINED callout card, so a long abstract
      reads as a distinct block rather than a wall of text spilling down the left of
