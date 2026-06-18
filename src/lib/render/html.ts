@@ -7,6 +7,7 @@ import {
 import { highlightSelf } from "@/lib/citeproc/highlight";
 import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml, safeHref } from "./escape";
+import { coinsSpan } from "./coins";
 import { prepareSections } from "./prepare";
 import { cvSlug } from "./slug";
 import { getTemplate, resolveTheme } from "./templates";
@@ -184,7 +185,10 @@ function itemToolsHtml(item: CvItem, slug: string, locale: string): string {
       )}</summary><p>${escapeHtml(abstract)}</p></details>`,
     );
   }
-  return `<div class="cv-itemtools">${parts.join("")}</div>`;
+  // An invisible COinS span so reference managers (Zotero, Mendeley…) detect this
+  // work — one per publication on the page → the connector's multi-item select-and-
+  // import (the Google-Scholar-style picker).
+  return `<div class="cv-itemtools">${coinsSpan(item.csl)}${parts.join("")}</div>`;
 }
 
 /**

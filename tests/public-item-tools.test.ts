@@ -94,6 +94,8 @@ describe.skipIf(!hasApa)("per-publication tools (publicExtras)", () => {
       (s) => s.section.type === "publications",
     )!.items[0]!.html;
     expect(withTools).toContain('class="cv-itemtools"');
+    // COinS metadata span for reference-manager (Zotero) multi-item detection.
+    expect(withTools).toContain('class="Z3988"');
     expect(withTools).toContain('class="cv-cite"');
     expect(withTools).toContain("/p/abc/cite?id=W1");
     expect(withTools).toContain("format=bibtex");
