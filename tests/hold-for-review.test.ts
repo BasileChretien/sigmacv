@@ -50,18 +50,24 @@ describe("applyHoldForReview", () => {
         item({ id: "W4", notMine: true }), // new but asserted "not mine" → untouched
       ],
     });
-    const items = applyHoldForReview(next, previous).sections[0].items;
-    const byId = Object.fromEntries(items.map((i) => [i.id, i]));
+    const section = applyHoldForReview(next, previous).sections.find(
+      (s) => s.type === "publications",
+    )!;
+    const find = (id: string): CvItem => {
+      const it = section.items.find((i) => i.id === id);
+      if (!it) throw new Error(`missing item ${id}`);
+      return it;
+    };
 
-    expect(byId.W0.included).toBe(true);
-    expect(byId.W0.meta.reviewFlag).toBeUndefined();
-    expect(byId.W1.included).toBe(false);
-    expect(byId.W1.meta.reviewFlag).toBe("held-for-review");
-    expect(byId.W2.included).toBe(false);
-    expect(byId.W2.meta.reviewFlag).toBe("name-matched");
-    expect(byId.W3.included).toBe(true);
-    expect(byId.W3.meta.reviewFlag).toBeUndefined();
-    expect(byId.W4.meta.reviewFlag).toBeUndefined();
+    expect(find("W0").included).toBe(true);
+    expect(find("W0").meta.reviewFlag).toBeUndefined();
+    expect(find("W1").included).toBe(false);
+    expect(find("W1").meta.reviewFlag).toBe("held-for-review");
+    expect(find("W2").included).toBe(false);
+    expect(find("W2").meta.reviewFlag).toBe("name-matched");
+    expect(find("W3").included).toBe(true);
+    expect(find("W3").meta.reviewFlag).toBeUndefined();
+    expect(find("W4").meta.reviewFlag).toBeUndefined();
   });
 
   it("is a no-op when the toggle is off", () => {
