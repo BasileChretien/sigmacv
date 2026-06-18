@@ -90,10 +90,16 @@ function contactHtml(cv: CanonicalCv): string {
     // Only render the website when it resolves to a SAFE href; an unsafe scheme
     // (javascript:/data:/…) is dropped entirely rather than shown as raw text.
     const href = safeHref(c.website);
-    if (href)
-      parts.push(
-        `<a href="${escapeHtml(href)}"${UGC_REL}>${ico("website")}${escapeHtml(displayUrl(c.website))}</a>`,
-      );
+    if (href) {
+      // Auto-detect the icon/service the same way profile links do — so a LinkedIn
+      // or GitHub URL entered in the Website field still gets its brand mark and a
+      // clean "LinkedIn" label, not a bare globe + long URL. A generic site keeps
+      // the globe (resolveLink returns "link" for unknown hosts) and its URL text.
+      const { icon, service } = resolveLink(c.website);
+      const wIcon = icon === "link" ? "website" : icon;
+      const label = withIcons && service ? service : displayUrl(c.website);
+      parts.push(`<a href="${escapeHtml(href)}"${UGC_REL}>${ico(wIcon)}${escapeHtml(label)}</a>`);
+    }
   }
   const links = (cv.owner.links ?? [])
     .map((l) => {

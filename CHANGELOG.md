@@ -67,6 +67,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Profile links are usable again — and the editor fields no longer collapse.** On a
+  narrow profile panel the "label" and "URL" inputs in the Links editor shrank to a
+  sliver next to the "Remove link" button, making a link effectively impossible to
+  type. They now wrap onto their own rows with a sensible width.
+- **A LinkedIn (or GitHub/ORCID/…) URL entered in the Website field now shows its
+  brand icon and a clean label** (e.g. the LinkedIn mark + "LinkedIn") instead of a
+  bare globe and the full URL — matching how profile links are already auto-detected.
+  A generic website keeps the globe and its URL text.
 - **Switching on open-access badges no longer silently adds a percentage to the top
   of your CV.** The per-publication "OA" badges and the header open-access share are
   now two separate switches, so choosing badges does exactly that — and nothing else.
