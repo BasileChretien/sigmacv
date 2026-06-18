@@ -179,7 +179,10 @@ export const AUTHORSHIP_ROLE_LABELS: Record<AuthorshipRole, string> = {
  *  - "duplicate": this item likely duplicates another listed work (see `duplicateOf`);
  *  - "likely-misattributed": an OpenAlex-author-id-only match (no confirming ORCID on
  *    the paper) that disagrees with the rest of the profile on ≥2 strong signals —
- *    a probable over-merge of a same-name researcher (see `misattribution`).
+ *    a probable over-merge of a same-name researcher (see `misattribution`);
+ *  - "held-for-review": a work a re-sync would normally auto-include, held back as a
+ *    review candidate because the owner chose `display.holdNewForReview` (review new
+ *    works before they appear); confirmed with "Show" (see holdForReview.ts).
  */
 export const REVIEW_FLAGS = [
   "orcid-conflict",
@@ -187,6 +190,7 @@ export const REVIEW_FLAGS = [
   "orcid-doi",
   "duplicate",
   "likely-misattributed",
+  "held-for-review",
 ] as const;
 export type ReviewFlag = (typeof REVIEW_FLAGS)[number];
 
@@ -1096,6 +1100,15 @@ export const DisplayChoicesSchema = z.object({
    * (like the rest of the summary block) it follows `summaryBlockPosition`.
    */
   showOutputLedger: z.boolean().default(false),
+  /**
+   * Re-sync policy for NEW works. Default false = auto-include identifier-matched
+   * works as soon as a sync finds them (the living-CV behaviour). True = hold each
+   * newly-found own work back as a "held-for-review" candidate (hidden) for the
+   * owner to confirm with "Show" before it appears on the CV or the public page —
+   * the "review, don't auto-apply" choice. Applied in the sync path
+   * (`applyHoldForReview`); never affects the first import.
+   */
+  holdNewForReview: z.boolean().default(false),
   /** Which authorship roles to include in that table (subset of AUTHORSHIP_ROLES). */
   authorshipRoles: z.array(z.string().max(64)).max(50).default([]),
   /** Accent colour (validated hex). */

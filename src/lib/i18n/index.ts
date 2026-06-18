@@ -452,6 +452,9 @@ export function reasonLabel(locale: string, reason: NotMineReason): string {
 // ─── Chrome dictionary ───────────────────────────────────────────────────────
 
 const EN = {
+  reviewBadgeNew: "New",
+  reviewHintHeld:
+    'Found in your latest sync. You chose to review new works before they appear — "Show" adds it to your CV and your public page.',
   reviewMine: "Yes, it's mine",
   reviewMineHint: "Confirm this work is yours — it stays on your CV and we stop flagging it.",
   misWhyPrefix: "May not be yours —",
@@ -595,6 +598,9 @@ const EN = {
 export type ChromeKey = keyof typeof EN;
 
 const ZH: Record<ChromeKey, string> = {
+  reviewBadgeNew: "新",
+  reviewHintHeld:
+    "在最近一次同步中发现。你选择了在新作品出现前先核查——点击“显示”将其加入你的简历和公开页面。",
   reviewMine: "是我的",
   reviewMineHint: "确认这是您的作品——它将保留在简历中，我们不再提示。",
   misWhyPrefix: "可能不是您的——",
@@ -721,6 +727,9 @@ const ZH: Record<ChromeKey, string> = {
 };
 
 const ES: Record<ChromeKey, string> = {
+  reviewBadgeNew: "Nuevo",
+  reviewHintHeld:
+    "Encontrado en tu última sincronización. Elegiste revisar los trabajos nuevos antes de que aparezcan: «Mostrar» lo añade a tu CV y a tu página pública.",
   reviewMine: "Sí, es mío",
   reviewMineHint: "Confirma que este trabajo es tuyo: permanece en tu CV y dejamos de marcarlo.",
   misWhyPrefix: "Puede que no sea tuyo:",
@@ -852,6 +861,9 @@ const ES: Record<ChromeKey, string> = {
 };
 
 const FR: Record<ChromeKey, string> = {
+  reviewBadgeNew: "Nouveau",
+  reviewHintHeld:
+    "Trouvé lors de votre dernière synchronisation. Vous avez choisi de vérifier les nouveaux travaux avant qu'ils n'apparaissent — « Afficher » l'ajoute à votre CV et à votre page publique.",
   reviewMine: "Oui, c'est à moi",
   reviewMineHint:
     "Confirmez que ce travail est le vôtre : il reste sur votre CV et nous cessons de le signaler.",
@@ -985,6 +997,9 @@ const FR: Record<ChromeKey, string> = {
 };
 
 const DE: Record<ChromeKey, string> = {
+  reviewBadgeNew: "Neu",
+  reviewHintHeld:
+    "In deiner letzten Synchronisierung gefunden. Du hast gewählt, neue Arbeiten vor dem Erscheinen zu prüfen — „Anzeigen“ fügt sie deinem CV und deiner öffentlichen Seite hinzu.",
   reviewMine: "Ja, gehört mir",
   reviewMineHint:
     "Bestätigen Sie, dass diese Arbeit Ihre ist – sie bleibt im Lebenslauf und wird nicht mehr markiert.",
@@ -1119,6 +1134,9 @@ const DE: Record<ChromeKey, string> = {
 };
 
 const JA: Record<ChromeKey, string> = {
+  reviewBadgeNew: "新規",
+  reviewHintHeld:
+    "最近の同期で見つかりました。新しい業績を表示前に確認する設定です——「表示」で CV と公開ページに追加します。",
   reviewMine: "自分のものです",
   reviewMineHint: "この業績がご自身のものだと確認します。CV に残り、以後フラグは表示されません。",
   misWhyPrefix: "あなたのものでない可能性：",
@@ -1250,6 +1268,9 @@ const JA: Record<ChromeKey, string> = {
 };
 
 const PT: Record<ChromeKey, string> = {
+  reviewBadgeNew: "Novo",
+  reviewHintHeld:
+    "Encontrado na sua última sincronização. Você optou por revisar novos trabalhos antes de aparecerem — «Mostrar» o adiciona ao seu currículo e à sua página pública.",
   reviewMine: "Sim, é meu",
   reviewMineHint:
     "Confirme que este trabalho é seu — ele permanece no seu CV e deixamos de sinalizá-lo.",
@@ -1382,6 +1403,9 @@ const PT: Record<ChromeKey, string> = {
 };
 
 const IT: Record<ChromeKey, string> = {
+  reviewBadgeNew: "Nuovo",
+  reviewHintHeld:
+    "Trovato nell'ultima sincronizzazione. Hai scelto di rivedere i nuovi lavori prima che compaiano — «Mostra» lo aggiunge al CV e alla pagina pubblica.",
   reviewMine: "Sì, è mio",
   reviewMineHint: "Conferma che questo lavoro è tuo: resta nel tuo CV e smettiamo di segnalarlo.",
   misWhyPrefix: "Potrebbe non essere tuo —",
@@ -1513,6 +1537,9 @@ const IT: Record<ChromeKey, string> = {
 };
 
 const KO: Record<ChromeKey, string> = {
+  reviewBadgeNew: "신규",
+  reviewHintHeld:
+    "최근 동기화에서 발견되었습니다. 새 성과가 표시되기 전에 검토하도록 선택했습니다 — “표시”를 누르면 CV와 공개 페이지에 추가됩니다.",
   reviewMine: "내 것이 맞습니다",
   reviewMineHint: "이 업적이 본인의 것임을 확인합니다. CV에 그대로 남고 더 이상 표시하지 않습니다.",
   misWhyPrefix: "본인의 것이 아닐 수 있습니다 —",
@@ -1644,6 +1671,9 @@ const KO: Record<ChromeKey, string> = {
 };
 
 const RU: Record<ChromeKey, string> = {
+  reviewBadgeNew: "Новое",
+  reviewHintHeld:
+    "Найдено при последней синхронизации. Вы выбрали проверять новые работы до их появления — «Показать» добавит её в ваше резюме и на публичную страницу.",
   reviewMine: "Да, это моё",
   reviewMineHint:
     "Подтвердите, что эта работа ваша — она останется в CV, и мы перестанем её отмечать.",

@@ -411,6 +411,10 @@
           "default": false,
           "type": "boolean"
         },
+        "holdNewForReview": {
+          "default": false,
+          "type": "boolean"
+        },
         "authorshipRoles": {
           "default": [],
           "maxItems": 50,
@@ -935,7 +939,8 @@
                         "name-matched",
                         "orcid-doi",
                         "duplicate",
-                        "likely-misattributed"
+                        "likely-misattributed",
+                        "held-for-review"
                       ]
                     },
                     "duplicateOf": {
@@ -1244,6 +1249,10 @@
                 "type": "boolean"
               },
               "showOutputLedger": {
+                "default": false,
+                "type": "boolean"
+              },
+              "holdNewForReview": {
                 "default": false,
                 "type": "boolean"
               },

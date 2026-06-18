@@ -252,7 +252,9 @@ export default function ItemRow({
   // hidden: an ORCID-discovered work or a name+org-matched registry entry that
   // is hidden, not asserted "not mine", and not already dismissed ("Keep hidden").
   const isPendingReviewCandidate =
-    (item.meta.reviewFlag === "orcid-doi" || item.meta.reviewFlag === "name-matched") &&
+    (item.meta.reviewFlag === "orcid-doi" ||
+      item.meta.reviewFlag === "name-matched" ||
+      item.meta.reviewFlag === "held-for-review") &&
     !item.included &&
     !item.notMine &&
     !reviewDismissed;
@@ -630,6 +632,17 @@ export default function ItemRow({
                 title={t(locale, "reviewHintOrcidDoi")}
               >
                 {t(locale, "reviewBadgeSoft")}
+              </span>
+            ) : null}
+            {/* A newly-synced work held back because the owner chose "review new
+                works before they appear" (display.holdNewForReview). Confirm with
+                "Show" (includes it), mark "not mine", or "Keep hidden". */}
+            {item.meta.reviewFlag === "held-for-review" && isPendingReviewCandidate ? (
+              <span
+                className="cv-review-badge cv-review-badge--soft"
+                title={t(locale, "reviewHintHeld")}
+              >
+                {t(locale, "reviewBadgeNew")}
               </span>
             ) : null}
             {dupBadge}

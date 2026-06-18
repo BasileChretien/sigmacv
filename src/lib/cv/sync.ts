@@ -54,6 +54,7 @@ import {
   type RecentAddition,
   type SyncReport,
 } from "./syncReport";
+import { applyHoldForReview } from "./holdForReview";
 
 /** Thrown when a save is attempted before the user has a CV row. */
 export class CvNotFoundError extends Error {
@@ -368,6 +369,13 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     "enrich.duplicates",
     annotateDuplicatesWithRelations(cv, getEnv().OPENALEX_MAILTO),
   );
+
+  // "Review new works before they appear" (display.holdNewForReview): hold each
+  // newly-found own work back as a review candidate instead of auto-including it.
+  // After all enrichment so review flags are settled; before the report so held
+  // works count as review candidates, not silent auto-applies. No-op by default and
+  // on the first sync (no `previous`).
+  cv = applyHoldForReview(cv, previous);
 
   // Defence-in-depth: never persist a document above the public-render item cap.
   // saveCvForUser enforces this for user saves; the sync/resync path writes via
