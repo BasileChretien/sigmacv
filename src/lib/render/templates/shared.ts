@@ -3,7 +3,7 @@ import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
 import { renderChartsHtml } from "../charts";
-import { escapeHtml, safeHref } from "../escape";
+import { displayUrl, escapeHtml, safeHref } from "../escape";
 import { formattedMetrics, openAccessShare } from "../metrics";
 import { iconSvg, resolveLink, type IconName } from "../icons";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -92,7 +92,7 @@ function contactHtml(cv: CanonicalCv): string {
     const href = safeHref(c.website);
     if (href)
       parts.push(
-        `<a href="${escapeHtml(href)}"${UGC_REL}>${ico("website")}${escapeHtml(c.website)}</a>`,
+        `<a href="${escapeHtml(href)}"${UGC_REL}>${ico("website")}${escapeHtml(displayUrl(c.website))}</a>`,
       );
   }
   const links = (cv.owner.links ?? [])
@@ -105,7 +105,9 @@ function contactHtml(cv: CanonicalCv): string {
       const { icon, service } = resolveLink(l.url);
       const labelText = l.label || (withIcons ? service : undefined) || l.url;
       if (!labelText && !href) return "";
-      const body = `${ico(icon)}${escapeHtml(labelText)}`;
+      // displayUrl strips any user:pass@ userinfo when the label IS the raw URL (an
+      // unlabelled link); a plain label/service name passes through unchanged.
+      const body = `${ico(icon)}${escapeHtml(displayUrl(labelText))}`;
       return href ? `<a href="${escapeHtml(href)}"${UGC_REL}>${body}</a>` : body;
     })
     .filter(Boolean);

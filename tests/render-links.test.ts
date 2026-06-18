@@ -153,4 +153,18 @@ describe.skipIf(!hasApa)("renderCvHtml link behaviour (needs vendored CSL assets
     expect(blogAnchor.match(/rel=/g)).toHaveLength(1);
     expect(blogAnchor.match(/target=/g)).toHaveLength(1);
   });
+
+  it("strips user:pass@ credentials from the displayed website + link", () => {
+    const withCreds = updateOwner(cv, {
+      contact: { website: "https://user:tok123@me.example.org" },
+      links: [{ label: "", url: "https://usr:sk_live_xyz@host.example/me" }],
+    });
+    const html = renderCvHtml(withCreds);
+    // Neither the visible text nor the href may expose the credential.
+    expect(html).not.toContain("tok123");
+    expect(html).not.toContain("sk_live_xyz");
+    // …the sanitized URL still renders and links out.
+    expect(html).toContain("https://me.example.org");
+    expect(html).toContain('href="https://host.example/me"');
+  });
 });

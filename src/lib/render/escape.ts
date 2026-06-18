@@ -65,3 +65,15 @@ export function safeHref(url: string | undefined | null): string {
   }
   return candidate;
 }
+
+/**
+ * Strip any `user:pass@` userinfo from a URL before it is DISPLAYED as text — the
+ * visible contact line, and the plain Markdown / LaTeX / DOCX exports. The href
+ * path is already protected by {@link safeHref}; this guards the VISIBLE text so a
+ * credential a user pasted into a profile link / website can't leak into the
+ * rendered or exported CV. Total: a URL without userinfo (or a plain text label,
+ * or a `mailto:` with no `//`) is returned unchanged.
+ */
+export function displayUrl(url: string): string {
+  return url.replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/?#@]*@/i, "$1");
+}
