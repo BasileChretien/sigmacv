@@ -873,6 +873,10 @@ export function isMascotStyle(style: string): style is MascotStyleKey {
 }
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
+/** Overall type-size multiplier (1 = default). Scales every section's font sizes
+ *  together. The picker offers these steps; the value is range-validated so a
+ *  client can't store something silly. */
+export const FONT_SCALES = [0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15, 1.2] as const;
 /** How the account holder's name is emphasised in their own works. */
 export const HIGHLIGHT_STYLES = ["accent", "bold", "underline", "accent-underline"] as const;
 export type HighlightStyle = (typeof HIGHLIGHT_STYLES)[number];
@@ -1090,6 +1094,9 @@ export const DisplayChoicesSchema = z.object({
   accentColor: z.string().regex(HEX_COLOR).default("#1f4fd8"),
   fontPairing: z.enum(FONT_PAIRINGS).default("serif"),
   density: z.enum(DENSITIES).default("comfortable"),
+  /** Overall type-size multiplier (scales every section's font sizes together).
+   *  1 = default; range-validated (the picker offers FONT_SCALES steps). */
+  fontScale: z.number().min(0.8).max(1.25).default(1),
   /**
    * Per-field consent for what appears on the PUBLIC page (`/p/[slug]`). Default
    * ALL OFF (GDPR/APPI data-minimization): publishing shares the CV body, but

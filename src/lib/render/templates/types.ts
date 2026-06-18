@@ -21,6 +21,9 @@ export interface TemplateTheme {
   /** A low-opacity tint of the accent (safe rgba), derived from accentColor. */
   accentSoft: string;
   fontFamily: string; // resolved CSS font stack
+  /** Overall type-size multiplier (1 = default). Applied to `bodyFontPt` already,
+   *  and emitted as the root `font-size` so every rem-based size scales with it. */
+  fontScale: number;
   bodyFontPt: number;
   lineHeight: number;
   sectionGapRem: number;
