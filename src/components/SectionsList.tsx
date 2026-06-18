@@ -65,6 +65,7 @@ import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
+import { narrativeGuidance } from "@/lib/i18n/narrativeGuidance";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
 import type { CvHealthCategory } from "./CvHealthPanel";
@@ -661,6 +662,15 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                     {isExpanded && isProseSectionType(section.type) ? (
                       <label className="field prose-body-field">
                         <span className="muted">{eu.proseBody}</span>
+                        {/* R4RI/Royal-Society narrative modules get a writing prompt
+                            (what belongs in this module) — a narrative CV is hard to
+                            start from a blank box. Other prose types (statement) have
+                            none. Editor-only; never rendered on the CV. */}
+                        {narrativeGuidance(locale, section.type) ? (
+                          <span className="field-hint narrative-guidance muted">
+                            {narrativeGuidance(locale, section.type)}
+                          </span>
+                        ) : null}
                         <textarea
                           className="prose-body"
                           rows={6}
