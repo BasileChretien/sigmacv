@@ -21,6 +21,7 @@ export interface UiStrings {
   styleNetworkError: string;
   fontLabel: string;
   densityLabel: string;
+  fontSizeLabel: string;
   accentLabel: string;
   customAccent: string;
   highlightSelf: string;
@@ -189,6 +190,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleNetworkError: "Network error — please try again.",
     fontLabel: "Font",
     densityLabel: "Density",
+    fontSizeLabel: "Font size",
     accentLabel: "Accent",
     customAccent: "Custom accent colour",
     highlightSelf: "Highlight my name",
@@ -336,6 +338,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleNetworkError: "网络错误——请重试。",
     fontLabel: "字体",
     densityLabel: "密度",
+    fontSizeLabel: "字体大小",
     accentLabel: "强调色",
     customAccent: "自定义强调色",
     highlightSelf: "高亮我的姓名",
@@ -480,6 +483,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleNetworkError: "Error de red: inténtalo de nuevo.",
     fontLabel: "Fuente",
     densityLabel: "Densidad",
+    fontSizeLabel: "Tamaño de fuente",
     accentLabel: "Color de acento",
     customAccent: "Color de acento personalizado",
     highlightSelf: "Resaltar mi nombre",
@@ -628,6 +632,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleNetworkError: "Erreur réseau — veuillez réessayer.",
     fontLabel: "Police",
     densityLabel: "Densité",
+    fontSizeLabel: "Taille de police",
     accentLabel: "Accent",
     customAccent: "Couleur d’accent personnalisée",
     highlightSelf: "Mettre mon nom en évidence",
@@ -779,6 +784,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleNetworkError: "Netzwerkfehler — bitte erneut versuchen.",
     fontLabel: "Schriftart",
     densityLabel: "Dichte",
+    fontSizeLabel: "Schriftgröße",
     accentLabel: "Akzent",
     customAccent: "Eigene Akzentfarbe",
     highlightSelf: "Meinen Namen hervorheben",
@@ -928,6 +934,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleNetworkError: "ネットワークエラー — もう一度お試しください。",
     fontLabel: "フォント",
     densityLabel: "表示密度",
+    fontSizeLabel: "文字サイズ",
     accentLabel: "アクセント",
     customAccent: "カスタムアクセントカラー",
     highlightSelf: "自分の名前を強調表示",
@@ -1075,6 +1082,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleNetworkError: "Erro de rede — tente novamente.",
     fontLabel: "Fonte",
     densityLabel: "Densidade",
+    fontSizeLabel: "Tamanho da fonte",
     accentLabel: "Destaque",
     customAccent: "Cor de destaque personalizada",
     highlightSelf: "Destacar meu nome",
@@ -1223,6 +1231,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleNetworkError: "Errore di rete — riprova.",
     fontLabel: "Carattere",
     densityLabel: "Densità",
+    fontSizeLabel: "Dimensione del carattere",
     accentLabel: "Accento",
     customAccent: "Colore d’accento personalizzato",
     highlightSelf: "Evidenzia il mio nome",
@@ -1372,6 +1381,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleNetworkError: "네트워크 오류 — 다시 시도해 주세요.",
     fontLabel: "글꼴",
     densityLabel: "밀도",
+    fontSizeLabel: "글자 크기",
     accentLabel: "강조색",
     customAccent: "사용자 지정 강조색",
     highlightSelf: "내 이름 강조",
@@ -1519,6 +1529,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     styleNetworkError: "Ошибка сети — пожалуйста, попробуйте ещё раз.",
     fontLabel: "Шрифт",
     densityLabel: "Плотность",
+    fontSizeLabel: "Размер шрифта",
     accentLabel: "Акцент",
     customAccent: "Свой акцентный цвет",
     highlightSelf: "Выделить моё имя",

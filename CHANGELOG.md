@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A "Font size" control in the design panel.** A new size selector (85%–120%)
+  scales the whole CV's typography up or down in proportion — every section's
+  headings, name, body and gaps grow or shrink together — so you can fit more on a
+  page or make a short CV more generous, in both the editor preview and the export.
+  It's independent of (and composes with) the existing Density setting.
+
 ### Changed
 
 - **Choose your CV font — Source Serif, Inter, or EB Garamond — and it looks

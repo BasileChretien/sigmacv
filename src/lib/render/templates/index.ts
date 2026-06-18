@@ -71,6 +71,10 @@ function accentSoft(hex: string): string {
 /** Map the user's display choices to a CSS-safe presentation theme. */
 export function resolveTheme(display: DisplayChoices): TemplateTheme {
   const compact = display.density === "compact";
+  // Overall type-size multiplier (clamped defensively). Scales the body pt size
+  // directly AND, via commonCss's `html { font-size }`, every rem-based size
+  // (headings, name, section gaps) — so the WHOLE CV grows/shrinks in proportion.
+  const fontScale = Math.min(1.25, Math.max(0.8, display.fontScale));
   // Defence-in-depth: the schema validates accentColor, but this value is
   // interpolated raw into a <style> block, so re-check at the render boundary.
   // Then floor its contrast so a too-light custom accent can't render an
@@ -80,7 +84,10 @@ export function resolveTheme(display: DisplayChoices): TemplateTheme {
     accentColor,
     accentSoft: accentSoft(accentColor),
     fontFamily: FONT_STACKS[display.fontPairing],
-    bodyFontPt: compact ? 10 : 11,
+    fontScale,
+    // Body text is `pt` (absolute), so it must be scaled here; the rem sizes below
+    // are scaled by the root font-size in commonCss. Both by the same factor.
+    bodyFontPt: Math.round((compact ? 10 : 11) * fontScale * 100) / 100,
     lineHeight: compact ? 1.32 : 1.5,
     sectionGapRem: compact ? 1.05 : 1.7,
     entryGapRem: compact ? 0.38 : 0.58,

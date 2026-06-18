@@ -104,6 +104,7 @@ describe("DisplayChoicesSchema", () => {
       accentColor: "#1f4fd8",
       fontPairing: "serif",
       density: "comfortable",
+      fontScale: 1,
       publicContact: { email: false, phone: false, location: false },
       publicAttribution: true,
       showCoauthorLinks: false,

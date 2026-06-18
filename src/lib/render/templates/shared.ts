@@ -230,6 +230,11 @@ export function commonCss(theme: TemplateTheme): string {
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  /* Overall font-size control: scale the ROOT font-size so EVERY rem-based size
+     (headings, name, section gaps, badges …) grows/shrinks together; the body's
+     own pt size is already scaled by the same factor in resolveTheme. 100% = the
+     UA default 16px, so 1 leaves the document untouched. */
+  html { font-size: ${theme.fontScale * 100}%; }
   body {
     font-family: ${theme.fontFamily};
     font-size: ${theme.bodyFontPt}pt;

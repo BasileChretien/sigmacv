@@ -6,6 +6,7 @@ import {
   AUTHORSHIP_ROLES,
   DENSITIES,
   FONT_PAIRINGS,
+  FONT_SCALES,
   HIGHLIGHT_STYLES,
   isMascotStyle,
   PUBLIC_STYLES,
@@ -626,6 +627,20 @@ export default function StyleControls({
             {DENSITIES.map((d) => (
               <option key={d} value={d}>
                 {DENSITY_LABELS[d] ?? d}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span>{u.fontSizeLabel}</span>
+          <select
+            value={cv.display.fontScale}
+            onChange={(e) => onChange(updateDisplay(cv, { fontScale: Number(e.target.value) }))}
+          >
+            {FONT_SCALES.map((s) => (
+              <option key={s} value={s}>
+                {Math.round(s * 100)}%
               </option>
             ))}
           </select>

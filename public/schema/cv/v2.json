@@ -431,6 +431,12 @@
           "type": "string",
           "enum": ["comfortable", "compact"]
         },
+        "fontScale": {
+          "default": 1,
+          "type": "number",
+          "minimum": 0.8,
+          "maximum": 1.25
+        },
         "publicContact": {
           "default": {},
           "type": "object",
@@ -1256,6 +1262,12 @@
                 "default": "comfortable",
                 "type": "string",
                 "enum": ["comfortable", "compact"]
+              },
+              "fontScale": {
+                "default": 1,
+                "type": "number",
+                "minimum": 0.8,
+                "maximum": 1.25
               },
               "publicContact": {
                 "default": {},
