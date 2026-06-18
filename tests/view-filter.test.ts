@@ -106,8 +106,9 @@ describe("viewFilterFacets + viewFilterBarHtml", () => {
     expect(bar).toContain('class="cv-filterbar"');
     expect(bar).toContain("Since 2021");
     expect(bar).toContain("Open access");
-    // The active "Since 2021" chip is marked current.
-    expect(bar).toMatch(/aria-current="true"[^>]*>Since 2021|Since 2021<\/a>/);
+    // The active "Since 2021" chip is marked current — assert the attribute and
+    // label live in the SAME anchor (a loose alternation would pass without it).
+    expect(bar).toMatch(/<a[^>]*aria-current="true"[^>]*>Since 2021<\/a>/);
     expect(bar).toContain("?since=2021");
   });
 
