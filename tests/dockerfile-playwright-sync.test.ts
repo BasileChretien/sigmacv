@@ -36,8 +36,17 @@ describe("Dockerfile Playwright base image", () => {
 
   it("matches the runtime base-image tag in the Dockerfile", () => {
     const dockerfile = read("Dockerfile");
-    const m = dockerfile.match(/mcr\.microsoft\.com\/playwright:v(\d+\.\d+\.\d+)-/);
-    expect(m, "no `FROM mcr.microsoft.com/playwright:vX.Y.Z-…` line found").not.toBeNull();
+    // Anchor to the runtime stage's `FROM … AS runner` line specifically — that's
+    // the image that actually serves PDF rendering. An unanchored `playwright:v…`
+    // match could pick up an incidental mention elsewhere (a builder-stage image,
+    // an example tag in a comment) and validate the wrong line.
+    const m = dockerfile.match(
+      /^FROM\s+mcr\.microsoft\.com\/playwright:v(\d+\.\d+\.\d+)-[\w.]+\s+AS\s+runner/im,
+    );
+    expect(
+      m,
+      "no `FROM mcr.microsoft.com/playwright:vX.Y.Z-… AS runner` line found",
+    ).not.toBeNull();
     const imageVersion = m![1];
     expect(
       imageVersion,
