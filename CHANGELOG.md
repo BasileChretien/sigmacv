@@ -124,9 +124,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     frequent fields, computed from open data (not a self-reported skills list, and
     excluding works you've hidden or marked "not mine"). Off by default.
   - **Read the abstract and jump to the open-access full text** inline under each
-    work, as no-JS disclosures and links. Abstracts come from OpenAlex, and any it is
-    missing are now gap-filled from Crossref — so the "Abstract" toggle appears on
-    many more works (filled on a sync and kept across re-syncs).
+    work, as no-JS disclosures and links. An expanded abstract reads as a contained
+    callout card (an accent left edge + a faint panel) rather than a wall of text down
+    the left margin. Abstracts come from OpenAlex, and any it is missing are now
+    gap-filled from Crossref — so the "Abstract" toggle appears on many more works
+    (filled on a sync and kept across re-syncs).
   - **Pin "Selected publications."** Star individual works in the editor to float
     them to the top of their section with a quiet "Selected" mark; the pin survives
     re-sync.
