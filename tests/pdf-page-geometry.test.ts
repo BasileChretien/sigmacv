@@ -49,16 +49,15 @@ function pageMargin(html: string): { top: string; right: string; bottom: string;
 describe("PDF/preview page geometry stays in lockstep", () => {
   const css = pageMargin(renderCvHtml(makeCv()));
 
-  it("keeps the page margin vertical-only (gutter must come from .cv, not the page)", () => {
-    // pdf.ts side: no horizontal margin, symmetric vertical.
-    expect(PDF_PAGE_MARGIN.left).toBe("0");
-    expect(PDF_PAGE_MARGIN.right).toBe("0");
-    expect(PDF_PAGE_MARGIN.top).toBe(PDF_PAGE_MARGIN.bottom);
-    // CSS @page side: every edge checked, so an asymmetric 3-/4-value shorthand
-    // (e.g. a different top vs bottom) can't slip past.
-    expect(css.left).toBe("0");
-    expect(css.right).toBe("0");
-    expect(css.top).toBe(css.bottom);
+  it("uses a ZERO page margin — every gutter comes from the template's own box", () => {
+    // The page itself adds no margin: centred templates get their margin from
+    // `.cv` padding, and full-bleed templates (Sidebar panel) reach the page edge
+    // with NO white strip — identical on screen and in print. A non-zero page
+    // margin here would reintroduce the strip above the Sidebar panel.
+    for (const side of ["top", "bottom", "left", "right"] as const) {
+      expect(PDF_PAGE_MARGIN[side]).toBe("0");
+      expect(css[side]).toBe("0");
+    }
   });
 
   it("matches the Playwright margin (pdf.ts) to the CSS @page margin", () => {
@@ -103,6 +102,31 @@ describe.skipIf(!chromiumInstalled)("print and screen .cv render identically (br
       const screen = await columnWidth("screen");
       const print = await columnWidth("print");
       expect(print).toBe(screen);
+    } finally {
+      await b.close();
+    }
+  }, 60_000);
+
+  it("bleeds the full-bleed Sidebar panel to the top edge in BOTH media (no white strip)", async () => {
+    const sidebar: CanonicalCv = {
+      ...makeCv(),
+      display: { ...makeCv().display, template: "sidebar" },
+    };
+    const html = renderCvHtml(sidebar);
+    const b = await chromium.launch({ args: ["--no-sandbox"] });
+    try {
+      const p = await (await b.newContext({ javaScriptEnabled: false })).newPage();
+      await p.setViewportSize({ width: A4_WIDTH, height: 1123 });
+      const panelTop = async (media: "screen" | "print") => {
+        await p.emulateMedia({ media });
+        await p.setContent(html, { waitUntil: "load" });
+        return p.evaluate(() => document.querySelector(".cv-sidebar")!.getBoundingClientRect().top);
+      };
+      // The coloured panel must touch the page top (offset ~0) on screen AND print —
+      // a non-zero page margin would push it down and reopen the white strip the PDF
+      // used to show above it.
+      expect(await panelTop("screen")).toBeLessThan(1);
+      expect(await panelTop("print")).toBeLessThan(1);
     } finally {
       await b.close();
     }
