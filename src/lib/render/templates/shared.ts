@@ -362,8 +362,12 @@ export function commonCss(theme: TemplateTheme): string {
      <section>, to keep the mascot's per-section hat bindings intact) whose <h2>
      joins the heading outline. The heading uses the themed --cv-ink token so it
      stays legible on every template + dark style; its metric list sits directly
-     under the heading (no extra top gap). */
-  .cv-summary-block { margin-top: var(--cv-space); }
+     under the heading (no extra top gap). margin-BOTTOM matches the inter-section
+     gap so the block is separated from the next section's heading exactly like one
+     section is from the next — it collapses with the following section's own
+     margin-top (taking the max), so a template that zeroes its first section's top
+     margin (e.g. Sidebar) still gets a full gap here. */
+  .cv-summary-block { margin-top: var(--cv-space); margin-bottom: var(--cv-space); }
   .cv-summary-block > .cv-summary-h { font-size: 0.95rem; font-weight: 600; color: var(--cv-ink); margin: 0 0 0.65rem; }
   .cv-summary-block .cv-metrics { margin-top: 0; }
 

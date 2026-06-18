@@ -62,6 +62,15 @@ describe("research-summary block placement (HTML)", () => {
   const SECTION = '<section class="cv-section"';
   const MAIN = '<main class="cv-main">';
 
+  it("separates the block from the next section by a full inter-section gap", () => {
+    // margin-BOTTOM matches the section gap so a "top"/"bottom" block reads like a
+    // section (it collapses with the next section's margin-top → max), even on a
+    // template that zeroes its first section's top margin (e.g. Sidebar).
+    expect(renderCvHtml(cvAt("top"))).toContain(
+      ".cv-summary-block { margin-top: var(--cv-space); margin-bottom: var(--cv-space); }",
+    );
+  });
+
   it('default "header": block sits in the header, with NO heading wrapper', () => {
     const html = renderCvHtml(cvAt("header"));
     expect(html).toContain(METRICS);
