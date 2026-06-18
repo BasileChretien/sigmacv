@@ -111,12 +111,17 @@ describe.skipIf(!hasApa)("per-publication tools (publicExtras)", () => {
   });
 });
 
-describe("attributionFooter subscribe link", () => {
-  it("adds a Subscribe link only when a feed href is supplied", () => {
+describe("attributionFooter subscribe affordance", () => {
+  it("renders a no-JS disclosure revealing the feed URL, only with a feed href", () => {
     const cv = makeCv();
     const withFeed = attributionFooter(cv, { attribution: true, feedHref: "/p/abc/feed.xml" });
-    expect(withFeed).toContain("cv-subscribe");
-    expect(withFeed).toContain("/p/abc/feed.xml");
+    // A <details> disclosure (not a bare link that navigates to raw XML).
+    expect(withFeed).toContain('<details class="cv-subscribe">');
+    expect(withFeed).toContain("<summary>");
+    expect(withFeed).toContain("cv-subscribe-how"); // the explanatory hint container
+    // The feed URL is both a link and shown as copyable text.
+    expect(withFeed).toContain('class="cv-subscribe-url" href="/p/abc/feed.xml"');
+    expect(withFeed).toContain(">/p/abc/feed.xml</a>");
 
     const without = attributionFooter(cv, { attribution: true });
     expect(without).not.toContain("cv-subscribe");

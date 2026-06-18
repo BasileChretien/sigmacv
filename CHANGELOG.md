@@ -95,8 +95,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     that downloads that single reference as BibTeX, RIS, or CSL-JSON — no need to grab
     the whole bibliography.
   - **Follow a researcher's output by RSS/Atom.** Each living page now publishes a
-    feed at `/p/<slug>/feed.xml` of recent works, discoverable by feed readers and
-    linked from a "Subscribe" line on the page.
+    feed at `/p/<slug>/feed.xml` of recent works, auto-discovered by feed readers.
+    A "Subscribe" control on the page opens to reveal the feed URL to paste into your
+    reader (rather than just opening the raw feed XML, which browsers can't subscribe
+    to on their own).
   - **An automatic "Research areas" summary.** An opt-in chip row of your most
     frequent fields, computed from open data (not a self-reported skills list, and
     excluding works you've hidden or marked "not mine"). Off by default.
