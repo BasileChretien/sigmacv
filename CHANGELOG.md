@@ -41,6 +41,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Icons for your contact details and profile links.** Your email, phone, address
+  and website now show a small icon, and each profile link gets the right icon for
+  its service — GitHub, LinkedIn, ORCID (in its signature green), Google Scholar,
+  X, Mastodon, ResearchGate, YouTube, Bluesky — detected automatically from the
+  link, with a neutral globe for anything else. A bare link with no label is also
+  named for you ("GitHub" instead of a raw URL). The icons are monochrome so they
+  match each template and the dark public-page styles, decorative (the text stays
+  fully readable to screen readers and résumé parsers), and omitted from the
+  parser-safe ATS template. The plain DOCX/Markdown/LaTeX exports gain the cleaner
+  auto-labels (no icons).
+
 - **Move — or hide — the research summary.** The block under your name (the metrics
   strip, the publications-per-year chart and the authorship breakdown) now has a
   placement control: keep it in the header (the default, unchanged), give it its own
