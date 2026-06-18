@@ -15,13 +15,19 @@ except Exception as e:
     print("missing dependency:", e)
     sys.exit(3)
 
+
+def _q(path: str) -> str:
+    """Escape a filesystem path for use inside a single-quoted SQL string literal."""
+    return path.replace("'", "''")
+
+
 OUT = os.environ.get("OA_OUT", "./out")
 csv = f"{OUT}/namesake-subsample.csv"
 
 con = duckdb.connect()
 rows = con.execute(
     f'SELECT "group" g, namesake_full f, namesake_full_orcid o, namesake_initial i '
-    f"FROM read_csv_auto('{csv}')"
+    f"FROM read_csv_auto('{_q(csv)}')"
 ).fetchall()
 data = collections.defaultdict(lambda: {"f": [], "o": [], "i": []})
 for g, f, o, i in rows:

@@ -7,6 +7,12 @@ comparison stratum). Writes a 50,000-per-stratum subsample for the figure.
 """
 import duckdb, os, json
 
+
+def _q(path: str) -> str:
+    """Escape a filesystem path for use inside a single-quoted SQL string literal."""
+    return path.replace("'", "''")
+
+
 WORK = os.environ.get("OA_WORK", "./build")
 OUT = os.environ.get("OA_OUT", "./out")
 os.makedirs(OUT, exist_ok=True)
@@ -14,7 +20,7 @@ DB = f"{WORK}/analyze.duckdb"
 
 con = duckdb.connect(DB)
 con.execute("PRAGMA threads=8")
-con.execute(f"PRAGMA temp_directory='{WORK}/tmp'")
+con.execute(f"PRAGMA temp_directory='{_q(WORK)}/tmp'")
 con.execute("PRAGMA memory_limit='16GB'")
 
 EA = ("JP", "CN", "KR", "TW", "HK")
@@ -41,10 +47,13 @@ for g in ("east_asian", "anglophone", "other"):
     for key, m in metrics:
         r = con.execute(f"""SELECT count(*), median({m}), quantile_cont({m},0.25), quantile_cont({m},0.75),
             quantile_cont({m},0.9), max({m}), avg({m}),
-            100.0*count(*) FILTER (WHERE {m}>=2)/count(*),
-            100.0*count(*) FILTER (WHERE {m}>=10)/count(*),
-            100.0*count(*) FILTER (WHERE {m}>=100)/count(*)
+            100.0*count(*) FILTER (WHERE {m}>=2)/NULLIF(count(*),0),
+            100.0*count(*) FILTER (WHERE {m}>=10)/NULLIF(count(*),0),
+            100.0*count(*) FILTER (WHERE {m}>=100)/NULLIF(count(*),0)
             FROM census WHERE grp='{g}'""").fetchone()
+        if not r[0]:  # empty stratum: nothing to summarise
+            summary[g][key] = dict(n=0)
+            continue
         summary[g][key] = dict(n=r[0], median=round(r[1], 1), q1=round(r[2], 1), q3=round(r[3], 1),
                                p90=round(r[4], 1), max=int(r[5]), mean=round(r[6], 1),
                                pct2=round(r[7], 1), pct10=round(r[8], 1), pct100=round(r[9], 2))
@@ -56,6 +65,8 @@ def rbis(m, gB):  # East Asian vs gB; negative => East Asian higher
         SELECT sum(arank) FILTER (WHERE grp='east_asian'), count(*) FILTER (WHERE grp='east_asian'),
                count(*) FILTER (WHERE grp='{gB}') FROM ar"""
     R, na, nb = con.execute(q).fetchone()
+    if not na or not nb:  # an empty stratum has no defined effect size
+        return None
     U = R - na * (na + 1) / 2.0
     return round(1 - 2 * U / (na * nb), 3)
 
@@ -69,7 +80,7 @@ con.execute(f"""COPY (
            m_orcid AS namesake_full_orcid, m_init AS namesake_initial,
            row_number() OVER (PARTITION BY grp ORDER BY hash(aid)) AS rk FROM census)
   WHERE rk <= 50000
-) TO '{OUT}/namesake-subsample.csv' (HEADER)""")
-con.execute(f"COPY census TO '{WORK}/census_full.parquet' (FORMAT parquet, COMPRESSION zstd)")
+) TO '{_q(OUT)}/namesake-subsample.csv' (HEADER)""")
+con.execute(f"COPY census TO '{_q(WORK)}/census_full.parquet' (FORMAT parquet, COMPRESSION zstd)")
 json.dump(summary, open(f"{OUT}/namesake-summary.json", "w"), indent=2)
 print("DONE -> namesake-summary.json, namesake-subsample.csv")

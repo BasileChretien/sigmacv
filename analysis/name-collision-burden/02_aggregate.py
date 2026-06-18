@@ -3,9 +3,16 @@
 A name is normalized by lower-casing, accent-folding, whitespace-collapsing, and
 trimming; tokens are kept in printed order. The initial form is the first character
 of the normalized name plus its final whitespace-delimited token. Author entities are
-deduplicated by OpenAlex author id; names shorter than three characters are dropped.
+deduplicated by OpenAlex author id; rows with no id or no name, and names shorter than
+three characters, are dropped.
 """
 import duckdb, os
+
+
+def _q(path: str) -> str:
+    """Escape a filesystem path for use inside a single-quoted SQL string literal."""
+    return path.replace("'", "''")
+
 
 WORK = os.environ.get("OA_WORK", "./build")
 PARTS = f"{WORK}/parts/*.parquet"
@@ -13,7 +20,7 @@ DB = f"{WORK}/analyze.duckdb"
 
 con = duckdb.connect(DB)
 con.execute("PRAGMA threads=8")
-con.execute(f"PRAGMA temp_directory='{WORK}/tmp'")
+con.execute(f"PRAGMA temp_directory='{_q(WORK)}/tmp'")
 con.execute("PRAGMA memory_limit='16GB'")
 
 con.execute(f"""
@@ -21,7 +28,9 @@ CREATE OR REPLACE TABLE authors AS
 WITH base AS (
   SELECT aid, any_value(name) AS name, any_value(orcid) AS orcid,
          any_value(wc) AS wc, any_value(country) AS country
-  FROM read_parquet('{PARTS}') WHERE name IS NOT NULL GROUP BY aid),
+  FROM read_parquet('{_q(PARTS)}')
+  WHERE aid IS NOT NULL AND name IS NOT NULL
+  GROUP BY aid),
 norm AS (
   SELECT aid, orcid, wc, country, name,
          trim(regexp_replace(lower(strip_accents(name)), '\\s+', ' ', 'g')) AS nfull

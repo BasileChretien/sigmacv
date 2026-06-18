@@ -41,7 +41,8 @@ for (m in names(metrics)) {
 }
 if (requireNamespace("jsonlite", quietly = TRUE)) {
   writeLines(jsonlite::toJSON(out, auto_unbox = TRUE, pretty = TRUE), file.path(OUT, "regression-irr.json"))
+  cat("DONE -> regression-irr.json\n")
 } else {
   saveRDS(out, file.path(OUT, "regression-irr.rds"))
+  cat("DONE -> regression-irr.rds (jsonlite unavailable)\n")
 }
-cat("DONE -> regression-irr.json\n")
