@@ -225,13 +225,21 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-links { margin-top: 0.1rem; }
   .cv-contact a, .cv-links a { color: var(--cv-muted); text-decoration: underline; text-underline-offset: 0.15em; }
   .cv-summary { margin: 0.95rem 0 0; font-size: 0.95rem; color: var(--cv-ink-2); line-height: 1.55; }
-  .cv-metrics { font-size: 0.8rem; color: var(--cv-muted); margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.15rem 1.1rem; }
-  /* The metric's interpretation anchor ("1.0 = world average …"). Upright (not
-     italic) and at --cv-muted rather than --cv-faint: long italic fine-print is a
-     readability cost (dyslexia/low-vision) AND under-weights a responsible-reading
-     caveat that should be legible, not whispered. The coverage note rides its
-     title= tooltip, so this stays short. */
+  /* Profile metric strip — ONE METRIC PER LINE (a list, not a " · "-joined run) so
+     each metric is a discrete, screen-reader-navigable item, and its interpretation
+     anchor + coverage caveat ride as VISIBLE text rather than a mouse-only tooltip.
+     Sits below the summary so the reader meets the person before the statistics. */
+  ul.cv-metrics { list-style: none; margin: 0.85rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.28rem; font-size: 0.8rem; color: var(--cv-muted); }
+  .cv-metric { line-height: 1.45; }
+  .cv-metric-label { color: var(--cv-ink-2); font-weight: 600; }
+  .cv-metric-value { color: var(--cv-ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+  /* The metric's interpretation anchor ("1.0 = world average …") and its coverage
+     caveat ("mean over N works …"). Upright (not italic — long italic fine-print is
+     a readability cost for dyslexia/low-vision), demoted in colour, and always
+     VISIBLE (never a tooltip): a responsible-reading caveat should be legible, not
+     whispered, and tooltips don't exist in the printed PDF a committee reads. */
   .cv-metric-context { color: var(--cv-muted); }
+  .cv-metric-coverage { color: var(--cv-faint); }
 
   section.cv-section { margin-top: var(--cv-space); }
   section.cv-section:first-of-type { margin-top: calc(var(--cv-space) * 0.6); }
@@ -274,6 +282,13 @@ export function commonCss(theme: TemplateTheme): string {
      dotting so the line reads clean (the PDF anchor still resolves). */
   .cv-ror-link { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--cv-rule-strong); }
   .cv-ror-link:hover { color: var(--cv-accent); border-bottom-color: var(--cv-accent); }
+
+  /* The publications/year chart and the authorship table are grouped into ONE
+     row, sitting side by side when the column is wide enough and wrapping to a
+     stack on narrow viewports / print. align-items:flex-start keeps each card at
+     its natural height; the cards reset their own top margin inside the row. */
+  .cv-research { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.9rem; margin-top: 0.9rem; }
+  .cv-research > .cv-charts, .cv-research > .cv-authorship { margin-top: 0; }
 
   /* The authorship table sits in a guaranteed light card with fixed dark text,
      so it stays legible on EVERY template — including ones with a coloured
@@ -333,7 +348,7 @@ export function commonCss(theme: TemplateTheme): string {
     section.cv-section > h2 { break-after: avoid; break-inside: avoid; }
     ol.cv-bib > li { break-inside: avoid; }
     header.cv-header { break-inside: avoid; break-after: avoid; }
-    .cv-chart, figure.cv-chart { break-inside: avoid; }
+    .cv-chart, figure.cv-chart, .cv-authorship { break-inside: avoid; }
   }
 
   /* Phones: stack the header so the NAME leads instead of being squeezed beside
@@ -367,44 +382,62 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
   const ids = orcid
     ? `<div class="cv-ids">ORCID: <a href="https://orcid.org/${orcid}">${orcid}</a></div>`
     : "";
-  // One compact metric strip. The profile-level OPEN-ACCESS share LEADS it — an
-  // open-science behaviour, the figure most aligned with responsible assessment —
-  // followed by the user-selected metrics in catalog order. (OA is opt-in via
-  // display.showOpenAccess and independent of the metrics toggle, so the strip can
-  // appear with OA alone.) Each metric shows its interpretation ANCHOR inline
-  // ("1.0 = world average …"); the longer coverage note ("mean over N works …")
-  // rides a hover title so the line stays short and the reader meets the person
-  // before a wall of caveats.
+  // One metric strip, rendered as a LIST — ONE METRIC PER LINE for reading clarity
+  // (a " · "-joined run wraps mid-caveat and reads as one undifferentiated blob).
+  // The profile-level OPEN-ACCESS share leads as a labelled row ("Open access · 45%"
+  // shape), followed by the user-selected metrics in catalog order. Each metric
+  // carries its interpretation ANCHOR ("1.0 = world average …") AND its coverage
+  // caveat ("mean over N works …") as VISIBLE text — the caveat used to hide in a
+  // hover title, which is unreachable by keyboard/touch and absent in the printed
+  // PDF, the surface a committee actually reads. The whole strip sits BELOW the
+  // summary (see the return) so the reader meets the person before the statistics.
   const oaShare = openAccessShare(cv);
-  const chips: string[] = [];
+  const rows: string[] = [];
   if (oaShare) {
-    chips.push(
-      `<span class="cv-oa-share">${escapeHtml(
-        renderStrings(cv.display.locale).openAccessShare.replace("{pct}", String(oaShare.pct)),
-      )}</span>`,
+    const pct = new Intl.NumberFormat(cv.display.locale, {
+      style: "percent",
+      maximumFractionDigits: 0,
+    }).format(oaShare.pct / 100);
+    rows.push(
+      `<li class="cv-metric cv-metric-oa"><span class="cv-metric-label">${escapeHtml(
+        renderStrings(cv.display.locale).openAccessLabel,
+      )}</span> <span class="cv-metric-value">${escapeHtml(pct)}</span></li>`,
     );
   }
   for (const m of formattedMetrics(cv)) {
     const context = m.context
-      ? ` <span class="cv-metric-context"${
-          m.coverageNote ? ` title="${escapeHtml(m.coverageNote)}"` : ""
-        }>(${escapeHtml(m.context)})</span>`
+      ? ` <span class="cv-metric-context">— ${escapeHtml(m.context)}</span>`
       : "";
-    chips.push(`${escapeHtml(m.label)}: ${escapeHtml(m.value)}${context}`);
+    const coverage = m.coverageNote
+      ? ` <span class="cv-metric-coverage">· ${escapeHtml(m.coverageNote)}</span>`
+      : "";
+    rows.push(
+      `<li class="cv-metric"><span class="cv-metric-label">${escapeHtml(
+        m.label,
+      )}</span> <span class="cv-metric-value">${escapeHtml(m.value)}</span>${context}${coverage}</li>`,
+    );
   }
-  const metricsLine = chips.length ? `<div class="cv-metrics">${chips.join(" · ")}</div>` : "";
+  const metricsLine = rows.length ? `<ul class="cv-metrics">${rows.join("")}</ul>` : "";
   const summary = cv.owner.summary
     ? `<p class="cv-summary">${escapeHtml(cv.owner.summary)}</p>`
     : "";
   const photo = opts.photo ? photoHtml(cv) : "";
-  // Identity-first head text: name → headline → ORCID → contact → compact metric
-  // strip. The narrative SUMMARY then leads the body of the header, ABOVE the
-  // charts + authorship cards, so a reader meets the person before the statistics
+  // The publications/year chart and the authorship table are grouped into ONE
+  // "research summary" row that sits them SIDE BY SIDE when the column is wide
+  // enough, collapsing to a stack on narrow viewports / print. "" when both are
+  // disabled, so no empty wrapper is emitted.
+  const charts = renderChartsHtml(cv);
+  const authorship = authorshipTableHtml(cv);
+  const research =
+    charts || authorship ? `<div class="cv-research">${charts}${authorship}</div>` : "";
+  // Identity-first head text: name → headline → ORCID → contact. The narrative
+  // SUMMARY then leads the body of the header, followed by the metric strip and the
+  // grouped research cards — so a reader meets the person before the statistics
   // (those bright cards out-shouted the name on the dark public styles). The
   // sidebar template relies on this order too — its panel reads "identity →
-  // divider → bio", then the white cards.
-  const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}${metricsLine}</div>`;
-  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${renderChartsHtml(cv)}${authorshipTableHtml(cv)}</header>`;
+  // divider → bio", then the strip + white cards.
+  const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}</div>`;
+  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${metricsLine}${research}</header>`;
 }
 
 const SOURCE_LABEL: Record<string, string> = {

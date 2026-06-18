@@ -16,6 +16,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   picks up the `noindex` / `no-store` / `nosniff` / `no-referrer` headers it was
   missing; and the notice helper escapes its text for defense in depth.
 
+### Changed
+
+- **The CV header now leads with you, not your numbers.** The optional metrics
+  strip moved below your summary and is laid out one metric per line — each with its
+  plain-language meaning ("1.0 = world average for field & year") and its coverage
+  caveat ("mean over 95 works") shown as visible text instead of a hover tooltip, so
+  the context is legible to everyone and survives to the printed PDF. The open-access
+  share now reads as a clean labelled row ("Open access — 45%") rather than a bare
+  phrase wedged into the strip. And the publications-per-year chart and the
+  authorship breakdown now sit side by side as one group when there's room (stacking
+  on narrow screens and in print).
+
+### Fixed
+
+- **Switching on open-access badges no longer silently adds a percentage to the top
+  of your CV.** The per-publication "OA" badges and the header open-access share are
+  now two separate switches, so choosing badges does exactly that — and nothing else.
+  Already-published CVs are unaffected: the share keeps showing wherever it did until
+  you change the setting. The new control is localized in all ten languages.
+- **The chart's year labels now meet the contrast minimum.** The small year labels
+  under the publications-per-year chart were a touch too light for WCAG AA; they are
+  now darker.
+
 ### Added
 
 - **A gentle nudge away from a metrics-heavy header.** The editor's metrics

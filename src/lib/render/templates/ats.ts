@@ -31,7 +31,7 @@ function atsCss(_theme: TemplateTheme): string {
   .cv { max-width: 720px; padding: 36px 44px; }
 
   /* Strip everything a résumé parser can't read — independent of display toggles. */
-  .cv-photo, .cv-charts, .cv-badge, .cv-badges, .cv-authorship, .cv-authorship-note { display: none !important; }
+  .cv-photo, .cv-charts, .cv-research, .cv-badge, .cv-badges, .cv-authorship, .cv-authorship-note { display: none !important; }
   .cv-headmain { display: block; }
 
   /* Header: plain black, no border band, no accent. */
@@ -44,7 +44,7 @@ function atsCss(_theme: TemplateTheme): string {
   .cv-ids, .cv-ids a,
   .cv-contact, .cv-contact a,
   .cv-links, .cv-links a,
-  .cv-summary, .cv-metrics { color: #000; }
+  .cv-summary, .cv-metrics, .cv-metrics * { color: #000; }
   .cv-summary { margin-top: 0.8rem; }
 
   /* Section headings: plain bold, standard case, no transforms/rules/markers. */

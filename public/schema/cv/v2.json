@@ -299,6 +299,9 @@
           "default": false,
           "type": "boolean"
         },
+        "showOpenAccessShare": {
+          "type": "boolean"
+        },
         "hideRetracted": {
           "default": false,
           "type": "boolean"
@@ -1096,6 +1099,9 @@
               },
               "showOpenAccess": {
                 "default": false,
+                "type": "boolean"
+              },
+              "showOpenAccessShare": {
                 "type": "boolean"
               },
               "hideRetracted": {

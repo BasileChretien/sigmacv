@@ -226,7 +226,9 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
       owner: { ...base.owner, metrics: { h_index: 9 } },
       display: { ...base.display, showMetrics: true, metrics: ["h_index"] },
     };
-    expect(renderCvHtml(cv)).toContain("h-index: 9");
+    expect(renderCvHtml(cv)).toContain(
+      '<span class="cv-metric-label">h-index</span> <span class="cv-metric-value">9</span>',
+    );
     // off by default
     expect(renderCvHtml(base)).not.toContain("h-index");
   });

@@ -53,8 +53,9 @@ function classicCss(_theme: TemplateTheme): string {
   /* Restrained accent: ORCID/identifier links pick up the accent colour. */
   header.cv-header .cv-ids a { color: var(--cv-accent); }
 
-  /* .cv-metrics is a flex row — centre the items instead of left-packing. */
-  header.cv-header .cv-metrics { justify-content: center; }
+  /* .cv-metrics is a one-per-line column list — centre each metric row (and its
+     text) instead of left-aligning, to match the centred classic header. */
+  header.cv-header .cv-metrics { align-items: center; text-align: center; }
 
   /* Summary: centred and held to a comfortable measure, auto-margined. */
   header.cv-header .cv-summary {

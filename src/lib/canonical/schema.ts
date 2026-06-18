@@ -932,6 +932,12 @@ export const DisplayChoicesSchema = z.object({
    *  off — consistent with the metrics-default-none, DORA-aligned stance (an OA
    *  indicator is factual, not evaluative, but stays the user's explicit choice). */
   showOpenAccess: z.boolean().default(false),
+  /** Show the profile-level open-access SHARE ("Open access — 45%") in the header
+   *  metric area — a SEPARATE control from the per-work badges above. Optional with
+   *  NO default on purpose: when absent it INHERITS `showOpenAccess` at render time
+   *  (`showOpenAccessShare ?? showOpenAccess`), so a CV published before the split
+   *  renders byte-identically; setting it explicitly decouples the two. */
+  showOpenAccessShare: z.boolean().optional(),
   /** Hide works flagged as retracted (`meta.retracted`) from every output. Default
    *  off → retracted works are shown WITH the always-on "Retracted" badge; the user
    *  can opt to exclude them entirely. */

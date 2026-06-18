@@ -90,9 +90,16 @@ function sidebarCss(_theme: TemplateTheme): string {
     color: rgba(255, 255, 255, 0.9);
     font-size: 0.8rem;
     margin-top: 0.7rem;
-    gap: 0.2rem 1rem;
+    gap: 0.28rem;
   }
-  .cv-sidebar .cv-metric-context { color: rgba(255, 255, 255, 0.72); }
+  /* The metric spans default to dark --cv-* tokens (legible on the white page and
+     re-themed on the public styles); the sidebar's accent PANEL doesn't re-theme
+     those tokens, so force the label/value/caveats to white here, mirroring the
+     existing .cv-metric-context override. */
+  .cv-sidebar .cv-metric-label,
+  .cv-sidebar .cv-metric-value { color: #fff; }
+  .cv-sidebar .cv-metric-context { color: rgba(255, 255, 255, 0.78); }
+  .cv-sidebar .cv-metric-coverage { color: rgba(255, 255, 255, 0.66); }
 
   /* Every textual link in the panel reads as an underlined-on-white affordance,
      including the ORCID id, contact email/website and extra profile links. */

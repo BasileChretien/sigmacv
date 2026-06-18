@@ -50,7 +50,7 @@ function bars(points: Point[], fill: string): string {
       const y = CHART_H - h;
       const showLabel = i % labelEvery === 0 || i === points.length - 1;
       const yearLabel = showLabel
-        ? `<text x="${x + BAR_W / 2}" y="${CHART_H + 11}" font-size="7" text-anchor="middle" fill="#777">${escapeXml(p.label.slice(2))}</text>`
+        ? `<text x="${x + BAR_W / 2}" y="${CHART_H + 11}" font-size="7" text-anchor="middle" fill="#595959">${escapeXml(p.label.slice(2))}</text>`
         : "";
       return `<rect x="${x}" y="${y}" width="${BAR_W}" height="${h}" rx="1" fill="${fill}"><title>${escapeXml(p.label)}: ${p.value}</title></rect>${yearLabel}`;
     })

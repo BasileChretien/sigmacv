@@ -936,6 +936,19 @@ export default function StyleControls({
           <span>{u.showOpenAccess}</span>
         </label>
 
+        {/* The profile-level OA SHARE is a SEPARATE control from the per-work badges
+            above, so selecting badges no longer forces a header percentage. It
+            inherits the badge toggle until set explicitly (see openAccessShare),
+            hence the `?? showOpenAccess` for the checked state. */}
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.showOpenAccessShare ?? cv.display.showOpenAccess}
+            onChange={(e) => onChange(updateDisplay(cv, { showOpenAccessShare: e.target.checked }))}
+          />
+          <span>{u.showOpenAccessShare}</span>
+        </label>
+
         <label className="field-inline">
           <input
             type="checkbox"
