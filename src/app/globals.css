@@ -2590,14 +2590,29 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   height: 100%;
   background: var(--surface-sunken);
   padding: var(--space-5);
+  /* Centre the fixed-A4-width page tile and clip its (internally scrolling)
+     overflow. The page is rendered at A4 width and scaled to fit by CvPreview, so
+     the preview wraps/lays out exactly like the exported PDF regardless of pane
+     width (no more pane-width-dependent reflow or accidental mobile layout). */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: hidden;
 }
-.cv-preview-frame {
-  width: 100%;
-  height: 100%;
-  border: 0;
+/* The "paper": carries the page shadow + rounded clip; the scaled iframe fills it. */
+.cv-preview-page {
+  position: relative;
+  flex: none;
+  overflow: hidden;
   background: #fff;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+}
+.cv-preview-frame {
+  display: block;
+  border: 0;
+  background: #fff;
+  /* width / height / transform are set inline from the measured fit scale. */
   /* Loading dim moved off inline style so prefers-reduced-motion can disable it. */
   transition: opacity var(--dur) var(--ease);
 }

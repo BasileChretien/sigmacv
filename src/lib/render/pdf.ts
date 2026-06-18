@@ -55,7 +55,12 @@ export const pdfRenderer: Renderer = {
         const pdf = await page.pdf({
           format: "A4",
           printBackground: true,
-          margin: { top: "16mm", bottom: "16mm", left: "14mm", right: "14mm" },
+          // Vertical page margin only; the horizontal gutter is owned by the
+          // template's `.cv` box (max-width + side padding) so the printed text
+          // column is pixel-identical to the editor preview (which renders the
+          // same `.cv` at A4 width). Matches `@page { margin: 16mm 0 }` in the
+          // shared template CSS. Left/right 0 → `.cv`'s auto margins centre it.
+          margin: { top: "16mm", bottom: "16mm", left: "0", right: "0" },
           // Accessibility: emit a TAGGED PDF (structure tree from the HTML's
           // headings/lists/links + the document's `<html lang>`) plus a document
           // outline, so screen readers and "reflow" can navigate the CV. The

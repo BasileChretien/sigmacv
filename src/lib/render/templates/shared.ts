@@ -462,9 +462,18 @@ export function commonCss(theme: TemplateTheme): string {
      one-click-selectable for copy-paste into a reader. */
   .cv-subscribe-url { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; word-break: break-all; -webkit-user-select: all; user-select: all; }
 
-  @page { size: A4; margin: 16mm 15mm; }
+  /* PDF/print page box. The horizontal gutter is left to .cv's own
+     max-width + side padding (below) so the printed text column is IDENTICAL to
+     the on-screen one — the editor preview renders the same .cv at A4 width, so
+     "what you see" matches "what you export". Only the VERTICAL page margin lives
+     here, because it must repeat on every printed page (a block's padding can't).
+     pdf.ts passes a matching {top,bottom} margin and zero left/right. */
+  @page { size: A4; margin: 16mm 0; }
   @media print {
-    .cv { padding: 0; max-width: none; }
+    /* Keep the screen .cv box (max-width:780 + 52px side padding) in print so the
+       text column matches the preview exactly; only drop the top/bottom padding,
+       which @page now supplies per-page (otherwise page 1 would double it). */
+    .cv { padding-top: 0; padding-bottom: 0; }
     a { text-decoration: none; }
     /* Keep in-text profile / contact / ID links underlined in the PDF so the
        link affordance survives print (WCAG 1.4.1 — not signalled by colour). */
