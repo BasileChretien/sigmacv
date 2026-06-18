@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemInView, setItemNotMine, updateDisplay, updateOwner } from "@/lib/canonical/curate";
+import {
+  setItemInView,
+  setItemNotMine,
+  setNotes,
+  updateDisplay,
+  updateOwner,
+} from "@/lib/canonical/curate";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -202,6 +208,20 @@ describe("projectCvForPublic", () => {
     expect(pub.display.dismissedReviewCandidates).toBeUndefined();
     // Input untouched.
     expect(cv.display.dismissedReviewCandidates).toEqual(["W1", "G2"]);
+  });
+
+  it("strips the owner's private notes from the public projection and serialized json", () => {
+    const secret = "DRAFT: ask Sophie re: authorship — do NOT publish";
+    const cv = setNotes(makeCv(), secret);
+    expect(cv.notes).toBe(secret); // sanity: it's on the stored doc…
+    const pub = projectCvForPublic(cv);
+    // …but never on the public projection (the page + json/csljson/bibtex source).
+    expect(pub.notes).toBeUndefined();
+    // The raw `json` machine download echoes this object verbatim — the secret
+    // text must not survive serialization anywhere in it.
+    expect(JSON.stringify(pub)).not.toContain(secret);
+    // Input untouched (immutable).
+    expect(cv.notes).toBe(secret);
   });
 
   it("applies the published view's exclusions and doesn't ship the exclude list", () => {

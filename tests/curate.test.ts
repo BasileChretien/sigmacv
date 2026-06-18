@@ -27,6 +27,7 @@ import {
   setItemIncluded,
   setItemNotMine,
   setLocale,
+  setNotes,
   setSectionPageBreak,
   setSectionVisible,
   showOnlyInView,
@@ -68,6 +69,23 @@ describe("setSectionPageBreak", () => {
     expect(setSectionPageBreak(cv, SECTION, false)).toBe(cv);
     const on = setSectionPageBreak(cv, SECTION, true);
     expect(setSectionPageBreak(on, SECTION, true)).toBe(on);
+  });
+});
+
+describe("setNotes", () => {
+  it("stores the owner's private notes immutably", () => {
+    const cv = makeCv();
+    const next = setNotes(cv, "remember to add the 2025 talk");
+    expect(next.notes).toBe("remember to add the 2025 talk");
+    expect(cv.notes).toBeUndefined(); // input untouched
+    // The result still validates against the canonical schema.
+    expect(CanonicalCvSchema.safeParse(next).success).toBe(true);
+  });
+
+  it("clears the field (undefined, not empty string) for blank/whitespace text", () => {
+    const cv = setNotes(makeCv(), "draft");
+    expect(setNotes(cv, "").notes).toBeUndefined();
+    expect(setNotes(cv, "   \n\t ").notes).toBeUndefined();
   });
 });
 

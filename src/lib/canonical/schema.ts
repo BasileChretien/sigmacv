@@ -1246,6 +1246,13 @@ export const CanonicalCvSchema = z.object({
   sections: z.array(CvSectionSchema).max(60),
   /** Saved named view-presets (optional; back-compat: old docs have none). */
   presets: z.array(CvPresetSchema).max(20).default([]),
+  /**
+   * Owner-only private notes — a free-text scratchpad (drafts, reminders, todos)
+   * that is NEVER rendered, exported, or published. Optional + bounded. Stripped
+   * by `projectCvForPublic` so it can't leak into the public page or any machine
+   * download; no renderer reads it.
+   */
+  notes: z.string().max(10000).optional(),
   provenance: ProvenanceSchema,
 });
 export type CanonicalCv = z.infer<typeof CanonicalCvSchema>;

@@ -1365,6 +1365,10 @@
         "required": ["id", "name", "display"]
       }
     },
+    "notes": {
+      "type": "string",
+      "maxLength": 10000
+    },
     "provenance": {
       "type": "object",
       "properties": {

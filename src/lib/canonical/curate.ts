@@ -427,6 +427,16 @@ export function updateOwner(cv: CanonicalCv, patch: Partial<CvOwner>): Canonical
   return { ...cv, owner };
 }
 
+/**
+ * Set the owner's private notes (a never-published scratchpad). Blank/whitespace
+ * text clears the field entirely (stored as `undefined`, not `""`). The notes are
+ * stripped by `projectCvForPublic`, so nothing here ever reaches a public render
+ * or machine download. Pure + immutable.
+ */
+export function setNotes(cv: CanonicalCv, text: string): CanonicalCv {
+  return { ...cv, notes: text.trim() ? text : undefined };
+}
+
 // ─── Manual entries (user-authored positions / grants / skills / …) ──────────
 
 /**

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Private notes — a scratchpad only you can see.** The Profile editor now has a
+  free-text notes field for drafts, reminders, and todos (e.g. "ask a co-author
+  before publishing", "add the 2025 talk"). It lives in your saved CV but is
+  **never rendered, exported, or published**: it's stripped at the single public
+  gate, so it can't leak onto your public page or into any machine download
+  (JSON / CSL-JSON / BibTeX). Optional, localized in all ten languages.
+
 - **Your evidence, surfaced under each narrative module.** Below the writing prompt
   on each "Résumé for Researchers" section, the editor now shows the relevant
   outputs you already have — e.g. "You can draw on: 32 Publications · 6 Datasets &

@@ -560,6 +560,8 @@ const EN = {
   linkLabelHint:
     "Optional — links to GitHub, LinkedIn, ORCID and other known services are recognised and labelled automatically.",
   rirekishoDetails: "Japanese CV (rirekisho) details",
+  privateNotes: "Private notes",
+  privateNotesHint: "Only you can see these — never shown on your CV, exports, or public page.",
   furigana: "Name (furigana)",
   dateOfBirth: "Date of birth",
   gender: "Gender",
@@ -695,6 +697,8 @@ const ZH: Record<ChromeKey, string> = {
   linkUrl: "网址",
   linkLabelHint: "可选——指向 GitHub、LinkedIn、ORCID 等已知服务的链接会被自动识别并加标签。",
   rirekishoDetails: "日式简历（履历书）信息",
+  privateNotes: "私人备注",
+  privateNotesHint: "仅你可见——绝不会出现在你的简历、导出文件或公开页面上。",
   furigana: "姓名（假名读音）",
   dateOfBirth: "出生日期",
   gender: "性别",
@@ -831,6 +835,9 @@ const ES: Record<ChromeKey, string> = {
   linkLabelHint:
     "Opcional: los enlaces a GitHub, LinkedIn, ORCID y otros servicios conocidos se reconocen y etiquetan automáticamente.",
   rirekishoDetails: "Datos del CV japonés (rirekisho)",
+  privateNotes: "Notas privadas",
+  privateNotesHint:
+    "Solo tú las ves: nunca aparecen en tu CV, en las exportaciones ni en la página pública.",
   furigana: "Nombre (lectura fonética)",
   dateOfBirth: "Fecha de nacimiento",
   gender: "Género",
@@ -969,6 +976,9 @@ const FR: Record<ChromeKey, string> = {
   linkLabelHint:
     "Facultatif — les liens vers GitHub, LinkedIn, ORCID et d’autres services connus sont reconnus et étiquetés automatiquement.",
   rirekishoDetails: "Détails CV japonais (rirekisho)",
+  privateNotes: "Notes privées",
+  privateNotesHint:
+    "Vous seul les voyez — jamais affichées sur votre CV, vos exports ou votre page publique.",
   furigana: "Nom (furigana)",
   dateOfBirth: "Date de naissance",
   gender: "Genre",
@@ -1107,6 +1117,9 @@ const DE: Record<ChromeKey, string> = {
   linkLabelHint:
     "Optional – Links zu GitHub, LinkedIn, ORCID und anderen bekannten Diensten werden automatisch erkannt und beschriftet.",
   rirekishoDetails: "Angaben zum japanischen Lebenslauf (Rirekisho)",
+  privateNotes: "Private Notizen",
+  privateNotesHint:
+    "Nur du siehst sie — niemals auf deinem Lebenslauf, in Exporten oder auf der öffentlichen Seite.",
   furigana: "Name (phonetische Lesung)",
   dateOfBirth: "Geburtsdatum",
   gender: "Geschlecht",
@@ -1245,6 +1258,8 @@ const JA: Record<ChromeKey, string> = {
   linkLabelHint:
     "任意 — GitHub・LinkedIn・ORCID など既知のサービスへのリンクは自動的に認識してラベル付けします。",
   rirekishoDetails: "履歴書の個人情報",
+  privateNotes: "非公開メモ",
+  privateNotesHint: "あなただけが閲覧できます——CV・書き出し・公開ページには一切表示されません。",
   furigana: "ふりがな",
   dateOfBirth: "生年月日",
   gender: "性別",
@@ -1382,6 +1397,9 @@ const PT: Record<ChromeKey, string> = {
   linkLabelHint:
     "Opcional — links para GitHub, LinkedIn, ORCID e outros serviços conhecidos são reconhecidos e rotulados automaticamente.",
   rirekishoDetails: "Dados do currículo japonês (rirekisho)",
+  privateNotes: "Notas privadas",
+  privateNotesHint:
+    "Só você vê — nunca aparecem no seu currículo, nas exportações ou na página pública.",
   furigana: "Nome (leitura fonética)",
   dateOfBirth: "Data de nascimento",
   gender: "Gênero",
@@ -1518,6 +1536,9 @@ const IT: Record<ChromeKey, string> = {
   linkLabelHint:
     "Facoltativo — i link a GitHub, LinkedIn, ORCID e altri servizi noti vengono riconosciuti ed etichettati automaticamente.",
   rirekishoDetails: "Dettagli del CV giapponese (rirekisho)",
+  privateNotes: "Note private",
+  privateNotesHint:
+    "Solo tu le vedi — mai mostrate sul CV, nelle esportazioni o nella pagina pubblica.",
   furigana: "Nome (lettura fonetica)",
   dateOfBirth: "Data di nascita",
   gender: "Genere",
@@ -1654,6 +1675,8 @@ const KO: Record<ChromeKey, string> = {
   linkLabelHint:
     "선택 사항 — GitHub, LinkedIn, ORCID 등 알려진 서비스로 연결되는 링크는 자동으로 인식되어 라벨이 지정됩니다.",
   rirekishoDetails: "일본식 이력서(리레키쇼) 정보",
+  privateNotes: "비공개 메모",
+  privateNotesHint: "본인만 볼 수 있습니다 — CV, 내보내기, 공개 페이지에 절대 표시되지 않습니다.",
   furigana: "이름 (발음 표기)",
   dateOfBirth: "생년월일",
   gender: "성별",
@@ -1791,6 +1814,9 @@ const RU: Record<ChromeKey, string> = {
   linkLabelHint:
     "Необязательно — ссылки на GitHub, LinkedIn, ORCID и другие известные сервисы распознаются и подписываются автоматически.",
   rirekishoDetails: "Данные японского резюме (рирэкисё)",
+  privateNotes: "Личные заметки",
+  privateNotesHint:
+    "Видите только вы — никогда не отображается в резюме, экспортах и на публичной странице.",
   furigana: "Имя (фонетическое чтение)",
   dateOfBirth: "Дата рождения",
   gender: "Пол",
