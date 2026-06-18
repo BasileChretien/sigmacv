@@ -1060,6 +1060,15 @@ export const DisplayChoicesSchema = z.object({
    */
   excludedItems: z.record(z.string().max(200), z.array(z.string().max(200)).max(10_000)).optional(),
   /**
+   * Section ids that should START ON A NEW PAGE in the paged exports (PDF/print).
+   * A manual page break: the auto page-flow already keeps headings with their
+   * first entry and never splits an entry, but only the user knows where a fresh
+   * page reads best (e.g. "start Publications on a new page"). Screen-only public
+   * styles ignore it. The first rendered section never forces a break (no blank
+   * leading page). Default empty.
+   */
+  pageBreakBefore: z.array(z.string().max(200)).max(200).default([]),
+  /**
    * Pair keys the user dismissed as "not a duplicate" ("keep both"). The
    * detector never re-flags a dismissed pair, so the decision SURVIVES re-sync
    * (the verdict itself is recomputed every build; only this human choice is

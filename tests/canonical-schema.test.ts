@@ -102,6 +102,7 @@ describe("DisplayChoicesSchema", () => {
       showAuthorshipTable: false,
       showOutputLedger: false,
       holdNewForReview: false,
+      pageBreakBefore: [],
       authorshipRoles: [],
       accentColor: "#1f4fd8",
       fontPairing: "serif",

@@ -384,6 +384,15 @@
             }
           }
         },
+        "pageBreakBefore": {
+          "default": [],
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
         "dismissedDuplicates": {
           "maxItems": 20000,
           "type": "array",
@@ -1224,6 +1233,15 @@
                     "type": "string",
                     "maxLength": 200
                   }
+                }
+              },
+              "pageBreakBefore": {
+                "default": [],
+                "maxItems": 200,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 200
                 }
               },
               "dismissedDuplicates": {

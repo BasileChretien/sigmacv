@@ -36,6 +36,7 @@ import {
   removeItem,
   removeSection,
   renameSection,
+  setSectionPageBreak,
   setItemDateRange,
   setItemDepartment,
   setItemFeatured,
@@ -617,6 +618,16 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                           }
                         />
                         <span>{t(locale, "show")}</span>
+                      </label>
+                      <label className="field-inline" title={t(locale, "pageBreakBeforeTitle")}>
+                        <input
+                          type="checkbox"
+                          checked={(cv.display.pageBreakBefore ?? []).includes(section.id)}
+                          onChange={(e) =>
+                            onChange(setSectionPageBreak(cv, section.id, e.target.checked))
+                          }
+                        />
+                        <span>{t(locale, "pageBreakBefore")}</span>
                       </label>
                       <button
                         type="button"
