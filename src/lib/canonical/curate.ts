@@ -303,16 +303,23 @@ export function applyPreset(cv: CanonicalCv, id: string): CanonicalCv {
   // section (added since the preset was saved) sorts after, keeping its relative
   // order. Empty snapshot (legacy preset) ⇒ order untouched.
   const order = preset.sectionOrder ?? [];
+  const hasSavedOrder = order.length > 0;
   const orderIndex = new Map(order.map((sid, i) => [sid, i]));
   const sections = cv.sections.map((s) => {
     const visible = s.id in preset.sectionVisibility ? preset.sectionVisibility[s.id]! : s.visible;
-    if (order.length === 0) return { ...s, visible };
+    if (!hasSavedOrder) return { ...s, visible };
     return { ...s, visible, order: orderIndex.get(s.id) ?? order.length + s.order };
   });
-  // Restore the display verbatim — it already carries the `sectionsCustomized`
-  // flag from the same state the order was snapshotted in, so a custom order
-  // renders and a default-order snapshot stays default (no flag to force here).
-  return { ...cv, display: { ...preset.display }, sections };
+  // With a saved order, restore the display verbatim — it carries the
+  // `sectionsCustomized` flag from the same state the order was snapshotted in, so
+  // a custom order renders and a default-order snapshot stays default. A LEGACY
+  // preset (no saved order) must not touch ordering at all, so keep the LIVE
+  // `sectionsCustomized` flag — otherwise restoring an old `false` would flip a
+  // currently-customized CV back to default ordering and silently reorder it.
+  const display = hasSavedOrder
+    ? { ...preset.display }
+    : { ...preset.display, sectionsCustomized: cv.display.sectionsCustomized };
+  return { ...cv, display, sections };
 }
 
 /** Delete a saved preset by id (no-op if unknown). */
