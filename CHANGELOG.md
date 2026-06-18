@@ -9,14 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **The CV now uses a bundled body font (Source Serif 4), so the preview, the PDF
-  and every visitor's view look identical.** The serif templates previously relied
-  on whatever serif each device happened to have installed — so the on-screen
-  preview (e.g. Palatino on Windows) and the server-rendered PDF (a Linux serif)
-  used different typefaces and wrapped text differently. The font is now embedded in
-  the document itself, so the typeface and line-breaks are the same everywhere,
-  regardless of operating system. (The font ships for Latin scripts; Cyrillic and
-  CJK gracefully fall back to a system serif per character.)
+- **Choose your CV font — Source Serif, Inter, or EB Garamond — and it looks
+  identical everywhere.** The font picker in the design panel now offers three
+  bundled typefaces: Source Serif (a refined contemporary serif, the default),
+  Inter (a clean modern sans), and EB Garamond (a classic old-style serif). Each is
+  embedded in the document itself, so the typeface and line-breaks are the same in
+  the editor preview, the exported PDF, and every visitor's view — instead of each
+  device substituting whatever font it happened to have installed (which made the
+  preview and the PDF look different). (Fonts ship for Latin scripts; Cyrillic and
+  CJK gracefully fall back to a system font per character.)
 
 ### Fixed
 

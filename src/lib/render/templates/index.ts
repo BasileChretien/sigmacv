@@ -14,18 +14,22 @@ import { ensureReadableOnWhite } from "../readableAccent";
 
 export type { CvTemplate, RenderedItem, RenderedSection, TemplateTheme } from "./types";
 
+// Every pairing LEADS with a bundled font (embedded @font-face, see commonCss /
+// bundledFonts.ts), so the typeface is IDENTICAL in the editor preview, the
+// server-rendered PDF and every visitor's browser — not whatever font each device
+// happens to install. The system fonts that follow are a fallback for glyphs
+// outside the bundled latin subset (Cyrillic/CJK fall through per-glyph via the
+// @font-face unicode-range). The three keys are stable ids; their user-facing
+// labels (the actual font names) live in i18n.
 const FONT_STACKS: Record<FontPairing, string> = {
-  // Bundled "Source Serif 4" (embedded @font-face, see commonCss) leads so the
-  // typeface is IDENTICAL in the editor preview, the server-rendered PDF and every
-  // visitor's browser — not whatever serif each device happens to install. The
-  // system serifs remain as a fallback for glyphs outside the bundled latin subset
-  // (Cyrillic/CJK fall through per-glyph via the @font-face unicode-range).
+  // Source Serif 4 — refined contemporary serif (default).
   serif:
     '"Source Serif 4", "Iowan Old Style", "Charter", "Palatino Linotype", "Sitka Text", Georgia, "Times New Roman", serif',
-  // System UI sans, Inter-class metrics where present.
-  sans: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  // Humanist serif with a generous x-height — great for CVs.
-  palatino: '"Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia, serif',
+  // Inter — clean modern sans.
+  sans: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  // EB Garamond — classic old-style serif (the "palatino" key is legacy).
+  palatino:
+    '"EB Garamond", "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia, serif',
 };
 
 /** CSS for the self-name `.cv-self` span, per highlight-style choice. */
