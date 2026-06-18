@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Writing guidance for narrative-CV sections.** The four "Résumé for Researchers"
+  / R4RI narrative modules (contributions to knowledge, to individuals, to the
+  research community, and to society) now show a short prompt in the editor
+  describing what belongs in each — a narrative CV is hard to start from a blank
+  box. It's editor-only guidance (never rendered on your CV), localized in all ten
+  languages, and only appears on those four modules (free-form prose sections are
+  left untouched).
+
 ### Changed
 
 - **Saved versions now remember their section order.** A named preset (your
