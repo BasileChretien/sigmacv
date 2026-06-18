@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **Credentials pasted into a profile link or website no longer leak into your CV.**
+  If a URL with embedded `user:password@` userinfo was entered for your website or a
+  profile link, that credential could show up in the visible contact line and in the
+  plain Markdown / LaTeX / DOCX exports. The userinfo is now stripped from the
+  displayed URL everywhere (the clickable link was already protected).
+
 - **Defense-in-depth hardening on the public-page error responses.** A three-
   reviewer security pass found no exploitable issues, and closed a few hardening
   gaps: the styled 404 / 429 notice pages now carry the live page's anti-framing
