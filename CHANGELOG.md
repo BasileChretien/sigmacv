@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **"Review new works before they appear" (opt-in).** A new design toggle changes
+  how re-syncs treat works they've never seen. By default SigmaCV keeps adding
+  newly-found publications automatically (the living-CV behaviour). Turn this on and
+  each new work is instead held back as a review candidate — hidden from your CV and
+  public page, badged "New" in the editor — until you confirm it with "Show" (or mark
+  it "not mine"/"keep hidden"). It never touches works you've already curated, and
+  never affects your first import. Localized in all ten languages.
+
 - **A "What's new" line on the living public page.** Next to the "Updated …"
   line, a published page now shows the works your most recent sync actually added
   (e.g. "Recently added: <title> · <title>") — concrete proof to a visitor that the
