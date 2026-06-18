@@ -66,12 +66,21 @@ function nameTag(name: string, content: string): string {
  */
 export function publicMetaTags(
   cv: CanonicalCv,
-  opts: { imageUrl?: string; pageUrl?: string } = {},
+  opts: { imageUrl?: string; pageUrl?: string; feedUrl?: string } = {},
 ): string {
   const title = oneLine(cv.owner.displayName || "Curriculum Vitae");
   const description = publicMetaDescription(cv);
   const tags: string[] = [];
   if (opts.pageUrl) tags.push(`<link rel="canonical" href="${escapeHtml(opts.pageUrl)}" />`);
+  // Atom feed discovery: a feed reader / browser surfaces the "Subscribe" affordance
+  // from this alternate <link> (the public "follow my research" primitive).
+  if (opts.feedUrl) {
+    tags.push(
+      `<link rel="alternate" type="application/atom+xml" title="${escapeHtml(
+        title,
+      )}" href="${escapeHtml(opts.feedUrl)}" />`,
+    );
+  }
   if (description) tags.push(nameTag("description", description));
   tags.push(ogTag("og:type", "profile"), ogTag("og:title", title));
   if (opts.pageUrl) tags.push(ogTag("og:url", opts.pageUrl));

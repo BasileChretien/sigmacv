@@ -161,7 +161,7 @@ export const marqueeTemplate: CvTemplate = {
       `<div class="cv">` +
       header +
       ribbon +
-      sectionsHtml(sections) +
+      sectionsHtml(cv, sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

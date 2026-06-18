@@ -300,6 +300,15 @@ export const CvItemSchema = z.object({
   notMineAssertedAt: z.string().optional(),
   /** Optional structured reason for a `notMine` assertion (disambiguation study). */
   notMineReason: NotMineReasonSchema.optional(),
+  /**
+   * "Selected / featured" pin (a display-curation choice, distinct from `included`
+   * and `notMine`). When true, the work is sorted to the TOP of its section ahead
+   * of the normal order and marked with a quiet "Selected" star — the equivalent of
+   * a CV's hand-picked "Selected publications" list. Survives re-sync (carried over
+   * in `build.ts` like `included`). Optional + back-compat: an item without it is
+   * simply not featured. Only meaningful for citation sections (publications/preprints).
+   */
+  featured: z.boolean().optional(),
   /** Order within its section (ascending). */
   order: z.number().int(),
   /**
@@ -334,6 +343,14 @@ export const CvItemSchema = z.object({
      *  denominator — `oaStatus` alone is OA-only, so "closed" and "unknown" are
      *  otherwise indistinguishable. */
     oaIsOpen: z.boolean().optional(),
+    /**
+     * Open-access full-text URL for THIS work (OpenAlex `open_access.oa_url`, else
+     * the `best_oa_location` landing/pdf URL). A direct link to the freely-readable
+     * version, surfaced as a "Full text" affordance under the entry on the public
+     * page (open-access mission). Only an http(s) URL OpenAlex carried, re-validated
+     * at render via `safeHref`; undefined when the work is closed / unknown.
+     */
+    oaUrl: z.string().max(2048).optional(),
     /**
      * Reuse license of THIS work (e.g. "cc-by", "cc-by-nc-nd"), taken from the
      * OpenAlex location (`primary_location.license`, else `best_oa_location`).
@@ -769,6 +786,19 @@ export const CvOwnerSchema = z.object({
   /** Per-year works/citations (drives the optional charts). Default empty. */
   countsByYear: z.array(CountsByYearSchema).default([]),
   /**
+   * Aggregated "research areas" — the account holder's most frequent OpenAlex
+   * topic FIELDS across their works, with a work count each (descending). A
+   * data-minimised SUMMARY computed at build time from the per-work `meta.topic`
+   * (so the public page exposes the aggregate, never the raw per-item topics,
+   * which stay stripped from the projection). Recomputed every build (never
+   * carried from a prior doc); optional + back-compat. Surfaced as a quiet chip
+   * row on the CV ONLY when the owner opts in (`display.showResearchAreas`).
+   */
+  researchAreas: z
+    .array(z.object({ field: z.string().max(300), count: z.number().int().nonnegative() }))
+    .max(40)
+    .optional(),
+  /**
    * Wikidata entity URI for the account holder, matched by ORCID (`wdt:P496`).
    * Surfaced as a `sameAs` link in the public page's schema.org Person graph —
    * never used for matching/highlighting. Optional + back-compat.
@@ -878,6 +908,17 @@ export const CustomStyleSchema = z.object({
 });
 export type CustomStyle = z.infer<typeof CustomStyleSchema>;
 
+/**
+ * Where the optional "research summary" block (metrics strip + publications/year
+ * chart + authorship table) renders. "header" = the historical behaviour (in the
+ * header, with no heading); "top" / "bottom" = its OWN labelled block (with a
+ * heading) right after the header or after the last section; "hidden" = suppressed
+ * everywhere. Default "header" so a CV saved before this option renders unchanged.
+ */
+export const SUMMARY_BLOCK_POSITIONS = ["header", "top", "bottom", "hidden"] as const;
+export const SummaryBlockPositionSchema = z.enum(SUMMARY_BLOCK_POSITIONS);
+export type SummaryBlockPosition = z.infer<typeof SummaryBlockPositionSchema>;
+
 export const DisplayChoicesSchema = z.object({
   // .catch keeps old saved CVs loading if they reference a since-removed
   // template (e.g. minimal/compact/editorial) — they fall back to classic.
@@ -928,6 +969,11 @@ export const DisplayChoicesSchema = z.object({
   metrics: z.array(z.string().max(64)).max(100).default([]),
   /** Show the publications/citations-per-year mini charts (HTML/PDF). Default off. */
   showCharts: z.boolean().default(false),
+  /** Show the aggregated "Research areas" chip row (from `owner.researchAreas`) in
+   *  the header. Opt-in, default off — it surfaces OpenAlex's field classification,
+   *  which is coarse and occasionally wrong (over-merged profiles), so the owner
+   *  reviews and enables it rather than it appearing automatically. */
+  showResearchAreas: z.boolean().default(false),
   /** Show an "Open Access" badge on OA publications (HTML/PDF). Opt-in, default
    *  off — consistent with the metrics-default-none, DORA-aligned stance (an OA
    *  indicator is factual, not evaluative, but stays the user's explicit choice). */
@@ -938,6 +984,14 @@ export const DisplayChoicesSchema = z.object({
    *  (`showOpenAccessShare ?? showOpenAccess`), so a CV published before the split
    *  renders byte-identically; setting it explicitly decouples the two. */
   showOpenAccessShare: z.boolean().optional(),
+  /** Where the research-summary block (metrics + chart + authorship) renders.
+   *  Default "header" = unchanged behaviour, so existing CVs are byte-identical.
+   *  ".catch" keeps an unknown stored value from breaking the load. */
+  summaryBlockPosition: SummaryBlockPositionSchema.default("header").catch("header"),
+  /** Optional heading shown ABOVE the research-summary block when it renders as its
+   *  own section ("top"/"bottom"). Blank → a localized default ("Research summary").
+   *  Ignored in the "header"/"hidden" positions. User free-text → escaped at render. */
+  summaryHeading: z.string().max(120).optional(),
   /** Hide works flagged as retracted (`meta.retracted`) from every output. Default
    *  off → retracted works are shown WITH the always-on "Retracted" badge; the user
    *  can opt to exclude them entirely. */

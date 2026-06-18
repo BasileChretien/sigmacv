@@ -290,6 +290,16 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-research { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.9rem; margin-top: 0.9rem; }
   .cv-research > .cv-charts, .cv-research > .cv-authorship { margin-top: 0; }
 
+  /* The research-summary block when the user moves it out of the header into its
+     own labelled element (summaryBlockPosition "top"/"bottom"). A <div> (not a
+     <section>, to keep the mascot's per-section hat bindings intact) whose <h2>
+     joins the heading outline. The heading uses the themed --cv-ink token so it
+     stays legible on every template + dark style; its metric list sits directly
+     under the heading (no extra top gap). */
+  .cv-summary-block { margin-top: var(--cv-space); }
+  .cv-summary-block > .cv-summary-h { font-size: 0.95rem; font-weight: 600; color: var(--cv-ink); margin: 0 0 0.65rem; }
+  .cv-summary-block .cv-metrics { margin-top: 0; }
+
   /* The authorship table sits in a guaranteed light card with fixed dark text,
      so it stays legible on EVERY template — including ones with a coloured
      header/sidebar (where themed --cv-ink/--cv-muted could vanish). */
@@ -336,6 +346,47 @@ export function commonCss(theme: TemplateTheme): string {
      faint or suppressed. */
   a:focus-visible { outline: 2px solid var(--cv-accent); outline-offset: 2px; border-radius: 2px; }
 
+  /* ── Research areas: a quiet chip row of the owner's most frequent OpenAlex
+     fields (opt-in; from owner.researchAreas). Bordered pills (no fill) so they
+     read on every template incl. the dark public styles. ─────────────────────── */
+  .cv-areas { margin: 0.85rem 0 0; }
+  .cv-areas-label { display: block; margin: 0 0 0.35rem; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cv-muted); }
+  ul.cv-areas-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem 0.4rem; }
+  .cv-area { font-size: 0.74rem; line-height: 1.4; padding: 0.12em 0.62em; border-radius: 999px; color: var(--cv-ink-2); border: 1px solid var(--cv-rule-strong); }
+
+  /* ── Per-publication tools (public living page only): a no-JS "Cite" disclosure
+     (BibTeX/RIS/CSL-JSON downloads), an open-access "Full text" link, and an
+     "Abstract" disclosure. Quiet + small; text-indent:0 escapes the bib hanging
+     indent (see the badges note). ───────────────────────────────────────────── */
+  .cv-itemtools { margin: 0.32rem 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.7rem; font-size: 0.72rem; text-indent: 0; }
+  .cv-itemtools details { display: inline; }
+  .cv-itemtools summary { display: inline; cursor: pointer; color: var(--cv-muted); list-style: none; -webkit-user-select: none; user-select: none; }
+  .cv-itemtools summary::-webkit-details-marker { display: none; }
+  .cv-itemtools summary::after { content: " \\25BE"; font-size: 0.85em; }
+  .cv-itemtools details[open] summary::after { content: " \\25B4"; }
+  .cv-cite-fmts { margin-left: 0.45rem; display: inline-flex; flex-wrap: wrap; gap: 0.1rem 0.6rem; }
+  .cv-itemtools a { color: var(--cv-accent); text-decoration: none; }
+  .cv-itemtools a:hover { text-decoration: underline; }
+  .cv-fulltext::before { content: "\\2197 "; }
+  .cv-abstract { flex-basis: 100%; }
+  .cv-abstract > p { margin: 0.4rem 0 0; font-size: 0.8rem; line-height: 1.5; color: var(--cv-ink-2); max-width: 64ch; }
+
+  /* Featured / "Selected" star badge — a fixed light pill (like the OA/cites
+     badges) so it stays legible on every template. */
+  .cv-badge-featured { color: #92600a; background: #fdf3d6; border: 1px solid #f0d488; }
+
+  /* ── View filter bar (public living page only): server-rendered facet chips
+     (year ranges + open-access) that set query params on the same page. ──────── */
+  .cv-filterbar { margin: 0 0 1.1rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 0.45rem; font-size: 0.76rem; }
+  .cv-filter-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cv-muted); margin-right: 0.15rem; }
+  .cv-filterbar a { color: var(--cv-ink-2); text-decoration: none; padding: 0.12em 0.62em; border-radius: 999px; border: 1px solid var(--cv-rule-strong); }
+  .cv-filterbar a:hover { border-color: var(--cv-accent); color: var(--cv-accent); }
+  .cv-filterbar a[aria-current="true"] { background: var(--cv-accent); color: #fff; border-color: var(--cv-accent); }
+
+  /* Public-page "Subscribe" (Atom/RSS) line — a quiet footnote near the living line. */
+  .cv-subscribe { margin: 0.3rem 0 0; font-size: 0.66rem; color: var(--cv-muted); letter-spacing: 0.01em; }
+  .cv-subscribe a { color: var(--cv-accent); text-decoration: none; }
+
   @page { size: A4; margin: 16mm 15mm; }
   @media print {
     .cv { padding: 0; max-width: none; }
@@ -344,6 +395,8 @@ export function commonCss(theme: TemplateTheme): string {
        link affordance survives print (WCAG 1.4.1 — not signalled by colour). */
     .cv-ids a, .cv-contact a, .cv-links a { text-decoration: underline; text-underline-offset: 0.15em; }
     .cv-ror-link { border-bottom: none; }
+    /* Interactive web-only affordances never belong in the printed/PDF CV. */
+    .cv-itemtools, .cv-filterbar, .cv-subscribe { display: none !important; }
     section.cv-section { break-inside: auto; }
     section.cv-section > h2 { break-after: avoid; break-inside: avoid; }
     ol.cv-bib > li { break-inside: avoid; }
@@ -361,6 +414,21 @@ export function commonCss(theme: TemplateTheme): string {
     .cv-headmain { flex-direction: column; align-items: flex-start; gap: 0.9rem; }
     .cv-photo { width: 88px; height: 88px; }
   }`;
+}
+
+/**
+ * The aggregated "Research areas" chip row — the owner's most frequent OpenAlex
+ * topic FIELDS (`owner.researchAreas`), shown only when the owner opts in
+ * (`display.showResearchAreas`) and the aggregate is non-empty. Field names are
+ * HTML-escaped and ordered most-frequent-first (as computed at build). "" otherwise.
+ */
+function researchAreasHtml(cv: CanonicalCv): string {
+  if (!cv.display.showResearchAreas) return "";
+  const areas = cv.owner.researchAreas ?? [];
+  if (areas.length === 0) return "";
+  const label = escapeHtml(renderStrings(cv.display.locale).researchAreasLabel);
+  const chips = areas.map((a) => `<li class="cv-area">${escapeHtml(a.field)}</li>`).join("");
+  return `<div class="cv-areas"><span class="cv-areas-label">${label}</span><ul class="cv-areas-list">${chips}</ul></div>`;
 }
 
 /**
@@ -382,15 +450,36 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
   const ids = orcid
     ? `<div class="cv-ids">ORCID: <a href="https://orcid.org/${orcid}">${orcid}</a></div>`
     : "";
-  // One metric strip, rendered as a LIST — ONE METRIC PER LINE for reading clarity
-  // (a " · "-joined run wraps mid-caveat and reads as one undifferentiated blob).
-  // The profile-level OPEN-ACCESS share leads as a labelled row ("Open access · 45%"
-  // shape), followed by the user-selected metrics in catalog order. Each metric
-  // carries its interpretation ANCHOR ("1.0 = world average …") AND its coverage
-  // caveat ("mean over N works …") as VISIBLE text — the caveat used to hide in a
-  // hover title, which is unreachable by keyboard/touch and absent in the printed
-  // PDF, the surface a committee actually reads. The whole strip sits BELOW the
-  // summary (see the return) so the reader meets the person before the statistics.
+  const summary = cv.owner.summary
+    ? `<p class="cv-summary">${escapeHtml(cv.owner.summary)}</p>`
+    : "";
+  const photo = opts.photo ? photoHtml(cv) : "";
+  // The research-summary block (metric strip + grouped chart/authorship cards)
+  // renders INSIDE the header only in the default "header" position — with no
+  // heading, exactly as before, so existing CVs are byte-identical. "top"/"bottom"
+  // relocate it to its own labelled block in <main> (researchSummaryBlock, placed by
+  // sectionsHtmlRaw); "hidden" suppresses it. The narrative SUMMARY still leads the
+  // header body so the reader meets the person before any statistics.
+  const block = cv.display.summaryBlockPosition === "header" ? researchSummaryBody(cv) : "";
+  // Research-area chips sit just under the summary (person → their fields →
+  // statistics), opt-in and "" when off. They describe the person (not the metrics),
+  // so they stay in the header regardless of the research-summary block's placement.
+  const areas = researchAreasHtml(cv);
+  const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}</div>`;
+  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${areas}${block}</header>`;
+}
+
+/**
+ * The research-summary block BODY: the one-per-line metric list followed by the
+ * grouped publications/year chart + authorship-table row. ONE METRIC PER LINE for
+ * reading clarity (a " · "-joined run wraps mid-caveat into one blob); the
+ * open-access share leads as a labelled row; each metric carries its interpretation
+ * ANCHOR and coverage caveat as VISIBLE text (the caveat used to hide in a hover
+ * title — unreachable by keyboard/touch and absent in the printed PDF a committee
+ * reads). Pure; "" when there is nothing to show. Shared by both placements — inline
+ * in the header ("header") and inside the standalone labelled block ("top"/"bottom").
+ */
+export function researchSummaryBody(cv: CanonicalCv): string {
   const oaShare = openAccessShare(cv);
   const rows: string[] = [];
   if (oaShare) {
@@ -418,26 +507,32 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
     );
   }
   const metricsLine = rows.length ? `<ul class="cv-metrics">${rows.join("")}</ul>` : "";
-  const summary = cv.owner.summary
-    ? `<p class="cv-summary">${escapeHtml(cv.owner.summary)}</p>`
-    : "";
-  const photo = opts.photo ? photoHtml(cv) : "";
-  // The publications/year chart and the authorship table are grouped into ONE
-  // "research summary" row that sits them SIDE BY SIDE when the column is wide
-  // enough, collapsing to a stack on narrow viewports / print. "" when both are
-  // disabled, so no empty wrapper is emitted.
   const charts = renderChartsHtml(cv);
   const authorship = authorshipTableHtml(cv);
   const research =
     charts || authorship ? `<div class="cv-research">${charts}${authorship}</div>` : "";
-  // Identity-first head text: name → headline → ORCID → contact. The narrative
-  // SUMMARY then leads the body of the header, followed by the metric strip and the
-  // grouped research cards — so a reader meets the person before the statistics
-  // (those bright cards out-shouted the name on the dark public styles). The
-  // sidebar template relies on this order too — its panel reads "identity →
-  // divider → bio", then the strip + white cards.
-  const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}</div>`;
-  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${metricsLine}${research}</header>`;
+  return `${metricsLine}${research}`;
+}
+
+/**
+ * The research-summary block as its OWN labelled element, for the "top"/"bottom"
+ * placements. A `<div>` (deliberately NOT a `<section>`: the mascot binds its hats
+ * by `section.cv-section:nth-of-type(N)`, so an extra `<section>` would desync the
+ * hat order on the animated styles) carrying an `<h2>` so the block joins the
+ * heading outline and leaves the `banner` landmark. The heading is the user's
+ * `display.summaryHeading` or a localized default, and uses the themed `--cv-ink`
+ * token so it stays legible on every template + dark style. "" unless the block is
+ * body-placed AND has content.
+ */
+export function researchSummaryBlock(cv: CanonicalCv): string {
+  const pos = cv.display.summaryBlockPosition;
+  if (pos !== "top" && pos !== "bottom") return "";
+  const body = researchSummaryBody(cv);
+  if (!body) return "";
+  const heading = escapeHtml(
+    cv.display.summaryHeading?.trim() || renderStrings(cv.display.locale).researchSummaryHeading,
+  );
+  return `<div class="cv-summary-block"><h2 class="cv-summary-h">${heading}</h2>${body}</div>`;
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -556,7 +651,14 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
     ? `<p class="cv-living">${escapeHtml(s.livingNote.replace("{date}", synced))}</p>`
     : "";
   const madeWith = escapeHtml(s.madeWith);
-  return `${living}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
+  // "Subscribe" (Atom/RSS) link to this living CV's feed — the public follow
+  // primitive. Shown only when the route supplied a feed href (`opts.feedHref`).
+  const subscribe = opts.feedHref
+    ? `<p class="cv-subscribe"><a href="${escapeHtml(opts.feedHref)}">${escapeHtml(
+        s.subscribeLabel,
+      )}</a></p>`
+    : "";
+  return `${living}${subscribe}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
 }
 
 /**
@@ -770,8 +872,8 @@ function renderableSections(sections: RenderedSection[]): RenderedSection[] {
  * its own `<main>` (the Sidebar two-column layout wraps sections + footers in one
  * `<main class="cv-main">`). Everything else should use `sectionsHtml`.
  */
-export function sectionsHtmlRaw(sections: RenderedSection[]): string {
-  return renderableSections(sections)
+export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): string {
+  const body = renderableSections(sections)
     .map((rs) => {
       if (isProseSectionType(rs.section.type)) {
         return `<section class="cv-section cv-prose"><h2>${escapeHtml(
@@ -786,6 +888,12 @@ export function sectionsHtmlRaw(sections: RenderedSection[]): string {
       )}</h2><ol class="cv-bib">\n${entries}\n</ol></section>`;
     })
     .join("\n");
+  // The research-summary block, when the user moved it out of the header, renders
+  // here as its own labelled element — FIRST ("top") or LAST ("bottom") in <main>,
+  // so the DOM (reading) order matches the visual order (WCAG 1.3.2). "" otherwise.
+  const block = researchSummaryBlock(cv);
+  if (!block) return body;
+  return cv.display.summaryBlockPosition === "bottom" ? `${body}\n${block}` : `${block}\n${body}`;
 }
 
 /**
@@ -794,8 +902,8 @@ export function sectionsHtmlRaw(sections: RenderedSection[]): string {
  * relies on sections being direct children of `.cv`, so the wrapper is layout-
  * neutral; `.cv-main` carries no shared styling (only Sidebar styles its own).
  */
-export function sectionsHtml(sections: RenderedSection[]): string {
-  return `<main class="cv-main">${sectionsHtmlRaw(sections)}</main>`;
+export function sectionsHtml(cv: CanonicalCv, sections: RenderedSection[]): string {
+  return `<main class="cv-main">${sectionsHtmlRaw(cv, sections)}</main>`;
 }
 
 /**

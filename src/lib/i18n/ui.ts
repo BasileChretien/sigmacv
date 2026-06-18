@@ -33,10 +33,22 @@ export interface UiStrings {
   authorshipNote: string;
   authorshipResyncNote: string;
   showCharts: string;
+  /** StyleControls toggle: show the aggregated "Research areas" chip row. */
+  showResearchAreas: string;
+  /** ItemRow star toggle: mark a publication as selected / featured. */
+  featureItem: string;
   showOpenAccess: string;
   /** Editor toggle: show the profile open-access SHARE in the header (separate
    *  from the per-work badges above). */
   showOpenAccessShare: string;
+  /** Research-summary placement control: the group label + the four placement
+   *  options (header / own section / end / hidden) + the optional-heading field. */
+  summaryBlockLabel: string;
+  summaryPosHeader: string;
+  summaryPosTop: string;
+  summaryPosBottom: string;
+  summaryPosHidden: string;
+  summaryHeadingLabel: string;
   /** Editor toggle: show the public-page "Co-authors on SigmaCV" block (opt-in). */
   showCoauthorLinks: string;
   /** Editor toggle: allow other SigmaCV CVs to link to this one (opt-out, default on). */
@@ -192,8 +204,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ These counts are empty for your existing publications. Click Re-sync (top right) to pull author positions from OpenAlex.",
     showCharts: "Show charts (publications & citations / year)",
+    showResearchAreas: "Show research areas (top fields)",
+    featureItem: "Mark as a selected / featured publication",
     showOpenAccess: "Open-access badges",
     showOpenAccessShare: "Open-access share in header",
+    summaryBlockLabel: "Research summary",
+    summaryPosHeader: "In header",
+    summaryPosTop: "Its own section",
+    summaryPosBottom: "At the end",
+    summaryPosHidden: "Hidden",
+    summaryHeadingLabel: "Heading (optional)",
     hideRetracted: "Hide retracted publications",
     showAuthorRole: "Show my author role (first / last / corresponding)",
     showCitationCounts: "Show citation counts on each publication",
@@ -331,8 +351,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ 你现有的出版物没有这些统计数据。点击右上角的 Re-sync（重新同步），从 OpenAlex 拉取作者署名位置。",
     showCharts: "显示图表（每年出版物与引用数）",
+    showResearchAreas: "显示研究领域（主要领域）",
+    featureItem: "标记为精选 / 重点论文",
     showOpenAccess: "开放获取标识",
     showOpenAccessShare: "页眉显示开放获取比例",
+    summaryBlockLabel: "研究概要",
+    summaryPosHeader: "在页眉中",
+    summaryPosTop: "作为独立板块",
+    summaryPosBottom: "在末尾",
+    summaryPosHidden: "隐藏",
+    summaryHeadingLabel: "标题（可选）",
     hideRetracted: "隐藏已撤稿的出版物",
     showAuthorRole: "显示我的作者角色（第一／末位／通讯）",
     showCitationCounts: "在每篇论文上显示被引次数",
@@ -467,8 +495,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Estos recuentos están vacíos para tus publicaciones existentes. Haz clic en Resincronizar (arriba a la derecha) para obtener las posiciones de autoría desde OpenAlex.",
     showCharts: "Mostrar gráficos (publicaciones y citas / año)",
+    showResearchAreas: "Mostrar áreas de investigación (campos principales)",
+    featureItem: "Marcar como publicación destacada / seleccionada",
     showOpenAccess: "Distintivos de acceso abierto",
     showOpenAccessShare: "Porcentaje de acceso abierto en la cabecera",
+    summaryBlockLabel: "Resumen de investigación",
+    summaryPosHeader: "En el encabezado",
+    summaryPosTop: "Como sección propia",
+    summaryPosBottom: "Al final",
+    summaryPosHidden: "Oculto",
+    summaryHeadingLabel: "Título (opcional)",
     hideRetracted: "Ocultar publicaciones retractadas",
     showAuthorRole: "Mostrar mi rol de autor (primero / último / correspondencia)",
     showCitationCounts: "Mostrar el número de citas en cada publicación",
@@ -608,8 +644,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Ces décomptes sont vides pour vos publications existantes. Cliquez sur Resynchroniser (en haut à droite) pour récupérer les positions des auteurs depuis OpenAlex.",
     showCharts: "Afficher les graphiques (publications et citations / an)",
+    showResearchAreas: "Afficher les domaines de recherche (principaux champs)",
+    featureItem: "Marquer comme publication sélectionnée / mise en avant",
     showOpenAccess: "Badges de libre accès",
     showOpenAccessShare: "Part en libre accès dans l'en-tête",
+    summaryBlockLabel: "Synthèse de recherche",
+    summaryPosHeader: "Dans l'en-tête",
+    summaryPosTop: "Section dédiée",
+    summaryPosBottom: "À la fin",
+    summaryPosHidden: "Masqué",
+    summaryHeadingLabel: "Titre (facultatif)",
     hideRetracted: "Masquer les publications rétractées",
     showAuthorRole: "Afficher mon rôle d’auteur (premier / dernier / correspondant)",
     showCitationCounts: "Afficher le nombre de citations sur chaque publication",
@@ -750,8 +794,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Diese Zählungen sind für Ihre bestehenden Publikationen leer. Klicken Sie auf Re-sync (oben rechts), um die Autorenpositionen von OpenAlex abzurufen.",
     showCharts: "Diagramme anzeigen (Publikationen & Zitationen / Jahr)",
+    showResearchAreas: "Forschungsgebiete anzeigen (Hauptfelder)",
+    featureItem: "Als ausgewählte / hervorgehobene Publikation markieren",
     showOpenAccess: "Open-Access-Abzeichen",
     showOpenAccessShare: "Open-Access-Anteil im Kopfbereich",
+    summaryBlockLabel: "Forschungsüberblick",
+    summaryPosHeader: "Im Kopfbereich",
+    summaryPosTop: "Als eigener Abschnitt",
+    summaryPosBottom: "Am Ende",
+    summaryPosHidden: "Ausgeblendet",
+    summaryHeadingLabel: "Überschrift (optional)",
     hideRetracted: "Zurückgezogene Publikationen ausblenden",
     showAuthorRole: "Meine Autorenrolle anzeigen (Erst-/Letzt-/korrespondierend)",
     showCitationCounts: "Zitationszahl bei jeder Publikation anzeigen",
@@ -891,8 +943,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ これらの集計は既存の論文では空です。右上の「Re-sync」をクリックして OpenAlex から著者の位置情報を取得してください。",
     showCharts: "グラフを表示（年別の論文数・被引用数）",
+    showResearchAreas: "研究分野を表示（主要分野）",
+    featureItem: "選定／注目の論文として設定",
     showOpenAccess: "オープンアクセスバッジ",
     showOpenAccessShare: "ヘッダーにオープンアクセス率を表示",
+    summaryBlockLabel: "研究サマリー",
+    summaryPosHeader: "ヘッダー内",
+    summaryPosTop: "独立したセクション",
+    summaryPosBottom: "末尾に",
+    summaryPosHidden: "非表示",
+    summaryHeadingLabel: "見出し（任意）",
     hideRetracted: "撤回された出版物を非表示",
     showAuthorRole: "自分の著者役割を表示（筆頭・最終・責任著者）",
     showCitationCounts: "各論文に被引用数を表示",
@@ -1030,8 +1090,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Essas contagens estão vazias para suas publicações existentes. Clique em Re-sync (canto superior direito) para obter as posições de autoria do OpenAlex.",
     showCharts: "Mostrar gráficos (publicações e citações / ano)",
+    showResearchAreas: "Mostrar áreas de pesquisa (principais campos)",
+    featureItem: "Marcar como publicação em destaque / selecionada",
     showOpenAccess: "Selos de acesso aberto",
     showOpenAccessShare: "Percentual de acesso aberto no cabeçalho",
+    summaryBlockLabel: "Resumo da pesquisa",
+    summaryPosHeader: "No cabeçalho",
+    summaryPosTop: "Como seção própria",
+    summaryPosBottom: "No final",
+    summaryPosHidden: "Oculto",
+    summaryHeadingLabel: "Título (opcional)",
     hideRetracted: "Ocultar publicações retratadas",
     showAuthorRole: "Mostrar meu papel de autoria (primeiro / último / correspondente)",
     showCitationCounts: "Mostrar o número de citações em cada publicação",
@@ -1171,8 +1239,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Questi conteggi sono vuoti per le tue pubblicazioni esistenti. Fai clic su Re-sync (in alto a destra) per recuperare le posizioni degli autori da OpenAlex.",
     showCharts: "Mostra grafici (pubblicazioni e citazioni / anno)",
+    showResearchAreas: "Mostra aree di ricerca (campi principali)",
+    featureItem: "Segna come pubblicazione selezionata / in evidenza",
     showOpenAccess: "Badge ad accesso aperto",
     showOpenAccessShare: "Quota di accesso aperto nell'intestazione",
+    summaryBlockLabel: "Sintesi della ricerca",
+    summaryPosHeader: "Nell'intestazione",
+    summaryPosTop: "Come sezione propria",
+    summaryPosBottom: "Alla fine",
+    summaryPosHidden: "Nascosto",
+    summaryHeadingLabel: "Titolo (facoltativo)",
     hideRetracted: "Nascondi le pubblicazioni ritirate",
     showAuthorRole: "Mostra il mio ruolo di autore (primo / ultimo / corrispondente)",
     showCitationCounts: "Mostra il numero di citazioni per ogni pubblicazione",
@@ -1311,8 +1387,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ 기존 출판물에 대해서는 이 집계가 비어 있습니다. 우측 상단의 Re-sync를 클릭하여 OpenAlex에서 저자 위치를 가져오세요.",
     showCharts: "차트 표시 (연도별 출판물 및 인용 수)",
+    showResearchAreas: "연구 분야 표시 (주요 분야)",
+    featureItem: "선정 / 주요 논문으로 표시",
     showOpenAccess: "오픈 액세스 배지",
     showOpenAccessShare: "헤더에 오픈 액세스 비율 표시",
+    summaryBlockLabel: "연구 요약",
+    summaryPosHeader: "헤더에",
+    summaryPosTop: "별도 섹션으로",
+    summaryPosBottom: "마지막에",
+    summaryPosHidden: "숨김",
+    summaryHeadingLabel: "제목 (선택)",
     hideRetracted: "철회된 출판물 숨기기",
     showAuthorRole: "내 저자 역할 표시 (제1저자 / 마지막 저자 / 교신저자)",
     showCitationCounts: "각 논문에 피인용 수 표시",
@@ -1450,8 +1534,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Для ваших текущих публикаций эти показатели пусты. Нажмите Re-sync (вверху справа), чтобы загрузить позиции авторов из OpenAlex.",
     showCharts: "Показать графики (публикации и цитирования по годам)",
+    showResearchAreas: "Показать области исследований (основные)",
+    featureItem: "Отметить как избранную / рекомендуемую публикацию",
     showOpenAccess: "Значки открытого доступа",
     showOpenAccessShare: "Доля открытого доступа в шапке",
+    summaryBlockLabel: "Сводка исследований",
+    summaryPosHeader: "В шапке",
+    summaryPosTop: "Отдельный раздел",
+    summaryPosBottom: "В конце",
+    summaryPosHidden: "Скрыто",
+    summaryHeadingLabel: "Заголовок (необязательно)",
     hideRetracted: "Скрывать отозванные публикации",
     showAuthorRole: "Показывать мою авторскую роль (первый / последний / корреспондирующий)",
     showCitationCounts: "Показывать число цитирований у каждой публикации",

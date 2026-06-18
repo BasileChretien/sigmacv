@@ -4,7 +4,7 @@ import { wrapSelf } from "./emphasize";
 import { escapeMarkdown } from "./escape";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
-import { metricsLineText } from "./metrics";
+import { isSummaryBlockHidden, metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
@@ -73,7 +73,7 @@ export function renderCvMarkdown(cv: CanonicalCv): string {
     ? `${head.contact.map(escapeMarkdown).join(" · ")}\n\n`
     : "";
   const summaryBlock = head.summary ? `${escapeMarkdown(head.summary)}\n\n` : "";
-  const metrics = metricsLineText(cv);
+  const metrics = isSummaryBlockHidden(cv) ? "" : metricsLineText(cv);
   const metricsBlock = metrics ? `*${escapeMarkdown(metrics)}*\n\n` : "";
   return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${metricsBlock}${body}\n`;
 }

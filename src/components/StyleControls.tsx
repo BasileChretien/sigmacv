@@ -12,6 +12,7 @@ import {
   TEMPLATES,
   type CanonicalCv,
   type CustomStyle,
+  type SummaryBlockPosition,
 } from "@/lib/canonical/schema";
 import {
   applyPreset,
@@ -27,7 +28,7 @@ import {
   type CvModelCategory,
 } from "@/lib/canonical/cvModels";
 import { METRIC_DEFS, curatedMetrics, formatMetricValue } from "@/lib/render/metrics";
-import { authorshipRoleLabel, metricLabel } from "@/lib/i18n/render";
+import { authorshipRoleLabel, metricLabel, renderStrings } from "@/lib/i18n/render";
 import {
   FIELD_NORMALIZED_METRICS,
   METRICS_CROWDING_THRESHOLD,
@@ -930,6 +931,15 @@ export default function StyleControls({
         <label className="field-inline">
           <input
             type="checkbox"
+            checked={cv.display.showResearchAreas}
+            onChange={(e) => onChange(updateDisplay(cv, { showResearchAreas: e.target.checked }))}
+          />
+          <span>{u.showResearchAreas}</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
             checked={cv.display.showOpenAccess}
             onChange={(e) => onChange(updateDisplay(cv, { showOpenAccess: e.target.checked }))}
           />
@@ -948,6 +958,45 @@ export default function StyleControls({
           />
           <span>{u.showOpenAccessShare}</span>
         </label>
+
+        {/* Research-summary placement: keep the metrics + chart + authorship block in
+            the header (default), move it to its own section / the end, or hide it. A
+            heading is shown only when it's its own section ("top"/"bottom"). */}
+        <label className="field">
+          <span>{u.summaryBlockLabel}</span>
+          <select
+            value={cv.display.summaryBlockPosition ?? "header"}
+            onChange={(e) =>
+              onChange(
+                updateDisplay(cv, {
+                  summaryBlockPosition: e.target.value as SummaryBlockPosition,
+                }),
+              )
+            }
+            aria-label={u.summaryBlockLabel}
+          >
+            <option value="header">{u.summaryPosHeader}</option>
+            <option value="top">{u.summaryPosTop}</option>
+            <option value="bottom">{u.summaryPosBottom}</option>
+            <option value="hidden">{u.summaryPosHidden}</option>
+          </select>
+        </label>
+
+        {cv.display.summaryBlockPosition === "top" ||
+        cv.display.summaryBlockPosition === "bottom" ? (
+          <label className="field">
+            <span className="muted">{u.summaryHeadingLabel}</span>
+            <input
+              type="text"
+              className="preset-name-input"
+              value={cv.display.summaryHeading ?? ""}
+              placeholder={renderStrings(cvLocale).researchSummaryHeading}
+              maxLength={120}
+              onChange={(e) => onChange(updateDisplay(cv, { summaryHeading: e.target.value }))}
+              aria-label={u.summaryHeadingLabel}
+            />
+          </label>
+        ) : null}
 
         <label className="field-inline">
           <input

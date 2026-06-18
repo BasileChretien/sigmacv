@@ -183,6 +183,25 @@
             "required": ["year", "works", "citations"]
           }
         },
+        "researchAreas": {
+          "maxItems": 40,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": ["field", "count"]
+          }
+        },
         "wikidataUri": {
           "type": "string",
           "maxLength": 2048
@@ -295,12 +314,25 @@
           "default": false,
           "type": "boolean"
         },
+        "showResearchAreas": {
+          "default": false,
+          "type": "boolean"
+        },
         "showOpenAccess": {
           "default": false,
           "type": "boolean"
         },
         "showOpenAccessShare": {
           "type": "boolean"
+        },
+        "summaryBlockPosition": {
+          "default": "header",
+          "type": "string",
+          "enum": ["header", "top", "bottom", "hidden"]
+        },
+        "summaryHeading": {
+          "type": "string",
+          "maxLength": 120
         },
         "hideRetracted": {
           "default": false,
@@ -690,6 +722,9 @@
                   "type": "string",
                   "enum": ["different-person", "duplicate", "wrong-field", "other"]
                 },
+                "featured": {
+                  "type": "boolean"
+                },
                 "order": {
                   "type": "integer",
                   "minimum": -9007199254740991,
@@ -739,6 +774,10 @@
                     },
                     "oaIsOpen": {
                       "type": "boolean"
+                    },
+                    "oaUrl": {
+                      "type": "string",
+                      "maxLength": 2048
                     },
                     "license": {
                       "type": "string",
@@ -1097,12 +1136,25 @@
                 "default": false,
                 "type": "boolean"
               },
+              "showResearchAreas": {
+                "default": false,
+                "type": "boolean"
+              },
               "showOpenAccess": {
                 "default": false,
                 "type": "boolean"
               },
               "showOpenAccessShare": {
                 "type": "boolean"
+              },
+              "summaryBlockPosition": {
+                "default": "header",
+                "type": "string",
+                "enum": ["header", "top", "bottom", "hidden"]
+              },
+              "summaryHeading": {
+                "type": "string",
+                "maxLength": 120
               },
               "hideRetracted": {
                 "default": false,
