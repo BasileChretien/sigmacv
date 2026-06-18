@@ -38,6 +38,8 @@ export interface RenderStrings {
   /** Default heading for the research-summary block when it renders as its own
    *  section ("top"/"bottom" placement) and the user left the heading blank. */
   researchSummaryHeading: string;
+  /** Public "What's new" strip label — the most recent sync's additions. */
+  whatsNewLabel: string;
   /** Accessible label for the research-output breadth ledger ("N Publications · …"). */
   outputSummaryLabel: string;
   /** Inline "Retracted" badge label on a retracted publication entry. */
@@ -156,6 +158,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccessTitle: "Open access ({status})",
     openAccessLabel: "Open access",
     researchSummaryHeading: "Research summary",
+    whatsNewLabel: "Recently added",
     outputSummaryLabel: "Research output",
     badgeRetracted: "Retracted",
     badgeRetractedTitle: "This work has been retracted (per Crossref / Retraction Watch)",
@@ -225,6 +228,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccessTitle: "开放获取（{status}）",
     openAccessLabel: "开放获取",
     researchSummaryHeading: "研究概要",
+    whatsNewLabel: "最近新增",
     outputSummaryLabel: "研究产出",
     badgeRetracted: "已撤稿",
     badgeRetractedTitle: "该成果已被撤稿（依据 Crossref／Retraction Watch）",
@@ -295,6 +299,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccessTitle: "Acceso abierto ({status})",
     openAccessLabel: "Acceso abierto",
     researchSummaryHeading: "Resumen de investigación",
+    whatsNewLabel: "Añadido recientemente",
     outputSummaryLabel: "Producción científica",
     badgeRetracted: "Retractado",
     badgeRetractedTitle: "Este trabajo ha sido retractado (según Crossref / Retraction Watch)",
@@ -367,6 +372,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccessTitle: "Accès libre ({status})",
     openAccessLabel: "Accès libre",
     researchSummaryHeading: "Synthèse de recherche",
+    whatsNewLabel: "Ajouté récemment",
     outputSummaryLabel: "Production scientifique",
     badgeRetracted: "Rétracté",
     badgeRetractedTitle: "Ce travail a été rétracté (selon Crossref / Retraction Watch)",
@@ -440,6 +446,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccessTitle: "Open Access ({status})",
     openAccessLabel: "Open Access",
     researchSummaryHeading: "Forschungsüberblick",
+    whatsNewLabel: "Kürzlich hinzugefügt",
     outputSummaryLabel: "Forschungsoutput",
     badgeRetracted: "Zurückgezogen",
     badgeRetractedTitle: "Diese Arbeit wurde zurückgezogen (laut Crossref / Retraction Watch)",
@@ -511,6 +518,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccessTitle: "オープンアクセス（{status}）",
     openAccessLabel: "オープンアクセス",
     researchSummaryHeading: "研究サマリー",
+    whatsNewLabel: "最近の追加",
     outputSummaryLabel: "研究成果",
     badgeRetracted: "撤回済み",
     badgeRetractedTitle: "この成果は撤回されています（Crossref／Retraction Watch による）",
@@ -581,6 +589,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccessTitle: "Acesso aberto ({status})",
     openAccessLabel: "Acesso aberto",
     researchSummaryHeading: "Resumo da pesquisa",
+    whatsNewLabel: "Adicionado recentemente",
     outputSummaryLabel: "Produção científica",
     badgeRetracted: "Retratado",
     badgeRetractedTitle: "Este trabalho foi retratado (segundo o Crossref / Retraction Watch)",
@@ -654,6 +663,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccessTitle: "Accesso aperto ({status})",
     openAccessLabel: "Accesso aperto",
     researchSummaryHeading: "Sintesi della ricerca",
+    whatsNewLabel: "Aggiunto di recente",
     outputSummaryLabel: "Produzione scientifica",
     badgeRetracted: "Ritirato",
     badgeRetractedTitle: "Questo lavoro è stato ritirato (secondo Crossref / Retraction Watch)",
@@ -725,6 +735,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccessTitle: "오픈 액세스 ({status})",
     openAccessLabel: "오픈 액세스",
     researchSummaryHeading: "연구 요약",
+    whatsNewLabel: "최근 추가됨",
     outputSummaryLabel: "연구 성과",
     badgeRetracted: "철회됨",
     badgeRetractedTitle: "이 성과는 철회되었습니다 (Crossref / Retraction Watch 기준)",
@@ -794,6 +805,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccessTitle: "Открытый доступ ({status})",
     openAccessLabel: "Открытый доступ",
     researchSummaryHeading: "Сводка исследований",
+    whatsNewLabel: "Недавно добавлено",
     outputSummaryLabel: "Научная продукция",
     badgeRetracted: "Отозвано",
     badgeRetractedTitle: "Эта работа была отозвана (по данным Crossref / Retraction Watch)",

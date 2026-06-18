@@ -5,6 +5,7 @@ import {
   SyncReportSchema,
   addedBySectionType,
   computeSyncReport,
+  publicRecentAdditions,
   reviewEntries,
   safeParseSyncReport,
   type SyncReport,
@@ -244,5 +245,48 @@ describe("reviewEntries / addedBySectionType", () => {
   it("the summary threshold is a positive integer", () => {
     expect(Number.isInteger(SYNC_REPORT_SUMMARY_THRESHOLD)).toBe(true);
     expect(SYNC_REPORT_SUMMARY_THRESHOLD).toBeGreaterThan(0);
+  });
+});
+
+describe("publicRecentAdditions", () => {
+  const cv = makeCv([
+    {
+      id: "publications",
+      type: "publications",
+      items: [makeItem({ id: "W1" }), makeItem({ id: "W2" }), makeItem({ id: "W4" })],
+    },
+    // A since-hidden dataset: present in the report but not visible → must be dropped.
+    { id: "datasets", type: "datasets", items: [makeItem({ id: "D1", included: false })] },
+  ]);
+  const report: SyncReport = {
+    syncedAt: NOW,
+    initial: false,
+    addedTotal: 4,
+    removedTotal: 0,
+    added: [
+      { sectionType: "publications", itemId: "W1", title: "Paper one" },
+      { sectionType: "publications", itemId: "W2", title: "Flagged", reviewFlag: "orcid-conflict" },
+      { sectionType: "datasets", itemId: "D1", title: "Hidden data" },
+      { sectionType: "publications", itemId: "W4", title: "Paper four" },
+    ],
+    reviewCandidates: 1,
+  };
+
+  it("keeps confirmed, still-visible additions; drops flagged and hidden ones", () => {
+    expect(publicRecentAdditions(report, cv)).toEqual([
+      { title: "Paper one", sectionType: "publications" },
+      { title: "Paper four", sectionType: "publications" },
+    ]);
+  });
+
+  it("caps to `max`, in document order", () => {
+    expect(publicRecentAdditions(report, cv, 1)).toEqual([
+      { title: "Paper one", sectionType: "publications" },
+    ]);
+  });
+
+  it("returns [] for the initial import and for a missing report", () => {
+    expect(publicRecentAdditions({ ...report, initial: true }, cv)).toEqual([]);
+    expect(publicRecentAdditions(null, cv)).toEqual([]);
   });
 });

@@ -5,7 +5,9 @@ import {
   itemDisplayText,
   type CanonicalCv,
   type CvItem,
+  type CvSectionType,
 } from "@/lib/canonical/schema";
+import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { stripInlineMarkup } from "@/lib/text/markup";
 
 /**
@@ -173,4 +175,40 @@ export function computeSyncReport(
 export function safeParseSyncReport(input: unknown): SyncReport | null {
   const parsed = SyncReportSchema.safeParse(input);
   return parsed.success ? parsed.data : null;
+}
+
+/** One entry of the public "What's new" strip. */
+export interface RecentAddition {
+  title: string;
+  sectionType: CvSectionType;
+}
+
+/**
+ * The most recent, still-visible additions for the public "What's new" strip,
+ * derived from the persisted last-sync report and the (public-projected) CV:
+ *  - never the initial import (that is not "new" to a visitor);
+ *  - drops review candidates (unconfirmed name/registry matches — never advertised);
+ *  - drops any added item the owner has since hidden or removed (cross-checked
+ *    against the CV's currently-visible items);
+ *  - capped to `max`, kept in sync (document) order.
+ * Returns [] when there is nothing fresh to show.
+ */
+export function publicRecentAdditions(
+  report: SyncReport | null,
+  cv: CanonicalCv,
+  max = 5,
+): RecentAddition[] {
+  if (!report || report.initial) return [];
+  const visibleIds = new Set<string>();
+  for (const section of visibleSections(cv)) {
+    for (const item of visibleItems(section)) visibleIds.add(item.id);
+  }
+  const out: RecentAddition[] = [];
+  for (const entry of report.added) {
+    if (entry.reviewFlag) continue;
+    if (!visibleIds.has(entry.itemId)) continue;
+    out.push({ title: entry.title, sectionType: entry.sectionType });
+    if (out.length >= max) break;
+  }
+  return out;
 }

@@ -47,7 +47,13 @@ import { fetchIctrpTrials } from "@/lib/ictrp/client";
 import { fetchEpoPatents } from "@/lib/epo/client";
 import { cvSlug } from "@/lib/render/slug";
 import { logCvSave } from "@/lib/research/log";
-import { computeSyncReport, safeParseSyncReport, type SyncReport } from "./syncReport";
+import {
+  computeSyncReport,
+  publicRecentAdditions,
+  safeParseSyncReport,
+  type RecentAddition,
+  type SyncReport,
+} from "./syncReport";
 
 /** Thrown when a save is attempted before the user has a CV row. */
 export class CvNotFoundError extends Error {
@@ -566,13 +572,23 @@ export async function getPublicCv(slug: string): Promise<CanonicalCv | null> {
 export async function getPublicCvForPage(
   slug: string,
   opts?: { resolveCoauthors?: boolean },
-): Promise<{ cv: CanonicalCv; indexable: boolean; coauthorCvs: CoauthorCvLink[] } | null> {
+): Promise<{
+  cv: CanonicalCv;
+  indexable: boolean;
+  coauthorCvs: CoauthorCvLink[];
+  recentlyAdded: RecentAddition[];
+} | null> {
   const row = await prisma.cv.findUnique({ where: { publicSlug: slug } });
   if (!row || !row.published) return null;
   const parsed = safeParseCanonicalCv(row.document);
   if (!parsed.success) return null;
+  const cv = projectCvForPublic(parsed.data);
   const coauthorCvs = opts?.resolveCoauthors ? await resolveCoauthorCvs(parsed.data) : [];
-  return { cv: projectCvForPublic(parsed.data), indexable: row.publicIndexable, coauthorCvs };
+  // The most recent sync's confirmed, still-visible additions → the public
+  // "What's new" strip. From the persisted last-sync report, cross-checked against
+  // the projected (visible) CV so a since-hidden work is never advertised.
+  const recentlyAdded = publicRecentAdditions(safeParseSyncReport(row.lastSyncReport), cv);
+  return { cv, indexable: row.publicIndexable, coauthorCvs, recentlyAdded };
 }
 
 /**

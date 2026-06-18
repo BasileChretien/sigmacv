@@ -78,6 +78,14 @@ export type RenderOpts = PublicExtrasOpts & {
    * linking the live page to itself is pointless).
    */
   publicPageUrl?: string;
+  /**
+   * Confirmed, still-visible works added in the CV's most recent sync — the public
+   * "What's new" strip beside the living-page "Updated …" line. Resolved server-side
+   * (`publicRecentAdditions`, from the persisted last-sync report) by the `/p/[slug]`
+   * route ONLY; exporters never set it, so it stays off every PDF/DOCX/LaTeX/Markdown.
+   * Inline structural shape so the render layer takes no dependency on `lib/cv`.
+   */
+  recentlyAdded?: readonly { title: string; sectionType: string }[];
 };
 
 export interface RenderInput {
