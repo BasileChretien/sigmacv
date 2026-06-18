@@ -53,7 +53,10 @@ RUN npm run build
 # ─── Runtime stage ───────────────────────────────────────────────────────────
 # Playwright image ships Chromium + its system deps for HTML→PDF rendering.
 # Keep this tag in sync with the `playwright` version in package.json (exact-pinned).
-FROM mcr.microsoft.com/playwright:v1.60.0-noble AS runner
+# `tests/dockerfile-playwright-sync.test.ts` fails CI if this drifts — a Playwright
+# bump that doesn't bump this tag ships a Chromium revision the npm package can't
+# launch, and every PDF export 500s ("Export failed").
+FROM mcr.microsoft.com/playwright:v1.61.0-noble AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
