@@ -28,14 +28,15 @@ const base = buildCanonicalCv({ id: "ps", resolved, works, now: "2026-06-02T00:0
 const withPhoto: CanonicalCv = { ...base, owner: { ...base.owner, photo: PNG_1x1 } };
 
 describe("public-page showcase styles", () => {
-  it("registers all 17 animated styles", () => {
-    expect(PUBLIC_STYLE_KEYS).toHaveLength(17);
+  it("registers all 18 animated styles", () => {
+    expect(PUBLIC_STYLE_KEYS).toHaveLength(18);
     expect(PUBLIC_STYLE_KEYS).toEqual(
       expect.arrayContaining([
         "folio",
         "meridian",
         "trajectory",
         "lumina",
+        "chronicle",
         "prism",
         "pop",
         "neon",

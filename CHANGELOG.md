@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **New public-page style: "Chronicle".** An archival, strictly monochrome career
+  register — deep ink on aged paper, a classic serif with old-style numerals, a
+  double-rule masthead and small-caps section labels. Its signature is a dated
+  timeline for your Positions and Education: each role's years sit in a left margin
+  against a hairline rule with a node tick, reading like a printed record of a
+  career. Deliberately uses no accent colour (even the ORCID mark is rendered in
+  ink). Public page only; like every showcase style it never touches your exports.
+
 - **"What's new" entries are now clickable.** Each title in the living page's
   "Recently added" line links straight to that entry in the page above, where you
   can read the full citation and open its abstract, cite and full-text tools. The

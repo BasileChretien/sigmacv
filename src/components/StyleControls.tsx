@@ -207,6 +207,7 @@ export default function StyleControls({
     meridian: "Meridian",
     trajectory: "Trajectory",
     lumina: "Lumina",
+    chronicle: "Chronicle",
     prism: "Prism",
     pop: "Pop",
     neon: "Neon",
