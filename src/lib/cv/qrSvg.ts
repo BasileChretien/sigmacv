@@ -44,3 +44,17 @@ export function qrSvg(text: string): string {
     `</svg>`
   );
 }
+
+/**
+ * The same QR as a raster GIF Buffer (near-black on white) — for the DOCX export,
+ * whose `docx` library embeds bitmaps, not SVG. Uses the library's own renderer
+ * (`createDataURL`) so there is no extra image dependency. The first arg is px per
+ * module; `QUIET_ZONE` modules of white margin keep it scannable on paper.
+ */
+export function qrGifBuffer(text: string): Buffer {
+  const qr = qrcode(0, "M");
+  qr.addData(text);
+  qr.make();
+  const dataUrl = qr.createDataURL(6, QUIET_ZONE);
+  return Buffer.from(dataUrl.slice(dataUrl.indexOf(",") + 1), "base64");
+}

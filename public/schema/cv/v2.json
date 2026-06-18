@@ -457,6 +457,10 @@
           "default": false,
           "type": "boolean"
         },
+        "showDocQr": {
+          "default": false,
+          "type": "boolean"
+        },
         "coauthorLinkable": {
           "default": true,
           "type": "boolean"
@@ -1276,6 +1280,10 @@
                 "type": "boolean"
               },
               "showCoauthorLinks": {
+                "default": false,
+                "type": "boolean"
+              },
+              "showDocQr": {
                 "default": false,
                 "type": "boolean"
               },

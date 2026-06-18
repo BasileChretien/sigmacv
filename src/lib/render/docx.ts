@@ -19,7 +19,8 @@ import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
 import { isSummaryBlockHidden, metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
-import type { Renderer, RenderInput, RenderResult } from "./types";
+import type { Renderer, RenderInput, RenderOpts, RenderResult } from "./types";
+import { qrGifBuffer } from "@/lib/cv/qrSvg";
 
 // 1×1 transparent PNG — the required fallback for the SVG charts. Modern Word
 // (2016+) renders the crisp SVG; only very old viewers fall back to this.
@@ -112,7 +113,7 @@ function proseSectionParagraphs(title: string, body: string): Paragraph[] {
  * (accent colour, sidebar, centring) is intentionally NOT applied: the PDF is
  * the template-faithful export, while the .docx is meant to be edited in Word.
  */
-export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
+export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Promise<Buffer> {
   const bodyFont = cv.display.fontPairing === "sans" ? "Calibri" : "Cambria";
   const s = renderStrings(cv.display.locale);
   const sections = prepareSections(cv, "text");
@@ -221,6 +222,35 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
     }
   }
 
+  // Opt-in document QR → this CV's public living page (raster GIF, since the docx
+  // lib embeds bitmaps not SVG). Only when the page is actually published
+  // (`opts.publicPageUrl` set) and the owner opted in; the human-readable URL line
+  // beside it is the real, screen-reader-friendly link. Skipped on the ATS template,
+  // where an embedded image would only add noise for résumé parsers.
+  if (cv.display.showDocQr && opts?.publicPageUrl && cv.display.template !== "ats") {
+    const url = opts.publicPageUrl;
+    children.push(
+      new Paragraph({
+        spacing: { before: 220 },
+        children: [
+          new ImageRun({
+            type: "gif",
+            data: qrGifBuffer(url),
+            transformation: { width: 84, height: 84 },
+            altText: {
+              name: s.liveVersionLabel,
+              title: s.liveVersionLabel,
+              description: `${s.liveVersionLabel}: ${url}`,
+            },
+          }),
+        ],
+      }),
+      new Paragraph({
+        children: [new TextRun({ text: `${s.liveVersionLabel}: ${url}`, italics: true, size: 16 })],
+      }),
+    );
+  }
+
   const doc = new Document({
     styles: { default: { document: { run: { font: bodyFont } } } },
     sections: [{ children }],
@@ -230,12 +260,12 @@ export async function renderCvDocxBuffer(cv: CanonicalCv): Promise<Buffer> {
 
 export const docxRenderer: Renderer = {
   format: "docx",
-  async render({ cv }: RenderInput): Promise<RenderResult> {
+  async render({ cv, opts }: RenderInput): Promise<RenderResult> {
     return {
       format: "docx",
       mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       filename: `${cvSlug(cv.owner.displayName)}-cv.docx`,
-      buffer: await renderCvDocxBuffer(cv),
+      buffer: await renderCvDocxBuffer(cv, opts),
     };
   },
 };

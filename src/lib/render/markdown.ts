@@ -6,7 +6,7 @@ import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
 import { isSummaryBlockHidden, metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
-import type { Renderer, RenderInput, RenderResult } from "./types";
+import type { Renderer, RenderInput, RenderOpts, RenderResult } from "./types";
 
 function yamlString(s: string): string {
   // Double-quoted YAML scalar. Collapse newlines / control chars to a space so a
@@ -28,7 +28,7 @@ function yamlString(s: string): string {
  * run through `escapeMarkdown` — a body of "# Not a heading" or stray `*`/`[`
  * can't change the document's block structure).
  */
-export function renderCvMarkdown(cv: CanonicalCv): string {
+export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
   const sections = prepareSections(cv, "text");
   const fallbackTitle = renderStrings(cv.display.locale).cvFallbackTitle;
 
@@ -75,13 +75,21 @@ export function renderCvMarkdown(cv: CanonicalCv): string {
   const summaryBlock = head.summary ? `${escapeMarkdown(head.summary)}\n\n` : "";
   const metrics = isSummaryBlockHidden(cv) ? "" : metricsLineText(cv);
   const metricsBlock = metrics ? `*${escapeMarkdown(metrics)}*\n\n` : "";
-  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${metricsBlock}${body}\n`;
+  // Opt-in "Live version" link to the public page. Markdown is plain text, so no QR
+  // image — the URL is the portable, parseable affordance. Only when the page is
+  // actually published (`opts.publicPageUrl`) and the owner opted in, and never on
+  // the ATS template (kept noise-free for résumé parsers, like the other formats).
+  const live =
+    cv.display.showDocQr && opts?.publicPageUrl && cv.display.template !== "ats"
+      ? `\n\n---\n\n${escapeMarkdown(renderStrings(cv.display.locale).liveVersionLabel)}: <${opts.publicPageUrl}>\n`
+      : "";
+  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${metricsBlock}${body}\n${live}`;
 }
 
 export const markdownRenderer: Renderer = {
   format: "markdown",
-  async render({ cv }: RenderInput): Promise<RenderResult> {
-    const text = renderCvMarkdown(cv);
+  async render({ cv, opts }: RenderInput): Promise<RenderResult> {
+    const text = renderCvMarkdown(cv, opts);
     return {
       format: "markdown",
       mimeType: "text/markdown; charset=utf-8",

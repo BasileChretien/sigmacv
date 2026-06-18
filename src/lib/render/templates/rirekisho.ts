@@ -3,6 +3,7 @@ import {
   attributionFooter,
   coauthorLinksFooter,
   commonCss,
+  docQrFooter,
   escapeHtml,
   licenseFooter,
   pageShell,
@@ -171,7 +172,7 @@ export const rirekishoTemplate: CvTemplate = {
   ${sectionsHtml(cv, rest)}
   ${provenanceFooter(cv)}
   ${licenseFooter(cv)}
-  ${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}
+  ${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}${docQrFooter(cv, opts)}
 </div>`;
     return pageShell(`${cv.owner.displayName || "履歴書"} — 履歴書`, css, body, "ja");
   },

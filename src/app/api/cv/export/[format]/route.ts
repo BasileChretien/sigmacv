@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getCvForUser } from "@/lib/cv/sync";
+import { getCvForUser, getPublishState } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { getRenderer } from "@/lib/render";
 import { cvSlug } from "@/lib/render/slug";
-import type { RenderFormat } from "@/lib/render/types";
+import type { RenderFormat, RenderOpts } from "@/lib/render/types";
+import { absoluteUrl } from "@/lib/siteUrl";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,9 +68,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ format:
     });
   }
 
+  // The document QR (opt-in, `display.showDocQr`) points to the public living page —
+  // so resolve its URL ONLY when the page is actually published. Unpublished ⇒ no
+  // URL ⇒ the renderer omits the QR (fails closed). Encodes only the public URL.
+  const ps = await getPublishState(session.user.id);
+  const opts: RenderOpts | undefined =
+    ps.published && ps.publicSlug
+      ? { publicPageUrl: absoluteUrl(`p/${ps.publicSlug}`) }
+      : undefined;
+
   try {
     const renderer = await getRenderer(format as RenderFormat);
-    const result = await renderer.render({ cv });
+    const result = await renderer.render({ cv, opts });
     const body: BodyInit = result.buffer
       ? new Uint8Array(result.buffer)
       : (result.text ?? result.html ?? "");

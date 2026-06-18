@@ -69,6 +69,15 @@ export type RenderOpts = PublicExtrasOpts & {
    * sets it; exporters never do.
    */
   feedHref?: string;
+  /**
+   * Absolute URL of this CV's public living page (`https://…/p/<slug>`), supplied
+   * by the export + preview callers ONLY when the page is actually published. When
+   * set AND the owner opted in (`display.showDocQr`), the document footer gets a
+   * small QR + "Live version" text link. Encodes only the public URL (no PII).
+   * Unset ⇒ no QR (fails closed); the public `/p/[slug]` route never sets it (a QR
+   * linking the live page to itself is pointless).
+   */
+  publicPageUrl?: string;
 };
 
 export interface RenderInput {

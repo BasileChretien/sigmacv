@@ -108,6 +108,7 @@ describe("DisplayChoicesSchema", () => {
       publicAttribution: true,
       showCoauthorLinks: false,
       coauthorLinkable: true,
+      showDocQr: false,
     });
   });
 
