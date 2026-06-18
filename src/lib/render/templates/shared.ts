@@ -414,7 +414,15 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-itemtools a:hover { text-decoration: underline; }
   .cv-fulltext::before { content: "\\2197 "; }
   .cv-abstract { flex-basis: 100%; }
-  .cv-abstract > p { margin: 0.4rem 0 0; font-size: 0.8rem; line-height: 1.5; color: var(--cv-ink-2); max-width: 64ch; }
+  /* The expanded abstract is a tidy CONTAINED block — a quiet left rule + indent set
+     it apart from the entry, so it doesn't read as a wall of text spilling to the
+     margin (the bibliography's hanging indent otherwise leaves it flush-left).
+     text-indent:0 defends against that inherited negative indent. */
+  .cv-abstract > p { margin: 0.45rem 0 0.15rem; padding: 0.1rem 0 0.1rem 0.85em; border-left: 2px solid var(--cv-rule-strong); font-size: 0.8rem; line-height: 1.55; color: var(--cv-ink-2); max-width: 64ch; text-indent: 0; }
+  /* COinS reference-manager metadata spans are invisible (the Zotero connector reads
+     them from the DOM regardless); display:none also keeps the empty span out of the
+     .cv-itemtools flex flow so it adds no leading gap before "Cite". */
+  .Z3988 { display: none; }
 
   /* Featured / "Selected" star badge — a fixed light pill (like the OA/cites
      badges) so it stays legible on every template. */

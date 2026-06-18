@@ -102,6 +102,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Cite any publication in one click.** Every work gets a quiet "Cite" disclosure
     that downloads that single reference as BibTeX, RIS, or CSL-JSON — no need to grab
     the whole bibliography.
+  - **Import straight into your reference manager.** Every publication carries embedded
+    COinS metadata, so Zotero's browser connector detects them all and lets you select
+    and import several at once (the Google-Scholar-style multi-select), with no clutter
+    on the page.
   - **Follow a researcher's output by RSS/Atom.** Each living page now publishes a
     feed at `/p/<slug>/feed.xml` of recent works, auto-discovered by feed readers.
     A "Subscribe" control on the page opens to reveal the feed URL to paste into your
