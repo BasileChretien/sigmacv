@@ -1,4 +1,11 @@
-import { isMascotStyle, isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
+import {
+  isHidden,
+  isMascotStyle,
+  isProseSectionType,
+  type CanonicalCv,
+  type CvSectionType,
+} from "@/lib/canonical/schema";
+import { sectionTitle } from "@/lib/i18n";
 import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
@@ -294,6 +301,10 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-metric { line-height: 1.45; }
   .cv-metric-label { color: var(--cv-ink-2); font-weight: 600; }
   .cv-metric-value { color: var(--cv-ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+  /* The research-output ledger: a wrapped row of "N <Type>" breadth counts. */
+  ul.cv-ledger { list-style: none; margin: 0.5rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: 0.78rem; color: var(--cv-muted); }
+  .cv-ledger-item { white-space: nowrap; }
+  .cv-ledger-n { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--cv-ink-2); }
   /* The metric's interpretation anchor ("1.0 = world average …") and its coverage
      caveat ("mean over N works …"). Upright (not italic — long italic fine-print is
      a readability cost for dyslexia/low-vision), demoted in colour, and always
@@ -602,6 +613,46 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
   return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${areas}${block}</header>`;
 }
 
+/** Research-output section types counted by the breadth ledger, in display order. */
+const LEDGER_TYPES: readonly CvSectionType[] = [
+  "publications",
+  "preprints",
+  "conference",
+  "datasets",
+  "patents",
+  "clinical-trials",
+];
+
+/**
+ * The "research output" ledger: an opt-in, compact count of the breadth of the
+ * owner's outputs by type — only types with at least one visible item — e.g.
+ * "12 Publications · 3 Datasets & Software · 2 Patents". It reframes output as
+ * breadth of contribution (R4RI-style) rather than a single headline number.
+ * Counts only VISIBLE items (honours hide / "not mine"), uses the locale's section
+ * labels, and returns "" when off or empty. Part of the research-summary block, so
+ * it follows `summaryBlockPosition`.
+ */
+export function outputLedgerHtml(cv: CanonicalCv): string {
+  if (!cv.display.showOutputLedger) return "";
+  const locale = cv.display.locale;
+  const numFmt = new Intl.NumberFormat(locale);
+  const items: string[] = [];
+  for (const type of LEDGER_TYPES) {
+    const count = cv.sections
+      .filter((s) => s.visible && s.type === type)
+      .reduce((n, s) => n + s.items.filter((it) => !isHidden(it)).length, 0);
+    if (count === 0) continue;
+    items.push(
+      `<li class="cv-ledger-item"><span class="cv-ledger-n">${escapeHtml(
+        numFmt.format(count),
+      )}</span> ${escapeHtml(sectionTitle(locale, type))}</li>`,
+    );
+  }
+  if (items.length === 0) return "";
+  const label = escapeHtml(renderStrings(locale).outputSummaryLabel);
+  return `<ul class="cv-ledger" aria-label="${label}">${items.join("")}</ul>`;
+}
+
 /**
  * The research-summary block BODY: the one-per-line metric list followed by the
  * grouped publications/year chart + authorship-table row. ONE METRIC PER LINE for
@@ -640,11 +691,12 @@ export function researchSummaryBody(cv: CanonicalCv): string {
     );
   }
   const metricsLine = rows.length ? `<ul class="cv-metrics">${rows.join("")}</ul>` : "";
+  const ledger = outputLedgerHtml(cv);
   const charts = renderChartsHtml(cv);
   const authorship = authorshipTableHtml(cv);
   const research =
     charts || authorship ? `<div class="cv-research">${charts}${authorship}</div>` : "";
-  return `${metricsLine}${research}`;
+  return `${metricsLine}${ledger}${research}`;
 }
 
 /**

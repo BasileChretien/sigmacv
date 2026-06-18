@@ -100,6 +100,7 @@ describe("DisplayChoicesSchema", () => {
       publicationOrder: "custom",
       sectionsCustomized: false,
       showAuthorshipTable: false,
+      showOutputLedger: false,
       authorshipRoles: [],
       accentColor: "#1f4fd8",
       fontPairing: "serif",
