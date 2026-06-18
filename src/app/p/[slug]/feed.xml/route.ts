@@ -11,7 +11,9 @@ export const dynamic = "force-dynamic";
 function notFound(): Response {
   return new Response("This feed is not available.", {
     status: 404,
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
+    // no-store so a 404 for a not-yet-published slug is never cached by an
+    // intermediary — the feed must appear immediately once the owner publishes.
+    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
   });
 }
 
