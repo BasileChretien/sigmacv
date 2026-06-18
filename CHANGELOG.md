@@ -41,6 +41,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Your public CV is now a research hub people can cite from and subscribe to.**
+  Six additions to the living public page (`/p/<slug>`):
+  - **Cite any publication in one click.** Every work gets a quiet "Cite" disclosure
+    that downloads that single reference as BibTeX, RIS, or CSL-JSON — no need to grab
+    the whole bibliography.
+  - **Follow a researcher's output by RSS/Atom.** Each living page now publishes a
+    feed at `/p/<slug>/feed.xml` of recent works, discoverable by feed readers and
+    linked from a "Subscribe" line on the page.
+  - **An automatic "Research areas" summary.** An opt-in chip row of your most
+    frequent fields, computed from open data (not a self-reported skills list, and
+    excluding works you've hidden or marked "not mine"). Off by default.
+  - **Read the abstract and jump to the open-access full text** inline under each
+    work, as no-JS disclosures and links.
+  - **Pin "Selected publications."** Star individual works in the editor to float
+    them to the top of their section with a quiet "Selected" mark; the pin survives
+    re-sync.
+  - **Filter a long publication list by year or open access** with server-rendered
+    facet links (e.g. `?since=2021&oa=1`) — no JavaScript required.
+
+  Everything here is localized in the ten supported languages, stays off every
+  exported PDF/DOCX/LaTeX, and respects the page's strict no-JavaScript security
+  policy.
+
 - **Move — or hide — the research summary.** The block under your name (the metrics
   strip, the publications-per-year chart and the authorship breakdown) now has a
   placement control: keep it in the header (the default, unchanged), give it its own

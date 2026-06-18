@@ -33,6 +33,10 @@ export interface UiStrings {
   authorshipNote: string;
   authorshipResyncNote: string;
   showCharts: string;
+  /** StyleControls toggle: show the aggregated "Research areas" chip row. */
+  showResearchAreas: string;
+  /** ItemRow star toggle: mark a publication as selected / featured. */
+  featureItem: string;
   showOpenAccess: string;
   /** Editor toggle: show the profile open-access SHARE in the header (separate
    *  from the per-work badges above). */
@@ -200,6 +204,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ These counts are empty for your existing publications. Click Re-sync (top right) to pull author positions from OpenAlex.",
     showCharts: "Show charts (publications & citations / year)",
+    showResearchAreas: "Show research areas (top fields)",
+    featureItem: "Mark as a selected / featured publication",
     showOpenAccess: "Open-access badges",
     showOpenAccessShare: "Open-access share in header",
     summaryBlockLabel: "Research summary",
@@ -345,6 +351,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ 你现有的出版物没有这些统计数据。点击右上角的 Re-sync（重新同步），从 OpenAlex 拉取作者署名位置。",
     showCharts: "显示图表（每年出版物与引用数）",
+    showResearchAreas: "显示研究领域（主要领域）",
+    featureItem: "标记为精选 / 重点论文",
     showOpenAccess: "开放获取标识",
     showOpenAccessShare: "页眉显示开放获取比例",
     summaryBlockLabel: "研究概要",
@@ -487,6 +495,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Estos recuentos están vacíos para tus publicaciones existentes. Haz clic en Resincronizar (arriba a la derecha) para obtener las posiciones de autoría desde OpenAlex.",
     showCharts: "Mostrar gráficos (publicaciones y citas / año)",
+    showResearchAreas: "Mostrar áreas de investigación (campos principales)",
+    featureItem: "Marcar como publicación destacada / seleccionada",
     showOpenAccess: "Distintivos de acceso abierto",
     showOpenAccessShare: "Porcentaje de acceso abierto en la cabecera",
     summaryBlockLabel: "Resumen de investigación",
@@ -634,6 +644,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Ces décomptes sont vides pour vos publications existantes. Cliquez sur Resynchroniser (en haut à droite) pour récupérer les positions des auteurs depuis OpenAlex.",
     showCharts: "Afficher les graphiques (publications et citations / an)",
+    showResearchAreas: "Afficher les domaines de recherche (principaux champs)",
+    featureItem: "Marquer comme publication sélectionnée / mise en avant",
     showOpenAccess: "Badges de libre accès",
     showOpenAccessShare: "Part en libre accès dans l'en-tête",
     summaryBlockLabel: "Synthèse de recherche",
@@ -782,6 +794,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Diese Zählungen sind für Ihre bestehenden Publikationen leer. Klicken Sie auf Re-sync (oben rechts), um die Autorenpositionen von OpenAlex abzurufen.",
     showCharts: "Diagramme anzeigen (Publikationen & Zitationen / Jahr)",
+    showResearchAreas: "Forschungsgebiete anzeigen (Hauptfelder)",
+    featureItem: "Als ausgewählte / hervorgehobene Publikation markieren",
     showOpenAccess: "Open-Access-Abzeichen",
     showOpenAccessShare: "Open-Access-Anteil im Kopfbereich",
     summaryBlockLabel: "Forschungsüberblick",
@@ -929,6 +943,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ これらの集計は既存の論文では空です。右上の「Re-sync」をクリックして OpenAlex から著者の位置情報を取得してください。",
     showCharts: "グラフを表示（年別の論文数・被引用数）",
+    showResearchAreas: "研究分野を表示（主要分野）",
+    featureItem: "選定／注目の論文として設定",
     showOpenAccess: "オープンアクセスバッジ",
     showOpenAccessShare: "ヘッダーにオープンアクセス率を表示",
     summaryBlockLabel: "研究サマリー",
@@ -1074,6 +1090,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Essas contagens estão vazias para suas publicações existentes. Clique em Re-sync (canto superior direito) para obter as posições de autoria do OpenAlex.",
     showCharts: "Mostrar gráficos (publicações e citações / ano)",
+    showResearchAreas: "Mostrar áreas de pesquisa (principais campos)",
+    featureItem: "Marcar como publicação em destaque / selecionada",
     showOpenAccess: "Selos de acesso aberto",
     showOpenAccessShare: "Percentual de acesso aberto no cabeçalho",
     summaryBlockLabel: "Resumo da pesquisa",
@@ -1221,6 +1239,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Questi conteggi sono vuoti per le tue pubblicazioni esistenti. Fai clic su Re-sync (in alto a destra) per recuperare le posizioni degli autori da OpenAlex.",
     showCharts: "Mostra grafici (pubblicazioni e citazioni / anno)",
+    showResearchAreas: "Mostra aree di ricerca (campi principali)",
+    featureItem: "Segna come pubblicazione selezionata / in evidenza",
     showOpenAccess: "Badge ad accesso aperto",
     showOpenAccessShare: "Quota di accesso aperto nell'intestazione",
     summaryBlockLabel: "Sintesi della ricerca",
@@ -1367,6 +1387,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ 기존 출판물에 대해서는 이 집계가 비어 있습니다. 우측 상단의 Re-sync를 클릭하여 OpenAlex에서 저자 위치를 가져오세요.",
     showCharts: "차트 표시 (연도별 출판물 및 인용 수)",
+    showResearchAreas: "연구 분야 표시 (주요 분야)",
+    featureItem: "선정 / 주요 논문으로 표시",
     showOpenAccess: "오픈 액세스 배지",
     showOpenAccessShare: "헤더에 오픈 액세스 비율 표시",
     summaryBlockLabel: "연구 요약",
@@ -1512,6 +1534,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     authorshipResyncNote:
       "⚠ Для ваших текущих публикаций эти показатели пусты. Нажмите Re-sync (вверху справа), чтобы загрузить позиции авторов из OpenAlex.",
     showCharts: "Показать графики (публикации и цитирования по годам)",
+    showResearchAreas: "Показать области исследований (основные)",
+    featureItem: "Отметить как избранную / рекомендуемую публикацию",
     showOpenAccess: "Значки открытого доступа",
     showOpenAccessShare: "Доля открытого доступа в шапке",
     summaryBlockLabel: "Сводка исследований",

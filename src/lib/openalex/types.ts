@@ -92,6 +92,12 @@ export interface OpenAlexWork {
   display_name?: string | null;
   publication_year?: number | null;
   publication_date?: string | null;
+  /**
+   * The abstract as an inverted index (`{ word: [positions…] }`) — OpenAlex does
+   * not ship plain-text abstracts. Reconstructed into a bounded `csl.abstract` by
+   * `toCsl.ts` for the public page's expandable-abstract affordance. Often absent.
+   */
+  abstract_inverted_index?: Record<string, number[]> | null;
   type?: string | null;
   type_crossref?: string | null;
   language?: string | null;

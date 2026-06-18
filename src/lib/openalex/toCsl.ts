@@ -1,6 +1,40 @@
 import type { CslItem, CslName, CslDate } from "@/types/csl";
-import { stripUnsupportedMarkup } from "@/lib/text/markup";
+import { stripInlineMarkup, stripUnsupportedMarkup } from "@/lib/text/markup";
 import { shortId, type OpenAlexWork } from "./types";
+
+/** Cap on the reconstructed abstract length (chars) — keeps the stored document
+ *  a sane size while comfortably fitting a full research abstract. */
+const ABSTRACT_MAX = 5000;
+
+/**
+ * Reconstruct a plain-text abstract from OpenAlex's inverted index
+ * (`{ word: [positions…] }`) — OpenAlex ships no plain-text abstract. Returns a
+ * bounded, tag-flattened string, or undefined when absent/empty. Pure and
+ * defensive: out-of-range / non-integer positions are ignored, any inline markup
+ * (e.g. stray JATS tags) is flattened to text, and the result is capped at
+ * {@link ABSTRACT_MAX} chars with an ellipsis.
+ */
+export function reconstructAbstract(
+  inverted: Record<string, number[]> | null | undefined,
+): string | undefined {
+  if (!inverted || typeof inverted !== "object") return undefined;
+  const slots: string[] = [];
+  for (const [word, positions] of Object.entries(inverted)) {
+    if (!Array.isArray(positions)) continue;
+    for (const pos of positions) {
+      if (Number.isInteger(pos) && pos >= 0 && pos < 20_000) slots[pos] = word;
+    }
+  }
+  const text = stripInlineMarkup(
+    slots
+      .filter((w) => w != null)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim(),
+  ).trim();
+  if (!text) return undefined;
+  return text.length > ABSTRACT_MAX ? `${text.slice(0, ABSTRACT_MAX).trimEnd()}…` : text;
+}
 
 /**
  * Map an OpenAlex work type → CSL type. OpenAlex `type` (and the more granular
@@ -204,6 +238,10 @@ export function workToCsl(work: OpenAlexWork): CslItem {
   }
   if (source?.issn_l) item.ISSN = source.issn_l;
   if (work.language) item.language = work.language;
+  // Reconstructed plain-text abstract (OpenAlex ships only an inverted index) —
+  // bounded; powers the public page's expandable-abstract affordance.
+  const abstract = reconstructAbstract(work.abstract_inverted_index);
+  if (abstract) item.abstract = abstract;
 
   return item;
 }

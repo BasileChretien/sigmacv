@@ -28,6 +28,17 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
       )}">${escapeHtml(s.badgeRetracted)}</span>`,
     );
   }
+  // "Selected / featured" star — the user's deliberate pin (no display toggle): a
+  // hand-picked work leads its section and is marked here. Sits after the integrity
+  // flag, before the factual badges.
+  if (item.featured) {
+    const s = renderStrings(display.locale);
+    badges.push(
+      `<span class="cv-badge cv-badge-featured" title="${escapeHtml(
+        s.badgeFeaturedTitle,
+      )}">★ ${escapeHtml(s.badgeFeatured)}</span>`,
+    );
+  }
   if (display.showOpenAccess && item.meta.oaStatus) {
     const s = renderStrings(display.locale);
     const title = s.badgeOpenAccessTitle.replace("{status}", escapeHtml(item.meta.oaStatus));
@@ -135,6 +146,48 @@ function withDoiLink(html: string, item: CvItem): string {
 }
 
 /**
+ * Public-page-only per-publication affordances appended under a citation entry: a
+ * no-JS "Cite" disclosure linking to the per-item BibTeX / RIS / CSL-JSON downloads
+ * (`/p/<slug>/cite`), an open-access "Full text" link (when the work has one), and
+ * an "Abstract" disclosure (when one was reconstructed). All CSS-only (`<details>`),
+ * so it works under the strict no-JS public-page CSP. The slug is validated upstream
+ * (`isValidPublicSlug`); the id + slug are URL-encoded and the whole href escaped,
+ * and the abstract text is HTML-escaped. "" for non-citation entries.
+ */
+function itemToolsHtml(item: CvItem, slug: string, locale: string): string {
+  if (!item.csl) return "";
+  const s = renderStrings(locale);
+  const cite = (fmt: string, label: string): string => {
+    const href = `/p/${encodeURIComponent(slug)}/cite?id=${encodeURIComponent(
+      item.id,
+    )}&format=${fmt}`;
+    return `<a href="${escapeHtml(href)}">${label}</a>`;
+  };
+  const parts: string[] = [
+    `<details class="cv-cite"><summary>${escapeHtml(s.citeLabel)}</summary>` +
+      `<span class="cv-cite-fmts">${cite("bibtex", "BibTeX")} ${cite("ris", "RIS")} ${cite(
+        "csljson",
+        "CSL-JSON",
+      )}</span></details>`,
+  ];
+  const oa = safeHref(item.meta.oaUrl);
+  if (oa) {
+    parts.push(
+      `<a class="cv-fulltext" href="${escapeHtml(oa)}">${escapeHtml(s.fullTextLabel)}</a>`,
+    );
+  }
+  const abstract = item.csl.abstract?.trim();
+  if (abstract) {
+    parts.push(
+      `<details class="cv-abstract"><summary>${escapeHtml(
+        s.abstractLabel,
+      )}</summary><p>${escapeHtml(abstract)}</p></details>`,
+    );
+  }
+  return `<div class="cv-itemtools">${parts.join("")}</div>`;
+}
+
+/**
  * Render the canonical object to a standalone HTML document.
  *
  * Single rendering path shared by the preview and (via the PDF renderer) the
@@ -145,9 +198,12 @@ function withDoiLink(html: string, item: CvItem): string {
 /**
  * Citeproc-render every section's bibliography (once), then highlight the
  * account holder's own entries and append inline badges. Shared by the print
- * templates (renderCvHtml) and the animated web export.
+ * templates (renderCvHtml) and the animated web export. `opts.publicExtras`
+ * (+`opts.slug`, set only by the public `/p/[slug]` route) additionally appends the
+ * per-publication Cite/Abstract/Full-text affordance under each citation entry.
  */
-export function buildRenderedSections(cv: CanonicalCv): RenderedSection[] {
+export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): RenderedSection[] {
+  const publicExtras = Boolean(opts?.publicExtras && opts.slug);
   return prepareSections(cv, "html").map(({ section, items }) => {
     // Link the institution name to its ROR record on every Positions/Education
     // line, across all HTML templates. (The rirekisho template builds its own
@@ -166,6 +222,8 @@ export function buildRenderedSections(cv: CanonicalCv): RenderedSection[] {
         }
         html += itemBadges(item, cv.display);
         if (linkRor) html = withRorLink(html, item, cv.display.locale);
+        // Public-page-only: a no-JS Cite/Abstract/Full-text affordance per work.
+        if (publicExtras) html += itemToolsHtml(item, opts!.slug!, cv.display.locale);
         return { item, html };
       }),
     };
@@ -173,7 +231,7 @@ export function buildRenderedSections(cv: CanonicalCv): RenderedSection[] {
 }
 
 export function renderCvHtml(cv: CanonicalCv, opts?: RenderOpts): string {
-  const rendered = buildRenderedSections(cv);
+  const rendered = buildRenderedSections(cv, opts);
   const template = getTemplate(cv.display.template);
   const theme = resolveTheme(cv.display);
   return template.render(cv, rendered, theme, opts);

@@ -38,6 +38,7 @@ import {
   renameSection,
   setItemDateRange,
   setItemDepartment,
+  setItemFeatured,
   setItemInView,
   setItemIncluded,
   setItemInstitution,
@@ -872,6 +873,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                       now: new Date().toISOString(),
                                     }),
                                   )
+                                }
+                                onToggleFeatured={() =>
+                                  onChange(setItemFeatured(cv, section.id, item.id, !item.featured))
                                 }
                                 shownInView={isItemShownInView(cv.display, section.id, item.id)}
                                 onToggleInView={() =>
