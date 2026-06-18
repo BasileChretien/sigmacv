@@ -165,7 +165,7 @@ function luminaCss(_t: TemplateTheme): string {
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; }
-    section.cv-section > h2, ol.cv-bib > li, .cv-prose-body p { opacity:1 !important; transform:none !important; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, ol.cv-bib > li, .cv-prose-body p { opacity:1 !important; transform:none !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform: scaleX(1) !important; }
     .lumina-spot { display:none; }
     .lumina-progress { display:none; }

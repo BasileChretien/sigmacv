@@ -282,7 +282,7 @@ function meadowCss(_t: TemplateTheme): string {
   @keyframes mw-float  { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
   @keyframes mw-brush  { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @supports (animation-timeline: view()) {
-    section.cv-section > h2, .cv-prose-body > * {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * {
       animation: mw-settle cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: cover 0% cover 12%;
     }
@@ -298,7 +298,7 @@ function meadowCss(_t: TemplateTheme): string {
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; }
-    section.cv-section > h2, ol.cv-bib > li, .cv-prose-body > * { opacity:1 !important; transform:none !important; filter:none !important; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, ol.cv-bib > li, .cv-prose-body > * { opacity:1 !important; transform:none !important; filter:none !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform: scaleX(1) !important; }
   }
 

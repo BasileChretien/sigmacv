@@ -149,6 +149,15 @@ describe("research-summary heading matches the section-title styling", () => {
     );
     expect(folio).not.toContain(".cv-summary-block > .cv-summary-h::before");
   });
+
+  it("shares the scroll-reveal motion rule of a public style (not just the look)", () => {
+    // The reveal animation is a COMMA-GROUPED rule; the summary heading must be in it
+    // so it animates in like the section headings (and is reset under reduced-motion).
+    const aura = renderPublicCvHtml(cvAt("top", { publicStyle: "aura" }));
+    expect(aura).toContain(
+      "section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > *",
+    );
+  });
 });
 
 describe("research-summary block — plain exports honour 'hidden'", () => {

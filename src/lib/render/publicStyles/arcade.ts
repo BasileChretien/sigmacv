@@ -302,7 +302,7 @@ function arcadeCss(_t: TemplateTheme): string {
        tall section (a tall Publications section animated as one block would stay
        hidden at its top while its first entries are already being read; the
        scroll-driven range scales with element height). */
-    section.cv-section > h2, .cv-prose-body > * {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * {
       animation: ar-pop cubic-bezier(0.34, 1.6, 0.5, 1) both;
       animation-timeline: view(); animation-range: cover 0% cover 11%;
     }
@@ -315,7 +315,7 @@ function arcadeCss(_t: TemplateTheme): string {
   /* ===== Reduced motion: freeze every loop, reveal everything ============= */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; }
-    section.cv-section > h2, ol.cv-bib > li, .cv-prose-body > * {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, ol.cv-bib > li, .cv-prose-body > * {
       opacity:1 !important; transform:none !important; filter:none !important;
     }
     .ar-stars { opacity:0.4; }

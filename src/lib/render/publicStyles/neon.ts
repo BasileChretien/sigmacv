@@ -249,7 +249,7 @@ function neonCss(_t: TemplateTheme): string {
   }
   @media (prefers-reduced-motion: reduce) {
     *,*::before,*::after { animation:none !important; }
-    section.cv-section, section.cv-section > h2, .cv-prose-body > *, ol.cv-bib > li { opacity:1 !important; transform:none !important; }
+    section.cv-section, section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > *, ol.cv-bib > li { opacity:1 !important; transform:none !important; }
     ol.cv-bib > li { border-color: color-mix(in srgb, var(--n2) 40%, transparent) !important; box-shadow: 0 0 18px -4px var(--n2) !important; }
     header.cv-header h1 { opacity:1 !important; }
     .neon-wall, .neon-floor, .neon-sparks, .neon-sweep, .neon-room, .neon-crt { display:none !important; }

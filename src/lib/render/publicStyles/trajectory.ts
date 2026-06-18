@@ -151,7 +151,7 @@ function trajectoryCss(_t: TemplateTheme): string {
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; }
     /* Revealed elements stay put and visible. */
-    section.cv-section > h2, ol.cv-bib > li { opacity: 1 !important; transform: none !important; filter: none !important; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, ol.cv-bib > li { opacity: 1 !important; transform: none !important; filter: none !important; }
     /* Nodes must remain fully visible (they are ::before of the heading). */
     section.cv-section > h2::before, header.cv-header::after { opacity: 1 !important; transform: none !important; }
     /* Hide the scroll-fill overlay — the static rail (.cv::before) carries the line. */

@@ -157,7 +157,7 @@ function meridianCss(_t: TemplateTheme): string {
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; }
-    section.cv-section > h2, ol.cv-bib > li, section.cv-section::before {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, ol.cv-bib > li, section.cv-section::before {
       opacity: 1 !important; transform: none !important;
     }
   }`;

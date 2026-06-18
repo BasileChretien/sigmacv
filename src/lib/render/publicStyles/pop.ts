@@ -126,7 +126,7 @@ function popCss(_theme: TemplateTheme): string {
        stays faded/translated at its TOP while its first entries are already in
        the reading zone (scroll-driven ranges scale with element height); per-
        child reveals always finish low in the viewport, well before reading. */
-    section.cv-section > h2, .cv-prose-body > * { animation: pop-in cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * { animation: pop-in cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: pop-in-li ease-out both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
   }
   @supports (animation-timeline: scroll()) {

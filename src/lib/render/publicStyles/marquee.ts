@@ -51,7 +51,7 @@ function marqueeCss(_t: TemplateTheme): string {
     /* Reveal heading + entries on their own (small) geometry, never the whole
        section — a tall section animated as one block stays faded/slid at its top
        while its first entries are already in the reading zone. */
-    section.cv-section > h2, .cv-prose-body > * { animation: mq-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * { animation: mq-in cubic-bezier(0.22,1,0.36,1) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: mq-in ease-out both; animation-timeline: view(); animation-range: entry 0% entry 50%; }
   }
   @supports (animation-timeline: scroll()) {

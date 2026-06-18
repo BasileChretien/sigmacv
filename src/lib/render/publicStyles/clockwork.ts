@@ -198,7 +198,7 @@ function clockworkCss(_t: TemplateTheme): string {
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; }
-    section.cv-section > h2, ol.cv-bib > li { opacity:1 !important; transform:none !important; filter:none !important; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, ol.cv-bib > li { opacity:1 !important; transform:none !important; filter:none !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform: scaleX(1) !important; }
     .ck-cord { transform: rotate(0) !important; }
   }

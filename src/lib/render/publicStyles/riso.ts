@@ -62,7 +62,7 @@ function risoCss(_t: TemplateTheme): string {
        kept it faded at its top: on a tall section that overflowed UP into the
        section above (the Education/Publications overlap) AND left the first
        entries blurred while being read. Per-child reveals do neither. */
-    section.cv-section > h2, .cv-prose-body > * { animation: riso-stamp steps(4) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h, .cv-prose-body > * { animation: riso-stamp steps(4) both; animation-timeline: view(); animation-range: cover 0% cover 10%; }
     ol.cv-bib > li { animation: riso-stamp linear both; animation-timeline: view(); animation-range: entry 0% entry 50%; }
   }
   @supports (animation-timeline: scroll()) {
