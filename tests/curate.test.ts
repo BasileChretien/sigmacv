@@ -27,6 +27,7 @@ import {
   setItemIncluded,
   setItemNotMine,
   setLocale,
+  setSectionPageBreak,
   setSectionVisible,
   showOnlyInView,
   updateDisplay,
@@ -52,6 +53,23 @@ function makeCv() {
 }
 
 const SECTION = "publications";
+
+describe("setSectionPageBreak", () => {
+  it("toggles a section's manual page break in display.pageBreakBefore", () => {
+    const cv = makeCv();
+    const on = setSectionPageBreak(cv, SECTION, true);
+    expect(on.display.pageBreakBefore).toContain(SECTION);
+    const off = setSectionPageBreak(on, SECTION, false);
+    expect(off.display.pageBreakBefore).not.toContain(SECTION);
+  });
+
+  it("is a no-op (same reference) when already in the requested state", () => {
+    const cv = makeCv();
+    expect(setSectionPageBreak(cv, SECTION, false)).toBe(cv);
+    const on = setSectionPageBreak(cv, SECTION, true);
+    expect(setSectionPageBreak(on, SECTION, true)).toBe(on);
+  });
+});
 
 describe("addClaimedWork / cvHasWork", () => {
   const claimed: CvItem = {

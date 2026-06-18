@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Manual page breaks for the PDF.** Each section in the content editor now has a
+  "New page" toggle: turn it on and that section starts on a fresh page in the
+  PDF/print export (e.g. begin Publications on its own page). It complements the
+  automatic page-flow (which already keeps a heading with its first entry and never
+  splits an entry) by giving you control over where a new page reads best. The
+  first section never forces a break (no blank leading page); on-screen and the
+  living public page are unaffected.
+
 - **New public-page style: "Chronicle".** An archival, strictly monochrome career
   register — deep ink on aged paper, a classic serif with old-style numerals, a
   double-rule masthead and small-caps section labels. Its signature is a dated

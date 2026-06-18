@@ -175,6 +175,18 @@ export function renameSection(cv: CanonicalCv, sectionId: string, title: string)
   return mapSection(cv, sectionId, (s) => ({ ...s, title }));
 }
 
+/**
+ * Toggle the "start this section on a new page" manual page break (PDF/print).
+ * Stored as a section-id list in `display.pageBreakBefore`; no-op if already in
+ * the requested state.
+ */
+export function setSectionPageBreak(cv: CanonicalCv, sectionId: string, on: boolean): CanonicalCv {
+  const current = cv.display.pageBreakBefore ?? [];
+  if (on === current.includes(sectionId)) return cv;
+  const next = on ? [...current, sectionId] : current.filter((id) => id !== sectionId);
+  return { ...cv, display: { ...cv.display, pageBreakBefore: next } };
+}
+
 /** Move a whole section up/down. */
 export function moveSection(cv: CanonicalCv, sectionId: string, direction: Direction): CanonicalCv {
   const sections = sortByOrder(cv.sections);

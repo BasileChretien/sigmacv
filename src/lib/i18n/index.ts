@@ -452,6 +452,8 @@ export function reasonLabel(locale: string, reason: NotMineReason): string {
 // ─── Chrome dictionary ───────────────────────────────────────────────────────
 
 const EN = {
+  pageBreakBefore: "New page",
+  pageBreakBeforeTitle: "Start this section on a new page in the PDF / print export",
   reviewBadgeNew: "New",
   reviewHintHeld:
     'Found in your latest sync. You chose to review new works before they appear — "Show" adds it to your CV and your public page.',
@@ -598,6 +600,8 @@ const EN = {
 export type ChromeKey = keyof typeof EN;
 
 const ZH: Record<ChromeKey, string> = {
+  pageBreakBefore: "新页",
+  pageBreakBeforeTitle: "在 PDF/打印导出中让此栏目从新的一页开始",
   reviewBadgeNew: "新",
   reviewHintHeld:
     "在最近一次同步中发现。你选择了在新作品出现前先核查——点击“显示”将其加入你的简历和公开页面。",
@@ -727,6 +731,9 @@ const ZH: Record<ChromeKey, string> = {
 };
 
 const ES: Record<ChromeKey, string> = {
+  pageBreakBefore: "Nueva página",
+  pageBreakBeforeTitle:
+    "Comenzar esta sección en una página nueva en la exportación a PDF / impresión",
   reviewBadgeNew: "Nuevo",
   reviewHintHeld:
     "Encontrado en tu última sincronización. Elegiste revisar los trabajos nuevos antes de que aparezcan: «Mostrar» lo añade a tu CV y a tu página pública.",
@@ -861,6 +868,9 @@ const ES: Record<ChromeKey, string> = {
 };
 
 const FR: Record<ChromeKey, string> = {
+  pageBreakBefore: "Nouvelle page",
+  pageBreakBeforeTitle:
+    "Commencer cette section sur une nouvelle page dans l'export PDF / impression",
   reviewBadgeNew: "Nouveau",
   reviewHintHeld:
     "Trouvé lors de votre dernière synchronisation. Vous avez choisi de vérifier les nouveaux travaux avant qu'ils n'apparaissent — « Afficher » l'ajoute à votre CV et à votre page publique.",
@@ -997,6 +1007,8 @@ const FR: Record<ChromeKey, string> = {
 };
 
 const DE: Record<ChromeKey, string> = {
+  pageBreakBefore: "Neue Seite",
+  pageBreakBeforeTitle: "Diesen Abschnitt im PDF-/Druckexport auf einer neuen Seite beginnen",
   reviewBadgeNew: "Neu",
   reviewHintHeld:
     "In deiner letzten Synchronisierung gefunden. Du hast gewählt, neue Arbeiten vor dem Erscheinen zu prüfen — „Anzeigen“ fügt sie deinem CV und deiner öffentlichen Seite hinzu.",
@@ -1134,6 +1146,8 @@ const DE: Record<ChromeKey, string> = {
 };
 
 const JA: Record<ChromeKey, string> = {
+  pageBreakBefore: "改ページ",
+  pageBreakBeforeTitle: "PDF・印刷の書き出しでこのセクションを新しいページから開始します",
   reviewBadgeNew: "新規",
   reviewHintHeld:
     "最近の同期で見つかりました。新しい業績を表示前に確認する設定です——「表示」で CV と公開ページに追加します。",
@@ -1268,6 +1282,8 @@ const JA: Record<ChromeKey, string> = {
 };
 
 const PT: Record<ChromeKey, string> = {
+  pageBreakBefore: "Nova página",
+  pageBreakBeforeTitle: "Iniciar esta seção em uma nova página na exportação para PDF / impressão",
   reviewBadgeNew: "Novo",
   reviewHintHeld:
     "Encontrado na sua última sincronização. Você optou por revisar novos trabalhos antes de aparecerem — «Mostrar» o adiciona ao seu currículo e à sua página pública.",
@@ -1403,6 +1419,8 @@ const PT: Record<ChromeKey, string> = {
 };
 
 const IT: Record<ChromeKey, string> = {
+  pageBreakBefore: "Nuova pagina",
+  pageBreakBeforeTitle: "Inizia questa sezione su una nuova pagina nell'esportazione PDF / stampa",
   reviewBadgeNew: "Nuovo",
   reviewHintHeld:
     "Trovato nell'ultima sincronizzazione. Hai scelto di rivedere i nuovi lavori prima che compaiano — «Mostra» lo aggiunge al CV e alla pagina pubblica.",
@@ -1537,6 +1555,8 @@ const IT: Record<ChromeKey, string> = {
 };
 
 const KO: Record<ChromeKey, string> = {
+  pageBreakBefore: "새 페이지",
+  pageBreakBeforeTitle: "PDF/인쇄 내보내기에서 이 섹션을 새 페이지에서 시작합니다",
   reviewBadgeNew: "신규",
   reviewHintHeld:
     "최근 동기화에서 발견되었습니다. 새 성과가 표시되기 전에 검토하도록 선택했습니다 — “표시”를 누르면 CV와 공개 페이지에 추가됩니다.",
@@ -1671,6 +1691,8 @@ const KO: Record<ChromeKey, string> = {
 };
 
 const RU: Record<ChromeKey, string> = {
+  pageBreakBefore: "С новой страницы",
+  pageBreakBeforeTitle: "Начинать этот раздел с новой страницы при экспорте в PDF / печати",
   reviewBadgeNew: "Новое",
   reviewHintHeld:
     "Найдено при последней синхронизации. Вы выбрали проверять новые работы до их появления — «Показать» добавит её в ваше резюме и на публичную страницу.",

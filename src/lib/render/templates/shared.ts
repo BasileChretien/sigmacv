@@ -558,6 +558,10 @@ export function commonCss(theme: TemplateTheme): string {
     ol.cv-bib > li { break-inside: avoid; }
     header.cv-header { break-inside: avoid; break-after: avoid; }
     .cv-chart, figure.cv-chart, .cv-authorship { break-inside: avoid; }
+    /* Manual "start on a new page" break (display.pageBreakBefore). The first
+       rendered section never forces one (it would leave a blank leading page). */
+    section.cv-break-before { break-before: page; }
+    section.cv-section.cv-break-before:first-of-type { break-before: auto; }
   }
 
   /* Phones: stack the header so the NAME leads instead of being squeezed beside
@@ -1161,8 +1165,13 @@ function sectionHeadingHtml(sectionId: string, title: string): string {
 export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): string {
   const body = renderableSections(sections)
     .map((rs) => {
+      // Manual page break: start this section on a new page in paged exports
+      // (the class only does anything under @media print; screen ignores it).
+      const brk = (cv.display.pageBreakBefore ?? []).includes(rs.section.id)
+        ? " cv-break-before"
+        : "";
       if (isProseSectionType(rs.section.type)) {
-        return `<section class="cv-section cv-prose">${sectionHeadingHtml(
+        return `<section class="cv-section cv-prose${brk}">${sectionHeadingHtml(
           rs.section.id,
           rs.section.title,
         )}<div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "")}</div></section>`;
@@ -1184,7 +1193,7 @@ export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): s
         })
         .join("\n");
       const olClass = isHistory ? "cv-bib cv-history" : "cv-bib";
-      return `<section class="cv-section">${sectionHeadingHtml(
+      return `<section class="cv-section${brk}">${sectionHeadingHtml(
         rs.section.id,
         rs.section.title,
       )}<ol class="${olClass}">\n${entries}\n</ol></section>`;
