@@ -28,12 +28,27 @@ export const RENDER_FORMATS = [
 export type RenderFormat = (typeof RENDER_FORMATS)[number];
 
 /**
- * Render-time options that are NOT part of the canonical document — context the
- * caller supplies about *where* the output will be shown. Currently just the
- * public-page attribution backlink, which only the living public page requests
- * (every export path leaves it unset, so exports stay unbranded).
+ * The public-page-only per-publication chrome flag and its required `slug`, modelled
+ * as a discriminated PAIR so the two can never be half-configured: `publicExtras:
+ * true` always carries the `slug` used to build the cite hrefs, and a stray `slug`
+ * can't be passed without enabling the feature. Exporters set neither (first arm).
+ *
+ * When enabled, each citation entry gets a no-JS "Cite" disclosure (BibTeX / RIS /
+ * CSL-JSON download links), an open-access "Full text" link (when the work has one),
+ * and an "Abstract" disclosure (when one was reconstructed). Only the `/p/[slug]`
+ * route sets it; exporters never do, so PDF/DOCX/LaTeX stay clean.
  */
-export interface RenderOpts {
+type PublicExtrasOpts =
+  | { publicExtras?: false; slug?: never }
+  | { publicExtras: true; slug: string };
+
+/**
+ * Render-time options that are NOT part of the canonical document — context the
+ * caller supplies about *where* the output will be shown (the living public page),
+ * never affecting an export. `publicExtras` + `slug` are a typed pair (see
+ * {@link PublicExtrasOpts}) so the public chrome can't be half-configured.
+ */
+export type RenderOpts = PublicExtrasOpts & {
   /**
    * When true, the public-page "Made with SigmaCV" attribution footer is emitted
    * (still subject to the owner's `display.publicAttribution` opt-out). Only the
@@ -49,26 +64,12 @@ export interface RenderOpts {
    */
   coauthorCvs?: readonly { orcid: string; slug: string; name: string }[];
   /**
-   * Public-page-only per-publication chrome. When true, each citation entry gets a
-   * no-JS "Cite" disclosure (BibTeX / RIS / CSL-JSON download links), an open-access
-   * "Full text" link (when the work has one), and an "Abstract" disclosure (when one
-   * was reconstructed). Requires `slug` to build the cite hrefs. Only the `/p/[slug]`
-   * route sets it; exporters never do, so PDF/DOCX/LaTeX stay clean.
-   */
-  publicExtras?: boolean;
-  /**
-   * The public capability slug — needed to build the per-item cite hrefs
-   * (`/p/<slug>/cite?...`). Set only by the `/p/[slug]` route alongside
-   * `publicExtras`.
-   */
-  slug?: string;
-  /**
    * Href of this CV's Atom feed (`/p/<slug>/feed.xml`). When set, a quiet
    * "Subscribe" link is added to the public-page footer. Only the `/p/[slug]` route
    * sets it; exporters never do.
    */
   feedHref?: string;
-}
+};
 
 export interface RenderInput {
   cv: CanonicalCv;
