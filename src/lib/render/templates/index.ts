@@ -15,9 +15,13 @@ import { ensureReadableOnWhite } from "../readableAccent";
 export type { CvTemplate, RenderedItem, RenderedSection, TemplateTheme } from "./types";
 
 const FONT_STACKS: Record<FontPairing, string> = {
-  // Modern transitional serif: Apple's Iowan/Charter → Georgia → web-safe.
+  // Bundled "Source Serif 4" (embedded @font-face, see commonCss) leads so the
+  // typeface is IDENTICAL in the editor preview, the server-rendered PDF and every
+  // visitor's browser — not whatever serif each device happens to install. The
+  // system serifs remain as a fallback for glyphs outside the bundled latin subset
+  // (Cyrillic/CJK fall through per-glyph via the @font-face unicode-range).
   serif:
-    '"Iowan Old Style", "Charter", "Palatino Linotype", "Sitka Text", Georgia, "Times New Roman", serif',
+    '"Source Serif 4", "Iowan Old Style", "Charter", "Palatino Linotype", "Sitka Text", Georgia, "Times New Roman", serif',
   // System UI sans, Inter-class metrics where present.
   sans: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   // Humanist serif with a generous x-height — great for CVs.
