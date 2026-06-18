@@ -32,8 +32,9 @@ export interface RenderStrings {
   badgeOpenAccess: string;
   /** Accessible title/tooltip for the OA badge; "{status}" → the OA status. */
   badgeOpenAccessTitle: string;
-  /** Profile-level open-access share line; "{pct}" → the rounded percentage. */
-  openAccessShare: string;
+  /** Profile-level open-access label (the metric-row term, e.g. "Open access");
+   *  the percentage value is formatted separately at render time. */
+  openAccessLabel: string;
   /** Inline "Retracted" badge label on a retracted publication entry. */
   badgeRetracted: string;
   /** Accessible title/tooltip for the retracted badge. */
@@ -97,7 +98,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open access ({status})",
-    openAccessShare: "{pct}% open access",
+    openAccessLabel: "Open access",
     badgeRetracted: "Retracted",
     badgeRetractedTitle: "This work has been retracted (per Crossref / Retraction Watch)",
     badgeCitations: "{n} citations",
@@ -145,7 +146,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "简历",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "开放获取（{status}）",
-    openAccessShare: "{pct}% 开放获取",
+    openAccessLabel: "开放获取",
     badgeRetracted: "已撤稿",
     badgeRetractedTitle: "该成果已被撤稿（依据 Crossref／Retraction Watch）",
     badgeCitations: "被引 {n}",
@@ -194,7 +195,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acceso abierto ({status})",
-    openAccessShare: "{pct}% en acceso abierto",
+    openAccessLabel: "Acceso abierto",
     badgeRetracted: "Retractado",
     badgeRetractedTitle: "Este trabajo ha sido retractado (según Crossref / Retraction Watch)",
     badgeCitations: "{n} citas",
@@ -245,7 +246,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accès libre ({status})",
-    openAccessShare: "{pct} % en libre accès",
+    openAccessLabel: "Accès libre",
     badgeRetracted: "Rétracté",
     badgeRetractedTitle: "Ce travail a été rétracté (selon Crossref / Retraction Watch)",
     badgeCitations: "{n} citations",
@@ -297,7 +298,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Lebenslauf",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open Access ({status})",
-    openAccessShare: "{pct} % Open Access",
+    openAccessLabel: "Open Access",
     badgeRetracted: "Zurückgezogen",
     badgeRetractedTitle: "Diese Arbeit wurde zurückgezogen (laut Crossref / Retraction Watch)",
     badgeCitations: "{n} Zitationen",
@@ -347,7 +348,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "履歴書",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "オープンアクセス（{status}）",
-    openAccessShare: "オープンアクセス {pct}%",
+    openAccessLabel: "オープンアクセス",
     badgeRetracted: "撤回済み",
     badgeRetractedTitle: "この成果は撤回されています（Crossref／Retraction Watch による）",
     badgeCitations: "被引用 {n}",
@@ -396,7 +397,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acesso aberto ({status})",
-    openAccessShare: "{pct}% em acesso aberto",
+    openAccessLabel: "Acesso aberto",
     badgeRetracted: "Retratado",
     badgeRetractedTitle: "Este trabalho foi retratado (segundo o Crossref / Retraction Watch)",
     badgeCitations: "{n} citações",
@@ -448,7 +449,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Curriculum Vitae",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accesso aperto ({status})",
-    openAccessShare: "{pct}% ad accesso aperto",
+    openAccessLabel: "Accesso aperto",
     badgeRetracted: "Ritirato",
     badgeRetractedTitle: "Questo lavoro è stato ritirato (secondo Crossref / Retraction Watch)",
     badgeCitations: "{n} citazioni",
@@ -498,7 +499,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "이력서",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "오픈 액세스 ({status})",
-    openAccessShare: "오픈 액세스 {pct}%",
+    openAccessLabel: "오픈 액세스",
     badgeRetracted: "철회됨",
     badgeRetractedTitle: "이 성과는 철회되었습니다 (Crossref / Retraction Watch 기준)",
     badgeCitations: "인용 {n}회",
@@ -546,7 +547,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     cvFallbackTitle: "Резюме",
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Открытый доступ ({status})",
-    openAccessShare: "{pct}% в открытом доступе",
+    openAccessLabel: "Открытый доступ",
     badgeRetracted: "Отозвано",
     badgeRetractedTitle: "Эта работа была отозвана (по данным Crossref / Retraction Watch)",
     badgeCitations: "{n} цитирований",

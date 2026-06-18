@@ -79,8 +79,9 @@ export interface FormattedMetric {
   /**
    * Longer coverage/provenance note ("mean over N works with FWCI") for the
    * field-normalized means. Kept SEPARATE from {@link context} so the header can
-   * show the short anchor inline and demote this audit detail to a hover title —
-   * the metric line stays short without losing the responsible-reading caveat.
+   * style the two differently; both are rendered as VISIBLE text (the anchor, then
+   * the coverage caveat) — never hidden in a hover title, which is unreachable by
+   * keyboard/touch and absent in the printed PDF a committee reads.
    */
   coverageNote?: string;
 }
@@ -100,8 +101,9 @@ function formatValue(format: string, raw: number, locale: string): string {
  * Coverage/provenance note for a field-normalized mean — "mean over N works with
  * FWCI/RCR" — so a small/skewed sample isn't mistaken for a precise score. Only
  * the two field-normalized means carry one; everything else returns undefined.
- * The header surfaces this on a hover title (not inline) to keep the metric line
- * short while preserving the responsible-reading caveat.
+ * The header surfaces this as VISIBLE text on the metric's own line (one metric per
+ * line), so the responsible-reading caveat is legible to every reader and survives
+ * to the printed PDF — not demoted to a mouse-only hover title.
  */
 function coverageNoteFor(locale: string, key: string, values: OwnerMetrics): string | undefined {
   if (key === "fwci_mean") return metricCoverageNote(locale, values.fwci_n);
@@ -153,15 +155,20 @@ export interface OpenAccessShare {
 /**
  * Share of the CURATED, countable works that are open access. Computed ONLY over
  * works whose OA state OpenAlex actually determined (`meta.oaIsOpen` defined), so
- * "closed" and "not-yet-determined" are never conflated. Mirrors the per-work OA
- * badge: both are gated on `display.showOpenAccess` (opt-in).
+ * "closed" and "not-yet-determined" are never conflated.
  *
- * Returns null when the toggle is off, or when no countable work carries a
- * determination yet (e.g. a CV synced before `oaIsOpen` existed → re-sync to
- * populate) — so the caller shows nothing rather than a misleading 0%.
+ * Gated on its OWN toggle, `display.showOpenAccessShare`, which is DECOUPLED from
+ * the per-work OA badge (`display.showOpenAccess`): selecting badges no longer
+ * forces a header percentage. For backward compatibility the share toggle INHERITS
+ * the badge toggle when it has never been set (`?? showOpenAccess`), so a CV
+ * published before the split renders unchanged until its owner touches the control.
+ *
+ * Returns null when the (effective) toggle is off, or when no countable work
+ * carries a determination yet (e.g. a CV synced before `oaIsOpen` existed → re-sync
+ * to populate) — so the caller shows nothing rather than a misleading 0%.
  */
 export function openAccessShare(cv: CanonicalCv): OpenAccessShare | null {
-  if (!cv.display.showOpenAccess) return null;
+  if (!(cv.display.showOpenAccessShare ?? cv.display.showOpenAccess)) return null;
   const known = countableWorks(cv).filter((w) => typeof w.meta.oaIsOpen === "boolean");
   if (known.length === 0) return null;
   const open = known.filter((w) => w.meta.oaIsOpen === true).length;

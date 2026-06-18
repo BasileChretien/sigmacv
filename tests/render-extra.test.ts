@@ -131,7 +131,9 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
   });
 
   it("renders the metrics line into HTML and DOCX", async () => {
-    expect(renderCvHtml(withMetrics())).toContain("h-index: 9");
+    expect(renderCvHtml(withMetrics())).toContain(
+      '<span class="cv-metric-label">h-index</span> <span class="cv-metric-value">9</span>',
+    );
     const buf = await renderCvDocxBuffer(withMetrics());
     expect(buf.length).toBeGreaterThan(0);
   });
@@ -429,12 +431,28 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(renderCvHtml(cvWith({ showOpenAccess: false }))).not.toContain('title="Open access');
     });
 
-    it("renders the profile OA share when showOpenAccess and works carry OA data", () => {
-      expect(renderCvHtml(cvWith({ showOpenAccess: true }))).toContain("100% open access");
+    it("renders the profile OA share as a labelled metric row when works carry OA data", () => {
+      const html = renderCvHtml(cvWith({ showOpenAccess: true }));
+      expect(html).toContain("cv-metric-oa");
+      expect(html).toContain('<span class="cv-metric-value">100%</span>');
     });
 
     it("omits the profile OA share when showOpenAccess is off", () => {
-      expect(renderCvHtml(cvWith({ showOpenAccess: false }))).not.toContain("100% open access");
+      expect(renderCvHtml(cvWith({ showOpenAccess: false }))).not.toContain("cv-metric-oa");
+    });
+
+    it("shows the OA share when its own toggle is on even with badges off (decoupled)", () => {
+      const html = renderCvHtml(cvWith({ showOpenAccess: false, showOpenAccessShare: true }));
+      expect(html).toContain("cv-metric-oa");
+      // …and the per-work OA badge stays off (it follows showOpenAccess).
+      expect(html).not.toContain('title="Open access');
+    });
+
+    it("hides the OA share when its own toggle is off even with badges on (decoupled)", () => {
+      const html = renderCvHtml(cvWith({ showOpenAccess: true, showOpenAccessShare: false }));
+      expect(html).not.toContain("cv-metric-oa");
+      // …while the per-work OA badge still renders.
+      expect(html).toContain('title="Open access (gold)"');
     });
 
     it("always shows a Retracted badge for a retracted work (even with badges off)", () => {
@@ -553,7 +571,9 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
         display: { ...cv.display, showMetrics: true, metrics: ["fwci_mean"] },
       };
       const html = renderCvHtml(withFwci);
-      expect(html).toContain("Mean work FWCI: 1.8");
+      expect(html).toContain(
+        '<span class="cv-metric-label">Mean work FWCI</span> <span class="cv-metric-value">1.8</span>',
+      );
       expect(html).toContain("1.0 = world average");
     });
 
@@ -591,14 +611,18 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
         },
       };
       const html = renderCvHtml(cv);
-      // Open access leads the strip, before the field-normalised metric.
-      expect(html.indexOf("open access")).toBeLessThan(html.indexOf("Mean work FWCI"));
-      // The coverage note rides a hover title — not the inline parenthetical.
-      expect(html).toContain('title="mean over 97 works with FWCI"');
-      expect(html).not.toContain("· mean over 97 works with FWCI)");
-      // A no-context metric still renders its label/value.
-      expect(html).toContain("h-index: 9");
-      // The narrative summary now precedes the charts + authorship cards.
+      // The OA share leads the strip, before the field-normalised metric.
+      expect(html.indexOf("Open access")).toBeLessThan(html.indexOf("Mean work FWCI"));
+      // The coverage note is now VISIBLE text (its own span), not a hover title.
+      expect(html).toContain("cv-metric-coverage");
+      expect(html).toContain("mean over 97 works with FWCI");
+      expect(html).not.toContain('title="mean over 97 works with FWCI"');
+      // A no-context metric still renders its label/value, one per line.
+      expect(html).toContain(
+        '<span class="cv-metric-label">h-index</span> <span class="cv-metric-value">9</span>',
+      );
+      // The narrative summary now precedes the metric strip + research cards.
+      expect(html.indexOf('class="cv-summary"')).toBeLessThan(html.indexOf('class="cv-metrics"'));
       expect(html.indexOf('class="cv-summary"')).toBeLessThan(html.indexOf('class="cv-charts"'));
     });
   });

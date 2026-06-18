@@ -334,4 +334,20 @@ describe("openAccessShare (opt-in profile-level OA share)", () => {
     const share = openAccessShare(cv(true, [mk(true), { ...mk(false), notMine: true }]));
     expect(share).toEqual({ open: 1, known: 1, pct: 100 });
   });
+
+  it("uses its OWN toggle when set, decoupled from the per-work badge toggle", () => {
+    const withShare = (share: boolean | undefined, badges: boolean): CanonicalCv =>
+      ({
+        display: { showOpenAccess: badges, showOpenAccessShare: share, countLetters: true },
+        owner: { metrics: {} },
+        sections: [{ type: "publications", items: [mk(true), mk(false)] }],
+      }) as unknown as CanonicalCv;
+    // Explicit share=true shows it even with badges off.
+    expect(openAccessShare(withShare(true, false))).toEqual({ open: 1, known: 2, pct: 50 });
+    // Explicit share=false hides it even with badges on.
+    expect(openAccessShare(withShare(false, true))).toBeNull();
+    // Absent (undefined) inherits the badge toggle (backward-compat).
+    expect(openAccessShare(withShare(undefined, true))).toEqual({ open: 1, known: 2, pct: 50 });
+    expect(openAccessShare(withShare(undefined, false))).toBeNull();
+  });
 });
