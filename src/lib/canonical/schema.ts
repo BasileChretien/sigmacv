@@ -1125,6 +1125,16 @@ export const DisplayChoicesSchema = z.object({
    */
   showCoauthorLinks: z.boolean().default(false),
   /**
+   * Show a small QR code (+ a "Live version" text link) in the FOOTER of the
+   * document — exported PDF/DOCX/LaTeX (and the document HTML), pointing to this
+   * CV's public living page. Opt-IN: default OFF. Only ever rendered when the page
+   * is actually published (the renderer additionally requires a resolved
+   * `publicPageUrl` from the caller, so it fails closed) and never on the
+   * parser-safe ATS template. The QR encodes ONLY the public `/p/<slug>` URL — no
+   * tokens, no PII.
+   */
+  showDocQr: z.boolean().default(false),
+  /**
    * Whether THIS CV may be linked TO from other users' co-author blocks / JSON-LD
    * `knows` graphs (i.e. listed as their on-SigmaCV co-author). Opt-OUT: default
    * ON — a link is only ever made to a published + search-indexable page (already

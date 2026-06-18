@@ -27,6 +27,8 @@ export interface EditorExtraStrings {
   previewSurfaceDocument: string;
   previewSurfacePublic: string;
   publishStyleTip: string;
+  docQrLabel: string;
+  docQrHint: string;
   // Structured manual-entry form.
   structuredEntry: string;
   feTitle: string;
@@ -107,6 +109,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "Document",
     previewSurfacePublic: "Public page",
     publishStyleTip: "Choose your public-page design here.",
+    docQrLabel: "QR code linking to your public page",
+    docQrHint:
+      "Adds a small QR code and a link to your published page on PDF, DOCX and LaTeX exports — shown once your page is published.",
     grpLook: "Look & typography",
     grpDocLayout: "Document layout",
     docLayoutNote:
@@ -181,6 +186,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "文档",
     previewSurfacePublic: "公开页面",
     publishStyleTip: "在此选择你的公开页面设计。",
+    docQrLabel: "链接到公开页面的二维码",
+    docQrHint:
+      "在 PDF、DOCX 和 LaTeX 导出中添加指向你已发布页面的小二维码和链接 — 页面发布后显示。",
     grpLook: "样式与排版",
     grpDocLayout: "文档版式",
     docLayoutNote:
@@ -255,6 +263,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Página pública",
     publishStyleTip: "Elige aquí el diseño de tu página pública.",
+    docQrLabel: "Código QR que enlaza con tu página pública",
+    docQrHint:
+      "Añade un pequeño código QR y un enlace a tu página publicada en las exportaciones PDF, DOCX y LaTeX; aparece una vez que la página está publicada.",
     grpLook: "Aspecto y tipografía",
     grpDocLayout: "Diseño del documento",
     docLayoutNote:
@@ -332,6 +343,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "Document",
     previewSurfacePublic: "Page publique",
     publishStyleTip: "Choisissez ici le design de votre page publique.",
+    docQrLabel: "QR code vers votre page publique",
+    docQrHint:
+      "Ajoute un petit QR code et un lien vers votre page publiée sur les exports PDF, DOCX et LaTeX — affiché une fois la page publiée.",
     grpLook: "Aspect et typographie",
     grpDocLayout: "Mise en page du document",
     docLayoutNote:
@@ -410,6 +424,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "Dokument",
     previewSurfacePublic: "Öffentliche Seite",
     publishStyleTip: "Wählen Sie hier das Design Ihrer öffentlichen Seite.",
+    docQrLabel: "QR-Code zu Ihrer öffentlichen Seite",
+    docQrHint:
+      "Fügt PDF-, DOCX- und LaTeX-Exporten einen kleinen QR-Code und einen Link zu Ihrer veröffentlichten Seite hinzu – sichtbar, sobald die Seite veröffentlicht ist.",
     grpLook: "Aussehen & Typografie",
     grpDocLayout: "Dokumentlayout",
     docLayoutNote:
@@ -487,6 +504,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "ドキュメント",
     previewSurfacePublic: "公開ページ",
     publishStyleTip: "ここで公開ページのデザインを選べます。",
+    docQrLabel: "公開ページへの QR コード",
+    docQrHint:
+      "PDF・DOCX・LaTeX の書き出しに、公開ページへの小さな QR コードとリンクを追加します。ページを公開すると表示されます。",
     grpLook: "外観と書体",
     grpDocLayout: "ドキュメントのレイアウト",
     docLayoutNote:
@@ -562,6 +582,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Página pública",
     publishStyleTip: "Escolha aqui o design da sua página pública.",
+    docQrLabel: "QR code para a sua página pública",
+    docQrHint:
+      "Adiciona um pequeno QR code e um link para a sua página publicada nas exportações PDF, DOCX e LaTeX — exibido após a página ser publicada.",
     grpLook: "Estilo e tipografia",
     grpDocLayout: "Layout do documento",
     docLayoutNote:
@@ -639,6 +662,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "Documento",
     previewSurfacePublic: "Pagina pubblica",
     publishStyleTip: "Scegli qui il design della tua pagina pubblica.",
+    docQrLabel: "Codice QR verso la tua pagina pubblica",
+    docQrHint:
+      "Aggiunge un piccolo codice QR e un link alla tua pagina pubblicata nelle esportazioni PDF, DOCX e LaTeX — mostrato una volta pubblicata la pagina.",
     grpLook: "Stile e tipografia",
     grpDocLayout: "Layout del documento",
     docLayoutNote:
@@ -716,6 +742,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "문서",
     previewSurfacePublic: "공개 페이지",
     publishStyleTip: "여기에서 공개 페이지 디자인을 선택하세요.",
+    docQrLabel: "공개 페이지로 연결되는 QR 코드",
+    docQrHint:
+      "PDF, DOCX, LaTeX 내보내기에 게시된 페이지로 연결되는 작은 QR 코드와 링크를 추가합니다. 페이지가 게시되면 표시됩니다.",
     grpLook: "스타일 및 글꼴",
     grpDocLayout: "문서 레이아웃",
     docLayoutNote:
@@ -792,6 +821,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     previewSurfaceDocument: "Документ",
     previewSurfacePublic: "Публичная страница",
     publishStyleTip: "Выберите здесь дизайн публичной страницы.",
+    docQrLabel: "QR-код на вашу публичную страницу",
+    docQrHint:
+      "Добавляет небольшой QR-код и ссылку на вашу опубликованную страницу в экспортах PDF, DOCX и LaTeX — отображается после публикации страницы.",
     grpLook: "Стиль и шрифты",
     grpDocLayout: "Макет документа",
     docLayoutNote:

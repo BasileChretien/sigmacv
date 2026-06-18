@@ -3,6 +3,7 @@ import {
   coauthorLinksFooter,
   commonCss,
   cvPageShell,
+  docQrFooter,
   headerHtml,
   licenseFooter,
   provenanceFooter,
@@ -86,7 +87,7 @@ export const modernTemplate: CvTemplate = {
     const css = commonCss(theme) + modernCss(theme);
     const body = `<div class="cv">${headerHtml(cv, {
       photo: true,
-    })}${sectionsHtml(cv, sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}</div>`;
+    })}${sectionsHtml(cv, sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}${docQrFooter(cv, opts)}</div>`;
     return cvPageShell(cv, css, body);
   },
 };

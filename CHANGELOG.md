@@ -86,6 +86,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A QR code on your exports that links to your living public page.** Opt-in (off by
+  default) and only available once you've published a public page: a small QR code plus
+  a "Live version" link is added to the bottom of your PDF and HTML exports, your DOCX
+  (as an embedded image) and your LaTeX (via the `qrcode` package), and as a plain
+  autolink in Markdown — so a printed or PDF CV always points back to the always-current
+  online one. The QR encodes only your public page URL (no personal data or tokens), and
+  it's never added to the parser-safe ATS template. Turn it on under Design → Document
+  layout.
+
 - **Icons for your contact details and profile links.** Your email, phone, address
   and website now show a small icon, and each profile link gets the right icon for
   its service — GitHub, LinkedIn, ORCID (in its signature green), Google Scholar,

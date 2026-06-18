@@ -30,7 +30,7 @@ export class PdfBusyError extends Error {
  */
 export const pdfRenderer: Renderer = {
   format: "pdf",
-  async render({ cv }: RenderInput): Promise<RenderResult> {
+  async render({ cv, opts }: RenderInput): Promise<RenderResult> {
     if (activeRenders >= PDF_CONCURRENCY_LIMIT) {
       throw new PdfBusyError();
     }
@@ -40,7 +40,7 @@ export const pdfRenderer: Renderer = {
     // otherwise leak a slot and, after PDF_CONCURRENCY_LIMIT such errors,
     // permanently wedge PDF export.
     try {
-      const html = renderCvHtml(cv);
+      const html = renderCvHtml(cv, opts);
       const browser = await chromium.launch({
         args: ["--no-sandbox", "--disable-dev-shm-usage"],
       });

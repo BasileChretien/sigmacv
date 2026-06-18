@@ -71,6 +71,8 @@ export interface RenderStrings {
   roleCorresponding: string;
   /** Prefix of the public-page "Made with SigmaCV" footer; "SigmaCV" follows untranslated. */
   madeWith: string;
+  /** Label beside the document QR + link to this CV's public live page ("Live version"). */
+  liveVersionLabel: string;
   /** Public-page "living CV" line; "{date}" is the localized last-synced date. */
   livingNote: string;
   /** Heading for the public-page "Co-authors on SigmaCV" block (opt-in); "SigmaCV" stays untranslated. */
@@ -176,6 +178,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Last author",
     roleCorresponding: "Corresponding author",
     madeWith: "Made with",
+    liveVersionLabel: "Live version",
     livingNote: "Updated {date} · living CV, updates automatically",
     rorRecordTitle: "ROR organization record",
     institutionSiteTitle: "Institution website",
@@ -243,6 +246,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "末位作者",
     roleCorresponding: "通讯作者",
     madeWith: "制作工具：",
+    liveVersionLabel: "在线版本",
     livingNote: "更新于 {date} · 在线简历，自动更新",
     rorRecordTitle: "ROR 机构记录",
     institutionSiteTitle: "机构网站",
@@ -313,6 +317,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Último autor",
     roleCorresponding: "Autor de correspondencia",
     madeWith: "Hecho con",
+    liveVersionLabel: "Versión en línea",
     livingNote: "Actualizado el {date} · CV vivo, se actualiza solo",
     rorRecordTitle: "Ficha de la organización en ROR",
     institutionSiteTitle: "Sitio web de la institución",
@@ -384,6 +389,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Dernier auteur",
     roleCorresponding: "Auteur correspondant",
     madeWith: "Créé avec",
+    liveVersionLabel: "Version en ligne",
     livingNote: "Mis à jour le {date} · CV vivant, mis à jour automatiquement",
     rorRecordTitle: "Fiche de l’organisation dans ROR",
     institutionSiteTitle: "Site web de l’établissement",
@@ -454,6 +460,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Letztautor",
     roleCorresponding: "Korrespondierender Autor",
     madeWith: "Erstellt mit",
+    liveVersionLabel: "Live-Version",
     livingNote: "Aktualisiert am {date} · lebender Lebenslauf, automatisch aktualisiert",
     rorRecordTitle: "ROR-Organisationseintrag",
     institutionSiteTitle: "Website der Einrichtung",
@@ -521,6 +528,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "最終著者",
     roleCorresponding: "責任著者",
     madeWith: "作成ツール：",
+    liveVersionLabel: "オンライン版",
     livingNote: "{date} 更新 · 自動更新されるライブ CV",
     rorRecordTitle: "ROR 機関レコード",
     institutionSiteTitle: "機関ウェブサイト",
@@ -592,6 +600,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Último autor",
     roleCorresponding: "Autor correspondente",
     madeWith: "Feito com",
+    liveVersionLabel: "Versão online",
     livingNote: "Atualizado em {date} · currículo vivo, atualizado automaticamente",
     rorRecordTitle: "Registro da organização no ROR",
     institutionSiteTitle: "Site da instituição",
@@ -662,6 +671,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Ultimo autore",
     roleCorresponding: "Autore corrispondente",
     madeWith: "Creato con",
+    liveVersionLabel: "Versione online",
     livingNote: "Aggiornato il {date} · CV vivo, si aggiorna da solo",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
     institutionSiteTitle: "Sito web dell’istituzione",
@@ -729,6 +739,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "마지막 저자",
     roleCorresponding: "교신저자",
     madeWith: "제작 도구:",
+    liveVersionLabel: "온라인 버전",
     livingNote: "{date} 업데이트 · 자동으로 갱신되는 라이브 CV",
     rorRecordTitle: "ROR 기관 레코드",
     institutionSiteTitle: "기관 웹사이트",
@@ -798,6 +809,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     roleLast: "Последний автор",
     roleCorresponding: "Автор для корреспонденции",
     madeWith: "Создано с помощью",
+    liveVersionLabel: "Онлайн-версия",
     livingNote: "Обновлено {date} · живое резюме, обновляется автоматически",
     rorRecordTitle: "Запись организации в ROR",
     institutionSiteTitle: "Сайт организации",

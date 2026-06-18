@@ -7,6 +7,7 @@ import { displayUrl, escapeHtml, safeHref } from "../escape";
 import { formattedMetrics, openAccessShare } from "../metrics";
 import { iconSvg, resolveLink, type IconName } from "../icons";
 import { SITE_URL } from "@/lib/siteUrl";
+import { qrSvg } from "@/lib/cv/qrSvg";
 import type { RenderOpts } from "../types";
 import type { RenderedSection, TemplateTheme } from "./types";
 
@@ -378,6 +379,17 @@ export function commonCss(theme: TemplateTheme): string {
      landmark). */
   .cv-attribution { margin: 0.3rem 0 0; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
   .cv-attribution a { color: var(--cv-accent); text-decoration: none; }
+  /* Opt-in document QR (+ "Live version" URL). On its own white tile and kept pure
+     black-on-white + isolated from any template accent so it scans from paper;
+     print-color-adjust forces it to print even under "no backgrounds", and the
+     module size bumps to ~22mm in print for reliable phone scanning. */
+  .cv-qr { display: flex; align-items: center; gap: 0.7rem; margin: 1.4rem 0 0; }
+  .cv-qr-img { display: inline-flex; background: #fff; padding: 3px; border-radius: 2px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .cv-qr-img svg { display: block; width: 64px; height: 64px; }
+  .cv-qr-cap { display: flex; flex-direction: column; min-width: 0; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; }
+  .cv-qr-label { font-weight: 600; }
+  .cv-qr-cap a { color: var(--cv-muted); text-decoration: underline; text-underline-offset: 0.15em; overflow-wrap: anywhere; }
+  @media print { .cv-qr-img svg { width: 22mm; height: 22mm; } }
   /* "Co-authors on SigmaCV" block — public living page ONLY (opt-in). A quiet
      inline list of collaborators who also have a public SigmaCV CV. */
   .cv-coauthors { margin: 1.4rem 0 0; }
@@ -727,6 +739,36 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
       )}</a></span></details>`
     : "";
   return `${living}${subscribe}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
+}
+
+/**
+ * Opt-in DOCUMENT QR — a small QR + a "Live version" text link to this CV's public
+ * living page, in the footer of the exported document (and the document HTML/PDF).
+ * Emitted only when BOTH (a) the caller supplied the published page URL
+ * (`opts.publicPageUrl` — the export + preview routes set it only when the page is
+ * actually published; the public `/p/[slug]` route never does, so a live page never
+ * QRs itself) AND (b) the owner opted in (`display.showDocQr`). NEVER on the
+ * parser-safe ATS template (an opaque image confuses résumé parsers).
+ *
+ * The QR is decorative (`aria-hidden`): the human-readable URL beside it is the
+ * real link, so it works for screen-reader users and on screen (where nobody scans
+ * a code). Encodes only the public URL. Emitted as a `<div>`, NOT a `<footer>` —
+ * the provenance block is the document's single contentinfo landmark.
+ */
+export function docQrFooter(cv: CanonicalCv, opts: RenderOpts = {}): string {
+  const url = opts.publicPageUrl;
+  if (!url || !cv.display.showDocQr || cv.display.template === "ats") return "";
+  const href = safeHref(url);
+  /* v8 ignore next -- publicPageUrl is always a safe absoluteUrl() https origin */
+  if (!href) return "";
+  const s = renderStrings(cv.display.locale);
+  return (
+    `<div class="cv-qr">` +
+    `<span class="cv-qr-img" aria-hidden="true">${qrSvg(url)}</span>` +
+    `<span class="cv-qr-cap"><span class="cv-qr-label">${escapeHtml(s.liveVersionLabel)}</span>` +
+    `<a href="${escapeHtml(href)}">${escapeHtml(displayUrl(url))}</a></span>` +
+    `</div>`
+  );
 }
 
 /**

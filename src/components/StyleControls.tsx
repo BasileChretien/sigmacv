@@ -734,6 +734,15 @@ export default function StyleControls({
             })}
           </div>
         </div>
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.showDocQr ?? false}
+            onChange={(e) => onChange(updateDisplay(cv, { showDocQr: e.target.checked }))}
+          />
+          <span>{eu.docQrLabel}</span>
+        </label>
+        <p className="muted metric-preset-note field-note">{eu.docQrHint}</p>
       </StyleGroup>
 
       <StyleGroup

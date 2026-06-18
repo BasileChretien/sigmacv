@@ -10,7 +10,7 @@ import { prepareSections } from "./prepare";
 import type { PreparedSection } from "./prepare";
 import { ensureReadableOnWhite } from "./readableAccent";
 import { docStyle, type DocStyle } from "./templateStyle";
-import type { Renderer, RenderInput, RenderResult } from "./types";
+import type { Renderer, RenderInput, RenderOpts, RenderResult } from "./types";
 
 const LATEX_ESCAPE: Record<string, string> = {
   "\\": "\\textbackslash{}",
@@ -37,6 +37,27 @@ const URL_RE = /(https?:\/\/[^\s]+)/g;
  *  %-encoded), so strip them (braces, backslash, caret, tilde). */
 function sanitizeUrlForLatex(url: string): string {
   return url.replace(/[{}\\^~]/g, "");
+}
+
+/**
+ * Opt-in document QR → the public living page. Compiled IN LaTeX via the standard
+ * `qrcode` package (no image file, so a standalone .tex still works), beside the
+ * human-readable `\url{}`. Returns the conditional package line + the body block,
+ * both "" unless the owner opted in AND the caller supplied the published page URL
+ * (never on the ATS template). The slug URL has no LaTeX specials, but it is still
+ * run through sanitizeUrlForLatex defensively.
+ */
+function docQrLatex(cv: CanonicalCv, opts?: RenderOpts): { pkg: string; body: string } {
+  const url = opts?.publicPageUrl;
+  if (!url || !cv.display.showDocQr || cv.display.template === "ats") return { pkg: "", body: "" };
+  const safe = sanitizeUrlForLatex(url);
+  const s = renderStrings(cv.display.locale);
+  return {
+    pkg: "\\usepackage{qrcode}",
+    body: `\\bigskip\\noindent\\qrcode[height=2.2cm]{${safe}}\\quad{\\small ${escapeLatex(
+      s.liveVersionLabel,
+    )}: \\url{${safe}}}\\par`,
+  };
 }
 
 /** Escape an entry for LaTeX, but wrap any URL in \url{} so it (a) keeps its raw
@@ -137,7 +158,8 @@ function authorshipTableLatex(cv: CanonicalCv): string {
  * the on-screen template. Self-contained — only packages from a standard TeX
  * Live, so it compiles everywhere (no moderncv/altacv class).
  */
-function buildStyled(cv: CanonicalCv, style: DocStyle): string {
+function buildStyled(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts): string {
+  const qr = docQrLatex(cv, opts);
   const sections = prepareSections(cv, "text");
   const head = textHeader(cv);
   const name = escapeLatex(
@@ -186,6 +208,7 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
     "\\usepackage{titlesec}",
     "\\usepackage[hidelinks]{hyperref}",
     "\\usepackage{xurl}",
+    qr.pkg,
     `\\definecolor{cvaccent}{HTML}{${accentHex(cv)}}`,
     `\\hypersetup{colorlinks=true,urlcolor=${linkColor},linkcolor=${linkColor}}`,
     `\\titleformat{\\section}{\\large\\bfseries${headColor}}{}{0em}{}${rule}`,
@@ -224,13 +247,16 @@ function buildStyled(cv: CanonicalCv, style: DocStyle): string {
     ? "% To add your photo: save it as cv-photo.jpg beside this .tex, then add\n% \\usepackage{graphicx} and \\includegraphics[width=2.8cm]{cv-photo} where you want it.\n"
     : "";
 
-  return `${preamble}\n${photoNote}${header}\n${tables}\n${summaryPar}\n${blocks.join("\n\n")}\n\n\\end{document}\n`;
+  return `${preamble}\n${photoNote}${header}\n${tables}\n${summaryPar}\n${blocks.join("\n\n")}\n${
+    qr.body ? `\n${qr.body}\n` : ""
+  }\n\\end{document}\n`;
 }
 
 /** Sidebar template: a two-column layout with a coloured left panel (name,
  *  contact, metrics in white) and the content on the right — built with paracol
  *  so the accent column runs full page height. */
-function buildSidebarLatex(cv: CanonicalCv, style: DocStyle): string {
+function buildSidebarLatex(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts): string {
+  const qr = docQrLatex(cv, opts);
   const sections = prepareSections(cv, "text");
   const head = textHeader(cv);
   const name = escapeLatex(
@@ -281,6 +307,7 @@ function buildSidebarLatex(cv: CanonicalCv, style: DocStyle): string {
     "\\usepackage{titlesec}",
     "\\usepackage[hidelinks]{hyperref}",
     "\\usepackage{xurl}",
+    qr.pkg,
     "\\usepackage{paracol}",
     "\\usepackage{eso-pic}",
     `\\definecolor{cvaccent}{HTML}{${accentHex(cv)}}`,
@@ -305,24 +332,24 @@ function buildSidebarLatex(cv: CanonicalCv, style: DocStyle): string {
 
   // The left (accent) column prints white on the coloured panel; \switchcolumn
   // resets to black so the right column's body text is NOT white-on-white.
-  return `${preamble}\n${photoNote}\\begin{paracol}{2}\n\\color{white}\\raggedright\n${leftBits}\n\\switchcolumn\n\\color{black}\n${summaryPar}${tables}\n\n${blocks}\n\\end{paracol}\n\\end{document}\n`;
+  return `${preamble}\n${photoNote}\\begin{paracol}{2}\n\\color{white}\\raggedright\n${leftBits}\n\\switchcolumn\n\\color{black}\n${summaryPar}${tables}\n\n${blocks}\n${qr.body ? `${qr.body}\n` : ""}\\end{paracol}\n\\end{document}\n`;
 }
 
 /** Render a .tex that follows the chosen template (accent, font, heading + name
  *  treatment). A single self-contained design that compiles on a bare TeX Live. */
-export function renderCvLatex(cv: CanonicalCv): string {
+export function renderCvLatex(cv: CanonicalCv, opts?: RenderOpts): string {
   const style = docStyle(cv);
-  return style.twoColumn ? buildSidebarLatex(cv, style) : buildStyled(cv, style);
+  return style.twoColumn ? buildSidebarLatex(cv, style, opts) : buildStyled(cv, style, opts);
 }
 
 export const latexRenderer: Renderer = {
   format: "latex",
-  async render({ cv }: RenderInput): Promise<RenderResult> {
+  async render({ cv, opts }: RenderInput): Promise<RenderResult> {
     return {
       format: "latex",
       mimeType: "application/x-tex; charset=utf-8",
       filename: `${cvSlug(cv.owner.displayName)}-cv.tex`,
-      text: renderCvLatex(cv),
+      text: renderCvLatex(cv, opts),
     };
   },
 };
