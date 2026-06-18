@@ -305,6 +305,27 @@ export function commonCss(theme: TemplateTheme): string {
   .csl-entry { display: inline; }
   ol.cv-bib > li a { color: var(--cv-accent); text-decoration: none; }
 
+  /* Positions / Education entries are RECORDS, not citations: they drop the
+     hanging indent of the publication list. This rule has the SAME specificity as
+     "ol.cv-bib > li" above and is placed AFTER it, so it wins on the document
+     templates — while the public showcase styles append their OWN "ol.cv-bib > li"
+     panel padding LATER still, so they are unaffected (their panels keep padding). */
+  ol.cv-history > li { padding-left: 0; text-indent: 0; }
+
+  /* The structured two-line entry (positionEntryHtml): a prominent LEAD line — the
+     role (or the institution when no role is known) — with the date range pushed to
+     the right edge, over a quieter "department · institution" line. The head is a
+     wrapping flex row: the lead fills and wraps, the dates stay right (logical
+     margin → RTL-safe) and, on a narrow column, wrap to their own right line rather
+     than colliding with a long role. The whole record lives in one ol.cv-bib > li,
+     so the existing print "break-inside: avoid" keeps it intact across a page. */
+  .cv-entry { text-indent: 0; }
+  .cv-entry-head { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 1rem; row-gap: 0.1rem; }
+  .cv-entry-lead { flex: 1 1 auto; min-width: 0; font-weight: 600; color: var(--cv-ink); }
+  .cv-entry-dates { flex: 0 0 auto; margin-inline-start: auto; color: var(--cv-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cv-entry-sub { color: var(--cv-muted); font-size: 0.92em; line-height: 1.4; margin-top: 0.1rem; }
+  .cv-entry-lead .cv-ror-link, .cv-entry-sub .cv-ror-link { color: inherit; }
+
   .cv-self { ${theme.selfHighlightCss} }
 
   /* Inline badges after each entry. Plain inline-block + adjacent-sibling margins
@@ -1004,12 +1025,20 @@ export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): s
           rs.section.title,
         )}</h2><div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "")}</div></section>`;
       }
+      // Positions/Education render structured two-line records (a block .cv-entry),
+      // so they skip the inline .csl-entry wrapper and tag the list .cv-history (the
+      // styling hook that drops the citation hanging indent). The list stays an
+      // <ol class="cv-bib"> so the public showcase styles' entry styling still binds.
+      const isHistory = rs.section.type === "positions" || rs.section.type === "education";
       const entries = rs.items
-        .map((ri) => `<li><div class="csl-entry">${ri.html}</div></li>`)
+        .map((ri) =>
+          isHistory ? `<li>${ri.html}</li>` : `<li><div class="csl-entry">${ri.html}</div></li>`,
+        )
         .join("\n");
+      const olClass = isHistory ? "cv-bib cv-history" : "cv-bib";
       return `<section class="cv-section"><h2>${escapeHtml(
         rs.section.title,
-      )}</h2><ol class="cv-bib">\n${entries}\n</ol></section>`;
+      )}</h2><ol class="${olClass}">\n${entries}\n</ol></section>`;
     })
     .join("\n");
   // The research-summary block, when the user moved it out of the header, renders

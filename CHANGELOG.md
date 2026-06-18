@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Positions, Education and diplomas now read as two-line records instead of one
+  run-on line.** Each entry leads with the role (or, for a degree, the degree and
+  field) in a prominent line with the dates aligned to the right edge, over a
+  quieter "department · institution" line — so a reader can skim job titles down
+  the left and the timeline down the right, the way a strong academic CV reads.
+  Sparse entries degrade gracefully (no role → the institution leads; no
+  department or no dates → those simply don't appear). The ATS template keeps the
+  dates inline (no right-aligned column) for résumé-parser safety, and the
+  DOCX / LaTeX / Markdown exports and the Japanese 履歴書 layout are unchanged.
+
 - **The editor preview now matches the PDF exactly (true WYSIWYG).** The live
   preview previously rendered the CV at the width of the editor pane, so on a
   smaller window it wrapped differently from the exported PDF — and on a narrow
