@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   PubMed for biomedical readers. Public page only (never on exports), and only
   when the id is present.
 
+- **A "research output" summary (opt-in).** A new design toggle shows a compact
+  breadth-of-output line in the research-summary block — counts by type for the
+  outputs you actually have (e.g. "12 Publications · 3 Datasets & Software · 2
+  Patents"), drawn only from your visible items. It reframes output as the breadth
+  of your contributions rather than a single headline number, in keeping with
+  responsible-assessment (R4RI/DORA) framing. Off by default; like the rest of the
+  summary block it follows the block's placement, and the labels are localized.
+
 - **A "Font size" control in the design panel.** A new size selector (85%–120%)
   scales the whole CV's typography up or down in proportion — every section's
   headings, name, body and gaps grow or shrink together — so you can fit more on a
