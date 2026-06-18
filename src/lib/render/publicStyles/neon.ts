@@ -175,7 +175,7 @@ function neonCss(_t: TemplateTheme): string {
   /* ---- Section headings: pink (cyan on alternate sections) + pulse + slide -- */
   section.cv-section > h2, .cv-summary-block > .cv-summary-h { position:relative; display:inline-block; color: var(--n1); text-transform:uppercase; letter-spacing:0.18em;
     font-size:0.82rem; font-weight:800; margin:0 0 0.9rem; padding-bottom:0.4rem; text-shadow:0 0 7px var(--n1), 0 0 18px var(--n1), 0 0 36px var(--n1); }
-  section.cv-section > h2::after { content:""; position:absolute; left:0; right:0; bottom:0; height:2px; border-radius:2px;
+  section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { content:""; position:absolute; left:0; right:0; bottom:0; height:2px; border-radius:2px;
     background: linear-gradient(90deg, transparent, currentColor, transparent); background-size:220% 100%;
     box-shadow:0 0 10px currentColor, 0 0 20px currentColor; animation: neon-underline-slide 2.6s linear infinite; }
   section.cv-section:nth-of-type(2n) > h2 { color: var(--n2); text-shadow:0 0 7px var(--n2), 0 0 18px var(--n2), 0 0 36px var(--n2); }

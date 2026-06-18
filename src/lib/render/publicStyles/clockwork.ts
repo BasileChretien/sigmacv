@@ -151,13 +151,13 @@ function clockworkCss(_t: TemplateTheme): string {
     color: var(--brass-lt); margin:0 0 1rem; padding-bottom:0.55rem;
   }
   /* A small brass cog/rivet before each heading. */
-  section.cv-section > h2::before {
+  section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
     content:""; flex:none; width:0.82em; height:0.82em; border-radius:50%;
     background: radial-gradient(circle at 40% 34%, var(--brass-lt), var(--brass-deep) 72%);
     box-shadow: 0 0 0 2px rgba(201,164,76,0.22), inset 0 0 0 2px rgba(0,0,0,0.25);
   }
   /* Brass underline (accent-led segment), drawn in on reveal. */
-  section.cv-section > h2::after {
+  section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content:""; position:absolute; left:0; bottom:0; width:100%; height:2px; transform-origin:0 50%;
     background: linear-gradient(90deg, var(--brass) 0 2.6rem, var(--cv-rule) 2.6rem);
   }
@@ -186,7 +186,7 @@ function clockworkCss(_t: TemplateTheme): string {
       animation: ck-stamp cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%;
     }
-    section.cv-section > h2::after {
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
       animation: ck-draw cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: entry 2% cover 16%;
     }
@@ -199,7 +199,7 @@ function clockworkCss(_t: TemplateTheme): string {
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; }
     section.cv-section > h2, ol.cv-bib > li { opacity:1 !important; transform:none !important; filter:none !important; }
-    section.cv-section > h2::after { transform: scaleX(1) !important; }
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform: scaleX(1) !important; }
     .ck-cord { transform: rotate(0) !important; }
   }
 

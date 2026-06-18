@@ -261,14 +261,14 @@ function cyberpunkCss(_t: TemplateTheme): string {
     text-shadow: 0 0 12px rgba(255,61,154,0.75), 0 0 26px rgba(255,61,154,0.5);
   }
   /* brass hex bullet, drawn (not a glyph) so there is no missing-font tofu. */
-  section.cv-section > h2::before {
+  section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
     content:""; display:inline-block; width:0.9em; height:1em; margin-right:0.55em; vertical-align:-0.12em;
     background: var(--brass); box-shadow:0 0 11px rgba(232,162,61,0.75);
     clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
   }
   section.cv-section:nth-of-type(2n) > h2 { color: var(--teal); text-shadow:0 0 12px rgba(46,230,214,0.75), 0 0 26px rgba(46,230,214,0.5); }
   /* graffiti underline: a thick, skewed glowing slash. */
-  section.cv-section > h2::after {
+  section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content:""; position:absolute; left:0; right:0; bottom:0; height:6px; transform: skewX(-22deg);
     background: linear-gradient(90deg, currentColor, transparent);
     box-shadow: 0 0 14px currentColor; opacity:0.95;
@@ -360,7 +360,7 @@ function cyberpunkCss(_t: TemplateTheme): string {
     *, *::before, *::after { animation:none !important; }
     header.cv-header { box-shadow:none; border-color:#ccc; background:#fff; }
     header.cv-header h1 { text-shadow:none; -webkit-text-stroke:0; color:#000; }
-    section.cv-section > h2::after { display:none !important; }
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { display:none !important; }
     ol.cv-bib > li { border-color:#ccc !important; background:none !important; box-shadow:none !important; }
     .cv { padding:0; max-width:none; }
   }`;

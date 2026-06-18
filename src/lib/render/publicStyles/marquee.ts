@@ -41,7 +41,7 @@ function marqueeCss(_t: TemplateTheme): string {
   section.cv-section { margin-top:2.2rem; }
   section.cv-section > h2, .cv-summary-block > .cv-summary-h { display:flex; align-items:center; gap:0.55rem; font-size:clamp(1.05rem,2.6vw,1.55rem); font-weight:800;
     text-transform:uppercase; letter-spacing:-0.01em; color:var(--cv-ink); margin:0 0 0.7rem; padding-bottom:0.3rem; border-bottom:3px solid var(--cv-accent); }
-  section.cv-section > h2::before { content:""; width:0.7em; height:0.7em; border-radius:50%; background:var(--cv-accent); flex:none; }
+  section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before { content:""; width:0.7em; height:0.7em; border-radius:50%; background:var(--cv-accent); flex:none; }
   ol.cv-bib > li { position:relative; padding-left:1.6em; text-indent:0; }
   ol.cv-bib > li::before { content:"\\2192"; position:absolute; left:0; color:var(--cv-accent); font-weight:800; }
 

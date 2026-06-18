@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { renderCvHtml } from "@/lib/render/html";
+import { renderPublicCvHtml } from "@/lib/render/publicStyles";
 import { renderCvLatex } from "@/lib/render/latex";
 import { renderCvMarkdown } from "@/lib/render/markdown";
 import { renderCvDocxBuffer } from "@/lib/render/docx";
@@ -126,6 +127,27 @@ describe("research-summary heading matches the section-title styling", () => {
     );
     // Sidebar's accent underline (drawn with ::after) is shared too.
     expect(sidebar).toContain(".cv-main .cv-summary-block > .cv-summary-h::after");
+  });
+
+  it("shares a public style's decorative heading pseudo-elements (skipping counter ::before)", () => {
+    // A pseudo-heavy public style: both the marker (::before) and underline (::after)
+    // decorations are grouped onto the moved summary heading for full parity.
+    const cyber = renderPublicCvHtml(cvAt("top", { publicStyle: "cyberpunk" }));
+    expect(cyber).toContain(
+      "section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before",
+    );
+    expect(cyber).toContain(
+      "section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after",
+    );
+
+    // Folio numbers its sections via a counter in ::before — the summary block is not
+    // a numbered section, so its ::before is intentionally NOT grouped (no stray
+    // numeral), while the underline ::after still matches.
+    const folio = renderPublicCvHtml(cvAt("top", { publicStyle: "folio" }));
+    expect(folio).toContain(
+      "section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after",
+    );
+    expect(folio).not.toContain(".cv-summary-block > .cv-summary-h::before");
   });
 });
 

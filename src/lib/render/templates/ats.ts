@@ -55,7 +55,7 @@ function atsCss(_theme: TemplateTheme): string {
     font-size: 1.18rem; font-weight: bold; text-transform: none;
     letter-spacing: 0; border: 0; color: #000; margin: 0 0 0.4rem;
   }
-  section.cv-section > h2::after { content: none; }
+  section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { content: none; }
 
   /* Body: flat, single column, no hanging indent — fully top-to-bottom readable. */
   ol.cv-bib { column-count: 1; }

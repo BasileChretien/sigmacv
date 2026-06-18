@@ -54,7 +54,7 @@ function terminalCss(_t: TemplateTheme): string {
   .cv-photo { width:112px; height:112px; border-radius:6px; border:1px solid var(--term); box-shadow:0 0 16px rgba(57,255,140,0.4); filter: grayscale(1) contrast(1.08) brightness(1.05); }
 
   section.cv-section > h2, .cv-summary-block > .cv-summary-h { color: var(--amber); text-transform: uppercase; letter-spacing:0.2em; font-size:0.8rem; font-weight:700; margin:0 0 0.7rem; }
-  section.cv-section > h2::before { content:"// "; color: var(--term); }
+  section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before { content:"// "; color: var(--term); }
   ol.cv-bib > li { position:relative; padding-left:1.6em; text-indent:0; }
   ol.cv-bib > li::before { content:"$"; position:absolute; left:0; color: var(--term); opacity:0.8; }
 

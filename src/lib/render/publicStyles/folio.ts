@@ -119,7 +119,7 @@ function folioCss(_t: TemplateTheme): string {
     flex: none; min-width: 1.6em; padding-top: 0.05em;
   }
   /* Thin accent hairline drawn under each heading (animated to draw in). */
-  section.cv-section > h2::after {
+  section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content: ""; position: absolute; left: 0; right: 0; bottom: 0;
     height: 1px; background: var(--cv-rule-strong);
     transform-origin: 0 50%;
@@ -171,7 +171,7 @@ function folioCss(_t: TemplateTheme): string {
       animation: folio-settle cubic-bezier(0.22, 1, 0.36, 1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%;
     }
-    section.cv-section > h2::after {
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
       animation: folio-rule cubic-bezier(0.22, 1, 0.36, 1) both;
       animation-timeline: view(); animation-range: entry 0% cover 14%;
     }
@@ -185,7 +185,7 @@ function folioCss(_t: TemplateTheme): string {
     *,*::before,*::after { animation: none !important; }
     section.cv-section > h2,
     ol.cv-bib > li { opacity: 1 !important; transform: none !important; filter: none !important; }
-    section.cv-section > h2::after { transform: none !important; }
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform: none !important; }
   }`;
 }
 

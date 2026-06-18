@@ -95,7 +95,7 @@ function trajectoryCss(_t: TemplateTheme): string {
   /* The node: a filled accent dot sitting ON the rail, ringed so the line reads
      as passing "through" the milestone. The negative left pulls it from the
      heading's text origin back over the gutter onto the rail centre. */
-  section.cv-section > h2::before {
+  section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
     content:""; position: absolute; top: 0.34em;
     left: calc(-1 * 34px - var(--node) / 2);
     width: var(--node); height: var(--node); border-radius: 50%;
@@ -105,7 +105,7 @@ function trajectoryCss(_t: TemplateTheme): string {
   }
   /* A short connector tick from the rail to the heading text, so the eye links
      the node to its label. */
-  section.cv-section > h2::after {
+  section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content:""; position: absolute; top: 0.62em;
     left: calc(-1 * 34px + var(--node) / 2);
     width: calc(34px - var(--node) / 2 - 4px); height: 2px;
@@ -128,7 +128,7 @@ function trajectoryCss(_t: TemplateTheme): string {
   @supports (animation-timeline: view()) {
     section.cv-section > h2, .cv-summary-block > .cv-summary-h { animation: traj-head-in cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%; }
-    section.cv-section > h2::before { animation: traj-node-in cubic-bezier(0.34,1.2,0.4,1) both;
+    section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before { animation: traj-node-in cubic-bezier(0.34,1.2,0.4,1) both;
       animation-timeline: view(); animation-range: entry 0% cover 12%; }
     ol.cv-bib > li { animation: traj-entry-in ease-out both;
       animation-timeline: view(); animation-range: entry 0% cover 10%; }
@@ -163,7 +163,7 @@ function trajectoryCss(_t: TemplateTheme): string {
     :root { --rail-x: 20px; --node: 13px; }
     .cv { padding: 44px 22px 96px calc(var(--rail-x) + 24px); }
     section.cv-section > h2::before, header.cv-header::after { left: calc(-1 * 24px - var(--node) / 2); }
-    section.cv-section > h2::after { left: calc(-1 * 24px + var(--node) / 2); width: calc(24px - var(--node) / 2 - 4px); }
+    section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { left: calc(-1 * 24px + var(--node) / 2); width: calc(24px - var(--node) / 2 - 4px); }
   }
 
   /* Print: drop the decorative rail/nodes for a clean document. */
