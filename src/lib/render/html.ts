@@ -238,6 +238,13 @@ function itemToolsHtml(item: CvItem, slug: string, locale: string): string {
       `<a class="cv-fulltext" href="${escapeHtml(oa)}">${escapeHtml(s.fullTextLabel)}</a>`,
     );
   }
+  // A PubMed link when the work carries a PubMed id (bare numeric, from OpenAlex
+  // `ids.pmid`). The id is validated numeric so the fixed-host URL is safe; the
+  // visible label is the "PubMed" brand name (not localized UI copy).
+  const pmid = item.meta.pmid?.trim();
+  if (pmid && /^\d+$/.test(pmid)) {
+    parts.push(`<a class="cv-pubmed" href="https://pubmed.ncbi.nlm.nih.gov/${pmid}/">PubMed</a>`);
+  }
   const abstract = item.csl.abstract?.trim();
   if (abstract) {
     parts.push(

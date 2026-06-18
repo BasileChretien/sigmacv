@@ -178,6 +178,99 @@ function knowsEntities(links: readonly CoauthorCvLink[]): Record<string, unknown
   return out;
 }
 
+/** The canonical DOI IRI shape: `https://doi.org/10.<registrant>/<suffix>`. */
+const DOI_IRI = /^https:\/\/doi\.org\/10\.\d{4,9}\/\S+$/;
+
+/**
+ * Normalise a stored DOI to its canonical, ATTACKER-PROOF IRI
+ * `https://doi.org/<doi>`, or undefined. Accepts a bare DOI ("10.1/x"), a
+ * "doi:"-prefixed one, or a full doi.org / dx.doi.org URL. Mirrors `rorIri`: a
+ * full URL is reduced to its `10.<reg>/<suffix>` body and ALWAYS re-hosted on
+ * doi.org, so a crafted `meta.doi` can never emit an arbitrary-host `@id`.
+ * `safeHref` is the additional scheme guard.
+ */
+function doiIri(raw: string | undefined): string | undefined {
+  let s = raw?.trim().replace(/^doi:\s*/i, "");
+  if (!s) return undefined;
+  if (/^https?:\/\//i.test(s)) {
+    const m = s.match(/10\.\d{4,9}\/\S+$/);
+    if (!m) return undefined;
+    s = m[0];
+  }
+  const iri = `https://doi.org/${s}`;
+  if (!DOI_IRI.test(iri)) return undefined;
+  return safeHref(iri) || undefined;
+}
+
+/** Publication year as a string (schema.org `datePublished`), from `meta.year`
+ *  or the CSL `issued` date, or undefined. */
+function workYear(item: CvItem): string | undefined {
+  if (typeof item.meta.year === "number") return String(item.meta.year);
+  const part = item.csl?.issued?.["date-parts"]?.[0]?.[0];
+  if (typeof part === "number") return String(part);
+  if (typeof part === "string" && /^\d{4}/.test(part)) return part.slice(0, 4);
+  return undefined;
+}
+
+/** The work-bearing citation sections turned into per-work schema.org entities. */
+const WORK_SECTION_TYPES = new Set<string>(["publications", "preprints", "conference", "datasets"]);
+
+/**
+ * Per-work schema.org entities for the visible work sections: publications,
+ * preprints and conference papers → `ScholarlyArticle`; the datasets/software
+ * section → `Dataset` (or `SoftwareSourceCode` when the item is software). Each
+ * node carries the DOI as its `@id`/`identifier`/`url`/`sameAs` when known, the
+ * publication year, the venue, and an open-access flag — making the CV's outputs
+ * machine-readable (Google Dataset Search, answer engines), not just the bare
+ * Person identity. Attached to the Person via `@reverse.author` by the caller, so
+ * each work is asserted to have the account holder as an author.
+ *
+ * Operates on the PUBLIC-projected CV via `visibleSections`/`visibleItems`, so a
+ * hidden or "not mine" work is never described here. A work with no clean title
+ * (`csl.title`) is skipped — without one there is no useful node to emit.
+ */
+function scholarlyEntities(cv: CanonicalCv): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const section of visibleSections(cv)) {
+    if (!WORK_SECTION_TYPES.has(section.type)) continue;
+    for (const item of visibleItems(section)) {
+      const name = item.csl?.title?.trim();
+      if (!name) continue;
+
+      let schemaType = "ScholarlyArticle";
+      if (section.type === "datasets") {
+        const t = `${item.csl?.type ?? ""} ${item.meta.type ?? ""}`.toLowerCase();
+        schemaType = /soft|code/.test(t) ? "SoftwareSourceCode" : "Dataset";
+      }
+      const node: Record<string, unknown> = { "@type": schemaType, name };
+
+      const iri = doiIri(item.meta.doi ?? item.csl?.DOI);
+      if (iri) {
+        node["@id"] = iri;
+        node.identifier = iri;
+        node.url = iri;
+        node.sameAs = [iri];
+      }
+      const year = workYear(item);
+      if (year) node.datePublished = year;
+
+      const venue = item.csl?.["container-title"]?.trim();
+      if (venue && schemaType === "ScholarlyArticle") {
+        node.isPartOf = { "@type": "Periodical", name: venue };
+      }
+
+      // Open-access location: use it as the page `url` only when there is no DOI
+      // (the DOI is the canonical landing page), and flag free availability.
+      const oa = safeHref(item.meta.oaUrl);
+      if (oa && !node.url) node.url = oa;
+      if (item.meta.oaIsOpen) node.isAccessibleForFree = true;
+
+      out.push(node);
+    }
+  }
+  return out;
+}
+
 /**
  * ProfilePage + Person JSON-LD for a published public CV (emitted whether or not
  * the owner opted into search indexing — it's structured data, not a crawl
@@ -232,6 +325,13 @@ export function profilePageJsonLd(
   // indexing consent — see resolveCoauthorCvs.
   const knows = knowsEntities(coauthorCvs);
   if (knows.length > 0) person.knows = knows;
+
+  // The owner's outputs as per-work entities (ScholarlyArticle / Dataset /
+  // SoftwareSourceCode), attached via `@reverse.author` so each is asserted to
+  // have this Person as an author — a machine-readable publication/dataset graph
+  // for search and answer engines, keyed by DOI when known.
+  const works = scholarlyEntities(cv);
+  if (works.length > 0) person["@reverse"] = { author: works };
 
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",

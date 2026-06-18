@@ -964,6 +964,15 @@ export default function StyleControls({
         <label className="field-inline">
           <input
             type="checkbox"
+            checked={cv.display.showOutputLedger}
+            onChange={(e) => onChange(updateDisplay(cv, { showOutputLedger: e.target.checked }))}
+          />
+          <span>{u.showOutputLedger}</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
             checked={cv.display.showOpenAccess}
             onChange={(e) => onChange(updateDisplay(cv, { showOpenAccess: e.target.checked }))}
           />

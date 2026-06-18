@@ -3,7 +3,7 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import { setItemIncluded, updateDisplay, updateOwner } from "@/lib/canonical/curate";
 import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
 import type { OrcidPosition } from "@/lib/orcid/client";
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import type { CanonicalCv, CvItem, CvSection } from "@/lib/canonical/schema";
 
 interface MakeOpts {
   owner?: Partial<CanonicalCv["owner"]>;
@@ -360,5 +360,190 @@ describe("profilePageJsonLd", () => {
     expect(person.funding).toBeUndefined();
     expect(person.hasOccupation).toBeUndefined();
     expect(person.hasCredential).toBeUndefined();
+  });
+});
+
+describe("profilePageJsonLd — per-work entities (@reverse.author)", () => {
+  function mkItem(p: Partial<CvItem> & { id: string }): CvItem {
+    return {
+      source: "openalex",
+      sourceId: `https://openalex.org/${p.id}`,
+      included: true,
+      notMine: false,
+      order: 0,
+      authoredBySelf: true,
+      selfNameVariants: [],
+      csl: { id: p.id, type: "article-journal" },
+      meta: {},
+      ...p,
+    } as CvItem;
+  }
+  function section(items: CvItem[], type: CvSection["type"] = "publications"): CvSection {
+    return { id: type, type, title: type, visible: true, order: 0, items } as CvSection;
+  }
+  function withSections(cv: CanonicalCv, sections: CvSection[]): CanonicalCv {
+    return { ...cv, sections, display: { ...cv.display, sectionsCustomized: true } };
+  }
+  function worksOf(cv: CanonicalCv) {
+    return JSON.parse(profilePageJsonLd(cv, "s")).mainEntity["@reverse"]?.author ?? [];
+  }
+
+  it("emits a fully-formed ScholarlyArticle keyed by DOI", () => {
+    const cv = withSections(makeCv(), [
+      section([
+        mkItem({
+          id: "w1",
+          csl: {
+            id: "w1",
+            type: "article-journal",
+            title: "A fine paper",
+            "container-title": "Journal of Things",
+            DOI: "10.1234/abc",
+          },
+          meta: { doi: "10.1234/abc", year: 2023, oaIsOpen: true },
+        }),
+      ]),
+    ]);
+    const works = worksOf(cv);
+    expect(works).toEqual([
+      {
+        "@type": "ScholarlyArticle",
+        name: "A fine paper",
+        "@id": "https://doi.org/10.1234/abc",
+        identifier: "https://doi.org/10.1234/abc",
+        url: "https://doi.org/10.1234/abc",
+        sameAs: ["https://doi.org/10.1234/abc"],
+        datePublished: "2023",
+        isPartOf: { "@type": "Periodical", name: "Journal of Things" },
+        isAccessibleForFree: true,
+      },
+    ]);
+  });
+
+  it("maps the datasets section to Dataset, and software to SoftwareSourceCode", () => {
+    const cv = withSections(makeCv(), [
+      section(
+        [
+          mkItem({
+            id: "d1",
+            csl: { id: "d1", type: "dataset", title: "My dataset", DOI: "10.5281/zenodo.1" },
+            meta: { doi: "10.5281/zenodo.1" },
+          }),
+          mkItem({
+            id: "s1",
+            csl: { id: "s1", type: "article", title: "My tool", "container-title": "Ignored" },
+            meta: { type: "software" },
+          }),
+        ],
+        "datasets",
+      ),
+    ]);
+    const works = worksOf(cv);
+    expect(works.map((w: { "@type": string }) => w["@type"])).toEqual([
+      "Dataset",
+      "SoftwareSourceCode",
+    ]);
+    // isPartOf (venue) is only added for ScholarlyArticle, never for data/software.
+    expect(works[0].isPartOf).toBeUndefined();
+    expect(works[1].isPartOf).toBeUndefined();
+  });
+
+  it("normalises every DOI form and never emits a non-doi.org @id", () => {
+    const variants: Array<[string, string | undefined]> = [
+      ["10.1234/abc", "https://doi.org/10.1234/abc"],
+      ["doi:10.1234/abc", "https://doi.org/10.1234/abc"],
+      ["https://doi.org/10.1234/xyz", "https://doi.org/10.1234/xyz"],
+      ["https://dx.doi.org/10.1234/qrs", "https://doi.org/10.1234/qrs"],
+      // A foreign host carrying a DOI-shaped tail is re-hosted on doi.org (the
+      // attacker host is discarded — @id is never attacker-controllable).
+      ["https://evil.example/10.9999/x", "https://doi.org/10.9999/x"],
+      // Junk with no DOI body → no @id at all.
+      ["https://evil.example/nope", undefined],
+      ["not-a-doi", undefined],
+    ];
+    const items = variants.map(([raw], i) =>
+      mkItem({
+        id: `v${i}`,
+        csl: { id: `v${i}`, type: "article-journal", title: `T${i}`, DOI: raw },
+      }),
+    );
+    const works = worksOf(withSections(makeCv(), [section(items)]));
+    expect(works).toHaveLength(variants.length);
+    variants.forEach(([, expected], i) => {
+      expect(works[i]["@id"]).toBe(expected);
+    });
+  });
+
+  it("derives the year from CSL issued, and skips works with no title", () => {
+    const cv = withSections(makeCv(), [
+      section([
+        mkItem({
+          id: "y1",
+          csl: {
+            id: "y1",
+            type: "article-journal",
+            title: "Has issued",
+            issued: { "date-parts": [[2019, 5]] },
+          },
+        }),
+        mkItem({
+          id: "y2",
+          csl: {
+            id: "y2",
+            type: "article-journal",
+            title: "Issued string",
+            issued: { "date-parts": [["2018-03"]] },
+          },
+        }),
+        mkItem({ id: "n1", csl: { id: "n1", type: "article-journal" } }),
+      ]),
+    ]);
+    const works = worksOf(cv);
+    expect(works.map((w: { name: string }) => w.name)).toEqual(["Has issued", "Issued string"]);
+    expect(works[0].datePublished).toBe("2019");
+    expect(works[1].datePublished).toBe("2018");
+  });
+
+  it("uses the open-access URL as `url` only when there is no DOI", () => {
+    const cv = withSections(makeCv(), [
+      section([
+        mkItem({
+          id: "oa1",
+          csl: { id: "oa1", type: "article-journal", title: "OA no DOI" },
+          meta: { oaUrl: "https://repo.example/oa1.pdf", oaIsOpen: true },
+        }),
+        mkItem({
+          id: "oa2",
+          csl: { id: "oa2", type: "article-journal", title: "OA with DOI", DOI: "10.1234/withdoi" },
+          meta: { doi: "10.1234/withdoi", oaUrl: "https://repo.example/oa2.pdf" },
+        }),
+      ]),
+    ]);
+    const works = worksOf(cv);
+    expect(works[0].url).toBe("https://repo.example/oa1.pdf");
+    expect(works[0].isAccessibleForFree).toBe(true);
+    expect(works[1].url).toBe("https://doi.org/10.1234/withdoi");
+    expect(works[1].isAccessibleForFree).toBeUndefined();
+  });
+
+  it("omits @reverse, and never describes hidden or not-mine works", () => {
+    expect(JSON.parse(profilePageJsonLd(makeCv(), "s")).mainEntity["@reverse"]).toBeUndefined();
+
+    const cv = withSections(makeCv(), [
+      section([
+        mkItem({ id: "vis", csl: { id: "vis", type: "article-journal", title: "Visible" } }),
+        mkItem({
+          id: "hid",
+          included: false,
+          csl: { id: "hid", type: "article-journal", title: "Hidden" },
+        }),
+        mkItem({
+          id: "nm",
+          notMine: true,
+          csl: { id: "nm", type: "article-journal", title: "Not mine" },
+        }),
+      ]),
+    ]);
+    expect(worksOf(cv).map((w: { name: string }) => w.name)).toEqual(["Visible"]);
   });
 });
