@@ -24,9 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   smaller window it wrapped differently from the exported PDF — and on a narrow
   pane it even flipped to the stacked mobile layout. The preview now renders as a
   scaled A4 page, so line breaks, spacing, and layout are identical to what you
-  export. The print page box was unified with the on-screen one so the PDF's text
-  column lines up with the preview (only the top/bottom page margin differs, as it
-  must repeat on every printed page).
+  export. The print page box was unified with the on-screen one — the page itself
+  adds no margin and each template supplies its own gutter from its box — so the PDF
+  matches the preview edge to edge. In particular, full-bleed templates (the
+  Sidebar's coloured panel) now reach the top of the page in the PDF exactly as they
+  do on screen, instead of sitting below a white strip.
 
 ### Fixed
 
