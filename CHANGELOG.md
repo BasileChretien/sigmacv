@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **An "Our promises" trust statement.** The Transparency page now opens with a
+  short, plain list of the things SigmaCV will never do — never email your
+  co-authors on your behalf, never sell your data or show ads, never paywall your
+  own data, never inflate your numbers, never publish anything without your
+  say-so, never guess who you are from your name — closed by an open-source link
+  so anyone can verify them in the code. A one-line version, with a link to the
+  page, now also appears in the Publish panel, right at the moment you decide to
+  make your CV public. Localized in all ten languages.
+
 - **A "Font size" control in the design panel.** A new size selector (85%–120%)
   scales the whole CV's typography up or down in proportion — every section's
   headings, name, body and gaps grow or shrink together — so you can fit more on a

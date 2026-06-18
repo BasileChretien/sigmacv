@@ -49,6 +49,18 @@ export default function Transparency({ locale }: { locale: string }) {
         <h1>{s.heading}</h1>
         <p>{s.intro}</p>
 
+        <h2 id="promises">{s.promisesHeading}</h2>
+        <p className="muted">{s.promisesLead}</p>
+        <ul className="principles-list">
+          {s.promises.map((promise) => (
+            <li key={promise}>{promise}</li>
+          ))}
+        </ul>
+        <p>
+          {s.promisesVerify}{" "}
+          <a href="https://github.com/BasileChretien/sigmacv">{s.promisesVerifyLink}</a>.
+        </p>
+
         <h2>{s.sourcesHeading}</h2>
         <p className="muted">{s.sourcesLead}</p>
         <ul className="principles-list">

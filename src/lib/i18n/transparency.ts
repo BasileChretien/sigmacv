@@ -40,10 +40,35 @@ export interface TransparencyStrings {
   more: string;
   navLabel: string;
   backLink: string;
+  /** "Our promises" trust block — the inverse of the dark patterns researchers distrust. */
+  promisesHeading: string;
+  promisesLead: string;
+  /** The "we'll never…" promises, each a full sentence. */
+  promises: string[];
+  /** Open-source verifiability line (a GitHub source link is appended in the component). */
+  promisesVerify: string;
+  promisesVerifyLink: string;
+  /** Short reassurance shown in the Publish/Share panel; links to this page. */
+  publishNote: string;
 }
 
 const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
   "en-US": {
+    promisesHeading: "Our promises",
+    promisesLead: "Some things SigmaCV will never do — and a few you can always count on:",
+    promises: [
+      "We'll never email your co-authors, or anyone, on your behalf.",
+      "We'll never sell your data or show you ads.",
+      "We'll never put your own data behind a paywall — SigmaCV is free for individual researchers.",
+      "We'll never inflate your numbers: metrics are off by default and field-normalized, to support judgement rather than rankings.",
+      "We'll never publish anything without your say-so — you choose what's public, field by field, and can export or delete everything at any time.",
+      "We'll never guess who you are from your name — your work is matched by identifier (ORCID or DOI), and anything matched only by name waits for your confirmation.",
+    ],
+    promisesVerify:
+      "And because SigmaCV is open source, anyone can verify these promises in the code —",
+    promisesVerifyLink: "read the source",
+    publishNote:
+      "We never publish anything without your say-so — you control exactly what's shared.",
     metaTitle: "Transparency",
     metaDescription:
       "Where SigmaCV gets your CV data, how it decides what to include, how often a published CV refreshes, and what it logs — nothing, by default.",
@@ -76,6 +101,19 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Back to SigmaCV",
   },
   "zh-CN": {
+    promisesHeading: "我们的承诺",
+    promisesLead: "SigmaCV 永远不会做的一些事——以及一些你始终可以信赖的事：",
+    promises: [
+      "我们绝不会以你的名义向你的合作者或任何人发送邮件。",
+      "我们绝不会出售你的数据或向你展示广告。",
+      "我们绝不会把你自己的数据放在付费墙后——SigmaCV 对个人研究者免费。",
+      "我们绝不会夸大你的数字：指标默认关闭并经过领域标准化，用以支持判断而非排名。",
+      "未经你的同意，我们绝不会发布任何内容——你可以逐项选择公开哪些信息，并可随时导出或删除全部数据。",
+      "我们绝不会根据姓名来猜测你是谁——你的成果通过标识符（ORCID 或 DOI）匹配，仅凭姓名匹配的内容会等待你确认。",
+    ],
+    promisesVerify: "而且由于 SigmaCV 是开源的，任何人都可以在代码中验证这些承诺——",
+    promisesVerifyLink: "查看源代码",
+    publishNote: "未经你的同意，我们绝不会发布任何内容——你完全掌控分享的内容。",
     metaTitle: "透明度",
     metaDescription:
       "SigmaCV 从哪里获取你的简历数据、如何决定包含哪些内容、已发布简历多久刷新一次，以及它记录了什么——默认情况下什么都不记录。",
@@ -107,6 +145,22 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← 返回 SigmaCV",
   },
   "es-ES": {
+    promisesHeading: "Nuestras promesas",
+    promisesLead:
+      "Algunas cosas que SigmaCV nunca hará, y otras con las que siempre puedes contar:",
+    promises: [
+      "Nunca escribiremos a tus coautores, ni a nadie, en tu nombre.",
+      "Nunca venderemos tus datos ni te mostraremos anuncios.",
+      "Nunca pondremos tus propios datos tras un muro de pago: SigmaCV es gratuito para investigadores individuales.",
+      "Nunca inflaremos tus cifras: las métricas están desactivadas por defecto y normalizadas por campo, para apoyar el juicio y no los rankings.",
+      "Nunca publicaremos nada sin tu consentimiento: tú eliges qué es público, campo por campo, y puedes exportar o eliminar todo en cualquier momento.",
+      "Nunca adivinaremos quién eres a partir de tu nombre: tu trabajo se vincula por identificador (ORCID o DOI), y lo que solo coincide por nombre espera tu confirmación.",
+    ],
+    promisesVerify:
+      "Y como SigmaCV es de código abierto, cualquiera puede verificar estas promesas en el código:",
+    promisesVerifyLink: "ver el código",
+    publishNote:
+      "Nunca publicamos nada sin tu consentimiento: tú controlas exactamente qué se comparte.",
     metaTitle: "Transparencia",
     metaDescription:
       "De dónde obtiene SigmaCV los datos de tu CV, cómo decide qué incluir, con qué frecuencia se actualiza un CV publicado y qué registra: nada, por defecto.",
@@ -142,6 +196,22 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Volver a SigmaCV",
   },
   "fr-FR": {
+    promisesHeading: "Nos engagements",
+    promisesLead:
+      "Quelques choses que SigmaCV ne fera jamais — et d'autres sur lesquelles vous pouvez toujours compter :",
+    promises: [
+      "Nous n'écrirons jamais à vos coauteurs, ni à qui que ce soit, en votre nom.",
+      "Nous ne vendrons jamais vos données et ne vous afficherons jamais de publicité.",
+      "Nous ne mettrons jamais vos propres données derrière un péage — SigmaCV est gratuit pour les chercheurs individuels.",
+      "Nous ne gonflerons jamais vos chiffres : les indicateurs sont désactivés par défaut et normalisés par domaine, pour soutenir le jugement plutôt que les classements.",
+      "Nous ne publierons jamais rien sans votre accord — vous choisissez ce qui est public, champ par champ, et pouvez tout exporter ou supprimer à tout moment.",
+      "Nous ne devinerons jamais qui vous êtes d'après votre nom — vos travaux sont rattachés par identifiant (ORCID ou DOI), et tout ce qui n'est associé que par le nom attend votre confirmation.",
+    ],
+    promisesVerify:
+      "Et comme SigmaCV est open source, chacun peut vérifier ces engagements dans le code —",
+    promisesVerifyLink: "voir le code source",
+    publishNote:
+      "Nous ne publions jamais rien sans votre accord — vous contrôlez exactement ce qui est partagé.",
     metaTitle: "Transparence",
     metaDescription:
       "D'où SigmaCV tire les données de votre CV, comment il décide quoi inclure, à quelle fréquence un CV publié se met à jour et ce qu'il enregistre : rien, par défaut.",
@@ -176,6 +246,22 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Retour à SigmaCV",
   },
   "de-DE": {
+    promisesHeading: "Unsere Versprechen",
+    promisesLead:
+      "Einige Dinge, die SigmaCV niemals tun wird – und einige, auf die du dich immer verlassen kannst:",
+    promises: [
+      "Wir schreiben niemals deinen Koautorinnen und Koautoren oder irgendjemandem in deinem Namen.",
+      "Wir verkaufen niemals deine Daten und zeigen dir keine Werbung.",
+      "Wir stellen deine eigenen Daten niemals hinter eine Bezahlschranke – SigmaCV ist für einzelne Forschende kostenlos.",
+      "Wir blähen deine Zahlen niemals auf: Kennzahlen sind standardmäßig aus und feldnormalisiert, um Urteilsvermögen statt Rankings zu unterstützen.",
+      "Wir veröffentlichen niemals etwas ohne deine Zustimmung – du bestimmst Feld für Feld, was öffentlich ist, und kannst jederzeit alles exportieren oder löschen.",
+      "Wir erraten niemals anhand deines Namens, wer du bist – deine Arbeiten werden über Kennungen (ORCID oder DOI) zugeordnet, und alles, was nur über den Namen passt, wartet auf deine Bestätigung.",
+    ],
+    promisesVerify:
+      "Und weil SigmaCV quelloffen ist, kann jede Person diese Versprechen im Code überprüfen –",
+    promisesVerifyLink: "den Quellcode ansehen",
+    publishNote:
+      "Wir veröffentlichen niemals etwas ohne deine Zustimmung – du steuerst genau, was geteilt wird.",
     metaTitle: "Transparenz",
     metaDescription:
       "Woher SigmaCV die Daten deines Lebenslaufs bezieht, wie es entscheidet, was aufgenommen wird, wie oft ein veröffentlichter Lebenslauf aktualisiert wird und was es protokolliert – standardmäßig nichts.",
@@ -210,6 +296,21 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Zurück zu SigmaCV",
   },
   "ja-JP": {
+    promisesHeading: "私たちの約束",
+    promisesLead: "SigmaCV が決して行わないこと、そしていつでも信頼できることをいくつか：",
+    promises: [
+      "あなたの名義で、共著者や誰かにメールを送ることは決してありません。",
+      "あなたのデータを販売したり、広告を表示したりすることは決してありません。",
+      "あなた自身のデータを有料の壁の内側に置くことは決してありません——SigmaCV は個人の研究者には無料です。",
+      "あなたの数値を水増しすることは決してありません。指標は既定でオフ、かつ分野で正規化されており、ランキングではなく判断を支えます。",
+      "あなたの同意なしに何かを公開することは決してありません——何を公開するかを項目ごとに選べ、いつでもすべてをエクスポートまたは削除できます。",
+      "名前からあなたが誰かを推測することは決してありません——あなたの業績は識別子（ORCID または DOI）で照合され、名前だけで一致したものは確認待ちになります。",
+    ],
+    promisesVerify:
+      "そして SigmaCV はオープンソースなので、誰でもこれらの約束をコードで検証できます——",
+    promisesVerifyLink: "ソースを見る",
+    publishNote:
+      "あなたの同意なしに公開することは決してありません——共有する内容はあなたが完全に管理します。",
     metaTitle: "透明性",
     metaDescription:
       "SigmaCV があなたの CV データをどこから取得し、何を含めるかをどう判断し、公開された CV がどのくらいの頻度で更新され、何を記録するか——既定では何も記録しません。",
@@ -242,6 +343,22 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← SigmaCV に戻る",
   },
   "pt-BR": {
+    promisesHeading: "Nossos compromissos",
+    promisesLead:
+      "Algumas coisas que o SigmaCV nunca fará — e outras com que você sempre pode contar:",
+    promises: [
+      "Nunca enviaremos e-mails aos seus coautores, nem a ninguém, em seu nome.",
+      "Nunca venderemos seus dados nem mostraremos anúncios.",
+      "Nunca colocaremos seus próprios dados atrás de um paywall — o SigmaCV é gratuito para pesquisadores individuais.",
+      "Nunca inflaremos seus números: as métricas ficam desativadas por padrão e normalizadas por área, para apoiar o julgamento e não rankings.",
+      "Nunca publicaremos nada sem o seu consentimento — você escolhe o que é público, campo por campo, e pode exportar ou excluir tudo a qualquer momento.",
+      "Nunca adivinharemos quem você é pelo seu nome — seu trabalho é vinculado por identificador (ORCID ou DOI), e o que só corresponde pelo nome aguarda a sua confirmação.",
+    ],
+    promisesVerify:
+      "E como o SigmaCV é de código aberto, qualquer pessoa pode verificar esses compromissos no código —",
+    promisesVerifyLink: "ver o código",
+    publishNote:
+      "Nunca publicamos nada sem o seu consentimento — você controla exatamente o que é compartilhado.",
     metaTitle: "Transparência",
     metaDescription:
       "De onde o SigmaCV obtém os dados do seu currículo, como decide o que incluir, com que frequência um currículo publicado é atualizado e o que registra — nada, por padrão.",
@@ -277,6 +394,21 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Voltar ao SigmaCV",
   },
   "it-IT": {
+    promisesHeading: "I nostri impegni",
+    promisesLead: "Alcune cose che SigmaCV non farà mai — e altre su cui puoi sempre contare:",
+    promises: [
+      "Non scriveremo mai ai tuoi coautori, né a nessun altro, a tuo nome.",
+      "Non venderemo mai i tuoi dati né ti mostreremo pubblicità.",
+      "Non metteremo mai i tuoi dati dietro un paywall — SigmaCV è gratuito per i singoli ricercatori.",
+      "Non gonfieremo mai i tuoi numeri: le metriche sono disattivate per impostazione predefinita e normalizzate per disciplina, per sostenere il giudizio e non le classifiche.",
+      "Non pubblicheremo mai nulla senza il tuo consenso — scegli tu cosa è pubblico, campo per campo, e puoi esportare o eliminare tutto in qualsiasi momento.",
+      "Non indovineremo mai chi sei dal tuo nome — i tuoi lavori sono associati tramite identificatore (ORCID o DOI), e ciò che corrisponde solo per nome attende la tua conferma.",
+    ],
+    promisesVerify:
+      "E poiché SigmaCV è open source, chiunque può verificare questi impegni nel codice —",
+    promisesVerifyLink: "vedi il codice",
+    publishNote:
+      "Non pubblichiamo mai nulla senza il tuo consenso — controlli esattamente ciò che viene condiviso.",
     metaTitle: "Trasparenza",
     metaDescription:
       "Da dove SigmaCV ottiene i dati del tuo CV, come decide cosa includere, con quale frequenza un CV pubblicato si aggiorna e cosa registra: nulla, per impostazione predefinita.",
@@ -311,6 +443,21 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Torna a SigmaCV",
   },
   "ko-KR": {
+    promisesHeading: "우리의 약속",
+    promisesLead: "SigmaCV가 절대 하지 않는 것들, 그리고 언제나 믿을 수 있는 것들:",
+    promises: [
+      "당신의 이름으로 공동저자나 그 누구에게도 절대 이메일을 보내지 않습니다.",
+      "당신의 데이터를 판매하거나 광고를 보여주지 않습니다.",
+      "당신의 데이터를 유료 장벽 뒤에 두지 않습니다 — SigmaCV는 개인 연구자에게 무료입니다.",
+      "당신의 수치를 부풀리지 않습니다: 지표는 기본적으로 꺼져 있고 분야별로 정규화되어, 순위가 아니라 판단을 돕습니다.",
+      "당신의 동의 없이 어떤 것도 공개하지 않습니다 — 무엇을 공개할지 항목별로 선택할 수 있고, 언제든 모든 데이터를 내보내거나 삭제할 수 있습니다.",
+      "이름으로 당신이 누구인지 추측하지 않습니다 — 당신의 성과는 식별자(ORCID 또는 DOI)로 연결되며, 이름만으로 일치한 항목은 당신의 확인을 기다립니다.",
+    ],
+    promisesVerify:
+      "그리고 SigmaCV는 오픈 소스이므로 누구나 코드에서 이 약속들을 확인할 수 있습니다 —",
+    promisesVerifyLink: "소스 보기",
+    publishNote:
+      "당신의 동의 없이 어떤 것도 공개하지 않습니다 — 무엇을 공유할지 당신이 완전히 통제합니다.",
     metaTitle: "투명성",
     metaDescription:
       "SigmaCV가 당신의 CV 데이터를 어디서 가져오는지, 무엇을 포함할지 어떻게 결정하는지, 게시된 CV가 얼마나 자주 갱신되는지, 그리고 무엇을 기록하는지 — 기본적으로는 아무것도 기록하지 않습니다.",
@@ -343,6 +490,22 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← SigmaCV로 돌아가기",
   },
   "ru-RU": {
+    promisesHeading: "Наши обязательства",
+    promisesLead:
+      "Несколько вещей, которые SigmaCV никогда не сделает, — и те, на которые вы всегда можете рассчитывать:",
+    promises: [
+      "Мы никогда не будем писать вашим соавторам или кому-либо ещё от вашего имени.",
+      "Мы никогда не будем продавать ваши данные и показывать вам рекламу.",
+      "Мы никогда не спрячем ваши собственные данные за платный доступ — SigmaCV бесплатен для отдельных исследователей.",
+      "Мы никогда не будем завышать ваши показатели: метрики по умолчанию отключены и нормализованы по области, чтобы поддерживать суждение, а не рейтинги.",
+      "Мы никогда не опубликуем ничего без вашего согласия — вы выбираете, что является публичным, по каждому полю, и можете в любой момент экспортировать или удалить все данные.",
+      "Мы никогда не будем угадывать, кто вы, по вашему имени — ваши работы сопоставляются по идентификатору (ORCID или DOI), а то, что совпало только по имени, ждёт вашего подтверждения.",
+    ],
+    promisesVerify:
+      "И поскольку SigmaCV имеет открытый исходный код, любой может проверить эти обязательства в коде —",
+    promisesVerifyLink: "посмотреть исходный код",
+    publishNote:
+      "Мы никогда не публикуем ничего без вашего согласия — вы полностью контролируете, чем делиться.",
     metaTitle: "Прозрачность",
     metaDescription:
       "Откуда SigmaCV берёт данные вашего резюме, как решает, что включить, как часто обновляется опубликованное резюме и что он регистрирует — по умолчанию ничего.",

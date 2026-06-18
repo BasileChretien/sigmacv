@@ -24,4 +24,18 @@ describe("transparencyStrings", () => {
       expect(transparencyStrings(loc).logBody).toContain("IRB");
     }
   });
+
+  it("provides a populated 'Our promises' set + publish note for every locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = transparencyStrings(loc);
+      expect(s.promises.length, loc).toBeGreaterThanOrEqual(6);
+      expect(
+        s.promises.every((p) => p.trim().length > 0),
+        loc,
+      ).toBe(true);
+      expect(s.promisesHeading.trim().length, loc).toBeGreaterThan(0);
+      expect(s.publishNote.trim().length, loc).toBeGreaterThan(0);
+      expect(s.promisesVerifyLink.trim().length, loc).toBeGreaterThan(0);
+    }
+  });
 });

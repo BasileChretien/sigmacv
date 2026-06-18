@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
+import { transparencyStrings } from "@/lib/i18n/transparency";
+import { localeTransparencyPath } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics/track";
 
 interface PublicContactFlags {
@@ -54,6 +56,7 @@ export default function PublishControls({
 }: PublishControlsProps) {
   const u = ui(locale);
   const eu = editorUi(locale);
+  const ts = transparencyStrings(locale);
   const [published, setPublished] = useState(initialPublished);
   const [slug, setSlug] = useState(initialSlug);
   const [indexable, setIndexable] = useState(initialIndexable);
@@ -121,6 +124,15 @@ export default function PublishControls({
       {/* What publishing exposes — shown BEFORE the toggle is flipped, so the
           (irreversible-feeling) public exposure is a fully-informed choice. */}
       <p className="publish-summary muted">{u.publicSummary}</p>
+      {/* A quiet trust reassurance at the moment of the public-data decision, with a
+          link to the full "Our promises" / transparency page (opens in a new tab so
+          the editor state is preserved). */}
+      <p className="publish-summary muted">
+        {ts.publishNote}{" "}
+        <a href={localeTransparencyPath(locale)} target="_blank" rel="noreferrer">
+          {ts.promisesHeading}
+        </a>
+      </p>
       {/* Publish failure: a VISIBLE assertive alert (was a visually-hidden polite
           region — a sighted user only saw the checkbox snap back, with no message,
           and an error the user must act on shouldn't queue behind other speech). */}
