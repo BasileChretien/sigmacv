@@ -234,7 +234,7 @@ export const meshTemplate: CvTemplate = {
       `<div class="mesh-progress" aria-hidden="true"></div>` +
       `<div class="mesh-card">` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(sections) +
+      sectionsHtml(cv, sections) +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);

@@ -100,7 +100,7 @@ export const classicTemplate: CvTemplate = {
   render(cv, sections, theme, opts) {
     const css = commonCss(theme) + classicCss(theme);
     // Text-first: omit the photo (no `{ photo: true }`).
-    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}</div>`;
+    const body = `<div class="cv">${headerHtml(cv)}${sectionsHtml(cv, sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}</div>`;
     return cvPageShell(cv, css, body);
   },
 };

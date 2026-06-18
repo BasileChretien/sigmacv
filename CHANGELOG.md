@@ -41,6 +41,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Move — or hide — the research summary.** The block under your name (the metrics
+  strip, the publications-per-year chart and the authorship breakdown) now has a
+  placement control: keep it in the header (the default, unchanged), give it its own
+  titled section right after your summary, push it to the end of the CV, or hide it
+  entirely. When it stands on its own it gets a real heading (default "Research
+  summary", and you can rename it), so it reads as its own section and is reachable
+  by screen-reader heading navigation instead of being buried in the page header.
+  Existing CVs are unaffected until you change the setting. Localized in all ten
+  languages.
+
 - **A gentle nudge away from a metrics-heavy header.** The editor's metrics
   section now opens with a short, DORA-aligned line — metrics are optional, and
   readers tend to weigh your narrative and the work itself over scores, so show

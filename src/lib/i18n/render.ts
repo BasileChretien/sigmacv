@@ -35,6 +35,9 @@ export interface RenderStrings {
   /** Profile-level open-access label (the metric-row term, e.g. "Open access");
    *  the percentage value is formatted separately at render time. */
   openAccessLabel: string;
+  /** Default heading for the research-summary block when it renders as its own
+   *  section ("top"/"bottom" placement) and the user left the heading blank. */
+  researchSummaryHeading: string;
   /** Inline "Retracted" badge label on a retracted publication entry. */
   badgeRetracted: string;
   /** Accessible title/tooltip for the retracted badge. */
@@ -99,6 +102,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open access ({status})",
     openAccessLabel: "Open access",
+    researchSummaryHeading: "Research summary",
     badgeRetracted: "Retracted",
     badgeRetractedTitle: "This work has been retracted (per Crossref / Retraction Watch)",
     badgeCitations: "{n} citations",
@@ -147,6 +151,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "开放获取（{status}）",
     openAccessLabel: "开放获取",
+    researchSummaryHeading: "研究概要",
     badgeRetracted: "已撤稿",
     badgeRetractedTitle: "该成果已被撤稿（依据 Crossref／Retraction Watch）",
     badgeCitations: "被引 {n}",
@@ -196,6 +201,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acceso abierto ({status})",
     openAccessLabel: "Acceso abierto",
+    researchSummaryHeading: "Resumen de investigación",
     badgeRetracted: "Retractado",
     badgeRetractedTitle: "Este trabajo ha sido retractado (según Crossref / Retraction Watch)",
     badgeCitations: "{n} citas",
@@ -247,6 +253,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accès libre ({status})",
     openAccessLabel: "Accès libre",
+    researchSummaryHeading: "Synthèse de recherche",
     badgeRetracted: "Rétracté",
     badgeRetractedTitle: "Ce travail a été rétracté (selon Crossref / Retraction Watch)",
     badgeCitations: "{n} citations",
@@ -299,6 +306,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Open Access ({status})",
     openAccessLabel: "Open Access",
+    researchSummaryHeading: "Forschungsüberblick",
     badgeRetracted: "Zurückgezogen",
     badgeRetractedTitle: "Diese Arbeit wurde zurückgezogen (laut Crossref / Retraction Watch)",
     badgeCitations: "{n} Zitationen",
@@ -349,6 +357,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "オープンアクセス（{status}）",
     openAccessLabel: "オープンアクセス",
+    researchSummaryHeading: "研究サマリー",
     badgeRetracted: "撤回済み",
     badgeRetractedTitle: "この成果は撤回されています（Crossref／Retraction Watch による）",
     badgeCitations: "被引用 {n}",
@@ -398,6 +407,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Acesso aberto ({status})",
     openAccessLabel: "Acesso aberto",
+    researchSummaryHeading: "Resumo da pesquisa",
     badgeRetracted: "Retratado",
     badgeRetractedTitle: "Este trabalho foi retratado (segundo o Crossref / Retraction Watch)",
     badgeCitations: "{n} citações",
@@ -450,6 +460,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Accesso aperto ({status})",
     openAccessLabel: "Accesso aperto",
+    researchSummaryHeading: "Sintesi della ricerca",
     badgeRetracted: "Ritirato",
     badgeRetractedTitle: "Questo lavoro è stato ritirato (secondo Crossref / Retraction Watch)",
     badgeCitations: "{n} citazioni",
@@ -500,6 +511,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "오픈 액세스 ({status})",
     openAccessLabel: "오픈 액세스",
+    researchSummaryHeading: "연구 요약",
     badgeRetracted: "철회됨",
     badgeRetractedTitle: "이 성과는 철회되었습니다 (Crossref / Retraction Watch 기준)",
     badgeCitations: "인용 {n}회",
@@ -548,6 +560,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeOpenAccess: "OA",
     badgeOpenAccessTitle: "Открытый доступ ({status})",
     openAccessLabel: "Открытый доступ",
+    researchSummaryHeading: "Сводка исследований",
     badgeRetracted: "Отозвано",
     badgeRetractedTitle: "Эта работа была отозвана (по данным Crossref / Retraction Watch)",
     badgeCitations: "{n} цитирований",
