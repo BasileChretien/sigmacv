@@ -73,7 +73,12 @@ export function safeHref(url: string | undefined | null): string {
  * credential a user pasted into a profile link / website can't leak into the
  * rendered or exported CV. Total: a URL without userinfo (or a plain text label,
  * or a `mailto:` with no `//`) is returned unchanged.
+ *
+ * The userinfo class is `[^/?#]*` (NOT `[^/?#@]*`): it must match greedily up to the
+ * LAST `@` in the authority, so a password that itself contains `@` (e.g.
+ * `https://user:pa@ss@host/p`) is stripped in full rather than leaving `ss@host`. A
+ * `/?#` still bounds the authority, so an `@` in the path/query is never touched.
  */
 export function displayUrl(url: string): string {
-  return url.replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/?#@]*@/i, "$1");
+  return url.replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/?#]*@/i, "$1");
 }
