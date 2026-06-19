@@ -25,6 +25,12 @@ export interface DataciteOutput {
    * Omitted when there are none.
    */
   relatedDois?: string[];
+  /**
+   * The deposit's creators (in order) — name plus the bare ORCID when registered.
+   * Used to show the authors on the entry and to highlight the account holder's
+   * own name. Omitted when DataCite lists none.
+   */
+  creators?: { name: string; orcid?: string }[];
 }
 
 // DataCite relationType values that mark the same deposit under another DOI
@@ -68,6 +74,30 @@ function publisherName(v: unknown): string | undefined {
 function bareDoiLower(s: unknown): string | undefined {
   const raw = nonEmpty(s);
   return raw ? raw.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "").toLowerCase() : undefined;
+}
+
+/** The deposit's creators (name + bare ORCID when present), in order, capped. */
+function creatorsOf(attr: any): { name: string; orcid?: string }[] {
+  const cs = Array.isArray(attr?.creators) ? attr.creators : [];
+  const out: { name: string; orcid?: string }[] = [];
+  for (const c of cs.slice(0, 50)) {
+    const name =
+      nonEmpty(c?.name) ??
+      [nonEmpty(c?.givenName), nonEmpty(c?.familyName)].filter(Boolean).join(" ");
+    if (!name) continue;
+    const ids = Array.isArray(c?.nameIdentifiers) ? c.nameIdentifiers : [];
+    let orcid: string | undefined;
+    for (const n of ids) {
+      const scheme = nonEmpty(n?.nameIdentifierScheme)?.toLowerCase();
+      const raw = nonEmpty(n?.nameIdentifier);
+      if (raw && (scheme === "orcid" || /orcid\.org/i.test(raw))) {
+        orcid = normalizeOrcid(raw);
+        break;
+      }
+    }
+    out.push(orcid ? { name, orcid } : { name });
+  }
+  return out;
 }
 
 /** Sibling DOIs (concept↔version / identical) of a DataCite record, deduped. */
@@ -124,6 +154,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
       const yearRaw = attr?.publicationYear;
       const year = Number.isFinite(Number(yearRaw)) ? Number(yearRaw) : undefined;
       const relatedDois = relatedDoisOf(attr);
+      const creators = creatorsOf(attr);
       out.push({
         doi,
         title,
@@ -131,6 +162,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
         year,
         publisher: publisherName(attr?.publisher),
         ...(relatedDois.length ? { relatedDois } : {}),
+        ...(creators.length ? { creators } : {}),
       });
     }
     return out;

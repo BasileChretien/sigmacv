@@ -114,12 +114,41 @@ function doiUrl(doi: string): string {
   return `https://doi.org/${doi.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "")}`;
 }
 
-/** "<title>. <publisher> (<year>) [<type>]. <doi-url>" for a DataCite output. The
- *  DOI is shown verbatim and linkified in HTML (see render/html.ts `withDoiLink`). */
+/** "Family, G." for a creator name ("Family, Given" or "Given Family"); the raw
+ *  name when it can't be split. */
+function abbrevCreator(name: string): string {
+  const n = toCslName(name);
+  if (n.family && n.given) {
+    const initials = n.given
+      .split(/[\s.-]+/)
+      .filter(Boolean)
+      .map((p) => `${p[0]!.toUpperCase()}.`)
+      .join(" ");
+    return `${n.family}, ${initials}`;
+  }
+  return n.family || name;
+}
+
+/** Author list for a DataCite/OpenAIRE entry: up to 6 abbreviated names, then
+ *  "et al."; "" when there are none. */
+function formatCreators(creators: { name: string }[] | undefined): string {
+  if (!creators?.length) return "";
+  const names = creators.slice(0, 6).map((c) => abbrevCreator(c.name));
+  if (creators.length > 6) return `${names.join(", ")}, et al.`;
+  if (names.length === 1) return names[0]!;
+  return `${names.slice(0, -1).join(", ")}, & ${names[names.length - 1]}`;
+}
+
+/** "<authors>. <title>. <publisher> (<year>) [<type>]. <doi-url>" for a DataCite
+ *  output. The DOI is shown verbatim and linkified in HTML (see render/html.ts
+ *  `withDoiLink`). */
 function formatDatasetText(o: DataciteOutput): string {
+  const authors = formatCreators(o.creators);
   const head = o.publisher ? `${o.title}. ${o.publisher}` : o.title;
   const yr = o.year ? ` (${o.year})` : "";
-  return `${head}${yr} [${o.type}]. ${doiUrl(o.doi)}`;
+  const body = `${head}${yr} [${o.type}]. ${doiUrl(o.doi)}`;
+  // Abbreviated names already end with "." (initials) — avoid a doubled period.
+  return authors ? `${authors}${/[.!?]$/.test(authors) ? "" : "."} ${body}` : body;
 }
 
 /** "<title>. <publisher> (<year>) [<type>]. <doi-url>" for an OpenAIRE output
@@ -181,6 +210,7 @@ function buildDatasetsSection(
   prevItems: Map<string, CvItem>,
   manual: CvItem[],
   now: string,
+  ownerOrcid: string,
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
@@ -205,7 +235,13 @@ function buildDatasetsSection(
       o.year,
       { lastVerifiedAt: now },
     );
-    items.push({ ...it, meta: { ...it.meta, doi: o.doi } });
+    // Highlight the account holder's name when their ORCID is among the creators
+    // (identifier-driven). Use the CREATOR's printed name — not the owner profile
+    // name — so the variants match this deposit's rendered spelling exactly (e.g.
+    // "Chretien" without the accent the owner profile carries).
+    const selfCreator = o.creators?.find((c) => c.orcid && c.orcid === ownerOrcid);
+    const selfNameVariants = selfCreator ? nameVariants(selfCreator.name) : [];
+    items.push({ ...it, selfNameVariants, meta: { ...it.meta, doi: o.doi } });
   }
   const oaSorted = [...openaireOutputs].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
   for (const o of oaSorted) {
@@ -1679,6 +1715,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     prevItems,
     [],
     now,
+    ownerOrcid,
   );
   const conferenceSection = buildConferenceSection(
     args.dblpConferencePapers ?? [],

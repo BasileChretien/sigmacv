@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Datasets & Software entries now show their authors (and highlight yours).** A
+  Zenodo deposit (a dataset or a software release) was listed as just its title,
+  publisher, year, type and DOI — with **no authors at all**, so your own name
+  never appeared. The creators are now read from DataCite and shown as an
+  abbreviated author list (e.g. "Chrétien, B."), and when your ORCID is among them
+  your name is highlighted like on any other work. Takes effect on your next re-sync.
+
 - **Your name is now highlighted on ORCID-listed papers OpenAlex split across
   profiles.** OpenAlex sometimes attributes one of your papers to an orphan author
   profile (no ORCID, a different author id) — so even though the paper is yours
