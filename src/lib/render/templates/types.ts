@@ -32,8 +32,8 @@ export interface TemplateTheme {
   nameSizeRem: number;
   /** CSS declarations for `.cv-self` (from the highlight-style choice). */
   selfHighlightCss: string;
-  /** Paper size emitted into the `@page` rule ("A4" | "letter"). */
-  pageSize: string;
+  /** Paper size emitted into the `@page` rule (a CSS `@page` size keyword). */
+  pageSize: "A4" | "letter";
 }
 
 /**

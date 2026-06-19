@@ -41,6 +41,14 @@ describe("page format (display.pageFormat)", () => {
       CanonicalCvSchema.safeParse(updateDisplay(makeCv(), { pageFormat: "letter" })).success,
     ).toBe(true);
   });
+
+  it("rejects an unknown pageFormat (enum-validated)", () => {
+    const bad = {
+      ...makeCv(),
+      display: { ...makeCv().display, pageFormat: "tabloid" as unknown as "a4" },
+    };
+    expect(CanonicalCvSchema.safeParse(bad).success).toBe(false);
+  });
 });
 
 describe("preview width follows the page format", () => {
