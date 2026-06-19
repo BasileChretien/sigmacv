@@ -560,6 +560,15 @@ const EN = {
   linkLabelHint:
     "Optional — links to GitHub, LinkedIn, ORCID and other known services are recognised and labelled automatically.",
   rirekishoDetails: "Japanese CV (rirekisho) details",
+  importJsonResume: "Import from JSON Resume",
+  importJsonResumeHint:
+    "Have a résumé in the jsonresume.org format? This adds its work history, education, skills, awards, languages, volunteering, projects and references, and fills any empty profile fields. It never overwrites your existing data, and skips publications (those come from your research sources).",
+  importChooseFile: "Choose a .json file…",
+  importPastePlaceholder: "…or paste JSON Resume here",
+  importButton: "Import",
+  importSuccess: "Imported:",
+  importNothing: "Nothing to import — that résumé had no entries to add.",
+  importError: "Couldn't read that — make sure it's a valid JSON Resume (jsonresume.org).",
   privateNotes: "Private notes",
   privateNotesHint: "Only you can see these — never shown on your CV, exports, or public page.",
   furigana: "Name (furigana)",
@@ -697,6 +706,15 @@ const ZH: Record<ChromeKey, string> = {
   linkUrl: "网址",
   linkLabelHint: "可选——指向 GitHub、LinkedIn、ORCID 等已知服务的链接会被自动识别并加标签。",
   rirekishoDetails: "日式简历（履历书）信息",
+  importJsonResume: "从 JSON Resume 导入",
+  importJsonResumeHint:
+    "有 jsonresume.org 格式的简历吗？可导入其工作经历、教育、技能、奖项、语言、志愿服务、项目和推荐人，并填充任何空白的个人资料字段。绝不会覆盖你已有的数据，且会跳过论文（论文来自你的科研数据源）。",
+  importChooseFile: "选择 .json 文件…",
+  importPastePlaceholder: "…或在此粘贴 JSON Resume",
+  importButton: "导入",
+  importSuccess: "已导入：",
+  importNothing: "没有可导入的内容——该简历没有可添加的条目。",
+  importError: "无法读取——请确认这是有效的 JSON Resume（jsonresume.org）。",
   privateNotes: "私人备注",
   privateNotesHint: "仅你可见——绝不会出现在你的简历、导出文件或公开页面上。",
   furigana: "姓名（假名读音）",
@@ -835,6 +853,15 @@ const ES: Record<ChromeKey, string> = {
   linkLabelHint:
     "Opcional: los enlaces a GitHub, LinkedIn, ORCID y otros servicios conocidos se reconocen y etiquetan automáticamente.",
   rirekishoDetails: "Datos del CV japonés (rirekisho)",
+  importJsonResume: "Importar desde JSON Resume",
+  importJsonResumeHint:
+    "¿Tienes un CV en el formato jsonresume.org? Añade su experiencia laboral, educación, competencias, premios, idiomas, voluntariado, proyectos y referencias, y rellena los campos de perfil vacíos. Nunca sobrescribe tus datos y omite las publicaciones (esas provienen de tus fuentes de investigación).",
+  importChooseFile: "Elegir un archivo .json…",
+  importPastePlaceholder: "…o pega aquí el JSON Resume",
+  importButton: "Importar",
+  importSuccess: "Importado:",
+  importNothing: "No hay nada que importar: ese CV no tenía entradas para añadir.",
+  importError: "No se pudo leer: asegúrate de que es un JSON Resume válido (jsonresume.org).",
   privateNotes: "Notas privadas",
   privateNotesHint:
     "Solo tú las ves: nunca aparecen en tu CV, en las exportaciones ni en la página pública.",
@@ -976,6 +1003,16 @@ const FR: Record<ChromeKey, string> = {
   linkLabelHint:
     "Facultatif — les liens vers GitHub, LinkedIn, ORCID et d’autres services connus sont reconnus et étiquetés automatiquement.",
   rirekishoDetails: "Détails CV japonais (rirekisho)",
+  importJsonResume: "Importer depuis JSON Resume",
+  importJsonResumeHint:
+    "Vous avez un CV au format jsonresume.org ? Cela ajoute son expérience professionnelle, sa formation, ses compétences, ses distinctions, ses langues, son bénévolat, ses projets et ses références, et remplit les champs de profil vides. Vos données existantes ne sont jamais écrasées, et les publications sont ignorées (elles proviennent de vos sources de recherche).",
+  importChooseFile: "Choisir un fichier .json…",
+  importPastePlaceholder: "…ou collez ici le JSON Resume",
+  importButton: "Importer",
+  importSuccess: "Importé :",
+  importNothing: "Rien à importer — ce CV ne contenait aucune entrée à ajouter.",
+  importError:
+    "Lecture impossible — vérifiez qu'il s'agit d'un JSON Resume valide (jsonresume.org).",
   privateNotes: "Notes privées",
   privateNotesHint:
     "Vous seul les voyez — jamais affichées sur votre CV, vos exports ou votre page publique.",
@@ -1117,6 +1154,16 @@ const DE: Record<ChromeKey, string> = {
   linkLabelHint:
     "Optional – Links zu GitHub, LinkedIn, ORCID und anderen bekannten Diensten werden automatisch erkannt und beschriftet.",
   rirekishoDetails: "Angaben zum japanischen Lebenslauf (Rirekisho)",
+  importJsonResume: "Aus JSON Resume importieren",
+  importJsonResumeHint:
+    "Du hast einen Lebenslauf im jsonresume.org-Format? Damit werden Berufserfahrung, Ausbildung, Fähigkeiten, Auszeichnungen, Sprachen, Ehrenamt, Projekte und Referenzen übernommen und leere Profilfelder ausgefüllt. Vorhandene Daten werden nie überschrieben, und Publikationen werden übersprungen (die stammen aus deinen Forschungsquellen).",
+  importChooseFile: "Eine .json-Datei wählen…",
+  importPastePlaceholder: "…oder JSON Resume hier einfügen",
+  importButton: "Importieren",
+  importSuccess: "Importiert:",
+  importNothing: "Nichts zu importieren — dieser Lebenslauf enthielt keine hinzufügbaren Einträge.",
+  importError:
+    "Konnte nicht gelesen werden — stelle sicher, dass es ein gültiges JSON Resume ist (jsonresume.org).",
   privateNotes: "Private Notizen",
   privateNotesHint:
     "Nur du siehst sie — niemals auf deinem Lebenslauf, in Exporten oder auf der öffentlichen Seite.",
@@ -1258,6 +1305,15 @@ const JA: Record<ChromeKey, string> = {
   linkLabelHint:
     "任意 — GitHub・LinkedIn・ORCID など既知のサービスへのリンクは自動的に認識してラベル付けします。",
   rirekishoDetails: "履歴書の個人情報",
+  importJsonResume: "JSON Resume から取り込む",
+  importJsonResumeHint:
+    "jsonresume.org 形式の履歴書はありますか？職歴・学歴・スキル・受賞・言語・ボランティア・プロジェクト・推薦者を追加し、空のプロフィール項目を補完します。既存のデータを上書きすることはなく、論文は取り込みません（論文は研究データソースから取得されます）。",
+  importChooseFile: ".json ファイルを選択…",
+  importPastePlaceholder: "…または JSON Resume をここに貼り付け",
+  importButton: "取り込む",
+  importSuccess: "取り込みました：",
+  importNothing: "取り込む内容がありません——その履歴書には追加できる項目がありませんでした。",
+  importError: "読み込めませんでした——有効な JSON Resume（jsonresume.org）かご確認ください。",
   privateNotes: "非公開メモ",
   privateNotesHint: "あなただけが閲覧できます——CV・書き出し・公開ページには一切表示されません。",
   furigana: "ふりがな",
@@ -1397,6 +1453,15 @@ const PT: Record<ChromeKey, string> = {
   linkLabelHint:
     "Opcional — links para GitHub, LinkedIn, ORCID e outros serviços conhecidos são reconhecidos e rotulados automaticamente.",
   rirekishoDetails: "Dados do currículo japonês (rirekisho)",
+  importJsonResume: "Importar do JSON Resume",
+  importJsonResumeHint:
+    "Tem um currículo no formato jsonresume.org? Isso adiciona experiência profissional, formação, habilidades, prêmios, idiomas, trabalho voluntário, projetos e referências, e preenche os campos de perfil vazios. Nunca sobrescreve seus dados e ignora as publicações (elas vêm das suas fontes de pesquisa).",
+  importChooseFile: "Escolher um arquivo .json…",
+  importPastePlaceholder: "…ou cole o JSON Resume aqui",
+  importButton: "Importar",
+  importSuccess: "Importado:",
+  importNothing: "Nada para importar — esse currículo não tinha entradas para adicionar.",
+  importError: "Não foi possível ler — verifique se é um JSON Resume válido (jsonresume.org).",
   privateNotes: "Notas privadas",
   privateNotesHint:
     "Só você vê — nunca aparecem no seu currículo, nas exportações ou na página pública.",
@@ -1536,6 +1601,15 @@ const IT: Record<ChromeKey, string> = {
   linkLabelHint:
     "Facoltativo — i link a GitHub, LinkedIn, ORCID e altri servizi noti vengono riconosciuti ed etichettati automaticamente.",
   rirekishoDetails: "Dettagli del CV giapponese (rirekisho)",
+  importJsonResume: "Importa da JSON Resume",
+  importJsonResumeHint:
+    "Hai un CV nel formato jsonresume.org? Aggiunge esperienza lavorativa, istruzione, competenze, riconoscimenti, lingue, volontariato, progetti e referenze, e compila i campi del profilo vuoti. Non sovrascrive mai i tuoi dati e ignora le pubblicazioni (quelle provengono dalle tue fonti di ricerca).",
+  importChooseFile: "Scegli un file .json…",
+  importPastePlaceholder: "…oppure incolla qui il JSON Resume",
+  importButton: "Importa",
+  importSuccess: "Importato:",
+  importNothing: "Niente da importare — quel CV non aveva voci da aggiungere.",
+  importError: "Impossibile leggerlo — assicurati che sia un JSON Resume valido (jsonresume.org).",
   privateNotes: "Note private",
   privateNotesHint:
     "Solo tu le vedi — mai mostrate sul CV, nelle esportazioni o nella pagina pubblica.",
@@ -1675,6 +1749,15 @@ const KO: Record<ChromeKey, string> = {
   linkLabelHint:
     "선택 사항 — GitHub, LinkedIn, ORCID 등 알려진 서비스로 연결되는 링크는 자동으로 인식되어 라벨이 지정됩니다.",
   rirekishoDetails: "일본식 이력서(리레키쇼) 정보",
+  importJsonResume: "JSON Resume에서 가져오기",
+  importJsonResumeHint:
+    "jsonresume.org 형식의 이력서가 있나요? 경력, 학력, 기술, 수상, 언어, 봉사활동, 프로젝트, 추천인을 추가하고 비어 있는 프로필 항목을 채웁니다. 기존 데이터를 덮어쓰지 않으며, 논문은 가져오지 않습니다(논문은 연구 데이터 출처에서 가져옵니다).",
+  importChooseFile: ".json 파일 선택…",
+  importPastePlaceholder: "…또는 여기에 JSON Resume 붙여넣기",
+  importButton: "가져오기",
+  importSuccess: "가져왔습니다:",
+  importNothing: "가져올 내용이 없습니다 — 해당 이력서에 추가할 항목이 없습니다.",
+  importError: "읽을 수 없습니다 — 올바른 JSON Resume(jsonresume.org)인지 확인하세요.",
   privateNotes: "비공개 메모",
   privateNotesHint: "본인만 볼 수 있습니다 — CV, 내보내기, 공개 페이지에 절대 표시되지 않습니다.",
   furigana: "이름 (발음 표기)",
@@ -1814,6 +1897,15 @@ const RU: Record<ChromeKey, string> = {
   linkLabelHint:
     "Необязательно — ссылки на GitHub, LinkedIn, ORCID и другие известные сервисы распознаются и подписываются автоматически.",
   rirekishoDetails: "Данные японского резюме (рирэкисё)",
+  importJsonResume: "Импорт из JSON Resume",
+  importJsonResumeHint:
+    "Есть резюме в формате jsonresume.org? Будут добавлены опыт работы, образование, навыки, награды, языки, волонтёрство, проекты и рекомендации, а пустые поля профиля заполнятся. Существующие данные никогда не перезаписываются, а публикации пропускаются (они берутся из ваших научных источников).",
+  importChooseFile: "Выбрать файл .json…",
+  importPastePlaceholder: "…или вставьте JSON Resume сюда",
+  importButton: "Импортировать",
+  importSuccess: "Импортировано:",
+  importNothing: "Нечего импортировать — в этом резюме не было записей для добавления.",
+  importError: "Не удалось прочитать — убедитесь, что это корректный JSON Resume (jsonresume.org).",
   privateNotes: "Личные заметки",
   privateNotesHint:
     "Видите только вы — никогда не отображается в резюме, экспортах и на публичной странице.",

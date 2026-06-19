@@ -2595,6 +2595,39 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   color: var(--text-secondary);
 }
 
+.profile-import {
+  grid-column: 1 / -1;
+  margin-top: var(--space-2);
+  border-top: 1px dashed var(--border);
+  padding-top: var(--space-3);
+}
+.profile-import > summary {
+  cursor: pointer;
+  font-weight: var(--weight-medium);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.profile-import-hint {
+  font-size: var(--text-2xs);
+  color: var(--muted);
+  line-height: 1.4;
+  margin: var(--space-2) 0;
+}
+.profile-import-actions {
+  margin: var(--space-2) 0;
+}
+.profile-import-text {
+  width: 100%;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-2xs);
+}
+.profile-import-status {
+  display: block;
+  font-size: var(--text-2xs);
+  line-height: 1.4;
+  margin-top: var(--space-1);
+}
+
 /* ── Preview ─────────────────────────────────────────────────────────────── */
 .cv-preview {
   height: 100%;

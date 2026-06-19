@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Import from JSON Resume.** Already have a CV in the popular
+  [jsonresume.org](https://jsonresume.org) format? Paste it or upload the `.json`
+  in the Profile editor and SigmaCV pulls in the parts open research data can't
+  supply — work history, education, skills, awards, languages, volunteering,
+  projects, and references — and fills any empty header/profile fields. It's
+  strictly **additive**: it never overwrites data you already have, and it skips
+  publications (those come from OpenAlex/ORCID, so importing them would just
+  duplicate your work). Runs entirely in your browser; localized in all ten
+  languages.
+
 - **Private notes — a scratchpad only you can see.** The Profile editor now has a
   free-text notes field for drafts, reminders, and todos (e.g. "ask a co-author
   before publishing", "add the 2025 talk"). It lives in your saved CV but is
