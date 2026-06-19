@@ -14,6 +14,7 @@ import {
 } from "./schema";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName } from "@/lib/openalex/toCsl";
+import { nameVariants } from "./nameVariants";
 import { duplicatePairKey } from "./duplicates";
 import { rederiveEntryLine } from "./entryLine";
 import type { CslItem, CslName } from "@/types/csl";
@@ -567,25 +568,13 @@ export function buildManualCsl(id: string, fields: ManualEntryFields): CslItem |
 
 /**
  * Printed-name variants for a USER-ASSERTED self author on a manual entry, so
- * the highlighter can wrap the right substring in any citation style. citeproc
- * renders names in style-specific forms ("Chrétien, B.", "B. Chrétien"), and
- * the reliably-present token is the FAMILY name — so it is always included,
- * alongside the raw input and both name orders. Reuses the same name splitter
- * as the CSL build (handles CJK and "Family, Given").
+ * the highlighter can wrap the right substring in any citation style. Delegates
+ * to the shared {@link nameVariants} (raw input + family name + both orders) —
+ * the same helper the claim flow uses for a "claimed" author, so manual and
+ * claimed self-works highlight identically.
  */
 export function manualSelfNameVariants(rawName: string): string[] {
-  const raw = rawName.trim();
-  if (!raw) return [];
-  const name = toCslName(raw);
-  const variants = new Set<string>([raw]);
-  if (typeof name.family === "string" && name.family) {
-    variants.add(name.family);
-    if (typeof name.given === "string" && name.given) {
-      variants.add(`${name.family}, ${name.given}`);
-      variants.add(`${name.given} ${name.family}`);
-    }
-  }
-  return [...variants].filter((v) => v.length >= 2);
+  return nameVariants(rawName);
 }
 
 /** Options for {@link addStructuredEntry}. */

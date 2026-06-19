@@ -10,6 +10,7 @@ import {
   reviewFlagFor,
   selfNameVariants,
 } from "./build";
+import { nameVariants } from "./nameVariants";
 import type { CvItem } from "./schema";
 
 /**
@@ -88,15 +89,16 @@ export function buildClaimedItem(
   const selfAuth = selfIndex >= 0 ? authorships[selfIndex] : undefined;
   const authoredBySelf = Boolean(selfAuth);
 
-  // For a "claimed" (no-id) self-author the matcher won't flag it, so take the
-  // printed name straight from the chosen author; otherwise use the id-matched
-  // variants (covers every printed spelling on this work).
+  // For a "claimed" (no-id) self-author the matcher won't flag it, so derive the
+  // variants from the chosen author's printed name. Use `nameVariants` (raw +
+  // FAMILY name + both orders) rather than the bare display name, so the family
+  // token matches citeproc's style-specific render ("Other, A.") and the name
+  // actually highlights — same as an id-matched work. Otherwise use the
+  // id-matched variants (covers every printed spelling on this work).
   const variants: string[] = !authoredBySelf
     ? []
     : matchBasis === "claimed"
-      ? [selfAuth!.author?.display_name ?? selfAuth!.raw_author_name].filter((x): x is string =>
-          Boolean(x),
-        )
+      ? nameVariants(selfAuth!.author?.display_name ?? selfAuth!.raw_author_name ?? "")
       : selfNameVariants(work, matches);
 
   return {
