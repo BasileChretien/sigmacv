@@ -85,7 +85,10 @@ lets SigmaCV find _your_ work reliably. _(Self-hosters can optionally enable
   re-titles sections — it never deletes your data.
 - **A living public page.** Optionally publish your CV as a web page that
   re-syncs from the open record on its own, so it stays current without you
-  touching it.
+  touching it. It's machine-readable too: each publication carries embedded
+  metadata, so a visitor can save your whole publication list straight into
+  **Zotero, Mendeley,** or any other reference manager with their browser
+  connector — and the page is available as BibTeX / CSL-JSON / JSON-LD.
 - **Responsible metrics, or none at all.** Metrics are **off by default** and
   fully opt-in. When you do turn them on, SigmaCV prefers _field-normalized_
   indicators (which account for how citation rates differ between fields) over
@@ -120,17 +123,17 @@ lets SigmaCV find _your_ work reliably. _(Self-hosters can optionally enable
 
 ## Features at a glance
 
-| Feature                       | What it means for you                                                                                                                          |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auto-populated CV**         | Starts from your real, public record — not a blank form.                                                                                       |
-| **Identifier-based matching** | Finds _your_ work by ORCID / OpenAlex ID, not by name — far fewer wrong-person mix-ups.                                                        |
-| **"Not mine" curation**       | Hide anything incorrect (it's hidden, not deleted); reorder and choose sections.                                                               |
-| **Export formats**            | PDF, Word (DOCX), LaTeX, Markdown, BibTeX, CSL-JSON, JSON Résumé, and an NIH biosketch.                                                        |
-| **58 CV layouts**             | One-click funder / institution / industry templates — e.g. UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC, an ICH-GCP clinical-investigator CV. |
-| **Living public page**        | Optionally publish a web page that re-syncs from the open record and is machine-readable.                                                      |
-| **Consistent citations**      | One citation engine means identical, correctly formatted references in _every_ output.                                                         |
-| **10 languages**              | English, 中文, Español, Français, Deutsch, 日本語, Português, Italiano, 한국어, Русский.                                                       |
-| **Responsible metrics**       | Off by default and opt-in; prefers field-normalized indicators; never shows a journal Impact Factor.                                           |
+| Feature                       | What it means for you                                                                                                                                             |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auto-populated CV**         | Starts from your real, public record — not a blank form.                                                                                                          |
+| **Identifier-based matching** | Finds _your_ work by ORCID / OpenAlex ID, not by name — far fewer wrong-person mix-ups.                                                                           |
+| **"Not mine" curation**       | Hide anything incorrect (it's hidden, not deleted); reorder and choose sections.                                                                                  |
+| **Export formats**            | PDF, Word (DOCX), LaTeX, Markdown, BibTeX, CSL-JSON, JSON Résumé, and an NIH biosketch.                                                                           |
+| **58 CV layouts**             | One-click funder / institution / industry templates — e.g. UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC, an ICH-GCP clinical-investigator CV.                    |
+| **Living public page**        | Optionally publish a web page that re-syncs from the open record; machine-readable (BibTeX / CSL-JSON / JSON-LD) and one-click importable into Zotero / Mendeley. |
+| **Consistent citations**      | One citation engine means identical, correctly formatted references in _every_ output.                                                                            |
+| **10 languages**              | English, 中文, Español, Français, Deutsch, 日本語, Português, Italiano, 한국어, Русский.                                                                          |
+| **Responsible metrics**       | Off by default and opt-in; prefers field-normalized indicators; never shows a journal Impact Factor.                                                              |
 
 ## ✅ Status: live
 

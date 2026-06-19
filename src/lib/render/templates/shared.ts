@@ -435,6 +435,9 @@ export function commonCss(theme: TemplateTheme): string {
   /* "Living CV" line — public page ONLY. Tells a visitor the page is current
      ("Updated <date> · updates automatically"); a quiet footnote, not a landmark. */
   .cv-living { margin: 1.4rem 0 0; font-size: 0.66rem; color: var(--cv-muted); letter-spacing: 0.01em; }
+  /* "Save to your reference manager" hint — tells visitors the per-publication
+     COinS metadata is there for Zotero/Mendeley connectors. Public page only. */
+  .cv-refman { margin: 0.4rem 0 0; font-size: 0.66rem; color: var(--cv-muted); letter-spacing: 0.01em; }
   /* "What's new" — the most recent sync's additions, a footnote beside the living
      line. Public page only; never printed (rides attributionFooter's gating). */
   .cv-whatsnew { margin: 0.4rem 0 0; font-size: 0.66rem; color: var(--cv-muted); letter-spacing: 0.01em; }
@@ -870,6 +873,11 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
         .map((r) => `<a href="#${itemAnchorId(r.itemId)}">${escapeHtml(r.title)}</a>`)
         .join(" · ")}</p>`
     : "";
+  // "Save to your reference manager" hint — shown only when the page actually has
+  // citation items (which carry the COinS metadata a connector reads); a pure
+  // narrative CV has nothing to save, so it's omitted there.
+  const hasCitations = cv.sections.some((sec) => sec.items.some((it) => it.csl != null));
+  const refman = hasCitations ? `<p class="cv-refman">${escapeHtml(s.refManagerNote)}</p>` : "";
   const madeWith = escapeHtml(s.madeWith);
   // "Subscribe" affordance for this living CV's Atom feed (the public follow
   // primitive). A browser can't natively "subscribe" to a feed — clicking a bare
@@ -884,7 +892,7 @@ export function attributionFooter(cv: CanonicalCv, opts: RenderOpts = {}): strin
         opts.feedHref,
       )}</a></span></details>`
     : "";
-  return `${living}${whatsNew}${subscribe}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
+  return `${living}${whatsNew}${subscribe}${refman}<p class="cv-attribution">${madeWith} <a href="${escapeHtml(href)}">SigmaCV</a></p>`;
 }
 
 /**

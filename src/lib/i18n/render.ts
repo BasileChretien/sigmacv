@@ -79,6 +79,9 @@ export interface RenderStrings {
   liveVersionLabel: string;
   /** Public-page "living CV" line; "{date}" is the localized last-synced date. */
   livingNote: string;
+  /** Public-page hint that the publications can be saved to a reference manager
+   *  (Zotero/Mendeley) via the browser connector — the page carries COinS metadata. */
+  refManagerNote: string;
   /** Heading for the public-page "Co-authors on SigmaCV" block (opt-in); "SigmaCV" stays untranslated. */
   coauthorsHeading: string;
   /** Tooltip/aria for the institution→ROR-record link on a positions/education line. */
@@ -120,6 +123,8 @@ export interface RenderStrings {
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
   "en-US": {
+    refManagerNote:
+      "Save these publications to a reference manager (Zotero, Mendeley…) — your browser connector will detect them.",
     researchAreasLabel: "Research areas",
     citeLabel: "Cite",
     abstractLabel: "Abstract",
@@ -190,6 +195,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Institution website",
   },
   "zh-CN": {
+    refManagerNote:
+      "可将这些论文保存到文献管理器（Zotero、Mendeley 等）——你的浏览器连接器会自动识别它们。",
     researchAreasLabel: "研究领域",
     citeLabel: "引用",
     abstractLabel: "摘要",
@@ -260,6 +267,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "机构网站",
   },
   "es-ES": {
+    refManagerNote:
+      "Guarda estas publicaciones en un gestor de referencias (Zotero, Mendeley…): el conector de tu navegador las detectará.",
     researchAreasLabel: "Áreas de investigación",
     citeLabel: "Citar",
     abstractLabel: "Resumen",
@@ -333,6 +342,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Sitio web de la institución",
   },
   "fr-FR": {
+    refManagerNote:
+      "Enregistrez ces publications dans un gestionnaire de références (Zotero, Mendeley…) — le connecteur de votre navigateur les détectera.",
     researchAreasLabel: "Domaines de recherche",
     citeLabel: "Citer",
     abstractLabel: "Résumé",
@@ -407,6 +418,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Site web de l’établissement",
   },
   "de-DE": {
+    refManagerNote:
+      "Speichern Sie diese Publikationen in einem Literaturverwaltungsprogramm (Zotero, Mendeley…) — Ihr Browser-Connector erkennt sie automatisch.",
     researchAreasLabel: "Forschungsgebiete",
     citeLabel: "Zitieren",
     abstractLabel: "Zusammenfassung",
@@ -480,6 +493,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Website der Einrichtung",
   },
   "ja-JP": {
+    refManagerNote:
+      "これらの論文は文献管理ツール（Zotero、Mendeley など）に保存できます——ブラウザのコネクタが自動的に検出します。",
     researchAreasLabel: "研究分野",
     citeLabel: "引用",
     abstractLabel: "要旨",
@@ -550,6 +565,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "機関ウェブサイト",
   },
   "pt-BR": {
+    refManagerNote:
+      "Salve estas publicações em um gerenciador de referências (Zotero, Mendeley…) — o conector do seu navegador as detectará.",
     researchAreasLabel: "Áreas de pesquisa",
     citeLabel: "Citar",
     abstractLabel: "Resumo",
@@ -624,6 +641,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Site da instituição",
   },
   "it-IT": {
+    refManagerNote:
+      "Salva queste pubblicazioni in un gestore di riferimenti (Zotero, Mendeley…): il connettore del browser le rileverà.",
     researchAreasLabel: "Aree di ricerca",
     citeLabel: "Cita",
     abstractLabel: "Abstract",
@@ -697,6 +716,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Sito web dell’istituzione",
   },
   "ko-KR": {
+    refManagerNote:
+      "이 논문들을 문헌 관리 도구(Zotero, Mendeley 등)에 저장할 수 있습니다 — 브라우저 커넥터가 자동으로 인식합니다.",
     researchAreasLabel: "연구 분야",
     citeLabel: "인용",
     abstractLabel: "초록",
@@ -767,6 +788,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "기관 웹사이트",
   },
   "ru-RU": {
+    refManagerNote:
+      "Сохраните эти публикации в менеджер ссылок (Zotero, Mendeley…) — коннектор вашего браузера обнаружит их.",
     researchAreasLabel: "Области исследований",
     citeLabel: "Цитировать",
     abstractLabel: "Аннотация",
