@@ -90,8 +90,7 @@ function sectionItems(
     .map(({ section, items }) => ({
       title: escapeLatex(section.title),
       lines: items.map(({ item, entry }) => {
-        const highlight =
-          cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0;
+        const highlight = cv.display.highlightSelf && item.selfNameVariants.length > 0;
         const variants = item.selfNameVariants.map(escapeLatex);
         return latexifyEntry(
           entry,

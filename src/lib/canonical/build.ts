@@ -12,6 +12,7 @@ import {
 import { annotateDuplicates } from "./duplicates";
 import { annotateMisattribution } from "./misattribution";
 import { formatEntryLine, rederiveEntryLine } from "./entryLine";
+import { nameVariants } from "./nameVariants";
 import { computeDerivedMetrics, workTopDecile } from "@/lib/openalex/deriveMetrics";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName, workToCsl } from "@/lib/openalex/toCsl";
@@ -1993,9 +1994,28 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // must survive a re-sync. displayName is OpenAlex-derived but user-editable —
   // keep the user's value once set.
   const prevOwner = previous?.owner;
+  const ownerName = prevOwner?.displayName || resolved.displayName;
+  // Self-name highlighting for ORCID-discovered works (`reviewFlag: "orcid-doi"`):
+  // these are the user's OWN works (their ORCID record lists the DOI — an identifier
+  // match at the WORK level), but OpenAlex frequently attributes the authorship to an
+  // ORPHAN author profile (no ORCID, a different author id), so the per-authorship
+  // matcher can't tell WHICH author is the holder → `selfNameVariants` came out empty
+  // and the name never highlighted. Ownership is identifier-driven (ORCID-DOI); we
+  // only use the holder's OWN name to pick the token to emphasise WITHIN a work we
+  // already know is theirs (never to claim a work). Fill the variants from the owner
+  // name so the highlight works across every output (the field survives the public
+  // projection, unlike `reviewFlag`). Covers carried/confirmed candidates too.
+  const sectionsWithSelf = sections.map((s) => ({
+    ...s,
+    items: s.items.map((it) =>
+      it.meta.reviewFlag === "orcid-doi" && it.selfNameVariants.length === 0
+        ? { ...it, selfNameVariants: nameVariants(ownerName) }
+        : it,
+    ),
+  }));
   // Data-minimised "research areas" aggregate from the curated works (recomputed
   // every build; the raw per-item topics stay stripped from the public projection).
-  const researchAreas = computeResearchAreas(sections);
+  const researchAreas = computeResearchAreas(sectionsWithSelf);
 
   const cv: CanonicalCv = {
     schemaVersion: CANONICAL_SCHEMA_VERSION,
@@ -2017,7 +2037,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       researchAreas: researchAreas.length ? researchAreas : undefined,
     },
     display,
-    sections,
+    sections: sectionsWithSelf,
     // Saved view-presets are a pure display concern — carry them across re-syncs.
     presets: previous?.presets ?? [],
     provenance: {

@@ -297,7 +297,13 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
         }
         let html = entry;
         if (linkDoi && !item.csl) html = withDoiLink(html, item);
-        if (cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0) {
+        // Highlight gated on the presence of `selfNameVariants` — populated ONLY
+        // for the holder's own works (identifier-matched authorship, OR an
+        // ORCID-discovered work the build filled from the owner name; see build.ts).
+        // We don't also require `authoredBySelf` here: an ORCID-owned work whose
+        // authorship OpenAlex put on an orphan profile has variants but no matched
+        // authorship, and must still highlight.
+        if (cv.display.highlightSelf && item.selfNameVariants.length > 0) {
           html = highlightSelf(html, item.selfNameVariants);
         }
         html += itemBadges(item, cv.display);

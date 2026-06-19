@@ -44,6 +44,13 @@ describe("highlightSelf", () => {
     expect(highlightSelf(html, [])).toBe(html);
   });
 
+  it("matches case-insensitively (OpenAlex sometimes stores odd casing like 'ChréTien')", () => {
+    // The variant is correctly cased; the rendered citation carries the source's odd
+    // casing. A case-sensitive match would miss the self name on the user's own work.
+    const out = highlightSelf("Legallois, D., & ChréTien, B. (2025).", ["Chrétien"]);
+    expect(out).toContain('<span class="cv-self">ChréTien</span>, B.');
+  });
+
   it("does not highlight a short surname inside a longer word", () => {
     // A 2-char surname ("Li") must not match inside "Library" — only as a token.
     const html = "Library science, by Li, B.";

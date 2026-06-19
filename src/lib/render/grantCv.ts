@@ -146,7 +146,7 @@ function publicationLines(cv: CanonicalCv, prepared: PreparedSection[]): string[
     for (const { item, entry } of items) {
       if (!item.csl) continue;
       let text = escapeMarkdown(entry);
-      if (cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0) {
+      if (cv.display.highlightSelf && item.selfNameVariants.length > 0) {
         text = wrapSelf(text, item.selfNameVariants.map(escapeMarkdown), (s) => `**${s}**`);
       }
       lines.push(`${lines.length + 1}. ${text}`);
