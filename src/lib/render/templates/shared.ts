@@ -333,7 +333,13 @@ export function commonCss(theme: TemplateTheme): string {
   ul.cv-prose-list > li { margin: 0 0 0.2rem; line-height: 1.5; color: var(--cv-ink-2); }
 
   ol.cv-bib { list-style: none; margin: 0; padding: 0; }
-  ol.cv-bib > li { margin: 0 0 var(--cv-entry-gap); padding-left: var(--cv-hang); text-indent: calc(var(--cv-hang) * -1); line-height: 1.42; }
+  /* overflow-wrap:anywhere lets a long unbreakable token — a DOI/URL has no
+     spaces — break to stay inside the entry box. Without it, citation DOIs spill
+     past the right edge of the bordered "panel" entries the public showcase
+     styles draw (and out of any narrow column). Inherited, so it also covers the
+     links below; "anywhere" (not "break-word") so it shrinks min-content too,
+     which matters inside the sidebar template's narrow track. */
+  ol.cv-bib > li { margin: 0 0 var(--cv-entry-gap); padding-left: var(--cv-hang); text-indent: calc(var(--cv-hang) * -1); line-height: 1.42; overflow-wrap: anywhere; }
   .csl-entry { display: inline; }
   ol.cv-bib > li a { color: var(--cv-accent); text-decoration: none; }
 

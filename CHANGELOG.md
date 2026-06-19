@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Long DOI/URL links no longer spill out of publication boxes on the public
+  page.** On the bordered "panel" public-page styles (e.g. Cyberpunk) and inside
+  the sidebar template's narrow column, a long DOI such as
+  `https://doi.org/10.1016/j.acvd.2025.06.017` ran past the right edge of its
+  entry box on a phone, because a URL is a single unbreakable token. Bibliography
+  entries now break such links so they stay inside the box at any width.
+
+- **Editor top bar no longer overlaps the page on a phone.** On a narrow screen
+  the top-bar controls wrap onto several rows; the bar was being compressed below
+  its content height (it sits in a full-height column), so the trailing controls
+  — the "Buy me a coffee" button and the account menu — spilled out and overlapped
+  the hint banner beneath it. The bar now keeps its full height and the rest of
+  the page sits cleanly below it.
+
 - **Datasets & Software entries now show their authors (and highlight yours).** A
   Zenodo deposit (a dataset or a software release) was listed as just its title,
   publisher, year, type and DOI — with **no authors at all**, so your own name

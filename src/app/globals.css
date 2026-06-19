@@ -681,6 +681,14 @@ input[type="radio"] {
   padding: var(--space-2) var(--space-4);
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+  /* Never shrink: `.cv-page` is a `height:100vh` flex column, and the explicit
+     `min-height` above overrides the flex default `min-height:auto` (the
+     content floor). Without `flex-shrink:0`, a narrow viewport that wraps the
+     actions onto several rows lets flexbox compress the bar below its content
+     height, so the trailing controls spill out and overlap the chrome below it
+     (the coachmark) — the mobile overlap bug. Pinning the basis to the content
+     height pushes following siblings down instead. */
+  flex: 0 0 auto;
   /* Own stacking context above `.popover-scrim` (z 40): the bar + its open
      panel stay clickable, so switching menus is one gesture, while the scrim
      below absorbs dismiss clicks over the page/preview. */
