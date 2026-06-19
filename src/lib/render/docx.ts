@@ -213,7 +213,7 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
     );
     for (const { item, entry } of items) {
       const runs =
-        cv.display.highlightSelf && item.authoredBySelf && item.selfNameVariants.length > 0
+        cv.display.highlightSelf && item.selfNameVariants.length > 0
           ? splitSelf(entry, item.selfNameVariants).map(
               (seg) => new TextRun({ text: seg.text, bold: seg.self }),
             )

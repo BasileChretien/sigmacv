@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Your name is now highlighted on ORCID-listed papers OpenAlex split across
+  profiles.** OpenAlex sometimes attributes one of your papers to an orphan author
+  profile (no ORCID, a different author id) — so even though the paper is yours
+  (your ORCID record lists it), nothing on the authorship matched your identifier
+  and your name wasn't bold. Ownership is still identifier-driven (your ORCID lists
+  the DOI); we now fill in your name from your profile so it highlights across every
+  output and the public page. Highlighting is also **case-insensitive** now, so a
+  name stored with odd casing (e.g. "ChréTien") still matches. Takes effect on your
+  next re-sync.
+
 - **Your name is now highlighted on publications you add by DOI.** When you
   claimed a work whose record didn't carry your ORCID (so you picked yourself
   from the author list), your name wasn't bold/highlighted the way it is on
