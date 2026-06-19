@@ -43,6 +43,10 @@ export interface EditorExtraStrings {
   // Mobile Editor/Preview tabs.
   tabEditor: string;
   tabPreview: string;
+  // Desktop preview-layout toggle: side-by-side vs stacked.
+  layoutLabel: string;
+  layoutSideBySide: string;
+  layoutStacked: string;
   // First-run disambiguation coachmark.
   coachTitle: string;
   coachBody: string;
@@ -130,6 +134,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feSelfWork: "This is my work — highlight my name",
     tabEditor: "Editor",
     tabPreview: "Preview",
+    layoutLabel: "Preview layout",
+    layoutSideBySide: "Side by side",
+    layoutStacked: "Stacked",
     coachTitle: "Tip: check these are all yours",
     coachBody:
       "Author matching isn’t perfect. If an entry isn’t yours, open it and mark it “Not mine” — it’s hidden from your CV (never deleted) and improves matching.",
@@ -207,6 +214,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feSelfWork: "这是我的作品——高亮我的名字",
     tabEditor: "编辑",
     tabPreview: "预览",
+    layoutLabel: "预览布局",
+    layoutSideBySide: "并排",
+    layoutStacked: "上下堆叠",
     coachTitle: "提示：确认这些都是您的成果",
     coachBody:
       "作者匹配并非完美。如果某条目不属于您，请打开它并标记为“不是我的”——它会从简历中隐藏（绝不删除），并有助于改进匹配。",
@@ -284,6 +294,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feSelfWork: "Es un trabajo mío: resaltar mi nombre",
     tabEditor: "Editor",
     tabPreview: "Vista previa",
+    layoutLabel: "Diseño de la vista previa",
+    layoutSideBySide: "Lado a lado",
+    layoutStacked: "Apilado",
     coachTitle: "Consejo: comprueba que todo es tuyo",
     coachBody:
       "La identificación de autores no es perfecta. Si una entrada no es tuya, ábrela y márcala como «No es mía»: se oculta de tu CV (nunca se elimina) y mejora la identificación.",
@@ -364,6 +377,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feSelfWork: "C’est mon travail — surligner mon nom",
     tabEditor: "Éditeur",
     tabPreview: "Aperçu",
+    layoutLabel: "Disposition de l'aperçu",
+    layoutSideBySide: "Côte à côte",
+    layoutStacked: "Empilé",
     coachTitle: "Astuce : vérifiez que tout est bien à vous",
     coachBody:
       "L’appariement des auteurs n’est pas parfait. Si une entrée n’est pas la vôtre, ouvrez-la et marquez-la « Pas à moi » : elle est masquée de votre CV (jamais supprimée) et améliore l’appariement.",
@@ -445,6 +461,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feSelfWork: "Das ist meine Arbeit — meinen Namen hervorheben",
     tabEditor: "Editor",
     tabPreview: "Vorschau",
+    layoutLabel: "Vorschau-Layout",
+    layoutSideBySide: "Nebeneinander",
+    layoutStacked: "Übereinander",
     coachTitle: "Tipp: Prüfen Sie, ob alles von Ihnen stammt",
     coachBody:
       "Die Autorenzuordnung ist nicht perfekt. Wenn ein Eintrag nicht von Ihnen ist, öffnen Sie ihn und markieren Sie ihn als „Nicht von mir“ — er wird aus Ihrem Lebenslauf ausgeblendet (nie gelöscht) und verbessert die Zuordnung.",
@@ -525,6 +544,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feSelfWork: "自分の業績（自分の名前を強調表示）",
     tabEditor: "エディタ",
     tabPreview: "プレビュー",
+    layoutLabel: "プレビューの配置",
+    layoutSideBySide: "左右に並べる",
+    layoutStacked: "上下に並べる",
     coachTitle: "ヒント：すべてご自身の業績か確認してください",
     coachBody:
       "著者の自動照合は完全ではありません。ご自身のものでない項目は開いて「自分のものではない」に設定してください。履歴書から非表示になり（削除はされません）、照合の改善に役立ちます。",
@@ -603,6 +625,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feSelfWork: "É um trabalho meu — destacar meu nome",
     tabEditor: "Editor",
     tabPreview: "Pré-visualização",
+    layoutLabel: "Layout da pré-visualização",
+    layoutSideBySide: "Lado a lado",
+    layoutStacked: "Empilhado",
     coachTitle: "Dica: confirme que tudo é seu",
     coachBody:
       "A correspondência de autores não é perfeita. Se uma entrada não for sua, abra-a e marque como “Não é meu” — ela fica oculta no seu currículo (nunca é excluída) e melhora a correspondência.",
@@ -683,6 +708,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feSelfWork: "È un mio lavoro — evidenzia il mio nome",
     tabEditor: "Editor",
     tabPreview: "Anteprima",
+    layoutLabel: "Layout dell'anteprima",
+    layoutSideBySide: "Affiancato",
+    layoutStacked: "Impilato",
     coachTitle: "Suggerimento: verifica che sia tutto tuo",
     coachBody:
       "L’abbinamento degli autori non è perfetto. Se una voce non è tua, aprila e contrassegnala come «Non è mia»: viene nascosta dal CV (mai eliminata) e migliora l’abbinamento.",
@@ -763,6 +791,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feSelfWork: "내 업적입니다 — 내 이름 강조",
     tabEditor: "편집기",
     tabPreview: "미리보기",
+    layoutLabel: "미리보기 배치",
+    layoutSideBySide: "좌우 배치",
+    layoutStacked: "상하 배치",
     coachTitle: "팁: 모두 본인의 성과인지 확인하세요",
     coachBody:
       "저자 매칭은 완벽하지 않습니다. 본인의 항목이 아니라면 열어서 “내 것이 아님”으로 표시하세요. 이력서에서 숨겨지며(삭제되지 않음) 매칭 개선에 도움이 됩니다.",
@@ -842,6 +873,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     feSelfWork: "Это моя работа — выделить моё имя",
     tabEditor: "Редактор",
     tabPreview: "Предпросмотр",
+    layoutLabel: "Расположение предпросмотра",
+    layoutSideBySide: "Рядом",
+    layoutStacked: "Друг над другом",
     coachTitle: "Совет: убедитесь, что всё это ваше",
     coachBody:
       "Сопоставление авторов несовершенно. Если запись не ваша, откройте её и отметьте «Не моя» — она скрывается из резюме (никогда не удаляется) и улучшает сопоставление.",

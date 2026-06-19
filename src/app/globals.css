@@ -1273,6 +1273,20 @@ input[type="radio"] {
   border-right: 1px solid var(--border);
   background: var(--surface);
 }
+/* Stacked layout (desktop only): editor above preview, each scrolling in its own
+   half. The mobile rules below (≤880px) force a single column regardless, so this
+   is scoped to wide screens to avoid leaving an empty grid track when a pane is
+   hidden by the pane tabs. */
+@media (min-width: 881px) {
+  .cv-workspace[data-layout="stacked"] {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+  .cv-workspace[data-layout="stacked"] .cv-workspace-pane:first-child {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
 .cv-workspace-pane::-webkit-scrollbar {
   width: 10px;
 }
@@ -2467,6 +2481,41 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   }
   .cv-workspace[data-active-pane="editor"] .cv-workspace-pane[data-pane="preview"],
   .cv-workspace[data-active-pane="preview"] .cv-workspace-pane[data-pane="editor"] {
+    display: none;
+  }
+}
+
+/* ── Desktop preview-layout toggle: side-by-side vs stacked. Mirrors the pane
+      tabs, but inverted — shown on desktop, hidden ≤880px (where the pane tabs
+      take over and the layout is forced to a single column). ── */
+.layout-toggle {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  margin: var(--space-2) var(--space-5) 0;
+}
+.layout-toggle-btn {
+  padding: var(--space-1) var(--space-3);
+  font: inherit;
+  font-size: var(--text-xs);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.layout-toggle-btn.is-active {
+  background: var(--accent-600);
+  color: #ffffff;
+  border-color: var(--accent-600);
+}
+.layout-toggle-btn:first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+.layout-toggle-btn:last-child {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+@media (max-width: 880px) {
+  .layout-toggle {
     display: none;
   }
 }
