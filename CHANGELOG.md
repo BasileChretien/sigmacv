@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Side-by-side or stacked editor preview.** A new desktop toggle lets you put
+  the live preview beside the editor (default) or stacked below it — handy on
+  narrower laptop screens or when you want a full-width editor and preview. Your
+  choice is remembered across sessions. (Phones keep the existing Editor/Preview
+  tab switch.) Localized in all ten languages.
+
 - **Import from JSON Resume.** Already have a CV in the popular
   [jsonresume.org](https://jsonresume.org) format? Paste it or upload the `.json`
   in the Profile editor and SigmaCV pulls in the parts open research data can't

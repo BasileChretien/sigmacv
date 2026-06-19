@@ -9,6 +9,8 @@ import { editorUi } from "@/lib/i18n/editorUi";
 import { trackEvent } from "@/lib/analytics/track";
 
 const UI_LOCALE_KEY = "sigmacv:uiLocale";
+const PREVIEW_LAYOUT_KEY = "sigmacv:previewLayout";
+type PreviewLayout = "split" | "stacked";
 // Persist the working document this long after edits settle. Longer than the
 // live-preview debounce (350 ms) so a burst of edits coalesces into one write,
 // keeping us well under the save rate limit (120/hour). The manual Save button
@@ -113,6 +115,10 @@ export default function CvWorkspace({
   // Which surface the preview renders: the document (export) render, or the
   // living public page (which applies the chosen animated publicStyle).
   const [previewSurface, setPreviewSurface] = useState<"document" | "public">("document");
+  // Desktop-only: editor and preview side-by-side (default) or stacked
+  // (editor above preview). A client preference (localStorage), not part of the
+  // CV; ignored on mobile, where the pane tabs take over.
+  const [previewLayout, setPreviewLayout] = useState<PreviewLayout>("split");
   // Publish state is owned here (seeded from the server props) so toggling it in
   // the Publish menu updates the top-bar indicator and the publish nudge live,
   // rather than going stale until the next page load.
@@ -148,6 +154,24 @@ export default function CvWorkspace({
     setUiLocale(next);
     try {
       window.localStorage.setItem(UI_LOCALE_KEY, next);
+    } catch {
+      /* non-fatal */
+    }
+  }, []);
+
+  // Restore the saved preview layout after mount (avoids a hydration mismatch).
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(PREVIEW_LAYOUT_KEY);
+      if (saved === "split" || saved === "stacked") setPreviewLayout(saved);
+    } catch {
+      /* storage unavailable — keep the default */
+    }
+  }, []);
+  const changePreviewLayout = useCallback((next: PreviewLayout) => {
+    setPreviewLayout(next);
+    try {
+      window.localStorage.setItem(PREVIEW_LAYOUT_KEY, next);
     } catch {
       /* non-fatal */
     }
@@ -461,7 +485,33 @@ export default function CvWorkspace({
               {editorUi(uiLocale).tabPreview}
             </button>
           </div>
-          <div className="cv-workspace" id="cv-main" data-active-pane={pane}>
+          {/* Desktop-only: choose whether the editor and preview sit side by side
+              or stacked (editor above preview). Hidden on mobile, where the pane
+              tabs above govern the single-pane view. */}
+          <div className="layout-toggle" role="group" aria-label={editorUi(uiLocale).layoutLabel}>
+            <button
+              type="button"
+              className={`layout-toggle-btn${previewLayout === "split" ? " is-active" : ""}`}
+              aria-pressed={previewLayout === "split"}
+              onClick={() => changePreviewLayout("split")}
+            >
+              {editorUi(uiLocale).layoutSideBySide}
+            </button>
+            <button
+              type="button"
+              className={`layout-toggle-btn${previewLayout === "stacked" ? " is-active" : ""}`}
+              aria-pressed={previewLayout === "stacked"}
+              onClick={() => changePreviewLayout("stacked")}
+            >
+              {editorUi(uiLocale).layoutStacked}
+            </button>
+          </div>
+          <div
+            className="cv-workspace"
+            id="cv-main"
+            data-active-pane={pane}
+            data-layout={previewLayout}
+          >
             <section className="cv-workspace-pane" data-pane="editor">
               <CvEditor
                 ref={editorRef}
