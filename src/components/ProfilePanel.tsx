@@ -1,12 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { CanonicalCv, CvLink } from "@/lib/canonical/schema";
+import type { CanonicalCv, CvLink, CvSectionType } from "@/lib/canonical/schema";
 import { PHOTO_DATA_URL_MAX, NOTES_MAX } from "@/lib/canonical/schema";
 import { updateOwner, setNotes } from "@/lib/canonical/curate";
-import { t, type Locale } from "@/lib/i18n";
+import { parseJsonResume, importJsonResume } from "@/lib/import/jsonResume";
+import { t, sectionTitle, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
 import { resolveLink } from "@/lib/render/icons";
+
+type ImportMessage = { kind: "success" | "error"; text: string } | null;
 
 interface ProfilePanelProps {
   cv: CanonicalCv;
@@ -53,7 +56,42 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
   const personal = owner.personal ?? {};
   const links = owner.links ?? [];
   const fileRef = useRef<HTMLInputElement>(null);
+  const resumeFileRef = useRef<HTMLInputElement>(null);
   const [photoError, setPhotoError] = useState("");
+  const [importText, setImportText] = useState("");
+  const [importMsg, setImportMsg] = useState<ImportMessage>(null);
+
+  /** Parse + additively import a JSON Résumé (paste or file). Client-side only. */
+  function runImport(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const res = parseJsonResume(trimmed);
+    if (!res.ok) {
+      setImportMsg({ kind: "error", text: t(locale, "importError") });
+      return;
+    }
+    const { cv: nextCv, summary } = importJsonResume(cv, res.resume, {
+      idPrefix: `jsonresume:${crypto.randomUUID()}`,
+    });
+    if (summary.total === 0 && summary.profileFilled.length === 0) {
+      setImportMsg({ kind: "error", text: t(locale, "importNothing") });
+      return;
+    }
+    onChange(nextCv);
+    const parts = Object.entries(summary.counts).map(
+      ([type, n]) => `${sectionTitle(locale, type as CvSectionType)} (${n})`,
+    );
+    if (summary.profileFilled.length) {
+      parts.unshift(`${t(locale, "profile")} (${summary.profileFilled.length})`);
+    }
+    setImportMsg({ kind: "success", text: `${t(locale, "importSuccess")} ${parts.join(", ")}` });
+    setImportText("");
+  }
+
+  async function onPickResumeFile(file: File | undefined) {
+    if (!file) return;
+    runImport(await file.text());
+  }
 
   async function onPickPhoto(file: File | undefined) {
     setPhotoError("");
@@ -319,6 +357,59 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
             />
           </label>
         </div>
+      </details>
+
+      <details className="profile-import">
+        <summary>{t(locale, "importJsonResume")}</summary>
+        <p className="muted profile-import-hint">{t(locale, "importJsonResumeHint")}</p>
+        <input
+          ref={resumeFileRef}
+          type="file"
+          accept=".json,application/json"
+          className="visually-hidden"
+          onChange={(e) => {
+            void onPickResumeFile(e.target.files?.[0]);
+            e.target.value = ""; // allow re-picking the same file
+          }}
+          aria-label={t(locale, "importChooseFile")}
+        />
+        <div className="profile-import-actions">
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => resumeFileRef.current?.click()}
+          >
+            {t(locale, "importChooseFile")}
+          </button>
+        </div>
+        <textarea
+          className="profile-import-text"
+          rows={4}
+          value={importText}
+          placeholder={t(locale, "importPastePlaceholder")}
+          onChange={(e) => setImportText(e.target.value)}
+          aria-label={t(locale, "importPastePlaceholder")}
+        />
+        <div className="profile-import-actions">
+          <button
+            type="button"
+            className="btn btn-sm"
+            disabled={!importText.trim()}
+            onClick={() => runImport(importText)}
+          >
+            {t(locale, "importButton")}
+          </button>
+        </div>
+        {importMsg ? (
+          <span
+            className={
+              importMsg.kind === "error" ? "custom-style-error" : "muted profile-import-status"
+            }
+            role={importMsg.kind === "error" ? "alert" : "status"}
+          >
+            {importMsg.text}
+          </span>
+        ) : null}
       </details>
     </fieldset>
   );
