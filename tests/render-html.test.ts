@@ -109,6 +109,16 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(classic).not.toContain("border-left: 3px solid var(--cv-accent)");
   });
 
+  it("lets long DOIs/URLs break inside bibliography entries (no box overflow)", () => {
+    // Regression: on the bordered "panel" public styles (e.g. Cyberpunk) and the
+    // narrow sidebar column, a long DOI link (one unbreakable token) spilled past
+    // the entry's right edge. The shared bib rule must allow it to wrap.
+    const html = renderCvHtml(makeCv());
+    expect(html).toContain(
+      "text-indent: calc(var(--cv-hang) * -1); line-height: 1.42; overflow-wrap: anywhere;",
+    );
+  });
+
   it("renders the sidebar template with the photo in a coloured aside", () => {
     const withPhoto = updateOwner(updateDisplay(makeCv(), { template: "sidebar" }), {
       photo: "data:image/png;base64,iVBORw0KGgo=",
