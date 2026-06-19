@@ -22,6 +22,9 @@ export interface UiStrings {
   fontLabel: string;
   densityLabel: string;
   fontSizeLabel: string;
+  pageSizeLabel: string;
+  pageSizeA4: string;
+  pageSizeLetter: string;
   accentLabel: string;
   customAccent: string;
   highlightSelf: string;
@@ -174,6 +177,9 @@ export interface UiStrings {
 
 const UI_I18N: Record<Locale, UiStrings> = {
   "en-US": {
+    pageSizeLabel: "Page size",
+    pageSizeA4: "A4",
+    pageSizeLetter: "US Letter",
     showCoauthorLinks: "Show co-authors who are on SigmaCV",
     coauthorLinkable: "Let other SigmaCV CVs link to mine",
     editDetails: "Edit details",
@@ -324,6 +330,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV is free and not-for-profit — a coffee helps cover its running costs.",
   },
   "zh-CN": {
+    pageSizeLabel: "页面尺寸",
+    pageSizeA4: "A4",
+    pageSizeLetter: "美式 Letter",
     showCoauthorLinks: "显示也在 SigmaCV 的合作者",
     coauthorLinkable: "允许其他 SigmaCV 简历链接到我的简历",
     editDetails: "编辑详情",
@@ -471,6 +480,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV 免费且非营利——一杯咖啡有助于支付运营成本。",
   },
   "es-ES": {
+    pageSizeLabel: "Tamaño de página",
+    pageSizeA4: "A4",
+    pageSizeLetter: "Carta (EE. UU.)",
     showCoauthorLinks: "Mostrar coautores que están en SigmaCV",
     coauthorLinkable: "Permitir que otros CV de SigmaCV enlacen al mío",
     editDetails: "Editar detalles",
@@ -622,6 +634,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV es gratuito y sin ánimo de lucro: un café ayuda a cubrir sus costes.",
   },
   "fr-FR": {
+    pageSizeLabel: "Format de page",
+    pageSizeA4: "A4",
+    pageSizeLetter: "Lettre US",
     showCoauthorLinks: "Afficher les co-auteurs présents sur SigmaCV",
     coauthorLinkable: "Autoriser d'autres CV SigmaCV à pointer vers le mien",
     editDetails: "Modifier les détails",
@@ -775,6 +790,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV est gratuit et à but non lucratif — un café aide à payer les frais.",
   },
   "de-DE": {
+    pageSizeLabel: "Seitenformat",
+    pageSizeA4: "A4",
+    pageSizeLetter: "US Letter",
     showCoauthorLinks: "Mitautor:innen auf SigmaCV anzeigen",
     coauthorLinkable: "Anderen SigmaCV-Lebensläufen erlauben, auf meinen zu verlinken",
     editDetails: "Details bearbeiten",
@@ -928,6 +946,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV ist kostenlos und gemeinnützig — ein Kaffee deckt die Betriebskosten.",
   },
   "ja-JP": {
+    pageSizeLabel: "用紙サイズ",
+    pageSizeA4: "A4",
+    pageSizeLetter: "US レター",
     showCoauthorLinks: "SigmaCV を使う共著者を表示",
     coauthorLinkable: "他の SigmaCV CV から自分の CV へのリンクを許可する",
     editDetails: "詳細を編集",
@@ -1078,6 +1099,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV は無料・非営利です。コーヒー一杯が運営費の支えになります。",
   },
   "pt-BR": {
+    pageSizeLabel: "Tamanho da página",
+    pageSizeA4: "A4",
+    pageSizeLetter: "Carta (EUA)",
     showCoauthorLinks: "Mostrar coautores que estão no SigmaCV",
     coauthorLinkable: "Permitir que outros CVs do SigmaCV criem links para o meu",
     editDetails: "Editar detalhes",
@@ -1229,6 +1253,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "O SigmaCV é gratuito e sem fins lucrativos — um café ajuda a cobrir os custos.",
   },
   "it-IT": {
+    pageSizeLabel: "Formato pagina",
+    pageSizeA4: "A4",
+    pageSizeLetter: "Lettera US",
     showCoauthorLinks: "Mostra i coautori presenti su SigmaCV",
     coauthorLinkable: "Consenti ad altri CV SigmaCV di collegarsi al mio",
     editDetails: "Modifica dettagli",
@@ -1381,6 +1408,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV è gratuito e senza scopo di lucro: un caffè aiuta a coprire i costi.",
   },
   "ko-KR": {
+    pageSizeLabel: "페이지 크기",
+    pageSizeA4: "A4",
+    pageSizeLetter: "US 레터",
     showCoauthorLinks: "SigmaCV를 사용하는 공저자 표시",
     coauthorLinkable: "다른 SigmaCV 이력서가 내 이력서로 연결하도록 허용",
     editDetails: "세부 정보 편집",
@@ -1531,6 +1561,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     supportTitle: "SigmaCV는 무료이며 비영리입니다 — 커피 한 잔이 운영 비용에 보탬이 됩니다.",
   },
   "ru-RU": {
+    pageSizeLabel: "Размер страницы",
+    pageSizeA4: "A4",
+    pageSizeLetter: "US Letter",
     showCoauthorLinks: "Показывать соавторов из SigmaCV",
     coauthorLinkable: "Разрешить другим резюме SigmaCV ссылаться на моё",
     editDetails: "Изменить детали",

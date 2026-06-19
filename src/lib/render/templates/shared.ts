@@ -544,7 +544,7 @@ export function commonCss(theme: TemplateTheme): string {
      diverge. Crucially this lets full-bleed templates (the Sidebar's coloured
      panel) reach the page edges in the PDF exactly as they do in the preview —
      no white strip above the panel. pdf.ts passes a matching all-zero margin. */
-  @page { size: A4; margin: 0; }
+  @page { size: ${theme.pageSize}; margin: 0; }
   @media print {
     a { text-decoration: none; }
     /* Keep in-text profile / contact / ID links underlined in the PDF so the

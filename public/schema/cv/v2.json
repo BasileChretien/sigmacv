@@ -455,6 +455,11 @@
           "minimum": 0.8,
           "maximum": 1.25
         },
+        "pageFormat": {
+          "default": "a4",
+          "type": "string",
+          "enum": ["a4", "letter"]
+        },
         "publicContact": {
           "default": {},
           "type": "object",
@@ -1305,6 +1310,11 @@
                 "type": "number",
                 "minimum": 0.8,
                 "maximum": 1.25
+              },
+              "pageFormat": {
+                "default": "a4",
+                "type": "string",
+                "enum": ["a4", "letter"]
               },
               "publicContact": {
                 "default": {},

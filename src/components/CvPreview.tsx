@@ -7,21 +7,31 @@ interface CvPreviewProps {
   html: string;
   loading?: boolean;
   locale: string;
+  /** Paper size — sets the preview width so it stays WYSIWYG with the PDF. */
+  pageFormat?: "a4" | "letter";
 }
 
 /** A4 page width in CSS px (210mm at 96 px/in) — the width the PDF prints at, so
  *  rendering the preview iframe at exactly this width makes line-wrapping and
  *  layout WYSIWYG-identical to the exported PDF, independent of the pane width. */
 export const A4_WIDTH_PX = (210 / 25.4) * 96; // ≈ 793.7
+/** US Letter page width in CSS px (8.5in at 96 px/in). */
+export const LETTER_WIDTH_PX = 8.5 * 96; // 816
 
-/** scale that fits an A4-width page into `availWidth`, never magnifying past 1:1. */
-export function fitScale(availWidth: number): number {
-  if (!(availWidth > 0)) return 1;
-  return Math.min(1, availWidth / A4_WIDTH_PX);
+/** The preview/paper width for a page format. */
+export function pageWidthPx(pageFormat?: "a4" | "letter"): number {
+  return pageFormat === "letter" ? LETTER_WIDTH_PX : A4_WIDTH_PX;
 }
 
-export default function CvPreview({ html, loading, locale }: CvPreviewProps) {
+/** scale that fits a page of `pageWidth` into `availWidth`, never magnifying past 1:1. */
+export function fitScale(availWidth: number, pageWidth: number = A4_WIDTH_PX): number {
+  if (!(availWidth > 0)) return 1;
+  return Math.min(1, availWidth / pageWidth);
+}
+
+export default function CvPreview({ html, loading, locale, pageFormat }: CvPreviewProps) {
   const u = ui(locale);
+  const pageWidth = pageWidthPx(pageFormat);
   const containerRef = useRef<HTMLDivElement>(null);
   // The CV is rendered at a fixed A4 width and scaled to fit the pane (so the
   // preview matches the PDF), so we track the available content box of the pane.
@@ -33,7 +43,7 @@ export default function CvPreview({ html, loading, locale }: CvPreviewProps) {
   useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const apply = (w: number, h: number) => setBox({ scale: fitScale(w), height: h });
+    const apply = (w: number, h: number) => setBox({ scale: fitScale(w, pageWidth), height: h });
     // Initial synchronous measure (content box = client size minus padding) so the
     // first paint is already correctly scaled — no unscaled flash on a narrow pane.
     const cs = getComputedStyle(el);
@@ -50,7 +60,7 @@ export default function CvPreview({ html, loading, locale }: CvPreviewProps) {
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [pageWidth]);
 
   return (
     <div className="cv-preview" ref={containerRef}>
@@ -60,7 +70,7 @@ export default function CvPreview({ html, loading, locale }: CvPreviewProps) {
         // scrolls its (taller) content internally.
         <div
           className="cv-preview-page"
-          style={{ width: A4_WIDTH_PX * scale, height: height || undefined }}
+          style={{ width: pageWidth * scale, height: height || undefined }}
         >
           {/* Sandboxed iframe isolates the CV's own styles from the app chrome and
               keeps untrusted CV markup inert. NEVER add `allow-scripts`/
@@ -76,7 +86,7 @@ export default function CvPreview({ html, loading, locale }: CvPreviewProps) {
             srcDoc={html}
             sandbox="allow-popups allow-popups-to-escape-sandbox"
             style={{
-              width: A4_WIDTH_PX,
+              width: pageWidth,
               // Unscaled height chosen so the scaled iframe fills the pane height
               // exactly; content past it scrolls inside the iframe.
               height: height ? height / scale : "100%",

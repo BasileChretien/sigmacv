@@ -69,7 +69,11 @@ export const pdfRenderer: Renderer = {
           timeout: PDF_TIMEOUT_MS,
         });
         const pdf = await page.pdf({
-          format: "A4",
+          // Paper size follows the user's choice (a4 = ISO default, letter = US).
+          // The shared CSS `@page { size }` matches this; the printed text column
+          // is the same fixed-width `.cv` box either way, so only the paper (and
+          // hence pagination) changes.
+          format: cv.display.pageFormat === "letter" ? "Letter" : "A4",
           printBackground: true,
           // Vertical page margin only; the horizontal gutter is owned by the
           // template's `.cv` box so the printed text column is pixel-identical to

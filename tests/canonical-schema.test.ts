@@ -108,6 +108,7 @@ describe("DisplayChoicesSchema", () => {
       fontPairing: "serif",
       density: "comfortable",
       fontScale: 1,
+      pageFormat: "a4",
       publicContact: { email: false, phone: false, location: false },
       publicAttribution: true,
       showCoauthorLinks: false,

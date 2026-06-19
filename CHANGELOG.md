@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **US Letter page size.** A new "Page size" choice lets you export and preview on
+  **US Letter** (8.5×11in) instead of the A4 default — the standard for North
+  American academic and job applications. It sets the PDF/print paper and the
+  WYSIWYG preview width together; the content column is unchanged, so only the
+  paper (and where pages break) differs. Localized in all ten languages.
+
 - **Side-by-side or stacked editor preview.** A new desktop toggle lets you put
   the live preview beside the editor (default) or stacked below it — handy on
   narrower laptop screens or when you want a full-width editor and preview. Your
