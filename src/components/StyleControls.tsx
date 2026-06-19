@@ -9,6 +9,7 @@ import {
   FONT_SCALES,
   HIGHLIGHT_STYLES,
   isMascotStyle,
+  PAGE_FORMATS,
   PUBLIC_STYLES,
   TEMPLATES,
   type CanonicalCv,
@@ -236,6 +237,10 @@ export default function StyleControls({
   const DENSITY_LABELS: Record<string, string> = {
     comfortable: u.densityComfortable,
     compact: u.densityCompact,
+  };
+  const PAGE_FORMAT_LABELS: Record<string, string> = {
+    a4: u.pageSizeA4,
+    letter: u.pageSizeLetter,
   };
 
   // The authorship table needs per-work author positions, which only exist on
@@ -642,6 +647,26 @@ export default function StyleControls({
             {FONT_SCALES.map((s) => (
               <option key={s} value={s}>
                 {Math.round(s * 100)}%
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span>{u.pageSizeLabel}</span>
+          <select
+            value={cv.display.pageFormat}
+            onChange={(e) =>
+              onChange(
+                updateDisplay(cv, {
+                  pageFormat: e.target.value as CanonicalCv["display"]["pageFormat"],
+                }),
+              )
+            }
+          >
+            {PAGE_FORMATS.map((f) => (
+              <option key={f} value={f}>
+                {PAGE_FORMAT_LABELS[f] ?? f}
               </option>
             ))}
           </select>

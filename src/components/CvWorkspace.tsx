@@ -551,7 +551,12 @@ export default function CvWorkspace({
                   {editorUi(uiLocale).previewSurfacePublic}
                 </button>
               </div>
-              <CvPreview html={previewHtml} loading={previewLoading} locale={uiLocale} />
+              <CvPreview
+                html={previewHtml}
+                loading={previewLoading}
+                locale={uiLocale}
+                pageFormat={cv.display.pageFormat}
+              />
             </section>
           </div>
         </>

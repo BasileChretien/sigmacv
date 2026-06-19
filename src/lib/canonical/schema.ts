@@ -882,6 +882,9 @@ export function isMascotStyle(style: string): style is MascotStyleKey {
 }
 export const FONT_PAIRINGS = ["serif", "sans", "palatino"] as const;
 export const DENSITIES = ["comfortable", "compact"] as const;
+/** Paper size for the PDF export + print + the WYSIWYG preview width. `a4`
+ *  (ISO, the global default) or `letter` (US 8.5×11in, the North-American norm). */
+export const PAGE_FORMATS = ["a4", "letter"] as const;
 /** Overall type-size multiplier (1 = default). Scales every section's font sizes
  *  together. The picker offers these steps; the value is range-validated so a
  *  client can't store something silly. */
@@ -1132,6 +1135,8 @@ export const DisplayChoicesSchema = z.object({
   /** Overall type-size multiplier (scales every section's font sizes together).
    *  1 = default; range-validated (the picker offers FONT_SCALES steps). */
   fontScale: z.number().min(0.8).max(1.25).default(1),
+  /** Paper size for the PDF/print/preview (a4 = ISO default; letter = US). */
+  pageFormat: z.enum(PAGE_FORMATS).default("a4"),
   /**
    * Per-field consent for what appears on the PUBLIC page (`/p/[slug]`). Default
    * ALL OFF (GDPR/APPI data-minimization): publishing shares the CV body, but

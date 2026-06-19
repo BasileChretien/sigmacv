@@ -93,5 +93,7 @@ export function resolveTheme(display: DisplayChoices): TemplateTheme {
     entryGapRem: compact ? 0.38 : 0.58,
     nameSizeRem: compact ? 1.7 : 1.95,
     selfHighlightCss: SELF_HIGHLIGHT_CSS[display.highlightStyle],
+    // CSS `@page size` keyword: "A4" (ISO) or "letter" (US 8.5×11in).
+    pageSize: display.pageFormat === "letter" ? "letter" : "A4",
   };
 }
