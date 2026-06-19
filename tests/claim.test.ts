@@ -5,6 +5,9 @@ import {
   claimedIsPreprint,
   selfIndexById,
 } from "@/lib/canonical/claim";
+import { addClaimedWork } from "@/lib/canonical/curate";
+import { buildCanonicalCv } from "@/lib/canonical/build";
+import { renderCvHtml } from "@/lib/render/html";
 import { bareDoiInput } from "@/lib/openalex/client";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -112,7 +115,9 @@ describe("buildClaimedItem", () => {
     expect(item.authoredBySelf).toBe(true);
     expect(item.meta.authorPosition).toBe(1);
     expect(item.meta.matchBasis).toBe("claimed");
-    expect(item.selfNameVariants).toEqual(["Alice Other"]);
+    // Rich variants (raw + family + both orders) so the family token matches
+    // citeproc's style-specific render and the name actually highlights.
+    expect(item.selfNameVariants).toEqual(["Alice Other", "Other", "Other, Alice"]);
     expect(item.meta.reviewFlag).toBeUndefined(); // orcid-conflict only for id matches
     expect(item.meta.claimed).toBe(true);
   });
@@ -148,11 +153,34 @@ describe("buildClaimedItem", () => {
     expect(item.meta.oaStatus).toBeUndefined();
     expect(item.meta.isCorresponding).toBeUndefined();
     expect(item.meta.citedByCount).toBeUndefined();
-    expect(item.selfNameVariants).toEqual(["Wei Zhang"]);
+    expect(item.selfNameVariants).toEqual(["Wei Zhang", "Zhang", "Zhang, Wei"]);
   });
 
   it("flags a claimed preprint for the Preprints section", () => {
     expect(claimedIsPreprint(work({ type: "preprint" }))).toBe(true);
     expect(claimedIsPreprint(work())).toBe(false);
+  });
+});
+
+describe("a claimed work highlights the self name in the rendered CV", () => {
+  // Regression guard: a DOI-claimed work whose authorship has no ORCID (the
+  // common case — OpenAlex doesn't propagate the iD to every authorship) goes
+  // through the "claimed" branch. Its self name must still be wrapped in the
+  // <span class="cv-self"> highlight, exactly like an auto-synced work.
+  it("wraps the family name (matched against citeproc's rendered form)", () => {
+    // `stranger` shares no identifier with the work, so neither author is
+    // id-matched → the user picks themselves (index 1 = "Basile Chrétien").
+    const item = buildClaimedItem(work(), stranger, { selfAuthorIndex: 1 });
+    const base = buildCanonicalCv({
+      id: "hl",
+      resolved: { orcid: ME, authorIds: ["A1"], displayName: "Basile Chrétien" },
+      works: [],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const cv = addClaimedWork(base, item, false);
+    const html = renderCvHtml(cv);
+    // The citation renders "Chrétien, B." (APA) — the family token is what the
+    // highlighter can reliably match, and it must be wrapped.
+    expect(html).toContain('<span class="cv-self">Chrétien</span>');
   });
 });

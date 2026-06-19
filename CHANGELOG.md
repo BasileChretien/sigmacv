@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Your name is now highlighted on publications you add by DOI.** When you
+  claimed a work whose record didn't carry your ORCID (so you picked yourself
+  from the author list), your name wasn't bold/highlighted the way it is on
+  auto-synced works — because only your full name was matched, while the citation
+  style renders an abbreviated form (e.g. "Chrétien, B."). The claim flow now uses
+  the same rich name variants (including your family name) as manual entries, so
+  the highlight applies consistently across every export and the public page.
+
 ### Added
 
 - **US Letter page size.** A new "Page size" choice lets you export and preview on
