@@ -35,6 +35,10 @@ ecosystem** (ORCID, OpenAlex / OurResearch, ROR, Crossref). Copy/paste and adapt
 - **FAIR + machine-readable public pages.** Findable (JSON-LD, sitemap),
   Accessible (content negotiation, open export), Interoperable (PIDs + CSL),
   Reusable (provenance + license).
+- **Works with the tools researchers already use.** A published CV embeds COinS
+  metadata per publication, so the whole list saves straight into **Zotero,
+  Mendeley,** or any reference manager via the browser connector — plus BibTeX /
+  CSL-JSON / JSON-LD by content negotiation. A natural fit for library workflows.
 - **Responsible assessment.** Metrics default to none; field-normalized over
   h-index, consistent with DORA/CoARA.
 - **Funder-ready in one click.** A 58-model CV-model catalog reconfigures the CV
@@ -129,5 +133,6 @@ upgrade to "supporter" only once confirmed.
 
 - Site: <https://sigmacv.org>
 - Open-science & FAIR statement: [`docs/OPEN-SCIENCE.md`](OPEN-SCIENCE.md)
+- Reference-manager import (Zotero / Mendeley): [`docs/zotero-translator.md`](zotero-translator.md)
 - Self-hosting: [`DEPLOY.md`](../DEPLOY.md)
 - Contributing: [`CONTRIBUTING.md`](../CONTRIBUTING.md)

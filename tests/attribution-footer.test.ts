@@ -8,6 +8,8 @@ import { renderCvHtml } from "@/lib/render/html";
 import { attributionFooter } from "@/lib/render/templates/shared";
 import { SITE_URL } from "@/lib/siteUrl";
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import type { OpenAlexWork } from "@/lib/openalex/types";
+import worksFixture from "./fixtures/openalex-works.json";
 
 function makeCv(): CanonicalCv {
   return buildCanonicalCv({
@@ -18,6 +20,21 @@ function makeCv(): CanonicalCv {
       displayName: "Basile Chrétien",
     },
     works: [],
+    now: "2026-06-02T00:00:00.000Z",
+  });
+}
+
+/** A CV WITH publications, so the reference-manager hint (which needs citation
+ *  items to be meaningful) applies. */
+function makeCvWithWorks(): CanonicalCv {
+  return buildCanonicalCv({
+    id: "attr-works",
+    resolved: {
+      orcid: "0000-0002-7483-2489",
+      authorIds: ["A5001069481"],
+      displayName: "Basile Chrétien",
+    },
+    works: worksFixture as unknown as OpenAlexWork[],
     now: "2026-06-02T00:00:00.000Z",
   });
 }
@@ -47,6 +64,20 @@ describe("attributionFooter", () => {
     expect(html).toContain("2026"); // the formatted last-synced date
     // Absent on the export path (the whole footer is "").
     expect(attributionFooter(makeCv())).not.toContain("cv-living");
+  });
+
+  it("shows a 'save to your reference manager' hint when the page has publications (public only)", () => {
+    const cv = makeCvWithWorks();
+    const html = attributionFooter(cv, { attribution: true });
+    expect(html).toContain('class="cv-refman"');
+    expect(html).toContain(renderStrings("en-US").refManagerNote);
+    // Off the export path (whole footer is "").
+    expect(attributionFooter(cv)).not.toContain("cv-refman");
+  });
+
+  it("omits the reference-manager hint when there are no citation items", () => {
+    // makeCv() has no works → a narrative-only page has nothing to save.
+    expect(attributionFooter(makeCv(), { attribution: true })).not.toContain("cv-refman");
   });
 
   it("shows a 'What's new' strip whose items deep-link to the entry (public path only)", () => {
