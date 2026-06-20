@@ -101,115 +101,75 @@ describe("public-page showcase styles", () => {
     for (const p of previews) expect(p.html.startsWith("<!DOCTYPE html>")).toBe(true);
   });
 
-  it("'posology' draws the dose–response spine + stamps the self-name in a vermilion seal", () => {
+  it("'posology' is an instrument page: the engraved dose–response curve margin + Space Grotesk", () => {
     const cv = updateDisplay(withPhoto, { publicStyle: "posology" });
     const html = renderPublicCvHtml(cv);
-    // The signature sigmoid spine + its EC₅₀ inflection marker.
-    expect(html).toContain('class="poso-curve"');
+    // The engraved-curve margin (the signature) + its EC₅₀ marker.
+    expect(html).toContain('class="po-curve"');
     expect(html).toContain("EC₅₀");
-    // The curve draws itself in (keyframed) and headings settle on a view() timeline.
-    expect(html).toContain("@keyframes poso-draw");
-    expect(html).toContain("animation-timeline: view()");
-    // Fixed apothecary-teal identity (not accent-derived) + the vermilion seal ink.
-    expect(html).toContain("--poso-accent:#1d9e75");
-    expect(html).toContain("--poso-seal-ink:#9e2b1e");
-    // Instrument: the breathing curve field + the cursor that traces the curve.
-    expect(html).toContain('class="poso-field"');
-    expect(html).toContain('class="poso-cursor"');
-    // Heavy motion: oscilloscope sweep + cursor trace + radar-ping nodes.
-    expect(html).toContain('class="poso-sweep"');
-    expect(html).toContain("@keyframes poso-trace");
-    expect(html).toContain("@keyframes poso-ping");
+    // The fixed clinical-teal identity.
+    expect(html).toContain("--po-teal:#0f7a5a");
+    // The bundled characterful face, embedded under the CSP.
+    expect(html).toContain("Space Grotesk");
+    expect(html).toContain("@font-face");
   });
 
-  it("'hanko' stamps the name with a vermilion seal + draws the tokonoma scroll-rule", () => {
+  it("'hanko' is a hanging-scroll page: the tategaki margin, the carved seal + Newsreader", () => {
     const cv = updateDisplay(withPhoto, { publicStyle: "hanko" });
     const html = renderPublicCvHtml(cv);
-    // The tokonoma scroll-rule element + the fixed washi/vermilion identity.
-    expect(html).toContain('class="hk-scroll"');
-    expect(html).toContain("--hk-seal:#b7352b");
-    // The name-seal stamp is a CSS ::after on the masthead h1.
-    expect(html).toContain("header.cv-header h1::after");
-    expect(html).toContain("animation-timeline: view()");
-    // Hanging-scroll furniture: sumi ink-wash + the vertical tategaki title.
-    expect(html).toContain('class="hk-wash"');
+    // The vertical tategaki margin (the signature) + the carved seal on the name.
+    expect(html).toContain('class="hk-tate"');
     expect(html).toContain("履歴書");
-    // Heavy motion: scroll unfurl + seal-stamp impact + drifting ink-flecks.
-    expect(html).toContain('class="hk-flecks"');
-    expect(html).toContain("@keyframes hk-unfurl");
-    expect(html).toContain("@keyframes hk-stamp");
+    expect(html).toContain("header.cv-header h1::after");
+    expect(html).toContain("--hk-seal:#b23a2c");
+    expect(html).toContain("Newsreader");
+    expect(html).toContain("@font-face");
   });
 
-  it("'pharmacopoeia' lays a molecular lattice + highlights the self-name in amber", () => {
+  it("'pharmacopoeia' is a lamplit specimen page: the botanical margin + Fraunces", () => {
     const cv = updateDisplay(withPhoto, { publicStyle: "pharmacopoeia" });
     const html = renderPublicCvHtml(cv);
-    // The benzene-ring lattice element + the apothecary parchment/sepia identity.
-    expect(html).toContain('class="ph-lattice"');
-    expect(html).toContain('id="ph-hex"');
-    expect(html).toContain("--ph-accent:#7a4f1d");
-    // The self-name gets the translucent amber highlighter wash.
-    expect(html).toContain("--ph-mark:");
-    expect(html).toContain("animation-timeline: view()");
-    // Specimen-sheet furniture: graduated scale + a skeletal molecule + catalog Nº.
-    expect(html).toContain('class="ph-scale"');
-    expect(html).toContain('class="ph-molecule"');
-    expect(html).toContain("counter(ph, decimal-leading-zero)");
-    // Heavy motion: effervescence bubbles + reaction wavefront + rising titration.
-    expect(html).toContain('class="ph-bubbles"');
-    expect(html).toContain('class="ph-react"');
-    expect(html).toContain("@keyframes ph-titrate");
+    // The botanical-specimen margin (the signature) + the verdigris (not terracotta) accent.
+    expect(html).toContain('class="ph-spec"');
+    expect(html).toContain("--ph-verdigris:#35543f");
+    expect(html).toContain("Materia Academica · Curriculum Vitæ");
+    expect(html).toContain("Fraunces");
+    expect(html).toContain("@font-face");
   });
 
-  it("'codex' draws the book-spine + sets the self-name in oxblood small-caps", () => {
+  it("'codex' is a fine-press page: the illuminated margin, oxblood small-caps + EB Garamond", () => {
     const cv = updateDisplay(withPhoto, { publicStyle: "codex" });
     const html = renderPublicCvHtml(cv);
-    // The hardback book-spine element + the fleuron heading mark.
-    expect(html).toContain('class="cx-spine"');
+    // The illuminated vine margin (the signature) + the fleuron + small-caps self-name.
+    expect(html).toContain('class="cx-vine"');
     expect(html).toContain('content:"❧"');
-    // Fixed ivory/oxblood identity + small-caps self-name.
-    expect(html).toContain("--cx-spine:#7a2b35");
     expect(html).toContain("font-variant: small-caps");
-    expect(html).toContain("animation-timeline: view()");
-    // Fine-press furniture: a gilt accent + the printer's-flower masthead ornament.
-    expect(html).toContain("--cx-gold:#9c7b3f");
-    expect(html).toContain('content:"❦"');
-    // Heavy motion: candlelight flicker + a gilt glint + the page-open hinge.
-    expect(html).toContain('class="cx-candle"');
-    expect(html).toContain('class="cx-glint"');
-    expect(html).toContain("@keyframes cx-open");
+    expect(html).toContain("--cx-oxblood:#7a2b35");
+    expect(html).toContain("EB Garamond");
+    expect(html).toContain("@font-face");
   });
 
-  it("'ledger' numbers its sections + labels the summary 'Abstract'", () => {
+  it("'ledger' is a working-paper page: numbered sections, the Abstract + the blueprint margin", () => {
     const cv = updateDisplay(withPhoto, { publicStyle: "ledger" });
     const html = renderPublicCvHtml(cv);
-    // Numbered working-paper sections + the Abstract label + navy identity.
+    // True-to-the-form structure + the ledger margin line-numbers (the signature).
     expect(html).toContain('content: counter(lg) "."');
     expect(html).toContain('content:"Abstract"');
+    expect(html).toContain('class="lg-lines"');
     expect(html).toContain("--lg-navy:#1f3a5f");
-    expect(html).toContain("animation-timeline: view()");
-    // Econometric furniture: the regression scatter plot + the ledger margin.
-    expect(html).toContain('class="lg-plot"');
-    expect(html).toContain('class="lg-margin"');
-    // Heavy motion: the OLS fit-point + the scrolling sparkline ticker.
-    expect(html).toContain('class="lg-fit"');
-    expect(html).toContain('class="lg-ticker"');
-    expect(html).toContain("@keyframes lg-fit");
+    expect(html).toContain("Source Serif 4");
+    expect(html).toContain("@font-face");
   });
 
-  it("'atelier' uses an oversized portfolio hero + clay gallery labels", () => {
+  it("'atelier' is a gallery-wall page: the brass plate, plate numbers + Inter", () => {
     const cv = updateDisplay(withPhoto, { publicStyle: "atelier" });
     const html = renderPublicCvHtml(cv);
-    // Portfolio eyebrow + the fixed gallery-white / clay identity.
+    // The brass-plate eyebrow (the signature) + plate-numbered wall labels.
     expect(html).toContain('content:"Selected Work · Curriculum Vitæ"');
-    expect(html).toContain("--at-accent-ink:#a04e38");
-    expect(html).toContain("animation-timeline: view()");
-    // Exhibition furniture: the gallery spotlight + plate-numbered wall labels.
-    expect(html).toContain('class="at-spot"');
     expect(html).toContain('content:"Pl. " counter(plate, decimal-leading-zero)');
-    // Heavy motion: the panning spotlight beam + dust motes + plaque glint.
-    expect(html).toContain('class="at-beam"');
-    expect(html).toContain('class="at-dust"');
-    expect(html).toContain("@keyframes at-glint");
+    expect(html).toContain("--at-brass2:#9c8246");
+    expect(html).toContain("Inter");
+    expect(html).toContain("@font-face");
   });
 
   it("every animated field style keeps a reduced-motion fallback", () => {
