@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The six field styles now carry heavy, distinctive animation.** Each gained a
+  unique motion system on top of its signature mechanic: Posology runs an
+  oscilloscope sweep, a comet-trail cursor tracing the curve, and radar-pinging
+  nodes; Hanko unfurls like a hanging scroll and stamps its seal with impact over
+  drifting ink-flecks; Pharmacopoeia bubbles with effervescence under a reaction
+  wavefront, a rotating molecule and a rising titration; Codex reads by flickering
+  candlelight with a gilt glint travelling its spine and a page-open hinge; Ledger
+  draws and fits its regression with a travelling point, a breathing confidence
+  band and a scrolling ticker; Atelier sweeps a panning spotlight through dust
+  motes with a brass-plaque glint and a lights-on reveal. All CSS-only, with the
+  reading surface kept crisp — and **every animation fully stops under
+  `prefers-reduced-motion`** (and in print), falling back to the calm static world.
+
 - **The six credible field styles are now fully realised "worlds", each with a
   signature mechanic** (still CSS-only, DORA-safe, legible, and static under
   `prefers-reduced-motion`/print):

@@ -52,13 +52,26 @@ function hankoCss(_t: TemplateTheme): string {
   body { min-height:100vh; color:var(--cv-ink); background:var(--cv-page); font-family: var(--hk-serif);
     background-image: repeating-linear-gradient(0deg, rgba(120,108,86,0.035) 0 1px, transparent 1px 5px); }
 
-  /* ---- Sumi-e ink-wash clouds in the margins ---- */
-  .hk-wash { position:fixed; inset:0; z-index:0; pointer-events:none; animation: hk-wash 15s ease-in-out infinite;
+  /* ---- Sumi-e ink-wash clouds in the margins (breathe + billow) ---- */
+  .hk-wash { position:fixed; inset:-8%; z-index:0; pointer-events:none;
+    animation: hk-wash 15s ease-in-out infinite, hk-billow 26s ease-in-out infinite;
     background:
       radial-gradient(42% 30% at 80% 14%, rgba(40,38,34,0.05), transparent 70%),
       radial-gradient(48% 34% at 10% 76%, rgba(40,38,34,0.045), transparent 72%),
       radial-gradient(30% 22% at 62% 58%, rgba(40,38,34,0.028), transparent 70%); }
   @keyframes hk-wash { 0%,100% { opacity:0.7; } 50% { opacity:1; } }
+  @keyframes hk-billow { 0%,100% { transform: scale(1) translate(0,0); } 50% { transform: scale(1.08) translate(-14px,10px); } }
+
+  /* ---- Drifting sumi ink-flecks rising up the page ---- */
+  .hk-flecks { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.5;
+    background-image:
+      radial-gradient(2px 2px at 12% 80%, rgba(40,38,34,0.5), transparent 60%),
+      radial-gradient(1.5px 1.5px at 28% 60%, rgba(40,38,34,0.4), transparent 60%),
+      radial-gradient(2px 2px at 70% 74%, rgba(40,38,34,0.45), transparent 60%),
+      radial-gradient(1.5px 1.5px at 85% 54%, rgba(40,38,34,0.4), transparent 60%),
+      radial-gradient(1.5px 1.5px at 50% 86%, rgba(40,38,34,0.32), transparent 60%);
+    background-size: 100% 720px; animation: hk-flecks 17s linear infinite; }
+  @keyframes hk-flecks { from { background-position: 0 0; } to { background-position: 0 -720px; } }
 
   /* ---- Scroll-rod with turned end-knobs (jiku) ---- */
   .hk-scroll { position:fixed; left: clamp(14px, 4.5vw, 58px); top:7vh; bottom:7vh; width:3px;
@@ -77,8 +90,13 @@ function hankoCss(_t: TemplateTheme): string {
     letter-spacing:0.34em; color: rgba(31,29,26,0.17); }
   @media (max-width: 1100px) { .hk-scroll, .hk-tate { display:none; } }
 
+  /* The content unrolls from the top like a hanging scroll on load. */
   .cv { position:relative; z-index:1; max-width: 720px; margin:0 auto;
-    padding: clamp(52px, 9vw, 104px) clamp(28px, 7vw, 76px) 140px; }
+    padding: clamp(52px, 9vw, 104px) clamp(28px, 7vw, 76px) 140px;
+    animation: hk-unfurl 1.4s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
+  @keyframes hk-unfurl {
+    from { clip-path: inset(0 0 100% 0); opacity:0.3; }
+    to { clip-path: inset(0 0 0 0); opacity:1; } }
 
   /* ---- Masthead ---- */
   header.cv-header { position:relative; isolation:isolate; margin-bottom: 3rem; padding-bottom: 2rem;
@@ -100,12 +118,18 @@ function hankoCss(_t: TemplateTheme): string {
     font-family: var(--hk-serif); font-size: clamp(2.3rem, 6.4vw, 3.8rem); font-weight:500;
     line-height:1.12; letter-spacing:0.005em; color: var(--cv-ink); margin:0 0 0.55rem;
   }
-  /* The carved hanko stamped after the name: solid cinnabar, inset keyline, tilt. */
+  /* The carved hanko stamped after the name: solid cinnabar, inset keyline, tilt.
+     It STAMPS DOWN with impact on load (drops in big + transparent, slams to size). */
   header.cv-header h1::after {
     content:"Σ"; display:inline-grid; place-items:center; vertical-align:0.16em;
     width:1.55em; height:1.55em; margin-left:0.42em; font-size:0.4em; font-weight:700;
     background: var(--hk-seal); color: var(--hk-paper); border-radius:0.16em; transform: rotate(-5deg);
-    box-shadow: inset 0 0 0 1.5px rgba(247,244,236,0.28), 0 1px 2px rgba(0,0,0,0.18); }
+    box-shadow: inset 0 0 0 1.5px rgba(247,244,236,0.28), 0 1px 2px rgba(0,0,0,0.18);
+    animation: hk-stamp 0.55s cubic-bezier(0.34,1.56,0.64,1) 1.25s both; }
+  @keyframes hk-stamp {
+    0% { opacity:0; transform: rotate(-5deg) scale(2.6); }
+    55% { opacity:1; transform: rotate(-5deg) scale(0.9); }
+    100% { opacity:1; transform: rotate(-5deg) scale(1); } }
   .cv-honorific { font-style: italic; font-weight:400; }
   header.cv-header .cv-headline {
     font-family: var(--hk-serif); font-style: italic; font-weight:400;
@@ -181,15 +205,17 @@ function hankoCss(_t: TemplateTheme): string {
   }
   @media (prefers-reduced-motion: reduce) {
     *,*::before,*::after { animation:none !important; }
+    .cv { clip-path:none !important; opacity:1 !important; }
+    .hk-flecks { display:none !important; }
     section.cv-section > h2, .cv-summary-block > .cv-summary-h,
     ol.cv-bib > li { opacity:1 !important; transform:none !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform:none !important; }
   }
   @media print {
-    .hk-scroll, .hk-tate, .hk-wash { display:none !important; }
+    .hk-scroll, .hk-tate, .hk-wash, .hk-flecks { display:none !important; }
     header.cv-header::after { display:none !important; }
     *,*::before,*::after { animation:none !important; }
-    .cv { padding:0; max-width:none; }
+    .cv { padding:0; max-width:none; clip-path:none !important; }
   }`;
 }
 
@@ -199,6 +225,7 @@ export const hankoTemplate: CvTemplate = {
     const css = commonCss(theme) + hankoCss(theme);
     const body =
       `<div class="hk-wash" aria-hidden="true"></div>` +
+      `<div class="hk-flecks" aria-hidden="true"></div>` +
       `<div class="hk-scroll" aria-hidden="true"></div>` +
       `<div class="hk-tate" aria-hidden="true">履歴書</div>` +
       `<div class="cv">` +

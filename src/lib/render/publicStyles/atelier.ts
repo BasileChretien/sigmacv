@@ -48,27 +48,53 @@ function atelierCss(_t: TemplateTheme): string {
     --at-sans: ui-sans-serif, system-ui, "Helvetica Neue", "Segoe UI", Helvetica, Arial, sans-serif;
   }
   body { min-height:100vh; color:var(--cv-ink); background:var(--cv-page); font-family: var(--at-serif); }
-  /* Soft overhead gallery spotlight behind the hero. */
+  /* Soft overhead gallery spotlight (ambient) behind the hero. */
   .at-spot { position:fixed; inset:0; z-index:0; pointer-events:none;
     background: radial-gradient(60% 42% at 38% -6%, rgba(255,247,232,0.85), rgba(255,247,232,0) 70%),
                 radial-gradient(40% 30% at 50% 0%, rgba(181,86,58,0.05), transparent 72%); }
+  /* A gallery spotlight that pans across the wall. */
+  .at-beam { position:fixed; top:-30vh; left:50%; margin-left:-40vw; width:80vw; height:130vh; z-index:0;
+    pointer-events:none; transform-origin:50% 0; will-change: transform;
+    background: radial-gradient(50% 50% at 50% 28%, rgba(255,247,232,0.6), transparent 70%);
+    animation: at-beam 14s ease-in-out infinite; }
+  @keyframes at-beam {
+    0%,100% { transform: translateX(-17vw) rotate(-4deg); }
+    50% { transform: translateX(17vw) rotate(4deg); } }
+  /* Dust motes adrift in the beam. */
+  .at-dust { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.7;
+    background-image:
+      radial-gradient(1.5px 1.5px at 30% 42%, rgba(120,100,70,0.3), transparent 60%),
+      radial-gradient(1px 1px at 52% 30%, rgba(120,100,70,0.26), transparent 60%),
+      radial-gradient(1.5px 1.5px at 68% 50%, rgba(120,100,70,0.28), transparent 60%),
+      radial-gradient(1px 1px at 44% 60%, rgba(120,100,70,0.24), transparent 60%),
+      radial-gradient(1.5px 1.5px at 78% 36%, rgba(120,100,70,0.26), transparent 60%);
+    background-size: 100% 820px; animation: at-dust 24s linear infinite; }
+  @keyframes at-dust { from { background-position: 0 0; } to { background-position: 46px -820px; } }
   .cv { position:relative; z-index:1; max-width: 840px; margin:0 auto;
     padding: clamp(56px, 10vw, 120px) clamp(28px, 7vw, 88px) 150px; }
 
   /* ---- Portfolio hero ---- */
   header.cv-header { position:relative; margin-bottom: 4rem; }
-  /* Engraved brass plaque eyebrow. */
+  /* Engraved brass plaque eyebrow, with a glint sweeping across it. */
   header.cv-header::before {
     content:"Selected Work · Curriculum Vitæ"; display:inline-block; font-family: var(--at-sans);
     font-size:0.64rem; font-weight:600; letter-spacing:0.3em; text-transform:uppercase;
     color:#4a3c18; margin-bottom:1.5rem; padding:0.34em 0.8em; border-radius:2px;
-    background: linear-gradient(180deg, var(--at-brass1), var(--at-brass2));
+    background:
+      linear-gradient(115deg, transparent 34%, rgba(255,255,255,0.55) 46%, transparent 58%) 160% 0 / 250% 100% no-repeat,
+      linear-gradient(180deg, var(--at-brass1), var(--at-brass2));
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.12);
-    text-shadow: 0 1px 0 rgba(255,255,255,0.3); }
+    text-shadow: 0 1px 0 rgba(255,255,255,0.3); animation: at-glint 5s ease-in-out infinite; }
+  @keyframes at-glint { 0% { background-position: 160% 0, 0 0; } 55%,100% { background-position: -70% 0, 0 0; } }
   .cv-headmain { gap: 2.6rem; align-items: flex-start; }
+  /* The name lights up on load, as if the gallery light comes on. */
   header.cv-header h1 {
     font-family: var(--at-serif); font-size: clamp(3rem, 9.5vw, 5.4rem); font-weight:500;
-    line-height:0.98; letter-spacing:-0.022em; color: var(--cv-ink); margin:0 0 0.6rem; }
+    line-height:0.98; letter-spacing:-0.022em; color: var(--cv-ink); margin:0 0 0.6rem;
+    animation: at-lighton 1.5s cubic-bezier(0.22,1,0.36,1) both; }
+  @keyframes at-lighton {
+    from { opacity:0; filter: brightness(2.2) blur(3px); letter-spacing:0.04em; }
+    to { opacity:1; filter:none; letter-spacing:-0.022em; } }
   .cv-honorific { font-style: italic; font-weight:400; }
   header.cv-header .cv-headline {
     font-family: var(--at-serif); font-style: italic; font-weight:400;
@@ -137,12 +163,15 @@ function atelierCss(_t: TemplateTheme): string {
   }
   @media (prefers-reduced-motion: reduce) {
     *,*::before,*::after { animation:none !important; }
+    .at-beam, .at-dust { display:none !important; }
+    header.cv-header h1 { opacity:1 !important; filter:none !important; letter-spacing:-0.022em !important; }
+    header.cv-header::before { background-position: -70% 0, 0 0 !important; }
     section.cv-section > h2, .cv-summary-block > .cv-summary-h,
     ol.cv-bib > li { opacity:1 !important; transform:none !important; }
     section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before { transform:none !important; }
   }
   @media print {
-    .at-spot { display:none !important; }
+    .at-spot, .at-beam, .at-dust { display:none !important; }
     ol.cv-bib > li::after { display:none !important; }
     *,*::before,*::after { animation:none !important; }
     .cv { padding:0; max-width:none; }
@@ -155,6 +184,8 @@ export const atelierTemplate: CvTemplate = {
     const css = commonCss(theme) + atelierCss(theme);
     const body =
       `<div class="at-spot" aria-hidden="true"></div>` +
+      `<div class="at-beam" aria-hidden="true"></div>` +
+      `<div class="at-dust" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
       sectionsHtml(cv, sections) +

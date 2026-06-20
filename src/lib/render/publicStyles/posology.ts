@@ -1,32 +1,28 @@
 /**
  * Public-page showcase style — "Posology".
  *
- * The credible flagship, built from the owner's own iconography and rendered as a
- * live PHARMACODYNAMICS INSTRUMENT. The page sits over a faint field of plotted
- * dose-response curves; a labelled sigmoid (Hill/Emax — also the logistic curve
- * and the shape of a Σ) runs down the left as an instrument axis, and a glowing
- * teal cursor TRACES the curve like an oscilloscope readout.
+ * The credible flagship rendered as a LIVE PHARMACODYNAMICS INSTRUMENT — now
+ * heavily animated. The page sits over a flowing field of dose-response curves; an
+ * oscilloscope sweep crosses the screen; a comet-trailed cursor traces a labelled
+ * sigmoid (Hill/Emax, also the logistic curve and the shape of a Σ) down the left
+ * instrument axis; section nodes ping like a radar; and the Σ monogram beats.
  *
- *   • CURVE FIELD — a faint, slowly breathing field of dose-response sigmoids
- *     washes the page (decorative, aria-hidden).
- *   • INSTRUMENT SPINE — a teal sigmoid pinned to the left gutter with a baseline
- *     axis, log-dose ticks, dashed Emax/baseline asymptotes, an EC₅₀ inflection
- *     node, and a cursor dot that traces the curve (offset-path) on a loop. The
- *     curve also strokes itself in on load.
- *   • CLINICAL SQUARED PAPER + Σ MONOGRAM — graph-paper wash under a large Σ
- *     watermark behind the name.
- *   • SECTION ASSAYS — each heading carries a teal data-point node and a tiny
- *     concentration tick-scale.
+ *   • OSCILLOSCOPE SWEEP — a teal scan band sweeps the page behind the text.
+ *   • TRACING CURSOR — a glowing cursor with a fading comet-trail runs the curve
+ *     (offset-path) on a loop; the curve strokes in on load and breathes.
+ *   • FLOWING CURVE FIELD — dose-response sigmoids drift + breathe behind the page.
+ *   • RADAR NODES — each section data-point node emits an expanding ping.
+ *   • BEATING Σ — the monogram watermark pulses behind the name.
  *   • VERMILION SEAL — the account holder's own (identifier-matched, never
  *     name-string-matched) name is stamped in a deep-cinnabar hanko box.
  *
  * Palette is a FIXED apothecary-teal identity (NOT account-accent-derived). The
- * reading column sits above every animated layer (z-index) so body copy never
- * moves or loses contrast. Guardrails: heading/link teal is the AA-floored
- * #0f6e56 (~6:1); the vermilion self-name uses the deep #9e2b1e (~5.5:1);
- * `prefers-reduced-motion` freezes the curve drawn + parks the cursor + stills the
- * field; print drops every instrument layer. CSS-ONLY, light page, no mascot
- * (the seal is the character).
+ * reading column sits ABOVE every animated layer (z-index 3) so body copy never
+ * moves or loses contrast while read. Guardrails: heading/link teal is the
+ * AA-floored #0f6e56 (~6:1); the vermilion self-name uses #9e2b1e (~5.5:1);
+ * `prefers-reduced-motion` STOPS every loop (sweep/cursor/field/ping/beat) and
+ * shows the calm static instrument; print drops all instrument layers. CSS-ONLY,
+ * light page, no mascot (the seal is the character).
  */
 import {
   attributionFooter,
@@ -40,7 +36,7 @@ import {
 } from "@/lib/render/templates/shared";
 import type { CvTemplate, TemplateTheme } from "@/lib/render/templates/types";
 
-/** The instrument sigmoid, shared by the drawn curve AND the tracing cursor. */
+/** The instrument sigmoid, shared by the drawn curve AND the tracing cursor/trail. */
 const POSO_CURVE = "M40 54 C40 196 46 250 80 272 C114 294 120 352 120 452";
 
 function posologyCss(_t: TemplateTheme): string {
@@ -50,7 +46,6 @@ function posologyCss(_t: TemplateTheme): string {
     --cv-ink:#1b211f; --cv-ink-2:#36423c; --cv-muted:#545f57; --cv-faint:#67726a;
     --cv-rule: rgba(15,110,86,0.16); --cv-rule-strong: rgba(15,110,86,0.34); --cv-page:#fbfdfb;
     --poso-page:#fbfdfb;
-    /* Apothecary teal — accent is DECORATIVE; accent-ink is the AA text colour. */
     --poso-accent:#1d9e75; --poso-accent-ink:#0f6e56;
     --poso-rule: rgba(15,110,86,0.30);
     --poso-grid: rgba(15,110,86,0.055);
@@ -69,35 +64,52 @@ function posologyCss(_t: TemplateTheme): string {
   .cv { position:relative; z-index:3; max-width: 760px; margin:0 auto;
     padding: clamp(48px, 8vw, 96px) clamp(28px, 6vw, 64px) 132px; }
 
-  /* ---- Background field of dose-response curves (breathing) ---- */
-  .poso-field { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none;
-    opacity:0.5; animation: poso-breathe 11s ease-in-out infinite; }
+  /* ---- Flowing field of dose-response curves (drift + breathe) ---- */
+  .poso-field { position:fixed; inset:-5% -10%; width:120%; height:110%; z-index:0; pointer-events:none;
+    opacity:0.55; animation: poso-breathe 11s ease-in-out infinite, poso-drift 26s linear infinite; }
   .poso-field path { fill:none; stroke: var(--poso-accent); stroke-width:1.1; opacity:0.16; }
-  @keyframes poso-breathe { 0%,100% { opacity:0.36; } 50% { opacity:0.6; } }
+  @keyframes poso-breathe { 0%,100% { opacity:0.4; } 50% { opacity:0.66; } }
+  @keyframes poso-drift { from { transform: translateX(0); } to { transform: translateX(-60px); } }
+
+  /* ---- Oscilloscope sweep band crossing the page (behind the text) ---- */
+  .poso-sweep { position:fixed; top:0; bottom:0; left:0; width:150px; z-index:2; pointer-events:none;
+    mix-blend-mode: multiply; will-change: transform;
+    background: linear-gradient(90deg, transparent, rgba(29,158,117,0.09) 44%, rgba(29,158,117,0.2) 50%, rgba(29,158,117,0.09) 56%, transparent);
+    animation: poso-sweep 6.5s cubic-bezier(0.45,0,0.55,1) infinite; }
+  @keyframes poso-sweep { 0% { transform: translateX(-170px); } 100% { transform: translateX(100vw); } }
 
   /* ---- Instrument spine ---- */
   .poso-spine { position:fixed; left: clamp(2px, 2.5vw, 40px); top:50%; transform: translateY(-50%);
     width:160px; height: min(500px, 78vh); z-index:1; pointer-events:none; }
   .poso-axis { fill:none; stroke: var(--poso-rule); stroke-width:1; }
-  .poso-asym { fill:none; stroke: var(--poso-accent); stroke-width:1; stroke-dasharray:2 4; opacity:0.5; }
+  .poso-asym { fill:none; stroke: var(--poso-accent); stroke-width:1; stroke-dasharray:2 4; opacity:0.5;
+    animation: poso-march 1.4s linear infinite; }
+  @keyframes poso-march { to { stroke-dashoffset: -6; } }
   .poso-xtick { stroke: var(--poso-rule); stroke-width:1; }
   .poso-tick { stroke: var(--poso-accent); stroke-width:1.2; opacity:0.6; }
-  .poso-node { fill: var(--poso-page); stroke: var(--poso-accent); stroke-width:2; }
+  .poso-node { fill: var(--poso-page); stroke: var(--poso-accent); stroke-width:2;
+    transform-box: fill-box; transform-origin: center; animation: poso-node-beat 2.6s ease-in-out infinite; }
+  @keyframes poso-node-beat { 0%,100% { r:3.8; } 50% { r:5; } }
   .poso-lab { fill: var(--poso-accent-ink); font:600 10px var(--poso-mono); letter-spacing:0.02em; }
   .poso-lab-mut { fill: #6b7a72; font:600 9px var(--poso-mono); opacity:0.85; }
-  /* The curve: base = fully drawn (no-animation fallback); strokes in on load. */
+  /* The curve: strokes in on load, then glows on a loop. */
   .poso-curve { fill:none; stroke: var(--poso-accent); stroke-width:2.4; stroke-linecap:round;
-    stroke-dasharray:1; stroke-dashoffset:0; filter: drop-shadow(0 0 2px rgba(29,158,117,0.5));
-    animation: poso-draw 1.6s cubic-bezier(0.22,1,0.36,1) 0.15s both; }
+    stroke-dasharray:1; stroke-dashoffset:0;
+    animation: poso-draw 1.6s cubic-bezier(0.22,1,0.36,1) 0.15s both, poso-glow 3.2s ease-in-out 1.8s infinite; }
   @keyframes poso-draw { from { stroke-dashoffset:1; } to { stroke-dashoffset:0; } }
-  /* The oscilloscope cursor: traces the curve on a loop (offset-path). */
-  .poso-cursor { offset-path: path("${POSO_CURVE}"); offset-rotate:0deg; offset-distance:0%;
-    filter: drop-shadow(0 0 4px rgba(29,158,117,0.9));
+  @keyframes poso-glow {
+    0%,100% { filter: drop-shadow(0 0 2px rgba(29,158,117,0.5)); }
+    50% { filter: drop-shadow(0 0 6px rgba(29,158,117,0.95)); } }
+  /* The cursor + its fading comet-trail trace the curve (offset-path) on a loop. */
+  .poso-cursor, .poso-cursor-t1, .poso-cursor-t2 {
+    offset-path: path("${POSO_CURVE}"); offset-rotate:0deg; offset-distance:0%;
     animation: poso-trace 5.2s cubic-bezier(0.45,0,0.55,1) 1.6s infinite; }
+  .poso-cursor { filter: drop-shadow(0 0 5px rgba(29,158,117,0.95)); }
+  .poso-cursor-t1 { animation-delay: 1.74s; }
+  .poso-cursor-t2 { animation-delay: 1.88s; }
   @keyframes poso-trace {
     0% { offset-distance:0%; opacity:0; } 8% { opacity:1; }
-    90% { opacity:1; } 100% { offset-distance:100%; opacity:0; }
-  }
+    90% { opacity:1; } 100% { offset-distance:100%; opacity:0; } }
 
   /* ---- Masthead ---- */
   header.cv-header { position:relative; isolation:isolate; margin-bottom: 2.6rem;
@@ -110,9 +122,15 @@ function posologyCss(_t: TemplateTheme): string {
   }
   header.cv-header::after {
     content:"Σ"; position:absolute; top:-0.3em; left:-0.06em; right:auto; z-index:0; pointer-events:none;
-    font-family: var(--poso-serif); font-weight:600; line-height:1;
+    font-family: var(--poso-serif); font-weight:600; line-height:1; transform-origin:18% 60%;
     font-size: clamp(6.5rem, 18vw, 11rem); color: var(--poso-accent); opacity:0.06;
+    animation: poso-beat 3.2s ease-in-out infinite;
   }
+  @keyframes poso-beat {
+    0%,100% { opacity:0.055; transform: scale(1); }
+    14% { opacity:0.1; transform: scale(1.04); }
+    28% { opacity:0.06; transform: scale(1); }
+    42% { opacity:0.09; transform: scale(1.03); } }
   .cv-headmain { gap: 2rem; align-items: flex-start; }
   header.cv-header h1 {
     font-family: var(--poso-serif); font-size: clamp(2.4rem, 6.6vw, 3.9rem); font-weight:500;
@@ -143,7 +161,7 @@ function posologyCss(_t: TemplateTheme): string {
     box-shadow: 0 1px 0 rgba(255,255,255,0.6), 0 14px 30px -18px rgba(15,110,86,0.45);
     filter: grayscale(0.5) contrast(1.02); }
 
-  /* ---- Sections: data-point node + concentration tick-scale ---- */
+  /* ---- Sections: data-point node (radar ping) + concentration tick-scale ---- */
   section.cv-section { margin-top: 2.8rem; }
   section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position:relative; padding-left:1.9rem; padding-bottom:0.6rem;
@@ -153,9 +171,11 @@ function posologyCss(_t: TemplateTheme): string {
   section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
     content:""; position:absolute; left:0; top:0.18em; width:10px; height:10px; border-radius:50%;
     background: var(--poso-page); border:2px solid var(--poso-accent);
-    box-shadow: 0 0 0 4px rgba(29,158,117,0.1);
+    animation: poso-ping 2.8s ease-out infinite;
   }
-  /* A tiny concentration tick-scale rides under the heading rule. */
+  @keyframes poso-ping {
+    0% { box-shadow: 0 0 0 0 rgba(29,158,117,0.5); }
+    70%,100% { box-shadow: 0 0 0 13px rgba(29,158,117,0); } }
   section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content:""; position:absolute; left:1.9rem; right:0; bottom:0; height:1px;
     background:
@@ -185,7 +205,7 @@ function posologyCss(_t: TemplateTheme): string {
   .cv-living { color: var(--cv-muted); }
   .cv-attribution a { color: var(--cv-ink-2); text-decoration: underline; text-decoration-color: var(--poso-accent); }
 
-  /* ---- Restrained reveal motion ---- */
+  /* ---- Reveal motion ---- */
   @keyframes poso-settle { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform:none; } }
   @keyframes poso-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @supports (animation-timeline: view()) {
@@ -206,13 +226,14 @@ function posologyCss(_t: TemplateTheme): string {
   @media (prefers-reduced-motion: reduce) {
     *,*::before,*::after { animation:none !important; }
     .poso-curve { stroke-dashoffset:0 !important; }
-    .poso-cursor, .poso-field { display:none !important; }
+    .poso-node { r:3.8 !important; }
+    .poso-cursor, .poso-cursor-t1, .poso-cursor-t2, .poso-field, .poso-sweep { display:none !important; }
     section.cv-section > h2, .cv-summary-block > .cv-summary-h,
     ol.cv-bib > li { opacity:1 !important; transform:none !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform:none !important; }
   }
   @media print {
-    .poso-spine, .poso-field { display:none !important; }
+    .poso-spine, .poso-field, .poso-sweep { display:none !important; }
     header.cv-header::after { display:none !important; }
     body { background-image:none !important; }
     *,*::before,*::after { animation:none !important; }
@@ -226,9 +247,10 @@ export const posologyTemplate: CvTemplate = {
     const css = commonCss(theme) + posologyCss(theme);
     const field =
       `<svg class="poso-field" viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">` +
-      `<path d="M-20 470 C90 470 120 360 200 300 C280 240 300 120 420 120"></path>` +
-      `<path d="M-20 540 C120 540 150 430 240 380 C330 330 350 220 420 210"></path>` +
-      `<path d="M-20 360 C70 360 96 250 170 190 C250 126 280 70 420 56"></path>` +
+      `<path d="M-40 470 C90 470 120 360 200 300 C280 240 300 120 440 120"></path>` +
+      `<path d="M-40 540 C120 540 150 430 240 380 C330 330 350 220 440 210"></path>` +
+      `<path d="M-40 360 C70 360 96 250 170 190 C250 126 280 70 440 56"></path>` +
+      `<path d="M-40 600 C150 600 180 500 300 450 C400 410 430 330 440 320"></path>` +
       `</svg>`;
     const spine =
       `<svg class="poso-spine" viewBox="0 0 160 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">` +
@@ -242,6 +264,8 @@ export const posologyTemplate: CvTemplate = {
       `<line class="poso-tick" x1="66" y1="272" x2="94" y2="272"></line>` +
       `<path class="poso-curve" pathLength="1" d="${POSO_CURVE}"></path>` +
       `<circle class="poso-node" cx="80" cy="272" r="3.8"></circle>` +
+      `<circle class="poso-cursor-t2" r="2" fill="rgba(29,158,117,0.28)"></circle>` +
+      `<circle class="poso-cursor-t1" r="2.6" fill="rgba(29,158,117,0.5)"></circle>` +
       `<circle class="poso-cursor" r="3.4" fill="#1d9e75"></circle>` +
       `<text class="poso-lab" x="40" y="46">Emax</text>` +
       `<text class="poso-lab" x="64" y="266" text-anchor="end">EC₅₀</text>` +
@@ -250,6 +274,7 @@ export const posologyTemplate: CvTemplate = {
       `</svg>`;
     const body =
       field +
+      `<div class="poso-sweep" aria-hidden="true"></div>` +
       spine +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +

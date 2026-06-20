@@ -52,16 +52,35 @@ function pharmacopoeiaCss(_t: TemplateTheme): string {
   /* Aged vignette: corners gently darkened. */
   .ph-vignette { position:fixed; inset:0; z-index:0; pointer-events:none;
     box-shadow: inset 0 0 220px -90px rgba(60,42,16,0.5); }
-  /* A skeletal drug molecule drawn faintly in the lower margin. */
+  /* A reaction wavefront sweeps diagonally across the lattice (behind the text). */
+  .ph-react { position:fixed; inset:0; z-index:0; pointer-events:none; mix-blend-mode: multiply;
+    background: linear-gradient(120deg, transparent 30%, rgba(196,142,46,0.09) 48%, rgba(196,142,46,0.17) 50%, rgba(196,142,46,0.09) 52%, transparent 70%);
+    background-size: 240% 240%; animation: ph-react 9s ease-in-out infinite; }
+  @keyframes ph-react { 0% { background-position: 120% 120%; } 100% { background-position: -20% -20%; } }
+  /* Effervescence: amber bubbles rising up the page. */
+  .ph-bubbles { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.6;
+    background-image:
+      radial-gradient(3px 3px at 18% 90%, rgba(196,142,46,0.5), transparent 60%),
+      radial-gradient(2px 2px at 33% 96%, rgba(196,142,46,0.4), transparent 60%),
+      radial-gradient(4px 4px at 72% 92%, rgba(196,142,46,0.45), transparent 60%),
+      radial-gradient(2.5px 2.5px at 87% 95%, rgba(196,142,46,0.4), transparent 60%),
+      radial-gradient(3px 3px at 55% 94%, rgba(196,142,46,0.42), transparent 60%);
+    background-size: 100% 900px; animation: ph-bubbles 14s linear infinite; }
+  @keyframes ph-bubbles { from { background-position: 0 0; } to { background-position: 0 -900px; } }
+  /* A skeletal drug molecule, slowly rotating, in the lower margin. */
   .ph-molecule { position:fixed; left: clamp(8px, 3vw, 48px); bottom: 6vh; width:150px; height:120px;
-    z-index:0; pointer-events:none; opacity:0.5; }
+    z-index:0; pointer-events:none; opacity:0.5; transform-origin: 50% 50%; animation: ph-spin 42s linear infinite; }
+  @keyframes ph-spin { to { transform: rotate(360deg); } }
   .ph-molecule path, .ph-molecule line, .ph-molecule polygon { fill:none; stroke: var(--ph-accent); stroke-width:1.4; }
   .ph-molecule circle { fill: var(--ph-accent); }
-  /* A graduated measuring-cylinder scale climbing the left gutter. */
+  /* A graduated measuring-cylinder scale, with a rising/falling titration level. */
   .ph-scale { position:fixed; left: clamp(6px, 2.4vw, 36px); top:12vh; bottom:12vh; width:34px;
     z-index:0; pointer-events:none; }
   .ph-scale line { stroke: var(--ph-accent); stroke-width:1; opacity:0.45; }
   .ph-scale text { fill: var(--ph-accent); font:600 7px var(--ph-mono); opacity:0.6; }
+  .ph-liquid { fill: rgba(196,142,46,0.22); transform-box: fill-box; transform-origin: 50% 100%;
+    animation: ph-titrate 7.5s ease-in-out infinite; }
+  @keyframes ph-titrate { 0%,100% { transform: scaleY(0.32); } 50% { transform: scaleY(0.82); } }
   @media (max-width: 1180px) { .ph-scale, .ph-molecule { display:none; } }
 
   .cv { position:relative; z-index:1; max-width: 760px; margin:0 auto;
@@ -81,7 +100,8 @@ function pharmacopoeiaCss(_t: TemplateTheme): string {
   header.cv-header::after {
     content:"⌬"; position:absolute; top:-0.12em; left:-0.02em; z-index:0; pointer-events:none;
     font-family: var(--ph-serif); line-height:1; font-size: clamp(6rem, 16vw, 10rem);
-    color: var(--ph-accent); opacity:0.08; }
+    color: var(--ph-accent); opacity:0.08; transform-origin:center; animation: ph-ring-spin 50s linear infinite; }
+  @keyframes ph-ring-spin { to { transform: rotate(360deg); } }
   .cv-headmain { gap: 2rem; align-items: flex-start; }
   header.cv-header h1 {
     font-family: var(--ph-serif); font-size: clamp(2.4rem, 6.6vw, 3.9rem); font-weight:500;
@@ -149,12 +169,14 @@ function pharmacopoeiaCss(_t: TemplateTheme): string {
   }
   @media (prefers-reduced-motion: reduce) {
     *,*::before,*::after { animation:none !important; }
+    .ph-bubbles, .ph-react { display:none !important; }
+    .ph-liquid { transform: scaleY(0.5) !important; }
     section.cv-section > h2, .cv-summary-block > .cv-summary-h,
     ol.cv-bib > li { opacity:1 !important; transform:none !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform:none !important; }
   }
   @media print {
-    .ph-lattice, .ph-vignette, .ph-molecule, .ph-scale { display:none !important; }
+    .ph-lattice, .ph-vignette, .ph-molecule, .ph-scale, .ph-bubbles, .ph-react { display:none !important; }
     header.cv-header::after { display:none !important; }
     *,*::before,*::after { animation:none !important; }
     .cv { padding:0; max-width:none; }
@@ -194,6 +216,7 @@ export const pharmacopoeiaTemplate: CvTemplate = {
       `</svg>`;
     const scale =
       `<svg class="ph-scale" viewBox="0 0 34 400" preserveAspectRatio="none" aria-hidden="true" focusable="false">` +
+      `<rect class="ph-liquid" x="6" y="20" width="16" height="360"></rect>` +
       `<line x1="6" y1="0" x2="6" y2="400"></line>` +
       Array.from({ length: 9 }, (_, i) => {
         const y = 20 + i * 45;
@@ -206,6 +229,8 @@ export const pharmacopoeiaTemplate: CvTemplate = {
       `</svg>`;
     const body =
       lattice +
+      `<div class="ph-react" aria-hidden="true"></div>` +
+      `<div class="ph-bubbles" aria-hidden="true"></div>` +
       `<div class="ph-vignette" aria-hidden="true"></div>` +
       molecule +
       scale +

@@ -60,11 +60,31 @@ function codexCss(_t: TemplateTheme): string {
   /* gilt title panel near the top of the spine. */
   .cx-spine::after { content:""; position:absolute; left:50%; transform:translateX(-50%); top:18%; width:60%; height:120px;
     border:1px solid var(--cx-gold-lt); border-radius:1px; box-shadow: inset 0 0 0 2px rgba(156,123,63,0.25); opacity:0.85; }
-  @media (max-width: 900px) { .cx-spine { display:none; } }
 
+  /* A gold glint travels down the spine — light catching the gilt. */
+  .cx-glint { position:fixed; left:0; top:0; width: clamp(16px, 3vw, 34px); height:100vh; z-index:0; pointer-events:none; overflow:hidden; }
+  .cx-glint::before { content:""; position:absolute; left:0; right:0; height:64px;
+    background: linear-gradient(180deg, transparent, rgba(234,210,150,0.85), transparent); filter: blur(2px);
+    animation: cx-glint 4.6s ease-in-out infinite; }
+  @keyframes cx-glint {
+    0% { transform: translateY(-90px); opacity:0; } 18% { opacity:0.9; }
+    50% { opacity:0.65; } 82% { opacity:0.9; } 100% { transform: translateY(100vh); opacity:0; } }
+
+  /* Candlelight: a warm wash that flickers over the page. */
+  .cx-candle { position:fixed; inset:0; z-index:0; pointer-events:none; mix-blend-mode: multiply;
+    background: radial-gradient(72% 56% at 50% 24%, rgba(255,244,214,0) 42%, rgba(120,90,40,0.07) 100%);
+    animation: cx-flicker 5.5s ease-in-out infinite; }
+  @keyframes cx-flicker { 0%,100% { opacity:0.72; } 22% { opacity:0.92; } 38% { opacity:0.6; } 56% { opacity:0.86; } 74% { opacity:0.7; } }
+  @media (max-width: 900px) { .cx-spine, .cx-glint { display:none; } }
+
+  /* The page opens (hinges from the spine) on load. */
   .cv { position:relative; z-index:1; max-width: 720px; margin:0 auto;
     padding: clamp(52px, 9vw, 104px) clamp(28px, 6vw, 72px) 140px;
-    border-left: 1px solid rgba(156,123,63,0.28); }
+    border-left: 1px solid rgba(156,123,63,0.28); transform-origin: left center;
+    animation: cx-open 1.1s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
+  @keyframes cx-open {
+    from { opacity:0; transform: perspective(1600px) rotateY(-7deg) translateX(-12px); }
+    to { opacity:1; transform: none; } }
 
   /* ---- Frontispiece masthead ---- */
   header.cv-header { position:relative; margin-bottom: 2.8rem; padding-bottom: 2.4rem;
@@ -73,10 +93,13 @@ function codexCss(_t: TemplateTheme): string {
     content:"Curriculum Vitæ"; display:block; font-family: var(--cx-sans);
     font-size:0.66rem; font-weight:600; letter-spacing:0.34em; text-transform:uppercase;
     color: var(--cx-spine-ink); margin-bottom:1.1rem; }
-  /* A centred printer's-flower ornament closes the masthead. */
+  /* A centred printer's-flower ornament closes the masthead; it blooms with gilt. */
   header.cv-header::after {
     content:"❦"; position:absolute; left:50%; bottom:0.55rem; transform:translateX(-50%);
-    font-size:1.1rem; color: var(--cx-gold); }
+    font-size:1.1rem; color: var(--cx-gold); animation: cx-bloom 6s ease-in-out infinite; }
+  @keyframes cx-bloom {
+    0%,100% { color: var(--cx-gold); transform: translateX(-50%) scale(1); text-shadow:none; }
+    50% { color: var(--cx-gold-lt); transform: translateX(-50%) scale(1.14); text-shadow: 0 0 7px rgba(202,167,101,0.6); } }
   .cv-headmain { gap: 2rem; align-items: flex-start; }
   header.cv-header h1 {
     font-family: var(--cx-serif); font-size: clamp(2.5rem, 7vw, 4rem); font-weight:500;
@@ -147,15 +170,16 @@ function codexCss(_t: TemplateTheme): string {
   }
   @media (prefers-reduced-motion: reduce) {
     *,*::before,*::after { animation:none !important; }
+    .cx-candle, .cx-glint { display:none !important; }
+    .cv { transform:none !important; opacity:1 !important; }
     section.cv-section > h2, .cv-summary-block > .cv-summary-h,
     ol.cv-bib > li { opacity:1 !important; transform:none !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform:none !important; }
   }
   @media print {
-    .cx-spine { display:none !important; }
-    .cv { border-left:0 !important; }
+    .cx-spine, .cx-glint, .cx-candle { display:none !important; }
     *,*::before,*::after { animation:none !important; }
-    .cv { padding:0; max-width:none; }
+    .cv { padding:0; max-width:none; border-left:0 !important; transform:none !important; }
   }`;
 }
 
@@ -165,6 +189,8 @@ export const codexTemplate: CvTemplate = {
     const css = commonCss(theme) + codexCss(theme);
     const body =
       `<div class="cx-spine" aria-hidden="true"></div>` +
+      `<div class="cx-glint" aria-hidden="true"></div>` +
+      `<div class="cx-candle" aria-hidden="true"></div>` +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
       sectionsHtml(cv, sections) +
