@@ -28,11 +28,13 @@ const base = buildCanonicalCv({ id: "ps", resolved, works, now: "2026-06-02T00:0
 const withPhoto: CanonicalCv = { ...base, owner: { ...base.owner, photo: PNG_1x1 } };
 
 describe("public-page showcase styles", () => {
-  it("registers all 19 animated styles", () => {
-    expect(PUBLIC_STYLE_KEYS).toHaveLength(19);
+  it("registers all 21 animated styles", () => {
+    expect(PUBLIC_STYLE_KEYS).toHaveLength(21);
     expect(PUBLIC_STYLE_KEYS).toEqual(
       expect.arrayContaining([
         "posology",
+        "hanko",
+        "pharmacopoeia",
         "folio",
         "meridian",
         "trajectory",
@@ -109,6 +111,29 @@ describe("public-page showcase styles", () => {
     expect(html).toContain("--poso-accent:#1d9e75");
     expect(html).toContain("--poso-seal-ink:#9e2b1e");
   });
+
+  it("'hanko' stamps the name with a vermilion seal + draws the tokonoma scroll-rule", () => {
+    const cv = updateDisplay(withPhoto, { publicStyle: "hanko" });
+    const html = renderPublicCvHtml(cv);
+    // The tokonoma scroll-rule element + the fixed washi/vermilion identity.
+    expect(html).toContain('class="hk-scroll"');
+    expect(html).toContain("--hk-seal:#b7352b");
+    // The name-seal stamp is a CSS ::after on the masthead h1.
+    expect(html).toContain("header.cv-header h1::after");
+    expect(html).toContain("animation-timeline: view()");
+  });
+
+  it("'pharmacopoeia' lays a molecular lattice + highlights the self-name in amber", () => {
+    const cv = updateDisplay(withPhoto, { publicStyle: "pharmacopoeia" });
+    const html = renderPublicCvHtml(cv);
+    // The benzene-ring lattice element + the apothecary parchment/sepia identity.
+    expect(html).toContain('class="ph-lattice"');
+    expect(html).toContain('id="ph-hex"');
+    expect(html).toContain("--ph-accent:#7a4f1d");
+    // The self-name gets the translucent amber highlighter wash.
+    expect(html).toContain("--ph-mark:");
+    expect(html).toContain("animation-timeline: view()");
+  });
 });
 
 describe("accentSpectrum", () => {
@@ -136,7 +161,16 @@ describe("mascot companion (display.showMascot)", () => {
     expect([...MASCOT_STYLES]).toHaveLength(13);
     for (const s of MASCOT_STYLES) expect(isMascotStyle(s)).toBe(true);
     // `match` + the credible styles are NOT mascot-capable (structural gate).
-    for (const s of ["match", "posology", "folio", "meridian", "trajectory", "lumina"]) {
+    for (const s of [
+      "match",
+      "posology",
+      "hanko",
+      "pharmacopoeia",
+      "folio",
+      "meridian",
+      "trajectory",
+      "lumina",
+    ]) {
       expect(isMascotStyle(s)).toBe(false);
     }
   });

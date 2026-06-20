@@ -231,6 +231,8 @@
           "enum": [
             "match",
             "posology",
+            "hanko",
+            "pharmacopoeia",
             "folio",
             "meridian",
             "trajectory",
@@ -1088,6 +1090,8 @@
                 "enum": [
                   "match",
                   "posology",
+                  "hanko",
+                  "pharmacopoeia",
                   "folio",
                   "meridian",
                   "trajectory",
