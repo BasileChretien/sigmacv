@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Two more credible public-page styles: "Hanko" and "Pharmacopoeia"**, extending
+  the field-built credible end of the catalogue alongside Posology.
+  - **Hanko** — a Franco-Japanese editorial style: warm washi paper, sumi-ink type
+    and generous negative space, with one vermilion accent. Your name in the
+    masthead is stamped with a small seal (a hanko marks your name), a thin
+    tokonoma scroll-rule with a vermilion seal-cap runs down the left gutter, and
+    section dividers are brush-tapered ink rules; your own (identifier-matched)
+    name is signed under a fine vermilion rule.
+  - **Pharmacopoeia** — an apothecary monograph: warm parchment under a faint
+    hexagonal benzene-ring lattice, a double-ruled label masthead with a benzene
+    watermark, hexagon-bulleted headings, and your own name picked out with a
+    translucent amber highlighter.
+  - Both are restrained, DORA-safe (no metric enlarged or coloured for emphasis),
+    CSS-only and fully static under `prefers-reduced-motion`/print; like the other
+    credible styles they never show the mascot and never affect any export. Pick
+    them under **Design → Public page style**.
+
 - **New "Posology" public-page style** — a credible flagship for the living public
   CV (`/p/<slug>`), built from a pharmacology dose–response (sigmoid) curve that
   doubles as the logistic function and the shape of a Σ. A thin teal curve in the

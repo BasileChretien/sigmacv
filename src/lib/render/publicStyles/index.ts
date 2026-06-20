@@ -20,6 +20,7 @@ import { chronicleTemplate } from "./chronicle";
 import { clockworkTemplate } from "./clockwork";
 import { cyberpunkTemplate } from "./cyberpunk";
 import { folioTemplate } from "./folio";
+import { hankoTemplate } from "./hanko";
 import { luminaTemplate } from "./lumina";
 import { marqueeTemplate } from "./marquee";
 import { meadowTemplate } from "./meadow";
@@ -27,6 +28,7 @@ import { meridianTemplate } from "./meridian";
 import { meshTemplate } from "./mesh";
 import { neonTemplate } from "./neon";
 import { popTemplate } from "./pop";
+import { pharmacopoeiaTemplate } from "./pharmacopoeia";
 import { posologyTemplate } from "./posology";
 import { prismTemplate } from "./prism";
 import { risoTemplate } from "./riso";
@@ -41,6 +43,8 @@ type AnimatedStyleKey = Exclude<PublicStyleKey, "match">;
 // the expressive styles follow. Order here defines PUBLIC_STYLE_KEYS.
 const REGISTRY: Record<AnimatedStyleKey, CvTemplate> = {
   posology: posologyTemplate,
+  hanko: hankoTemplate,
+  pharmacopoeia: pharmacopoeiaTemplate,
   folio: folioTemplate,
   meridian: meridianTemplate,
   trajectory: trajectoryTemplate,

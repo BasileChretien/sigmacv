@@ -205,6 +205,8 @@ export default function StyleControls({
   const PUBLIC_STYLE_LABELS: Record<string, string> = {
     match: eu.publicStyleMatch,
     posology: "Posology",
+    hanko: "Hanko",
+    pharmacopoeia: "Pharmacopoeia",
     folio: "Folio",
     meridian: "Meridian",
     trajectory: "Trajectory",
