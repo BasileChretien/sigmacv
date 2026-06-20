@@ -1,6 +1,9 @@
 import { FACE_CSS as sourceSerif4 } from "./fonts/sourceSerif4";
 import { FACE_CSS as inter } from "./fonts/inter";
 import { FACE_CSS as ebGaramond } from "./fonts/ebGaramond";
+import { FACE_CSS as spaceGrotesk } from "./fonts/spaceGrotesk";
+import { FACE_CSS as newsreader } from "./fonts/newsreader";
+import { FACE_CSS as fraunces } from "./fonts/fraunces";
 
 /**
  * The selectable CV body fonts (design panel → `fontPairing`). Each is EMBEDDED as
@@ -13,6 +16,10 @@ const BUNDLED_FONTS: ReadonlyArray<{ family: string; faceCss: string }> = [
   { family: "Source Serif 4", faceCss: sourceSerif4 },
   { family: "Inter", faceCss: inter },
   { family: "EB Garamond", faceCss: ebGaramond },
+  // Characterful display faces used by the field public-page styles.
+  { family: "Space Grotesk", faceCss: spaceGrotesk },
+  { family: "Newsreader", faceCss: newsreader },
+  { family: "Fraunces", faceCss: fraunces },
 ];
 
 /**

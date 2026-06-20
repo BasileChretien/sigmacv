@@ -9,38 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **The six field styles now carry heavy, distinctive animation.** Each gained a
-  unique motion system on top of its signature mechanic: Posology runs an
-  oscilloscope sweep, a comet-trail cursor tracing the curve, and radar-pinging
-  nodes; Hanko unfurls like a hanging scroll and stamps its seal with impact over
-  drifting ink-flecks; Pharmacopoeia bubbles with effervescence under a reaction
-  wavefront, a rotating molecule and a rising titration; Codex reads by flickering
-  candlelight with a gilt glint travelling its spine and a page-open hinge; Ledger
-  draws and fits its regression with a travelling point, a breathing confidence
-  band and a scrolling ticker; Atelier sweeps a panning spotlight through dust
-  motes with a brass-plaque glint and a lights-on reveal. All CSS-only, with the
-  reading surface kept crisp — and **every animation fully stops under
-  `prefers-reduced-motion`** (and in print), falling back to the calm static world.
-
-- **The six credible field styles are now fully realised "worlds", each with a
-  signature mechanic** (still CSS-only, DORA-safe, legible, and static under
-  `prefers-reduced-motion`/print):
-  - **Posology** is a live pharmacodynamics instrument — a faint field of
-    dose-response curves behind the page, and a cursor that traces a labelled
-    sigmoid (EC₅₀ / Emax / baseline, log-dose ticks).
-  - **Hanko** is a hanging scroll — sumi ink-wash, a wooden scroll-rod with turned
-    end-knobs, a vertical 履歴書 title, and a carved cinnabar name-seal.
-  - **Pharmacopoeia** is a specimen sheet — a layered benzene-ring lattice, a
-    skeletal molecule, a graduated-cylinder scale, an aged vignette, and
-    catalog-numbered headings (No. 01 ⬡).
-  - **Codex** is a fine-press book — a raised-band spine with a gilt title panel, a
-    ruled margin, an illuminated versal initial, and printer's-flower ornaments.
-  - **Ledger** is an econometric working paper — a faint regression scatter, a red
-    ledger margin with line numbers, and an "Abstract"-boxed summary.
-  - **Atelier** is a lit exhibition — an overhead spotlight, an engraved brass
-    plaque, and plate-numbered "wall-label" entries (Pl. 01 …).
+- **The six field styles were rebuilt around atmosphere + readability.** Each is
+  now an _atmosphere layer_ (background, colour and light — the mood) with the text
+  floating on a separate _reading surface_ (an opaque page with a soft shadow), so
+  nothing textured or moving is ever behind a glyph — they read more easily than a
+  plain page, not less. Each carries its own bundled display face and a unique
+  page margin: **Posology** a cool instrument room with an engraved dose–response
+  curve margin (Space Grotesk); **Hanko** a warm alcove with a vertical 履歴書
+  margin + a single vermilion seal (Newsreader); **Pharmacopoeia** an amber-lamplit
+  parchment with a botanical-specimen margin and a verdigris accent (Fraunces);
+  **Codex** a lamplit reading room with an illuminated gilt-vine margin + versal
+  (EB Garamond); **Ledger** a cool blueprint with a ledger-red line-number margin,
+  numbered sections and an Abstract (Source Serif 4); **Atelier** a cool plaster
+  gallery wall with an engraved brass plate and plate-numbered labels (Inter).
+  Motion is one gentle load reveal plus, at most, a faint ambient confined to the
+  surround; all of it stops under `prefers-reduced-motion`, and print is a clean
+  black-on-white document.
 
 ### Added
+
+- **Three more bundled display faces** (SIL OFL, latin subset, embedded as
+  `@font-face` data URIs like the existing three): **Space Grotesk**, **Newsreader**
+  and **Fraunces**, used by the field public-page styles. `npm run fetch-fonts`
+  regenerates them.
 
 - **Three field-tuned public-page styles: "Codex", "Ledger" and "Atelier"**, for
   the disciplines the existing styles served least well.
