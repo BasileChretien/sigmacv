@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Three field-tuned public-page styles: "Codex", "Ledger" and "Atelier"**, for
+  the disciplines the existing styles served least well.
+  - **Codex** — for the **humanities**: a printed monograph in ivory book stock,
+    old-style serif, a hardback oxblood book-spine in the left gutter, fleuron
+    section marks and a drop-capped opening; your own (identifier-matched) name is
+    set in oxblood small-caps. Pairs naturally with a books-first order and a
+    notes-bibliography citation style.
+  - **Ledger** — for **economics / quantitative social science**: a working paper.
+    A navy-ruled cover masthead, an "Abstract"-labelled summary, numbered sections,
+    monospace tabular detail and faint ruled baselines; your own name is cited in
+    navy under a dotted rule.
+  - **Atelier** — for **the arts, design & architecture**: a gallery portfolio.
+    Bright gallery stock, an oversized display name, a museum-matted portrait,
+    wide-tracked clay section labels and generous space; built to look complete
+    from a hand-curated record (these fields have no open data source).
+  - All three are restrained, DORA-safe, CSS-only and fully static under
+    `prefers-reduced-motion`/print; credible-group (never show the mascot, never
+    affect any export). Pick them under **Design → Public page style**.
+
 - **Two more credible public-page styles: "Hanko" and "Pharmacopoeia"**, extending
   the field-built credible end of the catalogue alongside Posology.
   - **Hanko** — a Franco-Japanese editorial style: warm washi paper, sumi-ink type
