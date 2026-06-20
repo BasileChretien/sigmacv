@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The six credible field styles are now fully realised "worlds", each with a
+  signature mechanic** (still CSS-only, DORA-safe, legible, and static under
+  `prefers-reduced-motion`/print):
+  - **Posology** is a live pharmacodynamics instrument — a faint field of
+    dose-response curves behind the page, and a cursor that traces a labelled
+    sigmoid (EC₅₀ / Emax / baseline, log-dose ticks).
+  - **Hanko** is a hanging scroll — sumi ink-wash, a wooden scroll-rod with turned
+    end-knobs, a vertical 履歴書 title, and a carved cinnabar name-seal.
+  - **Pharmacopoeia** is a specimen sheet — a layered benzene-ring lattice, a
+    skeletal molecule, a graduated-cylinder scale, an aged vignette, and
+    catalog-numbered headings (No. 01 ⬡).
+  - **Codex** is a fine-press book — a raised-band spine with a gilt title panel, a
+    ruled margin, an illuminated versal initial, and printer's-flower ornaments.
+  - **Ledger** is an econometric working paper — a faint regression scatter, a red
+    ledger margin with line numbers, and an "Abstract"-boxed summary.
+  - **Atelier** is a lit exhibition — an overhead spotlight, an engraved brass
+    plaque, and plate-numbered "wall-label" entries (Pl. 01 …).
+
 ### Added
 
 - **Three field-tuned public-page styles: "Codex", "Ledger" and "Atelier"**, for

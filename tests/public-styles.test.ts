@@ -113,6 +113,9 @@ describe("public-page showcase styles", () => {
     // Fixed apothecary-teal identity (not accent-derived) + the vermilion seal ink.
     expect(html).toContain("--poso-accent:#1d9e75");
     expect(html).toContain("--poso-seal-ink:#9e2b1e");
+    // Instrument: the breathing curve field + the cursor that traces the curve.
+    expect(html).toContain('class="poso-field"');
+    expect(html).toContain('class="poso-cursor"');
   });
 
   it("'hanko' stamps the name with a vermilion seal + draws the tokonoma scroll-rule", () => {
@@ -124,6 +127,9 @@ describe("public-page showcase styles", () => {
     // The name-seal stamp is a CSS ::after on the masthead h1.
     expect(html).toContain("header.cv-header h1::after");
     expect(html).toContain("animation-timeline: view()");
+    // Hanging-scroll furniture: sumi ink-wash + the vertical tategaki title.
+    expect(html).toContain('class="hk-wash"');
+    expect(html).toContain("履歴書");
   });
 
   it("'pharmacopoeia' lays a molecular lattice + highlights the self-name in amber", () => {
@@ -136,6 +142,10 @@ describe("public-page showcase styles", () => {
     // The self-name gets the translucent amber highlighter wash.
     expect(html).toContain("--ph-mark:");
     expect(html).toContain("animation-timeline: view()");
+    // Specimen-sheet furniture: graduated scale + a skeletal molecule + catalog Nº.
+    expect(html).toContain('class="ph-scale"');
+    expect(html).toContain('class="ph-molecule"');
+    expect(html).toContain("counter(ph, decimal-leading-zero)");
   });
 
   it("'codex' draws the book-spine + sets the self-name in oxblood small-caps", () => {
@@ -148,6 +158,9 @@ describe("public-page showcase styles", () => {
     expect(html).toContain("--cx-spine:#7a2b35");
     expect(html).toContain("font-variant: small-caps");
     expect(html).toContain("animation-timeline: view()");
+    // Fine-press furniture: a gilt accent + the printer's-flower masthead ornament.
+    expect(html).toContain("--cx-gold:#9c7b3f");
+    expect(html).toContain('content:"❦"');
   });
 
   it("'ledger' numbers its sections + labels the summary 'Abstract'", () => {
@@ -158,6 +171,9 @@ describe("public-page showcase styles", () => {
     expect(html).toContain('content:"Abstract"');
     expect(html).toContain("--lg-navy:#1f3a5f");
     expect(html).toContain("animation-timeline: view()");
+    // Econometric furniture: the regression scatter plot + the ledger margin.
+    expect(html).toContain('class="lg-plot"');
+    expect(html).toContain('class="lg-margin"');
   });
 
   it("'atelier' uses an oversized portfolio hero + clay gallery labels", () => {
@@ -167,6 +183,9 @@ describe("public-page showcase styles", () => {
     expect(html).toContain('content:"Selected Work · Curriculum Vitæ"');
     expect(html).toContain("--at-accent-ink:#a04e38");
     expect(html).toContain("animation-timeline: view()");
+    // Exhibition furniture: the gallery spotlight + plate-numbered wall labels.
+    expect(html).toContain('class="at-spot"');
+    expect(html).toContain('content:"Pl. " counter(plate, decimal-leading-zero)');
   });
 });
 
