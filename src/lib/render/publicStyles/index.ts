@@ -15,12 +15,15 @@ import { resolveTheme } from "../templates";
 import type { CvTemplate } from "../templates/types";
 import type { RenderOpts } from "../types";
 import { arcadeTemplate } from "./arcade";
+import { atelierTemplate } from "./atelier";
 import { auraTemplate } from "./aura";
 import { chronicleTemplate } from "./chronicle";
 import { clockworkTemplate } from "./clockwork";
+import { codexTemplate } from "./codex";
 import { cyberpunkTemplate } from "./cyberpunk";
 import { folioTemplate } from "./folio";
 import { hankoTemplate } from "./hanko";
+import { ledgerTemplate } from "./ledger";
 import { luminaTemplate } from "./lumina";
 import { marqueeTemplate } from "./marquee";
 import { meadowTemplate } from "./meadow";
@@ -45,6 +48,9 @@ const REGISTRY: Record<AnimatedStyleKey, CvTemplate> = {
   posology: posologyTemplate,
   hanko: hankoTemplate,
   pharmacopoeia: pharmacopoeiaTemplate,
+  codex: codexTemplate,
+  ledger: ledgerTemplate,
+  atelier: atelierTemplate,
   folio: folioTemplate,
   meridian: meridianTemplate,
   trajectory: trajectoryTemplate,

@@ -28,13 +28,16 @@ const base = buildCanonicalCv({ id: "ps", resolved, works, now: "2026-06-02T00:0
 const withPhoto: CanonicalCv = { ...base, owner: { ...base.owner, photo: PNG_1x1 } };
 
 describe("public-page showcase styles", () => {
-  it("registers all 21 animated styles", () => {
-    expect(PUBLIC_STYLE_KEYS).toHaveLength(21);
+  it("registers all 24 animated styles", () => {
+    expect(PUBLIC_STYLE_KEYS).toHaveLength(24);
     expect(PUBLIC_STYLE_KEYS).toEqual(
       expect.arrayContaining([
         "posology",
         "hanko",
         "pharmacopoeia",
+        "codex",
+        "ledger",
+        "atelier",
         "folio",
         "meridian",
         "trajectory",
@@ -134,6 +137,37 @@ describe("public-page showcase styles", () => {
     expect(html).toContain("--ph-mark:");
     expect(html).toContain("animation-timeline: view()");
   });
+
+  it("'codex' draws the book-spine + sets the self-name in oxblood small-caps", () => {
+    const cv = updateDisplay(withPhoto, { publicStyle: "codex" });
+    const html = renderPublicCvHtml(cv);
+    // The hardback book-spine element + the fleuron heading mark.
+    expect(html).toContain('class="cx-spine"');
+    expect(html).toContain('content:"❧"');
+    // Fixed ivory/oxblood identity + small-caps self-name.
+    expect(html).toContain("--cx-spine:#7a2b35");
+    expect(html).toContain("font-variant: small-caps");
+    expect(html).toContain("animation-timeline: view()");
+  });
+
+  it("'ledger' numbers its sections + labels the summary 'Abstract'", () => {
+    const cv = updateDisplay(withPhoto, { publicStyle: "ledger" });
+    const html = renderPublicCvHtml(cv);
+    // Numbered working-paper sections + the Abstract label + navy identity.
+    expect(html).toContain('content: counter(lg) "."');
+    expect(html).toContain('content:"Abstract"');
+    expect(html).toContain("--lg-navy:#1f3a5f");
+    expect(html).toContain("animation-timeline: view()");
+  });
+
+  it("'atelier' uses an oversized portfolio hero + clay gallery labels", () => {
+    const cv = updateDisplay(withPhoto, { publicStyle: "atelier" });
+    const html = renderPublicCvHtml(cv);
+    // Portfolio eyebrow + the fixed gallery-white / clay identity.
+    expect(html).toContain('content:"Selected Work · Curriculum Vitæ"');
+    expect(html).toContain("--at-accent-ink:#a04e38");
+    expect(html).toContain("animation-timeline: view()");
+  });
 });
 
 describe("accentSpectrum", () => {
@@ -166,6 +200,9 @@ describe("mascot companion (display.showMascot)", () => {
       "posology",
       "hanko",
       "pharmacopoeia",
+      "codex",
+      "ledger",
+      "atelier",
       "folio",
       "meridian",
       "trajectory",
