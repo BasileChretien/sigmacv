@@ -116,6 +116,10 @@ describe("public-page showcase styles", () => {
     // Instrument: the breathing curve field + the cursor that traces the curve.
     expect(html).toContain('class="poso-field"');
     expect(html).toContain('class="poso-cursor"');
+    // Heavy motion: oscilloscope sweep + cursor trace + radar-ping nodes.
+    expect(html).toContain('class="poso-sweep"');
+    expect(html).toContain("@keyframes poso-trace");
+    expect(html).toContain("@keyframes poso-ping");
   });
 
   it("'hanko' stamps the name with a vermilion seal + draws the tokonoma scroll-rule", () => {
@@ -130,6 +134,10 @@ describe("public-page showcase styles", () => {
     // Hanging-scroll furniture: sumi ink-wash + the vertical tategaki title.
     expect(html).toContain('class="hk-wash"');
     expect(html).toContain("履歴書");
+    // Heavy motion: scroll unfurl + seal-stamp impact + drifting ink-flecks.
+    expect(html).toContain('class="hk-flecks"');
+    expect(html).toContain("@keyframes hk-unfurl");
+    expect(html).toContain("@keyframes hk-stamp");
   });
 
   it("'pharmacopoeia' lays a molecular lattice + highlights the self-name in amber", () => {
@@ -146,6 +154,10 @@ describe("public-page showcase styles", () => {
     expect(html).toContain('class="ph-scale"');
     expect(html).toContain('class="ph-molecule"');
     expect(html).toContain("counter(ph, decimal-leading-zero)");
+    // Heavy motion: effervescence bubbles + reaction wavefront + rising titration.
+    expect(html).toContain('class="ph-bubbles"');
+    expect(html).toContain('class="ph-react"');
+    expect(html).toContain("@keyframes ph-titrate");
   });
 
   it("'codex' draws the book-spine + sets the self-name in oxblood small-caps", () => {
@@ -161,6 +173,10 @@ describe("public-page showcase styles", () => {
     // Fine-press furniture: a gilt accent + the printer's-flower masthead ornament.
     expect(html).toContain("--cx-gold:#9c7b3f");
     expect(html).toContain('content:"❦"');
+    // Heavy motion: candlelight flicker + a gilt glint + the page-open hinge.
+    expect(html).toContain('class="cx-candle"');
+    expect(html).toContain('class="cx-glint"');
+    expect(html).toContain("@keyframes cx-open");
   });
 
   it("'ledger' numbers its sections + labels the summary 'Abstract'", () => {
@@ -174,6 +190,10 @@ describe("public-page showcase styles", () => {
     // Econometric furniture: the regression scatter plot + the ledger margin.
     expect(html).toContain('class="lg-plot"');
     expect(html).toContain('class="lg-margin"');
+    // Heavy motion: the OLS fit-point + the scrolling sparkline ticker.
+    expect(html).toContain('class="lg-fit"');
+    expect(html).toContain('class="lg-ticker"');
+    expect(html).toContain("@keyframes lg-fit");
   });
 
   it("'atelier' uses an oversized portfolio hero + clay gallery labels", () => {
@@ -186,6 +206,25 @@ describe("public-page showcase styles", () => {
     // Exhibition furniture: the gallery spotlight + plate-numbered wall labels.
     expect(html).toContain('class="at-spot"');
     expect(html).toContain('content:"Pl. " counter(plate, decimal-leading-zero)');
+    // Heavy motion: the panning spotlight beam + dust motes + plaque glint.
+    expect(html).toContain('class="at-beam"');
+    expect(html).toContain('class="at-dust"');
+    expect(html).toContain("@keyframes at-glint");
+  });
+
+  it("every animated field style keeps a reduced-motion fallback", () => {
+    for (const key of [
+      "posology",
+      "hanko",
+      "pharmacopoeia",
+      "codex",
+      "ledger",
+      "atelier",
+    ] as const) {
+      const html = renderPublicCvHtml(updateDisplay(withPhoto, { publicStyle: key }));
+      expect(html).toContain("@media (prefers-reduced-motion: reduce)");
+      expect(html).not.toMatch(/<script/i);
+    }
   });
 });
 

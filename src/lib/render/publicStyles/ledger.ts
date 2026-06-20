@@ -50,17 +50,37 @@ function ledgerCss(_t: TemplateTheme): string {
   body { min-height:100vh; color:var(--cv-ink); background:var(--cv-page); font-family: var(--lg-serif);
     background-image: linear-gradient(var(--lg-grid) 1px, transparent 1px); background-size: 100% 28px; }
 
-  /* ---- Regression scatter + OLS line plotted behind the page ---- */
-  .lg-plot { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; opacity:0.5; }
+  /* ---- Regression: the OLS line draws + fits, a point travels it, the scatter
+         twinkles, and a confidence band breathes (all behind the page) ---- */
+  .lg-plot { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; opacity:0.55; }
   .lg-plot circle { fill: var(--lg-navy); opacity:0.16; }
-  .lg-plot line { stroke: var(--lg-navy); stroke-width:1.4; opacity:0.22; stroke-dasharray:5 4; }
+  .lg-pt { animation: lg-twinkle 3.4s ease-in-out infinite; }
+  .lg-pt:nth-child(odd) { animation-delay: 1.1s; }
+  .lg-pt:nth-child(3n) { animation-delay: 2.2s; }
+  @keyframes lg-twinkle { 0%,100% { opacity:0.13; } 50% { opacity:0.34; } }
+  .lg-band { fill: var(--lg-navy); opacity:0.05; animation: lg-band 6.5s ease-in-out infinite; }
+  @keyframes lg-band { 0%,100% { opacity:0.035; } 50% { opacity:0.09; } }
+  .lg-ols { fill:none; stroke: var(--lg-navy); stroke-width:1.7; opacity:0.34; stroke-dasharray:1; stroke-dashoffset:0;
+    filter: drop-shadow(0 0 1.5px rgba(31,58,95,0.45)); animation: lg-draw 1.8s ease-out 0.2s both; }
+  @keyframes lg-draw { from { stroke-dashoffset:1; } to { stroke-dashoffset:0; } }
+  .lg-fit { offset-path: path("M40 560 L450 290"); offset-distance:0%; fill: var(--lg-navy);
+    filter: drop-shadow(0 0 4px rgba(31,58,95,0.9)); animation: lg-fit 4.2s linear 1.7s infinite; }
+  @keyframes lg-fit { 0% { offset-distance:0%; opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { offset-distance:100%; opacity:0; } }
 
-  /* ---- Ledger margin: a red rule + periodic line numbers ---- */
+  /* ---- Ledger margin: a red rule, line numbers + a scan running down it ---- */
   .lg-margin { position:fixed; left: clamp(4px, 2.2vw, 38px); top:8vh; bottom:8vh; width:44px;
     z-index:0; pointer-events:none; }
   .lg-margin .lg-redline { stroke: var(--lg-red); stroke-width:1; }
   .lg-margin text { fill: var(--lg-navy-2); font:600 8px var(--lg-mono); opacity:0.55; }
+  .lg-scan { stroke: var(--lg-navy); stroke-width:1.4; opacity:0.6; animation: lg-scan 5.5s ease-in-out infinite; }
+  @keyframes lg-scan { 0% { transform: translateY(0); opacity:0; } 12% { opacity:0.7; } 88% { opacity:0.7; } 100% { transform: translateY(400px); opacity:0; } }
   @media (max-width: 1140px) { .lg-margin { display:none; } }
+
+  /* ---- A sparkline ticker scrolls along the foot of the page ---- */
+  .lg-ticker { position:fixed; left:0; right:0; bottom:0; height:22px; z-index:0; pointer-events:none; overflow:hidden; opacity:0.5; }
+  .lg-ticker svg { position:absolute; bottom:0; left:0; width:3600px; height:22px; animation: lg-ticker 17s linear infinite; }
+  .lg-ticker polyline { fill:none; stroke: var(--lg-navy); stroke-width:1; opacity:0.4; }
+  @keyframes lg-ticker { from { transform: translateX(0); } to { transform: translateX(-1200px); } }
 
   .cv { position:relative; z-index:1; max-width: 760px; margin:0 auto;
     padding: clamp(48px, 8vw, 92px) clamp(28px, 6vw, 64px) 132px; counter-reset: lg; }
@@ -143,13 +163,15 @@ function ledgerCss(_t: TemplateTheme): string {
   }
   @media (prefers-reduced-motion: reduce) {
     *,*::before,*::after { animation:none !important; }
+    .lg-fit, .lg-ticker, .lg-scan { display:none !important; }
+    .lg-ols { stroke-dashoffset:0 !important; }
     section.cv-section > h2, .cv-summary-block > .cv-summary-h,
     ol.cv-bib > li { opacity:1 !important; transform:none !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform:none !important; }
   }
   @media print {
     body { background-image:none !important; }
-    .lg-plot, .lg-margin { display:none !important; }
+    .lg-plot, .lg-margin, .lg-ticker { display:none !important; }
     *,*::before,*::after { animation:none !important; }
     .cv { padding:0; max-width:none; }
   }`;
@@ -176,8 +198,10 @@ export const ledgerTemplate: CvTemplate = {
     ];
     const plot =
       `<svg class="lg-plot" viewBox="0 0 480 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">` +
-      `<line x1="40" y1="560" x2="450" y2="290"></line>` +
-      pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.4"></circle>`).join("") +
+      `<polygon class="lg-band" points="40,545 450,275 450,305 40,575"></polygon>` +
+      `<path class="lg-ols" pathLength="1" d="M40 560 L450 290"></path>` +
+      pts.map(([x, y]) => `<circle class="lg-pt" cx="${x}" cy="${y}" r="3.4"></circle>`).join("") +
+      `<circle class="lg-fit" r="3.6"></circle>` +
       `</svg>`;
     const margin =
       `<svg class="lg-margin" viewBox="0 0 44 400" preserveAspectRatio="none" aria-hidden="true" focusable="false">` +
@@ -186,10 +210,22 @@ export const ledgerTemplate: CvTemplate = {
         const y = 24 + i * 50;
         return `<text x="28" y="${y}" text-anchor="end">${(i + 1) * 5}</text>`;
       }).join("") +
+      `<line class="lg-scan" x1="22" y1="0" x2="40" y2="0"></line>` +
       `</svg>`;
+    // A repeating sparkline (period 1200) for the scrolling foot ticker.
+    const sparkY = [
+      14, 8, 12, 6, 16, 10, 4, 12, 9, 15, 6, 11, 16, 7, 13, 5, 14, 10, 6, 12, 8, 16, 9, 6, 15, 8,
+      12, 7, 11, 14,
+    ];
+    const sparkPts = Array.from({ length: 91 }, (_, i) => `${i * 40},${sparkY[i % 30]}`).join(" ");
+    const ticker =
+      `<div class="lg-ticker" aria-hidden="true">` +
+      `<svg viewBox="0 0 3600 22" preserveAspectRatio="none" focusable="false"><polyline points="${sparkPts}"></polyline></svg>` +
+      `</div>`;
     const body =
       plot +
       margin +
+      ticker +
       `<div class="cv">` +
       headerHtml(cv, { photo: true }) +
       sectionsHtml(cv, sections) +
