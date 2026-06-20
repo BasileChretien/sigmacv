@@ -831,6 +831,7 @@ export const TEMPLATES = ["classic", "modern", "sidebar", "ats", "rirekisho"] as
  */
 export const PUBLIC_STYLES = [
   "match",
+  "posology",
   "folio",
   "meridian",
   "trajectory",

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **New "Posology" public-page style** — a credible flagship for the living public
+  CV (`/p/<slug>`), built from a pharmacology dose–response (sigmoid) curve that
+  doubles as the logistic function and the shape of a Σ. A thin teal curve in the
+  left gutter draws itself in on load (with an EC₅₀ inflection marker), the
+  page is set on faint clinical squared paper under a large Σ watermark, each
+  section heading carries a data-point node, and the account holder's own
+  (identifier-matched) name is stamped in a vermilion hanko seal. Restrained,
+  DORA-safe (no metric is enlarged or coloured for emphasis), CSS-only, and fully
+  static under `prefers-reduced-motion`/print. Like the other credible styles it
+  never shows the mascot and never affects any export. Pick it under **Design →
+  Public page style**.
+
 ### Fixed
 
 - **Long DOI/URL links no longer spill out of publication boxes on the public

@@ -230,6 +230,7 @@
           "type": "string",
           "enum": [
             "match",
+            "posology",
             "folio",
             "meridian",
             "trajectory",
@@ -1086,6 +1087,7 @@
                 "type": "string",
                 "enum": [
                   "match",
+                  "posology",
                   "folio",
                   "meridian",
                   "trajectory",

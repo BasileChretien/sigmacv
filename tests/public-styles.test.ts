@@ -28,10 +28,11 @@ const base = buildCanonicalCv({ id: "ps", resolved, works, now: "2026-06-02T00:0
 const withPhoto: CanonicalCv = { ...base, owner: { ...base.owner, photo: PNG_1x1 } };
 
 describe("public-page showcase styles", () => {
-  it("registers all 18 animated styles", () => {
-    expect(PUBLIC_STYLE_KEYS).toHaveLength(18);
+  it("registers all 19 animated styles", () => {
+    expect(PUBLIC_STYLE_KEYS).toHaveLength(19);
     expect(PUBLIC_STYLE_KEYS).toEqual(
       expect.arrayContaining([
+        "posology",
         "folio",
         "meridian",
         "trajectory",
@@ -94,6 +95,20 @@ describe("public-page showcase styles", () => {
     expect(previews.map((p) => p.style)).toEqual([...PUBLIC_STYLES]);
     for (const p of previews) expect(p.html.startsWith("<!DOCTYPE html>")).toBe(true);
   });
+
+  it("'posology' draws the dose–response spine + stamps the self-name in a vermilion seal", () => {
+    const cv = updateDisplay(withPhoto, { publicStyle: "posology" });
+    const html = renderPublicCvHtml(cv);
+    // The signature sigmoid spine + its EC₅₀ inflection marker.
+    expect(html).toContain('class="poso-curve"');
+    expect(html).toContain("EC₅₀");
+    // The curve draws itself in (keyframed) and headings settle on a view() timeline.
+    expect(html).toContain("@keyframes poso-draw");
+    expect(html).toContain("animation-timeline: view()");
+    // Fixed apothecary-teal identity (not accent-derived) + the vermilion seal ink.
+    expect(html).toContain("--poso-accent:#1d9e75");
+    expect(html).toContain("--poso-seal-ink:#9e2b1e");
+  });
 });
 
 describe("accentSpectrum", () => {
@@ -121,7 +136,7 @@ describe("mascot companion (display.showMascot)", () => {
     expect([...MASCOT_STYLES]).toHaveLength(13);
     for (const s of MASCOT_STYLES) expect(isMascotStyle(s)).toBe(true);
     // `match` + the credible styles are NOT mascot-capable (structural gate).
-    for (const s of ["match", "folio", "meridian", "trajectory", "lumina"]) {
+    for (const s of ["match", "posology", "folio", "meridian", "trajectory", "lumina"]) {
       expect(isMascotStyle(s)).toBe(false);
     }
   });
