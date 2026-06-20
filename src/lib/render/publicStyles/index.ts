@@ -27,6 +27,7 @@ import { meridianTemplate } from "./meridian";
 import { meshTemplate } from "./mesh";
 import { neonTemplate } from "./neon";
 import { popTemplate } from "./pop";
+import { posologyTemplate } from "./posology";
 import { prismTemplate } from "./prism";
 import { risoTemplate } from "./riso";
 import { synthwaveTemplate } from "./synthwave";
@@ -39,6 +40,7 @@ type AnimatedStyleKey = Exclude<PublicStyleKey, "match">;
 // top of the picker (the lever for getting more CVs published as living pages);
 // the expressive styles follow. Order here defines PUBLIC_STYLE_KEYS.
 const REGISTRY: Record<AnimatedStyleKey, CvTemplate> = {
+  posology: posologyTemplate,
   folio: folioTemplate,
   meridian: meridianTemplate,
   trajectory: trajectoryTemplate,
