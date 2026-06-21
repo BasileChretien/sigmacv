@@ -63,12 +63,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Two more credible public-page styles: "Hanko" and "Pharmacopoeia"**, extending
   the field-built credible end of the catalogue alongside Posology.
-  - **Hanko** — a Franco-Japanese editorial style: warm washi paper, sumi-ink type
-    and generous negative space, with one vermilion accent. Your name in the
-    masthead is stamped with a small seal (a hanko marks your name), a thin
-    tokonoma scroll-rule with a vermilion seal-cap runs down the left gutter, and
-    section dividers are brush-tapered ink rules; your own (identifier-matched)
-    name is signed under a fine vermilion rule.
+  - **Hanko** — a Franco-Japanese editorial style, now an ukiyo-e ink world (see
+    the entry above): a monochrome sumi woodblock with a great wave cresting beside
+    each section, a faint Fuji over a seigaiha band, an enso, drifting ginkgo and a
+    single vermilion seal; your own (identifier-matched) name is signed under a fine
+    vermilion rule.
   - **Pharmacopoeia** — an apothecary monograph: warm parchment under a faint
     hexagonal benzene-ring lattice, a double-ruled label masthead with a benzene
     watermark, hexagon-bulleted headings, and your own name picked out with a
