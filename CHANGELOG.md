@@ -9,20 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **The "Hanko" public-page style is now an ukiyo-e world.** Each section is headed
-  by **Hokusai's actual _Great Wave off Kanagawa_** — vectorised from The Met's CC0
-  scan (Open Access object 45434) into three layers (sky/Fuji · Prussian-blue body ·
-  cream foam) and stacked above the heading. As the section scrolls in the wave
-  **forms** (each layer rises into place, the foam blooms), the blue body **heaves**
-  and the foam **curls** so the water stays alive, then the crest **breaks** — a
-  spray of foam droplets bursts and the section title is delivered with it; as the
-  section leaves, the wave dissipates upward. Around it, in sumi ink with the one
-  vermilion seal: a faint Mt. Fuji over a seigaiha wave band, an enso that brushes
-  itself in, a kamon crest, drifting golden ginkgo leaves, an ink-wash that blooms
-  open, and the seal stamping with an ink-spread ripple — all in the surround /
-  margins, with the text still on a clean floating page. CSS-only (no script);
-  everything stops under `prefers-reduced-motion` (the wave shows settled and still);
-  print drops the scenery.
+- **The "Hanko" public-page style is now an ukiyo-e world.** Each section title is
+  **covered by Hokusai's actual _Great Wave off Kanagawa_** — vectorised from The
+  Met's CC0 scan (Open Access object 45434) into three layers (sky/Fuji ·
+  Prussian-blue body · cream foam). When the section scrolls into view the wave plays
+  its life **once**: the water **forms**, the crest does its big **roll** and throws
+  a spray of foam, then the water **recedes** and **unveils the title** beneath it —
+  ending on the title alone, no wave. Around it, in sumi ink with the one vermilion
+  seal: a faint Mt. Fuji over a seigaiha wave band, an enso that brushes itself in, a
+  kamon crest, drifting golden ginkgo leaves, an ink-wash that blooms open, and the
+  seal stamping with an ink-spread ripple — all in the surround / margins, with the
+  text on a clean floating page. The title is real text underneath (always read by
+  assistive tech); with no JS, reduced motion, or in print the wave is simply hidden
+  so the title is plain. The play-once-on-enter timing needs the one small script
+  below; everything else stays CSS-only.
+
+### Security
+
+- **Public CV pages gain exactly one, hash-pinned inline script.** They remain
+  strictly no-JS by default; the only script ever served is a bare
+  `IntersectionObserver` (used by the Hanko wave to play once on enter), permitted by
+  an exact `script-src 'sha256-…'` of that script and nothing else — no
+  `'unsafe-inline'`. Any injected or modified script has a different hash and stays
+  blocked. The directive is emitted (in both the `<meta>` and HTTP-header CSP) only on
+  pages that actually carry the trusted script, so every other style is still fully
+  no-JS. A test re-derives the hash so the script can't drift from its CSP entry.
 
 - **The six field styles were rebuilt around atmosphere + readability.** Each is
   now an _atmosphere layer_ (background, colour and light — the mood) with the text
