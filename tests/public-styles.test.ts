@@ -126,13 +126,19 @@ describe("public-page showcase styles", () => {
     expect(html).toContain('class="hk-scene"');
     expect(html).toContain('class="hk-enso"');
     expect(html).toContain('class="hk-leaves"');
-    // A LIVING Prussian-blue Great Wave (inline svg) heads each section: the sea
-    // heaves, the foam claws curl, the spray rises; it fades in (hk-deliver) and out.
-    expect(html).toContain('<svg class="hk-wave"');
-    expect(html).toContain('class="hk-sea"');
-    expect(html).toContain("#1c3f5f");
+    // Hokusai's actual Great Wave — vectorised into three CSS background layers
+    // (back · blue body · foam) embedded once in the stylesheet — heads each section.
+    // It forms, the body heaves + foam curls, then the crest BREAKS (a spray bursts)
+    // and the title is delivered (hk-deliver).
+    expect(html).toContain('<span class="hk-wave"');
+    expect(html).toContain("hk-l hk-back");
+    expect(html).toContain("hk-l hk-foam");
+    expect(html).toContain('class="hk-spray"');
+    expect(html).toContain("data:image/svg+xml"); // the embedded layer art (CC0, Met)
     expect(html).toContain("@keyframes hk-heave");
     expect(html).toContain("@keyframes hk-curl");
+    expect(html).toContain("@keyframes hk-break");
+    expect(html).toContain("@keyframes hk-burst");
     expect(html).toContain("@keyframes hk-deliver");
     expect(html).toContain("Newsreader");
     expect(html).toContain("@font-face");
