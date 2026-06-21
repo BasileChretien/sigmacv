@@ -31,6 +31,7 @@
  * #b23a2c ~5:1); `prefers-reduced-motion` / no-JS / print show the kanji complete &
  * still. Not a mascot style.
  */
+import { renderStrings } from "@/lib/i18n/render";
 import { bundledFaceCss } from "@/lib/render/bundledFonts";
 import { HK_WAVE_SCRIPT_TAG } from "@/lib/render/publicScripts";
 import { HK_KANJI, HK_KANJI_FILTER } from "@/lib/render/publicStyles/hankoKanji";
@@ -39,6 +40,7 @@ import {
   coauthorLinksFooter,
   commonCss,
   cvPageShell,
+  escapeHtml,
   headerHtml,
   licenseFooter,
   provenanceFooter,
@@ -279,9 +281,15 @@ export const hankoTemplate: CvTemplate = {
           : m;
       },
     );
+    // Localized credit for the borrowed assets. The connective text is translated
+    // (renderStrings); the proper nouns (Yuji Boku) + licences (CC BY-SA 3.0, SIL OFL)
+    // stay literal, and "{kanjivg}" is swapped for the KanjiVG link AFTER escaping so
+    // only that trusted markup is injected raw.
+    const kanjivgLink = `<a href="https://kanjivg.tagaini.net">KanjiVG</a>`;
     const credit =
-      `<p class="hk-credit cv-provenance">Section names brushed stroke by stroke · stroke order ` +
-      `<a href="https://kanjivg.tagaini.net">KanjiVG</a> (CC BY-SA) · brush face Yuji Boku (SIL OFL)</p>`;
+      `<p class="hk-credit cv-provenance">` +
+      escapeHtml(renderStrings(cv.display.locale).hankoCredit).replace("{kanjivg}", kanjivgLink) +
+      `</p>`;
     const body =
       HK_KANJI_FILTER +
       scene +
