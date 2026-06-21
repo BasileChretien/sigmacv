@@ -347,7 +347,7 @@ export const hankoTemplate: CvTemplate = {
     // Hang the Great Wave above each section heading (the heavy art lives in the
     // stylesheet; this just drops the layer spans in as the heading's first child).
     const renderedSections = sectionsHtml(cv, sections).replace(
-      /(<h2 id="[^"]*">)/g,
+      /(<h2\b[^>]*\bid="[^"]*"[^>]*>)/g,
       (m) => m + WAVE_MARKUP,
     );
     const body =

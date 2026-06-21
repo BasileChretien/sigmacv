@@ -38,10 +38,17 @@ const PAL = [
 
 async function fetchSource() {
   const api = `https://collectionapi.metmuseum.org/public/collection/v1/objects/${MET_OBJECT}`;
-  const meta = await (await fetch(api)).json();
+  const metaResp = await fetch(api);
+  if (!metaResp.ok) throw new Error(`Met metadata fetch failed: ${metaResp.status}`);
+  const meta = await metaResp.json();
   if (!meta.isPublicDomain) throw new Error("Met object is not flagged public-domain/CC0");
+  if (typeof meta.primaryImage !== "string" || meta.primaryImage.length === 0) {
+    throw new Error("Met metadata missing primaryImage");
+  }
   console.log(`source: ${meta.title} — ${meta.artistDisplayName} (CC0)`);
-  const buf = Buffer.from(await (await fetch(meta.primaryImage)).arrayBuffer());
+  const imageResp = await fetch(meta.primaryImage);
+  if (!imageResp.ok) throw new Error(`Met image fetch failed: ${imageResp.status}`);
+  const buf = Buffer.from(await imageResp.arrayBuffer());
   return buf;
 }
 
