@@ -9,14 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The "Hanko" public-page style is now an ukiyo-e ink world.** Rendered as a
+  monochrome woodblock print (sumizuri-e), the whole scene is drawn in sumi ink with
+  the single vermilion seal as the one colour: a great wave **crests beside each
+  section heading as it scrolls into view**, a faint Mt. Fuji rises over a seigaiha
+  wave band, an enso brushes itself in, a kamon crest sits in the corner, golden
+  ginkgo leaves drift down, and the seal stamps with an ink-spread ripple — all in
+  the surround/margins, with the text still on a clean floating page. Stops under
+  `prefers-reduced-motion` (the scene shows, still); print drops the scenery.
+
 - **The six field styles were rebuilt around atmosphere + readability.** Each is
   now an _atmosphere layer_ (background, colour and light — the mood) with the text
   floating on a separate _reading surface_ (an opaque page with a soft shadow), so
   nothing textured or moving is ever behind a glyph — they read more easily than a
   plain page, not less. Each carries its own bundled display face and a unique
   page margin: **Posology** a cool instrument room with an engraved dose–response
-  curve margin (Space Grotesk); **Hanko** a warm alcove with a vertical 履歴書
-  margin + a single vermilion seal (Newsreader); **Pharmacopoeia** an amber-lamplit
+  curve margin (Space Grotesk); **Hanko** an ukiyo-e ink world (see above) with a
+  vertical 履歴書 margin + a vermilion seal (Newsreader); **Pharmacopoeia** an amber-lamplit
   parchment with a botanical-specimen margin and a verdigris accent (Fraunces);
   **Codex** a lamplit reading room with an illuminated gilt-vine margin + versal
   (EB Garamond); **Ledger** a cool blueprint with a ledger-red line-number margin,
@@ -54,12 +63,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Two more credible public-page styles: "Hanko" and "Pharmacopoeia"**, extending
   the field-built credible end of the catalogue alongside Posology.
-  - **Hanko** — a Franco-Japanese editorial style: warm washi paper, sumi-ink type
-    and generous negative space, with one vermilion accent. Your name in the
-    masthead is stamped with a small seal (a hanko marks your name), a thin
-    tokonoma scroll-rule with a vermilion seal-cap runs down the left gutter, and
-    section dividers are brush-tapered ink rules; your own (identifier-matched)
-    name is signed under a fine vermilion rule.
+  - **Hanko** — a Franco-Japanese editorial style, now an ukiyo-e ink world (see
+    the entry above): a monochrome sumi woodblock with a great wave cresting beside
+    each section, a faint Fuji over a seigaiha band, an enso, drifting ginkgo and a
+    single vermilion seal; your own (identifier-matched) name is signed under a fine
+    vermilion rule.
   - **Pharmacopoeia** — an apothecary monograph: warm parchment under a faint
     hexagonal benzene-ring lattice, a double-ruled label masthead with a benzene
     watermark, hexagon-bulleted headings, and your own name picked out with a

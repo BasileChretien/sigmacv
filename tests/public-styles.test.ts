@@ -114,14 +114,21 @@ describe("public-page showcase styles", () => {
     expect(html).toContain("@font-face");
   });
 
-  it("'hanko' is a hanging-scroll page: the tategaki margin, the carved seal + Newsreader", () => {
+  it("'hanko' is an ukiyo-e page: the great-wave headings, ink scenery + the carved seal", () => {
     const cv = updateDisplay(withPhoto, { publicStyle: "hanko" });
     const html = renderPublicCvHtml(cv);
-    // The vertical tategaki margin (the signature) + the carved seal on the name.
+    // The tategaki margin + the carved seal on the name + the bilingual eyebrow.
     expect(html).toContain('class="hk-tate"');
-    expect(html).toContain("履歴書");
+    expect(html).toContain("履歴書 ・ Curriculum Vitæ");
     expect(html).toContain("header.cv-header h1::after");
     expect(html).toContain("--hk-seal:#b23a2c");
+    // The ukiyo-e ink scenery (Fuji/seigaiha + enso + drifting leaves).
+    expect(html).toContain('class="hk-scene"');
+    expect(html).toContain('class="hk-enso"');
+    expect(html).toContain('class="hk-leaves"');
+    // The great wave crests beside each section heading as it scrolls into view.
+    expect(html).toContain("@keyframes hk-crest");
+    expect(html).toContain("data:image/svg+xml,%3Csvg");
     expect(html).toContain("Newsreader");
     expect(html).toContain("@font-face");
   });
