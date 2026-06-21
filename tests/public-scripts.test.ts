@@ -30,5 +30,8 @@ describe("publicScripts — the one hash-pinned public-page script", () => {
     // a page without the script (or with some other script) gets nothing
     expect(publicScriptSrc("<body>no scripts here</body>")).toBe("");
     expect(publicScriptSrc("<script>alert(1)</script>")).toBe("");
+    // gated on the actual <script> ELEMENT — raw script bytes in escaped page text
+    // (no <script> tag) must NOT emit the directive
+    expect(publicScriptSrc(`<p>${HK_WAVE_SCRIPT}</p>`)).toBe("");
   });
 });

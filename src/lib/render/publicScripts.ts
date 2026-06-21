@@ -30,10 +30,14 @@ export const HK_WAVE_SCRIPT_TAG = `<script>${HK_WAVE_SCRIPT}</script>`;
 
 /**
  * The `script-src` directive to add to a page's CSP — but only when that page
- * actually contains the trusted script. Returns "" otherwise, so pages with no
- * script keep an empty/blocked script policy. Leading space so it slots straight
- * into the existing policy string after `font-src data:;`.
+ * actually carries the trusted script ELEMENT. We match the full `<script>…</script>`
+ * tag, not the raw script bytes, so the directive can never be emitted by escaped
+ * page text that merely happens to contain the code. Returns "" otherwise, so pages
+ * with no script keep an empty/blocked script policy. Leading space so it slots
+ * straight into the existing policy string after `font-src data:;`.
  */
 export function publicScriptSrc(content: string): string {
-  return content.includes(HK_WAVE_SCRIPT) ? ` script-src 'sha256-${HK_WAVE_SCRIPT_SHA256}';` : "";
+  return content.includes(HK_WAVE_SCRIPT_TAG)
+    ? ` script-src 'sha256-${HK_WAVE_SCRIPT_SHA256}';`
+    : "";
 }
