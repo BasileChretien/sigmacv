@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The "Hanko" public-page style is now an ukiyo-e ink world.** Rendered as a
+  monochrome woodblock print (sumizuri-e), the whole scene is drawn in sumi ink with
+  the single vermilion seal as the one colour: a great wave **crests beside each
+  section heading as it scrolls into view**, a faint Mt. Fuji rises over a seigaiha
+  wave band, an enso brushes itself in, a kamon crest sits in the corner, golden
+  ginkgo leaves drift down, and the seal stamps with an ink-spread ripple — all in
+  the surround/margins, with the text still on a clean floating page. Stops under
+  `prefers-reduced-motion` (the scene shows, still); print drops the scenery.
+
 - **The six field styles were rebuilt around atmosphere + readability.** Each is
   now an _atmosphere layer_ (background, colour and light — the mood) with the text
   floating on a separate _reading surface_ (an opaque page with a soft shadow), so
