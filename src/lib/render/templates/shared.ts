@@ -16,6 +16,7 @@ import { iconSvg, resolveLink, type IconName } from "../icons";
 import { SITE_URL } from "@/lib/siteUrl";
 import { qrSvg } from "@/lib/cv/qrSvg";
 import { bundledFaceCss } from "../bundledFonts";
+import { publicScriptSrc } from "../publicScripts";
 import type { RenderOpts } from "../types";
 import type { RenderedSection, TemplateTheme } from "./types";
 
@@ -173,12 +174,15 @@ export function cvPageShell(cv: CanonicalCv, css: string, body: string): string 
 }
 
 export function pageShell(title: string, css: string, body: string, lang = "en"): string {
+  // Strictly no-JS by default; a single hash-pinned script is permitted only when a
+  // page actually carries the one trusted inline script (see publicScripts.ts).
+  const scriptSrc = publicScriptSrc(body);
   return `<!DOCTYPE html>
 <html lang="${escapeHtml(lang)}">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:;" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:;${scriptSrc}" />
 <title>${escapeHtml(title)}</title>
 <style>${css}</style>
 </head>

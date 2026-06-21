@@ -10,6 +10,7 @@ import {
 import { publicStyleGalleryPreviews } from "@/lib/render/galleryPreview";
 import { renderCvHtml } from "@/lib/render/html";
 import { PUBLIC_STYLE_KEYS, getPublicStyle, renderPublicCvHtml } from "@/lib/render/publicStyles";
+import { HK_WAVE_SCRIPT, HK_WAVE_SCRIPT_SHA256 } from "@/lib/render/publicScripts";
 import { accentSpectrum } from "@/lib/render/publicStyles/kit";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -70,8 +71,15 @@ describe("public-page showcase styles", () => {
       const cv = updateDisplay(withPhoto, { publicStyle: key });
       const html = renderPublicCvHtml(cv, { attribution: true });
       expect(html.startsWith("<!DOCTYPE html>")).toBe(true);
-      // No scripts — must stay legal under the strict public-page CSP.
-      expect(html).not.toMatch(/<script/i);
+      // No scripts under the strict public-page CSP — EXCEPT Hanko, whose single
+      // wave script is permitted by an exact hash-pinned `script-src` (publicScripts).
+      if (key === "hanko") {
+        expect(html).toContain(HK_WAVE_SCRIPT);
+        expect(html).toContain(`script-src 'sha256-${HK_WAVE_SCRIPT_SHA256}'`);
+      } else {
+        expect(html).not.toMatch(/<script/i);
+        expect(html).not.toContain("script-src");
+      }
       expect(html).toContain("default-src 'none'");
       // Honors the uploaded photo, the identifier-matched self-name highlight CSS,
       // and a reduced-motion fallback.
@@ -126,20 +134,22 @@ describe("public-page showcase styles", () => {
     expect(html).toContain('class="hk-scene"');
     expect(html).toContain('class="hk-enso"');
     expect(html).toContain('class="hk-leaves"');
-    // Hokusai's actual Great Wave — vectorised into three CSS background layers
-    // (back · blue body · foam) embedded once in the stylesheet — heads each section.
-    // It forms, the body heaves + foam curls, then the crest BREAKS (a spray bursts)
-    // and the title is delivered (hk-deliver).
+    // Hokusai's actual Great Wave — three vectorised CSS layers (back · blue body ·
+    // foam) embedded once — COVERS each section title, plays its life ONCE on enter
+    // (forms, the crest rolls + throws spray), then RECEDES to unveil the title.
     expect(html).toContain('<span class="hk-wave"');
     expect(html).toContain("hk-l hk-back");
     expect(html).toContain("hk-l hk-foam");
     expect(html).toContain('class="hk-spray"');
     expect(html).toContain("data:image/svg+xml"); // the embedded layer art (CC0, Met)
-    expect(html).toContain("@keyframes hk-heave");
-    expect(html).toContain("@keyframes hk-curl");
-    expect(html).toContain("@keyframes hk-break");
-    expect(html).toContain("@keyframes hk-burst");
-    expect(html).toContain("@keyframes hk-deliver");
+    expect(html).toContain("hk-play"); // the one-shot trigger class
+    expect(html).toContain("@keyframes hk-stage"); // cover → recede/reveal
+    expect(html).toContain("@keyframes hk-body-form"); // the wave forms
+    expect(html).toContain("@keyframes hk-foam-roll"); // the big roll
+    expect(html).toContain("@keyframes hk-burst"); // the spray
+    // The one hash-pinned IntersectionObserver script + its matching CSP directive.
+    expect(html).toContain(HK_WAVE_SCRIPT);
+    expect(html).toContain(`script-src 'sha256-${HK_WAVE_SCRIPT_SHA256}'`);
     expect(html).toContain("Newsreader");
     expect(html).toContain("@font-face");
   });
@@ -201,7 +211,8 @@ describe("public-page showcase styles", () => {
     ] as const) {
       const html = renderPublicCvHtml(updateDisplay(withPhoto, { publicStyle: key }));
       expect(html).toContain("@media (prefers-reduced-motion: reduce)");
-      expect(html).not.toMatch(/<script/i);
+      // Hanko carries one hash-pinned wave script; every other style stays no-JS.
+      if (key !== "hanko") expect(html).not.toMatch(/<script/i);
     }
   });
 });

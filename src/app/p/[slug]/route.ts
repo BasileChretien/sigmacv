@@ -17,6 +17,7 @@ import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
 import { signpostingLinkHeader } from "@/lib/cv/signposting";
 import { publicMetaTags } from "@/lib/cv/publicMeta";
 import { renderPublicCvHtml } from "@/lib/render/publicStyles";
+import { publicScriptSrc } from "@/lib/render/publicScripts";
 import {
   filterCvForView,
   isFilterActive,
@@ -55,10 +56,11 @@ function publicPageResponse(html: string, indexable: boolean, links?: string): N
       "Cache-Control": "private, no-store",
       // Defence-in-depth as an HTTP header (stronger than the in-document meta
       // CSP, and able to set frame-ancestors). Mirrors the document's policy:
-      // no scripts, inline styles only, data: images + data: fonts (the bundled
-      // body font is an embedded @font-face data URI); never framed.
-      "Content-Security-Policy":
-        "default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+      // inline styles only, data: images + data: fonts (the bundled body font is an
+      // embedded @font-face data URI); never framed. Scripts stay blocked unless the
+      // page carries the one hash-pinned wave script (Hanko); publicScriptSrc() emits
+      // the matching `script-src` only then, so every other page is still no-JS.
+      "Content-Security-Policy": `default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:;${publicScriptSrc(html)} frame-ancestors 'none'; base-uri 'none'; form-action 'none'`,
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
       // Don't leak the unguessable capability slug to external links via Referer.
