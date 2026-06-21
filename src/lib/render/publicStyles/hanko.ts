@@ -210,35 +210,46 @@ function hankoCss(_t: TemplateTheme): string {
     border:5px solid #fffdf6; outline:1px solid var(--hk-gold); outline-offset:-6px;
     box-shadow: 0 16px 32px -20px rgba(27,25,22,0.5); filter: grayscale(0.4) contrast(1.02); }
 
-  /* ---- Sections: the Great Wave breaks above each heading + brings the title in.
-         As a section scrolls into view the whole heading rides in from the left
-         (hk-bring), the wave unfurls left-to-right (hk-crest), the rule draws. ---- */
+  /* ---- Sections: a FULL Great-Wave animation brings each title, then recedes.
+         As a section scrolls into view the wave SWEEPS in from the left, CRASHES
+         over the heading (delivering the title, which stays), then RECEDES and
+         dissipates to the right — scrubbed by the heading's own view() timeline,
+         with a continuous churn so the water stays alive. The wave always breaks
+         ABOVE the heading, never behind the text. ---- */
   section.cv-section { margin-top: 7rem; }
   section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position:relative; padding-top:0.4rem; padding-bottom:0.7rem;
     font-family: var(--hk-sans); font-size:0.76rem; font-weight:600; text-transform:uppercase;
     letter-spacing:0.22em; color: var(--hk-ink); margin:0 0 1.15rem; }
+  /* base = the wave shown settled (the reduced-motion / no-view-timeline fallback) */
   section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
-    content:""; position:absolute; left:0; top:-6.7rem; width:170px; height:103px;
-    background: url("${WAVE_URI}") left bottom / contain no-repeat; }
+    content:""; position:absolute; left:0; top:-6.7rem; width:178px; height:108px;
+    background: url("${WAVE_URI}") left bottom / contain no-repeat;
+    transform-origin: 28% 100%; translate:0 0; scale:1 1; rotate:0deg; }
   section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content:""; position:absolute; left:0; right:0; bottom:0; height:1px;
     background: linear-gradient(90deg, var(--hk-ink) 0, var(--hk-ink) 55%, transparent 100%); }
   @supports (animation-timeline: view()) {
-    section.cv-section > h2, .cv-summary-block > .cv-summary-h {
-      animation: hk-bring cubic-bezier(0.22,1,0.36,1) both;
-      animation-timeline: view(); animation-range: entry 0% cover 22%; }
     section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
-      animation: hk-crest cubic-bezier(0.22,1,0.36,1) both;
-      animation-timeline: view(); animation-range: entry 0% cover 16%; }
+      animation: hk-wave linear both, hk-churn 2.6s ease-in-out infinite;
+      animation-timeline: view(), auto;
+      animation-range: entry 0% cover 32%, normal; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h {
+      animation: hk-deliver cubic-bezier(0.22,1,0.36,1) both;
+      animation-timeline: view(); animation-range: entry 26% cover 14%; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
       animation: hk-rule cubic-bezier(0.22,1,0.36,1) both;
-      animation-timeline: view(); animation-range: entry 0% cover 18%; transform-origin:0 50%; }
+      animation-timeline: view(); animation-range: entry 30% cover 16%; transform-origin:0 50%; }
   }
-  @keyframes hk-bring { from { opacity:0; transform: translateX(-28px); } to { opacity:1; transform:none; } }
-  @keyframes hk-crest {
-    from { clip-path: inset(0 100% 0 0); opacity:0; }
-    to { clip-path: inset(0 0 0 0); opacity:1; } }
+  @keyframes hk-wave {
+    0%   { translate: -138% 12px; opacity:0;   scale: 0.86 0.9; }
+    26%  { translate: -10% 0;     opacity:1;   scale: 1 1; }
+    50%  { translate: 8% -7px;    opacity:1;   scale: 1.08 1.05; }
+    60%  { translate: 18% 0;      opacity:1;   scale: 1 1; }
+    84%  { translate: 84% 5px;    opacity:0.5; scale: 0.95 0.95; }
+    100% { translate: 156% 14px;  opacity:0;   scale: 0.86 0.9; } }
+  @keyframes hk-churn { 0%,100% { rotate: 0deg; } 50% { rotate: -1.2deg; } }
+  @keyframes hk-deliver { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:none; } }
   @keyframes hk-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
   /* ---- Entries ---- */
@@ -264,7 +275,8 @@ function hankoCss(_t: TemplateTheme): string {
     .hk-enso path { stroke-dashoffset:0 !important; }
     .hk-leaves { display:none !important; }
     section.cv-section > h2, .cv-summary-block > .cv-summary-h { opacity:1 !important; transform:none !important; }
-    section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before { clip-path:none !important; opacity:1 !important; transform:none !important; }
+    section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
+      opacity:1 !important; translate:0 0 !important; scale:1 1 !important; rotate:0deg !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform:none !important; }
   }
   @media print {
