@@ -24,8 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   nothing textured or moving is ever behind a glyph — they read more easily than a
   plain page, not less. Each carries its own bundled display face and a unique
   page margin: **Posology** a cool instrument room with an engraved dose–response
-  curve margin (Space Grotesk); **Hanko** a warm alcove with a vertical 履歴書
-  margin + a single vermilion seal (Newsreader); **Pharmacopoeia** an amber-lamplit
+  curve margin (Space Grotesk); **Hanko** an ukiyo-e ink world (see above) with a
+  vertical 履歴書 margin + a vermilion seal (Newsreader); **Pharmacopoeia** an amber-lamplit
   parchment with a botanical-specimen margin and a verdigris accent (Fraunces);
   **Codex** a lamplit reading room with an illuminated gilt-vine margin + versal
   (EB Garamond); **Ledger** a cool blueprint with a ledger-red line-number margin,
