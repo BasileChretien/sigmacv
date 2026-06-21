@@ -82,6 +82,10 @@ export interface RenderStrings {
   /** Public-page hint that the publications can be saved to a reference manager
    *  (Zotero/Mendeley) via the browser connector — the page carries COinS metadata. */
   refManagerNote: string;
+  /** Public-page footer credit for the "Hanko" style's brushed-kanji section
+   *  headings. "{kanjivg}" → the linked "KanjiVG" term; the proper nouns
+   *  (Yuji Boku) and licence identifiers (CC BY-SA 3.0, SIL OFL) stay untranslated. */
+  hankoCredit: string;
   /** Heading for the public-page "Co-authors on SigmaCV" block (opt-in); "SigmaCV" stays untranslated. */
   coauthorsHeading: string;
   /** Tooltip/aria for the institution→ROR-record link on a positions/education line. */
@@ -123,6 +127,8 @@ export interface RenderStrings {
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
   "en-US": {
+    hankoCredit:
+      "Section names brushed stroke by stroke · stroke order {kanjivg} (CC BY-SA 3.0) · brush face Yuji Boku (SIL OFL)",
     refManagerNote:
       "Save these publications to a reference manager (Zotero, Mendeley…) — your browser connector will detect them.",
     researchAreasLabel: "Research areas",
@@ -195,6 +201,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Institution website",
   },
   "zh-CN": {
+    hankoCredit:
+      "栏目名称按笔顺逐笔书写 · 笔顺数据 {kanjivg}（CC BY-SA 3.0）· 毛笔字体 Yuji Boku（SIL OFL）",
     refManagerNote:
       "可将这些论文保存到文献管理器（Zotero、Mendeley 等）——你的浏览器连接器会自动识别它们。",
     researchAreasLabel: "研究领域",
@@ -267,6 +275,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "机构网站",
   },
   "es-ES": {
+    hankoCredit:
+      "Nombres de sección pincelados trazo a trazo · orden de trazos {kanjivg} (CC BY-SA 3.0) · tipografía de pincel Yuji Boku (SIL OFL)",
     refManagerNote:
       "Guarda estas publicaciones en un gestor de referencias (Zotero, Mendeley…): el conector de tu navegador las detectará.",
     researchAreasLabel: "Áreas de investigación",
@@ -342,6 +352,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Sitio web de la institución",
   },
   "fr-FR": {
+    hankoCredit:
+      "Noms de section tracés au pinceau, trait par trait · ordre des traits {kanjivg} (CC BY-SA 3.0) · police au pinceau Yuji Boku (SIL OFL)",
     refManagerNote:
       "Enregistrez ces publications dans un gestionnaire de références (Zotero, Mendeley…) — le connecteur de votre navigateur les détectera.",
     researchAreasLabel: "Domaines de recherche",
@@ -418,6 +430,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Site web de l’établissement",
   },
   "de-DE": {
+    hankoCredit:
+      "Abschnittsnamen Strich für Strich mit dem Pinsel geschrieben · Strichreihenfolge {kanjivg} (CC BY-SA 3.0) · Pinselschrift Yuji Boku (SIL OFL)",
     refManagerNote:
       "Speichern Sie diese Publikationen in einem Literaturverwaltungsprogramm (Zotero, Mendeley…) — Ihr Browser-Connector erkennt sie automatisch.",
     researchAreasLabel: "Forschungsgebiete",
@@ -493,6 +507,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Website der Einrichtung",
   },
   "ja-JP": {
+    hankoCredit:
+      "節の名称を一画ずつ筆で運筆 · 筆順 {kanjivg}（CC BY-SA 3.0）· 毛筆書体 Yuji Boku（SIL OFL）",
     refManagerNote:
       "これらの論文は文献管理ツール（Zotero、Mendeley など）に保存できます——ブラウザのコネクタが自動的に検出します。",
     researchAreasLabel: "研究分野",
@@ -565,6 +581,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "機関ウェブサイト",
   },
   "pt-BR": {
+    hankoCredit:
+      "Nomes das seções pincelados traço a traço · ordem dos traços {kanjivg} (CC BY-SA 3.0) · fonte de pincel Yuji Boku (SIL OFL)",
     refManagerNote:
       "Salve estas publicações em um gerenciador de referências (Zotero, Mendeley…) — o conector do seu navegador as detectará.",
     researchAreasLabel: "Áreas de pesquisa",
@@ -641,6 +659,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Site da instituição",
   },
   "it-IT": {
+    hankoCredit:
+      "Nomi delle sezioni tracciati a pennello, tratto per tratto · ordine dei tratti {kanjivg} (CC BY-SA 3.0) · carattere a pennello Yuji Boku (SIL OFL)",
     refManagerNote:
       "Salva queste pubblicazioni in un gestore di riferimenti (Zotero, Mendeley…): il connettore del browser le rileverà.",
     researchAreasLabel: "Aree di ricerca",
@@ -716,6 +736,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "Sito web dell’istituzione",
   },
   "ko-KR": {
+    hankoCredit:
+      "구획 이름을 한 획씩 붓으로 씀 · 획순 {kanjivg} (CC BY-SA 3.0) · 붓글씨 서체 Yuji Boku (SIL OFL)",
     refManagerNote:
       "이 논문들을 문헌 관리 도구(Zotero, Mendeley 등)에 저장할 수 있습니다 — 브라우저 커넥터가 자동으로 인식합니다.",
     researchAreasLabel: "연구 분야",
@@ -788,6 +810,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     institutionSiteTitle: "기관 웹사이트",
   },
   "ru-RU": {
+    hankoCredit:
+      "Названия разделов выписаны кистью штрих за штрихом · порядок черт {kanjivg} (CC BY-SA 3.0) · кисть Yuji Boku (SIL OFL)",
     refManagerNote:
       "Сохраните эти публикации в менеджер ссылок (Zotero, Mendeley…) — коннектор вашего браузера обнаружит их.",
     researchAreasLabel: "Области исследований",

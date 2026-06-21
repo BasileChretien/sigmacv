@@ -122,7 +122,7 @@ describe("public-page showcase styles", () => {
     expect(html).toContain("@font-face");
   });
 
-  it("'hanko' is an ukiyo-e page: the great-wave headings, ink scenery + the carved seal", () => {
+  it("'hanko' is an ukiyo-e page: brush-kanji headings, ink scenery + the carved seal", () => {
     const cv = updateDisplay(withPhoto, { publicStyle: "hanko" });
     const html = renderPublicCvHtml(cv);
     // The tategaki margin + the carved seal on the name + the bilingual eyebrow.
@@ -134,19 +134,18 @@ describe("public-page showcase styles", () => {
     expect(html).toContain('class="hk-scene"');
     expect(html).toContain('class="hk-enso"');
     expect(html).toContain('class="hk-leaves"');
-    // Hokusai's actual Great Wave — three vectorised CSS layers (back · blue body ·
-    // foam) embedded once — COVERS each section title, plays its life ONCE on enter
-    // (forms, the crest rolls + throws spray), then RECEDES to unveil the title.
-    expect(html).toContain('<span class="hk-wave"');
-    expect(html).toContain("hk-l hk-back");
-    expect(html).toContain("hk-l hk-foam");
-    expect(html).toContain('class="hk-spray"');
-    expect(html).toContain("data:image/svg+xml"); // the embedded layer art (CC0, Met)
+    // The signature: the concise Japanese name of each section, brushed in beside the
+    // heading and written STROKE BY STROKE (Yuji Boku glyph revealed by a KanjiVG mask).
+    expect(html).toContain('<span class="hk-wave hk-k"');
+    expect(html).toContain('class="hk-k-svg"');
+    expect(html).toContain("論文"); // Publications → 論文, brushed in beside the title
+    expect(html).toContain('class="mk"'); // the KanjiVG stroke-order reveal mask
+    expect(html).toContain('filter id="hk-ink"'); // the shared sumi ink-texture filter
+    expect(html).toContain("@keyframes hk-draw"); // strokes drawn one after another
     expect(html).toContain("hk-play"); // the one-shot trigger class
-    expect(html).toContain("@keyframes hk-stage"); // cover → recede/reveal
-    expect(html).toContain("@keyframes hk-body-form"); // the wave forms
-    expect(html).toContain("@keyframes hk-foam-roll"); // the big roll
-    expect(html).toContain("@keyframes hk-burst"); // the spray
+    // Borrowed-asset credits.
+    expect(html).toContain("KanjiVG");
+    expect(html).toContain("Yuji Boku");
     // The one hash-pinned IntersectionObserver script + its matching CSP directive.
     expect(html).toContain(HK_WAVE_SCRIPT);
     expect(html).toContain(`script-src 'sha256-${HK_WAVE_SCRIPT_SHA256}'`);

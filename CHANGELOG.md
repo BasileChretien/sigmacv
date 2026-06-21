@@ -9,26 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **The "Hanko" public-page style is now an ukiyo-e world.** Each section title is
-  **covered by Hokusai's actual _Great Wave off Kanagawa_** — vectorised from The
-  Met's CC0 scan (Open Access object 45434) into three layers (sky/Fuji ·
-  Prussian-blue body · cream foam). When the section scrolls into view the wave plays
-  its life **once**: the water **forms**, the crest does its big **roll** and throws
-  a spray of foam, then the water **recedes** and **unveils the title** beneath it —
-  ending on the title alone, no wave. Around it, in sumi ink with the one vermilion
-  seal: a faint Mt. Fuji over a seigaiha wave band, an enso that brushes itself in, a
-  kamon crest, drifting golden ginkgo leaves, an ink-wash that blooms open, and the
-  seal stamping with an ink-spread ripple — all in the surround / margins, with the
-  text on a clean floating page. The title is real text underneath (always read by
-  assistive tech); with no JS, reduced motion, or in print the wave is simply hidden
-  so the title is plain. The play-once-on-enter timing needs the one small script
-  below; everything else stays CSS-only.
+- **The "Hanko" public-page style is now an ukiyo-e world with brush-calligraphy
+  headings.** Beside each section title, the section's concise **Japanese name is
+  brushed in — written stroke by stroke**, in order, like a calligrapher's hand
+  (e.g. _Publications → 論文_, _Education → 学歴_). Each glyph is set in the "Yuji Boku"
+  sumi-brush face and revealed one stroke at a time by a KanjiVG stroke-order mask,
+  with a dry-brush ink texture; when the section scrolls into view the strokes draw
+  themselves on, once. Around it, in sumi ink with the one vermilion seal: a faint
+  Mt. Fuji over a seigaiha wave band, an enso that brushes itself in, a kamon crest,
+  drifting golden ginkgo leaves, an ink-wash that blooms open, and the seal stamping
+  with an ink-spread ripple — all in the surround / margins, with the text on a clean
+  floating page. The headings are real text (always read by assistive tech — the
+  brushed kanji are decorative and `aria-hidden`); with no JS, reduced motion, or in
+  print the kanji are shown already complete. The draw-once-on-enter timing needs the
+  one small script below; everything else stays CSS-only.
 
 ### Security
 
 - **Public CV pages gain exactly one, hash-pinned inline script.** They remain
   strictly no-JS by default; the only script ever served is a bare
-  `IntersectionObserver` (used by the Hanko wave to play once on enter), permitted by
+  `IntersectionObserver` (used by the Hanko brush-kanji headings to draw once on
+  enter), permitted by
   an exact `script-src 'sha256-…'` of that script and nothing else — no
   `'unsafe-inline'`. Any injected or modified script has a different hash and stays
   blocked. The directive is emitted (in both the `<meta>` and HTTP-header CSP) only on
@@ -81,10 +82,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Two more credible public-page styles: "Hanko" and "Pharmacopoeia"**, extending
   the field-built credible end of the catalogue alongside Posology.
   - **Hanko** — a Franco-Japanese editorial style, now an ukiyo-e ink world (see
-    the entry above): a monochrome sumi woodblock with a great wave cresting beside
-    each section, a faint Fuji over a seigaiha band, an enso, drifting ginkgo and a
-    single vermilion seal; your own (identifier-matched) name is signed under a fine
-    vermilion rule.
+    the entry above): a monochrome sumi woodblock where each section's Japanese name
+    is brushed in stroke by stroke beside the heading, over a faint Fuji and seigaiha
+    band, an enso, drifting ginkgo and a single vermilion seal; your own
+    (identifier-matched) name is signed under a fine vermilion rule.
   - **Pharmacopoeia** — an apothecary monograph: warm parchment under a faint
     hexagonal benzene-ring lattice, a double-ruled label masthead with a benzene
     watermark, hexagon-bulleted headings, and your own name picked out with a
