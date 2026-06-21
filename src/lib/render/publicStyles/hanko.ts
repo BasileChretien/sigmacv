@@ -2,8 +2,8 @@
  * Public-page showcase style — "Hanko" (ukiyo-e / sumizuri-e).
  *
  * A Franco-Japanese editorial style rendered as a monochrome-ink woodblock print
- * (sumizuri-e, 墨摺絵): the whole ukiyo-e world — the great wave, Fuji, seigaiha,
- * an enso, a crest, drifting leaves — is drawn in SUMI INK, with a single vermilion
+ * (sumizuri-e, 墨摺絵): the whole ukiyo-e world — Fuji, a seigaiha wave band, an enso,
+ * drifting leaves, and the section names brushed in kanji — is drawn in SUMI INK, with a single vermilion
  * seal as the one saturated note. The mood lives entirely in the ATMOSPHERE LAYER
  * (a washi surround + ink scenery + drifting leaves); the text lives on a separate
  * READING SURFACE — a warm paper page that floats above it — so nothing textured
@@ -14,11 +14,11 @@
  *     quiet kamon crest, and golden ginkgo leaves drifting down the surround.
  *   • READING SURFACE — a warm paper page, centred, floating on a soft shadow + a
  *     fine gold keyline, with generous ma (space).
- *   • THE GREAT WAVE (the signature) — Hokusai's actual Great Wave (vectorised from
- *     The Met's CC0 scan, three layers) COVERS each section title; when the section
- *     enters view it plays its life ONCE — forms, the crest does its big roll and
- *     throws spray, then the water recedes and UNVEILS the title beneath it, ending
- *     on the title alone. (The one script the public-page CSP allows, hash-pinned.)
+ *   • BRUSH KANJI (the signature) — the concise Japanese name of each section (論文,
+ *     学歴, 助成 …) is brushed in beside the heading in the Yuji Boku sumi face, written
+ *     STROKE BY STROKE in stroke order (a Yuji Boku glyph revealed by a KanjiVG stroke-
+ *     order mask, with a dry-brush ink texture), replayed once when the section scrolls
+ *     into view (the one hash-pinned IntersectionObserver the public-page CSP allows).
  *   • TATEGAKI — a vertical 履歴書 column down the page's left margin.
  *   • CARVED SEAL — a vermilion hanko (印) stamped beside your name, with an
  *     ink-spread ripple on the press.
@@ -26,14 +26,14 @@
  *
  * Motion: one load moment (page settles, ink blooms, enso draws, seal stamps) +
  * faint ambient (leaf drift, seigaiha drift, ink breathe) confined to the surround;
- * the per-section wave plays once on enter (one hash-pinned IntersectionObserver —
+ * each section's kanji writes itself once on enter (one hash-pinned IntersectionObserver —
  * the only script the public-page CSP allows). AA throughout (sumi ~14:1, vermilion
- * #b23a2c ~5:1); `prefers-reduced-motion` hides the wave so titles stay plain; print
- * = clean black-on-white. Not a mascot style.
+ * #b23a2c ~5:1); `prefers-reduced-motion` / no-JS / print show the kanji complete &
+ * still. Not a mascot style.
  */
 import { bundledFaceCss } from "@/lib/render/bundledFonts";
 import { HK_WAVE_SCRIPT_TAG } from "@/lib/render/publicScripts";
-import { HK_WAVE_BACK, HK_WAVE_BODY, HK_WAVE_FOAM } from "@/lib/render/publicStyles/hankoWaveArt";
+import { HK_KANJI, HK_KANJI_FILTER } from "@/lib/render/publicStyles/hankoKanji";
 import {
   attributionFooter,
   coauthorLinksFooter,
@@ -47,27 +47,17 @@ import {
 import type { CvTemplate, TemplateTheme } from "@/lib/render/templates/types";
 
 /**
- * The Great Wave — the real one. Three layers (back · blue body · foam) of Hokusai's
- * "The Great Wave off Kanagawa" (神奈川沖浪裏, c. 1831), vectorised from The Met's CC0
- * scan (object 45434) into `hankoWaveArt.ts`, stacked as CSS background layers that
- * COVER each section title. When the section enters the viewport a one-shot timed
- * animation runs (triggered by the lone hash-pinned IntersectionObserver in
- * `publicScripts.ts`): the water FORMS, the crest does its big ROLL and throws a
- * spray, then the water RECEDES (retracts upward + fades) and the title is unveiled
- * beneath it — ending on the title alone, no wave. It plays exactly once per section.
- * The heavy art lives once in the stylesheet; the per-heading markup is a few spans.
- * The title is real text underneath (always in the DOM / read by AT); with no JS,
- * reduced motion, or in print the overlay is simply hidden so the title is plain.
+ * BRUSH KANJI beside each section title (the signature). Each heading gets the
+ * concise Japanese name of that section — 論文, 学歴, 助成 … — set in the "Yuji Boku"
+ * sumi brush face and brushed in STROKE BY STROKE in proper stroke order, with a dry-
+ * brush ink texture. The art is the generated `hankoKanji.ts` (per-type inline SVG: a
+ * Yuji Boku glyph revealed by a KanjiVG stroke-order mask, sharing one ink filter).
+ * When the heading enters the viewport the lone hash-pinned IntersectionObserver in
+ * `publicScripts.ts` adds `.hk-play`, replaying the writing one stroke after another.
+ * The kanji is real vector (crisp at any size); with no JS / reduced motion / in print
+ * it is simply shown complete (no animation). The English title stays the heading text.
+ * Stroke order: KanjiVG (CC BY-SA); brush face: Yuji Boku (OFL) — credited in-page.
  */
-const HK_FOAM = "#f4ecd6";
-const WAVE_MARKUP =
-  `<span class="hk-wave" aria-hidden="true">` +
-  `<span class="hk-l hk-back"></span>` +
-  `<span class="hk-l hk-body"></span>` +
-  `<span class="hk-l hk-foam"></span>` +
-  `<span class="hk-spray"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>` +
-  `</span>`;
-
 function hankoCss(_t: TemplateTheme): string {
   return `
   :root {
@@ -175,18 +165,9 @@ function hankoCss(_t: TemplateTheme): string {
     border:5px solid #fffdf6; outline:1px solid var(--hk-gold); outline-offset:-6px;
     box-shadow: 0 16px 32px -20px rgba(27,25,22,0.5); filter: grayscale(0.4) contrast(1.02); }
 
-  /* ---- Sections: Hokusai's Great Wave COVERS each section title, plays its life
-         ONCE, and recedes to unveil it. A wave overlay (three vectorised layers +
-         spray) sits OVER the heading, hiding the title. When the section scrolls into
-         view a tiny IntersectionObserver (the one script the public-page CSP allows)
-         adds an hk-play class, firing a one-shot timed animation: the water FORMS, the crest
-         does its big ROLL and throws spray, then the water RECEDES (retracts upward +
-         fades) and the title is unveiled beneath it — ending on the title alone, no
-         wave. Default / no-JS / reduced-motion / print: the overlay is hidden and the
-         title is plainly visible. ---- */
-  section.cv-section { margin-top: 9.5rem; }
-  /* the first section clears the tall masthead above it */
-  section.cv-section:first-of-type { margin-top: 11.5rem; }
+  /* ---- Sections: the concise Japanese name brushes itself in beside each heading. ---- */
+  section.cv-section { margin-top: 3rem; }
+  section.cv-section:first-of-type { margin-top: 3.4rem; }
   section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position:relative; padding-top:0.4rem; padding-bottom:0.7rem;
     font-family: var(--hk-sans); font-size:0.76rem; font-weight:600; text-transform:uppercase;
@@ -195,76 +176,18 @@ function hankoCss(_t: TemplateTheme): string {
     content:""; position:absolute; left:0; right:0; bottom:0; height:1px;
     background: linear-gradient(90deg, var(--hk-ink) 0, var(--hk-ink) 55%, transparent 100%); }
 
-  /* The wave overlay: covers the title + the room above it for the crest. Hidden by
-     default (so the title is readable with no JS / reduced motion / print); shown only
-     while the one-shot plays. Retracts from its TOP edge (origin 50% 0) on recede. */
-  .hk-wave { position:absolute; left:-0.7rem; right:-0.7rem; top:-8.4rem; bottom:-1rem;
-    z-index:5; pointer-events:none; overflow:hidden; visibility:hidden; transform-origin:50% 0;
-    -webkit-mask: linear-gradient(180deg, transparent 0, #000 9%, #000 100%);
-    mask: linear-gradient(180deg, transparent 0, #000 9%, #000 100%); }
-  .hk-wave .hk-l { position:absolute; inset:0; background-repeat:no-repeat; }
-  /* back = opaque tan/sea backdrop (covers the whole title, any length); body + foam
-     = the wave shape, left-anchored. */
-  .hk-back { background-image:url("${HK_WAVE_BACK}"); background-position:center bottom; background-size:cover; }
-  .hk-body { background-image:url("${HK_WAVE_BODY}"); background-position:left bottom; background-size:auto 100%; transform-origin:left bottom; }
-  .hk-foam { background-image:url("${HK_WAVE_FOAM}"); background-position:left bottom; background-size:auto 100%; transform-origin:40% 60%; }
-
-  /* the spray of foam droplets thrown when the crest rolls (white over the blue wave) */
-  .hk-spray { position:absolute; left:30%; top:34%; width:0; height:0; }
-  .hk-spray i { position:absolute; width:9px; height:9px; margin:-4.5px 0 0 -4.5px; border-radius:50%;
-    background: radial-gradient(circle at 38% 34%, #ffffff, ${HK_FOAM} 70%);
-    box-shadow: 0 0 1px 0.5px rgba(255,255,255,0.6); opacity:0; scale:0; translate:0 0; }
-  .hk-spray i:nth-child(1) { --dx:-40px; --dy:-20px; width:7px;  height:7px; }
-  .hk-spray i:nth-child(2) { --dx:-20px; --dy:-30px; width:10px; height:10px; }
-  .hk-spray i:nth-child(3) { --dx:4px;   --dy:-34px; width:8px;  height:8px; }
-  .hk-spray i:nth-child(4) { --dx:28px;  --dy:-30px; width:8px;  height:8px; }
-  .hk-spray i:nth-child(5) { --dx:50px;  --dy:-18px; width:7px;  height:7px; }
-  .hk-spray i:nth-child(6) { --dx:-30px; --dy:-2px;  width:6px;  height:6px; }
-  .hk-spray i:nth-child(7) { --dx:40px;  --dy:0px;   width:6px;  height:6px; }
-  .hk-spray i:nth-child(8) { --dx:16px;  --dy:-38px; width:6px;  height:6px; }
-  .hk-spray i:nth-child(9) { --dx:-54px; --dy:-8px;  width:5px;  height:5px; }
-  .hk-spray i:nth-child(10){ --dx:62px;  --dy:-8px;  width:5px;  height:5px; }
-
-  /* ===== the wave's life, played ONCE on enter (.hk-play added by the IO script) ===== */
-  .hk-wave.hk-play { visibility:visible; animation: hk-stage 3s cubic-bezier(0.4,0,0.2,1) forwards; }
-  .hk-wave.hk-play .hk-body { animation: hk-body-form 3s cubic-bezier(0.33,0,0.2,1) forwards; }
-  .hk-wave.hk-play .hk-foam { animation: hk-foam-roll 3s cubic-bezier(0.33,0,0.2,1) forwards; }
-  .hk-wave.hk-play .hk-spray i { animation: hk-burst 3s ease-out forwards; }
-
-  /* container: holds covering through FORM + ROLL, then RECEDES — retracts upward from
-     its top edge (water withdrawing) + fades — unveiling the title beneath; ends gone. */
-  @keyframes hk-stage {
-    0% { opacity:1; transform: translateY(0) scaleY(1); }
-    60% { opacity:1; transform: translateY(0) scaleY(1); }
-    76% { opacity:0.95; transform: translateY(-9%) scaleY(0.6); }
-    90% { opacity:0.5; transform: translateY(-26%) scaleY(0.18); }
-    100% { opacity:0; transform: translateY(-42%) scaleY(0); } }
-  /* blue body: rises into place (FORM), then surges at the roll */
-  @keyframes hk-body-form {
-    0% { transform: translateY(88px) scaleY(0.64); }
-    12% { transform: translateY(88px) scaleY(0.64); }
-    40% { transform: translateY(0) scaleY(1); }
-    50% { transform: translateY(-4px) scaleY(1.07); }
-    58% { transform: translateY(0) scaleY(1); }
-    100% { transform: translateY(0) scaleY(1); } }
-  /* foam: blooms in (FORM), then the big ROLL/curl + recoil */
-  @keyframes hk-foam-roll {
-    0% { opacity:0; transform: translateY(70px) scale(0.5) rotate(0deg); }
-    14% { opacity:0; transform: translateY(48px) scale(0.6) rotate(0deg); }
-    24% { opacity:1; transform: translateY(18px) scale(0.84) rotate(0deg); }
-    42% { opacity:1; transform: translateY(0) scale(1) rotate(0deg); }
-    50% { transform: translate(7px,-9px) scale(1.24) rotate(-8deg); }
-    58% { transform: translate(2px,-2px) scale(1.06) rotate(-2deg); }
-    70% { opacity:1; transform: translateY(0) scale(1) rotate(0deg); }
-    100% { opacity:1; transform: translateY(0) scale(1) rotate(0deg); } }
-  /* droplets flung from the crest as it rolls, then they fall + fade */
-  @keyframes hk-burst {
-    0% { opacity:0; scale:0; translate:0 0; }
-    44% { opacity:0; scale:0; translate:0 0; }
-    50% { opacity:1; scale:1.1; translate:0 0; }
-    64% { opacity:0.85; }
-    78% { opacity:0; scale:0.5; translate:var(--dx) var(--dy); }
-    100% { opacity:0; scale:0.5; translate:var(--dx) var(--dy); } }
+  /* The brush kanji sits inline, to the RIGHT of the heading text. The .hk-wave span is
+     the (historically-named) element the IntersectionObserver watches to add .hk-play. */
+  .hk-wave { display:inline-block; vertical-align:-0.2em; margin-left:0.95em; pointer-events:none; }
+  .hk-k-svg { height:2.3em; width:auto; display:block; overflow:visible; }
+  /* The mask strokes reveal the brush glyph. DEFAULT: fully shown (no-JS / reduced
+     motion / print safe) — the union of stroke masks uncovers the whole kanji. */
+  .mk { fill:none; stroke:#fff; stroke-width:17; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:1; stroke-dashoffset:0; }
+  /* On enter, replay the writing ONE STROKE AFTER ANOTHER: reset the masks to hidden,
+     then draw each in turn (per-stroke animation-delay is baked into each mask path). */
+  .hk-wave.hk-play .mk { stroke-dashoffset:1; animation: hk-draw 0.17s linear forwards; }
+  @keyframes hk-draw { to { stroke-dashoffset:0; } }
 
   /* ---- Entries ---- */
   ol.cv-bib > li { margin-bottom:1.05rem; line-height:1.6; font-size:1.0rem; color: var(--hk-ink-2); }
@@ -281,6 +204,8 @@ function hankoCss(_t: TemplateTheme): string {
   .cv-provenance, .cv-license, .cv-living, .cv-attribution { font-family: var(--hk-sans); color: var(--hk-faint); }
   .cv-living { color: var(--hk-muted); }
   .cv-attribution a { color: var(--hk-ink-2); text-decoration: underline; text-decoration-color: var(--hk-seal); }
+  .hk-credit { margin-top: 2.2rem; font-size: 0.72rem; line-height: 1.5; }
+  .hk-credit a { color: var(--hk-ink-2); text-decoration: underline; text-decoration-color: var(--hk-seal); }
 
   @media (prefers-reduced-motion: reduce) {
     *,*::before,*::after { animation:none !important; }
@@ -288,13 +213,14 @@ function hankoCss(_t: TemplateTheme): string {
     body::before { opacity:0.85 !important; transform:none !important; }
     .hk-enso path { stroke-dashoffset:0 !important; }
     .hk-leaves { display:none !important; }
-    /* no wave motion → keep the wave off the title entirely so it stays readable */
-    .hk-wave { display:none !important; }
+    /* no motion → show the kanji complete (static), not mid-stroke */
+    .mk { stroke-dashoffset:0 !important; animation:none !important; }
   }
   @media print {
     body { background:#fff !important; }
-    body::before, .hk-scene, .hk-enso, .hk-kamon, .hk-leaves, .hk-tate, .cv::before, .hk-wave { display:none !important; }
+    body::before, .hk-scene, .hk-enso, .hk-kamon, .hk-leaves, .hk-tate, .cv::before { display:none !important; }
     *,*::before,*::after { animation:none !important; }
+    .mk { stroke-dashoffset:0 !important; }
     .cv { box-shadow:none !important; padding:0 !important; max-width:none !important; margin:0 !important; }
   }`;
 }
@@ -331,13 +257,33 @@ export const hankoTemplate: CvTemplate = {
       `<div class="hk-leaves" aria-hidden="true">` +
       Array.from({ length: 5 }, () => `<span class="hk-leaf">${leafSvg}</span>`).join("") +
       `</div>`;
-    // Hang the Great Wave above each section heading (the heavy art lives in the
-    // stylesheet; this just drops the layer spans in as the heading's first child).
+    // Brush the concise Japanese name of each section in beside its heading: map each
+    // heading's anchor id (sec-<slug>, mirroring sectionAnchorId) to that section type's
+    // kanji SVG, then inject it just before </h2> so it sits to the RIGHT of the title.
+    const kanjiById = new Map<string, string>();
+    for (const rs of sections) {
+      const svg = HK_KANJI[rs.section.type];
+      if (!svg) continue;
+      const slug = rs.section.id
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      kanjiById.set(`sec-${slug || "section"}`, svg);
+    }
     const renderedSections = sectionsHtml(cv, sections).replace(
-      /(<h2\b[^>]*\bid="[^"]*"[^>]*>)/g,
-      (m) => m + WAVE_MARKUP,
+      /(<h2 id="(sec-[^"]*)">[\s\S]*?)(<\/h2>)/g,
+      (m, pre: string, id: string, close: string) => {
+        const svg = kanjiById.get(id);
+        return svg
+          ? `${pre}<span class="hk-wave hk-k" aria-hidden="true">${svg}</span>${close}`
+          : m;
+      },
     );
+    const credit =
+      `<p class="hk-credit cv-provenance">Section names brushed stroke by stroke · stroke order ` +
+      `<a href="https://kanjivg.tagaini.net">KanjiVG</a> (CC BY-SA) · brush face Yuji Boku (SIL OFL)</p>`;
     const body =
+      HK_KANJI_FILTER +
       scene +
       enso +
       kamon +
@@ -346,10 +292,10 @@ export const hankoTemplate: CvTemplate = {
       `<div class="hk-tate" aria-hidden="true">履歴書</div>` +
       headerHtml(cv, { photo: true }) +
       renderedSections +
-      `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
+      `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}${credit}` +
       `</div>` +
-      // The one hash-pinned script the public-page CSP allows: a bare
-      // IntersectionObserver that plays each wave once, on enter (see publicScripts.ts).
+      // The one hash-pinned script the public-page CSP allows: a bare IntersectionObserver
+      // that replays each kanji's writing once, on enter (see publicScripts.ts).
       HK_WAVE_SCRIPT_TAG;
     return cvPageShell(cv, css, body);
   },
