@@ -126,14 +126,14 @@ describe("public-page showcase styles", () => {
     expect(html).toContain('class="hk-scene"');
     expect(html).toContain('class="hk-enso"');
     expect(html).toContain('class="hk-leaves"');
-    // A Prussian-blue Great Wave plays a full crash over each heading on scroll-in:
-    // it sweeps in (hk-wave), delivers the title (hk-deliver) and recedes, with a
-    // continuous churn — driven by a dual (view() + auto) timeline.
-    expect(html).toContain("@keyframes hk-wave");
+    // A LIVING Prussian-blue Great Wave (inline svg) heads each section: the sea
+    // heaves, the foam claws curl, the spray rises; it fades in (hk-deliver) and out.
+    expect(html).toContain('<svg class="hk-wave"');
+    expect(html).toContain('class="hk-sea"');
+    expect(html).toContain("#1c3f5f");
+    expect(html).toContain("@keyframes hk-heave");
+    expect(html).toContain("@keyframes hk-curl");
     expect(html).toContain("@keyframes hk-deliver");
-    expect(html).toContain("animation-timeline: view(), auto");
-    expect(html).toContain("data:image/svg+xml,%3Csvg");
-    expect(html).toContain("%231c3f5f");
     expect(html).toContain("Newsreader");
     expect(html).toContain("@font-face");
   });

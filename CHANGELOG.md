@@ -10,16 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **The "Hanko" public-page style is now an ukiyo-e world.** Each section is
-  introduced by an original vector recreation of Hokusai's _Great Wave off
-  Kanagawa_ (public domain) in Prussian blue. As a section scrolls into view the
-  wave **plays a full crash above the heading: it sweeps in from the left, crests
-  over the title (delivering it — the title stays), then recedes and dissipates to
-  the right** — scrubbed by the section's own scroll position, with a continuous
-  churn so the water stays alive. Around it, in sumi ink with the one vermilion
-  seal: a faint Mt. Fuji over a seigaiha wave band, an enso that brushes itself in,
-  a kamon crest, drifting golden ginkgo leaves, an ink-wash that blooms open, and
-  the seal stamping with an ink-spread ripple — all in the surround / margins, with
-  the text still on a clean floating page. Everything stops under
+  headed by a **living** original vector recreation of Hokusai's _Great Wave off
+  Kanagawa_ (public domain) in Prussian blue: **its sea heaves, its foam claws curl
+  and its spray rises** — a wave that actually moves, not a static image. It fades
+  up as the section scrolls into view (the title rises in with it) and fades out as
+  the section leaves. Around it, in sumi ink with the one vermilion seal: a faint
+  Mt. Fuji over a seigaiha wave band, an enso that brushes itself in, a kamon crest,
+  drifting golden ginkgo leaves, an ink-wash that blooms open, and the seal stamping
+  with an ink-spread ripple — all in the surround / margins, with the text still on
+  a clean floating page. Everything stops under
   `prefers-reduced-motion` (the wave shows settled and still); print drops the scenery.
 
 - **The six field styles were rebuilt around atmosphere + readability.** Each is

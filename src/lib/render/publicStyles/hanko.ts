@@ -14,8 +14,9 @@
  *     quiet kamon crest, and golden ginkgo leaves drifting down the surround.
  *   • READING SURFACE — a warm paper page, centred, floating on a soft shadow + a
  *     fine gold keyline, with generous ma (space).
- *   • THE GREAT WAVE (the signature) — an ink cresting wave sits beside each section
- *     heading and CRESTS IN as that section scrolls into view.
+ *   • THE GREAT WAVE (the signature) — a LIVING Prussian-blue Great Wave heads each
+ *     section: its sea heaves, its foam claws curl and its spray rises; it fades up
+ *     as the section appears and fades out as it leaves.
  *   • TATEGAKI — a vertical 履歴書 column down the page's left margin.
  *   • CARVED SEAL — a vermilion hanko (印) stamped beside your name, with an
  *     ink-spread ripple on the press.
@@ -41,67 +42,43 @@ import {
 import type { CvTemplate, TemplateTheme } from "@/lib/render/templates/types";
 
 /**
- * The Great Wave — an ORIGINAL vector recreation of Hokusai's "The Great Wave off
- * Kanagawa" (神奈川沖浪裏, c. 1831, public domain): the towering wave with its
- * curling crest and finger-like foam claws, a small crested wave beside it, all in
- * Prussian blue (藍) with cream foam, the way the print itself is coloured. Shipped
- * as a CSS background data URI (no script, CSP-clean).
+ * The Great Wave — a LIVING, original vector recreation of Hokusai's "The Great
+ * Wave off Kanagawa" (神奈川沖浪裏, c. 1831, public domain), in Prussian blue (藍)
+ * with cream foam, the way the print is coloured. Shipped as INLINE svg (one per
+ * section heading) so its parts move: the sea heaves, the foam claws curl, and the
+ * spray rises — a living wave, not a static image. CSS-ONLY (no script, CSP-clean).
  */
 const HK_BLUE = "#1c3f5f";
 const HK_BLUE_DK = "#14304a";
 const HK_FOAM = "#f7f2e7";
-const WAVE_SVG =
-  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 170'>" +
-  // the towering wave body, cresting high and curling over to the right
-  "<path d='M4 160 C 38 158 68 150 88 126 C 114 96 120 48 162 34 C 206 19 252 36 252 88 C 252 122 220 130 216 102 C 214 86 198 86 196 102 C 192 128 174 144 138 150 C 92 158 40 162 4 160 Z' fill='" +
-  HK_BLUE +
-  "' stroke='" +
-  HK_BLUE_DK +
-  "' stroke-width='1' stroke-linejoin='round'/>" +
-  // the dark hollow under the curling crest
-  "<path d='M196 102 C 200 80 228 80 232 102 C 235 122 214 126 212 106 C 211 94 202 92 196 102 Z' fill='" +
-  HK_BLUE_DK +
-  "'/>" +
-  // foam claws cascading off the crest toward the left (cream, blue-edged)
-  "<g fill='" +
-  HK_FOAM +
-  "' stroke='" +
-  HK_BLUE +
-  "' stroke-width='1' stroke-linejoin='round'>" +
-  "<path d='M236 62 C 228 50 213 52 211 66 C 221 62 229 64 236 62 Z'/>" +
-  "<path d='M216 50 C 208 38 193 40 191 54 C 201 50 209 52 216 50 Z'/>" +
-  "<path d='M196 42 C 188 30 173 32 171 46 C 181 42 189 44 196 42 Z'/>" +
-  "<path d='M176 37 C 168 26 153 28 152 41 C 162 37 169 39 176 37 Z'/>" +
-  "<path d='M156 35 C 148 25 133 27 132 40 C 141 36 148 38 156 35 Z'/>" +
-  "<path d='M137 37 C 130 28 116 30 115 42 C 123 39 130 40 137 37 Z'/>" +
-  "<path d='M120 43 C 113 35 100 37 99 48 C 106 44 113 45 120 43 Z'/>" +
-  "<path d='M105 51 C 99 44 89 46 88 55 C 94 52 100 53 105 51 Z'/>" +
-  "</g>" +
-  // foam specks blown off the crest
-  "<g fill='" +
-  HK_FOAM +
-  "' stroke='" +
-  HK_BLUE +
-  "' stroke-width='0.8'>" +
-  "<circle cx='96' cy='59' r='2.4'/><circle cx='83' cy='63' r='1.8'/><circle cx='240' cy='68' r='2.6'/><circle cx='216' cy='66' r='2'/><circle cx='131' cy='47' r='1.8'/>" +
-  "</g>" +
-  // foam scallops along the wave's advancing front
-  "<g fill='" +
-  HK_FOAM +
-  "' stroke='" +
-  HK_BLUE +
-  "' stroke-width='1'>" +
-  "<path d='M30 148 C 37 139 49 139 56 148 C 49 144 37 144 30 148 Z'/>" +
-  "<path d='M62 144 C 69 135 81 135 88 144 C 81 140 69 140 62 144 Z'/>" +
-  "<path d='M92 138 C 99 129 111 129 118 138 C 111 134 99 134 92 138 Z'/>" +
-  "</g>" +
-  // a small crested wave riding beside the great one
-  "<path d='M226 158 C 244 158 250 144 266 144 C 276 144 277 158 272 159 C 260 158 251 162 240 162 C 233 162 228 161 226 158 Z' fill='" +
-  HK_BLUE +
-  "'/>" +
-  "</svg>";
-const WAVE_URI =
-  "data:image/svg+xml," + WAVE_SVG.replace(/</g, "%3C").replace(/>/g, "%3E").replace(/#/g, "%23");
+const WAVE_INLINE =
+  `<svg class="hk-wave" viewBox="0 0 280 170" aria-hidden="true" focusable="false">` +
+  `<g class="hk-sea">` +
+  `<g class="hk-wb">` +
+  `<path d="M4 160 C 38 158 68 150 88 126 C 114 96 120 48 162 34 C 206 19 252 36 252 88 C 252 122 220 130 216 102 C 214 86 198 86 196 102 C 192 128 174 144 138 150 C 92 158 40 162 4 160 Z" fill="${HK_BLUE}" stroke="${HK_BLUE_DK}" stroke-width="1" stroke-linejoin="round"></path>` +
+  `<path d="M196 102 C 200 80 228 80 232 102 C 235 122 214 126 212 106 C 211 94 202 92 196 102 Z" fill="${HK_BLUE_DK}"></path>` +
+  `</g>` +
+  `<g class="hk-wclaws" fill="${HK_FOAM}" stroke="${HK_BLUE}" stroke-width="1" stroke-linejoin="round">` +
+  `<path d="M236 62 C 228 50 213 52 211 66 C 221 62 229 64 236 62 Z"></path>` +
+  `<path d="M216 50 C 208 38 193 40 191 54 C 201 50 209 52 216 50 Z"></path>` +
+  `<path d="M196 42 C 188 30 173 32 171 46 C 181 42 189 44 196 42 Z"></path>` +
+  `<path d="M176 37 C 168 26 153 28 152 41 C 162 37 169 39 176 37 Z"></path>` +
+  `<path d="M156 35 C 148 25 133 27 132 40 C 141 36 148 38 156 35 Z"></path>` +
+  `<path d="M137 37 C 130 28 116 30 115 42 C 123 39 130 40 137 37 Z"></path>` +
+  `<path d="M120 43 C 113 35 100 37 99 48 C 106 44 113 45 120 43 Z"></path>` +
+  `<path d="M105 51 C 99 44 89 46 88 55 C 94 52 100 53 105 51 Z"></path>` +
+  `</g>` +
+  `<g class="hk-wfront" fill="${HK_FOAM}" stroke="${HK_BLUE}" stroke-width="1">` +
+  `<path d="M30 148 C 37 139 49 139 56 148 C 49 144 37 144 30 148 Z"></path>` +
+  `<path d="M62 144 C 69 135 81 135 88 144 C 81 140 69 140 62 144 Z"></path>` +
+  `<path d="M92 138 C 99 129 111 129 118 138 C 111 134 99 134 92 138 Z"></path>` +
+  `</g>` +
+  `<path class="hk-wsec" d="M226 158 C 244 158 250 144 266 144 C 276 144 277 158 272 159 C 260 158 251 162 240 162 C 233 162 228 161 226 158 Z" fill="${HK_BLUE}"></path>` +
+  `</g>` +
+  `<g class="hk-wspray" fill="${HK_FOAM}" stroke="${HK_BLUE}" stroke-width="0.8">` +
+  `<circle cx="96" cy="59" r="2.4"></circle><circle cx="83" cy="63" r="1.8"></circle><circle cx="240" cy="68" r="2.6"></circle><circle cx="216" cy="66" r="2"></circle><circle cx="131" cy="47" r="1.8"></circle>` +
+  `</g>` +
+  `</svg>`;
 
 function hankoCss(_t: TemplateTheme): string {
   return `
@@ -210,45 +187,51 @@ function hankoCss(_t: TemplateTheme): string {
     border:5px solid #fffdf6; outline:1px solid var(--hk-gold); outline-offset:-6px;
     box-shadow: 0 16px 32px -20px rgba(27,25,22,0.5); filter: grayscale(0.4) contrast(1.02); }
 
-  /* ---- Sections: a FULL Great-Wave animation brings each title, then recedes.
-         As a section scrolls into view the wave SWEEPS in from the left, CRASHES
-         over the heading (delivering the title, which stays), then RECEDES and
-         dissipates to the right — scrubbed by the heading's own view() timeline,
-         with a continuous churn so the water stays alive. The wave always breaks
-         ABOVE the heading, never behind the text. ---- */
+  /* ---- Sections: a LIVING Great Wave heads each section. An inline wave svg is
+         injected above each heading; its sea HEAVES, its foam claws CURL and its
+         spray RISES continuously (a living wave). As the section scrolls into view
+         the wave fades up + the title rises in with it; when the section scrolls
+         away the wave fades out. The wave always sits ABOVE the heading. ---- */
   section.cv-section { margin-top: 7rem; }
   section.cv-section > h2, .cv-summary-block > .cv-summary-h {
     position:relative; padding-top:0.4rem; padding-bottom:0.7rem;
     font-family: var(--hk-sans); font-size:0.76rem; font-weight:600; text-transform:uppercase;
     letter-spacing:0.22em; color: var(--hk-ink); margin:0 0 1.15rem; }
-  /* base = the wave shown settled (the reduced-motion / no-view-timeline fallback) */
-  section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
-    content:""; position:absolute; left:0; top:-6.7rem; width:178px; height:108px;
-    background: url("${WAVE_URI}") left bottom / contain no-repeat;
-    transform-origin: 28% 100%; translate:0 0; scale:1 1; rotate:0deg; }
   section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content:""; position:absolute; left:0; right:0; bottom:0; height:1px;
     background: linear-gradient(90deg, var(--hk-ink) 0, var(--hk-ink) 55%, transparent 100%); }
+
+  /* the injected living wave, above each section heading */
+  .hk-wave { position:absolute; left:0; top:-6.7rem; width:178px; height:108px; overflow:visible; pointer-events:none; }
+  .hk-wave .hk-sea { transform-box: fill-box; transform-origin: 28% 100%; animation: hk-heave 4.2s ease-in-out infinite; }
+  @keyframes hk-heave {
+    0%,100% { transform: translateY(0) rotate(0deg) skewX(0deg); }
+    50% { transform: translateY(-4px) rotate(-1deg) skewX(3deg); } }
+  .hk-wave .hk-wb { transform-box: fill-box; transform-origin: 55% 100%; animation: hk-swell 3.8s ease-in-out infinite; }
+  @keyframes hk-swell { 0%,100% { transform: scaleY(1) scaleX(1); } 50% { transform: scaleY(1.07) scaleX(0.985); } }
+  .hk-wave .hk-wclaws > path { transform-box: fill-box; transform-origin: 50% 100%; animation: hk-curl 2s ease-in-out infinite; }
+  .hk-wave .hk-wclaws > path:nth-child(2n) { animation-delay: -0.55s; }
+  .hk-wave .hk-wclaws > path:nth-child(3n) { animation-delay: -1.1s; }
+  @keyframes hk-curl { 0%,100% { transform: rotate(0deg) translateY(0); } 50% { transform: rotate(-15deg) translateY(-1.5px); } }
+  .hk-wave .hk-wspray > circle { transform-box: fill-box; animation: hk-spray 2.6s ease-in-out infinite; }
+  .hk-wave .hk-wspray > circle:nth-child(2n) { animation-delay: -0.8s; }
+  .hk-wave .hk-wspray > circle:nth-child(3n) { animation-delay: -1.5s; }
+  @keyframes hk-spray { 0%,100% { opacity:0.3; transform: translateY(0) scale(0.85); } 50% { opacity:1; transform: translateY(-7px) scale(1.1); } }
+  .hk-wave .hk-wsec { transform-box: fill-box; transform-origin: 50% 100%; animation: hk-heave 5.2s ease-in-out -1.5s infinite; }
   @supports (animation-timeline: view()) {
-    section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
-      animation: hk-wave linear both, hk-churn 2.6s ease-in-out infinite;
-      animation-timeline: view(), auto;
-      animation-range: entry 0% cover 32%, normal; }
+    .hk-wave { animation: hk-appear linear both; animation-timeline: view(); animation-range: entry 6% exit 94%; }
     section.cv-section > h2, .cv-summary-block > .cv-summary-h {
       animation: hk-deliver cubic-bezier(0.22,1,0.36,1) both;
-      animation-timeline: view(); animation-range: entry 26% cover 14%; }
+      animation-timeline: view(); animation-range: entry 20% cover 14%; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
       animation: hk-rule cubic-bezier(0.22,1,0.36,1) both;
-      animation-timeline: view(); animation-range: entry 30% cover 16%; transform-origin:0 50%; }
+      animation-timeline: view(); animation-range: entry 26% cover 16%; transform-origin:0 50%; }
   }
-  @keyframes hk-wave {
-    0%   { translate: -138% 12px; opacity:0;   scale: 0.86 0.9; }
-    26%  { translate: -10% 0;     opacity:1;   scale: 1 1; }
-    50%  { translate: 8% -7px;    opacity:1;   scale: 1.08 1.05; }
-    60%  { translate: 18% 0;      opacity:1;   scale: 1 1; }
-    84%  { translate: 84% 5px;    opacity:0.5; scale: 0.95 0.95; }
-    100% { translate: 156% 14px;  opacity:0;   scale: 0.86 0.9; } }
-  @keyframes hk-churn { 0%,100% { rotate: 0deg; } 50% { rotate: -1.2deg; } }
+  @keyframes hk-appear {
+    0% { opacity:0; transform: translateY(16px) scale(0.96); }
+    12% { opacity:1; transform: none; }
+    86% { opacity:1; transform: none; }
+    100% { opacity:0; transform: translateY(-8px) scale(0.98); } }
   @keyframes hk-deliver { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:none; } }
   @keyframes hk-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
@@ -275,14 +258,14 @@ function hankoCss(_t: TemplateTheme): string {
     .hk-enso path { stroke-dashoffset:0 !important; }
     .hk-leaves { display:none !important; }
     section.cv-section > h2, .cv-summary-block > .cv-summary-h { opacity:1 !important; transform:none !important; }
-    section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
-      opacity:1 !important; translate:0 0 !important; scale:1 1 !important; rotate:0deg !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform:none !important; }
+    .hk-wave { opacity:1 !important; transform:none !important; }
+    .hk-wave .hk-sea, .hk-wave .hk-wsec, .hk-wave .hk-wclaws > path, .hk-wave .hk-wspray > circle {
+      transform:none !important; opacity:1 !important; }
   }
   @media print {
     body { background:#fff !important; }
-    body::before, .hk-scene, .hk-enso, .hk-kamon, .hk-leaves, .hk-tate, .cv::before { display:none !important; }
-    section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before { display:none !important; }
+    body::before, .hk-scene, .hk-enso, .hk-kamon, .hk-leaves, .hk-tate, .cv::before, .hk-wave { display:none !important; }
     *,*::before,*::after { animation:none !important; }
     .cv { box-shadow:none !important; padding:0 !important; max-width:none !important; margin:0 !important; }
   }`;
@@ -320,6 +303,11 @@ export const hankoTemplate: CvTemplate = {
       `<div class="hk-leaves" aria-hidden="true">` +
       Array.from({ length: 5 }, () => `<span class="hk-leaf">${leafSvg}</span>`).join("") +
       `</div>`;
+    // Inject a living Great Wave as the first child of each section heading.
+    const renderedSections = sectionsHtml(cv, sections).replace(
+      /(<h2 id="[^"]*">)/g,
+      (m) => m + WAVE_INLINE,
+    );
     const body =
       scene +
       enso +
@@ -328,7 +316,7 @@ export const hankoTemplate: CvTemplate = {
       `<div class="cv">` +
       `<div class="hk-tate" aria-hidden="true">履歴書</div>` +
       headerHtml(cv, { photo: true }) +
-      sectionsHtml(cv, sections) +
+      renderedSections +
       `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);
