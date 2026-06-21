@@ -126,9 +126,12 @@ describe("public-page showcase styles", () => {
     expect(html).toContain('class="hk-scene"');
     expect(html).toContain('class="hk-enso"');
     expect(html).toContain('class="hk-leaves"');
-    // The great wave crests beside each section heading as it scrolls into view.
+    // A Prussian-blue Great Wave breaks above each heading and BRINGS the title in
+    // (the heading rides in from the left as the wave unfurls, on scroll).
     expect(html).toContain("@keyframes hk-crest");
+    expect(html).toContain("@keyframes hk-bring");
     expect(html).toContain("data:image/svg+xml,%3Csvg");
+    expect(html).toContain("%231c3f5f");
     expect(html).toContain("Newsreader");
     expect(html).toContain("@font-face");
   });

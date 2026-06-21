@@ -40,17 +40,68 @@ import {
 } from "@/lib/render/templates/shared";
 import type { CvTemplate, TemplateTheme } from "@/lib/render/templates/types";
 
-/** A stylized cresting ink wave (the great wave), as a CSS background data URI. */
+/**
+ * The Great Wave — an ORIGINAL vector recreation of Hokusai's "The Great Wave off
+ * Kanagawa" (神奈川沖浪裏, c. 1831, public domain): the towering wave with its
+ * curling crest and finger-like foam claws, a small crested wave beside it, all in
+ * Prussian blue (藍) with cream foam, the way the print itself is coloured. Shipped
+ * as a CSS background data URI (no script, CSP-clean).
+ */
+const HK_BLUE = "#1c3f5f";
+const HK_BLUE_DK = "#14304a";
+const HK_FOAM = "#f7f2e7";
 const WAVE_SVG =
-  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'>" +
-  "<path d='M4 54 C 44 54 52 18 92 10 C 124 4 152 12 158 34 C 161 46 152 53 142 49 C 133 46 135 36 144 35' fill='none' stroke='rgba(27,25,22,0.62)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>" +
-  "<path d='M92 10 C 90 3 80 3 78 10' fill='none' stroke='rgba(27,25,22,0.58)' stroke-width='1.7' stroke-linecap='round'/>" +
-  "<path d='M110 7 C 109 1 99 1 97 8' fill='none' stroke='rgba(27,25,22,0.58)' stroke-width='1.7' stroke-linecap='round'/>" +
-  "<path d='M128 9 C 128 2 118 2 116 9' fill='none' stroke='rgba(27,25,22,0.58)' stroke-width='1.7' stroke-linecap='round'/>" +
-  "<path d='M68 22 C 64 16 56 17 55 24' fill='none' stroke='rgba(27,25,22,0.52)' stroke-width='1.5' stroke-linecap='round'/>" +
-  "<path d='M160 50 C 178 50 184 41 196 44' fill='none' stroke='rgba(27,25,22,0.45)' stroke-width='1.6' stroke-linecap='round'/>" +
+  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 170'>" +
+  // the towering wave body, cresting high and curling over to the right
+  "<path d='M4 160 C 38 158 68 150 88 126 C 114 96 120 48 162 34 C 206 19 252 36 252 88 C 252 122 220 130 216 102 C 214 86 198 86 196 102 C 192 128 174 144 138 150 C 92 158 40 162 4 160 Z' fill='" +
+  HK_BLUE +
+  "' stroke='" +
+  HK_BLUE_DK +
+  "' stroke-width='1' stroke-linejoin='round'/>" +
+  // the dark hollow under the curling crest
+  "<path d='M196 102 C 200 80 228 80 232 102 C 235 122 214 126 212 106 C 211 94 202 92 196 102 Z' fill='" +
+  HK_BLUE_DK +
+  "'/>" +
+  // foam claws cascading off the crest toward the left (cream, blue-edged)
+  "<g fill='" +
+  HK_FOAM +
+  "' stroke='" +
+  HK_BLUE +
+  "' stroke-width='1' stroke-linejoin='round'>" +
+  "<path d='M236 62 C 228 50 213 52 211 66 C 221 62 229 64 236 62 Z'/>" +
+  "<path d='M216 50 C 208 38 193 40 191 54 C 201 50 209 52 216 50 Z'/>" +
+  "<path d='M196 42 C 188 30 173 32 171 46 C 181 42 189 44 196 42 Z'/>" +
+  "<path d='M176 37 C 168 26 153 28 152 41 C 162 37 169 39 176 37 Z'/>" +
+  "<path d='M156 35 C 148 25 133 27 132 40 C 141 36 148 38 156 35 Z'/>" +
+  "<path d='M137 37 C 130 28 116 30 115 42 C 123 39 130 40 137 37 Z'/>" +
+  "<path d='M120 43 C 113 35 100 37 99 48 C 106 44 113 45 120 43 Z'/>" +
+  "<path d='M105 51 C 99 44 89 46 88 55 C 94 52 100 53 105 51 Z'/>" +
+  "</g>" +
+  // foam specks blown off the crest
+  "<g fill='" +
+  HK_FOAM +
+  "' stroke='" +
+  HK_BLUE +
+  "' stroke-width='0.8'>" +
+  "<circle cx='96' cy='59' r='2.4'/><circle cx='83' cy='63' r='1.8'/><circle cx='240' cy='68' r='2.6'/><circle cx='216' cy='66' r='2'/><circle cx='131' cy='47' r='1.8'/>" +
+  "</g>" +
+  // foam scallops along the wave's advancing front
+  "<g fill='" +
+  HK_FOAM +
+  "' stroke='" +
+  HK_BLUE +
+  "' stroke-width='1'>" +
+  "<path d='M30 148 C 37 139 49 139 56 148 C 49 144 37 144 30 148 Z'/>" +
+  "<path d='M62 144 C 69 135 81 135 88 144 C 81 140 69 140 62 144 Z'/>" +
+  "<path d='M92 138 C 99 129 111 129 118 138 C 111 134 99 134 92 138 Z'/>" +
+  "</g>" +
+  // a small crested wave riding beside the great one
+  "<path d='M226 158 C 244 158 250 144 266 144 C 276 144 277 158 272 159 C 260 158 251 162 240 162 C 233 162 228 161 226 158 Z' fill='" +
+  HK_BLUE +
+  "'/>" +
   "</svg>";
-const WAVE_URI = "data:image/svg+xml," + WAVE_SVG.replace(/</g, "%3C").replace(/>/g, "%3E");
+const WAVE_URI =
+  "data:image/svg+xml," + WAVE_SVG.replace(/</g, "%3C").replace(/>/g, "%3E").replace(/#/g, "%23");
 
 function hankoCss(_t: TemplateTheme): string {
   return `
@@ -159,29 +210,35 @@ function hankoCss(_t: TemplateTheme): string {
     border:5px solid #fffdf6; outline:1px solid var(--hk-gold); outline-offset:-6px;
     box-shadow: 0 16px 32px -20px rgba(27,25,22,0.5); filter: grayscale(0.4) contrast(1.02); }
 
-  /* ---- Sections: the great wave crests beside each heading on scroll-in ---- */
-  section.cv-section { margin-top: 3.4rem; }
+  /* ---- Sections: the Great Wave breaks above each heading + brings the title in.
+         As a section scrolls into view the whole heading rides in from the left
+         (hk-bring), the wave unfurls left-to-right (hk-crest), the rule draws. ---- */
+  section.cv-section { margin-top: 7rem; }
   section.cv-section > h2, .cv-summary-block > .cv-summary-h {
-    position:relative; padding-top:0.5rem; padding-bottom:0.7rem;
+    position:relative; padding-top:0.4rem; padding-bottom:0.7rem;
     font-family: var(--hk-sans); font-size:0.76rem; font-weight:600; text-transform:uppercase;
     letter-spacing:0.22em; color: var(--hk-ink); margin:0 0 1.15rem; }
   section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
-    content:""; position:absolute; left:0; top:-2.5rem; width:200px; height:60px;
+    content:""; position:absolute; left:0; top:-6.7rem; width:170px; height:103px;
     background: url("${WAVE_URI}") left bottom / contain no-repeat; }
   section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
     content:""; position:absolute; left:0; right:0; bottom:0; height:1px;
     background: linear-gradient(90deg, var(--hk-ink) 0, var(--hk-ink) 55%, transparent 100%); }
   @supports (animation-timeline: view()) {
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h {
+      animation: hk-bring cubic-bezier(0.22,1,0.36,1) both;
+      animation-timeline: view(); animation-range: entry 0% cover 22%; }
     section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before {
       animation: hk-crest cubic-bezier(0.22,1,0.36,1) both;
       animation-timeline: view(); animation-range: entry 0% cover 16%; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after {
       animation: hk-rule cubic-bezier(0.22,1,0.36,1) both;
-      animation-timeline: view(); animation-range: entry 0% cover 16%; transform-origin:0 50%; }
+      animation-timeline: view(); animation-range: entry 0% cover 18%; transform-origin:0 50%; }
   }
+  @keyframes hk-bring { from { opacity:0; transform: translateX(-28px); } to { opacity:1; transform:none; } }
   @keyframes hk-crest {
-    from { clip-path: inset(0 100% 0 0); opacity:0; transform: translateY(8px); }
-    to { clip-path: inset(0 0 0 0); opacity:1; transform:none; } }
+    from { clip-path: inset(0 100% 0 0); opacity:0; }
+    to { clip-path: inset(0 0 0 0); opacity:1; } }
   @keyframes hk-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
   /* ---- Entries ---- */
@@ -206,6 +263,7 @@ function hankoCss(_t: TemplateTheme): string {
     body::before { opacity:0.85 !important; transform:none !important; }
     .hk-enso path { stroke-dashoffset:0 !important; }
     .hk-leaves { display:none !important; }
+    section.cv-section > h2, .cv-summary-block > .cv-summary-h { opacity:1 !important; transform:none !important; }
     section.cv-section > h2::before, .cv-summary-block > .cv-summary-h::before { clip-path:none !important; opacity:1 !important; transform:none !important; }
     section.cv-section > h2::after, .cv-summary-block > .cv-summary-h::after { transform:none !important; }
   }
