@@ -8,6 +8,16 @@
 language: "en-US"
 early_access: false
 
+# Global steer for reviews + chat. Keeps the bot focused on SigmaCV's
+# load-bearing invariants and off subjective style nits already enforced by
+# prettier + tsc — staying true to the high-signal, non-gating profile below.
+tone_instructions: >-
+  Prioritize correctness of the canonical-schema invariants (and its v2.json
+  regeneration), fail-soft external clients, identifier-based (not name-based)
+  author matching, and GDPR/APPI data minimization. De-emphasize subjective
+  style nits already covered by prettier and tsc. Be concise and cite the
+  specific convention you are flagging.
+
 reviews:
   # Additive reviewer on top of CodeQL + the local agents — keep signal high,
   # noise low. Flip to "assertive" if you want broader (chattier) coverage.
