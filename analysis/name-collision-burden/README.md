@@ -32,10 +32,14 @@ Each script reads three paths from environment variables (with local defaults):
 
 ## Reproducibility
 
-- **Snapshot.** The reported figures use the **March 2026 monthly OpenAlex authors snapshot**.
-  OpenAlex identifies each monthly release by its date; record the release directory you download
-  so the exact input is pinned. As a fingerprint, that snapshot deduplicates to ~113.6 million
-  author entities, of which ~8.15 million (7.2%) carry an ORCID iD.
+- **Snapshot.** The reported figures use the **March 2026 monthly OpenAlex authors snapshot**, the
+  OpenAlex full-dataset release published in March 2026 (download instructions:
+  <https://docs.openalex.org/download-all-data/openalex-snapshot>). OpenAlex ships each release in
+  dated `updated_date=*` partition directories; record the release you download so the exact input
+  is pinned. The fingerprint below is the **output of steps 1–2 on that snapshot in our run**, not
+  an OpenAlex release note: after deduplication by author id it yields ~113.6 million author
+  entities, ~8.15 million (7.2%) carrying an ORCID iD. A re-run on the same release should
+  reproduce these up to OpenAlex's month-to-month drift.
 - **Compute.** The scripts run DuckDB with 8 threads and a 16 GB memory limit (see the `PRAGMA`
   settings near the top of each Python script; lower them for a smaller machine). Extracting and
   aggregating the full authors snapshot takes roughly one to one-and-a-half hours on a
