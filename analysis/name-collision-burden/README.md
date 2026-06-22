@@ -30,6 +30,20 @@ Each script reads three paths from environment variables (with local defaults):
 - Python 3.12+ with `duckdb`, `matplotlib`, `numpy`.
 - R 4.x with `MASS` (optionally `data.table`, `jsonlite`).
 
+## Reproducibility
+
+- **Snapshot.** The reported figures use the **March 2026 monthly OpenAlex authors snapshot**.
+  OpenAlex identifies each monthly release by its date; record the release directory you download
+  so the exact input is pinned. As a fingerprint, that snapshot deduplicates to ~113.6 million
+  author entities, of which ~8.15 million (7.2%) carry an ORCID iD.
+- **Compute.** The scripts run DuckDB with 8 threads and a 16 GB memory limit (see the `PRAGMA`
+  settings near the top of each Python script; lower them for a smaller machine). Extracting and
+  aggregating the full authors snapshot takes roughly one to one-and-a-half hours on a
+  workstation; the full-population regressions (`05`, `11`) run in a few minutes each in R.
+- **Determinism.** All counts and statistics are exact functions of the snapshot; the only
+  randomness is the 50,000-per-stratum subsample used for the figure (`03`, `07`), drawn with a
+  fixed hash ordering, which does not affect any reported number.
+
 ## Pipeline (run in order)
 
 1. `01_extract_authors.py` — read the snapshot partitions into per-partition Parquet (id, name, orcid, works_count, last-known-institution country).
