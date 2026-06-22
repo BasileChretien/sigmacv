@@ -23,6 +23,19 @@ PARTS = os.path.join(WORK, "parts_field")
 os.makedirs(PARTS, exist_ok=True)
 os.makedirs(os.path.join(WORK, "tmp"), exist_ok=True)
 
+# Guard against joining stale partitions from a different snapshot: step 10 globs *all*
+# of parts_field/, so if OA_SNAPSHOT changes, leftover Parquet from a prior snapshot would
+# silently mismatch aid rows. Record the snapshot path and clear the dir if it changed.
+snapshot_key = os.path.abspath(SNAPSHOT).replace("\\", "/")
+manifest = os.path.join(PARTS, "_snapshot_key.txt")
+if os.path.exists(manifest):
+    with open(manifest, encoding="utf-8") as fh:
+        if fh.read().strip() != snapshot_key:
+            for old in glob.glob(os.path.join(PARTS, "*.parquet")):
+                os.remove(old)
+with open(manifest, "w", encoding="utf-8") as fh:
+    fh.write(snapshot_key)
+
 con = duckdb.connect()
 con.execute("PRAGMA threads=8")
 con.execute(f"PRAGMA temp_directory='{_q(WORK)}/tmp'")

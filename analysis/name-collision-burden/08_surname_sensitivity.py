@@ -82,6 +82,8 @@ def rbis(col):  # East-Asian-surnamed vs the rest; negative => EA-surnamed highe
         SELECT sum(arank) FILTER (WHERE ea_surname), count(*) FILTER (WHERE ea_surname),
                count(*) FILTER (WHERE NOT ea_surname) FROM ar"""
     R, na, nb = con.execute(q).fetchone()
+    if not na or not nb:  # an empty group has no defined effect size
+        return None
     U = R - na * (na + 1) / 2.0
     return round(1 - 2 * U / (na * nb), 3)
 out["effect"] = {k: rbis(c) for c, k in [("m_orcid", "orcid"), ("m_full", "full"), ("m_init", "init")]}

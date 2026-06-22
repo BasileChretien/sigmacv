@@ -23,13 +23,16 @@ df$grp <- relevel(factor(df$grp), ref = "anglophone")
 df$lw <- log1p(df$wc)
 df$field <- factor(df$field)
 df$field <- relevel(df$field, ref = names(sort(table(df$field), decreasing = TRUE))[1])  # most common field as ref
-df$career <- pmax(0, 2026 - df$first_year)
+# Reference year for career age: the snapshot year (default = current year). Set
+# OA_ANALYSIS_YEAR to the snapshot's year so reruns on newer data stay correct.
+analysis_year <- as.integer(Sys.getenv("OA_ANALYSIS_YEAR", format(Sys.Date(), "%Y")))
+df$career <- pmax(0, analysis_year - df$first_year)
 ext_df <- df[!is.na(df$career), ]
 
 metrics <- c(m_orcid = "ORCID-restricted", m_full = "full-name", m_init = "initial")
 out <- list(n = nrow(df), n_ext = nrow(ext_df),
             field_known_pct = round(100 * mean(df$field != "Unknown"), 1),
-            ref_field = levels(df$field)[1])
+            ref_field = levels(df$field)[1], analysis_year = analysis_year)
 for (m in names(metrics)) {
   base <- glm(as.formula(paste0(m, " ~ grp + lw")), family = poisson("log"), data = df)
   ext  <- glm(as.formula(paste0(m, " ~ grp + lw + field + career")), family = poisson("log"), data = ext_df)
