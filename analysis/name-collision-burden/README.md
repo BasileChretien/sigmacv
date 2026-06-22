@@ -40,6 +40,23 @@ Each script reads three paths from environment variables (with local defaults):
 6. `06_orcid_distinct_robustness.py` — recompute the ORCID-restricted metric deduplicating by distinct ORCID iD string (robustness check).
 7. `07_figure.py` — render the three-panel box-plot figure from the subsample.
 
+## Sensitivity analyses
+
+These test the two main threats to the interpretation (that affiliation country is a weak proxy
+for name origin, and that the gap is a field-composition or cohort artifact). They reuse the
+intermediate tables from steps 1–3, so run those first.
+
+8. `08_surname_sensitivity.py` — reclassify the whole ORCID-bearing population by romanized
+   surname (East-Asian vs not), independent of country; recompute the collision contrast and
+   cross-tabulate surname-origin against the country strata (diaspora leakage). Reads the
+   `authors`/`agg_full`/`agg_init` tables from step 2.
+9. `09_field_extract.py` — extract a discipline (top-scored level-0 OpenAlex concept) and a
+   career-stage proxy (first active year) per author from the snapshot. Needs `OA_SNAPSHOT`.
+10. `10_field_join.py` — left-join the census (step 3's `census_full.parquet`) to the field /
+    first-active-year extract, producing `census_field.csv`.
+11. `11_field_regression.R` — re-fit the productivity-adjusted Poisson regression with field and
+    career age added, reporting the East-Asian incidence-rate ratio before and after adjustment.
+
 ## Name-origin strata (proxied by last-known-institution country)
 
 - **East Asian:** JP, CN, KR, TW, HK
