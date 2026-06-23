@@ -9,38 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2026-06-23
 
-### Changed
-
-- **The six field-tuned public-page styles share an atmosphere + floating
-  reading-surface model.** Each is an _atmosphere layer_ (background, colour and
-  light — the mood) with the text floating on a separate _reading surface_ (an
-  opaque page with a soft shadow), so nothing textured or moving is ever behind a
-  glyph — they read more easily than a plain page, not less. Each carries its own
-  bundled display face and a unique page margin: **Posology** a cool instrument room
-  with an engraved dose–response curve margin (Space Grotesk); **Hanko** an ukiyo-e
-  ink world whose section headings are brushed in, stroke by stroke, in Japanese,
-  with a vertical 履歴書 margin + a vermilion seal (Newsreader); **Pharmacopoeia** an
-  amber-lamplit parchment with a botanical-specimen margin and a verdigris accent
-  (Fraunces); **Codex** a lamplit reading room with an illuminated gilt-vine margin +
-  versal (EB Garamond); **Ledger** a cool blueprint with a ledger-red line-number
-  margin, numbered sections and an Abstract (Source Serif 4); **Atelier** a cool
-  plaster gallery wall with an engraved brass plate and plate-numbered labels
-  (Inter). Motion is one gentle load reveal plus, at most, a faint ambient confined
-  to the surround; all of it stops under `prefers-reduced-motion`, and print is a
-  clean black-on-white document.
-
-### Security
-
-- **Public CV pages gain exactly one, hash-pinned inline script.** They remain
-  strictly no-JS by default; the only script ever served is a bare
-  `IntersectionObserver` (used by the Hanko brush-kanji headings to draw once on
-  enter), permitted by
-  an exact `script-src 'sha256-…'` of that script and nothing else — no
-  `'unsafe-inline'`. Any injected or modified script has a different hash and stays
-  blocked. The directive is emitted (in both the `<meta>` and HTTP-header CSP) only on
-  pages that actually carry the trusted script, so every other style is still fully
-  no-JS. A test re-derives the hash so the script can't drift from its CSP entry.
-
 ### Added
 
 - **Three more bundled display faces** (SIL OFL, latin subset, embedded as
@@ -95,49 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   never shows the mascot and never affects any export. Pick it under **Design →
   Public page style**.
 
-### Fixed
-
-- **Long DOI/URL links no longer spill out of publication boxes on the public
-  page.** On the bordered "panel" public-page styles (e.g. Cyberpunk) and inside
-  the sidebar template's narrow column, a long DOI such as
-  `https://doi.org/10.1016/j.acvd.2025.06.017` ran past the right edge of its
-  entry box on a phone, because a URL is a single unbreakable token. Bibliography
-  entries now break such links so they stay inside the box at any width.
-
-- **Editor top bar no longer overlaps the page on a phone.** On a narrow screen
-  the top-bar controls wrap onto several rows; the bar was being compressed below
-  its content height (it sits in a full-height column), so the trailing controls
-  — the "Buy me a coffee" button and the account menu — spilled out and overlapped
-  the hint banner beneath it. The bar now keeps its full height and the rest of
-  the page sits cleanly below it.
-
-- **Datasets & Software entries now show their authors (and highlight yours).** A
-  Zenodo deposit (a dataset or a software release) was listed as just its title,
-  publisher, year, type and DOI — with **no authors at all**, so your own name
-  never appeared. The creators are now read from DataCite and shown as an
-  abbreviated author list (e.g. "Chrétien, B."), and when your ORCID is among them
-  your name is highlighted like on any other work. Takes effect on your next re-sync.
-
-- **Your name is now highlighted on ORCID-listed papers OpenAlex split across
-  profiles.** OpenAlex sometimes attributes one of your papers to an orphan author
-  profile (no ORCID, a different author id) — so even though the paper is yours
-  (your ORCID record lists it), nothing on the authorship matched your identifier
-  and your name wasn't bold. Ownership is still identifier-driven (your ORCID lists
-  the DOI); we now fill in your name from your profile so it highlights across every
-  output and the public page. Highlighting is also **case-insensitive** now, so a
-  name stored with odd casing (e.g. "ChréTien") still matches. Takes effect on your
-  next re-sync.
-
-- **Your name is now highlighted on publications you add by DOI.** When you
-  claimed a work whose record didn't carry your ORCID (so you picked yourself
-  from the author list), your name wasn't bold/highlighted the way it is on
-  auto-synced works — because only your full name was matched, while the citation
-  style renders an abbreviated form (e.g. "Chrétien, B."). The claim flow now uses
-  the same rich name variants (including your family name) as manual entries, so
-  the highlight applies consistently across every export and the public page.
-
-### Added
-
 - **US Letter page size.** A new "Page size" choice lets you export and preview on
   **US Letter** (8.5×11in) instead of the A4 default — the standard for North
   American academic and job applications. It sets the PDF/print paper and the
@@ -183,18 +108,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   box. It's editor-only guidance (never rendered on your CV), localized in all ten
   languages, and only appears on those four modules (free-form prose sections are
   left untouched).
-
-### Changed
-
-- **Saved versions now remember their section order.** A named preset (your
-  "full CV", "grant biosketch", "teaching CV"…) already captured the template,
-  styling, metrics and which sections show; it now also captures the _order_ of
-  your sections, so different versions can lead with different sections (e.g. a
-  teaching version opening with Teaching, a research version opening with
-  Publications) off the same underlying data. Existing presets are unaffected —
-  applying one saved before this change leaves your current order untouched.
-
-### Added
 
 - **Manual page breaks for the PDF.** Each section in the content editor now has a
   "New page" toggle: turn it on and that section starts on a fresh page in the
@@ -294,145 +207,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   page or make a short CV more generous, in both the editor preview and the export.
   It's independent of (and composes with) the existing Density setting.
 
-### Changed
-
-- **Choose your CV font — Source Serif, Inter, or EB Garamond — and it looks
-  identical everywhere.** The font picker in the design panel now offers three
-  bundled typefaces: Source Serif (a refined contemporary serif, the default),
-  Inter (a clean modern sans), and EB Garamond (a classic old-style serif). Each is
-  embedded in the document itself, so the typeface and line-breaks are the same in
-  the editor preview, the exported PDF, and every visitor's view — instead of each
-  device substituting whatever font it happened to have installed (which made the
-  preview and the PDF look different). (Fonts ship for Latin scripts; Cyrillic and
-  CJK gracefully fall back to a system font per character.)
-
-### Fixed
-
-- **A long Positions/Education title no longer pushes its dates onto a separate
-  line.** When a role or degree title was long enough to wrap, the date range
-  dropped below it onto its own line; now the dates stay pinned to the top-right of
-  the first line and the title wraps beneath them — the way a clean academic CV
-  reads. (The parser-safe ATS template, with its inline dates, is unchanged.)
-- **The research-summary block now has the same gap below it as every other
-  section.** When placed in its own labelled block (above or below the sections),
-  it sat flush against the next section's heading on templates that tuck their
-  first section up (the Sidebar); it now keeps a full section-sized gap.
-
-### Changed
-
-- **Positions, Education and diplomas now read as two-line records instead of one
-  run-on line.** Each entry leads with the role (or, for a degree, the degree and
-  field) in a prominent line with the dates aligned to the right edge, over a
-  quieter "department · institution" line — so a reader can skim job titles down
-  the left and the timeline down the right, the way a strong academic CV reads.
-  Sparse entries degrade gracefully (no role → the institution leads; no
-  department or no dates → those simply don't appear). The ATS template keeps the
-  dates inline (no right-aligned column) for résumé-parser safety, and the
-  DOCX / LaTeX / Markdown exports and the Japanese 履歴書 layout are unchanged.
-
-- **The editor preview now matches the PDF exactly (true WYSIWYG).** The live
-  preview previously rendered the CV at the width of the editor pane, so on a
-  smaller window it wrapped differently from the exported PDF — and on a narrow
-  pane it even flipped to the stacked mobile layout. The preview now renders as a
-  scaled A4 page, so line breaks, spacing, and layout are identical to what you
-  export. The print page box was unified with the on-screen one — the page itself
-  adds no margin and each template supplies its own gutter from its box — so the PDF
-  matches the preview edge to edge. In particular, full-bleed templates (the
-  Sidebar's coloured panel) now reach the top of the page in the PDF exactly as they
-  do on screen, instead of sitting below a white strip.
-
-### Fixed
-
-- **PDF export works again.** A Playwright dependency bump changed the bundled
-  Chromium revision without updating the Docker runtime's Playwright base image, so
-  the headless browser the PDF renderer launches no longer existed and every PDF
-  export failed with "Export failed". The runtime base image is back in lockstep
-  with the `playwright` package, and a CI check now fails the build if the two ever
-  drift apart again.
-
-### Security
-
-- **Credentials pasted into a profile link or website no longer leak into your CV.**
-  If a URL with embedded `user:password@` userinfo was entered for your website or a
-  profile link, that credential could show up in the visible contact line and in the
-  plain Markdown / LaTeX / DOCX exports. The userinfo is now stripped from the
-  displayed URL everywhere (the clickable link was already protected).
-
-- **Defense-in-depth hardening on the public-page error responses.** A three-
-  reviewer security pass found no exploitable issues, and closed a few hardening
-  gaps: the styled 404 / 429 notice pages now carry the live page's anti-framing
-  headers (`X-Frame-Options: DENY` + `frame-ancestors 'none'`); the OG-card 404
-  picks up the `noindex` / `no-store` / `nosniff` / `no-referrer` headers it was
-  missing; and the notice helper escapes its text for defense in depth.
-
-### Changed
-
-- **Contact details now read as a clean, icon-led list.** Instead of one cramped
-  "·"-separated run, each contact item (location, email, phone, website) and each
-  profile link sits in a responsive grid — one per line in a narrow header (e.g. the
-  sidebar column), about two per line when there's room — each with its leading icon
-  (LinkedIn, GitHub, ORCID, etc. auto-detected). The parser-safe ATS template keeps
-  its single plain-text line.
-- **A label for a profile link is now optional.** Because recognised services
-  (GitHub, LinkedIn, ORCID, Google Scholar, …) are detected from the URL and named
-  automatically, the link editor now leads with the URL field and treats the label as
-  an optional override — when a service is recognised its name shows as the field's
-  placeholder, and a short note spells out that you can leave it blank. Any label you
-  do set still wins.
-- **The "Choose your public-page design" hint no longer overflows the Publish
-  popover.** The tip text was shortened (all ten languages) and the button now wraps
-  instead of forcing the panel wider (it was running off the side).
-- **The CV header now leads with you, not your numbers.** When you turned on
-  metrics, charts and the authorship table they stacked directly under your name —
-  and on the dark public-page styles the two bright white cards out-shouted your
-  name, which made the header hard to read. Now your **summary** sits right under
-  your identity and ahead of those cards, and the optional metrics strip moved below
-  it, laid out one metric per line — each with its plain-language meaning ("1.0 =
-  world average for field & year") and its coverage caveat ("mean over 95 works")
-  shown as visible text instead of a hover tooltip, so the context is legible to
-  everyone and survives to the printed PDF. The open-access share now reads as a
-  clean labelled row ("Open access — 45%") rather than a bare phrase wedged into the
-  strip, and the publications-per-year chart and the authorship breakdown sit side by
-  side as one group when there's room (stacking on narrow screens and in print). The
-  charts were simplified too: the **citations-per-year chart is gone** (on a recent
-  window it is depressed by citation lag — the latest years look empty regardless of
-  impact — so it misled more than it informed), and the remaining
-  **publications-per-year chart now uses a plain linear scale** instead of a
-  hard-to-read logarithmic one. Applies to every template and the public page; the
-  chart simplification also carries into the DOCX export, the PDF mirrors the live
-  page, and the LaTeX year-by-year table (explicit numbers, not bars) is unchanged.
-
-### Fixed
-
-- **The research-summary heading now matches your other section titles.** When you
-  move the research-summary block to its own section ("top"/"bottom"), its heading is
-  now rendered in the exact same font, size, weight, casing, colour and accent
-  treatment as your real section titles (Publications, Education, …), on every
-  template and every public-page style — instead of a plain mismatched heading.
-- **The ORCID iD on your CV header now shows the green ORCID icon.** The dedicated
-  "ORCID: …" line in the header gained the official green iD mark, matching the icons
-  already shown for your other contact details and profile links. It's decorative
-  (screen readers still read the "ORCID" label and the iD) and, like the other icons,
-  omitted from the parser-safe ATS template.
-- **Profile links are usable again — and the editor fields no longer collapse.** On a
-  narrow profile panel the "label" and "URL" inputs in the Links editor shrank to a
-  sliver next to the "Remove link" button, making a link effectively impossible to
-  type. They now wrap onto their own rows with a sensible width.
-- **A LinkedIn (or GitHub/ORCID/…) URL entered in the Website field now shows its
-  brand icon and a clean label** (e.g. the LinkedIn mark + "LinkedIn") instead of a
-  bare globe and the full URL — matching how profile links are already auto-detected.
-  A generic website keeps the globe and its URL text.
-- **Switching on open-access badges no longer silently adds a percentage to the top
-  of your CV.** The per-publication "OA" badges and the header open-access share are
-  now two separate switches, so choosing badges does exactly that — and nothing else.
-  Already-published CVs are unaffected: the share keeps showing wherever it did until
-  you change the setting. The new control is localized in all ten languages.
-- **The chart's year labels now meet the contrast minimum.** The small year labels
-  under the publications-per-year chart were a touch too light for WCAG AA; they are
-  now darker.
-
-### Added
-
 - **A QR code on your exports that links to your living public page.** Opt-in (off by
   default) and only available once you've published a public page: a small QR code plus
   a "Live version" link is added to the bottom of your PDF and HTML exports, your DOCX
@@ -525,7 +299,748 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or unpublished `/p/…` link, or hitting the rate limit, now shows a small branded
   page with a way back to SigmaCV, rather than a bare line of text.
 
+- **An optional SigmaCV-logo mascot that travels your living page.** Turn on a
+  single little **SigmaCV logo** (the Σ mark, brought to life) that **rides down the
+  left of the page with the scroll** and **changes its hat to match the section
+  you're reading**: a mortarboard on Education, a coin on Grants, a microphone on
+  Talks, a star on Awards, goggles on Datasets, a lightbulb on Patents, and more.
+  There's just **one** mascot per page, and it's **skinned to each style's
+  atmosphere** (a neon Σ on Cyberpunk, a brass Σ on Clockwork, a pixel Σ on
+  Arcade…). It's available on **all the animated styles** — never on the credible
+  styles (Folio/Meridian/Trajectory/Lumina) or in any export — **off by default**,
+  100% CSS-only (no JavaScript, even for this), decorative (`aria-hidden`), and
+  hidden automatically for visitors who prefer reduced motion, on narrow screens,
+  and in print.
+
+- **We now flag publications that may not be yours.** Open databases like OpenAlex
+  match papers to authors automatically and, to avoid missing any, lean toward
+  over-merging — so a paper by a different researcher with a similar name can land
+  on your profile (most common for widely-shared and non-Latin-script names). SigmaCV
+  now spots these: when a work was matched only by an OpenAlex author profile (no
+  confirming ORCID) **and** it disagrees with the rest of your record — it shares
+  **no co-authors** with your other work, plus either a clearly **different research
+  field** or an **institution you've never been affiliated with** — it gets a calm
+  "Review" badge that explains exactly why, and a count in the "Needs your attention"
+  checklist. Nothing is ever removed automatically: confirm it with **"Yes, it's
+  mine"** (it stays, and we stop asking), mark it **"not mine"**, or hide it — and if
+  you share a common name and see several, **"They're all mine"** clears them in one
+  click. The check is deliberately conservative (it would rather miss a few than
+  wrongly question a paper that's yours), uses only your own profile signals (never
+  any inference about names or origin), and these flags never appear on your public
+  page or exports.
+
+- **Three richly-animated styles for your published living page.** **Arcade** (a
+  bright retro-platformer stage with parallax clouds, spinning coins, and entries
+  that jump into place), **Meadow** (a hand-painted pastoral scene with rolling
+  hills, a breathing sun, drifting clouds, and falling petals), and **Cyberpunk**
+  (a neon-noir city with falling digital rain, a chromatic-aberration glitch on
+  your name, and holographic shimmer). All original art — genre homages, not the
+  trademarked works that inspired them. As always: 100% CSS-only under the strict
+  no-JS CSP, accent-aware, full reduced-motion fallback, and never affects exports.
+
+- **A "Clockwork" steampunk style for your published living page.** A dark
+  brass-and-iron look where electric cords hang from a ceiling rail with glowing
+  Edison bulbs that gently sway, brass gears turn slowly behind the page, your name
+  sits on an engraved brass nameplate, and each entry is marked with a rivet. Like
+  every public-page style it is 100% CSS-only under the strict no-JS CSP, tints its
+  lamp glow with your accent colour, ships a full reduced-motion fallback, and never
+  affects exports.
+
+- **Four new styles for your published living page.** The public page (`/p/[slug]`)
+  gains four polished, credible looks designed to read well to a hiring committee —
+  **Folio** (a typeset scholarly-journal feel in warm serif), **Meridian** (austere
+  Swiss/monochrome minimalism with numbered sections), **Trajectory** (a career
+  timeline with a milestone rail), and **Lumina** (a refined dark cinematic stage) —
+  surfaced at the top of the style picker. Each is 100% CSS-only under the page's
+  strict no-JS CSP, rides your chosen accent colour, ships a full reduced-motion
+  fallback, and never affects exports (PDF/DOCX/LaTeX stay on your document template).
+
+- **Your public CV now links to co-authors who are also on SigmaCV.** When a
+  co-author on one of your works has published their own search-indexable SigmaCV
+  page, your public page's structured data (schema.org JSON-LD) now expresses that
+  collaboration as a `knows` link to their profile — building a discoverable web
+  of researcher CVs for search and AI answer engines. Matching is by **ORCID
+  identifier only** (never by name), and a co-author is linked **only if they
+  opted their own page into search indexing** — the same consent that lets search
+  engines find their page. Nothing changes visibly on the page, and a co-author
+  who unpublishes or turns off indexing is delinked automatically.
+
+- **A "Living CV" badge for your README, site, or email signature.** Once your
+  page is published, the publish panel has a new **"Get a badge"** section: a small,
+  always-current SVG badge (a standard pill, a compact chip, or a richer card with
+  your name and the month it last synced) that links back to your living public CV.
+  Pick a style and light/dark/auto theme, preview it live, and copy a ready-made
+  **Markdown / HTML / image-URL** snippet — plus a downloadable **QR code** for
+  posters, slides, and business cards. It shows only your already-public data
+  and **stops working the moment you unpublish**, it makes no third-party requests,
+  and it is **deliberately metric-free** (no h-index or citation count) in keeping
+  with the project's DORA stance — it advertises openness and freshness, not a rank.
+  The badge also carries the same FAIR Signposting links as the public page, and
+  the panel chrome is localized across all ten languages.
+
+- **Edit a position's institution and dates, too.** Each position and education
+  entry now has an **"Edit details"** panel to correct the **institution name** and
+  the **start/end year** — with an **"Ongoing"** toggle for current roles. Like the
+  role field, your edits are kept across re-syncs (the source value refreshes
+  underneath, one click reverts), and the date range now reads in your CV's
+  language ("present"/"until" localized across all ten languages and every export).
+  Editing the institution name shows it verbatim (its automatic ROR link steps
+  aside for your wording). Entries from before this change show "Re-sync to edit
+  dates" until their next sync.
+
+- **Your CV refreshes itself when you open the editor.** Opening `/cv` now
+  re-syncs from the open sources in the background when your CV has gone stale
+  (more than ~12 hours since its last sync) — your saved CV appears instantly and
+  the “what’s new” banner shows up if anything changed. No waiting, and frequent
+  visits don’t re-sync needlessly.
+
+- **A clearer “what’s new” after a sync.** The post-sync banner now leads with the
+  items that need a decision: **“N to review”** is a button that jumps straight to
+  each review candidate (and cycles through them), while newly auto-included items
+  stay quiet. When a sync brings in many items at once, the list collapses to
+  per-section counts (“Publications 9 · Grants 4”) with a “+N more”, so a big sync
+  never floods the editor. Localized in all ten languages.
+
+- **The homepage marks publishing as optional.** Step 04 (“Publish a living page”)
+  now carries an **“Optional”** badge — the first three steps already produce a
+  complete CV. Localized in all ten languages.
+
+- **A fillable “Role / title” for each position.** Positions and education entries
+  now carry the **role/title as its own field** — pulled from ORCID when available
+  (e.g. “Assistant Professor”), and an inviting **“Add your title…”** blank to fill
+  when a source (such as an OpenAlex-inferred affiliation) doesn’t provide one. Your
+  edit is kept across re-syncs while the source value keeps refreshing underneath
+  (one click reverts to it), and the institution and dates stay sourced from
+  ORCID/ROR. The role is stored as structured data, not just text. Localized in all
+  ten languages.
+
+- **Animated showcase styles for your public page.** Your living public CV page
+  (the shareable `/p/…` link) can now use one of **nine optional animated styles**
+  — Prism, Pop, Neon, Synthwave, Terminal, Riso, Aura, Mesh and Marquee — chosen
+  in the editor under **Design → Public page style**. They are **web-only and
+  never change your PDF, DOCX or LaTeX exports** (those stay clean); each adapts
+  to your chosen accent colour, font and photo, ships a `prefers-reduced-motion`
+  fallback, and renders under the same strict no-JavaScript page security policy.
+  The default stays **“Match my document.”** A new **Document / Public page**
+  toggle on the editor preview shows exactly how the page will look. Localized in
+  all ten languages.
+
+- **The homepage now shows the living public page.** A fourth **“Publish a living
+  page”** step in the “How it works” flow introduces the re-syncing public page —
+  with an animated preview of the optional showcase styles and a clear “online
+  only; exports stay clean” note. Localized in all ten languages.
+
+- **A light/dark theme toggle.** The site followed your OS appearance with no way
+  to override it. It now **auto-detects and applies your OS preference**, and a
+  compact **sun / moon** toggle in the homepage nav, the shared header, and the
+  editor top bar lets you switch — your choice persists across visits (until then
+  the page keeps following the OS, and the highlight tracks it if the OS flips).
+  A tiny pre-paint script applies the theme before the first render, so there's no
+  flash of the wrong theme — and because it's static and allow-listed by its hash
+  in the CSP, the marketing pages stay statically rendered. If JS is off (or the
+  script is ever blocked), dark mode still follows your OS, so nothing regresses.
+
+- **A shared header and footer now connect every page.** The marketing and
+  reference pages — the SEO landing pages, guides, glossary, examples, and the
+  About / Privacy / FAQ / Accessibility / FAIR / Transparency / Principles pages —
+  were previously dead ends: no top bar, no way to reach the guides, sign-in, or
+  each other without the browser back button. They now share a sticky header (a
+  clickable brand back to home, links to Guides / Examples / About, the language
+  switcher, and a **Build my CV** call to action) and a full footer (every
+  secondary destination). Localized across all ten languages; the header stays
+  statically rendered, so the crawlable pages keep their SEO. The homepage keeps
+  its own hero-integrated nav and footer, which the shared chrome is styled to
+  match.
+
+- **Clearer trust at the two moments that matter most.** The sign-in card now states,
+  right under the ORCID button, that we only read your public ORCID record — never
+  post, never write anything back. And the **Publish** control now spells out what
+  becomes public (your name, ORCID, and the publications you've kept) and that your
+  email, phone, and location stay private unless you opt in — shown _before_ you
+  publish, not after.
+
+- **Calmer review cues.** The ⚠ warning badge is now reserved for a genuine ORCID
+  _conflict_ (a different iD on the matching author). Works that are probably yours —
+  listed in your ORCID record, or matched to you by name and organization — get a
+  quiet, neutral **Review** chip instead, so the editor stops looking alarming about
+  records that are most likely fine. The **Buy me a coffee** link also now explains,
+  on hover, that SigmaCV is free and not-for-profit and a coffee helps cover its
+  running costs.
+
+- **Your published CV page now shows it's a _living_ page.** A public `/p/…` page
+  carries a visible "Updated _<date>_ · updates automatically" line, so a visitor
+  (a hiring committee, a collaborator) can see at a glance that it's current — the
+  whole point of a living CV, which a static PDF can't convey. The page also now
+  emits schema.org structured data (with a `dateModified`) whether or not you've
+  opted into search indexing — so tools and assistants you deliberately share the
+  link with can read a structured profile (search engines still stay out unless
+  you opt in).
+
+- **A share moment when you publish.** Once your page is live, the Publish menu now
+  shows the link prominently with one-tap **Open page** / **Copy link** and a nudge
+  to add it to your ORCID record, website, or email signature — so the living page
+  is something you actually share. Copying now announces itself to screen readers,
+  and a failed publish/unpublish is surfaced instead of silently swallowed.
+
+- **The re-sync digest now points at your living page.** When your CV is published,
+  the "new entries" email leads with a link to your public page — the thing you
+  share — with the editor link kept as the secondary "review and curate" action.
+
+- **PDF exports are now tagged (accessible).** The exported PDF carries a proper
+  structure tree (headings, lists, links) and a document outline derived from the
+  CV's semantic HTML, plus its language — so screen readers can navigate it and it
+  reflows, instead of being an untagged flat page. No change to how the PDF looks.
+
+- **Auto-save in the editor.** Curation and styling changes now persist
+  automatically a moment after you stop editing — no need to click Save. Edits
+  are coalesced into a single write (debounced, well under the save rate limit),
+  and the browser warns before you leave the page with an unsaved change still
+  in flight. The Save button stays as an immediate-save fallback and a clear
+  saved/saving indicator; a failed save keeps your changes pending (no silent
+  data loss, no retry storm) and re-tries on your next edit.
+
+- **"Needs your attention" checklist now jumps you to the item.** Each row of
+  the editor's CV-health panel (review candidates, possible duplicates, ORCID
+  conflicts, shown retracted works) is a link: clicking it expands the relevant
+  section and scrolls the first such entry into view (duplicates open their
+  compare panel), instead of leaving you to hunt through collapsed sections.
+
+- **"Keep hidden" for review candidates.** An ORCID-listed work OpenAlex didn't
+  attribute (or a name+org-matched grant/trial) can now be triaged a third way —
+  besides "Show" and "not mine" — to keep it off your CV and stop flagging it,
+  without recording a "not mine" disambiguation claim. The decision is kept in
+  your display state, survives re-sync, and is never published.
+
+- **"You may already have this" hint on ORCID-discovered candidates.** A pending
+  ORCID-listed work whose DOI/PMID or title matches an entry already shown on
+  your CV is flagged inline, so a likely duplicate is obvious before you add it.
+
+- **Notification email for digests (double opt-in).** ORCID sign-in rarely
+  provides an email address, so opted-in users often had nowhere to receive
+  the re-sync digest. Turning on "Email updates" now reveals an address field:
+  the entered address is stored pending and gets a confirmation link (signed,
+  expiring token); only a confirmed address is ever used, with the login email
+  as fallback. Included in the account data export; the digest run reports
+  addressless opt-ins (`noAddress`).
+
+- **Opt-in re-sync digest email.** A new account toggle (default OFF) emails
+  you when a scheduled re-sync actually changed your CV — new entries (with up
+  to five titles), review candidates, removals — in your CV's own language, at
+  most once a month, with a one-click unsubscribe (RFC 8058) in every mail.
+  Powered by the per-sync change report below; dormant unless SMTP
+  (`EMAIL_SERVER`/`EMAIL_FROM`) is configured. New `digest-cron` compose
+  sidecar pings the secret-guarded `/api/internal/digest` daily; the per-user
+  monthly cadence lives server-side, so container restarts can't starve it.
+
+- **"What changed in your last sync" report.** Every sync now records what it
+  changed — newly-appeared items (with their section), items the sources no
+  longer list, and how many arrived as review candidates — plus per-source item
+  counts and fetch timings. The editor shows it as a dismissible banner (first
+  sync gets a one-line import summary), so a re-sync silently merging three new
+  works into a 400-item CV is no longer invisible. Persisted per user
+  (`Cv.lastSyncReport`) and returned by `POST /api/cv/sync`.
+
+- **Bulk curation.** Sections with five or more entries get a "Select multiple"
+  mode: filter by title/venue text, year range, or review-flagged-only, then
+  hide/show, mark "not mine" (eligible entries only, same per-row rule), or
+  exclude the whole selection from the current view in one action. Keeps
+  curation cost roughly constant in career length for prolific authors.
+
+- **CV health checklist.** A compact "needs your attention" panel above the
+  sections lists outstanding review candidates, unresolved duplicate hints,
+  ORCID conflicts, and still-visible retracted works — factual counts only, no
+  score. Hidden when there is nothing to do.
+
+- **"This is my work" on structured manual entries.** A hand-entered
+  publication can now be marked as the account holder's own (choosing which
+  typed author is them) — it self-highlights like an imported work and records
+  the same user-asserted `matchBasis: "claimed"` as the add-by-DOI flow.
+
+- **Product Hunt launch kit** — a ready-to-use kit for launching SigmaCV on Product
+  Hunt (`docs/product-hunt-launch-kit.md`): tagline/description options, topics,
+  the maker's first comment, a gallery shot list with branded graphics
+  (`docs/images/product-hunt-*`), a launch-day playbook, and a pre-launch checklist.
+  Supports the discoverability roadmap (tool directories / listed where LLMs retrieve).
+
+- **Server operations runbook** (`docs/SERVER-RUNBOOK.md`) — copy-paste VPS
+  checklist: env audit, backup test-restore, OEP import check, SSH/fail2ban/
+  unattended-upgrades hardening, image-refresh cadence, disk/log rotation,
+  uptime + error alerting, and GDPR data-subject-request handling.
+
+- **Academic CV examples gallery** (`/examples`) — illustrative example CVs by field and
+  career stage (biology, computer science, psychology, economics, chemistry, physics,
+  history, public health), for grad-school applicants, PhD students, postdocs and
+  faculty. Each shows a **fictional** researcher with fabricated publications (clearly
+  labelled an illustrative example), with the author's own name highlighted, and links
+  to building your own. English for now.
+
+- **Native head-term landing pages** — dedicated pages that target each market's own
+  search term for an academic CV, at a native URL: **CV académique** (`/fr/cv-academique`),
+  **wissenschaftlicher Lebenslauf** (`/de/…`), **CV académico** (`/es/…`), **CV accademico**
+  (`/it/…`), **currículo acadêmico** (`/pt/…`), **академическое резюме** (`/ru/…`),
+  **学术简历** (`/zh/…`), **アカデミックCV** (`/ja/…`) and **학술 CV** (`/ko/…`), each with
+  native-first copy and full landing-page structured data. Copy is machine-drafted,
+  flagged for native review.
+
+- **Research Resource Identifier (RRID)** — SigmaCV is now registered in the
+  [SciCrunch](https://scicrunch.org/) registry as **RRID:SCR_028552**, so papers
+  can cite the tool unambiguously. Recorded in `CITATION.cff`, `codemeta.json`
+  and the README (badge + "Citing" section).
+
+- **Publish nudge** (10 languages) — a gentle, dismissible prompt in the editor
+  invites you to publish a free, shareable public CV page. It appears only while
+  your CV is unpublished, never publishes on your behalf (its button just takes
+  you to the publish toggle — publishing stays a deliberate choice), and stays
+  hidden once you publish or dismiss it.
+
+- **More landing pages for common searches** (10 languages) — a page for turning a
+  **Google Scholar** profile into a CV (honest about the open path: Scholar has no
+  API, so SigmaCV uses ORCID/OpenAlex), an **ERC CV** page, and an **"import
+  publications to your CV"** page — each with the same depth and structured data as
+  the other landing pages.
+
+- **Glossary** (`/glossary`) — plain-language "what is X" pages for the key terms
+  behind an academic CV (ORCID, OpenAlex, FWCI, the h-index, CSL, the NIH
+  biosketch, preprint, DORA, the Leiden Manifesto), each marked up as a schema.org
+  `DefinedTerm` with an FAQ and links to related terms, guides and tools — now in
+  **all 10 supported languages**, each a crawlable URL with reciprocal hreflang.
+
+- **Persona landing pages** (10 languages) — dedicated pages for specific
+  applicants and career stages: a **PhD-application CV** (`/phd-cv`), **postdoc
+  CV** (`/postdoc-cv`), **grad-school CV** (`/grad-school-cv`), **faculty/tenure
+  CV** (`/faculty-cv`) and **research CV** (`/research-cv`), each speaking to that
+  searcher's needs, with the same depth and structured data as the other landing
+  pages.
+
+- **Guides** (`/guides`) — a new section of in-depth, free guides on writing,
+  formatting and automating an academic CV: how to write one, academic CV vs
+  résumé, how to list publications, how long it should be, a CV for grad-school
+  applications, using metrics responsibly (DORA / Leiden), and academic CV format
+  by country. Each guide is a proper article with a named author, dates, an FAQ,
+  and links to related pages, and is included in the sitemap — now in **all 10
+  supported languages**, each a crawlable URL with reciprocal hreflang.
+
+- **Localized institution names** — positions and education entries now show the
+  institution in the CV's own language when ROR publishes a name for it (e.g.
+  「名古屋大学」 on a Japanese CV, "Université de Nagoya" on a French one),
+  falling back to ROR's canonical display name otherwise. The choice is made at
+  render time, so switching the CV language re-localizes without a re-sync, and
+  the ROR record link still wraps the displayed name. A hand-edited line is left
+  exactly as the user wrote it. Variants populate on the next re-sync.
+
+- **Wikidata entity link** in the homepage structured data — the
+  `Organization` and `SoftwareApplication` JSON-LD now list SigmaCV's Wikidata
+  item ([Q140158386](https://www.wikidata.org/wiki/Q140158386)) under `sameAs`, so
+  search engines and LLM knowledge graphs resolve the site and its Wikidata record
+  as one entity.
+
+- **"Who it's for" section on the homepage** (10 languages) — four audience cards
+  (students & grad-school applicants, PhD students & postdocs, faculty &
+  principal investigators, and clinicians / librarians / research offices) make it
+  immediately clear who SigmaCV serves. Non-English copy is an initial translation
+  pending native-speaker review.
+
+- **"Don't have an ORCID iD yet?" helper** on the sign-in card (10 languages) — a
+  collapsible explainer for visitors without an ORCID iD (students, early-career
+  and lower-income-country researchers): what an ORCID iD is, why it matters (it's
+  how SigmaCV reliably finds your work), and a link to register a free iD. Non-English
+  copy is an initial translation pending native-speaker review.
+
+- **Richer `SoftwareApplication` structured data** on the homepage — now declares
+  the software version, publication date, the ten supported `inLanguage` values,
+  and an app `screenshot`, on top of the existing free-offer, licence and feature
+  list. (No `aggregateRating` — SigmaCV never asserts ratings it cannot verify.)
+
+- **Deeper SEO landing pages** — the seven landing pages (ORCID-to-CV, NIH
+  biosketch, academic CV template, OpenAlex CV, publication list, LaTeX CV, funder
+  CV templates) now carry comprehensive, crawlable content in all 10 languages: an
+  opening overview, a four-step "how it works" guide, a "why" section, an expanded
+  five-question FAQ, and links to related pages. Each page also emits `HowTo`
+  structured data (alongside the existing `FAQPage` and `BreadcrumbList`). The
+  non-English copy is an initial translation pending native-speaker review.
+
+- **`llms.txt` + `llms-full.txt`** served at the site root — a clean,
+  authoritative, extractable description of what SigmaCV is, who it's for, its
+  open data sources, export formats and key pages (plus a Q&A reference), so
+  assistants like ChatGPT, Claude, Perplexity and Gemini can describe and
+  recommend it accurately. No reviews, ratings or testimonials are ever asserted.
+
+- **FAIR Signposting** — public CV pages emit HTTP `Link` headers (`type`,
+  `author`, `describedby`, `license`) so machine agents can discover the author
+  identifiers, typed machine representations, and reuse license from the headers
+  alone.
+
+- **`/principles` page** (10 locales) — a public "Standards & principles we align
+  with" page covering the Barcelona Declaration, DORA, CoARA, the Leiden Manifesto,
+  the Hong Kong Principles, The Metric Tide, and FAIR / FAIR4RS.
+
+- **Profile-level open-access share** — an opt-in summary of how many of a CV's
+  works are open access, alongside the per-work OA badges.
+
+- **NIH iCite Relative Citation Ratio (RCR)** — an opt-in, field-normalized metric
+  (biomedical / PMID-keyed), shown with a benchmark and a biomedical caveat.
+
+- **CycloneDX SBOM** generated on release (`npm run sbom`) and attached to GitHub
+  releases, plus a **Software Heritage** archival badge — software supply-chain
+  transparency.
+
+- **Signed releases** — release artifacts are now cryptographically signed with
+  keyless [Sigstore](https://www.sigstore.dev/) signing (no long-lived keys): each
+  release ships a SLSA build-provenance attestation and a detached `cosign`
+  signature bundle for the SBOM, and release tags are signed. Verification
+  instructions are in [`docs/RELEASES.md`](docs/RELEASES.md).
+
+- **Published canonical JSON Schema** at `/schema/cv/v2.json`, derived from the
+  source-of-truth Zod schema (`npm run gen:schema`), so other tools can validate and
+  adopt the CV format.
+
+- **RO-Crate export** — download a CV as a Research Object Crate (`.crate.zip`): an
+  `ro-crate-metadata.json` (JSON-LD) describing the CV, its author (by ORCID) and
+  license, bundled with the canonical JSON, CSL-JSON, BibTeX and HTML.
+
+- **Richer public JSON-LD** — a published, indexable CV now exposes its funding
+  (`MonetaryGrant` with funder + award id), positions (`Occupation`) and education
+  (`EducationalOccupationalCredential`) as structured schema.org entities, not just
+  the bare `Person`.
+
+- **Retraction flags** — works recorded as retracted (via Crossref / Retraction
+  Watch, by DOI) are shown by default with a prominent "Retracted" badge, and a new
+  **"Hide retracted publications"** display toggle lets you exclude them entirely
+  (from every output). When shown, the badge always makes the retraction clear.
+
+- **OAI-PMH endpoint** (`/api/oai`) — repositories and aggregators can harvest the
+  indexable public CVs as Dublin Core (`oai_dc`) over the standard OAI-PMH 2.0
+  protocol (Identify, ListMetadataFormats, ListIdentifiers, ListRecords, GetRecord),
+  with `from`/`until` selective harvesting and resumption tokens.
+
+- **OpenSSF Scorecard** workflow (`.github/workflows/scorecard.yml`), **Dependabot**
+  automated dependency updates (`.github/dependabot.yml`), and a **CodeQL** static
+  analysis workflow (`.github/workflows/codeql.yml`) — software supply-chain +
+  SAST security signals, with drafted OpenSSF Best Practices answers in
+  `docs/openssf-best-practices.md`.
+
+- **"FAIR for your CV" page** (`/fair`, 10 locales) — a public explainer of the
+  machine-readable formats a published CV comes in (canonical JSON + schema,
+  CSL-JSON/BibTeX, RO-Crate, documents, JSON-LD, OAI-PMH/Signposting), how to cite
+  a CV, how repositories can harvest it, and how to self-host.
+
+- **Transparency page** (`/transparency`, 10 locales) — exactly where each CV
+  entry comes from (grouped open sources), how identifier vs. name+org matching
+  decides what's included, how a published CV refreshes, what is logged (nothing,
+  by default), and the controls you have over your data.
+
+- **Per-metric field-normalisation tooltips** in the editor's metric picker (10
+  locales) — hovering a metric explains whether it is field-normalised (FWCI, RCR
+  — preferred under DORA / the Leiden Manifesto) or not (h-index, raw counts),
+  putting responsible-reading guidance at the point of choice.
+
+### Changed
+
+- **The six field-tuned public-page styles share an atmosphere + floating
+  reading-surface model.** Each is an _atmosphere layer_ (background, colour and
+  light — the mood) with the text floating on a separate _reading surface_ (an
+  opaque page with a soft shadow), so nothing textured or moving is ever behind a
+  glyph — they read more easily than a plain page, not less. Each carries its own
+  bundled display face and a unique page margin: **Posology** a cool instrument room
+  with an engraved dose–response curve margin (Space Grotesk); **Hanko** an ukiyo-e
+  ink world whose section headings are brushed in, stroke by stroke, in Japanese,
+  with a vertical 履歴書 margin + a vermilion seal (Newsreader); **Pharmacopoeia** an
+  amber-lamplit parchment with a botanical-specimen margin and a verdigris accent
+  (Fraunces); **Codex** a lamplit reading room with an illuminated gilt-vine margin +
+  versal (EB Garamond); **Ledger** a cool blueprint with a ledger-red line-number
+  margin, numbered sections and an Abstract (Source Serif 4); **Atelier** a cool
+  plaster gallery wall with an engraved brass plate and plate-numbered labels
+  (Inter). Motion is one gentle load reveal plus, at most, a faint ambient confined
+  to the surround; all of it stops under `prefers-reduced-motion`, and print is a
+  clean black-on-white document.
+
+- **Saved versions now remember their section order.** A named preset (your
+  "full CV", "grant biosketch", "teaching CV"…) already captured the template,
+  styling, metrics and which sections show; it now also captures the _order_ of
+  your sections, so different versions can lead with different sections (e.g. a
+  teaching version opening with Teaching, a research version opening with
+  Publications) off the same underlying data. Existing presets are unaffected —
+  applying one saved before this change leaves your current order untouched.
+
+- **Choose your CV font — Source Serif, Inter, or EB Garamond — and it looks
+  identical everywhere.** The font picker in the design panel now offers three
+  bundled typefaces: Source Serif (a refined contemporary serif, the default),
+  Inter (a clean modern sans), and EB Garamond (a classic old-style serif). Each is
+  embedded in the document itself, so the typeface and line-breaks are the same in
+  the editor preview, the exported PDF, and every visitor's view — instead of each
+  device substituting whatever font it happened to have installed (which made the
+  preview and the PDF look different). (Fonts ship for Latin scripts; Cyrillic and
+  CJK gracefully fall back to a system font per character.)
+
+- **Positions, Education and diplomas now read as two-line records instead of one
+  run-on line.** Each entry leads with the role (or, for a degree, the degree and
+  field) in a prominent line with the dates aligned to the right edge, over a
+  quieter "department · institution" line — so a reader can skim job titles down
+  the left and the timeline down the right, the way a strong academic CV reads.
+  Sparse entries degrade gracefully (no role → the institution leads; no
+  department or no dates → those simply don't appear). The ATS template keeps the
+  dates inline (no right-aligned column) for résumé-parser safety, and the
+  DOCX / LaTeX / Markdown exports and the Japanese 履歴書 layout are unchanged.
+
+- **The editor preview now matches the PDF exactly (true WYSIWYG).** The live
+  preview previously rendered the CV at the width of the editor pane, so on a
+  smaller window it wrapped differently from the exported PDF — and on a narrow
+  pane it even flipped to the stacked mobile layout. The preview now renders as a
+  scaled A4 page, so line breaks, spacing, and layout are identical to what you
+  export. The print page box was unified with the on-screen one — the page itself
+  adds no margin and each template supplies its own gutter from its box — so the PDF
+  matches the preview edge to edge. In particular, full-bleed templates (the
+  Sidebar's coloured panel) now reach the top of the page in the PDF exactly as they
+  do on screen, instead of sitting below a white strip.
+
+- **Contact details now read as a clean, icon-led list.** Instead of one cramped
+  "·"-separated run, each contact item (location, email, phone, website) and each
+  profile link sits in a responsive grid — one per line in a narrow header (e.g. the
+  sidebar column), about two per line when there's room — each with its leading icon
+  (LinkedIn, GitHub, ORCID, etc. auto-detected). The parser-safe ATS template keeps
+  its single plain-text line.
+
+- **A label for a profile link is now optional.** Because recognised services
+  (GitHub, LinkedIn, ORCID, Google Scholar, …) are detected from the URL and named
+  automatically, the link editor now leads with the URL field and treats the label as
+  an optional override — when a service is recognised its name shows as the field's
+  placeholder, and a short note spells out that you can leave it blank. Any label you
+  do set still wins.
+
+- **The "Choose your public-page design" hint no longer overflows the Publish
+  popover.** The tip text was shortened (all ten languages) and the button now wraps
+  instead of forcing the panel wider (it was running off the side).
+
+- **The CV header now leads with you, not your numbers.** When you turned on
+  metrics, charts and the authorship table they stacked directly under your name —
+  and on the dark public-page styles the two bright white cards out-shouted your
+  name, which made the header hard to read. Now your **summary** sits right under
+  your identity and ahead of those cards, and the optional metrics strip moved below
+  it, laid out one metric per line — each with its plain-language meaning ("1.0 =
+  world average for field & year") and its coverage caveat ("mean over 95 works")
+  shown as visible text instead of a hover tooltip, so the context is legible to
+  everyone and survives to the printed PDF. The open-access share now reads as a
+  clean labelled row ("Open access — 45%") rather than a bare phrase wedged into the
+  strip, and the publications-per-year chart and the authorship breakdown sit side by
+  side as one group when there's room (stacking on narrow screens and in print). The
+  charts were simplified too: the **citations-per-year chart is gone** (on a recent
+  window it is depressed by citation lag — the latest years look empty regardless of
+  impact — so it misled more than it informed), and the remaining
+  **publications-per-year chart now uses a plain linear scale** instead of a
+  hard-to-read logarithmic one. Applies to every template and the public page; the
+  chart simplification also carries into the DOCX export, the PDF mirrors the live
+  page, and the LaTeX year-by-year table (explicit numbers, not bars) is unchanged.
+
+- **The editor's Design controls are reorganised so your two outputs read
+  clearly.** The styling that affects everything — fonts, colours, density,
+  citation style, metrics — now sits together under **Look & typography**, and
+  the two choices that belong to one output each get their own clearly-labelled
+  group placed side by side: **Document layout** (the template behind your PDF,
+  DOCX, LaTeX and Markdown exports) and **Public page style** (the animated look
+  of your shareable page). Everything stays inside the one Design tab — the
+  shared settings live in a single place, so your document and your public page
+  can't silently fall out of sync. Localized in all ten languages.
+
+- **The Publish control is now a focused on/off decision.** The publish popover
+  had grown crowded — toggle, live link, badge + QR embed, and privacy settings
+  all stacked together (and ran off the screen). The share/embed tools — your
+  public link, the "Living CV" badge, and the QR — now live on their own **Share**
+  button that appears in the top bar once your page is live, so the Publish
+  popover stays short: just the on/off toggle and the visibility settings (search
+  indexing + which contact fields are public). The contact toggles sit in a
+  tidier row, and every top-bar menu now scrolls internally instead of overflowing
+  the viewport. Localized in all ten languages.
+
+- **Jump straight from Publish to styling your public page.** Once your page is
+  live, the Publish menu now has a one-click link that takes you directly to the
+  **Public page style** picker in the editor — it switches to the Design view,
+  opens that group, and scrolls it into view, so you don't have to hunt for it
+  after publishing.
+
+- **"Why SigmaCV" is now a scannable four-up.** The homepage trust section was three
+  text-heavy cards (with "no ads" said twice). It's now four compact, icon-led cards
+  with minimal copy — **Free · Private · Open source · Responsible** — adding the
+  responsible-metrics point (opt-in, DORA-aligned) that sets SigmaCV apart for
+  researchers. The detail still lives on the Privacy / Principles / Transparency pages.
+
+- **Publishing is framed as something you'd want, not a disclosure.** The publish
+  summary used to lead with what gets _exposed_; it now leads with the benefit — a
+  living public page, one link that always re-syncs to your latest work, for your
+  email signature / ORCID / website — then keeps the privacy reassurance. And while
+  your CV is unpublished, the **Publish** control's dot shows a calm accent pulse
+  (reduced-motion-safe) inviting you to share your page; it settles to a steady
+  green once you're live.
+
+- **Editor parts reordered to Profile · Design · Content.** The editor's segmented
+  control now leads with **Profile** (Design stays in the middle, Content moves to
+  the end), and the editor opens on Profile. The rendered CV and every control are
+  unchanged — only the order and the default tab.
+
+- **First-run prompts no longer pile up.** A brand-new user could land in the
+  editor facing three onboarding prompts at once — the “what changed in your
+  sync” banner, the “check these are yours” coachmark, and the “publish your
+  page” nudge — all competing for attention. They’re now shown **one at a time**
+  in a sensible order (what just synced → review tip → publish), each revealing
+  the next only when you dismiss it, so the first run feels calm instead of busy.
+
+- **Your freshly-built CV reads as ready, not as a to-do list.** The first-import
+  message used to end with “review the flagged ones below,” which made curation
+  feel mandatory. It now says your CV is ready to export or publish and that
+  reviewing the flagged entries is _optional_ — because identifier-matched imports
+  are already yours; the flags are just the few worth a glance.
+
+- **Editor top bar tidied up.** The toolbar above the editor — which had grown to
+  mix the document actions with publish settings and account/GDPR controls — now
+  leads with a single primary **Export** control (the format chooser fused to the
+  button) and a quiet auto-save indicator. **Publish** settings and the whole
+  **account** area (sign out, email-digest preferences, data export, and the
+  destructive account deletion) collapse into menus, so the bar stays compact and
+  the irreversible "Delete account" is no longer one click away in the chrome. The
+  menus are keyboard- and screen-reader-accessible (dialog disclosures, not menus,
+  since they contain form fields; reduced-motion respected). Also fixes a
+  dark-mode bug where buttons turned white on hover.
+
+- **Editor panel is now subdivided into Content / Design / Profile.** The CV
+  editor's left panel — previously one long scroll mixing identity fields,
+  styling controls, and content curation — is now split into three labelled
+  parts you switch between, with a persistent "needs your attention" strip that
+  stays visible above them and jumps you to the flagged item (switching to
+  Content first). The Design part groups its settings (Presets, Template,
+  Metrics, Display) into collapsible sections so the rarely-touched options stay
+  out of the way. Keyboard- and screen-reader-accessible (proper tabs with arrow
+  navigation; reduced-motion respected). The rendered CV and every control are
+  unchanged — only the panel's layout.
+
+- **Registration is ORCID-only by default again.** Configuring SMTP
+  (`EMAIL_SERVER`/`EMAIL_FROM`) no longer auto-enables magic-link email
+  sign-in — SMTP alone now powers only the opt-in digest mailer. Email login
+  is a separate, explicit `EMAIL_LOGIN_ENABLED="true"` opt-in.
+
+- **Redesigned link-preview (Open Graph) cards.** The social-share images shown
+  when a SigmaCV link is pasted into Slack/Teams/X/LinkedIn etc. got a modern
+  brand refresh. The site-wide card (all ten locales) now mirrors the homepage
+  hero: deep indigo gradient with soft glows, the Σ medallion wordmark, real
+  extra-bold typography (Google-font subsets, with a safe fallback), open-data
+  source chips, and a CV-document mock featuring the signature identifier-driven
+  self-name highlight. Public CV pages (`/p/<slug>`) get a matching light card
+  tinted by the CV's accent colour, with an initials avatar (CJK-aware),
+  headline/affiliation lines, and a Σ watermark.
+
+- **ORCID work types now refine section placement.** Classification into the
+  Preprints section was previously driven only by OpenAlex venue heuristics, which
+  treat any repository-deposited or venue-less work as a "preprint" — so
+  self-deposited conference posters, lecture/teaching materials, and datasets
+  (often on Zenodo) were mis-filed there. The build now reads each work's
+  author-asserted ORCID work type (matched by DOI) and uses it to route the work:
+  posters, conference abstracts, talks/teaching, datasets, software, and similar
+  non-publication outputs go to a new **Other Research Outputs** section instead of
+  Preprints (and are dropped if the same DOI is already listed as a Dataset or
+  Conference item); a venue-less work ORCID marks as a publication
+  (journal article, book chapter, report, …) is rescued into **Publications**; and
+  ORCID preprints/working papers stay in Preprints. Works with no ORCID type signal
+  are unchanged. Fail-soft: an ORCID hiccup simply leaves the existing routing in
+  place.
+
+- **Institution links open the institution's website** — on Positions and
+  Education entries the institution name now links to its own homepage when ROR
+  records one (from ROR's `links[].website`), instead of the ROR registry page.
+  The ROR record stays reachable as the persistent identifier: it is the fallback
+  when ROR has no website on file, and the small trailing "ROR" link shown when
+  the institution name was edited out of the line.
+
+- Per-work **open-access badges are now opt-in** (default off), consistent with the
+  metrics-default-none, DORA-aligned stance.
+
 ### Fixed
+
+- **Long DOI/URL links no longer spill out of publication boxes on the public
+  page.** On the bordered "panel" public-page styles (e.g. Cyberpunk) and inside
+  the sidebar template's narrow column, a long DOI such as
+  `https://doi.org/10.1016/j.acvd.2025.06.017` ran past the right edge of its
+  entry box on a phone, because a URL is a single unbreakable token. Bibliography
+  entries now break such links so they stay inside the box at any width.
+
+- **Editor top bar no longer overlaps the page on a phone.** On a narrow screen
+  the top-bar controls wrap onto several rows; the bar was being compressed below
+  its content height (it sits in a full-height column), so the trailing controls
+  — the "Buy me a coffee" button and the account menu — spilled out and overlapped
+  the hint banner beneath it. The bar now keeps its full height and the rest of
+  the page sits cleanly below it.
+
+- **Datasets & Software entries now show their authors (and highlight yours).** A
+  Zenodo deposit (a dataset or a software release) was listed as just its title,
+  publisher, year, type and DOI — with **no authors at all**, so your own name
+  never appeared. The creators are now read from DataCite and shown as an
+  abbreviated author list (e.g. "Chrétien, B."), and when your ORCID is among them
+  your name is highlighted like on any other work. Takes effect on your next re-sync.
+
+- **Your name is now highlighted on ORCID-listed papers OpenAlex split across
+  profiles.** OpenAlex sometimes attributes one of your papers to an orphan author
+  profile (no ORCID, a different author id) — so even though the paper is yours
+  (your ORCID record lists it), nothing on the authorship matched your identifier
+  and your name wasn't bold. Ownership is still identifier-driven (your ORCID lists
+  the DOI); we now fill in your name from your profile so it highlights across every
+  output and the public page. Highlighting is also **case-insensitive** now, so a
+  name stored with odd casing (e.g. "ChréTien") still matches. Takes effect on your
+  next re-sync.
+
+- **Your name is now highlighted on publications you add by DOI.** When you
+  claimed a work whose record didn't carry your ORCID (so you picked yourself
+  from the author list), your name wasn't bold/highlighted the way it is on
+  auto-synced works — because only your full name was matched, while the citation
+  style renders an abbreviated form (e.g. "Chrétien, B."). The claim flow now uses
+  the same rich name variants (including your family name) as manual entries, so
+  the highlight applies consistently across every export and the public page.
+
+- **A long Positions/Education title no longer pushes its dates onto a separate
+  line.** When a role or degree title was long enough to wrap, the date range
+  dropped below it onto its own line; now the dates stay pinned to the top-right of
+  the first line and the title wraps beneath them — the way a clean academic CV
+  reads. (The parser-safe ATS template, with its inline dates, is unchanged.)
+
+- **The research-summary block now has the same gap below it as every other
+  section.** When placed in its own labelled block (above or below the sections),
+  it sat flush against the next section's heading on templates that tuck their
+  first section up (the Sidebar); it now keeps a full section-sized gap.
+
+- **PDF export works again.** A Playwright dependency bump changed the bundled
+  Chromium revision without updating the Docker runtime's Playwright base image, so
+  the headless browser the PDF renderer launches no longer existed and every PDF
+  export failed with "Export failed". The runtime base image is back in lockstep
+  with the `playwright` package, and a CI check now fails the build if the two ever
+  drift apart again.
+
+- **The research-summary heading now matches your other section titles.** When you
+  move the research-summary block to its own section ("top"/"bottom"), its heading is
+  now rendered in the exact same font, size, weight, casing, colour and accent
+  treatment as your real section titles (Publications, Education, …), on every
+  template and every public-page style — instead of a plain mismatched heading.
+
+- **The ORCID iD on your CV header now shows the green ORCID icon.** The dedicated
+  "ORCID: …" line in the header gained the official green iD mark, matching the icons
+  already shown for your other contact details and profile links. It's decorative
+  (screen readers still read the "ORCID" label and the iD) and, like the other icons,
+  omitted from the parser-safe ATS template.
+
+- **Profile links are usable again — and the editor fields no longer collapse.** On a
+  narrow profile panel the "label" and "URL" inputs in the Links editor shrank to a
+  sliver next to the "Remove link" button, making a link effectively impossible to
+  type. They now wrap onto their own rows with a sensible width.
+
+- **A LinkedIn (or GitHub/ORCID/…) URL entered in the Website field now shows its
+  brand icon and a clean label** (e.g. the LinkedIn mark + "LinkedIn") instead of a
+  bare globe and the full URL — matching how profile links are already auto-detected.
+  A generic website keeps the globe and its URL text.
+
+- **Switching on open-access badges no longer silently adds a percentage to the top
+  of your CV.** The per-publication "OA" badges and the header open-access share are
+  now two separate switches, so choosing badges does exactly that — and nothing else.
+  Already-published CVs are unaffected: the share keeps showing wherever it did until
+  you change the setting. The new control is localized in all ten languages.
+
+- **The chart's year labels now meet the contrast minimum.** The small year labels
+  under the publications-per-year chart were a touch too light for WCAG AA; they are
+  now darker.
 
 - **The top-bar menus (Publish / Share / Account) now close when you click
   anywhere.** Clicking on the CV preview left a menu stubbornly open, because the
@@ -561,156 +1076,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   toggle) meet the minimum touch-target size. Localized pages also declare their
   language for assistive tech.
 
-### Changed
-
-- **The editor's Design controls are reorganised so your two outputs read
-  clearly.** The styling that affects everything — fonts, colours, density,
-  citation style, metrics — now sits together under **Look & typography**, and
-  the two choices that belong to one output each get their own clearly-labelled
-  group placed side by side: **Document layout** (the template behind your PDF,
-  DOCX, LaTeX and Markdown exports) and **Public page style** (the animated look
-  of your shareable page). Everything stays inside the one Design tab — the
-  shared settings live in a single place, so your document and your public page
-  can't silently fall out of sync. Localized in all ten languages.
-
-- **The Publish control is now a focused on/off decision.** The publish popover
-  had grown crowded — toggle, live link, badge + QR embed, and privacy settings
-  all stacked together (and ran off the screen). The share/embed tools — your
-  public link, the "Living CV" badge, and the QR — now live on their own **Share**
-  button that appears in the top bar once your page is live, so the Publish
-  popover stays short: just the on/off toggle and the visibility settings (search
-  indexing + which contact fields are public). The contact toggles sit in a
-  tidier row, and every top-bar menu now scrolls internally instead of overflowing
-  the viewport. Localized in all ten languages.
-
-- **Jump straight from Publish to styling your public page.** Once your page is
-  live, the Publish menu now has a one-click link that takes you directly to the
-  **Public page style** picker in the editor — it switches to the Design view,
-  opens that group, and scrolls it into view, so you don't have to hunt for it
-  after publishing.
-
-### Added
-
-- **An optional SigmaCV-logo mascot that travels your living page.** Turn on a
-  single little **SigmaCV logo** (the Σ mark, brought to life) that **rides down the
-  left of the page with the scroll** and **changes its hat to match the section
-  you're reading**: a mortarboard on Education, a coin on Grants, a microphone on
-  Talks, a star on Awards, goggles on Datasets, a lightbulb on Patents, and more.
-  There's just **one** mascot per page, and it's **skinned to each style's
-  atmosphere** (a neon Σ on Cyberpunk, a brass Σ on Clockwork, a pixel Σ on
-  Arcade…). It's available on **all the animated styles** — never on the credible
-  styles (Folio/Meridian/Trajectory/Lumina) or in any export — **off by default**,
-  100% CSS-only (no JavaScript, even for this), decorative (`aria-hidden`), and
-  hidden automatically for visitors who prefer reduced motion, on narrow screens,
-  and in print.
-- **We now flag publications that may not be yours.** Open databases like OpenAlex
-  match papers to authors automatically and, to avoid missing any, lean toward
-  over-merging — so a paper by a different researcher with a similar name can land
-  on your profile (most common for widely-shared and non-Latin-script names). SigmaCV
-  now spots these: when a work was matched only by an OpenAlex author profile (no
-  confirming ORCID) **and** it disagrees with the rest of your record — it shares
-  **no co-authors** with your other work, plus either a clearly **different research
-  field** or an **institution you've never been affiliated with** — it gets a calm
-  "Review" badge that explains exactly why, and a count in the "Needs your attention"
-  checklist. Nothing is ever removed automatically: confirm it with **"Yes, it's
-  mine"** (it stays, and we stop asking), mark it **"not mine"**, or hide it — and if
-  you share a common name and see several, **"They're all mine"** clears them in one
-  click. The check is deliberately conservative (it would rather miss a few than
-  wrongly question a paper that's yours), uses only your own profile signals (never
-  any inference about names or origin), and these flags never appear on your public
-  page or exports.
-- **Three richly-animated styles for your published living page.** **Arcade** (a
-  bright retro-platformer stage with parallax clouds, spinning coins, and entries
-  that jump into place), **Meadow** (a hand-painted pastoral scene with rolling
-  hills, a breathing sun, drifting clouds, and falling petals), and **Cyberpunk**
-  (a neon-noir city with falling digital rain, a chromatic-aberration glitch on
-  your name, and holographic shimmer). All original art — genre homages, not the
-  trademarked works that inspired them. As always: 100% CSS-only under the strict
-  no-JS CSP, accent-aware, full reduced-motion fallback, and never affects exports.
-- **A "Clockwork" steampunk style for your published living page.** A dark
-  brass-and-iron look where electric cords hang from a ceiling rail with glowing
-  Edison bulbs that gently sway, brass gears turn slowly behind the page, your name
-  sits on an engraved brass nameplate, and each entry is marked with a rivet. Like
-  every public-page style it is 100% CSS-only under the strict no-JS CSP, tints its
-  lamp glow with your accent colour, ships a full reduced-motion fallback, and never
-  affects exports.
-- **Four new styles for your published living page.** The public page (`/p/[slug]`)
-  gains four polished, credible looks designed to read well to a hiring committee —
-  **Folio** (a typeset scholarly-journal feel in warm serif), **Meridian** (austere
-  Swiss/monochrome minimalism with numbered sections), **Trajectory** (a career
-  timeline with a milestone rail), and **Lumina** (a refined dark cinematic stage) —
-  surfaced at the top of the style picker. Each is 100% CSS-only under the page's
-  strict no-JS CSP, rides your chosen accent colour, ships a full reduced-motion
-  fallback, and never affects exports (PDF/DOCX/LaTeX stay on your document template).
-- **Your public CV now links to co-authors who are also on SigmaCV.** When a
-  co-author on one of your works has published their own search-indexable SigmaCV
-  page, your public page's structured data (schema.org JSON-LD) now expresses that
-  collaboration as a `knows` link to their profile — building a discoverable web
-  of researcher CVs for search and AI answer engines. Matching is by **ORCID
-  identifier only** (never by name), and a co-author is linked **only if they
-  opted their own page into search indexing** — the same consent that lets search
-  engines find their page. Nothing changes visibly on the page, and a co-author
-  who unpublishes or turns off indexing is delinked automatically.
-- **A "Living CV" badge for your README, site, or email signature.** Once your
-  page is published, the publish panel has a new **"Get a badge"** section: a small,
-  always-current SVG badge (a standard pill, a compact chip, or a richer card with
-  your name and the month it last synced) that links back to your living public CV.
-  Pick a style and light/dark/auto theme, preview it live, and copy a ready-made
-  **Markdown / HTML / image-URL** snippet — plus a downloadable **QR code** for
-  posters, slides, and business cards. It shows only your already-public data
-  and **stops working the moment you unpublish**, it makes no third-party requests,
-  and it is **deliberately metric-free** (no h-index or citation count) in keeping
-  with the project's DORA stance — it advertises openness and freshness, not a rank.
-  The badge also carries the same FAIR Signposting links as the public page, and
-  the panel chrome is localized across all ten languages.
-- **Edit a position's institution and dates, too.** Each position and education
-  entry now has an **"Edit details"** panel to correct the **institution name** and
-  the **start/end year** — with an **"Ongoing"** toggle for current roles. Like the
-  role field, your edits are kept across re-syncs (the source value refreshes
-  underneath, one click reverts), and the date range now reads in your CV's
-  language ("present"/"until" localized across all ten languages and every export).
-  Editing the institution name shows it verbatim (its automatic ROR link steps
-  aside for your wording). Entries from before this change show "Re-sync to edit
-  dates" until their next sync.
-- **Your CV refreshes itself when you open the editor.** Opening `/cv` now
-  re-syncs from the open sources in the background when your CV has gone stale
-  (more than ~12 hours since its last sync) — your saved CV appears instantly and
-  the “what’s new” banner shows up if anything changed. No waiting, and frequent
-  visits don’t re-sync needlessly.
-- **A clearer “what’s new” after a sync.** The post-sync banner now leads with the
-  items that need a decision: **“N to review”** is a button that jumps straight to
-  each review candidate (and cycles through them), while newly auto-included items
-  stay quiet. When a sync brings in many items at once, the list collapses to
-  per-section counts (“Publications 9 · Grants 4”) with a “+N more”, so a big sync
-  never floods the editor. Localized in all ten languages.
-- **The homepage marks publishing as optional.** Step 04 (“Publish a living page”)
-  now carries an **“Optional”** badge — the first three steps already produce a
-  complete CV. Localized in all ten languages.
-- **A fillable “Role / title” for each position.** Positions and education entries
-  now carry the **role/title as its own field** — pulled from ORCID when available
-  (e.g. “Assistant Professor”), and an inviting **“Add your title…”** blank to fill
-  when a source (such as an OpenAlex-inferred affiliation) doesn’t provide one. Your
-  edit is kept across re-syncs while the source value keeps refreshing underneath
-  (one click reverts to it), and the institution and dates stay sourced from
-  ORCID/ROR. The role is stored as structured data, not just text. Localized in all
-  ten languages.
-- **Animated showcase styles for your public page.** Your living public CV page
-  (the shareable `/p/…` link) can now use one of **nine optional animated styles**
-  — Prism, Pop, Neon, Synthwave, Terminal, Riso, Aura, Mesh and Marquee — chosen
-  in the editor under **Design → Public page style**. They are **web-only and
-  never change your PDF, DOCX or LaTeX exports** (those stay clean); each adapts
-  to your chosen accent colour, font and photo, ships a `prefers-reduced-motion`
-  fallback, and renders under the same strict no-JavaScript page security policy.
-  The default stays **“Match my document.”** A new **Document / Public page**
-  toggle on the editor preview shows exactly how the page will look. Localized in
-  all ten languages.
-- **The homepage now shows the living public page.** A fourth **“Publish a living
-  page”** step in the “How it works” flow introduces the re-syncing public page —
-  with an animated preview of the optional showcase styles and a clear “online
-  only; exports stay clean” note. Localized in all ten languages.
-
-### Fixed
-
 - **Animated public-page styles keep the top of your Publications readable.** On
   the most motion-heavy living-page styles (Prism, Synthwave, Riso, Mesh and the
   others), the scroll “reveal” was applied to each whole section at once. On a tall
@@ -722,6 +1087,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Terminal style already used), so the page is just as lively but the top of every
   section is crisp and readable; Prism’s sticky heading is now opaque. Applies to
   the public page only — exports were never affected.
+
 - **Better text contrast across the animated public-page styles.** A contrast pass
   over all nine styles fixed several spots where small secondary text (the footer
   provenance/licence/“made with” lines) sat below the WCAG AA readability threshold:
@@ -730,6 +1096,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Synthwave) — with Aura’s colour glow toned down — so text stays legible where the
   moving background is brightest. The styles look the same; the fine print is just
   easier to read. Public page only.
+
 - **A light accent colour can no longer make your name or headings unreadable.**
   The accent colour picker has a free colour field, so it was possible to choose a
   pale colour (a bright yellow, a light cyan) that rendered the Modern template’s
@@ -739,6 +1106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   its hue — so the document stays legible (and prints legibly) whatever colour you
   pick. The six built-in accent swatches are already well above the floor and are
   unchanged.
+
 - **Publication titles no longer show raw formatting tags like `<scp>`.** Some
   journals deposit a title with inline typographic markup — for example Wiley sets
   “VigiBase” in small caps as `<scp>VigiBase</scp>` — and that unsupported tag was
@@ -746,6 +1114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Such tags are now removed when your CV is built, while genuine emphasis your
   citation style can render — italics, superscripts, subscripts (`<i>`, `<sup>`,
   `<sub>`) — is preserved. Takes effect on your next re-sync.
+
 - **You can now add dates to a degree that ORCID listed without any.** Education
   entries (and positions) whose source carried no dates used to dead-end on a
   “Re-sync to edit dates” note — but re-syncing never helped when ORCID simply has
@@ -754,6 +1123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no dates yet starts with an editable (not pre-“Ongoing”) end year. The re-sync note
   remains only for older entries that lack the structured institution needed to
   rebuild the line.
+
 - **Your software and datasets no longer land in “Preprints.”** A Zenodo (or other
   repository) deposit — like a software release or a dataset — was being filed
   under Preprints, because OpenAlex tags everything from a repository as a preprint
@@ -772,13 +1142,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   release. Every Datasets & Software entry now **shows its DOI** — a clickable link
   on the web (and the PDF), and the full `https://doi.org/…` in DOCX, LaTeX and
   Markdown — matching the citation-style entries already in the section.
+
 - **The Role / title field accepts spaces.** Typing a multi-word role such as
   “Group Leader” works again — the field was wiping a trailing space on every
   keystroke, so you could never get past the first word.
+
 - **A failed save or sync now reads as an error, not a success.** The editor’s
   status indicator showed the same neutral/green dot for “Saved.” and for
   “Sync failed.” — so a failure could be mistaken for success at a glance. The
   dot (and text) now turn **red** on failure and stay green on success.
+
 - **A failed first sync no longer looks like “you have no publications.”** When the
   very first import from OpenAlex failed (a network hiccup, OpenAlex briefly down),
   the editor showed the same neutral “No CV yet” empty state as a genuinely empty
@@ -787,6 +1160,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sync now shows a distinct, clearly-worded **“We couldn’t reach OpenAlex”** state
   (reassuring them their account is fine) with a **Try again** button, separate from
   the empty state. Localized in all ten languages.
+
 - **Dark-mode contrast in the editor.** A handful of editor controls (the
   save-status pill, source/“you” badges, hover states on icon and “mine”
   buttons, the section-toggle hover, the drag handle, scrollbar thumbs and the
@@ -794,210 +1168,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   showed light-on-dark — washed out or hard to read. They now use the same
   semantic surface/border/muted tokens as everything else, so they’re correct in
   dark mode and pixel-identical in light mode.
-
-### Added
-
-- **A light/dark theme toggle.** The site followed your OS appearance with no way
-  to override it. It now **auto-detects and applies your OS preference**, and a
-  compact **sun / moon** toggle in the homepage nav, the shared header, and the
-  editor top bar lets you switch — your choice persists across visits (until then
-  the page keeps following the OS, and the highlight tracks it if the OS flips).
-  A tiny pre-paint script applies the theme before the first render, so there's no
-  flash of the wrong theme — and because it's static and allow-listed by its hash
-  in the CSP, the marketing pages stay statically rendered. If JS is off (or the
-  script is ever blocked), dark mode still follows your OS, so nothing regresses.
-- **A shared header and footer now connect every page.** The marketing and
-  reference pages — the SEO landing pages, guides, glossary, examples, and the
-  About / Privacy / FAQ / Accessibility / FAIR / Transparency / Principles pages —
-  were previously dead ends: no top bar, no way to reach the guides, sign-in, or
-  each other without the browser back button. They now share a sticky header (a
-  clickable brand back to home, links to Guides / Examples / About, the language
-  switcher, and a **Build my CV** call to action) and a full footer (every
-  secondary destination). Localized across all ten languages; the header stays
-  statically rendered, so the crawlable pages keep their SEO. The homepage keeps
-  its own hero-integrated nav and footer, which the shared chrome is styled to
-  match.
-- **Clearer trust at the two moments that matter most.** The sign-in card now states,
-  right under the ORCID button, that we only read your public ORCID record — never
-  post, never write anything back. And the **Publish** control now spells out what
-  becomes public (your name, ORCID, and the publications you've kept) and that your
-  email, phone, and location stay private unless you opt in — shown _before_ you
-  publish, not after.
-- **Calmer review cues.** The ⚠ warning badge is now reserved for a genuine ORCID
-  _conflict_ (a different iD on the matching author). Works that are probably yours —
-  listed in your ORCID record, or matched to you by name and organization — get a
-  quiet, neutral **Review** chip instead, so the editor stops looking alarming about
-  records that are most likely fine. The **Buy me a coffee** link also now explains,
-  on hover, that SigmaCV is free and not-for-profit and a coffee helps cover its
-  running costs.
-- **Your published CV page now shows it's a _living_ page.** A public `/p/…` page
-  carries a visible "Updated _<date>_ · updates automatically" line, so a visitor
-  (a hiring committee, a collaborator) can see at a glance that it's current — the
-  whole point of a living CV, which a static PDF can't convey. The page also now
-  emits schema.org structured data (with a `dateModified`) whether or not you've
-  opted into search indexing — so tools and assistants you deliberately share the
-  link with can read a structured profile (search engines still stay out unless
-  you opt in).
-- **A share moment when you publish.** Once your page is live, the Publish menu now
-  shows the link prominently with one-tap **Open page** / **Copy link** and a nudge
-  to add it to your ORCID record, website, or email signature — so the living page
-  is something you actually share. Copying now announces itself to screen readers,
-  and a failed publish/unpublish is surfaced instead of silently swallowed.
-- **The re-sync digest now points at your living page.** When your CV is published,
-  the "new entries" email leads with a link to your public page — the thing you
-  share — with the editor link kept as the secondary "review and curate" action.
-- **PDF exports are now tagged (accessible).** The exported PDF carries a proper
-  structure tree (headings, lists, links) and a document outline derived from the
-  CV's semantic HTML, plus its language — so screen readers can navigate it and it
-  reflows, instead of being an untagged flat page. No change to how the PDF looks.
-
-### Changed
-
-- **"Why SigmaCV" is now a scannable four-up.** The homepage trust section was three
-  text-heavy cards (with "no ads" said twice). It's now four compact, icon-led cards
-  with minimal copy — **Free · Private · Open source · Responsible** — adding the
-  responsible-metrics point (opt-in, DORA-aligned) that sets SigmaCV apart for
-  researchers. The detail still lives on the Privacy / Principles / Transparency pages.
-- **Publishing is framed as something you'd want, not a disclosure.** The publish
-  summary used to lead with what gets _exposed_; it now leads with the benefit — a
-  living public page, one link that always re-syncs to your latest work, for your
-  email signature / ORCID / website — then keeps the privacy reassurance. And while
-  your CV is unpublished, the **Publish** control's dot shows a calm accent pulse
-  (reduced-motion-safe) inviting you to share your page; it settles to a steady
-  green once you're live.
-- **Editor parts reordered to Profile · Design · Content.** The editor's segmented
-  control now leads with **Profile** (Design stays in the middle, Content moves to
-  the end), and the editor opens on Profile. The rendered CV and every control are
-  unchanged — only the order and the default tab.
-- **First-run prompts no longer pile up.** A brand-new user could land in the
-  editor facing three onboarding prompts at once — the “what changed in your
-  sync” banner, the “check these are yours” coachmark, and the “publish your
-  page” nudge — all competing for attention. They’re now shown **one at a time**
-  in a sensible order (what just synced → review tip → publish), each revealing
-  the next only when you dismiss it, so the first run feels calm instead of busy.
-- **Your freshly-built CV reads as ready, not as a to-do list.** The first-import
-  message used to end with “review the flagged ones below,” which made curation
-  feel mandatory. It now says your CV is ready to export or publish and that
-  reviewing the flagged entries is _optional_ — because identifier-matched imports
-  are already yours; the flags are just the few worth a glance.
-- **Editor top bar tidied up.** The toolbar above the editor — which had grown to
-  mix the document actions with publish settings and account/GDPR controls — now
-  leads with a single primary **Export** control (the format chooser fused to the
-  button) and a quiet auto-save indicator. **Publish** settings and the whole
-  **account** area (sign out, email-digest preferences, data export, and the
-  destructive account deletion) collapse into menus, so the bar stays compact and
-  the irreversible "Delete account" is no longer one click away in the chrome. The
-  menus are keyboard- and screen-reader-accessible (dialog disclosures, not menus,
-  since they contain form fields; reduced-motion respected). Also fixes a
-  dark-mode bug where buttons turned white on hover.
-- **Editor panel is now subdivided into Content / Design / Profile.** The CV
-  editor's left panel — previously one long scroll mixing identity fields,
-  styling controls, and content curation — is now split into three labelled
-  parts you switch between, with a persistent "needs your attention" strip that
-  stays visible above them and jumps you to the flagged item (switching to
-  Content first). The Design part groups its settings (Presets, Template,
-  Metrics, Display) into collapsible sections so the rarely-touched options stay
-  out of the way. Keyboard- and screen-reader-accessible (proper tabs with arrow
-  navigation; reduced-motion respected). The rendered CV and every control are
-  unchanged — only the panel's layout.
-
-### Added
-
-- **Auto-save in the editor.** Curation and styling changes now persist
-  automatically a moment after you stop editing — no need to click Save. Edits
-  are coalesced into a single write (debounced, well under the save rate limit),
-  and the browser warns before you leave the page with an unsaved change still
-  in flight. The Save button stays as an immediate-save fallback and a clear
-  saved/saving indicator; a failed save keeps your changes pending (no silent
-  data loss, no retry storm) and re-tries on your next edit.
-- **"Needs your attention" checklist now jumps you to the item.** Each row of
-  the editor's CV-health panel (review candidates, possible duplicates, ORCID
-  conflicts, shown retracted works) is a link: clicking it expands the relevant
-  section and scrolls the first such entry into view (duplicates open their
-  compare panel), instead of leaving you to hunt through collapsed sections.
-- **"Keep hidden" for review candidates.** An ORCID-listed work OpenAlex didn't
-  attribute (or a name+org-matched grant/trial) can now be triaged a third way —
-  besides "Show" and "not mine" — to keep it off your CV and stop flagging it,
-  without recording a "not mine" disambiguation claim. The decision is kept in
-  your display state, survives re-sync, and is never published.
-- **"You may already have this" hint on ORCID-discovered candidates.** A pending
-  ORCID-listed work whose DOI/PMID or title matches an entry already shown on
-  your CV is flagged inline, so a likely duplicate is obvious before you add it.
-
-- **Notification email for digests (double opt-in).** ORCID sign-in rarely
-  provides an email address, so opted-in users often had nowhere to receive
-  the re-sync digest. Turning on "Email updates" now reveals an address field:
-  the entered address is stored pending and gets a confirmation link (signed,
-  expiring token); only a confirmed address is ever used, with the login email
-  as fallback. Included in the account data export; the digest run reports
-  addressless opt-ins (`noAddress`).
-
-### Changed
-
-- **Registration is ORCID-only by default again.** Configuring SMTP
-  (`EMAIL_SERVER`/`EMAIL_FROM`) no longer auto-enables magic-link email
-  sign-in — SMTP alone now powers only the opt-in digest mailer. Email login
-  is a separate, explicit `EMAIL_LOGIN_ENABLED="true"` opt-in.
-
-### Added
-
-- **Opt-in re-sync digest email.** A new account toggle (default OFF) emails
-  you when a scheduled re-sync actually changed your CV — new entries (with up
-  to five titles), review candidates, removals — in your CV's own language, at
-  most once a month, with a one-click unsubscribe (RFC 8058) in every mail.
-  Powered by the per-sync change report below; dormant unless SMTP
-  (`EMAIL_SERVER`/`EMAIL_FROM`) is configured. New `digest-cron` compose
-  sidecar pings the secret-guarded `/api/internal/digest` daily; the per-user
-  monthly cadence lives server-side, so container restarts can't starve it.
-- **"What changed in your last sync" report.** Every sync now records what it
-  changed — newly-appeared items (with their section), items the sources no
-  longer list, and how many arrived as review candidates — plus per-source item
-  counts and fetch timings. The editor shows it as a dismissible banner (first
-  sync gets a one-line import summary), so a re-sync silently merging three new
-  works into a 400-item CV is no longer invisible. Persisted per user
-  (`Cv.lastSyncReport`) and returned by `POST /api/cv/sync`.
-- **Bulk curation.** Sections with five or more entries get a "Select multiple"
-  mode: filter by title/venue text, year range, or review-flagged-only, then
-  hide/show, mark "not mine" (eligible entries only, same per-row rule), or
-  exclude the whole selection from the current view in one action. Keeps
-  curation cost roughly constant in career length for prolific authors.
-- **CV health checklist.** A compact "needs your attention" panel above the
-  sections lists outstanding review candidates, unresolved duplicate hints,
-  ORCID conflicts, and still-visible retracted works — factual counts only, no
-  score. Hidden when there is nothing to do.
-- **"This is my work" on structured manual entries.** A hand-entered
-  publication can now be marked as the account holder's own (choosing which
-  typed author is them) — it self-highlights like an imported work and records
-  the same user-asserted `matchBasis: "claimed"` as the add-by-DOI flow.
-
-### Changed
-
-- **Redesigned link-preview (Open Graph) cards.** The social-share images shown
-  when a SigmaCV link is pasted into Slack/Teams/X/LinkedIn etc. got a modern
-  brand refresh. The site-wide card (all ten locales) now mirrors the homepage
-  hero: deep indigo gradient with soft glows, the Σ medallion wordmark, real
-  extra-bold typography (Google-font subsets, with a safe fallback), open-data
-  source chips, and a CV-document mock featuring the signature identifier-driven
-  self-name highlight. Public CV pages (`/p/<slug>`) get a matching light card
-  tinted by the CV's accent colour, with an initials avatar (CJK-aware),
-  headline/affiliation lines, and a Σ watermark.
-
-- **ORCID work types now refine section placement.** Classification into the
-  Preprints section was previously driven only by OpenAlex venue heuristics, which
-  treat any repository-deposited or venue-less work as a "preprint" — so
-  self-deposited conference posters, lecture/teaching materials, and datasets
-  (often on Zenodo) were mis-filed there. The build now reads each work's
-  author-asserted ORCID work type (matched by DOI) and uses it to route the work:
-  posters, conference abstracts, talks/teaching, datasets, software, and similar
-  non-publication outputs go to a new **Other Research Outputs** section instead of
-  Preprints (and are dropped if the same DOI is already listed as a Dataset or
-  Conference item); a venue-less work ORCID marks as a publication
-  (journal article, book chapter, report, …) is rescued into **Publications**; and
-  ORCID preprints/working papers stay in Preprints. Works with no ORCID type signal
-  are unchanged. Fail-soft: an ORCID hiccup simply leaves the existing routing in
-  place.
-
-### Fixed
 
 - **The ja-JP grants placeholder suggested a French funder** (ANR JCJC); each
   locale's example now names a familiar national funder (科研費, NSFC, DFG,
@@ -1011,7 +1181,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `outputFileTracingIncludes`. Dev servers were unaffected (they resolve from
   the real `node_modules`), which is why the regression only showed up deployed.
 
+- **Research consent re-consent is now enforced** — the consent gate that guards
+  ALL research logging (off in production) now requires the user's stored
+  `researchConsentVersion` to match the current `RESEARCH_CONSENT_VERSION`, not
+  just a `true` flag. Previously, bumping the version (the documented step when
+  re-enabling logging under a new IRB protocol) would NOT have forced re-consent:
+  a user who agreed under the old terms would have been logged under the new ones.
+  Stale consent no longer authorises logging (GDPR/APPI; IRB audit trail).
+
+- **Atomic persistent rate limiter** — the Postgres-backed limiter
+  (`RATE_LIMIT_PERSIST=true`) now opens each fixed window with a single atomic
+  `INSERT … ON CONFLICT DO UPDATE` instead of a read-then-write. The previous
+  read (`findUnique`) then write (`upsert`) had a TOCTOU gap where two concurrent
+  first-requests could both observe "no row" and both open the window at count 1,
+  letting one extra request past the cap at each window boundary. The in-memory
+  limiter (single-instance default) was already race-free.
+
+- **Publication / preprint links are now clickable and open in a new tab** —
+  across the live preview, the public page and the PDF. citeproc emitted DOIs and
+  URLs as plain text, so a reader couldn't follow a publication to its source; the
+  citation engine now renders them as `<a>` links, every link in a rendered CV
+  carries `target="_blank" rel="noopener noreferrer"`, and the preview iframe is
+  allowed to open those links in a new tab (without re-enabling scripts on the
+  sandboxed CV markup). Hand-built links (contact, website, ORCID, ROR, licence)
+  open in a new tab too.
+
+- **NIH iCite RCR now actually populates.** The iCite client read the value under
+  `relative_citation_ratio`, but a field-filtered iCite response returns it under
+  the short alias `rcr`, so the Relative Citation Ratio was never stored and "Mean
+  RCR" always read "(no data)". The client now reads `rcr` (with a fallback to the
+  long name). After a re-sync, biomedical works with a PMID carry their RCR.
+
+- **The editor's metric picker shows the RCR value when present.** The picker read
+  author-level `owner.metrics`, but the field-normalized means (RCR, FWCI mean,
+  top-10% share) are recomputed over the curated works at render time and are not
+  stored there — so "Mean RCR" read "(no data)" even when the CV rendered a value.
+  The picker now derives the same curated figures the CV displays.
+
+- **The "Responsible-metrics preset" now matches its label.** It promised
+  "field-normalised indicators only" but selected the (non-normalized, IF-like)
+  2-year mean citedness while omitting the field-normalized iCite RCR. It now
+  selects exactly the field-normalized indicators (FWCI mean + RCR mean), derived
+  from the single source of truth so it can't drift.
+
 ### Security
+
+- **Public CV pages gain exactly one, hash-pinned inline script.** They remain
+  strictly no-JS by default; the only script ever served is a bare
+  `IntersectionObserver` (used by the Hanko brush-kanji headings to draw once on
+  enter), permitted by
+  an exact `script-src 'sha256-…'` of that script and nothing else — no
+  `'unsafe-inline'`. Any injected or modified script has a different hash and stays
+  blocked. The directive is emitted (in both the `<meta>` and HTTP-header CSP) only on
+  pages that actually carry the trusted script, so every other style is still fully
+  no-JS. A test re-derives the hash so the script can't drift from its CSP entry.
+
+- **Credentials pasted into a profile link or website no longer leak into your CV.**
+  If a URL with embedded `user:password@` userinfo was entered for your website or a
+  profile link, that credential could show up in the visible contact line and in the
+  plain Markdown / LaTeX / DOCX exports. The userinfo is now stripped from the
+  displayed URL everywhere (the clickable link was already protected).
+
+- **Defense-in-depth hardening on the public-page error responses.** A three-
+  reviewer security pass found no exploitable issues, and closed a few hardening
+  gaps: the styled 404 / 429 notice pages now carry the live page's anti-framing
+  headers (`X-Frame-Options: DENY` + `frame-ancestors 'none'`); the OG-card 404
+  picks up the `noindex` / `no-store` / `nosniff` / `no-referrer` headers it was
+  missing; and the notice helper escapes its text for defense in depth.
 
 - **Public `.json` data minimization** — the machine-readable public CV download
   (`/p/<slug>.json`) no longer carries fields it had no reason to expose: the
@@ -1022,227 +1258,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `dismissedDuplicates` curation bookkeeping are stripped at the single public
   projection gate — these advisory hints (e.g. "this attribution is doubtful")
   were never on the rendered page and must not leak into a downloadable file.
+
 - **DBLP PID allow-list** — the DBLP person id resolved from a SPARQL response is
   now shape-validated (`[A-Za-z0-9/_-]`, no `..`) before it is interpolated into
   the profile-fetch URL, so a malformed/hostile value can't add a query, fragment,
   or traversal segment that re-points the outbound request (defense-in-depth).
+
 - **HSTS at the edge** — Caddy now sends `Strict-Transport-Security` on every
   response. The header was previously configured in `next.config.ts` but never
   emitted in the Docker deployment (its `AUTH_URL` condition is evaluated at
   build time, when the variable isn't set), so production served without HSTS.
+
 - **No default Plausible DB password** — the optional analytics profile no
   longer falls back to `postgres` when `PLAUSIBLE_DB_PASSWORD` is unset; it now
   fails closed (Postgres refuses a blank password).
+
 - **`nofollow ugc` on user-typed CV links** — the free-text website and profile
   links on a published CV no longer pass link equity (spam-CV SEO hardening);
   identifier-derived links (DOI, ORCID, ROR) are unchanged.
-
-### Changed
-
-- **Institution links open the institution's website** — on Positions and
-  Education entries the institution name now links to its own homepage when ROR
-  records one (from ROR's `links[].website`), instead of the ROR registry page.
-  The ROR record stays reachable as the persistent identifier: it is the fallback
-  when ROR has no website on file, and the small trailing "ROR" link shown when
-  the institution name was edited out of the line.
-
-### Fixed
-
-- **Research consent re-consent is now enforced** — the consent gate that guards
-  ALL research logging (off in production) now requires the user's stored
-  `researchConsentVersion` to match the current `RESEARCH_CONSENT_VERSION`, not
-  just a `true` flag. Previously, bumping the version (the documented step when
-  re-enabling logging under a new IRB protocol) would NOT have forced re-consent:
-  a user who agreed under the old terms would have been logged under the new ones.
-  Stale consent no longer authorises logging (GDPR/APPI; IRB audit trail).
-- **Atomic persistent rate limiter** — the Postgres-backed limiter
-  (`RATE_LIMIT_PERSIST=true`) now opens each fixed window with a single atomic
-  `INSERT … ON CONFLICT DO UPDATE` instead of a read-then-write. The previous
-  read (`findUnique`) then write (`upsert`) had a TOCTOU gap where two concurrent
-  first-requests could both observe "no row" and both open the window at count 1,
-  letting one extra request past the cap at each window boundary. The in-memory
-  limiter (single-instance default) was already race-free.
-
-### Added
-
-- **Product Hunt launch kit** — a ready-to-use kit for launching SigmaCV on Product
-  Hunt (`docs/product-hunt-launch-kit.md`): tagline/description options, topics,
-  the maker's first comment, a gallery shot list with branded graphics
-  (`docs/images/product-hunt-*`), a launch-day playbook, and a pre-launch checklist.
-  Supports the discoverability roadmap (tool directories / listed where LLMs retrieve).
-- **Server operations runbook** (`docs/SERVER-RUNBOOK.md`) — copy-paste VPS
-  checklist: env audit, backup test-restore, OEP import check, SSH/fail2ban/
-  unattended-upgrades hardening, image-refresh cadence, disk/log rotation,
-  uptime + error alerting, and GDPR data-subject-request handling.
-
-- **Academic CV examples gallery** (`/examples`) — illustrative example CVs by field and
-  career stage (biology, computer science, psychology, economics, chemistry, physics,
-  history, public health), for grad-school applicants, PhD students, postdocs and
-  faculty. Each shows a **fictional** researcher with fabricated publications (clearly
-  labelled an illustrative example), with the author's own name highlighted, and links
-  to building your own. English for now.
-- **Native head-term landing pages** — dedicated pages that target each market's own
-  search term for an academic CV, at a native URL: **CV académique** (`/fr/cv-academique`),
-  **wissenschaftlicher Lebenslauf** (`/de/…`), **CV académico** (`/es/…`), **CV accademico**
-  (`/it/…`), **currículo acadêmico** (`/pt/…`), **академическое резюме** (`/ru/…`),
-  **学术简历** (`/zh/…`), **アカデミックCV** (`/ja/…`) and **학술 CV** (`/ko/…`), each with
-  native-first copy and full landing-page structured data. Copy is machine-drafted,
-  flagged for native review.
-- **Research Resource Identifier (RRID)** — SigmaCV is now registered in the
-  [SciCrunch](https://scicrunch.org/) registry as **RRID:SCR_028552**, so papers
-  can cite the tool unambiguously. Recorded in `CITATION.cff`, `codemeta.json`
-  and the README (badge + "Citing" section).
-- **Publish nudge** (10 languages) — a gentle, dismissible prompt in the editor
-  invites you to publish a free, shareable public CV page. It appears only while
-  your CV is unpublished, never publishes on your behalf (its button just takes
-  you to the publish toggle — publishing stays a deliberate choice), and stays
-  hidden once you publish or dismiss it.
-- **More landing pages for common searches** (10 languages) — a page for turning a
-  **Google Scholar** profile into a CV (honest about the open path: Scholar has no
-  API, so SigmaCV uses ORCID/OpenAlex), an **ERC CV** page, and an **"import
-  publications to your CV"** page — each with the same depth and structured data as
-  the other landing pages.
-- **Glossary** (`/glossary`) — plain-language "what is X" pages for the key terms
-  behind an academic CV (ORCID, OpenAlex, FWCI, the h-index, CSL, the NIH
-  biosketch, preprint, DORA, the Leiden Manifesto), each marked up as a schema.org
-  `DefinedTerm` with an FAQ and links to related terms, guides and tools — now in
-  **all 10 supported languages**, each a crawlable URL with reciprocal hreflang.
-- **Persona landing pages** (10 languages) — dedicated pages for specific
-  applicants and career stages: a **PhD-application CV** (`/phd-cv`), **postdoc
-  CV** (`/postdoc-cv`), **grad-school CV** (`/grad-school-cv`), **faculty/tenure
-  CV** (`/faculty-cv`) and **research CV** (`/research-cv`), each speaking to that
-  searcher's needs, with the same depth and structured data as the other landing
-  pages.
-- **Guides** (`/guides`) — a new section of in-depth, free guides on writing,
-  formatting and automating an academic CV: how to write one, academic CV vs
-  résumé, how to list publications, how long it should be, a CV for grad-school
-  applications, using metrics responsibly (DORA / Leiden), and academic CV format
-  by country. Each guide is a proper article with a named author, dates, an FAQ,
-  and links to related pages, and is included in the sitemap — now in **all 10
-  supported languages**, each a crawlable URL with reciprocal hreflang.
-- **Localized institution names** — positions and education entries now show the
-  institution in the CV's own language when ROR publishes a name for it (e.g.
-  「名古屋大学」 on a Japanese CV, "Université de Nagoya" on a French one),
-  falling back to ROR's canonical display name otherwise. The choice is made at
-  render time, so switching the CV language re-localizes without a re-sync, and
-  the ROR record link still wraps the displayed name. A hand-edited line is left
-  exactly as the user wrote it. Variants populate on the next re-sync.
-- **Wikidata entity link** in the homepage structured data — the
-  `Organization` and `SoftwareApplication` JSON-LD now list SigmaCV's Wikidata
-  item ([Q140158386](https://www.wikidata.org/wiki/Q140158386)) under `sameAs`, so
-  search engines and LLM knowledge graphs resolve the site and its Wikidata record
-  as one entity.
-- **"Who it's for" section on the homepage** (10 languages) — four audience cards
-  (students & grad-school applicants, PhD students & postdocs, faculty &
-  principal investigators, and clinicians / librarians / research offices) make it
-  immediately clear who SigmaCV serves. Non-English copy is an initial translation
-  pending native-speaker review.
-- **"Don't have an ORCID iD yet?" helper** on the sign-in card (10 languages) — a
-  collapsible explainer for visitors without an ORCID iD (students, early-career
-  and lower-income-country researchers): what an ORCID iD is, why it matters (it's
-  how SigmaCV reliably finds your work), and a link to register a free iD. Non-English
-  copy is an initial translation pending native-speaker review.
-- **Richer `SoftwareApplication` structured data** on the homepage — now declares
-  the software version, publication date, the ten supported `inLanguage` values,
-  and an app `screenshot`, on top of the existing free-offer, licence and feature
-  list. (No `aggregateRating` — SigmaCV never asserts ratings it cannot verify.)
-- **Deeper SEO landing pages** — the seven landing pages (ORCID-to-CV, NIH
-  biosketch, academic CV template, OpenAlex CV, publication list, LaTeX CV, funder
-  CV templates) now carry comprehensive, crawlable content in all 10 languages: an
-  opening overview, a four-step "how it works" guide, a "why" section, an expanded
-  five-question FAQ, and links to related pages. Each page also emits `HowTo`
-  structured data (alongside the existing `FAQPage` and `BreadcrumbList`). The
-  non-English copy is an initial translation pending native-speaker review.
-- **`llms.txt` + `llms-full.txt`** served at the site root — a clean,
-  authoritative, extractable description of what SigmaCV is, who it's for, its
-  open data sources, export formats and key pages (plus a Q&A reference), so
-  assistants like ChatGPT, Claude, Perplexity and Gemini can describe and
-  recommend it accurately. No reviews, ratings or testimonials are ever asserted.
-- **FAIR Signposting** — public CV pages emit HTTP `Link` headers (`type`,
-  `author`, `describedby`, `license`) so machine agents can discover the author
-  identifiers, typed machine representations, and reuse license from the headers
-  alone.
-- **`/principles` page** (10 locales) — a public "Standards & principles we align
-  with" page covering the Barcelona Declaration, DORA, CoARA, the Leiden Manifesto,
-  the Hong Kong Principles, The Metric Tide, and FAIR / FAIR4RS.
-- **Profile-level open-access share** — an opt-in summary of how many of a CV's
-  works are open access, alongside the per-work OA badges.
-- **NIH iCite Relative Citation Ratio (RCR)** — an opt-in, field-normalized metric
-  (biomedical / PMID-keyed), shown with a benchmark and a biomedical caveat.
-- **CycloneDX SBOM** generated on release (`npm run sbom`) and attached to GitHub
-  releases, plus a **Software Heritage** archival badge — software supply-chain
-  transparency.
-- **Signed releases** — release artifacts are now cryptographically signed with
-  keyless [Sigstore](https://www.sigstore.dev/) signing (no long-lived keys): each
-  release ships a SLSA build-provenance attestation and a detached `cosign`
-  signature bundle for the SBOM, and release tags are signed. Verification
-  instructions are in [`docs/RELEASES.md`](docs/RELEASES.md).
-- **Published canonical JSON Schema** at `/schema/cv/v2.json`, derived from the
-  source-of-truth Zod schema (`npm run gen:schema`), so other tools can validate and
-  adopt the CV format.
-- **RO-Crate export** — download a CV as a Research Object Crate (`.crate.zip`): an
-  `ro-crate-metadata.json` (JSON-LD) describing the CV, its author (by ORCID) and
-  license, bundled with the canonical JSON, CSL-JSON, BibTeX and HTML.
-- **Richer public JSON-LD** — a published, indexable CV now exposes its funding
-  (`MonetaryGrant` with funder + award id), positions (`Occupation`) and education
-  (`EducationalOccupationalCredential`) as structured schema.org entities, not just
-  the bare `Person`.
-- **Retraction flags** — works recorded as retracted (via Crossref / Retraction
-  Watch, by DOI) are shown by default with a prominent "Retracted" badge, and a new
-  **"Hide retracted publications"** display toggle lets you exclude them entirely
-  (from every output). When shown, the badge always makes the retraction clear.
-- **OAI-PMH endpoint** (`/api/oai`) — repositories and aggregators can harvest the
-  indexable public CVs as Dublin Core (`oai_dc`) over the standard OAI-PMH 2.0
-  protocol (Identify, ListMetadataFormats, ListIdentifiers, ListRecords, GetRecord),
-  with `from`/`until` selective harvesting and resumption tokens.
-- **OpenSSF Scorecard** workflow (`.github/workflows/scorecard.yml`), **Dependabot**
-  automated dependency updates (`.github/dependabot.yml`), and a **CodeQL** static
-  analysis workflow (`.github/workflows/codeql.yml`) — software supply-chain +
-  SAST security signals, with drafted OpenSSF Best Practices answers in
-  `docs/openssf-best-practices.md`.
-- **"FAIR for your CV" page** (`/fair`, 10 locales) — a public explainer of the
-  machine-readable formats a published CV comes in (canonical JSON + schema,
-  CSL-JSON/BibTeX, RO-Crate, documents, JSON-LD, OAI-PMH/Signposting), how to cite
-  a CV, how repositories can harvest it, and how to self-host.
-- **Transparency page** (`/transparency`, 10 locales) — exactly where each CV
-  entry comes from (grouped open sources), how identifier vs. name+org matching
-  decides what's included, how a published CV refreshes, what is logged (nothing,
-  by default), and the controls you have over your data.
-- **Per-metric field-normalisation tooltips** in the editor's metric picker (10
-  locales) — hovering a metric explains whether it is field-normalised (FWCI, RCR
-  — preferred under DORA / the Leiden Manifesto) or not (h-index, raw counts),
-  putting responsible-reading guidance at the point of choice.
-
-### Changed
-
-- Per-work **open-access badges are now opt-in** (default off), consistent with the
-  metrics-default-none, DORA-aligned stance.
-
-### Fixed
-
-- **Publication / preprint links are now clickable and open in a new tab** —
-  across the live preview, the public page and the PDF. citeproc emitted DOIs and
-  URLs as plain text, so a reader couldn't follow a publication to its source; the
-  citation engine now renders them as `<a>` links, every link in a rendered CV
-  carries `target="_blank" rel="noopener noreferrer"`, and the preview iframe is
-  allowed to open those links in a new tab (without re-enabling scripts on the
-  sandboxed CV markup). Hand-built links (contact, website, ORCID, ROR, licence)
-  open in a new tab too.
-- **NIH iCite RCR now actually populates.** The iCite client read the value under
-  `relative_citation_ratio`, but a field-filtered iCite response returns it under
-  the short alias `rcr`, so the Relative Citation Ratio was never stored and "Mean
-  RCR" always read "(no data)". The client now reads `rcr` (with a fallback to the
-  long name). After a re-sync, biomedical works with a PMID carry their RCR.
-- **The editor's metric picker shows the RCR value when present.** The picker read
-  author-level `owner.metrics`, but the field-normalized means (RCR, FWCI mean,
-  top-10% share) are recomputed over the curated works at render time and are not
-  stored there — so "Mean RCR" read "(no data)" even when the CV rendered a value.
-  The picker now derives the same curated figures the CV displays.
-- **The "Responsible-metrics preset" now matches its label.** It promised
-  "field-normalised indicators only" but selected the (non-normalized, IF-like)
-  2-year mean citedness while omitting the field-normalized iCite RCR. It now
-  selects exactly the field-normalized indicators (FWCI mean + RCR mean), derived
-  from the single source of truth so it can't drift.
 
 ## [0.1.0] - 2026-06-08
 
