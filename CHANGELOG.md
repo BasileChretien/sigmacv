@@ -11,20 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **The "Hanko" public-page style is now an ukiyo-e world with brush-calligraphy
-  headings.** Beside each section title, the section's concise **Japanese name is
-  brushed in — written stroke by stroke**, in order, like a calligrapher's hand
-  (e.g. _Publications → 論文_, _Education → 学歴_). Each glyph is set in the "Yuji Boku"
-  sumi-brush face and revealed one stroke at a time by a KanjiVG stroke-order mask,
-  with a dry-brush ink texture; when the section scrolls into view the strokes draw
-  themselves on, once. Around it, in sumi ink with the one vermilion seal: a faint
-  Mt. Fuji over a seigaiha wave band, an enso that brushes itself in, a kamon crest,
-  drifting golden ginkgo leaves, an ink-wash that blooms open, and the seal stamping
-  with an ink-spread ripple — all in the surround / margins, with the text on a clean
-  floating page. The headings are real text (always read by assistive tech — the
-  brushed kanji are decorative and `aria-hidden`); with no JS, reduced motion, or in
-  print the kanji are shown already complete. The draw-once-on-enter timing needs the
-  one small script below; everything else stays CSS-only.
+- **The six field-tuned public-page styles share an atmosphere + floating
+  reading-surface model.** Each is an _atmosphere layer_ (background, colour and
+  light — the mood) with the text floating on a separate _reading surface_ (an
+  opaque page with a soft shadow), so nothing textured or moving is ever behind a
+  glyph — they read more easily than a plain page, not less. Each carries its own
+  bundled display face and a unique page margin: **Posology** a cool instrument room
+  with an engraved dose–response curve margin (Space Grotesk); **Hanko** an ukiyo-e
+  ink world whose section headings are brushed in, stroke by stroke, in Japanese,
+  with a vertical 履歴書 margin + a vermilion seal (Newsreader); **Pharmacopoeia** an
+  amber-lamplit parchment with a botanical-specimen margin and a verdigris accent
+  (Fraunces); **Codex** a lamplit reading room with an illuminated gilt-vine margin +
+  versal (EB Garamond); **Ledger** a cool blueprint with a ledger-red line-number
+  margin, numbered sections and an Abstract (Source Serif 4); **Atelier** a cool
+  plaster gallery wall with an engraved brass plate and plate-numbered labels
+  (Inter). Motion is one gentle load reveal plus, at most, a faint ambient confined
+  to the surround; all of it stops under `prefers-reduced-motion`, and print is a
+  clean black-on-white document.
 
 ### Security
 
@@ -37,23 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   blocked. The directive is emitted (in both the `<meta>` and HTTP-header CSP) only on
   pages that actually carry the trusted script, so every other style is still fully
   no-JS. A test re-derives the hash so the script can't drift from its CSP entry.
-
-- **The six field styles were rebuilt around atmosphere + readability.** Each is
-  now an _atmosphere layer_ (background, colour and light — the mood) with the text
-  floating on a separate _reading surface_ (an opaque page with a soft shadow), so
-  nothing textured or moving is ever behind a glyph — they read more easily than a
-  plain page, not less. Each carries its own bundled display face and a unique
-  page margin: **Posology** a cool instrument room with an engraved dose–response
-  curve margin (Space Grotesk); **Hanko** an ukiyo-e ink world (see above) with a
-  vertical 履歴書 margin + a vermilion seal (Newsreader); **Pharmacopoeia** an amber-lamplit
-  parchment with a botanical-specimen margin and a verdigris accent (Fraunces);
-  **Codex** a lamplit reading room with an illuminated gilt-vine margin + versal
-  (EB Garamond); **Ledger** a cool blueprint with a ledger-red line-number margin,
-  numbered sections and an Abstract (Source Serif 4); **Atelier** a cool plaster
-  gallery wall with an engraved brass plate and plate-numbered labels (Inter).
-  Motion is one gentle load reveal plus, at most, a faint ambient confined to the
-  surround; all of it stops under `prefers-reduced-motion`, and print is a clean
-  black-on-white document.
 
 ### Added
 
@@ -83,11 +69,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Two more credible public-page styles: "Hanko" and "Pharmacopoeia"**, extending
   the field-built credible end of the catalogue alongside Posology.
-  - **Hanko** — a Franco-Japanese editorial style, now an ukiyo-e ink world (see
-    the entry above): a monochrome sumi woodblock where each section's Japanese name
-    is brushed in stroke by stroke beside the heading, over a faint Fuji and seigaiha
-    band, an enso, drifting ginkgo and a single vermilion seal; your own
-    (identifier-matched) name is signed under a fine vermilion rule.
+  - **Hanko** — a Franco-Japanese editorial style: an ukiyo-e ink world, a
+    monochrome sumi woodblock where each section's Japanese name is brushed in stroke
+    by stroke beside the heading, over a faint Fuji and seigaiha band, an enso,
+    drifting ginkgo and a single vermilion seal; your own (identifier-matched) name
+    is signed under a fine vermilion rule.
   - **Pharmacopoeia** — an apothecary monograph: warm parchment under a faint
     hexagonal benzene-ring lattice, a double-ruled label masthead with a benzene
     watermark, hexagon-bulleted headings, and your own name picked out with a
@@ -327,16 +313,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dropped below it onto its own line; now the dates stay pinned to the top-right of
   the first line and the title wraps beneath them — the way a clean academic CV
   reads. (The parser-safe ATS template, with its inline dates, is unchanged.)
-- **Reverted the preview scrollbar-hiding change.** It wasn't the cause of the
-  preview/PDF font difference (the bundled font above is), and hiding the scrollbar
-  made it harder to tell the preview can scroll — the scrollbar is back.
-
-- **The editor preview now wraps text exactly like the PDF.** The preview iframe
-  is A4-wide and scrolls internally, so on platforms with classic scrollbars (e.g.
-  Windows) the scrollbar stole ~15px and the preview wrapped fewer words per line
-  than the scrollbar-free PDF. The preview's scrollbar is now hidden so its text
-  column uses the full page width — matching the export — while scrolling still
-  works.
 - **The research-summary block now has the same gap below it as every other
   section.** When placed in its own labelled block (above or below the sections),
   it sat flush against the next section's heading on templates that tuck their
@@ -406,37 +382,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The "Choose your public-page design" hint no longer overflows the Publish
   popover.** The tip text was shortened (all ten languages) and the button now wraps
   instead of forcing the panel wider (it was running off the side).
-- **The "Neon" living-page style is now a cool-video-game arcade screen.** The
-  public page rendered in the Neon style gained a fixed pink + cyan arcade palette,
-  glowing HUD corner brackets pinned to the screen, faint rolling CRT scanlines, a
-  Tron-style perspective grid floor, an igniting neon-tube header frame with a light
-  running around it, publication panels that drop in and re-light on hover, rising
-  sparks and a sweeping beam — all CSS-only under the strict public-page CSP, with
-  the body copy kept crisp/legible and full `prefers-reduced-motion` + print
-  fallbacks. Affects only the `neon` public style; no export or document template
-  changes.
-- **The "Cyberpunk" living-page style is a full Arcane-flavoured arcade screen.**
-  A complete redesign of the `cyberpunk` public style into a Zaun/hextech "brawler"
-  aesthetic (genre & mood only — original CSS, no character likeness or trademarks):
-  a fixed pink + teal + brass palette on a near-black Zaun base; cinematic god-rays,
-  a chiaroscuro vignette, film grain, rising shimmer-embers and a toxic smog glow;
-  falling neon data-rain; a riveted hextech metal header plate; the name slams in
-  then glitch-flickers with a pink/teal chromatic split; graffiti hex section
-  headings; heavy energy-edged riveted entry plates that slam in and charge up on
-  hover; a hexagon "hextech-core" portrait; and a game HUD (glowing corner brackets,
-  a top energy-cell bar, a bottom data ticker, a sweeping radar, CRT scanlines, and
-  a pink->teal->brass progress beam). All CSS-only under the strict public-page CSP,
-  body copy kept crisp/AA-legible, with full `prefers-reduced-motion` + print
-  fallbacks. Affects only the `cyberpunk` public style; no export/document changes.
-- **The CV header now leads with you, not your numbers.** The optional metrics
-  strip moved below your summary and is laid out one metric per line — each with its
-  plain-language meaning ("1.0 = world average for field & year") and its coverage
-  caveat ("mean over 95 works") shown as visible text instead of a hover tooltip, so
-  the context is legible to everyone and survives to the printed PDF. The open-access
-  share now reads as a clean labelled row ("Open access — 45%") rather than a bare
-  phrase wedged into the strip. And the publications-per-year chart and the
-  authorship breakdown now sit side by side as one group when there's room (stacking
-  on narrow screens and in print).
+- **The CV header now leads with you, not your numbers.** When you turned on
+  metrics, charts and the authorship table they stacked directly under your name —
+  and on the dark public-page styles the two bright white cards out-shouted your
+  name, which made the header hard to read. Now your **summary** sits right under
+  your identity and ahead of those cards, and the optional metrics strip moved below
+  it, laid out one metric per line — each with its plain-language meaning ("1.0 =
+  world average for field & year") and its coverage caveat ("mean over 95 works")
+  shown as visible text instead of a hover tooltip, so the context is legible to
+  everyone and survives to the printed PDF. The open-access share now reads as a
+  clean labelled row ("Open access — 45%") rather than a bare phrase wedged into the
+  strip, and the publications-per-year chart and the authorship breakdown sit side by
+  side as one group when there's room (stacking on narrow screens and in print). The
+  charts were simplified too: the **citations-per-year chart is gone** (on a recent
+  window it is depressed by citation lag — the latest years look empty regardless of
+  impact — so it misled more than it informed), and the remaining
+  **publications-per-year chart now uses a plain linear scale** instead of a
+  hard-to-read logarithmic one. Applies to every template and the public page; the
+  chart simplification also carries into the DOCX export, the PDF mirrors the live
+  page, and the LaTeX year-by-year table (explicit numbers, not bars) is unchanged.
 
 ### Fixed
 
@@ -560,28 +524,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A friendly page when a public CV link doesn't resolve.** Following a mistyped
   or unpublished `/p/…` link, or hitting the rate limit, now shows a small branded
   page with a way back to SigmaCV, rather than a bare line of text.
-
-### Changed
-
-- **The top of the CV now leads with the person, not a wall of statistics.** When
-  you turned on metrics, charts and the authorship table, they stacked directly
-  under your name — and on the dark public-page styles the two bright white cards
-  (publication/citation charts and the authorship breakdown) out-shouted your
-  name, which made the header hard to read. Now your **summary** sits right under
-  your identity and ahead of those cards, so a reader meets who you are and what
-  you do before the numbers. The metric strip is tidied into one line that
-  **leads with your % open access**, and each field-normalised metric (FWCI, RCR)
-  keeps its short interpretation note inline (e.g. "1.0 = world average for field
-  & year") while the longer coverage detail ("mean over N works") moves to a
-  hover tooltip — shorter, upright (no more faint italics) and more legible. Tiny
-  chart/table captions were nudged up to a readable size. The charts were
-  simplified too: the **citations-per-year chart is gone** (on a recent window it
-  is depressed by citation lag — the latest years look empty regardless of impact
-  — so it misled more than it informed), and the remaining **publications-per-year
-  chart now uses a plain linear scale** instead of a hard-to-read logarithmic one.
-  Applies to every template and the public page; the chart simplification also
-  carries into the DOCX export, the PDF mirrors the live page, and the LaTeX
-  year-by-year table (which shows explicit numbers, not bars) is unchanged.
 
 ### Fixed
 
