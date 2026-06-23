@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-23
+
 ### Changed
 
 - **The "Hanko" public-page style is now an ukiyo-e world with brush-calligraphy
@@ -1321,5 +1323,6 @@ assessment that auto-generates academic CVs from open research data.
 - Privacy by design: per-field publish consent, data export, and account deletion
   (GDPR / Japan APPI); 10 UI locales; self-hostable via Docker Compose.
 
-[Unreleased]: https://github.com/BasileChretien/sigmacv/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/BasileChretien/sigmacv/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/BasileChretien/sigmacv/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/BasileChretien/sigmacv/releases/tag/v0.1.0
