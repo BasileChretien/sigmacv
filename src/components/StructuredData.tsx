@@ -21,8 +21,8 @@ interface StructuredDataProps {
 
 const NAME = "SigmaCV";
 // Kept in step with CITATION.cff / codemeta.json on each release.
-const APP_VERSION = "0.1.0";
-const DATE_PUBLISHED = "2026-06-08";
+const APP_VERSION = "0.2.0";
+const DATE_PUBLISHED = "2026-06-23";
 // The Wikidata item for SigmaCV (the software/project entity). Surfacing it as
 // `sameAs` closes the loop with Wikidata's own official-website statement, which
 // helps search + LLM knowledge graphs resolve SigmaCV as one entity.

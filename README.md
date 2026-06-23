@@ -378,10 +378,10 @@ it automatically. Machine-readable software metadata is also provided in
 
 SigmaCV is archived on **Zenodo** with a citable DOI. In papers, cite the
 **concept DOI** — [10.5281/zenodo.20594123](https://doi.org/10.5281/zenodo.20594123) —
-which always resolves to the latest version (the v0.1.0 release itself is
-[10.5281/zenodo.20594124](https://doi.org/10.5281/zenodo.20594124)).
+which always resolves to the latest version (the current v0.2.0 release itself is
+[10.5281/zenodo.20808834](https://doi.org/10.5281/zenodo.20808834)).
 
-> Chrétien, B. (2026). _SigmaCV_ (v0.1.0). Zenodo. https://doi.org/10.5281/zenodo.20594123
+> Chrétien, B. (2026). _SigmaCV_ (v0.2.0). Zenodo. https://doi.org/10.5281/zenodo.20594123
 
 To refer to the tool itself unambiguously, SigmaCV is registered in the
 [SciCrunch](https://scicrunch.org/) resource registry as
