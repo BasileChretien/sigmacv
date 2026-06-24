@@ -258,10 +258,14 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
             <li>{b.emailStep1}</li>
             <li>{b.emailStep2}</li>
             <li>{b.emailStep3}</li>
+            {/* The reliable fix: classic Outlook strips the link off a PASTED
+                image, so re-attach it with Ctrl+K (works with cloud signatures). */}
+            <li>{b.emailStep4}</li>
           </ol>
           {/* Classic Outlook strips the link off pasted images. A downloadable
               signature FILE is read by Outlook directly (no paste), so the badge
-              stays clickable with no manual linking. */}
+              stays clickable — but only when signatures are LOCAL (cloud/roaming
+              signatures ignore the file; see the caveat below). */}
           <details className="badge-email-file">
             <summary>{b.outlookFileSummary}</summary>
             <p className="badge-email-note muted">{b.outlookFileNote}</p>
@@ -275,6 +279,7 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
               <li>{b.outlookFileStep2}</li>
               <li>{b.outlookFileStep3}</li>
             </ol>
+            <p className="badge-email-note muted">{b.outlookFileCloudNote}</p>
           </details>
         </details>
         <details className="badge-qr">
