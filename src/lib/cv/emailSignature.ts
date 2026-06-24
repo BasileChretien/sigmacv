@@ -1,4 +1,4 @@
-import { escapeHtml } from "@/lib/render/escape";
+import { escapeHtml, safeHref } from "@/lib/render/escape";
 
 /**
  * Email-signature snippet for the "Living CV" badge.
@@ -58,8 +58,12 @@ export interface EmailSignatureArgs {
  * clipboard as a `text/html` blob.
  */
 export function emailSignatureHtml(a: EmailSignatureArgs): string {
-  const href = escapeHtml(a.pageUrl);
-  const src = escapeHtml(a.badgePngUrl);
+  // Scheme-allow-list (http(s) only) + strip any user:pass@ credentials before
+  // escaping — defence-in-depth so a caller can never emit a javascript:/data:
+  // URL or leak userinfo into the signature's href/src. An unsafe value fails
+  // closed to an empty attribute.
+  const href = escapeHtml(safeHref(a.pageUrl));
+  const src = escapeHtml(safeHref(a.badgePngUrl));
   const alt = escapeHtml(a.alt);
   const link = escapeHtml(a.linkText);
   const width = a.width ?? BADGE_PNG_DISPLAY.width;

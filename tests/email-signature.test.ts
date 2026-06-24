@@ -54,6 +54,23 @@ describe("emailSignatureHtml", () => {
     expect(html).toContain("&quot;onx"); // the quote can't break out of href
   });
 
+  it("scheme-allow-lists the href/src and strips userinfo (defence-in-depth)", () => {
+    // Unsafe schemes fail closed to an empty attribute — no javascript:/data: URL.
+    const evil = emailSignatureHtml({
+      ...base,
+      pageUrl: "javascript:alert(1)",
+      badgePngUrl: "data:image/png;base64,AAAA",
+    });
+    expect(evil).not.toContain("javascript:");
+    expect(evil).not.toContain("data:image");
+    expect(evil).toContain('href=""');
+    expect(evil).toContain('src=""');
+    // user:pass@ credentials are stripped from an otherwise-valid URL.
+    const creds = emailSignatureHtml({ ...base, pageUrl: "https://user:pass@sigmacv.org/p/abc" });
+    expect(creds).not.toContain("user:pass@");
+    expect(creds).toContain("https://sigmacv.org/p/abc");
+  });
+
   it("oversamples the PNG for hi-DPI mail clients", () => {
     expect(BADGE_PNG_SCALE).toBeGreaterThanOrEqual(2);
     expect(BADGE_PNG_DISPLAY.width).toBeGreaterThan(0);

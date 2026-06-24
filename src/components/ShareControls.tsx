@@ -105,12 +105,18 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
     try {
       const clip = navigator.clipboard;
       if (typeof ClipboardItem !== "undefined" && clip && "write" in clip) {
-        await clip.write([
-          new ClipboardItem({
-            "text/html": new Blob([html], { type: "text/html" }),
-            "text/plain": new Blob([plain], { type: "text/plain" }),
-          }),
-        ]);
+        try {
+          await clip.write([
+            new ClipboardItem({
+              "text/html": new Blob([html], { type: "text/html" }),
+              "text/plain": new Blob([plain], { type: "text/plain" }),
+            }),
+          ]);
+        } catch {
+          // Some browsers expose ClipboardItem but reject a text/html write at
+          // runtime — fall back to the plain-text link instead of failing.
+          await clip.writeText(plain);
+        }
       } else {
         await clip.writeText(plain);
       }
