@@ -56,6 +56,17 @@ export interface BadgeUiStrings {
   emailStep3: string;
   /** Reassurance that the text link still shows when images are blocked. */
   emailImageNote: string;
+  // ── Classic-Outlook "download a file" sub-panel ──
+  /** Disclosure summary for the downloadable-signature-file option. */
+  outlookFileSummary: string;
+  /** Why a file beats pasting in classic Outlook. */
+  outlookFileNote: string;
+  /** Download-the-file button. */
+  downloadOutlook: string;
+  /** Install steps for the downloaded .htm. */
+  outlookFileStep1: string;
+  outlookFileStep2: string;
+  outlookFileStep3: string;
 }
 
 const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
@@ -92,6 +103,15 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailStep3: "Paste with Ctrl+V (⌘V on Mac), then save.",
     emailImageNote:
       "If your mail app blocks images, recipients still see the text link below the badge.",
+    outlookFileSummary: "Classic Outlook (Windows): download a file instead",
+    outlookFileNote:
+      "Classic Outlook drops the link from pasted images. Installing this file keeps the badge clickable — no pasting, no manual linking.",
+    downloadOutlook: "Download for Outlook (.htm)",
+    outlookFileStep1:
+      "Press Win+R, type %APPDATA% and press Enter, then open Microsoft ▸ Signatures.",
+    outlookFileStep2: "Move the downloaded SigmaCV.htm into that folder, then restart Outlook.",
+    outlookFileStep3:
+      "In Outlook: File ▸ Options ▸ Mail ▸ Signatures, then pick SigmaCV. If it's missing, click New, name it SigmaCV, OK, close Outlook, then replace the new SigmaCV.htm with the downloaded file.",
   },
   "zh-CN": {
     heading: "获取徽章",
@@ -123,6 +143,14 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailStep2: "在签名框中点击你想放置徽章的位置。",
     emailStep3: "按 Ctrl+V（Mac 上为 ⌘V）粘贴，然后保存。",
     emailImageNote: "如果你的邮件应用屏蔽图片，收件人仍可看到徽章下方的文字链接。",
+    outlookFileSummary: "经典版 Outlook（Windows）：改为下载文件",
+    outlookFileNote:
+      "经典版 Outlook 会丢弃粘贴图片的链接。安装此文件可让徽章保持可点击——无需粘贴，也无需手动加链接。",
+    downloadOutlook: "下载 Outlook 版（.htm）",
+    outlookFileStep1: "按 Win+R，输入 %APPDATA% 并回车，然后打开 Microsoft ▸ Signatures 文件夹。",
+    outlookFileStep2: "将下载的 SigmaCV.htm 移动到该文件夹，然后重启 Outlook。",
+    outlookFileStep3:
+      "在 Outlook 中：文件 ▸ 选项 ▸ 邮件 ▸ 签名，然后选择 SigmaCV。若未出现，点击“新建”，命名为 SigmaCV，确定，关闭 Outlook，再用下载的文件替换新建的 SigmaCV.htm。",
   },
   "es-ES": {
     heading: "Obtén una insignia",
@@ -157,6 +185,15 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailStep3: "Pega con Ctrl+V (⌘V en Mac) y guarda.",
     emailImageNote:
       "Si tu aplicación de correo bloquea las imágenes, los destinatarios aún verán el enlace de texto bajo la insignia.",
+    outlookFileSummary: "Outlook clásico (Windows): descarga un archivo",
+    outlookFileNote:
+      "Outlook clásico elimina el enlace de las imágenes pegadas. Instalar este archivo mantiene la insignia clicable, sin pegar ni enlazar a mano.",
+    downloadOutlook: "Descargar para Outlook (.htm)",
+    outlookFileStep1:
+      "Pulsa Win+R, escribe %APPDATA% y pulsa Intro; luego abre la carpeta Microsoft ▸ Signatures.",
+    outlookFileStep2: "Mueve el SigmaCV.htm descargado a esa carpeta y reinicia Outlook.",
+    outlookFileStep3:
+      "En Outlook: Archivo ▸ Opciones ▸ Correo ▸ Firmas, y elige SigmaCV. Si no aparece, pulsa Nueva, nómbrala SigmaCV, Aceptar, cierra Outlook y reemplaza el nuevo SigmaCV.htm por el archivo descargado.",
   },
   "fr-FR": {
     heading: "Obtenir un badge",
@@ -191,6 +228,16 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailStep3: "Collez avec Ctrl+V (⌘V sur Mac), puis enregistrez.",
     emailImageNote:
       "Si votre messagerie bloque les images, les destinataires voient quand même le lien texte sous le badge.",
+    outlookFileSummary: "Outlook classique (Windows) : télécharger un fichier",
+    outlookFileNote:
+      "Outlook classique supprime le lien des images collées. Installer ce fichier garde le badge cliquable — sans coller ni ajouter le lien à la main.",
+    downloadOutlook: "Télécharger pour Outlook (.htm)",
+    outlookFileStep1:
+      "Appuyez sur Win+R, tapez %APPDATA% puis Entrée, et ouvrez le dossier Microsoft ▸ Signatures.",
+    outlookFileStep2:
+      "Déplacez le SigmaCV.htm téléchargé dans ce dossier, puis redémarrez Outlook.",
+    outlookFileStep3:
+      "Dans Outlook : Fichier ▸ Options ▸ Courrier ▸ Signatures, puis choisissez SigmaCV. S'il manque, cliquez sur Nouveau, nommez-le SigmaCV, OK, fermez Outlook, puis remplacez le nouveau SigmaCV.htm par le fichier téléchargé.",
   },
   "de-DE": {
     heading: "Badge erhalten",
@@ -225,6 +272,16 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailStep3: "Mit Strg+V (⌘V auf dem Mac) einfügen und speichern.",
     emailImageNote:
       "Wenn Ihre E-Mail-App Bilder blockiert, sehen Empfänger weiterhin den Textlink unter dem Badge.",
+    outlookFileSummary: "Klassisches Outlook (Windows): Datei herunterladen",
+    outlookFileNote:
+      "Klassisches Outlook entfernt den Link aus eingefügten Bildern. Diese Datei hält das Badge anklickbar – ohne Einfügen, ohne manuelles Verlinken.",
+    downloadOutlook: "Für Outlook herunterladen (.htm)",
+    outlookFileStep1:
+      "Drücken Sie Win+R, geben Sie %APPDATA% ein und drücken Sie Enter; öffnen Sie dann den Ordner Microsoft ▸ Signatures.",
+    outlookFileStep2:
+      "Verschieben Sie die heruntergeladene SigmaCV.htm in diesen Ordner und starten Sie Outlook neu.",
+    outlookFileStep3:
+      "In Outlook: Datei ▸ Optionen ▸ E-Mail ▸ Signaturen, dann SigmaCV auswählen. Fehlt sie, auf Neu klicken, SigmaCV nennen, OK, Outlook schließen und die neue SigmaCV.htm durch die heruntergeladene Datei ersetzen.",
   },
   "ja-JP": {
     heading: "バッジを取得",
@@ -259,6 +316,16 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailStep3: "Ctrl+V（Mac は ⌘V）で貼り付け、保存します。",
     emailImageNote:
       "メールアプリが画像をブロックしても、受信者にはバッジ下のテキストリンクが表示されます。",
+    outlookFileSummary: "従来の Outlook（Windows）：ファイルをダウンロード",
+    outlookFileNote:
+      "従来の Outlook は貼り付けた画像のリンクを削除します。このファイルを入れると、貼り付けや手動リンクなしでバッジがクリック可能なままになります。",
+    downloadOutlook: "Outlook 用をダウンロード（.htm）",
+    outlookFileStep1:
+      "Win+R を押し、%APPDATA% と入力して Enter を押し、Microsoft ▸ Signatures フォルダーを開きます。",
+    outlookFileStep2:
+      "ダウンロードした SigmaCV.htm をそのフォルダーに移動し、Outlook を再起動します。",
+    outlookFileStep3:
+      "Outlook で：ファイル ▸ オプション ▸ メール ▸ 署名 を開き、SigmaCV を選びます。ない場合は「新規作成」をクリックして SigmaCV と名付けて OK、Outlook を閉じ、新しい SigmaCV.htm をダウンロードしたファイルで置き換えます。",
   },
   "pt-BR": {
     heading: "Obter um selo",
@@ -293,6 +360,15 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailStep3: "Cole com Ctrl+V (⌘V no Mac) e salve.",
     emailImageNote:
       "Se seu aplicativo de e-mail bloquear imagens, os destinatários ainda verão o link de texto abaixo do selo.",
+    outlookFileSummary: "Outlook clássico (Windows): baixe um arquivo",
+    outlookFileNote:
+      "O Outlook clássico remove o link de imagens coladas. Instalar este arquivo mantém o selo clicável — sem colar nem vincular manualmente.",
+    downloadOutlook: "Baixar para Outlook (.htm)",
+    outlookFileStep1:
+      "Pressione Win+R, digite %APPDATA% e pressione Enter; depois abra a pasta Microsoft ▸ Signatures.",
+    outlookFileStep2: "Mova o SigmaCV.htm baixado para essa pasta e reinicie o Outlook.",
+    outlookFileStep3:
+      "No Outlook: Arquivo ▸ Opções ▸ Email ▸ Assinaturas e escolha SigmaCV. Se não aparecer, clique em Novo, nomeie SigmaCV, OK, feche o Outlook e substitua o novo SigmaCV.htm pelo arquivo baixado.",
   },
   "it-IT": {
     heading: "Ottieni un badge",
@@ -327,6 +403,15 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailStep3: "Incolla con Ctrl+V (⌘V su Mac), poi salva.",
     emailImageNote:
       "Se la tua app di posta blocca le immagini, i destinatari vedono comunque il link testuale sotto il badge.",
+    outlookFileSummary: "Outlook classico (Windows): scarica un file",
+    outlookFileNote:
+      "Outlook classico rimuove il link dalle immagini incollate. Installare questo file mantiene il badge cliccabile — senza incollare né collegare a mano.",
+    downloadOutlook: "Scarica per Outlook (.htm)",
+    outlookFileStep1:
+      "Premi Win+R, digita %APPDATA% e premi Invio; poi apri la cartella Microsoft ▸ Signatures.",
+    outlookFileStep2: "Sposta il SigmaCV.htm scaricato in quella cartella e riavvia Outlook.",
+    outlookFileStep3:
+      "In Outlook: File ▸ Opzioni ▸ Posta ▸ Firme e scegli SigmaCV. Se manca, clicca Nuova, chiamala SigmaCV, OK, chiudi Outlook e sostituisci la nuova SigmaCV.htm con il file scaricato.",
   },
   "ko-KR": {
     heading: "배지 받기",
@@ -361,6 +446,15 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailStep3: "Ctrl+V(Mac은 ⌘V)로 붙여넣은 다음 저장합니다.",
     emailImageNote:
       "메일 앱이 이미지를 차단해도 수신자는 배지 아래의 텍스트 링크를 볼 수 있습니다.",
+    outlookFileSummary: "클래식 Outlook(Windows): 파일 다운로드",
+    outlookFileNote:
+      "클래식 Outlook은 붙여넣은 이미지의 링크를 제거합니다. 이 파일을 설치하면 붙여넣기나 수동 링크 없이 배지가 클릭 가능하게 유지됩니다.",
+    downloadOutlook: "Outlook용 다운로드(.htm)",
+    outlookFileStep1:
+      "Win+R를 누르고 %APPDATA%를 입력해 Enter를 누른 다음 Microsoft ▸ Signatures 폴더를 엽니다.",
+    outlookFileStep2: "다운로드한 SigmaCV.htm을 그 폴더로 옮긴 후 Outlook을 다시 시작합니다.",
+    outlookFileStep3:
+      "Outlook에서: 파일 ▸ 옵션 ▸ 메일 ▸ 서명 에서 SigmaCV를 선택합니다. 없으면 새로 만들기를 클릭해 SigmaCV로 이름 지정, 확인, Outlook 닫기, 새 SigmaCV.htm을 다운로드한 파일로 교체합니다.",
   },
   "ru-RU": {
     heading: "Получить значок",
@@ -395,6 +489,15 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailStep3: "Вставьте с помощью Ctrl+V (⌘V на Mac) и сохраните.",
     emailImageNote:
       "Если ваше почтовое приложение блокирует изображения, получатели всё равно увидят текстовую ссылку под значком.",
+    outlookFileSummary: "Классический Outlook (Windows): скачать файл",
+    outlookFileNote:
+      "Классический Outlook удаляет ссылку у вставленных изображений. Этот файл сохраняет значок кликабельным — без вставки и ручной привязки ссылки.",
+    downloadOutlook: "Скачать для Outlook (.htm)",
+    outlookFileStep1:
+      "Нажмите Win+R, введите %APPDATA% и нажмите Enter, затем откройте папку Microsoft ▸ Signatures.",
+    outlookFileStep2: "Переместите скачанный SigmaCV.htm в эту папку и перезапустите Outlook.",
+    outlookFileStep3:
+      "В Outlook: Файл ▸ Параметры ▸ Почта ▸ Подписи и выберите SigmaCV. Если её нет, нажмите «Создать», назовите SigmaCV, OK, закройте Outlook и замените новый SigmaCV.htm скачанным файлом.",
   },
 };
 

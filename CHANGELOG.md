@@ -29,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   render cache as the OG card), with a **text-link fallback** beneath for
   image-blocked clients. Localized in all ten locales with short Outlook paste
   steps.
+  - **"Download for Outlook (.htm)"** option in the same panel, for **classic
+    Outlook on Windows** — which strips the hyperlink off _pasted_ images (keeping
+    text links). Outlook reads a signature **file** directly (no paste sanitizer),
+    so installing the downloaded `SigmaCV.htm` keeps the **badge image clickable**
+    with no manual linking. Includes install steps (all ten locales). The badge
+    `<img>` also gained a `border="0"` attribute so Outlook draws no blue
+    link-border around it.
 
 ## [0.2.0] - 2026-06-23
 
