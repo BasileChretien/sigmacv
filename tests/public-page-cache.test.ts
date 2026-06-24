@@ -1,15 +1,19 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
   __resetPublicPageCache,
+  dedupeBadgePng,
   dedupeOgImage,
   dedupePublicRender,
+  getCachedBadgePng,
   getCachedOgImage,
   getCachedPublicPage,
   invalidatePublicPage,
   isKnownMiss,
   rememberMiss,
+  setCachedBadgePng,
   setCachedOgImage,
   setCachedPublicPage,
+  type BadgePngEntry,
   type OgImageEntry,
   type PublicPageEntry,
 } from "@/lib/cv/publicPageCache";
@@ -126,6 +130,53 @@ describe("publicPageCache", () => {
       );
       expect(calls).toBe(1);
       expect(results.every((r) => r.bytes[0] === 9)).toBe(true);
+    });
+  });
+
+  describe("email-badge PNG cache", () => {
+    it("stores + returns badge bytes and expires after the 5-minute TTL", () => {
+      const bytes = new Uint8Array([4, 5, 6]);
+      setCachedBadgePng("bp1", { bytes, indexable: true }, 1000);
+      expect(getCachedBadgePng("bp1", 1500)?.bytes).toBe(bytes);
+      expect(getCachedBadgePng("bp1", 1500)?.indexable).toBe(true);
+      expect(getCachedBadgePng("bp1", 1000 + 301_000)).toBeNull();
+    });
+
+    it("is a SEPARATE cache from the OG card (no slug collision)", () => {
+      setCachedOgImage("same", { bytes: new Uint8Array([1]), indexable: true }, 1000);
+      setCachedBadgePng("same", { bytes: new Uint8Array([2]), indexable: false }, 1000);
+      expect(getCachedOgImage("same", 1100)?.bytes[0]).toBe(1);
+      expect(getCachedBadgePng("same", 1100)?.bytes[0]).toBe(2);
+    });
+
+    it("invalidate clears the badge PNG too (publish-state change)", () => {
+      setCachedBadgePng("bp2", { bytes: new Uint8Array([1]), indexable: false }, 1000);
+      invalidatePublicPage("bp2");
+      expect(getCachedBadgePng("bp2", 1100)).toBeNull();
+    });
+
+    it("bounds the badge cache by total bytes", () => {
+      const big = new Uint8Array(10_000_000); // 10 MB, stored by reference
+      for (let i = 0; i < 8; i++) {
+        setCachedBadgePng(`bpbig-${i}`, { bytes: big, indexable: false }, 5000);
+      }
+      // 8 × 10 MB = 80 MB > 64 MB budget → the oldest were evicted.
+      expect(getCachedBadgePng("bpbig-0", 5000)).toBeNull();
+      expect(getCachedBadgePng("bpbig-7", 5000)).not.toBeNull();
+    });
+
+    it("single-flights concurrent badge renders for the same slug", async () => {
+      let calls = 0;
+      const render = () =>
+        new Promise<BadgePngEntry>((resolve) => {
+          calls++;
+          setTimeout(() => resolve({ bytes: new Uint8Array([7]), indexable: false }), 5);
+        });
+      const results = await Promise.all(
+        Array.from({ length: 4 }, () => dedupeBadgePng("bpdup", render)),
+      );
+      expect(calls).toBe(1);
+      expect(results.every((r) => r.bytes[0] === 7)).toBe(true);
     });
   });
 

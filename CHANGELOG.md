@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **"Add to my email signature"** for the Living-CV badge (Share menu). One click
+  copies the badge as **rich HTML** (via the async Clipboard API's `text/html`
+  flavor) so pasting into Outlook, Gmail or any signature editor inserts a
+  rendered, clickable badge — not the raw markup the Markdown/HTML/URL snippets
+  produced. To survive Outlook (classic Outlook for Windows renders no SVG), the
+  copied snippet uses a new **Outlook-safe PNG badge** served at
+  `/p/<slug>/badge.png` (Satori/Resvg, same fail-closed lookup + rate-limit +
+  render cache as the OG card), with a **text-link fallback** beneath for
+  image-blocked clients. Localized in all ten locales with short Outlook paste
+  steps.
+
 ## [0.2.0] - 2026-06-23
 
 ### Added
