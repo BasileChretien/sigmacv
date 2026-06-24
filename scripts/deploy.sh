@@ -46,6 +46,16 @@ if [ -n "$cid" ]; then
   echo "[deploy] App health: ${status:-unknown}"
 fi
 
+# Apply any Caddyfile change. The Caddyfile is a mounted volume, so `up -d` does
+# NOT reload Caddy when only the file changed — without this, edits to the proxy
+# config (health checks / retry window) would silently never take effect. A
+# `caddy reload` is graceful (zero-downtime config swap); the app's new IP after a
+# recreate is picked up automatically via Docker DNS, so no reload is needed for
+# that. Fall back to a recreate if the admin reload isn't available.
+echo "[deploy] Reloading Caddy config (graceful)…"
+compose "$@" exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile 2>/dev/null \
+  || compose "$@" up -d --force-recreate caddy
+
 echo "[deploy] Pruning dangling images…"
 docker image prune -f >/dev/null 2>&1 || true
 
