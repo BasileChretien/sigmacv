@@ -116,8 +116,9 @@ function parseHex(hex: string): { r: number; g: number; b: number } {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 
-/** Pick near-black or white text for legibility on a solid `hex` fill. */
-function readableOn(hex: string): string {
+/** Pick near-black or white text for legibility on a solid `hex` fill. Exported
+ *  so the raster email-badge card (`badge.png`) tints its avatar identically. */
+export function readableOn(hex: string): string {
   const { r, g, b } = parseHex(hex);
   const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return lum > 0.6 ? "#1f2328" : "#ffffff";
@@ -141,8 +142,9 @@ function textWidth(s: string, fontSize: number): number {
   return Math.ceil(w);
 }
 
-/** "Jun 2026" for a stored ISO date, or "" when missing/unparseable. */
-function syncedLabel(iso: string | undefined): string {
+/** "Jun 2026" for a stored ISO date, or "" when missing/unparseable. Exported
+ *  so the raster email-badge card reuses the same coarse-month freshness label. */
+export function syncedLabel(iso: string | undefined): string {
   if (!iso) return "";
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return "";

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 import { badgeUi } from "@/lib/i18n/badgeUi";
+import { emailSignatureHtml, BADGE_PNG_DISPLAY } from "@/lib/cv/emailSignature";
 import { trackEvent } from "@/lib/analytics/track";
 
 /** Launder a `<select>` value into a known badge style/theme by returning LITERAL
@@ -38,6 +39,7 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
   const [badgeStyle, setBadgeStyle] = useState("pill");
   const [badgeTheme, setBadgeTheme] = useState("auto");
   const [copied, setCopied] = useState(false);
+  const [signatureCopied, setSignatureCopied] = useState(false);
   // Polite live region for copy confirmations (announced to assistive tech).
   const [announce, setAnnounce] = useState("");
   const [origin] = useState(() => (typeof window !== "undefined" ? window.location.origin : ""));
@@ -55,6 +57,11 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
   const badgeHtml = `<a href="${pageUrl}"><img src="${badgeUrl}" alt="${badgeAlt}" /></a>`;
   const qrSrc = `/p/${slug}/qr.svg`;
   const qrUrl = `${base}${qrSrc}`;
+  // The email signature uses an Outlook-safe PNG (classic Outlook renders no SVG)
+  // served from its own route; the preview uses a RELATIVE src, the copied snippet
+  // an absolute URL (so it resolves from any mail client).
+  const badgePngSrc = `/p/${slug}/badge.png`;
+  const badgePngUrl = `${base}${badgePngSrc}`;
 
   async function copyLink() {
     try {
@@ -74,6 +81,49 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
       setAnnounce(u.linkCopied);
       // Neutral product signal only — which snippet format, never identifiers.
       trackEvent("Badge snippet copied", { format });
+    } catch {
+      // clipboard may be unavailable; ignore (non-critical)
+    }
+  }
+
+  /**
+   * Copy the badge as RICH HTML so pasting into a signature editor (Outlook,
+   * Gmail) inserts a rendered, clickable badge — not the raw markup the
+   * plain-text snippets produce. Writes a `ClipboardItem` carrying both a
+   * `text/html` flavor (the linked PNG + text fallback) and a `text/plain`
+   * flavor (the link) so clients that take only plain text still get something
+   * useful; degrades to `writeText` where `ClipboardItem` is unavailable.
+   */
+  async function copyEmailSignature() {
+    const html = emailSignatureHtml({
+      pageUrl,
+      badgePngUrl,
+      alt: b.previewAlt,
+      linkText: b.emailLinkText,
+    });
+    const plain = `${b.emailLinkText}: ${pageUrl}`;
+    try {
+      const clip = navigator.clipboard;
+      if (typeof ClipboardItem !== "undefined" && clip && "write" in clip) {
+        try {
+          await clip.write([
+            new ClipboardItem({
+              "text/html": new Blob([html], { type: "text/html" }),
+              "text/plain": new Blob([plain], { type: "text/plain" }),
+            }),
+          ]);
+        } catch {
+          // Some browsers expose ClipboardItem but reject a text/html write at
+          // runtime — fall back to the plain-text link instead of failing.
+          await clip.writeText(plain);
+        }
+      } else {
+        await clip.writeText(plain);
+      }
+      setSignatureCopied(true);
+      setAnnounce(b.emailCopied);
+      trackEvent("Badge snippet copied", { format: "email" });
+      window.setTimeout(() => setSignatureCopied(false), 2500);
     } catch {
       // clipboard may be unavailable; ignore (non-critical)
     }
@@ -159,6 +209,30 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
             {b.copyLink}
           </button>
         </div>
+        {/* "Email signature" — one click copies a RICH badge (Outlook-safe PNG +
+            text fallback) so pasting into a signature renders, instead of the raw
+            code the plain-text snippets above produce. */}
+        <details className="badge-email">
+          <summary>{b.emailHeading}</summary>
+          <p className="badge-email-intro muted">{b.emailIntro}</p>
+          <div className="badge-preview">
+            {/* eslint-disable-next-line @next/next/no-img-element -- an Outlook-safe
+                raster badge, not a Next-optimized asset. */}
+            <img src={badgePngSrc} alt={b.previewAlt} />
+          </div>
+          <div className="badge-actions">
+            <button type="button" className="btn btn-sm btn-primary" onClick={copyEmailSignature}>
+              {signatureCopied ? b.emailCopied : b.emailButton}
+            </button>
+          </div>
+          <p className="badge-email-note muted">{b.emailImageNote}</p>
+          <p className="badge-email-steps-heading">{b.emailStepsHeading}</p>
+          <ol className="badge-email-steps">
+            <li>{b.emailStep1}</li>
+            <li>{b.emailStep2}</li>
+            <li>{b.emailStep3}</li>
+          </ol>
+        </details>
         <details className="badge-qr">
           <summary>{b.qrLabel}</summary>
           <p className="badge-qr-hint muted">{b.qrHint}</p>
