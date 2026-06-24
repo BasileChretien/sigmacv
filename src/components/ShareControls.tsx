@@ -3,11 +3,7 @@
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 import { badgeUi } from "@/lib/i18n/badgeUi";
-import {
-  emailSignatureHtml,
-  outlookSignatureDocument,
-  BADGE_PNG_DISPLAY,
-} from "@/lib/cv/emailSignature";
+import { escapeHtml, safeHref } from "@/lib/render/escape";
 import { trackEvent } from "@/lib/analytics/track";
 
 /** Launder a `<select>` value into a known badge style/theme by returning LITERAL
@@ -61,11 +57,6 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
   const badgeHtml = `<a href="${pageUrl}"><img src="${badgeUrl}" alt="${badgeAlt}" /></a>`;
   const qrSrc = `/p/${slug}/qr.svg`;
   const qrUrl = `${base}${qrSrc}`;
-  // The email signature uses an Outlook-safe PNG (classic Outlook renders no SVG)
-  // served from its own route; the preview uses a RELATIVE src, the copied snippet
-  // an absolute URL (so it resolves from any mail client).
-  const badgePngSrc = `/p/${slug}/badge.png`;
-  const badgePngUrl = `${base}${badgePngSrc}`;
 
   async function copyLink() {
     try {
@@ -93,19 +84,17 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
   /**
    * Copy the badge as RICH HTML so pasting into a signature editor (Outlook,
    * Gmail) inserts a rendered, clickable badge — not the raw markup the
-   * plain-text snippets produce. Writes a `ClipboardItem` carrying both a
-   * `text/html` flavor (the linked PNG + text fallback) and a `text/plain`
-   * flavor (the link) so clients that take only plain text still get something
-   * useful; degrades to `writeText` where `ClipboardItem` is unavailable.
+   * plain-text "Copy HTML" snippet produces. Same linked badge as `badgeHtml`,
+   * but written as a `text/html` clipboard flavor — an ACTIVE sink once the
+   * editor parses it — so the href/src are scheme-allow-listed (`safeHref`) and
+   * attribute-escaped here. A `text/plain` flavor (the link) covers clients that
+   * take only plain text; degrades to `writeText` where `ClipboardItem` is absent.
    */
   async function copyEmailSignature() {
-    const html = emailSignatureHtml({
-      pageUrl,
-      badgePngUrl,
-      alt: b.previewAlt,
-      linkText: b.emailLinkText,
-    });
-    const plain = `${b.emailLinkText}: ${pageUrl}`;
+    const href = escapeHtml(safeHref(pageUrl));
+    const src = escapeHtml(safeHref(badgeUrl));
+    const html = `<a href="${href}"><img src="${src}" alt="${escapeHtml(badgeAlt)}" /></a>`;
+    const plain = pageUrl;
     try {
       const clip = navigator.clipboard;
       if (typeof ClipboardItem !== "undefined" && clip && "write" in clip) {
@@ -131,29 +120,6 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
     } catch {
       // clipboard may be unavailable; ignore (non-critical)
     }
-  }
-
-  /**
-   * Download the signature as a classic-Outlook signature FILE (`SigmaCV.htm`).
-   * Outlook reads the file directly as the signature source — no clipboard paste,
-   * so the hyperlink on the badge image survives (the paste path loses it: classic
-   * Outlook strips links off pasted images). Dropping the file in the Signatures
-   * folder makes the badge clickable with no manual linking.
-   */
-  function downloadOutlookSignature() {
-    const doc = outlookSignatureDocument(
-      emailSignatureHtml({ pageUrl, badgePngUrl, alt: b.previewAlt, linkText: b.emailLinkText }),
-    );
-    const url = URL.createObjectURL(new Blob([doc], { type: "text/html;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "SigmaCV.htm";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    setAnnounce(b.downloadOutlook);
-    trackEvent("Badge snippet copied", { format: "outlook-file" });
   }
 
   return (
@@ -236,23 +202,22 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
             {b.copyLink}
           </button>
         </div>
-        {/* "Email signature" — one click copies a RICH badge (Outlook-safe PNG +
-            text fallback) so pasting into a signature renders, instead of the raw
-            code the plain-text snippets above produce. */}
+        {/* "Email signature" — one click copies the SAME linked badge as the
+            "Copy HTML" snippet, but as RICH text/html so pasting into a signature
+            editor renders the badge instead of the raw code. */}
         <details className="badge-email">
           <summary>{b.emailHeading}</summary>
           <p className="badge-email-intro muted">{b.emailIntro}</p>
           <div className="badge-preview">
-            {/* eslint-disable-next-line @next/next/no-img-element -- an Outlook-safe
-                raster badge, not a Next-optimized asset. */}
-            <img src={badgePngSrc} alt={b.previewAlt} />
+            {/* eslint-disable-next-line @next/next/no-img-element -- a third-party-
+                cacheable SVG badge, not a Next-optimized asset. */}
+            <img src={badgeSrc} alt={b.previewAlt} />
           </div>
           <div className="badge-actions">
             <button type="button" className="btn btn-sm btn-primary" onClick={copyEmailSignature}>
               {signatureCopied ? b.emailCopied : b.emailButton}
             </button>
           </div>
-          <p className="badge-email-note muted">{b.emailImageNote}</p>
           <p className="badge-email-steps-heading">{b.emailStepsHeading}</p>
           <ol className="badge-email-steps">
             <li>{b.emailStep1}</li>
@@ -262,25 +227,6 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
                 image, so re-attach it with Ctrl+K (works with cloud signatures). */}
             <li>{b.emailStep4}</li>
           </ol>
-          {/* Classic Outlook strips the link off pasted images. A downloadable
-              signature FILE is read by Outlook directly (no paste), so the badge
-              stays clickable — but only when signatures are LOCAL (cloud/roaming
-              signatures ignore the file; see the caveat below). */}
-          <details className="badge-email-file">
-            <summary>{b.outlookFileSummary}</summary>
-            <p className="badge-email-note muted">{b.outlookFileNote}</p>
-            <div className="badge-actions">
-              <button type="button" className="btn btn-sm" onClick={downloadOutlookSignature}>
-                {b.downloadOutlook}
-              </button>
-            </div>
-            <ol className="badge-email-steps">
-              <li>{b.outlookFileStep1}</li>
-              <li>{b.outlookFileStep2}</li>
-              <li>{b.outlookFileStep3}</li>
-            </ol>
-            <p className="badge-email-note muted">{b.outlookFileCloudNote}</p>
-          </details>
         </details>
         <details className="badge-qr">
           <summary>{b.qrLabel}</summary>
