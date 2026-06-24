@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 import { badgeUi } from "@/lib/i18n/badgeUi";
-import { emailSignatureHtml, BADGE_PNG_DISPLAY } from "@/lib/cv/emailSignature";
+import {
+  emailSignatureHtml,
+  outlookSignatureDocument,
+  BADGE_PNG_DISPLAY,
+} from "@/lib/cv/emailSignature";
 import { trackEvent } from "@/lib/analytics/track";
 
 /** Launder a `<select>` value into a known badge style/theme by returning LITERAL
@@ -129,6 +133,29 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
     }
   }
 
+  /**
+   * Download the signature as a classic-Outlook signature FILE (`SigmaCV.htm`).
+   * Outlook reads the file directly as the signature source — no clipboard paste,
+   * so the hyperlink on the badge image survives (the paste path loses it: classic
+   * Outlook strips links off pasted images). Dropping the file in the Signatures
+   * folder makes the badge clickable with no manual linking.
+   */
+  function downloadOutlookSignature() {
+    const doc = outlookSignatureDocument(
+      emailSignatureHtml({ pageUrl, badgePngUrl, alt: b.previewAlt, linkText: b.emailLinkText }),
+    );
+    const url = URL.createObjectURL(new Blob([doc], { type: "text/html;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "SigmaCV.htm";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setAnnounce(b.downloadOutlook);
+    trackEvent("Badge snippet copied", { format: "outlook-file" });
+  }
+
   return (
     <div className="account-controls">
       {/* Polite live region (always mounted): copy confirmations. */}
@@ -232,6 +259,23 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
             <li>{b.emailStep2}</li>
             <li>{b.emailStep3}</li>
           </ol>
+          {/* Classic Outlook strips the link off pasted images. A downloadable
+              signature FILE is read by Outlook directly (no paste), so the badge
+              stays clickable with no manual linking. */}
+          <details className="badge-email-file">
+            <summary>{b.outlookFileSummary}</summary>
+            <p className="badge-email-note muted">{b.outlookFileNote}</p>
+            <div className="badge-actions">
+              <button type="button" className="btn btn-sm" onClick={downloadOutlookSignature}>
+                {b.downloadOutlook}
+              </button>
+            </div>
+            <ol className="badge-email-steps">
+              <li>{b.outlookFileStep1}</li>
+              <li>{b.outlookFileStep2}</li>
+              <li>{b.outlookFileStep3}</li>
+            </ol>
+          </details>
         </details>
         <details className="badge-qr">
           <summary>{b.qrLabel}</summary>

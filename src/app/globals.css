@@ -1237,6 +1237,23 @@ input[type="radio"] {
 .badge-email-steps li {
   margin-bottom: var(--space-1);
 }
+.badge-email-file {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+.badge-email-file > summary {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  list-style: none;
+}
+.badge-email-file > summary::-webkit-details-marker {
+  display: none;
+}
+.badge-email-file .badge-actions {
+  margin: var(--space-2) 0;
+}
 @media (prefers-reduced-motion: reduce) {
   .popover-panel {
     transition: none;

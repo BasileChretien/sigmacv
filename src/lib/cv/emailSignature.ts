@@ -75,7 +75,7 @@ export function emailSignatureHtml(a: EmailSignatureArgs): string {
     `<tr><td style="padding:0;line-height:0">` +
     `<a href="${href}" target="_blank" rel="noopener noreferrer" ` +
     `style="text-decoration:none;border:0">` +
-    `<img src="${src}" alt="${alt}" width="${width}" height="${height}" ` +
+    `<img src="${src}" alt="${alt}" width="${width}" height="${height}" border="0" ` +
     `style="display:block;width:${width}px;height:${height}px;border:0;outline:none;text-decoration:none" />` +
     `</a></td></tr>` +
     `<tr><td style="padding:6px 2px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.3">` +
@@ -83,5 +83,30 @@ export function emailSignatureHtml(a: EmailSignatureArgs): string {
     `style="color:${accent};text-decoration:none">${link}&#160;&#8594;</a>` +
     `</td></tr>` +
     `</table>`
+  );
+}
+
+/**
+ * Wrap a signature fragment in a complete, minimal HTML document for use as a
+ * **classic-Outlook signature FILE** (`%APPDATA%\Microsoft\Signatures\<name>.htm`).
+ *
+ * Outlook reads a signature `.htm` directly as the signature's source — there is
+ * no clipboard paste, so the `<a>` around the badge image survives and the badge
+ * stays **clickable**. (The paste path loses it: classic Outlook strips the
+ * hyperlink off pasted images while keeping text links.) PURE; `bodyHtml` is the
+ * already-escaped `emailSignatureHtml` fragment, so no user data is interpolated
+ * here.
+ */
+export function outlookSignatureDocument(bodyHtml: string): string {
+  return (
+    `<!DOCTYPE html>\n` +
+    `<html xmlns="http://www.w3.org/1999/xhtml">\n` +
+    `<head>\n` +
+    `<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n` +
+    `<meta name="generator" content="SigmaCV" />\n` +
+    `<title>Email signature</title>\n` +
+    `</head>\n` +
+    `<body>\n${bodyHtml}\n</body>\n` +
+    `</html>\n`
   );
 }

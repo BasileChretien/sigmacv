@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { emailSignatureHtml, BADGE_PNG_DISPLAY, BADGE_PNG_SCALE } from "@/lib/cv/emailSignature";
+import {
+  emailSignatureHtml,
+  outlookSignatureDocument,
+  BADGE_PNG_DISPLAY,
+  BADGE_PNG_SCALE,
+} from "@/lib/cv/emailSignature";
 
 const base = {
   pageUrl: "https://sigmacv.org/p/abc",
@@ -21,6 +26,8 @@ describe("emailSignatureHtml", () => {
     expect(html).toContain("View my living CV");
     // Linked twice: the image and the text fallback.
     expect(html.match(/<a /g)?.length).toBe(2);
+    // border="0" attribute (not just CSS) so Outlook draws no blue link-border.
+    expect(html).toContain('border="0"');
   });
 
   it("defaults the <img> dimensions to the badge display size", () => {
@@ -75,5 +82,25 @@ describe("emailSignatureHtml", () => {
     expect(BADGE_PNG_SCALE).toBeGreaterThanOrEqual(2);
     expect(BADGE_PNG_DISPLAY.width).toBeGreaterThan(0);
     expect(BADGE_PNG_DISPLAY.height).toBeGreaterThan(0);
+  });
+});
+
+describe("outlookSignatureDocument", () => {
+  it("wraps the fragment in a complete HTML document", () => {
+    const doc = outlookSignatureDocument(emailSignatureHtml(base));
+    expect(doc.startsWith("<!DOCTYPE html>")).toBe(true);
+    expect(doc).toContain("<html");
+    expect(doc).toContain("<head>");
+    expect(doc).toContain('content="text/html; charset=utf-8"');
+    expect(doc).toContain("<body>");
+    expect(doc.trimEnd().endsWith("</html>")).toBe(true);
+  });
+
+  it("preserves the clickable linked image (no paste sanitizer involved)", () => {
+    const doc = outlookSignatureDocument(emailSignatureHtml(base));
+    // The <a href> wrapping the badge <img> is in the file verbatim — this is why
+    // a downloaded signature keeps the badge clickable where pasting loses it.
+    expect(doc).toMatch(/<a href="https:\/\/sigmacv\.org\/p\/abc"[^>]*>\s*<img /);
+    expect(doc).toContain("badge.png");
   });
 });
