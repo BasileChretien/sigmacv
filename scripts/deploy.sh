@@ -51,10 +51,22 @@ fi
 # config (health checks / retry window) would silently never take effect. A
 # `caddy reload` is graceful (zero-downtime config swap); the app's new IP after a
 # recreate is picked up automatically via Docker DNS, so no reload is needed for
-# that. Fall back to a recreate if the admin reload isn't available.
-echo "[deploy] Reloading Caddy config (graceful)…"
-compose "$@" exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile 2>/dev/null \
-  || compose "$@" up -d --force-recreate caddy
+# that.
+#
+# Validate BEFORE touching the running Caddy. A failed `reload` is safe — it
+# leaves the live instance on its old, working config — but blindly falling back
+# to `--force-recreate` with a broken Caddyfile would crash-loop the edge and take
+# the whole site down. So reload/recreate only once the config is known good; the
+# recreate fallback then covers the narrow case where the config is valid but the
+# admin reload API is unreachable. Errors stay visible (no stderr suppression).
+echo "[deploy] Validating + reloading Caddy config…"
+if compose "$@" exec -T caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile; then
+  compose "$@" exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile \
+    || compose "$@" up -d --force-recreate caddy
+else
+  echo "[deploy] ⚠️  Caddyfile failed validation — left the running Caddy untouched. Fix it and re-run." >&2
+  exit 1
+fi
 
 echo "[deploy] Pruning dangling images…"
 docker image prune -f >/dev/null 2>&1 || true
