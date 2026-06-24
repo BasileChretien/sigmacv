@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     with no manual linking. Includes install steps (all ten locales). The badge
     `<img>` also gained a `border="0"` attribute so Outlook draws no blue
     link-border around it.
+  - The paste steps now include the **reliable, version-agnostic fix** for the
+    pasted badge not being clickable — re-attach the link with **Ctrl+K** (works
+    even with Microsoft 365 **cloud/roaming signatures**) — and the download-file
+    option carries a caveat that cloud signatures ignore the local file.
 
 ## [0.2.0] - 2026-06-23
 

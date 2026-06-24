@@ -67,6 +67,11 @@ export interface BadgeUiStrings {
   outlookFileStep1: string;
   outlookFileStep2: string;
   outlookFileStep3: string;
+  /** Extra paste step: link the image (Ctrl+K) so the badge itself is clickable
+   *  — classic Outlook strips the link off pasted images. The reliable fix. */
+  emailStep4: string;
+  /** Caveat: cloud/roaming signatures ignore the local signature file. */
+  outlookFileCloudNote: string;
 }
 
 const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
@@ -112,6 +117,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     outlookFileStep2: "Move the downloaded SigmaCV.htm into that folder, then restart Outlook.",
     outlookFileStep3:
       "In Outlook: File ▸ Options ▸ Mail ▸ Signatures, then pick SigmaCV. If it's missing, click New, name it SigmaCV, OK, close Outlook, then replace the new SigmaCV.htm with the downloaded file.",
+    emailStep4:
+      "Make the badge clickable: click the image, press Ctrl+K, paste your living-CV link, then OK.",
+    outlookFileCloudNote:
+      "Doesn't work if your Outlook uses cloud (roaming) signatures — they ignore this folder. Use the Ctrl+K step above instead.",
   },
   "zh-CN": {
     heading: "获取徽章",
@@ -151,6 +160,9 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     outlookFileStep2: "将下载的 SigmaCV.htm 移动到该文件夹，然后重启 Outlook。",
     outlookFileStep3:
       "在 Outlook 中：文件 ▸ 选项 ▸ 邮件 ▸ 签名，然后选择 SigmaCV。若未出现，点击“新建”，命名为 SigmaCV，确定，关闭 Outlook，再用下载的文件替换新建的 SigmaCV.htm。",
+    emailStep4: "让徽章可点击：点击图片，按 Ctrl+K，粘贴你的动态简历链接，然后确定。",
+    outlookFileCloudNote:
+      "如果你的 Outlook 使用云端（漫游）签名，则此方法无效——它会忽略该文件夹。请改用上面的 Ctrl+K 步骤。",
   },
   "es-ES": {
     heading: "Obtén una insignia",
@@ -194,6 +206,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     outlookFileStep2: "Mueve el SigmaCV.htm descargado a esa carpeta y reinicia Outlook.",
     outlookFileStep3:
       "En Outlook: Archivo ▸ Opciones ▸ Correo ▸ Firmas, y elige SigmaCV. Si no aparece, pulsa Nueva, nómbrala SigmaCV, Aceptar, cierra Outlook y reemplaza el nuevo SigmaCV.htm por el archivo descargado.",
+    emailStep4:
+      "Haz la insignia clicable: haz clic en la imagen, pulsa Ctrl+K, pega el enlace de tu CV vivo y Aceptar.",
+    outlookFileCloudNote:
+      "No funciona si tu Outlook usa firmas en la nube (itinerantes): ignoran esta carpeta. Usa el paso Ctrl+K de arriba.",
   },
   "fr-FR": {
     heading: "Obtenir un badge",
@@ -238,6 +254,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "Déplacez le SigmaCV.htm téléchargé dans ce dossier, puis redémarrez Outlook.",
     outlookFileStep3:
       "Dans Outlook : Fichier ▸ Options ▸ Courrier ▸ Signatures, puis choisissez SigmaCV. S'il manque, cliquez sur Nouveau, nommez-le SigmaCV, OK, fermez Outlook, puis remplacez le nouveau SigmaCV.htm par le fichier téléchargé.",
+    emailStep4:
+      "Rendre le badge cliquable : cliquez sur l'image, appuyez sur Ctrl+K, collez le lien de votre CV vivant, puis OK.",
+    outlookFileCloudNote:
+      "Ne fonctionne pas si votre Outlook utilise des signatures cloud (itinérantes) — elles ignorent ce dossier. Utilisez plutôt l'étape Ctrl+K ci-dessus.",
   },
   "de-DE": {
     heading: "Badge erhalten",
@@ -282,6 +302,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "Verschieben Sie die heruntergeladene SigmaCV.htm in diesen Ordner und starten Sie Outlook neu.",
     outlookFileStep3:
       "In Outlook: Datei ▸ Optionen ▸ E-Mail ▸ Signaturen, dann SigmaCV auswählen. Fehlt sie, auf Neu klicken, SigmaCV nennen, OK, Outlook schließen und die neue SigmaCV.htm durch die heruntergeladene Datei ersetzen.",
+    emailStep4:
+      "Badge anklickbar machen: Bild anklicken, Strg+K drücken, den Link zu Ihrem lebenden Lebenslauf einfügen, dann OK.",
+    outlookFileCloudNote:
+      "Funktioniert nicht, wenn Ihr Outlook Cloud-Signaturen (Roaming) verwendet – sie ignorieren diesen Ordner. Nutzen Sie stattdessen den Strg+K-Schritt oben.",
   },
   "ja-JP": {
     heading: "バッジを取得",
@@ -326,6 +350,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "ダウンロードした SigmaCV.htm をそのフォルダーに移動し、Outlook を再起動します。",
     outlookFileStep3:
       "Outlook で：ファイル ▸ オプション ▸ メール ▸ 署名 を開き、SigmaCV を選びます。ない場合は「新規作成」をクリックして SigmaCV と名付けて OK、Outlook を閉じ、新しい SigmaCV.htm をダウンロードしたファイルで置き換えます。",
+    emailStep4:
+      "バッジをクリック可能にする：画像をクリックし、Ctrl+K を押して、ライブ CV のリンクを貼り付け、OK を押します。",
+    outlookFileCloudNote:
+      "Outlook がクラウド（ローミング）署名を使っている場合は無効です——このフォルダーは無視されます。上の Ctrl+K の手順を使ってください。",
   },
   "pt-BR": {
     heading: "Obter um selo",
@@ -369,6 +397,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     outlookFileStep2: "Mova o SigmaCV.htm baixado para essa pasta e reinicie o Outlook.",
     outlookFileStep3:
       "No Outlook: Arquivo ▸ Opções ▸ Email ▸ Assinaturas e escolha SigmaCV. Se não aparecer, clique em Novo, nomeie SigmaCV, OK, feche o Outlook e substitua o novo SigmaCV.htm pelo arquivo baixado.",
+    emailStep4:
+      "Torne o selo clicável: clique na imagem, pressione Ctrl+K, cole o link do seu currículo vivo e OK.",
+    outlookFileCloudNote:
+      "Não funciona se o seu Outlook usar assinaturas na nuvem (roaming) — elas ignoram esta pasta. Use o passo Ctrl+K acima.",
   },
   "it-IT": {
     heading: "Ottieni un badge",
@@ -412,6 +444,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     outlookFileStep2: "Sposta il SigmaCV.htm scaricato in quella cartella e riavvia Outlook.",
     outlookFileStep3:
       "In Outlook: File ▸ Opzioni ▸ Posta ▸ Firme e scegli SigmaCV. Se manca, clicca Nuova, chiamala SigmaCV, OK, chiudi Outlook e sostituisci la nuova SigmaCV.htm con il file scaricato.",
+    emailStep4:
+      "Rendi il badge cliccabile: clicca sull'immagine, premi Ctrl+K, incolla il link del tuo CV vivo, poi OK.",
+    outlookFileCloudNote:
+      "Non funziona se il tuo Outlook usa firme nel cloud (roaming): ignorano questa cartella. Usa invece il passaggio Ctrl+K qui sopra.",
   },
   "ko-KR": {
     heading: "배지 받기",
@@ -455,6 +491,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     outlookFileStep2: "다운로드한 SigmaCV.htm을 그 폴더로 옮긴 후 Outlook을 다시 시작합니다.",
     outlookFileStep3:
       "Outlook에서: 파일 ▸ 옵션 ▸ 메일 ▸ 서명 에서 SigmaCV를 선택합니다. 없으면 새로 만들기를 클릭해 SigmaCV로 이름 지정, 확인, Outlook 닫기, 새 SigmaCV.htm을 다운로드한 파일로 교체합니다.",
+    emailStep4:
+      "배지를 클릭 가능하게: 이미지를 클릭하고 Ctrl+K를 눌러 라이브 CV 링크를 붙여넣은 다음 확인을 누릅니다.",
+    outlookFileCloudNote:
+      "Outlook이 클라우드(로밍) 서명을 사용하면 작동하지 않습니다 — 이 폴더를 무시합니다. 대신 위의 Ctrl+K 단계를 사용하세요.",
   },
   "ru-RU": {
     heading: "Получить значок",
@@ -498,6 +538,10 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     outlookFileStep2: "Переместите скачанный SigmaCV.htm в эту папку и перезапустите Outlook.",
     outlookFileStep3:
       "В Outlook: Файл ▸ Параметры ▸ Почта ▸ Подписи и выберите SigmaCV. Если её нет, нажмите «Создать», назовите SigmaCV, OK, закройте Outlook и замените новый SigmaCV.htm скачанным файлом.",
+    emailStep4:
+      "Сделайте значок кликабельным: щёлкните изображение, нажмите Ctrl+K, вставьте ссылку на ваше живое резюме и нажмите OK.",
+    outlookFileCloudNote:
+      "Не работает, если ваш Outlook использует облачные (перемещаемые) подписи — они игнорируют эту папку. Используйте шаг Ctrl+K выше.",
   },
 };
 
