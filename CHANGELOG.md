@@ -20,26 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   errors. Use it instead of `docker compose up -d --build`.
 
 - **"Add to my email signature"** for the Living-CV badge (Share menu). One click
-  copies the badge as **rich HTML** (via the async Clipboard API's `text/html`
-  flavor) so pasting into Outlook, Gmail or any signature editor inserts a
-  rendered, clickable badge — not the raw markup the Markdown/HTML/URL snippets
-  produced. To survive Outlook (classic Outlook for Windows renders no SVG), the
-  copied snippet uses a new **Outlook-safe PNG badge** served at
-  `/p/<slug>/badge.png` (Satori/Resvg, same fail-closed lookup + rate-limit +
-  render cache as the OG card), with a **text-link fallback** beneath for
-  image-blocked clients. Localized in all ten locales with short Outlook paste
-  steps.
-  - **"Download for Outlook (.htm)"** option in the same panel, for **classic
-    Outlook on Windows** — which strips the hyperlink off _pasted_ images (keeping
-    text links). Outlook reads a signature **file** directly (no paste sanitizer),
-    so installing the downloaded `SigmaCV.htm` keeps the **badge image clickable**
-    with no manual linking. Includes install steps (all ten locales). The badge
-    `<img>` also gained a `border="0"` attribute so Outlook draws no blue
-    link-border around it.
-  - The paste steps now include the **reliable, version-agnostic fix** for the
-    pasted badge not being clickable — re-attach the link with **Ctrl+K** (works
-    even with Microsoft 365 **cloud/roaming signatures**) — and the download-file
-    option carries a caveat that cloud signatures ignore the local file.
+  copies the **same linked badge** as the "Copy HTML" snippet, but as **rich
+  `text/html`** (via the async Clipboard API) so pasting into Outlook, Gmail or any
+  signature editor inserts a **rendered, clickable badge** — not the raw markup the
+  plain-text snippets produce. Includes short Outlook paste steps, ending with the
+  reliable, version-agnostic fix for the pasted image not being clickable in
+  classic Outlook: re-attach the link with **Ctrl+K** (works even with Microsoft
+  365 cloud/roaming signatures). Localized in all ten locales.
 
 ## [0.2.0] - 2026-06-23
 

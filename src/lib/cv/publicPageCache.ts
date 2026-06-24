@@ -148,22 +148,18 @@ export function dedupePublicRender(
   return p;
 }
 
-// ─── Rendered-PNG image caches (OG card + email badge) ───────────────────────
-// Both the per-CV OG card (`/p/<slug>/og`) and the email-signature badge
-// (`/p/<slug>/badge.png`) are rendered by a CPU-heavy rasterizer (Satori →
-// Resvg). Without a server cache, a flood of those hits (social-unfurl scrapers,
-// or a recipient's mail client re-fetching the signature image) spends the
-// shared public rate-limit budget on image renders and starves the HTML page.
-// Cache the PNG bytes per slug for a short TTL (matching the client `max-age`)
-// and single-flight concurrent renders. The two surfaces use SEPARATE caches —
-// different images for the same slug — but share this one bounded implementation.
+// ─── OG social-card image cache ──────────────────────────────────────────────
+// The per-CV OG card (`/p/<slug>/og`) is rendered to a PNG by a CPU-heavy
+// rasterizer (Satori → Resvg). Without a server cache, a flood of `/p/<slug>/og`
+// hits (social-unfurl scrapers or a synthetic flood) spends the shared public
+// rate-limit budget on image renders and starves the HTML page. Cache the PNG
+// bytes per slug for a short TTL (matching the client `max-age`) and single-flight
+// concurrent renders.
 
 export interface OgImageEntry {
   bytes: Uint8Array;
   indexable: boolean;
 }
-/** Same shape as `OgImageEntry`; named for the badge call sites' clarity. */
-export type BadgePngEntry = OgImageEntry;
 
 interface ImageRecord extends OgImageEntry {
   expires: number;
@@ -179,8 +175,6 @@ interface ImageBytesCache {
 
 /**
  * Build a TTL- and byte-bounded cache of rendered PNG bytes with single-flight.
- * One instance per image surface so the OG card and badge never collide on a
- * shared slug key.
  */
 function createImageBytesCache(
   ttlMs: number,
@@ -234,10 +228,9 @@ function createImageBytesCache(
   };
 }
 
-// OG PNGs are ~50–150 KB; the email badge is smaller still. Both: 5-minute TTL
-// (matches each route's Cache-Control max-age), ≤1000 slugs, ≤64 MB.
+// OG PNGs are ~50–150 KB: 5-minute TTL (matches the route's Cache-Control
+// max-age), ≤1000 slugs, ≤64 MB.
 const ogImageStore = createImageBytesCache(300_000, 1000, 64_000_000);
-const badgePngStore = createImageBytesCache(300_000, 1000, 64_000_000);
 
 /** Cached OG PNG for a slug, or null on miss/expiry. */
 export function getCachedOgImage(slug: string, now: number = Date.now()): OgImageEntry | null {
@@ -259,26 +252,6 @@ export function dedupeOgImage(
   return ogImageStore.dedupe(slug, render);
 }
 
-/** Cached email-badge PNG for a slug, or null on miss/expiry. */
-export function getCachedBadgePng(slug: string, now: number = Date.now()): BadgePngEntry | null {
-  return badgePngStore.get(slug, now);
-}
-/** Cache an email-badge PNG for a slug, bounded by entry count + total bytes. */
-export function setCachedBadgePng(
-  slug: string,
-  entry: BadgePngEntry,
-  now: number = Date.now(),
-): void {
-  badgePngStore.set(slug, entry, now);
-}
-/** Single-flight the (CPU-heavy) email-badge render for a slug. */
-export function dedupeBadgePng(
-  slug: string,
-  render: () => Promise<BadgePngEntry>,
-): Promise<BadgePngEntry> {
-  return badgePngStore.dedupe(slug, render);
-}
-
 /** Drop a slug from the cache — call on any publish/unpublish/index change so
  *  the new state (including 404 after unpublish) takes effect immediately. Also
  *  clears the negative cache so a freshly-published slug appears at once. */
@@ -286,7 +259,6 @@ export function invalidatePublicPage(slug: string): void {
   cache.delete(slug);
   missCache.delete(slug);
   ogImageStore.delete(slug);
-  badgePngStore.delete(slug);
 }
 
 /** Test-only: clear the cache. */
@@ -294,5 +266,4 @@ export function __resetPublicPageCache(): void {
   cache.clear();
   missCache.clear();
   ogImageStore.clear();
-  badgePngStore.clear();
 }

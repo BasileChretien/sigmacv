@@ -46,32 +46,15 @@ export interface BadgeUiStrings {
   emailButton: string;
   /** Confirmation shown after the rich copy succeeds. */
   emailCopied: string;
-  /** Visible fallback link words embedded in the signature itself. */
-  emailLinkText: string;
   /** Heading above the Outlook paste steps. */
   emailStepsHeading: string;
   /** Outlook paste steps. */
   emailStep1: string;
   emailStep2: string;
   emailStep3: string;
-  /** Reassurance that the text link still shows when images are blocked. */
-  emailImageNote: string;
-  // ── Classic-Outlook "download a file" sub-panel ──
-  /** Disclosure summary for the downloadable-signature-file option. */
-  outlookFileSummary: string;
-  /** Why a file beats pasting in classic Outlook. */
-  outlookFileNote: string;
-  /** Download-the-file button. */
-  downloadOutlook: string;
-  /** Install steps for the downloaded .htm. */
-  outlookFileStep1: string;
-  outlookFileStep2: string;
-  outlookFileStep3: string;
   /** Extra paste step: link the image (Ctrl+K) so the badge itself is clickable
    *  — classic Outlook strips the link off pasted images. The reliable fix. */
   emailStep4: string;
-  /** Caveat: cloud/roaming signatures ignore the local signature file. */
-  outlookFileCloudNote: string;
 }
 
 const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
@@ -100,27 +83,13 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "Add a clickable badge to your email signature. It links to your living page and shows only public data.",
     emailButton: "Add to my email signature",
     emailCopied: "Copied — paste it into your signature",
-    emailLinkText: "View my living CV",
     emailStepsHeading: "How to paste it into Outlook",
     emailStep1:
       "Open your signature settings — new Outlook & web: Settings ▸ Mail ▸ Compose and reply; classic Outlook: File ▸ Options ▸ Mail ▸ Signatures.",
     emailStep2: "Click inside the signature box where you want the badge.",
     emailStep3: "Paste with Ctrl+V (⌘V on Mac), then save.",
-    emailImageNote:
-      "If your mail app blocks images, recipients still see the text link below the badge.",
-    outlookFileSummary: "Classic Outlook (Windows): download a file instead",
-    outlookFileNote:
-      "Classic Outlook drops the link from pasted images. Installing this file keeps the badge clickable — no pasting, no manual linking.",
-    downloadOutlook: "Download for Outlook (.htm)",
-    outlookFileStep1:
-      "Press Win+R, type %APPDATA% and press Enter, then open Microsoft ▸ Signatures.",
-    outlookFileStep2: "Move the downloaded SigmaCV.htm into that folder, then restart Outlook.",
-    outlookFileStep3:
-      "In Outlook: File ▸ Options ▸ Mail ▸ Signatures, then pick SigmaCV. If it's missing, click New, name it SigmaCV, OK, close Outlook, then replace the new SigmaCV.htm with the downloaded file.",
     emailStep4:
       "Make the badge clickable: click the image, press Ctrl+K, paste your living-CV link, then OK.",
-    outlookFileCloudNote:
-      "Doesn't work if your Outlook uses cloud (roaming) signatures — they ignore this folder. Use the Ctrl+K step above instead.",
   },
   "zh-CN": {
     heading: "获取徽章",
@@ -145,24 +114,12 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
     emailIntro: "在邮件签名中添加可点击的徽章。它链接到你的动态主页，仅显示公开数据。",
     emailButton: "添加到我的邮件签名",
     emailCopied: "已复制——粘贴到你的签名中",
-    emailLinkText: "查看我的动态简历",
     emailStepsHeading: "如何粘贴到 Outlook",
     emailStep1:
       "打开签名设置——新版 Outlook 和网页版：设置 ▸ 邮件 ▸ 撰写和回复；经典版 Outlook：文件 ▸ 选项 ▸ 邮件 ▸ 签名。",
     emailStep2: "在签名框中点击你想放置徽章的位置。",
     emailStep3: "按 Ctrl+V（Mac 上为 ⌘V）粘贴，然后保存。",
-    emailImageNote: "如果你的邮件应用屏蔽图片，收件人仍可看到徽章下方的文字链接。",
-    outlookFileSummary: "经典版 Outlook（Windows）：改为下载文件",
-    outlookFileNote:
-      "经典版 Outlook 会丢弃粘贴图片的链接。安装此文件可让徽章保持可点击——无需粘贴，也无需手动加链接。",
-    downloadOutlook: "下载 Outlook 版（.htm）",
-    outlookFileStep1: "按 Win+R，输入 %APPDATA% 并回车，然后打开 Microsoft ▸ Signatures 文件夹。",
-    outlookFileStep2: "将下载的 SigmaCV.htm 移动到该文件夹，然后重启 Outlook。",
-    outlookFileStep3:
-      "在 Outlook 中：文件 ▸ 选项 ▸ 邮件 ▸ 签名，然后选择 SigmaCV。若未出现，点击“新建”，命名为 SigmaCV，确定，关闭 Outlook，再用下载的文件替换新建的 SigmaCV.htm。",
     emailStep4: "让徽章可点击：点击图片，按 Ctrl+K，粘贴你的动态简历链接，然后确定。",
-    outlookFileCloudNote:
-      "如果你的 Outlook 使用云端（漫游）签名，则此方法无效——它会忽略该文件夹。请改用上面的 Ctrl+K 步骤。",
   },
   "es-ES": {
     heading: "Obtén una insignia",
@@ -189,27 +146,13 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "Añade una insignia con enlace a tu firma de correo. Enlaza con tu página viva y solo muestra datos públicos.",
     emailButton: "Añadir a mi firma de correo",
     emailCopied: "Copiado: pégalo en tu firma",
-    emailLinkText: "Ver mi CV vivo",
     emailStepsHeading: "Cómo pegarlo en Outlook",
     emailStep1:
       "Abre la configuración de firma — Outlook nuevo y web: Configuración ▸ Correo ▸ Redactar y responder; Outlook clásico: Archivo ▸ Opciones ▸ Correo ▸ Firmas.",
     emailStep2: "Haz clic dentro del cuadro de firma donde quieras la insignia.",
     emailStep3: "Pega con Ctrl+V (⌘V en Mac) y guarda.",
-    emailImageNote:
-      "Si tu aplicación de correo bloquea las imágenes, los destinatarios aún verán el enlace de texto bajo la insignia.",
-    outlookFileSummary: "Outlook clásico (Windows): descarga un archivo",
-    outlookFileNote:
-      "Outlook clásico elimina el enlace de las imágenes pegadas. Instalar este archivo mantiene la insignia clicable, sin pegar ni enlazar a mano.",
-    downloadOutlook: "Descargar para Outlook (.htm)",
-    outlookFileStep1:
-      "Pulsa Win+R, escribe %APPDATA% y pulsa Intro; luego abre la carpeta Microsoft ▸ Signatures.",
-    outlookFileStep2: "Mueve el SigmaCV.htm descargado a esa carpeta y reinicia Outlook.",
-    outlookFileStep3:
-      "En Outlook: Archivo ▸ Opciones ▸ Correo ▸ Firmas, y elige SigmaCV. Si no aparece, pulsa Nueva, nómbrala SigmaCV, Aceptar, cierra Outlook y reemplaza el nuevo SigmaCV.htm por el archivo descargado.",
     emailStep4:
       "Haz la insignia clicable: haz clic en la imagen, pulsa Ctrl+K, pega el enlace de tu CV vivo y Aceptar.",
-    outlookFileCloudNote:
-      "No funciona si tu Outlook usa firmas en la nube (itinerantes): ignoran esta carpeta. Usa el paso Ctrl+K de arriba.",
   },
   "fr-FR": {
     heading: "Obtenir un badge",
@@ -236,28 +179,13 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "Ajoutez un badge cliquable à votre signature d'e-mail. Il renvoie vers votre page vivante et n'affiche que des données publiques.",
     emailButton: "Ajouter à ma signature d'e-mail",
     emailCopied: "Copié — collez-le dans votre signature",
-    emailLinkText: "Voir mon CV vivant",
     emailStepsHeading: "Comment le coller dans Outlook",
     emailStep1:
       "Ouvrez les paramètres de signature — nouveau Outlook et web : Paramètres ▸ Courrier ▸ Composer et répondre ; Outlook classique : Fichier ▸ Options ▸ Courrier ▸ Signatures.",
     emailStep2: "Cliquez dans le cadre de signature à l'endroit voulu pour le badge.",
     emailStep3: "Collez avec Ctrl+V (⌘V sur Mac), puis enregistrez.",
-    emailImageNote:
-      "Si votre messagerie bloque les images, les destinataires voient quand même le lien texte sous le badge.",
-    outlookFileSummary: "Outlook classique (Windows) : télécharger un fichier",
-    outlookFileNote:
-      "Outlook classique supprime le lien des images collées. Installer ce fichier garde le badge cliquable — sans coller ni ajouter le lien à la main.",
-    downloadOutlook: "Télécharger pour Outlook (.htm)",
-    outlookFileStep1:
-      "Appuyez sur Win+R, tapez %APPDATA% puis Entrée, et ouvrez le dossier Microsoft ▸ Signatures.",
-    outlookFileStep2:
-      "Déplacez le SigmaCV.htm téléchargé dans ce dossier, puis redémarrez Outlook.",
-    outlookFileStep3:
-      "Dans Outlook : Fichier ▸ Options ▸ Courrier ▸ Signatures, puis choisissez SigmaCV. S'il manque, cliquez sur Nouveau, nommez-le SigmaCV, OK, fermez Outlook, puis remplacez le nouveau SigmaCV.htm par le fichier téléchargé.",
     emailStep4:
       "Rendre le badge cliquable : cliquez sur l'image, appuyez sur Ctrl+K, collez le lien de votre CV vivant, puis OK.",
-    outlookFileCloudNote:
-      "Ne fonctionne pas si votre Outlook utilise des signatures cloud (itinérantes) — elles ignorent ce dossier. Utilisez plutôt l'étape Ctrl+K ci-dessus.",
   },
   "de-DE": {
     heading: "Badge erhalten",
@@ -284,28 +212,13 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "Fügen Sie Ihrer E-Mail-Signatur ein anklickbares Badge hinzu. Es verlinkt auf Ihre lebende Seite und zeigt nur öffentliche Daten.",
     emailButton: "Zu meiner E-Mail-Signatur hinzufügen",
     emailCopied: "Kopiert – fügen Sie es in Ihre Signatur ein",
-    emailLinkText: "Meinen lebenden Lebenslauf ansehen",
     emailStepsHeading: "So fügen Sie es in Outlook ein",
     emailStep1:
       "Öffnen Sie die Signatureinstellungen – neues Outlook & Web: Einstellungen ▸ E-Mail ▸ Verfassen und antworten; klassisches Outlook: Datei ▸ Optionen ▸ E-Mail ▸ Signaturen.",
     emailStep2: "Klicken Sie an die Stelle im Signaturfeld, an der das Badge erscheinen soll.",
     emailStep3: "Mit Strg+V (⌘V auf dem Mac) einfügen und speichern.",
-    emailImageNote:
-      "Wenn Ihre E-Mail-App Bilder blockiert, sehen Empfänger weiterhin den Textlink unter dem Badge.",
-    outlookFileSummary: "Klassisches Outlook (Windows): Datei herunterladen",
-    outlookFileNote:
-      "Klassisches Outlook entfernt den Link aus eingefügten Bildern. Diese Datei hält das Badge anklickbar – ohne Einfügen, ohne manuelles Verlinken.",
-    downloadOutlook: "Für Outlook herunterladen (.htm)",
-    outlookFileStep1:
-      "Drücken Sie Win+R, geben Sie %APPDATA% ein und drücken Sie Enter; öffnen Sie dann den Ordner Microsoft ▸ Signatures.",
-    outlookFileStep2:
-      "Verschieben Sie die heruntergeladene SigmaCV.htm in diesen Ordner und starten Sie Outlook neu.",
-    outlookFileStep3:
-      "In Outlook: Datei ▸ Optionen ▸ E-Mail ▸ Signaturen, dann SigmaCV auswählen. Fehlt sie, auf Neu klicken, SigmaCV nennen, OK, Outlook schließen und die neue SigmaCV.htm durch die heruntergeladene Datei ersetzen.",
     emailStep4:
       "Badge anklickbar machen: Bild anklicken, Strg+K drücken, den Link zu Ihrem lebenden Lebenslauf einfügen, dann OK.",
-    outlookFileCloudNote:
-      "Funktioniert nicht, wenn Ihr Outlook Cloud-Signaturen (Roaming) verwendet – sie ignorieren diesen Ordner. Nutzen Sie stattdessen den Strg+K-Schritt oben.",
   },
   "ja-JP": {
     heading: "バッジを取得",
@@ -332,28 +245,13 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "メール署名にクリック可能なバッジを追加します。あなたのライブページにリンクし、公開データのみを表示します。",
     emailButton: "メール署名に追加",
     emailCopied: "コピーしました — 署名に貼り付けてください",
-    emailLinkText: "私のライブ CV を見る",
     emailStepsHeading: "Outlook への貼り付け方",
     emailStep1:
       "署名設定を開きます — 新しい Outlook・Web 版：設定 ▸ メール ▸ 作成と返信；従来の Outlook：ファイル ▸ オプション ▸ メール ▸ 署名。",
     emailStep2: "署名ボックス内のバッジを配置したい位置をクリックします。",
     emailStep3: "Ctrl+V（Mac は ⌘V）で貼り付け、保存します。",
-    emailImageNote:
-      "メールアプリが画像をブロックしても、受信者にはバッジ下のテキストリンクが表示されます。",
-    outlookFileSummary: "従来の Outlook（Windows）：ファイルをダウンロード",
-    outlookFileNote:
-      "従来の Outlook は貼り付けた画像のリンクを削除します。このファイルを入れると、貼り付けや手動リンクなしでバッジがクリック可能なままになります。",
-    downloadOutlook: "Outlook 用をダウンロード（.htm）",
-    outlookFileStep1:
-      "Win+R を押し、%APPDATA% と入力して Enter を押し、Microsoft ▸ Signatures フォルダーを開きます。",
-    outlookFileStep2:
-      "ダウンロードした SigmaCV.htm をそのフォルダーに移動し、Outlook を再起動します。",
-    outlookFileStep3:
-      "Outlook で：ファイル ▸ オプション ▸ メール ▸ 署名 を開き、SigmaCV を選びます。ない場合は「新規作成」をクリックして SigmaCV と名付けて OK、Outlook を閉じ、新しい SigmaCV.htm をダウンロードしたファイルで置き換えます。",
     emailStep4:
       "バッジをクリック可能にする：画像をクリックし、Ctrl+K を押して、ライブ CV のリンクを貼り付け、OK を押します。",
-    outlookFileCloudNote:
-      "Outlook がクラウド（ローミング）署名を使っている場合は無効です——このフォルダーは無視されます。上の Ctrl+K の手順を使ってください。",
   },
   "pt-BR": {
     heading: "Obter um selo",
@@ -380,27 +278,13 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "Adicione um selo clicável à sua assinatura de e-mail. Ele leva à sua página viva e mostra apenas dados públicos.",
     emailButton: "Adicionar à minha assinatura de e-mail",
     emailCopied: "Copiado — cole na sua assinatura",
-    emailLinkText: "Ver meu currículo vivo",
     emailStepsHeading: "Como colar no Outlook",
     emailStep1:
       "Abra as configurações de assinatura — Outlook novo e web: Configurações ▸ Email ▸ Escrever e responder; Outlook clássico: Arquivo ▸ Opções ▸ Email ▸ Assinaturas.",
     emailStep2: "Clique dentro da caixa de assinatura onde quer o selo.",
     emailStep3: "Cole com Ctrl+V (⌘V no Mac) e salve.",
-    emailImageNote:
-      "Se seu aplicativo de e-mail bloquear imagens, os destinatários ainda verão o link de texto abaixo do selo.",
-    outlookFileSummary: "Outlook clássico (Windows): baixe um arquivo",
-    outlookFileNote:
-      "O Outlook clássico remove o link de imagens coladas. Instalar este arquivo mantém o selo clicável — sem colar nem vincular manualmente.",
-    downloadOutlook: "Baixar para Outlook (.htm)",
-    outlookFileStep1:
-      "Pressione Win+R, digite %APPDATA% e pressione Enter; depois abra a pasta Microsoft ▸ Signatures.",
-    outlookFileStep2: "Mova o SigmaCV.htm baixado para essa pasta e reinicie o Outlook.",
-    outlookFileStep3:
-      "No Outlook: Arquivo ▸ Opções ▸ Email ▸ Assinaturas e escolha SigmaCV. Se não aparecer, clique em Novo, nomeie SigmaCV, OK, feche o Outlook e substitua o novo SigmaCV.htm pelo arquivo baixado.",
     emailStep4:
       "Torne o selo clicável: clique na imagem, pressione Ctrl+K, cole o link do seu currículo vivo e OK.",
-    outlookFileCloudNote:
-      "Não funciona se o seu Outlook usar assinaturas na nuvem (roaming) — elas ignoram esta pasta. Use o passo Ctrl+K acima.",
   },
   "it-IT": {
     heading: "Ottieni un badge",
@@ -427,27 +311,13 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "Aggiungi un badge cliccabile alla tua firma email. Rimanda alla tua pagina viva e mostra solo dati pubblici.",
     emailButton: "Aggiungi alla mia firma email",
     emailCopied: "Copiato — incollalo nella tua firma",
-    emailLinkText: "Vedi il mio CV vivo",
     emailStepsHeading: "Come incollarlo in Outlook",
     emailStep1:
       "Apri le impostazioni della firma — nuovo Outlook e web: Impostazioni ▸ Posta ▸ Scrivi e rispondi; Outlook classico: File ▸ Opzioni ▸ Posta ▸ Firme.",
     emailStep2: "Fai clic nel riquadro della firma dove vuoi il badge.",
     emailStep3: "Incolla con Ctrl+V (⌘V su Mac), poi salva.",
-    emailImageNote:
-      "Se la tua app di posta blocca le immagini, i destinatari vedono comunque il link testuale sotto il badge.",
-    outlookFileSummary: "Outlook classico (Windows): scarica un file",
-    outlookFileNote:
-      "Outlook classico rimuove il link dalle immagini incollate. Installare questo file mantiene il badge cliccabile — senza incollare né collegare a mano.",
-    downloadOutlook: "Scarica per Outlook (.htm)",
-    outlookFileStep1:
-      "Premi Win+R, digita %APPDATA% e premi Invio; poi apri la cartella Microsoft ▸ Signatures.",
-    outlookFileStep2: "Sposta il SigmaCV.htm scaricato in quella cartella e riavvia Outlook.",
-    outlookFileStep3:
-      "In Outlook: File ▸ Opzioni ▸ Posta ▸ Firme e scegli SigmaCV. Se manca, clicca Nuova, chiamala SigmaCV, OK, chiudi Outlook e sostituisci la nuova SigmaCV.htm con il file scaricato.",
     emailStep4:
       "Rendi il badge cliccabile: clicca sull'immagine, premi Ctrl+K, incolla il link del tuo CV vivo, poi OK.",
-    outlookFileCloudNote:
-      "Non funziona se il tuo Outlook usa firme nel cloud (roaming): ignorano questa cartella. Usa invece il passaggio Ctrl+K qui sopra.",
   },
   "ko-KR": {
     heading: "배지 받기",
@@ -474,27 +344,13 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "이메일 서명에 클릭 가능한 배지를 추가하세요. 당신의 라이브 페이지로 연결되며 공개 데이터만 표시합니다.",
     emailButton: "내 이메일 서명에 추가",
     emailCopied: "복사됨 — 서명에 붙여넣으세요",
-    emailLinkText: "내 라이브 CV 보기",
     emailStepsHeading: "Outlook에 붙여넣는 방법",
     emailStep1:
       "서명 설정을 엽니다 — 새 Outlook 및 웹: 설정 ▸ 메일 ▸ 작성 및 회신; 클래식 Outlook: 파일 ▸ 옵션 ▸ 메일 ▸ 서명.",
     emailStep2: "서명 상자에서 배지를 넣을 위치를 클릭합니다.",
     emailStep3: "Ctrl+V(Mac은 ⌘V)로 붙여넣은 다음 저장합니다.",
-    emailImageNote:
-      "메일 앱이 이미지를 차단해도 수신자는 배지 아래의 텍스트 링크를 볼 수 있습니다.",
-    outlookFileSummary: "클래식 Outlook(Windows): 파일 다운로드",
-    outlookFileNote:
-      "클래식 Outlook은 붙여넣은 이미지의 링크를 제거합니다. 이 파일을 설치하면 붙여넣기나 수동 링크 없이 배지가 클릭 가능하게 유지됩니다.",
-    downloadOutlook: "Outlook용 다운로드(.htm)",
-    outlookFileStep1:
-      "Win+R를 누르고 %APPDATA%를 입력해 Enter를 누른 다음 Microsoft ▸ Signatures 폴더를 엽니다.",
-    outlookFileStep2: "다운로드한 SigmaCV.htm을 그 폴더로 옮긴 후 Outlook을 다시 시작합니다.",
-    outlookFileStep3:
-      "Outlook에서: 파일 ▸ 옵션 ▸ 메일 ▸ 서명 에서 SigmaCV를 선택합니다. 없으면 새로 만들기를 클릭해 SigmaCV로 이름 지정, 확인, Outlook 닫기, 새 SigmaCV.htm을 다운로드한 파일로 교체합니다.",
     emailStep4:
       "배지를 클릭 가능하게: 이미지를 클릭하고 Ctrl+K를 눌러 라이브 CV 링크를 붙여넣은 다음 확인을 누릅니다.",
-    outlookFileCloudNote:
-      "Outlook이 클라우드(로밍) 서명을 사용하면 작동하지 않습니다 — 이 폴더를 무시합니다. 대신 위의 Ctrl+K 단계를 사용하세요.",
   },
   "ru-RU": {
     heading: "Получить значок",
@@ -521,27 +377,13 @@ const BADGE_UI_I18N: Record<Locale, BadgeUiStrings> = {
       "Добавьте кликабельный значок в подпись электронной почты. Он ведёт на вашу живую страницу и показывает только публичные данные.",
     emailButton: "Добавить в мою подпись",
     emailCopied: "Скопировано — вставьте в свою подпись",
-    emailLinkText: "Посмотреть моё живое резюме",
     emailStepsHeading: "Как вставить это в Outlook",
     emailStep1:
       "Откройте настройки подписи — новый Outlook и веб: Параметры ▸ Почта ▸ Создание и ответ; классический Outlook: Файл ▸ Параметры ▸ Почта ▸ Подписи.",
     emailStep2: "Щёлкните в поле подписи там, где нужен значок.",
     emailStep3: "Вставьте с помощью Ctrl+V (⌘V на Mac) и сохраните.",
-    emailImageNote:
-      "Если ваше почтовое приложение блокирует изображения, получатели всё равно увидят текстовую ссылку под значком.",
-    outlookFileSummary: "Классический Outlook (Windows): скачать файл",
-    outlookFileNote:
-      "Классический Outlook удаляет ссылку у вставленных изображений. Этот файл сохраняет значок кликабельным — без вставки и ручной привязки ссылки.",
-    downloadOutlook: "Скачать для Outlook (.htm)",
-    outlookFileStep1:
-      "Нажмите Win+R, введите %APPDATA% и нажмите Enter, затем откройте папку Microsoft ▸ Signatures.",
-    outlookFileStep2: "Переместите скачанный SigmaCV.htm в эту папку и перезапустите Outlook.",
-    outlookFileStep3:
-      "В Outlook: Файл ▸ Параметры ▸ Почта ▸ Подписи и выберите SigmaCV. Если её нет, нажмите «Создать», назовите SigmaCV, OK, закройте Outlook и замените новый SigmaCV.htm скачанным файлом.",
     emailStep4:
       "Сделайте значок кликабельным: щёлкните изображение, нажмите Ctrl+K, вставьте ссылку на ваше живое резюме и нажмите OK.",
-    outlookFileCloudNote:
-      "Не работает, если ваш Outlook использует облачные (перемещаемые) подписи — они игнорируют эту папку. Используйте шаг Ctrl+K выше.",
   },
 };
 
