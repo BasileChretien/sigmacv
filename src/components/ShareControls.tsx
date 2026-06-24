@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 import { badgeUi } from "@/lib/i18n/badgeUi";
+import { escapeHtml, safeHref } from "@/lib/render/escape";
 import { trackEvent } from "@/lib/analytics/track";
 
 /** Launder a `<select>` value into a known badge style/theme by returning LITERAL
@@ -83,13 +84,16 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
   /**
    * Copy the badge as RICH HTML so pasting into a signature editor (Outlook,
    * Gmail) inserts a rendered, clickable badge — not the raw markup the
-   * plain-text "Copy HTML" snippet produces. It's the SAME linked badge
-   * (`badgeHtml`), just written as a `text/html` clipboard flavor; a `text/plain`
-   * flavor (the link) covers clients that take only plain text, and it degrades
-   * to `writeText` where `ClipboardItem` is unavailable.
+   * plain-text "Copy HTML" snippet produces. Same linked badge as `badgeHtml`,
+   * but written as a `text/html` clipboard flavor — an ACTIVE sink once the
+   * editor parses it — so the href/src are scheme-allow-listed (`safeHref`) and
+   * attribute-escaped here. A `text/plain` flavor (the link) covers clients that
+   * take only plain text; degrades to `writeText` where `ClipboardItem` is absent.
    */
   async function copyEmailSignature() {
-    const html = badgeHtml;
+    const href = escapeHtml(safeHref(pageUrl));
+    const src = escapeHtml(safeHref(badgeUrl));
+    const html = `<a href="${href}"><img src="${src}" alt="${escapeHtml(badgeAlt)}" /></a>`;
     const plain = pageUrl;
     try {
       const clip = navigator.clipboard;
