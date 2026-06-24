@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Zero-downtime redeploys.** Deploying an update used to take the site down for
+  the whole build+swap, so anyone visiting mid-deploy got a 502 / "server
+  connection error". Now: a new `/api/health` liveness endpoint, a Docker
+  `healthcheck` on the app service, and a health-checked Caddy reverse proxy
+  (`health_uri /api/health` + `lb_try_duration`) that holds and retries requests
+  during a container swap instead of erroring. A new `scripts/deploy.sh` builds
+  the new image while the old container keeps serving, then does a fast recreate —
+  so `git pull && ./scripts/deploy.sh` ships an update with no visitor-facing
+  errors. Use it instead of `docker compose up -d --build`.
+
 - **"Add to my email signature"** for the Living-CV badge (Share menu). One click
   copies the badge as **rich HTML** (via the async Clipboard API's `text/html`
   flavor) so pasting into Outlook, Gmail or any signature editor inserts a

@@ -27,6 +27,22 @@
 		# Strip any client-supplied X-Forwarded-For and set it to the real peer IP,
 		# so the app's per-IP rate limit can't be evaded by spoofing the header.
 		header_up X-Forwarded-For {remote_host}
+
+		# Zero-error redeploys. A `docker compose up -d` recreates the single app
+		# container (old stopped → new booting); without this, Caddy would have no
+		# backend for a few seconds and return 502 / a "server connection error" to
+		# every visitor in that window. Instead:
+		#   • actively probe /api/health so Caddy only routes to a container that is
+		#     truly ready (Next.js listening), never one still booting;
+		#   • hold and retry any request that lands during the swap for up to 30s,
+		#     so it waits for the new container instead of erroring.
+		# Combined with build-before-swap (scripts/deploy.sh) this makes
+		# `git pull && deploy` invisible to visitors. See DEPLOY.md.
+		health_uri /api/health
+		health_interval 3s
+		health_timeout 2s
+		lb_try_duration 30s
+		lb_try_interval 250ms
 	}
 }
 
