@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: s.metaDescription,
   alternates: { canonical: "/", languages: homeLanguageAlternates() },
   openGraph: {
+    type: "website",
+    siteName: "SigmaCV",
     title: s.metaTitle,
     description: s.metaDescription,
     url: "/",

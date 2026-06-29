@@ -4,7 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { SITE_URL } from "@/lib/siteUrl";
 import { landingStrings } from "@/lib/i18n/landing";
-import { homeLanguageAlternates, ogAlternateLocales, ogLocale } from "@/lib/seo";
+import { homeLanguageAlternates } from "@/lib/seo";
 import { THEME_INIT_SCRIPT } from "@/lib/themeInit";
 
 // Cookieless, first-party analytics (self-hosted Plausible CE v3). Rendered only
@@ -46,19 +46,18 @@ export const metadata: Metadata = {
     canonical: "/",
     languages: homeLanguageAlternates(),
   },
+  // Site-wide OG/Twitter DEFAULTS only — deliberately no page title/description
+  // here. Next shallow-merges metadata down the route tree, so a title set on the
+  // layout cascades to every page that doesn't set its own openGraph — which made
+  // every landing/guide/glossary page advertise the HOMEPAGE's social card. Each
+  // page now supplies its own title+description (the homepage just below; other
+  // pages fall back to their per-page <title> + meta description, already correct).
   openGraph: {
     type: "website",
     siteName: "SigmaCV",
-    title: home.metaTitle,
-    description: home.metaDescription,
-    url: "/",
-    locale: ogLocale("en-US"),
-    alternateLocale: ogAlternateLocales(),
   },
   twitter: {
     card: "summary_large_image",
-    title: home.metaTitle,
-    description: home.metaDescription,
   },
   robots: {
     index: true,
