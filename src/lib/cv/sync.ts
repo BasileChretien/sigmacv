@@ -1,6 +1,8 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { absoluteUrl } from "@/lib/siteUrl";
+import { pingIndexNow } from "@/lib/cv/indexNow";
 import { invalidatePublicPage } from "@/lib/cv/publicPageCache";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks";
@@ -550,6 +552,12 @@ export async function setPublishState(
   // Drop any cached render so unpublish/publish/index changes take effect at
   // once (the public route caches rendered pages for a short TTL).
   if (updated.publicSlug) invalidatePublicPage(updated.publicSlug);
+  // Newly live AND indexable: nudge IndexNow (Bing/Yandex) to crawl now rather
+  // than wait for sitemap rediscovery. Fire-and-forget — pingIndexNow is
+  // fail-soft and no-ops outside production, so it never blocks or breaks publish.
+  if (updated.published && updated.publicIndexable && updated.publicSlug) {
+    void pingIndexNow([absoluteUrl(`p/${updated.publicSlug}`)]);
+  }
   return {
     published: updated.published,
     publicSlug: updated.publicSlug,
