@@ -116,6 +116,8 @@ export interface UiStrings {
   publishTitle: string;
   allowIndexing: string;
   allowIndexingTitle: string;
+  /** One-line benefit explanation shown beside the indexing toggle. */
+  allowIndexingBody: string;
   publicContactLegend: string;
   publicShowEmail: string;
   publicShowPhone: string;
@@ -288,6 +290,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "Phone",
     publicShowLocation: "Location",
     allowIndexing: "Allow search engines to index this page",
+    allowIndexingBody:
+      "This is how colleagues and employers find your work in Google and other search engines. Recommended — you can turn it off anytime.",
     allowIndexingTitle:
       "Off by default. When on, your public CV can appear in search results (name, ORCID, publications).",
     publishTitle:
@@ -439,6 +443,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "电话",
     publicShowLocation: "所在地",
     allowIndexing: "允许搜索引擎索引此页面",
+    allowIndexingBody:
+      "这正是同事和招聘方在 Google 等搜索引擎中找到你工作的方式。建议开启——你可以随时关闭。",
     allowIndexingTitle: "默认关闭。开启后，您的公开简历可能出现在搜索结果中（姓名、ORCID、论文）。",
     publishTitle:
       "在公开链接处创建此简历的可分享公开网页。它会随你的更新而重新同步。默认关闭；取消勾选可将其下线。",
@@ -592,6 +598,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "Teléfono",
     publicShowLocation: "Ubicación",
     allowIndexing: "Permitir que los buscadores indexen esta página",
+    allowIndexingBody:
+      "Así es como colegas y empleadores encuentran tu trabajo en Google y otros buscadores. Recomendado: puedes desactivarlo cuando quieras.",
     allowIndexingTitle:
       "Desactivado por defecto. Si se activa, tu CV público puede aparecer en los resultados de búsqueda (nombre, ORCID, publicaciones).",
     publishTitle:
@@ -747,6 +755,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "Téléphone",
     publicShowLocation: "Localisation",
     allowIndexing: "Autoriser l’indexation par les moteurs de recherche",
+    allowIndexingBody:
+      "C'est ainsi que vos collègues et recruteurs trouvent vos travaux dans Google et les autres moteurs de recherche. Recommandé — vous pouvez le désactiver à tout moment.",
     allowIndexingTitle:
       "Désactivé par défaut. Activé, votre CV public peut apparaître dans les résultats de recherche (nom, ORCID, publications).",
     publishTitle:
@@ -903,6 +913,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "Telefon",
     publicShowLocation: "Standort",
     allowIndexing: "Suchmaschinen-Indexierung dieser Seite erlauben",
+    allowIndexingBody:
+      "So finden Kolleginnen, Kollegen und Arbeitgeber Ihre Arbeit bei Google und anderen Suchmaschinen. Empfohlen – jederzeit abschaltbar.",
     allowIndexingTitle:
       "Standardmäßig aus. Wenn aktiviert, kann Ihr öffentlicher Lebenslauf in Suchergebnissen erscheinen (Name, ORCID, Publikationen).",
     publishTitle:
@@ -1057,6 +1069,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "電話",
     publicShowLocation: "所在地",
     allowIndexing: "このページの検索エンジンによるインデックスを許可",
+    allowIndexingBody:
+      "同僚や採用担当者が Google などの検索エンジンであなたの業績を見つけられるようになります。おすすめです。いつでもオフにできます。",
     allowIndexingTitle:
       "初期設定はオフです。オンにすると、公開CVが検索結果に表示される場合があります（氏名・ORCID・論文）。",
     publishTitle:
@@ -1211,6 +1225,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "Telefone",
     publicShowLocation: "Localização",
     allowIndexing: "Permitir que mecanismos de busca indexem esta página",
+    allowIndexingBody:
+      "É assim que colegas e recrutadores encontram seu trabalho no Google e em outros buscadores. Recomendado — você pode desativar quando quiser.",
     allowIndexingTitle:
       "Desativado por padrão. Quando ativado, seu CV público pode aparecer nos resultados de busca (nome, ORCID, publicações).",
     publishTitle:
@@ -1366,6 +1382,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "Telefono",
     publicShowLocation: "Località",
     allowIndexing: "Consenti l’indicizzazione di questa pagina dai motori di ricerca",
+    allowIndexingBody:
+      "È così che colleghi e datori di lavoro trovano il tuo lavoro su Google e altri motori di ricerca. Consigliato: puoi disattivarlo quando vuoi.",
     allowIndexingTitle:
       "Disattivato per impostazione predefinita. Se attivo, il tuo CV pubblico può comparire nei risultati di ricerca (nome, ORCID, pubblicazioni).",
     publishTitle:
@@ -1519,6 +1537,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "전화",
     publicShowLocation: "위치",
     allowIndexing: "검색 엔진이 이 페이지를 색인하도록 허용",
+    allowIndexingBody:
+      "동료와 고용주가 Google 등 검색 엔진에서 당신의 연구를 찾는 방법입니다. 권장하며, 언제든지 끌 수 있습니다.",
     allowIndexingTitle:
       "기본적으로 꺼져 있습니다. 켜면 공개 CV가 검색 결과에 표시될 수 있습니다(이름, ORCID, 논문).",
     publishTitle:
@@ -1672,6 +1692,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowPhone: "Телефон",
     publicShowLocation: "Местоположение",
     allowIndexing: "Разрешить индексирование этой страницы поисковыми системами",
+    allowIndexingBody:
+      "Именно так коллеги и работодатели находят ваши работы в Google и других поисковых системах. Рекомендуется — вы можете отключить это в любой момент.",
     allowIndexingTitle:
       "По умолчанию выключено. Если включить, ваше публичное резюме может появляться в результатах поиска (имя, ORCID, публикации).",
     publishTitle:
