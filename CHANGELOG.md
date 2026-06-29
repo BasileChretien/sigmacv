@@ -46,6 +46,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   note. It stays **opt-in and off by default** (GDPR/APPI) — the choice is just
   informed now, not buried. Localized in all ten locales.
 
+### Fixed
+
+- **Social-share cards now show each page's own title, not the homepage's.** The
+  site-wide layout set the OpenGraph/Twitter title + description to the homepage's,
+  and Next.js cascades that to every page without its own — so sharing a landing
+  page, guide, or glossary term (e.g. `/orcid-to-cv`, `/phd-cv`) on LinkedIn, X or
+  Slack showed the generic homepage card. The layout now carries only page-neutral
+  OG/Twitter defaults; the homepage keeps its own card, and every other page uses
+  its already-correct per-page title + description.
+
 ## [0.2.0] - 2026-06-23
 
 ### Added

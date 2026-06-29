@@ -29,6 +29,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     description: s.metaDescription,
     alternates: { canonical: `/${slug}`, languages: homeLanguageAlternates() },
     openGraph: {
+      type: "website",
+      siteName: "SigmaCV",
       title: s.metaTitle,
       description: s.metaDescription,
       url: `/${slug}`,
