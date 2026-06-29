@@ -28,6 +28,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   classic Outlook: re-attach the link with **Ctrl+K** (works even with Microsoft
   365 cloud/roaming signatures). Localized in all ten locales.
 
+### Changed
+
+- **The "publish a public page" nudge now appears after you export, not on first
+  import.** Previously it was an onboarding prompt shown right after the initial
+  sync — when the CV is still raw, un-curated source data — so people dismissed it
+  or published a half-finished page. It now fires after a successful document
+  export (PDF / DOCX / LaTeX / Markdown), i.e. once the CV is presentable and
+  you're about to share it, with copy tied to that moment. Still dismissible,
+  never auto-publishes, and never shown once the page is live. (Data and grant-CV
+  exports don't trigger it.) Re-localized in all ten locales.
+
+- **Search-engine indexing is now a prominent, explained choice when you publish.**
+  Making a published page discoverable in Google was a quiet checkbox most people
+  never noticed (only a fraction of published pages were indexable). It's now an
+  emphasised control with a one-line "this is how people find your work" benefit
+  note. It stays **opt-in and off by default** (GDPR/APPI) — the choice is just
+  informed now, not buried. Localized in all ten locales.
+
 ### Fixed
 
 - **Social-share cards now show each page's own title, not the homepage's.** The
