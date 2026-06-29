@@ -1093,6 +1093,19 @@ input[type="radio"] {
 .publish-main-toggle > span {
   font-size: var(--text-sm);
 }
+/* Indexing is the discoverability switch (the public-page flywheel's growth
+   point) — emphasise it above the secondary contact checkboxes, while it stays
+   opt-in / default-off. Lighter than the main publish box so the on/off publish
+   decision still reads as primary. */
+.publish-index-toggle {
+  align-items: center;
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-1);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: var(--radius-sm);
+  font-weight: var(--weight-medium);
+}
 .publish-panel .public-contact-consent legend {
   display: block;
   grid-column: 1 / -1;
