@@ -192,7 +192,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
   "zh-CN": {
     metaTitle: "SigmaCV — 基于 ORCID 和 OpenAlex 的免费学术简历生成器",
     metaDescription:
-      "根据 ORCID 和 OpenAlex 自动生成简洁的学术简历。选择引用样式，整理属于您的成果，并导出为 PDF、DOCX、LaTeX 或 Markdown。免费且开源。",
+      "根据 ORCID 和 OpenAlex 自动生成简洁、可定制的学术简历：汇总您的论文、按标识符高亮您的署名、选择引用样式、整理属于您的成果，并导出为 PDF、DOCX、LaTeX、Markdown 或 BibTeX，或发布一个始终保持最新的公开主页。可选的负责任指标，免费、开源且尊重隐私。",
     eyebrow: "面向负责任研究评价的开放基础设施",
     heroTitle: "您的学术简历，依据公开学术记录自动生成。",
     heroSub:

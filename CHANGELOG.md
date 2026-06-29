@@ -54,6 +54,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   note. It stays **opt-in and off by default** (GDPR/APPI) — the choice is just
   informed now, not buried. Localized in all ten locales.
 
+- **More descriptive page titles + descriptions (SEO).** Bing Webmaster Tools
+  flagged the `/about` and `/contact` titles as too short (e.g. "About —
+  SigmaCV") and the Chinese homepage's meta description as too short. The About
+  and Contact `<title>` tags are now descriptive in all ten locales, and the
+  zh-CN homepage description is fuller.
+
 ### Fixed
 
 - **Social-share cards now show each page's own title, not the homepage's.** The
