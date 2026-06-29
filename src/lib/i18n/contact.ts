@@ -21,7 +21,7 @@ export interface ContactStrings {
 
 const CONTACT_I18N: Record<Locale, ContactStrings> = {
   "en-US": {
-    metaTitle: "Contact",
+    metaTitle: "Contact — support, feedback & questions",
     metaDescription:
       "Contact SigmaCV — an independent personal project. Email the data controller for questions, feedback, or a privacy request.",
     heading: "Contact",
@@ -32,7 +32,7 @@ const CONTACT_I18N: Record<Locale, ContactStrings> = {
     backLink: "← Back to SigmaCV",
   },
   "zh-CN": {
-    metaTitle: "联系我们",
+    metaTitle: "联系我们 — 支持、反馈与问题",
     metaDescription:
       "联系 SigmaCV——一个独立的个人项目。如有问题、反馈或隐私请求，请发送电子邮件给数据控制者。",
     heading: "联系方式",
@@ -43,7 +43,7 @@ const CONTACT_I18N: Record<Locale, ContactStrings> = {
     backLink: "← 返回 SigmaCV",
   },
   "es-ES": {
-    metaTitle: "Contacto",
+    metaTitle: "Contacto — soporte, comentarios y preguntas",
     metaDescription:
       "Contacte con SigmaCV, un proyecto personal independiente. Escriba al responsable del tratamiento para preguntas, comentarios o una solicitud de privacidad.",
     heading: "Contacto",
@@ -54,7 +54,7 @@ const CONTACT_I18N: Record<Locale, ContactStrings> = {
     backLink: "← Volver a SigmaCV",
   },
   "fr-FR": {
-    metaTitle: "Contact",
+    metaTitle: "Contact — assistance, retours et questions",
     metaDescription:
       "Contactez SigmaCV, un projet personnel indépendant. Écrivez au responsable du traitement pour toute question, remarque ou demande relative à la confidentialité.",
     heading: "Contact",
@@ -65,7 +65,7 @@ const CONTACT_I18N: Record<Locale, ContactStrings> = {
     backLink: "← Retour à SigmaCV",
   },
   "de-DE": {
-    metaTitle: "Kontakt",
+    metaTitle: "Kontakt — Support, Feedback und Fragen",
     metaDescription:
       "Kontaktieren Sie SigmaCV, ein unabhängiges privates Projekt. Schreiben Sie dem Verantwortlichen bei Fragen, Feedback oder einem Datenschutzanliegen.",
     heading: "Kontakt",
@@ -76,7 +76,7 @@ const CONTACT_I18N: Record<Locale, ContactStrings> = {
     backLink: "← Zurück zu SigmaCV",
   },
   "ja-JP": {
-    metaTitle: "お問い合わせ",
+    metaTitle: "お問い合わせ — サポート・フィードバック・ご質問",
     metaDescription:
       "独立した個人プロジェクト SigmaCV へのお問い合わせ。ご質問・ご意見・プライバシーに関するご請求は、データ管理者までメールでご連絡ください。",
     heading: "お問い合わせ",
@@ -87,7 +87,7 @@ const CONTACT_I18N: Record<Locale, ContactStrings> = {
     backLink: "← SigmaCV に戻る",
   },
   "pt-BR": {
-    metaTitle: "Contato",
+    metaTitle: "Contato — suporte, feedback e perguntas",
     metaDescription:
       "Entre em contato com o SigmaCV, um projeto pessoal independente. Escreva ao controlador de dados para dúvidas, comentários ou uma solicitação de privacidade.",
     heading: "Contato",
@@ -98,7 +98,7 @@ const CONTACT_I18N: Record<Locale, ContactStrings> = {
     backLink: "← Voltar ao SigmaCV",
   },
   "it-IT": {
-    metaTitle: "Contatti",
+    metaTitle: "Contatti — supporto, feedback e domande",
     metaDescription:
       "Contatta SigmaCV, un progetto personale indipendente. Scrivi al titolare del trattamento per domande, commenti o una richiesta sulla privacy.",
     heading: "Contatti",
@@ -109,7 +109,7 @@ const CONTACT_I18N: Record<Locale, ContactStrings> = {
     backLink: "← Torna a SigmaCV",
   },
   "ko-KR": {
-    metaTitle: "문의",
+    metaTitle: "문의 — 지원, 피드백 및 질문",
     metaDescription:
       "독립적인 개인 프로젝트 SigmaCV에 문의하기. 질문, 의견 또는 개인정보 요청은 데이터 관리자에게 이메일로 보내 주십시오.",
     heading: "문의",
@@ -120,7 +120,7 @@ const CONTACT_I18N: Record<Locale, ContactStrings> = {
     backLink: "← SigmaCV로 돌아가기",
   },
   "ru-RU": {
-    metaTitle: "Контакты",
+    metaTitle: "Контакты — поддержка, отзывы и вопросы",
     metaDescription:
       "Свяжитесь с SigmaCV — независимым личным проектом. Пишите контролёру данных по вопросам, отзывам или запросам о конфиденциальности.",
     heading: "Контакты",

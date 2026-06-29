@@ -5,7 +5,7 @@ import { CONTACT_EMAIL, contactStrings } from "@/lib/i18n/contact";
 describe("contactStrings", () => {
   it("localizes the contact page and falls back to English", () => {
     expect(contactStrings("en-US").heading).toBe("Contact");
-    expect(contactStrings("fr-FR").metaTitle).toBe("Contact");
+    expect(contactStrings("fr-FR").metaTitle).toBe("Contact — assistance, retours et questions");
     expect(contactStrings("ja-JP").heading).toBe("お問い合わせ");
     expect(contactStrings("xx-XX").heading).toBe(contactStrings("en-US").heading);
   });
