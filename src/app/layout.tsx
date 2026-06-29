@@ -70,6 +70,10 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+  // Bing Webmaster Tools site verification — emits <meta name="msvalidate.01">.
+  // Lets Bing confirm domain ownership (analytics, sitemap submission, IndexNow
+  // visibility). Public token, safe to commit. Keep it once verified.
+  verification: { other: { "msvalidate.01": "1751748D3901628807736BEFE144103C" } },
   icons: { icon: "/icon.svg", apple: "/icon.svg" },
 };
 
