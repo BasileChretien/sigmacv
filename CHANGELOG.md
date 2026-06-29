@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **IndexNow pings for newly-published public pages.** When a CV is published
+  with search indexing enabled, the app now notifies IndexNow (Bing, Yandex,
+  Seznam, …) so those engines crawl the `/p/<slug>` page promptly instead of
+  waiting to rediscover it via the sitemap. Best-effort and fail-soft (never
+  blocks or breaks publishing) and production-only. Google ignores IndexNow, so
+  this complements — doesn't replace — the sitemap. Domain ownership is proven by
+  a public key file at the site root.
+
 - **Zero-downtime redeploys.** Deploying an update used to take the site down for
   the whole build+swap, so anyone visiting mid-deploy got a 502 / "server
   connection error". Now: a new `/api/health` liveness endpoint, a Docker
