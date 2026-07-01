@@ -15,6 +15,7 @@ import { landingAudience } from "@/lib/i18n/landingAudience";
 import { landingFlow } from "@/lib/i18n/landingFlow";
 import { landingStrings } from "@/lib/i18n/landing";
 import { orcidHelp } from "@/lib/i18n/orcidHelp";
+import { orcidTrustDetails } from "@/lib/i18n/orcidTrustDetails";
 import { principlesStrings } from "@/lib/i18n/principles";
 import { transparencyStrings } from "@/lib/i18n/transparency";
 import {
@@ -71,6 +72,7 @@ export default function Landing({ locale }: LandingProps) {
   const audience = landingAudience(loc);
   const flow = landingFlow(loc);
   const help = orcidHelp(loc);
+  const trustDetails = orcidTrustDetails(loc);
   const links = getSiteLinks();
 
   const footerLinks: { label: string; href: string }[] = [
@@ -135,6 +137,23 @@ export default function Landing({ locale }: LandingProps) {
                 </SignInButton>
               </form>
               <p className="hp2-signin-trust">{s.orcidTrust}</p>
+
+              {/* Elevate the one-line trust into the concrete, verifiable facts
+                  (read-only openid scope, no write-back, token not stored, open +
+                  portable) — answers the "a tool that wants my ORCID?" hesitation. */}
+              <details className="hp2-help hp2-trust">
+                <summary>{trustDetails.summary}</summary>
+                <div className="hp2-help-body">
+                  <ul className="hp2-trust-list">
+                    <li>{trustDetails.access}</li>
+                    <li>{trustDetails.credentials}</li>
+                    <li>{trustDetails.open}</li>
+                  </ul>
+                  <a className="hp2-help-cta" href={localePrivacyPath(loc)}>
+                    {trustDetails.privacyCta} <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+              </details>
 
               {/* Try-before-you-trust: preview a CV from a public ORCID iD with no
                   sign-in, then convert. Lowers the OAuth-commitment barrier. */}

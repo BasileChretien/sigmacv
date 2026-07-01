@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **ORCID trust disclosure on the sign-in card.** The one-line "we only read your
+  public record" note now expands into a **"What we access — and what we never do"**
+  panel spelling out the verifiable facts: read-only access via the minimal
+  `openid` scope, **never writes anything back to ORCID**, no password reaches us,
+  the sign-in token is discarded after login (never stored), and the project is
+  open-source (Apache-2.0) and not-for-profit with export/delete anytime — linking
+  to the privacy notice. The same read-only trust line now also appears under the
+  sign-in CTA on the SEO landing pages. Localized in all ten locales.
+
 - **No-login interactive preview.** Paste an ORCID iD on the home sign-in card
   (or the ORCID-to-CV page) and land in the **real editor** at `/preview/<iD>` —
   no account, no OAuth — seeded with a CV built from public data. Everything
@@ -55,6 +64,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   365 cloud/roaming signatures). Localized in all ten locales.
 
 ### Changed
+
+- **Homepage hero repositioned around what SigmaCV does that a reference manager
+  can't.** The headline now leads with **one ORCID iD → your CV in every funder's
+  format** (NIH, ERC, MSCA, NSF, JSPS — switch citation style once and every
+  reference reformats) and a **public page that keeps itself up to date**, and
+  names the audience it's built for (researchers who rebuild their CV for every
+  grant, in Word and LaTeX alike). Copy only — same sign-in flow. All ten locales.
 
 - **The "publish a public page" nudge now appears after you export, not on first
   import.** Previously it was an onboarding prompt shown right after the initial

@@ -184,6 +184,17 @@
 .hp2-help-cta:hover {
   text-decoration: underline;
 }
+/* Bulleted facts inside the ORCID trust <details> (reuses .hp2-help chrome). */
+.hp2-trust-list {
+  margin: 0 0 var(--space-2);
+  padding-left: 1.1rem;
+  display: grid;
+  gap: var(--space-1);
+}
+.hp2-trust-list li {
+  color: var(--muted);
+  line-height: 1.5;
+}
 .hp2-fine {
   margin: var(--space-4) 0 0;
   font-size: var(--text-xs);
