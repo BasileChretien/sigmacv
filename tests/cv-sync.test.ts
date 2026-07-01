@@ -39,6 +39,7 @@ const mocks = vi.hoisted(() => ({
   fetchCtis: vi.fn(),
   fetchIctrp: vi.fn(),
   fetchEpo: vi.fn(),
+  fetchOrcidPatents: vi.fn(),
   discoverOrcid: vi.fn(),
   fetchOrcidWorkTypes: vi.fn(),
 }));
@@ -70,6 +71,7 @@ vi.mock("@/lib/orcid/client", () => ({
   fetchOrcidEducation: vi.fn(async () => []),
   fetchOrcidDistinctions: vi.fn(async () => []),
   fetchOrcidService: vi.fn(async () => []),
+  fetchOrcidPatents: mocks.fetchOrcidPatents,
   fetchOrcidPeerReviews: mocks.fetchPeerReviews,
   fetchOrcidWorkTypes: mocks.fetchOrcidWorkTypes,
 }));
@@ -167,6 +169,7 @@ beforeEach(() => {
   mocks.fetchCtis.mockResolvedValue([]);
   mocks.fetchIctrp.mockResolvedValue([]);
   mocks.fetchEpo.mockResolvedValue([]);
+  mocks.fetchOrcidPatents.mockResolvedValue([]);
   mocks.discoverOrcid.mockResolvedValue([]);
   mocks.fetchOrcidWorkTypes.mockResolvedValue({});
 });
@@ -451,6 +454,30 @@ describe("syncCvForUser", () => {
     expect(cv.owner.wikidataUri).toBe("http://www.wikidata.org/entity/Q1");
     expect(cv.owner.wikidataSameAs).toContain("https://viaf.org/viaf/1");
     expect(cv.provenance.sources).toContain("wikidata");
+  });
+
+  it("auto-includes an ORCID self-asserted patent (identifier-matched)", async () => {
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue([]);
+    mocks.fetchOrcidPatents.mockResolvedValue([
+      {
+        source: "orcid",
+        title: "A self-asserted apparatus",
+        applicants: [],
+        inventors: [],
+        year: 2022,
+        sourceId: "42",
+        publicationNumber: "US9999999B2",
+      },
+    ]);
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.fetchOrcidPatents).toHaveBeenCalledWith(RESOLVED.orcid);
+    const self = cv.sections
+      .find((s) => s.type === "patents")
+      ?.items.find((i) => i.id === "patent:orcid:US9999999B2");
+    expect(self?.source).toBe("orcid");
+    expect(self?.included).toBe(true); // ORCID self-assertion → auto-included
+    expect(self?.meta.reviewFlag).toBeUndefined();
   });
 });
 

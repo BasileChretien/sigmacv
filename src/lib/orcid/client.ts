@@ -2,6 +2,7 @@ import { getEnv } from "@/lib/env";
 import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 import { normalizeOrcid } from "@/lib/openalex/types";
+import type { PatentRecord } from "@/lib/patents/types";
 
 /**
  * ORCID public-API client for the user's self-asserted **employments** and
@@ -344,6 +345,70 @@ export async function fetchOrcidWorkTypes(orcid: string): Promise<Record<string,
   } catch (err) {
     logger.warn("orcid.work_types_fetch_failed", { err });
     return {};
+  }
+}
+
+/**
+ * Best-effort patent number from an ORCID work's external-ids. ORCID's dedicated
+ * patent-identifier type is `pat`, so prefer that; otherwise fall back to the
+ * first non-DOI value (a DOI shown as a "patent number" would be misleading).
+ */
+function patentNumberFromExternalIds(extIds: any): string | undefined {
+  const ids = toArray(extIds?.["external-id"]);
+  for (const e of ids) {
+    if (nonEmpty(e?.["external-id-type"])?.toLowerCase() === "pat") {
+      const v = nonEmpty(e?.["external-id-value"]);
+      if (v) return v;
+    }
+  }
+  for (const e of ids) {
+    if (nonEmpty(e?.["external-id-type"])?.toLowerCase() === "doi") continue;
+    const v = nonEmpty(e?.["external-id-value"]);
+    if (v) return v;
+  }
+  return undefined;
+}
+
+/**
+ * The owner's self-asserted PATENT works from their ORCID record (work
+ * `type === "patent"`). Because these sit on the person's OWN ORCID iD, they are
+ * an identifier match at the person level and are AUTO-INCLUDED downstream —
+ * unlike EPO patents, which are name-matched review candidates. ORCID rarely
+ * records a structured patent number, so `publicationNumber` is best-effort
+ * (prefer the `pat` external-id, else the first non-DOI value) and the put-code
+ * is kept as a stable `sourceId`. Applicants / inventors aren't in ORCID work
+ * summaries → left empty. De-duped by put-code. Fails soft → [].
+ */
+export async function fetchOrcidPatents(orcid: string): Promise<PatentRecord[]> {
+  try {
+    const data = await orcidGet<any>(orcid, "works");
+    const out: PatentRecord[] = [];
+    const seen = new Set<string>();
+    for (const group of toArray(data?.group)) {
+      for (const ws of toArray(group?.["work-summary"])) {
+        if (nonEmpty(ws?.type)?.toLowerCase() !== "patent") continue;
+        const title = nonEmpty(ws?.title?.title?.value);
+        const putCode = ws?.["put-code"];
+        if (!title || putCode == null) continue;
+        const sourceId = String(putCode);
+        if (seen.has(sourceId)) continue;
+        seen.add(sourceId);
+        const publicationNumber = patentNumberFromExternalIds(ws?.["external-ids"]);
+        out.push({
+          source: "orcid",
+          title,
+          applicants: [],
+          inventors: [],
+          year: yearOf(ws?.["publication-date"]),
+          sourceId,
+          ...(publicationNumber ? { publicationNumber } : {}),
+        });
+      }
+    }
+    return out;
+  } catch (err) {
+    logger.warn("orcid.patents_fetch_failed", { err });
+    return [];
   }
 }
 

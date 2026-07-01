@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Patents you list on your ORCID record now populate the Patents section.**
+  Any work you've self-asserted as a patent on your own ORCID profile is pulled
+  in and **auto-included** (visible by default) — an identifier match at the
+  person level (your own iD), unlike EPO patents, which are inventor-name +
+  organization matches and stay hidden review candidates until you confirm them.
+  When the same invention appears in both lanes (matching publication number),
+  the ORCID one wins and the EPO duplicate is dropped, so a patent is never
+  listed twice. ORCID rarely stores a structured patent number, so the entry
+  shows the title (and year when present); hide any you don't want with the usual
+  curation controls.
+
 - **Import a `.bib` file.** Researchers who already keep a clean bibliography
   (Zotero / Mendeley / JabRef BibTeX export) can now start their CV from it: an
   "Import a .bib file" panel in the editor (beside "Add a publication by DOI")

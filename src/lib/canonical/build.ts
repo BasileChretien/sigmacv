@@ -1042,13 +1042,23 @@ function buildClinicalTrialsSection(
 function formatPatentText(p: PatentRecord): string {
   const label = p.applicants[0] ? `${p.title}, ${p.applicants[0]}` : p.title;
   const yr = p.year ? ` (${p.year})` : "";
-  return `${label}${yr} [${p.publicationNumber}]`;
+  const num = p.publicationNumber ? ` [${p.publicationNumber}]` : "";
+  return `${label}${yr}${num}`;
+}
+
+/** Normalized publication number for cross-source dedupe (strip punctuation/case). */
+function normPatentNo(n: string): string {
+  return n.replace(/[^a-z0-9]/gi, "").toUpperCase();
 }
 
 /**
- * Patents where the account holder is an inventor (EPO OPS). Matched by NAME +
- * applicant organization — so every entry is a REVIEW CANDIDATE: hidden by
- * default with `meta.reviewFlag = "name-matched"`, never auto-included. Manual
+ * Patents for the CV's Patents section, from two lanes:
+ *  - `orcid` — patents the owner self-asserted on their OWN ORCID record
+ *    (identifier match at the person level) → AUTO-INCLUDED (visible).
+ *  - `epo` — EPO OPS inventor-name + applicant-org matches → REVIEW CANDIDATES
+ *    (hidden by default with `meta.reviewFlag = "name-matched"`).
+ * An EPO hit that duplicates an ORCID-asserted patent (same normalized
+ * publication number) is dropped, so the invention isn't listed twice. Manual
  * entries are carried over.
  */
 function buildPatentsSection(
@@ -1059,25 +1069,46 @@ function buildPatentsSection(
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
-  const sorted = [...patents].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+  // Prefer the auto-included ORCID self-assertion over a duplicate EPO candidate.
+  const orcidNumbers = new Set(
+    patents
+      .filter((p) => p.source === "orcid" && p.publicationNumber)
+      .map((p) => normPatentNo(p.publicationNumber!)),
+  );
+  const deduped = patents.filter(
+    (p) =>
+      !(
+        p.source === "epo" &&
+        p.publicationNumber &&
+        orcidNumbers.has(normPatentNo(p.publicationNumber))
+      ),
+  );
+  const sorted = [...deduped].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
   for (const p of sorted) {
-    const id = `patent:epo:${p.publicationNumber.replace(/[^a-z0-9]+/gi, "-")}`;
+    const key = (p.publicationNumber ?? p.sourceId ?? p.title).replace(/[^a-z0-9]+/gi, "-");
+    const id = `patent:${p.source}:${key}`;
     const prev = prevItems.get(id);
     const it = makeEntryItem(
       id,
-      "epo",
-      p.publicationNumber,
+      p.source,
+      p.publicationNumber ?? p.sourceId ?? "",
       formatPatentText(p),
       prev,
       rank++,
       p.year,
       { lastVerifiedAt: now },
     );
-    items.push({
-      ...it,
-      included: prev?.included ?? false,
-      meta: { ...it.meta, reviewFlag: "name-matched" },
-    });
+    if (p.source === "orcid") {
+      // Self-asserted on the owner's ORCID iD → auto-included (respect a prior hide).
+      items.push({ ...it, included: prev?.included ?? true });
+    } else {
+      // EPO name+org match → hidden review candidate until the user confirms it.
+      items.push({
+        ...it,
+        included: prev?.included ?? false,
+        meta: { ...it.meta, reviewFlag: "name-matched" },
+      });
+    }
   }
   for (const m of manual) {
     items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
