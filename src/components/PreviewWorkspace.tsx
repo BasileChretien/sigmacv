@@ -60,6 +60,11 @@ export default function PreviewWorkspace({
       seeded.current = false;
       return;
     }
+    // Guard against a stale response: if a newer edit supersedes this render
+    // before it resolves, `cancelled` stops the late reply from clobbering the
+    // newer preview (a failed/rate-limited render just leaves the last one — the
+    // same best-effort behaviour as the signed-in editor's preview).
+    let cancelled = false;
     setPreviewLoading(true);
     const handle = setTimeout(async () => {
       try {
@@ -69,14 +74,17 @@ export default function PreviewWorkspace({
           body: JSON.stringify({ document: cv, surface: previewSurface }),
         });
         const data = (await res.json().catch(() => ({}))) as { html?: string };
-        if (res.ok && typeof data.html === "string") setPreviewHtml(data.html);
+        if (!cancelled && res.ok && typeof data.html === "string") setPreviewHtml(data.html);
       } catch {
         /* best-effort — keep the previous render in place */
       } finally {
-        setPreviewLoading(false);
+        if (!cancelled) setPreviewLoading(false);
       }
     }, 350);
-    return () => clearTimeout(handle);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
   }, [cv, previewSurface]);
 
   const update = useCallback((next: CanonicalCv) => {

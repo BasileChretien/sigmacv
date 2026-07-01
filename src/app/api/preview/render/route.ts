@@ -4,10 +4,9 @@ import { MAX_TOTAL_CV_ITEMS, cvItemCount } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
-import { isSameOrigin } from "@/lib/security/origin";
 import { renderCvHtml } from "@/lib/render/html";
 import { renderPublicCvHtml } from "@/lib/render/publicStyles";
-import { clientIp } from "@/app/p/[slug]/pubRateLimit";
+import { previewCaller } from "@/app/api/cv/previewGate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,12 +25,14 @@ const MAX_BODY_BYTES = 8_000_000;
 /** Render a (possibly-edited) canonical document to HTML for the anonymous
  *  interactive preview. Mirrors /api/cv/preview but keyed by IP, not a session. */
 export async function POST(req: Request) {
-  if (!isSameOrigin(req)) {
+  // Reuse the same same-origin + IP gate as the sibling gallery/styles preview
+  // routes (anon-only here, but shared so the three stay consistent).
+  const gate = await previewCaller(req);
+  if (!gate.ok) {
     return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
   }
 
-  const ip = clientIp(req);
-  const rl = await enforceRateLimit(`preview-render:${ip}`, RENDER_MAX, RENDER_WINDOW_MS);
+  const rl = await enforceRateLimit(`preview-render:${gate.key}`, RENDER_MAX, RENDER_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many preview updates. Please wait a moment." },
