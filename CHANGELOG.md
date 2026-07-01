@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **No-login interactive preview.** Paste an ORCID iD on the home sign-in card
+  (or the ORCID-to-CV page) and land in the **real editor** at `/preview/<iD>` —
+  no account, no OAuth — seeded with a CV built from public data. Everything
+  visual works anonymously: **curate** (reorder, remove "not mine", show/hide and
+  rename sections), **restyle** (template, citation style, metrics, highlight,
+  page format), with a **live preview** that re-renders as you edit and a
+  Document / Public-page toggle. Only **saving, publishing and exporting** are
+  account-gated — a single "Sign in with ORCID" call to action. Lowers the
+  try-before-you-trust barrier: you can actually use SigmaCV before granting any
+  access. The session is **ephemeral and never indexed** (built on demand, cached
+  briefly in memory, `noindex` + robots-disallowed, nothing persisted), runs the
+  same public projection the living page uses (so no consent-gated field can
+  appear), and every render is same-origin-only + rate-limited per-IP. Friendly
+  states for a malformed iD or an ORCID with no public record; if a live re-render
+  is rate-limited or fails, an inline notice explains why and the last good preview
+  stays put, rather than freezing silently. The build engine is
+  shared with the authenticated sync (a new session-less `buildCvFromOrcid`) and
+  the preview/thumbnail renders are shared with the signed-in editor, so the two
+  never drift. Localized in all ten locales.
+
 - **IndexNow pings for newly-published public pages.** When a CV is published
   with search indexing enabled, the app now notifies IndexNow (Bing, Yandex,
   Seznam, …) so those engines crawl the `/p/<slug>` page promptly instead of

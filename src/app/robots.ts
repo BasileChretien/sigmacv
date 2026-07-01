@@ -9,6 +9,10 @@ import { absoluteUrl } from "@/lib/siteUrl";
  * crawlers may fetch /p/ but only index opted-in pages (and only those are in
  * the sitemap). Disallowing /p/ in robots would prevent crawlers from ever
  * seeing the per-page header, blocking the opted-in pages too.
+ *
+ * `/preview` (the no-login ORCID preview) is disallowed: it's an ephemeral,
+ * always-noindex render generated on demand for any pasted ORCID, so there is
+ * nothing to crawl and no opt-in path — unlike /p/, it never becomes indexable.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -16,7 +20,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/_next/", "/cv"],
+        disallow: ["/api/", "/_next/", "/cv", "/preview"],
       },
     ],
     sitemap: absoluteUrl("sitemap.xml"),

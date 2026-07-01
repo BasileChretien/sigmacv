@@ -37,6 +37,9 @@ interface CvEditorProps {
    * the live editor can adopt it by flipping this one prop.
    */
   variant?: "classic" | "regions";
+  /** No-login preview mode: hides the account-only add-by-DOI / import-.bib
+   *  panels (they save server-side). Curation/styling stay fully available. */
+  anonymous?: boolean;
 }
 
 /** Imperative surface CvWorkspace uses to drive the sync banner's "jump to item". */
@@ -48,7 +51,15 @@ export interface CvEditorHandle {
 }
 
 const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
-  { cv, availableStyles, uiLocale, onChange, onClaimAdded = () => {}, variant = "classic" },
+  {
+    cv,
+    availableStyles,
+    uiLocale,
+    onChange,
+    onClaimAdded = () => {},
+    variant = "classic",
+    anonymous = false,
+  },
   ref,
 ) {
   // Editor chrome follows the INTERFACE language; the CV's own language is
@@ -113,6 +124,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       locale={locale}
       onChange={onChange}
       onClaimAdded={onClaimAdded}
+      anonymous={anonymous}
     />
   );
 

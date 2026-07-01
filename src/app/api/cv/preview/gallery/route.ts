@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { logger } from "@/lib/log";
 import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
-import { isSameOrigin } from "@/lib/security/origin";
+import { previewCaller } from "@/app/api/cv/previewGate";
 import { templateGalleryPreviews } from "@/lib/render/galleryPreview";
 
 export const runtime = "nodejs";
@@ -19,19 +18,14 @@ const MAX_BODY_BYTES = 8_000_000;
 /** Render a trimmed sample of the document in every template, for the editor's
  *  template-picker thumbnails (real previews, not schematics). */
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!isSameOrigin(req)) {
+  // Signed-in OR anonymous (the no-login interactive preview): pure client-doc
+  // render, so no account required. Same-origin enforced; anon keyed by IP.
+  const gate = await previewCaller(req);
+  if (!gate.ok) {
     return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
   }
 
-  const rl = await enforceRateLimit(
-    `preview-gallery:${session.user.id}`,
-    GALLERY_MAX,
-    GALLERY_WINDOW_MS,
-  );
+  const rl = await enforceRateLimit(`preview-gallery:${gate.key}`, GALLERY_MAX, GALLERY_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many preview requests. Please wait a moment." },

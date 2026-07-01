@@ -215,10 +215,13 @@ interface SectionsListProps {
   onChange: (next: CanonicalCv) => void;
   /** A DOI-claimed work was added server-side; replace the CV with the saved one. */
   onClaimAdded?: (cv: CanonicalCv) => void;
+  /** No-login preview: hide the add-by-DOI panel (it saves server-side, which
+   *  requires an account). */
+  anonymous?: boolean;
 }
 
 const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function SectionsList(
-  { cv, locale, onChange, onClaimAdded = () => {} },
+  { cv, locale, onChange, onClaimAdded = () => {}, anonymous = false },
   ref,
 ) {
   const sections = orderedSections(cv);
@@ -553,8 +556,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
               {(controls) => (
                 <>
                   {/* The "add a publication by DOI" panel sits directly above the
-                Publications section and moves with it when sections reorder. */}
-                  {section.type === "publications" ? (
+                Publications section and moves with it when sections reorder.
+                Hidden in the no-login preview (it saves server-side). */}
+                  {section.type === "publications" && !anonymous ? (
                     <ClaimByDoi locale={locale} onAdded={onClaimAdded} />
                   ) : null}
                   <div
