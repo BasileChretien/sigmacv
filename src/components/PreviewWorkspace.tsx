@@ -43,6 +43,11 @@ export default function PreviewWorkspace({
   const [cv, setCv] = useState<CanonicalCv>(initialCv);
   const [previewHtml, setPreviewHtml] = useState(initialHtml);
   const [previewLoading, setPreviewLoading] = useState(false);
+  // Non-null when the last live re-render didn't land: "rate" = 429 (editing fast),
+  // "fail" = network/5xx. The stale preview stays; this drives an inline notice so
+  // the failure isn't swallowed (a signed-out visitor otherwise sees a frozen
+  // preview with no explanation).
+  const [renderError, setRenderError] = useState<null | "rate" | "fail">(null);
   const [pane, setPane] = useState<"editor" | "preview">("editor");
   // Which surface the preview renders: the document (export) render, or the living
   // public page — which applies the chosen animated publicStyle.
@@ -60,6 +65,11 @@ export default function PreviewWorkspace({
       seeded.current = false;
       return;
     }
+    // Guard against a stale response: if a newer edit supersedes this render
+    // before it resolves, `cancelled` stops the late reply from clobbering the
+    // newer preview (a failed/rate-limited render just leaves the last one — the
+    // same best-effort behaviour as the signed-in editor's preview).
+    let cancelled = false;
     setPreviewLoading(true);
     const handle = setTimeout(async () => {
       try {
@@ -69,14 +79,26 @@ export default function PreviewWorkspace({
           body: JSON.stringify({ document: cv, surface: previewSurface }),
         });
         const data = (await res.json().catch(() => ({}))) as { html?: string };
-        if (res.ok && typeof data.html === "string") setPreviewHtml(data.html);
+        if (cancelled) return;
+        if (res.ok && typeof data.html === "string") {
+          setPreviewHtml(data.html);
+          setRenderError(null);
+        } else {
+          // 429 (per-IP render cap) or 5xx: keep the last good preview but flag why
+          // it stopped updating rather than silently freezing it.
+          setRenderError(res.status === 429 ? "rate" : "fail");
+        }
       } catch {
-        /* best-effort — keep the previous render in place */
+        // Network error — keep the previous render, surface a retryable notice.
+        if (!cancelled) setRenderError("fail");
       } finally {
-        setPreviewLoading(false);
+        if (!cancelled) setPreviewLoading(false);
       }
     }, 350);
-    return () => clearTimeout(handle);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
   }, [cv, previewSurface]);
 
   const update = useCallback((next: CanonicalCv) => {
@@ -168,6 +190,11 @@ export default function PreviewWorkspace({
               {eu.previewSurfacePublic}
             </button>
           </div>
+          {renderError ? (
+            <p className="preview-refresh-note" role="status" aria-live="polite">
+              {renderError === "rate" ? s.refreshPaused : s.refreshFailed}
+            </p>
+          ) : null}
           <CvPreview
             html={previewHtml}
             loading={previewLoading}

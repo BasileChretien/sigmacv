@@ -42,7 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   briefly in memory, `noindex` + robots-disallowed, nothing persisted), runs the
   same public projection the living page uses (so no consent-gated field can
   appear), and every render is same-origin-only + rate-limited per-IP. Friendly
-  states for a malformed iD or an ORCID with no public record. The build engine is
+  states for a malformed iD or an ORCID with no public record; if a live re-render
+  is rate-limited or fails, an inline notice explains why and the last good preview
+  stays put, rather than freezing silently. The build engine is
   shared with the authenticated sync (a new session-less `buildCvFromOrcid`) and
   the preview/thumbnail renders are shared with the signed-in editor, so the two
   never drift. Localized in all ten locales.
