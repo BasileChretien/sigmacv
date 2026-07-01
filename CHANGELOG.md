@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **"Where this came from" provenance panel.** The preview and the editor's sync
+  report now show which of the ~20 open sources your CV was built from, with a
+  per-source item count — and split into **matched by your ID (added
+  automatically)** vs **matched by name (please review)**. Makes the breadth of
+  coverage legible (OpenAlex, ORCID, DataCite, OpenAIRE, DBLP, Crossref, Open
+  Editors Plus, and the name-matched funders/registries) and is honest about the
+  matching basis rather than passing off a name match as confirmed. Built on the
+  per-source counts every sync already records; localized in all ten locales.
+
 - **Instant loading screen for the no-login preview.** Clicking "Preview my CV"
   now shows a branded loading animation right away while the CV is built from
   public sources (a few seconds of ~20-source fetch + citeproc), instead of the

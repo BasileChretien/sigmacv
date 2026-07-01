@@ -23,7 +23,15 @@ const ORCID_RE = /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/;
  *  ORCID (nothing to show), a transient build failure (retryable), or an
  *  un-parseable / checksum-invalid input. */
 export type PreviewResult =
-  | { status: "ok"; orcid: string; name: string; html: string; cv: CanonicalCv }
+  | {
+      status: "ok";
+      orcid: string;
+      name: string;
+      html: string;
+      cv: CanonicalCv;
+      /** Per-source item counts from the build, for the provenance panel. */
+      sourceCounts?: Record<string, number>;
+    }
   | { status: "empty"; orcid: string }
   | { status: "error"; orcid: string }
   | { status: "invalid" };
@@ -52,12 +60,20 @@ export async function previewCvFromOrcid(raw: string): Promise<PreviewResult> {
   if (!orcid) return { status: "invalid" };
 
   const cached = getCachedOrcidPreview(orcid);
-  if (cached) return { status: "ok", orcid, name: cached.name, html: cached.html, cv: cached.cv };
+  if (cached)
+    return {
+      status: "ok",
+      orcid,
+      name: cached.name,
+      html: cached.html,
+      cv: cached.cv,
+      sourceCounts: cached.sourceCounts,
+    };
   if (isKnownEmptyPreview(orcid)) return { status: "empty", orcid };
 
   return dedupeOrcidPreview<PreviewResult>(orcid, async () => {
     try {
-      const { cv } = await buildCvFromOrcid({ orcid });
+      const { cv, report } = await buildCvFromOrcid({ orcid });
       const projected = projectCvForPublic(cv);
       const name = projected.owner.displayName.trim();
       // Empty ⇒ a DETERMINISTIC not-found: OpenAlex answered with no matching
@@ -69,8 +85,9 @@ export async function previewCvFromOrcid(raw: string): Promise<PreviewResult> {
         return { status: "empty", orcid };
       }
       const html = renderCvHtml(projected);
-      setCachedOrcidPreview(orcid, { html, name, cv: projected });
-      return { status: "ok", orcid, name, html, cv: projected };
+      const { sourceCounts } = report;
+      setCachedOrcidPreview(orcid, { html, name, cv: projected, sourceCounts });
+      return { status: "ok", orcid, name, html, cv: projected, sourceCounts };
     } catch (err) {
       // ANY throw here — a transient upstream build failure (OpenAlex
       // author-resolve throws on a non-200) OR an unexpected projection/render
