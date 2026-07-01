@@ -120,13 +120,10 @@ function toCslItem(raw: Record<string, unknown>, id: string): CslItem | null {
     if (typeof v === "string" && v.trim()) out[f] = v.trim();
   }
 
-  // ISSN is string | string[].
+  // astrocite emits ISSN as a plain string (never an array), so only strings are
+  // handled — an array branch here would be dead code.
   const issn = raw.ISSN;
   if (typeof issn === "string" && issn.trim()) out.ISSN = issn.trim();
-  else if (Array.isArray(issn)) {
-    const arr = issn.filter((x): x is string => typeof x === "string" && !!x.trim());
-    if (arr.length) out.ISSN = arr;
-  }
 
   const author = toNames(raw.author);
   if (author) out.author = author;
@@ -252,6 +249,7 @@ export function importBibtexIntoCv(cv: CanonicalCv, content: string): BibtexImpo
   let unusable = 0;
 
   for (const entry of raw) {
+    /* v8 ignore next 4 -- defensive: astrocite always yields objects, never null/primitives */
     if (!entry || typeof entry !== "object") {
       unusable++;
       continue;

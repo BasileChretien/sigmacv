@@ -50,6 +50,17 @@ describe("importBibtexIntoCv", () => {
     expect(article.csl?.author).toHaveLength(2);
   });
 
+  it("maps editors, ISSN, and a book chapter", () => {
+    const bib = `@incollection{c, title={A Chapter}, author={Wu, A}, editor={Ng, B and Ali, C}, booktitle={A Book}, publisher={P}, year={2022}, issn={1234-5678}}`;
+    const out = importBibtexIntoCv(baseCv(), bib);
+    expect(out.added).toBe(1);
+    const item = pubs(out.cv).find((i) => i.csl?.title === "A Chapter")!;
+    expect(item.csl?.type).toBe("chapter");
+    expect(item.csl?.editor).toHaveLength(2);
+    expect(item.csl?.ISSN).toBe("1234-5678");
+    expect(item.csl?.["container-title"]).toBe("A Book");
+  });
+
   it("skips works already in the CV (DOI dedup) on re-import", () => {
     const bib = `@article{a, title={A}, author={X, Y}, journal={J}, year={2020}, doi={10.1/DUP}}`;
     const first = importBibtexIntoCv(baseCv(), bib);

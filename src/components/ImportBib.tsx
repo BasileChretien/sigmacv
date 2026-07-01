@@ -44,7 +44,20 @@ export default function ImportBib({ locale, onImported }: ImportBibProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bibtex }),
       });
-      if (!res.ok) throw new Error("import failed");
+      if (!res.ok) {
+        // Map the distinct server causes to a localized message rather than one
+        // generic "invalid BibTeX" (misleading for a rate-limit / size / no-CV case).
+        setError(
+          res.status === 429
+            ? s.errorTooMany
+            : res.status === 413
+              ? s.errorTooLarge
+              : res.status === 409
+                ? s.errorNotSynced
+                : s.error,
+        );
+        return;
+      }
       const data = (await res.json()) as ImportResult;
       setSummary(
         s.result

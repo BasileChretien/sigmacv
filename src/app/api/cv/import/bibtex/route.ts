@@ -83,10 +83,12 @@ export async function POST(req: Request) {
         { status: 413 },
       );
     }
+    // Parsing is local + fail-soft (bad entries are skipped, not thrown), so a
+    // throw here is an internal fault, not an upstream/gateway failure → 500.
     logger.error("api.cv_bibtex_import_failed", { err });
     return NextResponse.json(
       { error: "Couldn't import that .bib file. Please check it and try again." },
-      { status: 502 },
+      { status: 500 },
     );
   }
 }
