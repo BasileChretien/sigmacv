@@ -2346,6 +2346,18 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   background: var(--surface-sunken);
   font-weight: var(--weight-medium);
 }
+/* Inline "the live preview couldn't refresh" notice (rate-limited / failed). The
+   stale preview stays below it; this just explains why it stopped updating. */
+.preview-refresh-note {
+  margin: var(--space-2) var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--warn-text);
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius-sm);
+}
 .tpl-frame {
   width: 780px;
   height: 1040px;

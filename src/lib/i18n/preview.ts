@@ -38,6 +38,10 @@ export interface PreviewStrings {
   /** Heading + body for a transient build failure (retryable). */
   errorHeading: string;
   errorBody: string;
+  /** Inline notice when the live re-render is rate-limited (429): stale preview, edits safe. */
+  refreshPaused: string;
+  /** Inline notice when the live re-render fails (network/5xx): stale preview, retries next edit. */
+  refreshFailed: string;
   /** Interactive-editor top-bar CTA (save/publish/export are account-gated). */
   ctaKeep: string;
   /** Note beside that CTA explaining what's free vs. gated. */
@@ -66,6 +70,10 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     errorHeading: "Something went wrong",
     errorBody:
       "We couldn't build this preview just now — a data source may be temporarily unavailable. Please try again in a moment.",
+    refreshPaused:
+      "Preview updates paused briefly (too many refreshes). Your edits are safe — it'll catch up in a moment.",
+    refreshFailed:
+      "Couldn't refresh the preview just now. Your edits are safe — it'll retry on your next change.",
     ctaKeep: "Sign in to save & publish",
     editNote: "Live preview — curate and restyle freely. Sign in to save, publish, or export.",
     back: "Back to SigmaCV",
@@ -86,6 +94,8 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     rateLimitedBody: "您的网络在短时间内发起了大量预览请求。请稍候片刻后重试。",
     errorHeading: "出了点问题",
     errorBody: "我们暂时无法生成此预览——某个数据源可能暂时不可用。请稍后再试。",
+    refreshPaused: "预览更新已暂停片刻（刷新过于频繁）。您的编辑已安全保留——稍后会自动更新。",
+    refreshFailed: "暂时无法刷新预览。您的编辑已安全保留——下次修改时会自动重试。",
     ctaKeep: "登录以保存和发布",
     editNote: "实时预览——可自由整理和调整样式。登录后即可保存、发布或导出。",
     back: "返回 SigmaCV",
@@ -110,6 +120,10 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     errorHeading: "Algo ha salido mal",
     errorBody:
       "No hemos podido generar esta vista previa ahora mismo: puede que una fuente de datos no esté disponible temporalmente. Inténtalo de nuevo en un momento.",
+    refreshPaused:
+      "La actualización de la vista previa se ha pausado un momento (demasiados refrescos). Tus cambios están a salvo y se pondrá al día enseguida.",
+    refreshFailed:
+      "No se pudo actualizar la vista previa ahora mismo. Tus cambios están a salvo: se reintentará con tu próxima edición.",
     ctaKeep: "Inicia sesión para guardar y publicar",
     editNote:
       "Vista previa en vivo: organiza y personaliza libremente. Inicia sesión para guardar, publicar o exportar.",
@@ -134,6 +148,10 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     errorHeading: "Une erreur s'est produite",
     errorBody:
       "Nous n'avons pas pu générer cet aperçu pour le moment — une source de données est peut-être temporairement indisponible. Veuillez réessayer dans un instant.",
+    refreshPaused:
+      "La mise à jour de l'aperçu est suspendue un instant (trop de rafraîchissements). Vos modifications sont conservées et l'aperçu se mettra à jour sous peu.",
+    refreshFailed:
+      "Impossible d'actualiser l'aperçu pour le moment. Vos modifications sont conservées — une nouvelle tentative aura lieu à votre prochaine modification.",
     ctaKeep: "Se connecter pour enregistrer et publier",
     editNote:
       "Aperçu en direct — organisez et personnalisez librement. Connectez-vous pour enregistrer, publier ou exporter.",
@@ -159,6 +177,10 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     errorHeading: "Etwas ist schiefgelaufen",
     errorBody:
       "Diese Vorschau konnte gerade nicht erstellt werden — eine Datenquelle ist möglicherweise vorübergehend nicht verfügbar. Bitte versuchen Sie es gleich noch einmal.",
+    refreshPaused:
+      "Die Vorschau-Aktualisierung ist kurz pausiert (zu viele Aktualisierungen). Ihre Änderungen sind sicher und die Vorschau zieht gleich nach.",
+    refreshFailed:
+      "Die Vorschau konnte gerade nicht aktualisiert werden. Ihre Änderungen sind sicher — bei Ihrer nächsten Bearbeitung wird es erneut versucht.",
     ctaKeep: "Anmelden zum Speichern und Veröffentlichen",
     editNote:
       "Live-Vorschau – frei kuratieren und umgestalten. Melden Sie sich an, um zu speichern, zu veröffentlichen oder zu exportieren.",
@@ -184,6 +206,10 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     errorHeading: "問題が発生しました",
     errorBody:
       "現在このプレビューを生成できませんでした。データソースが一時的に利用できない可能性があります。しばらくしてからもう一度お試しください。",
+    refreshPaused:
+      "プレビューの更新を少し停止しました（更新が多すぎます）。編集内容は保持されています。まもなく反映されます。",
+    refreshFailed:
+      "現在プレビューを更新できませんでした。編集内容は保持されています。次の編集時に再試行します。",
     ctaKeep: "ログインして保存・公開",
     editNote:
       "ライブプレビュー——自由に整理・スタイル変更できます。保存・公開・書き出しはログイン後に。",
@@ -208,6 +234,10 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     errorHeading: "Algo deu errado",
     errorBody:
       "Não conseguimos gerar esta pré-visualização agora — uma fonte de dados pode estar temporariamente indisponível. Tente novamente em instantes.",
+    refreshPaused:
+      "A atualização da pré-visualização foi pausada por um momento (muitas atualizações). Suas edições estão seguras e ela se atualizará em breve.",
+    refreshFailed:
+      "Não foi possível atualizar a pré-visualização agora. Suas edições estão seguras — tentaremos novamente na sua próxima alteração.",
     ctaKeep: "Entrar para salvar e publicar",
     editNote:
       "Pré-visualização ao vivo — organize e personalize à vontade. Entre para salvar, publicar ou exportar.",
@@ -232,6 +262,10 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     errorHeading: "Qualcosa è andato storto",
     errorBody:
       "Non siamo riusciti a generare questa anteprima al momento — una fonte di dati potrebbe essere temporaneamente non disponibile. Riprova tra un istante.",
+    refreshPaused:
+      "L'aggiornamento dell'anteprima è in pausa per un momento (troppi aggiornamenti). Le tue modifiche sono al sicuro e l'anteprima si aggiornerà a breve.",
+    refreshFailed:
+      "Non è stato possibile aggiornare l'anteprima al momento. Le tue modifiche sono al sicuro — verrà riprovato alla prossima modifica.",
     ctaKeep: "Accedi per salvare e pubblicare",
     editNote:
       "Anteprima dal vivo — organizza e personalizza liberamente. Accedi per salvare, pubblicare o esportare.",
@@ -256,6 +290,10 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     errorHeading: "문제가 발생했습니다",
     errorBody:
       "지금은 이 미리보기를 생성하지 못했습니다. 데이터 원본이 일시적으로 사용할 수 없을 수 있습니다. 잠시 후 다시 시도해 주세요.",
+    refreshPaused:
+      "미리보기 업데이트가 잠시 중지되었습니다(새로 고침이 너무 많습니다). 편집 내용은 안전하며 곧 반영됩니다.",
+    refreshFailed:
+      "지금은 미리보기를 새로 고치지 못했습니다. 편집 내용은 안전하며 다음 편집 시 다시 시도합니다.",
     ctaKeep: "로그인하여 저장 및 게시",
     editNote:
       "실시간 미리보기 — 자유롭게 정리하고 스타일을 바꿔 보세요. 저장, 게시, 내보내기는 로그인 후 가능합니다.",
@@ -280,6 +318,10 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     errorHeading: "Что-то пошло не так",
     errorBody:
       "Сейчас не удалось создать этот предпросмотр — источник данных может быть временно недоступен. Пожалуйста, повторите попытку через минуту.",
+    refreshPaused:
+      "Обновление предпросмотра приостановлено на мгновение (слишком много обновлений). Ваши изменения сохранены, предпросмотр скоро обновится.",
+    refreshFailed:
+      "Не удалось обновить предпросмотр сейчас. Ваши изменения сохранены — повторим при следующем редактировании.",
     ctaKeep: "Войти, чтобы сохранить и опубликовать",
     editNote:
       "Живой предпросмотр — свободно редактируйте и меняйте стиль. Войдите, чтобы сохранить, опубликовать или экспортировать.",
