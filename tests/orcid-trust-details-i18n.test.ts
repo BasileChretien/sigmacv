@@ -32,6 +32,9 @@ describe("orcidTrustDetails", () => {
       const d = orcidTrustDetails(loc);
       expect(d.access).toContain("ORCID");
       expect(d.access).toContain("openid");
+      // `credentials` also names ORCID in every locale ("sign in through ORCID") —
+      // pin it so a future edit can't silently drop/translate the brand there.
+      expect(d.credentials).toContain("ORCID");
       expect(d.open).toContain("Apache-2.0");
     }
   });
