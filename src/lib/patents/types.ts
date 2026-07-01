@@ -16,4 +16,11 @@ export interface PatentRecord {
   inventors: string[];
   /** Publication year. */
   year?: number;
+  /**
+   * DOCDB simple patent-family id (EPO OPS `exchange-document/@family-id`). The
+   * same invention filed in several jurisdictions (US/EP/JP/WO…) shares one id;
+   * it collapses those equivalents into a single CV entry. Absent when the
+   * source response carried no family id.
+   */
+  familyId?: string;
 }

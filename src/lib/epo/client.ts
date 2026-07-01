@@ -92,6 +92,16 @@ function partyNames(
   return [...out];
 }
 
+/**
+ * Dedup key that collapses the same invention filed in several jurisdictions
+ * (US/EP/JP/WO…) into one entry via its DOCDB simple patent family; falls back
+ * to the publication number when a record has no family id, so unrelated
+ * family-less patents are never merged together.
+ */
+function patentKey(p: PatentRecord): string {
+  return p.familyId ? `fam:${p.familyId}` : `num:${p.publicationNumber}`;
+}
+
 function parsePatents(xml: string, person: ReturnType<typeof personMatch>): PatentRecord[] {
   const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_" });
   const doc = parser.parse(xml) as Record<string, unknown>;
@@ -106,7 +116,8 @@ function parsePatents(xml: string, person: ReturnType<typeof personMatch>): Pate
   const out: PatentRecord[] = [];
   const seen = new Set<string>();
   for (const raw of docs) {
-    const biblio = asRecord(asRecord(raw)?.["bibliographic-data"]);
+    const rec = asRecord(raw);
+    const biblio = asRecord(rec?.["bibliographic-data"]);
     if (!biblio) continue;
     const { number, year } = publicationNumber(biblio["publication-reference"]);
     const title = inventionTitle(biblio);
@@ -118,9 +129,23 @@ function parsePatents(xml: string, person: ReturnType<typeof personMatch>): Pate
     const matched = inventors.some((inv) =>
       applicants.some((app) => matchesNameAndOrg(person, inv, app)),
     );
-    if (!matched || seen.has(number)) continue;
-    seen.add(number);
-    out.push({ source: "epo", publicationNumber: number, title, applicants, inventors, year });
+    if (!matched) continue;
+    // `family-id` sits on the <exchange-document> element itself, not the biblio.
+    const familyId = nodeText(rec?.["@_family-id"]);
+    const record: PatentRecord = {
+      source: "epo",
+      publicationNumber: number,
+      title,
+      applicants,
+      inventors,
+      year,
+      ...(familyId ? { familyId } : {}),
+    };
+    // Collapse cross-jurisdiction equivalents by family (first member wins).
+    const key = patentKey(record);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(record);
   }
   return out;
 }
@@ -184,8 +209,11 @@ export async function fetchEpoPatents(name: string, orgs: string[]): Promise<Pat
       /* v8 ignore next -- defensive cap on a pathological response */
       if (body.length > MAX_BYTES) continue;
       for (const patent of parsePatents(body, person)) {
-        if (seen.has(patent.publicationNumber)) continue;
-        seen.add(patent.publicationNumber);
+        // Same family key as within a response, so a family member surfaced by
+        // the surname-first phrase doesn't re-add one already found as-given.
+        const key = patentKey(patent);
+        if (seen.has(key)) continue;
+        seen.add(key);
         out.push(patent);
       }
     }
