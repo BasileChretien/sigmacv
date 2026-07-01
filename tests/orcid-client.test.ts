@@ -409,6 +409,92 @@ describe("fetchOrcidWorkDois", () => {
   });
 });
 
+const PATENTS_WORKS = {
+  group: [
+    {
+      "work-summary": [
+        {
+          // A patent with a title, year, and a patent-number external id.
+          "put-code": 10,
+          type: "patent",
+          title: { title: { value: "A clever apparatus" } },
+          "publication-date": { year: { value: "2021" } },
+          "external-ids": {
+            "external-id": [{ "external-id-type": "other-id", "external-id-value": "US1234567B2" }],
+          },
+        },
+      ],
+    },
+    {
+      // A patent with no external id and no year → publicationNumber omitted; the
+      // put-code becomes the stable sourceId.
+      "work-summary": [
+        {
+          "put-code": 11,
+          type: "patent",
+          title: { title: { value: "A numberless invention" } },
+        },
+      ],
+    },
+    {
+      // A non-patent work → ignored.
+      "work-summary": [
+        { "put-code": 12, type: "journal-article", title: { title: { value: "Not a patent" } } },
+      ],
+    },
+    {
+      // A patent missing a title → skipped.
+      "work-summary": [{ "put-code": 13, type: "patent" }],
+    },
+    {
+      // Duplicate put-code (same as 10) → de-duped by sourceId.
+      "work-summary": [
+        { "put-code": 10, type: "patent", title: { title: { value: "Duplicate of 10" } } },
+      ],
+    },
+  ],
+};
+
+describe("fetchOrcidPatents", () => {
+  function routeWorks(works: Response) {
+    return vi.fn(async (url: URL | string) => {
+      const u = url.toString();
+      if (u.includes("/oauth/token")) return res(TOKEN_BODY);
+      if (u.includes("/works")) return works;
+      return res({});
+    });
+  }
+
+  it("returns self-asserted patents (source orcid); skips non-patents, title-less + dup", async () => {
+    vi.stubGlobal("fetch", routeWorks(res(PATENTS_WORKS)));
+    const { fetchOrcidPatents } = await freshClient();
+    expect(await fetchOrcidPatents("0000-0002-7483-2489")).toEqual([
+      {
+        source: "orcid",
+        title: "A clever apparatus",
+        applicants: [],
+        inventors: [],
+        year: 2021,
+        sourceId: "10",
+        publicationNumber: "US1234567B2",
+      },
+      {
+        source: "orcid",
+        title: "A numberless invention",
+        applicants: [],
+        inventors: [],
+        sourceId: "11",
+      },
+    ]);
+  });
+
+  it("returns [] when the works API errors (fails soft)", async () => {
+    vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
+    const { fetchOrcidPatents } = await freshClient();
+    expect(await fetchOrcidPatents("0000-0002-7483-2489")).toEqual([]);
+  });
+});
+
 const WORK_TYPES = {
   group: [
     {
