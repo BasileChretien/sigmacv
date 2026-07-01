@@ -105,6 +105,7 @@ import {
   CvNotFoundError,
   CvTooLargeError,
   EDITOR_SYNC_STALE_MS,
+  buildCvFromOrcid,
   capCvItems,
   cvItemCount,
   getCvForUser,
@@ -450,6 +451,20 @@ describe("syncCvForUser", () => {
     expect(cv.owner.wikidataUri).toBe("http://www.wikidata.org/entity/Q1");
     expect(cv.owner.wikidataSameAs).toContain("https://viaf.org/viaf/1");
     expect(cv.provenance.sources).toContain("wikidata");
+  });
+});
+
+describe("buildCvFromOrcid (session-less, shared with the no-login preview)", () => {
+  it("builds from ORCID with no DB access (defaults previous+id) and never persists", async () => {
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    const { cv, report } = await buildCvFromOrcid({ orcid: RESOLVED.orcid });
+    expect(cv.sections[0]!.type).toBe("publications");
+    // No `previous` → treated as a first build.
+    expect(report.initial).toBe(true);
+    // Pure of the database: no read, no upsert (the sync path owns persistence).
+    expect(mocks.findUnique).not.toHaveBeenCalled();
+    expect(mocks.upsert).not.toHaveBeenCalled();
   });
 });
 

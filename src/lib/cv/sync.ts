@@ -162,13 +162,27 @@ export interface SyncResult {
   report: SyncReport;
 }
 
+interface BuildCvInput {
+  orcid: string;
+  fallbackName?: string;
+  /** Prior document whose curation + display choices are preserved across the
+   *  rebuild. Null on a first build and on the anonymous no-login preview. */
+  previous?: CanonicalCv | null;
+  /** Stable CV id to assign; defaults to a fresh UUID. The preview path has no
+   *  persisted row, so it lets this default. */
+  id?: string;
+}
+
 /**
- * Resolve OpenAlex author id(s) from the ORCID iD, pull works, (re)build the
- * canonical object — preserving prior curation + display choices — and persist,
- * along with a {@link SyncReport} of what changed (surfaced in the editor).
+ * Resolve OpenAlex author id(s) from the ORCID iD, pull every source, (re)build
+ * the canonical object — preserving prior curation + display choices — enrich it,
+ * and compute a {@link SyncReport} of what changed. Pure of the database (no reads
+ * or writes): shared by {@link syncCvForUser} (which loads `previous` and persists
+ * the result) and the no-login preview (which passes no `previous` and never
+ * persists). Every client fails soft, so a build never throws on an upstream hiccup.
  */
-export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
-  const { userId, orcid, fallbackName } = opts;
+export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult> {
+  const { orcid, fallbackName, previous = null, id = randomUUID() } = input;
   const now = new Date().toISOString();
   const startedAt = Date.now();
 
@@ -182,10 +196,6 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       timingsMs[key] = Math.round(Date.now() - t0);
     });
   };
-
-  const existing = await prisma.cv.findUnique({ where: { userId } });
-  const previousParsed = existing ? safeParseCanonicalCv(existing.document) : null;
-  const previous = previousParsed?.success ? previousParsed.data : null;
 
   const resolved = await timed("openalex.resolveAuthor", resolveAuthorByOrcid(orcid));
   const mailto = getEnv().OPENALEX_MAILTO;
@@ -297,7 +307,6 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     affiliations: resolved?.affiliations ?? [],
   });
 
-  const id = existing?.id ?? randomUUID();
   let cv = buildCanonicalCv({
     id,
     resolved: resolved
@@ -414,8 +423,9 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
 
   const report = computeSyncReport(previous, cv, { syncedAt: now, sourceCounts, timingsMs });
 
-  // Sync-performance + outcome observability (one structured line per sync).
-  logger.info("cv.sync.completed", {
+  // Build-performance + outcome observability (one structured line per build,
+  // whether it backs an authenticated sync or an anonymous no-login preview).
+  logger.info("cv.build.completed", {
     ms: Date.now() - startedAt,
     added: report.addedTotal,
     removed: report.removedTotal,
@@ -424,6 +434,25 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     timingsMs,
     sourceCounts,
   });
+
+  return { cv, report };
+}
+
+/**
+ * Resolve OpenAlex author id(s) from the ORCID iD, (re)build the canonical object
+ * preserving prior curation + display choices, and persist, along with a
+ * {@link SyncReport} of what changed (surfaced in the editor). The heavy lifting is
+ * {@link buildCvFromOrcid}; this adds the DB read (for prior curation) and the write.
+ */
+export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
+  const { userId, orcid, fallbackName } = opts;
+
+  const existing = await prisma.cv.findUnique({ where: { userId } });
+  const previousParsed = existing ? safeParseCanonicalCv(existing.document) : null;
+  const previous = previousParsed?.success ? previousParsed.data : null;
+  const id = existing?.id ?? randomUUID();
+
+  const { cv, report } = await buildCvFromOrcid({ orcid, fallbackName, previous, id });
 
   await prisma.cv.upsert({
     where: { userId },

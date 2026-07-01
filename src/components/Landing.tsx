@@ -2,6 +2,7 @@ import Link from "next/link";
 import "./landing/beams.css";
 import "./landing/home.css";
 import SignInButton from "@/components/SignInButton";
+import OrcidPreviewForm from "./OrcidPreviewForm";
 import { enabledProviders } from "@/auth.config";
 import { signInWithEmail, signInWithGoogle, signInWithOrcid } from "@/app/auth-actions";
 import { asLocale, t } from "@/lib/i18n";
@@ -134,6 +135,10 @@ export default function Landing({ locale }: LandingProps) {
                 </SignInButton>
               </form>
               <p className="hp2-signin-trust">{s.orcidTrust}</p>
+
+              {/* Try-before-you-trust: preview a CV from a public ORCID iD with no
+                  sign-in, then convert. Lowers the OAuth-commitment barrier. */}
+              <OrcidPreviewForm locale={loc} />
 
               <details className="hp2-help">
                 <summary>{help.question}</summary>

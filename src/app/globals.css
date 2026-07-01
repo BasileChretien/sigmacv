@@ -2873,6 +2873,144 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   flex: 1;
 }
 
+/* ── No-login ORCID preview ──────────────────────────────────────────────────
+   The "see it first" form (OrcidPreviewForm) shown on the landing surfaces, and
+   the standalone /preview/[orcid] page. The form reuses .auth-email-row for its
+   input+button row; these add the label, input affordance, and page layout. */
+.hp2-preview {
+  margin-top: var(--space-3);
+}
+.hp2-preview-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+.hp2-preview .auth-email-row {
+  margin-top: 0;
+}
+.hp2-preview-input {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.hp2-preview-input[aria-invalid="true"] {
+  border-color: var(--danger, #c0392b);
+}
+.hp2-preview-error {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  color: var(--danger, #c0392b);
+}
+/* Standalone /preview/[orcid] page: an intro band (name + sign-in CTA) over the
+   scaled CV render, plus centred empty/invalid states. */
+.preview-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.preview-intro-cta {
+  flex: none;
+}
+.preview-intro-cta .hp2-btn {
+  width: auto;
+}
+.preview-note {
+  margin: var(--space-1) 0 0;
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+.preview-stage {
+  height: min(80vh, 1100px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.preview-empty {
+  max-width: 52ch;
+  margin: var(--space-6) auto;
+  text-align: center;
+}
+.preview-empty h1 {
+  margin-bottom: var(--space-2);
+}
+.preview-empty p {
+  margin-bottom: var(--space-4);
+  color: var(--muted);
+  line-height: 1.6;
+}
+.preview-empty .hp2-btn {
+  width: auto;
+}
+
+/* ── No-login INTERACTIVE preview (PreviewWorkspace) ──────────────────────────
+   The real editor + live preview, anonymously. Full-height like the signed-in
+   `.cv-page`; the `.cv-workspace`/`.cv-workspace-pane`/`.pane-tabs` inside reuse
+   the editor's own layout. Only the top bar is new. */
+.preview-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg);
+}
+.preview-app-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.preview-app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+}
+.preview-app-mark {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
+  color: #fff;
+}
+.preview-app-name {
+  max-width: 40ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview-app-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.preview-app-note {
+  max-width: 46ch;
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--muted);
+}
+.preview-app-signin {
+  width: auto;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .preview-app-note {
+    display: none;
+  }
+}
+
 /* ── Shared site chrome (SiteHeader / SiteFooter) ────────────────────────────
    Used on every public page EXCEPT the homepage (which keeps its hero-integrated
    nav/footer). Visually matches the homepage's `.hp2-nav` / `.hp2-foot` so the
