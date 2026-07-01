@@ -348,9 +348,21 @@ export async function fetchOrcidWorkTypes(orcid: string): Promise<Record<string,
   }
 }
 
-/** First external-id value from an ORCID `external-ids` block, if any. */
-function firstExternalIdValue(extIds: any): string | undefined {
-  for (const e of toArray(extIds?.["external-id"])) {
+/**
+ * Best-effort patent number from an ORCID work's external-ids. ORCID's dedicated
+ * patent-identifier type is `pat`, so prefer that; otherwise fall back to the
+ * first non-DOI value (a DOI shown as a "patent number" would be misleading).
+ */
+function patentNumberFromExternalIds(extIds: any): string | undefined {
+  const ids = toArray(extIds?.["external-id"]);
+  for (const e of ids) {
+    if (nonEmpty(e?.["external-id-type"])?.toLowerCase() === "pat") {
+      const v = nonEmpty(e?.["external-id-value"]);
+      if (v) return v;
+    }
+  }
+  for (const e of ids) {
+    if (nonEmpty(e?.["external-id-type"])?.toLowerCase() === "doi") continue;
     const v = nonEmpty(e?.["external-id-value"]);
     if (v) return v;
   }
@@ -362,10 +374,10 @@ function firstExternalIdValue(extIds: any): string | undefined {
  * `type === "patent"`). Because these sit on the person's OWN ORCID iD, they are
  * an identifier match at the person level and are AUTO-INCLUDED downstream —
  * unlike EPO patents, which are name-matched review candidates. ORCID rarely
- * records a structured patent number, so `publicationNumber` is best-effort (the
- * first external-id value) and the put-code is kept as a stable `sourceId`.
- * Applicants / inventors aren't in ORCID work summaries → left empty. De-duped by
- * put-code. Fails soft → [].
+ * records a structured patent number, so `publicationNumber` is best-effort
+ * (prefer the `pat` external-id, else the first non-DOI value) and the put-code
+ * is kept as a stable `sourceId`. Applicants / inventors aren't in ORCID work
+ * summaries → left empty. De-duped by put-code. Fails soft → [].
  */
 export async function fetchOrcidPatents(orcid: string): Promise<PatentRecord[]> {
   try {
@@ -381,7 +393,7 @@ export async function fetchOrcidPatents(orcid: string): Promise<PatentRecord[]> 
         const sourceId = String(putCode);
         if (seen.has(sourceId)) continue;
         seen.add(sourceId);
-        const publicationNumber = firstExternalIdValue(ws?.["external-ids"]);
+        const publicationNumber = patentNumberFromExternalIds(ws?.["external-ids"]);
         out.push({
           source: "orcid",
           title,

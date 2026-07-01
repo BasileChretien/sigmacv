@@ -414,25 +414,43 @@ const PATENTS_WORKS = {
     {
       "work-summary": [
         {
-          // A patent with a title, year, and a patent-number external id.
+          // Number preferred from the dedicated `pat` external-id, NOT the DOI.
           "put-code": 10,
           type: "patent",
           title: { title: { value: "A clever apparatus" } },
           "publication-date": { year: { value: "2021" } },
           "external-ids": {
-            "external-id": [{ "external-id-type": "other-id", "external-id-value": "US1234567B2" }],
+            "external-id": [
+              { "external-id-type": "doi", "external-id-value": "10.9/ignored" },
+              { "external-id-type": "pat", "external-id-value": "US1234567B2" },
+            ],
           },
         },
       ],
     },
     {
-      // A patent with no external id and no year → publicationNumber omitted; the
-      // put-code becomes the stable sourceId.
+      // No external id and no year → publicationNumber omitted; put-code = sourceId.
       "work-summary": [
         {
           "put-code": 11,
           type: "patent",
           title: { title: { value: "A numberless invention" } },
+        },
+      ],
+    },
+    {
+      // No `pat` id → fall back to the first NON-DOI value (the DOI is skipped).
+      "work-summary": [
+        {
+          "put-code": 16,
+          type: "patent",
+          title: { title: { value: "A fallback-numbered invention" } },
+          "external-ids": {
+            "external-id": [
+              { "external-id-type": "doi", "external-id-value": "10.3/skip" },
+              { "external-id-type": "other-id", "external-id-value": "EP0001A1" },
+            ],
+          },
         },
       ],
     },
@@ -445,6 +463,10 @@ const PATENTS_WORKS = {
     {
       // A patent missing a title → skipped.
       "work-summary": [{ "put-code": 13, type: "patent" }],
+    },
+    {
+      // A titled patent with NO put-code → skipped (no stable id).
+      "work-summary": [{ type: "patent", title: { title: { value: "No put-code" } } }],
     },
     {
       // Duplicate put-code (same as 10) → de-duped by sourceId.
@@ -465,7 +487,7 @@ describe("fetchOrcidPatents", () => {
     });
   }
 
-  it("returns self-asserted patents (source orcid); skips non-patents, title-less + dup", async () => {
+  it("prefers the `pat` number, falls back to non-DOI; skips non-patents/title-less/no-putcode/dup", async () => {
     vi.stubGlobal("fetch", routeWorks(res(PATENTS_WORKS)));
     const { fetchOrcidPatents } = await freshClient();
     expect(await fetchOrcidPatents("0000-0002-7483-2489")).toEqual([
@@ -476,7 +498,7 @@ describe("fetchOrcidPatents", () => {
         inventors: [],
         year: 2021,
         sourceId: "10",
-        publicationNumber: "US1234567B2",
+        publicationNumber: "US1234567B2", // `pat` wins over the DOI
       },
       {
         source: "orcid",
@@ -484,6 +506,14 @@ describe("fetchOrcidPatents", () => {
         applicants: [],
         inventors: [],
         sourceId: "11",
+      },
+      {
+        source: "orcid",
+        title: "A fallback-numbered invention",
+        applicants: [],
+        inventors: [],
+        sourceId: "16",
+        publicationNumber: "EP0001A1", // DOI skipped → first non-DOI id
       },
     ]);
   });

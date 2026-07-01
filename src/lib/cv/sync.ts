@@ -244,7 +244,10 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     timed("orcid.workTypes", fetchOrcidWorkTypes(orcid)),
     // The owner's self-asserted patents on their ORCID record — identifier-matched
     // (their own iD), so AUTO-INCLUDED (unlike the EPO name-matched candidates
-    // below). Also hits /works, served from the same Next fetch cache.
+    // below). Also reads /works (like fetchOrcidWorkTypes + the discovery pass);
+    // the fetch cache coalesces the sequential reads but not necessarily this
+    // concurrent one — sharing one parsed /works payload across the three is a
+    // possible follow-up.
     timed("orcid.patents", fetchOrcidPatents(orcid)),
   ]);
 
