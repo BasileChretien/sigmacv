@@ -46,7 +46,16 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
     return <PreviewNotice locale={loc} heading={s.rateLimitedHeading} body={s.rateLimitedBody} />;
   }
 
-  const result = await previewCvFromOrcid(decodeURIComponent(raw));
+  // A malformed %-escape in the path segment makes decodeURIComponent throw;
+  // fall back to the raw value so it flows into the normal invalid-iD path
+  // instead of crashing the route.
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(raw);
+  } catch {
+    decoded = raw;
+  }
+  const result = await previewCvFromOrcid(decoded);
 
   if (result.status === "invalid") {
     return <PreviewNotice locale={loc} heading={s.invalidHeading} body={s.invalidBody} showForm />;

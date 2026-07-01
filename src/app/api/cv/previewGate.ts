@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { isSameOrigin } from "@/lib/security/origin";
-import { clientIp } from "@/app/p/[slug]/pubRateLimit";
+import { clientIp } from "@/lib/security/clientIp";
 
 /**
  * Shared caller-identity gate for the template/style THUMBNAIL-gallery routes
