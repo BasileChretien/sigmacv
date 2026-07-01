@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import { previewStrings } from "@/lib/i18n/preview";
 import { isValidOrcidChecksum } from "@/lib/orcid/checksum";
 
@@ -28,6 +28,10 @@ export default function OrcidPreviewForm({ locale }: { locale: string }) {
   const router = useRouter();
   const [value, setValue] = useState("");
   const [invalid, setInvalid] = useState(false);
+  // Marks the navigation as pending so the button can show immediate feedback
+  // (disabled + busy) in the beat before the route's loading.tsx paints — and so
+  // an impatient double-click can't fire two heavy preview builds.
+  const [isPending, startTransition] = useTransition();
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -36,7 +40,9 @@ export default function OrcidPreviewForm({ locale }: { locale: string }) {
       setInvalid(true);
       return;
     }
-    router.push(`/preview/${orcid}`);
+    startTransition(() => {
+      router.push(`/preview/${orcid}`);
+    });
   }
 
   return (
@@ -62,7 +68,8 @@ export default function OrcidPreviewForm({ locale }: { locale: string }) {
             if (invalid) setInvalid(false);
           }}
         />
-        <button type="submit" className="hp2-btn">
+        <button type="submit" className="hp2-btn" disabled={isPending} aria-busy={isPending}>
+          {isPending ? <span className="hp2-btn-spinner" aria-hidden="true" /> : null}
           {s.formCta}
         </button>
       </div>
