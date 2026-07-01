@@ -658,6 +658,64 @@ describe("buildCanonicalCv — external-source sections", () => {
     expect(cv.provenance.sources).toContain("epo");
   });
 
+  it("auto-includes ORCID self-asserted patents and de-dupes a matching EPO candidate", () => {
+    const patents: PatentRecord[] = [
+      {
+        source: "orcid",
+        title: "A self-asserted apparatus",
+        applicants: [],
+        inventors: [],
+        year: 2022,
+        sourceId: "10",
+        publicationNumber: "US1234567B2",
+      },
+      {
+        source: "orcid",
+        title: "A numberless invention",
+        applicants: [],
+        inventors: [],
+        sourceId: "11",
+      }, // no number, no year → id falls back to the put-code
+      {
+        source: "epo",
+        publicationNumber: "US 1234567 B2", // same invention as the ORCID one → dropped
+        title: "Dup via EPO",
+        applicants: ["Acme"],
+        inventors: ["Helen Smith"],
+        year: 2022,
+      },
+      {
+        source: "epo",
+        publicationNumber: "EP7654321B1", // distinct → kept as a hidden review candidate
+        title: "An EPO-only device",
+        applicants: ["University of York"],
+        inventors: ["Helen Smith"],
+        year: 2020,
+      },
+    ];
+    const cv = buildWith({ patents });
+    const sec = section(cv, "patents")!;
+    // The EPO duplicate is gone; the rest are ordered by year desc.
+    expect(sec.items.map((i) => i.id)).toEqual([
+      "patent:orcid:US1234567B2",
+      "patent:epo:EP7654321B1",
+      "patent:orcid:11",
+    ]);
+    const self = sec.items.find((i) => i.id === "patent:orcid:US1234567B2")!;
+    expect(self.source).toBe("orcid");
+    expect(self.included).toBe(true); // identifier-matched → auto-included
+    expect(self.meta.reviewFlag).toBeUndefined();
+    expect(self.displayText).toContain("US1234567B2");
+    const numberless = sec.items.find((i) => i.id === "patent:orcid:11")!;
+    expect(numberless.included).toBe(true);
+    expect(numberless.displayText).toBe("A numberless invention"); // no (year)/[number]
+    const epo = sec.items.find((i) => i.id === "patent:epo:EP7654321B1")!;
+    expect(epo.included).toBe(false); // name-matched → hidden review candidate
+    expect(epo.meta.reviewFlag).toBe("name-matched");
+    expect(cv.provenance.sources).toContain("orcid");
+    expect(cv.provenance.sources).toContain("epo");
+  });
+
   it("preserves a user-confirmed (un-hidden) review candidate across re-sync", () => {
     const nationalGrants: FunderGrant[] = [
       {

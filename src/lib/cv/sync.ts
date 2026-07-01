@@ -29,6 +29,7 @@ import {
   fetchOrcidEducation,
   fetchOrcidFundings,
   fetchOrcidInvitedPositions,
+  fetchOrcidPatents,
   fetchOrcidPeerReviews,
   fetchOrcidPositions,
   fetchOrcidService,
@@ -215,6 +216,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     crossrefGrants,
     wikidataIdentity,
     orcidWorkTypes,
+    orcidPatents,
   ] = await Promise.all([
     timed(
       "openalex.works",
@@ -240,6 +242,10 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     // /works; the orcidDiscovery pass also hits /works, so the Next fetch cache
     // (orcidGet `revalidate: 3600`) serves one of them from cache, not the network.
     timed("orcid.workTypes", fetchOrcidWorkTypes(orcid)),
+    // The owner's self-asserted patents on their ORCID record — identifier-matched
+    // (their own iD), so AUTO-INCLUDED (unlike the EPO name-matched candidates
+    // below). Also hits /works, served from the same Next fetch cache.
+    timed("orcid.patents", fetchOrcidPatents(orcid)),
   ]);
 
   // Registries with NO ORCID (national funders + trial registries) are matched by
@@ -263,7 +269,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     ukriGrants,
     nihGrants,
     nsfGrants,
-    patents,
+    epoPatents,
     orcidDiscoveredWorks,
   ] = await Promise.all([
     timed("clinicaltrials", fetchClinicalTrials(displayName, matchOrgs)),
@@ -335,7 +341,9 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     crossrefGrants,
     nationalGrants: [...ukriGrants, ...nihGrants, ...nsfGrants],
     clinicalTrials: [...ctgovTrials, ...ctisTrials, ...ictrpTrials],
-    patents,
+    // ORCID self-asserted patents (auto-included) + EPO name-matched candidates
+    // (review); buildPatentsSection drops an EPO hit that duplicates an ORCID one.
+    patents: [...orcidPatents, ...epoPatents],
   });
   if (usedRor) cv = withRorProvenance(cv);
 
@@ -418,7 +426,8 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     ukri: ukriGrants.length,
     nih: nihGrants.length,
     nsf: nsfGrants.length,
-    epo: patents.length,
+    epo: epoPatents.length,
+    "orcid.patents": orcidPatents.length,
   };
 
   const report = computeSyncReport(previous, cv, { syncedAt: now, sourceCounts, timingsMs });
