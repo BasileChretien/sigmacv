@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Import a `.bib` file.** Researchers who already keep a clean bibliography
+  (Zotero / Mendeley / JabRef BibTeX export) can now start their CV from it: an
+  "Import a .bib file" panel in the editor (beside "Add a publication by DOI")
+  uploads the file, parses it (BibTeX → CSL-JSON via `astrocite-bibtex`), and
+  merges the new works into Publications / Preprints — **deduped by DOI/id** so
+  works already pulled from OpenAlex aren't doubled, and reporting how many were
+  added / already present / skipped. Ownership is **user-asserted** (like a DOI
+  claim), never name-matched — no author name is highlighted, preserving the
+  identifier-only highlighting rule. Malformed entries are tolerated (a single bad
+  entry doesn't sink the file). Localized in all ten locales.
+
 - **ORCID trust disclosure on the sign-in card.** The one-line "we only read your
   public record" note now expands into a **"What we access — and what we never do"**
   panel spelling out the verifiable facts: read-only access via the minimal
