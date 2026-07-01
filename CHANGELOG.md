@@ -78,6 +78,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Patents are de-duplicated by patent family, so one invention isn't listed
+  once per country.** The same invention filed in several jurisdictions
+  (e.g. US + EP + WIPO/PCT + JP) is published by EPO OPS as separate documents;
+  the Patents section now collapses those equivalents into a **single entry**
+  using the DOCDB simple patent-family id (falling back to the publication number
+  when a record carries no family id, so unrelated patents are never merged).
+  Cross-jurisdiction coverage stays worldwide — the CV just stops repeating the
+  same invention.
+
 - **Homepage hero repositioned around what SigmaCV does that a reference manager
   can't.** The headline now leads with **one ORCID iD → your CV in every funder's
   format** (NIH, ERC, MSCA, NSF, JSPS — switch citation style once and every

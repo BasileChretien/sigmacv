@@ -142,6 +142,68 @@ describe("fetchEpoPatents", () => {
     expect(decoded.some((u) => u.includes('q=in="smith helen"'))).toBe(true);
   });
 
+  it("collapses cross-jurisdiction filings of one invention by DOCDB family id", async () => {
+    // Two members of the SAME simple family (77001): an EP application and its US
+    // grant. They must surface as ONE CV entry (the first member — here EP).
+    const FAMILY_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<ops:world-patent-data xmlns:ops="http://ops.epo.org" xmlns="http://www.epo.org/exchange">
+  <ops:biblio-search total-result-count="2"><ops:search-result><exchange-documents>
+    <exchange-document family-id="77001" country="EP" doc-number="1000001" kind="A1"><bibliographic-data>
+      <publication-reference><document-id document-id-type="epodoc"><doc-number>EP1000001</doc-number><date>20200520</date></document-id></publication-reference>
+      <invention-title lang="en">A widely-filed method</invention-title>
+      <parties>
+        <applicants><applicant><applicant-name><name>University of York</name></applicant-name></applicant></applicants>
+        <inventors><inventor><inventor-name><name>SMITH, HELEN</name></inventor-name></inventor></inventors>
+      </parties>
+    </bibliographic-data></exchange-document>
+    <exchange-document family-id="77001" country="US" doc-number="9000001" kind="B2"><bibliographic-data>
+      <publication-reference><document-id document-id-type="docdb"><country>US</country><doc-number>9000001</doc-number><kind>B2</kind><date>20221115</date></document-id></publication-reference>
+      <invention-title lang="en">A widely-filed method</invention-title>
+      <parties>
+        <applicants><applicant><applicant-name><name>University of York</name></applicant-name></applicant></applicants>
+        <inventors><inventor><inventor-name><name>Helen Smith</name></inventor-name></inventor></inventors>
+      </parties>
+    </bibliographic-data></exchange-document>
+  </exchange-documents></ops:search-result></ops:biblio-search>
+</ops:world-patent-data>`;
+    mockXml(FAMILY_XML);
+    const patents = await fetchEpoPatents("Helen Smith", ["University of York"]);
+    expect(patents).toEqual([
+      {
+        source: "epo",
+        publicationNumber: "EP1000001", // first family member wins; the US grant is dropped
+        title: "A widely-filed method",
+        applicants: ["University of York"],
+        inventors: ["SMITH, HELEN"],
+        year: 2020,
+        familyId: "77001",
+      },
+    ]);
+  });
+
+  it("collapses family members split across the two name-order queries", async () => {
+    // Each query surfaces a DIFFERENT member of family 77001, so the collapse has
+    // to happen at the cross-query merge (not just within one response).
+    const member = (country: string, num: string, kind: string, name: string, date: string) =>
+      `<?xml version="1.0"?><ops:world-patent-data xmlns:ops="http://ops.epo.org" xmlns="http://www.epo.org/exchange"><ops:biblio-search><ops:search-result><exchange-documents><exchange-document family-id="77001" country="${country}" doc-number="${num}" kind="${kind}"><bibliographic-data><publication-reference><document-id document-id-type="docdb"><country>${country}</country><doc-number>${num}</doc-number><kind>${kind}</kind><date>${date}</date></document-id></publication-reference><invention-title lang="en">A widely-filed method</invention-title><parties><applicants><applicant><applicant-name><name>University of York</name></applicant-name></applicant></applicants><inventors><inventor><inventor-name><name>${name}</name></inventor-name></inventor></inventors></parties></bibliographic-data></exchange-document></exchange-documents></ops:search-result></ops:biblio-search></ops:world-patent-data>`;
+    const EP_ONLY = member("EP", "1000001", "A1", "Helen Smith", "20200520");
+    const US_ONLY = member("US", "9000001", "B2", "SMITH HELEN", "20221115");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: unknown) => {
+        // Lowercase so the match doesn't depend on personMatch's query casing:
+        // the two orderings ("helen smith" vs "smith helen") stay distinct, so
+        // each query genuinely returns a DIFFERENT family member to merge.
+        const decoded = decodeURIComponent(String(url).replace(/\+/g, " ")).toLowerCase();
+        const xml = decoded.includes('in="smith helen"') ? US_ONLY : EP_ONLY;
+        return Promise.resolve(new Response(xml, { status: 200 }));
+      }),
+    );
+    const patents = await fetchEpoPatents("Helen Smith", ["University of York"]);
+    expect(patents.map((p) => p.publicationNumber)).toEqual(["EP1000001A1"]);
+    expect(patents[0]!.familyId).toBe("77001");
+  });
+
   it("finds a patent indexed surname-first that the as-given query misses", async () => {
     const EMPTY_XML = `<?xml version="1.0"?>
 <ops:world-patent-data xmlns:ops="http://ops.epo.org" xmlns="http://www.epo.org/exchange">
