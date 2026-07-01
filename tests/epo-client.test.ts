@@ -191,7 +191,10 @@ describe("fetchEpoPatents", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn((url: unknown) => {
-        const decoded = decodeURIComponent(String(url).replace(/\+/g, " "));
+        // Lowercase so the match doesn't depend on personMatch's query casing:
+        // the two orderings ("helen smith" vs "smith helen") stay distinct, so
+        // each query genuinely returns a DIFFERENT family member to merge.
+        const decoded = decodeURIComponent(String(url).replace(/\+/g, " ")).toLowerCase();
         const xml = decoded.includes('in="smith helen"') ? US_ONLY : EP_ONLY;
         return Promise.resolve(new Response(xml, { status: 200 }));
       }),
