@@ -2959,6 +2959,10 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .preview-empty .hp2-btn {
   width: auto;
 }
+/* Trust microcopy under the SEO-page sign-in CTA (reuses the homepage line). */
+.doc-trust {
+  font-size: var(--text-sm);
+}
 
 /* ── No-login INTERACTIVE preview (PreviewWorkspace) ──────────────────────────
    The real editor + live preview, anonymously. Full-height like the signed-in
