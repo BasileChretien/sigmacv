@@ -164,6 +164,12 @@ export interface SyncResult {
   report: SyncReport;
 }
 
+/** A single live progress tick: one source settled with `count` items. */
+export interface SourceProgress {
+  source: string;
+  count: number;
+}
+
 interface BuildCvInput {
   orcid: string;
   fallbackName?: string;
@@ -173,6 +179,11 @@ interface BuildCvInput {
   /** Stable CV id to assign; defaults to a fresh UUID. The preview path has no
    *  persisted row, so it lets this default. */
   id?: string;
+  /** Optional live progress sink, called the moment each source's fetch settles
+   *  (in resolution order) — drives the streaming "searching open sources" view.
+   *  Fires for the counted array sources only, never the author-resolve /
+   *  Wikidata-identity prerequisites. */
+  onProgress?: (event: SourceProgress) => void;
 }
 
 /**
@@ -184,7 +195,7 @@ interface BuildCvInput {
  * persists). Every client fails soft, so a build never throws on an upstream hiccup.
  */
 export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult> {
-  const { orcid, fallbackName, previous = null, id = randomUUID() } = input;
+  const { orcid, fallbackName, previous = null, id = randomUUID(), onProgress } = input;
   const now = new Date().toISOString();
   const startedAt = Date.now();
 
@@ -194,9 +205,23 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
   const timingsMs: Record<string, number> = {};
   const timed = <T>(key: string, p: Promise<T>): Promise<T> => {
     const t0 = Date.now();
-    return p.finally(() => {
+    const done = p.finally(() => {
       timingsMs[key] = Math.round(Date.now() - t0);
     });
+    if (onProgress) {
+      // Live per-source tick the moment a fetch settles — drives the streaming
+      // "searching open sources" view. Array sources only: the author-resolve
+      // prerequisite and the Wikidata identity fetch aren't user-facing sources.
+      // Observer-only side chain; it never changes `done` (still `p.finally(…)`).
+      done
+        .then((v) => {
+          if (Array.isArray(v)) onProgress({ source: key, count: v.length });
+        })
+        /* v8 ignore next -- every client fails soft, so this observer chain never
+           rejects; the caller's Promise.all owns any real rejection. */
+        .catch(() => {});
+    }
+    return done;
   };
 
   const resolved = await timed("openalex.resolveAuthor", resolveAuthorByOrcid(orcid));

@@ -110,6 +110,7 @@ import {
   CvTooLargeError,
   EDITOR_SYNC_STALE_MS,
   buildCvFromOrcid,
+  type SourceProgress,
   capCvItems,
   cvItemCount,
   getCvForUser,
@@ -220,6 +221,24 @@ describe("isStaleSince / getLastSyncedAt", () => {
 
     mocks.findUnique.mockResolvedValue(null);
     expect(await getLastSyncedAt("u1")).toBeNull();
+  });
+});
+
+describe("buildCvFromOrcid onProgress", () => {
+  it("emits a live tick per source as it settles (array sources only)", async () => {
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    const events: SourceProgress[] = [];
+    await buildCvFromOrcid({ orcid: RESOLVED.orcid, onProgress: (e) => events.push(e) });
+    // The heavy array source ticks with its length; other array sources tick too
+    // (even empty ones report 0), so the stream can show them as "no matches".
+    expect(events.find((e) => e.source === "openalex.works")?.count).toBe(works.length);
+    expect(events.some((e) => e.source === "datacite")).toBe(true);
+    expect(events.some((e) => e.source === "nih")).toBe(true);
+    // Non-array prerequisites / owner identity never surface as sources.
+    expect(events.some((e) => e.source === "openalex.resolveAuthor")).toBe(false);
+    expect(events.some((e) => e.source === "wikidata")).toBe(false);
+    expect(events.some((e) => e.source === "orcid.workTypes")).toBe(false);
   });
 });
 
