@@ -272,6 +272,8 @@ export const CvItemSchema = z.object({
     "epo",
     "derived",
     "manual",
+    // User-uploaded BibTeX (.bib) import — user-asserted ownership, like a DOI claim.
+    "bibtex",
   ]),
   /** Full source identifier (e.g. OpenAlex URL form, ORCID put-code, or "manual"). */
   sourceId: z.string().max(2048),
@@ -1218,6 +1220,8 @@ export const PROVENANCE_SOURCES = [
   "wikidata",
   "derived",
   "manual",
+  // User-uploaded BibTeX import — preserved across re-sync, so it can surface here.
+  "bibtex",
 ] as const;
 
 export const ProvenanceSchema = z.object({

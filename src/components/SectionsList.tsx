@@ -69,6 +69,7 @@ import { narrativeEvidence } from "@/lib/canonical/narrativeEvidence";
 import { narrativeGuidance, narrativeEvidenceLabel } from "@/lib/i18n/narrativeGuidance";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
+import ImportBib from "./ImportBib";
 import type { CvHealthCategory } from "./CvHealthPanel";
 import ItemRow from "./ItemRow";
 
@@ -555,11 +556,15 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
             <SectionCard key={section.id} value={section.id}>
               {(controls) => (
                 <>
-                  {/* The "add a publication by DOI" panel sits directly above the
-                Publications section and moves with it when sections reorder.
-                Hidden in the no-login preview (it saves server-side). */}
+                  {/* The "add a publication by DOI" + "import a .bib file" panels sit
+                directly above the Publications section and move with it when
+                sections reorder. Both append works via the same onClaimAdded path,
+                and both are hidden in the no-login preview (they save server-side). */}
                   {section.type === "publications" && !anonymous ? (
-                    <ClaimByDoi locale={locale} onAdded={onClaimAdded} />
+                    <>
+                      <ClaimByDoi locale={locale} onAdded={onClaimAdded} />
+                      <ImportBib locale={locale} onImported={onClaimAdded} />
+                    </>
                   ) : null}
                   <div
                     className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}${
