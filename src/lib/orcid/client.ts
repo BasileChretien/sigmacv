@@ -312,6 +312,16 @@ export async function fetchOrcidWorks(orcid: string): Promise<OrcidWorksPayload>
 }
 
 /**
+ * Resolve the `/works` payload a consumer parses: the caller's pre-fetched payload
+ * when provided (shared across the sync's three consumers), otherwise a standalone
+ * fetch. Centralizes the untyped cast in one place — ORCID's JSON is read
+ * defensively via `toArray`/`nonEmpty` downstream.
+ */
+async function resolveWorksPayload(orcid: string, works?: OrcidWorksPayload): Promise<any> {
+  return works !== undefined ? works : fetchOrcidWorks(orcid);
+}
+
+/**
  * The DOIs of the user's PUBLIC works as recorded in their ORCID profile. ORCID
  * groups works by identifier; the DOI sits on the group's merged `external-ids`
  * and/or each `work-summary`. Used to discover works OpenAlex didn't attribute to
@@ -323,7 +333,7 @@ export async function fetchOrcidWorkDois(
   orcid: string,
   works?: OrcidWorksPayload,
 ): Promise<string[]> {
-  const data = (works !== undefined ? works : await fetchOrcidWorks(orcid)) as any;
+  const data = await resolveWorksPayload(orcid, works);
   const seen = new Set<string>();
   for (const group of toArray(data?.group)) {
     for (const d of doisFromExternalIds(group?.["external-ids"])) seen.add(d);
@@ -351,7 +361,7 @@ export async function fetchOrcidWorkTypes(
   orcid: string,
   works?: OrcidWorksPayload,
 ): Promise<Record<string, string>> {
-  const data = (works !== undefined ? works : await fetchOrcidWorks(orcid)) as any;
+  const data = await resolveWorksPayload(orcid, works);
   const out: Record<string, string> = {};
   for (const group of toArray(data?.group)) {
     for (const ws of toArray(group?.["work-summary"])) {
@@ -404,7 +414,7 @@ export async function fetchOrcidPatents(
   orcid: string,
   works?: OrcidWorksPayload,
 ): Promise<PatentRecord[]> {
-  const data = (works !== undefined ? works : await fetchOrcidWorks(orcid)) as any;
+  const data = await resolveWorksPayload(orcid, works);
   const out: PatentRecord[] = [];
   const seen = new Set<string>();
   for (const group of toArray(data?.group)) {
