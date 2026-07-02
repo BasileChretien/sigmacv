@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The no-login preview now flags likely mis-attributions and duplicates too.**
+  The anonymous preview editor surfaces the same **"this might not be yours"**
+  (same-name over-merge) and **"this looks like a duplicate"** review cues as the
+  signed-in editor. The detection always ran in the shared build, but the preview
+  had been handed the _public_ projection — which strips those curation hints and
+  hides review candidates — so they never reached the editor. It now uses a
+  dedicated preview projection (`projectCvForPreview`) that keeps the review
+  candidates + their flags while still scrubbing owner-private/contact fields for
+  the anonymous viewer. The renderers never emit that metadata, so nothing extra
+  appears on the rendered CV.
+
 - **Watch your CV build, source by source.** The no-login preview now streams a
   live search: each of the ~20 open sources appears the moment it responds
   (fastest first), with the Σ mark spinning while slower registries are still out,

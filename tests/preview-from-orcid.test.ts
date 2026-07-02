@@ -14,7 +14,7 @@ Object.assign(process.env, {
 const mocks = vi.hoisted(() => ({ build: vi.fn(), render: vi.fn() }));
 
 // Keep the REAL cvItemCount (pure, operates on the CV the mock returns); only
-// stub the DB-and-network build. projectCvForPublic runs for real.
+// stub the DB-and-network build. projectCvForPreview runs for real.
 vi.mock("@/lib/db", () => ({ prisma: {} }));
 vi.mock("@/lib/cv/sync", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/cv/sync")>()),

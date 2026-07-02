@@ -1,5 +1,5 @@
 import { buildCvFromOrcid, cvItemCount, type SourceProgress } from "@/lib/cv/sync";
-import { projectCvForPublic } from "@/lib/cv/publicProjection";
+import { projectCvForPreview } from "@/lib/cv/publicProjection";
 import { renderCvHtml } from "@/lib/render/html";
 import { normalizeOrcid } from "@/lib/openalex/types";
 import { isValidOrcidChecksum } from "@/lib/orcid/checksum";
@@ -49,8 +49,9 @@ export function normalizeOrcidForPreview(raw: string): string | null {
 /**
  * Build an ANONYMOUS, ephemeral CV from a public ORCID iD — no DB, no session,
  * nothing persisted. Uses only public data (OpenAlex / ORCID) and runs it through
- * {@link projectCvForPublic} — the same gate the living page uses — so no
- * consent-gated field can appear. Returns the canonical object (which the no-login
+ * {@link projectCvForPreview} — which strips owner-private/contact fields for the
+ * anonymous viewer but keeps the review candidates + disambiguation flags so the
+ * editor can surface them. Returns the canonical object (which the no-login
  * interactive editor loads) plus a first-paint HTML render. Cached per normalized
  * ORCID and single-flighted; ORCIDs with no public record are negatively cached so
  * a flood of unknown ids can't re-fetch every source.
@@ -81,7 +82,11 @@ export async function previewCvFromOrcid(
   return dedupeOrcidPreview<PreviewResult>(orcid, async () => {
     try {
       const { cv, report } = await buildCvFromOrcid({ orcid, onProgress: opts?.onProgress });
-      const projected = projectCvForPublic(cv);
+      // Preview projection (NOT the public one): strips owner-private/contact
+      // fields for the anonymous viewer, but KEEPS review candidates + their
+      // reviewFlag/duplicate/misattribution metadata so the editor surfaces the
+      // same "probably not yours" / "probably a duplicate" cues as when signed in.
+      const projected = projectCvForPreview(cv);
       const name = projected.owner.displayName.trim();
       // Empty ⇒ a DETERMINISTIC not-found: OpenAlex answered with no matching
       // author (resolveAuthorByOrcid returns null only on a clean 200/zero-results),

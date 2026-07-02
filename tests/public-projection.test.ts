@@ -7,7 +7,7 @@ import {
   updateDisplay,
   updateOwner,
 } from "@/lib/canonical/curate";
-import { projectCvForPublic } from "@/lib/cv/publicProjection";
+import { projectCvForPreview, projectCvForPublic } from "@/lib/cv/publicProjection";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -239,5 +239,98 @@ describe("projectCvForPublic", () => {
     expect(
       withExcl.sections.find((s) => s.type === "publications")!.items.some((it) => it.id === id),
     ).toBe(true);
+  });
+});
+
+describe("projectCvForPreview", () => {
+  it("keeps hidden 'not mine' review candidates (unlike the public projection)", () => {
+    let cv = makeCv();
+    const sectionId = cv.sections[0]!.id;
+    const itemId = cv.sections[0]!.items[0]!.id;
+    cv = setItemNotMine(cv, sectionId, itemId, true, {
+      reason: "different-person",
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    // Preview KEEPS the candidate (so the anonymous editor can surface it)…
+    const prevItem = projectCvForPreview(cv)
+      .sections.flatMap((s) => s.items)
+      .find((i) => i.id === itemId);
+    expect(prevItem?.notMine).toBe(true);
+    // …whereas the public projection drops it.
+    expect(
+      projectCvForPublic(cv)
+        .sections.flatMap((s) => s.items)
+        .find((i) => i.id === itemId),
+    ).toBeUndefined();
+  });
+
+  it("keeps reviewFlag / duplicateOf / misattribution so the editor can flag them", () => {
+    const base = makeCv();
+    const sec = base.sections.find((s) => s.type === "publications")!;
+    const first = sec.items[0]!;
+    const cv = {
+      ...base,
+      sections: base.sections.map((s) =>
+        s.id !== sec.id
+          ? s
+          : {
+              ...s,
+              items: s.items.map((it) =>
+                it.id !== first.id
+                  ? it
+                  : {
+                      ...it,
+                      meta: {
+                        ...it.meta,
+                        reviewFlag: "likely-misattributed" as const,
+                        duplicateOf: { itemId: "other", tier: "strong" as const, groupId: "g1" },
+                        misattribution: {
+                          score: 0.9,
+                          signals: ["no-coauthor-overlap" as const, "different-field" as const],
+                        },
+                      },
+                    },
+              ),
+            },
+      ),
+    };
+    const item = projectCvForPreview(cv)
+      .sections.find((s) => s.id === sec.id)!
+      .items.find((it) => it.id === first.id)!;
+    expect(item.meta.reviewFlag).toBe("likely-misattributed");
+    expect(item.meta.duplicateOf?.groupId).toBe("g1");
+    expect(item.meta.misattribution?.score).toBe(0.9);
+  });
+
+  it("still strips owner-private fields (personal, notes, presets, unopted contact)", () => {
+    const prev = projectCvForPreview(setNotes(makeCv(), "secret scratchpad"));
+    expect(prev.owner.personal).toBeUndefined();
+    expect(prev.notes).toBeUndefined();
+    expect(prev.presets).toEqual([]);
+    // Contact defaults to consent-off → only the always-public website remains.
+    expect(prev.owner.contact).toEqual({ website: "https://example.org" });
+  });
+
+  it("keeps metrics + chart data even when the display opt-ins are off (editor toggle needs the data)", () => {
+    const b = makeCv();
+    const cv = {
+      ...b,
+      owner: {
+        ...b.owner,
+        metrics: { h_index: 5 },
+        countsByYear: [{ year: 2020, works: 1, citations: 2 }],
+      },
+      display: { ...b.display, showMetrics: false, showCharts: false },
+    };
+    const prev = projectCvForPreview(cv);
+    expect(prev.owner.metrics).toEqual({ h_index: 5 });
+    expect(prev.owner.countsByYear).toEqual([{ year: 2020, works: 1, citations: 2 }]);
+  });
+
+  it("does not mutate the input", () => {
+    const cv = makeCv();
+    projectCvForPreview(cv);
+    expect(cv.owner.personal).toBeDefined();
+    expect(cv.owner.contact?.email).toBe("me@example.org");
   });
 });

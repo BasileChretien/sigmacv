@@ -30,24 +30,29 @@ import { isHidden, type CanonicalCv } from "@/lib/canonical/schema";
  * The owner's OWN data-export (`/api/account/export`) and editor preview keep the
  * full document — this projection applies only to the public page.
  */
-export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
+/** The public-facing contact block: keep only the opted-in email/phone/location
+ *  (per `display.publicContact`) plus the always-public `website`, or `undefined`
+ *  when nothing public-facing remains. Shared by the public projection AND the
+ *  no-login preview projection so this per-field consent logic — a privacy
+ *  chokepoint — lives in exactly one place. */
+function projectPublicContact(cv: CanonicalCv): CanonicalCv["owner"]["contact"] {
   const flags = cv.display.publicContact;
   const c = cv.owner.contact;
+  if (!c) return undefined;
+  const projected = {
+    ...c,
+    email: flags.email ? c.email : undefined,
+    phone: flags.phone ? c.phone : undefined,
+    location: flags.location ? c.location : undefined,
+  };
+  // Drop the contact block entirely if nothing public-facing remains.
+  return projected.email || projected.phone || projected.location || projected.website
+    ? projected
+    : undefined;
+}
 
-  let contact = c;
-  if (c) {
-    const projected = {
-      ...c,
-      email: flags.email ? c.email : undefined,
-      phone: flags.phone ? c.phone : undefined,
-      location: flags.location ? c.location : undefined,
-    };
-    // Drop the contact block entirely if nothing public-facing remains.
-    contact =
-      projected.email || projected.phone || projected.location || projected.website
-        ? projected
-        : undefined;
-  }
+export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
+  const contact = projectPublicContact(cv);
 
   // ONE per-section pass for the public view:
   //  - drop hidden / "not mine" items (never rendered) and strip their
@@ -133,5 +138,39 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
       dismissedDuplicates: undefined,
       dismissedReviewCandidates: undefined,
     },
+  };
+}
+
+/**
+ * Project a canonical CV for the NO-LOGIN preview EDITOR (`/preview/[orcid]`).
+ *
+ * The anonymous preview is viewed by whoever pasted the iD — not necessarily the
+ * owner — so it strips the same owner-private/contact fields the public page hides
+ * (contact behind per-field consent, rirekisho `personal`, private `notes`, saved
+ * presets). But UNLIKE {@link projectCvForPublic}, it KEEPS every item (including
+ * hidden "not mine" / review CANDIDATES) and their per-item review metadata
+ * (`reviewFlag`, `duplicateOf`, `misattribution`, …). That's the whole point: the
+ * anonymous editor then surfaces the very same "probably not yours" / "probably a
+ * duplicate" curation cues a signed-in editor gets. Safe because the renderers
+ * never emit that metadata and only render INCLUDED items, so nothing extra leaks
+ * on any HTML/machine render — the metadata lives only in the editor's UI.
+ *
+ * Metrics + per-year chart data are kept (not gated) so the editor's show-metrics
+ * toggle has data to reveal; the renderers still honour `display.showMetrics` /
+ * `showCharts`, so a toggled-off figure never renders. Pure + immutable.
+ */
+export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
+  return {
+    ...cv,
+    owner: {
+      ...cv.owner,
+      contact: projectPublicContact(cv),
+      // Rirekisho personal fields never auto-surface (no opt-in); an anonymous
+      // build never populates them, but strip defensively.
+      personal: undefined,
+    },
+    // Owner-only scratchpad + saved editor layouts: never for a non-owner viewer.
+    notes: undefined,
+    presets: [],
   };
 }
