@@ -20,6 +20,8 @@ export interface OrcidPreviewEntry {
   name: string;
   /** The built canonical object — handed to the no-login interactive editor. */
   cv: CanonicalCv;
+  /** Per-source item counts from the build, for the provenance panel. */
+  sourceCounts?: Record<string, number>;
 }
 
 interface CacheRecord extends OrcidPreviewEntry {
@@ -83,7 +85,7 @@ export function getCachedOrcidPreview(
     cache.delete(orcid);
     return null;
   }
-  return { html: rec.html, name: rec.name, cv: rec.cv };
+  return { html: rec.html, name: rec.name, cv: rec.cv, sourceCounts: rec.sourceCounts };
 }
 
 /** Cache a rendered preview for an ORCID, bounded by entry count + total bytes. */
@@ -92,7 +94,13 @@ export function setCachedOrcidPreview(
   entry: OrcidPreviewEntry,
   now: number = Date.now(),
 ): void {
-  cache.set(orcid, { html: entry.html, name: entry.name, cv: entry.cv, expires: now + TTL_MS });
+  cache.set(orcid, {
+    html: entry.html,
+    name: entry.name,
+    cv: entry.cv,
+    sourceCounts: entry.sourceCounts,
+    expires: now + TTL_MS,
+  });
   let total = cachedHtmlBytes();
   while (cache.size > MAX_ENTRIES || total > MAX_TOTAL_BYTES) {
     const oldest = cache.keys().next().value;
