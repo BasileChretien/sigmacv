@@ -35,6 +35,13 @@ describe("summarizeSources", () => {
     expect(s.total).toBe(99);
   });
 
+  it("puts ORCID self-asserted patents in the identifier (auto-included) lane, EPO in review", () => {
+    // #289: ORCID-asserted patents auto-include (own iD); EPO stays name-matched.
+    const s = summarizeSources({ openalex: 3, "orcid.patents": 2, epo: 1 })!;
+    expect(s.identifier.find((l) => l.label === "ORCID")?.count).toBe(2);
+    expect(s.review.find((l) => l.label === "EPO")?.count).toBe(1);
+  });
+
   it("counts queried sources even when they returned nothing, but omits zero lines", () => {
     const s = summarizeSources({ openalex: 5, epo: 0, ukri: 0 })!;
     // Queried 3 distinct sources; only the non-empty one is listed.

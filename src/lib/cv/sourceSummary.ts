@@ -41,6 +41,9 @@ const SOURCE_META: Record<string, SourceMeta> = {
   "orcid.service": { label: "ORCID", group: "identifier" },
   "orcid.peerReviews": { label: "ORCID", group: "identifier" },
   "orcid.discovery": { label: "ORCID", group: "identifier" },
+  // ORCID self-asserted patents: identifier-matched (the owner's own iD), so the
+  // AUTO-INCLUDED patent lane — distinct from EPO's name-matched review lane below.
+  "orcid.patents": { label: "ORCID", group: "identifier" },
   oep: { label: "Open Editors Plus", group: "identifier" },
   datacite: { label: "DataCite", group: "identifier" },
   openaire: { label: "OpenAIRE", group: "identifier" },
