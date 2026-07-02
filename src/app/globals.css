@@ -3614,6 +3614,152 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   color: var(--warn-text);
 }
 
+/* ── Live "searching open sources" view (PreviewBuilder.tsx) ─────────────────
+   The no-login build streams per-source: each source drops in with its count
+   while the Σ badge keeps spinning for the ones still out, then it settles into
+   the interactive editor. Reuses the `preview-spin` keyframe from the loading
+   screen; row entrance + spin are disabled under prefers-reduced-motion. */
+.src-search,
+.preview-builder-notice {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: var(--bg);
+}
+.src-search-card {
+  width: 100%;
+  max-width: 34rem;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.src-search-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.src-search-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+}
+.src-search-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: preview-spin 0.8s linear infinite;
+}
+.src-search-mark {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  color: var(--accent);
+}
+.src-search-htext {
+  min-width: 0;
+}
+.src-search-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+.src-search-sub {
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+.src-search-tally {
+  margin-left: auto;
+  text-align: right;
+  flex: none;
+}
+.src-search-tallynum {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.src-search-tallylbl {
+  font-size: var(--text-2xs);
+  color: var(--muted);
+}
+.src-search-list {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+}
+.src-search-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--surface-sunken);
+  animation: src-row-in 0.35s var(--ease) both;
+}
+.src-search-row:first-child {
+  border-top: 0;
+}
+.src-search-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--border);
+}
+.src-search-dot.is-found {
+  background: var(--accent);
+}
+.src-search-name {
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+.src-search-tag {
+  padding: 0 0.4rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-2xs);
+  color: var(--warn-text);
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-border);
+}
+.src-search-right {
+  margin-left: auto;
+}
+.src-search-count {
+  padding: 0.1em 0.6em;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.src-search-none {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+@keyframes src-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .src-search-ring,
+  .src-search-row {
+    animation: none;
+  }
+}
+
 /* ── CV-health checklist ("needs your attention") ──────────────────────────── */
 .cv-health-panel {
   margin: var(--space-2) 0;
