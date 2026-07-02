@@ -2358,6 +2358,83 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   border: 1px solid var(--warn-border);
   border-radius: var(--radius-sm);
 }
+/* Instant loading screen for the no-login preview build (route loading.tsx): a
+   branded spinner ring around the Σ mark while the ~20-source build + citeproc
+   render runs. Motion is disabled under prefers-reduced-motion. */
+.preview-loading {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-8);
+  background: var(--bg);
+}
+.preview-loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 36ch;
+  text-align: center;
+}
+.preview-loading-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--space-2);
+}
+.preview-loading-badge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: preview-spin 0.9s linear infinite;
+}
+.preview-loading-mark {
+  font-size: 1.6rem;
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  color: var(--accent);
+}
+.preview-loading-title {
+  margin: 0;
+  font-size: var(--text-lg);
+  color: var(--text);
+}
+.preview-loading-body {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+/* Small inline spinner on the "Preview my CV" button while the navigation is
+   pending (before loading.tsx paints). */
+.hp2-btn-spinner {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-right: 0.5em;
+  vertical-align: -0.1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-full);
+  animation: preview-spin 0.7s linear infinite;
+}
+@keyframes preview-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .preview-loading-badge::before,
+  .hp2-btn-spinner {
+    animation: none;
+  }
+}
 .tpl-frame {
   width: 780px;
   height: 1040px;
