@@ -169,6 +169,15 @@ export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
       // build never populates them, but strip defensively.
       personal: undefined,
     },
+    // Keep every item + its review cues (reviewFlag/duplicateOf/misattribution),
+    // but strip `meta.coauthorOrcids` — a raw list of THIRD-PARTY ORCID iDs used
+    // only server-side (JSON-LD `knows` resolution on publish). The editor never
+    // needs it, and this whole object is sent to the anonymous browser, so it must
+    // not ship (the public projection drops it for the same reason).
+    sections: cv.sections.map((s) => ({
+      ...s,
+      items: s.items.map((it) => ({ ...it, meta: { ...it.meta, coauthorOrcids: undefined } })),
+    })),
     // Owner-only scratchpad + saved editor layouts: never for a non-owner viewer.
     notes: undefined,
     presets: [],

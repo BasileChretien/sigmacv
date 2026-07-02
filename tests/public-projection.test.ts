@@ -288,6 +288,9 @@ describe("projectCvForPreview", () => {
                           score: 0.9,
                           signals: ["no-coauthor-overlap" as const, "different-field" as const],
                         },
+                        // A third-party identifier set that must NOT ship to the
+                        // anonymous browser (kept only for server-side resolution).
+                        coauthorOrcids: ["0000-0002-1825-0097", "0000-0001-5109-3700"],
                       },
                     },
               ),
@@ -300,6 +303,8 @@ describe("projectCvForPreview", () => {
     expect(item.meta.reviewFlag).toBe("likely-misattributed");
     expect(item.meta.duplicateOf?.groupId).toBe("g1");
     expect(item.meta.misattribution?.score).toBe(0.9);
+    // …but the raw co-author ORCID list is stripped (third-party PII, editor-unused).
+    expect(item.meta.coauthorOrcids).toBeUndefined();
   });
 
   it("still strips owner-private fields (personal, notes, presets, unopted contact)", () => {
