@@ -10,6 +10,7 @@ import { previewStrings } from "@/lib/i18n/preview";
 import CvEditor from "./CvEditor";
 import CvPreview from "./CvPreview";
 import SignInButton from "./SignInButton";
+import SourceProvenance from "./SourceProvenance";
 
 interface PreviewWorkspaceProps {
   initialCv: CanonicalCv;
@@ -19,6 +20,8 @@ interface PreviewWorkspaceProps {
   name: string;
   locale: string;
   availableStyles: string[];
+  /** Per-source item counts from the build, for the provenance panel. */
+  sourceCounts?: Record<string, number>;
 }
 
 /**
@@ -35,6 +38,7 @@ export default function PreviewWorkspace({
   name,
   locale,
   availableStyles,
+  sourceCounts,
 }: PreviewWorkspaceProps) {
   const loc = asLocale(locale);
   const s = previewStrings(loc);
@@ -159,6 +163,9 @@ export default function PreviewWorkspace({
 
       <div className="cv-workspace" id="cv-main" data-active-pane={pane} data-layout="split">
         <section className="cv-workspace-pane" data-pane="editor">
+          {/* Provenance up top: shows the visitor the breadth of open sources their
+              CV was built from, and the identifier-vs-name matching split. */}
+          <SourceProvenance sourceCounts={sourceCounts} locale={loc} defaultOpen />
           <CvEditor
             cv={cv}
             availableStyles={availableStyles}

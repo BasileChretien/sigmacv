@@ -3538,6 +3538,82 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   border: 1px solid var(--warn-border);
 }
 
+/* ── "Where this came from" provenance panel (SourceProvenance.tsx) ──────────
+   Shared by the no-login preview (editor pane) and the sync-report banner. The
+   name-matched group borrows the warn tokens (these need the user's review). */
+.src-prov {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  font-size: var(--text-sm);
+}
+.src-prov-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  cursor: pointer;
+  list-style: none;
+}
+.src-prov-summary::-webkit-details-marker {
+  display: none;
+}
+.src-prov-title {
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+.src-prov-tally {
+  font-size: var(--text-xs);
+}
+.src-prov-body {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.src-prov-group-label {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.src-prov-group.is-review .src-prov-group-label {
+  color: var(--warn-text);
+}
+.src-prov-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.src-prov-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.2em 0.6em;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+}
+.src-prov-group.is-review .src-prov-chip {
+  border-color: var(--warn-border);
+  background: var(--warn-soft);
+}
+.src-prov-name {
+  color: var(--text-secondary);
+}
+.src-prov-group.is-review .src-prov-name {
+  color: var(--warn-text);
+}
+.src-prov-count {
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.src-prov-group.is-review .src-prov-count {
+  color: var(--warn-text);
+}
+
 /* ── CV-health checklist ("needs your attention") ──────────────────────────── */
 .cv-health-panel {
   margin: var(--space-2) 0;

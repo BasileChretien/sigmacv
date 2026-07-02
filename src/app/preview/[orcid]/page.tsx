@@ -78,6 +78,7 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
       name={result.name}
       locale={loc}
       availableStyles={listAvailableStyles()}
+      sourceCounts={result.sourceCounts}
     />
   );
 }
