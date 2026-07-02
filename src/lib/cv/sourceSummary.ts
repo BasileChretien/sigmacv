@@ -33,6 +33,9 @@ interface SourceMeta {
  */
 const SOURCE_META: Record<string, SourceMeta> = {
   openalex: { label: "OpenAlex", group: "identifier" },
+  // Live-stream alias: the build's `timed()` key for the works fetch is
+  // "openalex.works", whereas the persisted `sourceCounts` folds it to "openalex".
+  "openalex.works": { label: "OpenAlex", group: "identifier" },
   "orcid.positions": { label: "ORCID", group: "identifier" },
   "orcid.fundings": { label: "ORCID", group: "identifier" },
   "orcid.invited": { label: "ORCID", group: "identifier" },
@@ -57,6 +60,17 @@ const SOURCE_META: Record<string, SourceMeta> = {
   nsf: { label: "NSF", group: "review" },
   epo: { label: "EPO", group: "review" },
 };
+
+/**
+ * Map a raw source key (a build `timed()` key OR a persisted `sourceCounts` key)
+ * to its display source + match group, or `null` for keys that aren't user-facing
+ * sources (the author-resolve prerequisite, Wikidata identity, unknown keys). The
+ * streaming "searching open sources" view uses this to fold live ticks into rows.
+ */
+export function displaySource(key: string): { label: string; group: SourceGroup } | null {
+  const meta = SOURCE_META[key];
+  return meta ? { label: meta.label, group: meta.group } : null;
+}
 
 /** One display source's contribution. */
 export interface SourceLine {

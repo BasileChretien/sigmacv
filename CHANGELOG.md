@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Watch your CV build, source by source.** The no-login preview now streams a
+  live search: each of the ~20 open sources appears the moment it responds
+  (fastest first), with the Σ mark spinning while slower registries are still out,
+  then it settles into the interactive editor. Name-matched sources (national
+  funders, trial registries, EPO patents) carry a "review" tag; identifier-matched
+  ones are tallied as they arrive. Built on a new `/api/preview/build` NDJSON
+  stream — server-side, same-origin, rate-limited, with **no client-side fan-out
+  to third-party APIs** — driven by an `onProgress` hook threaded through the
+  shared build. Reduced-motion friendly; localized in all ten locales.
+
 - **"Where this came from" provenance panel.** The preview and the editor's sync
   report now show which of the ~20 open sources your CV was built from, with a
   per-source item count — and split into **matched by your ID (added

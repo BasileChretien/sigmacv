@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { summarizeSources } from "@/lib/cv/sourceSummary";
+import { displaySource, summarizeSources } from "@/lib/cv/sourceSummary";
 
 describe("summarizeSources", () => {
   it("returns null when there is nothing to show", () => {
@@ -63,5 +63,21 @@ describe("summarizeSources", () => {
     // Unknown key excluded from totals and from the searched count.
     expect(s.total).toBe(13);
     expect(s.searched).toBe(4); // openaire, dblp, datacite, openalex (NaN→queried, 0 items)
+  });
+});
+
+describe("displaySource", () => {
+  it("maps both the live timed-key and the sourceCounts-key to one display source", () => {
+    // The build emits "openalex.works"; the persisted report folds it to "openalex".
+    expect(displaySource("openalex.works")?.label).toBe("OpenAlex");
+    expect(displaySource("openalex")?.label).toBe("OpenAlex");
+    expect(displaySource("orcid.fundings")).toEqual({ label: "ORCID", group: "identifier" });
+    expect(displaySource("nih")).toEqual({ label: "NIH", group: "review" });
+  });
+
+  it("returns null for prerequisites, owner-identity, and unknown keys", () => {
+    expect(displaySource("openalex.resolveAuthor")).toBeNull();
+    expect(displaySource("wikidata")).toBeNull();
+    expect(displaySource("nope")).toBeNull();
   });
 });
