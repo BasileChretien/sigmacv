@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Instant loading screen for the no-login preview.** Clicking "Preview my CV"
+  now shows a branded loading animation right away while the CV is built from
+  public sources (a few seconds of ~20-source fetch + citeproc), instead of the
+  page appearing to do nothing. Implemented as a route-level `loading.tsx` (an
+  instant Suspense fallback on the client navigation); the submit button also
+  shows a pending state and can't be double-fired into two heavy builds. Motion
+  respects `prefers-reduced-motion`. Localized in all ten locales.
+
 - **Patents you list on your ORCID record now populate the Patents section.**
   Any work you've self-asserted as a patent on your own ORCID profile is pulled
   in and **auto-included** (visible by default) — an identifier match at the
