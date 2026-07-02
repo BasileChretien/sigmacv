@@ -1,4 +1,4 @@
-import { buildCvFromOrcid, cvItemCount } from "@/lib/cv/sync";
+import { buildCvFromOrcid, cvItemCount, type SourceProgress } from "@/lib/cv/sync";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { renderCvHtml } from "@/lib/render/html";
 import { normalizeOrcid } from "@/lib/openalex/types";
@@ -55,7 +55,14 @@ export function normalizeOrcidForPreview(raw: string): string | null {
  * ORCID and single-flighted; ORCIDs with no public record are negatively cached so
  * a flood of unknown ids can't re-fetch every source.
  */
-export async function previewCvFromOrcid(raw: string): Promise<PreviewResult> {
+export async function previewCvFromOrcid(
+  raw: string,
+  opts?: {
+    /** Live per-source progress sink for the streaming "searching" view. Fires
+     *  only on a cache MISS (a hit returns instantly with no build to observe). */
+    onProgress?: (event: SourceProgress) => void;
+  },
+): Promise<PreviewResult> {
   const orcid = normalizeOrcidForPreview(raw);
   if (!orcid) return { status: "invalid" };
 
@@ -73,7 +80,7 @@ export async function previewCvFromOrcid(raw: string): Promise<PreviewResult> {
 
   return dedupeOrcidPreview<PreviewResult>(orcid, async () => {
     try {
-      const { cv, report } = await buildCvFromOrcid({ orcid });
+      const { cv, report } = await buildCvFromOrcid({ orcid, onProgress: opts?.onProgress });
       const projected = projectCvForPublic(cv);
       const name = projected.owner.displayName.trim();
       // Empty ⇒ a DETERMINISTIC not-found: OpenAlex answered with no matching

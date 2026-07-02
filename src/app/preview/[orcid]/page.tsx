@@ -1,17 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { signInWithOrcid } from "@/app/auth-actions";
 import OrcidPreviewForm from "@/components/OrcidPreviewForm";
-import PreviewWorkspace from "@/components/PreviewWorkspace";
-import SignInButton from "@/components/SignInButton";
+import PreviewBuilder from "@/components/PreviewBuilder";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { asLocale, DEFAULT_UI_LOCALE, type Locale } from "@/lib/i18n";
-import { landingStrings } from "@/lib/i18n/landing";
 import { previewStrings } from "@/lib/i18n/preview";
-import { previewCvFromOrcid } from "@/lib/cv/previewFromOrcid";
+import { normalizeOrcidForPreview } from "@/lib/cv/previewFromOrcid";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
-import { enforcePreviewRateLimit } from "./previewRateLimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,78 +35,41 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
   const s = previewStrings(loc);
   const { orcid: raw } = await params;
 
-  // Rate-limit before any build (heavy: 20-source fetch + citeproc). Invalid
-  // input still costs budget, which is intentional flood protection.
-  const gate = await enforcePreviewRateLimit();
-  if (!gate.ok) {
-    return <PreviewNotice locale={loc} heading={s.rateLimitedHeading} body={s.rateLimitedBody} />;
-  }
-
-  // A malformed %-escape in the path segment makes decodeURIComponent throw;
-  // fall back to the raw value so it flows into the normal invalid-iD path
-  // instead of crashing the route.
+  // A malformed %-escape in the path segment makes decodeURIComponent throw; fall
+  // back to the raw value so it flows into the invalid-iD notice, not a crash.
   let decoded: string;
   try {
     decoded = decodeURIComponent(raw);
   } catch {
     decoded = raw;
   }
-  const result = await previewCvFromOrcid(decoded);
 
-  if (result.status === "invalid") {
-    return <PreviewNotice locale={loc} heading={s.invalidHeading} body={s.invalidBody} showForm />;
-  }
-  if (result.status === "empty") {
-    return <PreviewNotice locale={loc} heading={s.emptyHeading} body={s.emptyBody} signIn />;
-  }
-  if (result.status === "error") {
-    // Transient upstream failure — a plain retry (reload) usually clears it.
-    return <PreviewNotice locale={loc} heading={s.errorHeading} body={s.errorBody} />;
+  // Validate the iD shape + checksum here (cheap, DB-free); a malformed iD never
+  // starts a build. The heavy work — the ~20-source build + citeproc render — is
+  // driven client-side by <PreviewBuilder> against the rate-limited, same-origin
+  // /api/preview/build stream, so it can show the sources resolving live.
+  const orcid = normalizeOrcidForPreview(decoded);
+  if (!orcid) {
+    return <PreviewNotice locale={loc} heading={s.invalidHeading} body={s.invalidBody} />;
   }
 
-  // status === "ok": the REAL editor, interactive and anonymous — curate + restyle
-  // with a live preview, seeded from the CV built off the public ORCID iD. Save /
-  // publish / export are the only account-gated actions (a sign-in CTA in its bar).
-  return (
-    <PreviewWorkspace
-      initialCv={result.cv}
-      initialHtml={result.html}
-      name={result.name}
-      locale={loc}
-      availableStyles={listAvailableStyles()}
-      sourceCounts={result.sourceCounts}
-    />
-  );
+  // `loading.tsx` covers the brief moment while this client component boots and
+  // opens the stream; the builder then shows the live search and finally mounts
+  // the interactive editor (whose editor pane carries the settled provenance panel).
+  return <PreviewBuilder orcid={orcid} locale={loc} availableStyles={listAvailableStyles()} />;
 }
 
-/** The "Sign in with ORCID to save, edit & publish" button (real OAuth via the
- *  shared server action + funnel analytics). */
-function SignInCta({ locale }: { locale: Locale }) {
-  const s = previewStrings(locale);
-  const ls = landingStrings(locale);
-  return (
-    <form action={signInWithOrcid}>
-      <SignInButton method="orcid" className="hp2-btn hp2-btn-primary" pendingLabel={ls.signingIn}>
-        {s.ctaSignIn}
-      </SignInButton>
-    </form>
-  );
-}
-
-/** A centred notice for the non-rendered states: rate-limited, malformed iD
- *  (offers the form again), or a valid iD with no public record (offers sign-in). */
+/** Centred notice for a malformed iD — offers the paste-your-ORCID form again.
+ *  The no-record / transient-error / rate-limited states are surfaced by
+ *  {@link PreviewBuilder} instead (they're only known once the stream runs). */
 function PreviewNotice({
   locale,
   heading,
   body,
-  signIn,
-  showForm,
 }: {
   locale: Locale;
   heading: string;
   body: string;
-  signIn?: boolean;
-  showForm?: boolean;
 }) {
   const s = previewStrings(locale);
   return (
@@ -120,8 +79,7 @@ function PreviewNotice({
         <div className="preview-empty">
           <h1>{heading}</h1>
           <p>{body}</p>
-          {signIn ? <SignInCta locale={locale} /> : null}
-          {showForm ? <OrcidPreviewForm locale={locale} /> : null}
+          <OrcidPreviewForm locale={locale} />
           <p className="doc-back muted">
             <Link href="/">{s.back}</Link>
           </p>
