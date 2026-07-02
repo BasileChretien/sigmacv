@@ -291,27 +291,57 @@ function doisFromExternalIds(extIds: any): string[] {
 }
 
 /**
+ * The raw, un-parsed ORCID `/works` JSON, or `null` on an upstream error (fails
+ * soft). Three consumers each read `/works` but parse it differently — work TYPES
+ * (DOI → type), self-asserted PATENTS, and work DOIs (for discovery). A single
+ * sync fetches this ONCE and threads the parsed payload into all three, so ORCID's
+ * polite pool isn't hit three times for the identical endpoint. (Route Handlers
+ * don't get Next's fetch memoization, so concurrent duplicate requests would each
+ * reach the network.) When a consumer is called WITHOUT a pre-fetched payload
+ * (the standalone/unit-test path), it fetches `/works` itself via this helper.
+ */
+export type OrcidWorksPayload = unknown;
+
+export async function fetchOrcidWorks(orcid: string): Promise<OrcidWorksPayload> {
+  try {
+    return await orcidGet<unknown>(orcid, "works");
+  } catch (err) {
+    logger.warn("orcid.works_fetch_failed", { err });
+    return null;
+  }
+}
+
+/**
+ * Resolve the `/works` payload a consumer parses: the caller's pre-fetched payload
+ * when provided (shared across the sync's three consumers), otherwise a standalone
+ * fetch. Centralizes the untyped cast in one place — ORCID's JSON is read
+ * defensively via `toArray`/`nonEmpty` downstream.
+ */
+async function resolveWorksPayload(orcid: string, works?: OrcidWorksPayload): Promise<any> {
+  return works !== undefined ? works : fetchOrcidWorks(orcid);
+}
+
+/**
  * The DOIs of the user's PUBLIC works as recorded in their ORCID profile. ORCID
  * groups works by identifier; the DOI sits on the group's merged `external-ids`
  * and/or each `work-summary`. Used to discover works OpenAlex didn't attribute to
  * the author (the diff lives in cv/orcidDiscovery). Returns a de-duplicated list
- * of lower-cased DOI strings; fails soft → [].
+ * of lower-cased DOI strings. Pass `works` to reuse a `/works` payload already
+ * fetched this sync; omit it to fetch standalone. Fails soft → [].
  */
-export async function fetchOrcidWorkDois(orcid: string): Promise<string[]> {
-  try {
-    const data = await orcidGet<any>(orcid, "works");
-    const seen = new Set<string>();
-    for (const group of toArray(data?.group)) {
-      for (const d of doisFromExternalIds(group?.["external-ids"])) seen.add(d);
-      for (const ws of toArray(group?.["work-summary"])) {
-        for (const d of doisFromExternalIds(ws?.["external-ids"])) seen.add(d);
-      }
+export async function fetchOrcidWorkDois(
+  orcid: string,
+  works?: OrcidWorksPayload,
+): Promise<string[]> {
+  const data = await resolveWorksPayload(orcid, works);
+  const seen = new Set<string>();
+  for (const group of toArray(data?.group)) {
+    for (const d of doisFromExternalIds(group?.["external-ids"])) seen.add(d);
+    for (const ws of toArray(group?.["work-summary"])) {
+      for (const d of doisFromExternalIds(ws?.["external-ids"])) seen.add(d);
     }
-    return [...seen];
-  } catch (err) {
-    logger.warn("orcid.works_fetch_failed", { err });
-    return [];
   }
+  return [...seen];
 }
 
 /**
@@ -323,29 +353,29 @@ export async function fetchOrcidWorkDois(orcid: string): Promise<string[]> {
  * from Preprints and pulling posters / talks / datasets out of it. ORCID groups
  * works by identifier; each `work-summary` carries its own `type` and DOIs. The
  * first non-empty type wins on a DOI conflict. Identifier-only — never a name
- * match. Fails soft → {} (no override → existing OpenAlex routing stands).
+ * match. Pass `works` to reuse a `/works` payload already fetched this sync; omit
+ * it to fetch standalone. Fails soft → {} (no override → existing OpenAlex routing
+ * stands).
  */
-export async function fetchOrcidWorkTypes(orcid: string): Promise<Record<string, string>> {
-  try {
-    const data = await orcidGet<any>(orcid, "works");
-    const out: Record<string, string> = {};
-    for (const group of toArray(data?.group)) {
-      for (const ws of toArray(group?.["work-summary"])) {
-        const type = nonEmpty(ws?.type)?.toLowerCase();
-        if (!type) continue;
-        // doisFromExternalIds already lower-cases; strip a scheme/doi.org prefix
-        // so the key matches the build's bare-lowercased csl.DOI (toCsl `bareDoi`).
-        for (const d of doisFromExternalIds(ws?.["external-ids"])) {
-          const bare = d.replace(/^https?:\/\/(dx\.)?doi\.org\//, "").replace(/^doi:\s*/, "");
-          if (bare && !out[bare]) out[bare] = type; // first non-empty wins
-        }
+export async function fetchOrcidWorkTypes(
+  orcid: string,
+  works?: OrcidWorksPayload,
+): Promise<Record<string, string>> {
+  const data = await resolveWorksPayload(orcid, works);
+  const out: Record<string, string> = {};
+  for (const group of toArray(data?.group)) {
+    for (const ws of toArray(group?.["work-summary"])) {
+      const type = nonEmpty(ws?.type)?.toLowerCase();
+      if (!type) continue;
+      // doisFromExternalIds already lower-cases; strip a scheme/doi.org prefix
+      // so the key matches the build's bare-lowercased csl.DOI (toCsl `bareDoi`).
+      for (const d of doisFromExternalIds(ws?.["external-ids"])) {
+        const bare = d.replace(/^https?:\/\/(dx\.)?doi\.org\//, "").replace(/^doi:\s*/, "");
+        if (bare && !out[bare]) out[bare] = type; // first non-empty wins
       }
     }
-    return out;
-  } catch (err) {
-    logger.warn("orcid.work_types_fetch_failed", { err });
-    return {};
   }
+  return out;
 }
 
 /**
@@ -377,39 +407,38 @@ function patentNumberFromExternalIds(extIds: any): string | undefined {
  * records a structured patent number, so `publicationNumber` is best-effort
  * (prefer the `pat` external-id, else the first non-DOI value) and the put-code
  * is kept as a stable `sourceId`. Applicants / inventors aren't in ORCID work
- * summaries → left empty. De-duped by put-code. Fails soft → [].
+ * summaries → left empty. De-duped by put-code. Pass `works` to reuse a `/works`
+ * payload already fetched this sync; omit it to fetch standalone. Fails soft → [].
  */
-export async function fetchOrcidPatents(orcid: string): Promise<PatentRecord[]> {
-  try {
-    const data = await orcidGet<any>(orcid, "works");
-    const out: PatentRecord[] = [];
-    const seen = new Set<string>();
-    for (const group of toArray(data?.group)) {
-      for (const ws of toArray(group?.["work-summary"])) {
-        if (nonEmpty(ws?.type)?.toLowerCase() !== "patent") continue;
-        const title = nonEmpty(ws?.title?.title?.value);
-        const putCode = ws?.["put-code"];
-        if (!title || putCode == null) continue;
-        const sourceId = String(putCode);
-        if (seen.has(sourceId)) continue;
-        seen.add(sourceId);
-        const publicationNumber = patentNumberFromExternalIds(ws?.["external-ids"]);
-        out.push({
-          source: "orcid",
-          title,
-          applicants: [],
-          inventors: [],
-          year: yearOf(ws?.["publication-date"]),
-          sourceId,
-          ...(publicationNumber ? { publicationNumber } : {}),
-        });
-      }
+export async function fetchOrcidPatents(
+  orcid: string,
+  works?: OrcidWorksPayload,
+): Promise<PatentRecord[]> {
+  const data = await resolveWorksPayload(orcid, works);
+  const out: PatentRecord[] = [];
+  const seen = new Set<string>();
+  for (const group of toArray(data?.group)) {
+    for (const ws of toArray(group?.["work-summary"])) {
+      if (nonEmpty(ws?.type)?.toLowerCase() !== "patent") continue;
+      const title = nonEmpty(ws?.title?.title?.value);
+      const putCode = ws?.["put-code"];
+      if (!title || putCode == null) continue;
+      const sourceId = String(putCode);
+      if (seen.has(sourceId)) continue;
+      seen.add(sourceId);
+      const publicationNumber = patentNumberFromExternalIds(ws?.["external-ids"]);
+      out.push({
+        source: "orcid",
+        title,
+        applicants: [],
+        inventors: [],
+        year: yearOf(ws?.["publication-date"]),
+        sourceId,
+        ...(publicationNumber ? { publicationNumber } : {}),
+      });
     }
-    return out;
-  } catch (err) {
-    logger.warn("orcid.patents_fetch_failed", { err });
-    return [];
   }
+  return out;
 }
 
 /** Fetch the user's PUBLIC funding/grants from ORCID (fails soft → []). */

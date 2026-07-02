@@ -33,6 +33,7 @@ import {
   fetchOrcidPeerReviews,
   fetchOrcidPositions,
   fetchOrcidService,
+  fetchOrcidWorks,
   fetchOrcidWorkTypes,
 } from "@/lib/orcid/client";
 import { fetchDataciteOutputs } from "@/lib/datacite/client";
@@ -200,6 +201,15 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
 
   const resolved = await timed("openalex.resolveAuthor", resolveAuthorByOrcid(orcid));
   const mailto = getEnv().OPENALEX_MAILTO;
+
+  // Fetch the ORCID `/works` endpoint ONCE per sync and share the parsed payload
+  // across its three consumers (work TYPES, self-asserted PATENTS, and the
+  // discovery DOI diff below). Route Handlers don't get Next's fetch memoization,
+  // so without this each consumer would hit ORCID's polite pool for the identical
+  // endpoint. Started here (needs only the iD) so it runs concurrently with the
+  // rest of the fan-out; fails soft to `null`.
+  const orcidWorksPromise = timed("orcid.works", fetchOrcidWorks(orcid));
+
   const [
     works,
     editorialRoles,
@@ -238,17 +248,19 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     timed("crossref.grants", fetchCrossrefGrantsByOrcid(orcid, mailto)),
     timed("wikidata", fetchWikidataIdentity(orcid)),
     // ORCID self-asserted work TYPES (DOI → type) — refine section placement so
-    // posters/talks/datasets aren't mis-filed as preprints. This re-traverses
-    // /works; the orcidDiscovery pass also hits /works, so the Next fetch cache
-    // (orcidGet `revalidate: 3600`) serves one of them from cache, not the network.
-    timed("orcid.workTypes", fetchOrcidWorkTypes(orcid)),
+    // posters/talks/datasets aren't mis-filed as preprints. Parses the shared
+    // /works payload (fetched once above), not a fresh request.
+    timed(
+      "orcid.workTypes",
+      orcidWorksPromise.then((w) => fetchOrcidWorkTypes(orcid, w)),
+    ),
     // The owner's self-asserted patents on their ORCID record — identifier-matched
     // (their own iD), so AUTO-INCLUDED (unlike the EPO name-matched candidates
-    // below). Also reads /works (like fetchOrcidWorkTypes + the discovery pass);
-    // the fetch cache coalesces the sequential reads but not necessarily this
-    // concurrent one — sharing one parsed /works payload across the three is a
-    // possible follow-up.
-    timed("orcid.patents", fetchOrcidPatents(orcid)),
+    // below). Parses the same shared /works payload.
+    timed(
+      "orcid.patents",
+      orcidWorksPromise.then((w) => fetchOrcidPatents(orcid, w)),
+    ),
   ]);
 
   // Registries with NO ORCID (national funders + trial registries) are matched by
@@ -283,10 +295,16 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     timed("nsf", fetchNsfGrants(displayName, matchOrgs)),
     timed("epo", fetchEpoPatents(displayName, matchOrgs)),
     // Works the user lists in ORCID that OpenAlex didn't attribute to their
-    // author profile — surfaced as hidden review candidates. Only genuinely-new
-    // DOIs are fetched (already-known ones are carried over by the build), so a
-    // steady-state re-sync issues no extra OpenAlex calls.
-    timed("orcid.discovery", discoverOrcidOnlyWorks({ orcid, openAlexWorks: works, previous })),
+    // author profile — surfaced as hidden review candidates. Reuses the shared
+    // /works payload (its DOI diff), so it adds no extra ORCID request. Only
+    // genuinely-new DOIs are fetched (already-known ones are carried over by the
+    // build), so a steady-state re-sync issues no extra OpenAlex calls.
+    timed(
+      "orcid.discovery",
+      orcidWorksPromise.then((w) =>
+        discoverOrcidOnlyWorks({ orcid, openAlexWorks: works, previous, orcidWorks: w }),
+      ),
+    ),
   ]);
 
   // Peer reviews carry the journal ISSN but not its name (ORCID records the

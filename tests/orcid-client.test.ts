@@ -402,10 +402,26 @@ describe("fetchOrcidWorkDois", () => {
     expect(await fetchOrcidWorkDois("0000-0002-7483-2489")).toEqual(["10.1/aaa", "10.2/bbb"]);
   });
 
+  it("parses a pre-fetched /works payload without a network call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { fetchOrcidWorkDois } = await freshClient();
+    expect(await fetchOrcidWorkDois("0000-0002-7483-2489", WORKS)).toEqual([
+      "10.1/aaa",
+      "10.2/bbb",
+    ]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("returns [] when the works API errors (fails soft)", async () => {
     vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
     const { fetchOrcidWorkDois } = await freshClient();
     expect(await fetchOrcidWorkDois("0000-0002-7483-2489")).toEqual([]);
+  });
+
+  it("returns [] for a pre-fetched null payload (shared fetch failed)", async () => {
+    const { fetchOrcidWorkDois } = await freshClient();
+    expect(await fetchOrcidWorkDois("0000-0002-7483-2489", null)).toEqual([]);
   });
 });
 
@@ -518,6 +534,16 @@ describe("fetchOrcidPatents", () => {
     ]);
   });
 
+  it("parses a pre-fetched /works payload without a network call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { fetchOrcidPatents } = await freshClient();
+    const patents = await fetchOrcidPatents("0000-0002-7483-2489", PATENTS_WORKS);
+    expect(patents).toHaveLength(3);
+    expect(patents[0]?.publicationNumber).toBe("US1234567B2");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("returns [] when the works API errors (fails soft)", async () => {
     vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
     const { fetchOrcidPatents } = await freshClient();
@@ -612,6 +638,18 @@ describe("fetchOrcidWorkTypes", () => {
     expect(types["10.3000/ccc"]).toBeUndefined();
   });
 
+  it("parses a pre-fetched /works payload without a network call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { fetchOrcidWorkTypes } = await freshClient();
+    expect(await fetchOrcidWorkTypes("0000-0002-7483-2489", WORK_TYPES)).toEqual({
+      "10.1000/aaa": "journal-article",
+      "10.2000/bbb": "conference-poster",
+      "10.4000/dup": "data-set",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("returns {} when the works API errors (fails soft)", async () => {
     vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
     const { fetchOrcidWorkTypes } = await freshClient();
@@ -622,5 +660,53 @@ describe("fetchOrcidWorkTypes", () => {
     vi.stubGlobal("fetch", routeWorks(res({ unexpected: true })));
     const { fetchOrcidWorkTypes } = await freshClient();
     expect(await fetchOrcidWorkTypes("0000-0002-7483-2489")).toEqual({});
+  });
+});
+
+describe("fetchOrcidWorks (shared raw payload)", () => {
+  function routeWorks(works: Response) {
+    return vi.fn(async (url: URL | string) => {
+      const u = url.toString();
+      if (u.includes("/oauth/token")) return res(TOKEN_BODY);
+      if (u.includes("/works")) return works;
+      return res({});
+    });
+  }
+
+  it("returns the raw /works JSON on success", async () => {
+    vi.stubGlobal("fetch", routeWorks(res(WORK_TYPES)));
+    const { fetchOrcidWorks } = await freshClient();
+    expect(await fetchOrcidWorks("0000-0002-7483-2489")).toEqual(WORK_TYPES);
+  });
+
+  it("returns null when the works API errors (fails soft)", async () => {
+    vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
+    const { fetchOrcidWorks } = await freshClient();
+    expect(await fetchOrcidWorks("0000-0002-7483-2489")).toBeNull();
+  });
+
+  it("fetches /works exactly once, then feeds all three consumers with no re-fetch", async () => {
+    const fetchMock = routeWorks(res(WORK_TYPES));
+    vi.stubGlobal("fetch", fetchMock);
+    const { fetchOrcidWorks, fetchOrcidWorkTypes, fetchOrcidPatents, fetchOrcidWorkDois } =
+      await freshClient();
+
+    // One shared fetch of the raw payload…
+    const payload = await fetchOrcidWorks("0000-0002-7483-2489");
+    const worksHitsAfterFetch = fetchMock.mock.calls.filter((c) =>
+      String(c[0]).includes("/works"),
+    ).length;
+    expect(worksHitsAfterFetch).toBe(1);
+
+    // …parsed by all three consumers without any of them re-requesting /works.
+    expect(await fetchOrcidWorkTypes("x", payload)).toMatchObject({
+      "10.1000/aaa": "journal-article",
+    });
+    expect(await fetchOrcidPatents("x", payload)).toEqual([]); // no patent-typed works here
+    expect(await fetchOrcidWorkDois("x", payload)).toContain("10.1000/aaa");
+    const worksHitsTotal = fetchMock.mock.calls.filter((c) =>
+      String(c[0]).includes("/works"),
+    ).length;
+    expect(worksHitsTotal).toBe(1); // still one — consumers reused the payload
   });
 });

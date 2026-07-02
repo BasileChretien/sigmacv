@@ -39,6 +39,7 @@ const mocks = vi.hoisted(() => ({
   fetchCtis: vi.fn(),
   fetchIctrp: vi.fn(),
   fetchEpo: vi.fn(),
+  fetchOrcidWorks: vi.fn(),
   fetchOrcidPatents: vi.fn(),
   discoverOrcid: vi.fn(),
   fetchOrcidWorkTypes: vi.fn(),
@@ -71,6 +72,7 @@ vi.mock("@/lib/orcid/client", () => ({
   fetchOrcidEducation: vi.fn(async () => []),
   fetchOrcidDistinctions: vi.fn(async () => []),
   fetchOrcidService: vi.fn(async () => []),
+  fetchOrcidWorks: mocks.fetchOrcidWorks,
   fetchOrcidPatents: mocks.fetchOrcidPatents,
   fetchOrcidPeerReviews: mocks.fetchPeerReviews,
   fetchOrcidWorkTypes: mocks.fetchOrcidWorkTypes,
@@ -134,6 +136,9 @@ const RESOLVED = {
   authorIds: ["A5001069481"],
   displayName: "Basile Chrétien",
 };
+// Sentinel raw ORCID /works payload the build fetches once and threads into the
+// work-types, patents, and discovery consumers (asserted below).
+const ORCID_WORKS = { group: [{ marker: "shared-orcid-works" }] };
 const DOC = buildCanonicalCv({
   id: "cv_1",
   resolved: RESOLVED,
@@ -169,6 +174,7 @@ beforeEach(() => {
   mocks.fetchCtis.mockResolvedValue([]);
   mocks.fetchIctrp.mockResolvedValue([]);
   mocks.fetchEpo.mockResolvedValue([]);
+  mocks.fetchOrcidWorks.mockResolvedValue(ORCID_WORKS);
   mocks.fetchOrcidPatents.mockResolvedValue([]);
   mocks.discoverOrcid.mockResolvedValue([]);
   mocks.fetchOrcidWorkTypes.mockResolvedValue({});
@@ -333,11 +339,13 @@ describe("syncCvForUser", () => {
       },
     ]);
     const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
-    // Discovery was queried with the freshly-pulled works + the (absent) previous CV.
+    // Discovery was queried with the freshly-pulled works + the (absent) previous
+    // CV + the shared, once-fetched ORCID /works payload.
     expect(mocks.discoverOrcid).toHaveBeenCalledWith({
       orcid: RESOLVED.orcid,
       openAlexWorks: [],
       previous: null,
+      orcidWorks: ORCID_WORKS,
     });
     const pubs = cv.sections.find((s) => s.type === "publications");
     const cand = pubs?.items.find((i) => i.id === "W9000001");
@@ -369,7 +377,9 @@ describe("syncCvForUser", () => {
     ]);
     mocks.fetchOrcidWorkTypes.mockResolvedValue({ "10.7/poster": "conference-poster" });
     const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
-    expect(mocks.fetchOrcidWorkTypes).toHaveBeenCalledWith(RESOLVED.orcid);
+    // /works is fetched ONCE and the shared payload is threaded into work-types.
+    expect(mocks.fetchOrcidWorks).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchOrcidWorkTypes).toHaveBeenCalledWith(RESOLVED.orcid, ORCID_WORKS);
     const other = cv.sections.find((s) => s.type === "other");
     expect(other?.items.find((i) => i.id === "WPOSTER")?.meta.peerReviewed).toBe(false);
     expect(cv.sections.find((s) => s.type === "preprints")).toBeUndefined();
@@ -471,7 +481,7 @@ describe("syncCvForUser", () => {
       },
     ]);
     const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
-    expect(mocks.fetchOrcidPatents).toHaveBeenCalledWith(RESOLVED.orcid);
+    expect(mocks.fetchOrcidPatents).toHaveBeenCalledWith(RESOLVED.orcid, ORCID_WORKS);
     const self = cv.sections
       .find((s) => s.type === "patents")
       ?.items.find((i) => i.id === "patent:orcid:US9999999B2");
