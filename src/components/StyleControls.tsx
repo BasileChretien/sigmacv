@@ -383,8 +383,7 @@ export default function StyleControls({
         body: JSON.stringify({ input: value }),
       });
       const data = (await res.json().catch(() => ({}))) as
-        | (CustomStyle & { error?: string })
-        | { error?: string };
+        (CustomStyle & { error?: string }) | { error?: string };
       if (!res.ok || !("xml" in data)) {
         setStyleError(("error" in data && data.error) || u.styleLoadError);
         return;

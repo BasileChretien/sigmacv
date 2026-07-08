@@ -210,8 +210,7 @@ export const MIN_SALT_LENGTH = 16;
  * `enabled` check get `irbRef` + `salt` without optional-chaining.
  */
 export type ResearchExportGate =
-  | { enabled: false; reason: string }
-  | { enabled: true; irbRef: string; salt: string };
+  { enabled: false; reason: string } | { enabled: true; irbRef: string; salt: string };
 
 /**
  * Hard gate for the researcher export. DISABLED unless ALL of:
