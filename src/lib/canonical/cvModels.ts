@@ -112,7 +112,7 @@ const FULL: CvModelDisplay = {};
  * The CV-model catalog. Ordered grant → institution → industry; within grant,
  * grouped by region (Europe, US, then Canada/Australia/Japan/China).
  */
-export const CV_MODELS = [
+const CV_MODELS_SOURCE = [
   // ─── GRANT — Europe ───────────────────────────────────────────────────────
   {
     id: "erc",
@@ -936,12 +936,20 @@ export const CV_MODELS = [
 ] as const satisfies readonly CvModel[];
 
 /**
- * The literal union of every catalog model id (derived from `CV_MODELS`, so a
- * new model automatically extends it). Keys the localized-description record in
- * `src/lib/i18n/cvModelDescriptions.ts`, making a missing translation a compile
- * error the same way the other typed i18n records do.
+ * The literal union of every catalog model id (derived from the `as const`
+ * source above, so a new model automatically extends it). Keys the localized-
+ * description record in `src/lib/i18n/cvModelDescriptions.ts`, making a missing
+ * translation a compile error the same way the other typed i18n records do.
  */
-export type CvModelId = (typeof CV_MODELS)[number]["id"];
+export type CvModelId = (typeof CV_MODELS_SOURCE)[number]["id"];
+
+/**
+ * The catalog, exported with the broad `readonly CvModel[]` element type so
+ * consumers keep the full `CvModel` shape (optional `titleOverrides` /
+ * `peerReviewedOnly`, section arrays as `CvSectionType[]`, …). The `as const`
+ * source above exists only to derive the literal `CvModelId` union.
+ */
+export const CV_MODELS: readonly CvModel[] = CV_MODELS_SOURCE;
 
 /** Lookup by id (built once). */
 const MODEL_BY_ID: ReadonlyMap<string, CvModel> = new Map(CV_MODELS.map((m) => [m.id, m]));
