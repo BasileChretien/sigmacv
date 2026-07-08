@@ -29,6 +29,7 @@ import {
   resetCvSections,
   type CvModelCategory,
 } from "@/lib/canonical/cvModels";
+import { cvModelDescription } from "@/lib/i18n/cvModelDescriptions";
 import { METRIC_DEFS, curatedMetrics, formatMetricValue } from "@/lib/render/metrics";
 import { authorshipRoleLabel, metricLabel, renderStrings } from "@/lib/i18n/render";
 import {
@@ -273,8 +274,9 @@ export default function StyleControls({
   const [modelId, setModelId] = useState("");
   // The CV-model catalog, grouped by category (Grant calls / Public
   // institutions / Industry & clinical). Static — memoized once. Localized
-  // optgroup label per category (only the chrome is localized; model names +
-  // descriptions render as-is in English).
+  // optgroup label per category; model NAMES render as-is (English proper
+  // nouns) while the DESCRIPTIONS are localized via `cvModelDescription`
+  // (issue #128), with the catalog's English `description` as fallback.
   const modelGroups = useMemo(() => cvModelsByCategory(), []);
   const modelGroupLabel = (c: CvModelCategory): string =>
     c === "grant"
@@ -383,7 +385,8 @@ export default function StyleControls({
         body: JSON.stringify({ input: value }),
       });
       const data = (await res.json().catch(() => ({}))) as
-        (CustomStyle & { error?: string }) | { error?: string };
+        | (CustomStyle & { error?: string })
+        | { error?: string };
       if (!res.ok || !("xml" in data)) {
         setStyleError(("error" in data && data.error) || u.styleLoadError);
         return;
@@ -454,8 +457,8 @@ export default function StyleControls({
             industry CV) from the grouped picker, then Apply: snapshot the current
             view as a restorable preset first (reversible), then apply the model's
             section selection + order + display + funder-specific titles via the
-            pure `applyCvModel`. Only the chrome is localized — model names and
-            descriptions render as-is (English). */}
+            pure `applyCvModel`. Model names render as-is (English proper nouns);
+            the descriptions are localized via `cvModelDescription`. */}
         <div className="grant-presets cv-models">
           <span className="grant-presets-label" id="cv-model-label">
             {eu.modelLegend}
@@ -464,14 +467,14 @@ export default function StyleControls({
             className="cv-model-select"
             aria-labelledby="cv-model-label"
             value={modelId}
-            title={selectedModel?.description}
+            title={selectedModel ? cvModelDescription(selectedModel.id, locale) : undefined}
             onChange={(e) => setModelId(e.target.value)}
           >
             <option value="">{eu.modelNone}</option>
             {modelGroups.map((group) => (
               <optgroup key={group.category} label={modelGroupLabel(group.category)}>
                 {group.models.map((m) => (
-                  <option key={m.id} value={m.id} title={m.description}>
+                  <option key={m.id} value={m.id} title={cvModelDescription(m.id, locale)}>
                     {m.name}
                   </option>
                 ))}
@@ -497,7 +500,7 @@ export default function StyleControls({
           </button>
           <p className="muted metric-preset-note grant-presets-help">{eu.modelHelp}</p>
           <p className="muted metric-preset-note grant-presets-note">
-            {selectedModel ? selectedModel.description : eu.grantIntro}
+            {selectedModel ? cvModelDescription(selectedModel.id, locale) : eu.grantIntro}
           </p>
         </div>
       </StyleGroup>

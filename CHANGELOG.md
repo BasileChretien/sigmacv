@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The CV-model picker's descriptions are now localized in all ten languages.**
+  The 58 one-click CV-model layouts (funder calls, public-institution jobs,
+  industry/clinical CVs) already had a localized picker, but their one-line
+  descriptions rendered in English only. Each is now translated natively across
+  the ten supported locales, with the English catalog text kept as the source of
+  truth and fallback. Funder / form / standard proper nouns ("ERC", "SciENcv",
+  "ICH-GCP", "履歴書", "FDA Form 1572", …) stay untranslated, exactly as the model
+  names and funder-specific section headings do. New typed i18n record
+  (`src/lib/i18n/cvModelDescriptions.ts`, keyed by model id) wired into the
+  picker; a missing locale is a compile error.
+
 - **The no-login preview now flags likely mis-attributions and duplicates too.**
   The anonymous preview editor surfaces the same **"this might not be yours"**
   (same-name over-merge) and **"this looks like a duplicate"** review cues as the
