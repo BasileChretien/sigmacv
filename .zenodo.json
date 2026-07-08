@@ -2,7 +2,7 @@
   "title": "SigmaCV",
   "description": "Auto-generate clean, customizable academic CVs from open research data (OpenAlex, ORCID, Crossref, Open Editors Plus). Open infrastructure for responsible research assessment.",
   "upload_type": "software",
-  "version": "v0.1.0",
+  "version": "v0.2.0",
   "access_right": "open",
   "license": "Apache-2.0",
   "creators": [

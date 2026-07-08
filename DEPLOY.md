@@ -117,11 +117,19 @@ First build pulls the Playwright/Chromium base image (large) — give it a few m
 ## Operations
 
 - **Logs:** `docker compose -f docker-compose.prod.yml logs -f app`
-- **Update (redeploy latest):**
+- **Update (redeploy latest) — no downtime:**
   ```bash
-  git pull
-  docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+  ./scripts/deploy.sh -f docker-compose.prod.yml   # managed-Postgres variant
+  # self-hosted Postgres variant (production sigmacv.org): just ./scripts/deploy.sh
   ```
+  The script pulls, **builds the new image while the old container keeps
+  serving**, then does a fast recreate. Caddy is health-checked with a retry
+  window (`health_uri /api/health` + `lb_try_duration`, see `Caddyfile`), so any
+  request landing during the swap is held until the new container is ready
+  instead of getting a 502. ⚠️ Avoid the old `up -d --build` directly: it
+  rebuilds _and then_ recreates the single app container in one step, taking the
+  site down for the whole build → every visitor in that window sees a "server
+  connection error."
 - **Stop / start:** `docker compose -f docker-compose.prod.yml down` / `… up -d`
 - **Backups:** handled by Neon (managed) **in this variant only**. Nothing on
   the VPS holds state except Caddy's certs (in a named volume). ⚠️ If you run
@@ -144,7 +152,9 @@ First build pulls the Playwright/Chromium base image (large) — give it a few m
   first deploy; the build traces them, but this is the one Prisma-7 thing unverified
   outside a container.)
 - **502 from Caddy:** the app container is still starting (Chromium image is big) —
-  watch `logs -f app` until "Ready".
+  watch `logs -f app` until "Ready". (During a redeploy Caddy now holds requests
+  for up to `lb_try_duration` rather than 502ing; a 502 means the boot exceeded
+  that window — check the logs for a slow `prisma migrate deploy` or a crash.)
 
 ## Notes / follow-ups
 

@@ -24,6 +24,15 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      # Batch minor/patch action bumps into a single PR (e.g. the codeql-action
+      # init/analyze/upload-sarif steps, which otherwise open three separate PRs
+      # for the same version); majors still arrive individually so breaking
+      # changes stay visible.
+      actions-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
     labels:
       - "dependencies"
       - "ci"

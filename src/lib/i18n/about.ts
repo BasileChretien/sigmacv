@@ -18,7 +18,7 @@ export interface AboutStrings {
 
 const ABOUT_I18N: Record<Locale, AboutStrings> = {
   "en-US": {
-    metaTitle: "About",
+    metaTitle: "About — the free, open academic CV builder",
     metaDescription:
       "SigmaCV is open infrastructure for responsible research assessment — academic CVs auto-generated from open research data.",
     heading: "About SigmaCV",
@@ -32,7 +32,7 @@ const ABOUT_I18N: Record<Locale, AboutStrings> = {
     backLink: "← Back to SigmaCV",
   },
   "zh-CN": {
-    metaTitle: "关于",
+    metaTitle: "关于 — 免费开源的学术简历生成器",
     metaDescription: "SigmaCV 是负责任研究评价的开放基础设施——根据开放研究数据自动生成学术简历。",
     heading: "关于 SigmaCV",
     intro:
@@ -45,7 +45,7 @@ const ABOUT_I18N: Record<Locale, AboutStrings> = {
     backLink: "← 返回 SigmaCV",
   },
   "es-ES": {
-    metaTitle: "Acerca de",
+    metaTitle: "Acerca de — el generador de CV académico libre y abierto",
     metaDescription:
       "SigmaCV es infraestructura abierta para la evaluación responsable de la investigación: CV académicos generados automáticamente a partir de datos de investigación abiertos.",
     heading: "Acerca de SigmaCV",
@@ -59,7 +59,7 @@ const ABOUT_I18N: Record<Locale, AboutStrings> = {
     backLink: "← Volver a SigmaCV",
   },
   "fr-FR": {
-    metaTitle: "À propos",
+    metaTitle: "À propos — le générateur de CV académique libre et ouvert",
     metaDescription:
       "SigmaCV est une infrastructure ouverte au service d'une évaluation responsable de la recherche — des CV académiques générés automatiquement à partir de données de recherche ouvertes.",
     heading: "À propos de SigmaCV",
@@ -73,7 +73,7 @@ const ABOUT_I18N: Record<Locale, AboutStrings> = {
     backLink: "← Retour à SigmaCV",
   },
   "de-DE": {
-    metaTitle: "Über uns",
+    metaTitle: "Über uns — der freie, offene Generator für akademische Lebensläufe",
     metaDescription:
       "SigmaCV ist offene Infrastruktur für verantwortungsvolle Forschungsbewertung — akademische Lebensläufe, automatisch erstellt aus offenen Forschungsdaten.",
     heading: "Über SigmaCV",
@@ -87,7 +87,7 @@ const ABOUT_I18N: Record<Locale, AboutStrings> = {
     backLink: "← Zurück zu SigmaCV",
   },
   "ja-JP": {
-    metaTitle: "概要",
+    metaTitle: "概要 — 無料・オープンソースの学術 CV ジェネレーター",
     metaDescription:
       "SigmaCV は、責任ある研究評価のためのオープンインフラです。オープンな研究データから学術用 CV を自動生成します。",
     heading: "SigmaCV について",
@@ -101,7 +101,7 @@ const ABOUT_I18N: Record<Locale, AboutStrings> = {
     backLink: "← SigmaCV に戻る",
   },
   "pt-BR": {
-    metaTitle: "Sobre",
+    metaTitle: "Sobre — o gerador de currículo acadêmico livre e aberto",
     metaDescription:
       "O SigmaCV é uma infraestrutura aberta para a avaliação responsável da pesquisa — currículos acadêmicos gerados automaticamente a partir de dados abertos de pesquisa.",
     heading: "Sobre o SigmaCV",
@@ -115,7 +115,7 @@ const ABOUT_I18N: Record<Locale, AboutStrings> = {
     backLink: "← Voltar ao SigmaCV",
   },
   "it-IT": {
-    metaTitle: "Informazioni",
+    metaTitle: "Informazioni — il generatore di CV accademici libero e aperto",
     metaDescription:
       "SigmaCV è un'infrastruttura aperta per la valutazione responsabile della ricerca: CV accademici generati automaticamente a partire da dati di ricerca aperti.",
     heading: "Informazioni su SigmaCV",
@@ -129,7 +129,7 @@ const ABOUT_I18N: Record<Locale, AboutStrings> = {
     backLink: "← Torna a SigmaCV",
   },
   "ko-KR": {
-    metaTitle: "소개",
+    metaTitle: "소개 — 무료 오픈소스 학술 이력서 생성기",
     metaDescription:
       "SigmaCV는 책임 있는 연구 평가를 위한 오픈 인프라로, 공개 연구 데이터로부터 학술 이력서를 자동 생성합니다.",
     heading: "SigmaCV 소개",
@@ -143,7 +143,7 @@ const ABOUT_I18N: Record<Locale, AboutStrings> = {
     backLink: "← SigmaCV로 돌아가기",
   },
   "ru-RU": {
-    metaTitle: "О проекте",
+    metaTitle: "О проекте — бесплатный открытый генератор академических CV",
     metaDescription:
       "SigmaCV — это открытая инфраструктура для ответственной оценки научных исследований: академические резюме, автоматически создаваемые на основе открытых научных данных.",
     heading: "О проекте SigmaCV",

@@ -402,10 +402,152 @@ describe("fetchOrcidWorkDois", () => {
     expect(await fetchOrcidWorkDois("0000-0002-7483-2489")).toEqual(["10.1/aaa", "10.2/bbb"]);
   });
 
+  it("parses a pre-fetched /works payload without a network call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { fetchOrcidWorkDois } = await freshClient();
+    expect(await fetchOrcidWorkDois("0000-0002-7483-2489", WORKS)).toEqual([
+      "10.1/aaa",
+      "10.2/bbb",
+    ]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("returns [] when the works API errors (fails soft)", async () => {
     vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
     const { fetchOrcidWorkDois } = await freshClient();
     expect(await fetchOrcidWorkDois("0000-0002-7483-2489")).toEqual([]);
+  });
+
+  it("returns [] for a pre-fetched null payload (shared fetch failed)", async () => {
+    const { fetchOrcidWorkDois } = await freshClient();
+    expect(await fetchOrcidWorkDois("0000-0002-7483-2489", null)).toEqual([]);
+  });
+});
+
+const PATENTS_WORKS = {
+  group: [
+    {
+      "work-summary": [
+        {
+          // Number preferred from the dedicated `pat` external-id, NOT the DOI.
+          "put-code": 10,
+          type: "patent",
+          title: { title: { value: "A clever apparatus" } },
+          "publication-date": { year: { value: "2021" } },
+          "external-ids": {
+            "external-id": [
+              { "external-id-type": "doi", "external-id-value": "10.9/ignored" },
+              { "external-id-type": "pat", "external-id-value": "US1234567B2" },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      // No external id and no year → publicationNumber omitted; put-code = sourceId.
+      "work-summary": [
+        {
+          "put-code": 11,
+          type: "patent",
+          title: { title: { value: "A numberless invention" } },
+        },
+      ],
+    },
+    {
+      // No `pat` id → fall back to the first NON-DOI value (the DOI is skipped).
+      "work-summary": [
+        {
+          "put-code": 16,
+          type: "patent",
+          title: { title: { value: "A fallback-numbered invention" } },
+          "external-ids": {
+            "external-id": [
+              { "external-id-type": "doi", "external-id-value": "10.3/skip" },
+              { "external-id-type": "other-id", "external-id-value": "EP0001A1" },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      // A non-patent work → ignored.
+      "work-summary": [
+        { "put-code": 12, type: "journal-article", title: { title: { value: "Not a patent" } } },
+      ],
+    },
+    {
+      // A patent missing a title → skipped.
+      "work-summary": [{ "put-code": 13, type: "patent" }],
+    },
+    {
+      // A titled patent with NO put-code → skipped (no stable id).
+      "work-summary": [{ type: "patent", title: { title: { value: "No put-code" } } }],
+    },
+    {
+      // Duplicate put-code (same as 10) → de-duped by sourceId.
+      "work-summary": [
+        { "put-code": 10, type: "patent", title: { title: { value: "Duplicate of 10" } } },
+      ],
+    },
+  ],
+};
+
+describe("fetchOrcidPatents", () => {
+  function routeWorks(works: Response) {
+    return vi.fn(async (url: URL | string) => {
+      const u = url.toString();
+      if (u.includes("/oauth/token")) return res(TOKEN_BODY);
+      if (u.includes("/works")) return works;
+      return res({});
+    });
+  }
+
+  it("prefers the `pat` number, falls back to non-DOI; skips non-patents/title-less/no-putcode/dup", async () => {
+    vi.stubGlobal("fetch", routeWorks(res(PATENTS_WORKS)));
+    const { fetchOrcidPatents } = await freshClient();
+    expect(await fetchOrcidPatents("0000-0002-7483-2489")).toEqual([
+      {
+        source: "orcid",
+        title: "A clever apparatus",
+        applicants: [],
+        inventors: [],
+        year: 2021,
+        sourceId: "10",
+        publicationNumber: "US1234567B2", // `pat` wins over the DOI
+      },
+      {
+        source: "orcid",
+        title: "A numberless invention",
+        applicants: [],
+        inventors: [],
+        sourceId: "11",
+      },
+      {
+        source: "orcid",
+        title: "A fallback-numbered invention",
+        applicants: [],
+        inventors: [],
+        sourceId: "16",
+        publicationNumber: "EP0001A1", // DOI skipped → first non-DOI id
+      },
+    ]);
+  });
+
+  it("parses a pre-fetched /works payload without a network call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { fetchOrcidPatents } = await freshClient();
+    const patents = await fetchOrcidPatents("0000-0002-7483-2489", PATENTS_WORKS);
+    expect(patents).toHaveLength(3);
+    expect(patents[0]?.publicationNumber).toBe("US1234567B2");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns [] when the works API errors (fails soft)", async () => {
+    vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
+    const { fetchOrcidPatents } = await freshClient();
+    expect(await fetchOrcidPatents("0000-0002-7483-2489")).toEqual([]);
   });
 });
 
@@ -496,6 +638,18 @@ describe("fetchOrcidWorkTypes", () => {
     expect(types["10.3000/ccc"]).toBeUndefined();
   });
 
+  it("parses a pre-fetched /works payload without a network call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { fetchOrcidWorkTypes } = await freshClient();
+    expect(await fetchOrcidWorkTypes("0000-0002-7483-2489", WORK_TYPES)).toEqual({
+      "10.1000/aaa": "journal-article",
+      "10.2000/bbb": "conference-poster",
+      "10.4000/dup": "data-set",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("returns {} when the works API errors (fails soft)", async () => {
     vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
     const { fetchOrcidWorkTypes } = await freshClient();
@@ -506,5 +660,53 @@ describe("fetchOrcidWorkTypes", () => {
     vi.stubGlobal("fetch", routeWorks(res({ unexpected: true })));
     const { fetchOrcidWorkTypes } = await freshClient();
     expect(await fetchOrcidWorkTypes("0000-0002-7483-2489")).toEqual({});
+  });
+});
+
+describe("fetchOrcidWorks (shared raw payload)", () => {
+  function routeWorks(works: Response) {
+    return vi.fn(async (url: URL | string) => {
+      const u = url.toString();
+      if (u.includes("/oauth/token")) return res(TOKEN_BODY);
+      if (u.includes("/works")) return works;
+      return res({});
+    });
+  }
+
+  it("returns the raw /works JSON on success", async () => {
+    vi.stubGlobal("fetch", routeWorks(res(WORK_TYPES)));
+    const { fetchOrcidWorks } = await freshClient();
+    expect(await fetchOrcidWorks("0000-0002-7483-2489")).toEqual(WORK_TYPES);
+  });
+
+  it("returns null when the works API errors (fails soft)", async () => {
+    vi.stubGlobal("fetch", routeWorks(res({}, false, 500)));
+    const { fetchOrcidWorks } = await freshClient();
+    expect(await fetchOrcidWorks("0000-0002-7483-2489")).toBeNull();
+  });
+
+  it("fetches /works exactly once, then feeds all three consumers with no re-fetch", async () => {
+    const fetchMock = routeWorks(res(WORK_TYPES));
+    vi.stubGlobal("fetch", fetchMock);
+    const { fetchOrcidWorks, fetchOrcidWorkTypes, fetchOrcidPatents, fetchOrcidWorkDois } =
+      await freshClient();
+
+    // One shared fetch of the raw payload…
+    const payload = await fetchOrcidWorks("0000-0002-7483-2489");
+    const worksHitsAfterFetch = fetchMock.mock.calls.filter((c) =>
+      String(c[0]).includes("/works"),
+    ).length;
+    expect(worksHitsAfterFetch).toBe(1);
+
+    // …parsed by all three consumers without any of them re-requesting /works.
+    expect(await fetchOrcidWorkTypes("x", payload)).toMatchObject({
+      "10.1000/aaa": "journal-article",
+    });
+    expect(await fetchOrcidPatents("x", payload)).toEqual([]); // no patent-typed works here
+    expect(await fetchOrcidWorkDois("x", payload)).toContain("10.1000/aaa");
+    const worksHitsTotal = fetchMock.mock.calls.filter((c) =>
+      String(c[0]).includes("/works"),
+    ).length;
+    expect(worksHitsTotal).toBe(1); // still one — consumers reused the payload
   });
 });

@@ -20,11 +20,21 @@ import { selectOnboardingStep, type OnboardingStep } from "@/lib/onboardingSeque
 import CvEditor, { type CvEditorHandle } from "./CvEditor";
 import CvPreview from "./CvPreview";
 import DisambiguationCoachmark, { COACHMARK_DISMISS_KEY } from "./DisambiguationCoachmark";
-import PublishNudge, { PUBLISH_NUDGE_DISMISS_KEY } from "./PublishNudge";
+import PublishNudge from "./PublishNudge";
 import PopoverGroup from "./PopoverGroup";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
 import SyncReportBanner, { SYNC_REPORT_DISMISS_KEY } from "./SyncReportBanner";
 import TopBar, { type ExportFormat } from "./TopBar";
+
+// Exporting one of these "finished document" formats is the signal that the CV
+// is curated and presentable — the right moment to surface the publish nudge.
+// The raw data formats (json/bibtex/…) and grant-CV exports don't imply that.
+const DOCUMENT_EXPORT_FORMATS: ReadonlySet<ExportFormat> = new Set<ExportFormat>([
+  "pdf",
+  "docx",
+  "latex",
+  "markdown",
+]);
 
 interface CvWorkspaceProps {
   initialCv: CanonicalCv | null;
@@ -110,6 +120,10 @@ export default function CvWorkspace({
   // slow one) so the Export button can disable + show progress instead of looking
   // frozen and inviting re-clicks.
   const [exporting, setExporting] = useState(false);
+  // Armed after a successful document export (when the CV is presentable) to
+  // surface the publish nudge. Resets on reload so we never nag — only a fresh
+  // export re-arms it, and dismissal persists per browser inside the nudge.
+  const [exportNudgeArmed, setExportNudgeArmed] = useState(false);
   // Which pane is visible on narrow screens (both show side-by-side on desktop).
   const [pane, setPane] = useState<"editor" | "preview">("editor");
   // Which surface the preview renders: the document (export) render, or the
@@ -342,11 +356,10 @@ export default function CvWorkspace({
           (syncReport.addedTotal > 0 || syncReport.removedTotal > 0) &&
           read(SYNC_REPORT_DISMISS_KEY) !== syncReport.syncedAt,
         coachmark: hasPublications && read(COACHMARK_DISMISS_KEY) !== "1",
-        publishNudge: !publishState.published && read(PUBLISH_NUDGE_DISMISS_KEY) !== "1",
       }),
     );
     // onboardingTick re-reads localStorage after a dismissal advances the queue.
-  }, [syncReport, publishState.published, hasPublications, onboardingTick]);
+  }, [syncReport, hasPublications, onboardingTick]);
 
   const handleExport = useCallback(async () => {
     // Export uses the SAVED document — don't download a stale file if the
@@ -377,12 +390,18 @@ export default function CvWorkspace({
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      // Just exported a finished document and the page isn't live yet — this is
+      // the moment to offer a living public page (the nudge self-hides once
+      // published or dismissed; raw data/grant-CV exports don't arm it).
+      if (!publishState.published && DOCUMENT_EXPORT_FORMATS.has(exportFormat)) {
+        setExportNudgeArmed(true);
+      }
     } catch {
       showStatus(t(uiLocale, "exportFailed"), "error");
     } finally {
       setExporting(false);
     }
-  }, [dirty, handleSave, exportFormat, showStatus, uiLocale]);
+  }, [dirty, handleSave, exportFormat, showStatus, uiLocale, publishState.published]);
 
   // Deep-link from the Publish menu to the public-page-style picker: on a phone,
   // make sure the editor pane (not the preview) is showing, then jump the editor
@@ -455,11 +474,14 @@ export default function CvWorkspace({
             suppressed={activeOnboarding !== "coachmark"}
             onDismissed={advanceOnboarding}
           />
+          {/* Fires after a successful document export (armed in handleExport),
+              never during first-run onboarding — and waits if an onboarding
+              prompt is somehow still active so prompts never stack. */}
           <PublishNudge
             published={publishState.published}
             locale={uiLocale}
-            suppressed={activeOnboarding !== "publishNudge"}
-            onDismissed={advanceOnboarding}
+            suppressed={!exportNudgeArmed || activeOnboarding !== null}
+            onDismissed={() => setExportNudgeArmed(false)}
           />
           {/* Mobile-only pane switch: on a phone the two panes stack and only
               the active one shows, so you don't scroll past the whole editor to

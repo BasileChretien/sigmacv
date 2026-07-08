@@ -8,11 +8,7 @@ import { workspaceUi } from "@/lib/i18n/workspaceUi";
 
 /** The four outstanding-decision categories the panel surfaces. */
 export type CvHealthCategory =
-  | "review"
-  | "duplicates"
-  | "conflicts"
-  | "misattributed"
-  | "retracted";
+  "review" | "duplicates" | "conflicts" | "misattributed" | "retracted";
 
 interface CvHealthPanelProps {
   cv: CanonicalCv;

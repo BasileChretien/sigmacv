@@ -143,7 +143,12 @@ export default function PublishControls({
       ) : null}
       {published && slug ? (
         <>
-          <label className="field-inline" title={u.allowIndexingTitle}>
+          {/* Indexing is what actually makes the page discoverable in search —
+              the growth point of the public-page flywheel. Give it emphasis and
+              a benefit line (not a bare checkbox lost among contact fields), but
+              keep it opt-in / default-off: we make the choice informed, not
+              automatic, for GDPR/APPI. */}
+          <label className="field-inline publish-index-toggle" title={u.allowIndexingTitle}>
             <input
               type="checkbox"
               checked={indexable}
@@ -152,6 +157,7 @@ export default function PublishControls({
             />
             <span>{u.allowIndexing}</span>
           </label>
+          <p className="publish-summary muted">{u.allowIndexingBody}</p>
           <fieldset className="public-contact-consent">
             <legend>{u.publicContactLegend}</legend>
             <label className="field-inline">
