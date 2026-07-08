@@ -38,12 +38,15 @@ import { sectionTitle } from "@/lib/i18n";
  * snapshots the current view as a named preset first.
  *
  * ── i18n policy (deliberate) ───────────────────────────────────────────────
- * `name`, `description` and `titleOverrides` are PLAIN ENGLISH proper-noun
- * strings (funder names + the call's specific required headings). They are NOT
- * routed through the ten-locale i18n — a researcher applying to the NSF needs
- * "Professional Preparation" whatever their UI locale, exactly as the NIH/grant
- * renderers keep their fixed headings. Only the editor CHROME (the picker
- * labels) is localized.
+ * `name` and `titleOverrides` are PLAIN ENGLISH proper-noun strings (funder
+ * names + the call's specific required headings). They are NOT routed through
+ * the ten-locale i18n — a researcher applying to the NSF needs "Professional
+ * Preparation" whatever their UI locale, exactly as the NIH/grant renderers
+ * keep their fixed headings. The picker `description`, by contrast, IS localized
+ * (issue #128): the English string below stays the source of truth + fallback,
+ * and `src/lib/i18n/cvModelDescriptions.ts` provides native translations for the
+ * other nine locales (funder / form proper nouns kept untranslated there too).
+ * So the editor CHROME — picker labels AND descriptions — is localized.
  */
 
 /** The category a CV model belongs to (drives the grouped picker's optgroups). */
@@ -69,7 +72,11 @@ export interface CvModel {
   region: string;
   /** Plain-English model name (proper noun — NOT i18n'd). */
   name: string;
-  /** One-paragraph plain-English description (proper nouns — NOT i18n'd). */
+  /**
+   * One-paragraph English description = the source of truth + English fallback.
+   * The picker renders a localized version (`src/lib/i18n/cvModelDescriptions.ts`,
+   * keyed by model `id`); funder / form proper nouns are kept untranslated there.
+   */
   description: string;
   /**
    * The sections the model wants VISIBLE, in their ORDER. Each is created
@@ -105,7 +112,7 @@ const FULL: CvModelDisplay = {};
  * The CV-model catalog. Ordered grant → institution → industry; within grant,
  * grouped by region (Europe, US, then Canada/Australia/Japan/China).
  */
-export const CV_MODELS: readonly CvModel[] = [
+const CV_MODELS_SOURCE = [
   // ─── GRANT — Europe ───────────────────────────────────────────────────────
   {
     id: "erc",
@@ -926,7 +933,23 @@ export const CV_MODELS: readonly CvModel[] = [
     sections: ["positions", "education", "skills", "publications", "grants"],
     display: CONCISE10,
   },
-];
+] as const satisfies readonly CvModel[];
+
+/**
+ * The literal union of every catalog model id (derived from the `as const`
+ * source above, so a new model automatically extends it). Keys the localized-
+ * description record in `src/lib/i18n/cvModelDescriptions.ts`, making a missing
+ * translation a compile error the same way the other typed i18n records do.
+ */
+export type CvModelId = (typeof CV_MODELS_SOURCE)[number]["id"];
+
+/**
+ * The catalog, exported with the broad `readonly CvModel[]` element type so
+ * consumers keep the full `CvModel` shape (optional `titleOverrides` /
+ * `peerReviewedOnly`, section arrays as `CvSectionType[]`, …). The `as const`
+ * source above exists only to derive the literal `CvModelId` union.
+ */
+export const CV_MODELS: readonly CvModel[] = CV_MODELS_SOURCE;
 
 /** Lookup by id (built once). */
 const MODEL_BY_ID: ReadonlyMap<string, CvModel> = new Map(CV_MODELS.map((m) => [m.id, m]));
