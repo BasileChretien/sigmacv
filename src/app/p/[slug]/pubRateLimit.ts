@@ -1,4 +1,5 @@
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { clientIp } from "@/lib/security/clientIp";
 import { publicNoticeResponse } from "./noticePage";
 
 /**
@@ -16,21 +17,6 @@ export const PUBPAGE_WINDOW_MS = 60_000; // 1 minute
 // rotates source IPs (each IP staying under the per-IP cap).
 export const PUBPAGE_GLOBAL_MAX = 3_000;
 export const PUBPAGE_GLOBAL_WINDOW_MS = 60_000;
-
-/**
- * Real client IP from the proxy headers. Caddy is configured to OVERWRITE
- * X-Forwarded-For with the real peer (`header_up X-Forwarded-For {remote_host}`),
- * so the trusted value is the RIGHTMOST hop — never the leftmost client-supplied
- * one (which would let an attacker rotate it to evade the per-IP limit).
- */
-export function clientIp(req: Request): string {
-  const fwd = req.headers.get("x-forwarded-for");
-  if (fwd) {
-    const parts = fwd.split(",");
-    return parts[parts.length - 1]!.trim();
-  }
-  return req.headers.get("x-real-ip")?.trim() || "unknown";
-}
 
 /** The outcome of the shared public-page rate-limit check. */
 export type PubRateLimitOutcome = { ok: true } | { ok: false; retryAfterSec: number };

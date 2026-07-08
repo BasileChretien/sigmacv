@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { faqPageJsonLd } from "@/lib/faqJsonLd";
 import { asLocale } from "@/lib/i18n";
+import { landingStrings } from "@/lib/i18n/landing";
 import { headTermPageForLocale } from "@/lib/i18n/headTermPages";
 import {
   type AnyLandingPageId,
@@ -12,6 +13,7 @@ import { serializeJsonLd } from "@/lib/jsonLd";
 import { localeHomePath, localeLandingPagePath } from "@/lib/seo";
 import { absoluteUrl, SITE_URL } from "@/lib/siteUrl";
 import DocJsonLd from "./DocJsonLd";
+import OrcidPreviewForm from "./OrcidPreviewForm";
 import SiteLinks from "./SiteLinks";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
@@ -114,6 +116,14 @@ export default function LandingPage({ page, locale }: { page: AnyLandingPageId; 
             {s.cta}
           </Link>
         </p>
+
+        {/* Reuse the homepage's ORCID trust line so the sign-in CTA carries the
+            same read-only reassurance here. */}
+        <p className="muted doc-trust">{landingStrings(loc).orcidTrust}</p>
+
+        {/* The ORCID→CV page is the natural home for the no-login preview: paste
+            an iD and see the result before signing in. */}
+        {page === "orcid-to-cv" ? <OrcidPreviewForm locale={loc} /> : null}
 
         <section>
           <h2>{c.stepsHeading}</h2>

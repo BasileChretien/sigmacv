@@ -1093,6 +1093,19 @@ input[type="radio"] {
 .publish-main-toggle > span {
   font-size: var(--text-sm);
 }
+/* Indexing is the discoverability switch (the public-page flywheel's growth
+   point) — emphasise it above the secondary contact checkboxes, while it stays
+   opt-in / default-off. Lighter than the main publish box so the on/off publish
+   decision still reads as primary. */
+.publish-index-toggle {
+  align-items: center;
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-1);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: var(--radius-sm);
+  font-weight: var(--weight-medium);
+}
 .publish-panel .public-contact-consent legend {
   display: block;
   grid-column: 1 / -1;
@@ -1195,6 +1208,42 @@ input[type="radio"] {
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   background: #ffffff;
+}
+/* ── Email-signature sub-panel ── */
+.badge-email {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+.badge-email > summary {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  list-style: none;
+}
+.badge-email > summary::-webkit-details-marker {
+  display: none;
+}
+.badge-email-intro {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+.badge-email-steps-heading {
+  margin: var(--space-2) 0 var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--muted);
+}
+.badge-email-steps {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--muted);
+}
+.badge-email-steps li {
+  margin-bottom: var(--space-1);
 }
 @media (prefers-reduced-motion: reduce) {
   .popover-panel {
@@ -2297,6 +2346,95 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   background: var(--surface-sunken);
   font-weight: var(--weight-medium);
 }
+/* Inline "the live preview couldn't refresh" notice (rate-limited / failed). The
+   stale preview stays below it; this just explains why it stopped updating. */
+.preview-refresh-note {
+  margin: var(--space-2) var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--warn-text);
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius-sm);
+}
+/* Instant loading screen for the no-login preview build (route loading.tsx): a
+   branded spinner ring around the Σ mark while the ~20-source build + citeproc
+   render runs. Motion is disabled under prefers-reduced-motion. */
+.preview-loading {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-8);
+  background: var(--bg);
+}
+.preview-loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 36ch;
+  text-align: center;
+}
+.preview-loading-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--space-2);
+}
+.preview-loading-badge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: preview-spin 0.9s linear infinite;
+}
+.preview-loading-mark {
+  font-size: 1.6rem;
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  color: var(--accent);
+}
+.preview-loading-title {
+  margin: 0;
+  font-size: var(--text-lg);
+  color: var(--text);
+}
+.preview-loading-body {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+/* Small inline spinner on the "Preview my CV" button while the navigation is
+   pending (before loading.tsx paints). */
+.hp2-btn-spinner {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-right: 0.5em;
+  vertical-align: -0.1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-full);
+  animation: preview-spin 0.7s linear infinite;
+}
+@keyframes preview-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .preview-loading-badge::before,
+  .hp2-btn-spinner {
+    animation: none;
+  }
+}
 .tpl-frame {
   width: 780px;
   height: 1040px;
@@ -2824,6 +2962,148 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   flex: 1;
 }
 
+/* ── No-login ORCID preview ──────────────────────────────────────────────────
+   The "see it first" form (OrcidPreviewForm) shown on the landing surfaces, and
+   the standalone /preview/[orcid] page. The form reuses .auth-email-row for its
+   input+button row; these add the label, input affordance, and page layout. */
+.hp2-preview {
+  margin-top: var(--space-3);
+}
+.hp2-preview-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+.hp2-preview .auth-email-row {
+  margin-top: 0;
+}
+.hp2-preview-input {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.hp2-preview-input[aria-invalid="true"] {
+  border-color: var(--danger, #c0392b);
+}
+.hp2-preview-error {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  color: var(--danger, #c0392b);
+}
+/* Standalone /preview/[orcid] page: an intro band (name + sign-in CTA) over the
+   scaled CV render, plus centred empty/invalid states. */
+.preview-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.preview-intro-cta {
+  flex: none;
+}
+.preview-intro-cta .hp2-btn {
+  width: auto;
+}
+.preview-note {
+  margin: var(--space-1) 0 0;
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+.preview-stage {
+  height: min(80vh, 1100px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.preview-empty {
+  max-width: 52ch;
+  margin: var(--space-6) auto;
+  text-align: center;
+}
+.preview-empty h1 {
+  margin-bottom: var(--space-2);
+}
+.preview-empty p {
+  margin-bottom: var(--space-4);
+  color: var(--muted);
+  line-height: 1.6;
+}
+.preview-empty .hp2-btn {
+  width: auto;
+}
+/* Trust microcopy under the SEO-page sign-in CTA (reuses the homepage line). */
+.doc-trust {
+  font-size: var(--text-sm);
+}
+
+/* ── No-login INTERACTIVE preview (PreviewWorkspace) ──────────────────────────
+   The real editor + live preview, anonymously. Full-height like the signed-in
+   `.cv-page`; the `.cv-workspace`/`.cv-workspace-pane`/`.pane-tabs` inside reuse
+   the editor's own layout. Only the top bar is new. */
+.preview-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg);
+}
+.preview-app-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.preview-app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+}
+.preview-app-mark {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent-500), var(--accent-700));
+  color: #fff;
+}
+.preview-app-name {
+  max-width: 40ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview-app-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.preview-app-note {
+  max-width: 46ch;
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--muted);
+}
+.preview-app-signin {
+  width: auto;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .preview-app-note {
+    display: none;
+  }
+}
+
 /* ── Shared site chrome (SiteHeader / SiteFooter) ────────────────────────────
    Used on every public page EXCEPT the homepage (which keeps its hero-integrated
    nav/footer). Visually matches the homepage's `.hp2-nav` / `.hp2-foot` so the
@@ -3256,6 +3536,228 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   padding: 0 0.35rem;
   border-radius: var(--radius-full);
   border: 1px solid var(--warn-border);
+}
+
+/* ── "Where this came from" provenance panel (SourceProvenance.tsx) ──────────
+   Shared by the no-login preview (editor pane) and the sync-report banner. The
+   name-matched group borrows the warn tokens (these need the user's review). */
+.src-prov {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  font-size: var(--text-sm);
+}
+.src-prov-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  cursor: pointer;
+  list-style: none;
+}
+.src-prov-summary::-webkit-details-marker {
+  display: none;
+}
+.src-prov-title {
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+.src-prov-tally {
+  font-size: var(--text-xs);
+}
+.src-prov-body {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.src-prov-group-label {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.src-prov-group.is-review .src-prov-group-label {
+  color: var(--warn-text);
+}
+.src-prov-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.src-prov-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.2em 0.6em;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+}
+.src-prov-group.is-review .src-prov-chip {
+  border-color: var(--warn-border);
+  background: var(--warn-soft);
+}
+.src-prov-name {
+  color: var(--text-secondary);
+}
+.src-prov-group.is-review .src-prov-name {
+  color: var(--warn-text);
+}
+.src-prov-count {
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.src-prov-group.is-review .src-prov-count {
+  color: var(--warn-text);
+}
+
+/* ── Live "searching open sources" view (PreviewBuilder.tsx) ─────────────────
+   The no-login build streams per-source: each source drops in with its count
+   while the Σ badge keeps spinning for the ones still out, then it settles into
+   the interactive editor. Reuses the `preview-spin` keyframe from the loading
+   screen; row entrance + spin are disabled under prefers-reduced-motion. */
+.src-search,
+.preview-builder-notice {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: var(--bg);
+}
+.src-search-card {
+  width: 100%;
+  max-width: 34rem;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.src-search-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.src-search-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+}
+.src-search-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: preview-spin 0.8s linear infinite;
+}
+.src-search-mark {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  color: var(--accent);
+}
+.src-search-htext {
+  min-width: 0;
+}
+.src-search-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+.src-search-sub {
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+.src-search-tally {
+  margin-left: auto;
+  text-align: right;
+  flex: none;
+}
+.src-search-tallynum {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.src-search-tallylbl {
+  font-size: var(--text-2xs);
+  color: var(--muted);
+}
+.src-search-list {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+}
+.src-search-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--surface-sunken);
+  animation: src-row-in 0.35s var(--ease) both;
+}
+.src-search-row:first-child {
+  border-top: 0;
+}
+.src-search-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--border);
+}
+.src-search-dot.is-found {
+  background: var(--accent);
+}
+.src-search-name {
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+.src-search-tag {
+  padding: 0 0.4rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-2xs);
+  color: var(--warn-text);
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-border);
+}
+.src-search-right {
+  margin-left: auto;
+}
+.src-search-count {
+  padding: 0.1em 0.6em;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.src-search-none {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+@keyframes src-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .src-search-ring,
+  .src-search-row {
+    animation: none;
+  }
 }
 
 /* ── CV-health checklist ("needs your attention") ──────────────────────────── */

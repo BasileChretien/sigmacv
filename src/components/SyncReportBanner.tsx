@@ -9,6 +9,7 @@ import {
 } from "@/lib/cv/syncReport";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
+import SourceProvenance from "./SourceProvenance";
 
 /** Per-report dismissal (keyed by the report's syncedAt) survives reloads. */
 export const SYNC_REPORT_DISMISS_KEY = "sigmacv:syncReportDismissed";
@@ -180,6 +181,7 @@ export default function SyncReportBanner({
           )}
         </details>
       ) : null}
+      <SourceProvenance sourceCounts={report.sourceCounts} locale={locale} />
     </aside>
   );
 }

@@ -53,6 +53,18 @@ describe("discoverOrcidOnlyWorks", () => {
     expect(mocks.fetchWorkByDoi).toHaveBeenCalledWith("10.2000/b");
   });
 
+  it("forwards a pre-fetched /works payload to fetchOrcidWorkDois", async () => {
+    const orcidWorks = { group: [{ marker: "shared-works-payload" }] };
+    mocks.fetchOrcidWorkDois.mockResolvedValue([]);
+    await discoverOrcidOnlyWorks({
+      orcid: "0000-0002-7483-2489",
+      openAlexWorks: [],
+      previous: null,
+      orcidWorks,
+    });
+    expect(mocks.fetchOrcidWorkDois).toHaveBeenCalledWith("0000-0002-7483-2489", orcidWorks);
+  });
+
   it("excludes DOIs already present anywhere in the previous CV", async () => {
     mocks.fetchOrcidWorkDois.mockResolvedValue(["10.3000/c"]);
     const out = await discoverOrcidOnlyWorks({

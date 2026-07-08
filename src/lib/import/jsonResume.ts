@@ -55,8 +55,7 @@ export type JsonResume = z.infer<typeof JsonResumeSchema>;
 export type JsonResumeParseError = "too-large" | "invalid-json" | "invalid-shape";
 
 export type ParseResult =
-  | { ok: true; resume: JsonResume }
-  | { ok: false; error: JsonResumeParseError };
+  { ok: true; resume: JsonResume } | { ok: false; error: JsonResumeParseError };
 
 /** Reject absurdly large pastes/uploads before parsing (a résumé is small). */
 const MAX_INPUT_BYTES = 1_000_000;
@@ -79,14 +78,7 @@ export function parseJsonResume(text: string): ParseResult {
 
 /** Profile fields the import can fill (for the summary shown to the user). */
 export type FilledProfileField =
-  | "displayName"
-  | "headline"
-  | "summary"
-  | "email"
-  | "phone"
-  | "website"
-  | "location"
-  | "links";
+  "displayName" | "headline" | "summary" | "email" | "phone" | "website" | "location" | "links";
 
 export interface ImportOptions {
   /** Unique prefix for generated item ids, so importing twice can't collide. */

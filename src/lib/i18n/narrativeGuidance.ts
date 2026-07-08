@@ -14,10 +14,7 @@ import type { CvSectionType } from "@/lib/canonical/schema";
  * convention as the SEO landing pages / doc pages).
  */
 type NarrativeKey =
-  | "narrative-knowledge"
-  | "narrative-individuals"
-  | "narrative-community"
-  | "narrative-society";
+  "narrative-knowledge" | "narrative-individuals" | "narrative-community" | "narrative-society";
 
 const NARRATIVE_GUIDANCE: Record<Locale, Record<NarrativeKey, string>> = {
   "en-US": {

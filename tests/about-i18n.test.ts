@@ -6,7 +6,9 @@ describe("aboutStrings", () => {
   it("localizes the About page and falls back to English", () => {
     expect(aboutStrings("en-US").heading).toBe("About SigmaCV");
     expect(aboutStrings("fr-FR").heading).toBe("À propos de SigmaCV");
-    expect(aboutStrings("ja-JP").metaTitle).toBe("概要");
+    expect(aboutStrings("ja-JP").metaTitle).toBe(
+      "概要 — 無料・オープンソースの学術 CV ジェネレーター",
+    );
     expect(aboutStrings("xx-XX").heading).toBe(aboutStrings("en-US").heading);
   });
 

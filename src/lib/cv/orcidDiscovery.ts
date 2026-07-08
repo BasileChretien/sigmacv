@@ -1,6 +1,6 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { bareDoiInput, fetchWorkByDoi } from "@/lib/openalex/client";
-import { fetchOrcidWorkDois } from "@/lib/orcid/client";
+import { fetchOrcidWorkDois, type OrcidWorksPayload } from "@/lib/orcid/client";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import { logger } from "@/lib/log";
 
@@ -50,14 +50,17 @@ export interface DiscoverOrcidOnlyWorksOpts {
   openAlexWorks: OpenAlexWork[];
   /** Previous canonical CV, so already-known DOIs are not re-discovered. */
   previous?: CanonicalCv | null;
+  /** Raw ORCID `/works` payload already fetched this sync (shared with the work
+   *  TYPES + PATENTS consumers). When omitted, `/works` is fetched standalone. */
+  orcidWorks?: OrcidWorksPayload;
 }
 
 export async function discoverOrcidOnlyWorks(
   opts: DiscoverOrcidOnlyWorksOpts,
 ): Promise<OpenAlexWork[]> {
-  const { orcid, openAlexWorks, previous } = opts;
+  const { orcid, openAlexWorks, previous, orcidWorks } = opts;
 
-  const orcidDois = await fetchOrcidWorkDois(orcid);
+  const orcidDois = await fetchOrcidWorkDois(orcid, orcidWorks);
   if (orcidDois.length === 0) return [];
 
   // "Already have" = works pulled by author id this sync + everything in the CV.

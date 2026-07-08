@@ -4,26 +4,35 @@ import { useEffect, useState } from "react";
 import { trackEvent } from "@/lib/analytics/track";
 import { publishNudgeStrings } from "@/lib/i18n/publishNudge";
 
-/** Per-browser flag so a dismissed (or acted-on) nudge stays gone across reloads. */
-export const PUBLISH_NUDGE_DISMISS_KEY = "sigmacv:publish-nudge-dismissed";
+/**
+ * Per-browser flag so a dismissed (or acted-on) nudge stays gone across reloads.
+ * The value is intentionally `…-v2` (the nudge moved from an early onboarding
+ * prompt to a post-export one): a fresh key gives users who dismissed the old,
+ * mistimed onboarding nudge one shot at the better-timed export prompt.
+ */
+export const PUBLISH_NUDGE_DISMISS_KEY = "sigmacv:publish-nudge-dismissed-v2";
 
 interface PublishNudgeProps {
   /** Whether the CV is already published — the nudge never shows if so. */
   published: boolean;
   locale: string;
-  /** Held back by the onboarding sequencer so prompts don't stack. */
+  /** Held back until armed (after a successful document export) so we never
+      nudge someone to publish a freshly-imported, un-curated CV. */
   suppressed?: boolean;
-  /** Notifies the sequencer to advance to the next prompt. */
+  /** Notifies the host that the nudge was dismissed/acted on (disarm it). */
   onDismissed?: () => void;
 }
 
 /**
- * A gentle, dismissible prompt (F1) shown in the editor only while the CV is
- * unpublished, encouraging the user to publish a shareable public page. The CTA
- * scrolls to, focuses and briefly highlights the existing publish toggle — it
- * never publishes on the user's behalf, because publishing is a deliberate,
- * consent-sensitive action in this product. Dismissal persists per browser, and
- * it is suppressed entirely once the page is published.
+ * A gentle, dismissible prompt shown in the editor only while the CV is
+ * unpublished, encouraging the user to publish a shareable public page. It is
+ * armed by the host after a successful document export — the "this is
+ * presentable, I'm about to show it to someone" moment — rather than on first
+ * import, so we never push a raw, un-curated CV public. The CTA scrolls to,
+ * focuses and briefly highlights the existing publish toggle; it never publishes
+ * on the user's behalf, because publishing is a deliberate, consent-sensitive
+ * action in this product. Dismissal persists per browser, and it is suppressed
+ * entirely once the page is published.
  */
 export default function PublishNudge({
   published,

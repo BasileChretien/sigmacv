@@ -1,6 +1,8 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { absoluteUrl } from "@/lib/siteUrl";
+import { pingIndexNow } from "@/lib/cv/indexNow";
 import { invalidatePublicPage } from "@/lib/cv/publicPageCache";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks";
@@ -27,9 +29,11 @@ import {
   fetchOrcidEducation,
   fetchOrcidFundings,
   fetchOrcidInvitedPositions,
+  fetchOrcidPatents,
   fetchOrcidPeerReviews,
   fetchOrcidPositions,
   fetchOrcidService,
+  fetchOrcidWorks,
   fetchOrcidWorkTypes,
 } from "@/lib/orcid/client";
 import { fetchDataciteOutputs } from "@/lib/datacite/client";
@@ -160,13 +164,38 @@ export interface SyncResult {
   report: SyncReport;
 }
 
+/** A single live progress tick: one source settled with `count` items. */
+export interface SourceProgress {
+  source: string;
+  count: number;
+}
+
+interface BuildCvInput {
+  orcid: string;
+  fallbackName?: string;
+  /** Prior document whose curation + display choices are preserved across the
+   *  rebuild. Null on a first build and on the anonymous no-login preview. */
+  previous?: CanonicalCv | null;
+  /** Stable CV id to assign; defaults to a fresh UUID. The preview path has no
+   *  persisted row, so it lets this default. */
+  id?: string;
+  /** Optional live progress sink, called the moment each source's fetch settles
+   *  (in resolution order) — drives the streaming "searching open sources" view.
+   *  Fires for the counted array sources only, never the author-resolve /
+   *  Wikidata-identity prerequisites. */
+  onProgress?: (event: SourceProgress) => void;
+}
+
 /**
- * Resolve OpenAlex author id(s) from the ORCID iD, pull works, (re)build the
- * canonical object — preserving prior curation + display choices — and persist,
- * along with a {@link SyncReport} of what changed (surfaced in the editor).
+ * Resolve OpenAlex author id(s) from the ORCID iD, pull every source, (re)build
+ * the canonical object — preserving prior curation + display choices — enrich it,
+ * and compute a {@link SyncReport} of what changed. Pure of the database (no reads
+ * or writes): shared by {@link syncCvForUser} (which loads `previous` and persists
+ * the result) and the no-login preview (which passes no `previous` and never
+ * persists). Every client fails soft, so a build never throws on an upstream hiccup.
  */
-export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
-  const { userId, orcid, fallbackName } = opts;
+export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult> {
+  const { orcid, fallbackName, previous = null, id = randomUUID(), onProgress } = input;
   const now = new Date().toISOString();
   const startedAt = Date.now();
 
@@ -176,17 +205,36 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   const timingsMs: Record<string, number> = {};
   const timed = <T>(key: string, p: Promise<T>): Promise<T> => {
     const t0 = Date.now();
-    return p.finally(() => {
+    const done = p.finally(() => {
       timingsMs[key] = Math.round(Date.now() - t0);
     });
+    if (onProgress) {
+      // Live per-source tick the moment a fetch settles — drives the streaming
+      // "searching open sources" view. Array sources only: the author-resolve
+      // prerequisite and the Wikidata identity fetch aren't user-facing sources.
+      // Observer-only side chain; it never changes `done` (still `p.finally(…)`).
+      done
+        .then((v) => {
+          if (Array.isArray(v)) onProgress({ source: key, count: v.length });
+        })
+        /* v8 ignore next -- every client fails soft, so this observer chain never
+           rejects; the caller's Promise.all owns any real rejection. */
+        .catch(() => {});
+    }
+    return done;
   };
-
-  const existing = await prisma.cv.findUnique({ where: { userId } });
-  const previousParsed = existing ? safeParseCanonicalCv(existing.document) : null;
-  const previous = previousParsed?.success ? previousParsed.data : null;
 
   const resolved = await timed("openalex.resolveAuthor", resolveAuthorByOrcid(orcid));
   const mailto = getEnv().OPENALEX_MAILTO;
+
+  // Fetch the ORCID `/works` endpoint ONCE per sync and share the parsed payload
+  // across its three consumers (work TYPES, self-asserted PATENTS, and the
+  // discovery DOI diff below). Route Handlers don't get Next's fetch memoization,
+  // so without this each consumer would hit ORCID's polite pool for the identical
+  // endpoint. Started here (needs only the iD) so it runs concurrently with the
+  // rest of the fan-out; fails soft to `null`.
+  const orcidWorksPromise = timed("orcid.works", fetchOrcidWorks(orcid));
+
   const [
     works,
     editorialRoles,
@@ -203,6 +251,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     crossrefGrants,
     wikidataIdentity,
     orcidWorkTypes,
+    orcidPatents,
   ] = await Promise.all([
     timed(
       "openalex.works",
@@ -224,10 +273,19 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     timed("crossref.grants", fetchCrossrefGrantsByOrcid(orcid, mailto)),
     timed("wikidata", fetchWikidataIdentity(orcid)),
     // ORCID self-asserted work TYPES (DOI → type) — refine section placement so
-    // posters/talks/datasets aren't mis-filed as preprints. This re-traverses
-    // /works; the orcidDiscovery pass also hits /works, so the Next fetch cache
-    // (orcidGet `revalidate: 3600`) serves one of them from cache, not the network.
-    timed("orcid.workTypes", fetchOrcidWorkTypes(orcid)),
+    // posters/talks/datasets aren't mis-filed as preprints. Parses the shared
+    // /works payload (fetched once above), not a fresh request.
+    timed(
+      "orcid.workTypes",
+      orcidWorksPromise.then((w) => fetchOrcidWorkTypes(orcid, w)),
+    ),
+    // The owner's self-asserted patents on their ORCID record — identifier-matched
+    // (their own iD), so AUTO-INCLUDED (unlike the EPO name-matched candidates
+    // below). Parses the same shared /works payload.
+    timed(
+      "orcid.patents",
+      orcidWorksPromise.then((w) => fetchOrcidPatents(orcid, w)),
+    ),
   ]);
 
   // Registries with NO ORCID (national funders + trial registries) are matched by
@@ -251,7 +309,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     ukriGrants,
     nihGrants,
     nsfGrants,
-    patents,
+    epoPatents,
     orcidDiscoveredWorks,
   ] = await Promise.all([
     timed("clinicaltrials", fetchClinicalTrials(displayName, matchOrgs)),
@@ -262,10 +320,16 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     timed("nsf", fetchNsfGrants(displayName, matchOrgs)),
     timed("epo", fetchEpoPatents(displayName, matchOrgs)),
     // Works the user lists in ORCID that OpenAlex didn't attribute to their
-    // author profile — surfaced as hidden review candidates. Only genuinely-new
-    // DOIs are fetched (already-known ones are carried over by the build), so a
-    // steady-state re-sync issues no extra OpenAlex calls.
-    timed("orcid.discovery", discoverOrcidOnlyWorks({ orcid, openAlexWorks: works, previous })),
+    // author profile — surfaced as hidden review candidates. Reuses the shared
+    // /works payload (its DOI diff), so it adds no extra ORCID request. Only
+    // genuinely-new DOIs are fetched (already-known ones are carried over by the
+    // build), so a steady-state re-sync issues no extra OpenAlex calls.
+    timed(
+      "orcid.discovery",
+      orcidWorksPromise.then((w) =>
+        discoverOrcidOnlyWorks({ orcid, openAlexWorks: works, previous, orcidWorks: w }),
+      ),
+    ),
   ]);
 
   // Peer reviews carry the journal ISSN but not its name (ORCID records the
@@ -295,7 +359,6 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     affiliations: resolved?.affiliations ?? [],
   });
 
-  const id = existing?.id ?? randomUUID();
   let cv = buildCanonicalCv({
     id,
     resolved: resolved
@@ -324,7 +387,9 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     crossrefGrants,
     nationalGrants: [...ukriGrants, ...nihGrants, ...nsfGrants],
     clinicalTrials: [...ctgovTrials, ...ctisTrials, ...ictrpTrials],
-    patents,
+    // ORCID self-asserted patents (auto-included) + EPO name-matched candidates
+    // (review); buildPatentsSection drops an EPO hit that duplicates an ORCID one.
+    patents: [...orcidPatents, ...epoPatents],
   });
   if (usedRor) cv = withRorProvenance(cv);
 
@@ -407,13 +472,15 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     ukri: ukriGrants.length,
     nih: nihGrants.length,
     nsf: nsfGrants.length,
-    epo: patents.length,
+    epo: epoPatents.length,
+    "orcid.patents": orcidPatents.length,
   };
 
   const report = computeSyncReport(previous, cv, { syncedAt: now, sourceCounts, timingsMs });
 
-  // Sync-performance + outcome observability (one structured line per sync).
-  logger.info("cv.sync.completed", {
+  // Build-performance + outcome observability (one structured line per build,
+  // whether it backs an authenticated sync or an anonymous no-login preview).
+  logger.info("cv.build.completed", {
     ms: Date.now() - startedAt,
     added: report.addedTotal,
     removed: report.removedTotal,
@@ -422,6 +489,25 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     timingsMs,
     sourceCounts,
   });
+
+  return { cv, report };
+}
+
+/**
+ * Resolve OpenAlex author id(s) from the ORCID iD, (re)build the canonical object
+ * preserving prior curation + display choices, and persist, along with a
+ * {@link SyncReport} of what changed (surfaced in the editor). The heavy lifting is
+ * {@link buildCvFromOrcid}; this adds the DB read (for prior curation) and the write.
+ */
+export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
+  const { userId, orcid, fallbackName } = opts;
+
+  const existing = await prisma.cv.findUnique({ where: { userId } });
+  const previousParsed = existing ? safeParseCanonicalCv(existing.document) : null;
+  const previous = previousParsed?.success ? previousParsed.data : null;
+  const id = existing?.id ?? randomUUID();
+
+  const { cv, report } = await buildCvFromOrcid({ orcid, fallbackName, previous, id });
 
   await prisma.cv.upsert({
     where: { userId },
@@ -550,6 +636,12 @@ export async function setPublishState(
   // Drop any cached render so unpublish/publish/index changes take effect at
   // once (the public route caches rendered pages for a short TTL).
   if (updated.publicSlug) invalidatePublicPage(updated.publicSlug);
+  // Newly live AND indexable: nudge IndexNow (Bing/Yandex) to crawl now rather
+  // than wait for sitemap rediscovery. Fire-and-forget — pingIndexNow is
+  // fail-soft and no-ops outside production, so it never blocks or breaks publish.
+  if (updated.published && updated.publicIndexable && updated.publicSlug) {
+    void pingIndexNow([absoluteUrl(`p/${updated.publicSlug}`)]);
+  }
   return {
     published: updated.published,
     publicSlug: updated.publicSlug,
