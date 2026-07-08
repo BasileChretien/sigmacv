@@ -42,6 +42,14 @@ function sidebarCss(_theme: TemplateTheme): string {
     color: #fff;
     padding: 42px 28px;
   }
+
+  /* Print-only full-height accent rail. In paged media a grid column's background
+     paints on the FIRST page only, so a long CV shows the tinted panel on page 1
+     and a bare white rail on pages 2+. A position:fixed layer is repainted by the
+     engine on EVERY printed page, so it carries the accent band down the whole
+     document. Hidden on screen — the .cv-sidebar column already paints the rail
+     there (with its full-height gradient), so the on-screen view is unchanged. */
+  .cv-sidebar-band { display: none; }
   .cv-sidebar .cv-header { margin: 0; }
   .cv-sidebar .cv-headmain {
     flex-direction: column;
@@ -164,14 +172,31 @@ function sidebarCss(_theme: TemplateTheme): string {
 
   .cv-main .cv-provenance { border-top-color: var(--cv-rule); }
 
-  /* ---- Print: keep the tinted panel, drop the screen-only full-height ------ */
+  /* ---- Print: repeat the tinted rail on every page, drop the screen-only ---- */
   @media print {
     .cv-sidebar-layout { min-height: 0; }
-    .cv-sidebar {
+    /* The rail now comes from the fixed band below (repeated on every page). Drop
+       the column's own background so page 1 isn't painted twice (its short,
+       per-fragment gradient over the band's full-page one would seam). */
+    .cv-sidebar { background: transparent; }
+    .cv-sidebar .cv-photo { box-shadow: none; }
+    /* The repeating accent rail: pinned to the page's left edge and painted BEHIND
+       the sidebar content (z-index:-1) on EVERY printed page. The page has no
+       margin (@page margin:0) and .cv spans the full page width, so left:0 +
+       width:265px lands exactly on the sidebar grid column (265px 1fr). */
+    .cv-sidebar-band {
+      display: block;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 265px;
+      z-index: -1;
+      background: var(--cv-accent);
+      background-image: linear-gradient(160deg, var(--cv-accent) 0%, color-mix(in srgb, var(--cv-accent) 82%, #000) 100%);
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-    .cv-sidebar .cv-photo { box-shadow: none; }
   }`;
 }
 
@@ -184,6 +209,10 @@ export const sidebarTemplate: CvTemplate = {
     // still own the citation data, fallback title and ORCID handling.
     const body =
       `<div class="cv">` +
+      // Decorative print-only accent rail painted on every page (see .cv-sidebar-band
+      // in the CSS). position:fixed takes it out of the grid flow, so it does not
+      // occupy a grid cell; aria-hidden as it carries no content.
+      `<div class="cv-sidebar-band" aria-hidden="true"></div>` +
       `<div class="cv-sidebar-layout">` +
       `<aside class="cv-sidebar">${headerHtml(cv, { photo: true })}</aside>` +
       `<main class="cv-main">${sectionsHtmlRaw(cv, sections)}${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}${docQrFooter(cv, opts)}</main>` +
