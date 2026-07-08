@@ -39,8 +39,7 @@ export type RenderFormat = (typeof RENDER_FORMATS)[number];
  * route sets it; exporters never do, so PDF/DOCX/LaTeX stay clean.
  */
 type PublicExtrasOpts =
-  | { publicExtras?: false; slug?: never }
-  | { publicExtras: true; slug: string };
+  { publicExtras?: false; slug?: never } | { publicExtras: true; slug: string };
 
 /**
  * Render-time options that are NOT part of the canonical document — context the
