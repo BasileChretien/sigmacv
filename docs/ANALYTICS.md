@@ -245,6 +245,118 @@ FROM per;
 
 ---
 
+## Curation & public-page questions
+
+Cards for **what people pick** (public-page style) and **how they curate** (works
+added vs. flagged "not mine"). All aggregate-only — the per-correction signal stays
+on the consent + IRB-gated `ResearchEvent` path, never here.
+
+Definitions used below:
+
+- **Public style** = `display.publicStyle`; `"match"` (the default) means "render the
+  public page with the document `template`", so it only _visibly_ matters once a CV is
+  **published** (`/p/<slug>`).
+- **"Works"** = items in the research-output sections
+  (`publications, preprints, datasets, conference, clinical-trials, patents`) — not
+  positions/education/prose. "Added" counts everything the sync surfaced, _including_
+  hidden and not-mine items (the canonical doc keeps them; "not mine" hides, never deletes).
+- **"Not mine"** = `item.notMine = true` (the disambiguation assertion). Medians are
+  **per person over all CVs** — a mean is dishonest here (one power user with 200+ works
+  skews it), and the typical person flags zero.
+
+```sql
+-- Public CV styles chosen  → Bar/Row. `published_cvs` is the honest column for
+-- "what visitors actually see" (the style only renders on a published page).
+SELECT coalesce(document -> 'display' ->> 'publicStyle', 'match') AS public_style,
+       count(*)                          AS cvs,
+       count(*) FILTER (WHERE published) AS published_cvs
+FROM "Cv"
+GROUP BY 1 ORDER BY cvs DESC;
+
+-- Works added + "not mine", with medians per person  → Table. The headline card:
+-- total works, median/avg works per person, total + median/avg "not mine" per person,
+-- the not-mine share of works, and (since most people flag zero) the median among
+-- those who flagged at least one.
+WITH per_cv AS (
+  SELECT c.id AS cv_id,
+         count(i.value) FILTER (WHERE s.value ->> 'type' IN
+           ('publications','preprints','datasets','conference','clinical-trials','patents')) AS works,
+         count(i.value) FILTER (WHERE s.value ->> 'type' IN
+           ('publications','preprints','datasets','conference','clinical-trials','patents')
+           AND coalesce((i.value ->> 'notMine')::boolean, false))                            AS not_mine
+  FROM "Cv" c
+  LEFT JOIN LATERAL jsonb_array_elements(coalesce(c.document -> 'sections', '[]'::jsonb)) AS s ON true
+  LEFT JOIN LATERAL jsonb_array_elements(coalesce(s.value   -> 'items',    '[]'::jsonb)) AS i ON true
+  GROUP BY c.id
+)
+SELECT count(*)                                                               AS cvs,
+       sum(works)                                                             AS total_works,
+       (percentile_cont(0.5) WITHIN GROUP (ORDER BY works))::numeric(10,1)    AS median_works_per_person,
+       round(avg(works), 1)                                                   AS avg_works_per_person,
+       max(works)                                                             AS max_works,
+       sum(not_mine)                                                          AS total_not_mine,
+       (percentile_cont(0.5) WITHIN GROUP (ORDER BY not_mine))::numeric(10,1) AS median_not_mine_per_person,
+       round(avg(not_mine), 2)                                                AS avg_not_mine_per_person,
+       max(not_mine)                                                          AS max_not_mine,
+       round(100.0 * sum(not_mine) / nullif(sum(works), 0), 2)               AS not_mine_pct_of_works,
+       count(*) FILTER (WHERE not_mine > 0)                                   AS cvs_with_a_not_mine,
+       (percentile_cont(0.5) WITHIN GROUP (ORDER BY not_mine)
+          FILTER (WHERE not_mine > 0))::numeric(10,1)                         AS median_not_mine_among_flaggers
+FROM per_cv;
+
+-- "Not mine" reasons  → Row. Why works were flagged (same-name vs duplicate vs
+-- wrong-field is a very different disambiguation error).
+SELECT coalesce(i.value ->> 'notMineReason', '(unspecified)') AS reason, count(*) AS works
+FROM "Cv" c,
+     LATERAL jsonb_array_elements(coalesce(c.document -> 'sections', '[]'::jsonb)) AS s,
+     LATERAL jsonb_array_elements(coalesce(s.value   -> 'items',    '[]'::jsonb)) AS i
+WHERE coalesce((i.value ->> 'notMine')::boolean, false)
+GROUP BY 1 ORDER BY 2 DESC;
+
+-- Works by match basis  → Row. How each work was matched to the owner
+-- (orcid / openalex-id / both / claimed) — disambiguation-quality signal.
+SELECT coalesce(i.value -> 'meta' ->> 'matchBasis', '(none)') AS match_basis, count(*) AS works
+FROM "Cv" c,
+     LATERAL jsonb_array_elements(coalesce(c.document -> 'sections', '[]'::jsonb)) AS s,
+     LATERAL jsonb_array_elements(coalesce(s.value   -> 'items',    '[]'::jsonb)) AS i
+WHERE s.value ->> 'type' IN ('publications','preprints','datasets','conference','clinical-trials','patents')
+GROUP BY 1 ORDER BY 2 DESC;
+
+-- Manual vs auto-pulled works  → Row. How much users hand-add vs trust the sync.
+SELECT CASE WHEN i.value ->> 'source' = 'manual' THEN 'manual (user-added)' ELSE 'auto (synced)' END AS origin,
+       count(*) AS works
+FROM "Cv" c,
+     LATERAL jsonb_array_elements(coalesce(c.document -> 'sections', '[]'::jsonb)) AS s,
+     LATERAL jsonb_array_elements(coalesce(s.value   -> 'items',    '[]'::jsonb)) AS i
+WHERE s.value ->> 'type' IN ('publications','preprints','datasets','conference','clinical-trials','patents')
+GROUP BY 1 ORDER BY 2 DESC;
+
+-- Mascot opt-in  → Table. Adoption of the optional companion among capable styles
+-- (display.showMascot is ignored on credible styles + `match`, so divide by capable CVs).
+SELECT count(*) FILTER (WHERE (document -> 'display' ->> 'showMascot')::boolean) AS cvs_with_mascot,
+       count(*) FILTER (WHERE document -> 'display' ->> 'publicStyle' IN
+         ('prism','pop','neon','synthwave','terminal','riso','aura','mesh',
+          'marquee','clockwork','arcade','meadow','cyberpunk'))                  AS mascot_capable_cvs
+FROM "Cv";
+
+-- Section adoption  → Row. Which sections people actually keep, and item volume.
+SELECT s.value ->> 'type'    AS section_type,
+       count(DISTINCT c.id)  AS cvs,
+       count(i.value)        AS items
+FROM "Cv" c
+CROSS JOIN LATERAL jsonb_array_elements(coalesce(c.document -> 'sections', '[]'::jsonb)) AS s
+LEFT  JOIN LATERAL jsonb_array_elements(coalesce(s.value   -> 'items',    '[]'::jsonb)) AS i ON true
+GROUP BY 1 ORDER BY cvs DESC;
+```
+
+> Field paths track `CanonicalCv` (`src/lib/canonical/schema.ts`): `publicStyle` /
+> `showMascot` live under `document.display`; `notMine` / `notMineReason` / `source` are
+> item top-level fields; `matchBasis` is under `item.meta`. `count(i.value)` (not
+> `count(*)`) is deliberate — the `LEFT JOIN LATERAL` keeps a row for empty/section-less
+> CVs so per-person medians include people with zero works, and `count` ignores those NULLs.
+
+---
+
 ## Optional hardening
 
 Add a second factor at the edge for the Metabase block: uncomment `basic_auth`
