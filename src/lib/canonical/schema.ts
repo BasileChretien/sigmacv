@@ -342,8 +342,10 @@ export const CvItemSchema = z.object({
     /** Per-work field-weighted citation impact (OpenAlex `fwci`). Stored so the
      *  FWCI mean can be RECOMPUTED over the curated works (excluding "not mine"). */
     fwci: z.number().optional(),
-    /** Whether this work is in the top decile by field+year citations (OpenAlex
-     *  percentile ≥ 90). Stored so top-10% share recomputes over curated works. */
+    /** Whether this work is in the top decile by PUBLICATION-YEAR citations
+     *  (OpenAlex `cited_by_percentile_year` ≥ 90) — year-normalized, NOT
+     *  field-normalized. Stored so the (research-only) top-10% share recomputes
+     *  over curated works; not offered as a displayed metric. */
     topDecile: z.boolean().optional(),
     /** Open-access status from OpenAlex ("gold"/"green"/"hybrid"/"bronze"/"diamond"). */
     oaStatus: z.string().max(200).optional(),
@@ -421,6 +423,14 @@ export const CvItemSchema = z.object({
     roleTitleOverride: z.string().max(500).optional(),
     /** Source department/sub-unit for a positions/education entry (ORCID `department-name`). */
     department: z.string().max(500).optional(),
+    /**
+     * True when a positions/education/distinction entry was asserted on the ORCID
+     * record by a TRUSTED ORGANIZATION (ORCID Member API) rather than self-entered
+     * by the account holder — surfaced as a "verified" signal so an
+     * institution-confirmed role reads differently from a self-entered one. Absent
+     * for self-entered ORCID entries and for OpenAlex-inferred affiliations.
+     */
+    verified: z.boolean().optional(),
     /**
      * USER edit of the department/sub-unit for a source-derived positions/education
      * entry — the "Edit details" field. Carried across re-sync (like
@@ -704,9 +714,15 @@ export const OwnerMetricsSchema = z.object({
   works_count: z.number().int().optional(),
   cited_by_count: z.number().int().optional(),
   // Derived field-normalized measures (computed from per-work data at build).
+  // MNCS (mean normalized citation score) as a RATIO OF SUMS — the consistent
+  // author-level field/year normalization (Waltman et al. 2011). 1.0 = field avg.
+  // This is the headline field-normalized indicator (replaces the mean-of-ratios
+  // `fwci_mean`, which is retained below only for back-compat, not displayed).
+  mncs: z.number().optional(),
+  mncs_n: z.number().int().optional(), // works (with a field baseline) the MNCS spans
   fwci_mean: z.number().optional(),
   fwci_n: z.number().int().optional(), // works the FWCI mean was computed over
-  top10pct_share: z.number().optional(), // 0..1
+  top10pct_share: z.number().optional(), // 0..1; by-year percentile (research only)
   // Mean NIH iCite Relative Citation Ratio over works with a PMID + RCR.
   // Field-normalized but BIOMEDICAL-ONLY (PMID-keyed) — surfaced opt-in with a caveat.
   rcr_mean: z.number().optional(),

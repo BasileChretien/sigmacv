@@ -64,6 +64,8 @@ export interface EditorExtraStrings {
   claimPlaceholder: string;
   claimFind: string;
   claimNote: string;
+  /** Honest recall note in the add-by-DOI panel: open sources under-cover some fields. */
+  coverageNote: string;
   claimNotFound: string;
   claimAlready: string;
   claimWhichAuthor: string;
@@ -100,6 +102,8 @@ export interface EditorExtraStrings {
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
   "en-US": {
+    coverageNote:
+      "Open sources under-represent books, non-English and Global-South research, so your CV may be missing work. Add anything missing by its DOI here.",
     grpPublicStyle: "Public page style",
     publicStyleNote:
       "Animated styling for your shareable public page only — your PDF, DOCX and LaTeX exports stay clean.",
@@ -181,6 +185,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Editor sections",
   },
   "zh-CN": {
+    coverageNote:
+      "开放数据源对图书、非英语及全球南方地区的研究覆盖不足，你的简历可能有所遗漏。可在此通过 DOI 添加缺失的成果。",
     grpPublicStyle: "公开页面样式",
     publicStyleNote: "动画样式仅用于可分享的公开页面——你的 PDF、DOCX 和 LaTeX 导出保持简洁不变。",
     publicStyleMatch: "与文档一致",
@@ -260,6 +266,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "编辑器区域",
   },
   "es-ES": {
+    coverageNote:
+      "Las fuentes abiertas subrepresentan los libros y la investigación en lenguas distintas del inglés y del Sur Global, por lo que tu CV podría estar incompleto. Añade aquí lo que falte mediante su DOI.",
     grpPublicStyle: "Estilo de la página pública",
     publicStyleNote:
       "Estilo animado solo para tu página pública: tus exportaciones PDF, DOCX y LaTeX se mantienen limpias.",
@@ -342,6 +350,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Secciones del editor",
   },
   "fr-FR": {
+    coverageNote:
+      "Les sources ouvertes sous-représentent les livres et la recherche non anglophone et des Suds ; votre CV peut donc être incomplet. Ajoutez ici ce qui manque via son DOI.",
     grpPublicStyle: "Style de la page publique",
     publicStyleNote:
       "Style animé réservé à votre page publique partageable — vos exports PDF, DOCX et LaTeX restent sobres.",
@@ -426,6 +436,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Sections de l’éditeur",
   },
   "de-DE": {
+    coverageNote:
+      "Offene Quellen unterrepräsentieren Bücher sowie nicht-englische Forschung und Forschung aus dem Globalen Süden, daher ist Ihr Lebenslauf womöglich unvollständig. Fügen Sie Fehlendes hier per DOI hinzu.",
     grpPublicStyle: "Stil der öffentlichen Seite",
     publicStyleNote:
       "Animierter Stil nur für Ihre teilbare öffentliche Seite – Ihre PDF-, DOCX- und LaTeX-Exporte bleiben schlicht.",
@@ -509,6 +521,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Editor-Bereiche",
   },
   "ja-JP": {
+    coverageNote:
+      "オープンな情報源は書籍・非英語・グローバルサウスの研究を十分に収録できておらず、CV に抜けがある可能性があります。不足分は DOI でここから追加できます。",
     grpPublicStyle: "公開ページのスタイル",
     publicStyleNote:
       "共有用の公開ページにのみ適用されるアニメーションスタイルです。PDF・DOCX・LaTeX の書き出しはそのまま（シンプル）です。",
@@ -591,6 +605,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "エディターのセクション",
   },
   "pt-BR": {
+    coverageNote:
+      "As fontes abertas sub-representam livros e pesquisas em línguas não inglesas e do Sul Global, então seu currículo pode estar incompleto. Adicione aqui o que faltar pelo DOI.",
     grpPublicStyle: "Estilo da página pública",
     publicStyleNote:
       "Estilo animado apenas para sua página pública compartilhável — suas exportações em PDF, DOCX e LaTeX permanecem limpas.",
@@ -673,6 +689,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Seções do editor",
   },
   "it-IT": {
+    coverageNote:
+      "Le fonti aperte sottorappresentano i libri e la ricerca non anglofona e del Sud globale, quindi il tuo CV potrebbe essere incompleto. Aggiungi qui ciò che manca tramite il suo DOI.",
     grpPublicStyle: "Stile della pagina pubblica",
     publicStyleNote:
       "Stile animato solo per la tua pagina pubblica condivisibile — le esportazioni in PDF, DOCX e LaTeX restano pulite.",
@@ -757,6 +775,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "Sezioni dell’editor",
   },
   "ko-KR": {
+    coverageNote:
+      "공개 데이터 출처는 도서와 비영어권·글로벌 사우스 연구를 충분히 수록하지 못하므로 이력서에 누락이 있을 수 있습니다. 누락된 항목은 여기서 DOI로 추가하세요.",
     grpPublicStyle: "공개 페이지 스타일",
     publicStyleNote:
       "공유용 공개 페이지에만 적용되는 애니메이션 스타일입니다. PDF·DOCX·LaTeX 내보내기는 그대로(깔끔하게) 유지됩니다.",
@@ -839,6 +859,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionsAria: "편집기 섹션",
   },
   "ru-RU": {
+    coverageNote:
+      "Открытые источники недостаточно охватывают книги, а также неанглоязычные исследования и работы Глобального Юга, поэтому в вашем резюме могут быть пропуски. Добавьте недостающее по DOI здесь.",
     grpPublicStyle: "Стиль публичной страницы",
     publicStyleNote:
       "Анимированный стиль только для вашей публичной страницы для обмена — экспорт в PDF, DOCX и LaTeX остаётся без оформления.",

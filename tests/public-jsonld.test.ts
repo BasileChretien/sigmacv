@@ -257,11 +257,23 @@ describe("profilePageJsonLd", () => {
     expect(parsed.license).toBe("https://spdx.org/licenses/CC-BY-4.0.html");
   });
 
-  it("omits license for the 'none' default and 'all-rights-reserved'", () => {
+  it("omits the content license for the 'none' default and 'all-rights-reserved'", () => {
     expect(JSON.parse(profilePageJsonLd(makeCv(), "s")).license).toBeUndefined();
     expect(
       JSON.parse(profilePageJsonLd(makeCv({ cvLicense: "all-rights-reserved" }), "s")).license,
     ).toBeUndefined();
+  });
+
+  it("always declares the exposed metadata as CC0 via sdLicense, independent of content license", () => {
+    const CC0 = "https://spdx.org/licenses/CC0-1.0.html";
+    // No content license → still CC0 metadata.
+    expect(JSON.parse(profilePageJsonLd(makeCv(), "s")).sdLicense).toBe(CC0);
+    // A restrictive content license doesn't change the metadata license.
+    const restricted = JSON.parse(
+      profilePageJsonLd(makeCv({ cvLicense: "all-rights-reserved" }), "s"),
+    );
+    expect(restricted.sdLicense).toBe(CC0);
+    expect(restricted.license).toBeUndefined();
   });
 
   // ─── C6: richer schema.org entity graph (grants / positions / education) ──────

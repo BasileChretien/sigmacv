@@ -1,4 +1,4 @@
-import { licenseInfo } from "@/lib/canonical/license";
+import { METADATA_LICENSE_URL, licenseInfo } from "@/lib/canonical/license";
 import {
   itemDisplayText,
   type CanonicalCv,
@@ -345,8 +345,14 @@ export function profilePageJsonLd(
   // the page's "freshness" to consumers — the core value of a living CV.
   if (cv.provenance.lastSyncedAt) jsonLd.dateModified = cv.provenance.lastSyncedAt;
 
-  // Whole-CV reuse license (FAIR): the SPDX URL when the owner chose a linkable
-  // license; "none"/"all-rights-reserved" have no URL and are simply omitted.
+  // The EXPOSED METADATA (this structured-data record + its .csl.json/.bib/.jsonld
+  // representations) is CC0 — freely reusable bibliographic facts, so aggregators
+  // and answer engines can adopt the record. `sdLicense` is schema.org's field for
+  // the license of the structured data itself, distinct from the CV CONTENT license.
+  jsonLd.sdLicense = METADATA_LICENSE_URL;
+
+  // Whole-CV CONTENT reuse license (FAIR): the SPDX URL when the owner chose a
+  // linkable license; "none"/"all-rights-reserved" have no URL and are omitted.
   const license = licenseInfo(cv.display.cvLicense)?.url;
   if (license) jsonLd.license = license;
 

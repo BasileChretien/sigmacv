@@ -42,11 +42,32 @@ describe("CvEditor (component)", () => {
     render(
       <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
     );
-    fireEvent.click(screen.getByLabelText(/2-yr mean citedness/i));
+    // The field-normalised MNCS is shown directly (recommended, no gate).
+    fireEvent.click(screen.getByLabelText(/Field-normalised impact \(MNCS\)/i));
     expect(onChange).toHaveBeenCalledTimes(1);
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
-    expect(next.display.metrics).toContain("2yr_mean_citedness");
+    expect(next.display.metrics).toContain("mncs");
     expect(next.display.showMetrics).toBe(true);
+  });
+
+  it("gates the discouraged author-level counts behind the DORA/CoARA acknowledgment", () => {
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+    );
+    // Recommended field-normalised measures are the low-friction default: shown.
+    expect(screen.getByLabelText(/Field-normalised impact \(MNCS\)/i)).toBeTruthy();
+    // A discouraged count (i10-index) is hidden until the gate is acknowledged...
+    expect(screen.queryByText(/i10-index/)).toBeNull();
+    fireEvent.click(screen.getByRole("checkbox", { name: /Author-level counts/i }));
+    // ...then it appears.
+    expect(screen.getByText(/i10-index/)).toBeTruthy();
+  });
+
+  it("opens the discouraged group when a discouraged metric is already selected", () => {
+    const cv = updateDisplay(makeCv(), { metrics: ["h_index"], showMetrics: true });
+    render(<CvEditor cv={cv} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    // An existing choice stays visible + editable without re-acknowledging.
+    expect(screen.getByText(/i10-index/)).toBeTruthy();
   });
 
   it("shows the responsible-metrics framing nudge in the metrics controls", () => {
@@ -59,14 +80,14 @@ describe("CvEditor (component)", () => {
   });
 
   it("surfaces the crowding caution only when the header is metrics-heavy", () => {
-    const light = updateDisplay(makeCv(), { metrics: ["fwci_mean"], showMetrics: true });
+    const light = updateDisplay(makeCv(), { metrics: ["mncs"], showMetrics: true });
     const { rerender } = render(
       <CvEditor cv={light} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
     );
     expect(screen.queryByText(/A shorter strip reads better/i)).toBeNull();
 
     const heavy = updateDisplay(makeCv(), {
-      metrics: ["fwci_mean", "rcr_mean", "h_index", "i10_index"],
+      metrics: ["mncs", "rcr_mean", "h_index", "i10_index"],
       showMetrics: true,
     });
     rerender(<CvEditor cv={heavy} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
@@ -110,9 +131,9 @@ describe("CvEditor (component)", () => {
     fireEvent.click(screen.getByText(/responsible-metrics preset/i));
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
     // Exactly the field-normalized indicators (FIELD_NORMALIZED_METRICS), in
-    // catalog order — NOT the non-normalized 2-year mean citedness, and now
-    // including the iCite RCR. Matches the preset's "field-normalised only" note.
-    expect(next.display.metrics).toEqual(["fwci_mean", "rcr_mean"]);
+    // catalog order — the MNCS ratio-of-sums and the iCite RCR, NOT the
+    // non-normalized 2-year mean citedness. Matches the "field-normalised only" note.
+    expect(next.display.metrics).toEqual(["mncs", "rcr_mean"]);
     expect(next.display.showMetrics).toBe(true);
   });
 

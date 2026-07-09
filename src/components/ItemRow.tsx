@@ -666,6 +666,14 @@ export default function ItemRow({
                 {t(locale, "reviewBadgeSoft")}
               </span>
             ) : null}
+            {/* Asserted by the user's institution via the ORCID Member API (not
+                self-entered) — a higher-trust "verified" signal. Absent for
+                self-entered ORCID entries and OpenAlex-inferred affiliations. */}
+            {item.meta.verified ? (
+              <span className="cv-verified-badge" title={t(locale, "orcidVerifiedTitle")}>
+                {t(locale, "orcidVerified")}
+              </span>
+            ) : null}
             {dupBadge}
             {sourceBadge}
           </div>

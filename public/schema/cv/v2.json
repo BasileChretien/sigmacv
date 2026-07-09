@@ -137,6 +137,14 @@
               "minimum": -9007199254740991,
               "maximum": 9007199254740991
             },
+            "mncs": {
+              "type": "number"
+            },
+            "mncs_n": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
             "fwci_mean": {
               "type": "number"
             },
@@ -867,6 +875,9 @@
                     "department": {
                       "type": "string",
                       "maxLength": 500
+                    },
+                    "verified": {
+                      "type": "boolean"
                     },
                     "departmentOverride": {
                       "type": "string",

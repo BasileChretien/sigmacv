@@ -30,7 +30,7 @@ function cvAt(
     owner: {
       ...base.owner,
       summary: "A researcher.",
-      metrics: { ...base.owner.metrics, fwci_mean: 1.4, fwci_n: 95, h_index: 31 },
+      metrics: { ...base.owner.metrics, mncs: 1.4, mncs_n: 95, h_index: 31 },
     },
     sections: base.sections.map((s) => ({
       ...s,
@@ -42,7 +42,7 @@ function cvAt(
     display: {
       ...base.display,
       showMetrics: true,
-      metrics: ["fwci_mean", "h_index"],
+      metrics: ["mncs", "h_index"],
       showOpenAccess: true,
       showCharts: true,
       showAuthorshipTable: true,
@@ -171,15 +171,15 @@ describe("research-summary heading matches the section-title styling", () => {
 
 describe("research-summary block — plain exports honour 'hidden'", () => {
   it("Markdown drops the metrics line when hidden", () => {
-    expect(renderCvMarkdown(cvAt("header"))).toContain("Mean work FWCI");
-    expect(renderCvMarkdown(cvAt("hidden"))).not.toContain("Mean work FWCI");
+    expect(renderCvMarkdown(cvAt("header"))).toContain("Field-normalised impact (MNCS)");
+    expect(renderCvMarkdown(cvAt("hidden"))).not.toContain("Field-normalised impact (MNCS)");
   });
 
   it("LaTeX drops the metrics + tables when hidden", () => {
     const shown = renderCvLatex(cvAt("header"));
-    expect(shown).toContain("Mean work FWCI");
+    expect(shown).toContain("Field-normalised impact (MNCS)");
     const hidden = renderCvLatex(cvAt("hidden"));
-    expect(hidden).not.toContain("Mean work FWCI");
+    expect(hidden).not.toContain("Field-normalised impact (MNCS)");
   });
 
   it("DOCX still builds when hidden (block suppressed)", async () => {

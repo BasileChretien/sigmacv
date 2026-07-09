@@ -40,6 +40,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `prefers-reduced-motion` — falls back to a static highlight ring when animation
   is disabled.
 
+- **ORCID entries now show whether an institution verified them.** ORCID
+  distinguishes data a **trusted organization** asserted on your record (via the
+  Member API) from data you **typed in yourself** — the former is higher-trust.
+  SigmaCV now reads each affiliation's provenance and marks org-asserted
+  Positions / Education / Distinctions with a green **"verified"** badge (tooltip:
+  "Confirmed by your institution via ORCID — not self-entered"). Self-entered
+  ORCID entries and OpenAlex-inferred affiliations carry no badge, so a reader can
+  tell an institution-confirmed role from an unverified one. Localized in all ten
+  languages; additive schema field (`meta.verified`), no `schemaVersion` bump.
+
+- **Honest coverage + attribution transparency.** The tool is now candid about two
+  limits reviewers flagged. (1) The Transparency page distinguishes a **self-asserted
+  persistent identifier** (your ORCID / a DOI) from an **OpenAlex author id — an
+  inferred cluster** that can over-merge two researchers who share a name; works
+  matched only by a cluster (not confirmed by your ORCID) are already treated as
+  lower-confidence and flagged for review, and the page now says so. (2) A new
+  "What it might miss" section — and an inline note in the add-by-DOI panel —
+  states plainly that identifier-first matching plus the open sources' own gaps
+  **under-represent books/monographs (SSH), non-English, and Global-South
+  research**, so a CV may be incomplete, with add-by-DOI as the fix. Localized in
+  all ten languages. (The per-item confidence badge, split/lump misattribution
+  flagging, and the claim-by-DOI / ORCID-discovery recall paths already existed;
+  this makes the tool's honesty about them explicit.)
+
+- **The public page's machine metadata now carries an explicit CC0 reuse licence.**
+  A published living CV already served richly-typed JSON-LD (ScholarlyArticle /
+  Dataset / SoftwareSourceCode with DOIs + ORCID), FAIR Signposting, and content
+  negotiation (CSL-JSON / BibTeX / JSON-LD alongside HTML). It now also declares
+  the **exposed bibliographic metadata as CC0** — the open-science norm
+  (Crossref / DataCite / OpenAlex release metadata as CC0), so aggregators and
+  answer engines can freely reuse the records. Declared as schema.org `sdLicense`
+  in the embedded JSON-LD and as a `rel="license"` FAIR Signposting link, always
+  present and independent of the owner's chosen CV **content** licence
+  (`display.cvLicense`), which continues to appear in the visible footer, the
+  JSON-LD `license`, and (when set) its own Signposting link.
+
 - **The CV-model picker's descriptions are now localized in all ten languages.**
   The 58 one-click CV-model layouts (funder calls, public-institution jobs,
   industry/clinical CVs) already had a localized picker, but their one-line
@@ -168,6 +204,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   365 cloud/roaming signatures). Localized in all ten locales.
 
 ### Changed
+
+- **The field-normalized metric is now a statistically sound author-level
+  indicator (MNCS), not an "average of ratios."** The optional headline
+  field-normalized measure was the arithmetic mean of per-work FWCI — an
+  average-of-ratios that over-weights works in low-citation fields/years and is
+  outlier-dominated at author level. It is replaced by **MNCS (mean normalized
+  citation score) computed as a ratio of sums** — total observed citations ÷
+  total field/year-expected citations — the consistent "new crown indicator"
+  (Waltman et al. 2011). 1.0 = field & year average. Each metric now shows how it
+  was built, its coverage count, and a small-sample caveat below ten works. The
+  NIH iCite **RCR** stays available for all fields (captioned as biomedical-only,
+  and the mean RCR is the NIH-sanctioned portfolio aggregation); **2-year mean
+  citedness** is demoted below the field-normalized measures and flagged as not
+  field-normalized. Metrics remain **off by default**, and the "responsible
+  metrics" preset now selects MNCS + RCR.
+
+- **The metric picker is now responsible by default.** The field-normalised
+  measures (MNCS, RCR) are shown directly as the low-friction default, while the
+  DORA/CoARA-discouraged **author-level counts** (h-index, i10, works/citation
+  totals, 2-year mean citedness) sit behind an explicit acknowledgment
+  ("discouraged for assessing individuals — DORA and CoARA") rather than as
+  neutral peers. Every metric carries a visible one-line "how to read this"
+  caption at the point of choice. An already-selected count stays visible and
+  editable (the gate opens automatically), so no existing choice disappears.
 
 - **Patents are de-duplicated by patent family, so one invention isn't listed
   once per country.** The same invention filed in several jurisdictions

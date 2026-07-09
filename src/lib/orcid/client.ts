@@ -29,6 +29,15 @@ export interface OrcidPosition {
   institutionNames?: Record<string, string>;
   /** Organization homepage (ROR `links[].website`), set during ROR enrichment. */
   institutionUrl?: string;
+  /**
+   * True when this affiliation was asserted on the ORCID record by a TRUSTED
+   * ORGANIZATION via the ORCID Member API (a party other than the record holder),
+   * rather than self-entered by the user. ORCID treats org-asserted data as
+   * higher-trust; surfaced as a "verified" signal so a reader can tell an
+   * institution-confirmed role from one the user typed in. Omitted (self-entered
+   * / unknown) otherwise.
+   */
+  verified?: boolean;
 }
 
 export interface OrcidFunding {
@@ -115,6 +124,20 @@ function nonEmpty(s: unknown): string | undefined {
 }
 
 /**
+ * Whether an ORCID activity's `source` block means it was asserted by a TRUSTED
+ * ORGANIZATION (via the Member API) rather than self-entered by the record holder.
+ * True when a writing source exists AND it is not the record holder's own ORCID iD:
+ * a Member-API client (`source-client-id`, no source-orcid) or a different iD.
+ * Self-asserted (source-orcid === the owner) → false; no source → false.
+ */
+function isOrgAsserted(source: any, bareOwnerOrcid: string): boolean {
+  const srcOrcid = nonEmpty(source?.["source-orcid"]?.path);
+  const srcClient = nonEmpty(source?.["source-client-id"]?.path);
+  if (srcOrcid === undefined && srcClient === undefined) return false;
+  return srcOrcid !== bareOwnerOrcid;
+}
+
+/**
  * Generic reader for ORCID's "affiliation" endpoints, which all share the same
  * shape: affiliation-group[].summaries[].<summaryKey> with organization +
  * role-title + department + dates + put-code. Covers employments, educations,
@@ -127,6 +150,7 @@ async function fetchOrcidAffiliations(
   summaryKey: string,
 ): Promise<OrcidPosition[]> {
   try {
+    const bareOwner = normalizeOrcid(orcid);
     const data = await orcidGet<any>(orcid, path);
     const out: OrcidPosition[] = [];
     for (const group of toArray(data?.["affiliation-group"])) {
@@ -142,6 +166,7 @@ async function fetchOrcidAffiliations(
           department: nonEmpty(e?.["department-name"]),
           startYear: yearOf(e?.["start-date"]),
           endYear: yearOf(e?.["end-date"]),
+          ...(isOrgAsserted(e?.source, bareOwner) ? { verified: true } : {}),
         });
       }
     }

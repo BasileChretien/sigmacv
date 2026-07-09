@@ -23,6 +23,12 @@ const setDoi = (v: string) =>
   fireEvent.change(screen.getByLabelText("Add a publication by DOI"), { target: { value: v } });
 
 describe("ClaimByDoi", () => {
+  it("shows an honest recall/coverage note (open sources under-cover some fields)", () => {
+    render(<ClaimByDoi locale="en-US" onAdded={vi.fn()} />);
+    expect(screen.getByText(/under-represent books/i)).toBeTruthy();
+    expect(screen.getByText(/Global-South/)).toBeTruthy();
+  });
+
   it("previews then adds an identifier-matched work (no author picker)", async () => {
     const onAdded = vi.fn();
     render(<ClaimByDoi locale="en-US" onAdded={onAdded} />);

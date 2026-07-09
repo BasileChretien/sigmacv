@@ -25,6 +25,18 @@ describe("transparencyStrings", () => {
     }
   });
 
+  it("is honest about the OpenAlex cluster caveat + under-coverage in every locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = transparencyStrings(loc);
+      // The cluster-vs-PID caveat names OpenAlex + ORCID (proper nouns untranslated).
+      expect(s.clusterNote, loc).toContain("OpenAlex");
+      expect(s.clusterNote, loc).toContain("ORCID");
+      // The coverage disclaimer names the under-covered sources.
+      expect(s.coverageBody, loc).toContain("OpenAlex");
+      expect(s.coverageHeading.trim().length, loc).toBeGreaterThan(0);
+    }
+  });
+
   it("provides a populated 'Our promises' set + publish note for every locale", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const s = transparencyStrings(loc);

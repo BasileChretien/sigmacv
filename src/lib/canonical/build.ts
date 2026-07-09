@@ -450,6 +450,8 @@ function makeEntryItem(
     department?: string;
     startYear?: number;
     endYear?: number;
+    /** Institution-asserted via the ORCID Member API (a "verified" signal). */
+    verified?: boolean;
   },
 ): CvItem {
   const meta: CvItem["meta"] = {};
@@ -468,6 +470,7 @@ function makeEntryItem(
   // line re-derive in `curate.ts` reads these back and must agree with the build.
   if (extraMeta?.startYear != null) meta.startYear = extraMeta.startYear;
   if (extraMeta?.endYear != null) meta.endYear = extraMeta.endYear;
+  if (extraMeta?.verified) meta.verified = true;
   // A user edit of the role / institution / dates (positions/education) survives
   // re-sync, exactly like `displayTextOverride` — while the source values above
   // keep refreshing underneath, so "revert to source" stays meaningful.
@@ -571,6 +574,7 @@ function buildPositionsSection(
             startYear: e.startYear,
             endYear: e.endYear,
             lastVerifiedAt: now,
+            ...(e.verified ? { verified: true } : {}),
           },
         ),
       ),
@@ -667,6 +671,7 @@ function buildOrcidEntrySection(
           institutionNames: e.institutionNames,
           institutionUrl: e.institutionUrl,
           lastVerifiedAt: opts.now,
+          ...(e.verified ? { verified: true } : {}),
         }),
       );
     } else {
@@ -684,6 +689,7 @@ function buildOrcidEntrySection(
             startYear: e.startYear,
             endYear: e.endYear,
             lastVerifiedAt: opts.now,
+            ...(e.verified ? { verified: true } : {}),
           }),
         ),
       );
