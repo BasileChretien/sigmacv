@@ -66,7 +66,7 @@ import { editorUi } from "@/lib/i18n/editorUi";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
 import { narrativeEvidence } from "@/lib/canonical/narrativeEvidence";
-import { isNarrativeAiSection } from "@/lib/ai/sections";
+import { isNarrativeAiSection, isUnfilledNarrativeModule } from "@/lib/ai/sections";
 import { narrativeGuidance, narrativeEvidenceLabel } from "@/lib/i18n/narrativeGuidance";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
@@ -554,6 +554,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
             (i) => i.meta.reviewFlag === "duplicate" && !isHidden(i),
           ).length;
           const isExpanded = expanded.has(section.id);
+          // An empty narrative module a funder-CV model added: pulse it so the
+          // writer sees which sections still need drafting. Clears once written.
+          const needsDraft = isUnfilledNarrativeModule(section);
           return (
             <SectionCard key={section.id} value={section.id}>
               {(controls) => (
@@ -571,7 +574,7 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                   <div
                     className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}${
                       section.visible ? "" : " is-section-hidden"
-                    }`}
+                    }${needsDraft ? " is-attention" : ""}`}
                   >
                     <div className="section-head">
                       <span

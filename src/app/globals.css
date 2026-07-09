@@ -2250,6 +2250,33 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* ── "Needs attention" cue ──────────────────────────────────────────────────
+   A funder-CV model can add empty narrative modules (R4RI / Résumé for
+   Researchers). We draw the writer to them: the Content region tab pulses while
+   any module is unfilled and the writer is elsewhere; once on Content, the
+   empty section blocks pulse instead. The pulse is layered ON TOP of a STATIC
+   ring so that under prefers-reduced-motion (which strips `animation` globally
+   above) the ring remains as a non-animated cue — accessible either way. */
+.cv-part-tab.is-attention {
+  color: var(--accent);
+  box-shadow: 0 0 0 1.5px var(--accent-ring);
+  animation: sigma-attention-pulse 1.6s ease-in-out infinite;
+}
+.section-block.is-attention {
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 1.5px var(--accent-ring);
+  animation: sigma-attention-pulse 1.6s ease-in-out infinite;
+}
+@keyframes sigma-attention-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1.5px var(--accent-ring);
+  }
+  50% {
+    box-shadow: 0 0 0 4px var(--accent-ring);
+  }
+}
 .cv-region {
   min-width: 0;
 }

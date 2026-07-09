@@ -10,6 +10,7 @@ import {
 } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { confirmAllMisattributed } from "@/lib/canonical/curate";
+import { hasUnfilledNarrativeModules } from "@/lib/ai/sections";
 import { asLocale } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
 import CvHealthPanel, { type CvHealthCategory } from "./CvHealthPanel";
@@ -66,6 +67,11 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   // cv.display.locale, edited via the "CV language" picker inside StyleControls.
   const locale = asLocale(uiLocale);
   const eu = editorUi(locale);
+
+  // A funder-CV model can add empty narrative modules (R4RI / Résumé for
+  // Researchers). While any is still blank, draw the writer to the Content region
+  // (and, once there, to the specific empty sections — see SectionsList).
+  const hasEmptyNarrative = hasUnfilledNarrativeModules(cv);
 
   // The sections list owns the curation + duplicate-review state; the editor only
   // needs a handle to it so the (out-of-list) CV-health panel can jump to a
@@ -190,6 +196,10 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       <div className="cv-part-tabs" role="tablist" aria-label={eu.regionsAria} ref={tablistRef}>
         {EDITOR_PARTS.map((p) => {
           const selected = activePart === p;
+          // Pulse the Content tab when a funder-CV model has added narrative modules
+          // that are still empty — but only while the user is elsewhere, to draw them
+          // in. Once they're on Content, the empty sections themselves carry the cue.
+          const attention = p === "content" && !selected && hasEmptyNarrative;
           return (
             <button
               key={p}
@@ -199,7 +209,9 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
               aria-selected={selected}
               aria-controls={`cv-part-panel-${p}`}
               tabIndex={selected ? 0 : -1}
-              className={`cv-part-tab${selected ? " is-active" : ""}`}
+              className={`cv-part-tab${selected ? " is-active" : ""}${
+                attention ? " is-attention" : ""
+              }`}
               onClick={() => setActivePart(p)}
               onKeyDown={onTabKeyDown}
             >

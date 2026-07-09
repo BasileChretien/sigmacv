@@ -91,6 +91,25 @@ describe("buildNarrativeMessages", () => {
     expect(buildNarrativeMessages(fr, "narrative-knowledge")[0].content).toContain("French");
   });
 
+  it("feeds the self-summary, research areas, and output venues/years to the model", () => {
+    const base = makeCv();
+    const rich: CanonicalCv = {
+      ...base,
+      owner: {
+        ...base.owner,
+        summary: "I work on drug-safety signal detection.",
+        researchAreas: [
+          { field: "Pharmacology", count: 20 },
+          { field: "Oncology", count: 8 },
+        ],
+      },
+    };
+    const [, user] = buildNarrativeMessages(rich, "narrative-knowledge");
+    expect(user.content).toContain("I work on drug-safety signal detection."); // self-summary
+    expect(user.content).toContain("Pharmacology, Oncology"); // research areas
+    expect(user.content).toContain("J. Pharmacovigilance, 2024"); // venue + year on an entry
+  });
+
   it("still builds a valid prompt with no outputs or headline", () => {
     const empty = buildCanonicalCv({
       id: "empty",
@@ -101,7 +120,7 @@ describe("buildNarrativeMessages", () => {
     const [, user] = buildNarrativeMessages(empty, "narrative-community");
     expect(user.content).toContain(sectionTitle("en-US", "narrative-community"));
     expect(user.content).toContain("Draft the"); // still asks for the draft
-    expect(user.content).not.toContain("describes their field as"); // no headline line
+    expect(user.content).not.toContain("summarises their field as"); // no headline line
   });
 });
 

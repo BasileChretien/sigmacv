@@ -23,7 +23,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   summary: the module, output counts and a few titles, never contact details,
   identifiers, abstracts or co-authors), and the result is always labelled "AI
   draft — verify and rewrite" and **never inserted automatically**. The privacy
-  notice describes the BYOK model in all ten locales.
+  notice describes the BYOK model in all ten locales. The draft is now grounded in
+  the **specifics** of your work — your self-summary, main research areas, and the
+  titles/venues/years of representative outputs — and written as a reflective,
+  multi-paragraph first-person narrative (no invented findings, no metrics),
+  rather than generic boilerplate.
+
+- **The editor now points you to narrative modules that still need writing.**
+  When a funder-CV model adds empty narrative modules (R4RI / Résumé for
+  Researchers), the **Content** region gently pulses to draw you in; once you open
+  it, each **unfilled** module pulses until you've drafted it. The cue clears the
+  moment a module has prose, and — respecting `prefers-reduced-motion` — falls back
+  to a static highlight ring when animation is disabled.
 
 - **The CV-model picker's descriptions are now localized in all ten languages.**
   The 58 one-click CV-model layouts (funder calls, public-institution jobs,

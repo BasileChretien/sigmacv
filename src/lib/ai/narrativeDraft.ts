@@ -1,4 +1,4 @@
-import { narrativeEvidence, narrativeEvidenceTitles } from "@/lib/canonical/narrativeEvidence";
+import { narrativeEvidence, narrativeEvidenceEntries } from "@/lib/canonical/narrativeEvidence";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { asLocale, sectionTitle, type Locale } from "@/lib/i18n";
 import { narrativeGuidance } from "@/lib/i18n/narrativeGuidance";
@@ -51,36 +51,50 @@ export function buildNarrativeMessages(
   const moduleName = sectionTitle(locale, sectionType);
   const guidance = narrativeGuidance(locale, sectionType) ?? "";
   const counts = narrativeEvidence(cv, sectionType);
-  const titleGroups = narrativeEvidenceTitles(cv, sectionType);
+  const groups = narrativeEvidenceEntries(cv, sectionType);
   const headline = cv.owner.headline?.trim();
+  const summary = cv.owner.summary?.trim();
+  const areas = (cv.owner.researchAreas ?? [])
+    .map((a) => a.field?.trim())
+    .filter((f): f is string => Boolean(f))
+    .slice(0, 8);
 
   const system = [
-    'You help a researcher draft ONE module of a funder "narrative CV" (a UKRI Résumé for Research and Innovation / Royal Society Résumé for Researchers).',
+    'You are helping a researcher draft ONE module of a funder "narrative CV" — a UKRI Résumé for Research and Innovation (R4RI) or Royal Society Résumé for Researchers.',
     `Write in ${language}.`,
-    "Write one or two short, first-person paragraphs of plain, honest prose about the researcher's own contributions.",
-    "Ground every statement ONLY in the outputs provided: do NOT invent findings, awards, venues, numbers or collaborators, and do NOT quote citation counts, h-index or any other metric.",
-    "Keep it modest, concrete and specific — not promotional.",
-    "This is a FIRST DRAFT the researcher will verify and rewrite. Output only the prose: no heading, no preamble, no bullet list.",
+    "Write a substantive, reflective FIRST-PERSON narrative of two to four short paragraphs that weaves the researcher's SPECIFIC listed outputs into an account of their contributions in this area — name concrete themes and pieces of work from the evidence, explain what they contributed and why it matters, and show a through-line rather than listing items.",
+    "This is a NARRATIVE, not a publication list: refer to the actual work by its topic and, where useful, its venue and year, but do not just enumerate titles.",
+    "Ground EVERYTHING only in the material provided. Do NOT invent findings, awards, roles, venues, collaborators, dates or numbers, and do NOT quote citation counts, h-index, journal impact factors or any other metric (these funders forbid it).",
+    "Be concrete and specific, honest and measured — avoid generic filler, buzzwords and clichés ('cutting-edge', 'world-class', 'passionate'). Prefer plain, precise language.",
+    "This is a FIRST DRAFT the researcher will verify and rewrite; where a detail is genuinely missing, leave a natural gap rather than inventing one. Output ONLY the prose: no heading, no preamble, no bullet points, no markdown.",
   ].join(" ");
 
-  const parts: string[] = [`Narrative module: ${moduleName}.`];
-  if (guidance) parts.push(`What belongs here: ${guidance}`);
-  if (headline) parts.push(`The researcher describes their field as: ${headline}.`);
+  const parts: string[] = [
+    `Draft the "${moduleName}" module of the researcher's narrative CV.`,
+    `What this module should cover: ${guidance}`,
+  ];
+  if (headline) parts.push(`The researcher summarises their field as: ${headline}.`);
+  if (summary) parts.push(`The researcher's own summary of their work:\n${summary}`);
+  if (areas.length > 0) parts.push(`Their main research areas: ${areas.join(", ")}.`);
   if (counts.length > 0) {
     parts.push(
-      `Relevant outputs to draw on: ${counts
+      `Overall relevant output in this area: ${counts
         .map((c) => `${c.count} ${sectionTitle(locale, c.type)}`)
         .join(", ")}.`,
     );
   }
-  for (const group of titleGroups) {
+  for (const group of groups) {
+    const lines = group.entries.map((e) => {
+      const tail = [e.venue, e.year].filter(Boolean).join(", ");
+      return tail ? `- ${e.title} (${tail})` : `- ${e.title}`;
+    });
     parts.push(
-      `${sectionTitle(locale, group.type)} (examples):\n${group.titles
-        .map((t) => `- ${t}`)
-        .join("\n")}`,
+      `Representative ${sectionTitle(locale, group.type)} to draw on:\n${lines.join("\n")}`,
     );
   }
-  parts.push(`Draft the "${moduleName}" module now.`);
+  parts.push(
+    `Now write the "${moduleName}" module as flowing first-person prose, drawing on the specifics above.`,
+  );
 
   return [
     { role: "system", content: system },
@@ -101,5 +115,10 @@ export async function generateNarrativeDraft(
   if (!isNarrativeAiSection(sectionType)) {
     throw new AiRequestError("AI drafting is only available for narrative modules");
   }
-  return chatComplete(buildNarrativeMessages(cv, sectionType), config);
+  // A reflective multi-paragraph module needs room; a slightly higher temperature
+  // reads less templated than the terse default.
+  return chatComplete(buildNarrativeMessages(cv, sectionType), config, {
+    maxTokens: 1400,
+    temperature: 0.6,
+  });
 }
