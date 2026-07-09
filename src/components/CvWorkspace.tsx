@@ -60,8 +60,6 @@ interface CvWorkspaceProps {
   accountEmail?: string | null;
   /** Whether the research-logging programme is active (off until IRB approval). */
   researchEnabled: boolean;
-  /** Whether this deployment offers the optional narrative AI first-draft. */
-  aiDraftEnabled?: boolean;
   published: boolean;
   publicSlug: string | null;
   publicIndexable: boolean;
@@ -94,7 +92,6 @@ export default function CvWorkspace({
   digestContactEmailVerified = false,
   accountEmail = null,
   researchEnabled,
-  aiDraftEnabled = false,
   published,
   publicSlug,
   publicIndexable,
@@ -546,7 +543,6 @@ export default function CvWorkspace({
                 onChange={update}
                 onClaimAdded={handleClaimAdded}
                 variant="regions"
-                aiDraftEnabled={aiDraftEnabled}
               />
             </section>
             <section className="cv-workspace-pane" data-pane="preview">

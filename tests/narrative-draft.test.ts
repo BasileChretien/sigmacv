@@ -106,17 +106,13 @@ describe("buildNarrativeMessages", () => {
 });
 
 describe("generateNarrativeDraft", () => {
+  // BYOK: the caller passes their own provider config. A public IP-literal base
+  // URL keeps the SSRF check offline (no DNS lookup).
+  const CONFIG = { baseUrl: "https://93.184.216.34/v1", model: "open-mistral-nemo", apiKey: "sk" };
   let fetchMock: ReturnType<typeof vi.fn>;
   beforeEach(() => {
     fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    for (const k of Object.keys(env)) delete env[k];
-    Object.assign(env, {
-      AI_NARRATIVE_ENABLED: true,
-      AI_BASE_URL: "https://api.mistral.ai/v1",
-      AI_MODEL: "open-mistral-nemo",
-      AI_API_KEY: "sk-test",
-    });
   });
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -127,12 +123,10 @@ describe("generateNarrativeDraft", () => {
     fetchMock.mockResolvedValue(
       new Response(
         JSON.stringify({ choices: [{ message: { content: "My key contributions…" } }] }),
-        {
-          status: 200,
-        },
+        { status: 200 },
       ),
     );
-    const draft = await generateNarrativeDraft(makeCv(), "narrative-knowledge");
+    const draft = await generateNarrativeDraft(makeCv(), "narrative-knowledge", CONFIG);
     expect(draft).toBe("My key contributions…");
     // The posted messages are exactly the built ones.
     const [, init] = fetchMock.mock.calls[0]!;
@@ -141,7 +135,7 @@ describe("generateNarrativeDraft", () => {
   });
 
   it("rejects a non-narrative section type before any network call", async () => {
-    await expect(generateNarrativeDraft(makeCv(), "publications")).rejects.toBeInstanceOf(
+    await expect(generateNarrativeDraft(makeCv(), "publications", CONFIG)).rejects.toBeInstanceOf(
       AiRequestError,
     );
     expect(fetchMock).not.toHaveBeenCalled();

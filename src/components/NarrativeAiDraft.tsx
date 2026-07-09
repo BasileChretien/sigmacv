@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CvSection } from "@/lib/canonical/schema";
 import { narrativeAiStrings } from "@/lib/i18n/narrativeAi";
 
@@ -12,29 +12,84 @@ interface NarrativeAiDraftProps {
   onInsert: (text: string) => void;
 }
 
-type Phase = "idle" | "consent" | "loading" | "result" | "error";
+type Phase = "idle" | "config" | "loading" | "result" | "error";
+
+// The user's own provider config — held ONLY in this browser (localStorage), never
+// on our servers. Sent per-request to our stateless relay, which forwards it to
+// the endpoint the user chose and keeps nothing.
+const LS = {
+  baseUrl: "sigmacv.ai.baseUrl",
+  model: "sigmacv.ai.model",
+  apiKey: "sigmacv.ai.apiKey",
+} as const;
 
 /**
- * Optional AI first-draft affordance for a narrative-CV module. Off unless the
- * deployment configured an (EU) provider — the parent renders this only then, and
- * only in the signed-in editor. Flow: button → point-of-use consent disclosure →
- * generate → labelled draft the user explicitly inserts (or discards). The draft
- * is never auto-inserted; it always carries the "verify and rewrite" label.
+ * Optional AI first-draft for a narrative-CV module — BRING-YOUR-OWN-KEY. The user
+ * supplies their own OpenAI-compatible provider (base URL + model + key); it is
+ * stored only in their browser and sent per draft request. SigmaCV holds no key,
+ * presets no provider, and never auto-inserts — the draft is always labelled
+ * "verify and rewrite" and inserted only on an explicit click.
  */
 export default function NarrativeAiDraft({ section, locale, onInsert }: NarrativeAiDraftProps) {
   const s = narrativeAiStrings(locale);
   const [phase, setPhase] = useState<Phase>("idle");
+  const [baseUrl, setBaseUrl] = useState("");
+  const [model, setModel] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
 
+  // Load any previously-entered config from the browser AFTER hydration (so the
+  // server and first client render match).
+  useEffect(() => {
+    try {
+      setBaseUrl(localStorage.getItem(LS.baseUrl) ?? "");
+      setModel(localStorage.getItem(LS.model) ?? "");
+      setApiKey(localStorage.getItem(LS.apiKey) ?? "");
+    } catch {
+      /* localStorage unavailable (private mode) — the fields just start empty. */
+    }
+  }, []);
+
+  const ready = Boolean(baseUrl.trim() && model.trim() && apiKey.trim());
+
+  function persist() {
+    try {
+      localStorage.setItem(LS.baseUrl, baseUrl.trim());
+      localStorage.setItem(LS.model, model.trim());
+      localStorage.setItem(LS.apiKey, apiKey.trim());
+    } catch {
+      /* ignore — a failed save just means the config isn't remembered. */
+    }
+  }
+
+  function forget() {
+    try {
+      for (const k of Object.values(LS)) localStorage.removeItem(k);
+    } catch {
+      /* ignore */
+    }
+    setBaseUrl("");
+    setModel("");
+    setApiKey("");
+  }
+
   async function generate() {
+    if (!ready) return;
+    persist();
     setPhase("loading");
     setError("");
     try {
       const res = await fetch("/api/cv/narrative-draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sectionType: section.type, consented: true }),
+        body: JSON.stringify({
+          sectionType: section.type,
+          consented: true,
+          baseUrl: baseUrl.trim(),
+          model: model.trim(),
+          apiKey: apiKey.trim(),
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as { draft?: string; error?: string };
       if (!res.ok || typeof data.draft !== "string") {
@@ -56,7 +111,7 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
         <button
           type="button"
           className="btn btn-small narrative-ai-open"
-          onClick={() => setPhase("consent")}
+          onClick={() => setPhase("config")}
         >
           ✦ {s.button}
         </button>
@@ -66,13 +121,55 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
 
   return (
     <div className="narrative-ai narrative-ai-panel">
-      {phase === "consent" ? (
+      {phase === "config" || phase === "error" ? (
         <>
           <p className="muted narrative-ai-consent">{s.consent}</p>
+          <label className="field narrative-ai-field">
+            <span className="muted">{s.baseUrlLabel}</span>
+            <input
+              type="url"
+              value={baseUrl}
+              placeholder="https://api.mistral.ai/v1"
+              autoComplete="off"
+              onChange={(e) => setBaseUrl(e.target.value)}
+            />
+          </label>
+          <label className="field narrative-ai-field">
+            <span className="muted">{s.modelLabel}</span>
+            <input
+              type="text"
+              value={model}
+              placeholder="open-mistral-nemo"
+              autoComplete="off"
+              onChange={(e) => setModel(e.target.value)}
+            />
+          </label>
+          <label className="field narrative-ai-field">
+            <span className="muted">{s.apiKeyLabel}</span>
+            <input
+              type="password"
+              value={apiKey}
+              autoComplete="off"
+              onChange={(e) => setApiKey(e.target.value)}
+            />
+          </label>
+          <p className="field-hint muted narrative-ai-stored">
+            {s.storedNote} {s.keyHint}
+          </p>
+          {phase === "error" ? (
+            <p className="narrative-ai-error" role="alert">
+              {error}
+            </p>
+          ) : null}
           <div className="narrative-ai-actions">
-            <button type="button" className="btn btn-small" onClick={generate}>
+            <button type="button" className="btn btn-small" disabled={!ready} onClick={generate}>
               {s.generate}
             </button>
+            {ready ? (
+              <button type="button" className="btn btn-small btn-ghost" onClick={forget}>
+                {s.forgetKey}
+              </button>
+            ) : null}
             <button
               type="button"
               className="btn btn-small btn-ghost narrative-ai-cancel"
@@ -88,26 +185,6 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
         <p className="muted narrative-ai-loading" aria-live="polite">
           {s.loading}
         </p>
-      ) : null}
-
-      {phase === "error" ? (
-        <>
-          <p className="narrative-ai-error" role="alert">
-            {error}
-          </p>
-          <div className="narrative-ai-actions">
-            <button type="button" className="btn btn-small" onClick={generate}>
-              {s.regenerate}
-            </button>
-            <button
-              type="button"
-              className="btn btn-small btn-ghost narrative-ai-cancel"
-              onClick={() => setPhase("idle")}
-            >
-              {s.cancel}
-            </button>
-          </div>
-        </>
       ) : null}
 
       {phase === "result" ? (

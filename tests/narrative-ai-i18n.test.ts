@@ -11,9 +11,13 @@ describe("narrativeAiStrings", () => {
     }
   });
 
-  it("names the EU processor in the point-of-use consent for every locale", () => {
+  it("frames the consent as bring-your-own-key (browser-only) for every locale", () => {
     for (const loc of SUPPORTED_LOCALES) {
-      expect(narrativeAiStrings(loc).consent).toContain("Mistral AI");
+      const s = narrativeAiStrings(loc);
+      // Field labels + browser-only reassurance exist in every locale.
+      expect(s.apiKeyLabel.length).toBeGreaterThan(0);
+      expect(s.baseUrlLabel.length).toBeGreaterThan(0);
+      expect(s.storedNote.length).toBeGreaterThan(0);
     }
   });
 

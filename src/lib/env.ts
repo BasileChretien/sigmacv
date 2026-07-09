@@ -48,22 +48,9 @@ const EnvSchema = z.object({
   // even when enabled: if absent the write-client reports an error rather than
   // guessing a production URL.
   OPENALEX_CURATION_ENDPOINT: z.url().optional(),
-  // ── Narrative-CV AI drafting (optional, opt-in, OFF by default) ──────────────
-  // A pluggable, OpenAI-compatible provider that drafts the funder "narrative CV"
-  // prose from the user's OWN public research outputs. The feature is DORMANT
-  // unless BOTH `AI_NARRATIVE_ENABLED=true` AND an `AI_API_KEY` are set — with
-  // either missing the endpoint 404s and NO network call is made. The default
-  // provider is an EU processor (Mistral AI, France — EU data residency, no
-  // EU→US transfer); point `AI_BASE_URL`/`AI_MODEL` at any OpenAI-compatible
-  // endpoint (Scaleway, OVHcloud, or a self-hosted server) to switch providers,
-  // or leave `AI_NARRATIVE_ENABLED` unset to disable entirely (self-hosters).
-  AI_NARRATIVE_ENABLED: z
-    .enum(["true", "false"])
-    .optional()
-    .transform((v) => v === "true"),
-  AI_BASE_URL: z.url().default("https://api.mistral.ai/v1"),
-  AI_MODEL: z.string().min(1).default("open-mistral-nemo"),
-  AI_API_KEY: z.string().optional(),
+  // NOTE: the narrative-CV AI assistant is BRING-YOUR-OWN-KEY — the server holds
+  // no key and presets no provider (the user supplies base URL + model + key from
+  // their browser, per-request). So there is intentionally NO AI_* env here.
 });
 
 export type Env = z.infer<typeof EnvSchema>;

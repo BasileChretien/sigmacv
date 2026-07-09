@@ -219,15 +219,12 @@ interface SectionsListProps {
   /** A DOI-claimed work was added server-side; replace the CV with the saved one. */
   onClaimAdded?: (cv: CanonicalCv) => void;
   /** No-login preview: hide the add-by-DOI panel (it saves server-side, which
-   *  requires an account). */
+   *  requires an account). Also hides the (account-only) AI draft assistant. */
   anonymous?: boolean;
-  /** Whether this deployment offers the optional narrative AI first-draft
-   *  (server env-gated). Off for the anonymous preview (needs an account). */
-  aiDraftEnabled?: boolean;
 }
 
 const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function SectionsList(
-  { cv, locale, onChange, onClaimAdded = () => {}, anonymous = false, aiDraftEnabled = false },
+  { cv, locale, onChange, onClaimAdded = () => {}, anonymous = false },
   ref,
 ) {
   const sections = orderedSections(cv);
@@ -724,10 +721,11 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                             String(PROSE_BODY_MAX - (section.body ?? "").length),
                           )}
                         </span>
-                        {/* Optional AI first-draft (opt-in, consented, EU processor).
-                            Only for the four narrative modules, only when the server
-                            configured a provider, and never in the anonymous preview. */}
-                        {aiDraftEnabled && !anonymous && isNarrativeAiSection(section.type) ? (
+                        {/* Optional AI first-draft — BRING-YOUR-OWN-KEY (opt-in,
+                            consented, the user's own provider). Only the four
+                            narrative modules, and never in the anonymous preview
+                            (it saves/relays server-side, which needs an account). */}
+                        {!anonymous && isNarrativeAiSection(section.type) ? (
                           <NarrativeAiDraft
                             section={section}
                             locale={locale}

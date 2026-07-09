@@ -1401,6 +1401,22 @@ textarea.prose-body {
   line-height: 1.45;
   margin: 0;
 }
+/* BYOK config fields (base URL / model / key), stacked label over input. */
+.narrative-ai-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.narrative-ai-field > span {
+  font-size: var(--text-xs);
+}
+.narrative-ai-field > input {
+  width: 100%;
+  font: inherit;
+}
+.narrative-ai-stored {
+  line-height: 1.4;
+}
 .narrative-ai-actions {
   display: flex;
   flex-wrap: wrap;

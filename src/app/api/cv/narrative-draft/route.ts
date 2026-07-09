@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
-import { AiDisabledError, AiRequestError, isNarrativeAiEnabled } from "@/lib/ai/provider";
+import { AiConfigError, AiRequestError } from "@/lib/ai/provider";
 import { NARRATIVE_AI_SECTIONS, generateNarrativeDraft } from "@/lib/ai/narrativeDraft";
 import { getCvForUser } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
@@ -12,23 +12,31 @@ import { isSameOrigin } from "@/lib/security/origin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// The body is a section id + an explicit consent flag; reject anything larger.
-const MAX_BODY_BYTES = 2_000;
+// The body is a section id + consent + the caller's own provider config (base URL,
+// model, key). The key alone can be long; keep a generous-but-bounded cap.
+const MAX_BODY_BYTES = 8_000;
 const BodySchema = z.object({
   sectionType: z.enum(NARRATIVE_AI_SECTIONS),
-  // The client sends this only after the user accepts the AI-drafting disclosure
-  // (what is sent, to which EU processor). A literal `true` is required.
+  // Sent only after the user accepts the AI-drafting disclosure (what is sent, to
+  // THEIR chosen provider under THEIR key). A literal `true` is required.
   consented: z.literal(true),
+  // BRING-YOUR-OWN-KEY: the user's own provider, from their browser. Never stored
+  // or logged. `baseUrl` is https-only + SSRF-hardened downstream in the provider.
+  baseUrl: z.url().max(2_000),
+  model: z.string().min(1).max(200),
+  apiKey: z.string().min(1).max(500),
 });
-// AI drafting hits a paid/limited external provider, so cap it tightly per user.
-const DRAFT_MAX = 20;
+// Relaying to a user's provider still costs THEM and is an outbound call from our
+// box, so cap it per user (also limits the SSRF-hardened relay's abuse surface).
+const DRAFT_MAX = 30;
 const DRAFT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
 /**
- * Generate an AI FIRST DRAFT for one narrative-CV module from the caller's own
- * saved CV. Opt-in + consented + auth-gated; dormant unless the deployment
- * configured an (EU) AI provider. Never persists or auto-inserts — it returns
- * the draft for the user to verify and rewrite.
+ * Generate an AI FIRST DRAFT for one narrative-CV module. BRING-YOUR-OWN-KEY: the
+ * caller supplies their own provider (base URL + model + key); this route is a
+ * stateless relay that makes ONE call to that endpoint and retains nothing (no
+ * key stored, no key/prompt logged). Auth + same-origin + rate-limited. Never
+ * persists or auto-inserts — it returns the draft for the user to verify.
  */
 export async function POST(req: Request) {
   const session = await auth();
@@ -37,11 +45,6 @@ export async function POST(req: Request) {
   }
   if (!isSameOrigin(req)) {
     return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
-  }
-  // Feature dormant on this deployment (no provider configured) → behave as if the
-  // endpoint doesn't exist. No CV is loaded, no external call is made.
-  if (!isNarrativeAiEnabled()) {
-    return NextResponse.json({ error: "AI drafting is not available." }, { status: 404 });
   }
 
   const rl = await enforceRateLimit(`ai-draft:${session.user.id}`, DRAFT_MAX, DRAFT_WINDOW_MS);
@@ -61,7 +64,7 @@ export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(read.value);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Expected { sectionType: <narrative module>, consented: true }" },
+      { error: "Expected { sectionType, consented: true, baseUrl, model, apiKey }" },
       { status: 422 },
     );
   }
@@ -71,21 +74,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No CV to draft from yet." }, { status: 404 });
   }
 
+  const { sectionType, baseUrl, model, apiKey } = parsed.data;
   try {
-    const draft = await generateNarrativeDraft(cv, parsed.data.sectionType);
+    const draft = await generateNarrativeDraft(cv, sectionType, { baseUrl, model, apiKey });
     return NextResponse.json({ draft });
   } catch (err) {
-    if (err instanceof AiDisabledError) {
-      return NextResponse.json({ error: "AI drafting is not available." }, { status: 404 });
+    if (err instanceof AiConfigError) {
+      // Bad key / unsafe or invalid endpoint — the user's config, not a server bug.
+      return NextResponse.json({ error: err.message }, { status: 422 });
     }
     if (err instanceof AiRequestError) {
-      // The provider hiccuped / rate-limited us — retryable, not our bug.
+      // The user's provider hiccuped / rejected the key — retryable, not our bug.
       return NextResponse.json(
-        { error: "The AI provider is unavailable right now. Please try again shortly." },
-        { status: 503, headers: { "Retry-After": "30" } },
+        { error: "Your AI provider didn't respond. Check your key/model and try again." },
+        { status: 502 },
       );
     }
-    logger.error("api.narrative_draft_failed", { err });
+    // Log WITHOUT the error object — it could carry the key/prompt.
+    logger.error("api.narrative_draft_failed", { name: (err as Error)?.name });
     return NextResponse.json({ error: "Failed to generate a draft." }, { status: 500 });
   }
 }

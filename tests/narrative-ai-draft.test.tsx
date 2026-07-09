@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import NarrativeAiDraft from "@/components/NarrativeAiDraft";
 import type { CvSection } from "@/lib/canonical/schema";
@@ -14,14 +14,29 @@ const section = {
   body: "",
 } as unknown as CvSection;
 
+beforeEach(() => {
+  try {
+    localStorage.clear();
+  } catch {
+    /* ignore */
+  }
+});
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
-describe("NarrativeAiDraft", () => {
-  it("gates on consent, then shows a labelled draft the user explicitly inserts", async () => {
+function fillConfig() {
+  fireEvent.change(screen.getByLabelText(/API base URL/i), {
+    target: { value: "https://api.example.com/v1" },
+  });
+  fireEvent.change(screen.getByLabelText(/^Model$/i), { target: { value: "some-model" } });
+  fireEvent.change(screen.getByLabelText(/^API key$/i), { target: { value: "sk-user" } });
+}
+
+describe("NarrativeAiDraft (bring-your-own-key)", () => {
+  it("collects the user's own provider config, sends it, and inserts the labelled draft", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(
@@ -31,37 +46,48 @@ describe("NarrativeAiDraft", () => {
     const onInsert = vi.fn();
     render(<NarrativeAiDraft section={section} locale="en-US" onInsert={onInsert} />);
 
-    // idle → consent disclosure (names the EU processor); NO request yet.
     fireEvent.click(screen.getByText(/Draft with AI/));
-    expect(screen.getByText(/Mistral AI/)).toBeTruthy();
+    // No request until the user supplies their own key; the browser-only note shows.
+    expect(screen.getByText(/never saved on our servers/i)).toBeTruthy();
     expect(fetchMock).not.toHaveBeenCalled();
 
-    // consent → generate → labelled draft.
+    fillConfig();
     fireEvent.click(screen.getByText("Generate draft"));
     await waitFor(() => expect(screen.getByText(/verify and rewrite/)).toBeTruthy());
-    // The posted body carries the section type + an explicit consent flag.
+
+    // The user's own config is what's posted.
     const [, init] = fetchMock.mock.calls[0]!;
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({
       sectionType: "narrative-knowledge",
       consented: true,
+      baseUrl: "https://api.example.com/v1",
+      model: "some-model",
+      apiKey: "sk-user",
     });
 
-    // Explicit insert (never automatic).
     fireEvent.click(screen.getByText("Insert into section"));
     expect(onInsert).toHaveBeenCalledWith("My key contributions.");
   });
 
+  it("keeps Generate disabled until base URL, model and key are all provided", () => {
+    render(<NarrativeAiDraft section={section} locale="en-US" onInsert={vi.fn()} />);
+    fireEvent.click(screen.getByText(/Draft with AI/));
+    expect((screen.getByText("Generate draft") as HTMLButtonElement).disabled).toBe(true);
+  });
+
   it("shows a friendly, retryable error on failure", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ error: "The AI provider is unavailable." }), {
-        status: 503,
+      new Response(JSON.stringify({ error: "Your key was rejected." }), {
+        status: 422,
       }),
     );
     vi.stubGlobal("fetch", fetchMock);
     render(<NarrativeAiDraft section={section} locale="en-US" onInsert={vi.fn()} />);
     fireEvent.click(screen.getByText(/Draft with AI/));
+    fillConfig();
     fireEvent.click(screen.getByText("Generate draft"));
-    await waitFor(() => expect(screen.getByText("The AI provider is unavailable.")).toBeTruthy());
-    expect(screen.getByText("Regenerate")).toBeTruthy();
+    await waitFor(() => expect(screen.getByText("Your key was rejected.")).toBeTruthy());
+    // Back on the (pre-filled) config form so the user can fix + retry.
+    expect(screen.getByText("Generate draft")).toBeTruthy();
   });
 });

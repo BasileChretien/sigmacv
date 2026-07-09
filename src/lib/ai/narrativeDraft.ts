@@ -2,7 +2,7 @@ import { narrativeEvidence, narrativeEvidenceTitles } from "@/lib/canonical/narr
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { asLocale, sectionTitle, type Locale } from "@/lib/i18n";
 import { narrativeGuidance } from "@/lib/i18n/narrativeGuidance";
-import { AiRequestError, chatComplete, type ChatMessage } from "./provider";
+import { AiRequestError, chatComplete, type AiProviderConfig, type ChatMessage } from "./provider";
 
 /**
  * Assembles the AI first-draft for a funder "narrative CV" module from the user's
@@ -104,9 +104,10 @@ export function buildNarrativeMessages(
 export async function generateNarrativeDraft(
   cv: CanonicalCv,
   sectionType: string,
+  config: AiProviderConfig,
 ): Promise<string> {
   if (!isNarrativeAiSection(sectionType)) {
     throw new AiRequestError("AI drafting is only available for narrative modules");
   }
-  return chatComplete(buildNarrativeMessages(cv, sectionType));
+  return chatComplete(buildNarrativeMessages(cv, sectionType), config);
 }

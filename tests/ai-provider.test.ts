@@ -1,112 +1,102 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mutable env mock so each test can flip the AI config.
-const env: Record<string, unknown> = {};
-vi.mock("@/lib/env", () => ({ getEnv: () => env }));
+// Mock DNS so hostname SSRF checks are deterministic + offline.
+const lookupMock = vi.fn();
+vi.mock("node:dns/promises", () => ({ lookup: (...a: unknown[]) => lookupMock(...a) }));
 
-import {
-  AiDisabledError,
-  AiRequestError,
-  aiConfig,
-  chatComplete,
-  isNarrativeAiEnabled,
-} from "@/lib/ai/provider";
+import { AiConfigError, AiRequestError, chatComplete } from "@/lib/ai/provider";
 
-function setEnv(overrides: Record<string, unknown>) {
-  for (const k of Object.keys(env)) delete env[k];
-  Object.assign(
-    env,
-    {
-      AI_NARRATIVE_ENABLED: false,
-      AI_BASE_URL: "https://api.mistral.ai/v1",
-      AI_MODEL: "open-mistral-nemo",
-      AI_API_KEY: undefined,
-    },
-    overrides,
-  );
-}
+const KEY = "sk-user-byok";
+const MSGS = [{ role: "user" as const, content: "draft" }];
+const cfg = (over: Partial<{ baseUrl: string; model: string; apiKey: string }> = {}) => ({
+  baseUrl: "https://93.184.216.34/v1", // public IP literal → no DNS lookup needed
+  model: "some-model",
+  apiKey: KEY,
+  ...over,
+});
+
+const completion = (content: string) =>
+  new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 });
 
 let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
-  setEnv({});
+  lookupMock.mockReset();
 });
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
-const completion = (content: string) =>
-  new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 });
-
-describe("aiConfig / isNarrativeAiEnabled", () => {
-  it("is enabled only when the flag is on AND a key is present", () => {
-    setEnv({ AI_NARRATIVE_ENABLED: false, AI_API_KEY: "k" });
-    expect(isNarrativeAiEnabled()).toBe(false);
-    setEnv({ AI_NARRATIVE_ENABLED: true, AI_API_KEY: undefined });
-    expect(isNarrativeAiEnabled()).toBe(false);
-    setEnv({ AI_NARRATIVE_ENABLED: true, AI_API_KEY: "k" });
-    expect(isNarrativeAiEnabled()).toBe(true);
-  });
-
-  it("carries the configured base URL + model through", () => {
-    setEnv({ AI_BASE_URL: "https://api.scaleway.ai/v1", AI_MODEL: "mistral-nemo" });
-    expect(aiConfig()).toMatchObject({
-      baseUrl: "https://api.scaleway.ai/v1",
-      model: "mistral-nemo",
-    });
+describe("chatComplete — config validation", () => {
+  it("throws AiConfigError (no network) for a missing key or model", async () => {
+    await expect(chatComplete(MSGS, cfg({ apiKey: "" }))).rejects.toBeInstanceOf(AiConfigError);
+    await expect(chatComplete(MSGS, cfg({ model: "" }))).rejects.toBeInstanceOf(AiConfigError);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 
-describe("chatComplete", () => {
-  it("throws AiDisabledError WITHOUT any network call when disabled", async () => {
-    setEnv({ AI_NARRATIVE_ENABLED: false, AI_API_KEY: "k" });
-    await expect(chatComplete([{ role: "user", content: "hi" }])).rejects.toBeInstanceOf(
-      AiDisabledError,
-    );
+describe("chatComplete — SSRF hardening on the user endpoint", () => {
+  const rejects = async (baseUrl: string) => {
+    await expect(chatComplete(MSGS, cfg({ baseUrl }))).rejects.toBeInstanceOf(AiConfigError);
     expect(fetchMock).not.toHaveBeenCalled();
-  });
+  };
 
-  it("posts an OpenAI-compatible body with a bearer key and returns the content", async () => {
-    setEnv({ AI_NARRATIVE_ENABLED: true, AI_API_KEY: "sk-test", AI_MODEL: "open-mistral-nemo" });
+  it("refuses non-https", () => rejects("http://api.example.com/v1"));
+  it("refuses localhost + bare internal names", async () => {
+    await rejects("https://localhost/v1");
+    await rejects("https://intranet/v1");
+    await rejects("https://api.internal/v1");
+  });
+  it("refuses IP-literal loopback / private / link-local(metadata)", async () => {
+    await rejects("https://127.0.0.1/v1");
+    await rejects("https://10.0.0.1/v1");
+    await rejects("https://192.168.1.10/v1");
+    await rejects("https://169.254.169.254/v1"); // cloud metadata
+    await rejects("https://[::1]/v1");
+  });
+  it("refuses a hostname that RESOLVES to a private address", async () => {
+    lookupMock.mockResolvedValue([{ address: "10.1.2.3", family: 4 }]);
+    await rejects("https://sneaky.example.com/v1");
+  });
+});
+
+describe("chatComplete — request", () => {
+  it("posts an OpenAI-compatible body with the USER's bearer key + model", async () => {
     fetchMock.mockResolvedValue(completion("  A grounded draft.  "));
-    const out = await chatComplete([{ role: "user", content: "draft" }]);
+    const out = await chatComplete(MSGS, cfg({ model: "open-mistral-nemo" }));
     expect(out).toBe("A grounded draft."); // trimmed
     const [url, init] = fetchMock.mock.calls[0]!;
-    expect(String(url)).toBe("https://api.mistral.ai/v1/chat/completions");
-    expect(init.method).toBe("POST");
-    expect(init.headers.Authorization).toBe("Bearer sk-test");
+    expect(String(url)).toBe("https://93.184.216.34/v1/chat/completions");
+    expect(init.headers.Authorization).toBe(`Bearer ${KEY}`);
     const body = JSON.parse(init.body as string);
     expect(body.model).toBe("open-mistral-nemo");
-    expect(body.messages).toEqual([{ role: "user", content: "draft" }]);
+    expect(body.messages).toEqual(MSGS);
+  });
+
+  it("works with a hostname that resolves to a public address", async () => {
+    lookupMock.mockResolvedValue([{ address: "93.184.216.34", family: 4 }]);
+    fetchMock.mockResolvedValue(completion("ok"));
+    await expect(chatComplete(MSGS, cfg({ baseUrl: "https://api.mistral.ai/v1" }))).resolves.toBe(
+      "ok",
+    );
   });
 
   it("throws AiRequestError on a non-OK response", async () => {
-    setEnv({ AI_NARRATIVE_ENABLED: true, AI_API_KEY: "k" });
     fetchMock.mockResolvedValue(new Response("nope", { status: 401 }));
-    await expect(chatComplete([{ role: "user", content: "x" }])).rejects.toBeInstanceOf(
-      AiRequestError,
-    );
+    await expect(chatComplete(MSGS, cfg())).rejects.toBeInstanceOf(AiRequestError);
   });
 
   it("throws AiRequestError on an empty / malformed completion", async () => {
-    setEnv({ AI_NARRATIVE_ENABLED: true, AI_API_KEY: "k" });
     fetchMock.mockResolvedValue(completion("   "));
-    await expect(chatComplete([{ role: "user", content: "x" }])).rejects.toBeInstanceOf(
-      AiRequestError,
-    );
+    await expect(chatComplete(MSGS, cfg())).rejects.toBeInstanceOf(AiRequestError);
     fetchMock.mockResolvedValue(new Response("{not json", { status: 200 }));
-    await expect(chatComplete([{ role: "user", content: "x" }])).rejects.toBeInstanceOf(
-      AiRequestError,
-    );
+    await expect(chatComplete(MSGS, cfg())).rejects.toBeInstanceOf(AiRequestError);
   });
 
   it("throws AiRequestError when the transport fails", async () => {
-    setEnv({ AI_NARRATIVE_ENABLED: true, AI_API_KEY: "k" });
     fetchMock.mockRejectedValue(new Error("network down"));
-    await expect(chatComplete([{ role: "user", content: "x" }])).rejects.toBeInstanceOf(
-      AiRequestError,
-    );
+    await expect(chatComplete(MSGS, cfg())).rejects.toBeInstanceOf(AiRequestError);
   });
 });

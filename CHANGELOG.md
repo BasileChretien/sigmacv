@@ -9,20 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Optional AI first-draft for the narrative-CV modules (opt-in, EU processor).**
+- **Optional AI first-draft for the narrative-CV modules (bring-your-own-key).**
   The R4RI / Royal-Society "narrative CV" modules already showed writing guidance
-  and the counts of your relevant outputs; now, where the deployment configures an
-  AI provider, you can also generate a **first draft** for a module from your own
-  visible research outputs. It is **off by default and opt-in**: a button opens a
-  point-of-use disclosure (what is sent, to which processor), and only after you
-  accept is a short, public-only summary (the module, output counts and a few
-  titles — never contact details, identifiers, abstracts or co-authors) sent to an
-  **EU AI provider** (default **Mistral AI**, France — EU data residency, no EU→US
-  transfer). The result is always labelled "AI draft — verify and rewrite" and is
-  never inserted automatically. The provider is **pluggable** (any OpenAI-compatible
-  base URL + model via env — e.g. Scaleway, OVHcloud, or a self-hosted server) and
-  **disable-able** (unset the flag and the endpoint 404s, making no network call).
-  The privacy notice discloses the processor in all ten locales.
+  and the counts of your relevant outputs; now you can also generate a **first
+  draft** for a module from your own visible research outputs. It is
+  **bring-your-own-key**: SigmaCV holds no key and presets no provider — you enter
+  your own OpenAI-compatible endpoint, model and API key (Mistral, OpenAI,
+  OpenRouter, a self-hosted server, anything), kept **only in your browser** and
+  sent per-request. The app's route is a **stateless, SSRF-hardened relay** that
+  forwards one call to the endpoint you chose and stores/logs **nothing** — no key,
+  no prompt. It stays **off until you enter a key**, is **opt-in + consented**
+  per-use (a point-of-use disclosure of what is sent — a short, public-only
+  summary: the module, output counts and a few titles, never contact details,
+  identifiers, abstracts or co-authors), and the result is always labelled "AI
+  draft — verify and rewrite" and **never inserted automatically**. The privacy
+  notice describes the BYOK model in all ten locales.
 
 - **The CV-model picker's descriptions are now localized in all ten languages.**
   The 58 one-click CV-model layouts (funder calls, public-institution jobs,

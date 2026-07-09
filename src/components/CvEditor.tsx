@@ -40,8 +40,6 @@ interface CvEditorProps {
   /** No-login preview mode: hides the account-only add-by-DOI / import-.bib
    *  panels (they save server-side). Curation/styling stay fully available. */
   anonymous?: boolean;
-  /** Whether this deployment offers the optional narrative AI first-draft. */
-  aiDraftEnabled?: boolean;
 }
 
 /** Imperative surface CvWorkspace uses to drive the sync banner's "jump to item". */
@@ -61,7 +59,6 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     onClaimAdded = () => {},
     variant = "classic",
     anonymous = false,
-    aiDraftEnabled = false,
   },
   ref,
 ) {
@@ -128,7 +125,6 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       onChange={onChange}
       onClaimAdded={onClaimAdded}
       anonymous={anonymous}
-      aiDraftEnabled={aiDraftEnabled}
     />
   );
 
