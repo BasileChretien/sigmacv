@@ -70,6 +70,8 @@ describe("chatComplete — request", () => {
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(String(url)).toBe("https://93.184.216.34/v1/chat/completions");
     expect(init.headers.Authorization).toBe(`Bearer ${KEY}`);
+    // Fails closed on redirects so a 302 can't slip past the SSRF check.
+    expect(init.redirect).toBe("error");
     const body = JSON.parse(init.body as string);
     expect(body.model).toBe("open-mistral-nemo");
     expect(body.messages).toEqual(MSGS);

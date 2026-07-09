@@ -167,6 +167,10 @@ export async function chatComplete(
       timeoutMs,
       // One retry only: drafting is user-initiated + interactive, not a batch sync.
       retries: 1,
+      // assertSafeEndpoint() only vetted the INITIAL host. Refuse to follow any
+      // 3xx so a provider can't 302 to an internal target and slip past the SSRF
+      // guard — a redirect fails the request (caught below → AiRequestError).
+      redirect: "error",
     });
   } catch {
     // Never log the error object — it can include the request (key/prompt).

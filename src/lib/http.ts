@@ -17,6 +17,13 @@ export interface ResilientFetchOptions {
   next?: { revalidate?: number };
   method?: "GET" | "POST";
   body?: BodyInit;
+  /**
+   * Redirect handling (default: fetch's `"follow"`). Trusted, hard-coded hosts
+   * (OpenAlex, ORCID, …) leave this unset. Callers fetching a USER-SUPPLIED URL
+   * that they SSRF-validated up front MUST pass `"error"` so a 3xx to an internal
+   * target can't bypass that check by being silently followed.
+   */
+  redirect?: RequestRedirect;
 }
 
 const DEFAULT_TIMEOUT_MS = 15_000;
@@ -53,6 +60,7 @@ export async function resilientFetch(
     next,
     method = "GET",
     body,
+    redirect,
   } = opts;
 
   let lastErr: unknown;
@@ -66,6 +74,7 @@ export async function resilientFetch(
         body,
         signal: controller.signal,
         ...(next ? { next } : {}),
+        ...(redirect ? { redirect } : {}),
       });
       // Retry transient server/rate-limit statuses (but not the last attempt).
       if ((res.status === 429 || res.status >= 500) && attempt < retries) {
