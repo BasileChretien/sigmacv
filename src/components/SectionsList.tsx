@@ -66,7 +66,7 @@ import { editorUi } from "@/lib/i18n/editorUi";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
 import { narrativeEvidence } from "@/lib/canonical/narrativeEvidence";
-import { isNarrativeAiSection } from "@/lib/ai/narrativeDraft";
+import { isNarrativeAiSection } from "@/lib/ai/sections";
 import { narrativeGuidance, narrativeEvidenceLabel } from "@/lib/i18n/narrativeGuidance";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";

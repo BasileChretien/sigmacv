@@ -2,7 +2,13 @@ import { narrativeEvidence, narrativeEvidenceTitles } from "@/lib/canonical/narr
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { asLocale, sectionTitle, type Locale } from "@/lib/i18n";
 import { narrativeGuidance } from "@/lib/i18n/narrativeGuidance";
+import { NARRATIVE_AI_SECTIONS, isNarrativeAiSection, type NarrativeAiSection } from "./sections";
 import { AiRequestError, chatComplete, type AiProviderConfig, type ChatMessage } from "./provider";
+
+// Re-export the client-safe section helpers so existing importers of this module
+// keep working (the definitions live in ./sections to avoid pulling the provider
+// relay — node:net/node:dns — into client bundles).
+export { NARRATIVE_AI_SECTIONS, isNarrativeAiSection, type NarrativeAiSection };
 
 /**
  * Assembles the AI first-draft for a funder "narrative CV" module from the user's
@@ -16,20 +22,6 @@ import { AiRequestError, chatComplete, type AiProviderConfig, type ChatMessage }
  * findings or quoting metrics, and the UI labels the result "AI draft — verify
  * and rewrite" and never auto-inserts it.
  */
-
-/** The four narrative modules AI drafting is offered for (those with guidance). */
-export const NARRATIVE_AI_SECTIONS = [
-  "narrative-knowledge",
-  "narrative-individuals",
-  "narrative-community",
-  "narrative-society",
-] as const;
-export type NarrativeAiSection = (typeof NARRATIVE_AI_SECTIONS)[number];
-
-/** Whether AI drafting is offered for a section type (narrative modules only). */
-export function isNarrativeAiSection(type: string): type is NarrativeAiSection {
-  return (NARRATIVE_AI_SECTIONS as readonly string[]).includes(type);
-}
 
 /** Human language names so the model writes the draft in the CV's own language. */
 const LANGUAGE_NAMES: Record<Locale, string> = {
