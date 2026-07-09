@@ -136,6 +136,11 @@ export default function ClaimByDoi({ locale, onAdded }: ClaimByDoiProps) {
           </button>
         </div>
         <p className="field-hint muted">{eu.claimNote}</p>
+        {/* Honest recall/coverage note: identifier-first matching + the open
+            sources' own gaps under-represent books/SSH, non-English and
+            Global-South research, so the CV may be incomplete. This is the place
+            the user fixes that (add a missing work by DOI). */}
+        <p className="field-hint muted claim-coverage-note">{eu.coverageNote}</p>
         {error ? <p className="custom-style-error">{error}</p> : null}
         {preview && !preview.found ? (
           <p className="muted claim-status">{eu.claimNotFound}</p>
