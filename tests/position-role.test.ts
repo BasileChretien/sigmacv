@@ -66,6 +66,38 @@ const educationItem = (cv: CanonicalCv): CvItem =>
 const findItem = (cv: CanonicalCv, sectionId: string, itemId: string): CvItem =>
   cv.sections.find((s) => s.id === sectionId)!.items.find((i) => i.id === itemId)!;
 
+describe("verified (ORCID Member-API-asserted) affiliations", () => {
+  it("threads `verified` into positions + education meta; self/OpenAlex entries never verified", () => {
+    const cv = buildCanonicalCv({
+      id: "cv_v",
+      resolved,
+      works: [],
+      now: "2026-06-16T00:00:00.000Z",
+      employments: [{ ...employment, verified: true }],
+      education: [{ ...education, verified: true }],
+      distinctions: [
+        {
+          putCode: "dist1",
+          organization: "Royal Society",
+          roleTitle: "Fellow",
+          startYear: 2020,
+          verified: true,
+        },
+      ],
+    });
+    const pos = positionsSection(cv).items.find((i) => i.id === "position:orcid:emp1")!;
+    expect(pos.meta.verified).toBe(true); // institution-asserted
+    expect(cv.sections.find((s) => s.type === "education")!.items[0]!.meta.verified).toBe(true);
+    // The award/single-year builder threads it too.
+    const award = cv.sections.flatMap((s) => s.items).find((i) => i.id === "award:orcid:dist1");
+    expect(award?.meta.verified).toBe(true);
+    // An OpenAlex-inferred affiliation is never "verified".
+    expect(openalexPosition(cv).meta.verified).toBeUndefined();
+    // A self-entered (no `verified`) employment carries nothing.
+    expect(orcidPosition(build()).meta.verified).toBeUndefined();
+  });
+});
+
 describe("formatEntryLine", () => {
   it("formats role, department, institution and an open date range", () => {
     expect(

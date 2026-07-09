@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **ORCID entries now show whether an institution verified them.** ORCID
+  distinguishes data a **trusted organization** asserted on your record (via the
+  Member API) from data you **typed in yourself** — the former is higher-trust.
+  SigmaCV now reads each affiliation's provenance and marks org-asserted
+  Positions / Education / Distinctions with a green **"verified"** badge (tooltip:
+  "Confirmed by your institution via ORCID — not self-entered"). Self-entered
+  ORCID entries and OpenAlex-inferred affiliations carry no badge, so a reader can
+  tell an institution-confirmed role from an unverified one. Localized in all ten
+  languages; additive schema field (`meta.verified`), no `schemaVersion` bump.
+
 - **The CV-model picker's descriptions are now localized in all ten languages.**
   The 58 one-click CV-model layouts (funder calls, public-institution jobs,
   industry/clinical CVs) already had a localized picker, but their one-line

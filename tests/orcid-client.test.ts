@@ -119,6 +119,62 @@ describe("fetchOrcidPositions", () => {
     expect(positions[0]?.endYear).toBeUndefined();
   });
 
+  it("marks org-asserted (Member-API) affiliations verified, self-entered ones not", async () => {
+    const sourced = {
+      "affiliation-group": [
+        {
+          summaries: [
+            {
+              "employment-summary": {
+                "put-code": 300,
+                organization: { name: "Org-Asserted University" },
+                // A Member-API client (institution) wrote it — no source-orcid.
+                source: {
+                  "source-client-id": { path: "APP-1234" },
+                  "source-name": { value: "Org University" },
+                },
+              },
+            },
+          ],
+        },
+        {
+          summaries: [
+            {
+              "employment-summary": {
+                "put-code": 301,
+                organization: { name: "Self-Entered Inc" },
+                // The record holder typed it in — source-orcid === the owner.
+                source: {
+                  "source-orcid": { path: "0000-0002-7483-2489" },
+                  "source-name": { value: "Me" },
+                },
+              },
+            },
+          ],
+        },
+        {
+          summaries: [
+            {
+              // No source block at all → treated as unverified (safe default).
+              "employment-summary": {
+                "put-code": 302,
+                organization: { name: "No-Source Ltd" },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    vi.stubGlobal("fetch", routedFetch({ emp: res(sourced) }));
+    const { fetchOrcidPositions } = await freshClient();
+    const byOrg = Object.fromEntries(
+      (await fetchOrcidPositions("0000-0002-7483-2489")).map((p) => [p.organization, p]),
+    );
+    expect(byOrg["Org-Asserted University"]?.verified).toBe(true);
+    expect(byOrg["Self-Entered Inc"]?.verified).toBeUndefined();
+    expect(byOrg["No-Source Ltd"]?.verified).toBeUndefined();
+  });
+
   it("returns [] when the ORCID API errors (fails soft)", async () => {
     vi.stubGlobal("fetch", routedFetch({ emp: res({}, false, 500) }));
     const { fetchOrcidPositions } = await freshClient();

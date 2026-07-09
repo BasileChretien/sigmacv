@@ -1924,6 +1924,7 @@ textarea.prose-body {
 .cv-self-badge,
 .cv-notmine-badge,
 .cv-review-badge,
+.cv-verified-badge,
 .cv-source-badge {
   display: inline-flex;
   align-items: center;
@@ -1961,6 +1962,14 @@ textarea.prose-body {
   border-color: var(--danger-border);
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
+}
+/* Institution-asserted (ORCID Member API) — a positive "verified" signal,
+   distinct from a self-entered entry. */
+.cv-verified-badge {
+  color: var(--success-text);
+  background: var(--success-soft);
+  border-color: var(--success);
+  cursor: help;
 }
 .cv-review-badge {
   color: var(--warn-text);

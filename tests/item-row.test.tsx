@@ -49,6 +49,34 @@ function renderRow(item: CvItem, sectionType?: CvSectionType) {
 
 afterEach(cleanup);
 
+describe("ItemRow — ORCID verified badge", () => {
+  it("shows a 'verified' badge for an institution-asserted ORCID position", () => {
+    renderRow(
+      makeItem({
+        id: "position:orcid:emp1",
+        source: "orcid",
+        displayText: "Assistant Professor, Nagoya University",
+        meta: { verified: true },
+      }),
+      "positions",
+    );
+    expect(screen.getByText("verified")).toBeTruthy();
+  });
+
+  it("omits the 'verified' badge for a self-entered ORCID position", () => {
+    renderRow(
+      makeItem({
+        id: "position:orcid:emp2",
+        source: "orcid",
+        displayText: "Lecturer, Some University",
+        meta: {},
+      }),
+      "positions",
+    );
+    expect(screen.queryByText("verified")).toBeNull();
+  });
+});
+
 describe("ItemRow — 'not mine' eligibility", () => {
   it("shows Hide AND 'not mine' for an OEP editorial role", () => {
     renderRow(
