@@ -42,11 +42,32 @@ describe("CvEditor (component)", () => {
     render(
       <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
     );
-    fireEvent.click(screen.getByLabelText(/2-yr mean citedness/i));
+    // The field-normalised MNCS is shown directly (recommended, no gate).
+    fireEvent.click(screen.getByLabelText(/Field-normalised impact \(MNCS\)/i));
     expect(onChange).toHaveBeenCalledTimes(1);
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
-    expect(next.display.metrics).toContain("2yr_mean_citedness");
+    expect(next.display.metrics).toContain("mncs");
     expect(next.display.showMetrics).toBe(true);
+  });
+
+  it("gates the discouraged author-level counts behind the DORA/CoARA acknowledgment", () => {
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+    );
+    // Recommended field-normalised measures are the low-friction default: shown.
+    expect(screen.getByLabelText(/Field-normalised impact \(MNCS\)/i)).toBeTruthy();
+    // A discouraged count (i10-index) is hidden until the gate is acknowledged...
+    expect(screen.queryByText(/i10-index/)).toBeNull();
+    fireEvent.click(screen.getByRole("checkbox", { name: /Author-level counts/i }));
+    // ...then it appears.
+    expect(screen.getByText(/i10-index/)).toBeTruthy();
+  });
+
+  it("opens the discouraged group when a discouraged metric is already selected", () => {
+    const cv = updateDisplay(makeCv(), { metrics: ["h_index"], showMetrics: true });
+    render(<CvEditor cv={cv} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    // An existing choice stays visible + editable without re-acknowledging.
+    expect(screen.getByText(/i10-index/)).toBeTruthy();
   });
 
   it("shows the responsible-metrics framing nudge in the metrics controls", () => {

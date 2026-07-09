@@ -1610,6 +1610,45 @@ textarea.prose-body {
 .metric-options .field-inline {
   grid-column: auto;
 }
+/* Two metric groups: field-normalised (recommended) shown directly; the
+   discouraged author-level counts gated behind the DORA/CoARA acknowledgment. */
+.metric-group {
+  margin-top: var(--space-2);
+}
+.metric-group-heading {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.metric-group-discouraged {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+}
+/* The acknowledgment gate: checkbox beside the heading + its DORA/CoARA note. */
+.metric-ack {
+  align-items: start;
+}
+.metric-ack-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.metric-ack-note {
+  display: block;
+}
+/* Each option stacks its label/value over a "how to read this" caption. */
+.metric-option-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.metric-option-hint {
+  font-size: var(--text-xs);
+  line-height: 1.35;
+}
 
 .editor-hint {
   margin: 0 0 var(--space-5);
