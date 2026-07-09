@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Optional AI first-draft for the narrative-CV modules (opt-in, EU processor).**
+  The R4RI / Royal-Society "narrative CV" modules already showed writing guidance
+  and the counts of your relevant outputs; now, where the deployment configures an
+  AI provider, you can also generate a **first draft** for a module from your own
+  visible research outputs. It is **off by default and opt-in**: a button opens a
+  point-of-use disclosure (what is sent, to which processor), and only after you
+  accept is a short, public-only summary (the module, output counts and a few
+  titles — never contact details, identifiers, abstracts or co-authors) sent to an
+  **EU AI provider** (default **Mistral AI**, France — EU data residency, no EU→US
+  transfer). The result is always labelled "AI draft — verify and rewrite" and is
+  never inserted automatically. The provider is **pluggable** (any OpenAI-compatible
+  base URL + model via env — e.g. Scaleway, OVHcloud, or a self-hosted server) and
+  **disable-able** (unset the flag and the endpoint 404s, making no network call).
+  The privacy notice discloses the processor in all ten locales.
+
 - **The CV-model picker's descriptions are now localized in all ten languages.**
   The 58 one-click CV-model layouts (funder calls, public-institution jobs,
   industry/clinical CVs) already had a localized picker, but their one-line

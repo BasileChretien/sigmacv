@@ -66,9 +66,11 @@ import { editorUi } from "@/lib/i18n/editorUi";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
 import { narrativeEvidence } from "@/lib/canonical/narrativeEvidence";
+import { isNarrativeAiSection } from "@/lib/ai/narrativeDraft";
 import { narrativeGuidance, narrativeEvidenceLabel } from "@/lib/i18n/narrativeGuidance";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
+import NarrativeAiDraft from "./NarrativeAiDraft";
 import ImportBib from "./ImportBib";
 import type { CvHealthCategory } from "./CvHealthPanel";
 import ItemRow from "./ItemRow";
@@ -219,10 +221,13 @@ interface SectionsListProps {
   /** No-login preview: hide the add-by-DOI panel (it saves server-side, which
    *  requires an account). */
   anonymous?: boolean;
+  /** Whether this deployment offers the optional narrative AI first-draft
+   *  (server env-gated). Off for the anonymous preview (needs an account). */
+  aiDraftEnabled?: boolean;
 }
 
 const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function SectionsList(
-  { cv, locale, onChange, onClaimAdded = () => {}, anonymous = false },
+  { cv, locale, onChange, onClaimAdded = () => {}, anonymous = false, aiDraftEnabled = false },
   ref,
 ) {
   const sections = orderedSections(cv);
@@ -719,6 +724,22 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                             String(PROSE_BODY_MAX - (section.body ?? "").length),
                           )}
                         </span>
+                        {/* Optional AI first-draft (opt-in, consented, EU processor).
+                            Only for the four narrative modules, only when the server
+                            configured a provider, and never in the anonymous preview. */}
+                        {aiDraftEnabled && !anonymous && isNarrativeAiSection(section.type) ? (
+                          <NarrativeAiDraft
+                            section={section}
+                            locale={locale}
+                            onInsert={(text) => {
+                              const prev = section.body ?? "";
+                              const merged = (prev ? `${prev}\n\n` : "") + text;
+                              onChange(
+                                setSectionBody(cv, section.id, merged.slice(0, PROSE_BODY_MAX)),
+                              );
+                            }}
+                          />
+                        ) : null}
                       </label>
                     ) : isExpanded ? (
                       <>

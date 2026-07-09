@@ -5,7 +5,7 @@ import {
   type CvItem,
   type CvSectionType,
 } from "@/lib/canonical/schema";
-import { narrativeEvidence } from "@/lib/canonical/narrativeEvidence";
+import { narrativeEvidence, narrativeEvidenceTitles } from "@/lib/canonical/narrativeEvidence";
 
 function item(id: string, over: Partial<CvItem> = {}): CvItem {
   return {
@@ -80,5 +80,39 @@ describe("narrativeEvidence", () => {
     expect(narrativeEvidence(c, "narrative-society")).toEqual([]);
     expect(narrativeEvidence(c, "statement")).toEqual([]);
     expect(narrativeEvidence(c, "publications")).toEqual([]);
+  });
+});
+
+describe("narrativeEvidenceTitles", () => {
+  const titled = (id: string, title: string, over: Partial<CvItem> = {}) =>
+    item(id, { csl: { id, type: "article-journal", title }, ...over });
+
+  it("collects titles (override → CSL → displayText), skipping hidden + untitled items", () => {
+    const c = cv([
+      section("publications", [
+        titled("p1", "On adverse drug reactions"),
+        item("p2", { displayTextOverride: "An edited title" }), // override wins
+        titled("ph", "Hidden work", { included: false }), // hidden → skipped
+        item("nt"), // no title → skipped
+      ]),
+      section("datasets", [item("d1", { displayText: "A shared dataset" })]),
+    ]);
+    expect(narrativeEvidenceTitles(c, "narrative-knowledge")).toEqual([
+      { type: "publications", titles: ["On adverse drug reactions", "An edited title"] },
+      { type: "datasets", titles: ["A shared dataset"] },
+    ]);
+  });
+
+  it("caps the number of titles per section", () => {
+    const many = Array.from({ length: 10 }, (_, i) => titled(`m${i}`, `T${i}`));
+    const c = cv([section("publications", many)]);
+    expect(narrativeEvidenceTitles(c, "narrative-knowledge", 3)).toEqual([
+      { type: "publications", titles: ["T0", "T1", "T2"] },
+    ]);
+  });
+
+  it("returns [] for a non-narrative section type", () => {
+    const c = cv([section("publications", [titled("p1", "x")])]);
+    expect(narrativeEvidenceTitles(c, "statement")).toEqual([]);
   });
 });

@@ -1382,6 +1382,52 @@ textarea.prose-body {
   line-height: 1.5;
 }
 
+/* ── Optional AI first-draft on the narrative modules (opt-in, EU processor). ── */
+.narrative-ai {
+  margin-top: var(--space-2);
+}
+.narrative-ai-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: var(--radius);
+  background: var(--surface-2, rgba(0, 0, 0, 0.02));
+}
+.narrative-ai-consent,
+.narrative-ai-loading {
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  margin: 0;
+}
+.narrative-ai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.narrative-ai-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  margin: 0;
+  color: var(--muted);
+}
+.narrative-ai-badge {
+  color: var(--accent);
+}
+textarea.narrative-ai-draft {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.5;
+}
+.narrative-ai-error {
+  font-size: var(--text-xs);
+  margin: 0;
+  color: var(--danger, #b00020);
+}
+
 /* ── Grant / funder-CV layout buttons (Style/Presets area). ── */
 .grant-presets {
   grid-column: 1 / -1;

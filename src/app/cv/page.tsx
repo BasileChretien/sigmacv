@@ -13,6 +13,7 @@ import type { SyncReport } from "@/lib/cv/syncReport";
 import { getDigestPrefs } from "@/lib/email/digest";
 import { logger } from "@/lib/log";
 import { isResearchLoggingEnabled } from "@/lib/research/enabled";
+import { isNarrativeAiEnabled } from "@/lib/ai/provider";
 import CvWorkspace from "@/components/CvWorkspace";
 
 export const runtime = "nodejs";
@@ -76,6 +77,7 @@ export default async function CvPage() {
       digestContactEmailVerified={digestPrefs.contactEmailVerified}
       accountEmail={digestPrefs.accountEmail}
       researchEnabled={isResearchLoggingEnabled()}
+      aiDraftEnabled={isNarrativeAiEnabled()}
       published={publish.published}
       publicSlug={publish.publicSlug}
       publicIndexable={publish.indexable}

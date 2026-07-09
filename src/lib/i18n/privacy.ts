@@ -23,6 +23,9 @@ export interface PrivacyStrings {
   purpose: string;
   researchHeading: string;
   research: string;
+  /** Optional AI drafting assistant: the EU processor + what is (not) sent. */
+  aiHeading: string;
+  ai: string;
   retentionHeading: string;
   retention: string;
   rightsHeading: string;
@@ -43,6 +46,8 @@ export interface PrivacyStrings {
 
 const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
   "en-US": {
+    aiHeading: "AI drafting assistant (optional)",
+    ai: "If you choose to use the optional AI assistant to draft a narrative-CV module, a short, public-only summary of your visible research outputs (the module, output counts and a few titles) is sent to an EU AI provider — by default Mistral AI in France — to generate a draft. This happens only when you explicitly request a draft and accept the on-screen notice; the feature is off by default. No contact details or identifiers are sent, the provider processes the request in the EU (no transfer outside the EU/EEA), and neither we nor the provider store the summary to train models. You always verify and rewrite the draft; it is never added to your CV automatically.",
     metaTitle: "Privacy",
     metaDescription:
       "How SigmaCV handles your personal data: data minimization, identifier-only matching, and research logging only with explicit consent (GDPR + Japan APPI).",
@@ -82,6 +87,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Back to SigmaCV",
   },
   "zh-CN": {
+    aiHeading: "AI 起草助手（可选）",
+    ai: "如果您选择使用可选的 AI 助手来起草叙述型简历模块，系统会将您可见科研产出的简短、仅含公开信息的摘要（模块、产出数量和少量标题）发送给欧盟的 AI 提供商——默认是位于法国的 Mistral AI——以生成初稿。仅当您明确请求生成并接受屏幕提示时才会发生；该功能默认关闭。不会发送任何联系方式或标识符，提供商在欧盟境内处理请求（不会传输至欧盟/欧洲经济区之外），我们和提供商都不会存储该摘要用于训练模型。您需要始终核对并改写初稿；初稿绝不会自动加入您的简历。",
     metaTitle: "隐私",
     metaDescription:
       "SigmaCV 如何处理您的个人数据：数据最小化、仅基于标识符的匹配，以及仅在获得明确同意后进行的研究日志记录（GDPR + 日本 APPI）。",
@@ -119,6 +126,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← 返回 SigmaCV",
   },
   "es-ES": {
+    aiHeading: "Asistente de redacción con IA (opcional)",
+    ai: "Si decides usar el asistente de IA opcional para redactar un módulo del CV narrativo, se envía un resumen breve y solo con información pública de tus resultados de investigación visibles (el módulo, los recuentos de resultados y algunos títulos) a un proveedor de IA de la UE —de forma predeterminada, Mistral AI en Francia— para generar un borrador. Esto ocurre solo cuando solicitas expresamente un borrador y aceptas el aviso en pantalla; la función está desactivada de forma predeterminada. No se envían datos de contacto ni identificadores, el proveedor procesa la solicitud en la UE (sin transferencias fuera de la UE/EEE) y ni nosotros ni el proveedor almacenamos el resumen para entrenar modelos. Siempre verificas y reescribes el borrador; nunca se añade a tu CV automáticamente.",
     metaTitle: "Privacidad",
     metaDescription:
       "Cómo SigmaCV trata sus datos personales: minimización de datos, emparejamiento basado únicamente en identificadores y registro con fines de investigación solo con consentimiento explícito (GDPR + APPI de Japón).",
@@ -158,6 +167,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Volver a SigmaCV",
   },
   "fr-FR": {
+    aiHeading: "Assistant de rédaction par IA (facultatif)",
+    ai: "Si vous choisissez d’utiliser l’assistant IA facultatif pour rédiger un module de CV narratif, un bref résumé, uniquement public, de vos travaux de recherche visibles (le module, le nombre de productions et quelques titres) est envoyé à un prestataire d’IA de l’UE — par défaut Mistral AI en France — pour générer un brouillon. Cela n’a lieu que lorsque vous demandez explicitement un brouillon et acceptez l’avis affiché ; la fonction est désactivée par défaut. Aucune coordonnée ni identifiant n’est transmis, le prestataire traite la demande dans l’UE (aucun transfert hors UE/EEE) et ni nous ni le prestataire ne conservons ce résumé pour entraîner des modèles. Vous vérifiez et réécrivez toujours le brouillon ; il n’est jamais ajouté automatiquement à votre CV.",
     metaTitle: "Confidentialité",
     metaDescription:
       "Comment SigmaCV traite vos données personnelles : minimisation des données, appariement uniquement par identifiant, et journalisation à des fins de recherche uniquement avec votre consentement explicite (GDPR + APPI du Japon).",
@@ -197,6 +208,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Retour à SigmaCV",
   },
   "de-DE": {
+    aiHeading: "KI-Schreibassistent (optional)",
+    ai: "Wenn Sie den optionalen KI-Assistenten nutzen, um ein Modul des narrativen Lebenslaufs zu entwerfen, wird eine kurze, ausschließlich öffentliche Zusammenfassung Ihrer sichtbaren Forschungsleistungen (das Modul, die Anzahl der Leistungen und einige Titel) an einen EU-KI-Anbieter – standardmäßig Mistral AI in Frankreich – gesendet, um einen Entwurf zu erzeugen. Dies geschieht nur, wenn Sie ausdrücklich einen Entwurf anfordern und den angezeigten Hinweis akzeptieren; die Funktion ist standardmäßig deaktiviert. Es werden keine Kontaktdaten oder Kennungen übermittelt, der Anbieter verarbeitet die Anfrage in der EU (keine Übermittlung außerhalb der EU/des EWR) und weder wir noch der Anbieter speichern die Zusammenfassung zum Training von Modellen. Sie prüfen und überarbeiten den Entwurf stets selbst; er wird niemals automatisch in Ihren Lebenslauf übernommen.",
     metaTitle: "Datenschutz",
     metaDescription:
       "Wie SigmaCV mit Ihren personenbezogenen Daten umgeht: Datenminimierung, Zuordnung ausschließlich über Identifikatoren und Forschungsprotokollierung nur mit ausdrücklicher Einwilligung (GDPR + Japan APPI).",
@@ -236,6 +249,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Zurück zu SigmaCV",
   },
   "ja-JP": {
+    aiHeading: "AI 起草アシスタント（任意）",
+    ai: "叙述型 CV のモジュールを起草するために任意の AI アシスタントを利用する場合、表示中の研究業績に関する短い公開情報のみの要約（モジュール、業績数、いくつかのタイトル）が、下書きを生成するために EU の AI プロバイダー（既定ではフランスの Mistral AI）に送信されます。これはあなたが明示的に下書きを要求し、画面上の通知に同意した場合にのみ行われ、この機能は既定でオフです。連絡先や識別子は送信されず、プロバイダーは EU 内でリクエストを処理し（EU/EEA 域外への移転はありません）、当方もプロバイダーもこの要約をモデルの学習のために保存しません。下書きは必ずあなたが確認して書き直すものであり、自動的に CV に追加されることはありません。",
     metaTitle: "プライバシー",
     metaDescription:
       "SigmaCV における個人データの取り扱いについて：データ最小化、識別子のみによる照合、そして明示的な同意がある場合に限る研究目的のログ記録（GDPR + 日本の APPI）。",
@@ -275,6 +290,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← SigmaCV に戻る",
   },
   "pt-BR": {
+    aiHeading: "Assistente de redação com IA (opcional)",
+    ai: "Se você optar por usar o assistente de IA opcional para redigir um módulo do currículo narrativo, um breve resumo, apenas com informações públicas, dos seus resultados de pesquisa visíveis (o módulo, as contagens de resultados e alguns títulos) é enviado a um provedor de IA da UE — por padrão, a Mistral AI, na França — para gerar um rascunho. Isso ocorre somente quando você solicita explicitamente um rascunho e aceita o aviso na tela; o recurso fica desativado por padrão. Nenhum dado de contato ou identificador é enviado, o provedor processa a solicitação na UE (sem transferência para fora da UE/EEE) e nem nós nem o provedor armazenamos o resumo para treinar modelos. Você sempre verifica e reescreve o rascunho; ele nunca é adicionado ao seu currículo automaticamente.",
     metaTitle: "Privacidade",
     metaDescription:
       "Como o SigmaCV trata seus dados pessoais: minimização de dados, correspondência apenas por identificador e registro para pesquisa somente com consentimento explícito (GDPR + APPI do Japão).",
@@ -314,6 +331,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Voltar ao SigmaCV",
   },
   "it-IT": {
+    aiHeading: "Assistente di scrittura con IA (facoltativo)",
+    ai: "Se scegli di usare l’assistente IA facoltativo per redigere un modulo del CV narrativo, un breve riepilogo, solo pubblico, dei tuoi risultati di ricerca visibili (il modulo, i conteggi dei risultati e alcuni titoli) viene inviato a un fornitore di IA dell’UE — per impostazione predefinita Mistral AI, in Francia — per generare una bozza. Ciò avviene solo quando richiedi esplicitamente una bozza e accetti l’avviso a schermo; la funzione è disattivata per impostazione predefinita. Non vengono inviati recapiti o identificativi, il fornitore elabora la richiesta nell’UE (nessun trasferimento al di fuori dell’UE/SEE) e né noi né il fornitore conserviamo il riepilogo per addestrare modelli. Verifichi e riscrivi sempre la bozza; non viene mai aggiunta automaticamente al tuo CV.",
     metaTitle: "Privacy",
     metaDescription:
       "Come SigmaCV gestisce i tuoi dati personali: minimizzazione dei dati, corrispondenza basata esclusivamente sugli identificatori e registrazione a fini di ricerca solo previo consenso esplicito (GDPR + APPI giapponese).",
@@ -353,6 +372,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Torna a SigmaCV",
   },
   "ko-KR": {
+    aiHeading: "AI 초안 작성 도우미(선택)",
+    ai: "서술형 CV 모듈을 작성하기 위해 선택적 AI 도우미를 사용하는 경우, 표시된 연구 성과에 대한 짧고 공개 정보만 담긴 요약(모듈, 성과 수, 일부 제목)이 초안 생성을 위해 EU AI 제공업체(기본적으로 프랑스의 Mistral AI)로 전송됩니다. 이는 사용자가 명시적으로 초안을 요청하고 화면 안내에 동의한 경우에만 이루어지며, 이 기능은 기본적으로 꺼져 있습니다. 연락처나 식별자는 전송되지 않고, 제공업체는 EU 내에서 요청을 처리하며(EU/EEA 외부로 이전 없음), 당사와 제공업체 모두 이 요약을 모델 학습에 저장하지 않습니다. 초안은 항상 사용자가 확인하고 다시 작성해야 하며, 자동으로 CV에 추가되지 않습니다.",
     metaTitle: "개인정보 보호",
     metaDescription:
       "SigmaCV가 개인정보를 처리하는 방식: 데이터 최소화, 식별자 기반 매칭, 명시적 동의가 있는 경우에만 수행하는 연구 로깅(GDPR + 일본 APPI).",
@@ -392,6 +413,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← SigmaCV로 돌아가기",
   },
   "ru-RU": {
+    aiHeading: "Помощник ИИ для черновиков (необязательно)",
+    ai: "Если вы решите воспользоваться необязательным помощником ИИ для составления модуля нарративного резюме, краткая сводка только из общедоступной информации о ваших видимых научных результатах (модуль, число результатов и несколько названий) отправляется поставщику ИИ из ЕС — по умолчанию Mistral AI во Франции — для создания черновика. Это происходит только когда вы явно запрашиваете черновик и принимаете экранное уведомление; по умолчанию функция отключена. Контактные данные и идентификаторы не передаются, поставщик обрабатывает запрос в ЕС (без передачи за пределы ЕС/ЕЭЗ), и ни мы, ни поставщик не сохраняем эту сводку для обучения моделей. Вы всегда проверяете и переписываете черновик; он никогда не добавляется в ваше резюме автоматически.",
     metaTitle: "Конфиденциальность",
     metaDescription:
       "Как SigmaCV обрабатывает ваши персональные данные: минимизация данных, сопоставление только по идентификатору и ведение исследовательских журналов только при наличии явного согласия (GDPR + Japan APPI).",
