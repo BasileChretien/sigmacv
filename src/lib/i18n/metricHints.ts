@@ -29,10 +29,23 @@ export interface MetricHintStrings {
    * (`METRICS_CROWDING_THRESHOLD`+): a long metric strip crowds out the work.
    */
   crowding: string;
+  /** Heading for the field-normalised (recommended) group in the metric picker. */
+  recommendedGroup: string;
+  /** Heading for the not-field-normalised (discouraged) group in the metric picker. */
+  discouragedGroup: string;
+  /**
+   * Acknowledgment shown on the gate that reveals the discouraged author-level
+   * counts. Keeps the literal token "DORA" so the editor can linkify it.
+   */
+  discouragedAck: string;
 }
 
 const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
   "en-US": {
+    recommendedGroup: "Field-normalised (recommended)",
+    discouragedGroup: "Author-level counts (discouraged)",
+    discouragedAck:
+      "These are discouraged for assessing individuals — DORA and CoARA advise against ranking people by h-index or citation totals. Tick to show them anyway, and compare only within a field.",
     normalized:
       "Field-normalised: comparable across fields and years. Preferred under DORA and the Leiden Manifesto.",
     raw: "Not field-normalised: varies by field, database coverage and career stage — compare only within the same field.",
@@ -42,6 +55,10 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
       "That's a lot of metrics. A shorter strip reads better and keeps the focus on your work — consider showing just one or two.",
   },
   "zh-CN": {
+    recommendedGroup: "领域归一化（推荐）",
+    discouragedGroup: "作者层面的计数（不推荐）",
+    discouragedAck:
+      "这些指标不适合用于评价个人——DORA 与 CoARA 均不建议以 h 指数或引用总数对个人排名。如仍要显示请勾选，且只在同一领域内比较。",
     normalized: "领域归一化：可跨领域和年份比较。DORA 与莱顿宣言推荐使用。",
     raw: "非领域归一化：随领域、数据库覆盖范围和职业阶段而变化——仅应在同一领域内比较。",
     nudge:
@@ -49,6 +66,10 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
     crowding: "指标有点多了。更简短的一行更易阅读，也更能突出你的成果——建议只显示一到两个。",
   },
   "es-ES": {
+    recommendedGroup: "Normalizado por campo (recomendado)",
+    discouragedGroup: "Recuentos a nivel de autor (no recomendado)",
+    discouragedAck:
+      "No se recomiendan para evaluar a personas: DORA y CoARA desaconsejan clasificar a las personas por índice h o total de citas. Marca para mostrarlos de todos modos y compara solo dentro de un mismo campo.",
     normalized:
       "Normalizado por campo: comparable entre campos y años. Preferido según DORA y el Manifiesto de Leiden.",
     raw: "No normalizado por campo: varía según el campo, la cobertura de la base de datos y la etapa profesional; compara solo dentro del mismo campo.",
@@ -58,6 +79,10 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
       "Son muchas métricas. Una franja más corta se lee mejor y mantiene el foco en tu trabajo; considera mostrar solo una o dos.",
   },
   "fr-FR": {
+    recommendedGroup: "Normalisé par domaine (recommandé)",
+    discouragedGroup: "Décomptes au niveau de l’auteur (déconseillé)",
+    discouragedAck:
+      "Déconseillés pour évaluer des personnes : la DORA et la CoARA recommandent de ne pas classer les personnes par indice h ou nombre total de citations. Cochez pour les afficher malgré tout, et comparez uniquement au sein d’un même domaine.",
     normalized:
       "Normalisé par domaine : comparable entre domaines et années. Recommandé par la DORA et le Manifeste de Leyde.",
     raw: "Non normalisé par domaine : varie selon le domaine, la couverture de la base et l'étape de carrière — à comparer uniquement au sein du même domaine.",
@@ -67,6 +92,10 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
       "Cela fait beaucoup d'indicateurs. Une ligne plus courte se lit mieux et garde l'attention sur votre travail — n'en affichez qu'un ou deux.",
   },
   "de-DE": {
+    recommendedGroup: "Feldnormiert (empfohlen)",
+    discouragedGroup: "Kennzahlen auf Autorenebene (nicht empfohlen)",
+    discouragedAck:
+      "Für die Bewertung von Einzelpersonen nicht empfohlen – DORA und CoARA raten davon ab, Personen nach h-Index oder Zitationssummen zu ranken. Zum Anzeigen ankreuzen und nur innerhalb eines Fachgebiets vergleichen.",
     normalized:
       "Feldnormiert: über Fachgebiete und Jahre hinweg vergleichbar. Bevorzugt gemäß DORA und dem Leiden-Manifest.",
     raw: "Nicht feldnormiert: variiert je nach Fachgebiet, Datenbankabdeckung und Karrierestufe – nur innerhalb desselben Fachgebiets vergleichen.",
@@ -76,6 +105,10 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
       "Das sind viele Kennzahlen. Eine kürzere Zeile liest sich besser und hält den Fokus auf Ihrer Arbeit – zeigen Sie am besten nur ein bis zwei.",
   },
   "ja-JP": {
+    recommendedGroup: "分野正規化（推奨）",
+    discouragedGroup: "著者単位のカウント（非推奨）",
+    discouragedAck:
+      "個人の評価には非推奨です——DORA と CoARA は、h 指数や被引用総数で個人を序列化しないよう求めています。それでも表示する場合はチェックし、比較は同一分野内に限ってください。",
     normalized: "分野正規化済み：分野や年をまたいで比較可能。DORA とライデン声明が推奨。",
     raw: "分野正規化なし：分野・データベースの収録範囲・キャリア段階によって変動します——同じ分野内でのみ比較してください。",
     nudge:
@@ -84,6 +117,10 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
       "指標がやや多めです。短くまとめたほうが読みやすく、業績に注目が集まります——1〜2 個に絞ることをおすすめします。",
   },
   "pt-BR": {
+    recommendedGroup: "Normalizado por área (recomendado)",
+    discouragedGroup: "Contagens ao nível do autor (não recomendado)",
+    discouragedAck:
+      "Não recomendados para avaliar pessoas — a DORA e a CoARA desaconselham classificar pessoas por índice h ou total de citações. Marque para exibi-los mesmo assim e compare apenas dentro de uma área.",
     normalized:
       "Normalizado por área: comparável entre áreas e anos. Preferido segundo a DORA e o Manifesto de Leiden.",
     raw: "Não normalizado por área: varia conforme a área, a cobertura da base de dados e o estágio da carreira — compare apenas dentro da mesma área.",
@@ -93,6 +130,10 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
       "São muitas métricas. Uma faixa mais curta se lê melhor e mantém o foco no seu trabalho — considere mostrar apenas uma ou duas.",
   },
   "it-IT": {
+    recommendedGroup: "Normalizzato per campo (consigliato)",
+    discouragedGroup: "Conteggi a livello di autore (sconsigliato)",
+    discouragedAck:
+      "Sconsigliati per valutare le persone: la DORA e la CoARA sconsigliano di classificare le persone per indice h o citazioni totali. Spunta per mostrarli comunque e confronta solo all’interno dello stesso campo.",
     normalized:
       "Normalizzato per campo: confrontabile tra campi e anni. Preferito secondo la DORA e il Manifesto di Leida.",
     raw: "Non normalizzato per campo: varia in base al campo, alla copertura della banca dati e alla fase di carriera — confronta solo all'interno dello stesso campo.",
@@ -102,6 +143,10 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
       "Sono molti indicatori. Una riga più breve si legge meglio e mantiene il focus sul tuo lavoro — valuta di mostrarne solo uno o due.",
   },
   "ko-KR": {
+    recommendedGroup: "분야 정규화(권장)",
+    discouragedGroup: "저자 단위 집계(권장하지 않음)",
+    discouragedAck:
+      "개인 평가에는 권장하지 않습니다 — DORA와 CoARA는 h-지수나 총 피인용 수로 개인을 순위 매기지 말 것을 권고합니다. 그래도 표시하려면 체크하고, 같은 분야 내에서만 비교하세요.",
     normalized: "분야 정규화됨: 분야와 연도를 가로질러 비교 가능. DORA와 라이덴 선언이 권장합니다.",
     raw: "분야 정규화 안 됨: 분야, 데이터베이스 수록 범위, 경력 단계에 따라 달라집니다 — 같은 분야 내에서만 비교하세요.",
     nudge:
@@ -110,6 +155,10 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
       "지표가 다소 많습니다. 짧게 추리면 읽기 쉽고 성과에 집중됩니다 — 한두 개만 표시하는 것을 권합니다.",
   },
   "ru-RU": {
+    recommendedGroup: "Нормировано по области (рекомендуется)",
+    discouragedGroup: "Показатели уровня автора (не рекомендуется)",
+    discouragedAck:
+      "Не рекомендуются для оценки отдельных людей — DORA и CoARA советуют не ранжировать людей по h-индексу или суммарной цитируемости. Отметьте, чтобы всё равно показать, и сравнивайте только в пределах одной области.",
     normalized:
       "Нормировано по области: сопоставимо между областями и годами. Рекомендуется DORA и Лейденским манифестом.",
     raw: "Не нормировано по области: зависит от области, охвата базы данных и этапа карьеры — сравнивайте только в пределах одной области.",
@@ -150,4 +199,19 @@ export function metricsNudge(locale: string): string {
 /** Caution shown when many metrics are enabled at once (falls back to English). */
 export function metricsCrowdingNote(locale: string): string {
   return METRIC_HINTS_I18N[asLocale(locale)].crowding;
+}
+
+/** Heading for the field-normalised (recommended) metric group (falls back to English). */
+export function metricsRecommendedGroup(locale: string): string {
+  return METRIC_HINTS_I18N[asLocale(locale)].recommendedGroup;
+}
+
+/** Heading for the discouraged author-level-counts group (falls back to English). */
+export function metricsDiscouragedGroup(locale: string): string {
+  return METRIC_HINTS_I18N[asLocale(locale)].discouragedGroup;
+}
+
+/** DORA/CoARA acknowledgment gating the discouraged counts (falls back to English). */
+export function metricsDiscouragedAck(locale: string): string {
+  return METRIC_HINTS_I18N[asLocale(locale)].discouragedAck;
 }

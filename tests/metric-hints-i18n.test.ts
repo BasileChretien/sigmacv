@@ -5,7 +5,10 @@ import {
   METRICS_CROWDING_THRESHOLD,
   metricHint,
   metricsCrowdingNote,
+  metricsDiscouragedAck,
+  metricsDiscouragedGroup,
   metricsNudge,
+  metricsRecommendedGroup,
 } from "@/lib/i18n/metricHints";
 import { METRIC_KEYS } from "@/lib/render/metrics";
 
@@ -66,5 +69,31 @@ describe("metricsNudge / metricsCrowdingNote (metrics onboarding copy)", () => {
 
   it("uses a metrics-heavy threshold above a sensible one-or-two-metric header", () => {
     expect(METRICS_CROWDING_THRESHOLD).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("metric-group headings + discouraged acknowledgment (item 2 gate)", () => {
+  it("gives non-empty recommended/discouraged headings for all 10 locales", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      expect(metricsRecommendedGroup(loc).length).toBeGreaterThan(0);
+      expect(metricsDiscouragedGroup(loc).length).toBeGreaterThan(0);
+      // the two headings must differ (recommended vs discouraged)
+      expect(metricsRecommendedGroup(loc)).not.toBe(metricsDiscouragedGroup(loc));
+    }
+  });
+
+  it("references DORA in the discouraged acknowledgment for all 10 locales", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const ack = metricsDiscouragedAck(loc);
+      expect(ack.length).toBeGreaterThan(0);
+      // "DORA" appears verbatim so the editor can linkify it (MetricsNoteText).
+      expect(ack).toContain("DORA");
+    }
+  });
+
+  it("falls back to English for an unknown locale", () => {
+    expect(metricsRecommendedGroup("xx-XX")).toBe(metricsRecommendedGroup("en-US"));
+    expect(metricsDiscouragedGroup("xx-XX")).toBe(metricsDiscouragedGroup("en-US"));
+    expect(metricsDiscouragedAck("xx-XX")).toBe(metricsDiscouragedAck("en-US"));
   });
 });
