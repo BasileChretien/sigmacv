@@ -1,4 +1,4 @@
-import { licenseInfo } from "@/lib/canonical/license";
+import { METADATA_LICENSE_URL, licenseInfo } from "@/lib/canonical/license";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { absoluteUrl } from "@/lib/siteUrl";
 import { PUBLIC_FORMAT_META } from "./publicFormats";
@@ -24,7 +24,8 @@ const OPENALEX_AUTHOR_RE = /^A\d+$/;
  *   - `author`      → the owner's ORCID + OpenAlex author profile(s)
  *   - `describedby` → each machine representation (.jsonld / .csl.json / .bib /
  *                     .json), each tagged with its media `type`
- *   - `license`     → the CV reuse-license URL, when the owner chose a linkable one
+ *   - `license`     → the CC0 metadata-reuse URL (always; the exposed records are
+ *                     CC0), plus the CV CONTENT license URL when the owner chose one
  *
  * `cite-as` (the resource's OWN persistent identifier) is intentionally NOT
  * emitted yet: a CV has no DOI until the snapshot-DOI feature (open-science
@@ -61,9 +62,14 @@ export function signpostingLinkHeader(cv: CanonicalCv, slug: string): string {
     links.push(`<${url}>; rel="describedby"; type="${meta.mediaType}"`);
   }
 
-  // Whole-CV reuse license (a fixed SPDX URL), when the owner chose a linkable one.
-  const license = licenseInfo(cv.display.cvLicense)?.url;
-  if (license) links.push(`<${license}>; rel="license"`);
+  // Reuse licenses (fixed SPDX URLs → inherently header-safe). The exposed
+  // METADATA is always CC0 (open-science norm; freely reusable records); the
+  // owner's chosen CV CONTENT license is advertised alongside it when set.
+  // De-duplicated so a CC0 content license isn't listed twice.
+  const licenses = new Set<string>([METADATA_LICENSE_URL]);
+  const content = licenseInfo(cv.display.cvLicense)?.url;
+  if (content) licenses.add(content);
+  for (const url of licenses) links.push(`<${url}>; rel="license"`);
 
   return links.join(", ");
 }

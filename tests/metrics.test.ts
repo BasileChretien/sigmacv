@@ -35,6 +35,8 @@ function withMetrics(overrides: Partial<CanonicalCv["display"]>): CanonicalCv {
         i10_index: 8,
         works_count: 116,
         cited_by_count: 1485,
+        mncs: 1.9,
+        mncs_n: 40,
         fwci_mean: 1.84,
         top10pct_share: 0.25,
       },
@@ -47,7 +49,8 @@ describe("formatMetricValue", () => {
   it("formats per the metric's catalog format", () => {
     expect(formatMetricValue("h_index", 12)).toBe("12"); // integer
     expect(formatMetricValue("works_count", 116)).toBe("116"); // integer
-    expect(formatMetricValue("fwci_mean", 1.84)).toBe("1.8"); // decimal
+    expect(formatMetricValue("mncs", 1.76)).toBe("1.8"); // decimal (catalog key)
+    expect(formatMetricValue("fwci_mean", 1.84)).toBe("1.8"); // decimal (removed → fallback)
     // Unknown / removed keys fall back to the decimal format.
     expect(formatMetricValue("top10pct_share", 0.25)).toBe("0.3");
   });
@@ -88,44 +91,62 @@ describe("formattedMetrics", () => {
   it("formats field-normalized metrics and ignores removed/unknown keys", () => {
     const cv = withMetrics({
       showMetrics: true,
-      // top10pct_share is no longer a selectable metric → silently dropped.
-      metrics: ["fwci_mean", "top10pct_share"],
+      // fwci_mean (mean of ratios) and top10pct_share are no longer selectable
+      // metrics → silently dropped; only the MNCS ratio-of-sums renders.
+      metrics: ["mncs", "fwci_mean", "top10pct_share"],
     });
-    expect(metricsLineText(cv)).toBe("Mean work FWCI: 1.8");
+    expect(metricsLineText(cv)).toBe("Field-normalised impact (MNCS): 1.9");
   });
 
-  it("appends FWCI coverage (mean over N works) when fwci_n is present", () => {
+  it("appends MNCS coverage (over N works with a field baseline) when mncs_n is present", () => {
     const cv = makeCv();
     const withCoverage: CanonicalCv = {
       ...cv,
-      owner: { ...cv.owner, metrics: { fwci_mean: 1.84, fwci_n: 73 } },
-      display: { ...cv.display, showMetrics: true, metrics: ["fwci_mean"] },
+      owner: { ...cv.owner, metrics: { mncs: 1.84, mncs_n: 73 } },
+      display: { ...cv.display, showMetrics: true, metrics: ["mncs"] },
     };
-    const fwci = formattedMetrics(withCoverage)[0];
-    expect(fwci?.value).toBe("1.8");
-    // The anchor is the inline `context`; the coverage rides a separate field
-    // (the header surfaces it as a hover title, not inline).
-    expect(fwci?.context).toContain("1.0 = world average");
-    expect(fwci?.coverageNote).toContain("mean over 73 works with FWCI");
+    const mncs = formattedMetrics(withCoverage)[0];
+    expect(mncs?.value).toBe("1.8");
+    expect(mncs?.context).toContain("1.0 = world average");
+    // The coverage rides a separate VISIBLE field (never a mouse-only hover title).
+    expect(mncs?.coverageNote).toContain("over 73 works with a field baseline");
+    // N ≥ SMALL_N_THRESHOLD → no small-sample caveat.
+    expect(mncs?.coverageNote).not.toContain("small sample");
   });
 
-  it("omits FWCI coverage when fwci_n is absent", () => {
+  it("flags a small MNCS sample below the reliability threshold", () => {
+    const cv = makeCv();
+    const smallN: CanonicalCv = {
+      ...cv,
+      owner: { ...cv.owner, metrics: { mncs: 1.5, mncs_n: 4 } },
+      display: { ...cv.display, showMetrics: true, metrics: ["mncs"] },
+    };
+    const mncs = formattedMetrics(smallN)[0];
+    expect(mncs?.coverageNote).toContain("over 4 works with a field baseline");
+    expect(mncs?.coverageNote).toContain("small sample");
+  });
+
+  it("omits MNCS coverage when mncs_n is absent", () => {
     const cv = makeCv();
     const noCoverage: CanonicalCv = {
       ...cv,
-      owner: { ...cv.owner, metrics: { fwci_mean: 1.84 } },
-      display: { ...cv.display, showMetrics: true, metrics: ["fwci_mean"] },
+      owner: { ...cv.owner, metrics: { mncs: 1.84 } },
+      display: { ...cv.display, showMetrics: true, metrics: ["mncs"] },
     };
-    const fwci = formattedMetrics(noCoverage)[0];
-    expect(fwci?.context).toBe("1.0 = world average for field & year");
+    const mncs = formattedMetrics(noCoverage)[0];
+    expect(mncs?.coverageNote).toBeUndefined();
+    expect(mncs?.context).toContain("world average");
   });
 
   it("leads with field-normalized measures before h-index", () => {
     const cv = withMetrics({
       showMetrics: true,
-      metrics: ["h_index", "fwci_mean"],
+      metrics: ["h_index", "mncs"],
     });
-    expect(formattedMetrics(cv).map((m) => m.label)).toEqual(["Mean work FWCI", "h-index"]);
+    expect(formattedMetrics(cv).map((m) => m.label)).toEqual([
+      "Field-normalised impact (MNCS)",
+      "h-index",
+    ]);
   });
 
   it("shows the iCite RCR mean with its biomedical caveat + coverage", () => {
@@ -197,6 +218,15 @@ describe("curatedMetrics (field-normalized measures follow curation)", () => {
     expect(m.top10pct_share).toBeCloseTo(2 / 3, 5);
     expect(m.h_index).toBe(12); // OpenAlex official — untouched
     expect(m.works_count).toBe(116); // untouched
+  });
+
+  it("recomputes MNCS as a ratio of sums (not the mean of per-work ratios)", () => {
+    // Each work cited 10× with FWCI 2/1/5 → expected 5/10/2. Ratio of sums =
+    // (10+10+10) / (5+10+2) = 30/17 ≈ 1.76, distinct from mean-FWCI (2+1+5)/3 = 2.67.
+    const m = curatedMetrics(build3());
+    expect(m.mncs).toBeCloseTo(30 / 17, 5);
+    expect(m.mncs_n).toBe(3);
+    expect(m.mncs).not.toBeCloseTo(m.fwci_mean as number, 2);
   });
 
   it("excludes preprints from the FWCI recompute", () => {
@@ -271,6 +301,9 @@ describe("curatedMetrics (field-normalized measures follow curation)", () => {
     expect(m.fwci_mean).toBeCloseTo(1.5, 5); // (2 + 1) / 2
     expect(m.fwci_n).toBe(2);
     expect(m.top10pct_share).toBeCloseTo(0.5, 5); // 1 of 2
+    // MNCS drops the "not mine" work too: (10+10) / (5+10) = 20/15.
+    expect(m.mncs).toBeCloseTo(20 / 15, 5);
+    expect(m.mncs_n).toBe(2);
   });
 
   it("keeps the author-level FWCI when no per-work data is present (pre-re-sync)", () => {

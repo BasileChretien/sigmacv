@@ -55,14 +55,14 @@ function localizedCv(locale: string): CanonicalCv {
     ...cv,
     owner: {
       ...cv.owner,
-      metrics: { fwci_mean: 1.4 },
+      metrics: { mncs: 1.4, mncs_n: 20 },
     },
     display: {
       ...cv.display,
       locale,
       showCharts: true,
       showMetrics: true,
-      metrics: ["fwci_mean"],
+      metrics: ["mncs"],
       showAuthorshipTable: true,
       authorshipRoles: ["first"],
       showProvenance: true, // this test asserts the (opt-in) provenance footer
@@ -128,7 +128,7 @@ describe.skipIf(!hasApa)("rendered CV output is fully localized", () => {
     expect(html).toContain('<html lang="fr-FR">');
     expect(html).not.toContain('<html lang="en">');
     expect(html).toContain("Publications / an"); // chart caption (citations/year was dropped)
-    expect(html).toContain("FWCI moyen des travaux"); // metric label
+    expect(html).toContain("Impact normalisé par domaine (MNCS)"); // metric label
     expect(html).toContain("moyenne mondiale"); // metric context
     expect(html).toContain("évalués par les pairs"); // authorship caption (agrees with "Rôles d’auteur")
     expect(html).toContain("Premier auteur"); // authorship role
