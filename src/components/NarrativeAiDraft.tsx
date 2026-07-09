@@ -23,6 +23,11 @@ const LS = {
   apiKey: "sigmacv.ai.apiKey",
 } as const;
 
+// Editable starting defaults so a user only needs to paste a key for the common
+// case — NOT a locked preset: both fields stay fully editable for any provider.
+const DEFAULT_BASE_URL = "https://api.mistral.ai/v1";
+const DEFAULT_MODEL = "open-mistral-nemo";
+
 /**
  * Optional AI first-draft for a narrative-CV module — BRING-YOUR-OWN-KEY. The user
  * supplies their own OpenAI-compatible provider (base URL + model + key); it is
@@ -43,11 +48,13 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
   // server and first client render match).
   useEffect(() => {
     try {
-      setBaseUrl(localStorage.getItem(LS.baseUrl) ?? "");
-      setModel(localStorage.getItem(LS.model) ?? "");
+      setBaseUrl(localStorage.getItem(LS.baseUrl) || DEFAULT_BASE_URL);
+      setModel(localStorage.getItem(LS.model) || DEFAULT_MODEL);
       setApiKey(localStorage.getItem(LS.apiKey) ?? "");
     } catch {
-      /* localStorage unavailable (private mode) — the fields just start empty. */
+      // localStorage unavailable (private mode) — fall back to the editable defaults.
+      setBaseUrl(DEFAULT_BASE_URL);
+      setModel(DEFAULT_MODEL);
     }
   }, []);
 
@@ -63,14 +70,14 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
     }
   }
 
+  // Clears only the sensitive KEY (the endpoint + model aren't secrets and stay,
+  // so the user doesn't have to re-enter them) — for shared computers.
   function forget() {
     try {
-      for (const k of Object.values(LS)) localStorage.removeItem(k);
+      localStorage.removeItem(LS.apiKey);
     } catch {
       /* ignore */
     }
-    setBaseUrl("");
-    setModel("");
     setApiKey("");
   }
 

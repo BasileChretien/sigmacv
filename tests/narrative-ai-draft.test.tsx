@@ -69,9 +69,17 @@ describe("NarrativeAiDraft (bring-your-own-key)", () => {
     expect(onInsert).toHaveBeenCalledWith("My key contributions.");
   });
 
-  it("keeps Generate disabled until base URL, model and key are all provided", () => {
+  it("pre-fills editable Mistral defaults so only a key is required", async () => {
     render(<NarrativeAiDraft section={section} locale="en-US" onInsert={vi.fn()} />);
     fireEvent.click(screen.getByText(/Draft with AI/));
+    await waitFor(() =>
+      expect((screen.getByLabelText(/API base URL/i) as HTMLInputElement).value).toBe(
+        "https://api.mistral.ai/v1",
+      ),
+    );
+    expect((screen.getByLabelText(/^Model$/i) as HTMLInputElement).value).toBe("open-mistral-nemo");
+    // The key is NOT defaulted, so Generate stays disabled until it's entered.
+    expect((screen.getByLabelText(/^API key$/i) as HTMLInputElement).value).toBe("");
     expect((screen.getByText("Generate draft") as HTMLButtonElement).disabled).toBe(true);
   });
 
