@@ -10,23 +10,23 @@ import {
 import { METRIC_KEYS } from "@/lib/render/metrics";
 
 describe("metricHint", () => {
-  it("returns the field-normalised hint only for FWCI/RCR, the raw hint otherwise", () => {
-    expect(metricHint("en-US", "fwci_mean")).toContain("Field-normalised");
+  it("returns the field-normalised hint only for MNCS/RCR, the raw hint otherwise", () => {
+    expect(metricHint("en-US", "mncs")).toContain("Field-normalised");
     expect(metricHint("en-US", "rcr_mean")).toContain("Field-normalised");
     expect(metricHint("en-US", "h_index")).toContain("Not field-normalised");
     expect(metricHint("en-US", "cited_by_count")).toContain("Not field-normalised");
   });
 
   it("falls back to English for an unknown locale", () => {
-    expect(metricHint("xx-XX", "fwci_mean")).toBe(metricHint("en-US", "fwci_mean"));
+    expect(metricHint("xx-XX", "mncs")).toBe(metricHint("en-US", "mncs"));
   });
 
   it("has a non-empty normalised + raw hint for all 10 locales", () => {
     for (const loc of SUPPORTED_LOCALES) {
-      expect(metricHint(loc, "fwci_mean").length).toBeGreaterThan(0);
+      expect(metricHint(loc, "mncs").length).toBeGreaterThan(0);
       expect(metricHint(loc, "h_index").length).toBeGreaterThan(0);
       // the two hints must differ (distinct guidance per category)
-      expect(metricHint(loc, "fwci_mean")).not.toBe(metricHint(loc, "h_index"));
+      expect(metricHint(loc, "mncs")).not.toBe(metricHint(loc, "h_index"));
     }
   });
 

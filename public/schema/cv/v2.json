@@ -83,7 +83,10 @@
                 "maxLength": 2048
               }
             },
-            "required": ["label", "url"]
+            "required": [
+              "label",
+              "url"
+            ]
           }
         },
         "personal": {
@@ -137,6 +140,14 @@
               "minimum": -9007199254740991,
               "maximum": 9007199254740991
             },
+            "mncs": {
+              "type": "number"
+            },
+            "mncs_n": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
             "fwci_mean": {
               "type": "number"
             },
@@ -180,7 +191,11 @@
                 "maximum": 9007199254740991
               }
             },
-            "required": ["year", "works", "citations"]
+            "required": [
+              "year",
+              "works",
+              "citations"
+            ]
           }
         },
         "researchAreas": {
@@ -199,7 +214,10 @@
                 "maximum": 9007199254740991
               }
             },
-            "required": ["field", "count"]
+            "required": [
+              "field",
+              "count"
+            ]
           }
         },
         "wikidataUri": {
@@ -215,7 +233,11 @@
           }
         }
       },
-      "required": ["orcid", "openAlexAuthorIds", "displayName"]
+      "required": [
+        "orcid",
+        "openAlexAuthorIds",
+        "displayName"
+      ]
     },
     "display": {
       "type": "object",
@@ -223,7 +245,13 @@
         "template": {
           "default": "classic",
           "type": "string",
-          "enum": ["classic", "modern", "sidebar", "ats", "rirekisho"]
+          "enum": [
+            "classic",
+            "modern",
+            "sidebar",
+            "ats",
+            "rirekisho"
+          ]
         },
         "publicStyle": {
           "default": "match",
@@ -283,7 +311,11 @@
               "maxLength": 600000
             }
           },
-          "required": ["id", "title", "xml"]
+          "required": [
+            "id",
+            "title",
+            "xml"
+          ]
         },
         "locale": {
           "default": "en-US",
@@ -297,12 +329,23 @@
         "highlightStyle": {
           "default": "accent",
           "type": "string",
-          "enum": ["accent", "bold", "underline", "accent-underline"]
+          "enum": [
+            "accent",
+            "bold",
+            "underline",
+            "accent-underline"
+          ]
         },
         "cvLicense": {
           "default": "none",
           "type": "string",
-          "enum": ["none", "CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "all-rights-reserved"]
+          "enum": [
+            "none",
+            "CC0-1.0",
+            "CC-BY-4.0",
+            "CC-BY-SA-4.0",
+            "all-rights-reserved"
+          ]
         },
         "showMetrics": {
           "default": false,
@@ -335,7 +378,12 @@
         "summaryBlockPosition": {
           "default": "header",
           "type": "string",
-          "enum": ["header", "top", "bottom", "hidden"]
+          "enum": [
+            "header",
+            "top",
+            "bottom",
+            "hidden"
+          ]
         },
         "summaryHeading": {
           "type": "string",
@@ -368,7 +416,12 @@
         "publicationOrder": {
           "default": "custom",
           "type": "string",
-          "enum": ["custom", "citations", "year-desc", "year-asc"]
+          "enum": [
+            "custom",
+            "citations",
+            "year-desc",
+            "year-asc"
+          ]
         },
         "publicationsLimit": {
           "type": "integer",
@@ -448,12 +501,19 @@
         "fontPairing": {
           "default": "serif",
           "type": "string",
-          "enum": ["serif", "sans", "palatino"]
+          "enum": [
+            "serif",
+            "sans",
+            "palatino"
+          ]
         },
         "density": {
           "default": "comfortable",
           "type": "string",
-          "enum": ["comfortable", "compact"]
+          "enum": [
+            "comfortable",
+            "compact"
+          ]
         },
         "fontScale": {
           "default": 1,
@@ -464,7 +524,10 @@
         "pageFormat": {
           "default": "a4",
           "type": "string",
-          "enum": ["a4", "letter"]
+          "enum": [
+            "a4",
+            "letter"
+          ]
         },
         "publicContact": {
           "default": {},
@@ -737,7 +800,10 @@
                       "type": "string"
                     }
                   },
-                  "required": ["id", "type"],
+                  "required": [
+                    "id",
+                    "type"
+                  ],
                   "additionalProperties": false
                 },
                 "displayText": {
@@ -760,7 +826,12 @@
                 },
                 "notMineReason": {
                   "type": "string",
-                  "enum": ["different-person", "duplicate", "wrong-field", "other"]
+                  "enum": [
+                    "different-person",
+                    "duplicate",
+                    "wrong-field",
+                    "other"
+                  ]
                 },
                 "featured": {
                   "type": "boolean"
@@ -946,7 +1017,12 @@
                     },
                     "matchBasis": {
                       "type": "string",
-                      "enum": ["orcid", "openalex-id", "both", "claimed"]
+                      "enum": [
+                        "orcid",
+                        "openalex-id",
+                        "both",
+                        "claimed"
+                      ]
                     },
                     "claimed": {
                       "type": "boolean"
@@ -978,7 +1054,12 @@
                         "tier": {
                           "default": "weak",
                           "type": "string",
-                          "enum": ["exact", "related", "strong", "weak"]
+                          "enum": [
+                            "exact",
+                            "related",
+                            "strong",
+                            "weak"
+                          ]
                         },
                         "relationship": {
                           "type": "string",
@@ -996,7 +1077,10 @@
                           "maxLength": 1024
                         }
                       },
-                      "required": ["itemId", "groupId"]
+                      "required": [
+                        "itemId",
+                        "groupId"
+                      ]
                     },
                     "topic": {
                       "type": "object",
@@ -1041,7 +1125,10 @@
                           }
                         }
                       },
-                      "required": ["score", "signals"]
+                      "required": [
+                        "score",
+                        "signals"
+                      ]
                     }
                   }
                 }
@@ -1063,7 +1150,14 @@
             "maxLength": 8000
           }
         },
-        "required": ["id", "type", "title", "visible", "order", "items"]
+        "required": [
+          "id",
+          "type",
+          "title",
+          "visible",
+          "order",
+          "items"
+        ]
       }
     },
     "presets": {
@@ -1089,7 +1183,13 @@
               "template": {
                 "default": "classic",
                 "type": "string",
-                "enum": ["classic", "modern", "sidebar", "ats", "rirekisho"]
+                "enum": [
+                  "classic",
+                  "modern",
+                  "sidebar",
+                  "ats",
+                  "rirekisho"
+                ]
               },
               "publicStyle": {
                 "default": "match",
@@ -1149,7 +1249,11 @@
                     "maxLength": 600000
                   }
                 },
-                "required": ["id", "title", "xml"]
+                "required": [
+                  "id",
+                  "title",
+                  "xml"
+                ]
               },
               "locale": {
                 "default": "en-US",
@@ -1163,12 +1267,23 @@
               "highlightStyle": {
                 "default": "accent",
                 "type": "string",
-                "enum": ["accent", "bold", "underline", "accent-underline"]
+                "enum": [
+                  "accent",
+                  "bold",
+                  "underline",
+                  "accent-underline"
+                ]
               },
               "cvLicense": {
                 "default": "none",
                 "type": "string",
-                "enum": ["none", "CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "all-rights-reserved"]
+                "enum": [
+                  "none",
+                  "CC0-1.0",
+                  "CC-BY-4.0",
+                  "CC-BY-SA-4.0",
+                  "all-rights-reserved"
+                ]
               },
               "showMetrics": {
                 "default": false,
@@ -1201,7 +1316,12 @@
               "summaryBlockPosition": {
                 "default": "header",
                 "type": "string",
-                "enum": ["header", "top", "bottom", "hidden"]
+                "enum": [
+                  "header",
+                  "top",
+                  "bottom",
+                  "hidden"
+                ]
               },
               "summaryHeading": {
                 "type": "string",
@@ -1234,7 +1354,12 @@
               "publicationOrder": {
                 "default": "custom",
                 "type": "string",
-                "enum": ["custom", "citations", "year-desc", "year-asc"]
+                "enum": [
+                  "custom",
+                  "citations",
+                  "year-desc",
+                  "year-asc"
+                ]
               },
               "publicationsLimit": {
                 "type": "integer",
@@ -1314,12 +1439,19 @@
               "fontPairing": {
                 "default": "serif",
                 "type": "string",
-                "enum": ["serif", "sans", "palatino"]
+                "enum": [
+                  "serif",
+                  "sans",
+                  "palatino"
+                ]
               },
               "density": {
                 "default": "comfortable",
                 "type": "string",
-                "enum": ["comfortable", "compact"]
+                "enum": [
+                  "comfortable",
+                  "compact"
+                ]
               },
               "fontScale": {
                 "default": 1,
@@ -1330,7 +1462,10 @@
               "pageFormat": {
                 "default": "a4",
                 "type": "string",
-                "enum": ["a4", "letter"]
+                "enum": [
+                  "a4",
+                  "letter"
+                ]
               },
               "publicContact": {
                 "default": {},
@@ -1388,7 +1523,11 @@
             }
           }
         },
-        "required": ["id", "name", "display"]
+        "required": [
+          "id",
+          "name",
+          "display"
+        ]
       }
     },
     "notes": {
@@ -1434,10 +1573,20 @@
           }
         }
       },
-      "required": ["generatedAt", "sources"]
+      "required": [
+        "generatedAt",
+        "sources"
+      ]
     }
   },
-  "required": ["schemaVersion", "id", "owner", "display", "sections", "provenance"],
+  "required": [
+    "schemaVersion",
+    "id",
+    "owner",
+    "display",
+    "sections",
+    "provenance"
+  ],
   "$id": "https://sigmacv.org/schema/cv/v2.json",
   "title": "SigmaCV canonical CV",
   "description": "The canonical CV object SigmaCV produces and validates (schemaVersion 2). Derived from the Zod schema; source at https://github.com/BasileChretien/sigmacv."
