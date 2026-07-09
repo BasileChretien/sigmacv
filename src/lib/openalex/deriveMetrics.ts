@@ -7,7 +7,22 @@ import type { OpenAlexWork } from "./types";
  * than fabricated.
  */
 export interface DerivedMetrics {
-  /** Mean of per-work FWCI (a proxy — NOT OpenAlex's official author FWCI). */
+  /**
+   * MNCS (mean normalized citation score) computed as a RATIO OF SUMS — total
+   * observed citations ÷ total field/year-EXPECTED citations — the consistent
+   * author-level field normalization (Waltman et al. 2011, "Towards a new crown
+   * indicator"). 1.0 = field & year average. This is the headline field-normalized
+   * indicator; it does NOT suffer the "average of ratios" bias of {@link fwci_mean}.
+   */
+  mncs?: number;
+  /** Works the MNCS spans (those carrying an FWCI + a citation count). */
+  mncs_n?: number;
+  /**
+   * Mean of per-work FWCI — a ROUGH PROXY only. It is an "average of ratios",
+   * which over-weights works in low-citation fields/years, so it is deprecated as
+   * a headline (prefer {@link mncs}) and no longer offered in the metric catalog.
+   * Still computed + stored for back-compat and research.
+   */
   fwci_mean?: number;
   /**
    * Number of works that actually carried an FWCI value, i.e. the sample the
@@ -16,12 +31,37 @@ export interface DerivedMetrics {
    * average isn't read as a precise field-normalized score (Leiden principle 7).
    */
   fwci_n?: number;
-  /** Fraction (0..1) of works in the top decile by field+year citations. */
+  /**
+   * Fraction (0..1) of works in the top decile by PUBLICATION-YEAR citations
+   * (OpenAlex `cited_by_percentile_year` ≥ 90). NOTE: year-normalized only, NOT
+   * field-normalized — it reads high for most authors (most works globally are
+   * barely cited), so it is stored for research but NOT offered as a metric.
+   */
   top10pct_share?: number;
 }
 
 export function computeDerivedMetrics(works: OpenAlexWork[]): DerivedMetrics {
   const out: DerivedMetrics = {};
+
+  // MNCS as a RATIO OF SUMS (the consistent crown indicator). FWCI_i = c_i / e_i,
+  // so the field/year-expected citations e_i = c_i / FWCI_i (recoverable only when
+  // FWCI_i > 0, i.e. the work has ≥1 citation and a field baseline). MNCS is then
+  // Σ c_i ÷ Σ e_i — NEVER the mean of the per-work ratios.
+  const mncsWorks = works.filter(
+    (w) => typeof w.fwci === "number" && w.fwci > 0 && typeof w.cited_by_count === "number",
+  );
+  if (mncsWorks.length > 0) {
+    const observed = mncsWorks.reduce((s, w) => s + (w.cited_by_count as number), 0);
+    const expected = mncsWorks.reduce(
+      (s, w) => s + (w.cited_by_count as number) / (w.fwci as number),
+      0,
+    );
+    /* v8 ignore next -- expected > 0 whenever a work with FWCI>0 exists (FWCI>0 ⟺ cited) */
+    if (expected > 0) {
+      out.mncs = observed / expected;
+      out.mncs_n = mncsWorks.length;
+    }
+  }
 
   const fwcis = works.map((w) => w.fwci).filter((x): x is number => typeof x === "number");
   if (fwcis.length > 0) {
@@ -32,7 +72,7 @@ export function computeDerivedMetrics(works: OpenAlexWork[]): DerivedMetrics {
   // OpenAlex returns `cited_by_percentile_year` as a {min, max} RANGE (there is
   // no `.value` field), e.g. {min: 91, max: 92}. Read the midpoint of the range,
   // falling back to `.value` if a caller supplies it. A work is "top-10%" when
-  // its citation percentile for its field+year is ≥ 90.
+  // its by-year citation percentile is ≥ 90 (year-normalized, not field-normalized).
   const percentiles = works
     .map((w) => percentileOf(w.cited_by_percentile_year))
     .filter((x): x is number => typeof x === "number");
@@ -43,9 +83,10 @@ export function computeDerivedMetrics(works: OpenAlexWork[]): DerivedMetrics {
   return out;
 }
 
-/** Whether a single work sits in the top decile (citation percentile ≥ 90) for
- *  its field + year — stored per work so the share recomputes over curated works.
- *  undefined when OpenAlex carries no percentile for the work. */
+/** Whether a single work sits in the top decile (by-year citation percentile ≥ 90)
+ *  — year-normalized, not field-normalized. Stored per work so the (research-only)
+ *  share recomputes over curated works. undefined when OpenAlex carries no
+ *  percentile for the work. */
 export function workTopDecile(work: OpenAlexWork): boolean | undefined {
   const p = percentileOf(work.cited_by_percentile_year);
   return typeof p === "number" ? p >= 90 : undefined;

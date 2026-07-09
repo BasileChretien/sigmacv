@@ -130,9 +130,9 @@ describe("rich content (tables, photo) in exports", () => {
       headline: "Pharmacovigilance & Clinical Pharmacology",
       contact: { email: "basile@example.org" },
       summary: "Drug-safety researcher.",
-      metrics: { fwci_mean: 1.6, h_index: 12 },
+      metrics: { mncs: 1.6, h_index: 12 },
     },
-    display: { ...rich("modern").display, showMetrics: true, metrics: ["fwci_mean", "h_index"] },
+    display: { ...rich("modern").display, showMetrics: true, metrics: ["mncs", "h_index"] },
   };
 
   it("DOCX is a valid plain document carrying the header, tables and sections", async () => {
@@ -204,9 +204,9 @@ describe("Sidebar template — two-column layout in exports", () => {
       headline: "Pharmacovigilance & Clinical Pharmacology",
       contact: { email: "basile@example.org" },
       summary: "Drug-safety researcher.",
-      metrics: { fwci_mean: 1.6, h_index: 12 },
+      metrics: { mncs: 1.6, h_index: 12 },
     },
-    display: { ...rich("sidebar").display, showMetrics: true, metrics: ["fwci_mean", "h_index"] },
+    display: { ...rich("sidebar").display, showMetrics: true, metrics: ["mncs", "h_index"] },
   };
 
   it("LaTeX uses a paracol two-column layout with a full-height accent band", () => {
