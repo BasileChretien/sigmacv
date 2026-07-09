@@ -66,6 +66,15 @@ export interface RenderStrings {
   metricContextRcr: string;
   /** Coverage note appended to mean-RCR; "{n}" is replaced with the work count. */
   metricRcrCoverage: string;
+  /** Label for the headline field-normalized MNCS (ratio of sums). */
+  metricMncs: string;
+  /** Responsible-reading context for MNCS (benchmark + how it's built). */
+  metricContextMncs: string;
+  /** Coverage note for MNCS; "{n}" → works with a field baseline. */
+  metricMncsCoverage: string;
+  /** Small-sample caveat appended to a field-normalized coverage note below the
+   *  reliability threshold. */
+  metricSmallN: string;
   roleFirst: string;
   roleSecond: string;
   roleThird: string;
@@ -187,6 +196,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricRcr: "Mean RCR",
     metricContextRcr: "1.0 = NIH-funded average; biomedical (PMID) works only",
     metricRcrCoverage: "mean over {n} works with RCR",
+    metricMncs: "Field-normalised impact (MNCS)",
+    metricContextMncs: "1.0 = world average for field & year; citation-weighted (ratio of sums)",
+    metricMncsCoverage: "over {n} works with a field baseline",
+    metricSmallN: "small sample — interpret with caution",
     roleFirst: "First author",
     roleSecond: "Second author",
     roleThird: "Third author",
@@ -261,6 +274,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricRcr: "平均 RCR",
     metricContextRcr: "1.0 = NIH 资助论文的平均水平；仅限生物医学（PMID）成果",
     metricRcrCoverage: "基于 {n} 篇有 RCR 的成果的均值",
+    metricMncs: "领域归一化影响 (MNCS)",
+    metricContextMncs: "1.0 = 同领域同年度的全球平均水平；按引用加权（比值之和）",
+    metricMncsCoverage: "基于 {n} 篇有领域基准的成果",
+    metricSmallN: "样本较小——请谨慎解读",
     roleFirst: "第一作者",
     roleSecond: "第二作者",
     roleThird: "第三作者",
@@ -338,6 +355,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextRcr:
       "1,0 = media de artículos financiados por los NIH; solo trabajos biomédicos (PMID)",
     metricRcrCoverage: "media sobre {n} trabajos con RCR",
+    metricMncs: "Impacto normalizado por campo (MNCS)",
+    metricContextMncs: "1,0 = media mundial del campo y año; ponderado por citas (razón de sumas)",
+    metricMncsCoverage: "sobre {n} trabajos con base de comparación por campo",
+    metricSmallN: "muestra pequeña: interprétalo con cautela",
     roleFirst: "Primer autor",
     roleSecond: "Segundo autor",
     roleThird: "Tercer autor",
@@ -416,6 +437,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextRcr:
       "1,0 = moyenne des articles financés par les NIH ; uniquement les travaux biomédicaux (PMID)",
     metricRcrCoverage: "moyenne sur {n} travaux avec RCR",
+    metricMncs: "Impact normalisé par domaine (MNCS)",
+    metricContextMncs:
+      "1,0 = moyenne mondiale pour le domaine et l’année ; pondéré par les citations (rapport de sommes)",
+    metricMncsCoverage: "sur {n} travaux disposant d’une référence de domaine",
+    metricSmallN: "échantillon réduit — à interpréter avec prudence",
     roleFirst: "Premier auteur",
     roleSecond: "Deuxième auteur",
     roleThird: "Troisième auteur",
@@ -493,6 +519,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextRcr:
       "1,0 = Durchschnitt NIH-geförderter Arbeiten; nur biomedizinische (PMID) Arbeiten",
     metricRcrCoverage: "Mittel über {n} Werke mit RCR",
+    metricMncs: "Feldnormierte Wirkung (MNCS)",
+    metricContextMncs:
+      "1,0 = Weltdurchschnitt für Fachgebiet & Jahr; zitationsgewichtet (Verhältnis der Summen)",
+    metricMncsCoverage: "über {n} Werke mit Fachreferenz",
+    metricSmallN: "kleine Stichprobe – mit Vorsicht interpretieren",
     roleFirst: "Erstautor",
     roleSecond: "Zweitautor",
     roleThird: "Drittautor",
@@ -567,6 +598,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricRcr: "平均 RCR",
     metricContextRcr: "1.0 = NIH 助成論文の平均；生物医学（PMID）業績のみ",
     metricRcrCoverage: "RCRのある{n}件の業績による平均",
+    metricMncs: "分野正規化インパクト (MNCS)",
+    metricContextMncs: "1.0 = 分野・年の世界平均；引用加重（総和の比）",
+    metricMncsCoverage: "分野基準のある{n}件の業績による",
+    metricSmallN: "少数サンプル — 解釈には注意",
     roleFirst: "筆頭著者",
     roleSecond: "第二著者",
     roleThird: "第三著者",
@@ -645,6 +680,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextRcr:
       "1,0 = média de artigos financiados pelo NIH; apenas trabalhos biomédicos (PMID)",
     metricRcrCoverage: "média sobre {n} trabalhos com RCR",
+    metricMncs: "Impacto normalizado por área (MNCS)",
+    metricContextMncs:
+      "1,0 = média mundial para a área e o ano; ponderado por citações (razão de somas)",
+    metricMncsCoverage: "sobre {n} trabalhos com referência de área",
+    metricSmallN: "amostra pequena — interprete com cautela",
     roleFirst: "Primeiro autor",
     roleSecond: "Segundo autor",
     roleThird: "Terceiro autor",
@@ -722,6 +762,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricRcr: "RCR medio",
     metricContextRcr: "1,0 = media degli articoli finanziati dai NIH; solo lavori biomedici (PMID)",
     metricRcrCoverage: "media su {n} lavori con RCR",
+    metricMncs: "Impatto normalizzato per campo (MNCS)",
+    metricContextMncs:
+      "1,0 = media mondiale per campo e anno; ponderato per citazioni (rapporto tra somme)",
+    metricMncsCoverage: "su {n} lavori con riferimento di campo",
+    metricSmallN: "campione ridotto — interpretare con cautela",
     roleFirst: "Primo autore",
     roleSecond: "Secondo autore",
     roleThird: "Terzo autore",
@@ -796,6 +841,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricRcr: "평균 RCR",
     metricContextRcr: "1.0 = NIH 지원 논문 평균; 생의학(PMID) 논문만",
     metricRcrCoverage: "RCR가 있는 {n}편 논문 기준 평균",
+    metricMncs: "분야 정규화 영향력 (MNCS)",
+    metricContextMncs: "1.0 = 분야 및 연도별 세계 평균; 인용 가중(합의 비율)",
+    metricMncsCoverage: "분야 기준이 있는 {n}편 논문 기준",
+    metricSmallN: "표본이 적음 — 해석에 주의",
     roleFirst: "제1저자",
     roleSecond: "제2저자",
     roleThird: "제3저자",
@@ -872,6 +921,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricContextRcr:
       "1,0 = среднее для статей, финансируемых NIH; только биомедицинские работы (PMID)",
     metricRcrCoverage: "среднее по {n} работам с RCR",
+    metricMncs: "Нормированное по области влияние (MNCS)",
+    metricContextMncs:
+      "1,0 = среднемировой уровень для области и года; взвешено по цитированиям (отношение сумм)",
+    metricMncsCoverage: "по {n} работам с эталоном области",
+    metricSmallN: "малая выборка — интерпретируйте осторожно",
     roleFirst: "Первый автор",
     roleSecond: "Второй автор",
     roleThird: "Третий автор",
@@ -896,6 +950,7 @@ export function renderStrings(locale: string): RenderStrings {
 export function metricLabel(locale: string, key: string): string {
   const s = renderStrings(locale);
   const map: Record<string, string> = {
+    mncs: s.metricMncs,
     "2yr_mean_citedness": s.metric2yr,
     fwci_mean: s.metricFwci,
     rcr_mean: s.metricRcr,
@@ -911,6 +966,7 @@ export function metricLabel(locale: string, key: string): string {
 export function metricContext(locale: string, key: string): string | undefined {
   const s = renderStrings(locale);
   const map: Record<string, string> = {
+    mncs: s.metricContextMncs,
     fwci_mean: s.metricContextFwci,
     rcr_mean: s.metricContextRcr,
     "2yr_mean_citedness": s.metricContext2yr,
@@ -932,6 +988,19 @@ export function metricCoverageNote(locale: string, n: number | undefined): strin
 export function metricRcrCoverageNote(locale: string, n: number | undefined): string | undefined {
   if (typeof n !== "number" || n <= 0) return undefined;
   return renderStrings(locale).metricRcrCoverage.replace("{n}", String(n));
+}
+
+/** Localized "over N works with a field baseline" coverage note for MNCS.
+ *  Undefined when N is not a positive number. */
+export function metricMncsCoverageNote(locale: string, n: number | undefined): string | undefined {
+  if (typeof n !== "number" || n <= 0) return undefined;
+  return renderStrings(locale).metricMncsCoverage.replace("{n}", String(n));
+}
+
+/** Localized small-sample caveat, appended to a field-normalized coverage note
+ *  when the work count is below the reliability threshold (see render/metrics). */
+export function metricSmallNNote(locale: string): string {
+  return renderStrings(locale).metricSmallN;
 }
 
 /** Map an authorship role to its localized label. */

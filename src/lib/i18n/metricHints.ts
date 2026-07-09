@@ -5,7 +5,7 @@ import { asLocale, type Locale } from "./index";
  * (roadmap F2), plus the responsible-metrics ONBOARDING copy for the metrics
  * group: a gentle DORA-aligned framing line (metrics are optional, the narrative
  * leads) and a contextual caution shown when the header turns metrics-heavy.
- * Field-normalised indicators (FWCI, RCR) are comparable across fields and
+ * Field-normalised indicators (MNCS, RCR) are comparable across fields and
  * preferred under DORA / the Leiden Manifesto; raw counts and the h-index are
  * not. Surfaced at the point of choice so the responsible-reading guidance is
  * where the decision is made. Editor-only — the rendered CV's inline metric
@@ -123,9 +123,10 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
 /**
  * Field-normalised metric keys (comparable across fields). Everything else in
  * the catalog — h-index, i10, 2-year mean citedness, raw work/citation counts —
- * is not field-normalised.
+ * is not field-normalised. `mncs` (MNCS ratio of sums) is the headline measure;
+ * the old mean-of-ratios `fwci_mean` is no longer offered.
  */
-export const FIELD_NORMALIZED_METRICS: ReadonlySet<string> = new Set(["fwci_mean", "rcr_mean"]);
+export const FIELD_NORMALIZED_METRICS: ReadonlySet<string> = new Set(["mncs", "rcr_mean"]);
 
 /**
  * Number of simultaneously-shown metrics at/above which the header reads as

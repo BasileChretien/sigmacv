@@ -59,14 +59,14 @@ describe("CvEditor (component)", () => {
   });
 
   it("surfaces the crowding caution only when the header is metrics-heavy", () => {
-    const light = updateDisplay(makeCv(), { metrics: ["fwci_mean"], showMetrics: true });
+    const light = updateDisplay(makeCv(), { metrics: ["mncs"], showMetrics: true });
     const { rerender } = render(
       <CvEditor cv={light} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
     );
     expect(screen.queryByText(/A shorter strip reads better/i)).toBeNull();
 
     const heavy = updateDisplay(makeCv(), {
-      metrics: ["fwci_mean", "rcr_mean", "h_index", "i10_index"],
+      metrics: ["mncs", "rcr_mean", "h_index", "i10_index"],
       showMetrics: true,
     });
     rerender(<CvEditor cv={heavy} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
@@ -110,9 +110,9 @@ describe("CvEditor (component)", () => {
     fireEvent.click(screen.getByText(/responsible-metrics preset/i));
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
     // Exactly the field-normalized indicators (FIELD_NORMALIZED_METRICS), in
-    // catalog order — NOT the non-normalized 2-year mean citedness, and now
-    // including the iCite RCR. Matches the preset's "field-normalised only" note.
-    expect(next.display.metrics).toEqual(["fwci_mean", "rcr_mean"]);
+    // catalog order — the MNCS ratio-of-sums and the iCite RCR, NOT the
+    // non-normalized 2-year mean citedness. Matches the "field-normalised only" note.
+    expect(next.display.metrics).toEqual(["mncs", "rcr_mean"]);
     expect(next.display.showMetrics).toBe(true);
   });
 

@@ -138,6 +138,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The field-normalized metric is now a statistically sound author-level
+  indicator (MNCS), not an "average of ratios."** The optional headline
+  field-normalized measure was the arithmetic mean of per-work FWCI — an
+  average-of-ratios that over-weights works in low-citation fields/years and is
+  outlier-dominated at author level. It is replaced by **MNCS (mean normalized
+  citation score) computed as a ratio of sums** — total observed citations ÷
+  total field/year-expected citations — the consistent "new crown indicator"
+  (Waltman et al. 2011). 1.0 = field & year average. Each metric now shows how it
+  was built, its coverage count, and a small-sample caveat below ten works. The
+  NIH iCite **RCR** stays available for all fields (captioned as biomedical-only,
+  and the mean RCR is the NIH-sanctioned portfolio aggregation); **2-year mean
+  citedness** is demoted below the field-normalized measures and flagged as not
+  field-normalized. Metrics remain **off by default**, and the "responsible
+  metrics" preset now selects MNCS + RCR.
+
 - **Patents are de-duplicated by patent family, so one invention isn't listed
   once per country.** The same invention filed in several jurisdictions
   (e.g. US + EP + WIPO/PCT + JP) is published by EPO OPS as separate documents;

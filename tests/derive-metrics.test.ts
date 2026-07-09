@@ -50,3 +50,41 @@ describe("computeDerivedMetrics", () => {
     expect(computeDerivedMetrics([pctWork({})]).top10pct_share).toBeUndefined();
   });
 });
+
+describe("computeDerivedMetrics — MNCS (ratio of sums)", () => {
+  const cw = (fwci: number | null, cited: number): OpenAlexWork =>
+    ({
+      id: `https://openalex.org/Wm${fwci ?? "x"}_${cited}`,
+      fwci,
+      cited_by_count: cited,
+      cited_by_percentile_year: null,
+    }) as unknown as OpenAlexWork;
+
+  it("aggregates as Σ observed ÷ Σ expected, NOT the mean of per-work ratios", () => {
+    // Work A: 20 cites, FWCI 2 → expected 10. Work B: 1 cite, FWCI 5 → expected 0.2.
+    // Ratio of sums = (20 + 1) / (10 + 0.2) = 21 / 10.2 ≈ 2.0588 — well below the
+    // mean of ratios (2 + 5) / 2 = 3.5, which the outlier B would dominate.
+    const m = computeDerivedMetrics([cw(2, 20), cw(5, 1)]);
+    expect(m.mncs).toBeCloseTo(21 / 10.2, 5);
+    expect(m.mncs_n).toBe(2);
+    // The mean-FWCI proxy is still computed (stored for back-compat), and differs.
+    expect(m.fwci_mean).toBeCloseTo(3.5, 5);
+  });
+
+  it("excludes works with no FWCI, a zero FWCI (uncited), or no citation count", () => {
+    const m = computeDerivedMetrics([
+      cw(2, 10), // counted → expected 5
+      cw(0, 0), // FWCI 0 (uncited) — excluded, no recoverable expected
+      cw(null, 8), // no FWCI — excluded
+      { id: "https://openalex.org/Wnc", fwci: 3 } as unknown as OpenAlexWork, // no cited_by_count
+    ]);
+    expect(m.mncs).toBeCloseTo(10 / 5, 5); // only the first work contributes
+    expect(m.mncs_n).toBe(1);
+  });
+
+  it("omits MNCS when no work carries both an FWCI and a citation count", () => {
+    const m = computeDerivedMetrics([cw(null, 5)]);
+    expect(m.mncs).toBeUndefined();
+    expect(m.mncs_n).toBeUndefined();
+  });
+});
