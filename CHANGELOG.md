@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The public page's machine metadata now carries an explicit CC0 reuse licence.**
+  A published living CV already served richly-typed JSON-LD (ScholarlyArticle /
+  Dataset / SoftwareSourceCode with DOIs + ORCID), FAIR Signposting, and content
+  negotiation (CSL-JSON / BibTeX / JSON-LD alongside HTML). It now also declares
+  the **exposed bibliographic metadata as CC0** — the open-science norm
+  (Crossref / DataCite / OpenAlex release metadata as CC0), so aggregators and
+  answer engines can freely reuse the records. Declared as schema.org `sdLicense`
+  in the embedded JSON-LD and as a `rel="license"` FAIR Signposting link, always
+  present and independent of the owner's chosen CV **content** licence
+  (`display.cvLicense`), which continues to appear in the visible footer, the
+  JSON-LD `license`, and (when set) its own Signposting link.
+
 - **The CV-model picker's descriptions are now localized in all ten languages.**
   The 58 one-click CV-model layouts (funder calls, public-institution jobs,
   industry/clinical CVs) already had a localized picker, but their one-line

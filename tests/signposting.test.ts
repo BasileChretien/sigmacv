@@ -55,7 +55,8 @@ describe("signpostingLinkHeader", () => {
     );
     expect(header).toContain('/p/basile-x7.bib>; rel="describedby"; type="application/x-bibtex"');
     expect(header).toContain('/p/basile-x7.json>; rel="describedby"; type="application/json"');
-    // Reuse license (SPDX URL) when the owner chose a linkable one.
+    // The exposed metadata is always CC0; the chosen CV content license rides alongside.
+    expect(header).toContain('<https://spdx.org/licenses/CC0-1.0.html>; rel="license"');
     expect(header).toContain('<https://spdx.org/licenses/CC-BY-4.0.html>; rel="license"');
   });
 
@@ -65,9 +66,17 @@ describe("signpostingLinkHeader", () => {
     expect(header).toContain("<https://sigmacv.org/p/slug-1.bib>");
   });
 
-  it("omits the license link when the CV has no linkable license (default 'none')", () => {
+  it("always advertises the CC0 metadata license, even with no CV content license", () => {
     const header = signpostingLinkHeader(makeCv(), "slug-1");
-    expect(header).not.toContain('rel="license"');
+    // The exposed records are CC0 regardless of the (default 'none') content license.
+    expect(header).toContain('<https://spdx.org/licenses/CC0-1.0.html>; rel="license"');
+    // Only that one license link — no content license was chosen.
+    expect(linkValues(header).filter((l) => l.includes('rel="license"'))).toHaveLength(1);
+  });
+
+  it("de-duplicates when the chosen content license is also CC0", () => {
+    const header = signpostingLinkHeader(makeCv({ cvLicense: "CC0-1.0" }), "slug-1");
+    expect(linkValues(header).filter((l) => l.includes('rel="license"'))).toHaveLength(1);
   });
 
   it("omits an empty or malformed ORCID, keeping the other links", () => {
@@ -99,7 +108,7 @@ describe("signpostingLinkHeader", () => {
   it("produces no author links when the owner has no valid identifiers", () => {
     const header = signpostingLinkHeader(makeCv({ orcid: "", authorIds: [] }), "slug-1");
     expect(header).not.toContain('rel="author"');
-    // The type + the four describedby links are still present.
-    expect(linkValues(header)).toHaveLength(5);
+    // The type + four describedby + the CC0 metadata license are still present.
+    expect(linkValues(header)).toHaveLength(6);
   });
 });
