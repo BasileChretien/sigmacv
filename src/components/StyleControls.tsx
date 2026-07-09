@@ -37,7 +37,10 @@ import {
   METRICS_CROWDING_THRESHOLD,
   metricHint,
   metricsCrowdingNote,
+  metricsDiscouragedAck,
+  metricsDiscouragedGroup,
   metricsNudge,
+  metricsRecommendedGroup,
 } from "@/lib/i18n/metricHints";
 import { ui } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
@@ -173,6 +176,12 @@ function StyleGroup({
   );
 }
 
+/** Field-normalised measures (the responsible default) vs. the DORA/CoARA-
+ *  discouraged author-level counts — derived from the single source of truth so
+ *  the picker's two groups can't drift from the catalog. */
+const RECOMMENDED_METRICS = METRIC_DEFS.filter((m) => FIELD_NORMALIZED_METRICS.has(m.key));
+const DISCOURAGED_METRICS = METRIC_DEFS.filter((m) => !FIELD_NORMALIZED_METRICS.has(m.key));
+
 export default function StyleControls({
   cv,
   availableStyles,
@@ -268,6 +277,12 @@ export default function StyleControls({
 
   const [styleAdding, setStyleAdding] = useState(false);
   const [styleError, setStyleError] = useState("");
+  // Author-level counts (h-index, i10, raw totals, 2-yr mean citedness) are
+  // DORA/CoARA-discouraged for judging individuals, so they sit behind an
+  // explicit acknowledgment — the field-normalised measures are the default,
+  // low-friction choice. Opens automatically if a discouraged metric is already
+  // selected, so an existing choice stays visible + editable.
+  const [ackDiscouraged, setAckDiscouraged] = useState(false);
   // Name buffer for saving the current view as a named preset.
   const [presetName, setPresetName] = useState("");
   // The CV-model the picker has selected (applied on the Apply button).
@@ -402,6 +417,46 @@ export default function StyleControls({
       setStyleAdding(false);
     }
   }
+
+  // Toggle one metric key in/out of the displayed set (metrics auto-hide at zero).
+  const toggleMetric = (key: string) => {
+    const set = new Set(cv.display.metrics);
+    if (set.has(key)) set.delete(key);
+    else set.add(key);
+    const metrics = [...set];
+    onChange(updateDisplay(cv, { metrics, showMetrics: metrics.length > 0 }));
+  };
+
+  // One metric option: checkbox + label + live value + a VISIBLE "how to read
+  // this" caption (field-normalisation status), not just a hover tooltip.
+  const renderMetricOption = (key: string) => {
+    const raw = metricValues[key];
+    const value = typeof raw === "number" ? formatMetricValue(key, raw, cvLocale) : null;
+    const note = value ? ` — ${value}` : ` ${u.metricNoData}`;
+    return (
+      <label key={key} className="field-inline metric-option" title={metricHint(locale, key)}>
+        <input
+          type="checkbox"
+          checked={cv.display.metrics.includes(key)}
+          onChange={() => toggleMetric(key)}
+        />
+        <span className="metric-option-body">
+          <span className="metric-option-name">
+            {metricLabel(locale, key)}
+            {note}
+          </span>
+          <span className="muted metric-option-hint">{metricHint(locale, key)}</span>
+        </span>
+      </label>
+    );
+  };
+
+  // The discouraged group reveals when acknowledged OR when a discouraged metric
+  // is already selected (so an existing choice never silently disappears).
+  const hasDiscouragedSelected = cv.display.metrics.some((k) =>
+    DISCOURAGED_METRICS.some((m) => m.key === k),
+  );
+  const showDiscouraged = ackDiscouraged || hasDiscouragedSelected;
 
   return (
     <fieldset className={`display-controls${grouped ? " display-controls--grouped" : ""}`}>
@@ -870,38 +925,35 @@ export default function StyleControls({
         </p>
         <div className="field metric-picker">
           <span>{u.metricsLabel}</span>
-          <div className="metric-options">
-            {METRIC_DEFS.map((m) => {
-              const selected = cv.display.metrics.includes(m.key);
-              const raw = metricValues[m.key];
-              const value =
-                typeof raw === "number" ? formatMetricValue(m.key, raw, cvLocale) : null;
-              const note = value ? ` — ${value}` : ` ${u.metricNoData}`;
-              return (
-                <label key={m.key} className="field-inline" title={metricHint(locale, m.key)}>
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={() => {
-                      const set = new Set(cv.display.metrics);
-                      if (selected) set.delete(m.key);
-                      else set.add(m.key);
-                      const metrics = [...set];
-                      onChange(
-                        updateDisplay(cv, {
-                          metrics,
-                          showMetrics: metrics.length > 0,
-                        }),
-                      );
-                    }}
-                  />
-                  <span>
-                    {metricLabel(locale, m.key)}
-                    {note}
-                  </span>
-                </label>
-              );
-            })}
+          {/* Field-normalised measures — the responsible, low-friction default:
+              surfaced directly, no gate. */}
+          <div className="metric-group metric-group-recommended">
+            <span className="metric-group-heading">{metricsRecommendedGroup(locale)}</span>
+            <div className="metric-options">
+              {RECOMMENDED_METRICS.map((m) => renderMetricOption(m.key))}
+            </div>
+          </div>
+          {/* Author-level counts — DORA/CoARA-discouraged for judging individuals,
+              so gated behind an explicit acknowledgment (not neutral peers). */}
+          <div className="metric-group metric-group-discouraged">
+            <label className="field-inline metric-ack">
+              <input
+                type="checkbox"
+                checked={showDiscouraged}
+                onChange={(e) => setAckDiscouraged(e.target.checked)}
+              />
+              <span className="metric-ack-body">
+                <span className="metric-group-heading">{metricsDiscouragedGroup(locale)}</span>
+                <span className="muted metric-preset-note metric-ack-note">
+                  <MetricsNoteText text={metricsDiscouragedAck(locale)} />
+                </span>
+              </span>
+            </label>
+            {showDiscouraged ? (
+              <div className="metric-options">
+                {DISCOURAGED_METRICS.map((m) => renderMetricOption(m.key))}
+              </div>
+            ) : null}
           </div>
           {/* Contextual caution once the strip turns metrics-heavy — steers back
               toward a short, readable header without removing any choice. */}

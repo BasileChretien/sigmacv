@@ -179,6 +179,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   field-normalized. Metrics remain **off by default**, and the "responsible
   metrics" preset now selects MNCS + RCR.
 
+- **The metric picker is now responsible by default.** The field-normalised
+  measures (MNCS, RCR) are shown directly as the low-friction default, while the
+  DORA/CoARA-discouraged **author-level counts** (h-index, i10, works/citation
+  totals, 2-year mean citedness) sit behind an explicit acknowledgment
+  ("discouraged for assessing individuals — DORA and CoARA") rather than as
+  neutral peers. Every metric carries a visible one-line "how to read this"
+  caption at the point of choice. An already-selected count stays visible and
+  editable (the gate opens automatically), so no existing choice disappears.
+
 - **Patents are de-duplicated by patent family, so one invention isn't listed
   once per country.** The same invention filed in several jurisdictions
   (e.g. US + EP + WIPO/PCT + JP) is published by EPO OPS as separate documents;
