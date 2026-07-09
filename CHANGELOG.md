@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **ORCID entries now show whether an institution verified them.** ORCID
+  distinguishes data a **trusted organization** asserted on your record (via the
+  Member API) from data you **typed in yourself** — the former is higher-trust.
+  SigmaCV now reads each affiliation's provenance and marks org-asserted
+  Positions / Education / Distinctions with a green **"verified"** badge (tooltip:
+  "Confirmed by your institution via ORCID — not self-entered"). Self-entered
+  ORCID entries and OpenAlex-inferred affiliations carry no badge, so a reader can
+  tell an institution-confirmed role from an unverified one. Localized in all ten
+  languages; additive schema field (`meta.verified`), no `schemaVersion` bump.
+
 - **Honest coverage + attribution transparency.** The tool is now candid about two
   limits reviewers flagged. (1) The Transparency page distinguishes a **self-asserted
   persistent identifier** (your ORCID / a DOI) from an **OpenAlex author id — an

@@ -424,6 +424,14 @@ export const CvItemSchema = z.object({
     /** Source department/sub-unit for a positions/education entry (ORCID `department-name`). */
     department: z.string().max(500).optional(),
     /**
+     * True when a positions/education/distinction entry was asserted on the ORCID
+     * record by a TRUSTED ORGANIZATION (ORCID Member API) rather than self-entered
+     * by the account holder — surfaced as a "verified" signal so an
+     * institution-confirmed role reads differently from a self-entered one. Absent
+     * for self-entered ORCID entries and for OpenAlex-inferred affiliations.
+     */
+    verified: z.boolean().optional(),
+    /**
      * USER edit of the department/sub-unit for a source-derived positions/education
      * entry — the "Edit details" field. Carried across re-sync (like
      * {@link roleTitleOverride}) and wins over the source {@link department}; a blank

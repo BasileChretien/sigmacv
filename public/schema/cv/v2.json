@@ -876,6 +876,9 @@
                       "type": "string",
                       "maxLength": 500
                     },
+                    "verified": {
+                      "type": "boolean"
+                    },
                     "departmentOverride": {
                       "type": "string",
                       "maxLength": 500

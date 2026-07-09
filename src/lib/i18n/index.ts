@@ -513,6 +513,8 @@ const EN = {
   delete: "Delete",
   youBadge: "you",
   notMineBadge: "not mine",
+  orcidVerified: "verified",
+  orcidVerifiedTitle: "Confirmed by your institution via ORCID — not self-entered",
   // `reviewBadge` (⚠) is reserved for a genuine ORCID *conflict* (a different
   // iD on the matching author). `reviewBadgeSoft` is the calm, neutral cue for
   // "probably yours" candidates (ORCID-listed / name-matched) that just want a
@@ -668,6 +670,8 @@ const ZH: Record<ChromeKey, string> = {
   delete: "删除",
   youBadge: "你",
   notMineBadge: "不是我的",
+  orcidVerified: "已验证",
+  orcidVerifiedTitle: "由所在机构通过 ORCID 确认——非自行录入",
   reviewBadge: "⚠ 待核查",
   reviewBadgeSoft: "待核查",
   reviewHint: "此记录中匹配的作者登记了不同的 ORCID——请确认确实是您本人。",
@@ -812,6 +816,8 @@ const ES: Record<ChromeKey, string> = {
   delete: "Eliminar",
   youBadge: "tú",
   notMineBadge: "no es mío",
+  orcidVerified: "verificado",
+  orcidVerifiedTitle: "Confirmado por tu institución mediante ORCID, no introducido por ti",
   reviewBadge: "⚠ revisar",
   reviewBadgeSoft: "Revisar",
   reviewHint:
@@ -962,6 +968,8 @@ const FR: Record<ChromeKey, string> = {
   delete: "Supprimer",
   youBadge: "vous",
   notMineBadge: "pas à moi",
+  orcidVerified: "vérifié",
+  orcidVerifiedTitle: "Confirmé par votre établissement via ORCID — non saisi par vous-même",
   reviewBadge: "⚠ à vérifier",
   reviewBadgeSoft: "À vérifier",
   reviewHint:
@@ -1113,6 +1121,8 @@ const DE: Record<ChromeKey, string> = {
   delete: "Löschen",
   youBadge: "Sie",
   notMineBadge: "nicht von mir",
+  orcidVerified: "verifiziert",
+  orcidVerifiedTitle: "Von Ihrer Einrichtung über ORCID bestätigt – nicht selbst eingetragen",
   reviewBadge: "⚠ prüfen",
   reviewBadgeSoft: "Prüfen",
   reviewHint:
@@ -1264,6 +1274,8 @@ const JA: Record<ChromeKey, string> = {
   delete: "削除",
   youBadge: "あなた",
   notMineBadge: "自分のではない",
+  orcidVerified: "検証済み",
+  orcidVerifiedTitle: "所属機関が ORCID を通じて確認済み——自己入力ではありません",
   reviewBadge: "⚠ 要確認",
   reviewBadgeSoft: "要確認",
   reviewHint:
@@ -1412,6 +1424,8 @@ const PT: Record<ChromeKey, string> = {
   delete: "Excluir",
   youBadge: "você",
   notMineBadge: "não é meu",
+  orcidVerified: "verificado",
+  orcidVerifiedTitle: "Confirmado pela sua instituição via ORCID — não inserido por você",
   reviewBadge: "⚠ revisar",
   reviewBadgeSoft: "Revisar",
   reviewHint:
@@ -1560,6 +1574,8 @@ const IT: Record<ChromeKey, string> = {
   delete: "Elimina",
   youBadge: "tu",
   notMineBadge: "non è mio",
+  orcidVerified: "verificato",
+  orcidVerifiedTitle: "Confermato dalla tua istituzione tramite ORCID — non inserito da te",
   reviewBadge: "⚠ da verificare",
   reviewBadgeSoft: "Da verificare",
   reviewHint:
@@ -1708,6 +1724,8 @@ const KO: Record<ChromeKey, string> = {
   delete: "삭제",
   youBadge: "본인",
   notMineBadge: "내 것이 아님",
+  orcidVerified: "검증됨",
+  orcidVerifiedTitle: "소속 기관이 ORCID를 통해 확인함 — 직접 입력한 것이 아님",
   reviewBadge: "⚠ 확인 필요",
   reviewBadgeSoft: "확인 필요",
   reviewHint:
@@ -1856,6 +1874,8 @@ const RU: Record<ChromeKey, string> = {
   delete: "Удалить",
   youBadge: "вы",
   notMineBadge: "не моё",
+  orcidVerified: "подтверждено",
+  orcidVerifiedTitle: "Подтверждено вашей организацией через ORCID — не введено вами",
   reviewBadge: "⚠ проверить",
   reviewBadgeSoft: "Проверить",
   reviewHint:
