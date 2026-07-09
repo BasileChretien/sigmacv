@@ -19,6 +19,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tell an institution-confirmed role from an unverified one. Localized in all ten
   languages; additive schema field (`meta.verified`), no `schemaVersion` bump.
 
+- **Honest coverage + attribution transparency.** The tool is now candid about two
+  limits reviewers flagged. (1) The Transparency page distinguishes a **self-asserted
+  persistent identifier** (your ORCID / a DOI) from an **OpenAlex author id — an
+  inferred cluster** that can over-merge two researchers who share a name; works
+  matched only by a cluster (not confirmed by your ORCID) are already treated as
+  lower-confidence and flagged for review, and the page now says so. (2) A new
+  "What it might miss" section — and an inline note in the add-by-DOI panel —
+  states plainly that identifier-first matching plus the open sources' own gaps
+  **under-represent books/monographs (SSH), non-English, and Global-South
+  research**, so a CV may be incomplete, with add-by-DOI as the fix. Localized in
+  all ten languages. (The per-item confidence badge, split/lump misattribution
+  flagging, and the claim-by-DOI / ORCID-discovery recall paths already existed;
+  this makes the tool's honesty about them explicit.)
+
 - **The public page's machine metadata now carries an explicit CC0 reuse licence.**
   A published living CV already served richly-typed JSON-LD (ScholarlyArticle /
   Dataset / SoftwareSourceCode with DOIs + ORCID), FAIR Signposting, and content

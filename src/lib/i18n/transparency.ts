@@ -31,6 +31,11 @@ export interface TransparencyStrings {
   srcOther: string;
   matchingHeading: string;
   matchingBody: string;
+  /** Caveat: an OpenAlex author id is an inferred cluster, not a self-asserted PID. */
+  clusterNote: string;
+  /** Honest under-coverage disclaimer (books/SSH, non-English, Global South). */
+  coverageHeading: string;
+  coverageBody: string;
   refreshHeading: string;
   refreshBody: string;
   logHeading: string;
@@ -54,6 +59,11 @@ export interface TransparencyStrings {
 
 const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
   "en-US": {
+    clusterNote:
+      "One caveat about identifiers: an ORCID iD or a DOI is a persistent identifier that you or a publisher asserted, whereas an OpenAlex author id is an inferred cluster — an algorithm groups works by author and can over-merge two researchers who share a name. Works matched only by an OpenAlex cluster (not confirmed by your ORCID) are treated as lower-confidence and flagged for your review when they look out of place.",
+    coverageHeading: "What it might miss",
+    coverageBody:
+      "Matching by identifier is precise, but the open sources it draws on are themselves incomplete: books and monographs, research published in languages other than English, and work from the Global South are all under-represented in OpenAlex, ORCID and Crossref. So your CV may not be the full picture — a limitation we would rather name than hide. You can add anything that is missing by its DOI, and nothing is ever removed without your say-so.",
     promisesHeading: "Our promises",
     promisesLead: "Some things SigmaCV will never do — and a few you can always count on:",
     promises: [
@@ -101,6 +111,11 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Back to SigmaCV",
   },
   "zh-CN": {
+    clusterNote:
+      "关于标识符的一点说明：ORCID iD 或 DOI 是你或出版方声明的持久标识符，而 OpenAlex 的作者 ID 是算法推断出的聚类——它按作者对成果进行分组，可能把两位同名研究者错误地合并。仅凭 OpenAlex 聚类（而非你的 ORCID）匹配到的成果会被视为置信度较低，并在看起来不合适时标记出来供你审核。",
+    coverageHeading: "可能会遗漏什么",
+    coverageBody:
+      "按标识符匹配很精确，但其所依赖的开放数据源本身并不完整：图书与专著、以英语以外语言发表的研究，以及来自全球南方的成果，在 OpenAlex、ORCID 和 Crossref 中都存在覆盖不足。因此你的简历可能并不完整——这是我们宁愿明说而非隐瞒的局限。你可以通过 DOI 添加任何缺失的成果，未经你同意绝不会删除任何内容。",
     promisesHeading: "我们的承诺",
     promisesLead: "SigmaCV 永远不会做的一些事——以及一些你始终可以信赖的事：",
     promises: [
@@ -145,6 +160,11 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← 返回 SigmaCV",
   },
   "es-ES": {
+    clusterNote:
+      "Una advertencia sobre los identificadores: un iD de ORCID o un DOI es un identificador persistente que tú o una editorial habéis declarado, mientras que un id de autor de OpenAlex es un grupo inferido: un algoritmo agrupa los trabajos por autor y puede fusionar por error a dos investigadores que comparten nombre. Los trabajos emparejados solo por un grupo de OpenAlex (no confirmados por tu ORCID) se consideran de menor confianza y se marcan para tu revisión cuando parecen fuera de lugar.",
+    coverageHeading: "Lo que podría faltar",
+    coverageBody:
+      "El emparejamiento por identificador es preciso, pero las fuentes abiertas de las que se nutre son en sí mismas incompletas: los libros y las monografías, la investigación publicada en lenguas distintas del inglés y el trabajo del Sur Global están infrarrepresentados en OpenAlex, ORCID y Crossref. Por eso tu CV puede no reflejar el panorama completo, una limitación que preferimos nombrar antes que ocultar. Puedes añadir lo que falte mediante su DOI, y nunca se elimina nada sin tu consentimiento.",
     promisesHeading: "Nuestras promesas",
     promisesLead:
       "Algunas cosas que SigmaCV nunca hará, y otras con las que siempre puedes contar:",
@@ -196,6 +216,11 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Volver a SigmaCV",
   },
   "fr-FR": {
+    clusterNote:
+      "Une précision sur les identifiants : un iD ORCID ou un DOI est un identifiant pérenne que vous ou un éditeur avez déclaré, tandis qu’un identifiant d’auteur OpenAlex est un regroupement inféré — un algorithme regroupe les travaux par auteur et peut fusionner à tort deux chercheurs qui portent le même nom. Les travaux rapprochés uniquement par un regroupement OpenAlex (non confirmés par votre ORCID) sont considérés comme moins fiables et signalés à votre vérification lorsqu’ils semblent déplacés.",
+    coverageHeading: "Ce qui peut manquer",
+    coverageBody:
+      "L’appariement par identifiant est précis, mais les sources ouvertes sur lesquelles il s’appuie sont elles-mêmes incomplètes : les livres et monographies, la recherche publiée dans d’autres langues que l’anglais et les travaux des Suds sont tous sous-représentés dans OpenAlex, ORCID et Crossref. Votre CV peut donc ne pas donner une image complète — une limite que nous préférons nommer plutôt que masquer. Vous pouvez ajouter ce qui manque via son DOI, et rien n’est jamais supprimé sans votre accord.",
     promisesHeading: "Nos engagements",
     promisesLead:
       "Quelques choses que SigmaCV ne fera jamais — et d'autres sur lesquelles vous pouvez toujours compter :",
@@ -246,6 +271,11 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Retour à SigmaCV",
   },
   "de-DE": {
+    clusterNote:
+      "Ein Hinweis zu Identifikatoren: Eine ORCID iD oder ein DOI ist ein dauerhafter Identifikator, den Sie oder ein Verlag zugesichert haben, während eine OpenAlex-Autoren-ID ein abgeleitetes Cluster ist — ein Algorithmus gruppiert Werke nach Autor und kann zwei namensgleiche Forschende fälschlich zusammenführen. Werke, die nur über ein OpenAlex-Cluster (nicht durch Ihre ORCID bestätigt) zugeordnet wurden, gelten als weniger zuverlässig und werden zur Prüfung markiert, wenn sie unpassend erscheinen.",
+    coverageHeading: "Was fehlen könnte",
+    coverageBody:
+      "Die Zuordnung per Identifikator ist präzise, doch die offenen Quellen, aus denen sie schöpft, sind selbst unvollständig: Bücher und Monografien, nicht-englischsprachige Forschung und Arbeiten aus dem Globalen Süden sind in OpenAlex, ORCID und Crossref durchweg unterrepräsentiert. Ihr Lebenslauf zeigt daher möglicherweise nicht das vollständige Bild — eine Grenze, die wir lieber benennen als verbergen. Fehlendes können Sie per DOI ergänzen, und nichts wird ohne Ihr Zutun entfernt.",
     promisesHeading: "Unsere Versprechen",
     promisesLead:
       "Einige Dinge, die SigmaCV niemals tun wird – und einige, auf die du dich immer verlassen kannst:",
@@ -296,6 +326,11 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Zurück zu SigmaCV",
   },
   "ja-JP": {
+    clusterNote:
+      "識別子についての注意点：ORCID iD や DOI は、あなたや出版社が付与した永続的識別子ですが、OpenAlex の著者 ID はアルゴリズムが推定したクラスターです——著者ごとに業績をまとめる際、同姓同名の二人の研究者を誤って統合することがあります。OpenAlex のクラスターだけで（あなたの ORCID で確認されずに）一致した業績は信頼度が低いものとして扱われ、そぐわないと思われる場合は確認のために印が付きます。",
+    coverageHeading: "収録から漏れうるもの",
+    coverageBody:
+      "識別子による照合は正確ですが、その基となるオープンな情報源自体が不完全です：書籍・単著、英語以外の言語で発表された研究、グローバルサウスの業績は、OpenAlex・ORCID・Crossref のいずれでも十分に収録されていません。そのため CV が全体像を示していない可能性があります——私たちは、これを隠すのではなく明示することを選びます。不足分は DOI で追加でき、あなたの同意なく何かが削除されることは決してありません。",
     promisesHeading: "私たちの約束",
     promisesLead: "SigmaCV が決して行わないこと、そしていつでも信頼できることをいくつか：",
     promises: [
@@ -343,6 +378,11 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← SigmaCV に戻る",
   },
   "pt-BR": {
+    clusterNote:
+      "Uma ressalva sobre identificadores: um iD ORCID ou um DOI é um identificador persistente que você ou uma editora declararam, ao passo que um id de autor do OpenAlex é um agrupamento inferido — um algoritmo agrupa os trabalhos por autor e pode fundir por engano dois pesquisadores que compartilham o nome. Trabalhos correspondidos apenas por um agrupamento do OpenAlex (não confirmados pelo seu ORCID) são tratados como de menor confiança e sinalizados para a sua revisão quando parecem fora de lugar.",
+    coverageHeading: "O que pode faltar",
+    coverageBody:
+      "A correspondência por identificador é precisa, mas as fontes abertas de que ela depende são elas próprias incompletas: livros e monografias, pesquisas publicadas em línguas que não o inglês e trabalhos do Sul Global estão todos sub-representados no OpenAlex, no ORCID e no Crossref. Assim, seu currículo pode não ser o retrato completo — uma limitação que preferimos nomear a ocultar. Você pode adicionar o que faltar pelo DOI, e nada é removido sem a sua autorização.",
     promisesHeading: "Nossos compromissos",
     promisesLead:
       "Algumas coisas que o SigmaCV nunca fará — e outras com que você sempre pode contar:",
@@ -394,6 +434,11 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Voltar ao SigmaCV",
   },
   "it-IT": {
+    clusterNote:
+      "Una precisazione sugli identificatori: un iD ORCID o un DOI è un identificatore persistente che tu o un editore avete dichiarato, mentre un id autore di OpenAlex è un raggruppamento dedotto — un algoritmo raggruppa i lavori per autore e può fondere per errore due ricercatori con lo stesso nome. I lavori abbinati solo da un raggruppamento di OpenAlex (non confermati dal tuo ORCID) sono considerati a minore affidabilità e segnalati per la tua revisione quando sembrano fuori posto.",
+    coverageHeading: "Che cosa potrebbe mancare",
+    coverageBody:
+      "L’abbinamento per identificatore è preciso, ma le fonti aperte da cui attinge sono a loro volta incomplete: i libri e le monografie, la ricerca pubblicata in lingue diverse dall’inglese e i lavori del Sud globale sono tutti sottorappresentati in OpenAlex, ORCID e Crossref. Il tuo CV potrebbe quindi non offrire il quadro completo — un limite che preferiamo dichiarare anziché nascondere. Puoi aggiungere ciò che manca tramite il suo DOI, e nulla viene mai rimosso senza il tuo consenso.",
     promisesHeading: "I nostri impegni",
     promisesLead: "Alcune cose che SigmaCV non farà mai — e altre su cui puoi sempre contare:",
     promises: [
@@ -443,6 +488,11 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← Torna a SigmaCV",
   },
   "ko-KR": {
+    clusterNote:
+      "식별자에 대한 유의점: ORCID iD나 DOI는 당신이나 출판사가 부여한 영속 식별자이지만, OpenAlex 저자 ID는 알고리즘이 추론한 클러스터입니다 — 저자별로 업적을 묶는 과정에서 이름이 같은 두 연구자를 잘못 병합할 수 있습니다. OpenAlex 클러스터로만(당신의 ORCID로 확인되지 않고) 매칭된 업적은 신뢰도가 낮은 것으로 간주되며, 어울리지 않아 보이면 검토를 위해 표시됩니다.",
+    coverageHeading: "누락될 수 있는 것",
+    coverageBody:
+      "식별자 기반 매칭은 정확하지만, 그 근거가 되는 공개 출처 자체가 불완전합니다: 도서와 단행본, 영어 이외 언어로 발표된 연구, 글로벌 사우스의 성과는 OpenAlex, ORCID, Crossref 모두에서 충분히 수록되지 않습니다. 따라서 이력서가 전체 모습을 담지 못할 수 있습니다 — 숨기기보다 밝히려는 한계입니다. 누락된 항목은 DOI로 추가할 수 있으며, 당신의 동의 없이 무엇도 삭제되지 않습니다.",
     promisesHeading: "우리의 약속",
     promisesLead: "SigmaCV가 절대 하지 않는 것들, 그리고 언제나 믿을 수 있는 것들:",
     promises: [
@@ -490,6 +540,11 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     backLink: "← SigmaCV로 돌아가기",
   },
   "ru-RU": {
+    clusterNote:
+      "Уточнение об идентификаторах: ORCID iD или DOI — это постоянный идентификатор, заявленный вами или издателем, тогда как идентификатор автора в OpenAlex — это выведенный кластер: алгоритм группирует работы по автору и может ошибочно объединить двух исследователей с одинаковыми именами. Работы, сопоставленные только по кластеру OpenAlex (не подтверждённые вашим ORCID), считаются менее надёжными и помечаются для вашей проверки, когда выглядят неуместно.",
+    coverageHeading: "Что может быть пропущено",
+    coverageBody:
+      "Сопоставление по идентификатору точно, но сами открытые источники неполны: книги и монографии, исследования не на английском языке и работы Глобального Юга недостаточно охвачены в OpenAlex, ORCID и Crossref. Поэтому ваше резюме может отражать не всю картину — ограничение, которое мы предпочитаем назвать, а не скрыть. Недостающее можно добавить по DOI, и ничто не удаляется без вашего согласия.",
     promisesHeading: "Наши обязательства",
     promisesLead:
       "Несколько вещей, которые SigmaCV никогда не сделает, — и те, на которые вы всегда можете рассчитывать:",

@@ -75,6 +75,10 @@ export default function Transparency({ locale }: { locale: string }) {
 
         <h2>{s.matchingHeading}</h2>
         <p>{s.matchingBody}</p>
+        <p>{s.clusterNote}</p>
+
+        <h2>{s.coverageHeading}</h2>
+        <p>{s.coverageBody}</p>
 
         <h2>{s.refreshHeading}</h2>
         <p>{s.refreshBody}</p>
