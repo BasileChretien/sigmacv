@@ -20,6 +20,8 @@ export interface NarrativeAiStrings {
   baseUrlLabel: string;
   /** Label for the model field. */
   modelLabel: string;
+  /** Hint under the model field: a stronger model = more faithful drafts. */
+  modelHint: string;
   /** Label for the API-key field. */
   apiKeyLabel: string;
   /** Reassurance under the fields: key is browser-only, never on our servers. */
@@ -50,6 +52,8 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Optional: draft this module from your own visible research outputs using YOUR OWN AI provider. Enter an OpenAI-compatible endpoint, model and API key below — they're kept only in this browser and sent to the provider you choose. A short, public-only summary (the module, output counts and a few titles) is sent to draft the text — no contact details or identifiers. SigmaCV stores no key and keeps nothing. The draft is a starting point you must verify and rewrite.",
     baseUrlLabel: "API base URL (OpenAI-compatible)",
     modelLabel: "Model",
+    modelHint:
+      "A stronger model (e.g. mistral-large-latest) gives more faithful drafts with less invention.",
     apiKeyLabel: "API key",
     storedNote:
       "Kept only in this browser and sent to the provider you pick — never saved on our servers. Clear it on a shared computer.",
@@ -71,6 +75,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "可选：使用你自己的 AI 提供商，根据你可见的科研产出起草本模块。请在下方填写兼容 OpenAI 的接口地址、模型和 API 密钥——它们仅保存在本浏览器中，并发送给你选择的提供商。系统只会发送简要的公开信息摘要（模块、产出数量和少量标题）用于起草，不含任何联系方式或标识符。SigmaCV 不保存任何密钥，也不留存任何内容。初稿仅供参考，你需要核对并改写。",
     baseUrlLabel: "API 接口地址（兼容 OpenAI）",
     modelLabel: "模型",
+    modelHint: "更强的模型（如 mistral-large-latest）能生成更忠实、更少虚构的初稿。",
     apiKeyLabel: "API 密钥",
     storedNote:
       "仅保存在本浏览器，并发送给你选择的提供商——绝不会保存到我们的服务器。在公用电脑上请清除。",
@@ -91,6 +96,8 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Opcional: redacta este módulo a partir de tus resultados de investigación visibles usando TU PROPIO proveedor de IA. Introduce abajo un endpoint compatible con OpenAI, un modelo y una clave API; se guardan solo en este navegador y se envían al proveedor que elijas. Se envía un breve resumen público (el módulo, los recuentos y algunos títulos) para redactar el texto, sin datos de contacto ni identificadores. SigmaCV no guarda ninguna clave ni conserva nada. El borrador es un punto de partida que debes verificar y reescribir.",
     baseUrlLabel: "URL base de la API (compatible con OpenAI)",
     modelLabel: "Modelo",
+    modelHint:
+      "Un modelo más potente (p. ej. mistral-large-latest) produce borradores más fieles y con menos invención.",
     apiKeyLabel: "Clave API",
     storedNote:
       "Se guarda solo en este navegador y se envía al proveedor que elijas; nunca en nuestros servidores. Bórrala en un equipo compartido.",
@@ -112,6 +119,8 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Facultatif : rédigez ce module à partir de vos travaux de recherche visibles en utilisant VOTRE PROPRE fournisseur d’IA. Saisissez ci-dessous un point d’accès compatible OpenAI, un modèle et une clé API — ils ne sont conservés que dans ce navigateur et envoyés au fournisseur que vous choisissez. Un bref résumé public (le module, le nombre de productions et quelques titres) est envoyé pour rédiger le texte, sans coordonnée ni identifiant. SigmaCV ne conserve aucune clé et ne garde rien. Le brouillon est un point de départ que vous devez vérifier et réécrire.",
     baseUrlLabel: "URL de base de l’API (compatible OpenAI)",
     modelLabel: "Modèle",
+    modelHint:
+      "Un modèle plus puissant (par ex. mistral-large-latest) produit des brouillons plus fidèles, avec moins d’inventions.",
     apiKeyLabel: "Clé API",
     storedNote:
       "Conservée uniquement dans ce navigateur et envoyée au fournisseur choisi — jamais sur nos serveurs. Effacez-la sur un ordinateur partagé.",
@@ -133,6 +142,8 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Optional: Entwerfen Sie dieses Modul aus Ihren sichtbaren Forschungsleistungen mit IHREM EIGENEN KI-Anbieter. Geben Sie unten einen OpenAI-kompatiblen Endpunkt, ein Modell und einen API-Schlüssel ein – sie bleiben nur in diesem Browser und gehen an den von Ihnen gewählten Anbieter. Eine kurze, ausschließlich öffentliche Zusammenfassung (das Modul, die Anzahl der Leistungen und einige Titel) wird zum Entwerfen gesendet – ohne Kontaktdaten oder Kennungen. SigmaCV speichert keinen Schlüssel und behält nichts. Der Entwurf ist ein Ausgangspunkt, den Sie prüfen und umschreiben müssen.",
     baseUrlLabel: "API-Basis-URL (OpenAI-kompatibel)",
     modelLabel: "Modell",
+    modelHint:
+      "Ein stärkeres Modell (z. B. mistral-large-latest) liefert treuere Entwürfe mit weniger Erfindungen.",
     apiKeyLabel: "API-Schlüssel",
     storedNote:
       "Nur in diesem Browser gespeichert und an den gewählten Anbieter gesendet – niemals auf unseren Servern. An einem gemeinsam genutzten Rechner löschen.",
@@ -154,6 +165,8 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "任意：あなた自身の AI プロバイダーを使い、表示中の研究業績からこのモジュールを起草します。下に OpenAI 互換のエンドポイント、モデル、API キーを入力してください——これらはこのブラウザーにのみ保存され、あなたが選んだプロバイダーに送信されます。文章の作成のために、短い公開情報のみの要約（モジュール、業績数、いくつかのタイトル）が送信されます——連絡先や識別子は含みません。SigmaCV はキーを保存せず、何も残しません。下書きはあくまで出発点であり、必ず確認して書き直してください。",
     baseUrlLabel: "API ベース URL（OpenAI 互換）",
     modelLabel: "モデル",
+    modelHint:
+      "より高性能なモデル（例：mistral-large-latest）ほど、事実に忠実で作り話の少ない下書きになります。",
     apiKeyLabel: "API キー",
     storedNote:
       "このブラウザーにのみ保存され、選んだプロバイダーに送信されます——当方のサーバーには保存されません。共有 PC では削除してください。",
@@ -175,6 +188,8 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Opcional: rascunhe este módulo a partir dos seus resultados de pesquisa visíveis usando SEU PRÓPRIO provedor de IA. Informe abaixo um endpoint compatível com OpenAI, um modelo e uma chave de API — eles ficam apenas neste navegador e são enviados ao provedor que você escolher. Um breve resumo, apenas público (o módulo, as contagens e alguns títulos), é enviado para redigir o texto, sem dados de contato ou identificadores. A SigmaCV não guarda nenhuma chave nem retém nada. O rascunho é um ponto de partida que você deve verificar e reescrever.",
     baseUrlLabel: "URL base da API (compatível com OpenAI)",
     modelLabel: "Modelo",
+    modelHint:
+      "Um modelo mais forte (ex.: mistral-large-latest) gera rascunhos mais fiéis e com menos invenções.",
     apiKeyLabel: "Chave de API",
     storedNote:
       "Guardada apenas neste navegador e enviada ao provedor escolhido — nunca em nossos servidores. Apague-a em um computador compartilhado.",
@@ -196,6 +211,8 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Facoltativo: redigi questo modulo dai tuoi risultati di ricerca visibili usando il TUO fornitore di IA. Inserisci sotto un endpoint compatibile con OpenAI, un modello e una chiave API — restano solo in questo browser e vengono inviati al fornitore che scegli. Viene inviato un breve riepilogo, solo pubblico (il modulo, i conteggi e alcuni titoli), per redigere il testo, senza recapiti o identificativi. SigmaCV non conserva alcuna chiave e non trattiene nulla. La bozza è un punto di partenza che devi verificare e riscrivere.",
     baseUrlLabel: "URL base dell’API (compatibile con OpenAI)",
     modelLabel: "Modello",
+    modelHint:
+      "Un modello più potente (es. mistral-large-latest) produce bozze più fedeli e con meno invenzioni.",
     apiKeyLabel: "Chiave API",
     storedNote:
       "Conservata solo in questo browser e inviata al fornitore scelto — mai sui nostri server. Cancellala su un computer condiviso.",
@@ -217,6 +234,8 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "선택 사항: 본인의 AI 제공자를 사용해 표시된 연구 성과로 이 모듈의 초안을 작성합니다. 아래에 OpenAI 호환 엔드포인트, 모델, API 키를 입력하세요 — 이 브라우저에만 보관되며 선택한 제공자에게 전송됩니다. 텍스트 작성을 위해 짧은 공개 정보 요약(모듈, 성과 수, 일부 제목)만 전송되며 연락처나 식별자는 포함되지 않습니다. SigmaCV는 어떤 키도 저장하지 않고 아무것도 보관하지 않습니다. 초안은 출발점일 뿐이며 반드시 확인하고 다시 작성해야 합니다.",
     baseUrlLabel: "API 기본 URL(OpenAI 호환)",
     modelLabel: "모델",
+    modelHint:
+      "더 강력한 모델(예: mistral-large-latest)일수록 더 충실하고 지어낸 내용이 적은 초안을 만듭니다.",
     apiKeyLabel: "API 키",
     storedNote:
       "이 브라우저에만 보관되고 선택한 제공자에게 전송되며, 당사 서버에는 저장되지 않습니다. 공용 컴퓨터에서는 삭제하세요.",
@@ -238,6 +257,8 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Необязательно: составьте этот модуль из ваших видимых научных результатов, используя ВАШЕГО СОБСТВЕННОГО поставщика ИИ. Укажите ниже OpenAI-совместимый эндпоинт, модель и API-ключ — они хранятся только в этом браузере и отправляются выбранному вами поставщику. Для составления текста отправляется краткая сводка только из общедоступной информации (модуль, число результатов и несколько названий) — без контактных данных и идентификаторов. SigmaCV не хранит ключ и ничего не сохраняет. Черновик — это отправная точка, которую вы должны проверить и переписать.",
     baseUrlLabel: "Базовый URL API (совместимый с OpenAI)",
     modelLabel: "Модель",
+    modelHint:
+      "Более мощная модель (например, mistral-large-latest) даёт более достоверные черновики с меньшим числом выдумок.",
     apiKeyLabel: "API-ключ",
     storedNote:
       "Хранится только в этом браузере и отправляется выбранному поставщику — никогда на наших серверах. На общем компьютере удалите его.",

@@ -148,9 +148,13 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
               value={model}
               placeholder="open-mistral-nemo"
               autoComplete="off"
+              aria-describedby="narrative-ai-model-hint"
               onChange={(e) => setModel(e.target.value)}
             />
           </label>
+          <p id="narrative-ai-model-hint" className="field-hint muted narrative-ai-model-hint">
+            {s.modelHint}
+          </p>
           <label className="field narrative-ai-field">
             <span className="muted">{s.apiKeyLabel}</span>
             <input

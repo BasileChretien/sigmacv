@@ -27,7 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the **specifics** of your work — your self-summary, main research areas, and the
   titles/venues/years of representative outputs — and written as a reflective,
   multi-paragraph first-person narrative (no invented findings, no metrics),
-  rather than generic boilerplate.
+  rather than generic boilerplate. The BYOK form runs at a low sampling
+  temperature for faithfulness and notes (in all ten locales) that a stronger
+  model gives more faithful drafts — the main lever if a small model invents.
 
 - **The editor now points you to narrative modules that still need writing.**
   When a funder-CV model adds empty narrative modules (R4RI / Résumé for
