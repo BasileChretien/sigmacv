@@ -48,3 +48,14 @@ export function licenseInfo(key: string | undefined | null): LicenseInfo | null 
 
 /** The selectable license keys (re-export for UI/tests). */
 export const CV_LICENSE_KEYS = CV_LICENSES;
+
+/**
+ * The reuse license for the EXPOSED METADATA — the machine-readable bibliographic
+ * representations (JSON-LD, CSL-JSON, BibTeX) SigmaCV serves for a public CV.
+ * Fixed at CC0: the major scholarly infrastructures (Crossref, DataCite, OpenAlex)
+ * release bibliographic metadata into the public domain, so the records can be
+ * freely aggregated and reused. This is SEPARATE from the owner's chosen CV
+ * CONTENT license (`display.cvLicense`): the facts describing public works are CC0
+ * even when the CV content itself is licensed more restrictively (or not at all).
+ */
+export const METADATA_LICENSE_URL = licenseInfo("CC0-1.0")!.url;
