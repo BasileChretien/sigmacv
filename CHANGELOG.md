@@ -32,9 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The editor now points you to narrative modules that still need writing.**
   When a funder-CV model adds empty narrative modules (R4RI / Résumé for
   Researchers), the **Content** region gently pulses to draw you in; once you open
-  it, each **unfilled** module pulses until you've drafted it. The cue clears the
-  moment a module has prose, and — respecting `prefers-reduced-motion` — falls back
-  to a static highlight ring when animation is disabled.
+  it, each **unfilled** module pulses until you've drafted it, and its editor is
+  **opened automatically** so the writing box is ready without hunting for the
+  chevron. The cue clears the moment a module has prose, and — respecting
+  `prefers-reduced-motion` — falls back to a static highlight ring when animation
+  is disabled.
 
 - **The CV-model picker's descriptions are now localized in all ten languages.**
   The 58 one-click CV-model layouts (funder calls, public-institution jobs,

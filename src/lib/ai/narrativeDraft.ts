@@ -115,10 +115,12 @@ export async function generateNarrativeDraft(
   if (!isNarrativeAiSection(sectionType)) {
     throw new AiRequestError("AI drafting is only available for narrative modules");
   }
-  // A reflective multi-paragraph module needs room; a slightly higher temperature
-  // reads less templated than the terse default.
+  // A reflective multi-paragraph module needs room (maxTokens). Keep the
+  // temperature LOW: this is a grounded, honesty-constrained task, and a lower
+  // temperature keeps the model closer to the supplied facts — cutting the
+  // invention that a higher setting (and a small model) is prone to.
   return chatComplete(buildNarrativeMessages(cv, sectionType), config, {
     maxTokens: 1400,
-    temperature: 0.6,
+    temperature: 0.3,
   });
 }

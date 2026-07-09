@@ -334,6 +334,26 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
       return next;
     });
 
+  // When a funder-CV model adds empty narrative modules (R4RI / Résumé for
+  // Researchers), auto-EXPAND each one the first time it appears so its text box
+  // is open and ready — the writer shouldn't have to hunt for the chevron. We
+  // remember which ids we've already opened so re-collapsing one (or filling it)
+  // is respected and never fights the user.
+  const autoExpandedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const fresh = cv.sections
+      .filter(isUnfilledNarrativeModule)
+      .map((s) => s.id)
+      .filter((id) => !autoExpandedRef.current.has(id));
+    if (fresh.length === 0) return;
+    fresh.forEach((id) => autoExpandedRef.current.add(id));
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      fresh.forEach((id) => next.add(id));
+      return next;
+    });
+  }, [cv.sections]);
+
   /** Jump to the first outstanding item of a health category: expand its section
    *  and scroll it into view (duplicates also open their compare panel). */
   const resolveHealth = (category: CvHealthCategory) => {
