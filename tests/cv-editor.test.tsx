@@ -42,11 +42,11 @@ describe("CvEditor (component)", () => {
     render(
       <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
     );
-    // The field-normalised MNCS is shown directly (recommended, no gate).
-    fireEvent.click(screen.getByLabelText(/Field-normalised impact \(MNCS\)/i));
+    // The field-normalised Mean RCR is shown directly (recommended, no gate).
+    fireEvent.click(screen.getByLabelText(/Mean RCR/i));
     expect(onChange).toHaveBeenCalledTimes(1);
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
-    expect(next.display.metrics).toContain("mncs");
+    expect(next.display.metrics).toContain("rcr_mean");
     expect(next.display.showMetrics).toBe(true);
   });
 
@@ -55,7 +55,7 @@ describe("CvEditor (component)", () => {
       <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
     );
     // Recommended field-normalised measures are the low-friction default: shown.
-    expect(screen.getByLabelText(/Field-normalised impact \(MNCS\)/i)).toBeTruthy();
+    expect(screen.getByLabelText(/Mean RCR/i)).toBeTruthy();
     // A discouraged count (i10-index) is hidden until the gate is acknowledged...
     expect(screen.queryByText(/i10-index/)).toBeNull();
     fireEvent.click(screen.getByRole("checkbox", { name: /Author-level counts/i }));
@@ -130,10 +130,10 @@ describe("CvEditor (component)", () => {
     );
     fireEvent.click(screen.getByText(/responsible-metrics preset/i));
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
-    // Exactly the field-normalized indicators (FIELD_NORMALIZED_METRICS), in
-    // catalog order — the MNCS ratio-of-sums and the iCite RCR, NOT the
-    // non-normalized 2-year mean citedness. Matches the "field-normalised only" note.
-    expect(next.display.metrics).toEqual(["mncs", "rcr_mean"]);
+    // Exactly the offered field-normalized indicators (FIELD_NORMALIZED_METRICS) —
+    // now just the NIH iCite RCR (the FWCI-derived MNCS was dropped: it can only be
+    // computed over cited works, biasing upward), NOT the 2-year mean citedness.
+    expect(next.display.metrics).toEqual(["rcr_mean"]);
     expect(next.display.showMetrics).toBe(true);
   });
 

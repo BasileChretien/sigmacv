@@ -565,16 +565,16 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
 
     it("annotates a field-normalised metric with responsible-reading context", () => {
       const cv = makeCv();
-      const withMncs: CanonicalCv = {
+      const withRcr: CanonicalCv = {
         ...cv,
-        owner: { ...cv.owner, metrics: { mncs: 1.8 } },
-        display: { ...cv.display, showMetrics: true, metrics: ["mncs"] },
+        owner: { ...cv.owner, metrics: { rcr_mean: 1.8, rcr_n: 20 } },
+        display: { ...cv.display, showMetrics: true, metrics: ["rcr_mean"] },
       };
-      const html = renderCvHtml(withMncs);
+      const html = renderCvHtml(withRcr);
       expect(html).toContain(
-        '<span class="cv-metric-label">Field-normalised impact (MNCS)</span> <span class="cv-metric-value">1.8</span>',
+        '<span class="cv-metric-label">Mean RCR</span> <span class="cv-metric-value">1.8</span>',
       );
-      expect(html).toContain("1.0 = world average");
+      expect(html).toContain("NIH-funded average");
     });
 
     it("leads the metric strip with open access, keeps the coverage note visible, and places the summary above the cards", () => {
@@ -600,25 +600,23 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
           summary: "Drug-safety signal detection.",
           // h_index carries no responsible-reading anchor → exercises the
           // no-context branch in the strip.
-          metrics: { mncs: 1.4, mncs_n: 97, h_index: 9 },
+          metrics: { rcr_mean: 1.4, rcr_n: 97, h_index: 9 },
         },
         display: {
           ...base.display,
           showCharts: true,
           showOpenAccess: true,
           showMetrics: true,
-          metrics: ["mncs", "h_index"],
+          metrics: ["rcr_mean", "h_index"],
         },
       };
       const html = renderCvHtml(cv);
       // The OA share leads the strip, before the field-normalised metric.
-      expect(html.indexOf("Open access")).toBeLessThan(
-        html.indexOf("Field-normalised impact (MNCS)"),
-      );
+      expect(html.indexOf("Open access")).toBeLessThan(html.indexOf("Mean RCR"));
       // The coverage note is VISIBLE text (its own span), not a hover title.
       expect(html).toContain("cv-metric-coverage");
-      expect(html).toContain("over 97 works with a field baseline");
-      expect(html).not.toContain('title="over 97 works with a field baseline"');
+      expect(html).toContain("mean over 97 works with RCR");
+      expect(html).not.toContain('title="mean over 97 works with RCR"');
       // A no-context metric still renders its label/value, one per line.
       expect(html).toContain(
         '<span class="cv-metric-label">h-index</span> <span class="cv-metric-value">9</span>',

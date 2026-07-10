@@ -3,7 +3,6 @@ import {
   metricContext,
   metricCoverageNote,
   metricLabel,
-  metricMncsCoverageNote,
   metricRcrCoverageNote,
   metricSmallNNote,
 } from "@/lib/i18n/render";
@@ -82,17 +81,18 @@ function computeMncs(
  * measures. Labels + responsible-reading context are localized at display time
  * (see lib/i18n/render).
  *
- * `mncs` (MNCS as a ratio of sums) is the headline field-normalized indicator.
- * The old mean-of-per-work-FWCI (`fwci_mean`) is an "average of ratios" antipattern
- * and is NO LONGER offered here (still computed + stored for back-compat/research).
- * A by-year citation percentile ("top 10%") is likewise NOT offered: OpenAlex's
- * `cited_by_percentile_year` is year- not field-normalized and reads high for most
- * authors, so a genuinely field-normalized percentile isn't derivable from the
- * per-work data — MNCS is the offered field-normalized measure instead.
+ * NONE of the FWCI-derived aggregates are offered as a headline, because they can
+ * only be computed over CITED works: the per-work expected baseline is recovered as
+ * `e_i = c_i / FWCI_i`, which is `0/0` for an uncited work, so uncited (and very
+ * recent, FWCI-null) works are silently excluded — biasing the score UPWARD (a true
+ * MNCS counts uncited works in the denominator). So both the MNCS ratio-of-sums
+ * (`mncs`) and the mean-of-per-work-FWCI (`fwci_mean`) are computed + stored for
+ * research/back-compat but NO LONGER offered here. A by-year citation percentile
+ * ("top 10%") is likewise NOT offered: OpenAlex's `cited_by_percentile_year` is
+ * year- not field-normalized. The offered field-normalized measure is the NIH iCite
+ * RCR (biomedical, PMID-keyed), which does not have this cited-only limitation.
  */
 export const METRIC_DEFS = [
-  // Field-normalized (comparable across fields & years) — the responsible default.
-  { key: "mncs", format: "decimal" },
   // NIH iCite Relative Citation Ratio — field-normalized but biomedical-only
   // (PMID-keyed); the mean RCR is the NIH-sanctioned portfolio aggregation
   // (Hutchins et al. 2016). Opt-in with a caveat in its responsible-reading context.
@@ -151,8 +151,6 @@ function formatValue(format: string, raw: number, locale: string): string {
  * to the printed PDF — not demoted to a mouse-only hover title.
  */
 function coverageNoteFor(locale: string, key: string, values: OwnerMetrics): string | undefined {
-  if (key === "mncs")
-    return withSmallN(locale, metricMncsCoverageNote(locale, values.mncs_n), values.mncs_n);
   if (key === "fwci_mean") return metricCoverageNote(locale, values.fwci_n);
   if (key === "rcr_mean")
     return withSmallN(locale, metricRcrCoverageNote(locale, values.rcr_n), values.rcr_n);
