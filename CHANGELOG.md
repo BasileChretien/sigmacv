@@ -272,6 +272,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Journal supplementary material no longer shows up as a dataset.** Springer /
+  BMC mint a figshare DOI for each "Additional file N of <article>" (and a figshare
+  **Collection** grouping them under the paper's own title); DataCite indexes these
+  against your ORCID, so they were landing in the **Datasets & Software** section as
+  if they were standalone outputs. The DataCite client now drops journal-supplement
+  records — "Additional file N of …" and "Supplementary information/tables/…" titles,
+  plus figshare Collections — so the section shows real datasets/software only. Any
+  genuine data inside a collection is its own DataCite record and still appears; real
+  figshare datasets with normal titles are unaffected.
+
 - **Social-share cards now show each page's own title, not the homepage's.** The
   site-wide layout set the OpenGraph/Twitter title + description to the homepage's,
   and Next.js cascades that to every page without its own — so sharing a landing

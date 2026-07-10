@@ -57,6 +57,39 @@ const INCLUDE_TYPES = new Set([
   "PhysicalObject",
 ]);
 
+// Journal-minted "supplementary material" is part of a publication already listed
+// under Publications, NOT a standalone dataset/software output. Springer/BMC mint a
+// figshare DOI for each "Additional file N of <article>" (and Nature/Springer for
+// "Supplementary information/tables/…"), plus a figshare COLLECTION that bundles them
+// under the article's own title. We drop these so the Datasets & Software section
+// isn't padded with paper appendices. Any REAL data inside a collection is its own
+// DataCite record and is surfaced separately, so nothing genuine is lost.
+const ADDITIONAL_FILE_RE = /^\s*additional file\s+\d+\s+of\b/i;
+const SUPPLEMENT_TITLE_RE =
+  /^\s*supplement(?:ary|al)\s+(?:information|materials?|methods?|notes?|figures?|tables?|appendix|files?)\b/i;
+
+/** figshare record? (publisher name or the 10.6084/…figshare… DOI namespace). */
+function isFigshare(publisher: string | undefined, doi: string): boolean {
+  return /figshare/i.test(publisher ?? "") || doi.includes("figshare");
+}
+
+/**
+ * Journal-minted supplementary material masquerading as a dataset/collection — an
+ * "Additional file N of …" / "Supplementary …" doc, or the figshare Collection that
+ * groups a paper's supplements. Not a standalone research output → dropped.
+ */
+function isJournalSupplement(
+  title: string,
+  type: string,
+  doi: string,
+  publisher?: string,
+): boolean {
+  if (ADDITIONAL_FILE_RE.test(title) || SUPPLEMENT_TITLE_RE.test(title)) return true;
+  // A figshare Collection is the article's supplement container (title = the paper).
+  if (type === "Collection" && isFigshare(publisher, doi)) return true;
+  return false;
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function nonEmpty(s: unknown): string | undefined {
   return typeof s === "string" && s.trim() ? s.trim() : undefined;
@@ -150,6 +183,10 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
       if (!type || !doi || !INCLUDE_TYPES.has(type) || seen.has(doi)) continue;
       const title = nonEmpty(Array.isArray(attr?.titles) ? attr.titles[0]?.title : undefined);
       if (!title) continue;
+      const publisher = publisherName(attr?.publisher);
+      // Skip journal-minted supplementary material — it belongs to a publication,
+      // not the Datasets & Software section.
+      if (isJournalSupplement(title, type, doi, publisher)) continue;
       seen.add(doi);
       const yearRaw = attr?.publicationYear;
       const year = Number.isFinite(Number(yearRaw)) ? Number(yearRaw) : undefined;
@@ -160,7 +197,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
         title,
         type,
         year,
-        publisher: publisherName(attr?.publisher),
+        publisher,
         ...(relatedDois.length ? { relatedDois } : {}),
         ...(creators.length ? { creators } : {}),
       });
