@@ -5,7 +5,7 @@ import {
   type CvItem,
   type CvSectionType,
 } from "@/lib/canonical/schema";
-import { narrativeEvidence } from "@/lib/canonical/narrativeEvidence";
+import { narrativeEvidence, narrativeEvidenceEntries } from "@/lib/canonical/narrativeEvidence";
 
 function item(id: string, over: Partial<CvItem> = {}): CvItem {
   return {
@@ -80,5 +80,53 @@ describe("narrativeEvidence", () => {
     expect(narrativeEvidence(c, "narrative-society")).toEqual([]);
     expect(narrativeEvidence(c, "statement")).toEqual([]);
     expect(narrativeEvidence(c, "publications")).toEqual([]);
+  });
+});
+
+describe("narrativeEvidenceEntries", () => {
+  const titled = (id: string, title: string, over: Partial<CvItem> = {}) =>
+    item(id, { csl: { id, type: "article-journal", title }, ...over });
+
+  it("collects entries (title/venue/year), skipping hidden + untitled items", () => {
+    const c = cv([
+      section("publications", [
+        item("p1", {
+          csl: {
+            id: "p1",
+            type: "article-journal",
+            title: "On adverse drug reactions",
+            "container-title": "J. Pharmacovigilance",
+          },
+          meta: { year: 2024 },
+        }),
+        item("p2", { displayTextOverride: "An edited title" }), // override wins; no venue/year
+        titled("ph", "Hidden work", { included: false }), // hidden → skipped
+        item("nt"), // no title → skipped
+      ]),
+      section("datasets", [item("d1", { displayText: "A shared dataset" })]),
+    ]);
+    expect(narrativeEvidenceEntries(c, "narrative-knowledge")).toEqual([
+      {
+        type: "publications",
+        entries: [
+          { title: "On adverse drug reactions", venue: "J. Pharmacovigilance", year: 2024 },
+          { title: "An edited title" },
+        ],
+      },
+      { type: "datasets", entries: [{ title: "A shared dataset" }] },
+    ]);
+  });
+
+  it("caps the number of entries per section", () => {
+    const many = Array.from({ length: 10 }, (_, i) => titled(`m${i}`, `T${i}`));
+    const c = cv([section("publications", many)]);
+    expect(narrativeEvidenceEntries(c, "narrative-knowledge", 3)).toEqual([
+      { type: "publications", entries: [{ title: "T0" }, { title: "T1" }, { title: "T2" }] },
+    ]);
+  });
+
+  it("returns [] for a non-narrative section type", () => {
+    const c = cv([section("publications", [titled("p1", "x")])]);
+    expect(narrativeEvidenceEntries(c, "statement")).toEqual([]);
   });
 });

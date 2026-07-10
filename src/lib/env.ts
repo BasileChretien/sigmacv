@@ -48,6 +48,9 @@ const EnvSchema = z.object({
   // even when enabled: if absent the write-client reports an error rather than
   // guessing a production URL.
   OPENALEX_CURATION_ENDPOINT: z.url().optional(),
+  // NOTE: the narrative-CV AI assistant is BRING-YOUR-OWN-KEY — the server holds
+  // no key and presets no provider (the user supplies base URL + model + key from
+  // their browser, per-request). So there is intentionally NO AI_* env here.
 });
 
 export type Env = z.infer<typeof EnvSchema>;

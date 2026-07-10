@@ -66,9 +66,11 @@ import { editorUi } from "@/lib/i18n/editorUi";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
 import { narrativeEvidence } from "@/lib/canonical/narrativeEvidence";
+import { isNarrativeAiSection, isUnfilledNarrativeModule } from "@/lib/ai/sections";
 import { narrativeGuidance, narrativeEvidenceLabel } from "@/lib/i18n/narrativeGuidance";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
+import NarrativeAiDraft from "./NarrativeAiDraft";
 import ImportBib from "./ImportBib";
 import type { CvHealthCategory } from "./CvHealthPanel";
 import ItemRow from "./ItemRow";
@@ -217,7 +219,7 @@ interface SectionsListProps {
   /** A DOI-claimed work was added server-side; replace the CV with the saved one. */
   onClaimAdded?: (cv: CanonicalCv) => void;
   /** No-login preview: hide the add-by-DOI panel (it saves server-side, which
-   *  requires an account). */
+   *  requires an account). Also hides the (account-only) AI draft assistant. */
   anonymous?: boolean;
 }
 
@@ -331,6 +333,26 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
       else next.add(id);
       return next;
     });
+
+  // When a funder-CV model adds empty narrative modules (R4RI / Résumé for
+  // Researchers), auto-EXPAND each one the first time it appears so its text box
+  // is open and ready — the writer shouldn't have to hunt for the chevron. We
+  // remember which ids we've already opened so re-collapsing one (or filling it)
+  // is respected and never fights the user.
+  const autoExpandedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const fresh = cv.sections
+      .filter(isUnfilledNarrativeModule)
+      .map((s) => s.id)
+      .filter((id) => !autoExpandedRef.current.has(id));
+    if (fresh.length === 0) return;
+    fresh.forEach((id) => autoExpandedRef.current.add(id));
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      fresh.forEach((id) => next.add(id));
+      return next;
+    });
+  }, [cv.sections]);
 
   /** Jump to the first outstanding item of a health category: expand its section
    *  and scroll it into view (duplicates also open their compare panel). */
@@ -552,6 +574,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
             (i) => i.meta.reviewFlag === "duplicate" && !isHidden(i),
           ).length;
           const isExpanded = expanded.has(section.id);
+          // An empty narrative module a funder-CV model added: pulse it so the
+          // writer sees which sections still need drafting. Clears once written.
+          const needsDraft = isUnfilledNarrativeModule(section);
           return (
             <SectionCard key={section.id} value={section.id}>
               {(controls) => (
@@ -569,7 +594,7 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                   <div
                     className={`section-block${isExpanded ? " is-expanded" : " is-collapsed"}${
                       section.visible ? "" : " is-section-hidden"
-                    }`}
+                    }${needsDraft ? " is-attention" : ""}`}
                   >
                     <div className="section-head">
                       <span
@@ -719,6 +744,23 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                             String(PROSE_BODY_MAX - (section.body ?? "").length),
                           )}
                         </span>
+                        {/* Optional AI first-draft — BRING-YOUR-OWN-KEY (opt-in,
+                            consented, the user's own provider). Only the four
+                            narrative modules, and never in the anonymous preview
+                            (it saves/relays server-side, which needs an account). */}
+                        {!anonymous && isNarrativeAiSection(section.type) ? (
+                          <NarrativeAiDraft
+                            section={section}
+                            locale={locale}
+                            onInsert={(text) => {
+                              const prev = section.body ?? "";
+                              const merged = (prev ? `${prev}\n\n` : "") + text;
+                              onChange(
+                                setSectionBody(cv, section.id, merged.slice(0, PROSE_BODY_MAX)),
+                              );
+                            }}
+                          />
+                        ) : null}
                       </label>
                     ) : isExpanded ? (
                       <>

@@ -28,6 +28,8 @@ describe("privacyStrings", () => {
       expect(s.data).toContain("OpenAlex");
       // The opt-in research clause must cite the consent legal basis.
       expect(s.research).toContain("Art. 6(1)(a)");
+      // The AI-drafting disclosure must name the EU processor in every locale.
+      expect(s.ai).toContain("Mistral AI");
     }
   });
 });

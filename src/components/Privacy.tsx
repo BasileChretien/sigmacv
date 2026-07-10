@@ -44,6 +44,9 @@ export default function Privacy({ locale }: { locale: string }) {
         <h2>{s.researchHeading}</h2>
         <p>{s.research}</p>
 
+        <h2>{s.aiHeading}</h2>
+        <p>{s.ai}</p>
+
         <h2>{s.retentionHeading}</h2>
         <p>{s.retention}</p>
 

@@ -9,6 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Optional AI first-draft for the narrative-CV modules (bring-your-own-key).**
+  The R4RI / Royal-Society "narrative CV" modules already showed writing guidance
+  and the counts of your relevant outputs; now you can also generate a **first
+  draft** for a module from your own visible research outputs. It is
+  **bring-your-own-key**: SigmaCV holds no key and presets no provider — you enter
+  your own OpenAI-compatible endpoint, model and API key (Mistral, OpenAI,
+  OpenRouter, a self-hosted server, anything) and they're sent per-request. The
+  endpoint + model are remembered in your browser; the **API key is held only in
+  memory for the session — never written to storage** (so there's no clear-text
+  key at rest), and you re-enter it next visit. The app's route is a
+  **stateless, SSRF-hardened relay** that
+  forwards one call to the endpoint you chose and stores/logs **nothing** — no key,
+  no prompt. It stays **off until you enter a key**, is **opt-in + consented**
+  per-use (a point-of-use disclosure of what is sent — a short, public-only
+  summary: the module, output counts and a few titles, never contact details,
+  identifiers, abstracts or co-authors), and the result is always labelled "AI
+  draft — verify and rewrite" and **never inserted automatically**. The privacy
+  notice describes the BYOK model in all ten locales. The draft is now grounded in
+  the **specifics** of your work — your self-summary, main research areas, and the
+  titles/venues/years of representative outputs — and written as a reflective,
+  multi-paragraph first-person narrative (no invented findings, no metrics),
+  rather than generic boilerplate. The BYOK form runs at a low sampling
+  temperature for faithfulness and notes (in all ten locales) that a stronger
+  model gives more faithful drafts — the main lever if a small model invents.
+
+- **The editor now points you to narrative modules that still need writing.**
+  When a funder-CV model adds empty narrative modules (R4RI / Résumé for
+  Researchers), the **Content** region gently pulses to draw you in; once you open
+  it, each **unfilled** module pulses until you've drafted it, and its editor is
+  **opened automatically** so the writing box is ready without hunting for the
+  chevron. The cue clears the moment a module has prose, and — respecting
+  `prefers-reduced-motion` — falls back to a static highlight ring when animation
+  is disabled.
+
 - **ORCID entries now show whether an institution verified them.** ORCID
   distinguishes data a **trusted organization** asserted on your record (via the
   Member API) from data you **typed in yourself** — the former is higher-trust.
