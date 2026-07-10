@@ -172,10 +172,11 @@ const METRIC_HINTS_I18N: Record<Locale, MetricHintStrings> = {
 /**
  * Field-normalised metric keys (comparable across fields). Everything else in
  * the catalog — h-index, i10, 2-year mean citedness, raw work/citation counts —
- * is not field-normalised. `mncs` (MNCS ratio of sums) is the headline measure;
- * the old mean-of-ratios `fwci_mean` is no longer offered.
+ * is not field-normalised. The NIH iCite RCR (biomedical) is the offered
+ * field-normalised measure; the FWCI-derived aggregates (`mncs`, `fwci_mean`) are
+ * no longer offered (they can only be computed over cited works, biasing upward).
  */
-export const FIELD_NORMALIZED_METRICS: ReadonlySet<string> = new Set(["mncs", "rcr_mean"]);
+export const FIELD_NORMALIZED_METRICS: ReadonlySet<string> = new Set(["rcr_mean"]);
 
 /**
  * Number of simultaneously-shown metrics at/above which the header reads as

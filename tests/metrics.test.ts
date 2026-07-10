@@ -39,6 +39,8 @@ function withMetrics(overrides: Partial<CanonicalCv["display"]>): CanonicalCv {
         mncs_n: 40,
         fwci_mean: 1.84,
         top10pct_share: 0.25,
+        rcr_mean: 2.1,
+        rcr_n: 40,
       },
     },
     display: { ...cv.display, ...overrides },
@@ -49,7 +51,7 @@ describe("formatMetricValue", () => {
   it("formats per the metric's catalog format", () => {
     expect(formatMetricValue("h_index", 12)).toBe("12"); // integer
     expect(formatMetricValue("works_count", 116)).toBe("116"); // integer
-    expect(formatMetricValue("mncs", 1.76)).toBe("1.8"); // decimal (catalog key)
+    expect(formatMetricValue("mncs", 1.76)).toBe("1.8"); // decimal (removed → fallback)
     expect(formatMetricValue("fwci_mean", 1.84)).toBe("1.8"); // decimal (removed → fallback)
     // Unknown / removed keys fall back to the decimal format.
     expect(formatMetricValue("top10pct_share", 0.25)).toBe("0.3");
@@ -88,65 +90,48 @@ describe("formattedMetrics", () => {
     expect(metricsLineText(cv)).toBe("2-yr mean citedness: 3.4 · Works: 116");
   });
 
-  it("formats field-normalized metrics and ignores removed/unknown keys", () => {
+  it("silently drops the no-longer-offered FWCI-derived keys (mncs, fwci_mean, top10pct_share)", () => {
     const cv = withMetrics({
       showMetrics: true,
-      // fwci_mean (mean of ratios) and top10pct_share are no longer selectable
-      // metrics → silently dropped; only the MNCS ratio-of-sums renders.
-      metrics: ["mncs", "fwci_mean", "top10pct_share"],
+      // The FWCI-derived aggregates (mncs, fwci_mean) can only be computed over
+      // CITED works (biased upward) and the by-year top-10% share isn't field-
+      // normalized → none are selectable; only the offered RCR mean renders.
+      metrics: ["mncs", "fwci_mean", "top10pct_share", "rcr_mean"],
     });
-    expect(metricsLineText(cv)).toBe("Field-normalised impact (MNCS): 1.9");
+    expect(metricsLineText(cv)).toBe("Mean RCR: 2.1");
   });
 
-  it("appends MNCS coverage (over N works with a field baseline) when mncs_n is present", () => {
-    const cv = makeCv();
-    const withCoverage: CanonicalCv = {
-      ...cv,
-      owner: { ...cv.owner, metrics: { mncs: 1.84, mncs_n: 73 } },
-      display: { ...cv.display, showMetrics: true, metrics: ["mncs"] },
-    };
-    const mncs = formattedMetrics(withCoverage)[0];
-    expect(mncs?.value).toBe("1.8");
-    expect(mncs?.context).toContain("1.0 = world average");
-    // The coverage rides a separate VISIBLE field (never a mouse-only hover title).
-    expect(mncs?.coverageNote).toContain("over 73 works with a field baseline");
-    // N ≥ SMALL_N_THRESHOLD → no small-sample caveat.
-    expect(mncs?.coverageNote).not.toContain("small sample");
-  });
-
-  it("flags a small MNCS sample below the reliability threshold", () => {
+  it("flags a small RCR sample below the reliability threshold", () => {
     const cv = makeCv();
     const smallN: CanonicalCv = {
       ...cv,
-      owner: { ...cv.owner, metrics: { mncs: 1.5, mncs_n: 4 } },
-      display: { ...cv.display, showMetrics: true, metrics: ["mncs"] },
+      owner: { ...cv.owner, metrics: { rcr_mean: 1.5, rcr_n: 4 } },
+      display: { ...cv.display, showMetrics: true, metrics: ["rcr_mean"] },
     };
-    const mncs = formattedMetrics(smallN)[0];
-    expect(mncs?.coverageNote).toContain("over 4 works with a field baseline");
-    expect(mncs?.coverageNote).toContain("small sample");
+    const rcr = formattedMetrics(smallN)[0];
+    // The coverage rides a separate VISIBLE field (never a mouse-only hover title).
+    expect(rcr?.coverageNote).toContain("mean over 4 works with RCR");
+    expect(rcr?.coverageNote).toContain("small sample");
   });
 
-  it("omits MNCS coverage when mncs_n is absent", () => {
+  it("omits RCR coverage when rcr_n is absent", () => {
     const cv = makeCv();
     const noCoverage: CanonicalCv = {
       ...cv,
-      owner: { ...cv.owner, metrics: { mncs: 1.84 } },
-      display: { ...cv.display, showMetrics: true, metrics: ["mncs"] },
+      owner: { ...cv.owner, metrics: { rcr_mean: 1.84 } },
+      display: { ...cv.display, showMetrics: true, metrics: ["rcr_mean"] },
     };
-    const mncs = formattedMetrics(noCoverage)[0];
-    expect(mncs?.coverageNote).toBeUndefined();
-    expect(mncs?.context).toContain("world average");
+    const rcr = formattedMetrics(noCoverage)[0];
+    expect(rcr?.coverageNote).toBeUndefined();
+    expect(rcr?.context).toContain("NIH-funded average");
   });
 
   it("leads with field-normalized measures before h-index", () => {
     const cv = withMetrics({
       showMetrics: true,
-      metrics: ["h_index", "mncs"],
+      metrics: ["h_index", "rcr_mean"],
     });
-    expect(formattedMetrics(cv).map((m) => m.label)).toEqual([
-      "Field-normalised impact (MNCS)",
-      "h-index",
-    ]);
+    expect(formattedMetrics(cv).map((m) => m.label)).toEqual(["Mean RCR", "h-index"]);
   });
 
   it("shows the iCite RCR mean with its biomedical caveat + coverage", () => {

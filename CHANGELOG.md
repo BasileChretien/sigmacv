@@ -208,23 +208,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **The field-normalized metric is now a statistically sound author-level
-  indicator (MNCS), not an "average of ratios."** The optional headline
-  field-normalized measure was the arithmetic mean of per-work FWCI — an
-  average-of-ratios that over-weights works in low-citation fields/years and is
-  outlier-dominated at author level. It is replaced by **MNCS (mean normalized
-  citation score) computed as a ratio of sums** — total observed citations ÷
-  total field/year-expected citations — the consistent "new crown indicator"
-  (Waltman et al. 2011). 1.0 = field & year average. Each metric now shows how it
-  was built, its coverage count, and a small-sample caveat below ten works. The
-  NIH iCite **RCR** stays available for all fields (captioned as biomedical-only,
-  and the mean RCR is the NIH-sanctioned portfolio aggregation); **2-year mean
-  citedness** is demoted below the field-normalized measures and flagged as not
-  field-normalized. Metrics remain **off by default**, and the "responsible
-  metrics" preset now selects MNCS + RCR.
+- **The offered field-normalized metric is the NIH iCite RCR — the FWCI-derived
+  MNCS was dropped as unreliable.** Author-level field normalization first replaced
+  the arithmetic mean of per-work FWCI (an "average of ratios" that over-weights
+  low-citation fields/years and is outlier-dominated) with an **MNCS as a ratio of
+  sums** — Σ observed ÷ Σ field/year-expected citations (Waltman et al. 2011). But
+  the expected baseline is recovered from OpenAlex's per-work FWCI as `e_i = c_i /
+FWCI_i`, which is `0/0` for an **uncited** work — so the MNCS could only be
+  computed over CITED works, silently excluding uncited and very recent works and
+  biasing the score **upward** (a true MNCS counts uncited works in the
+  denominator). Rather than surface an inflated headline, both the MNCS and the
+  mean-FWCI are now **computed and stored but no longer offered**. The offered
+  field-normalized measure is the **NIH iCite RCR** (biomedical, PMID-keyed; the
+  NIH-sanctioned mean, which does not have this cited-only limitation), captioned
+  with its coverage count and a small-sample caveat below ten works. **2-year mean
+  citedness** stays demoted and flagged as not field-normalized. Metrics remain
+  **off by default**, and the "responsible metrics" preset selects the RCR mean.
 
 - **The metric picker is now responsible by default.** The field-normalised
-  measures (MNCS, RCR) are shown directly as the low-friction default, while the
+  measure (the NIH iCite RCR) is shown directly as the low-friction default, while the
   DORA/CoARA-discouraged **author-level counts** (h-index, i10, works/citation
   totals, 2-year mean citedness) sit behind an explicit acknowledgment
   ("discouraged for assessing individuals — DORA and CoARA") rather than as

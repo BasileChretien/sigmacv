@@ -13,9 +13,10 @@ import {
 import { METRIC_KEYS } from "@/lib/render/metrics";
 
 describe("metricHint", () => {
-  it("returns the field-normalised hint only for MNCS/RCR, the raw hint otherwise", () => {
-    expect(metricHint("en-US", "mncs")).toContain("Field-normalised");
+  it("returns the field-normalised hint only for the offered normalised metric (RCR)", () => {
     expect(metricHint("en-US", "rcr_mean")).toContain("Field-normalised");
+    // The FWCI-derived mncs is no longer offered → it gets the raw (not-normalised) hint.
+    expect(metricHint("en-US", "mncs")).toContain("Not field-normalised");
     expect(metricHint("en-US", "h_index")).toContain("Not field-normalised");
     expect(metricHint("en-US", "cited_by_count")).toContain("Not field-normalised");
   });
@@ -26,10 +27,10 @@ describe("metricHint", () => {
 
   it("has a non-empty normalised + raw hint for all 10 locales", () => {
     for (const loc of SUPPORTED_LOCALES) {
-      expect(metricHint(loc, "mncs").length).toBeGreaterThan(0);
+      expect(metricHint(loc, "rcr_mean").length).toBeGreaterThan(0);
       expect(metricHint(loc, "h_index").length).toBeGreaterThan(0);
       // the two hints must differ (distinct guidance per category)
-      expect(metricHint(loc, "mncs")).not.toBe(metricHint(loc, "h_index"));
+      expect(metricHint(loc, "rcr_mean")).not.toBe(metricHint(loc, "h_index"));
     }
   });
 
