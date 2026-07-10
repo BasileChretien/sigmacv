@@ -71,6 +71,78 @@ describe("fetchDataciteOutputs", () => {
     expect(out[1]?.year).toBeUndefined();
   });
 
+  it("drops journal-minted figshare supplements but keeps real datasets/collections", async () => {
+    const body = {
+      data: [
+        {
+          // A BMC "Additional file N of <article>" — supplement, not a dataset.
+          attributes: {
+            doi: "10.6084/m9.figshare.32943867",
+            titles: [{ title: "Additional file 3 of Influence of learning activities…" }],
+            publisher: "figshare",
+            types: { resourceTypeGeneral: "Dataset" },
+          },
+        },
+        {
+          // A Springer/Nature "Supplementary information" doc — supplement.
+          attributes: {
+            doi: "10.6084/m9.figshare.99",
+            titles: [{ title: "Supplementary Information 1" }],
+            publisher: "figshare",
+            types: { resourceTypeGeneral: "Dataset" },
+          },
+        },
+        {
+          // The figshare COLLECTION that bundles a paper's supplements (title = the
+          // article) — detected via the "figshare" publisher name.
+          attributes: {
+            doi: "10.6084/m9.figshare.c.8583732",
+            titles: [{ title: "Influence of learning activities… the Pharmaquest study" }],
+            publisher: "figshare",
+            types: { resourceTypeGeneral: "Collection" },
+          },
+        },
+        {
+          // Another figshare collection with no publisher → detected via the
+          // 10.6084/…figshare… DOI namespace instead.
+          attributes: {
+            doi: "10.6084/m9.figshare.c.7000000",
+            titles: [{ title: "Another paper's supplement collection" }],
+            types: { resourceTypeGeneral: "Collection" },
+          },
+        },
+        {
+          // A NON-figshare Collection (e.g. a curated data collection) → kept.
+          attributes: {
+            doi: "10.5281/zenodo.collection",
+            titles: [{ title: "A curated dataset collection" }],
+            publisher: "Zenodo",
+            types: { resourceTypeGeneral: "Collection" },
+          },
+        },
+        {
+          // A REAL figshare dataset with a normal title → kept (we drop supplements,
+          // not everything on figshare).
+          attributes: {
+            doi: "10.6084/m9.figshare.realdata",
+            titles: [{ title: "Raw survey responses" }],
+            publisher: "figshare",
+            types: { resourceTypeGeneral: "Dataset" },
+          },
+        },
+      ],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(body)),
+    );
+    const out = await fetchDataciteOutputs("0000-0002-7483-2489");
+    expect(out.map((o) => o.title)).toEqual([
+      "A curated dataset collection", // non-figshare collection survives
+      "Raw survey responses", // real figshare dataset survives
+    ]);
+  });
+
   it("queries DataCite by the user's ORCID", async () => {
     const f = vi.fn(async (_url: URL | string) => res({ data: [] }));
     vi.stubGlobal("fetch", f);
