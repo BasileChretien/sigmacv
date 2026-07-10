@@ -14,13 +14,14 @@ interface NarrativeAiDraftProps {
 
 type Phase = "idle" | "config" | "loading" | "result" | "error";
 
-// The user's own provider config — held ONLY in this browser (localStorage), never
-// on our servers. Sent per-request to our stateless relay, which forwards it to
-// the endpoint the user chose and keeps nothing.
+// Only the NON-secret parts of the user's provider config are persisted (so they
+// pre-fill next time). The API KEY is deliberately NOT stored — it lives in React
+// state for this session only and is gone on reload, so there's no clear-text key
+// at rest for XSS or a shared browser to lift. Everything is sent per-request to
+// our stateless relay, which forwards it to the chosen endpoint and keeps nothing.
 const LS = {
   baseUrl: "sigmacv.ai.baseUrl",
   model: "sigmacv.ai.model",
-  apiKey: "sigmacv.ai.apiKey",
 } as const;
 
 // Editable starting defaults so a user only needs to paste a key for the common
@@ -30,10 +31,11 @@ const DEFAULT_MODEL = "open-mistral-nemo";
 
 /**
  * Optional AI first-draft for a narrative-CV module — BRING-YOUR-OWN-KEY. The user
- * supplies their own OpenAI-compatible provider (base URL + model + key); it is
- * stored only in their browser and sent per draft request. SigmaCV holds no key,
- * presets no provider, and never auto-inserts — the draft is always labelled
- * "verify and rewrite" and inserted only on an explicit click.
+ * supplies their own OpenAI-compatible provider (base URL + model + key) and it is
+ * sent per draft request. The base URL + model are remembered in the browser; the
+ * KEY is held only in memory for the session (never written to storage). SigmaCV
+ * holds no key, presets no provider, and never auto-inserts — the draft is always
+ * labelled "verify and rewrite" and inserted only on an explicit click.
  */
 export default function NarrativeAiDraft({ section, locale, onInsert }: NarrativeAiDraftProps) {
   const s = narrativeAiStrings(locale);
@@ -44,13 +46,13 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
 
-  // Load any previously-entered config from the browser AFTER hydration (so the
-  // server and first client render match).
+  // Load the remembered (non-secret) endpoint + model AFTER hydration (so the
+  // server and first client render match). The key is never loaded — it starts
+  // empty every session and the user re-enters it.
   useEffect(() => {
     try {
       setBaseUrl(localStorage.getItem(LS.baseUrl) || DEFAULT_BASE_URL);
       setModel(localStorage.getItem(LS.model) || DEFAULT_MODEL);
-      setApiKey(localStorage.getItem(LS.apiKey) ?? "");
     } catch {
       // localStorage unavailable (private mode) — fall back to the editable defaults.
       setBaseUrl(DEFAULT_BASE_URL);
@@ -60,24 +62,20 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
 
   const ready = Boolean(baseUrl.trim() && model.trim() && apiKey.trim());
 
+  // Persist only the non-secret endpoint + model. The key is intentionally omitted
+  // — it stays in memory for this session and is never written to storage.
   function persist() {
     try {
       localStorage.setItem(LS.baseUrl, baseUrl.trim());
       localStorage.setItem(LS.model, model.trim());
-      localStorage.setItem(LS.apiKey, apiKey.trim());
     } catch {
       /* ignore — a failed save just means the config isn't remembered. */
     }
   }
 
-  // Clears only the sensitive KEY (the endpoint + model aren't secrets and stay,
-  // so the user doesn't have to re-enter them) — for shared computers.
+  // Clear the in-memory key immediately (e.g. on a shared computer, without waiting
+  // for the session to end). Nothing to remove from storage — it was never saved.
   function forget() {
-    try {
-      localStorage.removeItem(LS.apiKey);
-    } catch {
-      /* ignore */
-    }
     setApiKey("");
   }
 

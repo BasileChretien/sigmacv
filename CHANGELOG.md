@@ -15,8 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   draft** for a module from your own visible research outputs. It is
   **bring-your-own-key**: SigmaCV holds no key and presets no provider — you enter
   your own OpenAI-compatible endpoint, model and API key (Mistral, OpenAI,
-  OpenRouter, a self-hosted server, anything), kept **only in your browser** and
-  sent per-request. The app's route is a **stateless, SSRF-hardened relay** that
+  OpenRouter, a self-hosted server, anything) and they're sent per-request. The
+  endpoint + model are remembered in your browser; the **API key is held only in
+  memory for the session — never written to storage** (so there's no clear-text
+  key at rest), and you re-enter it next visit. The app's route is a
+  **stateless, SSRF-hardened relay** that
   forwards one call to the endpoint you chose and stores/logs **nothing** — no key,
   no prompt. It stays **off until you enter a key**, is **opt-in + consented**
   per-use (a point-of-use disclosure of what is sent — a short, public-only

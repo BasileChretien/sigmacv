@@ -47,8 +47,8 @@ describe("NarrativeAiDraft (bring-your-own-key)", () => {
     render(<NarrativeAiDraft section={section} locale="en-US" onInsert={onInsert} />);
 
     fireEvent.click(screen.getByText(/Draft with AI/));
-    // No request until the user supplies their own key; the browser-only note shows.
-    expect(screen.getByText(/never saved on our servers/i)).toBeTruthy();
+    // No request until the user supplies their own key; the session-only note shows.
+    expect(screen.getByText(/only in memory for this session/i)).toBeTruthy();
     expect(fetchMock).not.toHaveBeenCalled();
 
     fillConfig();
@@ -67,6 +67,25 @@ describe("NarrativeAiDraft (bring-your-own-key)", () => {
 
     fireEvent.click(screen.getByText("Insert into section"));
     expect(onInsert).toHaveBeenCalledWith("My key contributions.");
+  });
+
+  it("remembers the endpoint + model but NEVER persists the API key", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ draft: "draft" }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<NarrativeAiDraft section={section} locale="en-US" onInsert={vi.fn()} />);
+
+    fireEvent.click(screen.getByText(/Draft with AI/));
+    fillConfig();
+    fireEvent.click(screen.getByText("Generate draft"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    // Non-secret config is remembered for next time…
+    expect(localStorage.getItem("sigmacv.ai.baseUrl")).toBe("https://api.example.com/v1");
+    expect(localStorage.getItem("sigmacv.ai.model")).toBe("some-model");
+    // …but the key is memory-only — no clear-text key at rest (CodeQL: cleartext storage).
+    expect(localStorage.getItem("sigmacv.ai.apiKey")).toBeNull();
   });
 
   it("pre-fills editable Mistral defaults so only a key is required", async () => {

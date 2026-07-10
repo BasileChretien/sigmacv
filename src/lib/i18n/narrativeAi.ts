@@ -56,7 +56,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "A stronger model (e.g. mistral-large-latest) gives more faithful drafts with less invention.",
     apiKeyLabel: "API key",
     storedNote:
-      "Kept only in this browser and sent to the provider you pick — never saved on our servers. Clear it on a shared computer.",
+      "Your API key is kept only in memory for this session — never saved to this browser or our servers — and sent only to the provider you choose. Reloading or “Forget key” clears it.",
     keyHint:
       "Works with Mistral, OpenAI, OpenRouter, a self-hosted server, or any OpenAI-compatible endpoint.",
     forgetKey: "Forget key",
@@ -78,7 +78,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
     modelHint: "更强的模型（如 mistral-large-latest）能生成更忠实、更少虚构的初稿。",
     apiKeyLabel: "API 密钥",
     storedNote:
-      "仅保存在本浏览器，并发送给你选择的提供商——绝不会保存到我们的服务器。在公用电脑上请清除。",
+      "你的 API 密钥仅在本次会话的内存中保留——绝不会保存到本浏览器或我们的服务器——且只发送给你选择的提供商。刷新或“清除密钥”即可清除。",
     keyHint: "支持 Mistral、OpenAI、OpenRouter、自建服务器或任何兼容 OpenAI 的接口。",
     forgetKey: "清除密钥",
     generate: "生成初稿",
@@ -100,7 +100,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Un modelo más potente (p. ej. mistral-large-latest) produce borradores más fieles y con menos invención.",
     apiKeyLabel: "Clave API",
     storedNote:
-      "Se guarda solo en este navegador y se envía al proveedor que elijas; nunca en nuestros servidores. Bórrala en un equipo compartido.",
+      "Tu clave API se mantiene solo en memoria durante esta sesión —nunca se guarda en este navegador ni en nuestros servidores— y se envía solo al proveedor que elijas. Se borra al recargar o con «Olvidar clave».",
     keyHint:
       "Funciona con Mistral, OpenAI, OpenRouter, un servidor propio o cualquier endpoint compatible con OpenAI.",
     forgetKey: "Olvidar clave",
@@ -123,7 +123,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Un modèle plus puissant (par ex. mistral-large-latest) produit des brouillons plus fidèles, avec moins d’inventions.",
     apiKeyLabel: "Clé API",
     storedNote:
-      "Conservée uniquement dans ce navigateur et envoyée au fournisseur choisi — jamais sur nos serveurs. Effacez-la sur un ordinateur partagé.",
+      "Votre clé API n’est conservée qu’en mémoire pour cette session — jamais enregistrée dans ce navigateur ni sur nos serveurs — et envoyée uniquement au fournisseur que vous choisissez. Elle disparaît au rechargement ou via « Oublier la clé ».",
     keyHint:
       "Fonctionne avec Mistral, OpenAI, OpenRouter, un serveur auto-hébergé ou tout point d’accès compatible OpenAI.",
     forgetKey: "Oublier la clé",
@@ -146,7 +146,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Ein stärkeres Modell (z. B. mistral-large-latest) liefert treuere Entwürfe mit weniger Erfindungen.",
     apiKeyLabel: "API-Schlüssel",
     storedNote:
-      "Nur in diesem Browser gespeichert und an den gewählten Anbieter gesendet – niemals auf unseren Servern. An einem gemeinsam genutzten Rechner löschen.",
+      "Ihr API-Schlüssel wird nur im Speicher dieser Sitzung gehalten – nie in diesem Browser oder auf unseren Servern gespeichert – und nur an den von Ihnen gewählten Anbieter gesendet. Neuladen oder „Schlüssel vergessen“ löscht ihn.",
     keyHint:
       "Funktioniert mit Mistral, OpenAI, OpenRouter, einem selbst gehosteten Server oder jedem OpenAI-kompatiblen Endpunkt.",
     forgetKey: "Schlüssel vergessen",
@@ -169,7 +169,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "より高性能なモデル（例：mistral-large-latest）ほど、事実に忠実で作り話の少ない下書きになります。",
     apiKeyLabel: "API キー",
     storedNote:
-      "このブラウザーにのみ保存され、選んだプロバイダーに送信されます——当方のサーバーには保存されません。共有 PC では削除してください。",
+      "API キーはこのセッションのメモリー内にのみ保持され——このブラウザーや当方のサーバーには保存されません——選んだプロバイダーにのみ送信されます。再読み込みまたは「キーを削除」で消去されます。",
     keyHint:
       "Mistral、OpenAI、OpenRouter、自己ホストのサーバー、その他 OpenAI 互換のエンドポイントで利用できます。",
     forgetKey: "キーを削除",
@@ -192,7 +192,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Um modelo mais forte (ex.: mistral-large-latest) gera rascunhos mais fiéis e com menos invenções.",
     apiKeyLabel: "Chave de API",
     storedNote:
-      "Guardada apenas neste navegador e enviada ao provedor escolhido — nunca em nossos servidores. Apague-a em um computador compartilhado.",
+      "Sua chave de API é mantida apenas na memória durante esta sessão — nunca salva neste navegador ou em nossos servidores — e enviada somente ao provedor que você escolher. Recarregar ou “Esquecer chave” a apaga.",
     keyHint:
       "Funciona com Mistral, OpenAI, OpenRouter, um servidor próprio ou qualquer endpoint compatível com OpenAI.",
     forgetKey: "Esquecer chave",
@@ -215,7 +215,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Un modello più potente (es. mistral-large-latest) produce bozze più fedeli e con meno invenzioni.",
     apiKeyLabel: "Chiave API",
     storedNote:
-      "Conservata solo in questo browser e inviata al fornitore scelto — mai sui nostri server. Cancellala su un computer condiviso.",
+      "La tua chiave API è mantenuta solo in memoria per questa sessione — mai salvata in questo browser o sui nostri server — e inviata solo al fornitore che scegli. Si cancella ricaricando o con «Dimentica chiave».",
     keyHint:
       "Funziona con Mistral, OpenAI, OpenRouter, un server self-hosted o qualsiasi endpoint compatibile con OpenAI.",
     forgetKey: "Dimentica chiave",
@@ -238,7 +238,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "더 강력한 모델(예: mistral-large-latest)일수록 더 충실하고 지어낸 내용이 적은 초안을 만듭니다.",
     apiKeyLabel: "API 키",
     storedNote:
-      "이 브라우저에만 보관되고 선택한 제공자에게 전송되며, 당사 서버에는 저장되지 않습니다. 공용 컴퓨터에서는 삭제하세요.",
+      "API 키는 이 세션의 메모리에만 보관되며 — 이 브라우저나 당사 서버에는 저장되지 않고 — 선택한 제공자에게만 전송됩니다. 새로고침하거나 ‘키 삭제’로 지워집니다.",
     keyHint:
       "Mistral, OpenAI, OpenRouter, 자체 호스팅 서버 또는 OpenAI 호환 엔드포인트에서 작동합니다.",
     forgetKey: "키 삭제",
@@ -261,7 +261,7 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Более мощная модель (например, mistral-large-latest) даёт более достоверные черновики с меньшим числом выдумок.",
     apiKeyLabel: "API-ключ",
     storedNote:
-      "Хранится только в этом браузере и отправляется выбранному поставщику — никогда на наших серверах. На общем компьютере удалите его.",
+      "Ваш API-ключ хранится только в памяти в течение этой сессии — никогда не сохраняется в этом браузере или на наших серверах — и отправляется только выбранному вами поставщику. Он стирается при перезагрузке или через «Забыть ключ».",
     keyHint:
       "Работает с Mistral, OpenAI, OpenRouter, собственным сервером или любым OpenAI-совместимым эндпоинтом.",
     forgetKey: "Забыть ключ",
