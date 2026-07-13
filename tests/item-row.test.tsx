@@ -648,3 +648,74 @@ describe("ItemRow — structured role / institution / dates editor", () => {
     expect(got).toBe("TU Wien"); // the user's preferred name is reported
   });
 });
+
+describe("ItemRow — citation bibliographic overrides (year / venue)", () => {
+  const citation = (over: Partial<CvItem> = {}) =>
+    makeItem({
+      id: "w-bib",
+      source: "openalex",
+      csl: {
+        id: "w-bib",
+        type: "article-journal",
+        title: "A paper",
+        "container-title": "Old Journal Name",
+      } as CvItem["csl"],
+      meta: { year: 2020 },
+      ...over,
+    });
+
+  function renderCitation(handlers: {
+    onSetYear?: (y: number | null) => void;
+    onSetVenue?: (v: string) => void;
+    item?: CvItem;
+  }) {
+    render(
+      <ul>
+        <ItemRow
+          item={handlers.item ?? citation()}
+          locale="en-US"
+          sectionType="publications"
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          onSetYear={handlers.onSetYear ?? noop}
+          onSetVenue={handlers.onSetVenue ?? noop}
+          onMoveUp={noop}
+          onMoveDown={noop}
+        />
+      </ul>,
+    );
+  }
+
+  it("offers year + venue fields prefilled from the source and reports edits", () => {
+    let year: number | null = 0;
+    let venue = "";
+    renderCitation({ onSetYear: (y) => (year = y), onSetVenue: (v) => (venue = v) });
+    const yearField = screen.getByLabelText("Year") as HTMLInputElement;
+    const venueField = screen.getByLabelText("Journal / venue") as HTMLInputElement;
+    expect(yearField.value).toBe("2020");
+    expect(venueField.value).toBe("Old Journal Name");
+    fireEvent.change(yearField, { target: { value: "1999" } });
+    expect(year).toBe(1999);
+    fireEvent.change(venueField, { target: { value: "PNAS" } });
+    expect(venue).toBe("PNAS");
+  });
+
+  it("reverts the year with null when the field is cleared", () => {
+    let year: number | null = 2020;
+    renderCitation({ onSetYear: (y) => (year = y) });
+    fireEvent.change(screen.getByLabelText("Year"), { target: { value: "" } });
+    expect(year).toBeNull();
+  });
+
+  it("shows the effective (overridden) values and their reverts once an override exists", () => {
+    renderCitation({
+      item: citation({ meta: { year: 2020, yearOverride: 1999, venueOverride: "PNAS" } }),
+    });
+    expect((screen.getByLabelText("Year") as HTMLInputElement).value).toBe("1999");
+    expect((screen.getByLabelText("Journal / venue") as HTMLInputElement).value).toBe("PNAS");
+    // A revert control for each overridden field.
+    expect(screen.getAllByRole("button", { name: /revert/i }).length).toBeGreaterThanOrEqual(2);
+  });
+});

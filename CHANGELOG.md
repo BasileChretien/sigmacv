@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   distinct from **Publish** (a living public page that re-syncs from sources): the
   HTML export is a frozen snapshot you own and self-host.
 
+- **Correct a publication's year or journal/venue.** Citation entries now have an
+  "Edit details" control to fix the publication year or the journal name — e.g. set
+  a commonly used abbreviation. The edit is applied to the citation data **before**
+  it is formatted, so it shows identically in every output (PDF, LaTeX, DOCX,
+  Markdown, BibTeX…); each field reverts to the source value when cleared, and the
+  source keeps refreshing underneath. Prompted by tester feedback.
+
 - **Optional AI first-draft for the narrative-CV modules (bring-your-own-key).**
   The R4RI / Royal-Society "narrative CV" modules already showed writing guidance
   and the counts of your relevant outputs; now you can also generate a **first

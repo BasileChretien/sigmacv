@@ -12,6 +12,7 @@ import { DEFAULT_STYLE, isBundledStyle, registerStyleXml } from "@/lib/citeproc/
 import { renderBibliography, type CiteprocOutputFormat } from "@/lib/citeproc/engine";
 import { renderStrings } from "@/lib/i18n/render";
 import type { CslItem } from "@/types/csl";
+import { cslForRender } from "./cslOverride";
 import { escapeHtml } from "./escape";
 
 const escapeHtmlText = escapeHtml;
@@ -155,7 +156,9 @@ export function prepareSections(
   // section, each list is contiguous (Publications 1..K, Preprints 1..M).
   // Author–date styles (APA) carry no numbers, so their output is unchanged.
   return perSection.map(({ section, items }) => {
-    const cslItems = items.map((i) => i.csl).filter((c): c is CslItem => Boolean(c));
+    // cslForRender applies the user's per-work year/venue overrides before citeproc,
+    // so a correction shows identically in every format (never feed raw item.csl).
+    const cslItems = items.map((i) => cslForRender(i)).filter((c): c is CslItem => Boolean(c));
     const entries = cslItems.length
       ? renderBibliography(cslItems, styleKey, cv.display.locale, outputFormat)
       : [];

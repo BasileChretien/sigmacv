@@ -805,6 +805,15 @@
                       "type": "string",
                       "maxLength": 1000
                     },
+                    "yearOverride": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3000
+                    },
+                    "venueOverride": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
                     "citedByCount": {
                       "type": "integer",
                       "minimum": -9007199254740991,

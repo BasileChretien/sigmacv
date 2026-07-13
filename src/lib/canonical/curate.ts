@@ -990,6 +990,55 @@ export function setItemInstitution(
 }
 
 /**
+ * Set (or clear) the USER publication-YEAR override for a citation item — the
+ * editor's year field. Stored in `meta.yearOverride`; `null`, or a value equal to
+ * the source `meta.year`, CLEARS it (revert to source). `render/cslOverride.ts`
+ * patches `csl.issued` with it so the rendered citation matches everywhere. Pure +
+ * immutable; a no-op for an unknown id.
+ */
+export function setItemYear(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  year: number | null,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const override = year === null || year === it.meta.year ? undefined : year;
+      return { ...it, meta: { ...it.meta, yearOverride: override } };
+    }),
+  }));
+}
+
+/**
+ * Set (or clear) the USER journal/venue override for a citation item — the editor's
+ * venue field (e.g. a common abbreviation). Stored in `meta.venueOverride`; a BLANK
+ * value, or one equal to the source `csl["container-title"]`, CLEARS it. The raw
+ * value is stored (not trimmed) so a trailing space survives mid-typing.
+ * `render/cslOverride.ts` patches the CSL with it. Pure + immutable.
+ */
+export function setItemVenue(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  venue: string,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const trimmed = venue.trim();
+      const source =
+        typeof it.csl?.["container-title"] === "string" ? it.csl["container-title"].trim() : "";
+      const override = trimmed.length === 0 || trimmed === source ? undefined : venue;
+      return { ...it, meta: { ...it.meta, venueOverride: override } };
+    }),
+  }));
+}
+
+/**
  * Set (or clear) the USER department/sub-unit for a source-derived positions/
  * education entry — the editor's "Department" field. Stored in
  * `meta.departmentOverride` (wins over the source `meta.department`, carried across

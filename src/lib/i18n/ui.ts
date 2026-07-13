@@ -156,6 +156,8 @@ export interface UiStrings {
   /** Aria-label for the editable institution-name field. */
   institutionAria: string;
   editInstitutionHint: string;
+  publicationYearAria: string;
+  venueAria: string;
   /** Aria-label for the start-year field. */
   startYearAria: string;
   /** Aria-label for the end-year field. */
@@ -190,6 +192,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     departmentAria: "Department",
     institutionAria: "Institution",
     editInstitutionHint: "Edit the institution name",
+    publicationYearAria: "Year",
+    venueAria: "Journal / venue",
     startYearAria: "Start year",
     endYearAria: "End year",
     ongoingLabel: "Ongoing",
@@ -347,6 +351,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     departmentAria: "部门",
     institutionAria: "机构",
     editInstitutionHint: "编辑机构名称",
+    publicationYearAria: "年份",
+    venueAria: "期刊 / 出处",
     startYearAria: "起始年份",
     endYearAria: "结束年份",
     ongoingLabel: "至今",
@@ -501,6 +507,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     departmentAria: "Departamento",
     institutionAria: "Institución",
     editInstitutionHint: "Editar el nombre de la institución",
+    publicationYearAria: "Año",
+    venueAria: "Revista / publicación",
     startYearAria: "Año de inicio",
     endYearAria: "Año de fin",
     ongoingLabel: "En curso",
@@ -659,6 +667,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     departmentAria: "Service / département",
     institutionAria: "Établissement",
     editInstitutionHint: "Modifier le nom de l'établissement",
+    publicationYearAria: "Année",
+    venueAria: "Revue / support",
     startYearAria: "Année de début",
     endYearAria: "Année de fin",
     ongoingLabel: "En cours",
@@ -819,6 +829,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     departmentAria: "Abteilung",
     institutionAria: "Einrichtung",
     editInstitutionHint: "Namen der Einrichtung bearbeiten",
+    publicationYearAria: "Jahr",
+    venueAria: "Zeitschrift / Publikationsort",
     startYearAria: "Startjahr",
     endYearAria: "Endjahr",
     ongoingLabel: "Laufend",
@@ -979,6 +991,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     departmentAria: "部門",
     institutionAria: "所属機関",
     editInstitutionHint: "所属機関名を編集",
+    publicationYearAria: "発行年",
+    venueAria: "ジャーナル / 掲載媒体",
     startYearAria: "開始年",
     endYearAria: "終了年",
     ongoingLabel: "継続中",
@@ -1136,6 +1150,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     departmentAria: "Departamento",
     institutionAria: "Instituição",
     editInstitutionHint: "Editar o nome da instituição",
+    publicationYearAria: "Ano",
+    venueAria: "Revista / veículo",
     startYearAria: "Ano de início",
     endYearAria: "Ano de término",
     ongoingLabel: "Em andamento",
@@ -1294,6 +1310,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     departmentAria: "Dipartimento",
     institutionAria: "Istituzione",
     editInstitutionHint: "Modifica il nome dell'istituzione",
+    publicationYearAria: "Anno",
+    venueAria: "Rivista / sede",
     startYearAria: "Anno di inizio",
     endYearAria: "Anno di fine",
     ongoingLabel: "In corso",
@@ -1453,6 +1471,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     departmentAria: "부서",
     institutionAria: "기관",
     editInstitutionHint: "기관 이름 편집",
+    publicationYearAria: "연도",
+    venueAria: "저널 / 게재처",
     startYearAria: "시작 연도",
     endYearAria: "종료 연도",
     ongoingLabel: "진행 중",
@@ -1610,6 +1630,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     departmentAria: "Подразделение",
     institutionAria: "Организация",
     editInstitutionHint: "Изменить название организации",
+    publicationYearAria: "Год",
+    venueAria: "Журнал / издание",
     startYearAria: "Год начала",
     endYearAria: "Год окончания",
     ongoingLabel: "По наст. время",

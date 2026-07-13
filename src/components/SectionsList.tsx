@@ -46,6 +46,8 @@ import {
   setItemNotMine,
   setItemRoleTitle,
   setItemTextOverride,
+  setItemVenue,
+  setItemYear,
   viewExcludedIds,
   setSectionBody,
   setSectionVisible,
@@ -1078,6 +1080,10 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                 }
                                 onSetDateRange={(range) =>
                                   onChange(setItemDateRange(cv, section.id, item.id, range))
+                                }
+                                onSetYear={(y) => onChange(setItemYear(cv, section.id, item.id, y))}
+                                onSetVenue={(v) =>
+                                  onChange(setItemVenue(cv, section.id, item.id, v))
                                 }
                                 onRemove={() => onChange(removeItem(cv, section.id, item.id))}
                               />

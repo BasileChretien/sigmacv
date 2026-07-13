@@ -338,6 +338,21 @@ export const CvItemSchema = z.object({
     year: z.number().int().optional(),
     type: z.string().max(200).optional(),
     doi: z.string().max(1000).optional(),
+    /**
+     * USER edit of the publication YEAR for a citation item — patched into
+     * `csl.issued` BEFORE citeproc (`render/cslOverride.ts`) so every output format
+     * shows it identically. Carried across re-sync (the source keeps refreshing
+     * underneath); clearing it, or setting it back to the source {@link year},
+     * reverts. Effective value: {@link itemEffectiveYear}.
+     */
+    yearOverride: z.number().int().min(1).max(3000).optional(),
+    /**
+     * USER edit of the journal / container name for a citation item (e.g. a common
+     * abbreviation like "PNAS") — patched into `csl["container-title"]` before
+     * citeproc. Carried across re-sync; a blank value, or one equal to the source
+     * container-title, reverts. Effective value: {@link itemVenue}.
+     */
+    venueOverride: z.string().max(500).optional(),
     citedByCount: z.number().int().optional(),
     /** Per-work field-weighted citation impact (OpenAlex `fwci`). Stored so the
      *  FWCI mean can be RECOMPUTED over the curated works (excluding "not mine"). */
@@ -638,6 +653,28 @@ export function itemRoleTitle(item: Pick<CvItem, "meta">): string | undefined {
  */
 export function itemInstitution(item: Pick<CvItem, "meta">): string | undefined {
   return item.meta.institutionOverride ?? item.meta.institution;
+}
+
+/**
+ * The effective publication YEAR for a citation item: the user's
+ * `meta.yearOverride` when set, otherwise the source `meta.year`. The editor binds
+ * its year field to this; `render/cslOverride.ts` patches `csl.issued` with it so
+ * the rendered citation matches in every format.
+ */
+export function itemEffectiveYear(item: Pick<CvItem, "meta">): number | undefined {
+  return item.meta.yearOverride ?? item.meta.year;
+}
+
+/**
+ * The effective journal / container name for a citation item: the user's
+ * `meta.venueOverride` when set, otherwise the source `csl["container-title"]`.
+ * The editor binds its venue field to this; `render/cslOverride.ts` patches the
+ * CSL with it. Returns undefined when the item carries neither.
+ */
+export function itemVenue(item: Pick<CvItem, "csl" | "meta">): string | undefined {
+  const source =
+    typeof item.csl?.["container-title"] === "string" ? item.csl["container-title"] : undefined;
+  return item.meta.venueOverride ?? source;
 }
 
 /**
