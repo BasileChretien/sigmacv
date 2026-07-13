@@ -1365,6 +1365,11 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
               key={tp}
               type="button"
               className="btn btn-sm"
+              // `statement` is the recurring, user-titled free-text section — the way
+              // to add "something the presets don't cover". Present it as an explicit
+              // "Custom section" (not its default "Statement" title) so the capability
+              // is discoverable, with a hint spelling out what it's for.
+              title={tp === "statement" ? t(locale, "addCustomSectionHint") : undefined}
               onClick={() => {
                 onChange(addSection(cv, tp));
                 // A single-instance type's id equals its type, so we can pre-
@@ -1375,7 +1380,7 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                 }
               }}
             >
-              + {sectionTitle(locale, tp)}
+              + {tp === "statement" ? t(locale, "addCustomSection") : sectionTitle(locale, tp)}
             </button>
           ))}
         </div>

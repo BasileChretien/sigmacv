@@ -230,6 +230,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   already worked but was buried in a closed disclosure that testers didn't find; the
   stored override and its revert are unchanged. Prompted by tester feedback.
 
+- **Custom sections are now discoverable.** You could always add your own free-text
+  section — your own heading plus running prose, added as many times as you like —
+  but it appeared in the add-section menu under its default title "Statement", so
+  people didn't realise they could add "something the preset sections don't cover".
+  It's now offered as **"Custom section"** with a hint explaining what it's for. The
+  underlying capability (add / rename / reorder / hide, multiple instances) is
+  unchanged. Prompted by tester feedback.
+
 - **The offered field-normalized metric is the NIH iCite RCR — the FWCI-derived
   MNCS was dropped as unreliable.** Author-level field normalization first replaced
   the arithmetic mean of per-work FWCI (an "average of ratios" that over-weights
