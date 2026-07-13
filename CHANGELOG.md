@@ -215,6 +215,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Renaming an institution on a Positions/Education entry is now discoverable.**
+  The institution shown beside a role (e.g. "Vienna University of Technology",
+  "Paris Institute of Political Studies") is now itself a control: clicking it opens
+  "Edit details" and drops the cursor straight into the rename field, so you can set
+  the name your institution actually uses ("TU Wien", "SciencesPo"). The rename
+  already worked but was buried in a closed disclosure that testers didn't find; the
+  stored override and its revert are unchanged. Prompted by tester feedback.
+
 - **The offered field-normalized metric is the NIH iCite RCR — the FWCI-derived
   MNCS was dropped as unreliable.** Author-level field normalization first replaced
   the arithmetic mean of per-work FWCI (an "average of ratios" that over-weights

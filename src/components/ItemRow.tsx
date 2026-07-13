@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   displayInstitution,
   isHidden,
@@ -240,6 +240,12 @@ export default function ItemRow({
   // The compare panel is open when the editor focuses this duplicate (controlled
   // via `dupOpen`), or when the user clicks the badge (uncontrolled fallback).
   const [localDupOpen, setLocalDupOpen] = useState(false);
+  // The institution-rename control lives inside the "Edit details" disclosure,
+  // which testers didn't discover (they saw the institution as fixed context).
+  // These refs let the visible institution "context" itself open that disclosure
+  // and focus the rename field — making the edit findable where users look for it.
+  const instDetailsRef = useRef<HTMLDetailsElement>(null);
+  const instInputRef = useRef<HTMLInputElement>(null);
   const isDupOpen = dupOpen ?? localDupOpen;
   const toggleDup = () => {
     if (dupOpen !== undefined) onDupToggle?.();
@@ -438,9 +444,31 @@ export default function ItemRow({
                 aria-label={u.roleAria}
               />
               {institution ? (
-                <span className="cv-item-edit-context" title={institution}>
-                  · {institution}
-                </span>
+                onSetInstitution && onSetDateRange ? (
+                  // The institution reads as fixed context, but it IS editable — make
+                  // that findable: clicking it opens "Edit details" and focuses the
+                  // rename field (a subtle ✎ signals it). Falls back to plain text
+                  // when the row has no editor wired.
+                  <button
+                    type="button"
+                    className="cv-item-edit-context cv-item-inst-edit"
+                    title={u.editInstitutionHint}
+                    aria-label={`${institution} — ${u.editInstitutionHint}`}
+                    onClick={() => {
+                      if (instDetailsRef.current) instDetailsRef.current.open = true;
+                      instInputRef.current?.focus();
+                    }}
+                  >
+                    · {institution}
+                    <span className="cv-item-inst-pencil" aria-hidden="true">
+                      ✎
+                    </span>
+                  </button>
+                ) : (
+                  <span className="cv-item-edit-context" title={institution}>
+                    · {institution}
+                  </span>
+                )
               ) : null}
               {item.meta.roleTitleOverride !== undefined ? (
                 <button
@@ -455,7 +483,7 @@ export default function ItemRow({
               ) : null}
             </div>
             {onSetInstitution && onSetDateRange ? (
-              <details className="cv-item-details">
+              <details ref={instDetailsRef} className="cv-item-details">
                 <summary>{u.editDetails}</summary>
                 <div className="cv-item-details-body">
                   {onSetDepartment ? (
@@ -482,6 +510,7 @@ export default function ItemRow({
                   ) : null}
                   <div className="cv-item-edit-wrap">
                     <input
+                      ref={instInputRef}
                       className="cv-item-edit"
                       value={itemInstitution(item) ?? ""}
                       onChange={(e) => onSetInstitution(e.target.value)}

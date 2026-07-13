@@ -606,4 +606,45 @@ describe("ItemRow — structured role / institution / dates editor", () => {
     expect(end.value).toBe(""); // open end
     expect(end.disabled).toBe(true); // ongoing → end disabled
   });
+
+  it("surfaces the institution rename: the context opens Edit details and focuses the field", () => {
+    // Testers read the institution as fixed context and missed that it's editable
+    // (the rename field was buried in a closed disclosure). It's now a button that
+    // opens that disclosure and focuses the field.
+    renderStructured(
+      makeItem({
+        id: "position:orcid:tuwien",
+        source: "orcid",
+        displayText: "Researcher, TU Wien",
+        meta: { institution: "Vienna University of Technology", roleTitle: "Researcher" },
+      }),
+      "positions",
+    );
+    const trigger = screen.getByRole("button", { name: /edit the institution name/i });
+    expect(trigger.textContent).toContain("Vienna University of Technology");
+    const details = document.querySelector("details.cv-item-details") as HTMLDetailsElement;
+    expect(details.open).toBe(false); // rename field starts hidden in the disclosure
+    const field = screen.getByLabelText("Institution") as HTMLInputElement;
+    fireEvent.click(trigger);
+    expect(details.open).toBe(true); // clicking the context reveals it…
+    expect(document.activeElement).toBe(field); // …and lands the cursor in the field
+  });
+
+  it("reports an institution rename via onSetInstitution (TU Wien case)", () => {
+    let got = "";
+    renderStructured(
+      makeItem({
+        id: "position:orcid:tuwien2",
+        source: "orcid",
+        displayText: "Researcher, TU Wien",
+        meta: { institution: "Vienna University of Technology", roleTitle: "Researcher" },
+      }),
+      "positions",
+      { onSetInstitution: (n) => (got = n) },
+    );
+    const field = screen.getByLabelText("Institution") as HTMLInputElement;
+    expect(field.value).toBe("Vienna University of Technology"); // the source name
+    fireEvent.change(field, { target: { value: "TU Wien" } });
+    expect(got).toBe("TU Wien"); // the user's preferred name is reported
+  });
 });

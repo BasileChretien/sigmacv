@@ -526,6 +526,35 @@ input[type="radio"] {
   color: var(--muted);
   font-size: var(--text-sm);
 }
+/* The institution beside the role is not just context — it's a button that opens
+   "Edit details" and focuses its rename field, so the (previously buried) rename is
+   findable where users look. Styled like the muted context, with a ✎ on hover/focus. */
+.cv-item-inst-edit {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  line-height: inherit;
+  color: var(--muted);
+  text-align: left;
+  cursor: pointer;
+}
+.cv-item-inst-edit:hover,
+.cv-item-inst-edit:focus-visible {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cv-item-inst-pencil {
+  margin-left: var(--space-1);
+  font-size: var(--text-xs);
+  opacity: 0;
+}
+.cv-item-inst-edit:hover .cv-item-inst-pencil,
+.cv-item-inst-edit:focus-visible .cv-item-inst-pencil {
+  opacity: 0.7;
+}
 /* "Edit details" disclosure (institution + dates) on a positions/education row. */
 .cv-item-details {
   margin-top: var(--space-1);
