@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Export your CV as a self-contained HTML page (`.html`).** The Documents group
+  in Export now offers HTML alongside PDF / Word / LaTeX / Markdown. It's a single
+  standalone file — CSS and fonts inlined, the profile photo embedded — that opens
+  offline and can be hosted anywhere, rendered with your selected template. This is
+  distinct from **Publish** (a living public page that re-syncs from sources): the
+  HTML export is a frozen snapshot you own and self-host.
+
 - **Optional AI first-draft for the narrative-CV modules (bring-your-own-key).**
   The R4RI / Royal-Society "narrative CV" modules already showed writing guidance
   and the counts of your relevant outputs; now you can also generate a **first

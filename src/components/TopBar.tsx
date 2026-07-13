@@ -11,6 +11,7 @@ import ThemeToggle from "./ThemeToggle";
 /** Exportable formats — mirrors the EXPORTABLE list the API route accepts. */
 export type ExportFormat =
   | "pdf"
+  | "html"
   | "docx"
   | "latex"
   | "markdown"
@@ -172,6 +173,7 @@ export default function TopBar({
               <option value="docx">{u.exportDocx}</option>
               <option value="latex">{u.exportLatexModern}</option>
               <option value="markdown">{u.exportMarkdown}</option>
+              <option value="html">{u.exportHtml}</option>
             </optgroup>
             <optgroup label={u.exportGroupData}>
               <option value="bibtex">{u.exportBibtex}</option>

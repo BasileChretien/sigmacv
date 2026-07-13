@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 const EXPORTABLE: readonly RenderFormat[] = [
   "pdf",
+  "html",
   "docx",
   "latex",
   "markdown",

@@ -130,6 +130,7 @@ export interface UiStrings {
   exportDocx: string;
   exportLatexModern: string;
   exportMarkdown: string;
+  exportHtml: string;
   exportBibtex: string;
   exportCslJson: string;
   exportJsonResume: string;
@@ -305,6 +306,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportDocx: "Word — plain, editable (.docx)",
     exportLatexModern: "LaTeX — editable source (.tex)",
     exportMarkdown: "Markdown — plain text (.md)",
+    exportHtml: "HTML — self-contained web page (.html)",
     exportBibtex: "BibTeX — publication list (.bib)",
     exportCslJson: "CSL-JSON — citations interchange (.json)",
     exportJsonResume: "JSON Résumé — standard schema (.json)",
@@ -457,6 +459,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportDocx: "Word — 纯文本，可编辑 (.docx)",
     exportLatexModern: "LaTeX — 可编辑源文件 (.tex)",
     exportMarkdown: "Markdown — 纯文本 (.md)",
+    exportHtml: "HTML — 独立网页 (.html)",
     exportBibtex: "BibTeX — 论文列表 (.bib)",
     exportCslJson: "CSL-JSON — 引用交换格式 (.json)",
     exportJsonResume: "JSON Résumé — 标准架构 (.json)",
@@ -613,6 +616,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportDocx: "Word — sencillo, editable (.docx)",
     exportLatexModern: "LaTeX — código editable (.tex)",
     exportMarkdown: "Markdown — texto sin formato (.md)",
+    exportHtml: "HTML — página web independiente (.html)",
     exportBibtex: "BibTeX — lista de publicaciones (.bib)",
     exportCslJson: "CSL-JSON — intercambio de citas (.json)",
     exportJsonResume: "JSON Résumé — esquema estándar (.json)",
@@ -770,6 +774,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportDocx: "Word — simple, modifiable (.docx)",
     exportLatexModern: "LaTeX — source modifiable (.tex)",
     exportMarkdown: "Markdown — texte brut (.md)",
+    exportHtml: "HTML — page web autonome (.html)",
     exportBibtex: "BibTeX — liste de publications (.bib)",
     exportCslJson: "CSL-JSON — échange de citations (.json)",
     exportJsonResume: "JSON Résumé — schéma standard (.json)",
@@ -928,6 +933,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportDocx: "Word — schlicht, bearbeitbar (.docx)",
     exportLatexModern: "LaTeX — bearbeitbarer Quelltext (.tex)",
     exportMarkdown: "Markdown — reiner Text (.md)",
+    exportHtml: "HTML — eigenständige Webseite (.html)",
     exportBibtex: "BibTeX — Publikationsliste (.bib)",
     exportCslJson: "CSL-JSON — Zitations-Austausch (.json)",
     exportJsonResume: "JSON Résumé — Standardschema (.json)",
@@ -1084,6 +1090,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportDocx: "Word — シンプル・編集可能 (.docx)",
     exportLatexModern: "LaTeX — 編集可能なソース (.tex)",
     exportMarkdown: "Markdown — プレーンテキスト (.md)",
+    exportHtml: "HTML — 単体で使える Web ページ (.html)",
     exportBibtex: "BibTeX — 論文リスト (.bib)",
     exportCslJson: "CSL-JSON — 引用交換形式 (.json)",
     exportJsonResume: "JSON Résumé — 標準スキーマ (.json)",
@@ -1240,6 +1247,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportDocx: "Word — simples, editável (.docx)",
     exportLatexModern: "LaTeX — código editável (.tex)",
     exportMarkdown: "Markdown — texto simples (.md)",
+    exportHtml: "HTML — página web independente (.html)",
     exportBibtex: "BibTeX — lista de publicações (.bib)",
     exportCslJson: "CSL-JSON — intercâmbio de citações (.json)",
     exportJsonResume: "JSON Résumé — esquema padrão (.json)",
@@ -1397,6 +1405,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportDocx: "Word — semplice, modificabile (.docx)",
     exportLatexModern: "LaTeX — sorgente modificabile (.tex)",
     exportMarkdown: "Markdown — testo semplice (.md)",
+    exportHtml: "HTML — pagina web autonoma (.html)",
     exportBibtex: "BibTeX — elenco pubblicazioni (.bib)",
     exportCslJson: "CSL-JSON — interscambio di citazioni (.json)",
     exportJsonResume: "JSON Résumé — schema standard (.json)",
@@ -1552,6 +1561,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportDocx: "Word — 단순, 편집 가능 (.docx)",
     exportLatexModern: "LaTeX — 편집 가능한 소스 (.tex)",
     exportMarkdown: "Markdown — 일반 텍스트 (.md)",
+    exportHtml: "HTML — 독립형 웹 페이지 (.html)",
     exportBibtex: "BibTeX — 논문 목록 (.bib)",
     exportCslJson: "CSL-JSON — 인용 교환 형식 (.json)",
     exportJsonResume: "JSON Résumé — 표준 스키마 (.json)",
@@ -1707,6 +1717,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     exportDocx: "Word — простой, редактируемый (.docx)",
     exportLatexModern: "LaTeX — редактируемый исходник (.tex)",
     exportMarkdown: "Markdown — простой текст (.md)",
+    exportHtml: "HTML — автономная веб-страница (.html)",
     exportBibtex: "BibTeX — список публикаций (.bib)",
     exportCslJson: "CSL-JSON — обмен ссылками (.json)",
     exportJsonResume: "JSON Résumé — стандартная схема (.json)",

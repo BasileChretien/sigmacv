@@ -42,6 +42,19 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(html).toContain("0000-0002-7483-2489");
   });
 
+  it("is offline-safe as a download: inline CSS, no external resource refs", () => {
+    // The HTML renderer is now an export format (a downloadable .html), so the
+    // document must open standalone with no network — CSS inlined in a <style>
+    // block, fonts embedded (@font-face data URLs), and no external stylesheet,
+    // script, or @import. Hyperlinks (<a href="https://…">) are fine.
+    const html = renderCvHtml(makeCv());
+    expect(html).toContain("<style>");
+    expect(html).not.toContain('rel="stylesheet"');
+    expect(html).not.toMatch(/<link\b[^>]*\bhref="https?:/i);
+    expect(html).not.toMatch(/<script\b[^>]*\bsrc=/i);
+    expect(html).not.toMatch(/@import\s+url\(["']?https?:/i);
+  });
+
   it("highlights the user's name on their own works when enabled", () => {
     const html = renderCvHtml(makeCv());
     expect(html).toContain('<span class="cv-self">');
