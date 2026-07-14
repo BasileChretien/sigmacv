@@ -115,6 +115,10 @@ interface ItemRowProps {
   sectionType?: CvSectionType;
   isFirst: boolean;
   isLast: boolean;
+  /** Manual reorder (↑/↓ and drag) is disabled because an automatic sort — e.g.
+   *  "Newest first" for Publications — decides the order, not the dragged position.
+   *  The caller also omits `onDragStart`/`onDropOver` so the drag handle is hidden. */
+  reorderLocked?: boolean;
   onToggleIncluded: () => void;
   onToggleNotMine: () => void;
   /** Pin / unpin this publication as a "selected / featured" work (citation rows only). */
@@ -210,6 +214,7 @@ export default function ItemRow({
   sectionType,
   isFirst,
   isLast,
+  reorderLocked = false,
   onToggleIncluded,
   onToggleNotMine,
   onToggleFeatured,
@@ -846,26 +851,32 @@ export default function ItemRow({
           </select>
         ) : null}
         <div className="cv-item-actions">
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={onMoveUp}
-            disabled={isFirst}
-            aria-label={t(locale, "moveUp")}
-            title={t(locale, "moveUp")}
-          >
-            ↑
-          </button>
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={onMoveDown}
-            disabled={isLast}
-            aria-label={t(locale, "moveDown")}
-            title={t(locale, "moveDown")}
-          >
-            ↓
-          </button>
+          {/* Manual up/down reorder — hidden when an automatic sort (e.g. "Newest
+              first") governs the order, since moving a row would have no effect. */}
+          {reorderLocked ? null : (
+            <>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={onMoveUp}
+                disabled={isFirst}
+                aria-label={t(locale, "moveUp")}
+                title={t(locale, "moveUp")}
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={onMoveDown}
+                disabled={isLast}
+                aria-label={t(locale, "moveDown")}
+                title={t(locale, "moveDown")}
+              >
+                ↓
+              </button>
+            </>
+          )}
           {isCitation && onToggleFeatured ? (
             <button
               type="button"

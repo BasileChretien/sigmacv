@@ -123,6 +123,30 @@ describe("CvEditor (component)", () => {
     expect(screen.getByText(/Sorting by citations/i)).toBeTruthy();
   });
 
+  it("mirrors the publication sort in the editor list and locks manual reorder", () => {
+    // Default ("custom"): no auto-sort hint, and manual ↑/↓ arrows are present.
+    const { rerender } = render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+    );
+    expandAllSections();
+    expect(screen.queryByText(/reorder manually/i)).toBeNull();
+    const customArrows = screen.queryAllByLabelText("Move up").length;
+    expect(customArrows).toBeGreaterThan(0);
+
+    // "Newest first": the citation sections reorder by the sort, so the hint shows
+    // and their manual ↑/↓ arrows disappear (strictly fewer than in custom mode).
+    rerender(
+      <CvEditor
+        cv={updateDisplay(makeCv(), { publicationOrder: "year-desc" })}
+        availableStyles={["apa"]}
+        uiLocale="en-US"
+        onChange={vi.fn()}
+      />,
+    );
+    expect(screen.getAllByText(/reorder manually/i).length).toBeGreaterThan(0);
+    expect(screen.queryAllByLabelText("Move up").length).toBeLessThan(customArrows);
+  });
+
   it("the responsible-metrics preset selects field-normalised indicators", () => {
     const onChange = vi.fn();
     render(

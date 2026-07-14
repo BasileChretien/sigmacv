@@ -314,6 +314,17 @@ FWCI_i`, which is `0/0` for an **uncited** work — so the MNCS could only be
 
 ### Fixed
 
+- **The editor list now follows your chosen publication sort.** When "Sort
+  publications" is set to anything other than "Custom" (e.g. "Newest first"), the
+  Publications/Preprints lists in the editor now re-order to match — so a
+  freshly-synced paper appears where it will actually render (at the top for
+  "Newest first"), instead of being appended to the bottom by its sync order. While
+  an automatic sort is active those sections show a short note and hide the manual
+  ↑/↓ (and drag) controls, since the sort — not the dragged position — decides the
+  order; switch back to "Custom (as arranged)" to reorder by hand. The rendered CV
+  was already correct; this aligns the editor with it. (Sections without a sort
+  option are unaffected — new entries there still append and are reordered manually.)
+
 - **Journal supplementary files no longer appear as Preprints.** The same
   Springer/BMC "Additional file N of <article>" figshare deposits (and Nature/Springer
   "Supplementary information/tables/…") that were dropped from Datasets & Software

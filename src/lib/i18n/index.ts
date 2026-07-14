@@ -602,6 +602,8 @@ const EN = {
     "Sorting by citations foregrounds your most-cited work — consider recency or relevance too.",
   sortYearDesc: "Newest first",
   sortYearAsc: "Oldest first",
+  sortLockedHint:
+    "Ordered by “{sort}”. Switch “Sort publications” to “Custom (as arranged)” to reorder manually.",
   pubLimit: "Selected publications",
   pubLimitHint: "Show only the top N (0 = all)",
   presets: "Presets",
@@ -754,6 +756,7 @@ const ZH: Record<ChromeKey, string> = {
   sortCitationsNote: "按被引排序会突出被引最多的成果——也请兼顾时效性与相关性。",
   sortYearDesc: "最新优先",
   sortYearAsc: "最早优先",
+  sortLockedHint: "按“{sort}”排序。将“论文排序”改为“自定义（按当前排列）”即可手动调整顺序。",
   pubLimit: "精选论文",
   pubLimitHint: "仅显示前 N 篇（0 = 全部）",
   presets: "预设视图",
@@ -912,6 +915,8 @@ const ES: Record<ChromeKey, string> = {
     "Ordenar por citas destaca tu trabajo más citado; ten en cuenta también la actualidad y la relevancia.",
   sortYearDesc: "Más recientes primero",
   sortYearAsc: "Más antiguas primero",
+  sortLockedHint:
+    "Ordenado por «{sort}». Cambia «Ordenar publicaciones» a «Personalizado (según lo dispuesto)» para reordenar manualmente.",
   pubLimit: "Publicaciones seleccionadas",
   pubLimitHint: "Mostrar solo las N principales (0 = todas)",
   presets: "Presets",
@@ -1073,6 +1078,8 @@ const FR: Record<ChromeKey, string> = {
     "Trier par citations met en avant vos travaux les plus cités ; pensez aussi à l’actualité et à la pertinence.",
   sortYearDesc: "Plus récentes d’abord",
   sortYearAsc: "Plus anciennes d’abord",
+  sortLockedHint:
+    "Trié par « {sort} ». Choisissez « Personnalisé (tel qu’arrangé) » dans « Trier les publications » pour réordonner manuellement.",
   pubLimit: "Publications sélectionnées",
   pubLimitHint: "N premières seulement (0 = toutes)",
   presets: "Préréglages",
@@ -1233,6 +1240,8 @@ const DE: Record<ChromeKey, string> = {
     "Nach Zitationen zu sortieren hebt Ihre meistzitierten Arbeiten hervor – beachten Sie auch Aktualität und Relevanz.",
   sortYearDesc: "Neueste zuerst",
   sortYearAsc: "Älteste zuerst",
+  sortLockedHint:
+    "Sortiert nach „{sort}“. Stelle „Publikationen sortieren“ auf „Benutzerdefiniert (wie angeordnet)“, um manuell zu ordnen.",
   pubLimit: "Ausgewählte Publikationen",
   pubLimitHint: "Nur die obersten N (0 = alle)",
   presets: "Voreinstellungen",
@@ -1390,6 +1399,8 @@ const JA: Record<ChromeKey, string> = {
     "被引用数で並べ替えると最も引用された成果が前面に出ます。新しさや関連性も考慮してください。",
   sortYearDesc: "新しい順",
   sortYearAsc: "古い順",
+  sortLockedHint:
+    "「{sort}」で並べ替え中です。手動で並べ替えるには「論文の並び順」を「カスタム（現在の並び順）」に変更してください。",
   pubLimit: "主要論文",
   pubLimitHint: "上位N件のみ（0=すべて）",
   presets: "プリセット",
@@ -1548,6 +1559,8 @@ const PT: Record<ChromeKey, string> = {
     "Ordenar por citações destaca seu trabalho mais citado — considere também atualidade e relevância.",
   sortYearDesc: "Mais recentes primeiro",
   sortYearAsc: "Mais antigas primeiro",
+  sortLockedHint:
+    "Ordenado por “{sort}”. Altere “Ordenar publicações” para “Personalizado (conforme organizado)” para reordenar manualmente.",
   pubLimit: "Publicações selecionadas",
   pubLimitHint: "Mostrar apenas as N principais (0 = todas)",
   presets: "Predefinições",
@@ -1705,6 +1718,8 @@ const IT: Record<ChromeKey, string> = {
     "Ordinare per citazioni mette in primo piano i lavori più citati — valuta anche attualità e pertinenza.",
   sortYearDesc: "Più recenti prima",
   sortYearAsc: "Più vecchie prima",
+  sortLockedHint:
+    "Ordinato per «{sort}». Imposta «Ordina le pubblicazioni» su «Personalizzato (come disposto)» per riordinare manualmente.",
   pubLimit: "Pubblicazioni selezionate",
   pubLimitHint: "Solo le prime N (0 = tutte)",
   presets: "Preset",
@@ -1860,6 +1875,8 @@ const KO: Record<ChromeKey, string> = {
     "피인용 수로 정렬하면 가장 많이 인용된 연구가 부각됩니다 — 최신성과 관련성도 고려하세요.",
   sortYearDesc: "최신순",
   sortYearAsc: "오래된순",
+  sortLockedHint:
+    "“{sort}” 기준으로 정렬됨. 수동으로 정렬하려면 “논문 정렬”을 “사용자 지정(배열한 대로)”으로 변경하세요.",
   pubLimit: "주요 논문",
   pubLimitHint: "상위 N개만 (0 = 전체)",
   presets: "프리셋",
@@ -2018,6 +2035,8 @@ const RU: Record<ChromeKey, string> = {
     "Сортировка по цитированиям выдвигает самые цитируемые работы — учитывайте также свежесть и релевантность.",
   sortYearDesc: "Сначала новые",
   sortYearAsc: "Сначала старые",
+  sortLockedHint:
+    "Отсортировано по «{sort}». Чтобы упорядочить вручную, выберите «Пользовательский (как расставлено)» в «Сортировать публикации».",
   pubLimit: "Избранные публикации",
   pubLimitHint: "Только первые N (0 = все)",
   presets: "Пресеты",

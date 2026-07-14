@@ -17,6 +17,7 @@ import {
   type CvItem,
 } from "@/lib/canonical/schema";
 import { isHidden } from "@/lib/canonical/schema";
+import { publicationSortActive, sortPublicationItems } from "@/lib/canonical/publicationSort";
 import {
   addManualEntry,
   addStructuredEntry,
@@ -560,7 +561,22 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
         onReorder={(ids) => onChange(reorderSections(cv, ids))}
       >
         {sections.map((section, si) => {
-          const items = [...section.items].sort((a, b) => a.order - b.order);
+          // The editor list mirrors the RENDERED order: for Publications/Preprints a
+          // non-"custom" `publicationOrder` (e.g. "Newest first") re-sorts here exactly
+          // as it does at render, so a freshly-synced work appears where it will
+          // actually show — not dumped at the end by its append-order. When the sort is
+          // active, `order` no longer decides the sequence, so manual reorder is locked.
+          const sortActive = publicationSortActive(section.type, cv.display.publicationOrder);
+          const sortLabelKey =
+            cv.display.publicationOrder === "year-asc"
+              ? "sortYearAsc"
+              : cv.display.publicationOrder === "citations"
+                ? "sortCitations"
+                : "sortYearDesc";
+          const orderedItems = [...section.items].sort((a, b) => a.order - b.order);
+          const items = sortActive
+            ? sortPublicationItems(orderedItems, cv.display.publicationOrder)
+            : orderedItems;
           const shownCount = items.filter((i) => !isHidden(i)).length;
           // Bulk-selection mode for THIS section: filter narrows the rendered
           // list; reorder affordances are disabled (moving within a filtered
@@ -935,160 +951,180 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                         ) : bulkActive && listItems.length === 0 ? (
                           <p className="muted empty-note">{wu.bulkNoMatches}</p>
                         ) : (
-                          <ul className="cv-item-list">
-                            {listItems.map((item, ii) => (
-                              <ItemRow
-                                key={item.id}
-                                item={item}
-                                locale={locale}
-                                sectionType={section.type}
-                                isFirst={bulkActive || ii === 0}
-                                isLast={bulkActive || ii === listItems.length - 1}
-                                selectable={bulkActive}
-                                selected={bulkSelected.has(item.id)}
-                                onSelectedChange={(sel) =>
-                                  setBulkSelected((prev) => {
-                                    const next = new Set(prev);
-                                    if (sel) next.add(item.id);
-                                    else next.delete(item.id);
-                                    return next;
-                                  })
-                                }
-                                onToggleIncluded={() =>
-                                  onChange(setItemIncluded(cv, section.id, item.id, !item.included))
-                                }
-                                onToggleNotMine={() =>
-                                  onChange(
-                                    setItemNotMine(cv, section.id, item.id, !item.notMine, {
-                                      now: new Date().toISOString(),
-                                    }),
-                                  )
-                                }
-                                onToggleFeatured={() =>
-                                  onChange(setItemFeatured(cv, section.id, item.id, !item.featured))
-                                }
-                                shownInView={isItemShownInView(cv.display, section.id, item.id)}
-                                onToggleInView={() =>
-                                  onChange(
-                                    setItemInView(
-                                      cv,
-                                      section.id,
-                                      item.id,
-                                      !isItemShownInView(cv.display, section.id, item.id),
-                                    ),
-                                  )
-                                }
-                                onSetNotMineReason={(reason) =>
-                                  onChange(
-                                    setItemNotMine(cv, section.id, item.id, true, {
-                                      reason,
-                                      now: new Date().toISOString(),
-                                    }),
-                                  )
-                                }
-                                duplicateGroup={
-                                  item.meta.duplicateOf
-                                    ? dupGroups.get(item.meta.duplicateOf.groupId)?.map((m) => ({
-                                        item: m.item,
-                                        sectionTitle: m.sectionTitle,
-                                      }))
-                                    : undefined
-                                }
-                                dupOpen={reviewDupId === item.id}
-                                onDupToggle={() =>
-                                  setReviewDupId((cur) => (cur === item.id ? null : item.id))
-                                }
-                                rowRef={(el) => {
-                                  const m = dupRowRefs.current;
-                                  if (el) m.set(item.id, el);
-                                  else m.delete(item.id);
-                                }}
-                                reviewDismissed={dismissedReview.has(item.id)}
-                                similarTitle={orcidSimilar.get(item.id)}
-                                onDismissReview={() =>
-                                  onChange(dismissReviewCandidate(cv, section.id, item.id))
-                                }
-                                onConfirmMine={() =>
-                                  onChange(confirmMisattribution(cv, section.id, item.id))
-                                }
-                                flash={focusItem?.id === item.id}
-                                onKeepOnly={(keepId) => {
-                                  const members = item.meta.duplicateOf
-                                    ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
-                                    : [];
-                                  // Hide every OTHER member; clear the kept member's
-                                  // badge so it resolves immediately. No dismissal:
-                                  // the detector ignores the now-hidden members, so
-                                  // the cluster won't re-form.
-                                  let next = cv;
-                                  for (const m of members) {
-                                    if (m.item.id !== keepId) {
-                                      next = setItemIncluded(next, m.sectionId, m.item.id, false);
-                                    }
+                          <>
+                            {sortActive ? (
+                              <p className="muted sort-locked-hint">
+                                {t(locale, "sortLockedHint").replace(
+                                  "{sort}",
+                                  t(locale, sortLabelKey),
+                                )}
+                              </p>
+                            ) : null}
+                            <ul className="cv-item-list">
+                              {listItems.map((item, ii) => (
+                                <ItemRow
+                                  key={item.id}
+                                  item={item}
+                                  locale={locale}
+                                  sectionType={section.type}
+                                  isFirst={bulkActive || ii === 0}
+                                  isLast={bulkActive || ii === listItems.length - 1}
+                                  selectable={bulkActive}
+                                  selected={bulkSelected.has(item.id)}
+                                  onSelectedChange={(sel) =>
+                                    setBulkSelected((prev) => {
+                                      const next = new Set(prev);
+                                      if (sel) next.add(item.id);
+                                      else next.delete(item.id);
+                                      return next;
+                                    })
                                   }
-                                  const keep = members.find((m) => m.item.id === keepId);
-                                  if (keep) {
-                                    next = clearDuplicateFlag(next, keep.sectionId, keep.item.id);
+                                  onToggleIncluded={() =>
+                                    onChange(
+                                      setItemIncluded(cv, section.id, item.id, !item.included),
+                                    )
                                   }
-                                  onChange(next);
-                                  advanceAfter(next, item.id);
-                                }}
-                                onKeepAll={() => {
-                                  const members = item.meta.duplicateOf
-                                    ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
-                                    : [];
-                                  const next = dismissDuplicateGroup(
-                                    cv,
-                                    members.map((m) => m.item.id),
-                                  );
-                                  onChange(next);
-                                  advanceAfter(next, item.id);
-                                }}
-                                onMoveUp={() => onChange(moveItem(cv, section.id, item.id, "up"))}
-                                onMoveDown={() =>
-                                  onChange(moveItem(cv, section.id, item.id, "down"))
-                                }
-                                onDragStart={
-                                  bulkActive
-                                    ? undefined
-                                    : () => setDragItem({ sectionId: section.id, itemId: item.id })
-                                }
-                                onDropOver={
-                                  bulkActive
-                                    ? undefined
-                                    : () => {
-                                        if (dragItem && dragItem.sectionId === section.id) {
-                                          onChange(moveItemTo(cv, section.id, dragItem.itemId, ii));
-                                        }
-                                        setDragItem(null);
+                                  onToggleNotMine={() =>
+                                    onChange(
+                                      setItemNotMine(cv, section.id, item.id, !item.notMine, {
+                                        now: new Date().toISOString(),
+                                      }),
+                                    )
+                                  }
+                                  onToggleFeatured={() =>
+                                    onChange(
+                                      setItemFeatured(cv, section.id, item.id, !item.featured),
+                                    )
+                                  }
+                                  shownInView={isItemShownInView(cv.display, section.id, item.id)}
+                                  onToggleInView={() =>
+                                    onChange(
+                                      setItemInView(
+                                        cv,
+                                        section.id,
+                                        item.id,
+                                        !isItemShownInView(cv.display, section.id, item.id),
+                                      ),
+                                    )
+                                  }
+                                  onSetNotMineReason={(reason) =>
+                                    onChange(
+                                      setItemNotMine(cv, section.id, item.id, true, {
+                                        reason,
+                                        now: new Date().toISOString(),
+                                      }),
+                                    )
+                                  }
+                                  duplicateGroup={
+                                    item.meta.duplicateOf
+                                      ? dupGroups.get(item.meta.duplicateOf.groupId)?.map((m) => ({
+                                          item: m.item,
+                                          sectionTitle: m.sectionTitle,
+                                        }))
+                                      : undefined
+                                  }
+                                  dupOpen={reviewDupId === item.id}
+                                  onDupToggle={() =>
+                                    setReviewDupId((cur) => (cur === item.id ? null : item.id))
+                                  }
+                                  rowRef={(el) => {
+                                    const m = dupRowRefs.current;
+                                    if (el) m.set(item.id, el);
+                                    else m.delete(item.id);
+                                  }}
+                                  reviewDismissed={dismissedReview.has(item.id)}
+                                  similarTitle={orcidSimilar.get(item.id)}
+                                  onDismissReview={() =>
+                                    onChange(dismissReviewCandidate(cv, section.id, item.id))
+                                  }
+                                  onConfirmMine={() =>
+                                    onChange(confirmMisattribution(cv, section.id, item.id))
+                                  }
+                                  flash={focusItem?.id === item.id}
+                                  onKeepOnly={(keepId) => {
+                                    const members = item.meta.duplicateOf
+                                      ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
+                                      : [];
+                                    // Hide every OTHER member; clear the kept member's
+                                    // badge so it resolves immediately. No dismissal:
+                                    // the detector ignores the now-hidden members, so
+                                    // the cluster won't re-form.
+                                    let next = cv;
+                                    for (const m of members) {
+                                      if (m.item.id !== keepId) {
+                                        next = setItemIncluded(next, m.sectionId, m.item.id, false);
                                       }
-                                }
-                                onUpdateText={(text) =>
-                                  onChange(updateItemText(cv, section.id, item.id, text))
-                                }
-                                onSetTextOverride={(text) =>
-                                  onChange(setItemTextOverride(cv, section.id, item.id, text))
-                                }
-                                onSetRole={(role) =>
-                                  onChange(setItemRoleTitle(cv, section.id, item.id, role))
-                                }
-                                onSetDepartment={(name) =>
-                                  onChange(setItemDepartment(cv, section.id, item.id, name))
-                                }
-                                onSetInstitution={(name) =>
-                                  onChange(setItemInstitution(cv, section.id, item.id, name))
-                                }
-                                onSetDateRange={(range) =>
-                                  onChange(setItemDateRange(cv, section.id, item.id, range))
-                                }
-                                onSetYear={(y) => onChange(setItemYear(cv, section.id, item.id, y))}
-                                onSetVenue={(v) =>
-                                  onChange(setItemVenue(cv, section.id, item.id, v))
-                                }
-                                onRemove={() => onChange(removeItem(cv, section.id, item.id))}
-                              />
-                            ))}
-                          </ul>
+                                    }
+                                    const keep = members.find((m) => m.item.id === keepId);
+                                    if (keep) {
+                                      next = clearDuplicateFlag(next, keep.sectionId, keep.item.id);
+                                    }
+                                    onChange(next);
+                                    advanceAfter(next, item.id);
+                                  }}
+                                  onKeepAll={() => {
+                                    const members = item.meta.duplicateOf
+                                      ? (dupGroups.get(item.meta.duplicateOf.groupId) ?? [])
+                                      : [];
+                                    const next = dismissDuplicateGroup(
+                                      cv,
+                                      members.map((m) => m.item.id),
+                                    );
+                                    onChange(next);
+                                    advanceAfter(next, item.id);
+                                  }}
+                                  reorderLocked={sortActive}
+                                  onMoveUp={() => onChange(moveItem(cv, section.id, item.id, "up"))}
+                                  onMoveDown={() =>
+                                    onChange(moveItem(cv, section.id, item.id, "down"))
+                                  }
+                                  onDragStart={
+                                    bulkActive || sortActive
+                                      ? undefined
+                                      : () =>
+                                          setDragItem({ sectionId: section.id, itemId: item.id })
+                                  }
+                                  onDropOver={
+                                    bulkActive || sortActive
+                                      ? undefined
+                                      : () => {
+                                          if (dragItem && dragItem.sectionId === section.id) {
+                                            onChange(
+                                              moveItemTo(cv, section.id, dragItem.itemId, ii),
+                                            );
+                                          }
+                                          setDragItem(null);
+                                        }
+                                  }
+                                  onUpdateText={(text) =>
+                                    onChange(updateItemText(cv, section.id, item.id, text))
+                                  }
+                                  onSetTextOverride={(text) =>
+                                    onChange(setItemTextOverride(cv, section.id, item.id, text))
+                                  }
+                                  onSetRole={(role) =>
+                                    onChange(setItemRoleTitle(cv, section.id, item.id, role))
+                                  }
+                                  onSetDepartment={(name) =>
+                                    onChange(setItemDepartment(cv, section.id, item.id, name))
+                                  }
+                                  onSetInstitution={(name) =>
+                                    onChange(setItemInstitution(cv, section.id, item.id, name))
+                                  }
+                                  onSetDateRange={(range) =>
+                                    onChange(setItemDateRange(cv, section.id, item.id, range))
+                                  }
+                                  onSetYear={(y) =>
+                                    onChange(setItemYear(cv, section.id, item.id, y))
+                                  }
+                                  onSetVenue={(v) =>
+                                    onChange(setItemVenue(cv, section.id, item.id, v))
+                                  }
+                                  onRemove={() => onChange(removeItem(cv, section.id, item.id))}
+                                />
+                              ))}
+                            </ul>
+                          </>
                         )}
 
                         {MANUAL_SECTIONS.has(section.type) ? (
