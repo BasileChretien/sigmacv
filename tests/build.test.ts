@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCanonicalCv,
   indexFundersByAward,
+  isSupplementaryMaterial,
   openalexTypeClass,
   orcidTypeClass,
   resolveFunderIds,
@@ -1270,6 +1271,74 @@ describe("openalexTypeClass", () => {
     } as unknown as OpenAlexWork;
     expect(openalexTypeClass(repoPreprint)).toBeUndefined();
   });
+
+  it("routes a publisher supplementary file mis-typed as `article` on a repository → other-output", () => {
+    // Springer/BMC deposit per-article supplements to Figshare as separate records
+    // OpenAlex types `article` on a `repository` source — recognized by their
+    // deterministic title so they leave Preprints for Other Research Outputs.
+    const suppl = {
+      type: "article",
+      title: "Additional file 1 of Influence of learning activities on pharmacology exam success",
+      primary_location: { source: { type: "repository", display_name: "Figshare" } },
+    } as unknown as OpenAlexWork;
+    expect(openalexTypeClass(suppl)).toBe("other-output");
+    // Same title but a real journal venue (not a repository) → left untouched.
+    const venueSuppl = {
+      type: "article",
+      title: "Additional file 1 of Something",
+      primary_location: { source: { type: "journal", display_name: "A Journal" } },
+    } as unknown as OpenAlexWork;
+    expect(openalexTypeClass(venueSuppl)).toBeUndefined();
+    // A genuine repository article whose title merely mentions files stays put.
+    const notSuppl = {
+      type: "article",
+      title: "Additional file formats for genomic data archives",
+      primary_location: { source: { type: "repository", display_name: "Figshare" } },
+    } as unknown as OpenAlexWork;
+    expect(openalexTypeClass(notSuppl)).toBeUndefined();
+  });
+});
+
+describe("isSupplementaryMaterial", () => {
+  it("matches publisher 'Additional file N of …' and 'Supplementary …' titles", () => {
+    // "Additional file N of <article>" (Springer/BMC), case/whitespace-insensitive.
+    expect(isSupplementaryMaterial({ title: "Additional file 1 of A study" } as OpenAlexWork)).toBe(
+      true,
+    );
+    expect(isSupplementaryMaterial({ title: "  additional FILE 12 of B" } as OpenAlexWork)).toBe(
+      true,
+    );
+    // "Supplementary/Supplemental <information|materials|tables|…>" (Nature/Springer).
+    for (const t of [
+      "Supplementary information for the study",
+      "Supplemental materials",
+      "Supplementary tables and figures",
+    ]) {
+      expect(isSupplementaryMaterial({ title: t } as OpenAlexWork)).toBe(true);
+    }
+    // Falls back to display_name when title is absent/null.
+    expect(
+      isSupplementaryMaterial({ display_name: "Additional file 3 of C" } as OpenAlexWork),
+    ).toBe(true);
+    expect(
+      isSupplementaryMaterial({
+        title: null,
+        display_name: "Additional file 3 of C",
+      } as unknown as OpenAlexWork),
+    ).toBe(true);
+    // Near-misses must NOT match.
+    for (const t of [
+      "Additional files of the study", // no index number
+      "An additional file 1 of things", // not anchored at start
+      "A study of additional file uploads", // unrelated
+      "Supplementary study of neural networks", // "study" not a supplement keyword
+      "Supplement to the record", // no keyword after "supplement"
+    ]) {
+      expect(isSupplementaryMaterial({ title: t } as OpenAlexWork)).toBe(false);
+    }
+    expect(isSupplementaryMaterial({} as OpenAlexWork)).toBe(false);
+    expect(isSupplementaryMaterial({ title: null } as unknown as OpenAlexWork)).toBe(false);
+  });
 });
 
 describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () => {
@@ -1333,6 +1402,44 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     });
     expect(itemIn(cv, "preprints", "WPRE2")).toBeDefined();
     expect(sectionOf(cv, "other")).toBeUndefined();
+  });
+
+  it("routes a Figshare 'Additional file N of …' supplement into Other Research Outputs, not Preprints", () => {
+    // Real-world case (Pharmaquest study): OpenAlex records a Springer/BMC
+    // supplementary file on Figshare typed `article`, so isPreprint() (repository
+    // source) would mis-file it in Preprints without the title-based recognition.
+    const suppl = {
+      id: "https://openalex.org/WSUPP",
+      doi: "https://doi.org/10.6084/m9.figshare.32943861",
+      title:
+        "Additional file 1 of Influence of learning activities and background characteristics on pharmacology exam success",
+      display_name:
+        "Additional file 1 of Influence of learning activities and background characteristics on pharmacology exam success",
+      publication_year: 2026,
+      type: "article",
+      authorships: [
+        {
+          author_position: "first",
+          author: {
+            id: "https://openalex.org/A5001069481",
+            display_name: "Basile Chrétien",
+            orcid: "https://orcid.org/0000-0002-7483-2489",
+          },
+          raw_author_name: "Basile Chrétien",
+        },
+      ],
+      primary_location: { source: { type: "repository", display_name: "Figshare" } },
+    } as unknown as OpenAlexWork;
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [suppl],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    expect(itemIn(cv, "other", "WSUPP")).toBeDefined();
+    expect(itemIn(cv, "other", "WSUPP")!.meta.peerReviewed).toBe(false);
+    expect(sectionOf(cv, "preprints")).toBeUndefined();
+    expect(itemIn(cv, "publications", "WSUPP")).toBeUndefined();
   });
 
   it("lets an ORCID publication type override the OpenAlex dataset type (→ Publications)", () => {

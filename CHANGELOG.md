@@ -314,6 +314,17 @@ FWCI_i`, which is `0/0` for an **uncited** work — so the MNCS could only be
 
 ### Fixed
 
+- **Journal supplementary files no longer appear as Preprints.** The same
+  Springer/BMC "Additional file N of <article>" figshare deposits (and Nature/Springer
+  "Supplementary information/tables/…") that were dropped from Datasets & Software
+  **also** arrive from OpenAlex — typed as a repository `article`, which the preprint
+  heuristic (any repository-hosted work ⇒ preprint) treated as a preprint, so they
+  were padding the **Preprints** section. These publisher-minted supplements are now
+  recognized by their title and routed to **Other Research Outputs** (marked
+  non-peer-reviewed), leaving Preprints for genuine preprints. Real repository
+  preprints (arXiv/bioRxiv, typed `preprint`) and normal figshare datasets are
+  unaffected.
+
 - **Journal supplementary material no longer shows up as a dataset.** Springer /
   BMC mint a figshare DOI for each "Additional file N of <article>" (and a figshare
   **Collection** grouping them under the paper's own title); DataCite indexes these
