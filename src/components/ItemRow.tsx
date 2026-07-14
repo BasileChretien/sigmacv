@@ -731,6 +731,8 @@ export default function ItemRow({
                   className="cv-item-year"
                   type="number"
                   inputMode="numeric"
+                  min={1}
+                  max={3000}
                   value={itemEffectiveYear(item) ?? ""}
                   onChange={(e) => onSetYear(parseYear(e.target.value) ?? null)}
                   aria-label={u.publicationYearAria}
@@ -751,6 +753,7 @@ export default function ItemRow({
               <div className="cv-item-edit-wrap">
                 <input
                   className="cv-item-edit"
+                  maxLength={500}
                   value={itemVenue(item) ?? ""}
                   onChange={(e) => onSetVenue(e.target.value)}
                   aria-label={u.venueAria}

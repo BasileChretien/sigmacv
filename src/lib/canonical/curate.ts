@@ -994,7 +994,8 @@ export function setItemInstitution(
  * editor's year field. Stored in `meta.yearOverride`; `null`, or a value equal to
  * the source `meta.year`, CLEARS it (revert to source). `render/cslOverride.ts`
  * patches `csl.issued` with it so the rendered citation matches everywhere. Pure +
- * immutable; a no-op for an unknown id.
+ * immutable; a no-op for an unknown id, or for a year outside the schema bounds
+ * (integer 1–3000) so an invalid value can't be stored and then break the save.
  */
 export function setItemYear(
   cv: CanonicalCv,
@@ -1002,6 +1003,9 @@ export function setItemYear(
   itemId: string,
   year: number | null,
 ): CanonicalCv {
+  // Reject out-of-range / non-integer years up front (CvItemSchema bounds
+  // yearOverride to an integer 1–3000). null still means "clear the override".
+  if (year !== null && (!Number.isInteger(year) || year < 1 || year > 3000)) return cv;
   return mapSection(cv, sectionId, (s) => ({
     ...s,
     items: s.items.map((it) => {
@@ -1017,7 +1021,8 @@ export function setItemYear(
  * venue field (e.g. a common abbreviation). Stored in `meta.venueOverride`; a BLANK
  * value, or one equal to the source `csl["container-title"]`, CLEARS it. The raw
  * value is stored (not trimmed) so a trailing space survives mid-typing.
- * `render/cslOverride.ts` patches the CSL with it. Pure + immutable.
+ * `render/cslOverride.ts` patches the CSL with it. Pure + immutable; a no-op for a
+ * value over the schema's 500-char cap so it can't be stored and then break the save.
  */
 export function setItemVenue(
   cv: CanonicalCv,
@@ -1025,6 +1030,8 @@ export function setItemVenue(
   itemId: string,
   venue: string,
 ): CanonicalCv {
+  // Reject over-long values up front (CvItemSchema caps venueOverride at 500 chars).
+  if (venue.length > 500) return cv;
   return mapSection(cv, sectionId, (s) => ({
     ...s,
     items: s.items.map((it) => {

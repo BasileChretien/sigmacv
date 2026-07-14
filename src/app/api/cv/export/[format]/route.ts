@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "@/auth";
 import { getCvForUser, getPublishState } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
@@ -11,7 +12,7 @@ import { absoluteUrl } from "@/lib/siteUrl";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const EXPORTABLE: readonly RenderFormat[] = [
+const EXPORTABLE = [
   "pdf",
   "html",
   "docx",
@@ -26,9 +27,10 @@ const EXPORTABLE: readonly RenderFormat[] = [
   "msca",
   "nsf",
   "jsps",
-];
+] as const satisfies readonly RenderFormat[];
 // "json" exports the canonical CV object verbatim (machine-readable, open).
-const ALL_FORMATS: readonly string[] = [...EXPORTABLE, "json"];
+// Zod-validate the path param (per the API convention) against the exact set.
+const EXPORT_FORMAT_SCHEMA = z.enum([...EXPORTABLE, "json"] as const);
 const EXPORT_MAX = 60;
 const EXPORT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
@@ -39,10 +41,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ format:
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { format } = await params;
-  if (!ALL_FORMATS.includes(format)) {
-    return NextResponse.json({ error: `Unsupported export format: ${format}` }, { status: 400 });
+  const { format: rawFormat } = await params;
+  const parsedFormat = EXPORT_FORMAT_SCHEMA.safeParse(rawFormat);
+  if (!parsedFormat.success) {
+    return NextResponse.json({ error: `Unsupported export format: ${rawFormat}` }, { status: 400 });
   }
+  const format = parsedFormat.data;
 
   const rl = await enforceRateLimit(`export:${session.user.id}`, EXPORT_MAX, EXPORT_WINDOW_MS);
   if (!rl.ok) {

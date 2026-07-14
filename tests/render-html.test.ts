@@ -50,9 +50,17 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     const html = renderCvHtml(makeCv());
     expect(html).toContain("<style>");
     expect(html).not.toContain('rel="stylesheet"');
-    expect(html).not.toMatch(/<link\b[^>]*\bhref="https?:/i);
-    expect(html).not.toMatch(/<script\b[^>]*\bsrc=/i);
-    expect(html).not.toMatch(/@import\s+url\(["']?https?:/i);
+    // No external stylesheet/resource <link> — http, https, or protocol-relative //.
+    expect(html).not.toMatch(/<link\b[^>]*\bhref=["']?(?:https?:)?\/\//i);
+    // No resource-loading src= (img/script/iframe/…) pointing off-box. data: URLs
+    // (the embedded photo) and relative refs are fine; a bare // or http(s) is not.
+    expect(html).not.toMatch(/\bsrc=["']?(?:https?:)?\/\//i);
+    // No external CSS url(...) — embedded url(data:…) (fonts) + relative refs stay ok.
+    expect(html).not.toMatch(/url\(\s*["']?(?:https?:)?\/\//i);
+    // …including via @import.
+    expect(html).not.toMatch(/@import\s+(?:url\(\s*)?["']?(?:https?:)?\/\//i);
+    // Ordinary external hyperlinks are expected and must NOT be flagged.
+    expect(html).toMatch(/<a\b[^>]*\bhref="https:\/\/orcid\.org\//i);
   });
 
   it("highlights the user's name on their own works when enabled", () => {

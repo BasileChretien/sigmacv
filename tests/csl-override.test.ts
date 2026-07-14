@@ -87,6 +87,11 @@ describe("setItemYear / setItemVenue — pure, immutable, revert-on-source", () 
     const withY = setItemYear(cv, SECTION, item.id, 1999);
     expect(firstCitation(withY).meta.yearOverride).toBe(1999);
     expect(cv).not.toBe(withY); // immutable
+    // Out-of-range / non-integer years are rejected up front (schema bounds 1–3000),
+    // returning the CV untouched rather than storing a value that would break the save.
+    expect(setItemYear(withY, SECTION, item.id, 99999)).toBe(withY);
+    expect(setItemYear(withY, SECTION, item.id, 0)).toBe(withY);
+    expect(setItemYear(withY, SECTION, item.id, 1990.5)).toBe(withY);
     expect(
       firstCitation(setItemYear(withY, SECTION, item.id, null)).meta.yearOverride,
     ).toBeUndefined();
@@ -119,6 +124,17 @@ describe("setItemYear / setItemVenue — pure, immutable, revert-on-source", () 
     const cv = makeCv();
     expect(setItemYear(cv, SECTION, "nope", 2000)).toEqual(cv);
     expect(setItemVenue(cv, SECTION, "nope", "x")).toEqual(cv);
+  });
+
+  it("rejects an over-long venue (schema caps at 500 chars) untouched", () => {
+    const cv = makeCv();
+    const item = journalCitation(cv);
+    expect(setItemVenue(cv, SECTION, item.id, "x".repeat(501))).toBe(cv);
+    // Exactly at the cap is accepted.
+    const at = setItemVenue(cv, SECTION, item.id, "y".repeat(500));
+    expect(
+      at.sections.flatMap((s) => s.items).find((i) => i.id === item.id)?.meta.venueOverride,
+    ).toBe("y".repeat(500));
   });
 });
 
