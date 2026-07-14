@@ -430,6 +430,26 @@ export function updateOwner(cv: CanonicalCv, patch: Partial<CvOwner>): Canonical
 }
 
 /**
+ * Set (or clear) the owner's preferred PUBLICATION name — how the account holder's
+ * own authorship prints in the publication list ({@link CvOwner.publicationName};
+ * applied by `render/selfName.ts`). Blank/whitespace parts are dropped; when BOTH end
+ * up empty the whole override is cleared (`undefined`), so an empty object never
+ * persists. Each part is capped to the schema's 200-char bound so an over-long paste
+ * can't break the save. Pure + immutable.
+ */
+export function setPublicationName(
+  cv: CanonicalCv,
+  name: { family?: string; given?: string },
+): CanonicalCv {
+  const cap = (s: string | undefined): string | undefined =>
+    s && s.trim() ? s.slice(0, 200) : undefined;
+  const family = cap(name.family);
+  const given = cap(name.given);
+  const publicationName = family || given ? { family, given } : undefined;
+  return { ...cv, owner: { ...cv.owner, publicationName } };
+}
+
+/**
  * Set the owner's private notes (a never-published scratchpad). Blank/whitespace
  * text clears the field entirely (stored as `undefined`, not `""`); non-blank text
  * is capped at `NOTES_MAX` so the result always satisfies the schema's `max`
@@ -985,6 +1005,62 @@ export function setItemInstitution(
       const next: CvItem = { ...it, meta };
       const line = rederiveEntryLine(next);
       return line === undefined ? next : { ...next, displayText: line };
+    }),
+  }));
+}
+
+/**
+ * Set (or clear) the USER publication-YEAR override for a citation item — the
+ * editor's year field. Stored in `meta.yearOverride`; `null`, or a value equal to
+ * the source `meta.year`, CLEARS it (revert to source). `render/cslOverride.ts`
+ * patches `csl.issued` with it so the rendered citation matches everywhere. Pure +
+ * immutable; a no-op for an unknown id, or for a year outside the schema bounds
+ * (integer 1–3000) so an invalid value can't be stored and then break the save.
+ */
+export function setItemYear(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  year: number | null,
+): CanonicalCv {
+  // Reject out-of-range / non-integer years up front (CvItemSchema bounds
+  // yearOverride to an integer 1–3000). null still means "clear the override".
+  if (year !== null && (!Number.isInteger(year) || year < 1 || year > 3000)) return cv;
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const override = year === null || year === it.meta.year ? undefined : year;
+      return { ...it, meta: { ...it.meta, yearOverride: override } };
+    }),
+  }));
+}
+
+/**
+ * Set (or clear) the USER journal/venue override for a citation item — the editor's
+ * venue field (e.g. a common abbreviation). Stored in `meta.venueOverride`; a BLANK
+ * value, or one equal to the source `csl["container-title"]`, CLEARS it. The raw
+ * value is stored (not trimmed) so a trailing space survives mid-typing.
+ * `render/cslOverride.ts` patches the CSL with it. Pure + immutable; a no-op for a
+ * value over the schema's 500-char cap so it can't be stored and then break the save.
+ */
+export function setItemVenue(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  venue: string,
+): CanonicalCv {
+  // Reject over-long values up front (CvItemSchema caps venueOverride at 500 chars).
+  if (venue.length > 500) return cv;
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const trimmed = venue.trim();
+      const source =
+        typeof it.csl?.["container-title"] === "string" ? it.csl["container-title"].trim() : "";
+      const override = trimmed.length === 0 || trimmed === source ? undefined : venue;
+      return { ...it, meta: { ...it.meta, venueOverride: override } };
     }),
   }));
 }

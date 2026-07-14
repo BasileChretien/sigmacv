@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Export your CV as a self-contained HTML page (`.html`).** The Documents group
+  in Export now offers HTML alongside PDF / Word / LaTeX / Markdown. It's a single
+  standalone file — CSS and fonts inlined, the profile photo embedded — that opens
+  offline and can be hosted anywhere, rendered with your selected template. This is
+  distinct from **Publish** (a living public page that re-syncs from sources): the
+  HTML export is a frozen snapshot you own and self-host.
+
+- **Correct a publication's year or journal/venue.** Citation entries now have an
+  "Edit details" control to fix the publication year or the journal name — e.g. set
+  a commonly used abbreviation. The edit is applied to the citation data **before**
+  it is formatted, so it shows identically in every output (PDF, LaTeX, DOCX,
+  Markdown, BibTeX…); each field reverts to the source value when cleared, and the
+  source keeps refreshing underneath. Prompted by tester feedback.
+
+- **Set how your own name appears on your publications.** If your data source prints
+  your name in a form you don't use — a surname change (maiden → married), or a
+  normalisation like "Pacher" for "Nishikawa-Pacher" — you can now set a preferred
+  given/family name in your profile. It's applied to **your own** authorship (matched
+  to you by your identifier, never by name string) before citations are formatted, so
+  it shows identically in every export and stays bolded by the self-highlight. Blank
+  parts fall back to the source name; the source data, the identifier match, and the
+  "not mine" signal are all untouched. Prompted by tester feedback.
+
 - **Optional AI first-draft for the narrative-CV modules (bring-your-own-key).**
   The R4RI / Royal-Society "narrative CV" modules already showed writing guidance
   and the counts of your relevant outputs; now you can also generate a **first
@@ -207,6 +230,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   365 cloud/roaming signatures). Localized in all ten locales.
 
 ### Changed
+
+- **Renaming an institution on a Positions/Education entry is now discoverable.**
+  The institution shown beside a role (e.g. "Vienna University of Technology",
+  "Paris Institute of Political Studies") is now itself a control: clicking it opens
+  "Edit details" and drops the cursor straight into the rename field, so you can set
+  the name your institution actually uses ("TU Wien", "SciencesPo"). The rename
+  already worked but was buried in a closed disclosure that testers didn't find; the
+  stored override and its revert are unchanged. Prompted by tester feedback.
+
+- **Custom sections are now discoverable.** You could always add your own free-text
+  section — your own heading plus running prose, added as many times as you like —
+  but it appeared in the add-section menu under its default title "Statement", so
+  people didn't realise they could add "something the preset sections don't cover".
+  It's now offered as **"Custom section"** with a hint explaining what it's for. The
+  underlying capability (add / rename / reorder / hide, multiple instances) is
+  unchanged. Prompted by tester feedback.
 
 - **The offered field-normalized metric is the NIH iCite RCR — the FWCI-derived
   MNCS was dropped as unreliable.** Author-level field normalization first replaced

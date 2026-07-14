@@ -606,4 +606,116 @@ describe("ItemRow — structured role / institution / dates editor", () => {
     expect(end.value).toBe(""); // open end
     expect(end.disabled).toBe(true); // ongoing → end disabled
   });
+
+  it("surfaces the institution rename: the context opens Edit details and focuses the field", () => {
+    // Testers read the institution as fixed context and missed that it's editable
+    // (the rename field was buried in a closed disclosure). It's now a button that
+    // opens that disclosure and focuses the field.
+    renderStructured(
+      makeItem({
+        id: "position:orcid:tuwien",
+        source: "orcid",
+        displayText: "Researcher, TU Wien",
+        meta: { institution: "Vienna University of Technology", roleTitle: "Researcher" },
+      }),
+      "positions",
+    );
+    const trigger = screen.getByRole("button", { name: /edit the institution name/i });
+    expect(trigger.textContent).toContain("Vienna University of Technology");
+    const details = document.querySelector("details.cv-item-details") as HTMLDetailsElement;
+    expect(details.open).toBe(false); // rename field starts hidden in the disclosure
+    const field = screen.getByLabelText("Institution") as HTMLInputElement;
+    fireEvent.click(trigger);
+    expect(details.open).toBe(true); // clicking the context reveals it…
+    expect(document.activeElement).toBe(field); // …and lands the cursor in the field
+  });
+
+  it("reports an institution rename via onSetInstitution (TU Wien case)", () => {
+    let got = "";
+    renderStructured(
+      makeItem({
+        id: "position:orcid:tuwien2",
+        source: "orcid",
+        displayText: "Researcher, TU Wien",
+        meta: { institution: "Vienna University of Technology", roleTitle: "Researcher" },
+      }),
+      "positions",
+      { onSetInstitution: (n) => (got = n) },
+    );
+    const field = screen.getByLabelText("Institution") as HTMLInputElement;
+    expect(field.value).toBe("Vienna University of Technology"); // the source name
+    fireEvent.change(field, { target: { value: "TU Wien" } });
+    expect(got).toBe("TU Wien"); // the user's preferred name is reported
+  });
+});
+
+describe("ItemRow — citation bibliographic overrides (year / venue)", () => {
+  const citation = (over: Partial<CvItem> = {}) =>
+    makeItem({
+      id: "w-bib",
+      source: "openalex",
+      csl: {
+        id: "w-bib",
+        type: "article-journal",
+        title: "A paper",
+        "container-title": "Old Journal Name",
+      } as CvItem["csl"],
+      meta: { year: 2020 },
+      ...over,
+    });
+
+  function renderCitation(handlers: {
+    onSetYear?: (y: number | null) => void;
+    onSetVenue?: (v: string) => void;
+    item?: CvItem;
+  }) {
+    render(
+      <ul>
+        <ItemRow
+          item={handlers.item ?? citation()}
+          locale="en-US"
+          sectionType="publications"
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          onSetYear={handlers.onSetYear ?? noop}
+          onSetVenue={handlers.onSetVenue ?? noop}
+          onMoveUp={noop}
+          onMoveDown={noop}
+        />
+      </ul>,
+    );
+  }
+
+  it("offers year + venue fields prefilled from the source and reports edits", () => {
+    let year: number | null = 0;
+    let venue = "";
+    renderCitation({ onSetYear: (y) => (year = y), onSetVenue: (v) => (venue = v) });
+    const yearField = screen.getByLabelText("Year") as HTMLInputElement;
+    const venueField = screen.getByLabelText("Journal / venue") as HTMLInputElement;
+    expect(yearField.value).toBe("2020");
+    expect(venueField.value).toBe("Old Journal Name");
+    fireEvent.change(yearField, { target: { value: "1999" } });
+    expect(year).toBe(1999);
+    fireEvent.change(venueField, { target: { value: "PNAS" } });
+    expect(venue).toBe("PNAS");
+  });
+
+  it("reverts the year with null when the field is cleared", () => {
+    let year: number | null = 2020;
+    renderCitation({ onSetYear: (y) => (year = y) });
+    fireEvent.change(screen.getByLabelText("Year"), { target: { value: "" } });
+    expect(year).toBeNull();
+  });
+
+  it("shows the effective (overridden) values and their reverts once an override exists", () => {
+    renderCitation({
+      item: citation({ meta: { year: 2020, yearOverride: 1999, venueOverride: "PNAS" } }),
+    });
+    expect((screen.getByLabelText("Year") as HTMLInputElement).value).toBe("1999");
+    expect((screen.getByLabelText("Journal / venue") as HTMLInputElement).value).toBe("PNAS");
+    // A revert control for each overridden field.
+    expect(screen.getAllByRole("button", { name: /revert/i }).length).toBeGreaterThanOrEqual(2);
+  });
 });

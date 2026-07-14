@@ -42,6 +42,27 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(html).toContain("0000-0002-7483-2489");
   });
 
+  it("is offline-safe as a download: inline CSS, no external resource refs", () => {
+    // The HTML renderer is now an export format (a downloadable .html), so the
+    // document must open standalone with no network — CSS inlined in a <style>
+    // block, fonts embedded (@font-face data URLs), and no external stylesheet,
+    // script, or @import. Hyperlinks (<a href="https://…">) are fine.
+    const html = renderCvHtml(makeCv());
+    expect(html).toContain("<style>");
+    expect(html).not.toContain('rel="stylesheet"');
+    // No external stylesheet/resource <link> — http, https, or protocol-relative //.
+    expect(html).not.toMatch(/<link\b[^>]*\bhref=["']?(?:https?:)?\/\//i);
+    // No resource-loading src= (img/script/iframe/…) pointing off-box. data: URLs
+    // (the embedded photo) and relative refs are fine; a bare // or http(s) is not.
+    expect(html).not.toMatch(/\bsrc=["']?(?:https?:)?\/\//i);
+    // No external CSS url(...) — embedded url(data:…) (fonts) + relative refs stay ok.
+    expect(html).not.toMatch(/url\(\s*["']?(?:https?:)?\/\//i);
+    // …including via @import.
+    expect(html).not.toMatch(/@import\s+(?:url\(\s*)?["']?(?:https?:)?\/\//i);
+    // Ordinary external hyperlinks are expected and must NOT be flagged.
+    expect(html).toMatch(/<a\b[^>]*\bhref="https:\/\/orcid\.org\//i);
+  });
+
   it("highlights the user's name on their own works when enabled", () => {
     const html = renderCvHtml(makeCv());
     expect(html).toContain('<span class="cv-self">');

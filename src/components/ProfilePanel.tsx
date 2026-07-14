@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import type { CanonicalCv, CvLink, CvSectionType } from "@/lib/canonical/schema";
 import { PHOTO_DATA_URL_MAX, NOTES_MAX } from "@/lib/canonical/schema";
-import { updateOwner, setNotes } from "@/lib/canonical/curate";
+import { updateOwner, setNotes, setPublicationName } from "@/lib/canonical/curate";
 import { parseJsonResume, importJsonResume } from "@/lib/import/jsonResume";
 import { t, sectionTitle, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
@@ -200,6 +200,43 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
           onChange={(e) => onChange(updateOwner(cv, { summary: e.target.value || undefined }))}
         />
       </label>
+
+      <div className="field">
+        <span>{t(locale, "publicationNameLabel")}</span>
+        <p className="field-hint">{t(locale, "publicationNameHint")}</p>
+        <div className="name-parts">
+          <input
+            type="text"
+            value={owner.publicationName?.given ?? ""}
+            placeholder={t(locale, "publicationNameGiven")}
+            aria-label={t(locale, "publicationNameGiven")}
+            maxLength={200}
+            onChange={(e) =>
+              onChange(
+                setPublicationName(cv, {
+                  given: e.target.value,
+                  family: owner.publicationName?.family,
+                }),
+              )
+            }
+          />
+          <input
+            type="text"
+            value={owner.publicationName?.family ?? ""}
+            placeholder={t(locale, "publicationNameFamily")}
+            aria-label={t(locale, "publicationNameFamily")}
+            maxLength={200}
+            onChange={(e) =>
+              onChange(
+                setPublicationName(cv, {
+                  given: owner.publicationName?.given,
+                  family: e.target.value,
+                }),
+              )
+            }
+          />
+        </div>
+      </div>
 
       <div className="profile-grid">
         <label className="field">

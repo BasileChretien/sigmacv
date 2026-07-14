@@ -176,6 +176,37 @@ describe("CvEditor (component)", () => {
     expect(screen.getByText("+ Skills")).toBeTruthy();
   });
 
+  it("surfaces the user-titled free-text section as '+ Custom section' and adds it", () => {
+    const onChange = vi.fn();
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
+    );
+    // Discoverable: the capability isn't hidden behind the default "Statement" title.
+    expect(screen.queryByText("+ Statement")).toBeNull();
+    fireEvent.click(screen.getByText("+ Custom section"));
+    const next = onChange.mock.calls[0]![0] as CanonicalCv;
+    const statements = next.sections.filter((s) => s.type === "statement");
+    expect(statements).toHaveLength(1);
+    expect(statements[0]!.body).toBe(""); // a free-text prose section, ready to title + fill
+  });
+
+  it("keeps offering '+ Custom section' when the CV already has one (multiple allowed)", () => {
+    const cv = addSection(makeCv(), "statement");
+    render(<CvEditor cv={cv} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+    expect(screen.getByText("+ Custom section")).toBeTruthy();
+  });
+
+  it("sets a preferred publication name (Pacher #2) via the profile fields", () => {
+    const onChange = vi.fn();
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
+    );
+    const family = screen.getByLabelText("Family name") as HTMLInputElement;
+    fireEvent.change(family, { target: { value: "Nishikawa-Pacher" } });
+    const next = onChange.mock.calls.at(-1)![0] as CanonicalCv;
+    expect(next.owner.publicationName).toEqual({ family: "Nishikawa-Pacher", given: undefined });
+  });
+
   // Regression: these source-less section types were in the add-section menu but
   // in neither MANUAL_SECTIONS nor STRUCTURED_SECTIONS, so they rendered with no
   // input at all — the user could add them but never fill them.

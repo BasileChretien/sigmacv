@@ -31,6 +31,7 @@ import TopBar, { type ExportFormat } from "./TopBar";
 // The raw data formats (json/bibtex/…) and grant-CV exports don't imply that.
 const DOCUMENT_EXPORT_FORMATS: ReadonlySet<ExportFormat> = new Set<ExportFormat>([
   "pdf",
+  "html",
   "docx",
   "latex",
   "markdown",

@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   displayInstitution,
   isHidden,
   itemDateRange,
   itemDepartment,
   itemDisplayText,
+  itemEffectiveYear,
   itemInstitution,
   itemRoleTitle,
+  itemVenue,
   NOT_MINE_REASONS,
   type CvItem,
   type CvSectionType,
@@ -170,6 +172,12 @@ interface ItemRowProps {
   /** Set/replace the date-range override (an omitted `endYear` = ongoing), or
    *  clear it with `null` (revert to the source dates). */
   onSetDateRange?: (range: { startYear?: number; endYear?: number } | null) => void;
+  /** Set/clear the publication-YEAR override on a CITATION row — the "Edit details"
+   *  disclosure. `null` reverts to the source year. */
+  onSetYear?: (year: number | null) => void;
+  /** Set/clear the journal/venue override on a CITATION row — the "Edit details"
+   *  disclosure. Passing "" reverts to the source venue. */
+  onSetVenue?: (venue: string) => void;
   /** Delete a manual entry (only passed for source === "manual"). */
   onRemove?: () => void;
   /** Bulk-selection mode: render a leading checkbox instead of drag affordances. */
@@ -224,6 +232,8 @@ export default function ItemRow({
   onSetDepartment,
   onSetInstitution,
   onSetDateRange,
+  onSetYear,
+  onSetVenue,
   onRemove,
   selectable = false,
   selected = false,
@@ -240,6 +250,12 @@ export default function ItemRow({
   // The compare panel is open when the editor focuses this duplicate (controlled
   // via `dupOpen`), or when the user clicks the badge (uncontrolled fallback).
   const [localDupOpen, setLocalDupOpen] = useState(false);
+  // The institution-rename control lives inside the "Edit details" disclosure,
+  // which testers didn't discover (they saw the institution as fixed context).
+  // These refs let the visible institution "context" itself open that disclosure
+  // and focus the rename field — making the edit findable where users look for it.
+  const instDetailsRef = useRef<HTMLDetailsElement>(null);
+  const instInputRef = useRef<HTMLInputElement>(null);
   const isDupOpen = dupOpen ?? localDupOpen;
   const toggleDup = () => {
     if (dupOpen !== undefined) onDupToggle?.();
@@ -344,9 +360,10 @@ export default function ItemRow({
   // note below with no way to add a range. Only a legacy entry with no structured
   // institution (whose line can't be re-derived) still needs a re-sync first.
   const datesEditable = Boolean(itemInstitution(item)) || hasStructuredDates;
-  const year = item.meta.year ?? "—";
-  const venue =
-    typeof item.csl?.["container-title"] === "string" ? item.csl["container-title"] : "";
+  // Effective (override-aware) year/venue, so the editor's facts line matches what
+  // the rendered citation shows once the user overrides them.
+  const year = itemEffectiveYear(item) ?? "—";
+  const venue = itemVenue(item) ?? "";
 
   // Where this entry's data came from (hover to see). "+ Crossref" when its
   // bibliographic gaps were filled by Crossref.
@@ -438,9 +455,31 @@ export default function ItemRow({
                 aria-label={u.roleAria}
               />
               {institution ? (
-                <span className="cv-item-edit-context" title={institution}>
-                  · {institution}
-                </span>
+                onSetInstitution && onSetDateRange ? (
+                  // The institution reads as fixed context, but it IS editable — make
+                  // that findable: clicking it opens "Edit details" and focuses the
+                  // rename field (a subtle ✎ signals it). Falls back to plain text
+                  // when the row has no editor wired.
+                  <button
+                    type="button"
+                    className="cv-item-edit-context cv-item-inst-edit"
+                    title={u.editInstitutionHint}
+                    aria-label={`${institution} — ${u.editInstitutionHint}`}
+                    onClick={() => {
+                      if (instDetailsRef.current) instDetailsRef.current.open = true;
+                      instInputRef.current?.focus();
+                    }}
+                  >
+                    · {institution}
+                    <span className="cv-item-inst-pencil" aria-hidden="true">
+                      ✎
+                    </span>
+                  </button>
+                ) : (
+                  <span className="cv-item-edit-context" title={institution}>
+                    · {institution}
+                  </span>
+                )
               ) : null}
               {item.meta.roleTitleOverride !== undefined ? (
                 <button
@@ -455,7 +494,7 @@ export default function ItemRow({
               ) : null}
             </div>
             {onSetInstitution && onSetDateRange ? (
-              <details className="cv-item-details">
+              <details ref={instDetailsRef} className="cv-item-details">
                 <summary>{u.editDetails}</summary>
                 <div className="cv-item-details-body">
                   {onSetDepartment ? (
@@ -482,6 +521,7 @@ export default function ItemRow({
                   ) : null}
                   <div className="cv-item-edit-wrap">
                     <input
+                      ref={instInputRef}
                       className="cv-item-edit"
                       value={itemInstitution(item) ?? ""}
                       onChange={(e) => onSetInstitution(e.target.value)}
@@ -678,6 +718,62 @@ export default function ItemRow({
             {sourceBadge}
           </div>
         )}
+        {isCitation && onSetYear && onSetVenue ? (
+          // Correct a citation's bibliographic basics — publication year and
+          // journal/venue (e.g. a common abbreviation). Patched into the CSL before
+          // citeproc (render/cslOverride.ts), so the fix shows identically in every
+          // export. Each field reverts to the source when cleared.
+          <details className="cv-item-details">
+            <summary>{u.editDetails}</summary>
+            <div className="cv-item-details-body">
+              <div className="cv-item-edit-wrap">
+                <input
+                  className="cv-item-year"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={3000}
+                  value={itemEffectiveYear(item) ?? ""}
+                  onChange={(e) => onSetYear(parseYear(e.target.value) ?? null)}
+                  aria-label={u.publicationYearAria}
+                  placeholder={u.publicationYearAria}
+                />
+                {item.meta.yearOverride !== undefined ? (
+                  <button
+                    type="button"
+                    className="icon-btn cv-item-revert"
+                    onClick={() => onSetYear(null)}
+                    title={u.revertToSourceHint}
+                    aria-label={u.revertToSource}
+                  >
+                    ↺
+                  </button>
+                ) : null}
+              </div>
+              <div className="cv-item-edit-wrap">
+                <input
+                  className="cv-item-edit"
+                  maxLength={500}
+                  value={itemVenue(item) ?? ""}
+                  onChange={(e) => onSetVenue(e.target.value)}
+                  aria-label={u.venueAria}
+                  placeholder={u.venueAria}
+                />
+                {item.meta.venueOverride !== undefined ? (
+                  <button
+                    type="button"
+                    className="icon-btn cv-item-revert"
+                    onClick={() => onSetVenue("")}
+                    title={u.revertToSourceHint}
+                    aria-label={u.revertToSource}
+                  >
+                    ↺
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </details>
+        ) : null}
         {/* "You may already have this": a pending ORCID-discovered candidate
             whose title/identifier matches a work already shown on the CV. */}
         {similarTitle && item.meta.reviewFlag === "orcid-doi" && isPendingReviewCandidate ? (
