@@ -196,6 +196,17 @@ describe("CvEditor (component)", () => {
     expect(screen.getByText("+ Custom section")).toBeTruthy();
   });
 
+  it("sets a preferred publication name (Pacher #2) via the profile fields", () => {
+    const onChange = vi.fn();
+    render(
+      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />,
+    );
+    const family = screen.getByLabelText("Family name") as HTMLInputElement;
+    fireEvent.change(family, { target: { value: "Nishikawa-Pacher" } });
+    const next = onChange.mock.calls.at(-1)![0] as CanonicalCv;
+    expect(next.owner.publicationName).toEqual({ family: "Nishikawa-Pacher", given: undefined });
+  });
+
   // Regression: these source-less section types were in the add-section menu but
   // in neither MANUAL_SECTIONS nor STRUCTURED_SECTIONS, so they rendered with no
   // input at all — the user could add them but never fill them.

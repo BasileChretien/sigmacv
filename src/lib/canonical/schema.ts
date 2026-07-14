@@ -820,6 +820,23 @@ export const CvOwnerSchema = z.object({
   displayName: z.string().max(1000),
   /** An honorific/title prefix shown BEFORE the name, e.g. "Dr" (user-editable). */
   honorific: z.string().max(60).optional(),
+  /**
+   * Optional PREFERRED name for how the account holder's OWN authorship prints in
+   * their publication list — e.g. a surname change (maiden → married) or a form
+   * OpenAlex normalised away ("Pacher" → "Nishikawa-Pacher"). When set, the given
+   * part(s) override the self author — located by the identifier-derived
+   * `meta.authorPosition`, NEVER by matching a name — in each own work's CSL BEFORE
+   * citeproc (`render/selfName.ts`), so the corrected name shows identically in every
+   * format, and the highlight variants are augmented so the renamed name still bolds.
+   * A DISPLAY choice only: the source name, the identifier match, and the "not mine"
+   * disambiguation signal are all untouched; blank parts fall back to the source.
+   */
+  publicationName: z
+    .object({
+      family: z.string().max(200).optional(),
+      given: z.string().max(200).optional(),
+    })
+    .optional(),
   /** A short headline / role shown UNDER the name (user-editable). */
   headline: z.string().max(200).optional(),
   /** A few-sentence professional summary shown at the top (user-editable). */

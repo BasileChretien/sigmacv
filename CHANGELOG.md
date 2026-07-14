@@ -23,6 +23,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Markdown, BibTeX…); each field reverts to the source value when cleared, and the
   source keeps refreshing underneath. Prompted by tester feedback.
 
+- **Set how your own name appears on your publications.** If your data source prints
+  your name in a form you don't use — a surname change (maiden → married), or a
+  normalisation like "Pacher" for "Nishikawa-Pacher" — you can now set a preferred
+  given/family name in your profile. It's applied to **your own** authorship (matched
+  to you by your identifier, never by name string) before citations are formatted, so
+  it shows identically in every export and stays bolded by the self-highlight. Blank
+  parts fall back to the source name; the source data, the identifier match, and the
+  "not mine" signal are all untouched. Prompted by tester feedback.
+
 - **Optional AI first-draft for the narrative-CV modules (bring-your-own-key).**
   The R4RI / Royal-Society "narrative CV" modules already showed writing guidance
   and the counts of your relevant outputs; now you can also generate a **first

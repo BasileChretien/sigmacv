@@ -1580,6 +1580,15 @@ textarea.narrative-ai-draft {
   font-weight: var(--weight-medium);
   color: var(--text-secondary);
 }
+/* Two equal-width inputs on one row (e.g. preferred given + family name). */
+.name-parts {
+  display: flex;
+  gap: var(--space-2);
+}
+.name-parts input {
+  flex: 1 1 0;
+  min-width: 0;
+}
 .field-inline {
   grid-column: 1 / -1;
   display: inline-flex;

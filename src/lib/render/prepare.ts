@@ -14,6 +14,7 @@ import { renderStrings } from "@/lib/i18n/render";
 import type { CslItem } from "@/types/csl";
 import { cslForRender } from "./cslOverride";
 import { escapeHtml } from "./escape";
+import { withSelfPublicationName } from "./selfName";
 
 const escapeHtmlText = escapeHtml;
 
@@ -155,9 +156,12 @@ export function prepareSections(
   // (3,4,5,…,11) because Preprints/Datasets occupied the skipped numbers. Per
   // section, each list is contiguous (Publications 1..K, Preprints 1..M).
   // Author–date styles (APA) carry no numbers, so their output is unchanged.
-  return perSection.map(({ section, items }) => {
-    // cslForRender applies the user's per-work year/venue overrides before citeproc,
+  return perSection.map(({ section, items: rawItems }) => {
+    // Apply the owner's preferred publication name first (substitutes the account
+    // holder's own author in each own work's CSL + augments the highlight variants),
+    // then the per-work year/venue overrides (cslForRender) — both BEFORE citeproc,
     // so a correction shows identically in every format (never feed raw item.csl).
+    const items = rawItems.map((i) => withSelfPublicationName(i, cv.owner.publicationName));
     const cslItems = items.map((i) => cslForRender(i)).filter((c): c is CslItem => Boolean(c));
     const entries = cslItems.length
       ? renderBibliography(cslItems, styleKey, cv.display.locale, outputFormat)

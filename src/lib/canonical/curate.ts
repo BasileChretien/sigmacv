@@ -430,6 +430,26 @@ export function updateOwner(cv: CanonicalCv, patch: Partial<CvOwner>): Canonical
 }
 
 /**
+ * Set (or clear) the owner's preferred PUBLICATION name — how the account holder's
+ * own authorship prints in the publication list ({@link CvOwner.publicationName};
+ * applied by `render/selfName.ts`). Blank/whitespace parts are dropped; when BOTH end
+ * up empty the whole override is cleared (`undefined`), so an empty object never
+ * persists. Each part is capped to the schema's 200-char bound so an over-long paste
+ * can't break the save. Pure + immutable.
+ */
+export function setPublicationName(
+  cv: CanonicalCv,
+  name: { family?: string; given?: string },
+): CanonicalCv {
+  const cap = (s: string | undefined): string | undefined =>
+    s && s.trim() ? s.slice(0, 200) : undefined;
+  const family = cap(name.family);
+  const given = cap(name.given);
+  const publicationName = family || given ? { family, given } : undefined;
+  return { ...cv, owner: { ...cv.owner, publicationName } };
+}
+
+/**
  * Set the owner's private notes (a never-published scratchpad). Blank/whitespace
  * text clears the field entirely (stored as `undefined`, not `""`); non-blank text
  * is capped at `NOTES_MAX` so the result always satisfies the schema's `max`

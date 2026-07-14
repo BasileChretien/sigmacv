@@ -33,6 +33,19 @@
           "type": "string",
           "maxLength": 60
         },
+        "publicationName": {
+          "type": "object",
+          "properties": {
+            "family": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "given": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        },
         "headline": {
           "type": "string",
           "maxLength": 200
