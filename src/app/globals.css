@@ -2046,6 +2046,10 @@ textarea.narrative-ai-draft {
   gap: var(--space-1);
   flex-wrap: wrap;
 }
+.sort-locked-hint {
+  font-size: var(--text-xs);
+  margin: 0 0 var(--space-2);
+}
 .linklike {
   background: none;
   border: none;

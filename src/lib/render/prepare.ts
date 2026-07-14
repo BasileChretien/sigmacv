@@ -8,6 +8,7 @@ import {
 } from "@/lib/canonical/schema";
 import { localizedYearRange, yearRange } from "@/lib/canonical/entryLine";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
+import { CITATION_SECTION_TYPES, sortPublicationItems } from "@/lib/canonical/publicationSort";
 import { DEFAULT_STYLE, isBundledStyle, registerStyleXml } from "@/lib/citeproc/assets";
 import { renderBibliography, type CiteprocOutputFormat } from "@/lib/citeproc/engine";
 import { renderStrings } from "@/lib/i18n/render";
@@ -105,20 +106,10 @@ export function prepareSections(
     return true;
   };
 
-  // Optional re-sort of publication/preprint entries by citations or year.
+  // Optional re-sort of publication/preprint entries by citations or year — the
+  // `publicationOrder` display choice, shared with the editor list (`SectionsList`)
+  // via `sortPublicationItems` so the curation view matches the rendered order.
   // "custom" keeps the curated/dragged order (the chokepoint default).
-  const order = cv.display.publicationOrder;
-  const CITATION_SECTIONS = new Set(["publications", "preprints"]);
-  const sortCitations = (items: CvItem[]): CvItem[] => {
-    if (order === "custom") return items;
-    return [...items].sort((a, b) => {
-      if (order === "citations") {
-        return (b.meta.citedByCount ?? 0) - (a.meta.citedByCount ?? 0);
-      }
-      if (order === "year-asc") return (a.meta.year ?? 0) - (b.meta.year ?? 0);
-      return (b.meta.year ?? 0) - (a.meta.year ?? 0); // year-desc
-    });
-  };
 
   // "Selected publications": cap the main Publications list to the top N AFTER
   // ordering + the peer-reviewed-only filter (for a grant biosketch / short CV).
@@ -134,8 +125,8 @@ export function prepareSections(
       const set = new Set(excluded);
       items = items.filter((it) => !set.has(it.id));
     }
-    if (CITATION_SECTIONS.has(section.type)) {
-      items = sortCitations(items);
+    if (CITATION_SECTION_TYPES.has(section.type)) {
+      items = sortPublicationItems(items, cv.display.publicationOrder);
       // "Selected / featured" works pin to the TOP of the section (stable, ahead of
       // the order above) — a hand-picked "Selected publications" set leads, and the
       // pins land within the publicationsLimit cap below rather than being dropped.
