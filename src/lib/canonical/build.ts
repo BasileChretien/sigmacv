@@ -1252,6 +1252,23 @@ export function orcidTypeClass(
   return undefined;
 }
 
+// Journal-minted supplementary material — Springer/BMC deposit each article's
+// "Additional file N of <article>" to figshare (and Nature/Springer their
+// "Supplementary information/tables/…") as separate records. OpenAlex mis-types
+// these as `article` (not `supplementary-materials`), so `isPreprint` — which
+// treats ANY repository-sourced work as a preprint — would wrongly file them under
+// Preprints. These are the SAME deterministic, publisher-generated title patterns
+// the DataCite client drops from Datasets & Software (`isJournalSupplement`); kept
+// in sync deliberately. Nothing genuine (a real article/preprint) is titled so.
+const ADDITIONAL_FILE_RE = /^\s*additional file\s+\d+\s+of\b/i;
+const SUPPLEMENT_TITLE_RE =
+  /^\s*supplement(?:ary|al)\s+(?:information|materials?|methods?|notes?|figures?|tables?|appendix|files?)\b/i;
+
+export function isSupplementaryMaterial(work: OpenAlexWork): boolean {
+  const title = work.title ?? work.display_name ?? "";
+  return ADDITIONAL_FILE_RE.test(title) || SUPPLEMENT_TITLE_RE.test(title);
+}
+
 /**
  * The CV-routing class for an OpenAlex work, or `undefined` when it carries no
  * non-article signal (→ the OpenAlex-only `isPreprint` routing stands). Consulted
@@ -1259,9 +1276,11 @@ export function orcidTypeClass(
  *  - `type` is `dataset` → `"dataset"` (Datasets & Software). OpenAlex has no
  *    "software" type, so software (e.g. a CRAN package) also arrives typed `dataset`.
  *  - `type` is `supplementary-materials`, OR the catch-all `other` on a `repository`
- *    source (a Zenodo deposit OpenAlex couldn't type) → `"other-output"` (Other
- *    Research Outputs). Gated on the repository source so venue-bearing `other`
- *    miscellany stays put, and never matches arXiv/bioRxiv preprints (typed `preprint`).
+ *    source (a Zenodo deposit OpenAlex couldn't type), OR a publisher supplementary
+ *    file mis-typed as `article` on a repository (see {@link isSupplementaryMaterial})
+ *    → `"other-output"` (Other Research Outputs). The repository gate keeps
+ *    venue-bearing `other` miscellany put, never matches arXiv/bioRxiv preprints
+ *    (typed `preprint`), and stops a title alone pulling out a venue-published article.
  * An ORCID type, when present, still takes precedence over this (see {@link routeWork}).
  */
 export function openalexTypeClass(work: OpenAlexWork): "dataset" | "other-output" | undefined {
@@ -1270,6 +1289,7 @@ export function openalexTypeClass(work: OpenAlexWork): "dataset" | "other-output
   if (t === "supplementary-materials") return "other-output";
   const isRepository = (work.primary_location?.source?.type ?? "").toLowerCase() === "repository";
   if (t === "other" && isRepository) return "other-output";
+  if (isRepository && isSupplementaryMaterial(work)) return "other-output";
   return undefined;
 }
 
