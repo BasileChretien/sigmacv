@@ -1366,21 +1366,21 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
               type="button"
               className="btn btn-sm"
               // `statement` is the recurring, user-titled free-text section — the way
-              // to add "something the presets don't cover". Present it as an explicit
-              // "Custom section" (not its default "Statement" title) so the capability
-              // is discoverable, with a hint spelling out what it's for.
+              // to add "something the presets don't cover". Its section title IS
+              // "Custom section" (SECTION_TITLES), so the button reads that too; the
+              // hint spells out what it's for.
               title={tp === "statement" ? t(locale, "addCustomSectionHint") : undefined}
               onClick={() => {
-                onChange(addSection(cv, tp));
-                // A single-instance type's id equals its type, so we can pre-
-                // expand it; a recurring `statement` gets a generated id, so we
-                // leave it collapsed (it appears at the bottom of the list).
-                if (tp !== "statement") {
-                  setExpanded((prev) => new Set(prev).add(tp));
-                }
+                const next = addSection(cv, tp);
+                onChange(next);
+                // Expand the just-added section so it's visible and ready to rename +
+                // fill. A single-instance type's id equals its type; a recurring
+                // `statement` gets a generated id — read it off the appended section.
+                const id = tp === "statement" ? next.sections[next.sections.length - 1]?.id : tp;
+                if (id) setExpanded((prev) => new Set(prev).add(id));
               }}
             >
-              + {tp === "statement" ? t(locale, "addCustomSection") : sectionTitle(locale, tp)}
+              + {sectionTitle(locale, tp)}
             </button>
           ))}
         </div>

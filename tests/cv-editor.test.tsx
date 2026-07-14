@@ -188,6 +188,9 @@ describe("CvEditor (component)", () => {
     const statements = next.sections.filter((s) => s.type === "statement");
     expect(statements).toHaveLength(1);
     expect(statements[0]!.body).toBe(""); // a free-text prose section, ready to title + fill
+    // The CREATED section is titled to match the button ("Custom section"), not the
+    // old "Statement" default — so clicking "+ Custom section" adds a "Custom section".
+    expect(statements[0]!.title).toBe("Custom section");
   });
 
   it("keeps offering '+ Custom section' when the CV already has one (multiple allowed)", () => {
