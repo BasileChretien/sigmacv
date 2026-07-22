@@ -1252,21 +1252,41 @@ export function orcidTypeClass(
   return undefined;
 }
 
-// Journal-minted supplementary material — Springer/BMC deposit each article's
-// "Additional file N of <article>" to figshare (and Nature/Springer their
-// "Supplementary information/tables/…") as separate records. OpenAlex mis-types
-// these as `article` (not `supplementary-materials`), so `isPreprint` — which
-// treats ANY repository-sourced work as a preprint — would wrongly file them under
-// Preprints. These are the SAME deterministic, publisher-generated title patterns
-// the DataCite client drops from Datasets & Software (`isJournalSupplement`); kept
-// in sync deliberately. Nothing genuine (a real article/preprint) is titled so.
+// Journal-minted supplementary ARTIFACTS of a paper. Springer/BMC deposit each
+// article's "Additional file N of <article>" to figshare (and Nature/Springer their
+// "Supplementary information/tables/…"), plus a figshare COLLECTION (DOI
+// `…figshare.c.<id>`) that bundles them under the paper's own title. OpenAlex indexes
+// each as its OWN record — mis-typed `article`/`dataset`/`other`, often duplicated
+// across versioned + unversioned DOIs — so without filtering they surface as bogus CV
+// entries next to the real journal article. They are never a research output of their
+// own, so they are DROPPED from the build entirely (see {@link isJournalSupplementArtifact}),
+// mirroring the DataCite client's `isJournalSupplement`. The title patterns are the same
+// ones kept in sync there; nothing genuine (a real article/preprint/dataset) is titled so.
 const ADDITIONAL_FILE_RE = /^\s*additional file\s+\d+\s+of\b/i;
 const SUPPLEMENT_TITLE_RE =
   /^\s*supplement(?:ary|al)\s+(?:information|materials?|methods?|notes?|figures?|tables?|appendix|files?)\b/i;
+// figshare Collection DOI namespace (`10.6084/m9.figshare.c.<id>`), optionally versioned.
+const FIGSHARE_COLLECTION_DOI_RE = /figshare\.c\.\d/i;
 
+/** A publisher "Additional file N of…" / "Supplementary…" file, whatever OpenAlex
+ *  types it (`article`, `dataset`, …) — matched by its deterministic title only. */
 export function isSupplementaryMaterial(work: OpenAlexWork): boolean {
   const title = work.title ?? work.display_name ?? "";
   return ADDITIONAL_FILE_RE.test(title) || SUPPLEMENT_TITLE_RE.test(title);
+}
+
+/** A figshare COLLECTION — the container grouping a paper's supplements under the
+ *  article's own title; identified by the `…figshare.c.…` DOI namespace (its title is
+ *  the paper's, so it can only be told apart by the DOI, not by title). */
+export function isFigshareCollection(work: OpenAlexWork): boolean {
+  return FIGSHARE_COLLECTION_DOI_RE.test(work.doi ?? "");
+}
+
+/** Journal-supplement artifacts of a paper — the supplementary files AND the figshare
+ *  Collection that bundles them. Never CV outputs of their own (the real article is
+ *  listed separately from its journal record), so dropped from the build entirely. */
+export function isJournalSupplementArtifact(work: OpenAlexWork): boolean {
+  return isSupplementaryMaterial(work) || isFigshareCollection(work);
 }
 
 /**
@@ -1276,11 +1296,11 @@ export function isSupplementaryMaterial(work: OpenAlexWork): boolean {
  *  - `type` is `dataset` → `"dataset"` (Datasets & Software). OpenAlex has no
  *    "software" type, so software (e.g. a CRAN package) also arrives typed `dataset`.
  *  - `type` is `supplementary-materials`, OR the catch-all `other` on a `repository`
- *    source (a Zenodo deposit OpenAlex couldn't type), OR a publisher supplementary
- *    file mis-typed as `article` on a repository (see {@link isSupplementaryMaterial})
- *    → `"other-output"` (Other Research Outputs). The repository gate keeps
- *    venue-bearing `other` miscellany put, never matches arXiv/bioRxiv preprints
- *    (typed `preprint`), and stops a title alone pulling out a venue-published article.
+ *    source (a Zenodo deposit OpenAlex couldn't type) → `"other-output"` (Other
+ *    Research Outputs). Gated on the repository source so venue-bearing `other`
+ *    miscellany stays put, and never matches arXiv/bioRxiv preprints (typed `preprint`).
+ * Publisher supplement artifacts ("Additional file N of…", figshare collections) never
+ * reach here — they are dropped from the works up front ({@link isJournalSupplementArtifact}).
  * An ORCID type, when present, still takes precedence over this (see {@link routeWork}).
  */
 export function openalexTypeClass(work: OpenAlexWork): "dataset" | "other-output" | undefined {
@@ -1289,7 +1309,6 @@ export function openalexTypeClass(work: OpenAlexWork): "dataset" | "other-output
   if (t === "supplementary-materials") return "other-output";
   const isRepository = (work.primary_location?.source?.type ?? "").toLowerCase() === "repository";
   if (t === "other" && isRepository) return "other-output";
-  if (isRepository && isSupplementaryMaterial(work)) return "other-output";
   return undefined;
 }
 
@@ -1613,7 +1632,12 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const { id, resolved, now, previous } = args;
   const { matches, basisFor } = makeSelfMatcher(resolved);
   const ownerOrcid = normalizeOrcid(resolved.orcid);
-  const works = dedupeWorks(args.works).sort(byRecency);
+  // Drop publisher supplement artifacts ("Additional file N of…", figshare collections)
+  // up front — they are never a CV output of their own (the real article is listed from
+  // its journal record), so they never become items in any section.
+  const works = dedupeWorks(args.works)
+    .filter((w) => !isJournalSupplementArtifact(w))
+    .sort(byRecency);
 
   // Preserve prior per-item curation (included flag) and ordering on re-sync.
   const prevItems = new Map<string, CvItem>();
@@ -1730,6 +1754,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const discovered: CvItem[] = [];
   const seenDiscoveredDois = new Set<string>();
   for (const work of dedupeWorks(args.orcidDiscoveredWorks ?? [])) {
+    if (isJournalSupplementArtifact(work)) continue; // supplement artifacts never surface
     const csl = workToCsl(work);
     const doiKey = csl.DOI?.toLowerCase();
     if (fetchedIds.has(csl.id) || (doiKey && fetchedDois.has(doiKey))) continue;

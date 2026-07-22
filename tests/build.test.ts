@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   buildCanonicalCv,
   indexFundersByAward,
+  isFigshareCollection,
+  isJournalSupplementArtifact,
   isSupplementaryMaterial,
   openalexTypeClass,
   orcidTypeClass,
@@ -1272,30 +1274,16 @@ describe("openalexTypeClass", () => {
     expect(openalexTypeClass(repoPreprint)).toBeUndefined();
   });
 
-  it("routes a publisher supplementary file mis-typed as `article` on a repository → other-output", () => {
-    // Springer/BMC deposit per-article supplements to Figshare as separate records
-    // OpenAlex types `article` on a `repository` source — recognized by their
-    // deterministic title so they leave Preprints for Other Research Outputs.
+  it("does NOT special-case supplement titles (they are dropped upstream, not routed)", () => {
+    // A publisher supplement mis-typed `article` on a repository carries no non-article
+    // signal for openalexTypeClass — it never even reaches routing, because the build
+    // drops it first (see isJournalSupplementArtifact). So it returns undefined here.
     const suppl = {
       type: "article",
       title: "Additional file 1 of Influence of learning activities on pharmacology exam success",
       primary_location: { source: { type: "repository", display_name: "Figshare" } },
     } as unknown as OpenAlexWork;
-    expect(openalexTypeClass(suppl)).toBe("other-output");
-    // Same title but a real journal venue (not a repository) → left untouched.
-    const venueSuppl = {
-      type: "article",
-      title: "Additional file 1 of Something",
-      primary_location: { source: { type: "journal", display_name: "A Journal" } },
-    } as unknown as OpenAlexWork;
-    expect(openalexTypeClass(venueSuppl)).toBeUndefined();
-    // A genuine repository article whose title merely mentions files stays put.
-    const notSuppl = {
-      type: "article",
-      title: "Additional file formats for genomic data archives",
-      primary_location: { source: { type: "repository", display_name: "Figshare" } },
-    } as unknown as OpenAlexWork;
-    expect(openalexTypeClass(notSuppl)).toBeUndefined();
+    expect(openalexTypeClass(suppl)).toBeUndefined();
   });
 });
 
@@ -1338,6 +1326,58 @@ describe("isSupplementaryMaterial", () => {
     }
     expect(isSupplementaryMaterial({} as OpenAlexWork)).toBe(false);
     expect(isSupplementaryMaterial({ title: null } as unknown as OpenAlexWork)).toBe(false);
+  });
+});
+
+describe("isFigshareCollection", () => {
+  it("matches the figshare Collection DOI namespace only", () => {
+    for (const doi of [
+      "https://doi.org/10.6084/m9.figshare.c.8583732",
+      "https://doi.org/10.6084/m9.figshare.c.8583732.v1",
+      "10.6084/M9.FIGSHARE.C.999", // case-insensitive, bare DOI
+    ]) {
+      expect(isFigshareCollection({ doi } as OpenAlexWork)).toBe(true);
+    }
+    // A regular figshare item (not a collection) and non-figshare DOIs must NOT match.
+    for (const doi of [
+      "https://doi.org/10.6084/m9.figshare.32943861", // a plain figshare file
+      "https://doi.org/10.6084/m9.figshare.32943861.v1",
+      "https://doi.org/10.1186/s12909-026-09454-7", // the real journal article
+      "https://doi.org/10.5281/zenodo.c.1", // "c." but not figshare
+    ]) {
+      expect(isFigshareCollection({ doi } as OpenAlexWork)).toBe(false);
+    }
+    expect(isFigshareCollection({} as OpenAlexWork)).toBe(false);
+    expect(isFigshareCollection({ doi: null } as unknown as OpenAlexWork)).toBe(false);
+  });
+});
+
+describe("isJournalSupplementArtifact", () => {
+  it("is true for supplementary files AND figshare collections, false otherwise", () => {
+    // "Additional file N of…" whatever the OpenAlex type (article / dataset / other).
+    expect(
+      isJournalSupplementArtifact({
+        type: "dataset",
+        title: "Additional file 3 of The Pharmaquest study",
+      } as OpenAlexWork),
+    ).toBe(true);
+    // A figshare Collection (paper-titled — only the DOI gives it away).
+    expect(
+      isJournalSupplementArtifact({
+        type: "other",
+        title: "Influence of learning activities … the Pharmaquest study",
+        doi: "https://doi.org/10.6084/m9.figshare.c.8583732.v1",
+      } as OpenAlexWork),
+    ).toBe(true);
+    // The real journal article is NOT an artifact.
+    expect(
+      isJournalSupplementArtifact({
+        type: "article",
+        title: "Influence of learning activities … the Pharmaquest study",
+        doi: "https://doi.org/10.1186/s12909-026-09454-7",
+        primary_location: { source: { type: "journal", display_name: "BMC Medical Education" } },
+      } as unknown as OpenAlexWork),
+    ).toBe(false);
   });
 });
 
@@ -1404,42 +1444,73 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     expect(sectionOf(cv, "other")).toBeUndefined();
   });
 
-  it("routes a Figshare 'Additional file N of …' supplement into Other Research Outputs, not Preprints", () => {
-    // Real-world case (Pharmaquest study): OpenAlex records a Springer/BMC
-    // supplementary file on Figshare typed `article`, so isPreprint() (repository
-    // source) would mis-file it in Preprints without the title-based recognition.
-    const suppl = {
-      id: "https://openalex.org/WSUPP",
-      doi: "https://doi.org/10.6084/m9.figshare.32943861",
-      title:
-        "Additional file 1 of Influence of learning activities and background characteristics on pharmacology exam success",
-      display_name:
-        "Additional file 1 of Influence of learning activities and background characteristics on pharmacology exam success",
-      publication_year: 2026,
-      type: "article",
-      authorships: [
-        {
-          author_position: "first",
-          author: {
-            id: "https://openalex.org/A5001069481",
-            display_name: "Basile Chrétien",
-            orcid: "https://orcid.org/0000-0002-7483-2489",
+  it("DROPS Figshare supplement artifacts entirely (Additional files + the collection)", () => {
+    // Real-world case (Pharmaquest study): OpenAlex records the Springer/BMC
+    // supplementary files AND a figshare Collection as separate works alongside the
+    // real journal article. None of the artifacts should surface in ANY section —
+    // only the genuine article remains.
+    const mkWork = (
+      shortId: string,
+      bareDoi: string,
+      title: string,
+      type: string,
+      source: { type: string; display_name: string } | null,
+    ) =>
+      ({
+        id: `https://openalex.org/${shortId}`,
+        doi: `https://doi.org/${bareDoi}`,
+        title,
+        display_name: title,
+        publication_year: 2026,
+        type,
+        authorships: [
+          {
+            author_position: "first",
+            author: {
+              id: "https://openalex.org/A5001069481",
+              display_name: "Basile Chrétien",
+              orcid: "https://orcid.org/0000-0002-7483-2489",
+            },
+            raw_author_name: "Basile Chrétien",
           },
-          raw_author_name: "Basile Chrétien",
-        },
-      ],
-      primary_location: { source: { type: "repository", display_name: "Figshare" } },
-    } as unknown as OpenAlexWork;
+        ],
+        primary_location: source ? { source } : null,
+      }) as unknown as OpenAlexWork;
+
+    const paperTitle =
+      "Influence of learning activities and background characteristics on pharmacology exam success";
+    const figshare = { type: "repository", display_name: "Figshare" };
     const cv = buildCanonicalCv({
       id: "cv",
       resolved,
-      works: [suppl],
+      works: [
+        mkWork("WADD1", "10.6084/m9.figshare.32943861", `Additional file 1 of ${paperTitle}`, "article", figshare), // prettier-ignore
+        mkWork("WADD1V", "10.6084/m9.figshare.32943861.v1", `Additional file 1 of ${paperTitle}`, "article", figshare), // prettier-ignore
+        mkWork(
+          "WADD3",
+          "10.6084/m9.figshare.32943867",
+          `Additional file 3 of ${paperTitle}`,
+          "dataset",
+          figshare,
+        ), // typed dataset, still dropped
+        mkWork("WCOLL", "10.6084/m9.figshare.c.8583732.v1", paperTitle, "other", figshare), // the collection (paper-titled)
+        mkWork("WREAL", "10.1186/s12909-026-09454-7", paperTitle, "article", {
+          type: "journal",
+          display_name: "BMC Medical Education",
+        }), // the genuine article — kept
+      ],
       now: "2026-06-02T00:00:00.000Z",
     });
-    expect(itemIn(cv, "other", "WSUPP")).toBeDefined();
-    expect(itemIn(cv, "other", "WSUPP")!.meta.peerReviewed).toBe(false);
+    // Every figshare artifact is gone from EVERY section.
+    for (const id of ["WADD1", "WADD1V", "WADD3", "WCOLL"]) {
+      expect(allItemsWithId(cv, id)).toHaveLength(0);
+    }
+    // No spurious sections were created for them.
+    expect(sectionOf(cv, "other")).toBeUndefined();
     expect(sectionOf(cv, "preprints")).toBeUndefined();
-    expect(itemIn(cv, "publications", "WSUPP")).toBeUndefined();
+    expect(sectionOf(cv, "datasets")).toBeUndefined();
+    // The real journal article survives, in Publications.
+    expect(itemIn(cv, "publications", "WREAL")).toBeDefined();
   });
 
   it("lets an ORCID publication type override the OpenAlex dataset type (→ Publications)", () => {
