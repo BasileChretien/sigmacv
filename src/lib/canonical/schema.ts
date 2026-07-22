@@ -33,6 +33,10 @@ export const SECTION_TYPES = [
   "publications",
   "preprints",
   "datasets",
+  // Study pre-registrations (OSF / other registries; DataCite resourceTypeGeneral
+  // "StudyRegistration", surfaced by OpenAlex as the location `raw_type`). A
+  // first-class open-science output — see isPreregistration in build.ts.
+  "preregistrations",
   "positions",
   "education",
   "conference",
@@ -107,28 +111,31 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
   preprints: 3,
   conference: 4,
   datasets: 5,
-  grants: 6,
+  // Pre-registrations sit with the other open-science research outputs, after
+  // datasets and before grants.
+  preregistrations: 6,
+  grants: 7,
   // Clinical trials + patents sit with the other research outputs, after grants.
-  "clinical-trials": 7,
-  patents: 8,
+  "clinical-trials": 8,
+  patents: 9,
   // The four narrative contribution modules sit together next.
-  "narrative-knowledge": 9,
-  "narrative-individuals": 10,
-  "narrative-community": 11,
-  "narrative-society": 12,
-  awards: 13,
-  talks: 14,
-  teaching: 15,
-  supervision: 16,
-  editorial: 17,
-  "peer-review": 18,
-  service: 19,
-  skills: 20,
-  languages: 21,
-  references: 22,
+  "narrative-knowledge": 10,
+  "narrative-individuals": 11,
+  "narrative-community": 12,
+  "narrative-society": 13,
+  awards: 14,
+  talks: 15,
+  teaching: 16,
+  supervision: 17,
+  editorial: 18,
+  "peer-review": 19,
+  service: 20,
+  skills: 21,
+  languages: 22,
+  references: 23,
   // A generic prose statement sits near the end, just before "Other".
-  statement: 23,
-  other: 24,
+  statement: 24,
+  other: 25,
 };
 
 /**

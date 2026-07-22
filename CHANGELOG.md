@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Study pre-registrations now get their own section.** Pre-registrations you've
+  deposited (OSF Registries and other registries) are recognised as a first-class
+  open-science output and listed under a dedicated **Pre-registrations** heading
+  instead of being lumped into "Other". Detection uses the registration's
+  authoritative type (DataCite `StudyRegistration`, surfaced via OpenAlex), not a
+  title guess — so it works even when the pre-registration is titled after the study.
+  The section only appears when you have one, and re-localises across all ten locales.
+
 - **Export your CV as a self-contained HTML page (`.html`).** The Documents group
   in Export now offers HTML alongside PDF / Word / LaTeX / Markdown. It's a single
   standalone file — CSS and fonts inlined, the profile photo embedded — that opens

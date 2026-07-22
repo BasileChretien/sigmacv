@@ -64,6 +64,13 @@ export interface OpenAlexLocation {
   source?: OpenAlexSource | null;
   /** Reuse license slug (e.g. "cc-by", "cc-by-nc-nd"), or null when unknown. */
   license?: string | null;
+  /**
+   * The source's own resource type as OpenAlex received it (e.g. DataCite's
+   * `resourceTypeGeneral`), passed through un-normalized. Used to recognize an
+   * output OpenAlex's coarse `type` misses — a study pre-registration arrives as
+   * `raw_type: "StudyRegistration"` (see `isPreregistration` in canonical/build.ts).
+   */
+  raw_type?: string | null;
 }
 
 /**

@@ -1289,6 +1289,22 @@ export function isJournalSupplementArtifact(work: OpenAlexWork): boolean {
   return isSupplementaryMaterial(work) || isFigshareCollection(work);
 }
 
+// A study pre-registration (OSF Registries and other registries mint one via
+// DataCite with `resourceTypeGeneral: "StudyRegistration"`). OpenAlex types the
+// work only as the coarse `other` on a repository, but passes the source's own
+// type through as the location `raw_type` — the one reliable, title-independent
+// signal (a prereg's title is just the study's, e.g. "…the Pharmaquest study").
+const STUDY_REGISTRATION_RAW_TYPE = "studyregistration";
+
+/** Whether an OpenAlex work is a study pre-registration — matched on the DataCite
+ *  `resourceTypeGeneral` OpenAlex surfaces as `primary_location.raw_type`
+ *  ("StudyRegistration"), case-insensitively. Routed to its own Pre-registrations
+ *  section rather than buried in Other Research Outputs. */
+export function isPreregistration(work: OpenAlexWork): boolean {
+  const raw = work.primary_location?.raw_type;
+  return typeof raw === "string" && raw.trim().toLowerCase() === STUDY_REGISTRATION_RAW_TYPE;
+}
+
 /**
  * The CV-routing class for an OpenAlex work, or `undefined` when it carries no
  * non-article signal (→ the OpenAlex-only `isPreprint` routing stands). Consulted
@@ -1680,9 +1696,17 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const preprintIds = new Set<string>();
   const otherOutputIds = new Set<string>();
   const datasetWorkIds = new Set<string>();
+  const preregistrationIds = new Set<string>();
   /** Route one work item by ORCID class (over OpenAlex's `isPreprint`) and return
    *  the matching `peerReviewedOverride` to pass to {@link buildWorkCvItem}. */
   const routeWork = (work: OpenAlexWork, csl: CslItem): { peerReviewedOverride?: boolean } => {
+    // A study pre-registration is its own output type — routed to Pre-registrations
+    // ahead of any ORCID/OpenAlex class, which only ever type it as a generic
+    // `other`/document and would otherwise bury it in Other Research Outputs.
+    if (isPreregistration(work)) {
+      preregistrationIds.add(csl.id);
+      return { peerReviewedOverride: false };
+    }
     const cls = orcidClassFor(csl);
     if (cls === "publication") {
       // journal-article / conference-paper are peer-reviewed; other publication
@@ -1841,7 +1865,11 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const pubItems = reindexItems(
     carryOverUserItems(
       orderedDeduped.filter(
-        (it) => !preprintIds.has(it.id) && !otherOutputIds.has(it.id) && !datasetWorkIds.has(it.id),
+        (it) =>
+          !preprintIds.has(it.id) &&
+          !otherOutputIds.has(it.id) &&
+          !datasetWorkIds.has(it.id) &&
+          !preregistrationIds.has(it.id),
       ),
       previous,
       "publications",
@@ -1863,6 +1891,15 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       orderedDeduped.filter(isOtherOutput),
       previous,
       "other",
+      fetchedIds,
+      fetchedDois,
+    ),
+  );
+  const preregItems = reindexItems(
+    carryOverUserItems(
+      orderedDeduped.filter((it) => preregistrationIds.has(it.id)),
+      previous,
+      "preregistrations",
       fetchedIds,
       fetchedDois,
     ),
@@ -1947,6 +1984,25 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
             visible: true,
             order: DEFAULT_SECTION_ORDER.other,
             items: otherItems,
+          },
+          previous,
+        )
+      : null;
+
+  // Pre-registrations: study registrations (OSF Registries et al.), a first-class
+  // open-science output. A work-item (CSL) section like Publications/Other, built
+  // only when non-empty. Title is the en-US DEFAULT so the post-build localization
+  // pass re-localizes the heading per locale (see `otherOutputsSection`).
+  const preregistrationsSection: CvSection | null =
+    preregItems.length > 0
+      ? mergeSection(
+          {
+            id: "preregistrations",
+            type: "preregistrations",
+            title: sectionTitle("en-US", "preregistrations"),
+            visible: true,
+            order: DEFAULT_SECTION_ORDER.preregistrations,
+            items: preregItems,
           },
           previous,
         )
@@ -2044,6 +2100,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     publicationsSection,
     preprintsSection,
     otherOutputsSection,
+    preregistrationsSection,
     conferenceSection ? mergeSection(conferenceSection, previous) : null,
     datasetsSection,
     positionsSection ? mergeSection(positionsSection, previous) : null,
