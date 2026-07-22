@@ -4,6 +4,7 @@ import {
   indexFundersByAward,
   isFigshareCollection,
   isJournalSupplementArtifact,
+  isPreregistration,
   isSupplementaryMaterial,
   openalexTypeClass,
   orcidTypeClass,
@@ -1381,6 +1382,29 @@ describe("isJournalSupplementArtifact", () => {
   });
 });
 
+describe("isPreregistration", () => {
+  it("matches the DataCite StudyRegistration raw_type on the primary location only", () => {
+    // OpenAlex surfaces DataCite's resourceTypeGeneral as primary_location.raw_type;
+    // case/whitespace-insensitive.
+    for (const raw of ["StudyRegistration", "studyregistration", "  STUDYREGISTRATION "]) {
+      expect(
+        isPreregistration({ primary_location: { raw_type: raw } } as unknown as OpenAlexWork),
+      ).toBe(true);
+    }
+    // A different raw_type, a missing raw_type, and a null/absent location do NOT match.
+    expect(
+      isPreregistration({ primary_location: { raw_type: "Dataset" } } as unknown as OpenAlexWork),
+    ).toBe(false);
+    expect(
+      isPreregistration({
+        primary_location: { source: { type: "repository" } },
+      } as unknown as OpenAlexWork),
+    ).toBe(false);
+    expect(isPreregistration({ primary_location: null } as unknown as OpenAlexWork)).toBe(false);
+    expect(isPreregistration({} as OpenAlexWork)).toBe(false);
+  });
+});
+
 describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () => {
   /** A venue-less work (so `isPreprint` flags it) with a chosen OpenAlex `type`. */
   function typedWork(shortId: string, bareDoi: string, type: string): OpenAlexWork {
@@ -1431,6 +1455,55 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     expect(sectionOf(cv, "preprints")).toBeUndefined();
     expect(sectionOf(cv, "other")).toBeUndefined();
     expect(itemIn(cv, "publications", "WSOFT")).toBeUndefined();
+  });
+
+  it("routes a study pre-registration into its own Pre-registrations section, not Other", () => {
+    // Real-world case: an OSF Registries pre-registration. OpenAlex types it only as
+    // the coarse `other` on a repository (→ would land in Other Research Outputs) but
+    // carries the DataCite resourceType as primary_location.raw_type "StudyRegistration".
+    const prereg = {
+      id: "https://openalex.org/WPREREG",
+      doi: "https://doi.org/10.17605/osf.io/jtgnb",
+      title: "SigmaCV — disambiguation & CV norms",
+      display_name: "SigmaCV — disambiguation & CV norms",
+      publication_year: 2026,
+      type: "other",
+      authorships: [
+        {
+          author_position: "first",
+          author: {
+            id: "https://openalex.org/A5001069481",
+            display_name: "Basile Chrétien",
+            orcid: "https://orcid.org/0000-0002-7483-2489",
+          },
+          raw_author_name: "Basile Chrétien",
+        },
+      ],
+      primary_location: {
+        source: { type: "repository", display_name: "Open MIND" },
+        raw_type: "StudyRegistration",
+      },
+    } as unknown as OpenAlexWork;
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [prereg],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const section = sectionOf(cv, "preregistrations")!;
+    expect(section).toBeDefined();
+    expect(section.title).toBe(sectionTitle("en-US", "preregistrations"));
+    const item = itemIn(cv, "preregistrations", "WPREREG")!;
+    expect(item).toBeDefined();
+    expect(item.csl).toBeDefined(); // a CSL work item, rendered via citeproc
+    expect(item.included).toBe(true); // the owner's own work, auto-included
+    expect(item.meta.peerReviewed).toBe(false);
+    // It appears ONLY in Pre-registrations — never Other / Publications / Preprints / Datasets.
+    expect(allItemsWithId(cv, "WPREREG")).toHaveLength(1);
+    expect(sectionOf(cv, "other")).toBeUndefined();
+    expect(sectionOf(cv, "preprints")).toBeUndefined();
+    expect(sectionOf(cv, "datasets")).toBeUndefined();
+    expect(itemIn(cv, "publications", "WPREREG")).toBeUndefined();
   });
 
   it("leaves a genuine OpenAlex preprint in Preprints (type-gated, not repository-gated)", () => {
