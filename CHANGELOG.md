@@ -322,6 +322,16 @@ FWCI_i`, which is `0/0` for an **uncited** work — so the MNCS could only be
 
 ### Fixed
 
+- **figshare supplementary files no longer clutter your CV.** Publishers deposit each
+  article's supplements to figshare as separate records ("Additional file 1 of…",
+  "Additional file 1: of…", a bundling collection, …), which OpenAlex mis-typed and
+  scattered into Publications / Preprints / Other. Earlier fixes matched them by title,
+  but the title format varies (a stray colon was enough to slip through), so
+  figshare-hosted works are now dropped wholesale from the sourced publication lists —
+  no title guessing. A genuine dataset you deposited on figshare still appears (via the
+  identifier-matched DataCite feed, in **Datasets & Software**), so nothing you actually
+  authored is lost. Takes effect on the next re-sync.
+
 - **The editor list now follows your chosen publication sort.** When "Sort
   publications" is set to anything other than "Custom" (e.g. "Newest first"), the
   Publications/Preprints lists in the editor now re-order to match — so a

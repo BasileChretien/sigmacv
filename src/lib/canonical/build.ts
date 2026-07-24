@@ -1252,41 +1252,42 @@ export function orcidTypeClass(
   return undefined;
 }
 
-// Journal-minted supplementary ARTIFACTS of a paper. Springer/BMC deposit each
-// article's "Additional file N of <article>" to figshare (and Nature/Springer their
-// "Supplementary information/tables/…"), plus a figshare COLLECTION (DOI
-// `…figshare.c.<id>`) that bundles them under the paper's own title. OpenAlex indexes
-// each as its OWN record — mis-typed `article`/`dataset`/`other`, often duplicated
-// across versioned + unversioned DOIs — so without filtering they surface as bogus CV
-// entries next to the real journal article. They are never a research output of their
-// own, so they are DROPPED from the build entirely (see {@link isJournalSupplementArtifact}),
-// mirroring the DataCite client's `isJournalSupplement`. The title patterns are the same
-// ones kept in sync there; nothing genuine (a real article/preprint/dataset) is titled so.
-const ADDITIONAL_FILE_RE = /^\s*additional file\s+\d+\s+of\b/i;
+// figshare-hosted works + non-figshare publisher supplements — never a CV output of
+// their own, so dropped from the build entirely. Springer/BMC deposit each article's
+// supplementary files to figshare as separate OpenAlex records ("Additional file N of
+// <article>", "Additional file N: of …", Nature/Springer "Supplementary information/
+// tables/…"), plus a figshare COLLECTION under the paper's own title — mis-typed
+// article/dataset/other and duplicated across versioned + unversioned DOIs. Their titles
+// are inconsistent (the "N:" colon variant alone defeats a title match), and figshare's
+// contribution to an OpenAlex works pull is overwhelmingly this publisher junk, so we
+// drop EVERY figshare-hosted work outright — plus any NON-figshare supplement by title.
+// A genuine figshare dataset still reaches the CV via the ORCID-matched DataCite path
+// (Datasets & Software), so nothing identifier-confirmed is lost. See {@link isFigshareOrSupplement}.
+const ADDITIONAL_FILE_RE = /^\s*additional file\s+\d+\b/i;
 const SUPPLEMENT_TITLE_RE =
   /^\s*supplement(?:ary|al)\s+(?:information|materials?|methods?|notes?|figures?|tables?|appendix|files?)\b/i;
-// figshare Collection DOI namespace (`10.6084/m9.figshare.c.<id>`), optionally versioned.
-const FIGSHARE_COLLECTION_DOI_RE = /figshare\.c\.\d/i;
 
-/** A publisher "Additional file N of…" / "Supplementary…" file, whatever OpenAlex
- *  types it (`article`, `dataset`, …) — matched by its deterministic title only. */
+/** A publisher "Additional file N…" / "Supplementary…" file, whatever OpenAlex types it
+ *  (`article`, `dataset`, …) — matched by its deterministic title. Catches supplements
+ *  hosted OFF figshare (every figshare work is dropped wholesale by {@link isFigshareWork}). */
 export function isSupplementaryMaterial(work: OpenAlexWork): boolean {
   const title = work.title ?? work.display_name ?? "";
   return ADDITIONAL_FILE_RE.test(title) || SUPPLEMENT_TITLE_RE.test(title);
 }
 
-/** A figshare COLLECTION — the container grouping a paper's supplements under the
- *  article's own title; identified by the `…figshare.c.…` DOI namespace (its title is
- *  the paper's, so it can only be told apart by the DOI, not by title). */
-export function isFigshareCollection(work: OpenAlexWork): boolean {
-  return FIGSHARE_COLLECTION_DOI_RE.test(work.doi ?? "");
+/** A figshare-hosted work — matched by the figshare DOI namespace (`10.6084/…figshare…`),
+ *  independent of OpenAlex type or title. figshare's OpenAlex records are overwhelmingly
+ *  publisher supplements + collections (titles vary too much to match reliably), so all
+ *  are dropped; a genuine figshare dataset arrives instead via the ORCID-matched DataCite
+ *  path (Datasets & Software). Same `doi.includes("figshare")` test the DataCite client uses. */
+export function isFigshareWork(work: OpenAlexWork): boolean {
+  return (work.doi ?? "").toLowerCase().includes("figshare");
 }
 
-/** Journal-supplement artifacts of a paper — the supplementary files AND the figshare
- *  Collection that bundles them. Never CV outputs of their own (the real article is
- *  listed separately from its journal record), so dropped from the build entirely. */
-export function isJournalSupplementArtifact(work: OpenAlexWork): boolean {
-  return isSupplementaryMaterial(work) || isFigshareCollection(work);
+/** An OpenAlex work that is never a CV output of its own — any figshare-hosted work, or a
+ *  non-figshare publisher supplement (by title). Dropped from the build entirely. */
+export function isFigshareOrSupplement(work: OpenAlexWork): boolean {
+  return isFigshareWork(work) || isSupplementaryMaterial(work);
 }
 
 // A study pre-registration (OSF Registries and other registries mint one via
@@ -1315,8 +1316,8 @@ export function isPreregistration(work: OpenAlexWork): boolean {
  *    source (a Zenodo deposit OpenAlex couldn't type) → `"other-output"` (Other
  *    Research Outputs). Gated on the repository source so venue-bearing `other`
  *    miscellany stays put, and never matches arXiv/bioRxiv preprints (typed `preprint`).
- * Publisher supplement artifacts ("Additional file N of…", figshare collections) never
- * reach here — they are dropped from the works up front ({@link isJournalSupplementArtifact}).
+ * figshare-hosted works + publisher supplements never reach here — they are dropped from
+ * the works up front ({@link isFigshareOrSupplement}).
  * An ORCID type, when present, still takes precedence over this (see {@link routeWork}).
  */
 export function openalexTypeClass(work: OpenAlexWork): "dataset" | "other-output" | undefined {
@@ -1648,11 +1649,11 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const { id, resolved, now, previous } = args;
   const { matches, basisFor } = makeSelfMatcher(resolved);
   const ownerOrcid = normalizeOrcid(resolved.orcid);
-  // Drop publisher supplement artifacts ("Additional file N of…", figshare collections)
-  // up front — they are never a CV output of their own (the real article is listed from
-  // its journal record), so they never become items in any section.
+  // Drop every figshare-hosted work + non-figshare publisher supplement up front — they
+  // are never a CV output of their own (a genuine figshare dataset still arrives via the
+  // DataCite path), so they never become items in any section.
   const works = dedupeWorks(args.works)
-    .filter((w) => !isJournalSupplementArtifact(w))
+    .filter((w) => !isFigshareOrSupplement(w))
     .sort(byRecency);
 
   // Preserve prior per-item curation (included flag) and ordering on re-sync.
@@ -1778,7 +1779,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const discovered: CvItem[] = [];
   const seenDiscoveredDois = new Set<string>();
   for (const work of dedupeWorks(args.orcidDiscoveredWorks ?? [])) {
-    if (isJournalSupplementArtifact(work)) continue; // supplement artifacts never surface
+    if (isFigshareOrSupplement(work)) continue; // figshare + supplements never surface
     const csl = workToCsl(work);
     const doiKey = csl.DOI?.toLowerCase();
     if (fetchedIds.has(csl.id) || (doiKey && fetchedDois.has(doiKey))) continue;
