@@ -1275,13 +1275,20 @@ export function isSupplementaryMaterial(work: OpenAlexWork): boolean {
   return ADDITIONAL_FILE_RE.test(title) || SUPPLEMENT_TITLE_RE.test(title);
 }
 
-/** A figshare-hosted work — matched by the figshare DOI namespace (`10.6084/…figshare…`),
- *  independent of OpenAlex type or title. figshare's OpenAlex records are overwhelmingly
- *  publisher supplements + collections (titles vary too much to match reliably), so all
- *  are dropped; a genuine figshare dataset arrives instead via the ORCID-matched DataCite
- *  path (Datasets & Software). Same `doi.includes("figshare")` test the DataCite client uses. */
+/** A figshare DOI (`10.6084/…figshare…`), case-insensitive — the single "is this
+ *  figshare?" test, applied to OpenAlex works AND DataCite/OpenAIRE deposits. Same
+ *  `doi.includes("figshare")` check the DataCite client uses. */
+export function isFigshareDoi(doi: string | null | undefined): boolean {
+  return (doi ?? "").toLowerCase().includes("figshare");
+}
+
+/** A figshare-hosted OpenAlex work — see {@link isFigshareDoi}. figshare's records are
+ *  overwhelmingly publisher supplements + collections (titles vary too much to match
+ *  reliably), so figshare is excluded from the CV entirely: every figshare work is dropped
+ *  here, and figshare deposits are also filtered out of the DataCite/OpenAIRE dataset feed
+ *  (see buildCanonicalCv), so none reaches Datasets & Software either. */
 export function isFigshareWork(work: OpenAlexWork): boolean {
-  return (work.doi ?? "").toLowerCase().includes("figshare");
+  return isFigshareDoi(work.doi);
 }
 
 /** An OpenAlex work that is never a CV output of its own — any figshare-hosted work, or a
@@ -1816,9 +1823,15 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // works split) merges these entries with OpenAlex-identified dataset/software
   // works, and carryOverUserItems handles manual/claimed carry-over once for the
   // combined section.
+  // figshare is excluded from the CV entirely (maintainer directive): drop figshare
+  // deposits from the DataCite/OpenAIRE feed too, so none surfaces in Datasets & Software
+  // (the OpenAlex works path already dropped figshare above). A genuine figshare dataset
+  // is sacrificed along with the publisher junk — that trade-off is the point.
+  const dataciteOutputs = (args.dataciteOutputs ?? []).filter((o) => !isFigshareDoi(o.doi));
+  const openaireOutputs = (args.openaireOutputs ?? []).filter((o) => !isFigshareDoi(o.doi));
   const datasetEntrySection = buildDatasetsSection(
-    args.dataciteOutputs ?? [],
-    args.openaireOutputs ?? [],
+    dataciteOutputs,
+    openaireOutputs,
     prevItems,
     [],
     now,
@@ -1842,10 +1855,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // recognised whichever Zenodo DOI it carries. Falls through untouched when
   // DataCite hasn't indexed the deposit yet (then `openalexTypeClass` still keeps a
   // dataset/software work out of Preprints, in Other Research Outputs).
-  const datasetDepositDois = collectDatasetDepositDois(
-    args.dataciteOutputs ?? [],
-    args.openaireOutputs ?? [],
-  );
+  const datasetDepositDois = collectDatasetDepositDois(dataciteOutputs, openaireOutputs);
   const orderedDeduped = ordered.filter((it) => {
     const doi = it.csl?.DOI?.toLowerCase();
     return !(doi && datasetDepositDois.has(doi));

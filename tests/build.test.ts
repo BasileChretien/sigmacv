@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCanonicalCv,
   indexFundersByAward,
+  isFigshareDoi,
   isFigshareOrSupplement,
   isFigshareWork,
   isPreregistration,
@@ -1660,6 +1661,32 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     expect(sectionOf(cv, "datasets")?.items.some((i) => i.meta.doi?.toLowerCase() === doi)).toBe(
       true,
     );
+  });
+
+  it("excludes figshare deposits from Datasets & Software too (figshare dropped everywhere)", () => {
+    // figshare is excluded from the WHOLE CV — including genuine-looking datasets that
+    // arrive via the DataCite/OpenAIRE feed. A non-figshare (Zenodo) dataset is kept.
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      dataciteOutputs: [
+        { doi: "10.6084/m9.figshare.123", title: "My figshare dataset", type: "Dataset", year: 2026, publisher: "figshare" }, // prettier-ignore
+        { doi: "10.5281/zenodo.keep", title: "A Zenodo dataset", type: "Dataset", year: 2026, publisher: "Zenodo" }, // prettier-ignore
+      ] as unknown as DataciteOutput[],
+      openaireOutputs: [
+        { openaireId: "oai::fs", title: "figshare via OpenAIRE", type: "dataset", doi: "10.6084/m9.figshare.456", year: 2026 }, // prettier-ignore
+      ] as unknown as OpenaireOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const ds = sectionOf(cv, "datasets")!;
+    expect(ds).toBeDefined();
+    // The non-figshare Zenodo dataset survives.
+    expect(ds.items.some((i) => i.meta.doi?.toLowerCase() === "10.5281/zenodo.keep")).toBe(true);
+    // No figshare deposit (from DataCite OR OpenAIRE) appears anywhere in the CV.
+    expect(
+      cv.sections.flatMap((s) => s.items).some((i) => isFigshareDoi(i.meta.doi ?? i.csl?.DOI)),
+    ).toBe(false);
   });
 
   it("drops an OpenAlex dataset work whose DOI matches an OpenAIRE output", () => {
