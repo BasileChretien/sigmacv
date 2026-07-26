@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   buildCanonicalCv,
   indexFundersByAward,
-  isFigshareCollection,
-  isJournalSupplementArtifact,
+  isFigshareDoi,
+  isFigshareOrSupplement,
+  isFigshareWork,
   isPreregistration,
   isSupplementaryMaterial,
   openalexTypeClass,
@@ -1278,7 +1279,7 @@ describe("openalexTypeClass", () => {
   it("does NOT special-case supplement titles (they are dropped upstream, not routed)", () => {
     // A publisher supplement mis-typed `article` on a repository carries no non-article
     // signal for openalexTypeClass — it never even reaches routing, because the build
-    // drops it first (see isJournalSupplementArtifact). So it returns undefined here.
+    // drops it first (see isFigshareOrSupplement). So it returns undefined here.
     const suppl = {
       type: "article",
       title: "Additional file 1 of Influence of learning activities on pharmacology exam success",
@@ -1290,13 +1291,17 @@ describe("openalexTypeClass", () => {
 
 describe("isSupplementaryMaterial", () => {
   it("matches publisher 'Additional file N of …' and 'Supplementary …' titles", () => {
-    // "Additional file N of <article>" (Springer/BMC), case/whitespace-insensitive.
-    expect(isSupplementaryMaterial({ title: "Additional file 1 of A study" } as OpenAlexWork)).toBe(
-      true,
-    );
-    expect(isSupplementaryMaterial({ title: "  additional FILE 12 of B" } as OpenAlexWork)).toBe(
-      true,
-    );
+    // "Additional file N …" (Springer/BMC), case/whitespace-insensitive. Matches the
+    // "N of" form AND the "N:" colon variant ("Additional file 1: of …") that some
+    // figshare deposits carry — the title after the index is no longer required.
+    for (const t of [
+      "Additional file 1 of A study",
+      "  additional FILE 12 of B",
+      "Additional file 1: of Real versus sham proximal biofield therapy",
+      "Additional file 2", // bare index, no trailing text
+    ]) {
+      expect(isSupplementaryMaterial({ title: t } as OpenAlexWork)).toBe(true);
+    }
     // "Supplementary/Supplemental <information|materials|tables|…>" (Nature/Springer).
     for (const t of [
       "Supplementary information for the study",
@@ -1330,49 +1335,59 @@ describe("isSupplementaryMaterial", () => {
   });
 });
 
-describe("isFigshareCollection", () => {
-  it("matches the figshare Collection DOI namespace only", () => {
+describe("isFigshareWork", () => {
+  it("matches any figshare DOI (item, versioned, or collection), independent of title/type", () => {
     for (const doi of [
-      "https://doi.org/10.6084/m9.figshare.c.8583732",
-      "https://doi.org/10.6084/m9.figshare.c.8583732.v1",
-      "10.6084/M9.FIGSHARE.C.999", // case-insensitive, bare DOI
+      "https://doi.org/10.6084/m9.figshare.5090764", // a plain figshare file
+      "https://doi.org/10.6084/m9.figshare.5090764.v1", // versioned
+      "https://doi.org/10.6084/m9.figshare.c.8583732", // a collection
+      "10.6084/M9.FIGSHARE.99", // case-insensitive, bare DOI
     ]) {
-      expect(isFigshareCollection({ doi } as OpenAlexWork)).toBe(true);
+      expect(isFigshareWork({ doi } as OpenAlexWork)).toBe(true);
     }
-    // A regular figshare item (not a collection) and non-figshare DOIs must NOT match.
+    // Non-figshare DOIs and a missing DOI must NOT match.
     for (const doi of [
-      "https://doi.org/10.6084/m9.figshare.32943861", // a plain figshare file
-      "https://doi.org/10.6084/m9.figshare.32943861.v1",
       "https://doi.org/10.1186/s12909-026-09454-7", // the real journal article
-      "https://doi.org/10.5281/zenodo.c.1", // "c." but not figshare
+      "https://doi.org/10.5281/zenodo.1", // a Zenodo deposit
     ]) {
-      expect(isFigshareCollection({ doi } as OpenAlexWork)).toBe(false);
+      expect(isFigshareWork({ doi } as OpenAlexWork)).toBe(false);
     }
-    expect(isFigshareCollection({} as OpenAlexWork)).toBe(false);
-    expect(isFigshareCollection({ doi: null } as unknown as OpenAlexWork)).toBe(false);
+    expect(isFigshareWork({} as OpenAlexWork)).toBe(false);
+    expect(isFigshareWork({ doi: null } as unknown as OpenAlexWork)).toBe(false);
   });
 });
 
-describe("isJournalSupplementArtifact", () => {
-  it("is true for supplementary files AND figshare collections, false otherwise", () => {
-    // "Additional file N of…" whatever the OpenAlex type (article / dataset / other).
+describe("isFigshareOrSupplement", () => {
+  it("is true for ANY figshare work AND non-figshare supplements, false otherwise", () => {
+    // Any figshare work, whatever its title/type — a supplement whose title the regex
+    // would miss ("Additional file 1:") is still caught by the figshare DOI.
     expect(
-      isJournalSupplementArtifact({
+      isFigshareOrSupplement({
+        type: "article",
+        title: "Additional file 1: of Real versus sham proximal biofield therapy",
+        doi: "https://doi.org/10.6084/m9.figshare.5090764.v1",
+      } as OpenAlexWork),
+    ).toBe(true);
+    // A figshare work with a perfectly ordinary title is STILL dropped (figshare junk
+    // overwhelms the value; a genuine dataset comes via DataCite instead).
+    expect(
+      isFigshareOrSupplement({
+        type: "dataset",
+        title: "Raw survey responses",
+        doi: "https://doi.org/10.6084/m9.figshare.777",
+      } as OpenAlexWork),
+    ).toBe(true);
+    // A non-figshare publisher supplement is caught by title.
+    expect(
+      isFigshareOrSupplement({
         type: "dataset",
         title: "Additional file 3 of The Pharmaquest study",
+        doi: "https://doi.org/10.5281/zenodo.5",
       } as OpenAlexWork),
     ).toBe(true);
-    // A figshare Collection (paper-titled — only the DOI gives it away).
+    // The real journal article (non-figshare, ordinary title) is kept.
     expect(
-      isJournalSupplementArtifact({
-        type: "other",
-        title: "Influence of learning activities … the Pharmaquest study",
-        doi: "https://doi.org/10.6084/m9.figshare.c.8583732.v1",
-      } as OpenAlexWork),
-    ).toBe(true);
-    // The real journal article is NOT an artifact.
-    expect(
-      isJournalSupplementArtifact({
+      isFigshareOrSupplement({
         type: "article",
         title: "Influence of learning activities … the Pharmaquest study",
         doi: "https://doi.org/10.1186/s12909-026-09454-7",
@@ -1517,11 +1532,13 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     expect(sectionOf(cv, "other")).toBeUndefined();
   });
 
-  it("DROPS Figshare supplement artifacts entirely (Additional files + the collection)", () => {
-    // Real-world case (Pharmaquest study): OpenAlex records the Springer/BMC
-    // supplementary files AND a figshare Collection as separate works alongside the
-    // real journal article. None of the artifacts should surface in ANY section —
-    // only the genuine article remains.
+  it("DROPS every figshare-hosted work entirely (Additional files, colon variant, collection, plain title)", () => {
+    // Real-world case (Pharmaquest + MAGNETIK studies): OpenAlex records the Springer/BMC
+    // supplementary files AND a figshare Collection as separate works alongside the real
+    // journal article. Titles vary — "Additional file N of…", the "Additional file N:"
+    // COLON variant that a title regex misses, even a perfectly ordinary title — so EVERY
+    // figshare-hosted work is dropped by DOI. None surface in ANY section; only the
+    // genuine (non-figshare) article remains.
     const mkWork = (
       shortId: string,
       bareDoi: string,
@@ -1559,6 +1576,7 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
       works: [
         mkWork("WADD1", "10.6084/m9.figshare.32943861", `Additional file 1 of ${paperTitle}`, "article", figshare), // prettier-ignore
         mkWork("WADD1V", "10.6084/m9.figshare.32943861.v1", `Additional file 1 of ${paperTitle}`, "article", figshare), // prettier-ignore
+        mkWork("WCOLON", "10.6084/m9.figshare.5090764.v1", `Additional file 1: of ${paperTitle}`, "article", figshare), // prettier-ignore
         mkWork(
           "WADD3",
           "10.6084/m9.figshare.32943867",
@@ -1566,6 +1584,7 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
           "dataset",
           figshare,
         ), // typed dataset, still dropped
+        mkWork("WPLAIN", "10.6084/m9.figshare.7000001", "Study data (raw)", "dataset", figshare), // ordinary title, still dropped (figshare)
         mkWork("WCOLL", "10.6084/m9.figshare.c.8583732.v1", paperTitle, "other", figshare), // the collection (paper-titled)
         mkWork("WREAL", "10.1186/s12909-026-09454-7", paperTitle, "article", {
           type: "journal",
@@ -1574,8 +1593,8 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
       ],
       now: "2026-06-02T00:00:00.000Z",
     });
-    // Every figshare artifact is gone from EVERY section.
-    for (const id of ["WADD1", "WADD1V", "WADD3", "WCOLL"]) {
+    // Every figshare work is gone from EVERY section.
+    for (const id of ["WADD1", "WADD1V", "WCOLON", "WADD3", "WPLAIN", "WCOLL"]) {
       expect(allItemsWithId(cv, id)).toHaveLength(0);
     }
     // No spurious sections were created for them.
@@ -1642,6 +1661,32 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     expect(sectionOf(cv, "datasets")?.items.some((i) => i.meta.doi?.toLowerCase() === doi)).toBe(
       true,
     );
+  });
+
+  it("excludes figshare deposits from Datasets & Software too (figshare dropped everywhere)", () => {
+    // figshare is excluded from the WHOLE CV — including genuine-looking datasets that
+    // arrive via the DataCite/OpenAIRE feed. A non-figshare (Zenodo) dataset is kept.
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [],
+      dataciteOutputs: [
+        { doi: "10.6084/m9.figshare.123", title: "My figshare dataset", type: "Dataset", year: 2026, publisher: "figshare" }, // prettier-ignore
+        { doi: "10.5281/zenodo.keep", title: "A Zenodo dataset", type: "Dataset", year: 2026, publisher: "Zenodo" }, // prettier-ignore
+      ] as unknown as DataciteOutput[],
+      openaireOutputs: [
+        { openaireId: "oai::fs", title: "figshare via OpenAIRE", type: "dataset", doi: "10.6084/m9.figshare.456", year: 2026 }, // prettier-ignore
+      ] as unknown as OpenaireOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const ds = sectionOf(cv, "datasets")!;
+    expect(ds).toBeDefined();
+    // The non-figshare Zenodo dataset survives.
+    expect(ds.items.some((i) => i.meta.doi?.toLowerCase() === "10.5281/zenodo.keep")).toBe(true);
+    // No figshare deposit (from DataCite OR OpenAIRE) appears anywhere in the CV.
+    expect(
+      cv.sections.flatMap((s) => s.items).some((i) => isFigshareDoi(i.meta.doi ?? i.csl?.DOI)),
+    ).toBe(false);
   });
 
   it("drops an OpenAlex dataset work whose DOI matches an OpenAIRE output", () => {
