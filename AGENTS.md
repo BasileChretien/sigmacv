@@ -109,7 +109,7 @@ Open-source (permissive license). Secrets in env only. Define and freeze the **c
 
 The dev DB (Neon) is **push-managed**, so after changing `prisma/schema.prisma` the DB must be synced with `npm run db:push` (it uses `dotenv -e .env`; a bare `npx prisma …` falls back to a placeholder URL and fails with `P1001`). This is now **automatic**: `predev` runs `scripts/ensure-db.mjs`, which fingerprints the schema and runs `db push` only when it changed (instant no-op otherwise; non-fatal if the DB is unreachable). Forgetting to sync previously surfaced as an opaque Auth.js _"server configuration"_ error on the first authenticated request. `npm run db:sync` runs it on demand; `npm run db:migrate` is the migration-history path (fresh DB / Docker). Migration files under `prisma/migrations/` are kept consistent with the schema by tests.
 
-The Prisma client is generated into **`src/generated/prisma/`** (committed, `postinstall` regenerates it). Treat it as build output — never hand-edit.
+The Prisma client is generated into **`src/generated/prisma/`** (gitignored — `postinstall` runs `prisma generate`, so a fresh clone or a newly added worktree must `npm install` before `npm run typecheck` can resolve the `@/generated/prisma/*` imports). Treat it as build output — never hand-edit.
 
 ## Commands
 
