@@ -11,7 +11,8 @@ test("curate → save → persist → export", async ({ page, authedUserId }) =>
   const expand = page.getByRole("button", { name: "Expand section" }).first();
   if (await expand.isVisible().catch(() => false)) await expand.click();
   const firstRow = page.locator(".cv-item-row").first();
-  await firstRow.getByRole("button", { name: "Hide" }).click();
+  // Two controls in a row carry a "Hide" accessible name, so scope to the first.
+  await firstRow.getByRole("button", { name: "Hide" }).first().click();
 
   // Save and confirm.
   await page.getByRole("button", { name: /^Save$/ }).click();

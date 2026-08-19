@@ -1,45 +1,85 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Helpers for reaching controls in the `/cv` editor.
  *
- * The editor's left panel is split into region tabs and **`profile` is the one
- * active on load**, so anything in another region carries `hidden` until its tab
- * is clicked — `.sections-list`, `.cv-item-row` and the add-section buttons live
- * in `content`, and `StyleControls` (template, public style, CV-model picker) in
- * `design`. Publishing moved into a top-bar popover, so its controls are not in
- * the DOM at all until the menu opens.
+ * Two restructures broke the assumptions the journeys were written against:
  *
- * Specs written before that restructure asserted on those controls straight
- * after `goto("/cv")` and failed with "element(s) not found" — the app was fine,
- * the journeys just described a flatter layout than the one that now exists.
+ * 1. The editor's left panel is split into region tabs and **`profile` is the
+ *    one active on load**, so anything in another region carries `hidden` until
+ *    its tab is clicked — `.sections-list`, `.cv-item-row` and the add-section
+ *    buttons live in `content`, and `StyleControls` (template, public style,
+ *    CV-model picker) in `design`.
+ * 2. The top bar moved to popovers. `publish-toggle` lives in the Publish
+ *    popover and the `/p/<slug>` links in the *separate* Share popover, so
+ *    neither is in the DOM until its own menu is opened.
  *
- * Anchor on ids and stable classes, never on the tab labels: those are localized
- * across ten locales, while `#cv-part-tab-*` / `#cv-part-panel-*` are not.
+ * Anchor on ids and stable classes, never on the tab or menu labels: those are
+ * localized across ten locales, while `#cv-part-tab-*`, `#cv-part-panel-*`,
+ * `.publish-trigger` and `.share-trigger` are not.
  */
 export type EditorPart = "profile" | "design" | "content";
+
+/**
+ * Click through until the assertion holds.
+ *
+ * `page.goto()` resolves on load, but these are client components: a click that
+ * lands before hydration is simply dropped, with no error and nothing to wait
+ * for — which is why the pre-fix runs failed *intermittently*, some retries
+ * reaching several assertions further than others. Retrying the click is the
+ * only reliable defence.
+ */
+async function clickUntil(target: Locator, settled: () => Promise<void>): Promise<void> {
+  await expect(async () => {
+    await target.click();
+    await settled();
+  }).toPass({ timeout: 15_000, intervals: [250, 500, 1000] });
+}
 
 /** Activate an editor region and wait for its panel to be revealed. */
 export async function openEditorPart(page: Page, part: EditorPart): Promise<void> {
   const tab = page.locator(`#cv-part-tab-${part}`);
   await expect(tab).toBeVisible();
-  await tab.click();
-  await expect(page.locator(`#cv-part-panel-${part}`)).toBeVisible();
+  const panel = page.locator(`#cv-part-panel-${part}`);
+  await clickUntil(tab, () => expect(panel).toBeVisible({ timeout: 1_000 }));
+}
+
+/** Open the top-bar Publish popover and reveal its controls. */
+export async function openPublishMenu(page: Page): Promise<void> {
+  const trigger = page.locator(".publish-trigger");
+  await expect(trigger).toBeVisible();
+  const toggle = page.getByTestId("publish-toggle");
+  await clickUntil(trigger, () => expect(toggle).toBeVisible({ timeout: 1_000 }));
 }
 
 /**
- * Open the top-bar Publish popover and click the publish/unpublish toggle.
+ * Flip the publish/unpublish toggle and wait for the round trip to settle.
  *
- * The toggle only exists while the popover is open, so this re-opens it on every
- * call — publishing and later unpublishing are two separate interactions.
+ * The toggle only exists while the Publish popover is open, so the menu is
+ * re-opened on every call — publishing and later unpublishing are two separate
+ * interactions.
  */
-export async function togglePublish(page: Page): Promise<void> {
-  const trigger = page.locator(".publish-trigger");
-  await expect(trigger).toBeVisible();
-  await trigger.click();
+export async function togglePublish(page: Page, expectPublished: boolean): Promise<void> {
+  await openPublishMenu(page);
   const toggle = page.getByTestId("publish-toggle");
-  await expect(toggle).toBeVisible();
   await toggle.click();
+  // The checkbox reflects server state, so this waits out /api/cv/publish.
+  await expect(toggle).toBeChecked({ checked: expectPublished, timeout: 15_000 });
+}
+
+/**
+ * Open the Share popover and return the link to the public page.
+ *
+ * `ShareControls` renders more than one `/p/<slug>` anchor (the URL itself and
+ * an "open" button), so this is scoped to the first — the journeys only need one
+ * to prove the page is reachable.
+ */
+export async function publicPageLink(page: Page): Promise<Locator> {
+  const trigger = page.locator(".share-trigger");
+  await expect(trigger).toBeVisible();
+  const link = page.locator('.share-panel a[href^="/p/"]').first();
+  await clickUntil(trigger, () => expect(link).toBeVisible({ timeout: 1_000 }));
+  return link;
 }
 
 /**

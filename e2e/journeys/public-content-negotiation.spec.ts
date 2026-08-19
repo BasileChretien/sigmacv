@@ -1,7 +1,7 @@
 import type { Prisma } from "../../src/generated/prisma/client";
 import { db } from "../fixtures/db";
 import { expect, test } from "../fixtures/auth";
-import { togglePublish } from "../fixtures/editor";
+import { publicPageLink, togglePublish } from "../fixtures/editor";
 
 /**
  * The published public page (`/p/<slug>`) is the FAIR machine-readable surface.
@@ -34,8 +34,9 @@ test("public content negotiation: Accept + suffix formats, contact field stays p
   // Publish the CV (publish is async — click the toggle then wait for the
   // open-page link, matched by href so it's locale-independent).
   await page.goto("/cv");
-  await togglePublish(page);
-  await expect(page.locator('a[href^="/p/"]')).toBeVisible();
+  await togglePublish(page, true);
+  // Publish resolved; the public link lives in the separate Share popover.
+  await expect(await publicPageLink(page)).toBeVisible();
 
   const row = await db.cv.findUnique({ where: { userId: authedUserId } });
   expect(row?.published).toBe(true);
