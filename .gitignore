@@ -76,8 +76,14 @@ yarn-error.log*
 /docs/preregistration/
 /scripts/benchmark-namesake-ambiguity.ts
 
+# Local manuscript drafts (arXiv & JOSS tool-paper sources, PDF, build artifacts;
+# kept local only — not for the public repo)
+/manuscript/
+
 # Throwaway QA / design-preview artifacts (per CLAUDE.md, never committed)
 /.preview/
 
-# Local Claude Code config (preview launch profile etc.)
+# Local AI-agent config (Claude Code preview launch profile, Codex hooks etc.) —
+# machine-specific absolute paths, never shared
 /.claude/
+/.codex/
