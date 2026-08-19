@@ -76,6 +76,10 @@ yarn-error.log*
 /docs/preregistration/
 /scripts/benchmark-namesake-ambiguity.ts
 
+# Local manuscript drafts (arXiv & JOSS tool-paper sources, PDF, build artifacts;
+# kept local only — not for the public repo)
+/manuscript/
+
 # Throwaway QA / design-preview artifacts (per CLAUDE.md, never committed)
 /.preview/
 
