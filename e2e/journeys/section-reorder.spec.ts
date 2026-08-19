@@ -29,14 +29,21 @@ async function dragVertically(
   page: import("@playwright/test").Page,
   from: { x: number; y: number },
   toY: number,
-  steps = 14,
+  steps = 20,
 ): Promise<void> {
   await page.mouse.move(from.x, from.y);
   await page.mouse.down();
+  // Give Motion a frame to register the gesture before it starts moving: the
+  // handle's onPointerDown calls dragControls.start(), and the drag only begins
+  // once that has been processed.
+  await page.waitForTimeout(120);
   for (let i = 1; i <= steps; i++) {
     await page.mouse.move(from.x, from.y + ((toY - from.y) * i) / steps);
-    await page.waitForTimeout(20);
+    await page.waitForTimeout(30);
   }
+  // Hold at the destination so the reorder settles before the pointer is
+  // released — Reorder swaps on crossing, which it evaluates on animation frames.
+  await page.waitForTimeout(250);
   await page.mouse.up();
 }
 
@@ -80,7 +87,7 @@ test("drag a section by its handle → order changes and persists", async ({
   const secondCard = page.locator(".section-card").nth(1);
   const handle = await centreOf(firstCard.locator(".drag-handle"));
   const target = await centreOf(secondCard);
-  await dragVertically(page, { x: handle.x, y: handle.y }, target.box.y + target.box.height * 0.8);
+  await dragVertically(page, { x: handle.x, y: handle.y }, target.box.y + target.box.height * 1.4);
 
   // The spring settles asynchronously, so poll rather than assert immediately.
   await expect
