@@ -93,7 +93,19 @@ async function probePoint(
     },
     { px: x, py: y },
   );
-  console.log("[drag probe] element at point:", JSON.stringify(hit));
+  // Fail here rather than 5s later on a mystery "the order didn't change": a null
+  // hit means the point is outside the viewport (boundingBox reports coordinates
+  // for scrolled-out elements, and page.mouse / CDP dispatch at raw coordinates
+  // without the auto-scroll locator.click() performs), and a non-handle hit means
+  // something covers it.
+  expect(
+    hit,
+    `nothing at the drag point (${x}, ${y}) - is the handle scrolled out of view?`,
+  ).not.toBeNull();
+  expect(
+    hit?.isHandle,
+    `drag point (${x}, ${y}) is over ${hit?.tag}.${hit?.cls}, not the drag handle`,
+  ).toBe(true);
 }
 
 async function reportPointerCounts(page: import("@playwright/test").Page): Promise<void> {
@@ -163,6 +175,12 @@ test("drag a section by its handle → order changes and persists", async ({
   // it is only reachable by class.
   const firstCard = page.locator(".section-card").first();
   const secondCard = page.locator(".section-card").nth(1);
+  // Bring both cards into view BEFORE measuring: boundingBox() happily reports
+  // coordinates for an element scrolled out of the viewport, and the gesture is
+  // dispatched at raw coordinates with no auto-scroll, so it would play out over
+  // whatever occupies that point instead (here: nothing, or the preview pane).
+  await secondCard.scrollIntoViewIfNeeded();
+  await firstCard.scrollIntoViewIfNeeded();
   const handle = await centreOf(firstCard.locator(".drag-handle"));
   const target = await centreOf(secondCard);
   await probePoint(page, handle.x, handle.y);
@@ -223,6 +241,8 @@ test("dragging a section's body does not reorder (handle-only drags)", async ({
   // handle drag is green.
   const firstCard = page.locator(".section-card").first();
   const secondCard = page.locator(".section-card").nth(1);
+  await secondCard.scrollIntoViewIfNeeded();
+  await firstCard.scrollIntoViewIfNeeded();
   const body = await centreOf(firstCard.locator("input.section-title"));
   const target = await centreOf(secondCard);
   await dragVertically(page, { x: body.x, y: body.y }, target.box.y + target.box.height * 0.8);
