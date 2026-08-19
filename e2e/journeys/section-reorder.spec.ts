@@ -212,10 +212,9 @@ test("dragging a section's body does not reorder (handle-only drags)", async ({
   // `dragListener={false}` means this must not move anything — if it ever does,
   // the inputs and buttons inside a card have stopped being usable.
   //
-  // CAVEAT: while the positive test above is `fixme`, this one is necessary but
-  // NOT sufficient — it would also pass if drags did nothing at all, which is
-  // exactly the current situation. Treat it as real coverage only once the
-  // handle drag is green.
+  // This is only meaningful because the handle drag above passes: on its own it
+  // would also pass if drags did nothing at all. The pair is the assertion —
+  // the handle moves a section, the body does not.
   const firstCard = page.locator(".section-card").first();
   const secondCard = page.locator(".section-card").nth(1);
   await secondCard.scrollIntoViewIfNeeded();
