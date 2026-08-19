@@ -31,33 +31,19 @@ async function dragVertically(
   toY: number,
   steps = 20,
 ): Promise<void> {
-  // Drive the gesture over CDP rather than page.mouse. Playwright's high-level
-  // mouse API left Motion's Reorder inert, and Input.dispatchMouseEvent lets us
-  // state `pointerType` explicitly and keep `buttons: 1` set on every move —
-  // Motion's PanSession ignores moves that don't look like a held drag.
-  const cdp = await page.context().newCDPSession(page);
-  const at = (type: string, x: number, y: number, held: boolean) =>
-    cdp.send("Input.dispatchMouseEvent", {
-      type,
-      x,
-      y,
-      button: held ? "left" : "none",
-      buttons: held ? 1 : 0,
-      clickCount: held ? 1 : 0,
-      pointerType: "mouse",
-    });
-
-  await at("mouseMoved", from.x, from.y, false);
-  await at("mousePressed", from.x, from.y, true);
-  // Let the handle's onPointerDown -> dragControls.start() be processed.
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  // Give Motion a frame to register the gesture: the handle's onPointerDown calls
+  // dragControls.start(), and the drag only begins once that has been processed.
   await page.waitForTimeout(120);
   for (let i = 1; i <= steps; i++) {
-    await at("mouseMoved", from.x, from.y + ((toY - from.y) * i) / steps, true);
+    await page.mouse.move(from.x, from.y + ((toY - from.y) * i) / steps);
     await page.waitForTimeout(30);
   }
+  // Hold at the destination so the swap settles before releasing — Reorder
+  // evaluates crossings on animation frames.
   await page.waitForTimeout(250);
-  await at("mouseReleased", from.x, toY, true);
-  await cdp.detach();
+  await page.mouse.up();
 }
 
 /**
@@ -106,14 +92,6 @@ async function probePoint(
     hit?.isHandle,
     `drag point (${x}, ${y}) is over ${hit?.tag}.${hit?.cls}, not the drag handle`,
   ).toBe(true);
-}
-
-async function reportPointerCounts(page: import("@playwright/test").Page): Promise<void> {
-  const counts = await page.evaluate(() => {
-    const w = window as unknown as { __pd: number; __pm: number; __pu: number };
-    return { down: w.__pd, move: w.__pm, up: w.__pu };
-  });
-  console.log("[drag probe] pointer events seen by document:", JSON.stringify(counts));
 }
 
 async function centreOf(locator: import("@playwright/test").Locator) {
@@ -185,7 +163,6 @@ test("drag a section by its handle → order changes and persists", async ({
   const target = await centreOf(secondCard);
   await probePoint(page, handle.x, handle.y);
   await dragVertically(page, { x: handle.x, y: handle.y }, target.box.y + target.box.height * 1.4);
-  await reportPointerCounts(page);
 
   // The spring settles asynchronously, so poll rather than assert immediately.
   await expect
