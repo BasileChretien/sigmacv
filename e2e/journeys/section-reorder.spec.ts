@@ -46,6 +46,22 @@ async function centreOf(locator: import("@playwright/test").Locator) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2, box };
 }
 
+/**
+ * The seeded CV renders a single section (only the sections that actually have
+ * items are built), and reordering needs two. Add a prose section through the
+ * same "Add a section" button the narrative journey uses — a supported user
+ * action, so the test sets up its own state rather than depending on seed shape.
+ */
+const EXTRA_SECTION = "Contributions to the generation of knowledge";
+
+async function ensureTwoSections(page: import("@playwright/test").Page): Promise<string[]> {
+  if ((await sectionTitles(page)).length < 2) {
+    await page.getByRole("button", { name: `+ ${EXTRA_SECTION}` }).click();
+    await expect.poll(async () => (await sectionTitles(page)).length).toBeGreaterThan(1);
+  }
+  return sectionTitles(page);
+}
+
 test("drag a section by its handle → order changes and persists", async ({
   page,
   authedUserId,
@@ -54,7 +70,7 @@ test("drag a section by its handle → order changes and persists", async ({
   await openEditorPart(page, "content");
   await expect(page.locator(".sections-list")).toBeVisible();
 
-  const before = await sectionTitles(page);
+  const before = await ensureTwoSections(page);
   expect(before.length, "need at least two sections to reorder").toBeGreaterThan(1);
 
   // Drag the first card's handle down past the second card. `dragListener` is
@@ -85,7 +101,11 @@ test("drag a section by its handle → order changes and persists", async ({
   const parsed = safeParseCanonicalCv(row?.document);
   expect(parsed.success).toBe(true);
   if (parsed.success) {
-    expect(parsed.data.sections.map((s) => s.title).slice(0, 2)).toEqual([before[1], before[0]]);
+    // Compare RELATIVE order, not absolute positions: the document may carry
+    // sections the editor doesn't render (an empty one has no card), so a
+    // slice(0, 2) would be asserting about the rendering, not the reorder.
+    const persisted = parsed.data.sections.map((s) => s.title);
+    expect(persisted.indexOf(before[1])).toBeLessThan(persisted.indexOf(before[0]));
   }
 
   await page.reload();
@@ -94,12 +114,16 @@ test("drag a section by its handle → order changes and persists", async ({
   expect(await sectionTitles(page)).toEqual(after);
 });
 
-test("dragging a section's body does not reorder (handle-only drags)", async ({ page }) => {
+test("dragging a section's body does not reorder (handle-only drags)", async ({
+  page,
+  authedUserId,
+}) => {
+  expect(authedUserId).toBeTruthy(); // activates the authed-session fixture
   await page.goto("/cv");
   await openEditorPart(page, "content");
   await expect(page.locator(".sections-list")).toBeVisible();
 
-  const before = await sectionTitles(page);
+  const before = await ensureTwoSections(page);
   expect(before.length).toBeGreaterThan(1);
 
   // Same gesture, started on the card's title input instead of the handle.

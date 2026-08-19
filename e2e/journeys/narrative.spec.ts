@@ -1,7 +1,7 @@
 import { safeParseCanonicalCv } from "../../src/lib/canonical/schema";
 import { db } from "../fixtures/db";
 import { expect, test } from "../fixtures/auth";
-import { openEditorPart } from "../fixtures/editor";
+import { openEditorPart, publicPageLink, togglePublish } from "../fixtures/editor";
 
 // A recognizable, unique body string we can grep for in the rendered preview,
 // the persisted canonical document, and the published public page.
@@ -55,10 +55,10 @@ test("prose section → add from menu → type body → save → preview → pub
 
   // 5. Publish, then assert the marker appears on the public page WITHOUT auth
   //    (the public page renders the same canonical prose section).
-  await page.getByRole("checkbox", { name: /Public page/i }).click();
+  await togglePublish(page, true);
   // After publish the "open page" link (href /p/<slug>) appears — match by href
   // so the assertion is locale-independent.
-  await expect(page.locator('a[href^="/p/"]')).toBeVisible();
+  await expect(await publicPageLink(page)).toBeVisible();
 
   const published = await db.cv.findUnique({ where: { userId: authedUserId } });
   expect(published?.published).toBe(true);
