@@ -56,7 +56,7 @@ RUN npm run build
 # `tests/dockerfile-playwright-sync.test.ts` fails CI if this drifts — a Playwright
 # bump that doesn't bump this tag ships a Chromium revision the npm package can't
 # launch, and every PDF export 500s ("Export failed").
-FROM mcr.microsoft.com/playwright:v1.61.1-noble AS runner
+FROM mcr.microsoft.com/playwright:v1.62.1-noble AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
