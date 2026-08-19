@@ -16,7 +16,7 @@ jobs:
         env:
           POSTGRES_USER: sigmacv
           POSTGRES_PASSWORD: sigmacv
-          POSTGRES_DB: sigmacv
+          POSTGRES_DB: sigmacv_e2e
         ports:
           - "5432:5432"
         options: >-
@@ -25,7 +25,7 @@ jobs:
     env:
       # E2E runs the app in dev mode (playwright.config webServer) so env.ts's
       # production guards don't fire and OPENALEX_API_BASE (fixture server) is honored.
-      DATABASE_URL: "postgresql://sigmacv:sigmacv@localhost:5432/sigmacv"
+      DATABASE_URL: "postgresql://sigmacv:sigmacv@localhost:5432/sigmacv_e2e"
       AUTH_SECRET: "ci-e2e-secret-not-a-real-secret"
       AUTH_URL: "http://localhost:3100"
       ORCID_CLIENT_ID: "ci-e2e"
