@@ -2,6 +2,7 @@ import { safeParseCanonicalCv } from "../../src/lib/canonical/schema";
 import { CV_MODELS } from "../../src/lib/canonical/cvModels";
 import { db } from "../fixtures/db";
 import { expect, test } from "../fixtures/auth";
+import { openEditorPart } from "../fixtures/editor";
 
 // The CV-model picker snapshots the current view under this exact name before
 // mutating section selection/order/display (see CvEditor `eu.modelSnapshot`).
@@ -14,6 +15,8 @@ test("CV-model picker → apply NSF → reversible snapshot + section selection/
   authedUserId,
 }) => {
   await page.goto("/cv");
+  // The CV-model picker lives in StyleControls, i.e. the `design` region.
+  await openEditorPart(page, "design");
 
   // Editor loaded: the CV-model picker (in the Style/Presets area) is present.
   const picker = page.getByRole("combobox", { name: "Choose a CV model" });

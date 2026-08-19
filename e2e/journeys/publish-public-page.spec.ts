@@ -1,5 +1,6 @@
 import { db } from "../fixtures/db";
 import { expect, test } from "../fixtures/auth";
+import { togglePublish } from "../fixtures/editor";
 
 test("publish → public page reachable → unpublish → 404", async ({
   page,
@@ -10,7 +11,7 @@ test("publish → public page reachable → unpublish → 404", async ({
 
   // Enable the public page (publish is async; the open-page link appears once
   // /api/cv/publish resolves — match it by href so it's locale-independent).
-  await page.getByTestId("publish-toggle").click();
+  await togglePublish(page);
   await expect(page.locator('a[href^="/p/"]')).toBeVisible();
 
   const row = await db.cv.findUnique({ where: { userId: authedUserId } });
@@ -27,7 +28,7 @@ test("publish → public page reachable → unpublish → 404", async ({
   await anon.close();
 
   // Unpublish → 404.
-  await page.getByTestId("publish-toggle").click();
+  await togglePublish(page);
   await expect(page.locator('a[href^="/p/"]')).toBeHidden();
   const anon2 = await context.browser()!.newContext();
   const anonPage2 = await anon2.newPage();

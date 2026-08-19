@@ -1,6 +1,7 @@
 import { safeParseCanonicalCv } from "../../src/lib/canonical/schema";
 import { db } from "../fixtures/db";
 import { expect, test } from "../fixtures/auth";
+import { openEditorPart } from "../fixtures/editor";
 
 // A recognizable, unique body string we can grep for in the rendered preview,
 // the persisted canonical document, and the published public page.
@@ -15,6 +16,8 @@ test("prose section → add from menu → type body → save → preview → pub
   authedUserId,
 }) => {
   await page.goto("/cv");
+  // The "Add a section" buttons live in the `content` region.
+  await openEditorPart(page, "content");
   // Editor loaded: the "Add a section" menu offers the prose-section button.
   const addBtn = page.getByRole("button", { name: `+ ${SECTION_TITLE}` });
   await expect(addBtn).toBeVisible();
