@@ -54,7 +54,7 @@
     "docx": "^9.0.0",
     "fast-xml-parser": "^5.10.1",
     "jszip": "^3.10.1",
-    "motion": "^12.42.2",
+    "motion": "^13.1.0",
     "next": "^16.3.0",
     "next-auth": "^5.0.0-beta.25",
     "nodemailer": "^8.0.10",
