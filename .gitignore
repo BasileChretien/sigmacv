@@ -83,5 +83,7 @@ yarn-error.log*
 # Throwaway QA / design-preview artifacts (per CLAUDE.md, never committed)
 /.preview/
 
-# Local Claude Code config (preview launch profile etc.)
+# Local AI-agent config (Claude Code preview launch profile, Codex hooks etc.) —
+# machine-specific absolute paths, never shared
 /.claude/
+/.codex/
