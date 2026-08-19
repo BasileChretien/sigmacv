@@ -59,7 +59,9 @@ test("authenticated export API serves the newer formats", async ({ page, authedU
   expect(authedUserId).toBeTruthy(); // activates the authed-session fixture
   // Ensure the seeded CV is in place (the editor load also confirms auth works).
   await page.goto("/cv");
-  await expect(page.getByRole("group", { name: "Style", exact: true })).toBeVisible();
+  // Editor loaded. The export controls live in the top bar, outside the region
+  // tabs, so they are the readiness gate for a journey that only needs the API.
+  await expect(page.locator(".export-format")).toBeVisible();
 
   for (const c of CASES) {
     const res = await page.request.get(`/api/cv/export/${c.format}`);

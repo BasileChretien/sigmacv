@@ -1,5 +1,6 @@
 import { db } from "../fixtures/db";
 import { expect, test } from "../fixtures/auth";
+import { publicPageLink, togglePublish } from "../fixtures/editor";
 
 /**
  * The per-CV Open Graph card (`/p/<slug>/og`) renders for a PUBLISHED CV (200 +
@@ -14,8 +15,9 @@ test("OG image: 200 image for a published slug, 404 for an unknown slug", async 
 }) => {
   // Publish the CV (async — wait for the open-page link).
   await page.goto("/cv");
-  await page.getByTestId("publish-toggle").click();
-  await expect(page.locator('a[href^="/p/"]')).toBeVisible();
+  await togglePublish(page, true);
+  // Publish resolved; the public link lives in the separate Share popover.
+  await expect(await publicPageLink(page)).toBeVisible();
 
   const row = await db.cv.findUnique({ where: { userId: authedUserId } });
   expect(row?.published).toBe(true);

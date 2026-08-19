@@ -1,5 +1,6 @@
 import { db } from "../fixtures/db";
 import { expect, test } from "../fixtures/auth";
+import { publicPageLink, togglePublish } from "../fixtures/editor";
 
 test("publish → public page reachable → unpublish → 404", async ({
   page,
@@ -10,8 +11,9 @@ test("publish → public page reachable → unpublish → 404", async ({
 
   // Enable the public page (publish is async; the open-page link appears once
   // /api/cv/publish resolves — match it by href so it's locale-independent).
-  await page.getByTestId("publish-toggle").click();
-  await expect(page.locator('a[href^="/p/"]')).toBeVisible();
+  await togglePublish(page, true);
+  // Publish resolved; the public link lives in the separate Share popover.
+  await expect(await publicPageLink(page)).toBeVisible();
 
   const row = await db.cv.findUnique({ where: { userId: authedUserId } });
   expect(row?.published).toBe(true);
@@ -27,8 +29,9 @@ test("publish → public page reachable → unpublish → 404", async ({
   await anon.close();
 
   // Unpublish → 404.
-  await page.getByTestId("publish-toggle").click();
-  await expect(page.locator('a[href^="/p/"]')).toBeHidden();
+  await togglePublish(page, false);
+  // Unpublished: the Share popover no longer offers a public-page link.
+  await expect(page.locator('.share-panel a[href^="/p/"]')).toHaveCount(0);
   const anon2 = await context.browser()!.newContext();
   const anonPage2 = await anon2.newPage();
   const res2 = await anonPage2.goto(`/p/${slug}`);
