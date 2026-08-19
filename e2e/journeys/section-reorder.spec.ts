@@ -31,20 +31,77 @@ async function dragVertically(
   toY: number,
   steps = 20,
 ): Promise<void> {
-  await page.mouse.move(from.x, from.y);
-  await page.mouse.down();
-  // Give Motion a frame to register the gesture before it starts moving: the
-  // handle's onPointerDown calls dragControls.start(), and the drag only begins
-  // once that has been processed.
+  // Drive the gesture over CDP rather than page.mouse. Playwright's high-level
+  // mouse API left Motion's Reorder inert, and Input.dispatchMouseEvent lets us
+  // state `pointerType` explicitly and keep `buttons: 1` set on every move —
+  // Motion's PanSession ignores moves that don't look like a held drag.
+  const cdp = await page.context().newCDPSession(page);
+  const at = (type: string, x: number, y: number, held: boolean) =>
+    cdp.send("Input.dispatchMouseEvent", {
+      type,
+      x,
+      y,
+      button: held ? "left" : "none",
+      buttons: held ? 1 : 0,
+      clickCount: held ? 1 : 0,
+      pointerType: "mouse",
+    });
+
+  await at("mouseMoved", from.x, from.y, false);
+  await at("mousePressed", from.x, from.y, true);
+  // Let the handle's onPointerDown -> dragControls.start() be processed.
   await page.waitForTimeout(120);
   for (let i = 1; i <= steps; i++) {
-    await page.mouse.move(from.x, from.y + ((toY - from.y) * i) / steps);
+    await at("mouseMoved", from.x, from.y + ((toY - from.y) * i) / steps, true);
     await page.waitForTimeout(30);
   }
-  // Hold at the destination so the reorder settles before the pointer is
-  // released — Reorder swaps on crossing, which it evaluates on animation frames.
   await page.waitForTimeout(250);
-  await page.mouse.up();
+  await at("mouseReleased", from.x, toY, true);
+  await cdp.detach();
+}
+
+/**
+ * Instrumentation: what actually sits under the drag point, and how many pointer
+ * events the document sees. Zero counts mean the events never arrive; a `hit`
+ * that isn't the handle means something covers it. Either way this reports which
+ * instead of guessing at the gesture again.
+ */
+async function probePoint(
+  page: import("@playwright/test").Page,
+  x: number,
+  y: number,
+): Promise<void> {
+  await page.evaluate(() => {
+    const w = window as unknown as { __pd: number; __pm: number; __pu: number };
+    w.__pd = 0;
+    w.__pm = 0;
+    w.__pu = 0;
+    document.addEventListener("pointerdown", () => w.__pd++, true);
+    document.addEventListener("pointermove", () => w.__pm++, true);
+    document.addEventListener("pointerup", () => w.__pu++, true);
+  });
+  const hit = await page.evaluate(
+    ({ px, py }) => {
+      const el = document.elementFromPoint(px, py) as HTMLElement | null;
+      return el
+        ? {
+            tag: el.tagName,
+            cls: String(el.className),
+            isHandle: el.classList.contains("drag-handle"),
+          }
+        : null;
+    },
+    { px: x, py: y },
+  );
+  console.log("[drag probe] element at point:", JSON.stringify(hit));
+}
+
+async function reportPointerCounts(page: import("@playwright/test").Page): Promise<void> {
+  const counts = await page.evaluate(() => {
+    const w = window as unknown as { __pd: number; __pm: number; __pu: number };
+    return { down: w.__pd, move: w.__pm, up: w.__pu };
+  });
+  console.log("[drag probe] pointer events seen by document:", JSON.stringify(counts));
 }
 
 async function centreOf(locator: import("@playwright/test").Locator) {
@@ -90,8 +147,7 @@ async function ensureTwoSections(page: import("@playwright/test").Page): Promise
  * things to try: the uploaded `playwright-report` trace for what the page saw,
  * CDP `Input.dispatchMouseEvent` with explicit `pointerType`, or a headed run.
  */
-// eslint-disable-next-line playwright/no-skipped-test
-test.fixme("drag a section by its handle → order changes and persists", async ({
+test("drag a section by its handle → order changes and persists", async ({
   page,
   authedUserId,
 }) => {
@@ -109,7 +165,9 @@ test.fixme("drag a section by its handle → order changes and persists", async 
   const secondCard = page.locator(".section-card").nth(1);
   const handle = await centreOf(firstCard.locator(".drag-handle"));
   const target = await centreOf(secondCard);
+  await probePoint(page, handle.x, handle.y);
   await dragVertically(page, { x: handle.x, y: handle.y }, target.box.y + target.box.height * 1.4);
+  await reportPointerCounts(page);
 
   // The spring settles asynchronously, so poll rather than assert immediately.
   await expect
