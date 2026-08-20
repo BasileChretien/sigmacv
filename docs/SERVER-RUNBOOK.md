@@ -82,6 +82,31 @@ docker compose up -d plausible   # RECREATE (a plain restart keeps the old URL)
 
 A backup that has never been restored is a hope, not a backup.
 
+> **Automated:** `scripts/verify-backup.sh` performs everything in this section
+> unattended — newest dump, age, size (absolute and against the previous dump,
+> which is what catches a pg_dump that errored halfway and still wrote a valid
+> gzip), a real restore into a throwaway database, and a row-count comparison
+> against live. It only ever reads the live database, always drops the scratch
+> copy, and exits non-zero on any failure.
+>
+> Install it on the server:
+>
+> ```bash
+> cd /root/sigmacv   # wherever the checkout lives
+> ./scripts/verify-backup.sh            # run once by hand first
+> crontab -e
+> # 15 4 * * * cd /root/sigmacv && ./scripts/verify-backup.sh >> /var/log/sigmacv-backup-verify.log 2>&1
+> ```
+>
+> Set `HEARTBEAT_URL` to a healthchecks.io (or UptimeRobot heartbeat) URL and it
+> pings **only on success**, so both a failed check and a check that stopped
+> running alert you — a verifier that quietly dies is the same risk as a backup
+> that quietly dies. Tunables: `BACKUP_DIR`, `BACKUP_GLOB`, `MAX_AGE_HOURS`,
+> `MIN_SIZE_RATIO`, `PG_SERVICE`, `PG_USER`, `PG_DB`, `SCRATCH_DB`.
+>
+> The manual steps below remain the reference for what it does, and for
+> investigating by hand when it reports a failure.
+
 ```bash
 # 2a. Locate the cron + the newest dump (adjust path to your cron's target dir)
 crontab -l | grep -i -E 'pg_dump|backup'
@@ -285,7 +310,11 @@ offsite copies exist, step 2).
 
 ---
 
-## 7. Uptime + error alerting (none exists today)
+## 7. Uptime + error alerting
+
+> **Status 2026-08-20: UptimeRobot is watching the site.** The steps below are
+> kept as the spec — worth confirming that monitor 2 (SSL expiry) and, if
+> analytics runs, monitor 3 are configured too, not just the main check.
 
 **Recommended: external pinger first.** Anything self-hosted on this VPS
 (including Uptime Kuma) dies with the box and alerts you about nothing.
