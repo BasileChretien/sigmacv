@@ -33,7 +33,7 @@ param(
   [string]$RemoteHost = $env:SIGMACV_HOST,
   [string]$RemoteDir = "/root/sigmacv-backups",
   [string]$LocalDir = "$env:USERPROFILE\SigmaCV-Backups",
-  [int]$KeepDays = 30,
+  [int]$KeepDays = 14,
   [int]$MinKeep = 7,
   [int]$MaxAgeHours = 48,
   [string]$LogFile = "$env:USERPROFILE\SigmaCV-Backups\pull-backups.log"
