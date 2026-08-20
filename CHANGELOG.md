@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-20
+
+### Security
+
+- Dependency updates closing published advisories: **Next.js** (App Router
+  middleware/proxy bypass), **fast-xml-parser** (DOCTYPE entity-expansion limits),
+  **Auth.js / `@auth/core`** (email-normalizer homoglyph `@` bypass, a critical),
+  plus **postcss**, **nanoid** and **esbuild**. Known advisories affecting SigmaCV
+  went from 19 to 7, with none critical; the remainder have no published fix at any
+  version and are tracked upstream.
+
 ### Added
 
 - **Study pre-registrations now get their own section.** Pre-registrations you've
@@ -1663,6 +1674,7 @@ assessment that auto-generates academic CVs from open research data.
 - Privacy by design: per-field publish consent, data export, and account deletion
   (GDPR / Japan APPI); 10 UI locales; self-hostable via Docker Compose.
 
-[Unreleased]: https://github.com/BasileChretien/sigmacv/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/BasileChretien/sigmacv/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/BasileChretien/sigmacv/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/BasileChretien/sigmacv/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/BasileChretien/sigmacv/releases/tag/v0.1.0
