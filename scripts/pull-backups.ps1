@@ -1,0 +1,152 @@
+<#
+.SYNOPSIS
+  Pull SigmaCV's Postgres dumps from the production VPS to the controller's own
+  machine, verifying each file by SHA-256.
+
+.DESCRIPTION
+  The offsite copy lives on the maintainer's PC rather than a cloud bucket, and
+  the direction matters: the server cannot reach a machine behind a home NAT, so
+  this PULLS over SSH instead of the server pushing.
+
+  Why the controller's own machine is a good target here: it introduces NO new
+  sub-processor. The privacy notice already says the controller is based in Japan
+  and that Japan-EU transfers rest on the 2019 mutual adequacy decision, so a
+  copy held by the controller is covered by a statement that already exists. A
+  third-party bucket would need declaring; this does not.
+
+  Accepted trade-off, stated plainly: a single PC is one device. Theft, failure
+  or ransomware can take it, and ransomware specifically targets mounted backup
+  folders. This is the only offsite copy by choice. Rely on:
+    * BitLocker being ON (personal data at rest), and
+    * the staleness warning below, which is what makes "the PC is usually on"
+      safe rather than merely hopeful.
+
+.EXAMPLE
+  ./pull-backups.ps1 -RemoteHost root@sigmacv.org
+
+.NOTES
+  Uses the OpenSSH client bundled with Windows 10/11 — no extra dependencies.
+  Never deletes anything on the server; the server's own rotation owns that.
+#>
+[CmdletBinding()]
+param(
+  [string]$RemoteHost = $env:SIGMACV_HOST,
+  [string]$RemoteDir = "/root/sigmacv-backups",
+  [string]$LocalDir = "$env:USERPROFILE\SigmaCV-Backups",
+  [int]$KeepDays = 30,
+  [int]$MinKeep = 7,
+  [int]$MaxAgeHours = 48,
+  [string]$LogFile = "$env:USERPROFILE\SigmaCV-Backups\pull-backups.log"
+)
+
+$ErrorActionPreference = "Stop"
+$script:Failed = $false
+
+function Write-Log {
+  param([string]$Message, [switch]$IsError)
+  $line = "{0}  {1}" -f (Get-Date -Format "yyyy-MM-ddTHH:mm:ssK"), $Message
+  if ($IsError) { Write-Host $line -ForegroundColor Red } else { Write-Host $line }
+  try { Add-Content -LiteralPath $LogFile -Value $line -ErrorAction Stop } catch { }
+}
+
+function Fail {
+  param([string]$Message)
+  Write-Log "FAIL: $Message" -IsError
+  exit 1
+}
+
+if (-not $RemoteHost) {
+  Fail "No remote host. Pass -RemoteHost root@sigmacv.org or set SIGMACV_HOST."
+}
+foreach ($cmd in @("ssh", "scp")) {
+  if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
+    Fail "$cmd not found. Install the Windows OpenSSH Client (Settings > Optional features)."
+  }
+}
+if ($MinKeep -lt 1) { Fail "MinKeep must be >= 1 so pruning can never empty the local copy." }
+
+New-Item -ItemType Directory -Force -Path $LocalDir | Out-Null
+Write-Log "=== SigmaCV backup pull from $RemoteHost ==="
+
+# --- 1. What does the server have? -------------------------------------------
+$remoteList = & ssh -o BatchMode=yes -o ConnectTimeout=20 $RemoteHost "ls -1 $RemoteDir/sigmacv-*.sql.gz 2>/dev/null" 2>&1
+if ($LASTEXITCODE -ne 0) {
+  Fail "ssh to $RemoteHost failed: $remoteList"
+}
+$remoteFiles = @($remoteList | Where-Object { $_ -match "\.sql\.gz$" } | ForEach-Object { $_.Trim() })
+if ($remoteFiles.Count -eq 0) { Fail "no dumps found in ${RemoteDir} on the server" }
+Write-Log "  server holds $($remoteFiles.Count) dump(s)"
+
+# --- 2. Fetch anything missing, then verify by hash ---------------------------
+# A completed scp is not proof: a truncated transfer exits 0 often enough to
+# matter, and a silently corrupt backup is the failure mode this whole chain
+# exists to prevent. So every file is hashed on both ends.
+$fetched = 0
+foreach ($remotePath in $remoteFiles) {
+  $name = Split-Path $remotePath -Leaf
+  $localPath = Join-Path $LocalDir $name
+
+  $remoteHash = (& ssh -o BatchMode=yes $RemoteHost "sha256sum '$remotePath' | cut -d' ' -f1" 2>&1 | Select-Object -First 1).Trim()
+  if ($LASTEXITCODE -ne 0 -or $remoteHash -notmatch '^[0-9a-f]{64}$') {
+    Write-Log "  ! could not hash $name on the server (got '$remoteHash') — skipping" -IsError
+    $script:Failed = $true
+    continue
+  }
+
+  if (Test-Path -LiteralPath $localPath) {
+    $localHash = (Get-FileHash -LiteralPath $localPath -Algorithm SHA256).Hash.ToLower()
+    if ($localHash -eq $remoteHash) { continue }  # already have it, intact
+    Write-Log "  ! $name differs from the server copy — refetching"
+    Remove-Item -LiteralPath $localPath -Force
+  }
+
+  # -p keeps the server's mtime, so the staleness check below measures the age of
+  # the DUMP, not the age of the copy. Without it every pulled file looks fresh.
+  & scp -p -o BatchMode=yes "${RemoteHost}:${remotePath}" "$localPath" 2>&1 | Out-Null
+  if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $localPath)) {
+    Write-Log "  ! scp failed for $name" -IsError
+    $script:Failed = $true
+    continue
+  }
+
+  $localHash = (Get-FileHash -LiteralPath $localPath -Algorithm SHA256).Hash.ToLower()
+  if ($localHash -ne $remoteHash) {
+    Remove-Item -LiteralPath $localPath -Force
+    Write-Log "  ! $name failed hash verification after transfer — removed" -IsError
+    $script:Failed = $true
+    continue
+  }
+  $fetched++
+  Write-Log "  + $name ($([math]::Round((Get-Item -LiteralPath $localPath).Length / 1MB, 1)) MB, verified)"
+}
+Write-Log "  fetched $fetched new dump(s)"
+
+# --- 3. Staleness — the check that makes an intermittent PC safe --------------
+$local = @(Get-ChildItem -LiteralPath $LocalDir -Filter "sigmacv-*.sql.gz" -File | Sort-Object LastWriteTime -Descending)
+if ($local.Count -eq 0) { Fail "no dumps present locally after the pull" }
+
+$newest = $local[0]
+$ageHours = [math]::Round(((Get-Date) - $newest.LastWriteTime).TotalHours, 1)
+Write-Log "  newest local dump: $($newest.Name) (${ageHours}h old, limit ${MaxAgeHours}h)"
+if ($ageHours -gt $MaxAgeHours) {
+  Write-Log "  ! newest dump is ${ageHours}h old — either this PC has been off, or the server's dump cron has stopped" -IsError
+  $script:Failed = $true
+}
+
+# --- 4. Prune, never below MinKeep -------------------------------------------
+if ($local.Count -gt $MinKeep) {
+  $cutoff = (Get-Date).AddDays(-$KeepDays)
+  $stale = @($local | Select-Object -Skip $MinKeep | Where-Object { $_.LastWriteTime -lt $cutoff })
+  foreach ($f in $stale) {
+    Remove-Item -LiteralPath $f.FullName -Force
+    Write-Log "  - pruned $($f.Name)"
+  }
+}
+Write-Log "  local copy holds $((Get-ChildItem -LiteralPath $LocalDir -Filter 'sigmacv-*.sql.gz' -File).Count) dump(s)"
+
+if ($script:Failed) {
+  Write-Log "FINISHED WITH PROBLEMS — see the lines marked ! above" -IsError
+  exit 1
+}
+Write-Log "OK: local offsite copy is current and hash-verified."
+exit 0

@@ -149,12 +149,60 @@ done
 docker compose exec -T postgres psql -U sigmacv -d postgres -c 'DROP DATABASE restore_test;'
 ```
 
-### Offsite copies (`scripts/offsite-backup.sh`)
+### The dump itself (`scripts/pg-backup.sh`)
 
-Dumps that only live on this VPS are lost with it — a disk failure takes the app
-_and_ its backups together. `scripts/offsite-backup.sh` copies them off, **verifies**
-the remote against local (`rclone check`), reports offsite freshness, and prunes old
-copies.
+Runs nightly on the VPS. It lived only at `/root/sigmacv-backup.sh` — unversioned,
+unreviewed, and destroyed by the very failure it protects against — so it is now in
+the repo. Cron:
+
+```
+30 3 * * * /root/sigmacv/scripts/pg-backup.sh >> /var/log/sigmacv-backup.log 2>&1
+```
+
+It verifies the gzip stream and a minimum size **before** rotating, so a truncated
+dump can never age out a good one. Credentials come from the container's environment,
+never a command line.
+
+### Offsite copy: pulled to the maintainer's machine (`scripts/pull-backups.ps1`)
+
+Dumps that only live on this VPS are lost with it. The offsite copy is **pulled** to
+the maintainer's own Windows PC over SSH — the server cannot reach a machine behind a
+home NAT, so the direction is a requirement, not a preference.
+
+```powershell
+# Windows, Task Scheduler, daily
+pwsh -File C:\R_git\SigmaCV\scripts\pull-backups.ps1 -RemoteHost root@sigmacv.org
+```
+
+Every file is SHA-256 verified on both ends (a completed `scp` is not proof), pruning
+never drops below `MinKeep`, and it **warns when the newest dump is older than 48h** —
+that staleness check is what makes an intermittently-on PC a safe target rather than a
+hopeful one, since it catches both "the PC was off" and "the server's dump cron died".
+
+**Why the controller's own machine:** it introduces **no new sub-processor**. The
+privacy notice already states that the controller is based in Japan and that Japan-EU
+transfers rest on the 2019 mutual adequacy decision, so a copy held by the controller
+is covered by wording that already exists. A third-party bucket would need declaring.
+
+**Conditions this relies on:**
+
+- **BitLocker must stay ON.** The dump is every user's account, email and CV in one
+  file; an unencrypted stolen laptop is a notifiable breach.
+- **It is the only offsite copy, by choice.** One device can be stolen, fail, or be
+  ransomwared — and ransomware specifically targets mounted backup folders. The
+  staleness warning is the compensating control; heed it.
+
+> **Removed 2026-08-20: the Google Drive leg.** The previous script copied every dump
+> to `gdrive:SigmaCV-Backups/` unencrypted. That put ~130 users' records with an
+> **undeclared, non-EU sub-processor**, contradicting the privacy notice's "stored in
+> the European Union (Germany) … under a data-processing agreement". Delete the
+> historical copies there once the local set is verified.
+
+### Alternative: an object-storage remote (`scripts/offsite-backup.sh`)
+
+Not in use today — the pull above is the offsite copy — but kept ready in case a second
+copy is ever added. It copies the dumps to an rclone remote, **verifies** the remote
+against local (`rclone check`), reports offsite freshness, and prunes old copies safely.
 
 ```bash
 cd /root/sigmacv
