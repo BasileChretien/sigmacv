@@ -33,18 +33,65 @@ async function dragVertically(
 ): Promise<void> {
   await page.mouse.move(from.x, from.y);
   await page.mouse.down();
-  // Give Motion a frame to register the gesture before it starts moving: the
-  // handle's onPointerDown calls dragControls.start(), and the drag only begins
-  // once that has been processed.
+  // Give Motion a frame to register the gesture: the handle's onPointerDown calls
+  // dragControls.start(), and the drag only begins once that has been processed.
   await page.waitForTimeout(120);
   for (let i = 1; i <= steps; i++) {
     await page.mouse.move(from.x, from.y + ((toY - from.y) * i) / steps);
     await page.waitForTimeout(30);
   }
-  // Hold at the destination so the reorder settles before the pointer is
-  // released — Reorder swaps on crossing, which it evaluates on animation frames.
+  // Hold at the destination so the swap settles before releasing — Reorder
+  // evaluates crossings on animation frames.
   await page.waitForTimeout(250);
   await page.mouse.up();
+}
+
+/**
+ * Instrumentation: what actually sits under the drag point, and how many pointer
+ * events the document sees. Zero counts mean the events never arrive; a `hit`
+ * that isn't the handle means something covers it. Either way this reports which
+ * instead of guessing at the gesture again.
+ */
+async function probePoint(
+  page: import("@playwright/test").Page,
+  x: number,
+  y: number,
+): Promise<void> {
+  await page.evaluate(() => {
+    const w = window as unknown as { __pd: number; __pm: number; __pu: number };
+    w.__pd = 0;
+    w.__pm = 0;
+    w.__pu = 0;
+    document.addEventListener("pointerdown", () => w.__pd++, true);
+    document.addEventListener("pointermove", () => w.__pm++, true);
+    document.addEventListener("pointerup", () => w.__pu++, true);
+  });
+  const hit = await page.evaluate(
+    ({ px, py }) => {
+      const el = document.elementFromPoint(px, py) as HTMLElement | null;
+      return el
+        ? {
+            tag: el.tagName,
+            cls: String(el.className),
+            isHandle: el.classList.contains("drag-handle"),
+          }
+        : null;
+    },
+    { px: x, py: y },
+  );
+  // Fail here rather than 5s later on a mystery "the order didn't change": a null
+  // hit means the point is outside the viewport (boundingBox reports coordinates
+  // for scrolled-out elements, and page.mouse / CDP dispatch at raw coordinates
+  // without the auto-scroll locator.click() performs), and a non-handle hit means
+  // something covers it.
+  expect(
+    hit,
+    `nothing at the drag point (${x}, ${y}) - is the handle scrolled out of view?`,
+  ).not.toBeNull();
+  expect(
+    hit?.isHandle,
+    `drag point (${x}, ${y}) is over ${hit?.tag}.${hit?.cls}, not the drag handle`,
+  ).toBe(true);
 }
 
 async function centreOf(locator: import("@playwright/test").Locator) {
@@ -90,8 +137,7 @@ async function ensureTwoSections(page: import("@playwright/test").Page): Promise
  * things to try: the uploaded `playwright-report` trace for what the page saw,
  * CDP `Input.dispatchMouseEvent` with explicit `pointerType`, or a headed run.
  */
-// eslint-disable-next-line playwright/no-skipped-test
-test.fixme("drag a section by its handle → order changes and persists", async ({
+test("drag a section by its handle → order changes and persists", async ({
   page,
   authedUserId,
 }) => {
@@ -107,8 +153,15 @@ test.fixme("drag a section by its handle → order changes and persists", async 
   // it is only reachable by class.
   const firstCard = page.locator(".section-card").first();
   const secondCard = page.locator(".section-card").nth(1);
+  // Bring both cards into view BEFORE measuring: boundingBox() happily reports
+  // coordinates for an element scrolled out of the viewport, and the gesture is
+  // dispatched at raw coordinates with no auto-scroll, so it would play out over
+  // whatever occupies that point instead (here: nothing, or the preview pane).
+  await secondCard.scrollIntoViewIfNeeded();
+  await firstCard.scrollIntoViewIfNeeded();
   const handle = await centreOf(firstCard.locator(".drag-handle"));
   const target = await centreOf(secondCard);
+  await probePoint(page, handle.x, handle.y);
   await dragVertically(page, { x: handle.x, y: handle.y }, target.box.y + target.box.height * 1.4);
 
   // The spring settles asynchronously, so poll rather than assert immediately.
@@ -159,12 +212,13 @@ test("dragging a section's body does not reorder (handle-only drags)", async ({
   // `dragListener={false}` means this must not move anything — if it ever does,
   // the inputs and buttons inside a card have stopped being usable.
   //
-  // CAVEAT: while the positive test above is `fixme`, this one is necessary but
-  // NOT sufficient — it would also pass if drags did nothing at all, which is
-  // exactly the current situation. Treat it as real coverage only once the
-  // handle drag is green.
+  // This is only meaningful because the handle drag above passes: on its own it
+  // would also pass if drags did nothing at all. The pair is the assertion —
+  // the handle moves a section, the body does not.
   const firstCard = page.locator(".section-card").first();
   const secondCard = page.locator(".section-card").nth(1);
+  await secondCard.scrollIntoViewIfNeeded();
+  await firstCard.scrollIntoViewIfNeeded();
   const body = await centreOf(firstCard.locator("input.section-title"));
   const target = await centreOf(secondCard);
   await dragVertically(page, { x: body.x, y: body.y }, target.box.y + target.box.height * 0.8);
