@@ -1,6 +1,13 @@
 # ─── Build stage ─────────────────────────────────────────────────────────────
-# Debian-based Node so the Prisma engine target matches the Playwright runtime.
-FROM node:22-bookworm-slim AS builder
+# Debian-based Node so the Prisma engine target matches the Playwright runtime:
+# bookworm and Ubuntu noble are both OpenSSL 3.0.x, so the engine generated here
+# runs in the runtime stage. Do NOT move to trixie (OpenSSL 3.5) without checking
+# that Prisma still emits a matching engine target.
+#
+# Node 24 matches the runtime: mcr.microsoft.com/playwright:v1.62.1-noble ships
+# NODE_VERSION=24, so building on 22 meant compiling on one major and running on
+# another.
+FROM node:24-bookworm-slim AS builder
 WORKDIR /app
 
 # Prisma needs OpenSSL present at generate time.
