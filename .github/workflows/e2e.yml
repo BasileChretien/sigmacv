@@ -1,10 +1,25 @@
-name: E2E (manual)
+name: E2E
 
-# Manual trigger only: the Playwright journeys have never run in CI, so this is
-# kept off the PR gate until it's been validated green. Run it from the Actions
-# tab; once reliably green, add `pull_request:` to make it a required check.
+# Runs on every PR and on main. The journeys were validated green first (#343,
+# #344) after a long spell where they could not run at all — the workflow pointed
+# at a database the `_e2e` guardrail rejected, so global setup threw before a
+# single journey started.
+#
+# Deliberately NO `paths:` filter. If this is added to branch protection as a
+# required check, a filter would deadlock any PR that doesn't touch the filtered
+# paths: the job never runs, so the required check never reports, and the PR can
+# never merge. Running it on every PR costs about a minute; that is the cheaper
+# side of the trade. This matches ci.yml, which also filters nothing.
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
+
+# Cancel superseded runs on the same ref to save minutes.
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   e2e:
