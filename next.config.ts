@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   // Standalone output keeps the Docker image small (app + traced deps only).
   output: "standalone",
 
+  // Drop the `X-Powered-By: Next.js` response header. It tells an attacker which
+  // stack (and so which CVE set) to try first, and buys nothing in return.
+  poweredByHeader: false,
+
   // Dev only: allow a tunnel origin (ngrok/cloudflared) to load the dev server's
   // client assets/HMR. Set NEXT_ALLOWED_DEV_ORIGIN to your tunnel host; not
   // hardcoded so no personal tunnel address lands in the public repo.
