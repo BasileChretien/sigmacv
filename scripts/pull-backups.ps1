@@ -77,6 +77,29 @@ $remoteFiles = @($remoteList | Where-Object { $_ -match "\.sql\.gz$" } | ForEach
 if ($remoteFiles.Count -eq 0) { Fail "no dumps found in ${RemoteDir} on the server" }
 Write-Log "  server holds $($remoteFiles.Count) dump(s)"
 
+# --- 2. Hash every remote dump, in ONE call -----------------------------------
+# Originally this ran one `ssh sha256sum` per file, piped into `Select-Object
+# -First 1`. That was wrong twice over: `-First` stops the pipeline early and can
+# terminate ssh before it exits cleanly, so $LASTEXITCODE went non-zero and a
+# perfectly valid hash was rejected ("could not hash ... (got '<valid hash>')").
+# It also cost a round trip per file. One call fixes both, and the exit code is
+# captured immediately rather than after a pipeline that may have killed ssh.
+$hashOutput = & ssh -o BatchMode=yes -o ConnectTimeout=20 $RemoteHost "sha256sum $RemoteDir/sigmacv-*.sql.gz" 2>&1
+$hashExit = $LASTEXITCODE
+if ($hashExit -ne 0) {
+  Fail "could not hash the dumps on the server (ssh exit ${hashExit}): $($hashOutput | Select-Object -First 3)"
+}
+
+$remoteHashes = @{}
+foreach ($line in $hashOutput) {
+  # sha256sum prints: "<64 hex>  /path/to/file"
+  if ("$line" -match '^([0-9a-f]{64})\s+(\S.*)$') {
+    $remoteHashes[(Split-Path $Matches[2] -Leaf)] = $Matches[1]
+  }
+}
+if ($remoteHashes.Count -eq 0) { Fail "no usable hashes parsed from the server" }
+Write-Log "  hashed $($remoteHashes.Count) dump(s) on the server"
+
 # --- 2. Fetch anything missing, then verify by hash ---------------------------
 # A completed scp is not proof: a truncated transfer exits 0 often enough to
 # matter, and a silently corrupt backup is the failure mode this whole chain
@@ -86,9 +109,9 @@ foreach ($remotePath in $remoteFiles) {
   $name = Split-Path $remotePath -Leaf
   $localPath = Join-Path $LocalDir $name
 
-  $remoteHash = (& ssh -o BatchMode=yes $RemoteHost "sha256sum '$remotePath' | cut -d' ' -f1" 2>&1 | Select-Object -First 1).Trim()
-  if ($LASTEXITCODE -ne 0 -or $remoteHash -notmatch '^[0-9a-f]{64}$') {
-    Write-Log "  ! could not hash $name on the server (got '$remoteHash') -- skipping" -IsError
+  $remoteHash = $remoteHashes[$name]
+  if (-not $remoteHash) {
+    Write-Log "  ! no server hash for $name -- skipping" -IsError
     $script:Failed = $true
     continue
   }
