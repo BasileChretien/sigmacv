@@ -25,7 +25,7 @@
   ./pull-backups.ps1 -RemoteHost root@sigmacv.org
 
 .NOTES
-  Uses the OpenSSH client bundled with Windows 10/11 — no extra dependencies.
+  Uses the OpenSSH client bundled with Windows 10/11 -- no extra dependencies.
   Never deletes anything on the server; the server's own rotation owns that.
 #>
 [CmdletBinding()]
@@ -88,7 +88,7 @@ foreach ($remotePath in $remoteFiles) {
 
   $remoteHash = (& ssh -o BatchMode=yes $RemoteHost "sha256sum '$remotePath' | cut -d' ' -f1" 2>&1 | Select-Object -First 1).Trim()
   if ($LASTEXITCODE -ne 0 -or $remoteHash -notmatch '^[0-9a-f]{64}$') {
-    Write-Log "  ! could not hash $name on the server (got '$remoteHash') — skipping" -IsError
+    Write-Log "  ! could not hash $name on the server (got '$remoteHash') -- skipping" -IsError
     $script:Failed = $true
     continue
   }
@@ -96,7 +96,7 @@ foreach ($remotePath in $remoteFiles) {
   if (Test-Path -LiteralPath $localPath) {
     $localHash = (Get-FileHash -LiteralPath $localPath -Algorithm SHA256).Hash.ToLower()
     if ($localHash -eq $remoteHash) { continue }  # already have it, intact
-    Write-Log "  ! $name differs from the server copy — refetching"
+    Write-Log "  ! $name differs from the server copy -- refetching"
     Remove-Item -LiteralPath $localPath -Force
   }
 
@@ -112,16 +112,17 @@ foreach ($remotePath in $remoteFiles) {
   $localHash = (Get-FileHash -LiteralPath $localPath -Algorithm SHA256).Hash.ToLower()
   if ($localHash -ne $remoteHash) {
     Remove-Item -LiteralPath $localPath -Force
-    Write-Log "  ! $name failed hash verification after transfer — removed" -IsError
+    Write-Log "  ! $name failed hash verification after transfer -- removed" -IsError
     $script:Failed = $true
     continue
   }
   $fetched++
-  Write-Log "  + $name ($([math]::Round((Get-Item -LiteralPath $localPath).Length / 1MB, 1)) MB, verified)"
+  $sizeMb = [math]::Round((Get-Item -LiteralPath $localPath).Length / 1MB, 1)
+  Write-Log "  + $name ($sizeMb MB, verified)"
 }
 Write-Log "  fetched $fetched new dump(s)"
 
-# --- 3. Staleness — the check that makes an intermittent PC safe --------------
+# --- 3. Staleness -- the check that makes an intermittent PC safe --------------
 $local = @(Get-ChildItem -LiteralPath $LocalDir -Filter "sigmacv-*.sql.gz" -File | Sort-Object LastWriteTime -Descending)
 if ($local.Count -eq 0) { Fail "no dumps present locally after the pull" }
 
@@ -129,7 +130,7 @@ $newest = $local[0]
 $ageHours = [math]::Round(((Get-Date) - $newest.LastWriteTime).TotalHours, 1)
 Write-Log "  newest local dump: $($newest.Name) (${ageHours}h old, limit ${MaxAgeHours}h)"
 if ($ageHours -gt $MaxAgeHours) {
-  Write-Log "  ! newest dump is ${ageHours}h old — either this PC has been off, or the server's dump cron has stopped" -IsError
+  Write-Log "  ! newest dump is ${ageHours}h old -- either this PC has been off, or the server's dump cron has stopped" -IsError
   $script:Failed = $true
 }
 
@@ -142,10 +143,11 @@ if ($local.Count -gt $MinKeep) {
     Write-Log "  - pruned $($f.Name)"
   }
 }
-Write-Log "  local copy holds $((Get-ChildItem -LiteralPath $LocalDir -Filter 'sigmacv-*.sql.gz' -File).Count) dump(s)"
+$held = @(Get-ChildItem -LiteralPath $LocalDir -Filter "sigmacv-*.sql.gz" -File).Count
+Write-Log "  local copy holds $held dump(s)"
 
 if ($script:Failed) {
-  Write-Log "FINISHED WITH PROBLEMS — see the lines marked ! above" -IsError
+  Write-Log "FINISHED WITH PROBLEMS -- see the lines marked ! above" -IsError
   exit 1
 }
 Write-Log "OK: local offsite copy is current and hash-verified."
