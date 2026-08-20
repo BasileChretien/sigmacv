@@ -1,3 +1,11 @@
 # Container-mounted configs are read on Linux (ClickHouse) — force LF regardless
 # of a contributor's core.autocrlf so the files are byte-stable across OSes.
 clickhouse/*.xml text eol=lf
+
+# Same reasoning, higher stakes: these are executed or parsed on the Linux VPS.
+# A CRLF shebang makes the kernel look for an interpreter named "bash\r" and the
+# script dies with "bad interpreter" — on the deploy path, at the worst possible
+# moment. core.autocrlf=true normalises on commit, so this only bites a
+# contributor who has it off; pin it here rather than rely on everyone's config.
+*.sh text eol=lf
+Caddyfile text eol=lf
