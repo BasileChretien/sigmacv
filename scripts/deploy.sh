@@ -46,26 +46,44 @@ if [ -n "$cid" ]; then
   echo "[deploy] App health: ${status:-unknown}"
 fi
 
-# Apply any Caddyfile change. The Caddyfile is a mounted volume, so `up -d` does
-# NOT reload Caddy when only the file changed — without this, edits to the proxy
-# config (health checks / retry window) would silently never take effect. A
-# `caddy reload` is graceful (zero-downtime config swap); the app's new IP after a
-# recreate is picked up automatically via Docker DNS, so no reload is needed for
-# that.
+# Apply any Caddyfile change. Two separate traps here, and BOTH have bitten:
+#
+#   1. `up -d` does not reload Caddy when only the mounted config changed, so the
+#      edits would never take effect. Hence the explicit reload below. (The app's
+#      new IP after a recreate needs no reload — Docker DNS handles that.)
+#
+#   2. The mount is a SINGLE FILE (`./Caddyfile:/etc/caddy/Caddyfile:ro`), which
+#      binds the *inode*. `git pull` replaces the file via rename — new inode —
+#      so a long-running container still sees the PRE-pull file. Validating and
+#      reloading `/etc/caddy/Caddyfile` from inside the container therefore
+#      re-reads that stale copy and reports success: the deploy looks clean while
+#      the edge keeps serving the old rules. That is exactly how the 405 method
+#      allow-list (#361) shipped "deployed" but inactive, and it is the worse
+#      failure of the two — it manufactures evidence that the change landed.
+#
+# So copy the host file in and validate + reload from THAT path. `docker cp` must
+# target a non-mounted path, since the mount is read-only.
 #
 # Validate BEFORE touching the running Caddy. A failed `reload` is safe — it
 # leaves the live instance on its old, working config — but blindly falling back
 # to `--force-recreate` with a broken Caddyfile would crash-loop the edge and take
 # the whole site down. So reload/recreate only once the config is known good; the
 # recreate fallback then covers the narrow case where the config is valid but the
-# admin reload API is unreachable. Errors stay visible (no stderr suppression).
+# admin reload API is unreachable (a recreate also re-resolves the mount, so it
+# picks up the current file too). Errors stay visible (no stderr suppression).
 echo "[deploy] Validating + reloading Caddy config…"
-if compose "$@" exec -T caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile; then
-  compose "$@" exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile \
-    || compose "$@" up -d --force-recreate caddy
+caddy_cid="$(compose "$@" ps -q caddy 2>/dev/null || true)"
+if [ -z "$caddy_cid" ]; then
+  echo "[deploy] ⚠️  No caddy container found — skipped the config reload." >&2
 else
-  echo "[deploy] ⚠️  Caddyfile failed validation — left the running Caddy untouched. Fix it and re-run." >&2
-  exit 1
+  docker cp Caddyfile "$caddy_cid:/tmp/Caddyfile.deploy"
+  if compose "$@" exec -T caddy caddy validate --config /tmp/Caddyfile.deploy --adapter caddyfile; then
+    compose "$@" exec -T caddy caddy reload --config /tmp/Caddyfile.deploy --adapter caddyfile \
+      || compose "$@" up -d --force-recreate caddy
+  else
+    echo "[deploy] ⚠️  Caddyfile failed validation — left the running Caddy untouched. Fix it and re-run." >&2
+    exit 1
+  fi
 fi
 
 echo "[deploy] Pruning dangling images…"
