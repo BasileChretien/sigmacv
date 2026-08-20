@@ -149,10 +149,53 @@ done
 docker compose exec -T postgres psql -U sigmacv -d postgres -c 'DROP DATABASE restore_test;'
 ```
 
-**⚠️ Gap to close:** if dumps only live on this VPS, a disk failure loses app
-_and_ backups. Add an offsite copy — simplest options: a Hetzner Storage Box +
-nightly `rclone copy /var/backups/sigmacv remote:sigmacv-backups`, or Hetzner's
-server snapshots. Verify offsite freshness monthly.
+### Offsite copies (`scripts/offsite-backup.sh`)
+
+Dumps that only live on this VPS are lost with it — a disk failure takes the app
+_and_ its backups together. `scripts/offsite-backup.sh` copies them off, **verifies**
+the remote against local (`rclone check`), reports offsite freshness, and prunes old
+copies.
+
+```bash
+cd /root/sigmacv
+RCLONE_REMOTE=sigmacv-crypt:sigmacv-backups ./scripts/offsite-backup.sh   # run once by hand
+# 15 5 * * * cd /root/sigmacv && RCLONE_REMOTE=sigmacv-crypt:sigmacv-backups ./scripts/offsite-backup.sh >> /var/log/sigmacv-offsite.log 2>&1
+```
+
+**⚠️ Data residency — choose the remote before you script it.** These dumps are
+personal data, and the published privacy notice says it is stored _"with our hosting
+provider in the European Union (Germany) … under a data-processing agreement"_. An
+offsite copy is still processing:
+
+- A **Hetzner Storage Box / Object Storage** keeps it with the same provider in the
+  EU under the DPA already in place — the notice stays true as written.
+- **Anywhere else adds a sub-processor**, and a non-EU destination adds an
+  international transfer. Both require updating `src/lib/i18n/privacy.ts` (`sharing`,
+  all ten locales) **before** switching.
+
+**Encrypt regardless.** A dump is the whole user table in one file; wrap the remote in
+an `rclone crypt` (an sftp remote for the Storage Box, then a crypt remote around it,
+and point `RCLONE_REMOTE` at the crypt one) so the offsite copy is useless to anyone
+who obtains it.
+
+Design choices worth knowing: it uses `rclone copy`, never `sync` — sync would mirror
+a local deletion or a wiped disk straight to the offsite copy, which is the exact
+failure it exists to survive. It refuses to ship a **stale** dump (that would make the
+freshness check pass while the dump pipeline is already broken), prunes only **after**
+a successful verify, and never prunes below `MIN_KEEP`. Tunables: `RCLONE_REMOTE`,
+`BACKUP_DIR`, `BACKUP_GLOB`, `RETENTION_DAYS` (30), `MIN_KEEP` (7), `MAX_AGE_HOURS`,
+`HEARTBEAT_URL`.
+
+**To prove the offsite copy itself restores** — the guarantee that actually matters —
+pull the newest remote dump into a scratch directory and point the restore test at it:
+
+```bash
+mkdir -p /tmp/offsite-check && rclone copy "$RCLONE_REMOTE" /tmp/offsite-check --include '*.sql.gz' --max-age 2d
+BACKUP_DIR=/tmp/offsite-check ./scripts/verify-backup.sh
+rm -rf /tmp/offsite-check
+```
+
+Worth doing monthly, and after any change to the remote.
 
 ---
 
