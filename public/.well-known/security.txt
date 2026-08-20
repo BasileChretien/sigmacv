@@ -1,0 +1,11 @@
+# Security contact for SigmaCV (https://sigmacv.org)
+# RFC 9116. SigmaCV processes personal data (names, emails, ORCID iDs, CV
+# contents) under GDPR and Japan's APPI, so a published reporting route matters.
+# Please report privately using the contact below rather than opening a public
+# issue. We aim to acknowledge within a few days.
+
+Contact: mailto:chretien.basile.jean.bernard.u4@s.mail.nagoya-u.ac.jp
+Expires: 2027-08-20T00:00:00.000Z
+Preferred-Languages: en, fr, ja
+Canonical: https://sigmacv.org/.well-known/security.txt
+Policy: https://github.com/BasileChretien/sigmacv/blob/main/SECURITY.md
