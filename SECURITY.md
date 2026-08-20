@@ -126,7 +126,9 @@ Set these before exposing the app publicly (see `.env.production.example`):
 - `RATE_LIMIT_PERSIST=true` — durable, cross-instance rate limiting.
 - Keep Postgres **unpublished** to the internet (the compose files `expose` only).
 - Caddy sets `X-Forwarded-For` to the real peer and `request_body max_size`; keep
-  `/api/internal/*` blocked at the edge.
+  `/api/internal/*` blocked at the edge, and keep the method allow-list (anything
+  outside `GET HEAD POST PUT PATCH DELETE OPTIONS` gets a 405 + `Allow` header,
+  so odd methods never reach Node).
 
 ## Accepted residual risks
 

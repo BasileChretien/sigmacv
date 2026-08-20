@@ -17,6 +17,15 @@
 	# AUTH_URL is runtime-only — so the edge has to set it.
 	header Strict-Transport-Security "max-age=63072000; includeSubDomains"
 
+	# Reject methods the app never serves (TRACE, TRACK, CONNECT, PROPFIND, …) at
+	# the edge, so an unhandled method can't reach Node and surface as a 500. Not
+	# an exploit — a TRACE probe showed no header reflection and no stack trace —
+	# but a 405 with an Allow header is the correct answer, and one fewer odd path
+	# into the app. RFC 9110 requires the Allow header on a 405.
+	@bad_method not method GET HEAD POST PUT PATCH DELETE OPTIONS
+	header @bad_method Allow "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
+	respond @bad_method 405
+
 	# /api/internal/* (the secret-guarded resync endpoint) is machine-to-machine
 	# only — the cron container reaches it directly at http://app:3000 on the
 	# internal Docker network. Never expose it publicly, even with the Bearer guard.
