@@ -253,7 +253,7 @@ Worth doing monthly, and after any change to the remote.
 docker compose exec -T postgres psql -U sigmacv -d sigmacv -tc 'SELECT count(*) FROM "OepEditorialRole";'
 ```
 
-**Expect:** ≈ **347,000** (definitely not 0). If 0, the Editorial Roles section
+**Expect:** ≈ **589,000** (definitely not 0). If 0, the Editorial Roles section
 is silently empty for everyone. To run the import on the VPS (Postgres is not
 published to the host, so run a node container on the compose network):
 
@@ -263,7 +263,7 @@ docker network ls | grep sigmacv          # note the network name, e.g. sigmacv_
 docker run --rm -v "$PWD":/work -w /work --network sigmacv_default \
   --env-file .env -e DATABASE_URL="postgresql://sigmacv:${POSTGRES_PASSWORD}@postgres:5432/sigmacv" \
   node:22-bookworm sh -c 'npm ci && npm run oep:import'
-# then re-run the count above — expect ~347k
+# then re-run the count above — expect ~589k
 ```
 
 ---
