@@ -7,7 +7,7 @@
 # Node 24 matches the runtime: mcr.microsoft.com/playwright:v1.62.1-noble ships
 # NODE_VERSION=24, so building on 22 meant compiling on one major and running on
 # another.
-FROM node:24-bookworm-slim AS builder
+FROM node:26-bookworm-slim AS builder
 WORKDIR /app
 
 # Prisma needs OpenSSL present at generate time.
