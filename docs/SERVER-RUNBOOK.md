@@ -265,11 +265,57 @@ is covered by wording that already exists. A third-party bucket would need decla
 
 **Conditions this relies on:**
 
-- **BitLocker must stay ON.** The dump is every user's account, email and CV in one
-  file; an unencrypted stolen laptop is a notifiable breach.
+- **The dumps are encrypted by the pull script, with `age`.** Each file is stored as
+  `<name>.gz.age`, encrypted to a **recipient public key** — so this PC holds the means
+  to _write_ backups but not to _read_ them, and a stolen machine yields ciphertext.
+  The private key belongs in a password manager; if it is lost, every copy here is lost
+  with it. Setup and restore below.
 - **It is the only offsite copy, by choice.** One device can be stolen, fail, or be
   ransomwared — and ransomware specifically targets mounted backup folders. The
   staleness warning is the compensating control; heed it.
+
+> **Corrected 2026-09-02: this section used to say "BitLocker must stay ON", and the
+> pull script's header said the same.** Nobody had ever checked. `manage-bde -status`
+> reported **both volumes `Fully Decrypted`, `Protection Off`, no key protectors** — so
+> ~150 users' accounts, emails and CVs had been sitting unencrypted on an endpoint while
+> the documentation asserted otherwise. The fix is deliberately not to re-assert it: the
+> dumps are now encrypted by the pull script itself, which does not depend on the state
+> of the disk they land on. Whole-disk encryption is still worth enabling, but it
+> protects a different thing (a powered-off machine) and is no longer load-bearing here.
+> A documented control nobody has verified is not a control.
+
+**One-time setup on the PC:**
+
+```powershell
+winget install FiloSottile.age
+age-keygen -o key.txt          # move the AGE-SECRET-KEY line into a password manager,
+                               # then delete key.txt - it must not stay on this disk
+[Environment]::SetEnvironmentVariable("SIGMACV_BACKUP_AGE_RECIPIENT", "age1...", "User")
+pwsh -File scripts\pull-backups.ps1 -RemoteHost root@sigmacv.org -MigratePlaintext
+```
+
+`-MigratePlaintext` encrypts dumps pulled before this existed. It deletes a plaintext
+file **only** where the server still holds the identical copy, so a mistyped recipient
+can never destroy the only copy; anything the server has already rotated away is
+encrypted but kept, and named in the log for manual removal once you have confirmed you
+can decrypt it.
+
+Without a recipient the script **fails closed** and pulls nothing — a stopped pull is
+visible in Task Scheduler and recoverable, whereas silently writing personal data in the
+clear is neither. `-AllowPlaintext` exists as a deliberate escape hatch.
+
+**Restoring one:**
+
+```powershell
+age -d -i <identity-file> sigmacv-20260902-073352.sql.gz.age > sigmacv.sql.gz
+# then confirm it decrypted to the right bytes:
+(Get-FileHash sigmacv.sql.gz -Algorithm SHA256).Hash.ToLower()
+Get-Content sigmacv-20260902-073352.sql.gz.sha256   # must match
+```
+
+Every artefact has a `.sha256` sidecar holding the **plaintext** hash recorded at pull
+time, which is what makes that check possible — the ciphertext itself cannot be compared
+against the server, since `age` uses a fresh ephemeral key on every run.
 
 > **Removed 2026-08-20: the Google Drive leg.** The previous script copied every dump
 > to `gdrive:SigmaCV-Backups/` unencrypted. That put ~130 users' records with an
