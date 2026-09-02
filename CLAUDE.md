@@ -106,6 +106,17 @@ The dev DB (Neon) is **push-managed**, so after changing `prisma/schema.prisma` 
 
 The Prisma client is generated into **`src/generated/prisma/`** (gitignored — `postinstall` runs `prisma generate`, so a fresh clone or a newly added worktree must `npm install` before `npm run typecheck` can resolve the `@/generated/prisma/*` imports). Treat it as build output — never hand-edit.
 
+### Dependency hygiene (`allowScripts`, `overrides`)
+
+Dependabot watches three ecosystems — npm, GitHub Actions, and (since this change) the **Dockerfile base images**; the Playwright runtime image is deliberately excluded there because its tag is bound to the exact `playwright` npm version by `tests/dockerfile-playwright-sync.test.ts`, so it must move together with the npm bump.
+
+Two things need a human hand when dependencies change:
+
+- **`allowScripts` in `package.json`.** From **npm 12** dependency install scripts are blocked unless the package is listed there; npm ≤ 11 ignores the field. Today it approves `esbuild`, `prisma` and `@prisma/engines` — the three that genuinely need to run (query engine download, esbuild binary). Entries are deliberately **name-only, not version-pinned**, so routine Dependabot bumps don't silently skip those scripts. When an install ends with "packages had install scripts blocked", review the package and then `npm install-scripts approve <pkg> --no-allow-scripts-pin` — don't blanket-approve with `--all`. The Dockerfile's global `prisma` install passes the equivalent `--allow-scripts=prisma,@prisma/engines` flag, since a global install has no `package.json` to read.
+- **`overrides`.** These pin transitive dependencies forward past advisories their parent hasn't picked up yet (currently `postcss`, `nodemailer`, `@hono/node-server`, plus `mysql2` and `deepmerge-ts` inside the Prisma CLI). `npm audit` is expected to report **0 vulnerabilities**; if an override becomes redundant after the parent catches up, drop it rather than letting it drift.
+
+Note that `npm audit` covers the repo tree only. The production image installs the Prisma CLI globally (`npm install -g prisma@7`), so the `mysql2` / `deepmerge-ts` overrides do **not** apply there — accepted, because neither is on a code path SigmaCV executes (Postgres only).
+
 ## Commands
 
 ```bash

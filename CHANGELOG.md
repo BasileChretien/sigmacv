@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **All known dependency advisories are closed again (`npm audit`: 0).** The mail
+  library used for magic-link sign-in and digest mail moved to **nodemailer 9**,
+  which closes a high-severity advisory with no fix in the 8.x line
+  ([GHSA-p6gq-j5cr-w38f](https://github.com/advisories/GHSA-p6gq-j5cr-w38f)) and
+  adds TLS-certificate validation, STARTTLS and header-injection hardening. Two
+  further advisories reachable only through the Prisma CLI's own dependencies
+  (`mysql2`, `deepmerge-ts` — neither on a code path SigmaCV executes) are pinned
+  forward via `overrides`.
+
+### Changed
+
+- Routine dependency refresh: Next.js, Prisma, Zod, Vite/Vitest tooling and types
+  moved to their current releases.
+- **Published JSON Schema (`/schema/cv/v2.json`) regenerated.** Two changes, both
+  from the Zod upgrade: a number-or-string array is now expressed as
+  `"type": ["number", "string"]` rather than an equivalent `anyOf`, and the
+  advisory duplicate hint `meta.duplicateOf.tier` is now listed as required (it is
+  always emitted, so no document SigmaCV produces is affected).
+
 ## [0.3.0] - 2026-08-20
 
 ### Security
