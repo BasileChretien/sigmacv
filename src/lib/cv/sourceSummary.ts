@@ -47,7 +47,13 @@ const SOURCE_META: Record<string, SourceMeta> = {
   // ORCID self-asserted patents: identifier-matched (the owner's own iD), so the
   // AUTO-INCLUDED patent lane — distinct from EPO's name-matched review lane below.
   "orcid.patents": { label: "ORCID", group: "identifier" },
+  // Editorial roles whose ORCID the publisher printed on the masthead.
   oep: { label: "Open Editors Plus", group: "identifier" },
+  // Editorial roles OEP attributed by inference — an ORCID propagated from
+  // another row of the same unambiguous editor name, or an OpenAlex author id
+  // resolved from name+institution. Still identifier-keyed, but the identifier
+  // itself was inferred, so the user confirms them.
+  "oep.candidates": { label: "Open Editors Plus", group: "review" },
   datacite: { label: "DataCite", group: "identifier" },
   openaire: { label: "OpenAIRE", group: "identifier" },
   dblp: { label: "DBLP", group: "identifier" },
