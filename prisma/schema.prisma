@@ -159,16 +159,36 @@ model RateLimitWindow {
 // data: no relation to User, replaced wholesale on each import. Empty table =
 // the integration is simply a no-op (no editorial section), so the app runs
 // without it.
+// Open Editors Plus editorial-board records, bulk-imported from the committed
+// seed (`npm run oep:import`). Rows reach a CV by IDENTIFIER only — an ORCID iD
+// or an OpenAlex author ID — never by matching a name as text.
+//
+// `trust` says how strong that identifier is, and drives auto-include vs review
+// candidate in buildEditorialSection:
+//   "scraped"    — the publisher printed this ORCID on the masthead. Strongest;
+//                  auto-included.
+//   "propagated" — OEP inferred the ORCID from another row of the same
+//                  unambiguous editor name (orcid_source=propagated_name_unique).
+//                  One name in that corpus mapping to one person: usually true,
+//                  not always. Review candidate.
+//   "openalex"   — no ORCID anywhere; OEP resolved the row to an OpenAlex author
+//                  by name+institution or name alone (oa_match_method
+//                  name_ror / name_only). Weakest. Review candidate.
+// Rows OEP could not resolve to any identifier are not seeded at all.
 model OepEditorialRole {
-  id        Int     @id @default(autoincrement())
-  orcid     String
-  journal   String
-  role      String
-  roleStd   String?
-  publisher String?
-  issn      String?
+  id               Int     @id @default(autoincrement())
+  orcid            String?
+  openalexAuthorId String?
+  /// "scraped" | "propagated" | "openalex" — see the comment above.
+  trust            String  @default("scraped")
+  journal          String
+  role             String
+  roleStd          String?
+  publisher        String?
+  issn             String?
 
   @@index([orcid])
+  @@index([openalexAuthorId])
 }
 
 // WHO ICTRP reference data: clinical trials from the ~17 national registries

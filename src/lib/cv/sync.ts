@@ -37,7 +37,7 @@ import {
   fetchOrcidWorkTypes,
 } from "@/lib/orcid/client";
 import { fetchDataciteOutputs } from "@/lib/datacite/client";
-import { fetchEditorialRoles } from "@/lib/oep/client";
+import { fetchEditorialRoleCandidates, fetchEditorialRoles } from "@/lib/oep/client";
 import { fetchOpenaireOutputs } from "@/lib/openaire/client";
 import { fetchDblpConferencePapers } from "@/lib/dblp/client";
 import { fetchCrossrefGrantsByOrcid } from "@/lib/crossref/client";
@@ -311,6 +311,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     nsfGrants,
     epoPatents,
     orcidDiscoveredWorks,
+    editorialRoleCandidates,
   ] = await Promise.all([
     timed("clinicaltrials", fetchClinicalTrials(displayName, matchOrgs)),
     timed("ctis", fetchCtisTrials(displayName, matchOrgs)),
@@ -329,6 +330,14 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
       orcidWorksPromise.then((w) =>
         discoverOrcidOnlyWorks({ orcid, openAlexWorks: works, previous, orcidWorks: w }),
       ),
+    ),
+    // OEP editorships attributed by inference rather than by a printed ORCID —
+    // an ORCID propagated from another row of the same unambiguous name, or an
+    // OpenAlex author ID resolved from name+institution. Keyed on the author IDs
+    // already resolved above, so no name string reaches the query.
+    timed(
+      "oep.candidates",
+      fetchEditorialRoleCandidates({ orcid, authorIds: resolved?.authorIds ?? [] }),
     ),
   ]);
 
@@ -373,7 +382,9 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     orcidWorkTypes,
     now,
     previous,
-    editorialRoles,
+    // Scraped ORCID matches (auto-included) + inferred matches (review
+    // candidates); buildEditorialSection drops a candidate that duplicates one.
+    editorialRoles: [...editorialRoles, ...editorialRoleCandidates],
     employments: inst.employments,
     fundings,
     invitedPositions: inst.invitedPositions,
@@ -462,6 +473,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     "orcid.peerReviews": peerReviews.length,
     "orcid.discovery": orcidDiscoveredWorks.length,
     oep: editorialRoles.length,
+    "oep.candidates": editorialRoleCandidates.length,
     datacite: dataciteOutputs.length,
     openaire: openaireOutputs.length,
     dblp: dblpConferencePapers.length,

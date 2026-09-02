@@ -948,6 +948,17 @@ function buildGrantsSection(
  * re-sync even if the dataset's row order changes. Editorial roles are a
  * third-party identifier match, so "not mine" is a real disambiguation signal,
  * exactly like publications.
+ *
+ * Roles arrive in two tiers (see src/lib/oep/client.ts). A `trust` of "scraped"
+ * means the publisher printed that ORCID on the masthead — auto-included.
+ * "propagated" and "openalex" mean OEP inferred the attribution, so those are
+ * REVIEW CANDIDATES: hidden by default with `meta.reviewFlag = "name-matched"`,
+ * never auto-included. Only ~38% of OEP rows carry a scraped ORCID, so without
+ * the second tier most editorships — including three fifths of editor-in-chief
+ * records — would never surface at all.
+ *
+ * Roles with no `trust` are the user's own manual entries, treated as scraped.
+ * When both tiers describe the same editorship the scraped one wins.
  */
 function buildEditorialSection(
   roles: EditorialRole[],
@@ -957,22 +968,42 @@ function buildEditorialSection(
 ): CvSection | null {
   const key = (s: string) => normInstitution(s).replace(/[^a-z0-9]+/g, "-");
   const items: CvItem[] = [];
+  const seen = new Set<string>();
   let rank = 0;
-  for (const r of roles) {
+  // Scraped roles first, so a weaker duplicate of the same editorship never
+  // displaces the auto-included one.
+  const ordered = [...roles].sort(
+    (a, b) => Number(a.trust && a.trust !== "scraped") - Number(b.trust && b.trust !== "scraped"),
+  );
+  for (const r of ordered) {
     const years = r.startYear ? ` (${r.startYear}–${r.endYear ?? "present"})` : "";
     const id = `editorial:${key(r.journal)}:${key(r.role)}`;
-    items.push(
-      makeEntryItem(
-        id,
-        "oep",
-        "oep",
-        `${r.role}, ${r.journal}${years}`,
-        prevItems.get(id),
-        rank++,
-        undefined,
-        { lastVerifiedAt: now },
-      ),
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const prev = prevItems.get(id);
+    const it = makeEntryItem(
+      id,
+      "oep",
+      "oep",
+      `${r.role}, ${r.journal}${years}`,
+      prev,
+      rank++,
+      undefined,
+      { lastVerifiedAt: now },
     );
+    if (!r.trust || r.trust === "scraped") {
+      // The publisher printed this ORCID → auto-included (respect a prior hide).
+      items.push(it);
+    } else {
+      // Attribution inferred by OEP (propagated ORCID, or an OpenAlex author
+      // matched from name+institution) → hidden review candidate until the user
+      // confirms it. Still an identifier match, just a softer one.
+      items.push({
+        ...it,
+        included: prev?.included ?? false,
+        meta: { ...it.meta, reviewFlag: "name-matched" },
+      });
+    }
   }
   for (const m of manual) {
     items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });

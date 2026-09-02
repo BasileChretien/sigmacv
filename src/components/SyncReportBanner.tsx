@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   addedBySectionType,
   reviewEntries,
   SYNC_REPORT_SUMMARY_THRESHOLD,
   type SyncReport,
 } from "@/lib/cv/syncReport";
+import type { CanonicalCv } from "@/lib/canonical/schema";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import SourceProvenance from "./SourceProvenance";
+import { nextReviewItemId, pendingReviewItems } from "@/lib/cv/reviewNavigation";
 
 /** Per-report dismissal (keyed by the report's syncedAt) survives reloads. */
 export const SYNC_REPORT_DISMISS_KEY = "sigmacv:syncReportDismissed";
@@ -24,6 +26,13 @@ interface SyncReportBannerProps {
   /** Jump the editor to an item — the "to review" pill cycles through the review
    *  candidates. When omitted, the review count renders as a static pill. */
   onFocusItem?: (itemId: string) => void;
+  /**
+   * The current document, used to turn the provenance panel's name-matched
+   * chips into jumps to that source's outstanding candidates. Without it the
+   * chips stay static (the report alone cannot say which rows are still
+   * undecided — the user may have curated them since the sync).
+   */
+  cv?: CanonicalCv | null;
 }
 
 /**
@@ -43,7 +52,17 @@ export default function SyncReportBanner({
   suppressed = false,
   onDismissed,
   onFocusItem,
+  cv,
 }: SyncReportBannerProps) {
+  // Repeat clicks on a source chip cycle its candidates instead of pinning the
+  // first (same behaviour as the "to review" pill above).
+  const lastJumped = useRef<Record<string, string>>({});
+  // A source whose candidates have all been decided offers no jump.
+  const resolvedSources = new Set(
+    Object.keys(report?.sourceCounts ?? {})
+      .map((k) => k.split(".")[0]!)
+      .filter((src) => pendingReviewItems(cv, src).length === 0),
+  );
   const wu = workspaceUi(locale);
   // Start hidden and reveal after mount so SSR and the first client render
   // agree (the dismissal lives in localStorage, which the server can't read).
@@ -181,7 +200,21 @@ export default function SyncReportBanner({
           )}
         </details>
       ) : null}
-      <SourceProvenance sourceCounts={report.sourceCounts} locale={locale} />
+      <SourceProvenance
+        sourceCounts={report.sourceCounts}
+        locale={locale}
+        onSelectSource={
+          onFocusItem && cv
+            ? (itemSource) => {
+                const id = nextReviewItemId(cv, itemSource, lastJumped.current[itemSource]);
+                if (!id) return;
+                lastJumped.current[itemSource] = id;
+                onFocusItem(id);
+              }
+            : undefined
+        }
+        resolvedSources={resolvedSources}
+      />
     </aside>
   );
 }
