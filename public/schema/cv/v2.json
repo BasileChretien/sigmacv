@@ -686,7 +686,14 @@
                           "items": {
                             "type": "array",
                             "items": {
-                              "type": ["number", "string"]
+                              "anyOf": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
                             }
                           }
                         },
@@ -776,6 +783,10 @@
                 "notMineReason": {
                   "type": "string",
                   "enum": ["different-person", "duplicate", "wrong-field", "other"]
+                },
+                "reviewedAt": {
+                  "type": "string",
+                  "maxLength": 40
                 },
                 "featured": {
                   "type": "boolean"

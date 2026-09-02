@@ -318,6 +318,29 @@ export const CvItemSchema = z.object({
   /** Optional structured reason for a `notMine` assertion (disambiguation study). */
   notMineReason: NotMineReasonSchema.optional(),
   /**
+   * REVIEW state: ISO timestamp of when the account holder last looked at this
+   * item and CONFIRMED it is theirs. Absent = never adjudicated.
+   *
+   * This closes a gap that was previously unrepresentable: a work the user
+   * examined and kept, and a work they never opened, were BOTH stored as
+   * `included:true, notMine:false` and were indistinguishable. Any statement of
+   * the form "this profile is researcher-confirmed" needs that distinction as its
+   * denominator, and so does any per-item provenance badge — without it a
+   * "confirmed by researcher" label would be a claim about works nobody read.
+   *
+   * Only the CONFIRM side is stored. Rejection is already fully represented by
+   * `notMine` + `notMineAssertedAt`, so a separate "rejected" value here would
+   * duplicate it and admit a contradictory state (confirmed AND not-mine). The
+   * three-valued state is DERIVED — see `itemReviewState` in `canonical/review.ts`,
+   * where `notMine` takes precedence. Asserting `notMine` stamps this field too:
+   * adjudicating a work IS reviewing it.
+   *
+   * Survives re-sync (carried in `build.ts` like `included`/`featured`). Optional
+   * + back-compat: an item without it reads as "unreviewed", which is exactly what
+   * every pre-existing stored document should mean.
+   */
+  reviewedAt: z.string().max(40).optional(),
+  /**
    * "Selected / featured" pin (a display-curation choice, distinct from `included`
    * and `notMine`). When true, the work is sorted to the TOP of its section ahead
    * of the normal order and marked with a quiet "Selected" star — the equivalent of

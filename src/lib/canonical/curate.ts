@@ -85,6 +85,12 @@ export function setItemNotMine(
             notMine,
             notMineAssertedAt: notMine ? now : undefined,
             notMineReason: notMine ? opts.reason : undefined,
+            // Adjudicating a work IS reviewing it, so an assertion stamps the
+            // review timestamp too. Retracting does NOT clear it: the user has
+            // still looked at the item, and `itemReviewState` then reads it as
+            // "confirmed" — which is the correct reading of "I checked this, and
+            // on reflection it is mine".
+            reviewedAt: notMine ? now : (it.reviewedAt ?? now),
           }
         : it,
     ),
@@ -107,6 +113,33 @@ export function setItemFeatured(
   return mapSection(cv, sectionId, (s) => ({
     ...s,
     items: s.items.map((it) => (it.id === itemId ? { ...it, featured } : it)),
+  }));
+}
+
+/**
+ * Mark an item as REVIEWED-AND-CONFIRMED by the account holder, or clear that
+ * mark. Purely a record of adjudication: it changes nothing about what renders,
+ * and is orthogonal to `included` (display) and `notMine` (disambiguation).
+ *
+ * Confirming does NOT retract a `notMine` assertion — `itemReviewState` gives
+ * `notMine` precedence, so the pair can never present a contradictory state. To
+ * un-reject, retract the assertion with {@link setItemNotMine}.
+ *
+ * `now` is threaded in for determinism; falls back to wall-clock if omitted.
+ */
+export function setItemReviewed(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  reviewed: boolean,
+  opts: { now?: string } = {},
+): CanonicalCv {
+  const now = opts.now ?? new Date().toISOString();
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) =>
+      it.id === itemId ? { ...it, reviewedAt: reviewed ? now : undefined } : it,
+    ),
   }));
 }
 
