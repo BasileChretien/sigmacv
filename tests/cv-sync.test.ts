@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   fetchWorks: vi.fn(),
   resolveAuthor: vi.fn(),
   fetchEditorial: vi.fn(),
+  fetchEditorialCandidates: vi.fn(),
   logCvSave: vi.fn(),
   canonicalizeInstitutions: vi.fn(),
   enrichCvWithCrossref: vi.fn(),
@@ -61,7 +62,10 @@ vi.mock("@/lib/openalex/client", () => ({
   fetchJournalNamesByIssn: mocks.fetchJournalNames,
 }));
 vi.mock("@/lib/openalex/resolveAuthor", () => ({ resolveAuthorByOrcid: mocks.resolveAuthor }));
-vi.mock("@/lib/oep/client", () => ({ fetchEditorialRoles: mocks.fetchEditorial }));
+vi.mock("@/lib/oep/client", () => ({
+  fetchEditorialRoles: mocks.fetchEditorial,
+  fetchEditorialRoleCandidates: mocks.fetchEditorialCandidates,
+}));
 vi.mock("@/lib/research/log", () => ({ logCvSave: mocks.logCvSave }));
 // ORCID + DataCite clients have their own tests; stub them to [] so this
 // orchestration test makes no network calls.
@@ -153,6 +157,7 @@ beforeEach(() => {
   mocks.upsert.mockResolvedValue({});
   mocks.logCvSave.mockResolvedValue(undefined);
   mocks.fetchEditorial.mockResolvedValue([]);
+  mocks.fetchEditorialCandidates.mockResolvedValue([]);
   // Enrichment is a pass-through here (its own behaviour is in enrich.test.ts).
   mocks.canonicalizeInstitutions.mockImplementation(async (input) => ({
     result: input,
@@ -521,6 +526,74 @@ describe("buildCvFromOrcid (session-less, shared with the no-login preview)", ()
     // Pure of the database: no read, no upsert (the sync path owns persistence).
     expect(mocks.findUnique).not.toHaveBeenCalled();
     expect(mocks.upsert).not.toHaveBeenCalled();
+  });
+
+  // End-to-end guard for the Open Editors Plus trust tiers. The tier logic has
+  // unit tests against buildCanonicalCv, and the queries have unit tests against
+  // a mocked Prisma — but nothing previously asserted that a candidate survives
+  // the whole path from client to rendered section. A wiring slip (wrong
+  // destructuring order, a dropped spread) passed every test and was only caught
+  // in production. Reported by DIBISO / Université Paris-Saclay: a chief editor
+  // whose Elsevier editorship was absent because that publisher prints no ORCID.
+  it("threads OEP candidates through to Editorial Roles, hidden for review", async () => {
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    mocks.fetchEditorial.mockResolvedValue([
+      { journal: "Biomolecules", role: "Section Board Member", trust: "scraped" },
+    ]);
+    mocks.fetchEditorialCandidates.mockResolvedValue([
+      {
+        journal: "Respiratory Medicine and Research",
+        role: "Editor-in-chief",
+        trust: "propagated",
+      },
+    ]);
+
+    const { cv, report } = await buildCvFromOrcid({ orcid: RESOLVED.orcid });
+    const editorial = cv.sections.find((s) => s.id === "editorial");
+    expect(editorial).toBeDefined();
+    expect(editorial!.items).toHaveLength(2);
+
+    const scraped = editorial!.items.find((i) => i.displayText?.includes("Biomolecules"))!;
+    expect(scraped.included).toBe(true);
+    expect(scraped.meta.reviewFlag).toBeUndefined();
+
+    const candidate = editorial!.items.find((i) =>
+      i.displayText?.includes("Respiratory Medicine"),
+    )!;
+    expect(candidate).toBeDefined();
+    expect(candidate.included).toBe(false);
+    expect(candidate.meta.reviewFlag).toBe("name-matched");
+
+    // The candidate tier gets its own provenance line, so the panel reports it
+    // under "matched by name — review these" instead of under-counting OEP.
+    expect(report.sourceCounts?.oep).toBe(1);
+    expect(report.sourceCounts?.["oep.candidates"]).toBe(1);
+  });
+
+  it("keys the candidate query on identifiers only, never on a name", async () => {
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    await buildCvFromOrcid({ orcid: RESOLVED.orcid });
+    expect(mocks.fetchEditorialCandidates).toHaveBeenCalledWith({
+      orcid: RESOLVED.orcid,
+      authorIds: RESOLVED.authorIds,
+    });
+  });
+
+  it("still builds when the candidate lookup fails soft", async () => {
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    mocks.fetchEditorial.mockResolvedValue([
+      { journal: "Biomolecules", role: "Section Board Member", trust: "scraped" },
+    ]);
+    // The client swallows a query error and returns []; the zero is the only
+    // trace, which is exactly why it now has its own sourceCounts line.
+    mocks.fetchEditorialCandidates.mockResolvedValue([]);
+
+    const { cv, report } = await buildCvFromOrcid({ orcid: RESOLVED.orcid });
+    expect(cv.sections.find((s) => s.id === "editorial")!.items).toHaveLength(1);
+    expect(report.sourceCounts?.["oep.candidates"]).toBe(0);
   });
 });
 
