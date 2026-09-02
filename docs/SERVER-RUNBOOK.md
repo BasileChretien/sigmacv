@@ -187,6 +187,61 @@ Only the **app** dump gets the full restore-verification in §2 above
 `postgres` service and compares the `User`/`Cv` tables, so it is app-specific by
 construction. The other two get the gzip and size checks at dump time.
 
+### 2b. ClickHouse — Plausible's analytics events (`scripts/clickhouse-backup.sh`)
+
+Postgres is not the whole picture: Plausible keeps its **events** in ClickHouse
+(`plausible_events_db`), a different engine needing a different mechanism. Cron, ten
+minutes after the Postgres dump so the two never contend:
+
+```
+40 3 * * * /root/sigmacv/scripts/clickhouse-backup.sh >> /var/log/sigmacv-backup.log 2>&1
+45 4 * * * cd /root/sigmacv && ./scripts/clickhouse-verify-backup.sh >> /var/log/sigmacv-backup-verify.log 2>&1
+```
+
+It writes `clickhouse-YYYYMMDD-HHMMSS.tar.gz` beside the Postgres dumps, keeping 14.
+The artefact holds `schema.sql`, `manifest.tsv` (table, engine, row count at dump
+time) and `data/<table>.native` per non-empty table. **Note the extension** — it is a
+`.tar.gz`, not `.sql.gz`, which is why `pull-backups.ps1` globs `*.gz`.
+
+Three things about it are load-bearing and easy to get wrong:
+
+- **Dependency order.** The graph runs both ways: a dictionary reads a table
+  (`location_data` → `location_data_dict`), and tables read dictionaries —
+  `events_v2` has `ALIAS`/`MATERIALIZED` columns calling `dictGet(…)`. Neither
+  "tables first" nor "dictionaries first" restores, and ordering by dependency
+  _count_ is not safe either (`imported_locations` and `location_data_dict` both have
+  exactly one). The script topologically sorts ClickHouse's own graph
+  (`system.tables.loading_dependencies_table`) so `schema.sql` applies top to bottom.
+- **`Native` format**, not TSV/CSV: `events_v2` carries `Array` and `Map` columns
+  that a text round-trip would not restore faithfully.
+- **`--optimize_on_insert 0` when restoring.** It defaults to 1 and applies
+  collapsing during the insert, so a `VersionedCollapsingMergeTree` like
+  `sessions_v2` comes back with fewer physical rows than were dumped. Restore exactly
+  what was dumped; normal merges will collapse it later just as the source would.
+
+**Restoring for real** (the database is gone, not a verification):
+
+```bash
+cd /root/sigmacv
+tar -xzf /root/sigmacv-backups/clickhouse-<TS>.tar.gz -C /tmp/chrestore
+# schema.sql is fully qualified and already in dependency order — apply as-is.
+docker compose exec -T plausible_events_db clickhouse-client --multiquery < /tmp/chrestore/schema.sql
+for f in /tmp/chrestore/data/*.native; do
+  t="$(basename "$f" .native)"
+  docker compose exec -T plausible_events_db clickhouse-client --optimize_on_insert 0 \
+    -q "INSERT INTO plausible_events_db.\`$t\` FORMAT Native" < "$f"
+done
+```
+
+Tables absent from `data/` were empty at dump time — a zero-row `Native` dump is a
+zero-byte file that `INSERT` rejects with `NO_DATA_TO_INSERT`, so they are recorded
+in the manifest at 0 rows and no file is written.
+
+`scripts/clickhouse-verify-backup.sh` does all of the above nightly into a throwaway
+database, compares every row count against the manifest, checks the manifest covers
+as many tables as production has, and drops the scratch copy. The live database is
+only ever read.
+
 ### Offsite copy: pulled to the maintainer's machine (`scripts/pull-backups.ps1`)
 
 Dumps that only live on this VPS are lost with it. The offsite copy is **pulled** to
