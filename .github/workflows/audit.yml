@@ -1,0 +1,48 @@
+# Advisory watch for the npm dependency tree.
+#
+# Dependabot alerts + security updates cover *newly disclosed* advisories, but an
+# alert is a notification, not a gate. This makes the state visible in CI:
+#
+#   * on a PR that touches the manifests, a dependency change that introduces a
+#     high/critical advisory fails that PR — the change and the failure are the
+#     same review;
+#   * weekly, so an advisory disclosed against dependencies nobody is touching
+#     still surfaces as a red run rather than sitting silent (which is how eight
+#     high-severity advisories accumulated unnoticed before 2026-09-02).
+#
+# Deliberately NOT wired into ci.yml: an upstream disclosure would otherwise turn
+# every unrelated PR red, which trains people to ignore it.
+name: Audit
+
+on:
+  schedule:
+    - cron: "17 4 * * 2" # Tuesdays 04:17 UTC
+  pull_request:
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      # No `npm ci`: `npm audit` resolves the tree from package-lock.json alone,
+      # so this stays a ~15s job instead of a full install.
+      - name: Audit dependencies (fails on high or critical)
+        run: npm audit --audit-level=high

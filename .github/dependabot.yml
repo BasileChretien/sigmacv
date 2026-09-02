@@ -53,3 +53,35 @@ updates:
       # if they drift). Bumping it on its own would always open a red PR, so it
       # rides along with the npm Playwright bump instead.
       - dependency-name: "mcr.microsoft.com/playwright"
+
+  # Docker Compose services (docker-compose*.yml). The `docker` ecosystem above
+  # only scans the Dockerfile — Compose is a SEPARATE ecosystem — so without this
+  # entry the internet-facing Caddy plus Postgres, ClickHouse, Plausible and
+  # Metabase are watched by nothing at all.
+  #
+  # Read these PRs before merging. `scripts/deploy.sh` runs a bare
+  # `docker compose up -d` with NO service filter, so a merged image bump is
+  # applied on the very next deploy — Compose recreates every service whose
+  # image changed, not just `app`. That makes a `postgres` or
+  # `clickhouse-server` MAJOR genuinely dangerous: it is a data migration
+  # (pg_upgrade / dump + restore), so merging one quietly means the next deploy
+  # recreates the container against a data directory the new major refuses to
+  # open. Majors arrive as individual PRs precisely so they stay visible.
+  #
+  # (Contrast the Caddyfile, which is bind-mounted: editing it changes no
+  # config hash, so `up -d` does NOT recreate caddy — deploy.sh validates and
+  # reloads it explicitly instead. Image tags and mounted files behave
+  # differently; don't reason about one from the other.)
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      compose-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "dependencies"
+      - "ci"
