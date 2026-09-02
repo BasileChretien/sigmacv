@@ -151,7 +151,7 @@ services:
   # ClickHouse — Plausible's event store. Tuned for <16 GB RAM via the mounted
   # config (pinned to the Plausible CE v3.2.1 source). Internal-only.
   plausible_events_db:
-    image: clickhouse/clickhouse-server:24.12-alpine
+    image: clickhouse/clickhouse-server:26.8-alpine
     restart: unless-stopped
     profiles: ["analytics"]
     volumes:
