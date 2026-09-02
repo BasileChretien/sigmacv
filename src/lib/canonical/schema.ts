@@ -563,7 +563,11 @@ export const CvItemSchema = z.object({
       .object({
         /** Item id of the representative (the work to keep). */
         itemId: z.string().max(1024),
-        tier: z.enum(DUPLICATE_TIERS).catch("weak"),
+        // `.default()` as well as `.catch()`: both make a missing `tier` parse to
+        // "weak", but only `.default()` also marks it optional in the published
+        // INPUT JSON Schema (Zod 4.5 stopped inferring that from `.catch()`), so
+        // the schema keeps matching what the parser actually accepts.
+        tier: z.enum(DUPLICATE_TIERS).default("weak").catch("weak"),
         relationship: z.enum(DUPLICATE_RELATIONSHIPS).optional().catch(undefined),
         /** Stable id of the duplicate group (the representative's id). */
         groupId: z.string().max(1024),

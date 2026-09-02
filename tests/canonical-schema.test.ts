@@ -237,6 +237,36 @@ describe("parseCanonicalCv", () => {
     expect(dup.relationship).toBeUndefined(); // unknown relationship degrades
   });
 
+  // A hint with no tier at all parses to "weak" too. Guards the published JSON
+  // Schema against re-tightening: Zod 4.5 stopped inferring "optional" from
+  // `.catch()`, which briefly made the schema require a field the parser fills in.
+  it("defaults a duplicate hint with no tier to weak", () => {
+    const noTier = {
+      ...validCv,
+      sections: [
+        {
+          ...validCv.sections[0],
+          items: [
+            {
+              id: "W2",
+              source: "openalex",
+              sourceId: "https://openalex.org/W2",
+              included: true,
+              order: 0,
+              authoredBySelf: false,
+              selfNameVariants: [],
+              meta: { duplicateOf: { itemId: "W1", groupId: "W1" } },
+            },
+          ],
+        },
+      ],
+    };
+    const parsed = safeParseCanonicalCv(noTier);
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.sections[0]!.items[0]!.meta.duplicateOf!.tier).toBe("weak");
+  });
+
   it("rejects an oversized item id (field-length cap, defence against payload abuse)", () => {
     const bad = {
       ...validCv,

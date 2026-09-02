@@ -1020,7 +1020,7 @@
                           "maxLength": 1024
                         }
                       },
-                      "required": ["itemId", "tier", "groupId"]
+                      "required": ["itemId", "groupId"]
                     },
                     "topic": {
                       "type": "object",
