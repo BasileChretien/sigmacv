@@ -147,7 +147,15 @@ function Protect-Dump {
     Write-Log "  ! $(Split-Path $agePath -Leaf) is not a valid age file -- discarded" -IsError
     return $false
   }
+  # Carry the plaintext's timestamp onto the artefact. `scp -p` preserves the
+  # server's mtime precisely so the staleness check below measures the age of the
+  # DUMP rather than the age of the copy -- but `age` writes a brand-new file, so
+  # without this every artefact looks 0h old forever and the staleness check
+  # silently never fires. It showed up as an August dump reported as "0h old".
+  $srcTime = (Get-Item -LiteralPath $PlainPath).LastWriteTime
   Set-Content -LiteralPath "$PlainPath.sha256" -Value $Sha256 -Encoding ASCII
+  (Get-Item -LiteralPath $agePath).LastWriteTime = $srcTime
+  (Get-Item -LiteralPath "$PlainPath.sha256").LastWriteTime = $srcTime
   return $true
 }
 
