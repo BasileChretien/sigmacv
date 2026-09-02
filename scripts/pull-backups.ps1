@@ -38,7 +38,7 @@ param(
   # entirely by one database's dumps while another silently stopped being copied,
   # and the newest-file staleness check would be answered by whichever database
   # still worked. Both failures would look healthy.
-  [string[]]$Prefixes = @("sigmacv", "metabase", "plausible"),
+  [string[]]$Prefixes = @("sigmacv", "metabase", "plausible", "clickhouse"),
   [int]$KeepDays = 14,
   [int]$MinKeep = 7,
   [int]$MaxAgeHours = 48,
@@ -75,15 +75,18 @@ New-Item -ItemType Directory -Force -Path $LocalDir | Out-Null
 Write-Log "=== SigmaCV backup pull from $RemoteHost ==="
 
 # --- 1. What does the server have? -------------------------------------------
-# Transfer is deliberately catch-all (`*.sql.gz`) rather than one glob per prefix:
+# Matches `*.gz`, not `*.sql.gz`: the ClickHouse artefact is a `.tar.gz` (schema +
+# per-table Native data + manifest), so an extension-anchored glob would silently
+# leave the analytics backup on the server. Transfer is catch-all rather than one
+# glob per prefix:
 # a database added to pg-backup.sh is then copied offsite automatically instead of
 # being silently skipped until someone remembers to edit this script too. The
 # per-prefix guarantees are enforced below, on what actually arrived.
-$remoteList = & ssh -o BatchMode=yes -o ConnectTimeout=20 $RemoteHost "ls -1 $RemoteDir/*.sql.gz 2>/dev/null" 2>&1
+$remoteList = & ssh -o BatchMode=yes -o ConnectTimeout=20 $RemoteHost "ls -1 $RemoteDir/*.gz 2>/dev/null" 2>&1
 if ($LASTEXITCODE -ne 0) {
   Fail "ssh to $RemoteHost failed: $remoteList"
 }
-$remoteFiles = @($remoteList | Where-Object { $_ -match "\.sql\.gz$" } | ForEach-Object { $_.Trim() })
+$remoteFiles = @($remoteList | Where-Object { $_ -match "\.gz$" } | ForEach-Object { $_.Trim() })
 if ($remoteFiles.Count -eq 0) { Fail "no dumps found in ${RemoteDir} on the server" }
 Write-Log "  server holds $($remoteFiles.Count) dump(s)"
 
@@ -94,7 +97,7 @@ Write-Log "  server holds $($remoteFiles.Count) dump(s)"
 # perfectly valid hash was rejected ("could not hash ... (got '<valid hash>')").
 # It also cost a round trip per file. One call fixes both, and the exit code is
 # captured immediately rather than after a pipeline that may have killed ssh.
-$hashOutput = & ssh -o BatchMode=yes -o ConnectTimeout=20 $RemoteHost "sha256sum $RemoteDir/*.sql.gz" 2>&1
+$hashOutput = & ssh -o BatchMode=yes -o ConnectTimeout=20 $RemoteHost "sha256sum $RemoteDir/*.gz" 2>&1
 $hashExit = $LASTEXITCODE
 if ($hashExit -ne 0) {
   Fail "could not hash the dumps on the server (ssh exit ${hashExit}): $($hashOutput | Select-Object -First 3)"
@@ -162,7 +165,7 @@ Write-Log "  fetched $fetched new dump(s)"
 # look healthy while a database went unbacked-up.
 $totalHeld = 0
 foreach ($prefix in $Prefixes) {
-  $local = @(Get-ChildItem -LiteralPath $LocalDir -Filter "$prefix-*.sql.gz" -File | Sort-Object LastWriteTime -Descending)
+  $local = @(Get-ChildItem -LiteralPath $LocalDir -Filter "$prefix-*.gz" -File | Sort-Object LastWriteTime -Descending)
 
   if ($local.Count -eq 0) {
     Write-Log "  ! [$prefix] no dumps present locally after the pull" -IsError
@@ -188,7 +191,7 @@ foreach ($prefix in $Prefixes) {
     }
   }
 
-  $held = @(Get-ChildItem -LiteralPath $LocalDir -Filter "$prefix-*.sql.gz" -File).Count
+  $held = @(Get-ChildItem -LiteralPath $LocalDir -Filter "$prefix-*.gz" -File).Count
   $totalHeld += $held
   Write-Log "  [$prefix] local copy holds $held dump(s)"
 }
