@@ -6,7 +6,9 @@
 #
 # Node 24 matches the runtime: mcr.microsoft.com/playwright:v1.62.1-noble ships
 # NODE_VERSION=24, so building on 22 meant compiling on one major and running on
-# another.
+# another. This pairing is load-bearing, so Dependabot is configured to ignore
+# Node MAJOR bumps for this image (.github/dependabot.yml) — bump it by hand when
+# the Playwright runtime image below moves to a newer Node, and not before.
 FROM node:24-bookworm-slim AS builder
 WORKDIR /app
 

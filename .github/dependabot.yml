@@ -54,6 +54,20 @@ updates:
       # rides along with the npm Playwright bump instead.
       - dependency-name: "mcr.microsoft.com/playwright"
 
+      # The builder's Node MAJOR is not a free-floating dependency either: it is
+      # pinned to whatever the Playwright runtime image ships (v1.62.1-noble ->
+      # Node v24.18.1, verified 2026-09-02). Letting Docker Hub's cadence drive it
+      # reintroduces the build-on-one-major / run-on-another bug the comment above
+      # the builder FROM records fixing — which is exactly what #371 (node 24 -> 26)
+      # proposed, and CI could not have caught it because no workflow builds the
+      # Dockerfile. Move this major deliberately, together with the runtime image,
+      # when Playwright ships a base image on a newer Node.
+      #
+      # Scoped to majors: minor/patch bumps inside the line still arrive, so
+      # security fixes within 24.x are NOT blocked by this.
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
+
   # Docker Compose services (docker-compose*.yml). The `docker` ecosystem above
   # only scans the Dockerfile — Compose is a SEPARATE ecosystem — so without this
   # entry the internet-facing Caddy plus Postgres, ClickHouse, Plausible and
