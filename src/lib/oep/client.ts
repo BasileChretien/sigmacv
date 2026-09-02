@@ -78,7 +78,10 @@ export async function fetchEditorialRoles(orcid: string): Promise<EditorialRole[
     });
     return toRoles(rows);
   } catch (err) {
-    logger.warn("oep.editorial_roles_failed", { err });
+    // Fail soft (an OEP hiccup must never break a sync), but log at error
+    // level: the caller cannot tell [] "query failed" from [] "no roles",
+    // and the only other trace is a 0 in the build's sourceCounts.
+    logger.error("oep.editorial_roles_failed", { err, source: "oep" });
     return [];
   }
 }
@@ -114,7 +117,11 @@ export async function fetchEditorialRoleCandidates({
     });
     return toRoles(rows);
   } catch (err) {
-    logger.warn("oep.editorial_role_candidates_failed", { err });
+    // Same fail-soft contract as above; see the note there.
+    logger.error("oep.editorial_role_candidates_failed", {
+      err,
+      source: "oep.candidates",
+    });
     return [];
   }
 }

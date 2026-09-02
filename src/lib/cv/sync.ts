@@ -473,6 +473,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     "orcid.peerReviews": peerReviews.length,
     "orcid.discovery": orcidDiscoveredWorks.length,
     oep: editorialRoles.length,
+    "oep.candidates": editorialRoleCandidates.length,
     datacite: dataciteOutputs.length,
     openaire: openaireOutputs.length,
     dblp: dblpConferencePapers.length,
