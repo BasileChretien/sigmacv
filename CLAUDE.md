@@ -108,7 +108,14 @@ The Prisma client is generated into **`src/generated/prisma/`** (gitignored — 
 
 ### Dependency hygiene (`allowScripts`, `overrides`)
 
-Dependabot watches three ecosystems — npm, GitHub Actions, and (since this change) the **Dockerfile base images**; the Playwright runtime image is deliberately excluded there because its tag is bound to the exact `playwright` npm version by `tests/dockerfile-playwright-sync.test.ts`, so it must move together with the npm bump.
+**What actually keeps dependencies current** (audited 2026-09-02 — everything below is wired up, don't assume a gap without re-checking):
+
+- **Dependabot version updates**, weekly, over four ecosystems: `npm`, `github-actions`, `docker` (Dockerfile only) and `docker-compose` (the compose stack). `docker` and `docker-compose` are **separate ecosystems** — the first does not scan compose files, which is how Caddy/Postgres/ClickHouse/Plausible/Metabase went unwatched until 2026-09-02.
+- **Dependabot alerts + security updates**, enabled 2026-09-02. They were off before that, which is why eight high-severity advisories accumulated silently.
+- **`.github/workflows/audit.yml`** — `npm audit --audit-level=high`, weekly and on any PR touching the manifests. Deliberately kept out of `ci.yml`: an upstream disclosure would otherwise redden every unrelated PR.
+- The **Playwright runtime image** is excluded from the `docker` ecosystem because its tag is bound to the exact `playwright` npm version by `tests/dockerfile-playwright-sync.test.ts`; it must move together with the npm bump, driven from the npm side.
+
+Two things automation does **not** do, so they stay manual: nothing auto-merges a Dependabot PR (deliberate — e.g. a Node major in the builder can silently desync from the Playwright runner's Node), and **merging is not deploying** (`scripts/deploy.sh` is manual, and it only recreates the `app` container — a merged compose image bump needs `docker compose up -d <service>` before it exists in production, the same trap as Caddyfile edits).
 
 Two things need a human hand when dependencies change:
 
