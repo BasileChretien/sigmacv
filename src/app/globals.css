@@ -3778,6 +3778,22 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   border-color: var(--warn-border);
   background: var(--warn-soft);
 }
+/* A review chip that jumps to its outstanding candidates. Rendered as a
+   <button>, so it needs the font reset a bare button doesn't inherit. */
+button.src-prov-chip {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+button.src-prov-chip.is-actionable:hover,
+button.src-prov-chip.is-actionable:focus-visible {
+  border-color: var(--warn-text);
+  background: var(--warn-soft-strong, var(--warn-soft));
+}
+button.src-prov-chip.is-actionable:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--warn-text));
+  outline-offset: 2px;
+}
 .src-prov-name {
   color: var(--text-secondary);
 }

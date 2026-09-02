@@ -76,7 +76,11 @@ describe("a source that spans both columns", () => {
   it("keeps one line per group instead of summing them together", () => {
     const s = summarizeSources({ oep: 1, "oep.candidates": 1 })!;
     expect(s.identifier).toEqual([{ label: "Open Editors Plus", count: 1, group: "identifier" }]);
-    expect(s.review).toEqual([{ label: "Open Editors Plus", count: 1, group: "review" }]);
+    // Review lines also carry the CvItem source they map to, so the panel's
+    // chip can jump to the rows it counted.
+    expect(s.review).toEqual([
+      { label: "Open Editors Plus", count: 1, group: "review", itemSource: "oep" },
+    ]);
     expect(s.total).toBe(2);
   });
 

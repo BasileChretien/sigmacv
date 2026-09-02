@@ -23,6 +23,13 @@ interface SourceMeta {
   /** Brand proper noun shown to the user (never localised). */
   label: string;
   group: SourceGroup;
+  /**
+   * The `CvItem["source"]` this key's items carry, so a provenance line can be
+   * navigated back to the rows it counted. Set on review-group keys, where the
+   * user has a decision to make; identifier-matched items are already on the CV
+   * and need no jump.
+   */
+  itemSource?: string;
 }
 
 /**
@@ -53,18 +60,18 @@ const SOURCE_META: Record<string, SourceMeta> = {
   // another row of the same unambiguous editor name, or an OpenAlex author id
   // resolved from name+institution. Still identifier-keyed, but the identifier
   // itself was inferred, so the user confirms them.
-  "oep.candidates": { label: "Open Editors Plus", group: "review" },
+  "oep.candidates": { label: "Open Editors Plus", group: "review", itemSource: "oep" },
   datacite: { label: "DataCite", group: "identifier" },
   openaire: { label: "OpenAIRE", group: "identifier" },
   dblp: { label: "DBLP", group: "identifier" },
   "crossref.grants": { label: "Crossref", group: "identifier" },
-  clinicaltrials: { label: "ClinicalTrials.gov", group: "review" },
-  ctis: { label: "EU CTIS", group: "review" },
-  ictrp: { label: "WHO ICTRP", group: "review" },
-  ukri: { label: "UKRI", group: "review" },
-  nih: { label: "NIH", group: "review" },
-  nsf: { label: "NSF", group: "review" },
-  epo: { label: "EPO", group: "review" },
+  clinicaltrials: { label: "ClinicalTrials.gov", group: "review", itemSource: "clinicaltrials" },
+  ctis: { label: "EU CTIS", group: "review", itemSource: "ctis" },
+  ictrp: { label: "WHO ICTRP", group: "review", itemSource: "ictrp" },
+  ukri: { label: "UKRI", group: "review", itemSource: "ukri" },
+  nih: { label: "NIH", group: "review", itemSource: "nih" },
+  nsf: { label: "NSF", group: "review", itemSource: "nsf" },
+  epo: { label: "EPO", group: "review", itemSource: "epo" },
 };
 
 /**
@@ -83,6 +90,8 @@ export interface SourceLine {
   label: string;
   count: number;
   group: SourceGroup;
+  /** `CvItem["source"]` for this line's rows; absent when it isn't navigable. */
+  itemSource?: string;
 }
 
 /** A build's provenance, ready to render. */
@@ -130,7 +139,13 @@ export function summarizeSources(
     const lineKey = `${meta.group} ${meta.label}`;
     const existing = byLine.get(lineKey);
     if (existing) existing.count += count;
-    else byLine.set(lineKey, { label: meta.label, count, group: meta.group });
+    else
+      byLine.set(lineKey, {
+        label: meta.label,
+        count,
+        group: meta.group,
+        itemSource: meta.itemSource,
+      });
   }
 
   const lines = [...byLine.values()].filter((l) => l.count > 0);

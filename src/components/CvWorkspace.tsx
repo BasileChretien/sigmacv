@@ -468,6 +468,7 @@ export default function CvWorkspace({
             suppressed={activeOnboarding !== "syncReport"}
             onDismissed={advanceOnboarding}
             onFocusItem={(id) => editorRef.current?.jumpToItem(id)}
+            cv={cv}
           />
           <DisambiguationCoachmark
             locale={uiLocale}
