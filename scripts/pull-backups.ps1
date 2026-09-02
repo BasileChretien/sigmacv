@@ -33,6 +33,12 @@ param(
   [string]$RemoteHost = $env:SIGMACV_HOST,
   [string]$RemoteDir = "/root/sigmacv-backups",
   [string]$LocalDir = "$env:USERPROFILE\SigmaCV-Backups",
+  # One prefix per database dumped by scripts/pg-backup.sh. Staleness and pruning
+  # are evaluated PER PREFIX: with a single mixed pool, MinKeep could be satisfied
+  # entirely by one database's dumps while another silently stopped being copied,
+  # and the newest-file staleness check would be answered by whichever database
+  # still worked. Both failures would look healthy.
+  [string[]]$Prefixes = @("sigmacv", "metabase", "plausible"),
   [int]$KeepDays = 14,
   [int]$MinKeep = 7,
   [int]$MaxAgeHours = 48,
@@ -69,7 +75,11 @@ New-Item -ItemType Directory -Force -Path $LocalDir | Out-Null
 Write-Log "=== SigmaCV backup pull from $RemoteHost ==="
 
 # --- 1. What does the server have? -------------------------------------------
-$remoteList = & ssh -o BatchMode=yes -o ConnectTimeout=20 $RemoteHost "ls -1 $RemoteDir/sigmacv-*.sql.gz 2>/dev/null" 2>&1
+# Transfer is deliberately catch-all (`*.sql.gz`) rather than one glob per prefix:
+# a database added to pg-backup.sh is then copied offsite automatically instead of
+# being silently skipped until someone remembers to edit this script too. The
+# per-prefix guarantees are enforced below, on what actually arrived.
+$remoteList = & ssh -o BatchMode=yes -o ConnectTimeout=20 $RemoteHost "ls -1 $RemoteDir/*.sql.gz 2>/dev/null" 2>&1
 if ($LASTEXITCODE -ne 0) {
   Fail "ssh to $RemoteHost failed: $remoteList"
 }
@@ -84,7 +94,7 @@ Write-Log "  server holds $($remoteFiles.Count) dump(s)"
 # perfectly valid hash was rejected ("could not hash ... (got '<valid hash>')").
 # It also cost a round trip per file. One call fixes both, and the exit code is
 # captured immediately rather than after a pipeline that may have killed ssh.
-$hashOutput = & ssh -o BatchMode=yes -o ConnectTimeout=20 $RemoteHost "sha256sum $RemoteDir/sigmacv-*.sql.gz" 2>&1
+$hashOutput = & ssh -o BatchMode=yes -o ConnectTimeout=20 $RemoteHost "sha256sum $RemoteDir/*.sql.gz" 2>&1
 $hashExit = $LASTEXITCODE
 if ($hashExit -ne 0) {
   Fail "could not hash the dumps on the server (ssh exit ${hashExit}): $($hashOutput | Select-Object -First 3)"
@@ -145,29 +155,44 @@ foreach ($remotePath in $remoteFiles) {
 }
 Write-Log "  fetched $fetched new dump(s)"
 
-# --- 3. Staleness -- the check that makes an intermittent PC safe --------------
-$local = @(Get-ChildItem -LiteralPath $LocalDir -Filter "sigmacv-*.sql.gz" -File | Sort-Object LastWriteTime -Descending)
-if ($local.Count -eq 0) { Fail "no dumps present locally after the pull" }
+# --- 3 & 4. Staleness and pruning, PER DATABASE -------------------------------
+# Both are evaluated per prefix rather than over one mixed pool. A single pool
+# would let one database's dumps satisfy MinKeep and answer the staleness check
+# on behalf of another that had silently stopped being produced -- the pool would
+# look healthy while a database went unbacked-up.
+$totalHeld = 0
+foreach ($prefix in $Prefixes) {
+  $local = @(Get-ChildItem -LiteralPath $LocalDir -Filter "$prefix-*.sql.gz" -File | Sort-Object LastWriteTime -Descending)
 
-$newest = $local[0]
-$ageHours = [math]::Round(((Get-Date) - $newest.LastWriteTime).TotalHours, 1)
-Write-Log "  newest local dump: $($newest.Name) (${ageHours}h old, limit ${MaxAgeHours}h)"
-if ($ageHours -gt $MaxAgeHours) {
-  Write-Log "  ! newest dump is ${ageHours}h old -- either this PC has been off, or the server's dump cron has stopped" -IsError
-  $script:Failed = $true
-}
-
-# --- 4. Prune, never below MinKeep -------------------------------------------
-if ($local.Count -gt $MinKeep) {
-  $cutoff = (Get-Date).AddDays(-$KeepDays)
-  $stale = @($local | Select-Object -Skip $MinKeep | Where-Object { $_.LastWriteTime -lt $cutoff })
-  foreach ($f in $stale) {
-    Remove-Item -LiteralPath $f.FullName -Force
-    Write-Log "  - pruned $($f.Name)"
+  if ($local.Count -eq 0) {
+    Write-Log "  ! [$prefix] no dumps present locally after the pull" -IsError
+    $script:Failed = $true
+    continue
   }
+
+  $newest = $local[0]
+  $ageHours = [math]::Round(((Get-Date) - $newest.LastWriteTime).TotalHours, 1)
+  Write-Log "  [$prefix] newest: $($newest.Name) (${ageHours}h old, limit ${MaxAgeHours}h)"
+  if ($ageHours -gt $MaxAgeHours) {
+    Write-Log "  ! [$prefix] newest dump is ${ageHours}h old -- either this PC has been off, or the server's dump cron has stopped for this database" -IsError
+    $script:Failed = $true
+  }
+
+  # Prune, never below MinKeep -- applied within this database's own set.
+  if ($local.Count -gt $MinKeep) {
+    $cutoff = (Get-Date).AddDays(-$KeepDays)
+    $stale = @($local | Select-Object -Skip $MinKeep | Where-Object { $_.LastWriteTime -lt $cutoff })
+    foreach ($f in $stale) {
+      Remove-Item -LiteralPath $f.FullName -Force
+      Write-Log "  - pruned $($f.Name)"
+    }
+  }
+
+  $held = @(Get-ChildItem -LiteralPath $LocalDir -Filter "$prefix-*.sql.gz" -File).Count
+  $totalHeld += $held
+  Write-Log "  [$prefix] local copy holds $held dump(s)"
 }
-$held = @(Get-ChildItem -LiteralPath $LocalDir -Filter "sigmacv-*.sql.gz" -File).Count
-Write-Log "  local copy holds $held dump(s)"
+Write-Log "  local copy holds $totalHeld dump(s) across $($Prefixes.Count) database(s)"
 
 if ($script:Failed) {
   Write-Log "FINISHED WITH PROBLEMS -- see the lines marked ! above" -IsError
