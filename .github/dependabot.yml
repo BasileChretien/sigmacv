@@ -59,14 +59,19 @@ updates:
   # entry the internet-facing Caddy plus Postgres, ClickHouse, Plausible and
   # Metabase are watched by nothing at all.
   #
-  # Two things to keep in mind when one of these PRs lands:
-  #   * `scripts/deploy.sh` only recreates the `app` container. A merged image
-  #     bump changes nothing in production until the service is recreated
-  #     explicitly (`docker compose up -d <service>`) — the same trap as
-  #     Caddyfile edits.
-  #   * A `postgres` or `clickhouse-server` MAJOR is a data migration
-  #     (pg_upgrade / dump + restore), not a routine bump. Majors still arrive as
-  #     individual PRs so they stay visible; read them, don't merge on autopilot.
+  # Read these PRs before merging. `scripts/deploy.sh` runs a bare
+  # `docker compose up -d` with NO service filter, so a merged image bump is
+  # applied on the very next deploy — Compose recreates every service whose
+  # image changed, not just `app`. That makes a `postgres` or
+  # `clickhouse-server` MAJOR genuinely dangerous: it is a data migration
+  # (pg_upgrade / dump + restore), so merging one quietly means the next deploy
+  # recreates the container against a data directory the new major refuses to
+  # open. Majors arrive as individual PRs precisely so they stay visible.
+  #
+  # (Contrast the Caddyfile, which is bind-mounted: editing it changes no
+  # config hash, so `up -d` does NOT recreate caddy — deploy.sh validates and
+  # reloads it explicitly instead. Image tags and mounted files behave
+  # differently; don't reason about one from the other.)
   - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
