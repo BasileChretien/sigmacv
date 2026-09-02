@@ -3,7 +3,7 @@
 # Chromium), so there is no separate render-worker service yet.
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-sigmacv}
@@ -130,7 +130,7 @@ services:
 
   # Plausible's own config DB (separate from the SigmaCV Postgres).
   plausible_db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     profiles: ["analytics"]
     environment:
@@ -214,7 +214,7 @@ services:
 
   # Metabase's own config DB (dashboards/questions live here — NOT analytics data).
   metabase_db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     profiles: ["analytics"]
     environment:
