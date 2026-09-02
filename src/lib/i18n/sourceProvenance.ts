@@ -26,6 +26,11 @@ export interface SourceProvenanceStrings {
   searching: string;
   /** Per-row label for a source that returned nothing (live view). */
   noMatches: string;
+  /**
+   * Accessible name for a name-matched source chip, which jumps to that
+   * source's outstanding review candidates. `{source}` is the brand name.
+   */
+  reviewJump: string;
 }
 
 const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
@@ -36,6 +41,7 @@ const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
     needsReview: "Matched by name — review these",
     searching: "Searching open sources…",
     noMatches: "no matches",
+    reviewJump: "Review the {source} candidates",
   },
   "zh-CN": {
     title: "数据来源",
@@ -44,6 +50,7 @@ const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
     needsReview: "通过姓名匹配——请核对",
     searching: "正在搜索开放数据源……",
     noMatches: "无匹配",
+    reviewJump: "查看 {source} 的待确认条目",
   },
   "es-ES": {
     title: "De dónde procede",
@@ -52,6 +59,7 @@ const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
     needsReview: "Coincidencia por nombre: revísalos",
     searching: "Buscando en fuentes abiertas…",
     noMatches: "sin resultados",
+    reviewJump: "Revisar las candidaturas de {source}",
   },
   "fr-FR": {
     title: "D'où proviennent ces données",
@@ -60,6 +68,7 @@ const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
     needsReview: "Associé par nom — à vérifier",
     searching: "Recherche dans les sources ouvertes…",
     noMatches: "aucun résultat",
+    reviewJump: "Examiner les candidats {source}",
   },
   "de-DE": {
     title: "Woher diese Daten stammen",
@@ -68,6 +77,7 @@ const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
     needsReview: "Über den Namen zugeordnet – bitte prüfen",
     searching: "Offene Quellen werden durchsucht…",
     noMatches: "keine Treffer",
+    reviewJump: "{source}-Kandidaten prüfen",
   },
   "ja-JP": {
     title: "データの出典",
@@ -76,6 +86,7 @@ const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
     needsReview: "氏名で一致——ご確認ください",
     searching: "オープンソースを検索中……",
     noMatches: "該当なし",
+    reviewJump: "{source} の確認待ち項目を見る",
   },
   "pt-BR": {
     title: "De onde isto veio",
@@ -84,6 +95,7 @@ const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
     needsReview: "Correspondência pelo nome — revise estes",
     searching: "Pesquisando em fontes abertas…",
     noMatches: "sem resultados",
+    reviewJump: "Revisar os candidatos de {source}",
   },
   "it-IT": {
     title: "Da dove provengono i dati",
@@ -92,6 +104,7 @@ const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
     needsReview: "Abbinato per nome — da verificare",
     searching: "Ricerca nelle fonti aperte…",
     noMatches: "nessun risultato",
+    reviewJump: "Esamina i candidati di {source}",
   },
   "ko-KR": {
     title: "데이터 출처",
@@ -100,6 +113,7 @@ const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
     needsReview: "이름으로 일치 — 확인 필요",
     searching: "오픈 소스 검색 중…",
     noMatches: "결과 없음",
+    reviewJump: "{source} 검토 대기 항목 보기",
   },
   "ru-RU": {
     title: "Источники данных",
@@ -108,6 +122,7 @@ const SOURCE_PROVENANCE_I18N: Record<Locale, SourceProvenanceStrings> = {
     needsReview: "Сопоставлено по имени — проверьте",
     searching: "Поиск по открытым источникам…",
     noMatches: "нет совпадений",
+    reviewJump: "Проверить кандидатов из {source}",
   },
 };
 

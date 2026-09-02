@@ -7,10 +7,11 @@ import { asLocale } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { landingStrings } from "@/lib/i18n/landing";
 import { previewStrings } from "@/lib/i18n/preview";
-import CvEditor from "./CvEditor";
+import CvEditor, { type CvEditorHandle } from "./CvEditor";
 import CvPreview from "./CvPreview";
 import SignInButton from "./SignInButton";
 import SourceProvenance from "./SourceProvenance";
+import { nextReviewItemId, pendingReviewItems } from "@/lib/cv/reviewNavigation";
 
 interface PreviewWorkspaceProps {
   initialCv: CanonicalCv;
@@ -45,6 +46,29 @@ export default function PreviewWorkspace({
   const eu = editorUi(loc);
   const signingIn = landingStrings(loc).signingIn;
   const [cv, setCv] = useState<CanonicalCv>(initialCv);
+  // Provenance panel -> editor navigation. The panel sits above the editor, so
+  // it drives the jump through the editor's imperative handle (same route the
+  // sync banner uses in the signed-in workspace).
+  const editorRef = useRef<CvEditorHandle>(null);
+  // Last row jumped to per source, so repeat clicks cycle rather than pinning
+  // the first candidate.
+  const lastJumped = useRef<Record<string, string>>({});
+  const jumpToReviewSource = useCallback(
+    (itemSource: string) => {
+      const id = nextReviewItemId(cv, itemSource, lastJumped.current[itemSource]);
+      if (!id) return;
+      lastJumped.current[itemSource] = id;
+      editorRef.current?.jumpToItem(id);
+    },
+    [cv],
+  );
+  // Sources whose candidates have all been decided: their chips go inert rather
+  // than offering a jump that would do nothing.
+  const resolvedSources = new Set(
+    Object.keys(sourceCounts ?? {})
+      .map((k) => k.split(".")[0]!)
+      .filter((src) => pendingReviewItems(cv, src).length === 0),
+  );
   const [previewHtml, setPreviewHtml] = useState(initialHtml);
   const [previewLoading, setPreviewLoading] = useState(false);
   // Non-null when the last live re-render didn't land: "rate" = 429 (editing fast),
@@ -165,8 +189,15 @@ export default function PreviewWorkspace({
         <section className="cv-workspace-pane" data-pane="editor">
           {/* Provenance up top: shows the visitor the breadth of open sources their
               CV was built from, and the identifier-vs-name matching split. */}
-          <SourceProvenance sourceCounts={sourceCounts} locale={loc} defaultOpen />
+          <SourceProvenance
+            sourceCounts={sourceCounts}
+            locale={loc}
+            defaultOpen
+            onSelectSource={jumpToReviewSource}
+            resolvedSources={resolvedSources}
+          />
           <CvEditor
+            ref={editorRef}
             cv={cv}
             availableStyles={availableStyles}
             uiLocale={loc}
