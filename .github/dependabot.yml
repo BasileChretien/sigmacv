@@ -36,3 +36,20 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+
+  # Docker base images (Dockerfile). Keeps the Node builder image and any other
+  # base image current; without this they silently age past their security
+  # updates because nothing else watches them.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "ci"
+    ignore:
+      # The Playwright runtime image tag is bound to the exact `playwright`
+      # version in package.json (tests/dockerfile-playwright-sync.test.ts fails
+      # if they drift). Bumping it on its own would always open a red PR, so it
+      # rides along with the npm Playwright bump instead.
+      - dependency-name: "mcr.microsoft.com/playwright"

@@ -20,4 +20,29 @@ describe("published canonical CV JSON Schema", () => {
     const committed = JSON.parse(readFileSync(CV_SCHEMA_PATH, "utf8"));
     expect(committed).toEqual(buildCanonicalCvJsonSchema());
   });
+
+  // Regression guard for the Zod 4.5 `.catch()` change: a property carrying a
+  // `default` is one the parser fills in when it is missing, so requiring it in
+  // the published schema would reject documents `safeParseCanonicalCv` accepts.
+  it("never marks a defaulted property required (the parser accepts it missing)", () => {
+    const offenders: string[] = [];
+    const walk = (node: unknown, path: string): void => {
+      if (!node || typeof node !== "object") return;
+      if (Array.isArray(node)) {
+        node.forEach((child, i) => walk(child, path + "[" + i + "]"));
+        return;
+      }
+      const obj = node as Record<string, unknown>;
+      const props = obj.properties as Record<string, Record<string, unknown>> | undefined;
+      const required = obj.required;
+      if (props && Array.isArray(required)) {
+        for (const name of required as string[]) {
+          if (props[name] && "default" in props[name]) offenders.push(path + "." + name);
+        }
+      }
+      for (const [key, value] of Object.entries(obj)) walk(value, path + "." + key);
+    };
+    walk(buildCanonicalCvJsonSchema(), "$");
+    expect(offenders).toEqual([]);
+  });
 });

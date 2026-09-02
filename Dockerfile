@@ -75,7 +75,12 @@ ENV NODE_ENV=production \
 # `import "prisma/config"`, which Node resolves RELATIVE TO the config file in
 # /app — a bare `-g` install isn't reachable from there, so the CLI would fail to
 # load the config (and the schema would never be applied).
-RUN npm install -g prisma@7 \
+# `--allow-scripts` is required from npm 12 on, where dependency install scripts
+# are blocked by default: without it prisma's preinstall and @prisma/engines'
+# postinstall are skipped, the query engine never lands, and `migrate deploy`
+# fails at container start. npm 11 (bundled with the current base image) ignores
+# the flag with a warning, so this is safe on both.
+RUN npm install -g --allow-scripts=prisma,@prisma/engines prisma@7 \
   && mkdir -p node_modules \
   && ln -sfn "$(npm root -g)/prisma" node_modules/prisma
 
