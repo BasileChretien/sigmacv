@@ -109,19 +109,31 @@ export function summarizeSources(
 
   // Fold raw keys into display sources, summing counts and tracking which
   // distinct sources we actually queried (a present key = a source we hit).
-  const byLabel = new Map<string, SourceLine>();
+  //
+  // Keyed by group AND label, not label alone: one source can contribute to
+  // both columns. Open Editors Plus does — `oep` is identifier-matched (the
+  // publisher printed the ORCID on the masthead) while `oep.candidates` is a
+  // review tier (OEP inferred the identifier) — and keying on the label alone
+  // silently summed the two into a single line under whichever group was seen
+  // first, so the panel read "Open Editors Plus 2" beside "added
+  // automatically" and never said one of them needed a decision. Keys sharing
+  // a label AND a group still fold as intended (openalex/openalex.works, the
+  // seven orcid.* keys).
+  const byLine = new Map<string, SourceLine>();
   const searchedLabels = new Set<string>();
   for (const [key, rawCount] of Object.entries(sourceCounts)) {
     const meta = SOURCE_META[key];
     if (!meta) continue;
+    // One source queried once, however many columns it lands in.
     searchedLabels.add(meta.label);
     const count = Number.isFinite(rawCount) && rawCount > 0 ? Math.floor(rawCount) : 0;
-    const existing = byLabel.get(meta.label);
+    const lineKey = `${meta.group} ${meta.label}`;
+    const existing = byLine.get(lineKey);
     if (existing) existing.count += count;
-    else byLabel.set(meta.label, { label: meta.label, count, group: meta.group });
+    else byLine.set(lineKey, { label: meta.label, count, group: meta.group });
   }
 
-  const lines = [...byLabel.values()].filter((l) => l.count > 0);
+  const lines = [...byLine.values()].filter((l) => l.count > 0);
   const total = lines.reduce((n, l) => n + l.count, 0);
   if (total === 0) return null;
 
