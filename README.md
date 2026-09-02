@@ -139,8 +139,9 @@ lets SigmaCV find _your_ work reliably. _(Self-hosters can optionally enable
 
 SigmaCV is **live at [sigmacv.org](https://sigmacv.org)** — sign in with your
 ORCID iD and your CV is auto-built from the open record. It's free for
-individuals and open source. (The name "SigmaCV" is a working title, tied to the
-Sigma-Score bibliometric index, and may change.)
+individuals and open source. (The name "SigmaCV" is a working title; the
+Sigma-Score index it alludes to is a design concept rather than a metric the
+tool computes, and the name may change.)
 
 What this means for you:
 
@@ -394,7 +395,7 @@ To refer to the tool itself unambiguously, SigmaCV is registered in the
 
 ---
 
-_SigmaCV is a working name (it ties to the Sigma-Score bibliometric index) and
-may change. Built not-for-profit by
+_SigmaCV is a working name — the Sigma-Score index it alludes to is a design
+concept, not a metric the tool computes — and may change. Built not-for-profit by
 [Basile Chrétien](https://orcid.org/0000-0002-7483-2489) (PharmD, MSc, MPH),
 Nagoya University._
