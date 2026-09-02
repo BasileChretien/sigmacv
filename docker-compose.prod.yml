@@ -75,7 +75,7 @@ services:
   # Periodically re-syncs published "living" CVs via the secret-guarded internal
   # endpoint. No-op if RESYNC_SECRET is unset (endpoint 503s; curl failure swallowed).
   resync-cron:
-    image: curlimages/curl:8.11.1
+    image: curlimages/curl:8.21.0
     restart: unless-stopped
     depends_on:
       - app
@@ -89,7 +89,7 @@ services:
   # Daily ping for the opt-in re-sync digest emails (per-user monthly cadence
   # lives server-side). No-op when RESYNC_SECRET or SMTP is unset.
   digest-cron:
-    image: curlimages/curl:8.11.1
+    image: curlimages/curl:8.21.0
     restart: unless-stopped
     depends_on:
       - app
