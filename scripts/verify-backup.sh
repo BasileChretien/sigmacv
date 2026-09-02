@@ -22,7 +22,12 @@
 set -euo pipefail
 
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/sigmacv}"
-BACKUP_GLOB="${BACKUP_GLOB:-*.sql.gz}"
+# Anchored to the APP dump, not a bare `*.sql.gz`. Since 2026-09-02 pg-backup.sh
+# also writes `metabase-*.sql.gz` and `plausible-*.sql.gz` into the same directory,
+# and everything below here is app-specific: it restores into the `postgres`
+# service as PG_USER and compares the User/Cv tables. A bare glob would pick
+# whichever dump happened to be newest and fail nightly against the wrong database.
+BACKUP_GLOB="${BACKUP_GLOB:-sigmacv-*.sql.gz}"
 MAX_AGE_HOURS="${MAX_AGE_HOURS:-36}"
 MIN_SIZE_BYTES="${MIN_SIZE_BYTES:-1024}"
 MIN_SIZE_RATIO="${MIN_SIZE_RATIO:-50}" # percent of the previous dump

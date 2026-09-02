@@ -163,6 +163,30 @@ It verifies the gzip stream and a minimum size **before** rotating, so a truncat
 dump can never age out a good one. Credentials come from the container's environment,
 never a command line.
 
+**It dumps three databases, not one** (since 2026-09-02): the app's `postgres`, plus
+`metabase_db` and `plausible_db`, written as `sigmacv-*`, `metabase-*` and
+`plausible-*` in `/root/sigmacv-backups`. Each is validated and rotated
+independently, so a failure in one can neither stop the others nor age away their
+good dumps; any failure still exits non-zero. Before this, only the app database was
+backed up — Metabase's dashboards and questions, which nothing recreates, had no copy
+at all.
+
+Two things worth knowing:
+
+- `plausible_db` sets only `POSTGRES_PASSWORD`, so its user (`postgres`) and database
+  name (`plausible_db`, **not** `postgres`) are named explicitly in the script rather
+  than read from the container. Get that wrong and `pg_dump` writes nothing while gzip
+  still produces a valid ~20-byte file — only the size floor catches it.
+- **Plausible's analytics events are NOT covered.** They live in ClickHouse
+  (`plausible_events_db`), which needs its own mechanism; `plausible_db` holds only
+  sites, users and settings. Treat the traffic history as expendable until a ClickHouse
+  backup exists.
+
+Only the **app** dump gets the full restore-verification in §2 above
+(`scripts/verify-backup.sh`, anchored to `sigmacv-*.sql.gz`): it restores into the
+`postgres` service and compares the `User`/`Cv` tables, so it is app-specific by
+construction. The other two get the gzip and size checks at dump time.
+
 ### Offsite copy: pulled to the maintainer's machine (`scripts/pull-backups.ps1`)
 
 Dumps that only live on this VPS are lost with it. The offsite copy is **pulled** to
