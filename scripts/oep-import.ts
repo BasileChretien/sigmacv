@@ -26,12 +26,21 @@ const SEED = process.argv[2] ?? DEFAULT_SEED;
 const BATCH = 5_000;
 
 interface SeedRecord {
-  orcid: string;
+  /** Null for rows attributed by OpenAlex author ID instead. */
+  orcid?: string | null;
+  openalexAuthorId?: string | null;
+  /** "scraped" | "propagated" | "openalex" — see prisma/schema.prisma. */
+  trust?: string | null;
   journal: string;
   role: string;
   roleStd?: string | null;
   publisher?: string | null;
   issn?: string | null;
+}
+
+/** A row is usable when it carries at least one identifier plus a role. */
+function isUsable(rec: SeedRecord): boolean {
+  return Boolean((rec.orcid || rec.openalexAuthorId) && rec.journal && rec.role);
 }
 
 async function main(): Promise<void> {
@@ -60,7 +69,9 @@ async function main(): Promise<void> {
       if (batch.length === 0) return;
       await prisma.oepEditorialRole.createMany({
         data: batch.map((r) => ({
-          orcid: r.orcid,
+          orcid: r.orcid ?? null,
+          openalexAuthorId: r.openalexAuthorId ?? null,
+          trust: r.trust ?? "scraped",
           journal: r.journal,
           role: r.role,
           roleStd: r.roleStd ?? null,
@@ -77,7 +88,7 @@ async function main(): Promise<void> {
       const trimmed = line.trim();
       if (!trimmed) continue;
       const rec = JSON.parse(trimmed) as SeedRecord;
-      if (!rec.orcid || !rec.journal || !rec.role) continue;
+      if (!isUsable(rec)) continue;
       batch.push(rec);
       if (batch.length >= BATCH) await flush();
     }

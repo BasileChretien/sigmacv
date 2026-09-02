@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   fetchWorks: vi.fn(),
   resolveAuthor: vi.fn(),
   fetchEditorial: vi.fn(),
+  fetchEditorialCandidates: vi.fn(),
   logCvSave: vi.fn(),
   canonicalizeInstitutions: vi.fn(),
   enrichCvWithCrossref: vi.fn(),
@@ -61,7 +62,10 @@ vi.mock("@/lib/openalex/client", () => ({
   fetchJournalNamesByIssn: mocks.fetchJournalNames,
 }));
 vi.mock("@/lib/openalex/resolveAuthor", () => ({ resolveAuthorByOrcid: mocks.resolveAuthor }));
-vi.mock("@/lib/oep/client", () => ({ fetchEditorialRoles: mocks.fetchEditorial }));
+vi.mock("@/lib/oep/client", () => ({
+  fetchEditorialRoles: mocks.fetchEditorial,
+  fetchEditorialRoleCandidates: mocks.fetchEditorialCandidates,
+}));
 vi.mock("@/lib/research/log", () => ({ logCvSave: mocks.logCvSave }));
 // ORCID + DataCite clients have their own tests; stub them to [] so this
 // orchestration test makes no network calls.
@@ -153,6 +157,7 @@ beforeEach(() => {
   mocks.upsert.mockResolvedValue({});
   mocks.logCvSave.mockResolvedValue(undefined);
   mocks.fetchEditorial.mockResolvedValue([]);
+  mocks.fetchEditorialCandidates.mockResolvedValue([]);
   // Enrichment is a pass-through here (its own behaviour is in enrich.test.ts).
   mocks.canonicalizeInstitutions.mockImplementation(async (input) => ({
     result: input,
