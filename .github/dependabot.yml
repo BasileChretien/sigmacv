@@ -99,3 +99,26 @@ updates:
     labels:
       - "dependencies"
       - "ci"
+    ignore:
+      # Postgres MAJORS are a data migration, never a merge. The app DB,
+      # plausible_db and metabase_db all share this tag and all hold live v16
+      # data directories; Postgres refuses to start against an older major's
+      # data, and deploy.sh runs a bare `docker compose up -d`, so merging a
+      # major means the next deploy takes all three down at once (#376 proposed
+      # exactly that). Postgres 16 is supported to Nov 2028 and `16-alpine` is a
+      # floating tag, so 16.x patches still arrive on image pull — nothing is
+      # lost by ignoring majors here. Do the eventual move deliberately: dump,
+      # restore onto the new major, verify, then edit these pins by hand.
+      - dependency-name: "postgres"
+        update-types: ["version-update:semver-major"]
+
+      # ClickHouse is not ours to choose at all: it is Plausible's events store,
+      # and Plausible CE pins the pairing itself — v3.2.1's own compose ships
+      # `clickhouse/clickhouse-server:24.12-alpine`, which is why this repo
+      # matches it. Bumping it alone runs Plausible against a ClickHouse it was
+      # never tested against, and ClickHouse does not support downgrading once
+      # the on-disk format moves, so it is not a safe experiment (#375). Ignored
+      # outright rather than majors-only, because ANY deviation from upstream's
+      # tag is the same mistake. It moves when ghcr.io/plausible/community-
+      # edition moves — adopt whatever ClickHouse that release pins.
+      - dependency-name: "clickhouse/clickhouse-server"
