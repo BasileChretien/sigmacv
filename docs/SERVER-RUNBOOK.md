@@ -280,9 +280,35 @@ is covered by wording that already exists. A third-party bucket would need decla
 > ~150 users' accounts, emails and CVs had been sitting unencrypted on an endpoint while
 > the documentation asserted otherwise. The fix is deliberately not to re-assert it: the
 > dumps are now encrypted by the pull script itself, which does not depend on the state
-> of the disk they land on. Whole-disk encryption is still worth enabling, but it
+> of the disk they land on. Whole-disk encryption is worth having as well, but it
 > protects a different thing (a powered-off machine) and is no longer load-bearing here.
 > A documented control nobody has verified is not a control.
+
+**Whole-disk encryption on the PC — defence in depth, not the control.** BitLocker was
+enabled on `C:` on 2026-09-03: **XTS-AES-256**, full-volume (deliberately _not_
+`-UsedSpaceOnly`, so free space is encrypted too — which matters because deleted
+plaintext dumps remain readable in unallocated space until something overwrites them),
+protectors **TPM + Numerical Password**, recovery key held in the maintainer's password
+manager.
+
+Read the layering correctly, because conflating the two is what caused the problem
+above: BitLocker with a TPM-only protector unlocks automatically at boot, so it protects
+a **powered-off** machine. It does nothing for a machine taken while running or
+unlocked, and nothing for the dumps once they leave this disk. The `age` encryption is
+what protects the backups; BitLocker is a second, independent layer under it.
+
+Two things that look like faults and are not:
+
+- `Enable-BitLocker` on an OS volume with a TPM adds the **TPM protector itself**, so a
+  follow-up `Add-BitLockerKeyProtector -MountPoint C: -TpmProtector` fails with
+  `0x80310031` ("only one key protector of this type is allowed"). Harmless — check
+  `manage-bde -status` and you will see both protectors already listed.
+- `Protection Status: Protection Off` is **expected while conversion runs**. It flips to
+  `Protection On` at 100%. Verify it then; do not read anything into it before.
+
+```powershell
+manage-bde -status C:     # elevated; Protection On + Conversion Status "Fully Encrypted"
+```
 
 **One-time setup on the PC:**
 
