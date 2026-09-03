@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Confirm a flagged publication is yours.** Works the misattribution heuristic
+  flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
+  ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so
+  "I checked this, it really is mine" is recorded rather than left implicit.
+  Previously a work you had examined and kept was indistinguishable from one you
+  had never opened, which meant no honest statement of the form "this profile is
+  researcher-confirmed" was possible.
+
+  Deliberately scoped: Confirm appears **only where there is a reason to doubt**,
+  never on soundly-matched work. Asking a researcher to re-confirm every
+  publication is busywork and contradicts the precision-first design of the
+  misattribution heuristic, which flags a work only when it fails two independent
+  checks. On a clean profile nothing changes.
+
+  Asserting "Not mine" — individually or in bulk — records the review too, since
+  adjudicating a work is reviewing it. The record survives re-sync, and is
+  **stripped from published CVs**: when you reviewed each work is private curation
+  behaviour, not something a public page or machine download should carry.
+
 ### Security
 
 - **All known dependency advisories are closed again (`npm audit`: 0).** The mail
@@ -23,7 +44,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Routine dependency refresh: Next.js, Prisma, Zod, Vite/Vitest tooling and types
   moved to their current releases.
-- **Published JSON Schema (`/schema/cv/v2.json`) regenerated.** A number-or-string
+- **Corrected two false claims in the public documentation.** The README, the
+  contributor guides and the AI-facing `/llms-full.txt` all described SigmaCV as
+  offering an optional **Sigma-Score** metric. No such metric exists — the name is
+  a working title and the index it alludes to is a design concept, not something
+  the tool computes. `/llms-full.txt` additionally listed **FWCI** among the
+  field-normalized indicators SigmaCV prefers, when every FWCI-derived aggregate is
+  deliberately withheld: its per-work baseline can only be recovered for works that
+  already have citations, so the average silently drops uncited work and reads too
+  high. Both files now state what is actually offered (the NIH iCite RCR) and why
+  the FWCI aggregates are suppressed. This matters most for `/llms-full.txt`, which
+  exists so AI assistants describe the tool accurately.
+- **Published JSON Schema (`/schema/cv/v2.json`) gained the optional `reviewedAt`
+  property** on CV items (an ISO-8601 instant; a malformed value degrades to
+  "unreviewed" rather than failing the whole document). The schema was also
+  regenerated: a number-or-string
   array is now expressed as `"type": ["number", "string"]` rather than an equivalent
   `anyOf`. No field changed its requiredness: Zod 4.5 would have started marking the
   advisory duplicate hint `meta.duplicateOf.tier` required, which the parser does not,
