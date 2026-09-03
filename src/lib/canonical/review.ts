@@ -16,6 +16,14 @@ import type { CanonicalCv, CvItem } from "./schema";
  * badge that cannot tell "confirmed" from "untouched" is worse than no badge —
  * it asserts human attention that may never have happened.
  *
+ * NOT TO BE CONFUSED with the other "review" in this codebase. `meta.reviewFlag`,
+ * `display.dismissedReviewCandidates` and the "review candidate" language in
+ * `build.ts` are about TRIAGE: the system flagging a specific item as suspicious
+ * (name-matched, ORCID-conflicting, probably a duplicate) and holding it back
+ * until the user rules on it. This module is about COVERAGE: whether the user has
+ * looked at an item at all, suspicious or not. A profile can have zero review
+ * candidates and still be entirely unreviewed.
+ *
  * This module is PURE and derives everything from the stored item; nothing here
  * writes. The two write paths are `setItemReviewed` and `setItemNotMine` in
  * `curate.ts`.

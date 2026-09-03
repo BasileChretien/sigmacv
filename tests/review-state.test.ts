@@ -8,6 +8,10 @@ import {
 import { setItemNotMine, setItemReviewed } from "@/lib/canonical/curate";
 import { setItemsNotMine } from "@/lib/canonical/bulkCurate";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
+import { safeParseCanonicalCv } from "@/lib/canonical/schema";
+import { buildCanonicalCv } from "@/lib/canonical/build";
+import type { OpenAlexWork } from "@/lib/openalex/types";
+import worksFixture from "./fixtures/openalex-works.json";
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 
 const NOW = "2026-09-02T10:00:00.000Z";
@@ -222,4 +226,52 @@ describe("review state does not leak, and bulk keeps parity", () => {
     const retracted = setItemsNotMine(asserted, "publications", ["W1"], false, { now: NOW });
     expect(itemReviewState(retracted.sections[0]!.items[0]!)).toBe("confirmed");
   });
+});
+
+describe("reviewedAt is validated as a real timestamp", () => {
+  /** A genuine canonical document, with `reviewedAt` on its first citation set
+   *  to `value` — the shape safeParseCanonicalCv actually sees in production. */
+  function docWithReviewedAt(value: unknown): unknown {
+    const built = buildCanonicalCv({
+      id: "v",
+      resolved: {
+        orcid: "0000-0002-7483-2489",
+        authorIds: ["A5001069481"],
+        displayName: "A Researcher",
+      },
+      works: worksFixture as unknown as OpenAlexWork[],
+      now: "2026-09-03T00:00:00.000Z",
+    });
+    const raw = JSON.parse(JSON.stringify(built)) as {
+      sections: Array<{ items: Array<Record<string, unknown>> }>;
+    };
+    const target = raw.sections.flatMap((s) => s.items).find((i) => i.csl);
+    if (!target) throw new Error("fixture has no citation item");
+    target.reviewedAt = value;
+    return raw;
+  }
+
+  it("accepts what the write paths actually produce", () => {
+    const parsed = safeParseCanonicalCv(docWithReviewedAt(new Date().toISOString()));
+    expect(parsed.success).toBe(true);
+    const stamped = parsed.success
+      ? parsed.data.sections.flatMap((s) => s.items).filter((i) => i.reviewedAt)
+      : [];
+    expect(stamped).toHaveLength(1);
+  });
+
+  it.each(["yes", "", "2026-09-03", "2026-09-03T01:00:00+09:00", "not-a-date"])(
+    "drops the malformed value %j instead of counting it as reviewed",
+    (bad) => {
+      const parsed = safeParseCanonicalCv(docWithReviewedAt(bad));
+      // The document still loads — a bad timestamp must never cost the owner
+      // their whole CV (getCvForUser returns null on a parse failure).
+      expect(parsed.success).toBe(true);
+      if (!parsed.success) return;
+      const items = parsed.data.sections.flatMap((s) => s.items);
+      expect(items.filter((i) => i.reviewedAt)).toHaveLength(0);
+      expect(items.every((i) => itemReviewState(i) !== "confirmed")).toBe(true);
+      expect(reviewCoverage(parsed.data).confirmed).toBe(0);
+    },
+  );
 });
