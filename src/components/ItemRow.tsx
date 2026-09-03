@@ -721,7 +721,18 @@ export default function ItemRow({
             {item.meta.reviewFlag === "name-matched" && !reviewDismissed ? (
               <span
                 className="cv-review-badge cv-review-badge--soft"
-                title={t(locale, "reviewHintNameMatched")}
+                title={t(
+                  locale,
+                  // The "name-matched" flag serves TWO provenances. For grants,
+                  // trials and patents it is a genuine name+organisation match.
+                  // For Open Editors Plus it is not: OEP resolves every row to an
+                  // ORCID or an OpenAlex author id and "never matches a name as
+                  // text" (oep/client.ts) — the weaker tiers are a softer
+                  // PROVENANCE of an identifier, not a name match. Telling an
+                  // editor their editorship was "matched by name" would state the
+                  // opposite of the one attribution invariant this project makes.
+                  item.source === "oep" ? "reviewHintOepInferred" : "reviewHintNameMatched",
+                )}
               >
                 {t(locale, "reviewBadgeSoft")}
               </span>

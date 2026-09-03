@@ -1002,6 +1002,17 @@ function buildEditorialSection(
       // Attribution inferred by OEP (propagated ORCID, or an OpenAlex author
       // matched from name+institution) → hidden review candidate until the user
       // confirms it. Still an identifier match, just a softer one.
+      //
+      // NOTE the flag is REUSED, not accurate here. "name-matched" is the right
+      // word for grants / trials / patents, which really are matched on name +
+      // organisation. OEP never matches a name as text (see oep/client.ts), so
+      // the flag names the BEHAVIOUR these rows share — hidden, awaiting the
+      // user's decision — not their provenance. Anything user-facing must branch
+      // on `source === "oep"` and say "inferred identifier", never "matched by
+      // name": see reviewHintOepInferred. Kept as one flag deliberately — the two
+      // provenances need identical handling everywhere else (counts, targets,
+      // dismissal, badges), and a second flag would duplicate all of it to change
+      // one sentence.
       items.push({
         ...it,
         included: prev?.included ?? false,
