@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { absoluteUrl } from "@/lib/siteUrl";
 import { pingIndexNow } from "@/lib/cv/indexNow";
 import { invalidatePublicPage } from "@/lib/cv/publicPageCache";
+import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks";
 import { logger } from "@/lib/log";
@@ -589,6 +590,12 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
       schemaVersion: reconciled.schemaVersion,
     },
   });
+
+  // The anonymous /preview/[orcid] build applies this researcher's own
+  // disambiguation corrections, so a cached preview is stale the moment they
+  // save one. Without this they could mark a namesake's paper "not mine" and
+  // still see it on their own public preview until the TTL expired.
+  invalidateOrcidPreview(reconciled.owner.orcid);
 
   // Consent-gated research logging (no-op without consent; never throws here).
   await logCvSave(userId, previous, reconciled);

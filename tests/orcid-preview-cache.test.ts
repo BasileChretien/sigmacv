@@ -4,6 +4,7 @@ import {
   __resetOrcidPreviewCache,
   dedupeOrcidPreview,
   getCachedOrcidPreview,
+  invalidateOrcidPreview,
   isKnownEmptyPreview,
   rememberEmptyPreview,
   setCachedOrcidPreview,
@@ -93,5 +94,46 @@ describe("dedupeOrcidPreview (single-flight)", () => {
     await dedupeOrcidPreview("dup2", run);
     await dedupeOrcidPreview("dup2", run);
     expect(calls).toBe(2);
+  });
+});
+
+describe("invalidateOrcidPreview", () => {
+  it("drops a cached preview so the next visitor gets a rebuild", () => {
+    // The reason it exists: the preview applies the owner's own disambiguation
+    // corrections, so a cached entry is stale the moment they save one.
+    setCachedOrcidPreview(ORCID, entry("<p>old</p>", "A Researcher"));
+    expect(getCachedOrcidPreview(ORCID)).not.toBeNull();
+    expect(invalidateOrcidPreview(ORCID)).toBe(true);
+    expect(getCachedOrcidPreview(ORCID)).toBeNull();
+  });
+
+  it("clears the negative cache too", () => {
+    // An iD with no public record when last looked up may have one now.
+    rememberEmptyPreview(ORCID);
+    expect(isKnownEmptyPreview(ORCID)).toBe(true);
+    expect(invalidateOrcidPreview(ORCID)).toBe(true);
+    expect(isKnownEmptyPreview(ORCID)).toBe(false);
+  });
+
+  it("normalises the iD, so a URL or spaced form still hits the entry", () => {
+    setCachedOrcidPreview(ORCID, entry("<p>x</p>", "A"));
+    expect(invalidateOrcidPreview(`https://orcid.org/${ORCID}`)).toBe(true);
+    expect(getCachedOrcidPreview(ORCID)).toBeNull();
+  });
+
+  it("reports false when there was nothing to drop", () => {
+    expect(invalidateOrcidPreview(ORCID)).toBe(false);
+  });
+
+  it("leaves other researchers' entries alone", () => {
+    const other = "0000-0003-0449-6261";
+    setCachedOrcidPreview(ORCID, entry("<p>mine</p>", "A"));
+    setCachedOrcidPreview(other, entry("<p>theirs</p>", "B"));
+    invalidateOrcidPreview(ORCID);
+    expect(getCachedOrcidPreview(other)).not.toBeNull();
+  });
+
+  it("ignores a malformed iD rather than throwing", () => {
+    expect(invalidateOrcidPreview("")).toBe(false);
   });
 });
