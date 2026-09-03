@@ -42,8 +42,18 @@ function withMisattributed(cv: CanonicalCv, n: number): CanonicalCv {
   };
 }
 
+/** Sections are COLLAPSED by default, so rows do not render until expanded.
+ *  The checklist walk expands its own target section, but any assertion about a
+ *  row's content needs this first. */
+function expandAllSections() {
+  document
+    .querySelectorAll<HTMLButtonElement>("button.section-toggle")
+    .forEach((b) => fireEvent.click(b));
+}
+
 function renderEditor(cv: CanonicalCv) {
   render(<CvEditor cv={cv} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />);
+  expandAllSections();
 }
 
 /** The row currently flashed by a jump, if any. */
@@ -142,5 +152,69 @@ describe("the walk is perceptible without sight", () => {
     // affordance copy in the product.
     renderEditor(withMisattributed(makeCv(), 2));
     expect(document.body.textContent).toMatch(/select again for the next/i);
+  });
+});
+
+describe("the name-matched hint tells the truth about where the match came from", () => {
+  /** One hidden name-matched review candidate from `source`. */
+  function candidate(source: "oep" | "nih"): CanonicalCv {
+    const base = makeCv();
+    const target = base.sections.find((sec) => sec.items.length > 0)!;
+    return {
+      ...base,
+      sections: base.sections.map((sec) =>
+        sec.id !== target.id
+          ? sec
+          : {
+              ...sec,
+              items: sec.items.map((it, i) =>
+                i === 0
+                  ? {
+                      ...it,
+                      source,
+                      // A NON-citation entry: name-matched is only ever set on
+                      // grants / trials / patents / editorial roles, which carry
+                      // displayText rather than CSL. Its badge lives in the
+                      // non-citation meta block.
+                      csl: undefined,
+                      displayText: "Some editorial role, Journal of Things",
+                      included: false,
+                      notMine: false,
+                      meta: { ...it.meta, reviewFlag: "name-matched" },
+                    }
+                  : it,
+              ),
+            },
+      ),
+    } as CanonicalCv;
+  }
+
+  function badgeTitles(): string[] {
+    // Match the review badge by class fragment rather than an exact selector: it
+    // renders as "cv-review-badge cv-review-badge--soft" on these rows.
+    return Array.from(document.querySelectorAll<HTMLElement>("[class*=cv-review-badge]")).map(
+      (el) => el.getAttribute("title") ?? "",
+    );
+  }
+
+  it("says 'matched by name and organization' for a registry candidate", () => {
+    // True for grants, trials and patents: matchesNameAndOrg really does match a
+    // printed name against an organisation.
+    renderEditor(candidate("nih"));
+    const titles = badgeTitles().join(" | ");
+    expect(titles).toMatch(/name and organization/i);
+    expect(titles).not.toMatch(/Open Editors Plus/i);
+  });
+
+  it("does NOT claim a name match for an Open Editors Plus row", () => {
+    // OEP resolves every row to an ORCID or an OpenAlex author id and "never
+    // matches a name as text" (oep/client.ts). Saying otherwise would state the
+    // opposite of the project's one attribution invariant, to the researcher
+    // whose editorship it is.
+    renderEditor(candidate("oep"));
+    const titles = badgeTitles().join(" | ");
+    expect(titles).not.toMatch(/matched to you by name/i);
+    expect(titles).toMatch(/Open Editors Plus/i);
+    expect(titles).toMatch(/identifier/i);
   });
 });

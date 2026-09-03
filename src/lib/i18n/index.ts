@@ -537,6 +537,8 @@ const EN = {
     "Listed in your ORCID record but not attributed to you by OpenAlex — review it: “Show” to add it to your CV, mark it “not mine”, or “Keep hidden” to leave it off.",
   reviewHintNameMatched:
     "Matched to you by name and organization, not a verified identifier — review it: “Show” it if it’s yours, otherwise leave it hidden.",
+  reviewHintOepInferred:
+    "Open Editors Plus inferred this from a softer identifier — an ORCID propagated from another record, or an OpenAlex profile matched by name and institution — rather than an ORCID printed on the masthead. Review it: “Show” it if it’s yours, otherwise leave it hidden.",
   reviewKeepHidden: "Keep hidden",
   reviewKeepHiddenHint: "Keep it off your CV and stop flagging it for review",
   reviewSimilarShown: "A similar entry is already on your CV: “{title}”.",
@@ -698,6 +700,8 @@ const ZH: Record<ChromeKey, string> = {
     "此论文在您的 ORCID 记录中，但 OpenAlex 未将其归到您名下——请核查：点击“显示”加入简历，标记为“非本人”，或点击“保持隐藏”将其留在简历之外。",
   reviewHintNameMatched:
     "通过姓名和机构匹配到您名下（非经验证的标识符）——请核查：若确为您本人，点击“显示”，否则保持隐藏。",
+  reviewHintOepInferred:
+    "Open Editors Plus 依据较弱的标识符推断得出——从其他记录传播而来的 ORCID，或按姓名与机构匹配到的 OpenAlex 档案——而非刊头上印出的 ORCID。请核对：确属本人请点“显示”，否则保持隐藏。",
   reviewKeepHidden: "保持隐藏",
   reviewKeepHiddenHint: "不显示在简历上，并停止将其标记为待核查",
   reviewSimilarShown: "您的简历中已有一条相似的条目：“{title}”。",
@@ -852,6 +856,8 @@ const ES: Record<ChromeKey, string> = {
     "Aparece en tu registro de ORCID pero OpenAlex no te la atribuyó — revísala: «Mostrar» para añadirla a tu CV, márcala como «no es mía», o «Mantener oculto» para dejarla fuera.",
   reviewHintNameMatched:
     "Coincide contigo por nombre y organización, no por un identificador verificado — revísalo: «Mostrar» si es tuyo; si no, déjalo oculto.",
+  reviewHintOepInferred:
+    "Open Editors Plus lo dedujo a partir de un identificador más débil —un ORCID propagado desde otro registro, o un perfil de OpenAlex emparejado por nombre e institución— y no de un ORCID impreso en el consejo editorial. Revísalo: pulsa «Mostrar» si es tuyo; si no, déjalo oculto.",
   reviewKeepHidden: "Mantener oculto",
   reviewKeepHiddenHint: "Mantenerlo fuera del CV y dejar de marcarlo para revisión",
   reviewSimilarShown: "Ya hay una entrada similar en tu CV: «{title}».",
@@ -1013,6 +1019,8 @@ const FR: Record<ChromeKey, string> = {
     "Présente dans votre dossier ORCID mais non attribuée à vous par OpenAlex — à vérifier : « Afficher » pour l’ajouter à votre CV, marquez « pas la mienne », ou « Garder masqué » pour la laisser de côté.",
   reviewHintNameMatched:
     "Associé à vous par nom et organisation, sans identifiant vérifié — à vérifier : « Afficher » s’il est de vous, sinon laissez-le masqué.",
+  reviewHintOepInferred:
+    "Open Editors Plus l’a déduit d’un identifiant plus faible — un ORCID propagé depuis un autre enregistrement, ou un profil OpenAlex apparié par nom et institution — et non d’un ORCID imprimé dans l’ours. Vérifiez : « Afficher » s’il est bien à vous, sinon laissez-le masqué.",
   reviewKeepHidden: "Garder masqué",
   reviewKeepHiddenHint: "Le laisser hors du CV et ne plus le signaler à vérifier",
   reviewSimilarShown: "Une entrée similaire figure déjà dans votre CV : « {title} ».",
@@ -1175,6 +1183,8 @@ const DE: Record<ChromeKey, string> = {
     "In Ihrem ORCID-Datensatz vorhanden, aber von OpenAlex nicht Ihnen zugeordnet – bitte prüfen: „Einblenden“, um sie zum Lebenslauf hinzuzufügen, als „nicht von mir“ markieren oder „Ausgeblendet lassen“, um sie wegzulassen.",
   reviewHintNameMatched:
     "Über Name und Organisation zugeordnet, nicht über eine verifizierte Kennung – bitte prüfen: „Einblenden“, wenn er von Ihnen ist, sonst ausgeblendet lassen.",
+  reviewHintOepInferred:
+    "Open Editors Plus hat dies aus einem schwächeren Identifikator abgeleitet – einer aus einem anderen Datensatz übernommenen ORCID oder einem über Name und Institution zugeordneten OpenAlex-Profil – und nicht aus einer im Impressum abgedruckten ORCID. Bitte prüfen: „Anzeigen“, wenn es Ihres ist, sonst ausgeblendet lassen.",
   reviewKeepHidden: "Ausgeblendet lassen",
   reviewKeepHiddenHint: "Aus dem Lebenslauf heraushalten und nicht mehr zur Prüfung markieren",
   reviewSimilarShown: "Ein ähnlicher Eintrag steht bereits in Ihrem Lebenslauf: „{title}“.",
@@ -1337,6 +1347,8 @@ const JA: Record<ChromeKey, string> = {
     "あなたの ORCID 記録にありますが、OpenAlex があなたの業績として紐づけていません。確認してください：「表示」で CV に追加、「自分のものではない」にする、または「非表示のまま」にして載せないでください。",
   reviewHintNameMatched:
     "氏名と所属で照合されています（検証済みの識別子ではありません）。確認してください：あなたのものなら「表示」、そうでなければ非表示のままにしてください。",
+  reviewHintOepInferred:
+    "Open Editors Plus は、より弱い識別子（他のレコードから伝播した ORCID、または氏名と所属で照合された OpenAlex プロフィール）から推定しました。奥付に印刷された ORCID によるものではありません。ご確認ください。ご自身のものなら「表示」、そうでなければ非表示のままにしてください。",
   reviewKeepHidden: "非表示のまま",
   reviewKeepHiddenHint: "CV に載せず、確認対象としての表示を止めます",
   reviewSimilarShown: "似た項目がすでに CV にあります：「{title}」。",
@@ -1496,6 +1508,8 @@ const PT: Record<ChromeKey, string> = {
     "Consta no seu registro ORCID, mas o OpenAlex não a atribuiu a você — revise: «Mostrar» para adicioná-la ao currículo, marque como «não é minha» ou «Manter oculto» para deixá-la de fora.",
   reviewHintNameMatched:
     "Associado a você por nome e organização, não por um identificador verificado — revise: «Mostrar» se for seu; caso contrário, deixe oculto.",
+  reviewHintOepInferred:
+    "O Open Editors Plus inferiu isto a partir de um identificador mais fraco — um ORCID propagado de outro registro, ou um perfil do OpenAlex correspondido por nome e instituição — e não de um ORCID impresso no expediente. Revise: clique em “Mostrar” se for seu; caso contrário, deixe oculto.",
   reviewKeepHidden: "Manter oculto",
   reviewKeepHiddenHint: "Mantê-lo fora do currículo e parar de marcá-lo para revisão",
   reviewSimilarShown: "Já existe uma entrada semelhante no seu currículo: «{title}».",
@@ -1655,6 +1669,8 @@ const IT: Record<ChromeKey, string> = {
     "Presente nel tuo profilo ORCID ma non attribuita a te da OpenAlex — da verificare: «Mostra» per aggiungerla al CV, segnala «non è mia» oppure «Mantieni nascosto» per lasciarla fuori.",
   reviewHintNameMatched:
     "Abbinato a te per nome e organizzazione, non tramite un identificatore verificato — da verificare: «Mostra» se è tuo, altrimenti lascialo nascosto.",
+  reviewHintOepInferred:
+    "Open Editors Plus lo ha dedotto da un identificatore più debole — un ORCID propagato da un altro record, o un profilo OpenAlex abbinato per nome e istituzione — e non da un ORCID stampato nel colophon. Verificalo: “Mostra” se è tuo, altrimenti lascialo nascosto.",
   reviewKeepHidden: "Mantieni nascosto",
   reviewKeepHiddenHint: "Tienilo fuori dal CV e non segnalarlo più per la verifica",
   reviewSimilarShown: "Una voce simile è già nel tuo CV: «{title}».",
@@ -1814,6 +1830,8 @@ const KO: Record<ChromeKey, string> = {
     "귀하의 ORCID 기록에 있지만 OpenAlex가 귀하의 업적으로 연결하지 않았습니다. 확인하세요: ‘표시’로 CV에 추가하거나 ‘내 것이 아님’으로 표시하거나 ‘숨김 유지’로 제외하세요.",
   reviewHintNameMatched:
     "이름과 소속으로 매칭되었습니다(검증된 식별자가 아님). 확인하세요: 본인의 것이면 ‘표시’, 아니면 숨김 상태로 두세요.",
+  reviewHintOepInferred:
+    "Open Editors Plus가 더 약한 식별자로부터 추론했습니다 — 다른 레코드에서 전파된 ORCID이거나, 이름과 소속으로 매칭된 OpenAlex 프로필이며, 판권면에 인쇄된 ORCID가 아닙니다. 확인해 주세요: 본인의 것이면 “표시”, 아니면 숨긴 상태로 두세요.",
   reviewKeepHidden: "숨김 유지",
   reviewKeepHiddenHint: "CV에 표시하지 않고 확인 대상 표시를 중단합니다",
   reviewSimilarShown: "유사한 항목이 이미 CV에 있습니다: ‘{title}’.",
@@ -1972,6 +1990,8 @@ const RU: Record<ChromeKey, string> = {
     "Есть в вашей записи ORCID, но OpenAlex не привязал её к вам — проверьте: «Показать», чтобы добавить в резюме, отметьте «не моя» или «Оставить скрытым», чтобы не включать.",
   reviewHintNameMatched:
     "Сопоставлено с вами по имени и организации, без проверенного идентификатора — проверьте: «Показать», если это ваше, иначе оставьте скрытым.",
+  reviewHintOepInferred:
+    "Open Editors Plus вывел это из более слабого идентификатора — ORCID, перенесённого из другой записи, или профиля OpenAlex, сопоставленного по имени и организации, — а не из ORCID, напечатанного в выходных данных. Проверьте: «Показать», если это ваше, иначе оставьте скрытым.",
   reviewKeepHidden: "Оставить скрытым",
   reviewKeepHiddenHint: "Не показывать в резюме и больше не отмечать для проверки",
   reviewSimilarShown: "Похожая запись уже есть в вашем резюме: «{title}».",
