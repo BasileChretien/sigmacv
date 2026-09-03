@@ -289,7 +289,9 @@ enabled on `C:` on 2026-09-03: **XTS-AES-256**, full-volume (deliberately _not_
 `-UsedSpaceOnly`, so free space is encrypted too — which matters because deleted
 plaintext dumps remain readable in unallocated space until something overwrites them),
 protectors **TPM + Numerical Password**, recovery key held in the maintainer's password
-manager.
+manager. **Verified complete the same day** — `Conversion Status: Fully Encrypted`,
+`Percentage Encrypted: 100.0%`, `Protection Status: Protection On`. Stated here only
+because it was read off the machine, not inferred from having run the command.
 
 Read the layering correctly, because conflating the two is what caused the problem
 above: BitLocker with a TPM-only protector unlocks automatically at boot, so it protects
@@ -304,7 +306,9 @@ Two things that look like faults and are not:
   `0x80310031` ("only one key protector of this type is allowed"). Harmless — check
   `manage-bde -status` and you will see both protectors already listed.
 - `Protection Status: Protection Off` is **expected while conversion runs**. It flips to
-  `Protection On` at 100%. Verify it then; do not read anything into it before.
+  `Protection On` at 100%. Verify it then; do not read anything into it before. (It did,
+  on 2026-09-03 — but re-check after any firmware update or mainboard service, which are
+  the events that disturb the TPM and make Windows demand the recovery key at boot.)
 
 ```powershell
 manage-bde -status C:     # elevated; Protection On + Conversion Status "Fully Encrypted"
