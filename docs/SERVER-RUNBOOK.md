@@ -252,7 +252,7 @@ observed rather than assumed:
 pwsh -File scripts\check-nightly-backups.ps1 -RemoteHost root@sigmacv.org
 ```
 
-```
+```text
 === SigmaCV nightly backup check - 2026-09-03 05:08 UTC, for 2026-09-03 ===
   ssh: C:\WINDOWS\System32\OpenSSH\ssh.exe
   DUMP   OK      sigmacv     sigmacv-20260903-033001.sql.gz

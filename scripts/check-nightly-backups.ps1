@@ -137,9 +137,15 @@ if ($null -ne $verify) {
       Bad "  VERIFY MISSING $($v.Name.PadRight(11)) no run logged for $iso"
       continue
     }
-    # Take everything after the last matching header and look for its OK line.
+    # Take everything after the last matching header, BOUNDED AT THE NEXT HEADER.
+    # Both verifiers append to the same log and ClickHouse runs after postgres, so
+    # an unbounded tail from the postgres header runs on into the ClickHouse
+    # section and finds ITS "OK:" line -- reporting a postgres run that logged
+    # "FAIL:" as OK, and exiting 0. A false green on the one thing this checks.
     $idx = $joined.LastIndexOf("$($lines[-1])")
     $tail = $joined.Substring($idx)
+    $nextHeader = $tail.IndexOf("`n=== ")
+    if ($nextHeader -ge 0) { $tail = $tail.Substring(0, $nextHeader) }
     if ($tail -match "(?m)^OK: ") {
       Say "  VERIFY OK      $($v.Name.PadRight(11)) $iso"
     } else {
