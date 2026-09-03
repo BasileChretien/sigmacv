@@ -59,6 +59,9 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
   //    disambiguation reason + timestamp (an internal research signal) so neither
   //    leaks into the machine downloads (json/csljson/bibtex serialize this object
   //    directly); the stored canonical doc keeps them for the owner + research;
+  //    `reviewedAt` goes with them — WHEN the owner adjudicated each work is
+  //    behavioural metadata about a private curation session, never something they
+  //    chose to publish;
   //  - drop the items the PUBLISHED view hid ("hide from this view"), so every
   //    public format reflects what the owner published, not the full set.
   const excludedItems = cv.display.excludedItems;
@@ -73,6 +76,7 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
           ...it,
           notMineReason: undefined,
           notMineAssertedAt: undefined,
+          reviewedAt: undefined,
           // Internal disambiguation/research signals — advisory hints surfaced
           // only in the editor, never on any public render — must not leak into
           // the machine downloads either (same reasoning as notMineReason above):

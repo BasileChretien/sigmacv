@@ -6,6 +6,8 @@ import {
   unreviewedItems,
 } from "@/lib/canonical/review";
 import { setItemNotMine, setItemReviewed } from "@/lib/canonical/curate";
+import { setItemsNotMine } from "@/lib/canonical/bulkCurate";
+import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 
 const NOW = "2026-09-02T10:00:00.000Z";
@@ -178,5 +180,46 @@ describe("curate write paths", () => {
     // The user has looked at this work and decided it IS theirs — that is a
     // confirmation, not a return to "never examined".
     expect(itemReviewState(it0)).toBe("confirmed");
+  });
+});
+
+describe("review state does not leak, and bulk keeps parity", () => {
+  it("is stripped from the public projection, like notMineAssertedAt", () => {
+    // WHEN the owner adjudicated each work is private curation behaviour. The
+    // raw `json` public format serializes this object directly, so anything left
+    // on the item is published.
+    const reviewed = setItemReviewed(cv([item({ id: "W1" })]), "publications", "W1", true, {
+      now: NOW,
+    });
+    const pub = projectCvForPublic(reviewed);
+    const published = pub.sections.flatMap((s) => s.items);
+    expect(published).toHaveLength(1);
+    expect(published[0]!.reviewedAt).toBeUndefined();
+    // …while the stored document keeps it for the owner.
+    expect(reviewed.sections[0]!.items[0]!.reviewedAt).toBe(NOW);
+  });
+
+  it("bulk 'not mine' records the review, exactly as the single-item path does", () => {
+    // A namesake cleanup is dozens of works at once — the path a high-collision
+    // user actually takes. If bulk skipped the stamp, they would adjudicate 30
+    // works and watch review progress stay at zero.
+    const before = cv([item({ id: "W1" }), item({ id: "W2" }), item({ id: "W3" })]);
+    const after = setItemsNotMine(before, "publications", ["W1", "W2"], true, {
+      reason: "different-person",
+      now: NOW,
+    });
+    const byId = new Map(after.sections[0]!.items.map((i) => [i.id, i]));
+    expect(byId.get("W1")!.reviewedAt).toBe(NOW);
+    expect(byId.get("W2")!.reviewedAt).toBe(NOW);
+    expect(byId.get("W3")!.reviewedAt).toBeUndefined(); // untouched
+    expect(reviewCoverage(after)).toMatchObject({ reviewable: 3, reviewed: 2, rejected: 2 });
+  });
+
+  it("bulk retraction leaves the items reviewed, not unreviewed", () => {
+    const asserted = setItemsNotMine(cv([item({ id: "W1" })]), "publications", ["W1"], true, {
+      now: NOW,
+    });
+    const retracted = setItemsNotMine(asserted, "publications", ["W1"], false, { now: NOW });
+    expect(itemReviewState(retracted.sections[0]!.items[0]!)).toBe("confirmed");
   });
 });
