@@ -264,7 +264,7 @@ describe("projectCvForPreview", () => {
     ).toBeUndefined();
   });
 
-  it("keeps reviewFlag / duplicateOf / misattribution so the editor can flag them", () => {
+  it("strips every attribution-doubt cue, keeping only the duplicate hint", () => {
     const base = makeCv();
     const sec = base.sections.find((s) => s.type === "publications")!;
     const first = sec.items[0]!;
@@ -300,11 +300,51 @@ describe("projectCvForPreview", () => {
     const item = projectCvForPreview(cv)
       .sections.find((s) => s.id === sec.id)!
       .items.find((it) => it.id === first.id)!;
-    expect(item.meta.reviewFlag).toBe("likely-misattributed");
+    // /preview/[orcid] has NO auth: anyone can type any researcher's iD. So no
+    // per-work judgement about whether the work is really theirs may ship —
+    // "may not be yours", "matched by name", "lists a different ORCID". This
+    // projection previously kept them, reasoning the anonymous editor should
+    // surface the same cues a signed-in one does; that holds for the owner and
+    // fails for every other viewer.
+    expect(item.meta.reviewFlag).toBeUndefined();
+    expect(item.meta.misattribution).toBeUndefined();
+    // The duplicate hint survives: "these two entries look like the same work" is
+    // an observation about the DATA, not a claim about who wrote it.
     expect(item.meta.duplicateOf?.groupId).toBe("g1");
-    expect(item.meta.misattribution?.score).toBe(0.9);
-    // …but the raw co-author ORCID list is stripped (third-party PII, editor-unused).
+    // …and the raw co-author ORCID list is still stripped (third-party PII).
     expect(item.meta.coauthorOrcids).toBeUndefined();
+  });
+
+  it("keeps a duplicate reviewFlag, which is about the data and not the person", () => {
+    const sec = makeCv().sections.find((s) => s.items.length > 0)!;
+    const first = sec.items[0]!;
+    const cv = {
+      ...makeCv(),
+      sections: makeCv().sections.map((s) =>
+        s.id !== sec.id
+          ? s
+          : {
+              ...s,
+              items: s.items.map((it) =>
+                it.id !== first.id
+                  ? it
+                  : { ...it, meta: { ...it.meta, reviewFlag: "duplicate" as const } },
+              ),
+            },
+      ),
+    };
+    const item = projectCvForPreview(cv)
+      .sections.find((s) => s.id === sec.id)!
+      .items.find((it) => it.id === first.id)!;
+    expect(item.meta.reviewFlag).toBe("duplicate");
+  });
+
+  it("still shows the items themselves — it withholds the doubt, not the work", () => {
+    // Hidden review candidates stay in the document so the preview still shows
+    // what the sources found; only the reason to distrust them is removed.
+    const before = makeCv().sections.reduce((n, s) => n + s.items.length, 0);
+    const after = projectCvForPreview(makeCv()).sections.reduce((n, s) => n + s.items.length, 0);
+    expect(after).toBe(before);
   });
 
   it("still strips owner-private fields (personal, notes, presets, unopted contact)", () => {
