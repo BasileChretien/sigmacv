@@ -125,10 +125,17 @@ your data.
 
 Metrics are **off by default** and fully opt-in. When enabled, SigmaCV prefers
 field-normalized indicators (which account for how citation rates differ between
-fields, e.g. FWCI and the NIH iCite Relative Citation Ratio) over raw counts, and
-it **never** shows a journal's Impact Factor. This is in line with DORA, the San
-Francisco Declaration on Research Assessment (https://sfdora.org/). The
-optional Sigma-Score is one available metric.
+fields) over raw counts, and it **never** shows a journal's Impact Factor. This is
+in line with DORA, the San Francisco Declaration on Research Assessment
+(https://sfdora.org/).
+
+The field-normalized measure SigmaCV offers is the NIH iCite Relative Citation
+Ratio (biomedical, keyed by PubMed ID). There is no composite "SigmaCV score":
+the name is a working title, and the Sigma-Score it alludes to is a design
+concept, not a metric the tool computes. FWCI-derived aggregates are computed
+internally but deliberately NOT offered, because a work's expected-citation
+baseline can only be recovered for works that already have citations, so the
+average silently excludes uncited work and reads too high.
 
 ## Privacy, consent, and data rights
 
