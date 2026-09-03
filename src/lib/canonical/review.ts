@@ -45,32 +45,68 @@ export function itemReviewState(item: CvItem): ItemReviewState {
 }
 
 /**
- * Whether an item belongs in the review DENOMINATOR.
- *
- * Reviewable = a citation item that a SOURCE attributed to the account holder.
- * Two exclusions, both deliberate:
- *  - non-citation entries (positions, editorial roles, grants) — these are
- *    adjudicable, but they are not what attribution error is about, and folding
- *    them in would let a user reach "100% reviewed" without touching a single
- *    publication;
+ * A citation item that a SOURCE attributed to the account holder — the population
+ * within which a review question can even be asked. Two exclusions, both
+ * deliberate:
+ *  - non-citation entries (positions, editorial roles, grants) — adjudicable, but
+ *    not what attribution error is about;
  *  - user-asserted items (`manual`, `bibtex`, and DOI-claimed works) — the user
- *    supplied these, so "has the user checked them?" is vacuous, and counting
- *    them would let the denominator be padded.
+ *    supplied these, so "has the user checked them?" is vacuous.
  *
- * Note that `included` and `notMine` are NOT consulted: a hidden or rejected work
- * has still been reviewed, and must stay in the denominator or the percentage
- * would rise every time a user rejected something.
+ * This is the BASE population, NOT the review denominator. See {@link needsReview}.
  */
-export function isReviewable(item: CvItem): boolean {
+export function isSourceAttributed(item: CvItem): boolean {
   if (!item.csl) return false;
   if (item.source === "manual" || item.source === "bibtex") return false;
   if (item.meta.claimed) return false;
   return true;
 }
 
+/**
+ * Whether an item is worth the account holder's attention — the review DENOMINATOR.
+ *
+ * THIS IS THE LOAD-BEARING JUDGEMENT OF THIS MODULE. An earlier version counted
+ * every source-attributed work, which told a researcher with 123 publications that
+ * 115 of them "still need review". That is busywork, and it contradicts the design
+ * the rest of the codebase follows: `misattribution.ts` is explicitly precision-first,
+ * flagging a work only when it fails two independent checks, precisely so the user
+ * is never asked to re-examine work the system has no reason to doubt.
+ *
+ * Confirming an ORCID-matched paper with no adverse signal also carries almost no
+ * information — neither for the user, nor for the provenance claim, nor for a
+ * future calibration of attribution probability, where the signal lives entirely in
+ * the doubtful cases. So the denominator is the doubtful cases:
+ *
+ *  - the item carries a review flag (name-matched, ORCID-conflicting, ORCID-DOI
+ *    discovered, duplicate, likely-misattributed, held for review); OR
+ *  - the misattribution heuristic fired on it; OR
+ *
+ * Deliberately NOT included: a bare `matchBasis === "openalex-id"`. It is tempting —
+ * that is where over-merging enters — but ORCID appears on only a minority of
+ * OpenAlex authorships, so most of a perfectly sound profile matches by author id
+ * alone. Treating that as doubt would flag the majority of a 123-work CV and
+ * simply reintroduce the nag at a smaller size. It is a PRIOR that belongs in an
+ * attribution-probability model, not a to-do item. `misattribution.ts` already
+ * combines it with corroborating signals, and its verdict IS counted above.
+ *
+ * Everything else is left alone. A user who never opens the editor is not thereby
+ * "unreviewed" — there was nothing to ask them.
+ *
+ * `included` / `notMine` are still NOT consulted: a hidden or rejected work has
+ * been adjudicated and must stay in the denominator, or the figure would climb
+ * every time someone found a misattribution.
+ */
+export function needsReview(item: CvItem): boolean {
+  if (!isSourceAttributed(item)) return false;
+  if (item.meta.reviewFlag) return true;
+  if (item.meta.misattribution) return true;
+  return false;
+}
+
 /** Aggregate review progress over a whole CV. */
 export interface ReviewCoverage {
-  /** Items in the denominator — source-attributed citation items. */
+  /** Items in the denominator — those {@link needsReview} flags as doubtful.
+   *  NOT the whole publication list. */
   reviewable: number;
   /** Reviewable items adjudicated either way (confirmed + rejected). */
   reviewed: number;
@@ -100,7 +136,7 @@ export function reviewCoverage(cv: CanonicalCv): ReviewCoverage {
   let rejected = 0;
   for (const section of cv.sections) {
     for (const item of section.items) {
-      if (!isReviewable(item)) continue;
+      if (!needsReview(item)) continue;
       reviewable += 1;
       const state = itemReviewState(item);
       if (state === "confirmed") confirmed += 1;
@@ -131,7 +167,7 @@ export function unreviewedItems(
   for (const section of cv.sections) {
     for (const item of section.items) {
       if (out.length >= limit) return out;
-      if (!isReviewable(item)) continue;
+      if (!needsReview(item)) continue;
       if (itemReviewState(item) !== "unreviewed") continue;
       out.push({ sectionId: section.id, item });
     }

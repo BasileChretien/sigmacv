@@ -2042,11 +2042,6 @@ textarea.narrative-ai-draft {
   background: var(--accent-50);
   border-color: var(--accent-200);
 }
-/* Review-progress line under the health checklist. */
-.cv-health-review {
-  margin-top: var(--space-2);
-  font-variant-numeric: tabular-nums;
-}
 /* An item kept on the CV but omitted from the CURRENT view/preset only. */
 .cv-item-row.is-view-hidden {
   opacity: 0.72;
