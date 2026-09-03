@@ -2,13 +2,13 @@
 
 import { useMemo } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
-import { computeCvHealth } from "@/lib/cv/health";
+import { computeCvHealth, type CvHealthCategory } from "@/lib/cv/health";
+
+// Re-exported so existing importers keep working; the definition lives beside
+// the counts and the jump targets in lib/cv/health.ts.
+export type { CvHealthCategory };
 import type { Locale } from "@/lib/i18n";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
-
-/** The four outstanding-decision categories the panel surfaces. */
-export type CvHealthCategory =
-  "review" | "duplicates" | "conflicts" | "misattributed" | "retracted";
 
 interface CvHealthPanelProps {
   cv: CanonicalCv;

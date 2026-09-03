@@ -31,6 +31,9 @@ export interface WorkspaceUiStrings {
   hpMisAllMine: string;
   hpRetracted: string;
   hpHint: string;
+  /** Announced (politely) after a checklist jump so the walk is perceptible
+   *  without sight. {n} / {total} = position in the category; {title} = the row. */
+  hpWalkPosition: string;
   // ── Per-item review confirmation ───────────────────────────────────────────
   /** Row button: record that the user checked this work and it is theirs. */
   reviewConfirm: string;
@@ -94,7 +97,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpConflicts: "{n} works listing a different ORCID iD",
     hpMisattributed: "{n} works that may not be yours to review",
     hpRetracted: "{n} retracted works still shown",
-    hpHint: "Select one to jump straight to it.",
+    hpHint: "Select one to jump to it; select again for the next.",
+    hpWalkPosition: "{n} of {total}: {title}",
     reviewConfirm: "Confirm",
     reviewConfirmed: "Confirmed",
     reviewConfirmHint:
@@ -147,7 +151,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpConflicts: "{n} 条作品标注了不同的 ORCID iD",
     hpMisattributed: "{n} 条可能不属于您的作品待核查",
     hpRetracted: "{n} 条已撤稿的作品仍在显示",
-    hpHint: "点击任意一项即可直接跳转处理。",
+    hpHint: "选择一项跳转；再次选择跳转到下一项。",
+    hpWalkPosition: "第 {n} / {total} 项：{title}",
     reviewConfirm: "确认",
     reviewConfirmed: "已确认",
     reviewConfirmHint: "记录你已核对这项成果确属本人。不会改变简历内容，仅标记为已核对。",
@@ -199,7 +204,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpConflicts: "{n} trabajos con un ORCID iD distinto",
     hpMisattributed: "{n} trabajos que podrían no ser tuyos por revisar",
     hpRetracted: "{n} trabajos retractados aún visibles",
-    hpHint: "Selecciona uno para ir directamente a él.",
+    hpHint: "Selecciona uno para ir a él; vuelve a seleccionarlo para el siguiente.",
+    hpWalkPosition: "{n} de {total}: {title}",
     reviewConfirm: "Confirmar",
     reviewConfirmed: "Confirmado",
     reviewConfirmHint:
@@ -253,7 +259,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpConflicts: "{n} travaux portant un ORCID iD différent",
     hpMisattributed: "{n} travaux qui ne sont peut-être pas les vôtres à vérifier",
     hpRetracted: "{n} travaux rétractés encore affichés",
-    hpHint: "Sélectionnez-en un pour y accéder directement.",
+    hpHint: "Sélectionnez-en un pour y accéder ; sélectionnez à nouveau pour le suivant.",
+    hpWalkPosition: "{n} sur {total} : {title}",
     reviewConfirm: "Confirmer",
     reviewConfirmed: "Confirmé",
     reviewConfirmHint:
@@ -307,7 +314,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpConflicts: "{n} Arbeiten mit einer anderen ORCID iD",
     hpMisattributed: "{n} Arbeiten, die möglicherweise nicht von Ihnen sind",
     hpRetracted: "{n} zurückgezogene Arbeiten noch sichtbar",
-    hpHint: "Wählen Sie einen aus, um direkt dorthin zu springen.",
+    hpHint: "Wählen Sie einen aus, um dorthin zu springen; erneut auswählen für den nächsten.",
+    hpWalkPosition: "{n} von {total}: {title}",
     reviewConfirm: "Bestätigen",
     reviewConfirmed: "Bestätigt",
     reviewConfirmHint:
@@ -361,7 +369,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpConflicts: "別の ORCID iD が記載された業績が {n} 件",
     hpMisattributed: "あなたのものでない可能性がある業績が {n} 件",
     hpRetracted: "撤回済みの業績が {n} 件表示されています",
-    hpHint: "項目を選ぶと該当箇所へ直接移動します。",
+    hpHint: "項目を選ぶと移動します。もう一度選ぶと次の項目へ移動します。",
+    hpWalkPosition: "{total} 件中 {n} 件目：{title}",
     reviewConfirm: "確認",
     reviewConfirmed: "確認済み",
     reviewConfirmHint:
@@ -415,7 +424,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpConflicts: "{n} trabalhos com um ORCID iD diferente",
     hpMisattributed: "{n} trabalhos que podem não ser seus para revisar",
     hpRetracted: "{n} trabalhos retratados ainda exibidos",
-    hpHint: "Selecione um para ir direto até ele.",
+    hpHint: "Selecione um para ir até ele; selecione novamente para o próximo.",
+    hpWalkPosition: "{n} de {total}: {title}",
     reviewConfirm: "Confirmar",
     reviewConfirmed: "Confirmado",
     reviewConfirmHint:
@@ -469,7 +479,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpConflicts: "{n} lavori con un ORCID iD diverso",
     hpMisattributed: "{n} lavori che potrebbero non essere tuoi da verificare",
     hpRetracted: "{n} lavori ritrattati ancora visibili",
-    hpHint: "Selezionane uno per andarci direttamente.",
+    hpHint: "Selezionane uno per andarci; selezionalo di nuovo per il successivo.",
+    hpWalkPosition: "{n} di {total}: {title}",
     reviewConfirm: "Conferma",
     reviewConfirmed: "Confermato",
     reviewConfirmHint:
@@ -523,7 +534,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpConflicts: "다른 ORCID iD가 기재된 업적 {n}개",
     hpMisattributed: "본인의 것이 아닐 수 있는 업적 {n}개",
     hpRetracted: "철회된 업적 {n}개가 아직 표시됨",
-    hpHint: "항목을 선택하면 해당 위치로 바로 이동합니다.",
+    hpHint: "항목을 선택하면 이동합니다. 다시 선택하면 다음 항목으로 이동합니다.",
+    hpWalkPosition: "{total}개 중 {n}번째: {title}",
     reviewConfirm: "확인",
     reviewConfirmed: "확인함",
     reviewConfirmHint:
@@ -577,7 +589,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpConflicts: "{n} работ с другим ORCID iD",
     hpMisattributed: "{n} работ, которые могут быть не вашими",
     hpRetracted: "{n} отозванных работ всё ещё отображаются",
-    hpHint: "Выберите пункт, чтобы перейти прямо к нему.",
+    hpHint: "Выберите пункт, чтобы перейти к нему; выберите снова для следующего.",
+    hpWalkPosition: "{n} из {total}: {title}",
     reviewConfirm: "Подтвердить",
     reviewConfirmed: "Подтверждено",
     reviewConfirmHint:

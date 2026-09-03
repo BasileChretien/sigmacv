@@ -151,7 +151,12 @@ interface ItemRowProps {
   dupOpen?: boolean;
   /** Badge click handler when `dupOpen` is controlled. */
   onDupToggle?: () => void;
-  /** Ref to this row's <li>, so the editor can scroll it into view during review. */
+  /** Ref to this row's <li>, so the editor can scroll it into view during review.
+   *  The row also carries `tabIndex={-1}`: script-focusable but never in the tab
+   *  sequence, so a checklist jump can move REAL focus to it. A screen reader
+   *  then announces the row it landed on, and the next Tab reaches that row's own
+   *  controls. Without it the jump was scroll-only — perceptible only visually,
+   *  and it left the keyboard user's position back in the panel above. */
   rowRef?: (el: HTMLLIElement | null) => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -409,6 +414,7 @@ export default function ItemRow({
   return (
     <li
       ref={rowRef}
+      tabIndex={-1}
       className={rowClass}
       onDragOver={onDropOver ? (e) => e.preventDefault() : undefined}
       onDrop={
