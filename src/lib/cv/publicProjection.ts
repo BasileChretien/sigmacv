@@ -148,16 +148,27 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
 /**
  * Project a canonical CV for the NO-LOGIN preview EDITOR (`/preview/[orcid]`).
  *
- * The anonymous preview is viewed by whoever pasted the iD — not necessarily the
- * owner — so it strips the same owner-private/contact fields the public page hides
- * (contact behind per-field consent, rirekisho `personal`, private `notes`, saved
- * presets). But UNLIKE {@link projectCvForPublic}, it KEEPS every item (including
- * hidden "not mine" / review CANDIDATES) and their per-item review metadata
- * (`reviewFlag`, `duplicateOf`, `misattribution`, …). That's the whole point: the
- * anonymous editor then surfaces the very same "probably not yours" / "probably a
- * duplicate" curation cues a signed-in editor gets. Safe because the renderers
- * never emit that metadata and only render INCLUDED items, so nothing extra leaks
- * on any HTML/machine render — the metadata lives only in the editor's UI.
+ * The anonymous preview is viewed by whoever pasted the iD — ANYONE can type ANY
+ * researcher's ORCID, and this route has no auth — so it strips the same
+ * owner-private/contact fields the public page hides (contact behind per-field
+ * consent, rirekisho `personal`, private `notes`, saved presets).
+ *
+ * It also strips every ATTRIBUTION-DOUBT cue: `meta.misattribution` and every
+ * `reviewFlag` except `duplicate`. An earlier version kept them, reasoning that the
+ * anonymous editor should surface the same curation cues a signed-in one does.
+ * That reasoning holds for the owner and fails for everyone else: it made a public,
+ * unauthenticated URL render per-work judgements — "may not be yours", "matched by
+ * name", "lists a different ORCID" — about a NAMED THIRD PARTY, on the document
+ * class used for hiring. The project's own benchmark puts the namesake burden ~8x
+ * higher for East-Asian-name researchers, so those judgements would not have fallen
+ * evenly.
+ *
+ * `duplicate` is deliberately kept: "these two entries look like the same work" is
+ * an observation about the DATA, not a claim about whether the person wrote it.
+ *
+ * The items themselves are all still KEPT (including hidden ones), so the preview
+ * still shows what the sources found; what it no longer does is tell a stranger
+ * which of them to doubt. The owner sees the full cues once signed in.
  *
  * Metrics + per-year chart data are kept (not gated) so the editor's show-metrics
  * toggle has data to reveal; the renderers still honour `display.showMetrics` /
@@ -173,14 +184,23 @@ export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
       // build never populates them, but strip defensively.
       personal: undefined,
     },
-    // Keep every item + its review cues (reviewFlag/duplicateOf/misattribution),
-    // but strip `meta.coauthorOrcids` — a raw list of THIRD-PARTY ORCID iDs used
+    // Keep every item, but not the reasons to doubt it — see the note above.
+    // Also strip `meta.coauthorOrcids`: a raw list of THIRD-PARTY ORCID iDs used
     // only server-side (JSON-LD `knows` resolution on publish). The editor never
     // needs it, and this whole object is sent to the anonymous browser, so it must
     // not ship (the public projection drops it for the same reason).
     sections: cv.sections.map((s) => ({
       ...s,
-      items: s.items.map((it) => ({ ...it, meta: { ...it.meta, coauthorOrcids: undefined } })),
+      items: s.items.map((it) => ({
+        ...it,
+        meta: {
+          ...it.meta,
+          coauthorOrcids: undefined,
+          misattribution: undefined,
+          // Only the data-quality flag survives; every attribution-doubt flag goes.
+          reviewFlag: it.meta.reviewFlag === "duplicate" ? "duplicate" : undefined,
+        },
+      })),
     })),
     // Owner-only scratchpad + saved editor layouts: never for a non-owner viewer.
     notes: undefined,
