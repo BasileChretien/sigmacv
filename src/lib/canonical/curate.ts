@@ -63,6 +63,34 @@ export function setItemIncluded(
 }
 
 /**
+ * The `reviewedAt` an item should carry after a "not mine" assertion is set or
+ * retracted. Shared by the single-item and bulk paths, which previously each
+ * carried their own copy of this rule and drifted apart.
+ *
+ * Asserting is an adjudication, so it stamps the review. Retracting an assertion
+ * is ALSO an adjudication — the user looked and decided the work is theirs after
+ * all — so it leaves the item reviewed rather than returning it to
+ * "never examined".
+ *
+ * But retraction only adjudicates an item that WAS asserted. Applying a retract to
+ * an item that was never `notMine` is a no-op for that item and must not stamp it:
+ * the bulk path made exactly that mistake, so one click on a selection could
+ * promote works nobody had examined to confirmed — laundering unreviewed works
+ * into the strongest evidence class.
+ */
+export function reviewedAtAfterNotMine(
+  item: Pick<CvItem, "notMine" | "reviewedAt">,
+  notMine: boolean,
+  now: string,
+): string | undefined {
+  if (notMine) return now;
+  // Retracting an assertion the item actually carried: that is a review.
+  if (item.notMine) return item.reviewedAt ?? now;
+  // Item was never asserted — untouched.
+  return item.reviewedAt;
+}
+
+/**
  * Assert / retract "this work is not mine" (a disambiguation claim, distinct
  * from a display hide). On assert: stamps `notMineAssertedAt` and records the
  * optional structured `reason`. On retract: clears both. `now` is threaded in
@@ -85,12 +113,7 @@ export function setItemNotMine(
             notMine,
             notMineAssertedAt: notMine ? now : undefined,
             notMineReason: notMine ? opts.reason : undefined,
-            // Adjudicating a work IS reviewing it, so an assertion stamps the
-            // review timestamp too. Retracting does NOT clear it: the user has
-            // still looked at the item, and `itemReviewState` then reads it as
-            // "confirmed" — which is the correct reading of "I checked this, and
-            // on reflection it is mine".
-            reviewedAt: notMine ? now : (it.reviewedAt ?? now),
+            reviewedAt: reviewedAtAfterNotMine(it, notMine, now),
           }
         : it,
     ),

@@ -8,6 +8,7 @@ import {
 } from "@/lib/canonical/review";
 import { setItemNotMine, setItemReviewed } from "@/lib/canonical/curate";
 import { setItemsNotMine } from "@/lib/canonical/bulkCurate";
+import { reviewedAtAfterNotMine } from "@/lib/canonical/curate";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { safeParseCanonicalCv } from "@/lib/canonical/schema";
 import { buildCanonicalCv } from "@/lib/canonical/build";
@@ -333,4 +334,82 @@ describe("reviewedAt is validated as a real timestamp", () => {
       expect(reviewCoverage(parsed.data).confirmed).toBe(0);
     },
   );
+});
+
+describe("retraction only adjudicates items that were actually asserted", () => {
+  // The bug this guards: bulk retract-not-mine stamped reviewedAt on EVERY
+  // selected item, including ones that were never "not mine". One click on a
+  // selection promoted works nobody had examined into the strongest evidence
+  // class — laundering unreviewed works as confirmed.
+  const NEVER = { id: "W1" } as const;
+
+  it("leaves an item that was never asserted completely untouched", () => {
+    // Flagged, so these sit in the review denominator — otherwise the coverage
+    // assertion below would hold trivially under the buggy implementation too.
+    const flag = { reviewFlag: "name-matched" } as const;
+    const before = cv([item({ ...NEVER, meta: flag }), item({ id: "W2", meta: flag })]);
+    const after = setItemsNotMine(before, "publications", ["W1", "W2"], false, { now: NOW });
+    for (const it of after.sections[0]!.items) {
+      expect(it.reviewedAt).toBeUndefined();
+      expect(itemReviewState(it)).toBe("unreviewed");
+    }
+    const cov = reviewCoverage(after);
+    expect(cov.reviewable).toBe(2); // both genuinely in the denominator
+    expect(cov.reviewed).toBe(0); // and a no-op retract moved neither
+  });
+
+  it("same rule on the single-item path", () => {
+    const after = setItemNotMine(cv([item(NEVER)]), "publications", "W1", false, { now: NOW });
+    expect(after.sections[0]!.items[0]!.reviewedAt).toBeUndefined();
+  });
+
+  it("still records the review when a real assertion is retracted", () => {
+    const asserted = setItemsNotMine(cv([item(NEVER)]), "publications", ["W1"], true, { now: NOW });
+    const retracted = setItemsNotMine(asserted, "publications", ["W1"], false, { now: NOW });
+    expect(itemReviewState(retracted.sections[0]!.items[0]!)).toBe("confirmed");
+  });
+
+  it("does not let a mixed selection launder the un-asserted members", () => {
+    // The realistic shape of the bug: a namesake cleanup, then "actually these
+    // are mine" over a wider selection than was ever flagged.
+    let c = cv([item({ id: "A" }), item({ id: "B" }), item({ id: "C" })]);
+    c = setItemsNotMine(c, "publications", ["A"], true, { now: NOW });
+    c = setItemsNotMine(c, "publications", ["A", "B", "C"], false, { now: NOW });
+    const byId = new Map(c.sections[0]!.items.map((i) => [i.id, i]));
+    expect(itemReviewState(byId.get("A")!)).toBe("confirmed"); // genuinely adjudicated
+    expect(byId.get("B")!.reviewedAt).toBeUndefined(); // never touched
+    expect(byId.get("C")!.reviewedAt).toBeUndefined();
+  });
+
+  it("preserves an earlier review timestamp rather than refreshing it", () => {
+    const EARLIER = "2026-01-01T00:00:00.000Z";
+    const c = cv([item({ id: "W1", notMine: true, reviewedAt: EARLIER })]);
+    const out = setItemsNotMine(c, "publications", ["W1"], false, { now: NOW });
+    expect(out.sections[0]!.items[0]!.reviewedAt).toBe(EARLIER);
+  });
+});
+
+describe("reviewedAtAfterNotMine (the shared rule)", () => {
+  // Tested directly so the two call sites cannot drift apart again — they
+  // already did once, which is how the bug above reached production.
+  it.each([
+    ["assert always stamps", { notMine: false }, true, NOW],
+    ["assert overrides an older stamp", { notMine: false, reviewedAt: "2026-01-01" }, true, NOW],
+    [
+      "retract on an asserted item keeps its stamp",
+      { notMine: true, reviewedAt: "2026-01-01" },
+      false,
+      "2026-01-01",
+    ],
+    ["retract on an asserted item with no stamp records one", { notMine: true }, false, NOW],
+    ["retract on a never-asserted item changes nothing", { notMine: false }, false, undefined],
+    [
+      "retract on a never-asserted, already-reviewed item keeps its stamp",
+      { notMine: false, reviewedAt: "2026-01-01" },
+      false,
+      "2026-01-01",
+    ],
+  ])("%s", (_label, it0, notMine, expected) => {
+    expect(reviewedAtAfterNotMine(it0 as never, notMine as boolean, NOW)).toBe(expected);
+  });
 });
