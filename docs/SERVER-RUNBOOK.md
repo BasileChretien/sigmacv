@@ -242,6 +242,42 @@ database, compares every row count against the manifest, checks the manifest cov
 as many tables as production has, and drops the scratch copy. The live database is
 only ever read.
 
+### 2c. Did last night actually run? (`scripts/check-nightly-backups.ps1`)
+
+Four cron jobs write to two logs nobody reads. This checks them in one command from
+the PC and **exits non-zero if anything is missing**, so "the backups are fine" is
+observed rather than assumed:
+
+```powershell
+pwsh -File scripts\check-nightly-backups.ps1 -RemoteHost root@sigmacv.org
+```
+
+```text
+=== SigmaCV nightly backup check - 2026-09-03 05:08 UTC, for 2026-09-03 ===
+  ssh: C:\WINDOWS\System32\OpenSSH\ssh.exe
+  DUMP   OK      sigmacv     sigmacv-20260903-033001.sql.gz
+  DUMP   OK      metabase    metabase-20260903-033001.sql.gz
+  DUMP   OK      plausible   plausible-20260903-033001.sql.gz
+  DUMP   OK      clickhouse  clickhouse-20260903-034001.tar.gz
+  VERIFY OK      postgres    2026-09-03
+  VERIFY OK      clickhouse  2026-09-03
+OK: all 4 dumps present for 2026-09-03, both verifiers passed.
+```
+
+Each stream is reported **separately** — one silently stopping must not hide behind
+the other three. `-ForUtcDate 20260101` checks a past day; `-WaitUntilUtc 04:50` arms
+it ahead of the cron window (dumps 03:30 / 03:40, verifiers 04:15 / 04:45 UTC), which
+is the first moment all four have finished.
+
+**It resolves `C:\Windows\System32\OpenSSH\ssh.exe` by absolute path rather than
+trusting `PATH`, and prints which binary it used.** Git for Windows ships its own
+`ssh` that reads a different key store and fails against this host with
+`Permission denied (publickey)`. That bites hardest when the script is launched from
+a bash-ish context — a scheduled watch, a git hook, WSL — which inherits a `PATH`
+where Git's `ssh` wins. The first version of this check did exactly that: it sat
+armed for two hours, then reported an SSH error instead of a backup result, having
+verified nothing.
+
 ### Offsite copy: pulled to the maintainer's machine (`scripts/pull-backups.ps1`)
 
 Dumps that only live on this VPS are lost with it. The offsite copy is **pulled** to
