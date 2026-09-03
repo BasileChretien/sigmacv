@@ -43,6 +43,7 @@ import {
   setItemFeatured,
   setItemInView,
   setItemIncluded,
+  setItemReviewed,
   setItemInstitution,
   setItemNotMine,
   setItemRoleTitle,
@@ -1039,6 +1040,11 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                   }
                                   onConfirmMine={() =>
                                     onChange(confirmMisattribution(cv, section.id, item.id))
+                                  }
+                                  onToggleReviewed={() =>
+                                    onChange(
+                                      setItemReviewed(cv, section.id, item.id, !item.reviewedAt),
+                                    )
                                   }
                                   flash={focusItem?.id === item.id}
                                   onKeepOnly={(keepId) => {

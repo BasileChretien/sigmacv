@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { computeCvHealth } from "@/lib/cv/health";
+import { reviewCoverage } from "@/lib/canonical/review";
 import type { Locale } from "@/lib/i18n";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 
@@ -43,7 +44,12 @@ export default function CvHealthPanel({
 }: CvHealthPanelProps) {
   const wu = workspaceUi(locale);
   const health = useMemo(() => computeCvHealth(cv), [cv]);
-  if (health.total === 0) return null;
+  const cov = useMemo(() => reviewCoverage(cv), [cv]);
+  const unreviewed = cov.reviewable - cov.reviewed;
+  // Nothing to do = nothing to show. A profile with outstanding curation debt OR
+  // works the user has never adjudicated still has something to say; one that is
+  // clean AND fully reviewed (or has nothing reviewable) renders nothing.
+  if (health.total === 0 && unreviewed === 0) return null;
 
   const rows: Array<{ key: CvHealthCategory; count: number; label: string }> = [
     { key: "review" as const, count: health.pendingReviewCandidates, label: wu.hpReview },
@@ -91,7 +97,15 @@ export default function CvHealthPanel({
           );
         })}
       </ul>
-      <p className="muted cv-health-hint">{wu.hpHint}</p>
+      {cov.reviewable > 0 ? (
+        <p className="muted cv-health-review">
+          {wu.hpReviewed
+            .replace("{done}", String(cov.reviewed))
+            .replace("{total}", String(cov.reviewable))}
+          {unreviewed > 0 ? ` — ${wu.hpUnreviewed.replace("{n}", String(unreviewed))}` : ""}
+        </p>
+      ) : null}
+      {rows.length > 0 ? <p className="muted cv-health-hint">{wu.hpHint}</p> : null}
     </aside>
   );
 }

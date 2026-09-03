@@ -92,8 +92,10 @@ export function setItemsIncluded(
  * Bulk "not mine" assertion / retraction — the same disambiguation claim as
  * `setItemNotMine`, applied to many items with ONE shared reason (a namesake
  * cleanup is dozens of works wrongly attributed for the same cause). Each item
- * still records its own timestamp + reason, so the research signal per item is
- * identical to N single assertions.
+ * still records its own timestamp + reason — and its own `reviewedAt`, exactly as
+ * {@link setItemNotMine} does — so the research signal per item is identical to N
+ * single assertions. Keep the two in step: a bulk namesake cleanup is precisely
+ * when review progress should move, and it is the path a high-collision user takes.
  */
 export function setItemsNotMine(
   cv: CanonicalCv,
@@ -112,6 +114,10 @@ export function setItemsNotMine(
           notMine,
           notMineAssertedAt: notMine ? now : undefined,
           notMineReason: notMine ? opts.reason : undefined,
+          // Adjudicating is reviewing (parity with setItemNotMine): asserting
+          // stamps the review, and retracting leaves the item reviewed rather
+          // than returning it to "never examined".
+          reviewedAt: notMine ? now : (it.reviewedAt ?? now),
         }
       : it,
   );

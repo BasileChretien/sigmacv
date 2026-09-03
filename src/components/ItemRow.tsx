@@ -21,6 +21,7 @@ import { stripInlineMarkup } from "@/lib/text/markup";
 import { ui } from "@/lib/i18n/ui";
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
+import { isReviewable, itemReviewState } from "@/lib/canonical/review";
 
 /** Parse a year-field value to an integer, or undefined when blank/non-numeric. */
 function parseYear(v: string): number | undefined {
@@ -123,6 +124,13 @@ interface ItemRowProps {
   onToggleNotMine: () => void;
   /** Pin / unpin this publication as a "selected / featured" work (citation rows only). */
   onToggleFeatured?: () => void;
+  /**
+   * Record / un-record that the user has CHECKED this work is theirs. Offered only
+   * on reviewable rows (source-attributed citations — see `isReviewable`), and never
+   * on a row already asserted "not mine", which is adjudicated the other way. Purely
+   * a record: it changes nothing about what renders.
+   */
+  onToggleReviewed?: () => void;
   /** Whether this item is shown in the CURRENT view/preset (per-view selection). */
   shownInView?: boolean;
   /** Toggle this item in/out of the current view only (not a global hide). */
@@ -218,6 +226,7 @@ export default function ItemRow({
   onToggleIncluded,
   onToggleNotMine,
   onToggleFeatured,
+  onToggleReviewed,
   shownInView = true,
   onToggleInView,
   onSetNotMineReason,
@@ -877,6 +886,18 @@ export default function ItemRow({
               </button>
             </>
           )}
+          {onToggleReviewed && isReviewable(item) && !item.notMine ? (
+            <button
+              type="button"
+              className={`mine-btn is-review${item.reviewedAt ? " is-on" : ""}`}
+              onClick={onToggleReviewed}
+              aria-pressed={Boolean(item.reviewedAt)}
+              aria-label={`${item.reviewedAt ? wu.reviewConfirmed : wu.reviewConfirm}: ${title}`}
+              title={wu.reviewConfirmHint}
+            >
+              {item.reviewedAt ? `✓ ${wu.reviewConfirmed}` : wu.reviewConfirm}
+            </button>
+          ) : null}
           {isCitation && onToggleFeatured ? (
             <button
               type="button"

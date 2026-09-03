@@ -2030,6 +2030,23 @@ textarea.narrative-ai-draft {
   color: var(--accent);
   border-style: solid;
 }
+/* Review confirmation — a record that the user checked this work is theirs.
+   Deliberately quiet: it changes nothing about the CV, so it must not compete
+   with Hide / Not mine for attention. Confirmed state reads as settled, not as
+   an action needing attention. */
+.mine-btn.is-review {
+  color: var(--text-secondary);
+}
+.mine-btn.is-review.is-on {
+  color: var(--accent);
+  background: var(--accent-50);
+  border-color: var(--accent-200);
+}
+/* Review-progress line under the health checklist. */
+.cv-health-review {
+  margin-top: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
 /* An item kept on the CV but omitted from the CURRENT view/preset only. */
 .cv-item-row.is-view-hidden {
   opacity: 0.72;

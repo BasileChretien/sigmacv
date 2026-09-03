@@ -494,6 +494,10 @@ function makeEntryItem(
     // publications path) — entry items can be "not mine" too (e.g. an OEP
     // editorial role attributed to the wrong ORCID).
     notMineReason: prev?.notMineReason,
+    // A review is an adjudication of THIS item, so it survives re-sync like
+    // `included`. The source metadata keeps refreshing underneath; that does not
+    // un-review the item.
+    reviewedAt: prev?.reviewedAt,
     order: prev?.order ?? order,
     authoredBySelf: false,
     selfNameVariants: [],
@@ -1633,6 +1637,8 @@ function buildWorkCvItem(
     // "Selected / featured" pin is a display choice — carry it across re-sync
     // (undefined ⇒ not pinned; the field is omitted from the stored item).
     featured: prev?.featured,
+    // Review adjudication survives re-sync (see `reviewedAt` in schema.ts).
+    reviewedAt: prev?.reviewedAt,
     order: prev ? prev.order : order,
     authoredBySelf,
     selfNameVariants: authoredBySelf ? selfNameVariants(work, matches) : [],

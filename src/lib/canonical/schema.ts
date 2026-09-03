@@ -318,6 +318,45 @@ export const CvItemSchema = z.object({
   /** Optional structured reason for a `notMine` assertion (disambiguation study). */
   notMineReason: NotMineReasonSchema.optional(),
   /**
+   * REVIEW state: ISO timestamp of when the account holder last looked at this
+   * item and CONFIRMED it is theirs. Absent = never adjudicated.
+   *
+   * This closes a gap that was previously unrepresentable: a work the user
+   * examined and kept, and a work they never opened, were BOTH stored as
+   * `included:true, notMine:false` and were indistinguishable. Any statement of
+   * the form "this profile is researcher-confirmed" needs that distinction as its
+   * denominator, and so does any per-item provenance badge — without it a
+   * "confirmed by researcher" label would be a claim about works nobody read.
+   *
+   * Only the CONFIRM side is stored. Rejection is already fully represented by
+   * `notMine` + `notMineAssertedAt`, so a separate "rejected" value here would
+   * duplicate it and admit a contradictory state (confirmed AND not-mine). The
+   * three-valued state is DERIVED — see `itemReviewState` in `canonical/review.ts`,
+   * where `notMine` takes precedence. Asserting `notMine` stamps this field too:
+   * adjudicating a work IS reviewing it.
+   *
+   * Survives re-sync (carried in `build.ts` like `included`/`featured`). Optional
+   * + back-compat: an item without it reads as "unreviewed", which is exactly what
+   * every pre-existing stored document should mean.
+   *
+   * Validated as an ISO-8601 UTC instant, not merely a string: `itemReviewState`
+   * treats ANY truthy value as "confirmed", so a malformed value would be counted
+   * as a reviewed work by `reviewCoverage` — the very figure that is meant to be
+   * the honest denominator. Every write goes through
+   * `new Date().toISOString()`, so a bad value can only arrive from a
+   * hand-edited or hostile payload.
+   *
+   * `.catch(undefined)` then degrades a bad value to "unreviewed" rather than
+   * failing the whole document — the same convention as `duplicateOf.tier`.
+   * Without it a single malformed timestamp would make
+   * `safeParseCanonicalCv` reject the CV and `getCvForUser` return null, i.e.
+   * the owner's entire CV would vanish over a field that renders nothing.
+   * Tightening is safe precisely because the field is new: no stored document
+   * carries it yet.
+   */
+
+  reviewedAt: z.iso.datetime().max(40).optional().catch(undefined),
+  /**
    * "Selected / featured" pin (a display-curation choice, distinct from `included`
    * and `notMine`). When true, the work is sorted to the TOP of its section ahead
    * of the normal order and marked with a quiet "Selected" star — the equivalent of
