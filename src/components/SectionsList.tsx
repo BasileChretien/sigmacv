@@ -76,7 +76,9 @@ import { sectionTitle, t, type Locale } from "@/lib/i18n";
 import ClaimByDoi from "./ClaimByDoi";
 import NarrativeAiDraft from "./NarrativeAiDraft";
 import ImportBib from "./ImportBib";
-import type { CvHealthCategory } from "./CvHealthPanel";
+import type { CvHealthCategory } from "@/lib/cv/health";
+import { healthTargets, nextHealthTarget } from "@/lib/cv/health";
+import { stripInlineMarkup } from "@/lib/text/markup";
 import ItemRow from "./ItemRow";
 
 /**
@@ -138,59 +140,6 @@ function orderedPendingDups(
       const here = pos++;
       if (it.meta.reviewFlag === "duplicate" && !isHidden(it)) {
         out.push({ id: it.id, sectionId: s.id, pos: here });
-      }
-    }
-  }
-  return out;
-}
-
-/** A jump target inside the editor: which section to expand + which row to focus. */
-type HealthTarget = { sectionId: string; itemId: string };
-
-/**
- * The first outstanding item of each CV-health category, in document order, so
- * the "Needs your attention" checklist can jump straight to one. The predicates
- * mirror `computeCvHealth` (cv/health.ts) — keep the two in sync.
- */
-function firstHealthTargets(cv: CanonicalCv): Record<CvHealthCategory, HealthTarget | undefined> {
-  const dismissed = new Set(cv.display.dismissedReviewCandidates ?? []);
-  const out: Record<CvHealthCategory, HealthTarget | undefined> = {
-    review: undefined,
-    duplicates: undefined,
-    conflicts: undefined,
-    misattributed: undefined,
-    retracted: undefined,
-  };
-  for (const s of orderedSections(cv)) {
-    for (const it of [...s.items].sort((a, b) => a.order - b.order)) {
-      const flag = it.meta.reviewFlag;
-      const here: HealthTarget = { sectionId: s.id, itemId: it.id };
-      if (
-        !out.review &&
-        (flag === "name-matched" || flag === "orcid-doi") &&
-        !it.included &&
-        !it.notMine &&
-        !dismissed.has(it.id)
-      ) {
-        out.review = here;
-      }
-      if (!out.duplicates && flag === "duplicate" && !isHidden(it)) out.duplicates = here;
-      if (!out.conflicts && flag === "orcid-conflict" && !isHidden(it)) out.conflicts = here;
-      if (
-        !out.misattributed &&
-        flag === "likely-misattributed" &&
-        !isHidden(it) &&
-        !dismissed.has(it.id)
-      ) {
-        out.misattributed = here;
-      }
-      if (
-        !out.retracted &&
-        it.meta.retracted === true &&
-        !isHidden(it) &&
-        !cv.display.hideRetracted
-      ) {
-        out.retracted = here;
       }
     }
   }
@@ -294,7 +243,12 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
   const [focusItem, setFocusItem] = useState<{ id: string; n: number } | null>(null);
   useEffect(() => {
     if (!focusItem) return;
-    dupRowRefs.current.get(focusItem.id)?.scrollIntoView({
+    const el = dupRowRefs.current.get(focusItem.id);
+    // Focus BEFORE scrolling, with preventScroll so the browser's own jump does
+    // not fight the smooth scroll below. Moving real focus is what makes the
+    // walk perceptible to a screen reader and reachable from the keyboard.
+    el?.focus({ preventScroll: true });
+    el?.scrollIntoView({
       behavior: prefersReducedMotion() ? "auto" : "smooth",
       block: "center",
     });
@@ -324,7 +278,12 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
     () => new Set(cv.display.dismissedReviewCandidates ?? []),
     [cv.display.dismissedReviewCandidates],
   );
-  const healthTargets = useMemo(() => firstHealthTargets(cv), [cv]);
+  const targets = useMemo(() => healthTargets(cv), [cv]);
+  /** Last row jumped to per category, so activating a checklist row again
+   *  advances instead of pinning the first. */
+  const lastJumped = useRef<Partial<Record<CvHealthCategory, string>>>({});
+  /** Politely-announced position of the current checklist jump ("2 of 3: …"). */
+  const [walkStatus, setWalkStatus] = useState("");
   const orcidSimilar = useMemo(() => similarVisibleForOrcidCandidates(cv), [cv]);
 
   // Sections are COLLAPSED by default (compact list that's easy to scan +
@@ -358,11 +317,33 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
     });
   }, [cv.sections]);
 
-  /** Jump to the first outstanding item of a health category: expand its section
-   *  and scroll it into view (duplicates also open their compare panel). */
+  /** Jump to the next outstanding item of a health category: expand its section
+   *  and scroll it into view (duplicates also open their compare panel).
+   *
+   *  CYCLES. Activating the same checklist row again advances to the next
+   *  outstanding item and wraps at the end, so a set can be read through rather
+   *  than only counted — including the included-but-flagged works, which no
+   *  other walk in the editor reaches. */
   const resolveHealth = (category: CvHealthCategory) => {
-    const target = healthTargets[category];
+    const list = targets[category];
+    const target = nextHealthTarget(list, lastJumped.current[category]);
     if (!target) return;
+    lastJumped.current[category] = target.itemId;
+    // Announce WHERE the walk landed. A sighted user sees the row flash; without
+    // this a screen-reader user got nothing at all, while the hidden cursor
+    // advanced under them on every activation — strictly worse than the
+    // jump-to-first it replaced.
+    const at = list.findIndex((t) => t.itemId === target.itemId) + 1;
+    const title =
+      itemIndex.get(target.itemId)?.item.csl?.title ??
+      itemIndex.get(target.itemId)?.item.displayText ??
+      "";
+    setWalkStatus(
+      wu.hpWalkPosition
+        .replace("{n}", String(at))
+        .replace("{total}", String(list.length))
+        .replace("{title}", stripInlineMarkup(String(title)).slice(0, 120)),
+    );
     setExpanded((prev) => new Set(prev).add(target.sectionId));
     if (category === "duplicates") {
       setReviewDupId(target.itemId);
@@ -553,6 +534,12 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
   return (
     <>
       <p className="editor-hint">{t(locale, "editorHints")}</p>
+
+      {/* Where the checklist walk landed. Politely announced, so the jump is
+          perceptible without sight; the row itself also takes real focus. */}
+      <span className="visually-hidden" role="status" aria-live="polite">
+        {walkStatus}
+      </span>
 
       <Reorder.Group
         axis="y"
