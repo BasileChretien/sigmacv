@@ -18,8 +18,10 @@ both index. Copy/paste and adapt.
 
 **SigmaCV**
 
-_(Working title; ties to the Sigma-Score bibliometric index, may change. Don't
-foreground the renaming on the launch — keep the listing clean and confident.)_
+_(Working title; the Sigma-Score index it alludes to is a design concept, not a
+shipped metric — do not describe it as one anywhere in the listing. May change,
+but don't foreground the renaming on the launch: keep the listing clean and
+confident.)_
 
 ## 2. Tagline options (PH hard limit: 60 characters)
 

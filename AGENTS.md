@@ -11,7 +11,7 @@ when working with code in this repository.
 
 ## Project: SigmaCV
 
-Open-source web app that auto-generates clean, customizable academic CVs from open research data (OpenAlex, ORCID, Crossref, Open Editors Plus). Free for individuals. _(Working name; ties to the Sigma-Score bibliometric index — may be renamed.)_
+Open-source web app that auto-generates clean, customizable academic CVs from open research data (OpenAlex, ORCID, Crossref, Open Editors Plus). Free for individuals. _(Working name. The “Sigma-Score” it alludes to is a design concept, **not an implemented metric** — no such index ships, and none should be added without discussion. May be renamed.)_
 
 ## Why this exists (context, not feature scope)
 
@@ -55,7 +55,9 @@ All external clients live under `src/lib/<source>/`, send a polite-pool `mailto`
 
 ## Metrics
 
-Opt-in, user-chosen, **default none**. Prefer field-normalized over h-index. Sigma-Score is one optional metric.
+Opt-in, user-chosen, **default none**. Prefer field-normalized over h-index.
+
+**There is no SigmaCV-computed composite score, and adding one is a load-bearing decision, not a feature.** The catalog (`src/lib/render/metrics.ts` `METRIC_DEFS`) offers six metrics: the NIH iCite `rcr_mean` (the only one SigmaCV computes) plus five pass-throughs of OpenAlex's own author figures. Three further aggregates — MNCS (ratio of sums), mean FWCI, and the by-year top-decile share — are computed and stored but **deliberately withheld** from the catalog because each is biased in a documented way; the rationale lives at the definition site in `metrics.ts` and `openalex/deriveMetrics.ts`. Read it before proposing a new aggregate.
 
 ## Privacy & ethics (mandatory)
 
