@@ -6,7 +6,7 @@ import {
   type CvSection,
   type NotMineReason,
 } from "./schema";
-import { withExcludedItems } from "./curate";
+import { reviewedAtAfterNotMine, withExcludedItems } from "./curate";
 
 /**
  * Bulk curation: pure, immutable operations over MANY items of one section at
@@ -114,10 +114,7 @@ export function setItemsNotMine(
           notMine,
           notMineAssertedAt: notMine ? now : undefined,
           notMineReason: notMine ? opts.reason : undefined,
-          // Adjudicating is reviewing (parity with setItemNotMine): asserting
-          // stamps the review, and retracting leaves the item reviewed rather
-          // than returning it to "never examined".
-          reviewedAt: notMine ? now : (it.reviewedAt ?? now),
+          reviewedAt: reviewedAtAfterNotMine(it, notMine, now),
         }
       : it,
   );
