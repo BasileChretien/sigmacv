@@ -26,6 +26,9 @@ export interface PrivacyStrings {
   /** Optional AI drafting assistant: the EU processor + what is (not) sent. */
   aiHeading: string;
   ai: string;
+  /** The no-login /preview/[orcid] route, and the one account read it makes. */
+  previewHeading: string;
+  preview: string;
   retentionHeading: string;
   retention: string;
   rightsHeading: string;
@@ -46,6 +49,9 @@ export interface PrivacyStrings {
 
 const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
   "en-US": {
+    previewHeading: "Public ORCID preview",
+    preview:
+      "Anyone can enter an ORCID iD to see a CV assembled from public research metadata, with no account and no sign-in. That preview is built only from the public sources listed above. If the iD entered belongs to a SigmaCV account holder, we additionally read that person's own disambiguation corrections and apply them: works they marked “not mine” are removed, and the “may not be yours” flag is cleared on works they checked and kept. We read nothing else from their account — not their display choices, private notes, saved layouts or contact details — and this can only ever remove a work or remove a warning, never add anything a visitor would otherwise not see. The purpose is accuracy: automated author matching over-merges researchers with similar names, so honouring someone's own corrections stops a visitor being shown another person's work under their name (GDPR Art. 6(1)(f), legitimate interests, and Art. 5(1)(d), accuracy). If you would rather your corrections were not used this way, email privacy@sigmacv.org and we will exclude your record.",
     aiHeading: "AI drafting assistant (optional)",
     ai: "If you use the optional AI drafting assistant, you supply your OWN AI provider's API key — it is held only in your browser's memory for the session (never saved to your browser or on our servers). When you request a draft, a short, public-only summary of your visible research outputs (the module, output counts and a few titles — no contact details or identifiers) is relayed from our server to the provider YOU chose, under YOUR key, and nothing about the request is stored or logged. Where your data goes and how it is handled is governed by the provider and terms YOU pick, so choose one you're comfortable with (for example an EU provider such as Mistral AI if EU processing matters to you). The feature is off by default, you must explicitly request each draft and accept the on-screen notice, and the result is never added to your CV automatically.",
     metaTitle: "Privacy",
@@ -87,6 +93,9 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Back to SigmaCV",
   },
   "zh-CN": {
+    previewHeading: "公开 ORCID 预览",
+    preview:
+      "任何人都可以输入 ORCID iD，查看依据公开研究元数据生成的简历，无需账户、无需登录。该预览仅使用上文列出的公开数据源构建。如果所输入的 iD 属于某位 SigmaCV 用户，我们还会读取该用户本人的归属更正并加以应用：其标记为“不是我的”的成果会被移除，其已核对并保留的成果会清除“可能不是您的”标记。我们不会读取其账户中的任何其他内容——不读取展示选择、私人笔记、已保存的版式或联系方式——并且此机制只会移除成果或移除提示，绝不会增加访客本来看不到的内容。目的在于准确性：自动作者匹配会把姓名相近的研究者合并，尊重本人的更正可避免访客看到他人的成果被冠以其姓名（GDPR 第 6(1)(f) 条正当利益，以及第 5(1)(d) 条准确性）。若您不希望以此方式使用您的更正，请发送邮件至 privacy@sigmacv.org，我们将把您的记录排除在外。",
     aiHeading: "AI 起草助手（可选）",
     ai: "如果您使用可选的 AI 起草助手，需要提供您自己的 AI 提供商的 API 密钥——该密钥仅在本次会话期间保留在您浏览器的内存中，绝不会保存到您的浏览器或我们的服务器。当您请求起草时，系统会将您可见科研产出的简短、仅含公开信息的摘要（模块、产出数量和少量标题，不含联系方式或标识符）从我们的服务器转发给您所选择的提供商，使用您的密钥，且不会存储或记录该请求的任何内容。您的数据流向何处以及如何处理，取决于您选择的提供商及其条款，因此请选择您信任的提供商（例如，如果您在意欧盟境内处理，可选择 Mistral AI 等欧盟提供商）。该功能默认关闭，您必须每次明确请求起草并接受屏幕提示，生成结果绝不会自动加入您的简历。",
     metaTitle: "隐私",
@@ -126,6 +135,9 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← 返回 SigmaCV",
   },
   "es-ES": {
+    previewHeading: "Vista previa pública por ORCID",
+    preview:
+      "Cualquier persona puede introducir un ORCID iD para ver un CV generado a partir de metadatos públicos de investigación, sin cuenta y sin iniciar sesión. Esa vista previa se construye únicamente con las fuentes públicas indicadas más arriba. Si el iD introducido pertenece a una persona con cuenta en SigmaCV, además leemos sus propias correcciones de desambiguación y las aplicamos: se eliminan los trabajos que marcó como «no es mío» y se retira el aviso «puede que no sea tuyo» de los trabajos que revisó y conservó. No leemos nada más de su cuenta —ni sus decisiones de presentación, ni notas privadas, ni diseños guardados, ni datos de contacto— y este mecanismo solo puede quitar un trabajo o quitar un aviso, nunca añadir algo que la persona visitante no vería de otro modo. La finalidad es la exactitud: el emparejamiento automático de autores fusiona a investigadores con nombres parecidos, así que respetar las correcciones de la propia persona evita que se muestre el trabajo de otra bajo su nombre (RGPD art. 6(1)(f), interés legítimo, y art. 5(1)(d), exactitud). Si prefiere que sus correcciones no se usen así, escriba a privacy@sigmacv.org y excluiremos su registro.",
     aiHeading: "Asistente de redacción con IA (opcional)",
     ai: "Si usas el asistente de redacción con IA opcional, aportas la clave API de TU PROPIO proveedor de IA: solo se mantiene en la memoria de tu navegador durante la sesión, nunca se guarda en tu navegador ni en nuestros servidores. Cuando solicitas un borrador, se retransmite desde nuestro servidor un breve resumen, solo con información pública, de tus resultados visibles (el módulo, los recuentos y algunos títulos, sin datos de contacto ni identificadores) al proveedor que TÚ elijas, con TU clave, y no se almacena ni registra nada de la solicitud. Adónde van tus datos y cómo se tratan lo determinan el proveedor y las condiciones que TÚ elijas, así que elige uno con el que te sientas cómodo (por ejemplo un proveedor de la UE como Mistral AI si te importa el procesamiento en la UE). La función está desactivada de forma predeterminada, debes solicitar cada borrador de forma expresa y aceptar el aviso, y el resultado nunca se añade a tu CV automáticamente.",
     metaTitle: "Privacidad",
@@ -167,6 +179,9 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Volver a SigmaCV",
   },
   "fr-FR": {
+    previewHeading: "Aperçu public par ORCID",
+    preview:
+      "Toute personne peut saisir un identifiant ORCID pour afficher un CV constitué à partir de métadonnées de recherche publiques, sans compte ni connexion. Cet aperçu est construit uniquement à partir des sources publiques citées ci-dessus. Si l'identifiant saisi correspond à un titulaire de compte SigmaCV, nous lisons en outre ses propres corrections de désambiguïsation et les appliquons : les travaux qu'il a marqués « pas à moi » sont retirés, et la mention « peut-être pas le vôtre » disparaît des travaux qu'il a vérifiés et conservés. Nous ne lisons rien d'autre dans son compte — ni ses choix d'affichage, ni ses notes privées, ni ses mises en page enregistrées, ni ses coordonnées — et ce mécanisme ne peut que retirer un travail ou retirer un avertissement, jamais ajouter quoi que ce soit qu'un visiteur ne verrait pas autrement. La finalité est l'exactitude : l'appariement automatique d'auteurs fusionne des chercheurs aux noms proches ; respecter les corrections de la personne concernée évite qu'un visiteur voie le travail d'autrui sous son nom (RGPD art. 6(1)(f), intérêt légitime, et art. 5(1)(d), exactitude). Si vous préférez que vos corrections ne soient pas utilisées ainsi, écrivez à privacy@sigmacv.org et nous exclurons votre dossier.",
     aiHeading: "Assistant de rédaction par IA (facultatif)",
     ai: "Si vous utilisez l’assistant de rédaction par IA facultatif, vous fournissez la clé API de VOTRE PROPRE fournisseur d’IA — elle n’est conservée qu’en mémoire dans votre navigateur pour la session, jamais enregistrée dans votre navigateur ni sur nos serveurs. Lorsque vous demandez un brouillon, un bref résumé, uniquement public, de vos travaux visibles (le module, le nombre de productions et quelques titres, sans coordonnée ni identifiant) est relayé depuis notre serveur vers le fournisseur que VOUS avez choisi, avec VOTRE clé, et rien de la requête n’est conservé ni journalisé. La destination de vos données et leur traitement dépendent du fournisseur et des conditions que VOUS choisissez ; choisissez-en un qui vous convient (par exemple un fournisseur de l’UE comme Mistral AI si le traitement dans l’UE vous importe). La fonction est désactivée par défaut, vous devez demander chaque brouillon explicitement et accepter l’avis, et le résultat n’est jamais ajouté automatiquement à votre CV.",
     metaTitle: "Confidentialité",
@@ -208,6 +223,9 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Retour à SigmaCV",
   },
   "de-DE": {
+    previewHeading: "Öffentliche ORCID-Vorschau",
+    preview:
+      "Jede Person kann eine ORCID iD eingeben und sich einen aus öffentlichen Forschungsmetadaten erstellten Lebenslauf ansehen – ohne Konto und ohne Anmeldung. Diese Vorschau wird ausschließlich aus den oben genannten öffentlichen Quellen erzeugt. Gehört die eingegebene iD zu einer Person mit SigmaCV-Konto, lesen wir zusätzlich deren eigene Zuordnungskorrekturen und wenden sie an: als „nicht meine“ markierte Arbeiten werden entfernt, und bei geprüften und behaltenen Arbeiten entfällt der Hinweis „gehört möglicherweise nicht zu Ihnen“. Sonst lesen wir nichts aus dem Konto – weder Anzeigeentscheidungen noch private Notizen, gespeicherte Layouts oder Kontaktdaten – und dieser Mechanismus kann nur eine Arbeit oder einen Hinweis entfernen, niemals etwas hinzufügen, das Besuchende sonst nicht sähen. Zweck ist die Richtigkeit: die automatische Autorenzuordnung führt Forschende mit ähnlichen Namen zusammen; die eigenen Korrekturen zu berücksichtigen verhindert, dass Besuchenden fremde Arbeiten unter diesem Namen angezeigt werden (DSGVO Art. 6(1)(f), berechtigte Interessen, und Art. 5(1)(d), Richtigkeit). Wenn Sie das nicht möchten, schreiben Sie an privacy@sigmacv.org; wir nehmen Ihren Datensatz dann aus.",
     aiHeading: "KI-Schreibassistent (optional)",
     ai: "Wenn Sie den optionalen KI-Schreibassistenten nutzen, geben Sie den API-Schlüssel IHRES EIGENEN KI-Anbieters an – er wird nur im Speicher Ihres Browsers für die Sitzung gehalten, nie in Ihrem Browser oder auf unseren Servern gespeichert. Wenn Sie einen Entwurf anfordern, wird eine kurze, ausschließlich öffentliche Zusammenfassung Ihrer sichtbaren Leistungen (das Modul, die Anzahl der Leistungen und einige Titel, ohne Kontaktdaten oder Kennungen) von unserem Server an den von IHNEN gewählten Anbieter weitergeleitet, mit IHREM Schlüssel, und nichts von der Anfrage wird gespeichert oder protokolliert. Wohin Ihre Daten gehen und wie sie verarbeitet werden, bestimmen der Anbieter und die Bedingungen, die SIE wählen – wählen Sie also einen, mit dem Sie einverstanden sind (z. B. einen EU-Anbieter wie Mistral AI, falls Ihnen die Verarbeitung in der EU wichtig ist). Die Funktion ist standardmäßig deaktiviert, Sie müssen jeden Entwurf ausdrücklich anfordern und den Hinweis akzeptieren, und das Ergebnis wird niemals automatisch in Ihren Lebenslauf übernommen.",
     metaTitle: "Datenschutz",
@@ -249,6 +267,9 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Zurück zu SigmaCV",
   },
   "ja-JP": {
+    previewHeading: "ORCID による公開プレビュー",
+    preview:
+      "どなたでも ORCID iD を入力すると、公開されている研究メタデータから作成した CV を閲覧できます（アカウント登録・ログインは不要です）。このプレビューは上記の公開ソースのみから構築されます。入力された iD が SigmaCV の利用者のものである場合、その本人による帰属の訂正も読み取って反映します。「自分のものではない」と指定された業績は除外し、本人が確認して残した業績からは「あなたの業績ではない可能性があります」という表示を外します。アカウントからそれ以外の情報（表示の設定、非公開メモ、保存済みレイアウト、連絡先など）は読み取りません。またこの仕組みは業績を減らすか警告を消すことしかできず、閲覧者が本来目にしないものを追加することはありません。目的は正確性です。著者の自動照合は氏名の似た研究者を統合してしまうため、本人の訂正を尊重することで、他者の業績がその方の名前で表示されるのを防ぎます（GDPR 第6条1項(f) 正当な利益、第5条1項(d) 正確性）。この扱いを望まれない場合は privacy@sigmacv.org までご連絡ください。対象から除外します。",
     aiHeading: "AI 起草アシスタント（任意）",
     ai: "任意の AI 起草アシスタントを利用する場合、あなた自身の AI プロバイダーの API キーを入力します——このキーはセッション中あなたのブラウザーのメモリー内にのみ保持され、ブラウザーにも当方のサーバーにも保存されません。下書きを要求すると、表示中の業績に関する短い公開情報のみの要約（モジュール、業績数、いくつかのタイトル。連絡先や識別子は含みません）が、当方のサーバーからあなたが選んだプロバイダーへ、あなたのキーを用いて中継され、リクエストの内容は保存もログ記録もされません。データの送信先や取り扱いは、あなたが選ぶプロバイダーとその規約によって決まりますので、納得できるプロバイダーを選んでください（EU 内での処理を重視する場合は Mistral AI などの EU プロバイダーなど）。この機能は既定でオフで、下書きは毎回明示的に要求して通知に同意する必要があり、結果が自動的に CV に追加されることはありません。",
     metaTitle: "プライバシー",
@@ -290,6 +311,9 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← SigmaCV に戻る",
   },
   "pt-BR": {
+    previewHeading: "Prévia pública por ORCID",
+    preview:
+      "Qualquer pessoa pode informar um ORCID iD para ver um CV montado a partir de metadados públicos de pesquisa, sem conta e sem login. Essa prévia é construída apenas com as fontes públicas listadas acima. Se o iD informado pertencer a alguém com conta no SigmaCV, também lemos as próprias correções de desambiguação dessa pessoa e as aplicamos: trabalhos marcados como “não é meu” são removidos, e o aviso “pode não ser seu” sai dos trabalhos que ela revisou e manteve. Não lemos mais nada da conta — nem escolhas de exibição, notas privadas, layouts salvos ou dados de contato — e esse mecanismo só pode remover um trabalho ou remover um aviso, nunca acrescentar algo que a pessoa visitante não veria de outro modo. A finalidade é a exatidão: a correspondência automática de autores funde pesquisadores com nomes parecidos, então respeitar as correções da própria pessoa evita que o trabalho de outra apareça sob o nome dela (GDPR art. 6(1)(f), legítimo interesse, e art. 5(1)(d), exatidão). Se preferir que suas correções não sejam usadas assim, escreva para privacy@sigmacv.org e excluiremos seu registro.",
     aiHeading: "Assistente de redação com IA (opcional)",
     ai: "Se você usar o assistente de redação com IA opcional, fornece a chave de API do SEU PRÓPRIO provedor de IA — ela permanece apenas na memória do seu navegador durante a sessão, nunca é salva no seu navegador nem em nossos servidores. Quando você solicita um rascunho, um breve resumo, apenas público, dos seus resultados visíveis (o módulo, as contagens e alguns títulos, sem dados de contato ou identificadores) é retransmitido do nosso servidor para o provedor que VOCÊ escolher, com a SUA chave, e nada da solicitação é armazenado ou registrado. Para onde seus dados vão e como são tratados dependem do provedor e dos termos que VOCÊ escolher, então escolha um com o qual se sinta à vontade (por exemplo, um provedor da UE como a Mistral AI, se o processamento na UE for importante para você). O recurso fica desativado por padrão, você deve solicitar cada rascunho explicitamente e aceitar o aviso, e o resultado nunca é adicionado ao seu currículo automaticamente.",
     metaTitle: "Privacidade",
@@ -331,6 +355,9 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Voltar ao SigmaCV",
   },
   "it-IT": {
+    previewHeading: "Anteprima pubblica tramite ORCID",
+    preview:
+      "Chiunque può inserire un ORCID iD per vedere un CV costruito a partire da metadati di ricerca pubblici, senza account e senza accedere. L'anteprima è costruita solo dalle fonti pubbliche elencate sopra. Se l'iD inserito appartiene a una persona con un account SigmaCV, leggiamo inoltre le sue correzioni di disambiguazione e le applichiamo: i lavori contrassegnati come «non è mio» vengono rimossi e l'avviso «potrebbe non essere tuo» scompare dai lavori che ha verificato e mantenuto. Non leggiamo nient'altro dal suo account — né le scelte di visualizzazione, né note private, layout salvati o recapiti — e questo meccanismo può solo togliere un lavoro o togliere un avviso, mai aggiungere qualcosa che chi visita non vedrebbe altrimenti. La finalità è l'esattezza: l'abbinamento automatico degli autori fonde ricercatori con nomi simili, quindi rispettare le correzioni dell'interessato evita che a chi visita venga mostrato il lavoro di un'altra persona sotto quel nome (GDPR art. 6(1)(f), legittimo interesse, e art. 5(1)(d), esattezza). Se preferisci che le tue correzioni non siano usate così, scrivi a privacy@sigmacv.org e escluderemo il tuo profilo.",
     aiHeading: "Assistente di scrittura con IA (facoltativo)",
     ai: "Se usi l’assistente di scrittura con IA facoltativo, fornisci la chiave API del TUO fornitore di IA — resta solo nella memoria del tuo browser per la sessione, mai salvata nel tuo browser né sui nostri server. Quando richiedi una bozza, un breve riepilogo, solo pubblico, dei tuoi risultati visibili (il modulo, i conteggi e alcuni titoli, senza recapiti o identificativi) viene inoltrato dal nostro server al fornitore che TU scegli, con la TUA chiave, e nulla della richiesta viene conservato o registrato. Dove vanno i tuoi dati e come vengono trattati dipende dal fornitore e dai termini che TU scegli, quindi scegline uno di cui ti fidi (ad esempio un fornitore dell’UE come Mistral AI se ti interessa il trattamento nell’UE). La funzione è disattivata per impostazione predefinita, devi richiedere ogni bozza esplicitamente e accettare l’avviso, e il risultato non viene mai aggiunto automaticamente al tuo CV.",
     metaTitle: "Privacy",
@@ -372,6 +399,9 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← Torna a SigmaCV",
   },
   "ko-KR": {
+    previewHeading: "공개 ORCID 미리보기",
+    preview:
+      "누구나 ORCID iD를 입력하면 공개된 연구 메타데이터로 구성한 CV를 볼 수 있으며, 계정이나 로그인은 필요하지 않습니다. 이 미리보기는 위에 열거한 공개 출처만으로 만들어집니다. 입력한 iD가 SigmaCV 이용자의 것이라면, 그 본인의 귀속 정정 내용도 읽어 적용합니다. 본인이 “내 것이 아님”으로 표시한 업적은 제외하고, 확인 후 유지한 업적에서는 “회원님의 업적이 아닐 수 있습니다” 표시를 없앱니다. 계정에서 그 밖의 정보(표시 설정, 비공개 메모, 저장된 레이아웃, 연락처)는 읽지 않으며, 이 방식은 업적을 빼거나 경고를 없앨 수만 있을 뿐 방문자가 원래 보지 못했을 내용을 추가하지 않습니다. 목적은 정확성입니다. 자동 저자 매칭은 이름이 비슷한 연구자를 병합하므로, 본인의 정정을 존중하면 다른 사람의 업적이 그 이름으로 표시되는 것을 막을 수 있습니다(GDPR 제6조 1항 (f) 정당한 이익, 제5조 1항 (d) 정확성). 이런 이용을 원하지 않으시면 privacy@sigmacv.org 로 연락해 주시면 대상에서 제외하겠습니다.",
     aiHeading: "AI 초안 작성 도우미(선택)",
     ai: "선택적 AI 작성 도우미를 사용하는 경우, 본인 소유 AI 제공자의 API 키를 입력합니다 — 이 키는 세션 동안 브라우저 메모리에만 보관되며, 브라우저에도 당사 서버에도 저장되지 않습니다. 초안을 요청하면 표시된 성과에 대한 짧고 공개 정보만 담긴 요약(모듈, 성과 수, 일부 제목이며 연락처나 식별자는 포함되지 않음)이 당사 서버에서 귀하가 선택한 제공자로 귀하의 키를 사용해 중계되며, 요청 내용은 저장되거나 기록되지 않습니다. 데이터가 어디로 가고 어떻게 처리되는지는 귀하가 선택한 제공자와 그 약관에 따라 결정되므로, 신뢰할 수 있는 제공자를 선택하세요(EU 내 처리가 중요하다면 Mistral AI 같은 EU 제공자 등). 이 기능은 기본적으로 꺼져 있으며, 초안은 매번 명시적으로 요청하고 안내에 동의해야 하고, 결과가 자동으로 이력서에 추가되지 않습니다.",
     metaTitle: "개인정보 보호",
@@ -413,6 +443,9 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     backLink: "← SigmaCV로 돌아가기",
   },
   "ru-RU": {
+    previewHeading: "Публичный предпросмотр по ORCID",
+    preview:
+      "Любой может ввести ORCID iD и увидеть резюме, собранное из публичных исследовательских метаданных, без учётной записи и без входа в систему. Такой предпросмотр строится только из перечисленных выше публичных источников. Если введённый iD принадлежит пользователю SigmaCV, мы дополнительно считываем его собственные исправления атрибуции и применяем их: работы, отмеченные как «не моя», удаляются, а с работ, которые он проверил и оставил, снимается пометка «возможно, это не ваша работа». Ничего другого из учётной записи мы не читаем — ни настройки отображения, ни личные заметки, ни сохранённые макеты, ни контактные данные, — и этот механизм может только убрать работу или убрать предупреждение, но никогда не добавляет того, чего посетитель иначе не увидел бы. Цель — точность: автоматическое сопоставление авторов объединяет исследователей со схожими именами, поэтому учёт собственных исправлений человека не даёт показать посетителю чужую работу под его именем (GDPR ст. 6(1)(f), законный интерес, и ст. 5(1)(d), точность). Если вы предпочитаете, чтобы ваши исправления так не использовались, напишите на privacy@sigmacv.org, и мы исключим вашу запись.",
     aiHeading: "Помощник ИИ для черновиков (необязательно)",
     ai: "Если вы используете необязательного помощника ИИ, вы указываете API-ключ ВАШЕГО СОБСТВЕННОГО поставщика ИИ — он хранится только в памяти вашего браузера в течение сессии, никогда не сохраняется в вашем браузере или на наших серверах. Когда вы запрашиваете черновик, краткая сводка только из общедоступной информации о ваших видимых результатах (модуль, число результатов и несколько названий, без контактных данных и идентификаторов) передаётся с нашего сервера выбранному ВАМИ поставщику с использованием ВАШЕГО ключа, и ничего из запроса не сохраняется и не записывается в журнал. Куда идут ваши данные и как они обрабатываются, определяют выбранные ВАМИ поставщик и условия, поэтому выберите того, кому доверяете (например, поставщика из ЕС, такого как Mistral AI, если для вас важна обработка в ЕС). Функция по умолчанию отключена, вы должны явно запрашивать каждый черновик и принимать уведомление, а результат никогда не добавляется в резюме автоматически.",
     metaTitle: "Конфиденциальность",
