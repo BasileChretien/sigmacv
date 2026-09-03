@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { computeCvHealth } from "@/lib/cv/health";
-import { reviewCoverage } from "@/lib/canonical/review";
 import type { Locale } from "@/lib/i18n";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 
@@ -44,12 +43,13 @@ export default function CvHealthPanel({
 }: CvHealthPanelProps) {
   const wu = workspaceUi(locale);
   const health = useMemo(() => computeCvHealth(cv), [cv]);
-  const cov = useMemo(() => reviewCoverage(cv), [cv]);
-  const unreviewed = cov.reviewable - cov.reviewed;
-  // Nothing to do = nothing to show. A profile with outstanding curation debt OR
-  // works the user has never adjudicated still has something to say; one that is
-  // clean AND fully reviewed (or has nothing reviewable) renders nothing.
-  if (health.total === 0 && unreviewed === 0) return null;
+  // Nothing outstanding = nothing to show. The rows below are already the
+  // precision-first suspect list (review candidates, duplicates, ORCID conflicts,
+  // likely-misattributed, visible retractions); there is deliberately NO blanket
+  // "you have N works left to review" figure. Asking a researcher to re-confirm
+  // 115 publications the system has no reason to doubt is busywork, and it
+  // contradicts misattribution.ts's whole precision-over-recall design.
+  if (health.total === 0) return null;
 
   const rows: Array<{ key: CvHealthCategory; count: number; label: string }> = [
     { key: "review" as const, count: health.pendingReviewCandidates, label: wu.hpReview },
@@ -97,15 +97,7 @@ export default function CvHealthPanel({
           );
         })}
       </ul>
-      {cov.reviewable > 0 ? (
-        <p className="muted cv-health-review">
-          {wu.hpReviewed
-            .replace("{done}", String(cov.reviewed))
-            .replace("{total}", String(cov.reviewable))}
-          {unreviewed > 0 ? ` — ${wu.hpUnreviewed.replace("{n}", String(unreviewed))}` : ""}
-        </p>
-      ) : null}
-      {rows.length > 0 ? <p className="muted cv-health-hint">{wu.hpHint}</p> : null}
+      <p className="muted cv-health-hint">{wu.hpHint}</p>
     </aside>
   );
 }

@@ -21,7 +21,7 @@ import { stripInlineMarkup } from "@/lib/text/markup";
 import { ui } from "@/lib/i18n/ui";
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
-import { isReviewable, itemReviewState } from "@/lib/canonical/review";
+import { needsReview } from "@/lib/canonical/review";
 
 /** Parse a year-field value to an integer, or undefined when blank/non-numeric. */
 function parseYear(v: string): number | undefined {
@@ -886,7 +886,7 @@ export default function ItemRow({
               </button>
             </>
           )}
-          {onToggleReviewed && isReviewable(item) && !item.notMine ? (
+          {onToggleReviewed && needsReview(item) && !item.notMine ? (
             <button
               type="button"
               className={`mine-btn is-review${item.reviewedAt ? " is-on" : ""}`}

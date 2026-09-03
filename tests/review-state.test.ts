@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  isReviewable,
+  isSourceAttributed,
   itemReviewState,
+  needsReview,
   reviewCoverage,
   unreviewedItems,
 } from "@/lib/canonical/review";
@@ -70,43 +71,86 @@ describe("itemReviewState", () => {
   });
 });
 
-describe("isReviewable", () => {
+describe("isSourceAttributed (the base population)", () => {
   it("counts a source-attributed citation item", () => {
-    expect(isReviewable(item())).toBe(true);
+    expect(isSourceAttributed(item())).toBe(true);
   });
 
   it("excludes non-citation entries (positions, editorial roles)", () => {
-    expect(isReviewable(item({ csl: undefined, displayText: "Lecturer, Somewhere" }))).toBe(false);
+    expect(isSourceAttributed(item({ csl: undefined, displayText: "Lecturer" }))).toBe(false);
   });
 
   it("excludes user-supplied items, which cannot pad the denominator", () => {
-    expect(isReviewable(item({ source: "manual" }))).toBe(false);
-    expect(isReviewable(item({ source: "bibtex" }))).toBe(false);
-    expect(isReviewable(item({ meta: { claimed: true } }))).toBe(false);
+    expect(isSourceAttributed(item({ source: "manual" }))).toBe(false);
+    expect(isSourceAttributed(item({ source: "bibtex" }))).toBe(false);
+    expect(isSourceAttributed(item({ meta: { claimed: true } }))).toBe(false);
+  });
+});
+
+describe("needsReview (the denominator: only what is actually doubtful)", () => {
+  it("does NOT ask about a cleanly ORCID-matched work with no adverse signal", () => {
+    // The point of the whole module. A researcher with 123 sound publications
+    // must not be told 115 of them "need review" — that is busywork, and it
+    // contradicts misattribution.ts's precision-over-recall design.
+    expect(needsReview(item({ meta: { matchBasis: "orcid" } }))).toBe(false);
+    expect(needsReview(item({ meta: { matchBasis: "both" } }))).toBe(false);
+    expect(needsReview(item())).toBe(false);
+  });
+
+  it("asks about a work carrying a review flag", () => {
+    expect(needsReview(item({ meta: { reviewFlag: "name-matched" } }))).toBe(true);
+    expect(needsReview(item({ meta: { reviewFlag: "orcid-conflict" } }))).toBe(true);
+    expect(needsReview(item({ meta: { reviewFlag: "likely-misattributed" } }))).toBe(true);
+  });
+
+  it("asks about a work the misattribution heuristic fired on", () => {
+    const flagged = item({
+      meta: { misattribution: { score: 0.8, signals: ["no-coauthor-overlap"] } },
+    });
+    expect(needsReview(flagged)).toBe(true);
+  });
+
+  it("does NOT treat a bare openalex-id match as doubt", () => {
+    // Tempting, but ORCID is on only a minority of OpenAlex authorships, so most
+    // of a sound profile matches by author id alone. Flagging it would put the
+    // majority of a 123-work CV back on the to-do list. It is a prior for an
+    // attribution-probability model, not a task; misattribution.ts already
+    // combines it with corroborating signals, and THAT verdict counts.
+    expect(needsReview(item({ meta: { matchBasis: "openalex-id" } }))).toBe(false);
+  });
+
+  it("never asks about items outside the base population, however flagged", () => {
+    expect(needsReview(item({ source: "manual", meta: { reviewFlag: "duplicate" } }))).toBe(false);
+    expect(needsReview(item({ meta: { claimed: true, reviewFlag: "duplicate" } }))).toBe(false);
   });
 
   it("still counts hidden and rejected works", () => {
-    // Rejecting a work must not shrink the denominator, or the percentage would
-    // climb every time the user found a misattribution.
-    expect(isReviewable(item({ included: false }))).toBe(true);
-    expect(isReviewable(item({ notMine: true }))).toBe(true);
+    // Rejecting must not shrink the denominator, or the figure would climb every
+    // time the user found a misattribution.
+    const base = { reviewFlag: "name-matched" } as const;
+    expect(needsReview(item({ included: false, meta: base }))).toBe(true);
+    expect(needsReview(item({ notMine: true, meta: base }))).toBe(true);
   });
 });
 
 describe("reviewCoverage", () => {
-  it("reports no fraction for a profile with nothing to review", () => {
-    const c = reviewCoverage(cv([item({ source: "manual" })]));
+  it("reports no fraction for a profile with nothing worth reviewing", () => {
+    // A clean profile of soundly-matched works: nothing to ask, so no figure.
+    const c = reviewCoverage(cv([item({ meta: { matchBasis: "orcid" } }), item({ id: "W2" })]));
     expect(c.reviewable).toBe(0);
     expect(c.fraction).toBeUndefined();
   });
 
   it("counts confirmed and rejected as reviewed", () => {
+    const flag = { reviewFlag: "name-matched" } as const;
     const c = reviewCoverage(
       cv([
-        item({ id: "W1", reviewedAt: NOW }),
-        item({ id: "W2", notMine: true }),
-        item({ id: "W3" }),
-        item({ id: "W4" }),
+        item({ id: "W1", reviewedAt: NOW, meta: flag }),
+        item({ id: "W2", notMine: true, meta: flag }),
+        item({ id: "W3", meta: flag }),
+        item({ id: "W4", meta: flag }),
+        // A sound work: invisible to the denominator entirely.
+        item({ id: "W5", meta: { matchBasis: "orcid" } }),
       ]),
     );
     expect(c).toMatchObject({
@@ -121,8 +165,13 @@ describe("reviewCoverage", () => {
   it("ignores user-supplied items in both numerator and denominator", () => {
     const c = reviewCoverage(
       cv([
-        item({ id: "W1", reviewedAt: NOW }),
-        item({ id: "M1", source: "manual", reviewedAt: NOW }),
+        item({ id: "W1", reviewedAt: NOW, meta: { reviewFlag: "name-matched" } }),
+        item({
+          id: "M1",
+          source: "manual",
+          reviewedAt: NOW,
+          meta: { reviewFlag: "name-matched" },
+        }),
       ]),
     );
     expect(c.reviewable).toBe(1);
@@ -132,13 +181,16 @@ describe("reviewCoverage", () => {
 
 describe("unreviewedItems", () => {
   it("returns only unadjudicated reviewable items, with their section", () => {
+    const flag = { reviewFlag: "name-matched" } as const;
     const out = unreviewedItems(
       cv([
-        item({ id: "W1", reviewedAt: NOW }),
-        item({ id: "W2" }),
-        item({ id: "W3", notMine: true }),
+        item({ id: "W1", reviewedAt: NOW, meta: flag }),
+        item({ id: "W2", meta: flag }),
+        item({ id: "W3", notMine: true, meta: flag }),
         // Unreviewed, but user-supplied — never a worklist entry.
-        item({ id: "M1", source: "manual" }),
+        item({ id: "M1", source: "manual", meta: flag }),
+        // Unreviewed and sound — nothing to ask about.
+        item({ id: "W9", meta: { matchBasis: "orcid" } }),
       ]),
     );
     expect(out.map((o) => o.item.id)).toEqual(["W2"]);
@@ -146,7 +198,9 @@ describe("unreviewedItems", () => {
   });
 
   it("respects the bound so a huge profile cannot build an unbounded list", () => {
-    const many = Array.from({ length: 50 }, (_, i) => item({ id: `W${i}` }));
+    const many = Array.from({ length: 50 }, (_, i) =>
+      item({ id: `W${i}`, meta: { reviewFlag: "name-matched" } }),
+    );
     expect(unreviewedItems(cv(many), 10)).toHaveLength(10);
   });
 });
@@ -207,7 +261,12 @@ describe("review state does not leak, and bulk keeps parity", () => {
     // A namesake cleanup is dozens of works at once — the path a high-collision
     // user actually takes. If bulk skipped the stamp, they would adjudicate 30
     // works and watch review progress stay at zero.
-    const before = cv([item({ id: "W1" }), item({ id: "W2" }), item({ id: "W3" })]);
+    const flag = { reviewFlag: "name-matched" } as const;
+    const before = cv([
+      item({ id: "W1", meta: flag }),
+      item({ id: "W2", meta: flag }),
+      item({ id: "W3", meta: flag }),
+    ]);
     const after = setItemsNotMine(before, "publications", ["W1", "W2"], true, {
       reason: "different-person",
       now: NOW,

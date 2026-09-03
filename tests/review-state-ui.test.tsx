@@ -5,8 +5,8 @@ import CvEditor from "@/components/CvEditor";
 import CvHealthPanel from "@/components/CvHealthPanel";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { setItemNotMine, setItemReviewed } from "@/lib/canonical/curate";
-import { reviewCoverage } from "@/lib/canonical/review";
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import { needsReview, reviewCoverage } from "@/lib/canonical/review";
+import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -19,146 +19,134 @@ const resolved: ResolvedAuthor = {
 };
 
 function makeCv(): CanonicalCv {
-  return buildCanonicalCv({
-    id: "e",
-    resolved,
-    works,
-    now: "2026-06-02T00:00:00.000Z",
-  });
+  return buildCanonicalCv({ id: "e", resolved, works, now: "2026-06-02T00:00:00.000Z" });
 }
 
-/** Sections are collapsed by default; expand them all so item rows render. */
+/** Mark the first `n` citation items as doubtful — flagged by the
+ *  misattribution heuristic as probably someone else's. */
+function withDoubtful(cv: CanonicalCv, n: number): CanonicalCv {
+  let left = n;
+  return {
+    ...cv,
+    sections: cv.sections.map((s) => ({
+      ...s,
+      items: s.items.map((it): CvItem => {
+        if (!it.csl || left <= 0) return it;
+        left -= 1;
+        return { ...it, meta: { ...it.meta, reviewFlag: "likely-misattributed" } };
+      }),
+    })),
+  };
+}
+
 function expandAllSections() {
   document
     .querySelectorAll<HTMLButtonElement>("button.section-toggle")
     .forEach((b) => fireEvent.click(b));
 }
 
-/** Every Confirm toggle currently rendered in the editor. */
 function confirmButtons(): HTMLButtonElement[] {
   return Array.from(document.querySelectorAll<HTMLButtonElement>("button.mine-btn.is-review"));
 }
 
+function renderEditor(cv: CanonicalCv, onChange = vi.fn()) {
+  render(<CvEditor cv={cv} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />);
+  expandAllSections();
+  return onChange;
+}
+
 afterEach(cleanup);
 
-describe("Confirm toggle (ItemRow)", () => {
-  it("renders on reviewable citation rows, unpressed by default", () => {
-    render(
-      <CvEditor cv={makeCv()} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
-    );
-    expandAllSections();
-    const btns = confirmButtons();
-    expect(btns.length).toBeGreaterThan(0);
-    for (const b of btns) {
-      expect(b.getAttribute("aria-pressed")).toBe("false");
-      expect(b.textContent).toContain("Confirm");
-    }
+describe("Confirm is offered only where there is something to doubt", () => {
+  it("offers NOTHING on a cleanly matched profile", () => {
+    // The whole point: a researcher whose works are soundly attributed is never
+    // asked to re-confirm them. The fixture builds exactly such a profile.
+    const cv = makeCv();
+    expect(reviewCoverage(cv).reviewable).toBe(0);
+    renderEditor(cv);
+    expect(confirmButtons()).toHaveLength(0);
   });
 
-  it("clicking it stamps reviewedAt on that item only", () => {
-    const onChange = vi.fn();
-    const cv = makeCv();
-    render(<CvEditor cv={cv} availableStyles={["apa"]} uiLocale="en-US" onChange={onChange} />);
-    expandAllSections();
-    fireEvent.click(confirmButtons()[0]!);
+  it("offers it on exactly the doubtful rows, and no others", () => {
+    const cv = withDoubtful(makeCv(), 2);
+    expect(cv.sections.flatMap((s) => s.items).filter(needsReview)).toHaveLength(2);
+    renderEditor(cv);
+    const btns = confirmButtons();
+    expect(btns).toHaveLength(2);
+    for (const b of btns) expect(b.getAttribute("aria-pressed")).toBe("false");
+  });
 
+  it("stamps reviewedAt on the clicked item only", () => {
+    const onChange = renderEditor(withDoubtful(makeCv(), 2));
+    fireEvent.click(confirmButtons()[0]!);
     expect(onChange).toHaveBeenCalledTimes(1);
     const next = onChange.mock.calls[0]![0] as CanonicalCv;
-    const stamped = next.sections
-      .flatMap((s) => s.items)
-      .filter((i) => typeof i.reviewedAt === "string");
+    const stamped = next.sections.flatMap((s) => s.items).filter((i) => i.reviewedAt);
     expect(stamped).toHaveLength(1);
-    // A record only — it must not disturb display curation.
     expect(stamped[0]!.included).toBe(true);
     expect(stamped[0]!.notMine).toBe(false);
   });
 
-  it("reads as pressed and confirmed once the item carries reviewedAt", () => {
-    const cv = makeCv();
-    const target = cv.sections.find((s) => s.items.some((i) => i.csl))!;
-    const first = target.items.find((i) => i.csl)!;
-    const reviewed = setItemReviewed(cv, target.id, first.id, true, {
-      now: "2026-09-02T10:00:00.000Z",
-    });
-    render(
-      <CvEditor cv={reviewed} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
+  it("reads as confirmed once stamped", () => {
+    const cv = withDoubtful(makeCv(), 1);
+    const target = cv.sections.find((s) => s.items.some(needsReview))!;
+    const first = target.items.find(needsReview)!;
+    renderEditor(
+      setItemReviewed(cv, target.id, first.id, true, { now: "2026-09-03T10:00:00.000Z" }),
     );
-    expandAllSections();
     const pressed = confirmButtons().filter((b) => b.getAttribute("aria-pressed") === "true");
     expect(pressed).toHaveLength(1);
     expect(pressed[0]!.textContent).toContain("Confirmed");
-    expect(pressed[0]!.className).toContain("is-on");
   });
 
-  it("is not offered on a row already asserted not-mine", () => {
-    const cv = makeCv();
-    const target = cv.sections.find((s) => s.items.some((i) => i.csl))!;
-    const first = target.items.find((i) => i.csl)!;
-    const before = confirmButtonCount(cv);
-    const rejected = setItemNotMine(cv, target.id, first.id, true, {
-      now: "2026-09-02T10:00:00.000Z",
-    });
-    expect(confirmButtonCount(rejected)).toBe(before - 1);
+  it("is withdrawn from a row already asserted not-mine", () => {
+    const cv = withDoubtful(makeCv(), 2);
+    const target = cv.sections.find((s) => s.items.some(needsReview))!;
+    const first = target.items.find(needsReview)!;
+    renderEditor(
+      setItemNotMine(cv, target.id, first.id, true, { now: "2026-09-03T10:00:00.000Z" }),
+    );
+    expect(confirmButtons()).toHaveLength(1);
   });
 });
 
-/** Render a CV and count its Confirm toggles, then unmount. */
-function confirmButtonCount(cv: CanonicalCv): number {
-  const { unmount } = render(
-    <CvEditor cv={cv} availableStyles={["apa"]} uiLocale="en-US" onChange={vi.fn()} />,
-  );
-  expandAllSections();
-  const n = confirmButtons().length;
-  unmount();
-  return n;
-}
-
-describe("Review progress (CvHealthPanel)", () => {
-  it("reports the coverage figure and what is outstanding", () => {
-    const cv = makeCv();
-    const cov = reviewCoverage(cv);
-    expect(cov.reviewable).toBeGreaterThan(0);
-
-    render(<CvHealthPanel cv={cv} locale="en-US" />);
-    const line = document.querySelector(".cv-health-review")!;
-    expect(line.textContent).toContain(`Reviewed 0 of ${cov.reviewable} attributed works`);
-    expect(line.textContent).toContain(`still to review: ${cov.reviewable}`);
-  });
-
-  it("advances the figure as items are adjudicated either way", () => {
-    let cv = makeCv();
-    const target = cv.sections.find((s) => s.items.some((i) => i.csl))!;
-    const [a, b] = target.items.filter((i) => i.csl);
-    cv = setItemReviewed(cv, target.id, a!.id, true, { now: "2026-09-02T10:00:00.000Z" });
-    cv = setItemNotMine(cv, target.id, b!.id, true, { now: "2026-09-02T10:00:00.000Z" });
-
-    render(<CvHealthPanel cv={cv} locale="en-US" />);
-    // Confirmed AND rejected both count as reviewed.
-    expect(document.querySelector(".cv-health-review")!.textContent).toContain("Reviewed 2 of");
-  });
-
-  it("drops the outstanding clause once everything has been reviewed", () => {
-    let cv = makeCv();
-    for (const s of cv.sections) {
-      for (const i of s.items) {
-        if (i.csl) cv = setItemReviewed(cv, s.id, i.id, true, { now: "2026-09-02T10:00:00.000Z" });
-      }
-    }
-    const cov = reviewCoverage(cv);
-    render(<CvHealthPanel cv={cv} locale="en-US" />);
-    const line = document.querySelector(".cv-health-review");
-    // The panel still renders (there may be other curation debt), but the
-    // "not reviewed yet" nag is gone.
-    if (line) {
-      expect(line.textContent).toContain(`Reviewed ${cov.reviewed} of ${cov.reviewable}`);
-      expect(line.textContent).not.toContain("still to review");
-    }
-  });
-
-  it("renders nothing when the CV is clean and fully reviewed", () => {
-    // No sections at all: nothing outstanding, nothing reviewable.
-    const empty = { ...makeCv(), sections: [] } as CanonicalCv;
-    const { container } = render(<CvHealthPanel cv={empty} locale="en-US" />);
+describe("CvHealthPanel never nags about sound work", () => {
+  it("renders NOTHING when there is no outstanding curation debt", () => {
+    // Regression guard for the reported bug: on a healthy profile the panel
+    // showed "Needs your attention" above an EMPTY list, plus
+    // "Reviewed 8 of 123 attributed works — still to review: 115".
+    const { container } = render(<CvHealthPanel cv={makeCv()} locale="en-US" />);
     expect(container.innerHTML).toBe("");
+  });
+
+  it("carries no blanket review-progress figure at all", () => {
+    render(<CvHealthPanel cv={withDoubtful(makeCv(), 3)} locale="en-US" />);
+    expect(document.querySelector(".cv-health-review")).toBeNull();
+    expect(document.body.textContent ?? "").not.toMatch(/still to review/i);
+    expect(document.body.textContent ?? "").not.toMatch(/Reviewed \d+ of \d+/);
+  });
+
+  it("still surfaces genuine curation debt, and never an empty list", () => {
+    // A name-matched review candidate is real, actionable debt — that row stays.
+    const base = makeCv();
+    const target = base.sections.find((s) => s.items.some((i) => i.csl))!;
+    const cv: CanonicalCv = {
+      ...base,
+      sections: base.sections.map((s) =>
+        s.id !== target.id
+          ? s
+          : {
+              ...s,
+              items: s.items.map((it) =>
+                it.id === target.items.find((i) => i.csl)!.id
+                  ? { ...it, included: false, meta: { ...it.meta, reviewFlag: "name-matched" } }
+                  : it,
+              ),
+            },
+      ),
+    };
+    render(<CvHealthPanel cv={cv} locale="en-US" />);
+    expect(screen.getByText(/review candidates? waiting/i)).toBeTruthy();
+    expect(document.querySelectorAll(".cv-health-list li").length).toBeGreaterThan(0);
   });
 });
