@@ -13,10 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   library used for magic-link sign-in and digest mail moved to **nodemailer 9**,
   which closes a high-severity advisory with no fix in the 8.x line
   ([GHSA-p6gq-j5cr-w38f](https://github.com/advisories/GHSA-p6gq-j5cr-w38f)) and
-  adds TLS-certificate validation, STARTTLS and header-injection hardening. Two
+  adds TLS-certificate validation, STARTTLS and header-injection hardening. Three
   further advisories reachable only through the Prisma CLI's own dependencies
-  (`mysql2`, `deepmerge-ts` — neither on a code path SigmaCV executes) are pinned
-  forward via `overrides`.
+  (`mysql2`, `deepmerge-ts`, and `fast-uri` — four host-confusion/SSRF advisories
+  in the URI parser under the CLI's bundled `ajv`; none on a code path SigmaCV
+  executes) are pinned forward via `overrides`.
 
 ### Changed
 
