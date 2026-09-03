@@ -33,7 +33,9 @@ export interface WorkspaceUiStrings {
   hpHint: string;
   /** Review-progress row; {done} / {total} = reviewed vs source-attributed works. */
   hpReviewed: string;
-  /** Outstanding review row; {n} = works never adjudicated. */
+  /** Outstanding-review clause appended to {@link hpReviewed}; {n} = works never
+   *  adjudicated. Phrased as a label + count so no locale has to agree a noun
+   *  with an interpolated number. */
   hpUnreviewed: string;
   // ── Per-item review confirmation ───────────────────────────────────────────
   /** Row button: record that the user checked this work and it is theirs. */
@@ -100,7 +102,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} retracted works still shown",
     hpHint: "Select one to jump straight to it.",
     hpReviewed: "Reviewed {done} of {total} attributed works",
-    hpUnreviewed: "{n} works you haven't reviewed yet",
+    hpUnreviewed: "still to review: {n}",
     reviewConfirm: "Confirm",
     reviewConfirmed: "Confirmed",
     reviewConfirmHint:
@@ -155,7 +157,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} 条已撤稿的作品仍在显示",
     hpHint: "点击任意一项即可直接跳转处理。",
     hpReviewed: "已核对 {total} 项归属成果中的 {done} 项",
-    hpUnreviewed: "还有 {n} 项成果尚未核对",
+    hpUnreviewed: "待核对：{n}",
     reviewConfirm: "确认",
     reviewConfirmed: "已确认",
     reviewConfirmHint: "记录你已核对这项成果确属本人。不会改变简历内容，仅标记为已核对。",
@@ -209,7 +211,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} trabajos retractados aún visibles",
     hpHint: "Selecciona uno para ir directamente a él.",
     hpReviewed: "Revisados {done} de {total} trabajos atribuidos",
-    hpUnreviewed: "{n} trabajos que aún no has revisado",
+    hpUnreviewed: "quedan por revisar: {n}",
     reviewConfirm: "Confirmar",
     reviewConfirmed: "Confirmado",
     reviewConfirmHint:
@@ -265,7 +267,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} travaux rétractés encore affichés",
     hpHint: "Sélectionnez-en un pour y accéder directement.",
     hpReviewed: "{done} travaux vérifiés sur {total} attribués",
-    hpUnreviewed: "{n} travaux que vous n'avez pas encore vérifiés",
+    hpUnreviewed: "reste à vérifier : {n}",
     reviewConfirm: "Confirmer",
     reviewConfirmed: "Confirmé",
     reviewConfirmHint:
@@ -321,7 +323,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} zurückgezogene Arbeiten noch sichtbar",
     hpHint: "Wählen Sie einen aus, um direkt dorthin zu springen.",
     hpReviewed: "{done} von {total} zugeordneten Arbeiten geprüft",
-    hpUnreviewed: "{n} Arbeiten haben Sie noch nicht geprüft",
+    hpUnreviewed: "noch zu prüfen: {n}",
     reviewConfirm: "Bestätigen",
     reviewConfirmed: "Bestätigt",
     reviewConfirmHint:
@@ -377,7 +379,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "撤回済みの業績が {n} 件表示されています",
     hpHint: "項目を選ぶと該当箇所へ直接移動します。",
     hpReviewed: "帰属業績 {total} 件のうち {done} 件を確認済み",
-    hpUnreviewed: "未確認の業績が {n} 件あります",
+    hpUnreviewed: "未確認：{n} 件",
     reviewConfirm: "確認",
     reviewConfirmed: "確認済み",
     reviewConfirmHint:
@@ -433,7 +435,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} trabalhos retratados ainda exibidos",
     hpHint: "Selecione um para ir direto até ele.",
     hpReviewed: "{done} de {total} trabalhos atribuídos revisados",
-    hpUnreviewed: "{n} trabalhos que você ainda não revisou",
+    hpUnreviewed: "faltam revisar: {n}",
     reviewConfirm: "Confirmar",
     reviewConfirmed: "Confirmado",
     reviewConfirmHint:
@@ -489,7 +491,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} lavori ritrattati ancora visibili",
     hpHint: "Selezionane uno per andarci direttamente.",
     hpReviewed: "Verificati {done} lavori su {total} attribuiti",
-    hpUnreviewed: "{n} lavori che non hai ancora verificato",
+    hpUnreviewed: "ancora da verificare: {n}",
     reviewConfirm: "Conferma",
     reviewConfirmed: "Confermato",
     reviewConfirmHint:
@@ -545,7 +547,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "철회된 업적 {n}개가 아직 표시됨",
     hpHint: "항목을 선택하면 해당 위치로 바로 이동합니다.",
     hpReviewed: "귀속된 업적 {total}건 중 {done}건 확인함",
-    hpUnreviewed: "아직 확인하지 않은 업적 {n}건",
+    hpUnreviewed: "미확인: {n}건",
     reviewConfirm: "확인",
     reviewConfirmed: "확인함",
     reviewConfirmHint:
@@ -601,7 +603,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} отозванных работ всё ещё отображаются",
     hpHint: "Выберите пункт, чтобы перейти прямо к нему.",
     hpReviewed: "Проверено {done} из {total} приписанных работ",
-    hpUnreviewed: "{n} работ вы ещё не проверили",
+    hpUnreviewed: "осталось проверить: {n}",
     reviewConfirm: "Подтвердить",
     reviewConfirmed: "Подтверждено",
     reviewConfirmHint:
