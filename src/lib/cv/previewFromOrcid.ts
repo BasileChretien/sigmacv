@@ -1,5 +1,7 @@
 import { buildCvFromOrcid, cvItemCount, type SourceProgress } from "@/lib/cv/sync";
 import { projectCvForPreview } from "@/lib/cv/publicProjection";
+import { applyOwnerCorrections } from "@/lib/cv/ownerCorrections";
+import { fetchOwnerCorrections } from "@/lib/cv/fetchOwnerCorrections";
 import { renderCvHtml } from "@/lib/render/html";
 import { normalizeOrcid } from "@/lib/openalex/types";
 import { isValidOrcidChecksum } from "@/lib/orcid/checksum";
@@ -47,8 +49,11 @@ export function normalizeOrcidForPreview(raw: string): string | null {
 }
 
 /**
- * Build an ANONYMOUS, ephemeral CV from a public ORCID iD — no DB, no session,
- * nothing persisted. Uses only public data (OpenAlex / ORCID) and runs it through
+ * Build an ANONYMOUS, ephemeral CV from a public ORCID iD — no session, nothing
+ * persisted. It does make ONE database read: if the iD belongs to a SigmaCV
+ * account, the owner's own disambiguation corrections are applied, so a visitor
+ * is not shown works the researcher has already said are not theirs. See
+ * {@link fetchOwnerCorrections} for the privacy line that read observes. Uses only public data (OpenAlex / ORCID) and runs it through
  * {@link projectCvForPreview} — which strips owner-private/contact fields for the
  * anonymous viewer but keeps the review candidates + disambiguation flags so the
  * editor can surface them. Returns the canonical object (which the no-login
@@ -82,11 +87,19 @@ export async function previewCvFromOrcid(
   return dedupeOrcidPreview<PreviewResult>(orcid, async () => {
     try {
       const { cv, report } = await buildCvFromOrcid({ orcid, onProgress: opts?.onProgress });
+      // If this iD belongs to a SigmaCV account, honour the researcher's own
+      // disambiguation corrections. A fresh build is raw machine output and
+      // OpenAlex over-merges same-named people; the person whose work it is has
+      // better information than any heuristic we run. Reads ONLY corrections that
+      // remove a work ("not mine") or remove a warning (a confirmed work) — never
+      // display choices, never anything that adds exposure. Fail-soft: no account,
+      // or any error, and the build is used exactly as-is.
+      const corrected = applyOwnerCorrections(cv, await fetchOwnerCorrections(orcid));
       // Preview projection (NOT the public one): strips owner-private/contact
       // fields for the anonymous viewer, but KEEPS review candidates + their
       // reviewFlag/duplicate/misattribution metadata so the editor surfaces the
       // same "probably not yours" / "probably a duplicate" cues as when signed in.
-      const projected = projectCvForPreview(cv);
+      const projected = projectCvForPreview(corrected);
       const name = projected.owner.displayName.trim();
       // Empty ⇒ a DETERMINISTIC not-found: OpenAlex answered with no matching
       // author (resolveAuthorByOrcid returns null only on a clean 200/zero-results),

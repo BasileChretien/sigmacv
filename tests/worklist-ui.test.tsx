@@ -2,6 +2,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { projectCvForPreview } from "@/lib/cv/publicProjection";
+import { applyOwnerCorrections } from "@/lib/cv/ownerCorrections";
 import CvEditor from "@/components/CvEditor";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
@@ -220,31 +221,52 @@ describe("the name-matched hint tells the truth about where the match came from"
   });
 });
 
-describe("the anonymous preview shows no doubt about a stranger's work", () => {
-  it("renders no review badges once the CV has been projected for preview", () => {
-    // /preview/[orcid] has no auth: anyone can type any researcher's ORCID. The
-    // editor component is the same one the owner uses, so the guarantee has to
-    // come from the PROJECTION, not from the component.
-    const flagged = withMisattributed(makeCv(), 3);
-    // Sanity: the owner's own view does flag them.
-    renderEditor(flagged);
+describe("the anonymous preview keeps the doubt, and honours the owner's corrections", () => {
+  it("still flags a doubtful work — the preview is raw machine output", () => {
+    // Suppressing the flag would present an unreliable list as reliable, and
+    // credit the researcher with a namesake's paper. The doubt IS the honest
+    // part; what matters is that it names OpenAlex as its source.
+    renderEditor(projectCvForPreview(withMisattributed(makeCv(), 2)));
     expect(document.querySelectorAll("[class*=cv-review-badge]").length).toBeGreaterThan(0);
-    cleanup();
+  });
 
-    renderEditor(projectCvForPreview(flagged));
+  it("names OpenAlex as the source of the doubt, not the researcher's record", () => {
+    renderEditor(projectCvForPreview(withMisattributed(makeCv(), 1)));
+    const titles = Array.from(
+      document.querySelectorAll<HTMLElement>("[class*=cv-review-badge]"),
+    ).map((el) => el.getAttribute("title") ?? "");
+    expect(titles.join(" | ")).toMatch(/OpenAlex matched this by author profile/i);
+  });
+
+  it("drops a work the researcher has already said is not theirs", () => {
+    // Their judgement beats our heuristic, and honouring it means a visitor is
+    // not shown a stranger's paper under this person's name.
+    const built = withMisattributed(makeCv(), 2);
+    const flagged = built.sections.flatMap((sec) => sec.items).filter((i) => i.meta.reviewFlag);
+    const corrections = {
+      notMineIds: new Set([flagged[0]!.id]),
+      notMineDois: new Set<string>(),
+      confirmedIds: new Set<string>(),
+      confirmedDois: new Set<string>(),
+    };
+    const corrected = applyOwnerCorrections(built, corrections);
+    renderEditor(projectCvForPreview(corrected));
+    const ids = corrected.sections.flatMap((sec) => sec.items).map((i) => i.id);
+    expect(ids).not.toContain(flagged[0]!.id);
+    // …and the other flagged work is still flagged.
+    expect(document.querySelectorAll("[class*=cv-review-badge]").length).toBeGreaterThan(0);
+  });
+
+  it("silences the flag on a work the researcher examined and kept", () => {
+    const built = withMisattributed(makeCv(), 1);
+    const flagged = built.sections.flatMap((sec) => sec.items).find((i) => i.meta.reviewFlag)!;
+    const corrected = applyOwnerCorrections(built, {
+      notMineIds: new Set<string>(),
+      notMineDois: new Set<string>(),
+      confirmedIds: new Set([flagged.id]),
+      confirmedDois: new Set<string>(),
+    });
+    renderEditor(projectCvForPreview(corrected));
     expect(document.querySelectorAll("[class*=cv-review-badge]")).toHaveLength(0);
-  });
-
-  it("shows no 'needs your attention' counts for a stranger either", () => {
-    renderEditor(projectCvForPreview(withMisattributed(makeCv(), 3)));
-    expect(document.body.textContent ?? "").not.toMatch(/may not be yours/i);
-    expect(document.body.textContent ?? "").not.toMatch(/different ORCID/i);
-  });
-
-  it("still lists the works themselves", () => {
-    // The projection withholds the doubt, not the record.
-    const projected = projectCvForPreview(withMisattributed(makeCv(), 3));
-    renderEditor(projected);
-    expect(document.querySelectorAll(".cv-item-row").length).toBeGreaterThan(0);
   });
 });
