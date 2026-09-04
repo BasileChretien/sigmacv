@@ -11,6 +11,7 @@ import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
 import { renderChartsHtml } from "../charts";
 import { displayUrl, escapeHtml, safeHref } from "../escape";
+import { evidenceHtmlInline, listedItemIds } from "../evidenceRefs";
 import { formattedMetrics, openAccessShare } from "../metrics";
 import { iconSvg, resolveLink, type IconName } from "../icons";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -209,6 +210,9 @@ ${externalizeLinks(body)}
  */
 export function externalizeLinks(html: string): string {
   return html.replace(/<a\b([^>]*)>/gi, (_match, attrs: string) => {
+    // A same-document fragment link (a section permalink, an evidence reference
+    // to an entry) navigates WITHIN the page — a new tab would defeat it.
+    if (/\bhref\s*=\s*["']#/i.test(attrs)) return `<a${attrs}>`;
     let extra = "";
     if (!/\btarget\s*=/i.test(attrs)) extra += ' target="_blank"';
     if (!/\brel\s*=/i.test(attrs)) extra += ' rel="noopener noreferrer"';
@@ -335,6 +339,9 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-prose-body p:last-child { margin-bottom: 0; }
   ul.cv-prose-list { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
   ul.cv-prose-list > li { margin: 0 0 0.2rem; line-height: 1.5; color: var(--cv-ink-2); }
+  /* An evidence reference inside prose: a small inline link to the entry it cites. */
+  a.cv-evidence { font-size: 0.8em; vertical-align: 0.15em; white-space: nowrap; text-decoration: none; border-bottom: 1px dotted currentColor; }
+  a.cv-evidence::before { content: "["; } a.cv-evidence::after { content: "]"; }
 
   ol.cv-bib { list-style: none; margin: 0; padding: 0; }
   /* overflow-wrap:anywhere lets a long unbreakable token — a DOI/URL has no
@@ -1074,9 +1081,11 @@ ${hatBindings}
  *    of `<li>` items; non-list lines are joined with `<br>`.
  * Raw HTML and arbitrary markdown are NEVER interpreted — an injected
  * `<script>` / `<img onerror=…>` survives only as inert escaped text. This is
- * the single chokepoint; every renderer that shows a prose body uses it.
+ * the single chokepoint; every renderer that shows a prose body uses it. `inline`
+ * transforms each text run (default: plain escaping; the section list passes the
+ * evidence-reference transform, which escapes AND links `[[id]]` references).
  */
-function proseBodyHtml(body: string): string {
+function proseBodyHtml(body: string, inline: (text: string) => string = escapeHtml): string {
   // Normalise newlines, then split into paragraphs on one-or-more blank lines.
   const paragraphs = body
     .replace(/\r\n?/g, "\n")
@@ -1093,7 +1102,7 @@ function proseBodyHtml(body: string): string {
         if (listItems.length === 0) return;
         out.push(
           `<ul class="cv-prose-list">${listItems
-            .map((li) => `<li>${escapeHtml(li)}</li>`)
+            .map((li) => `<li>${inline(li)}</li>`)
             .join("")}</ul>`,
         );
         listItems = [];
@@ -1101,7 +1110,7 @@ function proseBodyHtml(body: string): string {
       let textRun: string[] = [];
       const flushText = () => {
         if (textRun.length === 0) return;
-        out.push(`<p>${textRun.map((t) => escapeHtml(t)).join("<br />")}</p>`);
+        out.push(`<p>${textRun.map((t) => inline(t)).join("<br />")}</p>`);
         textRun = [];
       };
       for (const rawLine of lines) {
@@ -1183,6 +1192,9 @@ function sectionHeadingHtml(sectionId: string, title: string): string {
  * `<main class="cv-main">`). Everything else should use `sectionsHtml`.
  */
 export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): string {
+  // Prose evidence references (`[[id]]`) link to the `id="item-…"` of an entry this
+  // render lists; one resolver for every prose section of the document.
+  const inline = evidenceHtmlInline(cv, listedItemIds(sections), itemAnchorId);
   const body = renderableSections(sections)
     .map((rs) => {
       // Manual page break: start this section on a new page in paged exports
@@ -1194,7 +1206,7 @@ export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): s
         return `<section class="cv-section cv-prose${brk}">${sectionHeadingHtml(
           rs.section.id,
           rs.section.title,
-        )}<div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "")}</div></section>`;
+        )}<div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "", inline)}</div></section>`;
       }
       // Positions/Education render structured two-line records (a block .cv-entry),
       // so they skip the inline .csl-entry wrapper and tag the list .cv-history (the

@@ -109,11 +109,16 @@ describe("narrativeEvidenceEntries", () => {
       {
         type: "publications",
         entries: [
-          { title: "On adverse drug reactions", venue: "J. Pharmacovigilance", year: 2024 },
-          { title: "An edited title" },
+          {
+            id: "p1",
+            title: "On adverse drug reactions",
+            venue: "J. Pharmacovigilance",
+            year: 2024,
+          },
+          { id: "p2", title: "An edited title" },
         ],
       },
-      { type: "datasets", entries: [{ title: "A shared dataset" }] },
+      { type: "datasets", entries: [{ id: "d1", title: "A shared dataset" }] },
     ]);
   });
 
@@ -121,7 +126,14 @@ describe("narrativeEvidenceEntries", () => {
     const many = Array.from({ length: 10 }, (_, i) => titled(`m${i}`, `T${i}`));
     const c = cv([section("publications", many)]);
     expect(narrativeEvidenceEntries(c, "narrative-knowledge", 3)).toEqual([
-      { type: "publications", entries: [{ title: "T0" }, { title: "T1" }, { title: "T2" }] },
+      {
+        type: "publications",
+        entries: [
+          { id: "m0", title: "T0" },
+          { id: "m1", title: "T1" },
+          { id: "m2", title: "T2" },
+        ],
+      },
     ]);
   });
 

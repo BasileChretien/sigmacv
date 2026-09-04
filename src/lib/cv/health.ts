@@ -1,5 +1,12 @@
-import { isHidden, type CanonicalCv } from "@/lib/canonical/schema";
+import {
+  isHidden,
+  isProseSectionType,
+  type CanonicalCv,
+  type CvSection,
+} from "@/lib/canonical/schema";
 import { orderedSections } from "@/lib/canonical/curate";
+import { evidenceRefCounts, type EvidenceRefCounts } from "@/lib/canonical/evidenceRefs";
+import { isNarrativeModuleType } from "@/lib/canonical/narrativeEvidence";
 
 /** The categories the "needs your attention" checklist surfaces. Declared here,
  *  beside the counts and the jump targets, so all three stay one definition. */
@@ -9,6 +16,9 @@ export const CV_HEALTH_CATEGORIES = [
   "conflicts",
   "misattributed",
   "retracted",
+  // Narrative prose whose evidence references no longer resolve / carry none.
+  "evidence",
+  "narrative",
 ] as const;
 export type CvHealthCategory = (typeof CV_HEALTH_CATEGORIES)[number];
 
@@ -32,8 +42,23 @@ export interface CvHealth {
   likelyMisattributed: number;
   /** Visible works flagged retracted while `display.hideRetracted` is off. */
   retractedVisible: number;
+  /** Evidence references (`[[id]]`) in visible prose sections that no longer
+   *  point to an entry on the CV (hidden, "not mine", removed) — the claim has
+   *  lost its evidence. */
+  unresolvedEvidenceRefs: number;
+  /** Visible narrative modules with a body but not one linked evidence entry —
+   *  prose a funder reviewer cannot verify. */
+  narrativesWithoutEvidence: number;
   /** Sum of the above — 0 means nothing awaits the user. */
   total: number;
+}
+
+/** A VISIBLE prose section with a non-blank body, with its evidence-link counts;
+ *  null otherwise. The one predicate the count and the target walk share. */
+function proseEvidenceOf(cv: CanonicalCv, section: CvSection): EvidenceRefCounts | null {
+  if (!section.visible || !isProseSectionType(section.type)) return null;
+  const body = (section.body ?? "").trim();
+  return body ? evidenceRefCounts(cv, body) : null;
 }
 
 export function computeCvHealth(cv: CanonicalCv): CvHealth {
@@ -42,6 +67,8 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
   let orcidConflicts = 0;
   let likelyMisattributed = 0;
   let retractedVisible = 0;
+  let unresolvedEvidenceRefs = 0;
+  let narrativesWithoutEvidence = 0;
 
   // Review candidates the user triaged with "Keep hidden" are resolved — they
   // stay hidden and no longer count toward the outstanding-decisions total.
@@ -66,6 +93,11 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
         retractedVisible++;
       }
     }
+    const prose = proseEvidenceOf(cv, s);
+    if (prose) {
+      unresolvedEvidenceRefs += prose.unresolved;
+      if (isNarrativeModuleType(s.type) && prose.linked === 0) narrativesWithoutEvidence++;
+    }
   }
 
   return {
@@ -74,16 +106,22 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
     orcidConflicts,
     likelyMisattributed,
     retractedVisible,
+    unresolvedEvidenceRefs,
+    narrativesWithoutEvidence,
     total:
       pendingReviewCandidates +
       pendingDuplicates +
       orcidConflicts +
       likelyMisattributed +
-      retractedVisible,
+      retractedVisible +
+      unresolvedEvidenceRefs +
+      narrativesWithoutEvidence,
   };
 }
 
-/** A jump target inside the editor: which section to expand, which row to focus. */
+/** A jump target inside the editor: which section to expand, which row to focus.
+ *  For a PROSE section (the evidence / narrative categories) there is no row:
+ *  `itemId` is the section id, and the editor focuses the section's text box. */
 export interface HealthTarget {
   sectionId: string;
   itemId: string;
@@ -114,6 +152,8 @@ export function healthTargets(cv: CanonicalCv): Record<CvHealthCategory, HealthT
     conflicts: [],
     misattributed: [],
     retracted: [],
+    evidence: [],
+    narrative: [],
   };
   // MUST be orderedSections, not a raw sort on `s.order`. When
   // `display.sectionsCustomized` is unset — the common case, nobody has dragged a
@@ -141,6 +181,12 @@ export function healthTargets(cv: CanonicalCv): Record<CvHealthCategory, HealthT
       if (it.meta.retracted === true && !isHidden(it) && !cv.display.hideRetracted) {
         out.retracted.push(here);
       }
+    }
+    const prose = proseEvidenceOf(cv, s);
+    if (prose) {
+      const here: HealthTarget = { sectionId: s.id, itemId: s.id };
+      if (prose.unresolved > 0) out.evidence.push(here);
+      if (isNarrativeModuleType(s.type) && prose.linked === 0) out.narrative.push(here);
     }
   }
   return out;

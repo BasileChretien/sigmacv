@@ -1411,6 +1411,77 @@ textarea.prose-body {
   line-height: 1.5;
 }
 
+/* ── Evidence references in prose sections (verifiable narrative): the
+      "Insert evidence" picker + the linked / unresolved summary under the box. ── */
+.evidence-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+.evidence-picker {
+  min-width: min(24rem, 90vw);
+  max-width: 32rem;
+}
+.evidence-search {
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+.evidence-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+.evidence-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.evidence-option:hover,
+.evidence-option:focus-visible {
+  background: var(--surface-2);
+}
+.evidence-option-title {
+  font-size: var(--text-sm);
+}
+.evidence-option-meta {
+  font-size: var(--text-xs);
+}
+.evidence-empty {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+.evidence-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--text-xs);
+}
+.evidence-chip {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  line-height: 1.6;
+}
+.evidence-unresolved {
+  color: var(--danger-text);
+}
+
 /* ── Optional AI first-draft on the narrative modules (opt-in, EU processor). ── */
 .narrative-ai {
   margin-top: var(--space-2);

@@ -70,6 +70,7 @@ import { editorUi } from "@/lib/i18n/editorUi";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { dupStrings } from "@/lib/i18n/duplicates";
 import { narrativeEvidence } from "@/lib/canonical/narrativeEvidence";
+import EvidencePicker from "./EvidencePicker";
 import { isNarrativeAiSection, isUnfilledNarrativeModule } from "@/lib/ai/sections";
 import { narrativeGuidance, narrativeEvidenceLabel } from "@/lib/i18n/narrativeGuidance";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
@@ -225,6 +226,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
   const [reviewDupId, setReviewDupId] = useState<string | null>(null);
   // Live refs to each duplicate row's <li>, for scroll-into-view on focus.
   const dupRowRefs = useRef(new Map<string, HTMLLIElement>());
+  // The prose text boxes by section id: the "Insert evidence" picker inserts at
+  // the caret, and a CV-health jump to a prose section focuses its box.
+  const proseRefs = useRef(new Map<string, HTMLTextAreaElement>());
 
   // Scroll the focused duplicate into view (section auto-expanded first, so its
   // row is mounted by the time this effect runs).
@@ -243,7 +247,8 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
   const [focusItem, setFocusItem] = useState<{ id: string; n: number } | null>(null);
   useEffect(() => {
     if (!focusItem) return;
-    const el = dupRowRefs.current.get(focusItem.id);
+    // A prose section's health target is the section itself → its text box.
+    const el = dupRowRefs.current.get(focusItem.id) ?? proseRefs.current.get(focusItem.id);
     // Focus BEFORE scrolling, with preventScroll so the browser's own jump does
     // not fight the smooth scroll below. Moving real focus is what makes the
     // walk perceptible to a screen reader and reachable from the keyboard.
@@ -337,6 +342,8 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
     const title =
       itemIndex.get(target.itemId)?.item.csl?.title ??
       itemIndex.get(target.itemId)?.item.displayText ??
+      // A prose target (evidence / narrative categories) names its section.
+      cv.sections.find((s) => s.id === target.sectionId)?.title ??
       "";
     setWalkStatus(
       wu.hpWalkPosition
@@ -350,6 +357,29 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
     } else {
       setFocusItem((prev) => ({ id: target.itemId, n: (prev?.n ?? 0) + 1 }));
     }
+  };
+
+  /** Insert an evidence reference token into a prose section's body at the text
+   *  box's caret (at the end when the box isn't focused), with a space before it
+   *  when needed, then put the caret right after the token so writing continues. */
+  const insertEvidenceToken = (sectionId: string, token: string) => {
+    const section = cv.sections.find((s) => s.id === sectionId);
+    if (!section) return;
+    const el = proseRefs.current.get(sectionId);
+    const body = section.body ?? "";
+    const start = el?.selectionStart ?? body.length;
+    const end = el?.selectionEnd ?? body.length;
+    const before = body.slice(0, start);
+    const pad = before && !/\s$/.test(before) ? " " : "";
+    const head = `${before}${pad}${token}`;
+    const next = `${head}${body.slice(end)}`.slice(0, PROSE_BODY_MAX);
+    onChange(setSectionBody(cv, sectionId, next));
+    const caret = Math.min(head.length, next.length);
+    requestAnimationFrame(() => {
+      const box = proseRefs.current.get(sectionId);
+      box?.focus();
+      box?.setSelectionRange(caret, caret);
+    });
   };
 
   /** Expand the section holding `itemId` and scroll+flash that row (the sync
@@ -728,6 +758,10 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                           );
                         })()}
                         <textarea
+                          ref={(el) => {
+                            if (el) proseRefs.current.set(section.id, el);
+                            else proseRefs.current.delete(section.id);
+                          }}
                           className="prose-body"
                           rows={6}
                           value={section.body ?? ""}
@@ -750,6 +784,17 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                             String(PROSE_BODY_MAX - (section.body ?? "").length),
                           )}
                         </span>
+                        {/* Verifiable narrative: reference an entry of the CV with
+                            [[id]] — every export renders it as a link / label to
+                            that entry. The picker offers the entries that support
+                            this module; the chips show what the body links to now. */}
+                        <EvidencePicker
+                          cv={cv}
+                          sectionType={section.type}
+                          body={section.body ?? ""}
+                          locale={locale}
+                          onInsert={(token) => insertEvidenceToken(section.id, token)}
+                        />
                         {/* Optional AI first-draft — BRING-YOUR-OWN-KEY (opt-in,
                             consented, the user's own provider). Only the four
                             narrative modules, and never in the anonymous preview

@@ -30,6 +30,17 @@ const EVIDENCE_SECTIONS: Partial<Record<CvSectionType, CvSectionType[]>> = {
  * only what's actually shown on the CV (visible sections + visible items) — a
  * hidden / "not mine" work is never counted. Pure.
  */
+/** The output section types that support a narrative module, or undefined for
+ *  any other section type (a free `statement` can draw on every section). */
+export function narrativeEvidenceSectionTypes(type: CvSectionType): CvSectionType[] | undefined {
+  return EVIDENCE_SECTIONS[type];
+}
+
+/** Whether a section type is one of the four narrative contribution modules. */
+export function isNarrativeModuleType(type: CvSectionType): boolean {
+  return type in EVIDENCE_SECTIONS;
+}
+
 export function narrativeEvidence(cv: CanonicalCv, type: CvSectionType): NarrativeEvidenceItem[] {
   const relevant = EVIDENCE_SECTIONS[type];
   if (!relevant) return [];
@@ -45,6 +56,8 @@ export function narrativeEvidence(cv: CanonicalCv, type: CvSectionType): Narrati
 }
 
 export interface NarrativeEvidenceEntry {
+  /** The entry's canonical id — the `[[id]]` evidence token a narrative can cite. */
+  id: string;
   title: string;
   /** Journal / conference / publisher (CSL container-title), when known. */
   venue?: string;
@@ -57,11 +70,12 @@ export interface NarrativeEvidenceGroup {
 }
 
 /**
- * Up to `maxPerSection` representative ENTRIES (title + venue + year) per relevant
- * output section for a narrative module — concrete material for the AI first-draft
- * prompt. Titles/venues/years only (no abstracts, co-authors or identifiers) and
- * only VISIBLE items, so the prompt stays minimal + reflects what the user shows.
- * Pure; [] for a non-narrative type.
+ * Up to `maxPerSection` representative ENTRIES (id + title + venue + year) per
+ * relevant output section for a narrative module — concrete material for the AI
+ * first-draft prompt. Titles/venues/years plus the entry's own id (the evidence
+ * token the draft cites — a public WORK identifier, never a personal one); no
+ * abstracts or co-authors, and only VISIBLE items, so the prompt stays minimal +
+ * reflects what the user shows. Pure; [] for a non-narrative type.
  */
 export function narrativeEvidenceEntries(
   cv: CanonicalCv,
@@ -103,5 +117,5 @@ function itemEntry(item: CvItem): NarrativeEvidenceEntry | undefined {
       : typeof cslYear === "number"
         ? cslYear
         : undefined;
-  return { title, ...(venue ? { venue } : {}), ...(year ? { year } : {}) };
+  return { id: item.id, title, ...(venue ? { venue } : {}), ...(year ? { year } : {}) };
 }
