@@ -904,6 +904,9 @@
                     "hasDataStatement": {
                       "type": "boolean"
                     },
+                    "dataLinksCheckedAt": {
+                      "type": "string"
+                    },
                     "rorId": {
                       "type": "string",
                       "maxLength": 2048

@@ -30,8 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Dataverse, Software Heritage, GitHub…), and your own DataCite deposits that
   declare which paper they supplement — so a paper "knows" its dataset even when
   the paper's own metadata is silent. Never name-matched; figshare excluded as
-  elsewhere; at most 20 links per work; a bounded number of works is looked up
-  per sync, never-checked works first, and finds are kept across re-syncs.
+  elsewhere; at most 20 links per work; a bounded number of works is checked
+  per sync — never-checked works first, then the longest-unchecked ones — and
+  finds are kept across re-syncs. Every checked work is stamped
+  (`meta.dataLinksCheckedAt`) whether it found anything or not, so a work
+  neither source has anything to say about rotates out of the queue instead of
+  being re-queried on every sync and starving the rest of a large CV.
 
   A new **Show open data / code links** toggle (off by default) renders them as
   a compact muted line under the entry — "Data: GEO GSE12345 · Zenodo

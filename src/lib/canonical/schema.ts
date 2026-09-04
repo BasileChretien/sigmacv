@@ -472,6 +472,18 @@ const CvItemSchema = z.object({
      * an evaluative score.
      */
     hasDataStatement: z.boolean().optional(),
+    /**
+     * ISO timestamp of the last time the data-links enrichment EXAMINED this work
+     * — set whether the lookup found anything or not (a miss is still a checked
+     * work). This is the rotation sentinel for `enrichCvWithDataLinks`'s per-sync
+     * budget: without it, a work Europe PMC never indexed and Crossref has no
+     * relation for (so {@link dataLinks} and {@link hasDataStatement} both stay
+     * undefined) looked permanently "unchecked" and was re-queried every sync,
+     * starving the tail of a CV with more than the per-sync cap of such works.
+     * Undefined for a work never yet examined. Carried across re-sync like
+     * {@link dataLinks}.
+     */
+    dataLinksCheckedAt: z.string().optional(),
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
     rorId: z.string().max(2048).optional(),
     /**

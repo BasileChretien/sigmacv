@@ -1695,6 +1695,7 @@ function buildWorkCvItem(
       // transient miss never drops a link. New finds merge on top (enrich.ts).
       dataLinks: prev?.meta.dataLinks,
       hasDataStatement: prev?.meta.hasDataStatement,
+      dataLinksCheckedAt: prev?.meta.dataLinksCheckedAt,
       // Per-item freshness: this work came from a live OpenAlex fetch.
       lastVerifiedAt: now,
       authorRole: authorRoleLabel(selfAuth),

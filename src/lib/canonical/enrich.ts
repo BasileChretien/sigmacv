@@ -268,13 +268,16 @@ export async function enrichCvWithRetractions(
 
 // ─── Open data / code links (Europe PMC + Crossref relations) ────────────────
 
-const DATA_LINKS_MAX_CHECK = 100;
+export const DATA_LINKS_MAX_CHECK = 100;
 
 interface DataLinkTarget {
   s: number;
   i: number;
   doi: string;
   pmid?: string;
+  /** `meta.dataLinksCheckedAt` at the start of this pass — undefined for a
+   *  never-checked work; used only to order the "known" bucket oldest-first. */
+  checkedAt?: string;
 }
 
 /** What one work's lookups produced (all fail-soft: an empty result is normal). */
@@ -313,23 +316,38 @@ async function lookupDataLinks(t: DataLinkTarget, mailto: string): Promise<DataL
  * relations. Also records Europe PMC's `hasData` as `meta.hasDataStatement` and
  * back-fills a missing `meta.pmid` from the DOI match (which the iCite RCR pass
  * then benefits from). Bounded to {@link DATA_LINKS_MAX_CHECK} works per sync,
- * works never checked before FIRST (links are carried across re-sync by the
- * build, so a large CV is covered over successive syncs), concurrency-limited,
- * fail-soft and immutable — new finds merge with the carried links; a miss never
- * removes one. Returns the original CV when nothing changed.
+ * concurrency-limited, fail-soft and immutable — new finds merge with the
+ * carried links; a miss never removes one.
+ *
+ * Every work the pass EXAMINES is stamped `meta.dataLinksCheckedAt = now`,
+ * whether the lookup found anything or not — a work Europe PMC never indexed
+ * and Crossref has no relation for is still a checked work, not an unchecked
+ * one. Without this a permanent miss stayed "unchecked" forever (no
+ * `dataLinks`/`hasDataStatement` to show for it) and was re-queried every
+ * sync, and a CV with more than {@link DATA_LINKS_MAX_CHECK} such works never
+ * finished covering its tail. Never-checked works (no `dataLinksCheckedAt`)
+ * go first; the remainder is ordered oldest-checked-first, so the budget
+ * rotates through the whole CV over successive syncs instead of re-querying
+ * the same head every time. Returns the original CV when nothing changed
+ * (including the timestamp — i.e. there was nothing to check).
  */
-export async function enrichCvWithDataLinks(cv: CanonicalCv, mailto: string): Promise<CanonicalCv> {
+export async function enrichCvWithDataLinks(
+  cv: CanonicalCv,
+  mailto: string,
+  now: string = new Date().toISOString(),
+): Promise<CanonicalCv> {
   const fresh: DataLinkTarget[] = [];
   const known: DataLinkTarget[] = [];
   cv.sections.forEach((section, s) => {
     section.items.forEach((item, i) => {
       const doi = item.csl?.DOI;
       if (!doi || isHidden(item)) return;
-      const t = { s, i, doi, pmid: item.meta.pmid };
-      const checked = item.meta.dataLinks !== undefined || item.meta.hasDataStatement !== undefined;
-      (checked ? known : fresh).push(t);
+      const checkedAt = item.meta.dataLinksCheckedAt;
+      const t = { s, i, doi, pmid: item.meta.pmid, checkedAt };
+      (checkedAt === undefined ? fresh : known).push(t);
     });
   });
+  known.sort((a, b) => (a.checkedAt ?? "").localeCompare(b.checkedAt ?? ""));
   const targets = [...fresh, ...known].slice(0, DATA_LINKS_MAX_CHECK);
   if (targets.length === 0) return cv;
 
@@ -348,6 +366,9 @@ export async function enrichCvWithDataLinks(cv: CanonicalCv, mailto: string): Pr
         next = { ...next, meta: { ...next.meta, hasDataStatement: find.hasData } };
       }
       if (find.pmid && !item.meta.pmid) next = { ...next, meta: { ...next.meta, pmid: find.pmid } };
+      if (next.meta.dataLinksCheckedAt !== now) {
+        next = { ...next, meta: { ...next.meta, dataLinksCheckedAt: now } };
+      }
       if (next !== item) changed = true;
       return next;
     }),

@@ -438,7 +438,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
   // PMC data links + Crossref supplement relations (network, bounded + fail-soft).
   // Before iCite so a PMID Europe PMC back-fills can feed the RCR lookup.
   cv = attachDataciteLinks(cv, dataciteOutputs);
-  cv = await timed("enrich.dataLinks", enrichCvWithDataLinks(cv, getEnv().OPENALEX_MAILTO));
+  cv = await timed("enrich.dataLinks", enrichCvWithDataLinks(cv, getEnv().OPENALEX_MAILTO, now));
 
   // NIH iCite: fold the Relative Citation Ratio onto works with a PMID (opt-in
   // biomedical field-normalized metric). Bounded + fails soft.
