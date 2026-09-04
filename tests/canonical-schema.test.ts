@@ -123,6 +123,8 @@ describe("DisplayChoicesSchema", () => {
       showCoauthorLinks: false,
       coauthorLinkable: true,
       showDocQr: false,
+      showArchivalStatus: false,
+      showPublicEvaluations: false,
     });
   });
 
