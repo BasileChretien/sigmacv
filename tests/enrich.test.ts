@@ -4,6 +4,9 @@ const mocks = vi.hoisted(() => ({
   fetchCrossrefGapFields: vi.fn(),
   fetchCrossrefAbstract: vi.fn(),
   fetchRetractionStatus: vi.fn(),
+  fetchCrossrefDataLinks: vi.fn(),
+  fetchEuropePmcByDoi: vi.fn(),
+  fetchEuropePmcDataLinks: vi.fn(),
   resolveInstitution: vi.fn(),
   fetchRcrByPmids: vi.fn(),
 }));
@@ -11,6 +14,11 @@ vi.mock("@/lib/crossref/client", () => ({
   fetchCrossrefGapFields: mocks.fetchCrossrefGapFields,
   fetchCrossrefAbstract: mocks.fetchCrossrefAbstract,
   fetchRetractionStatus: mocks.fetchRetractionStatus,
+  fetchCrossrefDataLinks: mocks.fetchCrossrefDataLinks,
+}));
+vi.mock("@/lib/europepmc/client", () => ({
+  fetchEuropePmcByDoi: mocks.fetchEuropePmcByDoi,
+  fetchEuropePmcDataLinks: mocks.fetchEuropePmcDataLinks,
 }));
 vi.mock("@/lib/ror/client", () => ({
   resolveInstitution: mocks.resolveInstitution,
@@ -23,6 +31,7 @@ import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
   enrichCvWithCrossref,
+  enrichCvWithDataLinks,
   enrichCvWithIcite,
   enrichCvWithRetractions,
   mergeCslGaps,
@@ -30,7 +39,7 @@ import {
   type InstitutionBundle,
 } from "@/lib/canonical/enrich";
 import { DisplayChoicesSchema } from "@/lib/canonical/schema";
-import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
+import type { CanonicalCv, CvItem, DataLink } from "@/lib/canonical/schema";
 import type { CslItem } from "@/types/csl";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
 import type { OrcidPosition } from "@/lib/orcid/client";
@@ -39,6 +48,9 @@ beforeEach(() => {
   mocks.fetchCrossrefGapFields.mockReset();
   mocks.fetchCrossrefAbstract.mockReset();
   mocks.fetchRetractionStatus.mockReset();
+  mocks.fetchCrossrefDataLinks.mockReset();
+  mocks.fetchEuropePmcByDoi.mockReset();
+  mocks.fetchEuropePmcDataLinks.mockReset();
   mocks.resolveInstitution.mockReset();
   mocks.fetchRcrByPmids.mockReset();
 });
@@ -416,5 +428,125 @@ describe("withRorProvenance", () => {
     expect(once.provenance.sources).toContain("ror");
     const twice = withRorProvenance(once);
     expect(twice.provenance.sources.filter((s) => s === "ror")).toHaveLength(1);
+  });
+});
+
+// ─── enrichCvWithDataLinks (Europe PMC + Crossref relations) ──────────────────
+
+describe("enrichCvWithDataLinks", () => {
+  const geo = { id: "GSE1", scheme: "GEO", url: "https://geo/GSE1", category: "Gene Expression" };
+  const zenodo = { id: "10.5281/zenodo.5", scheme: "doi" };
+  const GEO_LINK: DataLink = {
+    id: "GSE1",
+    scheme: "geo",
+    url: "https://geo/GSE1",
+    kind: "dataset",
+  };
+  const ZENODO_LINK: DataLink = {
+    id: "10.5281/zenodo.5",
+    scheme: "doi",
+    url: "https://doi.org/10.5281/zenodo.5",
+    kind: "dataset",
+  };
+
+  it("attaches Europe PMC + Crossref links, hasDataStatement and a back-filled PMID", async () => {
+    mocks.fetchEuropePmcByDoi.mockImplementation(async (doi: string) =>
+      doi === "10.1/x" ? { pmid: "111", hasData: true } : null,
+    );
+    mocks.fetchEuropePmcDataLinks.mockResolvedValue([geo]);
+    mocks.fetchCrossrefDataLinks.mockImplementation(async (doi: string) =>
+      doi === "10.1/x" ? [zenodo] : [],
+    );
+    const cv = makeCv([
+      pub("W1", csl({ id: "W1", DOI: "10.1/x" })),
+      pub("W2", csl({ id: "W2", DOI: "10.1/y" })), // not in Europe PMC, no relations
+      pub("W3", csl({ id: "W3" })), // no DOI → not checked
+    ]);
+    const out = await enrichCvWithDataLinks(cv, "ci@example.org");
+    const items = out.sections[0]!.items;
+    // Europe PMC links first (they carry more context), then Crossref's.
+    expect(items[0]!.meta.dataLinks).toEqual([GEO_LINK, ZENODO_LINK]);
+    expect(items[0]!.meta.hasDataStatement).toBe(true);
+    expect(items[0]!.meta.pmid).toBe("111");
+    expect(items[1]!.meta.dataLinks).toBeUndefined();
+    expect(items[1]!.meta.hasDataStatement).toBeUndefined();
+    expect(items[2]!.meta.dataLinks).toBeUndefined();
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(2);
+    expect(mocks.fetchCrossrefDataLinks).toHaveBeenCalledTimes(2);
+    // The data-links call only ran for the work Europe PMC resolved.
+    expect(mocks.fetchEuropePmcDataLinks).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchEuropePmcDataLinks).toHaveBeenCalledWith("111");
+    // Immutable: the input is untouched.
+    expect(cv.sections[0]!.items[0]!.meta.dataLinks).toBeUndefined();
+  });
+
+  it("skips the data-links call when Europe PMC says the work has NO data, and records it", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue({ pmid: "222", hasData: false });
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1/x" }))]);
+    const out = await enrichCvWithDataLinks(cv, "ci@example.org");
+    expect(out.sections[0]!.items[0]!.meta.hasDataStatement).toBe(false);
+    expect(out.sections[0]!.items[0]!.meta.dataLinks).toBeUndefined();
+    expect(mocks.fetchEuropePmcDataLinks).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the work's own PMID when Europe PMC does not answer", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
+    mocks.fetchEuropePmcDataLinks.mockResolvedValue([geo]);
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    const withPmid = { ...pub("W1", csl({ DOI: "10.1/x" })), meta: { pmid: "333" } };
+    const out = await enrichCvWithDataLinks(makeCv([withPmid]), "ci@example.org");
+    expect(mocks.fetchEuropePmcDataLinks).toHaveBeenCalledWith("333");
+    expect(out.sections[0]!.items[0]!.meta.dataLinks).toEqual([GEO_LINK]);
+    expect(out.sections[0]!.items[0]!.meta.pmid).toBe("333");
+    expect(out.sections[0]!.items[0]!.meta.hasDataStatement).toBeUndefined();
+  });
+
+  it("merges new finds onto carried links, drops unusable raws, and returns the same CV when nothing changed", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue({ hasData: true }); // no pmid → no links call
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([
+      zenodo,
+      { id: "10.6084/m9.figshare.1", scheme: "doi" }, // figshare → dropped
+      { id: "GSE9", scheme: "geo" }, // no URL → dropped
+    ]);
+    const carried = { ...pub("W1", csl({ DOI: "10.1/x" })), meta: { dataLinks: [GEO_LINK] } };
+    const out = await enrichCvWithDataLinks(makeCv([carried]), "ci@example.org");
+    expect(out.sections[0]!.items[0]!.meta.dataLinks).toEqual([GEO_LINK, ZENODO_LINK]);
+    expect(out.sections[0]!.items[0]!.meta.hasDataStatement).toBe(true);
+    expect(mocks.fetchEuropePmcDataLinks).not.toHaveBeenCalled();
+
+    // Re-running with the same answers changes nothing → identical object back.
+    const again = await enrichCvWithDataLinks(out, "ci@example.org");
+    expect(again).toBe(out);
+  });
+
+  it("returns the original CV when every lookup misses, and skips hidden works", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    const hidden = { ...pub("W2", csl({ id: "W2", DOI: "10.1/y" })), included: false };
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1/x" })), hidden]);
+    expect(await enrichCvWithDataLinks(cv, "ci@example.org")).toBe(cv);
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchEuropePmcDataLinks).not.toHaveBeenCalled();
+    // Nothing to check at all → no call, same CV.
+    const none = makeCv([pub("W3", csl({ id: "W3" }))]);
+    expect(await enrichCvWithDataLinks(none, "ci@example.org")).toBe(none);
+  });
+
+  it("is bounded to 100 works per sync, never-checked works first", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    const items: CvItem[] = [];
+    for (let i = 0; i < 120; i++) {
+      const it = pub(`W${i}`, csl({ id: `W${i}`, DOI: `10.1/${i}` }));
+      // The first 30 were already checked on a prior sync (a recorded has-data flag).
+      items.push(i < 30 ? { ...it, meta: { hasDataStatement: false } } : it);
+    }
+    await enrichCvWithDataLinks(makeCv(items), "ci@example.org");
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(100);
+    const dois = mocks.fetchEuropePmcByDoi.mock.calls.map((c) => c[0] as string);
+    // All 90 never-checked works come first, then 10 of the already-checked ones.
+    expect(dois.slice(0, 90)).toEqual(Array.from({ length: 90 }, (_, i) => `10.1/${i + 30}`));
+    expect(dois.slice(90)).toEqual(Array.from({ length: 10 }, (_, i) => `10.1/${i}`));
   });
 });

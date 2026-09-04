@@ -304,7 +304,9 @@ function dataRelationLink(entry: unknown, strict: boolean): RawDataLink | null {
   if (!id) return null;
   if (idType === "doi") {
     const norm = normDoi(id);
-    if (!norm || (strict && !isDataRepositoryDoi(norm))) return null;
+    // figshare is excluded project-wide (publisher supplements), whatever the key.
+    if (!norm || /figshare/i.test(norm)) return null;
+    if (strict && !isDataRepositoryDoi(norm)) return null;
     return { id: norm, scheme: "doi" };
   }
   if (idType === "uri" || idType === "url") {
