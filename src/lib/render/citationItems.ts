@@ -32,8 +32,12 @@ export function selectSections(cv: CanonicalCv): SelectedSection[] {
   //    (preprints, editorials, a preprint mis-filed under Publications).
   //  - "Count letters" off → drop LETTERS (by document type) for an articles-only
   //    view, even though letters are peer-reviewed. On (default) → keep them.
-  //  - "Hide retracted" drops retracted works.
-  // All mirror countableWorks so the listing matches the figures.
+  //  - "Hide retracted" drops retracted works. Off (default) → they are LISTED
+  //    with their "Retracted" badge, but countableWorks NEVER counts them in the
+  //    figures — same asymmetry as "peer-reviewed only" (list opt-in, figures
+  //    always strict), so a retracted paper can be shown but never inflates a
+  //    metric, the chart, the authorship table or the OA share.
+  // All mirror countableWorks so the listing is never narrower than the figures.
   const peerOnly = cv.display.peerReviewedOnly;
   const countLetters = cv.display.countLetters !== false; // default on
   const hideRetracted = cv.display.hideRetracted === true;

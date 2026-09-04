@@ -1128,7 +1128,9 @@ export const DisplayChoicesSchema = z.object({
   summaryHeading: z.string().max(120).optional(),
   /** Hide works flagged as retracted (`meta.retracted`) from every output. Default
    *  off → retracted works are shown WITH the always-on "Retracted" badge; the user
-   *  can opt to exclude them entirely. */
+   *  can opt to exclude them entirely. A LIST choice only: the figures (RCR, per-year
+   *  chart, authorship table, OA share — see `countableWorks`) never count a
+   *  retracted work either way. */
   hideRetracted: z.boolean().default(false),
   /** Show the account holder's authorship role (first/last/corresponding). Default off. */
   showAuthorRole: z.boolean().default(false),
