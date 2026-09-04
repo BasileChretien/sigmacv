@@ -1402,7 +1402,7 @@ export function reviewFlagFor(
  * back to `best_oa_location.license` (a work can be closed at its primary
  * location but openly licensed via an OA copy). Undefined when neither carries one.
  */
-export function workLicense(work: OpenAlexWork): string | undefined {
+function workLicense(work: OpenAlexWork): string | undefined {
   return work.primary_location?.license ?? work.best_oa_location?.license ?? undefined;
 }
 
@@ -1411,7 +1411,7 @@ export function workLicense(work: OpenAlexWork): string | undefined {
  * ("https://pubmed.ncbi.nlm.nih.gov/12345678"). Returns just the numeric id, or
  * undefined when absent / not numeric.
  */
-export function workPmid(work: OpenAlexWork): string | undefined {
+function workPmid(work: OpenAlexWork): string | undefined {
   const pmid = work.ids?.pmid;
   if (!pmid) return undefined;
   const m = /(\d+)\/?$/.exec(pmid.trim());
@@ -1423,7 +1423,7 @@ export function workPmid(work: OpenAlexWork): string | undefined {
  * when OpenAlex carries neither (older/unclassified works). Stored on the item for
  * the misattribution heuristic's cross-domain check; never invented.
  */
-export function workTopic(work: OpenAlexWork): { field?: string; domain?: string } | undefined {
+function workTopic(work: OpenAlexWork): { field?: string; domain?: string } | undefined {
   const field = work.primary_topic?.field?.display_name?.trim() || undefined;
   const domain = work.primary_topic?.domain?.display_name?.trim() || undefined;
   return field || domain ? { field, domain } : undefined;
@@ -1553,7 +1553,7 @@ const MAX_COAUTHOR_ORCIDS = 256;
  * with no ORCID contributes nothing); never name-derived. Drives the public
  * JSON-LD `knows` graph; see {@link CvItem.meta.coauthorOrcids}.
  */
-export function collectCoauthorOrcids(work: OpenAlexWork, ownerOrcid: string): string[] {
+function collectCoauthorOrcids(work: OpenAlexWork, ownerOrcid: string): string[] {
   const out = new Set<string>();
   for (const a of work.authorships ?? []) {
     const orcid = normalizeOrcid(a.author?.orcid);

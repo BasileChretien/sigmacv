@@ -696,7 +696,7 @@ export function outputLedgerHtml(cv: CanonicalCv): string {
  * reads). Pure; "" when there is nothing to show. Shared by both placements — inline
  * in the header ("header") and inside the standalone labelled block ("top"/"bottom").
  */
-export function researchSummaryBody(cv: CanonicalCv): string {
+function researchSummaryBody(cv: CanonicalCv): string {
   const oaShare = openAccessShare(cv);
   const rows: string[] = [];
   if (oaShare) {
@@ -742,7 +742,7 @@ export function researchSummaryBody(cv: CanonicalCv): string {
  * token so it stays legible on every template + dark style. "" unless the block is
  * body-placed AND has content.
  */
-export function researchSummaryBlock(cv: CanonicalCv): string {
+function researchSummaryBlock(cv: CanonicalCv): string {
   const pos = cv.display.summaryBlockPosition;
   if (pos !== "top" && pos !== "bottom") return "";
   const body = researchSummaryBody(cv);
@@ -1074,7 +1074,7 @@ ${hatBindings}
  * `<script>` / `<img onerror=…>` survives only as inert escaped text. This is
  * the single chokepoint; every renderer that shows a prose body uses it.
  */
-export function proseBodyHtml(body: string): string {
+function proseBodyHtml(body: string): string {
   // Normalise newlines, then split into paragraphs on one-or-more blank lines.
   const paragraphs = body
     .replace(/\r\n?/g, "\n")

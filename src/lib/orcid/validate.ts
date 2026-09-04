@@ -2,7 +2,7 @@ import { normalizeOrcid } from "@/lib/openalex/types";
 import { isValidOrcidChecksum } from "./checksum";
 
 /** The bare canonical iD shape, `0000-0002-7483-2489`. */
-export const ORCID_RE = /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/;
+const ORCID_RE = /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/;
 
 /**
  * The canonical bare iD when `raw` is a well-formed, checksum-valid ORCID (in any

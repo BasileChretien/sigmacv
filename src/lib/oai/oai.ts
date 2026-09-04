@@ -14,13 +14,13 @@ import { absoluteUrl } from "@/lib/siteUrl";
  */
 
 /** The OAI repository identifier (the host part of `oai:<repo>:<localId>`). */
-export const OAI_REPO_ID = "sigmacv.org";
+const OAI_REPO_ID = "sigmacv.org";
 /** Repository inception — a valid `earliestDatestamp` (≤ every record's stamp). */
-export const OAI_EARLIEST_DATESTAMP = "2026-06-08T00:00:00Z";
+const OAI_EARLIEST_DATESTAMP = "2026-06-08T00:00:00Z";
 /** Records per ListRecords/ListIdentifiers page (offset-based resumption). */
 export const OAI_PAGE_SIZE = 100;
 /** The single supported metadata prefix. */
-export const OAI_METADATA_PREFIX = "oai_dc";
+const OAI_METADATA_PREFIX = "oai_dc";
 
 export interface OaiRecordInput {
   slug: string;
@@ -65,7 +65,7 @@ interface BuildOpts {
 }
 
 /** XML-escape text + attribute content (covers &, <, >, ", '). */
-export function escapeXml(s: string): string {
+function escapeXml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

@@ -1,6 +1,8 @@
 import type { Renderer, RenderFormat } from "./types";
 
+/** @public The renderer interface surface consumers may import from one place. */
 export type { Renderer, RenderFormat, RenderInput, RenderResult } from "./types";
+/** @public */
 export { renderCvHtml, htmlRenderer, cvSlug } from "./html";
 
 /**

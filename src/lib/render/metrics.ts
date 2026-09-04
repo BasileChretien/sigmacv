@@ -13,7 +13,7 @@ import { countableWorks } from "./countable";
  * to read as a precise score, so its coverage note carries a small-sample caveat
  * (Leiden principle 7). Kept deliberately conservative.
  */
-export const SMALL_N_THRESHOLD = 10;
+const SMALL_N_THRESHOLD = 10;
 
 /**
  * Metrics adjusted for curation. The FIELD-NORMALIZED measures we DERIVE from
@@ -107,7 +107,6 @@ export const METRIC_DEFS = [
   { key: "cited_by_count", format: "integer" },
 ] as const;
 
-export type MetricKey = (typeof METRIC_DEFS)[number]["key"];
 export const METRIC_KEYS: readonly string[] = METRIC_DEFS.map((m) => m.key);
 
 export interface FormattedMetric {

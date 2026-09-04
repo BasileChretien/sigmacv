@@ -37,7 +37,7 @@ const FLOATING_CHIPS: { label: string; style: Record<string, string | number> }[
  * Every latin glyph the card renders besides the localized copy — callers add
  * this to the font-subset request so chips/wordmark never fall back to tofu.
  */
-export const OG_CARD_GLYPHS = `SigmaCV Σ sigmacv.org ${SOURCE_CHIPS.join(" ")}`;
+const OG_CARD_GLYPHS = `SigmaCV Σ sigmacv.org ${SOURCE_CHIPS.join(" ")}`;
 
 export interface OgFont {
   name: string;

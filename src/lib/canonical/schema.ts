@@ -144,14 +144,8 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
  * study (a same-name collision is a very different error from a duplicate).
  */
 export const NOT_MINE_REASONS = ["different-person", "duplicate", "wrong-field", "other"] as const;
-export const NotMineReasonSchema = z.enum(NOT_MINE_REASONS);
+const NotMineReasonSchema = z.enum(NOT_MINE_REASONS);
 export type NotMineReason = z.infer<typeof NotMineReasonSchema>;
-export const NOT_MINE_REASON_LABELS: Record<NotMineReason, string> = {
-  "different-person": "A different researcher (name or ID collision)",
-  duplicate: "Duplicate of another listed work",
-  "wrong-field": "Outside my field of research",
-  other: "Other reason",
-};
 
 /**
  * Authorship positions for the optional authorship-summary table (counts of how
@@ -220,7 +214,7 @@ export type ReviewFlag = (typeof REVIEW_FLAGS)[number];
  *  - "pre-career": published well before the account holder's earliest confirmed work
  *    (a corroborator only — never enough to flag on its own).
  */
-export const MISATTRIBUTION_SIGNALS = [
+const MISATTRIBUTION_SIGNALS = [
   "no-coauthor-overlap",
   "different-field",
   "affiliation-novel",
@@ -257,7 +251,7 @@ export const DUPLICATE_RELATIONSHIPS = [
 export type DuplicateRelationship = (typeof DUPLICATE_RELATIONSHIPS)[number];
 
 /** A single CV entry. For MVP these come from OpenAlex works. */
-export const CvItemSchema = z.object({
+const CvItemSchema = z.object({
   /** Stable id — e.g. the OpenAlex short id "W2741809807", or "position:…". */
   id: z.string().max(1024),
   /** Where the item came from. "manual" = user-entered; "orcid" = ORCID record. */
@@ -766,7 +760,7 @@ export function displayInstitution(item: Pick<CvItem, "meta">, locale: string): 
   return (lang ? names[lang] : undefined) ?? base;
 }
 
-export const CvSectionSchema = z.object({
+const CvSectionSchema = z.object({
   id: z.string().max(200),
   type: CvSectionTypeSchema,
   /** User-editable section heading. */
@@ -794,7 +788,7 @@ export type CvSection = z.infer<typeof CvSectionSchema>;
  * of display choice; only shown if the user opts in. Keyed by OpenAlex's own
  * field names so the mapping is obvious.
  */
-export const OwnerMetricsSchema = z.object({
+const OwnerMetricsSchema = z.object({
   "2yr_mean_citedness": z.number().optional(),
   h_index: z.number().int().optional(),
   i10_index: z.number().int().optional(),
@@ -818,28 +812,26 @@ export const OwnerMetricsSchema = z.object({
 export type OwnerMetrics = z.infer<typeof OwnerMetricsSchema>;
 
 /** One year's output + citation counts (from OpenAlex), for the mini charts. */
-export const CountsByYearSchema = z.object({
+const CountsByYearSchema = z.object({
   year: z.number().int(),
   works: z.number().int(),
   citations: z.number().int(),
 });
-export type CountsByYear = z.infer<typeof CountsByYearSchema>;
 
 /** An extra labelled link (personal site, Google Scholar, GitHub, …). */
-export const CvLinkSchema = z.object({
+const CvLinkSchema = z.object({
   label: z.string().max(120),
   url: z.string().max(2048),
 });
 export type CvLink = z.infer<typeof CvLinkSchema>;
 
 /** Optional contact block. All user-entered, optional, deleted with the account. */
-export const CvContactSchema = z.object({
+const CvContactSchema = z.object({
   email: z.string().max(254).optional(),
   phone: z.string().max(60).optional(),
   website: z.string().max(2048).optional(),
   location: z.string().max(200).optional(),
 });
-export type CvContact = z.infer<typeof CvContactSchema>;
 
 /**
  * Personal fields for the Japanese rirekisho (履歴書) form. PERSONAL DATA under
@@ -847,7 +839,7 @@ export type CvContact = z.infer<typeof CvContactSchema>;
  * the data export and cascade-deleted with the account. Only rendered by the
  * rirekisho template and only when the user fills them in.
  */
-export const CvPersonalSchema = z.object({
+const CvPersonalSchema = z.object({
   /** Furigana / phonetic reading of the name (ふりがな). */
   phoneticName: z.string().max(200).optional(),
   /** Free-form or ISO date — we never parse/validate the calendar. */
@@ -856,7 +848,6 @@ export const CvPersonalSchema = z.object({
   nationality: z.string().max(120).optional(),
   address: z.string().max(400).optional(),
 });
-export type CvPersonal = z.infer<typeof CvPersonalSchema>;
 
 /** Max length of an embedded photo data URL (~1 MB). Keeps the document sane. */
 export const PHOTO_DATA_URL_MAX = 1_400_000;
@@ -1033,7 +1024,6 @@ export const ACCENT_PRESETS = [
 export type TemplateKey = (typeof TEMPLATES)[number];
 export type PublicStyleKey = (typeof PUBLIC_STYLES)[number];
 export type FontPairing = (typeof FONT_PAIRINGS)[number];
-export type Density = (typeof DENSITIES)[number];
 
 /** Validated 6-digit hex — prevents CSS injection via the accent colour. */
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
@@ -1044,7 +1034,7 @@ const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
  * reproducible and offline-safe — `cslStyle` equals this `id` when selected.
  * Validated server-side before it ever lands here (see api/cv/style/resolve).
  */
-export const CustomStyleSchema = z.object({
+const CustomStyleSchema = z.object({
   id: z.string().min(1).max(128),
   title: z.string().max(300),
   /** Independent CSL XML. Capped to keep the canonical document a sane size. */
@@ -1059,8 +1049,8 @@ export type CustomStyle = z.infer<typeof CustomStyleSchema>;
  * heading) right after the header or after the last section; "hidden" = suppressed
  * everywhere. Default "header" so a CV saved before this option renders unchanged.
  */
-export const SUMMARY_BLOCK_POSITIONS = ["header", "top", "bottom", "hidden"] as const;
-export const SummaryBlockPositionSchema = z.enum(SUMMARY_BLOCK_POSITIONS);
+const SUMMARY_BLOCK_POSITIONS = ["header", "top", "bottom", "hidden"] as const;
+const SummaryBlockPositionSchema = z.enum(SUMMARY_BLOCK_POSITIONS);
 export type SummaryBlockPosition = z.infer<typeof SummaryBlockPositionSchema>;
 
 export const DisplayChoicesSchema = z.object({
@@ -1320,7 +1310,7 @@ export const DisplayChoicesSchema = z.object({
 });
 export type DisplayChoices = z.infer<typeof DisplayChoicesSchema>;
 
-export const PROVENANCE_SOURCES = [
+const PROVENANCE_SOURCES = [
   "openalex",
   "orcid",
   "oep",
@@ -1344,7 +1334,7 @@ export const PROVENANCE_SOURCES = [
   "bibtex",
 ] as const;
 
-export const ProvenanceSchema = z.object({
+const ProvenanceSchema = z.object({
   generatedAt: z.string().max(64),
   lastSyncedAt: z.string().max(64).optional(),
   /** Data sources that contributed to this CV. Back-compat: old ["openalex"]. */
@@ -1359,7 +1349,7 @@ export type Provenance = z.infer<typeof ProvenanceSchema>;
  * layouts WITHOUT duplicating the underlying curated data (single source of
  * truth). Curation (included/notMine/order/content) is shared across presets.
  */
-export const CvPresetSchema = z.object({
+const CvPresetSchema = z.object({
   id: z.string().min(1).max(80),
   name: z.string().min(1).max(60),
   display: DisplayChoicesSchema,
@@ -1373,7 +1363,6 @@ export const CvPresetSchema = z.object({
    */
   sectionOrder: z.array(z.string().max(200)).max(500).default([]),
 });
-export type CvPreset = z.infer<typeof CvPresetSchema>;
 
 export const CanonicalCvSchema = z.object({
   schemaVersion: z.literal(CANONICAL_SCHEMA_VERSION),

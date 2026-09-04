@@ -45,7 +45,7 @@ export async function openEditorPart(page: Page, part: EditorPart): Promise<void
 }
 
 /** Open the top-bar Publish popover and reveal its controls. */
-export async function openPublishMenu(page: Page): Promise<void> {
+async function openPublishMenu(page: Page): Promise<void> {
   const trigger = page.locator(".publish-trigger");
   await expect(trigger).toBeVisible();
   const toggle = page.getByTestId("publish-toggle");

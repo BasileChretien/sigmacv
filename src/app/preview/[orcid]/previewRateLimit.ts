@@ -10,10 +10,10 @@ import { clientIpFromHeaders } from "@/lib/security/clientIp";
  * source IPs. The per-ORCID cache + single-flight (orcidPreviewCache) blunt
  * repeat/concurrent hits on top of this.
  */
-export const PREVIEW_MAX = 30;
-export const PREVIEW_WINDOW_MS = 60 * 60_000; // 1 hour
-export const PREVIEW_GLOBAL_MAX = 600;
-export const PREVIEW_GLOBAL_WINDOW_MS = 60 * 60_000;
+const PREVIEW_MAX = 30;
+const PREVIEW_WINDOW_MS = 60 * 60_000; // 1 hour
+const PREVIEW_GLOBAL_MAX = 600;
+const PREVIEW_GLOBAL_WINDOW_MS = 60 * 60_000;
 
 export type PreviewRateOutcome = { ok: true } | { ok: false; retryAfterSec: number };
 

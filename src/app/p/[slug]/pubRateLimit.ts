@@ -11,12 +11,12 @@ import { publicNoticeResponse } from "./noticePage";
 
 // Anonymous + render-heavy: bound per-IP request rate so a flood (especially of
 // random/invalid slugs, which bypass the render cache) can't pin the process.
-export const PUBPAGE_MAX = 120;
-export const PUBPAGE_WINDOW_MS = 60_000; // 1 minute
+const PUBPAGE_MAX = 120;
+const PUBPAGE_WINDOW_MS = 60_000; // 1 minute
 // A second, GLOBAL ceiling across all IPs — bounds a distributed flood that
 // rotates source IPs (each IP staying under the per-IP cap).
-export const PUBPAGE_GLOBAL_MAX = 3_000;
-export const PUBPAGE_GLOBAL_WINDOW_MS = 60_000;
+const PUBPAGE_GLOBAL_MAX = 3_000;
+const PUBPAGE_GLOBAL_WINDOW_MS = 60_000;
 
 /** The outcome of the shared public-page rate-limit check. */
 export type PubRateLimitOutcome = { ok: true } | { ok: false; retryAfterSec: number };

@@ -4,7 +4,7 @@ import { addManualEntry, setItemNotMine, updateDisplay, updateOwner } from "@/li
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { cvCslItems, renderCvCslJson, csljsonRenderer } from "@/lib/render/csljson";
-import { buildJsonResume, renderCvJsonResume, jsonresumeRenderer } from "@/lib/render/jsonresume";
+import { buildJsonResume, jsonresumeRenderer } from "@/lib/render/jsonresume";
 import { renderCvBiosketch, biosketchRenderer } from "@/lib/render/biosketch";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";

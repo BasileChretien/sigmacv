@@ -11,7 +11,7 @@ import type { OgImageProps } from "@/lib/cv/ogImage";
  * self-contained and fast (route comment explains the caching/rate limiting).
  */
 
-export const CV_OG_SIZE = { width: 1200, height: 630 };
+const CV_OG_SIZE = { width: 1200, height: 630 };
 
 /** rgba() tint from the schema-validated 6-digit hex accent. */
 function rgba(hex: string, alpha: number): string {

@@ -139,6 +139,7 @@ npm run coverage       # vitest run --coverage — ENFORCES the gate (see below)
 npm run e2e            # Playwright E2E (needs e2e DB; e2e:install first)
 npm run fetch-csl      # vendor the CSL styles + en-US locale into citeproc assets
 npm run gen:schema     # regenerate public/schema/cv/v2.json from the Zod canonical schema
+npm run deadcode       # knip: unused files / exports / dependencies (config in knip.json; exit 0 = clean)
 npm run sbom           # write a CycloneDX SBOM (sbom.cdx.json); release.yml attaches it to GitHub releases
 ```
 

@@ -29,7 +29,7 @@ export const SYNC_REPORT_MAX_ITEMS = 50;
 /** Cap on a stored entry's title length. */
 const TITLE_MAX = 200;
 
-export const SyncReportEntrySchema = z.object({
+const SyncReportEntrySchema = z.object({
   sectionType: CvSectionTypeSchema,
   itemId: z.string().max(1024),
   title: z.string().max(TITLE_MAX),

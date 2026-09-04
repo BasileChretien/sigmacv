@@ -67,9 +67,6 @@ export const LOCALE_SLUGS: Record<Locale, string> = {
   "ru-RU": "ru",
 };
 
-/** The slug for the default locale ("en"); the default landing lives at "/". */
-export const DEFAULT_LOCALE_SLUG = LOCALE_SLUGS[DEFAULT_UI_LOCALE];
-
 /** Slugs for every NON-default locale — the set of `/[locale]` static params. */
 export const NON_DEFAULT_LOCALE_SLUGS: string[] = SUPPORTED_LOCALES.filter(
   (l) => l !== DEFAULT_UI_LOCALE,

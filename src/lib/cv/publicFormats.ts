@@ -15,7 +15,7 @@ import { profilePageJsonLd } from "./publicJsonLd";
  */
 
 /** The formats a public CV can be served as. `html` is the default page. */
-export const PUBLIC_FORMATS = ["html", "jsonld", "csljson", "bibtex", "json"] as const;
+const PUBLIC_FORMATS = ["html", "jsonld", "csljson", "bibtex", "json"] as const;
 export type PublicFormat = (typeof PUBLIC_FORMATS)[number];
 
 /**
