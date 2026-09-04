@@ -328,11 +328,12 @@ describe("buildCanonicalCv carries data links across re-sync", () => {
   const build = (previous?: CanonicalCv) =>
     buildCanonicalCv({ id: "cv", resolved, works, now: "2026-06-02T00:00:00.000Z", previous });
 
-  it("keeps meta.dataLinks / hasDataStatement and a back-filled PMID from the previous CV", () => {
+  it("keeps meta.dataLinks / hasDataStatement / dataLinksCheckedAt and a back-filled PMID from the previous CV", () => {
     const first = build();
     const pubs = first.sections.find((s) => s.type === "publications")!;
     const target = pubs.items.find((it) => it.csl && !it.meta.pmid)!;
     const links = [link({ id: "GSE1", scheme: "geo", url: "https://geo/1" })];
+    const checkedAt = "2026-05-01T00:00:00.000Z";
     const previous: CanonicalCv = {
       ...first,
       sections: first.sections.map((s) =>
@@ -348,6 +349,7 @@ describe("buildCanonicalCv carries data links across re-sync", () => {
                         ...it.meta,
                         dataLinks: links,
                         hasDataStatement: true,
+                        dataLinksCheckedAt: checkedAt,
                         pmid: "424242",
                       },
                     }
@@ -362,6 +364,7 @@ describe("buildCanonicalCv carries data links across re-sync", () => {
       .items.find((it) => it.id === target.id)!;
     expect(again.meta.dataLinks).toEqual(links);
     expect(again.meta.hasDataStatement).toBe(true);
+    expect(again.meta.dataLinksCheckedAt).toBe(checkedAt);
     expect(again.meta.pmid).toBe("424242");
     // A work with no prior finds stays undefined (nothing invented).
     const other = second.sections
@@ -369,6 +372,7 @@ describe("buildCanonicalCv carries data links across re-sync", () => {
       .items.find((it) => it.id !== target.id && it.csl)!;
     expect(other.meta.dataLinks).toBeUndefined();
     expect(other.meta.hasDataStatement).toBeUndefined();
+    expect(other.meta.dataLinksCheckedAt).toBeUndefined();
   });
 
   it("prefers OpenAlex's own PMID over a carried one", () => {
