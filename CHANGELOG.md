@@ -21,6 +21,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the parser-safe ATS template like all badges. The confirming organisation's
   name is now captured at sync (`meta.verifiedBy`), so a re-sync is needed before
   existing CVs can name it; the mark itself works on already-synced data.
+- **Replication evidence (FORRT/FReD) — dormant, import-fed.** Same pattern as
+  WHO ICTRP: a Postgres reference table (`ForrtReplication`), bulk-imported from a
+  FORRT Replication Database (FReD, CC-BY) CSV export by `npm run forrt:import`
+  (`scripts/forrt-import.ts`, tolerant column matching), read by
+  `src/lib/forrt/client.ts`. Both DOIs are identifier data, so a match is
+  **DOI-matched — auto-included, never a review candidate**: a replicated work
+  gains `meta.replications`, a replication study gains `meta.replicationOf`,
+  folded in during sync by `enrichCvWithForrtReplications`
+  (`src/lib/canonical/enrich.ts`) and surfaced in the provenance summary as
+  "FORRT". Opt-in render toggle `display.showReplications` (default **off**,
+  like the other evidence toggles) shows a muted "Replicated: N studies (…)" /
+  "Replication of: …" line with DOI links under the HTML/PDF/public-page entry;
+  outcome wording uses FReD's own labels, localizing only the generic buckets
+  (success/failure/mixed/informative failure). **DORMANT until the maintainer
+  provisions a FReD export** — the table is empty by default, so this ships as a
+  no-op; see the go-live checklist in `CLAUDE.md`.
+
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so

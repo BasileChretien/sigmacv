@@ -328,7 +328,10 @@ describe("enrichCvWithForrtReplications", () => {
       replicatedBy: new Map([
         [
           "10.1000/original",
-          [{ doi: "10.1000/rep-a", outcome: "success" }, { doi: "10.1000/rep-b", outcome: "mixed" }],
+          [
+            { doi: "10.1000/rep-a", outcome: "success" },
+            { doi: "10.1000/rep-b", outcome: "mixed" },
+          ],
         ],
       ]),
       replicationOf: new Map(),
@@ -347,7 +350,9 @@ describe("enrichCvWithForrtReplications", () => {
   it("folds replicationOf onto a work that IS a replication", async () => {
     mocks.fetchReplicationsForDois.mockResolvedValue({
       replicatedBy: new Map(),
-      replicationOf: new Map([["10.1000/replication", { doi: "10.1000/original", ref: "Original 2019" }]]),
+      replicationOf: new Map([
+        ["10.1000/replication", { doi: "10.1000/original", ref: "Original 2019" }],
+      ]),
     });
     const cv = makeCv([pub("W1", csl({ DOI: "10.1000/replication" }))]);
     const items = (await enrichCvWithForrtReplications(cv)).sections[0]!.items;
@@ -356,7 +361,10 @@ describe("enrichCvWithForrtReplications", () => {
   });
 
   it("caps replications at 10", async () => {
-    const many = Array.from({ length: 15 }, (_, i) => ({ doi: `10.1000/rep-${i}`, outcome: "success" }));
+    const many = Array.from({ length: 15 }, (_, i) => ({
+      doi: `10.1000/rep-${i}`,
+      outcome: "success",
+    }));
     mocks.fetchReplicationsForDois.mockResolvedValue({
       replicatedBy: new Map([["10.1000/original", many]]),
       replicationOf: new Map(),

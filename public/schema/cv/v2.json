@@ -378,6 +378,10 @@
           "default": false,
           "type": "boolean"
         },
+        "showVerifiedBadges": {
+          "default": false,
+          "type": "boolean"
+        },
         "showProvenance": {
           "default": false,
           "type": "boolean"
@@ -944,6 +948,10 @@
                     "verified": {
                       "type": "boolean"
                     },
+                    "verifiedBy": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
                     "departmentOverride": {
                       "type": "string",
                       "maxLength": 500
@@ -1293,6 +1301,10 @@
                 "type": "boolean"
               },
               "showReplications": {
+                "default": false,
+                "type": "boolean"
+              },
+              "showVerifiedBadges": {
                 "default": false,
                 "type": "boolean"
               },

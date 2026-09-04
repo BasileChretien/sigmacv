@@ -289,7 +289,8 @@ function replicationsHtml(item: CvItem, locale: string): string {
       .map(([label, n]) => `${n} ${escapeHtml(label)}`)
       .join(", ");
     const n = new Intl.NumberFormat(locale).format(reps.length);
-    const summary = escapeHtml(s.replicatedLabel.replace("{n}", n)) + (breakdown ? ` (${breakdown})` : "");
+    const summary =
+      escapeHtml(s.replicatedLabel.replace("{n}", n)) + (breakdown ? ` (${breakdown})` : "");
     const links = reps
       .map((r) => {
         const href = safeHref(r.doi ? `https://doi.org/${r.doi}` : undefined);
@@ -307,7 +308,9 @@ function replicationsHtml(item: CvItem, locale: string): string {
     const refText = escapeHtml(of.ref?.trim() || of.doi);
     const href = safeHref(`https://doi.org/${of.doi}`);
     const refHtml = href ? `<a href="${escapeHtml(href)}">${refText}</a>` : refText;
-    parts.push(`<div class="cv-replication-of">${escapeHtml(s.replicatedOfLabel)} ${refHtml}</div>`);
+    parts.push(
+      `<div class="cv-replication-of">${escapeHtml(s.replicatedOfLabel)} ${refHtml}</div>`,
+    );
   }
 
   return parts.join("");

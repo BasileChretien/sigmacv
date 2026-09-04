@@ -59,7 +59,9 @@ export async function fetchReplicationsForDois(
   dois: readonly (string | undefined)[],
 ): Promise<ForrtLookupResult> {
   const bare = [
-    ...new Set(dois.map((d) => (d ? bareDoiInput(d) : null)).filter((d): d is string => Boolean(d))),
+    ...new Set(
+      dois.map((d) => (d ? bareDoiInput(d) : null)).filter((d): d is string => Boolean(d)),
+    ),
   ];
   if (bare.length === 0) return EMPTY;
 
@@ -83,8 +85,15 @@ export async function fetchReplicationsForDois(
         });
         replicatedBy.set(r.originalDoi, list);
       }
-      if (r.replicationDoi && bareSet.has(r.replicationDoi) && !replicationOf.has(r.replicationDoi)) {
-        replicationOf.set(r.replicationDoi, { doi: r.originalDoi, ref: r.originalRef ?? undefined });
+      if (
+        r.replicationDoi &&
+        bareSet.has(r.replicationDoi) &&
+        !replicationOf.has(r.replicationDoi)
+      ) {
+        replicationOf.set(r.replicationDoi, {
+          doi: r.originalDoi,
+          ref: r.originalRef ?? undefined,
+        });
       }
     }
     return { replicatedBy, replicationOf };

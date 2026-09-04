@@ -515,7 +515,9 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
         display: { ...cv.display, showReplications: true, ...display },
         sections: cv.sections.map((s, si) => ({
           ...s,
-          items: s.items.map((it, ii) => (si === 0 && ii === 0 ? { ...it, meta: { ...it.meta, ...meta } } : it)),
+          items: s.items.map((it, ii) =>
+            si === 0 && ii === 0 ? { ...it, meta: { ...it.meta, ...meta } } : it,
+          ),
         })),
       };
     }

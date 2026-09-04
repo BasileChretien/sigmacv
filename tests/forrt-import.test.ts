@@ -106,7 +106,10 @@ describe("rowToRecord", () => {
   });
 
   it("normalizes a DOI carrying a doi.org URL prefix", () => {
-    const rec = rowToRecord(["https://doi.org/10.1000/original", "", "", "", "", "", "", ""], columns);
+    const rec = rowToRecord(
+      ["https://doi.org/10.1000/original", "", "", "", "", "", "", ""],
+      columns,
+    );
     expect(rec?.originalDoi).toBe("10.1000/original");
   });
 

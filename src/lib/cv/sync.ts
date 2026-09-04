@@ -447,8 +447,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
   // below) — the enrichment above doesn't return a count of its own.
   const forrtEnrichedCount = cv.sections.reduce(
     (n, section) =>
-      n +
-      section.items.filter((item) => item.meta.replications || item.meta.replicationOf).length,
+      n + section.items.filter((item) => item.meta.replications || item.meta.replicationOf).length,
     0,
   );
 

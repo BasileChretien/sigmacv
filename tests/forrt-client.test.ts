@@ -49,7 +49,12 @@ describe("fetchReplicationsForDois", () => {
       "doi:10.1000/original",
     ]);
     expect(findMany).toHaveBeenCalledWith({
-      where: { OR: [{ originalDoi: { in: ["10.1000/original"] } }, { replicationDoi: { in: ["10.1000/original"] } }] },
+      where: {
+        OR: [
+          { originalDoi: { in: ["10.1000/original"] } },
+          { replicationDoi: { in: ["10.1000/original"] } },
+        ],
+      },
     });
   });
 

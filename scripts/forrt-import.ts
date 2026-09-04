@@ -118,7 +118,9 @@ export function parseCsvLine(line: string): string[] {
 /** Map a parsed header row to { canonicalField -> columnIndex }, tolerant of
  *  spelling/spacing/case per {@link COLUMN_CANDIDATES}. Unmatched fields are
  *  simply absent from the returned map (their rows read as undefined/null). */
-export function matchColumns(header: string[]): Partial<Record<keyof typeof COLUMN_CANDIDATES, number>> {
+export function matchColumns(
+  header: string[],
+): Partial<Record<keyof typeof COLUMN_CANDIDATES, number>> {
   const normalized = header.map(normalizeHeader);
   const out: Partial<Record<string, number>> = {};
   for (const [field, candidates] of Object.entries(COLUMN_CANDIDATES)) {
@@ -216,7 +218,9 @@ async function main(): Promise<void> {
     }
     await flush();
 
-    console.log(`FORRT import: done — ${total} rows imported (${skipped} row(s) skipped, no usable original DOI).`);
+    console.log(
+      `FORRT import: done — ${total} rows imported (${skipped} row(s) skipped, no usable original DOI).`,
+    );
   } finally {
     await prisma.$disconnect();
   }
