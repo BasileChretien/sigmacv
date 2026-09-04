@@ -283,10 +283,25 @@ function scholarlyEntities(cv: CanonicalCv): Record<string, unknown>[] {
  * Returned as a JSON string with "<" escaped to "<" so it is safe to embed
  * inside an HTML <script> element even if a field contained "</script>".
  */
+/**
+ * A FROZEN snapshot's identity on the JSON-LD (`/p/<slug>/v/<token>`): the page
+ * URL becomes the snapshot's own, plus schema.org `version` and — once a DOI is
+ * minted — the DOI as `identifier`. Absent for the living page.
+ */
+export interface SnapshotJsonLdOpts {
+  /** Absolute URL of the frozen-version page. */
+  url: string;
+  version: number;
+  /** ISO timestamp the snapshot was frozen at (→ `dateCreated`). */
+  frozenAt: string;
+  doi?: string | null;
+}
+
 export function profilePageJsonLd(
   cv: CanonicalCv,
   slug: string,
   coauthorCvs: readonly CoauthorCvLink[] = [],
+  snapshot?: SnapshotJsonLdOpts,
 ): string {
   const owner = cv.owner;
   const orcidUrl = owner.orcid ? `https://orcid.org/${owner.orcid}` : undefined;
@@ -336,10 +351,20 @@ export function profilePageJsonLd(
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
-    url: absoluteUrl(`p/${slug}`),
+    url: snapshot ? snapshot.url : absoluteUrl(`p/${slug}`),
     inLanguage: cv.display.locale,
     mainEntity: person,
   };
+
+  // A frozen snapshot is a versioned, citable object: say which version it is,
+  // when it was frozen, which living page it derives from and — when minted —
+  // its DOI as the persistent identifier.
+  if (snapshot) {
+    jsonLd.version = String(snapshot.version);
+    jsonLd.dateCreated = snapshot.frozenAt;
+    jsonLd.isBasedOn = absoluteUrl(`p/${slug}`);
+    if (snapshot.doi) jsonLd.identifier = `https://doi.org/${snapshot.doi}`;
+  }
 
   // When the living page last re-synced from the open record (ISO 8601). Surfaces
   // the page's "freshness" to consumers — the core value of a living CV.

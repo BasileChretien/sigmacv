@@ -1072,6 +1072,78 @@ input[type="radio"] {
   padding: var(--space-2) 0 var(--space-1);
   border-top: 1px solid var(--border);
 }
+/* ── Versions popover (frozen, citable CV versions) ── */
+.versions-panel {
+  width: min(24rem, 92vw);
+}
+.versions-panel .account-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+}
+.versions-intro,
+.versions-hint {
+  margin: 0;
+  font-size: var(--text-sm, 0.85rem);
+  color: var(--muted, #5d646f);
+}
+.versions-create {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.versions-create .versions-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.versions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.versions-row {
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 6px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.versions-row-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  align-items: baseline;
+}
+.versions-row-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.versions-row-date {
+  font-size: var(--text-sm, 0.85rem);
+  color: var(--muted, #5d646f);
+}
+.versions-row-doi {
+  font-size: var(--text-sm, 0.85rem);
+  overflow-wrap: anywhere;
+}
+.versions-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+}
+.versions-row-actions .link-btn {
+  padding: 0;
+}
+
 /* "Your page is live" share card inside the Publish popover. */
 .publish-live {
   display: flex;

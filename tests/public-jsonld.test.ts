@@ -558,4 +558,33 @@ describe("profilePageJsonLd — per-work entities (@reverse.author)", () => {
     ]);
     expect(worksOf(cv).map((w: { name: string }) => w.name)).toEqual(["Visible"]);
   });
+
+  it("describes a frozen snapshot with its own url, version, dateCreated, isBasedOn and DOI identifier", () => {
+    const parsed = JSON.parse(
+      profilePageJsonLd(makeCv(), "basile-chretien-abcd", [], {
+        url: "https://sigmacv.test/p/basile-chretien-abcd/v/tok",
+        version: 3,
+        frozenAt: "2026-09-04T10:00:00.000Z",
+        doi: "10.12345/abcd.3",
+      }),
+    );
+    expect(parsed.url).toBe("https://sigmacv.test/p/basile-chretien-abcd/v/tok");
+    expect(parsed.version).toBe("3");
+    expect(parsed.dateCreated).toBe("2026-09-04T10:00:00.000Z");
+    expect(parsed.isBasedOn).toContain("/p/basile-chretien-abcd");
+    expect(parsed.identifier).toBe("https://doi.org/10.12345/abcd.3");
+    // Without a DOI there is no identifier, and the live page carries none of this.
+    const noDoi = JSON.parse(
+      profilePageJsonLd(makeCv(), "s", [], {
+        url: "https://x/p/s/v/t",
+        version: 1,
+        frozenAt: "2026-01-01T00:00:00.000Z",
+      }),
+    );
+    expect(noDoi.identifier).toBeUndefined();
+    expect(noDoi.version).toBe("1");
+    const live = JSON.parse(profilePageJsonLd(makeCv(), "s"));
+    expect(live.version).toBeUndefined();
+    expect(live.isBasedOn).toBeUndefined();
+  });
 });

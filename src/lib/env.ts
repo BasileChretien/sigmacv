@@ -48,6 +48,18 @@ const EnvSchema = z.object({
   // even when enabled: if absent the write-client reports an error rather than
   // guessing a production URL.
   OPENALEX_CURATION_ENDPOINT: z.url().optional(),
+  // ── DataCite DOI minting for frozen CV snapshots (roadmap C5) ──────────────
+  // DORMANT unless ALL THREE are set: the mint endpoint then answers 409
+  // "doi-minting-disabled" and makes NO network call. Needs a DataCite
+  // repository account (Fabrica): the repository id ("MEMBER.REPO"), its
+  // password, and the DOI prefix ("10.xxxxx") it may mint under. The
+  // credentials never reach the client; see `lib/datacite/mint.ts`.
+  DATACITE_REPOSITORY_ID: z.string().optional(),
+  DATACITE_PASSWORD: z.string().optional(),
+  DATACITE_PREFIX: z
+    .string()
+    .regex(/^10\.\d{4,9}$/, "DATACITE_PREFIX must look like 10.12345")
+    .optional(),
   // NOTE: the narrative-CV AI assistant is BRING-YOUR-OWN-KEY — the server holds
   // no key and presets no provider (the user supplies base URL + model + key from
   // their browser, per-request). So there is intentionally NO AI_* env here.

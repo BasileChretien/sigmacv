@@ -136,9 +136,39 @@ model Cv {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots CvSnapshot[]
 
   @@index([published, lastSyncedAt])
+}
+
+// A FROZEN copy of a CV at one moment — "freeze & cite this version". The
+// canonical document is stored verbatim (minus owner-only fields: private notes,
+// saved presets, rirekisho personal data and the internal per-item review
+// signals — see `freezeCanonical`), so an assessment committee can read a
+// version that no longer moves while the living page keeps re-syncing, and a
+// later reviewer can diff "what changed since". `version` is per-CV increasing
+// (1, 2, 3 …); at most MAX_SNAPSHOTS_PER_CV rows per CV — the owner deletes
+// explicitly. Public only when `isPublic` AND the parent page is published; the
+// `token` is an unguessable capability (18 random bytes, base64url) in the URL
+// `/p/<slug>/v/<token>`. `doi` / `doiState` back the flag-gated DataCite mint
+// (`none` | `pending` | `minted` | `failed`) — dormant without DATACITE_* creds.
+// Personal data: included in the account export, cascade-deleted with the CV.
+model CvSnapshot {
+  id        String   @id @default(cuid())
+  cvId      String
+  version   Int
+  label     String
+  canonical Json
+  token     String   @unique
+  isPublic  Boolean  @default(false)
+  doi       String?
+  doiState  String   @default("none")
+  createdAt DateTime @default(now())
+
+  cv Cv @relation(fields: [cvId], references: [id], onDelete: Cascade)
+
+  @@unique([cvId, version])
 }
 
 // Persistent fixed-window rate-limit counters. Used ONLY when the app runs as

@@ -21,6 +21,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the parser-safe ATS template like all badges. The confirming organisation's
   name is now captured at sync (`meta.verifiedBy`), so a re-sync is needed before
   existing CVs can name it; the mark itself works on already-synced data.
+- **Frozen, citable CV versions ("freeze & cite this version").** A new
+  **Versions** menu in the editor freezes the CV exactly as it is now (up to 20
+  per CV; the owner deletes explicitly). A frozen version never changes, so an
+  assessment committee can read a stable copy while the living page keeps
+  re-syncing. Each version can be made public on its own unguessable link
+  (`/p/<slug>/v/<token>`, served through the same renderer and machine formats as
+  the live page, `noindex`, canonical → the live page) and carries a **"what
+  changed since"** report — items added / removed / hidden / shown again per
+  section, narrative word-count deltas, metric changes, and the names of changed
+  display/profile settings (never their values) — as HTML or Markdown, for the
+  owner from the editor and publicly when the version is public. Private notes,
+  saved presets, personal fields and the internal review signals are never
+  stored in a frozen copy; snapshots are included in the account data export and
+  deleted with the account.
+
+  **DOI minting is built but dormant** (open-science roadmap C5): the "Mint DOI"
+  button is disabled until the operator sets `DATACITE_REPOSITORY_ID`,
+  `DATACITE_PASSWORD` and `DATACITE_PREFIX`; without them the endpoint answers
+  `409 doi-minting-disabled` and makes no network call. With them, a public
+  version gets a findable DataCite DOI (creators = owner + ORCID, `IsNewVersionOf`
+  the previous minted version), surfaced on the frozen page, in its JSON-LD
+  `identifier` and as a Signposting `cite-as` link.
+
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so

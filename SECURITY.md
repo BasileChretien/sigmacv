@@ -29,7 +29,15 @@ CRITICAL down to INFO have been remediated.
 - **Authorization / tenant isolation** — every user-data query is scoped to the
   server-derived `session.user.id`; no endpoint accepts a client-supplied object
   id. The public CV page is gated by an unguessable 80-bit capability slug + a
-  `published` flag + a PII-stripping projection.
+  `published` flag + a PII-stripping projection. **Frozen CV versions** (snapshots)
+  are gated the same way: each public snapshot is reached only by an unguessable
+  144-bit capability token (`/p/<slug>/v/<token>`, 18 random bytes base64url,
+  `@unique`), served only while its owner marked it public AND the parent page is
+  published, through the same public projection, and always `noindex`. Owner
+  operations are scoped to the session's own `Cv` row (never a client-supplied cv
+  id). The frozen copy stores none of the owner-only fields (private notes,
+  presets, personal data, internal review signals). DOI minting is dormant
+  without `DATACITE_*` credentials, which never reach the client or the logs.
 - **Injection** — zero raw SQL (parameterised Prisma only); no shell-out / no
   server-side LaTeX compilation; DOI/path inputs are allow-listed before use.
 - **XSS** — citeproc output is entity-encoded; all owner free-text is HTML-escaped;
