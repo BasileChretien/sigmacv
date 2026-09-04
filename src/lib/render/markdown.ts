@@ -3,9 +3,11 @@ import { renderStrings } from "@/lib/i18n/render";
 import { wrapSelf } from "./emphasize";
 import { escapeMarkdown } from "./escape";
 import { textHeader } from "./headerText";
+import { evidenceMarkdown, listedItemIds, proseEvidence } from "./evidenceRefs";
 import { cvSlug } from "./html";
 import { isSummaryBlockHidden, metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
+import { itemAnchorId } from "./templates/shared";
 import type { Renderer, RenderInput, RenderOpts, RenderResult } from "./types";
 
 function yamlString(s: string): string {
@@ -26,10 +28,14 @@ function yamlString(s: string): string {
  * `**…**` on the user's own works. Prose sections render in the section flow as
  * `## <heading>` + their escaped body (heading + body are USER FREE-TEXT, so both
  * run through `escapeMarkdown` — a body of "# Not a heading" or stray `*`/`[`
- * can't change the document's block structure).
+ * can't change the document's block structure). An evidence reference (`[[id]]`)
+ * in a body becomes `[label](#item-…)`, and the referenced entry carries a
+ * matching `<a id="item-…"></a>` anchor so the link resolves in a rendered page.
  */
 export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
   const sections = prepareSections(cv, "text");
+  const listed = listedItemIds(sections);
+  const { referenced } = proseEvidence(cv, sections);
   const fallbackTitle = renderStrings(cv.display.locale).cvFallbackTitle;
 
   const frontmatter = [
@@ -48,7 +54,8 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
       if (isProseSectionType(section.type)) {
         const prose = (section.body ?? "").trim();
         if (!prose) return "";
-        return `## ${escapeMarkdown(section.title)}\n\n${escapeMarkdown(prose)}`;
+        const body = evidenceMarkdown(cv, prose, { listedIds: listed, anchorId: itemAnchorId });
+        return `## ${escapeMarkdown(section.title)}\n\n${body}`;
       }
       if (items.length === 0) return "";
       const lines = items.map(({ item, entry }, i) => {
@@ -56,7 +63,8 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
         if (cv.display.highlightSelf && item.selfNameVariants.length > 0) {
           text = wrapSelf(text, item.selfNameVariants.map(escapeMarkdown), (s) => `**${s}**`);
         }
-        return `${i + 1}. ${text}`;
+        const anchor = referenced.has(item.id) ? `<a id="${itemAnchorId(item.id)}"></a>` : "";
+        return `${i + 1}. ${anchor}${text}`;
       });
       return `## ${escapeMarkdown(section.title)}\n\n${lines.join("\n")}`;
     })

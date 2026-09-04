@@ -38,6 +38,8 @@ describe("computeCvHealth", () => {
       orcidConflicts: 0,
       likelyMisattributed: 0,
       retractedVisible: 0,
+      unresolvedEvidenceRefs: 0,
+      narrativesWithoutEvidence: 0,
       total: 0,
     });
   });

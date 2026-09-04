@@ -87,6 +87,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   new **Show my CRediT contribution roles** display option adds a small
   "Roles: …" line under each publication (HTML/PDF), with a tooltip saying which
   source the roles came from. Localised in all ten languages.
+- **Verifiable narrative CV — cite your own entries inside the prose.** A narrative
+  module (UKRI R4RI, SNSF, NWO, Royal Society) or a free statement can now reference
+  any entry of the CV by writing its id as `[[id]]` — the "Insert evidence" button
+  under the text box offers the entries that support that module (publications and
+  datasets for _contributions to knowledge_, supervision and teaching for
+  _individuals_, …) and inserts the reference at the caret. Every export renders the
+  same reference from the same resolution: an inline link to the entry on the HTML
+  page and the PDF, a linked "(Author Year)" label in DOCX (a bookmark on the entry),
+  `\cvevidencecite{label}{bibkey}` in LaTeX (the key matches the .bib export, so a
+  one-line `\renewcommand` turns them into real `\cite{}` calls), and
+  `[label](#item-…)` in Markdown. The reference follows curation: hide an entry or
+  mark it "not mine" and the reference stops resolving — it is dropped from every
+  export (never shown raw), the editor shows how many references broke, and the
+  "Needs your attention" panel lists both broken references and narrative modules
+  written without a single linked entry. The AI first-draft (bring-your-own-key)
+  now lists each output with its reference token and is asked to cite with it.
+  LaTeX export also gained the prose sections themselves, which it previously left
+  out.
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so
