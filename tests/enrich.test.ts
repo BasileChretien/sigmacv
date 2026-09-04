@@ -4,6 +4,9 @@ const mocks = vi.hoisted(() => ({
   fetchCrossrefGapFields: vi.fn(),
   fetchCrossrefAbstract: vi.fn(),
   fetchRetractionStatus: vi.fn(),
+  fetchCrossrefDataLinks: vi.fn(),
+  fetchEuropePmcByDoi: vi.fn(),
+  fetchEuropePmcDataLinks: vi.fn(),
   resolveInstitution: vi.fn(),
   fetchRcrByPmids: vi.fn(),
 }));
@@ -11,6 +14,11 @@ vi.mock("@/lib/crossref/client", () => ({
   fetchCrossrefGapFields: mocks.fetchCrossrefGapFields,
   fetchCrossrefAbstract: mocks.fetchCrossrefAbstract,
   fetchRetractionStatus: mocks.fetchRetractionStatus,
+  fetchCrossrefDataLinks: mocks.fetchCrossrefDataLinks,
+}));
+vi.mock("@/lib/europepmc/client", () => ({
+  fetchEuropePmcByDoi: mocks.fetchEuropePmcByDoi,
+  fetchEuropePmcDataLinks: mocks.fetchEuropePmcDataLinks,
 }));
 vi.mock("@/lib/ror/client", () => ({
   resolveInstitution: mocks.resolveInstitution,
@@ -20,9 +28,11 @@ vi.mock("@/lib/icite/client", () => ({
 }));
 
 import {
+  DATA_LINKS_MAX_CHECK,
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
   enrichCvWithCrossref,
+  enrichCvWithDataLinks,
   enrichCvWithIcite,
   enrichCvWithRetractions,
   mergeCslGaps,
@@ -30,7 +40,7 @@ import {
   type InstitutionBundle,
 } from "@/lib/canonical/enrich";
 import { DisplayChoicesSchema } from "@/lib/canonical/schema";
-import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
+import type { CanonicalCv, CvItem, DataLink } from "@/lib/canonical/schema";
 import type { CslItem } from "@/types/csl";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
 import type { OrcidPosition } from "@/lib/orcid/client";
@@ -39,6 +49,9 @@ beforeEach(() => {
   mocks.fetchCrossrefGapFields.mockReset();
   mocks.fetchCrossrefAbstract.mockReset();
   mocks.fetchRetractionStatus.mockReset();
+  mocks.fetchCrossrefDataLinks.mockReset();
+  mocks.fetchEuropePmcByDoi.mockReset();
+  mocks.fetchEuropePmcDataLinks.mockReset();
   mocks.resolveInstitution.mockReset();
   mocks.fetchRcrByPmids.mockReset();
 });
@@ -416,5 +429,182 @@ describe("withRorProvenance", () => {
     expect(once.provenance.sources).toContain("ror");
     const twice = withRorProvenance(once);
     expect(twice.provenance.sources.filter((s) => s === "ror")).toHaveLength(1);
+  });
+});
+
+// ─── enrichCvWithDataLinks (Europe PMC + Crossref relations) ──────────────────
+
+describe("enrichCvWithDataLinks", () => {
+  const geo = { id: "GSE1", scheme: "GEO", url: "https://geo/GSE1", category: "Gene Expression" };
+  const zenodo = { id: "10.5281/zenodo.5", scheme: "doi" };
+  const GEO_LINK: DataLink = {
+    id: "GSE1",
+    scheme: "geo",
+    url: "https://geo/GSE1",
+    kind: "dataset",
+  };
+  const ZENODO_LINK: DataLink = {
+    id: "10.5281/zenodo.5",
+    scheme: "doi",
+    url: "https://doi.org/10.5281/zenodo.5",
+    kind: "dataset",
+  };
+
+  it("attaches Europe PMC + Crossref links, hasDataStatement and a back-filled PMID", async () => {
+    mocks.fetchEuropePmcByDoi.mockImplementation(async (doi: string) =>
+      doi === "10.1/x" ? { pmid: "111", hasData: true } : null,
+    );
+    mocks.fetchEuropePmcDataLinks.mockResolvedValue([geo]);
+    mocks.fetchCrossrefDataLinks.mockImplementation(async (doi: string) =>
+      doi === "10.1/x" ? [zenodo] : [],
+    );
+    const cv = makeCv([
+      pub("W1", csl({ id: "W1", DOI: "10.1/x" })),
+      pub("W2", csl({ id: "W2", DOI: "10.1/y" })), // not in Europe PMC, no relations
+      pub("W3", csl({ id: "W3" })), // no DOI → not checked
+    ]);
+    const now = "2026-01-01T00:00:00.000Z";
+    const out = await enrichCvWithDataLinks(cv, "ci@example.org", now);
+    const items = out.sections[0]!.items;
+    // Europe PMC links first (they carry more context), then Crossref's.
+    expect(items[0]!.meta.dataLinks).toEqual([GEO_LINK, ZENODO_LINK]);
+    expect(items[0]!.meta.hasDataStatement).toBe(true);
+    expect(items[0]!.meta.pmid).toBe("111");
+    expect(items[0]!.meta.dataLinksCheckedAt).toBe(now);
+    expect(items[1]!.meta.dataLinks).toBeUndefined();
+    expect(items[1]!.meta.hasDataStatement).toBeUndefined();
+    // W2 was examined (DOI-bearing) and came up empty — still marked checked, so
+    // it rotates to the back of the queue rather than being re-queried forever.
+    expect(items[1]!.meta.dataLinksCheckedAt).toBe(now);
+    expect(items[2]!.meta.dataLinks).toBeUndefined();
+    // W3 has no DOI, so it was never a target — no sentinel.
+    expect(items[2]!.meta.dataLinksCheckedAt).toBeUndefined();
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(2);
+    expect(mocks.fetchCrossrefDataLinks).toHaveBeenCalledTimes(2);
+    // The data-links call only ran for the work Europe PMC resolved.
+    expect(mocks.fetchEuropePmcDataLinks).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchEuropePmcDataLinks).toHaveBeenCalledWith("111");
+    // Immutable: the input is untouched.
+    expect(cv.sections[0]!.items[0]!.meta.dataLinks).toBeUndefined();
+  });
+
+  it("skips the data-links call when Europe PMC says the work has NO data, and records it", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue({ pmid: "222", hasData: false });
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1/x" }))]);
+    const out = await enrichCvWithDataLinks(cv, "ci@example.org");
+    expect(out.sections[0]!.items[0]!.meta.hasDataStatement).toBe(false);
+    expect(out.sections[0]!.items[0]!.meta.dataLinks).toBeUndefined();
+    expect(mocks.fetchEuropePmcDataLinks).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the work's own PMID when Europe PMC does not answer", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
+    mocks.fetchEuropePmcDataLinks.mockResolvedValue([geo]);
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    const withPmid = { ...pub("W1", csl({ DOI: "10.1/x" })), meta: { pmid: "333" } };
+    const out = await enrichCvWithDataLinks(makeCv([withPmid]), "ci@example.org");
+    expect(mocks.fetchEuropePmcDataLinks).toHaveBeenCalledWith("333");
+    expect(out.sections[0]!.items[0]!.meta.dataLinks).toEqual([GEO_LINK]);
+    expect(out.sections[0]!.items[0]!.meta.pmid).toBe("333");
+    expect(out.sections[0]!.items[0]!.meta.hasDataStatement).toBeUndefined();
+  });
+
+  it("merges new finds onto carried links, drops unusable raws, and returns the same CV when nothing changed", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue({ hasData: true }); // no pmid → no links call
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([
+      zenodo,
+      { id: "10.6084/m9.figshare.1", scheme: "doi" }, // figshare → dropped
+      { id: "GSE9", scheme: "geo" }, // no URL → dropped
+    ]);
+    const carried = { ...pub("W1", csl({ DOI: "10.1/x" })), meta: { dataLinks: [GEO_LINK] } };
+    const now = "2026-01-01T00:00:00.000Z";
+    const out = await enrichCvWithDataLinks(makeCv([carried]), "ci@example.org", now);
+    expect(out.sections[0]!.items[0]!.meta.dataLinks).toEqual([GEO_LINK, ZENODO_LINK]);
+    expect(out.sections[0]!.items[0]!.meta.hasDataStatement).toBe(true);
+    expect(out.sections[0]!.items[0]!.meta.dataLinksCheckedAt).toBe(now);
+    expect(mocks.fetchEuropePmcDataLinks).not.toHaveBeenCalled();
+
+    // Re-running with the same answers and the SAME `now` changes nothing →
+    // identical object back (the sentinel doesn't drift on a repeat check).
+    const again = await enrichCvWithDataLinks(out, "ci@example.org", now);
+    expect(again).toBe(out);
+  });
+
+  it("marks a total miss as checked (dataLinksCheckedAt) even though nothing else changes, and skips hidden works", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    const hidden = { ...pub("W2", csl({ id: "W2", DOI: "10.1/y" })), included: false };
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1/x" })), hidden]);
+    const now = "2026-01-01T00:00:00.000Z";
+    const out = await enrichCvWithDataLinks(cv, "ci@example.org", now);
+    // A total miss still changes the CV: the checked sentinel is set...
+    expect(out).not.toBe(cv);
+    expect(out.sections[0]!.items[0]!.meta.dataLinksCheckedAt).toBe(now);
+    // ...but nothing was actually found.
+    expect(out.sections[0]!.items[0]!.meta.dataLinks).toBeUndefined();
+    expect(out.sections[0]!.items[0]!.meta.hasDataStatement).toBeUndefined();
+    // The hidden work was never examined, so it carries no sentinel either.
+    expect(out.sections[0]!.items[1]!.meta.dataLinksCheckedAt).toBeUndefined();
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchEuropePmcDataLinks).not.toHaveBeenCalled();
+    // Nothing to check at all (no DOI) → no call, same CV.
+    const none = makeCv([pub("W3", csl({ id: "W3" }))]);
+    expect(await enrichCvWithDataLinks(none, "ci@example.org", now)).toBe(none);
+  });
+
+  it("is bounded to DATA_LINKS_MAX_CHECK works per sync, never-checked works first, then oldest-checked first", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    const items: CvItem[] = [];
+    for (let i = 0; i < 120; i++) {
+      const it = pub(`W${i}`, csl({ id: `W${i}`, DOI: `10.1/${i}` }));
+      // The first 30 were already checked (in ascending checked-order) on a prior
+      // sync — a permanent miss that recorded no dataLinks/hasDataStatement, only
+      // the sentinel. Under the OLD bucketing (dataLinks/hasDataStatement
+      // presence) these would look forever "unchecked"; they must NOT be treated
+      // that way now.
+      items.push(
+        i < 30
+          ? {
+              ...it,
+              meta: {
+                dataLinksCheckedAt: `2020-01-${String(i + 1).padStart(2, "0")}T00:00:00.000Z`,
+              },
+            }
+          : it,
+      );
+    }
+    await enrichCvWithDataLinks(makeCv(items), "ci@example.org");
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(DATA_LINKS_MAX_CHECK);
+    const dois = mocks.fetchEuropePmcByDoi.mock.calls.map((c) => c[0] as string);
+    // All 90 never-checked works come first, then the 10 LEAST-recently-checked
+    // of the already-checked ones (oldest sentinel first).
+    expect(dois.slice(0, 90)).toEqual(Array.from({ length: 90 }, (_, i) => `10.1/${i + 30}`));
+    expect(dois.slice(90)).toEqual(Array.from({ length: 10 }, (_, i) => `10.1/${i}`));
+  });
+
+  it("rotates the never-checked tail of a large CV to the front on the next sync", async () => {
+    mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    const items: CvItem[] = [];
+    for (let i = 0; i < DATA_LINKS_MAX_CHECK + 3; i++) {
+      items.push(pub(`W${i}`, csl({ id: `W${i}`, DOI: `10.1/${i}` })));
+    }
+    const cv = makeCv(items);
+    const first = await enrichCvWithDataLinks(cv, "ci@example.org", "2026-01-01T00:00:00.000Z");
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(DATA_LINKS_MAX_CHECK);
+    const firstDois = new Set(mocks.fetchEuropePmcByDoi.mock.calls.map((c) => c[0] as string));
+    // Works 100/101/102 fell past the budget on the first sync.
+    expect(firstDois.has("10.1/100")).toBe(false);
+    expect(firstDois.has("10.1/101")).toBe(false);
+    expect(firstDois.has("10.1/102")).toBe(false);
+    mocks.fetchEuropePmcByDoi.mockClear();
+
+    await enrichCvWithDataLinks(first, "ci@example.org", "2026-01-02T00:00:00.000Z");
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(DATA_LINKS_MAX_CHECK);
+    const secondDois = mocks.fetchEuropePmcByDoi.mock.calls.map((c) => c[0] as string);
+    // The 3 never-checked works from the first sync are examined FIRST this time.
+    expect(secondDois.slice(0, 3).sort()).toEqual(["10.1/100", "10.1/101", "10.1/102"]);
   });
 });

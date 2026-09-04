@@ -21,6 +21,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the parser-safe ATS template like all badges. The confirming organisation's
   name is now captured at sync (`meta.verifiedBy`), so a re-sync is needed before
   existing CVs can name it; the mark itself works on already-synced data.
+- **Open data / code links under each publication.** Each publication now
+  carries the datasets, accessions and code repositories it is based on,
+  gathered from three identifier-matched sources during sync: Europe PMC's data
+  links (text-mined and publisher-asserted accessions such as GEO, ENA, PDB,
+  UniProt), Crossref's `is-supplemented-by` / `has-part` / `references`
+  relations to a data-repository DOI or repository URL (Zenodo, Dryad, OSF,
+  Dataverse, Software Heritage, GitHub…), and your own DataCite deposits that
+  declare which paper they supplement — so a paper "knows" its dataset even when
+  the paper's own metadata is silent. Never name-matched; figshare excluded as
+  elsewhere; at most 20 links per work; a bounded number of works is checked
+  per sync — never-checked works first, then the longest-unchecked ones — and
+  finds are kept across re-syncs. Every checked work is stamped
+  (`meta.dataLinksCheckedAt`) whether it found anything or not, so a work
+  neither source has anything to say about rotates out of the queue instead of
+  being re-queried on every sync and starving the rest of a large CV.
+
+  A new **Show open data / code links** toggle (off by default) renders them as
+  a compact muted line under the entry — "Data: GEO GSE12345 · Zenodo
+  10.5281/… — Code: github.com/org/repo" — with real links. Independently of
+  the toggle, the public page's structured data now describes each such work as
+  `isBasedOn` its `Dataset` / `SoftwareSourceCode` nodes (schema.org), the
+  machine-readable paper↔data link for Google Dataset Search and answer engines.
+  Europe PMC's has-data flag is recorded per work (`hasDataStatement`) as plain
+  open-science metadata, and a PubMed id it resolves is back-filled when
+  OpenAlex had none.
+
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so

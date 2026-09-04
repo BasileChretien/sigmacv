@@ -1687,7 +1687,15 @@ function buildWorkCvItem(
       oaUrl: workOaUrl(work),
       // Reuse license + PubMed id (FAIR / open-science surfacing).
       license: workLicense(work),
-      pmid: workPmid(work),
+      // OpenAlex's PMID wins; else keep one Europe PMC back-filled on a prior sync.
+      pmid: workPmid(work) ?? prev?.meta.pmid,
+      // Open data / code links + Europe PMC's has-data flag are looked up by a
+      // BOUNDED per-sync enrichment (Europe PMC + Crossref), so carry the prior
+      // finds across re-sync — a large CV is covered over successive syncs, and a
+      // transient miss never drops a link. New finds merge on top (enrich.ts).
+      dataLinks: prev?.meta.dataLinks,
+      hasDataStatement: prev?.meta.hasDataStatement,
+      dataLinksCheckedAt: prev?.meta.dataLinksCheckedAt,
       // Per-item freshness: this work came from a live OpenAlex fetch.
       lastVerifiedAt: now,
       authorRole: authorRoleLabel(selfAuth),

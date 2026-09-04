@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => ({
   enrichCvWithAbstracts: vi.fn(),
   enrichCvWithIcite: vi.fn(),
   enrichCvWithRetractions: vi.fn(),
+  enrichCvWithDataLinks: vi.fn(),
   fetchPeerReviews: vi.fn(),
   fetchJournalNames: vi.fn(),
   fetchOpenaire: vi.fn(),
@@ -105,6 +106,7 @@ vi.mock("@/lib/canonical/enrich", () => ({
   enrichCvWithAbstracts: mocks.enrichCvWithAbstracts,
   enrichCvWithIcite: mocks.enrichCvWithIcite,
   enrichCvWithRetractions: mocks.enrichCvWithRetractions,
+  enrichCvWithDataLinks: mocks.enrichCvWithDataLinks,
   withRorProvenance: (cv: unknown) => cv,
 }));
 
@@ -173,6 +175,7 @@ beforeEach(() => {
   mocks.enrichCvWithAbstracts.mockImplementation(async (cv) => cv);
   mocks.enrichCvWithIcite.mockImplementation(async (cv) => cv);
   mocks.enrichCvWithRetractions.mockImplementation(async (cv) => cv);
+  mocks.enrichCvWithDataLinks.mockImplementation(async (cv) => cv);
   mocks.fetchPeerReviews.mockResolvedValue([]);
   mocks.fetchJournalNames.mockResolvedValue(new Map<string, string>());
   mocks.fetchOpenaire.mockResolvedValue([]);

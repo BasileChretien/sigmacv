@@ -1182,6 +1182,15 @@ export default function StyleControls({
         <label className="field-inline">
           <input
             type="checkbox"
+            checked={cv.display.showDataLinks}
+            onChange={(e) => onChange(updateDisplay(cv, { showDataLinks: e.target.checked }))}
+          />
+          <span>{u.showDataLinks}</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
             checked={cv.display.showProvenance}
             onChange={(e) => onChange(updateDisplay(cv, { showProvenance: e.target.checked }))}
           />

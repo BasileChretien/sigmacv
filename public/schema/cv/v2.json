@@ -374,6 +374,10 @@
           "default": false,
           "type": "boolean"
         },
+        "showDataLinks": {
+          "default": false,
+          "type": "boolean"
+        },
         "showVerifiedBadges": {
           "default": false,
           "type": "boolean"
@@ -867,6 +871,42 @@
                     "retracted": {
                       "type": "boolean"
                     },
+                    "dataLinks": {
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "maxLength": 500
+                          },
+                          "scheme": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "url": {
+                            "type": "string",
+                            "maxLength": 2048
+                          },
+                          "title": {
+                            "type": "string",
+                            "maxLength": 500
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": ["dataset", "software", "other"]
+                          }
+                        },
+                        "required": ["id", "scheme", "url", "kind"]
+                      }
+                    },
+                    "hasDataStatement": {
+                      "type": "boolean"
+                    },
+                    "dataLinksCheckedAt": {
+                      "type": "string"
+                    },
                     "rorId": {
                       "type": "string",
                       "maxLength": 2048
@@ -1254,6 +1294,10 @@
                 "type": "boolean"
               },
               "showCitationCounts": {
+                "default": false,
+                "type": "boolean"
+              },
+              "showDataLinks": {
                 "default": false,
                 "type": "boolean"
               },

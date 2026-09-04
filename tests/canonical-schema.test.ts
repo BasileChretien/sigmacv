@@ -95,6 +95,7 @@ describe("DisplayChoicesSchema", () => {
       showAuthorRole: false,
       showCitationCounts: false,
       showVerifiedBadges: false,
+      showDataLinks: false,
       showProvenance: false,
       peerReviewedOnly: false,
       countLetters: true,

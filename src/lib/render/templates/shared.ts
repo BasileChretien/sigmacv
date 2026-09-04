@@ -512,6 +512,12 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-fulltext::before,
   .cv-pubmed::before { content: "\\2197 "; }
   .cv-abstract { flex-basis: 100%; }
+  /* Opt-in open data / code line under an entry ("Data: GEO GSE… · Zenodo …"):
+     one muted small line; text-indent:0 escapes the bib hanging indent. */
+  .cv-datalinks { margin: 0.18rem 0 0; font-size: 0.72rem; color: var(--cv-muted); text-indent: 0; line-height: 1.45; }
+  .cv-datalinks-label { font-weight: 600; }
+  .cv-datalinks a { color: var(--cv-accent); text-decoration: none; }
+  .cv-datalinks a:hover { text-decoration: underline; }
   /* The expanded abstract is a clearly CONTAINED callout card, so a long abstract
      reads as a distinct block rather than a wall of text spilling down the left of
      the entry: an accent-coloured left edge, a faint neutral panel (works on light +

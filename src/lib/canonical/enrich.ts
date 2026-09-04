@@ -1,10 +1,19 @@
-import { isHidden, type CanonicalCv, type CvItem, type Provenance } from "@/lib/canonical/schema";
+import {
+  isHidden,
+  type CanonicalCv,
+  type CvItem,
+  type DataLink,
+  type Provenance,
+} from "@/lib/canonical/schema";
+import { toDataLink, withDataLinks } from "@/lib/canonical/dataLinks";
 import {
   fetchCrossrefAbstract,
+  fetchCrossrefDataLinks,
   fetchCrossrefGapFields,
   fetchRetractionStatus,
   type CrossrefGapFields,
 } from "@/lib/crossref/client";
+import { fetchEuropePmcByDoi, fetchEuropePmcDataLinks } from "@/lib/europepmc/client";
 import { fetchRcrByPmids } from "@/lib/icite/client";
 import { resolveInstitution } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
@@ -255,6 +264,116 @@ export async function enrichCvWithRetractions(
     ),
   }));
   return { ...cv, sections };
+}
+
+// ─── Open data / code links (Europe PMC + Crossref relations) ────────────────
+
+export const DATA_LINKS_MAX_CHECK = 100;
+
+interface DataLinkTarget {
+  s: number;
+  i: number;
+  doi: string;
+  pmid?: string;
+  /** `meta.dataLinksCheckedAt` at the start of this pass — undefined for a
+   *  never-checked work; used only to order the "known" bucket oldest-first. */
+  checkedAt?: string;
+}
+
+/** What one work's lookups produced (all fail-soft: an empty result is normal). */
+interface DataLinkFinds {
+  links: DataLink[];
+  pmid?: string;
+  hasData?: boolean;
+}
+
+/**
+ * The lookups for one work. Crossref's relation record and the Europe PMC search
+ * run in parallel; the Europe PMC data-link list is fetched only when the record
+ * says the work HAS data (or when Europe PMC didn't answer but the work already
+ * carries a PMID — then one direct data-links call is the only way to know).
+ */
+async function lookupDataLinks(t: DataLinkTarget, mailto: string): Promise<DataLinkFinds> {
+  const [crossref, record] = await Promise.all([
+    fetchCrossrefDataLinks(t.doi, mailto),
+    fetchEuropePmcByDoi(t.doi),
+  ]);
+  const pmid = record?.pmid ?? t.pmid;
+  const tryEuropePmc = Boolean(pmid) && (record ? record.hasData !== false : true);
+  const europepmc = tryEuropePmc ? await fetchEuropePmcDataLinks(pmid!) : [];
+  const links: DataLink[] = [];
+  for (const raw of [...europepmc, ...crossref]) {
+    const link = toDataLink(raw);
+    if (link) links.push(link);
+  }
+  return { links, pmid: record?.pmid, hasData: record?.hasData };
+}
+
+/**
+ * Attach open data / code links (`meta.dataLinks`) to DOI-bearing, non-hidden
+ * citation works: Europe PMC's data links (text-mined + publisher-asserted
+ * accessions, gated on its `hasData` flag) and Crossref's supplement/part
+ * relations. Also records Europe PMC's `hasData` as `meta.hasDataStatement` and
+ * back-fills a missing `meta.pmid` from the DOI match (which the iCite RCR pass
+ * then benefits from). Bounded to {@link DATA_LINKS_MAX_CHECK} works per sync,
+ * concurrency-limited, fail-soft and immutable — new finds merge with the
+ * carried links; a miss never removes one.
+ *
+ * Every work the pass EXAMINES is stamped `meta.dataLinksCheckedAt = now`,
+ * whether the lookup found anything or not — a work Europe PMC never indexed
+ * and Crossref has no relation for is still a checked work, not an unchecked
+ * one. Without this a permanent miss stayed "unchecked" forever (no
+ * `dataLinks`/`hasDataStatement` to show for it) and was re-queried every
+ * sync, and a CV with more than {@link DATA_LINKS_MAX_CHECK} such works never
+ * finished covering its tail. Never-checked works (no `dataLinksCheckedAt`)
+ * go first; the remainder is ordered oldest-checked-first, so the budget
+ * rotates through the whole CV over successive syncs instead of re-querying
+ * the same head every time. Returns the original CV when nothing changed
+ * (including the timestamp — i.e. there was nothing to check).
+ */
+export async function enrichCvWithDataLinks(
+  cv: CanonicalCv,
+  mailto: string,
+  now: string = new Date().toISOString(),
+): Promise<CanonicalCv> {
+  const fresh: DataLinkTarget[] = [];
+  const known: DataLinkTarget[] = [];
+  cv.sections.forEach((section, s) => {
+    section.items.forEach((item, i) => {
+      const doi = item.csl?.DOI;
+      if (!doi || isHidden(item)) return;
+      const checkedAt = item.meta.dataLinksCheckedAt;
+      const t = { s, i, doi, pmid: item.meta.pmid, checkedAt };
+      (checkedAt === undefined ? fresh : known).push(t);
+    });
+  });
+  known.sort((a, b) => (a.checkedAt ?? "").localeCompare(b.checkedAt ?? ""));
+  const targets = [...fresh, ...known].slice(0, DATA_LINKS_MAX_CHECK);
+  if (targets.length === 0) return cv;
+
+  const finds = await mapBounded(targets, CONCURRENCY, (t) => lookupDataLinks(t, mailto));
+  const byPos = new Map<string, DataLinkFinds>();
+  targets.forEach((t, idx) => byPos.set(`${t.s}:${t.i}`, finds[idx]!));
+
+  let changed = false;
+  const sections = cv.sections.map((section, s) => ({
+    ...section,
+    items: section.items.map((item, i) => {
+      const find = byPos.get(`${s}:${i}`);
+      if (!find) return item;
+      let next = withDataLinks(item, find.links);
+      if (find.hasData !== undefined && item.meta.hasDataStatement !== find.hasData) {
+        next = { ...next, meta: { ...next.meta, hasDataStatement: find.hasData } };
+      }
+      if (find.pmid && !item.meta.pmid) next = { ...next, meta: { ...next.meta, pmid: find.pmid } };
+      if (next.meta.dataLinksCheckedAt !== now) {
+        next = { ...next, meta: { ...next.meta, dataLinksCheckedAt: now } };
+      }
+      if (next !== item) changed = true;
+      return next;
+    }),
+  }));
+  return changed ? { ...cv, sections } : cv;
 }
 
 // ─── ROR institution-name canonicalization ───────────────────────────────────

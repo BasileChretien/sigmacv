@@ -140,6 +140,10 @@ export interface RenderStrings {
   filterTypeConference: string;
   filterTypeBook: string;
   filterTypeDataset: string;
+  /** Label of the opt-in open data / code line under a publication ("Data: …"). */
+  dataLinksLabel: string;
+  /** Label of the software part of that line ("Code: …"). */
+  codeLinksLabel: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -227,6 +231,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Updated {date} · living CV, updates automatically",
     rorRecordTitle: "ROR organization record",
     institutionSiteTitle: "Institution website",
+    dataLinksLabel: "Data",
+    codeLinksLabel: "Code",
   },
   "zh-CN": {
     hankoCredit:
@@ -309,6 +315,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "更新于 {date} · 在线简历，自动更新",
     rorRecordTitle: "ROR 机构记录",
     institutionSiteTitle: "机构网站",
+    dataLinksLabel: "数据",
+    codeLinksLabel: "代码",
   },
   "es-ES": {
     hankoCredit:
@@ -400,6 +408,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Actualizado el {date} · CV vivo, se actualiza solo",
     rorRecordTitle: "Ficha de la organización en ROR",
     institutionSiteTitle: "Sitio web de la institución",
+    dataLinksLabel: "Datos",
+    codeLinksLabel: "Código",
   },
   "fr-FR": {
     hankoCredit:
@@ -492,6 +502,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Mis à jour le {date} · CV vivant, mis à jour automatiquement",
     rorRecordTitle: "Fiche de l’organisation dans ROR",
     institutionSiteTitle: "Site web de l’établissement",
+    dataLinksLabel: "Données",
+    codeLinksLabel: "Code",
   },
   "de-DE": {
     hankoCredit:
@@ -581,6 +593,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aktualisiert am {date} · lebender Lebenslauf, automatisch aktualisiert",
     rorRecordTitle: "ROR-Organisationseintrag",
     institutionSiteTitle: "Website der Einrichtung",
+    dataLinksLabel: "Daten",
+    codeLinksLabel: "Code",
   },
   "ja-JP": {
     hankoCredit:
@@ -666,6 +680,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 更新 · 自動更新されるライブ CV",
     rorRecordTitle: "ROR 機関レコード",
     institutionSiteTitle: "機関ウェブサイト",
+    dataLinksLabel: "データ",
+    codeLinksLabel: "コード",
   },
   "pt-BR": {
     hankoCredit:
@@ -757,6 +773,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Atualizado em {date} · currículo vivo, atualizado automaticamente",
     rorRecordTitle: "Registro da organização no ROR",
     institutionSiteTitle: "Site da instituição",
+    dataLinksLabel: "Dados",
+    codeLinksLabel: "Código",
   },
   "it-IT": {
     hankoCredit:
@@ -848,6 +866,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aggiornato il {date} · CV vivo, si aggiorna da solo",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
     institutionSiteTitle: "Sito web dell’istituzione",
+    dataLinksLabel: "Dati",
+    codeLinksLabel: "Codice",
   },
   "ko-KR": {
     hankoCredit:
@@ -932,6 +952,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 업데이트 · 자동으로 갱신되는 라이브 CV",
     rorRecordTitle: "ROR 기관 레코드",
     institutionSiteTitle: "기관 웹사이트",
+    dataLinksLabel: "데이터",
+    codeLinksLabel: "코드",
   },
   "ru-RU": {
     hankoCredit:
@@ -1021,6 +1043,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Обновлено {date} · живое резюме, обновляется автоматически",
     rorRecordTitle: "Запись организации в ROR",
     institutionSiteTitle: "Сайт организации",
+    dataLinksLabel: "Данные",
+    codeLinksLabel: "Код",
   },
 };
 

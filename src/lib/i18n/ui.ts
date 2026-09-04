@@ -66,6 +66,8 @@ export interface UiStrings {
   showCitationCounts: string;
   /** Editor toggle: the "Verified" mark on institution-asserted positions/education. */
   showVerifiedBadges: string;
+  /** Editor toggle: the opt-in open data / code line under each publication. */
+  showDataLinks: string;
   showProvenance: string;
   peerReviewedOnly: string;
   peerReviewedOnlyTitle: string;
@@ -343,6 +345,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Links",
     coffee: "☕ Buy me a coffee",
     supportTitle: "SigmaCV is free and not-for-profit — a coffee helps cover its running costs.",
+    showDataLinks: "Show open data / code links under each publication",
   },
   "zh-CN": {
     pageSizeLabel: "页面尺寸",
@@ -500,6 +503,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "链接",
     coffee: "☕ 请我喝杯咖啡",
     supportTitle: "SigmaCV 免费且非营利——一杯咖啡有助于支付运营成本。",
+    showDataLinks: "在每篇论文下显示开放数据/代码链接",
   },
   "es-ES": {
     pageSizeLabel: "Tamaño de página",
@@ -662,6 +666,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Enlaces",
     coffee: "☕ Invítame a un café",
     supportTitle: "SigmaCV es gratuito y sin ánimo de lucro: un café ayuda a cubrir sus costes.",
+    showDataLinks: "Mostrar enlaces a datos abiertos / código bajo cada publicación",
   },
   "fr-FR": {
     pageSizeLabel: "Format de page",
@@ -825,6 +830,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Liens",
     coffee: "☕ Offrez-moi un café",
     supportTitle: "SigmaCV est gratuit et à but non lucratif — un café aide à payer les frais.",
+    showDataLinks: "Afficher les liens vers les données ouvertes / le code sous chaque publication",
   },
   "de-DE": {
     pageSizeLabel: "Seitenformat",
@@ -989,6 +995,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Links",
     coffee: "☕ Spendieren Sie mir einen Kaffee",
     supportTitle: "SigmaCV ist kostenlos und gemeinnützig — ein Kaffee deckt die Betriebskosten.",
+    showDataLinks: "Links zu offenen Daten / Code unter jeder Publikation anzeigen",
   },
   "ja-JP": {
     pageSizeLabel: "用紙サイズ",
@@ -1149,6 +1156,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "リンク",
     coffee: "☕ コーヒーをおごる",
     supportTitle: "SigmaCV は無料・非営利です。コーヒー一杯が運営費の支えになります。",
+    showDataLinks: "各論文の下にオープンデータ／コードへのリンクを表示",
   },
   "pt-BR": {
     pageSizeLabel: "Tamanho da página",
@@ -1310,6 +1318,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Links",
     coffee: "☕ Pague-me um café",
     supportTitle: "O SigmaCV é gratuito e sem fins lucrativos — um café ajuda a cobrir os custos.",
+    showDataLinks: "Mostrar links para dados abertos / código sob cada publicação",
   },
   "it-IT": {
     pageSizeLabel: "Formato pagina",
@@ -1472,6 +1481,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Link",
     coffee: "☕ Offrimi un caffè",
     supportTitle: "SigmaCV è gratuito e senza scopo di lucro: un caffè aiuta a coprire i costi.",
+    showDataLinks: "Mostra i link a dati aperti / codice sotto ogni pubblicazione",
   },
   "ko-KR": {
     pageSizeLabel: "페이지 크기",
@@ -1632,6 +1642,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "링크",
     coffee: "☕ 커피 한 잔 사주기",
     supportTitle: "SigmaCV는 무료이며 비영리입니다 — 커피 한 잔이 운영 비용에 보탬이 됩니다.",
+    showDataLinks: "각 논문 아래에 공개 데이터/코드 링크 표시",
   },
   "ru-RU": {
     pageSizeLabel: "Размер страницы",
@@ -1792,6 +1803,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Ссылки",
     coffee: "☕ Купите мне кофе",
     supportTitle: "SigmaCV бесплатен и некоммерческий — чашка кофе помогает покрыть расходы.",
+    showDataLinks: "Показывать ссылки на открытые данные / код под каждой публикацией",
   },
 };
 
