@@ -9,17 +9,20 @@ describe("summarizeSources", () => {
     expect(summarizeSources({ openalex: 0, nih: 0 })).toBeNull();
   });
 
-  it("folds orcid.* and crossref.grants into one display source each", () => {
+  it("folds orcid.* and crossref.* into one display source each", () => {
     const s = summarizeSources({
       "orcid.positions": 3,
       "orcid.fundings": 2,
       "orcid.discovery": 1,
       "crossref.grants": 4,
+      "crossref.reviews": 2,
     });
     expect(s).not.toBeNull();
     const orcid = s!.identifier.find((l) => l.label === "ORCID");
     expect(orcid?.count).toBe(6);
-    expect(s!.identifier.find((l) => l.label === "Crossref")?.count).toBe(4);
+    // Open peer reviews are ORCID-matched too → the identifier (auto-include) lane.
+    expect(s!.identifier.find((l) => l.label === "Crossref")?.count).toBe(6);
+    expect(s!.review).toHaveLength(0);
   });
 
   it("splits identifier-matched from name-matched (review) sources", () => {

@@ -526,6 +526,8 @@ export function commonCss(theme: TemplateTheme): string {
   /* Featured / "Selected" star badge — a fixed light pill (like the OA/cites
      badges) so it stays legible on every template. */
   .cv-badge-featured { color: #92600a; background: #fdf3d6; border: 1px solid #f0d488; }
+  /* Opt-in CRediT "Roles: …" line under a citation — small, muted, no indent. */
+  .cv-credit { display: block; margin: 0.15rem 0 0; font-size: 0.72rem; color: var(--cv-muted); text-indent: 0; }
 
   /* ── View filter bar (public living page only): server-rendered facet chips
      (year ranges + open-access) that set query params on the same page. ──────── */

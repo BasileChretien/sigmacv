@@ -29,7 +29,8 @@ import type { DataciteOutput } from "@/lib/datacite/client";
 import type { EditorialRole } from "@/lib/oep/client";
 import type { OpenaireOutput } from "@/lib/openaire/client";
 import type { DblpConferencePaper } from "@/lib/dblp/client";
-import type { CrossrefGrant } from "@/lib/crossref/client";
+import type { CrossrefGrant, CrossrefPeerReview } from "@/lib/crossref/client";
+import { normDoi } from "./duplicates";
 import type { FunderGrant } from "@/lib/grants/match";
 import type { ExternalTrial } from "@/lib/trials/types";
 import type { PatentRecord } from "@/lib/patents/types";
@@ -89,6 +90,9 @@ export interface BuildArgs {
   dblpConferencePapers?: DblpConferencePaper[];
   /** Crossref Grant Linking System grants (ORCID-matched; merged into Grants). */
   crossrefGrants?: CrossrefGrant[];
+  /** DOI-bearing open peer reviews from Crossref (ORCID-matched; merged into
+   *  Peer Review as individual citation entries beside the ORCID per-venue counts). */
+  crossrefPeerReviews?: CrossrefPeerReview[];
   /**
    * National funder grants (UKRI/NIH/NSF), matched by NAME + organization (no
    * ORCID). Surfaced in Grants as REVIEW CANDIDATES — hidden by default with a
@@ -728,16 +732,87 @@ function buildOrcidEntrySection(
   };
 }
 
-/** Peer-review section: one entry per journal with a review count. Labelled by
- *  the resolved JOURNAL name (falls back to the convening org/publisher). */
+/** Stable item id for a Crossref open peer review (keyed by its DOI). */
+function peerReviewItemId(doi: string): string {
+  return `peer-review:crossref:${doi.replace(/[^a-z0-9]+/gi, "-")}`;
+}
+
+/**
+ * A DOI-bearing open peer review as a CITATION item, so it renders through
+ * citeproc like every other cited output (CSL type "article": every style
+ * prints it plainly, whereas "review" needs a `reviewed-title` some styles
+ * then require). The reviewer's name as deposited (matched by ORCID) is the CSL
+ * author, which also drives the identifier-based self-highlight; without a
+ * deposited name the entry has no author and no highlight — never a name guess.
+ * Curation (hide / not-mine / order / reviewed) is carried from `prev` exactly
+ * like the works path.
+ */
+function makePeerReviewItem(
+  r: CrossrefPeerReview,
+  prev: CvItem | undefined,
+  order: number,
+  now: string,
+): CvItem {
+  const id = peerReviewItemId(r.doi);
+  const reviewer = r.reviewer;
+  const printed = reviewer ? [reviewer.given, reviewer.family].filter(Boolean).join(" ") : "";
+  const csl: CslItem = {
+    id,
+    type: "article",
+    title: r.title ?? `Peer review (${r.doi})`,
+    DOI: r.doi,
+  };
+  if (reviewer && (reviewer.given || reviewer.family)) csl.author = [{ ...reviewer }];
+  if (r.venue) csl["container-title"] = r.venue;
+  if (r.year) csl.issued = { "date-parts": [[r.year]] };
+  if (r.url) csl.URL = r.url;
+  const meta: CvItem["meta"] = { doi: r.doi, lastVerifiedAt: now };
+  if (r.year) meta.year = r.year;
+  if (r.reviewOf) meta.reviewOf = r.reviewOf;
+  if (prev?.meta.yearOverride !== undefined) meta.yearOverride = prev.meta.yearOverride;
+  if (prev?.meta.venueOverride !== undefined) meta.venueOverride = prev.meta.venueOverride;
+  return {
+    id,
+    source: "crossref",
+    sourceId: r.doi,
+    csl,
+    included: prev?.included ?? true,
+    notMine: prev?.notMine ?? false,
+    notMineAssertedAt: prev?.notMineAssertedAt,
+    notMineReason: prev?.notMineReason,
+    featured: prev?.featured,
+    reviewedAt: prev?.reviewedAt,
+    order: prev?.order ?? order,
+    // ORCID-matched by the publisher's deposit: the account holder IS the reviewer.
+    authoredBySelf: true,
+    selfNameVariants: printed ? nameVariants(printed) : [],
+    meta,
+  };
+}
+
+/** Peer-review section: one entry per journal with a review count (ORCID),
+ *  labelled by the resolved JOURNAL name (falls back to the convening
+ *  org/publisher) — PLUS one citation entry per DOI-bearing open review Crossref
+ *  registered against the ORCID, de-duplicated by DOI (within the list, and
+ *  against `excludeDois`: the OpenAlex works, which also index Crossref
+ *  peer-review records, so a review never lists twice). */
 function buildPeerReviewSection(
   groups: OrcidPeerReviewGroup[],
+  reviews: CrossrefPeerReview[],
+  excludeDois: ReadonlySet<string>,
   prevItems: Map<string, CvItem>,
   manual: CvItem[],
   now: string,
 ): CvSection | null {
   const items: CvItem[] = [];
   let rank = 0;
+  const seenDois = new Set<string>(excludeDois);
+  const sorted = [...reviews].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+  for (const r of sorted) {
+    if (seenDois.has(r.doi)) continue;
+    seenDois.add(r.doi);
+    items.push(makePeerReviewItem(r, prevItems.get(peerReviewItemId(r.doi)), rank++, now));
+  }
   const seenIds = new Map<string, number>();
   for (const g of groups) {
     const label = g.journal ?? g.organization;
@@ -1673,6 +1748,11 @@ function buildWorkCvItem(
       type: work.type ?? undefined,
       doi: csl.DOI,
       citedByCount: work.cited_by_count,
+      // CRediT roles survive re-sync: a self-declaration is the user's own
+      // assertion, and a Crossref-sourced set keeps the bounded enrichment from
+      // re-fetching the same works every sync.
+      creditRoles: prev?.meta.creditRoles,
+      creditRolesSource: prev?.meta.creditRoles ? prev.meta.creditRolesSource : undefined,
       // Per-work field-normalized data, stored so the FWCI mean + top-10% share
       // recompute over the CURATED works (excluding "not mine"/hidden).
       fwci: typeof work.fwci === "number" ? work.fwci : undefined,
@@ -2134,6 +2214,10 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   });
   const peerReviewSection = buildPeerReviewSection(
     args.peerReviews ?? [],
+    args.crossrefPeerReviews ?? [],
+    // OpenAlex indexes Crossref peer-review records too (type "peer-review") — a
+    // review already listed among the works must not appear a second time here.
+    new Set(works.map((w) => normDoi(w.doi)).filter((d): d is string => Boolean(d))),
     prevItems,
     previousManualItems(previous, "peer-review"),
     now,

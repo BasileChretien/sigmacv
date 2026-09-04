@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CslItemSchema } from "@/types/csl";
+import { CREDIT_ROLES, CREDIT_ROLE_SOURCES } from "./credit";
 
 /**
  * ───────────────────────────────────────────────────────────────────────────
@@ -434,6 +435,25 @@ const CvItemSchema = z.object({
      *  retraction enrichment (Crossref `updated-by`/`relation.is-retracted-by`,
      *  publisher- or Retraction-Watch-sourced). Surfaced as a research-integrity flag. */
     retracted: z.boolean().optional(),
+    /**
+     * The account holder's CRediT contributor roles on this work (the 14
+     * canonical lower-case identifiers of `credit.ts`, in taxonomy order).
+     * Either read from the publisher's Crossref deposit for the OWNER's
+     * contributor entry (matched by ORCID, never by name) or self-declared in
+     * the editor; `creditRolesSource` says which, and a self-declaration is
+     * never overwritten by a later Crossref lookup. Carried across re-sync.
+     * `.catch(undefined)`: an unknown stored value degrades to "no roles"
+     * rather than failing the CV read.
+     */
+    creditRoles: z.array(z.enum(CREDIT_ROLES)).max(CREDIT_ROLES.length).optional().catch(undefined),
+    creditRolesSource: z.enum(CREDIT_ROLE_SOURCES).optional().catch(undefined),
+    /**
+     * For a DOI-bearing open peer review (Crossref `type:peer-review` item in
+     * the Peer Review section): the DOI of the work reviewed
+     * (`relation["is-review-of"]`), bare + lower-cased, when the publisher
+     * deposited it. Provenance only — never used for matching.
+     */
+    reviewOf: z.string().max(1000).optional(),
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
     rorId: z.string().max(2048).optional(),
     /**
@@ -1142,6 +1162,9 @@ export const DisplayChoicesSchema = z.object({
   showAuthorRole: z.boolean().default(false),
   /** Show a per-entry citation count on publications/preprints (HTML/PDF). Default off. */
   showCitationCounts: z.boolean().default(false),
+  /** Show the account holder's CRediT contribution roles ("Roles: …") under each
+   *  publication that carries them (HTML/PDF). Default off. */
+  showCreditRoles: z.boolean().default(false),
   /**
    * Show a small "Verified" mark on positions / education / distinctions that a
    * TRUSTED ORGANISATION asserted on the ORCID record via the Member API

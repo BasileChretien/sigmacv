@@ -1,10 +1,12 @@
 import { isHidden, type CanonicalCv, type CvItem, type Provenance } from "@/lib/canonical/schema";
 import {
   fetchCrossrefAbstract,
+  fetchCrossrefCreditRoles,
   fetchCrossrefGapFields,
   fetchRetractionStatus,
   type CrossrefGapFields,
 } from "@/lib/crossref/client";
+import type { CreditRole } from "@/lib/canonical/credit";
 import { fetchRcrByPmids } from "@/lib/icite/client";
 import { resolveInstitution } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
@@ -255,6 +257,61 @@ export async function enrichCvWithRetractions(
     ),
   }));
   return { ...cv, sections };
+}
+
+// ─── CRediT contributor roles (Crossref deposit, owner matched by ORCID) ─────
+
+const CREDIT_MAX_ENRICH = 100;
+
+/**
+ * Fold the account holder's CRediT roles from the publisher's Crossref deposit
+ * onto DOI-bearing, non-hidden citation works that carry NO roles yet. Bounded
+ * to {@link CREDIT_MAX_ENRICH} lookups (each a tiny `select=author` query),
+ * concurrency-limited, fail-soft and immutable. A work whose roles are already
+ * set — by an earlier Crossref pass or, crucially, SELF-DECLARED in the editor —
+ * is never a target, so a self-declaration can never be overwritten. Roles are
+ * carried across re-sync by `build.ts`, so a filled work isn't re-fetched.
+ */
+export async function enrichCvWithCreditRoles(
+  cv: CanonicalCv,
+  ownerOrcid: string,
+  mailto: string,
+): Promise<CanonicalCv> {
+  const targets: Array<{ s: number; i: number; doi: string }> = [];
+  cv.sections.forEach((section, s) => {
+    section.items.forEach((item, i) => {
+      if (targets.length >= CREDIT_MAX_ENRICH) return;
+      const doi = item.csl?.DOI;
+      if (doi && item.meta.creditRoles === undefined && !isHidden(item)) {
+        targets.push({ s, i, doi });
+      }
+    });
+  });
+  if (targets.length === 0) return cv;
+
+  const fetched = await mapBounded(targets, CONCURRENCY, (t) =>
+    fetchCrossrefCreditRoles(t.doi, ownerOrcid, mailto),
+  );
+  const roles = new Map<string, CreditRole[]>();
+  targets.forEach((t, idx) => {
+    const r = fetched[idx];
+    if (r && r.length > 0) roles.set(`${t.s}:${t.i}`, r);
+  });
+  if (roles.size === 0) return cv;
+
+  const sections = cv.sections.map((section, s) => ({
+    ...section,
+    items: section.items.map((item, i) => {
+      const r = roles.get(`${s}:${i}`);
+      return r
+        ? {
+            ...item,
+            meta: { ...item.meta, creditRoles: r, creditRolesSource: "crossref" as const },
+          }
+        : item;
+    }),
+  }));
+  return { ...cv, sections, provenance: withSource(cv.provenance, "crossref") };
 }
 
 // ─── ROR institution-name canonicalization ───────────────────────────────────
