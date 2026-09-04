@@ -30,7 +30,8 @@ interface CvHealthPanelProps {
 
 /**
  * Compact "needs your attention" checklist: outstanding review candidates,
- * unresolved duplicate hints, ORCID conflicts, and visible retracted works —
+ * unresolved duplicate hints, ORCID conflicts, visible retracted works, and
+ * narrative prose whose evidence references broke or were never made —
  * factual counts only (no score), so curation debt doesn't silently age inside
  * collapsed sections. Each row links to the first such item. Renders nothing
  * when there is nothing to do.
@@ -61,6 +62,8 @@ export default function CvHealthPanel({
       label: wu.hpMisattributed,
     },
     { key: "retracted" as const, count: health.retractedVisible, label: wu.hpRetracted },
+    { key: "evidence" as const, count: health.unresolvedEvidenceRefs, label: wu.hpEvidence },
+    { key: "narrative" as const, count: health.narrativesWithoutEvidence, label: wu.hpNarrative },
   ].filter((r) => r.count > 0);
 
   return (

@@ -74,6 +74,16 @@ export interface EditorExtraStrings {
   proseBody: string;
   proseBodyHint: string;
   proseCharsLeft: string;
+  // Evidence references in prose sections ([[id]] → a link to the entry).
+  evInsert: string;
+  evPanel: string;
+  evSearch: string;
+  evNone: string;
+  /** {n} = distinct linked entries. */
+  evLinked: string;
+  /** {n} = references whose entry is hidden / gone. */
+  evUnresolved: string;
+  evHint: string;
   // Grant / funder-CV presets (ERC / MSCA / NSF / JSPS) — one-click layout.
   grantLegend: string;
   grantIntro: string;
@@ -165,6 +175,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Body",
     proseBodyHint: "Blank line = new paragraph; lines starting with “- ” become a list.",
     proseCharsLeft: "{n} characters left",
+    evInsert: "Insert evidence",
+    evPanel: "Insert an entry as evidence",
+    evSearch: "Search your entries…",
+    evNone: "No matching entry",
+    evLinked: "Linked evidence: {n}",
+    evUnresolved: "{n} references point to an entry that is hidden or no longer on the CV",
+    evHint:
+      "Reference an entry with [[id]] — every export shows it as a link to that entry, so a claim can be checked.",
     grantLegend: "Grant / funder CV",
     grantIntro:
       "Apply a structured starting layout matching a major funder’s call. It shows the funder’s sections (creating any missing ones), sets their order and hides the rest. Reversible — your current view is saved first. Submit the final application via the funder’s own portal/template.",
@@ -247,6 +265,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "正文",
     proseBodyHint: "空行＝新段落；以“- ”开头的行会变成列表。",
     proseCharsLeft: "还剩 {n} 个字符",
+    evInsert: "插入证据",
+    evPanel: "将一个条目作为证据插入",
+    evSearch: "搜索您的条目…",
+    evNone: "没有匹配的条目",
+    evLinked: "已链接的证据：{n}",
+    evUnresolved: "{n} 个引用指向已隐藏或已不在简历上的条目",
+    evHint: "用 [[id]] 引用一个条目——所有导出格式都会将其显示为指向该条目的链接，使陈述可以核实。",
     grantLegend: "资助／资助方简历",
     grantIntro:
       "套用与某个重要资助方公募相匹配的结构化起始版式。它会显示该资助方的栏目（缺失的将创建）、设定其顺序并隐藏其余栏目。可逆——会先保存你当前的视图。最终申请请通过资助方自己的门户／模板提交。",
@@ -330,6 +355,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBodyHint:
       "Línea en blanco = párrafo nuevo; las líneas que empiezan por «- » forman una lista.",
     proseCharsLeft: "Quedan {n} caracteres",
+    evInsert: "Insertar evidencia",
+    evPanel: "Insertar una entrada como evidencia",
+    evSearch: "Buscar en tus entradas…",
+    evNone: "Ninguna entrada coincide",
+    evLinked: "Evidencia enlazada: {n}",
+    evUnresolved: "{n} referencias apuntan a una entrada oculta o que ya no está en el CV",
+    evHint:
+      "Referencia una entrada con [[id]]: cada exportación la muestra como un enlace a esa entrada, para que la afirmación pueda verificarse.",
     grantLegend: "CV de subvención / financiador",
     grantIntro:
       "Aplica un diseño inicial estructurado acorde con una gran convocatoria de un financiador. Muestra las secciones del financiador (creando las que falten), fija su orden y oculta el resto. Reversible: tu vista actual se guarda primero. Presenta la solicitud final mediante el portal/plantilla del propio financiador.",
@@ -416,6 +449,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBodyHint:
       "Ligne vide = nouveau paragraphe ; les lignes commençant par « - » forment une liste.",
     proseCharsLeft: "{n} caractères restants",
+    evInsert: "Insérer une preuve",
+    evPanel: "Insérer une entrée comme preuve",
+    evSearch: "Rechercher dans vos entrées…",
+    evNone: "Aucune entrée correspondante",
+    evLinked: "Preuves liées : {n}",
+    evUnresolved: "{n} références pointent vers une entrée masquée ou qui n’est plus dans le CV",
+    evHint:
+      "Référencez une entrée avec [[id]] — chaque export l’affiche comme un lien vers cette entrée, pour que l’affirmation soit vérifiable.",
     grantLegend: "CV de financement",
     grantIntro:
       "Appliquez une mise en page de départ structurée correspondant à un grand appel d’un financeur. Elle affiche les sections du financeur (en créant celles qui manquent), fixe leur ordre et masque les autres. Réversible — votre vue actuelle est d’abord enregistrée. Déposez la candidature finale via le portail/modèle propre au financeur.",
@@ -501,6 +542,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Text",
     proseBodyHint: "Leerzeile = neuer Absatz; Zeilen mit „- “ am Anfang werden zur Liste.",
     proseCharsLeft: "{n} Zeichen übrig",
+    evInsert: "Beleg einfügen",
+    evPanel: "Einen Eintrag als Beleg einfügen",
+    evSearch: "Deine Einträge durchsuchen …",
+    evNone: "Kein passender Eintrag",
+    evLinked: "Verknüpfte Belege: {n}",
+    evUnresolved:
+      "{n} Verweise zeigen auf einen Eintrag, der ausgeblendet ist oder nicht mehr im Lebenslauf steht",
+    evHint:
+      "Verweise mit [[id]] auf einen Eintrag – jeder Export zeigt ihn als Link auf diesen Eintrag, damit die Aussage überprüfbar ist.",
     grantLegend: "Förder-Lebenslauf",
     grantIntro:
       "Wenden Sie ein strukturiertes Ausgangslayout passend zur Ausschreibung eines großen Förderers an. Es zeigt die Abschnitte des Förderers (legt fehlende an), setzt ihre Reihenfolge und blendet die übrigen aus. Umkehrbar — Ihre aktuelle Ansicht wird zuvor gespeichert. Reichen Sie den endgültigen Antrag über das Portal/die Vorlage des Förderers ein.",
@@ -585,6 +635,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "本文",
     proseBodyHint: "空行＝段落の区切り。「- 」で始まる行は箇条書きになります。",
     proseCharsLeft: "残り{n}文字",
+    evInsert: "根拠を挿入",
+    evPanel: "項目を根拠として挿入",
+    evSearch: "項目を検索…",
+    evNone: "該当する項目はありません",
+    evLinked: "リンクされた根拠：{n}",
+    evUnresolved: "{n} 件の参照が、非表示または履歴書に存在しない項目を指しています",
+    evHint:
+      "[[id]] で項目を参照できます。すべての出力でその項目へのリンクとして表示され、記述を検証できるようになります。",
     grantLegend: "助成用 CV",
     grantIntro:
       "主要な助成機関の公募に合わせた構造化された初期レイアウトを適用します。その助成機関のセクションを表示し（不足分は作成）、順序を設定し、残りを非表示にします。元に戻せます——先に現在のビューを保存します。最終的な申請は助成機関自身のポータル／テンプレートで提出してください。",
@@ -669,6 +727,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Texto",
     proseBodyHint: "Linha em branco = novo parágrafo; linhas iniciadas por “- ” viram uma lista.",
     proseCharsLeft: "Faltam {n} caracteres",
+    evInsert: "Inserir evidência",
+    evPanel: "Inserir uma entrada como evidência",
+    evSearch: "Buscar nas suas entradas…",
+    evNone: "Nenhuma entrada corresponde",
+    evLinked: "Evidências vinculadas: {n}",
+    evUnresolved: "{n} referências apontam para uma entrada oculta ou que não está mais no CV",
+    evHint:
+      "Referencie uma entrada com [[id]] — toda exportação a mostra como um link para essa entrada, para que a afirmação possa ser verificada.",
     grantLegend: "Currículo de financiamento",
     grantIntro:
       "Aplique um layout inicial estruturado correspondente a uma grande chamada de um financiador. Ele mostra as seções do financiador (criando as que faltam), define a ordem delas e oculta as demais. Reversível — sua visualização atual é salva primeiro. Envie a candidatura final pelo portal/modelo do próprio financiador.",
@@ -755,6 +821,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBodyHint:
       "Riga vuota = nuovo paragrafo; le righe che iniziano con «- » diventano un elenco.",
     proseCharsLeft: "{n} caratteri rimasti",
+    evInsert: "Inserisci evidenza",
+    evPanel: "Inserisci una voce come evidenza",
+    evSearch: "Cerca tra le tue voci…",
+    evNone: "Nessuna voce corrispondente",
+    evLinked: "Evidenze collegate: {n}",
+    evUnresolved: "{n} riferimenti puntano a una voce nascosta o non più presente nel CV",
+    evHint:
+      "Fai riferimento a una voce con [[id]]: ogni esportazione la mostra come link a quella voce, così l’affermazione è verificabile.",
     grantLegend: "CV per finanziamenti",
     grantIntro:
       "Applica un layout iniziale strutturato corrispondente a un importante bando di un ente finanziatore. Mostra le sezioni dell’ente (creando quelle mancanti), ne imposta l’ordine e nasconde le altre. Reversibile — la tua vista attuale viene salvata prima. Presenta la domanda finale tramite il portale/modello dell’ente finanziatore.",
@@ -839,6 +913,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "본문",
     proseBodyHint: "빈 줄 = 새 문단, “- ”로 시작하는 줄은 목록이 됩니다.",
     proseCharsLeft: "{n}자 남음",
+    evInsert: "근거 삽입",
+    evPanel: "항목을 근거로 삽입",
+    evSearch: "내 항목 검색…",
+    evNone: "일치하는 항목이 없습니다",
+    evLinked: "연결된 근거: {n}",
+    evUnresolved: "{n}개의 참조가 숨겨졌거나 더 이상 이력서에 없는 항목을 가리킵니다",
+    evHint:
+      "[[id]]로 항목을 참조하세요. 모든 내보내기에서 해당 항목으로 가는 링크로 표시되어 주장을 검증할 수 있습니다.",
     grantLegend: "연구비 CV",
     grantIntro:
       "주요 지원기관 공모에 맞는 구조화된 시작 레이아웃을 적용합니다. 해당 지원기관의 섹션을 표시하고(없으면 생성), 순서를 설정하며 나머지는 숨깁니다. 되돌릴 수 있음 — 현재 보기를 먼저 저장합니다. 최종 지원은 지원기관 자체 포털/템플릿으로 제출하세요.",
@@ -922,6 +1004,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Текст",
     proseBodyHint: "Пустая строка = новый абзац; строки, начинающиеся с «- », образуют список.",
     proseCharsLeft: "Осталось символов: {n}",
+    evInsert: "Вставить подтверждение",
+    evPanel: "Вставить запись как подтверждение",
+    evSearch: "Поиск по вашим записям…",
+    evNone: "Подходящих записей нет",
+    evLinked: "Связанные подтверждения: {n}",
+    evUnresolved: "{n} ссылок указывают на запись, которая скрыта или больше не входит в резюме",
+    evHint:
+      "Ссылайтесь на запись через [[id]] — в каждом экспорте это отображается как ссылка на запись, и утверждение можно проверить.",
     grantLegend: "Резюме для гранта",
     grantIntro:
       "Примените структурированный начальный макет под крупный конкурс грантодателя. Он показывает разделы грантодателя (создавая недостающие), задаёт их порядок и скрывает остальные. Обратимо — текущий вид сохраняется заранее. Итоговую заявку подавайте через собственный портал/шаблон грантодателя.",

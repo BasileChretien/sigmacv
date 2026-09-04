@@ -1,5 +1,8 @@
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import type { ResolvedEvidenceSegment } from "@/lib/canonical/evidenceRefs";
+import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
+import { bibtexCiteKeys } from "./bibtex";
+import { proseEvidence } from "./evidenceRefs";
 import { authorshipCounts } from "./authorship";
 import { curatedCountsByYear } from "./charts";
 import { wrapSelf } from "./emphasize";
@@ -79,25 +82,123 @@ function latexifyEntry(entry: string, bold: ((s: string) => string) | null): str
     .join("");
 }
 
-/** Citations come from citeproc (text output) so the style matches every other
- *  format exactly. The account holder's name is bolded on their own works. */
-function sectionItems(
-  cv: CanonicalCv,
-  sections: PreparedSection[],
-): { title: string; lines: string[] }[] {
-  return sections
-    .filter(({ items }) => items.length > 0)
-    .map(({ section, items }) => ({
-      title: escapeLatex(section.title),
-      lines: items.map(({ item, entry }) => {
-        const highlight = cv.display.highlightSelf && item.selfNameVariants.length > 0;
-        const variants = item.selfNameVariants.map(escapeLatex);
-        return latexifyEntry(
-          entry,
-          highlight ? (escaped) => wrapSelf(escaped, variants, (s) => `\\textbf{${s}}`) : null,
-        );
-      }),
-    }));
+/**
+ * The evidence-reference macros, emitted in the preamble only when the document
+ * has prose. `\\cvevidencecite` also carries the entry's BibTeX key (the same key
+ * the .bib export assigns), so the author can turn the labels into real citations
+ * with a one-line `\\renewcommand` once a `\\bibliography` is added — while the
+ * standalone .tex still compiles clean (no undefined-citation warnings).
+ */
+function evidenceMacros(sections: PreparedSection[]): string {
+  const hasProse = sections.some(
+    ({ section }) => isProseSectionType(section.type) && (section.body ?? "").trim().length > 0,
+  );
+  if (!hasProse) return "";
+  return [
+    "% Evidence references cited by the narrative sections. \\cvevidencecite carries the",
+    "% entry's BibTeX key (matching the .bib export): add \\bibliography{<your .bib>} and",
+    "% \\renewcommand{\\cvevidencecite}[2]{\\cite{#2}} to turn them into real citations.",
+    "\\newcommand{\\cvevidence}[1]{{\\small(#1)}}",
+    "\\newcommand{\\cvevidencecite}[2]{{\\small(#1)}}",
+  ].join("\n");
+}
+
+/** One line of prose with its evidence references as `\\cvevidence…` macros
+ *  (label escaped; the BibTeX key when the entry has one). Unresolved → omitted. */
+function proseLineLatex(segments: ResolvedEvidenceSegment[], keys: Map<string, string>): string {
+  return segments
+    .map((seg) => {
+      if (seg.kind === "text") return escapeLatex(seg.text);
+      if (!seg.resolved) return "";
+      const label = escapeLatex(seg.label);
+      const key = keys.get(seg.item.csl?.id ?? seg.id);
+      return key ? `\\cvevidencecite{${label}}{${key}}` : `\\cvevidence{${label}}`;
+    })
+    .join("");
+}
+
+/**
+ * A prose body as LaTeX: blank lines split paragraphs; within one, runs of "- "
+ * lines become an itemize (mirroring the HTML chokepoint) and other lines break
+ * with `\\\\`. Every text run is escaped (user free-text, never live LaTeX).
+ */
+function proseBodyLatex(
+  body: string,
+  resolve: (text: string) => ResolvedEvidenceSegment[],
+  keys: Map<string, string>,
+): string {
+  const paragraphs = body
+    .replace(/\r\n?/g, "\n")
+    .split(/\n[ \t]*\n+/)
+    .map((p) => p.replace(/^\n+|\n+$/g, ""))
+    .filter((p) => p.trim().length > 0);
+  return paragraphs
+    .map((para) => {
+      const out: string[] = [];
+      let list: string[] = [];
+      let text: string[] = [];
+      const flushList = () => {
+        if (list.length === 0) return;
+        const items = list.map((l) => `  \\item ${l}`).join("\n");
+        out.push(`\\begin{itemize}[nosep,leftmargin=1.2em]\n${items}\n\\end{itemize}`);
+        list = [];
+      };
+      const flushText = () => {
+        if (text.length === 0) return;
+        out.push(`${text.join(" \\\\\n")}\\par`);
+        text = [];
+      };
+      for (const line of para.split("\n")) {
+        const item = line.match(/^[ \t]*-[ \t]+(.*)$/);
+        if (item) {
+          flushText();
+          list.push(proseLineLatex(resolve(item[1]!), keys));
+        } else {
+          flushList();
+          text.push(proseLineLatex(resolve(line), keys));
+        }
+      }
+      flushText();
+      flushList();
+      return out.join("\n");
+    })
+    .join("\n\\medskip\n");
+}
+
+/**
+ * Every section as a LaTeX block, in display order: a PROSE section (narrative
+ * module / statement) with a body becomes `\\section{}` + its paragraphs; a
+ * standard section with entries becomes `\\section{}` + a cvlist. Citations come
+ * from citeproc (text output) so the style matches every other format exactly;
+ * the account holder's name is bolded on their own works. Empty sections are
+ * omitted.
+ */
+function sectionBlocks(cv: CanonicalCv, sections: PreparedSection[]): string[] {
+  const evidence = proseEvidence(cv, sections);
+  const keys = evidence.referenced.size > 0 ? bibtexCiteKeys(cv) : new Map<string, string>();
+  const blocks: string[] = [];
+  for (const { section, items } of sections) {
+    const title = escapeLatex(section.title);
+    if (isProseSectionType(section.type)) {
+      const body = (section.body ?? "").trim();
+      if (body) {
+        blocks.push(`\\section{${title}}\n${proseBodyLatex(body, evidence.resolve, keys)}`);
+      }
+      continue;
+    }
+    if (items.length === 0) continue;
+    const lines = items.map(({ item, entry }) => {
+      const highlight = cv.display.highlightSelf && item.selfNameVariants.length > 0;
+      const variants = item.selfNameVariants.map(escapeLatex);
+      return latexifyEntry(
+        entry,
+        highlight ? (escaped) => wrapSelf(escaped, variants, (s) => `\\textbf{${s}}`) : null,
+      );
+    });
+    const list = lines.map((l) => `  \\item ${l}`).join("\n");
+    blocks.push(`\\section{${title}}\n\\begin{cvlist}\n${list}\n\\end{cvlist}`);
+  }
+  return blocks;
 }
 
 /** Six-digit HEX (no #) for xcolor's \definecolor{...}{HTML}{...}. Floored to a
@@ -183,12 +284,7 @@ function buildStyled(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts): strin
   const summaryHidden = isSummaryBlockHidden(cv);
   const metricsRaw = summaryHidden ? "" : metricsLineText(cv);
 
-  const blocks = sectionItems(cv, sections).map(
-    ({ title, lines }) =>
-      `\\section{${title}}\n\\begin{cvlist}\n${lines
-        .map((l) => `  \\item ${l}`)
-        .join("\n")}\n\\end{cvlist}`,
-  );
+  const blocks = sectionBlocks(cv, sections);
 
   // Plain (ATS) ⇒ no accent anywhere; otherwise accent headings/rule and links.
   const headColor = style.accentHeadings && !style.plain ? "\\color{cvaccent}" : "";
@@ -213,6 +309,7 @@ function buildStyled(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts): strin
     "\\usepackage[hidelinks]{hyperref}",
     "\\usepackage{xurl}",
     qr.pkg,
+    evidenceMacros(sections),
     `\\definecolor{cvaccent}{HTML}{${accentHex(cv)}}`,
     `\\hypersetup{colorlinks=true,urlcolor=${linkColor},linkcolor=${linkColor}}`,
     `\\titleformat{\\section}{\\large\\bfseries${headColor}}{}{0em}{}${rule}`,
@@ -286,14 +383,7 @@ function buildSidebarLatex(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts):
   const tables = summaryHidden
     ? ""
     : [yearTableLatex(cv), authorshipTableLatex(cv)].filter(Boolean).join("\n");
-  const blocks = sectionItems(cv, sections)
-    .map(
-      ({ title, lines }) =>
-        `\\section{${title}}\n\\begin{cvlist}\n${lines
-          .map((l) => `  \\item ${l}`)
-          .join("\n")}\n\\end{cvlist}`,
-    )
-    .join("\n\n");
+  const blocks = sectionBlocks(cv, sections).join("\n\n");
   const photoNote = cv.owner.photo
     ? "% To add your photo: save cv-photo.jpg beside this file, add \\usepackage{graphicx}\n% and \\includegraphics[width=\\linewidth]{cv-photo} at the top of the left column.\n"
     : "";
@@ -312,6 +402,7 @@ function buildSidebarLatex(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts):
     "\\usepackage[hidelinks]{hyperref}",
     "\\usepackage{xurl}",
     qr.pkg,
+    evidenceMacros(sections),
     "\\usepackage{paracol}",
     "\\usepackage{eso-pic}",
     `\\definecolor{cvaccent}{HTML}{${accentHex(cv)}}`,

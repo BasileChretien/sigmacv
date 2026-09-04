@@ -14,9 +14,12 @@ export { NARRATIVE_AI_SECTIONS, isNarrativeAiSection, type NarrativeAiSection };
  * Assembles the AI first-draft for a funder "narrative CV" module from the user's
  * OWN curated, VISIBLE research outputs. The prompt is deliberately MINIMAL and
  * public-only — the module framing, the counts of relevant outputs, a handful of
- * representative TITLES, and the researcher's self-described field. It never
- * includes contact details, identifiers (ORCID / email / phone), abstracts or
- * co-authors, so the minimum personal data reaches the (opt-in, EU) processor.
+ * representative TITLES (each with the entry's own id, so the draft can cite it as
+ * a verifiable `[[id]]` evidence reference — see `canonical/evidenceRefs.ts`),
+ * and the researcher's self-described field. It never includes contact details,
+ * PERSONAL identifiers (ORCID / email / phone), abstracts or co-authors, so the
+ * minimum personal data reaches the (opt-in, user-chosen) processor. The work
+ * ids are public identifiers of the outputs themselves, not of the person.
  *
  * The draft is a starting point only: the system prompt forbids inventing
  * findings or quoting metrics, and the UI labels the result "AI draft — verify
@@ -66,6 +69,7 @@ export function buildNarrativeMessages(
     "This is a NARRATIVE, not a publication list: refer to the actual work by its topic and, where useful, its venue and year, but do not just enumerate titles.",
     "Ground EVERYTHING only in the material provided. Do NOT invent findings, awards, roles, venues, collaborators, dates or numbers, and do NOT quote citation counts, h-index, journal impact factors or any other metric (these funders forbid it).",
     "Be concrete and specific, honest and measured — avoid generic filler, buzzwords and clichés ('cutting-edge', 'world-class', 'passionate'). Prefer plain, precise language.",
+    "Each listed output carries a reference token in double square brackets, e.g. [[W2741809807]]. Whenever a sentence draws on a listed output, write that output's token immediately after the sentence, exactly as given — it becomes a verifiable link to the entry on the CV. Use ONLY tokens from the list, never invent or alter one, and never put anything else in double square brackets.",
     "This is a FIRST DRAFT the researcher will verify and rewrite; where a detail is genuinely missing, leave a natural gap rather than inventing one. Output ONLY the prose: no heading, no preamble, no bullet points, no markdown.",
   ].join(" ");
 
@@ -84,16 +88,17 @@ export function buildNarrativeMessages(
     );
   }
   for (const group of groups) {
+    // Each entry leads with its evidence token so the draft can cite it as [[id]].
     const lines = group.entries.map((e) => {
       const tail = [e.venue, e.year].filter(Boolean).join(", ");
-      return tail ? `- ${e.title} (${tail})` : `- ${e.title}`;
+      return tail ? `- [[${e.id}]] ${e.title} (${tail})` : `- [[${e.id}]] ${e.title}`;
     });
     parts.push(
-      `Representative ${sectionTitle(locale, group.type)} to draw on:\n${lines.join("\n")}`,
+      `Representative ${sectionTitle(locale, group.type)} to draw on (each with its reference token):\n${lines.join("\n")}`,
     );
   }
   parts.push(
-    `Now write the "${moduleName}" module as flowing first-person prose, drawing on the specifics above.`,
+    `Now write the "${moduleName}" module as flowing first-person prose, drawing on the specifics above and citing each output you draw on with its [[…]] token.`,
   );
 
   return [

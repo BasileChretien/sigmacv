@@ -34,6 +34,10 @@ export interface WorkspaceUiStrings {
   /** Announced (politely) after a checklist jump so the walk is perceptible
    *  without sight. {n} / {total} = position in the category; {title} = the row. */
   hpWalkPosition: string;
+  /** Evidence references in prose whose entry is hidden / gone ({n}). */
+  hpEvidence: string;
+  /** Narrative modules written without one linked evidence entry ({n}). */
+  hpNarrative: string;
   // ── Per-item review confirmation ───────────────────────────────────────────
   /** Row button: record that the user checked this work and it is theirs. */
   reviewConfirm: string;
@@ -99,6 +103,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} retracted works still shown",
     hpHint: "Select one to jump to it; select again for the next.",
     hpWalkPosition: "{n} of {total}: {title}",
+    hpEvidence: "{n} evidence references in your narrative no longer point to a shown entry",
+    hpNarrative: "{n} narrative modules have no linked evidence",
     reviewConfirm: "Confirm",
     reviewConfirmed: "Confirmed",
     reviewConfirmHint:
@@ -153,6 +159,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} 条已撤稿的作品仍在显示",
     hpHint: "选择一项跳转；再次选择跳转到下一项。",
     hpWalkPosition: "第 {n} / {total} 项：{title}",
+    hpEvidence: "叙述中有 {n} 个证据引用不再指向显示的条目",
+    hpNarrative: "{n} 个叙述模块没有链接任何证据",
     reviewConfirm: "确认",
     reviewConfirmed: "已确认",
     reviewConfirmHint: "记录你已核对这项成果确属本人。不会改变简历内容，仅标记为已核对。",
@@ -206,6 +214,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} trabajos retractados aún visibles",
     hpHint: "Selecciona uno para ir a él; vuelve a seleccionarlo para el siguiente.",
     hpWalkPosition: "{n} de {total}: {title}",
+    hpEvidence: "{n} referencias de evidencia en tu narrativa ya no apuntan a una entrada mostrada",
+    hpNarrative: "{n} módulos narrativos no tienen evidencia enlazada",
     reviewConfirm: "Confirmar",
     reviewConfirmed: "Confirmado",
     reviewConfirmHint:
@@ -261,6 +271,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} travaux rétractés encore affichés",
     hpHint: "Sélectionnez-en un pour y accéder ; sélectionnez à nouveau pour le suivant.",
     hpWalkPosition: "{n} sur {total} : {title}",
+    hpEvidence:
+      "{n} références de preuve dans votre récit ne pointent plus vers une entrée affichée",
+    hpNarrative: "{n} modules narratifs n’ont aucune preuve liée",
     reviewConfirm: "Confirmer",
     reviewConfirmed: "Confirmé",
     reviewConfirmHint:
@@ -316,6 +329,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} zurückgezogene Arbeiten noch sichtbar",
     hpHint: "Wählen Sie einen aus, um dorthin zu springen; erneut auswählen für den nächsten.",
     hpWalkPosition: "{n} von {total}: {title}",
+    hpEvidence:
+      "{n} Belegverweise in deinem Narrativ zeigen nicht mehr auf einen angezeigten Eintrag",
+    hpNarrative: "{n} narrative Module haben keinen verknüpften Beleg",
     reviewConfirm: "Bestätigen",
     reviewConfirmed: "Bestätigt",
     reviewConfirmHint:
@@ -371,6 +387,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "撤回済みの業績が {n} 件表示されています",
     hpHint: "項目を選ぶと移動します。もう一度選ぶと次の項目へ移動します。",
     hpWalkPosition: "{total} 件中 {n} 件目：{title}",
+    hpEvidence: "ナラティブ内の {n} 件の根拠参照が、表示中の項目を指していません",
+    hpNarrative: "{n} 件のナラティブモジュールに根拠がリンクされていません",
     reviewConfirm: "確認",
     reviewConfirmed: "確認済み",
     reviewConfirmHint:
@@ -426,6 +444,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} trabalhos retratados ainda exibidos",
     hpHint: "Selecione um para ir até ele; selecione novamente para o próximo.",
     hpWalkPosition: "{n} de {total}: {title}",
+    hpEvidence:
+      "{n} referências de evidência na sua narrativa não apontam mais para uma entrada exibida",
+    hpNarrative: "{n} módulos narrativos não têm evidência vinculada",
     reviewConfirm: "Confirmar",
     reviewConfirmed: "Confirmado",
     reviewConfirmHint:
@@ -481,6 +502,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} lavori ritrattati ancora visibili",
     hpHint: "Selezionane uno per andarci; selezionalo di nuovo per il successivo.",
     hpWalkPosition: "{n} di {total}: {title}",
+    hpEvidence:
+      "{n} riferimenti a evidenze nella tua narrativa non puntano più a una voce mostrata",
+    hpNarrative: "{n} moduli narrativi non hanno evidenze collegate",
     reviewConfirm: "Conferma",
     reviewConfirmed: "Confermato",
     reviewConfirmHint:
@@ -536,6 +560,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "철회된 업적 {n}개가 아직 표시됨",
     hpHint: "항목을 선택하면 이동합니다. 다시 선택하면 다음 항목으로 이동합니다.",
     hpWalkPosition: "{total}개 중 {n}번째: {title}",
+    hpEvidence: "서술의 근거 참조 {n}개가 더 이상 표시된 항목을 가리키지 않습니다",
+    hpNarrative: "서술 모듈 {n}개에 연결된 근거가 없습니다",
     reviewConfirm: "확인",
     reviewConfirmed: "확인함",
     reviewConfirmHint:
@@ -591,6 +617,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     hpRetracted: "{n} отозванных работ всё ещё отображаются",
     hpHint: "Выберите пункт, чтобы перейти к нему; выберите снова для следующего.",
     hpWalkPosition: "{n} из {total}: {title}",
+    hpEvidence:
+      "{n} ссылок на подтверждения в вашем нарративе больше не указывают на показанную запись",
+    hpNarrative: "{n} нарративных модулей без связанных подтверждений",
     reviewConfirm: "Подтвердить",
     reviewConfirmed: "Подтверждено",
     reviewConfirmHint:

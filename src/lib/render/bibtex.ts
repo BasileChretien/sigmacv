@@ -121,18 +121,33 @@ function cslToBibtex(csl: CslItem, key: string): string {
   return `@${type}{${key},\n${body}\n}`;
 }
 
-/** Convert a list of CSL items to a BibTeX document (pure; cite keys made
- *  unique with a, b, … suffixes on collision). Exposed for direct testing. */
-export function cslItemsToBibtex(items: CslItem[]): string {
+/** The cite key of each item, in order — made unique with a, b, … suffixes on
+ *  collision, so the assignment depends on the list's order. */
+function assignCiteKeys(items: CslItem[]): string[] {
   const usedKeys = new Map<string, number>();
-  const entries = items.map((csl) => {
+  return items.map((csl) => {
     const base = citeKey(csl);
     const n = usedKeys.get(base) ?? 0;
     usedKeys.set(base, n + 1);
-    const key = n === 0 ? base : `${base}${String.fromCharCode(97 + n)}`; // a, b…
-    return cslToBibtex(csl, key);
+    return n === 0 ? base : `${base}${String.fromCharCode(97 + n)}`; // a, b…
   });
+}
+
+/** Convert a list of CSL items to a BibTeX document (pure; cite keys made
+ *  unique with a, b, … suffixes on collision). Exposed for direct testing. */
+export function cslItemsToBibtex(items: CslItem[]): string {
+  const keys = assignCiteKeys(items);
+  const entries = items.map((csl, i) => cslToBibtex(csl, keys[i]!));
   return entries.length ? `${entries.join("\n\n")}\n` : "";
+}
+
+/** Entry id → the cite key its BibTeX entry gets — the SAME assignment
+ *  `renderCvBibtex` writes (same selection, same order), so a `\cite{}` the
+ *  LaTeX export emits for a narrative's evidence reference matches the .bib. */
+export function bibtexCiteKeys(cv: CanonicalCv): Map<string, string> {
+  const items = citationCslItems(cv);
+  const keys = assignCiteKeys(items);
+  return new Map(items.map((csl, i) => [csl.id, keys[i]!]));
 }
 
 export function renderCvBibtex(cv: CanonicalCv): string {
