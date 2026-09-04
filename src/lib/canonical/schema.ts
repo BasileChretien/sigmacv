@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CslItemSchema } from "@/types/csl";
+import { migrateSoftwareSection } from "./migrateSoftware";
 
 /**
  * ───────────────────────────────────────────────────────────────────────────
@@ -33,6 +34,13 @@ export const SECTION_TYPES = [
   "publications",
   "preprints",
   "datasets",
+  // Research software (DataCite resourceTypeGeneral "Software", OpenAIRE
+  // `software`, ORCID work-type `software`, OpenAlex works whose DataCite
+  // `raw_type` is Software). Its own output class — research-software assessment
+  // (FAIR4RS, RSE careers, the Research Software Alliance) treats it separately
+  // from data — split out of `datasets`; see isSoftwareItem + build.ts routing.
+  // Existing CVs are migrated on read (`migrateSoftware.ts`).
+  "software",
   // Study pre-registrations (OSF / other registries; DataCite resourceTypeGeneral
   // "StudyRegistration", surfaced by OpenAlex as the location `raw_type`). A
   // first-class open-science output — see isPreregistration in build.ts.
@@ -111,31 +119,33 @@ export const DEFAULT_SECTION_ORDER: Record<CvSectionType, number> = {
   preprints: 3,
   conference: 4,
   datasets: 5,
+  // Research software sits right after datasets (it was split out of that section).
+  software: 6,
   // Pre-registrations sit with the other open-science research outputs, after
-  // datasets and before grants.
-  preregistrations: 6,
-  grants: 7,
+  // datasets/software and before grants.
+  preregistrations: 7,
+  grants: 8,
   // Clinical trials + patents sit with the other research outputs, after grants.
-  "clinical-trials": 8,
-  patents: 9,
+  "clinical-trials": 9,
+  patents: 10,
   // The four narrative contribution modules sit together next.
-  "narrative-knowledge": 10,
-  "narrative-individuals": 11,
-  "narrative-community": 12,
-  "narrative-society": 13,
-  awards: 14,
-  talks: 15,
-  teaching: 16,
-  supervision: 17,
-  editorial: 18,
-  "peer-review": 19,
-  service: 20,
-  skills: 21,
-  languages: 22,
-  references: 23,
+  "narrative-knowledge": 11,
+  "narrative-individuals": 12,
+  "narrative-community": 13,
+  "narrative-society": 14,
+  awards: 15,
+  talks: 16,
+  teaching: 17,
+  supervision: 18,
+  editorial: 19,
+  "peer-review": 20,
+  service: 21,
+  skills: 22,
+  languages: 23,
+  references: 24,
   // A generic prose statement sits near the end, just before "Other".
-  statement: 24,
-  other: 25,
+  statement: 25,
+  other: 26,
 };
 
 /**
@@ -668,9 +678,16 @@ const CvItemSchema = z.object({
     /**
      * Source-repository URL for a datasets/software item (e.g. a GitHub/GitLab/
      * Codeberg/Bitbucket URL), when one could be identified from the source record.
-     * Used as the Software Heritage lookup key ("origin"); not itself rendered.
+     * Used as the Software Heritage lookup key ("origin"), and rendered as the
+     * "Source code" link in a Software entry's details line (HTML only; an http(s)
+     * URL the source carried, re-validated at render via `safeHref`).
      */
     repositoryUrl: z.string().max(2048).optional(),
+    /**
+     * Released version of a software deposit (DataCite `version`, e.g. "1.2.0"),
+     * shown in a Software entry's details line when present. Free-form, bounded.
+     */
+    version: z.string().max(100).optional(),
     /**
      * Software Heritage identifier for the archived snapshot of this item's source
      * repository (`swh:1:snp:<40-hex>`), folded in by the Software Heritage
@@ -1558,14 +1575,21 @@ function migrateNarrativeToSections(doc: Record<string, unknown>): void {
  *
  * v1 → v2: the dedicated `narrative[]` array is replaced by first-class prose
  * sections (see `migrateNarrativeToSections`).
+ *
+ * Within v2, one IDEMPOTENT normalisation also runs on every read: software items
+ * still filed under `datasets` move to the `software` section that was split out
+ * of it (`migrateSoftwareSection`). An enum extension needs no version bump (see
+ * above), and the step returns the very same object when there is nothing to
+ * move, so an already-normalised document is still passed through untouched.
  */
 export function migrateCanonicalDocument(input: unknown): unknown {
   if (!input || typeof input !== "object") return input;
   const original = input as Record<string, unknown>;
   let version = typeof original.schemaVersion === "number" ? original.schemaVersion : 1;
-  // Only upgrade KNOWN older versions; the current version (and any higher/unknown
-  // one — left for validation to reject) is returned untouched, never copied.
-  if (version >= CANONICAL_SCHEMA_VERSION) return original;
+  // Only upgrade KNOWN older versions; a higher/unknown one is returned untouched
+  // (left for validation to reject), never copied.
+  if (version > CANONICAL_SCHEMA_VERSION) return original;
+  if (version === CANONICAL_SCHEMA_VERSION) return migrateSoftwareSection(original);
   // Migration mutates as it upgrades — work on a shallow copy so the caller's
   // object is never changed (immutability invariant; `owner` is likewise copied
   // inside migrateNarrativeToSections).
@@ -1575,7 +1599,7 @@ export function migrateCanonicalDocument(input: unknown): unknown {
     version++;
   }
   doc.schemaVersion = CANONICAL_SCHEMA_VERSION;
-  return doc;
+  return migrateSoftwareSection(doc);
 }
 
 /**

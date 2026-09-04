@@ -6,6 +6,7 @@ import {
   type CvSection,
 } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
+import { isSoftwareItem } from "@/lib/canonical/softwareItem";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { safeHref } from "@/lib/render/escape";
 import { absoluteUrl } from "@/lib/siteUrl";
@@ -213,12 +214,19 @@ function workYear(item: CvItem): string | undefined {
 }
 
 /** The work-bearing citation sections turned into per-work schema.org entities. */
-const WORK_SECTION_TYPES = new Set<string>(["publications", "preprints", "conference", "datasets"]);
+const WORK_SECTION_TYPES = new Set<string>([
+  "publications",
+  "preprints",
+  "conference",
+  "datasets",
+  "software",
+]);
 
 /**
  * Per-work schema.org entities for the visible work sections: publications,
- * preprints and conference papers → `ScholarlyArticle`; the datasets/software
- * section → `Dataset` (or `SoftwareSourceCode` when the item is software). Each
+ * preprints and conference papers → `ScholarlyArticle`; the software section →
+ * `SoftwareSourceCode`; the datasets section → `Dataset` (or `SoftwareSourceCode`
+ * for a software-typed item still filed there, pre-split). Each
  * node carries the DOI as its `@id`/`identifier`/`url`/`sameAs` when known, the
  * publication year, the venue, and an open-access flag — making the CV's outputs
  * machine-readable (Google Dataset Search, answer engines), not just the bare
@@ -238,9 +246,9 @@ function scholarlyEntities(cv: CanonicalCv): Record<string, unknown>[] {
       if (!name) continue;
 
       let schemaType = "ScholarlyArticle";
-      if (section.type === "datasets") {
-        const t = `${item.csl?.type ?? ""} ${item.meta.type ?? ""}`.toLowerCase();
-        schemaType = /soft|code/.test(t) ? "SoftwareSourceCode" : "Dataset";
+      if (section.type === "software") schemaType = "SoftwareSourceCode";
+      else if (section.type === "datasets") {
+        schemaType = isSoftwareItem(item) ? "SoftwareSourceCode" : "Dataset";
       }
       const node: Record<string, unknown> = { "@type": schemaType, name };
 

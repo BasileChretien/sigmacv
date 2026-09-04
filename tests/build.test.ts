@@ -521,15 +521,21 @@ describe("buildCanonicalCv — external-source sections", () => {
       },
       { openaireId: "oa::3", title: "No DOI, no publisher", type: "software", year: 2022 },
     ];
-    const ds = section(buildWith({ dataciteOutputs, openaireOutputs }), "datasets")!;
-    expect(ds.items).toHaveLength(3); // DataCite X + oa::1 + oa::3 (oa::2 deduped out)
-    const sources = ds.items.map((i) => i.source);
+    const cv = buildWith({ dataciteOutputs, openaireOutputs });
+    const ds = section(cv, "datasets")!;
+    const sw = section(cv, "software")!;
+    // DataCite X + oa::1 (datasets); oa::3 (software); oa::2 deduped out entirely.
+    expect(ds.items).toHaveLength(2);
+    expect(sw.items).toHaveLength(1);
+    const sources = [...ds.items, ...sw.items].map((i) => i.source);
     expect(sources.filter((s) => s === "openaire")).toHaveLength(2);
     expect(sources.filter((s) => s === "datacite")).toHaveLength(1);
     expect(ds.items.find((i) => i.id === "dataset:openaire:oa-1")!.meta.doi).toBe(
       "10.5281/zenodo.1",
     );
-    expect(ds.items.every((i) => i.included)).toBe(true); // ORCID-matched → auto-included
+    expect(sw.items[0]!.id).toBe("dataset:openaire:oa-3");
+    // ORCID-matched → auto-included, in both sections.
+    expect([...ds.items, ...sw.items].every((i) => i.included)).toBe(true);
   });
 
   it("builds Conference Presentations from DBLP (auto-included, newest first)", () => {
@@ -1042,16 +1048,12 @@ describe("orcidTypeClass", () => {
     // Preprints / working papers.
     expect(orcidTypeClass("preprint")).toBe("preprint");
     expect(orcidTypeClass("working-paper")).toBe("preprint");
-    // Datasets / software → routed to "Datasets & Software".
-    for (const t of [
-      "data-set",
-      "software",
-      "research-tool",
-      "data-management-plan",
-      "physical-object",
-    ]) {
+    // Datasets (and data-like deposits) → routed to "Datasets".
+    for (const t of ["data-set", "research-tool", "data-management-plan", "physical-object"]) {
       expect(orcidTypeClass(t)).toBe("dataset");
     }
+    // Research software → its own "Software" section.
+    expect(orcidTypeClass("software")).toBe("software");
     // Other non-publication outputs → routed to "Other Research Outputs".
     for (const t of ["conference-poster", "conference-abstract", "lecture-speech", "website"]) {
       expect(orcidTypeClass(t)).toBe("other-output");
@@ -1618,7 +1620,7 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     expect(sectionOf(cv, "preprints")).toBeUndefined();
   });
 
-  it("drops the OpenAlex copy of a Zenodo deposit already in Datasets via a concept↔version DOI sibling", () => {
+  it("drops the OpenAlex copy of a Zenodo deposit already in Software via a concept↔version DOI sibling", () => {
     const conceptDoi = "10.5281/zenodo.concept";
     const versionDoi = "10.5281/zenodo.version";
     const cv = buildCanonicalCv({
@@ -1638,15 +1640,18 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
       ] as unknown as DataciteOutput[],
       now: "2026-06-02T00:00:00.000Z",
     });
-    const ds = sectionOf(cv, "datasets")!;
-    expect(ds.items.some((i) => i.meta.doi?.toLowerCase() === conceptDoi)).toBe(true);
+    // The DataCite record is typed Software → the deposit lands in Software; the
+    // OpenAlex copy (typed `dataset`) is still dropped rather than filed in Datasets.
+    const sw = sectionOf(cv, "software")!;
+    expect(sw.items.some((i) => i.meta.doi?.toLowerCase() === conceptDoi)).toBe(true);
+    expect(sectionOf(cv, "datasets")).toBeUndefined();
     // The OpenAlex duplicate is DROPPED from every works section (not just relocated).
     expect(allItemsWithId(cv, "WZEN")).toHaveLength(0);
     expect(sectionOf(cv, "preprints")).toBeUndefined();
     expect(sectionOf(cv, "other")).toBeUndefined();
   });
 
-  it("drops an OpenAlex dataset work whose own DOI matches a DataCite Datasets item", () => {
+  it("drops an OpenAlex dataset work whose own DOI matches a DataCite Software item", () => {
     const doi = "10.5281/zenodo.same";
     const cv = buildCanonicalCv({
       id: "cv",
@@ -1658,9 +1663,10 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
       now: "2026-06-02T00:00:00.000Z",
     });
     expect(allItemsWithId(cv, "WSAME")).toHaveLength(0);
-    expect(sectionOf(cv, "datasets")?.items.some((i) => i.meta.doi?.toLowerCase() === doi)).toBe(
+    expect(sectionOf(cv, "software")?.items.some((i) => i.meta.doi?.toLowerCase() === doi)).toBe(
       true,
     );
+    expect(sectionOf(cv, "datasets")).toBeUndefined();
   });
 
   it("excludes figshare deposits from Datasets & Software too (figshare dropped everywhere)", () => {
@@ -1728,7 +1734,7 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     expect(itemIn(resynced, "datasets", "WH")?.included).toBe(false); // hide survives
   });
 
-  it("routes an ORCID-typed software work into Datasets & Software (over the OpenAlex type)", () => {
+  it("routes an ORCID-typed software work into Software (over the OpenAlex type)", () => {
     const cv = buildCanonicalCv({
       id: "cv",
       resolved,
@@ -1736,11 +1742,14 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
       orcidWorkTypes: { "10.7/orcid-sw": "software" },
       now: "2026-06-02T00:00:00.000Z",
     });
-    const item = itemIn(cv, "datasets", "WORCSW")!;
+    const item = itemIn(cv, "software", "WORCSW")!;
     expect(item).toBeDefined();
     expect(item.csl).toBeDefined();
     expect(item.meta.peerReviewed).toBe(false);
+    // The routing class is stamped on the item so a rebuild/migration agrees.
+    expect(item.meta.type).toBe("software");
     expect(sectionOf(cv, "other")).toBeUndefined();
+    expect(sectionOf(cv, "datasets")).toBeUndefined();
     expect(itemIn(cv, "publications", "WORCSW")).toBeUndefined();
   });
 
@@ -1788,7 +1797,7 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     expect(itemIn(cv, "publications", "WRO")).toBeUndefined();
   });
 
-  it("collapses Zenodo concept↔version DataCite siblings into one Datasets & Software entry", () => {
+  it("collapses Zenodo concept↔version DataCite siblings into one Software entry", () => {
     const concept = "10.5281/zenodo.concept2";
     const version = "10.5281/zenodo.version2";
     const cv = buildCanonicalCv({
@@ -1817,10 +1826,11 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
       ] as unknown as DataciteOutput[],
       now: "2026-06-02T00:00:00.000Z",
     });
-    const ds = sectionOf(cv, "datasets")!;
+    const sw = sectionOf(cv, "software")!;
     // ONE entry per deposit (the concept DOI), not the concept AND the version.
-    expect(ds.items).toHaveLength(1);
-    expect(ds.items[0]?.meta.doi?.toLowerCase()).toBe(concept);
+    expect(sw.items).toHaveLength(1);
+    expect(sw.items[0]?.meta.doi?.toLowerCase()).toBe(concept);
+    expect(sectionOf(cv, "datasets")).toBeUndefined();
     // Both OpenAlex copies (concept + version) are dropped — nothing in Preprints/Other.
     expect(allItemsWithId(cv, "WC")).toHaveLength(0);
     expect(allItemsWithId(cv, "WV")).toHaveLength(0);

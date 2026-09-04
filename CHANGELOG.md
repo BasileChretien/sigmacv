@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Research software is now its own CV section, split out of "Datasets &
+  Software".** Software deposits (Zenodo/DataCite `Software`, OpenAIRE
+  `software`, an ORCID work typed `software`, or an OpenAlex work whose DataCite
+  `raw_type` is Software) land in a new **Software** section right after
+  **Datasets** (the old section is retitled to plain "Datasets", in all ten
+  locales — a heading you renamed yourself is left alone). Research-software
+  assessment (FAIR4RS, RSE careers) treats code as its own output class, and
+  funders that count it (SNSF SciCV, NWO, Wellcome, NIH biosketch, NSF Products)
+  now show the section in their one-click CV models. Each Software entry keeps
+  the same citation line and gains a muted details line — **Source code** link,
+  **Version** and **License** (read from DataCite `version` / `rightsList`; hidden
+  on the parser-safe ATS template) — with the Software Heritage **Archived** link
+  still available via `display.showArchivalStatus`. The public JSON-LD emits a
+  `SoftwareSourceCode` node per software item, the Atom feed, the public-page
+  filters, the narrative "contributions to knowledge" evidence counts and the
+  research-output ledger all count the new section. **No re-sync needed**: a saved
+  CV is migrated on read — software items move from Datasets to Software keeping
+  their curation (hidden / "not mine" / reviewed / order) — and a rebuild
+  preserves that curation across the move too. DOI de-duplication (Zenodo
+  concept↔version siblings vs the OpenAlex copy) works across both sections.
+
 - **"Verified" mark on institution-confirmed positions, education and honours.**
   Entries that a trusted organisation asserted on your ORCID record via the
   Member API (rather than you typing them in) were already flagged in the editor,

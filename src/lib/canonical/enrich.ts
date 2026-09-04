@@ -1,4 +1,11 @@
-import { isHidden, type CanonicalCv, type CvItem, type Provenance } from "@/lib/canonical/schema";
+import {
+  isHidden,
+  type CanonicalCv,
+  type CvItem,
+  type CvSection,
+  type Provenance,
+} from "@/lib/canonical/schema";
+import { isSoftwareItem } from "@/lib/canonical/softwareItem";
 import {
   fetchCrossrefAbstract,
   fetchCrossrefGapFields,
@@ -311,27 +318,27 @@ export async function enrichCvWithOpenCitations(cv: CanonicalCv): Promise<Canoni
 
 const SOFTWARE_HERITAGE_MAX_ENRICH = 50;
 
-/** Loosely matches DataCite/OpenAIRE's "Software" resourceTypeGeneral/type value
- *  (same test the public JSON-LD uses to pick SoftwareSourceCode vs Dataset). */
-function isSoftwareDatasetItem(item: CvItem): boolean {
-  return /soft|code/i.test(`${item.csl?.type ?? ""} ${item.meta.type ?? ""}`);
-}
+/** The sections a software item can live in: its own Software section, plus a
+ *  Datasets section for a software-typed straggler (pre-split document). */
+const SOFTWARE_HERITAGE_SECTIONS = new Set<CvSection["type"]>(["software", "datasets"]);
 
 /**
- * Fold Software Heritage archival status onto software items in the Datasets &
- * Software section that carry a source-repository URL (`meta.repositoryUrl`) and
- * aren't already flagged archived. Bounded to {@link SOFTWARE_HERITAGE_MAX_ENRICH}
- * lookups, concurrency-limited, fail-soft (a 404 "not archived" is not an error)
- * and immutable. Re-checks each sync so a newly-archived repo picks up its SWHID.
+ * Fold Software Heritage archival status onto software items (the Software
+ * section, or a software-typed item still filed under Datasets) that carry a
+ * source-repository URL (`meta.repositoryUrl`) and aren't already flagged
+ * archived. Bounded to {@link SOFTWARE_HERITAGE_MAX_ENRICH} lookups,
+ * concurrency-limited, fail-soft (a 404 "not archived" is not an error) and
+ * immutable. Re-checks each sync so a newly-archived repo picks up its SWHID.
  */
 export async function enrichCvWithSoftwareHeritage(cv: CanonicalCv): Promise<CanonicalCv> {
   const targets: Array<{ s: number; i: number; url: string }> = [];
   cv.sections.forEach((section, s) => {
-    if (section.type !== "datasets") return;
+    if (!SOFTWARE_HERITAGE_SECTIONS.has(section.type)) return;
     section.items.forEach((item, i) => {
       if (targets.length >= SOFTWARE_HERITAGE_MAX_ENRICH) return;
       const url = item.meta.repositoryUrl;
-      if (url && !item.meta.swhid && isSoftwareDatasetItem(item) && !isHidden(item)) {
+      const software = section.type === "software" || isSoftwareItem(item);
+      if (url && !item.meta.swhid && software && !isHidden(item)) {
         targets.push({ s, i, url });
       }
     });

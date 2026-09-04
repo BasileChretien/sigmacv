@@ -222,6 +222,7 @@ const CV_MODELS_SOURCE = [
       "education",
       "positions",
       "awards",
+      "software",
     ],
     display: NAR,
   },
@@ -241,6 +242,7 @@ const CV_MODELS_SOURCE = [
       "awards",
       "grants",
       "publications",
+      "software",
     ],
     display: NAR,
   },
@@ -277,6 +279,7 @@ const CV_MODELS_SOURCE = [
       "positions",
       "education",
       "publications",
+      "software",
     ],
     display: NAR,
   },
@@ -318,7 +321,7 @@ const CV_MODELS_SOURCE = [
     name: "NIH biosketch (SciENcv)",
     description:
       "NIH biosketch (≤5 pages): Personal Statement = your Summary; Positions & Honors; Contributions to Science. Generate/certify the official PDF via SciENcv (eRA/Research.gov).",
-    sections: ["education", "positions", "awards", "service", "talks", "publications"],
+    sections: ["education", "positions", "awards", "service", "talks", "publications", "software"],
     display: BS5,
     titleOverrides: {
       education: "Education / Training",
@@ -334,7 +337,7 @@ const CV_MODELS_SOURCE = [
     name: "NSF biographical sketch (SciENcv)",
     description:
       "NSF biosketch: Professional Preparation, Appointments, Products (≤10), Synergistic Activities. Use SciENcv on Research.gov.",
-    sections: ["education", "positions", "publications", "service", "talks", "grants"],
+    sections: ["education", "positions", "publications", "software", "service", "talks", "grants"],
     display: BS10,
     titleOverrides: {
       education: "Professional Preparation",

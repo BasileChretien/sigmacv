@@ -150,6 +150,15 @@ export interface RenderStrings {
    *  `display.showPublicEvaluations`). The group names + years follow, built at
    *  render time — not part of this string. */
   publicEvaluationsPrefix: string;
+  /** Link text for a software item's source-code repository (`meta.repositoryUrl`),
+   *  in the muted details line under a Software entry. */
+  softwareRepository: string;
+  /** "Version 1.2.0" — the released version of a software item (`meta.version`).
+   *  `{version}` is substituted at render time. */
+  softwareVersion: string;
+  /** "License: MIT" — the reuse licence of a software item (`meta.license`).
+   *  `{license}` is substituted at render time. */
+  softwareLicense: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -240,6 +249,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Updated {date} · living CV, updates automatically",
     rorRecordTitle: "ROR organization record",
     institutionSiteTitle: "Institution website",
+    softwareRepository: "Source code",
+    softwareVersion: "Version {version}",
+    softwareLicense: "License: {license}",
   },
   "zh-CN": {
     hankoCredit:
@@ -325,6 +337,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "更新于 {date} · 在线简历，自动更新",
     rorRecordTitle: "ROR 机构记录",
     institutionSiteTitle: "机构网站",
+    softwareRepository: "源代码",
+    softwareVersion: "版本 {version}",
+    softwareLicense: "许可证：{license}",
   },
   "es-ES": {
     hankoCredit:
@@ -420,6 +435,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Actualizado el {date} · CV vivo, se actualiza solo",
     rorRecordTitle: "Ficha de la organización en ROR",
     institutionSiteTitle: "Sitio web de la institución",
+    softwareRepository: "Código fuente",
+    softwareVersion: "Versión {version}",
+    softwareLicense: "Licencia: {license}",
   },
   "fr-FR": {
     hankoCredit:
@@ -515,6 +533,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Mis à jour le {date} · CV vivant, mis à jour automatiquement",
     rorRecordTitle: "Fiche de l’organisation dans ROR",
     institutionSiteTitle: "Site web de l’établissement",
+    softwareRepository: "Code source",
+    softwareVersion: "Version {version}",
+    softwareLicense: "Licence : {license}",
   },
   "de-DE": {
     hankoCredit:
@@ -608,6 +629,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aktualisiert am {date} · lebender Lebenslauf, automatisch aktualisiert",
     rorRecordTitle: "ROR-Organisationseintrag",
     institutionSiteTitle: "Website der Einrichtung",
+    softwareRepository: "Quellcode",
+    softwareVersion: "Version {version}",
+    softwareLicense: "Lizenz: {license}",
   },
   "ja-JP": {
     hankoCredit:
@@ -697,6 +721,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 更新 · 自動更新されるライブ CV",
     rorRecordTitle: "ROR 機関レコード",
     institutionSiteTitle: "機関ウェブサイト",
+    softwareRepository: "ソースコード",
+    softwareVersion: "バージョン {version}",
+    softwareLicense: "ライセンス：{license}",
   },
   "pt-BR": {
     hankoCredit:
@@ -792,6 +819,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Atualizado em {date} · currículo vivo, atualizado automaticamente",
     rorRecordTitle: "Registro da organização no ROR",
     institutionSiteTitle: "Site da instituição",
+    softwareRepository: "Código-fonte",
+    softwareVersion: "Versão {version}",
+    softwareLicense: "Licença: {license}",
   },
   "it-IT": {
     hankoCredit:
@@ -887,6 +917,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aggiornato il {date} · CV vivo, si aggiorna da solo",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
     institutionSiteTitle: "Sito web dell’istituzione",
+    softwareRepository: "Codice sorgente",
+    softwareVersion: "Versione {version}",
+    softwareLicense: "Licenza: {license}",
   },
   "ko-KR": {
     hankoCredit:
@@ -974,6 +1007,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 업데이트 · 자동으로 갱신되는 라이브 CV",
     rorRecordTitle: "ROR 기관 레코드",
     institutionSiteTitle: "기관 웹사이트",
+    softwareRepository: "소스 코드",
+    softwareVersion: "버전 {version}",
+    softwareLicense: "라이선스: {license}",
   },
   "ru-RU": {
     hankoCredit:
@@ -1066,6 +1102,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Обновлено {date} · живое резюме, обновляется автоматически",
     rorRecordTitle: "Запись организации в ROR",
     institutionSiteTitle: "Сайт организации",
+    softwareRepository: "Исходный код",
+    softwareVersion: "Версия {version}",
+    softwareLicense: "Лицензия: {license}",
   },
 };
 
