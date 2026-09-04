@@ -524,6 +524,14 @@
         "coauthorLinkable": {
           "default": true,
           "type": "boolean"
+        },
+        "showArchivalStatus": {
+          "default": false,
+          "type": "boolean"
+        },
+        "showPublicEvaluations": {
+          "default": false,
+          "type": "boolean"
         }
       }
     },
@@ -1080,6 +1088,49 @@
                         }
                       },
                       "required": ["score", "signals"]
+                    },
+                    "citedByOpenCitations": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "repositoryUrl": {
+                      "type": "string",
+                      "maxLength": 2048
+                    },
+                    "swhid": {
+                      "type": "string",
+                      "pattern": "^swh:1:snp:[0-9a-f]{40}$"
+                    },
+                    "swhArchivedAt": {
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "publicEvaluations": {
+                      "maxItems": 10,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "group": {
+                            "type": "string",
+                            "maxLength": 300
+                          },
+                          "type": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "url": {
+                            "type": "string",
+                            "maxLength": 2048
+                          },
+                          "date": {
+                            "type": "string",
+                            "maxLength": 64
+                          }
+                        },
+                        "required": ["group", "type", "url"]
+                      }
                     }
                   }
                 }
@@ -1407,6 +1458,14 @@
               "coauthorLinkable": {
                 "default": true,
                 "type": "boolean"
+              },
+              "showArchivalStatus": {
+                "default": false,
+                "type": "boolean"
+              },
+              "showPublicEvaluations": {
+                "default": false,
+                "type": "boolean"
               }
             }
           },
@@ -1469,6 +1528,9 @@
               "epo",
               "ror",
               "wikidata",
+              "opencitations",
+              "softwareheritage",
+              "sciety",
               "derived",
               "manual",
               "bibtex"

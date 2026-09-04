@@ -15,7 +15,10 @@ import {
   enrichCvWithAbstracts,
   enrichCvWithCrossref,
   enrichCvWithIcite,
+  enrichCvWithOpenCitations,
   enrichCvWithRetractions,
+  enrichCvWithSciety,
+  enrichCvWithSoftwareHeritage,
   withRorProvenance,
 } from "@/lib/canonical/enrich";
 import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
@@ -438,6 +441,18 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
   // Crossref / Retraction Watch: flag retracted works (research-integrity signal).
   // Bounded + fails soft.
   cv = await timed("enrich.retractions", enrichCvWithRetractions(cv, getEnv().OPENALEX_MAILTO));
+
+  // OpenCitations: independent citation counts alongside OpenAlex's own
+  // (multi-source honesty, not a replacement). Bounded + fails soft.
+  cv = await timed("enrich.opencitations", enrichCvWithOpenCitations(cv));
+
+  // Software Heritage: archival status (SWHID) for software items whose source
+  // repository was identified. Bounded + fails soft (404 = not archived).
+  cv = await timed("enrich.softwareheritage", enrichCvWithSoftwareHeritage(cv));
+
+  // Sciety: aggregated public evaluations of preprints. Bounded + fails soft
+  // (404 = no evaluations recorded).
+  cv = await timed("enrich.sciety", enrichCvWithSciety(cv));
 
   // Upgrade duplicate hints with Crossref's publisher-asserted preprint↔published
   // relationships (the build already ran the identifier + heuristic tiers). The

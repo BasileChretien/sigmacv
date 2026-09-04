@@ -1,0 +1,168 @@
+import { resilientFetch } from "@/lib/http";
+import { logger } from "@/lib/log";
+
+/**
+ * Sciety API — public evaluations (curated peer review / commentary) of
+ * preprints, aggregated across groups (eLife, PREreview, Review Commons, …) as
+ * a "docmap" per article.
+ *
+ * Sciety exposes each preprint's evaluation history as a DocMaps-format JSON
+ * document (https://docmaps.knowledgefutures.org/). We reduce that to a short,
+ * bounded list of {group, type, url, date} entries — enough to show "this
+ * preprint has been publicly evaluated by X, Y" without re-implementing DocMaps.
+ * Free, no auth. Fails soft (returns []) — a 404 (no evaluations recorded) is
+ * not an error and never breaks a sync.
+ *
+ * TODO(verify-live): the dev environment has no outbound internet, so the exact
+ * response shape below is unverified against the live API. Documented shape
+ * (DocMaps v1-ish, as Sciety publishes it):
+ *   GET https://sciety.org/docmaps/v1/articles/<doi>.docmap.json
+ *   → 200 with a single docmap object: `{ "steps": { "_:b0": { "actions": [...] },
+ *     ... } }`. Each step's `actions[]` has `participants[].actor.name` (the
+ *     evaluating group/person) and `outputs[]` with `type` (e.g.
+ *     "evaluation-summary" | "review-article" | "reply"), `published` (ISO date)
+ *     and `content[].url`. The response MAY instead be a JSON ARRAY of docmaps
+ *     (one per version) — both shapes are parsed defensively; unrecognized shapes
+ *     yield an empty list rather than throwing. 404 = no evaluations.
+ */
+
+const SCIETY_API = "https://sciety.org/docmaps/v1/articles";
+const USER_AGENT = "SigmaCV (+https://github.com/BasileChretien/sigmacv)";
+const MAX_BYTES = 2_000_000;
+const MAX_EVALUATIONS = 10;
+
+/** A DOI is "10.<registrant>/<suffix>". Reject anything else before building a URL. */
+const DOI_RE = /^10\.\d{4,9}\/\S+$/;
+
+/** Output `type` values we consider a genuine evaluation (not e.g. a plain
+ *  "reply" or unrelated action). Kept permissive — DocMaps output types vary
+ *  by group; we accept anything that looks like a review/evaluation/commentary. */
+const EVALUATION_TYPE_RE = /evaluation|review|assessment|commentary/i;
+
+export interface PublicEvaluation {
+  /** The evaluating group/actor's name (e.g. "eLife", "PREreview"). */
+  group: string;
+  /** The DocMaps output `type` (e.g. "evaluation-summary", "review-article"). */
+  type: string;
+  /** Link to the evaluation. */
+  url: string;
+  /** ISO date the evaluation was published, when present. */
+  date?: string;
+}
+
+function bareDoi(doi: string): string | null {
+  const bare = doi
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
+  return DOI_RE.test(bare) ? bare : null;
+}
+
+function asRecord(v: unknown): Record<string, unknown> | undefined {
+  return typeof v === "object" && v !== null && !Array.isArray(v)
+    ? (v as Record<string, unknown>)
+    : undefined;
+}
+
+function isoDate(v: unknown): string | undefined {
+  if (typeof v !== "string" || !v.trim()) return undefined;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+}
+
+/** First usable URL from an output's `content[]` (DocMaps content array), or the
+ *  output's own `url` field as a fallback. */
+function urlFromOutput(output: Record<string, unknown>): string | undefined {
+  const content = Array.isArray(output.content) ? output.content : [];
+  for (const c of content) {
+    const rec = asRecord(c);
+    const url = typeof rec?.url === "string" ? rec.url.trim() : undefined;
+    if (url) return url;
+  }
+  return typeof output.url === "string" ? output.url.trim() : undefined;
+}
+
+/** Evaluating group/actor name from an action's `participants[]`. */
+function groupFromAction(action: Record<string, unknown>): string | undefined {
+  const participants = Array.isArray(action.participants) ? action.participants : [];
+  for (const p of participants) {
+    const rec = asRecord(p);
+    const actor = asRecord(rec?.actor);
+    const name = typeof actor?.name === "string" ? actor.name.trim() : undefined;
+    if (name) return name;
+  }
+  return undefined;
+}
+
+/** Every {@link PublicEvaluation} found in one docmap's `steps`. */
+function evaluationsFromDocmap(docmap: unknown): PublicEvaluation[] {
+  const steps = asRecord(asRecord(docmap)?.steps);
+  if (!steps) return [];
+  const out: PublicEvaluation[] = [];
+  for (const step of Object.values(steps)) {
+    const actions = Array.isArray(asRecord(step)?.actions)
+      ? (asRecord(step)!.actions as unknown[])
+      : [];
+    for (const rawAction of actions) {
+      const action = asRecord(rawAction);
+      if (!action) continue;
+      const group = groupFromAction(action);
+      const outputs = Array.isArray(action.outputs) ? action.outputs : [];
+      for (const rawOutput of outputs) {
+        const output = asRecord(rawOutput);
+        if (!output) continue;
+        const type = typeof output.type === "string" ? output.type.trim() : "";
+        if (!type || !EVALUATION_TYPE_RE.test(type)) continue;
+        const url = urlFromOutput(output);
+        if (!group || !url) continue;
+        out.push({ group, type, url, date: isoDate(output.published) });
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Fetch Sciety's public evaluations for a preprint by DOI. Returns [] when the
+ * DOI is malformed, Sciety has no docmap for it (404), the response is
+ * malformed, or on any failure. Capped at {@link MAX_EVALUATIONS}; never throws.
+ */
+export async function fetchScietyEvaluations(doi: string): Promise<PublicEvaluation[]> {
+  const bare = bareDoi(doi);
+  if (!bare) return [];
+
+  const url = `${SCIETY_API}/${encodeURIComponent(bare)}.docmap.json`;
+
+  try {
+    const res = await resilientFetch(url, {
+      headers: { Accept: "application/json", "User-Agent": USER_AGENT },
+      next: { revalidate: 86_400 },
+      timeoutMs: 12_000,
+    });
+    // A 404 means "no evaluations recorded" — not an error.
+    if (!res.ok) return [];
+
+    const body = await res.text();
+    if (body.length > MAX_BYTES) return [];
+    const data: unknown = JSON.parse(body);
+
+    // Documented shape: a single docmap object. Defensively also accept an array
+    // of docmaps (one per article version) and fold them together.
+    const docmaps = Array.isArray(data) ? data : [data];
+    const seen = new Set<string>();
+    const out: PublicEvaluation[] = [];
+    for (const docmap of docmaps) {
+      for (const evaluation of evaluationsFromDocmap(docmap)) {
+        const key = `${evaluation.group}||${evaluation.url}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(evaluation);
+        if (out.length >= MAX_EVALUATIONS) return out;
+      }
+    }
+    return out;
+  } catch (err) {
+    logger.warn("sciety.fetch_failed", { err });
+    return [];
+  }
+}

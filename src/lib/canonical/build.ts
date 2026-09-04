@@ -241,7 +241,19 @@ function buildDatasetsSection(
     // "Chretien" without the accent the owner profile carries).
     const selfCreator = o.creators?.find((c) => c.orcid && c.orcid === ownerOrcid);
     const selfNameVariants = selfCreator ? nameVariants(selfCreator.name) : [];
-    items.push({ ...it, selfNameVariants, meta: { ...it.meta, doi: o.doi } });
+    items.push({
+      ...it,
+      selfNameVariants,
+      meta: {
+        ...it.meta,
+        doi: o.doi,
+        // DataCite's resourceTypeGeneral ("Dataset"/"Software"/…) — read by the
+        // public JSON-LD (SoftwareSourceCode vs Dataset) and the Software
+        // Heritage enrichment's software-item detection.
+        type: o.type,
+        ...(o.repositoryUrl ? { repositoryUrl: o.repositoryUrl } : {}),
+      },
+    });
   }
   const oaSorted = [...openaireOutputs].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
   for (const o of oaSorted) {
@@ -257,7 +269,9 @@ function buildDatasetsSection(
       o.year,
       { lastVerifiedAt: now },
     );
-    items.push(o.doi ? { ...it, meta: { ...it.meta, doi: o.doi } } : it);
+    // OpenAIRE's own type is already "dataset" | "software" — same use as above.
+    const meta = { ...it.meta, type: o.type, ...(o.doi ? { doi: o.doi } : {}) };
+    items.push({ ...it, meta });
   }
   for (const m of manual) {
     items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });

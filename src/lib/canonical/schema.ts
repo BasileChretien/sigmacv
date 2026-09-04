@@ -656,6 +656,52 @@ const CvItemSchema = z.object({
       })
       .optional()
       .catch(undefined),
+    /**
+     * Independent citation count from OpenCitations (the OpenCitations Index),
+     * folded in by the OpenCitations enrichment. A SECOND, independently-computed
+     * count alongside OpenAlex's `citedByCount` — the two rarely agree exactly (each
+     * indexes a different citing-reference corpus), so surfacing both is an
+     * honest-provenance signal rather than a "more accurate" replacement. Keyed by
+     * DOI; undefined for works with no DOI or no OpenCitations record.
+     */
+    citedByOpenCitations: z.number().int().min(0).optional(),
+    /**
+     * Source-repository URL for a datasets/software item (e.g. a GitHub/GitLab/
+     * Codeberg/Bitbucket URL), when one could be identified from the source record.
+     * Used as the Software Heritage lookup key ("origin"); not itself rendered.
+     */
+    repositoryUrl: z.string().max(2048).optional(),
+    /**
+     * Software Heritage identifier for the archived snapshot of this item's source
+     * repository (`swh:1:snp:<40-hex>`), folded in by the Software Heritage
+     * enrichment. Only ever set from a "require_snapshot=true" visit — i.e. the
+     * repository IS archived — so its presence alone means "archived".
+     */
+    swhid: z
+      .string()
+      .regex(/^swh:1:snp:[0-9a-f]{40}$/)
+      .optional(),
+    /** ISO date of the Software Heritage snapshot recorded in {@link swhid}. */
+    swhArchivedAt: z.string().max(64).optional(),
+    /**
+     * Public evaluations of a preprint (Sciety-aggregated peer review / curation),
+     * folded in by the Sciety enrichment. Each entry names the evaluating GROUP
+     * (e.g. "eLife", "PREreview"), the evaluation TYPE (DocMaps vocabulary, e.g.
+     * "evaluation-summary" / "review-article"), a link to the evaluation, and its
+     * date. Capped at 10 (Sciety itself is the fuller record). Additive, opt-in
+     * display — never affects inclusion or ordering.
+     */
+    publicEvaluations: z
+      .array(
+        z.object({
+          group: z.string().max(300),
+          type: z.string().max(100),
+          url: z.string().max(2048),
+          date: z.string().max(64).optional(),
+        }),
+      )
+      .max(10)
+      .optional(),
   }),
 });
 export type CvItem = z.infer<typeof CvItemSchema>;
@@ -1325,6 +1371,19 @@ export const DisplayChoicesSchema = z.object({
    * be listed as a collaborator elsewhere. Read by `resolveCoauthorCvs`.
    */
   coauthorLinkable: z.boolean().default(true),
+  /**
+   * Show a small "Archived (Software Heritage)" link after a datasets/software
+   * item whose source repository has a recorded Software Heritage snapshot
+   * (`meta.swhid`). Opt-IN: default off, consistent with the other evaluative/
+   * supplementary badges (`showCitationCounts`, `showOpenAccess`, …).
+   */
+  showArchivalStatus: z.boolean().default(false),
+  /**
+   * Show a muted "Publicly evaluated: …" line after a preprint that Sciety
+   * aggregates public evaluations for (`meta.publicEvaluations`). Opt-IN: default
+   * off — like the other supplementary, non-authoritative signals above.
+   */
+  showPublicEvaluations: z.boolean().default(false),
 });
 export type DisplayChoices = z.infer<typeof DisplayChoicesSchema>;
 
@@ -1346,6 +1405,12 @@ const PROVENANCE_SOURCES = [
   "ror",
   // Provenance-only sources (enrich identity/affiliations, not CV items).
   "wikidata",
+  // Enrichment-only sources: they annotate existing items (independent citation
+  // counts, archival status, public evaluations) rather than contributing new
+  // CV items, so they never appear in a build's `sourceCounts` — only here.
+  "opencitations",
+  "softwareheritage",
+  "sciety",
   "derived",
   "manual",
   // User-uploaded BibTeX import — preserved across re-sync, so it can surface here.

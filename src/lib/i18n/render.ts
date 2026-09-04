@@ -140,6 +140,16 @@ export interface RenderStrings {
   filterTypeConference: string;
   filterTypeBook: string;
   filterTypeDataset: string;
+  /** Small "Archived (Software Heritage)" badge label on a software item with a
+   *  recorded Software Heritage snapshot (opt-in `display.showArchivalStatus`). */
+  badgeArchived: string;
+  /** Tooltip for the archived-software badge. */
+  badgeArchivedTitle: string;
+  /** Prefix of the muted "Publicly evaluated: eLife (2024) · PREreview (2024)"
+   *  line after a preprint with Sciety-aggregated public evaluations (opt-in
+   *  `display.showPublicEvaluations`). The group names + years follow, built at
+   *  render time — not part of this string. */
+  publicEvaluationsPrefix: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -166,6 +176,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     filterTypeConference: "Conference",
     filterTypeBook: "Books",
     filterTypeDataset: "Datasets",
+    badgeArchived: "Archived",
+    badgeArchivedTitle: "Archived by Software Heritage — a permanent snapshot of the source code",
+    publicEvaluationsPrefix: "Publicly evaluated:",
     coauthorsHeading: "Co-authors on SigmaCV",
     datePresent: "present",
     dateUntil: "until {year}",
@@ -251,6 +264,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     filterTypeConference: "会议",
     filterTypeBook: "书籍",
     filterTypeDataset: "数据集",
+    badgeArchived: "已存档",
+    badgeArchivedTitle: "由 Software Heritage 存档——源代码的永久快照",
+    publicEvaluationsPrefix: "公开评审：",
     coauthorsHeading: "也在 SigmaCV 的合作者",
     datePresent: "至今",
     dateUntil: "至 {year}",
@@ -333,6 +349,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     filterTypeConference: "Congresos",
     filterTypeBook: "Libros",
     filterTypeDataset: "Conjuntos de datos",
+    badgeArchived: "Archivado",
+    badgeArchivedTitle:
+      "Archivado por Software Heritage: una instantánea permanente del código fuente",
+    publicEvaluationsPrefix: "Evaluado públicamente:",
     coauthorsHeading: "Coautores en SigmaCV",
     datePresent: "presente",
     dateUntil: "hasta {year}",
@@ -424,6 +444,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     filterTypeConference: "Conférences",
     filterTypeBook: "Livres",
     filterTypeDataset: "Jeux de données",
+    badgeArchived: "Archivé",
+    badgeArchivedTitle: "Archivé par Software Heritage — un instantané permanent du code source",
+    publicEvaluationsPrefix: "Évalué publiquement :",
     coauthorsHeading: "Co-auteurs sur SigmaCV",
     datePresent: "présent",
     dateUntil: "jusqu’en {year}",
@@ -516,6 +539,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     filterTypeConference: "Konferenz",
     filterTypeBook: "Bücher",
     filterTypeDataset: "Datensätze",
+    badgeArchived: "Archiviert",
+    badgeArchivedTitle:
+      "Von Software Heritage archiviert — ein dauerhafter Schnappschuss des Quellcodes",
+    publicEvaluationsPrefix: "Öffentlich begutachtet:",
     coauthorsHeading: "Mitautor:innen auf SigmaCV",
     datePresent: "heute",
     dateUntil: "bis {year}",
@@ -605,6 +632,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     filterTypeConference: "会議",
     filterTypeBook: "書籍",
     filterTypeDataset: "データセット",
+    badgeArchived: "アーカイブ済み",
+    badgeArchivedTitle:
+      "Software Heritage によりアーカイブ済み — ソースコードの永続的なスナップショット",
+    publicEvaluationsPrefix: "公開レビュー：",
     coauthorsHeading: "SigmaCV を使う共著者",
     datePresent: "現在",
     dateUntil: "{year} まで",
@@ -690,6 +721,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     filterTypeConference: "Congressos",
     filterTypeBook: "Livros",
     filterTypeDataset: "Conjuntos de dados",
+    badgeArchived: "Arquivado",
+    badgeArchivedTitle:
+      "Arquivado pelo Software Heritage — um instantâneo permanente do código-fonte",
+    publicEvaluationsPrefix: "Avaliado publicamente:",
     coauthorsHeading: "Coautores no SigmaCV",
     datePresent: "presente",
     dateUntil: "até {year}",
@@ -781,6 +816,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     filterTypeConference: "Conferenze",
     filterTypeBook: "Libri",
     filterTypeDataset: "Dataset",
+    badgeArchived: "Archiviato",
+    badgeArchivedTitle:
+      "Archiviato da Software Heritage — un'istantanea permanente del codice sorgente",
+    publicEvaluationsPrefix: "Valutato pubblicamente:",
     coauthorsHeading: "Coautori su SigmaCV",
     datePresent: "presente",
     dateUntil: "fino al {year}",
@@ -872,6 +911,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     filterTypeConference: "학회",
     filterTypeBook: "도서",
     filterTypeDataset: "데이터셋",
+    badgeArchived: "보관됨",
+    badgeArchivedTitle: "Software Heritage에 의해 보관됨 — 소스 코드의 영구 스냅샷",
+    publicEvaluationsPrefix: "공개 평가:",
     coauthorsHeading: "SigmaCV를 사용하는 공저자",
     datePresent: "현재",
     dateUntil: "{year}까지",
@@ -956,6 +998,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     filterTypeConference: "Конференции",
     filterTypeBook: "Книги",
     filterTypeDataset: "Наборы данных",
+    badgeArchived: "Архивировано",
+    badgeArchivedTitle: "Архивировано Software Heritage — постоянный снимок исходного кода",
+    publicEvaluationsPrefix: "Публично оценено:",
     coauthorsHeading: "Соавторы в SigmaCV",
     datePresent: "наст. время",
     dateUntil: "до {year}",
