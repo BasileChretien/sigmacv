@@ -1,4 +1,4 @@
-import { isHidden, type CanonicalCv } from "@/lib/canonical/schema";
+import { isHidden, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 
 /**
  * Project a canonical CV for PUBLIC display (the `/p/[slug]` living page).
@@ -51,6 +51,47 @@ function projectPublicContact(cv: CanonicalCv): CanonicalCv["owner"]["contact"] 
     : undefined;
 }
 
+/**
+ * Strip the per-item OWNER-ONLY signals off one item — everything the public
+ * projection removes from an item it keeps. Shared by {@link projectCvForPublic}
+ * and by the frozen-snapshot freeze (`cv/snapshots.ts`), so the two lists can
+ * never drift: a signal stripped from the public page is also never stored in a
+ * snapshot. Pure + immutable.
+ *
+ *  - notMineReason / notMineAssertedAt / reviewedAt: the disambiguation reason,
+ *    its timestamp and WHEN the owner adjudicated the work — behavioural
+ *    metadata about a private curation session (kept in the stored doc for the
+ *    owner + consented research only);
+ *  - meta.reviewFlag / duplicateOf / misattribution / topic / workInstitutions /
+ *    matchBasis / claimed: internal disambiguation hints ("this may be
+ *    mis-attributed / a duplicate", the score + which signals fired, HOW the
+ *    work was matched) — advisory cues surfaced only in the editor;
+ *  - meta.coauthorOrcids: the raw co-author ORCID list, an internal JSON-LD
+ *    resolution input (the public page surfaces only the resolved `knows`
+ *    links, never this identifier set).
+ * The other meta fields (authorRole, peerReviewed, institution, …) ARE used by
+ * the renderers, so the strip is surgical rather than dropping `meta`.
+ */
+export function stripInternalItemSignals(it: CvItem): CvItem {
+  return {
+    ...it,
+    notMineReason: undefined,
+    notMineAssertedAt: undefined,
+    reviewedAt: undefined,
+    meta: {
+      ...it.meta,
+      reviewFlag: undefined,
+      duplicateOf: undefined,
+      misattribution: undefined,
+      topic: undefined,
+      workInstitutions: undefined,
+      matchBasis: undefined,
+      claimed: undefined,
+      coauthorOrcids: undefined,
+    },
+  };
+}
+
 export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
   const contact = projectPublicContact(cv);
 
@@ -72,41 +113,7 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
       ...s,
       items: s.items
         .filter((it) => !isHidden(it) && !exSet?.has(it.id))
-        .map((it) => ({
-          ...it,
-          notMineReason: undefined,
-          notMineAssertedAt: undefined,
-          reviewedAt: undefined,
-          // Internal disambiguation/research signals — advisory hints surfaced
-          // only in the editor, never on any public render — must not leak into
-          // the machine downloads either (same reasoning as notMineReason above):
-          //  - reviewFlag/duplicateOf: "this work may be mis-attributed / a dup",
-          //  - misattribution: the "probably someone else's" score + which signals
-          //    fired (an internal disambiguation/research signal),
-          //  - topic: the work's field/domain, kept only as a misattribution input,
-          //  - matchBasis/claimed: HOW the work was matched ("claimed" = the user
-          //    asserted ownership with no identifier match).
-          // Publishing these on a public CV would expose authorship-attribution
-          // doubt the owner never chose to share. The other meta fields
-          // (authorRole, peerReviewed, institution, …) ARE used by the renderers,
-          // so strip surgically rather than dropping the whole meta object.
-          meta: {
-            ...it.meta,
-            reviewFlag: undefined,
-            duplicateOf: undefined,
-            misattribution: undefined,
-            topic: undefined,
-            workInstitutions: undefined,
-            matchBasis: undefined,
-            claimed: undefined,
-            // Raw co-author ORCID list is an internal resolution input only — the
-            // public JSON-LD surfaces just the resolved `knows` links (co-authors
-            // with their OWN published+indexable CV), never this full identifier
-            // set. Resolution reads the stored (unprojected) doc, so stripping it
-            // here keeps it out of the machine downloads (json/csljson/bibtex).
-            coauthorOrcids: undefined,
-          },
-        })),
+        .map(stripInternalItemSignals),
     };
   });
 

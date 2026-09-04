@@ -111,4 +111,30 @@ describe("signpostingLinkHeader", () => {
     // The type + four describedby + the CC0 metadata license are still present.
     expect(linkValues(header)).toHaveLength(6);
   });
+
+  it("for a frozen snapshot: describedby points at the snapshot's own formats and a minted DOI is cite-as", () => {
+    const header = signpostingLinkHeader(makeCv(), "basile-x7", {
+      resourcePath: "p/basile-x7/v/tok",
+      citeAsDoi: "10.12345/abcd.2",
+    });
+    const links = linkValues(header);
+    expect(links).toContain('<https://doi.org/10.12345/abcd.2>; rel="cite-as"');
+    expect(
+      links.some((l) => l.includes("/p/basile-x7/v/tok.json>") && l.includes('rel="describedby"')),
+    ).toBe(true);
+    expect(links.some((l) => l.includes("/p/basile-x7.json>"))).toBe(false);
+    // The author pids are unchanged.
+    expect(links).toContain('<https://orcid.org/0000-0002-7483-2489>; rel="author"');
+  });
+
+  it("never emits cite-as for a malformed DOI (header safety) or when none is given", () => {
+    expect(
+      signpostingLinkHeader(makeCv(), "s", { citeAsDoi: "10.1/bad\nInjected: x" }),
+    ).not.toContain("cite-as");
+    expect(signpostingLinkHeader(makeCv(), "s", { citeAsDoi: "not a doi" })).not.toContain(
+      "cite-as",
+    );
+    expect(signpostingLinkHeader(makeCv(), "s", { citeAsDoi: null })).not.toContain("cite-as");
+    expect(signpostingLinkHeader(makeCv(), "s")).not.toContain("cite-as");
+  });
 });
