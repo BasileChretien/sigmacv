@@ -250,6 +250,26 @@ export const DUPLICATE_RELATIONSHIPS = [
 ] as const;
 export type DuplicateRelationship = (typeof DUPLICATE_RELATIONSHIPS)[number];
 
+/** Display classification of an open data / code link (see `canonical/dataLinks.ts`). */
+export const DATA_LINK_KINDS = ["dataset", "software", "other"] as const;
+export type DataLinkKind = (typeof DATA_LINK_KINDS)[number];
+
+/**
+ * One open data / code link attached to a work (`meta.dataLinks`): an identifier
+ * (`id`) in a `scheme` (an accession scheme such as "geo"/"pdb", "doi", or a code
+ * host such as "github"), its resolvable landing `url`, an optional `title` from
+ * the source, and the inferred `kind`. Identifier-derived only (Europe PMC data
+ * links, Crossref relations, the owner's DataCite deposits) — never name-matched.
+ */
+const DataLinkSchema = z.object({
+  id: z.string().max(500),
+  scheme: z.string().max(100),
+  url: z.string().max(2048),
+  title: z.string().max(500).optional(),
+  kind: z.enum(DATA_LINK_KINDS),
+});
+export type DataLink = z.infer<typeof DataLinkSchema>;
+
 /** A single CV entry. For MVP these come from OpenAlex works. */
 const CvItemSchema = z.object({
   /** Stable id — e.g. the OpenAlex short id "W2741809807", or "position:…". */
@@ -434,6 +454,24 @@ const CvItemSchema = z.object({
      *  retraction enrichment (Crossref `updated-by`/`relation.is-retracted-by`,
      *  publisher- or Retraction-Watch-sourced). Surfaced as a research-integrity flag. */
     retracted: z.boolean().optional(),
+    /**
+     * Open data / code links for THIS work — the datasets, accessions and code
+     * repositories the work is based on, from Europe PMC's data links (text-mined +
+     * publisher-asserted accessions), Crossref relations (`is-supplemented-by` /
+     * `has-part` / `references` to a data/code DOI) and the owner's own DataCite
+     * deposits that declare a relation to the paper. Identifier-derived only —
+     * never name-matched; figshare excluded project-wide. Capped at 20; the `kind`
+     * is a display classification inferred in `canonical/dataLinks.ts`. Carried
+     * across re-sync (the lookup is bounded per sync) and merged with new finds.
+     */
+    dataLinks: z.array(DataLinkSchema).max(20).optional(),
+    /**
+     * Whether Europe PMC records this work as HAVING associated data (`hasData`) —
+     * true/false when Europe PMC indexes the work, undefined otherwise. Factual
+     * open-science metadata (an input to a future "open-science footprint"), never
+     * an evaluative score.
+     */
+    hasDataStatement: z.boolean().optional(),
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
     rorId: z.string().max(2048).optional(),
     /**
@@ -1142,6 +1180,10 @@ export const DisplayChoicesSchema = z.object({
   showAuthorRole: z.boolean().default(false),
   /** Show a per-entry citation count on publications/preprints (HTML/PDF). Default off. */
   showCitationCounts: z.boolean().default(false),
+  /** Show the open data / code links (`meta.dataLinks`) as a compact line under each
+   *  publication (HTML/PDF). Opt-in, default off — factual, not evaluative, but the
+   *  owner's explicit choice like the other per-entry affordances. */
+  showDataLinks: z.boolean().default(false),
   /**
    * Show a small "Verified" mark on positions / education / distinctions that a
    * TRUSTED ORGANISATION asserted on the ORCID record via the Member API

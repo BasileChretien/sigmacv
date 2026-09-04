@@ -26,6 +26,14 @@ export interface DataciteOutput {
    */
   relatedDois?: string[];
   /**
+   * DOIs of the PUBLICATIONS this deposit declares itself attached to
+   * (`IsSupplementTo` / `IsReferencedBy` / `IsCitedBy` / `IsSourceOf`). Bare +
+   * lower-cased. When one matches a publication on the CV, the deposit is attached
+   * to that paper as an open-data/code link (`meta.dataLinks`) — the paper "knows"
+   * its dataset even when the paper's own metadata is silent. Omitted when none.
+   */
+  linkedDois?: string[];
+  /**
    * The deposit's creators (in order) — name plus the bare ORCID when registered.
    * Used to show the authors on the entry and to highlight the account holder's
    * own name. Omitted when DataCite lists none.
@@ -133,14 +141,14 @@ function creatorsOf(attr: any): { name: string; orcid?: string }[] {
   return out;
 }
 
-/** Sibling DOIs (concept↔version / identical) of a DataCite record, deduped. */
-function relatedDoisOf(attr: any): string[] {
+/** Related DOIs of a DataCite record whose relationType is in `kinds`, deduped. */
+function relatedDoisOfKind(attr: any, kinds: Set<string>): string[] {
   const rels = Array.isArray(attr?.relatedIdentifiers) ? attr.relatedIdentifiers : [];
   const out: string[] = [];
   const seen = new Set<string>();
   for (const r of rels) {
     if (nonEmpty(r?.relatedIdentifierType)?.toLowerCase() !== "doi") continue;
-    if (!VERSION_RELATIONS.has(nonEmpty(r?.relationType)?.toLowerCase() ?? "")) continue;
+    if (!kinds.has(nonEmpty(r?.relationType)?.toLowerCase() ?? "")) continue;
     const doi = bareDoiLower(r?.relatedIdentifier);
     if (doi && !seen.has(doi)) {
       seen.add(doi);
@@ -148,6 +156,27 @@ function relatedDoisOf(attr: any): string[] {
     }
   }
   return out;
+}
+
+/** Sibling DOIs (concept↔version / identical) of a DataCite record, deduped. */
+function relatedDoisOf(attr: any): string[] {
+  return relatedDoisOfKind(attr, VERSION_RELATIONS);
+}
+
+// DataCite relationType values by which a deposit declares the PUBLICATION it
+// supports (the deposit is the supplement / the cited or referenced object / the
+// source of the paper). These DOIs point at a different work on purpose: they are
+// how a paper on the CV gets its open-data/code link. Compared lower-cased.
+const PUBLICATION_LINK_RELATIONS = new Set([
+  "issupplementto",
+  "isreferencedby",
+  "iscitedby",
+  "issourceof",
+]);
+
+/** DOIs of the publications this deposit declares itself attached to, deduped. */
+function linkedDoisOf(attr: any): string[] {
+  return relatedDoisOfKind(attr, PUBLICATION_LINK_RELATIONS);
 }
 
 export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutput[]> {
@@ -191,6 +220,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
       const yearRaw = attr?.publicationYear;
       const year = Number.isFinite(Number(yearRaw)) ? Number(yearRaw) : undefined;
       const relatedDois = relatedDoisOf(attr);
+      const linkedDois = linkedDoisOf(attr);
       const creators = creatorsOf(attr);
       out.push({
         doi,
@@ -199,6 +229,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
         year,
         publisher,
         ...(relatedDois.length ? { relatedDois } : {}),
+        ...(linkedDois.length ? { linkedDois } : {}),
         ...(creators.length ? { creators } : {}),
       });
     }

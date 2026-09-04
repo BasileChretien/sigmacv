@@ -10,10 +10,12 @@ import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks"
 import { logger } from "@/lib/log";
 import { getEnv } from "@/lib/env";
 import { buildCanonicalCv } from "@/lib/canonical/build";
+import { attachDataciteLinks } from "@/lib/canonical/dataLinks";
 import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
   enrichCvWithCrossref,
+  enrichCvWithDataLinks,
   enrichCvWithIcite,
   enrichCvWithRetractions,
   withRorProvenance,
@@ -430,6 +432,13 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
   // public page's expandable abstract appears on more entries. Bounded + fails soft;
   // a filled abstract persists across re-sync (build.ts), so it isn't re-fetched.
   cv = await timed("enrich.abstracts", enrichCvWithAbstracts(cv, getEnv().OPENALEX_MAILTO));
+
+  // Open data / code links per work: the owner's own DataCite deposits that declare
+  // the paper they supplement (pure, from the already-fetched records), then Europe
+  // PMC data links + Crossref supplement relations (network, bounded + fail-soft).
+  // Before iCite so a PMID Europe PMC back-fills can feed the RCR lookup.
+  cv = attachDataciteLinks(cv, dataciteOutputs);
+  cv = await timed("enrich.dataLinks", enrichCvWithDataLinks(cv, getEnv().OPENALEX_MAILTO));
 
   // NIH iCite: fold the Relative Citation Ratio onto works with a PMID (opt-in
   // biomedical field-normalized metric). Bounded + fails soft.

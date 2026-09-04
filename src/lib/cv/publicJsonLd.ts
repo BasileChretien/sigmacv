@@ -212,6 +212,30 @@ function workYear(item: CvItem): string | undefined {
   return undefined;
 }
 
+/**
+ * schema.org nodes for a work's open data / code links: `Dataset` for a dataset
+ * link, `SoftwareSourceCode` for a code link, keyed by the link's landing URL
+ * (`@id`/`url`), with the source identifier as `identifier` and the source title
+ * (else "<scheme> <id>") as `name`. Only safe http(s) URLs survive; "other"-kind
+ * links (no clean schema.org type) are skipped.
+ */
+function dataLinkEntities(item: CvItem): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const link of item.meta.dataLinks ?? []) {
+    if (link.kind === "other") continue;
+    const href = safeHref(link.url);
+    if (!href) continue;
+    out.push({
+      "@type": link.kind === "software" ? "SoftwareSourceCode" : "Dataset",
+      "@id": href,
+      name: link.title?.trim() || `${link.scheme.toUpperCase()} ${link.id}`,
+      identifier: link.scheme === "doi" ? href : link.id,
+      url: href,
+    });
+  }
+  return out;
+}
+
 /** The work-bearing citation sections turned into per-work schema.org entities. */
 const WORK_SECTION_TYPES = new Set<string>(["publications", "preprints", "conference", "datasets"]);
 
@@ -264,6 +288,15 @@ function scholarlyEntities(cv: CanonicalCv): Record<string, unknown>[] {
       const oa = safeHref(item.meta.oaUrl);
       if (oa && !node.url) node.url = oa;
       if (item.meta.oaIsOpen) node.isAccessibleForFree = true;
+
+      // The work's open data / code (`meta.dataLinks`) as `Dataset` /
+      // `SoftwareSourceCode` nodes the article `isBasedOn` — the machine-readable
+      // paper↔data link (Google Dataset Search, answer engines). Emitted whether or
+      // not the visible line is on: like `isAccessibleForFree`, it is factual
+      // metadata, not a display choice. "other"-kind links have no clean schema.org
+      // type and are left to the visible line only.
+      const basedOn = dataLinkEntities(item);
+      if (basedOn.length > 0) node.isBasedOn = basedOn;
 
       out.push(node);
     }

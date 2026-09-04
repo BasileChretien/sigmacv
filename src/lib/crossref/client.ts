@@ -2,6 +2,7 @@ import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 import { normalizeOrcid } from "@/lib/openalex/types";
 import { normDoi, type DoiRelation } from "@/lib/canonical/duplicates";
+import { isDataRepositoryDoi, isRepositoryUrl, type RawDataLink } from "@/lib/canonical/dataLinks";
 import type { CslItem } from "@/types/csl";
 
 /**
@@ -279,6 +280,77 @@ export async function fetchCrossrefRelations(doi: string, mailto: string): Promi
     return out;
   } catch (err) {
     logger.warn("crossref.relations_fetch_failed", { err });
+    return [];
+  }
+}
+
+// ── Relation lookup: open data / code the work is supplemented by ────────────
+
+/**
+ * Crossref `relation` keys that point from a work to its data / code. Every
+ * `is-supplemented-by` target is a publisher-asserted supplement, so any
+ * non-figshare DOI/URL target qualifies; `has-part` and `references` are broad
+ * (parts, ordinary references), so only a target that LOOKS like a dataset /
+ * code deposit (a known data-repository DOI prefix, or a Zenodo/OSF/Dryad/
+ * Software-Heritage/GitHub URL) is kept.
+ */
+const DATA_RELATION_KEYS = ["is-supplemented-by", "has-part", "references"] as const;
+
+/** One Crossref relation entry → a raw data link (DOI or repository URL), or null. */
+function dataRelationLink(entry: unknown, strict: boolean): RawDataLink | null {
+  const rec = asRecord(entry);
+  const idType = typeof rec?.["id-type"] === "string" ? rec["id-type"].toLowerCase() : "";
+  const id = typeof rec?.id === "string" ? rec.id.trim() : "";
+  if (!id) return null;
+  if (idType === "doi") {
+    const norm = normDoi(id);
+    if (!norm || (strict && !isDataRepositoryDoi(norm))) return null;
+    return { id: norm, scheme: "doi" };
+  }
+  if (idType === "uri" || idType === "url") {
+    if (!isRepositoryUrl(id)) return null;
+    return { id, scheme: "url", url: id };
+  }
+  return null;
+}
+
+/**
+ * The data / code deposits Crossref relates a DOI to (`is-supplemented-by`,
+ * `has-part`, `references` → a DOI or repository URL), as raw links for
+ * `canonical/dataLinks.ts` to classify. Uses `select=relation` so the response
+ * stays tiny (up to ~100 of these per sync). Fails soft → []. Cached 24h.
+ */
+export async function fetchCrossrefDataLinks(doi: string, mailto: string): Promise<RawDataLink[]> {
+  const bare = normDoi(doi);
+  if (!bare || !DOI_RE.test(bare)) return [];
+
+  const url = new URL(`${CROSSREF_API}/${encodeURIComponent(bare)}`);
+  url.searchParams.set("mailto", mailto);
+  url.searchParams.set("select", "relation");
+
+  try {
+    const res = await resilientFetch(url, {
+      next: { revalidate: 86_400 },
+      timeoutMs: 12_000,
+    });
+    if (!res.ok) return [];
+    const body = await res.text();
+    if (body.length > MAX_BYTES) return [];
+    const data = JSON.parse(body) as { message?: { relation?: Record<string, unknown> } };
+    const relation = data.message?.relation;
+    if (!relation) return [];
+    const out: RawDataLink[] = [];
+    for (const key of DATA_RELATION_KEYS) {
+      const entries = relation[key];
+      if (!Array.isArray(entries)) continue;
+      for (const entry of entries) {
+        const link = dataRelationLink(entry, key !== "is-supplemented-by");
+        if (link) out.push(link);
+      }
+    }
+    return out;
+  } catch (err) {
+    logger.warn("crossref.data_links_fetch_failed", { err });
     return [];
   }
 }

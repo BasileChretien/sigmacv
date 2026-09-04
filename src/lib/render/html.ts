@@ -13,6 +13,7 @@ import { highlightSelf } from "@/lib/citeproc/highlight";
 import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml, safeHref } from "./escape";
 import { coinsSpan } from "./coins";
+import { dataLinksHtml } from "./dataLinksHtml";
 import { prepareSections } from "./prepare";
 import { cvSlug } from "./slug";
 import { getTemplate, resolveTheme } from "./templates";
@@ -337,6 +338,8 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
           html = highlightSelf(html, item.selfNameVariants);
         }
         html += itemBadges(item, cv.display);
+        // Opt-in open data / code line ("Data: GEO GSE… · Zenodo …") under the entry.
+        if (cv.display.showDataLinks) html += dataLinksHtml(item, cv.display.locale);
         if (isHistory) html = withRorLink(html, item, cv.display.locale);
         // Public-page-only: a no-JS Cite/Abstract/Full-text affordance per work.
         if (publicExtras) html += itemToolsHtml(item, opts!.slug!, cv.display.locale);
