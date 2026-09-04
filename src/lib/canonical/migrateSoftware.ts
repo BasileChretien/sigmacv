@@ -1,5 +1,6 @@
 import { isLegacyDatasetsTitle, sectionTitle } from "@/lib/i18n";
 import { isSoftwareType } from "./softwareItem";
+import { moveSectionViewState } from "./moveSectionViewState";
 
 /**
  * ONE-OFF, PURE normalisation for the research-software split: research software
@@ -19,7 +20,11 @@ import { isSoftwareType } from "./softwareItem";
  *    order, so nothing the owner decided is lost;
  *  - retitles a `datasets` section that still carries the pre-split DEFAULT heading
  *    ("Datasets & Software", any locale) to the current default ("Datasets") in the
- *    CV's own locale — a heading the owner renamed is left exactly as it is.
+ *    CV's own locale — a heading the owner renamed is left exactly as it is;
+ *  - re-keys the per-view state that referred to the moved items by SECTION id —
+ *    `display.excludedItems` on the live display and on every saved preset, plus
+ *    each preset's `sectionVisibility` / `sectionOrder` (`moveSectionViewState`)
+ *    — so an item the owner hid from a published view or a preset stays hidden.
  *
  * IDEMPOTENT and IDENTITY-PRESERVING: when there is nothing to move and nothing to
  * retitle it returns the very same object, so an already-normalised document is
@@ -60,12 +65,17 @@ export function migrateSoftwareSection(input: unknown): unknown {
     const software = sections[softwareIndex] as Record<string, unknown>;
     const existing = Array.isArray(software.items) ? software.items : [];
     const nextSoftware = { ...software, items: reindex([...existing, ...sortByOrder(moving)]) };
-    return {
-      ...doc,
-      sections: sections.map((s, i) =>
-        i === datasetsIndex ? nextDatasets : i === softwareIndex ? nextSoftware : s,
-      ),
-    };
+    return moveSectionViewState(
+      {
+        ...doc,
+        sections: sections.map((s, i) =>
+          i === datasetsIndex ? nextDatasets : i === softwareIndex ? nextSoftware : s,
+        ),
+      },
+      sectionId(datasets, "datasets"),
+      sectionId(software, "software"),
+      moving.map(itemId),
+    );
   }
 
   // Create the software section right after datasets; every section that sat
@@ -86,7 +96,23 @@ export function migrateSoftwareSection(input: unknown): unknown {
     return typeof order === "number" && order > datasetsOrder ? { ...s, order: order + 1 } : s;
   });
   shifted.splice(datasetsIndex + 1, 0, software);
-  return { ...doc, sections: shifted };
+  return moveSectionViewState(
+    { ...doc, sections: shifted },
+    sectionId(datasets, "datasets"),
+    "software",
+    moving.map(itemId),
+  );
+}
+
+/** A section's own id (the key its per-view state is filed under), else the default. */
+function sectionId(section: Record<string, unknown>, fallback: string): string {
+  return typeof section.id === "string" ? section.id : fallback;
+}
+
+/** A raw item's id; junk (non-string) ids never match an exclusion list anyway. */
+function itemId(item: unknown): string {
+  const id = (item as { id?: unknown }).id;
+  return typeof id === "string" ? id : "";
 }
 
 function sectionType(section: unknown): string | undefined {

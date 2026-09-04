@@ -9,6 +9,7 @@ import { buildCanonicalCv, openalexTypeClass } from "@/lib/canonical/build";
 import { CV_MODELS } from "@/lib/canonical/cvModels";
 import { enrichCvWithSoftwareHeritage } from "@/lib/canonical/enrich";
 import { migrateSoftwareSection } from "@/lib/canonical/migrateSoftware";
+import { moveSectionViewState } from "@/lib/canonical/moveSectionViewState";
 import { narrativeEvidence } from "@/lib/canonical/narrativeEvidence";
 import {
   DEFAULT_SECTION_ORDER,
@@ -22,6 +23,7 @@ import {
 } from "@/lib/canonical/schema";
 import { isSoftwareItem, isSoftwareType } from "@/lib/canonical/softwareItem";
 import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
+import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { fetchDataciteOutputs, type DataciteOutput } from "@/lib/datacite/client";
 import { SUPPORTED_LOCALES, isLegacyDatasetsTitle, sectionTitle } from "@/lib/i18n";
 import type { OpenaireOutput } from "@/lib/openaire/client";
@@ -568,6 +570,191 @@ describe("software section — on-read migration (migrateSoftwareSection)", () =
     const fromV1 = migrateCanonicalDocument(v1) as { schemaVersion: number; sections: CvSection[] };
     expect(fromV1.schemaVersion).toBe(2);
     expect(fromV1.sections.map((s) => s.type)).toEqual(["datasets", "software"]);
+  });
+});
+
+// ─── per-view exclusions + presets follow the move ───────────────────────────
+
+/** A preset snapshot whose display hid `ids` under the `datasets` section. */
+function presetHiding(id: string, ids: string[], extra: Record<string, unknown> = {}) {
+  return {
+    id,
+    name: id,
+    display: { ...DisplayChoicesSchema.parse({}), excludedItems: { datasets: ids } },
+    sectionVisibility: { publications: true, datasets: false },
+    sectionOrder: ["publications", "datasets", "grants"],
+    ...extra,
+  };
+}
+
+describe("software section — per-view exclusions and presets follow the move", () => {
+  const preSplitSections = [
+    { id: "publications", type: "publications", title: "P", visible: true, order: 0, items: [] },
+    {
+      id: "datasets",
+      type: "datasets",
+      title: "Datasets & Software",
+      visible: true,
+      order: 5,
+      items: [
+        rawItem("A", { order: 0, meta: { type: "Dataset" } }),
+        rawItem("B", { order: 1, meta: { type: "Software" } }),
+        rawItem("C", { order: 2, meta: { type: "Software" } }),
+      ],
+    },
+    { id: "grants", type: "grants", title: "G", visible: true, order: 8, items: [] },
+  ];
+
+  it("migration re-keys a hidden software item from datasets to software, on display AND presets", () => {
+    const doc = {
+      ...rawDoc(preSplitSections, { excludedItems: { datasets: ["A", "B"], grants: ["g"] } }),
+      presets: [presetHiding("grant", ["B", "C"]), presetHiding("full", ["A"])],
+    };
+    const out = migrateSoftwareSection(doc) as CanonicalCv;
+    expect(out.display.excludedItems).toEqual({
+      datasets: ["A"],
+      grants: ["g"],
+      software: ["B"],
+    });
+    const [grant, full] = out.presets!;
+    // Both moved ids left `datasets` (list pruned) and landed under `software`.
+    expect(grant!.display.excludedItems).toEqual({ software: ["B", "C"] });
+    // The preset that hid "Datasets & Software" keeps the split-out Software hidden
+    // too, and the new section sits right after its parent in the saved order.
+    expect(grant!.sectionVisibility).toEqual({
+      publications: true,
+      datasets: false,
+      software: false,
+    });
+    expect(grant!.sectionOrder).toEqual(["publications", "datasets", "software", "grants"]);
+    // A preset that never hid a software item keeps its exclusion list untouched.
+    expect(full!.display.excludedItems).toEqual({ datasets: ["A"] });
+    // Never mutates the input.
+    expect((doc as unknown as CanonicalCv).display.excludedItems).toEqual({
+      datasets: ["A", "B"],
+      grants: ["g"],
+    });
+    expect(doc.presets[0]!.display.excludedItems).toEqual({ datasets: ["B", "C"] });
+    // ...and the migrated document still validates.
+    expect(() => parseCanonicalCv(out)).not.toThrow();
+  });
+
+  it("migration appending to an existing software section re-keys under that section's own id", () => {
+    const doc = {
+      ...rawDoc(
+        [
+          ...preSplitSections.slice(0, 2),
+          { id: "sw-custom", type: "software", title: "Code", visible: true, order: 6, items: [] },
+        ],
+        { excludedItems: { datasets: ["B"], "sw-custom": ["old"] } },
+      ),
+    };
+    const out = migrateSoftwareSection(doc) as CanonicalCv;
+    expect(out.display.excludedItems).toEqual({ "sw-custom": ["old", "B"] });
+  });
+
+  it("rebuild re-keys a datasets-view exclusion to the Software section the deposit now lands in", () => {
+    const first = build({ dataciteOutputs: [SW_DEPOSIT, DS_DEPOSIT] });
+    const sw = sectionOf(first, "software")!;
+    const ds = sectionOf(first, "datasets")!;
+    const swId = sw.items[0]!.id;
+    const dsId = ds.items[0]!.id;
+    const preSplit: CanonicalCv = {
+      ...first,
+      display: { ...first.display, excludedItems: { datasets: [swId, dsId] } },
+      sections: [
+        ...first.sections.filter((s) => s.type !== "software" && s.type !== "datasets"),
+        { ...ds, title: "Datasets & Software", items: [...ds.items, ...sw.items] },
+      ],
+      presets: [
+        {
+          id: "grant",
+          name: "grant",
+          display: { ...first.display, excludedItems: { datasets: [swId] } },
+          sectionVisibility: { datasets: false },
+          sectionOrder: ["publications", "datasets"],
+        },
+      ],
+    };
+    const second = build({ dataciteOutputs: [SW_DEPOSIT, DS_DEPOSIT] }, preSplit);
+    expect(second.display.excludedItems).toEqual({ datasets: [dsId], software: [swId] });
+    expect(second.presets![0]!.display.excludedItems).toEqual({ software: [swId] });
+    expect(second.presets![0]!.sectionVisibility).toEqual({ datasets: false, software: false });
+    expect(second.presets![0]!.sectionOrder).toEqual(["publications", "datasets", "software"]);
+    // The public projection of that view still hides the item the owner hid.
+    const pub = projectCvForPublic(second);
+    expect(sectionOf(pub, "software")!.items.map((i) => i.id)).toEqual([]);
+    expect(sectionOf(pub, "datasets")!.items.map((i) => i.id)).toEqual([]);
+    // Nothing excluded under `datasets` → the rebuild carries display/presets as-is.
+    const untouched = build({ dataciteOutputs: [SW_DEPOSIT] }, first);
+    expect(untouched.display).toEqual(first.display);
+    expect(untouched.presets).toEqual(first.presets);
+  });
+
+  it("public projection of a migrated document hides the re-keyed item", () => {
+    const doc = rawDoc(preSplitSections, { excludedItems: { datasets: ["B"] } });
+    const pub = projectCvForPublic(parseCanonicalCv(doc));
+    expect(sectionOf(pub, "software")!.items.map((i) => i.id)).toEqual(["C"]);
+    expect(sectionOf(pub, "datasets")!.items.map((i) => i.id)).toEqual(["A"]);
+  });
+
+  it("migration falls back to the default section ids when a raw section carries none", () => {
+    // A junk document whose datasets / software sections (and a moved item) have no
+    // id: the move still lands, and the exclusion re-keying uses the default ids.
+    const doc = rawDoc(
+      [
+        {
+          type: "datasets",
+          items: [rawItem("B", { meta: { type: "Software" } }), { meta: { type: "Software" } }],
+        },
+        { type: "software", items: [] },
+      ],
+      { excludedItems: { datasets: ["B"] } },
+    );
+    const out = migrateSoftwareSection(doc) as CanonicalCv;
+    expect(out.sections[1]!.items).toHaveLength(2);
+    expect(out.display.excludedItems).toEqual({ software: ["B"] });
+  });
+
+  it("moveSectionViewState is identity-preserving and defensive on junk", () => {
+    const base = rawDoc([], { excludedItems: { datasets: ["A"] } });
+    // Nothing moved / same section / no matching id → the very same object.
+    expect(moveSectionViewState(base, "datasets", "software", [])).toBe(base);
+    expect(moveSectionViewState(base, "datasets", "datasets", ["A"])).toBe(base);
+    expect(moveSectionViewState(base, "datasets", "software", ["Z"])).toBe(base);
+    const noMap = rawDoc([], { excludedItems: undefined });
+    expect(moveSectionViewState(noMap, "datasets", "software", ["A"])).toBe(noMap);
+    // Junk shapes are tolerated (left as they are), and non-string ids never move.
+    const junk = {
+      display: "nope",
+      presets: [null, 7, { display: { excludedItems: { datasets: "x" } } }, { display: null }],
+    };
+    expect(moveSectionViewState(junk, "datasets", "software", ["A"])).toBe(junk);
+    const junkIds = { display: { excludedItems: { datasets: [1, "A", null] } } };
+    const out = moveSectionViewState(junkIds, "datasets", "software", ["A"]) as {
+      display: { excludedItems: Record<string, unknown[]> };
+    };
+    expect(out.display.excludedItems).toEqual({ datasets: [1, null], software: ["A"] });
+    // Presets with junk / absent snapshots: only the parts that can follow, follow.
+    const partial = {
+      presets: [
+        { display: { excludedItems: { datasets: ["A"] } } },
+        { sectionVisibility: { datasets: true, software: false }, sectionOrder: "x" },
+        { sectionVisibility: { datasets: "yes" }, sectionOrder: ["datasets", "software"] },
+        { sectionVisibility: null, sectionOrder: ["publications"] },
+      ],
+    };
+    const next = moveSectionViewState(partial, "datasets", "software", ["A"]) as typeof partial;
+    expect(next.presets[0]).toEqual({ display: { excludedItems: { software: ["A"] } } });
+    expect(next.presets[1]).toBe(partial.presets[1]);
+    expect(next.presets[2]).toBe(partial.presets[2]);
+    expect(next.presets[3]).toBe(partial.presets[3]);
+    // Deduped when the target list already carries the id.
+    const dup = { display: { excludedItems: { datasets: ["A"], software: ["A"] } } };
+    expect(
+      (moveSectionViewState(dup, "datasets", "software", ["A"]) as typeof dup).display
+        .excludedItems,
+    ).toEqual({ software: ["A"] });
   });
 });
 
