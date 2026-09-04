@@ -461,6 +461,16 @@ const CvItemSchema = z.object({
         ref: z.string().max(2000).optional(),
       })
       .optional(),
+    /**
+     * ISO timestamp of the last FORRT/FReD replication-evidence check for THIS
+     * work, set by the FORRT enrichment whether or not a match was found —
+     * unlike {@link replications}/{@link replicationOf}, which are set only on
+     * a hit. A genuine miss still "graduates" the work out of the enrichment
+     * queue, so the bounded per-sync check (capped well below most CVs' size)
+     * rotates through never-checked works first and doesn't re-query the same
+     * first page forever. Carried across re-sync like the fields above.
+     */
+    replicationsCheckedAt: z.string().optional(),
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
     rorId: z.string().max(2048).optional(),
     /**

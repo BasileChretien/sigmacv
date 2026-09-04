@@ -374,13 +374,19 @@ describe("enrichCvWithForrtReplications", () => {
     expect(items[0]!.meta.replications).toHaveLength(10);
   });
 
-  it("returns the original CV when the DOI has no FORRT data", async () => {
+  it("a miss stamps replicationsCheckedAt without adding replications, and drops forrt from provenance", async () => {
     mocks.fetchReplicationsForDois.mockResolvedValue({
       replicatedBy: new Map(),
       replicationOf: new Map(),
     });
     const cv = makeCv([pub("W1", csl({ DOI: "10.1000/unrelated" }))]);
-    expect(await enrichCvWithForrtReplications(cv)).toBe(cv);
+    const out = await enrichCvWithForrtReplications(cv);
+    expect(out).not.toBe(cv);
+    const item = out.sections[0]!.items[0]!;
+    expect(item.meta.replications).toBeUndefined();
+    expect(item.meta.replicationOf).toBeUndefined();
+    expect(item.meta.replicationsCheckedAt).toEqual(expect.any(String));
+    expect(out.provenance.sources).not.toContain("forrt");
   });
 
   it("returns the original CV untouched when there is no DOI-bearing item", async () => {
@@ -389,29 +395,59 @@ describe("enrichCvWithForrtReplications", () => {
     expect(mocks.fetchReplicationsForDois).not.toHaveBeenCalled();
   });
 
-  it("does not re-check an already-enriched or hidden work", async () => {
-    mocks.fetchReplicationsForDois.mockResolvedValue({
-      replicatedBy: new Map([["10.1000/original", [{ doi: "10.1000/rep-a" }]]]),
-      replicationOf: new Map(),
-    });
-    const already = {
-      ...pub("W1", csl({ DOI: "10.1000/original" })),
-      meta: { replications: [{ doi: "10.1000/existing" }] },
-    };
+  it("does not target a hidden work", async () => {
     const hidden = { ...pub("W2", csl({ DOI: "10.1000/original" })), included: false };
-    const cv = makeCv([already, hidden]);
+    const cv = makeCv([hidden]);
     const out = await enrichCvWithForrtReplications(cv);
     expect(out).toBe(cv);
     expect(mocks.fetchReplicationsForDois).not.toHaveBeenCalled();
   });
 
-  it("fails soft: an empty result from the client leaves the CV untouched", async () => {
+  it("prefers never-checked works first: a third work is only checked once the cap frees up on a later run", async () => {
+    // Cap the queue to 2 for this test by pre-marking two of three works as
+    // "known" via replicationsCheckedAt from a prior run — the pass should
+    // still fill any remaining room with known works up to the real cap, so
+    // isolate the rotation by asserting the ORDER fresh-before-known targets
+    // are queried in, which is what makes the third work reachable once the
+    // first two graduate.
     mocks.fetchReplicationsForDois.mockResolvedValue({
       replicatedBy: new Map(),
       replicationOf: new Map(),
     });
+    const checkedEarlier = {
+      ...pub("W1", csl({ DOI: "10.1000/checked-1" })),
+      meta: { replicationsCheckedAt: "2026-01-01T00:00:00.000Z" },
+    };
+    const alsoChecked = {
+      ...pub("W2", csl({ DOI: "10.1000/checked-2" })),
+      meta: { replicationsCheckedAt: "2026-01-01T00:00:00.000Z" },
+    };
+    const neverChecked = pub("W3", csl({ DOI: "10.1000/fresh" }));
+    const cv = makeCv([checkedEarlier, alsoChecked, neverChecked]);
+    await enrichCvWithForrtReplications(cv);
+    const queried = mocks.fetchReplicationsForDois.mock.calls[0]![0] as string[];
+    // The never-checked work is queried FIRST, ahead of the two already-known
+    // ones — so under a cap smaller than the CV, it is never starved.
+    expect(queried[0]).toBe("10.1000/fresh");
+  });
+
+  it("carries a previously-found match forward across a later miss (never removes)", async () => {
+    mocks.fetchReplicationsForDois.mockResolvedValueOnce({
+      replicatedBy: new Map([["10.1000/original", [{ doi: "10.1000/rep-a" }]]]),
+      replicationOf: new Map(),
+    });
     const cv = makeCv([pub("W1", csl({ DOI: "10.1000/original" }))]);
-    expect(await enrichCvWithForrtReplications(cv)).toBe(cv);
+    const first = await enrichCvWithForrtReplications(cv);
+    expect(first.sections[0]!.items[0]!.meta.replications).toEqual([{ doi: "10.1000/rep-a" }]);
+
+    // A later run for the SAME (now "known") work returns nothing new — the
+    // existing match is left untouched (only overwritten by a fresh hit).
+    mocks.fetchReplicationsForDois.mockResolvedValueOnce({
+      replicatedBy: new Map(),
+      replicationOf: new Map(),
+    });
+    const second = await enrichCvWithForrtReplications(first);
+    expect(second.sections[0]!.items[0]!.meta.replications).toEqual([{ doi: "10.1000/rep-a" }]);
   });
 });
 

@@ -141,6 +141,58 @@ describe("buildCanonicalCv", () => {
     expect(build().sections[0]!.items.every((i) => i.notMine === false)).toBe(true);
   });
 
+  it("carries FORRT replication evidence (replications/replicationOf/replicationsCheckedAt) across re-sync", () => {
+    const first = build();
+    const enriched = {
+      ...first,
+      sections: first.sections.map((s) => ({
+        ...s,
+        items: s.items.map((it) =>
+          it.id === "W4300000001"
+            ? {
+                ...it,
+                meta: {
+                  ...it.meta,
+                  replications: [{ doi: "10.1000/rep-a", outcome: "success" }],
+                  replicationsCheckedAt: "2026-06-02T00:00:00.000Z",
+                },
+              }
+            : it.id === "W4300000002"
+              ? {
+                  ...it,
+                  meta: {
+                    ...it.meta,
+                    replicationOf: { doi: "10.1000/original", ref: "Original 2019" },
+                    replicationsCheckedAt: "2026-06-02T00:00:00.000Z",
+                  },
+                }
+              : it,
+        ),
+      })),
+    };
+    const resynced = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-09-01T00:00:00.000Z",
+      previous: enriched,
+    });
+    const items = resynced.sections[0]!.items;
+    const replicated = items.find((i) => i.id === "W4300000001")!;
+    expect(replicated.meta.replications).toEqual([{ doi: "10.1000/rep-a", outcome: "success" }]);
+    expect(replicated.meta.replicationsCheckedAt).toBe("2026-06-02T00:00:00.000Z");
+    const replication = items.find((i) => i.id === "W4300000002")!;
+    expect(replication.meta.replicationOf).toEqual({
+      doi: "10.1000/original",
+      ref: "Original 2019",
+    });
+    expect(replication.meta.replicationsCheckedAt).toBe("2026-06-02T00:00:00.000Z");
+    // A work with no FORRT evidence stays untouched.
+    const namesake = items.find((i) => i.id === "W4300000003")!;
+    expect(namesake.meta.replications).toBeUndefined();
+    expect(namesake.meta.replicationsCheckedAt).toBeUndefined();
+  });
+
   function withExtraPubItems(base: ReturnType<typeof build>, extra: CvItem[]) {
     return {
       ...base,
@@ -530,6 +582,46 @@ describe("buildCanonicalCv — external-source sections", () => {
       "10.5281/zenodo.1",
     );
     expect(ds.items.every((i) => i.included)).toBe(true); // ORCID-matched → auto-included
+  });
+
+  it("carries FORRT replication evidence on a DataCite dataset item across re-sync (via makeEntryItem)", () => {
+    const dataciteOutputs = [
+      {
+        doi: "10.5281/datacite.X",
+        title: "DC output",
+        type: "Dataset",
+        year: 2023,
+        publisher: "DataCite pub",
+      },
+    ] as unknown as DataciteOutput[];
+    const first = buildWith({ dataciteOutputs });
+    const item = section(first, "datasets")!.items[0]!;
+    const enriched = {
+      ...first,
+      sections: first.sections.map((s) =>
+        s.type === "datasets"
+          ? {
+              ...s,
+              items: s.items.map((it) =>
+                it.id === item.id
+                  ? {
+                      ...it,
+                      meta: {
+                        ...it.meta,
+                        replications: [{ doi: "10.1000/rep-a" }],
+                        replicationsCheckedAt: "2026-06-02T00:00:00.000Z",
+                      },
+                    }
+                  : it,
+              ),
+            }
+          : s,
+      ),
+    };
+    const resynced = buildWith({ dataciteOutputs, previous: enriched });
+    const resItem = section(resynced, "datasets")!.items.find((i) => i.id === item.id)!;
+    expect(resItem.meta.replications).toEqual([{ doi: "10.1000/rep-a" }]);
+    expect(resItem.meta.replicationsCheckedAt).toBe("2026-06-02T00:00:00.000Z");
   });
 
   it("builds Conference Presentations from DBLP (auto-included, newest first)", () => {

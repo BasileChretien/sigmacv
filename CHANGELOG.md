@@ -36,7 +36,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   outcome wording uses FReD's own labels, localizing only the generic buckets
   (success/failure/mixed/informative failure). **DORMANT until the maintainer
   provisions a FReD export** — the table is empty by default, so this ships as a
-  no-op; see the go-live checklist in `CLAUDE.md`.
+  no-op; see the go-live checklist in `CLAUDE.md`. `meta.replications` /
+  `meta.replicationOf` now survive re-sync (the build previously rebuilt `meta`
+  from scratch and silently dropped both every sync), and a new
+  `meta.replicationsCheckedAt` sentinel is stamped on a genuine miss too, so the
+  bounded per-sync check rotates never-checked works to the front instead of
+  re-querying the same first page of the CV forever while later works were never
+  reached.
 
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,

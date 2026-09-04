@@ -910,6 +910,9 @@
                       },
                       "required": ["doi"]
                     },
+                    "replicationsCheckedAt": {
+                      "type": "string"
+                    },
                     "rorId": {
                       "type": "string",
                       "maxLength": 2048
