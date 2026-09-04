@@ -2,6 +2,7 @@ import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 import { normalizeOrcid } from "@/lib/openalex/types";
 import { normDoi, type DoiRelation } from "@/lib/canonical/duplicates";
+import { extractCreditRoles, type CreditRole } from "@/lib/canonical/credit";
 import type { CslItem } from "@/types/csl";
 
 /**
@@ -388,5 +389,193 @@ export async function fetchCrossrefGrantsByOrcid(
   } catch (err) {
     logger.warn("crossref.grants_fetch_failed", { err });
     return [];
+  }
+}
+
+// ── Open peer reviews registered against a researcher's ORCID ────────────────
+
+/**
+ * ASSUMED response shape (the dev machine has no outbound internet, so this
+ * was written against the public Crossref REST API docs, not a live call).
+ * TODO(verify-live): confirm against
+ *   GET https://api.crossref.org/works?filter=orcid:<iD>,type:peer-review&rows=200&cursor=*
+ * that each `message.items[]` peer-review work carries:
+ *   DOI, title[] (string[]), container-title[] (string[]), URL,
+ *   issued / created { "date-parts": [[YYYY, M, D]] },
+ *   author[] with `ORCID` ("http://orcid.org/…") + given/family,
+ *   review { type, stage, recommendation, "competing-interest-statement", … },
+ *   relation { "is-review-of": [{ id, "id-type": "doi" }] },
+ * and that `message["next-cursor"]` is present for deep paging. Every field is
+ * read defensively: a missing/odd one is simply left undefined; only the DOI
+ * is required.
+ */
+
+/** Rows per page; Crossref caps `rows` at 1000, 200 keeps each body small. */
+const PEER_REVIEW_ROWS = 200;
+/** Deep-paging guard (200 × 3 = 600 reviews — far beyond any real reviewer). */
+const PEER_REVIEW_MAX_PAGES = 3;
+/** Cap on one LIST page (≤200 small records). */
+const MAX_PEER_REVIEW_LIST_BYTES = 4_000_000;
+
+/** A DOI-bearing open peer review from Crossref (`type:peer-review`). */
+export interface CrossrefPeerReview {
+  /** The review's own DOI (bare, lower-cased). */
+  doi: string;
+  title?: string;
+  /** The venue / platform the review was published on (`container-title`). */
+  venue?: string;
+  year?: number;
+  url?: string;
+  /** `review.type` (e.g. "referee-report", "editor-report"), when present. */
+  reviewType?: string;
+  /** `review.stage` ("pre-publication" / "post-publication"), when present. */
+  stage?: string;
+  /** `review.recommendation` ("major-revision", "accept", …), when present. */
+  recommendation?: string;
+  /** DOI of the work reviewed (`relation["is-review-of"]`), bare + lower-cased. */
+  reviewOf?: string;
+  /** The account holder's name as printed on the review (matched by ORCID). */
+  reviewer?: { given?: string; family?: string };
+}
+
+/** The first DOI-typed target of a Crossref `relation[<key>]` list, normalized. */
+function firstRelationDoi(relation: unknown, key: string): string | undefined {
+  return relationDois(asRecord(relation)?.[key])[0];
+}
+
+/** The contributor entry whose ORCID is the account holder's (identifier match only). */
+function findContributorByOrcid(
+  authors: unknown,
+  bareOrcid: string,
+): Record<string, unknown> | undefined {
+  if (!Array.isArray(authors)) return undefined;
+  for (const a of authors) {
+    const rec = asRecord(a);
+    const id = typeof rec?.ORCID === "string" ? normalizeOrcid(rec.ORCID) : "";
+    if (rec && id && id === bareOrcid) return rec;
+  }
+  return undefined;
+}
+
+/** Map one Crossref `type:peer-review` work to a {@link CrossrefPeerReview}. */
+function parsePeerReviewItem(raw: unknown, bareOrcid: string): CrossrefPeerReview | null {
+  const work = asRecord(raw);
+  const doi = typeof work?.DOI === "string" ? normDoi(work.DOI) : undefined;
+  if (!work || !doi) return null;
+  const review = asRecord(work.review);
+  const self = findContributorByOrcid(work.author, bareOrcid);
+  const given = typeof self?.given === "string" ? self.given.trim() : "";
+  const family = typeof self?.family === "string" ? self.family.trim() : "";
+  const out: CrossrefPeerReview = {
+    doi,
+    title: firstString(work.title),
+    venue: firstString(work["container-title"]),
+    year: firstYearFromDateParts(work.issued) ?? firstYearFromDateParts(work.created),
+    url: typeof work.URL === "string" && /^https?:\/\//i.test(work.URL) ? work.URL : undefined,
+    reviewType: firstString(review?.type),
+    stage: firstString(review?.stage),
+    recommendation: firstString(review?.recommendation),
+    reviewOf: firstRelationDoi(work.relation, "is-review-of"),
+  };
+  if (given || family) {
+    out.reviewer = { ...(given ? { given } : {}), ...(family ? { family } : {}) };
+  }
+  return out;
+}
+
+/**
+ * DOI-bearing open peer reviews (`type:peer-review`) registered against the
+ * person's ORCID in Crossref — publisher-deposited referee reports (eLife, PeerJ,
+ * F1000, BMC, MDPI …). ORCID-matched (the publisher deposited the iD), so these
+ * auto-include like the Crossref grants. Cursor-paginated (≤3 pages of 200),
+ * de-duplicated by DOI, fails soft → []. Coverage is small (few publishers
+ * register reviews), so this SUPPLEMENTS the ORCID per-venue counts.
+ */
+export async function fetchCrossrefPeerReviewsByOrcid(
+  orcid: string,
+  mailto: string,
+): Promise<CrossrefPeerReview[]> {
+  const bare = normalizeOrcid(orcid);
+  if (!bare) return [];
+
+  const out: CrossrefPeerReview[] = [];
+  const seen = new Set<string>();
+  let cursor: string | null = "*";
+  try {
+    for (let page = 0; page < PEER_REVIEW_MAX_PAGES && cursor; page += 1) {
+      const url = new URL(CROSSREF_API);
+      url.searchParams.set("filter", `orcid:${bare},type:peer-review`);
+      url.searchParams.set("rows", String(PEER_REVIEW_ROWS));
+      url.searchParams.set("cursor", cursor);
+      url.searchParams.set("mailto", mailto);
+      const res = await resilientFetch(url, {
+        next: { revalidate: 86_400 },
+        timeoutMs: 12_000,
+      });
+      if (!res.ok) break;
+      const body = await res.text();
+      if (body.length > MAX_PEER_REVIEW_LIST_BYTES) break;
+      const data = JSON.parse(body) as { message?: unknown };
+      const message = asRecord(data.message);
+      const items = Array.isArray(message?.items) ? message.items : [];
+      for (const item of items) {
+        const review = parsePeerReviewItem(item, bare);
+        if (review && !seen.has(review.doi)) {
+          seen.add(review.doi);
+          out.push(review);
+        }
+      }
+      const next = message?.["next-cursor"];
+      // A short page is the last one; Crossref also keeps returning a cursor on
+      // an exhausted result set, so the row count is the reliable stop signal.
+      cursor = items.length >= PEER_REVIEW_ROWS && typeof next === "string" && next ? next : null;
+    }
+  } catch (err) {
+    logger.warn("crossref.peer_reviews_fetch_failed", { err });
+  }
+  return out;
+}
+
+// ── CRediT contributor roles for the account holder on one deposited work ────
+
+/**
+ * ASSUMED response shape — TODO(verify-live): Crossref's metadata schema 5.4
+ * accepts CRediT roles per contributor, but the JSON API's rendering of them is
+ * not yet documented; this reads `message.author[]` (selected with
+ * `select=author`) and hands the OWNER's entry (matched by `ORCID`, never by
+ * name) to {@link extractCreditRoles}, which accepts every plausible shape:
+ * `role: string[]`, `role: {value|role|name, vocab}[]`, `contributor-role`,
+ * `roles`. Returns `null` when the work has no roles for the owner (or on any
+ * failure), so the caller never overwrites anything on a miss. Fails soft.
+ */
+export async function fetchCrossrefCreditRoles(
+  doi: string,
+  orcid: string,
+  mailto: string,
+): Promise<CreditRole[] | null> {
+  const bare = normDoi(doi);
+  const bareOrcid = normalizeOrcid(orcid);
+  if (!bare || !DOI_RE.test(bare) || !bareOrcid) return null;
+
+  const url = new URL(`${CROSSREF_API}/${encodeURIComponent(bare)}`);
+  url.searchParams.set("select", "author");
+  url.searchParams.set("mailto", mailto);
+
+  try {
+    const res = await resilientFetch(url, {
+      next: { revalidate: 86_400 },
+      timeoutMs: 12_000,
+    });
+    if (!res.ok) return null;
+    const body = await res.text();
+    if (body.length > MAX_BYTES) return null;
+    const data = JSON.parse(body) as { message?: { author?: unknown } };
+    const self = findContributorByOrcid(data.message?.author, bareOrcid);
+    if (!self) return null;
+    const roles = extractCreditRoles(self);
+    return roles.length > 0 ? roles : null;
+  } catch (err) {
+    logger.warn("crossref.credit_fetch_failed", { err });
+    return null;
   }
 }

@@ -146,7 +146,10 @@ describe("renderStrings helpers", () => {
     expect(SUPPORTED_LOCALES).toHaveLength(10);
     for (const loc of SUPPORTED_LOCALES) {
       for (const value of Object.values(renderStrings(loc))) {
-        expect(value.length).toBeGreaterThan(0);
+        // A nested record (the CRediT role names) is checked entry by entry.
+        const leaves: string[] = typeof value === "string" ? [value] : Object.values(value);
+        expect(leaves.length).toBeGreaterThan(0);
+        for (const leaf of leaves) expect(leaf.length).toBeGreaterThan(0);
       }
     }
   });

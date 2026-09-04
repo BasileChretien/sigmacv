@@ -19,7 +19,7 @@ import type { OrcidFunding } from "@/lib/orcid/client";
 import type { DataciteOutput } from "@/lib/datacite/client";
 import type { OpenaireOutput } from "@/lib/openaire/client";
 import type { DblpConferencePaper } from "@/lib/dblp/client";
-import type { CrossrefGrant } from "@/lib/crossref/client";
+import type { CrossrefGrant, CrossrefPeerReview } from "@/lib/crossref/client";
 import type { FunderGrant } from "@/lib/grants/match";
 import type { ExternalTrial } from "@/lib/trials/types";
 import type { PatentRecord } from "@/lib/patents/types";
@@ -343,6 +343,184 @@ describe("buildCanonicalCv", () => {
       .flatMap((s) => s.items)
       .find((i) => i.csl?.DOI?.toLowerCase() === dupDoi.toLowerCase())!;
     expect(rebuilt.notMine).toBe(true);
+  });
+
+  describe("Crossref open peer reviews (DOI-bearing, ORCID-matched)", () => {
+    const review: CrossrefPeerReview = {
+      doi: "10.7554/elife.12345.sa1",
+      title: "Decision letter: A study of something",
+      venue: "eLife",
+      year: 2024,
+      url: "https://doi.org/10.7554/elife.12345.sa1",
+      reviewType: "referee-report",
+      stage: "pre-publication",
+      recommendation: "major-revision",
+      reviewOf: "10.7554/elife.12345",
+      reviewer: { given: "Basile", family: "Chrétien" },
+    };
+    const buildWith = (
+      reviews: CrossrefPeerReview[],
+      previous?: ReturnType<typeof build>,
+      w: OpenAlexWork[] = [],
+    ) =>
+      buildCanonicalCv({
+        id: "cv_cr",
+        resolved,
+        works: w,
+        now: "2026-06-02T00:00:00.000Z",
+        previous,
+        peerReviews: [{ organization: "Publons", issn: "2050-084X", journal: "eLife", count: 3 }],
+        crossrefPeerReviews: reviews,
+      });
+
+    it("adds each review as a citation item beside the ORCID per-venue count", () => {
+      const cv = buildWith([review]);
+      const pr = cv.sections.find((s) => s.type === "peer-review")!;
+      expect(pr.items).toHaveLength(2);
+      const item = pr.items.find((i) => i.source === "crossref")!;
+      expect(item.id).toBe("peer-review:crossref:10-7554-elife-12345-sa1");
+      expect(item.sourceId).toBe(review.doi);
+      expect(item.included).toBe(true); // ORCID-matched → auto-included
+      expect(item.authoredBySelf).toBe(true);
+      expect(item.selfNameVariants).toContain("Chrétien");
+      expect(item.csl).toEqual({
+        id: item.id,
+        type: "article",
+        title: review.title,
+        DOI: review.doi,
+        author: [{ given: "Basile", family: "Chrétien" }],
+        "container-title": "eLife",
+        issued: { "date-parts": [[2024]] },
+        URL: review.url,
+      });
+      expect(item.meta).toEqual({
+        doi: review.doi,
+        lastVerifiedAt: "2026-06-02T00:00:00.000Z",
+        year: 2024,
+        reviewOf: "10.7554/elife.12345",
+      });
+      // The ORCID aggregate line is kept alongside.
+      expect(pr.items.some((i) => i.displayText === "eLife — 3 reviews")).toBe(true);
+      expect(() => parseCanonicalCv(cv)).not.toThrow();
+    });
+
+    it("builds a minimal review without a deposited name: no author, no highlight", () => {
+      const cv = buildWith([{ doi: "10.5555/min" }]);
+      const item = cv.sections
+        .find((s) => s.type === "peer-review")!
+        .items.find((i) => i.source === "crossref")!;
+      expect(item.csl).toEqual({
+        id: item.id,
+        type: "article",
+        title: "Peer review (10.5555/min)",
+        DOI: "10.5555/min",
+      });
+      expect(item.selfNameVariants).toEqual([]);
+      expect(item.meta).toEqual({ doi: "10.5555/min", lastVerifiedAt: "2026-06-02T00:00:00.000Z" });
+    });
+
+    it("de-duplicates by DOI within the list and against the OpenAlex works", () => {
+      // The fixture's W4300000001 carries DOI 10.1000/example1 — OpenAlex indexes
+      // Crossref peer-review records too, so the same DOI must not list twice.
+      const cv = buildWith(
+        [review, { ...review, title: "dup" }, { doi: "10.1000/example1", title: "indexed" }],
+        undefined,
+        works,
+      );
+      const pr = cv.sections.find((s) => s.type === "peer-review")!;
+      const fromCrossref = pr.items.filter((i) => i.source === "crossref");
+      expect(fromCrossref).toHaveLength(1);
+      expect(fromCrossref[0]!.csl?.title).toBe(review.title);
+    });
+
+    it("carries the user's curation + overrides across re-sync", () => {
+      const first = buildWith([review]);
+      const pr = first.sections.find((s) => s.type === "peer-review")!;
+      const id = pr.items.find((i) => i.source === "crossref")!.id;
+      const curated = {
+        ...first,
+        sections: first.sections.map((s) =>
+          s.id !== pr.id
+            ? s
+            : {
+                ...s,
+                items: s.items.map((i) =>
+                  i.id === id
+                    ? {
+                        ...i,
+                        included: false,
+                        featured: true,
+                        reviewedAt: "2026-06-03T00:00:00.000Z",
+                        meta: { ...i.meta, yearOverride: 2023, venueOverride: "eLife (SA)" },
+                      }
+                    : i,
+                ),
+              },
+        ),
+      };
+      const again = buildWith([review], curated)
+        .sections.find((s) => s.type === "peer-review")!
+        .items.find((i) => i.id === id)!;
+      expect(again.included).toBe(false);
+      expect(again.featured).toBe(true);
+      expect(again.reviewedAt).toBe("2026-06-03T00:00:00.000Z");
+      expect(again.meta.yearOverride).toBe(2023);
+      expect(again.meta.venueOverride).toBe("eLife (SA)");
+      expect(again.meta.year).toBe(2024); // the source value keeps refreshing underneath
+    });
+  });
+
+  it("carries CRediT roles (self-declared or Crossref-sourced) across re-sync", () => {
+    const first = build();
+    const pubs = first.sections.find((s) => s.type === "publications")!;
+    const [a, b] = pubs.items;
+    const curated = {
+      ...first,
+      sections: first.sections.map((s) =>
+        s.id !== pubs.id
+          ? s
+          : {
+              ...s,
+              items: s.items.map((i) =>
+                i.id === a!.id
+                  ? {
+                      ...i,
+                      meta: {
+                        ...i.meta,
+                        creditRoles: ["software" as const],
+                        creditRolesSource: "self" as const,
+                      },
+                    }
+                  : i.id === b!.id
+                    ? {
+                        ...i,
+                        meta: {
+                          ...i.meta,
+                          creditRoles: ["validation" as const],
+                          creditRolesSource: "crossref" as const,
+                        },
+                      }
+                    : i,
+              ),
+            },
+      ),
+    };
+    const again = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-08-01T00:00:00.000Z",
+      previous: curated,
+    }).sections.find((s) => s.type === "publications")!;
+    const byId = new Map(again.items.map((i) => [i.id, i]));
+    expect(byId.get(a!.id)!.meta.creditRoles).toEqual(["software"]);
+    expect(byId.get(a!.id)!.meta.creditRolesSource).toBe("self");
+    expect(byId.get(b!.id)!.meta.creditRoles).toEqual(["validation"]);
+    expect(byId.get(b!.id)!.meta.creditRolesSource).toBe("crossref");
+    // A never-annotated work carries neither field.
+    const rest = again.items.find((i) => i.id !== a!.id && i.id !== b!.id);
+    expect(rest?.meta.creditRoles).toBeUndefined();
+    expect(rest?.meta.creditRolesSource).toBeUndefined();
   });
 
   it("disambiguates peer-review item ids for two ISSN-less venues with the same name", () => {
