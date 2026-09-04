@@ -96,6 +96,7 @@ describe("DisplayChoicesSchema", () => {
       showCitationCounts: false,
       showVerifiedBadges: false,
       showProvenance: false,
+      allowReaderMode: false,
       peerReviewedOnly: false,
       countLetters: true,
       publicationOrder: "custom",

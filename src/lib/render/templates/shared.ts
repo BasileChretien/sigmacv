@@ -17,6 +17,7 @@ import { SITE_URL } from "@/lib/siteUrl";
 import { qrSvg } from "@/lib/cv/qrSvg";
 import { bundledFaceCss } from "../bundledFonts";
 import { publicScriptSrc } from "../publicScripts";
+import { SOURCE_LABEL } from "../sourceLabel";
 import type { RenderOpts } from "../types";
 import type { RenderedSection, TemplateTheme } from "./types";
 
@@ -535,6 +536,15 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-filterbar a:hover { border-color: var(--cv-accent); color: var(--cv-accent); }
   .cv-filterbar a[aria-current="true"] { background: var(--cv-accent); color: #fff; border-color: var(--cv-accent); }
 
+  /* ── Assessor "Reader view" (public living page only, owner opt-in). The quiet
+     link on the standard page, the banner at the top of the reader view, and the
+     per-entry provenance mark the reader view appends after the badges. ──────── */
+  .cv-readerbar { margin: 0 0 0.9rem; font-size: 0.72rem; color: var(--cv-muted); }
+  .cv-readerbar a { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; }
+  .cv-readerbanner { margin: 0 0 1.1rem; padding: 0.55rem 0.8rem; border: 1px solid var(--cv-rule-strong); border-left: 4px solid var(--cv-accent); border-radius: 6px; font-size: 0.76rem; color: var(--cv-ink-2); }
+  .cv-readerbanner a { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; margin-left: 0.4em; white-space: nowrap; }
+  .cv-prov { display: inline-block; margin-left: 0.45em; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; white-space: nowrap; cursor: help; border-bottom: 1px dotted var(--cv-rule-strong); }
+
   /* Public-page "Subscribe" (Atom/RSS) affordance — a quiet footnote near the living
      line. A no-JS <details>: the summary is the "Subscribe" toggle; opening it reveals
      the feed URL to paste into a reader (browsers can't natively subscribe to a feed). */
@@ -567,7 +577,7 @@ export function commonCss(theme: TemplateTheme): string {
     .cv-ids a, .cv-contact a, .cv-links a { text-decoration: underline; text-underline-offset: 0.15em; }
     .cv-ror-link { border-bottom: none; }
     /* Interactive web-only affordances never belong in the printed/PDF CV. */
-    .cv-itemtools, .cv-filterbar, .cv-subscribe { display: none !important; }
+    .cv-itemtools, .cv-filterbar, .cv-subscribe, .cv-readerbar, .cv-readerbanner { display: none !important; }
     section.cv-section { break-inside: auto; }
     section.cv-section > h2 { break-after: avoid; break-inside: avoid; }
     ol.cv-bib > li { break-inside: avoid; }
@@ -754,17 +764,6 @@ function researchSummaryBlock(cv: CanonicalCv): string {
   );
   return `<div class="cv-summary-block"><h2 class="cv-summary-h">${heading}</h2>${body}</div>`;
 }
-
-const SOURCE_LABEL: Record<string, string> = {
-  openalex: "OpenAlex",
-  orcid: "ORCID",
-  oep: "Open Editors Plus",
-  crossref: "Crossref",
-  datacite: "DataCite",
-  ror: "ROR",
-  derived: "derived",
-  manual: "manual entries",
-};
 
 /**
  * Localized "last synced" date. Formatted in UTC (the timestamp is UTC-stored)

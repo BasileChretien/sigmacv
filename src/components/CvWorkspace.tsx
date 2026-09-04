@@ -449,6 +449,7 @@ export default function CvWorkspace({
           onPublicContactChange={(next) => {
             if (cv) update(updateDisplay(cv, { publicContact: next }));
           }}
+          readerViewEnabled={cv?.display.allowReaderMode ?? false}
           onPublishStateChange={setPublishState}
           onEditPublicStyle={handleEditPublicStyle}
           researchConsent={researchConsent}

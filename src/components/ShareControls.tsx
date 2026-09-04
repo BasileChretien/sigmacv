@@ -24,6 +24,9 @@ interface ShareControlsProps {
   locale: string;
   /** The public slug — only mounted when the CV is published, so always present. */
   slug: string;
+  /** Whether the owner enabled the assessor "Reader view" (`display.allowReaderMode`);
+      when true the reader-view link is offered next to the public URL. */
+  readerViewEnabled?: boolean;
 }
 
 /**
@@ -33,7 +36,11 @@ interface ShareControlsProps {
  * distinct, post-publish job and belongs on its own surface (the top-bar Share
  * menu, shown only once the page is live).
  */
-export default function ShareControls({ locale, slug }: ShareControlsProps) {
+export default function ShareControls({
+  locale,
+  slug,
+  readerViewEnabled = false,
+}: ShareControlsProps) {
   const u = ui(locale);
   const b = badgeUi(locale);
   const [badgeStyle, setBadgeStyle] = useState("pill");
@@ -148,6 +155,27 @@ export default function ShareControls({ locale, slug }: ShareControlsProps) {
           </button>
         </div>
         <p className="publish-live-hint muted">{u.shareHint}</p>
+        {/* The assessor "Reader view" link — offered only once the owner enabled it
+            (Design → "Offer a Reader view"). Same page, `?view=reader`: the URL a
+            committee can be handed. */}
+        {readerViewEnabled ? (
+          <p className="publish-live-hint muted">
+            <span>{u.readerViewUrlLabel} </span>
+            <a
+              className="publish-live-url"
+              href={`/p/${slug}?view=reader`}
+              target="_blank"
+              rel="noreferrer"
+              title={u.readerViewUrlHint}
+            >
+              {origin
+                ? `${origin.replace(/^https?:\/\//, "")}/p/${slug}?view=reader`
+                : `/p/${slug}?view=reader`}
+            </a>
+            <br />
+            <span>{u.readerViewUrlHint}</span>
+          </p>
+        ) : null}
       </div>
       {/* "Get a badge" — the embeddable Living-CV badge (README / site / email
           signature) + a nested QR. Collapsed by default. */}
