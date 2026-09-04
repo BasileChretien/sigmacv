@@ -102,7 +102,10 @@ describe("reader view chrome", () => {
   });
 
   it("renders the banner with the score disclaimer and a back link that drops only the view param", () => {
-    const html = readerViewBannerHtml(parseViewFilters(params("?type=article&view=reader")), "en-US");
+    const html = readerViewBannerHtml(
+      parseViewFilters(params("?type=article&view=reader")),
+      "en-US",
+    );
     expect(html).toMatch(/^<aside class="cv-readerbanner" role="note">/);
     expect(html).toContain("Nothing here is a score.");
     expect(html).toContain('<a href="?type=article">Back to the standard page</a>');

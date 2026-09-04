@@ -481,7 +481,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     softwareLicense: "License: {license}",
     readerLinkLabel: "Reader view",
     readerLinkTitle: "Show the provenance, verification and context signals in the owner's data",
-    readerBannerText: "Reader view: shows provenance, verification and context signals from the owner's data. Nothing here is a score.",
+    readerBannerText:
+      "Reader view: shows provenance, verification and context signals from the owner's data. Nothing here is a score.",
     readerBannerBack: "Back to the standard page",
     provMatchOrcid: "Matched to the owner by ORCID iD",
     provMatchOpenAlexId: "Matched to the owner by OpenAlex author ID",
@@ -872,13 +873,16 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     softwareVersion: "Versión {version}",
     softwareLicense: "Licencia: {license}",
     readerLinkLabel: "Vista para evaluadores",
-    readerLinkTitle: "Mostrar las señales de procedencia, verificación y contexto de los datos del titular",
-    readerBannerText: "Vista para evaluadores: muestra las señales de procedencia, verificación y contexto de los datos del titular. Nada de lo que aparece aquí es una puntuación.",
+    readerLinkTitle:
+      "Mostrar las señales de procedencia, verificación y contexto de los datos del titular",
+    readerBannerText:
+      "Vista para evaluadores: muestra las señales de procedencia, verificación y contexto de los datos del titular. Nada de lo que aparece aquí es una puntuación.",
     readerBannerBack: "Volver a la página estándar",
     provMatchOrcid: "Vinculado al titular por su ORCID iD",
     provMatchOpenAlexId: "Vinculado al titular por su ID de autor de OpenAlex",
     provMatchBoth: "Vinculado al titular por su ORCID iD y su ID de autor de OpenAlex",
-    provMatchClaimed: "Añadido por el titular mediante DOI: sin coincidencia de identificador en el registro",
+    provMatchClaimed:
+      "Añadido por el titular mediante DOI: sin coincidencia de identificador en el registro",
     provSourceOf: "Registro procedente de {source}",
     provSourceManual: "Introducido por el titular",
     provEnriched: "metadatos completados desde Crossref",
@@ -1074,13 +1078,16 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     softwareVersion: "Version {version}",
     softwareLicense: "Licence : {license}",
     readerLinkLabel: "Vue évaluateur",
-    readerLinkTitle: "Afficher les signaux de provenance, de vérification et de contexte présents dans les données du titulaire",
-    readerBannerText: "Vue évaluateur : affiche les signaux de provenance, de vérification et de contexte issus des données du titulaire. Rien ici n'est un score.",
+    readerLinkTitle:
+      "Afficher les signaux de provenance, de vérification et de contexte présents dans les données du titulaire",
+    readerBannerText:
+      "Vue évaluateur : affiche les signaux de provenance, de vérification et de contexte issus des données du titulaire. Rien ici n'est un score.",
     readerBannerBack: "Revenir à la page standard",
     provMatchOrcid: "Rattaché au titulaire par son ORCID iD",
     provMatchOpenAlexId: "Rattaché au titulaire par son identifiant auteur OpenAlex",
     provMatchBoth: "Rattaché au titulaire par son ORCID iD et son identifiant auteur OpenAlex",
-    provMatchClaimed: "Ajouté par le titulaire via le DOI — aucune correspondance d'identifiant sur la notice",
+    provMatchClaimed:
+      "Ajouté par le titulaire via le DOI — aucune correspondance d'identifiant sur la notice",
     provSourceOf: "Notice issue de {source}",
     provSourceManual: "Saisi par le titulaire",
     provEnriched: "métadonnées complétées depuis Crossref",
@@ -1275,13 +1282,16 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     softwareVersion: "Version {version}",
     softwareLicense: "Lizenz: {license}",
     readerLinkLabel: "Gutachteransicht",
-    readerLinkTitle: "Herkunfts-, Verifizierungs- und Kontextsignale aus den Daten der Inhaberin bzw. des Inhabers anzeigen",
-    readerBannerText: "Gutachteransicht: zeigt Herkunfts-, Verifizierungs- und Kontextsignale aus den Daten der Inhaberin bzw. des Inhabers. Nichts hiervon ist eine Bewertung.",
+    readerLinkTitle:
+      "Herkunfts-, Verifizierungs- und Kontextsignale aus den Daten der Inhaberin bzw. des Inhabers anzeigen",
+    readerBannerText:
+      "Gutachteransicht: zeigt Herkunfts-, Verifizierungs- und Kontextsignale aus den Daten der Inhaberin bzw. des Inhabers. Nichts hiervon ist eine Bewertung.",
     readerBannerBack: "Zurück zur Standardseite",
     provMatchOrcid: "Über die ORCID iD zugeordnet",
     provMatchOpenAlexId: "Über die OpenAlex-Autoren-ID zugeordnet",
     provMatchBoth: "Über die ORCID iD und die OpenAlex-Autoren-ID zugeordnet",
-    provMatchClaimed: "Per DOI selbst hinzugefügt – keine Identifikator-Übereinstimmung im Datensatz",
+    provMatchClaimed:
+      "Per DOI selbst hinzugefügt – keine Identifikator-Übereinstimmung im Datensatz",
     provSourceOf: "Datensatz aus {source}",
     provSourceManual: "Manuell eingetragen",
     provEnriched: "Metadaten aus Crossref ergänzt",
@@ -1471,7 +1481,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     softwareLicense: "ライセンス：{license}",
     readerLinkLabel: "審査者ビュー",
     readerLinkTitle: "所有者のデータに含まれる出典・検証・文脈の情報を表示します",
-    readerBannerText: "審査者ビュー：所有者のデータに含まれる出典・検証・文脈の情報を表示しています。ここにあるものはいずれもスコアではありません。",
+    readerBannerText:
+      "審査者ビュー：所有者のデータに含まれる出典・検証・文脈の情報を表示しています。ここにあるものはいずれもスコアではありません。",
     readerBannerBack: "通常のページに戻る",
     provMatchOrcid: "ORCID iD により所有者と照合",
     provMatchOpenAlexId: "OpenAlex 著者 ID により所有者と照合",
@@ -1671,13 +1682,16 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     softwareVersion: "Versão {version}",
     softwareLicense: "Licença: {license}",
     readerLinkLabel: "Visão para avaliadores",
-    readerLinkTitle: "Mostrar os sinais de procedência, verificação e contexto presentes nos dados do titular",
-    readerBannerText: "Visão para avaliadores: mostra os sinais de procedência, verificação e contexto dos dados do titular. Nada aqui é uma pontuação.",
+    readerLinkTitle:
+      "Mostrar os sinais de procedência, verificação e contexto presentes nos dados do titular",
+    readerBannerText:
+      "Visão para avaliadores: mostra os sinais de procedência, verificação e contexto dos dados do titular. Nada aqui é uma pontuação.",
     readerBannerBack: "Voltar à página padrão",
     provMatchOrcid: "Vinculado ao titular pelo ORCID iD",
     provMatchOpenAlexId: "Vinculado ao titular pelo ID de autor do OpenAlex",
     provMatchBoth: "Vinculado ao titular pelo ORCID iD e pelo ID de autor do OpenAlex",
-    provMatchClaimed: "Adicionado pelo titular por DOI — sem correspondência de identificador no registro",
+    provMatchClaimed:
+      "Adicionado pelo titular por DOI — sem correspondência de identificador no registro",
     provSourceOf: "Registro proveniente de {source}",
     provSourceManual: "Inserido pelo titular",
     provEnriched: "metadados complementados a partir do Crossref",
@@ -1873,13 +1887,16 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     softwareVersion: "Versione {version}",
     softwareLicense: "Licenza: {license}",
     readerLinkLabel: "Vista per valutatori",
-    readerLinkTitle: "Mostra i segnali di provenienza, verifica e contesto presenti nei dati del titolare",
-    readerBannerText: "Vista per valutatori: mostra i segnali di provenienza, verifica e contesto tratti dai dati del titolare. Nulla di ciò che vedi qui è un punteggio.",
+    readerLinkTitle:
+      "Mostra i segnali di provenienza, verifica e contesto presenti nei dati del titolare",
+    readerBannerText:
+      "Vista per valutatori: mostra i segnali di provenienza, verifica e contesto tratti dai dati del titolare. Nulla di ciò che vedi qui è un punteggio.",
     readerBannerBack: "Torna alla pagina standard",
     provMatchOrcid: "Associato al titolare tramite ORCID iD",
     provMatchOpenAlexId: "Associato al titolare tramite ID autore OpenAlex",
     provMatchBoth: "Associato al titolare tramite ORCID iD e ID autore OpenAlex",
-    provMatchClaimed: "Aggiunto dal titolare tramite DOI — nessuna corrispondenza di identificativo nel record",
+    provMatchClaimed:
+      "Aggiunto dal titolare tramite DOI — nessuna corrispondenza di identificativo nel record",
     provSourceOf: "Record proveniente da {source}",
     provSourceManual: "Inserito dal titolare",
     provEnriched: "metadati completati da Crossref",
@@ -2067,7 +2084,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     softwareLicense: "라이선스: {license}",
     readerLinkLabel: "심사자 보기",
     readerLinkTitle: "소유자 데이터에 담긴 출처·검증·맥락 신호를 표시합니다",
-    readerBannerText: "심사자 보기: 소유자 데이터에 담긴 출처·검증·맥락 신호를 표시합니다. 여기에 있는 것은 어느 것도 점수가 아닙니다.",
+    readerBannerText:
+      "심사자 보기: 소유자 데이터에 담긴 출처·검증·맥락 신호를 표시합니다. 여기에 있는 것은 어느 것도 점수가 아닙니다.",
     readerBannerBack: "기본 페이지로 돌아가기",
     provMatchOrcid: "ORCID iD로 소유자와 매칭됨",
     provMatchOpenAlexId: "OpenAlex 저자 ID로 소유자와 매칭됨",
@@ -2264,8 +2282,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     softwareVersion: "Версия {version}",
     softwareLicense: "Лицензия: {license}",
     readerLinkLabel: "Режим эксперта",
-    readerLinkTitle: "Показать признаки происхождения, подтверждения и контекста из данных владельца",
-    readerBannerText: "Режим эксперта: показывает признаки происхождения, подтверждения и контекста из данных владельца. Ничто здесь не является оценкой.",
+    readerLinkTitle:
+      "Показать признаки происхождения, подтверждения и контекста из данных владельца",
+    readerBannerText:
+      "Режим эксперта: показывает признаки происхождения, подтверждения и контекста из данных владельца. Ничто здесь не является оценкой.",
     readerBannerBack: "Вернуться к обычной странице",
     provMatchOrcid: "Сопоставлено с владельцем по ORCID iD",
     provMatchOpenAlexId: "Сопоставлено с владельцем по ID автора OpenAlex",

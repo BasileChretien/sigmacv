@@ -45,7 +45,9 @@ export type ReaderModeKey = (typeof READER_MODE_KEYS)[number];
  * is VISIBLE with its always-on "Retracted" badge rather than silently absent —
  * an assessor must be able to see the integrity flag, not an edited list.
  */
-export const READER_MODE_OFF_KEYS = ["hideRetracted"] as const satisfies readonly (keyof DisplayChoices)[];
+export const READER_MODE_OFF_KEYS = [
+  "hideRetracted",
+] as const satisfies readonly (keyof DisplayChoices)[];
 
 /** True when `key` is one of the display keys reader mode overrides (on or off). */
 export function isReaderModeKey(key: string): boolean {
