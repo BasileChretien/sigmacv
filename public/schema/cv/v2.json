@@ -441,11 +441,7 @@
           "default": false,
           "type": "boolean"
         },
-        "showWorkIndicators": {
-          "default": false,
-          "type": "boolean"
-        },
-        "showCreditRoles": {
+        "showDataLinks": {
           "default": false,
           "type": "boolean"
         },
@@ -524,10 +520,6 @@
           "type": "boolean"
         },
         "showOutputLedger": {
-          "default": false,
-          "type": "boolean"
-        },
-        "showCollaboration": {
           "default": false,
           "type": "boolean"
         },
@@ -951,70 +943,41 @@
                     "rcr": {
                       "type": "number"
                     },
-                    "clinicalCitations": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 9007199254740991
-                    },
-                    "isClinical": {
-                      "type": "boolean"
-                    },
-                    "apt": {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
                     "retracted": {
                       "type": "boolean"
                     },
-                    "countries": {
-                      "maxItems": 50,
+                    "dataLinks": {
+                      "maxItems": 20,
                       "type": "array",
                       "items": {
-                        "type": "string",
-                        "maxLength": 2
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "maxLength": 500
+                          },
+                          "scheme": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "url": {
+                            "type": "string",
+                            "maxLength": 2048
+                          },
+                          "title": {
+                            "type": "string",
+                            "maxLength": 500
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": ["dataset", "software", "other"]
+                          }
+                        },
+                        "required": ["id", "scheme", "url", "kind"]
                       }
                     },
-                    "refCount": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 9007199254740991
-                    },
-                    "selfRefs": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 9007199254740991
-                    },
-                    "creditRoles": {
-                      "maxItems": 14,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "conceptualization",
-                          "data-curation",
-                          "formal-analysis",
-                          "funding-acquisition",
-                          "investigation",
-                          "methodology",
-                          "project-administration",
-                          "resources",
-                          "software",
-                          "supervision",
-                          "validation",
-                          "visualization",
-                          "writing-original-draft",
-                          "writing-review-editing"
-                        ]
-                      }
-                    },
-                    "creditRolesSource": {
-                      "type": "string",
-                      "enum": ["crossref", "self"]
-                    },
-                    "reviewOf": {
-                      "type": "string",
-                      "maxLength": 1000
+                    "hasDataStatement": {
+                      "type": "boolean"
                     },
                     "rorId": {
                       "type": "string",
@@ -1442,11 +1405,7 @@
                 "default": false,
                 "type": "boolean"
               },
-              "showWorkIndicators": {
-                "default": false,
-                "type": "boolean"
-              },
-              "showCreditRoles": {
+              "showDataLinks": {
                 "default": false,
                 "type": "boolean"
               },
@@ -1525,10 +1484,6 @@
                 "type": "boolean"
               },
               "showOutputLedger": {
-                "default": false,
-                "type": "boolean"
-              },
-              "showCollaboration": {
                 "default": false,
                 "type": "boolean"
               },

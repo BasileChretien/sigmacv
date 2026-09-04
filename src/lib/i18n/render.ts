@@ -233,6 +233,10 @@ export interface RenderStrings {
   supervisionSummaryTotal: string;
   /** Supervision summary per-level parenthetical; "{n}" → the completed count. */
   supervisionSummaryCompleted: string;
+  /** Label of the opt-in open data / code line under a publication ("Data: …"). */
+  dataLinksLabel: string;
+  /** Label of the software part of that line ("Code: …"). */
+  codeLinksLabel: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -400,6 +404,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionNow: "now: {position}",
     supervisionSummaryTotal: "{n} supervised",
     supervisionSummaryCompleted: "{n} completed",
+    dataLinksLabel: "Data",
+    codeLinksLabel: "Code",
   },
   "zh-CN": {
     hankoCredit:
@@ -561,6 +567,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionNow: "现任：{position}",
     supervisionSummaryTotal: "共指导 {n} 人",
     supervisionSummaryCompleted: "{n} 人已完成",
+    dataLinksLabel: "数据",
+    codeLinksLabel: "代码",
   },
   "es-ES": {
     hankoCredit:
@@ -733,6 +741,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionNow: "ahora: {position}",
     supervisionSummaryTotal: "{n} supervisiones",
     supervisionSummaryCompleted: "{n} completadas",
+    dataLinksLabel: "Datos",
+    codeLinksLabel: "Código",
   },
   "fr-FR": {
     hankoCredit:
@@ -906,6 +916,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionNow: "aujourd’hui : {position}",
     supervisionSummaryTotal: "{n} personnes encadrées",
     supervisionSummaryCompleted: "{n} terminées",
+    dataLinksLabel: "Données",
+    codeLinksLabel: "Code",
   },
   "de-DE": {
     hankoCredit:
@@ -1077,6 +1089,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionNow: "heute: {position}",
     supervisionSummaryTotal: "{n} betreut",
     supervisionSummaryCompleted: "{n} abgeschlossen",
+    dataLinksLabel: "Daten",
+    codeLinksLabel: "Code",
   },
   "ja-JP": {
     hankoCredit:
@@ -1242,6 +1256,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionNow: "現職：{position}",
     supervisionSummaryTotal: "指導 {n} 名",
     supervisionSummaryCompleted: "うち修了 {n} 名",
+    dataLinksLabel: "データ",
+    codeLinksLabel: "コード",
   },
   "pt-BR": {
     hankoCredit:
@@ -1413,6 +1429,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionNow: "atualmente: {position}",
     supervisionSummaryTotal: "{n} orientações",
     supervisionSummaryCompleted: "{n} concluídas",
+    dataLinksLabel: "Dados",
+    codeLinksLabel: "Código",
   },
   "it-IT": {
     hankoCredit:
@@ -1585,6 +1603,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionNow: "ora: {position}",
     supervisionSummaryTotal: "{n} supervisioni",
     supervisionSummaryCompleted: "{n} completate",
+    dataLinksLabel: "Dati",
+    codeLinksLabel: "Codice",
   },
   "ko-KR": {
     hankoCredit:
@@ -1749,6 +1769,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionNow: "현재: {position}",
     supervisionSummaryTotal: "지도 {n}명",
     supervisionSummaryCompleted: "{n}명 완료",
+    dataLinksLabel: "데이터",
+    codeLinksLabel: "코드",
   },
   "ru-RU": {
     hankoCredit:
@@ -1918,6 +1940,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionNow: "сейчас: {position}",
     supervisionSummaryTotal: "{n} под руководством",
     supervisionSummaryCompleted: "{n} завершено",
+    dataLinksLabel: "Данные",
+    codeLinksLabel: "Код",
   },
 };
 

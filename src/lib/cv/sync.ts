@@ -11,11 +11,13 @@ import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks"
 import { logger } from "@/lib/log";
 import { getEnv } from "@/lib/env";
 import { buildCanonicalCv } from "@/lib/canonical/build";
+import { attachDataciteLinks } from "@/lib/canonical/dataLinks";
 import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
   enrichCvWithCreditRoles,
   enrichCvWithCrossref,
+  enrichCvWithDataLinks,
   enrichCvWithIcite,
   enrichCvWithRetractions,
   enrichCvWithSupervision,
@@ -442,6 +444,13 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
   // thesis DOI's title/year from Crossref → DataCite and the institution's ROR id.
   // Bounded + fails soft; filled fields persist, so they aren't re-fetched.
   cv = await timed("enrich.supervision", enrichCvWithSupervision(cv, getEnv().OPENALEX_MAILTO));
+
+  // Open data / code links per work: the owner's own DataCite deposits that declare
+  // the paper they supplement (pure, from the already-fetched records), then Europe
+  // PMC data links + Crossref supplement relations (network, bounded + fail-soft).
+  // Before iCite so a PMID Europe PMC back-fills can feed the RCR lookup.
+  cv = attachDataciteLinks(cv, dataciteOutputs);
+  cv = await timed("enrich.dataLinks", enrichCvWithDataLinks(cv, getEnv().OPENALEX_MAILTO));
 
   // NIH iCite: fold the Relative Citation Ratio onto works with a PMID (opt-in
   // biomedical field-normalized metric). Bounded + fails soft.
