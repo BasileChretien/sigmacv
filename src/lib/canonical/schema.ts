@@ -434,6 +434,43 @@ const CvItemSchema = z.object({
      *  retraction enrichment (Crossref `updated-by`/`relation.is-retracted-by`,
      *  publisher- or Retraction-Watch-sourced). Surfaced as a research-integrity flag. */
     retracted: z.boolean().optional(),
+    /**
+     * Replication studies FReD (FORRT Replication Database, CC-BY) recorded of THIS
+     * work, folded in by the FORRT enrichment (DOI-matched — auto-included, no
+     * review flag). Capped at 10; outcomes are FReD's own labels (e.g.
+     * "success"/"failure"/"mixed"/"informative failure"), kept verbatim.
+     */
+    replications: z
+      .array(
+        z.object({
+          doi: z.string().max(1000).optional(),
+          outcome: z.string().max(200).optional(),
+          ref: z.string().max(2000).optional(),
+          url: z.string().max(2048).optional(),
+        }),
+      )
+      .max(10)
+      .optional(),
+    /**
+     * Set when THIS work IS a replication study FReD recorded — the original work
+     * it replicates. DOI-matched — auto-included, no review flag.
+     */
+    replicationOf: z
+      .object({
+        doi: z.string().max(1000),
+        ref: z.string().max(2000).optional(),
+      })
+      .optional(),
+    /**
+     * ISO timestamp of the last FORRT/FReD replication-evidence check for THIS
+     * work, set by the FORRT enrichment whether or not a match was found —
+     * unlike {@link replications}/{@link replicationOf}, which are set only on
+     * a hit. A genuine miss still "graduates" the work out of the enrichment
+     * queue, so the bounded per-sync check (capped well below most CVs' size)
+     * rotates through never-checked works first and doesn't re-query the same
+     * first page forever. Carried across re-sync like the fields above.
+     */
+    replicationsCheckedAt: z.string().optional(),
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
     rorId: z.string().max(2048).optional(),
     /**
@@ -1142,6 +1179,11 @@ export const DisplayChoicesSchema = z.object({
   showAuthorRole: z.boolean().default(false),
   /** Show a per-entry citation count on publications/preprints (HTML/PDF). Default off. */
   showCitationCounts: z.boolean().default(false),
+  /** Show FORRT/FReD replication evidence under a publication: "Replicated: N
+   *  studies (…)" under a work that has been replicated, "Replication of: …"
+   *  under a work that IS a replication. Evaluative (surfaces an outcome), so —
+   *  consistent with the other opt-in evidence toggles — default off. */
+  showReplications: z.boolean().default(false),
   /**
    * Show a small "Verified" mark on positions / education / distinctions that a
    * TRUSTED ORGANISATION asserted on the ORCID record via the Member API
@@ -1344,6 +1386,8 @@ const PROVENANCE_SOURCES = [
   "ictrp",
   "epo",
   "ror",
+  // Replication evidence folded onto existing items (never a new CV item, like ror).
+  "forrt",
   // Provenance-only sources (enrich identity/affiliations, not CV items).
   "wikidata",
   "derived",

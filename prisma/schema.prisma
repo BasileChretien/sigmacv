@@ -17,15 +17,15 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  name            String?
-  email           String?   @unique
-  emailVerified   DateTime?
-  image           String?
+  id                     String    @id @default(cuid())
+  name                   String?
+  email                  String?   @unique
+  emailVerified          DateTime?
+  image                  String?
   // Bare ORCID iD (e.g. 0000-0002-7483-2489), set from the OIDC `sub` claim.
-  orcid           String?   @unique
+  orcid                  String?   @unique
   // Structural research-consent hook. NO logging happens unless/until built.
-  researchConsent Boolean   @default(false)
+  researchConsent        Boolean   @default(false)
   // When consent was last granted, and the version of the consent notice the
   // user agreed to — needed for an IRB-defensible audit trail (what each user
   // agreed to, and when). Null until they first opt in.
@@ -34,7 +34,7 @@ model User {
   // Opt-IN re-sync digest email ("your last sync changed N items"). Default
   // OFF (GDPR/APPI data minimization); toggled in the account controls and by
   // the one-click unsubscribe link in every digest.
-  digestOptIn     Boolean   @default(false)
+  digestOptIn            Boolean   @default(false)
   // User-set NOTIFICATION address for digests — separate from Auth.js's
   // login-identity `email` (which ORCID sign-in rarely supplies). Only used
   // for sending once confirmed (double opt-in): `contactEmailVerifiedAt` is
@@ -43,9 +43,9 @@ model User {
   contactEmailVerifiedAt DateTime?
   // When the last digest was sent — per-user monthly cadence + dedupe (only a
   // report newer than this is ever mailed).
-  digestSentAt    DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  digestSentAt           DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   accounts       Account[]
   sessions       Session[]
@@ -115,26 +115,26 @@ model VerificationToken {
 
 // One canonical CV document per user (the single source of truth).
 model Cv {
-  id            String    @id @default(cuid())
-  userId        String    @unique
-  document      Json
-  schemaVersion Int       @default(1)
-  lastSyncedAt  DateTime?
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  document        Json
+  schemaVersion   Int       @default(1)
+  lastSyncedAt    DateTime?
   // "What changed" report of the last sync (added/removed items, review
   // candidates, per-source counts + timings) — shown in the editor. Validated
   // on read by SyncReportSchema; a corrupt value degrades to "no report".
-  lastSyncReport Json?
+  lastSyncReport  Json?
   // Living public page: published flag + a stable public slug.
-  published     Boolean   @default(false)
-  publicSlug    String?   @unique
+  published       Boolean   @default(false)
+  publicSlug      String?   @unique
   // Separate, explicit opt-in to let search engines index the public page.
   // Default false: publishing shares a capability URL; INDEXING (names/ORCID/
   // publications into Google) requires this distinct consent (GDPR/APPI).
-  publicIndexable Boolean @default(false)
+  publicIndexable Boolean   @default(false)
   // Compare-and-set lock for the scheduled re-sync job (null = unlocked).
-  resyncLockedAt DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  resyncLockedAt  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -214,4 +214,36 @@ model IctrpTrial {
   registrationYear  Int?
 
   @@index([contactNameLower])
+}
+
+// FORRT Replication Database (FReD, https://forrt.org/replication-hub/) — original
+// ⇄ replication study pairs by DOI, with the replication's outcome (e.g.
+// "success"/"failure"/"mixed"/"informative failure"), discipline and free-text
+// description. CC-BY licensed (attribution required, cite FORRT/FReD), so — unlike
+// WHO ICTRP — a committed seed WOULD be permitted, but none ships yet: DORMANT
+// scaffolding until the maintainer provisions one. Bulk-imported from the FReD OSF
+// CSV export by `npm run forrt:import` (see scripts/forrt-import.ts), which
+// replaces the table wholesale on each run — re-run on a dataset refresh. Both
+// DOIs are identifier data (not a name match), so a hit is auto-included, never a
+// review candidate. Static reference data — no relation to User.
+model ForrtReplication {
+  id             Int      @id @default(autoincrement())
+  /**
+   * DOI of the ORIGINAL (replicated) study, normalised lower-case/bare.
+   */
+  originalDoi    String
+  /**
+   * DOI of the REPLICATION study itself; null when FReD didn't record one.
+   */
+  replicationDoi String?
+  outcome        String?
+  discipline     String?
+  description    String?
+  originalRef    String?
+  replicationRef String?
+  sourceUrl      String?
+  importedAt     DateTime @default(now())
+
+  @@index([originalDoi])
+  @@index([replicationDoi])
 }

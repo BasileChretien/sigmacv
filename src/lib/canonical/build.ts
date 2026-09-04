@@ -493,6 +493,16 @@ function makeEntryItem(
   if (prev?.meta.departmentOverride) meta.departmentOverride = prev.meta.departmentOverride;
   if (prev?.meta.institutionOverride) meta.institutionOverride = prev.meta.institutionOverride;
   if (prev?.meta.dateRangeOverride) meta.dateRangeOverride = prev.meta.dateRangeOverride;
+  // FORRT replication evidence (`meta.replications`/`replicationOf`) is folded in
+  // by a separate, bounded enrichment pass AFTER the build — never rebuilt here —
+  // so carry it across re-sync like the overrides above, or every rebuild would
+  // silently drop it and the enrichment queue would never make progress past its
+  // cap. `replicationsCheckedAt` carries the same way so a genuine miss stays
+  // remembered too (see its schema doc).
+  if (prev?.meta.replications) meta.replications = prev.meta.replications;
+  if (prev?.meta.replicationOf) meta.replicationOf = prev.meta.replicationOf;
+  if (prev?.meta.replicationsCheckedAt)
+    meta.replicationsCheckedAt = prev.meta.replicationsCheckedAt;
   return {
     id,
     source,
@@ -1711,6 +1721,14 @@ function buildWorkCvItem(
       workInstitutions: authoredBySelf ? selfWorkInstitutions(selfAuth) : undefined,
       reviewFlag:
         reviewFlagOverride ?? (authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined),
+      // FORRT replication evidence is folded in by a separate enrichment pass,
+      // never rebuilt here — carry it across re-sync (see makeEntryItem's
+      // matching comment for why).
+      ...(prev?.meta.replications ? { replications: prev.meta.replications } : {}),
+      ...(prev?.meta.replicationOf ? { replicationOf: prev.meta.replicationOf } : {}),
+      ...(prev?.meta.replicationsCheckedAt
+        ? { replicationsCheckedAt: prev.meta.replicationsCheckedAt }
+        : {}),
     },
   };
 }

@@ -66,6 +66,8 @@ export interface UiStrings {
   showCitationCounts: string;
   /** Editor toggle: the "Verified" mark on institution-asserted positions/education. */
   showVerifiedBadges: string;
+  /** Editor toggle: show FORRT/FReD replication evidence under each publication. */
+  showReplications: string;
   showProvenance: string;
   peerReviewedOnly: string;
   peerReviewedOnlyTitle: string;
@@ -243,6 +245,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "Show my author role (first / last / corresponding)",
     showCitationCounts: "Show citation counts on each publication",
     showVerifiedBadges: "Mark positions & education confirmed by the institution via ORCID",
+    showReplications: "Show replication evidence on publications (FORRT/FReD)",
     showProvenance: "Data-provenance footer",
     peerReviewedOnly: "Hide preprints & non-peer-reviewed work",
     peerReviewedOnlyTitle:
@@ -403,6 +406,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "显示我的作者角色（第一／末位／通讯）",
     showCitationCounts: "在每篇论文上显示被引次数",
     showVerifiedBadges: "标记由机构通过 ORCID 确认的职位与教育经历",
+    showReplications: "在论文上显示复现证据（FORRT/FReD）",
     showProvenance: "数据来源页脚",
     peerReviewedOnly: "隐藏预印本及非同行评审成果",
     peerReviewedOnlyTitle:
@@ -561,6 +565,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "Mostrar el número de citas en cada publicación",
     showVerifiedBadges:
       "Marcar los puestos y estudios confirmados por la institución mediante ORCID",
+    showReplications: "Mostrar evidencia de replicación en las publicaciones (FORRT/FReD)",
     showProvenance: "Pie de página con la procedencia de los datos",
     peerReviewedOnly: "Ocultar preprints y trabajos no revisados por pares",
     peerReviewedOnlyTitle:
@@ -723,6 +728,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "Afficher mon rôle d’auteur (premier / dernier / correspondant)",
     showCitationCounts: "Afficher le nombre de citations sur chaque publication",
     showVerifiedBadges: "Marquer les postes et formations confirmés par l’établissement via ORCID",
+    showReplications: "Afficher les preuves de réplication sur les publications (FORRT/FReD)",
     showProvenance: "Pied de page sur la provenance des données",
     peerReviewedOnly: "Masquer les pré-publications et les travaux non évalués par les pairs",
     peerReviewedOnlyTitle:
@@ -887,6 +893,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "Zitationszahl bei jeder Publikation anzeigen",
     showVerifiedBadges:
       "Positionen & Ausbildung markieren, die die Institution über ORCID bestätigt hat",
+    showReplications: "Replikationsnachweise bei Publikationen anzeigen (FORRT/FReD)",
     showProvenance: "Fußzeile zur Datenherkunft",
     peerReviewedOnly: "Preprints & nicht peer-reviewte Arbeiten ausblenden",
     peerReviewedOnlyTitle:
@@ -1049,6 +1056,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "自分の著者役割を表示（筆頭・最終・責任著者）",
     showCitationCounts: "各論文に被引用数を表示",
     showVerifiedBadges: "機関が ORCID を通じて確認した職歴・学歴に認証マークを表示",
+    showReplications: "論文に追試（再現性）の証拠を表示（FORRT/FReD）",
     showProvenance: "データ出典フッター",
     peerReviewedOnly: "プレプリント・非査読の業績を非表示",
     peerReviewedOnlyTitle:
@@ -1209,6 +1217,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "Mostrar meu papel de autoria (primeiro / último / correspondente)",
     showCitationCounts: "Mostrar o número de citações em cada publicação",
     showVerifiedBadges: "Marcar cargos e formação confirmados pela instituição via ORCID",
+    showReplications: "Mostrar evidências de replicação nas publicações (FORRT/FReD)",
     showProvenance: "Rodapé de proveniência dos dados",
     peerReviewedOnly: "Ocultar pré-prints e trabalhos não revisados por pares",
     peerReviewedOnlyTitle:
@@ -1371,6 +1380,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "Mostra il mio ruolo di autore (primo / ultimo / corrispondente)",
     showCitationCounts: "Mostra il numero di citazioni per ogni pubblicazione",
     showVerifiedBadges: "Segnala posizioni e formazione confermate dall’istituzione tramite ORCID",
+    showReplications: "Mostra le evidenze di replicazione sulle pubblicazioni (FORRT/FReD)",
     showProvenance: "Piè di pagina sulla provenienza dei dati",
     peerReviewedOnly: "Nascondi i preprint e i lavori non sottoposti a revisione paritaria",
     peerReviewedOnlyTitle:
@@ -1532,6 +1542,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "내 저자 역할 표시 (제1저자 / 마지막 저자 / 교신저자)",
     showCitationCounts: "각 논문에 피인용 수 표시",
     showVerifiedBadges: "기관이 ORCID를 통해 확인한 경력·학력에 인증 표시",
+    showReplications: "논문에 재현(FORRT/FReD) 증거 표시",
     showProvenance: "데이터 출처 푸터",
     peerReviewedOnly: "프리프린트 및 비동료 심사 자료 숨기기",
     peerReviewedOnlyTitle:
@@ -1692,6 +1703,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "Показывать мою авторскую роль (первый / последний / корреспондирующий)",
     showCitationCounts: "Показывать число цитирований у каждой публикации",
     showVerifiedBadges: "Отмечать должности и образование, подтверждённые организацией через ORCID",
+    showReplications: "Показывать данные о репликации у публикаций (FORRT/FReD)",
     showProvenance: "Нижний колонтитул с источниками данных",
     peerReviewedOnly: "Скрыть препринты и нерецензируемые работы",
     peerReviewedOnlyTitle:

@@ -14,6 +14,7 @@ import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
   enrichCvWithCrossref,
+  enrichCvWithForrtReplications,
   enrichCvWithIcite,
   enrichCvWithRetractions,
   withRorProvenance,
@@ -439,6 +440,17 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
   // Bounded + fails soft.
   cv = await timed("enrich.retractions", enrichCvWithRetractions(cv, getEnv().OPENALEX_MAILTO));
 
+  // FORRT / FReD: fold replication evidence onto works (DOI-matched, auto-included).
+  // Bounded + fails soft; DORMANT (no-op) until `npm run forrt:import` is run.
+  cv = await timed("enrich.forrt", enrichCvWithForrtReplications(cv));
+  // Items this pass actually touched, for the provenance summary (sourceCounts
+  // below) — the enrichment above doesn't return a count of its own.
+  const forrtEnrichedCount = cv.sections.reduce(
+    (n, section) =>
+      n + section.items.filter((item) => item.meta.replications || item.meta.replicationOf).length,
+    0,
+  );
+
   // Upgrade duplicate hints with Crossref's publisher-asserted preprint↔published
   // relationships (the build already ran the identifier + heuristic tiers). The
   // lookup is targeted at ambiguous pairs only and fails soft.
@@ -485,6 +497,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     ukri: ukriGrants.length,
     nih: nihGrants.length,
     nsf: nsfGrants.length,
+    forrt: forrtEnrichedCount,
     epo: epoPatents.length,
     "orcid.patents": orcidPatents.length,
   };

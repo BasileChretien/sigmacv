@@ -237,6 +237,85 @@ function withDoiLink(html: string, item: CvItem): string {
   )}`;
 }
 
+/** Map a FReD outcome label to a localized generic bucket word, or undefined
+ *  when it doesn't match a recognized bucket (in which case the caller falls
+ *  back to the dataset's own raw text, shown verbatim — see {@link outcomeLabel}). */
+function outcomeBucketLabel(outcome: string | undefined, locale: string): string | undefined {
+  if (!outcome) return undefined;
+  const s = renderStrings(locale);
+  switch (outcome.trim().toLowerCase()) {
+    case "success":
+    case "successful":
+      return s.outcomeSuccess;
+    case "failure":
+    case "failed":
+      return s.outcomeFailure;
+    case "mixed":
+      return s.outcomeMixed;
+    case "informative failure":
+      return s.outcomeInformativeFailure;
+    default:
+      return undefined;
+  }
+}
+
+/** Localized bucket word when the outcome matches a known FReD category, else
+ *  the dataset's own raw text verbatim (untranslated — it's source data, not UI
+ *  copy). Undefined when the row carries no outcome at all. */
+function outcomeLabel(outcome: string | undefined, locale: string): string | undefined {
+  return outcomeBucketLabel(outcome, locale) ?? (outcome?.trim() || undefined);
+}
+
+/**
+ * FORRT/FReD replication-evidence line(s), appended under a citation entry when
+ * `display.showReplications` is on: "Replicated: N studies (…)" under a work
+ * that has been replicated (`meta.replications`), "Replication of: …" under a
+ * work that IS a replication (`meta.replicationOf`). Each linked DOI is
+ * re-validated via `safeHref`. "" when the item carries neither.
+ */
+function replicationsHtml(item: CvItem, locale: string): string {
+  const s = renderStrings(locale);
+  const parts: string[] = [];
+
+  const reps = item.meta.replications;
+  if (reps && reps.length > 0) {
+    const counts = new Map<string, number>();
+    for (const r of reps) {
+      const label = outcomeLabel(r.outcome, locale);
+      if (!label) continue;
+      counts.set(label, (counts.get(label) ?? 0) + 1);
+    }
+    const breakdown = [...counts.entries()]
+      .map(([label, n]) => `${n} ${escapeHtml(label)}`)
+      .join(", ");
+    const n = new Intl.NumberFormat(locale).format(reps.length);
+    const summary =
+      escapeHtml(s.replicatedLabel.replace("{n}", n)) + (breakdown ? ` (${breakdown})` : "");
+    const links = reps
+      .map((r) => {
+        const href = safeHref(r.doi ? `https://doi.org/${r.doi}` : undefined);
+        if (!href) return "";
+        const label = escapeHtml(outcomeLabel(r.outcome, locale) ?? s.replicatedLabel);
+        const title = r.ref ? ` title="${escapeHtml(r.ref)}"` : "";
+        return ` <a class="cv-replication-link" href="${escapeHtml(href)}"${title}>${label}</a>`;
+      })
+      .join("");
+    parts.push(`<div class="cv-replications">${summary}${links}</div>`);
+  }
+
+  const of = item.meta.replicationOf;
+  if (of) {
+    const refText = escapeHtml(of.ref?.trim() || of.doi);
+    const href = safeHref(`https://doi.org/${of.doi}`);
+    const refHtml = href ? `<a href="${escapeHtml(href)}">${refText}</a>` : refText;
+    parts.push(
+      `<div class="cv-replication-of">${escapeHtml(s.replicatedOfLabel)} ${refHtml}</div>`,
+    );
+  }
+
+  return parts.join("");
+}
+
 /**
  * Public-page-only per-publication affordances appended under a citation entry: a
  * no-JS "Cite" disclosure linking to the per-item BibTeX / RIS / CSL-JSON downloads
@@ -338,6 +417,8 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
         }
         html += itemBadges(item, cv.display);
         if (isHistory) html = withRorLink(html, item, cv.display.locale);
+        // Opt-in FORRT/FReD replication evidence under the entry.
+        if (cv.display.showReplications) html += replicationsHtml(item, cv.display.locale);
         // Public-page-only: a no-JS Cite/Abstract/Full-text affordance per work.
         if (publicExtras) html += itemToolsHtml(item, opts!.slug!, cv.display.locale);
         return { item, html };

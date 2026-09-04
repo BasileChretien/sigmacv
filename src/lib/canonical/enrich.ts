@@ -6,6 +6,8 @@ import {
   type CrossrefGapFields,
 } from "@/lib/crossref/client";
 import { fetchRcrByPmids } from "@/lib/icite/client";
+import { fetchReplicationsForDois } from "@/lib/forrt/client";
+import { bareDoiInput } from "@/lib/openalex/client";
 import { resolveInstitution } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
 import type { OrcidPosition } from "@/lib/orcid/client";
@@ -47,7 +49,7 @@ async function mapBounded<T, R>(
   return results;
 }
 
-function withSource(prov: Provenance, source: "crossref" | "ror"): Provenance {
+function withSource(prov: Provenance, source: "crossref" | "ror" | "forrt"): Provenance {
   if (prov.sources.includes(source)) return prov;
   return { ...prov, sources: [...prov.sources, source] };
 }
@@ -255,6 +257,88 @@ export async function enrichCvWithRetractions(
     ),
   }));
   return { ...cv, sections };
+}
+
+// ─── FORRT / FReD replication evidence ────────────────────────────────────────
+
+const FORRT_MAX_ENRICH = 200;
+
+interface ForrtTarget {
+  s: number;
+  i: number;
+  doi: string;
+}
+
+/**
+ * Fold FORRT Replication Database (FReD) evidence onto works: `meta.replications`
+ * on a work that has been replicated, `meta.replicationOf` on a work that IS a
+ * replication. DOI-matched (identifier data), so this is auto-included — no
+ * review flag. Both fields (and the `replicationsCheckedAt` sentinel below) are
+ * carried across re-sync by the build, so a large CV is covered over successive
+ * syncs rather than losing progress on every rebuild.
+ *
+ * Bounded to {@link FORRT_MAX_ENRICH} works per sync, works never checked before
+ * FIRST (a genuine miss still stamps `meta.replicationsCheckedAt`, which is what
+ * lets it "graduate" out of the always-fresh queue instead of being re-checked
+ * forever while works past the cap are never reached) — same rotation as the
+ * data-links enrichment. Fail-soft (an empty/unreachable `ForrtReplication` table
+ * is a no-op). Immutable; returns the original CV untouched when nothing to check.
+ */
+export async function enrichCvWithForrtReplications(cv: CanonicalCv): Promise<CanonicalCv> {
+  const fresh: ForrtTarget[] = [];
+  const known: ForrtTarget[] = [];
+  cv.sections.forEach((section, s) => {
+    section.items.forEach((item, i) => {
+      const doi = item.csl?.DOI ?? item.meta.doi;
+      if (!doi || isHidden(item)) return;
+      const t: ForrtTarget = { s, i, doi };
+      const checked =
+        item.meta.replications !== undefined ||
+        item.meta.replicationOf !== undefined ||
+        item.meta.replicationsCheckedAt !== undefined;
+      (checked ? known : fresh).push(t);
+    });
+  });
+  const targets = [...fresh, ...known].slice(0, FORRT_MAX_ENRICH);
+  if (targets.length === 0) return cv;
+
+  const { replicatedBy, replicationOf } = await fetchReplicationsForDois(targets.map((t) => t.doi));
+
+  const checkedAt = new Date().toISOString();
+  let changed = false;
+  let anyMatch = false;
+  const sections = cv.sections.map((section, s) => ({
+    ...section,
+    items: section.items.map((item, i) => {
+      const target = targets.find((t) => t.s === s && t.i === i);
+      if (!target) return item;
+      // The client normalizes every DOI it queries by the same function before
+      // keying its result maps — re-normalize here so the lookup matches.
+      const doi = bareDoiInput(target.doi);
+      if (!doi) return item;
+      const replications = replicatedBy.get(doi);
+      const of = replicationOf.get(doi);
+      if (replications || of) anyMatch = true;
+      changed = true;
+      return {
+        ...item,
+        meta: {
+          ...item.meta,
+          ...(replications ? { replications: replications.slice(0, 10) } : {}),
+          ...(of ? { replicationOf: of } : {}),
+          // Stamped on every item the pass actually examined — including a
+          // miss — so it moves from "fresh" to "known" on the next sync.
+          replicationsCheckedAt: checkedAt,
+        },
+      };
+    }),
+  }));
+  if (!changed) return cv;
+  return {
+    ...cv,
+    sections,
+    provenance: anyMatch ? withSource(cv.provenance, "forrt") : cv.provenance,
+  };
 }
 
 // ─── ROR institution-name canonicalization ───────────────────────────────────
