@@ -14,6 +14,7 @@ import { annotateMisattribution } from "./misattribution";
 import { formatEntryLine, rederiveEntryLine } from "./entryLine";
 import { nameVariants } from "./nameVariants";
 import { isSoftwareItem } from "./softwareItem";
+import { moveSectionViewState } from "./moveSectionViewState";
 import { computeDerivedMetrics, workTopDecile } from "@/lib/openalex/deriveMetrics";
 import { isDefaultSectionTitle, isLegacyDatasetsTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName, workToCsl } from "@/lib/openalex/toCsl";
@@ -2361,7 +2362,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // every build; the raw per-item topics stay stripped from the public projection).
   const researchAreas = computeResearchAreas(sectionsWithSelf);
 
-  const cv: CanonicalCv = {
+  const assembled: CanonicalCv = {
     schemaVersion: CANONICAL_SCHEMA_VERSION,
     id,
     owner: {
@@ -2390,6 +2391,17 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       sources: [...usedSources],
     },
   };
+  // The carried display + presets are keyed by SECTION id, so a software deposit
+  // the owner hid from a view while it was still filed under "Datasets & Software"
+  // must be re-keyed to the Software section it now lands in — otherwise it would
+  // silently reappear on the published page / in that preset. Same helper as the
+  // on-read migration; a no-op when nothing was ever excluded under `datasets`.
+  const cv = moveSectionViewState(
+    assembled,
+    "datasets",
+    "software",
+    sectionsWithSelf.find((s) => s.type === "software")?.items.map((it) => it.id) ?? [],
+  );
 
   // Cross-source duplicate detection: a PURE, fail-soft pass over the fully
   // assembled object (sees every section, unlike the per-source dedupers). It

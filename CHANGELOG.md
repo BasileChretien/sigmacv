@@ -26,7 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   filters, the narrative "contributions to knowledge" evidence counts and the
   research-output ledger all count the new section. **No re-sync needed**: a saved
   CV is migrated on read — software items move from Datasets to Software keeping
-  their curation (hidden / "not mine" / reviewed / order) — and a rebuild
+  their curation (hidden / "not mine" / reviewed / order) and every per-view
+  "hide from this view" choice and saved preset that referred to them — and a rebuild
   preserves that curation across the move too. DOI de-duplication (Zenodo
   concept↔version siblings vs the OpenAlex copy) works across both sections.
 
