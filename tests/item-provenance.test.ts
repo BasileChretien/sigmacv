@@ -192,11 +192,18 @@ describe.skipIf(!hasApa)("renderCvHtml readerMode option (needs vendored CSL ass
     // The fixture works are identifier-matched, so the (unprojected) owner-side
     // render names the match basis; the public route renders the projection, where
     // the mark falls back to the record source (see the route test).
-    expect(reader).toMatch(/title="Matched to the owner by [^"]*">(ORCID|OpenAlex ID|ORCID \+ OpenAlex ID)<\/span>/);
+    expect(reader).toMatch(
+      /title="Matched to the owner by [^"]*">(ORCID|OpenAlex ID|ORCID \+ OpenAlex ID)<\/span>/,
+    );
   });
 
   it("marks a manual entry as such, and is a render option — no display toggle switches it on", () => {
-    const withManual = addManualEntry(makeCv(), "publications", "Chrétien B. (2020). A manual note.", "man1");
+    const withManual = addManualEntry(
+      makeCv(),
+      "publications",
+      "Chrétien B. (2020). A manual note.",
+      "man1",
+    );
     const html = renderCvHtml(withManual, { readerMode: true });
     expect(html).toContain('title="Entered by the owner">Manual</span>');
     // Every display toggle on, no option → still no mark (exports never carry it).
