@@ -163,6 +163,18 @@ describe("fetchOrcidPositions", () => {
             },
           ],
         },
+        {
+          summaries: [
+            {
+              // Org-asserted (Member-API client) but ORCID gives NO source name.
+              "employment-summary": {
+                "put-code": 303,
+                organization: { name: "Nameless-Client College" },
+                source: { "source-client-id": { path: "APP-9" } },
+              },
+            },
+          ],
+        },
       ],
     };
     vi.stubGlobal("fetch", routedFetch({ emp: res(sourced) }));
@@ -173,6 +185,16 @@ describe("fetchOrcidPositions", () => {
     expect(byOrg["Org-Asserted University"]?.verified).toBe(true);
     expect(byOrg["Self-Entered Inc"]?.verified).toBeUndefined();
     expect(byOrg["No-Source Ltd"]?.verified).toBeUndefined();
+    // The asserting party's display name rides along, so the rendered mark can
+    // say WHO confirmed the entry ("Verified by Org University").
+    expect(byOrg["Org-Asserted University"]?.verifiedBy).toBe("Org University");
+    // A self-entered entry never carries a verifier — even though ORCID names the
+    // owner as its source.
+    expect(byOrg["Self-Entered Inc"]?.verifiedBy).toBeUndefined();
+    expect(byOrg["No-Source Ltd"]?.verifiedBy).toBeUndefined();
+    // Org-asserted with no source name → verified, verifier unknown.
+    expect(byOrg["Nameless-Client College"]?.verified).toBe(true);
+    expect(byOrg["Nameless-Client College"]?.verifiedBy).toBeUndefined();
   });
 
   it("returns [] when the ORCID API errors (fails soft)", async () => {

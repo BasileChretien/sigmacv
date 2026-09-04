@@ -38,6 +38,13 @@ export interface OrcidPosition {
    * / unknown) otherwise.
    */
   verified?: boolean;
+  /**
+   * Display name of the party that asserted a {@link verified} affiliation
+   * (ORCID `source.source-name`, e.g. "Nagoya University") — lets a reader see
+   * WHO confirmed the entry ("Verified by …"). Only set alongside `verified`;
+   * omitted when ORCID gives no source name.
+   */
+  verifiedBy?: string;
 }
 
 export interface OrcidFunding {
@@ -138,6 +145,20 @@ function isOrgAsserted(source: any, bareOwnerOrcid: string): boolean {
 }
 
 /**
+ * The `verified` (+ `verifiedBy`) fields for an affiliation summary: set only
+ * when a party OTHER than the record holder asserted it (see {@link isOrgAsserted});
+ * `verifiedBy` carries that party's display name when ORCID supplies one.
+ */
+function verifiedFields(
+  source: any,
+  bareOwnerOrcid: string,
+): { verified?: true; verifiedBy?: string } {
+  if (!isOrgAsserted(source, bareOwnerOrcid)) return {};
+  const verifiedBy = nonEmpty(source?.["source-name"]?.value);
+  return verifiedBy ? { verified: true, verifiedBy } : { verified: true };
+}
+
+/**
  * Generic reader for ORCID's "affiliation" endpoints, which all share the same
  * shape: affiliation-group[].summaries[].<summaryKey> with organization +
  * role-title + department + dates + put-code. Covers employments, educations,
@@ -166,7 +187,7 @@ async function fetchOrcidAffiliations(
           department: nonEmpty(e?.["department-name"]),
           startYear: yearOf(e?.["start-date"]),
           endYear: yearOf(e?.["end-date"]),
-          ...(isOrgAsserted(e?.source, bareOwner) ? { verified: true } : {}),
+          ...verifiedFields(e?.source, bareOwner),
         });
       }
     }

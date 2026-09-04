@@ -427,6 +427,16 @@ function mergeSection(built: CvSection, previous: CanonicalCv | null | undefined
 }
 
 /** A non-citation item (position / grant) with curation preserved from prev. */
+/**
+ * The verified-signal meta for an ORCID affiliation: `verified` when a trusted
+ * organisation asserted it, plus that organisation's name when ORCID gave one.
+ * Nothing (not even `verifiedBy`) for a self-entered / unknown-source entry.
+ */
+function verifiedMeta(e: OrcidPosition): { verified?: true; verifiedBy?: string } {
+  if (!e.verified) return {};
+  return e.verifiedBy ? { verified: true, verifiedBy: e.verifiedBy } : { verified: true };
+}
+
 function makeEntryItem(
   id: string,
   source: CvItem["source"],
@@ -452,6 +462,8 @@ function makeEntryItem(
     endYear?: number;
     /** Institution-asserted via the ORCID Member API (a "verified" signal). */
     verified?: boolean;
+    /** Display name of the asserting organisation (only meaningful with `verified`). */
+    verifiedBy?: string;
   },
 ): CvItem {
   const meta: CvItem["meta"] = {};
@@ -470,7 +482,10 @@ function makeEntryItem(
   // line re-derive in `curate.ts` reads these back and must agree with the build.
   if (extraMeta?.startYear != null) meta.startYear = extraMeta.startYear;
   if (extraMeta?.endYear != null) meta.endYear = extraMeta.endYear;
-  if (extraMeta?.verified) meta.verified = true;
+  if (extraMeta?.verified) {
+    meta.verified = true;
+    if (extraMeta.verifiedBy) meta.verifiedBy = extraMeta.verifiedBy;
+  }
   // A user edit of the role / institution / dates (positions/education) survives
   // re-sync, exactly like `displayTextOverride` — while the source values above
   // keep refreshing underneath, so "revert to source" stays meaningful.
@@ -578,7 +593,7 @@ function buildPositionsSection(
             startYear: e.startYear,
             endYear: e.endYear,
             lastVerifiedAt: now,
-            ...(e.verified ? { verified: true } : {}),
+            ...verifiedMeta(e),
           },
         ),
       ),
@@ -675,7 +690,7 @@ function buildOrcidEntrySection(
           institutionNames: e.institutionNames,
           institutionUrl: e.institutionUrl,
           lastVerifiedAt: opts.now,
-          ...(e.verified ? { verified: true } : {}),
+          ...verifiedMeta(e),
         }),
       );
     } else {
@@ -693,7 +708,7 @@ function buildOrcidEntrySection(
             startYear: e.startYear,
             endYear: e.endYear,
             lastVerifiedAt: opts.now,
-            ...(e.verified ? { verified: true } : {}),
+            ...verifiedMeta(e),
           }),
         ),
       );

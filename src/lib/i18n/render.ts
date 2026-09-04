@@ -50,6 +50,12 @@ export interface RenderStrings {
   badgeCitations: string;
   /** Tooltip caveat on the citation pill (raw counts aren't field-normalised). */
   badgeCitationsTitle: string;
+  /** Label inside the opt-in "Verified" mark on an institution-asserted entry. */
+  badgeVerified: string;
+  /** Accessible title for the verified mark when the asserting organisation is unknown. */
+  badgeVerifiedTitle: string;
+  /** Accessible title for the verified mark; "{org}" → the asserting organisation. */
+  badgeVerifiedByTitle: string;
   metric2yr: string;
   metricFwci: string;
   metricHIndex: string;
@@ -64,6 +70,14 @@ export interface RenderStrings {
   metricRcr: string;
   /** Responsible-reading context for mean-RCR (benchmark + biomedical caveat). */
   metricContextRcr: string;
+  /** Reader-facing caveat for the h-index (not field-normalised; career-length-sensitive). */
+  metricContextHIndex: string;
+  /** Reader-facing caveat for the i10-index (works with ≥10 citations; not field-normalised). */
+  metricContextI10: string;
+  /** Reader-facing caveat for the raw works count (coverage-dependent; not a quality measure). */
+  metricContextWorks: string;
+  /** Reader-facing caveat for the raw citation total (not field-normalised). */
+  metricContextCitations: string;
   /** Coverage note appended to mean-RCR; "{n}" is replaced with the work count. */
   metricRcrCoverage: string;
   /** Small-sample caveat appended to a field-normalized coverage note below the
@@ -178,6 +192,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeRetractedTitle: "This work has been retracted (per Crossref / Retraction Watch)",
     badgeCitations: "{n} citations",
     badgeCitationsTitle: "Raw citation count — not field-normalised (varies by field and age)",
+    badgeVerified: "Verified",
+    badgeVerifiedTitle:
+      "Confirmed by the institution via ORCID — asserted by a trusted organisation, not self-entered",
+    badgeVerifiedByTitle:
+      "Verified by {org} via ORCID — asserted by the organisation, not self-entered",
     metric2yr: "2-yr mean citedness",
     metricFwci: "Mean work FWCI",
     metricHIndex: "h-index",
@@ -189,6 +208,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricFwciCoverage: "mean over {n} works with FWCI",
     metricRcr: "Mean RCR",
     metricContextRcr: "1.0 = NIH-funded average; biomedical (PMID) works only",
+    metricContextHIndex: "not field-normalised; sensitive to career length and field",
+    metricContextI10: "works with ≥10 citations — not field-normalised; grows with career length",
+    metricContextWorks:
+      "raw count of indexed works — depends on database coverage; not a measure of quality",
+    metricContextCitations: "raw total — not field-normalised (varies by field and career length)",
     metricRcrCoverage: "mean over {n} works with RCR",
     metricSmallN: "small sample — interpret with caution",
     roleFirst: "First author",
@@ -253,6 +277,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeRetractedTitle: "该成果已被撤稿（依据 Crossref／Retraction Watch）",
     badgeCitations: "被引 {n}",
     badgeCitationsTitle: "原始被引次数——未经领域标准化（因领域与年代而异）",
+    badgeVerified: "已认证",
+    badgeVerifiedTitle: "由所在机构通过 ORCID 确认——由受信任的机构录入，而非本人自行填写",
+    badgeVerifiedByTitle: "由 {org} 通过 ORCID 认证——由该机构录入，而非本人自行填写",
     metric2yr: "两年平均被引率",
     metricFwci: "平均成果 FWCI",
     metricHIndex: "h 指数",
@@ -264,6 +291,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricFwciCoverage: "基于 {n} 篇有 FWCI 的成果的均值",
     metricRcr: "平均 RCR",
     metricContextRcr: "1.0 = NIH 资助论文的平均水平；仅限生物医学（PMID）成果",
+    metricContextHIndex: "非领域归一化；受职业年限与领域影响",
+    metricContextI10: "被引 ≥10 次的成果数 — 非领域归一化；随职业年限增长",
+    metricContextWorks: "已收录成果的原始数量 — 取决于数据库覆盖范围；不代表质量",
+    metricContextCitations: "原始总数 — 非领域归一化（因领域与职业年限而异）",
     metricRcrCoverage: "基于 {n} 篇有 RCR 的成果的均值",
     metricSmallN: "样本较小——请谨慎解读",
     roleFirst: "第一作者",
@@ -330,6 +361,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} citas",
     badgeCitationsTitle:
       "Recuento bruto de citas — sin normalización por campo (varía por campo y antigüedad)",
+    badgeVerified: "Verificado",
+    badgeVerifiedTitle:
+      "Confirmado por la institución mediante ORCID: registrado por una organización de confianza, no por la propia persona",
+    badgeVerifiedByTitle:
+      "Verificado por {org} mediante ORCID: registrado por la organización, no por la propia persona",
     metric2yr: "Citación media a 2 años",
     metricFwci: "FWCI medio por trabajo",
     metricHIndex: "índice h",
@@ -342,6 +378,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricRcr: "RCR medio",
     metricContextRcr:
       "1,0 = media de artículos financiados por los NIH; solo trabajos biomédicos (PMID)",
+    metricContextHIndex:
+      "no normalizado por campo; sensible a la duración de la carrera y al campo",
+    metricContextI10:
+      "trabajos con ≥10 citas — no normalizado por campo; crece con la duración de la carrera",
+    metricContextWorks:
+      "recuento bruto de trabajos indexados — depende de la cobertura de la base de datos; no mide la calidad",
+    metricContextCitations:
+      "total bruto — no normalizado por campo (varía según el campo y la duración de la carrera)",
     metricRcrCoverage: "media sobre {n} trabajos con RCR",
     metricSmallN: "muestra pequeña: interprétalo con cautela",
     roleFirst: "Primer autor",
@@ -408,6 +452,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} citations",
     badgeCitationsTitle:
       "Nombre brut de citations — non normalisé par domaine (varie selon le domaine et l’ancienneté)",
+    badgeVerified: "Vérifié",
+    badgeVerifiedTitle:
+      "Confirmé par l’établissement via ORCID — saisi par un organisme de confiance, et non par la personne elle-même",
+    badgeVerifiedByTitle:
+      "Vérifié par {org} via ORCID — saisi par l’organisme, et non par la personne elle-même",
     metric2yr: "Citations moyennes sur 2 ans",
     metricFwci: "FWCI moyen des travaux",
     metricHIndex: "indice h",
@@ -421,6 +470,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricRcr: "RCR moyen",
     metricContextRcr:
       "1,0 = moyenne des articles financés par les NIH ; uniquement les travaux biomédicaux (PMID)",
+    metricContextHIndex:
+      "non normalisé par domaine ; sensible à la durée de carrière et au domaine",
+    metricContextI10:
+      "travaux cités ≥10 fois — non normalisé par domaine ; croît avec la durée de carrière",
+    metricContextWorks:
+      "nombre brut de travaux indexés — dépend de la couverture de la base ; ne mesure pas la qualité",
+    metricContextCitations:
+      "total brut — non normalisé par domaine (varie selon le domaine et la durée de carrière)",
     metricRcrCoverage: "moyenne sur {n} travaux avec RCR",
     metricSmallN: "échantillon réduit — à interpréter avec prudence",
     roleFirst: "Premier auteur",
@@ -487,6 +544,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} Zitationen",
     badgeCitationsTitle:
       "Reine Zitationszahl — nicht feldnormiert (variiert je nach Fach und Alter)",
+    badgeVerified: "Verifiziert",
+    badgeVerifiedTitle:
+      "Von der Institution über ORCID bestätigt – von einer vertrauenswürdigen Organisation eingetragen, nicht selbst erfasst",
+    badgeVerifiedByTitle:
+      "Verifiziert durch {org} über ORCID – von der Organisation eingetragen, nicht selbst erfasst",
     metric2yr: "Mittlere Zitationsrate (2 Jahre)",
     metricFwci: "Mittlerer FWCI",
     metricHIndex: "h-Index",
@@ -499,6 +561,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricRcr: "Mittlerer RCR",
     metricContextRcr:
       "1,0 = Durchschnitt NIH-geförderter Arbeiten; nur biomedizinische (PMID) Arbeiten",
+    metricContextHIndex: "nicht fachnormiert; abhängig von Karrieredauer und Fach",
+    metricContextI10: "Werke mit ≥10 Zitationen — nicht fachnormiert; wächst mit der Karrieredauer",
+    metricContextWorks:
+      "Rohzahl indexierter Werke — abhängig von der Datenbankabdeckung; kein Qualitätsmaß",
+    metricContextCitations:
+      "Rohsumme — nicht fachnormiert (variiert je nach Fach und Karrieredauer)",
     metricRcrCoverage: "Mittel über {n} Werke mit RCR",
     metricSmallN: "kleine Stichprobe – mit Vorsicht interpretieren",
     roleFirst: "Erstautor",
@@ -563,6 +631,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeRetractedTitle: "この成果は撤回されています（Crossref／Retraction Watch による）",
     badgeCitations: "被引用 {n}",
     badgeCitationsTitle: "被引用数の生の値 — 分野正規化なし（分野・年代で変動）",
+    badgeVerified: "認証済み",
+    badgeVerifiedTitle:
+      "所属機関が ORCID を通じて確認 — 信頼された機関が登録した情報で、本人による入力ではありません",
+    badgeVerifiedByTitle:
+      "{org} が ORCID を通じて認証 — 当該機関が登録した情報で、本人による入力ではありません",
     metric2yr: "2年間平均被引用度",
     metricFwci: "平均FWCI",
     metricHIndex: "h指数",
@@ -574,6 +647,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricFwciCoverage: "FWCIのある{n}件の業績による平均",
     metricRcr: "平均 RCR",
     metricContextRcr: "1.0 = NIH 助成論文の平均；生物医学（PMID）業績のみ",
+    metricContextHIndex: "分野正規化なし；キャリア年数と分野の影響を受ける",
+    metricContextI10: "被引用10回以上の業績数 — 分野正規化なし；キャリア年数とともに増加",
+    metricContextWorks:
+      "索引付けされた業績の生の件数 — データベースの収録範囲に依存；質の指標ではない",
+    metricContextCitations: "生の合計値 — 分野正規化なし（分野・キャリア年数で変動）",
     metricRcrCoverage: "RCRのある{n}件の業績による平均",
     metricSmallN: "少数サンプル — 解釈には注意",
     roleFirst: "筆頭著者",
@@ -640,6 +718,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} citações",
     badgeCitationsTitle:
       "Contagem bruta de citações — não normalizada por área (varia por área e idade)",
+    badgeVerified: "Verificado",
+    badgeVerifiedTitle:
+      "Confirmado pela instituição via ORCID — registrado por uma organização confiável, não pela própria pessoa",
+    badgeVerifiedByTitle:
+      "Verificado por {org} via ORCID — registrado pela organização, não pela própria pessoa",
     metric2yr: "Citação média em 2 anos",
     metricFwci: "FWCI médio dos trabalhos",
     metricHIndex: "índice h",
@@ -653,6 +736,13 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricRcr: "RCR médio",
     metricContextRcr:
       "1,0 = média de artigos financiados pelo NIH; apenas trabalhos biomédicos (PMID)",
+    metricContextHIndex: "não normalizado por área; sensível ao tempo de carreira e à área",
+    metricContextI10:
+      "trabalhos com ≥10 citações — não normalizado por área; cresce com o tempo de carreira",
+    metricContextWorks:
+      "contagem bruta de trabalhos indexados — depende da cobertura da base; não mede qualidade",
+    metricContextCitations:
+      "total bruto — não normalizado por área (varia conforme a área e o tempo de carreira)",
     metricRcrCoverage: "média sobre {n} trabalhos com RCR",
     metricSmallN: "amostra pequena — interprete com cautela",
     roleFirst: "Primeiro autor",
@@ -719,6 +809,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} citazioni",
     badgeCitationsTitle:
       "Conteggio grezzo delle citazioni — non normalizzato per campo (varia per campo ed età)",
+    badgeVerified: "Verificato",
+    badgeVerifiedTitle:
+      "Confermato dall’istituzione tramite ORCID: inserito da un’organizzazione fidata, non dalla persona stessa",
+    badgeVerifiedByTitle:
+      "Verificato da {org} tramite ORCID: inserito dall’organizzazione, non dalla persona stessa",
     metric2yr: "Citazioni medie a 2 anni",
     metricFwci: "FWCI medio dei lavori",
     metricHIndex: "indice h",
@@ -731,6 +826,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricFwciCoverage: "media su {n} lavori con FWCI",
     metricRcr: "RCR medio",
     metricContextRcr: "1,0 = media degli articoli finanziati dai NIH; solo lavori biomedici (PMID)",
+    metricContextHIndex:
+      "non normalizzato per campo; sensibile alla durata della carriera e alla disciplina",
+    metricContextI10:
+      "lavori con ≥10 citazioni — non normalizzato per campo; cresce con la durata della carriera",
+    metricContextWorks:
+      "conteggio grezzo dei lavori indicizzati — dipende dalla copertura della banca dati; non misura la qualità",
+    metricContextCitations:
+      "totale grezzo — non normalizzato per campo (varia per disciplina e durata della carriera)",
     metricRcrCoverage: "media su {n} lavori con RCR",
     metricSmallN: "campione ridotto — interpretare con cautela",
     roleFirst: "Primo autore",
@@ -795,6 +898,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeRetractedTitle: "이 성과는 철회되었습니다 (Crossref / Retraction Watch 기준)",
     badgeCitations: "인용 {n}회",
     badgeCitationsTitle: "원시 피인용 수 — 분야 정규화 안 됨 (분야·연도에 따라 다름)",
+    badgeVerified: "인증됨",
+    badgeVerifiedTitle:
+      "소속 기관이 ORCID를 통해 확인 — 신뢰할 수 있는 기관이 등록한 정보로, 본인이 직접 입력한 것이 아닙니다",
+    badgeVerifiedByTitle:
+      "{org}이(가) ORCID를 통해 인증 — 해당 기관이 등록한 정보로, 본인이 직접 입력한 것이 아닙니다",
     metric2yr: "2년 평균 피인용도",
     metricFwci: "평균 논문 FWCI",
     metricHIndex: "h-지수",
@@ -806,6 +914,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricFwciCoverage: "FWCI가 있는 {n}편 논문 기준 평균",
     metricRcr: "평균 RCR",
     metricContextRcr: "1.0 = NIH 지원 논문 평균; 생의학(PMID) 논문만",
+    metricContextHIndex: "분야 정규화 아님; 경력 기간과 분야에 따라 달라짐",
+    metricContextI10: "피인용 10회 이상 논문 수 — 분야 정규화 아님; 경력이 길수록 증가",
+    metricContextWorks: "색인된 논문의 원시 수 — 데이터베이스 수록 범위에 좌우됨; 질의 척도가 아님",
+    metricContextCitations: "원시 합계 — 분야 정규화 아님 (분야·경력 기간에 따라 다름)",
     metricRcrCoverage: "RCR가 있는 {n}편 논문 기준 평균",
     metricSmallN: "표본이 적음 — 해석에 주의",
     roleFirst: "제1저자",
@@ -871,6 +983,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} цитирований",
     badgeCitationsTitle:
       "Сырое число цитирований — без нормализации по области (зависит от области и возраста)",
+    badgeVerified: "Подтверждено",
+    badgeVerifiedTitle:
+      "Подтверждено организацией через ORCID — внесено доверенной организацией, а не самим владельцем записи",
+    badgeVerifiedByTitle:
+      "Подтверждено {org} через ORCID — внесено организацией, а не самим владельцем записи",
     metric2yr: "Средняя цитируемость за 2 года",
     metricFwci: "Средний FWCI работы",
     metricHIndex: "h-индекс",
@@ -883,6 +1000,13 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     metricRcr: "Средний RCR",
     metricContextRcr:
       "1,0 = среднее для статей, финансируемых NIH; только биомедицинские работы (PMID)",
+    metricContextHIndex: "без нормализации по области; зависит от длительности карьеры и области",
+    metricContextI10:
+      "работы с ≥10 цитированиями — без нормализации по области; растёт с длительностью карьеры",
+    metricContextWorks:
+      "необработанное число проиндексированных работ — зависит от охвата базы; не мера качества",
+    metricContextCitations:
+      "необработанная сумма — без нормализации по области (зависит от области и длительности карьеры)",
     metricRcrCoverage: "среднее по {n} работам с RCR",
     metricSmallN: "малая выборка — интерпретируйте осторожно",
     roleFirst: "Первый автор",
@@ -920,13 +1044,24 @@ export function metricLabel(locale: string, key: string): string {
   return map[key] ?? key;
 }
 
-/** Map a metric key to its localized responsible-reading context (or undefined). */
+/**
+ * Map a metric key to its localized responsible-reading context (or undefined for
+ * an unknown key). EVERY catalog metric carries one: the field-normalised measures
+ * get their interpretation anchor, and the author-level counts (h-index, i10,
+ * works, citations) get a short neutral caveat — so the DORA/CoARA caution that
+ * the owner saw in the picker also reaches the READER of the PDF / public page,
+ * rather than living only owner-side (`metricHints`).
+ */
 export function metricContext(locale: string, key: string): string | undefined {
   const s = renderStrings(locale);
   const map: Record<string, string> = {
     fwci_mean: s.metricContextFwci,
     rcr_mean: s.metricContextRcr,
     "2yr_mean_citedness": s.metricContext2yr,
+    h_index: s.metricContextHIndex,
+    i10_index: s.metricContextI10,
+    works_count: s.metricContextWorks,
+    cited_by_count: s.metricContextCitations,
   };
   return map[key];
 }

@@ -487,6 +487,12 @@ const CvItemSchema = z.object({
      */
     verified: z.boolean().optional(),
     /**
+     * Display name of the trusted organisation that asserted a {@link verified}
+     * entry (ORCID `source-name`), so the rendered "Verified by …" mark can name
+     * the confirming party. Only ever present alongside `verified`.
+     */
+    verifiedBy: z.string().max(500).optional(),
+    /**
      * USER edit of the department/sub-unit for a source-derived positions/education
      * entry — the "Edit details" field. Carried across re-sync (like
      * {@link roleTitleOverride}) and wins over the source {@link department}; a blank
@@ -1136,6 +1142,16 @@ export const DisplayChoicesSchema = z.object({
   showAuthorRole: z.boolean().default(false),
   /** Show a per-entry citation count on publications/preprints (HTML/PDF). Default off. */
   showCitationCounts: z.boolean().default(false),
+  /**
+   * Show a small "Verified" mark on positions / education / distinctions that a
+   * TRUSTED ORGANISATION asserted on the ORCID record via the Member API
+   * (`meta.verified`, naming the asserter via `meta.verifiedBy` when known) —
+   * HTML/PDF + the public page. Opt-IN, default off, like the other evaluative
+   * toggles: it is a trust signal about the *record*, and an unmarked entry must
+   * not read as suspect by contrast, so the owner chooses to surface it. Hidden
+   * on the parser-safe ATS template like every other badge.
+   */
+  showVerifiedBadges: z.boolean().default(false),
   /**
    * Show a data-provenance footer (sources, sync date, hidden/corrected counts,
    * classification caveat). Opt-IN: it's meta-information that doesn't belong on

@@ -74,7 +74,7 @@ describe("renderStrings helpers", () => {
   it("falls back to English for an unknown locale and unknown keys", () => {
     expect(renderStrings("xx-XX").roleFirst).toBe("First author");
     expect(metricLabel("en-US", "nope")).toBe("nope");
-    expect(metricContext("en-US", "h_index")).toBeUndefined();
+    expect(metricContext("en-US", "nope")).toBeUndefined();
     expect(authorshipRoleLabel("en-US", "nope")).toBe("nope");
   });
 
@@ -85,6 +85,38 @@ describe("renderStrings helpers", () => {
     expect(authorshipRoleLabel("ja-JP", "first")).toBe("筆頭著者");
     expect(authorshipRoleLabel("ru-RU", "corresponding")).toBe("Автор для корреспонденции");
     expect(renderStrings("de-DE").cvFallbackTitle).toBe("Lebenslauf");
+  });
+
+  it("gives the author-level counts a reader-facing caveat in every locale", () => {
+    // Before: only the field-normalised measures + 2-yr citedness carried context;
+    // h-index / i10 / works / citations rendered bare, and the DORA/CoARA caution
+    // lived only in the OWNER-side picker (metricHints). The reader of the PDF or
+    // public page now sees the same caveat, neutrally worded.
+    const rawKeys = ["h_index", "i10_index", "works_count", "cited_by_count"];
+    for (const locale of SUPPORTED_LOCALES) {
+      for (const key of rawKeys) {
+        expect(metricContext(locale, key), `${locale}/${key}`).toBeTruthy();
+      }
+    }
+    expect(metricContext("en-US", "h_index")).toBe(
+      "not field-normalised; sensitive to career length and field",
+    );
+    expect(metricContext("en-US", "i10_index")).toContain("≥10 citations");
+    expect(metricContext("en-US", "works_count")).toContain("not a measure of quality");
+    expect(metricContext("en-US", "cited_by_count")).toContain("not field-normalised");
+    // Same terminology as the locale's existing 2-yr caveat.
+    expect(metricContext("fr-FR", "h_index")).toContain("non normalisé par domaine");
+    expect(metricContext("de-DE", "cited_by_count")).toContain("nicht fachnormiert");
+    expect(metricContext("ja-JP", "h_index")).toContain("分野正規化なし");
+  });
+
+  it("ships the verified-mark strings in every locale, keeping the {org} placeholder", () => {
+    for (const locale of SUPPORTED_LOCALES) {
+      const s = renderStrings(locale);
+      expect(s.badgeVerified, locale).toBeTruthy();
+      expect(s.badgeVerifiedTitle, locale).toBeTruthy();
+      expect(s.badgeVerifiedByTitle, locale).toContain("{org}");
+    }
   });
 
   it("removes the misleading 'field-normalised' claim from the 2-year metric", () => {

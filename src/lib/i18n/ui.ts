@@ -64,6 +64,8 @@ export interface UiStrings {
   hideRetracted: string;
   showAuthorRole: string;
   showCitationCounts: string;
+  /** Editor toggle: the "Verified" mark on institution-asserted positions/education. */
+  showVerifiedBadges: string;
   showProvenance: string;
   peerReviewedOnly: string;
   peerReviewedOnlyTitle: string;
@@ -240,6 +242,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     hideRetracted: "Hide retracted publications",
     showAuthorRole: "Show my author role (first / last / corresponding)",
     showCitationCounts: "Show citation counts on each publication",
+    showVerifiedBadges: "Mark positions & education confirmed by the institution via ORCID",
     showProvenance: "Data-provenance footer",
     peerReviewedOnly: "Hide preprints & non-peer-reviewed work",
     peerReviewedOnlyTitle:
@@ -399,6 +402,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     hideRetracted: "隐藏已撤稿的出版物",
     showAuthorRole: "显示我的作者角色（第一／末位／通讯）",
     showCitationCounts: "在每篇论文上显示被引次数",
+    showVerifiedBadges: "标记由机构通过 ORCID 确认的职位与教育经历",
     showProvenance: "数据来源页脚",
     peerReviewedOnly: "隐藏预印本及非同行评审成果",
     peerReviewedOnlyTitle:
@@ -555,6 +559,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     hideRetracted: "Ocultar publicaciones retractadas",
     showAuthorRole: "Mostrar mi rol de autor (primero / último / correspondencia)",
     showCitationCounts: "Mostrar el número de citas en cada publicación",
+    showVerifiedBadges:
+      "Marcar los puestos y estudios confirmados por la institución mediante ORCID",
     showProvenance: "Pie de página con la procedencia de los datos",
     peerReviewedOnly: "Ocultar preprints y trabajos no revisados por pares",
     peerReviewedOnlyTitle:
@@ -716,6 +722,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     hideRetracted: "Masquer les publications rétractées",
     showAuthorRole: "Afficher mon rôle d’auteur (premier / dernier / correspondant)",
     showCitationCounts: "Afficher le nombre de citations sur chaque publication",
+    showVerifiedBadges: "Marquer les postes et formations confirmés par l’établissement via ORCID",
     showProvenance: "Pied de page sur la provenance des données",
     peerReviewedOnly: "Masquer les pré-publications et les travaux non évalués par les pairs",
     peerReviewedOnlyTitle:
@@ -878,6 +885,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     hideRetracted: "Zurückgezogene Publikationen ausblenden",
     showAuthorRole: "Meine Autorenrolle anzeigen (Erst-/Letzt-/korrespondierend)",
     showCitationCounts: "Zitationszahl bei jeder Publikation anzeigen",
+    showVerifiedBadges:
+      "Positionen & Ausbildung markieren, die die Institution über ORCID bestätigt hat",
     showProvenance: "Fußzeile zur Datenherkunft",
     peerReviewedOnly: "Preprints & nicht peer-reviewte Arbeiten ausblenden",
     peerReviewedOnlyTitle:
@@ -1039,6 +1048,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     hideRetracted: "撤回された出版物を非表示",
     showAuthorRole: "自分の著者役割を表示（筆頭・最終・責任著者）",
     showCitationCounts: "各論文に被引用数を表示",
+    showVerifiedBadges: "機関が ORCID を通じて確認した職歴・学歴に認証マークを表示",
     showProvenance: "データ出典フッター",
     peerReviewedOnly: "プレプリント・非査読の業績を非表示",
     peerReviewedOnlyTitle:
@@ -1198,6 +1208,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     hideRetracted: "Ocultar publicações retratadas",
     showAuthorRole: "Mostrar meu papel de autoria (primeiro / último / correspondente)",
     showCitationCounts: "Mostrar o número de citações em cada publicação",
+    showVerifiedBadges: "Marcar cargos e formação confirmados pela instituição via ORCID",
     showProvenance: "Rodapé de proveniência dos dados",
     peerReviewedOnly: "Ocultar pré-prints e trabalhos não revisados por pares",
     peerReviewedOnlyTitle:
@@ -1359,6 +1370,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     hideRetracted: "Nascondi le pubblicazioni ritirate",
     showAuthorRole: "Mostra il mio ruolo di autore (primo / ultimo / corrispondente)",
     showCitationCounts: "Mostra il numero di citazioni per ogni pubblicazione",
+    showVerifiedBadges: "Segnala posizioni e formazione confermate dall’istituzione tramite ORCID",
     showProvenance: "Piè di pagina sulla provenienza dei dati",
     peerReviewedOnly: "Nascondi i preprint e i lavori non sottoposti a revisione paritaria",
     peerReviewedOnlyTitle:
@@ -1519,6 +1531,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     hideRetracted: "철회된 출판물 숨기기",
     showAuthorRole: "내 저자 역할 표시 (제1저자 / 마지막 저자 / 교신저자)",
     showCitationCounts: "각 논문에 피인용 수 표시",
+    showVerifiedBadges: "기관이 ORCID를 통해 확인한 경력·학력에 인증 표시",
     showProvenance: "데이터 출처 푸터",
     peerReviewedOnly: "프리프린트 및 비동료 심사 자료 숨기기",
     peerReviewedOnlyTitle:
@@ -1678,6 +1691,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     hideRetracted: "Скрывать отозванные публикации",
     showAuthorRole: "Показывать мою авторскую роль (первый / последний / корреспондирующий)",
     showCitationCounts: "Показывать число цитирований у каждой публикации",
+    showVerifiedBadges: "Отмечать должности и образование, подтверждённые организацией через ORCID",
     showProvenance: "Нижний колонтитул с источниками данных",
     peerReviewedOnly: "Скрыть препринты и нерецензируемые работы",
     peerReviewedOnlyTitle:

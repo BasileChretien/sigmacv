@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **"Verified" mark on institution-confirmed positions, education and honours.**
+  Entries that a trusted organisation asserted on your ORCID record via the
+  Member API (rather than you typing them in) were already flagged in the editor,
+  but the reader of your PDF or public page never saw it. A new opt-in
+  **Design → "Mark positions & education confirmed by the institution via
+  ORCID"** toggle (off by default, like every other evaluative signal) renders a
+  small green **✓ Verified** mark on those entries in the HTML/PDF exports and the
+  living public page, with an accessible title naming the confirming organisation
+  when ORCID supplies it ("Verified by Nagoya University via ORCID…"). Hidden on
+  the parser-safe ATS template like all badges. The confirming organisation's
+  name is now captured at sync (`meta.verifiedBy`), so a re-sync is needed before
+  existing CVs can name it; the mark itself works on already-synced data.
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so
@@ -81,6 +93,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Every displayed metric now carries a reader-facing caveat.** h-index,
+  i10-index, works count and citation total used to render as bare numbers,
+  while the "not field-normalised — DORA/CoARA discourage this" caution appeared
+  only in the owner's metric picker. Each now shows a short, neutral context line
+  next to its value in the HTML/PDF and public page (e.g. h-index: "not
+  field-normalised; sensitive to career length and field"), in all ten languages,
+  matching what the field-normalised measures already did.
 - Routine dependency refresh: Next.js, Prisma, Zod, Vite/Vitest tooling and types
   moved to their current releases.
 - **Corrected two false claims in the public documentation.** The README, the
