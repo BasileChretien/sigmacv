@@ -49,7 +49,7 @@ async function mapBounded<T, R>(
   return results;
 }
 
-function withSource(prov: Provenance, source: "crossref" | "ror"): Provenance {
+function withSource(prov: Provenance, source: "crossref" | "ror" | "forrt"): Provenance {
   if (prov.sources.includes(source)) return prov;
   return { ...prov, sources: [...prov.sources, source] };
 }
@@ -309,7 +309,7 @@ export async function enrichCvWithForrtReplications(cv: CanonicalCv): Promise<Ca
       };
     }),
   }));
-  return changed ? { ...cv, sections } : cv;
+  return changed ? { ...cv, sections, provenance: withSource(cv.provenance, "forrt") } : cv;
 }
 
 // ─── ROR institution-name canonicalization ───────────────────────────────────

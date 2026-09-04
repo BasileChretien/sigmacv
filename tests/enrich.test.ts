@@ -334,12 +334,14 @@ describe("enrichCvWithForrtReplications", () => {
       replicationOf: new Map(),
     });
     const cv = makeCv([pub("W1", csl({ DOI: "10.1000/original" }))]);
-    const items = (await enrichCvWithForrtReplications(cv)).sections[0]!.items;
+    const out = await enrichCvWithForrtReplications(cv);
+    const items = out.sections[0]!.items;
     expect(items[0]!.meta.replications).toEqual([
       { doi: "10.1000/rep-a", outcome: "success" },
       { doi: "10.1000/rep-b", outcome: "mixed" },
     ]);
     expect(items[0]!.meta.replicationOf).toBeUndefined();
+    expect(out.provenance.sources).toContain("forrt");
   });
 
   it("folds replicationOf onto a work that IS a replication", async () => {

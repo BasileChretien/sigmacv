@@ -1376,6 +1376,8 @@ const PROVENANCE_SOURCES = [
   "ictrp",
   "epo",
   "ror",
+  // Replication evidence folded onto existing items (never a new CV item, like ror).
+  "forrt",
   // Provenance-only sources (enrich identity/affiliations, not CV items).
   "wikidata",
   "derived",
