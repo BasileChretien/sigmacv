@@ -626,6 +626,24 @@ const EN = {
   viewCount: "{n} of {m} in this view",
   viewShowAll: "Show all",
   close: "Close",
+  careerContextTitle: "Career context",
+  careerContextHint:
+    "Optional and self-declared: career breaks, part-time periods, clinical or caring duties. Shown on your CV only if you enable it, as plain context for a reader — SigmaCV never uses it to adjust or normalise any figure.",
+  careerContextShow: "Show career context on the CV",
+  careerContextAdd: "Add entry",
+  careerContextRemove: "Remove entry",
+  careerContextKind: "Type",
+  careerContextStart: "From (year)",
+  careerContextEnd: "To (year)",
+  careerContextEndHint: "Leave blank if ongoing",
+  careerContextFraction: "Working time (%)",
+  careerContextNote: "Note (optional, e.g. parental leave)",
+  careerContextFirstPub: "First publication year",
+  careerContextFirstPubDetected: "Detected from your publications: {year}",
+  careerContextFirstPubNone: "No publication year detected yet",
+  careerContextShowFirstPub: "Include the first-publication year",
+  careerContextEmpty: "No entries yet.",
+  careerContextFull: "Maximum of {n} entries reached.",
 } as const;
 
 export type ChromeKey = keyof typeof EN;
@@ -781,6 +799,24 @@ const ZH: Record<ChromeKey, string> = {
   viewCount: "本视图显示 {n}/{m}",
   viewShowAll: "全部显示",
   close: "关闭",
+  careerContextTitle: "职业背景",
+  careerContextHint:
+    "可选且由本人自述：职业中断、兼职时期、临床或照护职责。仅在您启用后才显示在简历上，作为供读者参考的背景信息——SigmaCV 绝不会用它来调整或标准化任何数据。",
+  careerContextShow: "在简历上显示职业背景",
+  careerContextAdd: "添加条目",
+  careerContextRemove: "删除条目",
+  careerContextKind: "类型",
+  careerContextStart: "起（年）",
+  careerContextEnd: "止（年）",
+  careerContextEndHint: "如仍在进行中请留空",
+  careerContextFraction: "工作时间（%）",
+  careerContextNote: "备注（可选，例如育儿假）",
+  careerContextFirstPub: "首篇论文年份",
+  careerContextFirstPubDetected: "根据您的论文检测到：{year}",
+  careerContextFirstPubNone: "尚未检测到论文年份",
+  careerContextShowFirstPub: "包含首篇论文年份",
+  careerContextEmpty: "暂无条目。",
+  careerContextFull: "已达到 {n} 条上限。",
 };
 
 const ES: Record<ChromeKey, string> = {
@@ -943,6 +979,24 @@ const ES: Record<ChromeKey, string> = {
   viewCount: "{n} de {m} en esta vista",
   viewShowAll: "Mostrar todo",
   close: "Cerrar",
+  careerContextTitle: "Contexto profesional",
+  careerContextHint:
+    "Opcional y declarado por usted: interrupciones de carrera, periodos a tiempo parcial, actividad clínica o responsabilidades de cuidado. Se muestra en su CV solo si lo activa, como simple contexto para el lector — SigmaCV nunca lo usa para ajustar ni normalizar ninguna cifra.",
+  careerContextShow: "Mostrar el contexto profesional en el CV",
+  careerContextAdd: "Añadir entrada",
+  careerContextRemove: "Eliminar entrada",
+  careerContextKind: "Tipo",
+  careerContextStart: "Desde (año)",
+  careerContextEnd: "Hasta (año)",
+  careerContextEndHint: "Déjelo en blanco si continúa",
+  careerContextFraction: "Tiempo de trabajo (%)",
+  careerContextNote: "Nota (opcional, p. ej. permiso parental)",
+  careerContextFirstPub: "Año de la primera publicación",
+  careerContextFirstPubDetected: "Detectado a partir de sus publicaciones: {year}",
+  careerContextFirstPubNone: "Aún no se ha detectado ningún año de publicación",
+  careerContextShowFirstPub: "Incluir el año de la primera publicación",
+  careerContextEmpty: "Todavía no hay entradas.",
+  careerContextFull: "Se ha alcanzado el máximo de {n} entradas.",
 };
 
 const FR: Record<ChromeKey, string> = {
@@ -1108,6 +1162,24 @@ const FR: Record<ChromeKey, string> = {
   viewCount: "{n} sur {m} dans cette vue",
   viewShowAll: "Tout afficher",
   close: "Fermer",
+  careerContextTitle: "Contexte de carrière",
+  careerContextHint:
+    "Facultatif et déclaré par vous : interruptions de carrière, périodes à temps partiel, activité clinique ou responsabilités familiales. Affiché sur votre CV uniquement si vous l'activez, comme simple contexte pour le lecteur — SigmaCV ne s'en sert jamais pour ajuster ou normaliser un chiffre.",
+  careerContextShow: "Afficher le contexte de carrière sur le CV",
+  careerContextAdd: "Ajouter une entrée",
+  careerContextRemove: "Supprimer l'entrée",
+  careerContextKind: "Type",
+  careerContextStart: "De (année)",
+  careerContextEnd: "À (année)",
+  careerContextEndHint: "Laissez vide si en cours",
+  careerContextFraction: "Temps de travail (%)",
+  careerContextNote: "Note (facultatif, p. ex. congé parental)",
+  careerContextFirstPub: "Année de la première publication",
+  careerContextFirstPubDetected: "Détectée à partir de vos publications : {year}",
+  careerContextFirstPubNone: "Aucune année de publication détectée pour l'instant",
+  careerContextShowFirstPub: "Inclure l'année de la première publication",
+  careerContextEmpty: "Aucune entrée pour l'instant.",
+  careerContextFull: "Maximum de {n} entrées atteint.",
 };
 
 const DE: Record<ChromeKey, string> = {
@@ -1274,6 +1346,24 @@ const DE: Record<ChromeKey, string> = {
   viewCount: "{n} von {m} in dieser Ansicht",
   viewShowAll: "Alle anzeigen",
   close: "Schließen",
+  careerContextTitle: "Karrierekontext",
+  careerContextHint:
+    "Optional und selbst angegeben: Karriereunterbrechungen, Teilzeitphasen, klinische Tätigkeit oder Betreuungspflichten. Erscheint nur auf Ihrem CV, wenn Sie es aktivieren – als reiner Kontext für Lesende. SigmaCV verwendet diese Angaben nie, um eine Kennzahl anzupassen oder zu normalisieren.",
+  careerContextShow: "Karrierekontext im CV anzeigen",
+  careerContextAdd: "Eintrag hinzufügen",
+  careerContextRemove: "Eintrag entfernen",
+  careerContextKind: "Art",
+  careerContextStart: "Von (Jahr)",
+  careerContextEnd: "Bis (Jahr)",
+  careerContextEndHint: "Leer lassen, wenn andauernd",
+  careerContextFraction: "Arbeitszeit (%)",
+  careerContextNote: "Anmerkung (optional, z. B. Elternzeit)",
+  careerContextFirstPub: "Jahr der ersten Publikation",
+  careerContextFirstPubDetected: "Aus Ihren Publikationen ermittelt: {year}",
+  careerContextFirstPubNone: "Noch kein Publikationsjahr ermittelt",
+  careerContextShowFirstPub: "Jahr der ersten Publikation einbeziehen",
+  careerContextEmpty: "Noch keine Einträge.",
+  careerContextFull: "Maximum von {n} Einträgen erreicht.",
 };
 
 const JA: Record<ChromeKey, string> = {
@@ -1434,6 +1524,24 @@ const JA: Record<ChromeKey, string> = {
   viewCount: "このビューに {n}/{m} 件",
   viewShowAll: "すべて表示",
   close: "閉じる",
+  careerContextTitle: "キャリアの背景",
+  careerContextHint:
+    "任意・自己申告：キャリア中断、パートタイム期間、臨床業務や育児・介護。有効にした場合のみ、読み手のための背景情報として CV に表示されます。SigmaCV がこれを使って数値を補正・正規化することはありません。",
+  careerContextShow: "CV にキャリアの背景を表示する",
+  careerContextAdd: "項目を追加",
+  careerContextRemove: "項目を削除",
+  careerContextKind: "種類",
+  careerContextStart: "開始（年）",
+  careerContextEnd: "終了（年）",
+  careerContextEndHint: "継続中の場合は空欄",
+  careerContextFraction: "勤務時間（%）",
+  careerContextNote: "メモ（任意、例：育児休業）",
+  careerContextFirstPub: "初出版の年",
+  careerContextFirstPubDetected: "論文から検出：{year}",
+  careerContextFirstPubNone: "出版年はまだ検出されていません",
+  careerContextShowFirstPub: "初出版の年を含める",
+  careerContextEmpty: "項目はまだありません。",
+  careerContextFull: "上限の {n} 件に達しました。",
 };
 
 const PT: Record<ChromeKey, string> = {
@@ -1597,6 +1705,24 @@ const PT: Record<ChromeKey, string> = {
   viewCount: "{n} de {m} nesta vista",
   viewShowAll: "Mostrar tudo",
   close: "Fechar",
+  careerContextTitle: "Contexto de carreira",
+  careerContextHint:
+    "Opcional e autodeclarado: interrupções de carreira, períodos em tempo parcial, atividade clínica ou responsabilidades de cuidado. Aparece no seu CV apenas se você ativar, como simples contexto para o leitor — o SigmaCV nunca o usa para ajustar ou normalizar nenhum número.",
+  careerContextShow: "Mostrar o contexto de carreira no CV",
+  careerContextAdd: "Adicionar entrada",
+  careerContextRemove: "Remover entrada",
+  careerContextKind: "Tipo",
+  careerContextStart: "De (ano)",
+  careerContextEnd: "Até (ano)",
+  careerContextEndHint: "Deixe em branco se estiver em andamento",
+  careerContextFraction: "Tempo de trabalho (%)",
+  careerContextNote: "Observação (opcional, p. ex. licença parental)",
+  careerContextFirstPub: "Ano da primeira publicação",
+  careerContextFirstPubDetected: "Detectado a partir das suas publicações: {year}",
+  careerContextFirstPubNone: "Nenhum ano de publicação detectado ainda",
+  careerContextShowFirstPub: "Incluir o ano da primeira publicação",
+  careerContextEmpty: "Nenhuma entrada ainda.",
+  careerContextFull: "Máximo de {n} entradas atingido.",
 };
 
 const IT: Record<ChromeKey, string> = {
@@ -1759,6 +1885,24 @@ const IT: Record<ChromeKey, string> = {
   viewCount: "{n} di {m} in questa vista",
   viewShowAll: "Mostra tutto",
   close: "Chiudi",
+  careerContextTitle: "Contesto di carriera",
+  careerContextHint:
+    "Facoltativo e autodichiarato: interruzioni di carriera, periodi a tempo parziale, attività clinica o responsabilità di cura. Compare nel tuo CV solo se lo attivi, come semplice contesto per chi legge — SigmaCV non lo usa mai per correggere o normalizzare alcun dato.",
+  careerContextShow: "Mostra il contesto di carriera nel CV",
+  careerContextAdd: "Aggiungi voce",
+  careerContextRemove: "Rimuovi voce",
+  careerContextKind: "Tipo",
+  careerContextStart: "Da (anno)",
+  careerContextEnd: "A (anno)",
+  careerContextEndHint: "Lascia vuoto se in corso",
+  careerContextFraction: "Tempo di lavoro (%)",
+  careerContextNote: "Nota (facoltativa, es. congedo parentale)",
+  careerContextFirstPub: "Anno della prima pubblicazione",
+  careerContextFirstPubDetected: "Rilevato dalle tue pubblicazioni: {year}",
+  careerContextFirstPubNone: "Nessun anno di pubblicazione rilevato finora",
+  careerContextShowFirstPub: "Includi l'anno della prima pubblicazione",
+  careerContextEmpty: "Ancora nessuna voce.",
+  careerContextFull: "Raggiunto il massimo di {n} voci.",
 };
 
 const KO: Record<ChromeKey, string> = {
@@ -1918,6 +2062,24 @@ const KO: Record<ChromeKey, string> = {
   viewCount: "이 보기에 {n}/{m}",
   viewShowAll: "모두 표시",
   close: "닫기",
+  careerContextTitle: "경력 배경",
+  careerContextHint:
+    "선택 사항이며 본인이 직접 신고합니다: 경력 단절, 시간제 근무 기간, 임상 업무 또는 돌봄 책임. 활성화한 경우에만 독자를 위한 참고 정보로 CV에 표시됩니다. SigmaCV는 이를 어떤 수치의 보정이나 정규화에도 사용하지 않습니다.",
+  careerContextShow: "CV에 경력 배경 표시",
+  careerContextAdd: "항목 추가",
+  careerContextRemove: "항목 삭제",
+  careerContextKind: "유형",
+  careerContextStart: "시작 (연도)",
+  careerContextEnd: "종료 (연도)",
+  careerContextEndHint: "진행 중이면 비워 두세요",
+  careerContextFraction: "근무 시간 (%)",
+  careerContextNote: "메모 (선택, 예: 육아휴직)",
+  careerContextFirstPub: "첫 출판 연도",
+  careerContextFirstPubDetected: "출판물에서 감지됨: {year}",
+  careerContextFirstPubNone: "아직 감지된 출판 연도가 없습니다",
+  careerContextShowFirstPub: "첫 출판 연도 포함",
+  careerContextEmpty: "아직 항목이 없습니다.",
+  careerContextFull: "최대 {n}개 항목에 도달했습니다.",
 };
 
 const RU: Record<ChromeKey, string> = {
@@ -2080,6 +2242,24 @@ const RU: Record<ChromeKey, string> = {
   viewCount: "{n} из {m} в этом виде",
   viewShowAll: "Показать все",
   close: "Закрыть",
+  careerContextTitle: "Контекст карьеры",
+  careerContextHint:
+    "Необязательно, указывается вами: перерывы в карьере, периоды неполной занятости, клиническая работа или обязанности по уходу. Показывается в CV только если вы это включите — как простой контекст для читателя. SigmaCV никогда не использует эти данные для корректировки или нормализации каких-либо показателей.",
+  careerContextShow: "Показывать контекст карьеры в CV",
+  careerContextAdd: "Добавить запись",
+  careerContextRemove: "Удалить запись",
+  careerContextKind: "Тип",
+  careerContextStart: "С (год)",
+  careerContextEnd: "По (год)",
+  careerContextEndHint: "Оставьте пустым, если продолжается",
+  careerContextFraction: "Рабочее время (%)",
+  careerContextNote: "Примечание (необязательно, например: отпуск по уходу за ребёнком)",
+  careerContextFirstPub: "Год первой публикации",
+  careerContextFirstPubDetected: "Определён по вашим публикациям: {year}",
+  careerContextFirstPubNone: "Год публикации пока не определён",
+  careerContextShowFirstPub: "Включить год первой публикации",
+  careerContextEmpty: "Записей пока нет.",
+  careerContextFull: "Достигнут максимум: {n} записей.",
 };
 
 const DICTS: Record<Locale, Record<ChromeKey, string>> = {

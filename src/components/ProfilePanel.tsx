@@ -8,6 +8,7 @@ import { parseJsonResume, importJsonResume } from "@/lib/import/jsonResume";
 import { t, sectionTitle, type Locale } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
 import { resolveLink } from "@/lib/render/icons";
+import CareerContextPanel from "./CareerContextPanel";
 
 type ImportMessage = { kind: "success" | "error"; text: string } | null;
 
@@ -237,6 +238,8 @@ export default function ProfilePanel({ cv, locale, onChange }: ProfilePanelProps
           />
         </div>
       </div>
+
+      <CareerContextPanel cv={cv} locale={locale} onChange={onChange} />
 
       <div className="profile-grid">
         <label className="field">

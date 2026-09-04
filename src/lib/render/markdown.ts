@@ -73,6 +73,12 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
     ? `${head.contact.map(escapeMarkdown).join(" · ")}\n\n`
     : "";
   const summaryBlock = head.summary ? `${escapeMarkdown(head.summary)}\n\n` : "";
+  // Opt-in career context: a labelled list right after the summary (person →
+  // their context → statistics). Plain lines, escaped; "" when off.
+  const cc = head.careerContext;
+  const careerBlock = cc
+    ? `**${escapeMarkdown(cc.label)}**\n\n${cc.lines.map((l) => `- ${escapeMarkdown(l)}`).join("\n")}\n\n`
+    : "";
   const metrics = isSummaryBlockHidden(cv) ? "" : metricsLineText(cv);
   const metricsBlock = metrics ? `*${escapeMarkdown(metrics)}*\n\n` : "";
   // Opt-in "Live version" link to the public page. Markdown is plain text, so no QR
@@ -83,7 +89,7 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
     cv.display.showDocQr && opts?.publicPageUrl && cv.display.template !== "ats"
       ? `\n\n---\n\n${escapeMarkdown(renderStrings(cv.display.locale).liveVersionLabel)}: <${opts.publicPageUrl}>\n`
       : "";
-  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${metricsBlock}${body}\n${live}`;
+  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${careerBlock}${metricsBlock}${body}\n${live}`;
 }
 
 export const markdownRenderer: Renderer = {

@@ -26,6 +26,7 @@ describe("displayUrl", () => {
 describe("credentials never reach the text-export contact line", () => {
   it("strips userinfo from the website + profile links in textHeader", () => {
     const header = textHeader({
+      display: { locale: "en-US", showCareerContext: false },
       owner: {
         contact: { website: "https://user:pass@site.example/p" },
         links: [{ label: "", url: "https://user:secret@git.example/me" }],

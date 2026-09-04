@@ -234,6 +234,69 @@
             "type": "string",
             "maxLength": 2048
           }
+        },
+        "careerContext": {
+          "type": "object",
+          "properties": {
+            "entries": {
+              "default": [],
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "career-break",
+                      "part-time",
+                      "clinical-duties",
+                      "caring",
+                      "military",
+                      "other"
+                    ]
+                  },
+                  "start": {
+                    "type": "string",
+                    "pattern": "^\\d{4}(-(0[1-9]|1[0-2]))?$"
+                  },
+                  "end": {
+                    "type": "string",
+                    "pattern": "^\\d{4}(-(0[1-9]|1[0-2]))?$"
+                  },
+                  "fraction": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 240
+                  }
+                },
+                "required": ["id", "kind", "start"]
+              }
+            },
+            "firstPublicationYear": {
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 3000
+            },
+            "firstPublicationYearOverride": {
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 3000
+            },
+            "showFirstPublicationYear": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
         }
       },
       "required": ["orcid", "openAlexAuthorIds", "displayName"]
@@ -343,6 +406,10 @@
           "type": "boolean"
         },
         "showResearchAreas": {
+          "default": false,
+          "type": "boolean"
+        },
+        "showCareerContext": {
           "default": false,
           "type": "boolean"
         },
@@ -1226,6 +1293,10 @@
                 "type": "boolean"
               },
               "showResearchAreas": {
+                "default": false,
+                "type": "boolean"
+              },
+              "showCareerContext": {
                 "default": false,
                 "type": "boolean"
               },

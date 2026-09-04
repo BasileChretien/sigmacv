@@ -4,7 +4,9 @@ import {
   DEFAULT_SECTION_ORDER,
   DisplayChoicesSchema,
   isHidden,
+  itemEffectiveYear,
   type CanonicalCv,
+  type CareerContext,
   type CvItem,
   type CvSection,
   type ReviewFlag,
@@ -1481,6 +1483,53 @@ export function computeResearchAreas(sections: CvSection[]): { field: string; co
     .slice(0, 12);
 }
 
+/** Section types whose items count towards the first-publication year. */
+const FIRST_PUBLICATION_TYPES: ReadonlySet<CvSection["type"]> = new Set([
+  "publications",
+  "preprints",
+]);
+
+/**
+ * The earliest year among the KEPT (non-hidden, not "not mine") publications and
+ * preprints, honouring a per-work year correction — or undefined when there is
+ * none. Pure. Feeds `owner.careerContext.firstPublicationYear`, a plain
+ * context line ("First publication: 2012"); it is NEVER used to divide, weight or
+ * normalise any other figure (DORA / CoARA — see `CareerContextSchema`).
+ */
+export function deriveFirstPublicationYear(sections: CvSection[]): number | undefined {
+  let earliest: number | undefined;
+  for (const s of sections) {
+    if (!FIRST_PUBLICATION_TYPES.has(s.type)) continue;
+    for (const it of s.items) {
+      if (isHidden(it)) continue;
+      const year = itemEffectiveYear(it);
+      if (year !== undefined && (earliest === undefined || year < earliest)) earliest = year;
+    }
+  }
+  return earliest;
+}
+
+/**
+ * The owner's career context for a (re)build: the DECLARED parts (entries, the
+ * owner's own first-publication year, the show flag) are carried over from the
+ * previous document untouched — a re-sync must never wipe what the owner typed —
+ * while the DERIVED first-publication year is recomputed from the kept works.
+ * Undefined when there is nothing to carry and nothing derived (most documents).
+ */
+function buildCareerContext(
+  previous: CareerContext | undefined,
+  sections: CvSection[],
+): CareerContext | undefined {
+  const firstPublicationYear = deriveFirstPublicationYear(sections);
+  if (!previous && firstPublicationYear === undefined) return undefined;
+  return {
+    entries: previous?.entries ?? [],
+    firstPublicationYear,
+    firstPublicationYearOverride: previous?.firstPublicationYearOverride,
+    showFirstPublicationYear: previous?.showFirstPublicationYear ?? false,
+  };
+}
+
 /**
  * ROR ids of the institutions on the account holder's OWN authorship of a work
  * (their affiliation as printed on this paper). Identifier-only — institutions
@@ -2281,10 +2330,16 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       contact: prevOwner?.contact,
       links: prevOwner?.links ?? [],
       personal: prevOwner?.personal,
+      // The preferred publication name is owner-typed (render/selfName.ts applies
+      // it) — it was silently dropped on every re-sync before this line.
+      publicationName: prevOwner?.publicationName,
       // Author-record metrics + field-normalized aggregates derived from works.
       metrics: { ...(resolved.metrics ?? {}), ...computeDerivedMetrics(works) },
       countsByYear: resolved.countsByYear ?? [],
       researchAreas: researchAreas.length ? researchAreas : undefined,
+      // Owner-declared career context: declared parts carried over, the derived
+      // first-publication year recomputed (never feeds `metrics` above).
+      careerContext: buildCareerContext(prevOwner?.careerContext, sectionsWithSelf),
     },
     display,
     sections: sectionsWithSelf,

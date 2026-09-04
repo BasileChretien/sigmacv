@@ -2968,6 +2968,42 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   line-height: 1.35;
   margin-top: var(--space-1);
 }
+/* Career context (owner-declared, opt-in): one wrapping row per entry, the
+   same flex-basis discipline as the link rows so no field collapses. */
+.career-context-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.career-context-row select,
+.career-context-row .career-context-note {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+.career-context-year {
+  flex: 0 1 6rem;
+  min-width: 0;
+}
+.career-context-row .btn {
+  flex: 0 0 auto;
+}
+.career-context-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.career-context-empty {
+  display: block;
+  font-size: var(--text-2xs);
+  margin-bottom: var(--space-2);
+}
+.career-context-firstpub {
+  display: grid;
+  gap: var(--space-2);
+}
 .profile-rirekisho {
   grid-column: 1 / -1;
   margin-top: var(--space-2);

@@ -9,6 +9,7 @@ import { sectionTitle } from "@/lib/i18n";
 import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
+import { careerContextBlock } from "../careerContext";
 import { renderChartsHtml } from "../charts";
 import { displayUrl, escapeHtml, safeHref } from "../escape";
 import { formattedMetrics, openAccessShare } from "../metrics";
@@ -496,6 +497,13 @@ export function commonCss(theme: TemplateTheme): string {
   ul.cv-areas-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem 0.4rem; }
   .cv-area { font-size: 0.74rem; line-height: 1.4; padding: 0.12em 0.62em; border-radius: 999px; color: var(--cv-ink-2); border: 1px solid var(--cv-rule-strong); }
 
+  /* ── Career context: the owner-declared context lines (opt-in). Plain, quiet
+     text — it is context for a reader, deliberately not a stat strip. ───────── */
+  .cv-career { margin: 0.85rem 0 0; }
+  .cv-career-label { display: block; margin: 0 0 0.25rem; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cv-muted); }
+  ul.cv-career-list { list-style: none; margin: 0; padding: 0; }
+  .cv-career-line { font-size: 0.82rem; line-height: 1.5; color: var(--cv-ink-2); }
+
   /* ── Per-publication tools (public living page only): a no-JS "Cite" disclosure
      (BibTeX/RIS/CSL-JSON downloads), an open-access "Full text" link, and an
      "Abstract" disclosure. Quiet + small; text-indent:0 escapes the bib hanging
@@ -607,6 +615,19 @@ function researchAreasHtml(cv: CanonicalCv): string {
 }
 
 /**
+ * The owner-declared "Career context" block (`owner.careerContext`), shown only
+ * when the owner opts in (`display.showCareerContext`). One plain, escaped line
+ * per entry, prepared by `render/careerContext.ts` (the same lines every text
+ * format prints). Context for a reader — never an input to any figure. "" when off.
+ */
+function careerContextHtml(cv: CanonicalCv): string {
+  const block = careerContextBlock(cv);
+  if (!block) return "";
+  const lines = block.lines.map((l) => `<li class="cv-career-line">${escapeHtml(l)}</li>`).join("");
+  return `<div class="cv-career"><span class="cv-career-label">${escapeHtml(block.label)}</span><ul class="cv-career-list">${lines}</ul></div>`;
+}
+
+/**
  * The header block (shared structure; templates style `.cv-header` differently).
  * `opts.photo` lets visual templates (modern/rirekisho) opt into the photo;
  * text-first templates (classic/minimal/compact/ats) omit it.
@@ -644,8 +665,11 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
   // statistics), opt-in and "" when off. They describe the person (not the metrics),
   // so they stay in the header regardless of the research-summary block's placement.
   const areas = researchAreasHtml(cv);
+  // Career context (opt-in, owner-declared) follows the same person-first logic:
+  // it describes the person's circumstances, so it sits BEFORE any statistics.
+  const career = careerContextHtml(cv);
   const text = `<div class="cv-headtext"><h1>${honorific}${name}</h1>${headline}${ids}${contactHtml(cv)}</div>`;
-  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${areas}${block}</header>`;
+  return `<header class="cv-header"><div class="cv-headmain">${text}${photo}</div>${summary}${areas}${career}${block}</header>`;
 }
 
 /** Research-output section types counted by the breadth ledger, in display order. */
