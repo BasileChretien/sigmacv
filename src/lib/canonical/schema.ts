@@ -430,10 +430,35 @@ const CvItemSchema = z.object({
      *  by the iCite enrichment. Field-normalized but biomedical-only; stored so the
      *  RCR mean recomputes over the curated works. */
     rcr: z.number().optional(),
-    /** True when Crossref records this work (by DOI) as RETRACTED — folded in by the
-     *  retraction enrichment (Crossref `updated-by`/`relation.is-retracted-by`,
-     *  publisher- or Retraction-Watch-sourced). Surfaced as a research-integrity flag. */
+    /**
+     * NIH iCite TRANSLATIONAL indicators for this work, folded in with `rcr` by the
+     * iCite enrichment and recomputed on every sync (same semantics as `rcr`).
+     * BIOMEDICAL-ONLY like RCR — they need a PMID and NIH's clinical-citation
+     * network, so non-biomedical works never carry them. `clinicalCitations` =
+     * number of clinical articles (guidelines, trials) citing the work (iCite
+     * `cited_by_clin` length); `isClinical` = the work is itself a clinical
+     * article; `apt` = Approximate Potential to Translate (0..1, a model
+     * prediction). Per-work only — never aggregated into a score.
+     */
+    clinicalCitations: z.number().int().nonnegative().optional(),
+    isClinical: z.boolean().optional(),
+    apt: z.number().min(0).max(1).optional(),
+    /** True when this work is recorded as RETRACTED by EITHER signal: OpenAlex's
+     *  `is_retracted` at build, or the Crossref retraction enrichment (`updated-by`/
+     *  `relation.is-retracted-by`, publisher- or Retraction-Watch-sourced). The two
+     *  are unioned — a true flag is never cleared by the other source. Surfaced as
+     *  a research-integrity flag. */
     retracted: z.boolean().optional(),
+    /** Distinct ISO-3166 alpha-2 country codes across the work's authorships
+     *  (OpenAlex `authorships[].countries`), uppercased + deduped, capped at 50.
+     *  Stored per work for a later collaboration view; NOT aggregated here. */
+    countries: z.array(z.string().max(2)).max(50).optional(),
+    /** Number of works this work cites (OpenAlex `referenced_works` length). */
+    refCount: z.number().int().nonnegative().optional(),
+    /** How many of those references point at the owner's OWN OpenAlex works in the
+     *  same sync (self-references). Raw per-work count stored for a later PR; no
+     *  self-citation rate is computed or displayed. */
+    selfRefs: z.number().int().nonnegative().optional(),
     /** ROR id of the institution this item was canonicalized to, when ROR matched. */
     rorId: z.string().max(2048).optional(),
     /**
@@ -1142,6 +1167,10 @@ export const DisplayChoicesSchema = z.object({
   showAuthorRole: z.boolean().default(false),
   /** Show a per-entry citation count on publications/preprints (HTML/PDF). Default off. */
   showCitationCounts: z.boolean().default(false),
+  /** Show compact PER-WORK indicators (RCR, FWCI, clinical citations) next to each
+   *  publication (HTML/PDF). Opt-in, default off — `render/workIndicators.ts`
+   *  explains why per-work values are defensible where aggregates are not. */
+  showWorkIndicators: z.boolean().default(false),
   /**
    * Show a small "Verified" mark on positions / education / distinctions that a
    * TRUSTED ORGANISATION asserted on the ORCID record via the Member API
