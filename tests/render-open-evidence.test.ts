@@ -150,13 +150,17 @@ describe("renderCvHtml offline-safety with the new features", () => {
   });
 
   it("strips the public-evaluations line in the ATS (parser-safe) template", () => {
-    const cv = makeCv({ showPublicEvaluations: true }, [], [
-      item("PP1", {
-        meta: {
-          publicEvaluations: [{ group: "eLife", type: "evaluation-summary", url: "https://x/1" }],
-        },
-      }),
-    ]);
+    const cv = makeCv(
+      { showPublicEvaluations: true },
+      [],
+      [
+        item("PP1", {
+          meta: {
+            publicEvaluations: [{ group: "eLife", type: "evaluation-summary", url: "https://x/1" }],
+          },
+        }),
+      ],
+    );
     const html = renderCvHtml({ ...cv, display: { ...cv.display, template: "ats" } });
     // .cv-badge/.cv-badges are already hidden in ATS (covers the archived link);
     // .cv-public-evaluations is a separate class and must be stripped alongside them.
