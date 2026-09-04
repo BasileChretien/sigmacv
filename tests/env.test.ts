@@ -20,6 +20,9 @@ function setEnv(overrides: Record<string, string | undefined>) {
     "RESYNC_SECRET",
     "OPENALEX_CURATION_ENABLED",
     "OPENALEX_CURATION_ENDPOINT",
+    "DATACITE_REPOSITORY_ID",
+    "DATACITE_PASSWORD",
+    "DATACITE_PREFIX",
   ]) {
     delete (process.env as Record<string, string | undefined>)[k];
   }
@@ -97,6 +100,28 @@ describe("getEnv", () => {
     setEnv({ ...VALID, NODE_ENV: "test" });
     const { getEnv } = await loadEnv();
     expect(getEnv()).toBe(getEnv());
+  });
+
+  it("leaves DataCite minting unconfigured by default and validates the prefix shape", async () => {
+    setEnv({ ...VALID, NODE_ENV: "test" });
+    let { getEnv } = await loadEnv();
+    expect(getEnv().DATACITE_REPOSITORY_ID).toBeUndefined();
+    expect(getEnv().DATACITE_PASSWORD).toBeUndefined();
+    expect(getEnv().DATACITE_PREFIX).toBeUndefined();
+
+    setEnv({
+      ...VALID,
+      NODE_ENV: "test",
+      DATACITE_REPOSITORY_ID: "SIGMA.CV",
+      DATACITE_PASSWORD: "pw",
+      DATACITE_PREFIX: "10.12345",
+    });
+    ({ getEnv } = await loadEnv());
+    expect(getEnv().DATACITE_PREFIX).toBe("10.12345");
+
+    setEnv({ ...VALID, NODE_ENV: "test", DATACITE_PREFIX: "doi:10.1" });
+    ({ getEnv } = await loadEnv());
+    expect(() => getEnv()).toThrow(/DATACITE_PREFIX/);
   });
 
   it("defaults OpenAlex curation to DISABLED (flag unset → false, endpoint undefined)", async () => {

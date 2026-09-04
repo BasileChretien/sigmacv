@@ -67,6 +67,27 @@ export async function GET() {
     prisma.researchEvent.count({ where: { userId } }),
   ]);
 
+  // Frozen CV versions (snapshots) are the user's data too: the frozen document
+  // of each, its label/version/date, whether it is public, its capability token
+  // and any minted DOI. Bounded by MAX_SNAPSHOTS_PER_CV, so no cap/truncation.
+  const snapshots = cv
+    ? await prisma.cvSnapshot.findMany({
+        where: { cvId: cv.id },
+        orderBy: { version: "asc" },
+        select: {
+          id: true,
+          version: true,
+          label: true,
+          createdAt: true,
+          token: true,
+          isPublic: true,
+          doi: true,
+          doiState: true,
+          canonical: true,
+        },
+      })
+    : [];
+
   // The CV row beyond the document itself: whether the living page is published,
   // at which URL, whether it may be indexed, when it last synced and what that
   // sync changed. Internal job bookkeeping (the resync lock) is not user data.
@@ -91,6 +112,7 @@ export async function GET() {
     sessions,
     cv: cv?.document ?? null,
     cvRecord,
+    snapshots,
     researchEvents,
     researchEventsTotal,
     // True only in the (unrealistic) event the cap was reached — tells the user

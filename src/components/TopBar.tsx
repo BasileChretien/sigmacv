@@ -7,6 +7,7 @@ import PublishMenu from "./PublishMenu";
 import ShareMenu from "./ShareMenu";
 import SupportLink from "./SupportLink";
 import ThemeToggle from "./ThemeToggle";
+import VersionsMenu from "./VersionsMenu";
 
 /** Exportable formats — mirrors the EXPORTABLE list the API route accepts. */
 export type ExportFormat =
@@ -239,6 +240,10 @@ export default function TopBar({
             the public link + the "Living CV" badge + QR. Keeps the Publish popover
             a focused on/off decision instead of a share dashboard. */}
         {published && publicSlug ? <ShareMenu locale={locale} slug={publicSlug} /> : null}
+
+        {/* Frozen versions ("freeze & cite this version"): needs a CV to freeze;
+            sharing a frozen link additionally needs the page to be live. */}
+        {hasCv ? <VersionsMenu locale={locale} published={published} slug={publicSlug} /> : null}
 
         {/* Funding ask — kept visible in the bar (brand yellow) but de-escalated:
             small, and parked at the far end away from the Export CTA so the two
