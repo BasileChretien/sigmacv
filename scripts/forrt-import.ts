@@ -35,6 +35,7 @@
  */
 import { createReadStream } from "node:fs";
 import { createInterface } from "node:readline";
+import { pathToFileURL } from "node:url";
 import { createGunzip } from "node:zlib";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
@@ -221,7 +222,12 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error("FORRT import failed:", err);
-  process.exit(1);
-});
+// Run directly (`tsx scripts/forrt-import.ts <path>`) → import into Postgres.
+// Guarded so the pure helpers above (parseCsvLine, matchColumns, rowToRecord)
+// can be unit-tested by importing this module without triggering a real run.
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main().catch((err) => {
+    console.error("FORRT import failed:", err);
+    process.exit(1);
+  });
+}

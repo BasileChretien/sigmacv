@@ -263,7 +263,7 @@ function outcomeBucketLabel(outcome: string | undefined, locale: string): string
  *  the dataset's own raw text verbatim (untranslated — it's source data, not UI
  *  copy). Undefined when the row carries no outcome at all. */
 function outcomeLabel(outcome: string | undefined, locale: string): string | undefined {
-  return outcomeBucketLabel(outcome, locale) ?? outcome?.trim() || undefined;
+  return outcomeBucketLabel(outcome, locale) ?? (outcome?.trim() || undefined);
 }
 
 /**

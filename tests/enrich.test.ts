@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   fetchRetractionStatus: vi.fn(),
   resolveInstitution: vi.fn(),
   fetchRcrByPmids: vi.fn(),
+  fetchReplicationsForDois: vi.fn(),
 }));
 vi.mock("@/lib/crossref/client", () => ({
   fetchCrossrefGapFields: mocks.fetchCrossrefGapFields,
@@ -18,11 +19,15 @@ vi.mock("@/lib/ror/client", () => ({
 vi.mock("@/lib/icite/client", () => ({
   fetchRcrByPmids: mocks.fetchRcrByPmids,
 }));
+vi.mock("@/lib/forrt/client", () => ({
+  fetchReplicationsForDois: mocks.fetchReplicationsForDois,
+}));
 
 import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
   enrichCvWithCrossref,
+  enrichCvWithForrtReplications,
   enrichCvWithIcite,
   enrichCvWithRetractions,
   mergeCslGaps,
@@ -41,6 +46,7 @@ beforeEach(() => {
   mocks.fetchRetractionStatus.mockReset();
   mocks.resolveInstitution.mockReset();
   mocks.fetchRcrByPmids.mockReset();
+  mocks.fetchReplicationsForDois.mockReset();
 });
 
 // ─── test fixtures ───────────────────────────────────────────────────────────
@@ -311,6 +317,91 @@ describe("enrichCvWithRetractions", () => {
     const out = await enrichCvWithRetractions(cv, "ci@example.org");
     expect(out).toBe(cv);
     expect(mocks.fetchRetractionStatus).not.toHaveBeenCalled();
+  });
+});
+
+// ─── enrichCvWithForrtReplications (FORRT/FReD) ───────────────────────────────
+
+describe("enrichCvWithForrtReplications", () => {
+  it("folds replications onto a work matched by DOI", async () => {
+    mocks.fetchReplicationsForDois.mockResolvedValue({
+      replicatedBy: new Map([
+        [
+          "10.1000/original",
+          [{ doi: "10.1000/rep-a", outcome: "success" }, { doi: "10.1000/rep-b", outcome: "mixed" }],
+        ],
+      ]),
+      replicationOf: new Map(),
+    });
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1000/original" }))]);
+    const items = (await enrichCvWithForrtReplications(cv)).sections[0]!.items;
+    expect(items[0]!.meta.replications).toEqual([
+      { doi: "10.1000/rep-a", outcome: "success" },
+      { doi: "10.1000/rep-b", outcome: "mixed" },
+    ]);
+    expect(items[0]!.meta.replicationOf).toBeUndefined();
+  });
+
+  it("folds replicationOf onto a work that IS a replication", async () => {
+    mocks.fetchReplicationsForDois.mockResolvedValue({
+      replicatedBy: new Map(),
+      replicationOf: new Map([["10.1000/replication", { doi: "10.1000/original", ref: "Original 2019" }]]),
+    });
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1000/replication" }))]);
+    const items = (await enrichCvWithForrtReplications(cv)).sections[0]!.items;
+    expect(items[0]!.meta.replicationOf).toEqual({ doi: "10.1000/original", ref: "Original 2019" });
+    expect(items[0]!.meta.replications).toBeUndefined();
+  });
+
+  it("caps replications at 10", async () => {
+    const many = Array.from({ length: 15 }, (_, i) => ({ doi: `10.1000/rep-${i}`, outcome: "success" }));
+    mocks.fetchReplicationsForDois.mockResolvedValue({
+      replicatedBy: new Map([["10.1000/original", many]]),
+      replicationOf: new Map(),
+    });
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1000/original" }))]);
+    const items = (await enrichCvWithForrtReplications(cv)).sections[0]!.items;
+    expect(items[0]!.meta.replications).toHaveLength(10);
+  });
+
+  it("returns the original CV when the DOI has no FORRT data", async () => {
+    mocks.fetchReplicationsForDois.mockResolvedValue({
+      replicatedBy: new Map(),
+      replicationOf: new Map(),
+    });
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1000/unrelated" }))]);
+    expect(await enrichCvWithForrtReplications(cv)).toBe(cv);
+  });
+
+  it("returns the original CV untouched when there is no DOI-bearing item", async () => {
+    const cv = makeCv([pub("W1", csl())]);
+    expect(await enrichCvWithForrtReplications(cv)).toBe(cv);
+    expect(mocks.fetchReplicationsForDois).not.toHaveBeenCalled();
+  });
+
+  it("does not re-check an already-enriched or hidden work", async () => {
+    mocks.fetchReplicationsForDois.mockResolvedValue({
+      replicatedBy: new Map([["10.1000/original", [{ doi: "10.1000/rep-a" }]]]),
+      replicationOf: new Map(),
+    });
+    const already = {
+      ...pub("W1", csl({ DOI: "10.1000/original" })),
+      meta: { replications: [{ doi: "10.1000/existing" }] },
+    };
+    const hidden = { ...pub("W2", csl({ DOI: "10.1000/original" })), included: false };
+    const cv = makeCv([already, hidden]);
+    const out = await enrichCvWithForrtReplications(cv);
+    expect(out).toBe(cv);
+    expect(mocks.fetchReplicationsForDois).not.toHaveBeenCalled();
+  });
+
+  it("fails soft: an empty result from the client leaves the CV untouched", async () => {
+    mocks.fetchReplicationsForDois.mockResolvedValue({
+      replicatedBy: new Map(),
+      replicationOf: new Map(),
+    });
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1000/original" }))]);
+    expect(await enrichCvWithForrtReplications(cv)).toBe(cv);
   });
 });
 
