@@ -259,6 +259,15 @@ export interface RenderStrings {
    *  `display.showPublicEvaluations`). The group names + years follow, built at
    *  render time — not part of this string. */
   publicEvaluationsPrefix: string;
+  /** Link text for a software item's source-code repository (`meta.repositoryUrl`),
+   *  in the muted details line under a Software entry. */
+  softwareRepository: string;
+  /** "Version 1.2.0" — the released version of a software item (`meta.version`).
+   *  `{version}` is substituted at render time. */
+  softwareVersion: string;
+  /** "License: MIT" — the reuse licence of a software item (`meta.license`).
+   *  `{license}` is substituted at render time. */
+  softwareLicense: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -437,6 +446,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     outcomeFailure: "failed",
     outcomeMixed: "mixed",
     outcomeInformativeFailure: "informative failure",
+    softwareRepository: "Source code",
+    softwareVersion: "Version {version}",
+    softwareLicense: "License: {license}",
   },
   "zh-CN": {
     hankoCredit:
@@ -609,6 +621,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     outcomeFailure: "失败",
     outcomeMixed: "结果不一",
     outcomeInformativeFailure: "有信息价值的失败",
+    softwareRepository: "源代码",
+    softwareVersion: "版本 {version}",
+    softwareLicense: "许可证：{license}",
   },
   "es-ES": {
     hankoCredit:
@@ -793,6 +808,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     outcomeFailure: "fallida",
     outcomeMixed: "mixta",
     outcomeInformativeFailure: "fallo informativo",
+    softwareRepository: "Código fuente",
+    softwareVersion: "Versión {version}",
+    softwareLicense: "Licencia: {license}",
   },
   "fr-FR": {
     hankoCredit:
@@ -977,6 +995,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     outcomeFailure: "échouée",
     outcomeMixed: "mitigée",
     outcomeInformativeFailure: "échec informatif",
+    softwareRepository: "Code source",
+    softwareVersion: "Version {version}",
+    softwareLicense: "Licence : {license}",
   },
   "de-DE": {
     hankoCredit:
@@ -1160,6 +1181,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     outcomeFailure: "gescheitert",
     outcomeMixed: "gemischt",
     outcomeInformativeFailure: "informativer Misserfolg",
+    softwareRepository: "Quellcode",
+    softwareVersion: "Version {version}",
+    softwareLicense: "Lizenz: {license}",
   },
   "ja-JP": {
     hankoCredit:
@@ -1337,6 +1361,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     outcomeFailure: "失敗",
     outcomeMixed: "結果混在",
     outcomeInformativeFailure: "有意義な失敗",
+    softwareRepository: "ソースコード",
+    softwareVersion: "バージョン {version}",
+    softwareLicense: "ライセンス：{license}",
   },
   "pt-BR": {
     hankoCredit:
@@ -1520,6 +1547,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     outcomeFailure: "malsucedida",
     outcomeMixed: "mista",
     outcomeInformativeFailure: "fracasso informativo",
+    softwareRepository: "Código-fonte",
+    softwareVersion: "Versão {version}",
+    softwareLicense: "Licença: {license}",
   },
   "it-IT": {
     hankoCredit:
@@ -1704,6 +1734,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     outcomeFailure: "fallita",
     outcomeMixed: "mista",
     outcomeInformativeFailure: "fallimento informativo",
+    softwareRepository: "Codice sorgente",
+    softwareVersion: "Versione {version}",
+    softwareLicense: "Licenza: {license}",
   },
   "ko-KR": {
     hankoCredit:
@@ -1879,6 +1912,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     outcomeFailure: "실패",
     outcomeMixed: "혼합",
     outcomeInformativeFailure: "유의미한 실패",
+    softwareRepository: "소스 코드",
+    softwareVersion: "버전 {version}",
+    softwareLicense: "라이선스: {license}",
   },
   "ru-RU": {
     hankoCredit:
@@ -2059,6 +2095,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     outcomeFailure: "неудачная",
     outcomeMixed: "смешанная",
     outcomeInformativeFailure: "информативная неудача",
+    softwareRepository: "Исходный код",
+    softwareVersion: "Версия {version}",
+    softwareLicense: "Лицензия: {license}",
   },
 };
 
