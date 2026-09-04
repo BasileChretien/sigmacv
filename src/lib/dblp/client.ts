@@ -1,7 +1,7 @@
 import { XMLParser } from "fast-xml-parser";
 import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
-import { normalizeOrcid } from "@/lib/openalex/types";
+import { validOrcidOrNull } from "@/lib/orcid/validate";
 
 /**
  * DBLP — the researcher's CONFERENCE papers (computer science), matched by ORCID.
@@ -103,7 +103,9 @@ function parseConferencePapers(xml: string): DblpConferencePaper[] {
 }
 
 export async function fetchDblpConferencePapers(orcid: string): Promise<DblpConferencePaper[]> {
-  const bare = normalizeOrcid(orcid);
+  // Strict: the iD is interpolated into SPARQL below, so anything that is not a
+  // checksum-valid ORCID is "no such person", never a query fragment.
+  const bare = validOrcidOrNull(orcid);
   if (!bare) return [];
   try {
     const pid = await resolvePid(bare);

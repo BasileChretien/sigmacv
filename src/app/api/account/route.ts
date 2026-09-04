@@ -9,8 +9,23 @@ import { isSameOrigin } from "@/lib/security/origin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * Persisted rate-limit counters carry no FK to the user (shared infrastructure),
+ * but every per-user limiter key ends in `:<userId>` — so the cascade misses
+ * them and the internal id would otherwise sit in that table indefinitely.
+ * Fail-soft: the account is already gone; a sweep failure is logged, not surfaced.
+ */
+async function sweepRateLimitCounters(userId: string): Promise<void> {
+  try {
+    await prisma.rateLimitWindow.deleteMany({ where: { key: { endsWith: `:${userId}` } } });
+  } catch (err) {
+    logger.warn("api.account_delete_ratelimit_sweep_failed", { err });
+  }
+}
+
 /** Full account deletion. Cascades to accounts, sessions, CV, and research
- *  events (see schema onDelete: Cascade). Irreversible. */
+ *  events (see schema onDelete: Cascade), then sweeps the user-keyed rate-limit
+ *  counters. Irreversible. */
 export async function DELETE(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -39,6 +54,7 @@ export async function DELETE(req: Request) {
     });
     await prisma.user.delete({ where: { id: session.user.id } });
     if (deleting?.orcid) invalidateOrcidPreview(deleting.orcid);
+    await sweepRateLimitCounters(session.user.id);
     // The DB session cascade-deletes with the user, but the browser still holds
     // the session cookie — clear it so no stale cookie can be re-associated
     // (e.g. if the same email later re-registers).

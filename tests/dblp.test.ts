@@ -134,3 +134,20 @@ describe("fetchDblpConferencePapers", () => {
     expect(await fetchDblpConferencePapers(ORCID)).toEqual([]);
   });
 });
+
+describe("fetchDblpConferencePapers refuses to interpolate a non-iD into SPARQL", () => {
+  it("returns [] without fetching for input that carries no ORCID", async () => {
+    const spy = vi.fn();
+    vi.stubGlobal("fetch", spy);
+    // normalizeOrcid would hand this back verbatim; it must never reach the query.
+    expect(await fetchDblpConferencePapers('"> } UNION { ?x ?y ?z')).toEqual([]);
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("returns [] without fetching for a checksum-invalid iD (a typo, not a person)", async () => {
+    const spy = vi.fn();
+    vi.stubGlobal("fetch", spy);
+    expect(await fetchDblpConferencePapers("0000-0001-7580-4350")).toEqual([]);
+    expect(spy).not.toHaveBeenCalled();
+  });
+});
