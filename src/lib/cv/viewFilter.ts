@@ -144,13 +144,18 @@ export function viewFilterFacets(cv: CanonicalCv): {
   return { years, types, hasOa };
 }
 
-/** Serialize filters back to a query string (`?since=…&oa=1`), or "?" when empty
- *  (so a chip can always clear the params). */
-function queryString(f: ViewFilters): string {
+/**
+ * Serialize filters back to a query string (`?since=…&oa=1`), or "?" when empty
+ * (so a chip can always clear the params). `keep` carries extra, non-filter params
+ * through unchanged (the reader view's `view=reader`, so toggling a facet never
+ * drops the visitor out of the reader view).
+ */
+export function viewFilterQuery(f: ViewFilters, keep?: Readonly<Record<string, string>>): string {
   const p = new URLSearchParams();
   if (f.since !== undefined) p.set("since", String(f.since));
   if (f.type !== undefined) p.set("type", f.type);
   if (f.oa) p.set("oa", "1");
+  for (const [k, v] of Object.entries(keep ?? {})) p.set(k, v);
   const s = p.toString();
   return s ? `?${s}` : "?";
 }
@@ -158,16 +163,22 @@ function queryString(f: ViewFilters): string {
 /**
  * The server-rendered facet bar: links that toggle one dimension while preserving
  * the others. "" when there's nothing meaningful to filter. Injected by the public
- * route just above the sections; styled by `commonCss` (`.cv-filterbar`).
+ * route just above the sections; styled by `commonCss` (`.cv-filterbar`). `keep`
+ * rides every chip href (see {@link viewFilterQuery}).
  */
-export function viewFilterBarHtml(cv: CanonicalCv, f: ViewFilters, locale: string): string {
+export function viewFilterBarHtml(
+  cv: CanonicalCv,
+  f: ViewFilters,
+  locale: string,
+  keep?: Readonly<Record<string, string>>,
+): string {
   const { years, types, hasOa } = viewFilterFacets(cv);
   if (years.length === 0 && types.length === 0 && !hasOa) return "";
   const s = renderStrings(locale);
   const chip = (label: string, next: ViewFilters, active: boolean): string =>
-    `<a href="${escapeHtml(queryString(next))}"${active ? ' aria-current="true"' : ""}>${escapeHtml(
-      label,
-    )}</a>`;
+    `<a href="${escapeHtml(viewFilterQuery(next, keep))}"${
+      active ? ' aria-current="true"' : ""
+    }>${escapeHtml(label)}</a>`;
   const parts: string[] = [`<span class="cv-filter-label">${escapeHtml(s.filterLabel)}</span>`];
   // Year group (only when there are cutoffs to offer): "All" clears the cutoff,
   // each cutoff sets `since`.

@@ -181,6 +181,16 @@ export interface UiStrings {
   linksNav: string;
   coffee: string;
   supportTitle: string;
+  /** Editor toggle: offer the assessor "Reader view" link on the public page (opt-in, default off). */
+  allowReaderMode: string;
+  /** Tooltip on that toggle. */
+  allowReaderModeTitle: string;
+  /** Note under that toggle; "{list}" → the comma-joined labels of the toggles the reader view forces on. */
+  allowReaderModeNote: string;
+  /** Share panel: label before the reader-view URL. */
+  readerViewUrlLabel: string;
+  /** Share panel: hint under the reader-view URL. */
+  readerViewUrlHint: string;
 }
 
 const UI_I18N: Record<Locale, UiStrings> = {
@@ -343,6 +353,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Links",
     coffee: "☕ Buy me a coffee",
     supportTitle: "SigmaCV is free and not-for-profit — a coffee helps cover its running costs.",
+    allowReaderMode: "Offer a \"Reader view\" on the public page",
+    allowReaderModeTitle: "Assessors can switch to a view that reveals every trust and context signal your data carries. Off by default; your standard page is unchanged.",
+    allowReaderModeNote: "Adds a small \"Reader view\" link to your living page. That view turns on: {list}; shows retracted works with their badge; and marks each work with where it came from. It never adds metrics you did not choose — nothing there is a score.",
+    readerViewUrlLabel: "Reader view:",
+    readerViewUrlHint: "Hand this link to a committee — it opens your page with provenance, verification and context signals shown.",
   },
   "zh-CN": {
     pageSizeLabel: "页面尺寸",
@@ -500,6 +515,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "链接",
     coffee: "☕ 请我喝杯咖啡",
     supportTitle: "SigmaCV 免费且非营利——一杯咖啡有助于支付运营成本。",
+    allowReaderMode: "在公开页面提供“审阅视图”",
+    allowReaderModeTitle: "评审者可切换到一个视图，查看您的数据所包含的全部可信度与背景信号。默认关闭；您的标准页面不变。",
+    allowReaderModeNote: "在您的动态简历页面添加一个小的“审阅视图”链接。该视图会开启：{list}；显示带有标记的已撤稿作品；并标注每项成果的来源。它绝不会添加您未选择的指标——那里没有任何内容是评分。",
+    readerViewUrlLabel: "审阅视图：",
+    readerViewUrlHint: "把此链接交给评审委员会——它会打开显示来源、核验与背景信号的页面。",
   },
   "es-ES": {
     pageSizeLabel: "Tamaño de página",
@@ -662,6 +682,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Enlaces",
     coffee: "☕ Invítame a un café",
     supportTitle: "SigmaCV es gratuito y sin ánimo de lucro: un café ayuda a cubrir sus costes.",
+    allowReaderMode: "Ofrecer una «vista para evaluadores» en la página pública",
+    allowReaderModeTitle: "Los evaluadores pueden cambiar a una vista que revela todas las señales de confianza y contexto que contienen tus datos. Desactivada por defecto; tu página estándar no cambia.",
+    allowReaderModeNote: "Añade un pequeño enlace «Vista para evaluadores» a tu página viva. Esa vista activa: {list}; muestra los trabajos retractados con su distintivo; y marca en cada trabajo de dónde procede. Nunca añade métricas que no hayas elegido: nada de lo que aparece allí es una puntuación.",
+    readerViewUrlLabel: "Vista para evaluadores:",
+    readerViewUrlHint: "Entrega este enlace a un comité: abre tu página con las señales de procedencia, verificación y contexto visibles.",
   },
   "fr-FR": {
     pageSizeLabel: "Format de page",
@@ -825,6 +850,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Liens",
     coffee: "☕ Offrez-moi un café",
     supportTitle: "SigmaCV est gratuit et à but non lucratif — un café aide à payer les frais.",
+    allowReaderMode: "Proposer une « vue évaluateur » sur la page publique",
+    allowReaderModeTitle: "Les évaluateurs peuvent basculer vers une vue qui révèle tous les signaux de confiance et de contexte contenus dans vos données. Désactivé par défaut ; votre page standard reste inchangée.",
+    allowReaderModeNote: "Ajoute un petit lien « Vue évaluateur » à votre page vivante. Cette vue active : {list} ; affiche les travaux rétractés avec leur badge ; et indique, pour chaque travail, d'où il provient. Elle n'ajoute jamais d'indicateurs que vous n'avez pas choisis — rien n'y est un score.",
+    readerViewUrlLabel: "Vue évaluateur :",
+    readerViewUrlHint: "Transmettez ce lien à un comité : il ouvre votre page avec les signaux de provenance, de vérification et de contexte affichés.",
   },
   "de-DE": {
     pageSizeLabel: "Seitenformat",
@@ -989,6 +1019,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Links",
     coffee: "☕ Spendieren Sie mir einen Kaffee",
     supportTitle: "SigmaCV ist kostenlos und gemeinnützig — ein Kaffee deckt die Betriebskosten.",
+    allowReaderMode: "„Gutachteransicht“ auf der öffentlichen Seite anbieten",
+    allowReaderModeTitle: "Gutachter können in eine Ansicht wechseln, die alle Vertrauens- und Kontextsignale Ihrer Daten offenlegt. Standardmäßig aus; Ihre Standardseite bleibt unverändert.",
+    allowReaderModeNote: "Fügt Ihrer lebenden Seite einen kleinen Link „Gutachteransicht“ hinzu. Diese Ansicht aktiviert: {list}; zeigt zurückgezogene Arbeiten mit ihrem Hinweis; und vermerkt bei jeder Arbeit, woher sie stammt. Sie fügt nie Kennzahlen hinzu, die Sie nicht gewählt haben – nichts dort ist eine Bewertung.",
+    readerViewUrlLabel: "Gutachteransicht:",
+    readerViewUrlHint: "Geben Sie diesen Link an ein Gremium weiter – er öffnet Ihre Seite mit sichtbaren Herkunfts-, Verifizierungs- und Kontextsignalen.",
   },
   "ja-JP": {
     pageSizeLabel: "用紙サイズ",
@@ -1149,6 +1184,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "リンク",
     coffee: "☕ コーヒーをおごる",
     supportTitle: "SigmaCV は無料・非営利です。コーヒー一杯が運営費の支えになります。",
+    allowReaderMode: "公開ページで「審査者ビュー」を提供する",
+    allowReaderModeTitle: "審査者は、あなたのデータに含まれるすべての信頼性・文脈の情報を表示するビューに切り替えられます。既定ではオフで、通常のページは変わりません。",
+    allowReaderModeNote: "リビングCVページに小さな「審査者ビュー」リンクを追加します。このビューでは次をオンにします：{list}。撤回された業績はバッジ付きで表示し、各業績に出典を示します。あなたが選んでいない指標を追加することはなく、そこにあるものはいずれもスコアではありません。",
+    readerViewUrlLabel: "審査者ビュー：",
+    readerViewUrlHint: "このリンクを委員会に渡してください。出典・検証・文脈の情報を表示した状態でページが開きます。",
   },
   "pt-BR": {
     pageSizeLabel: "Tamanho da página",
@@ -1310,6 +1350,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Links",
     coffee: "☕ Pague-me um café",
     supportTitle: "O SigmaCV é gratuito e sem fins lucrativos — um café ajuda a cobrir os custos.",
+    allowReaderMode: "Oferecer uma \"visão para avaliadores\" na página pública",
+    allowReaderModeTitle: "Avaliadores podem alternar para uma visão que revela todos os sinais de confiança e contexto que seus dados carregam. Desligado por padrão; sua página padrão não muda.",
+    allowReaderModeNote: "Adiciona um pequeno link \"Visão para avaliadores\" à sua página viva. Essa visão ativa: {list}; mostra trabalhos retratados com o respectivo selo; e marca em cada trabalho de onde ele veio. Nunca adiciona métricas que você não escolheu — nada ali é uma pontuação.",
+    readerViewUrlLabel: "Visão para avaliadores:",
+    readerViewUrlHint: "Entregue este link a uma comissão — ele abre sua página com os sinais de procedência, verificação e contexto visíveis.",
   },
   "it-IT": {
     pageSizeLabel: "Formato pagina",
@@ -1472,6 +1517,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Link",
     coffee: "☕ Offrimi un caffè",
     supportTitle: "SigmaCV è gratuito e senza scopo di lucro: un caffè aiuta a coprire i costi.",
+    allowReaderMode: "Offri una «vista per valutatori» nella pagina pubblica",
+    allowReaderModeTitle: "I valutatori possono passare a una vista che rivela tutti i segnali di affidabilità e contesto contenuti nei tuoi dati. Disattivata per impostazione predefinita; la tua pagina standard resta invariata.",
+    allowReaderModeNote: "Aggiunge un piccolo link «Vista per valutatori» alla tua pagina viva. Quella vista attiva: {list}; mostra i lavori ritrattati con il relativo contrassegno; e indica per ogni lavoro da dove proviene. Non aggiunge mai metriche che non hai scelto — nulla lì è un punteggio.",
+    readerViewUrlLabel: "Vista per valutatori:",
+    readerViewUrlHint: "Consegna questo link a una commissione: apre la tua pagina con i segnali di provenienza, verifica e contesto visibili.",
   },
   "ko-KR": {
     pageSizeLabel: "페이지 크기",
@@ -1632,6 +1682,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "링크",
     coffee: "☕ 커피 한 잔 사주기",
     supportTitle: "SigmaCV는 무료이며 비영리입니다 — 커피 한 잔이 운영 비용에 보탬이 됩니다.",
+    allowReaderMode: "공개 페이지에 “심사자 보기” 제공",
+    allowReaderModeTitle: "심사자는 내 데이터에 담긴 모든 신뢰·맥락 신호를 드러내는 보기로 전환할 수 있습니다. 기본은 꺼짐이며 기본 페이지는 바뀌지 않습니다.",
+    allowReaderModeNote: "리빙 CV 페이지에 작은 “심사자 보기” 링크를 추가합니다. 이 보기에서는 다음이 켜집니다: {list}. 철회된 연구는 배지와 함께 표시되고, 각 연구에 출처가 표시됩니다. 선택하지 않은 지표를 추가하는 일은 결코 없으며, 그곳의 어떤 것도 점수가 아닙니다.",
+    readerViewUrlLabel: "심사자 보기:",
+    readerViewUrlHint: "이 링크를 위원회에 전달하세요. 출처·검증·맥락 신호가 표시된 상태로 페이지가 열립니다.",
   },
   "ru-RU": {
     pageSizeLabel: "Размер страницы",
@@ -1792,6 +1847,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Ссылки",
     coffee: "☕ Купите мне кофе",
     supportTitle: "SigmaCV бесплатен и некоммерческий — чашка кофе помогает покрыть расходы.",
+    allowReaderMode: "Предлагать «режим эксперта» на публичной странице",
+    allowReaderModeTitle: "Эксперты смогут переключиться на представление, раскрывающее все признаки достоверности и контекста в ваших данных. По умолчанию выключено; ваша обычная страница не меняется.",
+    allowReaderModeNote: "Добавляет на вашу живую страницу небольшую ссылку «Режим эксперта». В этом режиме включаются: {list}; отозванные работы показываются с отметкой; у каждой работы указывается её источник. Он никогда не добавляет показатели, которые вы не выбирали, — ничто там не является оценкой.",
+    readerViewUrlLabel: "Режим эксперта:",
+    readerViewUrlHint: "Передайте эту ссылку комиссии — она открывает вашу страницу с показанными признаками происхождения, подтверждения и контекста.",
   },
 };
 

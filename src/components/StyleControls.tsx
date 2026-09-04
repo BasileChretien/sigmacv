@@ -31,6 +31,7 @@ import {
 } from "@/lib/canonical/cvModels";
 import { cvModelDescription } from "@/lib/i18n/cvModelDescriptions";
 import { METRIC_DEFS, curatedMetrics, formatMetricValue } from "@/lib/render/metrics";
+import { READER_MODE_KEYS, type ReaderModeKey } from "@/lib/render/readerMode";
 import { authorshipRoleLabel, metricLabel, renderStrings } from "@/lib/i18n/render";
 import {
   FIELD_NORMALIZED_METRICS,
@@ -42,11 +43,30 @@ import {
   metricsNudge,
   metricsRecommendedGroup,
 } from "@/lib/i18n/metricHints";
-import { ui } from "@/lib/i18n/ui";
+import { ui, type UiStrings } from "@/lib/i18n/ui";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { trackEvent } from "@/lib/analytics/track";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/lib/i18n";
+
+/**
+ * The editor labels of the toggles the assessor "Reader view" forces on, in the
+ * order the preset lists them — shown under the `allowReaderMode` checkbox so the
+ * owner sees exactly what that view reveals. Typed against `ReaderModeKey`: when a
+ * new key is appended to `READER_MODE_KEYS`, this map fails to compile until its
+ * label is added, so the note can never silently fall behind the behaviour.
+ */
+function readerModeKeyLabels(u: UiStrings): string[] {
+  const labels: Record<ReaderModeKey, string> = {
+    showProvenance: u.showProvenance,
+    showVerifiedBadges: u.showVerifiedBadges,
+    showOpenAccess: u.showOpenAccess,
+    showCitationCounts: u.showCitationCounts,
+    showResearchAreas: u.showResearchAreas,
+    showAuthorRole: u.showAuthorRole,
+  };
+  return READER_MODE_KEYS.map((k) => labels[k]);
+}
 
 interface StyleControlsProps {
   cv: CanonicalCv;
@@ -1187,6 +1207,23 @@ export default function StyleControls({
           />
           <span>{u.showProvenance}</span>
         </label>
+
+        {/* Assessor "Reader view" opt-in: a small link on the public page opens a
+            view with every trust/context toggle forced on (READER_MODE_KEYS) and
+            retracted works visible — the standard page is unchanged. The note lists
+            exactly which toggles that view turns on, from the same key list the
+            preset applies, so the copy can't drift from the behaviour. */}
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.allowReaderMode}
+            onChange={(e) => onChange(updateDisplay(cv, { allowReaderMode: e.target.checked }))}
+          />
+          <span title={u.allowReaderModeTitle}>{u.allowReaderMode}</span>
+        </label>
+        <p className="muted metric-preset-note field-note">
+          {u.allowReaderModeNote.replace("{list}", readerModeKeyLabels(u).join(", "))}
+        </p>
 
         <label className="field-inline">
           <input

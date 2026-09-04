@@ -24,6 +24,15 @@ import {
   parseViewFilters,
   viewFilterBarHtml,
 } from "@/lib/cv/viewFilter";
+import {
+  READER_VIEW_KEEP,
+  isReaderViewRequested,
+  readerViewActive,
+  readerViewBannerHtml,
+  readerViewCv,
+  readerViewHeadTags,
+  readerViewLinkHtml,
+} from "@/lib/cv/readerView";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { absoluteUrl } from "@/lib/siteUrl";
 import { enforcePubPageRateLimit, isValidPublicSlug, tooManyRequests } from "./pubRateLimit";
@@ -125,7 +134,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   // facet bar links set these params (machine formats ignore them).
   const url = new URL(req.url);
   const filters = parseViewFilters(url.searchParams);
-  const active = isFilterActive(filters);
+  // `?view=reader` (the assessor's reader view) is only a REQUEST here — whether it
+  // is honoured depends on the owner's opt-in on the loaded CV (below). A plain
+  // request for the reader view must still be able to use the standard-page cache,
+  // so the cache check keys on the filters alone at this point and the reader gate
+  // is re-evaluated once the record is known.
+  const readerRequested = isReaderViewRequested(url.searchParams);
+  const active = isFilterActive(filters) || readerRequested;
 
   const rl = await enforcePubPageRateLimit(req);
   if (!rl.ok) return tooManyRequests(rl.retryAfterSec);
@@ -174,6 +189,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     return machineResponse(serializePublicCv(cv, format, slug), slug, indexable, signposting);
   }
 
+  // The assessor's READER VIEW: honoured only when the owner opted in
+  // (`display.allowReaderMode`); otherwise `?view=reader` is ignored and the
+  // standard page is served. It applies the reader-mode display preset to the
+  // projected CV and asks the renderer for the per-item provenance marks — an
+  // internal render option, so no export can ever carry them.
+  const reader = readerViewActive(url.searchParams, cv);
+
   // Build the public HTML for a given VIEW of the CV (the full doc, or a narrowed
   // one under an active filter). Public-page-only chrome — the per-publication
   // Cite/Abstract/Full-text affordance (publicExtras + slug), the "Subscribe" feed
@@ -183,31 +205,52 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   const renderView = (viewCv: CanonicalCv): string => {
     // The living public page may use an animated showcase style (display.publicStyle);
     // "match" (default) renders with the document template. Exports never call this.
-    let html = renderPublicCvHtml(viewCv, {
+    let html = renderPublicCvHtml(reader ? readerViewCv(viewCv) : viewCv, {
       attribution: true,
       coauthorCvs,
       recentlyAdded,
       publicExtras: true,
       slug,
       feedHref,
+      readerMode: reader,
     });
+    // Reader-view chrome: the banner at the top of the reader view, or (when the
+    // owner allows the view) the quiet "Reader view" link on the standard page.
+    const readerChrome = reader
+      ? readerViewBannerHtml(filters, cv.display.locale)
+      : cv.display.allowReaderMode
+        ? readerViewLinkHtml(filters, cv.display.locale)
+        : "";
     // The view-filter bar is built from the FULL CV (so every facet is always
     // reachable, even from a filtered view) and injected just above the sections —
     // one consistent anchor (`<main class="cv-main">`) across every template/style.
-    const bar = viewFilterBarHtml(cv, filters, cv.display.locale);
-    if (bar) html = html.replace('<main class="cv-main">', `${bar}<main class="cv-main">`);
+    // In the reader view its chips keep `view=reader` so a facet never drops it.
+    const bar = viewFilterBarHtml(
+      cv,
+      filters,
+      cv.display.locale,
+      reader ? READER_VIEW_KEEP : undefined,
+    );
+    if (readerChrome || bar) {
+      html = html.replace('<main class="cv-main">', `${readerChrome}${bar}<main class="cv-main">`);
+    }
     // SEO + OG/Twitter meta (public profile text only) into <head>: canonical +
     // og:url, a SERP description, og:image (the per-CV branded card), and the Atom
-    // feed's alternate <link> so feed readers discover it.
-    const head = publicMetaTags(cv, {
-      imageUrl: absoluteUrl(`/p/${slug}/og`),
-      pageUrl: absoluteUrl(`/p/${slug}`),
-      feedUrl: feedHref,
-    });
+    // feed's alternate <link> so feed readers discover it. Built from the FULL
+    // (un-preset) CV with the PLAIN page URL for every view, so the reader view's
+    // canonical + social card are identical to the standard page's; the reader view
+    // only adds a `noindex` robots meta (its content is the standard page's).
+    const head =
+      publicMetaTags(cv, {
+        imageUrl: absoluteUrl(`/p/${slug}/og`),
+        pageUrl: absoluteUrl(`/p/${slug}`),
+        feedUrl: feedHref,
+      }) + (reader ? readerViewHeadTags() : "");
     // Inject ProfilePage/Person JSON-LD into the document head. It's DATA, not a
     // crawl permission — emit it whether or not the owner opted into indexing (the
     // X-Robots-Tag `noindex` still keeps the page out of search results). It's data
-    // (not executed), so it's unaffected by the document's strict CSP.
+    // (not executed), so it's unaffected by the document's strict CSP. Built from
+    // the FULL CV, so the reader view carries the very same graph.
     return html.replace(
       "</head>",
       `${head}<script type="application/ld+json">${profilePageJsonLd(cv, slug, coauthorCvs)}</script></head>`,
@@ -216,9 +259,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
 
   // A FILTERED view renders fresh and is neither cached nor deduped (both key on
   // slug alone, so a filtered render must never be stored under or coalesced with
-  // the plain page).
-  if (active) {
-    return publicPageResponse(renderView(filterCvForView(cv, filters)), indexable, signposting);
+  // the plain page). The reader view is served the same way, and always `noindex`
+  // (the standard page is the canonical, indexable one).
+  if (isFilterActive(filters) || reader) {
+    return publicPageResponse(
+      renderView(filterCvForView(cv, filters)),
+      indexable && !reader,
+      signposting,
+    );
   }
 
   // Coalesce concurrent renders of the same (unfiltered) slug so the heavy citeproc

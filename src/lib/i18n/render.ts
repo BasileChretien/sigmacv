@@ -140,6 +140,36 @@ export interface RenderStrings {
   filterTypeConference: string;
   filterTypeBook: string;
   filterTypeDataset: string;
+  /** Public-page link to the assessor "Reader view" (`?view=reader`), shown only when the owner opted in. */
+  readerLinkLabel: string;
+  /** Tooltip on that link. */
+  readerLinkTitle: string;
+  /** Banner at the top of the reader view: what it shows, and that nothing in it is a score. */
+  readerBannerText: string;
+  /** Banner link back to the standard page. */
+  readerBannerBack: string;
+  /** Reader-view per-item provenance: how the work was tied to the owner (ORCID iD match). */
+  provMatchOrcid: string;
+  /** Reader-view per-item provenance: OpenAlex author-ID match. */
+  provMatchOpenAlexId: string;
+  /** Reader-view per-item provenance: both identifiers matched. */
+  provMatchBoth: string;
+  /** Reader-view per-item provenance: the owner added the work by DOI with no identifier match. */
+  provMatchClaimed: string;
+  /** Reader-view per-item provenance when no match basis is on the item; "{source}" → the source name (OpenAlex, DataCite, …). */
+  provSourceOf: string;
+  /** Reader-view per-item provenance for a manual (owner-entered) item. */
+  provSourceManual: string;
+  /** Reader-view per-item provenance fragment: metadata gap-filled from Crossref. */
+  provEnriched: string;
+  /** Reader-view per-item provenance fragment: the item carries a review flag. */
+  provUnderReview: string;
+  /** Reader-view per-item provenance fragment: freshness; "{date}" → the localized date the item was last re-fetched. */
+  provLastVerified: string;
+  /** Short reader-view mark label for an owner-claimed work (the proper-noun labels "ORCID"/"OpenAlex ID" are not translated). */
+  provLabelClaimed: string;
+  /** Short reader-view mark label for a manual (owner-entered) item. */
+  provLabelManual: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -227,6 +257,21 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Updated {date} · living CV, updates automatically",
     rorRecordTitle: "ROR organization record",
     institutionSiteTitle: "Institution website",
+    readerLinkLabel: "Reader view",
+    readerLinkTitle: "Show the provenance, verification and context signals in the owner's data",
+    readerBannerText: "Reader view: shows provenance, verification and context signals from the owner's data. Nothing here is a score.",
+    readerBannerBack: "Back to the standard page",
+    provMatchOrcid: "Matched to the owner by ORCID iD",
+    provMatchOpenAlexId: "Matched to the owner by OpenAlex author ID",
+    provMatchBoth: "Matched to the owner by ORCID iD and OpenAlex author ID",
+    provMatchClaimed: "Added by the owner by DOI — no identifier match on the record",
+    provSourceOf: "Record from {source}",
+    provSourceManual: "Entered by the owner",
+    provEnriched: "metadata completed from Crossref",
+    provUnderReview: "flagged for the owner's review",
+    provLastVerified: "last verified {date}",
+    provLabelClaimed: "Claimed",
+    provLabelManual: "Manual",
   },
   "zh-CN": {
     hankoCredit:
@@ -309,6 +354,21 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "更新于 {date} · 在线简历，自动更新",
     rorRecordTitle: "ROR 机构记录",
     institutionSiteTitle: "机构网站",
+    readerLinkLabel: "审阅视图",
+    readerLinkTitle: "显示所有者数据中的来源、核验与背景信号",
+    readerBannerText: "审阅视图：显示所有者数据中的来源、核验与背景信号。此处没有任何内容是评分。",
+    readerBannerBack: "返回标准页面",
+    provMatchOrcid: "通过 ORCID iD 与所有者匹配",
+    provMatchOpenAlexId: "通过 OpenAlex 作者 ID 与所有者匹配",
+    provMatchBoth: "通过 ORCID iD 和 OpenAlex 作者 ID 与所有者匹配",
+    provMatchClaimed: "由所有者通过 DOI 添加——记录上没有标识符匹配",
+    provSourceOf: "记录来自 {source}",
+    provSourceManual: "由所有者手动录入",
+    provEnriched: "元数据已由 Crossref 补全",
+    provUnderReview: "已标记待所有者复核",
+    provLastVerified: "最近核验于 {date}",
+    provLabelClaimed: "自行认领",
+    provLabelManual: "手动",
   },
   "es-ES": {
     hankoCredit:
@@ -400,6 +460,21 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Actualizado el {date} · CV vivo, se actualiza solo",
     rorRecordTitle: "Ficha de la organización en ROR",
     institutionSiteTitle: "Sitio web de la institución",
+    readerLinkLabel: "Vista para evaluadores",
+    readerLinkTitle: "Mostrar las señales de procedencia, verificación y contexto de los datos del titular",
+    readerBannerText: "Vista para evaluadores: muestra las señales de procedencia, verificación y contexto de los datos del titular. Nada de lo que aparece aquí es una puntuación.",
+    readerBannerBack: "Volver a la página estándar",
+    provMatchOrcid: "Vinculado al titular por su ORCID iD",
+    provMatchOpenAlexId: "Vinculado al titular por su ID de autor de OpenAlex",
+    provMatchBoth: "Vinculado al titular por su ORCID iD y su ID de autor de OpenAlex",
+    provMatchClaimed: "Añadido por el titular mediante DOI: sin coincidencia de identificador en el registro",
+    provSourceOf: "Registro procedente de {source}",
+    provSourceManual: "Introducido por el titular",
+    provEnriched: "metadatos completados desde Crossref",
+    provUnderReview: "marcado para revisión del titular",
+    provLastVerified: "última verificación: {date}",
+    provLabelClaimed: "Reclamado",
+    provLabelManual: "Manual",
   },
   "fr-FR": {
     hankoCredit:
@@ -492,6 +567,21 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Mis à jour le {date} · CV vivant, mis à jour automatiquement",
     rorRecordTitle: "Fiche de l’organisation dans ROR",
     institutionSiteTitle: "Site web de l’établissement",
+    readerLinkLabel: "Vue évaluateur",
+    readerLinkTitle: "Afficher les signaux de provenance, de vérification et de contexte présents dans les données du titulaire",
+    readerBannerText: "Vue évaluateur : affiche les signaux de provenance, de vérification et de contexte issus des données du titulaire. Rien ici n'est un score.",
+    readerBannerBack: "Revenir à la page standard",
+    provMatchOrcid: "Rattaché au titulaire par son ORCID iD",
+    provMatchOpenAlexId: "Rattaché au titulaire par son identifiant auteur OpenAlex",
+    provMatchBoth: "Rattaché au titulaire par son ORCID iD et son identifiant auteur OpenAlex",
+    provMatchClaimed: "Ajouté par le titulaire via le DOI — aucune correspondance d'identifiant sur la notice",
+    provSourceOf: "Notice issue de {source}",
+    provSourceManual: "Saisi par le titulaire",
+    provEnriched: "métadonnées complétées depuis Crossref",
+    provUnderReview: "signalé pour vérification par le titulaire",
+    provLastVerified: "dernière vérification le {date}",
+    provLabelClaimed: "Revendiqué",
+    provLabelManual: "Manuel",
   },
   "de-DE": {
     hankoCredit:
@@ -581,6 +671,21 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aktualisiert am {date} · lebender Lebenslauf, automatisch aktualisiert",
     rorRecordTitle: "ROR-Organisationseintrag",
     institutionSiteTitle: "Website der Einrichtung",
+    readerLinkLabel: "Gutachteransicht",
+    readerLinkTitle: "Herkunfts-, Verifizierungs- und Kontextsignale aus den Daten der Inhaberin bzw. des Inhabers anzeigen",
+    readerBannerText: "Gutachteransicht: zeigt Herkunfts-, Verifizierungs- und Kontextsignale aus den Daten der Inhaberin bzw. des Inhabers. Nichts hiervon ist eine Bewertung.",
+    readerBannerBack: "Zurück zur Standardseite",
+    provMatchOrcid: "Über die ORCID iD zugeordnet",
+    provMatchOpenAlexId: "Über die OpenAlex-Autoren-ID zugeordnet",
+    provMatchBoth: "Über die ORCID iD und die OpenAlex-Autoren-ID zugeordnet",
+    provMatchClaimed: "Per DOI selbst hinzugefügt – keine Identifikator-Übereinstimmung im Datensatz",
+    provSourceOf: "Datensatz aus {source}",
+    provSourceManual: "Manuell eingetragen",
+    provEnriched: "Metadaten aus Crossref ergänzt",
+    provUnderReview: "zur Prüfung durch die Inhaberin bzw. den Inhaber markiert",
+    provLastVerified: "zuletzt geprüft am {date}",
+    provLabelClaimed: "Beansprucht",
+    provLabelManual: "Manuell",
   },
   "ja-JP": {
     hankoCredit:
@@ -666,6 +771,21 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 更新 · 自動更新されるライブ CV",
     rorRecordTitle: "ROR 機関レコード",
     institutionSiteTitle: "機関ウェブサイト",
+    readerLinkLabel: "審査者ビュー",
+    readerLinkTitle: "所有者のデータに含まれる出典・検証・文脈の情報を表示します",
+    readerBannerText: "審査者ビュー：所有者のデータに含まれる出典・検証・文脈の情報を表示しています。ここにあるものはいずれもスコアではありません。",
+    readerBannerBack: "通常のページに戻る",
+    provMatchOrcid: "ORCID iD により所有者と照合",
+    provMatchOpenAlexId: "OpenAlex 著者 ID により所有者と照合",
+    provMatchBoth: "ORCID iD と OpenAlex 著者 ID により所有者と照合",
+    provMatchClaimed: "所有者が DOI で追加 — レコード上に識別子の一致なし",
+    provSourceOf: "{source} のレコード",
+    provSourceManual: "所有者が手入力",
+    provEnriched: "メタデータを Crossref から補完",
+    provUnderReview: "所有者の確認待ちとしてフラグ付き",
+    provLastVerified: "最終確認 {date}",
+    provLabelClaimed: "本人申告",
+    provLabelManual: "手入力",
   },
   "pt-BR": {
     hankoCredit:
@@ -757,6 +877,21 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Atualizado em {date} · currículo vivo, atualizado automaticamente",
     rorRecordTitle: "Registro da organização no ROR",
     institutionSiteTitle: "Site da instituição",
+    readerLinkLabel: "Visão para avaliadores",
+    readerLinkTitle: "Mostrar os sinais de procedência, verificação e contexto presentes nos dados do titular",
+    readerBannerText: "Visão para avaliadores: mostra os sinais de procedência, verificação e contexto dos dados do titular. Nada aqui é uma pontuação.",
+    readerBannerBack: "Voltar à página padrão",
+    provMatchOrcid: "Vinculado ao titular pelo ORCID iD",
+    provMatchOpenAlexId: "Vinculado ao titular pelo ID de autor do OpenAlex",
+    provMatchBoth: "Vinculado ao titular pelo ORCID iD e pelo ID de autor do OpenAlex",
+    provMatchClaimed: "Adicionado pelo titular por DOI — sem correspondência de identificador no registro",
+    provSourceOf: "Registro proveniente de {source}",
+    provSourceManual: "Inserido pelo titular",
+    provEnriched: "metadados complementados a partir do Crossref",
+    provUnderReview: "sinalizado para revisão do titular",
+    provLastVerified: "última verificação em {date}",
+    provLabelClaimed: "Reivindicado",
+    provLabelManual: "Manual",
   },
   "it-IT": {
     hankoCredit:
@@ -848,6 +983,21 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aggiornato il {date} · CV vivo, si aggiorna da solo",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
     institutionSiteTitle: "Sito web dell’istituzione",
+    readerLinkLabel: "Vista per valutatori",
+    readerLinkTitle: "Mostra i segnali di provenienza, verifica e contesto presenti nei dati del titolare",
+    readerBannerText: "Vista per valutatori: mostra i segnali di provenienza, verifica e contesto tratti dai dati del titolare. Nulla di ciò che vedi qui è un punteggio.",
+    readerBannerBack: "Torna alla pagina standard",
+    provMatchOrcid: "Associato al titolare tramite ORCID iD",
+    provMatchOpenAlexId: "Associato al titolare tramite ID autore OpenAlex",
+    provMatchBoth: "Associato al titolare tramite ORCID iD e ID autore OpenAlex",
+    provMatchClaimed: "Aggiunto dal titolare tramite DOI — nessuna corrispondenza di identificativo nel record",
+    provSourceOf: "Record proveniente da {source}",
+    provSourceManual: "Inserito dal titolare",
+    provEnriched: "metadati completati da Crossref",
+    provUnderReview: "segnalato per la revisione del titolare",
+    provLastVerified: "ultima verifica il {date}",
+    provLabelClaimed: "Rivendicato",
+    provLabelManual: "Manuale",
   },
   "ko-KR": {
     hankoCredit:
@@ -932,6 +1082,21 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 업데이트 · 자동으로 갱신되는 라이브 CV",
     rorRecordTitle: "ROR 기관 레코드",
     institutionSiteTitle: "기관 웹사이트",
+    readerLinkLabel: "심사자 보기",
+    readerLinkTitle: "소유자 데이터에 담긴 출처·검증·맥락 신호를 표시합니다",
+    readerBannerText: "심사자 보기: 소유자 데이터에 담긴 출처·검증·맥락 신호를 표시합니다. 여기에 있는 것은 어느 것도 점수가 아닙니다.",
+    readerBannerBack: "기본 페이지로 돌아가기",
+    provMatchOrcid: "ORCID iD로 소유자와 매칭됨",
+    provMatchOpenAlexId: "OpenAlex 저자 ID로 소유자와 매칭됨",
+    provMatchBoth: "ORCID iD와 OpenAlex 저자 ID로 소유자와 매칭됨",
+    provMatchClaimed: "소유자가 DOI로 추가함 — 레코드에 식별자 일치 없음",
+    provSourceOf: "{source}의 레코드",
+    provSourceManual: "소유자가 직접 입력",
+    provEnriched: "메타데이터를 Crossref에서 보완함",
+    provUnderReview: "소유자 검토 대상으로 표시됨",
+    provLastVerified: "최근 확인 {date}",
+    provLabelClaimed: "본인 주장",
+    provLabelManual: "수동",
   },
   "ru-RU": {
     hankoCredit:
@@ -1021,6 +1186,21 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Обновлено {date} · живое резюме, обновляется автоматически",
     rorRecordTitle: "Запись организации в ROR",
     institutionSiteTitle: "Сайт организации",
+    readerLinkLabel: "Режим эксперта",
+    readerLinkTitle: "Показать признаки происхождения, подтверждения и контекста из данных владельца",
+    readerBannerText: "Режим эксперта: показывает признаки происхождения, подтверждения и контекста из данных владельца. Ничто здесь не является оценкой.",
+    readerBannerBack: "Вернуться к обычной странице",
+    provMatchOrcid: "Сопоставлено с владельцем по ORCID iD",
+    provMatchOpenAlexId: "Сопоставлено с владельцем по ID автора OpenAlex",
+    provMatchBoth: "Сопоставлено с владельцем по ORCID iD и ID автора OpenAlex",
+    provMatchClaimed: "Добавлено владельцем по DOI — совпадения идентификатора в записи нет",
+    provSourceOf: "Запись из {source}",
+    provSourceManual: "Введено владельцем вручную",
+    provEnriched: "метаданные дополнены из Crossref",
+    provUnderReview: "отмечено для проверки владельцем",
+    provLastVerified: "последняя проверка {date}",
+    provLabelClaimed: "Заявлено",
+    provLabelManual: "Вручную",
   },
 };
 
