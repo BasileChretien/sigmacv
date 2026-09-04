@@ -27,7 +27,9 @@ const mocks = vi.hoisted(() => ({
   enrichCvWithAbstracts: vi.fn(),
   enrichCvWithIcite: vi.fn(),
   enrichCvWithRetractions: vi.fn(),
+  enrichCvWithCreditRoles: vi.fn(),
   fetchPeerReviews: vi.fn(),
+  fetchCrossrefPeerReviews: vi.fn(),
   fetchJournalNames: vi.fn(),
   fetchOpenaire: vi.fn(),
   fetchDblp: vi.fn(),
@@ -86,7 +88,10 @@ vi.mock("@/lib/datacite/client", () => ({ fetchDataciteOutputs: vi.fn(async () =
 // orchestration test makes no network calls. Controllable via the hoisted mocks.
 vi.mock("@/lib/openaire/client", () => ({ fetchOpenaireOutputs: mocks.fetchOpenaire }));
 vi.mock("@/lib/dblp/client", () => ({ fetchDblpConferencePapers: mocks.fetchDblp }));
-vi.mock("@/lib/crossref/client", () => ({ fetchCrossrefGrantsByOrcid: mocks.fetchCrossrefGrants }));
+vi.mock("@/lib/crossref/client", () => ({
+  fetchCrossrefGrantsByOrcid: mocks.fetchCrossrefGrants,
+  fetchCrossrefPeerReviewsByOrcid: mocks.fetchCrossrefPeerReviews,
+}));
 vi.mock("@/lib/wikidata/client", () => ({ fetchWikidataIdentity: mocks.fetchWikidata }));
 vi.mock("@/lib/ukri/client", () => ({ fetchUkriGrants: mocks.fetchUkri }));
 vi.mock("@/lib/nih/client", () => ({ fetchNihGrants: mocks.fetchNih }));
@@ -105,6 +110,7 @@ vi.mock("@/lib/canonical/enrich", () => ({
   enrichCvWithAbstracts: mocks.enrichCvWithAbstracts,
   enrichCvWithIcite: mocks.enrichCvWithIcite,
   enrichCvWithRetractions: mocks.enrichCvWithRetractions,
+  enrichCvWithCreditRoles: mocks.enrichCvWithCreditRoles,
   withRorProvenance: (cv: unknown) => cv,
 }));
 
@@ -173,7 +179,9 @@ beforeEach(() => {
   mocks.enrichCvWithAbstracts.mockImplementation(async (cv) => cv);
   mocks.enrichCvWithIcite.mockImplementation(async (cv) => cv);
   mocks.enrichCvWithRetractions.mockImplementation(async (cv) => cv);
+  mocks.enrichCvWithCreditRoles.mockImplementation(async (cv) => cv);
   mocks.fetchPeerReviews.mockResolvedValue([]);
+  mocks.fetchCrossrefPeerReviews.mockResolvedValue([]);
   mocks.fetchJournalNames.mockResolvedValue(new Map<string, string>());
   mocks.fetchOpenaire.mockResolvedValue([]);
   mocks.fetchDblp.mockResolvedValue([]);
@@ -246,6 +254,7 @@ describe("buildCvFromOrcid onProgress", () => {
     expect(events.find((e) => e.source === "openalex.works")?.count).toBe(works.length);
     expect(events.some((e) => e.source === "datacite")).toBe(true);
     expect(events.some((e) => e.source === "nih")).toBe(true);
+    expect(events.find((e) => e.source === "crossref.reviews")?.count).toBe(0);
     // Non-array prerequisites / owner identity never surface as sources.
     expect(events.some((e) => e.source === "openalex.resolveAuthor")).toBe(false);
     expect(events.some((e) => e.source === "wikidata")).toBe(false);

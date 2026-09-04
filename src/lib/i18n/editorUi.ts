@@ -98,6 +98,18 @@ export interface EditorExtraStrings {
   regionDesign: string;
   regionProfile: string;
   regionsAria: string;
+  /** Design-panel toggle: show the CRediT contribution roles under each publication. */
+  showCreditRoles: string;
+  /** Heading of the per-publication CRediT role picker ("Edit details"). */
+  creditRolesHeading: string;
+  /** Explains the picker + the self-declared vs publisher-sourced labelling. */
+  creditRolesHint: string;
+  /** Provenance note when the shown roles came from the Crossref deposit. */
+  creditRolesFromCrossref: string;
+  /** Provenance note when the shown roles were self-declared. */
+  creditRolesSelfDeclared: string;
+  /** Button: clear the roles on this publication. */
+  creditRolesClear: string;
 }
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
@@ -183,6 +195,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Design",
     regionProfile: "Profile",
     regionsAria: "Editor sections",
+    showCreditRoles: "Show my CRediT contribution roles under each publication",
+    creditRolesHeading: "Contribution roles (CRediT)",
+    creditRolesHint:
+      "Tick the roles you held on this work. Roles read from the publisher's record (Crossref) are shown until you change them; your own selection is labelled self-declared.",
+    creditRolesFromCrossref: "From publisher metadata (Crossref)",
+    creditRolesSelfDeclared: "Self-declared",
+    creditRolesClear: "Clear roles",
   },
   "zh-CN": {
     coverageNote:
@@ -264,6 +283,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "外观",
     regionProfile: "个人资料",
     regionsAria: "编辑器区域",
+    showCreditRoles: "在每篇论文下显示我的 CRediT 贡献角色",
+    creditRolesHeading: "贡献角色（CRediT）",
+    creditRolesHint:
+      "勾选你在这项成果中承担的角色。来自出版商记录（Crossref）的角色会一直显示，直到你修改为止；你自己的选择会标注为本人声明。",
+    creditRolesFromCrossref: "来自出版商元数据（Crossref）",
+    creditRolesSelfDeclared: "本人声明",
+    creditRolesClear: "清除角色",
   },
   "es-ES": {
     coverageNote:
@@ -348,6 +374,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Diseño",
     regionProfile: "Perfil",
     regionsAria: "Secciones del editor",
+    showCreditRoles: "Mostrar mis roles de contribución CRediT bajo cada publicación",
+    creditRolesHeading: "Roles de contribución (CRediT)",
+    creditRolesHint:
+      "Marca los roles que desempeñaste en este trabajo. Los roles leídos del registro del editor (Crossref) se muestran hasta que los cambies; tu propia selección se etiqueta como declarada por el autor.",
+    creditRolesFromCrossref: "Según los metadatos del editor (Crossref)",
+    creditRolesSelfDeclared: "Declarado por el autor",
+    creditRolesClear: "Borrar roles",
   },
   "fr-FR": {
     coverageNote:
@@ -434,6 +467,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Apparence",
     regionProfile: "Profil",
     regionsAria: "Sections de l’éditeur",
+    showCreditRoles: "Afficher mes rôles de contribution CRediT sous chaque publication",
+    creditRolesHeading: "Rôles de contribution (CRediT)",
+    creditRolesHint:
+      "Cochez les rôles que vous avez tenus pour ce travail. Les rôles lus dans la notice de l’éditeur (Crossref) restent affichés tant que vous ne les modifiez pas ; votre propre sélection est signalée comme déclarée par l’auteur.",
+    creditRolesFromCrossref: "D’après les métadonnées de l’éditeur (Crossref)",
+    creditRolesSelfDeclared: "Déclaré par l’auteur",
+    creditRolesClear: "Effacer les rôles",
   },
   "de-DE": {
     coverageNote:
@@ -519,6 +559,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Design",
     regionProfile: "Profil",
     regionsAria: "Editor-Bereiche",
+    showCreditRoles: "Meine CRediT-Beitragsrollen unter jeder Publikation anzeigen",
+    creditRolesHeading: "Beitragsrollen (CRediT)",
+    creditRolesHint:
+      "Kreuzen Sie die Rollen an, die Sie bei dieser Arbeit hatten. Aus dem Verlagsdatensatz (Crossref) gelesene Rollen bleiben sichtbar, bis Sie sie ändern; Ihre eigene Auswahl wird als selbst angegeben gekennzeichnet.",
+    creditRolesFromCrossref: "Aus den Verlagsmetadaten (Crossref)",
+    creditRolesSelfDeclared: "Selbst angegeben",
+    creditRolesClear: "Rollen löschen",
   },
   "ja-JP": {
     coverageNote:
@@ -603,6 +650,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "デザイン",
     regionProfile: "プロフィール",
     regionsAria: "エディターのセクション",
+    showCreditRoles: "各論文の下に自分の CRediT 貢献役割を表示",
+    creditRolesHeading: "貢献役割（CRediT）",
+    creditRolesHint:
+      "この成果で担った役割にチェックを付けてください。出版社の記録（Crossref）から読み取った役割は変更するまで表示され、自分で選んだ役割は本人申告として表示されます。",
+    creditRolesFromCrossref: "出版社のメタデータ（Crossref）より",
+    creditRolesSelfDeclared: "本人申告",
+    creditRolesClear: "役割をクリア",
   },
   "pt-BR": {
     coverageNote:
@@ -687,6 +741,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Aparência",
     regionProfile: "Perfil",
     regionsAria: "Seções do editor",
+    showCreditRoles: "Mostrar meus papéis de contribuição CRediT sob cada publicação",
+    creditRolesHeading: "Papéis de contribuição (CRediT)",
+    creditRolesHint:
+      "Marque os papéis que você desempenhou neste trabalho. Papéis lidos do registro da editora (Crossref) ficam visíveis até que você os altere; a sua própria seleção é rotulada como declarada pelo autor.",
+    creditRolesFromCrossref: "Conforme os metadados da editora (Crossref)",
+    creditRolesSelfDeclared: "Declarado pelo autor",
+    creditRolesClear: "Limpar papéis",
   },
   "it-IT": {
     coverageNote:
@@ -773,6 +834,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Aspetto",
     regionProfile: "Profilo",
     regionsAria: "Sezioni dell’editor",
+    showCreditRoles: "Mostra i miei ruoli di contributo CRediT sotto ogni pubblicazione",
+    creditRolesHeading: "Ruoli di contributo (CRediT)",
+    creditRolesHint:
+      "Spunta i ruoli che hai ricoperto in questo lavoro. I ruoli letti dalla scheda dell’editore (Crossref) restano visibili finché non li modifichi; la tua selezione è contrassegnata come dichiarata dall’autore.",
+    creditRolesFromCrossref: "Dai metadati dell’editore (Crossref)",
+    creditRolesSelfDeclared: "Dichiarato dall’autore",
+    creditRolesClear: "Cancella i ruoli",
   },
   "ko-KR": {
     coverageNote:
@@ -857,6 +925,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "디자인",
     regionProfile: "프로필",
     regionsAria: "편집기 섹션",
+    showCreditRoles: "각 논문 아래에 내 CRediT 기여 역할 표시",
+    creditRolesHeading: "기여 역할 (CRediT)",
+    creditRolesHint:
+      "이 연구에서 맡은 역할을 선택하세요. 출판사 기록(Crossref)에서 읽어온 역할은 변경하기 전까지 표시되며, 직접 선택한 역할은 본인 신고로 표시됩니다.",
+    creditRolesFromCrossref: "출판사 메타데이터 기준 (Crossref)",
+    creditRolesSelfDeclared: "본인 신고",
+    creditRolesClear: "역할 지우기",
   },
   "ru-RU": {
     coverageNote:
@@ -940,6 +1015,13 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Оформление",
     regionProfile: "Профиль",
     regionsAria: "Разделы редактора",
+    showCreditRoles: "Показывать мои роли вклада CRediT под каждой публикацией",
+    creditRolesHeading: "Роли вклада (CRediT)",
+    creditRolesHint:
+      "Отметьте роли, которые вы выполняли в этой работе. Роли, взятые из записи издателя (Crossref), показываются, пока вы их не измените; ваш собственный выбор помечается как указанный автором.",
+    creditRolesFromCrossref: "По метаданным издателя (Crossref)",
+    creditRolesSelfDeclared: "Указано автором",
+    creditRolesClear: "Очистить роли",
   },
 };
 

@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   fetchCrossrefGapFields: vi.fn(),
   fetchCrossrefAbstract: vi.fn(),
   fetchRetractionStatus: vi.fn(),
+  fetchCrossrefCreditRoles: vi.fn(),
   resolveInstitution: vi.fn(),
   fetchRcrByPmids: vi.fn(),
 }));
@@ -11,6 +12,7 @@ vi.mock("@/lib/crossref/client", () => ({
   fetchCrossrefGapFields: mocks.fetchCrossrefGapFields,
   fetchCrossrefAbstract: mocks.fetchCrossrefAbstract,
   fetchRetractionStatus: mocks.fetchRetractionStatus,
+  fetchCrossrefCreditRoles: mocks.fetchCrossrefCreditRoles,
 }));
 vi.mock("@/lib/ror/client", () => ({
   resolveInstitution: mocks.resolveInstitution,
@@ -22,6 +24,7 @@ vi.mock("@/lib/icite/client", () => ({
 import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
+  enrichCvWithCreditRoles,
   enrichCvWithCrossref,
   enrichCvWithIcite,
   enrichCvWithRetractions,
@@ -39,6 +42,7 @@ beforeEach(() => {
   mocks.fetchCrossrefGapFields.mockReset();
   mocks.fetchCrossrefAbstract.mockReset();
   mocks.fetchRetractionStatus.mockReset();
+  mocks.fetchCrossrefCreditRoles.mockReset();
   mocks.resolveInstitution.mockReset();
   mocks.fetchRcrByPmids.mockReset();
 });
@@ -311,6 +315,65 @@ describe("enrichCvWithRetractions", () => {
     const out = await enrichCvWithRetractions(cv, "ci@example.org");
     expect(out).toBe(cv);
     expect(mocks.fetchRetractionStatus).not.toHaveBeenCalled();
+  });
+});
+
+// ─── enrichCvWithCreditRoles (Crossref deposit, owner by ORCID) ──────────────
+
+describe("enrichCvWithCreditRoles", () => {
+  const ORCID = "0000-0002-7483-2489";
+
+  it("folds the owner's roles onto DOI works as crossref-sourced, flagging provenance", async () => {
+    mocks.fetchCrossrefCreditRoles.mockImplementation(async (doi: string) =>
+      doi === "10.1/x" ? ["conceptualization", "software"] : null,
+    );
+    const cv = makeCv([
+      pub("W1", csl({ id: "W1", DOI: "10.1/x" })),
+      pub("W2", csl({ id: "W2", DOI: "10.1/y" })), // Crossref has none → untouched
+      pub("W3", csl({ id: "W3" })), // no DOI → not looked up
+    ]);
+    const out = await enrichCvWithCreditRoles(cv, ORCID, "ci@example.org");
+    const items = out.sections[0]!.items;
+    expect(items[0]!.meta.creditRoles).toEqual(["conceptualization", "software"]);
+    expect(items[0]!.meta.creditRolesSource).toBe("crossref");
+    expect(items[1]!.meta.creditRoles).toBeUndefined();
+    expect(items[2]!.meta.creditRoles).toBeUndefined();
+    expect(out.provenance.sources).toContain("crossref");
+    expect(mocks.fetchCrossrefCreditRoles).toHaveBeenCalledTimes(2);
+    expect(mocks.fetchCrossrefCreditRoles).toHaveBeenCalledWith("10.1/x", ORCID, "ci@example.org");
+    // Immutable: the input is untouched.
+    expect(cv.sections[0]!.items[0]!.meta.creditRoles).toBeUndefined();
+  });
+
+  it("never overwrites a SELF declaration (or an earlier fill), and skips hidden works", async () => {
+    mocks.fetchCrossrefCreditRoles.mockResolvedValue(["software"]);
+    const self = {
+      ...pub("W1", csl({ DOI: "10.1/x" })),
+      meta: { creditRoles: ["validation" as const], creditRolesSource: "self" as const },
+    };
+    const filled = {
+      ...pub("W2", csl({ DOI: "10.1/y" })),
+      meta: { creditRoles: ["software" as const], creditRolesSource: "crossref" as const },
+    };
+    const hidden = { ...pub("W3", csl({ DOI: "10.1/z" })), included: false };
+    const cv = makeCv([self, filled, hidden]);
+    expect(await enrichCvWithCreditRoles(cv, ORCID, "ci@example.org")).toBe(cv);
+    expect(mocks.fetchCrossrefCreditRoles).not.toHaveBeenCalled();
+  });
+
+  it("returns the original CV when Crossref yields nothing", async () => {
+    mocks.fetchCrossrefCreditRoles.mockResolvedValue(null);
+    const cv = makeCv([pub("W1", csl({ DOI: "10.1/x" }))]);
+    expect(await enrichCvWithCreditRoles(cv, ORCID, "ci@example.org")).toBe(cv);
+  });
+
+  it("caps the number of lookups per call", async () => {
+    mocks.fetchCrossrefCreditRoles.mockResolvedValue(null);
+    const many = Array.from({ length: 130 }, (_, i) =>
+      pub(`W${i}`, csl({ id: `W${i}`, DOI: `10.1/${i}` })),
+    );
+    await enrichCvWithCreditRoles(makeCv(many), ORCID, "ci@example.org");
+    expect(mocks.fetchCrossrefCreditRoles).toHaveBeenCalledTimes(100);
   });
 });
 

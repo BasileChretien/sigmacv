@@ -15,6 +15,7 @@ import {
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName } from "@/lib/openalex/toCsl";
 import { nameVariants } from "./nameVariants";
+import { normalizeCreditRoles } from "./credit";
 import { duplicatePairKey } from "./duplicates";
 import { rederiveEntryLine } from "./entryLine";
 import type { CslItem, CslName } from "@/types/csl";
@@ -1189,6 +1190,34 @@ export function updateItemText(
   return mapSection(cv, sectionId, (s) => ({
     ...s,
     items: s.items.map((it) => (it.id === itemId ? { ...it, displayText } : it)),
+  }));
+}
+
+/**
+ * Declare (or clear) the account holder's own CRediT contribution roles on a
+ * citation item — the editor's role picker. The list is normalised to the 14
+ * canonical identifiers (unknown values dropped, duplicates collapsed, taxonomy
+ * order), stored in `meta.creditRoles` with `creditRolesSource: "self"` so the
+ * renderer can label it "self-declared" and the Crossref enrichment never
+ * overwrites it. An EMPTY selection clears both fields (the next sync may then
+ * fill them from the publisher's deposit again). Pure + immutable; a no-op for
+ * an unknown item or a non-citation entry.
+ */
+export function setCreditRoles(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  roles: readonly string[],
+): CanonicalCv {
+  const normalized = normalizeCreditRoles(roles);
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId || !it.csl) return it;
+      return normalized.length === 0
+        ? { ...it, meta: { ...it.meta, creditRoles: undefined, creditRolesSource: undefined } }
+        : { ...it, meta: { ...it.meta, creditRoles: normalized, creditRolesSource: "self" } };
+    }),
   }));
 }
 

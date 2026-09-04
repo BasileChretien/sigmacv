@@ -1182,6 +1182,15 @@ export default function StyleControls({
         <label className="field-inline">
           <input
             type="checkbox"
+            checked={cv.display.showCreditRoles}
+            onChange={(e) => onChange(updateDisplay(cv, { showCreditRoles: e.target.checked }))}
+          />
+          <span>{eu.showCreditRoles}</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
             checked={cv.display.showProvenance}
             onChange={(e) => onChange(updateDisplay(cv, { showProvenance: e.target.checked }))}
           />

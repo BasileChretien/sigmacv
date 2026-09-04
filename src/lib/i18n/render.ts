@@ -1,4 +1,5 @@
 import { asLocale, type Locale } from "./index";
+import type { CreditRole } from "@/lib/canonical/credit";
 
 /**
  * Localized strings that appear in the RENDERED CV (the exported PDF/DOCX/LaTeX/
@@ -140,6 +141,14 @@ export interface RenderStrings {
   filterTypeConference: string;
   filterTypeBook: string;
   filterTypeDataset: string;
+  /** Leading label of the opt-in CRediT contribution line under a citation ("Roles:"). */
+  creditRolesLabel: string;
+  /** Tooltip when the roles were declared by the account holder in the editor. */
+  creditRolesSelfTitle: string;
+  /** Tooltip when the roles were read from the publisher's Crossref deposit. */
+  creditRolesCrossrefTitle: string;
+  /** Localised names of the 14 CRediT contributor roles, keyed by canonical id. */
+  creditRoles: Record<CreditRole, string>;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -227,6 +236,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Updated {date} · living CV, updates automatically",
     rorRecordTitle: "ROR organization record",
     institutionSiteTitle: "Institution website",
+    creditRolesLabel: "Roles:",
+    creditRolesSelfTitle: "Self-declared",
+    creditRolesCrossrefTitle: "From publisher metadata (Crossref)",
+    creditRoles: {
+      conceptualization: "Conceptualization",
+      "data-curation": "Data curation",
+      "formal-analysis": "Formal analysis",
+      "funding-acquisition": "Funding acquisition",
+      investigation: "Investigation",
+      methodology: "Methodology",
+      "project-administration": "Project administration",
+      resources: "Resources",
+      software: "Software",
+      supervision: "Supervision",
+      validation: "Validation",
+      visualization: "Visualization",
+      "writing-original-draft": "Writing – original draft",
+      "writing-review-editing": "Writing – review & editing",
+    },
   },
   "zh-CN": {
     hankoCredit:
@@ -309,6 +337,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "更新于 {date} · 在线简历，自动更新",
     rorRecordTitle: "ROR 机构记录",
     institutionSiteTitle: "机构网站",
+    creditRolesLabel: "贡献角色：",
+    creditRolesSelfTitle: "本人声明",
+    creditRolesCrossrefTitle: "来自出版商元数据（Crossref）",
+    creditRoles: {
+      conceptualization: "概念构思",
+      "data-curation": "数据管理",
+      "formal-analysis": "形式分析",
+      "funding-acquisition": "资金获取",
+      investigation: "调查研究",
+      methodology: "方法设计",
+      "project-administration": "项目管理",
+      resources: "资源提供",
+      software: "软件开发",
+      supervision: "指导监督",
+      validation: "结果验证",
+      visualization: "可视化",
+      "writing-original-draft": "撰写初稿",
+      "writing-review-editing": "审阅与修订",
+    },
   },
   "es-ES": {
     hankoCredit:
@@ -400,6 +447,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Actualizado el {date} · CV vivo, se actualiza solo",
     rorRecordTitle: "Ficha de la organización en ROR",
     institutionSiteTitle: "Sitio web de la institución",
+    creditRolesLabel: "Roles:",
+    creditRolesSelfTitle: "Declarado por el autor",
+    creditRolesCrossrefTitle: "Según los metadatos del editor (Crossref)",
+    creditRoles: {
+      conceptualization: "Conceptualización",
+      "data-curation": "Curación de datos",
+      "formal-analysis": "Análisis formal",
+      "funding-acquisition": "Obtención de financiación",
+      investigation: "Investigación",
+      methodology: "Metodología",
+      "project-administration": "Administración del proyecto",
+      resources: "Recursos",
+      software: "Software",
+      supervision: "Supervisión",
+      validation: "Validación",
+      visualization: "Visualización",
+      "writing-original-draft": "Redacción del borrador original",
+      "writing-review-editing": "Revisión y edición",
+    },
   },
   "fr-FR": {
     hankoCredit:
@@ -492,6 +558,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Mis à jour le {date} · CV vivant, mis à jour automatiquement",
     rorRecordTitle: "Fiche de l’organisation dans ROR",
     institutionSiteTitle: "Site web de l’établissement",
+    creditRolesLabel: "Rôles :",
+    creditRolesSelfTitle: "Déclaré par l’auteur",
+    creditRolesCrossrefTitle: "D’après les métadonnées de l’éditeur (Crossref)",
+    creditRoles: {
+      conceptualization: "Conceptualisation",
+      "data-curation": "Curation des données",
+      "formal-analysis": "Analyse formelle",
+      "funding-acquisition": "Obtention du financement",
+      investigation: "Investigation",
+      methodology: "Méthodologie",
+      "project-administration": "Administration du projet",
+      resources: "Ressources",
+      software: "Logiciel",
+      supervision: "Supervision",
+      validation: "Validation",
+      visualization: "Visualisation",
+      "writing-original-draft": "Rédaction du premier jet",
+      "writing-review-editing": "Relecture et révision",
+    },
   },
   "de-DE": {
     hankoCredit:
@@ -581,6 +666,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aktualisiert am {date} · lebender Lebenslauf, automatisch aktualisiert",
     rorRecordTitle: "ROR-Organisationseintrag",
     institutionSiteTitle: "Website der Einrichtung",
+    creditRolesLabel: "Rollen:",
+    creditRolesSelfTitle: "Selbst angegeben",
+    creditRolesCrossrefTitle: "Aus den Verlagsmetadaten (Crossref)",
+    creditRoles: {
+      conceptualization: "Konzeption",
+      "data-curation": "Datenkuratierung",
+      "formal-analysis": "Formale Analyse",
+      "funding-acquisition": "Mitteleinwerbung",
+      investigation: "Untersuchung",
+      methodology: "Methodik",
+      "project-administration": "Projektadministration",
+      resources: "Ressourcen",
+      software: "Software",
+      supervision: "Betreuung",
+      validation: "Validierung",
+      visualization: "Visualisierung",
+      "writing-original-draft": "Schreiben – Erstentwurf",
+      "writing-review-editing": "Schreiben – Überarbeitung und Lektorat",
+    },
   },
   "ja-JP": {
     hankoCredit:
@@ -666,6 +770,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 更新 · 自動更新されるライブ CV",
     rorRecordTitle: "ROR 機関レコード",
     institutionSiteTitle: "機関ウェブサイト",
+    creditRolesLabel: "役割：",
+    creditRolesSelfTitle: "本人申告",
+    creditRolesCrossrefTitle: "出版社のメタデータ（Crossref）より",
+    creditRoles: {
+      conceptualization: "概念化",
+      "data-curation": "データキュレーション",
+      "formal-analysis": "形式的分析",
+      "funding-acquisition": "資金獲得",
+      investigation: "調査",
+      methodology: "方法論",
+      "project-administration": "プロジェクト管理",
+      resources: "リソース提供",
+      software: "ソフトウェア",
+      supervision: "監督・指導",
+      validation: "検証",
+      visualization: "可視化",
+      "writing-original-draft": "執筆（原案）",
+      "writing-review-editing": "執筆（査読・編集）",
+    },
   },
   "pt-BR": {
     hankoCredit:
@@ -757,6 +880,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Atualizado em {date} · currículo vivo, atualizado automaticamente",
     rorRecordTitle: "Registro da organização no ROR",
     institutionSiteTitle: "Site da instituição",
+    creditRolesLabel: "Papéis:",
+    creditRolesSelfTitle: "Declarado pelo autor",
+    creditRolesCrossrefTitle: "Conforme os metadados da editora (Crossref)",
+    creditRoles: {
+      conceptualization: "Conceituação",
+      "data-curation": "Curadoria de dados",
+      "formal-analysis": "Análise formal",
+      "funding-acquisition": "Obtenção de financiamento",
+      investigation: "Investigação",
+      methodology: "Metodologia",
+      "project-administration": "Administração do projeto",
+      resources: "Recursos",
+      software: "Software",
+      supervision: "Supervisão",
+      validation: "Validação",
+      visualization: "Visualização",
+      "writing-original-draft": "Escrita – rascunho original",
+      "writing-review-editing": "Escrita – revisão e edição",
+    },
   },
   "it-IT": {
     hankoCredit:
@@ -848,6 +990,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aggiornato il {date} · CV vivo, si aggiorna da solo",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
     institutionSiteTitle: "Sito web dell’istituzione",
+    creditRolesLabel: "Ruoli:",
+    creditRolesSelfTitle: "Dichiarato dall’autore",
+    creditRolesCrossrefTitle: "Dai metadati dell’editore (Crossref)",
+    creditRoles: {
+      conceptualization: "Concettualizzazione",
+      "data-curation": "Curatela dei dati",
+      "formal-analysis": "Analisi formale",
+      "funding-acquisition": "Reperimento dei fondi",
+      investigation: "Indagine",
+      methodology: "Metodologia",
+      "project-administration": "Amministrazione del progetto",
+      resources: "Risorse",
+      software: "Software",
+      supervision: "Supervisione",
+      validation: "Validazione",
+      visualization: "Visualizzazione",
+      "writing-original-draft": "Stesura della bozza originale",
+      "writing-review-editing": "Revisione e redazione",
+    },
   },
   "ko-KR": {
     hankoCredit:
@@ -932,6 +1093,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 업데이트 · 자동으로 갱신되는 라이브 CV",
     rorRecordTitle: "ROR 기관 레코드",
     institutionSiteTitle: "기관 웹사이트",
+    creditRolesLabel: "역할:",
+    creditRolesSelfTitle: "본인 신고",
+    creditRolesCrossrefTitle: "출판사 메타데이터 기준 (Crossref)",
+    creditRoles: {
+      conceptualization: "개념화",
+      "data-curation": "데이터 큐레이션",
+      "formal-analysis": "형식 분석",
+      "funding-acquisition": "연구비 확보",
+      investigation: "조사",
+      methodology: "방법론",
+      "project-administration": "프로젝트 관리",
+      resources: "자원 제공",
+      software: "소프트웨어",
+      supervision: "지도·감독",
+      validation: "검증",
+      visualization: "시각화",
+      "writing-original-draft": "초고 작성",
+      "writing-review-editing": "검토 및 편집",
+    },
   },
   "ru-RU": {
     hankoCredit:
@@ -1021,6 +1201,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Обновлено {date} · живое резюме, обновляется автоматически",
     rorRecordTitle: "Запись организации в ROR",
     institutionSiteTitle: "Сайт организации",
+    creditRolesLabel: "Роли:",
+    creditRolesSelfTitle: "Указано автором",
+    creditRolesCrossrefTitle: "По метаданным издателя (Crossref)",
+    creditRoles: {
+      conceptualization: "Концептуализация",
+      "data-curation": "Курирование данных",
+      "formal-analysis": "Формальный анализ",
+      "funding-acquisition": "Привлечение финансирования",
+      investigation: "Исследование",
+      methodology: "Методология",
+      "project-administration": "Администрирование проекта",
+      resources: "Ресурсы",
+      software: "Программное обеспечение",
+      supervision: "Научное руководство",
+      validation: "Валидация",
+      visualization: "Визуализация",
+      "writing-original-draft": "Написание черновика",
+      "writing-review-editing": "Рецензирование и редактирование",
+    },
   },
 };
 

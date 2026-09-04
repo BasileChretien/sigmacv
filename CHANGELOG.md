@@ -21,6 +21,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the parser-safe ATS template like all badges. The confirming organisation's
   name is now captured at sync (`meta.verifiedBy`), so a re-sync is needed before
   existing CVs can name it; the mark itself works on already-synced data.
+- **Open peer reviews with a DOI.** Referee reports that a publisher registered
+  against your ORCID in Crossref (eLife, PeerJ, F1000, BMC, MDPI and others
+  deposit them as `peer-review` records) now appear in the **Peer Review**
+  section as individual, citable entries — venue, year, a link, and the DOI of
+  the work reviewed — beside the existing per-journal counts from ORCID. They
+  are identifier-matched (the publisher deposited your iD), so they are included
+  automatically; hide, "not mine", ordering and year/venue corrections survive a
+  re-sync like any other entry, and a review OpenAlex already lists among your
+  works is never shown twice.
+- **CRediT contribution roles.** Each publication can carry your roles from the
+  14-role Contributor Roles Taxonomy (Conceptualization, Formal analysis,
+  Writing – review & editing, …). Two sources, always labelled: roles read from
+  the publisher's Crossref record for **your own** contributor entry (matched by
+  ORCID, never by name — coverage is still small, as few publishers deposit
+  them yet), and roles you tick yourself under **Edit details**, shown as
+  "self-declared" and never overwritten by a later sync. Off by default; the
+  new **Show my CRediT contribution roles** display option adds a small
+  "Roles: …" line under each publication (HTML/PDF), with a tooltip saying which
+  source the roles came from. Localised in all ten languages.
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so

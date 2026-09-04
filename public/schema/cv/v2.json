@@ -374,6 +374,10 @@
           "default": false,
           "type": "boolean"
         },
+        "showCreditRoles": {
+          "default": false,
+          "type": "boolean"
+        },
         "showVerifiedBadges": {
           "default": false,
           "type": "boolean"
@@ -867,6 +871,37 @@
                     "retracted": {
                       "type": "boolean"
                     },
+                    "creditRoles": {
+                      "maxItems": 14,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "conceptualization",
+                          "data-curation",
+                          "formal-analysis",
+                          "funding-acquisition",
+                          "investigation",
+                          "methodology",
+                          "project-administration",
+                          "resources",
+                          "software",
+                          "supervision",
+                          "validation",
+                          "visualization",
+                          "writing-original-draft",
+                          "writing-review-editing"
+                        ]
+                      }
+                    },
+                    "creditRolesSource": {
+                      "type": "string",
+                      "enum": ["crossref", "self"]
+                    },
+                    "reviewOf": {
+                      "type": "string",
+                      "maxLength": 1000
+                    },
                     "rorId": {
                       "type": "string",
                       "maxLength": 2048
@@ -1254,6 +1289,10 @@
                 "type": "boolean"
               },
               "showCitationCounts": {
+                "default": false,
+                "type": "boolean"
+              },
+              "showCreditRoles": {
                 "default": false,
                 "type": "boolean"
               },

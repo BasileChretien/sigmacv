@@ -45,6 +45,7 @@ import {
   setItemIncluded,
   setItemReviewed,
   setItemInstitution,
+  setCreditRoles,
   setItemNotMine,
   setItemRoleTitle,
   setItemTextOverride,
@@ -1112,6 +1113,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                   }
                                   onSetVenue={(v) =>
                                     onChange(setItemVenue(cv, section.id, item.id, v))
+                                  }
+                                  onSetCreditRoles={(roles) =>
+                                    onChange(setCreditRoles(cv, section.id, item.id, roles))
                                   }
                                   onRemove={() => onChange(removeItem(cv, section.id, item.id))}
                                 />
