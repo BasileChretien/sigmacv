@@ -7,6 +7,8 @@ import ShareControls from "./ShareControls";
 interface ShareMenuProps {
   locale: string;
   slug: string;
+  /** Owner enabled the assessor "Reader view" → its link is offered in the panel. */
+  readerViewEnabled?: boolean;
 }
 
 /**
@@ -16,7 +18,7 @@ interface ShareMenuProps {
  * share job has its own surface and the Publish popover stays a focused on/off
  * decision.
  */
-export default function ShareMenu({ locale, slug }: ShareMenuProps) {
+export default function ShareMenu({ locale, slug, readerViewEnabled = false }: ShareMenuProps) {
   const wu = workspaceUi(locale);
   return (
     <Popover
@@ -33,7 +35,7 @@ export default function ShareMenu({ locale, slug }: ShareMenuProps) {
         </>
       }
     >
-      {() => <ShareControls locale={locale} slug={slug} />}
+      {() => <ShareControls locale={locale} slug={slug} readerViewEnabled={readerViewEnabled} />}
     </Popover>
   );
 }
