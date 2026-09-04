@@ -64,7 +64,14 @@ export function isKnownEmptyPreview(orcid: string, now: number = Date.now()): bo
 }
 
 /** Record that an ORCID resolved to "no public record" (negative cache). */
-export function rememberEmptyPreview(orcid: string, now: number = Date.now()): void {
+export function rememberEmptyPreview(
+  orcid: string,
+  now: number = Date.now(),
+  /** Same staleness check as {@link setCachedOrcidPreview}: a researcher who
+   *  registered mid-build must not be remembered as having no public record. */
+  epoch?: number,
+): void {
+  if (epoch !== undefined && epoch !== orcidPreviewEpoch(orcid)) return;
   if (missCache.size >= MISS_MAX) {
     for (const [k, exp] of missCache) if (now >= exp) missCache.delete(k);
     if (missCache.size >= MISS_MAX) {
@@ -94,7 +101,12 @@ export function setCachedOrcidPreview(
   orcid: string,
   entry: OrcidPreviewEntry,
   now: number = Date.now(),
+  /** The epoch the build started with. When it has moved on, the result is stale
+   *  (the owner corrected something mid-build) and is DROPPED rather than cached.
+   *  Omitted ⇒ no staleness check, for callers that did not begin a build. */
+  epoch?: number,
 ): void {
+  if (epoch !== undefined && epoch !== orcidPreviewEpoch(orcid)) return;
   cache.set(orcid, {
     html: entry.html,
     name: entry.name,
@@ -110,6 +122,25 @@ export function setCachedOrcidPreview(
     total -= cache.get(oldest)!.html.length;
     cache.delete(oldest);
   }
+}
+
+/**
+ * Build generation per ORCID. Bumped on every invalidation.
+ *
+ * Without it an invalidation that lands DURING a build is silently lost: the
+ * build started before the correction, finishes after it, and writes its stale
+ * result into the cache we had just cleared — so the correction would not appear
+ * for a further full TTL, which is worse than not invalidating at all. A writer
+ * passes the epoch it started with and the write is dropped if it has moved.
+ *
+ * Unbounded growth is not a concern: the map is trimmed alongside the cache.
+ */
+const epochs = new Map<string, number>();
+
+/** The current build generation for an ORCID; pass it back to {@link setCachedOrcidPreview}. */
+export function orcidPreviewEpoch(orcid: string): number {
+  const key = normalizeOrcid(orcid);
+  return key ? (epochs.get(key) ?? 0) : 0;
 }
 
 /**
@@ -131,6 +162,9 @@ export function invalidateOrcidPreview(orcid: string): boolean {
   if (!key) return false;
   const had = cache.delete(key);
   const hadMiss = missCache.delete(key);
+  // Invalidate any build already in flight: it read the pre-correction state, so
+  // its result must not land in the cache we are clearing.
+  epochs.set(key, (epochs.get(key) ?? 0) + 1);
   return had || hadMiss;
 }
 
@@ -161,5 +195,6 @@ export function dedupeOrcidPreview<T>(orcid: string, run: () => Promise<T>): Pro
 export function __resetOrcidPreviewCache(): void {
   cache.clear();
   missCache.clear();
+  epochs.clear();
   inFlight.clear();
 }

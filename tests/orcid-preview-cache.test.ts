@@ -5,6 +5,7 @@ import {
   dedupeOrcidPreview,
   getCachedOrcidPreview,
   invalidateOrcidPreview,
+  orcidPreviewEpoch,
   isKnownEmptyPreview,
   rememberEmptyPreview,
   setCachedOrcidPreview,
@@ -135,5 +136,51 @@ describe("invalidateOrcidPreview", () => {
 
   it("ignores a malformed iD rather than throwing", () => {
     expect(invalidateOrcidPreview("")).toBe(false);
+  });
+});
+
+describe("an invalidation during an in-flight build is not overwritten", () => {
+  it("drops a build that started before the correction", () => {
+    // The real sequence, and the reason the epoch exists:
+    //   1. a visitor triggers a build, which reads the owner's corrections;
+    //   2. the owner marks a namesake's paper "not mine" — cache invalidated;
+    //   3. the build finishes and writes its PRE-correction result.
+    // Without the guard, step 3 refills the cache we just cleared, so the
+    // correction is invisible for a further full TTL — worse than not
+    // invalidating at all.
+    const epoch = orcidPreviewEpoch(ORCID); // 1. build begins
+    invalidateOrcidPreview(ORCID); // 2. owner corrects
+    setCachedOrcidPreview(ORCID, entry("<p>pre-correction</p>", "A"), Date.now(), epoch); // 3.
+    expect(getCachedOrcidPreview(ORCID)).toBeNull();
+  });
+
+  it("caches a build that started after the correction", () => {
+    invalidateOrcidPreview(ORCID);
+    const epoch = orcidPreviewEpoch(ORCID); // build begins AFTER the correction
+    setCachedOrcidPreview(ORCID, entry("<p>fresh</p>", "A"), Date.now(), epoch);
+    expect(getCachedOrcidPreview(ORCID)?.html).toBe("<p>fresh</p>");
+  });
+
+  it("still caches when no epoch is supplied, so existing callers are unaffected", () => {
+    setCachedOrcidPreview(ORCID, entry("<p>x</p>", "A"));
+    expect(getCachedOrcidPreview(ORCID)).not.toBeNull();
+  });
+
+  it("guards the negative cache too", () => {
+    // A researcher who registered mid-build must not be remembered as having no
+    // public record for the next five minutes.
+    const epoch = orcidPreviewEpoch(ORCID);
+    invalidateOrcidPreview(ORCID);
+    rememberEmptyPreview(ORCID, Date.now(), epoch);
+    expect(isKnownEmptyPreview(ORCID)).toBe(false);
+  });
+
+  it("advances the epoch on every invalidation, per ORCID", () => {
+    const other = "0000-0003-0449-6261";
+    const before = orcidPreviewEpoch(ORCID);
+    invalidateOrcidPreview(ORCID);
+    expect(orcidPreviewEpoch(ORCID)).toBe(before + 1);
+    // One researcher's correction does not invalidate another's build.
+    expect(orcidPreviewEpoch(other)).toBe(0);
   });
 });

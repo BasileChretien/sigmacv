@@ -12,6 +12,7 @@ import {
   getCachedOrcidPreview,
   isKnownEmptyPreview,
   rememberEmptyPreview,
+  orcidPreviewEpoch,
   setCachedOrcidPreview,
 } from "@/lib/cv/orcidPreviewCache";
 
@@ -85,6 +86,10 @@ export async function previewCvFromOrcid(
   if (isKnownEmptyPreview(orcid)) return { status: "empty", orcid };
 
   return dedupeOrcidPreview<PreviewResult>(orcid, async () => {
+    // Captured BEFORE the build. If the researcher corrects something while it
+    // runs, the epoch moves and the writes below are dropped rather than
+    // overwriting the invalidation with pre-correction output.
+    const epoch = orcidPreviewEpoch(orcid);
     try {
       const { cv, report } = await buildCvFromOrcid({ orcid, onProgress: opts?.onProgress });
       // If this iD belongs to a SigmaCV account, honour the researcher's own
@@ -106,12 +111,12 @@ export async function previewCvFromOrcid(
       // and no source contributed an item. Safe to negatively cache so a flood of
       // unknown ids can't re-fetch every source.
       if (!name && cvItemCount(projected) === 0) {
-        rememberEmptyPreview(orcid);
+        rememberEmptyPreview(orcid, Date.now(), epoch);
         return { status: "empty", orcid };
       }
       const html = renderCvHtml(projected);
       const { sourceCounts } = report;
-      setCachedOrcidPreview(orcid, { html, name, cv: projected, sourceCounts });
+      setCachedOrcidPreview(orcid, { html, name, cv: projected, sourceCounts }, Date.now(), epoch);
       return { status: "ok", orcid, name, html, cv: projected, sourceCounts };
     } catch (err) {
       // ANY throw here — a transient upstream build failure (OpenAlex
