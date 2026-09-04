@@ -34,7 +34,7 @@ function verifiedBadgeHtml(item: CvItem, display: DisplayChoices): string {
   const s = renderStrings(display.locale);
   const org = item.meta.verifiedBy?.trim();
   const title = org
-    ? s.badgeVerifiedByTitle.replace("{org}", escapeHtml(org))
+    ? s.badgeVerifiedByTitle.replace("{org}", () => escapeHtml(org))
     : escapeHtml(s.badgeVerifiedTitle);
   return `<span class="cv-badge cv-badge-verified" title="${title}">✓ ${escapeHtml(
     s.badgeVerified,

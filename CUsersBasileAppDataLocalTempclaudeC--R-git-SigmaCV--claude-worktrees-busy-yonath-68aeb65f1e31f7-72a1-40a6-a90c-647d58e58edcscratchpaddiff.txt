@@ -1,0 +1,1013 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index bf500a5..b78dc47 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
+ 
+ ### Added
+ 
++- **"Verified" mark on institution-confirmed positions, education and honours.**
++  Entries that a trusted organisation asserted on your ORCID record via the
++  Member API (rather than you typing them in) were already flagged in the editor,
++  but the reader of your PDF or public page never saw it. A new opt-in
++  **Design → "Mark positions & education confirmed by the institution via
++  ORCID"** toggle (off by default, like every other evaluative signal) renders a
++  small green **✓ Verified** mark on those entries in the HTML/PDF exports and the
++  living public page, with an accessible title naming the confirming organisation
++  when ORCID supplies it ("Verified by Nagoya University via ORCID…"). Hidden on
++  the parser-safe ATS template like all badges. The confirming organisation's
++  name is now captured at sync (`meta.verifiedBy`), so a re-sync is needed before
++  existing CVs can name it; the mark itself works on already-synced data.
+ - **Confirm a flagged publication is yours.** Works the misattribution heuristic
+   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
+   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so
+@@ -71,6 +83,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
+ 
+ ### Changed
+ 
++- **Every displayed metric now carries a reader-facing caveat.** h-index,
++  i10-index, works count and citation total used to render as bare numbers,
++  while the "not field-normalised — DORA/CoARA discourage this" caution appeared
++  only in the owner's metric picker. Each now shows a short, neutral context line
++  next to its value in the HTML/PDF and public page (e.g. h-index: "not
++  field-normalised; sensitive to career length and field"), in all ten languages,
++  matching what the field-normalised measures already did.
+ - Routine dependency refresh: Next.js, Prisma, Zod, Vite/Vitest tooling and types
+   moved to their current releases.
+ - **Corrected two false claims in the public documentation.** The README, the
+diff --git a/public/schema/cv/v2.json b/public/schema/cv/v2.json
+index c684d3d..1e9a21f 100644
+--- a/public/schema/cv/v2.json
++++ b/public/schema/cv/v2.json
+@@ -374,6 +374,10 @@
+           "default": false,
+           "type": "boolean"
+         },
++        "showVerifiedBadges": {
++          "default": false,
++          "type": "boolean"
++        },
+         "showProvenance": {
+           "default": false,
+           "type": "boolean"
+@@ -901,6 +905,10 @@
+                     "verified": {
+                       "type": "boolean"
+                     },
++                    "verifiedBy": {
++                      "type": "string",
++                      "maxLength": 500
++                    },
+                     "departmentOverride": {
+                       "type": "string",
+                       "maxLength": 500
+@@ -1249,6 +1257,10 @@
+                 "default": false,
+                 "type": "boolean"
+               },
++              "showVerifiedBadges": {
++                "default": false,
++                "type": "boolean"
++              },
+               "showProvenance": {
+                 "default": false,
+                 "type": "boolean"
+diff --git a/src/components/StyleControls.tsx b/src/components/StyleControls.tsx
+index 7772491..0a54472 100644
+--- a/src/components/StyleControls.tsx
++++ b/src/components/StyleControls.tsx
+@@ -1170,6 +1170,15 @@ export default function StyleControls({
+           <span>{u.showCitationCounts}</span>
+         </label>
+ 
++        <label className="field-inline">
++          <input
++            type="checkbox"
++            checked={cv.display.showVerifiedBadges}
++            onChange={(e) => onChange(updateDisplay(cv, { showVerifiedBadges: e.target.checked }))}
++          />
++          <span>{u.showVerifiedBadges}</span>
++        </label>
++
+         <label className="field-inline">
+           <input
+             type="checkbox"
+diff --git a/src/lib/canonical/build.ts b/src/lib/canonical/build.ts
+index 8a0ba76..2c335b4 100644
+--- a/src/lib/canonical/build.ts
++++ b/src/lib/canonical/build.ts
+@@ -427,6 +427,16 @@ function mergeSection(built: CvSection, previous: CanonicalCv | null | undefined
+ }
+ 
+ /** A non-citation item (position / grant) with curation preserved from prev. */
++/**
++ * The verified-signal meta for an ORCID affiliation: `verified` when a trusted
++ * organisation asserted it, plus that organisation's name when ORCID gave one.
++ * Nothing (not even `verifiedBy`) for a self-entered / unknown-source entry.
++ */
++function verifiedMeta(e: OrcidPosition): { verified?: true; verifiedBy?: string } {
++  if (!e.verified) return {};
++  return e.verifiedBy ? { verified: true, verifiedBy: e.verifiedBy } : { verified: true };
++}
++
+ function makeEntryItem(
+   id: string,
+   source: CvItem["source"],
+@@ -452,6 +462,8 @@ function makeEntryItem(
+     endYear?: number;
+     /** Institution-asserted via the ORCID Member API (a "verified" signal). */
+     verified?: boolean;
++    /** Display name of the asserting organisation (only meaningful with `verified`). */
++    verifiedBy?: string;
+   },
+ ): CvItem {
+   const meta: CvItem["meta"] = {};
+@@ -470,7 +482,10 @@ function makeEntryItem(
+   // line re-derive in `curate.ts` reads these back and must agree with the build.
+   if (extraMeta?.startYear != null) meta.startYear = extraMeta.startYear;
+   if (extraMeta?.endYear != null) meta.endYear = extraMeta.endYear;
+-  if (extraMeta?.verified) meta.verified = true;
++  if (extraMeta?.verified) {
++    meta.verified = true;
++    if (extraMeta.verifiedBy) meta.verifiedBy = extraMeta.verifiedBy;
++  }
+   // A user edit of the role / institution / dates (positions/education) survives
+   // re-sync, exactly like `displayTextOverride` — while the source values above
+   // keep refreshing underneath, so "revert to source" stays meaningful.
+@@ -578,7 +593,7 @@ function buildPositionsSection(
+             startYear: e.startYear,
+             endYear: e.endYear,
+             lastVerifiedAt: now,
+-            ...(e.verified ? { verified: true } : {}),
++            ...verifiedMeta(e),
+           },
+         ),
+       ),
+@@ -675,7 +690,7 @@ function buildOrcidEntrySection(
+           institutionNames: e.institutionNames,
+           institutionUrl: e.institutionUrl,
+           lastVerifiedAt: opts.now,
+-          ...(e.verified ? { verified: true } : {}),
++          ...verifiedMeta(e),
+         }),
+       );
+     } else {
+@@ -693,7 +708,7 @@ function buildOrcidEntrySection(
+             startYear: e.startYear,
+             endYear: e.endYear,
+             lastVerifiedAt: opts.now,
+-            ...(e.verified ? { verified: true } : {}),
++            ...verifiedMeta(e),
+           }),
+         ),
+       );
+diff --git a/src/lib/canonical/schema.ts b/src/lib/canonical/schema.ts
+index 2074496..f0a9598 100644
+--- a/src/lib/canonical/schema.ts
++++ b/src/lib/canonical/schema.ts
+@@ -486,6 +486,12 @@ const CvItemSchema = z.object({
+      * for self-entered ORCID entries and for OpenAlex-inferred affiliations.
+      */
+     verified: z.boolean().optional(),
++    /**
++     * Display name of the trusted organisation that asserted a {@link verified}
++     * entry (ORCID `source-name`), so the rendered "Verified by …" mark can name
++     * the confirming party. Only ever present alongside `verified`.
++     */
++    verifiedBy: z.string().max(500).optional(),
+     /**
+      * USER edit of the department/sub-unit for a source-derived positions/education
+      * entry — the "Edit details" field. Carried across re-sync (like
+@@ -1134,6 +1140,16 @@ export const DisplayChoicesSchema = z.object({
+   showAuthorRole: z.boolean().default(false),
+   /** Show a per-entry citation count on publications/preprints (HTML/PDF). Default off. */
+   showCitationCounts: z.boolean().default(false),
++  /**
++   * Show a small "Verified" mark on positions / education / distinctions that a
++   * TRUSTED ORGANISATION asserted on the ORCID record via the Member API
++   * (`meta.verified`, naming the asserter via `meta.verifiedBy` when known) —
++   * HTML/PDF + the public page. Opt-IN, default off, like the other evaluative
++   * toggles: it is a trust signal about the *record*, and an unmarked entry must
++   * not read as suspect by contrast, so the owner chooses to surface it. Hidden
++   * on the parser-safe ATS template like every other badge.
++   */
++  showVerifiedBadges: z.boolean().default(false),
+   /**
+    * Show a data-provenance footer (sources, sync date, hidden/corrected counts,
+    * classification caveat). Opt-IN: it's meta-information that doesn't belong on
+diff --git a/src/lib/i18n/render.ts b/src/lib/i18n/render.ts
+index 823d562..30510fd 100644
+--- a/src/lib/i18n/render.ts
++++ b/src/lib/i18n/render.ts
+@@ -50,6 +50,12 @@ export interface RenderStrings {
+   badgeCitations: string;
+   /** Tooltip caveat on the citation pill (raw counts aren't field-normalised). */
+   badgeCitationsTitle: string;
++  /** Label inside the opt-in "Verified" mark on an institution-asserted entry. */
++  badgeVerified: string;
++  /** Accessible title for the verified mark when the asserting organisation is unknown. */
++  badgeVerifiedTitle: string;
++  /** Accessible title for the verified mark; "{org}" → the asserting organisation. */
++  badgeVerifiedByTitle: string;
+   metric2yr: string;
+   metricFwci: string;
+   metricHIndex: string;
+@@ -64,6 +70,14 @@ export interface RenderStrings {
+   metricRcr: string;
+   /** Responsible-reading context for mean-RCR (benchmark + biomedical caveat). */
+   metricContextRcr: string;
++  /** Reader-facing caveat for the h-index (not field-normalised; career-length-sensitive). */
++  metricContextHIndex: string;
++  /** Reader-facing caveat for the i10-index (works with ≥10 citations; not field-normalised). */
++  metricContextI10: string;
++  /** Reader-facing caveat for the raw works count (coverage-dependent; not a quality measure). */
++  metricContextWorks: string;
++  /** Reader-facing caveat for the raw citation total (not field-normalised). */
++  metricContextCitations: string;
+   /** Coverage note appended to mean-RCR; "{n}" is replaced with the work count. */
+   metricRcrCoverage: string;
+   /** Small-sample caveat appended to a field-normalized coverage note below the
+@@ -178,6 +192,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     badgeRetractedTitle: "This work has been retracted (per Crossref / Retraction Watch)",
+     badgeCitations: "{n} citations",
+     badgeCitationsTitle: "Raw citation count — not field-normalised (varies by field and age)",
++    badgeVerified: "Verified",
++    badgeVerifiedTitle:
++      "Confirmed by the institution via ORCID — asserted by a trusted organisation, not self-entered",
++    badgeVerifiedByTitle:
++      "Verified by {org} via ORCID — asserted by the organisation, not self-entered",
+     metric2yr: "2-yr mean citedness",
+     metricFwci: "Mean work FWCI",
+     metricHIndex: "h-index",
+@@ -189,6 +208,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     metricFwciCoverage: "mean over {n} works with FWCI",
+     metricRcr: "Mean RCR",
+     metricContextRcr: "1.0 = NIH-funded average; biomedical (PMID) works only",
++    metricContextHIndex: "not field-normalised; sensitive to career length and field",
++    metricContextI10: "works with ≥10 citations — not field-normalised; grows with career length",
++    metricContextWorks:
++      "raw count of indexed works — depends on database coverage; not a measure of quality",
++    metricContextCitations: "raw total — not field-normalised (varies by field and career length)",
+     metricRcrCoverage: "mean over {n} works with RCR",
+     metricSmallN: "small sample — interpret with caution",
+     roleFirst: "First author",
+@@ -253,6 +277,9 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     badgeRetractedTitle: "该成果已被撤稿（依据 Crossref／Retraction Watch）",
+     badgeCitations: "被引 {n}",
+     badgeCitationsTitle: "原始被引次数——未经领域标准化（因领域与年代而异）",
++    badgeVerified: "已认证",
++    badgeVerifiedTitle: "由所在机构通过 ORCID 确认——由受信任的机构录入，而非本人自行填写",
++    badgeVerifiedByTitle: "由 {org} 通过 ORCID 认证——由该机构录入，而非本人自行填写",
+     metric2yr: "两年平均被引率",
+     metricFwci: "平均成果 FWCI",
+     metricHIndex: "h 指数",
+@@ -264,6 +291,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     metricFwciCoverage: "基于 {n} 篇有 FWCI 的成果的均值",
+     metricRcr: "平均 RCR",
+     metricContextRcr: "1.0 = NIH 资助论文的平均水平；仅限生物医学（PMID）成果",
++    metricContextHIndex: "非领域归一化；受职业年限与领域影响",
++    metricContextI10: "被引 ≥10 次的成果数 — 非领域归一化；随职业年限增长",
++    metricContextWorks: "已收录成果的原始数量 — 取决于数据库覆盖范围；不代表质量",
++    metricContextCitations: "原始总数 — 非领域归一化（因领域与职业年限而异）",
+     metricRcrCoverage: "基于 {n} 篇有 RCR 的成果的均值",
+     metricSmallN: "样本较小——请谨慎解读",
+     roleFirst: "第一作者",
+@@ -330,6 +361,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     badgeCitations: "{n} citas",
+     badgeCitationsTitle:
+       "Recuento bruto de citas — sin normalización por campo (varía por campo y antigüedad)",
++    badgeVerified: "Verificado",
++    badgeVerifiedTitle:
++      "Confirmado por la institución mediante ORCID: registrado por una organización de confianza, no por la propia persona",
++    badgeVerifiedByTitle:
++      "Verificado por {org} mediante ORCID: registrado por la organización, no por la propia persona",
+     metric2yr: "Citación media a 2 años",
+     metricFwci: "FWCI medio por trabajo",
+     metricHIndex: "índice h",
+@@ -342,6 +378,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     metricRcr: "RCR medio",
+     metricContextRcr:
+       "1,0 = media de artículos financiados por los NIH; solo trabajos biomédicos (PMID)",
++    metricContextHIndex:
++      "no normalizado por campo; sensible a la duración de la carrera y al campo",
++    metricContextI10:
++      "trabajos con ≥10 citas — no normalizado por campo; crece con la duración de la carrera",
++    metricContextWorks:
++      "recuento bruto de trabajos indexados — depende de la cobertura de la base de datos; no mide la calidad",
++    metricContextCitations:
++      "total bruto — no normalizado por campo (varía según el campo y la duración de la carrera)",
+     metricRcrCoverage: "media sobre {n} trabajos con RCR",
+     metricSmallN: "muestra pequeña: interprétalo con cautela",
+     roleFirst: "Primer autor",
+@@ -408,6 +452,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     badgeCitations: "{n} citations",
+     badgeCitationsTitle:
+       "Nombre brut de citations — non normalisé par domaine (varie selon le domaine et l’ancienneté)",
++    badgeVerified: "Vérifié",
++    badgeVerifiedTitle:
++      "Confirmé par l’établissement via ORCID — saisi par un organisme de confiance, et non par la personne elle-même",
++    badgeVerifiedByTitle:
++      "Vérifié par {org} via ORCID — saisi par l’organisme, et non par la personne elle-même",
+     metric2yr: "Citations moyennes sur 2 ans",
+     metricFwci: "FWCI moyen des travaux",
+     metricHIndex: "indice h",
+@@ -421,6 +470,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     metricRcr: "RCR moyen",
+     metricContextRcr:
+       "1,0 = moyenne des articles financés par les NIH ; uniquement les travaux biomédicaux (PMID)",
++    metricContextHIndex:
++      "non normalisé par domaine ; sensible à la durée de carrière et au domaine",
++    metricContextI10:
++      "travaux cités ≥10 fois — non normalisé par domaine ; croît avec la durée de carrière",
++    metricContextWorks:
++      "nombre brut de travaux indexés — dépend de la couverture de la base ; ne mesure pas la qualité",
++    metricContextCitations:
++      "total brut — non normalisé par domaine (varie selon le domaine et la durée de carrière)",
+     metricRcrCoverage: "moyenne sur {n} travaux avec RCR",
+     metricSmallN: "échantillon réduit — à interpréter avec prudence",
+     roleFirst: "Premier auteur",
+@@ -487,6 +544,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     badgeCitations: "{n} Zitationen",
+     badgeCitationsTitle:
+       "Reine Zitationszahl — nicht feldnormiert (variiert je nach Fach und Alter)",
++    badgeVerified: "Verifiziert",
++    badgeVerifiedTitle:
++      "Von der Institution über ORCID bestätigt – von einer vertrauenswürdigen Organisation eingetragen, nicht selbst erfasst",
++    badgeVerifiedByTitle:
++      "Verifiziert durch {org} über ORCID – von der Organisation eingetragen, nicht selbst erfasst",
+     metric2yr: "Mittlere Zitationsrate (2 Jahre)",
+     metricFwci: "Mittlerer FWCI",
+     metricHIndex: "h-Index",
+@@ -499,6 +561,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     metricRcr: "Mittlerer RCR",
+     metricContextRcr:
+       "1,0 = Durchschnitt NIH-geförderter Arbeiten; nur biomedizinische (PMID) Arbeiten",
++    metricContextHIndex: "nicht fachnormiert; abhängig von Karrieredauer und Fach",
++    metricContextI10: "Werke mit ≥10 Zitationen — nicht fachnormiert; wächst mit der Karrieredauer",
++    metricContextWorks:
++      "Rohzahl indexierter Werke — abhängig von der Datenbankabdeckung; kein Qualitätsmaß",
++    metricContextCitations:
++      "Rohsumme — nicht fachnormiert (variiert je nach Fach und Karrieredauer)",
+     metricRcrCoverage: "Mittel über {n} Werke mit RCR",
+     metricSmallN: "kleine Stichprobe – mit Vorsicht interpretieren",
+     roleFirst: "Erstautor",
+@@ -563,6 +631,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     badgeRetractedTitle: "この成果は撤回されています（Crossref／Retraction Watch による）",
+     badgeCitations: "被引用 {n}",
+     badgeCitationsTitle: "被引用数の生の値 — 分野正規化なし（分野・年代で変動）",
++    badgeVerified: "認証済み",
++    badgeVerifiedTitle:
++      "所属機関が ORCID を通じて確認 — 信頼された機関が登録した情報で、本人による入力ではありません",
++    badgeVerifiedByTitle:
++      "{org} が ORCID を通じて認証 — 当該機関が登録した情報で、本人による入力ではありません",
+     metric2yr: "2年間平均被引用度",
+     metricFwci: "平均FWCI",
+     metricHIndex: "h指数",
+@@ -574,6 +647,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     metricFwciCoverage: "FWCIのある{n}件の業績による平均",
+     metricRcr: "平均 RCR",
+     metricContextRcr: "1.0 = NIH 助成論文の平均；生物医学（PMID）業績のみ",
++    metricContextHIndex: "分野正規化なし；キャリア年数と分野の影響を受ける",
++    metricContextI10: "被引用10回以上の業績数 — 分野正規化なし；キャリア年数とともに増加",
++    metricContextWorks:
++      "索引付けされた業績の生の件数 — データベースの収録範囲に依存；質の指標ではない",
++    metricContextCitations: "生の合計値 — 分野正規化なし（分野・キャリア年数で変動）",
+     metricRcrCoverage: "RCRのある{n}件の業績による平均",
+     metricSmallN: "少数サンプル — 解釈には注意",
+     roleFirst: "筆頭著者",
+@@ -640,6 +718,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     badgeCitations: "{n} citações",
+     badgeCitationsTitle:
+       "Contagem bruta de citações — não normalizada por área (varia por área e idade)",
++    badgeVerified: "Verificado",
++    badgeVerifiedTitle:
++      "Confirmado pela instituição via ORCID — registrado por uma organização confiável, não pela própria pessoa",
++    badgeVerifiedByTitle:
++      "Verificado por {org} via ORCID — registrado pela organização, não pela própria pessoa",
+     metric2yr: "Citação média em 2 anos",
+     metricFwci: "FWCI médio dos trabalhos",
+     metricHIndex: "índice h",
+@@ -653,6 +736,13 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     metricRcr: "RCR médio",
+     metricContextRcr:
+       "1,0 = média de artigos financiados pelo NIH; apenas trabalhos biomédicos (PMID)",
++    metricContextHIndex: "não normalizado por área; sensível ao tempo de carreira e à área",
++    metricContextI10:
++      "trabalhos com ≥10 citações — não normalizado por área; cresce com o tempo de carreira",
++    metricContextWorks:
++      "contagem bruta de trabalhos indexados — depende da cobertura da base; não mede qualidade",
++    metricContextCitations:
++      "total bruto — não normalizado por área (varia conforme a área e o tempo de carreira)",
+     metricRcrCoverage: "média sobre {n} trabalhos com RCR",
+     metricSmallN: "amostra pequena — interprete com cautela",
+     roleFirst: "Primeiro autor",
+@@ -719,6 +809,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     badgeCitations: "{n} citazioni",
+     badgeCitationsTitle:
+       "Conteggio grezzo delle citazioni — non normalizzato per campo (varia per campo ed età)",
++    badgeVerified: "Verificato",
++    badgeVerifiedTitle:
++      "Confermato dall’istituzione tramite ORCID: inserito da un’organizzazione fidata, non dalla persona stessa",
++    badgeVerifiedByTitle:
++      "Verificato da {org} tramite ORCID: inserito dall’organizzazione, non dalla persona stessa",
+     metric2yr: "Citazioni medie a 2 anni",
+     metricFwci: "FWCI medio dei lavori",
+     metricHIndex: "indice h",
+@@ -731,6 +826,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     metricFwciCoverage: "media su {n} lavori con FWCI",
+     metricRcr: "RCR medio",
+     metricContextRcr: "1,0 = media degli articoli finanziati dai NIH; solo lavori biomedici (PMID)",
++    metricContextHIndex:
++      "non normalizzato per campo; sensibile alla durata della carriera e alla disciplina",
++    metricContextI10:
++      "lavori con ≥10 citazioni — non normalizzato per campo; cresce con la durata della carriera",
++    metricContextWorks:
++      "conteggio grezzo dei lavori indicizzati — dipende dalla copertura della banca dati; non misura la qualità",
++    metricContextCitations:
++      "totale grezzo — non normalizzato per campo (varia per disciplina e durata della carriera)",
+     metricRcrCoverage: "media su {n} lavori con RCR",
+     metricSmallN: "campione ridotto — interpretare con cautela",
+     roleFirst: "Primo autore",
+@@ -795,6 +898,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     badgeRetractedTitle: "이 성과는 철회되었습니다 (Crossref / Retraction Watch 기준)",
+     badgeCitations: "인용 {n}회",
+     badgeCitationsTitle: "원시 피인용 수 — 분야 정규화 안 됨 (분야·연도에 따라 다름)",
++    badgeVerified: "인증됨",
++    badgeVerifiedTitle:
++      "소속 기관이 ORCID를 통해 확인 — 신뢰할 수 있는 기관이 등록한 정보로, 본인이 직접 입력한 것이 아닙니다",
++    badgeVerifiedByTitle:
++      "{org}이(가) ORCID를 통해 인증 — 해당 기관이 등록한 정보로, 본인이 직접 입력한 것이 아닙니다",
+     metric2yr: "2년 평균 피인용도",
+     metricFwci: "평균 논문 FWCI",
+     metricHIndex: "h-지수",
+@@ -806,6 +914,10 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     metricFwciCoverage: "FWCI가 있는 {n}편 논문 기준 평균",
+     metricRcr: "평균 RCR",
+     metricContextRcr: "1.0 = NIH 지원 논문 평균; 생의학(PMID) 논문만",
++    metricContextHIndex: "분야 정규화 아님; 경력 기간과 분야에 따라 달라짐",
++    metricContextI10: "피인용 10회 이상 논문 수 — 분야 정규화 아님; 경력이 길수록 증가",
++    metricContextWorks: "색인된 논문의 원시 수 — 데이터베이스 수록 범위에 좌우됨; 질의 척도가 아님",
++    metricContextCitations: "원시 합계 — 분야 정규화 아님 (분야·경력 기간에 따라 다름)",
+     metricRcrCoverage: "RCR가 있는 {n}편 논문 기준 평균",
+     metricSmallN: "표본이 적음 — 해석에 주의",
+     roleFirst: "제1저자",
+@@ -871,6 +983,11 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     badgeCitations: "{n} цитирований",
+     badgeCitationsTitle:
+       "Сырое число цитирований — без нормализации по области (зависит от области и возраста)",
++    badgeVerified: "Подтверждено",
++    badgeVerifiedTitle:
++      "Подтверждено организацией через ORCID — внесено доверенной организацией, а не самим владельцем записи",
++    badgeVerifiedByTitle:
++      "Подтверждено {org} через ORCID — внесено организацией, а не самим владельцем записи",
+     metric2yr: "Средняя цитируемость за 2 года",
+     metricFwci: "Средний FWCI работы",
+     metricHIndex: "h-индекс",
+@@ -883,6 +1000,13 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
+     metricRcr: "Средний RCR",
+     metricContextRcr:
+       "1,0 = среднее для статей, финансируемых NIH; только биомедицинские работы (PMID)",
++    metricContextHIndex: "без нормализации по области; зависит от длительности карьеры и области",
++    metricContextI10:
++      "работы с ≥10 цитированиями — без нормализации по области; растёт с длительностью карьеры",
++    metricContextWorks:
++      "необработанное число проиндексированных работ — зависит от охвата базы; не мера качества",
++    metricContextCitations:
++      "необработанная сумма — без нормализации по области (зависит от области и длительности карьеры)",
+     metricRcrCoverage: "среднее по {n} работам с RCR",
+     metricSmallN: "малая выборка — интерпретируйте осторожно",
+     roleFirst: "Первый автор",
+@@ -920,13 +1044,24 @@ export function metricLabel(locale: string, key: string): string {
+   return map[key] ?? key;
+ }
+ 
+-/** Map a metric key to its localized responsible-reading context (or undefined). */
++/**
++ * Map a metric key to its localized responsible-reading context (or undefined for
++ * an unknown key). EVERY catalog metric carries one: the field-normalised measures
++ * get their interpretation anchor, and the author-level counts (h-index, i10,
++ * works, citations) get a short neutral caveat — so the DORA/CoARA caution that
++ * the owner saw in the picker also reaches the READER of the PDF / public page,
++ * rather than living only owner-side (`metricHints`).
++ */
+ export function metricContext(locale: string, key: string): string | undefined {
+   const s = renderStrings(locale);
+   const map: Record<string, string> = {
+     fwci_mean: s.metricContextFwci,
+     rcr_mean: s.metricContextRcr,
+     "2yr_mean_citedness": s.metricContext2yr,
++    h_index: s.metricContextHIndex,
++    i10_index: s.metricContextI10,
++    works_count: s.metricContextWorks,
++    cited_by_count: s.metricContextCitations,
+   };
+   return map[key];
+ }
+diff --git a/src/lib/i18n/ui.ts b/src/lib/i18n/ui.ts
+index 05cd768..78dfbf1 100644
+--- a/src/lib/i18n/ui.ts
++++ b/src/lib/i18n/ui.ts
+@@ -64,6 +64,8 @@ export interface UiStrings {
+   hideRetracted: string;
+   showAuthorRole: string;
+   showCitationCounts: string;
++  /** Editor toggle: the "Verified" mark on institution-asserted positions/education. */
++  showVerifiedBadges: string;
+   showProvenance: string;
+   peerReviewedOnly: string;
+   peerReviewedOnlyTitle: string;
+@@ -240,6 +242,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
+     hideRetracted: "Hide retracted publications",
+     showAuthorRole: "Show my author role (first / last / corresponding)",
+     showCitationCounts: "Show citation counts on each publication",
++    showVerifiedBadges: "Mark positions & education confirmed by the institution via ORCID",
+     showProvenance: "Data-provenance footer",
+     peerReviewedOnly: "Hide preprints & non-peer-reviewed work",
+     peerReviewedOnlyTitle:
+@@ -399,6 +402,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
+     hideRetracted: "隐藏已撤稿的出版物",
+     showAuthorRole: "显示我的作者角色（第一／末位／通讯）",
+     showCitationCounts: "在每篇论文上显示被引次数",
++    showVerifiedBadges: "标记由机构通过 ORCID 确认的职位与教育经历",
+     showProvenance: "数据来源页脚",
+     peerReviewedOnly: "隐藏预印本及非同行评审成果",
+     peerReviewedOnlyTitle:
+@@ -555,6 +559,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
+     hideRetracted: "Ocultar publicaciones retractadas",
+     showAuthorRole: "Mostrar mi rol de autor (primero / último / correspondencia)",
+     showCitationCounts: "Mostrar el número de citas en cada publicación",
++    showVerifiedBadges:
++      "Marcar los puestos y estudios confirmados por la institución mediante ORCID",
+     showProvenance: "Pie de página con la procedencia de los datos",
+     peerReviewedOnly: "Ocultar preprints y trabajos no revisados por pares",
+     peerReviewedOnlyTitle:
+@@ -716,6 +722,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
+     hideRetracted: "Masquer les publications rétractées",
+     showAuthorRole: "Afficher mon rôle d’auteur (premier / dernier / correspondant)",
+     showCitationCounts: "Afficher le nombre de citations sur chaque publication",
++    showVerifiedBadges: "Marquer les postes et formations confirmés par l’établissement via ORCID",
+     showProvenance: "Pied de page sur la provenance des données",
+     peerReviewedOnly: "Masquer les pré-publications et les travaux non évalués par les pairs",
+     peerReviewedOnlyTitle:
+@@ -878,6 +885,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
+     hideRetracted: "Zurückgezogene Publikationen ausblenden",
+     showAuthorRole: "Meine Autorenrolle anzeigen (Erst-/Letzt-/korrespondierend)",
+     showCitationCounts: "Zitationszahl bei jeder Publikation anzeigen",
++    showVerifiedBadges:
++      "Positionen & Ausbildung markieren, die die Institution über ORCID bestätigt hat",
+     showProvenance: "Fußzeile zur Datenherkunft",
+     peerReviewedOnly: "Preprints & nicht peer-reviewte Arbeiten ausblenden",
+     peerReviewedOnlyTitle:
+@@ -1039,6 +1048,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
+     hideRetracted: "撤回された出版物を非表示",
+     showAuthorRole: "自分の著者役割を表示（筆頭・最終・責任著者）",
+     showCitationCounts: "各論文に被引用数を表示",
++    showVerifiedBadges: "機関が ORCID を通じて確認した職歴・学歴に認証マークを表示",
+     showProvenance: "データ出典フッター",
+     peerReviewedOnly: "プレプリント・非査読の業績を非表示",
+     peerReviewedOnlyTitle:
+@@ -1198,6 +1208,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
+     hideRetracted: "Ocultar publicações retratadas",
+     showAuthorRole: "Mostrar meu papel de autoria (primeiro / último / correspondente)",
+     showCitationCounts: "Mostrar o número de citações em cada publicação",
++    showVerifiedBadges: "Marcar cargos e formação confirmados pela instituição via ORCID",
+     showProvenance: "Rodapé de proveniência dos dados",
+     peerReviewedOnly: "Ocultar pré-prints e trabalhos não revisados por pares",
+     peerReviewedOnlyTitle:
+@@ -1359,6 +1370,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
+     hideRetracted: "Nascondi le pubblicazioni ritirate",
+     showAuthorRole: "Mostra il mio ruolo di autore (primo / ultimo / corrispondente)",
+     showCitationCounts: "Mostra il numero di citazioni per ogni pubblicazione",
++    showVerifiedBadges: "Segnala posizioni e formazione confermate dall’istituzione tramite ORCID",
+     showProvenance: "Piè di pagina sulla provenienza dei dati",
+     peerReviewedOnly: "Nascondi i preprint e i lavori non sottoposti a revisione paritaria",
+     peerReviewedOnlyTitle:
+@@ -1519,6 +1531,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
+     hideRetracted: "철회된 출판물 숨기기",
+     showAuthorRole: "내 저자 역할 표시 (제1저자 / 마지막 저자 / 교신저자)",
+     showCitationCounts: "각 논문에 피인용 수 표시",
++    showVerifiedBadges: "기관이 ORCID를 통해 확인한 경력·학력에 인증 표시",
+     showProvenance: "데이터 출처 푸터",
+     peerReviewedOnly: "프리프린트 및 비동료 심사 자료 숨기기",
+     peerReviewedOnlyTitle:
+@@ -1678,6 +1691,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
+     hideRetracted: "Скрывать отозванные публикации",
+     showAuthorRole: "Показывать мою авторскую роль (первый / последний / корреспондирующий)",
+     showCitationCounts: "Показывать число цитирований у каждой публикации",
++    showVerifiedBadges: "Отмечать должности и образование, подтверждённые организацией через ORCID",
+     showProvenance: "Нижний колонтитул с источниками данных",
+     peerReviewedOnly: "Скрыть препринты и нерецензируемые работы",
+     peerReviewedOnlyTitle:
+diff --git a/src/lib/orcid/client.ts b/src/lib/orcid/client.ts
+index 20abe0e..b760e99 100644
+--- a/src/lib/orcid/client.ts
++++ b/src/lib/orcid/client.ts
+@@ -38,6 +38,13 @@ export interface OrcidPosition {
+    * / unknown) otherwise.
+    */
+   verified?: boolean;
++  /**
++   * Display name of the party that asserted a {@link verified} affiliation
++   * (ORCID `source.source-name`, e.g. "Nagoya University") — lets a reader see
++   * WHO confirmed the entry ("Verified by …"). Only set alongside `verified`;
++   * omitted when ORCID gives no source name.
++   */
++  verifiedBy?: string;
+ }
+ 
+ export interface OrcidFunding {
+@@ -137,6 +144,20 @@ function isOrgAsserted(source: any, bareOwnerOrcid: string): boolean {
+   return srcOrcid !== bareOwnerOrcid;
+ }
+ 
++/**
++ * The `verified` (+ `verifiedBy`) fields for an affiliation summary: set only
++ * when a party OTHER than the record holder asserted it (see {@link isOrgAsserted});
++ * `verifiedBy` carries that party's display name when ORCID supplies one.
++ */
++function verifiedFields(
++  source: any,
++  bareOwnerOrcid: string,
++): { verified?: true; verifiedBy?: string } {
++  if (!isOrgAsserted(source, bareOwnerOrcid)) return {};
++  const verifiedBy = nonEmpty(source?.["source-name"]?.value);
++  return verifiedBy ? { verified: true, verifiedBy } : { verified: true };
++}
++
+ /**
+  * Generic reader for ORCID's "affiliation" endpoints, which all share the same
+  * shape: affiliation-group[].summaries[].<summaryKey> with organization +
+@@ -166,7 +187,7 @@ async function fetchOrcidAffiliations(
+           department: nonEmpty(e?.["department-name"]),
+           startYear: yearOf(e?.["start-date"]),
+           endYear: yearOf(e?.["end-date"]),
+-          ...(isOrgAsserted(e?.source, bareOwner) ? { verified: true } : {}),
++          ...verifiedFields(e?.source, bareOwner),
+         });
+       }
+     }
+diff --git a/src/lib/render/html.ts b/src/lib/render/html.ts
+index 3b6e7dc..b3c4c5a 100644
+--- a/src/lib/render/html.ts
++++ b/src/lib/render/html.ts
+@@ -21,6 +21,26 @@ import type { RenderOpts, Renderer, RenderInput, RenderResult } from "./types";
+ 
+ export { cvSlug } from "./slug";
+ 
++/**
++ * The opt-in "Verified" mark for an entry a TRUSTED ORGANISATION asserted on the
++ * ORCID record (`meta.verified`; positions / education / distinctions). Names the
++ * confirming party in the accessible title when ORCID supplied it
++ * (`meta.verifiedBy`), else a generic "confirmed via ORCID" title. "" when the
++ * toggle is off or the entry isn't verified. Shares the `.cv-badge` family, so the
++ * parser-safe ATS template hides it with every other badge.
++ */
++function verifiedBadgeHtml(item: CvItem, display: DisplayChoices): string {
++  if (!display.showVerifiedBadges || !item.meta.verified) return "";
++  const s = renderStrings(display.locale);
++  const org = item.meta.verifiedBy?.trim();
++  const title = org
++    ? s.badgeVerifiedByTitle.replace("{org}", escapeHtml(org))
++    : escapeHtml(s.badgeVerifiedTitle);
++  return `<span class="cv-badge cv-badge-verified" title="${title}">✓ ${escapeHtml(
++    s.badgeVerified,
++  )}</span>`;
++}
++
+ /** Inline badges appended to a publication/preprint entry (HTML/PDF only). */
+ function itemBadges(item: CvItem, display: DisplayChoices): string {
+   const badges: string[] = [];
+@@ -64,6 +84,11 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
+       )}">${escapeHtml(s.badgeCitations.replace("{n}", n))}</span>`,
+     );
+   }
++  // Institution-asserted entries that render through the FLAT path (distinctions,
++  // a user-overridden history line) get their verified mark here; the structured
++  // two-line history record places it on the lead line (positionEntryHtml).
++  const verified = verifiedBadgeHtml(item, display);
++  if (verified) badges.push(verified);
+   // Wrap the group in an inline-flex container (own `gap` + `margin-left`) so the
+   // badges can never collapse against the preceding citation text/URL or against
+   // each other — a plain joining space did, depending on the CSL style's trailing
+@@ -172,14 +197,19 @@ function entryDatesText(item: CvItem, locale: string): string {
+  * institution is promoted to the lead line and the sub-line is dropped — so a
+  * sparse entry collapses to a single clean line instead of an empty role slot.
+  */
+-function positionEntryHtml(item: CvItem, locale: string): string {
++function positionEntryHtml(item: CvItem, display: DisplayChoices): string {
++  const locale = display.locale;
+   const role = itemRoleTitle(item)?.trim();
+   const dept = itemDepartment(item)?.trim();
+   const inst = institutionSpanHtml(item, locale);
+   const dates = entryDatesText(item, locale);
+   const datesHtml = dates ? `<span class="cv-entry-dates">${escapeHtml(dates)}</span>` : "";
++  // The opt-in "Verified" mark sits on the lead line, right after the role (or
++  // institution), inside the same badge wrapper the flat entries use.
++  const verified = verifiedBadgeHtml(item, display);
++  const badges = verified ? `<span class="cv-badges">${verified}</span>` : "";
+   // Role leads when known; otherwise the institution becomes the lead line.
+-  const lead = role ? escapeHtml(role) : inst;
++  const lead = (role ? escapeHtml(role) : inst) + badges;
+   const subParts = role ? [dept ? escapeHtml(dept) : "", inst] : [dept ? escapeHtml(dept) : ""];
+   const sub = subParts.filter(Boolean).join(" · ");
+   const head = `<div class="cv-entry-head"><span class="cv-entry-lead">${lead}</span>${datesHtml}</div>`;
+@@ -293,7 +323,7 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
+         // Structured two-line layout for a source-derived history entry; fall back
+         // to the flat line when the user typed an override or there's no institution.
+         if (isHistory && !item.displayTextOverride && itemInstitution(item)) {
+-          return { item, html: positionEntryHtml(item, cv.display.locale) };
++          return { item, html: positionEntryHtml(item, cv.display) };
+         }
+         let html = entry;
+         if (linkDoi && !item.csl) html = withDoiLink(html, item);
+diff --git a/src/lib/render/templates/shared.ts b/src/lib/render/templates/shared.ts
+index 94e6e6e..774927e 100644
+--- a/src/lib/render/templates/shared.ts
++++ b/src/lib/render/templates/shared.ts
+@@ -389,6 +389,8 @@ export function commonCss(theme: TemplateTheme): string {
+   .cv-badge-oa { color: #0e7066; background: #e7f4f1; border: 1px solid #bfe3dc; }
+   .cv-badge-role { color: var(--cv-muted); background: #f2f3f5; border: 1px solid var(--cv-rule); text-transform: lowercase; }
+   .cv-badge-cites { color: #1e40af; background: #dbeafe; border: 1px solid #93c5fd; font-variant-numeric: tabular-nums; }
++  .cv-badge-verified { color: #166534; background: #dcfce7; border: 1px solid #86efac; }
++  .cv-entry-lead .cv-badges { margin-left: 0.5em; }
+ 
+   /* Institution → ROR record link on a Positions/Education line (all templates).
+      A quiet dotted underline marks the name as linked on screen; print drops the
+diff --git a/tests/canonical-schema.test.ts b/tests/canonical-schema.test.ts
+index 8514a22..8b1e8d8 100644
+--- a/tests/canonical-schema.test.ts
++++ b/tests/canonical-schema.test.ts
+@@ -94,6 +94,7 @@ describe("DisplayChoicesSchema", () => {
+       hideRetracted: false,
+       showAuthorRole: false,
+       showCitationCounts: false,
++      showVerifiedBadges: false,
+       showProvenance: false,
+       peerReviewedOnly: false,
+       countLetters: true,
+diff --git a/tests/metrics.test.ts b/tests/metrics.test.ts
+index 89e3786..e8ef72f 100644
+--- a/tests/metrics.test.ts
++++ b/tests/metrics.test.ts
+@@ -126,6 +126,21 @@ describe("formattedMetrics", () => {
+     expect(rcr?.context).toContain("NIH-funded average");
+   });
+ 
++  it("attaches a reader-facing caveat to every author-level count", () => {
++    const cv = withMetrics({
++      showMetrics: true,
++      metrics: ["h_index", "i10_index", "works_count", "cited_by_count"],
++    });
++    const byKey = Object.fromEntries(formattedMetrics(cv).map((m) => [m.key, m]));
++    expect(byKey.h_index?.context).toContain("not field-normalised");
++    expect(byKey.h_index?.context).toContain("career length");
++    expect(byKey.i10_index?.context).toContain("not field-normalised");
++    expect(byKey.works_count?.context).toContain("database coverage");
++    expect(byKey.cited_by_count?.context).toContain("not field-normalised");
++    // Context is the short inline anchor; the counts carry no coverage note.
++    for (const m of Object.values(byKey)) expect(m.coverageNote).toBeUndefined();
++  });
++
+   it("leads with field-normalized measures before h-index", () => {
+     const cv = withMetrics({
+       showMetrics: true,
+diff --git a/tests/orcid-client.test.ts b/tests/orcid-client.test.ts
+index 05aa515..cc4fab2 100644
+--- a/tests/orcid-client.test.ts
++++ b/tests/orcid-client.test.ts
+@@ -163,6 +163,18 @@ describe("fetchOrcidPositions", () => {
+             },
+           ],
+         },
++        {
++          summaries: [
++            {
++              // Org-asserted (Member-API client) but ORCID gives NO source name.
++              "employment-summary": {
++                "put-code": 303,
++                organization: { name: "Nameless-Client College" },
++                source: { "source-client-id": { path: "APP-9" } },
++              },
++            },
++          ],
++        },
+       ],
+     };
+     vi.stubGlobal("fetch", routedFetch({ emp: res(sourced) }));
+@@ -173,6 +185,16 @@ describe("fetchOrcidPositions", () => {
+     expect(byOrg["Org-Asserted University"]?.verified).toBe(true);
+     expect(byOrg["Self-Entered Inc"]?.verified).toBeUndefined();
+     expect(byOrg["No-Source Ltd"]?.verified).toBeUndefined();
++    // The asserting party's display name rides along, so the rendered mark can
++    // say WHO confirmed the entry ("Verified by Org University").
++    expect(byOrg["Org-Asserted University"]?.verifiedBy).toBe("Org University");
++    // A self-entered entry never carries a verifier — even though ORCID names the
++    // owner as its source.
++    expect(byOrg["Self-Entered Inc"]?.verifiedBy).toBeUndefined();
++    expect(byOrg["No-Source Ltd"]?.verifiedBy).toBeUndefined();
++    // Org-asserted with no source name → verified, verifier unknown.
++    expect(byOrg["Nameless-Client College"]?.verified).toBe(true);
++    expect(byOrg["Nameless-Client College"]?.verifiedBy).toBeUndefined();
+   });
+ 
+   it("returns [] when the ORCID API errors (fails soft)", async () => {
+diff --git a/tests/position-role.test.ts b/tests/position-role.test.ts
+index 85ce4f8..5c1fae4 100644
+--- a/tests/position-role.test.ts
++++ b/tests/position-role.test.ts
+@@ -73,7 +73,7 @@ describe("verified (ORCID Member-API-asserted) affiliations", () => {
+       resolved,
+       works: [],
+       now: "2026-06-16T00:00:00.000Z",
+-      employments: [{ ...employment, verified: true }],
++      employments: [{ ...employment, verified: true, verifiedBy: "Nagoya University" }],
+       education: [{ ...education, verified: true }],
+       distinctions: [
+         {
+@@ -82,20 +82,33 @@ describe("verified (ORCID Member-API-asserted) affiliations", () => {
+           roleTitle: "Fellow",
+           startYear: 2020,
+           verified: true,
++          verifiedBy: "The Royal Society",
+         },
+       ],
+     });
+     const pos = positionsSection(cv).items.find((i) => i.id === "position:orcid:emp1")!;
+     expect(pos.meta.verified).toBe(true); // institution-asserted
+-    expect(cv.sections.find((s) => s.type === "education")!.items[0]!.meta.verified).toBe(true);
+-    // The award/single-year builder threads it too.
++    expect(pos.meta.verifiedBy).toBe("Nagoya University"); // …and by whom
++    const edu = cv.sections.find((s) => s.type === "education")!.items[0]!;
++    expect(edu.meta.verified).toBe(true);
++    expect(edu.meta.verifiedBy).toBeUndefined(); // asserted, asserter unnamed
++    // The award/single-year builder threads both too.
+     const award = cv.sections.flatMap((s) => s.items).find((i) => i.id === "award:orcid:dist1");
+     expect(award?.meta.verified).toBe(true);
++    expect(award?.meta.verifiedBy).toBe("The Royal Society");
+     // An OpenAlex-inferred affiliation is never "verified".
+     expect(openalexPosition(cv).meta.verified).toBeUndefined();
+     // A self-entered (no `verified`) employment carries nothing.
+     expect(orcidPosition(build()).meta.verified).toBeUndefined();
+   });
++
++  it("never stores a verifier name without the verified flag", () => {
++    // Defensive: `verifiedBy` is only meaningful alongside `verified` — a stray
++    // name on an unverified entry must not leak into meta (and so never render).
++    const cv = build({ employment: { ...employment, verifiedBy: "Stray Org" } });
++    expect(orcidPosition(cv).meta.verified).toBeUndefined();
++    expect(orcidPosition(cv).meta.verifiedBy).toBeUndefined();
++  });
+ });
+ 
+ describe("formatEntryLine", () => {
+diff --git a/tests/render-html.test.ts b/tests/render-html.test.ts
+index fc8ef6c..c968baf 100644
+--- a/tests/render-html.test.ts
++++ b/tests/render-html.test.ts
+@@ -100,6 +100,94 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
+     expect(html).toMatch(/cv-badge-cites[^>]*title="[^"]*field-normalised/i);
+   });
+ 
++  describe("verified marks (display.showVerifiedBadges)", () => {
++    const verifiedCv = (verifiedBy = "Nagoya University") =>
++      buildCanonicalCv({
++        id: "cv_verified",
++        resolved,
++        works: [],
++        now: "2026-06-02T00:00:00.000Z",
++        employments: [
++          {
++            putCode: "emp-v",
++            organization: "Nagoya University",
++            roleTitle: "Assistant Professor",
++            startYear: 2022,
++            verified: true,
++            verifiedBy,
++          },
++          // Self-entered on ORCID — never marked, whatever the toggle says.
++          {
++            putCode: "emp-s",
++            organization: "Self-Entered Inc",
++            roleTitle: "Consultant",
++            startYear: 2020,
++          },
++        ],
++        distinctions: [
++          // Org-asserted but the asserter is unnamed → generic title.
++          {
++            putCode: "dist-v",
++            organization: "Royal Society",
++            roleTitle: "Fellow",
++            startYear: 2020,
++            verified: true,
++          },
++        ],
++      });
++
++    it("is OFF by default — an institution-asserted entry renders without a mark", () => {
++      const html = renderCvHtml(verifiedCv());
++      expect(html).not.toContain('class="cv-badge cv-badge-verified"');
++      // The editor-only signal must not leak into the document either.
++      expect(html).not.toContain("cv-verified-badge");
++    });
++
++    it("marks the structured position on its lead line, naming the asserting organisation", () => {
++      const html = renderCvHtml(updateDisplay(verifiedCv(), { showVerifiedBadges: true }));
++      // Two-line history record: the mark sits INSIDE the lead line, right after the role.
++      expect(html).toMatch(
++        /<span class="cv-entry-lead">Assistant Professor<span class="cv-badges"><span class="cv-badge cv-badge-verified" title="Verified by Nagoya University via ORCID[^"]*">✓ Verified<\/span><\/span><\/span>/,
++      );
++      // The self-entered position carries nothing.
++      expect(html).toMatch(/<span class="cv-entry-lead">Consultant<\/span>/);
++      // The award goes through the FLAT entry path and is marked there, with the
++      // generic "confirmed by the institution" title when the asserter is unknown.
++      expect(html).toMatch(
++        /cv-badge-verified" title="Confirmed by the institution via ORCID[^"]*">✓ Verified</,
++      );
++      expect(html.match(/class="cv-badge cv-badge-verified"/g)).toHaveLength(2);
++    });
++
++    it("escapes the asserting organisation's name in the accessible title", () => {
++      const html = renderCvHtml(
++        updateDisplay(verifiedCv('Evil <b>Org</b> & "Co"'), { showVerifiedBadges: true }),
++      );
++      expect(html).toContain(
++        "Verified by Evil &lt;b&gt;Org&lt;/b&gt; &amp; &quot;Co&quot; via ORCID",
++      );
++      expect(html).not.toContain("<b>Org</b>");
++    });
++
++    it("localises the mark with the CV language", () => {
++      const html = renderCvHtml(
++        updateDisplay(verifiedCv(), { showVerifiedBadges: true, locale: "fr-FR" }),
++      );
++      expect(html).toContain("✓ Vérifié</span>");
++      expect(html).toContain("Vérifié par Nagoya University via ORCID");
++    });
++
++    it("stays hidden on the parser-safe ATS template like every other badge", () => {
++      const html = renderCvHtml(
++        updateDisplay(verifiedCv(), { showVerifiedBadges: true, template: "ats" }),
++      );
++      // The mark is emitted (same document model)…
++      expect(html).toContain('class="cv-badge cv-badge-verified"');
++      // …but the ATS stylesheet blanks the whole badge family.
++      expect(html).toMatch(/\.cv-badge,[^{]*\{ display: none !important; \}/);
++    });
++  });
++
+   it("strips the authorship-note in the ATS template (no orphaned caveat when the table is hidden)", () => {
+     const html = renderCvHtml(updateDisplay(makeCv(), { template: "ats" }));
+     // .cv-authorship is already hidden in ATS, but the caveat is a SEPARATE class;
+diff --git a/tests/render-i18n.test.ts b/tests/render-i18n.test.ts
+index 6ae1ba1..9dfb923 100644
+--- a/tests/render-i18n.test.ts
++++ b/tests/render-i18n.test.ts
+@@ -74,7 +74,7 @@ describe("renderStrings helpers", () => {
+   it("falls back to English for an unknown locale and unknown keys", () => {
+     expect(renderStrings("xx-XX").roleFirst).toBe("First author");
+     expect(metricLabel("en-US", "nope")).toBe("nope");
+-    expect(metricContext("en-US", "h_index")).toBeUndefined();
++    expect(metricContext("en-US", "nope")).toBeUndefined();
+     expect(authorshipRoleLabel("en-US", "nope")).toBe("nope");
+   });
+ 
+@@ -87,6 +87,38 @@ describe("renderStrings helpers", () => {
+     expect(renderStrings("de-DE").cvFallbackTitle).toBe("Lebenslauf");
+   });
+ 
++  it("gives the author-level counts a reader-facing caveat in every locale", () => {
++    // Before: only the field-normalised measures + 2-yr citedness carried context;
++    // h-index / i10 / works / citations rendered bare, and the DORA/CoARA caution
++    // lived only in the OWNER-side picker (metricHints). The reader of the PDF or
++    // public page now sees the same caveat, neutrally worded.
++    const rawKeys = ["h_index", "i10_index", "works_count", "cited_by_count"];
++    for (const locale of SUPPORTED_LOCALES) {
++      for (const key of rawKeys) {
++        expect(metricContext(locale, key), `${locale}/${key}`).toBeTruthy();
++      }
++    }
++    expect(metricContext("en-US", "h_index")).toBe(
++      "not field-normalised; sensitive to career length and field",
++    );
++    expect(metricContext("en-US", "i10_index")).toContain("≥10 citations");
++    expect(metricContext("en-US", "works_count")).toContain("not a measure of quality");
++    expect(metricContext("en-US", "cited_by_count")).toContain("not field-normalised");
++    // Same terminology as the locale's existing 2-yr caveat.
++    expect(metricContext("fr-FR", "h_index")).toContain("non normalisé par domaine");
++    expect(metricContext("de-DE", "cited_by_count")).toContain("nicht fachnormiert");
++    expect(metricContext("ja-JP", "h_index")).toContain("分野正規化なし");
++  });
++
++  it("ships the verified-mark strings in every locale, keeping the {org} placeholder", () => {
++    for (const locale of SUPPORTED_LOCALES) {
++      const s = renderStrings(locale);
++      expect(s.badgeVerified, locale).toBeTruthy();
++      expect(s.badgeVerifiedTitle, locale).toBeTruthy();
++      expect(s.badgeVerifiedByTitle, locale).toContain("{org}");
++    }
++  });
++
+   it("removes the misleading 'field-normalised' claim from the 2-year metric", () => {
+     // It's a JIF-analogue, not field-normalized — honesty fix (anti-DORA).
+     expect(metricContext("en-US", "2yr_mean_citedness")).toContain("not field-normalised");

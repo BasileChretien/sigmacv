@@ -161,10 +161,11 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
 
     it("escapes the asserting organisation's name in the accessible title", () => {
       const html = renderCvHtml(
-        updateDisplay(verifiedCv('Evil <b>Org</b> & "Co"'), { showVerifiedBadges: true }),
+        updateDisplay(verifiedCv('Evil <b>Org</b> & "Co" $&'), { showVerifiedBadges: true }),
       );
+      // "$&" is a String.replace replacement pattern — it must survive verbatim.
       expect(html).toContain(
-        "Verified by Evil &lt;b&gt;Org&lt;/b&gt; &amp; &quot;Co&quot; via ORCID",
+        "Verified by Evil &lt;b&gt;Org&lt;/b&gt; &amp; &quot;Co&quot; $&amp; via ORCID",
       );
       expect(html).not.toContain("<b>Org</b>");
     });
