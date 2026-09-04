@@ -10,6 +10,9 @@ import { licenseInfo } from "@/lib/canonical/license";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "../authorship";
 import { renderChartsHtml } from "../charts";
+import { collaborationHtml } from "../collaboration";
+import { provenanceLedgerHtml } from "../provenanceLedgerHtml";
+import { provenanceLedger } from "@/lib/cv/provenanceLedger";
 import { displayUrl, escapeHtml, safeHref } from "../escape";
 import { formattedMetrics, openAccessShare } from "../metrics";
 import { iconSvg, resolveLink, type IconName } from "../icons";
@@ -309,6 +312,13 @@ export function commonCss(theme: TemplateTheme): string {
   ul.cv-ledger { list-style: none; margin: 0.5rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: 0.78rem; color: var(--cv-muted); }
   .cv-ledger-item { white-space: nowrap; }
   .cv-ledger-n { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--cv-ink-2); }
+  /* Opt-in collaboration-breadth line (one sentence, same tone as the ledger). */
+  .cv-collab { margin: 0.5rem 0 0; font-size: 0.78rem; color: var(--cv-muted); }
+  /* Opt-in provenance ledger: a two-column "n of N (x%)" table inside the footer. */
+  .cv-prov-ledger { margin: 0.45rem 0 0; border-collapse: collapse; font-size: inherit; color: inherit; }
+  .cv-prov-ledger caption { text-align: left; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 0 0 0.15rem; }
+  .cv-prov-ledger td { padding: 0.04rem 0.9rem 0.04rem 0; vertical-align: top; }
+  .cv-prov-ledger td + td { padding-right: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
   /* The metric's interpretation anchor ("1.0 = world average …") and its coverage
      caveat ("mean over N works …"). Upright (not italic — long italic fine-print is
      a readability cost for dyslexia/low-vision), demoted in colour, and always
@@ -727,11 +737,12 @@ function researchSummaryBody(cv: CanonicalCv): string {
   }
   const metricsLine = rows.length ? `<ul class="cv-metrics">${rows.join("")}</ul>` : "";
   const ledger = outputLedgerHtml(cv);
+  const collab = collaborationHtml(cv);
   const charts = renderChartsHtml(cv);
   const authorship = authorshipTableHtml(cv);
   const research =
     charts || authorship ? `<div class="cv-research">${charts}${authorship}</div>` : "";
-  return `${metricsLine}${ledger}${research}`;
+  return `${metricsLine}${ledger}${collab}${research}`;
 }
 
 /**
@@ -787,10 +798,19 @@ function formatSyncDate(iso: string | undefined, locale: string): string | undef
 
 /**
  * A small data-provenance footer — what sources built this CV, when it synced,
- * and how much the user curated. Core to "responsible, auditable" CVs.
+ * and how much the user curated — followed by the provenance ledger (how
+ * verifiable the shown entries are, line by line with denominators; see
+ * `cv/provenanceLedger.ts`). Core to "responsible, auditable" CVs. The ledger is
+ * taken from `opts.provenanceLedger` when the caller pre-computed it on the
+ * owner's stored document (the public route, which renders a projection that
+ * lacks the signals) and derived from `cv` otherwise.
  */
-export function provenanceFooter(cv: CanonicalCv): string {
+export function provenanceFooter(cv: CanonicalCv, opts: RenderOpts = {}): string {
   if (!cv.display.showProvenance) return "";
+  const ledger = provenanceLedgerHtml(
+    opts.provenanceLedger ?? provenanceLedger(cv),
+    cv.display.locale,
+  );
   const s = renderStrings(cv.display.locale);
   // "manual entries" / "derived" are descriptive (localized); the rest are
   // proper nouns (OpenAlex, ORCID, …).
@@ -815,7 +835,7 @@ export function provenanceFooter(cv: CanonicalCv): string {
     cv.display.peerReviewedOnly || cv.display.showAuthorshipTable
       ? ` · ${escapeHtml(s.provClassificationNote)}`
       : "";
-  return `<footer class="cv-provenance">${parts.join(" ")} · ${counts.join(", ")}${note}</footer>`;
+  return `<footer class="cv-provenance">${parts.join(" ")} · ${counts.join(", ")}${note}${ledger}</footer>`;
 }
 
 /**

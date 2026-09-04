@@ -31,6 +31,10 @@ export interface WorkspaceUiStrings {
   hpMisAllMine: string;
   hpRetracted: string;
   hpHint: string;
+  /** Heading of the health panel when it carries only owner-only information. */
+  hpInfoTitle: string;
+  /** Owner-only self-referencing notice; "{pct}" and "{n}" substituted. */
+  hpSelfRef: string;
   /** Announced (politely) after a checklist jump so the walk is perceptible
    *  without sight. {n} / {total} = position in the category; {title} = the row. */
   hpWalkPosition: string;
@@ -132,6 +136,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publish",
     tbPublished: "Published",
     tbShare: "Share",
+    hpInfoTitle: "For your eyes only",
+    hpSelfRef:
+      "About {pct} of the references in your papers point to your own work (n = {n}). Some panels look at this; nothing on your CV shows it.",
   },
   "zh-CN": {
     hpMisAllMine: "都是我的",
@@ -184,6 +191,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "发布",
     tbPublished: "已发布",
     tbShare: "分享",
+    hpInfoTitle: "仅供您本人查看",
+    hpSelfRef:
+      "您论文中约 {pct} 的参考文献指向您自己的作品（n = {n}）。部分评审会关注这一点；您的简历中不会显示它。",
   },
   "es-ES": {
     hpMisAllMine: "Todos son míos",
@@ -239,6 +249,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publicar",
     tbPublished: "Publicado",
     tbShare: "Compartir",
+    hpInfoTitle: "Solo para ti",
+    hpSelfRef:
+      "Alrededor del {pct} de las referencias de tus artículos remiten a tu propio trabajo (n = {n}). Algunos comités se fijan en esto; nada en tu CV lo muestra.",
   },
   "fr-FR": {
     hpMisAllMine: "Tous sont à moi",
@@ -294,6 +307,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publier",
     tbPublished: "Publié",
     tbShare: "Partager",
+    hpInfoTitle: "Pour vous seulement",
+    hpSelfRef:
+      "Environ {pct} des références de vos articles renvoient à vos propres travaux (n = {n}). Certains comités y prêtent attention ; rien sur votre CV ne l'affiche.",
   },
   "de-DE": {
     hpMisAllMine: "Alle gehören mir",
@@ -349,6 +365,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Veröffentlichen",
     tbPublished: "Veröffentlicht",
     tbShare: "Teilen",
+    hpInfoTitle: "Nur für Sie",
+    hpSelfRef:
+      "Etwa {pct} der Literaturangaben in Ihren Arbeiten verweisen auf Ihre eigenen Arbeiten (n = {n}). Manche Gutachtergremien achten darauf; in Ihrem Lebenslauf erscheint es nirgends.",
   },
   "ja-JP": {
     hpMisAllMine: "すべて自分のものです",
@@ -404,6 +423,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "公開",
     tbPublished: "公開中",
     tbShare: "共有",
+    hpInfoTitle: "あなただけに表示",
+    hpSelfRef:
+      "あなたの論文の参考文献のうち約 {pct} が自身の業績を引用しています（n = {n}）。審査委員会がこれを見ることがありますが、CV には一切表示されません。",
   },
   "pt-BR": {
     hpMisAllMine: "Todos são meus",
@@ -459,6 +481,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publicar",
     tbPublished: "Publicado",
     tbShare: "Compartilhar",
+    hpInfoTitle: "Somente para você",
+    hpSelfRef:
+      "Cerca de {pct} das referências dos seus artigos apontam para o seu próprio trabalho (n = {n}). Alguns comitês observam isso; nada no seu CV o mostra.",
   },
   "it-IT": {
     hpMisAllMine: "Sono tutti miei",
@@ -514,6 +539,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Pubblica",
     tbPublished: "Pubblicato",
     tbShare: "Condividi",
+    hpInfoTitle: "Solo per te",
+    hpSelfRef:
+      "Circa il {pct} dei riferimenti nei tuoi articoli rimanda ai tuoi stessi lavori (n = {n}). Alcune commissioni lo guardano; nulla nel tuo CV lo mostra.",
   },
   "ko-KR": {
     hpMisAllMine: "모두 내 것입니다",
@@ -569,6 +597,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "게시",
     tbPublished: "게시됨",
     tbShare: "공유",
+    hpInfoTitle: "본인에게만 표시",
+    hpSelfRef:
+      "논문의 참고문헌 중 약 {pct}가 본인의 연구를 가리킵니다 (n = {n}). 일부 심사 위원회는 이를 살펴보지만 CV에는 전혀 표시되지 않습니다.",
   },
   "ru-RU": {
     hpMisAllMine: "Все мои",
@@ -625,6 +656,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Опубликовать",
     tbPublished: "Опубликовано",
     tbShare: "Поделиться",
+    hpInfoTitle: "Только для вас",
+    hpSelfRef:
+      "Около {pct} ссылок в ваших статьях указывают на ваши собственные работы (n = {n}). Некоторые комиссии обращают на это внимание; в вашем резюме это нигде не отображается.",
   },
 };
 

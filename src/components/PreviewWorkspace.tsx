@@ -192,6 +192,7 @@ export default function PreviewWorkspace({
           <SourceProvenance
             sourceCounts={sourceCounts}
             locale={loc}
+            cv={cv}
             defaultOpen
             onSelectSource={jumpToReviewSource}
             resolvedSources={resolvedSources}

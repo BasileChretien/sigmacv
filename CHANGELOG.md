@@ -21,6 +21,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the parser-safe ATS template like all badges. The confirming organisation's
   name is now captured at sync (`meta.verifiedBy`), so a re-sync is needed before
   existing CVs can name it; the mark itself works on already-synced data.
+- **Provenance ledger.** The opt-in data-provenance footer (_Data-provenance
+  footer_ in Design, still off by default) now ends with a short two-column
+  table stating how verifiable the document is, line by line and each with its
+  own denominator: entries matched by identifier vs. added by DOI vs. entered by
+  hand vs. matched by name only; positions/education/distinctions asserted by a
+  trusted organisation; entries resolvable by a persistent identifier (DOI /
+  PMID / arXiv / ORCID); source-attributed publications the owner confirmed;
+  retracted works still shown. It measures the **document**, never the
+  researcher, and is deliberately not a score. The same lines appear in the
+  editor's _Where this came from_ panel. On the public page the ledger is
+  computed from the stored document before the public projection (which strips
+  the attribution and review signals it counts), so it reads the same there as
+  on the PDF.
+- **Collaboration breadth (opt-in).** A new Design toggle, _Show collaboration
+  breadth_ (off by default), adds one sentence to the research-summary block —
+  "Co-authors from 14 countries · 62% of works international — most often Japan,
+  France, … · based on OpenAlex affiliation data; n = 42" — from the per-work
+  authorship countries stored at sync. Country names follow the CV's language.
+  Descriptive only: no map, no chart, no ranking. HTML/PDF only, and it follows
+  the summary block's placement like the output ledger.
+- **Self-referencing share — owner only.** When at least 30% of the references
+  in your papers point at your own work, over at least 10 works, the editor's
+  _Needs your attention_ panel adds one information line saying so (not a
+  warning, not counted as a to-do): some panels look at this figure, and nothing
+  on your CV shows it. It is never rendered on any export, the public page, or
+  the machine downloads — the per-work reference counts it is built from are now
+  stripped from the public and preview projections too.
 - **Opt-in per-publication indicators.** A new Design toggle, _Show
   per-publication indicators_ (off by default, like every evaluative toggle),
   renders a compact pill next to each publication that carries a value: the NIH
