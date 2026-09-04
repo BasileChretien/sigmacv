@@ -7,15 +7,13 @@ import {
   type CvSection,
 } from "@/lib/canonical/schema";
 import { localizedYearRange, yearRange } from "@/lib/canonical/entryLine";
-import { visibleItems, visibleSections } from "@/lib/canonical/curate";
-import { CITATION_SECTION_TYPES, sortPublicationItems } from "@/lib/canonical/publicationSort";
 import { DEFAULT_STYLE, isBundledStyle, registerStyleXml } from "@/lib/citeproc/assets";
 import { renderBibliography, type CiteprocOutputFormat } from "@/lib/citeproc/engine";
 import { renderStrings } from "@/lib/i18n/render";
 import type { CslItem } from "@/types/csl";
+import { selectSections } from "./citationItems";
 import { cslForRender } from "./cslOverride";
 import { escapeHtml } from "./escape";
-import { withSelfPublicationName } from "./selfName";
 
 const escapeHtmlText = escapeHtml;
 
@@ -88,71 +86,20 @@ export function prepareSections(
     styleKey = DEFAULT_STYLE;
   }
 
-  // Which CITATIONS to LIST (non-citation entries — positions, grants, editorial
-  // roles — are never touched):
-  //  - "Peer-reviewed only" drops every non-peer-reviewed work wherever it sits
-  //    (preprints, editorials, a preprint mis-filed under Publications).
-  //  - "Count letters" off → drop LETTERS (by document type) for an articles-only
-  //    view, even though letters are peer-reviewed. On (default) → keep them.
-  // Both mirror countableWorks so the listing matches the figures.
-  const peerOnly = cv.display.peerReviewedOnly;
-  const countLetters = cv.display.countLetters !== false; // default on
-  const hideRetracted = cv.display.hideRetracted === true;
-  const keep = (item: CvItem): boolean => {
-    if (!item.csl) return true; // non-citation entries untouched
-    if (hideRetracted && item.meta.retracted) return false; // user opted to exclude retractions
-    if (peerOnly && item.meta.peerReviewed === false) return false; // strict: drop non-peer-reviewed
-    if (item.meta.type === "letter" && !countLetters) return false; // articles-only: drop letters
-    return true;
-  };
-
-  // Optional re-sort of publication/preprint entries by citations or year — the
-  // `publicationOrder` display choice, shared with the editor list (`SectionsList`)
-  // via `sortPublicationItems` so the curation view matches the rendered order.
-  // "custom" keeps the curated/dragged order (the chokepoint default).
-
-  // "Selected publications": cap the main Publications list to the top N AFTER
-  // ordering + the peer-reviewed-only filter (for a grant biosketch / short CV).
-  // Only Publications is capped; Preprints and everything else are untouched.
-  const limit = cv.display.publicationsLimit ?? 0;
-
-  const perSection = visibleSections(cv).map((section) => {
-    let items = visibleItems(section).filter(keep);
-    // Per-view exclusions ("hide from THIS view" — a cosmetic display choice,
-    // distinct from "not mine"): drop them before ordering/limiting.
-    const excluded = cv.display.excludedItems?.[section.id];
-    if (excluded?.length) {
-      const set = new Set(excluded);
-      items = items.filter((it) => !set.has(it.id));
-    }
-    if (CITATION_SECTION_TYPES.has(section.type)) {
-      items = sortPublicationItems(items, cv.display.publicationOrder);
-      // "Selected / featured" works pin to the TOP of the section (stable, ahead of
-      // the order above) — a hand-picked "Selected publications" set leads, and the
-      // pins land within the publicationsLimit cap below rather than being dropped.
-      const featured = items.filter((it) => it.featured);
-      if (featured.length && featured.length < items.length) {
-        items = [...featured, ...items.filter((it) => !it.featured)];
-      }
-    }
-    if (section.type === "publications" && limit > 0) {
-      items = items.slice(0, limit);
-    }
-    return { section, items };
-  });
-
+  // Which entries to list, in what order, under which corrections: the shared
+  // selection (`citationItems.ts`) — the SAME one the BibTeX / CSL-JSON / RIS
+  // exports serialise, so a file a reference manager imports can never disagree
+  // with the CV. It already applies the owner's preferred publication name.
+  //
   // Render each section's bibliography SEPARATELY. Numbered CSL styles
   // (Vancouver, AMA, Nature, IEEE…) number a bibliography 1..N and may sort it;
   // rendering all sections in one pass meant Publications showed gappy numbers
   // (3,4,5,…,11) because Preprints/Datasets occupied the skipped numbers. Per
   // section, each list is contiguous (Publications 1..K, Preprints 1..M).
   // Author–date styles (APA) carry no numbers, so their output is unchanged.
-  return perSection.map(({ section, items: rawItems }) => {
-    // Apply the owner's preferred publication name first (substitutes the account
-    // holder's own author in each own work's CSL + augments the highlight variants),
-    // then the per-work year/venue overrides (cslForRender) — both BEFORE citeproc,
-    // so a correction shows identically in every format (never feed raw item.csl).
-    const items = rawItems.map((i) => withSelfPublicationName(i, cv.owner.publicationName));
+  return selectSections(cv).map(({ section, items }) => {
+    // The per-work year/venue overrides (cslForRender) go on BEFORE citeproc, so a
+    // correction shows identically in every format (never feed raw item.csl).
     const cslItems = items.map((i) => cslForRender(i)).filter((c): c is CslItem => Boolean(c));
     const entries = cslItems.length
       ? renderBibliography(cslItems, styleKey, cv.display.locale, outputFormat)
