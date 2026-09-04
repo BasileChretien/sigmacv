@@ -1,6 +1,7 @@
 import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 import { normalizeOrcid } from "@/lib/openalex/types";
+import { isRepositoryUrl } from "@/lib/softwareheritage/client";
 
 /**
  * DataCite REST API — datasets, software and other non-article research outputs
@@ -31,6 +32,15 @@ export interface DataciteOutput {
    * own name. Omitted when DataCite lists none.
    */
   creators?: { name: string; orcid?: string }[];
+  /**
+   * Source-code repository URL (GitHub/GitLab/Codeberg/Bitbucket), when one could
+   * be identified — extracted from `relatedIdentifiers` (a URL-typed identifier
+   * with a relation like IsSupplementTo/IsDerivedFrom/HasVersion, the common shape
+   * for a Zenodo-archived GitHub release) or, failing that, the deposit's own
+   * landing-page `url` when that itself points at a recognized repo host. Used as
+   * the Software Heritage lookup key. Omitted when none was found.
+   */
+  repositoryUrl?: string;
 }
 
 // DataCite relationType values that mark the same deposit under another DOI
@@ -150,6 +160,30 @@ function relatedDoisOf(attr: any): string[] {
   return out;
 }
 
+// Relation types under which a Zenodo-style archive commonly points back at its
+// source repository (a URL-typed relatedIdentifier, not a DOI).
+const REPO_RELATIONS = new Set(["issupplementto", "isderivedfrom", "hasversion"]);
+
+/**
+ * Best-effort source-repository URL for a DataCite record: a URL-typed
+ * `relatedIdentifiers` entry under one of {@link REPO_RELATIONS} that points at a
+ * recognized code-hosting platform, else the deposit's own landing-page `url`
+ * when THAT points at one (rare — the DOI usually resolves to Zenodo/etc., not
+ * the repo itself). Undefined when nothing usable was found. Purely defensive —
+ * never throws.
+ */
+function repositoryUrlOf(attr: any): string | undefined {
+  const rels = Array.isArray(attr?.relatedIdentifiers) ? attr.relatedIdentifiers : [];
+  for (const r of rels) {
+    if (nonEmpty(r?.relatedIdentifierType)?.toLowerCase() !== "url") continue;
+    if (!REPO_RELATIONS.has(nonEmpty(r?.relationType)?.toLowerCase() ?? "")) continue;
+    const candidate = nonEmpty(r?.relatedIdentifier);
+    if (candidate && isRepositoryUrl(candidate)) return candidate;
+  }
+  const own = nonEmpty(attr?.url);
+  return own && isRepositoryUrl(own) ? own : undefined;
+}
+
 export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutput[]> {
   const bare = normalizeOrcid(orcid);
   const url = new URL(DATACITE_API);
@@ -192,6 +226,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
       const year = Number.isFinite(Number(yearRaw)) ? Number(yearRaw) : undefined;
       const relatedDois = relatedDoisOf(attr);
       const creators = creatorsOf(attr);
+      const repositoryUrl = repositoryUrlOf(attr);
       out.push({
         doi,
         title,
@@ -200,6 +235,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
         publisher,
         ...(relatedDois.length ? { relatedDois } : {}),
         ...(creators.length ? { creators } : {}),
+        ...(repositoryUrl ? { repositoryUrl } : {}),
       });
     }
     return out;

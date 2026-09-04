@@ -1182,6 +1182,26 @@ export default function StyleControls({
         <label className="field-inline">
           <input
             type="checkbox"
+            checked={cv.display.showArchivalStatus}
+            onChange={(e) => onChange(updateDisplay(cv, { showArchivalStatus: e.target.checked }))}
+          />
+          <span>{u.showArchivalStatus}</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.showPublicEvaluations}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { showPublicEvaluations: e.target.checked }))
+            }
+          />
+          <span>{u.showPublicEvaluations}</span>
+        </label>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
             checked={cv.display.showProvenance}
             onChange={(e) => onChange(updateDisplay(cv, { showProvenance: e.target.checked }))}
           />

@@ -6,6 +6,9 @@ import {
   type CrossrefGapFields,
 } from "@/lib/crossref/client";
 import { fetchRcrByPmids } from "@/lib/icite/client";
+import { fetchOpenCitationsCount } from "@/lib/opencitations/client";
+import { fetchSoftwareHeritageArchival } from "@/lib/softwareheritage/client";
+import { fetchScietyEvaluations, type PublicEvaluation } from "@/lib/sciety/client";
 import { resolveInstitution } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
 import type { OrcidPosition } from "@/lib/orcid/client";
@@ -47,7 +50,10 @@ async function mapBounded<T, R>(
   return results;
 }
 
-function withSource(prov: Provenance, source: "crossref" | "ror"): Provenance {
+function withSource(
+  prov: Provenance,
+  source: "crossref" | "ror" | "opencitations" | "softwareheritage" | "sciety",
+): Provenance {
   if (prov.sources.includes(source)) return prov;
   return { ...prov, sources: [...prov.sources, source] };
 }
@@ -255,6 +261,154 @@ export async function enrichCvWithRetractions(
     ),
   }));
   return { ...cv, sections };
+}
+
+// ─── OpenCitations: independent citation counts ──────────────────────────────
+
+const OPENCITATIONS_MAX_ENRICH = 100;
+
+/**
+ * Fold an OpenCitations citation count onto DOI-bearing, non-hidden works
+ * (`meta.citedByOpenCitations`) — an independently-computed count alongside
+ * OpenAlex's own `citedByCount`, so a reader can see the two don't always agree.
+ * Bounded to {@link OPENCITATIONS_MAX_ENRICH} lookups, concurrency-limited,
+ * fail-soft and immutable. Re-checks each sync (like the retraction/RCR passes
+ * above) so the count stays current; returns the original CV untouched when
+ * nothing matched or nothing came back.
+ */
+export async function enrichCvWithOpenCitations(cv: CanonicalCv): Promise<CanonicalCv> {
+  const targets: Array<{ s: number; i: number; doi: string }> = [];
+  cv.sections.forEach((section, s) => {
+    section.items.forEach((item, i) => {
+      if (targets.length >= OPENCITATIONS_MAX_ENRICH) return;
+      const doi = item.csl?.DOI;
+      if (doi && !isHidden(item)) targets.push({ s, i, doi });
+    });
+  });
+  if (targets.length === 0) return cv;
+
+  const fetched = await mapBounded(targets, CONCURRENCY, (t) => fetchOpenCitationsCount(t.doi));
+  const counts = new Map<string, number>();
+  targets.forEach((t, idx) => {
+    const count = fetched[idx];
+    if (count !== null && count !== undefined) counts.set(`${t.s}:${t.i}`, count);
+  });
+  if (counts.size === 0) return cv;
+
+  const sections = cv.sections.map((section, s) => ({
+    ...section,
+    items: section.items.map((item, i) => {
+      const count = counts.get(`${s}:${i}`);
+      return count === undefined
+        ? item
+        : { ...item, meta: { ...item.meta, citedByOpenCitations: count } };
+    }),
+  }));
+  return { ...cv, sections, provenance: withSource(cv.provenance, "opencitations") };
+}
+
+// ─── Software Heritage: archival status of software items ───────────────────
+
+const SOFTWARE_HERITAGE_MAX_ENRICH = 50;
+
+/** Loosely matches DataCite/OpenAIRE's "Software" resourceTypeGeneral/type value
+ *  (same test the public JSON-LD uses to pick SoftwareSourceCode vs Dataset). */
+function isSoftwareDatasetItem(item: CvItem): boolean {
+  return /soft|code/i.test(`${item.csl?.type ?? ""} ${item.meta.type ?? ""}`);
+}
+
+/**
+ * Fold Software Heritage archival status onto software items in the Datasets &
+ * Software section that carry a source-repository URL (`meta.repositoryUrl`) and
+ * aren't already flagged archived. Bounded to {@link SOFTWARE_HERITAGE_MAX_ENRICH}
+ * lookups, concurrency-limited, fail-soft (a 404 "not archived" is not an error)
+ * and immutable. Re-checks each sync so a newly-archived repo picks up its SWHID.
+ */
+export async function enrichCvWithSoftwareHeritage(cv: CanonicalCv): Promise<CanonicalCv> {
+  const targets: Array<{ s: number; i: number; url: string }> = [];
+  cv.sections.forEach((section, s) => {
+    if (section.type !== "datasets") return;
+    section.items.forEach((item, i) => {
+      if (targets.length >= SOFTWARE_HERITAGE_MAX_ENRICH) return;
+      const url = item.meta.repositoryUrl;
+      if (url && !item.meta.swhid && isSoftwareDatasetItem(item) && !isHidden(item)) {
+        targets.push({ s, i, url });
+      }
+    });
+  });
+  if (targets.length === 0) return cv;
+
+  const fetched = await mapBounded(targets, CONCURRENCY, (t) =>
+    fetchSoftwareHeritageArchival(t.url),
+  );
+  const archival = new Map<string, { swhid: string; archivedAt?: string }>();
+  targets.forEach((t, idx) => {
+    const result = fetched[idx];
+    if (result) archival.set(`${t.s}:${t.i}`, result);
+  });
+  if (archival.size === 0) return cv;
+
+  const sections = cv.sections.map((section, s) => ({
+    ...section,
+    items: section.items.map((item, i) => {
+      const result = archival.get(`${s}:${i}`);
+      return result === undefined
+        ? item
+        : {
+            ...item,
+            meta: {
+              ...item.meta,
+              swhid: result.swhid,
+              ...(result.archivedAt ? { swhArchivedAt: result.archivedAt } : {}),
+            },
+          };
+    }),
+  }));
+  return { ...cv, sections, provenance: withSource(cv.provenance, "softwareheritage") };
+}
+
+// ─── Sciety: public evaluations of preprints ─────────────────────────────────
+
+const SCIETY_MAX_ENRICH = 50;
+
+/**
+ * Fold Sciety's aggregated public evaluations onto DOI-bearing, non-hidden
+ * preprints (`meta.publicEvaluations`). Bounded to {@link SCIETY_MAX_ENRICH}
+ * lookups, concurrency-limited, fail-soft (a 404 "no evaluations" is not an
+ * error) and immutable. Re-checks each sync so a newly-published evaluation
+ * appears; returns the original CV untouched when nothing matched or nothing
+ * came back.
+ */
+export async function enrichCvWithSciety(cv: CanonicalCv): Promise<CanonicalCv> {
+  const targets: Array<{ s: number; i: number; doi: string }> = [];
+  cv.sections.forEach((section, s) => {
+    if (section.type !== "preprints") return;
+    section.items.forEach((item, i) => {
+      if (targets.length >= SCIETY_MAX_ENRICH) return;
+      const doi = item.csl?.DOI;
+      if (doi && !isHidden(item)) targets.push({ s, i, doi });
+    });
+  });
+  if (targets.length === 0) return cv;
+
+  const fetched = await mapBounded(targets, CONCURRENCY, (t) => fetchScietyEvaluations(t.doi));
+  const evaluations = new Map<string, PublicEvaluation[]>();
+  targets.forEach((t, idx) => {
+    const list = fetched[idx];
+    if (list && list.length > 0) evaluations.set(`${t.s}:${t.i}`, list);
+  });
+  if (evaluations.size === 0) return cv;
+
+  const sections = cv.sections.map((section, s) => ({
+    ...section,
+    items: section.items.map((item, i) => {
+      const list = evaluations.get(`${s}:${i}`);
+      return list === undefined
+        ? item
+        : { ...item, meta: { ...item.meta, publicEvaluations: list } };
+    }),
+  }));
+  return { ...cv, sections, provenance: withSource(cv.provenance, "sciety") };
 }
 
 // ─── ROR institution-name canonicalization ───────────────────────────────────

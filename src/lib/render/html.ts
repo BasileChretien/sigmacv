@@ -11,6 +11,7 @@ import {
 import { bareYearRange } from "@/lib/canonical/entryLine";
 import { highlightSelf } from "@/lib/citeproc/highlight";
 import { renderStrings } from "@/lib/i18n/render";
+import { citationCountsTitle } from "./citationSources";
 import { escapeHtml, safeHref } from "./escape";
 import { coinsSpan } from "./coins";
 import { prepareSections } from "./prepare";
@@ -78,9 +79,17 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
   if (display.showCitationCounts && typeof item.meta.citedByCount === "number") {
     const s = renderStrings(display.locale);
     const n = new Intl.NumberFormat(display.locale).format(item.meta.citedByCount);
+    // Independent-source breakdown (OpenAlex vs OpenCitations) in the tooltip
+    // only — the visible number stays OpenAlex's.
+    const title = citationCountsTitle(
+      s.badgeCitationsTitle,
+      item.meta.citedByCount,
+      item.meta.citedByOpenCitations,
+      display.locale,
+    );
     badges.push(
       `<span class="cv-badge cv-badge-cites" title="${escapeHtml(
-        s.badgeCitationsTitle,
+        title,
       )}">${escapeHtml(s.badgeCitations.replace("{n}", n))}</span>`,
     );
   }
@@ -89,11 +98,50 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
   // two-line history record places it on the lead line (positionEntryHtml).
   const verified = verifiedBadgeHtml(item, display);
   if (verified) badges.push(verified);
+  // Software Heritage archival status — a link, not a plain badge, so a reader
+  // can jump straight to the preserved snapshot. Only ever set from a confirmed
+  // ("require_snapshot=true") visit, so its presence alone means "archived".
+  if (display.showArchivalStatus && item.meta.swhid) {
+    const s = renderStrings(display.locale);
+    const href = safeHref(`https://archive.softwareheritage.org/${item.meta.swhid}`);
+    if (href) {
+      badges.push(
+        `<a class="cv-badge cv-badge-archived" href="${escapeHtml(
+          href,
+        )}" title="${escapeHtml(s.badgeArchivedTitle)}">${escapeHtml(s.badgeArchived)}</a>`,
+      );
+    }
+  }
   // Wrap the group in an inline-flex container (own `gap` + `margin-left`) so the
   // badges can never collapse against the preceding citation text/URL or against
   // each other — a plain joining space did, depending on the CSL style's trailing
   // node (e.g. a bare URL in APA) and on whitespace collapsing.
   return badges.length ? `<span class="cv-badges">${badges.join("")}</span>` : "";
+}
+
+/**
+ * Muted "Publicly evaluated: eLife (2024) · PREreview (2024)" line after a
+ * preprint with Sciety-aggregated public evaluations (opt-in
+ * `display.showPublicEvaluations`). Each entry links to the evaluation; the
+ * year (when the evaluation carries a date) is locale-formatted. Returns ""
+ * when the toggle is off or the item carries no evaluations.
+ */
+function publicEvaluationsHtml(item: CvItem, display: DisplayChoices): string {
+  const evaluations = item.meta.publicEvaluations;
+  if (!display.showPublicEvaluations || !evaluations || evaluations.length === 0) return "";
+  const s = renderStrings(display.locale);
+  const entries = evaluations
+    .map((e) => {
+      const href = safeHref(e.url);
+      const year = e.date ? new Date(e.date).getFullYear() : undefined;
+      const label = escapeHtml(year && Number.isFinite(year) ? `${e.group} (${year})` : e.group);
+      return href ? `<a href="${escapeHtml(href)}">${label}</a>` : label;
+    })
+    .join(" · ");
+  if (!entries) return "";
+  return `<div class="cv-public-evaluations">${escapeHtml(
+    s.publicEvaluationsPrefix,
+  )} ${entries}</div>`;
 }
 
 /** The canonical ROR IRI shape: `https://ror.org/<id>` (lowercase alnum body). */
@@ -337,6 +385,7 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
           html = highlightSelf(html, item.selfNameVariants);
         }
         html += itemBadges(item, cv.display);
+        html += publicEvaluationsHtml(item, cv.display);
         if (isHistory) html = withRorLink(html, item, cv.display.locale);
         // Public-page-only: a no-JS Cite/Abstract/Full-text affordance per work.
         if (publicExtras) html += itemToolsHtml(item, opts!.slug!, cv.display.locale);

@@ -21,6 +21,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the parser-safe ATS template like all badges. The confirming organisation's
   name is now captured at sync (`meta.verifiedBy`), so a re-sync is needed before
   existing CVs can name it; the mark itself works on already-synced data.
+- **Three open-evidence enrichment sources: OpenCitations, Software Heritage,
+  Sciety.** All bounded, fail-soft, opt-in display, off by default.
+  - **OpenCitations** independent citation count (`src/lib/opencitations/client.ts`)
+    alongside OpenAlex's own — when `display.showCitationCounts` is on and an
+    OpenCitations count is available, the citation badge's tooltip breaks the two
+    out ("OpenAlex 12 · OpenCitations 9") without changing the visible number, a
+    second, independently-computed count is an honest multi-source signal rather
+    than a "more accurate" replacement.
+  - **Software Heritage** archival status (`src/lib/softwareheritage/client.ts`)
+    for software items in Datasets & Software whose source-repository URL could be
+    identified (from DataCite `relatedIdentifiers`, extended to carry one). New
+    opt-in `display.showArchivalStatus` shows a small "Archived" link to the
+    preserved snapshot; the SWHID is also added to the item's public JSON-LD
+    `SoftwareSourceCode` node.
+  - **Sciety** aggregated public evaluations of preprints
+    (`src/lib/sciety/client.ts`, parsed from the DocMaps format). New opt-in
+    `display.showPublicEvaluations` shows a muted "Publicly evaluated: eLife
+    (2024) · PREreview (2024)" line, each name linking to the evaluation.
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so

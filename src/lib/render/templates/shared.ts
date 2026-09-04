@@ -391,6 +391,11 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-badge-cites { color: #1e40af; background: #dbeafe; border: 1px solid #93c5fd; font-variant-numeric: tabular-nums; }
   .cv-badge-verified { color: #166534; background: #dcfce7; border: 1px solid #86efac; }
   .cv-entry-lead .cv-badges { margin-left: 0.5em; }
+  .cv-badge-archived { color: #0e7066; background: #e7f4f1; border: 1px solid #bfe3dc; text-decoration: none; cursor: pointer; }
+  .cv-badge-archived:hover { text-decoration: underline; }
+  .cv-public-evaluations { margin: 0.28rem 0 0; font-size: 0.72rem; color: var(--cv-muted); text-indent: 0; }
+  .cv-public-evaluations a { color: var(--cv-accent); text-decoration: none; }
+  .cv-public-evaluations a:hover { text-decoration: underline; }
 
   /* Institution → ROR record link on a Positions/Education line (all templates).
      A quiet dotted underline marks the name as linked on screen; print drops the
@@ -762,6 +767,9 @@ const SOURCE_LABEL: Record<string, string> = {
   crossref: "Crossref",
   datacite: "DataCite",
   ror: "ROR",
+  opencitations: "OpenCitations",
+  softwareheritage: "Software Heritage",
+  sciety: "Sciety",
   derived: "derived",
   manual: "manual entries",
 };

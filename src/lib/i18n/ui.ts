@@ -66,6 +66,10 @@ export interface UiStrings {
   showCitationCounts: string;
   /** Editor toggle: the "Verified" mark on institution-asserted positions/education. */
   showVerifiedBadges: string;
+  /** Editor toggle label: show Software Heritage archival status on software items. */
+  showArchivalStatus: string;
+  /** Editor toggle label: show Sciety public evaluations on preprints. */
+  showPublicEvaluations: string;
   showProvenance: string;
   peerReviewedOnly: string;
   peerReviewedOnlyTitle: string;
@@ -243,6 +247,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "Show my author role (first / last / corresponding)",
     showCitationCounts: "Show citation counts on each publication",
     showVerifiedBadges: "Mark positions & education confirmed by the institution via ORCID",
+    showArchivalStatus: "Show Software Heritage archival status on software items",
+    showPublicEvaluations: "Show public evaluations on preprints (Sciety)",
     showProvenance: "Data-provenance footer",
     peerReviewedOnly: "Hide preprints & non-peer-reviewed work",
     peerReviewedOnlyTitle:
@@ -403,6 +409,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "显示我的作者角色（第一／末位／通讯）",
     showCitationCounts: "在每篇论文上显示被引次数",
     showVerifiedBadges: "标记由机构通过 ORCID 确认的职位与教育经历",
+    showArchivalStatus: "在软件条目上显示 Software Heritage 存档状态",
+    showPublicEvaluations: "在预印本上显示公开评审信息（Sciety）",
     showProvenance: "数据来源页脚",
     peerReviewedOnly: "隐藏预印本及非同行评审成果",
     peerReviewedOnlyTitle:
@@ -561,6 +569,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "Mostrar el número de citas en cada publicación",
     showVerifiedBadges:
       "Marcar los puestos y estudios confirmados por la institución mediante ORCID",
+    showArchivalStatus:
+      "Mostrar el estado de archivo de Software Heritage en los elementos de software",
+    showPublicEvaluations: "Mostrar evaluaciones públicas en los preprints (Sciety)",
     showProvenance: "Pie de página con la procedencia de los datos",
     peerReviewedOnly: "Ocultar preprints y trabajos no revisados por pares",
     peerReviewedOnlyTitle:
@@ -723,6 +734,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "Afficher mon rôle d’auteur (premier / dernier / correspondant)",
     showCitationCounts: "Afficher le nombre de citations sur chaque publication",
     showVerifiedBadges: "Marquer les postes et formations confirmés par l’établissement via ORCID",
+    showArchivalStatus:
+      "Afficher le statut d'archivage Software Heritage sur les éléments logiciels",
+    showPublicEvaluations: "Afficher les évaluations publiques sur les prépublications (Sciety)",
     showProvenance: "Pied de page sur la provenance des données",
     peerReviewedOnly: "Masquer les pré-publications et les travaux non évalués par les pairs",
     peerReviewedOnlyTitle:
@@ -887,6 +901,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "Zitationszahl bei jeder Publikation anzeigen",
     showVerifiedBadges:
       "Positionen & Ausbildung markieren, die die Institution über ORCID bestätigt hat",
+    showArchivalStatus: "Software-Heritage-Archivierungsstatus bei Software-Einträgen anzeigen",
+    showPublicEvaluations: "Öffentliche Begutachtungen bei Preprints anzeigen (Sciety)",
     showProvenance: "Fußzeile zur Datenherkunft",
     peerReviewedOnly: "Preprints & nicht peer-reviewte Arbeiten ausblenden",
     peerReviewedOnlyTitle:
@@ -1049,6 +1065,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "自分の著者役割を表示（筆頭・最終・責任著者）",
     showCitationCounts: "各論文に被引用数を表示",
     showVerifiedBadges: "機関が ORCID を通じて確認した職歴・学歴に認証マークを表示",
+    showArchivalStatus: "ソフトウェア項目に Software Heritage のアーカイブ状態を表示",
+    showPublicEvaluations: "プレプリントに公開レビュー情報を表示（Sciety）",
     showProvenance: "データ出典フッター",
     peerReviewedOnly: "プレプリント・非査読の業績を非表示",
     peerReviewedOnlyTitle:
@@ -1209,6 +1227,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "Mostrar meu papel de autoria (primeiro / último / correspondente)",
     showCitationCounts: "Mostrar o número de citações em cada publicação",
     showVerifiedBadges: "Marcar cargos e formação confirmados pela instituição via ORCID",
+    showArchivalStatus:
+      "Mostrar o status de arquivamento do Software Heritage em itens de software",
+    showPublicEvaluations: "Mostrar avaliações públicas em preprints (Sciety)",
     showProvenance: "Rodapé de proveniência dos dados",
     peerReviewedOnly: "Ocultar pré-prints e trabalhos não revisados por pares",
     peerReviewedOnlyTitle:
@@ -1371,6 +1392,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "Mostra il mio ruolo di autore (primo / ultimo / corrispondente)",
     showCitationCounts: "Mostra il numero di citazioni per ogni pubblicazione",
     showVerifiedBadges: "Segnala posizioni e formazione confermate dall’istituzione tramite ORCID",
+    showArchivalStatus:
+      "Mostra lo stato di archiviazione Software Heritage sugli elementi software",
+    showPublicEvaluations: "Mostra le valutazioni pubbliche sui preprint (Sciety)",
     showProvenance: "Piè di pagina sulla provenienza dei dati",
     peerReviewedOnly: "Nascondi i preprint e i lavori non sottoposti a revisione paritaria",
     peerReviewedOnlyTitle:
@@ -1532,6 +1556,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "내 저자 역할 표시 (제1저자 / 마지막 저자 / 교신저자)",
     showCitationCounts: "각 논문에 피인용 수 표시",
     showVerifiedBadges: "기관이 ORCID를 통해 확인한 경력·학력에 인증 표시",
+    showArchivalStatus: "소프트웨어 항목에 Software Heritage 보관 상태 표시",
+    showPublicEvaluations: "프리프린트에 공개 평가 표시 (Sciety)",
     showProvenance: "데이터 출처 푸터",
     peerReviewedOnly: "프리프린트 및 비동료 심사 자료 숨기기",
     peerReviewedOnlyTitle:
@@ -1692,6 +1718,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showAuthorRole: "Показывать мою авторскую роль (первый / последний / корреспондирующий)",
     showCitationCounts: "Показывать число цитирований у каждой публикации",
     showVerifiedBadges: "Отмечать должности и образование, подтверждённые организацией через ORCID",
+    showArchivalStatus: "Показывать статус архивации Software Heritage для программных элементов",
+    showPublicEvaluations: "Показывать публичные оценки препринтов (Sciety)",
     showProvenance: "Нижний колонтитул с источниками данных",
     peerReviewedOnly: "Скрыть препринты и нерецензируемые работы",
     peerReviewedOnlyTitle:

@@ -27,6 +27,9 @@ const mocks = vi.hoisted(() => ({
   enrichCvWithAbstracts: vi.fn(),
   enrichCvWithIcite: vi.fn(),
   enrichCvWithRetractions: vi.fn(),
+  enrichCvWithOpenCitations: vi.fn(),
+  enrichCvWithSoftwareHeritage: vi.fn(),
+  enrichCvWithSciety: vi.fn(),
   fetchPeerReviews: vi.fn(),
   fetchJournalNames: vi.fn(),
   fetchOpenaire: vi.fn(),
@@ -105,6 +108,9 @@ vi.mock("@/lib/canonical/enrich", () => ({
   enrichCvWithAbstracts: mocks.enrichCvWithAbstracts,
   enrichCvWithIcite: mocks.enrichCvWithIcite,
   enrichCvWithRetractions: mocks.enrichCvWithRetractions,
+  enrichCvWithOpenCitations: mocks.enrichCvWithOpenCitations,
+  enrichCvWithSoftwareHeritage: mocks.enrichCvWithSoftwareHeritage,
+  enrichCvWithSciety: mocks.enrichCvWithSciety,
   withRorProvenance: (cv: unknown) => cv,
 }));
 
@@ -173,6 +179,9 @@ beforeEach(() => {
   mocks.enrichCvWithAbstracts.mockImplementation(async (cv) => cv);
   mocks.enrichCvWithIcite.mockImplementation(async (cv) => cv);
   mocks.enrichCvWithRetractions.mockImplementation(async (cv) => cv);
+  mocks.enrichCvWithOpenCitations.mockImplementation(async (cv) => cv);
+  mocks.enrichCvWithSoftwareHeritage.mockImplementation(async (cv) => cv);
+  mocks.enrichCvWithSciety.mockImplementation(async (cv) => cv);
   mocks.fetchPeerReviews.mockResolvedValue([]);
   mocks.fetchJournalNames.mockResolvedValue(new Map<string, string>());
   mocks.fetchOpenaire.mockResolvedValue([]);
