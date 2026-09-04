@@ -21,6 +21,7 @@ export const SOURCE_LABEL: Readonly<Record<string, string>> = {
   ctis: "EU CTIS",
   ictrp: "WHO ICTRP",
   epo: "EPO",
+  bibtex: "BibTeX import",
   ror: "ROR",
   derived: "derived",
   manual: "manual entries",
