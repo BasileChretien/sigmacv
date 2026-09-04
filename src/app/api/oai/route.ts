@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getPublicCvRecord, listPublicCvRecords } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
+import { readTextBodyWithLimit } from "@/lib/readBody";
 import {
   OAI_PAGE_SIZE,
   getRecordResponse,
@@ -137,9 +138,25 @@ export async function GET(req: Request) {
   return handle(argsFrom(new URL(req.url).searchParams), req);
 }
 
+/** An OAI-PMH POST carries at most seven short arguments as
+ *  `application/x-www-form-urlencoded` (protocol §3.1.1.2). Cap the body HERE,
+ *  streamed, so the ceiling never depends on the edge proxy's configuration. */
+const OAI_POST_MAX_BYTES = 8 * 1024;
+
 export async function POST(req: Request) {
-  const form = await req.formData();
-  const params = new URLSearchParams();
-  for (const [k, v] of form.entries()) if (typeof v === "string") params.set(k, v);
-  return handle(argsFrom(params), req);
+  const type = (req.headers.get("content-type") ?? "").toLowerCase();
+  if (!type.startsWith("application/x-www-form-urlencoded")) {
+    return new NextResponse("POST requests must be application/x-www-form-urlencoded.", {
+      status: 415,
+      headers: { "Content-Type": "text/plain" },
+    });
+  }
+  const body = await readTextBodyWithLimit(req, OAI_POST_MAX_BYTES);
+  if (!body.ok) {
+    return new NextResponse("Request body too large.", {
+      status: 413,
+      headers: { "Content-Type": "text/plain" },
+    });
+  }
+  return handle(argsFrom(new URLSearchParams(body.text)), req);
 }

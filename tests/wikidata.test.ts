@@ -77,3 +77,19 @@ describe("fetchWikidataIdentity", () => {
     expect(await fetchWikidataIdentity(ORCID)).toBeNull();
   });
 });
+
+describe("fetchWikidataIdentity refuses to interpolate a non-iD into SPARQL", () => {
+  it("returns null without fetching for input that carries no ORCID", async () => {
+    const spy = vi.fn();
+    vi.stubGlobal("fetch", spy);
+    expect(await fetchWikidataIdentity('"> } UNION { ?x ?y ?z')).toBeNull();
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("returns null without fetching for a checksum-invalid iD", async () => {
+    const spy = vi.fn();
+    vi.stubGlobal("fetch", spy);
+    expect(await fetchWikidataIdentity("0000-0001-7580-4350")).toBeNull();
+    expect(spy).not.toHaveBeenCalled();
+  });
+});

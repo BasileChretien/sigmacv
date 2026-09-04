@@ -33,12 +33,19 @@ export async function GET() {
         id: true,
         name: true,
         email: true,
+        emailVerified: true,
+        image: true,
         orcid: true,
+        // The research-consent audit trail: what was agreed, when, which version.
         researchConsent: true,
+        researchConsentAt: true,
+        researchConsentVersion: true,
         digestOptIn: true,
+        digestSentAt: true,
         contactEmail: true,
         contactEmailVerifiedAt: true,
         createdAt: true,
+        updatedAt: true,
       },
     }),
     // OAuth provider linkages — non-secret fields only (omit tokens).
@@ -60,12 +67,30 @@ export async function GET() {
     prisma.researchEvent.count({ where: { userId } }),
   ]);
 
+  // The CV row beyond the document itself: whether the living page is published,
+  // at which URL, whether it may be indexed, when it last synced and what that
+  // sync changed. Internal job bookkeeping (the resync lock) is not user data.
+  const cvRecord = cv
+    ? {
+        id: cv.id,
+        schemaVersion: cv.schemaVersion,
+        lastSyncedAt: cv.lastSyncedAt,
+        lastSyncReport: cv.lastSyncReport,
+        published: cv.published,
+        publicSlug: cv.publicSlug,
+        publicIndexable: cv.publicIndexable,
+        createdAt: cv.createdAt,
+        updatedAt: cv.updatedAt,
+      }
+    : null;
+
   const payload = {
     exportedAt: new Date().toISOString(),
     user,
     accounts,
     sessions,
     cv: cv?.document ?? null,
+    cvRecord,
     researchEvents,
     researchEventsTotal,
     // True only in the (unrealistic) event the cap was reached — tells the user

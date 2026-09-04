@@ -15,13 +15,17 @@ const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   userFindUnique: vi.fn(),
   userDelete: vi.fn(),
+  rateLimitDeleteMany: vi.fn(),
   enforceRateLimit: vi.fn(),
   isSameOrigin: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/db", () => ({
-  prisma: { user: { findUnique: mocks.userFindUnique, delete: mocks.userDelete } },
+  prisma: {
+    user: { findUnique: mocks.userFindUnique, delete: mocks.userDelete },
+    rateLimitWindow: { deleteMany: mocks.rateLimitDeleteMany },
+  },
 }));
 vi.mock("@/lib/rateLimitStore", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
 vi.mock("@/lib/security/origin", () => ({ isSameOrigin: mocks.isSameOrigin }));
@@ -95,5 +99,37 @@ describe("deleting an account clears its anonymous preview", () => {
     setCachedOrcidPreview(other, { html: "<p>theirs</p>", name: "B", cv: CV });
     await DELETE(req());
     expect(getCachedOrcidPreview(other)).not.toBeNull();
+  });
+});
+
+describe("deleting an account sweeps its persisted rate-limit counters", () => {
+  // RateLimitWindow has no FK to User (shared infra), but every per-user limiter
+  // key ends in `:<userId>` — so the cascade misses them and the internal id
+  // would otherwise sit in that table indefinitely.
+  it("deletes every RateLimitWindow row keyed by the user id, after the user row", async () => {
+    const order: string[] = [];
+    mocks.userFindUnique.mockResolvedValue({ orcid: null });
+    mocks.userDelete.mockImplementation(async () => {
+      order.push("delete");
+      return {};
+    });
+    mocks.rateLimitDeleteMany.mockImplementation(async () => {
+      order.push("sweep");
+      return { count: 3 };
+    });
+    const res = await DELETE(req());
+    expect(res.status).toBe(200);
+    expect(mocks.rateLimitDeleteMany).toHaveBeenCalledWith({
+      where: { key: { endsWith: ":u1" } },
+    });
+    expect(order).toEqual(["delete", "sweep"]);
+  });
+
+  it("is fail-soft: a sweep failure never turns a completed deletion into an error", async () => {
+    mocks.userFindUnique.mockResolvedValue({ orcid: null });
+    mocks.rateLimitDeleteMany.mockRejectedValue(new Error("table missing"));
+    const res = await DELETE(req());
+    expect(res.status).toBe(200);
+    expect(mocks.userDelete).toHaveBeenCalledTimes(1);
   });
 });

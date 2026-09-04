@@ -1,6 +1,6 @@
 import { resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
-import { normalizeOrcid } from "@/lib/openalex/types";
+import { validOrcidOrNull } from "@/lib/orcid/validate";
 
 /**
  * Wikidata — identity enrichment for the public CV page, matched by ORCID
@@ -38,7 +38,9 @@ function bindingValue(
 }
 
 export async function fetchWikidataIdentity(orcid: string): Promise<WikidataIdentity | null> {
-  const bare = normalizeOrcid(orcid);
+  // Strict: the iD is interpolated into SPARQL below, so anything that is not a
+  // checksum-valid ORCID is "no such person", never a query fragment.
+  const bare = validOrcidOrNull(orcid);
   if (!bare) return null;
 
   const query = `SELECT DISTINCT ?person ?viaf ?isni ?award ?awardLabel WHERE {

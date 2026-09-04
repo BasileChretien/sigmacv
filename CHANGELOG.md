@@ -28,6 +28,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **stripped from published CVs**: when you reviewed each work is private curation
   behaviour, not something a public page or machine download should carry.
 
+### Fixed
+
+- **BibTeX, RIS and CSL-JSON now carry your corrections.** A publication year or
+  journal name you corrected, and your preferred publication name, showed on the
+  PDF and the public page but **not** in the `.bib` / `.ris` / `.csl.json` a
+  reference manager imports (nor in the RO-Crate bundle or the public page's
+  per-work "Cite" button), which read the raw source record. All of them now go
+  through the same selection and correction step as the visual renderers, so a
+  citation file can no longer disagree with the CV it came from. The same step
+  makes the BibTeX and CSL-JSON downloads list exactly the works the CV lists:
+  a work hidden from the current view, "hide retracted", "peer-reviewed only",
+  the publication order and the "Selected publications" cap all apply.
+- **"Newest first" honours a corrected year.** The publication sort read the
+  source year, so a work whose year you corrected sat out of order in the editor
+  and in every export. It now sorts by the year you see.
+- **The account data export is complete.** It now includes the research-consent
+  audit trail (when you consented and to which version of the terms), your
+  digest and profile-image fields, and the CV record's own state — whether the
+  living page is published, its public URL, whether it may be indexed, when it
+  last synced and what that sync changed — alongside the document itself.
+
 ### Security
 
 - **All known dependency advisories are closed again (`npm audit`: 0).** The mail
@@ -39,6 +60,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`mysql2`, `deepmerge-ts`, and `fast-uri` — four host-confusion/SSRF advisories
   in the URI parser under the CLI's bundled `ajv`; none on a code path SigmaCV
   executes) are pinned forward via `overrides`.
+
+- **Defence in depth on three small edges.** The OAI-PMH endpoint now caps a
+  POST body itself (8 KB, streamed) instead of relying on the reverse proxy's
+  limit, and accepts only the form encoding the protocol specifies; deleting an
+  account also sweeps the persisted rate-limit counters keyed by that account's
+  internal id; and the DBLP / Wikidata clients validate an ORCID (shape and
+  check digit) before it is placed in a SPARQL query, rather than trusting the
+  tolerant normaliser's pass-through of unrecognised input.
 
 ### Changed
 

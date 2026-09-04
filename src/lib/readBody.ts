@@ -8,10 +8,15 @@
  */
 export type ReadBodyResult = { ok: true; value: unknown } | { ok: false; tooLarge: boolean };
 
-export async function readJsonBodyWithLimit(
+export type ReadTextResult = { ok: true; text: string } | { ok: false; tooLarge: true };
+
+/** Read a request body as UTF-8 text under a streamed byte ceiling (the
+ *  building block of `readJsonBodyWithLimit`; use it directly for non-JSON
+ *  bodies such as a form-encoded POST). */
+export async function readTextBodyWithLimit(
   req: Request,
   maxBytes: number,
-): Promise<ReadBodyResult> {
+): Promise<ReadTextResult> {
   const body = req.body;
   /* v8 ignore next 7 -- defensive: undici always provides req.body; the
      no-stream fallback only matters on exotic runtimes */
@@ -20,7 +25,7 @@ export async function readJsonBodyWithLimit(
     // a byte check so we still never parse an oversize body.
     const text = await req.text();
     if (byteLength(text) > maxBytes) return { ok: false, tooLarge: true };
-    return parseJson(text);
+    return { ok: true, text };
   }
 
   const reader = body.getReader();
@@ -42,7 +47,16 @@ export async function readJsonBodyWithLimit(
     reader.releaseLock();
   }
 
-  return parseJson(decodeChunks(chunks));
+  return { ok: true, text: decodeChunks(chunks) };
+}
+
+export async function readJsonBodyWithLimit(
+  req: Request,
+  maxBytes: number,
+): Promise<ReadBodyResult> {
+  const read = await readTextBodyWithLimit(req, maxBytes);
+  if (!read.ok) return read;
+  return parseJson(read.text);
 }
 
 function parseJson(text: string): ReadBodyResult {

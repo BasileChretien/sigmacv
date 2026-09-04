@@ -1,16 +1,17 @@
-import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
-import { visibleItems, visibleSections } from "@/lib/canonical/curate";
+import type { CanonicalCv } from "@/lib/canonical/schema";
 import type { CslItem, CslName } from "@/types/csl";
 import { stripInlineMarkup } from "@/lib/text/markup";
+import { citationCslItems } from "./citationItems";
 import { cvSlug } from "./slug";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
 /**
  * BibTeX export of the curated publications — importable into Zotero, Mendeley,
- * JabRef, BibDesk, etc. Built straight from the canonical CSL items (the same
- * data citeproc renders), so it always matches what's on the CV. Includes every
- * shown, owned reference (has CSL, included, not "not mine") across all sections
- * (publications, preprints, datasets…). UTF-8 is preserved; Zotero reads it.
+ * JabRef, BibDesk, etc. Built from the SAME selected + corrected CSL citeproc
+ * renders (`citationItems.ts`), so it always matches what's on the CV: every
+ * listed, owned reference across all sections (publications, preprints,
+ * datasets…), with the per-view exclusions, "hide retracted" and the owner's
+ * year / venue / publication-name corrections applied. UTF-8 is preserved.
  */
 
 const TYPE_MAP: Record<string, string> = {
@@ -135,13 +136,10 @@ export function cslItemsToBibtex(items: CslItem[]): string {
 }
 
 export function renderCvBibtex(cv: CanonicalCv): string {
-  // Every shown, owned reference with CSL data (canonical item ids are already
-  // unique; colliding cite keys are suffixed by cslItemsToBibtex).
-  const csls = visibleSections(cv)
-    .flatMap((s) => visibleItems(s))
-    .filter((i): i is CvItem & { csl: CslItem } => Boolean(i.csl) && !i.notMine)
-    .map((i) => i.csl);
-  return cslItemsToBibtex(csls);
+  // Exactly the references the rendered CV lists, with the owner's corrections
+  // applied (the shared selection in `citationItems.ts`; canonical item ids are
+  // already unique — colliding cite keys are suffixed by cslItemsToBibtex).
+  return cslItemsToBibtex(citationCslItems(cv));
 }
 
 export const bibtexRenderer: Renderer = {

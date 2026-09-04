@@ -77,3 +77,32 @@ describe("CITATION_SECTION_TYPES", () => {
     expect(CITATION_SECTION_TYPES.has("datasets")).toBe(false);
   });
 });
+
+describe("sortPublicationItems honours the owner's year correction", () => {
+  // The editor + every render bind the year field to itemEffectiveYear
+  // (yearOverride ?? year); the sort must read the same value or a corrected
+  // work lands visibly out of order under "Newest first".
+  const withOverride = (id: string, year: number, yearOverride?: number): CvItem =>
+    ({ id, order: 0, meta: { year, yearOverride } }) as unknown as CvItem;
+  const input = [
+    withOverride("plain-2020", 2020),
+    withOverride("corrected-2019-to-2023", 2019, 2023),
+    withOverride("plain-2021", 2021),
+  ];
+
+  it("year-desc puts a work corrected to 2023 above 2021 and 2020", () => {
+    expect(ids(sortPublicationItems(input, "year-desc"))).toEqual([
+      "corrected-2019-to-2023",
+      "plain-2021",
+      "plain-2020",
+    ]);
+  });
+
+  it("year-asc puts it last", () => {
+    expect(ids(sortPublicationItems(input, "year-asc"))).toEqual([
+      "plain-2020",
+      "plain-2021",
+      "corrected-2019-to-2023",
+    ]);
+  });
+});

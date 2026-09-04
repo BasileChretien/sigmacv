@@ -1,4 +1,4 @@
-import type { CvItem, CvSectionType, DisplayChoices } from "./schema";
+import { itemEffectiveYear, type CvItem, type CvSectionType, type DisplayChoices } from "./schema";
 
 /**
  * Section types whose entries respond to the `publicationOrder` display choice
@@ -37,7 +37,11 @@ export function sortPublicationItems<T extends CvItem>(
     if (order === "citations") {
       return (b.meta.citedByCount ?? 0) - (a.meta.citedByCount ?? 0);
     }
-    if (order === "year-asc") return (a.meta.year ?? 0) - (b.meta.year ?? 0);
-    return (b.meta.year ?? 0) - (a.meta.year ?? 0); // year-desc
+    // The EFFECTIVE year (the owner's yearOverride when set) — the same value the
+    // editor's year field and every rendered citation show, so a corrected work
+    // sorts where the reader sees it dated.
+    const ya = itemEffectiveYear(a) ?? 0;
+    const yb = itemEffectiveYear(b) ?? 0;
+    return order === "year-asc" ? ya - yb : yb - ya; // year-desc
   });
 }

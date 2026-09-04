@@ -21,6 +21,8 @@ const csl = (over: Partial<CslItem> = {}): CslItem => ({
 
 function cvWith(items: { id: string; csl?: CslItem }[]): CanonicalCv {
   return {
+    owner: { displayName: "Basile Chrétien" },
+    display: {},
     sections: [
       {
         id: "publications",

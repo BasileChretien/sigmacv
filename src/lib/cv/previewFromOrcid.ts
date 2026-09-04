@@ -3,8 +3,7 @@ import { projectCvForPreview } from "@/lib/cv/publicProjection";
 import { applyOwnerCorrections } from "@/lib/cv/ownerCorrections";
 import { fetchOwnerCorrections } from "@/lib/cv/fetchOwnerCorrections";
 import { renderCvHtml } from "@/lib/render/html";
-import { normalizeOrcid } from "@/lib/openalex/types";
-import { isValidOrcidChecksum } from "@/lib/orcid/checksum";
+import { validOrcidOrNull } from "@/lib/orcid/validate";
 import { logger } from "@/lib/log";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import {
@@ -15,11 +14,6 @@ import {
   orcidPreviewEpoch,
   setCachedOrcidPreview,
 } from "@/lib/cv/orcidPreviewCache";
-
-/** A canonical ORCID iD: 16 digits in four groups; the final char is the ISO-7064
- *  MOD-11-2 checksum (a digit or `X`). Shape only — the check digit is verified
- *  separately by {@link isValidOrcidChecksum}. */
-const ORCID_RE = /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/;
 
 /** The outcome of an anonymous ORCID preview: a built CV (the object the
  *  interactive editor loads, plus a first-paint render), a valid-but-unknown
@@ -44,9 +38,7 @@ export type PreviewResult =
  *  typo cheaply — before any network work — instead of building an empty CV for a
  *  non-existent iD). */
 export function normalizeOrcidForPreview(raw: string): string | null {
-  const normalized = normalizeOrcid(raw);
-  if (!ORCID_RE.test(normalized) || !isValidOrcidChecksum(normalized)) return null;
-  return normalized;
+  return validOrcidOrNull(raw);
 }
 
 /**
