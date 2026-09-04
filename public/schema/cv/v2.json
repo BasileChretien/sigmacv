@@ -374,7 +374,7 @@
           "default": false,
           "type": "boolean"
         },
-        "showVerifiedBadges": {
+        "showReplications": {
           "default": false,
           "type": "boolean"
         },
@@ -867,6 +867,45 @@
                     "retracted": {
                       "type": "boolean"
                     },
+                    "replications": {
+                      "maxItems": 10,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "doi": {
+                            "type": "string",
+                            "maxLength": 1000
+                          },
+                          "outcome": {
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "ref": {
+                            "type": "string",
+                            "maxLength": 2000
+                          },
+                          "url": {
+                            "type": "string",
+                            "maxLength": 2048
+                          }
+                        }
+                      }
+                    },
+                    "replicationOf": {
+                      "type": "object",
+                      "properties": {
+                        "doi": {
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "ref": {
+                          "type": "string",
+                          "maxLength": 2000
+                        }
+                      },
+                      "required": ["doi"]
+                    },
                     "rorId": {
                       "type": "string",
                       "maxLength": 2048
@@ -904,10 +943,6 @@
                     },
                     "verified": {
                       "type": "boolean"
-                    },
-                    "verifiedBy": {
-                      "type": "string",
-                      "maxLength": 500
                     },
                     "departmentOverride": {
                       "type": "string",
@@ -1257,7 +1292,7 @@
                 "default": false,
                 "type": "boolean"
               },
-              "showVerifiedBadges": {
+              "showReplications": {
                 "default": false,
                 "type": "boolean"
               },

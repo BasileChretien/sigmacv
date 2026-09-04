@@ -6,6 +6,8 @@ import {
   type CrossrefGapFields,
 } from "@/lib/crossref/client";
 import { fetchRcrByPmids } from "@/lib/icite/client";
+import { fetchReplicationsForDois } from "@/lib/forrt/client";
+import { bareDoiInput } from "@/lib/openalex/client";
 import { resolveInstitution } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
 import type { OrcidPosition } from "@/lib/orcid/client";
@@ -255,6 +257,59 @@ export async function enrichCvWithRetractions(
     ),
   }));
   return { ...cv, sections };
+}
+
+// ─── FORRT / FReD replication evidence ────────────────────────────────────────
+
+const FORRT_MAX_ENRICH = 200;
+
+/**
+ * Fold FORRT Replication Database (FReD) evidence onto works: `meta.replications`
+ * on a work that has been replicated, `meta.replicationOf` on a work that IS a
+ * replication. DOI-matched (identifier data), so this is auto-included — no
+ * review flag. Bounded, fail-soft (an empty/unreachable `ForrtReplication` table
+ * is a no-op). Immutable; returns the original CV untouched when nothing matches.
+ */
+export async function enrichCvWithForrtReplications(cv: CanonicalCv): Promise<CanonicalCv> {
+  const targets: Array<{ s: number; i: number; doi: string }> = [];
+  cv.sections.forEach((section, s) => {
+    section.items.forEach((item, i) => {
+      if (targets.length >= FORRT_MAX_ENRICH) return;
+      const doi = item.csl?.DOI ?? item.meta.doi;
+      const already = item.meta.replications !== undefined || item.meta.replicationOf !== undefined;
+      if (doi && !already && !isHidden(item)) targets.push({ s, i, doi });
+    });
+  });
+  if (targets.length === 0) return cv;
+
+  const { replicatedBy, replicationOf } = await fetchReplicationsForDois(targets.map((t) => t.doi));
+  if (replicatedBy.size === 0 && replicationOf.size === 0) return cv;
+
+  let changed = false;
+  const sections = cv.sections.map((section, s) => ({
+    ...section,
+    items: section.items.map((item, i) => {
+      const target = targets.find((t) => t.s === s && t.i === i);
+      if (!target) return item;
+      // The client normalizes every DOI it queries by the same function before
+      // keying its result maps — re-normalize here so the lookup matches.
+      const doi = bareDoiInput(target.doi);
+      if (!doi) return item;
+      const replications = replicatedBy.get(doi);
+      const of = replicationOf.get(doi);
+      if (!replications && !of) return item;
+      changed = true;
+      return {
+        ...item,
+        meta: {
+          ...item.meta,
+          ...(replications ? { replications: replications.slice(0, 10) } : {}),
+          ...(of ? { replicationOf: of } : {}),
+        },
+      };
+    }),
+  }));
+  return changed ? { ...cv, sections } : cv;
 }
 
 // ─── ROR institution-name canonicalization ───────────────────────────────────
