@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { setItemIncluded, updateDisplay, updateOwner } from "@/lib/canonical/curate";
+import { setItemIncluded, updateDisplay } from "@/lib/canonical/curate";
 import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
 import type { OrcidPosition } from "@/lib/orcid/client";
 import type { CanonicalCv, CvItem, CvSection } from "@/lib/canonical/schema";

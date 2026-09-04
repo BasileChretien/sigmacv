@@ -31,8 +31,6 @@
 
 export const THEME_STORAGE_KEY = "sigmacv:theme";
 
-export type ThemeChoice = "light" | "dark" | "system";
-
 /** Exact bytes are hashed for the CSP — do not reformat without updating the hash. */
 export const THEME_INIT_SCRIPT =
   '(function(){var k="sigmacv:theme";function a(){try{var c=localStorage.getItem(k),d=matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.setAttribute("data-theme",c==="dark"||c==="light"?c:d?"dark":"light")}catch(e){}}a();try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",a)}catch(e){}try{var p=location.pathname.split("/")[1];if(/^(zh|es|fr|de|ja|pt|it|ko|ru)$/.test(p))document.documentElement.lang=p}catch(e){}})();';

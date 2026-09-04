@@ -10,7 +10,7 @@ import { publishNudgeStrings } from "@/lib/i18n/publishNudge";
  * prompt to a post-export one): a fresh key gives users who dismissed the old,
  * mistimed onboarding nudge one shot at the better-timed export prompt.
  */
-export const PUBLISH_NUDGE_DISMISS_KEY = "sigmacv:publish-nudge-dismissed-v2";
+const PUBLISH_NUDGE_DISMISS_KEY = "sigmacv:publish-nudge-dismissed-v2";
 
 interface PublishNudgeProps {
   /** Whether the CV is already published — the nudge never shows if so. */

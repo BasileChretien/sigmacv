@@ -12,6 +12,7 @@ import { sidebarTemplate } from "./sidebar";
 import type { CvTemplate, TemplateTheme } from "./types";
 import { ensureReadableOnWhite } from "../readableAccent";
 
+/** @public The template contract, re-exported for consumers. */
 export type { CvTemplate, RenderedItem, RenderedSection, TemplateTheme } from "./types";
 
 // Every pairing LEADS with a bundled font (embedded @font-face, see commonCss /

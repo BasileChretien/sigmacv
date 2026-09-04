@@ -21,7 +21,7 @@ const NOTICE_CSS =
 
 /** Build the full notice document. `heading`/`message` are escaped for defense in
  *  depth (callers pass static copy today). */
-export function publicNoticeHtml(heading: string, message: string): string {
+function publicNoticeHtml(heading: string, message: string): string {
   const h = escapeHtml(heading);
   const m = escapeHtml(message);
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${h} — SigmaCV</title><style>${NOTICE_CSS}</style></head><body><p class="brand">SigmaCV</p><h1>${h}</h1><p>${m}</p><p><a href="/">Go to SigmaCV →</a></p></body></html>`;

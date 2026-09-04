@@ -31,8 +31,6 @@ export const PRE_REGISTERED_EVENT_TYPES = [
   "duplicate_dismissal",
 ] as const;
 
-export type ResearchEventType = (typeof PRE_REGISTERED_EVENT_TYPES)[number];
-
 const PRE_REGISTERED = new Set<string>(PRE_REGISTERED_EVENT_TYPES);
 
 /** A consenting user's research record, as read from the DB (minimal shape). */

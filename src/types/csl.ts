@@ -10,7 +10,7 @@ import { z } from "zod";
  * Spec: https://github.com/citation-style-language/schema (csl-data.json)
  */
 
-export const CslNameSchema = z
+const CslNameSchema = z
   .object({
     family: z.string().optional(),
     given: z.string().optional(),
@@ -23,7 +23,7 @@ export const CslNameSchema = z
   .passthrough();
 export type CslName = z.infer<typeof CslNameSchema>;
 
-export const CslDateSchema = z
+const CslDateSchema = z
   .object({
     /** e.g. [[2024, 5, 1]] — year, optional month, optional day. */
     "date-parts": z.array(z.array(z.union([z.number(), z.string()]))).optional(),

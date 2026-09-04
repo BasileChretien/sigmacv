@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": ["scripts/hanko-kanji/generate.mjs"],
+  "ignoreDependencies": ["lint-staged"],
+  "ignoreBinaries": ["rclone"],
+  "ignoreExportsUsedInFile": {
+    "interface": true,
+    "type": true
+  }
+}

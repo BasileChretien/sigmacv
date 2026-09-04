@@ -8,7 +8,7 @@ import { syncCvForUser } from "./sync";
  * with a DB lock and pacing to respect OpenAlex politeness.
  */
 
-export const RESYNC_MIN_AGE_MS = 24 * 60 * 60 * 1000; // re-sync at most daily
+const RESYNC_MIN_AGE_MS = 24 * 60 * 60 * 1000; // re-sync at most daily
 const LOCK_STALE_MS = 10 * 60 * 1000; // auto-recover a lock left by a crash
 
 export interface DueCv {
@@ -20,7 +20,7 @@ export interface DueCv {
 }
 
 /** Published CVs whose lastSyncedAt is null or older than minAgeMs (oldest first). */
-export async function enumeratePublishedCvsDue(opts: {
+async function enumeratePublishedCvsDue(opts: {
   minAgeMs: number;
   limit: number;
   now?: number;

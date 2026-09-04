@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { displaySource, type SourceGroup } from "@/lib/cv/sourceSummary";
 import { signInWithOrcid } from "@/app/auth-actions";

@@ -1,7 +1,7 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
 
 /** The review flag stamped on a work held back by `display.holdNewForReview`. */
-export const HELD_FOR_REVIEW = "held-for-review" as const;
+const HELD_FOR_REVIEW = "held-for-review" as const;
 
 /**
  * Apply the owner's "review new works before they appear" preference
