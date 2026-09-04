@@ -144,6 +144,33 @@ function publicEvaluationsHtml(item: CvItem, display: DisplayChoices): string {
   )} ${entries}</div>`;
 }
 
+/**
+ * Muted details line under a Software entry: the source-code repository link
+ * (`meta.repositoryUrl`, re-validated as http(s) via `safeHref`), the released
+ * version (`meta.version`) and the reuse licence (`meta.license`), " · "-joined
+ * in that order — only the parts the item actually carries. The Software
+ * Heritage archival link is a badge on the entry line (itemBadges), not here.
+ * Returns "" when the item carries none of the three. No display toggle: these
+ * are factual identifiers of the artefact, not evaluative signals.
+ */
+function softwareDetailsHtml(item: CvItem, locale: string): string {
+  const s = renderStrings(locale);
+  const parts: string[] = [];
+  const repo = safeHref(item.meta.repositoryUrl);
+  if (repo) {
+    parts.push(
+      `<a class="cv-software-repo" href="${escapeHtml(repo)}" rel="nofollow">${escapeHtml(
+        s.softwareRepository,
+      )}</a>`,
+    );
+  }
+  const version = item.meta.version?.trim();
+  if (version) parts.push(escapeHtml(s.softwareVersion.replace("{version}", version)));
+  const license = item.meta.license?.trim();
+  if (license) parts.push(escapeHtml(s.softwareLicense.replace("{license}", license)));
+  return parts.length ? `<div class="cv-software-details">${parts.join(" · ")}</div>` : "";
+}
+
 /** The canonical ROR IRI shape: `https://ror.org/<id>` (lowercase alnum body). */
 const ROR_IRI = /^https:\/\/ror\.org\/[0-9a-z]+$/;
 
@@ -266,7 +293,7 @@ function positionEntryHtml(item: CvItem, display: DisplayChoices): string {
 }
 
 /**
- * Linkify the trailing DOI URL on a Datasets & Software ENTRY line (DataCite /
+ * Linkify the trailing DOI URL on a Datasets / Software ENTRY line (DataCite /
  * OpenAIRE), so it's clickable like the citeproc-rendered work entries in the same
  * section. `formatDatasetText` appends `https://doi.org/<doi>` to the entry text;
  * here we wrap that exact substring in an anchor (`externalizeLinks` later adds
@@ -362,9 +389,10 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
     // (The rirekisho template builds its own 学歴・職歴 table from plain text, so it
     // naturally opts out — it never goes through buildRenderedSections.)
     const isHistory = section.type === "positions" || section.type === "education";
-    // Datasets & Software ENTRY rows (DataCite/OpenAIRE) carry a DOI in their text;
+    // Datasets / Software ENTRY rows (DataCite/OpenAIRE) carry a DOI in their text;
     // make it clickable so they match the citeproc work rows in the same section.
-    const linkDoi = section.type === "datasets";
+    const linkDoi = section.type === "datasets" || section.type === "software";
+    const isSoftware = section.type === "software";
     return {
       section,
       items: items.map(({ item, entry }) => {
@@ -386,6 +414,7 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
         }
         html += itemBadges(item, cv.display);
         html += publicEvaluationsHtml(item, cv.display);
+        if (isSoftware) html += softwareDetailsHtml(item, cv.display.locale);
         if (isHistory) html = withRorLink(html, item, cv.display.locale);
         // Public-page-only: a no-JS Cite/Abstract/Full-text affordance per work.
         if (publicExtras) html += itemToolsHtml(item, opts!.slug!, cv.display.locale);

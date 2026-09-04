@@ -41,6 +41,19 @@ export interface DataciteOutput {
    * the Software Heritage lookup key. Omitted when none was found.
    */
   repositoryUrl?: string;
+  /**
+   * Released version string (DataCite `attributes.version`, e.g. "1.2.0" for a
+   * Zenodo software release). Shown in a Software entry's details line. Omitted
+   * when DataCite carries none. Bounded at extraction.
+   */
+  version?: string;
+  /**
+   * Reuse licence — the first `rightsList` entry's SPDX `rightsIdentifier` (e.g.
+   * "MIT", "cc-by-4.0"), else its free-text `rights`. Omitted when none.
+   * TODO(verify-live): assumed shape `rightsList: [{ rights, rightsIdentifier,
+   * rightsUri, ... }]` (DataCite REST v2 JSON:API); parsed defensively.
+   */
+  license?: string;
 }
 
 // DataCite relationType values that mark the same deposit under another DOI
@@ -71,7 +84,7 @@ const INCLUDE_TYPES = new Set([
 // under Publications, NOT a standalone dataset/software output. Springer/BMC mint a
 // figshare DOI for each "Additional file N of <article>" (and Nature/Springer for
 // "Supplementary information/tables/…"), plus a figshare COLLECTION that bundles them
-// under the article's own title. We drop these so the Datasets & Software section
+// under the article's own title. We drop these so the Datasets / Software sections
 // isn't padded with paper appendices. Any REAL data inside a collection is its own
 // DataCite record and is surfaced separately, so nothing genuine is lost.
 const ADDITIONAL_FILE_RE = /^\s*additional file\s+\d+\s+of\b/i;
@@ -184,6 +197,25 @@ function repositoryUrlOf(attr: any): string | undefined {
   return own && isRepositoryUrl(own) ? own : undefined;
 }
 
+/** Released version string of a record (`attributes.version`), bounded. */
+function versionOf(attr: any): string | undefined {
+  return nonEmpty(attr?.version)?.slice(0, 100);
+}
+
+/**
+ * Reuse licence of a record: the first `rightsList` entry's SPDX
+ * `rightsIdentifier`, else its free-text `rights`. Defensive — a missing or
+ * oddly-shaped list yields undefined, never a throw.
+ */
+function licenseOf(attr: any): string | undefined {
+  const rights = Array.isArray(attr?.rightsList) ? attr.rightsList : [];
+  for (const r of rights) {
+    const id = nonEmpty(r?.rightsIdentifier) ?? nonEmpty(r?.rights);
+    if (id) return id.slice(0, 200);
+  }
+  return undefined;
+}
+
 export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutput[]> {
   const bare = normalizeOrcid(orcid);
   const url = new URL(DATACITE_API);
@@ -219,7 +251,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
       if (!title) continue;
       const publisher = publisherName(attr?.publisher);
       // Skip journal-minted supplementary material — it belongs to a publication,
-      // not the Datasets & Software section.
+      // not the Datasets / Software sections.
       if (isJournalSupplement(title, type, doi, publisher)) continue;
       seen.add(doi);
       const yearRaw = attr?.publicationYear;
@@ -227,6 +259,8 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
       const relatedDois = relatedDoisOf(attr);
       const creators = creatorsOf(attr);
       const repositoryUrl = repositoryUrlOf(attr);
+      const version = versionOf(attr);
+      const license = licenseOf(attr);
       out.push({
         doi,
         title,
@@ -236,6 +270,8 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
         ...(relatedDois.length ? { relatedDois } : {}),
         ...(creators.length ? { creators } : {}),
         ...(repositoryUrl ? { repositoryUrl } : {}),
+        ...(version ? { version } : {}),
+        ...(license ? { license } : {}),
       });
     }
     return out;

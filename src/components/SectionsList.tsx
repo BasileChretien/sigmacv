@@ -391,6 +391,7 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
     "awards",
     "service",
     "datasets",
+    "software",
     "editorial",
     "grants",
     "talks",

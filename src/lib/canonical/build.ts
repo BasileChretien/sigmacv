@@ -13,8 +13,10 @@ import { annotateDuplicates } from "./duplicates";
 import { annotateMisattribution } from "./misattribution";
 import { formatEntryLine, rederiveEntryLine } from "./entryLine";
 import { nameVariants } from "./nameVariants";
+import { isSoftwareItem } from "./softwareItem";
+import { moveSectionViewState } from "./moveSectionViewState";
 import { computeDerivedMetrics, workTopDecile } from "@/lib/openalex/deriveMetrics";
-import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
+import { isDefaultSectionTitle, isLegacyDatasetsTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName, workToCsl } from "@/lib/openalex/toCsl";
 import type { CslItem } from "@/types/csl";
 import {
@@ -81,7 +83,7 @@ export interface BuildArgs {
   service?: OrcidPosition[];
   /** ORCID peer-review activity, aggregated by venue (Peer Review section). */
   peerReviews?: OrcidPeerReviewGroup[];
-  /** DataCite datasets/software outputs (Datasets & Software section). */
+  /** DataCite datasets/software outputs (Datasets + Software sections, split by type). */
   dataciteOutputs?: DataciteOutput[];
   /** OpenAIRE datasets & software (ORCID-matched; merged into Datasets, dedup by DOI). */
   openaireOutputs?: OpenaireOutput[];
@@ -200,18 +202,21 @@ function collapseDataciteVersions(outputs: DataciteOutput[]): DataciteOutput[] {
 }
 
 /**
- * Datasets & Software section. DataCite is the primary source; OpenAIRE
- * SUPPLEMENTS it (both ORCID-matched, so auto-included), with anything DataCite
- * already lists deduplicated by DOI. Manual entries are carried over.
+ * The DataCite/OpenAIRE deposit ENTRIES that feed the Datasets and Software
+ * sections (split by recorded type afterwards — see {@link isSoftwareItem}).
+ * DataCite is the primary source; OpenAIRE SUPPLEMENTS it (both ORCID-matched,
+ * so auto-included), with anything DataCite already lists deduplicated by DOI.
+ * Returned as one recency-ranked list so the two sections' dedupe against the
+ * OpenAlex works (`collectDatasetDepositDois`, `sectionDois`) sees every deposit
+ * whichever section it lands in.
  */
-function buildDatasetsSection(
+function buildDepositEntries(
   outputs: DataciteOutput[],
   openaireOutputs: OpenaireOutput[],
   prevItems: Map<string, CvItem>,
-  manual: CvItem[],
   now: string,
   ownerOrcid: string,
-): CvSection | null {
+): CvItem[] {
   const items: CvItem[] = [];
   let rank = 0;
   // DOIs DataCite covers — own + Zenodo concept↔version siblings — so an OpenAIRE
@@ -247,11 +252,15 @@ function buildDatasetsSection(
       meta: {
         ...it.meta,
         doi: o.doi,
-        // DataCite's resourceTypeGeneral ("Dataset"/"Software"/…) — read by the
-        // public JSON-LD (SoftwareSourceCode vs Dataset) and the Software
-        // Heritage enrichment's software-item detection.
+        // DataCite's resourceTypeGeneral ("Dataset"/"Software"/…) — the section
+        // split (Datasets vs Software), the public JSON-LD (SoftwareSourceCode vs
+        // Dataset) and the Software Heritage enrichment all key off it.
         type: o.type,
         ...(o.repositoryUrl ? { repositoryUrl: o.repositoryUrl } : {}),
+        // Released version + reuse licence of a software deposit (Software entry
+        // details line); DataCite carries them for datasets too, harmlessly.
+        ...(o.version ? { version: o.version } : {}),
+        ...(o.license ? { license: o.license } : {}),
       },
     });
   }
@@ -273,18 +282,7 @@ function buildDatasetsSection(
     const meta = { ...it.meta, type: o.type, ...(o.doi ? { doi: o.doi } : {}) };
     items.push({ ...it, meta });
   }
-  for (const m of manual) {
-    items.push({ ...m, order: prevItems.get(m.id)?.order ?? rank++ });
-  }
-  if (items.length === 0) return null;
-  return {
-    id: "datasets",
-    type: "datasets",
-    title: "Datasets & Software",
-    visible: true,
-    order: 2,
-    items: reindexItems(items),
-  };
+  return reindexItems(items);
 }
 
 /** "<title>. <venue> (<year>)" for a DBLP conference paper. */
@@ -380,18 +378,33 @@ function carryOverUserItems(
   sectionType: CvSection["type"],
   fetchedIds: Set<string>,
   fetchedDois: Set<string>,
+  opts?: {
+    /**
+     * Extra previous section types to draw from, and the item predicate that
+     * decides what belongs here. Datasets and Software split one former section:
+     * a carried software deposit still filed under `datasets` in the stored CV
+     * belongs to Software, and a dataset never does.
+     */
+    alsoFrom?: readonly CvSection["type"][];
+    pick?: (item: CvItem) => boolean;
+  },
 ): CvItem[] {
-  const prevSection = previous?.sections.find((s) => s.type === sectionType);
-  if (!prevSection) return fetched;
+  const types = new Set<CvSection["type"]>([sectionType, ...(opts?.alsoFrom ?? [])]);
+  const prevSections = (previous?.sections ?? []).filter((s) => types.has(s.type));
+  if (prevSections.length === 0) return fetched;
+  const pick = opts?.pick ?? (() => true);
   // Supersede a carried entry when OpenAlex now returns the same work in ANY
   // fetched section (by id OR DOI) — not just this one — so a claimed/discovered
   // preprint that becomes a published article isn't listed in both.
-  const carried = prevSection.items.filter(
-    (it) =>
-      isCarriableUserItem(it) &&
-      !fetchedIds.has(it.id) &&
-      !(it.csl?.DOI && fetchedDois.has(it.csl.DOI.toLowerCase())),
-  );
+  const carried = prevSections
+    .flatMap((s) => s.items)
+    .filter(
+      (it) =>
+        isCarriableUserItem(it) &&
+        pick(it) &&
+        !fetchedIds.has(it.id) &&
+        !(it.csl?.DOI && fetchedDois.has(it.csl.DOI.toLowerCase())),
+    );
   return carried.length ? [...fetched, ...carried] : fetched;
 }
 
@@ -400,12 +413,12 @@ function reindexItems(items: CvItem[]): CvItem[] {
   return [...items].sort((a, b) => a.order - b.order).map((it, i) => ({ ...it, order: i }));
 }
 
-/** Bare-lowercased DOIs of a built section's items (csl.DOI or meta.doi). Used to
- *  avoid double-listing an ORCID "other-output" work whose DOI is already a
- *  Dataset (DataCite/OpenAIRE) or Conference (DBLP) item this sync. */
-function sectionDois(section: CvSection | null): Set<string> {
+/** Bare-lowercased DOIs of built items (csl.DOI or meta.doi). Used to avoid
+ *  double-listing an ORCID "other-output" work whose DOI is already a Dataset /
+ *  Software (DataCite/OpenAIRE) or Conference (DBLP) item this sync. */
+function itemDois(items: readonly CvItem[]): Set<string> {
   const out = new Set<string>();
-  for (const it of section?.items ?? []) {
+  for (const it of items) {
     const doi = it.csl?.DOI ?? it.meta.doi;
     if (doi) out.add(doi.toLowerCase());
   }
@@ -413,7 +426,7 @@ function sectionDois(section: CvSection | null): Set<string> {
 }
 
 /** Every DOI (bare-lowercased) that identifies a dataset/software deposit already
- *  surfaced in the Datasets & Software section — each DataCite output's own DOI
+ *  surfaced as a Datasets or Software entry — each DataCite output's own DOI
  *  PLUS its Zenodo concept↔version siblings, and each OpenAIRE output's DOI. The
  *  OpenAlex-indexed copy of such a deposit (which often carries the sibling DOI,
  *  Zenodo minting both a concept and per-version DOI) is then dropped from the
@@ -1276,15 +1289,17 @@ const ORCID_PUBLICATION_TYPES = new Set([
 /** ORCID types that ARE preprints / unpublished working papers (→ Preprints). */
 const ORCID_PREPRINT_TYPES = new Set(["preprint", "working-paper"]);
 
-/** ORCID types that are DATASETS or SOFTWARE — routed to the Datasets & Software
+/** ORCID types that are DATASETS (or data-like deposits) — routed to the Datasets
  *  section (alongside DataCite/OpenAIRE), not Other Research Outputs. */
 const ORCID_DATASET_TYPES = new Set([
   "data-set",
-  "software",
   "research-tool",
   "data-management-plan",
   "physical-object",
 ]);
+
+/** ORCID types that are RESEARCH SOFTWARE — routed to the Software section. */
+const ORCID_SOFTWARE_TYPES = new Set(["software"]);
 
 /** ORCID types that are other NON-publication research outputs — pulled out of
  *  Preprints into the "Other Research Outputs" section (posters, abstracts,
@@ -1312,17 +1327,20 @@ const ORCID_OTHER_OUTPUT_TYPES = new Set([
  * `"publication"`; `conference-poster`/`conference-abstract` are `"other-output"`.
  *  - "publication"  → Publications (overrides `isPreprint`, e.g. a venue-less work);
  *  - "preprint"     → Preprints;
- *  - "other-output" → Other Research Outputs (unless its DOI is already a Dataset
- *                     or Conference item this sync — then the work is dropped).
+ *  - "dataset"      → Datasets;
+ *  - "software"     → Software;
+ *  - "other-output" → Other Research Outputs (unless its DOI is already a Dataset,
+ *                     Software or Conference item this sync — then the work is dropped).
  */
 export function orcidTypeClass(
   orcidType: string | undefined,
-): "publication" | "preprint" | "dataset" | "other-output" | undefined {
+): "publication" | "preprint" | "dataset" | "software" | "other-output" | undefined {
   const t = orcidType?.trim().toLowerCase();
   if (!t) return undefined;
   if (ORCID_PUBLICATION_TYPES.has(t)) return "publication";
   if (ORCID_PREPRINT_TYPES.has(t)) return "preprint";
   if (ORCID_DATASET_TYPES.has(t)) return "dataset";
+  if (ORCID_SOFTWARE_TYPES.has(t)) return "software";
   if (ORCID_OTHER_OUTPUT_TYPES.has(t)) return "other-output";
   return undefined;
 }
@@ -1337,7 +1355,7 @@ export function orcidTypeClass(
 // contribution to an OpenAlex works pull is overwhelmingly this publisher junk, so we
 // drop EVERY figshare-hosted work outright — plus any NON-figshare supplement by title.
 // A genuine figshare dataset still reaches the CV via the ORCID-matched DataCite path
-// (Datasets & Software), so nothing identifier-confirmed is lost. See {@link isFigshareOrSupplement}.
+// (Datasets / Software), so nothing identifier-confirmed is lost. See {@link isFigshareOrSupplement}.
 const ADDITIONAL_FILE_RE = /^\s*additional file\s+\d+\b/i;
 const SUPPLEMENT_TITLE_RE =
   /^\s*supplement(?:ary|al)\s+(?:information|materials?|methods?|notes?|figures?|tables?|appendix|files?)\b/i;
@@ -1361,7 +1379,7 @@ export function isFigshareDoi(doi: string | null | undefined): boolean {
  *  overwhelmingly publisher supplements + collections (titles vary too much to match
  *  reliably), so figshare is excluded from the CV entirely: every figshare work is dropped
  *  here, and figshare deposits are also filtered out of the DataCite/OpenAIRE dataset feed
- *  (see buildCanonicalCv), so none reaches Datasets & Software either. */
+ *  (see buildCanonicalCv), so none reaches Datasets or Software either. */
 export function isFigshareWork(work: OpenAlexWork): boolean {
   return isFigshareDoi(work.doi);
 }
@@ -1392,8 +1410,12 @@ export function isPreregistration(work: OpenAlexWork): boolean {
  * The CV-routing class for an OpenAlex work, or `undefined` when it carries no
  * non-article signal (→ the OpenAlex-only `isPreprint` routing stands). Consulted
  * in the no-ORCID-signal fallback so a non-article output leaves Preprints. Signals:
- *  - `type` is `dataset` → `"dataset"` (Datasets & Software). OpenAlex has no
- *    "software" type, so software (e.g. a CRAN package) also arrives typed `dataset`.
+ *  - `type` is `software` (should OpenAlex ever mint one), OR `dataset` with a
+ *    DataCite `raw_type` of "Software" on the primary location (a Zenodo/DataCite
+ *    software deposit OpenAlex indexed) → `"software"` (Software).
+ *  - `type` is `dataset` otherwise → `"dataset"` (Datasets). OpenAlex has no
+ *    "software" type, so untyped software (e.g. a CRAN package) also arrives typed
+ *    `dataset` and lands in Datasets unless ORCID or the raw_type says otherwise.
  *  - `type` is `supplementary-materials`, OR the catch-all `other` on a `repository`
  *    source (a Zenodo deposit OpenAlex couldn't type) → `"other-output"` (Other
  *    Research Outputs). Gated on the repository source so venue-bearing `other`
@@ -1402,9 +1424,15 @@ export function isPreregistration(work: OpenAlexWork): boolean {
  * the works up front ({@link isFigshareOrSupplement}).
  * An ORCID type, when present, still takes precedence over this (see {@link routeWork}).
  */
-export function openalexTypeClass(work: OpenAlexWork): "dataset" | "other-output" | undefined {
+export function openalexTypeClass(
+  work: OpenAlexWork,
+): "dataset" | "software" | "other-output" | undefined {
   const t = (work.type ?? "").trim().toLowerCase();
-  if (t === "dataset") return "dataset";
+  if (t === "software") return "software";
+  if (t === "dataset") {
+    const raw = work.primary_location?.raw_type;
+    return typeof raw === "string" && /software/i.test(raw) ? "software" : "dataset";
+  }
   if (t === "supplementary-materials") return "other-output";
   const isRepository = (work.primary_location?.source?.type ?? "").toLowerCase() === "repository";
   if (t === "other" && isRepository) return "other-output";
@@ -1781,6 +1809,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const preprintIds = new Set<string>();
   const otherOutputIds = new Set<string>();
   const datasetWorkIds = new Set<string>();
+  const softwareWorkIds = new Set<string>();
   const preregistrationIds = new Set<string>();
   /** Route one work item by ORCID class (over OpenAlex's `isPreprint`) and return
    *  the matching `peerReviewedOverride` to pass to {@link buildWorkCvItem}. */
@@ -1808,17 +1837,25 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       datasetWorkIds.add(csl.id);
       return { peerReviewedOverride: false };
     }
+    if (cls === "software") {
+      softwareWorkIds.add(csl.id);
+      return { peerReviewedOverride: false };
+    }
     if (cls === "other-output") {
       otherOutputIds.add(csl.id);
       return { peerReviewedOverride: false };
     }
     // No ORCID signal → OpenAlex's own `type` still routes a non-article output:
-    // a `dataset` (incl. software, e.g. a CRAN package) into Datasets & Software,
-    // a repository `other` / supplementary materials into Other Research Outputs;
-    // otherwise the `isPreprint` heuristic decides the split.
+    // a `dataset` (e.g. a CRAN package) into Datasets, a DataCite-typed software
+    // deposit into Software, a repository `other` / supplementary materials into
+    // Other Research Outputs; otherwise the `isPreprint` heuristic decides the split.
     const oaCls = openalexTypeClass(work);
     if (oaCls === "dataset") {
       datasetWorkIds.add(csl.id);
+      return { peerReviewedOverride: false };
+    }
+    if (oaCls === "software") {
+      softwareWorkIds.add(csl.id);
       return { peerReviewedOverride: false };
     }
     if (oaCls === "other-output") {
@@ -1891,26 +1928,25 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     .sort((a, b) => a.order - b.order)
     .map((it, i) => ({ ...it, order: i }));
 
-  // Build the Datasets (DataCite/OpenAIRE) + Conference (DBLP) sections FIRST, so
-  // their item DOIs are known before the works split: an ORCID "other-output"
-  // work whose DOI is already one of these is DROPPED rather than double-listed
-  // in "Other Research Outputs".
-  // DataCite/OpenAIRE entry items for Datasets & Software. Manual items are NOT
-  // pulled in here ([] below): the final `datasets` section (assembled after the
-  // works split) merges these entries with OpenAlex-identified dataset/software
-  // works, and carryOverUserItems handles manual/claimed carry-over once for the
-  // combined section.
+  // Build the Datasets/Software (DataCite/OpenAIRE) entries + the Conference (DBLP)
+  // section FIRST, so their item DOIs are known before the works split: an ORCID
+  // "other-output" work whose DOI is already one of these is DROPPED rather than
+  // double-listed in "Other Research Outputs".
+  // Manual items are NOT pulled in here: the final `datasets` / `software` sections
+  // (assembled after the works split) merge these entries with OpenAlex-identified
+  // dataset/software works, and carryOverUserItems handles manual/claimed
+  // carry-over once per combined section.
   // figshare is excluded from the CV entirely (maintainer directive): drop figshare
-  // deposits from the DataCite/OpenAIRE feed too, so none surfaces in Datasets & Software
-  // (the OpenAlex works path already dropped figshare above). A genuine figshare dataset
-  // is sacrificed along with the publisher junk — that trade-off is the point.
+  // deposits from the DataCite/OpenAIRE feed too, so none surfaces in Datasets or
+  // Software (the OpenAlex works path already dropped figshare above). A genuine
+  // figshare dataset is sacrificed along with the publisher junk — that trade-off is
+  // the point.
   const dataciteOutputs = (args.dataciteOutputs ?? []).filter((o) => !isFigshareDoi(o.doi));
   const openaireOutputs = (args.openaireOutputs ?? []).filter((o) => !isFigshareDoi(o.doi));
-  const datasetEntrySection = buildDatasetsSection(
+  const depositEntries = buildDepositEntries(
     dataciteOutputs,
     openaireOutputs,
     prevItems,
-    [],
     now,
     ownerOrcid,
   );
@@ -1921,17 +1957,18 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     now,
   );
   const datasetConferenceDois = new Set<string>([
-    ...sectionDois(datasetEntrySection),
-    ...sectionDois(conferenceSection),
+    ...itemDois(depositEntries),
+    ...itemDois(conferenceSection?.items ?? []),
   ]);
 
-  // The OpenAlex-indexed copy of a Zenodo/DataCite deposit already surfaced in the
-  // Datasets & Software section is a duplicate (it would otherwise mis-file in
+  // The OpenAlex-indexed copy of a Zenodo/DataCite deposit already surfaced as a
+  // Datasets or Software entry is a duplicate (it would otherwise mis-file in
   // Preprints because Zenodo is a `repository`). Drop it from the works entirely —
   // matched on the deposit's own DOI OR a concept↔version sibling, so the copy is
-  // recognised whichever Zenodo DOI it carries. Falls through untouched when
-  // DataCite hasn't indexed the deposit yet (then `openalexTypeClass` still keeps a
-  // dataset/software work out of Preprints, in Other Research Outputs).
+  // recognised whichever Zenodo DOI it carries, and whichever of the two sections
+  // the deposit landed in. Falls through untouched when DataCite hasn't indexed the
+  // deposit yet (then `openalexTypeClass` still keeps a dataset/software work out
+  // of Preprints, in Datasets/Software or Other Research Outputs).
   const datasetDepositDois = collectDatasetDepositDois(dataciteOutputs, openaireOutputs);
   const orderedDeduped = ordered.filter((it) => {
     const doi = it.csl?.DOI?.toLowerCase();
@@ -1957,6 +1994,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
           !preprintIds.has(it.id) &&
           !otherOutputIds.has(it.id) &&
           !datasetWorkIds.has(it.id) &&
+          !softwareWorkIds.has(it.id) &&
           !preregistrationIds.has(it.id),
       ),
       previous,
@@ -1993,16 +2031,25 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     ),
   );
 
-  // Datasets & Software: DataCite/OpenAIRE entry items + OpenAlex-identified
-  // dataset/software WORKS (CSL items — e.g. a CRAN package OpenAlex types
-  // `dataset`, which DataCite never has). The renderer dispatches per item
-  // (`item.csl` → citeproc, else the entry line), so a mixed section renders
-  // correctly. A work already surfaced as a DataCite/OpenAIRE deposit was dropped
-  // from `orderedDeduped` above (by DOI), so entries and works never double-list.
+  // Datasets and Software: DataCite/OpenAIRE entry items (split by their recorded
+  // type — see isSoftwareItem) + OpenAlex-identified dataset/software WORKS (CSL
+  // items — e.g. a CRAN package OpenAlex types `dataset`, which DataCite never
+  // has). The renderer dispatches per item (`item.csl` → citeproc, else the entry
+  // line), so a mixed section renders correctly. A work already surfaced as a
+  // DataCite/OpenAIRE deposit was dropped from `orderedDeduped` above (by DOI), so
+  // entries and works never double-list — in either section. Curation survives a
+  // deposit moving between the two sections because `prevItems` is looked up by id
+  // across ALL previous sections, and the carry-over draws from both.
   const datasetWorkItems = orderedDeduped.filter((it) => datasetWorkIds.has(it.id));
+  // A software-routed work is stamped `meta.type: "software"` so the on-read
+  // migration, the public JSON-LD and the enrichments see the same class the
+  // routing decided (OpenAlex itself typed it `dataset`, or ORCID overrode it).
+  const softwareWorkItems = orderedDeduped
+    .filter((it) => softwareWorkIds.has(it.id))
+    .map((it) => ({ ...it, meta: { ...it.meta, type: "software" } }));
   const datasetItems = reindexItems(
     carryOverUserItems(
-      [...(datasetEntrySection?.items ?? []), ...datasetWorkItems].map((it, i) => ({
+      [...depositEntries.filter((it) => !isSoftwareItem(it)), ...datasetWorkItems].map((it, i) => ({
         ...it,
         order: i,
       })),
@@ -2010,6 +2057,20 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       "datasets",
       fetchedIds,
       fetchedDois,
+      { pick: (it) => !isSoftwareItem(it) },
+    ),
+  );
+  const softwareItems = reindexItems(
+    carryOverUserItems(
+      [...depositEntries.filter(isSoftwareItem), ...softwareWorkItems].map((it, i) => ({
+        ...it,
+        order: i,
+      })),
+      previous,
+      "software",
+      fetchedIds,
+      fetchedDois,
+      { alsoFrom: ["datasets"], pick: isSoftwareItem },
     ),
   );
   const datasetsSection: CvSection | null =
@@ -2018,10 +2079,24 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
           {
             id: "datasets",
             type: "datasets",
-            title: "Datasets & Software",
+            title: "Datasets",
             visible: true,
             order: DEFAULT_SECTION_ORDER.datasets,
             items: datasetItems,
+          },
+          previous,
+        )
+      : null;
+  const softwareSection: CvSection | null =
+    softwareItems.length > 0
+      ? mergeSection(
+          {
+            id: "software",
+            type: "software",
+            title: "Software",
+            visible: true,
+            order: DEFAULT_SECTION_ORDER.software,
+            items: softwareItems,
           },
           previous,
         )
@@ -2191,6 +2266,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
     preregistrationsSection,
     conferenceSection ? mergeSection(conferenceSection, previous) : null,
     datasetsSection,
+    softwareSection,
     positionsSection ? mergeSection(positionsSection, previous) : null,
     educationSection ? mergeSection(educationSection, previous) : null,
     awardsSection ? mergeSection(awardsSection, previous) : null,
@@ -2239,9 +2315,14 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const customized = prevDisplay.sectionsCustomized;
   const prevSectionIds = new Set((previous?.sections ?? []).map((s) => s.id));
   const sections: CvSection[] = allSections.map((s) => {
-    const titled = isDefaultSectionTitle(s.type, s.title)
-      ? { ...s, title: sectionTitle(locale, s.type) }
-      : s;
+    // The pre-split "Datasets & Software" heading counts as a default too, so a
+    // CV last saved before Software became its own section is retitled to plain
+    // "Datasets" here (the on-read migration does the same; belt and braces) —
+    // a heading the owner renamed is left alone either way.
+    const isDefault =
+      isDefaultSectionTitle(s.type, s.title) ||
+      (s.type === "datasets" && isLegacyDatasetsTitle(s.title));
+    const titled = isDefault ? { ...s, title: sectionTitle(locale, s.type) } : s;
     return customized && prevSectionIds.has(s.id)
       ? titled
       : { ...titled, order: DEFAULT_SECTION_ORDER[s.type] };
@@ -2281,7 +2362,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // every build; the raw per-item topics stay stripped from the public projection).
   const researchAreas = computeResearchAreas(sectionsWithSelf);
 
-  const cv: CanonicalCv = {
+  const assembled: CanonicalCv = {
     schemaVersion: CANONICAL_SCHEMA_VERSION,
     id,
     owner: {
@@ -2310,6 +2391,17 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       sources: [...usedSources],
     },
   };
+  // The carried display + presets are keyed by SECTION id, so a software deposit
+  // the owner hid from a view while it was still filed under "Datasets & Software"
+  // must be re-keyed to the Software section it now lands in — otherwise it would
+  // silently reappear on the published page / in that preset. Same helper as the
+  // on-read migration; a no-op when nothing was ever excluded under `datasets`.
+  const cv = moveSectionViewState(
+    assembled,
+    "datasets",
+    "software",
+    sectionsWithSelf.find((s) => s.type === "software")?.items.map((it) => it.id) ?? [],
+  );
 
   // Cross-source duplicate detection: a PURE, fail-soft pass over the fully
   // assembled object (sees every section, unlike the per-source dedupers). It

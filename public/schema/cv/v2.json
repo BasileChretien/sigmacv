@@ -551,6 +551,7 @@
               "publications",
               "preprints",
               "datasets",
+              "software",
               "preregistrations",
               "positions",
               "education",
@@ -1097,6 +1098,10 @@
                     "repositoryUrl": {
                       "type": "string",
                       "maxLength": 2048
+                    },
+                    "version": {
+                      "type": "string",
+                      "maxLength": 100
                     },
                     "swhid": {
                       "type": "string",

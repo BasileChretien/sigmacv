@@ -396,6 +396,10 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-public-evaluations { margin: 0.28rem 0 0; font-size: 0.72rem; color: var(--cv-muted); text-indent: 0; }
   .cv-public-evaluations a { color: var(--cv-accent); text-decoration: none; }
   .cv-public-evaluations a:hover { text-decoration: underline; }
+  /* Software entry details line (source-code link · version · licence). */
+  .cv-software-details { margin: 0.28rem 0 0; font-size: 0.72rem; color: var(--cv-muted); text-indent: 0; }
+  .cv-software-details a { color: var(--cv-accent); text-decoration: none; }
+  .cv-software-details a:hover { text-decoration: underline; }
 
   /* Institution → ROR record link on a Positions/Education line (all templates).
      A quiet dotted underline marks the name as linked on screen; print drops the
@@ -659,6 +663,7 @@ const LEDGER_TYPES: readonly CvSectionType[] = [
   "preprints",
   "conference",
   "datasets",
+  "software",
   "patents",
   "clinical-trials",
 ];
@@ -666,7 +671,7 @@ const LEDGER_TYPES: readonly CvSectionType[] = [
 /**
  * The "research output" ledger: an opt-in, compact count of the breadth of the
  * owner's outputs by type — only types with at least one visible item — e.g.
- * "12 Publications · 3 Datasets & Software · 2 Patents". It reframes output as
+ * "12 Publications · 3 Datasets · 2 Software · 2 Patents". It reframes output as
  * breadth of contribution (R4RI-style) rather than a single headline number.
  * Counts only VISIBLE items (honours hide / "not mine"), uses the locale's section
  * labels, and returns "" when off or empty. Part of the research-summary block, so

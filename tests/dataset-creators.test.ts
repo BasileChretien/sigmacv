@@ -31,7 +31,8 @@ function buildDs(creators: { name: string; orcid?: string }[]): CanonicalCv {
     now: "2026-06-02T00:00:00.000Z",
   });
 }
-const dsItem = (cv: CanonicalCv) => cv.sections.find((s) => s.type === "datasets")!.items[0]!;
+// The fixture is typed Software, so the entry lands in the Software section.
+const dsItem = (cv: CanonicalCv) => cv.sections.find((s) => s.type === "software")!.items[0]!;
 
 describe("DataCite dataset entries show + highlight their creators", () => {
   it("includes the (abbreviated) creators in the entry text", () => {
