@@ -73,7 +73,7 @@ describe("verified (ORCID Member-API-asserted) affiliations", () => {
       resolved,
       works: [],
       now: "2026-06-16T00:00:00.000Z",
-      employments: [{ ...employment, verified: true }],
+      employments: [{ ...employment, verified: true, verifiedBy: "Nagoya University" }],
       education: [{ ...education, verified: true }],
       distinctions: [
         {
@@ -82,19 +82,32 @@ describe("verified (ORCID Member-API-asserted) affiliations", () => {
           roleTitle: "Fellow",
           startYear: 2020,
           verified: true,
+          verifiedBy: "The Royal Society",
         },
       ],
     });
     const pos = positionsSection(cv).items.find((i) => i.id === "position:orcid:emp1")!;
     expect(pos.meta.verified).toBe(true); // institution-asserted
-    expect(cv.sections.find((s) => s.type === "education")!.items[0]!.meta.verified).toBe(true);
-    // The award/single-year builder threads it too.
+    expect(pos.meta.verifiedBy).toBe("Nagoya University"); // …and by whom
+    const edu = cv.sections.find((s) => s.type === "education")!.items[0]!;
+    expect(edu.meta.verified).toBe(true);
+    expect(edu.meta.verifiedBy).toBeUndefined(); // asserted, asserter unnamed
+    // The award/single-year builder threads both too.
     const award = cv.sections.flatMap((s) => s.items).find((i) => i.id === "award:orcid:dist1");
     expect(award?.meta.verified).toBe(true);
+    expect(award?.meta.verifiedBy).toBe("The Royal Society");
     // An OpenAlex-inferred affiliation is never "verified".
     expect(openalexPosition(cv).meta.verified).toBeUndefined();
     // A self-entered (no `verified`) employment carries nothing.
     expect(orcidPosition(build()).meta.verified).toBeUndefined();
+  });
+
+  it("never stores a verifier name without the verified flag", () => {
+    // Defensive: `verifiedBy` is only meaningful alongside `verified` — a stray
+    // name on an unverified entry must not leak into meta (and so never render).
+    const cv = build({ employment: { ...employment, verifiedBy: "Stray Org" } });
+    expect(orcidPosition(cv).meta.verified).toBeUndefined();
+    expect(orcidPosition(cv).meta.verifiedBy).toBeUndefined();
   });
 });
 

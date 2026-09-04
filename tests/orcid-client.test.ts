@@ -163,6 +163,18 @@ describe("fetchOrcidPositions", () => {
             },
           ],
         },
+        {
+          summaries: [
+            {
+              // Org-asserted (Member-API client) but ORCID gives NO source name.
+              "employment-summary": {
+                "put-code": 303,
+                organization: { name: "Nameless-Client College" },
+                source: { "source-client-id": { path: "APP-9" } },
+              },
+            },
+          ],
+        },
       ],
     };
     vi.stubGlobal("fetch", routedFetch({ emp: res(sourced) }));
@@ -173,6 +185,51 @@ describe("fetchOrcidPositions", () => {
     expect(byOrg["Org-Asserted University"]?.verified).toBe(true);
     expect(byOrg["Self-Entered Inc"]?.verified).toBeUndefined();
     expect(byOrg["No-Source Ltd"]?.verified).toBeUndefined();
+    // The asserting party's display name rides along, so the rendered mark can
+    // say WHO confirmed the entry ("Verified by Org University").
+    expect(byOrg["Org-Asserted University"]?.verifiedBy).toBe("Org University");
+    // A self-entered entry never carries a verifier — even though ORCID names the
+    // owner as its source.
+    expect(byOrg["Self-Entered Inc"]?.verifiedBy).toBeUndefined();
+    expect(byOrg["No-Source Ltd"]?.verifiedBy).toBeUndefined();
+    // Org-asserted with no source name → verified, verifier unknown.
+    expect(byOrg["Nameless-Client College"]?.verified).toBe(true);
+    expect(byOrg["Nameless-Client College"]?.verifiedBy).toBeUndefined();
+  });
+
+  it("clips oversized free-text fields to the canonical 500-char bound (sync must not abort)", async () => {
+    // ORCID bounds none of these; the canonical schema caps each at 500 and its
+    // parse runs BEFORE persistence — an unclipped value would abort the sync.
+    const long = "x".repeat(600);
+    const oversized = {
+      "affiliation-group": [
+        {
+          summaries: [
+            {
+              "employment-summary": {
+                "put-code": 400,
+                organization: { name: `Org ${long}` },
+                "role-title": long,
+                "department-name": long,
+                source: {
+                  "source-client-id": { path: "APP-1" },
+                  "source-name": { value: `Verifier ${long}` },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    vi.stubGlobal("fetch", routedFetch({ emp: res(oversized) }));
+    const { fetchOrcidPositions } = await freshClient();
+    const [p] = await fetchOrcidPositions("0000-0002-7483-2489");
+    expect(p?.verified).toBe(true);
+    expect(p?.verifiedBy).toHaveLength(500);
+    expect(p?.verifiedBy?.startsWith("Verifier ")).toBe(true);
+    expect(p?.organization).toHaveLength(500);
+    expect(p?.roleTitle).toHaveLength(500);
+    expect(p?.department).toHaveLength(500);
   });
 
   it("returns [] when the ORCID API errors (fails soft)", async () => {

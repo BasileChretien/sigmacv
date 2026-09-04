@@ -126,6 +126,21 @@ describe("formattedMetrics", () => {
     expect(rcr?.context).toContain("NIH-funded average");
   });
 
+  it("attaches a reader-facing caveat to every author-level count", () => {
+    const cv = withMetrics({
+      showMetrics: true,
+      metrics: ["h_index", "i10_index", "works_count", "cited_by_count"],
+    });
+    const byKey = Object.fromEntries(formattedMetrics(cv).map((m) => [m.key, m]));
+    expect(byKey.h_index?.context).toContain("not field-normalised");
+    expect(byKey.h_index?.context).toContain("career length");
+    expect(byKey.i10_index?.context).toContain("not field-normalised");
+    expect(byKey.works_count?.context).toContain("database coverage");
+    expect(byKey.cited_by_count?.context).toContain("not field-normalised");
+    // Context is the short inline anchor; the counts carry no coverage note.
+    for (const m of Object.values(byKey)) expect(m.coverageNote).toBeUndefined();
+  });
+
   it("leads with field-normalized measures before h-index", () => {
     const cv = withMetrics({
       showMetrics: true,

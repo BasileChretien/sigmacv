@@ -38,6 +38,13 @@ export interface OrcidPosition {
    * / unknown) otherwise.
    */
   verified?: boolean;
+  /**
+   * Display name of the party that asserted a {@link verified} affiliation
+   * (ORCID `source.source-name`, e.g. "Nagoya University") — lets a reader see
+   * WHO confirmed the entry ("Verified by …"). Only set alongside `verified`;
+   * omitted when ORCID gives no source name.
+   */
+  verifiedBy?: string;
 }
 
 export interface OrcidFunding {
@@ -124,6 +131,21 @@ function nonEmpty(s: unknown): string | undefined {
 }
 
 /**
+ * Upper bound of the free-text meta fields in the canonical schema
+ * (`meta.institution` / `roleTitle` / `department` / `verifiedBy`, all
+ * `z.string().max(500)`). ORCID does not bound these values, and the canonical
+ * parse runs BEFORE persistence — so an oversized upstream string would abort the
+ * whole sync. Clip here rather than fail there.
+ */
+const MAX_META_TEXT = 500;
+
+/** {@link nonEmpty}, clipped to {@link MAX_META_TEXT} characters. */
+function boundedText(s: unknown): string | undefined {
+  const v = nonEmpty(s);
+  return v && v.length > MAX_META_TEXT ? v.slice(0, MAX_META_TEXT) : v;
+}
+
+/**
  * Whether an ORCID activity's `source` block means it was asserted by a TRUSTED
  * ORGANIZATION (via the Member API) rather than self-entered by the record holder.
  * True when a writing source exists AND it is not the record holder's own ORCID iD:
@@ -135,6 +157,20 @@ function isOrgAsserted(source: any, bareOwnerOrcid: string): boolean {
   const srcClient = nonEmpty(source?.["source-client-id"]?.path);
   if (srcOrcid === undefined && srcClient === undefined) return false;
   return srcOrcid !== bareOwnerOrcid;
+}
+
+/**
+ * The `verified` (+ `verifiedBy`) fields for an affiliation summary: set only
+ * when a party OTHER than the record holder asserted it (see {@link isOrgAsserted});
+ * `verifiedBy` carries that party's display name when ORCID supplies one.
+ */
+function verifiedFields(
+  source: any,
+  bareOwnerOrcid: string,
+): { verified?: true; verifiedBy?: string } {
+  if (!isOrgAsserted(source, bareOwnerOrcid)) return {};
+  const verifiedBy = boundedText(source?.["source-name"]?.value);
+  return verifiedBy ? { verified: true, verifiedBy } : { verified: true };
 }
 
 /**
@@ -156,17 +192,17 @@ async function fetchOrcidAffiliations(
     for (const group of toArray(data?.["affiliation-group"])) {
       for (const s of toArray(group?.summaries)) {
         const e = s?.[summaryKey];
-        const org = nonEmpty(e?.organization?.name);
+        const org = boundedText(e?.organization?.name);
         const putCode = e?.["put-code"];
         if (!org || putCode == null) continue;
         out.push({
           putCode: String(putCode),
           organization: org,
-          roleTitle: nonEmpty(e?.["role-title"]),
-          department: nonEmpty(e?.["department-name"]),
+          roleTitle: boundedText(e?.["role-title"]),
+          department: boundedText(e?.["department-name"]),
           startYear: yearOf(e?.["start-date"]),
           endYear: yearOf(e?.["end-date"]),
-          ...(isOrgAsserted(e?.source, bareOwner) ? { verified: true } : {}),
+          ...verifiedFields(e?.source, bareOwner),
         });
       }
     }

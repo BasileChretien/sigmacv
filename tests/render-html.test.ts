@@ -100,6 +100,95 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
     expect(html).toMatch(/cv-badge-cites[^>]*title="[^"]*field-normalised/i);
   });
 
+  describe("verified marks (display.showVerifiedBadges)", () => {
+    const verifiedCv = (verifiedBy = "Nagoya University") =>
+      buildCanonicalCv({
+        id: "cv_verified",
+        resolved,
+        works: [],
+        now: "2026-06-02T00:00:00.000Z",
+        employments: [
+          {
+            putCode: "emp-v",
+            organization: "Nagoya University",
+            roleTitle: "Assistant Professor",
+            startYear: 2022,
+            verified: true,
+            verifiedBy,
+          },
+          // Self-entered on ORCID — never marked, whatever the toggle says.
+          {
+            putCode: "emp-s",
+            organization: "Self-Entered Inc",
+            roleTitle: "Consultant",
+            startYear: 2020,
+          },
+        ],
+        distinctions: [
+          // Org-asserted but the asserter is unnamed → generic title.
+          {
+            putCode: "dist-v",
+            organization: "Royal Society",
+            roleTitle: "Fellow",
+            startYear: 2020,
+            verified: true,
+          },
+        ],
+      });
+
+    it("is OFF by default — an institution-asserted entry renders without a mark", () => {
+      const html = renderCvHtml(verifiedCv());
+      expect(html).not.toContain('class="cv-badge cv-badge-verified"');
+      // The editor-only signal must not leak into the document either.
+      expect(html).not.toContain("cv-verified-badge");
+    });
+
+    it("marks the structured position on its lead line, naming the asserting organisation", () => {
+      const html = renderCvHtml(updateDisplay(verifiedCv(), { showVerifiedBadges: true }));
+      // Two-line history record: the mark sits INSIDE the lead line, right after the role.
+      expect(html).toMatch(
+        /<span class="cv-entry-lead">Assistant Professor<span class="cv-badges"><span class="cv-badge cv-badge-verified" title="Verified by Nagoya University via ORCID[^"]*">✓ Verified<\/span><\/span><\/span>/,
+      );
+      // The self-entered position carries nothing.
+      expect(html).toMatch(/<span class="cv-entry-lead">Consultant<\/span>/);
+      // The award goes through the FLAT entry path and is marked there, with the
+      // generic "confirmed by the institution" title when the asserter is unknown.
+      expect(html).toMatch(
+        /cv-badge-verified" title="Confirmed by the institution via ORCID[^"]*">✓ Verified</,
+      );
+      expect(html.match(/class="cv-badge cv-badge-verified"/g)).toHaveLength(2);
+    });
+
+    it("escapes the asserting organisation's name in the accessible title", () => {
+      const html = renderCvHtml(
+        updateDisplay(verifiedCv('Evil <b>Org</b> & "Co" $&'), { showVerifiedBadges: true }),
+      );
+      // "$&" is a String.replace replacement pattern — it must survive verbatim.
+      expect(html).toContain(
+        "Verified by Evil &lt;b&gt;Org&lt;/b&gt; &amp; &quot;Co&quot; $&amp; via ORCID",
+      );
+      expect(html).not.toContain("<b>Org</b>");
+    });
+
+    it("localises the mark with the CV language", () => {
+      const html = renderCvHtml(
+        updateDisplay(verifiedCv(), { showVerifiedBadges: true, locale: "fr-FR" }),
+      );
+      expect(html).toContain("✓ Vérifié</span>");
+      expect(html).toContain("Vérifié par Nagoya University via ORCID");
+    });
+
+    it("stays hidden on the parser-safe ATS template like every other badge", () => {
+      const html = renderCvHtml(
+        updateDisplay(verifiedCv(), { showVerifiedBadges: true, template: "ats" }),
+      );
+      // The mark is emitted (same document model)…
+      expect(html).toContain('class="cv-badge cv-badge-verified"');
+      // …but the ATS stylesheet blanks the whole badge family.
+      expect(html).toMatch(/\.cv-badge,[^{]*\{ display: none !important; \}/);
+    });
+  });
+
   it("strips the authorship-note in the ATS template (no orphaned caveat when the table is hidden)", () => {
     const html = renderCvHtml(updateDisplay(makeCv(), { template: "ats" }));
     // .cv-authorship is already hidden in ATS, but the caveat is a SEPARATE class;

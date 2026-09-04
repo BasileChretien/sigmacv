@@ -21,6 +21,26 @@ import type { RenderOpts, Renderer, RenderInput, RenderResult } from "./types";
 
 export { cvSlug } from "./slug";
 
+/**
+ * The opt-in "Verified" mark for an entry a TRUSTED ORGANISATION asserted on the
+ * ORCID record (`meta.verified`; positions / education / distinctions). Names the
+ * confirming party in the accessible title when ORCID supplied it
+ * (`meta.verifiedBy`), else a generic "confirmed via ORCID" title. "" when the
+ * toggle is off or the entry isn't verified. Shares the `.cv-badge` family, so the
+ * parser-safe ATS template hides it with every other badge.
+ */
+function verifiedBadgeHtml(item: CvItem, display: DisplayChoices): string {
+  if (!display.showVerifiedBadges || !item.meta.verified) return "";
+  const s = renderStrings(display.locale);
+  const org = item.meta.verifiedBy?.trim();
+  const title = org
+    ? s.badgeVerifiedByTitle.replace("{org}", () => escapeHtml(org))
+    : escapeHtml(s.badgeVerifiedTitle);
+  return `<span class="cv-badge cv-badge-verified" title="${title}">✓ ${escapeHtml(
+    s.badgeVerified,
+  )}</span>`;
+}
+
 /** Inline badges appended to a publication/preprint entry (HTML/PDF only). */
 function itemBadges(item: CvItem, display: DisplayChoices): string {
   const badges: string[] = [];
@@ -64,6 +84,11 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
       )}">${escapeHtml(s.badgeCitations.replace("{n}", n))}</span>`,
     );
   }
+  // Institution-asserted entries that render through the FLAT path (distinctions,
+  // a user-overridden history line) get their verified mark here; the structured
+  // two-line history record places it on the lead line (positionEntryHtml).
+  const verified = verifiedBadgeHtml(item, display);
+  if (verified) badges.push(verified);
   // Wrap the group in an inline-flex container (own `gap` + `margin-left`) so the
   // badges can never collapse against the preceding citation text/URL or against
   // each other — a plain joining space did, depending on the CSL style's trailing
@@ -172,14 +197,19 @@ function entryDatesText(item: CvItem, locale: string): string {
  * institution is promoted to the lead line and the sub-line is dropped — so a
  * sparse entry collapses to a single clean line instead of an empty role slot.
  */
-function positionEntryHtml(item: CvItem, locale: string): string {
+function positionEntryHtml(item: CvItem, display: DisplayChoices): string {
+  const locale = display.locale;
   const role = itemRoleTitle(item)?.trim();
   const dept = itemDepartment(item)?.trim();
   const inst = institutionSpanHtml(item, locale);
   const dates = entryDatesText(item, locale);
   const datesHtml = dates ? `<span class="cv-entry-dates">${escapeHtml(dates)}</span>` : "";
+  // The opt-in "Verified" mark sits on the lead line, right after the role (or
+  // institution), inside the same badge wrapper the flat entries use.
+  const verified = verifiedBadgeHtml(item, display);
+  const badges = verified ? `<span class="cv-badges">${verified}</span>` : "";
   // Role leads when known; otherwise the institution becomes the lead line.
-  const lead = role ? escapeHtml(role) : inst;
+  const lead = (role ? escapeHtml(role) : inst) + badges;
   const subParts = role ? [dept ? escapeHtml(dept) : "", inst] : [dept ? escapeHtml(dept) : ""];
   const sub = subParts.filter(Boolean).join(" · ");
   const head = `<div class="cv-entry-head"><span class="cv-entry-lead">${lead}</span>${datesHtml}</div>`;
@@ -293,7 +323,7 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
         // Structured two-line layout for a source-derived history entry; fall back
         // to the flat line when the user typed an override or there's no institution.
         if (isHistory && !item.displayTextOverride && itemInstitution(item)) {
-          return { item, html: positionEntryHtml(item, cv.display.locale) };
+          return { item, html: positionEntryHtml(item, cv.display) };
         }
         let html = entry;
         if (linkDoi && !item.csl) html = withDoiLink(html, item);
