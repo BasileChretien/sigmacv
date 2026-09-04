@@ -140,6 +140,17 @@ export interface RenderStrings {
   filterTypeConference: string;
   filterTypeBook: string;
   filterTypeDataset: string;
+  /** Header label of the opt-in, owner-declared "Career context" block. */
+  careerContextLabel: string;
+  /** Kind labels for career-context entries (`CAREER_CONTEXT_KINDS`). */
+  careerKindCareerBreak: string;
+  careerKindPartTime: string;
+  careerKindClinicalDuties: string;
+  careerKindCaring: string;
+  careerKindMilitary: string;
+  careerKindOther: string;
+  /** "First publication: {year} ({n} years active)" context line. */
+  careerFirstPublication: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -227,6 +238,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Updated {date} · living CV, updates automatically",
     rorRecordTitle: "ROR organization record",
     institutionSiteTitle: "Institution website",
+    careerContextLabel: "Career context (self-declared)",
+    careerKindCareerBreak: "Career break",
+    careerKindPartTime: "Part-time",
+    careerKindClinicalDuties: "Clinical duties alongside research",
+    careerKindCaring: "Caring responsibilities",
+    careerKindMilitary: "Military service",
+    careerKindOther: "Other",
+    careerFirstPublication: "First publication: {year} ({n} years active)",
   },
   "zh-CN": {
     hankoCredit:
@@ -309,6 +328,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "更新于 {date} · 在线简历，自动更新",
     rorRecordTitle: "ROR 机构记录",
     institutionSiteTitle: "机构网站",
+    careerContextLabel: "职业背景（自述）",
+    careerKindCareerBreak: "职业中断",
+    careerKindPartTime: "兼职",
+    careerKindClinicalDuties: "兼顾临床工作",
+    careerKindCaring: "照护责任",
+    careerKindMilitary: "服兵役",
+    careerKindOther: "其他",
+    careerFirstPublication: "首篇论文：{year}（从业 {n} 年）",
   },
   "es-ES": {
     hankoCredit:
@@ -400,6 +427,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Actualizado el {date} · CV vivo, se actualiza solo",
     rorRecordTitle: "Ficha de la organización en ROR",
     institutionSiteTitle: "Sitio web de la institución",
+    careerContextLabel: "Contexto profesional (declarado por el autor)",
+    careerKindCareerBreak: "Interrupción de carrera",
+    careerKindPartTime: "Tiempo parcial",
+    careerKindClinicalDuties: "Actividad clínica junto a la investigación",
+    careerKindCaring: "Responsabilidades de cuidado",
+    careerKindMilitary: "Servicio militar",
+    careerKindOther: "Otro",
+    careerFirstPublication: "Primera publicación: {year} ({n} años de actividad)",
   },
   "fr-FR": {
     hankoCredit:
@@ -492,6 +527,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Mis à jour le {date} · CV vivant, mis à jour automatiquement",
     rorRecordTitle: "Fiche de l’organisation dans ROR",
     institutionSiteTitle: "Site web de l’établissement",
+    careerContextLabel: "Contexte de carrière (déclaré par l'auteur)",
+    careerKindCareerBreak: "Interruption de carrière",
+    careerKindPartTime: "Temps partiel",
+    careerKindClinicalDuties: "Activité clinique en parallèle de la recherche",
+    careerKindCaring: "Responsabilités familiales",
+    careerKindMilitary: "Service militaire",
+    careerKindOther: "Autre",
+    careerFirstPublication: "Première publication : {year} ({n} ans d'activité)",
   },
   "de-DE": {
     hankoCredit:
@@ -581,6 +624,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aktualisiert am {date} · lebender Lebenslauf, automatisch aktualisiert",
     rorRecordTitle: "ROR-Organisationseintrag",
     institutionSiteTitle: "Website der Einrichtung",
+    careerContextLabel: "Karrierekontext (Selbstangabe)",
+    careerKindCareerBreak: "Karriereunterbrechung",
+    careerKindPartTime: "Teilzeit",
+    careerKindClinicalDuties: "Klinische Tätigkeit neben der Forschung",
+    careerKindCaring: "Betreuungspflichten",
+    careerKindMilitary: "Wehrdienst",
+    careerKindOther: "Sonstiges",
+    careerFirstPublication: "Erste Publikation: {year} ({n} Jahre aktiv)",
   },
   "ja-JP": {
     hankoCredit:
@@ -666,6 +717,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 更新 · 自動更新されるライブ CV",
     rorRecordTitle: "ROR 機関レコード",
     institutionSiteTitle: "機関ウェブサイト",
+    careerContextLabel: "キャリアの背景（自己申告）",
+    careerKindCareerBreak: "キャリア中断",
+    careerKindPartTime: "パートタイム",
+    careerKindClinicalDuties: "研究と並行した臨床業務",
+    careerKindCaring: "育児・介護",
+    careerKindMilitary: "兵役",
+    careerKindOther: "その他",
+    careerFirstPublication: "初出版：{year}年（活動歴 {n} 年）",
   },
   "pt-BR": {
     hankoCredit:
@@ -757,6 +816,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Atualizado em {date} · currículo vivo, atualizado automaticamente",
     rorRecordTitle: "Registro da organização no ROR",
     institutionSiteTitle: "Site da instituição",
+    careerContextLabel: "Contexto de carreira (autodeclarado)",
+    careerKindCareerBreak: "Interrupção de carreira",
+    careerKindPartTime: "Tempo parcial",
+    careerKindClinicalDuties: "Atividade clínica paralela à pesquisa",
+    careerKindCaring: "Responsabilidades de cuidado",
+    careerKindMilitary: "Serviço militar",
+    careerKindOther: "Outro",
+    careerFirstPublication: "Primeira publicação: {year} ({n} anos de atividade)",
   },
   "it-IT": {
     hankoCredit:
@@ -848,6 +915,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aggiornato il {date} · CV vivo, si aggiorna da solo",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
     institutionSiteTitle: "Sito web dell’istituzione",
+    careerContextLabel: "Contesto di carriera (autodichiarato)",
+    careerKindCareerBreak: "Interruzione di carriera",
+    careerKindPartTime: "Tempo parziale",
+    careerKindClinicalDuties: "Attività clinica in parallelo alla ricerca",
+    careerKindCaring: "Responsabilità di cura",
+    careerKindMilitary: "Servizio militare",
+    careerKindOther: "Altro",
+    careerFirstPublication: "Prima pubblicazione: {year} ({n} anni di attività)",
   },
   "ko-KR": {
     hankoCredit:
@@ -932,6 +1007,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 업데이트 · 자동으로 갱신되는 라이브 CV",
     rorRecordTitle: "ROR 기관 레코드",
     institutionSiteTitle: "기관 웹사이트",
+    careerContextLabel: "경력 배경 (본인 신고)",
+    careerKindCareerBreak: "경력 단절",
+    careerKindPartTime: "시간제 근무",
+    careerKindClinicalDuties: "연구와 병행한 임상 업무",
+    careerKindCaring: "돌봄 책임",
+    careerKindMilitary: "군 복무",
+    careerKindOther: "기타",
+    careerFirstPublication: "첫 출판: {year} (활동 {n}년)",
   },
   "ru-RU": {
     hankoCredit:
@@ -1021,6 +1104,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Обновлено {date} · живое резюме, обновляется автоматически",
     rorRecordTitle: "Запись организации в ROR",
     institutionSiteTitle: "Сайт организации",
+    careerContextLabel: "Контекст карьеры (по заявлению автора)",
+    careerKindCareerBreak: "Перерыв в карьере",
+    careerKindPartTime: "Неполная занятость",
+    careerKindClinicalDuties: "Клиническая работа параллельно с исследованиями",
+    careerKindCaring: "Обязанности по уходу",
+    careerKindMilitary: "Военная служба",
+    careerKindOther: "Другое",
+    careerFirstPublication: "Первая публикация: {year} ({n} лет активности)",
   },
 };
 

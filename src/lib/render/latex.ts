@@ -3,7 +3,7 @@ import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "./authorship";
 import { curatedCountsByYear } from "./charts";
 import { wrapSelf } from "./emphasize";
-import { textHeader } from "./headerText";
+import { textHeader, type TextHeader } from "./headerText";
 import { safeHref } from "./escape";
 import { cvSlug } from "./html";
 import { isSummaryBlockHidden, metricsLineText } from "./metrics";
@@ -128,6 +128,17 @@ function yearTableLatex(cv: CanonicalCv): string {
   ].join("\n");
 }
 
+/**
+ * The opt-in career-context block (bold label + one line per entry), placed with
+ * the summary paragraph in both layouts. "" when off/empty.
+ */
+function careerContextLatex(head: TextHeader): string {
+  const cc = head.careerContext;
+  if (!cc) return "";
+  const lines = cc.lines.map(escapeLatex).join("\\\\\n");
+  return `\\medskip\n{\\small\\bfseries ${escapeLatex(cc.label)}}\\\\[1pt]\n{\\small ${lines}}\\par\n`;
+}
+
 /** The authorship-summary table as a LaTeX tabular. "" when off/empty. */
 function authorshipTableLatex(cv: CanonicalCv): string {
   if (!cv.display.showAuthorshipTable) return "";
@@ -238,7 +249,9 @@ function buildStyled(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts): strin
     ? `\\begin{center}\n${headerLines.join("\n")}\n\\end{center}`
     : headerLines.join("\n");
 
-  const summaryPar = head.summary ? `\\medskip\n${escapeLatex(head.summary)}\\par\n` : "";
+  const summaryPar =
+    (head.summary ? `\\medskip\n${escapeLatex(head.summary)}\\par\n` : "") +
+    careerContextLatex(head);
 
   // Charts + authorship render as tables (LaTeX can't draw the bar charts).
   const tables = summaryHidden
@@ -282,7 +295,8 @@ function buildSidebarLatex(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts):
     .filter(Boolean)
     .join(" \\\\[6pt]\n");
 
-  const summaryPar = head.summary ? `${escapeLatex(head.summary)}\\par\\medskip\n` : "";
+  const summaryPar =
+    (head.summary ? `${escapeLatex(head.summary)}\\par\\medskip\n` : "") + careerContextLatex(head);
   const tables = summaryHidden
     ? ""
     : [yearTableLatex(cv), authorshipTableLatex(cv)].filter(Boolean).join("\n");

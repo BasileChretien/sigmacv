@@ -196,6 +196,19 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
     );
   }
 
+  // Opt-in career context: a bold caption + one plain paragraph per line.
+  if (head.careerContext) {
+    children.push(
+      new Paragraph({
+        children: [new TextRun({ text: head.careerContext.label, bold: true })],
+        spacing: { before: 80 },
+      }),
+    );
+    for (const line of head.careerContext.lines) {
+      children.push(new Paragraph({ children: [new TextRun(line)] }));
+    }
+  }
+
   for (const { section, items } of sections) {
     // Prose sections (narrative contributions / a statement) render their
     // free-text body in the section flow, in their reordered position.

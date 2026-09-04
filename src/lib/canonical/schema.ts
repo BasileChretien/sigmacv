@@ -858,6 +858,65 @@ const CvPersonalSchema = z.object({
 /** Max length of an embedded photo data URL (~1 MB). Keeps the document sane. */
 export const PHOTO_DATA_URL_MAX = 1_400_000;
 
+/**
+ * Kinds of career-context entry the owner can DECLARE (SNSF, Wellcome, UKRI
+ * R4RI and ARC ROPE all ask applicants to state such "contextual factors" so a
+ * panel can read output relative to opportunity).
+ */
+export const CAREER_CONTEXT_KINDS = [
+  "career-break",
+  "part-time",
+  "clinical-duties",
+  "caring",
+  "military",
+  "other",
+] as const;
+export type CareerContextKind = (typeof CAREER_CONTEXT_KINDS)[number];
+/** Max number of career-context entries a CV can carry. */
+export const CAREER_CONTEXT_MAX_ENTRIES = 20;
+/** Max length of the free-text note on a career-context entry. */
+export const CAREER_CONTEXT_NOTE_MAX = 240;
+/** A career-context date: a year ("2019") or a year-month ("2019-03"). */
+const CAREER_CONTEXT_DATE = /^\d{4}(-(0[1-9]|1[0-2]))?$/;
+
+export const CareerContextEntrySchema = z.object({
+  id: z.string().min(1).max(64),
+  kind: z.enum(CAREER_CONTEXT_KINDS),
+  start: z.string().regex(CAREER_CONTEXT_DATE, "start must be YYYY or YYYY-MM"),
+  /** Absent = ongoing ("2016–"). */
+  end: z.string().regex(CAREER_CONTEXT_DATE, "end must be YYYY or YYYY-MM").optional(),
+  /** Working-time fraction (0–1), meaningful for `part-time` ("Part-time 60%"). */
+  fraction: z.number().min(0).max(1).optional(),
+  /** Short free-text qualifier, e.g. "parental leave". */
+  note: z.string().max(CAREER_CONTEXT_NOTE_MAX).optional(),
+});
+export type CareerContextEntry = z.infer<typeof CareerContextEntrySchema>;
+
+/**
+ * Owner-DECLARED career context — career breaks, part-time periods, clinical or
+ * caring duties, service — plus the first-publication year. Structured so a
+ * funder-style CV can state it, and NOTHING more: SigmaCV shows these as plain
+ * context lines (opt-in, `display.showCareerContext`) and NEVER uses them to
+ * normalise, adjust, or rate any figure — no "outputs per active year", no
+ * corrected h-index (DORA / CoARA: assess the researcher in context, do not
+ * compute a new score from it). Source: self; sensitive personal data, so it is
+ * stripped from the public projection unless the owner enables the block.
+ *
+ * `entries`, `firstPublicationYearOverride` and `showFirstPublicationYear` are
+ * carried across re-sync untouched (like `publicationName`); only
+ * `firstPublicationYear` is recomputed every build from the kept publications.
+ */
+export const CareerContextSchema = z.object({
+  entries: z.array(CareerContextEntrySchema).max(CAREER_CONTEXT_MAX_ENTRIES).default([]),
+  /** Earliest kept (non-hidden) publication / preprint year — DERIVED each build. */
+  firstPublicationYear: z.number().int().min(1000).max(3000).optional(),
+  /** The owner's own first-publication year; when set it wins over the derived one. */
+  firstPublicationYearOverride: z.number().int().min(1000).max(3000).optional(),
+  /** Include the "First publication: …" line in the block. Opt-in, default off. */
+  showFirstPublicationYear: z.boolean().default(false),
+});
+export type CareerContext = z.infer<typeof CareerContextSchema>;
+
 export const CvOwnerSchema = z.object({
   /** Bare ORCID iD, e.g. "0000-0002-7483-2489". */
   orcid: z.string().max(64),
@@ -937,6 +996,12 @@ export const CvOwnerSchema = z.object({
    * structured-data identity graph. Optional (consumers treat absent as empty).
    */
   wikidataSameAs: z.array(z.string().max(2048)).max(20).optional(),
+  /**
+   * Optional owner-declared career context (see {@link CareerContextSchema}).
+   * Absent on most documents; back-compat. Rendered only behind
+   * `display.showCareerContext`; never feeds any metric.
+   */
+  careerContext: CareerContextSchema.optional(),
 });
 export type CvOwner = z.infer<typeof CvOwnerSchema>;
 
@@ -1114,6 +1179,10 @@ export const DisplayChoicesSchema = z.object({
    *  which is coarse and occasionally wrong (over-merged profiles), so the owner
    *  reviews and enables it rather than it appearing automatically. */
   showResearchAreas: z.boolean().default(false),
+  /** Show the owner-declared "Career context" block (`owner.careerContext`) with
+   *  the header. Opt-in, default off: self-declared, sensitive personal context,
+   *  shown as plain lines for a reader — never used to adjust any figure. */
+  showCareerContext: z.boolean().default(false),
   /** Show an "Open Access" badge on OA publications (HTML/PDF). Opt-in, default
    *  off — consistent with the metrics-default-none, DORA-aligned stance (an OA
    *  indicator is factual, not evaluative, but stays the user's explicit choice). */

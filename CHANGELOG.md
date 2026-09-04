@@ -21,6 +21,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the parser-safe ATS template like all badges. The confirming organisation's
   name is now captured at sync (`meta.verifiedBy`), so a re-sync is needed before
   existing CVs can name it; the mark itself works on already-synced data.
+- **Career context (opt-in, self-declared).** SNSF, Wellcome, UKRI R4RI and ARC
+  ROPE ask applicants to state contextual factors so a panel can judge output
+  relative to opportunity. The Profile panel now has a structured "Career context"
+  list — career breaks, part-time periods (with a working-time %), clinical or
+  caring duties, service, other — plus a first-publication year (detected from
+  your kept publications; you can override it). Rendered as plain lines with the
+  header in every format (HTML/PDF, DOCX, LaTeX, Markdown) and on the public page
+  **only** when "Show career context on the CV" is on (default off). Shown as
+  context, never used to normalise anything: no figure in SigmaCV reads these
+  values (DORA / CoARA). Entries survive re-sync; they are stripped from the
+  public projection unless shown, covered by the privacy notice, and included in
+  the account data export (which exports the whole CV document).
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so
@@ -42,6 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The preferred **name on your publications** was silently dropped on every
+  re-sync (it was never carried across a rebuild). It now survives like the other
+  owner-typed profile fields.
 - **Retracted works no longer count toward the figures.** A publication flagged
   as retracted (via the Crossref / Retraction Watch enrichment) was excluded from
   the list when **Hide retracted** was on, but still counted in every figure: the

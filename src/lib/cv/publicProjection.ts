@@ -123,6 +123,9 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
       personal: undefined,
       metrics: cv.display.showMetrics ? cv.owner.metrics : undefined,
       countsByYear: cv.display.showCharts ? cv.owner.countsByYear : [],
+      // Owner-declared career context (breaks, part-time, caring…) is sensitive
+      // personal data: it leaves the account only when the owner shows the block.
+      careerContext: cv.display.showCareerContext ? cv.owner.careerContext : undefined,
     },
     // Saved editor presets (named layout intents + display snapshots, possibly a
     // custom CSL XML blob) are an internal editor concept — never publish them.

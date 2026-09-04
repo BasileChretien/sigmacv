@@ -1,10 +1,14 @@
 import {
+  CAREER_CONTEXT_MAX_ENTRIES,
+  CAREER_CONTEXT_NOTE_MAX,
   DEFAULT_SECTION_ORDER,
   NOTES_MAX,
   PROSE_BODY_MAX,
   isHidden,
   isProseSectionType,
   type CanonicalCv,
+  type CareerContext,
+  type CareerContextEntry,
   type CvItem,
   type CvOwner,
   type CvSection,
@@ -503,6 +507,110 @@ export function setPublicationName(
   const given = cap(name.given);
   const publicationName = family || given ? { family, given } : undefined;
   return { ...cv, owner: { ...cv.owner, publicationName } };
+}
+
+/* ── Career context (owner-declared; shown as context, never used to normalise) ── */
+
+/** The owner's career context, or the empty default when the doc has none. */
+function careerContextOf(cv: CanonicalCv): CareerContext {
+  return cv.owner.careerContext ?? { entries: [], showFirstPublicationYear: false };
+}
+
+function withCareerContext(cv: CanonicalCv, careerContext: CareerContext): CanonicalCv {
+  return { ...cv, owner: { ...cv.owner, careerContext } };
+}
+
+/** The fields of a career-context entry the owner fills in (the id is assigned here). */
+export type CareerContextEntryInput = Omit<CareerContextEntry, "id">;
+
+/**
+ * Normalise an entry's owner-typed fields so the result always satisfies the
+ * schema: strings trimmed, blanks dropped, the note capped at
+ * `CAREER_CONTEXT_NOTE_MAX`, the fraction clamped to 0–1 and kept ONLY on a
+ * `part-time` entry (it has no meaning elsewhere). The date strings are kept as
+ * typed — the editor's year inputs produce "YYYY" and the schema validates on save.
+ */
+function normaliseCareerContextEntry(input: CareerContextEntryInput): CareerContextEntryInput {
+  const end = input.end?.trim();
+  const note = input.note?.trim();
+  const fraction =
+    input.kind === "part-time" &&
+    typeof input.fraction === "number" &&
+    Number.isFinite(input.fraction)
+      ? Math.min(1, Math.max(0, input.fraction))
+      : undefined;
+  return {
+    kind: input.kind,
+    start: input.start.trim(),
+    end: end || undefined,
+    fraction,
+    note: note ? note.slice(0, CAREER_CONTEXT_NOTE_MAX) : undefined,
+  };
+}
+
+/**
+ * Append a career-context entry (a career break, a part-time period, clinical or
+ * caring duties, service…). The id is generated here (unique within the list);
+ * at the `CAREER_CONTEXT_MAX_ENTRIES` cap the call is a no-op (same reference).
+ * Pure + immutable.
+ */
+export function addCareerContextEntry(
+  cv: CanonicalCv,
+  input: CareerContextEntryInput,
+): CanonicalCv {
+  const ctx = careerContextOf(cv);
+  if (ctx.entries.length >= CAREER_CONTEXT_MAX_ENTRIES) return cv;
+  const taken = new Set(ctx.entries.map((e) => e.id));
+  let n = ctx.entries.length + 1;
+  while (taken.has(`cc${n}`)) n += 1;
+  const entry: CareerContextEntry = { id: `cc${n}`, ...normaliseCareerContextEntry(input) };
+  return withCareerContext(cv, { ...ctx, entries: [...ctx.entries, entry] });
+}
+
+/**
+ * Patch one career-context entry by id (kind / dates / fraction / note), with the
+ * same normalisation as {@link addCareerContextEntry}. Unknown id → same reference.
+ */
+export function updateCareerContextEntry(
+  cv: CanonicalCv,
+  id: string,
+  patch: Partial<CareerContextEntryInput>,
+): CanonicalCv {
+  const ctx = careerContextOf(cv);
+  const at = ctx.entries.findIndex((e) => e.id === id);
+  if (at < 0) return cv;
+  const current = ctx.entries[at]!;
+  const next: CareerContextEntry = {
+    id: current.id,
+    ...normaliseCareerContextEntry({ ...current, ...patch }),
+  };
+  const entries = ctx.entries.map((e, i) => (i === at ? next : e));
+  return withCareerContext(cv, { ...ctx, entries });
+}
+
+/** Remove one career-context entry by id. Unknown id → same reference. */
+export function removeCareerContextEntry(cv: CanonicalCv, id: string): CanonicalCv {
+  const ctx = careerContextOf(cv);
+  if (!ctx.entries.some((e) => e.id === id)) return cv;
+  return withCareerContext(cv, { ...ctx, entries: ctx.entries.filter((e) => e.id !== id) });
+}
+
+/**
+ * Set (or clear, with `undefined` / a non-year) the owner's OWN first-publication
+ * year. It overrides the build-derived `firstPublicationYear` at render time and
+ * survives re-sync; the derived value keeps being recomputed underneath. Years
+ * outside the schema's 1000–3000 bound clear the override rather than failing
+ * the save. Pure + immutable.
+ */
+export function setFirstPublicationYear(cv: CanonicalCv, year: number | undefined): CanonicalCv {
+  const ctx = careerContextOf(cv);
+  const valid = typeof year === "number" && Number.isInteger(year) && year >= 1000 && year <= 3000;
+  return withCareerContext(cv, { ...ctx, firstPublicationYearOverride: valid ? year : undefined });
+}
+
+/** Toggle the "First publication: …" line inside the career-context block. */
+export function setShowFirstPublicationYear(cv: CanonicalCv, show: boolean): CanonicalCv {
+  return withCareerContext(cv, { ...careerContextOf(cv), showFirstPublicationYear: show });
 }
 
 /**

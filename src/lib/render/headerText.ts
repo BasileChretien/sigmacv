@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { careerContextBlock, type CareerContextBlock } from "./careerContext";
 import { displayUrl } from "./escape";
 import { resolveLink } from "./icons";
 
@@ -14,6 +15,11 @@ export interface TextHeader {
   /** Contact parts in display order: location, email, phone, website, links. */
   contact: string[];
   summary?: string;
+  /**
+   * The opt-in, owner-declared "Career context" block (label + plain lines), or
+   * null when off/empty. Context for a reader only — see `careerContext.ts`.
+   */
+  careerContext: CareerContextBlock | null;
 }
 
 export function textHeader(cv: CanonicalCv): TextHeader {
@@ -39,5 +45,6 @@ export function textHeader(cv: CanonicalCv): TextHeader {
     headline: cv.owner.headline?.trim() || undefined,
     contact,
     summary: cv.owner.summary?.trim() || undefined,
+    careerContext: careerContextBlock(cv),
   };
 }
