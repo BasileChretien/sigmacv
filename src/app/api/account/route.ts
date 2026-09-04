@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { isSameOrigin } from "@/lib/security/origin";
@@ -28,7 +29,16 @@ export async function DELETE(req: Request) {
   }
 
   try {
+    // Read the iD BEFORE the row goes: the anonymous preview applies this
+    // researcher's own corrections, and once the account is gone those must stop
+    // shaping a public page. Withdrawal should take effect at once, not when a
+    // ten-minute cache happens to expire.
+    const deleting = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { orcid: true },
+    });
     await prisma.user.delete({ where: { id: session.user.id } });
+    if (deleting?.orcid) invalidateOrcidPreview(deleting.orcid);
     // The DB session cascade-deletes with the user, but the browser still holds
     // the session cookie — clear it so no stale cookie can be re-associated
     // (e.g. if the same email later re-registers).
