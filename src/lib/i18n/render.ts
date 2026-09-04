@@ -160,6 +160,29 @@ export interface RenderStrings {
   indicatorClinical: string;
   /** Tooltip on the clinical-article pill. */
   indicatorClinicalTitle: string;
+  /** Heading of the opt-in provenance-ledger table (footer + editor panel). */
+  provLedgerTitle: string;
+  /** Editor-panel caveat under the ledger: it measures the document, never the person. */
+  provLedgerNote: string;
+  provLedgerIdentifier: string;
+  provLedgerClaimed: string;
+  provLedgerSelfEntered: string;
+  provLedgerNameMatched: string;
+  provLedgerOther: string;
+  provLedgerVerified: string;
+  provLedgerPid: string;
+  provLedgerReviewed: string;
+  provLedgerRetracted: string;
+  /** Ledger figure; "{n}", "{total}", "{pct}" substituted at render. */
+  provLedgerOf: string;
+  /** Collaboration-breadth line; "{countries}" and "{pct}" substituted. */
+  collabLine: string;
+  /** Same line for a single country ("{pct}" only). */
+  collabLineOne: string;
+  /** Top-countries clause; "{list}" is a locale-joined list of country names. */
+  collabTop: string;
+  /** Basis clause; "{n}" → the number of works with country data. */
+  collabContext: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -261,6 +284,23 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     indicatorClinical: "Clinical article",
     indicatorClinicalTitle:
       "NIH iCite classifies this work as a clinical article (guideline or clinical study).",
+    provLedgerTitle: "Provenance ledger",
+    provLedgerNote:
+      "How verifiable this document is — each line counts entries shown, with its own denominator. Not an assessment of the researcher, and never a score.",
+    provLedgerIdentifier: "Matched by identifier (ORCID / OpenAlex)",
+    provLedgerClaimed: "Added by DOI (owner-asserted)",
+    provLedgerSelfEntered: "Entered by hand",
+    provLedgerNameMatched: "Matched by name only",
+    provLedgerOther: "Other attribution",
+    provLedgerVerified: "Positions, education and distinctions asserted by a trusted organisation",
+    provLedgerPid: "Resolvable by a persistent identifier (DOI / PMID / arXiv / ORCID)",
+    provLedgerReviewed: "Source-attributed publications confirmed by the owner",
+    provLedgerRetracted: "Retracted works shown",
+    provLedgerOf: "{n} of {total} ({pct})",
+    collabLine: "Co-authors from {countries} countries · {pct} of works international",
+    collabLineOne: "Co-authors from one country · {pct} of works international",
+    collabTop: "most often {list}",
+    collabContext: "based on OpenAlex affiliation data; n = {n}",
   },
   "zh-CN": {
     hankoCredit:
@@ -356,6 +396,23 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "引用本文的临床文献（指南、临床试验）数量，来源 NIH iCite。仅限生物医学文献。",
     indicatorClinical: "临床文献",
     indicatorClinicalTitle: "NIH iCite 将本文归类为临床文献（指南或临床研究）。",
+    provLedgerTitle: "来源核验表",
+    provLedgerNote:
+      "本文档的可核验程度——每一行统计所显示的条目，并各自注明分母。这不是对研究者的评价，也绝不是评分。",
+    provLedgerIdentifier: "通过标识符匹配（ORCID / OpenAlex）",
+    provLedgerClaimed: "通过 DOI 添加（本人声明）",
+    provLedgerSelfEntered: "手动录入",
+    provLedgerNameMatched: "仅通过姓名匹配",
+    provLedgerOther: "其他归属方式",
+    provLedgerVerified: "由可信机构认证的职位、教育经历与荣誉",
+    provLedgerPid: "可通过持久标识符解析（DOI / PMID / arXiv / ORCID）",
+    provLedgerReviewed: "本人已确认的来源归属论文",
+    provLedgerRetracted: "显示的已撤稿作品",
+    provLedgerOf: "{n} / {total}（{pct}）",
+    collabLine: "合作者来自 {countries} 个国家/地区 · {pct} 的作品为国际合作",
+    collabLineOne: "合作者来自 1 个国家/地区 · {pct} 的作品为国际合作",
+    collabTop: "最常见：{list}",
+    collabContext: "基于 OpenAlex 机构信息；n = {n}",
   },
   "es-ES": {
     hankoCredit:
@@ -461,6 +518,24 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     indicatorClinical: "Artículo clínico",
     indicatorClinicalTitle:
       "NIH iCite clasifica este trabajo como artículo clínico (guía o estudio clínico).",
+    provLedgerTitle: "Registro de procedencia",
+    provLedgerNote:
+      "Hasta qué punto es verificable este documento: cada línea cuenta las entradas mostradas, con su propio denominador. No es una evaluación del investigador ni, en ningún caso, una puntuación.",
+    provLedgerIdentifier: "Emparejadas por identificador (ORCID / OpenAlex)",
+    provLedgerClaimed: "Añadidas por DOI (afirmadas por el titular)",
+    provLedgerSelfEntered: "Introducidas a mano",
+    provLedgerNameMatched: "Emparejadas solo por nombre",
+    provLedgerOther: "Otra atribución",
+    provLedgerVerified:
+      "Puestos, formación y distinciones afirmados por una organización de confianza",
+    provLedgerPid: "Resolubles mediante un identificador persistente (DOI / PMID / arXiv / ORCID)",
+    provLedgerReviewed: "Publicaciones atribuidas por fuentes y confirmadas por el titular",
+    provLedgerRetracted: "Trabajos retractados mostrados",
+    provLedgerOf: "{n} de {total} ({pct})",
+    collabLine: "Coautores de {countries} países · {pct} de los trabajos son internacionales",
+    collabLineOne: "Coautores de un país · {pct} de los trabajos son internacionales",
+    collabTop: "con mayor frecuencia {list}",
+    collabContext: "según los datos de afiliación de OpenAlex; n = {n}",
   },
   "fr-FR": {
     hankoCredit:
@@ -567,6 +642,24 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     indicatorClinical: "Article clinique",
     indicatorClinicalTitle:
       "NIH iCite classe ce travail comme article clinique (recommandation ou étude clinique).",
+    provLedgerTitle: "Registre de provenance",
+    provLedgerNote:
+      "Dans quelle mesure ce document est vérifiable : chaque ligne compte les entrées affichées, avec son propre dénominateur. Ce n'est ni une évaluation du chercheur ni, en aucun cas, un score.",
+    provLedgerIdentifier: "Associées par identifiant (ORCID / OpenAlex)",
+    provLedgerClaimed: "Ajoutées par DOI (déclarées par le titulaire)",
+    provLedgerSelfEntered: "Saisies à la main",
+    provLedgerNameMatched: "Associées par le nom seul",
+    provLedgerOther: "Autre attribution",
+    provLedgerVerified:
+      "Postes, formations et distinctions attestés par une organisation de confiance",
+    provLedgerPid: "Résolubles par un identifiant pérenne (DOI / PMID / arXiv / ORCID)",
+    provLedgerReviewed: "Publications attribuées par les sources et confirmées par le titulaire",
+    provLedgerRetracted: "Travaux rétractés affichés",
+    provLedgerOf: "{n} sur {total} ({pct})",
+    collabLine: "Co-auteurs de {countries} pays · {pct} des travaux sont internationaux",
+    collabLineOne: "Co-auteurs d'un seul pays · {pct} des travaux sont internationaux",
+    collabTop: "le plus souvent {list}",
+    collabContext: "d'après les affiliations OpenAlex ; n = {n}",
   },
   "de-DE": {
     hankoCredit:
@@ -670,6 +763,25 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     indicatorClinical: "Klinischer Artikel",
     indicatorClinicalTitle:
       "NIH iCite stuft diese Arbeit als klinischen Artikel ein (Leitlinie oder klinische Studie).",
+    provLedgerTitle: "Herkunftsregister",
+    provLedgerNote:
+      "Wie überprüfbar dieses Dokument ist – jede Zeile zählt die angezeigten Einträge mit eigenem Nenner. Keine Bewertung der forschenden Person und niemals ein Score.",
+    provLedgerIdentifier: "Über Identifikator zugeordnet (ORCID / OpenAlex)",
+    provLedgerClaimed: "Per DOI hinzugefügt (von der Inhaberin/dem Inhaber beansprucht)",
+    provLedgerSelfEntered: "Von Hand eingetragen",
+    provLedgerNameMatched: "Nur über den Namen zugeordnet",
+    provLedgerOther: "Sonstige Zuordnung",
+    provLedgerVerified:
+      "Von einer vertrauenswürdigen Organisation bestätigte Positionen, Ausbildung und Auszeichnungen",
+    provLedgerPid: "Über einen persistenten Identifikator auflösbar (DOI / PMID / arXiv / ORCID)",
+    provLedgerReviewed: "Quellenzugeordnete Publikationen, von der Inhaberin/dem Inhaber bestätigt",
+    provLedgerRetracted: "Angezeigte zurückgezogene Arbeiten",
+    provLedgerOf: "{n} von {total} ({pct})",
+    collabLine:
+      "Koautorinnen und Koautoren aus {countries} Ländern · {pct} der Arbeiten international",
+    collabLineOne: "Koautorinnen und Koautoren aus einem Land · {pct} der Arbeiten international",
+    collabTop: "am häufigsten {list}",
+    collabContext: "nach OpenAlex-Affiliationsdaten; n = {n}",
   },
   "ja-JP": {
     hankoCredit:
@@ -769,6 +881,23 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     indicatorClinical: "臨床文献",
     indicatorClinicalTitle:
       "NIH iCite はこの論文を臨床文献（ガイドラインまたは臨床研究）に分類しています。",
+    provLedgerTitle: "出典検証表",
+    provLedgerNote:
+      "この文書がどの程度検証可能かを示します。各行は表示されている項目を、それぞれの分母とともに数えたものです。研究者の評価ではなく、決してスコアではありません。",
+    provLedgerIdentifier: "識別子で照合（ORCID / OpenAlex）",
+    provLedgerClaimed: "DOI で追加（本人申告）",
+    provLedgerSelfEntered: "手入力",
+    provLedgerNameMatched: "氏名のみで照合",
+    provLedgerOther: "その他の帰属",
+    provLedgerVerified: "信頼できる機関が証明した職歴・学歴・受賞",
+    provLedgerPid: "永続識別子で解決可能（DOI / PMID / arXiv / ORCID）",
+    provLedgerReviewed: "出典に基づく論文のうち本人が確認したもの",
+    provLedgerRetracted: "表示中の撤回済み論文",
+    provLedgerOf: "{total} 件中 {n} 件（{pct}）",
+    collabLine: "共著者は {countries} か国 · 国際共著は全体の {pct}",
+    collabLineOne: "共著者は 1 か国 · 国際共著は全体の {pct}",
+    collabTop: "最も多いのは {list}",
+    collabContext: "OpenAlex の所属データに基づく；n = {n}",
   },
   "pt-BR": {
     hankoCredit:
@@ -874,6 +1003,23 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     indicatorClinical: "Artigo clínico",
     indicatorClinicalTitle:
       "O NIH iCite classifica este trabalho como artigo clínico (diretriz ou estudo clínico).",
+    provLedgerTitle: "Registro de proveniência",
+    provLedgerNote:
+      "Quão verificável é este documento: cada linha conta as entradas exibidas, com seu próprio denominador. Não é uma avaliação do pesquisador e nunca uma pontuação.",
+    provLedgerIdentifier: "Correspondidas por identificador (ORCID / OpenAlex)",
+    provLedgerClaimed: "Adicionadas por DOI (declaradas pelo titular)",
+    provLedgerSelfEntered: "Inseridas manualmente",
+    provLedgerNameMatched: "Correspondidas apenas pelo nome",
+    provLedgerOther: "Outra atribuição",
+    provLedgerVerified: "Cargos, formação e distinções atestados por uma organização confiável",
+    provLedgerPid: "Resolvíveis por um identificador persistente (DOI / PMID / arXiv / ORCID)",
+    provLedgerReviewed: "Publicações atribuídas por fontes e confirmadas pelo titular",
+    provLedgerRetracted: "Trabalhos retratados exibidos",
+    provLedgerOf: "{n} de {total} ({pct})",
+    collabLine: "Coautores de {countries} países · {pct} dos trabalhos são internacionais",
+    collabLineOne: "Coautores de um país · {pct} dos trabalhos são internacionais",
+    collabTop: "com mais frequência {list}",
+    collabContext: "com base nos dados de afiliação do OpenAlex; n = {n}",
   },
   "it-IT": {
     hankoCredit:
@@ -979,6 +1125,24 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     indicatorClinical: "Articolo clinico",
     indicatorClinicalTitle:
       "NIH iCite classifica questo lavoro come articolo clinico (linea guida o studio clinico).",
+    provLedgerTitle: "Registro di provenienza",
+    provLedgerNote:
+      "Quanto è verificabile questo documento: ogni riga conta le voci mostrate, con il proprio denominatore. Non è una valutazione del ricercatore e non è mai un punteggio.",
+    provLedgerIdentifier: "Abbinate per identificativo (ORCID / OpenAlex)",
+    provLedgerClaimed: "Aggiunte tramite DOI (dichiarate dal titolare)",
+    provLedgerSelfEntered: "Inserite a mano",
+    provLedgerNameMatched: "Abbinate solo per nome",
+    provLedgerOther: "Altra attribuzione",
+    provLedgerVerified:
+      "Posizioni, formazione e riconoscimenti attestati da un'organizzazione affidabile",
+    provLedgerPid: "Risolvibili tramite un identificativo persistente (DOI / PMID / arXiv / ORCID)",
+    provLedgerReviewed: "Pubblicazioni attribuite dalle fonti e confermate dal titolare",
+    provLedgerRetracted: "Lavori ritrattati mostrati",
+    provLedgerOf: "{n} su {total} ({pct})",
+    collabLine: "Coautori da {countries} paesi · {pct} dei lavori sono internazionali",
+    collabLineOne: "Coautori da un solo paese · {pct} dei lavori sono internazionali",
+    collabTop: "più spesso {list}",
+    collabContext: "in base ai dati di affiliazione OpenAlex; n = {n}",
   },
   "ko-KR": {
     hankoCredit:
@@ -1077,6 +1241,23 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     indicatorClinical: "임상 문헌",
     indicatorClinicalTitle:
       "NIH iCite는 이 논문을 임상 문헌(가이드라인 또는 임상 연구)으로 분류합니다.",
+    provLedgerTitle: "출처 검증표",
+    provLedgerNote:
+      "이 문서가 얼마나 검증 가능한지를 보여줍니다. 각 줄은 표시된 항목을 각자의 분모와 함께 셉니다. 연구자에 대한 평가가 아니며 결코 점수가 아닙니다.",
+    provLedgerIdentifier: "식별자로 대조됨 (ORCID / OpenAlex)",
+    provLedgerClaimed: "DOI로 추가됨 (본인 주장)",
+    provLedgerSelfEntered: "직접 입력",
+    provLedgerNameMatched: "이름만으로 대조됨",
+    provLedgerOther: "기타 귀속",
+    provLedgerVerified: "신뢰할 수 있는 기관이 증명한 직위·학력·수상",
+    provLedgerPid: "영구 식별자로 확인 가능 (DOI / PMID / arXiv / ORCID)",
+    provLedgerReviewed: "출처에 근거한 논문 중 본인이 확인한 것",
+    provLedgerRetracted: "표시된 철회 논문",
+    provLedgerOf: "{total}건 중 {n}건 ({pct})",
+    collabLine: "공저자 국가 {countries}개 · 국제 공동 연구 비율 {pct}",
+    collabLineOne: "공저자 국가 1개 · 국제 공동 연구 비율 {pct}",
+    collabTop: "가장 많은 국가: {list}",
+    collabContext: "OpenAlex 소속 데이터 기준; n = {n}",
   },
   "ru-RU": {
     hankoCredit:
@@ -1180,6 +1361,23 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     indicatorClinical: "Клиническая статья",
     indicatorClinicalTitle:
       "NIH iCite относит эту работу к клиническим статьям (руководство или клиническое исследование).",
+    provLedgerTitle: "Реестр происхождения данных",
+    provLedgerNote:
+      "Насколько проверяем этот документ: каждая строка считает показанные записи с собственным знаменателем. Это не оценка исследователя и никогда не балл.",
+    provLedgerIdentifier: "Сопоставлены по идентификатору (ORCID / OpenAlex)",
+    provLedgerClaimed: "Добавлены по DOI (заявлены владельцем)",
+    provLedgerSelfEntered: "Введены вручную",
+    provLedgerNameMatched: "Сопоставлены только по имени",
+    provLedgerOther: "Иная атрибуция",
+    provLedgerVerified: "Должности, образование и награды, подтверждённые доверенной организацией",
+    provLedgerPid: "Разрешимы по постоянному идентификатору (DOI / PMID / arXiv / ORCID)",
+    provLedgerReviewed: "Публикации из источников, подтверждённые владельцем",
+    provLedgerRetracted: "Показанные отозванные работы",
+    provLedgerOf: "{n} из {total} ({pct})",
+    collabLine: "Соавторы из {countries} стран · {pct} работ международные",
+    collabLineOne: "Соавторы из одной страны · {pct} работ международные",
+    collabTop: "чаще всего {list}",
+    collabContext: "по данным OpenAlex об аффилиациях; n = {n}",
   },
 };
 

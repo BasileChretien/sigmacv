@@ -99,6 +99,12 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
             workInstitutions: undefined,
             matchBasis: undefined,
             claimed: undefined,
+            // Reference / self-reference counts feed an OWNER-ONLY figure (the
+            // self-referencing share in the editor's health panel,
+            // `cv/selfReference.ts`); no public surface renders them and the
+            // share must not be derivable from the machine downloads.
+            refCount: undefined,
+            selfRefs: undefined,
             // Raw co-author ORCID list is an internal resolution input only — the
             // public JSON-LD surfaces just the resolved `knows` links (co-authors
             // with their OWN published+indexable CV), never this full identifier
@@ -177,10 +183,15 @@ export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
     // but strip `meta.coauthorOrcids` — a raw list of THIRD-PARTY ORCID iDs used
     // only server-side (JSON-LD `knows` resolution on publish). The editor never
     // needs it, and this whole object is sent to the anonymous browser, so it must
-    // not ship (the public projection drops it for the same reason).
+    // not ship (the public projection drops it for the same reason). The
+    // reference / self-reference counts go with it: they feed an owner-only
+    // figure (`cv/selfReference.ts`) that an anonymous viewer must not see.
     sections: cv.sections.map((s) => ({
       ...s,
-      items: s.items.map((it) => ({ ...it, meta: { ...it.meta, coauthorOrcids: undefined } })),
+      items: s.items.map((it) => ({
+        ...it,
+        meta: { ...it.meta, coauthorOrcids: undefined, refCount: undefined, selfRefs: undefined },
+      })),
     })),
     // Owner-only scratchpad + saved editor layouts: never for a non-owner viewer.
     notes: undefined,

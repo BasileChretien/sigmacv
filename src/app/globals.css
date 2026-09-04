@@ -3820,6 +3820,32 @@ button.src-prov-chip.is-actionable:focus-visible {
 .src-prov-group.is-review .src-prov-count {
   color: var(--warn-text);
 }
+/* The provenance ledger: a two-column "n of N (x%)" table under the chips. */
+.src-prov-ledger {
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+}
+.src-prov-ledger td {
+  padding: 0.1em 1.2em 0.1em 0;
+  vertical-align: top;
+  color: var(--text-secondary);
+}
+.src-prov-ledger .src-prov-ledger-figure {
+  padding-right: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.src-prov-ledger-note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+}
+/* Owner-only information line in the health panel (not a to-do row). */
+.cv-health-info {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
 
 /* ── Live "searching open sources" view (PreviewBuilder.tsx) ─────────────────
    The no-login build streams per-source: each source drops in with its count
