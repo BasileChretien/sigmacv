@@ -215,3 +215,31 @@ model IctrpTrial {
 
   @@index([contactNameLower])
 }
+
+// FORRT Replication Database (FReD, https://forrt.org/replication-hub/) — original
+// ⇄ replication study pairs by DOI, with the replication's outcome (e.g.
+// "success"/"failure"/"mixed"/"informative failure"), discipline and free-text
+// description. CC-BY licensed (attribution required, cite FORRT/FReD), so — unlike
+// WHO ICTRP — a committed seed WOULD be permitted, but none ships yet: DORMANT
+// scaffolding until the maintainer provisions one. Bulk-imported from the FReD OSF
+// CSV export by `npm run forrt:import` (see scripts/forrt-import.ts), which
+// replaces the table wholesale on each run — re-run on a dataset refresh. Both
+// DOIs are identifier data (not a name match), so a hit is auto-included, never a
+// review candidate. Static reference data — no relation to User.
+model ForrtReplication {
+  id             Int      @id @default(autoincrement())
+  /** DOI of the ORIGINAL (replicated) study, normalised lower-case/bare. */
+  originalDoi    String
+  /** DOI of the REPLICATION study itself; null when FReD didn't record one. */
+  replicationDoi String?
+  outcome        String?
+  discipline     String?
+  description    String?
+  originalRef    String?
+  replicationRef String?
+  sourceUrl      String?
+  importedAt     DateTime @default(now())
+
+  @@index([originalDoi])
+  @@index([replicationDoi])
+}
