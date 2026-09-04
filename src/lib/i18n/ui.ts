@@ -185,6 +185,9 @@ export interface UiStrings {
   showWorkIndicators: string;
   /** Note under the per-work indicators toggle explaining what is (and is not) shown. */
   showWorkIndicatorsNote: string;
+  /** Design toggle: the opt-in collaboration-breadth line (default off). */
+  showCollaboration: string;
+  showCollaborationNote: string;
 }
 
 const UI_I18N: Record<Locale, UiStrings> = {
@@ -350,6 +353,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showWorkIndicators: "Show per-publication indicators (RCR, FWCI, clinical citations)",
     showWorkIndicatorsNote:
       "Per-work values as reported by NIH iCite and OpenAlex, each with its own caveat, shown only on works that carry one (RCR and clinical citations are biomedical-only). Nothing is summed, averaged or ranked.",
+    showCollaboration: "Show collaboration breadth (co-author countries)",
+    showCollaborationNote:
+      "One line in the research summary: how many countries appear on your author lists and what share of works span at least two, from OpenAlex affiliation data. Descriptive only — no map, no ranking.",
   },
   "zh-CN": {
     pageSizeLabel: "页面尺寸",
@@ -510,6 +516,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showWorkIndicators: "在每篇论文上显示指标（RCR、FWCI、临床引用）",
     showWorkIndicatorsNote:
       "按 NIH iCite 与 OpenAlex 报告的单篇数值，各自附带说明，仅在有数据的论文上显示（RCR 与临床引用仅限生物医学）。不做求和、平均或排名。",
+    showCollaboration: "显示合作广度（合作者所在国家/地区）",
+    showCollaborationNote:
+      "在研究概览中显示一行：作者列表涉及多少个国家/地区，以及跨两个及以上国家/地区的作品比例，数据来自 OpenAlex 机构信息。仅作描述——无地图、无排名。",
   },
   "es-ES": {
     pageSizeLabel: "Tamaño de página",
@@ -675,6 +684,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showWorkIndicators: "Mostrar indicadores por publicación (RCR, FWCI, citas clínicas)",
     showWorkIndicatorsNote:
       "Valores por trabajo tal como los reportan NIH iCite y OpenAlex, cada uno con su propia advertencia, mostrados solo en los trabajos que los tienen (RCR y citas clínicas son solo biomédicos). Nada se suma, promedia ni clasifica.",
+    showCollaboration: "Mostrar amplitud de colaboración (países de los coautores)",
+    showCollaborationNote:
+      "Una línea en el resumen de investigación: cuántos países aparecen en tus listas de autores y qué proporción de trabajos abarca al menos dos, según las afiliaciones de OpenAlex. Solo descriptivo: sin mapa ni clasificación.",
   },
   "fr-FR": {
     pageSizeLabel: "Format de page",
@@ -841,6 +853,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showWorkIndicators: "Afficher des indicateurs par publication (RCR, FWCI, citations cliniques)",
     showWorkIndicatorsNote:
       "Valeurs par travail telles que rapportées par NIH iCite et OpenAlex, chacune avec sa propre réserve, affichées uniquement sur les travaux qui en ont (RCR et citations cliniques : biomédical uniquement). Rien n’est additionné, moyenné ni classé.",
+    showCollaboration: "Afficher l'étendue des collaborations (pays des co-auteurs)",
+    showCollaborationNote:
+      "Une ligne dans le résumé de recherche : combien de pays figurent dans vos listes d'auteurs et quelle part des travaux en réunit au moins deux, d'après les affiliations OpenAlex. Purement descriptif : ni carte ni classement.",
   },
   "de-DE": {
     pageSizeLabel: "Seitenformat",
@@ -1008,6 +1023,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showWorkIndicators: "Indikatoren je Publikation anzeigen (RCR, FWCI, klinische Zitationen)",
     showWorkIndicatorsNote:
       "Werte je Arbeit, wie von NIH iCite und OpenAlex gemeldet, jeweils mit eigenem Vorbehalt und nur bei Arbeiten angezeigt, die einen tragen (RCR und klinische Zitationen nur biomedizinisch). Nichts wird summiert, gemittelt oder gerankt.",
+    showCollaboration: "Kooperationsbreite anzeigen (Länder der Koautorinnen und Koautoren)",
+    showCollaborationNote:
+      "Eine Zeile in der Forschungsübersicht: wie viele Länder in Ihren Autorenlisten vorkommen und welcher Anteil der Arbeiten mindestens zwei umfasst, nach OpenAlex-Affiliationsdaten. Rein beschreibend – keine Karte, kein Ranking.",
   },
   "ja-JP": {
     pageSizeLabel: "用紙サイズ",
@@ -1171,6 +1189,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showWorkIndicators: "各論文に指標を表示（RCR、FWCI、臨床引用）",
     showWorkIndicatorsNote:
       "NIH iCite と OpenAlex が報告する論文ごとの値を、それぞれ注記付きで、値のある論文にのみ表示します（RCR と臨床引用は生物医学分野のみ）。合計・平均・順位付けは行いません。",
+    showCollaboration: "共同研究の広がりを表示（共著者の国）",
+    showCollaborationNote:
+      "研究概要に 1 行追加します。著者リストに現れる国の数と、2 か国以上にまたがる業績の割合を、OpenAlex の所属データから示します。記述のみで、地図も順位付けもありません。",
   },
   "pt-BR": {
     pageSizeLabel: "Tamanho da página",
@@ -1335,6 +1356,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showWorkIndicators: "Mostrar indicadores por publicação (RCR, FWCI, citações clínicas)",
     showWorkIndicatorsNote:
       "Valores por trabalho conforme reportados pelo NIH iCite e pelo OpenAlex, cada um com sua ressalva, exibidos apenas nos trabalhos que os têm (RCR e citações clínicas são apenas biomédicos). Nada é somado, calculado em média ou ranqueado.",
+    showCollaboration: "Mostrar abrangência de colaboração (países dos coautores)",
+    showCollaborationNote:
+      "Uma linha no resumo de pesquisa: quantos países aparecem nas suas listas de autores e que parcela dos trabalhos abrange pelo menos dois, segundo as afiliações do OpenAlex. Apenas descritivo — sem mapa, sem classificação.",
   },
   "it-IT": {
     pageSizeLabel: "Formato pagina",
@@ -1500,6 +1524,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showWorkIndicators: "Mostra indicatori per pubblicazione (RCR, FWCI, citazioni cliniche)",
     showWorkIndicatorsNote:
       "Valori per lavoro come riportati da NIH iCite e OpenAlex, ciascuno con la propria avvertenza, mostrati solo sui lavori che li hanno (RCR e citazioni cliniche solo per il biomedico). Nulla viene sommato, mediato o classificato.",
+    showCollaboration: "Mostra ampiezza delle collaborazioni (paesi dei coautori)",
+    showCollaborationNote:
+      "Una riga nel riepilogo della ricerca: quanti paesi compaiono nelle tue liste di autori e quale quota di lavori ne coinvolge almeno due, in base alle affiliazioni OpenAlex. Solo descrittivo: nessuna mappa, nessuna classifica.",
   },
   "ko-KR": {
     pageSizeLabel: "페이지 크기",
@@ -1663,6 +1690,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showWorkIndicators: "논문별 지표 표시(RCR, FWCI, 임상 인용)",
     showWorkIndicatorsNote:
       "NIH iCite와 OpenAlex가 보고한 논문별 값을 각각의 주의사항과 함께, 값이 있는 논문에만 표시합니다(RCR과 임상 인용은 생의학 전용). 합산·평균·순위 매기기는 하지 않습니다.",
+    showCollaboration: "협력 범위 표시 (공저자 국가)",
+    showCollaborationNote:
+      "연구 요약에 한 줄을 추가합니다. 저자 목록에 등장하는 국가 수와 두 개 국가 이상에 걸친 논문의 비율을 OpenAlex 소속 데이터로 보여줍니다. 설명용일 뿐 지도나 순위는 없습니다.",
   },
   "ru-RU": {
     pageSizeLabel: "Размер страницы",
@@ -1827,6 +1857,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Показывать индикаторы у каждой публикации (RCR, FWCI, клинические цитирования)",
     showWorkIndicatorsNote:
       "Значения по каждой работе, как их сообщают NIH iCite и OpenAlex, каждое со своей оговоркой, показываются только у работ, где они есть (RCR и клинические цитирования — только биомедицина). Ничего не суммируется, не усредняется и не ранжируется.",
+    showCollaboration: "Показать широту сотрудничества (страны соавторов)",
+    showCollaborationNote:
+      "Одна строка в сводке исследований: сколько стран встречается в ваших списках авторов и какая доля работ охватывает не менее двух, по данным OpenAlex об аффилиациях. Только описание — без карты и рейтинга.",
   },
 };
 

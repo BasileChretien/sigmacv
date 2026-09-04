@@ -164,7 +164,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   }
 
   // getPublicCvForPage already returns the projectCvForPublic() projection.
-  const { cv, indexable, coauthorCvs, recentlyAdded } = record;
+  const { cv, indexable, coauthorCvs, recentlyAdded, provenanceLedger } = record;
 
   // FAIR Signposting typed links — same for the HTML page and every machine
   // representation served from this slug.
@@ -187,6 +187,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       attribution: true,
       coauthorCvs,
       recentlyAdded,
+      // Computed on the STORED document before projection — the projection strips
+      // the attribution/review signals the ledger counts.
+      provenanceLedger,
       publicExtras: true,
       slug,
       feedHref,

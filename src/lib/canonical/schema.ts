@@ -1283,6 +1283,14 @@ export const DisplayChoicesSchema = z.object({
    */
   showOutputLedger: z.boolean().default(false),
   /**
+   * Show the collaboration-breadth line in the research-summary block: how many
+   * countries appear on the owner's author lists, the share of works spanning at
+   * least two, and the most frequent countries (from OpenAlex affiliation data;
+   * `render/collaboration.ts`). Descriptive, no map/chart/ranking. Default off,
+   * and (like the rest of the summary block) it follows `summaryBlockPosition`.
+   */
+  showCollaboration: z.boolean().default(false),
+  /**
    * Re-sync policy for NEW works. Default false = auto-include identifier-matched
    * works as soon as a sync finds them (the living-CV behaviour). True = hold each
    * newly-found own work back as a "held-for-review" candidate (hidden) for the

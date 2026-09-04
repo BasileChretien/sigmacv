@@ -149,6 +149,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
           locale={locale}
           onResolve={(cat) => sectionsRef.current?.resolveHealth(cat)}
           onConfirmAllMisattributed={() => onChange(confirmAllMisattributed(cv))}
+          ownerInsights={!anonymous}
         />
         {sectionsList}
       </div>
@@ -191,6 +192,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
         locale={locale}
         onResolve={jumpToHealth}
         onConfirmAllMisattributed={() => onChange(confirmAllMisattributed(cv))}
+        ownerInsights={!anonymous}
       />
 
       <div className="cv-part-tabs" role="tablist" aria-label={eu.regionsAria} ref={tablistRef}>

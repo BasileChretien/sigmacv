@@ -175,7 +175,7 @@ export const codexTemplate: CvTemplate = {
       vine +
       headerHtml(cv, { photo: true }) +
       sectionsHtml(cv, sections) +
-      `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
+      `${provenanceFooter(cv, opts)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}` +
       `</div>`;
     return cvPageShell(cv, css, body);
   },

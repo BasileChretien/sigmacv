@@ -203,6 +203,7 @@ export default function SyncReportBanner({
       <SourceProvenance
         sourceCounts={report.sourceCounts}
         locale={locale}
+        cv={cv}
         onSelectSource={
           onFocusItem && cv
             ? (itemSource) => {

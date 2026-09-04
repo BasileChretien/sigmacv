@@ -456,6 +456,10 @@
           "default": false,
           "type": "boolean"
         },
+        "showCollaboration": {
+          "default": false,
+          "type": "boolean"
+        },
         "holdNewForReview": {
           "default": false,
           "type": "boolean"
@@ -1371,6 +1375,10 @@
                 "type": "boolean"
               },
               "showOutputLedger": {
+                "default": false,
+                "type": "boolean"
+              },
+              "showCollaboration": {
                 "default": false,
                 "type": "boolean"
               },

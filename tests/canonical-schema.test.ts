@@ -103,6 +103,7 @@ describe("DisplayChoicesSchema", () => {
       sectionsCustomized: false,
       showAuthorshipTable: false,
       showOutputLedger: false,
+      showCollaboration: false,
       holdNewForReview: false,
       pageBreakBefore: [],
       authorshipRoles: [],

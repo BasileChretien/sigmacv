@@ -1,5 +1,6 @@
 import { isHidden, type CanonicalCv } from "@/lib/canonical/schema";
 import { orderedSections } from "@/lib/canonical/curate";
+import { selfReferenceNotice, type SelfReferenceShare } from "./selfReference";
 
 /** The categories the "needs your attention" checklist surfaces. Declared here,
  *  beside the counts and the jump targets, so all three stay one definition. */
@@ -34,6 +35,13 @@ export interface CvHealth {
   retractedVisible: number;
   /** Sum of the above — 0 means nothing awaits the user. */
   total: number;
+  /**
+   * OWNER-ONLY INFORMATION, not curation debt (never part of `total`): the share
+   * of references in the owner's papers that cite their own work, present only
+   * when it clears the notice thresholds (`cv/selfReference.ts`). Shown to the
+   * owner in the editor as a plain fact; never rendered on any CV output.
+   */
+  selfReference?: SelfReferenceShare;
 }
 
 export function computeCvHealth(cv: CanonicalCv): CvHealth {
@@ -68,6 +76,7 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
     }
   }
 
+  const selfRef = selfReferenceNotice(cv);
   return {
     pendingReviewCandidates,
     pendingDuplicates,
@@ -80,6 +89,7 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
       orcidConflicts +
       likelyMisattributed +
       retractedVisible,
+    ...(selfRef ? { selfReference: selfRef } : {}),
   };
 }
 
