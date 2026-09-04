@@ -105,6 +105,7 @@ vi.mock("@/lib/canonical/enrich", () => ({
   enrichCvWithAbstracts: mocks.enrichCvWithAbstracts,
   enrichCvWithIcite: mocks.enrichCvWithIcite,
   enrichCvWithRetractions: mocks.enrichCvWithRetractions,
+  enrichCvWithSupervision: async (cv: unknown) => cv,
   withRorProvenance: (cv: unknown) => cv,
 }));
 

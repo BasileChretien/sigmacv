@@ -1188,6 +1188,31 @@ export default function StyleControls({
           <span>{u.showProvenance}</span>
         </label>
 
+        {/* Structured supervision records: the opt-in summary line, and the
+            third-party-name privacy switch (a degree-level noun replaces each
+            supervisee's name on the public page + exports; the editor keeps it). */}
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.showSupervisionSummary ?? false}
+            onChange={(e) =>
+              onChange(updateDisplay(cv, { showSupervisionSummary: e.target.checked }))
+            }
+          />
+          <span>{eu.supervisionSummaryLabel}</span>
+        </label>
+        <p className="muted metric-preset-note field-note">{eu.supervisionSummaryHint}</p>
+
+        <label className="field-inline">
+          <input
+            type="checkbox"
+            checked={cv.display.hideSuperviseeNames ?? false}
+            onChange={(e) => onChange(updateDisplay(cv, { hideSuperviseeNames: e.target.checked }))}
+          />
+          <span>{eu.hideSuperviseeNamesLabel}</span>
+        </label>
+        <p className="muted metric-preset-note field-note">{eu.hideSuperviseeNamesHint}</p>
+
         <label className="field-inline">
           <input
             type="checkbox"

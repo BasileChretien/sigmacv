@@ -2,6 +2,9 @@
 
 import { useRef, useState } from "react";
 import {
+  DEGREE_LEVELS,
+  SUPERVISION_ROLES,
+  SUPERVISION_STATUSES,
   displayInstitution,
   isHidden,
   itemDateRange,
@@ -14,11 +17,22 @@ import {
   NOT_MINE_REASONS,
   type CvItem,
   type CvSectionType,
+  type DegreeLevel,
   type NotMineReason,
+  type SupervisionRole,
+  type SupervisionStatus,
 } from "@/lib/canonical/schema";
+import type { SupervisionPatch } from "@/lib/canonical/curate";
 import { reasonLabel, t, type Locale } from "@/lib/i18n";
 import { stripInlineMarkup } from "@/lib/text/markup";
 import { ui } from "@/lib/i18n/ui";
+import { editorUi } from "@/lib/i18n/editorUi";
+import {
+  degreeLabel,
+  renderStrings,
+  supervisionRoleLabel,
+  supervisionStatusLabel,
+} from "@/lib/i18n/render";
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { needsReview } from "@/lib/canonical/review";
@@ -195,6 +209,13 @@ interface ItemRowProps {
   /** Set/clear the journal/venue override on a CITATION row — the "Edit details"
    *  disclosure. Passing "" reverts to the source venue. */
   onSetVenue?: (venue: string) => void;
+  /**
+   * Set/clear the STRUCTURED supervision fields on a manual SUPERVISION row — the
+   * "Supervision details" disclosure (supervisee, degree level, role, years,
+   * status, thesis, current position, institution). The editor passes it for
+   * every row; the gate (supervision + manual) lives here.
+   */
+  onSetSupervision?: (patch: SupervisionPatch) => void;
   /** Delete a manual entry (only passed for source === "manual"). */
   onRemove?: () => void;
   /** Bulk-selection mode: render a leading checkbox instead of drag affordances. */
@@ -219,6 +240,130 @@ interface ItemRowProps {
   /** Briefly highlight this row — set when the CV-health checklist jumps the
    *  user here, so the just-scrolled-to item stands out. */
   flash?: boolean;
+}
+
+/**
+ * "Supervision details" — the structured form on a MANUAL supervision row. The
+ * free-text line stays the fallback; once a supervisee / degree level / role /
+ * thesis title is entered, every render shows the two-line record instead. Each
+ * change goes through the pure `setSupervisionDetails` curate op (blank clears).
+ * The supervisee's name is THIRD-PARTY personal data, hence the reminder beside
+ * it; `display.hideSuperviseeNames` (Design tab) swaps it for a degree noun on the
+ * public page + exports while this field keeps it.
+ */
+function SupervisionDetails({
+  item,
+  locale,
+  onSet,
+}: {
+  item: CvItem;
+  locale: Locale;
+  onSet: (patch: SupervisionPatch) => void;
+}) {
+  const eu = editorUi(locale);
+  const rs = renderStrings(locale);
+  const m = item.meta;
+  const text = (
+    key:
+      | "superviseeName"
+      | "thesisTitle"
+      | "thesisDoi"
+      | "thesisUrl"
+      | "currentPosition"
+      | "institution",
+    label: string,
+    maxLength: number,
+  ) => (
+    <div className="cv-item-edit-wrap">
+      <input
+        className="cv-item-edit"
+        maxLength={maxLength}
+        value={m[key] ?? ""}
+        onChange={(e) => onSet({ [key]: e.target.value })}
+        placeholder={label}
+        aria-label={label}
+      />
+    </div>
+  );
+  return (
+    <details className="cv-item-details cv-supervision-details">
+      <summary>{eu.supervisionDetails}</summary>
+      <div className="cv-item-details-body">
+        {text("superviseeName", eu.superviseeNameLabel, 120)}
+        <p className="muted field-note cv-supervision-privacy">{eu.superviseeNamePrivacyNote}</p>
+        <div className="cv-item-selects">
+          <select
+            aria-label={eu.degreeLevelLabel}
+            value={m.degreeLevel ?? ""}
+            onChange={(e) => onSet({ degreeLevel: e.target.value as DegreeLevel | "" })}
+          >
+            <option value="">
+              {eu.degreeLevelLabel}: {eu.notSpecified}
+            </option>
+            {DEGREE_LEVELS.map((l) => (
+              <option key={l} value={l}>
+                {degreeLabel(rs, l)}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label={eu.supervisionRoleLabel}
+            value={m.supervisionRole ?? ""}
+            onChange={(e) => onSet({ supervisionRole: e.target.value as SupervisionRole | "" })}
+          >
+            <option value="">
+              {eu.supervisionRoleLabel}: {eu.notSpecified}
+            </option>
+            {SUPERVISION_ROLES.map((r) => (
+              <option key={r} value={r}>
+                {supervisionRoleLabel(rs, r)}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label={eu.supervisionStatusLabel}
+            value={m.status ?? ""}
+            onChange={(e) => onSet({ status: e.target.value as SupervisionStatus | "" })}
+          >
+            <option value="">
+              {eu.supervisionStatusLabel}: {eu.notSpecified}
+            </option>
+            {SUPERVISION_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {supervisionStatusLabel(rs, s)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="cv-item-dates">
+          <input
+            className="cv-item-year"
+            type="number"
+            inputMode="numeric"
+            value={m.startYear ?? ""}
+            onChange={(e) => onSet({ startYear: parseYear(e.target.value) })}
+            aria-label={ui(locale).startYearAria}
+            placeholder={ui(locale).startYearAria}
+          />
+          <span aria-hidden="true">–</span>
+          <input
+            className="cv-item-year"
+            type="number"
+            inputMode="numeric"
+            value={m.endYear ?? ""}
+            onChange={(e) => onSet({ endYear: parseYear(e.target.value) })}
+            aria-label={ui(locale).endYearAria}
+            placeholder={ui(locale).endYearAria}
+          />
+        </div>
+        {text("thesisTitle", eu.thesisTitleLabel, 300)}
+        {text("thesisDoi", eu.thesisDoiLabel, 1000)}
+        {text("thesisUrl", eu.thesisUrlLabel, 2048)}
+        {text("currentPosition", eu.currentPositionLabel, 160)}
+        {text("institution", eu.supervisionInstitutionLabel, 500)}
+      </div>
+    </details>
+  );
 }
 
 export default function ItemRow({
@@ -253,6 +398,7 @@ export default function ItemRow({
   onSetDateRange,
   onSetYear,
   onSetVenue,
+  onSetSupervision,
   onRemove,
   selectable = false,
   selected = false,
@@ -749,6 +895,9 @@ export default function ItemRow({
             {sourceBadge}
           </div>
         )}
+        {isManual && sectionType === "supervision" && onSetSupervision ? (
+          <SupervisionDetails item={item} locale={locale} onSet={onSetSupervision} />
+        ) : null}
         {isCitation && onSetYear && onSetVenue ? (
           // Correct a citation's bibliographic basics — publication year and
           // journal/venue (e.g. a common abbreviation). Patched into the CSL before

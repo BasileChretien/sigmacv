@@ -196,7 +196,7 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
     );
   }
 
-  for (const { section, items } of sections) {
+  for (const { section, intro, items } of sections) {
     // Prose sections (narrative contributions / a statement) render their
     // free-text body in the section flow, in their reordered position.
     if (isProseSectionType(section.type)) {
@@ -211,6 +211,15 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
         children: [new TextRun({ text: section.title, bold: true })],
       }),
     );
+    // Optional one-line lead-in (the Supervision summary), italic under the heading.
+    if (intro) {
+      children.push(
+        new Paragraph({
+          children: [new TextRun({ text: intro, italics: true })],
+          spacing: { after: 80 },
+        }),
+      );
+    }
     for (const { item, entry } of items) {
       const runs =
         cv.display.highlightSelf && item.selfNameVariants.length > 0

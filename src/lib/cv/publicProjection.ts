@@ -65,6 +65,7 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
   //  - drop the items the PUBLISHED view hid ("hide from this view"), so every
   //    public format reflects what the owner published, not the full set.
   const excludedItems = cv.display.excludedItems;
+  const hideNames = cv.display.hideSuperviseeNames === true;
   const sections = cv.sections.map((s) => {
     const ex = excludedItems?.[s.id];
     const exSet = ex?.length ? new Set(ex) : null;
@@ -105,6 +106,11 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
             // set. Resolution reads the stored (unprojected) doc, so stripping it
             // here keeps it out of the machine downloads (json/csljson/bibtex).
             coauthorOrcids: undefined,
+            // A supervisee's NAME is third-party personal data. When the owner chose
+            // to hide names (`display.hideSuperviseeNames`), the renderers show a
+            // degree-level noun instead — and the raw json must not carry the name
+            // either, so it is stripped here (the owner's stored doc keeps it).
+            ...(hideNames ? { superviseeName: undefined } : {}),
           },
         })),
     };

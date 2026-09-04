@@ -98,6 +98,25 @@ export interface EditorExtraStrings {
   regionDesign: string;
   regionProfile: string;
   regionsAria: string;
+  // Structured supervision record (the supervision section's item form + two display toggles).
+  supervisionDetails: string;
+  superviseeNameLabel: string;
+  /** Third-party personal data reminder next to the supervisee-name field. */
+  superviseeNamePrivacyNote: string;
+  degreeLevelLabel: string;
+  supervisionRoleLabel: string;
+  supervisionStatusLabel: string;
+  thesisTitleLabel: string;
+  thesisDoiLabel: string;
+  thesisUrlLabel: string;
+  currentPositionLabel: string;
+  supervisionInstitutionLabel: string;
+  /** Empty option of the degree / role / status selects. */
+  notSpecified: string;
+  supervisionSummaryLabel: string;
+  supervisionSummaryHint: string;
+  hideSuperviseeNamesLabel: string;
+  hideSuperviseeNamesHint: string;
 }
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
@@ -183,6 +202,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Design",
     regionProfile: "Profile",
     regionsAria: "Editor sections",
+    supervisionDetails: "Supervision details",
+    superviseeNameLabel: "Supervisee name",
+    superviseeNamePrivacyNote: "Only publish names with the person's agreement.",
+    degreeLevelLabel: "Degree level",
+    supervisionRoleLabel: "Your role",
+    supervisionStatusLabel: "Status",
+    thesisTitleLabel: "Thesis title",
+    thesisDoiLabel: "Thesis DOI",
+    thesisUrlLabel: "Thesis URL",
+    currentPositionLabel: "Current position (where they went next)",
+    supervisionInstitutionLabel: "Institution",
+    notSpecified: "Not specified",
+    supervisionSummaryLabel: "Supervision summary line",
+    supervisionSummaryHint:
+      "Adds a one-line count at the top of the Supervision section (e.g. “12 supervised: 5 PhD (4 completed), 6 Master's”).",
+    hideSuperviseeNamesLabel: "Hide supervisee names",
+    hideSuperviseeNamesHint:
+      "Shows “PhD student” instead of the person's name on the public page and in every export (structured entries only); the name stays in the editor.",
   },
   "zh-CN": {
     coverageNote:
@@ -264,6 +301,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "外观",
     regionProfile: "个人资料",
     regionsAria: "编辑器区域",
+    supervisionDetails: "指导详情",
+    superviseeNameLabel: "被指导者姓名",
+    superviseeNamePrivacyNote: "仅在征得本人同意后发布姓名。",
+    degreeLevelLabel: "学位层次",
+    supervisionRoleLabel: "您的角色",
+    supervisionStatusLabel: "状态",
+    thesisTitleLabel: "论文题目",
+    thesisDoiLabel: "论文 DOI",
+    thesisUrlLabel: "论文网址",
+    currentPositionLabel: "目前职位（去向）",
+    supervisionInstitutionLabel: "机构",
+    notSpecified: "未指定",
+    supervisionSummaryLabel: "指导概况行",
+    supervisionSummaryHint:
+      "在“指导”栏目顶部添加一行统计（例如“共指导 12 人：博士 5 人（4 人已完成）、硕士 6 人”）。",
+    hideSuperviseeNamesLabel: "隐藏被指导者姓名",
+    hideSuperviseeNamesHint:
+      "在公开页面和所有导出中以“博士生”等代替姓名（仅限结构化条目）；编辑器中仍保留姓名。",
   },
   "es-ES": {
     coverageNote:
@@ -348,6 +403,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Diseño",
     regionProfile: "Perfil",
     regionsAria: "Secciones del editor",
+    supervisionDetails: "Detalles de la supervisión",
+    superviseeNameLabel: "Nombre de la persona supervisada",
+    superviseeNamePrivacyNote: "Publica nombres solo con el consentimiento de la persona.",
+    degreeLevelLabel: "Nivel académico",
+    supervisionRoleLabel: "Tu rol",
+    supervisionStatusLabel: "Estado",
+    thesisTitleLabel: "Título de la tesis",
+    thesisDoiLabel: "DOI de la tesis",
+    thesisUrlLabel: "URL de la tesis",
+    currentPositionLabel: "Puesto actual (a dónde fue después)",
+    supervisionInstitutionLabel: "Institución",
+    notSpecified: "Sin especificar",
+    supervisionSummaryLabel: "Línea de resumen de supervisión",
+    supervisionSummaryHint:
+      "Añade una línea con el recuento al inicio de la sección Supervisión (p. ej. «12 supervisiones: 5 Doctorado (4 completadas), 6 Máster»).",
+    hideSuperviseeNamesLabel: "Ocultar nombres de personas supervisadas",
+    hideSuperviseeNamesHint:
+      "Muestra «Doctorando/a» en lugar del nombre en la página pública y en todas las exportaciones (solo entradas estructuradas); el nombre se conserva en el editor.",
   },
   "fr-FR": {
     coverageNote:
@@ -434,6 +507,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Apparence",
     regionProfile: "Profil",
     regionsAria: "Sections de l’éditeur",
+    supervisionDetails: "Détails de l’encadrement",
+    superviseeNameLabel: "Nom de la personne encadrée",
+    superviseeNamePrivacyNote: "Ne publiez un nom qu’avec l’accord de la personne.",
+    degreeLevelLabel: "Niveau de diplôme",
+    supervisionRoleLabel: "Votre rôle",
+    supervisionStatusLabel: "Statut",
+    thesisTitleLabel: "Titre de la thèse",
+    thesisDoiLabel: "DOI de la thèse",
+    thesisUrlLabel: "URL de la thèse",
+    currentPositionLabel: "Poste actuel (parcours ultérieur)",
+    supervisionInstitutionLabel: "Établissement",
+    notSpecified: "Non précisé",
+    supervisionSummaryLabel: "Ligne de synthèse de l’encadrement",
+    supervisionSummaryHint:
+      "Ajoute une ligne de décompte en tête de la section Encadrement (p. ex. « 12 personnes encadrées : 5 Doctorat (4 terminées), 6 Master »).",
+    hideSuperviseeNamesLabel: "Masquer les noms des personnes encadrées",
+    hideSuperviseeNamesHint:
+      "Affiche « Doctorant·e » à la place du nom sur la page publique et dans tous les exports (entrées structurées uniquement) ; le nom reste dans l’éditeur.",
   },
   "de-DE": {
     coverageNote:
@@ -519,6 +610,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Design",
     regionProfile: "Profil",
     regionsAria: "Editor-Bereiche",
+    supervisionDetails: "Betreuungsdetails",
+    superviseeNameLabel: "Name der betreuten Person",
+    superviseeNamePrivacyNote: "Namen nur mit Zustimmung der Person veröffentlichen.",
+    degreeLevelLabel: "Abschlussniveau",
+    supervisionRoleLabel: "Ihre Rolle",
+    supervisionStatusLabel: "Status",
+    thesisTitleLabel: "Titel der Arbeit",
+    thesisDoiLabel: "DOI der Arbeit",
+    thesisUrlLabel: "URL der Arbeit",
+    currentPositionLabel: "Aktuelle Position (weiterer Werdegang)",
+    supervisionInstitutionLabel: "Institution",
+    notSpecified: "Nicht angegeben",
+    supervisionSummaryLabel: "Zusammenfassungszeile Betreuung",
+    supervisionSummaryHint:
+      "Fügt oben im Abschnitt Betreuung eine Zählzeile hinzu (z. B. „12 betreut: 5 Promotion (4 abgeschlossen), 6 Master“).",
+    hideSuperviseeNamesLabel: "Namen betreuter Personen ausblenden",
+    hideSuperviseeNamesHint:
+      "Zeigt auf der öffentlichen Seite und in allen Exporten „Doktorand·in“ statt des Namens (nur strukturierte Einträge); im Editor bleibt der Name erhalten.",
   },
   "ja-JP": {
     coverageNote:
@@ -603,6 +712,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "デザイン",
     regionProfile: "プロフィール",
     regionsAria: "エディターのセクション",
+    supervisionDetails: "指導の詳細",
+    superviseeNameLabel: "指導学生の氏名",
+    superviseeNamePrivacyNote: "氏名は本人の同意を得た場合のみ公開してください。",
+    degreeLevelLabel: "学位区分",
+    supervisionRoleLabel: "あなたの役割",
+    supervisionStatusLabel: "状況",
+    thesisTitleLabel: "論文題目",
+    thesisDoiLabel: "論文の DOI",
+    thesisUrlLabel: "論文の URL",
+    currentPositionLabel: "現在の職位（進路）",
+    supervisionInstitutionLabel: "所属機関",
+    notSpecified: "未指定",
+    supervisionSummaryLabel: "指導サマリー行",
+    supervisionSummaryHint:
+      "「指導」セクションの先頭に人数の一行を追加します（例：「指導 12 名：博士 5 名（うち修了 4 名）、修士 6 名」）。",
+    hideSuperviseeNamesLabel: "指導学生の氏名を非表示",
+    hideSuperviseeNamesHint:
+      "公開ページとすべてのエクスポートで氏名の代わりに「博士課程学生」などを表示します（構造化された項目のみ）。エディター内では氏名は保持されます。",
   },
   "pt-BR": {
     coverageNote:
@@ -687,6 +814,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Aparência",
     regionProfile: "Perfil",
     regionsAria: "Seções do editor",
+    supervisionDetails: "Detalhes da orientação",
+    superviseeNameLabel: "Nome do(a) orientando(a)",
+    superviseeNamePrivacyNote: "Publique nomes somente com o consentimento da pessoa.",
+    degreeLevelLabel: "Nível acadêmico",
+    supervisionRoleLabel: "Seu papel",
+    supervisionStatusLabel: "Situação",
+    thesisTitleLabel: "Título da tese",
+    thesisDoiLabel: "DOI da tese",
+    thesisUrlLabel: "URL da tese",
+    currentPositionLabel: "Cargo atual (para onde foi depois)",
+    supervisionInstitutionLabel: "Instituição",
+    notSpecified: "Não informado",
+    supervisionSummaryLabel: "Linha de resumo das orientações",
+    supervisionSummaryHint:
+      "Adiciona uma linha de contagem no topo da seção Orientações (ex.: “12 orientações: 5 Doutorado (4 concluídas), 6 Mestrado”).",
+    hideSuperviseeNamesLabel: "Ocultar nomes dos orientandos",
+    hideSuperviseeNamesHint:
+      "Mostra “Doutorando(a)” em vez do nome na página pública e em todas as exportações (apenas entradas estruturadas); o nome permanece no editor.",
   },
   "it-IT": {
     coverageNote:
@@ -773,6 +918,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Aspetto",
     regionProfile: "Profilo",
     regionsAria: "Sezioni dell’editor",
+    supervisionDetails: "Dettagli della supervisione",
+    superviseeNameLabel: "Nome della persona supervisionata",
+    superviseeNamePrivacyNote: "Pubblica i nomi solo con il consenso della persona.",
+    degreeLevelLabel: "Livello di titolo",
+    supervisionRoleLabel: "Il tuo ruolo",
+    supervisionStatusLabel: "Stato",
+    thesisTitleLabel: "Titolo della tesi",
+    thesisDoiLabel: "DOI della tesi",
+    thesisUrlLabel: "URL della tesi",
+    currentPositionLabel: "Posizione attuale (percorso successivo)",
+    supervisionInstitutionLabel: "Istituzione",
+    notSpecified: "Non specificato",
+    supervisionSummaryLabel: "Riga di riepilogo supervisioni",
+    supervisionSummaryHint:
+      "Aggiunge una riga di conteggio in cima alla sezione Supervisione (es. «12 supervisioni: 5 Dottorato (4 completate), 6 Laurea magistrale»).",
+    hideSuperviseeNamesLabel: "Nascondi i nomi delle persone supervisionate",
+    hideSuperviseeNamesHint:
+      "Mostra «Dottorando/a» al posto del nome nella pagina pubblica e in tutte le esportazioni (solo voci strutturate); il nome resta nell’editor.",
   },
   "ko-KR": {
     coverageNote:
@@ -857,6 +1020,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "디자인",
     regionProfile: "프로필",
     regionsAria: "편집기 섹션",
+    supervisionDetails: "지도 세부 정보",
+    superviseeNameLabel: "지도 학생 이름",
+    superviseeNamePrivacyNote: "이름은 본인의 동의를 얻은 경우에만 공개하세요.",
+    degreeLevelLabel: "학위 수준",
+    supervisionRoleLabel: "나의 역할",
+    supervisionStatusLabel: "상태",
+    thesisTitleLabel: "논문 제목",
+    thesisDoiLabel: "논문 DOI",
+    thesisUrlLabel: "논문 URL",
+    currentPositionLabel: "현재 직위(이후 진로)",
+    supervisionInstitutionLabel: "기관",
+    notSpecified: "지정 안 함",
+    supervisionSummaryLabel: "지도 요약 줄",
+    supervisionSummaryHint:
+      "지도 섹션 상단에 인원 집계 한 줄을 추가합니다(예: “지도 12명: 박사 5명(4명 완료), 석사 6명”).",
+    hideSuperviseeNamesLabel: "지도 학생 이름 숨기기",
+    hideSuperviseeNamesHint:
+      "공개 페이지와 모든 내보내기에서 이름 대신 “박사과정생”을 표시합니다(구조화된 항목만). 편집기에는 이름이 유지됩니다.",
   },
   "ru-RU": {
     coverageNote:
@@ -940,6 +1121,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionDesign: "Оформление",
     regionProfile: "Профиль",
     regionsAria: "Разделы редактора",
+    supervisionDetails: "Сведения о руководстве",
+    superviseeNameLabel: "Имя подопечного",
+    superviseeNamePrivacyNote: "Публикуйте имена только с согласия самого человека.",
+    degreeLevelLabel: "Уровень",
+    supervisionRoleLabel: "Ваша роль",
+    supervisionStatusLabel: "Статус",
+    thesisTitleLabel: "Название диссертации",
+    thesisDoiLabel: "DOI диссертации",
+    thesisUrlLabel: "URL диссертации",
+    currentPositionLabel: "Текущая должность (дальнейший путь)",
+    supervisionInstitutionLabel: "Организация",
+    notSpecified: "Не указано",
+    supervisionSummaryLabel: "Строка сводки по руководству",
+    supervisionSummaryHint:
+      "Добавляет строку с подсчётом в начало раздела «Руководство» (например, «12 под руководством: 5 Аспирантура (PhD) (4 завершено), 6 Магистратура»).",
+    hideSuperviseeNamesLabel: "Скрывать имена подопечных",
+    hideSuperviseeNamesHint:
+      "На публичной странице и во всех экспортах вместо имени показывается «Аспирант» (только для структурированных записей); в редакторе имя сохраняется.",
   },
 };
 

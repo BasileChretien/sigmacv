@@ -2,9 +2,12 @@ import { isHidden, type CanonicalCv, type CvItem, type Provenance } from "@/lib/
 import {
   fetchCrossrefAbstract,
   fetchCrossrefGapFields,
+  fetchCrossrefTitleYear,
   fetchRetractionStatus,
   type CrossrefGapFields,
+  type DoiTitleYear,
 } from "@/lib/crossref/client";
+import { fetchDataciteTitleYear } from "@/lib/datacite/client";
 import { fetchRcrByPmids } from "@/lib/icite/client";
 import { resolveInstitution } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
@@ -47,7 +50,7 @@ async function mapBounded<T, R>(
   return results;
 }
 
-function withSource(prov: Provenance, source: "crossref" | "ror"): Provenance {
+function withSource(prov: Provenance, source: "crossref" | "datacite" | "ror"): Provenance {
   if (prov.sources.includes(source)) return prov;
   return { ...prov, sources: [...prov.sources, source] };
 }
@@ -361,4 +364,90 @@ export async function canonicalizeInstitutions(
 /** Stamp "ror" onto a freshly-built CV's provenance (used after canonicalization). */
 export function withRorProvenance(cv: CanonicalCv): CanonicalCv {
   return { ...cv, provenance: withSource(cv.provenance, "ror") };
+}
+
+// ─── Supervision records: thesis DOI gap-fill + institution ROR ───────────────
+
+const SUPERVISION_MAX_ENRICH = 20;
+
+type ThesisLookup = DoiTitleYear & { source: "crossref" | "datacite" };
+
+/** A thesis DOI lookup: Crossref first, then DataCite (repository-minted DOIs). */
+async function fetchThesisTitleYear(doi: string, mailto: string): Promise<ThesisLookup | null> {
+  const cr = await fetchCrossrefTitleYear(doi, mailto);
+  if (cr) return { ...cr, source: "crossref" };
+  const dc = await fetchDataciteTitleYear(doi);
+  return dc ? { ...dc, source: "datacite" } : null;
+}
+
+/**
+ * Enrich the owner-entered SUPERVISION records after a sync (they are never
+ * sourced, only carried over — see build.ts):
+ *  - a thesis DOI with no title and/or no end year → title + year gap-filled
+ *    from Crossref, falling back to DataCite. The year fills `endYear` only when
+ *    the record is not marked ongoing (a thesis year IS the completion year);
+ *  - an institution name with no ROR id → canonical id + localized names +
+ *    homepage from ROR (the same confident-match rule as positions).
+ * Bounded to {@link SUPERVISION_MAX_ENRICH} records, concurrency-limited,
+ * fail-soft and immutable; already-filled fields are never overwritten (the
+ * owner's text always wins), and a filled field persists, so it is not re-fetched.
+ */
+export async function enrichCvWithSupervision(
+  cv: CanonicalCv,
+  mailto: string,
+): Promise<CanonicalCv> {
+  const s = cv.sections.findIndex((sec) => sec.type === "supervision");
+  if (s < 0) return cv;
+  const section = cv.sections[s]!;
+  const needsThesis = (it: CvItem): boolean =>
+    Boolean(it.meta.thesisDoi) &&
+    (!it.meta.thesisTitle?.trim() ||
+      (it.meta.endYear === undefined && it.meta.status !== "ongoing"));
+  const needsRor = (it: CvItem): boolean => Boolean(it.meta.institution?.trim()) && !it.meta.rorId;
+  const targets = section.items
+    .map((it, i) => ({ it, i }))
+    .filter(({ it }) => !isHidden(it) && (needsThesis(it) || needsRor(it)))
+    .slice(0, SUPERVISION_MAX_ENRICH);
+  if (targets.length === 0) return cv;
+
+  const results = await mapBounded(targets, CONCURRENCY, async ({ it }) => ({
+    thesis: needsThesis(it) ? await fetchThesisTitleYear(it.meta.thesisDoi!, mailto) : null,
+    ror: needsRor(it) ? await resolveInstitution(it.meta.institution!.trim()) : null,
+  }));
+
+  let changed = false;
+  const used = new Set<"crossref" | "datacite">();
+  const items = section.items.map((it, i) => {
+    const t = targets.findIndex((x) => x.i === i);
+    if (t < 0) return it;
+    const r = results[t]!;
+    const meta = { ...it.meta };
+    if (r.thesis) {
+      if (!meta.thesisTitle?.trim() && r.thesis.title) meta.thesisTitle = r.thesis.title;
+      if (meta.endYear === undefined && meta.status !== "ongoing" && r.thesis.year) {
+        meta.endYear = r.thesis.year;
+      }
+      used.add(r.thesis.source);
+    }
+    if (r.ror) {
+      meta.rorId = r.ror.id || undefined;
+      meta.institutionNames = r.ror.names ?? meta.institutionNames;
+      meta.institutionUrl = r.ror.website ?? meta.institutionUrl;
+    }
+    if (
+      meta.thesisTitle === it.meta.thesisTitle &&
+      meta.endYear === it.meta.endYear &&
+      meta.rorId === it.meta.rorId
+    ) {
+      return it;
+    }
+    changed = true;
+    return { ...it, meta };
+  });
+  if (!changed) return cv;
+  const sections = cv.sections.map((sec, i) => (i === s ? { ...sec, items } : sec));
+  // Provenance names whichever DOI registry actually answered.
+  let provenance = cv.provenance;
+  for (const src of used) provenance = withSource(provenance, src);
+  return { ...cv, sections, provenance };
 }

@@ -16,6 +16,7 @@ import {
   enrichCvWithCrossref,
   enrichCvWithIcite,
   enrichCvWithRetractions,
+  enrichCvWithSupervision,
   withRorProvenance,
 } from "@/lib/canonical/enrich";
 import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
@@ -430,6 +431,11 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
   // public page's expandable abstract appears on more entries. Bounded + fails soft;
   // a filled abstract persists across re-sync (build.ts), so it isn't re-fetched.
   cv = await timed("enrich.abstracts", enrichCvWithAbstracts(cv, getEnv().OPENALEX_MAILTO));
+
+  // Supervision records (owner-entered, carried over by the build): gap-fill a
+  // thesis DOI's title/year from Crossref → DataCite and the institution's ROR id.
+  // Bounded + fails soft; filled fields persist, so they aren't re-fetched.
+  cv = await timed("enrich.supervision", enrichCvWithSupervision(cv, getEnv().OPENALEX_MAILTO));
 
   // NIH iCite: fold the Relative Citation Ratio onto works with a PMID (opt-in
   // biomedical field-normalized metric). Bounded + fails soft.

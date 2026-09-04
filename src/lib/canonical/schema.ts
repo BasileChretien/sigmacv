@@ -29,6 +29,28 @@ export const CV_LICENSES = [
 ] as const;
 export type CvLicenseKey = (typeof CV_LICENSES)[number];
 
+/**
+ * Structured supervision / mentoring records (the `supervision` section). These
+ * closed vocabularies back the optional `meta.degreeLevel` / `meta.supervisionRole`
+ * / `meta.status` fields on a supervision item — the evidence the
+ * "contributions to the development of individuals" narrative module draws on.
+ * Localized labels live in `i18n/render.ts`; an unknown stored value degrades to
+ * `undefined` rather than failing the CV read (same convention as `reviewFlag`).
+ */
+export const DEGREE_LEVELS = [
+  "bachelor",
+  "master",
+  "phd",
+  "postdoc",
+  "clinical-fellow",
+  "other",
+] as const;
+export type DegreeLevel = (typeof DEGREE_LEVELS)[number];
+export const SUPERVISION_ROLES = ["primary", "co-supervisor", "committee", "mentor"] as const;
+export type SupervisionRole = (typeof SUPERVISION_ROLES)[number];
+export const SUPERVISION_STATUSES = ["ongoing", "completed", "discontinued"] as const;
+export type SupervisionStatus = (typeof SUPERVISION_STATUSES)[number];
+
 export const SECTION_TYPES = [
   "publications",
   "preprints",
@@ -523,6 +545,37 @@ const CvItemSchema = z.object({
         endYear: z.number().int().optional(),
       })
       .optional(),
+    // ── Structured supervision / mentoring record (supervision section only) ──
+    // ORCID carries no supervision data, so these are OWNER-ENTERED; the item
+    // stays `source: "manual"` and survives re-sync with the rest of the carried
+    // user sections (build.ts). All optional: a supervision entry with none of
+    // them renders as the free-text line it always did. `institution`/`rorId`/
+    // `startYear`/`endYear` above are reused (the record's host institution and
+    // the supervision period — `endYear` undefined = still running).
+    /**
+     * The supervisee's personal name — THIRD-PARTY personal data the owner
+     * publishes. The editor reminds the owner to publish it only with the person's
+     * agreement, and `display.hideSuperviseeNames` replaces it with a degree-level
+     * noun ("PhD student") on the public page + every export (the name stays in
+     * the editor). Stripped from the public projection when that toggle is on.
+     */
+    superviseeName: z.string().max(120).optional(),
+    /** Degree / career level of the supervisee (closed vocabulary, see DEGREE_LEVELS). */
+    degreeLevel: z.enum(DEGREE_LEVELS).optional().catch(undefined),
+    /** The owner's role in the supervision (closed vocabulary, see SUPERVISION_ROLES). */
+    supervisionRole: z.enum(SUPERVISION_ROLES).optional().catch(undefined),
+    /** Outcome / state of the supervision (closed vocabulary, see SUPERVISION_STATUSES). */
+    status: z.enum(SUPERVISION_STATUSES).optional().catch(undefined),
+    /** Thesis / dissertation title. Gap-filled from Crossref/DataCite by DOI when blank. */
+    thesisTitle: z.string().max(300).optional(),
+    /** Thesis DOI (bare "10.…/…" form). Deliberately NOT `csl.DOI`/`meta.doi`, so a
+     *  thesis can never be mistaken for one of the owner's own works by the
+     *  re-sync DOI reconciliation. */
+    thesisDoi: z.string().max(1000).optional(),
+    /** Thesis / repository landing URL (used when there is no DOI; re-validated at render). */
+    thesisUrl: z.string().max(2048).optional(),
+    /** "Where they went next" — the supervisee's current position, optional. */
+    currentPosition: z.string().max(160).optional(),
     /**
      * Funder identifier for a grant item (interoperable funding metadata). The
      * OpenAlex funder id (e.g. "https://openalex.org/F4320332161") or the ORCID
@@ -747,6 +800,21 @@ export function itemDateRange(item: Pick<CvItem, "meta">): {
 } {
   return (
     item.meta.dateRangeOverride ?? { startYear: item.meta.startYear, endYear: item.meta.endYear }
+  );
+}
+
+/**
+ * Whether a supervision item carries a STRUCTURED record — at least one of the
+ * fields that give it a lead line (supervisee name, degree level, role) or a
+ * thesis title. Such an item renders as the two-line supervision record; one
+ * without renders its free-text line unchanged. Dates/status alone don't make an
+ * entry structured (there'd be nothing to lead the line with). Shared by the
+ * renderers, the summary helper and the narrative-evidence extractor.
+ */
+export function hasStructuredSupervision(item: Pick<CvItem, "meta">): boolean {
+  const m = item.meta;
+  return Boolean(
+    m.superviseeName?.trim() || m.degreeLevel || m.supervisionRole || m.thesisTitle?.trim(),
   );
 }
 
@@ -1317,6 +1385,22 @@ export const DisplayChoicesSchema = z.object({
    * tokens, no PII.
    */
   showDocQr: z.boolean().default(false),
+  /**
+   * Show a compact "Supervision summary" line at the top of the Supervision
+   * section ("12 supervised: 5 PhD (4 completed), 6 master's, 1 postdoc"),
+   * computed from the visible supervision items (`render/supervisionSummary.ts`).
+   * Opt-IN: default OFF (an evaluative figure, like the other counts).
+   */
+  showSupervisionSummary: z.boolean().default(false),
+  /**
+   * Replace each supervisee's NAME (third-party personal data) with a degree-level
+   * noun ("PhD student") on the PUBLIC page and in every export, while the name
+   * stays in the editor. Applied once in the shared prepare step (every renderer
+   * inherits it) and in the public projection (so the machine downloads never
+   * carry the name). Default OFF — the owner decides what to publish, having
+   * been reminded to publish names only with the person's agreement.
+   */
+  hideSuperviseeNames: z.boolean().default(false),
   /**
    * Whether THIS CV may be linked TO from other users' co-author blocks / JSON-LD
    * `knows` graphs (i.e. listed as their on-SigmaCV co-author). Opt-OUT: default
