@@ -348,7 +348,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     coffee: "☕ Buy me a coffee",
     supportTitle: "SigmaCV is free and not-for-profit — a coffee helps cover its running costs.",
     showWorkIndicators: "Show per-publication indicators (RCR, FWCI, clinical citations)",
-    showWorkIndicatorsNote: "Per-work values as reported by NIH iCite and OpenAlex, each with its own caveat, shown only on works that carry one (RCR and clinical citations are biomedical-only). Nothing is summed, averaged or ranked.",
+    showWorkIndicatorsNote:
+      "Per-work values as reported by NIH iCite and OpenAlex, each with its own caveat, shown only on works that carry one (RCR and clinical citations are biomedical-only). Nothing is summed, averaged or ranked.",
   },
   "zh-CN": {
     pageSizeLabel: "页面尺寸",
@@ -507,7 +508,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     coffee: "☕ 请我喝杯咖啡",
     supportTitle: "SigmaCV 免费且非营利——一杯咖啡有助于支付运营成本。",
     showWorkIndicators: "在每篇论文上显示指标（RCR、FWCI、临床引用）",
-    showWorkIndicatorsNote: "按 NIH iCite 与 OpenAlex 报告的单篇数值，各自附带说明，仅在有数据的论文上显示（RCR 与临床引用仅限生物医学）。不做求和、平均或排名。",
+    showWorkIndicatorsNote:
+      "按 NIH iCite 与 OpenAlex 报告的单篇数值，各自附带说明，仅在有数据的论文上显示（RCR 与临床引用仅限生物医学）。不做求和、平均或排名。",
   },
   "es-ES": {
     pageSizeLabel: "Tamaño de página",
@@ -671,7 +673,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     coffee: "☕ Invítame a un café",
     supportTitle: "SigmaCV es gratuito y sin ánimo de lucro: un café ayuda a cubrir sus costes.",
     showWorkIndicators: "Mostrar indicadores por publicación (RCR, FWCI, citas clínicas)",
-    showWorkIndicatorsNote: "Valores por trabajo tal como los reportan NIH iCite y OpenAlex, cada uno con su propia advertencia, mostrados solo en los trabajos que los tienen (RCR y citas clínicas son solo biomédicos). Nada se suma, promedia ni clasifica.",
+    showWorkIndicatorsNote:
+      "Valores por trabajo tal como los reportan NIH iCite y OpenAlex, cada uno con su propia advertencia, mostrados solo en los trabajos que los tienen (RCR y citas clínicas son solo biomédicos). Nada se suma, promedia ni clasifica.",
   },
   "fr-FR": {
     pageSizeLabel: "Format de page",
@@ -836,7 +839,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     coffee: "☕ Offrez-moi un café",
     supportTitle: "SigmaCV est gratuit et à but non lucratif — un café aide à payer les frais.",
     showWorkIndicators: "Afficher des indicateurs par publication (RCR, FWCI, citations cliniques)",
-    showWorkIndicatorsNote: "Valeurs par travail telles que rapportées par NIH iCite et OpenAlex, chacune avec sa propre réserve, affichées uniquement sur les travaux qui en ont (RCR et citations cliniques : biomédical uniquement). Rien n’est additionné, moyenné ni classé.",
+    showWorkIndicatorsNote:
+      "Valeurs par travail telles que rapportées par NIH iCite et OpenAlex, chacune avec sa propre réserve, affichées uniquement sur les travaux qui en ont (RCR et citations cliniques : biomédical uniquement). Rien n’est additionné, moyenné ni classé.",
   },
   "de-DE": {
     pageSizeLabel: "Seitenformat",
@@ -1002,7 +1006,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     coffee: "☕ Spendieren Sie mir einen Kaffee",
     supportTitle: "SigmaCV ist kostenlos und gemeinnützig — ein Kaffee deckt die Betriebskosten.",
     showWorkIndicators: "Indikatoren je Publikation anzeigen (RCR, FWCI, klinische Zitationen)",
-    showWorkIndicatorsNote: "Werte je Arbeit, wie von NIH iCite und OpenAlex gemeldet, jeweils mit eigenem Vorbehalt und nur bei Arbeiten angezeigt, die einen tragen (RCR und klinische Zitationen nur biomedizinisch). Nichts wird summiert, gemittelt oder gerankt.",
+    showWorkIndicatorsNote:
+      "Werte je Arbeit, wie von NIH iCite und OpenAlex gemeldet, jeweils mit eigenem Vorbehalt und nur bei Arbeiten angezeigt, die einen tragen (RCR und klinische Zitationen nur biomedizinisch). Nichts wird summiert, gemittelt oder gerankt.",
   },
   "ja-JP": {
     pageSizeLabel: "用紙サイズ",
@@ -1164,7 +1169,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     coffee: "☕ コーヒーをおごる",
     supportTitle: "SigmaCV は無料・非営利です。コーヒー一杯が運営費の支えになります。",
     showWorkIndicators: "各論文に指標を表示（RCR、FWCI、臨床引用）",
-    showWorkIndicatorsNote: "NIH iCite と OpenAlex が報告する論文ごとの値を、それぞれ注記付きで、値のある論文にのみ表示します（RCR と臨床引用は生物医学分野のみ）。合計・平均・順位付けは行いません。",
+    showWorkIndicatorsNote:
+      "NIH iCite と OpenAlex が報告する論文ごとの値を、それぞれ注記付きで、値のある論文にのみ表示します（RCR と臨床引用は生物医学分野のみ）。合計・平均・順位付けは行いません。",
   },
   "pt-BR": {
     pageSizeLabel: "Tamanho da página",
@@ -1327,7 +1333,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     coffee: "☕ Pague-me um café",
     supportTitle: "O SigmaCV é gratuito e sem fins lucrativos — um café ajuda a cobrir os custos.",
     showWorkIndicators: "Mostrar indicadores por publicação (RCR, FWCI, citações clínicas)",
-    showWorkIndicatorsNote: "Valores por trabalho conforme reportados pelo NIH iCite e pelo OpenAlex, cada um com sua ressalva, exibidos apenas nos trabalhos que os têm (RCR e citações clínicas são apenas biomédicos). Nada é somado, calculado em média ou ranqueado.",
+    showWorkIndicatorsNote:
+      "Valores por trabalho conforme reportados pelo NIH iCite e pelo OpenAlex, cada um com sua ressalva, exibidos apenas nos trabalhos que os têm (RCR e citações clínicas são apenas biomédicos). Nada é somado, calculado em média ou ranqueado.",
   },
   "it-IT": {
     pageSizeLabel: "Formato pagina",
@@ -1491,7 +1498,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     coffee: "☕ Offrimi un caffè",
     supportTitle: "SigmaCV è gratuito e senza scopo di lucro: un caffè aiuta a coprire i costi.",
     showWorkIndicators: "Mostra indicatori per pubblicazione (RCR, FWCI, citazioni cliniche)",
-    showWorkIndicatorsNote: "Valori per lavoro come riportati da NIH iCite e OpenAlex, ciascuno con la propria avvertenza, mostrati solo sui lavori che li hanno (RCR e citazioni cliniche solo per il biomedico). Nulla viene sommato, mediato o classificato.",
+    showWorkIndicatorsNote:
+      "Valori per lavoro come riportati da NIH iCite e OpenAlex, ciascuno con la propria avvertenza, mostrati solo sui lavori che li hanno (RCR e citazioni cliniche solo per il biomedico). Nulla viene sommato, mediato o classificato.",
   },
   "ko-KR": {
     pageSizeLabel: "페이지 크기",
@@ -1653,7 +1661,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     coffee: "☕ 커피 한 잔 사주기",
     supportTitle: "SigmaCV는 무료이며 비영리입니다 — 커피 한 잔이 운영 비용에 보탬이 됩니다.",
     showWorkIndicators: "논문별 지표 표시(RCR, FWCI, 임상 인용)",
-    showWorkIndicatorsNote: "NIH iCite와 OpenAlex가 보고한 논문별 값을 각각의 주의사항과 함께, 값이 있는 논문에만 표시합니다(RCR과 임상 인용은 생의학 전용). 합산·평균·순위 매기기는 하지 않습니다.",
+    showWorkIndicatorsNote:
+      "NIH iCite와 OpenAlex가 보고한 논문별 값을 각각의 주의사항과 함께, 값이 있는 논문에만 표시합니다(RCR과 임상 인용은 생의학 전용). 합산·평균·순위 매기기는 하지 않습니다.",
   },
   "ru-RU": {
     pageSizeLabel: "Размер страницы",
@@ -1814,8 +1823,10 @@ const UI_I18N: Record<Locale, UiStrings> = {
     linksNav: "Ссылки",
     coffee: "☕ Купите мне кофе",
     supportTitle: "SigmaCV бесплатен и некоммерческий — чашка кофе помогает покрыть расходы.",
-    showWorkIndicators: "Показывать индикаторы у каждой публикации (RCR, FWCI, клинические цитирования)",
-    showWorkIndicatorsNote: "Значения по каждой работе, как их сообщают NIH iCite и OpenAlex, каждое со своей оговоркой, показываются только у работ, где они есть (RCR и клинические цитирования — только биомедицина). Ничего не суммируется, не усредняется и не ранжируется.",
+    showWorkIndicators:
+      "Показывать индикаторы у каждой публикации (RCR, FWCI, клинические цитирования)",
+    showWorkIndicatorsNote:
+      "Значения по каждой работе, как их сообщают NIH iCite и OpenAlex, каждое со своей оговоркой, показываются только у работ, где они есть (RCR и клинические цитирования — только биомедицина). Ничего не суммируется, не усредняется и не ранжируется.",
   },
 };
 

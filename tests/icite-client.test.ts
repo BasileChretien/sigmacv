@@ -49,7 +49,12 @@ describe("fetchIciteByPmids", () => {
       ),
     );
     const map = await fetchIciteByPmids(["111", "222"]);
-    expect(map.get("111")).toEqual({ rcr: 1.8, clinicalCitations: 4, isClinical: false, apt: 0.75 });
+    expect(map.get("111")).toEqual({
+      rcr: 1.8,
+      clinicalCitations: 4,
+      isClinical: false,
+      apt: 0.75,
+    });
     // An empty citing list is a real 0; apt 0 and is_clinical true are kept.
     expect(map.get("222")).toEqual({ clinicalCitations: 0, isClinical: true, apt: 0 });
   });
@@ -60,7 +65,9 @@ describe("fetchIciteByPmids", () => {
     await fetchIciteByPmids(["111"]);
     const url = new URL(String(f.mock.calls[0]?.[0]));
     const fl = url.searchParams.get("fl")?.split(",") ?? [];
-    expect(fl).toEqual(expect.arrayContaining(["pmid", "rcr", "cited_by_clin", "is_clinical", "apt"]));
+    expect(fl).toEqual(
+      expect.arrayContaining(["pmid", "rcr", "cited_by_clin", "is_clinical", "apt"]),
+    );
   });
 
   it("accepts alternative spellings: delimited-string / numeric cited_by_clin, Yes/No / 1/0 is_clinical", async () => {

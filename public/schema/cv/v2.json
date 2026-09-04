@@ -374,6 +374,10 @@
           "default": false,
           "type": "boolean"
         },
+        "showWorkIndicators": {
+          "default": false,
+          "type": "boolean"
+        },
         "showVerifiedBadges": {
           "default": false,
           "type": "boolean"
@@ -864,8 +868,39 @@
                     "rcr": {
                       "type": "number"
                     },
+                    "clinicalCitations": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "isClinical": {
+                      "type": "boolean"
+                    },
+                    "apt": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
                     "retracted": {
                       "type": "boolean"
+                    },
+                    "countries": {
+                      "maxItems": 50,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 2
+                      }
+                    },
+                    "refCount": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "selfRefs": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
                     },
                     "rorId": {
                       "type": "string",
@@ -1254,6 +1289,10 @@
                 "type": "boolean"
               },
               "showCitationCounts": {
+                "default": false,
+                "type": "boolean"
+              },
+              "showWorkIndicators": {
                 "default": false,
                 "type": "boolean"
               },

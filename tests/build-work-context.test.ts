@@ -90,7 +90,10 @@ describe("build: OpenAlex per-work assessment context", () => {
       work("W1", {
         authorships: [
           { ...OWNER, countries: ["fr", "FR", " us "] },
-          { author: { id: "https://openalex.org/A2" }, countries: ["JP", null as unknown as string, "xyz", 7 as unknown as string] },
+          {
+            author: { id: "https://openalex.org/A2" },
+            countries: ["JP", null as unknown as string, "xyz", 7 as unknown as string],
+          },
           { author: { id: "https://openalex.org/A3" }, countries: null },
           { author: { id: "https://openalex.org/A4" } },
         ],
