@@ -24,6 +24,7 @@ export const SOURCE_LABEL: Readonly<Record<string, string>> = {
   opencitations: "OpenCitations",
   softwareheritage: "Software Heritage",
   sciety: "Sciety",
+  bibtex: "BibTeX import",
   ror: "ROR",
   derived: "derived",
   manual: "manual entries",
