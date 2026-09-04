@@ -677,7 +677,10 @@ const CvItemSchema = z.object({
      * enrichment. Only ever set from a "require_snapshot=true" visit — i.e. the
      * repository IS archived — so its presence alone means "archived".
      */
-    swhid: z.string().max(100).optional(),
+    swhid: z
+      .string()
+      .regex(/^swh:1:snp:[0-9a-f]{40}$/)
+      .optional(),
     /** ISO date of the Software Heritage snapshot recorded in {@link swhid}. */
     swhArchivedAt: z.string().max(64).optional(),
     /**

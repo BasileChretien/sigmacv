@@ -1100,7 +1100,7 @@
                     },
                     "swhid": {
                       "type": "string",
-                      "maxLength": 100
+                      "pattern": "^swh:1:snp:[0-9a-f]{40}$"
                     },
                     "swhArchivedAt": {
                       "type": "string",
