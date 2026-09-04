@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   fetchCrossrefAbstract: vi.fn(),
   fetchRetractionStatus: vi.fn(),
   resolveInstitution: vi.fn(),
-  fetchRcrByPmids: vi.fn(),
+  fetchIciteByPmids: vi.fn(),
 }));
 vi.mock("@/lib/crossref/client", () => ({
   fetchCrossrefGapFields: mocks.fetchCrossrefGapFields,
@@ -16,7 +16,7 @@ vi.mock("@/lib/ror/client", () => ({
   resolveInstitution: mocks.resolveInstitution,
 }));
 vi.mock("@/lib/icite/client", () => ({
-  fetchRcrByPmids: mocks.fetchRcrByPmids,
+  fetchIciteByPmids: mocks.fetchIciteByPmids,
 }));
 
 import {
@@ -40,7 +40,7 @@ beforeEach(() => {
   mocks.fetchCrossrefAbstract.mockReset();
   mocks.fetchRetractionStatus.mockReset();
   mocks.resolveInstitution.mockReset();
-  mocks.fetchRcrByPmids.mockReset();
+  mocks.fetchIciteByPmids.mockReset();
 });
 
 // ─── test fixtures ───────────────────────────────────────────────────────────
@@ -236,10 +236,10 @@ describe("enrichCvWithIcite", () => {
   });
 
   it("folds RCR onto works with a PMID, leaving others untouched", async () => {
-    mocks.fetchRcrByPmids.mockResolvedValue(
+    mocks.fetchIciteByPmids.mockResolvedValue(
       new Map([
-        ["111", 1.5],
-        ["333", 2.0],
+        ["111", { rcr: 1.5 }],
+        ["333", { rcr: 2.0 }],
       ]),
     );
     const cv = makeCv([
@@ -257,18 +257,46 @@ describe("enrichCvWithIcite", () => {
     expect(items[3]!.meta.rcr).toBeUndefined(); // PMID not returned by iCite
     expect(items[4]!.meta.rcr).toBe(0.5); // pre-existing RCR preserved
     // Only PMIDs lacking an existing RCR are looked up.
-    expect(mocks.fetchRcrByPmids).toHaveBeenCalledWith(["111", "333", "999"]);
+    expect(mocks.fetchIciteByPmids).toHaveBeenCalledWith(["111", "333", "999"]);
   });
 
   it("does not look up works that already carry an RCR", async () => {
     const cv = makeCv([withPmid("W1", "111", 0.9)]);
     const out = await enrichCvWithIcite(cv);
     expect(out).toBe(cv);
-    expect(mocks.fetchRcrByPmids).not.toHaveBeenCalled();
+    expect(mocks.fetchIciteByPmids).not.toHaveBeenCalled();
+  });
+
+  it("folds the translational fields (clinical citations, is-clinical, APT) and skips items that already carry any iCite field", async () => {
+    mocks.fetchIciteByPmids.mockResolvedValue(
+      new Map([
+        ["111", { rcr: 1.8, clinicalCitations: 4, isClinical: false, apt: 0.75 }],
+        ["222", { clinicalCitations: 0, isClinical: true }],
+        ["333", { apt: 0.1 }],
+      ]),
+    );
+    const already: CvItem = { ...pub("W3"), meta: { pmid: "333", clinicalCitations: 2 } };
+    const cv = makeCv([withPmid("W1", "111"), withPmid("W2", "222"), already]);
+    const out = await enrichCvWithIcite(cv);
+    const items = out.sections[0]!.items;
+    expect(items[0]!.meta).toMatchObject({
+      pmid: "111",
+      rcr: 1.8,
+      clinicalCitations: 4,
+      isClinical: false,
+      apt: 0.75,
+    });
+    // A record without RCR still lands (no RCR, but the translational fields).
+    expect(items[1]!.meta).toEqual({ pmid: "222", clinicalCitations: 0, isClinical: true });
+    // Any pre-existing iCite field short-circuits the lookup for that item.
+    expect(items[2]!.meta).toEqual({ pmid: "333", clinicalCitations: 2 });
+    expect(mocks.fetchIciteByPmids).toHaveBeenCalledWith(["111", "222"]);
+    // Immutable: the input CV is untouched.
+    expect(cv.sections[0]!.items[0]!.meta.rcr).toBeUndefined();
   });
 
   it("returns the original CV when iCite yields nothing", async () => {
-    mocks.fetchRcrByPmids.mockResolvedValue(new Map());
+    mocks.fetchIciteByPmids.mockResolvedValue(new Map());
     const cv = makeCv([withPmid("W1", "111")]);
     expect(await enrichCvWithIcite(cv)).toBe(cv);
   });
@@ -276,7 +304,7 @@ describe("enrichCvWithIcite", () => {
   it("returns the original CV (no lookup) when no work has a PMID", async () => {
     const cv = makeCv([withPmid("W1")]);
     expect(await enrichCvWithIcite(cv)).toBe(cv);
-    expect(mocks.fetchRcrByPmids).not.toHaveBeenCalled();
+    expect(mocks.fetchIciteByPmids).not.toHaveBeenCalled();
   });
 });
 

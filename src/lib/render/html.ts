@@ -16,6 +16,7 @@ import { coinsSpan } from "./coins";
 import { prepareSections } from "./prepare";
 import { cvSlug } from "./slug";
 import { getTemplate, resolveTheme } from "./templates";
+import { workIndicators } from "./workIndicators";
 import type { RenderedSection } from "./templates/types";
 import type { RenderOpts, Renderer, RenderInput, RenderResult } from "./types";
 
@@ -89,6 +90,15 @@ function itemBadges(item: CvItem, display: DisplayChoices): string {
   // two-line history record places it on the lead line (positionEntryHtml).
   const verified = verifiedBadgeHtml(item, display);
   if (verified) badges.push(verified);
+  // Opt-in per-work indicators (RCR / FWCI / clinical citations) — empty unless
+  // `display.showWorkIndicators`; styled like the citation pill.
+  for (const ind of workIndicators(item, display)) {
+    badges.push(
+      `<span class="cv-badge cv-badge-cites cv-badge-indicator" data-indicator="${ind.key}" title="${escapeHtml(
+        ind.title,
+      )}">${escapeHtml(ind.value)}</span>`,
+    );
+  }
   // Wrap the group in an inline-flex container (own `gap` + `margin-left`) so the
   // badges can never collapse against the preceding citation text/URL or against
   // each other — a plain joining space did, depending on the CSL style's trailing

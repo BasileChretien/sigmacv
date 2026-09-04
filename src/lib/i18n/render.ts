@@ -140,6 +140,26 @@ export interface RenderStrings {
   filterTypeConference: string;
   filterTypeBook: string;
   filterTypeDataset: string;
+  /** Per-work RCR pill (opt-in `showWorkIndicators`); "{v}" → the locale-formatted value. */
+  indicatorRcr: string;
+  /** Tooltip caveat on the RCR pill (NIH iCite; biomedical-only). */
+  indicatorRcrTitle: string;
+  /** Per-work FWCI pill; "{v}" → the locale-formatted value. */
+  indicatorFwci: string;
+  /** Tooltip caveat on the FWCI pill (OpenAlex). */
+  indicatorFwciTitle: string;
+  /** Per-work clinical-citations pill, plural; "{n}" → the count. */
+  indicatorClinicalCitations: string;
+  /** Per-work clinical-citations pill, singular; "{n}" → the count (1). */
+  indicatorClinicalCitationOne: string;
+  /** Structured label of the clinical-citations indicator. */
+  indicatorClinicalCitationsLabel: string;
+  /** Tooltip caveat on the clinical-citations pill (NIH iCite). */
+  indicatorClinicalCitationsTitle: string;
+  /** Per-work pill for a work iCite classifies as a clinical article. */
+  indicatorClinical: string;
+  /** Tooltip on the clinical-article pill. */
+  indicatorClinicalTitle: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -227,6 +247,20 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Updated {date} · living CV, updates automatically",
     rorRecordTitle: "ROR organization record",
     institutionSiteTitle: "Institution website",
+    indicatorRcr: "RCR {v}",
+    indicatorRcrTitle:
+      "Relative Citation Ratio (NIH iCite) — field-normalised citation rate; 1.0 = the average NIH-funded article. Biomedical works only.",
+    indicatorFwci: "FWCI {v}",
+    indicatorFwciTitle:
+      "Field-Weighted Citation Impact (OpenAlex) — citations relative to works of the same field, type and year; 1.0 = average.",
+    indicatorClinicalCitations: "cited by {n} clinical articles",
+    indicatorClinicalCitationOne: "cited by {n} clinical article",
+    indicatorClinicalCitationsLabel: "Clinical citations",
+    indicatorClinicalCitationsTitle:
+      "Number of clinical articles (guidelines, clinical trials) citing this work, per NIH iCite. Biomedical works only.",
+    indicatorClinical: "Clinical article",
+    indicatorClinicalTitle:
+      "NIH iCite classifies this work as a clinical article (guideline or clinical study).",
   },
   "zh-CN": {
     hankoCredit:
@@ -309,6 +343,19 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "更新于 {date} · 在线简历，自动更新",
     rorRecordTitle: "ROR 机构记录",
     institutionSiteTitle: "机构网站",
+    indicatorRcr: "RCR {v}",
+    indicatorRcrTitle:
+      "相对引用率（NIH iCite）——经领域标准化的被引率；1.0 = NIH 资助论文的平均水平。仅限生物医学文献。",
+    indicatorFwci: "FWCI {v}",
+    indicatorFwciTitle:
+      "领域加权引用影响力（OpenAlex）——相对于同领域、同类型、同年份文献的被引情况；1.0 = 平均水平。",
+    indicatorClinicalCitations: "被 {n} 篇临床文献引用",
+    indicatorClinicalCitationOne: "被 {n} 篇临床文献引用",
+    indicatorClinicalCitationsLabel: "临床引用",
+    indicatorClinicalCitationsTitle:
+      "引用本文的临床文献（指南、临床试验）数量，来源 NIH iCite。仅限生物医学文献。",
+    indicatorClinical: "临床文献",
+    indicatorClinicalTitle: "NIH iCite 将本文归类为临床文献（指南或临床研究）。",
   },
   "es-ES": {
     hankoCredit:
@@ -400,6 +447,20 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Actualizado el {date} · CV vivo, se actualiza solo",
     rorRecordTitle: "Ficha de la organización en ROR",
     institutionSiteTitle: "Sitio web de la institución",
+    indicatorRcr: "RCR {v}",
+    indicatorRcrTitle:
+      "Relative Citation Ratio (NIH iCite): tasa de citas normalizada por campo; 1,0 = el artículo medio financiado por los NIH. Solo trabajos biomédicos.",
+    indicatorFwci: "FWCI {v}",
+    indicatorFwciTitle:
+      "Field-Weighted Citation Impact (OpenAlex): citas respecto a trabajos del mismo campo, tipo y año; 1,0 = la media.",
+    indicatorClinicalCitations: "citado por {n} artículos clínicos",
+    indicatorClinicalCitationOne: "citado por {n} artículo clínico",
+    indicatorClinicalCitationsLabel: "Citas clínicas",
+    indicatorClinicalCitationsTitle:
+      "Número de artículos clínicos (guías, ensayos clínicos) que citan este trabajo, según NIH iCite. Solo trabajos biomédicos.",
+    indicatorClinical: "Artículo clínico",
+    indicatorClinicalTitle:
+      "NIH iCite clasifica este trabajo como artículo clínico (guía o estudio clínico).",
   },
   "fr-FR": {
     hankoCredit:
@@ -492,6 +553,20 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Mis à jour le {date} · CV vivant, mis à jour automatiquement",
     rorRecordTitle: "Fiche de l’organisation dans ROR",
     institutionSiteTitle: "Site web de l’établissement",
+    indicatorRcr: "RCR {v}",
+    indicatorRcrTitle:
+      "Relative Citation Ratio (NIH iCite) : taux de citation normalisé par domaine ; 1,0 = l’article moyen financé par les NIH. Travaux biomédicaux uniquement.",
+    indicatorFwci: "FWCI {v}",
+    indicatorFwciTitle:
+      "Field-Weighted Citation Impact (OpenAlex) : citations rapportées aux travaux de même domaine, type et année ; 1,0 = la moyenne.",
+    indicatorClinicalCitations: "cité par {n} articles cliniques",
+    indicatorClinicalCitationOne: "cité par {n} article clinique",
+    indicatorClinicalCitationsLabel: "Citations cliniques",
+    indicatorClinicalCitationsTitle:
+      "Nombre d’articles cliniques (recommandations, essais cliniques) citant ce travail, d’après NIH iCite. Travaux biomédicaux uniquement.",
+    indicatorClinical: "Article clinique",
+    indicatorClinicalTitle:
+      "NIH iCite classe ce travail comme article clinique (recommandation ou étude clinique).",
   },
   "de-DE": {
     hankoCredit:
@@ -581,6 +656,20 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aktualisiert am {date} · lebender Lebenslauf, automatisch aktualisiert",
     rorRecordTitle: "ROR-Organisationseintrag",
     institutionSiteTitle: "Website der Einrichtung",
+    indicatorRcr: "RCR {v}",
+    indicatorRcrTitle:
+      "Relative Citation Ratio (NIH iCite) – fachnormierte Zitationsrate; 1,0 = der durchschnittliche NIH-geförderte Artikel. Nur biomedizinische Arbeiten.",
+    indicatorFwci: "FWCI {v}",
+    indicatorFwciTitle:
+      "Field-Weighted Citation Impact (OpenAlex) – Zitationen im Verhältnis zu Arbeiten desselben Fachs, Typs und Jahres; 1,0 = Durchschnitt.",
+    indicatorClinicalCitations: "zitiert von {n} klinischen Artikeln",
+    indicatorClinicalCitationOne: "zitiert von {n} klinischen Artikel",
+    indicatorClinicalCitationsLabel: "Klinische Zitationen",
+    indicatorClinicalCitationsTitle:
+      "Anzahl klinischer Artikel (Leitlinien, klinische Studien), die diese Arbeit zitieren, laut NIH iCite. Nur biomedizinische Arbeiten.",
+    indicatorClinical: "Klinischer Artikel",
+    indicatorClinicalTitle:
+      "NIH iCite stuft diese Arbeit als klinischen Artikel ein (Leitlinie oder klinische Studie).",
   },
   "ja-JP": {
     hankoCredit:
@@ -666,6 +755,20 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 更新 · 自動更新されるライブ CV",
     rorRecordTitle: "ROR 機関レコード",
     institutionSiteTitle: "機関ウェブサイト",
+    indicatorRcr: "RCR {v}",
+    indicatorRcrTitle:
+      "相対被引用率（NIH iCite）— 分野で正規化した被引用率。1.0 = NIH 助成論文の平均。生物医学分野の論文のみ。",
+    indicatorFwci: "FWCI {v}",
+    indicatorFwciTitle:
+      "分野加重被引用インパクト（OpenAlex）— 同分野・同種別・同年の論文に対する被引用の比。1.0 = 平均。",
+    indicatorClinicalCitations: "臨床文献 {n} 件に引用",
+    indicatorClinicalCitationOne: "臨床文献 {n} 件に引用",
+    indicatorClinicalCitationsLabel: "臨床引用",
+    indicatorClinicalCitationsTitle:
+      "この論文を引用する臨床文献（ガイドライン、臨床試験）の数（NIH iCite による）。生物医学分野の論文のみ。",
+    indicatorClinical: "臨床文献",
+    indicatorClinicalTitle:
+      "NIH iCite はこの論文を臨床文献（ガイドラインまたは臨床研究）に分類しています。",
   },
   "pt-BR": {
     hankoCredit:
@@ -757,6 +860,20 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Atualizado em {date} · currículo vivo, atualizado automaticamente",
     rorRecordTitle: "Registro da organização no ROR",
     institutionSiteTitle: "Site da instituição",
+    indicatorRcr: "RCR {v}",
+    indicatorRcrTitle:
+      "Relative Citation Ratio (NIH iCite): taxa de citação normalizada por área; 1,0 = o artigo médio financiado pelos NIH. Apenas trabalhos biomédicos.",
+    indicatorFwci: "FWCI {v}",
+    indicatorFwciTitle:
+      "Field-Weighted Citation Impact (OpenAlex): citações em relação a trabalhos da mesma área, tipo e ano; 1,0 = a média.",
+    indicatorClinicalCitations: "citado por {n} artigos clínicos",
+    indicatorClinicalCitationOne: "citado por {n} artigo clínico",
+    indicatorClinicalCitationsLabel: "Citações clínicas",
+    indicatorClinicalCitationsTitle:
+      "Número de artigos clínicos (diretrizes, ensaios clínicos) que citam este trabalho, segundo o NIH iCite. Apenas trabalhos biomédicos.",
+    indicatorClinical: "Artigo clínico",
+    indicatorClinicalTitle:
+      "O NIH iCite classifica este trabalho como artigo clínico (diretriz ou estudo clínico).",
   },
   "it-IT": {
     hankoCredit:
@@ -848,6 +965,20 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aggiornato il {date} · CV vivo, si aggiorna da solo",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
     institutionSiteTitle: "Sito web dell’istituzione",
+    indicatorRcr: "RCR {v}",
+    indicatorRcrTitle:
+      "Relative Citation Ratio (NIH iCite): tasso di citazione normalizzato per settore; 1,0 = l’articolo medio finanziato dai NIH. Solo lavori biomedici.",
+    indicatorFwci: "FWCI {v}",
+    indicatorFwciTitle:
+      "Field-Weighted Citation Impact (OpenAlex): citazioni rispetto ai lavori dello stesso settore, tipo e anno; 1,0 = la media.",
+    indicatorClinicalCitations: "citato da {n} articoli clinici",
+    indicatorClinicalCitationOne: "citato da {n} articolo clinico",
+    indicatorClinicalCitationsLabel: "Citazioni cliniche",
+    indicatorClinicalCitationsTitle:
+      "Numero di articoli clinici (linee guida, studi clinici) che citano questo lavoro, secondo NIH iCite. Solo lavori biomedici.",
+    indicatorClinical: "Articolo clinico",
+    indicatorClinicalTitle:
+      "NIH iCite classifica questo lavoro come articolo clinico (linea guida o studio clinico).",
   },
   "ko-KR": {
     hankoCredit:
@@ -932,6 +1063,20 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 업데이트 · 자동으로 갱신되는 라이브 CV",
     rorRecordTitle: "ROR 기관 레코드",
     institutionSiteTitle: "기관 웹사이트",
+    indicatorRcr: "RCR {v}",
+    indicatorRcrTitle:
+      "상대 인용 비율(NIH iCite) — 분야로 정규화한 피인용률. 1.0 = NIH 지원 논문 평균. 생의학 논문에만 해당.",
+    indicatorFwci: "FWCI {v}",
+    indicatorFwciTitle:
+      "분야 가중 인용 영향력(OpenAlex) — 같은 분야·유형·연도의 논문 대비 피인용. 1.0 = 평균.",
+    indicatorClinicalCitations: "임상 문헌 {n}편에 인용됨",
+    indicatorClinicalCitationOne: "임상 문헌 {n}편에 인용됨",
+    indicatorClinicalCitationsLabel: "임상 인용",
+    indicatorClinicalCitationsTitle:
+      "이 논문을 인용한 임상 문헌(가이드라인, 임상시험)의 수(NIH iCite 기준). 생의학 논문에만 해당.",
+    indicatorClinical: "임상 문헌",
+    indicatorClinicalTitle:
+      "NIH iCite는 이 논문을 임상 문헌(가이드라인 또는 임상 연구)으로 분류합니다.",
   },
   "ru-RU": {
     hankoCredit:
@@ -1021,6 +1166,20 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Обновлено {date} · живое резюме, обновляется автоматически",
     rorRecordTitle: "Запись организации в ROR",
     institutionSiteTitle: "Сайт организации",
+    indicatorRcr: "RCR {v}",
+    indicatorRcrTitle:
+      "Relative Citation Ratio (NIH iCite) — нормированная по области частота цитирования; 1,0 = средняя статья, финансируемая NIH. Только биомедицинские работы.",
+    indicatorFwci: "FWCI {v}",
+    indicatorFwciTitle:
+      "Field-Weighted Citation Impact (OpenAlex) — цитирования относительно работ той же области, типа и года; 1,0 = среднее.",
+    indicatorClinicalCitations: "цитируется в {n} клинических статьях",
+    indicatorClinicalCitationOne: "цитируется в {n} клинической статье",
+    indicatorClinicalCitationsLabel: "Клинические цитирования",
+    indicatorClinicalCitationsTitle:
+      "Число клинических статей (руководства, клинические испытания), цитирующих эту работу, по данным NIH iCite. Только биомедицинские работы.",
+    indicatorClinical: "Клиническая статья",
+    indicatorClinicalTitle:
+      "NIH iCite относит эту работу к клиническим статьям (руководство или клиническое исследование).",
   },
 };
 

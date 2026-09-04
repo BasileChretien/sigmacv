@@ -50,6 +50,9 @@ export interface OpenAlexAuthorship {
    *  this work). Carried inside `authorships` (no extra `select` needed); used by the
    *  misattribution heuristic's affiliation check. */
   institutions?: { id?: string; ror?: string | null; display_name?: string }[];
+  /** ISO-3166 alpha-2 codes of this authorship's institutions (OpenAlex
+   *  `authorships[].countries`). Carried inside `authorships` (no extra `select`). */
+  countries?: string[] | null;
 }
 
 export interface OpenAlexSource {
@@ -114,6 +117,11 @@ export interface OpenAlexWork {
   /** Percentile of citations for the work's field+year (value 0..100). */
   cited_by_percentile_year?: { min?: number; max?: number; value?: number } | null;
   authorships?: OpenAlexAuthorship[];
+  /** OpenAlex's own retraction flag (a second signal beside Crossref's). */
+  is_retracted?: boolean | null;
+  /** OpenAlex ids (URL form) of the works this work cites. Used only to count
+   *  references + self-references per work (build.ts); can be long. */
+  referenced_works?: string[] | null;
   /** Open-access status for the work. */
   open_access?: {
     is_oa?: boolean;

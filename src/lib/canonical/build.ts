@@ -1620,6 +1620,49 @@ interface WorkItemOptions {
    * (undefined) keeps the source heuristic `isPeerReviewed(work)`.
    */
   peerReviewedOverride?: boolean;
+  /**
+   * Short OpenAlex ids ("W…") of the owner's own works in THIS sync, so a work's
+   * `referenced_works` can be counted as self-references (`meta.selfRefs`).
+   * Omitted → no reference counts are stored.
+   */
+  ownWorkIds?: ReadonlySet<string>;
+}
+
+const MAX_COUNTRIES = 50;
+
+/**
+ * Distinct ISO-3166 alpha-2 country codes across the work's authorships,
+ * uppercased, deduped, capped at {@link MAX_COUNTRIES}; undefined when OpenAlex
+ * carried none. Defensive: ignores non-string / non-2-letter entries.
+ */
+function workCountries(work: OpenAlexWork): string[] | undefined {
+  const seen = new Set<string>();
+  for (const a of work.authorships ?? []) {
+    for (const c of Array.isArray(a.countries) ? a.countries : []) {
+      if (typeof c !== "string") continue;
+      const code = c.trim().toUpperCase();
+      if (/^[A-Z]{2}$/.test(code)) seen.add(code);
+      if (seen.size >= MAX_COUNTRIES) return [...seen];
+    }
+  }
+  return seen.size > 0 ? [...seen] : undefined;
+}
+
+/**
+ * Reference counts for the work: how many works it cites (`referenced_works`
+ * length) and how many of those are the owner's OWN works in this sync. Raw
+ * per-work counts only — no rate is derived here. Empty when OpenAlex carried
+ * no reference list or no own-id set was supplied.
+ */
+function workReferences(
+  work: OpenAlexWork,
+  ownWorkIds: ReadonlySet<string> | undefined,
+): { refCount?: number; selfRefs?: number } {
+  const refs = Array.isArray(work.referenced_works) ? work.referenced_works : undefined;
+  if (!refs || !ownWorkIds) return {};
+  let selfRefs = 0;
+  for (const r of refs) if (typeof r === "string" && ownWorkIds.has(shortId(r))) selfRefs++;
+  return { refCount: refs.length, selfRefs };
 }
 
 /**
@@ -1636,7 +1679,8 @@ function buildWorkCvItem(
   opts: WorkItemOptions,
 ): CvItem {
   const { matches, basisFor } = matcher;
-  const { prev, order, defaultIncluded, reviewFlagOverride, peerReviewedOverride } = opts;
+  const { prev, order, defaultIncluded, reviewFlagOverride, peerReviewedOverride, ownWorkIds } =
+    opts;
   // Persist a previously gap-filled abstract (Crossref) across re-sync: OpenAlex
   // rebuilds the CSL each sync WITHOUT an abstract for many works, so without this
   // carry the Crossref abstract pass would re-fetch the same works forever. OpenAlex's
@@ -1677,6 +1721,13 @@ function buildWorkCvItem(
       // recompute over the CURATED works (excluding "not mine"/hidden).
       fwci: typeof work.fwci === "number" ? work.fwci : undefined,
       topDecile: workTopDecile(work),
+      // OpenAlex's own retraction flag — a SECOND signal, unioned with the Crossref
+      // retraction enrichment (which only ever sets true, never clears a flag).
+      retracted: work.is_retracted === true ? true : undefined,
+      // Per-work assessment context stored for a later PR (no aggregate is computed
+      // or displayed here): authorship countries + reference / self-reference counts.
+      countries: workCountries(work),
+      ...workReferences(work, ownWorkIds),
       oaStatus:
         work.open_access?.is_oa && work.open_access.oa_status
           ? work.open_access.oa_status
@@ -1725,6 +1776,10 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const works = dedupeWorks(args.works)
     .filter((w) => !isFigshareOrSupplement(w))
     .sort(byRecency);
+  // The owner's own OpenAlex work ids in this sync (the identifier-attributed pull
+  // only — never the unconfirmed ORCID-discovered candidates), for self-reference
+  // counting on every built work.
+  const ownWorkIds: ReadonlySet<string> = new Set(works.map((w) => shortId(w.id)));
 
   // Preserve prior per-item curation (included flag) and ordering on re-sync.
   const prevItems = new Map<string, CvItem>();
@@ -1830,6 +1885,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       order: maxPrevOrder + 1 + newItemRank++,
       defaultIncluded: true,
       peerReviewedOverride,
+      ownWorkIds,
     });
   });
 
@@ -1868,6 +1924,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
         defaultIncluded: false,
         reviewFlagOverride: "orcid-doi",
         peerReviewedOverride,
+        ownWorkIds,
       }),
     );
   }

@@ -5,7 +5,7 @@ import {
   fetchRetractionStatus,
   type CrossrefGapFields,
 } from "@/lib/crossref/client";
-import { fetchRcrByPmids } from "@/lib/icite/client";
+import { fetchIciteByPmids } from "@/lib/icite/client";
 import { resolveInstitution } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
 import type { OrcidPosition } from "@/lib/orcid/client";
@@ -179,36 +179,49 @@ export async function enrichCvWithAbstracts(cv: CanonicalCv, mailto: string): Pr
 
 const ICITE_MAX_ENRICH = 500;
 
+/** True when the item already carries ANY iCite field (skip the re-lookup). */
+function hasIciteData(meta: CvItem["meta"]): boolean {
+  return (
+    meta.rcr !== undefined ||
+    meta.clinicalCitations !== undefined ||
+    meta.isClinical !== undefined ||
+    meta.apt !== undefined
+  );
+}
+
 /**
- * Fold the NIH iCite Relative Citation Ratio onto works that carry a PMID but no
- * RCR yet (one batched lookup — the client chunks internally), capped at
- * {@link ICITE_MAX_ENRICH} works. RCR is field-normalized but BIOMEDICAL-ONLY;
- * stored so the opt-in RCR-mean metric recomputes over the curated works.
- * Fail-soft + immutable: returns the original CV untouched when nothing matches
- * or the lookup yields nothing.
+ * Fold the NIH iCite record — Relative Citation Ratio plus the translational
+ * fields (clinical-citation count, is-clinical flag, APT) — onto works that carry
+ * a PMID but no iCite data yet (one batched lookup — the client chunks
+ * internally), capped at {@link ICITE_MAX_ENRICH} works. All of it is
+ * field-normalized-or-factual but BIOMEDICAL-ONLY; the build re-creates items
+ * without these fields, so every sync recomputes them. RCR is stored so the
+ * opt-in RCR-mean metric recomputes over the curated works; the translational
+ * fields are per-work only (never aggregated). Fail-soft + immutable: returns the
+ * original CV untouched when nothing matches or the lookup yields nothing.
  */
 export async function enrichCvWithIcite(cv: CanonicalCv): Promise<CanonicalCv> {
   const pmids: string[] = [];
   for (const section of cv.sections) {
     for (const item of section.items) {
       if (pmids.length >= ICITE_MAX_ENRICH) break;
-      if (item.meta.pmid && item.meta.rcr === undefined) pmids.push(item.meta.pmid);
+      if (item.meta.pmid && !hasIciteData(item.meta)) pmids.push(item.meta.pmid);
     }
   }
   if (pmids.length === 0) return cv;
 
-  const rcrByPmid = await fetchRcrByPmids(pmids);
-  if (rcrByPmid.size === 0) return cv;
+  const byPmid = await fetchIciteByPmids(pmids);
+  if (byPmid.size === 0) return cv;
 
   let changed = false;
   const sections = cv.sections.map((section) => ({
     ...section,
     items: section.items.map((item) => {
-      if (!item.meta.pmid || item.meta.rcr !== undefined) return item;
-      const rcr = rcrByPmid.get(item.meta.pmid);
-      if (rcr === undefined) return item;
+      if (!item.meta.pmid || hasIciteData(item.meta)) return item;
+      const rec = byPmid.get(item.meta.pmid);
+      if (!rec) return item;
       changed = true;
-      return { ...item, meta: { ...item.meta, rcr } };
+      return { ...item, meta: { ...item.meta, ...rec } };
     }),
   }));
   return changed ? { ...cv, sections } : cv;
