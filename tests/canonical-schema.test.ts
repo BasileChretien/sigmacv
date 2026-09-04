@@ -100,6 +100,7 @@ describe("DisplayChoicesSchema", () => {
       showCreditRoles: false,
       showSupervisionSummary: false,
       hideSuperviseeNames: false,
+      showDataLinks: false,
       showProvenance: false,
       peerReviewedOnly: false,
       countLetters: true,

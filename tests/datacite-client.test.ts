@@ -263,3 +263,73 @@ describe("fetchDataciteOutputs", () => {
     expect(out[0]?.publisher).toBe("Zenodo");
   });
 });
+
+describe("fetchDataciteOutputs — publication links (linkedDois)", () => {
+  it("collects the DOIs of the publications a deposit declares itself attached to", async () => {
+    const body = {
+      data: [
+        {
+          attributes: {
+            doi: "10.5281/zenodo.77",
+            titles: [{ title: "Trial data" }],
+            types: { resourceTypeGeneral: "Dataset" },
+            relatedIdentifiers: [
+              {
+                relatedIdentifierType: "DOI",
+                relationType: "IsSupplementTo",
+                relatedIdentifier: "https://doi.org/10.1/PAPER",
+              },
+              {
+                relatedIdentifierType: "DOI",
+                relationType: "isReferencedBy",
+                relatedIdentifier: "10.1/paper",
+              }, // dup → once
+              {
+                relatedIdentifierType: "DOI",
+                relationType: "IsCitedBy",
+                relatedIdentifier: "10.1/review",
+              },
+              {
+                relatedIdentifierType: "DOI",
+                relationType: "IsSourceOf",
+                relatedIdentifier: "10.1/derived",
+              },
+              {
+                relatedIdentifierType: "DOI",
+                relationType: "IsVersionOf",
+                relatedIdentifier: "10.5281/zenodo.76",
+              }, // sibling → relatedDois
+              {
+                relatedIdentifierType: "DOI",
+                relationType: "Cites",
+                relatedIdentifier: "10.1/cited",
+              }, // citation → neither
+              {
+                relatedIdentifierType: "URL",
+                relationType: "IsSupplementTo",
+                relatedIdentifier: "https://x",
+              }, // not a DOI
+              { relatedIdentifierType: "DOI", relationType: "IsSupplementTo" }, // no id
+            ],
+          },
+        },
+        {
+          attributes: {
+            doi: "10.5281/zenodo.78",
+            titles: [{ title: "Standalone" }],
+            types: { resourceTypeGeneral: "Software" },
+          },
+        },
+      ],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => res(body)),
+    );
+    const out = await fetchDataciteOutputs("0000-0002-7483-2489");
+    expect(out[0]?.linkedDois).toEqual(["10.1/paper", "10.1/review", "10.1/derived"]);
+    expect(out[0]?.relatedDois).toEqual(["10.5281/zenodo.76"]);
+    // No publication relation → the field is omitted, not an empty array.
+    expect(out[1]?.linkedDois).toBeUndefined();
+  });
+});
