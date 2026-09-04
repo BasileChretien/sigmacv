@@ -521,6 +521,14 @@
           "default": false,
           "type": "boolean"
         },
+        "showSupervisionSummary": {
+          "default": false,
+          "type": "boolean"
+        },
+        "hideSuperviseeNames": {
+          "default": false,
+          "type": "boolean"
+        },
         "coauthorLinkable": {
           "default": true,
           "type": "boolean"
@@ -941,6 +949,38 @@
                           "maximum": 9007199254740991
                         }
                       }
+                    },
+                    "superviseeName": {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "degreeLevel": {
+                      "type": "string",
+                      "enum": ["bachelor", "master", "phd", "postdoc", "clinical-fellow", "other"]
+                    },
+                    "supervisionRole": {
+                      "type": "string",
+                      "enum": ["primary", "co-supervisor", "committee", "mentor"]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["ongoing", "completed", "discontinued"]
+                    },
+                    "thesisTitle": {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    "thesisDoi": {
+                      "type": "string",
+                      "maxLength": 1000
+                    },
+                    "thesisUrl": {
+                      "type": "string",
+                      "maxLength": 2048
+                    },
+                    "currentPosition": {
+                      "type": "string",
+                      "maxLength": 160
                     },
                     "funderId": {
                       "type": "string",
@@ -1401,6 +1441,14 @@
                 "type": "boolean"
               },
               "showDocQr": {
+                "default": false,
+                "type": "boolean"
+              },
+              "showSupervisionSummary": {
+                "default": false,
+                "type": "boolean"
+              },
+              "hideSuperviseeNames": {
                 "default": false,
                 "type": "boolean"
               },

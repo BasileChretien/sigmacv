@@ -44,7 +44,7 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
     .join("\n");
 
   const body = sections
-    .map(({ section, items }) => {
+    .map(({ section, intro, items }) => {
       if (isProseSectionType(section.type)) {
         const prose = (section.body ?? "").trim();
         if (!prose) return "";
@@ -58,7 +58,9 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
         }
         return `${i + 1}. ${text}`;
       });
-      return `## ${escapeMarkdown(section.title)}\n\n${lines.join("\n")}`;
+      // Optional one-line lead-in (the Supervision summary), italic under the heading.
+      const lead = intro ? `*${escapeMarkdown(intro)}*\n\n` : "";
+      return `## ${escapeMarkdown(section.title)}\n\n${lead}${lines.join("\n")}`;
     })
     .filter(Boolean)
     .join("\n\n");

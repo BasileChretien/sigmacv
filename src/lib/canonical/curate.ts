@@ -9,8 +9,11 @@ import {
   type CvOwner,
   type CvSection,
   type CvSectionType,
+  type DegreeLevel,
   type DisplayChoices,
   type NotMineReason,
+  type SupervisionRole,
+  type SupervisionStatus,
 } from "./schema";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
 import { toCslName } from "@/lib/openalex/toCsl";
@@ -1175,6 +1178,90 @@ export function setItemDateRange(
       const next: CvItem = { ...it, meta };
       const line = rederiveEntryLine(next);
       return line === undefined ? next : { ...next, displayText: line };
+    }),
+  }));
+}
+
+/**
+ * The structured supervision fields the editor can set on a supervision item.
+ * A key PRESENT in the patch is applied; a blank string / undefined value CLEARS
+ * that field (so every text field can be emptied back to "not recorded").
+ */
+export interface SupervisionPatch {
+  superviseeName?: string;
+  degreeLevel?: DegreeLevel | "";
+  supervisionRole?: SupervisionRole | "";
+  status?: SupervisionStatus | "";
+  startYear?: number;
+  endYear?: number;
+  thesisTitle?: string;
+  thesisDoi?: string;
+  thesisUrl?: string;
+  currentPosition?: string;
+  institution?: string;
+}
+
+/** A trimmed text value, or undefined when blank — the "cleared" state. */
+function textOrUndefined(v: string | undefined): string | undefined {
+  const t = (v ?? "").trim();
+  return t ? t : undefined;
+}
+
+/** A finite integer year, or undefined (blank / non-numeric / absurd). */
+function yearOrUndefined(v: number | undefined): number | undefined {
+  return typeof v === "number" && Number.isInteger(v) && v >= 1 && v <= 3000 ? v : undefined;
+}
+
+/**
+ * Set / clear the STRUCTURED supervision fields on a supervision item (the
+ * editor's "Supervision details" form). Only the keys present in `patch` change.
+ * Text is stored RAW (like {@link setItemRoleTitle}) so a trailing space survives
+ * typing, except the DOI (normalized to its bare form) — blanks clear. Editing the
+ * institution NAME drops any stored `rorId` (it named the previous text; the next
+ * sync's enrichment re-resolves it). The free-text `displayText` is left alone: it
+ * stays the fallback line for an entry with no structured lead. Pure + immutable;
+ * a no-op for an unknown id.
+ */
+export function setSupervisionDetails(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  patch: SupervisionPatch,
+): CanonicalCv {
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const meta = { ...it.meta };
+      if ("superviseeName" in patch) {
+        meta.superviseeName = patch.superviseeName?.trim() ? patch.superviseeName : undefined;
+      }
+      if ("degreeLevel" in patch) meta.degreeLevel = patch.degreeLevel || undefined;
+      if ("supervisionRole" in patch) meta.supervisionRole = patch.supervisionRole || undefined;
+      if ("status" in patch) meta.status = patch.status || undefined;
+      if ("startYear" in patch) meta.startYear = yearOrUndefined(patch.startYear);
+      if ("endYear" in patch) meta.endYear = yearOrUndefined(patch.endYear);
+      if ("thesisTitle" in patch) {
+        meta.thesisTitle = patch.thesisTitle?.trim() ? patch.thesisTitle : undefined;
+      }
+      if ("thesisDoi" in patch) {
+        const doi = textOrUndefined(patch.thesisDoi);
+        meta.thesisDoi = doi ? bareDoi(doi).toLowerCase() : undefined;
+      }
+      if ("thesisUrl" in patch) meta.thesisUrl = textOrUndefined(patch.thesisUrl);
+      if ("currentPosition" in patch) {
+        meta.currentPosition = patch.currentPosition?.trim() ? patch.currentPosition : undefined;
+      }
+      if ("institution" in patch) {
+        const inst = patch.institution?.trim() ? patch.institution : undefined;
+        if (inst !== it.meta.institution) {
+          meta.institution = inst;
+          meta.rorId = undefined;
+          meta.institutionNames = undefined;
+          meta.institutionUrl = undefined;
+        }
+      }
+      return { ...it, meta };
     }),
   }));
 }

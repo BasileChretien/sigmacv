@@ -208,3 +208,55 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
     return [];
   }
 }
+
+// ── Title/year by DOI (supervision-record thesis gap-fill) ───────────────────
+
+/** A DOI is "10.<registrant>/<suffix>". Reject anything else before building a URL. */
+const DOI_RE = /^10\.\d{4,9}\/\S+$/;
+// A single DOI record is small; cap the body to reject a pathological response.
+const RECORD_MAX_BYTES = 200_000;
+
+/**
+ * Fetch ONE DataCite-registered DOI's title + publication year — the fallback for
+ * a thesis DOI Crossref doesn't know (most university repositories mint through
+ * DataCite). Same polite-pool + fail-soft (null) contract as the ORCID query above.
+ *
+ * TODO(verify-live): assumed `GET /dois/<doi>` JSON:API shape —
+ * `data.attributes.titles[0].title` and `data.attributes.publicationYear`
+ * (numeric or numeric string). Anything else is ignored, never thrown on.
+ */
+export async function fetchDataciteTitleYear(
+  doi: string,
+): Promise<{ title?: string; year?: number } | null> {
+  const bare = doi
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
+  if (!DOI_RE.test(bare)) return null;
+  const url = new URL(`${DATACITE_API}/${encodeURIComponent(bare)}`);
+  try {
+    const res = await resilientFetch(url, {
+      headers: {
+        Accept: "application/vnd.api+json",
+        "User-Agent": "SigmaCV (+https://github.com/BasileChretien/sigmacv)",
+      },
+      next: { revalidate: 86_400 },
+      timeoutMs: 12_000,
+    });
+    if (!res.ok) return null;
+    const len = Number(res.headers.get("content-length"));
+    if (Number.isFinite(len) && len > RECORD_MAX_BYTES) return null;
+    const body = await res.text();
+    if (body.length > RECORD_MAX_BYTES) return null;
+    const attr = (JSON.parse(body) as any)?.data?.attributes ?? {};
+    const out: { title?: string; year?: number } = {};
+    const title = nonEmpty(Array.isArray(attr?.titles) ? attr.titles[0]?.title : undefined);
+    if (title) out.title = title.slice(0, 300);
+    const year = Number.parseInt(String(attr?.publicationYear ?? ""), 10);
+    if (Number.isInteger(year) && year > 0) out.year = year;
+    return out.title || out.year ? out : null;
+  } catch (err) {
+    logger.warn("datacite.fetch_failed", { err });
+    return null;
+  }
+}

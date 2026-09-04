@@ -14,6 +14,8 @@ import type { CslItem } from "@/types/csl";
 import { selectSections } from "./citationItems";
 import { cslForRender } from "./cslOverride";
 import { escapeHtml } from "./escape";
+import { supervisionEntry, supervisionEntryHtml, supervisionEntryText } from "./supervision";
+import { supervisionSummary, supervisionSummaryText } from "./supervisionSummary";
 
 const escapeHtmlText = escapeHtml;
 
@@ -25,7 +27,22 @@ export interface PreparedItem {
 
 export interface PreparedSection {
   section: CvSection;
+  /**
+   * An optional one-line lead-in rendered between the heading and the list (in
+   * the output format — HTML-escaped markup or plain text). Today: the opt-in
+   * Supervision summary. Absent for every other section.
+   */
+  intro?: string;
   items: PreparedItem[];
+}
+
+/**
+ * The supervision section's opt-in summary line (`display.showSupervisionSummary`),
+ * over the items this render lists. "" when off or nothing to count.
+ */
+function sectionIntro(cv: CanonicalCv, section: CvSection, items: CvItem[]): string {
+  if (section.type !== "supervision" || !cv.display.showSupervisionSummary) return "";
+  return supervisionSummaryText(supervisionSummary(items), renderStrings(cv.display.locale));
 }
 
 /**
@@ -105,10 +122,25 @@ export function prepareSections(
       ? renderBibliography(cslItems, styleKey, cv.display.locale, outputFormat)
       : [];
     const byId = new Map(entries.map((e) => [e.id, e.content]));
+    const intro = sectionIntro(cv, section, items);
+    const hideNames = cv.display.hideSuperviseeNames === true;
     return {
       section,
+      ...(intro ? { intro: outputFormat === "html" ? escapeHtmlText(intro) : intro } : {}),
       items: items.map((item) => {
         if (item.csl) return { item, entry: byId.get(item.id) ?? "" };
+        // A STRUCTURED supervision record is serialized here, once, for every
+        // format (the two-line HTML record / the flat text line) — with the
+        // supervisee-name hiding applied in the same place. An unstructured
+        // supervision entry falls through to its free-text line below.
+        if (section.type === "supervision") {
+          const rec = supervisionEntry(item, cv.display.locale, hideNames);
+          if (rec) {
+            const entry =
+              outputFormat === "html" ? supervisionEntryHtml(rec) : supervisionEntryText(rec);
+            return { item, entry };
+          }
+        }
         const text = localizeEntryLine(item, cv.display.locale);
         // citeproc HTML is already markup; plain displayText must be escaped for HTML.
         return {

@@ -1,3 +1,4 @@
+import type { DegreeLevel, SupervisionRole, SupervisionStatus } from "@/lib/canonical/schema";
 import { asLocale, type Locale } from "./index";
 
 /**
@@ -140,6 +141,35 @@ export interface RenderStrings {
   filterTypeConference: string;
   filterTypeBook: string;
   filterTypeDataset: string;
+  /** Supervision record: degree-level labels (the lead line, the summary line, the editor selects). */
+  degreeBachelor: string;
+  degreeMaster: string;
+  degreePhd: string;
+  degreePostdoc: string;
+  degreeClinicalFellow: string;
+  degreeOther: string;
+  /** Supervision record: the degree-level NOUN shown in place of a hidden supervisee name. */
+  superviseeBachelor: string;
+  superviseeMaster: string;
+  superviseePhd: string;
+  superviseePostdoc: string;
+  superviseeClinicalFellow: string;
+  superviseeOther: string;
+  /** Supervision record: the owner's role labels (lower-case, they follow the degree in the lead line). */
+  supervisionRolePrimary: string;
+  supervisionRoleCo: string;
+  supervisionRoleCommittee: string;
+  supervisionRoleMentor: string;
+  /** Supervision record: status terms ("ongoing" renders as a badge). */
+  supervisionStatusOngoing: string;
+  supervisionStatusCompleted: string;
+  supervisionStatusDiscontinued: string;
+  /** Supervision record sub-line: "where they went next"; "{position}" → the current position. */
+  supervisionNow: string;
+  /** Supervision summary line head; "{n}" → the total number supervised. */
+  supervisionSummaryTotal: string;
+  /** Supervision summary per-level parenthetical; "{n}" → the completed count. */
+  supervisionSummaryCompleted: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -227,6 +257,28 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Updated {date} · living CV, updates automatically",
     rorRecordTitle: "ROR organization record",
     institutionSiteTitle: "Institution website",
+    degreeBachelor: "Bachelor's",
+    degreeMaster: "Master's",
+    degreePhd: "PhD",
+    degreePostdoc: "Postdoc",
+    degreeClinicalFellow: "Clinical fellow",
+    degreeOther: "Other",
+    superviseeBachelor: "Undergraduate student",
+    superviseeMaster: "Master's student",
+    superviseePhd: "PhD student",
+    superviseePostdoc: "Postdoctoral researcher",
+    superviseeClinicalFellow: "Clinical fellow",
+    superviseeOther: "Supervisee",
+    supervisionRolePrimary: "primary supervisor",
+    supervisionRoleCo: "co-supervisor",
+    supervisionRoleCommittee: "committee member",
+    supervisionRoleMentor: "mentor",
+    supervisionStatusOngoing: "ongoing",
+    supervisionStatusCompleted: "completed",
+    supervisionStatusDiscontinued: "discontinued",
+    supervisionNow: "now: {position}",
+    supervisionSummaryTotal: "{n} supervised",
+    supervisionSummaryCompleted: "{n} completed",
   },
   "zh-CN": {
     hankoCredit:
@@ -309,6 +361,28 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "更新于 {date} · 在线简历，自动更新",
     rorRecordTitle: "ROR 机构记录",
     institutionSiteTitle: "机构网站",
+    degreeBachelor: "学士",
+    degreeMaster: "硕士",
+    degreePhd: "博士",
+    degreePostdoc: "博士后",
+    degreeClinicalFellow: "临床专科医师",
+    degreeOther: "其他",
+    superviseeBachelor: "本科生",
+    superviseeMaster: "硕士生",
+    superviseePhd: "博士生",
+    superviseePostdoc: "博士后研究员",
+    superviseeClinicalFellow: "临床专科医师",
+    superviseeOther: "受指导者",
+    supervisionRolePrimary: "主导师",
+    supervisionRoleCo: "副导师",
+    supervisionRoleCommittee: "答辩委员会成员",
+    supervisionRoleMentor: "指导者",
+    supervisionStatusOngoing: "进行中",
+    supervisionStatusCompleted: "已完成",
+    supervisionStatusDiscontinued: "已中止",
+    supervisionNow: "现任：{position}",
+    supervisionSummaryTotal: "共指导 {n} 人",
+    supervisionSummaryCompleted: "{n} 人已完成",
   },
   "es-ES": {
     hankoCredit:
@@ -400,6 +474,28 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Actualizado el {date} · CV vivo, se actualiza solo",
     rorRecordTitle: "Ficha de la organización en ROR",
     institutionSiteTitle: "Sitio web de la institución",
+    degreeBachelor: "Grado",
+    degreeMaster: "Máster",
+    degreePhd: "Doctorado",
+    degreePostdoc: "Posdoctorado",
+    degreeClinicalFellow: "Fellow clínico",
+    degreeOther: "Otro",
+    superviseeBachelor: "Estudiante de grado",
+    superviseeMaster: "Estudiante de máster",
+    superviseePhd: "Doctorando/a",
+    superviseePostdoc: "Investigador/a posdoctoral",
+    superviseeClinicalFellow: "Fellow clínico",
+    superviseeOther: "Persona supervisada",
+    supervisionRolePrimary: "director/a principal",
+    supervisionRoleCo: "codirector/a",
+    supervisionRoleCommittee: "miembro del tribunal",
+    supervisionRoleMentor: "mentor/a",
+    supervisionStatusOngoing: "en curso",
+    supervisionStatusCompleted: "completada",
+    supervisionStatusDiscontinued: "interrumpida",
+    supervisionNow: "ahora: {position}",
+    supervisionSummaryTotal: "{n} supervisiones",
+    supervisionSummaryCompleted: "{n} completadas",
   },
   "fr-FR": {
     hankoCredit:
@@ -492,6 +588,28 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Mis à jour le {date} · CV vivant, mis à jour automatiquement",
     rorRecordTitle: "Fiche de l’organisation dans ROR",
     institutionSiteTitle: "Site web de l’établissement",
+    degreeBachelor: "Licence",
+    degreeMaster: "Master",
+    degreePhd: "Doctorat",
+    degreePostdoc: "Post-doctorat",
+    degreeClinicalFellow: "Fellow clinique",
+    degreeOther: "Autre",
+    superviseeBachelor: "Étudiant·e de licence",
+    superviseeMaster: "Étudiant·e de master",
+    superviseePhd: "Doctorant·e",
+    superviseePostdoc: "Chercheur·euse post-doctoral·e",
+    superviseeClinicalFellow: "Fellow clinique",
+    superviseeOther: "Personne encadrée",
+    supervisionRolePrimary: "directeur·rice principal·e",
+    supervisionRoleCo: "co-encadrant·e",
+    supervisionRoleCommittee: "membre du jury",
+    supervisionRoleMentor: "mentor",
+    supervisionStatusOngoing: "en cours",
+    supervisionStatusCompleted: "terminée",
+    supervisionStatusDiscontinued: "interrompue",
+    supervisionNow: "aujourd’hui : {position}",
+    supervisionSummaryTotal: "{n} personnes encadrées",
+    supervisionSummaryCompleted: "{n} terminées",
   },
   "de-DE": {
     hankoCredit:
@@ -581,6 +699,28 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aktualisiert am {date} · lebender Lebenslauf, automatisch aktualisiert",
     rorRecordTitle: "ROR-Organisationseintrag",
     institutionSiteTitle: "Website der Einrichtung",
+    degreeBachelor: "Bachelor",
+    degreeMaster: "Master",
+    degreePhd: "Promotion",
+    degreePostdoc: "Postdoc",
+    degreeClinicalFellow: "Clinical Fellow",
+    degreeOther: "Sonstiges",
+    superviseeBachelor: "Bachelorstudent·in",
+    superviseeMaster: "Masterstudent·in",
+    superviseePhd: "Doktorand·in",
+    superviseePostdoc: "Postdoktorand·in",
+    superviseeClinicalFellow: "Clinical Fellow",
+    superviseeOther: "Betreute Person",
+    supervisionRolePrimary: "Erstbetreuung",
+    supervisionRoleCo: "Zweitbetreuung",
+    supervisionRoleCommittee: "Prüfungsausschuss",
+    supervisionRoleMentor: "Mentor·in",
+    supervisionStatusOngoing: "laufend",
+    supervisionStatusCompleted: "abgeschlossen",
+    supervisionStatusDiscontinued: "abgebrochen",
+    supervisionNow: "heute: {position}",
+    supervisionSummaryTotal: "{n} betreut",
+    supervisionSummaryCompleted: "{n} abgeschlossen",
   },
   "ja-JP": {
     hankoCredit:
@@ -666,6 +806,28 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 更新 · 自動更新されるライブ CV",
     rorRecordTitle: "ROR 機関レコード",
     institutionSiteTitle: "機関ウェブサイト",
+    degreeBachelor: "学士",
+    degreeMaster: "修士",
+    degreePhd: "博士",
+    degreePostdoc: "ポスドク",
+    degreeClinicalFellow: "臨床フェロー",
+    degreeOther: "その他",
+    superviseeBachelor: "学部生",
+    superviseeMaster: "修士課程学生",
+    superviseePhd: "博士課程学生",
+    superviseePostdoc: "博士研究員",
+    superviseeClinicalFellow: "臨床フェロー",
+    superviseeOther: "指導学生",
+    supervisionRolePrimary: "主指導教員",
+    supervisionRoleCo: "副指導教員",
+    supervisionRoleCommittee: "審査委員",
+    supervisionRoleMentor: "メンター",
+    supervisionStatusOngoing: "指導中",
+    supervisionStatusCompleted: "修了",
+    supervisionStatusDiscontinued: "中断",
+    supervisionNow: "現職：{position}",
+    supervisionSummaryTotal: "指導 {n} 名",
+    supervisionSummaryCompleted: "うち修了 {n} 名",
   },
   "pt-BR": {
     hankoCredit:
@@ -757,6 +919,28 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Atualizado em {date} · currículo vivo, atualizado automaticamente",
     rorRecordTitle: "Registro da organização no ROR",
     institutionSiteTitle: "Site da instituição",
+    degreeBachelor: "Graduação",
+    degreeMaster: "Mestrado",
+    degreePhd: "Doutorado",
+    degreePostdoc: "Pós-doutorado",
+    degreeClinicalFellow: "Fellow clínico",
+    degreeOther: "Outro",
+    superviseeBachelor: "Estudante de graduação",
+    superviseeMaster: "Mestrando(a)",
+    superviseePhd: "Doutorando(a)",
+    superviseePostdoc: "Pesquisador(a) de pós-doutorado",
+    superviseeClinicalFellow: "Fellow clínico",
+    superviseeOther: "Orientando(a)",
+    supervisionRolePrimary: "orientador(a) principal",
+    supervisionRoleCo: "coorientador(a)",
+    supervisionRoleCommittee: "membro da banca",
+    supervisionRoleMentor: "mentor(a)",
+    supervisionStatusOngoing: "em andamento",
+    supervisionStatusCompleted: "concluída",
+    supervisionStatusDiscontinued: "interrompida",
+    supervisionNow: "atualmente: {position}",
+    supervisionSummaryTotal: "{n} orientações",
+    supervisionSummaryCompleted: "{n} concluídas",
   },
   "it-IT": {
     hankoCredit:
@@ -848,6 +1032,28 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Aggiornato il {date} · CV vivo, si aggiorna da solo",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
     institutionSiteTitle: "Sito web dell’istituzione",
+    degreeBachelor: "Laurea triennale",
+    degreeMaster: "Laurea magistrale",
+    degreePhd: "Dottorato",
+    degreePostdoc: "Post-doc",
+    degreeClinicalFellow: "Fellow clinico",
+    degreeOther: "Altro",
+    superviseeBachelor: "Studente triennale",
+    superviseeMaster: "Studente magistrale",
+    superviseePhd: "Dottorando/a",
+    superviseePostdoc: "Ricercatore/rice post-doc",
+    superviseeClinicalFellow: "Fellow clinico",
+    superviseeOther: "Persona supervisionata",
+    supervisionRolePrimary: "relatore/rice principale",
+    supervisionRoleCo: "co-relatore/rice",
+    supervisionRoleCommittee: "membro della commissione",
+    supervisionRoleMentor: "mentore",
+    supervisionStatusOngoing: "in corso",
+    supervisionStatusCompleted: "completata",
+    supervisionStatusDiscontinued: "interrotta",
+    supervisionNow: "ora: {position}",
+    supervisionSummaryTotal: "{n} supervisioni",
+    supervisionSummaryCompleted: "{n} completate",
   },
   "ko-KR": {
     hankoCredit:
@@ -932,6 +1138,28 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "{date} 업데이트 · 자동으로 갱신되는 라이브 CV",
     rorRecordTitle: "ROR 기관 레코드",
     institutionSiteTitle: "기관 웹사이트",
+    degreeBachelor: "학사",
+    degreeMaster: "석사",
+    degreePhd: "박사",
+    degreePostdoc: "박사후",
+    degreeClinicalFellow: "임상 펠로우",
+    degreeOther: "기타",
+    superviseeBachelor: "학부생",
+    superviseeMaster: "석사과정생",
+    superviseePhd: "박사과정생",
+    superviseePostdoc: "박사후연구원",
+    superviseeClinicalFellow: "임상 펠로우",
+    superviseeOther: "지도 학생",
+    supervisionRolePrimary: "주지도교수",
+    supervisionRoleCo: "공동지도교수",
+    supervisionRoleCommittee: "심사위원",
+    supervisionRoleMentor: "멘토",
+    supervisionStatusOngoing: "진행 중",
+    supervisionStatusCompleted: "완료",
+    supervisionStatusDiscontinued: "중단",
+    supervisionNow: "현재: {position}",
+    supervisionSummaryTotal: "지도 {n}명",
+    supervisionSummaryCompleted: "{n}명 완료",
   },
   "ru-RU": {
     hankoCredit:
@@ -1021,6 +1249,28 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     livingNote: "Обновлено {date} · живое резюме, обновляется автоматически",
     rorRecordTitle: "Запись организации в ROR",
     institutionSiteTitle: "Сайт организации",
+    degreeBachelor: "Бакалавриат",
+    degreeMaster: "Магистратура",
+    degreePhd: "Аспирантура (PhD)",
+    degreePostdoc: "Постдок",
+    degreeClinicalFellow: "Клинический фелло",
+    degreeOther: "Другое",
+    superviseeBachelor: "Студент бакалавриата",
+    superviseeMaster: "Магистрант",
+    superviseePhd: "Аспирант",
+    superviseePostdoc: "Постдокторант",
+    superviseeClinicalFellow: "Клинический фелло",
+    superviseeOther: "Подопечный",
+    supervisionRolePrimary: "основной руководитель",
+    supervisionRoleCo: "соруководитель",
+    supervisionRoleCommittee: "член комиссии",
+    supervisionRoleMentor: "наставник",
+    supervisionStatusOngoing: "в процессе",
+    supervisionStatusCompleted: "завершено",
+    supervisionStatusDiscontinued: "прервано",
+    supervisionNow: "сейчас: {position}",
+    supervisionSummaryTotal: "{n} под руководством",
+    supervisionSummaryCompleted: "{n} завершено",
   },
 };
 
@@ -1101,4 +1351,56 @@ export function authorshipRoleLabel(locale: string, role: string): string {
     corresponding: s.roleCorresponding,
   };
   return map[role] ?? role;
+}
+
+// ─── Structured supervision record labels ────────────────────────────────────
+// Shared by the renderers (the two-line record + the summary line), the editor's
+// selects and the narrative-evidence extractor, so one vocabulary → one label.
+
+/** Localized degree-level label ("PhD", "Master's", …). */
+export function degreeLabel(rs: RenderStrings, level: DegreeLevel): string {
+  const map: Record<DegreeLevel, string> = {
+    bachelor: rs.degreeBachelor,
+    master: rs.degreeMaster,
+    phd: rs.degreePhd,
+    postdoc: rs.degreePostdoc,
+    "clinical-fellow": rs.degreeClinicalFellow,
+    other: rs.degreeOther,
+  };
+  return map[level];
+}
+
+/** The degree-level NOUN that stands in for a hidden supervisee name
+ *  ("PhD student"); the generic "Supervisee" when the level is unknown. */
+export function superviseeNoun(rs: RenderStrings, level: DegreeLevel | undefined): string {
+  const map: Record<DegreeLevel, string> = {
+    bachelor: rs.superviseeBachelor,
+    master: rs.superviseeMaster,
+    phd: rs.superviseePhd,
+    postdoc: rs.superviseePostdoc,
+    "clinical-fellow": rs.superviseeClinicalFellow,
+    other: rs.superviseeOther,
+  };
+  return level ? map[level] : rs.superviseeOther;
+}
+
+/** Localized label of the owner's supervision role ("primary supervisor", …). */
+export function supervisionRoleLabel(rs: RenderStrings, role: SupervisionRole): string {
+  const map: Record<SupervisionRole, string> = {
+    primary: rs.supervisionRolePrimary,
+    "co-supervisor": rs.supervisionRoleCo,
+    committee: rs.supervisionRoleCommittee,
+    mentor: rs.supervisionRoleMentor,
+  };
+  return map[role];
+}
+
+/** Localized status term ("ongoing" / "completed" / "discontinued"). */
+export function supervisionStatusLabel(rs: RenderStrings, status: SupervisionStatus): string {
+  const map: Record<SupervisionStatus, string> = {
+    ongoing: rs.supervisionStatusOngoing,
+    completed: rs.supervisionStatusCompleted,
+    discontinued: rs.supervisionStatusDiscontinued,
+  };
+  return map[status];
 }

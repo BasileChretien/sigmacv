@@ -1,5 +1,17 @@
+import {
+  degreeLabel,
+  renderStrings,
+  superviseeNoun,
+  supervisionRoleLabel,
+} from "@/lib/i18n/render";
 import { visibleItems, visibleSections } from "./curate";
-import type { CanonicalCv, CvItem, CvSectionType } from "./schema";
+import {
+  hasStructuredSupervision,
+  itemInstitution,
+  type CanonicalCv,
+  type CvItem,
+  type CvSectionType,
+} from "./schema";
 
 export interface NarrativeEvidenceItem {
   type: CvSectionType;
@@ -76,7 +88,7 @@ export function narrativeEvidenceEntries(
     const list = byType.get(section.type) ?? [];
     for (const it of visibleItems(section)) {
       if (list.length >= maxPerSection) break;
-      const e = itemEntry(it);
+      const e = itemEntry(it, cv.display.locale);
       if (e) list.push(e);
     }
     byType.set(section.type, list);
@@ -86,9 +98,42 @@ export function narrativeEvidenceEntries(
     .filter((g) => g.entries.length > 0);
 }
 
+/**
+ * A STRUCTURED supervision record as evidence — WITHOUT the supervisee's name.
+ * The entries feed the AI first-draft prompt and the module's evidence list, and a
+ * supervisee's name is third-party personal data the owner never asked to send
+ * anywhere; what the narrative needs is the shape of the contribution ("PhD,
+ * primary supervisor — <thesis>, <institution>, 2023"), which is exactly what is
+ * kept. undefined for an unstructured entry (its free-text line is used instead).
+ */
+function supervisionEntry(item: CvItem, locale: string): NarrativeEvidenceEntry | undefined {
+  if (!hasStructuredSupervision(item)) return undefined;
+  const rs = renderStrings(locale);
+  const m = item.meta;
+  const qualifiers = [
+    m.degreeLevel ? degreeLabel(rs, m.degreeLevel) : "",
+    m.supervisionRole ? supervisionRoleLabel(rs, m.supervisionRole) : "",
+  ].filter(Boolean);
+  const thesis = m.thesisTitle?.trim();
+  // A record with only a name has no name-free descriptor → the generic noun,
+  // never the free-text line (which is where the name would be).
+  const title =
+    [qualifiers.join(", "), thesis].filter(Boolean).join(" — ").slice(0, 250) ||
+    superviseeNoun(rs, undefined);
+  const inst = itemInstitution(item)?.trim();
+  const year = m.endYear ?? m.startYear;
+  return {
+    title,
+    ...(inst ? { venue: inst.slice(0, 150) } : {}),
+    ...(typeof year === "number" ? { year } : {}),
+  };
+}
+
 /** Title (override → CSL → display string) + venue + year for an item, trimmed +
  *  capped. undefined when there's no usable title. */
-function itemEntry(item: CvItem): NarrativeEvidenceEntry | undefined {
+function itemEntry(item: CvItem, locale: string): NarrativeEvidenceEntry | undefined {
+  const structured = supervisionEntry(item, locale);
+  if (structured) return structured;
   const raw = item.displayTextOverride ?? item.csl?.title ?? item.displayText;
   if (typeof raw !== "string") return undefined;
   const title = raw.trim().slice(0, 250);

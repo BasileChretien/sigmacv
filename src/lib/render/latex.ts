@@ -72,7 +72,15 @@ function latexifyEntry(entry: string, bold: ((s: string) => string) | null): str
   return entry
     .split(URL_RE)
     .map((part) => {
-      if (/^https?:\/\//.test(part)) return `\\url{${sanitizeUrlForLatex(part)}}`;
+      if (/^https?:\/\//.test(part)) {
+        // A URL written inside a parenthetical — "title (https://…)" — ends the
+        // greedy match with the closing bracket / sentence punctuation. Hand that
+        // back to the text run so the \url{} stays resolvable.
+        const m = /^(.*?)([).,;:]+)$/.exec(part);
+        const url = m && !m[1]!.includes("(") ? m[1]! : part;
+        const trail = url === part ? "" : escapeLatex(part.slice(url.length));
+        return `\\url{${sanitizeUrlForLatex(url)}}${trail}`;
+      }
       const escaped = escapeLatex(part);
       return bold ? bold(escaped) : escaped;
     })
@@ -84,11 +92,13 @@ function latexifyEntry(entry: string, bold: ((s: string) => string) | null): str
 function sectionItems(
   cv: CanonicalCv,
   sections: PreparedSection[],
-): { title: string; lines: string[] }[] {
+): { title: string; intro: string; lines: string[] }[] {
   return sections
     .filter(({ items }) => items.length > 0)
-    .map(({ section, items }) => ({
+    .map(({ section, intro, items }) => ({
       title: escapeLatex(section.title),
+      // Optional one-line lead-in (the Supervision summary), italic under the heading.
+      intro: intro ? `{\\small\\itshape ${escapeLatex(intro)}}\\par\n` : "",
       lines: items.map(({ item, entry }) => {
         const highlight = cv.display.highlightSelf && item.selfNameVariants.length > 0;
         const variants = item.selfNameVariants.map(escapeLatex);
@@ -184,8 +194,8 @@ function buildStyled(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts): strin
   const metricsRaw = summaryHidden ? "" : metricsLineText(cv);
 
   const blocks = sectionItems(cv, sections).map(
-    ({ title, lines }) =>
-      `\\section{${title}}\n\\begin{cvlist}\n${lines
+    ({ title, intro, lines }) =>
+      `\\section{${title}}\n${intro}\\begin{cvlist}\n${lines
         .map((l) => `  \\item ${l}`)
         .join("\n")}\n\\end{cvlist}`,
   );
@@ -288,8 +298,8 @@ function buildSidebarLatex(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts):
     : [yearTableLatex(cv), authorshipTableLatex(cv)].filter(Boolean).join("\n");
   const blocks = sectionItems(cv, sections)
     .map(
-      ({ title, lines }) =>
-        `\\section{${title}}\n\\begin{cvlist}\n${lines
+      ({ title, intro, lines }) =>
+        `\\section{${title}}\n${intro}\\begin{cvlist}\n${lines
           .map((l) => `  \\item ${l}`)
           .join("\n")}\n\\end{cvlist}`,
     )

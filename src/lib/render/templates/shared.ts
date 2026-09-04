@@ -371,6 +371,12 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-entry-dates { flex: 0 0 auto; margin-inline-start: auto; color: var(--cv-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cv-entry-sub { color: var(--cv-muted); font-size: 0.92em; line-height: 1.4; margin-top: 0.1rem; }
   .cv-entry-lead .cv-ror-link, .cv-entry-sub .cv-ror-link { color: inherit; }
+  /* Supervision records reuse the two-line entry; their sub-line links (thesis,
+     institution) stay quiet, and an "ongoing" status reads as a small pill. */
+  .cv-entry-sub .cv-entry-link { color: inherit; }
+  .cv-entry-status.is-ongoing { display: inline-block; padding: 0 0.4em; border-radius: 0.6em; border: 1px solid var(--cv-muted); font-size: 0.85em; line-height: 1.5; }
+  /* The optional one-line section lead-in (the Supervision summary). */
+  .cv-section-intro { margin: 0 0 0.4rem; color: var(--cv-muted); font-size: 0.92em; }
 
   .cv-self { ${theme.selfHighlightCss} }
 
@@ -1200,7 +1206,11 @@ export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): s
       // so they skip the inline .csl-entry wrapper and tag the list .cv-history (the
       // styling hook that drops the citation hanging indent). The list stays an
       // <ol class="cv-bib"> so the public showcase styles' entry styling still binds.
-      const isHistory = rs.section.type === "positions" || rs.section.type === "education";
+      // Supervision joins them: a structured record is the same block .cv-entry.
+      const isHistory =
+        rs.section.type === "positions" ||
+        rs.section.type === "education" ||
+        rs.section.type === "supervision";
       const entries = rs.items
         .map((ri) => {
           // A stable per-entry id so the public "What's new" strip can deep-link to
@@ -1213,10 +1223,13 @@ export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): s
         })
         .join("\n");
       const olClass = isHistory ? "cv-bib cv-history" : "cv-bib";
+      // Optional escaped one-line lead-in (the Supervision summary), between
+      // the heading and the list.
+      const intro = rs.intro ? `<p class="cv-section-intro">${rs.intro}</p>` : "";
       return `<section class="cv-section${brk}">${sectionHeadingHtml(
         rs.section.id,
         rs.section.title,
-      )}<ol class="${olClass}">\n${entries}\n</ol></section>`;
+      )}${intro}<ol class="${olClass}">\n${entries}\n</ol></section>`;
     })
     .join("\n");
   // The research-summary block, when the user moved it out of the header, renders

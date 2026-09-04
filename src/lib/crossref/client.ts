@@ -101,6 +101,75 @@ export async function fetchCrossrefGapFields(
   }
 }
 
+// ── Thesis title/year by DOI (supervision-record gap-fill) ───────────────────
+
+/** Title + year of a DOI-registered work, for the supervision record's thesis. */
+export interface DoiTitleYear {
+  title?: string;
+  year?: number;
+}
+
+/** The first date-parts year of a CSL date object (`issued`, …), or undefined. */
+function cslYear(value: unknown): number | undefined {
+  const parts = (value as { "date-parts"?: unknown[][] } | undefined)?.["date-parts"];
+  const y = Array.isArray(parts) ? parts[0]?.[0] : undefined;
+  const n = typeof y === "string" ? Number.parseInt(y, 10) : y;
+  return typeof n === "number" && Number.isInteger(n) && n > 0 ? n : undefined;
+}
+
+/**
+ * Fetch a DOI's TITLE + publication YEAR from Crossref (CSL-JSON content
+ * negotiation), for gap-filling a supervision record's thesis fields. Crossref
+ * registers a share of theses (publisher/university DOIs); the DataCite client
+ * covers the repository-minted rest (`fetchDataciteTitleYear`). Same polite-pool,
+ * size-capped, fail-soft (null) contract as {@link fetchCrossrefGapFields}.
+ *
+ * TODO(verify-live): assumed CSL-JSON shape — `title` as a string OR a one-element
+ * array, `issued["date-parts"][0][0]` the year (falling back to `published-print`
+ * / `published-online` / `created`). Anything else is ignored, never thrown on.
+ */
+export async function fetchCrossrefTitleYear(
+  doi: string,
+  mailto: string,
+): Promise<DoiTitleYear | null> {
+  const bare = doi
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
+  if (!DOI_RE.test(bare)) return null;
+
+  const url = new URL(`${CROSSREF_API}/${encodeURIComponent(bare)}`);
+  url.searchParams.set("mailto", mailto);
+
+  try {
+    const res = await resilientFetch(url, {
+      headers: { Accept: CSL_ACCEPT },
+      next: { revalidate: 86_400 },
+      timeoutMs: 12_000,
+    });
+    if (!res.ok) return null;
+    const len = Number(res.headers.get("content-length"));
+    if (Number.isFinite(len) && len > MAX_BYTES) return null;
+    const body = await res.text();
+    if (body.length > MAX_BYTES) return null;
+
+    const data = JSON.parse(body) as Record<string, unknown>;
+    const out: DoiTitleYear = {};
+    const title = firstString(data.title);
+    if (title) out.title = title.slice(0, 300);
+    const year =
+      cslYear(data.issued) ??
+      cslYear(data["published-print"]) ??
+      cslYear(data["published-online"]) ??
+      cslYear(data.created);
+    if (year) out.year = year;
+    return out.title || out.year ? out : null;
+  } catch (err) {
+    logger.warn("crossref.fetch_failed", { err });
+    return null;
+  }
+}
+
 // ── Abstract gap-fill (Crossref JATS abstract → bounded plain text) ───────────
 
 /** Cap on the extracted abstract (chars) — matches the OpenAlex reconstruction cap. */

@@ -50,6 +50,7 @@ import {
   setItemTextOverride,
   setItemVenue,
   setItemYear,
+  setSupervisionDetails,
   viewExcludedIds,
   setSectionBody,
   setSectionVisible,
@@ -1112,6 +1113,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                   }
                                   onSetVenue={(v) =>
                                     onChange(setItemVenue(cv, section.id, item.id, v))
+                                  }
+                                  onSetSupervision={(patch) =>
+                                    onChange(setSupervisionDetails(cv, section.id, item.id, patch))
                                   }
                                   onRemove={() => onChange(removeItem(cv, section.id, item.id))}
                                 />
