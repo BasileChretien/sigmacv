@@ -30,6 +30,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Retracted works no longer count toward the figures.** A publication flagged
+  as retracted (via the Crossref / Retraction Watch enrichment) was excluded from
+  the list when **Hide retracted** was on, but still counted in every figure: the
+  RCR mean, the publications-per-year chart, the authorship table and the
+  open-access share. It is now excluded from all of them **always**, whether or not
+  it is hidden — a retracted work stays listed with its "Retracted" badge when you
+  choose to show it, but is never counted as evidence of output. This follows the
+  existing rule for non-peer-reviewed items: the list filter is your choice, the
+  figures are always strict.
+
 - **BibTeX, RIS and CSL-JSON now carry your corrections.** A publication year or
   journal name you corrected, and your preferred publication name, showed on the
   PDF and the public page but **not** in the `.bib` / `.ris` / `.csl.json` a
