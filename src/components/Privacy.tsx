@@ -34,6 +34,7 @@ export default function Privacy({ locale }: { locale: string }) {
 
         <h2>{s.dataHeading}</h2>
         <p>{s.data}</p>
+        <p>{s.superviseeNames}</p>
 
         <h2>{s.purposeHeading}</h2>
         <p>{s.purpose}</p>

@@ -9,6 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Structured supervision & mentoring records.** A Supervision entry can now
+  carry structured fields instead of one free-text line: the supervisee, degree
+  level (bachelor / master / PhD / postdoc / clinical fellow / other), your role
+  (primary, co-supervisor, committee, mentor), years, status (ongoing / completed
+  / discontinued), thesis title + DOI or URL, the person's current position, and
+  the host institution. Structured entries render as the same two-line record
+  Positions and Education use (name — degree, role; right-aligned dates; a muted
+  line with the linked thesis, the institution and "now: …") in the HTML/PDF,
+  DOCX, LaTeX and Markdown exports and on the public page; entries without the
+  fields keep their free-text line. Records are yours (ORCID carries no
+  supervision data) and survive every re-sync; a thesis DOI's title and year are
+  gap-filled from Crossref, then DataCite, and the institution is linked to its
+  ROR record, all fail-soft. The R4RI "development of individuals" narrative
+  module now counts these records as evidence — without the supervisee's name.
+- **Design → "Show a supervision summary line"** (off by default, like every other
+  figure): "12 supervised: 5 PhD (4 completed), 6 Master's, 1 Postdoc" above the
+  Supervision section, computed only from the entries actually listed.
+- **Design → "Show a degree-level description instead of supervisees' names"**
+  (off by default): a supervisee's name is third-party personal data you publish,
+  so the editor reminds you to add one only with the person's agreement, the
+  privacy notice says so in all ten languages, and this switch replaces each name
+  with "PhD student" / "Master's student" / … on the public page, in every export
+  and in the public JSON — while the editor keeps the name.
+
+### Fixed
+
+- **LaTeX export: a URL written inside parentheses** — "title (https://…)" —
+  no longer swallows the closing bracket into `\url{}`.
+
 - **"Verified" mark on institution-confirmed positions, education and honours.**
   Entries that a trusted organisation asserted on your ORCID record via the
   Member API (rather than you typing them in) were already flagged in the editor,

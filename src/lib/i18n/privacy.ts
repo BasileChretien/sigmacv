@@ -45,6 +45,8 @@ export interface PrivacyStrings {
   authoritativeNote: string;
   updatedNote: string;
   backLink: string;
+  /** Third-party names in supervision/mentoring records: publish only with agreement; degree-noun alternative. */
+  superviseeNames: string;
 }
 
 const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
@@ -91,6 +93,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     updatedNote:
       "We may update this notice; material changes to research logging require renewed consent.",
     backLink: "← Back to SigmaCV",
+    superviseeNames:
+      "Supervision and mentoring records may include the names of the people you supervised — third-party personal data that you, as the author of your CV, choose to publish. Add a person's name only with their agreement; you can instead show a degree-level description (for example “PhD student”) in place of the name on the public page and in every export. Those names are deleted with your account, like the rest of your CV.",
   },
   "zh-CN": {
     previewHeading: "公开 ORCID 预览",
@@ -133,6 +137,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     authoritativeNote: "本声明以多种语言提供仅为方便之用；如各版本存在差异，以英文版本为准。",
     updatedNote: "我们可能会更新本声明；对研究日志记录的实质性变更需要重新征得同意。",
     backLink: "← 返回 SigmaCV",
+    superviseeNames:
+      "指导记录可能包含您所指导人员的姓名——这是由您（作为简历的作者）选择发布的第三方个人数据。请仅在征得本人同意后添加其姓名；您也可以在公开页面和所有导出中以学位描述（例如“博士生”）代替姓名。这些姓名与您简历的其余部分一样，会随账户删除而一并删除。",
   },
   "es-ES": {
     previewHeading: "Vista previa pública por ORCID",
@@ -177,6 +183,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     updatedNote:
       "Es posible que actualicemos este aviso; los cambios sustanciales en el registro con fines de investigación requieren un nuevo consentimiento.",
     backLink: "← Volver a SigmaCV",
+    superviseeNames:
+      "Los registros de supervisión y mentoría pueden incluir los nombres de las personas que has supervisado: datos personales de terceros que tú, como autor/a de tu CV, decides publicar. Añade el nombre de una persona solo con su consentimiento; como alternativa, puedes mostrar una descripción por nivel académico (por ejemplo, «Doctorando/a») en lugar del nombre en la página pública y en todas las exportaciones. Esos nombres se eliminan con tu cuenta, como el resto de tu CV.",
   },
   "fr-FR": {
     previewHeading: "Aperçu public par ORCID",
@@ -221,6 +229,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     updatedNote:
       "Nous pouvons mettre à jour le présent avis ; toute modification substantielle de la journalisation à des fins de recherche nécessite un nouveau consentement.",
     backLink: "← Retour à SigmaCV",
+    superviseeNames:
+      "Les fiches d’encadrement et de mentorat peuvent contenir les noms des personnes que vous avez encadrées — des données personnelles de tiers que vous choisissez de publier en tant qu’auteur·rice de votre CV. N’ajoutez le nom d’une personne qu’avec son accord ; vous pouvez sinon afficher une description par niveau de diplôme (par exemple « Doctorant·e ») à la place du nom sur la page publique et dans tous les exports. Ces noms sont supprimés avec votre compte, comme le reste de votre CV.",
   },
   "de-DE": {
     previewHeading: "Öffentliche ORCID-Vorschau",
@@ -265,6 +275,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     updatedNote:
       "Wir können diesen Hinweis aktualisieren; wesentliche Änderungen an der Forschungsprotokollierung erfordern eine erneute Einwilligung.",
     backLink: "← Zurück zu SigmaCV",
+    superviseeNames:
+      "Betreuungs- und Mentoring-Einträge können die Namen der von Ihnen betreuten Personen enthalten – personenbezogene Daten Dritter, deren Veröffentlichung Sie als Autor·in Ihres Lebenslaufs selbst entscheiden. Fügen Sie einen Namen nur mit Zustimmung der Person hinzu; alternativ können Sie auf der öffentlichen Seite und in allen Exporten statt des Namens eine Bezeichnung nach Abschlussniveau (z. B. „Doktorand·in“) anzeigen lassen. Diese Namen werden wie der Rest Ihres Lebenslaufs mit Ihrem Konto gelöscht.",
   },
   "ja-JP": {
     previewHeading: "ORCID による公開プレビュー",
@@ -309,6 +321,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     updatedNote:
       "当方は本通知を更新する場合があります。研究目的のログ記録に関する重大な変更については、改めて同意が必要となります。",
     backLink: "← SigmaCV に戻る",
+    superviseeNames:
+      "指導・メンタリングの記録には、あなたが指導した相手の氏名（第三者の個人情報）が含まれることがあり、その公開は履歴書の作成者であるあなたの判断によります。氏名は本人の同意を得た場合にのみ追加してください。公開ページとすべてのエクスポートでは、氏名の代わりに学位区分の表記（例：「博士課程学生」）を表示することもできます。これらの氏名は、履歴書の他の内容と同様にアカウント削除時に削除されます。",
   },
   "pt-BR": {
     previewHeading: "Prévia pública por ORCID",
@@ -353,6 +367,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     updatedNote:
       "Podemos atualizar este aviso; alterações significativas no registro para pesquisa exigem renovação do consentimento.",
     backLink: "← Voltar ao SigmaCV",
+    superviseeNames:
+      "Os registros de orientação e mentoria podem incluir os nomes das pessoas que você orientou — dados pessoais de terceiros que você, como autor(a) do seu CV, decide publicar. Adicione o nome de uma pessoa somente com o consentimento dela; como alternativa, você pode exibir uma descrição por nível acadêmico (por exemplo, “Doutorando(a)”) no lugar do nome na página pública e em todas as exportações. Esses nomes são excluídos junto com a sua conta, como o restante do seu CV.",
   },
   "it-IT": {
     previewHeading: "Anteprima pubblica tramite ORCID",
@@ -397,6 +413,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     updatedNote:
       "Potremmo aggiornare la presente informativa; modifiche sostanziali alla registrazione a fini di ricerca richiedono un nuovo consenso.",
     backLink: "← Torna a SigmaCV",
+    superviseeNames:
+      "Le voci di supervisione e mentoring possono includere i nomi delle persone che hai supervisionato: dati personali di terzi che tu, in quanto autore/rice del tuo CV, scegli di pubblicare. Aggiungi il nome di una persona solo con il suo consenso; in alternativa puoi mostrare una descrizione per livello di titolo (ad esempio «Dottorando/a») al posto del nome nella pagina pubblica e in tutte le esportazioni. Questi nomi vengono eliminati insieme al tuo account, come il resto del CV.",
   },
   "ko-KR": {
     previewHeading: "공개 ORCID 미리보기",
@@ -441,6 +459,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     updatedNote:
       "당사는 본 고지를 업데이트할 수 있으며, 연구 로깅에 대한 실질적 변경에는 새로운 동의가 필요합니다.",
     backLink: "← SigmaCV로 돌아가기",
+    superviseeNames:
+      "지도 및 멘토링 기록에는 귀하가 지도한 사람의 이름이 포함될 수 있으며, 이는 CV 작성자인 귀하가 공개를 선택하는 제3자의 개인정보입니다. 이름은 본인의 동의를 얻은 경우에만 추가하세요. 대신 공개 페이지와 모든 내보내기에서 이름 대신 학위 수준 설명(예: “박사과정생”)을 표시할 수 있습니다. 이러한 이름은 CV의 나머지 내용과 마찬가지로 계정 삭제 시 함께 삭제됩니다.",
   },
   "ru-RU": {
     previewHeading: "Публичный предпросмотр по ORCID",
@@ -485,6 +505,8 @@ const PRIVACY_I18N: Record<Locale, PrivacyStrings> = {
     updatedNote:
       "Мы можем обновлять настоящее уведомление; существенные изменения в ведении исследовательских журналов требуют повторного согласия.",
     backLink: "← Назад к SigmaCV",
+    superviseeNames:
+      "Записи о руководстве и наставничестве могут содержать имена людей, которыми вы руководили, — персональные данные третьих лиц, публикацию которых вы как автор своего резюме выбираете сами. Добавляйте имя человека только с его согласия; вместо этого на публичной странице и во всех экспортах можно показывать описание по уровню (например, «Аспирант»). Эти имена удаляются вместе с вашей учётной записью, как и остальное содержимое резюме.",
   },
 };
 

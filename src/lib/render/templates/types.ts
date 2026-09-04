@@ -9,6 +9,8 @@ export interface RenderedItem {
 
 export interface RenderedSection {
   section: CvSection;
+  /** Optional escaped one-line lead-in between heading and list (see `PreparedSection.intro`). */
+  intro?: string;
   items: RenderedItem[];
 }
 
