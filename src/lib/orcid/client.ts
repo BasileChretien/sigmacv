@@ -131,6 +131,21 @@ function nonEmpty(s: unknown): string | undefined {
 }
 
 /**
+ * Upper bound of the free-text meta fields in the canonical schema
+ * (`meta.institution` / `roleTitle` / `department` / `verifiedBy`, all
+ * `z.string().max(500)`). ORCID does not bound these values, and the canonical
+ * parse runs BEFORE persistence — so an oversized upstream string would abort the
+ * whole sync. Clip here rather than fail there.
+ */
+const MAX_META_TEXT = 500;
+
+/** {@link nonEmpty}, clipped to {@link MAX_META_TEXT} characters. */
+function boundedText(s: unknown): string | undefined {
+  const v = nonEmpty(s);
+  return v && v.length > MAX_META_TEXT ? v.slice(0, MAX_META_TEXT) : v;
+}
+
+/**
  * Whether an ORCID activity's `source` block means it was asserted by a TRUSTED
  * ORGANIZATION (via the Member API) rather than self-entered by the record holder.
  * True when a writing source exists AND it is not the record holder's own ORCID iD:
@@ -154,7 +169,7 @@ function verifiedFields(
   bareOwnerOrcid: string,
 ): { verified?: true; verifiedBy?: string } {
   if (!isOrgAsserted(source, bareOwnerOrcid)) return {};
-  const verifiedBy = nonEmpty(source?.["source-name"]?.value);
+  const verifiedBy = boundedText(source?.["source-name"]?.value);
   return verifiedBy ? { verified: true, verifiedBy } : { verified: true };
 }
 
@@ -177,14 +192,14 @@ async function fetchOrcidAffiliations(
     for (const group of toArray(data?.["affiliation-group"])) {
       for (const s of toArray(group?.summaries)) {
         const e = s?.[summaryKey];
-        const org = nonEmpty(e?.organization?.name);
+        const org = boundedText(e?.organization?.name);
         const putCode = e?.["put-code"];
         if (!org || putCode == null) continue;
         out.push({
           putCode: String(putCode),
           organization: org,
-          roleTitle: nonEmpty(e?.["role-title"]),
-          department: nonEmpty(e?.["department-name"]),
+          roleTitle: boundedText(e?.["role-title"]),
+          department: boundedText(e?.["department-name"]),
           startYear: yearOf(e?.["start-date"]),
           endYear: yearOf(e?.["end-date"]),
           ...verifiedFields(e?.source, bareOwner),

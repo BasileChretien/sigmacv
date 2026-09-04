@@ -197,6 +197,41 @@ describe("fetchOrcidPositions", () => {
     expect(byOrg["Nameless-Client College"]?.verifiedBy).toBeUndefined();
   });
 
+  it("clips oversized free-text fields to the canonical 500-char bound (sync must not abort)", async () => {
+    // ORCID bounds none of these; the canonical schema caps each at 500 and its
+    // parse runs BEFORE persistence — an unclipped value would abort the sync.
+    const long = "x".repeat(600);
+    const oversized = {
+      "affiliation-group": [
+        {
+          summaries: [
+            {
+              "employment-summary": {
+                "put-code": 400,
+                organization: { name: `Org ${long}` },
+                "role-title": long,
+                "department-name": long,
+                source: {
+                  "source-client-id": { path: "APP-1" },
+                  "source-name": { value: `Verifier ${long}` },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    vi.stubGlobal("fetch", routedFetch({ emp: res(oversized) }));
+    const { fetchOrcidPositions } = await freshClient();
+    const [p] = await fetchOrcidPositions("0000-0002-7483-2489");
+    expect(p?.verified).toBe(true);
+    expect(p?.verifiedBy).toHaveLength(500);
+    expect(p?.verifiedBy?.startsWith("Verifier ")).toBe(true);
+    expect(p?.organization).toHaveLength(500);
+    expect(p?.roleTitle).toHaveLength(500);
+    expect(p?.department).toHaveLength(500);
+  });
+
   it("returns [] when the ORCID API errors (fails soft)", async () => {
     vi.stubGlobal("fetch", routedFetch({ emp: res({}, false, 500) }));
     const { fetchOrcidPositions } = await freshClient();
