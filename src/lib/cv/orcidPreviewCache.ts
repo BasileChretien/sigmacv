@@ -13,6 +13,7 @@
  * across many ORCIDs is additionally bounded by the route's per-IP + global rate
  * limits. Public data only — nothing here is ever persisted.
  */
+import { normalizeOrcid } from "@/lib/openalex/types";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 
 export interface OrcidPreviewEntry {
@@ -109,6 +110,28 @@ export function setCachedOrcidPreview(
     total -= cache.get(oldest)!.html.length;
     cache.delete(oldest);
   }
+}
+
+/**
+ * Drop any cached preview for an ORCID, so the next visitor triggers a rebuild.
+ *
+ * Called when the owner saves their CV. The preview applies the researcher's own
+ * disambiguation corrections (see `fetchOwnerCorrections`), so without this a
+ * correction they just made would not reach a visitor until the TTL expired —
+ * they would mark a namesake's paper "not mine" and still see it on their own
+ * public preview.
+ *
+ * Also clears the negative cache: a researcher whose iD had no public record
+ * when it was last looked up may have one now.
+ *
+ * Returns whether anything was actually removed, which the tests assert on.
+ */
+export function invalidateOrcidPreview(orcid: string): boolean {
+  const key = normalizeOrcid(orcid);
+  if (!key) return false;
+  const had = cache.delete(key);
+  const hadMiss = missCache.delete(key);
+  return had || hadMiss;
 }
 
 /**

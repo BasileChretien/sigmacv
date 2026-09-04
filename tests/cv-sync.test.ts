@@ -144,6 +144,12 @@ const RESOLVED = {
 // Sentinel raw ORCID /works payload the build fetches once and threads into the
 // work-types, patents, and discovery consumers (asserted below).
 const ORCID_WORKS = { group: [{ marker: "shared-orcid-works" }] };
+import {
+  __resetOrcidPreviewCache,
+  getCachedOrcidPreview,
+  setCachedOrcidPreview,
+} from "@/lib/cv/orcidPreviewCache";
+
 const DOC = buildCanonicalCv({
   id: "cv_1",
   resolved: RESOLVED,
@@ -607,6 +613,24 @@ describe("saveCvForUser", () => {
     await saveCvForUser("u1", DOC);
     expect(mocks.update).toHaveBeenCalledTimes(1);
     expect(mocks.logCvSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops the owner's cached anonymous preview, so a correction lands at once", async () => {
+    // The anonymous /preview/[orcid] build applies this researcher's own
+    // disambiguation corrections. Without this the owner could mark a namesake's
+    // paper "not mine" and still see it on their own public preview for the rest
+    // of the cache TTL. Uses the REAL cache, so it asserts the wiring rather than
+    // a spy that would pass on any function call.
+    __resetOrcidPreviewCache();
+    const orcid = DOC.owner.orcid!;
+    setCachedOrcidPreview(orcid, { html: "<p>stale</p>", name: "A Researcher", cv: DOC });
+    expect(getCachedOrcidPreview(orcid)).not.toBeNull();
+
+    mocks.findUnique.mockResolvedValue({ document: DOC });
+    await saveCvForUser("u1", DOC);
+
+    expect(getCachedOrcidPreview(orcid)).toBeNull();
+    __resetOrcidPreviewCache();
   });
 
   it("rejects a save that exceeds the total-item cap, before any DB write", async () => {
