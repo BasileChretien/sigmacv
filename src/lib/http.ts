@@ -15,7 +15,8 @@ export interface ResilientFetchOptions {
   headers?: Record<string, string>;
   /** Next.js fetch cache hint (server components / route handlers). */
   next?: { revalidate?: number };
-  method?: "GET" | "POST";
+  /** `PUT` exists for the idempotent DataCite DOI update (tombstone). */
+  method?: "GET" | "POST" | "PUT";
   body?: BodyInit;
   /**
    * Redirect handling (default: fetch's `"follow"`). Trusted, hard-coded hosts

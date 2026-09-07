@@ -36,6 +36,8 @@ export interface SnapshotStrings {
   doiFailed: string;
   delete: string;
   confirmDelete: string;
+  /** Title of the disabled Delete button on a minted row, and the 409 message. */
+  deleteLockedHint: string;
   loadFailed: string;
   actionFailed: string;
   // ── Public frozen-version page banner ─────────────────────────────────────
@@ -91,6 +93,13 @@ export interface SnapshotStrings {
   diffWords: string;
   diffMetrics: string;
   diffFrozenLink: string;
+  // ── Per-mint DOI consent (DataCite as independent controller) ─────────────
+  /** The consent sentence shown before "Mint DOI": what is sent, who holds it, what outlives deletion. */
+  mintConsentText: string;
+  /** Checkbox label. */
+  mintConsentLabel: string;
+  /** Button tooltip while the box is unticked. */
+  mintNeedsConsent: string;
 }
 
 const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
@@ -119,6 +128,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     doiFailed: "DOI minting failed. You can try again.",
     delete: "Delete",
     confirmDelete: "Confirm delete",
+    deleteLockedHint:
+      "A version with a DOI cannot be deleted while your account exists; deleting the account withdraws it.",
     loadFailed: "Could not load versions.",
     actionFailed: "Something went wrong. Please try again.",
     bannerFrozen: "Frozen version {n} · {date}",
@@ -163,6 +174,11 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     diffWords: "{before} → {after} words",
     diffMetrics: "Metrics changed",
     diffFrozenLink: "Frozen version",
+    mintConsentText:
+      "Minting a DOI sends this version's record — the public data on that version's page: your name, ORCID iD, affiliation, the DOIs of the works shown and the funder / award identifiers of the grants shown — to DataCite, which holds it as an independent controller. A DOI is permanent: if you later delete your account, the record is hidden from DataCite's search and points to a “withdrawn by its owner” page, but it is not erased.",
+    mintConsentLabel:
+      "I understand and agree that DataCite keeps this DOI record, hidden but not erased, after I delete my account.",
+    mintNeedsConsent: "Tick the consent box first to mint a DOI.",
   },
   "zh-CN": {
     tbVersions: "版本",
@@ -188,6 +204,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     doiFailed: "DOI 注册失败。您可以重试。",
     delete: "删除",
     confirmDelete: "确认删除",
+    deleteLockedHint: "已注册 DOI 的版本在账户存在期间无法删除；删除账户时会将其撤回。",
     loadFailed: "无法加载版本。",
     actionFailed: "出了点问题，请重试。",
     bannerFrozen: "冻结版本 {n} · {date}",
@@ -231,6 +248,11 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     diffWords: "{before} → {after} 词",
     diffMetrics: "指标已更改",
     diffFrozenLink: "冻结版本",
+    mintConsentText:
+      "注册 DOI 会将此版本的记录——该版本页面上的公开数据：您的姓名、ORCID iD、所属机构、所展示成果的 DOI 以及所展示资助的资助方 / 资助编号——发送给 DataCite，由其作为独立的数据控制者保存。DOI 是永久性的：如果您日后删除账户，该记录会从 DataCite 的搜索中隐藏并指向一个“已由所有者撤回”页面，但不会被删除。",
+    mintConsentLabel:
+      "我理解并同意：在我删除账户后，DataCite 仍会保留此 DOI 记录（隐藏但不删除）。",
+    mintNeedsConsent: "请先勾选同意框，再注册 DOI。",
   },
   "es-ES": {
     tbVersions: "Versiones",
@@ -257,6 +279,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     doiFailed: "El registro del DOI ha fallado. Puede intentarlo de nuevo.",
     delete: "Eliminar",
     confirmDelete: "Confirmar eliminación",
+    deleteLockedHint:
+      "Una versión con DOI no puede eliminarse mientras exista su cuenta; al eliminar la cuenta se retira.",
     loadFailed: "No se pudieron cargar las versiones.",
     actionFailed: "Algo ha fallado. Inténtelo de nuevo.",
     bannerFrozen: "Versión congelada {n} · {date}",
@@ -301,6 +325,11 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     diffWords: "{before} → {after} palabras",
     diffMetrics: "Métricas modificadas",
     diffFrozenLink: "Versión congelada",
+    mintConsentText:
+      "Registrar un DOI envía el registro de esta versión —los datos públicos de la página de esa versión: su nombre, su ORCID iD, su afiliación, los DOI de los trabajos mostrados y los identificadores de financiador / ayuda de las financiaciones mostradas— a DataCite, que lo conserva como responsable del tratamiento independiente. Un DOI es permanente: si más tarde elimina su cuenta, el registro se oculta de la búsqueda de DataCite y apunta a una página «retirada por su titular», pero no se borra.",
+    mintConsentLabel:
+      "Entiendo y acepto que DataCite conserve este registro DOI, oculto pero no borrado, después de eliminar mi cuenta.",
+    mintNeedsConsent: "Marque primero la casilla de consentimiento para registrar un DOI.",
   },
   "fr-FR": {
     tbVersions: "Versions",
@@ -328,6 +357,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     doiFailed: "L'attribution du DOI a échoué. Vous pouvez réessayer.",
     delete: "Supprimer",
     confirmDelete: "Confirmer la suppression",
+    deleteLockedHint:
+      "Une version dotée d'un DOI ne peut pas être supprimée tant que votre compte existe ; la suppression du compte la retire.",
     loadFailed: "Impossible de charger les versions.",
     actionFailed: "Une erreur est survenue. Veuillez réessayer.",
     bannerFrozen: "Version figée {n} · {date}",
@@ -372,6 +403,11 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     diffWords: "{before} → {after} mots",
     diffMetrics: "Indicateurs modifiés",
     diffFrozenLink: "Version figée",
+    mintConsentText:
+      "Attribuer un DOI transmet la notice de cette version — les données publiques de la page de cette version : votre nom, votre iD ORCID, votre affiliation, les DOI des travaux affichés et les identifiants de financeur / de subvention des financements affichés — à DataCite, qui la conserve en tant que responsable de traitement indépendant. Un DOI est permanent : si vous supprimez ensuite votre compte, la notice est masquée de la recherche DataCite et renvoie vers une page « retirée par son auteur », mais elle n'est pas effacée.",
+    mintConsentLabel:
+      "Je comprends et j'accepte que DataCite conserve cette notice DOI, masquée mais non effacée, après la suppression de mon compte.",
+    mintNeedsConsent: "Cochez d'abord la case de consentement pour attribuer un DOI.",
   },
   "de-DE": {
     tbVersions: "Versionen",
@@ -399,6 +435,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     doiFailed: "Die DOI-Vergabe ist fehlgeschlagen. Sie können es erneut versuchen.",
     delete: "Löschen",
     confirmDelete: "Löschen bestätigen",
+    deleteLockedHint:
+      "Eine Version mit DOI kann nicht gelöscht werden, solange Ihr Konto besteht; beim Löschen des Kontos wird sie zurückgezogen.",
     loadFailed: "Versionen konnten nicht geladen werden.",
     actionFailed: "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
     bannerFrozen: "Eingefrorene Version {n} · {date}",
@@ -443,6 +481,12 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     diffWords: "{before} → {after} Wörter",
     diffMetrics: "Metriken geändert",
     diffFrozenLink: "Eingefrorene Version",
+    mintConsentText:
+      "Die DOI-Vergabe übermittelt den Datensatz dieser Version – die öffentlichen Daten der Seite dieser Version: Ihren Namen, Ihre ORCID iD, Ihre Zugehörigkeit, die DOIs der angezeigten Arbeiten und die Förderer- / Fördernummern der angezeigten Fördermittel – an DataCite, das ihn als eigenständiger Verantwortlicher speichert. Ein DOI ist dauerhaft: Löschen Sie später Ihr Konto, wird der Datensatz aus der DataCite-Suche ausgeblendet und verweist auf eine Seite „vom Inhaber zurückgezogen“, wird aber nicht gelöscht.",
+    mintConsentLabel:
+      "Ich verstehe und stimme zu, dass DataCite diesen DOI-Datensatz nach dem Löschen meines Kontos ausgeblendet, aber nicht gelöscht, behält.",
+    mintNeedsConsent:
+      "Setzen Sie zuerst das Häkchen bei der Einwilligung, um einen DOI zu vergeben.",
   },
   "ja-JP": {
     tbVersions: "バージョン",
@@ -470,6 +514,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     doiFailed: "DOI の発行に失敗しました。再試行できます。",
     delete: "削除",
     confirmDelete: "削除を確定",
+    deleteLockedHint:
+      "DOI が付与されたバージョンは、アカウントが存在する間は削除できません。アカウントを削除すると取り下げられます。",
     loadFailed: "バージョンを読み込めませんでした。",
     actionFailed: "問題が発生しました。もう一度お試しください。",
     bannerFrozen: "固定版 {n} · {date}",
@@ -513,6 +559,11 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     diffWords: "{before} → {after} 語",
     diffMetrics: "指標の変更",
     diffFrozenLink: "固定版",
+    mintConsentText:
+      "DOI を発行すると、このバージョンのレコード（そのバージョンのページ上の公開データ：お名前、ORCID iD、所属、表示されている業績の DOI、表示されている助成金の助成機関 / 助成番号）が DataCite に送信され、DataCite が独立した管理者として保持します。DOI は永続的です。後でアカウントを削除した場合、レコードは DataCite の検索から非表示になり「所有者により取り下げられました」ページを指すようになりますが、消去はされません。",
+    mintConsentLabel:
+      "アカウント削除後も DataCite がこの DOI レコードを非表示のまま（消去せず）保持することを理解し、同意します。",
+    mintNeedsConsent: "DOI を発行するには、まず同意のチェックボックスをオンにしてください。",
   },
   "pt-BR": {
     tbVersions: "Versões",
@@ -539,6 +590,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     doiFailed: "O registro do DOI falhou. Você pode tentar novamente.",
     delete: "Excluir",
     confirmDelete: "Confirmar exclusão",
+    deleteLockedHint:
+      "Uma versão com DOI não pode ser excluída enquanto sua conta existir; excluir a conta a retira.",
     loadFailed: "Não foi possível carregar as versões.",
     actionFailed: "Algo deu errado. Tente novamente.",
     bannerFrozen: "Versão congelada {n} · {date}",
@@ -583,6 +636,11 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     diffWords: "{before} → {after} palavras",
     diffMetrics: "Métricas alteradas",
     diffFrozenLink: "Versão congelada",
+    mintConsentText:
+      "Registrar um DOI envia o registro desta versão — os dados públicos da página dessa versão: seu nome, seu ORCID iD, sua afiliação, os DOIs dos trabalhos exibidos e os identificadores de financiador / auxílio dos financiamentos exibidos — à DataCite, que o mantém como controladora independente. Um DOI é permanente: se você excluir sua conta mais tarde, o registro é ocultado da busca da DataCite e passa a apontar para uma página “retirada pelo titular”, mas não é apagado.",
+    mintConsentLabel:
+      "Entendo e concordo que a DataCite mantenha este registro DOI, oculto mas não apagado, após a exclusão da minha conta.",
+    mintNeedsConsent: "Marque primeiro a caixa de consentimento para registrar um DOI.",
   },
   "it-IT": {
     tbVersions: "Versioni",
@@ -609,6 +667,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     doiFailed: "L'assegnazione del DOI non è riuscita. Puoi riprovare.",
     delete: "Elimina",
     confirmDelete: "Conferma eliminazione",
+    deleteLockedHint:
+      "Una versione con DOI non può essere eliminata finché il tuo account esiste; eliminando l'account viene ritirata.",
     loadFailed: "Impossibile caricare le versioni.",
     actionFailed: "Qualcosa è andato storto. Riprova.",
     bannerFrozen: "Versione congelata {n} · {date}",
@@ -653,6 +713,11 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     diffWords: "{before} → {after} parole",
     diffMetrics: "Metriche modificate",
     diffFrozenLink: "Versione congelata",
+    mintConsentText:
+      "Assegnare un DOI invia il record di questa versione — i dati pubblici della pagina di quella versione: il tuo nome, il tuo ORCID iD, la tua affiliazione, i DOI dei lavori mostrati e gli identificativi di ente finanziatore / finanziamento dei finanziamenti mostrati — a DataCite, che lo conserva come titolare del trattamento indipendente. Un DOI è permanente: se in seguito elimini il tuo account, il record viene nascosto dalla ricerca di DataCite e rimanda a una pagina «ritirata dal titolare», ma non viene cancellato.",
+    mintConsentLabel:
+      "Comprendo e accetto che DataCite conservi questo record DOI, nascosto ma non cancellato, dopo l'eliminazione del mio account.",
+    mintNeedsConsent: "Spunta prima la casella di consenso per assegnare un DOI.",
   },
   "ko-KR": {
     tbVersions: "버전",
@@ -679,6 +744,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     doiFailed: "DOI 발급에 실패했습니다. 다시 시도할 수 있습니다.",
     delete: "삭제",
     confirmDelete: "삭제 확인",
+    deleteLockedHint:
+      "DOI가 발급된 버전은 계정이 존재하는 동안 삭제할 수 없습니다. 계정을 삭제하면 철회됩니다.",
     loadFailed: "버전을 불러올 수 없습니다.",
     actionFailed: "문제가 발생했습니다. 다시 시도하세요.",
     bannerFrozen: "고정 버전 {n} · {date}",
@@ -722,6 +789,11 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     diffWords: "{before} → {after} 단어",
     diffMetrics: "지표 변경됨",
     diffFrozenLink: "고정 버전",
+    mintConsentText:
+      "DOI를 발급하면 이 버전의 레코드(해당 버전 페이지의 공개 데이터: 이름, ORCID iD, 소속, 표시된 성과물의 DOI, 표시된 연구비의 지원기관 / 과제번호 식별자)가 DataCite로 전송되며, DataCite는 이를 독립적인 컨트롤러로서 보관합니다. DOI는 영구적입니다. 나중에 계정을 삭제하면 레코드는 DataCite 검색에서 숨겨지고 “소유자가 철회함” 페이지를 가리키지만 삭제되지는 않습니다.",
+    mintConsentLabel:
+      "계정을 삭제한 후에도 DataCite가 이 DOI 레코드를 숨긴 상태로(삭제하지 않고) 보관한다는 점을 이해하고 동의합니다.",
+    mintNeedsConsent: "DOI를 발급하려면 먼저 동의 확인란을 선택하세요.",
   },
   "ru-RU": {
     tbVersions: "Версии",
@@ -748,6 +820,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     doiFailed: "Не удалось присвоить DOI. Можно попробовать снова.",
     delete: "Удалить",
     confirmDelete: "Подтвердить удаление",
+    deleteLockedHint:
+      "Версию с DOI нельзя удалить, пока существует ваша учётная запись; при удалении учётной записи она отзывается.",
     loadFailed: "Не удалось загрузить версии.",
     actionFailed: "Что-то пошло не так. Попробуйте ещё раз.",
     bannerFrozen: "Зафиксированная версия {n} · {date}",
@@ -792,6 +866,11 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     diffWords: "{before} → {after} слов",
     diffMetrics: "Изменены метрики",
     diffFrozenLink: "Зафиксированная версия",
+    mintConsentText:
+      "Присвоение DOI передаёт запись этой версии — открытые данные страницы этой версии: ваше имя, ваш ORCID iD, аффилиацию, DOI показанных работ и идентификаторы фондов / грантов показанных грантов — в DataCite, который хранит её как независимый контролёр. DOI постоянен: если вы позже удалите учётную запись, запись будет скрыта из поиска DataCite и станет указывать на страницу «отозвано владельцем», но не будет стёрта.",
+    mintConsentLabel:
+      "Я понимаю и соглашаюсь с тем, что DataCite сохранит эту запись DOI — скрытой, но не стёртой — после удаления моей учётной записи.",
+    mintNeedsConsent: "Сначала отметьте поле согласия, чтобы присвоить DOI.",
   },
 };
 

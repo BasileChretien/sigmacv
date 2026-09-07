@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
+import { withdrawMintedSnapshotDois } from "@/lib/cv/snapshotStore";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { isSameOrigin } from "@/lib/security/origin";
@@ -23,7 +24,22 @@ async function sweepRateLimitCounters(userId: string): Promise<void> {
   }
 }
 
-/** Full account deletion. Cascades to accounts, sessions, CV, and research
+/**
+ * Minted snapshot DOIs live at DataCite, outside the cascade: hide each one and
+ * repoint it at the static withdrawn page BEFORE the rows go (the DOIs are read
+ * from them). Fail-soft twice over — the store never throws, and this guard
+ * makes sure that even an unexpected error cannot block the deletion.
+ */
+async function withdrawDois(userId: string): Promise<void> {
+  try {
+    await withdrawMintedSnapshotDois(userId);
+  } catch (err) {
+    logger.warn("api.account_delete_doi_withdrawal_failed", { err });
+  }
+}
+
+/** Full account deletion. Withdraws any minted snapshot DOIs at DataCite, then
+ *  cascades to accounts, sessions, CV (with its snapshots), and research
  *  events (see schema onDelete: Cascade), then sweeps the user-keyed rate-limit
  *  counters. Irreversible. */
 export async function DELETE(req: Request) {
@@ -52,6 +68,7 @@ export async function DELETE(req: Request) {
       where: { id: session.user.id },
       select: { orcid: true },
     });
+    await withdrawDois(session.user.id);
     await prisma.user.delete({ where: { id: session.user.id } });
     if (deleting?.orcid) invalidateOrcidPreview(deleting.orcid);
     await sweepRateLimitCounters(session.user.id);
