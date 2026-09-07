@@ -687,6 +687,14 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
       expect(html).toContain("cv-metric-coverage");
       expect(html).toContain("mean over 97 works with RCR");
       expect(html).not.toContain('title="mean over 97 works with RCR"');
+      // Label + value on the first line; the context + coverage caveat as a second,
+      // smaller, muted line (.cv-metric-note) — still visible by default.
+      expect(html).toContain(
+        '<span class="cv-metric-label">Mean RCR</span> <span class="cv-metric-value">1.4</span>' +
+          '<span class="cv-metric-note"><span class="cv-metric-context">1.0 = NIH-funded average; biomedical (PMID) works only</span>' +
+          ' · <span class="cv-metric-coverage">mean over 97 works with RCR</span></span></li>',
+      );
+      expect(html).toContain(".cv-metric-note { display: block; font-size: 0.72rem;");
       // A no-context metric still renders its label/value, one per line.
       expect(html).toContain(
         '<span class="cv-metric-label">h-index</span> <span class="cv-metric-value">9</span>',

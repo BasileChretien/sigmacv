@@ -87,7 +87,12 @@ describe("formattedMetrics", () => {
 
   it("formats the mean-citedness with one decimal and counts as integers", () => {
     const cv = withMetrics({ showMetrics: true, metrics: ["2yr_mean_citedness", "works_count"] });
-    expect(metricsLineText(cv)).toBe("2-yr mean citedness: 3.4 · Works: 116");
+    // The plain-format line carries each metric's interpretation anchor in
+    // parentheses (the HTML header shows it on a second line).
+    expect(metricsLineText(cv)).toBe(
+      "2-yr mean citedness: 3.4 (2-year citation rate — not field-normalised (varies by field)) · " +
+        "Works: 116 (raw count of indexed works — depends on database coverage; not a measure of quality)",
+    );
   });
 
   it("silently drops the no-longer-offered FWCI-derived keys (mncs, fwci_mean, top10pct_share)", () => {
@@ -98,7 +103,10 @@ describe("formattedMetrics", () => {
       // normalized → none are selectable; only the offered RCR mean renders.
       metrics: ["mncs", "fwci_mean", "top10pct_share", "rcr_mean"],
     });
-    expect(metricsLineText(cv)).toBe("Mean RCR: 2.1");
+    // Context + coverage caveat ride along in the parenthesised note.
+    expect(metricsLineText(cv)).toBe(
+      "Mean RCR: 2.1 (1.0 = NIH-funded average; biomedical (PMID) works only · mean over 40 works with RCR)",
+    );
   });
 
   it("flags a small RCR sample below the reliability threshold", () => {

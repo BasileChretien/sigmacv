@@ -292,6 +292,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The public per-publication tools row is collapsed to its actions.** Under
+  each work the living page shows at most "Cite · Full text · PubMed" (and
+  "Abstract" when abstracts are on); the BibTeX / RIS / CSL-JSON download links
+  stay inside the "Cite" disclosure and are now hidden by an explicit,
+  engine-independent rule until it is opened (no JS; the summary is
+  keyboard-toggleable). The invisible COinS span for Zotero is unchanged.
+- **Metric caveats moved to a second line.** In the HTML/PDF/public header each
+  metric's label + value lead the row and its interpretation anchor + coverage
+  note ("1.0 = NIH-funded average; biomedical (PMID) works only · mean over 39
+  works with RCR") follow on a smaller, muted second line (`.cv-metric-note`) —
+  still visible by default, never a tooltip. The plain formats (DOCX / Markdown
+  / LaTeX) keep one line per metric with the note in parentheses.
 - **Every displayed metric now carries a reader-facing caveat.** h-index,
   i10-index, works count and citation total used to render as bare numbers,
   while the "not field-normalised — DORA/CoARA discourage this" caution appeared
@@ -324,6 +336,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The Sidebar template's public page collapsed to one narrow column.** The
+  living page injected its view-filter bar (and the reader-view link/banner)
+  between the template's `<aside>` and `<main>`; the Sidebar layout is a
+  two-column grid expecting exactly those two children, so the bar took the main
+  cell and the whole CV wrapped into the 265 px rail column underneath the
+  sidebar. The chrome is now injected inside `<main>`, ahead of the first
+  section, on every template and public style.
+- **The owner no longer vanishes behind "et al." in their own citations.**
+  Styles that cut long author lists (Chicago prints three of seven-plus authors,
+  AMA likewise, Nature one of six-plus) dropped a middle-author owner from their
+  own entry, leaving nothing for the identifier-driven self-name highlight to
+  mark (24 of 48 entries on one real page). When the rendered entry prints none
+  of the owner's known name forms, every format now appends a compact,
+  localized tail inside the entry — "[incl. L. Peyro-Saint-Paul, author 9 of
+  12]" — built from the identifier-derived author position and the owner's
+  publication name (muted `.cv-self-tail` in HTML/PDF, plain text in DOCX /
+  Markdown / LaTeX, highlighted like the self name). Never shown when the owner
+  is printed, never for works without an identifier-derived position.
 - **A dead upstream can no longer stall a CV sync.** Europe PMC's per-work
   `datalinks` endpoint hung (HTTP 500 / timeouts) on 2026-09-07 and, because
   each call was retried with backoff, the data-links pass alone took ~226 s and

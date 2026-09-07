@@ -170,7 +170,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       reader ? READER_VIEW_KEEP : undefined,
     );
     if (readerChrome || bar) {
-      html = html.replace('<main class="cv-main">', `${readerChrome}${bar}<main class="cv-main">`);
+      // INSIDE <main>, before the first section — never between the template's
+      // landmarks. The Sidebar template lays `<aside>` + `<main>` out as a two-column
+      // grid (`265px 1fr`); a sibling injected between them took the main cell and
+      // pushed the whole CV into the narrow rail column on row 2.
+      html = html.replace('<main class="cv-main">', `<main class="cv-main">${readerChrome}${bar}`);
     }
     // SEO + OG/Twitter meta (public profile text only) into <head>: canonical +
     // og:url, a SERP description, og:image (the per-CV branded card), and the Atom

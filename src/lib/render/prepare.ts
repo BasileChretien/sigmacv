@@ -14,6 +14,7 @@ import type { CslItem } from "@/types/csl";
 import { selectSections } from "./citationItems";
 import { cslForRender } from "./cslOverride";
 import { escapeHtml } from "./escape";
+import { withSelfAuthorTail } from "./selfTail";
 import { supervisionEntry, supervisionEntryHtml, supervisionEntryText } from "./supervision";
 import { supervisionSummary, supervisionSummaryText } from "./supervisionSummary";
 
@@ -128,7 +129,13 @@ export function prepareSections(
       section,
       ...(intro ? { intro: outputFormat === "html" ? escapeHtmlText(intro) : intro } : {}),
       items: items.map((item) => {
-        if (item.csl) return { item, entry: byId.get(item.id) ?? "" };
+        if (item.csl) {
+          // The owner past the style's et-al cut → a compact "[incl. …, author 9
+          // of 12]" tail INSIDE the entry, so the account holder stays visible on
+          // their own work in every format (selfTail.ts). "" when they are printed.
+          const entry = byId.get(item.id) ?? "";
+          return { item, entry: withSelfAuthorTail(item, entry, cv.display.locale, outputFormat) };
+        }
         // A STRUCTURED supervision record is serialized here, once, for every
         // format (the two-line HTML record / the flat text line) — with the
         // supervisee-name hiding applied in the same place. An unstructured
