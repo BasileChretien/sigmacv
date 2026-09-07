@@ -125,6 +125,8 @@ export interface EditorExtraStrings {
   superviseeNameLabel: string;
   /** Third-party personal data reminder next to the supervisee-name field. */
   superviseeNamePrivacyNote: string;
+  /** One-time hint shown when a supervisee name is FIRST typed into the empty field: third-party data, agreement, the Design-tab name hiding, the privacy notice. */
+  superviseeNameFirstHint: string;
   degreeLevelLabel: string;
   supervisionRoleLabel: string;
   supervisionStatusLabel: string;
@@ -242,6 +244,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     supervisionDetails: "Supervision details",
     superviseeNameLabel: "Supervisee name",
     superviseeNamePrivacyNote: "Only publish names with the person's agreement.",
+    superviseeNameFirstHint:
+      "You are adding another person's name (third-party data). Make sure you have their agreement, or hide names on the public page from the Design tab — see the privacy notice.",
     degreeLevelLabel: "Degree level",
     supervisionRoleLabel: "Your role",
     supervisionStatusLabel: "Status",
@@ -355,6 +359,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     supervisionDetails: "指导详情",
     superviseeNameLabel: "被指导者姓名",
     superviseeNamePrivacyNote: "仅在征得本人同意后发布姓名。",
+    superviseeNameFirstHint:
+      "您正在添加他人的姓名（第三方数据）。请确认已征得本人同意，或在“外观”标签页中设置在公开页面上隐藏姓名——详见隐私声明。",
     degreeLevelLabel: "学位层次",
     supervisionRoleLabel: "您的角色",
     supervisionStatusLabel: "状态",
@@ -472,6 +478,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     supervisionDetails: "Detalles de la supervisión",
     superviseeNameLabel: "Nombre de la persona supervisada",
     superviseeNamePrivacyNote: "Publica nombres solo con el consentimiento de la persona.",
+    superviseeNameFirstHint:
+      "Estás añadiendo el nombre de otra persona (datos de terceros). Asegúrate de contar con su acuerdo, u oculta los nombres en la página pública desde la pestaña Diseño; consulta el aviso de privacidad.",
     degreeLevelLabel: "Nivel académico",
     supervisionRoleLabel: "Tu rol",
     supervisionStatusLabel: "Estado",
@@ -591,6 +599,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     supervisionDetails: "Détails de l’encadrement",
     superviseeNameLabel: "Nom de la personne encadrée",
     superviseeNamePrivacyNote: "Ne publiez un nom qu’avec l’accord de la personne.",
+    superviseeNameFirstHint:
+      "Vous ajoutez le nom d’une autre personne (données de tiers). Assurez-vous d’avoir son accord, ou masquez les noms sur la page publique depuis l’onglet Apparence — voir l’avis de confidentialité.",
     degreeLevelLabel: "Niveau de diplôme",
     supervisionRoleLabel: "Votre rôle",
     supervisionStatusLabel: "Statut",
@@ -710,6 +720,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     supervisionDetails: "Betreuungsdetails",
     superviseeNameLabel: "Name der betreuten Person",
     superviseeNamePrivacyNote: "Namen nur mit Zustimmung der Person veröffentlichen.",
+    superviseeNameFirstHint:
+      "Sie fügen den Namen einer anderen Person hinzu (Daten Dritter). Holen Sie deren Zustimmung ein oder blenden Sie Namen auf der öffentlichen Seite im Tab „Design“ aus – siehe Datenschutzhinweis.",
     degreeLevelLabel: "Abschlussniveau",
     supervisionRoleLabel: "Ihre Rolle",
     supervisionStatusLabel: "Status",
@@ -827,6 +839,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     supervisionDetails: "指導の詳細",
     superviseeNameLabel: "指導学生の氏名",
     superviseeNamePrivacyNote: "氏名は本人の同意を得た場合のみ公開してください。",
+    superviseeNameFirstHint:
+      "他の人の氏名（第三者のデータ）を追加しようとしています。本人の同意を得るか、「デザイン」タブで公開ページ上の氏名を非表示にしてください。詳しくはプライバシー通知をご覧ください。",
     degreeLevelLabel: "学位区分",
     supervisionRoleLabel: "あなたの役割",
     supervisionStatusLabel: "状況",
@@ -944,6 +958,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     supervisionDetails: "Detalhes da orientação",
     superviseeNameLabel: "Nome do(a) orientando(a)",
     superviseeNamePrivacyNote: "Publique nomes somente com o consentimento da pessoa.",
+    superviseeNameFirstHint:
+      "Você está adicionando o nome de outra pessoa (dados de terceiros). Certifique-se de ter o consentimento dela, ou oculte os nomes na página pública pela aba Aparência — veja o aviso de privacidade.",
     degreeLevelLabel: "Nível acadêmico",
     supervisionRoleLabel: "Seu papel",
     supervisionStatusLabel: "Situação",
@@ -1063,6 +1079,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     supervisionDetails: "Dettagli della supervisione",
     superviseeNameLabel: "Nome della persona supervisionata",
     superviseeNamePrivacyNote: "Pubblica i nomi solo con il consenso della persona.",
+    superviseeNameFirstHint:
+      "Stai aggiungendo il nome di un’altra persona (dati di terzi). Assicurati di avere il suo consenso, oppure nascondi i nomi nella pagina pubblica dalla scheda Aspetto — vedi l’informativa sulla privacy.",
     degreeLevelLabel: "Livello di titolo",
     supervisionRoleLabel: "Il tuo ruolo",
     supervisionStatusLabel: "Stato",
@@ -1180,6 +1198,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     supervisionDetails: "지도 세부 정보",
     superviseeNameLabel: "지도 학생 이름",
     superviseeNamePrivacyNote: "이름은 본인의 동의를 얻은 경우에만 공개하세요.",
+    superviseeNameFirstHint:
+      "다른 사람의 이름(제3자 데이터)을 추가하고 있습니다. 본인의 동의를 받았는지 확인하거나, 디자인 탭에서 공개 페이지의 이름을 숨기세요. 자세한 내용은 개인정보 처리방침을 참고하세요.",
     degreeLevelLabel: "학위 수준",
     supervisionRoleLabel: "나의 역할",
     supervisionStatusLabel: "상태",
@@ -1296,6 +1316,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     supervisionDetails: "Сведения о руководстве",
     superviseeNameLabel: "Имя подопечного",
     superviseeNamePrivacyNote: "Публикуйте имена только с согласия самого человека.",
+    superviseeNameFirstHint:
+      "Вы добавляете имя другого человека (данные третьего лица). Убедитесь, что у вас есть его согласие, или скройте имена на публичной странице во вкладке «Оформление» — см. уведомление о конфиденциальности.",
     degreeLevelLabel: "Уровень",
     supervisionRoleLabel: "Ваша роль",
     supervisionStatusLabel: "Статус",

@@ -36,6 +36,7 @@ import {
 } from "@/lib/i18n/render";
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
+import { localePrivacyPath } from "@/lib/seo";
 import { needsReview } from "@/lib/canonical/review";
 
 /** Parse a year-field value to an integer, or undefined when blank/non-numeric. */
@@ -152,6 +153,10 @@ interface ItemRowProps {
   onToggleInView?: () => void;
   /** Set/clear the structured reason for a "not mine" assertion. */
   onSetNotMineReason?: (reason: NotMineReason | undefined) => void;
+  /** `display.hideSuperviseeNames`: the owner already hides supervisee names on the
+   *  public page + exports, so the one-time third-party hint on the supervisee
+   *  name field is skipped (it would point to a toggle that is already on). */
+  superviseeNamesHidden?: boolean;
   /** Every member of this item's duplicate GROUP (≥2, including this row's item),
    *  with full data + localized section name — resolved by the editor and shown
    *  side-by-side so the user can compare them all and choose which to keep. */
@@ -252,21 +257,38 @@ interface ItemRowProps {
  * thesis title is entered, every render shows the two-line record instead. Each
  * change goes through the pure `setSupervisionDetails` curate op (blank clears).
  * The supervisee's name is THIRD-PARTY personal data, hence the reminder beside
- * it; `display.hideSuperviseeNames` (Design tab) swaps it for a degree noun on the
- * public page + exports while this field keeps it.
+ * it; `display.hideSuperviseeNames` (Design tab, passed down as `namesHidden`)
+ * swaps it for a degree noun on the public page + exports while this field keeps
+ * it — and, being already on, makes the one-time hint below moot.
  */
 function SupervisionDetails({
   item,
   locale,
+  namesHidden,
   onSet,
 }: {
   item: CvItem;
   locale: Locale;
+  namesHidden: boolean;
   onSet: (patch: SupervisionPatch) => void;
 }) {
   const eu = editorUi(locale);
   const rs = renderStrings(locale);
   const m = item.meta;
+  // One-time third-party confirmation: shown the FIRST time a name is typed into
+  // the empty supervisee field (never for edits to a name already on the record,
+  // and never when the owner already hides names on the public page — the hint
+  // would point them to a toggle they have switched on), dismissable inline, and
+  // never re-shown for this row. A hint, not a modal — the always-on privacy
+  // reminder below the field stays regardless.
+  const [nameHint, setNameHint] = useState(false);
+  const nameHintFired = useRef(false);
+  const onNameTyped = (next: string) => {
+    if (namesHidden) return;
+    if (nameHintFired.current || (m.superviseeName ?? "").trim() || !next.trim()) return;
+    nameHintFired.current = true;
+    setNameHint(true);
+  };
   const text = (
     key:
       | "superviseeName"
@@ -277,13 +299,17 @@ function SupervisionDetails({
       | "institution",
     label: string,
     maxLength: number,
+    onTyped?: (next: string) => void,
   ) => (
     <div className="cv-item-edit-wrap">
       <input
         className="cv-item-edit"
         maxLength={maxLength}
         value={m[key] ?? ""}
-        onChange={(e) => onSet({ [key]: e.target.value })}
+        onChange={(e) => {
+          onTyped?.(e.target.value);
+          onSet({ [key]: e.target.value });
+        }}
         placeholder={label}
         aria-label={label}
       />
@@ -293,7 +319,18 @@ function SupervisionDetails({
     <details className="cv-item-details cv-supervision-details">
       <summary>{eu.supervisionDetails}</summary>
       <div className="cv-item-details-body">
-        {text("superviseeName", eu.superviseeNameLabel, 120)}
+        {text("superviseeName", eu.superviseeNameLabel, 120, onNameTyped)}
+        {nameHint ? (
+          <p role="status" className="field-note cv-supervision-name-hint">
+            {eu.superviseeNameFirstHint}{" "}
+            <a href={localePrivacyPath(locale)} target="_blank" rel="noopener noreferrer">
+              {t(locale, "privacy")}
+            </a>
+            <button type="button" className="link-btn" onClick={() => setNameHint(false)}>
+              {eu.coachGotIt}
+            </button>
+          </p>
+        ) : null}
         <p className="muted field-note cv-supervision-privacy">{eu.superviseeNamePrivacyNote}</p>
         <div className="cv-item-selects">
           <select
@@ -384,6 +421,7 @@ export default function ItemRow({
   shownInView = true,
   onToggleInView,
   onSetNotMineReason,
+  superviseeNamesHidden = false,
   duplicateGroup,
   onKeepOnly,
   onKeepAll,
@@ -901,7 +939,12 @@ export default function ItemRow({
           </div>
         )}
         {isManual && sectionType === "supervision" && onSetSupervision ? (
-          <SupervisionDetails item={item} locale={locale} onSet={onSetSupervision} />
+          <SupervisionDetails
+            item={item}
+            locale={locale}
+            namesHidden={superviseeNamesHidden}
+            onSet={onSetSupervision}
+          />
         ) : null}
         {isCitation && onSetYear && onSetVenue ? (
           // Correct a citation's bibliographic basics — publication year and

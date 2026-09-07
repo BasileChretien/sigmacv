@@ -38,33 +38,49 @@ function formatUtcDate(iso: string, locale: string): string {
 }
 
 /**
+ * What the mark's short label stands for: `"source"` = the proper-noun name of
+ * the source the record came from (the only kind the public page can show — the
+ * projection strips `matchBasis`); `"identifier"` / `"claimed"` = how the owner
+ * was matched to it; `"manual"` = entered by the owner. The reader-view legend
+ * (`cv/readerView.ts`) uses it to decide which labels need a line of their own.
+ */
+export type ProvenanceBasis = "source" | "identifier" | "claimed" | "manual";
+
+/** The mark's label + its leading sentence, plus what the label stands for. */
+export interface ItemProvenanceMark extends ItemProvenance {
+  basis: ProvenanceBasis;
+}
+
+/**
  * How the item was tied to the account holder (when the match basis is on the
  * item), else where its record came from. Returns the short label + the leading
- * sentence of the title.
+ * sentence of the title — the part of the mark a legend has to explain.
  */
-function matchOrSource(item: CvItem, locale: string): ItemProvenance {
+export function itemProvenanceMark(item: CvItem, locale: string): ItemProvenanceMark {
   const s = renderStrings(locale);
   switch (item.meta.matchBasis) {
     case "orcid":
-      return { label: "ORCID", title: s.provMatchOrcid };
+      return { basis: "identifier", label: "ORCID", title: s.provMatchOrcid };
     case "openalex-id":
-      return { label: "OpenAlex ID", title: s.provMatchOpenAlexId };
+      return { basis: "identifier", label: "OpenAlex ID", title: s.provMatchOpenAlexId };
     case "both":
-      return { label: "ORCID + OpenAlex ID", title: s.provMatchBoth };
+      return { basis: "identifier", label: "ORCID + OpenAlex ID", title: s.provMatchBoth };
     case "claimed":
-      return { label: s.provLabelClaimed, title: s.provMatchClaimed };
+      return { basis: "claimed", label: s.provLabelClaimed, title: s.provMatchClaimed };
     default:
       break;
   }
-  if (item.source === "manual") return { label: s.provLabelManual, title: s.provSourceManual };
+  if (item.source === "manual") {
+    return { basis: "manual", label: s.provLabelManual, title: s.provSourceManual };
+  }
   const src = item.source === "derived" ? s.sourceDerived : sourceLabel(item.source);
-  return { label: src, title: s.provSourceOf.replace("{source}", src) };
+  return { basis: "source", label: src, title: s.provSourceOf.replace("{source}", src) };
 }
 
 /** The provenance mark for an item, from the data already on it. */
 export function itemProvenance(item: CvItem, locale: string): ItemProvenance {
   const s = renderStrings(locale);
-  const base = matchOrSource(item, locale);
+  const base = itemProvenanceMark(item, locale);
   const parts: string[] = [base.title];
   if (item.meta.enriched) parts.push(s.provEnriched);
   if (item.meta.verified) {

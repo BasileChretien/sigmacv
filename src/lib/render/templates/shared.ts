@@ -602,6 +602,15 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-readerbar a { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; }
   .cv-readerbanner { margin: 0 0 1.1rem; padding: 0.55rem 0.8rem; border: 1px solid var(--cv-rule-strong); border-left: 4px solid var(--cv-accent); border-radius: 6px; font-size: 0.76rem; color: var(--cv-ink-2); }
   .cv-readerbanner a { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; margin-left: 0.4em; white-space: nowrap; }
+  .cv-readerbanner p { margin: 0; text-indent: 0; }
+  /* The recipient notice + the print legend: quieter than the lead line, plain
+     blocks (no disclosure) so they reach the printed / PDF copy. */
+  .cv-readernotice { margin-top: 0.35rem; color: var(--cv-muted); }
+  .cv-readerlegend { margin-top: 0.4rem; color: var(--cv-muted); }
+  .cv-readerlegend-label { font-weight: 600; color: var(--cv-ink-2); }
+  .cv-readerlegend-list { margin: 0.15rem 0 0; padding-left: 1.1em; list-style: disc; }
+  .cv-readerlegend-list li { margin: 0; padding: 0; text-indent: 0; font-size: 0.72rem; }
+  .cv-readerlegend-list b { font-weight: 600; color: var(--cv-ink-2); }
   .cv-prov { display: inline-block; text-indent: 0; margin-left: 0.45em; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; white-space: nowrap; cursor: help; border-bottom: 1px dotted var(--cv-rule-strong); }
 
   /* Public-page "Subscribe" (Atom/RSS) affordance — a quiet footnote near the living
@@ -635,8 +644,13 @@ export function commonCss(theme: TemplateTheme): string {
        link affordance survives print (WCAG 1.4.1 — not signalled by colour). */
     .cv-ids a, .cv-contact a, .cv-links a { text-decoration: underline; text-underline-offset: 0.15em; }
     .cv-ror-link { border-bottom: none; }
-    /* Interactive web-only affordances never belong in the printed/PDF CV. */
-    .cv-itemtools, .cv-filterbar, .cv-subscribe, .cv-readerbar, .cv-readerbanner { display: none !important; }
+    /* Interactive web-only affordances never belong in the printed/PDF CV. The
+       reader banner is NOT one of them: its recipient notice + legend are what
+       make the provenance marks and badges legible on paper, so it prints — only
+       its "back to the standard page" link is web-only. */
+    .cv-itemtools, .cv-filterbar, .cv-subscribe, .cv-readerbar { display: none !important; }
+    .cv-readerbanner a { display: none; }
+    .cv-readerbanner { break-inside: avoid; }
     section.cv-section { break-inside: auto; }
     section.cv-section > h2 { break-after: avoid; break-inside: avoid; }
     ol.cv-bib > li { break-inside: avoid; }

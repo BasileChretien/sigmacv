@@ -498,7 +498,7 @@ function itemToolsHtml(item: CvItem, slug: string, locale: string): string {
  */
 export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): RenderedSection[] {
   const publicExtras = Boolean(opts?.publicExtras && opts.slug);
-  return prepareSections(cv, "html").map(({ section, intro, items }) => {
+  return prepareSections(cv, "html", opts).map(({ section, intro, items }) => {
     // Positions/Education entries render as a structured two-line record (built
     // from the source meta) — see positionEntryHtml. The flat-string ROR link
     // (withRorLink) is only the FALLBACK for these sections now (a user free-text

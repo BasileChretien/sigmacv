@@ -68,12 +68,16 @@ function thesisHref(item: CvItem): string {
  * no structured lead (it then renders its free-text line unchanged). `hideNames`
  * (= `display.hideSuperviseeNames`) swaps the supervisee's name for the
  * degree-level noun; the degree label is then dropped from the qualifiers (the
- * noun already says it). Pure.
+ * noun already says it). `readerMode` (= the render OPTION `opts.readerMode`,
+ * never a display toggle) omits the supervisee's current position — third-party
+ * minimisation for the assessor's view: where a person went next is about them,
+ * not about the owner's supervision, so the reader view does not carry it. Pure.
  */
 export function supervisionEntry(
   item: CvItem,
   locale: string,
   hideNames: boolean,
+  readerMode = false,
 ): SupervisionEntry | null {
   if (!hasStructuredSupervision(item)) return null;
   const rs = renderStrings(locale);
@@ -102,7 +106,7 @@ export function supervisionEntry(
     const href = instOverride || !itemInstitution(item) ? "" : institutionHref(item);
     sub.push({ text: inst, ...(href ? { href } : {}) });
   }
-  const now = m.currentPosition?.trim();
+  const now = readerMode ? "" : m.currentPosition?.trim();
   if (now) sub.push({ text: rs.supervisionNow.replace("{position}", now) });
 
   // A completed/discontinued record with no end year shows just its start year —

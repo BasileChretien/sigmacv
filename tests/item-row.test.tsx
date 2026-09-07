@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import ItemRow from "@/components/ItemRow";
 import type { CvItem, CvSectionType } from "@/lib/canonical/schema";
+import { editorUi } from "@/lib/i18n/editorUi";
 
 /**
  * The "not mine" control is offered for items an EXTERNAL source attributed to
@@ -48,6 +49,75 @@ function renderRow(item: CvItem, sectionType?: CvSectionType) {
 }
 
 afterEach(cleanup);
+
+describe("ItemRow — supervisee name: one-time third-party hint", () => {
+  function renderSupervisionRow(meta: CvItem["meta"] = {}, superviseeNamesHidden?: boolean) {
+    render(
+      <ul>
+        <ItemRow
+          item={makeItem({ id: "sup:manual:1", source: "manual", meta })}
+          locale="en-US"
+          sectionType="supervision"
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          onRemove={noop}
+          onMoveUp={noop}
+          onMoveDown={noop}
+          onSetSupervision={noop}
+          superviseeNamesHidden={superviseeNamesHidden}
+        />
+      </ul>,
+    );
+  }
+
+  it("shows the hint once, when a name is first typed into the empty field, and it can be dismissed", () => {
+    renderSupervisionRow();
+    const input = screen.getByLabelText("Supervisee name");
+    expect(screen.queryByRole("status")).toBeNull();
+    fireEvent.change(input, { target: { value: "J" } });
+    const hint = screen.getByRole("status");
+    expect(hint.textContent).toContain(editorUi("en-US").superviseeNameFirstHint);
+    expect(hint.className).toContain("cv-supervision-name-hint");
+    // References the privacy notice (its "Supervisee names" paragraph).
+    expect(hint.querySelector("a")?.getAttribute("href")).toBe("/privacy");
+    fireEvent.click(screen.getByRole("button", { name: "Got it" }));
+    expect(screen.queryByRole("status")).toBeNull();
+    // Typing again does not bring it back: one confirmation per row.
+    fireEvent.change(input, { target: { value: "Ja" } });
+    expect(screen.queryByRole("status")).toBeNull();
+    // The always-on privacy reminder is still there either way.
+    expect(screen.getByText(editorUi("en-US").superviseeNamePrivacyNote)).toBeTruthy();
+  });
+
+  it("does not fire for edits to a name already on the record, nor for whitespace", () => {
+    renderSupervisionRow({ superviseeName: "Jane Doe" });
+    fireEvent.change(screen.getByLabelText("Supervisee name"), {
+      target: { value: "Jane Doe-Smith" },
+    });
+    expect(screen.queryByRole("status")).toBeNull();
+    cleanup();
+    renderSupervisionRow();
+    fireEvent.change(screen.getByLabelText("Supervisee name"), { target: { value: "  " } });
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("is skipped when the owner already hides supervisee names on the public page", () => {
+    // `display.hideSuperviseeNames` is on: the hint would only point to a toggle
+    // the owner has already switched on, so the first keystroke shows nothing —
+    // while the always-on reminder under the field stays.
+    renderSupervisionRow({}, true);
+    fireEvent.change(screen.getByLabelText("Supervisee name"), { target: { value: "J" } });
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByText(editorUi("en-US").superviseeNamePrivacyNote)).toBeTruthy();
+    // Explicit false = the default: the hint fires.
+    cleanup();
+    renderSupervisionRow({}, false);
+    fireEvent.change(screen.getByLabelText("Supervisee name"), { target: { value: "J" } });
+    expect(screen.getByRole("status")).toBeTruthy();
+  });
+});
 
 describe("ItemRow — ORCID verified badge", () => {
   it("shows a 'verified' badge for an institution-asserted ORCID position", () => {

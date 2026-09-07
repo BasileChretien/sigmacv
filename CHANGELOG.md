@@ -38,6 +38,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   longer names the asserting organisation, the clause (and the badge tooltip)
   falls back to "verified via ORCID" rather than re-revealing the employer they
   wrote out.
+- **Reader view: recipient notice, print-visible legend, and supervisee
+  minimisation.** The assessor "Reader view" banner now carries a four-sentence
+  notice addressed to whoever reads the page for assessment — the owner published
+  it to present their own work and any assessment use rests on the reader's own
+  lawful basis; co-author and supervisee names are third-party data, not a licence
+  to profile those people; "Retracted" is a fact taken from Crossref / Retraction
+  Watch, not a misconduct finding; a missing career-context section or an absent
+  source is not evidence of absence — followed by a key (at most six lines) built
+  from what that page actually shows: the per-entry provenance mark with the
+  source names on the page, a line for an owner-entered mark, and the Verified /
+  Retracted / OA badges and the RCR / FWCI / clinical-citation pills, each only
+  when an entry carries it (the same wording their tooltips carry, which vanish
+  on paper). Both are plain blocks, in
+  all ten languages, and the banner now **prints**: only its "back to the standard
+  page" link stays web-only, so a PDF or paper copy of the reader view keeps the
+  notice and key. In the reader view a supervision record also omits the
+  supervisee's "now: …" current position (where a person went next is about them,
+  not the owner's supervision); every export and the standard page are unchanged.
+  In the editor, typing a supervisee's name into an empty field for the first time
+  shows a one-time, dismissable hint (no modal) that it is another person's data,
+  pointing to the Design-tab name hiding and the privacy notice — skipped when
+  that name hiding is already on.
+
 - **"Reader view" for assessors on the public living page (owner opt-in).** A
   committee member opening a public SigmaCV page can now switch to a view that
   shows every trust and context signal the owner's data already carries, without
