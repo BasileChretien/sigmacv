@@ -45,7 +45,11 @@ export function workIndicators(item: CvItem, display: DisplayChoices): WorkIndic
       title: s.indicatorRcrTitle,
     });
   }
-  if (typeof m.fwci === "number") {
+  // A zero FWCI on a work from the current or previous year is citation lag, not
+  // a verdict: OpenAlex has had no time to observe citations yet. Hide it there;
+  // an older uncited work keeps its honest 0.0.
+  const recent = typeof m.year === "number" && m.year >= new Date().getUTCFullYear() - 1;
+  if (typeof m.fwci === "number" && !(m.fwci === 0 && recent)) {
     out.push({
       key: "fwci",
       label: "FWCI",

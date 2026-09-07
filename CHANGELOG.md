@@ -336,6 +336,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Reader view:** the per-entry provenance mark ("OpenAlex", "Crossref"…) no longer slides left over the indicator pills — it inherited the bibliography's hanging indent. A zero FWCI is also no longer shown on works from the current or previous year, where it is citation lag rather than a result.
 - **The Sidebar template's public page collapsed to one narrow column.** The
   living page injected its view-filter bar (and the reader-view link/banner)
   between the template's `<aside>` and `<main>`; the Sidebar layout is a
