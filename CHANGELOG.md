@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Assessment-grade frozen versions.** A frozen version now stores the provenance ledger computed on the owner's document _before_ the frozen copy is stripped of its attribution signals (a ledger derived afterwards under-reported DOI-claimed and name-matched entries and could never be recomputed), plus a SHA-256 content hash shown in the frozen page's banner and a `sigmacv:content-hash` `<meta>`, so a link and a PDF can be matched to the same version. The owner can freeze a version **as the assessor's reader view** (a one-time choice at freeze time, fixed for that version): the frozen page then renders with the reader-mode preset (evidence marks on, retracted works visible). A frozen page also honours `?view=reader` when its frozen display allowed the reader view, exactly like the living page.
 - **"Reader view" for assessors on the public living page (owner opt-in).** A
   committee member opening a public SigmaCV page can now switch to a view that
   shows every trust and context signal the owner's data already carries, without

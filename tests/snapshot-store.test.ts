@@ -65,6 +65,8 @@ import {
 } from "@/lib/cv/snapshotStore";
 import { CvNotFoundError } from "@/lib/cv/sync";
 import { MAX_SNAPSHOTS_PER_CV } from "@/lib/cv/snapshots";
+import { provenanceLedger, type ProvenanceLedger } from "@/lib/cv/provenanceLedger";
+import { contentHashOf, stableJson } from "@/lib/cv/snapshotHash";
 
 const works = worksFixture as unknown as OpenAlexWork[];
 function makeCv(): CanonicalCv {
@@ -89,6 +91,9 @@ const ROW = {
   doi: null as string | null,
   doiState: "none",
   canonical: CV,
+  ledger: null as unknown,
+  contentHash: null as string | null,
+  readerMode: false,
 };
 
 beforeEach(() => {
@@ -134,6 +139,8 @@ describe("listSnapshots", () => {
       isPublic: true,
       doi: null,
       doiState: "none",
+      readerMode: false,
+      contentHash: null,
     });
     // An unknown stored state degrades to "none".
     expect(out.snapshots[1]!.doiState).toBe("none");
@@ -173,6 +180,58 @@ describe("createSnapshot", () => {
     expect(data.cvId).toBe("cv1");
     expect(data.canonical.notes).toBeUndefined();
     expect(data.canonical.sections.length).toBe(withNotes.sections.length);
+  });
+
+  it("stores the ledger computed BEFORE the frozen copy is stripped, the content hash, and the reader choice", async () => {
+    mocks.count.mockResolvedValue(0);
+    mocks.aggregate.mockResolvedValue({ _max: { version: null } });
+    mocks.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+      ...ROW,
+      version: data.version,
+      label: data.label,
+      token: data.token,
+      readerMode: data.readerMode,
+      contentHash: data.contentHash,
+    }));
+    // A DOI-claimed work: `meta.claimed` is exactly what `freezeCanonical` strips, so a
+    // ledger derived from the frozen copy would count it as identifier-matched.
+    const claimed = JSON.parse(JSON.stringify(CV)) as CanonicalCv;
+    const pubs = claimed.sections.find((s) => s.id === "publications")!;
+    pubs.items[0]!.meta.claimed = true;
+    mocks.cvFindUnique.mockResolvedValue({ ...CV_ROW, document: claimed });
+    const out = await createSnapshot("u1", "Reader copy", { readerMode: true });
+    expect(out.readerMode).toBe(true);
+    expect(out.contentHash).toMatch(/^[0-9a-f]{64}$/);
+    const data = mocks.create.mock.calls[0]![0].data as {
+      canonical: CanonicalCv;
+      ledger: ProvenanceLedger;
+      contentHash: string;
+      readerMode: boolean;
+    };
+    expect(data.readerMode).toBe(true);
+    expect(data.ledger.claimed.count).toBe(1);
+    // The frozen copy has lost the signal — the stored ledger is the only truthful one.
+    expect(
+      data.canonical.sections.find((s) => s.id === "publications")!.items[0]!.meta.claimed,
+    ).toBeUndefined();
+    expect(provenanceLedger(data.canonical).claimed.count).toBe(0);
+    expect(data.ledger.identifierMatched.count).toBe(
+      provenanceLedger(data.canonical).identifierMatched.count - 1,
+    );
+    // The hash is of the FROZEN document (what the page serves), stable across key order.
+    expect(data.contentHash).toBe(contentHashOf(data.canonical));
+    expect(data.contentHash).toBe(contentHashOf(JSON.parse(stableJson(data.canonical))));
+  });
+
+  it("defaults to a standard (non-reader) freeze", async () => {
+    mocks.count.mockResolvedValue(0);
+    mocks.aggregate.mockResolvedValue({ _max: { version: null } });
+    mocks.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+      ...ROW,
+      readerMode: data.readerMode,
+    }));
+    expect((await createSnapshot("u1", "Plain")).readerMode).toBe(false);
+    expect(mocks.create.mock.calls[0]![0].data.readerMode).toBe(false);
   });
 
   it("starts at version 1 for a CV with no snapshots", async () => {
@@ -265,6 +324,32 @@ describe("getOwnerSnapshot", () => {
   });
 });
 
+describe("getPublicSnapshot — assessment-grade columns", () => {
+  const withCv = (row: Partial<typeof ROW> = {}) => ({
+    ...ROW,
+    ...row,
+    cv: { published: true, publicSlug: "basile-x", document: CV },
+  });
+
+  it("hands back the stored ledger, hash and reader choice", async () => {
+    const ledger = provenanceLedger(CV);
+    mocks.findUnique.mockResolvedValue(
+      withCv({ ledger, contentHash: "ab".repeat(32), readerMode: true }),
+    );
+    const out = await getPublicSnapshot("basile-x", ROW.token);
+    expect(out!.ledger).toEqual(ledger);
+    expect(out!.contentHash).toBe("ab".repeat(32));
+    expect(out!.readerMode).toBe(true);
+  });
+
+  it("ignores a stored ledger that does not have the ledger shape", async () => {
+    mocks.findUnique.mockResolvedValue(withCv({ ledger: { kept: "many" } }));
+    expect((await getPublicSnapshot("basile-x", ROW.token))!.ledger).toBeNull();
+    mocks.findUnique.mockResolvedValue(withCv({ ledger: "nope" }));
+    expect((await getPublicSnapshot("basile-x", ROW.token))!.ledger).toBeNull();
+  });
+});
+
 describe("getPublicSnapshot", () => {
   const withCv = (over: Partial<typeof CV_ROW> = {}, row: Partial<typeof ROW> = {}) => ({
     ...ROW,
@@ -293,6 +378,10 @@ describe("getPublicSnapshot", () => {
     ).not.toContain(first);
     expect(out!.cv.notes).toBeUndefined();
     expect(out!.cv.owner.metrics).toBeUndefined();
+    // Legacy row (frozen before the assessment-grade columns): no ledger, no hash, standard view.
+    expect(out!.ledger).toBeNull();
+    expect(out!.contentHash).toBeNull();
+    expect(out!.readerMode).toBe(false);
     expect(out!.live.owner.metrics).toEqual({ h_index: 3 });
   });
 

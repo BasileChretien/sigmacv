@@ -115,6 +115,13 @@ describe("reader view chrome", () => {
     );
   });
 
+  it("can omit the back link (a version frozen AS the reader view has no standard page)", () => {
+    const html = readerViewBannerHtml(parseViewFilters(params("")), "en-US", { backLink: false });
+    expect(html).toContain("Nothing here is a score.");
+    expect(html).not.toContain("<a ");
+    expect(readerViewBannerHtml(parseViewFilters(params("")), "en-US", {})).toContain("<a ");
+  });
+
   it("localizes the chrome", () => {
     expect(readerViewLinkHtml(parseViewFilters(params("")), "fr-FR")).toContain("Vue évaluateur");
     expect(readerViewBannerHtml(parseViewFilters(params("")), "ja-JP")).toContain("審査者ビュー");

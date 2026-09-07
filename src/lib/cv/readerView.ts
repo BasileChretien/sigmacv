@@ -67,12 +67,22 @@ export function readerViewLinkHtml(filters: ViewFilters, locale: string): string
  * nothing in it is a score) with a link back to the standard page, keeping the
  * active filters. Styled by `commonCss` (`.cv-readerbanner`).
  */
-export function readerViewBannerHtml(filters: ViewFilters, locale: string): string {
+export function readerViewBannerHtml(
+  filters: ViewFilters,
+  locale: string,
+  opts: {
+    /** false → no "back to the standard page" link: the page IS the reader view
+     *  (a version frozen as such has no standard counterpart). Default true. */
+    backLink?: boolean;
+  } = {},
+): string {
   const s = renderStrings(locale);
   const back = escapeHtml(viewFilterQuery(filters));
+  const backLink =
+    opts.backLink === false ? "" : `<a href="${back}">${escapeHtml(s.readerBannerBack)}</a>`;
   return (
     `<aside class="cv-readerbanner" role="note">${escapeHtml(s.readerBannerText)}` +
-    `<a href="${back}">${escapeHtml(s.readerBannerBack)}</a></aside>`
+    `${backLink}</aside>`
   );
 }
 

@@ -27,6 +27,7 @@ vi.mock("@/lib/rateLimitStore", () => ({ enforceRateLimit: mocks.enforceRateLimi
 vi.mock("@/lib/log", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
 
 import { GET as pageGet } from "@/app/p/[slug]/v/[token]/route";
+import { provenanceLedger } from "@/lib/cv/provenanceLedger";
 import { GET as diffGet } from "@/app/p/[slug]/v/[token]/diff/route";
 
 const works = worksFixture as unknown as OpenAlexWork[];
@@ -54,7 +55,11 @@ const SNAP = {
   label: "Tenure",
   createdAt: "2026-09-04T10:00:00.000Z",
   doi: "10.12345/abcd.2",
+  ledger: null,
+  contentHash: null,
+  readerMode: false,
 };
+const HASH = "0123456789abcdef".repeat(4);
 
 const params = (slug: string, token: string) => ({ params: Promise.resolve({ slug, token }) });
 const req = (path: string, headers: Record<string, string> = {}) =>
@@ -92,6 +97,63 @@ describe("GET /p/[slug]/v/[token] (frozen version page)", () => {
     expect(parsed.dateCreated).toBe("2026-09-04T10:00:00.000Z");
     expect(String(parsed.url)).toContain(`/p/${SLUG}/v/${TOKEN}`);
     expect(mocks.getPublicSnapshot).toHaveBeenCalledWith(SLUG, TOKEN);
+  });
+
+  it("shows the content hash in the banner (short, full in the title) and as a <meta>", async () => {
+    mocks.getPublicSnapshot.mockResolvedValue({ ...SNAP, contentHash: HASH });
+    const html = await (await pageGet(req(`/p/${SLUG}/v/${TOKEN}`), params(SLUG, TOKEN))).text();
+    expect(html).toContain(`<meta name="sigmacv:content-hash" content="sha256:${HASH}" />`);
+    expect(html).toContain(`title="SHA-256 ${HASH}">SHA-256 ${HASH.slice(0, 12)}</span>`);
+    // A legacy version (no hash) shows neither.
+    mocks.getPublicSnapshot.mockResolvedValue(SNAP);
+    const plain = await (await pageGet(req(`/p/${SLUG}/v/${TOKEN}`), params(SLUG, TOKEN))).text();
+    expect(plain).not.toContain("sigmacv:content-hash");
+    expect(plain).not.toContain("SHA-256");
+  });
+
+  it("renders a version frozen AS the reader view with the reader preset, marks, banner (no back link) and the stored ledger", async () => {
+    // Provenance shown; the stored ledger carries a count the frozen copy could never yield.
+    const withProv = updateDisplay(cv, { showProvenance: true });
+    const ledger = { ...provenanceLedger(withProv) };
+    ledger.claimed = { count: 7, denominator: 9, share: 7 / 9 };
+    mocks.getPublicSnapshot.mockResolvedValue({
+      ...SNAP,
+      cv: withProv,
+      ledger,
+      readerMode: true,
+    });
+    const html = await (await pageGet(req(`/p/${SLUG}/v/${TOKEN}`), params(SLUG, TOKEN))).text();
+    expect(html).toContain('<main class="cv-main"><aside class="cv-readerbanner" role="note">');
+    expect(html).not.toContain("Revenir à la page standard");
+    expect(html).toContain('class="cv-prov"');
+    expect(html).toContain('class="snapshot-banner"');
+    // The stored ledger — not one derived from the stripped frozen copy — is what renders.
+    const claimedLine = /7\D{1,12}9/.test(html.replace(/<[^>]+>/g, " "));
+    expect(claimedLine).toBe(true);
+  });
+
+  it("honours ?view=reader on a standard frozen version only when its frozen display allows it, with a back link", async () => {
+    const allowed = updateDisplay(cv, { allowReaderMode: true });
+    mocks.getPublicSnapshot.mockResolvedValue({ ...SNAP, cv: allowed });
+    let html = await (
+      await pageGet(req(`/p/${SLUG}/v/${TOKEN}?view=reader`), params(SLUG, TOKEN))
+    ).text();
+    expect(html).toContain('class="cv-readerbanner"');
+    expect(html).toContain('<a href="?">Revenir à la page standard</a>');
+    expect(html).toContain('class="cv-prov"');
+    // Without the param: the standard page with the quiet "Reader view" link.
+    html = await (await pageGet(req(`/p/${SLUG}/v/${TOKEN}`), params(SLUG, TOKEN))).text();
+    expect(html).toContain('<main class="cv-main"><nav class="cv-readerbar"');
+    expect(html).toContain('href="?view=reader"');
+    expect(html).not.toContain('class="cv-prov"');
+    // Not allowed by the frozen display: the param is ignored, no reader chrome at all.
+    mocks.getPublicSnapshot.mockResolvedValue(SNAP);
+    html = await (
+      await pageGet(req(`/p/${SLUG}/v/${TOKEN}?view=reader`), params(SLUG, TOKEN))
+    ).text();
+    expect(html).not.toContain('class="cv-readerbanner"');
+    expect(html).not.toContain('class="cv-readerbar"');
+    expect(html).not.toContain('class="cv-prov"');
   });
 
   it("content-negotiates the machine formats by suffix and by Accept", async () => {

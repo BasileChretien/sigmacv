@@ -13,6 +13,8 @@ const SNAP = {
   isPublic: false,
   doi: null,
   doiState: "none",
+  readerMode: false,
+  contentHash: null,
 };
 
 type Handler = (url: string, init?: RequestInit) => { status: number; body?: unknown };
@@ -64,7 +66,34 @@ describe("VersionsControls", () => {
     expect(screen.getAllByTestId("version-row")).toHaveLength(2);
     const post = calls.find(([, init]) => init?.method === "POST")!;
     expect(post[0]).toBe("/api/cv/snapshots");
-    expect(JSON.parse(post[1]!.body as string)).toEqual({ label: "Grant" });
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ label: "Grant", readerMode: false });
+  });
+
+  it("freezes as the reader view when the owner ticks the option, and tags such rows", async () => {
+    const calls: Array<[string, RequestInit | undefined]> = [];
+    handler = (url, init) => {
+      calls.push([url, init]);
+      if (init?.method === "POST") {
+        return {
+          status: 201,
+          body: {
+            snapshot: { ...SNAP, id: "snap2", version: 2, label: "Reader", readerMode: true },
+          },
+        };
+      }
+      return { status: 200, body: { snapshots: [SNAP], doiMintingEnabled: false, max: 20 } };
+    };
+    render(<VersionsControls locale="en-US" published={true} slug="basile-x" />);
+    await screen.findByText("Tenure review");
+    expect(screen.queryByText("Reader view")).toBeNull();
+    fireEvent.click(screen.getByLabelText("Freeze as reader view"));
+    fireEvent.change(screen.getByPlaceholderText(/Label/), { target: { value: "Reader" } });
+    fireEvent.click(screen.getByText("Freeze this version"));
+    await screen.findByText("Reader");
+    const post = calls.find(([, init]) => init?.method === "POST")!;
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ label: "Reader", readerMode: true });
+    // The new row carries the "Reader view" tag; the plain one does not.
+    expect(screen.getAllByText("Reader view")).toHaveLength(1);
   });
 
   it("disables Mint DOI with the 'not configured' hint when the server has no credentials", async () => {
