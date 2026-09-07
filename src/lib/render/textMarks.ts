@@ -1,3 +1,4 @@
+import { rederiveEntryLine } from "@/lib/canonical/entryLine";
 import type { CanonicalCv, CvItem, DisplayChoices } from "@/lib/canonical/schema";
 import { renderStrings } from "@/lib/i18n/render";
 import { safeHref } from "./escape";
@@ -13,16 +14,50 @@ import { safeHref } from "./escape";
  */
 
 /**
+ * The entry line as the OWNER rewrote it, when they did: their free-text
+ * `displayTextOverride`, or — after an institution rename (`meta.institutionOverride`)
+ * — the line re-derived from the structured meta with that name in place (what
+ * every renderer prints). undefined when the line is still the source's own.
+ */
+function ownerRewrittenLine(item: CvItem): string | undefined {
+  const text = item.displayTextOverride?.trim();
+  if (text) return text;
+  const institution = item.meta.institutionOverride?.trim();
+  if (!institution) return undefined;
+  /* v8 ignore next -- a non-blank institution override always re-derives (itemInstitution is set) */
+  return rederiveEntryLine(item) ?? institution;
+}
+
+/**
+ * The organisation a verified entry may be said to be verified BY: ORCID's
+ * asserter name (`meta.verifiedBy`) — UNLESS the owner rewrote the line or the
+ * institution and the text they chose no longer carries that name. Naming the
+ * asserter then would re-reveal an employer the owner deliberately wrote out, so
+ * the mark falls back to the generic wording instead (undefined here). Also
+ * undefined when ORCID named no asserter. Shared by the plain clause and the
+ * HTML badge title so every surface applies the same rule.
+ */
+export function verifiedAsserter(item: CvItem): string | undefined {
+  const org = item.meta.verifiedBy?.trim();
+  if (!org) return undefined;
+  const rewritten = ownerRewrittenLine(item);
+  if (rewritten !== undefined && !rewritten.toLowerCase().includes(org.toLowerCase())) {
+    return undefined;
+  }
+  return org;
+}
+
+/**
  * The plain verified clause for an entry a trusted organisation asserted on the
- * ORCID record (`meta.verified`): "verified by <org>" when ORCID named the
- * asserter (`meta.verifiedBy`), else the generic "verified via ORCID". Localised
- * to the CV language. "" when `display.showVerifiedBadges` is off or the entry
- * isn't verified — mirrors `verifiedBadgeHtml` exactly.
+ * ORCID record (`meta.verified`): "verified by <org>" when the asserter may be
+ * named ({@link verifiedAsserter}), else the generic "verified via ORCID".
+ * Localised to the CV language. "" when `display.showVerifiedBadges` is off or
+ * the entry isn't verified — mirrors `verifiedBadgeHtml` exactly.
  */
 function verifiedMarkText(item: CvItem, display: DisplayChoices): string {
   if (!display.showVerifiedBadges || !item.meta.verified) return "";
   const s = renderStrings(display.locale);
-  const org = item.meta.verifiedBy?.trim();
+  const org = verifiedAsserter(item);
   return org ? s.verifiedByText.replace("{org}", () => org) : s.verifiedGenericText;
 }
 

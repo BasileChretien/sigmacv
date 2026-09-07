@@ -165,8 +165,9 @@ export function prepareSections(
 
 /**
  * The text formats' per-entry trust marks + identifiers, appended to the entry
- * ONCE here so DOCX / Markdown / LaTeX (and the biosketch / grant CV built on
- * them) can never disagree: the plain "(verified by <org>)" suffix on an
+ * ONCE here so DOCX / Markdown / LaTeX can never disagree (the biosketch / grant
+ * CV build their position / award lists from the raw display text instead, and
+ * append the same `verifiedSuffix` themselves): the plain "(verified by <org>)" suffix on an
  * institution-asserted entry, and a Software entry's " · "-joined details
  * (repository, version, licence, opt-in archive link). The HTML path renders the
  * same data as badges and links itself (html.ts), so this is text output only.

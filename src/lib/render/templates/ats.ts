@@ -39,7 +39,9 @@ function atsCss(_theme: TemplateTheme): string {
   .cv-verified-text { color: #000; font-weight: normal; }
   .cv-software-details, .cv-software-details a { color: #000; font-size: 1em; }
   .cv-areas-plain { margin: 0.5rem 0 0; color: #000; }
-  .cv-areas-plain .cv-areas-label { font-weight: bold; }
+  /* The label is a plain inline run of the same line ("Research areas: A · B"),
+     undoing the shared chip-row label (block, uppercase, small, muted). */
+  .cv-areas-plain .cv-areas-label { display: inline; margin: 0; font-size: 1em; font-weight: bold; text-transform: none; letter-spacing: 0; color: #000; }
 
   /* Header: plain black, no border band, no accent. */
   header.cv-header { margin-bottom: 1rem; border: 0; }

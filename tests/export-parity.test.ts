@@ -1,10 +1,12 @@
 import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
-import { updateDisplay, updateOwner } from "@/lib/canonical/curate";
+import { setItemInstitution, updateDisplay, updateOwner } from "@/lib/canonical/curate";
 import type { CanonicalCv, CvItem, DisplayChoices } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
+import { renderCvBiosketch } from "@/lib/render/biosketch";
 import { renderCvDocxBuffer } from "@/lib/render/docx";
+import { renderGrantCv } from "@/lib/render/grantCv";
 import { renderCvHtml } from "@/lib/render/html";
 import { buildJsonResume } from "@/lib/render/jsonresume";
 import { renderCvLatex } from "@/lib/render/latex";
@@ -129,17 +131,47 @@ function makeCv(display: Partial<DisplayChoices> = {}): CanonicalCv {
   return updateDisplay(withContact, display);
 }
 
-/** The document's paragraphs as plain text (one line per <w:p>), tags stripped. */
+const XML_ENTITIES: Readonly<Record<string, string>> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+};
+
+/** Decode the five predefined XML entities in ONE pass via a lookup table (no
+ *  chained replaces, so a decoded "&amp;lt;" can never be re-decoded). */
+function decodeXmlText(s: string): string {
+  return s.replace(/&(amp|lt|gt|quot|apos);/g, (_m, name: string) => XML_ENTITIES[name]!);
+}
+
+/** The document's paragraphs as plain text (one line per <w:p>): each paragraph's
+ *  `<w:t>` text nodes, extracted and concatenated — a text-node read, not a tag strip. */
 async function docxText(cv: CanonicalCv): Promise<string> {
   const zip = await JSZip.loadAsync(await renderCvDocxBuffer(cv));
   const xml = await zip.file("word/document.xml")!.async("string");
   return xml
-    .replace(/<\/w:p>/g, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
+    .split("</w:p>")
+    .map((paragraph) =>
+      Array.from(paragraph.matchAll(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g), (m) =>
+        decodeXmlText(m[1]!),
+      ).join(""),
+    )
+    .join("\n");
 }
+
+/** `cv` with one item replaced by `patch(item)` (the item found by id). */
+function patchItem(cv: CanonicalCv, itemId: string, patch: (it: CvItem) => CvItem): CanonicalCv {
+  return {
+    ...cv,
+    sections: cv.sections.map((s) => ({
+      ...s,
+      items: s.items.map((it) => (it.id === itemId ? patch(it) : it)),
+    })),
+  };
+}
+
+const VERIFIED_POSITION_ID = "position:orcid:emp-v";
 
 /** HTML as readable text: the stylesheet dropped, tags collapsed to spaces. */
 function htmlText(html: string): string {
@@ -153,12 +185,18 @@ const VERIFIED_BY = "(verified by Nagoya University)";
 const VERIFIED_GENERIC = "(verified via ORCID)";
 
 describe.skipIf(!hasApa)("export parity — verified marks (display.showVerifiedBadges)", () => {
+  // Every assertion below is anchored to the END of the entry's line, so a
+  // doubled suffix ("… (verified by X) (verified by X)") fails, not just a
+  // missing one.
   it("Markdown carries a per-item plain suffix when on, nothing when off", () => {
     const md = renderCvMarkdown(makeCv(ON));
-    expect(md).toContain(`Assistant Professor, Nagoya University (2022–present) ${VERIFIED_BY}`);
-    expect(md).toContain(`Fellow, Royal Society (2020) ${VERIFIED_GENERIC}`);
+    expect(md).toMatch(
+      /^.*Assistant Professor, Nagoya University \(2022–present\) \(verified by Nagoya University\)$/m,
+    );
+    expect(md).toMatch(/^.*Fellow, Royal Society \(2020\) \(verified via ORCID\)$/m);
     // The self-entered position carries nothing.
     expect(md).toMatch(/Consultant, Self-Entered Inc \(2020–present\)\n/);
+    expect(md.match(/verified/g)).toHaveLength(2);
 
     const off = renderCvMarkdown(makeCv());
     expect(off).not.toContain("verified");
@@ -166,17 +204,23 @@ describe.skipIf(!hasApa)("export parity — verified marks (display.showVerified
 
   it("DOCX carries the suffix on the entry's own paragraph when on, nothing when off", async () => {
     const text = await docxText(makeCv(ON));
-    expect(text).toContain(`Assistant Professor, Nagoya University (2022–present) ${VERIFIED_BY}`);
-    expect(text).toContain(`Fellow, Royal Society (2020) ${VERIFIED_GENERIC}`);
+    expect(text).toContain(
+      `Assistant Professor, Nagoya University (2022–present) ${VERIFIED_BY}\n`,
+    );
+    expect(text).toContain(`Fellow, Royal Society (2020) ${VERIFIED_GENERIC}\n`);
     expect(text).toMatch(/Consultant, Self-Entered Inc \(2020–present\)\n/);
+    expect(text.match(/verified/g)).toHaveLength(2);
 
     expect(await docxText(makeCv())).not.toContain("verified");
   });
 
   it("LaTeX carries the suffix when on, nothing when off", () => {
     const tex = renderCvLatex(makeCv(ON));
-    expect(tex).toContain(`Assistant Professor, Nagoya University (2022–present) ${VERIFIED_BY}`);
-    expect(tex).toContain(VERIFIED_GENERIC);
+    expect(tex).toMatch(
+      /^\s*\\item Assistant Professor, Nagoya University \(2022–present\) \(verified by Nagoya University\)$/m,
+    );
+    expect(tex).toMatch(/^\s*\\item Fellow, Royal Society \(2020\) \(verified via ORCID\)$/m);
+    expect(tex.match(/verified/g)).toHaveLength(2);
     expect(renderCvLatex(makeCv())).not.toContain("verified");
   });
 
@@ -202,8 +246,13 @@ describe.skipIf(!hasApa)("export parity — verified marks (display.showVerified
     expect(html).toMatch(
       /<span class="cv-entry-lead">Assistant Professor <span class="cv-verified-text">\(verified by Nagoya University\)<\/span><\/span>/,
     );
-    // The flat award entry gets the generic wording the same way.
-    expect(html).toContain(`<span class="cv-verified-text">${VERIFIED_GENERIC}</span>`);
+    // The flat award entry gets the generic wording the same way — at the end of
+    // its list item.
+    expect(html).toMatch(
+      /Fellow, Royal Society \(2020\) <span class="cv-verified-text">\(verified via ORCID\)<\/span><\/div><\/li>/,
+    );
+    // One clause per verified entry, never two.
+    expect(html.match(/class="cv-verified-text"/g)).toHaveLength(2);
     expect(html).not.toContain('class="cv-badge cv-badge-verified"');
     // Every other template keeps the badge (unchanged).
     const classic = renderCvHtml(makeCv({ ...ON, template: "classic" }));
@@ -216,8 +265,120 @@ describe.skipIf(!hasApa)("export parity — verified marks (display.showVerified
   it("localises the suffix with the CV language", () => {
     const md = renderCvMarkdown(makeCv({ ...ON, locale: "fr-FR" }));
     expect(md).toContain("(vérifié par Nagoya University)");
+    // Korean: the agent marker "에서" ("verified by X"), not a bare "X 인증".
+    const ko = renderCvMarkdown(makeCv({ ...ON, locale: "ko-KR" }));
+    expect(ko).toContain("(Nagoya University에서 인증)");
+    expect(ko).not.toContain("Nagoya University 인증");
+  });
+
+  describe("an owner-rewritten line never re-reveals the asserter", () => {
+    // The owner edited the line / renamed the institution and wrote the employer
+    // out of it: naming the asserter would put that employer back. The mark falls
+    // back to the generic wording on every surface — text formats, the ATS
+    // plain clause, and the badge's title on the other templates.
+    const rewritten = (patch: Partial<CvItem> & { meta?: Partial<CvItem["meta"]> }) =>
+      patchItem(makeCv(ON), VERIFIED_POSITION_ID, (it) => ({
+        ...it,
+        ...patch,
+        meta: { ...it.meta, ...(patch.meta ?? {}) },
+      }));
+
+    it("free-text override without the org → generic (Markdown, DOCX, LaTeX, JSON Résumé)", async () => {
+      const cv = rewritten({ displayTextOverride: "Professor, NU Med (2022–present)" });
+      const md = renderCvMarkdown(cv);
+      expect(md).toMatch(/^.*Professor, NU Med \(2022–present\) \(verified via ORCID\)$/m);
+      expect(md).not.toContain("Nagoya University");
+      expect(await docxText(cv)).toContain(
+        `Professor, NU Med (2022–present) ${VERIFIED_GENERIC}\n`,
+      );
+      expect(renderCvLatex(cv)).not.toContain("Nagoya University");
+      const j = buildJsonResume(cv) as { work: Array<{ name: string }> };
+      expect(j.work[0]!.name).toBe(`Professor, NU Med (2022–present) ${VERIFIED_GENERIC}`);
+      expect(JSON.stringify(j)).not.toContain("Nagoya University");
+    });
+
+    it("institution rename without the org → generic (the re-derived line is what prints)", () => {
+      // Through the editor's own operation, which re-derives the line in place.
+      const base = makeCv(ON);
+      const positions = base.sections.find((s) => s.type === "positions")!.id;
+      const cv = setItemInstitution(base, positions, VERIFIED_POSITION_ID, "NU Med");
+      expect(cv.sections.find((s) => s.id === positions)!.items[0]!.meta.institutionOverride).toBe(
+        "NU Med",
+      );
+      const md = renderCvMarkdown(cv);
+      expect(md).toMatch(
+        /^.*Assistant Professor, NU Med \(2022–present\) \(verified via ORCID\)$/m,
+      );
+      expect(md).not.toContain("Nagoya University");
+      // ATS: the structured lead line carries the generic clause.
+      const ats = renderCvHtml(updateDisplay(cv, { template: "ats" }));
+      expect(ats).toMatch(
+        /<span class="cv-entry-lead">Assistant Professor <span class="cv-verified-text">\(verified via ORCID\)<\/span><\/span>/,
+      );
+      expect(ats).not.toContain("Nagoya University");
+      // Other templates: the badge's accessible title is generic too.
+      const classic = renderCvHtml(updateDisplay(cv, { template: "classic" }));
+      expect(classic).toMatch(/cv-badge-verified" title="Confirmed by the institution via ORCID/);
+      expect(classic).not.toContain("Nagoya University");
+    });
+
+    it("a rewrite that KEEPS the org name still names it (nothing was written out)", () => {
+      const cv = rewritten({ displayTextOverride: "Prof., nagoya university (2022–)" });
+      // Case-insensitive: the owner's spelling of the same name is still the name.
+      expect(renderCvMarkdown(cv)).toMatch(
+        /^.*Prof\., nagoya university \(2022–\) \(verified by Nagoya University\)$/m,
+      );
+      const ats = renderCvHtml(updateDisplay(cv, { template: "ats" }));
+      expect(ats).toMatch(
+        /Prof\., nagoya university \(2022–\) <span class="cv-verified-text">\(verified by Nagoya University\)<\/span><\/li>/,
+      );
+    });
+  });
+
+  it("ATS: the ROR link wraps the institution in the LINE, never inside the verified clause", () => {
+    // A free-text override (the flat, `withRorLink` path) that keeps the org name,
+    // on an entry that carries a ROR id: the link must land on the line's own
+    // mention of the name — the clause is appended after the link is placed.
+    const cv = patchItem(makeCv({ ...ON, template: "ats" }), VERIFIED_POSITION_ID, (it) => ({
+      ...it,
+      displayTextOverride: "Prof., Nagoya University (2022–present)",
+      meta: { ...it.meta, rorId: "https://ror.org/04chrp450" },
+    }));
+    const html = renderCvHtml(cv);
+    expect(html).toMatch(
+      /Prof\., <a class="cv-ror-link" href="https:\/\/ror\.org\/04chrp450"[^>]*>Nagoya University<\/a> \(2022–present\) <span class="cv-verified-text">\(verified by Nagoya University\)<\/span><\/li>/,
+    );
+    expect(html).not.toMatch(/cv-verified-text">[^<]*<a /);
   });
 });
+
+describe.skipIf(!hasApa)(
+  "export parity — biosketch and grant CV lists carry the verified mark",
+  () => {
+    // Their position / education / award lists are built from the raw display text
+    // (not `prepareSections`), so they append the same suffix themselves.
+    it("NIH biosketch: on → the suffix once per verified entry; off → nothing", () => {
+      const md = renderCvBiosketch(makeCv(ON));
+      expect(md).toMatch(
+        /^- Assistant Professor, Nagoya University \(2022–present\) \(verified by Nagoya University\)$/m,
+      );
+      expect(md).toMatch(/^- Fellow, Royal Society \(2020\) \(verified via ORCID\)$/m);
+      expect(md).toMatch(/^- Consultant, Self-Entered Inc \(2020–present\)$/m);
+      expect(md.match(/verified/g)).toHaveLength(2);
+      expect(renderCvBiosketch(makeCv())).not.toContain("verified");
+    });
+
+    it("grant CV (ERC): on → the suffix once per verified entry; off → nothing", () => {
+      const md = renderGrantCv(makeCv(ON), "erc");
+      expect(md).toMatch(
+        /^- Assistant Professor, Nagoya University \(2022–present\) \(verified by Nagoya University\)$/m,
+      );
+      expect(md).toMatch(/^- Fellow, Royal Society \(2020\) \(verified via ORCID\)$/m);
+      expect(md.match(/verified/g)).toHaveLength(2);
+      expect(renderGrantCv(makeCv(), "erc")).not.toContain("verified");
+    });
+  },
+);
 
 describe.skipIf(!hasApa)("export parity — research areas (display.showResearchAreas)", () => {
   it("Markdown prints a labelled keywords line when on, nothing when off", () => {
@@ -256,6 +417,19 @@ describe.skipIf(!hasApa)("export parity — research areas (display.showResearch
       '<p class="cv-areas cv-areas-plain"><span class="cv-areas-label">Research areas:</span> Oncology · Pharmacology</p>',
     );
     expect(html).not.toContain('<ul class="cv-areas-list">');
+    // The label is a true inline run of that line: the ATS stylesheet undoes the
+    // shared chip-row label (block / uppercase / small / muted).
+    const rule = html.match(/\.cv-areas-plain \.cv-areas-label \{([^}]*)\}/)?.[1] ?? "";
+    for (const decl of [
+      "display: inline",
+      "margin: 0",
+      "font-size: 1em",
+      "text-transform: none",
+      "color: #000",
+      "font-weight: bold",
+    ]) {
+      expect(rule).toContain(decl);
+    }
     // Other templates keep the chips.
     expect(renderCvHtml(makeCv({ ...ON, template: "classic" }))).toContain(
       '<ul class="cv-areas-list">',
@@ -378,31 +552,56 @@ describe.skipIf(!hasApa)("export parity — DOCX honours the ATS template", () =
   });
 });
 
-describe.skipIf(!hasApa)("export parity — invariant: no percentage beside a verified mark", () => {
-  // Per-item marks only. A share ("3 of 4 verified", "75% verified") would be a
-  // completeness proxy, which no format may emit — even with every figure on.
-  const NEAR_PERCENT = /verified[^\n]{0,60}%|%[^\n]{0,60}verified|\d+ of \d+ [^\n]{0,20}verified/i;
-  const everything: Partial<DisplayChoices> = {
-    ...ON,
-    showCharts: true,
-    showAuthorshipTable: true,
-    authorshipRoles: ["first", "last"],
-    summaryBlockPosition: "header",
-  };
+describe.skipIf(!hasApa)(
+  "export parity — invariant: verified appears ONLY as per-item marks",
+  () => {
+    // Per-item marks only. A share ("3 of 4 verified", "75% verified") would be a
+    // completeness proxy, which no format may emit — even with every figure on.
+    // Discriminating form: EVERY occurrence of "verified" must sit inside one
+    // "(verified by …)" / "(verified via ORCID)" parenthetical, and the number of
+    // parentheticals must equal the number of verified visible entries — so a
+    // summary line, a count, or a stray mention anywhere fails.
+    const VERIFIED_VISIBLE = 2; // emp-v (named) + dist-v (unnamed)
+    const PARENTHETICAL = /\((?:verified by [^()\n]+|verified via ORCID)\)/g;
+    const everything: Partial<DisplayChoices> = {
+      ...ON,
+      showCharts: true,
+      showAuthorshipTable: true,
+      authorshipRoles: ["first", "last"],
+      summaryBlockPosition: "header",
+    };
 
-  it("holds for Markdown, LaTeX, JSON Résumé, DOCX, HTML and ATS", async () => {
-    const cv = makeCv(everything);
-    const outputs = [
-      renderCvMarkdown(cv),
-      renderCvLatex(cv),
-      JSON.stringify(buildJsonResume(cv), null, 2),
-      await docxText(cv),
-      htmlText(renderCvHtml(cv)),
-      htmlText(renderCvHtml(updateDisplay(cv, { template: "ats" }))),
-    ];
-    for (const out of outputs) {
-      expect(out).toMatch(/verified/i); // the marks are there…
-      expect(out).not.toMatch(NEAR_PERCENT); // …and never as a share
-    }
-  });
-});
+    it("holds for Markdown, LaTeX, JSON Résumé, DOCX, ATS, biosketch and grant CV", async () => {
+      const cv = makeCv(everything);
+      const outputs: Record<string, string> = {
+        markdown: renderCvMarkdown(cv),
+        latex: renderCvLatex(cv),
+        jsonresume: JSON.stringify(buildJsonResume(cv), null, 2),
+        docx: await docxText(cv),
+        ats: htmlText(renderCvHtml(updateDisplay(cv, { template: "ats" }))),
+        biosketch: renderCvBiosketch(cv),
+        grant: renderGrantCv(cv, "erc"),
+      };
+      for (const [format, out] of Object.entries(outputs)) {
+        const parentheticals = out.match(PARENTHETICAL) ?? [];
+        expect({ format, n: parentheticals.length }).toEqual({ format, n: VERIFIED_VISIBLE });
+        expect({ format, n: (out.match(/verified/gi) ?? []).length }).toEqual({
+          format,
+          n: VERIFIED_VISIBLE,
+        });
+      }
+    });
+
+    it("holds for the badge templates: one badge per verified entry and no other mention", () => {
+      const html = renderCvHtml(makeCv(everything));
+      expect(html.match(/class="cv-badge cv-badge-verified"/g)).toHaveLength(VERIFIED_VISIBLE);
+      // Strip the badges (label + title), then the rendered text must not say
+      // "verified" anywhere else — no summary line, no count.
+      const withoutBadges = html.replace(
+        /<span class="cv-badge cv-badge-verified"[^>]*>[^<]*<\/span>/g,
+        "",
+      );
+      expect(htmlText(withoutBadges)).not.toMatch(/verified/i);
+    });
+  },
+);

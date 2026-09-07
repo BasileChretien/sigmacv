@@ -1989,7 +1989,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeRetractedTitle: "이 성과는 철회되었습니다 (Crossref / Retraction Watch 기준)",
     badgeCitations: "인용 {n}회",
     badgeCitationsTitle: "원시 피인용 수 — 분야 정규화 안 됨 (분야·연도에 따라 다름)",
-    verifiedByText: "{org} 인증",
+    verifiedByText: "{org}에서 인증",
     verifiedGenericText: "ORCID를 통해 인증됨",
     badgeVerified: "인증됨",
     badgeVerifiedTitle:

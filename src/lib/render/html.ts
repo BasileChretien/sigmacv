@@ -20,7 +20,7 @@ import { itemProvenanceHtml } from "./itemProvenance";
 import { prepareSections } from "./prepare";
 import { cvSlug } from "./slug";
 import { getTemplate, resolveTheme } from "./templates";
-import { verifiedSuffix } from "./textMarks";
+import { verifiedAsserter, verifiedSuffix } from "./textMarks";
 import { workIndicators } from "./workIndicators";
 import type { RenderedSection } from "./templates/types";
 import type { RenderOpts, Renderer, RenderInput, RenderResult } from "./types";
@@ -30,9 +30,10 @@ export { cvSlug } from "./slug";
 /**
  * The opt-in "Verified" mark for an entry a TRUSTED ORGANISATION asserted on the
  * ORCID record (`meta.verified`; positions / education / distinctions). Names the
- * confirming party in the accessible title when ORCID supplied it
- * (`meta.verifiedBy`), else a generic "confirmed via ORCID" title. "" when the
- * toggle is off or the entry isn't verified. Shares the `.cv-badge` family, which
+ * confirming party in the accessible title when it may be named
+ * (`verifiedAsserter`: ORCID supplied it and the owner didn't write it out of the
+ * line), else a generic "confirmed via ORCID" title. "" when the toggle is off or
+ * the entry isn't verified. Shares the `.cv-badge` family, which
  * the parser-safe ATS template blanks — so on ATS the mark is emitted as plain
  * text instead (`verifiedPlainHtml`), never as a badge.
  */
@@ -40,7 +41,7 @@ function verifiedBadgeHtml(item: CvItem, display: DisplayChoices): string {
   if (!display.showVerifiedBadges || !item.meta.verified) return "";
   if (display.template === "ats") return "";
   const s = renderStrings(display.locale);
-  const org = item.meta.verifiedBy?.trim();
+  const org = verifiedAsserter(item);
   const title = org
     ? s.badgeVerifiedByTitle.replace("{org}", () => escapeHtml(org))
     : escapeHtml(s.badgeVerifiedTitle);
@@ -530,8 +531,6 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
           html = highlightSelf(html, item.selfNameVariants);
         }
         html += itemBadges(item, cv.display);
-        // ATS only: the verified clause as plain text (the badge family is hidden there).
-        html += verifiedPlainHtml(item, cv.display);
         // Opt-in CRediT "Roles: …" line under a citation that carries roles.
         if (cv.display.showCreditRoles) html += creditRolesHtml(item, cv.display.locale);
         // Opt-in open data / code line ("Data: GEO GSE… · Zenodo …") under the entry.
@@ -544,6 +543,10 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
         // render OPTION, never a display toggle, so exports can't carry it.
         if (opts?.readerMode && !isHistory) html += itemProvenanceHtml(item, cv.display.locale);
         if (isHistory) html = withRorLink(html, item, cv.display.locale);
+        // ATS only: the verified clause as plain text (the badge family is hidden
+        // there) — appended AFTER the ROR link, whose `lastIndexOf` lookup of the
+        // institution name would otherwise wrap the name INSIDE the clause.
+        html += verifiedPlainHtml(item, cv.display);
         // Opt-in FORRT/FReD replication evidence under the entry.
         if (cv.display.showReplications) html += replicationsHtml(item, cv.display.locale);
         // Public-page-only: a no-JS Cite/Abstract/Full-text affordance per work.

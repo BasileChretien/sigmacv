@@ -197,6 +197,87 @@ describe("fetchOrcidPositions", () => {
     expect(byOrg["Nameless-Client College"]?.verifiedBy).toBeUndefined();
   });
 
+  it("grants `verified` only to a member ORGANISATION's client — never a person, never the owner via a wizard", async () => {
+    const OWNER = "0000-0002-7483-2489";
+    const summary = (putCode: number, org: string, source: Record<string, unknown>) => ({
+      summaries: [
+        { "employment-summary": { "put-code": putCode, organization: { name: org }, source } },
+      ],
+    });
+    const sourced = {
+      "affiliation-group": [
+        // 1. A member organisation's client wrote it (Member API) → verified, named.
+        summary(500, "Org Client U", {
+          "source-client-id": { path: "APP-ORG" },
+          "source-name": { value: "Org Client University" },
+        }),
+        // 2. A trusted INDIVIDUAL (a delegate / assistant) added it from the ORCID
+        //    UI: `source-orcid` is another person's iD and `source-name` is that
+        //    person's NAME. Not an organisation → not verified, and the third
+        //    party's name must never surface as a verifier.
+        summary(501, "Delegate-Entered U", {
+          "source-orcid": { path: "0000-0001-2345-6789" },
+          "source-name": { value: "Jane Doe" },
+        }),
+        // 3. The owner typed it through a member's search-and-link wizard: the
+        //    client relayed the OWNER's own assertion (`assertion-origin-orcid`
+        //    = the owner) → self-asserted, not verified.
+        summary(502, "Wizard U", {
+          "source-client-id": { path: "APP-WIZ" },
+          "source-name": { value: "Wizard University" },
+          "assertion-origin-orcid": { path: OWNER },
+          "assertion-origin-name": { value: "Basile Chrétien" },
+        }),
+        // 3b. A delegate used the wizard on the owner's record: the origin is
+        //     still a PERSON → not verified either.
+        summary(503, "Wizard-Delegate U", {
+          "source-client-id": { path: "APP-WIZ" },
+          "source-name": { value: "Wizard University" },
+          "assertion-origin-orcid": { path: "0000-0001-2345-6789" },
+        }),
+        // 4. A vendor system (CRIS) wrote it ON BEHALF OF a member organisation:
+        //    the organisation is the assertion origin → verified BY that
+        //    organisation, not by the vendor.
+        summary(504, "Vendor-Relayed U", {
+          "source-client-id": { path: "APP-VENDOR" },
+          "source-name": { value: "Vendor CRIS" },
+          "assertion-origin-client-id": { path: "APP-REAL" },
+          "assertion-origin-name": { value: "Real University" },
+        }),
+        // 4b. Same, but ORCID gives no origin name → fall back to the writer's name.
+        summary(505, "Vendor-Unnamed U", {
+          "source-client-id": { path: "APP-VENDOR" },
+          "source-name": { value: "Vendor CRIS" },
+          "assertion-origin-client-id": { path: "APP-REAL" },
+        }),
+      ],
+    };
+    vi.stubGlobal("fetch", routedFetch({ emp: res(sourced) }));
+    const { fetchOrcidPositions } = await freshClient();
+    const byOrg = Object.fromEntries(
+      (await fetchOrcidPositions(OWNER)).map((p) => [p.organization, p]),
+    );
+    expect(byOrg["Org Client U"]).toMatchObject({
+      verified: true,
+      verifiedBy: "Org Client University",
+    });
+
+    expect(byOrg["Delegate-Entered U"]?.verified).toBeUndefined();
+    expect(byOrg["Delegate-Entered U"]?.verifiedBy).toBeUndefined();
+    expect(JSON.stringify(byOrg["Delegate-Entered U"])).not.toContain("Jane Doe");
+
+    expect(byOrg["Wizard U"]?.verified).toBeUndefined();
+    expect(byOrg["Wizard U"]?.verifiedBy).toBeUndefined();
+    expect(byOrg["Wizard-Delegate U"]?.verified).toBeUndefined();
+    expect(byOrg["Wizard-Delegate U"]?.verifiedBy).toBeUndefined();
+
+    expect(byOrg["Vendor-Relayed U"]).toMatchObject({
+      verified: true,
+      verifiedBy: "Real University",
+    });
+    expect(byOrg["Vendor-Unnamed U"]).toMatchObject({ verified: true, verifiedBy: "Vendor CRIS" });
+  });
+
   it("clips oversized free-text fields to the canonical 500-char bound (sync must not abort)", async () => {
     // ORCID bounds none of these; the canonical schema caps each at 500 and its
     // parse runs BEFORE persistence — an unclipped value would abort the sync.

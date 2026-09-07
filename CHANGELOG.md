@@ -29,9 +29,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and keeps the software details line with the repository URL spelled out. The
   **DOCX** export now honours the ATS template too: one labelled contact line per
   field ("Email: …", "Phone: …", localised), and never the charts or the
-  authorship table, whatever the summary toggles say. Per-item marks only — no
-  export prints an "N of M verified" share or a percentage beside "verified"
-  (guarded by a test).
+  authorship table, whatever the summary toggles say. The NIH biosketch and the
+  ERC / MSCA / NSF / JSPS grant CVs carry the verified clause on their position,
+  education and award lines too. Per-item marks only — no export prints an
+  "N of M verified" share or a percentage beside "verified" (guarded by a test
+  that requires every "verified" to sit inside one per-item parenthetical). When
+  the owner has rewritten a line or renamed the institution and their text no
+  longer names the asserting organisation, the clause (and the badge tooltip)
+  falls back to "verified via ORCID" rather than re-revealing the employer they
+  wrote out.
 - **"Reader view" for assessors on the public living page (owner opt-in).** A
   committee member opening a public SigmaCV page can now switch to a view that
   shows every trust and context signal the owner's data already carries, without
@@ -359,6 +365,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **"Verified" marks are granted only to entries a member ORGANISATION asserted
+  on the ORCID record.** The ORCID reader treated any `source` other than the
+  record holder's own iD as an organisation, so an affiliation added by a trusted
+  individual (a delegate or assistant) was marked verified — with that person's
+  name as the verifier — and one the owner typed through a member's
+  search-and-link wizard was credited to the member. Verification now requires
+  a member client (`source-client-id`) and no person as the assertion origin
+  (`assertion-origin-orcid`); a vendor client writing on an organisation's
+  behalf is credited to that organisation (`assertion-origin-name`). Entries
+  previously mis-marked lose the mark on the next re-sync.
 - **Reader view:** the per-entry provenance mark ("OpenAlex", "Crossref"…) no longer slides left over the indicator pills — it inherited the bibliography's hanging indent. A zero FWCI is also no longer shown on works from the current or previous year, where it is citation lag rather than a result.
 - **The Sidebar template's public page collapsed to one narrow column.** The
   living page injected its view-filter bar (and the reader-view link/banner)
