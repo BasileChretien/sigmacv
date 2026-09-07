@@ -859,14 +859,19 @@ describe("software section — rendering", () => {
     expect(html).toContain(`https://archive.softwareheritage.org/swh:1:snp:${"a".repeat(40)}`);
   });
 
-  it("hides the details line on the parser-safe ATS template", () => {
+  it("keeps the details line on the parser-safe ATS template, with the repository URL spelled out", () => {
     const html = renderCvHtml(
       renderable(
         [swItem("s1", { meta: { type: "Software", repositoryUrl: "https://github.com/u/r" } })],
         { template: "ats" },
       ),
     );
-    expect(html).toContain(".cv-software-details { display: none !important; }");
+    // Not in the ATS strip rule (a repository is an identifier a parser should keep)…
+    expect(html).not.toMatch(/\.cv-software-details[^{}]*\{[^{}]*display:\s*none/);
+    // …and the URL is the visible link text, since a parser can't read an href.
+    expect(html).toMatch(
+      /Source code: <a class="cv-software-repo" href="https:\/\/github\.com\/u\/r"[^>]*>https:\/\/github\.com\/u\/r<\/a>/,
+    );
   });
 
   it("emits SoftwareSourceCode nodes for the Software section in the public JSON-LD", () => {

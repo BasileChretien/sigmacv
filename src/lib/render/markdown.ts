@@ -8,6 +8,7 @@ import { cvSlug } from "./html";
 import { isSummaryBlockHidden, metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
 import { itemAnchorId } from "./templates/shared";
+import { researchAreasLine } from "./textMarks";
 import type { Renderer, RenderInput, RenderOpts, RenderResult } from "./types";
 
 function yamlString(s: string): string {
@@ -83,6 +84,12 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
     ? `${head.contact.map(escapeMarkdown).join(" · ")}\n\n`
     : "";
   const summaryBlock = head.summary ? `${escapeMarkdown(head.summary)}\n\n` : "";
+  // Opt-in research areas: one bold-labelled line after the summary (the text
+  // form of the HTML chip row); "" when off.
+  const areas = researchAreasLine(cv);
+  const areasBlock = areas
+    ? `**${escapeMarkdown(areas.label)}:** ${areas.fields.map(escapeMarkdown).join(" · ")}\n\n`
+    : "";
   // Opt-in career context: a labelled list right after the summary (person →
   // their context → statistics). Plain lines, escaped; "" when off.
   const cc = head.careerContext;
@@ -99,7 +106,7 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
     cv.display.showDocQr && opts?.publicPageUrl && cv.display.template !== "ats"
       ? `\n\n---\n\n${escapeMarkdown(renderStrings(cv.display.locale).liveVersionLabel)}: <${opts.publicPageUrl}>\n`
       : "";
-  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${careerBlock}${metricsBlock}${body}\n${live}`;
+  return `${frontmatter}\n\n# ${heading}\n\n${headlineBlock}${contactBlock}${summaryBlock}${areasBlock}${careerBlock}${metricsBlock}${body}\n${live}`;
 }
 
 export const markdownRenderer: Renderer = {

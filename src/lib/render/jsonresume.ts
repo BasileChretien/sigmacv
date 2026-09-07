@@ -3,11 +3,13 @@ import {
   type CanonicalCv,
   type CvItem,
   type CvSection,
+  type DisplayChoices,
 } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import type { CslItem } from "@/types/csl";
 import { stripInlineMarkup } from "@/lib/text/markup";
 import { cvSlug } from "./slug";
+import { researchAreasLine, verifiedSuffix } from "./textMarks";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
 /**
@@ -56,21 +58,25 @@ function doiUrl(csl: CslItem): string | undefined {
 }
 
 /** A non-citation entry's plain text, or a citation's title — what to list when
- *  a section maps to a flat string-only JSON Résumé field (work/education/…). */
-function entryText(item: CvItem): string {
+ *  a section maps to a flat string-only JSON Résumé field (work/education/…).
+ *  Carries the same plain "(verified by <org>)" suffix as the other text exports
+ *  when the owner shows verified marks (`display.showVerifiedBadges`). */
+function entryText(item: CvItem, display: DisplayChoices): string {
   // A citation title may carry kept inline tags (<i>/<sub>); JSON Résumé is plain
   // data, so flatten to text (non-citation displayText has no markup → unchanged).
-  return stripInlineMarkup(itemDisplayText(item) ?? item.csl?.title ?? "");
+  const text = stripInlineMarkup(itemDisplayText(item) ?? item.csl?.title ?? "");
+  return text ? text + verifiedSuffix(item, display) : text;
 }
 
 function sectionByType(cv: CanonicalCv, type: CvSection["type"]): CvSection | undefined {
   return visibleSections(cv).find((s) => s.type === type);
 }
 
-function flatItems(section: CvSection | undefined): ResumeWorkItem[] {
+function flatItems(cv: CanonicalCv, type: CvSection["type"]): ResumeWorkItem[] {
+  const section = sectionByType(cv, type);
   if (!section) return [];
   return visibleItems(section)
-    .map((it) => entryText(it))
+    .map((it) => entryText(it, cv.display))
     .filter((name) => name.length > 0)
     .map((name) => ({ name }));
 }
@@ -126,23 +132,28 @@ export function buildJsonResume(cv: CanonicalCv): Record<string, unknown> {
 
   const resume: Record<string, unknown> = { basics };
 
-  const work = flatItems(sectionByType(cv, "positions"));
+  const work = flatItems(cv, "positions");
   if (work.length) resume.work = work;
 
-  const education = flatItems(sectionByType(cv, "education"));
+  const education = flatItems(cv, "education");
   if (education.length) resume.education = education;
 
   const publications = publicationsOf(cv);
   if (publications.length) resume.publications = publications;
 
-  const awards = flatItems(sectionByType(cv, "awards"));
+  const awards = flatItems(cv, "awards");
   if (awards.length) resume.awards = awards;
 
-  const skills = flatItems(sectionByType(cv, "skills"));
+  const skills = flatItems(cv, "skills");
   if (skills.length) resume.skills = skills;
 
-  const languages = flatItems(sectionByType(cv, "languages"));
+  const languages = flatItems(cv, "languages");
   if (languages.length) resume.languages = languages;
+
+  // Opt-in research areas → the schema's `interests` (name + keywords): one
+  // entry carrying the localised label and the field names, most frequent first.
+  const areas = researchAreasLine(cv);
+  if (areas) resume.interests = [{ name: areas.label, keywords: areas.fields }];
 
   return resume;
 }

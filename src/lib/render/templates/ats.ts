@@ -30,9 +30,16 @@ function atsCss(_theme: TemplateTheme): string {
   body { font-family: Arial, Helvetica, "Liberation Sans", sans-serif; color: #000; }
   .cv { max-width: 720px; padding: 36px 44px; }
 
-  /* Strip everything a résumé parser can't read — independent of display toggles. */
-  .cv-photo, .cv-charts, .cv-research, .cv-badge, .cv-badges, .cv-authorship, .cv-authorship-note, .cv-public-evaluations, .cv-software-details { display: none !important; }
+  /* Strip everything a résumé parser can't read — independent of display toggles.
+     (The verified mark and a software entry's repository are NOT stripped: they are
+     re-emitted as plain text on this template — .cv-verified-text and a spelled-out
+     "Source code: https://…" line — so the assertion and the identifier survive.) */
+  .cv-photo, .cv-charts, .cv-research, .cv-badge, .cv-badges, .cv-authorship, .cv-authorship-note, .cv-public-evaluations { display: none !important; }
   .cv-headmain { display: block; }
+  .cv-verified-text { color: #000; font-weight: normal; }
+  .cv-software-details, .cv-software-details a { color: #000; font-size: 1em; }
+  .cv-areas-plain { margin: 0.5rem 0 0; color: #000; }
+  .cv-areas-plain .cv-areas-label { font-weight: bold; }
 
   /* Header: plain black, no border band, no accent. */
   header.cv-header { margin-bottom: 1rem; border: 0; }

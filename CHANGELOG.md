@@ -11,6 +11,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Freeze in this shape + stateless request links.** The Versions panel can freeze a version in the layout of any of the 59 CV models (applied to a copy — the live CV is untouched) and as one of two freeze-time presets: the assessor's **reader view**, or a new **hiring-panel** preset (contact details on, academic evidence marks and metrics off). An institution, funder or recruiter can ask for exactly that with a plain link to the editor (`/cv?freeze=<model>&preset=reader|hiring&label=…&by=YYYY-MM-DD`, documented in the FAQ): the editor shows what the link asks for and offers the one-click freeze. No account, no server record of who asked — the query is parsed in the researcher's browser only and the researcher sends the frozen link. A request can never switch on metrics, career context or supervisee names; a hiring-panel version also closes the reader view on itself, and a model freeze starts from the model's own list settings. New `institutional-assessment` CV model (HCERES / REF-style dossier).
 - **Assessment-grade frozen versions.** A frozen version now stores the provenance ledger computed on the owner's document _before_ the frozen copy is stripped of its attribution signals (a ledger derived afterwards under-reported DOI-claimed and name-matched entries and could never be recomputed), plus a SHA-256 content hash of the frozen document's public projection, shown in the frozen page's banner and a `sigmacv:content-hash` `<meta>`, so a reader can record exactly which version they assessed and two readers can check they hold the same one. The owner can freeze a version **as the assessor's reader view** (a one-time choice at freeze time, fixed for that version, made with the same explicit inventory of toggles as the living-page opt-in): the reader preset is materialised into the frozen display, so the frozen page, its ledger and its hash all describe the reader view (evidence marks on, retracted works visible). On any reader view, live or frozen, the ledger's "retracted works shown" line now follows the view instead of the owner's hidden-retracted setting. A frozen page also honours `?view=reader` when its frozen display allowed the reader view, exactly like the living page.
+- **Trust marks and identifiers now survive the file boundary (export parity).**
+  What the HTML/PDF showed as badges, chips and links reached the DOCX, Markdown,
+  LaTeX and JSON Résumé exports — the formats employers and committees actually
+  receive — either not at all or with the substance stripped. Under the SAME
+  display toggles (nothing appears in a file that the toggle hides on screen),
+  every export now carries, per item: the institution-verified mark as a plain
+  **"(verified by <org>)"** / "(verified via ORCID)" clause after a position,
+  degree or award (Design → "Mark positions & education confirmed by the
+  institution via ORCID"); the aggregated **Research areas** as one labelled
+  keywords line (Design → "Show research areas (top fields)"; `interests` in JSON
+  Résumé); and a research-software entry's **source-code repository URL**, version
+  and licence (plus the Software Heritage archive link when "Show Software
+  Heritage archival status on software items" is on). The **ATS** template — whose
+  stylesheet blanks every badge for parser safety — prints the verified clause as
+  plain text on the entry, the research areas as one plain line instead of chips,
+  and keeps the software details line with the repository URL spelled out. The
+  **DOCX** export now honours the ATS template too: one labelled contact line per
+  field ("Email: …", "Phone: …", localised), and never the charts or the
+  authorship table, whatever the summary toggles say. Per-item marks only — no
+  export prints an "N of M verified" share or a percentage beside "verified"
+  (guarded by a test).
 - **"Reader view" for assessors on the public living page (owner opt-in).** A
   committee member opening a public SigmaCV page can now switch to a view that
   shows every trust and context signal the owner's data already carries, without
