@@ -70,6 +70,10 @@ export interface UiStrings {
   showDataLinks: string;
   /** Editor toggle: show FORRT/FReD replication evidence under each publication. */
   showReplications: string;
+  /** Editor toggle label: show Software Heritage archival status on software items. */
+  showArchivalStatus: string;
+  /** Editor toggle label: show Sciety public evaluations on preprints. */
+  showPublicEvaluations: string;
   showProvenance: string;
   peerReviewedOnly: string;
   peerReviewedOnlyTitle: string;
@@ -255,6 +259,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "Show citation counts on each publication",
     showVerifiedBadges: "Mark positions & education confirmed by the institution via ORCID",
     showReplications: "Show replication evidence on publications (FORRT/FReD)",
+    showArchivalStatus: "Show Software Heritage archival status on software items",
+    showPublicEvaluations: "Show public evaluations on preprints (Sciety)",
     showProvenance: "Data-provenance footer",
     peerReviewedOnly: "Hide preprints & non-peer-reviewed work",
     peerReviewedOnlyTitle:
@@ -423,6 +429,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "在每篇论文上显示被引次数",
     showVerifiedBadges: "标记由机构通过 ORCID 确认的职位与教育经历",
     showReplications: "在论文上显示复现证据（FORRT/FReD）",
+    showArchivalStatus: "在软件条目上显示 Software Heritage 存档状态",
+    showPublicEvaluations: "在预印本上显示公开评审信息（Sciety）",
     showProvenance: "数据来源页脚",
     peerReviewedOnly: "隐藏预印本及非同行评审成果",
     peerReviewedOnlyTitle:
@@ -589,6 +597,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showVerifiedBadges:
       "Marcar los puestos y estudios confirmados por la institución mediante ORCID",
     showReplications: "Mostrar evidencia de replicación en las publicaciones (FORRT/FReD)",
+    showArchivalStatus:
+      "Mostrar el estado de archivo de Software Heritage en los elementos de software",
+    showPublicEvaluations: "Mostrar evaluaciones públicas en los preprints (Sciety)",
     showProvenance: "Pie de página con la procedencia de los datos",
     peerReviewedOnly: "Ocultar preprints y trabajos no revisados por pares",
     peerReviewedOnlyTitle:
@@ -759,6 +770,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "Afficher le nombre de citations sur chaque publication",
     showVerifiedBadges: "Marquer les postes et formations confirmés par l’établissement via ORCID",
     showReplications: "Afficher les preuves de réplication sur les publications (FORRT/FReD)",
+    showArchivalStatus:
+      "Afficher le statut d'archivage Software Heritage sur les éléments logiciels",
+    showPublicEvaluations: "Afficher les évaluations publiques sur les prépublications (Sciety)",
     showProvenance: "Pied de page sur la provenance des données",
     peerReviewedOnly: "Masquer les pré-publications et les travaux non évalués par les pairs",
     peerReviewedOnlyTitle:
@@ -931,6 +945,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showVerifiedBadges:
       "Positionen & Ausbildung markieren, die die Institution über ORCID bestätigt hat",
     showReplications: "Replikationsnachweise bei Publikationen anzeigen (FORRT/FReD)",
+    showArchivalStatus: "Software-Heritage-Archivierungsstatus bei Software-Einträgen anzeigen",
+    showPublicEvaluations: "Öffentliche Begutachtungen bei Preprints anzeigen (Sciety)",
     showProvenance: "Fußzeile zur Datenherkunft",
     peerReviewedOnly: "Preprints & nicht peer-reviewte Arbeiten ausblenden",
     peerReviewedOnlyTitle:
@@ -1101,6 +1117,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "各論文に被引用数を表示",
     showVerifiedBadges: "機関が ORCID を通じて確認した職歴・学歴に認証マークを表示",
     showReplications: "論文に追試（再現性）の証拠を表示（FORRT/FReD）",
+    showArchivalStatus: "ソフトウェア項目に Software Heritage のアーカイブ状態を表示",
+    showPublicEvaluations: "プレプリントに公開レビュー情報を表示（Sciety）",
     showProvenance: "データ出典フッター",
     peerReviewedOnly: "プレプリント・非査読の業績を非表示",
     peerReviewedOnlyTitle:
@@ -1269,6 +1287,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "Mostrar o número de citações em cada publicação",
     showVerifiedBadges: "Marcar cargos e formação confirmados pela instituição via ORCID",
     showReplications: "Mostrar evidências de replicação nas publicações (FORRT/FReD)",
+    showArchivalStatus:
+      "Mostrar o status de arquivamento do Software Heritage em itens de software",
+    showPublicEvaluations: "Mostrar avaliações públicas em preprints (Sciety)",
     showProvenance: "Rodapé de proveniência dos dados",
     peerReviewedOnly: "Ocultar pré-prints e trabalhos não revisados por pares",
     peerReviewedOnlyTitle:
@@ -1439,6 +1460,9 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "Mostra il numero di citazioni per ogni pubblicazione",
     showVerifiedBadges: "Segnala posizioni e formazione confermate dall’istituzione tramite ORCID",
     showReplications: "Mostra le evidenze di replicazione sulle pubblicazioni (FORRT/FReD)",
+    showArchivalStatus:
+      "Mostra lo stato di archiviazione Software Heritage sugli elementi software",
+    showPublicEvaluations: "Mostra le valutazioni pubbliche sui preprint (Sciety)",
     showProvenance: "Piè di pagina sulla provenienza dei dati",
     peerReviewedOnly: "Nascondi i preprint e i lavori non sottoposti a revisione paritaria",
     peerReviewedOnlyTitle:
@@ -1608,6 +1632,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "각 논문에 피인용 수 표시",
     showVerifiedBadges: "기관이 ORCID를 통해 확인한 경력·학력에 인증 표시",
     showReplications: "논문에 재현(FORRT/FReD) 증거 표시",
+    showArchivalStatus: "소프트웨어 항목에 Software Heritage 보관 상태 표시",
+    showPublicEvaluations: "프리프린트에 공개 평가 표시 (Sciety)",
     showProvenance: "데이터 출처 푸터",
     peerReviewedOnly: "프리프린트 및 비동료 심사 자료 숨기기",
     peerReviewedOnlyTitle:
@@ -1776,6 +1802,8 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCitationCounts: "Показывать число цитирований у каждой публикации",
     showVerifiedBadges: "Отмечать должности и образование, подтверждённые организацией через ORCID",
     showReplications: "Показывать данные о репликации у публикаций (FORRT/FReD)",
+    showArchivalStatus: "Показывать статус архивации Software Heritage для программных элементов",
+    showPublicEvaluations: "Показывать публичные оценки препринтов (Sciety)",
     showProvenance: "Нижний колонтитул с источниками данных",
     peerReviewedOnly: "Скрыть препринты и нерецензируемые работы",
     peerReviewedOnlyTitle:

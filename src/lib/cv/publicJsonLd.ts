@@ -298,6 +298,16 @@ function scholarlyEntities(cv: CanonicalCv): Record<string, unknown>[] {
       const basedOn = dataLinkEntities(item);
       if (basedOn.length > 0) node.isBasedOn = basedOn;
 
+      // Software Heritage persistent identifier (archival preservation signal) —
+      // added alongside the DOI identifier when both exist, never replacing it.
+      if (schemaType === "SoftwareSourceCode" && item.meta.swhid) {
+        const swhUrl = `https://archive.softwareheritage.org/${item.meta.swhid}`;
+        node.identifier = node.identifier
+          ? [node.identifier as string, item.meta.swhid]
+          : item.meta.swhid;
+        node.sameAs = node.sameAs ? [...(node.sameAs as string[]), swhUrl] : [swhUrl];
+      }
+
       out.push(node);
     }
   }
