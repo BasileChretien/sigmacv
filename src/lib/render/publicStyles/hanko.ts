@@ -300,7 +300,7 @@ export const hankoTemplate: CvTemplate = {
       `<div class="hk-tate" aria-hidden="true">履歴書</div>` +
       headerHtml(cv, { photo: true }) +
       renderedSections +
-      `${provenanceFooter(cv)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}${credit}` +
+      `${provenanceFooter(cv, opts)}${licenseFooter(cv)}${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}${credit}` +
       `</div>` +
       // The one hash-pinned script the public-page CSP allows: a bare IntersectionObserver
       // that replays each kanji's writing once, on enter (see publicScripts.ts).

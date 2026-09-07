@@ -1055,6 +1055,18 @@ export default function StyleControls({
           <span>{u.showOutputLedger}</span>
         </label>
 
+        <label className="field-inline" title={u.showCollaborationNote}>
+          <input
+            type="checkbox"
+            checked={cv.display.showCollaboration}
+            onChange={(e) => onChange(updateDisplay(cv, { showCollaboration: e.target.checked }))}
+          />
+          <span>{u.showCollaboration}</span>
+        </label>
+        {cv.display.showCollaboration ? (
+          <p className="muted metric-preset-note field-note">{u.showCollaborationNote}</p>
+        ) : null}
+
         <label className="field-inline">
           <input
             type="checkbox"

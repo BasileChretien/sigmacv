@@ -6,6 +6,7 @@ import { pingIndexNow } from "@/lib/cv/indexNow";
 import { invalidatePublicPage } from "@/lib/cv/publicPageCache";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
+import { provenanceLedger, type ProvenanceLedger } from "@/lib/cv/provenanceLedger";
 import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks";
 import { logger } from "@/lib/log";
 import { getEnv } from "@/lib/env";
@@ -696,6 +697,10 @@ export async function getPublicCvForPage(
   indexable: boolean;
   coauthorCvs: CoauthorCvLink[];
   recentlyAdded: RecentAddition[];
+  /** The provenance ledger of the STORED document (computed before projection —
+   *  the projection strips the attribution/review signals it counts). Rendered
+   *  by the footer only when the owner opted in (`display.showProvenance`). */
+  provenanceLedger: ProvenanceLedger;
 } | null> {
   const row = await prisma.cv.findUnique({ where: { publicSlug: slug } });
   if (!row || !row.published) return null;
@@ -707,7 +712,13 @@ export async function getPublicCvForPage(
   // "What's new" strip. From the persisted last-sync report, cross-checked against
   // the projected (visible) CV so a since-hidden work is never advertised.
   const recentlyAdded = publicRecentAdditions(safeParseSyncReport(row.lastSyncReport), cv);
-  return { cv, indexable: row.publicIndexable, coauthorCvs, recentlyAdded };
+  return {
+    cv,
+    indexable: row.publicIndexable,
+    coauthorCvs,
+    recentlyAdded,
+    provenanceLedger: provenanceLedger(parsed.data),
+  };
 }
 
 /**

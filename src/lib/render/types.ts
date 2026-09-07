@@ -1,3 +1,4 @@
+import type { ProvenanceLedger } from "@/lib/cv/provenanceLedger";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 
 /**
@@ -85,6 +86,17 @@ export type RenderOpts = PublicExtrasOpts & {
    * Inline structural shape so the render layer takes no dependency on `lib/cv`.
    */
   recentlyAdded?: readonly { itemId: string; title: string; sectionType: string }[];
+  /**
+   * The document's provenance ledger (`cv/provenanceLedger.ts`), PRE-COMPUTED by
+   * a caller that holds the owner's stored document. Only the `/p/[slug]` route
+   * needs to set it: the public page renders the public PROJECTION, which strips
+   * the attribution + review signals (`matchBasis`, `claimed`, `reviewFlag`,
+   * `reviewedAt`) the ledger counts, so a ledger derived after projection would
+   * misreport those lines. Every other caller (editor preview, exports) renders
+   * the stored document and leaves this unset — the footer computes it itself.
+   * Rendered only when the owner opted in (`display.showProvenance`).
+   */
+  provenanceLedger?: ProvenanceLedger;
 };
 
 export interface RenderInput {
