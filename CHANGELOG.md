@@ -74,11 +74,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   preserves that curation across the move too. DOI de-duplication (Zenodo
   concept↔version siblings vs the OpenAlex copy) works across both sections.
 
-### Fixed
-
-- **LaTeX export: a URL written inside parentheses** — "title (https://…)" —
-  no longer swallows the closing bracket into `\url{}`.
-
 - **"Verified" mark on institution-confirmed positions, education and honours.**
   Entries that a trusted organisation asserted on your ORCID record via the
   Member API (rather than you typing them in) were already flagged in the editor,
@@ -295,7 +290,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **stripped from published CVs**: when you reviewed each work is private curation
   behaviour, not something a public page or machine download should carry.
 
+### Changed
+
+- **Every displayed metric now carries a reader-facing caveat.** h-index,
+  i10-index, works count and citation total used to render as bare numbers,
+  while the "not field-normalised — DORA/CoARA discourage this" caution appeared
+  only in the owner's metric picker. Each now shows a short, neutral context line
+  next to its value in the HTML/PDF and public page (e.g. h-index: "not
+  field-normalised; sensitive to career length and field"), in all ten languages,
+  matching what the field-normalised measures already did.
+- Routine dependency refresh: Next.js, Prisma, Zod, Vite/Vitest tooling and types
+  moved to their current releases.
+- **Corrected two false claims in the public documentation.** The README, the
+  contributor guides and the AI-facing `/llms-full.txt` all described SigmaCV as
+  offering an optional **Sigma-Score** metric. No such metric exists — the name is
+  a working title and the index it alludes to is a design concept, not something
+  the tool computes. `/llms-full.txt` additionally listed **FWCI** among the
+  field-normalized indicators SigmaCV prefers, when every FWCI-derived aggregate is
+  deliberately withheld: its per-work baseline can only be recovered for works that
+  already have citations, so the average silently drops uncited work and reads too
+  high. Both files now state what is actually offered (the NIH iCite RCR) and why
+  the FWCI aggregates are suppressed. This matters most for `/llms-full.txt`, which
+  exists so AI assistants describe the tool accurately.
+- **Published JSON Schema (`/schema/cv/v2.json`) gained the optional `reviewedAt`
+  property** on CV items (an ISO-8601 instant; a malformed value degrades to
+  "unreviewed" rather than failing the whole document). The schema was also
+  regenerated: a number-or-string
+  array is now expressed as `"type": ["number", "string"]` rather than an equivalent
+  `anyOf`. No field changed its requiredness: Zod 4.5 would have started marking the
+  advisory duplicate hint `meta.duplicateOf.tier` required, which the parser does not,
+  so the canonical schema now states that fallback explicitly and a test guards the
+  published schema against ever requiring a field the parser fills in itself.
+
 ### Fixed
+
+- **LaTeX export: a URL written inside parentheses** — "title (https://…)" —
+  no longer swallows the closing bracket into `\url{}`.
 
 - The preferred **name on your publications** was silently dropped on every
   re-sync (it was never carried across a rebuild). It now survives like the other
@@ -366,38 +396,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   internal id; and the DBLP / Wikidata clients validate an ORCID (shape and
   check digit) before it is placed in a SPARQL query, rather than trusting the
   tolerant normaliser's pass-through of unrecognised input.
-
-### Changed
-
-- **Every displayed metric now carries a reader-facing caveat.** h-index,
-  i10-index, works count and citation total used to render as bare numbers,
-  while the "not field-normalised — DORA/CoARA discourage this" caution appeared
-  only in the owner's metric picker. Each now shows a short, neutral context line
-  next to its value in the HTML/PDF and public page (e.g. h-index: "not
-  field-normalised; sensitive to career length and field"), in all ten languages,
-  matching what the field-normalised measures already did.
-- Routine dependency refresh: Next.js, Prisma, Zod, Vite/Vitest tooling and types
-  moved to their current releases.
-- **Corrected two false claims in the public documentation.** The README, the
-  contributor guides and the AI-facing `/llms-full.txt` all described SigmaCV as
-  offering an optional **Sigma-Score** metric. No such metric exists — the name is
-  a working title and the index it alludes to is a design concept, not something
-  the tool computes. `/llms-full.txt` additionally listed **FWCI** among the
-  field-normalized indicators SigmaCV prefers, when every FWCI-derived aggregate is
-  deliberately withheld: its per-work baseline can only be recovered for works that
-  already have citations, so the average silently drops uncited work and reads too
-  high. Both files now state what is actually offered (the NIH iCite RCR) and why
-  the FWCI aggregates are suppressed. This matters most for `/llms-full.txt`, which
-  exists so AI assistants describe the tool accurately.
-- **Published JSON Schema (`/schema/cv/v2.json`) gained the optional `reviewedAt`
-  property** on CV items (an ISO-8601 instant; a malformed value degrades to
-  "unreviewed" rather than failing the whole document). The schema was also
-  regenerated: a number-or-string
-  array is now expressed as `"type": ["number", "string"]` rather than an equivalent
-  `anyOf`. No field changed its requiredness: Zod 4.5 would have started marking the
-  advisory duplicate hint `meta.duplicateOf.tier` required, which the parser does not,
-  so the canonical schema now states that fallback explicitly and a test guards the
-  published schema against ever requiring a field the parser fills in itself.
 
 ## [0.3.0] - 2026-08-20
 

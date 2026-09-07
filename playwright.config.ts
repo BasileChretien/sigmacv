@@ -2,7 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 
 // E2E runs against the dev server with a dedicated test env (see .env.e2e.example).
-dotenv.config({ path: ".env.e2e" });
+// `quiet` suppresses dotenv's "injected env … // tip: …" promo line on every run.
+dotenv.config({ path: ".env.e2e", quiet: true });
 
 const BASE_URL = process.env.AUTH_URL ?? "http://localhost:3100";
 
