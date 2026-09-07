@@ -67,6 +67,9 @@ const SOURCE_META: Record<string, SourceMeta> = {
   "crossref.grants": { label: "Crossref", group: "identifier" },
   // DOI-bearing open peer reviews the publisher registered against the iD.
   "crossref.reviews": { label: "Crossref", group: "identifier" },
+  // Replication evidence (FReD/OSF): both DOIs are identifier data, never a name
+  // match, so a hit is auto-included like the other identifier-group sources.
+  forrt: { label: "FORRT", group: "identifier" },
   clinicaltrials: { label: "ClinicalTrials.gov", group: "review", itemSource: "clinicaltrials" },
   ctis: { label: "EU CTIS", group: "review", itemSource: "ctis" },
   ictrp: { label: "WHO ICTRP", group: "review", itemSource: "ictrp" },

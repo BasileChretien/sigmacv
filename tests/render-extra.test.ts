@@ -504,6 +504,76 @@ describe.skipIf(!hasApa)("renderer wrappers + metrics + non-citation HTML", () =
     });
   });
 
+  describe("FORRT/FReD replication evidence", () => {
+    function cvWithReplications(
+      meta: Partial<CanonicalCv["sections"][number]["items"][number]["meta"]>,
+      display: Partial<CanonicalCv["display"]> = {},
+    ): CanonicalCv {
+      const cv = makeCv();
+      return {
+        ...cv,
+        display: { ...cv.display, showReplications: true, ...display },
+        sections: cv.sections.map((s, si) => ({
+          ...s,
+          items: s.items.map((it, ii) =>
+            si === 0 && ii === 0 ? { ...it, meta: { ...it.meta, ...meta } } : it,
+          ),
+        })),
+      };
+    }
+
+    it("renders a 'Replicated' line with an outcome breakdown and DOI links", () => {
+      const html = renderCvHtml(
+        cvWithReplications({
+          replications: [
+            { doi: "10.1/rep-a", outcome: "success", ref: "Replicator A 2021" },
+            { doi: "10.1/rep-b", outcome: "mixed" },
+          ],
+        }),
+      );
+      expect(html).toContain("cv-replications");
+      expect(html).toContain("Replicated: 2 studies");
+      expect(html).toContain("1 successful");
+      expect(html).toContain("1 mixed");
+      expect(html).toContain('href="https://doi.org/10.1/rep-a"');
+      expect(html).toContain('href="https://doi.org/10.1/rep-b"');
+    });
+
+    it("shows the dataset's raw outcome text verbatim when it isn't a recognized bucket", () => {
+      const html = renderCvHtml(
+        cvWithReplications({ replications: [{ outcome: "Partial replication" }] }),
+      );
+      expect(html).toContain("1 Partial replication");
+    });
+
+    it("renders a 'Replication of' line linking the original DOI", () => {
+      const html = renderCvHtml(
+        cvWithReplications({ replicationOf: { doi: "10.1/original", ref: "Original 2019" } }),
+      );
+      expect(html).toContain("cv-replication-of");
+      expect(html).toContain("Replication of:");
+      expect(html).toContain('href="https://doi.org/10.1/original"');
+      expect(html).toContain(">Original 2019<");
+    });
+
+    it("omits replication evidence when showReplications is off (default)", () => {
+      const html = renderCvHtml(
+        cvWithReplications(
+          { replications: [{ doi: "10.1/rep-a", outcome: "success" }] },
+          { showReplications: false },
+        ),
+      );
+      expect(html).not.toContain("cv-replications");
+      expect(html).not.toContain("Replicated:");
+    });
+
+    it("omits replication evidence for a work that carries neither field", () => {
+      const html = renderCvHtml(cvWithReplications({}));
+      expect(html).not.toContain("cv-replications");
+      expect(html).not.toContain("cv-replication-of");
+    });
+  });
+
   describe("provenance footer + metric context", () => {
     function withProvenance(cv: CanonicalCv): CanonicalCv {
       return { ...cv, display: { ...cv.display, showProvenance: true } };

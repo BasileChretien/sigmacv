@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   fetchCrossrefTitleYear: vi.fn(),
   fetchDataciteTitleYear: vi.fn(),
   resolveInstitution: vi.fn(),
+  fetchReplicationsForDois: vi.fn(),
 }));
 vi.mock("@/lib/crossref/client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/crossref/client")>()),
@@ -15,6 +16,12 @@ vi.mock("@/lib/datacite/client", async (importOriginal) => ({
   fetchDataciteTitleYear: mocks.fetchDataciteTitleYear,
 }));
 vi.mock("@/lib/ror/client", () => ({ resolveInstitution: mocks.resolveInstitution }));
+// `canonical/enrich` also pulls in the FORRT client (DB-backed), which would
+// otherwise throw on import for lacking DATABASE_URL/env in this test process —
+// this file never exercises FORRT enrichment, so a no-op mock is enough.
+vi.mock("@/lib/forrt/client", () => ({
+  fetchReplicationsForDois: mocks.fetchReplicationsForDois,
+}));
 
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { setSupervisionDetails, updateDisplay } from "@/lib/canonical/curate";
@@ -46,6 +53,11 @@ beforeEach(() => {
   mocks.fetchCrossrefTitleYear.mockReset();
   mocks.fetchDataciteTitleYear.mockReset();
   mocks.resolveInstitution.mockReset();
+  mocks.fetchReplicationsForDois.mockReset();
+  mocks.fetchReplicationsForDois.mockResolvedValue({
+    replicatedBy: new Map(),
+    replicationOf: new Map(),
+  });
 });
 
 // ─── fixtures ─────────────────────────────────────────────────────────────────
