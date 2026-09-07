@@ -26,7 +26,11 @@ interface CareerContextPanelProps {
 }
 
 /** The render-side kind labels double as the editor's select options. */
-const KIND_LABEL_KEY: Record<CareerContextKind, keyof RenderStrings> = {
+type RenderStringKey = {
+  [K in keyof RenderStrings]: RenderStrings[K] extends string ? K : never;
+}[keyof RenderStrings];
+
+const KIND_LABEL_KEY: Record<CareerContextKind, RenderStringKey> = {
   "career-break": "careerKindCareerBreak",
   "part-time": "careerKindPartTime",
   "clinical-duties": "careerKindClinicalDuties",
