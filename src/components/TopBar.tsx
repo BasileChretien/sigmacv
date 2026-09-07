@@ -64,6 +64,9 @@ export interface TopBarProps {
   publicIndexable: boolean;
   publicContact: PublicContactFlags;
   onPublicContactChange: (next: PublicContactFlags) => void;
+  /** Owner enabled the assessor "Reader view" (`display.allowReaderMode`) — the
+      Share menu then offers the reader-view link beside the public URL. */
+  readerViewEnabled?: boolean;
   /** Live publish-state updates from the Publish menu, so the trigger's dot +
       label reflect the current state without waiting for a reload. */
   onPublishStateChange: (next: {
@@ -111,6 +114,7 @@ export default function TopBar({
   publicIndexable,
   publicContact,
   onPublicContactChange,
+  readerViewEnabled = false,
   onPublishStateChange,
   onEditPublicStyle,
   researchConsent,
@@ -239,7 +243,9 @@ export default function TopBar({
         {/* Share/embed lives on its OWN trigger, shown only once the page is live —
             the public link + the "Living CV" badge + QR. Keeps the Publish popover
             a focused on/off decision instead of a share dashboard. */}
-        {published && publicSlug ? <ShareMenu locale={locale} slug={publicSlug} /> : null}
+        {published && publicSlug ? (
+          <ShareMenu locale={locale} slug={publicSlug} readerViewEnabled={readerViewEnabled} />
+        ) : null}
 
         {/* Frozen versions ("freeze & cite this version"): needs a CV to freeze;
             sharing a frozen link additionally needs the page to be live. */}

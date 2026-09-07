@@ -465,6 +465,10 @@
           "default": false,
           "type": "boolean"
         },
+        "allowReaderMode": {
+          "default": false,
+          "type": "boolean"
+        },
         "peerReviewedOnly": {
           "default": false,
           "type": "boolean"
@@ -1605,6 +1609,10 @@
                 "type": "boolean"
               },
               "showProvenance": {
+                "default": false,
+                "type": "boolean"
+              },
+              "allowReaderMode": {
                 "default": false,
                 "type": "boolean"
               },

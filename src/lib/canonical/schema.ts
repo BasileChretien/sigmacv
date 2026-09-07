@@ -1508,6 +1508,22 @@ export const DisplayChoicesSchema = z.object({
    */
   showProvenance: z.boolean().default(false),
   /**
+   * Offer an assessor's "Reader view" on the PUBLIC living page (`/p/[slug]`):
+   * a small link that opens `?view=reader`, where a fixed set of trust/context
+   * toggles (`render/readerMode.ts` `READER_MODE_KEYS`: the provenance footer,
+   * verified marks, research areas and collaboration breadth, plus the per-entry
+   * context — OA badge, citation count, author role, per-work indicators, CRediT
+   * roles, data links, replications, archival status, public evaluations — and
+   * the supervision summary) is forced ON and `hideRetracted` forced OFF, plus a
+   * per-work provenance mark —
+   * so a committee member sees every signal the data carries without the owner
+   * having to know which toggles to enable. Opt-IN, default off: the standard
+   * page is byte-identical either way, and the route ignores the query param
+   * unless this is on. Reader view never adds metrics the owner did not choose
+   * (`showMetrics`/`metrics` are untouched) and never reaches an export.
+   */
+  allowReaderMode: z.boolean().default(false),
+  /**
    * Render only peer-reviewed citations (drops preprints + non-peer-reviewed
    * works wherever they sit, e.g. a preprint mis-filed under Publications).
    * Non-citation entries (positions, grants, …) are unaffected. Default off.

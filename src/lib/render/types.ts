@@ -97,6 +97,16 @@ export type RenderOpts = PublicExtrasOpts & {
    * Rendered only when the owner opted in (`display.showProvenance`).
    */
   provenanceLedger?: ProvenanceLedger;
+  /**
+   * The public page's assessor "Reader view" (`/p/[slug]?view=reader`, see
+   * `readerMode.ts`). When true, each citation entry additionally carries a compact
+   * per-item provenance mark (`itemProvenance.ts`). The `/p/[slug]` route sets it
+   * ONLY when the owner opted in (`display.allowReaderMode`) and the visitor asked
+   * for the view; exporters never do, so no export ever carries the mark. An
+   * internal render option rather than a display toggle on purpose: it must not be
+   * reachable from a saved document.
+   */
+  readerMode?: boolean;
 };
 
 export interface RenderInput {

@@ -16,6 +16,7 @@ import { escapeHtml, safeHref } from "./escape";
 import { coinsSpan } from "./coins";
 import { creditRolesHtml } from "./creditRoles";
 import { dataLinksHtml } from "./dataLinksHtml";
+import { itemProvenanceHtml } from "./itemProvenance";
 import { prepareSections } from "./prepare";
 import { cvSlug } from "./slug";
 import { getTemplate, resolveTheme } from "./templates";
@@ -511,6 +512,11 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
         if (cv.display.showDataLinks) html += dataLinksHtml(item, cv.display.locale);
         html += publicEvaluationsHtml(item, cv.display);
         if (isSoftware) html += softwareDetailsHtml(item, cv.display.locale);
+        // Reader view only (public route, owner opt-in): a compact provenance mark
+        // per entry — works, datasets, awards, grants, … (history entries already
+        // carry the structured Verified mark, so they're skipped). Gated on the
+        // render OPTION, never a display toggle, so exports can't carry it.
+        if (opts?.readerMode && !isHistory) html += itemProvenanceHtml(item, cv.display.locale);
         if (isHistory) html = withRorLink(html, item, cv.display.locale);
         // Opt-in FORRT/FReD replication evidence under the entry.
         if (cv.display.showReplications) html += replicationsHtml(item, cv.display.locale);

@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **"Reader view" for assessors on the public living page (owner opt-in).** A
+  committee member opening a public SigmaCV page can now switch to a view that
+  shows every trust and context signal the owner's data already carries, without
+  the owner having to know which toggles to enable. A new **Design → "Offer a
+  'Reader view' on the public page"** checkbox (off by default) adds a quiet
+  **Reader view** link to the living page; it opens `?view=reader`, where a fixed,
+  documented preset (`READER_MODE_KEYS`: provenance footer, institution-verified
+  marks, research areas, collaboration breadth, the per-entry context — open-access
+  badges, citation counts with context, author role, per-work indicators, CRediT
+  roles, open data / code links, replication evidence, archival status, public
+  evaluations — and the supervision summary line) is forced on, retracted works
+  stay visible with their badge, and every
+  entry carries a small provenance mark (record source, Crossref enrichment,
+  verification, retraction, last-verified date) with the full explanation as its
+  tooltip. The view never adds metrics the owner did not choose and opens with a
+  banner stating that nothing in it is a score. The standard page is byte-identical
+  either way; the param is ignored unless the owner opted in; the reader view is
+  `noindex` with a canonical link to the plain page, and the social card, JSON-LD,
+  machine formats and every export are unchanged. The Share panel shows the
+  reader-view URL next to the public URL once enabled.
 - **Structured supervision & mentoring records.** A Supervision entry can now
   carry structured fields instead of one free-text line: the supervisee, degree
   level (bachelor / master / PhD / postdoc / clinical fellow / other), your role

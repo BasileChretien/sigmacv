@@ -103,6 +103,7 @@ describe("DisplayChoicesSchema", () => {
       showDataLinks: false,
       showReplications: false,
       showProvenance: false,
+      allowReaderMode: false,
       peerReviewedOnly: false,
       countLetters: true,
       publicationOrder: "custom",
