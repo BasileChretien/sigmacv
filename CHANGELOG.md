@@ -252,6 +252,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "not classified") is treated as unknown rather than stored as the literal
   string `"0"`. No behavior change for anyone — the table is still empty by
   default.
+- **iCite translational fields (clinical-citation count, "is clinical") were
+  always empty.** A live production call showed the NIH iCite API returns the
+  field-filtered response under camelCase names — `citingClinicalPmids` and
+  `isClinicalArticle` — not the snake_case `cited_by_clin` / `is_clinical` the
+  client only parsed. RCR and APT were unaffected (their names come back
+  unchanged), but the clinical-citation count and "is a clinical article" flag
+  silently never populated. The parser now accepts both spellings.
 - **Retracted works no longer count toward the figures.** A publication flagged
   as retracted (via the Crossref / Retraction Watch enrichment) was excluded from
   the list when **Hide retracted** was on, but still counted in every figure: the
