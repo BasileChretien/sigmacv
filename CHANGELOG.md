@@ -21,6 +21,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the parser-safe ATS template like all badges. The confirming organisation's
   name is now captured at sync (`meta.verifiedBy`), so a re-sync is needed before
   existing CVs can name it; the mark itself works on already-synced data.
+- **Opt-in per-publication indicators.** A new Design toggle, _Show
+  per-publication indicators_ (off by default, like every evaluative toggle),
+  renders a compact pill next to each publication that carries a value: the NIH
+  iCite **RCR**, OpenAlex's **FWCI**, how many **clinical articles** cite the
+  work, and whether iCite classes the work itself as clinical. Each pill carries
+  its own caveat as a tooltip, appears only where the source reports a value
+  (RCR and clinical citations need a PMID, so they are biomedical-only), and
+  nothing is summed, averaged or ranked — per-work values are defensible where
+  the aggregates deliberately withheld from the metrics catalog are not.
+  HTML/PDF only: the DOCX, LaTeX and Markdown renderers have no per-entry badge
+  hook, so they are unchanged. The iCite _Approximate Potential to Translate_
+  is stored but never displayed — it is a model prediction, not an observation.
+- **More assessment context stored per work, for later.** Each sync now keeps
+  the iCite translational fields (`clinicalCitations`, `isClinical`, `apt`) and,
+  from OpenAlex, the distinct authorship countries and the reference /
+  self-reference counts (`countries`, `refCount`, `selfRefs`) on the item. No
+  aggregate is computed or shown from any of these.
+- **Second retraction signal.** OpenAlex's own `is_retracted` flag is now read
+  at build and unioned with the Crossref retraction check, so a work either
+  source records as retracted is flagged.
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so

@@ -37,6 +37,11 @@ const WORK_SELECT = [
   "fwci",
   "cited_by_percentile_year",
   "authorships",
+  // Per-work assessment context stored on the item (build.ts): OpenAlex's own
+  // retraction flag (unioned with Crossref's) and the reference list, kept only as
+  // a total + self-reference COUNT. `referenced_works` is the one sizeable field.
+  "is_retracted",
+  "referenced_works",
   "open_access",
   "primary_location",
   "best_oa_location",

@@ -1170,6 +1170,18 @@ export default function StyleControls({
           <span>{u.showCitationCounts}</span>
         </label>
 
+        <label className="field-inline" title={u.showWorkIndicatorsNote}>
+          <input
+            type="checkbox"
+            checked={cv.display.showWorkIndicators}
+            onChange={(e) => onChange(updateDisplay(cv, { showWorkIndicators: e.target.checked }))}
+          />
+          <span>{u.showWorkIndicators}</span>
+        </label>
+        {cv.display.showWorkIndicators ? (
+          <p className="muted metric-preset-note field-note">{u.showWorkIndicatorsNote}</p>
+        ) : null}
+
         <label className="field-inline">
           <input
             type="checkbox"
