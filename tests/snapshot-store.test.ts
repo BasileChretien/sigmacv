@@ -67,6 +67,7 @@ import { CvNotFoundError } from "@/lib/cv/sync";
 import { MAX_SNAPSHOTS_PER_CV } from "@/lib/cv/snapshots";
 import { provenanceLedger, type ProvenanceLedger } from "@/lib/cv/provenanceLedger";
 import { contentHashOf, stableJson } from "@/lib/cv/snapshotHash";
+import { projectCvForPublic } from "@/lib/cv/publicProjection";
 
 const works = worksFixture as unknown as OpenAlexWork[];
 function makeCv(): CanonicalCv {
@@ -218,9 +219,16 @@ describe("createSnapshot", () => {
     expect(data.ledger.identifierMatched.count).toBe(
       provenanceLedger(data.canonical).identifierMatched.count - 1,
     );
-    // The hash is of the FROZEN document (what the page serves), stable across key order.
-    expect(data.contentHash).toBe(contentHashOf(data.canonical));
-    expect(data.contentHash).toBe(contentHashOf(JSON.parse(stableJson(data.canonical))));
+    // The hash is of what the page SERVES (the public projection of the frozen
+    // copy), never of the owner-level copy; stable across key order.
+    expect(data.contentHash).toBe(contentHashOf(projectCvForPublic(data.canonical)));
+    expect(data.contentHash).not.toBe(contentHashOf(data.canonical));
+    expect(data.contentHash).toBe(
+      contentHashOf(JSON.parse(stableJson(projectCvForPublic(data.canonical)))),
+    );
+    // A reader-view freeze materialises the preset: the frozen display IS the reader view.
+    expect(data.canonical.display.hideRetracted).toBe(false);
+    expect(data.canonical.display.showProvenance).toBe(true);
   });
 
   it("defaults to a standard (non-reader) freeze", async () => {
@@ -231,7 +239,13 @@ describe("createSnapshot", () => {
       readerMode: data.readerMode,
     }));
     expect((await createSnapshot("u1", "Plain")).readerMode).toBe(false);
-    expect(mocks.create.mock.calls[0]![0].data.readerMode).toBe(false);
+    const data = mocks.create.mock.calls[0]![0].data as {
+      canonical: CanonicalCv;
+      readerMode: boolean;
+    };
+    expect(data.readerMode).toBe(false);
+    // A standard freeze keeps the owner's display exactly.
+    expect(data.canonical.display.showProvenance).toBe(CV.display.showProvenance);
   });
 
   it("starts at version 1 for a CV with no snapshots", async () => {
@@ -342,10 +356,19 @@ describe("getPublicSnapshot — assessment-grade columns", () => {
     expect(out!.readerMode).toBe(true);
   });
 
-  it("ignores a stored ledger that does not have the ledger shape", async () => {
+  it("ignores a stored ledger that does not have the FULL ledger shape", async () => {
     mocks.findUnique.mockResolvedValue(withCv({ ledger: { kept: "many" } }));
     expect((await getPublicSnapshot("basile-x", ROW.token))!.ledger).toBeNull();
     mocks.findUnique.mockResolvedValue(withCv({ ledger: "nope" }));
+    expect((await getPublicSnapshot("basile-x", ROW.token))!.ledger).toBeNull();
+    // A ledger frozen before a line existed (one key missing) degrades to "derived".
+    const { retractedVisible: _dropped, ...partial } = provenanceLedger(CV);
+    void _dropped;
+    mocks.findUnique.mockResolvedValue(withCv({ ledger: partial }));
+    expect((await getPublicSnapshot("basile-x", ROW.token))!.ledger).toBeNull();
+    // A line with a non-numeric count is rejected too.
+    const bad = { ...provenanceLedger(CV), claimed: { count: "1", denominator: 2 } };
+    mocks.findUnique.mockResolvedValue(withCv({ ledger: bad }));
     expect((await getPublicSnapshot("basile-x", ROW.token))!.ledger).toBeNull();
   });
 });

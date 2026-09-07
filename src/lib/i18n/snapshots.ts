@@ -104,7 +104,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "What changed since",
     readerOption: "Freeze as reader view",
     readerOptionHint:
-      "The frozen page shows the provenance, verification and context marks an assessor needs, and keeps retracted works visible. Chosen now, fixed for this version.",
+      "The frozen page shows the provenance, verification and context marks an assessor needs, keeps retracted works visible, and has no standard view. Chosen now, fixed for this version.",
     readerTag: "Reader view",
     diffTitle: "Changes since version {n}",
     diffIntro: "Comparing frozen version {n} ({date}) with the current live CV.",
@@ -153,7 +153,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "自那时以来的变化",
     readerOption: "冻结为审阅视图",
     readerOptionHint:
-      "冻结页面会显示评估者所需的来源、核验与背景标记，并保留已撤稿作品可见。现在选择，此版本固定不变。",
+      "冻结页面会显示评估者所需的来源、核验与背景标记，让已撤稿作品保持可见，且没有标准视图。现在选择，此版本固定不变。",
     readerTag: "审阅视图",
     diffTitle: "自版本 {n} 以来的变化",
     diffIntro: "正在将冻结版本 {n}（{date}）与当前实时简历进行比较。",
@@ -203,7 +203,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "Qué ha cambiado desde entonces",
     readerOption: "Congelar como vista para evaluadores",
     readerOptionHint:
-      "La página congelada muestra las marcas de procedencia, verificación y contexto que necesita un evaluador, y mantiene visibles los trabajos retractados. Se elige ahora y queda fija para esta versión.",
+      "La página congelada muestra las marcas de procedencia, verificación y contexto que necesita un evaluador, mantiene visibles los trabajos retractados y no tiene vista estándar. Se elige ahora y queda fija para esta versión.",
     readerTag: "Vista para evaluadores",
     diffTitle: "Cambios desde la versión {n}",
     diffIntro: "Comparación de la versión congelada {n} ({date}) con el CV en vivo actual.",
@@ -254,7 +254,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "Ce qui a changé depuis",
     readerOption: "Figer en vue évaluateur",
     readerOptionHint:
-      "La page figée affiche les repères de provenance, de vérification et de contexte dont un évaluateur a besoin, et garde visibles les travaux rétractés. Choisi maintenant, fixé pour cette version.",
+      "La page figée affiche les repères de provenance, de vérification et de contexte dont un évaluateur a besoin, garde visibles les travaux rétractés et n’a pas de vue standard. Choisi maintenant, fixé pour cette version.",
     readerTag: "Vue évaluateur",
     diffTitle: "Changements depuis la version {n}",
     diffIntro: "Comparaison de la version figée {n} ({date}) avec le CV en direct actuel.",
@@ -305,7 +305,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "Was sich seitdem geändert hat",
     readerOption: "Als Gutachteransicht einfrieren",
     readerOptionHint:
-      "Die eingefrorene Seite zeigt die Herkunfts-, Prüf- und Kontextmarkierungen, die Gutachtende brauchen, und lässt zurückgezogene Arbeiten sichtbar. Jetzt gewählt, für diese Version fest.",
+      "Die eingefrorene Seite zeigt die Herkunfts-, Prüf- und Kontextmarkierungen, die Gutachtende brauchen, zeigt zurückgezogene Arbeiten weiterhin an und hat keine Standardansicht. Die Wahl gilt dauerhaft für diese Version.",
     readerTag: "Gutachteransicht",
     diffTitle: "Änderungen seit Version {n}",
     diffIntro: "Vergleich der eingefrorenen Version {n} ({date}) mit dem aktuellen Live-CV.",
@@ -356,7 +356,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "その後の変更",
     readerOption: "審査者ビューとして固定",
     readerOptionHint:
-      "固定したページには、審査者に必要な出所・検証・背景の表示が含まれ、撤回された論文も表示されたままになります。今選ぶと、このバージョンでは変更できません。",
+      "固定したページには、審査者に必要な出所・検証・背景の表示が含まれ、撤回された論文も表示されたままになり、標準ビューはありません。今選ぶと、このバージョンでは変更できません。",
     readerTag: "審査者ビュー",
     diffTitle: "バージョン {n} 以降の変更",
     diffIntro: "固定版 {n}（{date}）と現在のライブ CV を比較しています。",
@@ -406,7 +406,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "O que mudou desde então",
     readerOption: "Congelar como visão para avaliadores",
     readerOptionHint:
-      "A página congelada mostra as marcas de proveniência, verificação e contexto de que um avaliador precisa e mantém visíveis os trabalhos retratados. Escolhido agora, fixo para esta versão.",
+      "A página congelada mostra as marcas de proveniência, verificação e contexto de que um avaliador precisa, mantém visíveis os trabalhos retratados e não tem visão padrão. Escolhido agora, fixo para esta versão.",
     readerTag: "Visão para avaliadores",
     diffTitle: "Mudanças desde a versão {n}",
     diffIntro: "Comparando a versão congelada {n} ({date}) com o CV ao vivo atual.",
@@ -456,7 +456,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "Cosa è cambiato da allora",
     readerOption: "Congela come vista per valutatori",
     readerOptionHint:
-      "La pagina congelata mostra i contrassegni di provenienza, verifica e contesto di cui ha bisogno un valutatore e mantiene visibili i lavori ritrattati. Scelto ora, fisso per questa versione.",
+      "La pagina congelata mostra i contrassegni di provenienza, verifica e contesto di cui ha bisogno un valutatore, mantiene visibili i lavori ritrattati e non ha una vista standard. Scelto ora, fisso per questa versione.",
     readerTag: "Vista per valutatori",
     diffTitle: "Modifiche dalla versione {n}",
     diffIntro: "Confronto tra la versione congelata {n} ({date}) e il CV live attuale.",
@@ -506,7 +506,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "이후 변경 사항",
     readerOption: "심사자 보기로 고정",
     readerOptionHint:
-      "고정된 페이지에는 심사자에게 필요한 출처·검증·맥락 표시가 포함되며 철회된 논문도 계속 표시됩니다. 지금 선택하면 이 버전에서는 변경되지 않습니다.",
+      "고정된 페이지에는 심사자에게 필요한 출처·검증·맥락 표시가 포함되고 철회된 논문도 계속 표시되며 표준 보기는 없습니다. 지금 선택하면 이 버전에서는 변경되지 않습니다.",
     readerTag: "심사자 보기",
     diffTitle: "버전 {n} 이후의 변경 사항",
     diffIntro: "고정 버전 {n}({date})과 현재 라이브 CV를 비교합니다.",
@@ -554,9 +554,9 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "Зафиксированная версия {n} · {date}",
     bannerLive: "Живая версия",
     bannerCompare: "Что изменилось с тех пор",
-    readerOption: "Заморозить в режиме эксперта",
+    readerOption: "Зафиксировать в режиме эксперта",
     readerOptionHint:
-      "Замороженная страница показывает отметки происхождения, проверки и контекста, нужные эксперту, и оставляет отозванные работы видимыми. Выбирается сейчас и фиксируется для этой версии.",
+      "Зафиксированная страница показывает отметки происхождения, проверки и контекста, нужные эксперту, оставляет отозванные работы видимыми и не имеет обычного вида. Выбирается сейчас и фиксируется для этой версии.",
     readerTag: "Режим эксперта",
     diffTitle: "Изменения с версии {n}",
     diffIntro: "Сравнение зафиксированной версии {n} ({date}) с текущим живым CV.",

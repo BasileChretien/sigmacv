@@ -168,8 +168,9 @@ model CvSnapshot {
   // Assessment-grade freeze: the provenance ledger computed on the OWNER's stored
   // document BEFORE the frozen copy is stripped of its attribution signals (a
   // ledger derived from the stripped copy misreports and can never be recomputed),
-  // the SHA-256 of the frozen document's canonical JSON (so a link and a PDF can
-  // be shown to be the same version), and whether the owner froze it as the
+  // the SHA-256 of the canonical JSON of the frozen document's PUBLIC projection
+  // (what the page serves — a version fingerprint a reader can record), and
+  // whether the owner froze it as the
   // assessor's reader view — an explicit choice at freeze time, immutable after.
   ledger      Json?
   contentHash String?

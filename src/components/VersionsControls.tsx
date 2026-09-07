@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { editorUi } from "@/lib/i18n/editorUi";
+import { readerModeKeyLabels } from "@/lib/i18n/readerModeLabels";
 import { snapshotStrings } from "@/lib/i18n/snapshots";
+import { ui } from "@/lib/i18n/ui";
 import { formatSnapshotDate } from "@/lib/render/diff";
 import type { SnapshotSummary } from "@/lib/cv/snapshotStore";
 
@@ -31,6 +34,11 @@ function fill(template: string, vars: Record<string, string | number>): string {
  */
 export default function VersionsControls({ locale, published, slug }: VersionsControlsProps) {
   const s = snapshotStrings(locale);
+  const u = ui(locale);
+  const readerInventory = u.allowReaderModeNote.replace(
+    "{list}",
+    readerModeKeyLabels(u, editorUi(locale)).join(", "),
+  );
   const [listing, setListing] = useState<Listing | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [label, setLabel] = useState("");
@@ -82,6 +90,7 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
         const { snapshot } = (await res.json()) as { snapshot: SnapshotSummary };
         setListing((cur) => (cur ? { ...cur, snapshots: [snapshot, ...cur.snapshots] } : cur));
         setLabel("");
+        setReaderMode(false);
       } else if (res.status === 409) {
         setAnnounce(fill(s.limitReached, { n: listing?.max ?? 20 }));
       } else {
@@ -199,7 +208,7 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
           {busy === "create" ? s.creating : s.createButton}
         </button>
       </form>
-      <label className="field-inline versions-reader" title={s.readerOptionHint}>
+      <label className="field-inline versions-reader">
         <input
           type="checkbox"
           checked={readerMode}
@@ -208,7 +217,10 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
         />
         <span>{s.readerOption}</span>
       </label>
-      <p className="versions-hint">{s.readerOptionHint}</p>
+      <p className="versions-hint">
+        {s.readerOptionHint}
+        {readerMode ? ` ${readerInventory}` : ""}
+      </p>
       {atLimit ? (
         <p className="versions-hint">{fill(s.limitReached, { n: listing?.max ?? 20 })}</p>
       ) : null}

@@ -86,7 +86,10 @@ describe("VersionsControls", () => {
     render(<VersionsControls locale="en-US" published={true} slug="basile-x" />);
     await screen.findByText("Tenure review");
     expect(screen.queryByText("Reader view")).toBeNull();
+    expect(screen.queryByText(/Verified marks|verified/i)).toBeNull();
     fireEvent.click(screen.getByLabelText("Freeze as reader view"));
+    // Ticking it shows the explicit inventory of what the reader view turns on.
+    expect(screen.getByText(/has no standard view/).textContent).toMatch(/Provenance|provenance/);
     fireEvent.change(screen.getByPlaceholderText(/Label/), { target: { value: "Reader" } });
     fireEvent.click(screen.getByText("Freeze this version"));
     await screen.findByText("Reader");
@@ -94,6 +97,10 @@ describe("VersionsControls", () => {
     expect(JSON.parse(post[1]!.body as string)).toEqual({ label: "Reader", readerMode: true });
     // The new row carries the "Reader view" tag; the plain one does not.
     expect(screen.getAllByText("Reader view")).toHaveLength(1);
+    // The one-time choice does not stick to the next freeze.
+    expect((screen.getByLabelText("Freeze as reader view") as HTMLInputElement).checked).toBe(
+      false,
+    );
   });
 
   it("disables Mint DOI with the 'not configured' hint when the server has no credentials", async () => {

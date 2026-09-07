@@ -3,6 +3,7 @@ import {
   isValidSnapshotToken,
   snapshotPublicPath,
 } from "@/lib/cv/snapshotStore";
+import { ledgerForView } from "@/lib/cv/provenanceLedger";
 import { injectSnapshotChrome } from "@/lib/cv/snapshotPage";
 import {
   readerViewActive,
@@ -99,9 +100,13 @@ export async function GET(
   // (per-work cite links, the feed link, "what's new"): a frozen document is a
   // clean reference copy.
   const reader = snap.readerMode || readerViewActive(url.searchParams, snap.cv);
-  let html = renderPublicCvHtml(reader ? readerViewCv(snap.cv) : snap.cv, {
+  const viewCv = reader ? readerViewCv(snap.cv) : snap.cv;
+  // The stored ledger, with its view-dependent line ("retracted works shown")
+  // recomputed for THIS view — the reader view forces retracted works visible.
+  const ledger = snap.ledger ? ledgerForView(snap.ledger, viewCv) : undefined;
+  let html = renderPublicCvHtml(viewCv, {
     attribution: true,
-    provenanceLedger: snap.ledger ?? undefined,
+    provenanceLedger: ledger,
     readerMode: reader,
   });
   // Reader chrome, injected at the same anchor the living page uses: the banner on

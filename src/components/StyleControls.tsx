@@ -45,6 +45,7 @@ import {
 } from "@/lib/i18n/metricHints";
 import { ui, type UiStrings } from "@/lib/i18n/ui";
 import { editorUi, type EditorExtraStrings } from "@/lib/i18n/editorUi";
+import { readerModeKeyLabels } from "@/lib/i18n/readerModeLabels";
 import { trackEvent } from "@/lib/analytics/track";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/lib/i18n";
@@ -56,25 +57,6 @@ import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/li
  * new key is appended to `READER_MODE_KEYS`, this map fails to compile until its
  * label is added, so the note can never silently fall behind the behaviour.
  */
-function readerModeKeyLabels(u: UiStrings, eu: EditorExtraStrings): string[] {
-  const labels: Record<ReaderModeKey, string> = {
-    showProvenance: u.showProvenance,
-    showVerifiedBadges: u.showVerifiedBadges,
-    showOpenAccess: u.showOpenAccess,
-    showCitationCounts: u.showCitationCounts,
-    showResearchAreas: u.showResearchAreas,
-    showAuthorRole: u.showAuthorRole,
-    showWorkIndicators: u.showWorkIndicators,
-    showCollaboration: u.showCollaboration,
-    showCreditRoles: eu.showCreditRoles,
-    showDataLinks: u.showDataLinks,
-    showSupervisionSummary: eu.supervisionSummaryLabel,
-    showReplications: u.showReplications,
-    showArchivalStatus: u.showArchivalStatus,
-    showPublicEvaluations: u.showPublicEvaluations,
-  };
-  return READER_MODE_KEYS.map((k) => labels[k]);
-}
 
 interface StyleControlsProps {
   cv: CanonicalCv;

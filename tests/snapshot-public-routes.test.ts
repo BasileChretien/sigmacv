@@ -127,9 +127,35 @@ describe("GET /p/[slug]/v/[token] (frozen version page)", () => {
     expect(html).not.toContain("Revenir à la page standard");
     expect(html).toContain('class="cv-prov"');
     expect(html).toContain('class="snapshot-banner"');
-    // The stored ledger — not one derived from the stripped frozen copy — is what renders.
-    const claimedLine = /7\D{1,12}9/.test(html.replace(/<[^>]+>/g, " "));
-    expect(claimedLine).toBe(true);
+    // The stored ledger — not one derived from the stripped frozen copy — is what
+    // renders: the derived ledger of this fixture can only say "0 sur 3" here.
+    expect(html).toMatch(/<tr data-ledger="claimed"><td>[^<]*<\/td><td>7 sur 9/);
+    expect(html).not.toMatch(/<tr data-ledger="claimed"><td>[^<]*<\/td><td>0 sur 3/);
+  });
+
+  it("a reader view lists retracted works AND its ledger line says so, even when the owner hid them", async () => {
+    // Owner hides retracted works; one retracted paper; provenance shown.
+    const doc = JSON.parse(
+      JSON.stringify(
+        updateDisplay(cv, { hideRetracted: true, showProvenance: true, allowReaderMode: true }),
+      ),
+    );
+    const pubs = doc.sections.find((s: { id: string }) => s.id === "publications")!;
+    pubs.items[0].meta.retracted = true;
+    // The stored ledger was computed on the owner's display → "0 of 3 shown".
+    const ledger = provenanceLedger(doc);
+    expect(ledger.retractedVisible).toEqual({ count: 0, denominator: 3, share: 0 });
+    mocks.getPublicSnapshot.mockResolvedValue({ ...SNAP, cv: doc, ledger });
+    // Standard page: the retracted work is hidden and the line agrees.
+    let html = await (await pageGet(req(`/p/${SLUG}/v/${TOKEN}`), params(SLUG, TOKEN))).text();
+    expect(html.toLowerCase()).not.toContain(`id="item-${String(pubs.items[0].id).toLowerCase()}"`);
+    expect(html).toMatch(/<tr data-ledger="retractedVisible"><td>[^<]*<\/td><td>0 sur 3/);
+    // Reader view: the work is listed with its badge and the line follows the view.
+    html = await (
+      await pageGet(req(`/p/${SLUG}/v/${TOKEN}?view=reader`), params(SLUG, TOKEN))
+    ).text();
+    expect(html.toLowerCase()).toContain(`id="item-${String(pubs.items[0].id).toLowerCase()}"`);
+    expect(html).toMatch(/<tr data-ledger="retractedVisible"><td>[^<]*<\/td><td>1 sur 3/);
   });
 
   it("honours ?view=reader on a standard frozen version only when its frozen display allows it, with a back link", async () => {

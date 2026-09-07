@@ -1,3 +1,4 @@
+import { ledgerForView } from "@/lib/cv/provenanceLedger";
 import { NextResponse } from "next/server";
 import { getPublicCvForPage } from "@/lib/cv/sync";
 import {
@@ -140,13 +141,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   const renderView = (viewCv: CanonicalCv): string => {
     // The living public page may use an animated showcase style (display.publicStyle);
     // "match" (default) renders with the document template. Exports never call this.
-    let html = renderPublicCvHtml(reader ? readerViewCv(viewCv) : viewCv, {
+    const renderCv = reader ? readerViewCv(viewCv) : viewCv;
+    let html = renderPublicCvHtml(renderCv, {
       attribution: true,
       coauthorCvs,
       recentlyAdded,
       // Computed on the STORED document before projection — the projection strips
-      // the attribution/review signals the ledger counts.
-      provenanceLedger,
+      // the attribution/review signals the ledger counts. Its one view-dependent
+      // line (retracted works shown) follows the view being rendered.
+      provenanceLedger: provenanceLedger ? ledgerForView(provenanceLedger, renderCv) : undefined,
       publicExtras: true,
       slug,
       feedHref,
