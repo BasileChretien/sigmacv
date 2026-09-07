@@ -29,6 +29,18 @@ import type { RawDataLink } from "@/lib/canonical/dataLinks";
 
 const EUROPEPMC_API = "https://www.ebi.ac.uk/europepmc/webservices/rest";
 const USER_AGENT = "SigmaCV (+https://github.com/BasileChretien/sigmacv)";
+/**
+ * Per-call limits. Both calls run INSIDE a sync, once per work, so a hanging
+ * endpoint must fail fast and must NOT be retried: with `resilientFetch`'s
+ * default backoff (2 retries) a dead `datalinks` endpoint cost ~40 s per work
+ * and stalled a re-sync for minutes (production incident, 2026-09-07). The
+ * data-links pass in `canonical/enrich.ts` circuit-breaks the endpoint after a
+ * few consecutive failures and keeps every pass under a time budget, so a
+ * single attempt per work is the right amount of persistence here.
+ */
+const SEARCH_TIMEOUT_MS = 8_000;
+const DATALINKS_TIMEOUT_MS = 6_000;
+const RETRIES = 0;
 /** A DOI is "10.<registrant>/<suffix>". Reject anything else before building a URL. */
 const DOI_RE = /^10\.\d{4,9}\/\S+$/;
 /** Response caps: a one-hit core search record is ~10 kB; a data-link list is small. */
@@ -103,7 +115,8 @@ export async function fetchEuropePmcByDoi(doi: string): Promise<EuropePmcRecord 
     const res = await resilientFetch(url, {
       headers: { Accept: "application/json", "User-Agent": USER_AGENT },
       next: { revalidate: 86_400 },
-      timeoutMs: 12_000,
+      timeoutMs: SEARCH_TIMEOUT_MS,
+      retries: RETRIES,
     });
     const body = await boundedBody(res, MAX_SEARCH_BYTES);
     if (body === null) return null;
@@ -159,27 +172,45 @@ function parseLink(raw: unknown, category: string | undefined): RawDataLink | nu
   };
 }
 
+/** A status the endpoint itself is failing on (not a per-record answer like 404). */
+const isEndpointFailure = (status: number): boolean => status === 429 || status >= 500;
+
 /**
  * The data links Europe PMC holds for a PubMed id — normalised raw links (the
  * kind is inferred downstream by `canonical/dataLinks.ts`), capped at
  * {@link MAX_LINKS}. Non-data categories (altmetrics, reviews) are dropped.
- * Fails soft → [] (a miss just leaves the work without links). Cached 24h.
+ * Cached 24h. Fail-soft, but the two kinds of "nothing" are told apart:
+ *  - `[]`   — the endpoint ANSWERED and the work has no usable links (also a
+ *             404 / unparsable body: the record was reached, it just has nothing);
+ *  - `null` — the endpoint FAILED (timeout / network error / 5xx / 429): nothing
+ *             is known about the work, and the caller's circuit breaker counts it.
+ * A failure is deliberately NOT logged here: once per work would flood the logs
+ * during an outage (it did); the data-links pass logs ONCE when it opens the breaker.
  */
-export async function fetchEuropePmcDataLinks(pmid: string): Promise<RawDataLink[]> {
+export async function fetchEuropePmcDataLinks(pmid: string): Promise<RawDataLink[] | null> {
   const id = pmid.trim();
   if (!/^\d+$/.test(id)) return [];
 
   const url = new URL(`${EUROPEPMC_API}/MED/${id}/datalinks`);
   url.searchParams.set("format", "json");
 
+  // The transport is the only thing that can FAIL; a body we cannot read or
+  // parse is still an answer (the record was reached) and yields [] below.
+  let body: string | null;
   try {
     const res = await resilientFetch(url, {
       headers: { Accept: "application/json", "User-Agent": USER_AGENT },
       next: { revalidate: 86_400 },
-      timeoutMs: 12_000,
+      timeoutMs: DATALINKS_TIMEOUT_MS,
+      retries: RETRIES,
     });
-    const body = await boundedBody(res, MAX_LINKS_BYTES);
-    if (body === null) return [];
+    if (isEndpointFailure(res.status)) return null;
+    body = await boundedBody(res, MAX_LINKS_BYTES);
+  } catch {
+    return null;
+  }
+  if (body === null) return [];
+  try {
     const data = asRecord(JSON.parse(body));
     const out: RawDataLink[] = [];
     for (const cat of asList(asRecord(data?.dataLinkList)?.Category)) {
@@ -195,8 +226,7 @@ export async function fetchEuropePmcDataLinks(pmid: string): Promise<RawDataLink
       }
     }
     return out;
-  } catch (err) {
-    logger.warn("europepmc.datalinks_failed", { err });
+  } catch {
     return [];
   }
 }

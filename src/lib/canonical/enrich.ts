@@ -6,7 +6,8 @@ import {
   type DataLink,
   type Provenance,
 } from "@/lib/canonical/schema";
-import { toDataLink, withDataLinks } from "@/lib/canonical/dataLinks";
+import { toDataLink, withDataLinks, type RawDataLink } from "@/lib/canonical/dataLinks";
+import { logger } from "@/lib/log";
 import { isSoftwareItem } from "@/lib/canonical/softwareItem";
 import {
   fetchCrossrefAbstract,
@@ -21,7 +22,7 @@ import {
 import type { CreditRole } from "@/lib/canonical/credit";
 import { fetchDataciteTitleYear } from "@/lib/datacite/client";
 import { fetchEuropePmcByDoi, fetchEuropePmcDataLinks } from "@/lib/europepmc/client";
-import { fetchIciteByPmids } from "@/lib/icite/client";
+import { ICITE_BATCH_SIZE, fetchIciteByPmids, type IciteRecord } from "@/lib/icite/client";
 import { fetchReplicationsForDois } from "@/lib/forrt/client";
 import { bareDoiInput } from "@/lib/openalex/client";
 import { fetchOpenCitationsCount } from "@/lib/opencitations/client";
@@ -49,23 +50,74 @@ import type { CslItem } from "@/types/csl";
 const CROSSREF_MAX_ENRICH = 50;
 const CONCURRENCY = 5;
 
-/** Run an async mapper over items with a fixed concurrency cap (order preserved). */
+/**
+ * Wall-clock budget for ONE per-work lookup pass (data links, OpenCitations,
+ * Software Heritage, Sciety, iCite, retractions). A pass stops LAUNCHING lookups
+ * once it has run this long — in-flight ones finish — and every target it did
+ * not reach is left unstamped, so the rotation picks it up next sync. Without
+ * this, a single dead upstream (Europe PMC's `datalinks` endpoint hanging, 2026-09-07)
+ * turned a ~10 s re-sync into a ~250 s one: the per-work timeouts bound each
+ * call, not the pass.
+ */
+export const ENRICH_PASS_BUDGET_MS = 30_000;
+
+/** A pass's deadline: `expired()` once the budget has elapsed. */
+interface PassBudget {
+  expired: () => boolean;
+}
+
+function withPassBudget(ms: number = ENRICH_PASS_BUDGET_MS): PassBudget {
+  const deadline = Date.now() + ms;
+  return { expired: () => Date.now() >= deadline };
+}
+
+/**
+ * Run an async mapper over items with a fixed concurrency cap (order preserved).
+ * With a `budget`, no further item is STARTED once it has expired: the returned
+ * array then covers only the launched prefix of `items` (workers pull from a
+ * shared cursor, so what was launched is always exactly `items.slice(0, n)`).
+ */
 async function mapBounded<T, R>(
   items: readonly T[],
   limit: number,
   fn: (item: T, index: number) => Promise<R>,
+  budget?: PassBudget,
 ): Promise<R[]> {
   const results = new Array<R>(items.length);
   let cursor = 0;
   async function worker(): Promise<void> {
-    while (cursor < items.length) {
+    while (cursor < items.length && !budget?.expired()) {
       const i = cursor++;
       results[i] = await fn(items[i] as T, i);
     }
   }
   const workers = Array.from({ length: Math.min(limit, items.length) }, worker);
   await Promise.all(workers);
-  return results;
+  return results.slice(0, cursor);
+}
+
+/**
+ * The per-work lookups of one bounded pass under {@link ENRICH_PASS_BUDGET_MS}:
+ * returns the targets actually examined (a prefix of `targets`) with their
+ * results, and logs ONE info line when the budget deferred the rest.
+ */
+async function mapWithinBudget<T, R>(
+  pass: string,
+  targets: readonly T[],
+  fn: (item: T, index: number) => Promise<R>,
+  limit: number = CONCURRENCY,
+): Promise<{ examined: T[]; results: R[] }> {
+  const results = await mapBounded(targets, limit, fn, withPassBudget());
+  const examined = targets.slice(0, results.length);
+  if (examined.length < targets.length) {
+    logger.info("enrich.pass_budget_exhausted", {
+      pass,
+      budgetMs: ENRICH_PASS_BUDGET_MS,
+      examined: examined.length,
+      deferred: targets.length - examined.length,
+    });
+  }
+  return { examined, results };
 }
 
 function withSource(
@@ -300,13 +352,27 @@ export async function enrichCvWithIcite(
   const targets = rotationQueue(candidates, ICITE_MAX_ENRICH);
   if (targets.length === 0) return cv;
 
-  const byPmid = await fetchIciteByPmids(targets.map((t) => t.pmid));
+  // Batched by the client's own page size, one batch at a time, so the pass
+  // budget can stop before a later batch is launched (the client batches
+  // internally too, but a single call could not be cut short).
+  const batches: Array<typeof targets> = [];
+  for (let i = 0; i < targets.length; i += ICITE_BATCH_SIZE) {
+    batches.push(targets.slice(i, i + ICITE_BATCH_SIZE));
+  }
+  const { examined, results } = await mapWithinBudget(
+    "icite.batches",
+    batches,
+    (batch) => fetchIciteByPmids(batch.map((t) => t.pmid)),
+    1,
+  );
+  const checked = examined.flat();
+  const byPmid = new Map<string, IciteRecord>(results.flatMap((m) => [...m]));
   const hits = new Map<string, Partial<CvItem["meta"]>>();
-  for (const t of targets) {
+  for (const t of checked) {
     const rec = byPmid.get(t.pmid);
     if (rec) hits.set(posKey(t), rec);
   }
-  return { ...cv, sections: applyPass(cv, targets, hits, { iciteCheckedAt: now }) };
+  return { ...cv, sections: applyPass(cv, checked, hits, { iciteCheckedAt: now }) };
 }
 
 // ─── Retraction flagging (Crossref / Retraction Watch) ───────────────────────
@@ -341,14 +407,14 @@ export async function enrichCvWithRetractions(
   const targets = rotationQueue(candidates, RETRACTION_MAX_CHECK);
   if (targets.length === 0) return cv;
 
-  const results = await mapBounded(targets, CONCURRENCY, (t) =>
+  const { examined, results } = await mapWithinBudget("retractions", targets, (t) =>
     fetchRetractionStatus(t.doi, mailto),
   );
   const hits = new Map<string, Partial<CvItem["meta"]>>();
-  targets.forEach((t, idx) => {
+  examined.forEach((t, idx) => {
     if (results[idx]) hits.set(posKey(t), { retracted: true });
   });
-  return { ...cv, sections: applyPass(cv, targets, hits, { retractionCheckedAt: now }) };
+  return { ...cv, sections: applyPass(cv, examined, hits, { retractionCheckedAt: now }) };
 }
 
 // ─── CRediT contributor roles (Crossref deposit, owner matched by ORCID) ─────
@@ -420,6 +486,51 @@ interface DataLinkFinds {
   links: DataLink[];
   pmid?: string;
   hasData?: boolean;
+  /**
+   * False when the Europe PMC data-links lookup did NOT complete — the endpoint
+   * failed, or the breaker below was already open and it was skipped. Such a
+   * work keeps whatever the other lookups found but is NOT stamped as checked,
+   * so the rotation retries it next sync.
+   */
+  complete: boolean;
+}
+
+/** Consecutive Europe PMC data-links failures that open the breaker for the rest of the pass. */
+export const DATA_LINKS_BREAKER_THRESHOLD = 3;
+
+/**
+ * Per-pass circuit breaker for Europe PMC's `datalinks` endpoint. Local, mutable
+ * state scoped to ONE pass invocation (like `mapBounded`'s cursor): after
+ * {@link DATA_LINKS_BREAKER_THRESHOLD} consecutive endpoint failures the pass
+ * stops calling the endpoint — the cheap search + Crossref lookups still run —
+ * and logs the outage ONCE at the end instead of once per work.
+ */
+interface DataLinksBreaker {
+  consecutiveFailures: number;
+  open: boolean;
+  skipped: number;
+}
+
+/**
+ * The Europe PMC data-links lookup under the breaker: `null` when it did not
+ * complete (skipped because the breaker is open, or the endpoint failed).
+ */
+async function fetchDataLinksUnderBreaker(
+  pmid: string,
+  breaker: DataLinksBreaker,
+): Promise<RawDataLink[] | null> {
+  if (breaker.open) {
+    breaker.skipped += 1;
+    return null;
+  }
+  const links = await fetchEuropePmcDataLinks(pmid);
+  if (links === null) {
+    breaker.consecutiveFailures += 1;
+    if (breaker.consecutiveFailures >= DATA_LINKS_BREAKER_THRESHOLD) breaker.open = true;
+    return null;
+  }
+  breaker.consecutiveFailures = 0;
+  return links;
 }
 
 /**
@@ -428,20 +539,24 @@ interface DataLinkFinds {
  * says the work HAS data (or when Europe PMC didn't answer but the work already
  * carries a PMID — then one direct data-links call is the only way to know).
  */
-async function lookupDataLinks(t: DataLinkTarget, mailto: string): Promise<DataLinkFinds> {
+async function lookupDataLinks(
+  t: DataLinkTarget,
+  mailto: string,
+  breaker: DataLinksBreaker,
+): Promise<DataLinkFinds> {
   const [crossref, record] = await Promise.all([
     fetchCrossrefDataLinks(t.doi, mailto),
     fetchEuropePmcByDoi(t.doi),
   ]);
   const pmid = record?.pmid ?? t.pmid;
   const tryEuropePmc = Boolean(pmid) && (record ? record.hasData !== false : true);
-  const europepmc = tryEuropePmc ? await fetchEuropePmcDataLinks(pmid!) : [];
+  const europepmc = tryEuropePmc ? await fetchDataLinksUnderBreaker(pmid!, breaker) : [];
   const links: DataLink[] = [];
-  for (const raw of [...europepmc, ...crossref]) {
+  for (const raw of [...(europepmc ?? []), ...crossref]) {
     const link = toDataLink(raw);
     if (link) links.push(link);
   }
-  return { links, pmid: record?.pmid, hasData: record?.hasData };
+  return { links, pmid: record?.pmid, hasData: record?.hasData, complete: europepmc !== null };
 }
 
 /**
@@ -465,6 +580,13 @@ async function lookupDataLinks(t: DataLinkTarget, mailto: string): Promise<DataL
  * rotates through the whole CV over successive syncs instead of re-querying
  * the same head every time. Returns the original CV when nothing changed
  * (including the timestamp — i.e. there was nothing to check).
+ *
+ * Two guards keep a dead upstream from stalling the sync (2026-09-07 incident):
+ * the pass runs under {@link ENRICH_PASS_BUDGET_MS}, and Europe PMC's
+ * data-links endpoint is circuit-broken for the rest of the pass after
+ * {@link DATA_LINKS_BREAKER_THRESHOLD} consecutive failures. A work whose
+ * data-links lookup failed or was skipped is NOT stamped (only fully-completed
+ * lookups are), so the rotation retries it next sync.
  */
 export async function enrichCvWithDataLinks(
   cv: CanonicalCv,
@@ -482,9 +604,19 @@ export async function enrichCvWithDataLinks(
   const targets = rotationQueue(candidates, DATA_LINKS_MAX_CHECK);
   if (targets.length === 0) return cv;
 
-  const finds = await mapBounded(targets, CONCURRENCY, (t) => lookupDataLinks(t, mailto));
+  const breaker: DataLinksBreaker = { consecutiveFailures: 0, open: false, skipped: 0 };
+  const { examined, results: finds } = await mapWithinBudget("dataLinks", targets, (t) =>
+    lookupDataLinks(t, mailto, breaker),
+  );
+  if (breaker.open) {
+    logger.warn("europepmc.datalinks_circuit_open", {
+      consecutiveFailures: DATA_LINKS_BREAKER_THRESHOLD,
+      skipped: breaker.skipped,
+      examined: examined.length,
+    });
+  }
   const byPos = new Map<string, DataLinkFinds>();
-  targets.forEach((t, idx) => byPos.set(`${t.s}:${t.i}`, finds[idx]!));
+  examined.forEach((t, idx) => byPos.set(`${t.s}:${t.i}`, finds[idx]!));
 
   let changed = false;
   const sections = cv.sections.map((section, s) => ({
@@ -497,7 +629,10 @@ export async function enrichCvWithDataLinks(
         next = { ...next, meta: { ...next.meta, hasDataStatement: find.hasData } };
       }
       if (find.pmid && !item.meta.pmid) next = { ...next, meta: { ...next.meta, pmid: find.pmid } };
-      if (next.meta.dataLinksCheckedAt !== now) {
+      // Only a work whose lookups ALL completed is stamped; one whose data-links
+      // call failed or was skipped by the open breaker stays "unchecked" so the
+      // rotation retries it next sync (its other finds are still kept).
+      if (find.complete && next.meta.dataLinksCheckedAt !== now) {
         next = { ...next, meta: { ...next.meta, dataLinksCheckedAt: now } };
       }
       if (next !== item) changed = true;
@@ -618,13 +753,15 @@ export async function enrichCvWithOpenCitations(
   const targets = rotationQueue(candidates, OPENCITATIONS_MAX_ENRICH);
   if (targets.length === 0) return cv;
 
-  const fetched = await mapBounded(targets, CONCURRENCY, (t) => fetchOpenCitationsCount(t.doi));
+  const { examined, results: fetched } = await mapWithinBudget("openCitations", targets, (t) =>
+    fetchOpenCitationsCount(t.doi),
+  );
   const hits = new Map<string, Partial<CvItem["meta"]>>();
-  targets.forEach((t, idx) => {
+  examined.forEach((t, idx) => {
     const count = fetched[idx];
     if (count !== null && count !== undefined) hits.set(posKey(t), { citedByOpenCitations: count });
   });
-  const sections = applyPass(cv, targets, hits, { openCitationsCheckedAt: now });
+  const sections = applyPass(cv, examined, hits, { openCitationsCheckedAt: now });
   return {
     ...cv,
     sections,
@@ -671,11 +808,11 @@ export async function enrichCvWithSoftwareHeritage(
   const targets = rotationQueue(candidates, SOFTWARE_HERITAGE_MAX_ENRICH);
   if (targets.length === 0) return cv;
 
-  const fetched = await mapBounded(targets, CONCURRENCY, (t) =>
+  const { examined, results: fetched } = await mapWithinBudget("softwareHeritage", targets, (t) =>
     fetchSoftwareHeritageArchival(t.url),
   );
   const hits = new Map<string, Partial<CvItem["meta"]>>();
-  targets.forEach((t, idx) => {
+  examined.forEach((t, idx) => {
     const result = fetched[idx];
     if (result) {
       hits.set(posKey(t), {
@@ -684,7 +821,7 @@ export async function enrichCvWithSoftwareHeritage(
       });
     }
   });
-  const sections = applyPass(cv, targets, hits, { swhCheckedAt: now });
+  const sections = applyPass(cv, examined, hits, { swhCheckedAt: now });
   return {
     ...cv,
     sections,
@@ -725,13 +862,15 @@ export async function enrichCvWithSciety(
   const targets = rotationQueue(candidates, SCIETY_MAX_ENRICH);
   if (targets.length === 0) return cv;
 
-  const fetched = await mapBounded(targets, CONCURRENCY, (t) => fetchScietyEvaluations(t.doi));
+  const { examined, results: fetched } = await mapWithinBudget("sciety", targets, (t) =>
+    fetchScietyEvaluations(t.doi),
+  );
   const hits = new Map<string, Partial<CvItem["meta"]>>();
-  targets.forEach((t, idx) => {
+  examined.forEach((t, idx) => {
     const list: PublicEvaluation[] | undefined = fetched[idx];
     if (list && list.length > 0) hits.set(posKey(t), { publicEvaluations: list });
   });
-  const sections = applyPass(cv, targets, hits, { publicEvaluationsCheckedAt: now });
+  const sections = applyPass(cv, examined, hits, { publicEvaluationsCheckedAt: now });
   return {
     ...cv,
     sections,

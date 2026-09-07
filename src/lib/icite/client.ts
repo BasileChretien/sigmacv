@@ -34,7 +34,7 @@ import { logger } from "@/lib/log";
 const ICITE_API = "https://icite.od.nih.gov/api/pubs";
 const USER_AGENT = "SigmaCV (+https://github.com/BasileChretien/sigmacv)";
 // iCite accepts up to ~1000 ids per call; keep the query string well-bounded.
-const BATCH_SIZE = 200;
+export const ICITE_BATCH_SIZE = 200;
 // NOTE: in a field-filtered response iCite returns the RCR under the SHORT alias
 // `rcr` (the full, unfiltered record uses `relative_citation_ratio`); request the
 // short names and read them below, with a fallback to the long name for safety.
@@ -148,8 +148,8 @@ export async function fetchIciteByPmids(
 ): Promise<Map<string, IciteRecord>> {
   const valid = [...new Set(pmids.map((p) => p.trim()).filter((p) => /^\d+$/.test(p)))];
   const result = new Map<string, IciteRecord>();
-  for (let i = 0; i < valid.length; i += BATCH_SIZE) {
-    const batch = await fetchBatch(valid.slice(i, i + BATCH_SIZE));
+  for (let i = 0; i < valid.length; i += ICITE_BATCH_SIZE) {
+    const batch = await fetchBatch(valid.slice(i, i + ICITE_BATCH_SIZE));
     for (const [k, v] of batch) result.set(k, v);
   }
   return result;

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   fetchOpenCitationsCount: vi.fn(),
@@ -19,8 +19,13 @@ vi.mock("@/lib/sciety/client", () => ({
 // transitive dependency) keeps this suite from requiring real env vars, same as
 // `tests/forrt-client.test.ts`.
 vi.mock("@/lib/db", () => ({ prisma: { forrtReplication: { findMany: vi.fn() } } }));
+vi.mock("@/lib/log", () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+}));
 
+import { logger } from "@/lib/log";
 import {
+  ENRICH_PASS_BUDGET_MS,
   enrichCvWithOpenCitations,
   enrichCvWithSciety,
   enrichCvWithSoftwareHeritage,
@@ -33,6 +38,7 @@ beforeEach(() => {
   mocks.fetchOpenCitationsCount.mockReset();
   mocks.fetchSoftwareHeritageArchival.mockReset();
   mocks.fetchScietyEvaluations.mockReset();
+  vi.mocked(logger.info).mockReset();
 });
 
 function csl(over: Partial<CslItem> = {}): CslItem {
@@ -340,5 +346,102 @@ describe("enrichCvWithSciety", () => {
     ]);
     expect(await enrichCvWithSciety(cv)).toBe(cv);
     expect(f).not.toHaveBeenCalled();
+  });
+});
+
+// ─── Per-pass time budget (production incident 2026-09-07) ───────────────────
+//
+// Each pass stops LAUNCHING lookups once ENRICH_PASS_BUDGET_MS has elapsed;
+// targets it never reached are left untouched (no sentinel) so the rotation
+// examines them next sync. The first mocked lookup "takes" the whole budget.
+
+describe("per-pass time budget", () => {
+  const START = Date.parse("2026-09-07T12:00:00.000Z");
+  const spendBudget = () => vi.setSystemTime(START + ENRICH_PASS_BUDGET_MS);
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(START);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  const budgetLog = (pass: string, examined: number, deferred: number) =>
+    expect(logger.info).toHaveBeenCalledWith("enrich.pass_budget_exhausted", {
+      pass,
+      budgetMs: ENRICH_PASS_BUDGET_MS,
+      examined,
+      deferred,
+    });
+
+  it("openCitations: works past the budget are neither counted nor stamped", async () => {
+    mocks.fetchOpenCitationsCount.mockImplementation(async () => {
+      spendBudget();
+      return 7;
+    });
+    const cv = makeCv([
+      section("publications", [
+        item("W1", { csl: csl({ id: "W1", DOI: "10.1/a" }) }),
+        item("W2", { csl: csl({ id: "W2", DOI: "10.1/b" }) }),
+        item("W3", { csl: csl({ id: "W3", DOI: "10.1/c" }) }),
+      ]),
+    ]);
+    const out = await enrichCvWithOpenCitations(cv, NOW);
+    expect(mocks.fetchOpenCitationsCount).toHaveBeenCalledTimes(1);
+    const items = out.sections[0]!.items;
+    expect(items[0]!.meta).toEqual({ citedByOpenCitations: 7, openCitationsCheckedAt: NOW });
+    expect(items[1]).toBe(cv.sections[0]!.items[1]);
+    expect(items[2]).toBe(cv.sections[0]!.items[2]);
+    budgetLog("openCitations", 1, 2);
+  });
+
+  it("softwareHeritage: items past the budget are neither archived nor stamped", async () => {
+    mocks.fetchSoftwareHeritageArchival.mockImplementation(async () => {
+      spendBudget();
+      return { swhid: `swh:1:snp:${"a".repeat(40)}` };
+    });
+    const repo = (n: number) => ({ repositoryUrl: `https://github.com/u/r${n}` });
+    const cv = makeCv([
+      section("software", [item("S1", { meta: repo(1) }), item("S2", { meta: repo(2) })]),
+    ]);
+    const out = await enrichCvWithSoftwareHeritage(cv, NOW);
+    expect(mocks.fetchSoftwareHeritageArchival).toHaveBeenCalledTimes(1);
+    const items = out.sections[0]!.items;
+    expect(items[0]!.meta.swhid).toBeDefined();
+    expect(items[0]!.meta.swhCheckedAt).toBe(NOW);
+    expect(items[1]).toBe(cv.sections[0]!.items[1]);
+    budgetLog("softwareHeritage", 1, 1);
+  });
+
+  it("sciety: preprints past the budget are neither evaluated nor stamped", async () => {
+    mocks.fetchScietyEvaluations.mockImplementation(async () => {
+      spendBudget();
+      return [{ group: "eLife", type: "evaluation-summary", url: "https://x/1", date: "2024" }];
+    });
+    const cv = makeCv([
+      section("preprints", [
+        item("PP1", { csl: csl({ DOI: "10.1/x" }) }),
+        item("PP2", { csl: csl({ DOI: "10.1/y" }) }),
+      ]),
+    ]);
+    const out = await enrichCvWithSciety(cv, NOW);
+    expect(mocks.fetchScietyEvaluations).toHaveBeenCalledTimes(1);
+    const items = out.sections[0]!.items;
+    expect(items[0]!.meta.publicEvaluations).toHaveLength(1);
+    expect(items[0]!.meta.publicEvaluationsCheckedAt).toBe(NOW);
+    expect(items[1]).toBe(cv.sections[0]!.items[1]);
+    budgetLog("sciety", 1, 1);
+  });
+
+  it("logs nothing when every lookup fits in the budget", async () => {
+    mocks.fetchOpenCitationsCount.mockResolvedValue(null);
+    const cv = makeCv([
+      section("publications", [
+        item("W1", { csl: csl({ id: "W1", DOI: "10.1/a" }) }),
+        item("W2", { csl: csl({ id: "W2", DOI: "10.1/b" }) }),
+      ]),
+    ]);
+    await enrichCvWithOpenCitations(cv, NOW);
+    expect(mocks.fetchOpenCitationsCount).toHaveBeenCalledTimes(2);
+    expect(logger.info).not.toHaveBeenCalled();
   });
 });

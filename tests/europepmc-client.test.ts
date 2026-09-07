@@ -130,6 +130,37 @@ describe("fetchEuropePmcByDoi", () => {
     expect(await fetchEuropePmcByDoi("")).toBeNull();
     expect(f).not.toHaveBeenCalled();
   });
+
+  it("makes exactly ONE attempt on a 5xx (no retry inside a sync)", async () => {
+    const f = vi.fn(async () => res("{}", { status: 503 }));
+    vi.stubGlobal("fetch", f);
+    expect(await fetchEuropePmcByDoi("10.1234/x")).toBeNull();
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts a hanging search after 8 s and does not retry", async () => {
+    vi.useFakeTimers();
+    try {
+      const f = vi.fn(
+        (_url: unknown, init: { signal: AbortSignal }) =>
+          new Promise<Response>((_, reject) => {
+            init.signal.addEventListener("abort", () =>
+              reject(new DOMException("aborted", "AbortError")),
+            );
+          }),
+      );
+      vi.stubGlobal("fetch", f);
+      const pending = fetchEuropePmcByDoi("10.1234/x");
+      await vi.advanceTimersByTimeAsync(7_999);
+      expect(f).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(await pending).toBeNull();
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(f).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 const LINKS = {
@@ -254,10 +285,10 @@ describe("fetchEuropePmcDataLinks", () => {
       "fetch",
       vi.fn(async () => res(body)),
     );
-    expect((await fetchEuropePmcDataLinks("1")).length).toBe(20);
+    expect((await fetchEuropePmcDataLinks("1"))?.length).toBe(20);
   });
 
-  it("returns [] on an empty list, malformed JSON, an HTTP error, an over-cap body or a network error", async () => {
+  it("returns [] (ANSWERED, nothing usable) on an empty list, malformed JSON, a 404 or an over-cap body", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => res({ hitCount: 0, dataLinkList: { Category: [] } })),
@@ -278,7 +309,7 @@ describe("fetchEuropePmcDataLinks", () => {
 
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => res("{}", { status: 500 })),
+      vi.fn(async () => res("{}", { status: 404 })),
     );
     expect(await fetchEuropePmcDataLinks("1")).toEqual([]);
 
@@ -287,14 +318,50 @@ describe("fetchEuropePmcDataLinks", () => {
       vi.fn(async () => res("{}", { contentLength: "99999999" })),
     );
     expect(await fetchEuropePmcDataLinks("1")).toEqual([]);
+  });
 
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => {
-        throw new Error("offline");
-      }),
-    );
-    expect(await fetchEuropePmcDataLinks("1")).toEqual([]);
+  it("returns null (endpoint FAILED) on a 5xx / 429 / network error — after exactly ONE attempt, no retry", async () => {
+    const f500 = vi.fn(async () => res("{}", { status: 500 }));
+    vi.stubGlobal("fetch", f500);
+    expect(await fetchEuropePmcDataLinks("1")).toBeNull();
+    expect(f500).toHaveBeenCalledTimes(1);
+
+    const f429 = vi.fn(async () => res("{}", { status: 429 }));
+    vi.stubGlobal("fetch", f429);
+    expect(await fetchEuropePmcDataLinks("1")).toBeNull();
+    expect(f429).toHaveBeenCalledTimes(1);
+
+    const fErr = vi.fn(async () => {
+      throw new Error("offline");
+    });
+    vi.stubGlobal("fetch", fErr);
+    expect(await fetchEuropePmcDataLinks("1")).toBeNull();
+    expect(fErr).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts a hanging request after 6 s and reports it as an endpoint failure, without retrying", async () => {
+    vi.useFakeTimers();
+    try {
+      const f = vi.fn(
+        (_url: unknown, init: { signal: AbortSignal }) =>
+          new Promise<Response>((_, reject) => {
+            init.signal.addEventListener("abort", () =>
+              reject(new DOMException("aborted", "AbortError")),
+            );
+          }),
+      );
+      vi.stubGlobal("fetch", f);
+      const pending = fetchEuropePmcDataLinks("1");
+      await vi.advanceTimersByTimeAsync(5_999);
+      expect(f).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(await pending).toBeNull();
+      // No backoff-and-retry: one hanging call costs 6 s, not ~40 s.
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(f).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("rejects a non-numeric PMID without any request", async () => {

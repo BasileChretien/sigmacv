@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   fetchCrossrefGapFields: vi.fn(),
@@ -27,14 +27,21 @@ vi.mock("@/lib/ror/client", () => ({
   resolveInstitution: mocks.resolveInstitution,
 }));
 vi.mock("@/lib/icite/client", () => ({
+  ICITE_BATCH_SIZE: 200,
   fetchIciteByPmids: mocks.fetchIciteByPmids,
 }));
 vi.mock("@/lib/forrt/client", () => ({
   fetchReplicationsForDois: mocks.fetchReplicationsForDois,
 }));
+vi.mock("@/lib/log", () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+}));
 
+import { logger } from "@/lib/log";
 import {
+  DATA_LINKS_BREAKER_THRESHOLD,
   DATA_LINKS_MAX_CHECK,
+  ENRICH_PASS_BUDGET_MS,
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
   enrichCvWithCreditRoles,
@@ -64,6 +71,8 @@ beforeEach(() => {
   mocks.resolveInstitution.mockReset();
   mocks.fetchIciteByPmids.mockReset();
   mocks.fetchReplicationsForDois.mockReset();
+  vi.mocked(logger.info).mockReset();
+  vi.mocked(logger.warn).mockReset();
 });
 
 // ─── test fixtures ───────────────────────────────────────────────────────────
@@ -354,7 +363,11 @@ describe("enrichCvWithIcite", () => {
     }));
     const tail = withPmid("TAIL", "9999");
     const first = await enrichCvWithIcite(makeCv([...known, tail]), NOW);
-    const queried = mocks.fetchIciteByPmids.mock.calls[0]![0] as string[];
+    // The 500 targets go out in pass-level batches of the client's page size
+    // (200 + 200 + 100), in queue order.
+    const firstRunCalls = mocks.fetchIciteByPmids.mock.calls.length;
+    expect(firstRunCalls).toBe(3);
+    const queried = mocks.fetchIciteByPmids.mock.calls.flatMap((c) => c[0] as string[]);
     expect(queried).toHaveLength(500);
     expect(queried[0]).toBe("9999"); // the never-checked tail goes first
     // The 499 remaining slots go to the OLDEST-checked works; the single newest
@@ -372,7 +385,7 @@ describe("enrichCvWithIcite", () => {
     // …so on the NEXT run it is the oldest and goes first.
     const LATER = "2026-09-08T00:00:00.000Z";
     await enrichCvWithIcite(first, LATER);
-    const queriedNext = mocks.fetchIciteByPmids.mock.calls[1]![0] as string[];
+    const queriedNext = mocks.fetchIciteByPmids.mock.calls[firstRunCalls]![0] as string[];
     expect(queriedNext[0]).toBe(newest.meta.pmid);
     expect(queriedNext).not.toContain("9999"); // the tail (stamped NOW) is now the newest → skipped
   });
@@ -910,5 +923,214 @@ describe("enrichCvWithDataLinks", () => {
     const secondDois = mocks.fetchEuropePmcByDoi.mock.calls.map((c) => c[0] as string);
     // The 3 never-checked works from the first sync are examined FIRST this time.
     expect(secondDois.slice(0, 3).sort()).toEqual(["10.1/100", "10.1/101", "10.1/102"]);
+  });
+});
+
+// ─── Circuit breaker + per-pass time budget (production incident 2026-09-07) ──
+//
+// Europe PMC's `datalinks` endpoint hung for a day; with per-work retries the
+// data-links pass alone took ~226 s per sync. Two guards now bound a pass:
+// a per-pass breaker on that endpoint, and a wall-clock budget under which no
+// pass LAUNCHES further lookups.
+
+const NOW = "2026-09-07T00:00:00.000Z";
+const START = Date.parse("2026-09-07T12:00:00.000Z");
+const ZENODO_RAW = { id: "10.5281/zenodo.5", scheme: "doi" };
+const ZENODO: DataLink = {
+  id: "10.5281/zenodo.5",
+  scheme: "doi",
+  url: "https://doi.org/10.5281/zenodo.5",
+  kind: "dataset",
+};
+
+/** `n` DOI-bearing works W<from>… (DOI 10.1/<i>). */
+function doiWorks(n: number, from = 0): CvItem[] {
+  return Array.from({ length: n }, (_, k) => {
+    const i = from + k;
+    return pub(`W${i}`, csl({ id: `W${i}`, DOI: `10.1/${i}` }));
+  });
+}
+
+/** Europe PMC resolves DOI 10.1/<i> to PMID "1<i>" with data (→ a data-links call is due). */
+function searchResolvesWithData(doi: string): { pmid: string; hasData: boolean } {
+  return { pmid: `1${doi.split("/")[1]}`, hasData: true };
+}
+
+/** Freeze the clock at START; the returned mover jumps it past the pass budget. */
+function freezeClock(): () => void {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(START);
+  return () => vi.setSystemTime(START + ENRICH_PASS_BUDGET_MS);
+}
+
+describe("enrichCvWithDataLinks — Europe PMC data-links circuit breaker", () => {
+  beforeEach(() => {
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([ZENODO_RAW]);
+    mocks.fetchEuropePmcByDoi.mockImplementation(async (doi: string) =>
+      searchResolvesWithData(doi),
+    );
+  });
+
+  it("opens after 3 consecutive endpoint failures: later works skip the data-links call, still get search + Crossref, and stay UNSTAMPED", async () => {
+    mocks.fetchEuropePmcDataLinks.mockResolvedValue(null); // endpoint down
+    // W8 needs no data-links call at all (Europe PMC says: no data).
+    mocks.fetchEuropePmcByDoi.mockImplementation(async (doi: string) =>
+      doi === "10.1/8" ? { pmid: "18", hasData: false } : searchResolvesWithData(doi),
+    );
+    const cv = makeCv(doiWorks(9));
+    const out = await enrichCvWithDataLinks(cv, "ci@example.org", NOW);
+
+    // The cheap lookups still ran for EVERY work…
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(9);
+    expect(mocks.fetchCrossrefDataLinks).toHaveBeenCalledTimes(9);
+    // …but the data-links endpoint was only reached by the works already in
+    // flight when the third failure landed — the 5-wide concurrency window —
+    // and by none of the works launched after it.
+    expect(mocks.fetchEuropePmcDataLinks).toHaveBeenCalledTimes(5);
+
+    const items = out.sections[0]!.items;
+    for (const item of items.slice(0, 8)) {
+      // Nothing is known about their data links → NOT stamped (retried next sync)…
+      expect(item.meta.dataLinksCheckedAt).toBeUndefined();
+      // …but what the other lookups found is kept.
+      expect(item.meta.pmid).toMatch(/^1\d$/);
+      expect(item.meta.hasDataStatement).toBe(true);
+      expect(item.meta.dataLinks).toEqual([ZENODO]);
+    }
+    // A work whose lookups ALL completed (no data-links call due) is stamped.
+    expect(items[8]!.meta).toMatchObject({
+      pmid: "18",
+      hasDataStatement: false,
+      dataLinksCheckedAt: NOW,
+      dataLinks: [ZENODO],
+    });
+    // The outage is logged ONCE, not once per work.
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith("europepmc.datalinks_circuit_open", {
+      consecutiveFailures: DATA_LINKS_BREAKER_THRESHOLD,
+      skipped: 3,
+      examined: 9,
+    });
+    expect(DATA_LINKS_BREAKER_THRESHOLD).toBe(3);
+  });
+
+  it("counts CONSECUTIVE failures only: an answer in between resets the count and the breaker stays closed", async () => {
+    mocks.fetchEuropePmcDataLinks
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce([]) // answered: no links
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValue([]);
+    const out = await enrichCvWithDataLinks(makeCv(doiWorks(7)), "ci@example.org", NOW);
+    expect(mocks.fetchEuropePmcDataLinks).toHaveBeenCalledTimes(7);
+    expect(logger.warn).not.toHaveBeenCalled();
+    const stamped = out.sections[0]!.items.map((it) => it.meta.dataLinksCheckedAt === NOW);
+    // Only the works whose data-links call actually ANSWERED are stamped.
+    expect(stamped).toEqual([false, false, true, false, false, true, true]);
+  });
+
+  it("a single failed data-links call leaves that work unstamped and keeps the CV otherwise unchanged", async () => {
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
+    mocks.fetchEuropePmcDataLinks.mockResolvedValue(null);
+    const withPmid = { ...pub("W1", csl({ DOI: "10.1/x" })), meta: { pmid: "333" } };
+    const cv = makeCv([withPmid]);
+    // Nothing found and nothing stamped → the very same CV object comes back.
+    expect(await enrichCvWithDataLinks(cv, "ci@example.org", NOW)).toBe(cv);
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+});
+
+describe("per-pass time budget (ENRICH_PASS_BUDGET_MS)", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("is 30 s", () => {
+    expect(ENRICH_PASS_BUDGET_MS).toBe(30_000);
+  });
+
+  it("dataLinks: stops launching lookups once the budget is spent; unexamined works are left untouched and unstamped", async () => {
+    const spend = freezeClock();
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    // The first lookup takes the whole budget (a hanging upstream); the workers
+    // that would launch the next works see the budget expired.
+    mocks.fetchEuropePmcByDoi.mockImplementation(async () => {
+      spend();
+      return null;
+    });
+    const cv = makeCv(doiWorks(4));
+    const out = await enrichCvWithDataLinks(cv, "ci@example.org", NOW);
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(1);
+    const items = out.sections[0]!.items;
+    expect(items[0]!.meta.dataLinksCheckedAt).toBe(NOW);
+    for (const k of [1, 2, 3]) {
+      expect(items[k]).toBe(cv.sections[0]!.items[k]);
+      expect(items[k]!.meta.dataLinksCheckedAt).toBeUndefined();
+    }
+    expect(logger.info).toHaveBeenCalledTimes(1);
+    expect(logger.info).toHaveBeenCalledWith("enrich.pass_budget_exhausted", {
+      pass: "dataLinks",
+      budgetMs: ENRICH_PASS_BUDGET_MS,
+      examined: 1,
+      deferred: 3,
+    });
+  });
+
+  it("dataLinks: logs nothing when every lookup fits in the budget", async () => {
+    freezeClock();
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
+    await enrichCvWithDataLinks(makeCv(doiWorks(4)), "ci@example.org", NOW);
+    expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(4);
+    expect(logger.info).not.toHaveBeenCalled();
+  });
+
+  it("retractions: the works past the budget are neither flagged nor stamped", async () => {
+    const spend = freezeClock();
+    mocks.fetchRetractionStatus.mockImplementation(async () => {
+      spend();
+      return true;
+    });
+    const cv = makeCv(doiWorks(3));
+    const out = await enrichCvWithRetractions(cv, "ci@example.org", NOW);
+    expect(mocks.fetchRetractionStatus).toHaveBeenCalledTimes(1);
+    const items = out.sections[0]!.items;
+    expect(items[0]!.meta).toEqual({ retracted: true, retractionCheckedAt: NOW });
+    expect(items[1]).toBe(cv.sections[0]!.items[1]);
+    expect(items[2]).toBe(cv.sections[0]!.items[2]);
+    expect(logger.info).toHaveBeenCalledWith("enrich.pass_budget_exhausted", {
+      pass: "retractions",
+      budgetMs: ENRICH_PASS_BUDGET_MS,
+      examined: 1,
+      deferred: 2,
+    });
+  });
+
+  it("icite: batches are launched one at a time so a later batch is skipped once the budget is spent", async () => {
+    const spend = freezeClock();
+    mocks.fetchIciteByPmids.mockImplementation(async () => {
+      spend();
+      return new Map([["10", { rcr: 1.5 }]]);
+    });
+    // 201 works with a PMID → two batches of the client's page size (200 + 1).
+    const items = Array.from({ length: 201 }, (_, i) => ({
+      ...pub(`W${i}`),
+      meta: { pmid: `${i}` },
+    }));
+    const cv = makeCv(items);
+    const out = await enrichCvWithIcite(cv, NOW);
+    expect(mocks.fetchIciteByPmids).toHaveBeenCalledTimes(1);
+    expect((mocks.fetchIciteByPmids.mock.calls[0] as unknown[])[0]).toHaveLength(200);
+    const got = out.sections[0]!.items;
+    expect(got[10]!.meta).toEqual({ pmid: "10", rcr: 1.5, iciteCheckedAt: NOW });
+    expect(got[199]!.meta).toEqual({ pmid: "199", iciteCheckedAt: NOW });
+    // The 201st work sat in the second batch, never launched → untouched.
+    expect(got[200]).toBe(cv.sections[0]!.items[200]);
+    expect(logger.info).toHaveBeenCalledWith("enrich.pass_budget_exhausted", {
+      pass: "icite.batches",
+      budgetMs: ENRICH_PASS_BUDGET_MS,
+      examined: 1,
+      deferred: 1,
+    });
   });
 });
