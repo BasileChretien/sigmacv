@@ -115,35 +115,38 @@ model VerificationToken {
 
 // One canonical CV document per user (the single source of truth).
 model Cv {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  document        Json
-  schemaVersion   Int       @default(1)
-  lastSyncedAt    DateTime?
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  document               Json
+  schemaVersion          Int       @default(1)
+  lastSyncedAt           DateTime?
   // "What changed" report of the last sync (added/removed items, review
   // candidates, per-source counts + timings) — shown in the editor. Validated
   // on read by SyncReportSchema; a corrupt value degrades to "no report".
-  lastSyncReport  Json?
+  lastSyncReport         Json?
   // Living public page: published flag + a stable public slug.
-  published       Boolean   @default(false)
-  publicSlug      String?   @unique
+  published              Boolean   @default(false)
+  publicSlug             String?   @unique
   // Separate, explicit opt-in to let search engines index the public page.
   // Default false: publishing shares a capability URL; INDEXING (names/ORCID/
   // publications into Google) requires this distinct consent (GDPR/APPI).
-  publicIndexable Boolean   @default(false)
+  publicIndexable        Boolean   @default(false)
   // Separate, explicit opt-in to be LISTED under the owner's self-declared
   // current affiliation in the OAI-PMH `ror:<id>` set (an institution-keyed
   // harvest is systematic processing the indexing consent does not cover).
   // Requires publicIndexable (turning indexing off clears it); default false.
-  listUnderAffiliation Boolean @default(false)
+  listUnderAffiliation   Boolean   @default(false)
   // Denormalised bare ROR id of the first VISIBLE current position (the set key),
   // rewritten on every save / sync / publish change; null when no visible
   // position resolves to a ROR record. Derived from the document, never edited.
-  currentRorId    String?
+  currentRorId           String?
+  // The institution's canonical name for that key (ROR / source name, never the
+  // owner's rename), written with it; ListSets reads these two columns only.
+  currentAffiliationName String?
   // Compare-and-set lock for the scheduled re-sync job (null = unlocked).
-  resyncLockedAt  DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  resyncLockedAt         DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   snapshots CvSnapshot[]

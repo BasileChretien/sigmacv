@@ -21,6 +21,8 @@ import {
   workRecords,
   type OaiListPage,
   type OaiRecordInput,
+  encodeResumptionToken,
+  parseResumptionToken,
 } from "@/lib/oai/oai";
 import type { CslItem } from "@/types/csl";
 
@@ -261,6 +263,49 @@ describe("OAI response builders", () => {
     expect(xml).toContain("<oai_dc:dc");
   });
 
+  it("a resumption token carries the list's filters, and a tampered one is rejected", () => {
+    const recs = [makeRecord({ slug: "a" })];
+    const from = new Date("2026-01-01T00:00:00Z");
+    const until = new Date("2026-06-30T23:59:59Z");
+    const page: OaiListPage = {
+      records: recs,
+      cursor: 0,
+      nextOffset: 100,
+      filters: { set: "04chrp450", from, until },
+    };
+    const xml = listRecordsResponse(
+      { verb: "ListRecords", metadataPrefix: "oai_dc", set: "ror:04chrp450" },
+      page,
+      OPTS,
+    );
+    const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(xml)![1]!;
+    expect(token).toMatch(/^[A-Za-z0-9_-]+$/);
+    expect(parseResumptionToken(token)).toEqual({ offset: 100, set: "04chrp450", from, until });
+    // Page 2 of a set-filtered list is still page 2 OF THAT SET.
+    expect(validateOaiRequest({ verb: "ListRecords", resumptionToken: token })).toEqual({
+      kind: "list",
+      verb: "ListRecords",
+      offset: 100,
+      set: "04chrp450",
+      from,
+      until,
+    });
+    // Round trip without filters, and the legacy bare offset.
+    expect(parseResumptionToken(encodeResumptionToken({ offset: 7 }))).toEqual({ offset: 7 });
+    expect(parseResumptionToken("42")).toEqual({ offset: 42 });
+    // Tampering: a foreign set id, a bad date, junk, or a non-numeric offset → rejected,
+    // never widened into an unfiltered list.
+    const forged = (q: string) => Buffer.from(q, "utf8").toString("base64url");
+    expect(parseResumptionToken(forged("o=100&s=../../x"))).toBeNull();
+    expect(parseResumptionToken(forged("o=100&s=04chrp450&f=2026-13-01"))).toBeNull();
+    expect(parseResumptionToken(forged("o=abc"))).toBeNull();
+    expect(parseResumptionToken(forged("s=04chrp450"))).toBeNull();
+    expect(parseResumptionToken("not*base64")).toBeNull();
+    expect(
+      validateOaiRequest({ verb: "ListRecords", resumptionToken: forged("o=1&s=!") }),
+    ).toMatchObject({ code: "badResumptionToken" });
+  });
+
   it("ListRecords includes a resumptionToken only when more pages remain", () => {
     const recs = [makeRecord({ slug: "a" }), makeRecord({ slug: "b" })];
     const more: OaiListPage = { records: recs, cursor: 0, nextOffset: 100 };
@@ -268,7 +313,8 @@ describe("OAI response builders", () => {
     // Pages are cut at CV boundaries (a CV's per-work records ride with it), so
     // the size of the complete RECORD list is unknown: the optional
     // completeListSize / cursor attributes are omitted rather than misreported.
-    expect(xml).toContain("<resumptionToken>100</resumptionToken>");
+    const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(xml)![1]!;
+    expect(parseResumptionToken(token)).toEqual({ offset: 100 });
     expect(xml).not.toContain("completeListSize");
     expect((xml.match(/<record>/g) ?? []).length).toBe(2);
 

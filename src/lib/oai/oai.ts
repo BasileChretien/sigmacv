@@ -87,6 +87,16 @@ export interface OaiListPage {
   cursor: number;
   /** Offset of the next page, or null when this is the last page. */
   nextOffset: number | null;
+  /** The list's filters, carried into the next page's resumption token so a
+   *  set-filtered (or dated) harvest can never lose its filter on page 2. */
+  filters?: ListFilters;
+}
+
+/** The filters of a list request (`set` = bare ROR id). */
+export interface ListFilters {
+  set?: string;
+  from?: Date;
+  until?: Date;
 }
 
 /** Request args echoed in `<request>` and used for validation. */
@@ -378,7 +388,35 @@ function resumptionTokenXml(page: OaiListPage): string {
     if (page.cursor === 0) return "";
     return `    <resumptionToken/>`;
   }
-  return `    <resumptionToken>${page.nextOffset}</resumptionToken>`;
+  const token = encodeResumptionToken({ offset: page.nextOffset, ...page.filters });
+  return `    <resumptionToken>${escapeXml(token)}</resumptionToken>`;
+}
+
+/** What a resumption token carries: the offset AND the list's filters. */
+export interface ResumptionState extends ListFilters {
+  offset: number;
+}
+
+/** `YYYY-MM-DDThh:mm:ssZ` — the OAI seconds form `parseOaiDate` accepts. */
+function oaiSeconds(d: Date): string {
+  return d.toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+/**
+ * Encode the resumption state as an opaque, URL-safe token: base64url of a
+ * query string (`o=<offset>&s=<rorId>&f=<from>&u=<until>`). The consent-bearing
+ * `set` filter rides the token, so page 2 of `ListRecords&set=ror:X` is still
+ * page 2 OF THAT SET — a bare offset would silently continue over every
+ * indexable CV, including researchers who never opted into the institution
+ * listing. Exported for tests.
+ */
+export function encodeResumptionToken(state: ResumptionState): string {
+  const p = new URLSearchParams();
+  p.set("o", String(state.offset));
+  if (state.set) p.set("s", state.set);
+  if (state.from) p.set("f", oaiSeconds(state.from));
+  if (state.until) p.set("u", oaiSeconds(state.until));
+  return Buffer.from(p.toString(), "utf8").toString("base64url");
 }
 
 // ─── Verb responses ───────────────────────────────────────────────────────────
@@ -516,9 +554,45 @@ function parseOaiDate(s: string): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-/** Offset-based resumption token: a non-negative integer, or null if malformed. */
-function parseResumptionToken(token: string): number | null {
-  return /^\d+$/.test(token) ? Number(token) : null;
+/**
+ * Decode a resumption token into its state, or null when malformed. Accepts the
+ * pre-set-era bare integer (offset only, no filters — those tokens never had
+ * any) and the encoded form; every carried field is re-validated exactly as the
+ * original request argument would be (a tampered set or date is rejected, never
+ * widened into an unfiltered list). Exported for tests.
+ */
+export function parseResumptionToken(token: string): ResumptionState | null {
+  if (/^\d+$/.test(token)) return { offset: Number(token) };
+  if (!/^[A-Za-z0-9_-]{1,512}$/.test(token)) return null;
+  let decoded: string;
+  try {
+    decoded = Buffer.from(token, "base64url").toString("utf8");
+  } catch {
+    /* v8 ignore next 2 -- Buffer.from never throws on a base64url-shaped string */
+    return null;
+  }
+  const p = new URLSearchParams(decoded);
+  const o = p.get("o") ?? "";
+  if (!/^\d+$/.test(o)) return null;
+  const state: ResumptionState = { offset: Number(o) };
+  const s = p.get("s");
+  if (s !== null) {
+    if (!ROR_ID.test(s)) return null;
+    state.set = s;
+  }
+  const f = p.get("f");
+  if (f !== null) {
+    const d = parseOaiDate(f);
+    if (!d) return null;
+    state.from = d;
+  }
+  const u = p.get("u");
+  if (u !== null) {
+    const d = parseOaiDate(u);
+    if (!d) return null;
+    state.until = d;
+  }
+  return state;
 }
 
 function hasUnexpectedArgs(args: OaiArgs, allowed: (keyof OaiArgs)[]): boolean {
@@ -583,9 +657,9 @@ export function validateOaiRequest(args: OaiArgs): OaiPlan {
       if (args.resumptionToken != null && args.resumptionToken !== "") {
         if (hasUnexpectedArgs(args, ["resumptionToken"]))
           return error("badArgument", "resumptionToken is an exclusive argument");
-        const offset = parseResumptionToken(args.resumptionToken);
-        if (offset === null) return error("badResumptionToken", "Invalid resumptionToken");
-        return { kind: "list", verb, offset };
+        const state = parseResumptionToken(args.resumptionToken);
+        if (state === null) return error("badResumptionToken", "Invalid resumptionToken");
+        return { kind: "list", verb, ...state };
       }
       if (hasUnexpectedArgs(args, ["metadataPrefix", "from", "until", "set"]))
         return error("badArgument", `Unexpected argument for ${verb}`);

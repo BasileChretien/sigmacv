@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **OAI-PMH harvesting is now disclosed, per-work, and institution-listable by opt-in.**
+- **OAI-PMH harvesting is now disclosed, per-work, and institution-listable by opt-in.** Resumption tokens carry the list's `set` / `from` / `until`, so page 2 of an institution-filtered harvest can never widen into the whole repository; "current affiliation" means the first visible position with no end year; the set name is the institution's canonical name (never one owner's rename), denormalised beside the key so `ListSets` reads two columns; record- and set-bearing answers are `private, no-store`; a standing opt-in can always be withdrawn.
   The `/api/oai` endpoint was gated on the search-indexing consent, whose copy
   only ever said "Google" — one Dublin Core record per CV was a stretch of that
   consent, and an institution-keyed set would have been systematic processing

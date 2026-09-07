@@ -4,6 +4,7 @@
 -- key, rewritten from the document on every save / sync / publish change).
 ALTER TABLE "Cv" ADD COLUMN "listUnderAffiliation" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "Cv" ADD COLUMN "currentRorId" TEXT;
+ALTER TABLE "Cv" ADD COLUMN "currentAffiliationName" TEXT;
 
 -- CreateIndex
 CREATE INDEX "Cv_listUnderAffiliation_currentRorId_idx" ON "Cv"("listUnderAffiliation", "currentRorId");

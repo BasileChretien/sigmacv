@@ -91,6 +91,12 @@ function currentRorKey(cv: CanonicalCv): string | null {
   return currentAffiliation(cv)?.rorId ?? null;
 }
 
+/** The canonical institution name written beside {@link currentRorKey}: the
+ *  `ListSets` set name, chosen deterministically across every opted-in CV. */
+function affiliationSetName(cv: CanonicalCv): string | null {
+  return currentAffiliation(cv)?.setName ?? null;
+}
+
 /**
  * Hard cap on the TOTAL number of items across all sections, enforced on SAVE
  * only. A real auto-synced CV is far below this (bounded by the ~5k OpenAlex
@@ -600,6 +606,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   // `currentRorKey`): a re-sync that changes or drops the current position
   // re-keys — or un-lists — the CV at once.
   const currentRorId = currentRorKey(cv);
+  const currentAffiliationName = affiliationSetName(cv);
   await prisma.cv.upsert({
     where: { userId },
     create: {
@@ -610,6 +617,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       lastSyncedAt: new Date(),
       lastSyncReport: report as unknown as Prisma.InputJsonValue,
       currentRorId,
+      currentAffiliationName,
     },
     update: {
       document: cv as unknown as Prisma.InputJsonValue,
@@ -617,6 +625,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       lastSyncedAt: new Date(),
       lastSyncReport: report as unknown as Prisma.InputJsonValue,
       currentRorId,
+      currentAffiliationName,
     },
   });
 
@@ -669,6 +678,7 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
       document: reconciled as unknown as Prisma.InputJsonValue,
       schemaVersion: reconciled.schemaVersion,
       currentRorId: currentRorKey(reconciled),
+      currentAffiliationName: affiliationSetName(reconciled),
     },
   });
 
@@ -748,6 +758,7 @@ export async function setPublishState(
 
   const publicIndexable = published && indexable;
   const currentRorId = parsed.success ? currentRorKey(parsed.data) : null;
+  const currentAffiliationName = parsed.success ? affiliationSetName(parsed.data) : null;
   const listed = publicIndexable && listUnderAffiliation && currentRorId !== null;
   const updated = await prisma.cv.update({
     where: { userId },
@@ -757,6 +768,7 @@ export async function setPublishState(
       publicIndexable,
       listUnderAffiliation: listed,
       currentRorId,
+      currentAffiliationName,
     },
     select: {
       published: true,
@@ -929,10 +941,11 @@ const MAX_AFFILIATION_SETS = 5_000;
  * among the CVs that are published, indexable AND opted into the affiliation
  * listing. The `listUnderAffiliation` filter is the consent gate — a set must
  * contain only researchers who chose to be listed, so an institution with
- * researchers on SigmaCV but no opt-in has no set at all. The set name comes
- * from one opted-in CV's own wording of the institution (a corrupt document
- * falls back to the id); it is labelled as a self-declared affiliation by the
- * response builder, never as institutional output.
+ * researchers on SigmaCV but no opt-in has no set at all. The set name is the
+ * institution's canonical (ROR / source) name denormalised beside the key —
+ * never one owner's free-text rename — and falls back to the id; it is
+ * labelled as a self-declared affiliation by the response builder, never as
+ * institutional output.
  */
 export async function listAffiliationSets(): Promise<OaiSet[]> {
   const rows = await prisma.cv.findMany({
@@ -943,18 +956,19 @@ export async function listAffiliationSets(): Promise<OaiSet[]> {
       currentRorId: { not: null },
     },
     distinct: ["currentRorId"],
-    select: { currentRorId: true, document: true },
-    orderBy: { currentRorId: "asc" },
+    // Two small denormalised columns — never the documents (an unauthenticated
+    // verb must not load every opted-in CV). The name is the CANONICAL
+    // institution name written with the key; ordering by it makes the pick
+    // deterministic when several owners' CVs carry different source spellings.
+    select: { currentRorId: true, currentAffiliationName: true },
+    orderBy: [{ currentRorId: "asc" }, { currentAffiliationName: "asc" }],
     take: MAX_AFFILIATION_SETS,
   });
   const sets: OaiSet[] = [];
   for (const row of rows) {
     /* v8 ignore next -- the where clause already excludes null keys */
     if (!row.currentRorId) continue;
-    const parsed = safeParseCanonicalCv(row.document);
-    const name =
-      (parsed.success ? currentAffiliation(parsed.data)?.name : undefined) ??
-      `ROR ${row.currentRorId}`;
+    const name = row.currentAffiliationName?.trim() || `ROR ${row.currentRorId}`;
     sets.push({ spec: rorSetSpec(row.currentRorId), rorId: row.currentRorId, name });
   }
   return sets;

@@ -1023,10 +1023,19 @@ describe("OAI harvest helpers", () => {
 
   it("listAffiliationSets: one set per distinct ROR id among OPTED-IN indexable CVs", async () => {
     mocks.findMany.mockResolvedValue([
-      { currentRorId: "04chrp450", document: AFFILIATED_DOC },
-      { currentRorId: "00000000x", document: { bad: 1 } }, // corrupt → id-only name
+      { currentRorId: "04chrp450", currentAffiliationName: "Nagoya University" },
+      { currentRorId: "00000000x", currentAffiliationName: null }, // no name → id-only
     ]);
     const sets = await listAffiliationSets();
+    // Two small columns only — never the documents — and a deterministic name pick.
+    expect(mocks.findMany.mock.calls[0]![0].select).toEqual({
+      currentRorId: true,
+      currentAffiliationName: true,
+    });
+    expect(mocks.findMany.mock.calls[0]![0].orderBy).toEqual([
+      { currentRorId: "asc" },
+      { currentAffiliationName: "asc" },
+    ]);
     const where = mocks.findMany.mock.calls[0]![0].where;
     expect(where).toMatchObject({
       published: true,

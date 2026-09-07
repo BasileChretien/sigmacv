@@ -59,10 +59,19 @@ function argsFrom(params: URLSearchParams): OaiArgs {
   };
 }
 
-function xmlResponse(xml: string): NextResponse {
+/**
+ * Only the repository-level verbs (Identify, ListMetadataFormats) are safe in a
+ * shared cache. Record- and set-bearing answers reflect consent that an owner
+ * can withdraw at any moment (unpublish, indexing off, listing off): a proxy
+ * that kept serving them for two minutes would outlive the withdrawal.
+ */
+function xmlResponse(xml: string, shared = false): NextResponse {
   return new NextResponse(xml, {
     status: 200, // OAI-PMH conveys errors in the body, not the HTTP status.
-    headers: { "Content-Type": "text/xml; charset=utf-8", "Cache-Control": "public, max-age=120" },
+    headers: {
+      "Content-Type": "text/xml; charset=utf-8",
+      "Cache-Control": shared ? "public, max-age=120" : "private, no-store",
+    },
   });
 }
 
@@ -83,9 +92,9 @@ async function handle(args: OaiArgs, req: Request): Promise<NextResponse> {
       case "error":
         return xmlResponse(oaiError(args, plan.code, plan.message, opts));
       case "identify":
-        return xmlResponse(identifyResponse(opts));
+        return xmlResponse(identifyResponse(opts), true);
       case "listMetadataFormats":
-        return xmlResponse(listMetadataFormatsResponse(args, opts));
+        return xmlResponse(listMetadataFormatsResponse(args, opts), true);
       case "listSets": {
         const sets = await listAffiliationSets();
         // The schema requires at least one <set>: until a researcher opts in,
@@ -136,6 +145,7 @@ async function handle(args: OaiArgs, req: Request): Promise<NextResponse> {
           records,
           cursor: plan.offset,
           nextOffset: consumed < total ? consumed : null,
+          filters: { set: plan.set, from: plan.from, until: plan.until },
         };
         return xmlResponse(
           plan.verb === "ListRecords"

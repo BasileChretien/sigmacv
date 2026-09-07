@@ -135,6 +135,37 @@ describe("OAI-PMH route: affiliation sets + per-work records", () => {
     expect(xml).toContain("<setSpec>ror:04chrp450</setSpec>");
   });
 
+  it("page 2 of a set-filtered harvest is still filtered by that set (the token carries it)", async () => {
+    mocks.listPublicCvRecords.mockResolvedValue({
+      records: [{ ...RECORD, setSpec: "ror:04chrp450" }],
+      total: 250,
+    });
+    const first = await (
+      await get("verb=ListRecords&metadataPrefix=oai_dc&set=ror:04chrp450")
+    ).text();
+    const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(first)![1]!;
+    mocks.listPublicCvRecords.mockClear();
+    await get(`verb=ListRecords&resumptionToken=${encodeURIComponent(token)}`);
+    expect(mocks.listPublicCvRecords).toHaveBeenCalledWith(
+      expect.objectContaining({ set: "04chrp450", offset: 1 }),
+    );
+    // A forged token naming another set, or none, is refused — never widened.
+    const forged = Buffer.from("o=1&s=zz", "utf8").toString("base64url");
+    const xml = await (await get(`verb=ListRecords&resumptionToken=${forged}x!`)).text();
+    expect(xml).toContain('<error code="badResumptionToken">');
+  });
+
+  it("record- and set-bearing answers are never shared-cacheable; repository verbs are", async () => {
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], total: 1 });
+    expect((await get("verb=ListRecords&metadataPrefix=oai_dc")).headers.get("cache-control")).toBe(
+      "private, no-store",
+    );
+    expect((await get("verb=Identify")).headers.get("cache-control")).toBe("public, max-age=120");
+    expect((await get("verb=ListMetadataFormats")).headers.get("cache-control")).toBe(
+      "public, max-age=120",
+    );
+  });
+
   it("ListRecords without a set never asks for the opt-in filter", async () => {
     mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], total: 1 });
     await get("verb=ListRecords&metadataPrefix=oai_dc");

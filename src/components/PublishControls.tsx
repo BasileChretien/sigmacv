@@ -200,7 +200,9 @@ export default function PublishControls({
             <input
               type="checkbox"
               checked={listUnderAffiliation}
-              disabled={busy || !listingOffered}
+              // Withdrawing must always be possible: a standing opt-in stays
+              // uncheckable-off even when no ROR key currently resolves.
+              disabled={busy || (!listingOffered && !listUnderAffiliation)}
               onChange={(e) => setListing(e.target.checked)}
             />
             <span>{u.listUnderAffiliation}</span>

@@ -67,6 +67,23 @@ describe("PublishControls — list under my current affiliation", () => {
     expect(screen.getByText(u.listUnderAffiliationNoRor)).toBeTruthy();
   });
 
+  it("a standing opt-in stays withdrawable even when no ROR key currently resolves", async () => {
+    respond({ listUnderAffiliation: false, affiliationRorId: null });
+    render(
+      <PublishControls {...baseProps} initialAffiliationRorId={null} initialListUnderAffiliation />,
+    );
+    // Checked and NOT disabled: consent must be as easy to withdraw as to give.
+    expect(affiliationBox().checked).toBe(true);
+    expect(affiliationBox().disabled).toBe(false);
+    await act(async () => {
+      fireEvent.click(affiliationBox());
+    });
+    expect(lastBody()).toEqual({ published: true, indexable: true, listUnderAffiliation: false });
+    expect(affiliationBox().checked).toBe(false);
+    // Off with no key → back to the disabled state (nothing to opt into).
+    expect(affiliationBox().disabled).toBe(true);
+  });
+
   it("is enabled (and off by default) with a ROR-resolved current position", () => {
     render(<PublishControls {...baseProps} initialAffiliationRorId="04chrp450" />);
     expect(affiliationBox().disabled).toBe(false);
