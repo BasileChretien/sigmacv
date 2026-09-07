@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { CvNotFoundError } from "@/lib/cv/sync";
+import { isCvModelId } from "@/lib/canonical/cvModels";
+import { FREEZE_PRESETS } from "@/lib/cv/freezeRequest";
 import { SNAPSHOT_LABEL_MAX } from "@/lib/cv/snapshots";
 import { createSnapshot, listSnapshots, SnapshotLimitError } from "@/lib/cv/snapshotStore";
 import { logger } from "@/lib/log";
@@ -12,8 +14,11 @@ export const dynamic = "force-dynamic";
 
 const CreateSchema = z.object({
   label: z.string().trim().min(1).max(SNAPSHOT_LABEL_MAX),
-  /** Freeze as the assessor's reader view (an explicit, one-time owner choice). */
-  readerMode: z.boolean().optional(),
+  /** Freeze-time display preset (reader view / hiring panel) — an explicit,
+   *  one-time owner choice. Absent = the standard page. */
+  preset: z.enum(FREEZE_PRESETS).optional(),
+  /** Freeze in the shape of this CV model (catalog id); the live CV is untouched. */
+  modelId: z.string().max(64).refine(isCvModelId, "unknown model").optional(),
 });
 // The body is one short label; reject anything larger early (streamed).
 const MAX_BODY_BYTES = 2_000;
@@ -48,7 +53,7 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       {
-        error: `Expected { label: string (1–${SNAPSHOT_LABEL_MAX} chars), readerMode?: boolean }`,
+        error: `Expected { label: string (1–${SNAPSHOT_LABEL_MAX} chars), preset?: "reader" | "hiring", modelId?: string }`,
       },
       { status: 422 },
     );
@@ -56,7 +61,8 @@ export async function POST(req: Request) {
 
   try {
     const snapshot = await createSnapshot(g.userId, parsed.data.label, {
-      readerMode: parsed.data.readerMode === true,
+      ...(parsed.data.preset ? { preset: parsed.data.preset } : {}),
+      ...(parsed.data.modelId ? { modelId: parsed.data.modelId } : {}),
     });
     return NextResponse.json({ snapshot }, { status: 201 });
   } catch (err) {

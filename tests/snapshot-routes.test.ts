@@ -128,18 +128,34 @@ describe("POST /api/cv/snapshots", () => {
     const res = await createPost(json(BASE, "POST", { label: "  Tenure " }));
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual({ snapshot: SUMMARY });
-    expect(mocks.createSnapshot).toHaveBeenCalledWith("u1", "Tenure", { readerMode: false });
+    expect(mocks.createSnapshot).toHaveBeenCalledWith("u1", "Tenure", {});
   });
 
-  it("passes the freeze-time reader-view choice through, and rejects a non-boolean", async () => {
+  it("passes the freeze-time preset + model through, and rejects unknown ones", async () => {
     mocks.createSnapshot.mockResolvedValue(SUMMARY);
     expect(
-      (await createPost(json(BASE, "POST", { label: "Reader", readerMode: true }))).status,
+      (await createPost(json(BASE, "POST", { label: "Reader", preset: "reader" }))).status,
     ).toBe(201);
-    expect(mocks.createSnapshot).toHaveBeenCalledWith("u1", "Reader", { readerMode: true });
+    expect(mocks.createSnapshot).toHaveBeenCalledWith("u1", "Reader", { preset: "reader" });
     expect(
-      (await createPost(json(BASE, "POST", { label: "Reader", readerMode: "yes" }))).status,
+      (await createPost(json(BASE, "POST", { label: "ERC", modelId: "erc", preset: "hiring" })))
+        .status,
+    ).toBe(201);
+    expect(mocks.createSnapshot).toHaveBeenLastCalledWith("u1", "ERC", {
+      preset: "hiring",
+      modelId: "erc",
+    });
+    expect((await createPost(json(BASE, "POST", { label: "x", preset: "metrics" }))).status).toBe(
+      422,
+    );
+    expect(
+      (await createPost(json(BASE, "POST", { label: "x", modelId: "not-a-model" }))).status,
     ).toBe(422);
+    expect((await createPost(json(BASE, "POST", { label: "x", readerMode: true }))).status).toBe(
+      201,
+    );
+    // Unknown keys (the old `readerMode` flag) are ignored, never honoured.
+    expect(mocks.createSnapshot).toHaveBeenLastCalledWith("u1", "x", {});
   });
   it("validates the body: 400 bad JSON, 413 too large, 422 bad shape", async () => {
     expect((await createPost(new Request(BASE, { method: "POST", body: "{nope" }))).status).toBe(

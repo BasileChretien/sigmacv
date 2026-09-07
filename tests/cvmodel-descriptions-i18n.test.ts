@@ -6,9 +6,9 @@ import { cvModelDescription } from "@/lib/i18n/cvModelDescriptions";
 describe("CV-model description i18n", () => {
   const models = cvModelList();
 
-  it("covers all 58 models × 10 locales with a non-empty description", () => {
+  it("covers all 59 models × 10 locales with a non-empty description", () => {
     expect(SUPPORTED_LOCALES).toHaveLength(10);
-    expect(models).toHaveLength(58);
+    expect(models).toHaveLength(59);
     for (const m of models) {
       for (const loc of SUPPORTED_LOCALES) {
         expect(cvModelDescription(m.id, loc).length, `${loc}/${m.id}`).toBeGreaterThan(0);

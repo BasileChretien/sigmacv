@@ -20,6 +20,7 @@ import { selectOnboardingStep, type OnboardingStep } from "@/lib/onboardingSeque
 import CvEditor, { type CvEditorHandle } from "./CvEditor";
 import CvPreview from "./CvPreview";
 import DisambiguationCoachmark, { COACHMARK_DISMISS_KEY } from "./DisambiguationCoachmark";
+import FreezeRequestBanner from "./FreezeRequestBanner";
 import PublishNudge from "./PublishNudge";
 import PopoverGroup from "./PopoverGroup";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
@@ -463,6 +464,13 @@ export default function CvWorkspace({
 
       {cv ? (
         <>
+          {/* A stateless freeze request in the URL (/cv?freeze=…): shows what the
+              link asks for and offers the one-click freeze; nothing is sent back. */}
+          <FreezeRequestBanner
+            locale={uiLocale}
+            published={publishState.published}
+            slug={publishState.slug}
+          />
           <SyncReportBanner
             report={syncReport}
             locale={uiLocale}
