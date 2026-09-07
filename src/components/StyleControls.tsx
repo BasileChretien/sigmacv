@@ -44,7 +44,7 @@ import {
   metricsRecommendedGroup,
 } from "@/lib/i18n/metricHints";
 import { ui, type UiStrings } from "@/lib/i18n/ui";
-import { editorUi } from "@/lib/i18n/editorUi";
+import { editorUi, type EditorExtraStrings } from "@/lib/i18n/editorUi";
 import { trackEvent } from "@/lib/analytics/track";
 import { CSL_STYLE_CATALOG } from "@/lib/citeproc/styleCatalog";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/lib/i18n";
@@ -56,7 +56,7 @@ import { LOCALE_LABELS, SUPPORTED_LOCALES, asLocale, t, type Locale } from "@/li
  * new key is appended to `READER_MODE_KEYS`, this map fails to compile until its
  * label is added, so the note can never silently fall behind the behaviour.
  */
-function readerModeKeyLabels(u: UiStrings): string[] {
+function readerModeKeyLabels(u: UiStrings, eu: EditorExtraStrings): string[] {
   const labels: Record<ReaderModeKey, string> = {
     showProvenance: u.showProvenance,
     showVerifiedBadges: u.showVerifiedBadges,
@@ -64,6 +64,14 @@ function readerModeKeyLabels(u: UiStrings): string[] {
     showCitationCounts: u.showCitationCounts,
     showResearchAreas: u.showResearchAreas,
     showAuthorRole: u.showAuthorRole,
+    showWorkIndicators: u.showWorkIndicators,
+    showCollaboration: u.showCollaboration,
+    showCreditRoles: eu.showCreditRoles,
+    showDataLinks: u.showDataLinks,
+    showSupervisionSummary: eu.supervisionSummaryLabel,
+    showReplications: u.showReplications,
+    showArchivalStatus: u.showArchivalStatus,
+    showPublicEvaluations: u.showPublicEvaluations,
   };
   return READER_MODE_KEYS.map((k) => labels[k]);
 }
@@ -1317,7 +1325,7 @@ export default function StyleControls({
           <span title={u.allowReaderModeTitle}>{u.allowReaderMode}</span>
         </label>
         <p className="muted metric-preset-note field-note">
-          {u.allowReaderModeNote.replace("{list}", readerModeKeyLabels(u).join(", "))}
+          {u.allowReaderModeNote.replace("{list}", readerModeKeyLabels(u, eu).join(", "))}
         </p>
 
         <label className="field-inline">

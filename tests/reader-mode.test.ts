@@ -27,8 +27,56 @@ describe("reader-mode preset (applyReaderMode)", () => {
       "showCitationCounts",
       "showResearchAreas",
       "showAuthorRole",
+      "showWorkIndicators",
+      "showCollaboration",
+      "showCreditRoles",
+      "showDataLinks",
+      "showSupervisionSummary",
+      "showReplications",
+      "showArchivalStatus",
+      "showPublicEvaluations",
     ]);
     expect([...READER_MODE_OFF_KEYS]).toEqual(["hideRetracted"]);
+  });
+
+  it("forces each trust/context toggle that landed after the preset on, from an owner-off document", () => {
+    const appended = [
+      "showWorkIndicators",
+      "showCollaboration",
+      "showCreditRoles",
+      "showDataLinks",
+      "showSupervisionSummary",
+      "showReplications",
+      "showArchivalStatus",
+      "showPublicEvaluations",
+    ] as const;
+    const off = Object.fromEntries(appended.map((k) => [k, false])) as Partial<DisplayChoices>;
+    const out = applyReaderMode(defaults({ ...off, showMetrics: false, metrics: [] }));
+    for (const k of appended) {
+      expect(READER_MODE_KEYS).toContain(k);
+      expect(out[k], k).toBe(true);
+    }
+    // Still no metrics: the appended keys are context, not a figure the owner hid.
+    expect(out.showMetrics).toBe(false);
+    expect(out.metrics).toEqual([]);
+  });
+
+  it("never forces the evaluative aggregates or the sensitive career-context block", () => {
+    // Aggregates the owner alone chooses; career context is stripped by the
+    // public projection unless shown, so forcing it could only mislead the note.
+    for (const k of [
+      "showMetrics",
+      "showCharts",
+      "showAuthorshipTable",
+      "showCareerContext",
+      "hideSuperviseeNames",
+    ] as const) {
+      expect(READER_MODE_KEYS as readonly string[]).not.toContain(k);
+      expect(READER_MODE_OFF_KEYS as readonly string[]).not.toContain(k);
+    }
+    const out = applyReaderMode(defaults({ showCareerContext: false, hideSuperviseeNames: true }));
+    expect(out.showCareerContext).toBe(false);
+    expect(out.hideSuperviseeNames).toBe(true);
   });
 
   it("every forced-on key is an owner toggle that defaults OFF (reader mode only ever reveals)", () => {

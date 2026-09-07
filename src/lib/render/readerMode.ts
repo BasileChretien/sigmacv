@@ -21,10 +21,25 @@ import type { DisplayChoices } from "@/lib/canonical/schema";
 
 /**
  * The display keys reader mode forces ON. Each is a trust/context signal already
- * present in the data (never a computed score): the data-provenance footer, the
- * institution-verified marks, the per-work open-access badge, the per-work
- * citation count with its context, the research-areas chip row, and the account
- * holder's authorship role.
+ * present in the data (never a computed score):
+ *  - document-level: the data-provenance footer, the institution-verified marks,
+ *    the research-areas chip row, the collaboration-breadth line (descriptive:
+ *    countries on the author lists, no map or ranking);
+ *  - per-entry context: the open-access badge, the citation count with its
+ *    context, the account holder's authorship role, the per-work indicators
+ *    (RCR / FWCI / clinical citations — per-work values as reported, never
+ *    summed or ranked; see `workIndicators.ts`), the CRediT roles, the open
+ *    data / code links, the FORRT replication evidence, the Software Heritage
+ *    archival link and the Sciety public-evaluation line;
+ *  - the supervision summary line — a tally of the supervision records the
+ *    owner already lists on the page, not an external figure.
+ *
+ * Deliberately NOT here: `showMetrics` / `showCharts` / `showAuthorshipTable`
+ * (evaluative aggregates the owner alone chooses), and `showCareerContext` —
+ * the owner-declared career context is sensitive personal data that the public
+ * projection (`cv/publicProjection.ts`) strips unless the owner shows it, so a
+ * forced toggle could reveal nothing and would only make the editor note
+ * promise something the reader view cannot (and must not) show.
  *
  * append here when a new trust/context toggle lands
  */
@@ -35,6 +50,14 @@ export const READER_MODE_KEYS = [
   "showCitationCounts",
   "showResearchAreas",
   "showAuthorRole",
+  "showWorkIndicators",
+  "showCollaboration",
+  "showCreditRoles",
+  "showDataLinks",
+  "showSupervisionSummary",
+  "showReplications",
+  "showArchivalStatus",
+  "showPublicEvaluations",
 ] as const satisfies readonly (keyof DisplayChoices)[];
 
 /** A display key reader mode forces ON. */

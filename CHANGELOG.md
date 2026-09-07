@@ -16,8 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   'Reader view' on the public page"** checkbox (off by default) adds a quiet
   **Reader view** link to the living page; it opens `?view=reader`, where a fixed,
   documented preset (`READER_MODE_KEYS`: provenance footer, institution-verified
-  marks, open-access badges, citation counts with context, research areas, author
-  role) is forced on, retracted works stay visible with their badge, and every
+  marks, research areas, collaboration breadth, the per-entry context — open-access
+  badges, citation counts with context, author role, per-work indicators, CRediT
+  roles, open data / code links, replication evidence, archival status, public
+  evaluations — and the supervision summary line) is forced on, retracted works
+  stay visible with their badge, and every
   entry carries a small provenance mark (record source, Crossref enrichment,
   verification, retraction, last-verified date) with the full explanation as its
   tooltip. The view never adds metrics the owner did not choose and opens with a
