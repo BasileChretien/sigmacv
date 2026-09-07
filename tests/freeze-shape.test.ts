@@ -9,6 +9,7 @@ import {
   freezeRequestQuery,
   isFreezePreset,
   parseFreezeRequest,
+  resolveFreezeModelId,
 } from "@/lib/cv/freezeRequest";
 import { shapeForFreeze } from "@/lib/cv/snapshotShape";
 import { SNAPSHOT_LABEL_MAX } from "@/lib/cv/snapshots";
@@ -31,6 +32,15 @@ describe("parseFreezeRequest (the stateless request link)", () => {
     expect(parseFreezeRequest(q(""))).toBeNull();
     expect(parseFreezeRequest(q("preset=reader"))).toBeNull();
     expect(parseFreezeRequest(q("freeze=not-a-model"))).toBeNull();
+    // A model NAME (as shown in the picker) resolves too, loosely.
+    expect(parseFreezeRequest(q("freeze=US%20tenure%20%2F%20promotion%20dossier"))).toEqual({
+      modelId: "tenure-us",
+    });
+    expect(parseFreezeRequest(q("freeze=us-tenure-promotion-dossier"))).toEqual({
+      modelId: "tenure-us",
+    });
+    expect(resolveFreezeModelId("ERC (Starting / Consolidator / Advanced)")).toBe("erc");
+    expect(resolveFreezeModelId("   ")).toBeUndefined();
     expect(parseFreezeRequest(q("freeze=erc"))).toEqual({ modelId: "erc" });
     expect(parseFreezeRequest(q("freeze=1&preset=hiring"))).toEqual({ preset: "hiring" });
     expect(
@@ -104,6 +114,15 @@ describe("applyHiringPreset", () => {
     expect(on.showMetrics).toBe(true);
     expect(out.publicContact).toEqual({ email: true, phone: true, location: true });
     for (const k of HIRING_OFF_KEYS) expect(out[k], k).toBe(false);
+    // The aggregates and the reader-view door are named explicitly (not only via the list).
+    expect(out.showMetrics).toBe(false);
+    expect(out.showCharts).toBe(false);
+    expect(out.showAuthorshipTable).toBe(false);
+    expect(out.showOpenAccessShare).toBe(false);
+    expect(out.allowReaderMode).toBe(false);
+    expect(
+      applyHiringPreset(updateDisplay(CV, { allowReaderMode: true }).display).allowReaderMode,
+    ).toBe(false);
     for (const k of READER_MODE_KEYS)
       expect((HIRING_OFF_KEYS as readonly string[]).includes(k)).toBe(true);
     // Untouched: template, locale, retracted-works choice, metric selection.
@@ -129,6 +148,20 @@ describe("shapeForFreeze", () => {
     expect(visible).not.toContain("skills");
     expect(shapeForFreeze(CV, { modelId: "zzz" })).toBe(CV);
     expect(shapeForFreeze(CV, {})).toBe(CV);
+  });
+
+  it("a model freeze starts from the model's own list settings, not the live layout's narrowing", () => {
+    const narrowed = updateDisplay(CV, { publicationsLimit: 10, peerReviewedOnly: true });
+    // A "full record" model has no overrides → limit and peer-reviewed filter are reset.
+    const full = shapeForFreeze(narrowed, { modelId: "institutional-assessment" });
+    expect(full.display.publicationsLimit).toBeUndefined();
+    expect(full.display.peerReviewedOnly).toBe(false);
+    // A model with its own overrides applies them.
+    const erc = shapeForFreeze(narrowed, { modelId: "erc" });
+    expect(erc.display.publicationsLimit).toBe(10);
+    expect(erc.display.peerReviewedOnly).toBe(true);
+    // No model → the live settings are kept as they are.
+    expect(shapeForFreeze(narrowed, { preset: "reader" }).display.publicationsLimit).toBe(10);
   });
 
   it("materialises the reader preset (so the ledger's retracted line matches the page) and the hiring preset", () => {

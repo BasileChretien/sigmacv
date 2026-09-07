@@ -59,7 +59,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Can an institution, funder or recruiter ask me for a CV in a specific format?",
-        a: "Yes, and they need no account. A request is just a link to your editor of the form https://sigmacv.org/cv?freeze=<model>&preset=reader — <model> is a CV-model id from the Design menu (for example erc, tenure-us, institutional-assessment or pharma-rd; use 1 for your current layout), preset is reader (assessor evidence marks on) or hiring (contact details on, academic marks off), and label= and by=YYYY-MM-DD are optional. When you open the link, SigmaCV shows exactly what it asks for and lets you freeze a version in that shape with one click. Nothing is sent to the requester and the request is never stored: you send the frozen link yourself.",
+        a: "Yes, and they need no account. A request is just a link to your editor of the form https://sigmacv.org/cv?freeze=<model>&preset=reader — <model> is a CV model's id or its exact name (the Versions panel lists every model as “name (id)”; for example erc, tenure-us, institutional-assessment or pharma-rd; use 1 for your current layout), preset is reader (assessor evidence marks on) or hiring (contact details on, academic marks off), and label= and by=YYYY-MM-DD are optional. When you open the link, SigmaCV shows exactly what it asks for and lets you freeze a version in that shape with one click. Nothing is sent to the requester and the request is never stored: you send the frozen link yourself.",
       },
     ],
   },
@@ -101,7 +101,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "机构、资助方或招聘方能否要求我提供特定格式的简历？",
-        a: "可以，而且无需账户。请求只是一个指向您编辑器的链接，形如 https://sigmacv.org/cv?freeze=<model>&preset=reader ——<model> 是“设计”菜单中的简历模型 id（例如 erc、tenure-us、institutional-assessment 或 pharma-rd；用 1 表示您当前的布局），preset 为 reader（显示评估者证据标记）或 hiring（显示联系方式、隐藏学术标记），label= 和 by=YYYY-MM-DD 为可选项。打开链接后，SigmaCV 会准确显示其请求内容，并让您一键冻结该形态的版本。不会向请求方发送任何内容，请求也不会被存储：冻结后的链接由您自己发送。",
+        a: "可以，而且无需账户。请求只是一个指向您编辑器的链接，形如 https://sigmacv.org/cv?freeze=<model>&preset=reader ——<model> 是简历模型的 id 或其完整名称（“版本”面板以“名称 (id)”的形式列出每个模型；例如 erc、tenure-us、institutional-assessment 或 pharma-rd；用 1 表示您当前的布局），preset 为 reader（显示评估者证据标记）或 hiring（显示联系方式、隐藏学术标记），label= 和 by=YYYY-MM-DD 为可选项。打开链接后，SigmaCV 会准确显示其请求内容，并让您一键冻结该形态的版本。不会向请求方发送任何内容，请求也不会被存储：冻结后的链接由您自己发送。",
       },
     ],
   },
@@ -143,7 +143,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "¿Puede una institución, un financiador o un reclutador pedirme un CV en un formato concreto?",
-        a: "Sí, y no necesitan cuenta. Una solicitud es solo un enlace a tu editor con la forma https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> es el id de un modelo de CV del menú Diseño (por ejemplo erc, tenure-us, institutional-assessment o pharma-rd; usa 1 para tu diseño actual), preset es reader (marcas de evidencia para evaluadores activadas) o hiring (datos de contacto activados, marcas académicas desactivadas), y label= y by=AAAA-MM-DD son opcionales. Al abrir el enlace, SigmaCV muestra exactamente lo que pide y te permite congelar una versión con ese formato en un clic. No se envía nada al solicitante y la solicitud nunca se guarda: el enlace congelado lo envías tú.",
+        a: "Sí, y no necesitan cuenta. Una solicitud es solo un enlace a tu editor con la forma https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> es el id de un modelo de CV o su nombre exacto (el panel Versiones muestra cada modelo como «nombre (id)»; por ejemplo erc, tenure-us, institutional-assessment o pharma-rd; usa 1 para tu diseño actual), preset es reader (marcas de evidencia para evaluadores activadas) o hiring (datos de contacto activados, marcas académicas desactivadas), y label= y by=AAAA-MM-DD son opcionales. Al abrir el enlace, SigmaCV muestra exactamente lo que pide y te permite congelar una versión con ese formato en un clic. No se envía nada al solicitante y la solicitud nunca se guarda: el enlace congelado lo envías tú.",
       },
     ],
   },
@@ -185,7 +185,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Une institution, un financeur ou un recruteur peut-il me demander un CV dans un format précis ?",
-        a: "Oui, sans compte. Une demande n’est qu’un lien vers votre éditeur de la forme https://sigmacv.org/cv?freeze=<model>&preset=reader : <model> est l’identifiant d’un modèle de CV du menu Design (par exemple erc, tenure-us, institutional-assessment ou pharma-rd ; 1 pour votre mise en page actuelle), preset vaut reader (repères de preuve pour évaluateurs activés) ou hiring (coordonnées affichées, repères académiques masqués), et label= et by=AAAA-MM-JJ sont facultatifs. À l’ouverture du lien, SigmaCV affiche exactement ce qui est demandé et vous permet de figer une version dans ce format en un clic. Rien n’est envoyé au demandeur et la demande n’est jamais stockée : c’est vous qui envoyez le lien figé.",
+        a: "Oui, sans compte. Une demande n’est qu’un lien vers votre éditeur de la forme https://sigmacv.org/cv?freeze=<model>&preset=reader : <model> est l’identifiant d’un modèle de CV ou son nom exact (le panneau Versions affiche chaque modèle sous la forme « nom (id) » ; par exemple erc, tenure-us, institutional-assessment ou pharma-rd ; 1 pour votre mise en page actuelle), preset vaut reader (repères de preuve pour évaluateurs activés) ou hiring (coordonnées affichées, repères académiques masqués), et label= et by=AAAA-MM-JJ sont facultatifs. À l’ouverture du lien, SigmaCV affiche exactement ce qui est demandé et vous permet de figer une version dans ce format en un clic. Rien n’est envoyé au demandeur et la demande n’est jamais stockée : c’est vous qui envoyez le lien figé.",
       },
     ],
   },
@@ -227,7 +227,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Kann eine Institution, ein Förderer oder ein Recruiter einen CV in einem bestimmten Format von mir anfragen?",
-        a: "Ja, ohne Konto. Eine Anfrage ist nur ein Link zu Ihrem Editor der Form https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> ist die Kennung eines CV-Modells aus dem Design-Menü (z. B. erc, tenure-us, institutional-assessment oder pharma-rd; 1 für Ihr aktuelles Layout), preset ist reader (Nachweismarkierungen für Gutachtende an) oder hiring (Kontaktdaten an, akademische Markierungen aus), label= und by=JJJJ-MM-TT sind optional. Beim Öffnen des Links zeigt SigmaCV genau, was angefragt wird, und lässt Sie mit einem Klick eine Version in diesem Format einfrieren. Nichts wird an den Anfragenden gesendet und die Anfrage wird nie gespeichert: Den eingefrorenen Link versenden Sie selbst.",
+        a: "Ja, ohne Konto. Eine Anfrage ist nur ein Link zu Ihrem Editor der Form https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> ist die Kennung eines CV-Modells oder sein genauer Name (das Versionen-Panel listet jedes Modell als „Name (Kennung)“; z. B. erc, tenure-us, institutional-assessment oder pharma-rd; 1 für Ihr aktuelles Layout), preset ist reader (Nachweismarkierungen für Gutachtende an) oder hiring (Kontaktdaten an, akademische Markierungen aus), label= und by=JJJJ-MM-TT sind optional. Beim Öffnen des Links zeigt SigmaCV genau, was angefragt wird, und lässt Sie mit einem Klick eine Version in diesem Format einfrieren. Nichts wird an den Anfragenden gesendet und die Anfrage wird nie gespeichert: Den eingefrorenen Link versenden Sie selbst.",
       },
     ],
   },
@@ -269,7 +269,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "機関・助成機関・採用担当者は、特定の形式の CV を私に求めることができますか？",
-        a: "はい、アカウントは不要です。依頼は https://sigmacv.org/cv?freeze=<model>&preset=reader という形のエディタへのリンクにすぎません。<model> はデザインメニューの CV モデル ID（例：erc、tenure-us、institutional-assessment、pharma-rd。現在のレイアウトなら 1）、preset は reader（審査者向けの根拠表示をオン）または hiring（連絡先をオン、学術的な表示をオフ）、label= と by=YYYY-MM-DD は任意です。リンクを開くと、SigmaCV は求められている内容を正確に表示し、その形式のバージョンをワンクリックで固定できます。依頼者には何も送信されず、依頼は保存されません。固定リンクはあなた自身が送ります。",
+        a: "はい、アカウントは不要です。依頼は https://sigmacv.org/cv?freeze=<model>&preset=reader という形のエディタへのリンクにすぎません。<model> は CV モデルの ID またはその正式名称（「バージョン」パネルには各モデルが「名称 (ID)」の形で表示されます。例：erc、tenure-us、institutional-assessment、pharma-rd。現在のレイアウトなら 1）、preset は reader（審査者向けの根拠表示をオン）または hiring（連絡先をオン、学術的な表示をオフ）、label= と by=YYYY-MM-DD は任意です。リンクを開くと、SigmaCV は求められている内容を正確に表示し、その形式のバージョンをワンクリックで固定できます。依頼者には何も送信されず、依頼は保存されません。固定リンクはあなた自身が送ります。",
       },
     ],
   },
@@ -311,7 +311,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Uma instituição, financiador ou recrutador pode me pedir um CV em um formato específico?",
-        a: "Sim, e sem precisar de conta. Um pedido é apenas um link para o seu editor no formato https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> é o id de um modelo de CV do menu Design (por exemplo erc, tenure-us, institutional-assessment ou pharma-rd; use 1 para o seu layout atual), preset é reader (marcas de evidência para avaliadores ativadas) ou hiring (dados de contato ativados, marcas acadêmicas desativadas), e label= e by=AAAA-MM-DD são opcionais. Ao abrir o link, o SigmaCV mostra exatamente o que é pedido e permite congelar uma versão nesse formato com um clique. Nada é enviado ao solicitante e o pedido nunca é armazenado: o link congelado é enviado por você.",
+        a: "Sim, e sem precisar de conta. Um pedido é apenas um link para o seu editor no formato https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> é o id de um modelo de CV ou seu nome exato (o painel Versões lista cada modelo como “nome (id)”; por exemplo erc, tenure-us, institutional-assessment ou pharma-rd; use 1 para o seu layout atual), preset é reader (marcas de evidência para avaliadores ativadas) ou hiring (dados de contato ativados, marcas acadêmicas desativadas), e label= e by=AAAA-MM-DD são opcionais. Ao abrir o link, o SigmaCV mostra exatamente o que é pedido e permite congelar uma versão nesse formato com um clique. Nada é enviado ao solicitante e o pedido nunca é armazenado: o link congelado é enviado por você.",
       },
     ],
   },
@@ -353,7 +353,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Un’istituzione, un ente finanziatore o un recruiter può chiedermi un CV in un formato specifico?",
-        a: "Sì, e senza account. Una richiesta è solo un link al tuo editor nella forma https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> è l’id di un modello di CV del menu Design (ad esempio erc, tenure-us, institutional-assessment o pharma-rd; usa 1 per il layout attuale), preset è reader (contrassegni di evidenza per valutatori attivi) o hiring (contatti attivi, contrassegni accademici disattivati), e label= e by=AAAA-MM-GG sono facoltativi. Aprendo il link, SigmaCV mostra esattamente cosa viene chiesto e ti permette di congelare una versione in quel formato con un clic. Nulla viene inviato al richiedente e la richiesta non viene mai memorizzata: il link congelato lo invii tu.",
+        a: "Sì, e senza account. Una richiesta è solo un link al tuo editor nella forma https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> è l’id di un modello di CV o il suo nome esatto (il pannello Versioni elenca ogni modello come «nome (id)»; ad esempio erc, tenure-us, institutional-assessment o pharma-rd; usa 1 per il layout attuale), preset è reader (contrassegni di evidenza per valutatori attivi) o hiring (contatti attivi, contrassegni accademici disattivati), e label= e by=AAAA-MM-GG sono facoltativi. Aprendo il link, SigmaCV mostra esattamente cosa viene chiesto e ti permette di congelare una versione in quel formato con un clic. Nulla viene inviato al richiedente e la richiesta non viene mai memorizzata: il link congelato lo invii tu.",
       },
     ],
   },
@@ -395,7 +395,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "기관, 연구비 지원 기관 또는 채용 담당자가 특정 형식의 CV를 요청할 수 있나요?",
-        a: "네, 계정 없이 가능합니다. 요청은 https://sigmacv.org/cv?freeze=<model>&preset=reader 형태의 편집기 링크일 뿐입니다. <model>은 디자인 메뉴의 CV 모델 id(예: erc, tenure-us, institutional-assessment, pharma-rd; 현재 레이아웃은 1), preset은 reader(심사자용 근거 표시 켬) 또는 hiring(연락처 켬, 학술 표시 끔)이며, label=과 by=YYYY-MM-DD는 선택 사항입니다. 링크를 열면 SigmaCV가 요청 내용을 정확히 보여 주고, 해당 형식의 버전을 클릭 한 번으로 고정할 수 있습니다. 요청자에게는 아무것도 전송되지 않고 요청은 저장되지 않습니다. 고정된 링크는 본인이 직접 보냅니다.",
+        a: "네, 계정 없이 가능합니다. 요청은 https://sigmacv.org/cv?freeze=<model>&preset=reader 형태의 편집기 링크일 뿐입니다. <model>은 CV 모델의 id 또는 정확한 이름(버전 패널에 각 모델이 “이름 (id)” 형식으로 표시됩니다. 예: erc, tenure-us, institutional-assessment, pharma-rd; 현재 레이아웃은 1), preset은 reader(심사자용 근거 표시 켬) 또는 hiring(연락처 켬, 학술 표시 끔)이며, label=과 by=YYYY-MM-DD는 선택 사항입니다. 링크를 열면 SigmaCV가 요청 내용을 정확히 보여 주고, 해당 형식의 버전을 클릭 한 번으로 고정할 수 있습니다. 요청자에게는 아무것도 전송되지 않고 요청은 저장되지 않습니다. 고정된 링크는 본인이 직접 보냅니다.",
       },
     ],
   },
@@ -437,7 +437,7 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       },
       {
         q: "Может ли учреждение, фонд или рекрутер запросить у меня CV в определённом формате?",
-        a: "Да, и без учётной записи. Запрос — это просто ссылка на ваш редактор вида https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> — идентификатор модели CV из меню «Дизайн» (например erc, tenure-us, institutional-assessment или pharma-rd; 1 — ваша текущая раскладка), preset — reader (отметки свидетельств для экспертов включены) или hiring (контакты включены, академические отметки скрыты), а label= и by=ГГГГ-ММ-ДД необязательны. Открыв ссылку, вы увидите в SigmaCV, что именно запрошено, и сможете заморозить версию в этом формате одним нажатием. Запрашивающему ничего не отправляется, запрос нигде не хранится: замороженную ссылку отправляете вы сами.",
+        a: "Да, и без учётной записи. Запрос — это просто ссылка на ваш редактор вида https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> — идентификатор модели CV или её точное название (панель «Версии» показывает каждую модель как «название (идентификатор)»; например erc, tenure-us, institutional-assessment или pharma-rd; 1 — ваша текущая раскладка), preset — reader (отметки свидетельств для экспертов включены) или hiring (контакты включены, академические отметки скрыты), а label= и by=ГГГГ-ММ-ДД необязательны. Открыв ссылку, вы увидите в SigmaCV, что именно запрошено, и сможете заморозить версию в этом формате одним нажатием. Запрашивающему ничего не отправляется, запрос нигде не хранится: замороженную ссылку отправляете вы сами.",
       },
     ],
   },

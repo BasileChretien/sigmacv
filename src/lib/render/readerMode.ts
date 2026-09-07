@@ -87,6 +87,9 @@ export const HIRING_OFF_KEYS = [
   "showMetrics",
   "showCharts",
   "showAuthorshipTable",
+  // A hiring-panel version must stay that way: `?view=reader` on it would
+  // switch every evidence mark back on, so the reader view is closed for it.
+  "allowReaderMode",
 ] as const satisfies readonly (keyof DisplayChoices)[];
 
 /** A NEW display object with the hiring-panel preset applied. */

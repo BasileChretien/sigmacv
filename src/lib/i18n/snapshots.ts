@@ -66,6 +66,8 @@ export interface SnapshotStrings {
   requestNoModel: string;
   requestNothingSent: string;
   requestDefaultLabel: string;
+  /** Lead-in before the label the link suggests (rendered as a quotation). */
+  requestLabel: string;
   requestFreeze: string;
   requestDismiss: string;
   /** {n} = the new version number. */
@@ -134,14 +136,15 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     presetReader: "Reader view (for assessors)",
     presetHiring: "Hiring panel",
     hiringHint:
-      "Shows your contact details (email, phone, location) on this frozen page and hides the academic evidence marks and metrics. Chosen now, fixed for this version.",
+      "Shows your contact details (email, phone, location) on this frozen page — even the ones you hid on your public page; only fields you have entered appear — and hides the academic evidence marks and metrics. The reader view is closed on this version. Chosen now, fixed for this version.",
     requestTitle: "A link asked for a frozen version of your CV",
     requestBody: "It asks for the shape “{shape}”, frozen as: {preset}.",
-    requestBy: "Requested by {date}.",
+    requestBy: "Requested for {date}.",
     requestNoModel: "your current layout",
     requestNothingSent:
       "Nothing has been sent to whoever made the link — you decide whether to freeze, and you send the frozen link yourself.",
     requestDefaultLabel: "Requested version",
+    requestLabel: "Suggested label:",
     requestFreeze: "Freeze this version",
     requestDismiss: "Not now",
     requestDone: "Frozen as version {n}.",
@@ -201,7 +204,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     presetReader: "审阅视图（供评估者）",
     presetHiring: "招聘小组",
     hiringHint:
-      "在此冻结页面上显示您的联系方式（邮箱、电话、所在地），并隐藏学术证据标记和指标。现在选择，此版本固定不变。",
+      "在此冻结页面上显示您的联系方式（邮箱、电话、所在地）——包括您在公开页面上隐藏的项目；仅显示您已填写的字段——并隐藏学术证据标记和指标。此版本不提供审阅视图。现在选择，此版本固定不变。",
     requestTitle: "有链接请求冻结您的简历版本",
     requestBody: "它请求的形态是“{shape}”，冻结为：{preset}。",
     requestBy: "请求截止 {date}。",
@@ -209,6 +212,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     requestNothingSent:
       "没有任何内容发送给链接的制作者——是否冻结由您决定，冻结后的链接也由您自己发送。",
     requestDefaultLabel: "应请求的版本",
+    requestLabel: "建议的标签：",
     requestFreeze: "冻结此版本",
     requestDismiss: "暂不",
     requestDone: "已冻结为版本 {n}。",
@@ -270,7 +274,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     presetReader: "Vista para evaluadores",
     presetHiring: "Comité de selección",
     hiringHint:
-      "Muestra tus datos de contacto (correo, teléfono, ubicación) en esta página congelada y oculta las marcas de evidencia académica y las métricas. Se elige ahora y queda fijo para esta versión.",
+      "Muestra tus datos de contacto (correo, teléfono, ubicación) en esta página congelada —incluso los que ocultaste en tu página pública; solo aparecen los campos que has rellenado— y oculta las marcas de evidencia académica y las métricas. La vista para evaluadores queda cerrada en esta versión. Se elige ahora y queda fijo para esta versión.",
     requestTitle: "Un enlace ha pedido una versión congelada de tu CV",
     requestBody: "Pide el formato «{shape}», congelado como: {preset}.",
     requestBy: "Solicitado para el {date}.",
@@ -278,6 +282,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     requestNothingSent:
       "No se ha enviado nada a quien creó el enlace: tú decides si congelar, y el enlace congelado lo envías tú.",
     requestDefaultLabel: "Versión solicitada",
+    requestLabel: "Etiqueta sugerida:",
     requestFreeze: "Congelar esta versión",
     requestDismiss: "Ahora no",
     requestDone: "Congelada como versión {n}.",
@@ -340,7 +345,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     presetReader: "Vue évaluateur",
     presetHiring: "Jury de recrutement",
     hiringHint:
-      "Affiche vos coordonnées (e-mail, téléphone, localisation) sur cette page figée et masque les repères de preuve académique et les indicateurs. Choisi maintenant, fixé pour cette version.",
+      "Affiche vos coordonnées (e-mail, téléphone, localisation) sur cette page figée — même celles que vous avez masquées sur votre page publique ; seuls les champs renseignés apparaissent — et masque les repères de preuve académique et les indicateurs. La vue évaluateur est fermée sur cette version. Choisi maintenant, fixé pour cette version.",
     requestTitle: "Un lien demande une version figée de votre CV",
     requestBody: "Il demande le format « {shape} », figé en : {preset}.",
     requestBy: "Demandé pour le {date}.",
@@ -348,6 +353,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     requestNothingSent:
       "Rien n’a été envoyé à l’auteur du lien : vous décidez de figer ou non, et c’est vous qui envoyez le lien figé.",
     requestDefaultLabel: "Version demandée",
+    requestLabel: "Libellé suggéré :",
     requestFreeze: "Figer cette version",
     requestDismiss: "Pas maintenant",
     requestDone: "Figée en version {n}.",
@@ -410,7 +416,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     presetReader: "Gutachteransicht",
     presetHiring: "Auswahlkommission",
     hiringHint:
-      "Zeigt Ihre Kontaktdaten (E-Mail, Telefon, Ort) auf dieser eingefrorenen Seite und blendet die akademischen Nachweismarkierungen und Kennzahlen aus. Jetzt gewählt, für diese Version fest.",
+      "Zeigt Ihre Kontaktdaten (E-Mail, Telefon, Ort) auf dieser eingefrorenen Seite – auch die, die Sie auf Ihrer öffentlichen Seite ausgeblendet haben; nur ausgefüllte Felder erscheinen – und blendet die akademischen Nachweismarkierungen und Kennzahlen aus. Die Gutachteransicht ist für diese Version geschlossen. Jetzt gewählt, für diese Version fest.",
     requestTitle: "Ein Link hat eine eingefrorene Version Ihres CV angefragt",
     requestBody: "Er fragt nach dem Format „{shape}“, eingefroren als: {preset}.",
     requestBy: "Erbeten bis {date}.",
@@ -418,6 +424,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     requestNothingSent:
       "An den Ersteller des Links wurde nichts gesendet: Sie entscheiden, ob Sie einfrieren, und Sie versenden den eingefrorenen Link selbst.",
     requestDefaultLabel: "Angefragte Version",
+    requestLabel: "Vorgeschlagene Bezeichnung:",
     requestFreeze: "Diese Version einfrieren",
     requestDismiss: "Nicht jetzt",
     requestDone: "Als Version {n} eingefroren.",
@@ -479,7 +486,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     presetReader: "審査者ビュー",
     presetHiring: "採用委員会向け",
     hiringHint:
-      "この固定ページに連絡先（メール、電話、所在地）を表示し、学術的な根拠表示と指標を非表示にします。今選ぶと、このバージョンでは変更できません。",
+      "この固定ページに連絡先（メール、電話、所在地）を表示します。公開ページで非表示にしたものも含まれますが、入力済みの項目のみ表示されます。学術的な根拠表示と指標は非表示になり、このバージョンでは審査者ビューは使えません。今選ぶと、このバージョンでは変更できません。",
     requestTitle: "リンクから CV の固定バージョンが求められています",
     requestBody: "求められている形式は「{shape}」、固定の種類は「{preset}」です。",
     requestBy: "期限：{date}。",
@@ -487,6 +494,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     requestNothingSent:
       "リンクの作成者には何も送信されていません。固定するかどうかはあなたが決め、固定リンクもあなた自身が送ります。",
     requestDefaultLabel: "依頼されたバージョン",
+    requestLabel: "提案されたラベル：",
     requestFreeze: "このバージョンを固定",
     requestDismiss: "今はしない",
     requestDone: "バージョン {n} として固定しました。",
@@ -548,7 +556,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     presetReader: "Visão para avaliadores",
     presetHiring: "Banca de seleção",
     hiringHint:
-      "Mostra seus dados de contato (e-mail, telefone, localização) nesta página congelada e oculta as marcas de evidência acadêmica e as métricas. Escolhido agora, fixo para esta versão.",
+      "Mostra seus dados de contato (e-mail, telefone, localização) nesta página congelada — mesmo os que você ocultou na sua página pública; só aparecem os campos preenchidos — e oculta as marcas de evidência acadêmica e as métricas. A visão para avaliadores fica fechada nesta versão. Escolhido agora, fixo para esta versão.",
     requestTitle: "Um link pediu uma versão congelada do seu CV",
     requestBody: "Ele pede o formato “{shape}”, congelado como: {preset}.",
     requestBy: "Solicitado até {date}.",
@@ -556,6 +564,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     requestNothingSent:
       "Nada foi enviado a quem criou o link: você decide se congela, e é você quem envia o link congelado.",
     requestDefaultLabel: "Versão solicitada",
+    requestLabel: "Rótulo sugerido:",
     requestFreeze: "Congelar esta versão",
     requestDismiss: "Agora não",
     requestDone: "Congelada como versão {n}.",
@@ -617,7 +626,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     presetReader: "Vista per valutatori",
     presetHiring: "Commissione di selezione",
     hiringHint:
-      "Mostra i tuoi contatti (e-mail, telefono, località) su questa pagina congelata e nasconde i contrassegni di evidenza accademica e le metriche. Scelto ora, fisso per questa versione.",
+      "Mostra i tuoi contatti (e-mail, telefono, località) su questa pagina congelata — anche quelli nascosti sulla tua pagina pubblica; compaiono solo i campi compilati — e nasconde i contrassegni di evidenza accademica e le metriche. La vista per valutatori è chiusa su questa versione. Scelto ora, fisso per questa versione.",
     requestTitle: "Un link ha chiesto una versione congelata del tuo CV",
     requestBody: "Chiede il formato «{shape}», congelato come: {preset}.",
     requestBy: "Richiesto entro il {date}.",
@@ -625,6 +634,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     requestNothingSent:
       "Nulla è stato inviato a chi ha creato il link: decidi tu se congelare, e sei tu a inviare il link congelato.",
     requestDefaultLabel: "Versione richiesta",
+    requestLabel: "Etichetta suggerita:",
     requestFreeze: "Congela questa versione",
     requestDismiss: "Non ora",
     requestDone: "Congelata come versione {n}.",
@@ -685,7 +695,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     presetReader: "심사자 보기",
     presetHiring: "채용 위원회용",
     hiringHint:
-      "이 고정 페이지에 연락처(이메일, 전화, 위치)를 표시하고 학술 근거 표시와 지표를 숨깁니다. 지금 선택하면 이 버전에서는 변경되지 않습니다.",
+      "이 고정 페이지에 연락처(이메일, 전화, 위치)를 표시합니다. 공개 페이지에서 숨긴 항목도 포함되며, 입력한 항목만 표시됩니다. 학술 근거 표시와 지표는 숨겨지고, 이 버전에서는 심사자 보기를 사용할 수 없습니다. 지금 선택하면 이 버전에서는 변경되지 않습니다.",
     requestTitle: "링크에서 CV 고정 버전을 요청했습니다",
     requestBody: "요청된 형식은 “{shape}”, 고정 유형은 {preset}입니다.",
     requestBy: "요청 기한: {date}.",
@@ -693,6 +703,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     requestNothingSent:
       "링크를 만든 사람에게는 아무것도 전송되지 않았습니다. 고정 여부는 본인이 결정하고, 고정된 링크도 본인이 직접 보냅니다.",
     requestDefaultLabel: "요청된 버전",
+    requestLabel: "제안된 라벨:",
     requestFreeze: "이 버전 고정",
     requestDismiss: "나중에",
     requestDone: "버전 {n}(으)로 고정되었습니다.",
@@ -754,7 +765,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     presetReader: "Режим эксперта",
     presetHiring: "Для комиссии по найму",
     hiringHint:
-      "Показывает ваши контакты (эл. почта, телефон, местоположение) на этой замороженной странице и скрывает отметки академических свидетельств и метрики. Выбирается сейчас и фиксируется для этой версии.",
+      "Показывает ваши контакты (эл. почта, телефон, местоположение) на этой зафиксированной странице — даже те, что скрыты на вашей публичной странице; отображаются только заполненные поля — и скрывает отметки академических свидетельств и метрики. Режим эксперта для этой версии закрыт. Выбирается сейчас и фиксируется для этой версии.",
     requestTitle: "По ссылке запрошена замороженная версия вашего CV",
     requestBody: "Запрошен формат «{shape}», заморозить как: {preset}.",
     requestBy: "Срок: {date}.",
@@ -762,6 +773,7 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     requestNothingSent:
       "Автору ссылки ничего не отправлено: вы сами решаете, замораживать ли версию, и сами отправляете замороженную ссылку.",
     requestDefaultLabel: "Запрошенная версия",
+    requestLabel: "Предложенное название:",
     requestFreeze: "Заморозить эту версию",
     requestDismiss: "Не сейчас",
     requestDone: "Заморожено как версия {n}.",

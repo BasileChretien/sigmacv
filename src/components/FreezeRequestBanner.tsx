@@ -75,6 +75,8 @@ export default function FreezeRequestBanner({ locale, published, slug }: FreezeR
       if (!res.ok) throw new Error(String(res.status));
       const { snapshot } = (await res.json()) as { snapshot: SnapshotSummary };
       setDone(snapshot);
+      // Answered: a reload must not offer the same freeze again.
+      stripParams();
     } catch {
       setFailed(true);
     } finally {
@@ -82,8 +84,7 @@ export default function FreezeRequestBanner({ locale, published, slug }: FreezeR
     }
   }
 
-  function dismiss() {
-    setReq(null);
+  function stripParams() {
     try {
       const url = new URL(window.location.href);
       for (const k of REQUEST_PARAMS) url.searchParams.delete(k);
@@ -91,6 +92,11 @@ export default function FreezeRequestBanner({ locale, published, slug }: FreezeR
     } catch {
       // Leaving the params in place is harmless.
     }
+  }
+
+  function dismiss() {
+    setReq(null);
+    stripParams();
   }
 
   const link =
@@ -115,6 +121,11 @@ export default function FreezeRequestBanner({ locale, published, slug }: FreezeR
           : ""}{" "}
         {s.requestNothingSent}
       </p>
+      {req.label ? (
+        <p className="versions-hint">
+          {s.requestLabel} <q>{req.label}</q>
+        </p>
+      ) : null}
       {hint ? <p className="versions-hint">{hint}</p> : null}
       {done ? (
         <p>

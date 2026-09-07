@@ -28,6 +28,7 @@ vi.mock("@/lib/log", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.
 
 import { GET as pageGet } from "@/app/p/[slug]/v/[token]/route";
 import { provenanceLedger } from "@/lib/cv/provenanceLedger";
+import { shapeForFreeze } from "@/lib/cv/snapshotShape";
 import { GET as diffGet } from "@/app/p/[slug]/v/[token]/diff/route";
 
 const works = worksFixture as unknown as OpenAlexWork[];
@@ -175,6 +176,19 @@ describe("GET /p/[slug]/v/[token] (frozen version page)", () => {
     // Not allowed by the frozen display: the param is ignored, no reader chrome at all.
     mocks.getPublicSnapshot.mockResolvedValue(SNAP);
     html = await (
+      await pageGet(req(`/p/${SLUG}/v/${TOKEN}?view=reader`), params(SLUG, TOKEN))
+    ).text();
+    expect(html).not.toContain('class="cv-readerbanner"');
+    expect(html).not.toContain('class="cv-readerbar"');
+    expect(html).not.toContain('class="cv-prov"');
+  });
+
+  it("a hiring-panel version never opens the reader view, even when the owner allows it live", async () => {
+    const hiring = shapeForFreeze(updateDisplay(cv, { allowReaderMode: true }), {
+      preset: "hiring",
+    });
+    mocks.getPublicSnapshot.mockResolvedValue({ ...SNAP, cv: hiring });
+    const html = await (
       await pageGet(req(`/p/${SLUG}/v/${TOKEN}?view=reader`), params(SLUG, TOKEN))
     ).text();
     expect(html).not.toContain('class="cv-readerbanner"');

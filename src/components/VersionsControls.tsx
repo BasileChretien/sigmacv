@@ -237,7 +237,7 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
               <optgroup key={group.category} label={modelGroupLabel(group.category)}>
                 {group.models.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.name}
+                    {`${m.name} (${m.id})`}
                   </option>
                 ))}
               </optgroup>

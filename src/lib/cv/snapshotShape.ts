@@ -27,7 +27,17 @@ export interface FreezeShape {
 
 export function shapeForFreeze(cv: CanonicalCv, shape: FreezeShape): CanonicalCv {
   let next = cv;
-  if (shape.modelId && isCvModelId(shape.modelId)) next = applyCvModel(next, shape.modelId);
+  if (shape.modelId && isCvModelId(shape.modelId)) {
+    // Start from the model's OWN list settings: `applyCvModel` only spreads the
+    // model's display overrides, so a "full record" model (no overrides) frozen
+    // over a live layout narrowed to "10 peer-reviewed" would inherit that
+    // narrowing. Reset the two narrowing fields first; sort order is the owner's.
+    next = {
+      ...next,
+      display: { ...next.display, publicationsLimit: undefined, peerReviewedOnly: false },
+    };
+    next = applyCvModel(next, shape.modelId);
+  }
   if (shape.preset === "reader") next = { ...next, display: applyReaderMode(next.display) };
   else if (shape.preset === "hiring") next = { ...next, display: applyHiringPreset(next.display) };
   return next;

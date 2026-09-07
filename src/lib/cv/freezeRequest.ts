@@ -38,6 +38,24 @@ export interface FreezeRequest {
 
 /** `?freeze=` value meaning "no particular model — just freeze (with the preset)". */
 const ANY_SHAPE = "1";
+
+/** Loose form of a model name for matching: lower-case, alphanumerics only. */
+function loose(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+/**
+ * Resolve a `freeze=` value to a catalog model id: the id itself, or the
+ * model's catalog NAME (case- and punctuation-insensitive) — a requester who
+ * copied "ERC (Starting / Consolidator / Advanced)" from the picker need not
+ * know the id. Undefined when nothing matches.
+ */
+export function resolveFreezeModelId(value: string): string | undefined {
+  if (isCvModelId(value)) return value;
+  const key = loose(value);
+  if (!key) return undefined;
+  return CV_MODELS.find((m) => loose(m.name) === key)?.id;
+}
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 function validDate(s: string): boolean {
@@ -56,7 +74,8 @@ export function parseFreezeRequest(params: URLSearchParams): FreezeRequest | nul
   const freeze = params.get("freeze");
   if (!freeze) return null;
   const req: FreezeRequest = {};
-  if (isCvModelId(freeze)) req.modelId = freeze;
+  const modelId = resolveFreezeModelId(freeze);
+  if (modelId) req.modelId = modelId;
   else if (freeze !== ANY_SHAPE) return null;
   const preset = params.get("preset");
   if (preset && isFreezePreset(preset)) req.preset = preset;

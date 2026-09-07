@@ -89,6 +89,8 @@ describe("VersionsControls", () => {
     fireEvent.change(screen.getByLabelText("Freeze as"), { target: { value: "reader" } });
     // Choosing it shows the explicit inventory of what the reader view turns on.
     expect(screen.getByText(/has no standard view/).textContent).toMatch(/Provenance|provenance/);
+    // Every model is listed as "name (id)" so a requester can quote the id.
+    expect(screen.getByText("US tenure / promotion dossier (tenure-us)")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Shape"), {
       target: { value: "institutional-assessment" },
     });
