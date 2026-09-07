@@ -4,7 +4,8 @@ import { db } from "./fixtures/db";
 import { startOpenAlexServer } from "./fixtures/openalex-server";
 
 export default async function globalSetup() {
-  dotenv.config({ path: ".env.e2e" });
+  // `quiet` suppresses dotenv's "injected env … // tip: …" promo line on every run.
+  dotenv.config({ path: ".env.e2e", quiet: true });
 
   // Guardrail: never touch a non-test database.
   const url = process.env.DATABASE_URL ?? "";
