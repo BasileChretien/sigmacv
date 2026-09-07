@@ -58,6 +58,8 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
   const [announce, setAnnounce] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [mintingId, setMintingId] = useState<string | null>(null);
+  // Per-mint consent: ticked before each "Mint DOI", reset after every attempt.
+  const [mintConsent, setMintConsent] = useState(false);
   const [origin] = useState(() => (typeof window !== "undefined" ? window.location.origin : ""));
 
   useEffect(() => {
@@ -152,6 +154,10 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
         setListing((cur) =>
           cur ? { ...cur, snapshots: cur.snapshots.filter((x) => x.id !== snap.id) } : cur,
         );
+      } else if (res.status === 409) {
+        // The server knows the version is minted (this row may be stale): say
+        // why rather than "something went wrong".
+        setAnnounce(s.deleteLockedHint);
       } else setAnnounce(s.actionFailed);
     } catch {
       setAnnounce(s.actionFailed);
@@ -168,6 +174,9 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
     try {
       const res = await fetch(`/api/cv/snapshots/${encodeURIComponent(snap.id)}/mint`, {
         method: "POST",
+        headers: { "content-type": "application/json" },
+        // The explicit per-mint consent the endpoint requires (422 without it).
+        body: JSON.stringify({ consent: true }),
       });
       if (res.ok) {
         const data = (await res.json()) as { doi: string };
@@ -181,6 +190,8 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
     } finally {
       setBusy(null);
       setMintingId(null);
+      // Consent covers ONE mint: the next attempt has to be consented again.
+      setMintConsent(false);
     }
   }
 
@@ -194,6 +205,10 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
   }
 
   const canShare = published && !!slug;
+  // The consent prompt only makes sense where a mint is actually possible:
+  // this server can mint, the live page is published, and a version is unminted.
+  const showMintConsent =
+    !!listing?.doiMintingEnabled && canShare && snapshots.some((x) => x.doiState !== "minted");
 
   return (
     <div className="account-controls versions-controls">
@@ -272,16 +287,33 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
       {loadError ? <p className="versions-hint">{s.loadFailed}</p> : null}
       {listing && snapshots.length === 0 ? <p className="versions-hint">{s.empty}</p> : null}
 
+      {showMintConsent ? (
+        <div className="versions-consent" data-testid="mint-consent">
+          <p className="versions-hint">{s.mintConsentText}</p>
+          <label className="field-inline">
+            <input
+              type="checkbox"
+              checked={mintConsent}
+              disabled={busy !== null}
+              onChange={(e) => setMintConsent(e.target.checked)}
+            />
+            {s.mintConsentLabel}
+          </label>
+        </div>
+      ) : null}
+
       <ul className="versions-list">
         {snapshots.map((snap) => {
           const url = canShare ? `${origin}/p/${slug}/v/${snap.token}` : null;
           const rowBusy = busy === snap.id;
-          const canMint = !!listing?.doiMintingEnabled && snap.isPublic && canShare;
+          const canMint = !!listing?.doiMintingEnabled && snap.isPublic && canShare && mintConsent;
           const mintTitle = !listing?.doiMintingEnabled
             ? s.mintDisabledHint
             : !snap.isPublic
               ? s.mintNeedsPublic
-              : undefined;
+              : !mintConsent
+                ? s.mintNeedsConsent
+                : undefined;
           return (
             <li key={snap.id} className="versions-row" data-testid="version-row">
               <div className="versions-row-head">
@@ -345,7 +377,10 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
                 <button
                   type="button"
                   className="link-btn danger"
-                  disabled={rowBusy}
+                  // A minted version cannot be deleted while the account exists
+                  // (its DOI must keep resolving; the server 409s anyway).
+                  disabled={rowBusy || snap.doiState === "minted"}
+                  title={snap.doiState === "minted" ? s.deleteLockedHint : undefined}
                   onClick={() => void remove(snap)}
                 >
                   {confirmId === snap.id ? s.confirmDelete : s.delete}

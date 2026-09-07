@@ -227,6 +227,12 @@ describe("DELETE /api/cv/snapshots/[id]", () => {
     mocks.deleteSnapshot.mockResolvedValue(false);
     expect((await del("other")).status).toBe(404);
   });
+  it("409s doi-minted for a minted version (mirrors PATCH): a DOI must keep resolving", async () => {
+    mocks.deleteSnapshot.mockRejectedValue(new SnapshotDoiLockedError("locked"));
+    const res = await del("s");
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "doi-minted" });
+  });
   it("maps errors", async () => {
     mocks.deleteSnapshot.mockRejectedValue(new CvNotFoundError("no cv"));
     expect((await del("s")).status).toBe(409);
@@ -236,8 +242,8 @@ describe("DELETE /api/cv/snapshots/[id]", () => {
 });
 
 describe("/api/cv/snapshots/[id]/mint", () => {
-  const mint = (id = "snap1") =>
-    mintPost(new Request(`${BASE}/${id}/mint`, { method: "POST" }), params(id));
+  const mint = (id = "snap1", body: unknown = { consent: true }) =>
+    mintPost(json(`${BASE}/${id}/mint`, "POST", body), params(id));
 
   it("GET reports whether minting is enabled", async () => {
     let res = await mintGet(new Request(`${BASE}/snap1/mint`));
@@ -255,6 +261,34 @@ describe("/api/cv/snapshots/[id]/mint", () => {
     expect(await res.json()).toEqual({ error: "doi-minting-disabled" });
     expect(mocks.mintDoiForSnapshot).not.toHaveBeenCalled();
     expect(mocks.auth).not.toHaveBeenCalled();
+  });
+
+  it("POST requires an explicit { consent: true } body — nothing is minted without it", async () => {
+    mocks.doiMintingEnabled.mockReturnValue(true);
+    mocks.mintDoiForSnapshot.mockResolvedValue({ state: "minted", doi: "10.1/x" });
+    for (const body of [{}, { consent: false }, { consent: "true" }, { consent: 1 }, null]) {
+      const res = await mint("snap1", body);
+      expect(res.status, JSON.stringify(body)).toBe(422);
+      expect(await res.json()).toEqual({ error: "consent-required" });
+    }
+    // No body at all, or malformed JSON → 400; oversize → 413.
+    expect(
+      (await mintPost(new Request(`${BASE}/snap1/mint`, { method: "POST" }), params("snap1")))
+        .status,
+    ).toBe(400);
+    expect(
+      (
+        await mintPost(
+          new Request(`${BASE}/snap1/mint`, { method: "POST", body: "{nope" }),
+          params("snap1"),
+        )
+      ).status,
+    ).toBe(400);
+    expect((await mint("snap1", { consent: true, pad: "x".repeat(3000) })).status).toBe(413);
+    expect(mocks.mintDoiForSnapshot).not.toHaveBeenCalled();
+    // The consent flag is the only thing that unlocks the call.
+    expect((await mint("snap1", { consent: true })).status).toBe(200);
+    expect(mocks.mintDoiForSnapshot).toHaveBeenCalledWith("u1", "snap1");
   });
 
   it("POST maps every mint outcome when enabled", async () => {

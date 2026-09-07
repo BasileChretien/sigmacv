@@ -3,6 +3,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
 import { CvNotFoundError } from "@/lib/cv/sync";
+import { recordPendingDoiWithdrawal } from "@/lib/cv/doiWithdrawals";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import {
   isProvenanceLedger,
@@ -12,7 +13,12 @@ import {
 import { shapeForFreeze, type FreezeShape } from "@/lib/cv/snapshotShape";
 import { contentHashOf } from "@/lib/cv/snapshotHash";
 import { freezeCanonical, MAX_SNAPSHOTS_PER_CV } from "@/lib/cv/snapshots";
-import { doiMintingEnabled, mintSnapshotDoi } from "@/lib/datacite/mint";
+import {
+  doiMintingEnabled,
+  mintSnapshotDoi,
+  tombstoneSnapshotDoi,
+  type TombstoneResult,
+} from "@/lib/datacite/mint";
 import { logger } from "@/lib/log";
 import { absoluteUrl } from "@/lib/siteUrl";
 
@@ -33,8 +39,10 @@ export class SnapshotLimitError extends Error {
   }
 }
 
-/** Thrown when a minted (DOI-bearing) snapshot would be made private: its DOI
- *  must keep resolving to a landing page. */
+/** Thrown when a minted (DOI-bearing) snapshot would be made private OR
+ *  deleted: while the account exists its DOI must keep resolving to a landing
+ *  page. (Account deletion is the one way out — see
+ *  {@link withdrawMintedSnapshotDois}.) */
 export class SnapshotDoiLockedError extends Error {
   constructor() {
     super("A version with a DOI must stay public.");
@@ -42,7 +50,10 @@ export class SnapshotDoiLockedError extends Error {
   }
 }
 
-export type DoiState = "none" | "pending" | "minted" | "failed";
+/** `withdrawn` is written by {@link withdrawMintedSnapshotDois} moments before
+ *  the row is cascaded away — it exists so a partially failed deletion leaves
+ *  an honest state behind, never as something the editor lists. */
+export type DoiState = "none" | "pending" | "minted" | "failed" | "withdrawn";
 
 /** What the editor lists — never the frozen document itself (fetched on demand). */
 export interface SnapshotSummary {
@@ -101,7 +112,7 @@ const SUMMARY_SELECT = {
 } as const;
 
 function asDoiState(s: string): DoiState {
-  return s === "pending" || s === "minted" || s === "failed" ? s : "none";
+  return s === "pending" || s === "minted" || s === "failed" || s === "withdrawn" ? s : "none";
 }
 
 function toSummary(row: SnapshotRow): SnapshotSummary {
@@ -254,11 +265,101 @@ export async function updateSnapshot(
   return toSummary(row);
 }
 
-/** Delete one snapshot; false when it isn't the owner's. */
+/** Delete one snapshot; false when it isn't the owner's. A MINTED snapshot is
+ *  refused ({@link SnapshotDoiLockedError}) — its DOI must keep resolving; a
+ *  `pending` / `failed` row holds no DOI and can go. */
 export async function deleteSnapshot(userId: string, id: string): Promise<boolean> {
   const cv = await ownerCv(userId);
+  const existing = await prisma.cvSnapshot.findFirst({
+    where: { id, cvId: cv.id },
+    select: { id: true, doiState: true },
+  });
+  if (!existing) return false;
+  if (existing.doiState === "minted") throw new SnapshotDoiLockedError();
   const res = await prisma.cvSnapshot.deleteMany({ where: { id, cvId: cv.id } });
   return res.count > 0;
+}
+
+/** The owner's display name as the frozen document records it (undefined when
+ *  the stored JSON is not even shaped like a CV — the tombstone then falls back
+ *  to its placeholder rather than skipping the withdrawal). */
+function frozenOwnerName(canonical: unknown): string | undefined {
+  const name = (canonical as { owner?: { displayName?: unknown } } | null)?.owner?.displayName;
+  return typeof name === "string" ? name : undefined;
+}
+
+/**
+ * Withdraw ONE minted snapshot's DOI. True only when DataCite confirmed the
+ * hide; every other outcome — a refused / failed PUT, or an unexpected throw —
+ * parks the DOI in the retry queue (`DoiWithdrawal`), because the cascade that
+ * follows removes the only other copy of it. Never throws.
+ */
+async function withdrawOne(row: { id: string; doi: string; canonical: unknown }): Promise<boolean> {
+  let outcome: TombstoneResult;
+  try {
+    outcome = await tombstoneSnapshotDoi({
+      doi: row.doi,
+      ownerName: frozenOwnerName(row.canonical),
+    });
+  } catch (err) {
+    logger.warn("snapshot.doi_withdrawal_error", { err, doi: row.doi });
+    outcome = { ok: false, reason: "error" };
+  }
+  if (!outcome.ok) {
+    // Fail-soft itself (a queue write that fails is logged at error level).
+    await recordPendingDoiWithdrawal(row.doi, outcome.reason);
+    return false;
+  }
+  // Confirmed withdrawn: record it on the row (it is about to be cascaded, but
+  // a deletion that fails halfway must leave an honest state behind). A failed
+  // state write does not un-withdraw the DOI, so it is only a warning.
+  try {
+    await prisma.cvSnapshot.update({ where: { id: row.id }, data: { doiState: "withdrawn" } });
+  } catch (err) {
+    logger.warn("snapshot.doi_withdrawn_state_failed", { err, doi: row.doi });
+  }
+  return true;
+}
+
+/**
+ * Account-deletion hook: BEFORE the `User → Cv → CvSnapshot` cascade removes
+ * the rows, tombstone every minted DOI of this user's CV at DataCite (hide +
+ * repoint at the static withdrawn page + minimise the record) so each DOI
+ * resolves to "withdrawn by its owner" rather than a 404. Fail-soft by
+ * contract: a DataCite outage or a DB error is logged and reported in the
+ * counts, never thrown — the deletion must proceed regardless — and every DOI
+ * NOT confirmed withdrawn is queued for the cron retry (`cv/doiWithdrawals.ts`)
+ * so that proceeding never strands a findable record. A shortfall
+ * (`attempted !== withdrawn`) is logged at error level. A no-op (not even a
+ * DB read) while minting is disabled, since then no DOI can ever have been
+ * minted by this server.
+ */
+export async function withdrawMintedSnapshotDois(
+  userId: string,
+): Promise<{ attempted: number; withdrawn: number }> {
+  if (!doiMintingEnabled()) return { attempted: 0, withdrawn: 0 };
+  let attempted = 0;
+  let withdrawn = 0;
+  try {
+    const rows = await prisma.cvSnapshot.findMany({
+      where: { cv: { userId }, doiState: "minted", doi: { not: null } },
+      select: { id: true, doi: true, canonical: true },
+    });
+    for (const row of rows) {
+      if (!row.doi) continue;
+      attempted += 1;
+      if (await withdrawOne({ id: row.id, doi: row.doi, canonical: row.canonical })) {
+        withdrawn += 1;
+      }
+    }
+  } catch (err) {
+    logger.warn("snapshot.doi_withdrawal_failed", { err, attempted, withdrawn });
+  }
+  if (attempted > 0) {
+    const level = attempted === withdrawn ? "info" : "error";
+    logger[level]("snapshot.dois_withdrawn", { attempted, withdrawn });
+  }
+  return { attempted, withdrawn };
 }
 
 /** Parse a stored frozen document; null when it no longer validates. */
@@ -393,6 +494,9 @@ export async function mintDoiForSnapshot(userId: string, id: string): Promise<Mi
     year: row.createdAt.getUTCFullYear(),
     url: absoluteUrl(snapshotPublicPath(cv.publicSlug, row.token)),
     previousDoi: previous?.doi ?? null,
+    // The payload's public-data enrichment (affiliation, referenced works,
+    // funding) only ever sees what the frozen PUBLIC page itself shows.
+    cv: projectCvForPublic(frozen),
   });
   if (result.ok) {
     await prisma.cvSnapshot.update({

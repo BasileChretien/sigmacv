@@ -181,6 +181,22 @@ model CvSnapshot {
   @@unique([cvId, version])
 }
 
+// A minted snapshot DOI whose withdrawal at DataCite (hide + repoint at the
+// /withdrawn tombstone, see datacite/mint.ts `tombstoneSnapshotDoi`) FAILED
+// during account deletion. The User → Cv → CvSnapshot cascade removes the only
+// other copy of the DOI with the account, so without this row a DataCite outage
+// at that moment would leave the record findable forever. Standalone by design:
+// no FK to User and no personal data — just the DOI, a retry counter and the
+// last machine reason. Drained by the internal resync cron
+// (cv/doiWithdrawals.ts); the row is deleted once DataCite accepts the hide.
+model DoiWithdrawal {
+  doi       String   @id
+  attempts  Int      @default(1)
+  lastError String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // Persistent fixed-window rate-limit counters. Used ONLY when the app runs as
 // multiple instances and RATE_LIMIT_PERSIST=true (a single instance uses the
 // in-memory limiter). One row per limiter key; `resetAt` bounds the window.

@@ -18,9 +18,13 @@ const mocks = vi.hoisted(() => ({
   rateLimitDeleteMany: vi.fn(),
   enforceRateLimit: vi.fn(),
   isSameOrigin: vi.fn(),
+  withdrawMintedSnapshotDois: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
+vi.mock("@/lib/cv/snapshotStore", () => ({
+  withdrawMintedSnapshotDois: mocks.withdrawMintedSnapshotDois,
+}));
 vi.mock("@/lib/db", () => ({
   prisma: {
     user: { findUnique: mocks.userFindUnique, delete: mocks.userDelete },
@@ -49,6 +53,7 @@ beforeEach(() => {
   mocks.isSameOrigin.mockReturnValue(true);
   mocks.enforceRateLimit.mockResolvedValue({ ok: true });
   mocks.userDelete.mockResolvedValue({});
+  mocks.withdrawMintedSnapshotDois.mockResolvedValue({ attempted: 0, withdrawn: 0 });
 });
 
 const req = () => new Request("https://sigmacv.test/api/account", { method: "DELETE" });
@@ -128,6 +133,36 @@ describe("deleting an account sweeps its persisted rate-limit counters", () => {
   it("is fail-soft: a sweep failure never turns a completed deletion into an error", async () => {
     mocks.userFindUnique.mockResolvedValue({ orcid: null });
     mocks.rateLimitDeleteMany.mockRejectedValue(new Error("table missing"));
+    const res = await DELETE(req());
+    expect(res.status).toBe(200);
+    expect(mocks.userDelete).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("deleting an account withdraws its minted snapshot DOIs first", () => {
+  // A minted DOI record (name, ORCID, version URL) lives at DataCite and would
+  // otherwise keep resolving to a 404 after the cascade removed the snapshot.
+  // The tombstone call must run BEFORE the row goes (the DOIs are read from it).
+  it("calls withdrawMintedSnapshotDois for the user before the user row is deleted", async () => {
+    const order: string[] = [];
+    mocks.userFindUnique.mockResolvedValue({ orcid: null });
+    mocks.withdrawMintedSnapshotDois.mockImplementation(async () => {
+      order.push("withdraw");
+      return { attempted: 1, withdrawn: 1 };
+    });
+    mocks.userDelete.mockImplementation(async () => {
+      order.push("delete");
+      return {};
+    });
+    const res = await DELETE(req());
+    expect(res.status).toBe(200);
+    expect(mocks.withdrawMintedSnapshotDois).toHaveBeenCalledWith("u1");
+    expect(order).toEqual(["withdraw", "delete"]);
+  });
+
+  it("is fail-soft: a DataCite outage never blocks account deletion", async () => {
+    mocks.userFindUnique.mockResolvedValue({ orcid: null });
+    mocks.withdrawMintedSnapshotDois.mockRejectedValue(new Error("datacite down"));
     const res = await DELETE(req());
     expect(res.status).toBe(200);
     expect(mocks.userDelete).toHaveBeenCalledTimes(1);
