@@ -114,7 +114,7 @@ export async function GET(
   // quiet "Reader view" link when the frozen display allows the view on request.
   const locale = snap.cv.display.locale;
   const readerChrome = reader
-    ? readerViewBannerHtml({}, locale, { backLink: !snap.readerMode })
+    ? readerViewBannerHtml(viewCv, {}, { backLink: !snap.readerMode })
     : snap.cv.display.allowReaderMode
       ? readerViewLinkHtml({}, locale)
       : "";

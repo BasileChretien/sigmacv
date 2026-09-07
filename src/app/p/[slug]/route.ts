@@ -155,10 +155,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       feedHref,
       readerMode: reader,
     });
-    // Reader-view chrome: the banner at the top of the reader view, or (when the
-    // owner allows the view) the quiet "Reader view" link on the standard page.
+    // Reader-view chrome: the banner at the top of the reader view (its legend is
+    // derived from the very CV this view renders, so it explains only marks the
+    // page shows), or (when the owner allows the view) the quiet "Reader view"
+    // link on the standard page.
     const readerChrome = reader
-      ? readerViewBannerHtml(filters, cv.display.locale)
+      ? readerViewBannerHtml(renderCv, filters)
       : cv.display.allowReaderMode
         ? readerViewLinkHtml(filters, cv.display.locale)
         : "";

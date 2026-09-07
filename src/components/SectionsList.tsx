@@ -1167,6 +1167,7 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                   onSetSupervision={(patch) =>
                                     onChange(setSupervisionDetails(cv, section.id, item.id, patch))
                                   }
+                                  superviseeNamesHidden={cv.display.hideSuperviseeNames === true}
                                   onRemove={() => onChange(removeItem(cv, section.id, item.id))}
                                 />
                               ))}

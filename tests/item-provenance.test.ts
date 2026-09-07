@@ -4,7 +4,11 @@ import { addManualEntry } from "@/lib/canonical/curate";
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { renderCvHtml } from "@/lib/render/html";
-import { itemProvenance, itemProvenanceHtml } from "@/lib/render/itemProvenance";
+import {
+  itemProvenance,
+  itemProvenanceHtml,
+  itemProvenanceMark,
+} from "@/lib/render/itemProvenance";
 import { SOURCE_LABEL, sourceLabel } from "@/lib/render/sourceLabel";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -37,6 +41,34 @@ function item(over: Partial<CvItem> & { meta?: CvItem["meta"] } = {}): CvItem {
     meta: { ...(over.meta ?? {}) },
   };
 }
+
+describe("itemProvenanceMark (the label + lead sentence, and what the label stands for)", () => {
+  it("classifies each mark so a legend can tell a source name from a match or an owner entry", () => {
+    expect(itemProvenanceMark(item(), "en-US")).toEqual({
+      basis: "source",
+      label: "OpenAlex",
+      title: "Record from OpenAlex",
+    });
+    expect(itemProvenanceMark(item({ source: "derived" }), "en-US").basis).toBe("source");
+    expect(itemProvenanceMark(item({ source: "manual" }), "en-US")).toEqual({
+      basis: "manual",
+      label: "Manual",
+      title: "Entered by the owner",
+    });
+    expect(itemProvenanceMark(item({ meta: { matchBasis: "claimed" } }), "en-US").basis).toBe(
+      "claimed",
+    );
+    for (const matchBasis of ["orcid", "openalex-id", "both"] as const) {
+      expect(itemProvenanceMark(item({ meta: { matchBasis } }), "en-US").basis).toBe("identifier");
+    }
+    // The full mark's label + leading sentence are exactly these.
+    const full = itemProvenance(item({ meta: { verified: true } }), "en-US");
+    const mark = itemProvenanceMark(item({ meta: { verified: true } }), "en-US");
+    expect(full.label).toBe(mark.label);
+    expect(full.title.startsWith(mark.title)).toBe(true);
+    expect(full).not.toHaveProperty("basis");
+  });
+});
 
 describe("itemProvenance (pure)", () => {
   it("names the identifier match when the match basis is on the item", () => {

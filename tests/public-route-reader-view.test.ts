@@ -135,6 +135,32 @@ describe.skipIf(!hasApa)("/p/[slug]?view=reader (needs vendored CSL assets)", ()
     expect(html).not.toContain("h-index");
   });
 
+  it("carries the recipient notice + print legend only in the reader view", async () => {
+    serve(makeCv(true));
+    const plain = await get();
+    const { html } = await get("?view=reader");
+    const banner = html.match(/<aside class="cv-readerbanner"[\s\S]*?<\/aside>/)?.[0] ?? "";
+    expect(banner).toContain('<p class="cv-readernotice">');
+    expect(banner).toContain("rests on the reader&#39;s own lawful basis");
+    expect(banner).toContain('<div class="cv-readerlegend">');
+    // The legend is built from what THIS page shows: the fixture's works all come
+    // from OpenAlex, none is retracted, none carries an OA status or an indicator
+    // — so the mark line names OpenAlex, and no other line is emitted.
+    expect(banner).toContain(
+      "<li>Grey mark after an entry: the source its record came from (OpenAlex).</li>",
+    );
+    expect(banner).not.toContain("<li><b>Retracted</b>");
+    expect(banner).not.toContain("<li><b>OA</b>");
+    expect(banner).not.toContain("<li><b>Claimed</b>");
+    expect(banner).not.toContain("<li><b>Manual</b>");
+    expect(banner).not.toContain("Matched to the owner");
+    // The standard page carries neither block (the shared stylesheet may still
+    // name the classes — assert on the markup, not the selector).
+    expect(plain.html).not.toContain('<p class="cv-readernotice">');
+    expect(plain.html).not.toContain('<div class="cv-readerlegend">');
+    expect(plain.html).not.toContain("lawful basis");
+  });
+
   it("keeps the reader view across facet filters and the filters in the back link", async () => {
     serve(makeCv(true));
     const { html } = await get("?since=2020&view=reader");

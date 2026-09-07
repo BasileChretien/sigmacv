@@ -641,6 +641,19 @@ input[type="radio"] {
   margin: 0 0 var(--space-2);
   font-size: var(--text-sm);
 }
+/* The one-time hint when a supervisee NAME is first typed: a quiet accent-edged
+   note (not a modal) with an inline "Got it" dismiss. */
+.cv-supervision-name-hint {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2, transparent);
+  border-radius: 4px;
+  font-size: var(--text-sm);
+}
+.cv-supervision-name-hint .link-btn {
+  margin-left: var(--space-2);
+}
 .cv-item-dates-note {
   margin: 0;
   color: var(--muted);

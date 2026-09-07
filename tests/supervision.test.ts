@@ -284,6 +284,27 @@ describe("build: structured supervision items survive a re-sync", () => {
   });
 });
 
+// ─── reader mode (render option, never a display toggle) ─────────────────────
+
+describe("reader mode: supervisee current position", () => {
+  it("drops 'now: …' from the HTML record under opts.readerMode, keeps it everywhere else", () => {
+    const c = cv([sup("s1", JANE)]);
+    expect(supervisionHtml(c)).toContain("now: Postdoc at Kyoto University");
+    const reader = buildRenderedSections(c, { readerMode: true })
+      .find((s) => s.section.type === "supervision")!
+      .items.map((i) => i.html)
+      .join("\n");
+    expect(reader).not.toContain("now:");
+    expect(reader).not.toContain("Kyoto");
+    // The rest of the record is untouched.
+    expect(reader).toContain("Jane Doe — PhD, primary supervisor");
+    expect(reader).toContain("Nagoya University");
+    expect(reader).toContain('<span class="cv-entry-dates">2019–2023</span>');
+    // A saved document can't reach it: the exports never set the option.
+    expect(renderCvMarkdown(c)).toContain("now: Postdoc at Kyoto University");
+  });
+});
+
 // ─── summary helper ───────────────────────────────────────────────────────────
 
 describe("supervisionSummary", () => {
@@ -336,6 +357,25 @@ describe("supervisionEntry (shared prepared record)", () => {
 
   it("returns null for an unstructured entry (free text renders instead)", () => {
     expect(supervisionEntry(sup("s", { startYear: 2020 }), "en-US", false)).toBeNull();
+  });
+
+  it("omits the supervisee's current position ONLY in reader mode (third-party minimisation)", () => {
+    const item = sup("s", JANE);
+    const std = supervisionEntry(item, "en-US", false)!;
+    const reader = supervisionEntry(item, "en-US", false, true)!;
+    expect(std.sub.map((p) => p.text)).toContain("now: Postdoc at Kyoto University");
+    expect(reader.sub.map((p) => p.text)).not.toContain("now: Postdoc at Kyoto University");
+    // Nothing else changes: the same lead, dates, status and the other sub parts.
+    expect(reader.lead).toBe(std.lead);
+    expect(reader.dates).toBe(std.dates);
+    expect(reader.status).toEqual(std.status);
+    expect(reader.sub).toEqual(std.sub.filter((p) => !p.text.startsWith("now:")));
+    // Explicit false = the default.
+    expect(supervisionEntry(item, "en-US", false, false)).toEqual(std);
+    // Name hiding composes with it: neither the name nor the position remains.
+    const both = supervisionEntry(item, "en-US", true, true)!;
+    expect(both.lead).toBe("PhD student — primary supervisor");
+    expect(both.sub.map((p) => p.text).join(" ")).not.toContain("Kyoto");
   });
 
   it("hides the name behind the degree noun and drops the redundant degree label", () => {

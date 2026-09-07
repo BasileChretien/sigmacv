@@ -19,6 +19,7 @@ import { withSelfAuthorTail } from "./selfTail";
 import { supervisionEntry, supervisionEntryHtml, supervisionEntryText } from "./supervision";
 import { supervisionSummary, supervisionSummaryText } from "./supervisionSummary";
 import { softwareDetailsText, verifiedSuffix } from "./textMarks";
+import type { RenderOpts } from "./types";
 
 const escapeHtmlText = escapeHtml;
 
@@ -86,11 +87,14 @@ function localizeEntryLine(item: CvItem, locale: string): string {
  * Shared front-end for every renderer: take the canonical object, drop hidden
  * sections/items, and render the bibliography ONCE (in the requested output
  * format), mapping each entry back to its item. Format-specific self-name
- * emphasis is applied by the individual renderers.
+ * emphasis is applied by the individual renderers. `opts.readerMode` (the public
+ * route's assessor view — a render option the exports never set) trims the
+ * supervision record's third-party detail (`supervisionEntry`).
  */
 export function prepareSections(
   cv: CanonicalCv,
   outputFormat: CiteprocOutputFormat,
+  opts?: Pick<RenderOpts, "readerMode">,
 ): PreparedSection[] {
   // Resolve the effective citation style for THIS render.
   //  - A custom style whose payload this document carries → register + use it.
@@ -140,7 +144,7 @@ export function prepareSections(
       // supervisee-name hiding applied in the same place. An unstructured
       // supervision entry falls through to its free-text line below.
       if (section.type === "supervision") {
-        const rec = supervisionEntry(item, cv.display.locale, hideNames);
+        const rec = supervisionEntry(item, cv.display.locale, hideNames, opts?.readerMode);
         if (rec) {
           return outputFormat === "html" ? supervisionEntryHtml(rec) : supervisionEntryText(rec);
         }

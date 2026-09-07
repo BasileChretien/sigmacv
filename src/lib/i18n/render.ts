@@ -282,6 +282,18 @@ export interface RenderStrings {
   readerBannerText: string;
   /** Banner link back to the standard page. */
   readerBannerBack: string;
+  /** Reader-view recipient notice, sentence 1: published for self-presentation; assessment use rests on the reader's own lawful basis. */
+  readerNoticePurpose: string;
+  /** Reader-view recipient notice, sentence 2: co-author / supervisee names are third-party data, not a licence to profile. */
+  readerNoticeThirdParty: string;
+  /** Reader-view recipient notice, sentence 3: "Retracted" is a Crossref / Retraction Watch fact, not a misconduct finding. */
+  readerNoticeRetracted: string;
+  /** Reader-view recipient notice, sentence 4: an absent career-context section / absent source data is not evidence of absence. */
+  readerNoticeAbsence: string;
+  /** Heading of the print-visible legend under the reader banner. */
+  readerLegendLabel: string;
+  /** Legend line for the per-entry provenance mark: it names the SOURCE the record came from; `{sources}` = the distinct source names actually shown (the public projection strips the match basis, so the mark is never an identifier match there). */
+  readerLegendProvenance: string;
   /** Reader-view per-item provenance: how the work was tied to the owner (ORCID iD match). */
   provMatchOrcid: string;
   /** Reader-view per-item provenance: OpenAlex author-ID match. */
@@ -494,6 +506,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     readerBannerText:
       "Reader view: shows provenance, verification and context signals from the owner's data. Nothing here is a score.",
     readerBannerBack: "Back to the standard page",
+    readerNoticePurpose:
+      "The owner published this page to present their own work; any use of it for assessment rests on the reader's own lawful basis.",
+    readerNoticeThirdParty:
+      "Co-author and supervisee names are third-party data, not a licence to profile those people.",
+    readerNoticeRetracted:
+      "“Retracted” is a fact taken from Crossref / Retraction Watch, not a finding of misconduct.",
+    readerNoticeAbsence:
+      "A missing career-context section does not mean there is none, and an empty source does not mean no output.",
+    readerLegendLabel: "Key",
+    readerLegendProvenance:
+      "Grey mark after an entry: the source its record came from ({sources}).",
     provMatchOrcid: "Matched to the owner by ORCID iD",
     provMatchOpenAlexId: "Matched to the owner by OpenAlex author ID",
     provMatchBoth: "Matched to the owner by ORCID iD and OpenAlex author ID",
@@ -687,6 +710,15 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     readerLinkTitle: "显示所有者数据中的来源、核验与背景信号",
     readerBannerText: "审阅视图：显示所有者数据中的来源、核验与背景信号。此处没有任何内容是评分。",
     readerBannerBack: "返回标准页面",
+    readerNoticePurpose:
+      "本页由所有者发布，用于展示本人的工作；任何用于评估的使用，均以读者自身的合法依据为前提。",
+    readerNoticeThirdParty: "合著者与受指导者的姓名属于第三方数据，不构成对其进行画像的许可。",
+    readerNoticeRetracted:
+      "“已撤稿”是取自 Crossref／Retraction Watch 的事实，并非对不端行为的认定。",
+    readerNoticeAbsence:
+      "缺少职业背景部分并不意味着没有相关情况；某一来源没有数据也不意味着产出为零。",
+    readerLegendLabel: "图例",
+    readerLegendProvenance: "条目后的灰色标记：该记录的来源（{sources}）。",
     provMatchOrcid: "通过 ORCID iD 与所有者匹配",
     provMatchOpenAlexId: "通过 OpenAlex 作者 ID 与所有者匹配",
     provMatchBoth: "通过 ORCID iD 和 OpenAlex 作者 ID 与所有者匹配",
@@ -894,6 +926,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     readerBannerText:
       "Vista para evaluadores: muestra las señales de procedencia, verificación y contexto de los datos del titular. Nada de lo que aparece aquí es una puntuación.",
     readerBannerBack: "Volver a la página estándar",
+    readerNoticePurpose:
+      "El titular publicó esta página para presentar su propio trabajo; cualquier uso con fines de evaluación se apoya en la base jurídica propia del lector.",
+    readerNoticeThirdParty:
+      "Los nombres de coautores y de personas supervisadas son datos de terceros, no una licencia para elaborar perfiles de esas personas.",
+    readerNoticeRetracted:
+      "«Retractado» es un hecho tomado de Crossref / Retraction Watch, no una constatación de mala conducta.",
+    readerNoticeAbsence:
+      "La ausencia de una sección de contexto profesional no significa que no exista, y la falta de datos de una fuente no significa producción nula.",
+    readerLegendLabel: "Leyenda",
+    readerLegendProvenance:
+      "Marca gris tras una entrada: la fuente de la que procede su registro ({sources}).",
     provMatchOrcid: "Vinculado al titular por su ORCID iD",
     provMatchOpenAlexId: "Vinculado al titular por su ID de autor de OpenAlex",
     provMatchBoth: "Vinculado al titular por su ORCID iD y su ID de autor de OpenAlex",
@@ -1102,6 +1145,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     readerBannerText:
       "Vue évaluateur : affiche les signaux de provenance, de vérification et de contexte issus des données du titulaire. Rien ici n'est un score.",
     readerBannerBack: "Revenir à la page standard",
+    readerNoticePurpose:
+      "Le titulaire a publié cette page pour présenter son propre travail ; tout usage à des fins d’évaluation repose sur la base légale propre au lecteur.",
+    readerNoticeThirdParty:
+      "Les noms des co-auteurs et des personnes encadrées sont des données de tiers, non une autorisation de les profiler.",
+    readerNoticeRetracted:
+      "« Rétracté » est un fait relevé dans Crossref / Retraction Watch, non un constat de manquement à l’intégrité.",
+    readerNoticeAbsence:
+      "L’absence de section « contexte de carrière » ne signifie pas qu’il n’y en a pas, et l’absence de données d’une source ne signifie pas une production nulle.",
+    readerLegendLabel: "Légende",
+    readerLegendProvenance:
+      "Marque grise après une entrée : la source dont provient sa notice ({sources}).",
     provMatchOrcid: "Rattaché au titulaire par son ORCID iD",
     provMatchOpenAlexId: "Rattaché au titulaire par son identifiant auteur OpenAlex",
     provMatchBoth: "Rattaché au titulaire par son ORCID iD et son identifiant auteur OpenAlex",
@@ -1309,6 +1363,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     readerBannerText:
       "Gutachteransicht: zeigt Herkunfts-, Verifizierungs- und Kontextsignale aus den Daten der Inhaberin bzw. des Inhabers. Nichts hiervon ist eine Bewertung.",
     readerBannerBack: "Zurück zur Standardseite",
+    readerNoticePurpose:
+      "Die Inhaberin bzw. der Inhaber hat diese Seite zur Darstellung der eigenen Arbeit veröffentlicht; jede Nutzung zu Bewertungszwecken beruht auf der eigenen Rechtsgrundlage der lesenden Person.",
+    readerNoticeThirdParty:
+      "Namen von Mitautorinnen, Mitautoren und betreuten Personen sind Daten Dritter, keine Erlaubnis, diese Personen zu profilieren.",
+    readerNoticeRetracted:
+      "„Zurückgezogen“ ist ein aus Crossref / Retraction Watch übernommener Sachverhalt, keine Feststellung von Fehlverhalten.",
+    readerNoticeAbsence:
+      "Ein fehlender Abschnitt zum Karrierekontext bedeutet nicht, dass es keinen gibt, und fehlende Daten einer Quelle bedeuten nicht, dass nichts vorliegt.",
+    readerLegendLabel: "Legende",
+    readerLegendProvenance:
+      "Graue Markierung hinter einem Eintrag: die Quelle, aus der der Datensatz stammt ({sources}).",
     provMatchOrcid: "Über die ORCID iD zugeordnet",
     provMatchOpenAlexId: "Über die OpenAlex-Autoren-ID zugeordnet",
     provMatchBoth: "Über die ORCID iD und die OpenAlex-Autoren-ID zugeordnet",
@@ -1509,6 +1574,16 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     readerBannerText:
       "審査者ビュー：所有者のデータに含まれる出典・検証・文脈の情報を表示しています。ここにあるものはいずれもスコアではありません。",
     readerBannerBack: "通常のページに戻る",
+    readerNoticePurpose:
+      "このページは所有者が自身の業績を紹介するために公開したものです。評価目的での利用は、閲覧者自身の適法な根拠に基づくものです。",
+    readerNoticeThirdParty:
+      "共著者および指導した学生・研究者の氏名は第三者のデータであり、その人物をプロファイリングする許可ではありません。",
+    readerNoticeRetracted:
+      "「撤回済み」は Crossref／Retraction Watch から取得した事実であり、不正行為の認定ではありません。",
+    readerNoticeAbsence:
+      "キャリアの背景に関するセクションがないことは、背景がないことを意味しません。また、ある情報源にデータがないことは、成果がないことを意味しません。",
+    readerLegendLabel: "凡例",
+    readerLegendProvenance: "項目の後ろの灰色の印：そのレコードの出典（{sources}）。",
     provMatchOrcid: "ORCID iD により所有者と照合",
     provMatchOpenAlexId: "OpenAlex 著者 ID により所有者と照合",
     provMatchBoth: "ORCID iD と OpenAlex 著者 ID により所有者と照合",
@@ -1715,6 +1790,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     readerBannerText:
       "Visão para avaliadores: mostra os sinais de procedência, verificação e contexto dos dados do titular. Nada aqui é uma pontuação.",
     readerBannerBack: "Voltar à página padrão",
+    readerNoticePurpose:
+      "O titular publicou esta página para apresentar o próprio trabalho; qualquer uso para fins de avaliação se apoia na base legal do próprio leitor.",
+    readerNoticeThirdParty:
+      "Os nomes de coautores e de pessoas supervisionadas são dados de terceiros, não uma licença para traçar perfis dessas pessoas.",
+    readerNoticeRetracted:
+      "“Retratado” é um fato obtido do Crossref / Retraction Watch, não uma constatação de má conduta.",
+    readerNoticeAbsence:
+      "A ausência de uma seção de contexto de carreira não significa que ele não exista, e a falta de dados de uma fonte não significa produção zero.",
+    readerLegendLabel: "Legenda",
+    readerLegendProvenance:
+      "Marca cinza após uma entrada: a fonte de onde veio o registro ({sources}).",
     provMatchOrcid: "Vinculado ao titular pelo ORCID iD",
     provMatchOpenAlexId: "Vinculado ao titular pelo ID de autor do OpenAlex",
     provMatchBoth: "Vinculado ao titular pelo ORCID iD e pelo ID de autor do OpenAlex",
@@ -1923,6 +2009,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     readerBannerText:
       "Vista per valutatori: mostra i segnali di provenienza, verifica e contesto tratti dai dati del titolare. Nulla di ciò che vedi qui è un punteggio.",
     readerBannerBack: "Torna alla pagina standard",
+    readerNoticePurpose:
+      "Il titolare ha pubblicato questa pagina per presentare il proprio lavoro; qualsiasi uso a fini di valutazione si fonda sulla base giuridica propria del lettore.",
+    readerNoticeThirdParty:
+      "I nomi di coautori e persone supervisionate sono dati di terzi, non un’autorizzazione a profilarle.",
+    readerNoticeRetracted:
+      "«Ritirato» è un fatto tratto da Crossref / Retraction Watch, non un accertamento di condotta scorretta.",
+    readerNoticeAbsence:
+      "L’assenza di una sezione sul contesto di carriera non significa che non esista, e l’assenza di dati da una fonte non significa produzione nulla.",
+    readerLegendLabel: "Legenda",
+    readerLegendProvenance:
+      "Segno grigio dopo una voce: la fonte da cui proviene il suo record ({sources}).",
     provMatchOrcid: "Associato al titolare tramite ORCID iD",
     provMatchOpenAlexId: "Associato al titolare tramite ID autore OpenAlex",
     provMatchBoth: "Associato al titolare tramite ORCID iD e ID autore OpenAlex",
@@ -2121,6 +2218,16 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     readerBannerText:
       "심사자 보기: 소유자 데이터에 담긴 출처·검증·맥락 신호를 표시합니다. 여기에 있는 것은 어느 것도 점수가 아닙니다.",
     readerBannerBack: "기본 페이지로 돌아가기",
+    readerNoticePurpose:
+      "이 페이지는 소유자가 자신의 업적을 소개하기 위해 공개한 것입니다. 평가 목적의 이용은 열람자 자신의 적법한 근거에 따릅니다.",
+    readerNoticeThirdParty:
+      "공저자와 지도 학생·연구자의 이름은 제3자 데이터이며, 그 사람들을 프로파일링해도 된다는 허가가 아닙니다.",
+    readerNoticeRetracted:
+      "“철회됨”은 Crossref / Retraction Watch에서 가져온 사실이며, 연구 부정행위 판정이 아닙니다.",
+    readerNoticeAbsence:
+      "경력 배경 섹션이 없다고 해서 배경이 없다는 뜻이 아니며, 어떤 출처에 데이터가 없다고 해서 성과가 없다는 뜻도 아닙니다.",
+    readerLegendLabel: "범례",
+    readerLegendProvenance: "항목 뒤의 회색 표시: 해당 레코드의 출처({sources}).",
     provMatchOrcid: "ORCID iD로 소유자와 매칭됨",
     provMatchOpenAlexId: "OpenAlex 저자 ID로 소유자와 매칭됨",
     provMatchBoth: "ORCID iD와 OpenAlex 저자 ID로 소유자와 매칭됨",
@@ -2324,6 +2431,17 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     readerBannerText:
       "Режим эксперта: показывает признаки происхождения, подтверждения и контекста из данных владельца. Ничто здесь не является оценкой.",
     readerBannerBack: "Вернуться к обычной странице",
+    readerNoticePurpose:
+      "Владелец опубликовал эту страницу, чтобы представить собственную работу; любое использование для оценки опирается на собственное законное основание читателя.",
+    readerNoticeThirdParty:
+      "Имена соавторов и подопечных — это данные третьих лиц, а не разрешение составлять на них профили.",
+    readerNoticeRetracted:
+      "«Отозвано» — это факт, взятый из Crossref / Retraction Watch, а не установление нарушения научной этики.",
+    readerNoticeAbsence:
+      "Отсутствие раздела о контексте карьеры не означает, что его нет, а отсутствие данных из какого-либо источника не означает нулевой результат.",
+    readerLegendLabel: "Условные обозначения",
+    readerLegendProvenance:
+      "Серая отметка после записи: источник, из которого взята запись ({sources}).",
     provMatchOrcid: "Сопоставлено с владельцем по ORCID iD",
     provMatchOpenAlexId: "Сопоставлено с владельцем по ID автора OpenAlex",
     provMatchBoth: "Сопоставлено с владельцем по ORCID iD и ID автора OpenAlex",
