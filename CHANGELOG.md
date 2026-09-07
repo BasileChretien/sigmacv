@@ -324,6 +324,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A dead upstream can no longer stall a CV sync.** Europe PMC's per-work
+  `datalinks` endpoint hung (HTTP 500 / timeouts) on 2026-09-07 and, because
+  each call was retried with backoff, the data-links pass alone took ~226 s and
+  a re-sync ~250 s, with a warning logged per work. Both Europe PMC calls now
+  make a single attempt with a short timeout (8 s search / 6 s data links, no
+  retry); the data-links pass opens a per-sync circuit breaker after 3
+  consecutive endpoint failures (the cheap search and Crossref lookups keep
+  running, and the outage is logged once, not once per work); and every
+  per-work enrichment pass (data links, OpenCitations, Software Heritage,
+  Sciety, iCite, retractions) stops launching lookups after a 30 s budget.
+  Works whose lookup was skipped, failed or deferred are left unstamped, so the
+  normal rotation retries them on the next sync — nothing found is ever dropped.
 - **Deploy:** the app container now runs a minimal init (tini) as PID 1, so the Chromium children Playwright spawns for PDF export are reaped instead of accumulating as zombie processes between deploys.
 - **Your year / journal corrections on a publication now survive a re-sync.**
   The per-entry year and venue overrides you type in the editor (which every
