@@ -4,6 +4,10 @@ const mocks = vi.hoisted(() => ({ fetchSoftwareHeritageArchival: vi.fn() }));
 vi.mock("@/lib/softwareheritage/client", () => ({
   fetchSoftwareHeritageArchival: mocks.fetchSoftwareHeritageArchival,
 }));
+// `canonical/enrich.ts` also imports the FORRT client (unrelated to this file's
+// software-section coverage) — mocking `@/lib/db` (its transitive dependency)
+// keeps this suite from requiring real env vars, same as `tests/forrt-client.test.ts`.
+vi.mock("@/lib/db", () => ({ prisma: { forrtReplication: { findMany: vi.fn() } } }));
 
 import { buildCanonicalCv, openalexTypeClass } from "@/lib/canonical/build";
 import { CV_MODELS } from "@/lib/canonical/cvModels";
