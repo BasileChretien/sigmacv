@@ -66,6 +66,8 @@ export interface UiStrings {
   showCitationCounts: string;
   /** Editor toggle: the "Verified" mark on institution-asserted positions/education. */
   showVerifiedBadges: string;
+  /** Editor toggle: the opt-in open data / code line under each publication. */
+  showDataLinks: string;
   showProvenance: string;
   peerReviewedOnly: string;
   peerReviewedOnlyTitle: string;
@@ -356,6 +358,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCollaboration: "Show collaboration breadth (co-author countries)",
     showCollaborationNote:
       "One line in the research summary: how many countries appear on your author lists and what share of works span at least two, from OpenAlex affiliation data. Descriptive only — no map, no ranking.",
+    showDataLinks: "Show open data / code links under each publication",
   },
   "zh-CN": {
     pageSizeLabel: "页面尺寸",
@@ -519,6 +522,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCollaboration: "显示合作广度（合作者所在国家/地区）",
     showCollaborationNote:
       "在研究概览中显示一行：作者列表涉及多少个国家/地区，以及跨两个及以上国家/地区的作品比例，数据来自 OpenAlex 机构信息。仅作描述——无地图、无排名。",
+    showDataLinks: "在每篇论文下显示开放数据/代码链接",
   },
   "es-ES": {
     pageSizeLabel: "Tamaño de página",
@@ -687,6 +691,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCollaboration: "Mostrar amplitud de colaboración (países de los coautores)",
     showCollaborationNote:
       "Una línea en el resumen de investigación: cuántos países aparecen en tus listas de autores y qué proporción de trabajos abarca al menos dos, según las afiliaciones de OpenAlex. Solo descriptivo: sin mapa ni clasificación.",
+    showDataLinks: "Mostrar enlaces a datos abiertos / código bajo cada publicación",
   },
   "fr-FR": {
     pageSizeLabel: "Format de page",
@@ -856,6 +861,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCollaboration: "Afficher l'étendue des collaborations (pays des co-auteurs)",
     showCollaborationNote:
       "Une ligne dans le résumé de recherche : combien de pays figurent dans vos listes d'auteurs et quelle part des travaux en réunit au moins deux, d'après les affiliations OpenAlex. Purement descriptif : ni carte ni classement.",
+    showDataLinks: "Afficher les liens vers les données ouvertes / le code sous chaque publication",
   },
   "de-DE": {
     pageSizeLabel: "Seitenformat",
@@ -1026,6 +1032,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCollaboration: "Kooperationsbreite anzeigen (Länder der Koautorinnen und Koautoren)",
     showCollaborationNote:
       "Eine Zeile in der Forschungsübersicht: wie viele Länder in Ihren Autorenlisten vorkommen und welcher Anteil der Arbeiten mindestens zwei umfasst, nach OpenAlex-Affiliationsdaten. Rein beschreibend – keine Karte, kein Ranking.",
+    showDataLinks: "Links zu offenen Daten / Code unter jeder Publikation anzeigen",
   },
   "ja-JP": {
     pageSizeLabel: "用紙サイズ",
@@ -1192,6 +1199,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCollaboration: "共同研究の広がりを表示（共著者の国）",
     showCollaborationNote:
       "研究概要に 1 行追加します。著者リストに現れる国の数と、2 か国以上にまたがる業績の割合を、OpenAlex の所属データから示します。記述のみで、地図も順位付けもありません。",
+    showDataLinks: "各論文の下にオープンデータ／コードへのリンクを表示",
   },
   "pt-BR": {
     pageSizeLabel: "Tamanho da página",
@@ -1359,6 +1367,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCollaboration: "Mostrar abrangência de colaboração (países dos coautores)",
     showCollaborationNote:
       "Uma linha no resumo de pesquisa: quantos países aparecem nas suas listas de autores e que parcela dos trabalhos abrange pelo menos dois, segundo as afiliações do OpenAlex. Apenas descritivo — sem mapa, sem classificação.",
+    showDataLinks: "Mostrar links para dados abertos / código sob cada publicação",
   },
   "it-IT": {
     pageSizeLabel: "Formato pagina",
@@ -1527,6 +1536,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCollaboration: "Mostra ampiezza delle collaborazioni (paesi dei coautori)",
     showCollaborationNote:
       "Una riga nel riepilogo della ricerca: quanti paesi compaiono nelle tue liste di autori e quale quota di lavori ne coinvolge almeno due, in base alle affiliazioni OpenAlex. Solo descrittivo: nessuna mappa, nessuna classifica.",
+    showDataLinks: "Mostra i link a dati aperti / codice sotto ogni pubblicazione",
   },
   "ko-KR": {
     pageSizeLabel: "페이지 크기",
@@ -1693,6 +1703,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCollaboration: "협력 범위 표시 (공저자 국가)",
     showCollaborationNote:
       "연구 요약에 한 줄을 추가합니다. 저자 목록에 등장하는 국가 수와 두 개 국가 이상에 걸친 논문의 비율을 OpenAlex 소속 데이터로 보여줍니다. 설명용일 뿐 지도나 순위는 없습니다.",
+    showDataLinks: "각 논문 아래에 공개 데이터/코드 링크 표시",
   },
   "ru-RU": {
     pageSizeLabel: "Размер страницы",
@@ -1860,6 +1871,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     showCollaboration: "Показать широту сотрудничества (страны соавторов)",
     showCollaborationNote:
       "Одна строка в сводке исследований: сколько стран встречается в ваших списках авторов и какая доля работ охватывает не менее двух, по данным OpenAlex об аффилиациях. Только описание — без карты и рейтинга.",
+    showDataLinks: "Показывать ссылки на открытые данные / код под каждой публикацией",
   },
 };
 
