@@ -139,6 +139,14 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
     const body = (await (await GET()).json()) as { snapshots: Array<Record<string, unknown>> };
     expect(body.snapshots).toEqual([{ ...SNAP, createdAt: SNAP.createdAt.toISOString() }]);
     // Scoped to this user's CV row, oldest version first.
+    // The assessment-grade columns are the user's data too (ledger derived from
+    // their record, the hash, the reader-view choice) — all exported.
+    expect(mocks.snapshotFindMany.mock.calls[0]![0].select).toMatchObject({
+      ledger: true,
+      contentHash: true,
+      readerMode: true,
+      canonical: true,
+    });
     expect(mocks.snapshotFindMany.mock.calls[0]![0]).toMatchObject({
       where: { cvId: "cv1" },
       orderBy: { version: "asc" },

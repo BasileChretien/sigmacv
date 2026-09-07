@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { editorUi } from "@/lib/i18n/editorUi";
+import { readerModeKeyLabels } from "@/lib/i18n/readerModeLabels";
 import { snapshotStrings } from "@/lib/i18n/snapshots";
+import { ui } from "@/lib/i18n/ui";
 import { formatSnapshotDate } from "@/lib/render/diff";
 import type { SnapshotSummary } from "@/lib/cv/snapshotStore";
 
@@ -31,9 +34,15 @@ function fill(template: string, vars: Record<string, string | number>): string {
  */
 export default function VersionsControls({ locale, published, slug }: VersionsControlsProps) {
   const s = snapshotStrings(locale);
+  const u = ui(locale);
+  const readerInventory = u.allowReaderModeNote.replace(
+    "{list}",
+    readerModeKeyLabels(u, editorUi(locale)).join(", "),
+  );
   const [listing, setListing] = useState<Listing | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [label, setLabel] = useState("");
+  const [readerMode, setReaderMode] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [announce, setAnnounce] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -75,12 +84,13 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
       const res = await fetch("/api/cv/snapshots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label: trimmed }),
+        body: JSON.stringify({ label: trimmed, readerMode }),
       });
       if (res.ok) {
         const { snapshot } = (await res.json()) as { snapshot: SnapshotSummary };
         setListing((cur) => (cur ? { ...cur, snapshots: [snapshot, ...cur.snapshots] } : cur));
         setLabel("");
+        setReaderMode(false);
       } else if (res.status === 409) {
         setAnnounce(fill(s.limitReached, { n: listing?.max ?? 20 }));
       } else {
@@ -198,6 +208,19 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
           {busy === "create" ? s.creating : s.createButton}
         </button>
       </form>
+      <label className="field-inline versions-reader">
+        <input
+          type="checkbox"
+          checked={readerMode}
+          disabled={busy === "create" || atLimit}
+          onChange={(e) => setReaderMode(e.target.checked)}
+        />
+        <span>{s.readerOption}</span>
+      </label>
+      <p className="versions-hint">
+        {s.readerOptionHint}
+        {readerMode ? ` ${readerInventory}` : ""}
+      </p>
       {atLimit ? (
         <p className="versions-hint">{fill(s.limitReached, { n: listing?.max ?? 20 })}</p>
       ) : null}
@@ -221,6 +244,11 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
               <div className="versions-row-head">
                 <strong>{fill(s.versionTag, { n: snap.version })}</strong>{" "}
                 <span className="versions-row-label">{snap.label}</span>
+                {snap.readerMode ? (
+                  <span className="versions-row-tag" title={s.readerOptionHint}>
+                    {s.readerTag}
+                  </span>
+                ) : null}
                 <span className="versions-row-date">
                   {formatSnapshotDate(snap.createdAt, locale)}
                 </span>

@@ -85,6 +85,28 @@ describe("CvSnapshot lifecycle (schema + migration)", () => {
     expect(cv).toContain("snapshots CvSnapshot[]");
   });
 
+  it("adds the assessment-grade columns (ledger, content hash, reader choice) in schema + SQL", () => {
+    const model = /model CvSnapshot \{([\s\S]*?)\n\}/.exec(schema)![1]!;
+    expect(model).toMatch(/ledger\s+Json\?/);
+    expect(model).toMatch(/contentHash\s+String\?/);
+    expect(model).toMatch(/readerMode\s+Boolean\s+@default\(false\)/);
+    const alter = readFileSync(
+      path.join(
+        root,
+        "prisma",
+        "migrations",
+        "20260907120000_cv_snapshot_assessment",
+        "migration.sql",
+      ),
+      "utf8",
+    );
+    expect(alter).toContain('ALTER TABLE "CvSnapshot" ADD COLUMN "ledger" JSONB;');
+    expect(alter).toContain('ALTER TABLE "CvSnapshot" ADD COLUMN "contentHash" TEXT;');
+    expect(alter).toContain(
+      'ALTER TABLE "CvSnapshot" ADD COLUMN "readerMode" BOOLEAN NOT NULL DEFAULT false;',
+    );
+  });
+
   it("gives the capability token a unique index and versions a per-CV unique index", () => {
     expect(migration).toContain(
       'CREATE UNIQUE INDEX "CvSnapshot_token_key" ON "CvSnapshot"("token")',

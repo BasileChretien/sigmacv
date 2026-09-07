@@ -84,6 +84,11 @@ export async function GET() {
           doi: true,
           doiState: true,
           canonical: true,
+          // Assessment-grade columns: the freeze-time provenance ledger (derived
+          // from the user's record), the content hash and the reader-view choice.
+          ledger: true,
+          contentHash: true,
+          readerMode: true,
         },
       })
     : [];

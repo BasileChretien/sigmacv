@@ -25,6 +25,13 @@ import { isSourceAttributed, itemReviewState } from "@/lib/canonical/review";
  * its denominator instead of collapsing into one number. See the metrics
  * rationale in `render/metrics.ts` for the project's stance on aggregates.
  *
+ * POPULATION NOTE: `kept` counts the entries the document SHOWS in the sense of
+ * section visibility / hidden / "not mine" / per-view exclusion. The rendered
+ * publication list may be further narrowed by `peerReviewedOnly`,
+ * `publicationsLimit`, `countLetters` and `hideRetracted` (`render/citationItems.ts`),
+ * so a page with those set lists fewer entries than the ledger's denominator —
+ * the ledger describes the curated document, not the typeset list.
+ *
  * Pure: derives everything from the stored document, writes nothing. Computed
  * on the OWNER's stored document, not the public projection — the projection
  * strips `matchBasis`/`claimed`/`reviewFlag`/`reviewedAt` (attribution doubt the
@@ -71,6 +78,50 @@ export interface ProvenanceLedger {
   /** Retracted works still on the page (0 whenever `display.hideRetracted`), over
    *  the shown citation entries. */
   retractedVisible: LedgerLine;
+}
+
+/** Every per-line key of the ledger (all but `kept`), in display order. Shared
+ *  by the renderer and by the stored-ledger validation on frozen versions. */
+export const LEDGER_LINE_KEYS: ReadonlyArray<keyof Omit<ProvenanceLedger, "kept">> = [
+  "identifierMatched",
+  "claimed",
+  "selfEntered",
+  "nameMatched",
+  "other",
+  "verified",
+  "persistentId",
+  "reviewed",
+  "retractedVisible",
+];
+
+/** Structural check of a ledger read back from storage: every line present
+ *  with numeric count + denominator. A ledger frozen before a line existed
+ *  fails it (the renderer then derives one) instead of throwing at render. */
+export function isProvenanceLedger(value: unknown): value is ProvenanceLedger {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  if (typeof v.kept !== "number") return false;
+  return LEDGER_LINE_KEYS.every((k) => {
+    const line = v[k] as Partial<LedgerLine> | undefined;
+    return (
+      !!line &&
+      typeof line === "object" &&
+      typeof line.count === "number" &&
+      typeof line.denominator === "number"
+    );
+  });
+}
+
+/**
+ * The ledger as it applies to a given VIEW of the document. Every line is a
+ * property of the stored document except `retractedVisible`, which depends on
+ * the view's `hideRetracted` — the READER VIEW forces that off, so a page that
+ * lists a retracted work must not carry a ledger line saying none is shown.
+ * `meta.retracted` survives projection and freezing, so the line is recomputed
+ * from the view (the projected, preset-applied CV) and the rest kept verbatim.
+ */
+export function ledgerForView(ledger: ProvenanceLedger, viewCv: CanonicalCv): ProvenanceLedger {
+  return { ...ledger, retractedVisible: provenanceLedger(viewCv).retractedVisible };
 }
 
 /** The section types whose entries `meta.verified` can apply to. */

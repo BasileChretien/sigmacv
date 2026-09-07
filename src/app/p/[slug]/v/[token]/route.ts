@@ -3,7 +3,14 @@ import {
   isValidSnapshotToken,
   snapshotPublicPath,
 } from "@/lib/cv/snapshotStore";
+import { ledgerForView } from "@/lib/cv/provenanceLedger";
 import { injectSnapshotChrome } from "@/lib/cv/snapshotPage";
+import {
+  readerViewActive,
+  readerViewBannerHtml,
+  readerViewCv,
+  readerViewLinkHtml,
+} from "@/lib/cv/readerView";
 import { chooseFormatFromAccept, formatFromSlug, serializePublicCv } from "@/lib/cv/publicFormats";
 import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
 import { publicMetaTags } from "@/lib/cv/publicMeta";
@@ -36,12 +43,20 @@ function notFound(): Response {
  * A snapshot is NEVER indexed: `noindex` + `<link rel="canonical">` → the
  * living page, which stays the discoverable resource. FAIR Signposting points
  * at the frozen page's own machine formats and, once minted, its DOI (`cite-as`).
+ *
+ * ASSESSMENT-GRADE: the provenance ledger rendered here is the one computed at
+ * freeze time on the un-stripped document (`snapshotStore.createSnapshot`), never
+ * one derived from the frozen copy; the content hash rides the banner and a
+ * `<meta>`. The READER VIEW is served when the owner froze the version as such
+ * (`readerMode`, fixed at freeze time), or — like the living page — on
+ * `?view=reader` when the frozen `display.allowReaderMode` permits it.
  */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ slug: string; token: string }> },
 ): Promise<Response> {
   const { slug, token: rawToken } = await params;
+  const url = new URL(req.url);
 
   const rl = await enforcePubPageRateLimit(req);
   if (!rl.ok) return tooManyRequests(rl.retryAfterSec);
@@ -84,7 +99,28 @@ export async function GET(
   // The same renderer as the living page, WITHOUT the live-only chrome
   // (per-work cite links, the feed link, "what's new"): a frozen document is a
   // clean reference copy.
-  let html = renderPublicCvHtml(snap.cv, { attribution: true });
+  const reader = snap.readerMode || readerViewActive(url.searchParams, snap.cv);
+  const viewCv = reader ? readerViewCv(snap.cv) : snap.cv;
+  // The stored ledger, with its view-dependent line ("retracted works shown")
+  // recomputed for THIS view — the reader view forces retracted works visible.
+  const ledger = snap.ledger ? ledgerForView(snap.ledger, viewCv) : undefined;
+  let html = renderPublicCvHtml(viewCv, {
+    attribution: true,
+    provenanceLedger: ledger,
+    readerMode: reader,
+  });
+  // Reader chrome, injected at the same anchor the living page uses: the banner on
+  // the reader view (no "back" link when the version IS the reader view), or the
+  // quiet "Reader view" link when the frozen display allows the view on request.
+  const locale = snap.cv.display.locale;
+  const readerChrome = reader
+    ? readerViewBannerHtml({}, locale, { backLink: !snap.readerMode })
+    : snap.cv.display.allowReaderMode
+      ? readerViewLinkHtml({}, locale)
+      : "";
+  if (readerChrome) {
+    html = html.replace('<main class="cv-main">', `<main class="cv-main">${readerChrome}`);
+  }
   const head = publicMetaTags(snap.cv, { imageUrl: absoluteUrl(`/p/${slug}/og`) });
   html = html.replace(
     "</head>",
@@ -96,7 +132,8 @@ export async function GET(
     doi: snap.doi,
     liveUrl,
     diffUrl: absoluteUrl(`${path}/diff`),
-    locale: snap.cv.display.locale,
+    locale,
+    contentHash: snap.contentHash,
   });
   return publicPageResponse(html, false, signposting);
 }

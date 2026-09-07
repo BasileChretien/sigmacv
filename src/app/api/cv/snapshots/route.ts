@@ -12,6 +12,8 @@ export const dynamic = "force-dynamic";
 
 const CreateSchema = z.object({
   label: z.string().trim().min(1).max(SNAPSHOT_LABEL_MAX),
+  /** Freeze as the assessor's reader view (an explicit, one-time owner choice). */
+  readerMode: z.boolean().optional(),
 });
 // The body is one short label; reject anything larger early (streamed).
 const MAX_BODY_BYTES = 2_000;
@@ -45,13 +47,17 @@ export async function POST(req: Request) {
   const parsed = CreateSchema.safeParse(read.value);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: `Expected { label: string (1–${SNAPSHOT_LABEL_MAX} chars) }` },
+      {
+        error: `Expected { label: string (1–${SNAPSHOT_LABEL_MAX} chars), readerMode?: boolean }`,
+      },
       { status: 422 },
     );
   }
 
   try {
-    const snapshot = await createSnapshot(g.userId, parsed.data.label);
+    const snapshot = await createSnapshot(g.userId, parsed.data.label, {
+      readerMode: parsed.data.readerMode === true,
+    });
     return NextResponse.json({ snapshot }, { status: 201 });
   } catch (err) {
     if (err instanceof SnapshotLimitError) {

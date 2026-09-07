@@ -4,6 +4,13 @@ import { prisma } from "@/lib/db";
 import { safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
 import { CvNotFoundError } from "@/lib/cv/sync";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
+import {
+  isProvenanceLedger,
+  provenanceLedger,
+  type ProvenanceLedger,
+} from "@/lib/cv/provenanceLedger";
+import { applyReaderMode } from "@/lib/render/readerMode";
+import { contentHashOf } from "@/lib/cv/snapshotHash";
 import { freezeCanonical, MAX_SNAPSHOTS_PER_CV } from "@/lib/cv/snapshots";
 import { doiMintingEnabled, mintSnapshotDoi } from "@/lib/datacite/mint";
 import { logger } from "@/lib/log";
@@ -48,6 +55,11 @@ export interface SnapshotSummary {
   isPublic: boolean;
   doi: string | null;
   doiState: DoiState;
+  /** Frozen as the assessor's reader view (chosen at freeze time; immutable). */
+  readerMode: boolean;
+  /** SHA-256 (hex) of the canonical JSON of the frozen document's PUBLIC
+   *  projection; null on versions frozen before the hash existed. */
+  contentHash: string | null;
 }
 
 /** URL-safe capability token: 18 random bytes → 24 base64url chars (144 bits). */
@@ -71,6 +83,8 @@ type SnapshotRow = {
   isPublic: boolean;
   doi: string | null;
   doiState: string;
+  readerMode: boolean;
+  contentHash: string | null;
 };
 
 const SUMMARY_SELECT = {
@@ -82,6 +96,8 @@ const SUMMARY_SELECT = {
   isPublic: true,
   doi: true,
   doiState: true,
+  readerMode: true,
+  contentHash: true,
 } as const;
 
 function asDoiState(s: string): DoiState {
@@ -98,6 +114,8 @@ function toSummary(row: SnapshotRow): SnapshotSummary {
     isPublic: row.isPublic,
     doi: row.doi,
     doiState: asDoiState(row.doiState),
+    readerMode: row.readerMode,
+    contentHash: row.contentHash,
   };
 }
 
@@ -142,13 +160,31 @@ export async function listSnapshots(userId: string): Promise<SnapshotListing> {
   };
 }
 
+export interface CreateSnapshotOptions {
+  /** Freeze as the assessor's READER VIEW: the frozen page always renders with
+   *  the reader-mode preset (evidence marks on, retracted works visible). An
+   *  explicit owner choice at freeze time, stored with the version and never
+   *  changed afterwards — a frozen artefact must stay the bytes an assessor saw. */
+  readerMode?: boolean;
+}
+
 /**
  * Freeze the owner's CURRENT stored document as the next version. Refused at
  * the per-CV cap ({@link SnapshotLimitError}); the version number is
  * max+1 and the `(cvId, version)` unique index is the guard against a
  * concurrent double-create (the second insert fails, nothing is overwritten).
+ *
+ * Two things are computed HERE, on the owner's stored document, because they
+ * cannot be recovered later: the provenance ledger (`freezeCanonical` strips
+ * the attribution / review signals it counts — a ledger derived from the frozen
+ * copy would misreport, e.g. a DOI-claimed work as identifier-matched) and the
+ * content hash of the frozen document.
  */
-export async function createSnapshot(userId: string, label: string): Promise<SnapshotSummary> {
+export async function createSnapshot(
+  userId: string,
+  label: string,
+  options: CreateSnapshotOptions = {},
+): Promise<SnapshotSummary> {
   const cv = await ownerCv(userId);
   const parsed = safeParseCanonicalCv(cv.document);
   if (!parsed.success) throw new CvNotFoundError();
@@ -159,17 +195,32 @@ export async function createSnapshot(userId: string, label: string): Promise<Sna
     _max: { version: true },
   });
   const version = (agg._max.version ?? 0) + 1;
+  const readerMode = options.readerMode === true;
+  // A reader-view freeze MATERIALISES the reader preset into the frozen display,
+  // so the ledger (its "retracted works shown" line depends on `hideRetracted`),
+  // the frozen document and the page all describe the same view.
+  const doc = readerMode
+    ? { ...parsed.data, display: applyReaderMode(parsed.data.display) }
+    : parsed.data;
+  const ledger = provenanceLedger(doc);
+  const frozen = freezeCanonical(doc);
   const row = await prisma.cvSnapshot.create({
     data: {
       cvId: cv.id,
       version,
       label: label.trim(),
-      canonical: freezeCanonical(parsed.data) as unknown as Prisma.InputJsonValue,
+      canonical: frozen as unknown as Prisma.InputJsonValue,
+      ledger: ledger as unknown as Prisma.InputJsonValue,
+      // Hash of what the frozen page SERVES (the public projection), never of
+      // the owner-level copy — a hash over withheld fields would both be
+      // unverifiable by a reader and reveal owner-only edits between versions.
+      contentHash: contentHashOf(projectCvForPublic(frozen)),
+      readerMode,
       token: newSnapshotToken(),
     },
     select: SUMMARY_SELECT,
   });
-  logger.info("snapshot.created", { version });
+  logger.info("snapshot.created", { version, readerMode });
   return toSummary(row);
 }
 
@@ -250,6 +301,20 @@ export interface PublicSnapshotView {
   label: string;
   createdAt: string;
   doi: string | null;
+  /** The ledger computed at freeze time on the un-stripped document; null on
+   *  versions frozen before it was recorded (the renderer then derives one from
+   *  the frozen copy, which under-reports claimed / name-matched entries). */
+  ledger: ProvenanceLedger | null;
+  /** SHA-256 of the frozen document's public projection (`snapshotHash.ts`); null on old versions. */
+  contentHash: string | null;
+  /** Frozen as the reader view — the page renders with the reader-mode preset. */
+  readerMode: boolean;
+}
+
+/** A stored ledger is trusted only when EVERY line the renderer reads is present
+ *  (a ledger frozen before a line existed degrades to "derived", never a 500). */
+function parseLedger(value: unknown): ProvenanceLedger | null {
+  return isProvenanceLedger(value) ? value : null;
 }
 
 /**
@@ -277,6 +342,9 @@ export async function getPublicSnapshot(
     label: row.label,
     createdAt: row.createdAt.toISOString(),
     doi: row.doi,
+    ledger: parseLedger(row.ledger),
+    contentHash: row.contentHash,
+    readerMode: row.readerMode,
   };
 }
 

@@ -1,4 +1,8 @@
-import type { LedgerLine, ProvenanceLedger } from "@/lib/cv/provenanceLedger";
+import {
+  LEDGER_LINE_KEYS,
+  type LedgerLine,
+  type ProvenanceLedger,
+} from "@/lib/cv/provenanceLedger";
 import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml } from "./escape";
 
@@ -21,17 +25,7 @@ export interface LedgerDisplayLine {
   figure: string;
 }
 
-const LINE_ORDER: ReadonlyArray<keyof Omit<ProvenanceLedger, "kept">> = [
-  "identifierMatched",
-  "claimed",
-  "selfEntered",
-  "nameMatched",
-  "other",
-  "verified",
-  "persistentId",
-  "reviewed",
-  "retractedVisible",
-];
+const LINE_ORDER = LEDGER_LINE_KEYS;
 
 export function ledgerLines(ledger: ProvenanceLedger, locale: string): LedgerDisplayLine[] {
   const s = renderStrings(locale);

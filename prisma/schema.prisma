@@ -155,16 +155,26 @@ model Cv {
 // (`none` | `pending` | `minted` | `failed`) — dormant without DATACITE_* creds.
 // Personal data: included in the account export, cascade-deleted with the CV.
 model CvSnapshot {
-  id        String   @id @default(cuid())
-  cvId      String
-  version   Int
-  label     String
-  canonical Json
-  token     String   @unique
-  isPublic  Boolean  @default(false)
-  doi       String?
-  doiState  String   @default("none")
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  cvId        String
+  version     Int
+  label       String
+  canonical   Json
+  token       String   @unique
+  isPublic    Boolean  @default(false)
+  doi         String?
+  doiState    String   @default("none")
+  createdAt   DateTime @default(now())
+  // Assessment-grade freeze: the provenance ledger computed on the OWNER's stored
+  // document BEFORE the frozen copy is stripped of its attribution signals (a
+  // ledger derived from the stripped copy misreports and can never be recomputed),
+  // the SHA-256 of the canonical JSON of the frozen document's PUBLIC projection
+  // (what the page serves — a version fingerprint a reader can record), and
+  // whether the owner froze it as the
+  // assessor's reader view — an explicit choice at freeze time, immutable after.
+  ledger      Json?
+  contentHash String?
+  readerMode  Boolean  @default(false)
 
   cv Cv @relation(fields: [cvId], references: [id], onDelete: Cascade)
 

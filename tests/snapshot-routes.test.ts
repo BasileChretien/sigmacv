@@ -128,7 +128,18 @@ describe("POST /api/cv/snapshots", () => {
     const res = await createPost(json(BASE, "POST", { label: "  Tenure " }));
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual({ snapshot: SUMMARY });
-    expect(mocks.createSnapshot).toHaveBeenCalledWith("u1", "Tenure");
+    expect(mocks.createSnapshot).toHaveBeenCalledWith("u1", "Tenure", { readerMode: false });
+  });
+
+  it("passes the freeze-time reader-view choice through, and rejects a non-boolean", async () => {
+    mocks.createSnapshot.mockResolvedValue(SUMMARY);
+    expect(
+      (await createPost(json(BASE, "POST", { label: "Reader", readerMode: true }))).status,
+    ).toBe(201);
+    expect(mocks.createSnapshot).toHaveBeenCalledWith("u1", "Reader", { readerMode: true });
+    expect(
+      (await createPost(json(BASE, "POST", { label: "Reader", readerMode: "yes" }))).status,
+    ).toBe(422);
   });
   it("validates the body: 400 bad JSON, 413 too large, 422 bad shape", async () => {
     expect((await createPost(new Request(BASE, { method: "POST", body: "{nope" }))).status).toBe(
