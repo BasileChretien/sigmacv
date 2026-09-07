@@ -39,9 +39,10 @@ describe("TopBar (restructured editor top bar)", () => {
 
   it("collapses Publish and account into DISCLOSURE DIALOGS, not menus", () => {
     const { container } = render(<TopBar {...baseProps} />);
-    // The two menu triggers announce a dialog (form fields inside — never role=menu).
+    // The three menu triggers (Publish, Versions, Account) announce a dialog
+    // (form fields inside — never role=menu).
     const dialogTriggers = container.querySelectorAll('[aria-haspopup="dialog"]');
-    expect(dialogTriggers.length).toBe(2);
+    expect(dialogTriggers.length).toBe(3);
     expect(screen.queryByRole("menu")).toBeNull();
   });
 
@@ -77,15 +78,15 @@ describe("TopBar (restructured editor top bar)", () => {
 
   it("reveals a separate Share menu only once the page is published", () => {
     const { container, rerender } = render(<TopBar {...baseProps} published={false} />);
-    // Unpublished: Publish + Account only — no Share trigger yet.
+    // Unpublished: Publish + Versions + Account only — no Share trigger yet.
     expect(container.querySelector(".share-trigger")).toBeNull();
-    expect(container.querySelectorAll('[aria-haspopup="dialog"]').length).toBe(2);
+    expect(container.querySelectorAll('[aria-haspopup="dialog"]').length).toBe(3);
 
     rerender(<TopBar {...baseProps} published={true} publicSlug="ada" />);
-    // Published: a third dialog trigger appears for the share/embed job.
+    // Published: a fourth dialog trigger appears for the share/embed job.
     const share = container.querySelector<HTMLButtonElement>(".share-trigger");
     expect(share).toBeTruthy();
-    expect(container.querySelectorAll('[aria-haspopup="dialog"]').length).toBe(3);
+    expect(container.querySelectorAll('[aria-haspopup="dialog"]').length).toBe(4);
 
     // The public link + badge now live in the Share panel, not the Publish popover.
     fireEvent.click(share!);

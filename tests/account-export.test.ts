@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   cvFindUnique: vi.fn(),
   eventFindMany: vi.fn(),
   eventCount: vi.fn(),
+  snapshotFindMany: vi.fn(),
   enforceRateLimit: vi.fn(),
 }));
 
@@ -28,6 +29,7 @@ vi.mock("@/lib/db", () => ({
     session: { findMany: mocks.sessionFindMany },
     cv: { findUnique: mocks.cvFindUnique },
     researchEvent: { findMany: mocks.eventFindMany, count: mocks.eventCount },
+    cvSnapshot: { findMany: mocks.snapshotFindMany },
   },
 }));
 vi.mock("@/lib/rateLimitStore", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
@@ -61,6 +63,7 @@ beforeEach(() => {
   mocks.cvFindUnique.mockResolvedValue(CV_ROW);
   mocks.eventFindMany.mockResolvedValue([]);
   mocks.eventCount.mockResolvedValue(0);
+  mocks.snapshotFindMany.mockResolvedValue([]);
 });
 
 describe("GET /api/account/export (GDPR / APPI data export)", () => {
@@ -118,6 +121,35 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
     const body = (await (await GET()).json()) as { cv: unknown; cvRecord: unknown };
     expect(body.cv).toBeNull();
     expect(body.cvRecord).toBeNull();
+  });
+
+  it("includes every frozen CV version (the frozen document, label, visibility, token, DOI)", async () => {
+    const SNAP = {
+      id: "snap1",
+      version: 1,
+      label: "Tenure review",
+      createdAt: new Date("2026-09-04T10:00:00Z"),
+      token: "abcdefghijklmnopqrstuvwx",
+      isPublic: true,
+      doi: "10.12345/abcd",
+      doiState: "minted",
+      canonical: { schemaVersion: 2, owner: { displayName: "A Researcher" } },
+    };
+    mocks.snapshotFindMany.mockResolvedValue([SNAP]);
+    const body = (await (await GET()).json()) as { snapshots: Array<Record<string, unknown>> };
+    expect(body.snapshots).toEqual([{ ...SNAP, createdAt: SNAP.createdAt.toISOString() }]);
+    // Scoped to this user's CV row, oldest version first.
+    expect(mocks.snapshotFindMany.mock.calls[0]![0]).toMatchObject({
+      where: { cvId: "cv1" },
+      orderBy: { version: "asc" },
+    });
+  });
+
+  it("exports an empty snapshot list for an account without a CV (no query made)", async () => {
+    mocks.cvFindUnique.mockResolvedValue(null);
+    const body = (await (await GET()).json()) as { snapshots: unknown[] };
+    expect(body.snapshots).toEqual([]);
+    expect(mocks.snapshotFindMany).not.toHaveBeenCalled();
   });
 
   it("never exports OAuth tokens or session token values", async () => {
