@@ -192,6 +192,17 @@ export interface RenderStrings {
   creditRolesCrossrefTitle: string;
   /** Localised names of the 14 CRediT contributor roles, keyed by canonical id. */
   creditRoles: Record<CreditRole, string>;
+  /** Header label of the opt-in, owner-declared "Career context" block. */
+  careerContextLabel: string;
+  /** Kind labels for career-context entries (`CAREER_CONTEXT_KINDS`). */
+  careerKindCareerBreak: string;
+  careerKindPartTime: string;
+  careerKindClinicalDuties: string;
+  careerKindCaring: string;
+  careerKindMilitary: string;
+  careerKindOther: string;
+  /** "First publication: {year} ({n} years active)" context line. */
+  careerFirstPublication: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -329,6 +340,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "writing-original-draft": "Writing – original draft",
       "writing-review-editing": "Writing – review & editing",
     },
+    careerContextLabel: "Career context (self-declared)",
+    careerKindCareerBreak: "Career break",
+    careerKindPartTime: "Part-time",
+    careerKindClinicalDuties: "Clinical duties alongside research",
+    careerKindCaring: "Caring responsibilities",
+    careerKindMilitary: "Military service",
+    careerKindOther: "Other",
+    careerFirstPublication: "First publication: {year} ({n} years active)",
   },
   "zh-CN": {
     hankoCredit:
@@ -460,6 +479,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "writing-original-draft": "撰写初稿",
       "writing-review-editing": "审阅与修订",
     },
+    careerContextLabel: "职业背景（自述）",
+    careerKindCareerBreak: "职业中断",
+    careerKindPartTime: "兼职",
+    careerKindClinicalDuties: "兼顾临床工作",
+    careerKindCaring: "照护责任",
+    careerKindMilitary: "服兵役",
+    careerKindOther: "其他",
+    careerFirstPublication: "首篇论文：{year}（从业 {n} 年）",
   },
   "es-ES": {
     hankoCredit:
@@ -602,6 +629,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "writing-original-draft": "Redacción del borrador original",
       "writing-review-editing": "Revisión y edición",
     },
+    careerContextLabel: "Contexto profesional (declarado por el autor)",
+    careerKindCareerBreak: "Interrupción de carrera",
+    careerKindPartTime: "Tiempo parcial",
+    careerKindClinicalDuties: "Actividad clínica junto a la investigación",
+    careerKindCaring: "Responsabilidades de cuidado",
+    careerKindMilitary: "Servicio militar",
+    careerKindOther: "Otro",
+    careerFirstPublication: "Primera publicación: {year} ({n} años de actividad)",
   },
   "fr-FR": {
     hankoCredit:
@@ -745,6 +780,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "writing-original-draft": "Rédaction du premier jet",
       "writing-review-editing": "Relecture et révision",
     },
+    careerContextLabel: "Contexte de carrière (déclaré par l'auteur)",
+    careerKindCareerBreak: "Interruption de carrière",
+    careerKindPartTime: "Temps partiel",
+    careerKindClinicalDuties: "Activité clinique en parallèle de la recherche",
+    careerKindCaring: "Responsabilités familiales",
+    careerKindMilitary: "Service militaire",
+    careerKindOther: "Autre",
+    careerFirstPublication: "Première publication : {year} ({n} ans d'activité)",
   },
   "de-DE": {
     hankoCredit:
@@ -886,6 +929,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "writing-original-draft": "Schreiben – Erstentwurf",
       "writing-review-editing": "Schreiben – Überarbeitung und Lektorat",
     },
+    careerContextLabel: "Karrierekontext (Selbstangabe)",
+    careerKindCareerBreak: "Karriereunterbrechung",
+    careerKindPartTime: "Teilzeit",
+    careerKindClinicalDuties: "Klinische Tätigkeit neben der Forschung",
+    careerKindCaring: "Betreuungspflichten",
+    careerKindMilitary: "Wehrdienst",
+    careerKindOther: "Sonstiges",
+    careerFirstPublication: "Erste Publikation: {year} ({n} Jahre aktiv)",
   },
   "ja-JP": {
     hankoCredit:
@@ -1021,6 +1072,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "writing-original-draft": "執筆（原案）",
       "writing-review-editing": "執筆（査読・編集）",
     },
+    careerContextLabel: "キャリアの背景（自己申告）",
+    careerKindCareerBreak: "キャリア中断",
+    careerKindPartTime: "パートタイム",
+    careerKindClinicalDuties: "研究と並行した臨床業務",
+    careerKindCaring: "育児・介護",
+    careerKindMilitary: "兵役",
+    careerKindOther: "その他",
+    careerFirstPublication: "初出版：{year}年（活動歴 {n} 年）",
   },
   "pt-BR": {
     hankoCredit:
@@ -1162,6 +1221,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "writing-original-draft": "Escrita – rascunho original",
       "writing-review-editing": "Escrita – revisão e edição",
     },
+    careerContextLabel: "Contexto de carreira (autodeclarado)",
+    careerKindCareerBreak: "Interrupção de carreira",
+    careerKindPartTime: "Tempo parcial",
+    careerKindClinicalDuties: "Atividade clínica paralela à pesquisa",
+    careerKindCaring: "Responsabilidades de cuidado",
+    careerKindMilitary: "Serviço militar",
+    careerKindOther: "Outro",
+    careerFirstPublication: "Primeira publicação: {year} ({n} anos de atividade)",
   },
   "it-IT": {
     hankoCredit:
@@ -1304,6 +1371,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "writing-original-draft": "Stesura della bozza originale",
       "writing-review-editing": "Revisione e redazione",
     },
+    careerContextLabel: "Contesto di carriera (autodichiarato)",
+    careerKindCareerBreak: "Interruzione di carriera",
+    careerKindPartTime: "Tempo parziale",
+    careerKindClinicalDuties: "Attività clinica in parallelo alla ricerca",
+    careerKindCaring: "Responsabilità di cura",
+    careerKindMilitary: "Servizio militare",
+    careerKindOther: "Altro",
+    careerFirstPublication: "Prima pubblicazione: {year} ({n} anni di attività)",
   },
   "ko-KR": {
     hankoCredit:
@@ -1438,6 +1513,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "writing-original-draft": "초고 작성",
       "writing-review-editing": "검토 및 편집",
     },
+    careerContextLabel: "경력 배경 (본인 신고)",
+    careerKindCareerBreak: "경력 단절",
+    careerKindPartTime: "시간제 근무",
+    careerKindClinicalDuties: "연구와 병행한 임상 업무",
+    careerKindCaring: "돌봄 책임",
+    careerKindMilitary: "군 복무",
+    careerKindOther: "기타",
+    careerFirstPublication: "첫 출판: {year} (활동 {n}년)",
   },
   "ru-RU": {
     hankoCredit:
@@ -1577,6 +1660,14 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
       "writing-original-draft": "Написание черновика",
       "writing-review-editing": "Рецензирование и редактирование",
     },
+    careerContextLabel: "Контекст карьеры (по заявлению автора)",
+    careerKindCareerBreak: "Перерыв в карьере",
+    careerKindPartTime: "Неполная занятость",
+    careerKindClinicalDuties: "Клиническая работа параллельно с исследованиями",
+    careerKindCaring: "Обязанности по уходу",
+    careerKindMilitary: "Военная служба",
+    careerKindOther: "Другое",
+    careerFirstPublication: "Первая публикация: {year} ({n} лет активности)",
   },
 };
 
