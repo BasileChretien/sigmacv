@@ -324,6 +324,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Deploy:** the app container now runs a minimal init (tini) as PID 1, so the Chromium children Playwright spawns for PDF export are reaped instead of accumulating as zombie processes between deploys.
 - **Your year / journal corrections on a publication now survive a re-sync.**
   The per-entry year and venue overrides you type in the editor (which every
   export applies to the citation) were dropped for OpenAlex works on the next

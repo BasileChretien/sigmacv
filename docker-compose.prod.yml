@@ -9,6 +9,10 @@
 # All values come from a `.env` file in this directory (see .env.production.example).
 services:
   app:
+    # Run a minimal init (tini) as PID 1 so it reaps the Chromium children that
+    # Playwright spawns for PDF export; otherwise node is PID 1 and never waits
+    # on orphans, and they accumulate as zombies until the next deploy.
+    init: true
     build:
       context: .
       dockerfile: Dockerfile
