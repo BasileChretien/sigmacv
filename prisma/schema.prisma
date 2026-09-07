@@ -131,6 +131,15 @@ model Cv {
   // Default false: publishing shares a capability URL; INDEXING (names/ORCID/
   // publications into Google) requires this distinct consent (GDPR/APPI).
   publicIndexable Boolean   @default(false)
+  // Separate, explicit opt-in to be LISTED under the owner's self-declared
+  // current affiliation in the OAI-PMH `ror:<id>` set (an institution-keyed
+  // harvest is systematic processing the indexing consent does not cover).
+  // Requires publicIndexable (turning indexing off clears it); default false.
+  listUnderAffiliation Boolean @default(false)
+  // Denormalised bare ROR id of the first VISIBLE current position (the set key),
+  // rewritten on every save / sync / publish change; null when no visible
+  // position resolves to a ROR record. Derived from the document, never edited.
+  currentRorId    String?
   // Compare-and-set lock for the scheduled re-sync job (null = unlocked).
   resyncLockedAt  DateTime?
   createdAt       DateTime  @default(now())
@@ -140,6 +149,7 @@ model Cv {
   snapshots CvSnapshot[]
 
   @@index([published, lastSyncedAt])
+  @@index([listUnderAffiliation, currentRorId])
 }
 
 // A FROZEN copy of a CV at one moment — "freeze & cite this version". The

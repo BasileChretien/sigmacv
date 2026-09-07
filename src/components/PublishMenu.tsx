@@ -16,6 +16,9 @@ interface PublishMenuProps {
   published: boolean;
   slug: string | null;
   indexable: boolean;
+  /** OAI-PMH affiliation listing: the opt-in + the ROR key (null → not offered). */
+  listUnderAffiliation?: boolean;
+  affiliationRorId?: string | null;
   publicContact: PublicContactFlags;
   onPublicContactChange: (next: PublicContactFlags) => void;
   /** Lifts publish/slug/indexing changes up so the bar's live-state indicator
@@ -24,6 +27,8 @@ interface PublishMenuProps {
     published: boolean;
     slug: string | null;
     indexable: boolean;
+    listUnderAffiliation: boolean;
+    affiliationRorId: string | null;
   }) => void;
   /** Deep-link to the editor's public-page-style picker (closes this menu first). */
   onEditPublicStyle?: () => void;
@@ -41,6 +46,8 @@ export default function PublishMenu({
   published,
   slug,
   indexable,
+  listUnderAffiliation = false,
+  affiliationRorId = null,
   publicContact,
   onPublicContactChange,
   onPublishStateChange,
@@ -69,6 +76,8 @@ export default function PublishMenu({
           initialPublished={published}
           initialSlug={slug}
           initialIndexable={indexable}
+          initialListUnderAffiliation={listUnderAffiliation}
+          initialAffiliationRorId={affiliationRorId}
           locale={locale}
           publicContact={publicContact}
           onPublicContactChange={onPublicContactChange}

@@ -94,8 +94,10 @@ export async function GET() {
     : [];
 
   // The CV row beyond the document itself: whether the living page is published,
-  // at which URL, whether it may be indexed, when it last synced and what that
-  // sync changed. Internal job bookkeeping (the resync lock) is not user data.
+  // at which URL, whether it may be indexed, whether it is listed under the
+  // owner's current affiliation for OAI-PMH harvesters (and the ROR key it lists
+  // under), when it last synced and what that sync changed. Internal job
+  // bookkeeping (the resync lock) is not user data.
   const cvRecord = cv
     ? {
         id: cv.id,
@@ -105,6 +107,8 @@ export async function GET() {
         published: cv.published,
         publicSlug: cv.publicSlug,
         publicIndexable: cv.publicIndexable,
+        listUnderAffiliation: cv.listUnderAffiliation,
+        currentRorId: cv.currentRorId,
         createdAt: cv.createdAt,
         updatedAt: cv.updatedAt,
       }

@@ -126,8 +126,17 @@ export interface UiStrings {
   publishTitle: string;
   allowIndexing: string;
   allowIndexingTitle: string;
-  /** One-line benefit explanation shown beside the indexing toggle. */
+  /** One-line benefit explanation shown beside the indexing toggle. Names the
+   *  OAI-PMH endpoint: an indexable page is also harvestable, and listing under
+   *  the institution is a separate choice. */
   allowIndexingBody: string;
+  /** "List under my current affiliation": the OAI-PMH `ror:<id>` set opt-in —
+   *  a consent separate from indexing (which it requires). */
+  listUnderAffiliation: string;
+  listUnderAffiliationTitle: string;
+  listUnderAffiliationBody: string;
+  /** Why the opt-in is disabled: no visible current position resolves to ROR. */
+  listUnderAffiliationNoRor: string;
   publicContactLegend: string;
   publicShowEmail: string;
   publicShowPhone: string;
@@ -329,9 +338,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Location",
     allowIndexing: "Allow search engines to index this page",
     allowIndexingBody:
-      "This is how colleagues and employers find your work in Google and other search engines. Recommended — you can turn it off anytime.",
+      "This is how colleagues and employers find your work in Google and other search engines. Recommended — you can turn it off anytime. An indexable page can also be harvested by open repositories and aggregators through SigmaCV's OAI-PMH endpoint (/api/oai): your CV record and the works it lists, as Dublin Core. Being listed under your institution is a separate choice below.",
     allowIndexingTitle:
-      "Off by default. When on, your public CV can appear in search results (name, ORCID, publications).",
+      "Off by default. When on, your public CV can appear in search results (name, ORCID, publications) and can be harvested by open repositories and aggregators through the OAI-PMH endpoint. Listing under your institution is a separate opt-in.",
+    listUnderAffiliation: "List me under my current affiliation for repositories",
+    listUnderAffiliationTitle:
+      "Off by default. When on, harvesters using the OAI-PMH endpoint can select your CV by your current institution's ROR set (ror:<id>). Requires indexing.",
+    listUnderAffiliationBody:
+      "Adds your CV to the OAI-PMH set for the institution of your first visible current position (its ROR identifier), so a repository or CRIS harvesting by institution can find it. Labelled as your own self-declared affiliation, never as your institution's record. Follows your CV if your affiliation changes; requires indexing; off by default.",
+    listUnderAffiliationNoRor:
+      "Not available yet: none of your visible current positions is linked to a ROR institution record. Re-sync, or set the institution on a position.",
     publishTitle:
       "Creates a shareable public web page of this CV at a public link. It re-syncs as you update. Off by default; un-tick to take it offline.",
     exportFormatTitle:
@@ -505,8 +521,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "所在地",
     allowIndexing: "允许搜索引擎索引此页面",
     allowIndexingBody:
-      "这正是同事和招聘方在 Google 等搜索引擎中找到你工作的方式。建议开启——你可以随时关闭。",
-    allowIndexingTitle: "默认关闭。开启后，您的公开简历可能出现在搜索结果中（姓名、ORCID、论文）。",
+      "这正是同事和招聘方在 Google 等搜索引擎中找到你工作的方式。建议开启——你可以随时关闭。可被索引的页面还可能被开放知识库和聚合平台通过 SigmaCV 的 OAI-PMH 接口（/api/oai）采集：即你的简历记录及其列出的成果（Dublin Core 格式）。是否列入你所在机构的集合是下方的另一项单独选择。",
+    allowIndexingTitle:
+      "默认关闭。开启后，您的公开简历可能出现在搜索结果中（姓名、ORCID、论文），也可能被开放知识库和聚合平台通过 OAI-PMH 接口采集。列入所在机构是另一项单独的选择。",
+    listUnderAffiliation: "为知识库将我列入当前所属机构",
+    listUnderAffiliationTitle:
+      "默认关闭。开启后，使用 OAI-PMH 接口的采集方可以按你当前机构的 ROR 集合（ror:<id>）选取你的简历。需要先开启索引。",
+    listUnderAffiliationBody:
+      "将你的简历加入 OAI-PMH 中你第一个可见当前职位所属机构（以其 ROR 标识符）的集合，便于按机构采集的知识库或 CRIS 系统找到它。标注为你本人自述的所属机构，绝不作为机构的官方记录。所属机构变更时随简历更新；需要开启索引；默认关闭。",
+    listUnderAffiliationNoRor:
+      "暂不可用：你可见的当前职位均未关联 ROR 机构记录。请重新同步，或在某个职位上设置机构。",
     publishTitle:
       "在公开链接处创建此简历的可分享公开网页。它会随你的更新而重新同步。默认关闭；取消勾选可将其下线。",
     exportFormatTitle:
@@ -684,9 +708,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Ubicación",
     allowIndexing: "Permitir que los buscadores indexen esta página",
     allowIndexingBody:
-      "Así es como colegas y empleadores encuentran tu trabajo en Google y otros buscadores. Recomendado: puedes desactivarlo cuando quieras.",
+      "Así es como colegas y empleadores encuentran tu trabajo en Google y otros buscadores. Recomendado: puedes desactivarlo cuando quieras. Una página indexable también puede ser recolectada por repositorios abiertos y agregadores a través del punto de acceso OAI-PMH de SigmaCV (/api/oai): el registro de tu CV y los trabajos que enumera, en Dublin Core. Aparecer bajo tu institución es una elección aparte, más abajo.",
     allowIndexingTitle:
-      "Desactivado por defecto. Si se activa, tu CV público puede aparecer en los resultados de búsqueda (nombre, ORCID, publicaciones).",
+      "Desactivado por defecto. Si se activa, tu CV público puede aparecer en los resultados de búsqueda (nombre, ORCID, publicaciones) y puede ser recolectado por repositorios abiertos y agregadores a través del punto de acceso OAI-PMH. Aparecer bajo tu institución es una opción aparte.",
+    listUnderAffiliation: "Incluirme bajo mi afiliación actual para los repositorios",
+    listUnderAffiliationTitle:
+      "Desactivado por defecto. Si se activa, los recolectores que usan el punto de acceso OAI-PMH pueden seleccionar tu CV por el conjunto ROR de tu institución actual (ror:<id>). Requiere la indexación.",
+    listUnderAffiliationBody:
+      "Añade tu CV al conjunto OAI-PMH de la institución de tu primer puesto actual visible (su identificador ROR), para que un repositorio o CRIS que recolecta por institución pueda encontrarlo. Se etiqueta como afiliación declarada por ti, nunca como registro de tu institución. Sigue a tu CV si cambia tu afiliación; requiere la indexación; desactivado por defecto.",
+    listUnderAffiliationNoRor:
+      "Aún no disponible: ninguno de tus puestos actuales visibles está vinculado a un registro institucional ROR. Vuelve a sincronizar o indica la institución en un puesto.",
     publishTitle:
       "Crea una página web pública de este CV en un enlace público que se puede compartir. Se resincroniza a medida que lo actualizas. Desactivada por defecto; desmárcala para retirarla.",
     exportFormatTitle:
@@ -865,9 +896,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Localisation",
     allowIndexing: "Autoriser l’indexation par les moteurs de recherche",
     allowIndexingBody:
-      "C'est ainsi que vos collègues et recruteurs trouvent vos travaux dans Google et les autres moteurs de recherche. Recommandé — vous pouvez le désactiver à tout moment.",
+      "C'est ainsi que vos collègues et recruteurs trouvent vos travaux dans Google et les autres moteurs de recherche. Recommandé — vous pouvez le désactiver à tout moment. Une page indexable peut aussi être moissonnée par des dépôts ouverts et des agrégateurs via le point d'accès OAI-PMH de SigmaCV (/api/oai) : la notice de votre CV et les travaux qu'il liste, en Dublin Core. Figurer sous votre établissement est un choix distinct, ci-dessous.",
     allowIndexingTitle:
-      "Désactivé par défaut. Activé, votre CV public peut apparaître dans les résultats de recherche (nom, ORCID, publications).",
+      "Désactivé par défaut. Activé, votre CV public peut apparaître dans les résultats de recherche (nom, ORCID, publications) et être moissonné par des dépôts ouverts et des agrégateurs via le point d'accès OAI-PMH. Figurer sous votre établissement est une option distincte.",
+    listUnderAffiliation: "Me lister sous mon affiliation actuelle pour les dépôts",
+    listUnderAffiliationTitle:
+      "Désactivé par défaut. Activé, les moissonneurs qui utilisent le point d'accès OAI-PMH peuvent sélectionner votre CV par l'ensemble ROR de votre établissement actuel (ror:<id>). Nécessite l'indexation.",
+    listUnderAffiliationBody:
+      "Ajoute votre CV à l'ensemble OAI-PMH de l'établissement de votre premier poste actuel visible (son identifiant ROR), pour qu'un dépôt ou un CRIS qui moissonne par établissement puisse le trouver. Étiqueté comme votre affiliation auto-déclarée, jamais comme un registre de votre établissement. Suit votre CV si votre affiliation change ; nécessite l'indexation ; désactivé par défaut.",
+    listUnderAffiliationNoRor:
+      "Pas encore disponible : aucun de vos postes actuels visibles n'est relié à une fiche d'établissement ROR. Resynchronisez, ou renseignez l'établissement sur un poste.",
     publishTitle:
       "Crée une page web publique partageable de ce CV via un lien public. Elle se resynchronise au fur et à mesure de vos mises à jour. Désactivée par défaut ; décochez pour la mettre hors ligne.",
     exportFormatTitle:
@@ -1047,9 +1085,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Standort",
     allowIndexing: "Suchmaschinen-Indexierung dieser Seite erlauben",
     allowIndexingBody:
-      "So finden Kolleginnen, Kollegen und Arbeitgeber Ihre Arbeit bei Google und anderen Suchmaschinen. Empfohlen – jederzeit abschaltbar.",
+      "So finden Kolleginnen, Kollegen und Arbeitgeber Ihre Arbeit bei Google und anderen Suchmaschinen. Empfohlen – jederzeit abschaltbar. Eine indexierbare Seite kann außerdem von offenen Repositorien und Aggregatoren über die OAI-PMH-Schnittstelle von SigmaCV (/api/oai) geerntet werden: der Datensatz Ihres Lebenslaufs und die darin aufgeführten Arbeiten, in Dublin Core. Die Auflistung unter Ihrer Einrichtung ist eine separate Entscheidung weiter unten.",
     allowIndexingTitle:
-      "Standardmäßig aus. Wenn aktiviert, kann Ihr öffentlicher Lebenslauf in Suchergebnissen erscheinen (Name, ORCID, Publikationen).",
+      "Standardmäßig aus. Wenn aktiviert, kann Ihr öffentlicher Lebenslauf in Suchergebnissen erscheinen (Name, ORCID, Publikationen) und von offenen Repositorien und Aggregatoren über die OAI-PMH-Schnittstelle geerntet werden. Die Auflistung unter Ihrer Einrichtung ist eine separate Einwilligung.",
+    listUnderAffiliation: "Mich für Repositorien unter meiner aktuellen Einrichtung auflisten",
+    listUnderAffiliationTitle:
+      "Standardmäßig aus. Wenn aktiviert, können Harvester über die OAI-PMH-Schnittstelle Ihren Lebenslauf anhand des ROR-Sets Ihrer aktuellen Einrichtung (ror:<id>) auswählen. Erfordert die Indexierung.",
+    listUnderAffiliationBody:
+      "Nimmt Ihren Lebenslauf in das OAI-PMH-Set der Einrichtung Ihrer ersten sichtbaren aktuellen Position (ihre ROR-Kennung) auf, damit ein Repositorium oder CRIS, das nach Einrichtung erntet, ihn findet. Gekennzeichnet als Ihre selbst angegebene Zugehörigkeit, nie als Verzeichnis Ihrer Einrichtung. Folgt Ihrem Lebenslauf, wenn sich Ihre Zugehörigkeit ändert; erfordert die Indexierung; standardmäßig aus.",
+    listUnderAffiliationNoRor:
+      "Noch nicht verfügbar: keine Ihrer sichtbaren aktuellen Positionen ist mit einem ROR-Einrichtungsdatensatz verknüpft. Synchronisieren Sie erneut oder tragen Sie die Einrichtung bei einer Position ein.",
     publishTitle:
       "Erstellt eine teilbare öffentliche Webseite dieses Lebenslaufs unter einem öffentlichen Link. Sie wird bei Aktualisierungen neu synchronisiert. Standardmäßig aus; Häkchen entfernen, um sie offline zu nehmen.",
     exportFormatTitle:
@@ -1226,9 +1271,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "所在地",
     allowIndexing: "このページの検索エンジンによるインデックスを許可",
     allowIndexingBody:
-      "同僚や採用担当者が Google などの検索エンジンであなたの業績を見つけられるようになります。おすすめです。いつでもオフにできます。",
+      "同僚や採用担当者が Google などの検索エンジンであなたの業績を見つけられるようになります。おすすめです。いつでもオフにできます。インデックス可能なページは、SigmaCV の OAI-PMH エンドポイント（/api/oai）を通じてオープンリポジトリやアグリゲータにも収集（ハーベスト）されることがあります。対象は CV のレコードとそこに掲載された業績（Dublin Core 形式）です。所属機関のセットに掲載するかどうかは、下の別の選択です。",
     allowIndexingTitle:
-      "初期設定はオフです。オンにすると、公開CVが検索結果に表示される場合があります（氏名・ORCID・論文）。",
+      "初期設定はオフです。オンにすると、公開CVが検索結果に表示される場合があり（氏名・ORCID・論文）、OAI-PMH エンドポイントを通じてオープンリポジトリやアグリゲータに収集されることもあります。所属機関のセットへの掲載は別のオプトインです。",
+    listUnderAffiliation: "リポジトリ向けに現在の所属機関のもとに掲載する",
+    listUnderAffiliationTitle:
+      "初期設定はオフです。オンにすると、OAI-PMH エンドポイントを使うハーベスタが、現在の所属機関の ROR セット（ror:<id>）であなたの CV を選択できるようになります。インデックス許可が必要です。",
+    listUnderAffiliationBody:
+      "表示中の最初の現職の所属機関（その ROR 識別子）の OAI-PMH セットに CV を追加し、機関単位で収集するリポジトリや CRIS が見つけられるようにします。あなた自身が申告した所属として表示され、機関の公式記録としては扱われません。所属が変わると CV に追随します。インデックス許可が必要で、初期設定はオフです。",
+    listUnderAffiliationNoRor:
+      "まだ利用できません：表示中の現職のいずれも ROR の機関レコードに紐づいていません。再同期するか、職位に機関を設定してください。",
     publishTitle:
       "この CV を共有可能な公開ウェブページとして公開リンクに作成します。更新すると再同期されます。既定ではオフ。チェックを外すとオフラインにできます。",
     exportFormatTitle:
@@ -1406,9 +1458,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Localização",
     allowIndexing: "Permitir que mecanismos de busca indexem esta página",
     allowIndexingBody:
-      "É assim que colegas e recrutadores encontram seu trabalho no Google e em outros buscadores. Recomendado — você pode desativar quando quiser.",
+      "É assim que colegas e recrutadores encontram seu trabalho no Google e em outros buscadores. Recomendado — você pode desativar quando quiser. Uma página indexável também pode ser coletada por repositórios abertos e agregadores pelo ponto de acesso OAI-PMH do SigmaCV (/api/oai): o registro do seu CV e os trabalhos que ele lista, em Dublin Core. Aparecer sob a sua instituição é uma escolha separada, abaixo.",
     allowIndexingTitle:
-      "Desativado por padrão. Quando ativado, seu CV público pode aparecer nos resultados de busca (nome, ORCID, publicações).",
+      "Desativado por padrão. Quando ativado, seu CV público pode aparecer nos resultados de busca (nome, ORCID, publicações) e ser coletado por repositórios abertos e agregadores pelo ponto de acesso OAI-PMH. Aparecer sob a sua instituição é uma opção separada.",
+    listUnderAffiliation: "Listar-me sob minha afiliação atual para repositórios",
+    listUnderAffiliationTitle:
+      "Desativado por padrão. Quando ativado, coletores que usam o ponto de acesso OAI-PMH podem selecionar seu CV pelo conjunto ROR da sua instituição atual (ror:<id>). Requer a indexação.",
+    listUnderAffiliationBody:
+      "Adiciona seu CV ao conjunto OAI-PMH da instituição do seu primeiro cargo atual visível (o identificador ROR dela), para que um repositório ou CRIS que coleta por instituição possa encontrá-lo. Rotulado como afiliação declarada por você, nunca como registro da sua instituição. Acompanha seu CV se a afiliação mudar; requer a indexação; desativado por padrão.",
+    listUnderAffiliationNoRor:
+      "Ainda indisponível: nenhum dos seus cargos atuais visíveis está vinculado a um registro institucional ROR. Sincronize novamente ou defina a instituição em um cargo.",
     publishTitle:
       "Cria uma página web pública e compartilhável deste CV em um link público. Ela é ressincronizada conforme você atualiza. Desativada por padrão; desmarque para tirá-la do ar.",
     exportFormatTitle:
@@ -1587,9 +1646,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Località",
     allowIndexing: "Consenti l’indicizzazione di questa pagina dai motori di ricerca",
     allowIndexingBody:
-      "È così che colleghi e datori di lavoro trovano il tuo lavoro su Google e altri motori di ricerca. Consigliato: puoi disattivarlo quando vuoi.",
+      "È così che colleghi e datori di lavoro trovano il tuo lavoro su Google e altri motori di ricerca. Consigliato: puoi disattivarlo quando vuoi. Una pagina indicizzabile può anche essere raccolta da repository aperti e aggregatori tramite l'endpoint OAI-PMH di SigmaCV (/api/oai): il record del tuo CV e i lavori che elenca, in Dublin Core. Comparire sotto la tua istituzione è una scelta separata, qui sotto.",
     allowIndexingTitle:
-      "Disattivato per impostazione predefinita. Se attivo, il tuo CV pubblico può comparire nei risultati di ricerca (nome, ORCID, pubblicazioni).",
+      "Disattivato per impostazione predefinita. Se attivo, il tuo CV pubblico può comparire nei risultati di ricerca (nome, ORCID, pubblicazioni) ed essere raccolto da repository aperti e aggregatori tramite l'endpoint OAI-PMH. Comparire sotto la tua istituzione è un'opzione separata.",
+    listUnderAffiliation: "Elencami sotto la mia affiliazione attuale per i repository",
+    listUnderAffiliationTitle:
+      "Disattivato per impostazione predefinita. Se attivo, gli harvester che usano l'endpoint OAI-PMH possono selezionare il tuo CV tramite il set ROR della tua istituzione attuale (ror:<id>). Richiede l'indicizzazione.",
+    listUnderAffiliationBody:
+      "Aggiunge il tuo CV al set OAI-PMH dell'istituzione della tua prima posizione attuale visibile (il suo identificativo ROR), così che un repository o un CRIS che raccoglie per istituzione possa trovarlo. Etichettato come affiliazione dichiarata da te, mai come registro della tua istituzione. Segue il tuo CV se l'affiliazione cambia; richiede l'indicizzazione; disattivato per impostazione predefinita.",
+    listUnderAffiliationNoRor:
+      "Non ancora disponibile: nessuna delle tue posizioni attuali visibili è collegata a un record istituzionale ROR. Risincronizza, oppure indica l'istituzione su una posizione.",
     publishTitle:
       "Crea una pagina web pubblica condivisibile di questo CV tramite un link pubblico. Si risincronizza man mano che apporti aggiornamenti. Disattivata per impostazione predefinita; deseleziona per metterla offline.",
     exportFormatTitle:
@@ -1765,9 +1831,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "위치",
     allowIndexing: "검색 엔진이 이 페이지를 색인하도록 허용",
     allowIndexingBody:
-      "동료와 고용주가 Google 등 검색 엔진에서 당신의 연구를 찾는 방법입니다. 권장하며, 언제든지 끌 수 있습니다.",
+      "동료와 고용주가 Google 등 검색 엔진에서 당신의 연구를 찾는 방법입니다. 권장하며, 언제든지 끌 수 있습니다. 색인 가능한 페이지는 SigmaCV의 OAI-PMH 엔드포인트(/api/oai)를 통해 오픈 리포지터리와 애그리게이터가 수집(하베스트)할 수도 있습니다. 대상은 CV 레코드와 거기에 나열된 연구 성과(Dublin Core 형식)입니다. 소속 기관 아래에 등재할지는 아래의 별도 선택입니다.",
     allowIndexingTitle:
-      "기본적으로 꺼져 있습니다. 켜면 공개 CV가 검색 결과에 표시될 수 있습니다(이름, ORCID, 논문).",
+      "기본적으로 꺼져 있습니다. 켜면 공개 CV가 검색 결과에 표시될 수 있고(이름, ORCID, 논문), OAI-PMH 엔드포인트를 통해 오픈 리포지터리와 애그리게이터가 수집할 수도 있습니다. 소속 기관 아래 등재는 별도의 옵트인입니다.",
+    listUnderAffiliation: "리포지터리를 위해 현재 소속 기관 아래에 등재",
+    listUnderAffiliationTitle:
+      "기본적으로 꺼져 있습니다. 켜면 OAI-PMH 엔드포인트를 사용하는 하베스터가 현재 소속 기관의 ROR 세트(ror:<id>)로 당신의 CV를 선택할 수 있습니다. 색인 허용이 필요합니다.",
+    listUnderAffiliationBody:
+      "표시된 첫 번째 현재 직위의 소속 기관(ROR 식별자)에 해당하는 OAI-PMH 세트에 CV를 추가하여, 기관 단위로 수집하는 리포지터리나 CRIS가 찾을 수 있게 합니다. 본인이 직접 신고한 소속으로 표시되며, 기관의 공식 기록으로 취급되지 않습니다. 소속이 바뀌면 CV를 따라갑니다. 색인 허용이 필요하며 기본적으로 꺼져 있습니다.",
+    listUnderAffiliationNoRor:
+      "아직 사용할 수 없습니다: 표시된 현재 직위 중 ROR 기관 레코드에 연결된 것이 없습니다. 다시 동기화하거나 직위에 기관을 설정하세요.",
     publishTitle:
       "이 CV의 공유 가능한 공개 웹 페이지를 공개 링크로 생성합니다. 업데이트할 때마다 다시 동기화됩니다. 기본값은 꺼짐이며, 체크를 해제하면 오프라인으로 전환됩니다.",
     exportFormatTitle:
@@ -1943,9 +2016,16 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Местоположение",
     allowIndexing: "Разрешить индексирование этой страницы поисковыми системами",
     allowIndexingBody:
-      "Именно так коллеги и работодатели находят ваши работы в Google и других поисковых системах. Рекомендуется — вы можете отключить это в любой момент.",
+      "Именно так коллеги и работодатели находят ваши работы в Google и других поисковых системах. Рекомендуется — вы можете отключить это в любой момент. Индексируемую страницу также могут собирать открытые репозитории и агрегаторы через точку доступа OAI-PMH SigmaCV (/api/oai): запись вашего резюме и перечисленные в нём работы в формате Dublin Core. Включение в набор вашей организации — отдельный выбор ниже.",
     allowIndexingTitle:
-      "По умолчанию выключено. Если включить, ваше публичное резюме может появляться в результатах поиска (имя, ORCID, публикации).",
+      "По умолчанию выключено. Если включить, ваше публичное резюме может появляться в результатах поиска (имя, ORCID, публикации) и собираться открытыми репозиториями и агрегаторами через точку доступа OAI-PMH. Включение в набор вашей организации — отдельное согласие.",
+    listUnderAffiliation: "Включить меня в набор моей текущей организации для репозиториев",
+    listUnderAffiliationTitle:
+      "По умолчанию выключено. Если включить, харвестеры, использующие точку доступа OAI-PMH, смогут выбирать ваше резюме по набору ROR вашей текущей организации (ror:<id>). Требуется индексация.",
+    listUnderAffiliationBody:
+      "Добавляет ваше резюме в набор OAI-PMH организации из вашей первой видимой текущей должности (её идентификатор ROR), чтобы репозиторий или CRIS, собирающий данные по организациям, мог его найти. Помечается как заявленная вами аффилиация и никогда — как реестр вашей организации. Следует за резюме при смене аффилиации; требует индексации; по умолчанию выключено.",
+    listUnderAffiliationNoRor:
+      "Пока недоступно: ни одна из ваших видимых текущих должностей не связана с записью организации в ROR. Выполните повторную синхронизацию или укажите организацию в должности.",
     publishTitle:
       "Создаёт публичную веб-страницу этого CV, доступную по публичной ссылке. Она пересинхронизируется по мере ваших изменений. По умолчанию отключено; снимите галочку, чтобы перевести её в офлайн.",
     exportFormatTitle:

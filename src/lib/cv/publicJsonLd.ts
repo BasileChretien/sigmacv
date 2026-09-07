@@ -76,6 +76,38 @@ export function affiliationOrg(cv: CanonicalCv): Record<string, unknown> | undef
   return org;
 }
 
+/** The owner's self-declared current affiliation as the OAI-PMH set key. */
+export interface CurrentAffiliation {
+  /** BARE ROR id (`04chrp450`), validated against the ROR id shape. */
+  rorId: string;
+  /** The institution as the owner's CV names it (their rename wins). */
+  name: string;
+}
+
+/**
+ * The owner's current affiliation, keyed by ROR — the SAME position and the SAME
+ * ROR validation as the JSON-LD `affiliation` above (`primaryPosition` +
+ * `rorIri`), so the OAI `ror:<id>` set a CV is listed under can never diverge
+ * from the affiliation its public page asserts. Null when there is no visible
+ * position, or when its ROR id fails the ror.org shape check (a foreign or junk
+ * `meta.rorId` must never become a set key). Persisted as `Cv.currentRorId` on
+ * every save / sync; the name feeds the `ListSets` set name.
+ */
+export function currentAffiliation(cv: CanonicalCv): CurrentAffiliation | null {
+  const pos = primaryPosition(cv);
+  const raw = pos?.meta.rorId?.trim();
+  if (!pos || !raw) return null;
+  const iri = rorIri(raw);
+  if (!iri) return null;
+  const rorId = iri.slice("https://ror.org/".length);
+  const name =
+    pos.meta.institutionOverride?.trim() ||
+    pos.meta.institution?.trim() ||
+    itemDisplayText(pos)?.trim() ||
+    `ROR ${rorId}`;
+  return { rorId, name };
+}
+
 /** Visible items of the first visible section of `type`, or []. */
 function visibleSectionItems(cv: CanonicalCv, type: CvSection["type"]): CvItem[] {
   const section = visibleSections(cv).find((s) => s.type === type);

@@ -79,6 +79,8 @@ export default async function CvPage() {
       published={publish.published}
       publicSlug={publish.publicSlug}
       publicIndexable={publish.indexable}
+      publicListUnderAffiliation={publish.listUnderAffiliation}
+      publicAffiliationRorId={publish.affiliationRorId}
       signOutAction={handleSignOut}
     />
   );

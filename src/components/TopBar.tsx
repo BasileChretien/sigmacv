@@ -62,6 +62,9 @@ export interface TopBarProps {
   published: boolean;
   publicSlug: string | null;
   publicIndexable: boolean;
+  /** OAI-PMH affiliation listing: the opt-in + the ROR key (null → not offered). */
+  publicListUnderAffiliation?: boolean;
+  publicAffiliationRorId?: string | null;
   publicContact: PublicContactFlags;
   onPublicContactChange: (next: PublicContactFlags) => void;
   /** Owner enabled the assessor "Reader view" (`display.allowReaderMode`) — the
@@ -73,6 +76,8 @@ export interface TopBarProps {
     published: boolean;
     slug: string | null;
     indexable: boolean;
+    listUnderAffiliation: boolean;
+    affiliationRorId: string | null;
   }) => void;
   /** Deep-link from the Publish menu to the editor's public-page-style picker. */
   onEditPublicStyle?: () => void;
@@ -112,6 +117,8 @@ export default function TopBar({
   published,
   publicSlug,
   publicIndexable,
+  publicListUnderAffiliation = false,
+  publicAffiliationRorId = null,
   publicContact,
   onPublicContactChange,
   readerViewEnabled = false,
@@ -234,6 +241,8 @@ export default function TopBar({
           published={published}
           slug={publicSlug}
           indexable={publicIndexable}
+          listUnderAffiliation={publicListUnderAffiliation}
+          affiliationRorId={publicAffiliationRorId}
           publicContact={publicContact}
           onPublicContactChange={onPublicContactChange}
           onPublishStateChange={onPublishStateChange}

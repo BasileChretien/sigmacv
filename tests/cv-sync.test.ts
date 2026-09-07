@@ -142,12 +142,15 @@ import {
   getPublicCvForPage,
   getPublicCvRecord,
   getPublishState,
+  listAffiliationSets,
   listIndexablePublicSlugs,
   listPublicCvRecords,
   saveCvForUser,
   setPublishState,
   syncCvForUser,
 } from "@/lib/cv/sync";
+import { setItemIncluded } from "@/lib/canonical/curate";
+import { fetchOrcidPositions } from "@/lib/orcid/client";
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -171,6 +174,16 @@ const DOC = buildCanonicalCv({
   id: "cv_1",
   resolved: RESOLVED,
   works,
+  now: "2026-06-02T00:00:00.000Z",
+});
+// The same CV with a ROR-resolved current position (the OAI affiliation-set key).
+const AFFILIATED_DOC = buildCanonicalCv({
+  id: "cv_1",
+  resolved: RESOLVED,
+  works,
+  employments: [
+    { putCode: "cur", organization: "Nagoya University", startYear: 2024, rorId: "04chrp450" },
+  ],
   now: "2026-06-02T00:00:00.000Z",
 });
 
@@ -287,6 +300,28 @@ describe("syncCvForUser", () => {
     expect(cv.sections[0]!.type).toBe("publications");
     expect(mocks.upsert).toHaveBeenCalledTimes(1);
     expect(mocks.fetchEditorial).toHaveBeenCalled();
+  });
+
+  it("denormalises the current affiliation's ROR id on sync (and the resync that reuses it)", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    vi.mocked(fetchOrcidPositions).mockResolvedValueOnce([
+      { putCode: "cur", organization: "Nagoya University", startYear: 2024, rorId: "04chrp450" },
+    ]);
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const arg = mocks.upsert.mock.calls[0]![0] as {
+      create: { currentRorId: string | null };
+      update: { currentRorId: string | null };
+    };
+    expect(arg.create.currentRorId).toBe("04chrp450");
+    expect(arg.update.currentRorId).toBe("04chrp450");
+
+    // No ROR-resolved position → the key is written as null (never left stale).
+    mocks.upsert.mockClear();
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const bare = mocks.upsert.mock.calls[0]![0] as { update: { currentRorId: string | null } };
+    expect(bare.update.currentRorId).toBeNull();
   });
 
   it("reports the first sync as initial (no per-item flood) and persists the report", async () => {
@@ -640,6 +675,25 @@ describe("saveCvForUser", () => {
     expect(mocks.logCvSave).toHaveBeenCalledTimes(1);
   });
 
+  it("denormalises the current affiliation's ROR id on every save (the OAI set key)", async () => {
+    mocks.findUnique.mockResolvedValue({ document: AFFILIATED_DOC });
+    await saveCvForUser("u1", AFFILIATED_DOC);
+    expect(mocks.update.mock.calls[0]![0].data.currentRorId).toBe("04chrp450");
+  });
+
+  it("clears the ROR key when the current position is hidden or absent", async () => {
+    const positions = AFFILIATED_DOC.sections.find((s) => s.type === "positions")!;
+    const hidden = setItemIncluded(AFFILIATED_DOC, positions.id, positions.items[0]!.id, false);
+    mocks.findUnique.mockResolvedValue({ document: AFFILIATED_DOC });
+    await saveCvForUser("u1", hidden);
+    expect(mocks.update.mock.calls[0]![0].data.currentRorId).toBeNull();
+
+    mocks.update.mockClear();
+    mocks.findUnique.mockResolvedValue({ document: DOC });
+    await saveCvForUser("u1", DOC);
+    expect(mocks.update.mock.calls[0]![0].data.currentRorId).toBeNull();
+  });
+
   it("drops the owner's cached anonymous preview, so a correction lands at once", async () => {
     // The anonymous /preview/[orcid] build applies this researcher's own
     // disambiguation corrections. Without this the owner could mark a namesake's
@@ -740,6 +794,22 @@ describe("publish state", () => {
       published: false,
       publicSlug: null,
       indexable: false,
+      listUnderAffiliation: false,
+      affiliationRorId: null,
+    });
+  });
+
+  it("reports the affiliation-listing opt-in and the ROR key the toggle depends on", async () => {
+    mocks.findUnique.mockResolvedValue({
+      published: true,
+      publicSlug: "s",
+      publicIndexable: true,
+      listUnderAffiliation: true,
+      currentRorId: "04chrp450",
+    });
+    expect(await getPublishState("u1")).toMatchObject({
+      listUnderAffiliation: true,
+      affiliationRorId: "04chrp450",
     });
   });
 
@@ -776,6 +846,59 @@ describe("publish state", () => {
   it("throws when publishing a non-existent CV", async () => {
     mocks.findUnique.mockResolvedValue(null);
     await expect(setPublishState("u1", true)).rejects.toBeInstanceOf(CvNotFoundError);
+  });
+
+  describe("list under my current affiliation (OAI set opt-in)", () => {
+    const row = (document: unknown) => ({ id: "abcd1234ef", document, publicSlug: "s" });
+
+    it("is accepted only with indexing AND a ROR-resolved current position", async () => {
+      mocks.findUnique.mockResolvedValue(row(AFFILIATED_DOC));
+      mocks.update.mockResolvedValue({
+        published: true,
+        publicSlug: "s",
+        publicIndexable: true,
+        listUnderAffiliation: true,
+        currentRorId: "04chrp450",
+      });
+      const state = await setPublishState("u1", true, true, true);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        publicIndexable: true,
+        listUnderAffiliation: true,
+        currentRorId: "04chrp450",
+      });
+      expect(state.listUnderAffiliation).toBe(true);
+      expect(state.affiliationRorId).toBe("04chrp450");
+    });
+
+    it("is refused without indexing (turning indexing off turns the listing off)", async () => {
+      mocks.findUnique.mockResolvedValue(row(AFFILIATED_DOC));
+      await setPublishState("u1", true, false, true);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        publicIndexable: false,
+        listUnderAffiliation: false,
+        currentRorId: "04chrp450",
+      });
+    });
+
+    it("is refused without a ROR-resolved current position (no set key to list under)", async () => {
+      mocks.findUnique.mockResolvedValue(row(DOC));
+      await setPublishState("u1", true, true, true);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        publicIndexable: true,
+        listUnderAffiliation: false,
+        currentRorId: null,
+      });
+    });
+
+    it("is cleared on unpublish, like indexing", async () => {
+      mocks.findUnique.mockResolvedValue(row(AFFILIATED_DOC));
+      await setPublishState("u1", false, true, true);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        published: false,
+        publicIndexable: false,
+        listUnderAffiliation: false,
+      });
+    });
   });
 });
 
@@ -833,6 +956,89 @@ describe("OAI harvest helpers", () => {
     expect(records).toHaveLength(1); // the corrupt row is skipped
     expect(records[0]).toMatchObject({ slug: "ada" });
     expect(records[0]!.cv.owner.displayName).toBe("Basile Chrétien");
+  });
+
+  it("filters a `set` harvest to CVs that OPTED INTO the affiliation listing", async () => {
+    mocks.count.mockResolvedValue(1);
+    mocks.findMany.mockResolvedValue([
+      {
+        publicSlug: "ada",
+        updatedAt: new Date("2026-06-09T00:00:00Z"),
+        document: AFFILIATED_DOC,
+        listUnderAffiliation: true,
+        currentRorId: "04chrp450",
+      },
+    ]);
+    const { records } = await listPublicCvRecords({ limit: 100, offset: 0, set: "04chrp450" });
+    // The opt-in is the consent gate: a CV that merely HAS that affiliation but
+    // never opted in must not be selected. Both queries carry the filter.
+    const expectWhere = expect.objectContaining({
+      published: true,
+      publicIndexable: true,
+      listUnderAffiliation: true,
+      currentRorId: "04chrp450",
+    });
+    expect(mocks.count).toHaveBeenCalledWith({ where: expectWhere });
+    expect(mocks.findMany.mock.calls[0]![0].where).toEqual(expectWhere);
+    expect(records[0]!.setSpec).toBe("ror:04chrp450");
+  });
+
+  it("never filters on the opt-in without a set, and marks set membership per record", async () => {
+    mocks.count.mockResolvedValue(2);
+    mocks.findMany.mockResolvedValue([
+      {
+        publicSlug: "in",
+        updatedAt: new Date("2026-06-09T00:00:00Z"),
+        document: AFFILIATED_DOC,
+        listUnderAffiliation: true,
+        currentRorId: "04chrp450",
+      },
+      {
+        publicSlug: "out",
+        updatedAt: new Date("2026-06-09T00:00:00Z"),
+        document: AFFILIATED_DOC,
+        listUnderAffiliation: false,
+        currentRorId: "04chrp450",
+      },
+    ]);
+    const { records } = await listPublicCvRecords({ limit: 100, offset: 0 });
+    expect(mocks.findMany.mock.calls[0]![0].where).not.toHaveProperty("listUnderAffiliation");
+    expect(mocks.findMany.mock.calls[0]![0].where).not.toHaveProperty("currentRorId");
+    expect(records.map((r) => r.setSpec)).toEqual(["ror:04chrp450", undefined]);
+  });
+
+  it("getPublicCvRecord carries the set membership only for an opted-in CV", async () => {
+    const base = {
+      published: true,
+      publicIndexable: true,
+      updatedAt: new Date("2026-06-09T00:00:00Z"),
+      document: AFFILIATED_DOC,
+      currentRorId: "04chrp450",
+    };
+    mocks.findUnique.mockResolvedValueOnce({ ...base, listUnderAffiliation: true });
+    expect((await getPublicCvRecord("ada"))?.setSpec).toBe("ror:04chrp450");
+    mocks.findUnique.mockResolvedValueOnce({ ...base, listUnderAffiliation: false });
+    expect((await getPublicCvRecord("ada"))?.setSpec).toBeUndefined();
+  });
+
+  it("listAffiliationSets: one set per distinct ROR id among OPTED-IN indexable CVs", async () => {
+    mocks.findMany.mockResolvedValue([
+      { currentRorId: "04chrp450", document: AFFILIATED_DOC },
+      { currentRorId: "00000000x", document: { bad: 1 } }, // corrupt → id-only name
+    ]);
+    const sets = await listAffiliationSets();
+    const where = mocks.findMany.mock.calls[0]![0].where;
+    expect(where).toMatchObject({
+      published: true,
+      publicIndexable: true,
+      listUnderAffiliation: true,
+      currentRorId: { not: null },
+    });
+    expect(mocks.findMany.mock.calls[0]![0].distinct).toEqual(["currentRorId"]);
+    expect(sets).toEqual([
+      { spec: "ror:04chrp450", rorId: "04chrp450", name: "Nagoya University" },
+      { spec: "ror:00000000x", rorId: "00000000x", name: "ROR 00000000x" },
+    ]);
   });
 
   it("getPublicCvRecord requires published + indexable", async () => {

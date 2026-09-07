@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
-import { getPublicCvRecord, listPublicCvRecords } from "@/lib/cv/sync";
+import { getPublicCvRecord, listAffiliationSets, listPublicCvRecords } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { readTextBodyWithLimit } from "@/lib/readBody";
 import {
   OAI_PAGE_SIZE,
+  findWorkRecord,
   getRecordResponse,
   identifyResponse,
   listIdentifiersResponse,
   listMetadataFormatsResponse,
   listRecordsResponse,
+  listSetsResponse,
   oaiError,
   validateOaiRequest,
   type OaiArgs,
@@ -21,6 +23,11 @@ import { absoluteUrl } from "@/lib/siteUrl";
  * repositories / aggregators harvest the open record). Thin — parses the request,
  * rate-limits, and hands off to the pure `lib/oai` builders + the `cv/sync`
  * harvest helpers. Supports GET and POST per the protocol.
+ *
+ * Consent gates (enforced in `cv/sync`, never here): every record requires the
+ * owner's `publicIndexable` opt-in, whose consent copy names this endpoint;
+ * the `ror:<id>` sets contain only CVs whose owner ALSO opted into "list under
+ * my current affiliation".
  */
 
 export const runtime = "nodejs";
@@ -79,8 +86,21 @@ async function handle(args: OaiArgs, req: Request): Promise<NextResponse> {
         return xmlResponse(identifyResponse(opts));
       case "listMetadataFormats":
         return xmlResponse(listMetadataFormatsResponse(args, opts));
+      case "listSets": {
+        const sets = await listAffiliationSets();
+        // The schema requires at least one <set>: until a researcher opts in,
+        // the repository has no set hierarchy to report.
+        return xmlResponse(
+          sets.length > 0
+            ? listSetsResponse(args, sets, opts)
+            : oaiError(args, "noSetHierarchy", "No sets are currently defined", opts),
+        );
+      }
       case "getRecord": {
-        const rec = await getPublicCvRecord(plan.slug);
+        // A per-work record resolves through its CV's own gate (published +
+        // indexable), then must be a work the public page lists.
+        const cvRecord = await getPublicCvRecord(plan.slug);
+        const rec = cvRecord && plan.itemId ? findWorkRecord(cvRecord, plan.itemId) : cvRecord;
         return xmlResponse(
           rec
             ? getRecordResponse(args, rec, opts)
@@ -98,6 +118,7 @@ async function handle(args: OaiArgs, req: Request): Promise<NextResponse> {
           offset: plan.offset,
           from: plan.from,
           until: plan.until,
+          set: plan.set,
         });
         if (records.length === 0) {
           const empty = plan.offset > 0;
@@ -113,7 +134,6 @@ async function handle(args: OaiArgs, req: Request): Promise<NextResponse> {
         const consumed = plan.offset + records.length;
         const page = {
           records,
-          total,
           cursor: plan.offset,
           nextOffset: consumed < total ? consumed : null,
         };

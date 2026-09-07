@@ -30,6 +30,14 @@ describe("privacyStrings", () => {
       expect(s.research).toContain("Art. 6(1)(a)");
       // The AI-drafting disclosure must name the EU processor in every locale.
       expect(s.ai).toContain("Mistral AI");
+      // The recipients paragraph must name OAI-PMH harvesters (repositories,
+      // CRIS systems, aggregators) as recipients of an indexable page's
+      // metadata, and the ROR affiliation listing as a separate opt-in —
+      // appended AFTER the DataCite sentence it must not rewrite.
+      expect(s.sharing).toContain("OAI-PMH");
+      expect(s.sharing).toContain("CRIS");
+      expect(s.sharing).toContain("ROR");
+      expect(s.sharing.indexOf("DataCite")).toBeLessThan(s.sharing.indexOf("OAI-PMH"));
     }
   });
 });

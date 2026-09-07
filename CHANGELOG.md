@@ -9,6 +9,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **OAI-PMH harvesting is now disclosed, per-work, and institution-listable by opt-in.**
+  The `/api/oai` endpoint was gated on the search-indexing consent, whose copy
+  only ever said "Google" — one Dublin Core record per CV was a stretch of that
+  consent, and an institution-keyed set would have been systematic processing
+  the researcher never agreed to. Three things ship together and none without
+  the others. (1) **Disclosure:** the indexing consent (toggle body + tooltip,
+  ten locales) now says an indexable page can also be harvested by open
+  repositories and aggregators through the OAI-PMH endpoint, and that listing
+  under your institution is a separate choice; the privacy notice's recipients
+  paragraph names OAI-PMH harvesters (repositories, CRIS systems, aggregators)
+  as recipients and the affiliation listing as opt-in; `docs/OPEN-SCIENCE.md`
+  states the consent model. (2) **"List me under my current affiliation for
+  repositories"** — a new per-CV opt-in in the Publish panel, off by default,
+  separate from indexing (which it requires: turning indexing off, or
+  unpublishing, turns it off), offered only when a visible current position
+  resolves to a ROR institution record (otherwise disabled, with the reason).
+  The ROR key follows the CV: it is re-derived from the first visible current
+  position — the same rule as the public JSON-LD affiliation — on every save,
+  sync, re-sync and publish change, and clears when that position disappears.
+  Included in the GDPR data export. (3) **Per-work records and `ror:<id>`
+  sets:** every indexable CV now also yields one `oai_dc` record per work its
+  public page lists (`oai:sigmacv.org:<slug>/w/<itemId>`: DOI, title, creators
+  as on the page, year, venue, the CV page as `dc:relation`, the page's licence)
+  — exactly the page's selection (per-view exclusions, "peer-reviewed only",
+  the publications cap, the owner's preferred publication name) minus every
+  retracted work, listed or not, so a harvester never ingests a retracted work
+  as a fresh record. `ListSets` lists one set per institution with an opted-in
+  researcher, named "Researchers listing <org> as current affiliation" and
+  described as self-declared — never as institutional output; `ListRecords` /
+  `ListIdentifiers` accept `set=ror:<id>` and return only opted-in CVs, whose
+  CV and work records carry the `<setSpec>`. A non-indexable CV never appears
+  in any verb. Resumption tokens stay offset-based (cut at CV boundaries); the
+  optional `completeListSize` / `cursor` attributes are omitted rather than
+  misreported now that a page's record count is not its CV count.
+
 - **Freeze in this shape + stateless request links.** The Versions panel can freeze a version in the layout of any of the 59 CV models (applied to a copy — the live CV is untouched) and as one of two freeze-time presets: the assessor's **reader view**, or a new **hiring-panel** preset (contact details on, academic evidence marks and metrics off). An institution, funder or recruiter can ask for exactly that with a plain link to the editor (`/cv?freeze=<model>&preset=reader|hiring&label=…&by=YYYY-MM-DD`, documented in the FAQ): the editor shows what the link asks for and offers the one-click freeze. No account, no server record of who asked — the query is parsed in the researcher's browser only and the researcher sends the frozen link. A request can never switch on metrics, career context or supervisee names; a hiring-panel version also closes the reader view on itself, and a model freeze starts from the model's own list settings. New `institutional-assessment` CV model (HCERES / REF-style dossier).
 - **Assessment-grade frozen versions.** A frozen version now stores the provenance ledger computed on the owner's document _before_ the frozen copy is stripped of its attribution signals (a ledger derived afterwards under-reported DOI-claimed and name-matched entries and could never be recomputed), plus a SHA-256 content hash of the frozen document's public projection, shown in the frozen page's banner and a `sigmacv:content-hash` `<meta>`, so a reader can record exactly which version they assessed and two readers can check they hold the same one. The owner can freeze a version **as the assessor's reader view** (a one-time choice at freeze time, fixed for that version, made with the same explicit inventory of toggles as the living-page opt-in): the reader preset is materialised into the frozen display, so the frozen page, its ledger and its hash all describe the reader view (evidence marks on, retracted works visible). On any reader view, live or frozen, the ledger's "retracted works shown" line now follows the view instead of the owner's hidden-retracted setting. A frozen page also honours `?view=reader` when its frozen display allowed the reader view, exactly like the living page.
 - **Trust marks and identifiers now survive the file boundary (export parity).**
