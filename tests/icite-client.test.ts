@@ -115,6 +115,39 @@ describe("fetchIciteByPmids", () => {
     expect(map.get("3")).toEqual({ apt: 1 });
   });
 
+  it("reads the LIVE camelCase field names (citingClinicalPmids / isClinicalArticle), not the snake_case fl= echo", async () => {
+    // Exact response body observed from a production call against
+    // fl=pmid,rcr,cited_by_clin,is_clinical,apt (verified live 2026-09-04).
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        res({
+          data: [
+            {
+              _id: "32297899",
+              isClinicalArticle: true,
+              pmid: 32297899,
+              apt: 0.95,
+              citingClinicalPmids: [
+                34724392, 42285609, 11111111, 22222222, 33333333, 44444444, 55555555, 66666666,
+                77777777, 88888888, 99999999, 10101010, 20202020, 30303030, 40404040, 50505050,
+                60606060, 70707070, 80808080, 90909090, 12121212,
+              ],
+              rcr: 20.767173766976157,
+            },
+          ],
+        }),
+      ),
+    );
+    const map = await fetchIciteByPmids(["32297899"]);
+    expect(map.get("32297899")).toEqual({
+      rcr: 20.767173766976157,
+      clinicalCitations: 21,
+      isClinical: true,
+      apt: 0.95,
+    });
+  });
+
   it("falls back to the full-record `relative_citation_ratio` field name", async () => {
     vi.stubGlobal(
       "fetch",

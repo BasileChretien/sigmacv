@@ -16,13 +16,19 @@ import { logger } from "@/lib/log";
  * - `apt` — Approximate Potential to Translate (0..1), iCite's machine-learned
  *   likelihood of future clinical citation.
  *
- * TODO(verify-live): assumed response shape (field-filtered via `fl=`):
- * `{ data: [ { pmid: number|string, rcr: number|null, cited_by_clin: string[] |
- * number[] | string | null, is_clinical: boolean | "Yes"/"No" | null, apt:
- * number|null } ] }`. The long alias `relative_citation_ratio` appears only in
- * unfiltered records and is accepted as a fallback. Parsing accepts every one of
- * those shapes and ignores what it does not understand — it never throws.
- * Fails soft → an empty / partial map never breaks a sync.
+ * Verified live 2026-09-04 (production call against the exact `fl=` below):
+ * `{"data":[{"_id":"32297899","isClinicalArticle":true,"pmid":32297899,"apt":
+ * 0.95,"citingClinicalPmids":[34724392,42285609,...],"rcr":20.767173766976157}]}`.
+ * So the field-filtered response actually names the two translational fields in
+ * **camelCase** — `citingClinicalPmids` (array of ints) and `isClinicalArticle`
+ * (boolean) — not the snake_case `cited_by_clin` / `is_clinical` the `fl=` request
+ * names are echoed back as. `rcr` and `apt` come back under their requested
+ * names unchanged. The `fl=` query parameter itself is left as-is (it evidently
+ * still selects the right fields server-side); only the parser now accepts BOTH
+ * spellings per field, plus the long alias `relative_citation_ratio` (seen only
+ * in unfiltered records) as an rcr fallback. Parsing ignores whatever it does not
+ * understand and never throws — fails soft → an empty / partial map never breaks
+ * a sync.
  */
 
 const ICITE_API = "https://icite.od.nih.gov/api/pubs";
@@ -42,7 +48,7 @@ const ICITE_FIELDS = "pmid,rcr,cited_by_clin,is_clinical,apt";
 export interface IciteRecord {
   /** Relative Citation Ratio (field-normalized; 1.0 = NIH-funded average). */
   rcr?: number;
-  /** Number of clinical articles citing the work (`cited_by_clin` length). */
+  /** Number of clinical articles citing the work (`citingClinicalPmids`/`cited_by_clin` length). */
   clinicalCitations?: number;
   /** The work is itself a clinical article (guideline / clinical study). */
   isClinical?: boolean;
@@ -90,8 +96,8 @@ function bool(v: unknown): boolean | undefined {
 /** Parse one iCite record defensively; undefined when nothing usable parsed. */
 function parseRecord(rec: any): IciteRecord | undefined {
   const rcr = num(rec?.rcr) ?? num(rec?.relative_citation_ratio);
-  const clinicalCitations = count(rec?.cited_by_clin);
-  const isClinical = bool(rec?.is_clinical);
+  const clinicalCitations = count(rec?.citingClinicalPmids) ?? count(rec?.cited_by_clin);
+  const isClinical = bool(rec?.isClinicalArticle) ?? bool(rec?.is_clinical);
   const apt = unit(rec?.apt);
   const out: IciteRecord = {
     ...(rcr !== undefined ? { rcr } : {}),
