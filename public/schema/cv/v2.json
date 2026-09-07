@@ -453,6 +453,10 @@
           "default": false,
           "type": "boolean"
         },
+        "showReplications": {
+          "default": false,
+          "type": "boolean"
+        },
         "showVerifiedBadges": {
           "default": false,
           "type": "boolean"
@@ -1056,6 +1060,48 @@
                     "dataLinksCheckedAt": {
                       "type": "string"
                     },
+                    "replications": {
+                      "maxItems": 10,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "doi": {
+                            "type": "string",
+                            "maxLength": 1000
+                          },
+                          "outcome": {
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "ref": {
+                            "type": "string",
+                            "maxLength": 2000
+                          },
+                          "url": {
+                            "type": "string",
+                            "maxLength": 2048
+                          }
+                        }
+                      }
+                    },
+                    "replicationOf": {
+                      "type": "object",
+                      "properties": {
+                        "doi": {
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "ref": {
+                          "type": "string",
+                          "maxLength": 2000
+                        }
+                      },
+                      "required": ["doi"]
+                    },
+                    "replicationsCheckedAt": {
+                      "type": "string"
+                    },
                     "rorId": {
                       "type": "string",
                       "maxLength": 2048
@@ -1494,6 +1540,10 @@
                 "default": false,
                 "type": "boolean"
               },
+              "showReplications": {
+                "default": false,
+                "type": "boolean"
+              },
               "showVerifiedBadges": {
                 "default": false,
                 "type": "boolean"
@@ -1717,6 +1767,7 @@
               "ictrp",
               "epo",
               "ror",
+              "forrt",
               "wikidata",
               "derived",
               "manual",

@@ -172,6 +172,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   open-science metadata, and a PubMed id it resolves is back-filled when
   OpenAlex had none.
 
+- **Replication evidence (FORRT/FReD) — dormant, import-fed.** Same pattern as
+  WHO ICTRP: a Postgres reference table (`ForrtReplication`), bulk-imported from a
+  FORRT Replication Database (FReD, CC-BY) CSV export by `npm run forrt:import`
+  (`scripts/forrt-import.ts`, tolerant column matching), read by
+  `src/lib/forrt/client.ts`. Both DOIs are identifier data, so a match is
+  **DOI-matched — auto-included, never a review candidate**: a replicated work
+  gains `meta.replications`, a replication study gains `meta.replicationOf`,
+  folded in during sync by `enrichCvWithForrtReplications`
+  (`src/lib/canonical/enrich.ts`) and surfaced in the provenance summary as
+  "FORRT". Opt-in render toggle `display.showReplications` (default **off**,
+  like the other evidence toggles) shows a muted "Replicated: N studies (…)" /
+  "Replication of: …" line with DOI links under the HTML/PDF/public-page entry;
+  outcome wording uses FReD's own labels, localizing only the generic buckets
+  (success/failure/mixed/informative failure). **DORMANT until the maintainer
+  provisions a FReD export** — the table is empty by default, so this ships as a
+  no-op; see the go-live checklist in `CLAUDE.md`. `meta.replications` /
+  `meta.replicationOf` now survive re-sync (the build previously rebuilt `meta`
+  from scratch and silently dropped both every sync), and a new
+  `meta.replicationsCheckedAt` sentinel is stamped on a genuine miss too, so the
+  bounded per-sync check rotates never-checked works to the front instead of
+  re-querying the same first page of the CV forever while later works were never
+  reached.
+
 - **Confirm a flagged publication is yours.** Works the misattribution heuristic
   flags — or that carry a review flag (name-matched, ORCID-conflicting, duplicate,
   ORCID-DOI discovered) — now offer a quiet **Confirm** toggle in the editor, so
@@ -196,6 +219,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The preferred **name on your publications** was silently dropped on every
   re-sync (it was never carried across a rebuild). It now survives like the other
   owner-typed profile fields.
+- **FORRT/FReD importer aligned with the live dataset.** The dormant
+  `scripts/forrt-import.ts` importer (see the "Replication evidence" entry
+  above) was written before the live FReD export could be inspected. Verified
+  live 2026-09-04: it's an **XLSX workbook** (~4,396 rows), not a CSV, so the
+  importer now rejects one outright with a clear conversion message instead of
+  silently importing 0 rows. `COLUMN_CANDIDATES` now matches the real header
+  directly (`doi_o`/`doi_r`/`ref_o`/`ref_r`/`url_r`/`reported_success`/
+  `discipline`/`description`), and a `reported_success` value of `0` (FReD's
+  "not classified") is treated as unknown rather than stored as the literal
+  string `"0"`. No behavior change for anyone — the table is still empty by
+  default.
 - **Retracted works no longer count toward the figures.** A publication flagged
   as retracted (via the Crossref / Retraction Watch enrichment) was excluded from
   the list when **Hide retracted** was on, but still counted in every figure: the

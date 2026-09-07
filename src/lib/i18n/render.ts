@@ -237,6 +237,18 @@ export interface RenderStrings {
   dataLinksLabel: string;
   /** Label of the software part of that line ("Code: …"). */
   codeLinksLabel: string;
+  /** FORRT/FReD replication-evidence line under a work that has been replicated;
+   *  "{n}" -> the (locale-formatted) replication count. */
+  replicatedLabel: string;
+  /** Leading label of the FORRT/FReD line under a work that IS a replication
+   *  study, followed by the original work's reference/DOI link. */
+  replicatedOfLabel: string;
+  /** Generic FReD outcome bucket, localized (the dataset's own non-generic
+   *  outcome text is shown verbatim instead when it doesn't match a bucket). */
+  outcomeSuccess: string;
+  outcomeFailure: string;
+  outcomeMixed: string;
+  outcomeInformativeFailure: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -406,6 +418,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionSummaryCompleted: "{n} completed",
     dataLinksLabel: "Data",
     codeLinksLabel: "Code",
+    replicatedLabel: "Replicated: {n} studies",
+    replicatedOfLabel: "Replication of:",
+    outcomeSuccess: "successful",
+    outcomeFailure: "failed",
+    outcomeMixed: "mixed",
+    outcomeInformativeFailure: "informative failure",
   },
   "zh-CN": {
     hankoCredit:
@@ -569,6 +587,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionSummaryCompleted: "{n} 人已完成",
     dataLinksLabel: "数据",
     codeLinksLabel: "代码",
+    replicatedLabel: "已被复现：{n} 项研究",
+    replicatedOfLabel: "复现自：",
+    outcomeSuccess: "成功",
+    outcomeFailure: "失败",
+    outcomeMixed: "结果不一",
+    outcomeInformativeFailure: "有信息价值的失败",
   },
   "es-ES": {
     hankoCredit:
@@ -743,6 +767,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionSummaryCompleted: "{n} completadas",
     dataLinksLabel: "Datos",
     codeLinksLabel: "Código",
+    replicatedLabel: "Replicado: {n} estudios",
+    replicatedOfLabel: "Replicación de:",
+    outcomeSuccess: "exitosa",
+    outcomeFailure: "fallida",
+    outcomeMixed: "mixta",
+    outcomeInformativeFailure: "fallo informativo",
   },
   "fr-FR": {
     hankoCredit:
@@ -918,6 +948,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionSummaryCompleted: "{n} terminées",
     dataLinksLabel: "Données",
     codeLinksLabel: "Code",
+    replicatedLabel: "Répliqué : {n} études",
+    replicatedOfLabel: "Réplication de :",
+    outcomeSuccess: "réussie",
+    outcomeFailure: "échouée",
+    outcomeMixed: "mitigée",
+    outcomeInformativeFailure: "échec informatif",
   },
   "de-DE": {
     hankoCredit:
@@ -1091,6 +1127,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionSummaryCompleted: "{n} abgeschlossen",
     dataLinksLabel: "Daten",
     codeLinksLabel: "Code",
+    replicatedLabel: "Repliziert: {n} Studien",
+    replicatedOfLabel: "Replikation von:",
+    outcomeSuccess: "erfolgreich",
+    outcomeFailure: "gescheitert",
+    outcomeMixed: "gemischt",
+    outcomeInformativeFailure: "informativer Misserfolg",
   },
   "ja-JP": {
     hankoCredit:
@@ -1258,6 +1300,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionSummaryCompleted: "うち修了 {n} 名",
     dataLinksLabel: "データ",
     codeLinksLabel: "コード",
+    replicatedLabel: "追試あり：{n} 件",
+    replicatedOfLabel: "追試元：",
+    outcomeSuccess: "成功",
+    outcomeFailure: "失敗",
+    outcomeMixed: "結果混在",
+    outcomeInformativeFailure: "有意義な失敗",
   },
   "pt-BR": {
     hankoCredit:
@@ -1431,6 +1479,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionSummaryCompleted: "{n} concluídas",
     dataLinksLabel: "Dados",
     codeLinksLabel: "Código",
+    replicatedLabel: "Replicado: {n} estudos",
+    replicatedOfLabel: "Replicação de:",
+    outcomeSuccess: "bem-sucedida",
+    outcomeFailure: "malsucedida",
+    outcomeMixed: "mista",
+    outcomeInformativeFailure: "fracasso informativo",
   },
   "it-IT": {
     hankoCredit:
@@ -1605,6 +1659,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionSummaryCompleted: "{n} completate",
     dataLinksLabel: "Dati",
     codeLinksLabel: "Codice",
+    replicatedLabel: "Replicato: {n} studi",
+    replicatedOfLabel: "Replica di:",
+    outcomeSuccess: "riuscita",
+    outcomeFailure: "fallita",
+    outcomeMixed: "mista",
+    outcomeInformativeFailure: "fallimento informativo",
   },
   "ko-KR": {
     hankoCredit:
@@ -1771,6 +1831,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionSummaryCompleted: "{n}명 완료",
     dataLinksLabel: "데이터",
     codeLinksLabel: "코드",
+    replicatedLabel: "재현됨: 연구 {n}건",
+    replicatedOfLabel: "재현 대상:",
+    outcomeSuccess: "성공",
+    outcomeFailure: "실패",
+    outcomeMixed: "혼합",
+    outcomeInformativeFailure: "유의미한 실패",
   },
   "ru-RU": {
     hankoCredit:
@@ -1942,6 +2008,12 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     supervisionSummaryCompleted: "{n} завершено",
     dataLinksLabel: "Данные",
     codeLinksLabel: "Код",
+    replicatedLabel: "Реплицировано: {n} исследований",
+    replicatedOfLabel: "Репликация:",
+    outcomeSuccess: "успешная",
+    outcomeFailure: "неудачная",
+    outcomeMixed: "смешанная",
+    outcomeInformativeFailure: "информативная неудача",
   },
 };
 
