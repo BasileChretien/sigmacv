@@ -7,6 +7,7 @@ import {
 } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { isSoftwareItem } from "@/lib/canonical/softwareItem";
+import { selectSections } from "@/lib/render/citationItems";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { safeHref } from "@/lib/render/escape";
 import { absoluteUrl } from "@/lib/siteUrl";
@@ -51,8 +52,11 @@ function primaryPosition(cv: CanonicalCv): CvItem | null {
  * `@id` is the ROR IRI (`https://ror.org/<id>`) when the position carries a
  * `meta.rorId` — a stable, linkable identifier for the institution; `identifier`
  * mirrors it. `name` is the position's display string (the only label we have).
+ *
+ * Exported for the DataCite payload (`datacite/mint.ts`), which reuses the same
+ * primary-position + ROR-validation logic for `creators[].affiliation`.
  */
-function affiliationOrg(cv: CanonicalCv): Record<string, unknown> | undefined {
+export function affiliationOrg(cv: CanonicalCv): Record<string, unknown> | undefined {
   const pos = primaryPosition(cv);
   const name = pos ? itemDisplayText(pos)?.trim() : undefined;
   if (!name) return undefined;
@@ -82,8 +86,9 @@ function visibleSectionItems(cv: CanonicalCv, type: CvSection["type"]): CvItem[]
  * schema.org `MonetaryGrant` entities for the visible Grants section — funding the
  * researcher received, with the funder Organization (`@id` only when the stored
  * funder id is a safe http(s) IRI) and the award id as `identifier`.
+ * Exported for the DataCite payload's `fundingReferences` (`datacite/mint.ts`).
  */
-function fundingEntities(cv: CanonicalCv): Record<string, unknown>[] {
+export function fundingEntities(cv: CanonicalCv): Record<string, unknown>[] {
   const out: Record<string, unknown>[] = [];
   for (const item of visibleSectionItems(cv, "grants")) {
     const name = itemDisplayText(item)?.trim();
@@ -245,6 +250,39 @@ const WORK_SECTION_TYPES = new Set<string>([
   "datasets",
   "software",
 ]);
+
+/**
+ * The bare DOIs (`10.<registrant>/<suffix>`) of the works the page LISTS, in
+ * section then item order, de-duplicated and capped at `max`. Drawn from the
+ * renderer's own selection (`selectSections`: hidden / "not mine" dropped, the
+ * "hide retracted" / "peer-reviewed only" / "count letters" choices, per-view
+ * exclusions, the publication order and the "Selected publications" cap), so a
+ * DOI record can never cite a work the frozen page does not show. On top of
+ * that, a retracted work is NEVER cited, even where the page lists it with its
+ * "Retracted" badge: a `References` relation asserts the work as part of the
+ * CV's evidence, which a retraction has withdrawn. Same DOI normalisation as
+ * {@link scholarlyEntities}, so a crafted `meta.doi` can never smuggle a
+ * foreign identifier. Used by the DataCite payload (`relatedIdentifiers` →
+ * `References`).
+ */
+export function visibleWorkDois(cv: CanonicalCv, max: number): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const { section, items } of selectSections(cv)) {
+    if (!WORK_SECTION_TYPES.has(section.type)) continue;
+    for (const item of items) {
+      if (out.length >= max) return out;
+      if (item.meta.retracted === true) continue;
+      const iri = doiIri(item.meta.doi ?? item.csl?.DOI);
+      if (!iri) continue;
+      const bare = iri.slice("https://doi.org/".length);
+      if (seen.has(bare)) continue;
+      seen.add(bare);
+      out.push(bare);
+    }
+  }
+  return out;
+}
 
 /**
  * Per-work schema.org entities for the visible work sections: publications,

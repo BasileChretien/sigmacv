@@ -375,6 +375,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`assertion-origin-orcid`); a vendor client writing on an organisation's
   behalf is credited to that organisation (`assertion-origin-name`). Entries
   previously mis-marked lose the mark on the next re-sync.
+- **Minted snapshot DOIs now have honest erasure semantics (the DataCite mint
+  stays OFF).** A DOI minted for a frozen CV version carries the owner's name
+  and ORCID iD in a DataCite record that outlives the row it describes, so the
+  code around it had to match GDPR Art. 17 and 13 _before_ the feature can
+  ever be switched on. (1) **Deleting a minted version is refused** (`DELETE
+/api/cv/snapshots/[id]` → 409 `doi-minted`, mirroring the PATCH guard): the
+  DOI must keep resolving while the account exists. (2) **Account deletion
+  withdraws every minted DOI first** (`withdrawMintedSnapshotDois`, called
+  before the `User → Cv → CvSnapshot` cascade): each record is moved from
+  _findable_ to _registered_ (`event: "hide"`) and repointed at a new static
+  **`/withdrawn`** tombstone page (ten locales, `noindex`, outside `/p/`) that
+  says the version was withdrawn by its owner — so the DOI resolves to an
+  explanation, never to a 404 and never back to the erased data. Fail-soft:
+  a DataCite outage is logged and deletion proceeds regardless; a no-op while
+  the mint is disabled. (3) **Per-mint consent:** the mint endpoint now
+  requires an explicit `{ consent: true }` body (422 `consent-required`
+  otherwise), and the Versions panel shows a consent sentence + checkbox —
+  naming DataCite as an independent controller and describing the hidden
+  "registered" state that survives deletion — that must be ticked before each
+  "Mint DOI". (4) **Privacy notice** (ten locales): the "exported and deleted
+  with the rest of your data" sentence now carves out minted DOI records as
+  withdrawn rather than deleted, and the recipients section names DataCite as
+  an independent controller of the DOI record and describes the withdrawal
+  state. (5) **Richer, all-public DOI metadata:** the payload now carries the
+  creator's ROR-identified current affiliation, `References` relations to the
+  shown works' DOIs (capped at 200; a CV _cites_ its outputs, it is not
+  composed of them, so not `HasPart`), and `fundingReferences` from grants
+  with a funder name and a funder or award identifier — reusing the public
+  JSON-LD's own position / ROR / funding logic, on the public projection of
+  the frozen document. (6) **A failed withdrawal is never lost:** a DOI that
+  DataCite did not confirm hidden at deletion time is parked in a new
+  standalone `DoiWithdrawal` table (DOI + retry counter + last reason; no user
+  FK, no personal data — the cascade removes the only other copy) and retried
+  by the internal resync cron until DataCite accepts it; a shortfall is logged
+  at error level. (7) **The tombstone minimises the record:** the same PUT that
+  hides and repoints the DOI clears its `References` and `fundingReferences`,
+  replaces the title with "Withdrawn CV version" and reduces the creator to a
+  bare name (no ORCID, no affiliation) — a cron retry, which has no name left,
+  uses a placeholder. (8) **`References` follow the page's own selection**
+  (`hideRetracted`, `peerReviewedOnly`, `countLetters`, `publicationsLimit`,
+  per-view exclusions) — the DOI record cannot cite a work the frozen page does
+  not show — and a retracted work is never cited even where the page lists it
+  with its badge. (9) The consent sentence and both privacy-notice sentences
+  now name what the record actually holds (name, ORCID iD, affiliation, the
+  DOIs of the works shown, the funder / award identifiers of the grants shown)
+  rather than "name, ORCID iD and link". (10) The Versions panel disables
+  **Delete** on a minted row with a hint, and a 409 from the server is
+  explained the same way instead of as a generic failure. (11) The withdrawn
+  page says only that the version was withdrawn by its owner — no longer why.
+  Nothing changes at deploy: `DATACITE_*` stays unset and
+  `doiMintingEnabled()` stays false without credentials.
+
 - **Reader view:** the per-entry provenance mark ("OpenAlex", "Crossref"…) no longer slides left over the indicator pills — it inherited the bibliography's hanging indent. A zero FWCI is also no longer shown on works from the current or previous year, where it is citation lag rather than a result.
 - **The Sidebar template's public page collapsed to one narrow column.** The
   living page injected its view-filter bar (and the reader-view link/banner)

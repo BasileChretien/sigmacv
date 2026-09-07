@@ -62,7 +62,10 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 }
 
-/** Delete one frozen version (irreversible; the owner's explicit choice). */
+/** Delete one frozen version (irreversible; the owner's explicit choice). A
+ *  minted version is refused with 409 `doi-minted` — mirroring PATCH — because
+ *  its DOI must keep resolving while the account exists; deleting the account
+ *  is what withdraws the DOI. */
 export async function DELETE(req: Request, { params }: Params) {
   const g = await guardSnapshotRequest(req, {
     mutating: true,
@@ -76,6 +79,9 @@ export async function DELETE(req: Request, { params }: Params) {
     if (!removed) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json({ ok: true });
   } catch (err) {
+    if (err instanceof SnapshotDoiLockedError) {
+      return NextResponse.json({ error: "doi-minted" }, { status: 409 });
+    }
     if (err instanceof CvNotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 409 });
     }

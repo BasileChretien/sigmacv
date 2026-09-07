@@ -26,6 +26,8 @@ const mocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
   doiMintingEnabled: vi.fn(),
   mintSnapshotDoi: vi.fn(),
+  tombstoneSnapshotDoi: vi.fn(),
+  recordPendingDoiWithdrawal: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -46,9 +48,14 @@ vi.mock("@/lib/db", () => ({
 vi.mock("@/lib/datacite/mint", () => ({
   doiMintingEnabled: mocks.doiMintingEnabled,
   mintSnapshotDoi: mocks.mintSnapshotDoi,
+  tombstoneSnapshotDoi: mocks.tombstoneSnapshotDoi,
+}));
+vi.mock("@/lib/cv/doiWithdrawals", () => ({
+  recordPendingDoiWithdrawal: mocks.recordPendingDoiWithdrawal,
 }));
 vi.mock("@/lib/log", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
 
+import { logger } from "@/lib/log";
 import {
   createSnapshot,
   deleteSnapshot,
@@ -62,6 +69,7 @@ import {
   SnapshotLimitError,
   snapshotPublicPath,
   updateSnapshot,
+  withdrawMintedSnapshotDois,
 } from "@/lib/cv/snapshotStore";
 import { CvNotFoundError } from "@/lib/cv/sync";
 import { MAX_SNAPSHOTS_PER_CV } from "@/lib/cv/snapshots";
@@ -99,6 +107,7 @@ const ROW = {
 
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
+  for (const fn of Object.values(logger)) vi.mocked(fn).mockReset();
   mocks.cvFindUnique.mockResolvedValue(CV_ROW);
   mocks.doiMintingEnabled.mockReturnValue(false);
 });
@@ -335,11 +344,127 @@ describe("updateSnapshot", () => {
 
 describe("deleteSnapshot", () => {
   it("deletes by (id, cvId) and reports whether a row went", async () => {
+    mocks.findFirst.mockResolvedValue({ id: "snap1", doiState: "none" });
     mocks.deleteMany.mockResolvedValue({ count: 1 });
     expect(await deleteSnapshot("u1", "snap1")).toBe(true);
+    expect(mocks.findFirst.mock.calls[0]![0]).toMatchObject({
+      where: { id: "snap1", cvId: "cv1" },
+    });
     expect(mocks.deleteMany.mock.calls[0]![0]).toEqual({ where: { id: "snap1", cvId: "cv1" } });
     mocks.deleteMany.mockResolvedValue({ count: 0 });
-    expect(await deleteSnapshot("u1", "nope")).toBe(false);
+    expect(await deleteSnapshot("u1", "snap1")).toBe(false);
+  });
+
+  it("is false (404) for a snapshot that isn't the owner's, without deleting", async () => {
+    mocks.findFirst.mockResolvedValue(null);
+    expect(await deleteSnapshot("u1", "other")).toBe(false);
+    expect(mocks.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("refuses to delete a minted snapshot: its DOI must keep resolving while the account exists", async () => {
+    mocks.findFirst.mockResolvedValue({ id: "snap1", doiState: "minted" });
+    await expect(deleteSnapshot("u1", "snap1")).rejects.toBeInstanceOf(SnapshotDoiLockedError);
+    expect(mocks.deleteMany).not.toHaveBeenCalled();
+    // A failed or pending mint holds no DOI, so those rows can still go.
+    for (const doiState of ["failed", "pending"]) {
+      mocks.findFirst.mockResolvedValue({ id: "snap1", doiState });
+      mocks.deleteMany.mockResolvedValue({ count: 1 });
+      expect(await deleteSnapshot("u1", "snap1")).toBe(true);
+    }
+  });
+});
+
+describe("doiState", () => {
+  it("lists a withdrawn version as 'withdrawn' (the state written after a successful tombstone)", async () => {
+    mocks.findMany.mockResolvedValue([{ ...ROW, doi: "10.1/w", doiState: "withdrawn" }]);
+    const out = await listSnapshots("u1");
+    expect(out.snapshots[0]!.doiState).toBe("withdrawn");
+    mocks.findMany.mockResolvedValue([{ ...ROW, doiState: "garbage" }]);
+    expect((await listSnapshots("u1")).snapshots[0]!.doiState).toBe("none");
+  });
+});
+
+describe("withdrawMintedSnapshotDois (account deletion)", () => {
+  it("is a no-op — not even a DB read — while minting is disabled", async () => {
+    expect(await withdrawMintedSnapshotDois("u1")).toEqual({ attempted: 0, withdrawn: 0 });
+    expect(mocks.findMany).not.toHaveBeenCalled();
+    expect(mocks.tombstoneSnapshotDoi).not.toHaveBeenCalled();
+  });
+
+  const minted = (id: string, doi: string | null) => ({ id, doi, canonical: CV });
+
+  it("tombstones every minted DOI of the user's CV (with the owner's name) and counts the outcomes", async () => {
+    mocks.doiMintingEnabled.mockReturnValue(true);
+    mocks.findMany.mockResolvedValue([
+      minted("s1", "10.1/a"),
+      minted("s2", "10.1/b"),
+      minted("s3", null),
+    ]);
+    mocks.tombstoneSnapshotDoi
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: false, reason: "http-500" });
+    expect(await withdrawMintedSnapshotDois("u1")).toEqual({ attempted: 2, withdrawn: 1 });
+    expect(mocks.findMany.mock.calls[0]![0]).toMatchObject({
+      where: { cv: { userId: "u1" }, doiState: "minted" },
+    });
+    // The owner's name comes from the frozen document itself (creators must stay non-empty).
+    expect(mocks.tombstoneSnapshotDoi.mock.calls.map((c) => c[0])).toEqual([
+      { doi: "10.1/a", ownerName: "Basile Chrétien" },
+      { doi: "10.1/b", ownerName: "Basile Chrétien" },
+    ]);
+  });
+
+  it("marks a successfully tombstoned snapshot 'withdrawn' before the cascade removes it", async () => {
+    mocks.doiMintingEnabled.mockReturnValue(true);
+    mocks.findMany.mockResolvedValue([minted("s1", "10.1/a")]);
+    mocks.tombstoneSnapshotDoi.mockResolvedValue({ ok: true });
+    expect(await withdrawMintedSnapshotDois("u1")).toEqual({ attempted: 1, withdrawn: 1 });
+    expect(mocks.update).toHaveBeenCalledWith({
+      where: { id: "s1" },
+      data: { doiState: "withdrawn" },
+    });
+    expect(mocks.recordPendingDoiWithdrawal).not.toHaveBeenCalled();
+    expect(logger.error).not.toHaveBeenCalled();
+    // A failed state write after a SUCCESSFUL hide is only a warning: the row is
+    // about to be cascaded anyway, and the DOI is confirmed withdrawn.
+    mocks.update.mockRejectedValueOnce(new Error("db"));
+    expect(await withdrawMintedSnapshotDois("u1")).toEqual({ attempted: 1, withdrawn: 1 });
+    expect(mocks.recordPendingDoiWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it("QUEUES every DOI not confirmed withdrawn for the cron retry, and logs the shortfall at error level", async () => {
+    // Without the queue a DataCite outage at deletion time would leave the DOI
+    // findable forever: the cascade removes the only other copy of it.
+    mocks.doiMintingEnabled.mockReturnValue(true);
+    mocks.findMany.mockResolvedValue([
+      minted("s1", "10.1/a"),
+      minted("s2", "10.1/b"),
+      minted("s3", "10.1/c"),
+    ]);
+    mocks.tombstoneSnapshotDoi
+      .mockResolvedValueOnce({ ok: false, reason: "http-502" })
+      .mockRejectedValueOnce(new Error("boom"))
+      .mockResolvedValueOnce({ ok: true });
+    expect(await withdrawMintedSnapshotDois("u1")).toEqual({ attempted: 3, withdrawn: 1 });
+    expect(mocks.recordPendingDoiWithdrawal.mock.calls).toEqual([
+      ["10.1/a", "http-502"],
+      ["10.1/b", "error"],
+    ]);
+    expect(mocks.update).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith("snapshot.dois_withdrawn", {
+      attempted: 3,
+      withdrawn: 1,
+    });
+    expect(logger.info).not.toHaveBeenCalledWith("snapshot.dois_withdrawn", expect.anything());
+  });
+
+  it("never throws: a DB failure is logged and deletion proceeds", async () => {
+    mocks.doiMintingEnabled.mockReturnValue(true);
+    mocks.findMany.mockRejectedValue(new Error("db down"));
+    expect(await withdrawMintedSnapshotDois("u1")).toEqual({ attempted: 0, withdrawn: 0 });
+    expect(mocks.tombstoneSnapshotDoi).not.toHaveBeenCalled();
+    // (A queue write that fails is contained inside recordPendingDoiWithdrawal
+    // itself — see doi-withdrawals.test.ts.)
   });
 });
 
@@ -491,7 +616,14 @@ describe("mintDoiForSnapshot", () => {
       year: 2026,
       url: expect.stringMatching(/\/p\/basile-x\/v\/abcdefghijklmnopqrstuvwx$/),
       previousDoi: "10.1/prev",
+      cv: expect.objectContaining({
+        owner: expect.objectContaining({ displayName: "Basile Chrétien" }),
+      }),
     });
+    // The payload builder only ever sees the PUBLIC projection of the frozen document.
+    const sent = mocks.mintSnapshotDoi.mock.calls[0]![0].cv as CanonicalCv;
+    expect(sent.notes).toBeUndefined();
+    expect(sent.sections.every((s) => s.items.every((i) => i.included))).toBe(true);
     expect(mocks.findFirst.mock.calls[1]![0]).toMatchObject({
       where: { cvId: "cv1", doiState: "minted", version: { lt: 2 } },
     });

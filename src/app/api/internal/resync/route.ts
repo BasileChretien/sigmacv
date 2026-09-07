@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { drainPendingDoiWithdrawals } from "@/lib/cv/doiWithdrawals";
 import { resyncDueCvs } from "@/lib/cv/resync";
 import { getEnv } from "@/lib/env";
 import { logger } from "@/lib/log";
@@ -38,11 +39,17 @@ export async function POST(req: Request) {
     );
   }
 
+  // Piggy-backed on the same cron tick: retry the snapshot-DOI withdrawals
+  // that failed at account-deletion time (see cv/doiWithdrawals.ts). Runs even
+  // when the resync throws — the retry must not depend on it — and never throws
+  // itself (fail-soft by contract).
   try {
     const summary = await resyncDueCvs();
-    return NextResponse.json({ ok: true, ...summary });
+    const doiWithdrawals = await drainPendingDoiWithdrawals();
+    return NextResponse.json({ ok: true, ...summary, doiWithdrawals });
   } catch (err) {
     logger.error("api.internal_resync_failed", { err });
+    await drainPendingDoiWithdrawals();
     return NextResponse.json({ error: "Resync failed" }, { status: 500 });
   }
 }

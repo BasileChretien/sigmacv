@@ -45,6 +45,67 @@ describe("snapshot i18n", () => {
     }
   });
 
+  it("carries the per-mint consent copy, naming DataCite as the independent controller, in every locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = snapshotStrings(loc);
+      expect(s.mintConsentText, loc).toContain("DataCite");
+      expect(s.mintConsentText, loc).toContain("ORCID");
+      expect(s.mintConsentLabel.length, loc).toBeGreaterThan(0);
+      expect(s.mintNeedsConsent.length, loc).toBeGreaterThan(0);
+    }
+  });
+
+  it("names what the DataCite record actually holds (affiliation, work DOIs, funder / award ids) in the consent text AND both privacy sentences, in every locale", () => {
+    // The payload sends the creator's affiliation, the shown works' DOIs and the
+    // grants' funder / award identifiers — the consent and the notice must say
+    // so, not just "name, ORCID iD and link". Per-locale marker for "affiliation".
+    const affiliation: Record<string, string> = {
+      "en-US": "affiliation",
+      "zh-CN": "所属机构",
+      "es-ES": "afiliación",
+      "fr-FR": "affiliation",
+      "de-DE": "Zugehörigkeit",
+      "ja-JP": "所属",
+      "pt-BR": "afiliação",
+      "it-IT": "affiliazione",
+      "ko-KR": "소속",
+      "ru-RU": "аффилиаци",
+    };
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = snapshotStrings(loc);
+      const p = privacyStrings(loc);
+      for (const [name, text] of [
+        ["mintConsentText", s.mintConsentText],
+        ["privacy.data", p.data],
+        ["privacy.sharing", p.sharing],
+      ] as const) {
+        expect(text, `${loc}.${name}`).toContain(affiliation[loc]);
+        // The works' DOIs are named alongside the record's own DOI: at least two mentions.
+        expect(text.split("DOI").length - 1, `${loc}.${name}`).toBeGreaterThanOrEqual(2);
+      }
+    }
+  });
+
+  it("carries the 'cannot delete a minted version' hint in every locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = snapshotStrings(loc);
+      expect(s.deleteLockedHint, loc).toContain("DOI");
+      expect(s.deleteLockedHint, loc).not.toBe(s.actionFailed);
+    }
+  });
+
+  it("the privacy notice describes minted DOI records as withdrawn (not deleted), with DataCite as controller, in every locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const p = privacyStrings(loc);
+      // The "deleted with the rest of your data" sentence now carves out minted DOI records.
+      expect(p.data, loc).toContain("DOI");
+      // The recipients section names DataCite as an independent controller of the DOI record.
+      expect(p.sharing, loc).toContain("DataCite");
+      expect(p.sharing, loc).toContain("DOI");
+      expect(p.sharing.indexOf("DOI"), loc).toBeGreaterThan(p.sharing.indexOf("SMTP2GO"));
+    }
+  });
+
   it("the privacy notice mentions frozen versions (and that private notes stay out) in every locale", () => {
     // Per-locale marker from the appended sentence ("private notes" in each language).
     const marker: Record<string, string> = {
