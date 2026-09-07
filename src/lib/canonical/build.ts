@@ -459,6 +459,76 @@ function mergeSection(built: CvSection, previous: CanonicalCv | null | undefined
   return { ...built, title: prev.title, visible: prev.visible, order: prev.order };
 }
 
+/** The keys of `obj` in `keys` whose value is defined, as a new object. */
+function pickDefined<T extends object, K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Partial<Pick<T, K>> {
+  const out: Partial<Pick<T, K>> = {};
+  for (const k of keys) if (obj[k] !== undefined) out[k] = obj[k];
+  return out;
+}
+
+/**
+ * The per-item results of the BOUNDED post-build enrichment passes, plus each
+ * pass's rotation sentinel (`*CheckedAt`). Every pass in `enrich.ts` runs AFTER
+ * the build, examines at most N items per sync, and stamps the items it looked
+ * at; the build re-creates every item from the source record and would otherwise
+ * drop all of this on each re-sync — so (a) the tail of a CV larger than N
+ * lost its results on every rebuild, and (b) with the sentinels gone the passes
+ * re-examined the same first N works forever. Carried from the previous item
+ * by {@link carriedEnrichmentMeta}; a pass overwrites a value only on a fresh
+ * hit, never on a miss.
+ *
+ * `retracted` is deliberately NOT here: the works builder unions the carried
+ * Crossref flag with OpenAlex's fresh `is_retracted` itself (see
+ * {@link buildWorkCvItem}); the builders with no fresh signal add it explicitly.
+ */
+const BOUNDED_ENRICHMENT_KEYS = [
+  // NIH iCite (keyed by PMID)
+  "rcr",
+  "clinicalCitations",
+  "isClinical",
+  "apt",
+  "iciteCheckedAt",
+  // Crossref / Retraction Watch (the flag itself is unioned by the caller)
+  "retractionCheckedAt",
+  // OpenCitations
+  "citedByOpenCitations",
+  "openCitationsCheckedAt",
+  // Software Heritage
+  "swhid",
+  "swhArchivedAt",
+  "swhCheckedAt",
+  // Sciety
+  "publicEvaluations",
+  "publicEvaluationsCheckedAt",
+  // Europe PMC + Crossref data / code links
+  "dataLinks",
+  "hasDataStatement",
+  "dataLinksCheckedAt",
+  // FORRT / FReD replication evidence
+  "replications",
+  "replicationOf",
+  "replicationsCheckedAt",
+] as const satisfies readonly (keyof CvItem["meta"])[];
+
+/** {@link BOUNDED_ENRICHMENT_KEYS} carried from `prev` (defined values only). */
+function carriedEnrichmentMeta(prev: CvItem | undefined): Partial<CvItem["meta"]> {
+  return prev ? pickDefined(prev.meta, BOUNDED_ENRICHMENT_KEYS) : {};
+}
+
+/**
+ * The owner's own edits of a CITATION item's year / venue (`setItemYear` /
+ * `setItemVenue` in curate.ts), which `render/cslOverride.ts` patches into the
+ * CSL before citeproc. Carried from `prev` exactly like `displayTextOverride` —
+ * the source values keep refreshing underneath, so "revert to source" stays
+ * meaningful — because a re-sync must never wipe what the owner typed.
+ */
+function carriedCitationOverrides(prev: CvItem | undefined): Partial<CvItem["meta"]> {
+  return prev ? pickDefined(prev.meta, ["yearOverride", "venueOverride"]) : {};
+}
+
 /** A non-citation item (position / grant) with curation preserved from prev. */
 /**
  * The verified-signal meta for an ORCID affiliation: `verified` when a trusted
@@ -526,16 +596,24 @@ function makeEntryItem(
   if (prev?.meta.departmentOverride) meta.departmentOverride = prev.meta.departmentOverride;
   if (prev?.meta.institutionOverride) meta.institutionOverride = prev.meta.institutionOverride;
   if (prev?.meta.dateRangeOverride) meta.dateRangeOverride = prev.meta.dateRangeOverride;
-  // FORRT replication evidence (`meta.replications`/`replicationOf`) is folded in
-  // by a separate, bounded enrichment pass AFTER the build — never rebuilt here —
-  // so carry it across re-sync like the overrides above, or every rebuild would
-  // silently drop it and the enrichment queue would never make progress past its
-  // cap. `replicationsCheckedAt` carries the same way so a genuine miss stays
-  // remembered too (see its schema doc).
-  if (prev?.meta.replications) meta.replications = prev.meta.replications;
-  if (prev?.meta.replicationOf) meta.replicationOf = prev.meta.replicationOf;
-  if (prev?.meta.replicationsCheckedAt)
-    meta.replicationsCheckedAt = prev.meta.replicationsCheckedAt;
+  // Results of the bounded post-build enrichment passes that can reach an entry
+  // item (no CSL, so only the passes keyed by `meta.doi` / `meta.repositoryUrl`):
+  // FORRT replication evidence and Software Heritage archival status, with their
+  // rotation sentinels. Never rebuilt here — carried across re-sync like the
+  // overrides above, or every rebuild would silently drop them and the passes
+  // would never make progress past their per-sync cap (see
+  // `BOUNDED_ENRICHMENT_KEYS`).
+  const carried = prev
+    ? pickDefined(prev.meta, [
+        "replications",
+        "replicationOf",
+        "replicationsCheckedAt",
+        "swhid",
+        "swhArchivedAt",
+        "swhCheckedAt",
+      ])
+    : {};
+  Object.assign(meta, carried);
   return {
     id,
     source,
@@ -808,8 +886,16 @@ function makePeerReviewItem(
   const meta: CvItem["meta"] = { doi: r.doi, lastVerifiedAt: now };
   if (r.year) meta.year = r.year;
   if (r.reviewOf) meta.reviewOf = r.reviewOf;
-  if (prev?.meta.yearOverride !== undefined) meta.yearOverride = prev.meta.yearOverride;
-  if (prev?.meta.venueOverride !== undefined) meta.venueOverride = prev.meta.venueOverride;
+  // The owner's year / venue edits, plus the DOI-keyed bounded enrichment results
+  // (retraction flag + OpenCitations count and their sentinels reach a
+  // DOI-bearing citation item in any section). No fresh retraction signal here,
+  // so a carried `retracted: true` is kept as-is.
+  Object.assign(
+    meta,
+    carriedCitationOverrides(prev),
+    carriedEnrichmentMeta(prev),
+    prev?.meta.retracted === true ? { retracted: true } : {},
+  );
   return {
     id,
     source: "crossref",
@@ -1889,6 +1975,13 @@ function buildWorkCvItem(
     authoredBySelf,
     selfNameVariants: authoredBySelf ? selfNameVariants(work, matches) : [],
     meta: {
+      // The bounded post-build enrichment results + rotation sentinels (iCite,
+      // retraction check, OpenCitations, Software Heritage, Sciety, data links,
+      // FORRT) and the owner's year / venue edits, all carried from the previous
+      // item — see `BOUNDED_ENRICHMENT_KEYS` / `carriedCitationOverrides` for why.
+      // Spread FIRST so a source-driven field below always wins where both exist.
+      ...carriedEnrichmentMeta(prev),
+      ...carriedCitationOverrides(prev),
       year: work.publication_year ?? undefined,
       type: work.type ?? undefined,
       doi: csl.DOI,
@@ -1902,9 +1995,11 @@ function buildWorkCvItem(
       // recompute over the CURATED works (excluding "not mine"/hidden).
       fwci: typeof work.fwci === "number" ? work.fwci : undefined,
       topDecile: workTopDecile(work),
-      // OpenAlex's own retraction flag — a SECOND signal, unioned with the Crossref
-      // retraction enrichment (which only ever sets true, never clears a flag).
-      retracted: work.is_retracted === true ? true : undefined,
+      // OpenAlex's own retraction flag — a SECOND signal, UNIONED with the carried
+      // Crossref retraction enrichment: either source's `true` sticks, and a
+      // fresh OpenAlex `false` never clears a flag Crossref set on a prior sync
+      // (the enrichment only ever sets true, and skips already-flagged works).
+      retracted: work.is_retracted === true || prev?.meta.retracted === true ? true : undefined,
       // Per-work assessment context stored for a later PR (no aggregate is computed
       // or displayed here): authorship countries + reference / self-reference counts.
       countries: workCountries(work),
@@ -1921,13 +2016,6 @@ function buildWorkCvItem(
       license: workLicense(work),
       // OpenAlex's PMID wins; else keep one Europe PMC back-filled on a prior sync.
       pmid: workPmid(work) ?? prev?.meta.pmid,
-      // Open data / code links + Europe PMC's has-data flag are looked up by a
-      // BOUNDED per-sync enrichment (Europe PMC + Crossref), so carry the prior
-      // finds across re-sync — a large CV is covered over successive syncs, and a
-      // transient miss never drops a link. New finds merge on top (enrich.ts).
-      dataLinks: prev?.meta.dataLinks,
-      hasDataStatement: prev?.meta.hasDataStatement,
-      dataLinksCheckedAt: prev?.meta.dataLinksCheckedAt,
       // Per-item freshness: this work came from a live OpenAlex fetch.
       lastVerifiedAt: now,
       authorRole: authorRoleLabel(selfAuth),
@@ -1951,14 +2039,6 @@ function buildWorkCvItem(
       workInstitutions: authoredBySelf ? selfWorkInstitutions(selfAuth) : undefined,
       reviewFlag:
         reviewFlagOverride ?? (authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined),
-      // FORRT replication evidence is folded in by a separate enrichment pass,
-      // never rebuilt here — carry it across re-sync (see makeEntryItem's
-      // matching comment for why).
-      ...(prev?.meta.replications ? { replications: prev.meta.replications } : {}),
-      ...(prev?.meta.replicationOf ? { replicationOf: prev.meta.replicationOf } : {}),
-      ...(prev?.meta.replicationsCheckedAt
-        ? { replicationsCheckedAt: prev.meta.replicationsCheckedAt }
-        : {}),
     },
   };
 }

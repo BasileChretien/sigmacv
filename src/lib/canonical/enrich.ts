@@ -200,11 +200,63 @@ export async function enrichCvWithAbstracts(cv: CanonicalCv, mailto: string): Pr
   return { ...cv, sections, provenance: withSource(cv.provenance, "crossref") };
 }
 
+// ─── Rotation for the bounded per-sync passes ────────────────────────────────
+
+/** One candidate item of a bounded pass: its position plus the pass's sentinel. */
+interface RotationTarget {
+  s: number;
+  i: number;
+  /** The pass's `meta.*CheckedAt` sentinel at the start of this run — undefined
+   *  for an item the pass has never examined. */
+  checkedAt?: string;
+}
+
+const posKey = (t: Pick<RotationTarget, "s" | "i">): string => `${t.s}:${t.i}`;
+
+/**
+ * Order + cap a bounded pass's candidates so its per-sync budget ROTATES through
+ * the whole CV: never-examined items first (in CV order), then the rest
+ * oldest-examined first, cut at `cap`. The passes stamp every item they examine
+ * (hit or miss) with their sentinel, and the build carries the sentinel across
+ * re-sync — without both, a CV larger than the cap had the same head re-queried
+ * on every sync and its tail never reached. Pure (never mutates the input).
+ */
+function rotationQueue<T extends RotationTarget>(candidates: readonly T[], cap: number): T[] {
+  const fresh = candidates.filter((t) => t.checkedAt === undefined);
+  const known = candidates
+    .filter((t) => t.checkedAt !== undefined)
+    .sort((a, b) => (a.checkedAt ?? "").localeCompare(b.checkedAt ?? ""));
+  return [...fresh, ...known].slice(0, cap);
+}
+
+/**
+ * Apply a bounded pass's outcome immutably: every examined item gets `stamp`
+ * (the pass's sentinel) merged into its meta, and a hit additionally gets its
+ * `hits` entry merged on top. Items the pass did not examine are returned as-is.
+ * A miss therefore never removes an earlier find — only a fresh hit overwrites.
+ */
+function applyPass(
+  cv: CanonicalCv,
+  targets: readonly RotationTarget[],
+  hits: ReadonlyMap<string, Partial<CvItem["meta"]>>,
+  stamp: Partial<CvItem["meta"]>,
+): CvSection[] {
+  const examined = new Set(targets.map(posKey));
+  return cv.sections.map((section, s) => ({
+    ...section,
+    items: section.items.map((item, i) => {
+      const key = posKey({ s, i });
+      if (!examined.has(key)) return item;
+      return { ...item, meta: { ...item.meta, ...stamp, ...(hits.get(key) ?? {}) } };
+    }),
+  }));
+}
+
 // ─── NIH iCite RCR enrichment ────────────────────────────────────────────────
 
 const ICITE_MAX_ENRICH = 500;
 
-/** True when the item already carries ANY iCite field (skip the re-lookup). */
+/** True when the item already carries ANY iCite field. */
 function hasIciteData(meta: CvItem["meta"]): boolean {
   return (
     meta.rcr !== undefined ||
@@ -217,39 +269,44 @@ function hasIciteData(meta: CvItem["meta"]): boolean {
 /**
  * Fold the NIH iCite record — Relative Citation Ratio plus the translational
  * fields (clinical-citation count, is-clinical flag, APT) — onto works that carry
- * a PMID but no iCite data yet (one batched lookup — the client chunks
- * internally), capped at {@link ICITE_MAX_ENRICH} works. All of it is
- * field-normalized-or-factual but BIOMEDICAL-ONLY; the build re-creates items
- * without these fields, so every sync recomputes them. RCR is stored so the
- * opt-in RCR-mean metric recomputes over the curated works; the translational
- * fields are per-work only (never aggregated). Fail-soft + immutable: returns the
- * original CV untouched when nothing matches or the lookup yields nothing.
+ * a PMID (one batched lookup — the client chunks internally), capped at
+ * {@link ICITE_MAX_ENRICH} works per sync. All of it is field-normalized-or-
+ * factual but BIOMEDICAL-ONLY. RCR is stored so the opt-in RCR-mean metric
+ * recomputes over the curated works; the translational fields are per-work only
+ * (never aggregated).
+ *
+ * The build carries the fields AND the `meta.iciteCheckedAt` sentinel across
+ * re-sync, and this pass stamps every work it examines (hit or miss), so the
+ * budget rotates never-checked-first, then oldest-checked ({@link rotationQueue})
+ * — a work's figures are refreshed when its turn comes round rather than
+ * recomputed for the same first {@link ICITE_MAX_ENRICH} works forever. A work
+ * that carries iCite data from before the sentinel existed counts as checked
+ * (oldest). A miss never clears an earlier value. Fail-soft + immutable: returns
+ * the original CV untouched only when there is nothing to examine.
  */
-export async function enrichCvWithIcite(cv: CanonicalCv): Promise<CanonicalCv> {
-  const pmids: string[] = [];
-  for (const section of cv.sections) {
-    for (const item of section.items) {
-      if (pmids.length >= ICITE_MAX_ENRICH) break;
-      if (item.meta.pmid && !hasIciteData(item.meta)) pmids.push(item.meta.pmid);
-    }
+export async function enrichCvWithIcite(
+  cv: CanonicalCv,
+  now: string = new Date().toISOString(),
+): Promise<CanonicalCv> {
+  const candidates: Array<RotationTarget & { pmid: string }> = [];
+  cv.sections.forEach((section, s) => {
+    section.items.forEach((item, i) => {
+      const pmid = item.meta.pmid;
+      if (!pmid) return;
+      const checkedAt = item.meta.iciteCheckedAt ?? (hasIciteData(item.meta) ? "" : undefined);
+      candidates.push({ s, i, pmid, checkedAt });
+    });
+  });
+  const targets = rotationQueue(candidates, ICITE_MAX_ENRICH);
+  if (targets.length === 0) return cv;
+
+  const byPmid = await fetchIciteByPmids(targets.map((t) => t.pmid));
+  const hits = new Map<string, Partial<CvItem["meta"]>>();
+  for (const t of targets) {
+    const rec = byPmid.get(t.pmid);
+    if (rec) hits.set(posKey(t), rec);
   }
-  if (pmids.length === 0) return cv;
-
-  const byPmid = await fetchIciteByPmids(pmids);
-  if (byPmid.size === 0) return cv;
-
-  let changed = false;
-  const sections = cv.sections.map((section) => ({
-    ...section,
-    items: section.items.map((item) => {
-      if (!item.meta.pmid || hasIciteData(item.meta)) return item;
-      const rec = byPmid.get(item.meta.pmid);
-      if (!rec) return item;
-      changed = true;
-      return { ...item, meta: { ...item.meta, ...rec } };
-    }),
-  }));
-  return changed ? { ...cv, sections } : cv;
+  return { ...cv, sections: applyPass(cv, targets, hits, { iciteCheckedAt: now }) };
 }
 
 // ─── Retraction flagging (Crossref / Retraction Watch) ───────────────────────
@@ -258,41 +315,40 @@ const RETRACTION_MAX_CHECK = 100;
 
 /**
  * Flag works Crossref records as retracted (`meta.retracted`). Checks DOI-bearing,
- * non-hidden items not already flagged, bounded to {@link RETRACTION_MAX_CHECK}
- * lookups, concurrency-limited and fail-soft. Re-checks each sync so a newly
- * retracted work gets flagged. Immutable; returns the original CV when nothing
- * matched or nothing is retracted.
+ * non-hidden items not already flagged (a retraction is not undone, so a flagged
+ * work leaves the queue for good), bounded to {@link RETRACTION_MAX_CHECK}
+ * lookups per sync, concurrency-limited and fail-soft. Every examined work is
+ * stamped `meta.retractionCheckedAt` (hit or miss) and the build carries it, so
+ * the budget rotates never-checked-first, then oldest-checked
+ * ({@link rotationQueue}) — a newly retracted work is still picked up, and a CV
+ * larger than the cap is covered over successive syncs. Immutable; returns the
+ * original CV only when there is nothing to check.
  */
 export async function enrichCvWithRetractions(
   cv: CanonicalCv,
   mailto: string,
+  now: string = new Date().toISOString(),
 ): Promise<CanonicalCv> {
-  const targets: Array<{ s: number; i: number; doi: string }> = [];
+  const candidates: Array<RotationTarget & { doi: string }> = [];
   cv.sections.forEach((section, s) => {
     section.items.forEach((item, i) => {
-      if (targets.length >= RETRACTION_MAX_CHECK) return;
       const doi = item.csl?.DOI;
-      if (doi && item.meta.retracted !== true && !isHidden(item)) targets.push({ s, i, doi });
+      if (doi && item.meta.retracted !== true && !isHidden(item)) {
+        candidates.push({ s, i, doi, checkedAt: item.meta.retractionCheckedAt });
+      }
     });
   });
+  const targets = rotationQueue(candidates, RETRACTION_MAX_CHECK);
   if (targets.length === 0) return cv;
 
   const results = await mapBounded(targets, CONCURRENCY, (t) =>
     fetchRetractionStatus(t.doi, mailto),
   );
-  const retracted = new Set<string>();
+  const hits = new Map<string, Partial<CvItem["meta"]>>();
   targets.forEach((t, idx) => {
-    if (results[idx]) retracted.add(`${t.s}:${t.i}`);
+    if (results[idx]) hits.set(posKey(t), { retracted: true });
   });
-  if (retracted.size === 0) return cv;
-
-  const sections = cv.sections.map((section, s) => ({
-    ...section,
-    items: section.items.map((item, i) =>
-      retracted.has(`${s}:${i}`) ? { ...item, meta: { ...item.meta, retracted: true } } : item,
-    ),
-  }));
-  return { ...cv, sections };
+  return { ...cv, sections: applyPass(cv, targets, hits, { retractionCheckedAt: now }) };
 }
 
 // ─── CRediT contributor roles (Crossref deposit, owner matched by ORCID) ─────
@@ -354,14 +410,9 @@ export async function enrichCvWithCreditRoles(
 
 export const DATA_LINKS_MAX_CHECK = 100;
 
-interface DataLinkTarget {
-  s: number;
-  i: number;
+interface DataLinkTarget extends RotationTarget {
   doi: string;
   pmid?: string;
-  /** `meta.dataLinksCheckedAt` at the start of this pass — undefined for a
-   *  never-checked work; used only to order the "known" bucket oldest-first. */
-  checkedAt?: string;
 }
 
 /** What one work's lookups produced (all fail-soft: an empty result is normal). */
@@ -420,19 +471,15 @@ export async function enrichCvWithDataLinks(
   mailto: string,
   now: string = new Date().toISOString(),
 ): Promise<CanonicalCv> {
-  const fresh: DataLinkTarget[] = [];
-  const known: DataLinkTarget[] = [];
+  const candidates: DataLinkTarget[] = [];
   cv.sections.forEach((section, s) => {
     section.items.forEach((item, i) => {
       const doi = item.csl?.DOI;
       if (!doi || isHidden(item)) return;
-      const checkedAt = item.meta.dataLinksCheckedAt;
-      const t = { s, i, doi, pmid: item.meta.pmid, checkedAt };
-      (checkedAt === undefined ? fresh : known).push(t);
+      candidates.push({ s, i, doi, pmid: item.meta.pmid, checkedAt: item.meta.dataLinksCheckedAt });
     });
   });
-  known.sort((a, b) => (a.checkedAt ?? "").localeCompare(b.checkedAt ?? ""));
-  const targets = [...fresh, ...known].slice(0, DATA_LINKS_MAX_CHECK);
+  const targets = rotationQueue(candidates, DATA_LINKS_MAX_CHECK);
   if (targets.length === 0) return cv;
 
   const finds = await mapBounded(targets, CONCURRENCY, (t) => lookupDataLinks(t, mailto));
@@ -464,9 +511,7 @@ export async function enrichCvWithDataLinks(
 
 const FORRT_MAX_ENRICH = 200;
 
-interface ForrtTarget {
-  s: number;
-  i: number;
+interface ForrtTarget extends RotationTarget {
   doi: string;
 }
 
@@ -479,28 +524,26 @@ interface ForrtTarget {
  * syncs rather than losing progress on every rebuild.
  *
  * Bounded to {@link FORRT_MAX_ENRICH} works per sync, works never checked before
- * FIRST (a genuine miss still stamps `meta.replicationsCheckedAt`, which is what
- * lets it "graduate" out of the always-fresh queue instead of being re-checked
- * forever while works past the cap are never reached) — same rotation as the
- * data-links enrichment. Fail-soft (an empty/unreachable `ForrtReplication` table
+ * FIRST, then oldest-checked ({@link rotationQueue}; a genuine miss still stamps
+ * `meta.replicationsCheckedAt`, which is what lets it "graduate" out of the
+ * always-fresh queue instead of being re-checked forever while works past the
+ * cap are never reached) — same rotation as the data-links enrichment. Fail-soft (an empty/unreachable `ForrtReplication` table
  * is a no-op). Immutable; returns the original CV untouched when nothing to check.
  */
 export async function enrichCvWithForrtReplications(cv: CanonicalCv): Promise<CanonicalCv> {
-  const fresh: ForrtTarget[] = [];
-  const known: ForrtTarget[] = [];
+  const candidates: ForrtTarget[] = [];
   cv.sections.forEach((section, s) => {
     section.items.forEach((item, i) => {
       const doi = item.csl?.DOI ?? item.meta.doi;
       if (!doi || isHidden(item)) return;
-      const t: ForrtTarget = { s, i, doi };
-      const checked =
-        item.meta.replications !== undefined ||
-        item.meta.replicationOf !== undefined ||
-        item.meta.replicationsCheckedAt !== undefined;
-      (checked ? known : fresh).push(t);
+      // Evidence recorded before the sentinel existed counts as checked (oldest).
+      const hasEvidence =
+        item.meta.replications !== undefined || item.meta.replicationOf !== undefined;
+      const checkedAt = item.meta.replicationsCheckedAt ?? (hasEvidence ? "" : undefined);
+      candidates.push({ s, i, doi, checkedAt });
     });
   });
-  const targets = [...fresh, ...known].slice(0, FORRT_MAX_ENRICH);
+  const targets = rotationQueue(candidates, FORRT_MAX_ENRICH);
   if (targets.length === 0) return cv;
 
   const { replicatedBy, replicationOf } = await fetchReplicationsForDois(targets.map((t) => t.doi));
@@ -550,40 +593,43 @@ const OPENCITATIONS_MAX_ENRICH = 100;
  * Fold an OpenCitations citation count onto DOI-bearing, non-hidden works
  * (`meta.citedByOpenCitations`) — an independently-computed count alongside
  * OpenAlex's own `citedByCount`, so a reader can see the two don't always agree.
- * Bounded to {@link OPENCITATIONS_MAX_ENRICH} lookups, concurrency-limited,
- * fail-soft and immutable. Re-checks each sync (like the retraction/RCR passes
- * above) so the count stays current; returns the original CV untouched when
- * nothing matched or nothing came back.
+ * Bounded to {@link OPENCITATIONS_MAX_ENRICH} lookups per sync,
+ * concurrency-limited, fail-soft and immutable. Every examined work is stamped
+ * `meta.openCitationsCheckedAt` (hit or miss) and the build carries both fields,
+ * so the budget rotates never-checked-first, then oldest-checked
+ * ({@link rotationQueue}): a count is refreshed when the work's turn comes round,
+ * and a miss never clears an earlier count. Returns the original CV untouched
+ * only when there is nothing to check; provenance gains "opencitations" only on
+ * a hit.
  */
-export async function enrichCvWithOpenCitations(cv: CanonicalCv): Promise<CanonicalCv> {
-  const targets: Array<{ s: number; i: number; doi: string }> = [];
+export async function enrichCvWithOpenCitations(
+  cv: CanonicalCv,
+  now: string = new Date().toISOString(),
+): Promise<CanonicalCv> {
+  const candidates: Array<RotationTarget & { doi: string }> = [];
   cv.sections.forEach((section, s) => {
     section.items.forEach((item, i) => {
-      if (targets.length >= OPENCITATIONS_MAX_ENRICH) return;
       const doi = item.csl?.DOI;
-      if (doi && !isHidden(item)) targets.push({ s, i, doi });
+      if (doi && !isHidden(item)) {
+        candidates.push({ s, i, doi, checkedAt: item.meta.openCitationsCheckedAt });
+      }
     });
   });
+  const targets = rotationQueue(candidates, OPENCITATIONS_MAX_ENRICH);
   if (targets.length === 0) return cv;
 
   const fetched = await mapBounded(targets, CONCURRENCY, (t) => fetchOpenCitationsCount(t.doi));
-  const counts = new Map<string, number>();
+  const hits = new Map<string, Partial<CvItem["meta"]>>();
   targets.forEach((t, idx) => {
     const count = fetched[idx];
-    if (count !== null && count !== undefined) counts.set(`${t.s}:${t.i}`, count);
+    if (count !== null && count !== undefined) hits.set(posKey(t), { citedByOpenCitations: count });
   });
-  if (counts.size === 0) return cv;
-
-  const sections = cv.sections.map((section, s) => ({
-    ...section,
-    items: section.items.map((item, i) => {
-      const count = counts.get(`${s}:${i}`);
-      return count === undefined
-        ? item
-        : { ...item, meta: { ...item.meta, citedByOpenCitations: count } };
-    }),
-  }));
-  return { ...cv, sections, provenance: withSource(cv.provenance, "opencitations") };
+  const sections = applyPass(cv, targets, hits, { openCitationsCheckedAt: now });
+  return {
+    ...cv,
+    sections,
+    provenance: hits.size > 0 ? withSource(cv.provenance, "opencitations") : cv.provenance,
+  };
 }
 
 // ─── Software Heritage: archival status of software items ───────────────────
@@ -598,52 +644,52 @@ const SOFTWARE_HERITAGE_SECTIONS = new Set<CvSection["type"]>(["software", "data
  * Fold Software Heritage archival status onto software items (the Software
  * section, or a software-typed item still filed under Datasets) that carry a
  * source-repository URL (`meta.repositoryUrl`) and aren't already flagged
- * archived. Bounded to {@link SOFTWARE_HERITAGE_MAX_ENRICH} lookups,
+ * archived (an archived repository stays archived, so it leaves the queue).
+ * Bounded to {@link SOFTWARE_HERITAGE_MAX_ENRICH} lookups per sync,
  * concurrency-limited, fail-soft (a 404 "not archived" is not an error) and
- * immutable. Re-checks each sync so a newly-archived repo picks up its SWHID.
+ * immutable. Every examined item is stamped `meta.swhCheckedAt` (hit or miss)
+ * and the build carries it, so the budget rotates never-checked-first, then
+ * oldest-checked ({@link rotationQueue}) and a newly-archived repo still picks
+ * up its SWHID on a later turn. Returns the original CV untouched only when
+ * there is nothing to check; provenance gains "softwareheritage" only on a hit.
  */
-export async function enrichCvWithSoftwareHeritage(cv: CanonicalCv): Promise<CanonicalCv> {
-  const targets: Array<{ s: number; i: number; url: string }> = [];
+export async function enrichCvWithSoftwareHeritage(
+  cv: CanonicalCv,
+  now: string = new Date().toISOString(),
+): Promise<CanonicalCv> {
+  const candidates: Array<RotationTarget & { url: string }> = [];
   cv.sections.forEach((section, s) => {
     if (!SOFTWARE_HERITAGE_SECTIONS.has(section.type)) return;
     section.items.forEach((item, i) => {
-      if (targets.length >= SOFTWARE_HERITAGE_MAX_ENRICH) return;
       const url = item.meta.repositoryUrl;
       const software = section.type === "software" || isSoftwareItem(item);
       if (url && !item.meta.swhid && software && !isHidden(item)) {
-        targets.push({ s, i, url });
+        candidates.push({ s, i, url, checkedAt: item.meta.swhCheckedAt });
       }
     });
   });
+  const targets = rotationQueue(candidates, SOFTWARE_HERITAGE_MAX_ENRICH);
   if (targets.length === 0) return cv;
 
   const fetched = await mapBounded(targets, CONCURRENCY, (t) =>
     fetchSoftwareHeritageArchival(t.url),
   );
-  const archival = new Map<string, { swhid: string; archivedAt?: string }>();
+  const hits = new Map<string, Partial<CvItem["meta"]>>();
   targets.forEach((t, idx) => {
     const result = fetched[idx];
-    if (result) archival.set(`${t.s}:${t.i}`, result);
+    if (result) {
+      hits.set(posKey(t), {
+        swhid: result.swhid,
+        ...(result.archivedAt ? { swhArchivedAt: result.archivedAt } : {}),
+      });
+    }
   });
-  if (archival.size === 0) return cv;
-
-  const sections = cv.sections.map((section, s) => ({
-    ...section,
-    items: section.items.map((item, i) => {
-      const result = archival.get(`${s}:${i}`);
-      return result === undefined
-        ? item
-        : {
-            ...item,
-            meta: {
-              ...item.meta,
-              swhid: result.swhid,
-              ...(result.archivedAt ? { swhArchivedAt: result.archivedAt } : {}),
-            },
-          };
-    }),
-  }));
-  return { ...cv, sections, provenance: withSource(cv.provenance, "softwareheritage") };
+  const sections = applyPass(cv, targets, hits, { swhCheckedAt: now });
+  return {
+    ...cv,
+    sections,
+    provenance: hits.size > 0 ? withSource(cv.provenance, "softwareheritage") : cv.provenance,
+  };
 }
 
 // ─── Sciety: public evaluations of preprints ─────────────────────────────────
@@ -653,41 +699,44 @@ const SCIETY_MAX_ENRICH = 50;
 /**
  * Fold Sciety's aggregated public evaluations onto DOI-bearing, non-hidden
  * preprints (`meta.publicEvaluations`). Bounded to {@link SCIETY_MAX_ENRICH}
- * lookups, concurrency-limited, fail-soft (a 404 "no evaluations" is not an
- * error) and immutable. Re-checks each sync so a newly-published evaluation
- * appears; returns the original CV untouched when nothing matched or nothing
- * came back.
+ * lookups per sync, concurrency-limited, fail-soft (a 404 "no evaluations" is
+ * not an error) and immutable. Every examined preprint is stamped
+ * `meta.publicEvaluationsCheckedAt` (hit or miss) and the build carries both
+ * fields, so the budget rotates never-checked-first, then oldest-checked
+ * ({@link rotationQueue}): a newly-published evaluation appears when the
+ * preprint's turn comes round, and a miss never clears an earlier list. Returns
+ * the original CV untouched only when there is nothing to check; provenance
+ * gains "sciety" only on a hit.
  */
-export async function enrichCvWithSciety(cv: CanonicalCv): Promise<CanonicalCv> {
-  const targets: Array<{ s: number; i: number; doi: string }> = [];
+export async function enrichCvWithSciety(
+  cv: CanonicalCv,
+  now: string = new Date().toISOString(),
+): Promise<CanonicalCv> {
+  const candidates: Array<RotationTarget & { doi: string }> = [];
   cv.sections.forEach((section, s) => {
     if (section.type !== "preprints") return;
     section.items.forEach((item, i) => {
-      if (targets.length >= SCIETY_MAX_ENRICH) return;
       const doi = item.csl?.DOI;
-      if (doi && !isHidden(item)) targets.push({ s, i, doi });
+      if (doi && !isHidden(item)) {
+        candidates.push({ s, i, doi, checkedAt: item.meta.publicEvaluationsCheckedAt });
+      }
     });
   });
+  const targets = rotationQueue(candidates, SCIETY_MAX_ENRICH);
   if (targets.length === 0) return cv;
 
   const fetched = await mapBounded(targets, CONCURRENCY, (t) => fetchScietyEvaluations(t.doi));
-  const evaluations = new Map<string, PublicEvaluation[]>();
+  const hits = new Map<string, Partial<CvItem["meta"]>>();
   targets.forEach((t, idx) => {
-    const list = fetched[idx];
-    if (list && list.length > 0) evaluations.set(`${t.s}:${t.i}`, list);
+    const list: PublicEvaluation[] | undefined = fetched[idx];
+    if (list && list.length > 0) hits.set(posKey(t), { publicEvaluations: list });
   });
-  if (evaluations.size === 0) return cv;
-
-  const sections = cv.sections.map((section, s) => ({
-    ...section,
-    items: section.items.map((item, i) => {
-      const list = evaluations.get(`${s}:${i}`);
-      return list === undefined
-        ? item
-        : { ...item, meta: { ...item.meta, publicEvaluations: list } };
-    }),
-  }));
-  return { ...cv, sections, provenance: withSource(cv.provenance, "sciety") };
+  const sections = applyPass(cv, targets, hits, { publicEvaluationsCheckedAt: now });
+  return {
+    ...cv,
+    sections,
+    provenance: hits.size > 0 ? withSource(cv.provenance, "sciety") : cv.provenance,
+  };
 }
 
 // ─── ROR institution-name canonicalization ───────────────────────────────────

@@ -193,6 +193,133 @@ describe("buildCanonicalCv", () => {
     expect(namesake.meta.replicationsCheckedAt).toBeUndefined();
   });
 
+  /** `build()` with `previous`, patching ONE work's meta in the previous doc. */
+  function rebuildWithMeta(
+    previous: ReturnType<typeof build>,
+    workId: string,
+    patch: Partial<CvItem["meta"]>,
+    w: OpenAlexWork[] = works,
+  ) {
+    const patched = {
+      ...previous,
+      sections: previous.sections.map((s) => ({
+        ...s,
+        items: s.items.map((it) =>
+          it.id === workId ? { ...it, meta: { ...it.meta, ...patch } } : it,
+        ),
+      })),
+    };
+    return buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works: w,
+      now: "2026-09-01T00:00:00.000Z",
+      previous: patched,
+    });
+  }
+  const pubItem = (cv: ReturnType<typeof build>, id: string) =>
+    cv.sections[0]!.items.find((i) => i.id === id)!;
+
+  it("carries the owner's year / venue corrections on a work across two re-syncs (source keeps refreshing underneath)", () => {
+    const once = rebuildWithMeta(build(), "W4300000001", {
+      yearOverride: 2019,
+      venueOverride: "PNAS",
+    });
+    const twice = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-09-02T00:00:00.000Z",
+      previous: once,
+    });
+    for (const cv of [once, twice]) {
+      const it = pubItem(cv, "W4300000001");
+      expect(it.meta.yearOverride).toBe(2019);
+      expect(it.meta.venueOverride).toBe("PNAS");
+      expect(it.meta.year).toBe(pubItem(build(), "W4300000001").meta.year); // source value
+      // No override leaks onto another work.
+      expect(pubItem(cv, "W4300000002").meta.yearOverride).toBeUndefined();
+      expect(pubItem(cv, "W4300000002").meta.venueOverride).toBeUndefined();
+    }
+  });
+
+  it("carries every bounded-enrichment result + rotation sentinel on a work across two re-syncs", () => {
+    const enrichment: Partial<CvItem["meta"]> = {
+      rcr: 1.7,
+      clinicalCitations: 3,
+      isClinical: false,
+      apt: 0.42,
+      iciteCheckedAt: "2026-06-03T00:00:00.000Z",
+      retractionCheckedAt: "2026-06-04T00:00:00.000Z",
+      citedByOpenCitations: 12,
+      openCitationsCheckedAt: "2026-06-05T00:00:00.000Z",
+      publicEvaluations: [{ group: "eLife", type: "evaluation-summary", url: "https://x/1" }],
+      publicEvaluationsCheckedAt: "2026-06-06T00:00:00.000Z",
+      dataLinks: [
+        { id: "zenodo.1", scheme: "doi", url: "https://doi.org/10.5281/zenodo.1", kind: "dataset" },
+      ],
+      hasDataStatement: true,
+      dataLinksCheckedAt: "2026-06-07T00:00:00.000Z",
+      swhid: `swh:1:snp:${"a".repeat(40)}`,
+      swhArchivedAt: "2026-01-01",
+      swhCheckedAt: "2026-06-08T00:00:00.000Z",
+    };
+    const once = rebuildWithMeta(build(), "W4300000001", enrichment);
+    const twice = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works,
+      now: "2026-09-02T00:00:00.000Z",
+      previous: once,
+    });
+    for (const cv of [once, twice]) {
+      expect(pubItem(cv, "W4300000001").meta).toMatchObject(enrichment);
+      // The source-driven fields are still rebuilt fresh, not frozen.
+      expect(pubItem(cv, "W4300000001").meta.lastVerifiedAt).toBe(
+        cv === once ? "2026-09-01T00:00:00.000Z" : "2026-09-02T00:00:00.000Z",
+      );
+      // Nothing leaks onto a work that had no enrichment.
+      const other = pubItem(cv, "W4300000002").meta;
+      for (const key of Object.keys(enrichment) as (keyof typeof enrichment)[]) {
+        expect(other[key]).toBeUndefined();
+      }
+    }
+    // The stored document still validates (the sentinels are in the schema).
+    expect(() => parseCanonicalCv(JSON.parse(JSON.stringify(twice)))).not.toThrow();
+  });
+
+  it("unions the retraction flag: a carried Crossref flag survives an OpenAlex `false`, an OpenAlex `true` sets it, neither leaves it unset", () => {
+    // Fixture works carry no is_retracted → prev true must survive.
+    const carried = rebuildWithMeta(build(), "W4300000001", { retracted: true });
+    expect(pubItem(carried, "W4300000001").meta.retracted).toBe(true);
+    expect(pubItem(carried, "W4300000002").meta.retracted).toBeUndefined();
+
+    // An explicit OpenAlex false never clears the carried flag.
+    const falseUpstream = works.map((w) =>
+      w.id.endsWith("W4300000001") ? { ...w, is_retracted: false } : w,
+    );
+    const stillFlagged = rebuildWithMeta(
+      build(),
+      "W4300000001",
+      { retracted: true },
+      falseUpstream,
+    );
+    expect(pubItem(stillFlagged, "W4300000001").meta.retracted).toBe(true);
+
+    // OpenAlex's own signal sets it with nothing carried.
+    const trueUpstream = works.map((w) =>
+      w.id.endsWith("W4300000002") ? { ...w, is_retracted: true } : w,
+    );
+    const fresh = buildCanonicalCv({
+      id: "cv_test",
+      resolved,
+      works: trueUpstream,
+      now: "2026-09-01T00:00:00.000Z",
+    });
+    expect(pubItem(fresh, "W4300000002").meta.retracted).toBe(true);
+    expect(pubItem(fresh, "W4300000001").meta.retracted).toBeUndefined();
+  });
+
   function withExtraPubItems(base: ReturnType<typeof build>, extra: CvItem[]) {
     return {
       ...base,
@@ -503,7 +630,16 @@ describe("buildCanonicalCv", () => {
                         included: false,
                         featured: true,
                         reviewedAt: "2026-06-03T00:00:00.000Z",
-                        meta: { ...i.meta, yearOverride: 2023, venueOverride: "eLife (SA)" },
+                        meta: {
+                          ...i.meta,
+                          yearOverride: 2023,
+                          venueOverride: "eLife (SA)",
+                          // DOI-keyed bounded enrichment reaches a peer-review item too.
+                          retracted: true,
+                          retractionCheckedAt: "2026-06-04T00:00:00.000Z",
+                          citedByOpenCitations: 2,
+                          openCitationsCheckedAt: "2026-06-05T00:00:00.000Z",
+                        },
                       }
                     : i,
                 ),
@@ -519,6 +655,18 @@ describe("buildCanonicalCv", () => {
       expect(again.meta.yearOverride).toBe(2023);
       expect(again.meta.venueOverride).toBe("eLife (SA)");
       expect(again.meta.year).toBe(2024); // the source value keeps refreshing underneath
+      expect(again.meta).toMatchObject({
+        retracted: true,
+        retractionCheckedAt: "2026-06-04T00:00:00.000Z",
+        citedByOpenCitations: 2,
+        openCitationsCheckedAt: "2026-06-05T00:00:00.000Z",
+      });
+      // A first build (no previous) carries none of it.
+      const firstMeta = first.sections
+        .find((s) => s.type === "peer-review")!
+        .items.find((i) => i.id === id)!.meta;
+      expect(firstMeta.retracted).toBeUndefined();
+      expect(firstMeta.retractionCheckedAt).toBeUndefined();
     });
   });
 
@@ -806,6 +954,44 @@ describe("buildCanonicalCv — external-source sections", () => {
     const resItem = section(resynced, "datasets")!.items.find((i) => i.id === item.id)!;
     expect(resItem.meta.replications).toEqual([{ doi: "10.1000/rep-a" }]);
     expect(resItem.meta.replicationsCheckedAt).toBe("2026-06-02T00:00:00.000Z");
+  });
+
+  it("carries Software Heritage archival status + sentinel on a DataCite software item across two re-syncs (via makeEntryItem)", () => {
+    const dataciteOutputs = [
+      {
+        doi: "10.5281/zenodo.SW",
+        title: "A tool",
+        type: "Software",
+        year: 2024,
+        publisher: "Zenodo",
+        repositoryUrl: "https://github.com/u/tool",
+      },
+    ] as unknown as DataciteOutput[];
+    const first = buildWith({ dataciteOutputs });
+    const item = section(first, "software")!.items[0]!;
+    const swh = {
+      swhid: `swh:1:snp:${"b".repeat(40)}`,
+      swhArchivedAt: "2026-02-02",
+      swhCheckedAt: "2026-06-02T00:00:00.000Z",
+    };
+    const enriched = {
+      ...first,
+      sections: first.sections.map((s) =>
+        s.type === "software"
+          ? { ...s, items: s.items.map((it) => ({ ...it, meta: { ...it.meta, ...swh } })) }
+          : s,
+      ),
+    };
+    const once = buildWith({ dataciteOutputs, previous: enriched });
+    const twice = buildWith({ dataciteOutputs, previous: once });
+    for (const cv of [once, twice]) {
+      const resItem = section(cv, "software")!.items.find((i) => i.id === item.id)!;
+      expect(resItem.meta).toMatchObject(swh);
+      expect(resItem.meta.repositoryUrl).toBe("https://github.com/u/tool"); // source-rebuilt
+    }
+    // A fresh build carries nothing.
+    expect(item.meta.swhid).toBeUndefined();
+    expect(item.meta.swhCheckedAt).toBeUndefined();
   });
 
   it("builds Conference Presentations from DBLP (auto-included, newest first)", () => {

@@ -324,6 +324,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Your year / journal corrections on a publication now survive a re-sync.**
+  The per-entry year and venue overrides you type in the editor (which every
+  export applies to the citation) were dropped for OpenAlex works on the next
+  sync, because the works builder rebuilt each entry's metadata from the source
+  record without carrying them; the open-peer-review builder already did. Both
+  are now kept exactly like the other owner edits (role / institution / dates on
+  positions, the display-text override), with the source values refreshing
+  underneath so "revert to source" still works.
+- **Bounded enrichment results no longer vanish for the tail of a large CV, and
+  the passes now rotate instead of re-checking the same head forever.** The
+  post-sync lookups that run against a per-sync cap — iCite RCR + translational
+  indicators, the Crossref/Retraction Watch retraction check, OpenCitations
+  counts, Software Heritage archival status, Sciety public evaluations — wrote
+  their results onto each work, but the next sync rebuilt every work from
+  scratch, so works past the cap lost them on every rebuild and the cap was
+  spent on the same first entries each time. The builders now carry every such
+  result across re-sync (a carried Crossref retraction flag is unioned with
+  OpenAlex's own signal, never cleared), each pass stamps a `…CheckedAt`
+  sentinel on every entry it examines (hit or miss), and each queues
+  never-checked entries first, then oldest-checked — the same scheme the data-
+  links and replication passes already used — so a CV larger than the cap is
+  covered over successive syncs and figures are refreshed in turn. Applies to
+  works, open peer reviews and DataCite/OpenAIRE software deposits alike. The
+  sentinels are enrichment timestamps like `lastVerifiedAt` and stay in the
+  public JSON; the canonical JSON Schema (`/schema/cv/v2.json`) gains them.
 - **LaTeX export: a URL written inside parentheses** — "title (https://…)" —
   no longer swallows the closing bracket into `\url{}`.
 
