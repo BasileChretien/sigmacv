@@ -98,6 +98,8 @@ describe("DisplayChoicesSchema", () => {
       showVerifiedBadges: false,
       showWorkIndicators: false,
       showCreditRoles: false,
+      showSupervisionSummary: false,
+      hideSuperviseeNames: false,
       showProvenance: false,
       peerReviewedOnly: false,
       countLetters: true,

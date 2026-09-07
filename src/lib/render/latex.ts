@@ -75,7 +75,15 @@ function latexifyEntry(entry: string, bold: ((s: string) => string) | null): str
   return entry
     .split(URL_RE)
     .map((part) => {
-      if (/^https?:\/\//.test(part)) return `\\url{${sanitizeUrlForLatex(part)}}`;
+      if (/^https?:\/\//.test(part)) {
+        // A URL written inside a parenthetical — "title (https://…)" — ends the
+        // greedy match with the closing bracket / sentence punctuation. Hand that
+        // back to the text run so the \url{} stays resolvable.
+        const m = /^(.*?)([).,;:]+)$/.exec(part);
+        const url = m && !m[1]!.includes("(") ? m[1]! : part;
+        const trail = url === part ? "" : escapeLatex(part.slice(url.length));
+        return `\\url{${sanitizeUrlForLatex(url)}}${trail}`;
+      }
       const escaped = escapeLatex(part);
       return bold ? bold(escaped) : escaped;
     })
@@ -177,7 +185,7 @@ function sectionBlocks(cv: CanonicalCv, sections: PreparedSection[]): string[] {
   const evidence = proseEvidence(cv, sections);
   const keys = evidence.referenced.size > 0 ? bibtexCiteKeys(cv) : new Map<string, string>();
   const blocks: string[] = [];
-  for (const { section, items } of sections) {
+  for (const { section, intro, items } of sections) {
     const title = escapeLatex(section.title);
     if (isProseSectionType(section.type)) {
       const body = (section.body ?? "").trim();
@@ -196,7 +204,9 @@ function sectionBlocks(cv: CanonicalCv, sections: PreparedSection[]): string[] {
       );
     });
     const list = lines.map((l) => `  \\item ${l}`).join("\n");
-    blocks.push(`\\section{${title}}\n\\begin{cvlist}\n${list}\n\\end{cvlist}`);
+    // Optional one-line lead-in (the Supervision summary), italic under the heading.
+    const lead = intro ? `{\\small\\itshape ${escapeLatex(intro)}}\\par\n` : "";
+    blocks.push(`\\section{${title}}\n${lead}\\begin{cvlist}\n${list}\n\\end{cvlist}`);
   }
   return blocks;
 }
