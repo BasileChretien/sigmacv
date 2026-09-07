@@ -115,6 +115,31 @@ describe.skipIf(!hasApa)("HTML per-work indicator badges (needs vendored CSL ass
     expect(on).toMatch(/cv-badge-indicator[^>]*title="[^"]*NIH iCite/);
   });
 
+  it("hides a zero FWCI on a work from the current or previous year (citation lag), keeps it on older works", () => {
+    const thisYear = new Date().getUTCFullYear();
+    const fresh = updateDisplay(withMeta(makeCv(), { fwci: 0, year: thisYear }), {
+      showWorkIndicators: true,
+    });
+    expect(renderCvHtml(fresh)).not.toContain('data-indicator="fwci"');
+    const lastYear = updateDisplay(withMeta(makeCv(), { fwci: 0, year: thisYear - 1 }), {
+      showWorkIndicators: true,
+    });
+    expect(renderCvHtml(lastYear)).not.toContain('data-indicator="fwci"');
+    const old = updateDisplay(withMeta(makeCv(), { fwci: 0, year: thisYear - 4 }), {
+      showWorkIndicators: true,
+    });
+    expect(renderCvHtml(old)).toContain(">FWCI 0.0</span>");
+    const freshCited = updateDisplay(withMeta(makeCv(), { fwci: 1.5, year: thisYear }), {
+      showWorkIndicators: true,
+    });
+    expect(renderCvHtml(freshCited)).toContain(">FWCI 1.5</span>");
+  });
+
+  it("the provenance mark resets the bibliography's hanging indent so it cannot overlap the pills", () => {
+    const html = renderCvHtml(makeCv());
+    expect(html).toMatch(/\.cv-prov \{[^}]*text-indent: 0;/);
+  });
+
   it("escapes the value and title", () => {
     const cv = updateDisplay(withMeta(makeCv(), { fwci: 2 }), { showWorkIndicators: true });
     const html = renderCvHtml(cv);

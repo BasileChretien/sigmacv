@@ -601,7 +601,7 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-readerbar a { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; }
   .cv-readerbanner { margin: 0 0 1.1rem; padding: 0.55rem 0.8rem; border: 1px solid var(--cv-rule-strong); border-left: 4px solid var(--cv-accent); border-radius: 6px; font-size: 0.76rem; color: var(--cv-ink-2); }
   .cv-readerbanner a { color: var(--cv-accent); text-decoration: underline; text-underline-offset: 0.15em; margin-left: 0.4em; white-space: nowrap; }
-  .cv-prov { display: inline-block; margin-left: 0.45em; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; white-space: nowrap; cursor: help; border-bottom: 1px dotted var(--cv-rule-strong); }
+  .cv-prov { display: inline-block; text-indent: 0; margin-left: 0.45em; font-size: 0.66rem; color: var(--cv-faint); letter-spacing: 0.01em; white-space: nowrap; cursor: help; border-bottom: 1px dotted var(--cv-rule-strong); }
 
   /* Public-page "Subscribe" (Atom/RSS) affordance — a quiet footnote near the living
      line. A no-JS <details>: the summary is the "Subscribe" toggle; opening it reveals
