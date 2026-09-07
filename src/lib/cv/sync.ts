@@ -14,6 +14,7 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
+  enrichCvWithCreditRoles,
   enrichCvWithCrossref,
   enrichCvWithIcite,
   enrichCvWithRetractions,
@@ -42,7 +43,7 @@ import { fetchDataciteOutputs } from "@/lib/datacite/client";
 import { fetchEditorialRoleCandidates, fetchEditorialRoles } from "@/lib/oep/client";
 import { fetchOpenaireOutputs } from "@/lib/openaire/client";
 import { fetchDblpConferencePapers } from "@/lib/dblp/client";
-import { fetchCrossrefGrantsByOrcid } from "@/lib/crossref/client";
+import { fetchCrossrefGrantsByOrcid, fetchCrossrefPeerReviewsByOrcid } from "@/lib/crossref/client";
 import { fetchWikidataIdentity } from "@/lib/wikidata/client";
 import { fetchUkriGrants } from "@/lib/ukri/client";
 import { fetchNihGrants } from "@/lib/nih/client";
@@ -251,6 +252,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     openaireOutputs,
     dblpConferencePapers,
     crossrefGrants,
+    crossrefPeerReviews,
     wikidataIdentity,
     orcidWorkTypes,
     orcidPatents,
@@ -273,6 +275,8 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     timed("openaire", fetchOpenaireOutputs(orcid)),
     timed("dblp", fetchDblpConferencePapers(orcid)),
     timed("crossref.grants", fetchCrossrefGrantsByOrcid(orcid, mailto)),
+    // DOI-bearing open peer reviews the publisher registered against the iD.
+    timed("crossref.reviews", fetchCrossrefPeerReviewsByOrcid(orcid, mailto)),
     timed("wikidata", fetchWikidataIdentity(orcid)),
     // ORCID self-asserted work TYPES (DOI → type) — refine section placement so
     // posters/talks/datasets aren't mis-filed as preprints. Parses the shared
@@ -398,6 +402,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     openaireOutputs,
     dblpConferencePapers,
     crossrefGrants,
+    crossrefPeerReviews,
     nationalGrants: [...ukriGrants, ...nihGrants, ...nsfGrants],
     clinicalTrials: [...ctgovTrials, ...ctisTrials, ...ictrpTrials],
     // ORCID self-asserted patents (auto-included) + EPO name-matched candidates
@@ -440,6 +445,14 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
   // Bounded + fails soft.
   cv = await timed("enrich.retractions", enrichCvWithRetractions(cv, getEnv().OPENALEX_MAILTO));
 
+  // Crossref: the owner's CRediT contribution roles from the publisher's deposit
+  // (owner matched by ORCID on the contributor list). Bounded + fails soft; a
+  // self-declared set is never overwritten.
+  cv = await timed(
+    "enrich.credit",
+    enrichCvWithCreditRoles(cv, cv.owner.orcid, getEnv().OPENALEX_MAILTO),
+  );
+
   // Upgrade duplicate hints with Crossref's publisher-asserted preprint↔published
   // relationships (the build already ran the identifier + heuristic tiers). The
   // lookup is targeted at ambiguous pairs only and fails soft.
@@ -480,6 +493,7 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     openaire: openaireOutputs.length,
     dblp: dblpConferencePapers.length,
     "crossref.grants": crossrefGrants.length,
+    "crossref.reviews": crossrefPeerReviews.length,
     clinicaltrials: ctgovTrials.length,
     ctis: ctisTrials.length,
     ictrp: ictrpTrials.length,

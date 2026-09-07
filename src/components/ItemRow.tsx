@@ -16,9 +16,12 @@ import {
   type CvSectionType,
   type NotMineReason,
 } from "@/lib/canonical/schema";
+import { CREDIT_ROLES } from "@/lib/canonical/credit";
 import { reasonLabel, t, type Locale } from "@/lib/i18n";
 import { stripInlineMarkup } from "@/lib/text/markup";
 import { ui } from "@/lib/i18n/ui";
+import { editorUi } from "@/lib/i18n/editorUi";
+import { renderStrings } from "@/lib/i18n/render";
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { needsReview } from "@/lib/canonical/review";
@@ -195,6 +198,9 @@ interface ItemRowProps {
   /** Set/clear the journal/venue override on a CITATION row — the "Edit details"
    *  disclosure. Passing "" reverts to the source venue. */
   onSetVenue?: (venue: string) => void;
+  /** Declare the account holder's CRediT roles on a CITATION row — the "Edit
+   *  details" disclosure. An empty list clears them. */
+  onSetCreditRoles?: (roles: string[]) => void;
   /** Delete a manual entry (only passed for source === "manual"). */
   onRemove?: () => void;
   /** Bulk-selection mode: render a leading checkbox instead of drag affordances. */
@@ -253,6 +259,7 @@ export default function ItemRow({
   onSetDateRange,
   onSetYear,
   onSetVenue,
+  onSetCreditRoles,
   onRemove,
   selectable = false,
   selected = false,
@@ -802,6 +809,54 @@ export default function ItemRow({
                   </button>
                 ) : null}
               </div>
+              {onSetCreditRoles ? (
+                // CRediT contribution roles: a compact multi-select of the 14
+                // taxonomy roles. Roles read from the publisher's deposit
+                // (Crossref) pre-fill the picker; any change becomes a SELF
+                // declaration (labelled as such wherever the roles render).
+                <fieldset className="cv-credit-picker">
+                  <legend>{editorUi(locale).creditRolesHeading}</legend>
+                  <p className="muted cv-credit-hint">{editorUi(locale).creditRolesHint}</p>
+                  <div className="cv-credit-options">
+                    {CREDIT_ROLES.map((role) => {
+                      const selected = item.meta.creditRoles ?? [];
+                      const on = selected.includes(role);
+                      return (
+                        <label key={role} className="cv-credit-option">
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={(e) =>
+                              onSetCreditRoles(
+                                e.target.checked
+                                  ? [...selected, role]
+                                  : selected.filter((r) => r !== role),
+                              )
+                            }
+                          />
+                          <span>{renderStrings(locale).creditRoles[role]}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {item.meta.creditRoles?.length ? (
+                    <div className="cv-credit-foot">
+                      <span className="muted">
+                        {item.meta.creditRolesSource === "self"
+                          ? editorUi(locale).creditRolesSelfDeclared
+                          : editorUi(locale).creditRolesFromCrossref}
+                      </span>
+                      <button
+                        type="button"
+                        className="link-btn"
+                        onClick={() => onSetCreditRoles([])}
+                      >
+                        {editorUi(locale).creditRolesClear}
+                      </button>
+                    </div>
+                  ) : null}
+                </fieldset>
+              ) : null}
             </div>
           </details>
         ) : null}

@@ -565,6 +565,43 @@ input[type="radio"] {
   font-size: var(--text-sm);
   color: var(--muted);
 }
+/* CRediT contribution-role picker inside "Edit details" on a citation row: a
+   compact wrap of 14 checkbox chips, with the provenance note + clear control. */
+.cv-credit-picker {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+}
+.cv-credit-picker > legend {
+  padding: 0 var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.cv-credit-hint {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xs);
+}
+.cv-credit-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+.cv-credit-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.cv-credit-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+}
 .cv-item-details-body {
   display: flex;
   flex-direction: column;
