@@ -20,6 +20,7 @@ import { itemProvenanceHtml } from "./itemProvenance";
 import { prepareSections } from "./prepare";
 import { cvSlug } from "./slug";
 import { getTemplate, resolveTheme } from "./templates";
+import { verifiedAsserter, verifiedSuffix } from "./textMarks";
 import { workIndicators } from "./workIndicators";
 import type { RenderedSection } from "./templates/types";
 import type { RenderOpts, Renderer, RenderInput, RenderResult } from "./types";
@@ -29,21 +30,37 @@ export { cvSlug } from "./slug";
 /**
  * The opt-in "Verified" mark for an entry a TRUSTED ORGANISATION asserted on the
  * ORCID record (`meta.verified`; positions / education / distinctions). Names the
- * confirming party in the accessible title when ORCID supplied it
- * (`meta.verifiedBy`), else a generic "confirmed via ORCID" title. "" when the
- * toggle is off or the entry isn't verified. Shares the `.cv-badge` family, so the
- * parser-safe ATS template hides it with every other badge.
+ * confirming party in the accessible title when it may be named
+ * (`verifiedAsserter`: ORCID supplied it and the owner didn't write it out of the
+ * line), else a generic "confirmed via ORCID" title. "" when the toggle is off or
+ * the entry isn't verified. Shares the `.cv-badge` family, which
+ * the parser-safe ATS template blanks — so on ATS the mark is emitted as plain
+ * text instead (`verifiedPlainHtml`), never as a badge.
  */
 function verifiedBadgeHtml(item: CvItem, display: DisplayChoices): string {
   if (!display.showVerifiedBadges || !item.meta.verified) return "";
+  if (display.template === "ats") return "";
   const s = renderStrings(display.locale);
-  const org = item.meta.verifiedBy?.trim();
+  const org = verifiedAsserter(item);
   const title = org
     ? s.badgeVerifiedByTitle.replace("{org}", () => escapeHtml(org))
     : escapeHtml(s.badgeVerifiedTitle);
   return `<span class="cv-badge cv-badge-verified" title="${title}">✓ ${escapeHtml(
     s.badgeVerified,
   )}</span>`;
+}
+
+/**
+ * The ATS template's verified mark: the same "(verified by <org>)" clause the
+ * text exports print, as a plain span OUTSIDE the `.cv-badges` wrapper the ATS
+ * stylesheet hides — so a résumé parser (and the PDF it receives) keeps the
+ * institution's assertion. "" on every other template, or when the toggle is
+ * off / the entry isn't verified (same gate as the badge).
+ */
+function verifiedPlainHtml(item: CvItem, display: DisplayChoices): string {
+  if (display.template !== "ats") return "";
+  const suffix = verifiedSuffix(item, display);
+  return suffix ? ` <span class="cv-verified-text">${escapeHtml(suffix.trim())}</span>` : "";
 }
 
 /** Inline badges appended to a publication/preprint entry (HTML/PDF only). */
@@ -164,17 +181,22 @@ function publicEvaluationsHtml(item: CvItem, display: DisplayChoices): string {
  * in that order — only the parts the item actually carries. The Software
  * Heritage archival link is a badge on the entry line (itemBadges), not here.
  * Returns "" when the item carries none of the three. No display toggle: these
- * are factual identifiers of the artefact, not evaluative signals.
+ * are factual identifiers of the artefact, not evaluative signals. On the ATS
+ * template the repository URL is spelled out as the link TEXT ("Source code:
+ * https://…") — a parser can't read an href, and the PDF only carries the text.
  */
-function softwareDetailsHtml(item: CvItem, locale: string): string {
-  const s = renderStrings(locale);
+function softwareDetailsHtml(item: CvItem, display: DisplayChoices): string {
+  const s = renderStrings(display.locale);
   const parts: string[] = [];
   const repo = safeHref(item.meta.repositoryUrl);
   if (repo) {
+    const href = escapeHtml(repo);
+    const link = (text: string) =>
+      `<a class="cv-software-repo" href="${href}" rel="nofollow">${text}</a>`;
     parts.push(
-      `<a class="cv-software-repo" href="${escapeHtml(repo)}" rel="nofollow">${escapeHtml(
-        s.softwareRepository,
-      )}</a>`,
+      display.template === "ats"
+        ? `${escapeHtml(s.softwareRepository)}: ${link(href)}`
+        : link(escapeHtml(s.softwareRepository)),
     );
   }
   const version = item.meta.version?.trim();
@@ -293,9 +315,12 @@ function positionEntryHtml(item: CvItem, display: DisplayChoices): string {
   const dates = entryDatesText(item, locale);
   const datesHtml = dates ? `<span class="cv-entry-dates">${escapeHtml(dates)}</span>` : "";
   // The opt-in "Verified" mark sits on the lead line, right after the role (or
-  // institution), inside the same badge wrapper the flat entries use.
+  // institution), inside the same badge wrapper the flat entries use — or, on the
+  // ATS template, as the plain-text clause (the wrapper is hidden there).
   const verified = verifiedBadgeHtml(item, display);
-  const badges = verified ? `<span class="cv-badges">${verified}</span>` : "";
+  const badges = verified
+    ? `<span class="cv-badges">${verified}</span>`
+    : verifiedPlainHtml(item, display);
   // Role leads when known; otherwise the institution becomes the lead line.
   const lead = (role ? escapeHtml(role) : inst) + badges;
   const subParts = role ? [dept ? escapeHtml(dept) : "", inst] : [dept ? escapeHtml(dept) : ""];
@@ -511,13 +536,17 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
         // Opt-in open data / code line ("Data: GEO GSE… · Zenodo …") under the entry.
         if (cv.display.showDataLinks) html += dataLinksHtml(item, cv.display.locale);
         html += publicEvaluationsHtml(item, cv.display);
-        if (isSoftware) html += softwareDetailsHtml(item, cv.display.locale);
+        if (isSoftware) html += softwareDetailsHtml(item, cv.display);
         // Reader view only (public route, owner opt-in): a compact provenance mark
         // per entry — works, datasets, awards, grants, … (history entries already
         // carry the structured Verified mark, so they're skipped). Gated on the
         // render OPTION, never a display toggle, so exports can't carry it.
         if (opts?.readerMode && !isHistory) html += itemProvenanceHtml(item, cv.display.locale);
         if (isHistory) html = withRorLink(html, item, cv.display.locale);
+        // ATS only: the verified clause as plain text (the badge family is hidden
+        // there) — appended AFTER the ROR link, whose `lastIndexOf` lookup of the
+        // institution name would otherwise wrap the name INSIDE the clause.
+        html += verifiedPlainHtml(item, cv.display);
         // Opt-in FORRT/FReD replication evidence under the entry.
         if (cv.display.showReplications) html += replicationsHtml(item, cv.display.locale);
         // Public-page-only: a no-JS Cite/Abstract/Full-text affordance per work.

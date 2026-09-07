@@ -14,6 +14,7 @@ import { prepareSections } from "./prepare";
 import type { PreparedSection } from "./prepare";
 import { ensureReadableOnWhite } from "./readableAccent";
 import { docStyle, type DocStyle } from "./templateStyle";
+import { researchAreasLine } from "./textMarks";
 import type { Renderer, RenderInput, RenderOpts, RenderResult } from "./types";
 
 const LATEX_ESCAPE: Record<string, string> = {
@@ -250,6 +251,17 @@ function careerContextLatex(head: TextHeader): string {
   return `\\medskip\n{\\small\\bfseries ${escapeLatex(cc.label)}}\\\\[1pt]\n{\\small ${lines}}\\par\n`;
 }
 
+/**
+ * The opt-in research-areas line (bold label + comma-joined fields), placed with
+ * the summary paragraph in both layouts. "" when off/empty.
+ */
+function researchAreasLatex(cv: CanonicalCv): string {
+  const areas = researchAreasLine(cv);
+  if (!areas) return "";
+  const fields = areas.fields.map(escapeLatex).join(", ");
+  return `\\medskip\n{\\small\\bfseries ${escapeLatex(areas.label)}:} {\\small ${fields}}\\par\n`;
+}
+
 /** The authorship-summary table as a LaTeX tabular. "" when off/empty. */
 function authorshipTableLatex(cv: CanonicalCv): string {
   if (!cv.display.showAuthorshipTable) return "";
@@ -358,6 +370,7 @@ function buildStyled(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts): strin
 
   const summaryPar =
     (head.summary ? `\\medskip\n${escapeLatex(head.summary)}\\par\n` : "") +
+    researchAreasLatex(cv) +
     careerContextLatex(head);
 
   // Charts + authorship render as tables (LaTeX can't draw the bar charts).
@@ -403,7 +416,9 @@ function buildSidebarLatex(cv: CanonicalCv, style: DocStyle, opts?: RenderOpts):
     .join(" \\\\[6pt]\n");
 
   const summaryPar =
-    (head.summary ? `${escapeLatex(head.summary)}\\par\\medskip\n` : "") + careerContextLatex(head);
+    (head.summary ? `${escapeLatex(head.summary)}\\par\\medskip\n` : "") +
+    researchAreasLatex(cv) +
+    careerContextLatex(head);
   const tables = summaryHidden
     ? ""
     : [yearTableLatex(cv), authorshipTableLatex(cv)].filter(Boolean).join("\n");

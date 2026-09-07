@@ -3,6 +3,7 @@ import {
   type CanonicalCv,
   type CvItem,
   type CvSectionType,
+  type DisplayChoices,
 } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { wrapSelf } from "./emphasize";
@@ -10,6 +11,7 @@ import { escapeMarkdown } from "./escape";
 import { prepareSections } from "./prepare";
 import type { PreparedSection } from "./prepare";
 import { cvSlug } from "./slug";
+import { verifiedSuffix } from "./textMarks";
 import type { Renderer, RenderInput, RenderResult } from "./types";
 
 /**
@@ -29,9 +31,12 @@ import type { Renderer, RenderInput, RenderResult } from "./types";
  * the account holder's name bolded on their own works.
  */
 
-/** A non-citation entry's plain display string (user override, else source). */
-function entryText(item: CvItem): string {
-  return (itemDisplayText(item) ?? "").trim();
+/** A non-citation entry's plain display string (user override, else source), with
+ *  the same plain "(verified by <org>)" mark the other text formats append under
+ *  `display.showVerifiedBadges` (textMarks.ts) — these lists bypass `prepareSections`. */
+function entryText(item: CvItem, display: DisplayChoices): string {
+  const text = (itemDisplayText(item) ?? "").trim();
+  return text ? text + verifiedSuffix(item, display) : text;
 }
 
 /** Bullet list of a section's visible items' display text (positions, awards,
@@ -40,7 +45,7 @@ function bulletList(cv: CanonicalCv, type: CvSectionType): string[] {
   const section = visibleSections(cv).find((s) => s.type === type);
   if (!section) return [];
   return visibleItems(section)
-    .map((it) => entryText(it))
+    .map((it) => entryText(it, cv.display))
     .filter((t) => t.length > 0)
     .map((t) => `- ${escapeMarkdown(t)}`);
 }

@@ -23,6 +23,7 @@ import { qrSvg } from "@/lib/cv/qrSvg";
 import { bundledFaceCss } from "../bundledFonts";
 import { publicScriptSrc } from "../publicScripts";
 import { SOURCE_LABEL } from "../sourceLabel";
+import { researchAreasLine } from "../textMarks";
 import type { RenderOpts } from "../types";
 import type { RenderedSection, TemplateTheme } from "./types";
 
@@ -664,13 +665,18 @@ export function commonCss(theme: TemplateTheme): string {
  * topic FIELDS (`owner.researchAreas`), shown only when the owner opts in
  * (`display.showResearchAreas`) and the aggregate is non-empty. Field names are
  * HTML-escaped and ordered most-frequent-first (as computed at build). "" otherwise.
+ * The parser-safe ATS template prints the same data as ONE plain labelled line
+ * ("Research areas: A · B") instead of a chip list — the form the text exports use.
  */
 function researchAreasHtml(cv: CanonicalCv): string {
-  if (!cv.display.showResearchAreas) return "";
-  const areas = cv.owner.researchAreas ?? [];
-  if (areas.length === 0) return "";
-  const label = escapeHtml(renderStrings(cv.display.locale).researchAreasLabel);
-  const chips = areas.map((a) => `<li class="cv-area">${escapeHtml(a.field)}</li>`).join("");
+  const line = researchAreasLine(cv);
+  if (!line) return "";
+  const label = escapeHtml(line.label);
+  if (cv.display.template === "ats") {
+    const fields = line.fields.map(escapeHtml).join(" · ");
+    return `<p class="cv-areas cv-areas-plain"><span class="cv-areas-label">${label}:</span> ${fields}</p>`;
+  }
+  const chips = line.fields.map((f) => `<li class="cv-area">${escapeHtml(f)}</li>`).join("");
   return `<div class="cv-areas"><span class="cv-areas-label">${label}</span><ul class="cv-areas-list">${chips}</ul></div>`;
 }
 

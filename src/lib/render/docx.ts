@@ -21,10 +21,11 @@ import { authorshipCounts } from "./authorship";
 import { cvChartSvgs } from "./charts";
 import { splitSelf } from "./emphasize";
 import { proseEvidence } from "./evidenceRefs";
-import { textHeader } from "./headerText";
+import { labeledContact, textHeader } from "./headerText";
 import { cvSlug } from "./html";
 import { isSummaryBlockHidden, metricsLineText } from "./metrics";
 import { prepareSections } from "./prepare";
+import { researchAreasLine } from "./textMarks";
 import type { Renderer, RenderInput, RenderOpts, RenderResult } from "./types";
 import { qrGifBuffer } from "@/lib/cv/qrSvg";
 
@@ -155,10 +156,13 @@ function proseSectionParagraphs(
  * with the account holder's name bolded on their own works). Template styling
  * (accent colour, sidebar, centring) is intentionally NOT applied: the PDF is
  * the template-faithful export, while the .docx is meant to be edited in Word.
+ * The one template it honours is ATS — not as styling, but as restraint: labelled
+ * contact lines, and never the charts or the authorship table.
  */
 export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Promise<Buffer> {
   const bodyFont = cv.display.fontPairing === "sans" ? "Calibri" : "Cambria";
   const s = renderStrings(cv.display.locale);
+  const ats = cv.display.template === "ats";
   const sections = prepareSections(cv, "text");
   const head = textHeader(cv);
   const children: (Paragraph | Table)[] = [];
@@ -205,12 +209,22 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
       }),
     );
   }
-  if (head.contact.length) {
+  // Contact: one dot-joined line in the plain document; on the ATS template one
+  // LABELLED line per field ("Email: …", "Phone: …") so a résumé parser reads
+  // each field on its own — the same restraint the ATS HTML template applies.
+  if (ats) {
+    for (const { label, value } of labeledContact(cv)) {
+      children.push(new Paragraph({ children: [new TextRun(`${label}: ${value}`)] }));
+    }
+  } else if (head.contact.length) {
     children.push(new Paragraph({ children: [new TextRun(head.contact.join("  ·  "))] }));
   }
   // The plain .docx keeps its fixed layout but honours the "hidden" placement
-  // (drop the metrics line, the charts, and the authorship table).
+  // (drop the metrics line, the charts, and the authorship table). The ATS
+  // template never embeds the charts or the table, whatever the toggles say
+  // (its HTML strips them too); the metrics line stays, like the HTML's.
   const summaryHidden = isSummaryBlockHidden(cv);
+  const figuresHidden = summaryHidden || ats;
   const metrics = summaryHidden ? "" : metricsLineText(cv);
   if (metrics) {
     children.push(
@@ -221,11 +235,11 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
     );
   }
 
-  if (!summaryHidden) children.push(...chartParagraphs(cv));
+  if (!figuresHidden) children.push(...chartParagraphs(cv));
 
   // Authorship summary: role · "N (P%)", with the denominator in the caption.
   const authorRows =
-    !summaryHidden && cv.display.showAuthorshipTable
+    !figuresHidden && cv.display.showAuthorshipTable
       ? authorshipCounts(cv, cv.display.authorshipRoles)
       : [];
   if (authorRows.length > 0 && !authorRows.every((r) => r.count === 0)) {
@@ -257,6 +271,21 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
   if (head.summary) {
     children.push(
       new Paragraph({ children: [new TextRun(head.summary)], spacing: { before: 80, after: 120 } }),
+    );
+  }
+
+  // Opt-in research areas: one plain labelled line right after the summary
+  // (person → their fields → statistics), the text form of the HTML chip row.
+  const areas = researchAreasLine(cv);
+  if (areas) {
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: `${areas.label}: `, bold: true }),
+          new TextRun(areas.fields.join(" · ")),
+        ],
+        spacing: { after: 80 },
+      }),
     );
   }
 

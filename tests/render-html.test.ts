@@ -178,14 +178,18 @@ describe.skipIf(!hasApa)("renderCvHtml (needs vendored CSL assets)", () => {
       expect(html).toContain("Vérifié par Nagoya University via ORCID");
     });
 
-    it("stays hidden on the parser-safe ATS template like every other badge", () => {
+    it("prints as plain text on the parser-safe ATS template (the badge family is hidden there)", () => {
       const html = renderCvHtml(
         updateDisplay(verifiedCv(), { showVerifiedBadges: true, template: "ats" }),
       );
-      // The mark is emitted (same document model)…
-      expect(html).toContain('class="cv-badge cv-badge-verified"');
-      // …but the ATS stylesheet blanks the whole badge family.
+      // The ATS stylesheet blanks the whole badge family…
       expect(html).toMatch(/\.cv-badge,[^{]*\{ display: none !important; \}/);
+      // …so the mark is NOT emitted as a badge but as a plain clause the parser keeps.
+      expect(html).not.toContain('class="cv-badge cv-badge-verified"');
+      expect(html).toContain(
+        '<span class="cv-verified-text">(verified by Nagoya University)</span>',
+      );
+      expect(html).toContain('<span class="cv-verified-text">(verified via ORCID)</span>');
     });
   });
 

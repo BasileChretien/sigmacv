@@ -31,18 +31,20 @@ export interface OrcidPosition {
   institutionUrl?: string;
   /**
    * True when this affiliation was asserted on the ORCID record by a TRUSTED
-   * ORGANIZATION via the ORCID Member API (a party other than the record holder),
-   * rather than self-entered by the user. ORCID treats org-asserted data as
+   * ORGANIZATION via the ORCID Member API (a member client, not relaying the
+   * record holder's own entry), rather than entered by a person — the user, or a
+   * trusted individual acting on their record. ORCID treats org-asserted data as
    * higher-trust; surfaced as a "verified" signal so a reader can tell an
    * institution-confirmed role from one the user typed in. Omitted (self-entered
-   * / unknown) otherwise.
+   * / person-entered / unknown) otherwise. See `isOrgAsserted`.
    */
   verified?: boolean;
   /**
-   * Display name of the party that asserted a {@link verified} affiliation
-   * (ORCID `source.source-name`, e.g. "Nagoya University") — lets a reader see
-   * WHO confirmed the entry ("Verified by …"). Only set alongside `verified`;
-   * omitted when ORCID gives no source name.
+   * Display name of the ORGANISATION that asserted a {@link verified} affiliation
+   * (ORCID `source.source-name`, or `assertion-origin-name` when a vendor client
+   * wrote on the organisation's behalf; e.g. "Nagoya University") — lets a reader
+   * see WHO confirmed the entry ("Verified by …"). Only set alongside `verified`
+   * — so never a person's name; omitted when ORCID gives no name.
    */
   verifiedBy?: string;
 }
@@ -146,30 +148,40 @@ function boundedText(s: unknown): string | undefined {
 }
 
 /**
- * Whether an ORCID activity's `source` block means it was asserted by a TRUSTED
- * ORGANIZATION (via the Member API) rather than self-entered by the record holder.
- * True when a writing source exists AND it is not the record holder's own ORCID iD:
- * a Member-API client (`source-client-id`, no source-orcid) or a different iD.
- * Self-asserted (source-orcid === the owner) → false; no source → false.
+ * Whether an ORCID activity's `source` block means a TRUSTED ORGANISATION asserted
+ * it through the Member API — the only case that earns a "verified" mark.
+ *
+ * ORCID's `source` names the WRITER: `source-client-id` for a member client,
+ * `source-orcid` for a PERSON — the record holder, or a trusted individual (a
+ * delegate / assistant) editing the record from the ORCID UI. A person is never
+ * an organisation, so only a client id counts: `source-orcid !== owner` on its own
+ * is a third party's personal entry, and their `source-name` (a personal name)
+ * must never surface as a verifier. And a client that merely relayed a person's
+ * own entry — a member's search-and-link wizard — records that person in
+ * `assertion-origin-orcid`: any person as the assertion origin → self-asserted,
+ * not verified. (An `assertion-origin-client-id` is the opposite case: a vendor
+ * system writing on behalf of a member organisation, which stays org-asserted.)
+ * No source → false.
  */
-function isOrgAsserted(source: any, bareOwnerOrcid: string): boolean {
-  const srcOrcid = nonEmpty(source?.["source-orcid"]?.path);
-  const srcClient = nonEmpty(source?.["source-client-id"]?.path);
-  if (srcOrcid === undefined && srcClient === undefined) return false;
-  return srcOrcid !== bareOwnerOrcid;
+function isOrgAsserted(source: any): boolean {
+  if (nonEmpty(source?.["source-client-id"]?.path) === undefined) return false;
+  return nonEmpty(source?.["assertion-origin-orcid"]?.path) === undefined;
 }
 
 /**
  * The `verified` (+ `verifiedBy`) fields for an affiliation summary: set only
- * when a party OTHER than the record holder asserted it (see {@link isOrgAsserted});
- * `verifiedBy` carries that party's display name when ORCID supplies one.
+ * when a member ORGANISATION asserted it (see {@link isOrgAsserted}). `verifiedBy`
+ * names that organisation: the assertion origin when a vendor client wrote on its
+ * behalf (`assertion-origin-name`), else the writing client (`source-name`) —
+ * when ORCID supplies a name at all.
  */
-function verifiedFields(
-  source: any,
-  bareOwnerOrcid: string,
-): { verified?: true; verifiedBy?: string } {
-  if (!isOrgAsserted(source, bareOwnerOrcid)) return {};
-  const verifiedBy = boundedText(source?.["source-name"]?.value);
+function verifiedFields(source: any): { verified?: true; verifiedBy?: string } {
+  if (!isOrgAsserted(source)) return {};
+  const originOrg =
+    nonEmpty(source?.["assertion-origin-client-id"]?.path) === undefined
+      ? undefined
+      : boundedText(source?.["assertion-origin-name"]?.value);
+  const verifiedBy = originOrg ?? boundedText(source?.["source-name"]?.value);
   return verifiedBy ? { verified: true, verifiedBy } : { verified: true };
 }
 
@@ -186,7 +198,6 @@ async function fetchOrcidAffiliations(
   summaryKey: string,
 ): Promise<OrcidPosition[]> {
   try {
-    const bareOwner = normalizeOrcid(orcid);
     const data = await orcidGet<any>(orcid, path);
     const out: OrcidPosition[] = [];
     for (const group of toArray(data?.["affiliation-group"])) {
@@ -202,7 +213,7 @@ async function fetchOrcidAffiliations(
           department: boundedText(e?.["department-name"]),
           startYear: yearOf(e?.["start-date"]),
           endYear: yearOf(e?.["end-date"]),
-          ...verifiedFields(e?.source, bareOwner),
+          ...verifiedFields(e?.source),
         });
       }
     }

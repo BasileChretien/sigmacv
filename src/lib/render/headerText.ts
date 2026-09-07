@@ -1,7 +1,39 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { t } from "@/lib/i18n";
 import { careerContextBlock, type CareerContextBlock } from "./careerContext";
 import { displayUrl } from "./escape";
 import { resolveLink } from "./icons";
+
+/** One labelled contact line ("Email" / "basile@…") for a format that prints
+ *  the contact block as separate, parser-safe lines rather than one dot-joined row. */
+export interface LabeledContact {
+  label: string;
+  value: string;
+}
+
+/**
+ * The contact parts as LABELLED lines, in the same order `textHeader` uses
+ * (location, email, phone, website, links): the fixed fields carry the CV
+ * language's editor labels ("Email", "Téléphone", …); a link carries its own
+ * label or the detected service name ("GitHub"), falling back to a plain
+ * "Link". For the ATS DOCX, where a résumé parser reads one field per line.
+ */
+export function labeledContact(cv: CanonicalCv): LabeledContact[] {
+  const locale = cv.display.locale;
+  const c = cv.owner.contact ?? {};
+  const out: LabeledContact[] = [];
+  if (c.location) out.push({ label: t(locale, "location"), value: c.location });
+  if (c.email) out.push({ label: t(locale, "email"), value: c.email });
+  if (c.phone) out.push({ label: t(locale, "phone"), value: c.phone });
+  if (c.website) out.push({ label: t(locale, "website"), value: displayUrl(c.website) });
+  for (const l of cv.owner.links ?? []) {
+    const url = (l.url ?? "").trim();
+    if (!url) continue;
+    const label = l.label?.trim() || resolveLink(url).service || t(locale, "links");
+    out.push({ label, value: displayUrl(url) });
+  }
+  return out;
+}
 
 /**
  * Format-agnostic header fields for the TEXT renderers (Markdown / LaTeX / DOCX).

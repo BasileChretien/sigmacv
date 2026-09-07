@@ -58,6 +58,12 @@ export interface RenderStrings {
   badgeVerifiedTitle: string;
   /** Accessible title for the verified mark; "{org}" → the asserting organisation. */
   badgeVerifiedByTitle: string;
+  /** Plain-text per-entry verified mark for the text exports (DOCX / Markdown / LaTeX /
+   *  JSON Résumé) and the parser-safe ATS template — printed in parentheses right after
+   *  the entry, lower-case so it reads as a clause; "{org}" → the asserting organisation. */
+  verifiedByText: string;
+  /** Same, when the asserting organisation is unknown (generic "via ORCID" wording). */
+  verifiedGenericText: string;
   metric2yr: string;
   metricFwci: string;
   metricHIndex: string;
@@ -355,6 +361,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeRetractedTitle: "This work has been retracted (per Crossref / Retraction Watch)",
     badgeCitations: "{n} citations",
     badgeCitationsTitle: "Raw citation count — not field-normalised (varies by field and age)",
+    verifiedByText: "verified by {org}",
+    verifiedGenericText: "verified via ORCID",
     badgeVerified: "Verified",
     badgeVerifiedTitle:
       "Confirmed by the institution via ORCID — asserted by a trusted organisation, not self-entered",
@@ -551,6 +559,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeRetractedTitle: "该成果已被撤稿（依据 Crossref／Retraction Watch）",
     badgeCitations: "被引 {n}",
     badgeCitationsTitle: "原始被引次数——未经领域标准化（因领域与年代而异）",
+    verifiedByText: "由 {org} 认证",
+    verifiedGenericText: "通过 ORCID 认证",
     badgeVerified: "已认证",
     badgeVerifiedTitle: "由所在机构通过 ORCID 确认——由受信任的机构录入，而非本人自行填写",
     badgeVerifiedByTitle: "由 {org} 通过 ORCID 认证——由该机构录入，而非本人自行填写",
@@ -745,6 +755,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} citas",
     badgeCitationsTitle:
       "Recuento bruto de citas — sin normalización por campo (varía por campo y antigüedad)",
+    verifiedByText: "verificado por {org}",
+    verifiedGenericText: "verificado a través de ORCID",
     badgeVerified: "Verificado",
     badgeVerifiedTitle:
       "Confirmado por la institución mediante ORCID: registrado por una organización de confianza, no por la propia persona",
@@ -950,6 +962,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} citations",
     badgeCitationsTitle:
       "Nombre brut de citations — non normalisé par domaine (varie selon le domaine et l’ancienneté)",
+    verifiedByText: "vérifié par {org}",
+    verifiedGenericText: "vérifié via ORCID",
     badgeVerified: "Vérifié",
     badgeVerifiedTitle:
       "Confirmé par l’établissement via ORCID — saisi par un organisme de confiance, et non par la personne elle-même",
@@ -1157,6 +1171,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} Zitationen",
     badgeCitationsTitle:
       "Reine Zitationszahl — nicht feldnormiert (variiert je nach Fach und Alter)",
+    verifiedByText: "verifiziert durch {org}",
+    verifiedGenericText: "verifiziert über ORCID",
     badgeVerified: "Verifiziert",
     badgeVerifiedTitle:
       "Von der Institution über ORCID bestätigt – von einer vertrauenswürdigen Organisation eingetragen, nicht selbst erfasst",
@@ -1360,6 +1376,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeRetractedTitle: "この成果は撤回されています（Crossref／Retraction Watch による）",
     badgeCitations: "被引用 {n}",
     badgeCitationsTitle: "被引用数の生の値 — 分野正規化なし（分野・年代で変動）",
+    verifiedByText: "{org} による認証済み",
+    verifiedGenericText: "ORCID 経由で認証済み",
     badgeVerified: "認証済み",
     badgeVerifiedTitle:
       "所属機関が ORCID を通じて確認 — 信頼された機関が登録した情報で、本人による入力ではありません",
@@ -1559,6 +1577,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} citações",
     badgeCitationsTitle:
       "Contagem bruta de citações — não normalizada por área (varia por área e idade)",
+    verifiedByText: "verificado por {org}",
+    verifiedGenericText: "verificado via ORCID",
     badgeVerified: "Verificado",
     badgeVerifiedTitle:
       "Confirmado pela instituição via ORCID — registrado por uma organização confiável, não pela própria pessoa",
@@ -1764,6 +1784,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} citazioni",
     badgeCitationsTitle:
       "Conteggio grezzo delle citazioni — non normalizzato per campo (varia per campo ed età)",
+    verifiedByText: "verificato da {org}",
+    verifiedGenericText: "verificato tramite ORCID",
     badgeVerified: "Verificato",
     badgeVerifiedTitle:
       "Confermato dall’istituzione tramite ORCID: inserito da un’organizzazione fidata, non dalla persona stessa",
@@ -1967,6 +1989,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeRetractedTitle: "이 성과는 철회되었습니다 (Crossref / Retraction Watch 기준)",
     badgeCitations: "인용 {n}회",
     badgeCitationsTitle: "원시 피인용 수 — 분야 정규화 안 됨 (분야·연도에 따라 다름)",
+    verifiedByText: "{org}에서 인증",
+    verifiedGenericText: "ORCID를 통해 인증됨",
     badgeVerified: "인증됨",
     badgeVerifiedTitle:
       "소속 기관이 ORCID를 통해 확인 — 신뢰할 수 있는 기관이 등록한 정보로, 본인이 직접 입력한 것이 아닙니다",
@@ -2163,6 +2187,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     badgeCitations: "{n} цитирований",
     badgeCitationsTitle:
       "Сырое число цитирований — без нормализации по области (зависит от области и возраста)",
+    verifiedByText: "подтверждено {org}",
+    verifiedGenericText: "подтверждено через ORCID",
     badgeVerified: "Подтверждено",
     badgeVerifiedTitle:
       "Подтверждено организацией через ORCID — внесено доверенной организацией, а не самим владельцем записи",
