@@ -65,6 +65,10 @@ interface CvWorkspaceProps {
   published: boolean;
   publicSlug: string | null;
   publicIndexable: boolean;
+  /** The OAI-PMH affiliation-listing opt-in (separate from indexing) and the
+      ROR key it would list under (null → the opt-in is not offered). */
+  publicListUnderAffiliation?: boolean;
+  publicAffiliationRorId?: string | null;
   signOutAction: () => Promise<void>;
 }
 
@@ -97,6 +101,8 @@ export default function CvWorkspace({
   published,
   publicSlug,
   publicIndexable,
+  publicListUnderAffiliation = false,
+  publicAffiliationRorId = null,
   signOutAction,
 }: CvWorkspaceProps) {
   const [cv, setCv] = useState<CanonicalCv | null>(initialCv);
@@ -142,6 +148,8 @@ export default function CvWorkspace({
     published,
     slug: publicSlug,
     indexable: publicIndexable,
+    listUnderAffiliation: publicListUnderAffiliation,
+    affiliationRorId: publicAffiliationRorId,
   });
 
   // Refs let the debounced auto-save read the latest document and avoid
@@ -444,6 +452,8 @@ export default function CvWorkspace({
           published={publishState.published}
           publicSlug={publishState.slug}
           publicIndexable={publishState.indexable}
+          publicListUnderAffiliation={publishState.listUnderAffiliation}
+          publicAffiliationRorId={publishState.affiliationRorId}
           publicContact={
             cv?.display.publicContact ?? { email: false, phone: false, location: false }
           }

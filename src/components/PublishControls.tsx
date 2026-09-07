@@ -17,6 +17,13 @@ interface PublishControlsProps {
   initialPublished: boolean;
   initialSlug: string | null;
   initialIndexable: boolean;
+  /** "List under my current affiliation": the OAI-PMH `ror:<id>` set opt-in — a
+      consent SEPARATE from indexing (which it requires). */
+  initialListUnderAffiliation?: boolean;
+  /** The bare ROR id of the visible current position the CV would be listed
+      under; null when none resolves, in which case the opt-in is disabled with
+      a hint (there is no set to list under). */
+  initialAffiliationRorId?: string | null;
   locale: string;
   /** Per-field consent for contact details on the public page (default off). */
   publicContact: PublicContactFlags;
@@ -28,6 +35,8 @@ interface PublishControlsProps {
     published: boolean;
     slug: string | null;
     indexable: boolean;
+    listUnderAffiliation: boolean;
+    affiliationRorId: string | null;
   }) => void;
   /** Deep-link to the editor's public-page-style picker (the publish surface is
       where the "style my public page" job naturally begins). Optional so the
@@ -48,6 +57,8 @@ export default function PublishControls({
   initialPublished,
   initialSlug,
   initialIndexable,
+  initialListUnderAffiliation = false,
+  initialAffiliationRorId = null,
   locale,
   publicContact,
   onPublicContactChange,
@@ -60,33 +71,45 @@ export default function PublishControls({
   const [published, setPublished] = useState(initialPublished);
   const [slug, setSlug] = useState(initialSlug);
   const [indexable, setIndexable] = useState(initialIndexable);
+  const [listUnderAffiliation, setListUnderAffiliation] = useState(initialListUnderAffiliation);
+  const [affiliationRorId, setAffiliationRorId] = useState(initialAffiliationRorId);
   const [busy, setBusy] = useState(false);
   // A polite live-region message (publish error) for assistive tech.
   const [announce, setAnnounce] = useState("");
 
-  async function update(next: boolean, nextIndexable: boolean) {
+  async function update(next: boolean, nextIndexable: boolean, nextListed: boolean) {
     setBusy(true);
     setAnnounce("");
     try {
       const res = await fetch("/api/cv/publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ published: next, indexable: nextIndexable }),
+        body: JSON.stringify({
+          published: next,
+          indexable: nextIndexable,
+          listUnderAffiliation: nextListed,
+        }),
       });
       if (res.ok) {
         const data = (await res.json()) as {
           published: boolean;
           publicSlug: string | null;
           indexable: boolean;
+          listUnderAffiliation: boolean;
+          affiliationRorId: string | null;
         };
         setPublished(data.published);
         setSlug(data.publicSlug);
         setIndexable(data.indexable);
+        setListUnderAffiliation(data.listUnderAffiliation);
+        setAffiliationRorId(data.affiliationRorId);
         // Keep the host (top-bar trigger + Share menu visibility) in lockstep.
         onPublishStateChange?.({
           published: data.published,
           slug: data.publicSlug,
           indexable: data.indexable,
+          listUnderAffiliation: data.listUnderAffiliation,
+          affiliationRorId: data.affiliationRorId,
         });
         if (data.published) {
           // Cookieless product signal: a public page was published. No identifiers.
@@ -103,8 +126,16 @@ export default function PublishControls({
     }
   }
 
-  // Unpublishing always clears indexing; publishing keeps the prior choice.
-  const toggle = (next: boolean) => update(next, next ? indexable : false);
+  // Unpublishing always clears indexing (and with it the affiliation listing);
+  // publishing keeps the prior choices.
+  const toggle = (next: boolean) =>
+    update(next, next ? indexable : false, next ? listUnderAffiliation : false);
+  // Indexing off → the affiliation listing goes with it (it requires indexing).
+  const setIndexing = (next: boolean) => update(true, next, next ? listUnderAffiliation : false);
+  const setListing = (next: boolean) => update(true, true, next);
+  // The opt-in is offered only while indexing is on AND a current position
+  // resolves to a ROR record — otherwise there is no set to list under.
+  const listingOffered = indexable && affiliationRorId !== null;
 
   return (
     <div className="account-controls">
@@ -153,11 +184,33 @@ export default function PublishControls({
               type="checkbox"
               checked={indexable}
               disabled={busy}
-              onChange={(e) => update(true, e.target.checked)}
+              onChange={(e) => setIndexing(e.target.checked)}
             />
             <span>{u.allowIndexing}</span>
           </label>
           <p className="publish-summary muted">{u.allowIndexingBody}</p>
+          {/* A SEPARATE consent from indexing: listing the CV under the owner's
+              self-declared current affiliation in the OAI-PMH `ror:<id>` set
+              (an institution-keyed harvest the indexing consent never covered).
+              Disabled, with the reason, when it cannot apply. */}
+          <label
+            className="field-inline publish-affiliation-toggle"
+            title={u.listUnderAffiliationTitle}
+          >
+            <input
+              type="checkbox"
+              checked={listUnderAffiliation}
+              // Withdrawing must always be possible: a standing opt-in stays
+              // uncheckable-off even when no ROR key currently resolves.
+              disabled={busy || (!listingOffered && !listUnderAffiliation)}
+              onChange={(e) => setListing(e.target.checked)}
+            />
+            <span>{u.listUnderAffiliation}</span>
+          </label>
+          <p className="publish-summary muted">{u.listUnderAffiliationBody}</p>
+          {indexable && affiliationRorId === null ? (
+            <p className="publish-summary muted">{u.listUnderAffiliationNoRor}</p>
+          ) : null}
           <fieldset className="public-contact-consent">
             <legend>{u.publicContactLegend}</legend>
             <label className="field-inline">

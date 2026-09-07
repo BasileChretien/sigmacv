@@ -13,8 +13,11 @@ export const dynamic = "force-dynamic";
 const BodySchema = z.object({
   published: z.boolean(),
   indexable: z.boolean().optional(),
+  /** Opt in to the OAI-PMH `ror:<id>` affiliation set — a consent separate from
+   *  indexing; the state setter refuses it without indexing or a ROR key. */
+  listUnderAffiliation: z.boolean().optional(),
 });
-// The body is two booleans; reject anything larger early (streamed, not by header).
+// The body is three booleans; reject anything larger early (streamed, not by header).
 const MAX_BODY_BYTES = 2_000;
 
 export async function GET() {
@@ -52,7 +55,10 @@ export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(read.value);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Expected { published: boolean, indexable?: boolean }" },
+      {
+        error:
+          "Expected { published: boolean, indexable?: boolean, listUnderAffiliation?: boolean }",
+      },
       { status: 422 },
     );
   }
@@ -62,6 +68,7 @@ export async function POST(req: Request) {
       session.user.id,
       parsed.data.published,
       parsed.data.indexable ?? false,
+      parsed.data.listUnderAffiliation ?? false,
     );
     return NextResponse.json(state);
   } catch (err) {

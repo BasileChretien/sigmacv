@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { setItemIncluded, updateDisplay } from "@/lib/canonical/curate";
-import { profilePageJsonLd } from "@/lib/cv/publicJsonLd";
+import { currentAffiliation, profilePageJsonLd } from "@/lib/cv/publicJsonLd";
 import type { OrcidPosition } from "@/lib/orcid/client";
 import type { CanonicalCv, CvItem, CvSection } from "@/lib/canonical/schema";
 
@@ -586,5 +586,165 @@ describe("profilePageJsonLd — per-work entities (@reverse.author)", () => {
     const live = JSON.parse(profilePageJsonLd(makeCv(), "s"));
     expect(live.version).toBeUndefined();
     expect(live.isBasedOn).toBeUndefined();
+  });
+});
+
+// ─── currentAffiliation: the OAI-PMH affiliation-set key ─────────────────────
+
+describe("currentAffiliation", () => {
+  it("returns the BARE ROR id + institution name of the first visible position", () => {
+    const cv = makeCv({
+      employments: [
+        {
+          putCode: "cur",
+          organization: "Nagoya University",
+          roleTitle: "Researcher",
+          startYear: 2024,
+          rorId: "04chrp450",
+        },
+        { putCode: "old", organization: "Older Institute", startYear: 2015, endYear: 2020 },
+      ],
+    });
+    expect(currentAffiliation(cv)).toEqual({
+      rorId: "04chrp450",
+      name: "Nagoya University",
+      setName: "Nagoya University",
+    });
+  });
+
+  it("'current' means ONGOING: a position with an end year is skipped, and an all-ended list yields null", () => {
+    const ended = makeCv({
+      employments: [
+        {
+          putCode: "past",
+          organization: "Past University",
+          startYear: 2015,
+          endYear: 2021,
+          rorId: "00000000x",
+        },
+        { putCode: "cur", organization: "Now University", startYear: 2022, rorId: "04chrp450" },
+      ],
+    });
+    expect(currentAffiliation(ended)?.rorId).toBe("04chrp450");
+    const allEnded = makeCv({
+      employments: [
+        {
+          putCode: "p",
+          organization: "Past U",
+          startYear: 2015,
+          endYear: 2021,
+          rorId: "04chrp450",
+        },
+      ],
+    });
+    expect(currentAffiliation(allEnded)).toBeNull();
+  });
+
+  it("an owner date override replaces the source dates entirely (its own end year decides)", () => {
+    let cv = makeCv({
+      employments: [
+        { putCode: "e", organization: "Nagoya University", startYear: 2020, rorId: "04chrp450" },
+      ],
+    });
+    const positions = cv.sections.find((s) => s.type === "positions")!;
+    const id = positions.items[0]!.id;
+    const withEnd = {
+      ...cv,
+      sections: cv.sections.map((s) =>
+        s.id !== positions.id
+          ? s
+          : {
+              ...s,
+              items: s.items.map((it) =>
+                it.id === id
+                  ? {
+                      ...it,
+                      meta: { ...it.meta, dateRangeOverride: { startYear: 2020, endYear: 2023 } },
+                    }
+                  : it,
+              ),
+            },
+      ),
+    };
+    expect(currentAffiliation(withEnd)).toBeNull();
+    // A source end year is IGNORED when the override says ongoing.
+    const overriddenOngoing = {
+      ...withEnd,
+      sections: withEnd.sections.map((s) =>
+        s.id !== positions.id
+          ? s
+          : {
+              ...s,
+              items: s.items.map((it) =>
+                it.id === id
+                  ? {
+                      ...it,
+                      meta: { ...it.meta, endYear: 2019, dateRangeOverride: { startYear: 2020 } },
+                    }
+                  : it,
+              ),
+            },
+      ),
+    };
+    expect(currentAffiliation(overriddenOngoing)?.rorId).toBe("04chrp450");
+    void cv;
+  });
+
+  it("normalises a full ror.org URL to the bare id (the same rule as the JSON-LD @id)", () => {
+    const cv = makeCv({
+      employments: [
+        { putCode: "e", organization: "Nagoya University", rorId: "https://ror.org/04chrp450" },
+      ],
+    });
+    expect(currentAffiliation(cv)?.rorId).toBe("04chrp450");
+  });
+
+  it("is null when the position's ROR id is a foreign URL or junk (never attacker-keyed)", () => {
+    for (const rorId of ["https://evil.example/x", "not a/valid id", "http://ror.org/04chrp450"]) {
+      const cv = makeCv({ employments: [{ putCode: "e", organization: "X", rorId }] });
+      expect(currentAffiliation(cv)).toBeNull();
+    }
+  });
+
+  it("is null without a ROR-resolved position, without positions, or when the only one is hidden", () => {
+    expect(currentAffiliation(makeCv())).toBeNull();
+    expect(
+      currentAffiliation(makeCv({ employments: [{ putCode: "e", organization: "No ROR Lab" }] })),
+    ).toBeNull();
+    let cv = makeCv({
+      employments: [{ putCode: "e", organization: "Hidden U", rorId: "04chrp450" }],
+    });
+    const positions = cv.sections.find((s) => s.type === "positions")!;
+    cv = setItemIncluded(cv, positions.id, positions.items[0]!.id, false);
+    expect(currentAffiliation(cv)).toBeNull();
+  });
+
+  it("follows the owner's institution rename for the set name, never for the key", () => {
+    let cv = makeCv({
+      employments: [{ putCode: "e", organization: "Nagoya University", rorId: "04chrp450" }],
+    });
+    const positions = cv.sections.find((s) => s.type === "positions")!;
+    const item = positions.items[0]!;
+    cv = {
+      ...cv,
+      sections: cv.sections.map((s) =>
+        s.id !== positions.id
+          ? s
+          : {
+              ...s,
+              items: s.items.map((it) =>
+                it.id !== item.id
+                  ? it
+                  : { ...it, meta: { ...it.meta, institutionOverride: "Nagoya Univ. (Med.)" } },
+              ),
+            },
+      ),
+    };
+    expect(currentAffiliation(cv)).toEqual({
+      rorId: "04chrp450",
+      name: "Nagoya Univ. (Med.)",
+      // The shared OAI set is named by the canonical (source) name, never one owner's rename.
+      setName: "Nagoya University",
+    });
   });
 });

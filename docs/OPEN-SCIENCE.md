@@ -30,6 +30,16 @@ This is a living document. Items marked _planned_ are tracked in the
 - Public CVs are served over open HTTP and are **machine-readable**: the public
   page negotiates `application/ld+json`, CSL-JSON, and BibTeX in addition to HTML
   (_planned_), so any tool can retrieve a published record.
+- Published, **search-indexable** CVs are also harvestable over **OAI-PMH**
+  (`/api/oai`, Dublin Core): one record per CV plus one per work the public page
+  lists (the page's own selection, minus retracted works), so open repositories,
+  CRIS systems and aggregators can collect the open record. The consent model
+  is explicit and layered: nothing is harvestable without the owner's indexing
+  opt-in, whose consent copy names the endpoint; and the `ror:<id>` **sets**
+  (one per institution) contain only CVs whose owner _separately_ opted into
+  "list under my current affiliation" — each set is labelled as a
+  self-declared current affiliation, never as an institution's record of its
+  output. The privacy notice names OAI-PMH harvesters as recipients.
 - Owners can **export their full account** (canonical CV + research log) and
   **delete their account** at any time (GDPR / Japan APPI).
 - The source is open (Apache-2.0) and the whole stack is **self-hostable** with

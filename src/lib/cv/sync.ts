@@ -6,6 +6,7 @@ import { pingIndexNow } from "@/lib/cv/indexNow";
 import { invalidatePublicPage } from "@/lib/cv/publicPageCache";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
+import { currentAffiliation } from "@/lib/cv/publicJsonLd";
 import { provenanceLedger, type ProvenanceLedger } from "@/lib/cv/provenanceLedger";
 import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks";
 import { logger } from "@/lib/log";
@@ -28,7 +29,7 @@ import {
   withRorProvenance,
 } from "@/lib/canonical/enrich";
 import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
-import type { OaiRecordInput } from "@/lib/oai/oai";
+import { rorSetSpec, type OaiRecordInput, type OaiSet } from "@/lib/oai/oai";
 import { fetchJournalNamesByIssn, fetchWorksByAuthorIds } from "@/lib/openalex/client";
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
 import { normalizeOrcid } from "@/lib/openalex/types";
@@ -76,6 +77,24 @@ export class CvNotFoundError extends Error {
     super("No CV exists for this user yet — sync first.");
     this.name = "CvNotFoundError";
   }
+}
+
+/**
+ * The denormalised `Cv.currentRorId` column: the bare ROR id of the owner's
+ * first VISIBLE current position (the same rule as the public JSON-LD
+ * affiliation), or null. Rewritten from the document on EVERY write — save,
+ * sync/resync and publish-state change — so it can never go stale: it is the
+ * key of the OAI-PMH `ror:<id>` set an opted-in CV is listed under, and a CV
+ * whose current position disappears must drop out of the set at once.
+ */
+function currentRorKey(cv: CanonicalCv): string | null {
+  return currentAffiliation(cv)?.rorId ?? null;
+}
+
+/** The canonical institution name written beside {@link currentRorKey}: the
+ *  `ListSets` set name, chosen deterministically across every opted-in CV. */
+function affiliationSetName(cv: CanonicalCv): string | null {
+  return currentAffiliation(cv)?.setName ?? null;
 }
 
 /**
@@ -583,6 +602,11 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
 
   const { cv, report } = await buildCvFromOrcid({ orcid, fallbackName, previous, id });
 
+  // The OAI affiliation-set key follows the document on every write (see
+  // `currentRorKey`): a re-sync that changes or drops the current position
+  // re-keys — or un-lists — the CV at once.
+  const currentRorId = currentRorKey(cv);
+  const currentAffiliationName = affiliationSetName(cv);
   await prisma.cv.upsert({
     where: { userId },
     create: {
@@ -592,12 +616,16 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       schemaVersion: cv.schemaVersion,
       lastSyncedAt: new Date(),
       lastSyncReport: report as unknown as Prisma.InputJsonValue,
+      currentRorId,
+      currentAffiliationName,
     },
     update: {
       document: cv as unknown as Prisma.InputJsonValue,
       schemaVersion: cv.schemaVersion,
       lastSyncedAt: new Date(),
       lastSyncReport: report as unknown as Prisma.InputJsonValue,
+      currentRorId,
+      currentAffiliationName,
     },
   });
 
@@ -649,6 +677,8 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
     data: {
       document: reconciled as unknown as Prisma.InputJsonValue,
       schemaVersion: reconciled.schemaVersion,
+      currentRorId: currentRorKey(reconciled),
+      currentAffiliationName: affiliationSetName(reconciled),
     },
   });
 
@@ -671,34 +701,53 @@ export interface PublishState {
   publicSlug: string | null;
   /** Whether the published page opts in to search-engine indexing. */
   indexable: boolean;
+  /** Whether the CV opts in to the OAI-PMH `ror:<id>` affiliation set. A
+   *  SEPARATE consent from `indexable` (which it requires). */
+  listUnderAffiliation: boolean;
+  /** The bare ROR id of the visible current position the CV would be listed
+   *  under, or null when none resolves (the opt-in is then not offered). */
+  affiliationRorId: string | null;
 }
 
 export async function getPublishState(userId: string): Promise<PublishState> {
   const row = await prisma.cv.findUnique({
     where: { userId },
-    select: { published: true, publicSlug: true, publicIndexable: true },
+    select: {
+      published: true,
+      publicSlug: true,
+      publicIndexable: true,
+      listUnderAffiliation: true,
+      currentRorId: true,
+    },
   });
   return {
     published: row?.published ?? false,
     publicSlug: row?.publicSlug ?? null,
     indexable: row?.publicIndexable ?? false,
+    listUnderAffiliation: row?.listUnderAffiliation ?? false,
+    affiliationRorId: row?.currentRorId ?? null,
   };
 }
 
 /** Publish/unpublish the public page; mints a stable slug on first publish.
  *  `indexable` is a SEPARATE opt-in (default false) — unpublishing always
- *  clears it, and it can only be true while published. */
+ *  clears it, and it can only be true while published. `listUnderAffiliation`
+ *  is a THIRD, separate opt-in (the OAI-PMH affiliation set): it requires
+ *  indexing AND a ROR-resolved visible current position, and is cleared with
+ *  either — the set key is re-derived from the stored document here, so the
+ *  decision is made on what the CV says now, not on a stale column. */
 export async function setPublishState(
   userId: string,
   published: boolean,
   indexable = false,
+  listUnderAffiliation = false,
 ): Promise<PublishState> {
   const row = await prisma.cv.findUnique({ where: { userId } });
   if (!row) throw new CvNotFoundError();
 
+  const parsed = safeParseCanonicalCv(row.document);
   let slug = row.publicSlug;
   if (published && !slug) {
-    const parsed = safeParseCanonicalCv(row.document);
     const name = parsed.success ? parsed.data.owner.displayName : "cv";
     // Capability URL: a readable name plus an UNGUESSABLE 80-bit random suffix.
     // The old `row.id.slice(0,8)` exposed a time-ordered CUID prefix that, given
@@ -708,10 +757,26 @@ export async function setPublishState(
   }
 
   const publicIndexable = published && indexable;
+  const currentRorId = parsed.success ? currentRorKey(parsed.data) : null;
+  const currentAffiliationName = parsed.success ? affiliationSetName(parsed.data) : null;
+  const listed = publicIndexable && listUnderAffiliation && currentRorId !== null;
   const updated = await prisma.cv.update({
     where: { userId },
-    data: { published, publicSlug: slug, publicIndexable },
-    select: { published: true, publicSlug: true, publicIndexable: true },
+    data: {
+      published,
+      publicSlug: slug,
+      publicIndexable,
+      listUnderAffiliation: listed,
+      currentRorId,
+      currentAffiliationName,
+    },
+    select: {
+      published: true,
+      publicSlug: true,
+      publicIndexable: true,
+      listUnderAffiliation: true,
+      currentRorId: true,
+    },
   });
   // Drop any cached render so unpublish/publish/index changes take effect at
   // once (the public route caches rendered pages for a short TTL).
@@ -726,6 +791,8 @@ export async function setPublishState(
     published: updated.published,
     publicSlug: updated.publicSlug,
     indexable: updated.publicIndexable,
+    listUnderAffiliation: updated.listUnderAffiliation,
+    affiliationRorId: updated.currentRorId,
   };
 }
 
@@ -781,24 +848,40 @@ export async function getPublicCvForPage(
   };
 }
 
+/** The OAI set an opted-in CV is listed under, or undefined. The opt-in is the
+ *  consent gate; the key alone (a CV that merely HAS that affiliation) is not. */
+function affiliationSetSpec(row: {
+  listUnderAffiliation: boolean;
+  currentRorId: string | null;
+}): string | undefined {
+  return row.listUnderAffiliation && row.currentRorId ? rorSetSpec(row.currentRorId) : undefined;
+}
+
 /**
  * Indexable published CVs for OAI-PMH harvesting — a page of {slug, datestamp
- * (row `updatedAt`), public-projected cv} plus the total matching count (for
- * resumption). Gated on `publicIndexable` (the same discovery opt-in the sitemap
- * uses). Stable order by slug so offset paging is consistent; `from`/`until`
- * filter on `updatedAt`. Unparseable rows are skipped.
+ * (row `updatedAt`), public-projected cv, set membership} plus the total
+ * matching count (for resumption). Gated on `publicIndexable` (the same
+ * discovery opt-in the sitemap uses). With `set` (a bare ROR id), ONLY the CVs
+ * that opted into the affiliation listing under that id match — never a CV that
+ * merely carries the affiliation. Stable order by slug so offset paging is
+ * consistent; `from`/`until` filter on `updatedAt`. Unparseable rows are skipped.
  */
 export async function listPublicCvRecords(opts: {
   limit: number;
   offset: number;
   from?: Date;
   until?: Date;
+  set?: string;
 }): Promise<{ records: OaiRecordInput[]; total: number }> {
   const where: Prisma.CvWhereInput = {
     published: true,
     publicIndexable: true,
     publicSlug: { not: null },
   };
+  if (opts.set) {
+    where.listUnderAffiliation = true;
+    where.currentRorId = opts.set;
+  }
   if (opts.from || opts.until) {
     where.updatedAt = {
       ...(opts.from ? { gte: opts.from } : {}),
@@ -808,7 +891,13 @@ export async function listPublicCvRecords(opts: {
   const total = await prisma.cv.count({ where });
   const rows = await prisma.cv.findMany({
     where,
-    select: { publicSlug: true, updatedAt: true, document: true },
+    select: {
+      publicSlug: true,
+      updatedAt: true,
+      document: true,
+      listUnderAffiliation: true,
+      currentRorId: true,
+    },
     orderBy: { publicSlug: "asc" },
     take: opts.limit,
     skip: opts.offset,
@@ -822,6 +911,7 @@ export async function listPublicCvRecords(opts: {
       slug: row.publicSlug,
       datestamp: row.updatedAt,
       cv: projectCvForPublic(parsed.data),
+      setSpec: affiliationSetSpec(row),
     });
   }
   return { records, total };
@@ -833,7 +923,55 @@ export async function getPublicCvRecord(slug: string): Promise<OaiRecordInput | 
   if (!row || !row.published || !row.publicIndexable) return null;
   const parsed = safeParseCanonicalCv(row.document);
   if (!parsed.success) return null;
-  return { slug, datestamp: row.updatedAt, cv: projectCvForPublic(parsed.data) };
+  return {
+    slug,
+    datestamp: row.updatedAt,
+    cv: projectCvForPublic(parsed.data),
+    setSpec: affiliationSetSpec(row),
+  };
+}
+
+/** Bound on the number of affiliation sets ListSets enumerates (one per
+ *  distinct institution with an opted-in researcher — far above any near-term
+ *  scale, and a hard ceiling on the query). */
+const MAX_AFFILIATION_SETS = 5_000;
+
+/**
+ * The OAI-PMH `ror:<id>` sets: one per distinct current-affiliation ROR id
+ * among the CVs that are published, indexable AND opted into the affiliation
+ * listing. The `listUnderAffiliation` filter is the consent gate — a set must
+ * contain only researchers who chose to be listed, so an institution with
+ * researchers on SigmaCV but no opt-in has no set at all. The set name is the
+ * institution's canonical (ROR / source) name denormalised beside the key —
+ * never one owner's free-text rename — and falls back to the id; it is
+ * labelled as a self-declared affiliation by the response builder, never as
+ * institutional output.
+ */
+export async function listAffiliationSets(): Promise<OaiSet[]> {
+  const rows = await prisma.cv.findMany({
+    where: {
+      published: true,
+      publicIndexable: true,
+      listUnderAffiliation: true,
+      currentRorId: { not: null },
+    },
+    distinct: ["currentRorId"],
+    // Two small denormalised columns — never the documents (an unauthenticated
+    // verb must not load every opted-in CV). The name is the CANONICAL
+    // institution name written with the key; ordering by it makes the pick
+    // deterministic when several owners' CVs carry different source spellings.
+    select: { currentRorId: true, currentAffiliationName: true },
+    orderBy: [{ currentRorId: "asc" }, { currentAffiliationName: "asc" }],
+    take: MAX_AFFILIATION_SETS,
+  });
+  const sets: OaiSet[] = [];
+  for (const row of rows) {
+    /* v8 ignore next -- the where clause already excludes null keys */
+    if (!row.currentRorId) continue;
+    const name = row.currentAffiliationName?.trim() || `ROR ${row.currentRorId}`;
+    sets.push({ spec: rorSetSpec(row.currentRorId), rorId: row.currentRorId, name });
+  }
+  return sets;
 }
 
 /** Public slugs that the owner has opted into search-engine indexing — for the

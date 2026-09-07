@@ -46,6 +46,8 @@ const CV_ROW = {
   published: true,
   publicSlug: "a-researcher-abc123",
   publicIndexable: false,
+  listUnderAffiliation: true,
+  currentRorId: "04chrp450",
   resyncLockedAt: null,
   createdAt: new Date("2026-06-01T00:00:00Z"),
   updatedAt: new Date("2026-09-01T00:00:00Z"),
@@ -105,6 +107,9 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
       published: true,
       publicSlug: "a-researcher-abc123",
       publicIndexable: false,
+      // The affiliation-listing consent and the ROR key it lists under.
+      listUnderAffiliation: true,
+      currentRorId: "04chrp450",
       schemaVersion: 2,
       lastSyncedAt: CV_ROW.lastSyncedAt.toISOString(),
       lastSyncReport: { added: 1 },
