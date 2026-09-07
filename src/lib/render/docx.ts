@@ -1,7 +1,10 @@
 import {
+  BookmarkEnd,
+  BookmarkStart,
   Document,
   HeadingLevel,
   ImageRun,
+  InternalHyperlink,
   Packer,
   Paragraph,
   Table,
@@ -9,12 +12,15 @@ import {
   TableRow,
   TextRun,
   WidthType,
+  type ParagraphChild,
 } from "docx";
+import type { ResolvedEvidenceSegment } from "@/lib/canonical/evidenceRefs";
 import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "./authorship";
 import { cvChartSvgs } from "./charts";
 import { splitSelf } from "./emphasize";
+import { proseEvidence } from "./evidenceRefs";
 import { textHeader } from "./headerText";
 import { cvSlug } from "./html";
 import { isSummaryBlockHidden, metricsLineText } from "./metrics";
@@ -77,11 +83,48 @@ function chartParagraphs(cv: CanonicalCv): Paragraph[] {
 }
 
 /**
+ * A prose paragraph's runs: its text, with each resolved evidence reference
+ * (`[[id]]`) as a "(label)" run — an internal hyperlink to the referenced entry's
+ * bookmark when that entry is in this document (`bookmarkOf`), else plain text.
+ * An unresolved reference is omitted.
+ */
+function proseRuns(
+  segments: ResolvedEvidenceSegment[],
+  bookmarkOf: (itemId: string) => string | undefined,
+): ParagraphChild[] {
+  const runs: ParagraphChild[] = [];
+  for (const seg of segments) {
+    if (seg.kind === "text") {
+      runs.push(new TextRun(seg.text));
+      continue;
+    }
+    if (!seg.resolved) continue;
+    const anchor = bookmarkOf(seg.id);
+    const label = `(${seg.label})`;
+    runs.push(
+      anchor
+        ? new InternalHyperlink({
+            anchor,
+            children: [new TextRun({ text: label, style: "Hyperlink" })],
+          })
+        : new TextRun(label),
+    );
+  }
+  return runs;
+}
+
+/**
  * A prose section as DOCX paragraphs: a heading paragraph + its body split into
  * paragraphs on blank lines (the body is the user's own plain-text prose, emitted
- * as text runs — Word escapes XML for us). "" body → no paragraphs.
+ * as text runs — Word escapes XML for us; `resolve` turns its evidence references
+ * into linked labels). "" body → no paragraphs.
  */
-function proseSectionParagraphs(title: string, body: string): Paragraph[] {
+function proseSectionParagraphs(
+  title: string,
+  body: string,
+  resolve: (text: string) => ResolvedEvidenceSegment[],
+  bookmarkOf: (itemId: string) => string | undefined,
+): Paragraph[] {
   const out: Paragraph[] = [];
   out.push(
     new Paragraph({
@@ -97,7 +140,7 @@ function proseSectionParagraphs(title: string, body: string): Paragraph[] {
   for (const para of bodyParas) {
     out.push(
       new Paragraph({
-        children: [new TextRun(para)],
+        children: proseRuns(resolve(para), bookmarkOf),
         spacing: { after: 120 },
       }),
     );
@@ -119,6 +162,27 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
   const sections = prepareSections(cv, "text");
   const head = textHeader(cv);
   const children: (Paragraph | Table)[] = [];
+  // Evidence references in the prose sections: each referenced entry's paragraph
+  // gets a bookmark (Word names: letters/digits/underscore, ≤ 40 chars — a short
+  // ordinal, never the raw id) that the "(label)" runs hyperlink to.
+  const evidence = proseEvidence(cv, sections);
+  const bookmarks = new Map([...evidence.referenced].map((id, i) => [id, `ev_${i + 1}`]));
+  const bookmarkOf = (id: string) => bookmarks.get(id);
+  // Wrap an entry's runs in a bookmark. Built from the start/end markers directly
+  // rather than the lib's `Bookmark` wrapper, whose numeric `w:id` restarts at 1
+  // for every instance (a per-instance generator) — Word pairs bookmarkStart /
+  // bookmarkEnd by that id, so two bookmarks sharing it is a corrupt document.
+  // The markers are plain XML components a Paragraph accepts at runtime (the
+  // wrapper itself only splices its start + children + end into the paragraph).
+  let bookmarkSeq = 0;
+  const bookmarked = (name: string, runs: ParagraphChild[]): ParagraphChild[] => {
+    const n = ++bookmarkSeq;
+    return [
+      new BookmarkStart(name, n) as unknown as ParagraphChild,
+      ...runs,
+      new BookmarkEnd(n) as unknown as ParagraphChild,
+    ];
+  };
 
   children.push(
     new Paragraph({
@@ -201,7 +265,9 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
     // free-text body in the section flow, in their reordered position.
     if (isProseSectionType(section.type)) {
       const body = (section.body ?? "").trim();
-      if (body) children.push(...proseSectionParagraphs(section.title, section.body ?? ""));
+      if (body) {
+        children.push(...proseSectionParagraphs(section.title, body, evidence.resolve, bookmarkOf));
+      }
       continue;
     }
     if (items.length === 0) continue;
@@ -218,7 +284,13 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
               (seg) => new TextRun({ text: seg.text, bold: seg.self }),
             )
           : [new TextRun(entry)];
-      children.push(new Paragraph({ children: runs, spacing: { after: 120 } }));
+      const anchor = bookmarkOf(item.id);
+      children.push(
+        new Paragraph({
+          children: anchor ? bookmarked(anchor, runs) : runs,
+          spacing: { after: 120 },
+        }),
+      );
     }
   }
 

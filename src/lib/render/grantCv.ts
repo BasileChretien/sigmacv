@@ -9,6 +9,7 @@ import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { GRANT_PRESETS, type GrantPresetId } from "@/lib/canonical/cvModels";
 import { wrapSelf } from "./emphasize";
 import { escapeMarkdown } from "./escape";
+import { evidenceMarkdown } from "./evidenceRefs";
 import { prepareSections } from "./prepare";
 import type { PreparedSection } from "./prepare";
 import { cvSlug } from "./slug";
@@ -163,7 +164,9 @@ function publicationLines(cv: CanonicalCv, prepared: PreparedSection[]): string[
 function narrativeBlocks(cv: CanonicalCv): string[] {
   return visibleSections(cv)
     .filter((s) => isProseSectionType(s.type) && (s.body ?? "").trim().length > 0)
-    .map((s) => `## ${escapeMarkdown(s.title)}\n\n${escapeMarkdown((s.body ?? "").trim())}`);
+    .map(
+      (s) => `## ${escapeMarkdown(s.title)}\n\n${evidenceMarkdown(cv, (s.body ?? "").trim(), {})}`,
+    );
 }
 
 /**
