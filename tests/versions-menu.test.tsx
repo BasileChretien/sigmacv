@@ -66,10 +66,10 @@ describe("VersionsControls", () => {
     expect(screen.getAllByTestId("version-row")).toHaveLength(2);
     const post = calls.find(([, init]) => init?.method === "POST")!;
     expect(post[0]).toBe("/api/cv/snapshots");
-    expect(JSON.parse(post[1]!.body as string)).toEqual({ label: "Grant", readerMode: false });
+    expect(JSON.parse(post[1]!.body as string)).toEqual({ label: "Grant" });
   });
 
-  it("freezes as the reader view when the owner ticks the option, and tags such rows", async () => {
+  it("freezes in a chosen shape + preset, and tags reader-view rows", async () => {
     const calls: Array<[string, RequestInit | undefined]> = [];
     handler = (url, init) => {
       calls.push([url, init]);
@@ -86,21 +86,26 @@ describe("VersionsControls", () => {
     render(<VersionsControls locale="en-US" published={true} slug="basile-x" />);
     await screen.findByText("Tenure review");
     expect(screen.queryByText("Reader view")).toBeNull();
-    expect(screen.queryByText(/Verified marks|verified/i)).toBeNull();
-    fireEvent.click(screen.getByLabelText("Freeze as reader view"));
-    // Ticking it shows the explicit inventory of what the reader view turns on.
+    fireEvent.change(screen.getByLabelText("Freeze as"), { target: { value: "reader" } });
+    // Choosing it shows the explicit inventory of what the reader view turns on.
     expect(screen.getByText(/has no standard view/).textContent).toMatch(/Provenance|provenance/);
+    fireEvent.change(screen.getByLabelText("Shape"), {
+      target: { value: "institutional-assessment" },
+    });
     fireEvent.change(screen.getByPlaceholderText(/Label/), { target: { value: "Reader" } });
     fireEvent.click(screen.getByText("Freeze this version"));
     await screen.findByText("Reader");
     const post = calls.find(([, init]) => init?.method === "POST")!;
-    expect(JSON.parse(post[1]!.body as string)).toEqual({ label: "Reader", readerMode: true });
+    expect(JSON.parse(post[1]!.body as string)).toEqual({
+      label: "Reader",
+      modelId: "institutional-assessment",
+      preset: "reader",
+    });
     // The new row carries the "Reader view" tag; the plain one does not.
     expect(screen.getAllByText("Reader view")).toHaveLength(1);
-    // The one-time choice does not stick to the next freeze.
-    expect((screen.getByLabelText("Freeze as reader view") as HTMLInputElement).checked).toBe(
-      false,
-    );
+    // The one-time choices do not stick to the next freeze.
+    expect((screen.getByLabelText("Freeze as") as HTMLSelectElement).value).toBe("");
+    expect((screen.getByLabelText("Shape") as HTMLSelectElement).value).toBe("");
   });
 
   it("disables Mint DOI with the 'not configured' hint when the server has no credentials", async () => {

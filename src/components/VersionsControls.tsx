@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { cvModelsByCategory, type CvModelCategory } from "@/lib/canonical/cvModels";
+import { type FreezePreset, isFreezePreset } from "@/lib/cv/freezeRequest";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { readerModeKeyLabels } from "@/lib/i18n/readerModeLabels";
 import { snapshotStrings } from "@/lib/i18n/snapshots";
@@ -42,7 +44,16 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
   const [listing, setListing] = useState<Listing | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [label, setLabel] = useState("");
-  const [readerMode, setReaderMode] = useState(false);
+  const [modelId, setModelId] = useState("");
+  const [preset, setPreset] = useState<FreezePreset | "">("");
+  const eu = editorUi(locale);
+  const modelGroups = useMemo(() => cvModelsByCategory(), []);
+  const modelGroupLabel = (c: CvModelCategory): string =>
+    c === "grant"
+      ? eu.modelGrpGrant
+      : c === "institution"
+        ? eu.modelGrpInstitution
+        : eu.modelGrpIndustry;
   const [busy, setBusy] = useState<string | null>(null);
   const [announce, setAnnounce] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -84,13 +95,18 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
       const res = await fetch("/api/cv/snapshots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label: trimmed, readerMode }),
+        body: JSON.stringify({
+          label: trimmed,
+          ...(modelId ? { modelId } : {}),
+          ...(preset ? { preset } : {}),
+        }),
       });
       if (res.ok) {
         const { snapshot } = (await res.json()) as { snapshot: SnapshotSummary };
         setListing((cur) => (cur ? { ...cur, snapshots: [snapshot, ...cur.snapshots] } : cur));
         setLabel("");
-        setReaderMode(false);
+        setModelId("");
+        setPreset("");
       } else if (res.status === 409) {
         setAnnounce(fill(s.limitReached, { n: listing?.max ?? 20 }));
       } else {
@@ -208,18 +224,45 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
           {busy === "create" ? s.creating : s.createButton}
         </button>
       </form>
-      <label className="field-inline versions-reader">
-        <input
-          type="checkbox"
-          checked={readerMode}
-          disabled={busy === "create" || atLimit}
-          onChange={(e) => setReaderMode(e.target.checked)}
-        />
-        <span>{s.readerOption}</span>
-      </label>
+      <div className="versions-shape">
+        <label className="field-inline">
+          <span>{s.shapeLabel}</span>
+          <select
+            value={modelId}
+            disabled={busy === "create" || atLimit}
+            onChange={(e) => setModelId(e.target.value)}
+          >
+            <option value="">{s.shapeCurrent}</option>
+            {modelGroups.map((group) => (
+              <optgroup key={group.category} label={modelGroupLabel(group.category)}>
+                {group.models.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+        <label className="field-inline">
+          <span>{s.presetLabel}</span>
+          <select
+            value={preset}
+            disabled={busy === "create" || atLimit}
+            onChange={(e) => setPreset(isFreezePreset(e.target.value) ? e.target.value : "")}
+          >
+            <option value="">{s.presetStandard}</option>
+            <option value="reader">{s.presetReader}</option>
+            <option value="hiring">{s.presetHiring}</option>
+          </select>
+        </label>
+      </div>
       <p className="versions-hint">
-        {s.readerOptionHint}
-        {readerMode ? ` ${readerInventory}` : ""}
+        {preset === "reader"
+          ? `${s.readerOptionHint} ${readerInventory}`
+          : preset === "hiring"
+            ? s.hiringHint
+            : s.shapeHint}
       </p>
       {atLimit ? (
         <p className="versions-hint">{fill(s.limitReached, { n: listing?.max ?? 20 })}</p>

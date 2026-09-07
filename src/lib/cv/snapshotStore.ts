@@ -9,7 +9,7 @@ import {
   provenanceLedger,
   type ProvenanceLedger,
 } from "@/lib/cv/provenanceLedger";
-import { applyReaderMode } from "@/lib/render/readerMode";
+import { shapeForFreeze, type FreezeShape } from "@/lib/cv/snapshotShape";
 import { contentHashOf } from "@/lib/cv/snapshotHash";
 import { freezeCanonical, MAX_SNAPSHOTS_PER_CV } from "@/lib/cv/snapshots";
 import { doiMintingEnabled, mintSnapshotDoi } from "@/lib/datacite/mint";
@@ -160,13 +160,16 @@ export async function listSnapshots(userId: string): Promise<SnapshotListing> {
   };
 }
 
-export interface CreateSnapshotOptions {
-  /** Freeze as the assessor's READER VIEW: the frozen page always renders with
-   *  the reader-mode preset (evidence marks on, retracted works visible). An
-   *  explicit owner choice at freeze time, stored with the version and never
-   *  changed afterwards — a frozen artefact must stay the bytes an assessor saw. */
-  readerMode?: boolean;
-}
+/**
+ * What to freeze: optionally a CV model (section layout) and a display preset —
+ * `"reader"` (the assessor's reader view: evidence marks on, retracted works
+ * visible; the page renders with `readerMode`) or `"hiring"` (contact on,
+ * academic evidence and metrics off). Applied to a COPY (`shapeForFreeze`);
+ * the live document is never changed. Explicit owner choices at freeze time,
+ * stored with the version and never changed afterwards — a frozen artefact must
+ * stay the bytes an assessor saw.
+ */
+export type CreateSnapshotOptions = FreezeShape;
 
 /**
  * Freeze the owner's CURRENT stored document as the next version. Refused at
@@ -195,13 +198,13 @@ export async function createSnapshot(
     _max: { version: true },
   });
   const version = (agg._max.version ?? 0) + 1;
-  const readerMode = options.readerMode === true;
-  // A reader-view freeze MATERIALISES the reader preset into the frozen display,
-  // so the ledger (its "retracted works shown" line depends on `hideRetracted`),
-  // the frozen document and the page all describe the same view.
-  const doc = readerMode
-    ? { ...parsed.data, display: applyReaderMode(parsed.data.display) }
-    : parsed.data;
+  const readerMode = options.preset === "reader";
+  // Shape first — the model and the preset, on a COPY (`shapeForFreeze`
+  // materialises the preset into the frozen display, so the ledger — whose
+  // "retracted works shown" line depends on `hideRetracted` — the frozen
+  // document and the page all describe the same view). Then the ledger on the
+  // SHAPED document: its populations follow the sections the page will show.
+  const doc = shapeForFreeze(parsed.data, options);
   const ledger = provenanceLedger(doc);
   const frozen = freezeCanonical(doc);
   const row = await prisma.cvSnapshot.create({
@@ -220,7 +223,7 @@ export async function createSnapshot(
     },
     select: SUMMARY_SELECT,
   });
-  logger.info("snapshot.created", { version, readerMode });
+  logger.info("snapshot.created", { version, readerMode, preset: options.preset ?? "standard" });
   return toSummary(row);
 }
 

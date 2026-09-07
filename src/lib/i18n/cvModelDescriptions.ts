@@ -729,6 +729,27 @@ const CV_MODEL_DESCRIPTIONS: Record<CvModelId, TranslatedDescriptions> = {
       "Досье на постоянную позицию (tenure) и повышение в США (полный академический послужной список).",
   },
 
+  "institutional-assessment": {
+    "zh-CN":
+      "机构侧研究评估档案（HCERES、REF、终身教职或定期评审）：经核验的职位与教育经历、经费、带持久标识符的完整成果记录、数据与软件、指导、教学、服务与编辑工作。适合冻结为评估者的审阅视图。",
+    "es-ES":
+      "Expediente de evaluación institucional (HCERES, REF, tenure o revisión periódica): cargos y formación verificados, financiación, el registro completo de resultados con identificadores persistentes, datos y software, dirección, docencia, servicio y trabajo editorial. Pensado para congelarse como vista para evaluadores.",
+    "fr-FR":
+      "Dossier d’évaluation institutionnelle (HCERES, REF, titularisation ou évaluation périodique) : postes et formation vérifiés, financements, l’ensemble des productions avec identifiants pérennes, données et logiciels, encadrement, enseignement, responsabilités et travail éditorial. Conçu pour être figé en vue évaluateur.",
+    "de-DE":
+      "Dossier für die institutionelle Forschungsbewertung (HCERES, REF, Tenure oder periodische Evaluation): geprüfte Positionen und Ausbildung, Förderung, der vollständige Output mit persistenten Identifikatoren, Daten und Software, Betreuung, Lehre, Gremienarbeit und Herausgebertätigkeit. Gedacht zum Einfrieren als Gutachteransicht.",
+    "ja-JP":
+      "機関側の研究評価用ドシエ（HCERES、REF、テニュア審査、定期評価）：検証済みの職歴と学歴、研究費、永続識別子付きの全成果、データとソフトウェア、指導、教育、委員会活動、編集活動。審査者ビューとして固定することを想定。",
+    "pt-BR":
+      "Dossiê de avaliação institucional (HCERES, REF, tenure ou avaliação periódica): cargos e formação verificados, financiamento, o registro completo de resultados com identificadores persistentes, dados e software, orientação, ensino, serviço e trabalho editorial. Feito para ser congelado como visão para avaliadores.",
+    "it-IT":
+      "Dossier di valutazione istituzionale (HCERES, REF, tenure o valutazione periodica): posizioni e formazione verificate, finanziamenti, il record completo dei prodotti con identificatori persistenti, dati e software, supervisione, didattica, servizio e attività editoriale. Pensato per essere congelato come vista per valutatori.",
+    "ko-KR":
+      "기관 측 연구 평가 서류(HCERES, REF, 테뉴어 또는 정기 평가): 검증된 직위와 학력, 연구비, 영구 식별자가 있는 전체 성과 기록, 데이터와 소프트웨어, 지도, 교육, 봉사 및 편집 활동. 심사자 보기로 고정하는 용도입니다.",
+    "ru-RU":
+      "Досье для институциональной оценки (HCERES, REF, tenure или периодическая аттестация): подтверждённые должности и образование, финансирование, полный перечень результатов с постоянными идентификаторами, данные и программное обеспечение, руководство, преподавание, экспертная и редакторская работа. Предназначено для заморозки в режиме эксперта.",
+  },
+
   // ─── INDUSTRY / PHARMA ───────────────────────────────────────────────────────
   "gcp-investigator": {
     "zh-CN":

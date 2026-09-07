@@ -44,12 +44,32 @@ export interface SnapshotStrings {
   bannerLive: string;
   bannerCompare: string;
   // ── Freeze as reader view (assessment-grade freeze) ───────────────────────
-  /** Create-form checkbox: freeze this version as the assessor's reader view. */
-  readerOption: string;
-  /** Hint under the checkbox / tooltip on the row tag. */
+  /** Hint for the reader-view preset / tooltip on the row tag. */
   readerOptionHint: string;
   /** Row tag on a version frozen as the reader view. */
   readerTag: string;
+  // ── Freeze in this shape (model + preset) ─────────────────────────────────
+  shapeLabel: string;
+  shapeCurrent: string;
+  shapeHint: string;
+  presetLabel: string;
+  presetStandard: string;
+  presetReader: string;
+  presetHiring: string;
+  hiringHint: string;
+  // ── Stateless freeze request banner (/cv?freeze=…) ────────────────────────
+  requestTitle: string;
+  /** {shape} = model name or requestNoModel; {preset} = the preset label. */
+  requestBody: string;
+  /** {date} = requested-by date. */
+  requestBy: string;
+  requestNoModel: string;
+  requestNothingSent: string;
+  requestDefaultLabel: string;
+  requestFreeze: string;
+  requestDismiss: string;
+  /** {n} = the new version number. */
+  requestDone: string;
   // ── Diff page ─────────────────────────────────────────────────────────────
   /** Page title; {n} = version. */
   diffTitle: string;
@@ -102,10 +122,29 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "Frozen version {n} · {date}",
     bannerLive: "Live version",
     bannerCompare: "What changed since",
-    readerOption: "Freeze as reader view",
     readerOptionHint:
       "The frozen page shows the provenance, verification and context marks an assessor needs, keeps retracted works visible, and has no standard view. Chosen now, fixed for this version.",
     readerTag: "Reader view",
+    shapeLabel: "Shape",
+    shapeCurrent: "Current layout",
+    shapeHint:
+      "Apply one of the CV models to this frozen version only — your live CV is not changed.",
+    presetLabel: "Freeze as",
+    presetStandard: "Standard page",
+    presetReader: "Reader view (for assessors)",
+    presetHiring: "Hiring panel",
+    hiringHint:
+      "Shows your contact details (email, phone, location) on this frozen page and hides the academic evidence marks and metrics. Chosen now, fixed for this version.",
+    requestTitle: "A link asked for a frozen version of your CV",
+    requestBody: "It asks for the shape “{shape}”, frozen as: {preset}.",
+    requestBy: "Requested by {date}.",
+    requestNoModel: "your current layout",
+    requestNothingSent:
+      "Nothing has been sent to whoever made the link — you decide whether to freeze, and you send the frozen link yourself.",
+    requestDefaultLabel: "Requested version",
+    requestFreeze: "Freeze this version",
+    requestDismiss: "Not now",
+    requestDone: "Frozen as version {n}.",
     diffTitle: "Changes since version {n}",
     diffIntro: "Comparing frozen version {n} ({date}) with the current live CV.",
     diffNoChanges: "No changes.",
@@ -151,10 +190,28 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "冻结版本 {n} · {date}",
     bannerLive: "实时版本",
     bannerCompare: "自那时以来的变化",
-    readerOption: "冻结为审阅视图",
     readerOptionHint:
       "冻结页面会显示评估者所需的来源、核验与背景标记，让已撤稿作品保持可见，且没有标准视图。现在选择，此版本固定不变。",
     readerTag: "审阅视图",
+    shapeLabel: "形态",
+    shapeCurrent: "当前布局",
+    shapeHint: "仅对此冻结版本应用某个简历模型，不会更改您的实时简历。",
+    presetLabel: "冻结为",
+    presetStandard: "标准页面",
+    presetReader: "审阅视图（供评估者）",
+    presetHiring: "招聘小组",
+    hiringHint:
+      "在此冻结页面上显示您的联系方式（邮箱、电话、所在地），并隐藏学术证据标记和指标。现在选择，此版本固定不变。",
+    requestTitle: "有链接请求冻结您的简历版本",
+    requestBody: "它请求的形态是“{shape}”，冻结为：{preset}。",
+    requestBy: "请求截止 {date}。",
+    requestNoModel: "您当前的布局",
+    requestNothingSent:
+      "没有任何内容发送给链接的制作者——是否冻结由您决定，冻结后的链接也由您自己发送。",
+    requestDefaultLabel: "应请求的版本",
+    requestFreeze: "冻结此版本",
+    requestDismiss: "暂不",
+    requestDone: "已冻结为版本 {n}。",
     diffTitle: "自版本 {n} 以来的变化",
     diffIntro: "正在将冻结版本 {n}（{date}）与当前实时简历进行比较。",
     diffNoChanges: "没有变化。",
@@ -201,10 +258,29 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "Versión congelada {n} · {date}",
     bannerLive: "Versión en vivo",
     bannerCompare: "Qué ha cambiado desde entonces",
-    readerOption: "Congelar como vista para evaluadores",
     readerOptionHint:
       "La página congelada muestra las marcas de procedencia, verificación y contexto que necesita un evaluador, mantiene visibles los trabajos retractados y no tiene vista estándar. Se elige ahora y queda fija para esta versión.",
     readerTag: "Vista para evaluadores",
+    shapeLabel: "Formato",
+    shapeCurrent: "Diseño actual",
+    shapeHint:
+      "Aplica uno de los modelos de CV solo a esta versión congelada; tu CV en vivo no cambia.",
+    presetLabel: "Congelar como",
+    presetStandard: "Página estándar",
+    presetReader: "Vista para evaluadores",
+    presetHiring: "Comité de selección",
+    hiringHint:
+      "Muestra tus datos de contacto (correo, teléfono, ubicación) en esta página congelada y oculta las marcas de evidencia académica y las métricas. Se elige ahora y queda fijo para esta versión.",
+    requestTitle: "Un enlace ha pedido una versión congelada de tu CV",
+    requestBody: "Pide el formato «{shape}», congelado como: {preset}.",
+    requestBy: "Solicitado para el {date}.",
+    requestNoModel: "tu diseño actual",
+    requestNothingSent:
+      "No se ha enviado nada a quien creó el enlace: tú decides si congelar, y el enlace congelado lo envías tú.",
+    requestDefaultLabel: "Versión solicitada",
+    requestFreeze: "Congelar esta versión",
+    requestDismiss: "Ahora no",
+    requestDone: "Congelada como versión {n}.",
     diffTitle: "Cambios desde la versión {n}",
     diffIntro: "Comparación de la versión congelada {n} ({date}) con el CV en vivo actual.",
     diffNoChanges: "Sin cambios.",
@@ -252,10 +328,29 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "Version figée {n} · {date}",
     bannerLive: "Version en direct",
     bannerCompare: "Ce qui a changé depuis",
-    readerOption: "Figer en vue évaluateur",
     readerOptionHint:
       "La page figée affiche les repères de provenance, de vérification et de contexte dont un évaluateur a besoin, garde visibles les travaux rétractés et n’a pas de vue standard. Choisi maintenant, fixé pour cette version.",
     readerTag: "Vue évaluateur",
+    shapeLabel: "Format",
+    shapeCurrent: "Mise en page actuelle",
+    shapeHint:
+      "Applique un modèle de CV à cette seule version figée ; votre CV en direct n’est pas modifié.",
+    presetLabel: "Figer en",
+    presetStandard: "Page standard",
+    presetReader: "Vue évaluateur",
+    presetHiring: "Jury de recrutement",
+    hiringHint:
+      "Affiche vos coordonnées (e-mail, téléphone, localisation) sur cette page figée et masque les repères de preuve académique et les indicateurs. Choisi maintenant, fixé pour cette version.",
+    requestTitle: "Un lien demande une version figée de votre CV",
+    requestBody: "Il demande le format « {shape} », figé en : {preset}.",
+    requestBy: "Demandé pour le {date}.",
+    requestNoModel: "votre mise en page actuelle",
+    requestNothingSent:
+      "Rien n’a été envoyé à l’auteur du lien : vous décidez de figer ou non, et c’est vous qui envoyez le lien figé.",
+    requestDefaultLabel: "Version demandée",
+    requestFreeze: "Figer cette version",
+    requestDismiss: "Pas maintenant",
+    requestDone: "Figée en version {n}.",
     diffTitle: "Changements depuis la version {n}",
     diffIntro: "Comparaison de la version figée {n} ({date}) avec le CV en direct actuel.",
     diffNoChanges: "Aucun changement.",
@@ -303,10 +398,29 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "Eingefrorene Version {n} · {date}",
     bannerLive: "Live-Version",
     bannerCompare: "Was sich seitdem geändert hat",
-    readerOption: "Als Gutachteransicht einfrieren",
     readerOptionHint:
       "Die eingefrorene Seite zeigt die Herkunfts-, Prüf- und Kontextmarkierungen, die Gutachtende brauchen, zeigt zurückgezogene Arbeiten weiterhin an und hat keine Standardansicht. Die Wahl gilt dauerhaft für diese Version.",
     readerTag: "Gutachteransicht",
+    shapeLabel: "Format",
+    shapeCurrent: "Aktuelles Layout",
+    shapeHint:
+      "Wendet ein CV-Modell nur auf diese eingefrorene Version an; Ihr Live-CV bleibt unverändert.",
+    presetLabel: "Einfrieren als",
+    presetStandard: "Standardseite",
+    presetReader: "Gutachteransicht",
+    presetHiring: "Auswahlkommission",
+    hiringHint:
+      "Zeigt Ihre Kontaktdaten (E-Mail, Telefon, Ort) auf dieser eingefrorenen Seite und blendet die akademischen Nachweismarkierungen und Kennzahlen aus. Jetzt gewählt, für diese Version fest.",
+    requestTitle: "Ein Link hat eine eingefrorene Version Ihres CV angefragt",
+    requestBody: "Er fragt nach dem Format „{shape}“, eingefroren als: {preset}.",
+    requestBy: "Erbeten bis {date}.",
+    requestNoModel: "Ihr aktuelles Layout",
+    requestNothingSent:
+      "An den Ersteller des Links wurde nichts gesendet: Sie entscheiden, ob Sie einfrieren, und Sie versenden den eingefrorenen Link selbst.",
+    requestDefaultLabel: "Angefragte Version",
+    requestFreeze: "Diese Version einfrieren",
+    requestDismiss: "Nicht jetzt",
+    requestDone: "Als Version {n} eingefroren.",
     diffTitle: "Änderungen seit Version {n}",
     diffIntro: "Vergleich der eingefrorenen Version {n} ({date}) mit dem aktuellen Live-CV.",
     diffNoChanges: "Keine Änderungen.",
@@ -354,10 +468,28 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "固定版 {n} · {date}",
     bannerLive: "ライブ版",
     bannerCompare: "その後の変更",
-    readerOption: "審査者ビューとして固定",
     readerOptionHint:
       "固定したページには、審査者に必要な出所・検証・背景の表示が含まれ、撤回された論文も表示されたままになり、標準ビューはありません。今選ぶと、このバージョンでは変更できません。",
     readerTag: "審査者ビュー",
+    shapeLabel: "形式",
+    shapeCurrent: "現在のレイアウト",
+    shapeHint: "この固定バージョンにのみ CV モデルを適用します。公開中の CV は変更されません。",
+    presetLabel: "固定の種類",
+    presetStandard: "標準ページ",
+    presetReader: "審査者ビュー",
+    presetHiring: "採用委員会向け",
+    hiringHint:
+      "この固定ページに連絡先（メール、電話、所在地）を表示し、学術的な根拠表示と指標を非表示にします。今選ぶと、このバージョンでは変更できません。",
+    requestTitle: "リンクから CV の固定バージョンが求められています",
+    requestBody: "求められている形式は「{shape}」、固定の種類は「{preset}」です。",
+    requestBy: "期限：{date}。",
+    requestNoModel: "現在のレイアウト",
+    requestNothingSent:
+      "リンクの作成者には何も送信されていません。固定するかどうかはあなたが決め、固定リンクもあなた自身が送ります。",
+    requestDefaultLabel: "依頼されたバージョン",
+    requestFreeze: "このバージョンを固定",
+    requestDismiss: "今はしない",
+    requestDone: "バージョン {n} として固定しました。",
     diffTitle: "バージョン {n} 以降の変更",
     diffIntro: "固定版 {n}（{date}）と現在のライブ CV を比較しています。",
     diffNoChanges: "変更はありません。",
@@ -404,10 +536,29 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "Versão congelada {n} · {date}",
     bannerLive: "Versão ao vivo",
     bannerCompare: "O que mudou desde então",
-    readerOption: "Congelar como visão para avaliadores",
     readerOptionHint:
       "A página congelada mostra as marcas de proveniência, verificação e contexto de que um avaliador precisa, mantém visíveis os trabalhos retratados e não tem visão padrão. Escolhido agora, fixo para esta versão.",
     readerTag: "Visão para avaliadores",
+    shapeLabel: "Formato",
+    shapeCurrent: "Layout atual",
+    shapeHint:
+      "Aplica um dos modelos de CV apenas a esta versão congelada; seu CV ao vivo não muda.",
+    presetLabel: "Congelar como",
+    presetStandard: "Página padrão",
+    presetReader: "Visão para avaliadores",
+    presetHiring: "Banca de seleção",
+    hiringHint:
+      "Mostra seus dados de contato (e-mail, telefone, localização) nesta página congelada e oculta as marcas de evidência acadêmica e as métricas. Escolhido agora, fixo para esta versão.",
+    requestTitle: "Um link pediu uma versão congelada do seu CV",
+    requestBody: "Ele pede o formato “{shape}”, congelado como: {preset}.",
+    requestBy: "Solicitado até {date}.",
+    requestNoModel: "seu layout atual",
+    requestNothingSent:
+      "Nada foi enviado a quem criou o link: você decide se congela, e é você quem envia o link congelado.",
+    requestDefaultLabel: "Versão solicitada",
+    requestFreeze: "Congelar esta versão",
+    requestDismiss: "Agora não",
+    requestDone: "Congelada como versão {n}.",
     diffTitle: "Mudanças desde a versão {n}",
     diffIntro: "Comparando a versão congelada {n} ({date}) com o CV ao vivo atual.",
     diffNoChanges: "Sem mudanças.",
@@ -454,10 +605,29 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "Versione congelata {n} · {date}",
     bannerLive: "Versione live",
     bannerCompare: "Cosa è cambiato da allora",
-    readerOption: "Congela come vista per valutatori",
     readerOptionHint:
       "La pagina congelata mostra i contrassegni di provenienza, verifica e contesto di cui ha bisogno un valutatore, mantiene visibili i lavori ritrattati e non ha una vista standard. Scelto ora, fisso per questa versione.",
     readerTag: "Vista per valutatori",
+    shapeLabel: "Formato",
+    shapeCurrent: "Layout attuale",
+    shapeHint:
+      "Applica uno dei modelli di CV solo a questa versione congelata; il tuo CV live non cambia.",
+    presetLabel: "Congela come",
+    presetStandard: "Pagina standard",
+    presetReader: "Vista per valutatori",
+    presetHiring: "Commissione di selezione",
+    hiringHint:
+      "Mostra i tuoi contatti (e-mail, telefono, località) su questa pagina congelata e nasconde i contrassegni di evidenza accademica e le metriche. Scelto ora, fisso per questa versione.",
+    requestTitle: "Un link ha chiesto una versione congelata del tuo CV",
+    requestBody: "Chiede il formato «{shape}», congelato come: {preset}.",
+    requestBy: "Richiesto entro il {date}.",
+    requestNoModel: "il tuo layout attuale",
+    requestNothingSent:
+      "Nulla è stato inviato a chi ha creato il link: decidi tu se congelare, e sei tu a inviare il link congelato.",
+    requestDefaultLabel: "Versione richiesta",
+    requestFreeze: "Congela questa versione",
+    requestDismiss: "Non ora",
+    requestDone: "Congelata come versione {n}.",
     diffTitle: "Modifiche dalla versione {n}",
     diffIntro: "Confronto tra la versione congelata {n} ({date}) e il CV live attuale.",
     diffNoChanges: "Nessuna modifica.",
@@ -504,10 +674,28 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "고정 버전 {n} · {date}",
     bannerLive: "라이브 버전",
     bannerCompare: "이후 변경 사항",
-    readerOption: "심사자 보기로 고정",
     readerOptionHint:
       "고정된 페이지에는 심사자에게 필요한 출처·검증·맥락 표시가 포함되고 철회된 논문도 계속 표시되며 표준 보기는 없습니다. 지금 선택하면 이 버전에서는 변경되지 않습니다.",
     readerTag: "심사자 보기",
+    shapeLabel: "형식",
+    shapeCurrent: "현재 레이아웃",
+    shapeHint: "이 고정 버전에만 CV 모델을 적용합니다. 공개 중인 CV는 변경되지 않습니다.",
+    presetLabel: "고정 유형",
+    presetStandard: "표준 페이지",
+    presetReader: "심사자 보기",
+    presetHiring: "채용 위원회용",
+    hiringHint:
+      "이 고정 페이지에 연락처(이메일, 전화, 위치)를 표시하고 학술 근거 표시와 지표를 숨깁니다. 지금 선택하면 이 버전에서는 변경되지 않습니다.",
+    requestTitle: "링크에서 CV 고정 버전을 요청했습니다",
+    requestBody: "요청된 형식은 “{shape}”, 고정 유형은 {preset}입니다.",
+    requestBy: "요청 기한: {date}.",
+    requestNoModel: "현재 레이아웃",
+    requestNothingSent:
+      "링크를 만든 사람에게는 아무것도 전송되지 않았습니다. 고정 여부는 본인이 결정하고, 고정된 링크도 본인이 직접 보냅니다.",
+    requestDefaultLabel: "요청된 버전",
+    requestFreeze: "이 버전 고정",
+    requestDismiss: "나중에",
+    requestDone: "버전 {n}(으)로 고정되었습니다.",
     diffTitle: "버전 {n} 이후의 변경 사항",
     diffIntro: "고정 버전 {n}({date})과 현재 라이브 CV를 비교합니다.",
     diffNoChanges: "변경 사항이 없습니다.",
@@ -554,10 +742,29 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerFrozen: "Зафиксированная версия {n} · {date}",
     bannerLive: "Живая версия",
     bannerCompare: "Что изменилось с тех пор",
-    readerOption: "Зафиксировать в режиме эксперта",
     readerOptionHint:
       "Зафиксированная страница показывает отметки происхождения, проверки и контекста, нужные эксперту, оставляет отозванные работы видимыми и не имеет обычного вида. Выбирается сейчас и фиксируется для этой версии.",
     readerTag: "Режим эксперта",
+    shapeLabel: "Формат",
+    shapeCurrent: "Текущая раскладка",
+    shapeHint:
+      "Применяет одну из моделей CV только к этой замороженной версии; ваш живой CV не меняется.",
+    presetLabel: "Заморозить как",
+    presetStandard: "Обычная страница",
+    presetReader: "Режим эксперта",
+    presetHiring: "Для комиссии по найму",
+    hiringHint:
+      "Показывает ваши контакты (эл. почта, телефон, местоположение) на этой замороженной странице и скрывает отметки академических свидетельств и метрики. Выбирается сейчас и фиксируется для этой версии.",
+    requestTitle: "По ссылке запрошена замороженная версия вашего CV",
+    requestBody: "Запрошен формат «{shape}», заморозить как: {preset}.",
+    requestBy: "Срок: {date}.",
+    requestNoModel: "ваша текущая раскладка",
+    requestNothingSent:
+      "Автору ссылки ничего не отправлено: вы сами решаете, замораживать ли версию, и сами отправляете замороженную ссылку.",
+    requestDefaultLabel: "Запрошенная версия",
+    requestFreeze: "Заморозить эту версию",
+    requestDismiss: "Не сейчас",
+    requestDone: "Заморожено как версия {n}.",
     diffTitle: "Изменения с версии {n}",
     diffIntro: "Сравнение зафиксированной версии {n} ({date}) с текущим живым CV.",
     diffNoChanges: "Изменений нет.",

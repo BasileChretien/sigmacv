@@ -802,6 +802,33 @@ const CV_MODELS_SOURCE = [
     display: FULL,
   },
 
+  {
+    id: "institutional-assessment",
+    category: "institution",
+    region: "INT",
+    name: "Institutional assessment (HCERES / REF-style)",
+    description:
+      "Institution-side research assessment dossier (HCERES, REF, tenure or periodic review): verified positions and education, funding, the full output record with persistent identifiers, data and software, supervision, teaching, service and editorial work. Meant to be frozen as the assessor's reader view.",
+    sections: [
+      "education",
+      "positions",
+      "awards",
+      "grants",
+      "publications",
+      "preprints",
+      "datasets",
+      "software",
+      "preregistrations",
+      "supervision",
+      "teaching",
+      "service",
+      "editorial",
+      "peer-review",
+      "talks",
+    ],
+    display: FULL,
+  },
+
   // ─── INDUSTRY / PHARMA ────────────────────────────────────────────────────
   {
     id: "gcp-investigator",

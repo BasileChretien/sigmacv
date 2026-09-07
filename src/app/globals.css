@@ -1189,8 +1189,17 @@ input[type="radio"] {
   color: var(--muted, #556);
   white-space: nowrap;
 }
-.versions-reader {
+.versions-shape {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
   margin-top: 0.4rem;
+}
+.versions-shape select {
+  max-width: 16rem;
+}
+.freeze-request p {
+  margin: 0.4rem 0 0;
 }
 .versions-row-date {
   font-size: var(--text-sm, 0.85rem);

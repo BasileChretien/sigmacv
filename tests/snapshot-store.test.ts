@@ -200,7 +200,7 @@ describe("createSnapshot", () => {
     const pubs = claimed.sections.find((s) => s.id === "publications")!;
     pubs.items[0]!.meta.claimed = true;
     mocks.cvFindUnique.mockResolvedValue({ ...CV_ROW, document: claimed });
-    const out = await createSnapshot("u1", "Reader copy", { readerMode: true });
+    const out = await createSnapshot("u1", "Reader copy", { preset: "reader" });
     expect(out.readerMode).toBe(true);
     expect(out.contentHash).toMatch(/^[0-9a-f]{64}$/);
     const data = mocks.create.mock.calls[0]![0].data as {
@@ -229,6 +229,31 @@ describe("createSnapshot", () => {
     // A reader-view freeze materialises the preset: the frozen display IS the reader view.
     expect(data.canonical.display.hideRetracted).toBe(false);
     expect(data.canonical.display.showProvenance).toBe(true);
+  });
+
+  it("freezes in the shape of a CV model + preset on a COPY — the live document is untouched", async () => {
+    mocks.count.mockResolvedValue(0);
+    mocks.aggregate.mockResolvedValue({ _max: { version: null } });
+    mocks.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+      ...ROW,
+      readerMode: data.readerMode,
+    }));
+    const before = JSON.stringify(CV);
+    const out = await createSnapshot("u1", "Pharma", { modelId: "pharma-rd", preset: "hiring" });
+    expect(out.readerMode).toBe(false);
+    expect(JSON.stringify(CV)).toBe(before);
+    const data = mocks.create.mock.calls[0]![0].data as {
+      canonical: CanonicalCv;
+      ledger: ProvenanceLedger;
+    };
+    const visible = data.canonical.sections.filter((s) => s.visible).map((s) => s.type);
+    expect(visible).toContain("skills");
+    expect(data.canonical.display.publicContact.email).toBe(true);
+    expect(data.canonical.display.showProvenance).toBe(false);
+    // The ledger follows the SHAPED document's visible sections.
+    expect(data.ledger.kept).toBe(provenanceLedger(data.canonical).kept);
+    // Nothing was written to the live row.
+    expect(mocks.update).not.toHaveBeenCalled();
   });
 
   it("defaults to a standard (non-reader) freeze", async () => {

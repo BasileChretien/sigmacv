@@ -91,9 +91,9 @@ describe("CV-model catalog", () => {
   it("counts: grant + institution + industry models", () => {
     const byCat = (c: CvModelCategory) => CV_MODELS.filter((m) => m.category === c).length;
     expect(byCat("grant")).toBe(38);
-    expect(byCat("institution")).toBe(10);
+    expect(byCat("institution")).toBe(11);
     expect(byCat("industry")).toBe(10);
-    expect(CV_MODELS.length).toBe(58);
+    expect(CV_MODELS.length).toBe(59);
   });
 
   it("every model has a unique id", () => {

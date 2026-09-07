@@ -72,6 +72,36 @@ export const READER_MODE_OFF_KEYS = [
   "hideRetracted",
 ] as const satisfies readonly (keyof DisplayChoices)[];
 
+/**
+ * The HIRING-PANEL preset — the industry counterpart of reader mode, chosen by
+ * the owner at FREEZE time only (`snapshotShape.ts`). A hiring panel needs to
+ * reach the candidate and does not read academic evidence marks, so the preset
+ * is data-minimising in the other direction: every reader-mode signal AND the
+ * evaluative aggregates (`showMetrics` / `showCharts` / `showAuthorshipTable`)
+ * are forced OFF, and the contact fields are switched ON. The owner is told
+ * exactly that before freezing; it is never applied to the living page.
+ */
+export const HIRING_OFF_KEYS = [
+  ...READER_MODE_KEYS,
+  "showOpenAccessShare",
+  "showMetrics",
+  "showCharts",
+  "showAuthorshipTable",
+] as const satisfies readonly (keyof DisplayChoices)[];
+
+/** A NEW display object with the hiring-panel preset applied. */
+export function applyHiringPreset(display: DisplayChoices): DisplayChoices {
+  const forcedOff = Object.fromEntries(HIRING_OFF_KEYS.map((k) => [k, false])) as Record<
+    (typeof HIRING_OFF_KEYS)[number],
+    false
+  >;
+  return {
+    ...display,
+    ...forcedOff,
+    publicContact: { email: true, phone: true, location: true },
+  };
+}
+
 /** True when `key` is one of the display keys reader mode overrides (on or off). */
 export function isReaderModeKey(key: string): boolean {
   return (

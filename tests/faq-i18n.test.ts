@@ -21,10 +21,10 @@ describe("faqStrings", () => {
     }
   });
 
-  it("has exactly 7 items with non-empty q/a in every locale", () => {
+  it("has exactly 8 items with non-empty q/a in every locale", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const { items } = faqStrings(loc);
-      expect(items).toHaveLength(7);
+      expect(items).toHaveLength(8);
       for (const item of items) {
         expect(item.q.length).toBeGreaterThan(0);
         expect(item.a.length).toBeGreaterThan(0);
