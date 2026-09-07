@@ -157,3 +157,50 @@ describe.skipIf(!hasApa)("/p/[slug]?view=reader (needs vendored CSL assets)", ()
     expect(doc.display.showProvenance).toBe(false);
   });
 });
+
+describe.skipIf(!hasApa)("/p/[slug] public chrome placement (needs vendored CSL assets)", () => {
+  const MAIN = '<main class="cv-main">';
+  const sidebar = (allow: boolean): CanonicalCv => {
+    const cv = makeCv(allow);
+    return { ...cv, display: { ...cv.display, template: "sidebar" } };
+  };
+
+  it("keeps the Sidebar two-column grid intact: <main> is the direct second child, the filter bar inside it", async () => {
+    serve(sidebar(false));
+    const { html } = await get();
+    // The grid expects exactly two children: <aside class="cv-sidebar"> then <main>.
+    // Anything injected BETWEEN them takes the main cell and pushes the whole CV
+    // into the narrow rail column on row 2 — the collapse seen on a real page.
+    expect(html).toContain('<div class="cv-sidebar-layout"><aside class="cv-sidebar">');
+    expect(html).toContain(`</aside>${MAIN}`);
+    // The filter bar is a descendant of <main>, ahead of the first section.
+    const nav = html.indexOf('<nav class="cv-filterbar"');
+    expect(nav).toBeGreaterThan(-1);
+    expect(html.indexOf(MAIN)).toBeLessThan(nav);
+    expect(nav).toBeLessThan(html.indexOf("</main>"));
+    expect(nav).toBeLessThan(html.indexOf('<section class="cv-section"'));
+    expect(html).toContain(`${MAIN}<nav class="cv-filterbar"`);
+  });
+
+  it("places the reader-view chrome inside <main> too (link on the standard page, banner in the reader view)", async () => {
+    serve(sidebar(true));
+    const { html } = await get();
+    expect(html).toContain(`</aside>${MAIN}<nav class="cv-readerbar"`);
+
+    const reader = await get("?view=reader");
+    expect(reader.html).toContain(`</aside>${MAIN}<aside class="cv-readerbanner"`);
+    // Banner first, then the filter bar, then the sections — all inside <main>.
+    const banner = reader.html.indexOf('<aside class="cv-readerbanner"');
+    const bar = reader.html.indexOf('<nav class="cv-filterbar"');
+    expect(banner).toBeLessThan(bar);
+    expect(bar).toBeLessThan(reader.html.indexOf('<section class="cv-section"'));
+  });
+
+  it("uses the same anchor on the single-column templates", async () => {
+    const cv = makeCv(false);
+    serve({ ...cv, display: { ...cv.display, template: "classic" } });
+    const { html } = await get();
+    expect(html).toContain(`${MAIN}<nav class="cv-filterbar"`);
+    expect(html).not.toContain(`</nav>${MAIN}`);
+  });
+});

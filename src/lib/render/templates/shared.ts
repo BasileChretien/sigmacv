@@ -329,7 +329,10 @@ export function commonCss(theme: TemplateTheme): string {
      caveat ("mean over N works …"). Upright (not italic — long italic fine-print is
      a readability cost for dyslexia/low-vision), demoted in colour, and always
      VISIBLE (never a tooltip): a responsible-reading caveat should be legible, not
-     whispered, and tooltips don't exist in the printed PDF a committee reads. */
+     whispered, and tooltips don't exist in the printed PDF a committee reads. They
+     sit on their OWN smaller line under the label + value (.cv-metric-note), so the
+     figure reads at a glance and the caveat reads as its footnote. */
+  .cv-metric-note { display: block; font-size: 0.72rem; line-height: 1.4; color: var(--cv-muted); }
   .cv-metric-context { color: var(--cv-muted); }
   .cv-metric-coverage { color: var(--cv-faint); }
 
@@ -543,6 +546,13 @@ export function commonCss(theme: TemplateTheme): string {
      indent (see the badges note). ───────────────────────────────────────────── */
   .cv-itemtools { margin: 0.32rem 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.7rem; font-size: 0.72rem; text-indent: 0; }
   .cv-itemtools details { display: inline; }
+  /* Progressive disclosure, engine-independent: the format links (BibTeX / RIS /
+     CSL-JSON) and the abstract live INSIDE their <details> and are hidden until the
+     visitor opens it — stated explicitly rather than trusting each engine's
+     details internals under a non-block display, so the visible row is only
+     "Cite · Full text · PubMed (· Abstract)". Keyboard: <summary> is focusable and
+     toggles on Enter/Space; no JS involved. */
+  .cv-itemtools details:not([open]) > :not(summary) { display: none; }
   .cv-itemtools summary { display: inline; cursor: pointer; color: var(--cv-muted); list-style: none; -webkit-user-select: none; user-select: none; }
   .cv-itemtools summary::-webkit-details-marker { display: none; }
   .cv-itemtools summary::after { content: " \\25BE"; font-size: 0.85em; }
@@ -788,16 +798,21 @@ function researchSummaryBody(cv: CanonicalCv): string {
     );
   }
   for (const m of formattedMetrics(cv)) {
+    // Label + value on the first line; the interpretation anchor and coverage
+    // caveat on a second, smaller, muted line (.cv-metric-note) — still visible by
+    // default (the reader caveat is deliberate; never a tooltip).
     const context = m.context
-      ? ` <span class="cv-metric-context">— ${escapeHtml(m.context)}</span>`
+      ? `<span class="cv-metric-context">${escapeHtml(m.context)}</span>`
       : "";
     const coverage = m.coverageNote
-      ? ` <span class="cv-metric-coverage">· ${escapeHtml(m.coverageNote)}</span>`
+      ? `${context ? " · " : ""}<span class="cv-metric-coverage">${escapeHtml(m.coverageNote)}</span>`
       : "";
+    const note =
+      context || coverage ? `<span class="cv-metric-note">${context}${coverage}</span>` : "";
     rows.push(
       `<li class="cv-metric"><span class="cv-metric-label">${escapeHtml(
         m.label,
-      )}</span> <span class="cv-metric-value">${escapeHtml(m.value)}</span>${context}${coverage}</li>`,
+      )}</span> <span class="cv-metric-value">${escapeHtml(m.value)}</span>${note}</li>`,
     );
   }
   const metricsLine = rows.length ? `<ul class="cv-metrics">${rows.join("")}</ul>` : "";

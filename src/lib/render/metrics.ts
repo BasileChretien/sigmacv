@@ -234,10 +234,18 @@ export function openAccessShare(cv: CanonicalCv): OpenAccessShare | null {
   return { open, known: known.length, pct: Math.round((open / known.length) * 100) };
 }
 
-/** A " · "-joined plain-text metrics line (empty string if none to show). */
+/**
+ * A " · "-joined plain-text metrics line (empty string if none to show) for the
+ * plain formats (DOCX / Markdown / LaTeX): "Label: value (context; coverage)" —
+ * the same interpretation anchor + coverage caveat the HTML/PDF header shows on
+ * its second line, kept in parentheses here so each metric stays one line.
+ */
 export function metricsLineText(cv: CanonicalCv): string {
   return formattedMetrics(cv)
-    .map((m) => `${m.label}: ${m.value}`)
+    .map((m) => {
+      const note = [m.context, m.coverageNote].filter(Boolean).join(" · ");
+      return `${m.label}: ${m.value}${note ? ` (${note})` : ""}`;
+    })
     .join(" · ");
 }
 

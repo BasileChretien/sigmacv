@@ -111,6 +111,32 @@ describe.skipIf(!hasApa)("per-publication tools (publicExtras)", () => {
     expect(clean).not.toContain("cv-itemtools");
     expect(renderCvHtml(cv)).not.toContain('class="cv-itemtools"');
   });
+
+  it("collapses the row: the format links live INSIDE the Cite disclosure, hidden until opened", () => {
+    const cv = makeCv();
+    const html = buildRenderedSections(cv, { publicExtras: true, slug: "abc" }).find(
+      (s) => s.section.type === "publications",
+    )!.items[0]!.html;
+    const row = html.match(/<div class="cv-itemtools">([\s\S]*?)<\/div>/)?.[1] ?? "";
+    // BibTeX / RIS / CSL-JSON are children of <details class="cv-cite">, not row siblings.
+    const cite = row.match(/<details class="cv-cite">([\s\S]*?)<\/details>/)?.[1] ?? "";
+    expect(cite).toContain("<summary>Cite</summary>");
+    for (const fmt of ["BibTeX", "RIS", "CSL-JSON"]) {
+      expect(cite).toContain(`>${fmt}</a>`);
+      expect(row.replace(cite, "")).not.toContain(`>${fmt}</a>`);
+    }
+    // The visible row is at most Cite · Full text · PubMed · Abstract (no PubMed here).
+    const visible = row
+      .replace(/<span class="Z3988"[^>]*><\/span>/, "")
+      .replace(/<details class="cv-cite">[\s\S]*?<\/details>/, "[cite]")
+      .replace(/<details class="cv-abstract">[\s\S]*?<\/details>/, "[abstract]")
+      .replace(/<a class="cv-fulltext"[^>]*>[^<]*<\/a>/, "[fulltext]");
+    expect(visible).toBe("[cite][fulltext][abstract]");
+    // Engine-independent progressive disclosure: closed details hide everything but
+    // the summary (keyboard: <summary> toggles on Enter/Space, no JS).
+    const page = renderCvHtml(cv, { publicExtras: true, slug: "abc" });
+    expect(page).toContain(".cv-itemtools details:not([open]) > :not(summary) { display: none; }");
+  });
 });
 
 describe.skipIf(!hasApa)("per-publication PubMed link (publicExtras)", () => {

@@ -298,6 +298,8 @@ export interface RenderStrings {
   provLabelClaimed: string;
   /** Short reader-view mark label for a manual (owner-entered) item. */
   provLabelManual: string;
+  /** Tail appended to a citation whose style truncated the author list PAST the owner ("et al."), so the account holder still appears in their own entry; "{name}" → the owner's printed name, "{position}" → 1-based author position, "{count}" → total authors. */
+  selfAuthorTail: string;
 }
 
 const RENDER_I18N: Record<Locale, RenderStrings> = {
@@ -495,6 +497,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLastVerified: "last verified {date}",
     provLabelClaimed: "Claimed",
     provLabelManual: "Manual",
+    selfAuthorTail: "incl. {name}, author {position} of {count}",
   },
   "zh-CN": {
     hankoCredit:
@@ -685,6 +688,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLastVerified: "最近核验于 {date}",
     provLabelClaimed: "自行认领",
     provLabelManual: "手动",
+    selfAuthorTail: "含 {name}，共 {count} 位作者中的第 {position} 位",
   },
   "es-ES": {
     hankoCredit:
@@ -890,6 +894,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLastVerified: "última verificación: {date}",
     provLabelClaimed: "Reclamado",
     provLabelManual: "Manual",
+    selfAuthorTail: "incl. {name}, autor {position} de {count}",
   },
   "fr-FR": {
     hankoCredit:
@@ -1095,6 +1100,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLastVerified: "dernière vérification le {date}",
     provLabelClaimed: "Revendiqué",
     provLabelManual: "Manuel",
+    selfAuthorTail: "dont {name}, auteur {position} sur {count}",
   },
   "de-DE": {
     hankoCredit:
@@ -1299,6 +1305,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLastVerified: "zuletzt geprüft am {date}",
     provLabelClaimed: "Beansprucht",
     provLabelManual: "Manuell",
+    selfAuthorTail: "inkl. {name}, Autor {position} von {count}",
   },
   "ja-JP": {
     hankoCredit:
@@ -1495,6 +1502,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLastVerified: "最終確認 {date}",
     provLabelClaimed: "本人申告",
     provLabelManual: "手入力",
+    selfAuthorTail: "{name} を含む（著者 {count} 名中 {position} 番目）",
   },
   "pt-BR": {
     hankoCredit:
@@ -1699,6 +1707,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLastVerified: "última verificação em {date}",
     provLabelClaimed: "Reivindicado",
     provLabelManual: "Manual",
+    selfAuthorTail: "incl. {name}, autor {position} de {count}",
   },
   "it-IT": {
     hankoCredit:
@@ -1904,6 +1913,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLastVerified: "ultima verifica il {date}",
     provLabelClaimed: "Rivendicato",
     provLabelManual: "Manuale",
+    selfAuthorTail: "incl. {name}, autore {position} di {count}",
   },
   "ko-KR": {
     hankoCredit:
@@ -2098,6 +2108,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLastVerified: "최근 확인 {date}",
     provLabelClaimed: "본인 주장",
     provLabelManual: "수동",
+    selfAuthorTail: "{name} 포함 (저자 {count}명 중 {position}번째)",
   },
   "ru-RU": {
     hankoCredit:
@@ -2298,6 +2309,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLastVerified: "последняя проверка {date}",
     provLabelClaimed: "Заявлено",
     provLabelManual: "Вручную",
+    selfAuthorTail: "в т. ч. {name}, автор {position} из {count}",
   },
 };
 
