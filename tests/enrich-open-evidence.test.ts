@@ -76,6 +76,8 @@ function section(type: CvSection["type"], items: CvItem[], id = type): CvSection
   return { id, type, title: id, visible: true, order: 0, items };
 }
 
+const NOW = "2026-09-07T00:00:00.000Z";
+
 // ─── enrichCvWithOpenCitations ────────────────────────────────────────────────
 
 describe("enrichCvWithOpenCitations", () => {
@@ -98,10 +100,46 @@ describe("enrichCvWithOpenCitations", () => {
     expect(mocks.fetchOpenCitationsCount).toHaveBeenCalledTimes(2);
   });
 
-  it("returns the original CV untouched when nothing came back", async () => {
+  it("stamps the sentinel only (no provenance) when nothing came back, keeping an earlier count", async () => {
     mocks.fetchOpenCitationsCount.mockResolvedValue(null);
-    const cv = makeCv([section("publications", [item("W1", { csl: csl({ DOI: "10.1/x" }) })])]);
-    expect(await enrichCvWithOpenCitations(cv)).toBe(cv);
+    const cv = makeCv([
+      section("publications", [
+        item("W1", { csl: csl({ DOI: "10.1/x" }) }),
+        item("W2", { csl: csl({ DOI: "10.1/y" }), meta: { citedByOpenCitations: 7 } }),
+      ]),
+    ]);
+    const out = await enrichCvWithOpenCitations(cv, NOW);
+    expect(out.sections[0]!.items[0]!.meta).toEqual({ openCitationsCheckedAt: NOW });
+    // A miss never clears the count found on an earlier sync.
+    expect(out.sections[0]!.items[1]!.meta).toEqual({
+      citedByOpenCitations: 7,
+      openCitationsCheckedAt: NOW,
+    });
+    expect(out.provenance.sources).not.toContain("opencitations");
+    expect(cv.sections[0]!.items[0]!.meta).toEqual({}); // immutable
+  });
+
+  it("queues never-checked works first, then oldest-checked", async () => {
+    mocks.fetchOpenCitationsCount.mockResolvedValue(null);
+    const cv = makeCv([
+      section("publications", [
+        item("W1", {
+          csl: csl({ DOI: "10.1/newer" }),
+          meta: { openCitationsCheckedAt: "2026-02-01T00:00:00.000Z" },
+        }),
+        item("W2", {
+          csl: csl({ DOI: "10.1/older" }),
+          meta: { openCitationsCheckedAt: "2026-01-01T00:00:00.000Z" },
+        }),
+        item("W3", { csl: csl({ DOI: "10.1/fresh" }) }),
+      ]),
+    ]);
+    await enrichCvWithOpenCitations(cv, NOW);
+    expect(mocks.fetchOpenCitationsCount.mock.calls.map((c) => c[0])).toEqual([
+      "10.1/fresh",
+      "10.1/older",
+      "10.1/newer",
+    ]);
   });
 
   it("skips hidden items and items with no DOI, making no call", async () => {
@@ -159,7 +197,7 @@ describe("enrichCvWithSoftwareHeritage", () => {
     expect(f).not.toHaveBeenCalled();
   });
 
-  it("returns the original CV when the lookup finds nothing archived", async () => {
+  it("stamps the sentinel only (no provenance) when the lookup finds nothing archived", async () => {
     mocks.fetchSoftwareHeritageArchival.mockResolvedValue(null);
     const cv = makeCv([
       section("datasets", [
@@ -168,7 +206,48 @@ describe("enrichCvWithSoftwareHeritage", () => {
         }),
       ]),
     ]);
-    expect(await enrichCvWithSoftwareHeritage(cv)).toBe(cv);
+    const out = await enrichCvWithSoftwareHeritage(cv, NOW);
+    expect(out.sections[0]!.items[0]!.meta).toEqual({
+      type: "Software",
+      repositoryUrl: "https://github.com/user/repo",
+      swhCheckedAt: NOW,
+    });
+    expect(out.provenance.sources).not.toContain("softwareheritage");
+    expect(cv.sections[0]!.items[0]!.meta.swhCheckedAt).toBeUndefined(); // immutable
+  });
+
+  it("queues never-checked items first, then oldest-checked (an archived item leaves the queue)", async () => {
+    mocks.fetchSoftwareHeritageArchival.mockResolvedValue(null);
+    const cv = makeCv([
+      section("software", [
+        item("S1", {
+          meta: {
+            repositoryUrl: "https://github.com/u/newer",
+            swhCheckedAt: "2026-02-01T00:00:00.000Z",
+          },
+        }),
+        item("S2", {
+          meta: {
+            repositoryUrl: "https://github.com/u/older",
+            swhCheckedAt: "2026-01-01T00:00:00.000Z",
+          },
+        }),
+        item("S3", { meta: { repositoryUrl: "https://github.com/u/fresh" } }),
+        item("S4", {
+          meta: {
+            repositoryUrl: "https://github.com/u/archived",
+            swhid: `swh:1:snp:${"c".repeat(40)}`,
+            swhCheckedAt: "2025-01-01T00:00:00.000Z",
+          },
+        }),
+      ]),
+    ]);
+    await enrichCvWithSoftwareHeritage(cv, NOW);
+    expect(mocks.fetchSoftwareHeritageArchival.mock.calls.map((c) => c[0])).toEqual([
+      "https://github.com/u/fresh",
+      "https://github.com/u/older",
+      "https://github.com/u/newer",
+    ]);
   });
 
   it("uses the csl.type field too (a software work routed via OpenAlex CSL)", async () => {
@@ -214,10 +293,44 @@ describe("enrichCvWithSciety", () => {
     expect(f).not.toHaveBeenCalled();
   });
 
-  it("returns the original CV when there are no evaluations", async () => {
+  it("stamps the sentinel only (no provenance) when there are no evaluations, keeping an earlier list", async () => {
     mocks.fetchScietyEvaluations.mockResolvedValue([]);
-    const cv = makeCv([section("preprints", [item("PP1", { csl: csl({ DOI: "10.1/x" }) })])]);
-    expect(await enrichCvWithSciety(cv)).toBe(cv);
+    const cv = makeCv([
+      section("preprints", [
+        item("PP1", { csl: csl({ DOI: "10.1/x" }) }),
+        item("PP2", { csl: csl({ DOI: "10.1/y" }), meta: { publicEvaluations: EVAL } }),
+      ]),
+    ]);
+    const out = await enrichCvWithSciety(cv, NOW);
+    expect(out.sections[0]!.items[0]!.meta).toEqual({ publicEvaluationsCheckedAt: NOW });
+    expect(out.sections[0]!.items[1]!.meta).toEqual({
+      publicEvaluations: EVAL,
+      publicEvaluationsCheckedAt: NOW,
+    });
+    expect(out.provenance.sources).not.toContain("sciety");
+  });
+
+  it("queues never-checked preprints first, then oldest-checked", async () => {
+    mocks.fetchScietyEvaluations.mockResolvedValue([]);
+    const cv = makeCv([
+      section("preprints", [
+        item("PP1", {
+          csl: csl({ DOI: "10.1/newer" }),
+          meta: { publicEvaluationsCheckedAt: "2026-02-01T00:00:00.000Z" },
+        }),
+        item("PP2", {
+          csl: csl({ DOI: "10.1/older" }),
+          meta: { publicEvaluationsCheckedAt: "2026-01-01T00:00:00.000Z" },
+        }),
+        item("PP3", { csl: csl({ DOI: "10.1/fresh" }) }),
+      ]),
+    ]);
+    await enrichCvWithSciety(cv, NOW);
+    expect(mocks.fetchScietyEvaluations.mock.calls.map((c) => c[0])).toEqual([
+      "10.1/fresh",
+      "10.1/older",
+      "10.1/newer",
+    ]);
   });
 
   it("skips hidden preprints", async () => {

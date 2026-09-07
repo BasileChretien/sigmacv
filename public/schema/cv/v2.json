@@ -985,8 +985,14 @@
                       "minimum": 0,
                       "maximum": 1
                     },
+                    "iciteCheckedAt": {
+                      "type": "string"
+                    },
                     "retracted": {
                       "type": "boolean"
+                    },
+                    "retractionCheckedAt": {
+                      "type": "string"
                     },
                     "countries": {
                       "maxItems": 50,
@@ -1366,6 +1372,9 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "openCitationsCheckedAt": {
+                      "type": "string"
+                    },
                     "repositoryUrl": {
                       "type": "string",
                       "maxLength": 2048
@@ -1381,6 +1390,9 @@
                     "swhArchivedAt": {
                       "type": "string",
                       "maxLength": 64
+                    },
+                    "swhCheckedAt": {
+                      "type": "string"
                     },
                     "publicEvaluations": {
                       "maxItems": 10,
@@ -1407,6 +1419,9 @@
                         },
                         "required": ["group", "type", "url"]
                       }
+                    },
+                    "publicEvaluationsCheckedAt": {
+                      "type": "string"
                     }
                   }
                 }

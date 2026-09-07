@@ -481,27 +481,47 @@ const CvItemSchema = z.object({
     pmid: z.string().max(200).optional(),
     /** NIH iCite Relative Citation Ratio for this work (keyed by PMID), folded in
      *  by the iCite enrichment. Field-normalized but biomedical-only; stored so the
-     *  RCR mean recomputes over the curated works. */
+     *  RCR mean recomputes over the curated works. Carried across re-sync (the
+     *  bounded pass refreshes it when the work's turn comes round again — see
+     *  {@link iciteCheckedAt}); a later miss never clears an earlier value. */
     rcr: z.number().optional(),
     /**
      * NIH iCite TRANSLATIONAL indicators for this work, folded in with `rcr` by the
-     * iCite enrichment and recomputed on every sync (same semantics as `rcr`).
-     * BIOMEDICAL-ONLY like RCR — they need a PMID and NIH's clinical-citation
-     * network, so non-biomedical works never carry them. `clinicalCitations` =
-     * number of clinical articles (guidelines, trials) citing the work (iCite
-     * `cited_by_clin` length); `isClinical` = the work is itself a clinical
-     * article; `apt` = Approximate Potential to Translate (0..1, a model
-     * prediction). Per-work only — never aggregated into a score.
+     * iCite enrichment and carried / refreshed the same way (same semantics as
+     * `rcr`). BIOMEDICAL-ONLY like RCR — they need a PMID and NIH's
+     * clinical-citation network, so non-biomedical works never carry them.
+     * `clinicalCitations` = number of clinical articles (guidelines, trials)
+     * citing the work (iCite `cited_by_clin` length); `isClinical` = the work is
+     * itself a clinical article; `apt` = Approximate Potential to Translate
+     * (0..1, a model prediction). Per-work only — never aggregated into a score.
      */
     clinicalCitations: z.number().int().nonnegative().optional(),
     isClinical: z.boolean().optional(),
     apt: z.number().min(0).max(1).optional(),
+    /**
+     * ISO timestamp of the last time the iCite enrichment EXAMINED this work — set
+     * whether or not iCite returned a record (a PMID iCite doesn't index is still
+     * a checked work). The rotation sentinel for `enrichCvWithIcite`'s per-sync
+     * budget: never-checked works go first, then oldest-checked, so a CV larger
+     * than the cap is covered over successive syncs instead of the same head
+     * being re-queried forever. Carried across re-sync like {@link rcr}.
+     */
+    iciteCheckedAt: z.string().optional(),
     /** True when this work is recorded as RETRACTED by EITHER signal: OpenAlex's
      *  `is_retracted` at build, or the Crossref retraction enrichment (`updated-by`/
      *  `relation.is-retracted-by`, publisher- or Retraction-Watch-sourced). The two
-     *  are unioned — a true flag is never cleared by the other source. Surfaced as
-     *  a research-integrity flag. */
+     *  are unioned — a true flag is never cleared by the other source, and a
+     *  Crossref-sourced `true` is carried across re-sync (the build unions it with
+     *  the fresh OpenAlex signal). Surfaced as a research-integrity flag. */
     retracted: z.boolean().optional(),
+    /**
+     * ISO timestamp of the last Crossref retraction check of this work, set
+     * whether or not it came back retracted (rotation sentinel for
+     * `enrichCvWithRetractions`, same scheme as {@link iciteCheckedAt}). A work
+     * already flagged {@link retracted} is never re-checked (a retraction is
+     * not undone). Carried across re-sync.
+     */
+    retractionCheckedAt: z.string().optional(),
     /** Distinct ISO-3166 alpha-2 country codes across the work's authorships
      *  (OpenAlex `authorships[].countries`), uppercased + deduped, capped at 50.
      *  Stored per work for a later collaboration view; NOT aggregated here. */
@@ -857,9 +877,17 @@ const CvItemSchema = z.object({
      * count alongside OpenAlex's `citedByCount` — the two rarely agree exactly (each
      * indexes a different citing-reference corpus), so surfacing both is an
      * honest-provenance signal rather than a "more accurate" replacement. Keyed by
-     * DOI; undefined for works with no DOI or no OpenCitations record.
+     * DOI; undefined for works with no DOI or no OpenCitations record. Carried
+     * across re-sync and refreshed when the work's turn comes round again (see
+     * {@link openCitationsCheckedAt}).
      */
     citedByOpenCitations: z.number().int().min(0).optional(),
+    /**
+     * ISO timestamp of the last OpenCitations lookup for this work, set on a hit
+     * or a miss (rotation sentinel for `enrichCvWithOpenCitations`, same scheme
+     * as {@link iciteCheckedAt}). Carried across re-sync.
+     */
+    openCitationsCheckedAt: z.string().optional(),
     /**
      * Source-repository URL for a datasets/software item (e.g. a GitHub/GitLab/
      * Codeberg/Bitbucket URL), when one could be identified from the source record.
@@ -877,7 +905,9 @@ const CvItemSchema = z.object({
      * Software Heritage identifier for the archived snapshot of this item's source
      * repository (`swh:1:snp:<40-hex>`), folded in by the Software Heritage
      * enrichment. Only ever set from a "require_snapshot=true" visit — i.e. the
-     * repository IS archived — so its presence alone means "archived".
+     * repository IS archived — so its presence alone means "archived". Carried
+     * across re-sync (an archived repository stays archived; the pass only
+     * re-checks items that have no SWHID yet).
      */
     swhid: z
       .string()
@@ -886,12 +916,21 @@ const CvItemSchema = z.object({
     /** ISO date of the Software Heritage snapshot recorded in {@link swhid}. */
     swhArchivedAt: z.string().max(64).optional(),
     /**
+     * ISO timestamp of the last Software Heritage lookup for this item, set on a
+     * hit or a "not archived" miss (rotation sentinel for
+     * `enrichCvWithSoftwareHeritage`, same scheme as {@link iciteCheckedAt}).
+     * Carried across re-sync.
+     */
+    swhCheckedAt: z.string().optional(),
+    /**
      * Public evaluations of a preprint (Sciety-aggregated peer review / curation),
      * folded in by the Sciety enrichment. Each entry names the evaluating GROUP
      * (e.g. "eLife", "PREreview"), the evaluation TYPE (DocMaps vocabulary, e.g.
      * "evaluation-summary" / "review-article"), a link to the evaluation, and its
      * date. Capped at 10 (Sciety itself is the fuller record). Additive, opt-in
-     * display — never affects inclusion or ordering.
+     * display — never affects inclusion or ordering. Carried across re-sync and
+     * refreshed when the preprint's turn comes round again (see
+     * {@link publicEvaluationsCheckedAt}).
      */
     publicEvaluations: z
       .array(
@@ -904,6 +943,12 @@ const CvItemSchema = z.object({
       )
       .max(10)
       .optional(),
+    /**
+     * ISO timestamp of the last Sciety lookup for this preprint, set on a hit or
+     * a miss (rotation sentinel for `enrichCvWithSciety`, same scheme as
+     * {@link iciteCheckedAt}). Carried across re-sync.
+     */
+    publicEvaluationsCheckedAt: z.string().optional(),
   }),
 });
 export type CvItem = z.infer<typeof CvItemSchema>;

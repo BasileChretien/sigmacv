@@ -258,7 +258,9 @@ describe("enrichCvWithIcite", () => {
     meta: { ...(pmid ? { pmid } : {}), ...(rcr !== undefined ? { rcr } : {}) },
   });
 
-  it("folds RCR onto works with a PMID, leaving others untouched", async () => {
+  const NOW = "2026-09-07T00:00:00.000Z";
+
+  it("folds RCR onto works with a PMID, stamping every examined work and leaving others untouched", async () => {
     mocks.fetchIciteByPmids.mockResolvedValue(
       new Map([
         ["111", { rcr: 1.5 }],
@@ -267,30 +269,26 @@ describe("enrichCvWithIcite", () => {
     );
     const cv = makeCv([
       withPmid("W1", "111"), // looked up + filled
-      withPmid("W2"), // no PMID → never looked up, never filled
+      withPmid("W2"), // no PMID → never looked up, never filled, never stamped
       withPmid("W3", "333"), // looked up + filled
-      withPmid("W4", "999"), // looked up but iCite has no RCR → stays empty
-      withPmid("W5", "555", 0.5), // already has an RCR → not looked up, kept as-is
+      withPmid("W4", "999"), // looked up but iCite has no record → stays empty, still stamped
+      withPmid("W5", "555", 0.5), // carries an RCR from a prior sync → re-examined (refresh), kept on a miss
     ]);
-    const out = await enrichCvWithIcite(cv);
+    const out = await enrichCvWithIcite(cv, NOW);
     const items = out.sections[0]!.items;
-    expect(items[0]!.meta.rcr).toBe(1.5);
-    expect(items[1]!.meta.rcr).toBeUndefined();
-    expect(items[2]!.meta.rcr).toBe(2.0);
-    expect(items[3]!.meta.rcr).toBeUndefined(); // PMID not returned by iCite
-    expect(items[4]!.meta.rcr).toBe(0.5); // pre-existing RCR preserved
-    // Only PMIDs lacking an existing RCR are looked up.
-    expect(mocks.fetchIciteByPmids).toHaveBeenCalledWith(["111", "333", "999"]);
+    expect(items[0]!.meta).toEqual({ pmid: "111", rcr: 1.5, iciteCheckedAt: NOW });
+    expect(items[1]!.meta).toEqual({});
+    expect(items[2]!.meta).toEqual({ pmid: "333", rcr: 2.0, iciteCheckedAt: NOW });
+    // A miss is still a checked work: no figure, but the sentinel moves it to "known".
+    expect(items[3]!.meta).toEqual({ pmid: "999", iciteCheckedAt: NOW });
+    // A miss never clears an earlier value.
+    expect(items[4]!.meta).toEqual({ pmid: "555", rcr: 0.5, iciteCheckedAt: NOW });
+    // Never-checked works first; the pre-sentinel work with data counts as
+    // checked (oldest) and is queued last.
+    expect(mocks.fetchIciteByPmids).toHaveBeenCalledWith(["111", "333", "999", "555"]);
   });
 
-  it("does not look up works that already carry an RCR", async () => {
-    const cv = makeCv([withPmid("W1", "111", 0.9)]);
-    const out = await enrichCvWithIcite(cv);
-    expect(out).toBe(cv);
-    expect(mocks.fetchIciteByPmids).not.toHaveBeenCalled();
-  });
-
-  it("folds the translational fields (clinical citations, is-clinical, APT) and skips items that already carry any iCite field", async () => {
+  it("folds the translational fields (clinical citations, is-clinical, APT); a fresh hit overwrites an earlier value", async () => {
     mocks.fetchIciteByPmids.mockResolvedValue(
       new Map([
         ["111", { rcr: 1.8, clinicalCitations: 4, isClinical: false, apt: 0.75 }],
@@ -300,7 +298,7 @@ describe("enrichCvWithIcite", () => {
     );
     const already: CvItem = { ...pub("W3"), meta: { pmid: "333", clinicalCitations: 2 } };
     const cv = makeCv([withPmid("W1", "111"), withPmid("W2", "222"), already]);
-    const out = await enrichCvWithIcite(cv);
+    const out = await enrichCvWithIcite(cv, NOW);
     const items = out.sections[0]!.items;
     expect(items[0]!.meta).toMatchObject({
       pmid: "111",
@@ -310,18 +308,30 @@ describe("enrichCvWithIcite", () => {
       apt: 0.75,
     });
     // A record without RCR still lands (no RCR, but the translational fields).
-    expect(items[1]!.meta).toEqual({ pmid: "222", clinicalCitations: 0, isClinical: true });
-    // Any pre-existing iCite field short-circuits the lookup for that item.
-    expect(items[2]!.meta).toEqual({ pmid: "333", clinicalCitations: 2 });
-    expect(mocks.fetchIciteByPmids).toHaveBeenCalledWith(["111", "222"]);
+    expect(items[1]!.meta).toEqual({
+      pmid: "222",
+      clinicalCitations: 0,
+      isClinical: true,
+      iciteCheckedAt: NOW,
+    });
+    // The pre-existing field is kept and the fresh record merges on top.
+    expect(items[2]!.meta).toEqual({
+      pmid: "333",
+      clinicalCitations: 2,
+      apt: 0.1,
+      iciteCheckedAt: NOW,
+    });
     // Immutable: the input CV is untouched.
     expect(cv.sections[0]!.items[0]!.meta.rcr).toBeUndefined();
+    expect(cv.sections[0]!.items[0]!.meta.iciteCheckedAt).toBeUndefined();
   });
 
-  it("returns the original CV when iCite yields nothing", async () => {
+  it("stamps the sentinel on a total miss (iCite yields nothing) so the work leaves the fresh queue", async () => {
     mocks.fetchIciteByPmids.mockResolvedValue(new Map());
     const cv = makeCv([withPmid("W1", "111")]);
-    expect(await enrichCvWithIcite(cv)).toBe(cv);
+    const out = await enrichCvWithIcite(cv, NOW);
+    expect(out).not.toBe(cv);
+    expect(out.sections[0]!.items[0]!.meta).toEqual({ pmid: "111", iciteCheckedAt: NOW });
   });
 
   it("returns the original CV (no lookup) when no work has a PMID", async () => {
@@ -329,29 +339,95 @@ describe("enrichCvWithIcite", () => {
     expect(await enrichCvWithIcite(cv)).toBe(cv);
     expect(mocks.fetchIciteByPmids).not.toHaveBeenCalled();
   });
+
+  it("rotates under the cap: never-checked first, then oldest-checked, so the tail is reached on the next run", async () => {
+    mocks.fetchIciteByPmids.mockResolvedValue(new Map());
+    // 500 works checked on an earlier sync (the cap), at staggered times, plus
+    // ONE never-checked work at the very END of the list. Position alone would
+    // starve it forever; the rotation must queue it first.
+    const known = Array.from({ length: 500 }, (_, k) => ({
+      ...withPmid(`K${k}`, `${1000 + k}`),
+      meta: {
+        pmid: `${1000 + k}`,
+        iciteCheckedAt: `2026-01-01T00:00:00.${String(k).padStart(3, "0")}Z`,
+      },
+    }));
+    const tail = withPmid("TAIL", "9999");
+    const first = await enrichCvWithIcite(makeCv([...known, tail]), NOW);
+    const queried = mocks.fetchIciteByPmids.mock.calls[0]![0] as string[];
+    expect(queried).toHaveLength(500);
+    expect(queried[0]).toBe("9999"); // the never-checked tail goes first
+    // The 499 remaining slots go to the OLDEST-checked works; the single newest
+    // (largest timestamp) is the one left out for this run.
+    const newest = [...known].sort((a, b) =>
+      b.meta.iciteCheckedAt.localeCompare(a.meta.iciteCheckedAt),
+    )[0]!;
+    expect(queried).not.toContain(newest.meta.pmid);
+    const items = first.sections[0]!.items;
+    expect(items.at(-1)!.meta.iciteCheckedAt).toBe(NOW); // the tail is now stamped
+    expect(items.find((i) => i.id === newest.id)!.meta.iciteCheckedAt).toBe(
+      newest.meta.iciteCheckedAt,
+    ); // the skipped one keeps its old stamp…
+
+    // …so on the NEXT run it is the oldest and goes first.
+    const LATER = "2026-09-08T00:00:00.000Z";
+    await enrichCvWithIcite(first, LATER);
+    const queriedNext = mocks.fetchIciteByPmids.mock.calls[1]![0] as string[];
+    expect(queriedNext[0]).toBe(newest.meta.pmid);
+    expect(queriedNext).not.toContain("9999"); // the tail (stamped NOW) is now the newest → skipped
+  });
 });
 
 // ─── enrichCvWithRetractions (Crossref / Retraction Watch) ───────────────────
 
 describe("enrichCvWithRetractions", () => {
-  it("flags works Crossref reports as retracted, by DOI", async () => {
+  const NOW = "2026-09-07T00:00:00.000Z";
+
+  it("flags works Crossref reports as retracted, by DOI, stamping every checked work", async () => {
     mocks.fetchRetractionStatus.mockImplementation(async (doi: string) => doi === "10.1/x");
     const cv = makeCv([
       pub("W1", csl({ id: "W1", DOI: "10.1/x" })),
       pub("W2", csl({ id: "W2", DOI: "10.1/y" })),
-      pub("W3", csl({ id: "W3" })), // no DOI → not checked
+      pub("W3", csl({ id: "W3" })), // no DOI → not checked, not stamped
     ]);
-    const items = (await enrichCvWithRetractions(cv, "ci@example.org")).sections[0]!.items;
-    expect(items[0]!.meta.retracted).toBe(true);
-    expect(items[1]!.meta.retracted).toBeUndefined();
-    expect(items[2]!.meta.retracted).toBeUndefined();
+    const items = (await enrichCvWithRetractions(cv, "ci@example.org", NOW)).sections[0]!.items;
+    expect(items[0]!.meta).toEqual({ retracted: true, retractionCheckedAt: NOW });
+    expect(items[1]!.meta).toEqual({ retractionCheckedAt: NOW }); // a miss is still a checked work
+    expect(items[2]!.meta).toEqual({});
     expect(mocks.fetchRetractionStatus).toHaveBeenCalledTimes(2); // only DOI-bearing items
   });
 
-  it("returns the original CV when nothing is retracted", async () => {
+  it("stamps the sentinel (and nothing else) when nothing is retracted", async () => {
     mocks.fetchRetractionStatus.mockResolvedValue(false);
     const cv = makeCv([pub("W1", csl({ DOI: "10.1/x" }))]);
-    expect(await enrichCvWithRetractions(cv, "ci@example.org")).toBe(cv);
+    const out = await enrichCvWithRetractions(cv, "ci@example.org", NOW);
+    expect(out.sections[0]!.items[0]!.meta).toEqual({ retractionCheckedAt: NOW });
+    expect(cv.sections[0]!.items[0]!.meta).toEqual({}); // immutable
+  });
+
+  it("rotates under the cap: never-checked first, then oldest-checked, across two runs", async () => {
+    mocks.fetchRetractionStatus.mockResolvedValue(false);
+    // 100 works (the cap) checked earlier at staggered times, then one
+    // never-checked work at the END — it must be queued first, displacing the
+    // most recently checked work to the next run.
+    const known = Array.from({ length: 100 }, (_, k) => ({
+      ...pub(`K${k}`, csl({ id: `K${k}`, DOI: `10.1/k${k}` })),
+      meta: { retractionCheckedAt: `2026-01-01T00:00:00.${String(k).padStart(3, "0")}Z` },
+    }));
+    const tail = pub("TAIL", csl({ id: "TAIL", DOI: "10.1/tail" }));
+    const first = await enrichCvWithRetractions(makeCv([...known, tail]), "ci@example.org", NOW);
+    const queried = mocks.fetchRetractionStatus.mock.calls.map((c) => c[0] as string);
+    expect(queried).toHaveLength(100);
+    expect(queried[0]).toBe("10.1/tail");
+    expect(queried).not.toContain("10.1/k99"); // the newest-checked is the one left out
+    expect(first.sections[0]!.items.at(-1)!.meta.retractionCheckedAt).toBe(NOW);
+    expect(first.sections[0]!.items[99]!.meta.retractionCheckedAt).toBe("2026-01-01T00:00:00.099Z");
+
+    mocks.fetchRetractionStatus.mockClear();
+    await enrichCvWithRetractions(first, "ci@example.org", "2026-09-08T00:00:00.000Z");
+    const queriedNext = mocks.fetchRetractionStatus.mock.calls.map((c) => c[0] as string);
+    expect(queriedNext[0]).toBe("10.1/k99"); // now the oldest → first
+    expect(queriedNext).not.toContain("10.1/tail"); // stamped NOW → newest → skipped this run
   });
 
   it("does not re-check an already-flagged or hidden work", async () => {

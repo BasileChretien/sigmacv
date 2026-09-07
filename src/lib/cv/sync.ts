@@ -458,11 +458,14 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
 
   // NIH iCite: fold the Relative Citation Ratio onto works with a PMID (opt-in
   // biomedical field-normalized metric). Bounded + fails soft.
-  cv = await timed("enrich.icite", enrichCvWithIcite(cv));
+  cv = await timed("enrich.icite", enrichCvWithIcite(cv, now));
 
   // Crossref / Retraction Watch: flag retracted works (research-integrity signal).
   // Bounded + fails soft.
-  cv = await timed("enrich.retractions", enrichCvWithRetractions(cv, getEnv().OPENALEX_MAILTO));
+  cv = await timed(
+    "enrich.retractions",
+    enrichCvWithRetractions(cv, getEnv().OPENALEX_MAILTO, now),
+  );
 
   // Crossref: the owner's CRediT contribution roles from the publisher's deposit
   // (owner matched by ORCID on the contributor list). Bounded + fails soft; a
@@ -485,15 +488,15 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
 
   // OpenCitations: independent citation counts alongside OpenAlex's own
   // (multi-source honesty, not a replacement). Bounded + fails soft.
-  cv = await timed("enrich.opencitations", enrichCvWithOpenCitations(cv));
+  cv = await timed("enrich.opencitations", enrichCvWithOpenCitations(cv, now));
 
   // Software Heritage: archival status (SWHID) for software items whose source
   // repository was identified. Bounded + fails soft (404 = not archived).
-  cv = await timed("enrich.softwareheritage", enrichCvWithSoftwareHeritage(cv));
+  cv = await timed("enrich.softwareheritage", enrichCvWithSoftwareHeritage(cv, now));
 
   // Sciety: aggregated public evaluations of preprints. Bounded + fails soft
   // (404 = no evaluations recorded).
-  cv = await timed("enrich.sciety", enrichCvWithSciety(cv));
+  cv = await timed("enrich.sciety", enrichCvWithSciety(cv, now));
 
   // Upgrade duplicate hints with Crossref's publisher-asserted preprint↔published
   // relationships (the build already ran the identifier + heuristic tiers). The
