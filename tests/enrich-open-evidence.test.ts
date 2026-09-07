@@ -14,6 +14,11 @@ vi.mock("@/lib/softwareheritage/client", () => ({
 vi.mock("@/lib/sciety/client", () => ({
   fetchScietyEvaluations: mocks.fetchScietyEvaluations,
 }));
+// `canonical/enrich.ts` also imports the FORRT client (unrelated to this file's
+// OpenCitations/Software Heritage/Sciety coverage) — mocking `@/lib/db` (its
+// transitive dependency) keeps this suite from requiring real env vars, same as
+// `tests/forrt-client.test.ts`.
+vi.mock("@/lib/db", () => ({ prisma: { forrtReplication: { findMany: vi.fn() } } }));
 
 import {
   enrichCvWithOpenCitations,
