@@ -23,7 +23,13 @@ export interface ViewFilters {
 }
 
 /** Citation sections the filters apply to (others are never narrowed). */
-const CITATION_SECTIONS = new Set(["publications", "preprints", "datasets", "conference"]);
+const CITATION_SECTIONS = new Set([
+  "publications",
+  "preprints",
+  "datasets",
+  "software",
+  "conference",
+]);
 
 /**
  * Work-type FACETS: a small, stable set of buckets that collapse OpenAlex's many raw

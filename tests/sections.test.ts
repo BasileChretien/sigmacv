@@ -398,7 +398,7 @@ describe("non-citation sections (positions + grants + editorial)", () => {
     expect(pr).toContain("Cell — 1 review"); // no journal → org fallback
   });
 
-  it("builds a Datasets & Software section from DataCite outputs", () => {
+  it("builds Datasets and Software sections from DataCite outputs, split by type", () => {
     const cv = buildCanonicalCv({
       id: "ds",
       resolved,
@@ -422,13 +422,20 @@ describe("non-citation sections (positions + grants + editorial)", () => {
       ],
     });
     const datasets = cv.sections.find((s) => s.type === "datasets")!;
-    expect(datasets.items).toHaveLength(2);
-    // Newest first; format "<title>. <publisher> (<year>) [<type>]. <doi-url>".
-    expect(datasets.items[0]!.displayText).toBe(
+    const software = cv.sections.find((s) => s.type === "software")!;
+    expect(datasets.items).toHaveLength(1);
+    expect(software.items).toHaveLength(1);
+    expect(datasets.title).toBe("Datasets");
+    expect(software.title).toBe("Software");
+    // Software sits right after Datasets in the default order.
+    expect(software.order).toBe(datasets.order + 1);
+    // Format "<title>. <publisher> (<year>) [<type>]. <doi-url>".
+    expect(software.items[0]!.displayText).toBe(
       "PV signal toolkit. Zenodo (2024) [Software]. https://doi.org/10.5281/zenodo.9",
     );
-    expect(datasets.items[0]!.source).toBe("datacite");
-    expect(datasets.items[0]!.meta.doi).toBe("10.5281/zenodo.9");
+    expect(software.items[0]!.source).toBe("datacite");
+    expect(software.items[0]!.meta.doi).toBe("10.5281/zenodo.9");
+    expect(datasets.items[0]!.meta.doi).toBe("10.5281/zenodo.8");
   });
 
   it("routes preprint-typed works into a separate Preprints section", () => {

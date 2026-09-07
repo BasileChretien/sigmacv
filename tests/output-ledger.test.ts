@@ -51,6 +51,7 @@ describe("outputLedgerHtml", () => {
     const cv = withSections(base(), [
       section("publications", [item("p1"), item("p2"), item("h", { included: false })]),
       section("datasets", [item("d1")]),
+      section("software", [item("s1"), item("s2")]),
       section("patents", [item("pt1")]),
       section("preprints", []), // empty → omitted
       section("awards", [item("aw1")]), // not an output type → omitted
@@ -60,7 +61,8 @@ describe("outputLedgerHtml", () => {
     expect(html).toContain('aria-label="Research output"');
     // Hidden item not counted → 2, not 3.
     expect(html).toContain('<span class="cv-ledger-n">2</span> Publications');
-    expect(html).toContain('<span class="cv-ledger-n">1</span> Datasets &amp; Software');
+    expect(html).toContain('<span class="cv-ledger-n">1</span> Datasets');
+    expect(html).toContain('<span class="cv-ledger-n">2</span> Software');
     expect(html).toContain('<span class="cv-ledger-n">1</span> Patents');
     expect(html).not.toContain("Preprints");
     expect(html).not.toContain("Awards");

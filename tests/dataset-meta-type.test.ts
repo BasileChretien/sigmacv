@@ -11,7 +11,11 @@ const resolved: ResolvedAuthor = {
   displayName: "Basile Chrétien",
 };
 
-const dsItems = (cv: CanonicalCv) => cv.sections.find((s) => s.type === "datasets")!.items;
+/** Items of the Datasets AND Software sections (the split is by recorded type). */
+const dsItems = (cv: CanonicalCv) =>
+  cv.sections.filter((s) => s.type === "datasets" || s.type === "software").flatMap((s) => s.items);
+const sectionTypeOf = (cv: CanonicalCv, id: string) =>
+  cv.sections.find((s) => s.items.some((i) => i.id === id))?.type;
 
 describe("datasets/software item meta.type + meta.repositoryUrl (build.ts)", () => {
   it("stamps DataCite's resourceTypeGeneral onto meta.type", () => {
@@ -38,6 +42,8 @@ describe("datasets/software item meta.type + meta.repositoryUrl (build.ts)", () 
     expect(dataset.meta.repositoryUrl).toBeUndefined();
     expect(software.meta.type).toBe("Software");
     expect(software.meta.repositoryUrl).toBe("https://github.com/user/repo");
+    expect(sectionTypeOf(cv, dataset.id)).toBe("datasets");
+    expect(sectionTypeOf(cv, software.id)).toBe("software");
   });
 
   it("stamps OpenAIRE's own dataset|software type onto meta.type", () => {
@@ -52,7 +58,11 @@ describe("datasets/software item meta.type + meta.repositoryUrl (build.ts)", () 
       now: "2026-06-02T00:00:00.000Z",
     });
     const items = dsItems(cv);
-    expect(items.find((i) => i.sourceId === "oa1")!.meta.type).toBe("dataset");
-    expect(items.find((i) => i.sourceId === "oa2")!.meta.type).toBe("software");
+    const oaDataset = items.find((i) => i.sourceId === "oa1")!;
+    const oaSoftware = items.find((i) => i.sourceId === "oa2")!;
+    expect(oaDataset.meta.type).toBe("dataset");
+    expect(oaSoftware.meta.type).toBe("software");
+    expect(sectionTypeOf(cv, oaDataset.id)).toBe("datasets");
+    expect(sectionTypeOf(cv, oaSoftware.id)).toBe("software");
   });
 });

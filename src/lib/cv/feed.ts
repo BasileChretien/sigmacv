@@ -15,7 +15,7 @@ const FEED_MAX = 40;
 const SUMMARY_MAX = 500;
 
 /** Citation sections whose works make sense as feed entries. */
-const FEED_SECTIONS = new Set(["publications", "preprints", "datasets", "conference"]);
+const FEED_SECTIONS = new Set(["publications", "preprints", "datasets", "software", "conference"]);
 
 /** XML-escape a text value for an Atom element or attribute. */
 function xml(s: string): string {

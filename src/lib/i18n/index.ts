@@ -94,7 +94,7 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
   "en-US": {
     publications: "Publications",
     preprints: "Preprints",
-    datasets: "Datasets & Software",
+    datasets: "Datasets",
     preregistrations: "Pre-registrations",
     positions: "Positions",
     education: "Education",
@@ -118,11 +118,12 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     languages: "Languages",
     references: "References",
     other: "Other",
+    software: "Software",
   },
   "zh-CN": {
     publications: "发表论文",
     preprints: "预印本",
-    datasets: "数据集与软件",
+    datasets: "数据集",
     preregistrations: "预注册",
     positions: "职位",
     education: "教育经历",
@@ -146,11 +147,12 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     languages: "语言",
     references: "推荐人",
     other: "其他",
+    software: "软件",
   },
   "es-ES": {
     publications: "Publicaciones",
     preprints: "Preprints",
-    datasets: "Conjuntos de datos y software",
+    datasets: "Conjuntos de datos",
     preregistrations: "Preregistros",
     positions: "Puestos",
     education: "Formación",
@@ -174,11 +176,12 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     languages: "Idiomas",
     references: "Referencias",
     other: "Otros",
+    software: "Software",
   },
   "fr-FR": {
     publications: "Publications",
     preprints: "Prépublications",
-    datasets: "Jeux de données et logiciels",
+    datasets: "Jeux de données",
     preregistrations: "Préenregistrements",
     positions: "Postes",
     education: "Formation",
@@ -202,11 +205,12 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     languages: "Langues",
     references: "Références",
     other: "Autres",
+    software: "Logiciels",
   },
   "de-DE": {
     publications: "Publikationen",
     preprints: "Preprints",
-    datasets: "Datensätze & Software",
+    datasets: "Datensätze",
     preregistrations: "Präregistrierungen",
     positions: "Positionen",
     education: "Ausbildung",
@@ -230,11 +234,12 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     languages: "Sprachen",
     references: "Referenzen",
     other: "Sonstiges",
+    software: "Software",
   },
   "ja-JP": {
     publications: "発表論文",
     preprints: "プレプリント",
-    datasets: "データセット・ソフトウェア",
+    datasets: "データセット",
     preregistrations: "事前登録",
     positions: "職歴",
     education: "学歴",
@@ -258,11 +263,12 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     languages: "言語",
     references: "推薦者",
     other: "その他",
+    software: "ソフトウェア",
   },
   "pt-BR": {
     publications: "Publicações",
     preprints: "Preprints",
-    datasets: "Conjuntos de dados e software",
+    datasets: "Conjuntos de dados",
     preregistrations: "Pré-registros",
     positions: "Cargos",
     education: "Formação",
@@ -286,11 +292,12 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     languages: "Idiomas",
     references: "Referências",
     other: "Outros",
+    software: "Software",
   },
   "it-IT": {
     publications: "Pubblicazioni",
     preprints: "Preprint",
-    datasets: "Dataset e software",
+    datasets: "Dataset",
     preregistrations: "Preregistrazioni",
     positions: "Incarichi",
     education: "Formazione",
@@ -314,11 +321,12 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     languages: "Lingue",
     references: "Referenze",
     other: "Altro",
+    software: "Software",
   },
   "ko-KR": {
     publications: "논문",
     preprints: "프리프린트",
-    datasets: "데이터셋 및 소프트웨어",
+    datasets: "데이터셋",
     preregistrations: "사전 등록",
     positions: "경력",
     education: "학력",
@@ -342,11 +350,12 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     languages: "언어",
     references: "추천인",
     other: "기타",
+    software: "소프트웨어",
   },
   "ru-RU": {
     publications: "Публикации",
     preprints: "Препринты",
-    datasets: "Наборы данных и ПО",
+    datasets: "Наборы данных",
     preregistrations: "Предварительные регистрации",
     positions: "Должности",
     education: "Образование",
@@ -370,6 +379,7 @@ const SECTION_TITLES: Record<Locale, Record<CvSectionType, string>> = {
     languages: "Языки",
     references: "Рекомендатели",
     other: "Прочее",
+    software: "Программное обеспечение",
   },
 };
 
@@ -385,6 +395,31 @@ export function sectionTitle(locale: string, type: CvSectionType): string {
  */
 export function isDefaultSectionTitle(type: CvSectionType, title: string): boolean {
   return SUPPORTED_LOCALES.some((loc) => SECTION_TITLES[loc][type] === title);
+}
+
+/**
+ * The default `datasets` heading BEFORE research software became its own section
+ * ("Datasets & Software", per locale). A stored CV whose datasets section still
+ * carries one of these was never renamed by its owner, so the software split
+ * (`canonical/migrateSoftware.ts`) may safely retitle it to the current default;
+ * any other heading is a deliberate rename and is left alone.
+ */
+const LEGACY_DATASETS_TITLES: Record<Locale, string> = {
+  "en-US": "Datasets & Software",
+  "zh-CN": "数据集与软件",
+  "es-ES": "Conjuntos de datos y software",
+  "fr-FR": "Jeux de données et logiciels",
+  "de-DE": "Datensätze & Software",
+  "ja-JP": "データセット・ソフトウェア",
+  "pt-BR": "Conjuntos de dados e software",
+  "it-IT": "Dataset e software",
+  "ko-KR": "데이터셋 및 소프트웨어",
+  "ru-RU": "Наборы данных и ПО",
+};
+
+/** Is `title` the pre-split default "Datasets & Software" heading in ANY locale? */
+export function isLegacyDatasetsTitle(title: string): boolean {
+  return SUPPORTED_LOCALES.some((loc) => LEGACY_DATASETS_TITLES[loc] === title);
 }
 
 // ─── CV content: not-mine reason labels ──────────────────────────────────────

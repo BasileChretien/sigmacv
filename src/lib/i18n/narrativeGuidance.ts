@@ -121,7 +121,7 @@ export function narrativeGuidance(locale: string, type: CvSectionType): string |
 }
 
 /** Lead-in for the evidence hint under a narrative module ("You can draw on: 12
- *  Publications · 3 Datasets & Software"). */
+ *  Publications · 3 Datasets · 2 Software"). */
 const NARRATIVE_EVIDENCE_LABEL: Record<Locale, string> = {
   "en-US": "You can draw on:",
   "zh-CN": "你可以引用：",
