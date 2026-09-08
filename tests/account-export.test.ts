@@ -35,6 +35,9 @@ vi.mock("@/lib/db", () => ({
 vi.mock("@/lib/rateLimitStore", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
 
 import { GET } from "@/app/api/account/export/route";
+import { buildCanonicalCv } from "@/lib/canonical/build";
+import type { OpenAlexWork } from "@/lib/openalex/types";
+import worksFixture from "./fixtures/openalex-works.json";
 
 const CV_ROW = {
   id: "cv1",
@@ -119,6 +122,32 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
     // Internal job bookkeeping and the document itself are not duplicated there.
     expect(body.cvRecord).not.toHaveProperty("resyncLockedAt");
     expect(body.cvRecord).not.toHaveProperty("document");
+  });
+
+  it("round-trips the stored document verbatim — owner-only fields such as meta.funders included", async () => {
+    // The public surfaces strip the per-work funder ids (see work-funders.test.ts);
+    // the owner's data export is the owner's own document, so it keeps them.
+    const document = buildCanonicalCv({
+      id: "cv1",
+      resolved: {
+        orcid: "0000-0002-7483-2489",
+        authorIds: ["A5001069481", "A5136414971"],
+        displayName: "Basile Chrétien",
+      },
+      works: worksFixture as unknown as OpenAlexWork[],
+      now: "2026-09-08T00:00:00.000Z",
+    });
+    const own = document.sections
+      .flatMap((s) => s.items)
+      .find((it) => it.sourceId === "https://openalex.org/W4300000001")!;
+    expect(own.meta.funders).toHaveLength(2);
+    mocks.cvFindUnique.mockResolvedValue({ ...CV_ROW, document });
+    const body = (await (await GET()).json()) as { cv: typeof document };
+    expect(body.cv).toEqual(JSON.parse(JSON.stringify(document)));
+    const exported = body.cv.sections
+      .flatMap((s) => s.items)
+      .find((it) => it.sourceId === own.sourceId)!;
+    expect(exported.meta.funders).toEqual(own.meta.funders);
   });
 
   it("reports a null CV record for an account that never synced", async () => {

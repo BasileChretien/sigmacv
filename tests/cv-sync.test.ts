@@ -302,6 +302,26 @@ describe("syncCvForUser", () => {
     expect(mocks.fetchEditorial).toHaveBeenCalled();
   });
 
+  it("stores the per-work funder ids (meta.funders) in the persisted document — create and update", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const ownFunders = (doc: CanonicalCv) =>
+      doc.sections
+        .flatMap((s) => s.items)
+        .find((it) => it.sourceId === "https://openalex.org/W4300000001")?.meta.funders;
+    // The fixture's own work acknowledges two funders; both reach the stored
+    // document (only the PUBLIC surfaces strip them — see work-funders.test.ts).
+    expect(ownFunders(cv)).toHaveLength(2);
+    const arg = mocks.upsert.mock.calls[0]![0] as {
+      create: { document: CanonicalCv };
+      update: { document: CanonicalCv };
+    };
+    expect(ownFunders(arg.create.document)).toEqual(ownFunders(cv));
+    expect(ownFunders(arg.update.document)).toEqual(ownFunders(cv));
+  });
+
   it("denormalises the current affiliation's ROR id on sync (and the resync that reuses it)", async () => {
     mocks.findUnique.mockResolvedValue(null);
     mocks.resolveAuthor.mockResolvedValue(RESOLVED);
