@@ -750,6 +750,30 @@ const CvItemSchema = z.object({
     /** Award / grant number for a grant item (OpenAlex `awards[].funder_award_id` / ORCID grant external id). */
     awardId: z.string().max(500).optional(),
     /**
+     * The funders acknowledged on a CITATION item — OpenAlex `awards[]` reduced to
+     * the funder id (canonical URL form, "https://openalex.org/F…"), its display
+     * name and the award number as printed on the work. Paper-level source
+     * metadata (often a co-author's funding), stored per work so a later funder
+     * join (matching a work's funder against the owner's OWN ORCID / Crossref
+     * grants) needs no global re-sync. Recomputed from the source on every sync
+     * (never carried), deduped by funder id + award number, bounded at build.
+     * STRIPPED from the public projection for now — not a render input, and
+     * nothing that could read as a funder-compliance signal ships before that
+     * join decides what is shown. An unknown stored value degrades to
+     * `undefined` rather than failing the CV read.
+     */
+    funders: z
+      .array(
+        z.object({
+          id: z.string().max(2048),
+          name: z.string().max(1000).optional(),
+          awardId: z.string().max(500).optional(),
+        }),
+      )
+      .max(20)
+      .optional()
+      .catch(undefined),
+    /**
      * ISO timestamp of the build that last fetched this item from a LIVE source
      * (openalex/orcid/…). Per-item freshness for FAIR provenance; undefined for
      * purely manual entries that were never re-fetched.

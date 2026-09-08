@@ -1240,6 +1240,28 @@
                       "type": "string",
                       "maxLength": 500
                     },
+                    "funders": {
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "maxLength": 2048
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 1000
+                          },
+                          "awardId": {
+                            "type": "string",
+                            "maxLength": 500
+                          }
+                        },
+                        "required": ["id"]
+                      }
+                    },
                     "lastVerifiedAt": {
                       "type": "string"
                     },

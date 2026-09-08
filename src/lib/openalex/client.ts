@@ -48,8 +48,9 @@ const WORK_SELECT = [
   "biblio",
   "ids",
   // OpenAlex replaced the old `grants` field with `awards` (award number + funder
-  // id/name). We use it only to attach funder identifiers to a user's own ORCID
-  // grants (see build.ts `indexFundersByAward`), never as a standalone source.
+  // id/name). Used to attach funder identifiers to a user's own ORCID grants
+  // (build.ts `indexFundersByAward`) and stored per work as `meta.funders` for a
+  // later funder join (build.ts `workFunders`), never as a standalone source.
   "awards",
   // Primary research topic (field + domain), reduced and stored on the item for the
   // misattribution heuristic's cross-domain check. Rides the existing request (no

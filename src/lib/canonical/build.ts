@@ -1910,6 +1910,48 @@ function workCountries(work: OpenAlexWork): string[] | undefined {
   return seen.size > 0 ? [...seen] : undefined;
 }
 
+const MAX_WORK_FUNDERS = 20;
+const MAX_FUNDER_NAME = 1000;
+const MAX_FUNDER_AWARD = 500;
+
+/**
+ * Canonical URL form of an OpenAlex funder id ("https://openalex.org/F4320332161")
+ * from either the URL form OpenAlex returns or a bare "F…" id; undefined for
+ * anything else (a FundRef DOI, an empty string) — an identifier is never
+ * invented from a shape we don't recognise.
+ */
+function normalizeOpenAlexFunderId(raw: string | null | undefined): string | undefined {
+  const short = shortId(raw);
+  const m = /^F(\d+)$/i.exec(short);
+  return m ? `https://openalex.org/F${m[1]}` : undefined;
+}
+
+/**
+ * The funders acknowledged on the work (`meta.funders`): OpenAlex `awards[]`
+ * reduced to funder id (canonical URL form) + display name + award number,
+ * deduped by funder id + award number (case-insensitive — so two awards from
+ * the same funder both survive, an exact repeat collapses), bounded at
+ * {@link MAX_WORK_FUNDERS}; undefined when the work carries no keyable award.
+ * Pure source data, recomputed every sync — see the schema doc for why it is
+ * stored and why the public projection strips it.
+ */
+function workFunders(work: OpenAlexWork): CvItem["meta"]["funders"] {
+  const seen = new Set<string>();
+  const out: NonNullable<CvItem["meta"]["funders"]> = [];
+  for (const a of work.awards ?? []) {
+    const id = normalizeOpenAlexFunderId(a.funder_id);
+    if (!id) continue;
+    const name = a.funder_display_name?.trim().slice(0, MAX_FUNDER_NAME) || undefined;
+    const awardId = a.funder_award_id?.trim().slice(0, MAX_FUNDER_AWARD) || undefined;
+    const key = `${id}|${awardId?.toLowerCase() ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ id, ...(name ? { name } : {}), ...(awardId ? { awardId } : {}) });
+    if (out.length >= MAX_WORK_FUNDERS) break;
+  }
+  return out.length > 0 ? out : undefined;
+}
+
 /**
  * Reference counts for the work: how many works it cites (`referenced_works`
  * length) and how many of those are the owner's OWN works in this sync. Raw
@@ -2004,6 +2046,10 @@ function buildWorkCvItem(
       // or displayed here): authorship countries + reference / self-reference counts.
       countries: workCountries(work),
       ...workReferences(work, ownWorkIds),
+      // Funders acknowledged on the work (OpenAlex `awards[]`), stored per work for
+      // a later funder join. Source-driven, so it is rebuilt from `work` on every
+      // sync — deliberately NOT carried from `prev` (a dropped award disappears).
+      funders: workFunders(work),
       oaStatus:
         work.open_access?.is_oa && work.open_access.oa_status
           ? work.open_access.oa_status
