@@ -48,6 +48,10 @@ export interface SnapshotStrings {
   // ── Freeze as reader view (assessment-grade freeze) ───────────────────────
   /** Hint for the reader-view preset / tooltip on the row tag. */
   readerOptionHint: string;
+  /** Follows readerOptionHint when the reader preset is chosen; {list} = the
+   *  localized toggle names the preset forces on (the same inventory the
+   *  living-page opt-in shows, minus that opt-in's own wording). */
+  readerFreezeInventory: string;
   /** Row tag on a version frozen as the reader view. */
   readerTag: string;
   // ── Freeze in this shape (model + preset) ─────────────────────────────────
@@ -137,6 +141,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "What changed since",
     readerOptionHint:
       "The frozen page shows the provenance, verification and context marks an assessor needs, keeps retracted works visible, and has no standard view. Chosen now, fixed for this version.",
+    readerFreezeInventory: "It turns on: {list}.",
+
     readerTag: "Reader view",
     shapeLabel: "Shape",
     shapeCurrent: "Current layout",
@@ -212,6 +218,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "自那时以来的变化",
     readerOptionHint:
       "冻结页面会显示评估者所需的来源、核验与背景标记，让已撤稿作品保持可见，且没有标准视图。现在选择，此版本固定不变。",
+    readerFreezeInventory: "它会开启：{list}。",
+
     readerTag: "审阅视图",
     shapeLabel: "形态",
     shapeCurrent: "当前布局",
@@ -288,6 +296,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "Qué ha cambiado desde entonces",
     readerOptionHint:
       "La página congelada muestra las marcas de procedencia, verificación y contexto que necesita un evaluador, mantiene visibles los trabajos retractados y no tiene vista estándar. Se elige ahora y queda fija para esta versión.",
+    readerFreezeInventory: "Activa: {list}.",
+
     readerTag: "Vista para evaluadores",
     shapeLabel: "Formato",
     shapeCurrent: "Diseño actual",
@@ -366,6 +376,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "Ce qui a changé depuis",
     readerOptionHint:
       "La page figée affiche les repères de provenance, de vérification et de contexte dont un évaluateur a besoin, garde visibles les travaux rétractés et n’a pas de vue standard. Choisi maintenant, fixé pour cette version.",
+    readerFreezeInventory: "Elle active : {list}.",
+
     readerTag: "Vue évaluateur",
     shapeLabel: "Format",
     shapeCurrent: "Mise en page actuelle",
@@ -444,6 +456,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "Was sich seitdem geändert hat",
     readerOptionHint:
       "Die eingefrorene Seite zeigt die Herkunfts-, Prüf- und Kontextmarkierungen, die Gutachtende brauchen, zeigt zurückgezogene Arbeiten weiterhin an und hat keine Standardansicht. Die Wahl gilt dauerhaft für diese Version.",
+    readerFreezeInventory: "Sie schaltet ein: {list}.",
+
     readerTag: "Gutachteransicht",
     shapeLabel: "Format",
     shapeCurrent: "Aktuelles Layout",
@@ -523,6 +537,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "その後の変更",
     readerOptionHint:
       "固定したページには、審査者に必要な出所・検証・背景の表示が含まれ、撤回された論文も表示されたままになり、標準ビューはありません。今選ぶと、このバージョンでは変更できません。",
+    readerFreezeInventory: "有効になる項目：{list}。",
+
     readerTag: "審査者ビュー",
     shapeLabel: "形式",
     shapeCurrent: "現在のレイアウト",
@@ -599,6 +615,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "O que mudou desde então",
     readerOptionHint:
       "A página congelada mostra as marcas de proveniência, verificação e contexto de que um avaliador precisa, mantém visíveis os trabalhos retratados e não tem visão padrão. Escolhido agora, fixo para esta versão.",
+    readerFreezeInventory: "Ela ativa: {list}.",
+
     readerTag: "Visão para avaliadores",
     shapeLabel: "Formato",
     shapeCurrent: "Layout atual",
@@ -676,6 +694,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "Cosa è cambiato da allora",
     readerOptionHint:
       "La pagina congelata mostra i contrassegni di provenienza, verifica e contesto di cui ha bisogno un valutatore, mantiene visibili i lavori ritrattati e non ha una vista standard. Scelto ora, fisso per questa versione.",
+    readerFreezeInventory: "Attiva: {list}.",
+
     readerTag: "Vista per valutatori",
     shapeLabel: "Formato",
     shapeCurrent: "Layout attuale",
@@ -753,6 +773,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "이후 변경 사항",
     readerOptionHint:
       "고정된 페이지에는 심사자에게 필요한 출처·검증·맥락 표시가 포함되고 철회된 논문도 계속 표시되며 표준 보기는 없습니다. 지금 선택하면 이 버전에서는 변경되지 않습니다.",
+    readerFreezeInventory: "다음 항목이 켜집니다: {list}.",
+
     readerTag: "심사자 보기",
     shapeLabel: "형식",
     shapeCurrent: "현재 레이아웃",
@@ -829,6 +851,8 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     bannerCompare: "Что изменилось с тех пор",
     readerOptionHint:
       "Зафиксированная страница показывает отметки происхождения, проверки и контекста, нужные эксперту, оставляет отозванные работы видимыми и не имеет обычного вида. Выбирается сейчас и фиксируется для этой версии.",
+    readerFreezeInventory: "Включает: {list}.",
+
     readerTag: "Режим эксперта",
     shapeLabel: "Формат",
     shapeCurrent: "Текущая раскладка",

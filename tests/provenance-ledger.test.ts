@@ -171,11 +171,17 @@ describe("provenanceLedger", () => {
     ).toBe(false);
   });
 
-  it("counts owner-confirmed publications over the source-attributed ones", () => {
+  it("counts owner-confirmed works over the works that NEEDED a look — never over every publication", () => {
     const cv = cvWith([
       section("publications", [
+        // Confirmed on the owner's own initiative → in the population, counted.
         work("r1", { reviewedAt: "2026-06-01T00:00:00.000Z" }),
+        // Sound, identifier-matched, never flagged → NOT in the population: the
+        // editor never asked for it, so "unconfirmed" would be a false reproach.
         work("r2"),
+        // Flagged and not yet looked at → in the population, not counted.
+        work("f", { meta: { matchBasis: "orcid", reviewFlag: "orcid-doi" } }),
+        // Owner-entered / claimed works are never "reviewed" in this sense.
         work("man", { source: "manual", sourceId: "m", reviewedAt: "2026-06-01T00:00:00.000Z" }),
         work("cl", { meta: { claimed: true }, reviewedAt: "2026-06-01T00:00:00.000Z" }),
       ]),
@@ -183,6 +189,10 @@ describe("provenanceLedger", () => {
     ]);
     const l = provenanceLedger(cv);
     expect(l.reviewed).toEqual({ count: 1, denominator: 2, share: 0.5 });
+    // A clean CV — 107 identifier-matched works, nothing flagged — has nothing
+    // to confirm: denominator 0, so the line is not rendered at all.
+    const clean = cvWith([section("publications", [work("a"), work("b"), work("c")])]);
+    expect(provenanceLedger(clean).reviewed).toEqual({ count: 0, denominator: 0 });
   });
 
   it("counts retracted works shown over the citation entries, and 0 when hideRetracted is on", () => {
@@ -235,17 +245,28 @@ describe("ledgerLines / provenanceLedgerHtml", () => {
       "selfEntered",
       "nameMatched",
       "persistentId",
-      "reviewed",
       "retractedVisible",
     ]);
     expect(keys).not.toContain("verified"); // no positions/education → denominator 0
     expect(keys).not.toContain("other");
+    // Nothing was flagged for review → nothing to confirm → no "reviewed" line.
+    expect(keys).not.toContain("reviewed");
     const byKey = Object.fromEntries(lines.map((l) => [l.key, l.figure]));
     expect(byKey.identifierMatched).toBe("2 of 3 (67%)");
     expect(byKey.claimed).toBe("1 of 3 (33%)");
     expect(byKey.selfEntered).toBe("0 of 3 (0%)");
     expect(byKey.retractedVisible).toBe("1 of 3 (33%)");
-    expect(byKey.reviewed).toBe("0 of 2 (0%)");
+    // With one flagged work the line appears, over the flagged population only.
+    const flagged = cvWith([
+      section("publications", [
+        work("a", { meta: { doi: "10.1/a", matchBasis: "orcid" } }),
+        work("f", { meta: { matchBasis: "orcid", reviewFlag: "orcid-doi" } }),
+      ]),
+    ]);
+    const fl = Object.fromEntries(
+      ledgerLines(provenanceLedger(flagged), "en-US").map((l) => [l.key, l.figure]),
+    );
+    expect(fl.reviewed).toBe("0 of 1 (0%)");
   });
 
   it("lists the residual line when it counts something", () => {
@@ -270,7 +291,7 @@ describe("ledgerLines / provenanceLedgerHtml", () => {
       expect(s.provLedgerOf).toContain("{total}");
       expect(s.provLedgerOf).toContain("{pct}");
       const lines = ledgerLines(provenanceLedger(cv), loc);
-      expect(lines.length).toBe(7);
+      expect(lines.length).toBe(6); // no flagged work → no "reviewed" line
       for (const l of lines) {
         expect(l.figure).not.toMatch(/\{(n|total|pct)\}/);
         expect(l.label.length).toBeGreaterThan(0);
@@ -316,8 +337,8 @@ describe("provenanceFooter + ledger", () => {
     expect(html).toContain(
       '<tr data-ledger="claimed"><td>Added by DOI (owner-asserted)</td><td>1 of 2 (50%)</td></tr>',
     );
-    expect(html).toContain(
-      '<tr data-ledger="reviewed"><td>Source-attributed publications confirmed by the owner</td><td>0 of 1 (0%)</td></tr>',
-    );
+    // Nothing in this fixture was flagged for review, so the stored ledger has
+    // no "reviewed" line to show — and never a "0 of N" over sound work.
+    expect(html).not.toContain('data-ledger="reviewed"');
   });
 });

@@ -4,7 +4,7 @@ import {
   type CvItem,
   type CvSectionType,
 } from "@/lib/canonical/schema";
-import { isSourceAttributed, itemReviewState } from "@/lib/canonical/review";
+import { isSourceAttributed, itemReviewState, needsReview } from "@/lib/canonical/review";
 
 /**
  * PROVENANCE LEDGER — how VERIFIABLE this document is.
@@ -71,9 +71,14 @@ export interface ProvenanceLedger {
   /** Entries a reader can resolve by a persistent identifier (DOI, PMID, arXiv id,
    *  ORCID put-code), over all shown entries. */
   persistentId: LedgerLine;
-  /** Source-attributed publications the owner looked at and confirmed, over the
-   *  source-attributed publications shown (owner-entered/claimed ones excluded —
-   *  "has the owner checked them?" is vacuous there). */
+  /** Works the owner confirmed, over the shown works that NEEDED a look: the
+   *  ones carrying a review flag or a misattribution verdict (`needsReview`), plus
+   *  any the owner confirmed anyway. NOT over every source-attributed work — the
+   *  editor deliberately never asks a researcher to re-confirm sound,
+   *  identifier-matched work (`review.ts`), so a denominator of "all 107
+   *  publications" would read as "the owner checked none of them" on a CV
+   *  that had nothing to check. A CV with nothing flagged has a 0 denominator
+   *  and the line is simply not shown. */
   reviewed: LedgerLine;
   /** Retracted works still on the page (0 whenever `display.hideRetracted`), over
    *  the shown citation entries. */
@@ -222,8 +227,13 @@ export function provenanceLedger(cv: CanonicalCv): ProvenanceLedger {
       if (showRetracted && item.meta.retracted === true) retracted += 1;
     }
     if (isSourceAttributed(item)) {
-      attributed += 1;
-      if (itemReviewState(item) === "confirmed") confirmed += 1;
+      const state = itemReviewState(item);
+      // The review population is the doubtful cases (flag / misattribution
+      // verdict) plus whatever the owner confirmed on their own initiative.
+      if (needsReview(item) || state === "confirmed") {
+        attributed += 1;
+        if (state === "confirmed") confirmed += 1;
+      }
     }
   }
   return {
