@@ -261,9 +261,56 @@ export function invalidatePublicPage(slug: string): void {
   ogImageStore.delete(slug);
 }
 
+// ─── Public institution pages (/i/<ror-id>) ──────────────────────────────────
+// Rendered per ROR id from the opted-in CVs. Same TTL as the CV page; bounded by
+// entry count (an institution page is small — no citeproc render). The consent
+// setter purges the ids a researcher withdrew from, so withdrawal is effective
+// immediately rather than within the TTL.
+
+const institutionCache = new Map<string, CacheRecord>();
+const INSTITUTION_MAX_ENTRIES = 1000;
+
+/** Cached rendered institution page for a bare ROR id, or null on miss/expiry. */
+export function getCachedInstitutionPage(
+  rorId: string,
+  now: number = Date.now(),
+): PublicPageEntry | null {
+  const rec = institutionCache.get(rorId);
+  if (!rec) return null;
+  if (now >= rec.expires) {
+    institutionCache.delete(rorId);
+    return null;
+  }
+  return { html: rec.html, indexable: rec.indexable, signposting: rec.signposting };
+}
+
+/** Cache a rendered institution page for a bare ROR id. */
+export function setCachedInstitutionPage(
+  rorId: string,
+  entry: PublicPageEntry,
+  now: number = Date.now(),
+): void {
+  institutionCache.set(rorId, { ...entry, expires: now + TTL_MS });
+  while (institutionCache.size > INSTITUTION_MAX_ENTRIES) {
+    const oldest = institutionCache.keys().next().value;
+    /* v8 ignore next -- defensive: never evict the just-set entry / empty map */
+    if (oldest === undefined || oldest === rorId) break;
+    institutionCache.delete(oldest);
+  }
+}
+
+/** Drop the cached pages of these ROR ids — called when a researcher withdraws
+ *  (or loses, with indexing / publishing) their institution-page consent, so
+ *  the withdrawal is visible at once. No-op-safe: unknown ids, duplicates and
+ *  an empty list are fine. */
+export function purgeInstitutionPages(rorIds: readonly string[]): void {
+  for (const id of rorIds) institutionCache.delete(id);
+}
+
 /** Test-only: clear the cache. */
 export function __resetPublicPageCache(): void {
   cache.clear();
   missCache.clear();
   ogImageStore.clear();
+  institutionCache.clear();
 }

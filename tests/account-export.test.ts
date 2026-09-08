@@ -51,6 +51,8 @@ const CV_ROW = {
   publicIndexable: false,
   listUnderAffiliation: true,
   currentRorId: "04chrp450",
+  showOnInstitutionPage: true,
+  consentedRorIds: ["04chrp450", "02kpeqv85"],
   resyncLockedAt: null,
   createdAt: new Date("2026-06-01T00:00:00Z"),
   updatedAt: new Date("2026-09-01T00:00:00Z"),
@@ -113,6 +115,9 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
       // The affiliation-listing consent and the ROR key it lists under.
       listUnderAffiliation: true,
       currentRorId: "04chrp450",
+      // The institution-page consent and the ROR ids it is pinned to (lapsed ones included).
+      showOnInstitutionPage: true,
+      consentedRorIds: ["04chrp450", "02kpeqv85"],
       schemaVersion: 2,
       lastSyncedAt: CV_ROW.lastSyncedAt.toISOString(),
       lastSyncReport: { added: 1 },

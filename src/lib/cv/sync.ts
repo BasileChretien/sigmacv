@@ -3,7 +3,15 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { absoluteUrl } from "@/lib/siteUrl";
 import { pingIndexNow } from "@/lib/cv/indexNow";
-import { invalidatePublicPage } from "@/lib/cv/publicPageCache";
+import { invalidatePublicPage, purgeInstitutionPages } from "@/lib/cv/publicPageCache";
+import {
+  institutionPageState,
+  resolveInstitutionConsent,
+  visibleCurrentRorIds,
+  type InstitutionConsentColumns,
+  type InstitutionPageRequest,
+  type InstitutionPageState,
+} from "@/lib/cv/institutionConsent";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { currentAffiliation } from "@/lib/cv/publicJsonLd";
@@ -696,7 +704,9 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
 
 // ─── Living public page ──────────────────────────────────────────────────────
 
-export interface PublishState {
+/** Publish state; the institution-page part (`InstitutionPageState`) is a
+ *  FOURTH separate consent, pinned to ticked ROR ids (see `institutionConsent.ts`). */
+export interface PublishState extends InstitutionPageState {
   published: boolean;
   publicSlug: string | null;
   /** Whether the published page opts in to search-engine indexing. */
@@ -709,6 +719,8 @@ export interface PublishState {
   affiliationRorId: string | null;
 }
 
+const NO_CONSENT: InstitutionConsentColumns = { showOnInstitutionPage: false, consentedRorIds: [] };
+
 export async function getPublishState(userId: string): Promise<PublishState> {
   const row = await prisma.cv.findUnique({
     where: { userId },
@@ -718,14 +730,27 @@ export async function getPublishState(userId: string): Promise<PublishState> {
       publicIndexable: true,
       listUnderAffiliation: true,
       currentRorId: true,
+      showOnInstitutionPage: true,
+      consentedRorIds: true,
+      document: true,
     },
   });
+  const published = row?.published ?? false;
+  const publicIndexable = row?.publicIndexable ?? false;
+  const parsed = row ? safeParseCanonicalCv(row.document) : null;
   return {
-    published: row?.published ?? false,
+    published,
     publicSlug: row?.publicSlug ?? null,
-    indexable: row?.publicIndexable ?? false,
+    indexable: publicIndexable,
     listUnderAffiliation: row?.listUnderAffiliation ?? false,
     affiliationRorId: row?.currentRorId ?? null,
+    ...institutionPageState(
+      parsed?.success ? parsed.data : null,
+      row
+        ? { showOnInstitutionPage: row.showOnInstitutionPage, consentedRorIds: row.consentedRorIds }
+        : NO_CONSENT,
+      { published, publicIndexable },
+    ),
   };
 }
 
@@ -735,17 +760,27 @@ export async function getPublishState(userId: string): Promise<PublishState> {
  *  is a THIRD, separate opt-in (the OAI-PMH affiliation set): it requires
  *  indexing AND a ROR-resolved visible current position, and is cleared with
  *  either — the set key is re-derived from the stored document here, so the
- *  decision is made on what the CV says now, not on a stale column. */
+ *  decision is made on what the CV says now, not on a stale column.
+ *  `institutionPage` is a FOURTH, separate opt-in (the public institution
+ *  page), PINNED to the ROR ids the owner ticks: validated against the stored
+ *  document's visible current positions (an unknown id throws
+ *  `InstitutionConsentError`), cleared with indexing like the OAI listing, and
+ *  — unlike the OAI key — never re-derived: omitted here, the stored choice is
+ *  kept as-is, so a lapsed id survives to be re-asked rather than moved (and an
+ *  already-stored id may be re-posted, so keeping a lapsed one while ticking a
+ *  new affiliation is a valid request). */
 export async function setPublishState(
   userId: string,
   published: boolean,
   indexable = false,
   listUnderAffiliation = false,
+  institutionPage?: InstitutionPageRequest,
 ): Promise<PublishState> {
   const row = await prisma.cv.findUnique({ where: { userId } });
   if (!row) throw new CvNotFoundError();
 
   const parsed = safeParseCanonicalCv(row.document);
+  const cv = parsed.success ? parsed.data : null;
   let slug = row.publicSlug;
   if (published && !slug) {
     const name = parsed.success ? parsed.data.owner.displayName : "cv";
@@ -757,9 +792,21 @@ export async function setPublishState(
   }
 
   const publicIndexable = published && indexable;
-  const currentRorId = parsed.success ? currentRorKey(parsed.data) : null;
-  const currentAffiliationName = parsed.success ? affiliationSetName(parsed.data) : null;
+  const currentRorId = cv ? currentRorKey(cv) : null;
+  const currentAffiliationName = cv ? affiliationSetName(cv) : null;
   const listed = publicIndexable && listUnderAffiliation && currentRorId !== null;
+  const stored: InstitutionConsentColumns = {
+    showOnInstitutionPage: row.showOnInstitutionPage,
+    consentedRorIds: row.consentedRorIds,
+  };
+  const requested = institutionPage
+    ? resolveInstitutionConsent(
+        institutionPage,
+        cv ? visibleCurrentRorIds(cv) : [],
+        stored.consentedRorIds,
+      )
+    : stored;
+  const consent = publicIndexable ? requested : NO_CONSENT;
   const updated = await prisma.cv.update({
     where: { userId },
     data: {
@@ -769,6 +816,7 @@ export async function setPublishState(
       listUnderAffiliation: listed,
       currentRorId,
       currentAffiliationName,
+      ...consent,
     },
     select: {
       published: true,
@@ -781,6 +829,10 @@ export async function setPublishState(
   // Drop any cached render so unpublish/publish/index changes take effect at
   // once (the public route caches rendered pages for a short TTL).
   if (updated.publicSlug) invalidatePublicPage(updated.publicSlug);
+  // Every institution page this CV was, or is now, consented to: a withdrawal
+  // (explicit, or via indexing / unpublish) must be visible at once, not
+  // within the TTL. Cheap — at most a handful of ids, usually none.
+  purgeInstitutionPages([...stored.consentedRorIds, ...consent.consentedRorIds]);
   // Newly live AND indexable: nudge IndexNow (Bing/Yandex) to crawl now rather
   // than wait for sitemap rediscovery. Fire-and-forget — pingIndexNow is
   // fail-soft and no-ops outside production, so it never blocks or breaks publish.
@@ -793,6 +845,10 @@ export async function setPublishState(
     indexable: updated.publicIndexable,
     listUnderAffiliation: updated.listUnderAffiliation,
     affiliationRorId: updated.currentRorId,
+    ...institutionPageState(cv, consent, {
+      published: updated.published,
+      publicIndexable: updated.publicIndexable,
+    }),
   };
 }
 

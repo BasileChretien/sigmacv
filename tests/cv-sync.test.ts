@@ -150,6 +150,12 @@ import {
   syncCvForUser,
 } from "@/lib/cv/sync";
 import { setItemIncluded } from "@/lib/canonical/curate";
+import { InstitutionConsentError } from "@/lib/cv/institutionConsent";
+import {
+  __resetPublicPageCache,
+  getCachedInstitutionPage,
+  setCachedInstitutionPage,
+} from "@/lib/cv/publicPageCache";
 import { fetchOrcidPositions } from "@/lib/orcid/client";
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import type { OpenAlexWork } from "@/lib/openalex/types";
@@ -807,6 +813,13 @@ describe("capCvItems", () => {
   });
 });
 
+/** A stored Cv row with no consents (Prisma always returns the consent columns). */
+const BARE_ROW = {
+  id: "abcd1234ef",
+  showOnInstitutionPage: false,
+  consentedRorIds: [] as string[],
+};
+
 describe("publish state", () => {
   it("reports defaults when no row exists", async () => {
     mocks.findUnique.mockResolvedValue(null);
@@ -816,6 +829,11 @@ describe("publish state", () => {
       indexable: false,
       listUnderAffiliation: false,
       affiliationRorId: null,
+      showOnInstitutionPage: false,
+      consentedRorIds: [],
+      currentAffiliations: [],
+      visibleCurrentRorIds: [],
+      lapsedRorIds: [],
     });
   });
 
@@ -826,6 +844,9 @@ describe("publish state", () => {
       publicIndexable: true,
       listUnderAffiliation: true,
       currentRorId: "04chrp450",
+      showOnInstitutionPage: false,
+      consentedRorIds: [],
+      document: AFFILIATED_DOC,
     });
     expect(await getPublishState("u1")).toMatchObject({
       listUnderAffiliation: true,
@@ -833,8 +854,30 @@ describe("publish state", () => {
     });
   });
 
+  it("reports the institution-page consent with the picker and the re-ask, derived from the stored document", async () => {
+    mocks.findUnique.mockResolvedValue({
+      published: true,
+      publicSlug: "s",
+      publicIndexable: true,
+      listUnderAffiliation: false,
+      currentRorId: "04chrp450",
+      showOnInstitutionPage: true,
+      // Consented at a previous institution too: that id is no longer a visible
+      // current position, so it is LAPSED (re-asked), never moved to Nagoya.
+      consentedRorIds: ["04chrp450", "02kpeqv85"],
+      document: AFFILIATED_DOC,
+    });
+    expect(await getPublishState("u1")).toMatchObject({
+      showOnInstitutionPage: true,
+      consentedRorIds: ["04chrp450", "02kpeqv85"],
+      currentAffiliations: [{ rorId: "04chrp450", name: "Nagoya University" }],
+      visibleCurrentRorIds: ["04chrp450"],
+      lapsedRorIds: ["02kpeqv85"],
+    });
+  });
+
   it("mints a slug on first publish", async () => {
-    mocks.findUnique.mockResolvedValue({ id: "abcd1234ef", document: DOC, publicSlug: null });
+    mocks.findUnique.mockResolvedValue({ ...BARE_ROW, document: DOC, publicSlug: null });
     mocks.update.mockResolvedValue({
       published: true,
       publicSlug: "basile-chretien-abcd1234",
@@ -848,7 +891,7 @@ describe("publish state", () => {
   });
 
   it("only allows indexing while published (and clears it on unpublish)", async () => {
-    mocks.findUnique.mockResolvedValue({ id: "abcd1234ef", document: DOC, publicSlug: "s" });
+    mocks.findUnique.mockResolvedValue({ ...BARE_ROW, document: DOC, publicSlug: "s" });
     mocks.update.mockResolvedValue({
       published: true,
       publicSlug: "s",
@@ -869,7 +912,13 @@ describe("publish state", () => {
   });
 
   describe("list under my current affiliation (OAI set opt-in)", () => {
-    const row = (document: unknown) => ({ id: "abcd1234ef", document, publicSlug: "s" });
+    const row = (document: unknown) => ({
+      id: "abcd1234ef",
+      document,
+      publicSlug: "s",
+      showOnInstitutionPage: false,
+      consentedRorIds: [],
+    });
 
     it("is accepted only with indexing AND a ROR-resolved current position", async () => {
       mocks.findUnique.mockResolvedValue(row(AFFILIATED_DOC));
@@ -918,6 +967,133 @@ describe("publish state", () => {
         publicIndexable: false,
         listUnderAffiliation: false,
       });
+    });
+  });
+
+  describe("show me on my institution's page (pinned consent)", () => {
+    const row = (
+      document: unknown,
+      consent: { showOnInstitutionPage: boolean; consentedRorIds: string[] } = {
+        showOnInstitutionPage: false,
+        consentedRorIds: [],
+      },
+    ) => ({ id: "abcd1234ef", document, publicSlug: "s", ...consent });
+    const UPDATED = { published: true, publicSlug: "s", publicIndexable: true };
+
+    beforeEach(() => {
+      __resetPublicPageCache();
+      mocks.update.mockResolvedValue(UPDATED);
+    });
+
+    it("stores the ticked ids when they are visible current affiliations, and answers with the picker", async () => {
+      mocks.findUnique.mockResolvedValue(row(AFFILIATED_DOC));
+      const state = await setPublishState("u1", true, true, false, {
+        show: true,
+        rorIds: ["04chrp450"],
+      });
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        publicIndexable: true,
+        showOnInstitutionPage: true,
+        consentedRorIds: ["04chrp450"],
+      });
+      expect(state).toMatchObject({
+        showOnInstitutionPage: true,
+        consentedRorIds: ["04chrp450"],
+        currentAffiliations: [{ rorId: "04chrp450", name: "Nagoya University" }],
+        visibleCurrentRorIds: ["04chrp450"],
+        lapsedRorIds: [],
+      });
+    });
+
+    it("rejects an id that is not a visible current affiliation of the STORED document, writing nothing", async () => {
+      mocks.findUnique.mockResolvedValue(row(AFFILIATED_DOC));
+      await expect(
+        setPublishState("u1", true, true, false, { show: true, rorIds: ["02kpeqv85"] }),
+      ).rejects.toBeInstanceOf(InstitutionConsentError);
+      expect(mocks.update).not.toHaveBeenCalled();
+      // A document with no ROR-resolved current position offers nothing to consent to.
+      mocks.findUnique.mockResolvedValue(row(DOC));
+      await expect(
+        setPublishState("u1", true, true, false, { show: true, rorIds: ["04chrp450"] }),
+      ).rejects.toBeInstanceOf(InstitutionConsentError);
+    });
+
+    it("is cleared with indexing and on unpublish, exactly like the OAI listing", async () => {
+      const consented = { showOnInstitutionPage: true, consentedRorIds: ["04chrp450"] };
+      mocks.findUnique.mockResolvedValue(row(AFFILIATED_DOC, consented));
+      await setPublishState("u1", true, false, false);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        publicIndexable: false,
+        showOnInstitutionPage: false,
+        consentedRorIds: [],
+      });
+      mocks.update.mockClear();
+      await setPublishState("u1", false, true, false, { show: true, rorIds: ["04chrp450"] });
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        published: false,
+        showOnInstitutionPage: false,
+        consentedRorIds: [],
+      });
+    });
+
+    it("keeps the stored choice untouched when the request does not mention it (a lapsed id survives to be re-asked)", async () => {
+      const consented = { showOnInstitutionPage: true, consentedRorIds: ["02kpeqv85"] };
+      mocks.findUnique.mockResolvedValue(row(AFFILIATED_DOC, consented));
+      const state = await setPublishState("u1", true, true, true);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject(consented);
+      expect(state.lapsedRorIds).toEqual(["02kpeqv85"]);
+      expect(state.visibleCurrentRorIds).toEqual(["04chrp450"]);
+    });
+
+    it("keeps a stored lapsed id when it is re-posted beside a new current one (the union is purged)", async () => {
+      setCachedInstitutionPage("04chrp450", { html: "<i>", indexable: true });
+      setCachedInstitutionPage("02kpeqv85", { html: "<j>", indexable: true });
+      mocks.findUnique.mockResolvedValue(
+        row(AFFILIATED_DOC, { showOnInstitutionPage: true, consentedRorIds: ["02kpeqv85"] }),
+      );
+      const state = await setPublishState("u1", true, true, false, {
+        show: true,
+        rorIds: ["02kpeqv85", "04chrp450"],
+      });
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        showOnInstitutionPage: true,
+        consentedRorIds: ["02kpeqv85", "04chrp450"],
+      });
+      expect(state.lapsedRorIds).toEqual(["02kpeqv85"]);
+      expect(getCachedInstitutionPage("04chrp450")).toBeNull();
+      expect(getCachedInstitutionPage("02kpeqv85")).toBeNull();
+    });
+
+    it("consenting to a NEW id purges its cached page (the union, not only the ids stored before)", async () => {
+      setCachedInstitutionPage("04chrp450", { html: "<i>", indexable: true });
+      setCachedInstitutionPage("04d9jrx35", { html: "<k>", indexable: true });
+      // Nothing stored yet: the previously-stored list is empty, so a purge of
+      // only that list would leave the newly consented page stale for the TTL.
+      mocks.findUnique.mockResolvedValue(row(AFFILIATED_DOC));
+      await setPublishState("u1", true, true, false, { show: true, rorIds: ["04chrp450"] });
+      expect(getCachedInstitutionPage("04chrp450")).toBeNull();
+      expect(getCachedInstitutionPage("04d9jrx35")).not.toBeNull();
+    });
+
+    it("a withdrawal purges the cached institution pages of every id it was consented to", async () => {
+      setCachedInstitutionPage("04chrp450", { html: "<i>", indexable: true });
+      setCachedInstitutionPage("02kpeqv85", { html: "<j>", indexable: true });
+      setCachedInstitutionPage("04d9jrx35", { html: "<k>", indexable: true });
+      mocks.findUnique.mockResolvedValue(
+        row(AFFILIATED_DOC, {
+          showOnInstitutionPage: true,
+          consentedRorIds: ["04chrp450", "02kpeqv85"],
+        }),
+      );
+      await setPublishState("u1", true, true, false, { show: false, rorIds: [] });
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        showOnInstitutionPage: false,
+        consentedRorIds: [],
+      });
+      expect(getCachedInstitutionPage("04chrp450")).toBeNull();
+      expect(getCachedInstitutionPage("02kpeqv85")).toBeNull();
+      // Pages of other institutions are untouched.
+      expect(getCachedInstitutionPage("04d9jrx35")).not.toBeNull();
     });
   });
 });

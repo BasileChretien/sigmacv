@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { safeParseSyncReport, type SyncReport } from "@/lib/cv/syncReport";
+import { NO_INSTITUTION_PAGE, type InstitutionPageState } from "@/lib/cv/institutionConsent";
 import { updateDisplay } from "@/lib/canonical/curate";
 import { asLocale, t, type Locale } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
@@ -69,6 +70,8 @@ interface CvWorkspaceProps {
       ROR key it would list under (null → the opt-in is not offered). */
   publicListUnderAffiliation?: boolean;
   publicAffiliationRorId?: string | null;
+  /** Institution-page consent (pinned ROR ids + the picker + the re-ask). */
+  publicInstitutionPage?: InstitutionPageState;
   signOutAction: () => Promise<void>;
 }
 
@@ -83,6 +86,30 @@ async function apiFetch(url: string, method: "POST" | "PATCH", body?: unknown): 
     throw new Error((data as { error?: string }).error ?? `Request failed (${res.status})`);
   }
   return data;
+}
+
+/** The publish-state shape the workspace mirrors (a GET /api/cv/publish answer). */
+interface PublishStateResponse extends InstitutionPageState {
+  published: boolean;
+  publicSlug: string | null;
+  indexable: boolean;
+  listUnderAffiliation: boolean;
+  affiliationRorId: string | null;
+}
+
+function isPublishState(data: unknown): data is PublishStateResponse {
+  if (!data || typeof data !== "object") return false;
+  const d = data as Record<string, unknown>;
+  return (
+    typeof d.published === "boolean" &&
+    typeof d.indexable === "boolean" &&
+    typeof d.listUnderAffiliation === "boolean" &&
+    typeof d.showOnInstitutionPage === "boolean" &&
+    Array.isArray(d.consentedRorIds) &&
+    Array.isArray(d.currentAffiliations) &&
+    Array.isArray(d.visibleCurrentRorIds) &&
+    Array.isArray(d.lapsedRorIds)
+  );
 }
 
 export default function CvWorkspace({
@@ -103,6 +130,7 @@ export default function CvWorkspace({
   publicIndexable,
   publicListUnderAffiliation = false,
   publicAffiliationRorId = null,
+  publicInstitutionPage = NO_INSTITUTION_PAGE,
   signOutAction,
 }: CvWorkspaceProps) {
   const [cv, setCv] = useState<CanonicalCv | null>(initialCv);
@@ -150,7 +178,39 @@ export default function CvWorkspace({
     indexable: publicIndexable,
     listUnderAffiliation: publicListUnderAffiliation,
     affiliationRorId: publicAffiliationRorId,
+    institutionPage: publicInstitutionPage,
   });
+
+  // The institution-page picker (and the OAI set key) are derived from the
+  // STORED document, and the consent is validated against it — so after a save
+  // or a sync the publish state can be stale (a position edited moments ago is
+  // not yet offered). Re-read it after each successful write; PublishControls
+  // re-seeds from these props on its next open. Best-effort: a failure or an
+  // unexpected shape leaves the current state in place.
+  const refreshPublishState = useCallback(async () => {
+    try {
+      const res = await fetch("/api/cv/publish");
+      if (!res.ok) return;
+      const data: unknown = await res.json();
+      if (!isPublishState(data)) return;
+      setPublishState({
+        published: data.published,
+        slug: data.publicSlug,
+        indexable: data.indexable,
+        listUnderAffiliation: data.listUnderAffiliation,
+        affiliationRorId: data.affiliationRorId,
+        institutionPage: {
+          showOnInstitutionPage: data.showOnInstitutionPage,
+          consentedRorIds: data.consentedRorIds,
+          currentAffiliations: data.currentAffiliations,
+          visibleCurrentRorIds: data.visibleCurrentRorIds,
+          lapsedRorIds: data.lapsedRorIds,
+        },
+      });
+    } catch {
+      /* best-effort */
+    }
+  }, []);
 
   // Refs let the debounced auto-save read the latest document and avoid
   // overlapping writes without re-creating the debounce timer on every keystroke.
@@ -266,6 +326,7 @@ export default function CvWorkspace({
       // flight; otherwise the pending auto-save persists the newer document.
       if (cvRef.current === snapshot) setDirty(false);
       showStatus(t(uiLocale, "savedStatus"), "ok");
+      void refreshPublishState();
       return true;
     } catch (err) {
       // Leave the document dirty so the Save button + navigate-away guard still
@@ -276,7 +337,7 @@ export default function CvWorkspace({
       savingRef.current = false;
       setSaving(false);
     }
-  }, [cv, uiLocale, showStatus]);
+  }, [cv, uiLocale, showStatus, refreshPublishState]);
 
   // Keep a stable handle to the latest save callback so the debounce effect
   // below doesn't reset its timer every time `cv`/`uiLocale` change.
@@ -320,6 +381,7 @@ export default function CvWorkspace({
       setDirty(false);
       setSyncError(false);
       showStatus(t(uiLocale, "syncedStatus"), "ok");
+      void refreshPublishState();
     } catch (err) {
       showStatus(err instanceof Error ? err.message : t(uiLocale, "syncFailed"), "error");
       // With no CV on screen, a transient status line is easy to miss and looks
@@ -328,7 +390,7 @@ export default function CvWorkspace({
     } finally {
       setSyncing(false);
     }
-  }, [uiLocale, showStatus]);
+  }, [uiLocale, showStatus, refreshPublishState]);
 
   // Freshness-gated background "sync on connect": when the server flags the CV as
   // stale on this open (> ~12h), refresh from the sources once after mount. The
@@ -454,6 +516,7 @@ export default function CvWorkspace({
           publicIndexable={publishState.indexable}
           publicListUnderAffiliation={publishState.listUnderAffiliation}
           publicAffiliationRorId={publishState.affiliationRorId}
+          publicInstitutionPage={publishState.institutionPage}
           publicContact={
             cv?.display.publicContact ?? { email: false, phone: false, location: false }
           }

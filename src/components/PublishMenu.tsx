@@ -3,7 +3,8 @@
 import { ui } from "@/lib/i18n/ui";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import Popover from "./Popover";
-import PublishControls from "./PublishControls";
+import PublishControls, { type PublishStateChange } from "./PublishControls";
+import type { InstitutionPageState } from "@/lib/cv/institutionConsent";
 
 interface PublicContactFlags {
   email: boolean;
@@ -19,17 +20,13 @@ interface PublishMenuProps {
   /** OAI-PMH affiliation listing: the opt-in + the ROR key (null → not offered). */
   listUnderAffiliation?: boolean;
   affiliationRorId?: string | null;
+  /** Institution-page consent (pinned ROR ids + the picker + the re-ask). */
+  institutionPage?: InstitutionPageState;
   publicContact: PublicContactFlags;
   onPublicContactChange: (next: PublicContactFlags) => void;
   /** Lifts publish/slug/indexing changes up so the bar's live-state indicator
       (dot + label) updates immediately, instead of going stale until reload. */
-  onPublishStateChange: (next: {
-    published: boolean;
-    slug: string | null;
-    indexable: boolean;
-    listUnderAffiliation: boolean;
-    affiliationRorId: string | null;
-  }) => void;
+  onPublishStateChange: (next: PublishStateChange) => void;
   /** Deep-link to the editor's public-page-style picker (closes this menu first). */
   onEditPublicStyle?: () => void;
 }
@@ -48,6 +45,7 @@ export default function PublishMenu({
   indexable,
   listUnderAffiliation = false,
   affiliationRorId = null,
+  institutionPage,
   publicContact,
   onPublicContactChange,
   onPublishStateChange,
@@ -78,6 +76,7 @@ export default function PublishMenu({
           initialIndexable={indexable}
           initialListUnderAffiliation={listUnderAffiliation}
           initialAffiliationRorId={affiliationRorId}
+          initialInstitutionPage={institutionPage}
           locale={locale}
           publicContact={publicContact}
           onPublicContactChange={onPublicContactChange}

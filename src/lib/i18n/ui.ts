@@ -137,6 +137,23 @@ export interface UiStrings {
   listUnderAffiliationBody: string;
   /** Why the opt-in is disabled: no visible current position resolves to ROR. */
   listUnderAffiliationNoRor: string;
+  /** "Show me on my institution's public page": a FOURTH separate consent,
+   *  pinned to the ROR ids ticked among the visible current positions. */
+  showOnInstitutionPage: string;
+  showOnInstitutionPageTitle: string;
+  showOnInstitutionPageBody: string;
+  institutionPagePick: string;
+  institutionPageListedUnder: string;
+  institutionPageLapsed: string;
+  institutionPageLapsedNone: string;
+  institutionPageUnavailable: string;
+  /** Shown with exactly one current affiliation: one click consents to it — say which. */
+  institutionPageSingle: string;
+  /** The toggle is ticked but nothing is posted until an institution is ticked. */
+  institutionPageArmedHint: string;
+  /** A lapsed (kept) id, rendered with its own Remove control. */
+  institutionPageLapsedKept: string;
+  institutionPageRemove: string;
   publicContactLegend: string;
   publicShowEmail: string;
   publicShowPhone: string;
@@ -348,6 +365,23 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Adds your CV to the OAI-PMH set for the institution of your first visible current position (its ROR identifier), so a repository or CRIS harvesting by institution can find it. Labelled as your own self-declared affiliation, never as your institution's record. Follows your CV if your affiliation changes; requires indexing; off by default.",
     listUnderAffiliationNoRor:
       "Not available yet: none of your visible current positions is linked to a ROR institution record. Re-sync, or set the institution on a position.",
+    showOnInstitutionPage: "Show me on my institution's public page",
+    showOnInstitutionPageTitle:
+      "Off by default. When on, your name, ORCID iD, current position and the works your public page lists appear on the public page of the institutions you tick (/i/<ROR id>) and count in its figures. Requires indexing. Withdraw at any time, effective immediately.",
+    showOnInstitutionPageBody:
+      "Your name, ORCID iD, current position and the works your public page lists appear on your institution's public page on SigmaCV, and you are counted in the page's figures (how many researchers list it, and their works' open-access status). Where OpenAlex's record and yours differ, only counts are shown. Pinned to the institutions you tick below — if your affiliation changes, we ask again rather than move you. A listing you keep from a former affiliation resumes if that affiliation becomes current again. Listing is voluntary and absence means nothing. You can withdraw at any time, effective immediately.",
+    institutionPagePick: "List me under",
+    institutionPageListedUnder: "You are listed under {institutions}.",
+    institutionPageLapsed:
+      "Your current affiliation changed: confirm whether to be listed under {institutions}.",
+    institutionPageLapsedNone:
+      "Your current affiliation changed and none of your current positions is linked to a ROR record; your listing is paused until one is.",
+    institutionPageUnavailable:
+      "Not available: requires search indexing and a current position linked to a ROR institution record.",
+    institutionPageSingle: "Ticking this lists you under {institution}.",
+    institutionPageArmedHint: "Nothing is listed yet — tick at least one institution below.",
+    institutionPageLapsedKept: "Kept from a former affiliation: ROR {rorId}",
+    institutionPageRemove: "Remove",
     publishTitle:
       "Creates a shareable public web page of this CV at a public link. It re-syncs as you update. Off by default; un-tick to take it offline.",
     exportFormatTitle:
@@ -531,6 +565,21 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "将你的简历加入 OAI-PMH 中你第一个可见当前职位所属机构（以其 ROR 标识符）的集合，便于按机构采集的知识库或 CRIS 系统找到它。标注为你本人自述的所属机构，绝不作为机构的官方记录。所属机构变更时随简历更新；需要开启索引；默认关闭。",
     listUnderAffiliationNoRor:
       "暂不可用：你可见的当前职位均未关联 ROR 机构记录。请重新同步，或在某个职位上设置机构。",
+    showOnInstitutionPage: "在我所属机构的公开页面上显示我",
+    showOnInstitutionPageTitle:
+      "默认关闭。开启后，你的姓名、ORCID iD、当前职位以及你公开页面列出的成果会出现在你勾选的机构的公开页面（/i/<ROR id>）上并计入其统计。需要开启索引。可随时撤回，立即生效。",
+    showOnInstitutionPageBody:
+      "你的姓名、ORCID iD、当前职位以及你公开页面列出的成果会出现在 SigmaCV 上你所属机构的公开页面，并且你会被计入该页面的统计（有多少研究者列入该机构，以及他们成果的开放获取状态）。在 OpenAlex 的记录与你的记录不一致之处，只显示计数。固定到你在下方勾选的机构——所属机构变更时我们会重新询问，而不会自动迁移。你保留的来自先前所属机构的列入，会在该机构再次成为当前所属时恢复。列入完全自愿，未列入不代表任何含义。你可以随时撤回，立即生效。",
+    institutionPagePick: "将我列入",
+    institutionPageListedUnder: "你已列入 {institutions}。",
+    institutionPageLapsed: "你的当前所属机构已变更：请确认是否列入 {institutions}。",
+    institutionPageLapsedNone:
+      "你的当前所属机构已变更，且你当前的职位均未关联 ROR 记录；在关联之前，你的列入已暂停。",
+    institutionPageUnavailable: "不可用：需要开启搜索索引，并有一个关联 ROR 机构记录的当前职位。",
+    institutionPageSingle: "勾选后你将列入 {institution}。",
+    institutionPageArmedHint: "尚未列入——请在下方至少勾选一个机构。",
+    institutionPageLapsedKept: "保留自先前所属机构：ROR {rorId}",
+    institutionPageRemove: "移除",
     publishTitle:
       "在公开链接处创建此简历的可分享公开网页。它会随你的更新而重新同步。默认关闭；取消勾选可将其下线。",
     exportFormatTitle:
@@ -718,6 +767,23 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Añade tu CV al conjunto OAI-PMH de la institución de tu primer puesto actual visible (su identificador ROR), para que un repositorio o CRIS que recolecta por institución pueda encontrarlo. Se etiqueta como afiliación declarada por ti, nunca como registro de tu institución. Sigue a tu CV si cambia tu afiliación; requiere la indexación; desactivado por defecto.",
     listUnderAffiliationNoRor:
       "Aún no disponible: ninguno de tus puestos actuales visibles está vinculado a un registro institucional ROR. Vuelve a sincronizar o indica la institución en un puesto.",
+    showOnInstitutionPage: "Mostrarme en la página pública de mi institución",
+    showOnInstitutionPageTitle:
+      "Desactivado por defecto. Al activarlo, tu nombre, ORCID iD, puesto actual y las obras que lista tu página pública aparecen en la página pública de las instituciones que marques (/i/<ROR id>) y cuentan en sus cifras. Requiere la indexación. Puedes retirarlo en cualquier momento, con efecto inmediato.",
+    showOnInstitutionPageBody:
+      "Tu nombre, ORCID iD, puesto actual y las obras que lista tu página pública aparecen en la página pública de tu institución en SigmaCV, y cuentas en las cifras de la página (cuántos investigadores la indican y el estado de acceso abierto de sus obras). Donde el registro de OpenAlex y el tuyo difieren, solo se muestran recuentos. Se fija a las instituciones que marques abajo: si tu afiliación cambia, te lo preguntamos de nuevo en lugar de moverte. Una inclusión que conserves de una afiliación anterior se reanuda si esa afiliación vuelve a ser actual. Aparecer es voluntario y no aparecer no significa nada. Puedes retirarlo en cualquier momento, con efecto inmediato.",
+    institutionPagePick: "Listarme bajo",
+    institutionPageListedUnder: "Apareces bajo {institutions}.",
+    institutionPageLapsed:
+      "Tu afiliación actual ha cambiado: confirma si quieres aparecer bajo {institutions}.",
+    institutionPageLapsedNone:
+      "Tu afiliación actual ha cambiado y ninguno de tus puestos actuales está vinculado a un registro ROR; tu listado queda en pausa hasta que lo esté.",
+    institutionPageUnavailable:
+      "No disponible: requiere la indexación en buscadores y un puesto actual vinculado a un registro de institución ROR.",
+    institutionPageSingle: "Al marcarlo aparecerás bajo {institution}.",
+    institutionPageArmedHint: "Aún no apareces en ninguna: marca al menos una institución abajo.",
+    institutionPageLapsedKept: "Conservado de una afiliación anterior: ROR {rorId}",
+    institutionPageRemove: "Quitar",
     publishTitle:
       "Crea una página web pública de este CV en un enlace público que se puede compartir. Se resincroniza a medida que lo actualizas. Desactivada por defecto; desmárcala para retirarla.",
     exportFormatTitle:
@@ -906,6 +972,24 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Ajoute votre CV à l'ensemble OAI-PMH de l'établissement de votre premier poste actuel visible (son identifiant ROR), pour qu'un dépôt ou un CRIS qui moissonne par établissement puisse le trouver. Étiqueté comme votre affiliation auto-déclarée, jamais comme un registre de votre établissement. Suit votre CV si votre affiliation change ; nécessite l'indexation ; désactivé par défaut.",
     listUnderAffiliationNoRor:
       "Pas encore disponible : aucun de vos postes actuels visibles n'est relié à une fiche d'établissement ROR. Resynchronisez, ou renseignez l'établissement sur un poste.",
+    showOnInstitutionPage: "M'afficher sur la page publique de mon établissement",
+    showOnInstitutionPageTitle:
+      "Désactivé par défaut. Une fois activé, votre nom, votre ORCID iD, votre poste actuel et les travaux listés sur votre page publique apparaissent sur la page publique des établissements que vous cochez (/i/<ROR id>) et sont comptés dans ses chiffres. Nécessite l'indexation. Retrait possible à tout moment, avec effet immédiat.",
+    showOnInstitutionPageBody:
+      "Votre nom, votre ORCID iD, votre poste actuel et les travaux listés sur votre page publique apparaissent sur la page publique de votre établissement sur SigmaCV, et vous êtes compté dans les chiffres de la page (combien de chercheurs l'indiquent, et le statut d'accès ouvert de leurs travaux). Là où les données d'OpenAlex et les vôtres diffèrent, seuls des décomptes sont affichés. Épinglé aux établissements que vous cochez ci-dessous : si votre affiliation change, nous vous redemandons au lieu de vous déplacer. Une inscription que vous conservez d'une affiliation antérieure reprend si cette affiliation redevient actuelle. Figurer est volontaire et l'absence ne signifie rien. Vous pouvez vous retirer à tout moment, avec effet immédiat.",
+    institutionPagePick: "Me lister sous",
+    institutionPageListedUnder: "Vous figurez sous {institutions}.",
+    institutionPageLapsed:
+      "Votre affiliation actuelle a changé : confirmez si vous souhaitez figurer sous {institutions}.",
+    institutionPageLapsedNone:
+      "Votre affiliation actuelle a changé et aucun de vos postes actuels n'est lié à un registre ROR ; votre inscription est suspendue jusqu'à ce qu'un le soit.",
+    institutionPageUnavailable:
+      "Indisponible : nécessite l'indexation par les moteurs de recherche et un poste actuel lié à un registre d'établissement ROR.",
+    institutionPageSingle: "En cochant, vous figurerez sous {institution}.",
+    institutionPageArmedHint:
+      "Vous ne figurez encore nulle part : cochez au moins un établissement ci-dessous.",
+    institutionPageLapsedKept: "Conservé d'une affiliation antérieure : ROR {rorId}",
+    institutionPageRemove: "Retirer",
     publishTitle:
       "Crée une page web publique partageable de ce CV via un lien public. Elle se resynchronise au fur et à mesure de vos mises à jour. Désactivée par défaut ; décochez pour la mettre hors ligne.",
     exportFormatTitle:
@@ -1095,6 +1179,24 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Nimmt Ihren Lebenslauf in das OAI-PMH-Set der Einrichtung Ihrer ersten sichtbaren aktuellen Position (ihre ROR-Kennung) auf, damit ein Repositorium oder CRIS, das nach Einrichtung erntet, ihn findet. Gekennzeichnet als Ihre selbst angegebene Zugehörigkeit, nie als Verzeichnis Ihrer Einrichtung. Folgt Ihrem Lebenslauf, wenn sich Ihre Zugehörigkeit ändert; erfordert die Indexierung; standardmäßig aus.",
     listUnderAffiliationNoRor:
       "Noch nicht verfügbar: keine Ihrer sichtbaren aktuellen Positionen ist mit einem ROR-Einrichtungsdatensatz verknüpft. Synchronisieren Sie erneut oder tragen Sie die Einrichtung bei einer Position ein.",
+    showOnInstitutionPage: "Mich auf der öffentlichen Seite meiner Einrichtung zeigen",
+    showOnInstitutionPageTitle:
+      "Standardmäßig aus. Wenn an, erscheinen Ihr Name, Ihre ORCID iD, Ihre aktuelle Position und die Werke Ihrer öffentlichen Seite auf der öffentlichen Seite der von Ihnen angekreuzten Einrichtungen (/i/<ROR id>) und zählen in deren Zahlen. Erfordert die Indexierung. Jederzeit widerrufbar, mit sofortiger Wirkung.",
+    showOnInstitutionPageBody:
+      "Ihr Name, Ihre ORCID iD, Ihre aktuelle Position und die Werke, die Ihre öffentliche Seite auflistet, erscheinen auf der öffentlichen Seite Ihrer Einrichtung auf SigmaCV, und Sie werden in den Zahlen der Seite mitgezählt (wie viele Forschende sie angeben und der Open-Access-Status ihrer Werke). Wo sich der Datensatz von OpenAlex und Ihrer unterscheiden, werden nur Zählungen angezeigt. Festgelegt auf die Einrichtungen, die Sie unten ankreuzen – ändert sich Ihre Zugehörigkeit, fragen wir erneut, statt Sie zu verschieben. Eine Auflistung, die Sie aus einer früheren Zugehörigkeit behalten, wird fortgesetzt, sobald diese Zugehörigkeit wieder aktuell ist. Die Auflistung ist freiwillig, und ein Fehlen bedeutet nichts. Sie können jederzeit widerrufen, mit sofortiger Wirkung.",
+    institutionPagePick: "Mich auflisten unter",
+    institutionPageListedUnder: "Sie sind aufgelistet unter {institutions}.",
+    institutionPageLapsed:
+      "Ihre aktuelle Zugehörigkeit hat sich geändert: Bestätigen Sie, ob Sie unter {institutions} aufgelistet werden möchten.",
+    institutionPageLapsedNone:
+      "Ihre aktuelle Zugehörigkeit hat sich geändert, und keine Ihrer aktuellen Positionen ist mit einem ROR-Eintrag verknüpft; Ihre Auflistung pausiert, bis eine es ist.",
+    institutionPageUnavailable:
+      "Nicht verfügbar: erfordert die Suchmaschinen-Indexierung und eine aktuelle Position, die mit einem ROR-Einrichtungseintrag verknüpft ist.",
+    institutionPageSingle: "Mit dem Ankreuzen werden Sie unter {institution} aufgelistet.",
+    institutionPageArmedHint:
+      "Noch nirgends aufgelistet – kreuzen Sie unten mindestens eine Einrichtung an.",
+    institutionPageLapsedKept: "Aus einer früheren Zugehörigkeit behalten: ROR {rorId}",
+    institutionPageRemove: "Entfernen",
     publishTitle:
       "Erstellt eine teilbare öffentliche Webseite dieses Lebenslaufs unter einem öffentlichen Link. Sie wird bei Aktualisierungen neu synchronisiert. Standardmäßig aus; Häkchen entfernen, um sie offline zu nehmen.",
     exportFormatTitle:
@@ -1281,6 +1383,24 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "表示中の最初の現職の所属機関（その ROR 識別子）の OAI-PMH セットに CV を追加し、機関単位で収集するリポジトリや CRIS が見つけられるようにします。あなた自身が申告した所属として表示され、機関の公式記録としては扱われません。所属が変わると CV に追随します。インデックス許可が必要で、初期設定はオフです。",
     listUnderAffiliationNoRor:
       "まだ利用できません：表示中の現職のいずれも ROR の機関レコードに紐づいていません。再同期するか、職位に機関を設定してください。",
+    showOnInstitutionPage: "所属機関の公開ページに自分を表示する",
+    showOnInstitutionPageTitle:
+      "初期設定はオフです。オンにすると、あなたの氏名、ORCID iD、現在の職位、公開ページに掲載している業績が、チェックした機関の公開ページ（/i/<ROR id>）に表示され、その集計に含まれます。インデックス許可が必要です。いつでも撤回でき、即時に反映されます。",
+    showOnInstitutionPageBody:
+      "あなたの氏名、ORCID iD、現在の職位、公開ページに掲載している業績が、SigmaCV 上の所属機関の公開ページに表示され、あなたはそのページの集計（その機関を掲げる研究者の人数と、その業績のオープンアクセス状況）に含まれます。OpenAlex の記録とあなたの記録が異なる箇所では、件数のみが表示されます。下でチェックした機関に固定され、所属が変わった場合は移し替えずに改めて確認します。以前の所属から残した掲載は、その所属が再び現在の所属になれば再開されます。掲載は任意で、掲載がないことは何も意味しません。いつでも撤回でき、即時に反映されます。",
+    institutionPagePick: "掲載先",
+    institutionPageListedUnder: "{institutions} のもとに掲載されています。",
+    institutionPageLapsed:
+      "現在の所属が変わりました：{institutions} のもとに掲載するかどうかを確認してください。",
+    institutionPageLapsedNone:
+      "現在の所属が変わり、現在の職位のいずれも ROR の記録に紐づいていません。紐づくまで掲載は一時停止されます。",
+    institutionPageUnavailable:
+      "利用できません：検索インデックスの許可と、ROR 機関記録に紐づいた現在の職位が必要です。",
+    institutionPageSingle: "チェックすると {institution} に掲載されます。",
+    institutionPageArmedHint:
+      "まだどこにも掲載されていません。下で少なくとも 1 つの機関をチェックしてください。",
+    institutionPageLapsedKept: "以前の所属から残した掲載：ROR {rorId}",
+    institutionPageRemove: "削除",
     publishTitle:
       "この CV を共有可能な公開ウェブページとして公開リンクに作成します。更新すると再同期されます。既定ではオフ。チェックを外すとオフラインにできます。",
     exportFormatTitle:
@@ -1468,6 +1588,24 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Adiciona seu CV ao conjunto OAI-PMH da instituição do seu primeiro cargo atual visível (o identificador ROR dela), para que um repositório ou CRIS que coleta por instituição possa encontrá-lo. Rotulado como afiliação declarada por você, nunca como registro da sua instituição. Acompanha seu CV se a afiliação mudar; requer a indexação; desativado por padrão.",
     listUnderAffiliationNoRor:
       "Ainda indisponível: nenhum dos seus cargos atuais visíveis está vinculado a um registro institucional ROR. Sincronize novamente ou defina a instituição em um cargo.",
+    showOnInstitutionPage: "Mostrar-me na página pública da minha instituição",
+    showOnInstitutionPageTitle:
+      "Desativado por padrão. Quando ativado, seu nome, ORCID iD, cargo atual e as obras listadas na sua página pública aparecem na página pública das instituições que você marcar (/i/<ROR id>) e contam nos seus números. Requer a indexação. Retire quando quiser, com efeito imediato.",
+    showOnInstitutionPageBody:
+      "Seu nome, ORCID iD, cargo atual e as obras listadas na sua página pública aparecem na página pública da sua instituição no SigmaCV, e você é contado nos números da página (quantos pesquisadores a indicam e o status de acesso aberto de suas obras). Onde o registro do OpenAlex e o seu diferem, apenas contagens são mostradas. Fixado às instituições que você marcar abaixo — se sua afiliação mudar, perguntamos de novo em vez de mover você. Uma listagem que você mantiver de uma afiliação anterior é retomada se essa afiliação voltar a ser atual. Aparecer é voluntário e não aparecer não significa nada. Você pode retirar a qualquer momento, com efeito imediato.",
+    institutionPagePick: "Listar-me sob",
+    institutionPageListedUnder: "Você está listado(a) sob {institutions}.",
+    institutionPageLapsed:
+      "Sua afiliação atual mudou: confirme se deseja aparecer sob {institutions}.",
+    institutionPageLapsedNone:
+      "Sua afiliação atual mudou e nenhum dos seus cargos atuais está vinculado a um registro ROR; sua listagem fica pausada até que um esteja.",
+    institutionPageUnavailable:
+      "Indisponível: requer a indexação por buscadores e um cargo atual vinculado a um registro de instituição ROR.",
+    institutionPageSingle: "Ao marcar, você aparecerá sob {institution}.",
+    institutionPageArmedHint:
+      "Ainda não aparece em nenhuma: marque pelo menos uma instituição abaixo.",
+    institutionPageLapsedKept: "Mantido de uma afiliação anterior: ROR {rorId}",
+    institutionPageRemove: "Remover",
     publishTitle:
       "Cria uma página web pública e compartilhável deste CV em um link público. Ela é ressincronizada conforme você atualiza. Desativada por padrão; desmarque para tirá-la do ar.",
     exportFormatTitle:
@@ -1656,6 +1794,24 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Aggiunge il tuo CV al set OAI-PMH dell'istituzione della tua prima posizione attuale visibile (il suo identificativo ROR), così che un repository o un CRIS che raccoglie per istituzione possa trovarlo. Etichettato come affiliazione dichiarata da te, mai come registro della tua istituzione. Segue il tuo CV se l'affiliazione cambia; richiede l'indicizzazione; disattivato per impostazione predefinita.",
     listUnderAffiliationNoRor:
       "Non ancora disponibile: nessuna delle tue posizioni attuali visibili è collegata a un record istituzionale ROR. Risincronizza, oppure indica l'istituzione su una posizione.",
+    showOnInstitutionPage: "Mostrami sulla pagina pubblica della mia istituzione",
+    showOnInstitutionPageTitle:
+      "Disattivato per impostazione predefinita. Se attivo, il tuo nome, ORCID iD, posizione attuale e i lavori elencati nella tua pagina pubblica compaiono nella pagina pubblica delle istituzioni che spunti (/i/<ROR id>) e contano nelle sue cifre. Richiede l'indicizzazione. Revocabile in qualsiasi momento, con effetto immediato.",
+    showOnInstitutionPageBody:
+      "Il tuo nome, ORCID iD, posizione attuale e i lavori elencati nella tua pagina pubblica compaiono nella pagina pubblica della tua istituzione su SigmaCV, e sei conteggiato nelle cifre della pagina (quanti ricercatori la indicano e lo stato di accesso aperto dei loro lavori). Dove il record di OpenAlex e il tuo differiscono, sono mostrati solo conteggi. Fissato alle istituzioni che spunti qui sotto: se la tua affiliazione cambia, te lo chiediamo di nuovo invece di spostarti. Un'inclusione che conservi da un'affiliazione precedente riprende se quell'affiliazione torna a essere attuale. Comparire è volontario e l'assenza non significa nulla. Puoi revocare in qualsiasi momento, con effetto immediato.",
+    institutionPagePick: "Elencami sotto",
+    institutionPageListedUnder: "Sei elencato sotto {institutions}.",
+    institutionPageLapsed:
+      "La tua affiliazione attuale è cambiata: conferma se vuoi comparire sotto {institutions}.",
+    institutionPageLapsedNone:
+      "La tua affiliazione attuale è cambiata e nessuna delle tue posizioni attuali è collegata a un record ROR; il tuo elenco è in pausa finché una non lo sarà.",
+    institutionPageUnavailable:
+      "Non disponibile: richiede l'indicizzazione nei motori di ricerca e una posizione attuale collegata a un record di istituzione ROR.",
+    institutionPageSingle: "Spuntando comparirai sotto {institution}.",
+    institutionPageArmedHint:
+      "Non compari ancora da nessuna parte: spunta almeno un'istituzione qui sotto.",
+    institutionPageLapsedKept: "Conservato da un'affiliazione precedente: ROR {rorId}",
+    institutionPageRemove: "Rimuovi",
     publishTitle:
       "Crea una pagina web pubblica condivisibile di questo CV tramite un link pubblico. Si risincronizza man mano che apporti aggiornamenti. Disattivata per impostazione predefinita; deseleziona per metterla offline.",
     exportFormatTitle:
@@ -1841,6 +1997,24 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "표시된 첫 번째 현재 직위의 소속 기관(ROR 식별자)에 해당하는 OAI-PMH 세트에 CV를 추가하여, 기관 단위로 수집하는 리포지터리나 CRIS가 찾을 수 있게 합니다. 본인이 직접 신고한 소속으로 표시되며, 기관의 공식 기록으로 취급되지 않습니다. 소속이 바뀌면 CV를 따라갑니다. 색인 허용이 필요하며 기본적으로 꺼져 있습니다.",
     listUnderAffiliationNoRor:
       "아직 사용할 수 없습니다: 표시된 현재 직위 중 ROR 기관 레코드에 연결된 것이 없습니다. 다시 동기화하거나 직위에 기관을 설정하세요.",
+    showOnInstitutionPage: "소속 기관의 공개 페이지에 나를 표시",
+    showOnInstitutionPageTitle:
+      "기본적으로 꺼져 있습니다. 켜면 이름, ORCID iD, 현재 직위, 공개 페이지에 나열된 연구 성과가 선택한 기관의 공개 페이지(/i/<ROR id>)에 표시되고 그 집계에 포함됩니다. 색인 허용이 필요합니다. 언제든지 철회할 수 있으며 즉시 적용됩니다.",
+    showOnInstitutionPageBody:
+      "이름, ORCID iD, 현재 직위, 공개 페이지에 나열된 연구 성과가 SigmaCV의 소속 기관 공개 페이지에 표시되며, 페이지 집계(해당 기관을 등재한 연구자 수와 그 성과의 오픈 액세스 상태)에 포함됩니다. OpenAlex의 기록과 본인의 기록이 다른 부분에서는 집계만 표시됩니다. 아래에서 선택한 기관에 고정되며, 소속이 바뀌면 옮기지 않고 다시 묻습니다. 이전 소속에서 유지한 등재는 그 소속이 다시 현재 소속이 되면 재개됩니다. 등재는 자발적이며 등재되지 않았다는 사실은 아무 의미도 없습니다. 언제든지 철회할 수 있으며 즉시 적용됩니다.",
+    institutionPagePick: "등재 기관",
+    institutionPageListedUnder: "{institutions} 아래에 등재되어 있습니다.",
+    institutionPageLapsed:
+      "현재 소속이 바뀌었습니다: {institutions} 아래에 등재할지 확인해 주세요.",
+    institutionPageLapsedNone:
+      "현재 소속이 바뀌었고 현재 직위 중 ROR 기록에 연결된 것이 없습니다. 연결될 때까지 등재가 일시 중지됩니다.",
+    institutionPageUnavailable:
+      "사용할 수 없음: 검색 색인 허용과 ROR 기관 기록에 연결된 현재 직위가 필요합니다.",
+    institutionPageSingle: "선택하면 {institution}에 등재됩니다.",
+    institutionPageArmedHint:
+      "아직 어디에도 등재되지 않았습니다. 아래에서 기관을 하나 이상 선택하세요.",
+    institutionPageLapsedKept: "이전 소속에서 유지한 등재: ROR {rorId}",
+    institutionPageRemove: "제거",
     publishTitle:
       "이 CV의 공유 가능한 공개 웹 페이지를 공개 링크로 생성합니다. 업데이트할 때마다 다시 동기화됩니다. 기본값은 꺼짐이며, 체크를 해제하면 오프라인으로 전환됩니다.",
     exportFormatTitle:
@@ -2026,6 +2200,23 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Добавляет ваше резюме в набор OAI-PMH организации из вашей первой видимой текущей должности (её идентификатор ROR), чтобы репозиторий или CRIS, собирающий данные по организациям, мог его найти. Помечается как заявленная вами аффилиация и никогда — как реестр вашей организации. Следует за резюме при смене аффилиации; требует индексации; по умолчанию выключено.",
     listUnderAffiliationNoRor:
       "Пока недоступно: ни одна из ваших видимых текущих должностей не связана с записью организации в ROR. Выполните повторную синхронизацию или укажите организацию в должности.",
+    showOnInstitutionPage: "Показывать меня на публичной странице моей организации",
+    showOnInstitutionPageTitle:
+      "По умолчанию выключено. При включении ваше имя, ORCID iD, текущая должность и работы, перечисленные на вашей публичной странице, появляются на публичной странице отмеченных вами организаций (/i/<ROR id>) и учитываются в её показателях. Требует индексации. Можно отозвать в любой момент, вступает в силу немедленно.",
+    showOnInstitutionPageBody:
+      "Ваше имя, ORCID iD, текущая должность и работы, перечисленные на вашей публичной странице, появляются на публичной странице вашей организации в SigmaCV, и вы учитываетесь в её показателях (сколько исследователей её указали и статус открытого доступа их работ). Там, где запись OpenAlex и ваша расходятся, показываются только подсчёты. Закреплено за организациями, которые вы отметите ниже: при смене аффилиации мы спросим снова, а не перенесём вас. Размещение, сохранённое от прежней аффилиации, возобновляется, если эта аффилиация снова станет текущей. Размещение добровольно, а его отсутствие ничего не значит. Вы можете отозвать согласие в любой момент, вступает в силу немедленно.",
+    institutionPagePick: "Разместить меня под",
+    institutionPageListedUnder: "Вы размещены под {institutions}.",
+    institutionPageLapsed:
+      "Ваша текущая аффилиация изменилась: подтвердите, размещать ли вас под {institutions}.",
+    institutionPageLapsedNone:
+      "Ваша текущая аффилиация изменилась, и ни одна из ваших текущих должностей не связана с записью ROR; размещение приостановлено, пока связь не появится.",
+    institutionPageUnavailable:
+      "Недоступно: требуется индексация поисковыми системами и текущая должность, связанная с записью организации ROR.",
+    institutionPageSingle: "Если отметить, вы будете размещены под {institution}.",
+    institutionPageArmedHint: "Пока нигде не размещено — отметьте ниже хотя бы одну организацию.",
+    institutionPageLapsedKept: "Сохранено от прежней аффилиации: ROR {rorId}",
+    institutionPageRemove: "Удалить",
     publishTitle:
       "Создаёт публичную веб-страницу этого CV, доступную по публичной ссылке. Она пересинхронизируется по мере ваших изменений. По умолчанию отключено; снимите галочку, чтобы перевести её в офлайн.",
     exportFormatTitle:

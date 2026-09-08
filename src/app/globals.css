@@ -1138,6 +1138,43 @@ input[type="radio"] {
   padding: var(--space-2) 0 var(--space-1);
   border-top: 1px solid var(--border);
 }
+/* The institution-page picker: one row per visible current affiliation, under
+   the consent toggle it refines. Same divider treatment as the contact fieldset. */
+.publish-panel .publish-institution-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0 var(--space-3) var(--space-1);
+  padding: var(--space-1) 0 0 var(--space-3);
+  border: none;
+  border-left: 1px solid var(--border);
+  font-size: var(--text-xs);
+}
+.publish-panel .publish-institution-picker legend {
+  float: none;
+  padding: 0;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+/* Lapsed (kept) institution ids: one row each, its own Remove beside it. */
+.publish-panel .publish-institution-lapsed {
+  list-style: none;
+  margin: 0 var(--space-3) var(--space-1);
+  padding: 0 0 0 var(--space-3);
+  border-left: 1px solid var(--border);
+  font-size: var(--text-xs);
+}
+.publish-panel .publish-institution-lapsed li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+/* The re-ask after a consented affiliation lapsed: quiet but not muted. */
+.consent-reask {
+  color: var(--text-secondary);
+  font-weight: var(--weight-medium);
+}
 /* ── Versions popover (frozen, citable CV versions) ── */
 .versions-panel {
   width: min(24rem, 92vw);

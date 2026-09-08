@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
+import { purgeInstitutionPages } from "@/lib/cv/publicPageCache";
 import { withdrawMintedSnapshotDois } from "@/lib/cv/snapshotStore";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
@@ -38,6 +39,19 @@ async function withdrawDois(userId: string): Promise<void> {
   }
 }
 
+/**
+ * The public institution pages this CV was listed on are cached briefly; the
+ * row is gone but the cached render would still show the researcher for the
+ * rest of the TTL. Drop them so the withdrawal is immediate. Fail-soft.
+ */
+function purgeInstitutionListings(rorIds: readonly string[]): void {
+  try {
+    purgeInstitutionPages(rorIds);
+  } catch (err) {
+    logger.warn("api.account_delete_institution_purge_failed", { err });
+  }
+}
+
 /** Full account deletion. Withdraws any minted snapshot DOIs at DataCite, then
  *  cascades to accounts, sessions, CV (with its snapshots), and research
  *  events (see schema onDelete: Cascade), then sweeps the user-keyed rate-limit
@@ -60,17 +74,19 @@ export async function DELETE(req: Request) {
   }
 
   try {
-    // Read the iD BEFORE the row goes: the anonymous preview applies this
-    // researcher's own corrections, and once the account is gone those must stop
-    // shaping a public page. Withdrawal should take effect at once, not when a
-    // ten-minute cache happens to expire.
+    // Read the iD and the institution-page consent BEFORE the row goes: the
+    // anonymous preview applies this researcher's own corrections, and the
+    // cached institution pages list them — once the account is gone both must
+    // stop shaping a public page. Withdrawal should take effect at once, not
+    // when a cache happens to expire.
     const deleting = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { orcid: true },
+      select: { orcid: true, cv: { select: { consentedRorIds: true } } },
     });
     await withdrawDois(session.user.id);
     await prisma.user.delete({ where: { id: session.user.id } });
     if (deleting?.orcid) invalidateOrcidPreview(deleting.orcid);
+    purgeInstitutionListings(deleting?.cv?.consentedRorIds ?? []);
     await sweepRateLimitCounters(session.user.id);
     // The DB session cascade-deletes with the user, but the browser still holds
     // the session cookie — clear it so no stale cookie can be re-associated

@@ -81,6 +81,13 @@ export default async function CvPage() {
       publicIndexable={publish.indexable}
       publicListUnderAffiliation={publish.listUnderAffiliation}
       publicAffiliationRorId={publish.affiliationRorId}
+      publicInstitutionPage={{
+        showOnInstitutionPage: publish.showOnInstitutionPage,
+        consentedRorIds: publish.consentedRorIds,
+        currentAffiliations: publish.currentAffiliations,
+        visibleCurrentRorIds: publish.visibleCurrentRorIds,
+        lapsedRorIds: publish.lapsedRorIds,
+      }}
       signOutAction={handleSignOut}
     />
   );

@@ -4,6 +4,8 @@ import { LOCALE_LABELS, SUPPORTED_LOCALES, t } from "@/lib/i18n";
 import { ui } from "@/lib/i18n/ui";
 import AccountMenu from "./AccountMenu";
 import PublishMenu from "./PublishMenu";
+import type { PublishStateChange } from "./PublishControls";
+import type { InstitutionPageState } from "@/lib/cv/institutionConsent";
 import ShareMenu from "./ShareMenu";
 import SupportLink from "./SupportLink";
 import ThemeToggle from "./ThemeToggle";
@@ -65,6 +67,8 @@ export interface TopBarProps {
   /** OAI-PMH affiliation listing: the opt-in + the ROR key (null → not offered). */
   publicListUnderAffiliation?: boolean;
   publicAffiliationRorId?: string | null;
+  /** Institution-page consent (pinned ROR ids + the picker + the re-ask). */
+  publicInstitutionPage?: InstitutionPageState;
   publicContact: PublicContactFlags;
   onPublicContactChange: (next: PublicContactFlags) => void;
   /** Owner enabled the assessor "Reader view" (`display.allowReaderMode`) — the
@@ -72,13 +76,7 @@ export interface TopBarProps {
   readerViewEnabled?: boolean;
   /** Live publish-state updates from the Publish menu, so the trigger's dot +
       label reflect the current state without waiting for a reload. */
-  onPublishStateChange: (next: {
-    published: boolean;
-    slug: string | null;
-    indexable: boolean;
-    listUnderAffiliation: boolean;
-    affiliationRorId: string | null;
-  }) => void;
+  onPublishStateChange: (next: PublishStateChange) => void;
   /** Deep-link from the Publish menu to the editor's public-page-style picker. */
   onEditPublicStyle?: () => void;
   // ── Account (hosted in the Account menu) ──
@@ -119,6 +117,7 @@ export default function TopBar({
   publicIndexable,
   publicListUnderAffiliation = false,
   publicAffiliationRorId = null,
+  publicInstitutionPage,
   publicContact,
   onPublicContactChange,
   readerViewEnabled = false,
@@ -243,6 +242,7 @@ export default function TopBar({
           indexable={publicIndexable}
           listUnderAffiliation={publicListUnderAffiliation}
           affiliationRorId={publicAffiliationRorId}
+          institutionPage={publicInstitutionPage}
           publicContact={publicContact}
           onPublicContactChange={onPublicContactChange}
           onPublishStateChange={onPublishStateChange}
