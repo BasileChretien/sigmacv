@@ -7,12 +7,16 @@ import {
   fairLanguageAlternates,
   faqLanguageAlternates,
   homeLanguageAlternates,
+  institutionLanguageAlternates,
+  institutionsIndexLanguageAlternates,
   localeAboutPath,
   localeAccessibilityPath,
   localeContactPath,
   localeFairPath,
   localeFaqPath,
   localeHomePath,
+  localeInstitutionPath,
+  localeInstitutionsIndexPath,
   localePrinciplesPath,
   localePrivacyPath,
   localeTermsPath,
@@ -191,6 +195,30 @@ describe("localeTransparencyPath / transparencyLanguageAlternates", () => {
     expect(langs["en-US"]).toBe("/transparency");
     expect(langs["de-DE"]).toBe("/de/transparency");
     expect(Object.keys(langs)).toHaveLength(SUPPORTED_LOCALES.length + 1);
+  });
+});
+
+describe("localeInstitutionsIndexPath / localeInstitutionPath", () => {
+  it("serves /i for the default and /{slug}/i for others", () => {
+    expect(localeInstitutionsIndexPath("en-US")).toBe("/i");
+    expect(localeInstitutionsIndexPath("fr-FR")).toBe("/fr/i");
+    expect(localeInstitutionsIndexPath("xx-XX")).toBe("/i");
+  });
+  it("serves /i/{ror} for the default and /{slug}/i/{ror} for others", () => {
+    expect(localeInstitutionPath("en-US", "04chrp450")).toBe("/i/04chrp450");
+    expect(localeInstitutionPath("ja-JP", "04chrp450")).toBe("/ja/i/04chrp450");
+    expect(localeInstitutionPath("xx-XX", "04chrp450")).toBe("/i/04chrp450");
+  });
+  it("maps every locale plus x-default for the index and for a page", () => {
+    const index = institutionsIndexLanguageAlternates();
+    expect(index["x-default"]).toBe("/i");
+    expect(index["de-DE"]).toBe("/de/i");
+    expect(Object.keys(index)).toHaveLength(SUPPORTED_LOCALES.length + 1);
+    const page = institutionLanguageAlternates("04chrp450");
+    expect(page["x-default"]).toBe("/i/04chrp450");
+    expect(page["en-US"]).toBe("/i/04chrp450");
+    expect(page["pt-BR"]).toBe("/pt/i/04chrp450");
+    expect(Object.keys(page)).toHaveLength(SUPPORTED_LOCALES.length + 1);
   });
 });
 

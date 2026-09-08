@@ -447,3 +447,13 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
 export function faqStrings(locale: string): FaqStrings {
   return FAQ_I18N[asLocale(locale)];
 }
+
+/** Index (in `items`) of the entry that explains request links — the FAQ entry
+ *  the institution page points an assessor at. Every locale keeps the same
+ *  order, so one index addresses the same question in all ten. */
+export const FAQ_REQUEST_LINK_INDEX = 7;
+
+/** The `id` of the FAQ section for `items[index]`, for deep links (`/faq#q8`). */
+export function faqItemAnchor(index: number): string {
+  return `q${index + 1}`;
+}

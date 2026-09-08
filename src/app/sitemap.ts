@@ -4,6 +4,7 @@ import { listExamples } from "@/lib/examples/examples";
 import { listGuides } from "@/lib/guides/guides";
 import { listTerms } from "@/lib/glossary/glossary";
 import { DEFAULT_UI_LOCALE, LOCALE_SLUGS, SUPPORTED_LOCALES } from "@/lib/i18n";
+import { institutionIndex, isInstitutionIndexable } from "@/lib/institutions/institutions";
 import { HEAD_TERM_META, HEAD_TERM_PAGE_IDS } from "@/lib/i18n/headTermPages";
 import { ALL_LANDING_PAGE_IDS } from "@/lib/i18n/landingAll";
 import {
@@ -11,6 +12,8 @@ import {
   localeGlossaryTermPath,
   localeGuidePath,
   localeGuidesIndexPath,
+  localeInstitutionPath,
+  localeInstitutionsIndexPath,
   localeLandingPagePath,
 } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/siteUrl";
@@ -23,8 +26,10 @@ export const dynamic = "force-dynamic";
  * landing pages (/orcid-to-cv, /nih-biosketch) in every language (each with
  * per-entry hreflang `alternates`).
  * Public CVs (/p/*) are included ONLY when their owner opted into indexing
- * (publicIndexable) — the privacy-preserving growth loop. Excludes the
- * auth-gated editor (/cv) and all /api + Next internals.
+ * (publicIndexable) — the privacy-preserving growth loop. Institution pages
+ * (/i/<ror>) are included only for institutions at least one researcher chose
+ * to be listed under (the /i index always is). Excludes the auth-gated editor
+ * (/cv) and all /api + Next internals.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const slug = (loc: string) => LOCALE_SLUGS[loc as keyof typeof LOCALE_SLUGS];
@@ -248,6 +253,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     cvEntries = [];
   }
 
+  // Institution pages — the /i index in every language, plus one page per ROR
+  // id with enough listed CVs to be indexable (an institution nobody opted in
+  // under has no page; one with a single listed researcher is served `noindex`
+  // and stays out of the sitemap — see isInstitutionIndexable). Best-effort like
+  // cvEntries: a DB hiccup keeps the index entries and drops only the
+  // per-institution ones.
+  const institutionsIndexLanguages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) {
+    institutionsIndexLanguages[loc] = absoluteUrl(localeInstitutionsIndexPath(loc));
+  }
+  const institutionsIndexEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map((loc) => ({
+    url: absoluteUrl(localeInstitutionsIndexPath(loc)),
+    changeFrequency: "weekly",
+    priority: loc === DEFAULT_UI_LOCALE ? 0.5 : 0.4,
+    alternates: { languages: institutionsIndexLanguages },
+  }));
+  let institutionEntries: MetadataRoute.Sitemap = [];
+  try {
+    const institutions = (await institutionIndex()).filter(isInstitutionIndexable);
+    institutionEntries = institutions.flatMap((inst) => {
+      const languages: Record<string, string> = {};
+      for (const loc of SUPPORTED_LOCALES) {
+        languages[loc] = absoluteUrl(localeInstitutionPath(loc, inst.rorId));
+      }
+      return SUPPORTED_LOCALES.map((loc) => ({
+        url: absoluteUrl(localeInstitutionPath(loc, inst.rorId)),
+        changeFrequency: "weekly" as const,
+        priority: loc === DEFAULT_UI_LOCALE ? 0.5 : 0.4,
+        alternates: { languages },
+      }));
+    });
+  } catch {
+    institutionEntries = [];
+  }
+
   return [
     ...homeEntries,
     ...aboutEntries,
@@ -264,6 +304,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...glossaryEntries,
     ...headTermEntries,
     ...examplesEntries,
+    ...institutionsIndexEntries,
+    ...institutionEntries,
     ...cvEntries,
   ];
 }

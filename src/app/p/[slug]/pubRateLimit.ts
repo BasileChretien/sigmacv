@@ -26,7 +26,17 @@ export type PubRateLimitOutcome = { ok: true } | { ok: false; retryAfterSec: num
  * to proceed, or the `Retry-After` seconds when either ceiling is exceeded.
  */
 export async function enforcePubPageRateLimit(req: Request): Promise<PubRateLimitOutcome> {
-  const rl = await enforceRateLimit(`pubpage:${clientIp(req)}`, PUBPAGE_MAX, PUBPAGE_WINDOW_MS);
+  return enforcePubPageRateLimitForIp(clientIp(req));
+}
+
+/**
+ * The same limit for a caller that has the client IP but no `Request` — a
+ * server-component page (the institution pages read it from `headers()`).
+ * Shares the `pubpage:` buckets, so a flood across the public CV pages and the
+ * institution pages counts against one ceiling.
+ */
+export async function enforcePubPageRateLimitForIp(ip: string): Promise<PubRateLimitOutcome> {
+  const rl = await enforceRateLimit(`pubpage:${ip}`, PUBPAGE_MAX, PUBPAGE_WINDOW_MS);
   if (!rl.ok) return { ok: false, retryAfterSec: rl.retryAfterSec };
   const grl = await enforceRateLimit(
     "pubpage:global",
