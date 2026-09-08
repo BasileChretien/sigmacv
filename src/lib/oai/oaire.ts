@@ -2,10 +2,11 @@ import { licenseInfo } from "@/lib/canonical/license";
 import type { CvSectionType } from "@/lib/canonical/schema";
 import { currentAffiliation } from "@/lib/cv/publicJsonLd";
 import { cslForRender } from "@/lib/render/cslOverride";
+import { itemAnchorId } from "@/lib/render/templates/shared";
 import { absoluteUrl } from "@/lib/siteUrl";
 import type { CslItem } from "@/types/csl";
 import type { OaiRecordInput, OaiWorkRecord } from "./oai";
-import { creatorName, doiIri, escapeXml, workYear } from "./shared";
+import { creatorName, doiIri, escapeXml, oaiDatestamp, workYear } from "./shared";
 
 /**
  * The `oaire` metadata format: OpenAIRE Guidelines for Literature Repositories
@@ -30,12 +31,45 @@ import { creatorName, doiIri, escapeXml, workYear } from "./shared";
  *  - **Licence only when named.** `meta.license` is OpenAlex's own slug; a known
  *    Creative Commons slug is spelled out (versionless, since the source is),
  *    anything else is omitted.
- *  - **No per-work affiliation.** The owner's affiliation on THIS work is not
- *    public (`meta.workInstitutions` is stripped from the projection), and a
- *    2026 current affiliation on a 2010 paper would be false provenance. The
- *    self-declared current affiliation (with its ROR identifier) rides the
- *    CV-level record's creator instead, where it is exactly what the page's
- *    JSON-LD asserts; every work links back to that record's page.
+ *  - **No per-work affiliation; the CV-level one only with the opt-in, as a
+ *    name.** The owner's affiliation on THIS work is not public
+ *    (`meta.workInstitutions` is stripped from the projection), and a 2026
+ *    current affiliation on a 2010 paper would be false provenance. The
+ *    self-declared current affiliation rides the CV-level record's creator
+ *    instead — and only when the owner opted into "list under my current
+ *    affiliation" (`record.setSpec` is set: the same consent that gates the
+ *    `ror:<id>` sets, because an institution-keyed field is institution-keyed
+ *    processing the indexing consent never covered). It is a plain
+ *    `datacite:affiliation` string: the hosted v4 XSDs import DataCite kernel
+ *    4.0/4.1, whose `affiliation` element defines no `affiliationIdentifier` /
+ *    `affiliationIdentifierScheme` / `schemeURI` attributes (kernel 4.3 added
+ *    them; the XSD leaves the element untyped, so it would not reject them, but
+ *    a kernel-4.1 consumer has no meaning for them); the ROR identifier stays
+ *    on the set and the page's JSON-LD.
+ *  - **Identifier: the DOI, else the entry's own URL.** `datacite:identifier`
+ *    is mandatory in v4. A work without a DOI gets `identifierType="URL"` and
+ *    the public page's per-entry anchor (`/p/<slug>#item-<id>`, the id the HTML
+ *    renders on that entry) — a real, resolvable locator distinct per work, not
+ *    an invented persistent identifier.
+ *  - **Dates and rights only when known.** `datacite:dates` is omitted when the
+ *    CSL carries no issued year and `datacite:rights` when no OA determination
+ *    is stored. The guidelines call both mandatory (the XSD marks `rights` so,
+ *    `dates` optional), but they sit inside the schema's unbounded `xs:choice`,
+ *    so a record without them still validates — and a guessed date or access
+ *    right would be a false claim, which no harvester is better off with.
+ *  - **Resource types from the vocabulary the XSD enforces.** The `uri` of
+ *    `oaire:resourceType` is an enumeration in `oaire-resourceType-v4.xsd` (a
+ *    COAR Resource Types 2.0-era list) and `resourceTypeGeneral` is exactly
+ *    `literature | dataset | software | other research product`. Verified
+ *    2026-09-08 against the XSDs hosted under
+ *    https://www.openaire.eu/schema/repo-lit/4.0/ and the COAR concept pages:
+ *    `c_ba08` is "book review", NOT peer review; the peer-review concept
+ *    (`H9BQ-739P`, "an evaluation of scientific, academic, or professional work
+ *    by others working in the same field") only exists from COAR Resource Types
+ *    3.0 and is absent from the v4 enumeration; and `c_efa0` "review" is "a
+ *    review of others' PUBLISHED work". So a CSL `review` (OpenAlex
+ *    `peer-review`: a review report) is "other" (`c_1843`) rather than a
+ *    mislabel, and so is a pre-registration, which has no concept in the list.
  *  - **Version and funders omitted.** `oaire:version` is unknown today;
  *    funders are not stored per work yet.
  *
@@ -48,6 +82,8 @@ import { creatorName, doiIri, escapeXml, workYear } from "./shared";
  *   datacite:rights · oaire:licenseCondition · oaire:citationTitle ·
  *   oaire:citationVolume · oaire:citationIssue · oaire:citationStartPage ·
  *   oaire:citationEndPage.
+ * Both record kinds validate against the hosted `openaire.xsd` (+ its included
+ * `oaire.xsd` and imported `datacite-v4.xsd`), checked with lxml on 2026-09-08.
  * Sample per-work record (a 2019 journal article, owner second author):
  *
  *   <oaire:resource xmlns:oaire=… xmlns:datacite=… xmlns:dc=… xsi:schemaLocation=…>
@@ -129,8 +165,8 @@ export function coarAccessRight(oaIsOpen: boolean | undefined): CoarAccessRight 
 export interface CoarResourceType {
   uri: string;
   label: string;
-  /** The `resourceTypeGeneral` attribute. */
-  general: "literature" | "dataset" | "software" | "other";
+  /** The `resourceTypeGeneral` attribute — the v4 XSD enumeration, verbatim. */
+  general: "literature" | "dataset" | "software" | "other research product";
 }
 
 const COAR_RESOURCE_TYPE = "http://purl.org/coar/resource_type/";
@@ -141,9 +177,15 @@ const rt = (id: string, label: string, general: CoarResourceType["general"] = "l
 const RT_PREPRINT = rt("c_816b", "preprint");
 const RT_DATASET = rt("c_ddb1", "dataset", "dataset");
 const RT_SOFTWARE = rt("c_5ce6", "software", "software");
-const RT_OTHER = rt("c_1843", "other", "other");
+const RT_OTHER = rt("c_1843", "other", "other research product");
 
-/** CSL type → COAR resource type, for works the CV routes to a literature section. */
+/**
+ * CSL type → COAR resource type, for works the CV routes to a literature
+ * section. Every URI is in the v4 XSD's enumeration. Deliberately absent: CSL
+ * `review` (OpenAlex `peer-review`, a review REPORT) — `c_ba08` is "book
+ * review" and the enumeration has no peer-review concept, so it falls through
+ * to "other" (see the module comment).
+ */
 const CSL_TYPE_TO_COAR: Record<string, CoarResourceType> = {
   "article-journal": rt("c_6501", "journal article"),
   "paper-conference": rt("c_5794", "conference paper"),
@@ -151,7 +193,6 @@ const CSL_TYPE_TO_COAR: Record<string, CoarResourceType> = {
   book: rt("c_2f33", "book"),
   thesis: rt("c_46ec", "thesis"),
   report: rt("c_93fc", "report"),
-  review: rt("c_ba08", "peer review"),
   dataset: RT_DATASET,
   software: RT_SOFTWARE,
 };
@@ -159,14 +200,16 @@ const CSL_TYPE_TO_COAR: Record<string, CoarResourceType> = {
 /**
  * The COAR resource type of a work. The CV's OWN routing decides first — a work
  * the owner's CV lists under Preprints / Datasets / Software is that, whatever
- * the CSL type says (OpenAlex maps preprints to the generic CSL "article") —
- * then the CSL type; a bare CSL "article" elsewhere, or anything unknown, is
- * "other" rather than a guess.
+ * the CSL type says (OpenAlex maps preprints to the generic CSL "article"), and
+ * a Pre-registration is "other" (no COAR concept for it in the v4 list; the
+ * CSL fallback would call it a journal article) — then the CSL type; a bare
+ * CSL "article" elsewhere, or anything unknown, is "other" rather than a guess.
  */
 export function coarResourceType(sectionType: CvSectionType, cslType: string): CoarResourceType {
   if (sectionType === "preprints") return RT_PREPRINT;
   if (sectionType === "datasets") return RT_DATASET;
   if (sectionType === "software") return RT_SOFTWARE;
+  if (sectionType === "preregistrations") return RT_OTHER;
   return CSL_TYPE_TO_COAR[cslType] ?? RT_OTHER;
 }
 
@@ -254,6 +297,17 @@ function pageRelationXml(slug: string): string {
   );
 }
 
+/**
+ * The mandatory `datacite:identifier`: the DOI, else the entry's own URL on the
+ * public page (`#item-<id>` is the anchor the HTML renders on that entry).
+ */
+function workIdentifierXml(work: OaiWorkRecord, csl: CslItem): string {
+  const doi = doiIri(csl.DOI);
+  if (doi) return el("datacite:identifier", doi, ` identifierType="DOI"`);
+  const url = `${absoluteUrl(`p/${work.slug}`)}#${itemAnchorId(work.item.id)}`;
+  return el("datacite:identifier", url, ` identifierType="URL"`);
+}
+
 function resourceTypeXml(t: CoarResourceType): string {
   return el(
     "oaire:resourceType",
@@ -310,33 +364,34 @@ export function oaireWorkMetadata(work: OaiWorkRecord): string {
     el("datacite:date", workYear(csl), ` dateType="Issued"`, `${INDENT}  `),
   );
   x += resourceTypeXml(coarResourceType(work.sectionType, csl.type));
-  x += el("datacite:identifier", doiIri(csl.DOI), ` identifierType="DOI"`);
+  x += workIdentifierXml(work, csl);
   x += rightsXml(coarAccessRight(meta.oaIsOpen));
   x += licenseConditionXml(licenseCondition(meta.license));
   x += citationXml(csl);
   return `${OAIRE_OPEN}${x}${OAIRE_CLOSE}`;
 }
 
-/** The owner's self-declared current affiliation as a `datacite:affiliation`
- *  with its ROR identifier — the SAME position and ROR validation as the public
- *  JSON-LD `affiliation`, so this can never say more than the page. */
+/**
+ * The owner's self-declared current affiliation as a plain `datacite:affiliation`
+ * (kernel 4.0/4.1 has no identifier attributes) — the SAME position and ROR
+ * validation as the public JSON-LD `affiliation`, so this can never say more
+ * than the page — and ONLY when the owner opted into "list under my current
+ * affiliation" (`setSpec` set). An indexable CV whose owner did not is
+ * harvestable without any institution attached to it.
+ */
 function ownerAffiliationXml(record: OaiRecordInput): string {
+  if (!record.setSpec) return "";
   const aff = currentAffiliation(record.cv);
-  if (!aff) return "";
-  const ror = `https://ror.org/${aff.rorId}`;
-  return el(
-    "datacite:affiliation",
-    aff.name,
-    ` affiliationIdentifier="${escapeXml(ror)}" affiliationIdentifierScheme="ROR" schemeURI="https://ror.org/"`,
-    `${INDENT}    `,
-  );
+  return aff ? el("datacite:affiliation", aff.name, "", `${INDENT}    `) : "";
 }
 
 /**
  * The `oaire:resource` `<metadata>` block for a CV-level record: minimal —
- * the title, the owner as creator (ORCID + self-declared current affiliation),
- * the public page as identifier, resource type "other". A public page is open
- * access; the CV licence the owner chose is its licence condition.
+ * the title, the owner as creator (ORCID; the self-declared current affiliation
+ * only with the set opt-in), the public page as identifier, resource type
+ * "other" (general: "other research product"), the record's OAI datestamp as
+ * the issued date (the same helper as `oai_dc`). A public page is open access;
+ * the CV licence the owner chose is its licence condition.
  */
 export function oaireCvMetadata(record: OaiRecordInput): string {
   const { cv, slug } = record;
@@ -358,7 +413,7 @@ export function oaireCvMetadata(record: OaiRecordInput): string {
     "datacite:dates",
     el(
       "datacite:date",
-      record.datestamp.toISOString().slice(0, 10),
+      oaiDatestamp(record.datestamp).slice(0, 10),
       ` dateType="Issued"`,
       `${INDENT}  `,
     ),

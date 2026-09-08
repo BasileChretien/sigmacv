@@ -42,10 +42,14 @@ This is a living document. Items marked _planned_ are tracked in the
   open-access determination ("open access" when an open copy is indexed,
   "metadata only access" when none is, omitted when undetermined — never a
   compliance verdict), a COAR resource type, the reuse licence when a known
-  Creative Commons licence is recorded, and a link to the CV page; the CV-level
-  record carries the self-declared current affiliation with its ROR identifier.
-  Nothing in either format goes beyond what the public page and its `.json`
-  already expose. The consent model
+  Creative Commons licence is recorded, and a link to the CV page (a work
+  without a DOI is identified by its own entry's URL on that page); the
+  CV-level record names the self-declared current affiliation (as a plain
+  name — the ROR identifier is what the set is keyed on) **only when the owner
+  also opted into "list under my current affiliation"**, the same consent that
+  gates the sets below; an indexable CV without that opt-in is harvested with
+  no institution attached. Nothing in either format goes beyond what the
+  public page and its `.json` already expose. The consent model
   is explicit and layered: nothing is harvestable without the owner's indexing
   opt-in, whose consent copy names the endpoint; and the `ror:<id>` **sets**
   (one per institution) contain only CVs whose owner _separately_ opted into

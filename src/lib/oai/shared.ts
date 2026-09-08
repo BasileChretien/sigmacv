@@ -15,6 +15,11 @@ export function escapeXml(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
+/** UTC datestamp at seconds granularity (YYYY-MM-DDThh:mm:ssZ). */
+export function oaiDatestamp(d: Date): string {
+  return `${d.toISOString().slice(0, 19)}Z`;
+}
+
 /** The canonical DOI IRI for a CSL `DOI` (bare, `doi:`-prefixed or a doi.org
  *  URL), always re-hosted on doi.org, or undefined when it isn't a DOI. */
 export function doiIri(raw: string | undefined): string | undefined {

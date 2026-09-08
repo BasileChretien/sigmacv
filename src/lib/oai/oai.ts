@@ -4,7 +4,7 @@ import { citationItems, selectSections } from "@/lib/render/citationItems";
 import { cslForRender } from "@/lib/render/cslOverride";
 import { absoluteUrl } from "@/lib/siteUrl";
 import { OAIRE_NAMESPACE, OAIRE_SCHEMA, oaireCvMetadata, oaireWorkMetadata } from "./oaire";
-import { creatorName, doiIri, escapeXml, workYear } from "./shared";
+import { creatorName, doiIri, escapeXml, oaiDatestamp, workYear } from "./shared";
 
 /**
  * OAI-PMH 2.0 provider for SigmaCV's indexable public CVs.
@@ -144,10 +144,8 @@ interface BuildOpts {
   now: Date;
 }
 
-/** UTC datestamp at seconds granularity (YYYY-MM-DDThh:mm:ssZ). */
-export function oaiDatestamp(d: Date): string {
-  return `${d.toISOString().slice(0, 19)}Z`;
-}
+/** The datestamp helper lives in `shared.ts` (both formats stamp dates with it). */
+export { oaiDatestamp };
 
 /** `oai:sigmacv.org:<slug>` for a CV slug. */
 export function oaiIdentifier(slug: string): string {

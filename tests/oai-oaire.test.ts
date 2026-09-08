@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CanonicalCv, CvItem, CvSectionType } from "@/lib/canonical/schema";
-import { findWorkRecord, workRecords, type OaiRecordInput } from "@/lib/oai/oai";
+import { findWorkRecord, oaiDatestamp, workRecords, type OaiRecordInput } from "@/lib/oai/oai";
 import {
   coarAccessRight,
   coarResourceType,
@@ -290,14 +290,30 @@ describe("oaire per-work record", () => {
     expect(t("publications", "book")).toMatchObject({ label: "book" });
     expect(t("publications", "thesis")).toMatchObject({ label: "thesis" });
     expect(t("publications", "report")).toMatchObject({ label: "report" });
-    expect(t("publications", "review")).toMatchObject({ label: "peer review" });
+    // A CSL "review" is OpenAlex's `peer-review` — a review REPORT. COAR c_ba08 is
+    // "book review", the v4 enumeration has no peer-review concept (that is COAR
+    // 3.0's H9BQ-739P) and c_efa0 "review" is a review of PUBLISHED work — so it
+    // is "other", not a mislabel.
+    expect(t("publications", "review")).toMatchObject({
+      uri: "http://purl.org/coar/resource_type/c_1843",
+      label: "other",
+    });
+    // A pre-registration has no COAR concept in the v4 list either: "other",
+    // whatever CSL type the registration carries (the fallback would say journal article).
+    expect(t("preregistrations", "article-journal")).toMatchObject({
+      uri: "http://purl.org/coar/resource_type/c_1843",
+      label: "other",
+      general: "other research product",
+    });
     expect(t("publications", "dataset")).toMatchObject({ label: "dataset" });
     expect(t("publications", "software")).toMatchObject({ label: "software" });
     // A bare CSL "article" outside the Preprints section, or anything unknown, is "other".
+    // `resourceTypeGeneral` is the v4 enumeration: literature | dataset | software |
+    // other research product — "other" alone would fail the XSD.
     expect(t("publications", "article")).toMatchObject({
       uri: "http://purl.org/coar/resource_type/c_1843",
       label: "other",
-      general: "other",
+      general: "other research product",
     });
     expect(t("other", "motion_picture")).toMatchObject({ label: "other" });
 
@@ -342,7 +358,12 @@ describe("oaire per-work record", () => {
     });
     const xml = work(rec, "W8");
     expect((xml.match(/<datacite:creator>/g) ?? []).length).toBe(1);
-    expect(xml).not.toContain("<datacite:identifier");
+    // No DOI → the mandatory identifier is the entry's own URL on the public page
+    // (the per-entry anchor the HTML renders), typed URL — never an invented PID.
+    expect(xml).toContain(
+      '<datacite:identifier identifierType="URL">https://sigmacv.org/p/ada-x7#item-w8</datacite:identifier>',
+    );
+    expect(xml).not.toContain('identifierType="DOI"');
     expect(xml).not.toContain("<datacite:dates");
     expect(xml).not.toContain("citationTitle");
     expect(xml).not.toContain("citationVolume");
@@ -364,6 +385,9 @@ describe("oaire per-work record", () => {
       sections: [section("publications", [item(ODD, { authorPosition: 1 })])],
     });
     expect(work(odd, "W9")).not.toContain("example.org");
+    expect(work(odd, "W9")).toContain(
+      'identifierType="URL">https://sigmacv.org/p/ada-x7#item-w9</datacite:identifier>',
+    );
     expect(work(odd, "W9")).toContain("<oaire:citationStartPage>5</oaire:citationStartPage>");
     expect(work(odd, "W9")).toContain("<oaire:citationEndPage>9</oaire:citationEndPage>");
   });
@@ -417,6 +441,8 @@ describe("oaire per-work record", () => {
     expect(xml).toMatch(/^\s*<oaire:resource /);
     expect(xml).toContain('xmlns:oaire="http://namespace.openaire.eu/schema/oaire/"');
     expect(xml).toContain('xmlns:datacite="http://datacite.org/schema/kernel-4"');
+    expect(xml).toContain('xmlns:dc="http://purl.org/dc/elements/1.1/"');
+    expect(xml).toContain('xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"');
     expect(xml).toContain(
       'xsi:schemaLocation="http://namespace.openaire.eu/schema/oaire/ https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd"',
     );
@@ -425,25 +451,30 @@ describe("oaire per-work record", () => {
 });
 
 describe("oaire CV-level record", () => {
-  it("is minimal: title, the owner as creator with ORCID + self-declared ROR affiliation, page URL identifier, type other", () => {
-    const rec = record({
-      orcid: OWNER_ORCID,
-      positions: [position({ rorId: "04chrp450" })],
-      display: { cvLicense: "CC-BY-4.0" },
-    });
+  it("is minimal: title, the owner as creator with ORCID + self-declared affiliation (opted in), page URL identifier, type other", () => {
+    const rec = record(
+      {
+        orcid: OWNER_ORCID,
+        positions: [position({ rorId: "04chrp450" })],
+        display: { cvLicense: "CC-BY-4.0" },
+      },
+      "ror:04chrp450",
+    );
     const xml = oaireCvMetadata(rec);
     expect(xml).toContain("<datacite:title>Ada Lovelace — Curriculum Vitae</datacite:title>");
     expect(xml).toContain(
       '<datacite:creatorName nameType="Personal">Ada Lovelace</datacite:creatorName>',
     );
     expect(xml).toContain(`https://orcid.org/${OWNER_ORCID}</datacite:nameIdentifier>`);
-    expect(xml).toContain(
-      '<datacite:affiliation affiliationIdentifier="https://ror.org/04chrp450" affiliationIdentifierScheme="ROR" schemeURI="https://ror.org/">Nagoya University</datacite:affiliation>',
-    );
+    expect(xml).toContain("<datacite:affiliation>Nagoya University</datacite:affiliation>");
     expect(xml).toContain("<dc:publisher>SigmaCV</dc:publisher>");
+    // The issued date is the record's OAI datestamp (same helper as oai_dc), day precision.
     expect(xml).toContain('<datacite:date dateType="Issued">2026-06-09</datacite:date>');
     expect(xml).toContain(
-      '<oaire:resourceType resourceTypeGeneral="other" uri="http://purl.org/coar/resource_type/c_1843">other</oaire:resourceType>',
+      `dateType="Issued">${oaiDatestamp(rec.datestamp).slice(0, 10)}</datacite:date>`,
+    );
+    expect(xml).toContain(
+      '<oaire:resourceType resourceTypeGeneral="other research product" uri="http://purl.org/coar/resource_type/c_1843">other</oaire:resourceType>',
     );
     expect(xml).toContain(
       '<datacite:identifier identifierType="URL">https://sigmacv.org/p/ada-x7</datacite:identifier>',
@@ -454,6 +485,23 @@ describe("oaire CV-level record", () => {
       '<oaire:licenseCondition uri="https://spdx.org/licenses/CC-BY-4.0.html">CC BY 4.0</oaire:licenseCondition>',
     );
     expect(xml).not.toContain("citationTitle");
+    expect(xml).toContain('xmlns:dc="http://purl.org/dc/elements/1.1/"');
+    expect(xml).toContain('xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"');
+  });
+
+  it("names the current affiliation only when the owner opted into listing under it, and as a plain name", () => {
+    const opts = { orcid: OWNER_ORCID, positions: [position({ rorId: "04chrp450" })] };
+    // Indexable but NOT opted into "list under my current affiliation": the same
+    // CV, no affiliation — an institution-keyed field needs that separate consent.
+    const noSet = oaireCvMetadata(record(opts));
+    expect(noSet).not.toContain("affiliation");
+    expect(noSet).not.toContain("Nagoya");
+    const inSet = oaireCvMetadata(record(opts, "ror:04chrp450"));
+    expect(inSet).toContain("<datacite:affiliation>Nagoya University</datacite:affiliation>");
+    // DataCite kernel 4.0/4.1 — what the hosted v4 XSDs import — has no
+    // affiliationIdentifier / affiliationIdentifierScheme / schemeURI attributes.
+    expect(inSet).not.toContain("affiliationIdentifier");
+    expect(inSet).not.toContain("ror.org");
   });
 
   it("omits the ORCID, the affiliation and the licence when they are not there to give", () => {
@@ -468,12 +516,18 @@ describe("oaire CV-level record", () => {
     // A position whose ROR id fails the ror.org shape check names no affiliation
     // identifier (the same rule as the public JSON-LD), and the name still shows.
     const junk = oaireCvMetadata(
-      record({ orcid: OWNER_ORCID, positions: [position({ rorId: "https://evil.example/x" })] }),
+      record(
+        { orcid: OWNER_ORCID, positions: [position({ rorId: "https://evil.example/x" })] },
+        "ror:04chrp450",
+      ),
     );
     expect(junk).not.toContain("affiliation");
     // Ended positions are not a current affiliation.
     const ended = oaireCvMetadata(
-      record({ orcid: OWNER_ORCID, positions: [position({ rorId: "04chrp450", endYear: 2020 })] }),
+      record(
+        { orcid: OWNER_ORCID, positions: [position({ rorId: "04chrp450", endYear: 2020 })] },
+        "ror:04chrp450",
+      ),
     );
     expect(ended).not.toContain("affiliation");
   });
