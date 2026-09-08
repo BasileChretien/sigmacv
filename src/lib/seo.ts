@@ -154,6 +154,37 @@ export function transparencyLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+// ─── Institution pages (/i, /i/[ror]) ────────────────────────────────────────
+
+/** /i index path for a locale: "/i" for the default, "/{slug}/i" otherwise. */
+export function localeInstitutionsIndexPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/i" : `/${LOCALE_SLUGS[loc]}/i`;
+}
+
+/** hreflang → path map for the /i index (relative; resolved against metadataBase). */
+export function institutionsIndexLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeInstitutionsIndexPath(loc);
+  languages["x-default"] = "/i";
+  return languages;
+}
+
+/** An institution page path for a locale: "/i/{ror}" for the default,
+ *  "/{slug}/i/{ror}" otherwise. `ror` is the bare ROR id. */
+export function localeInstitutionPath(locale: string, ror: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? `/i/${ror}` : `/${LOCALE_SLUGS[loc]}/i/${ror}`;
+}
+
+/** hreflang → path map for a single institution page. */
+export function institutionLanguageAlternates(ror: string): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeInstitutionPath(loc, ror);
+  languages["x-default"] = `/i/${ror}`;
+  return languages;
+}
+
 /**
  * Path for an SEO landing page in a given locale: "/{segment}" for the default
  * locale, "/{slug}/{segment}" otherwise. `segment` is the bare path id, e.g.

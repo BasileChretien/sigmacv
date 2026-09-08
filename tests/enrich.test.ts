@@ -683,6 +683,31 @@ describe("canonicalizeInstitutions", () => {
     expect(mocks.resolveInstitution).toHaveBeenCalledTimes(3);
   });
 
+  it("returns every confident ROR match once per id, as ROR returned it (for the Institution table)", async () => {
+    mocks.resolveInstitution.mockImplementation(async (name: string) => {
+      if (name === "Nagoya Univ." || name === "Nagoya University")
+        return { id: "https://ror.org/04chrp450", name: "Nagoya University", countryCode: "JP" };
+      if (name === "CHU Caen")
+        return { id: "https://ror.org/051kpcy16", name: "Caen University Hospital" };
+      return null;
+    });
+    const { orgs } = await canonicalizeInstitutions({
+      ...emptyBundle,
+      employments: [pos("Nagoya Univ."), pos("Nagoya University"), pos("Nowhere")],
+      education: [pos("CHU Caen")],
+    });
+    expect(orgs).toEqual([
+      { id: "https://ror.org/04chrp450", name: "Nagoya University", countryCode: "JP" },
+      { id: "https://ror.org/051kpcy16", name: "Caen University Hospital" },
+    ]);
+    // No lookups at all → no orgs; lookups with no match → no orgs either.
+    expect((await canonicalizeInstitutions(emptyBundle)).orgs).toEqual([]);
+    mocks.resolveInstitution.mockResolvedValue(null);
+    expect(
+      (await canonicalizeInstitutions({ ...emptyBundle, employments: [pos("X")] })).orgs,
+    ).toEqual([]);
+  });
+
   it("reports used=false and returns the input unchanged when no name changes", async () => {
     mocks.resolveInstitution.mockResolvedValue(null);
     const input: InstitutionBundle = { ...emptyBundle, employments: [pos("Some Place")] };

@@ -28,7 +28,7 @@ import { bareDoiInput } from "@/lib/openalex/client";
 import { fetchOpenCitationsCount } from "@/lib/opencitations/client";
 import { fetchSoftwareHeritageArchival } from "@/lib/softwareheritage/client";
 import { fetchScietyEvaluations, type PublicEvaluation } from "@/lib/sciety/client";
-import { resolveInstitution } from "@/lib/ror/client";
+import { resolveInstitution, type RorOrg } from "@/lib/ror/client";
 import type { ResolvedAffiliation } from "@/lib/openalex/resolveAuthor";
 import type { OrcidPosition } from "@/lib/orcid/client";
 import type { CslItem } from "@/types/csl";
@@ -892,12 +892,14 @@ export interface InstitutionBundle {
 /**
  * Canonicalize every institution name across the ORCID + OpenAlex inputs via
  * ROR, BEFORE the canonical CV is built. Each distinct name is resolved once
- * (the ROR client also caches per process). Returns canonicalized copies plus
- * whether any name was actually changed (drives the "ror" provenance flag).
+ * (the ROR client also caches per process). Returns canonicalized copies,
+ * whether any name was actually changed (drives the "ror" provenance flag),
+ * and `orgs`: every confident ROR match as ROR returned it — what sync records
+ * in the `Institution` table as an institution's trusted public name.
  */
 export async function canonicalizeInstitutions(
   input: InstitutionBundle,
-): Promise<{ result: InstitutionBundle; used: boolean }> {
+): Promise<{ result: InstitutionBundle; used: boolean; orgs: RorOrg[] }> {
   const names = new Set<string>();
   const add = (n: string | undefined) => {
     const t = (n ?? "").trim();
@@ -910,10 +912,14 @@ export async function canonicalizeInstitutions(
   for (const p of input.invitedPositions) add(p.organization);
   for (const a of input.affiliations) add(a.institution);
 
-  if (names.size === 0) return { result: input, used: false };
+  if (names.size === 0) return { result: input, used: false, orgs: [] };
 
   const unique = [...names];
   const resolved = await mapBounded(unique, CONCURRENCY, (name) => resolveInstitution(name));
+  // Every confident match, once per ROR id (two spellings can resolve to one).
+  const byId = new Map<string, RorOrg>();
+  for (const org of resolved) if (org && !byId.has(org.id)) byId.set(org.id, org);
+  const orgs = [...byId.values()];
 
   // name → { canonical name?, rorId } for every CONFIDENT ROR match. The name is
   // only recorded when ROR returned a DIFFERENT string (so identical names are
@@ -938,7 +944,7 @@ export async function canonicalizeInstitutions(
       website: org.website,
     });
   });
-  if (matched.size === 0) return { result: input, used: false };
+  if (matched.size === 0) return { result: input, used: false, orgs };
   // A name CHANGE drives the "ror" provenance flag (used). A pure id annotation
   // (name unchanged) is additive metadata and not a visible source contribution.
   const used = [...matched.values()].some((m) => m.name !== undefined);
@@ -968,6 +974,7 @@ export async function canonicalizeInstitutions(
 
   return {
     used,
+    orgs,
     result: {
       employments: input.employments.map(mapPos),
       education: input.education.map(mapPos),

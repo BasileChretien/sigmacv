@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { faqPageJsonLd } from "@/lib/faqJsonLd";
 import { asLocale } from "@/lib/i18n";
-import { faqStrings } from "@/lib/i18n/faq";
+import { faqItemAnchor, faqStrings } from "@/lib/i18n/faq";
 import { localeFaqPath, localeHomePath } from "@/lib/seo";
 import DocJsonLd from "./DocJsonLd";
 import SiteLinks from "./SiteLinks";
@@ -34,8 +34,8 @@ export default function Faq({ locale }: { locale: string }) {
 
         <h1>{s.heading}</h1>
 
-        {s.items.map((item) => (
-          <section key={item.q}>
+        {s.items.map((item, i) => (
+          <section key={item.q} id={faqItemAnchor(i)}>
             <h2>{item.q}</h2>
             <p>{item.a}</p>
           </section>

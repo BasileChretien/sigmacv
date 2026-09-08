@@ -362,7 +362,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     listUnderAffiliationTitle:
       "Off by default. When on, harvesters using the OAI-PMH endpoint can select your CV by your current institution's ROR set (ror:<id>). Requires indexing.",
     listUnderAffiliationBody:
-      "Adds your CV to the OAI-PMH set for the institution of your first visible current position (its ROR identifier), so a repository or CRIS harvesting by institution can find it. Labelled as your own self-declared affiliation, never as your institution's record. Follows your CV if your affiliation changes; requires indexing; off by default.",
+      "Adds your CV to the OAI-PMH set for the institution of your first visible current position (its ROR identifier), so a repository or CRIS harvesting by institution can find it. Labelled as your own self-declared affiliation, never as your institution's record. Follows your CV if your affiliation changes; requires indexing; off by default. The number of researchers listed under an institution is shown publicly on its institution page (/i/<ror>) — a count only, never who.",
     listUnderAffiliationNoRor:
       "Not available yet: none of your visible current positions is linked to a ROR institution record. Re-sync, or set the institution on a position.",
     showOnInstitutionPage: "Show me on my institution's public page",
@@ -562,7 +562,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     listUnderAffiliationTitle:
       "默认关闭。开启后，使用 OAI-PMH 接口的采集方可以按你当前机构的 ROR 集合（ror:<id>）选取你的简历。需要先开启索引。",
     listUnderAffiliationBody:
-      "将你的简历加入 OAI-PMH 中你第一个可见当前职位所属机构（以其 ROR 标识符）的集合，便于按机构采集的知识库或 CRIS 系统找到它。标注为你本人自述的所属机构，绝不作为机构的官方记录。所属机构变更时随简历更新；需要开启索引；默认关闭。",
+      "将你的简历加入 OAI-PMH 中你第一个可见当前职位所属机构（以其 ROR 标识符）的集合，便于按机构采集的知识库或 CRIS 系统找到它。标注为你本人自述的所属机构，绝不作为机构的官方记录。所属机构变更时随简历更新；需要开启索引；默认关闭。某机构下已列出的研究者人数会在其机构页面（/i/<ror>）公开显示——仅为数量，绝不显示是谁。",
     listUnderAffiliationNoRor:
       "暂不可用：你可见的当前职位均未关联 ROR 机构记录。请重新同步，或在某个职位上设置机构。",
     showOnInstitutionPage: "在我所属机构的公开页面上显示我",
@@ -764,7 +764,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     listUnderAffiliationTitle:
       "Desactivado por defecto. Si se activa, los recolectores que usan el punto de acceso OAI-PMH pueden seleccionar tu CV por el conjunto ROR de tu institución actual (ror:<id>). Requiere la indexación.",
     listUnderAffiliationBody:
-      "Añade tu CV al conjunto OAI-PMH de la institución de tu primer puesto actual visible (su identificador ROR), para que un repositorio o CRIS que recolecta por institución pueda encontrarlo. Se etiqueta como afiliación declarada por ti, nunca como registro de tu institución. Sigue a tu CV si cambia tu afiliación; requiere la indexación; desactivado por defecto.",
+      "Añade tu CV al conjunto OAI-PMH de la institución de tu primer puesto actual visible (su identificador ROR), para que un repositorio o CRIS que recolecta por institución pueda encontrarlo. Se etiqueta como afiliación declarada por ti, nunca como registro de tu institución. Sigue a tu CV si cambia tu afiliación; requiere la indexación; desactivado por defecto. El número de investigadores listados bajo una institución se muestra públicamente en su página de institución (/i/<ror>): solo una cifra, nunca quiénes.",
     listUnderAffiliationNoRor:
       "Aún no disponible: ninguno de tus puestos actuales visibles está vinculado a un registro institucional ROR. Vuelve a sincronizar o indica la institución en un puesto.",
     showOnInstitutionPage: "Mostrarme en la página pública de mi institución",
@@ -969,7 +969,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     listUnderAffiliationTitle:
       "Désactivé par défaut. Activé, les moissonneurs qui utilisent le point d'accès OAI-PMH peuvent sélectionner votre CV par l'ensemble ROR de votre établissement actuel (ror:<id>). Nécessite l'indexation.",
     listUnderAffiliationBody:
-      "Ajoute votre CV à l'ensemble OAI-PMH de l'établissement de votre premier poste actuel visible (son identifiant ROR), pour qu'un dépôt ou un CRIS qui moissonne par établissement puisse le trouver. Étiqueté comme votre affiliation auto-déclarée, jamais comme un registre de votre établissement. Suit votre CV si votre affiliation change ; nécessite l'indexation ; désactivé par défaut.",
+      "Ajoute votre CV à l'ensemble OAI-PMH de l'établissement de votre premier poste actuel visible (son identifiant ROR), pour qu'un dépôt ou un CRIS qui moissonne par établissement puisse le trouver. Étiqueté comme votre affiliation auto-déclarée, jamais comme un registre de votre établissement. Suit votre CV si votre affiliation change ; nécessite l'indexation ; désactivé par défaut. Le nombre de chercheurs listés sous un établissement est affiché publiquement sur sa page d'établissement (/i/<ror>) : un simple décompte, jamais qui.",
     listUnderAffiliationNoRor:
       "Pas encore disponible : aucun de vos postes actuels visibles n'est relié à une fiche d'établissement ROR. Resynchronisez, ou renseignez l'établissement sur un poste.",
     showOnInstitutionPage: "M'afficher sur la page publique de mon établissement",
@@ -1176,7 +1176,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     listUnderAffiliationTitle:
       "Standardmäßig aus. Wenn aktiviert, können Harvester über die OAI-PMH-Schnittstelle Ihren Lebenslauf anhand des ROR-Sets Ihrer aktuellen Einrichtung (ror:<id>) auswählen. Erfordert die Indexierung.",
     listUnderAffiliationBody:
-      "Nimmt Ihren Lebenslauf in das OAI-PMH-Set der Einrichtung Ihrer ersten sichtbaren aktuellen Position (ihre ROR-Kennung) auf, damit ein Repositorium oder CRIS, das nach Einrichtung erntet, ihn findet. Gekennzeichnet als Ihre selbst angegebene Zugehörigkeit, nie als Verzeichnis Ihrer Einrichtung. Folgt Ihrem Lebenslauf, wenn sich Ihre Zugehörigkeit ändert; erfordert die Indexierung; standardmäßig aus.",
+      "Nimmt Ihren Lebenslauf in das OAI-PMH-Set der Einrichtung Ihrer ersten sichtbaren aktuellen Position (ihre ROR-Kennung) auf, damit ein Repositorium oder CRIS, das nach Einrichtung erntet, ihn findet. Gekennzeichnet als Ihre selbst angegebene Zugehörigkeit, nie als Verzeichnis Ihrer Einrichtung. Folgt Ihrem Lebenslauf, wenn sich Ihre Zugehörigkeit ändert; erfordert die Indexierung; standardmäßig aus. Die Zahl der unter einer Einrichtung gelisteten Forschenden wird öffentlich auf deren Einrichtungsseite (/i/<ror>) angezeigt – nur eine Zahl, nie wer.",
     listUnderAffiliationNoRor:
       "Noch nicht verfügbar: keine Ihrer sichtbaren aktuellen Positionen ist mit einem ROR-Einrichtungsdatensatz verknüpft. Synchronisieren Sie erneut oder tragen Sie die Einrichtung bei einer Position ein.",
     showOnInstitutionPage: "Mich auf der öffentlichen Seite meiner Einrichtung zeigen",
@@ -1380,7 +1380,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     listUnderAffiliationTitle:
       "初期設定はオフです。オンにすると、OAI-PMH エンドポイントを使うハーベスタが、現在の所属機関の ROR セット（ror:<id>）であなたの CV を選択できるようになります。インデックス許可が必要です。",
     listUnderAffiliationBody:
-      "表示中の最初の現職の所属機関（その ROR 識別子）の OAI-PMH セットに CV を追加し、機関単位で収集するリポジトリや CRIS が見つけられるようにします。あなた自身が申告した所属として表示され、機関の公式記録としては扱われません。所属が変わると CV に追随します。インデックス許可が必要で、初期設定はオフです。",
+      "表示中の最初の現職の所属機関（その ROR 識別子）の OAI-PMH セットに CV を追加し、機関単位で収集するリポジトリや CRIS が見つけられるようにします。あなた自身が申告した所属として表示され、機関の公式記録としては扱われません。所属が変わると CV に追随します。インデックス許可が必要で、初期設定はオフです。ある機関の下に掲載された研究者の人数は、その機関ページ（/i/<ror>）で公開されます。人数のみで、誰かは表示されません。",
     listUnderAffiliationNoRor:
       "まだ利用できません：表示中の現職のいずれも ROR の機関レコードに紐づいていません。再同期するか、職位に機関を設定してください。",
     showOnInstitutionPage: "所属機関の公開ページに自分を表示する",
@@ -1585,7 +1585,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     listUnderAffiliationTitle:
       "Desativado por padrão. Quando ativado, coletores que usam o ponto de acesso OAI-PMH podem selecionar seu CV pelo conjunto ROR da sua instituição atual (ror:<id>). Requer a indexação.",
     listUnderAffiliationBody:
-      "Adiciona seu CV ao conjunto OAI-PMH da instituição do seu primeiro cargo atual visível (o identificador ROR dela), para que um repositório ou CRIS que coleta por instituição possa encontrá-lo. Rotulado como afiliação declarada por você, nunca como registro da sua instituição. Acompanha seu CV se a afiliação mudar; requer a indexação; desativado por padrão.",
+      "Adiciona seu CV ao conjunto OAI-PMH da instituição do seu primeiro cargo atual visível (o identificador ROR dela), para que um repositório ou CRIS que coleta por instituição possa encontrá-lo. Rotulado como afiliação declarada por você, nunca como registro da sua instituição. Acompanha seu CV se a afiliação mudar; requer a indexação; desativado por padrão. O número de pesquisadores listados sob uma instituição é exibido publicamente na página da instituição (/i/<ror>): apenas uma contagem, nunca quem.",
     listUnderAffiliationNoRor:
       "Ainda indisponível: nenhum dos seus cargos atuais visíveis está vinculado a um registro institucional ROR. Sincronize novamente ou defina a instituição em um cargo.",
     showOnInstitutionPage: "Mostrar-me na página pública da minha instituição",
@@ -1791,7 +1791,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     listUnderAffiliationTitle:
       "Disattivato per impostazione predefinita. Se attivo, gli harvester che usano l'endpoint OAI-PMH possono selezionare il tuo CV tramite il set ROR della tua istituzione attuale (ror:<id>). Richiede l'indicizzazione.",
     listUnderAffiliationBody:
-      "Aggiunge il tuo CV al set OAI-PMH dell'istituzione della tua prima posizione attuale visibile (il suo identificativo ROR), così che un repository o un CRIS che raccoglie per istituzione possa trovarlo. Etichettato come affiliazione dichiarata da te, mai come registro della tua istituzione. Segue il tuo CV se l'affiliazione cambia; richiede l'indicizzazione; disattivato per impostazione predefinita.",
+      "Aggiunge il tuo CV al set OAI-PMH dell'istituzione della tua prima posizione attuale visibile (il suo identificativo ROR), così che un repository o un CRIS che raccoglie per istituzione possa trovarlo. Etichettato come affiliazione dichiarata da te, mai come registro della tua istituzione. Segue il tuo CV se l'affiliazione cambia; richiede l'indicizzazione; disattivato per impostazione predefinita. Il numero di ricercatori elencati sotto un'istituzione è mostrato pubblicamente nella sua pagina istituzione (/i/<ror>): solo un conteggio, mai chi.",
     listUnderAffiliationNoRor:
       "Non ancora disponibile: nessuna delle tue posizioni attuali visibili è collegata a un record istituzionale ROR. Risincronizza, oppure indica l'istituzione su una posizione.",
     showOnInstitutionPage: "Mostrami sulla pagina pubblica della mia istituzione",
@@ -1994,7 +1994,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     listUnderAffiliationTitle:
       "기본적으로 꺼져 있습니다. 켜면 OAI-PMH 엔드포인트를 사용하는 하베스터가 현재 소속 기관의 ROR 세트(ror:<id>)로 당신의 CV를 선택할 수 있습니다. 색인 허용이 필요합니다.",
     listUnderAffiliationBody:
-      "표시된 첫 번째 현재 직위의 소속 기관(ROR 식별자)에 해당하는 OAI-PMH 세트에 CV를 추가하여, 기관 단위로 수집하는 리포지터리나 CRIS가 찾을 수 있게 합니다. 본인이 직접 신고한 소속으로 표시되며, 기관의 공식 기록으로 취급되지 않습니다. 소속이 바뀌면 CV를 따라갑니다. 색인 허용이 필요하며 기본적으로 꺼져 있습니다.",
+      "표시된 첫 번째 현재 직위의 소속 기관(ROR 식별자)에 해당하는 OAI-PMH 세트에 CV를 추가하여, 기관 단위로 수집하는 리포지터리나 CRIS가 찾을 수 있게 합니다. 본인이 직접 신고한 소속으로 표시되며, 기관의 공식 기록으로 취급되지 않습니다. 소속이 바뀌면 CV를 따라갑니다. 색인 허용이 필요하며 기본적으로 꺼져 있습니다. 한 기관 아래 등록된 연구자 수는 해당 기관 페이지(/i/<ror>)에 공개적으로 표시됩니다. 숫자만 표시되며 누구인지는 표시되지 않습니다.",
     listUnderAffiliationNoRor:
       "아직 사용할 수 없습니다: 표시된 현재 직위 중 ROR 기관 레코드에 연결된 것이 없습니다. 다시 동기화하거나 직위에 기관을 설정하세요.",
     showOnInstitutionPage: "소속 기관의 공개 페이지에 나를 표시",
@@ -2197,7 +2197,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     listUnderAffiliationTitle:
       "По умолчанию выключено. Если включить, харвестеры, использующие точку доступа OAI-PMH, смогут выбирать ваше резюме по набору ROR вашей текущей организации (ror:<id>). Требуется индексация.",
     listUnderAffiliationBody:
-      "Добавляет ваше резюме в набор OAI-PMH организации из вашей первой видимой текущей должности (её идентификатор ROR), чтобы репозиторий или CRIS, собирающий данные по организациям, мог его найти. Помечается как заявленная вами аффилиация и никогда — как реестр вашей организации. Следует за резюме при смене аффилиации; требует индексации; по умолчанию выключено.",
+      "Добавляет ваше резюме в набор OAI-PMH организации из вашей первой видимой текущей должности (её идентификатор ROR), чтобы репозиторий или CRIS, собирающий данные по организациям, мог его найти. Помечается как заявленная вами аффилиация и никогда — как реестр вашей организации. Следует за резюме при смене аффилиации; требует индексации; по умолчанию выключено. Число исследователей, перечисленных под учреждением, публично показывается на странице учреждения (/i/<ror>) — только число, никогда не имена.",
     listUnderAffiliationNoRor:
       "Пока недоступно: ни одна из ваших видимых текущих должностей не связана с записью организации в ROR. Выполните повторную синхронизацию или укажите организацию в должности.",
     showOnInstitutionPage: "Показывать меня на публичной странице моей организации",

@@ -17,6 +17,8 @@ const mocks = vi.hoisted(() => ({
   count: vi.fn(),
   upsert: vi.fn(),
   update: vi.fn(),
+  institutionUpsert: vi.fn(),
+  institutionFindMany: vi.fn(),
   fetchWorks: vi.fn(),
   resolveAuthor: vi.fn(),
   fetchEditorial: vi.fn(),
@@ -61,6 +63,10 @@ vi.mock("@/lib/db", () => ({
       count: mocks.count,
       upsert: mocks.upsert,
       update: mocks.update,
+    },
+    institution: {
+      upsert: mocks.institutionUpsert,
+      findMany: mocks.institutionFindMany,
     },
   },
 }));
@@ -204,7 +210,10 @@ beforeEach(() => {
   mocks.canonicalizeInstitutions.mockImplementation(async (input) => ({
     result: input,
     used: false,
+    orgs: [],
   }));
+  mocks.institutionUpsert.mockResolvedValue({});
+  mocks.institutionFindMany.mockResolvedValue([]);
   mocks.enrichCvWithCrossref.mockImplementation(async (cv) => cv);
   mocks.enrichCvWithAbstracts.mockImplementation(async (cv) => cv);
   mocks.enrichCvWithIcite.mockImplementation(async (cv) => cv);
@@ -348,6 +357,33 @@ describe("syncCvForUser", () => {
     await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
     const bare = mocks.upsert.mock.calls[0]![0] as { update: { currentRorId: string | null } };
     expect(bare.update.currentRorId).toBeNull();
+  });
+
+  it("records ROR's own name for every confident institution match (fail-soft)", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    mocks.canonicalizeInstitutions.mockImplementation(async (input) => ({
+      result: input,
+      used: true,
+      orgs: [
+        { id: "https://ror.org/04chrp450", name: "Nagoya University", countryCode: "JP" },
+        { id: "https://ror.org/051kpcy16", name: "Caen University Hospital" },
+      ],
+    }));
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.institutionUpsert).toHaveBeenCalledTimes(2);
+    expect(mocks.institutionUpsert.mock.calls[0]![0]).toMatchObject({
+      where: { rorId: "04chrp450" },
+      create: { rorId: "04chrp450", name: "Nagoya University", country: "JP", source: "ror" },
+    });
+    expect(mocks.institutionUpsert.mock.calls[1]![0].where).toEqual({ rorId: "051kpcy16" });
+
+    // The write is fail-soft: a database error there never fails the sync.
+    mocks.institutionUpsert.mockRejectedValue(new Error("db down"));
+    mocks.upsert.mockClear();
+    await expect(syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid })).resolves.toBeDefined();
+    expect(mocks.upsert).toHaveBeenCalledTimes(1);
   });
 
   it("reports the first sync as initial (no per-item flood) and persists the report", async () => {
@@ -1217,21 +1253,19 @@ describe("OAI harvest helpers", () => {
     expect((await getPublicCvRecord("ada"))?.setSpec).toBeUndefined();
   });
 
-  it("listAffiliationSets: one set per distinct ROR id among OPTED-IN indexable CVs", async () => {
+  it("listAffiliationSets: one set per distinct ROR id among OPTED-IN indexable CVs, named by the TRUSTED record", async () => {
     mocks.findMany.mockResolvedValue([
-      { currentRorId: "04chrp450", currentAffiliationName: "Nagoya University" },
-      { currentRorId: "00000000x", currentAffiliationName: null }, // no name → id-only
+      // The owner-controlled column carries hostile text; it is never selected.
+      { currentRorId: "04chrp450", currentAffiliationName: "Nagoya U (see example.evil)" },
+      { currentRorId: "00000000x", currentAffiliationName: "Also hostile" },
+    ]);
+    mocks.institutionFindMany.mockResolvedValue([
+      { rorId: "04chrp450", name: "Nagoya University" },
     ]);
     const sets = await listAffiliationSets();
-    // Two small columns only — never the documents — and a deterministic name pick.
-    expect(mocks.findMany.mock.calls[0]![0].select).toEqual({
-      currentRorId: true,
-      currentAffiliationName: true,
-    });
-    expect(mocks.findMany.mock.calls[0]![0].orderBy).toEqual([
-      { currentRorId: "asc" },
-      { currentAffiliationName: "asc" },
-    ]);
+    // One small column only — never the documents, never the owner's name text.
+    expect(mocks.findMany.mock.calls[0]![0].select).toEqual({ currentRorId: true });
+    expect(mocks.findMany.mock.calls[0]![0].orderBy).toEqual({ currentRorId: "asc" });
     const where = mocks.findMany.mock.calls[0]![0].where;
     expect(where).toMatchObject({
       published: true,
@@ -1240,10 +1274,17 @@ describe("OAI harvest helpers", () => {
       currentRorId: { not: null },
     });
     expect(mocks.findMany.mock.calls[0]![0].distinct).toEqual(["currentRorId"]);
+    // Names come from the Institution table (ROR's record), in one query.
+    expect(mocks.institutionFindMany).toHaveBeenCalledWith({
+      where: { rorId: { in: ["04chrp450", "00000000x"] } },
+      select: { rorId: true, name: true },
+    });
     expect(sets).toEqual([
       { spec: "ror:04chrp450", rorId: "04chrp450", name: "Nagoya University" },
-      { spec: "ror:00000000x", rorId: "00000000x", name: "ROR 00000000x" },
+      { spec: "ror:00000000x", rorId: "00000000x", name: "ROR 00000000x" }, // no record → id-only
     ]);
+    expect(JSON.stringify(sets)).not.toContain("hostile");
+    expect(JSON.stringify(sets)).not.toContain("example.evil");
   });
 
   it("getPublicCvRecord requires published + indexable", async () => {

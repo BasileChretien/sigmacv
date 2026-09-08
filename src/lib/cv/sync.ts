@@ -15,6 +15,7 @@ import {
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { currentAffiliation } from "@/lib/cv/publicJsonLd";
+import { recordInstitutions, trustedInstitutionNames } from "@/lib/cv/listed";
 import { provenanceLedger, type ProvenanceLedger } from "@/lib/cv/provenanceLedger";
 import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks";
 import { logger } from "@/lib/log";
@@ -399,7 +400,11 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
 
   // ROR: canonicalize free-text institution names BEFORE building so the same
   // institution from ORCID and OpenAlex de-duplicates and renders consistently.
-  const { result: inst, used: usedRor } = await canonicalizeInstitutions({
+  const {
+    result: inst,
+    used: usedRor,
+    orgs: rorOrgs,
+  } = await canonicalizeInstitutions({
     employments,
     education,
     distinctions,
@@ -407,6 +412,9 @@ export async function buildCvFromOrcid(input: BuildCvInput): Promise<SyncResult>
     invitedPositions,
     affiliations: resolved?.affiliations ?? [],
   });
+  // ROR's own name for every matched institution → the `Institution` table, the
+  // only source of a public institution name (pages, sitemap, ListSets). Fail-soft.
+  await recordInstitutions(rorOrgs);
 
   let cv = buildCanonicalCv({
     id,
@@ -998,10 +1006,10 @@ const MAX_AFFILIATION_SETS = 5_000;
  * listing. The `listUnderAffiliation` filter is the consent gate — a set must
  * contain only researchers who chose to be listed, so an institution with
  * researchers on SigmaCV but no opt-in has no set at all. The set name is the
- * institution's canonical (ROR / source) name denormalised beside the key —
- * never one owner's free-text rename — and falls back to the id; it is
- * labelled as a self-declared affiliation by the response builder, never as
- * institutional output.
+ * institution's TRUSTED name — ROR's own record in the `Institution` table,
+ * never anything from a CV (an owner controls a manual position's text) — and
+ * falls back to the id; it is labelled as a self-declared affiliation by the
+ * response builder, never as institutional output.
  */
 export async function listAffiliationSets(): Promise<OaiSet[]> {
   const rows = await prisma.cv.findMany({
@@ -1012,22 +1020,24 @@ export async function listAffiliationSets(): Promise<OaiSet[]> {
       currentRorId: { not: null },
     },
     distinct: ["currentRorId"],
-    // Two small denormalised columns — never the documents (an unauthenticated
-    // verb must not load every opted-in CV). The name is the CANONICAL
-    // institution name written with the key; ordering by it makes the pick
-    // deterministic when several owners' CVs carry different source spellings.
-    select: { currentRorId: true, currentAffiliationName: true },
-    orderBy: [{ currentRorId: "asc" }, { currentAffiliationName: "asc" }],
+    // One small denormalised column — never the documents (an unauthenticated
+    // verb must not load every opted-in CV), and never `currentAffiliationName`.
+    select: { currentRorId: true },
+    orderBy: { currentRorId: "asc" },
     take: MAX_AFFILIATION_SETS,
   });
-  const sets: OaiSet[] = [];
+  const rorIds: string[] = [];
   for (const row of rows) {
     /* v8 ignore next -- the where clause already excludes null keys */
     if (!row.currentRorId) continue;
-    const name = row.currentAffiliationName?.trim() || `ROR ${row.currentRorId}`;
-    sets.push({ spec: rorSetSpec(row.currentRorId), rorId: row.currentRorId, name });
+    rorIds.push(row.currentRorId);
   }
-  return sets;
+  const names = await trustedInstitutionNames(rorIds);
+  return rorIds.map((rorId) => ({
+    spec: rorSetSpec(rorId),
+    rorId,
+    name: names.get(rorId) ?? `ROR ${rorId}`,
+  }));
 }
 
 /** Public slugs that the owner has opted into search-engine indexing — for the

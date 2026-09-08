@@ -140,8 +140,10 @@ model Cv {
   // rewritten on every save / sync / publish change; null when no visible
   // position resolves to a ROR record. Derived from the document, never edited.
   currentRorId           String?
-  // The institution's canonical name for that key (ROR / source name, never the
-  // owner's rename), written with it; ListSets reads these two columns only.
+  // The institution's name as the owner's document carries it for that key,
+  // written with it. NOT trusted for any public surface: `meta.institution` is
+  // owner-editable text, so a public name for a ROR comes from `Institution`
+  // (ROR's own record) — ListSets and the institution pages never read this.
   currentAffiliationName String?
   // Separate, explicit opt-in to appear on the PUBLIC institution page(s)
   // (/i/<ror-id>): name, ORCID iD, current position and the works the public
@@ -211,6 +213,20 @@ model CvSnapshot {
 // no FK to User and no personal data — just the DOI, a retry counter and the
 // last machine reason. Drained by the internal resync cron
 // (cv/doiWithdrawals.ts); the row is deleted once DataCite accepts the hide.
+// ROR's own record of an institution, written during sync from the ROR client's
+// confident match (fail-soft) for every ROR that appears on a position. The ONLY
+// source of an institution's public name (institution pages, sitemap, JSON-LD,
+// the OAI `ListSets` set name): an owner can put any string and any ROR id on a
+// manual position, so a name derived from a CV would let one opted-in user
+// rename a real institution's page. No row → the page shows `ROR <id>`.
+model Institution {
+  rorId     String   @id
+  name      String
+  country   String?
+  source    String   @default("ror")
+  fetchedAt DateTime
+}
+
 model DoiWithdrawal {
   doi       String   @id
   attempts  Int      @default(1)
