@@ -41,6 +41,11 @@ import {
   getCachedOrcidPreview,
   setCachedOrcidPreview,
 } from "@/lib/cv/orcidPreviewCache";
+import {
+  __resetPublicPageCache,
+  getCachedInstitutionPage,
+  setCachedInstitutionPage,
+} from "@/lib/cv/publicPageCache";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 
 const ORCID = "0000-0002-7483-2489";
@@ -48,6 +53,7 @@ const CV = {} as CanonicalCv;
 
 beforeEach(() => {
   __resetOrcidPreviewCache();
+  __resetPublicPageCache();
   for (const m of Object.values(mocks)) m.mockReset();
   mocks.auth.mockResolvedValue({ user: { id: "u1" } });
   mocks.isSameOrigin.mockReturnValue(true);
@@ -104,6 +110,37 @@ describe("deleting an account clears its anonymous preview", () => {
     setCachedOrcidPreview(other, { html: "<p>theirs</p>", name: "B", cv: CV });
     await DELETE(req());
     expect(getCachedOrcidPreview(other)).not.toBeNull();
+  });
+});
+
+describe("deleting an account purges the institution pages it was listed on", () => {
+  // The Cv row cascades away with the user, but a cached /i/<ror-id> render
+  // would keep showing the researcher for the rest of its TTL.
+  it("reads the consented ids with the user row and drops those cached pages, leaving others", async () => {
+    mocks.userFindUnique.mockResolvedValue({
+      orcid: null,
+      cv: { consentedRorIds: ["04chrp450", "02kpeqv85"] },
+    });
+    setCachedInstitutionPage("04chrp450", { html: "<i>", indexable: true });
+    setCachedInstitutionPage("02kpeqv85", { html: "<j>", indexable: true });
+    setCachedInstitutionPage("04d9jrx35", { html: "<k>", indexable: true });
+    const res = await DELETE(req());
+    expect(res.status).toBe(200);
+    expect(mocks.userFindUnique).toHaveBeenCalledWith({
+      where: { id: "u1" },
+      select: { orcid: true, cv: { select: { consentedRorIds: true } } },
+    });
+    expect(getCachedInstitutionPage("04chrp450")).toBeNull();
+    expect(getCachedInstitutionPage("02kpeqv85")).toBeNull();
+    expect(getCachedInstitutionPage("04d9jrx35")).not.toBeNull();
+  });
+
+  it("still deletes when the account has no CV row, or no consent", async () => {
+    mocks.userFindUnique.mockResolvedValue({ orcid: null, cv: null });
+    expect((await DELETE(req())).status).toBe(200);
+    mocks.userFindUnique.mockResolvedValue({ orcid: null, cv: { consentedRorIds: [] } });
+    expect((await DELETE(req())).status).toBe(200);
+    expect(mocks.userDelete).toHaveBeenCalledTimes(2);
   });
 });
 

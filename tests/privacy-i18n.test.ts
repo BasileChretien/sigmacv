@@ -38,6 +38,11 @@ describe("privacyStrings", () => {
       expect(s.sharing).toContain("CRIS");
       expect(s.sharing).toContain("ROR");
       expect(s.sharing.indexOf("DataCite")).toBeLessThan(s.sharing.indexOf("OAI-PMH"));
+      // The institution page (/i/<ROR id>) is a further, separate opt-in —
+      // appended AFTER the OAI-PMH sentence, naming ORCID iD among what appears.
+      expect(s.sharing).toContain("/i/<ROR id>");
+      expect(s.sharing.indexOf("/i/<ROR id>")).toBeGreaterThan(s.sharing.indexOf("OAI-PMH"));
+      expect(s.sharing.slice(s.sharing.indexOf("/i/<ROR id>"))).toContain("ORCID iD");
     }
   });
 });

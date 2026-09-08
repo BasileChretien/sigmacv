@@ -29,6 +29,7 @@ vi.mock("@/lib/cv/sync", () => ({
 }));
 
 import { GET, POST } from "@/app/api/cv/publish/route";
+import { InstitutionConsentError } from "@/lib/cv/institutionConsent";
 
 const STATE = {
   published: true,
@@ -36,6 +37,11 @@ const STATE = {
   indexable: true,
   listUnderAffiliation: true,
   affiliationRorId: "04chrp450",
+  showOnInstitutionPage: true,
+  consentedRorIds: ["04chrp450"],
+  currentAffiliations: [{ rorId: "04chrp450", name: "Nagoya University" }],
+  visibleCurrentRorIds: ["04chrp450"],
+  lapsedRorIds: [],
 };
 
 function post(body: unknown): Request {
@@ -64,12 +70,87 @@ describe("/api/cv/publish", () => {
   it("POST forwards the affiliation-listing opt-in (default false) to the state setter", async () => {
     const res = await POST(post({ published: true, indexable: true, listUnderAffiliation: true }));
     expect(res.status).toBe(200);
-    expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, true, true);
+    expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, true, true, undefined);
     expect(await res.json()).toEqual(STATE);
 
     mocks.setPublishState.mockClear();
     await POST(post({ published: true }));
-    expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, false, false);
+    expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, false, false, undefined);
+  });
+
+  describe("institution-page consent", () => {
+    it("forwards the toggle + ticked ROR ids, and leaves the stored choice alone when unmentioned", async () => {
+      const res = await POST(
+        post({
+          published: true,
+          indexable: true,
+          showOnInstitutionPage: true,
+          consentedRorIds: ["04chrp450", "04d9jrx35"],
+        }),
+      );
+      expect(res.status).toBe(200);
+      expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, true, false, {
+        show: true,
+        rorIds: ["04chrp450", "04d9jrx35"],
+      });
+      // The response carries the picker + the re-ask so the UI needs no second call.
+      expect(await res.json()).toMatchObject({
+        showOnInstitutionPage: true,
+        consentedRorIds: ["04chrp450"],
+        visibleCurrentRorIds: ["04chrp450"],
+        lapsedRorIds: [],
+      });
+
+      mocks.setPublishState.mockClear();
+      await POST(post({ published: true, indexable: true, showOnInstitutionPage: false }));
+      expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, true, false, {
+        show: false,
+        rorIds: [],
+      });
+
+      mocks.setPublishState.mockClear();
+      await POST(post({ published: true, indexable: true, consentedRorIds: ["04chrp450"] }));
+      expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, true, false, {
+        show: true,
+        rorIds: ["04chrp450"],
+      });
+    });
+
+    it("rejects a malformed ROR id, a non-array, or more than five ids with 422 before touching the store", async () => {
+      for (const consentedRorIds of [
+        ["https://ror.org/04chrp450"],
+        ["04CHRP450"],
+        "04chrp450",
+        ["04chrp450", "04d9jrx35", "02kpeqv85", "03vek6s52", "05f0yaq80", "01an7q238"],
+      ]) {
+        const res = await POST(
+          post({ published: true, showOnInstitutionPage: true, consentedRorIds }),
+        );
+        expect(res.status).toBe(422);
+      }
+      expect(mocks.setPublishState).not.toHaveBeenCalled();
+    });
+
+    it("answers 422 naming the ids that are not visible current affiliations of the stored CV", async () => {
+      mocks.setPublishState.mockRejectedValue(
+        new InstitutionConsentError("Not a visible current affiliation of this CV: 02kpeqv85", [
+          "02kpeqv85",
+        ]),
+      );
+      const res = await POST(
+        post({
+          published: true,
+          indexable: true,
+          showOnInstitutionPage: true,
+          consentedRorIds: ["02kpeqv85"],
+        }),
+      );
+      expect(res.status).toBe(422);
+      expect(await res.json()).toEqual({
+        error: "Not a visible current affiliation of this CV: 02kpeqv85",
+        unknownRorIds: ["02kpeqv85"],
+      });
+    });
   });
 
   it("rejects a non-boolean opt-in with 422", async () => {

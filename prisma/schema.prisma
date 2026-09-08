@@ -143,6 +143,15 @@ model Cv {
   // The institution's canonical name for that key (ROR / source name, never the
   // owner's rename), written with it; ListSets reads these two columns only.
   currentAffiliationName String?
+  // Separate, explicit opt-in to appear on the PUBLIC institution page(s)
+  // (/i/<ror-id>): name, ORCID iD, current position and the works the public
+  // page lists, counted in that page's figures. PINNED to the ROR ids the owner
+  // ticked among their visible current positions (never re-derived on save: a
+  // consent given at one institution must not migrate to the next). A consented
+  // id no longer among the visible current positions is LAPSED - not shown,
+  // re-asked in the editor. Requires publicIndexable (cleared with it).
+  showOnInstitutionPage  Boolean   @default(false)
+  consentedRorIds        String[]  @default([])
   // Compare-and-set lock for the scheduled re-sync job (null = unlocked).
   resyncLockedAt         DateTime?
   createdAt              DateTime  @default(now())

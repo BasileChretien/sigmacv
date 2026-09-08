@@ -3,11 +3,14 @@ import {
   __resetPublicPageCache,
   dedupeOgImage,
   dedupePublicRender,
+  getCachedInstitutionPage,
   getCachedOgImage,
   getCachedPublicPage,
   invalidatePublicPage,
   isKnownMiss,
+  purgeInstitutionPages,
   rememberMiss,
+  setCachedInstitutionPage,
   setCachedOgImage,
   setCachedPublicPage,
   type OgImageEntry,
@@ -147,5 +150,37 @@ describe("publicPageCache", () => {
       for (let i = 0; i < 5200; i++) rememberMiss(`m-${i}`, 5000);
       expect(isKnownMiss("m-5199", 5000)).toBe(true);
     });
+  });
+});
+
+describe("institution page cache (keyed by ROR id)", () => {
+  it("caches a rendered institution page per ROR id with a TTL", () => {
+    expect(getCachedInstitutionPage("04chrp450", 1000)).toBeNull();
+    setCachedInstitutionPage("04chrp450", { html: "<i>", indexable: true }, 1000);
+    expect(getCachedInstitutionPage("04chrp450", 1500)).toEqual({ html: "<i>", indexable: true });
+    expect(getCachedInstitutionPage("04chrp450", 1000 + 61_000)).toBeNull();
+  });
+
+  it("purgeInstitutionPages drops exactly the named ids, and is a no-op for unknown or empty input", () => {
+    setCachedInstitutionPage("04chrp450", { html: "<a>", indexable: true }, 1000);
+    setCachedInstitutionPage("04d9jrx35", { html: "<b>", indexable: true }, 1000);
+    expect(() => purgeInstitutionPages([])).not.toThrow();
+    expect(() => purgeInstitutionPages(["00000000x", "04chrp450", "04chrp450"])).not.toThrow();
+    expect(getCachedInstitutionPage("04chrp450", 1100)).toBeNull();
+    expect(getCachedInstitutionPage("04d9jrx35", 1100)).not.toBeNull();
+  });
+
+  it("bounds the number of cached institution pages", () => {
+    for (let i = 0; i < 1100; i++) {
+      setCachedInstitutionPage(`r${i}`, { html: String(i), indexable: false }, 5000);
+    }
+    expect(getCachedInstitutionPage("r1099", 5000)).not.toBeNull();
+    expect(getCachedInstitutionPage("r0", 5000)).toBeNull();
+  });
+
+  it("the test reset clears it too", () => {
+    setCachedInstitutionPage("04chrp450", { html: "<a>", indexable: true }, 1000);
+    __resetPublicPageCache();
+    expect(getCachedInstitutionPage("04chrp450", 1000)).toBeNull();
   });
 });

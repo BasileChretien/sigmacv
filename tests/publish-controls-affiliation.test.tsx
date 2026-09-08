@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import PublishControls from "@/components/PublishControls";
+import { NO_INSTITUTION_PAGE } from "@/lib/cv/institutionConsent";
 import { ui } from "@/lib/i18n/ui";
 
 /**
@@ -34,6 +35,8 @@ function respond(state: Record<string, unknown>) {
       indexable: true,
       listUnderAffiliation: false,
       affiliationRorId: "04chrp450",
+      // The API always answers the institution-page part too (never opted in here).
+      ...NO_INSTITUTION_PAGE,
       ...state,
     }),
   });

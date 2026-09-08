@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { CvNotFoundError, getPublishState, setPublishState } from "@/lib/cv/sync";
+import {
+  InstitutionConsentError,
+  MAX_CONSENTED_ROR_IDS,
+  type InstitutionPageRequest,
+} from "@/lib/cv/institutionConsent";
+import { ROR_ID_PATTERN } from "@/lib/ror/id";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { readJsonBodyWithLimit } from "@/lib/readBody";
@@ -16,9 +22,25 @@ const BodySchema = z.object({
   /** Opt in to the OAI-PMH `ror:<id>` affiliation set — a consent separate from
    *  indexing; the state setter refuses it without indexing or a ROR key. */
   listUnderAffiliation: z.boolean().optional(),
+  /** "Show me on my institution's page" — a consent PINNED to the ROR ids
+   *  ticked among the visible current positions. The shape is checked here;
+   *  membership is checked by the state setter against the STORED document
+   *  (an unknown id is a 422). Omit both fields to leave the stored choice as is. */
+  showOnInstitutionPage: z.boolean().optional(),
+  consentedRorIds: z.array(z.string().regex(ROR_ID_PATTERN)).max(MAX_CONSENTED_ROR_IDS).optional(),
 });
-// The body is three booleans; reject anything larger early (streamed, not by header).
+// Four booleans and at most five 9-char ids; reject anything larger early
+// (streamed, not by header).
 const MAX_BODY_BYTES = 2_000;
+
+/** The institution-page part of the body, or undefined when it is not mentioned. */
+function institutionPageRequest(
+  body: z.infer<typeof BodySchema>,
+): InstitutionPageRequest | undefined {
+  const { showOnInstitutionPage, consentedRorIds } = body;
+  if (showOnInstitutionPage === undefined && consentedRorIds === undefined) return undefined;
+  return { show: showOnInstitutionPage ?? true, rorIds: consentedRorIds ?? [] };
+}
 
 export async function GET() {
   const session = await auth();
@@ -57,7 +79,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error:
-          "Expected { published: boolean, indexable?: boolean, listUnderAffiliation?: boolean }",
+          "Expected { published: boolean, indexable?: boolean, listUnderAffiliation?: boolean, showOnInstitutionPage?: boolean, consentedRorIds?: string[] (ROR ids, max 5) }",
       },
       { status: 422 },
     );
@@ -69,11 +91,18 @@ export async function POST(req: Request) {
       parsed.data.published,
       parsed.data.indexable ?? false,
       parsed.data.listUnderAffiliation ?? false,
+      institutionPageRequest(parsed.data),
     );
     return NextResponse.json(state);
   } catch (err) {
     if (err instanceof CvNotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 409 });
+    }
+    if (err instanceof InstitutionConsentError) {
+      return NextResponse.json(
+        { error: err.message, unknownRorIds: err.unknownRorIds },
+        { status: 422 },
+      );
     }
     logger.error("api.cv_publish_failed", { err });
     return NextResponse.json({ error: "Failed to update publish state" }, { status: 500 });

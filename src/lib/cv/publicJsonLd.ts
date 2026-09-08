@@ -12,26 +12,12 @@ import { serializeJsonLd } from "@/lib/jsonLd";
 import { safeHref } from "@/lib/render/escape";
 import { absoluteUrl } from "@/lib/siteUrl";
 import type { CoauthorCvLink } from "@/lib/cv/coauthorLinks";
-
-/** The canonical ROR IRI shape: `https://ror.org/<id>` (lowercase alnum body). */
-const ROR_IRI = /^https:\/\/ror\.org\/[0-9a-z]+$/;
-
-/**
- * Normalise a stored ROR id to its canonical, ATTACKER-PROOF IRI, or undefined.
- *
- * `safeHref` only blocks `javascript:`/`data:`; a stored full URL would
- * otherwise pass through verbatim, letting a crafted `meta.rorId` emit any
- * `https://…` `@id`/`identifier`. So we validate strictly against the ROR domain
- * pattern: a full URL is accepted ONLY if it already is `https://ror.org/<id>`;
- * a bare id becomes `https://ror.org/<id>` and is re-validated. Anything else
- * (foreign host, http, junk) returns undefined and the caller omits the field.
- */
-function rorIri(rorId: string): string | undefined {
-  if (ROR_IRI.test(rorId)) return rorId;
-  if (/^https?:\/\//i.test(rorId)) return undefined;
-  const built = `https://ror.org/${rorId}`;
-  return ROR_IRI.test(built) ? built : undefined;
-}
+import {
+  positionInstitutionNames,
+  positionRorId,
+  visibleCurrentPositions,
+} from "@/lib/cv/currentPositions";
+import { rorIri } from "@/lib/ror/id";
 
 /**
  * The owner's most recent / top-most VISIBLE position, used to build the
@@ -98,21 +84,15 @@ export interface CurrentAffiliation {
  */
 export function currentAffiliation(cv: CanonicalCv): CurrentAffiliation | null {
   // "Current" is checked against the dates, not assumed from list order: the
-  // first VISIBLE position with no end year (an owner-set date-range override replaces
-  // the source dates entirely, so its own `endYear` is what counts). A CV whose
-  // every listed position has ended has no current affiliation to list under.
-  const pos = visibleSectionItems(cv, "positions").find((p) => {
-    const end = p.meta.dateRangeOverride ? p.meta.dateRangeOverride.endYear : p.meta.endYear;
-    return end === undefined;
-  });
-  const raw = pos?.meta.rorId?.trim();
-  if (!pos || !raw) return null;
-  const iri = rorIri(raw);
-  if (!iri) return null;
-  const rorId = iri.slice("https://ror.org/".length);
-  const canonical = pos.meta.institution?.trim() || itemDisplayText(pos)?.trim() || `ROR ${rorId}`;
-  const name = pos.meta.institutionOverride?.trim() || canonical;
-  return { rorId, name, setName: canonical };
+  // first VISIBLE position with no end year (the one rule shared with the
+  // institution-page consent, in `currentPositions.ts`). A CV whose every
+  // listed position has ended has no current affiliation to list under.
+  const pos = visibleCurrentPositions(cv)[0];
+  if (!pos) return null;
+  const rorId = positionRorId(pos);
+  if (!rorId) return null;
+  const { canonical, display } = positionInstitutionNames(pos, rorId);
+  return { rorId, name: display, setName: canonical };
 }
 
 /** Visible items of the first visible section of `type`, or []. */
