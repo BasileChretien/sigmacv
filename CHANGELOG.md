@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Provenance ledger: the "confirmed by the owner" line no longer counts every publication.** It read "0 of 107" on a CV whose 107 works were identifier-matched and never flagged — a false reproach, since the editor deliberately never asks a researcher to re-confirm sound work. The line now counts the works that needed a look (review flag or misattribution verdict) plus any the owner confirmed anyway, is labelled accordingly in ten locales, and is omitted when nothing was flagged.
+- **Versions panel:** the hint under "Freeze as: Reader view" reused the living-page opt-in's wording ("adds a small Reader view link to your living page"), which is not what a freeze does; it now has its own inventory sentence.
+
 ### Added
 
 - **OAI-PMH harvesting is now disclosed, per-work, and institution-listable by opt-in.** Resumption tokens carry the list's `set` / `from` / `until`, so page 2 of an institution-filtered harvest can never widen into the whole repository; "current affiliation" means the first visible position with no end year; the set name is the institution's canonical name (never one owner's rename), denormalised beside the key so `ListSets` reads two columns; record- and set-bearing answers are `private, no-store`; a standing opt-in can always be withdrawn.

@@ -37,7 +37,7 @@ function fill(template: string, vars: Record<string, string | number>): string {
 export default function VersionsControls({ locale, published, slug }: VersionsControlsProps) {
   const s = snapshotStrings(locale);
   const u = ui(locale);
-  const readerInventory = u.allowReaderModeNote.replace(
+  const readerInventory = s.readerFreezeInventory.replace(
     "{list}",
     readerModeKeyLabels(u, editorUi(locale)).join(", "),
   );
