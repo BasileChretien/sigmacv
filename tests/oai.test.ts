@@ -121,7 +121,13 @@ describe("validateOaiRequest", () => {
   it("accepts `set=ror:<id>` on the list verbs and rejects any other set spec", () => {
     expect(
       validateOaiRequest({ verb: "ListRecords", metadataPrefix: "oai_dc", set: "ror:04chrp450" }),
-    ).toEqual({ kind: "list", verb: "ListRecords", offset: 0, set: "04chrp450" });
+    ).toEqual({
+      kind: "list",
+      verb: "ListRecords",
+      metadataPrefix: "oai_dc",
+      offset: 0,
+      set: "04chrp450",
+    });
     expect(
       validateOaiRequest({
         verb: "ListIdentifiers",
@@ -162,14 +168,14 @@ describe("validateOaiRequest", () => {
         identifier: "oai:sigmacv.org:ada",
         metadataPrefix: "oai_dc",
       }),
-    ).toEqual({ kind: "getRecord", slug: "ada" });
+    ).toEqual({ kind: "getRecord", slug: "ada", metadataPrefix: "oai_dc" });
     expect(
       validateOaiRequest({
         verb: "GetRecord",
         identifier: "oai:sigmacv.org:ada/w/W1",
         metadataPrefix: "oai_dc",
       }),
-    ).toEqual({ kind: "getRecord", slug: "ada", itemId: "W1" });
+    ).toEqual({ kind: "getRecord", slug: "ada", itemId: "W1", metadataPrefix: "oai_dc" });
   });
 
   it("validates ListRecords (prefix, dates, resumption token)", () => {
@@ -200,6 +206,7 @@ describe("validateOaiRequest", () => {
     expect(validateOaiRequest({ verb: "ListRecords", resumptionToken: "100" })).toEqual({
       kind: "list",
       verb: "ListRecords",
+      metadataPrefix: "oai_dc",
       offset: 100,
     });
     expect(validateOaiRequest({ verb: "ListRecords", resumptionToken: "abc" })).toMatchObject({
@@ -221,9 +228,21 @@ describe("OAI response builders", () => {
     expect(xml).toContain("<responseDate>2026-06-10T12:00:00Z</responseDate>");
   });
 
-  it("ListMetadataFormats advertises oai_dc", () => {
+  it("ListMetadataFormats advertises oai_dc AND oaire, each with schema + namespace", () => {
     const xml = listMetadataFormatsResponse({ verb: "ListMetadataFormats" }, OPTS);
     expect(xml).toContain("<metadataPrefix>oai_dc</metadataPrefix>");
+    expect(xml).toContain("<schema>http://www.openarchives.org/OAI/2.0/oai_dc.xsd</schema>");
+    expect(xml).toContain(
+      "<metadataNamespace>http://www.openarchives.org/OAI/2.0/oai_dc/</metadataNamespace>",
+    );
+    expect(xml).toContain("<metadataPrefix>oaire</metadataPrefix>");
+    expect(xml).toContain(
+      "<schema>https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd</schema>",
+    );
+    expect(xml).toContain(
+      "<metadataNamespace>http://namespace.openaire.eu/schema/oaire/</metadataNamespace>",
+    );
+    expect((xml.match(/<metadataFormat>/g) ?? []).length).toBe(2);
   });
 
   it("errors carry the code; badVerb omits request attributes", () => {
@@ -285,6 +304,7 @@ describe("OAI response builders", () => {
     expect(validateOaiRequest({ verb: "ListRecords", resumptionToken: token })).toEqual({
       kind: "list",
       verb: "ListRecords",
+      metadataPrefix: "oai_dc",
       offset: 100,
       set: "04chrp450",
       from,
@@ -621,5 +641,193 @@ describe("affiliation sets", () => {
       OPTS,
     );
     expect(outXml).not.toContain("<setSpec>");
+  });
+});
+
+// ─── oaire metadata prefix (OpenAIRE Guidelines v4) ──────────────────────────
+
+describe("oaire metadata prefix", () => {
+  it("validates `metadataPrefix=oaire` on GetRecord and the list verbs; anything else cannot be disseminated", () => {
+    expect(
+      validateOaiRequest({
+        verb: "GetRecord",
+        identifier: "oai:sigmacv.org:ada/w/W1",
+        metadataPrefix: "oaire",
+      }),
+    ).toEqual({ kind: "getRecord", slug: "ada", itemId: "W1", metadataPrefix: "oaire" });
+    expect(validateOaiRequest({ verb: "ListRecords", metadataPrefix: "oaire" })).toEqual({
+      kind: "list",
+      verb: "ListRecords",
+      metadataPrefix: "oaire",
+      offset: 0,
+    });
+    expect(validateOaiRequest({ verb: "ListIdentifiers", metadataPrefix: "oaire" })).toMatchObject({
+      kind: "list",
+      metadataPrefix: "oaire",
+    });
+    for (const metadataPrefix of ["OAIRE", "oaire_dc", "marcxml", "oai_openaire"]) {
+      expect(validateOaiRequest({ verb: "ListRecords", metadataPrefix })).toMatchObject({
+        code: "cannotDisseminateFormat",
+      });
+      expect(
+        validateOaiRequest({ verb: "GetRecord", identifier: "oai:sigmacv.org:a", metadataPrefix }),
+      ).toMatchObject({ code: "cannotDisseminateFormat" });
+    }
+  });
+
+  it("a resumption token carries the format: page 2 of an oaire harvest is still oaire", () => {
+    const page: OaiListPage = {
+      records: [makeRecord({ slug: "a" })],
+      cursor: 0,
+      nextOffset: 100,
+      metadataPrefix: "oaire",
+      filters: { set: "04chrp450" },
+    };
+    const xml = listRecordsResponse(
+      { verb: "ListRecords", metadataPrefix: "oaire", set: "ror:04chrp450" },
+      page,
+      OPTS,
+    );
+    const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(xml)![1]!;
+    expect(parseResumptionToken(token)).toEqual({
+      offset: 100,
+      set: "04chrp450",
+      metadataPrefix: "oaire",
+    });
+    expect(validateOaiRequest({ verb: "ListRecords", resumptionToken: token })).toEqual({
+      kind: "list",
+      verb: "ListRecords",
+      metadataPrefix: "oaire",
+      offset: 100,
+      set: "04chrp450",
+    });
+    // An oai_dc token is byte-identical to before (no format field), and a
+    // legacy / oai_dc token plans an oai_dc list.
+    expect(encodeResumptionToken({ offset: 100, metadataPrefix: "oai_dc" })).toBe(
+      encodeResumptionToken({ offset: 100 }),
+    );
+    expect(parseResumptionToken(encodeResumptionToken({ offset: 5 }))).toEqual({ offset: 5 });
+    // A token naming an unknown format is rejected, never silently downgraded.
+    const forged = (q: string) => Buffer.from(q, "utf8").toString("base64url");
+    expect(parseResumptionToken(forged("o=1&m=marc"))).toBeNull();
+    expect(parseResumptionToken(forged("o=1&m="))).toBeNull();
+  });
+
+  it("GetRecord / ListRecords / ListIdentifiers honour the format for CV-level and per-work records", () => {
+    const rec = worksCv({ cvLicense: "CC-BY-4.0" }, "ror:04chrp450");
+    const got = getRecordResponse(
+      { verb: "GetRecord", identifier: "oai:sigmacv.org:ada-x7/w/W1", metadataPrefix: "oaire" },
+      findWorkRecord(rec, "W1")!,
+      OPTS,
+      "oaire",
+    );
+    expect(got).toContain("<oaire:resource");
+    expect(got).not.toContain("<oai_dc:dc");
+    expect(got).toContain("<setSpec>ror:04chrp450</setSpec>"); // header unchanged
+
+    const cvOnly = getRecordResponse(
+      { verb: "GetRecord", identifier: "oai:sigmacv.org:ada-x7", metadataPrefix: "oaire" },
+      rec,
+      OPTS,
+      "oaire",
+    );
+    expect(cvOnly).toContain("<oaire:resource");
+    expect(cvOnly).toContain("<datacite:title>Ada Lovelace — Curriculum Vitae</datacite:title>");
+
+    const list = listRecordsResponse(
+      { verb: "ListRecords", metadataPrefix: "oaire" },
+      { records: [rec], cursor: 0, nextOffset: null, metadataPrefix: "oaire" },
+      OPTS,
+    );
+    expect((list.match(/<oaire:resource /g) ?? []).length).toBe(3); // CV + W1 + W3
+    expect(list).not.toContain("<oai_dc:dc");
+
+    // ListIdentifiers has no metadata in either format.
+    const ids = listIdentifiersResponse(
+      { verb: "ListIdentifiers", metadataPrefix: "oaire" },
+      { records: [rec], cursor: 0, nextOffset: null, metadataPrefix: "oaire" },
+      OPTS,
+    );
+    expect(ids).not.toContain("<metadata>");
+    expect((ids.match(/<header>/g) ?? []).length).toBe(3);
+  });
+
+  it("REGRESSION: the oai_dc output is byte-identical to the single-format provider", () => {
+    // Captured from the provider before `oaire` existed. A page without a
+    // format, or with `oai_dc`, must reproduce it exactly.
+    const rec = worksCv({ cvLicense: "CC-BY-4.0" }, "ror:04chrp450");
+    const EXPECTED_WORK = `<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-06-10T12:00:00Z</responseDate>
+  <request verb="GetRecord" identifier="oai:sigmacv.org:ada-x7/w/W1" metadataPrefix="oai_dc">https://sigmacv.org/api/oai</request>
+  <GetRecord>
+    <record>
+      <header>
+        <identifier>oai:sigmacv.org:ada-x7/w/W1</identifier>
+        <datestamp>2026-06-09T10:00:00Z</datestamp>
+        <setSpec>ror:04chrp450</setSpec>
+      </header>
+      <metadata>
+      <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+        <dc:title>A test paper &lt;with markup&gt;</dc:title>
+        <dc:creator>Lovelace, Ada</dc:creator>
+        <dc:creator>Doe, John</dc:creator>
+        <dc:creator>The Consortium</dc:creator>
+        <dc:date>2019</dc:date>
+        <dc:source>Journal of Tests</dc:source>
+        <dc:identifier>https://doi.org/10.1000/test.1</dc:identifier>
+        <dc:relation>https://sigmacv.org/p/ada-x7</dc:relation>
+        <dc:rights>https://spdx.org/licenses/CC-BY-4.0.html</dc:rights>
+      </oai_dc:dc>
+      </metadata>
+    </record>
+  </GetRecord>
+</OAI-PMH>
+`;
+    const args = {
+      verb: "GetRecord",
+      identifier: "oai:sigmacv.org:ada-x7/w/W1",
+      metadataPrefix: "oai_dc",
+    };
+    expect(getRecordResponse(args, findWorkRecord(rec, "W1")!, OPTS)).toBe(EXPECTED_WORK);
+    expect(getRecordResponse(args, findWorkRecord(rec, "W1")!, OPTS, "oai_dc")).toBe(EXPECTED_WORK);
+
+    const EXPECTED_CV = `<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-06-10T12:00:00Z</responseDate>
+  <request verb="GetRecord" identifier="oai:sigmacv.org:ada-x7" metadataPrefix="oai_dc">https://sigmacv.org/api/oai</request>
+  <GetRecord>
+    <record>
+      <header>
+        <identifier>oai:sigmacv.org:ada-x7</identifier>
+        <datestamp>2026-06-09T10:00:00Z</datestamp>
+        <setSpec>ror:04chrp450</setSpec>
+      </header>
+      <metadata>
+      <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+        <dc:title>Ada Lovelace — Curriculum Vitae</dc:title>
+        <dc:creator>Ada Lovelace</dc:creator>
+        <dc:description>Academic CV of Ada Lovelace, generated by SigmaCV.</dc:description>
+        <dc:publisher>SigmaCV</dc:publisher>
+        <dc:date>2026-06-09</dc:date>
+        <dc:type>Curriculum Vitae</dc:type>
+        <dc:format>text/html</dc:format>
+        <dc:identifier>https://orcid.org/0000-0002-7483-2489</dc:identifier>
+        <dc:identifier>https://sigmacv.org/p/ada-x7</dc:identifier>
+        <dc:language>en</dc:language>
+        <dc:rights>https://spdx.org/licenses/CC-BY-4.0.html</dc:rights>
+      </oai_dc:dc>
+      </metadata>
+    </record>
+  </GetRecord>
+</OAI-PMH>
+`;
+    expect(
+      getRecordResponse(
+        { verb: "GetRecord", identifier: "oai:sigmacv.org:ada-x7", metadataPrefix: "oai_dc" },
+        rec,
+        OPTS,
+      ),
+    ).toBe(EXPECTED_CV);
   });
 });

@@ -196,3 +196,56 @@ describe("OAI-PMH route: affiliation sets + per-work records", () => {
     expect(noWork).toContain('<error code="idDoesNotExist">');
   });
 });
+
+describe("OAI-PMH route: oaire metadata format", () => {
+  it("ListMetadataFormats lists oai_dc and oaire, also for a specific identifier", async () => {
+    const xml = await (await get("verb=ListMetadataFormats")).text();
+    expect(xml).toContain("<metadataPrefix>oai_dc</metadataPrefix>");
+    expect(xml).toContain("<metadataPrefix>oaire</metadataPrefix>");
+    const forId = await (
+      await get("verb=ListMetadataFormats&identifier=oai:sigmacv.org:ada-x7/w/W1")
+    ).text();
+    expect(forId).toContain("<metadataPrefix>oaire</metadataPrefix>");
+  });
+
+  it("GetRecord with metadataPrefix=oaire serves the OpenAIRE record through the same consent gate", async () => {
+    mocks.getPublicCvRecord.mockResolvedValue(RECORD);
+    const xml = await (
+      await get("verb=GetRecord&metadataPrefix=oaire&identifier=oai:sigmacv.org:ada-x7")
+    ).text();
+    expect(mocks.getPublicCvRecord).toHaveBeenCalledWith("ada-x7");
+    expect(xml).toContain('metadataPrefix="oaire"');
+    expect(xml).toContain("<oaire:resource");
+    expect(xml).not.toContain("<oai_dc:dc");
+    expect(xml).toContain("https://orcid.org/0000-0002-7483-2489</datacite:nameIdentifier>");
+
+    mocks.getPublicCvRecord.mockResolvedValue(null);
+    const gated = await (
+      await get("verb=GetRecord&metadataPrefix=oaire&identifier=oai:sigmacv.org:ada-x7")
+    ).text();
+    expect(gated).toContain('<error code="idDoesNotExist">');
+  });
+
+  it("ListRecords with metadataPrefix=oaire keeps the format on page 2 via the token", async () => {
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], total: 250 });
+    const first = await (await get("verb=ListRecords&metadataPrefix=oaire")).text();
+    expect(first).toContain("<oaire:resource");
+    const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(first)![1]!;
+    const second = await (
+      await get(`verb=ListRecords&resumptionToken=${encodeURIComponent(token)}`)
+    ).text();
+    expect(second).toContain("<oaire:resource");
+    expect(second).not.toContain("<oai_dc:dc");
+  });
+
+  it("any other metadataPrefix is cannotDisseminateFormat, before any DB read", async () => {
+    const xml = await (await get("verb=ListRecords&metadataPrefix=oai_openaire")).text();
+    expect(xml).toContain('<error code="cannotDisseminateFormat">');
+    expect(mocks.listPublicCvRecords).not.toHaveBeenCalled();
+    const rec = await (
+      await get("verb=GetRecord&metadataPrefix=marcxml&identifier=oai:sigmacv.org:ada-x7")
+    ).text();
+    expect(rec).toContain('<error code="cannotDisseminateFormat">');
+    expect(mocks.getPublicCvRecord).not.toHaveBeenCalled();
+  });
+});

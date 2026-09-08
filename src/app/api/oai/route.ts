@@ -22,7 +22,9 @@ import { absoluteUrl } from "@/lib/siteUrl";
  * OAI-PMH 2.0 endpoint over the indexable public CVs (FAIR "Accessible": let
  * repositories / aggregators harvest the open record). Thin — parses the request,
  * rate-limits, and hands off to the pure `lib/oai` builders + the `cv/sync`
- * harvest helpers. Supports GET and POST per the protocol.
+ * harvest helpers. Supports GET and POST per the protocol, and two metadata
+ * formats (`oai_dc`, `oaire`) — the format is validated in `lib/oai`, carried
+ * by the plan and by resumption tokens, and never changes what is harvestable.
  *
  * Consent gates (enforced in `cv/sync`, never here): every record requires the
  * owner's `publicIndexable` opt-in, whose consent copy names this endpoint;
@@ -112,7 +114,7 @@ async function handle(args: OaiArgs, req: Request): Promise<NextResponse> {
         const rec = cvRecord && plan.itemId ? findWorkRecord(cvRecord, plan.itemId) : cvRecord;
         return xmlResponse(
           rec
-            ? getRecordResponse(args, rec, opts)
+            ? getRecordResponse(args, rec, opts, plan.metadataPrefix)
             : oaiError(
                 args,
                 "idDoesNotExist",
@@ -146,6 +148,7 @@ async function handle(args: OaiArgs, req: Request): Promise<NextResponse> {
           cursor: plan.offset,
           nextOffset: consumed < total ? consumed : null,
           filters: { set: plan.set, from: plan.from, until: plan.until },
+          metadataPrefix: plan.metadataPrefix,
         };
         return xmlResponse(
           plan.verb === "ListRecords"
