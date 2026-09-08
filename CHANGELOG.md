@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Internal
-
-- **Per-work funder ids are now stored.** Each OpenAlex work's acknowledged funders (`awards[]`: funder id in canonical OpenAlex URL form, display name, award number) are kept on the citation item as `meta.funders` — deduped by funder + award number, at most 20 per work, rebuilt from the source on every sync — so a later funder join (matching a work's funder against the researcher's own ORCID / Crossref grants) needs no re-sync of every account. No user-facing change: the field is not rendered, not exported, and is stripped from the public projection (living page, `.json` / JSON-LD / CSL-JSON / BibTeX downloads, OAI-PMH records, frozen versions) until that join decides what is shown. Published JSON Schema (`/schema/cv/v2.json`) regenerated.
-
 ### Fixed
 
 - **Showing a review candidate now counts as confirming it.** Works that arrive hidden with a review flag (ORCID-listed works OpenAlex did not attribute, name+organisation registry matches) were only ever confirmable through the row's Confirm button, which nothing pointed to; an owner who switched such a work on was still counted as "not confirmed" by the ledger and the review coverage. Switching a candidate on is now the adjudication: it stamps the review (single and bulk show), the row button shows "Confirmed", and documents curated before this change derive the same state, so no re-click is needed.
@@ -389,6 +385,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Per-work funder ids are now stored.** Each OpenAlex work's acknowledged
+  funders (`awards[]`: funder id in canonical OpenAlex URL form, display name,
+  award number) are kept on the citation item as `meta.funders` — deduped by
+  funder + award number, sorted by (funder, award) and then capped at 20 per
+  work so the kept set is the same on every sync, rebuilt from the source for
+  every work OpenAlex returns (a work carried over from the previous document —
+  manual, claimed by DOI, ORCID-only candidate — keeps what it had) — so a later
+  funder join (matching a work's funder against the researcher's own ORCID /
+  Crossref grants) needs no re-sync of every account. Not rendered in any
+  output, and stripped from every public surface: the living page, its
+  `.json` / JSON-LD / CSL-JSON / BibTeX downloads, OAI-PMH records, frozen
+  versions and the anonymous ORCID preview. The owner's own JSON export and the
+  account data export keep it (it is the owner's data). A malformed stored
+  entry now degrades on its own instead of dropping the work's whole list; the
+  OpenAlex funder id an ORCID grant borrows by award number is normalised to
+  the same URL form. Published JSON Schema (`/schema/cv/v2.json`) regenerated.
 - **The public per-publication tools row is collapsed to its actions.** Under
   each work the living page shows at most "Cite · Full text · PubMed" (and
   "Abstract" when abstracts are on); the BibTeX / RIS / CSL-JSON download links

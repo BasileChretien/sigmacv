@@ -1000,7 +1000,11 @@ export function indexFundersByAward(
       const award = a.funder_award_id?.trim().toLowerCase();
       if (!award || out.has(award)) continue;
       out.set(award, {
-        funderId: a.funder_id ?? undefined,
+        // Canonical OpenAlex URL form (OpenAlex returns the URL, but the bare
+        // "F…" form appears in filters and older payloads) — the same
+        // normalisation `meta.funders` uses, so a grant that borrows this id
+        // and the works' own funder ids agree byte-for-byte.
+        funderId: normalizeOpenAlexFunderId(a.funder_id),
         funderName: a.funder_display_name ?? undefined,
       });
     }
@@ -1926,18 +1930,40 @@ function normalizeOpenAlexFunderId(raw: string | null | undefined): string | und
   return m ? `https://openalex.org/F${m[1]}` : undefined;
 }
 
+type WorkFunder = NonNullable<CvItem["meta"]["funders"]>[number];
+
+/** Locale-independent (code-unit) string order — deterministic on every host. */
+function compareCodeUnits(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
+ * Stable order for a work's funders: by funder id, then by award number
+ * (case-folded; an award-less entry sorts first). Applied BEFORE the cap so
+ * the surviving 20 are the same set on every sync regardless of the order
+ * OpenAlex happens to list `awards[]` in.
+ */
+function compareWorkFunders(a: WorkFunder, b: WorkFunder): number {
+  return (
+    compareCodeUnits(a.id, b.id) ||
+    compareCodeUnits(a.awardId?.toLowerCase() ?? "", b.awardId?.toLowerCase() ?? "")
+  );
+}
+
 /**
  * The funders acknowledged on the work (`meta.funders`): OpenAlex `awards[]`
  * reduced to funder id (canonical URL form) + display name + award number,
  * deduped by funder id + award number (case-insensitive — so two awards from
- * the same funder both survive, an exact repeat collapses), bounded at
- * {@link MAX_WORK_FUNDERS}; undefined when the work carries no keyable award.
- * Pure source data, recomputed every sync — see the schema doc for why it is
- * stored and why the public projection strips it.
+ * the same funder both survive, an exact repeat collapses), sorted by
+ * (id, awardId) and only THEN bounded at {@link MAX_WORK_FUNDERS} (so the
+ * survivors are deterministic across syncs); undefined when the work carries
+ * no keyable award. Pure source data for the work OpenAlex returned — see the
+ * schema doc for why it is stored, what a carried work keeps, and why every
+ * public surface strips it.
  */
 function workFunders(work: OpenAlexWork): CvItem["meta"]["funders"] {
   const seen = new Set<string>();
-  const out: NonNullable<CvItem["meta"]["funders"]> = [];
+  const out: WorkFunder[] = [];
   for (const a of work.awards ?? []) {
     const id = normalizeOpenAlexFunderId(a.funder_id);
     if (!id) continue;
@@ -1947,9 +1973,9 @@ function workFunders(work: OpenAlexWork): CvItem["meta"]["funders"] {
     if (seen.has(key)) continue;
     seen.add(key);
     out.push({ id, ...(name ? { name } : {}), ...(awardId ? { awardId } : {}) });
-    if (out.length >= MAX_WORK_FUNDERS) break;
   }
-  return out.length > 0 ? out : undefined;
+  if (out.length === 0) return undefined;
+  return [...out].sort(compareWorkFunders).slice(0, MAX_WORK_FUNDERS);
 }
 
 /**
@@ -2047,8 +2073,11 @@ function buildWorkCvItem(
       countries: workCountries(work),
       ...workReferences(work, ownWorkIds),
       // Funders acknowledged on the work (OpenAlex `awards[]`), stored per work for
-      // a later funder join. Source-driven, so it is rebuilt from `work` on every
-      // sync — deliberately NOT carried from `prev` (a dropped award disappears).
+      // a later funder join. Source-driven for a work OpenAlex returned: rebuilt
+      // from `work` here, not from `prev` (a dropped award disappears). A work
+      // the sync CARRIES instead (manual / DOI-claimed / orcid-doi candidates,
+      // `carryOverUserItems`) never reaches this function and keeps its previous
+      // `meta.funders` verbatim.
       funders: workFunders(work),
       oaStatus:
         work.open_access?.is_oa && work.open_access.oa_status

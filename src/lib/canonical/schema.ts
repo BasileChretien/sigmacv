@@ -755,22 +755,45 @@ const CvItemSchema = z.object({
      * name and the award number as printed on the work. Paper-level source
      * metadata (often a co-author's funding), stored per work so a later funder
      * join (matching a work's funder against the owner's OWN ORCID / Crossref
-     * grants) needs no global re-sync. Recomputed from the source on every sync
-     * (never carried), deduped by funder id + award number, bounded at build.
-     * STRIPPED from the public projection for now — not a render input, and
-     * nothing that could read as a funder-compliance signal ships before that
-     * join decides what is shown. An unknown stored value degrades to
-     * `undefined` rather than failing the CV read.
+     * grants) needs no global re-sync. NAMESPACE CAVEAT for that join: grant
+     * items' {@link funderId} carries the ORCID disambiguated-organization id
+     * (FUNDREF / ROR / GRID) or a bare FundRef DOI (Crossref grants), and only
+     * borrows the OpenAlex `F…` form when an award number matched — so a funder
+     * JOIN across the two needs an OpenAlex `/funders` ids crosswalk (FundRef /
+     * ROR / Wikidata) or award-number matching, never a string equality on ids.
+     * For a work OpenAlex returned this sync it is rebuilt from the source
+     * (deduped by funder id + award number, sorted by (id, awardId), bounded at
+     * build); a work the sync CARRIES from the previous document instead
+     * (manual, DOI-claimed, orcid-doi candidates — `carryOverUserItems`) keeps
+     * its previous value verbatim. STRIPPED from every public surface for now
+     * (living page, downloads, OAI-PMH, frozen versions, anonymous preview) —
+     * not a render input, and nothing that could read as a funder-compliance
+     * signal ships before that join decides what is shown; the owner's own JSON
+     * export and the account data export keep it. Degrades PER ENTRY: a
+     * malformed stored entry is dropped and the well-formed ones survive; a
+     * stored value that is not an array (or over the cap) degrades to
+     * `undefined` rather than failing the CV read. Never `[]` after parse.
      */
     funders: z
       .array(
-        z.object({
-          id: z.string().max(2048),
-          name: z.string().max(1000).optional(),
-          awardId: z.string().max(500).optional(),
-        }),
+        z
+          .object({
+            id: z.string().max(2048),
+            name: z.string().max(1000).optional(),
+            awardId: z.string().max(500).optional(),
+          })
+          // Per-entry degradation: a bad entry becomes a hole (filtered below),
+          // so one `name: null` does not take the other funders with it. The
+          // published JSON Schema is unchanged by this (`.optional()` inside an
+          // array is transparent; a `catch(undefined)` adds no `default`).
+          .optional()
+          .catch(undefined),
       )
       .max(20)
+      .transform((entries) => {
+        const kept = entries.filter((e) => e !== undefined);
+        return kept.length > 0 ? kept : undefined;
+      })
       .optional()
       .catch(undefined),
     /**
