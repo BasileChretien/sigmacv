@@ -409,7 +409,9 @@ describe("oaire per-work record", () => {
       sections: [section("publications", [item(EVIL, { authorPosition: 1, oaIsOpen: true })])],
     });
     const xml = work(rec, "W7");
-    expect(xml).not.toMatch(/<script|<b>|<i>/);
+    // Raw markup must never survive escaping (case-insensitive plain checks).
+    const lowered = xml.toLowerCase();
+    for (const tag of ["<script", "<b>", "<i>"]) expect(lowered).not.toContain(tag);
     expect(xml).toContain("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; &amp; &apos;q&apos;");
     expect(xml).toContain("O&apos;Brien &lt;b&gt;, A &amp; B");
     expect(xml).toContain("<oaire:citationTitle>J. &lt;i&gt;Evil&lt;/i&gt;</oaire:citationTitle>");
