@@ -25,6 +25,9 @@ describe("ui() editor/chrome dictionary", () => {
       const d = ui(loc);
       expect(d.allowIndexingBody).toContain("OAI-PMH");
       expect(d.allowIndexingBody).toContain("/api/oai");
+      // Both harvest formats are named: Dublin Core and OpenAIRE (`oaire`).
+      expect(d.allowIndexingBody).toContain("Dublin Core");
+      expect(d.allowIndexingBody).toContain("OpenAIRE");
       expect(d.allowIndexingTitle).toContain("OAI-PMH");
       expect(d.listUnderAffiliationTitle).toContain("ror:<id>");
       expect(d.listUnderAffiliationBody).toContain("OAI-PMH");

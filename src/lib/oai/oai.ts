@@ -1,9 +1,10 @@
 import { licenseInfo } from "@/lib/canonical/license";
-import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
-import { citationItems } from "@/lib/render/citationItems";
+import type { CanonicalCv, CvItem, CvSectionType } from "@/lib/canonical/schema";
+import { citationItems, selectSections } from "@/lib/render/citationItems";
 import { cslForRender } from "@/lib/render/cslOverride";
 import { absoluteUrl } from "@/lib/siteUrl";
-import type { CslItem } from "@/types/csl";
+import { OAIRE_NAMESPACE, OAIRE_SCHEMA, oaireCvMetadata, oaireWorkMetadata } from "./oaire";
+import { creatorName, doiIri, escapeXml, workYear } from "./shared";
 
 /**
  * OAI-PMH 2.0 provider for SigmaCV's indexable public CVs.
@@ -11,7 +12,11 @@ import type { CslItem } from "@/types/csl";
  * This module is PURE: it turns already-fetched records + validated request args
  * into the response XML (or an OAI error). The route (`app/api/oai`) does the
  * arg parsing, gating (published + publicIndexable) and DB reads, then calls
- * these builders. Metadata format: `oai_dc` (Dublin Core).
+ * these builders. Metadata formats: `oai_dc` (Dublin Core, here) and `oaire`
+ * (OpenAIRE Guidelines for Literature Repositories v4, `oaire.ts` — the
+ * identifier-keyed one: the owner's ORCID per work, DOI, COAR access right and
+ * resource type). Both carry the SAME records under the SAME consent gates;
+ * `oaire` discloses nothing `oai_dc` did not.
  *
  * Records. Each indexable CV yields one CV-level record (`oai:sigmacv.org:<slug>`)
  * PLUS one record per work the public page lists (`…:<slug>/w/<itemId>`), the
@@ -41,8 +46,16 @@ const OAI_EARLIEST_DATESTAMP = "2026-06-08T00:00:00Z";
 /** CVs per ListRecords/ListIdentifiers page (offset-based resumption). A page
  *  is cut at CV boundaries: a CV's per-work records always ride with it. */
 export const OAI_PAGE_SIZE = 100;
-/** The single supported metadata prefix. */
-const OAI_METADATA_PREFIX = "oai_dc";
+/** The supported metadata prefixes: Dublin Core, and OpenAIRE Guidelines v4. */
+const OAI_METADATA_PREFIXES = ["oai_dc", "oaire"] as const;
+type OaiMetadataPrefix = (typeof OAI_METADATA_PREFIXES)[number];
+/** The format a page / record renders in when none is named (and the only one
+ *  the pre-`oaire` resumption tokens could mean). */
+const DEFAULT_METADATA_PREFIX: OaiMetadataPrefix = "oai_dc";
+
+function isMetadataPrefix(s: string): s is OaiMetadataPrefix {
+  return (OAI_METADATA_PREFIXES as readonly string[]).includes(s);
+}
 /** Separator between a CV slug and a work id inside a per-work identifier. */
 const WORK_ID_SEPARATOR = "/w/";
 /** Set-spec prefix for the affiliation sets. */
@@ -67,6 +80,9 @@ export interface OaiWorkRecord {
   itemId: string;
   item: CvItem;
   cv: CanonicalCv;
+  /** The section type the CV lists the work under (the CV's own routing —
+   *  preprint / dataset / software — drives the `oaire` resource type). */
+  sectionType: CvSectionType;
 }
 
 /** An affiliation set as `ListSets` lists it. */
@@ -90,6 +106,9 @@ export interface OaiListPage {
   /** The list's filters, carried into the next page's resumption token so a
    *  set-filtered (or dated) harvest can never lose its filter on page 2. */
   filters?: ListFilters;
+  /** The format the page's records render in (default `oai_dc`); carried into
+   *  the resumption token so page 2 of an `oaire` harvest is still `oaire`. */
+  metadataPrefix?: OaiMetadataPrefix;
 }
 
 /** The filters of a list request (`set` = bare ROR id). */
@@ -123,16 +142,6 @@ export type OaiErrorCode =
 interface BuildOpts {
   baseUrl: string;
   now: Date;
-}
-
-/** XML-escape text + attribute content (covers &, <, >, ", '). */
-function escapeXml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
 }
 
 /** UTC datestamp at seconds granularity (YYYY-MM-DDThh:mm:ssZ). */
@@ -265,33 +274,6 @@ export function dcMetadata(record: OaiRecordInput): string {
   return `${OAI_DC_OPEN}${dc}${OAI_DC_CLOSE}`;
 }
 
-/** The canonical DOI IRI for a CSL `DOI` (bare, `doi:`-prefixed or a doi.org
- *  URL), always re-hosted on doi.org, or undefined when it isn't a DOI. */
-function doiIri(raw: string | undefined): string | undefined {
-  let s = raw?.trim().replace(/^doi:\s*/i, "");
-  if (!s) return undefined;
-  if (/^https?:\/\//i.test(s)) s = s.match(/10\.\d{4,9}\/\S+$/)?.[0] ?? "";
-  return /^10\.\d{4,9}\/\S+$/.test(s) ? `https://doi.org/${s}` : undefined;
-}
-
-/** A CSL name as "Family, Given" (or its literal form), or undefined. */
-function creatorName(n: NonNullable<CslItem["author"]>[number]): string | undefined {
-  const literal = n.literal?.trim();
-  if (literal) return literal;
-  const family = n.family?.trim();
-  const given = n.given?.trim();
-  if (family && given) return `${family}, ${given}`;
-  return family || given || undefined;
-}
-
-/** The publication year from the CSL `issued` date, or undefined. */
-function workYear(csl: CslItem): string | undefined {
-  const part = csl.issued?.["date-parts"]?.[0]?.[0];
-  if (typeof part === "number") return String(part);
-  if (typeof part === "string" && /^\d{4}/.test(part)) return part.slice(0, 4);
-  return undefined;
-}
-
 /**
  * The Dublin Core `<metadata>` block for a per-work record. Built from the CSL
  * the page renders (`cslForRender`: the owner's year / venue corrections and
@@ -323,6 +305,11 @@ function workDcMetadata(work: OaiWorkRecord): string {
  * not. They share the CV's datestamp and set membership.
  */
 export function workRecords(record: OaiRecordInput): OaiWorkRecord[] {
+  // The section each listed item sits in — the same selection `citationItems`
+  // flattens, so every item resolves (the fallback is defensive only).
+  const sectionOf = new Map<string, CvSectionType>(
+    selectSections(record.cv).flatMap((s) => s.items.map((i) => [i.id, s.section.type])),
+  );
   return citationItems(record.cv)
     .filter((item) => !item.meta.retracted)
     .map((item) => ({
@@ -332,6 +319,8 @@ export function workRecords(record: OaiRecordInput): OaiWorkRecord[] {
       itemId: item.id,
       item,
       cv: record.cv,
+      /* v8 ignore next -- every citationItems item comes from selectSections */
+      sectionType: sectionOf.get(item.id) ?? "other",
     }));
 }
 
@@ -358,11 +347,18 @@ function headerXml(record: OaiAnyRecord): string {
       </header>`;
 }
 
-function recordXml(record: OaiAnyRecord): string {
+/** The `<metadata>` payload of a record in the requested format. */
+function metadataXml(record: OaiAnyRecord, prefix: OaiMetadataPrefix): string {
+  if (prefix === "oaire")
+    return isWorkRecord(record) ? oaireWorkMetadata(record) : oaireCvMetadata(record);
+  return isWorkRecord(record) ? workDcMetadata(record) : dcMetadata(record);
+}
+
+function recordXml(record: OaiAnyRecord, prefix: OaiMetadataPrefix): string {
   return `    <record>
 ${headerXml(record)}
       <metadata>
-${isWorkRecord(record) ? workDcMetadata(record) : dcMetadata(record)}
+${metadataXml(record, prefix)}
       </metadata>
     </record>`;
 }
@@ -388,13 +384,19 @@ function resumptionTokenXml(page: OaiListPage): string {
     if (page.cursor === 0) return "";
     return `    <resumptionToken/>`;
   }
-  const token = encodeResumptionToken({ offset: page.nextOffset, ...page.filters });
+  const token = encodeResumptionToken({
+    offset: page.nextOffset,
+    ...page.filters,
+    metadataPrefix: page.metadataPrefix,
+  });
   return `    <resumptionToken>${escapeXml(token)}</resumptionToken>`;
 }
 
-/** What a resumption token carries: the offset AND the list's filters. */
+/** What a resumption token carries: the offset, the list's filters AND its
+ *  format (absent = `oai_dc`, which is also what every pre-`oaire` token meant). */
 export interface ResumptionState extends ListFilters {
   offset: number;
+  metadataPrefix?: OaiMetadataPrefix;
 }
 
 /** `YYYY-MM-DDThh:mm:ssZ` — the OAI seconds form `parseOaiDate` accepts. */
@@ -404,11 +406,13 @@ function oaiSeconds(d: Date): string {
 
 /**
  * Encode the resumption state as an opaque, URL-safe token: base64url of a
- * query string (`o=<offset>&s=<rorId>&f=<from>&u=<until>`). The consent-bearing
- * `set` filter rides the token, so page 2 of `ListRecords&set=ror:X` is still
- * page 2 OF THAT SET — a bare offset would silently continue over every
- * indexable CV, including researchers who never opted into the institution
- * listing. Exported for tests.
+ * query string (`o=<offset>&s=<rorId>&f=<from>&u=<until>&m=<prefix>`). The
+ * consent-bearing `set` filter rides the token, so page 2 of
+ * `ListRecords&set=ror:X` is still page 2 OF THAT SET — a bare offset would
+ * silently continue over every indexable CV, including researchers who never
+ * opted into the institution listing. The format rides it too (only when it is
+ * not the default, so an `oai_dc` token is unchanged from before `oaire`
+ * existed). Exported for tests.
  */
 export function encodeResumptionToken(state: ResumptionState): string {
   const p = new URLSearchParams();
@@ -416,6 +420,8 @@ export function encodeResumptionToken(state: ResumptionState): string {
   if (state.set) p.set("s", state.set);
   if (state.from) p.set("f", oaiSeconds(state.from));
   if (state.until) p.set("u", oaiSeconds(state.until));
+  if (state.metadataPrefix && state.metadataPrefix !== DEFAULT_METADATA_PREFIX)
+    p.set("m", state.metadataPrefix);
   return Buffer.from(p.toString(), "utf8").toString("base64url");
 }
 
@@ -442,11 +448,17 @@ export function identifyResponse(opts: BuildOpts): string {
   return envelope(opts, requestEl(opts.baseUrl, { verb: "Identify" }, false), inner);
 }
 
-/** The oai_dc format block (shared by ListMetadataFormats). */
+/** The two format blocks of ListMetadataFormats. Every record is available in
+ *  both, so the list is the same with or without an `identifier`. */
 const OAI_DC_FORMAT = `    <metadataFormat>
       <metadataPrefix>oai_dc</metadataPrefix>
       <schema>http://www.openarchives.org/OAI/2.0/oai_dc.xsd</schema>
       <metadataNamespace>http://www.openarchives.org/OAI/2.0/oai_dc/</metadataNamespace>
+    </metadataFormat>`;
+const OAIRE_FORMAT = `    <metadataFormat>
+      <metadataPrefix>oaire</metadataPrefix>
+      <schema>${OAIRE_SCHEMA}</schema>
+      <metadataNamespace>${OAIRE_NAMESPACE}</metadataNamespace>
     </metadataFormat>`;
 
 export function listMetadataFormatsResponse(args: OaiArgs, opts: BuildOpts): string {
@@ -455,6 +467,7 @@ export function listMetadataFormatsResponse(args: OaiArgs, opts: BuildOpts): str
     requestEl(opts.baseUrl, args, false),
     `  <ListMetadataFormats>
 ${OAI_DC_FORMAT}
+${OAIRE_FORMAT}
   </ListMetadataFormats>`,
   );
 }
@@ -503,7 +516,10 @@ ${headers}${token ? `\n${token}` : ""}
 }
 
 export function listRecordsResponse(args: OaiArgs, page: OaiListPage, opts: BuildOpts): string {
-  const records = expandPage(page).map(recordXml).join("\n");
+  const prefix = page.metadataPrefix ?? DEFAULT_METADATA_PREFIX;
+  const records = expandPage(page)
+    .map((r) => recordXml(r, prefix))
+    .join("\n");
   const token = resumptionTokenXml(page);
   return envelope(
     opts,
@@ -514,12 +530,17 @@ ${records}${token ? `\n${token}` : ""}
   );
 }
 
-export function getRecordResponse(args: OaiArgs, record: OaiAnyRecord, opts: BuildOpts): string {
+export function getRecordResponse(
+  args: OaiArgs,
+  record: OaiAnyRecord,
+  opts: BuildOpts,
+  metadataPrefix: OaiMetadataPrefix = DEFAULT_METADATA_PREFIX,
+): string {
   return envelope(
     opts,
     requestEl(opts.baseUrl, args, false),
     `  <GetRecord>
-${recordXml(record)}
+${recordXml(record, metadataPrefix)}
   </GetRecord>`,
   );
 }
@@ -534,10 +555,11 @@ export type OaiPlan =
   | { kind: "identify" }
   | { kind: "listMetadataFormats" }
   | { kind: "listSets" }
-  | { kind: "getRecord"; slug: string; itemId?: string }
+  | { kind: "getRecord"; slug: string; itemId?: string; metadataPrefix: OaiMetadataPrefix }
   | {
       kind: "list";
       verb: "ListRecords" | "ListIdentifiers";
+      metadataPrefix: OaiMetadataPrefix;
       offset: number;
       from?: Date;
       until?: Date;
@@ -592,6 +614,12 @@ export function parseResumptionToken(token: string): ResumptionState | null {
     if (!d) return null;
     state.until = d;
   }
+  const m = p.get("m");
+  if (m !== null) {
+    // An unknown format is rejected, never silently downgraded to oai_dc.
+    if (!isMetadataPrefix(m)) return null;
+    state.metadataPrefix = m;
+  }
   return state;
 }
 
@@ -606,8 +634,8 @@ const error = (code: OaiErrorCode, message: string): OaiPlan => ({ kind: "error"
 
 /**
  * Validate an OAI request into a plan (or an error). Enforces the per-verb
- * argument rules, the single supported `metadataPrefix` (oai_dc), the `ror:<id>`
- * set-spec shape, and `from`/`until` granularity.
+ * argument rules, the supported `metadataPrefix` values (oai_dc, oaire), the
+ * `ror:<id>` set-spec shape, and `from`/`until` granularity.
  */
 export function validateOaiRequest(args: OaiArgs): OaiPlan {
   const verb = args.verb;
@@ -640,16 +668,14 @@ export function validateOaiRequest(args: OaiArgs): OaiPlan {
         return error("badArgument", "Unexpected argument for GetRecord");
       if (!args.identifier || !args.metadataPrefix)
         return error("badArgument", "GetRecord requires identifier and metadataPrefix");
-      if (args.metadataPrefix !== OAI_METADATA_PREFIX)
-        return error(
-          "cannotDisseminateFormat",
-          `Unsupported metadataPrefix: ${args.metadataPrefix}`,
-        );
+      const metadataPrefix = args.metadataPrefix;
+      if (!isMetadataPrefix(metadataPrefix))
+        return error("cannotDisseminateFormat", `Unsupported metadataPrefix: ${metadataPrefix}`);
       const parsed = parseOaiIdentifier(args.identifier);
       if (!parsed) return error("idDoesNotExist", `Unknown identifier: ${args.identifier}`);
       return parsed.itemId
-        ? { kind: "getRecord", slug: parsed.slug, itemId: parsed.itemId }
-        : { kind: "getRecord", slug: parsed.slug };
+        ? { kind: "getRecord", slug: parsed.slug, itemId: parsed.itemId, metadataPrefix }
+        : { kind: "getRecord", slug: parsed.slug, metadataPrefix };
     }
 
     case "ListRecords":
@@ -659,16 +685,20 @@ export function validateOaiRequest(args: OaiArgs): OaiPlan {
           return error("badArgument", "resumptionToken is an exclusive argument");
         const state = parseResumptionToken(args.resumptionToken);
         if (state === null) return error("badResumptionToken", "Invalid resumptionToken");
-        return { kind: "list", verb, ...state };
+        const { metadataPrefix, ...rest } = state;
+        return {
+          kind: "list",
+          verb,
+          metadataPrefix: metadataPrefix ?? DEFAULT_METADATA_PREFIX,
+          ...rest,
+        };
       }
       if (hasUnexpectedArgs(args, ["metadataPrefix", "from", "until", "set"]))
         return error("badArgument", `Unexpected argument for ${verb}`);
-      if (!args.metadataPrefix) return error("badArgument", `${verb} requires metadataPrefix`);
-      if (args.metadataPrefix !== OAI_METADATA_PREFIX)
-        return error(
-          "cannotDisseminateFormat",
-          `Unsupported metadataPrefix: ${args.metadataPrefix}`,
-        );
+      const metadataPrefix = args.metadataPrefix;
+      if (!metadataPrefix) return error("badArgument", `${verb} requires metadataPrefix`);
+      if (!isMetadataPrefix(metadataPrefix))
+        return error("cannotDisseminateFormat", `Unsupported metadataPrefix: ${metadataPrefix}`);
       let set: string | undefined;
       if (args.set != null && args.set !== "") {
         const rorId = rorIdFromSetSpec(args.set);
@@ -687,7 +717,7 @@ export function validateOaiRequest(args: OaiArgs): OaiPlan {
         if (!d) return error("badArgument", "Invalid 'until' datestamp");
         until = d;
       }
-      return { kind: "list", verb, offset: 0, from, until, set };
+      return { kind: "list", verb, metadataPrefix, offset: 0, from, until, set };
     }
 
     default:

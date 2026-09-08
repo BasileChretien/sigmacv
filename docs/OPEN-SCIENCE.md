@@ -31,9 +31,21 @@ This is a living document. Items marked _planned_ are tracked in the
   page negotiates `application/ld+json`, CSL-JSON, and BibTeX in addition to HTML
   (_planned_), so any tool can retrieve a published record.
 - Published, **search-indexable** CVs are also harvestable over **OAI-PMH**
-  (`/api/oai`, Dublin Core): one record per CV plus one per work the public page
-  lists (the page's own selection, minus retracted works), so open repositories,
-  CRIS systems and aggregators can collect the open record. The consent model
+  (`/api/oai`) in two metadata formats: Dublin Core (`oai_dc`) and the
+  **OpenAIRE Guidelines for Literature Repositories v4** (`oaire`), one record
+  per CV plus one per work the public page lists (the page's own selection,
+  minus retracted works), so open repositories, CRIS systems and aggregators
+  can collect the open record. The `oaire` format is the identifier-keyed one:
+  each work carries the owner's ORCID on their own author entry (located by the
+  identifier-derived author position, never by name — co-authors are names
+  only), the DOI, a COAR access right derived honestly from the stored
+  open-access determination ("open access" when an open copy is indexed,
+  "metadata only access" when none is, omitted when undetermined — never a
+  compliance verdict), a COAR resource type, the reuse licence when a known
+  Creative Commons licence is recorded, and a link to the CV page; the CV-level
+  record carries the self-declared current affiliation with its ROR identifier.
+  Nothing in either format goes beyond what the public page and its `.json`
+  already expose. The consent model
   is explicit and layered: nothing is harvestable without the owner's indexing
   opt-in, whose consent copy names the endpoint; and the `ror:<id>` **sets**
   (one per institution) contain only CVs whose owner _separately_ opted into

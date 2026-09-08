@@ -338,7 +338,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Location",
     allowIndexing: "Allow search engines to index this page",
     allowIndexingBody:
-      "This is how colleagues and employers find your work in Google and other search engines. Recommended — you can turn it off anytime. An indexable page can also be harvested by open repositories and aggregators through SigmaCV's OAI-PMH endpoint (/api/oai): your CV record and the works it lists, as Dublin Core. Being listed under your institution is a separate choice below.",
+      "This is how colleagues and employers find your work in Google and other search engines. Recommended — you can turn it off anytime. An indexable page can also be harvested by open repositories and aggregators through SigmaCV's OAI-PMH endpoint (/api/oai): your CV record and the works it lists, in Dublin Core or OpenAIRE format. Being listed under your institution is a separate choice below.",
     allowIndexingTitle:
       "Off by default. When on, your public CV can appear in search results (name, ORCID, publications) and can be harvested by open repositories and aggregators through the OAI-PMH endpoint. Listing under your institution is a separate opt-in.",
     listUnderAffiliation: "List me under my current affiliation for repositories",
@@ -521,7 +521,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "所在地",
     allowIndexing: "允许搜索引擎索引此页面",
     allowIndexingBody:
-      "这正是同事和招聘方在 Google 等搜索引擎中找到你工作的方式。建议开启——你可以随时关闭。可被索引的页面还可能被开放知识库和聚合平台通过 SigmaCV 的 OAI-PMH 接口（/api/oai）采集：即你的简历记录及其列出的成果（Dublin Core 格式）。是否列入你所在机构的集合是下方的另一项单独选择。",
+      "这正是同事和招聘方在 Google 等搜索引擎中找到你工作的方式。建议开启——你可以随时关闭。可被索引的页面还可能被开放知识库和聚合平台通过 SigmaCV 的 OAI-PMH 接口（/api/oai）采集：即你的简历记录及其列出的成果（Dublin Core 或 OpenAIRE 格式）。是否列入你所在机构的集合是下方的另一项单独选择。",
     allowIndexingTitle:
       "默认关闭。开启后，您的公开简历可能出现在搜索结果中（姓名、ORCID、论文），也可能被开放知识库和聚合平台通过 OAI-PMH 接口采集。列入所在机构是另一项单独的选择。",
     listUnderAffiliation: "为知识库将我列入当前所属机构",
@@ -708,7 +708,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Ubicación",
     allowIndexing: "Permitir que los buscadores indexen esta página",
     allowIndexingBody:
-      "Así es como colegas y empleadores encuentran tu trabajo en Google y otros buscadores. Recomendado: puedes desactivarlo cuando quieras. Una página indexable también puede ser recolectada por repositorios abiertos y agregadores a través del punto de acceso OAI-PMH de SigmaCV (/api/oai): el registro de tu CV y los trabajos que enumera, en Dublin Core. Aparecer bajo tu institución es una elección aparte, más abajo.",
+      "Así es como colegas y empleadores encuentran tu trabajo en Google y otros buscadores. Recomendado: puedes desactivarlo cuando quieras. Una página indexable también puede ser recolectada por repositorios abiertos y agregadores a través del punto de acceso OAI-PMH de SigmaCV (/api/oai): el registro de tu CV y los trabajos que enumera, en formato Dublin Core u OpenAIRE. Aparecer bajo tu institución es una elección aparte, más abajo.",
     allowIndexingTitle:
       "Desactivado por defecto. Si se activa, tu CV público puede aparecer en los resultados de búsqueda (nombre, ORCID, publicaciones) y puede ser recolectado por repositorios abiertos y agregadores a través del punto de acceso OAI-PMH. Aparecer bajo tu institución es una opción aparte.",
     listUnderAffiliation: "Incluirme bajo mi afiliación actual para los repositorios",
@@ -896,7 +896,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Localisation",
     allowIndexing: "Autoriser l’indexation par les moteurs de recherche",
     allowIndexingBody:
-      "C'est ainsi que vos collègues et recruteurs trouvent vos travaux dans Google et les autres moteurs de recherche. Recommandé — vous pouvez le désactiver à tout moment. Une page indexable peut aussi être moissonnée par des dépôts ouverts et des agrégateurs via le point d'accès OAI-PMH de SigmaCV (/api/oai) : la notice de votre CV et les travaux qu'il liste, en Dublin Core. Figurer sous votre établissement est un choix distinct, ci-dessous.",
+      "C'est ainsi que vos collègues et recruteurs trouvent vos travaux dans Google et les autres moteurs de recherche. Recommandé — vous pouvez le désactiver à tout moment. Une page indexable peut aussi être moissonnée par des dépôts ouverts et des agrégateurs via le point d'accès OAI-PMH de SigmaCV (/api/oai) : la notice de votre CV et les travaux qu'il liste, au format Dublin Core ou OpenAIRE. Figurer sous votre établissement est un choix distinct, ci-dessous.",
     allowIndexingTitle:
       "Désactivé par défaut. Activé, votre CV public peut apparaître dans les résultats de recherche (nom, ORCID, publications) et être moissonné par des dépôts ouverts et des agrégateurs via le point d'accès OAI-PMH. Figurer sous votre établissement est une option distincte.",
     listUnderAffiliation: "Me lister sous mon affiliation actuelle pour les dépôts",
@@ -1085,7 +1085,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Standort",
     allowIndexing: "Suchmaschinen-Indexierung dieser Seite erlauben",
     allowIndexingBody:
-      "So finden Kolleginnen, Kollegen und Arbeitgeber Ihre Arbeit bei Google und anderen Suchmaschinen. Empfohlen – jederzeit abschaltbar. Eine indexierbare Seite kann außerdem von offenen Repositorien und Aggregatoren über die OAI-PMH-Schnittstelle von SigmaCV (/api/oai) geerntet werden: der Datensatz Ihres Lebenslaufs und die darin aufgeführten Arbeiten, in Dublin Core. Die Auflistung unter Ihrer Einrichtung ist eine separate Entscheidung weiter unten.",
+      "So finden Kolleginnen, Kollegen und Arbeitgeber Ihre Arbeit bei Google und anderen Suchmaschinen. Empfohlen – jederzeit abschaltbar. Eine indexierbare Seite kann außerdem von offenen Repositorien und Aggregatoren über die OAI-PMH-Schnittstelle von SigmaCV (/api/oai) geerntet werden: der Datensatz Ihres Lebenslaufs und die darin aufgeführten Arbeiten, im Format Dublin Core oder OpenAIRE. Die Auflistung unter Ihrer Einrichtung ist eine separate Entscheidung weiter unten.",
     allowIndexingTitle:
       "Standardmäßig aus. Wenn aktiviert, kann Ihr öffentlicher Lebenslauf in Suchergebnissen erscheinen (Name, ORCID, Publikationen) und von offenen Repositorien und Aggregatoren über die OAI-PMH-Schnittstelle geerntet werden. Die Auflistung unter Ihrer Einrichtung ist eine separate Einwilligung.",
     listUnderAffiliation: "Mich für Repositorien unter meiner aktuellen Einrichtung auflisten",
@@ -1271,7 +1271,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "所在地",
     allowIndexing: "このページの検索エンジンによるインデックスを許可",
     allowIndexingBody:
-      "同僚や採用担当者が Google などの検索エンジンであなたの業績を見つけられるようになります。おすすめです。いつでもオフにできます。インデックス可能なページは、SigmaCV の OAI-PMH エンドポイント（/api/oai）を通じてオープンリポジトリやアグリゲータにも収集（ハーベスト）されることがあります。対象は CV のレコードとそこに掲載された業績（Dublin Core 形式）です。所属機関のセットに掲載するかどうかは、下の別の選択です。",
+      "同僚や採用担当者が Google などの検索エンジンであなたの業績を見つけられるようになります。おすすめです。いつでもオフにできます。インデックス可能なページは、SigmaCV の OAI-PMH エンドポイント（/api/oai）を通じてオープンリポジトリやアグリゲータにも収集（ハーベスト）されることがあります。対象は CV のレコードとそこに掲載された業績（Dublin Core または OpenAIRE 形式）です。所属機関のセットに掲載するかどうかは、下の別の選択です。",
     allowIndexingTitle:
       "初期設定はオフです。オンにすると、公開CVが検索結果に表示される場合があり（氏名・ORCID・論文）、OAI-PMH エンドポイントを通じてオープンリポジトリやアグリゲータに収集されることもあります。所属機関のセットへの掲載は別のオプトインです。",
     listUnderAffiliation: "リポジトリ向けに現在の所属機関のもとに掲載する",
@@ -1458,7 +1458,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Localização",
     allowIndexing: "Permitir que mecanismos de busca indexem esta página",
     allowIndexingBody:
-      "É assim que colegas e recrutadores encontram seu trabalho no Google e em outros buscadores. Recomendado — você pode desativar quando quiser. Uma página indexável também pode ser coletada por repositórios abertos e agregadores pelo ponto de acesso OAI-PMH do SigmaCV (/api/oai): o registro do seu CV e os trabalhos que ele lista, em Dublin Core. Aparecer sob a sua instituição é uma escolha separada, abaixo.",
+      "É assim que colegas e recrutadores encontram seu trabalho no Google e em outros buscadores. Recomendado — você pode desativar quando quiser. Uma página indexável também pode ser coletada por repositórios abertos e agregadores pelo ponto de acesso OAI-PMH do SigmaCV (/api/oai): o registro do seu CV e os trabalhos que ele lista, em formato Dublin Core ou OpenAIRE. Aparecer sob a sua instituição é uma escolha separada, abaixo.",
     allowIndexingTitle:
       "Desativado por padrão. Quando ativado, seu CV público pode aparecer nos resultados de busca (nome, ORCID, publicações) e ser coletado por repositórios abertos e agregadores pelo ponto de acesso OAI-PMH. Aparecer sob a sua instituição é uma opção separada.",
     listUnderAffiliation: "Listar-me sob minha afiliação atual para repositórios",
@@ -1646,7 +1646,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Località",
     allowIndexing: "Consenti l’indicizzazione di questa pagina dai motori di ricerca",
     allowIndexingBody:
-      "È così che colleghi e datori di lavoro trovano il tuo lavoro su Google e altri motori di ricerca. Consigliato: puoi disattivarlo quando vuoi. Una pagina indicizzabile può anche essere raccolta da repository aperti e aggregatori tramite l'endpoint OAI-PMH di SigmaCV (/api/oai): il record del tuo CV e i lavori che elenca, in Dublin Core. Comparire sotto la tua istituzione è una scelta separata, qui sotto.",
+      "È così che colleghi e datori di lavoro trovano il tuo lavoro su Google e altri motori di ricerca. Consigliato: puoi disattivarlo quando vuoi. Una pagina indicizzabile può anche essere raccolta da repository aperti e aggregatori tramite l'endpoint OAI-PMH di SigmaCV (/api/oai): il record del tuo CV e i lavori che elenca, in formato Dublin Core o OpenAIRE. Comparire sotto la tua istituzione è una scelta separata, qui sotto.",
     allowIndexingTitle:
       "Disattivato per impostazione predefinita. Se attivo, il tuo CV pubblico può comparire nei risultati di ricerca (nome, ORCID, pubblicazioni) ed essere raccolto da repository aperti e aggregatori tramite l'endpoint OAI-PMH. Comparire sotto la tua istituzione è un'opzione separata.",
     listUnderAffiliation: "Elencami sotto la mia affiliazione attuale per i repository",
@@ -1831,7 +1831,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "위치",
     allowIndexing: "검색 엔진이 이 페이지를 색인하도록 허용",
     allowIndexingBody:
-      "동료와 고용주가 Google 등 검색 엔진에서 당신의 연구를 찾는 방법입니다. 권장하며, 언제든지 끌 수 있습니다. 색인 가능한 페이지는 SigmaCV의 OAI-PMH 엔드포인트(/api/oai)를 통해 오픈 리포지터리와 애그리게이터가 수집(하베스트)할 수도 있습니다. 대상은 CV 레코드와 거기에 나열된 연구 성과(Dublin Core 형식)입니다. 소속 기관 아래에 등재할지는 아래의 별도 선택입니다.",
+      "동료와 고용주가 Google 등 검색 엔진에서 당신의 연구를 찾는 방법입니다. 권장하며, 언제든지 끌 수 있습니다. 색인 가능한 페이지는 SigmaCV의 OAI-PMH 엔드포인트(/api/oai)를 통해 오픈 리포지터리와 애그리게이터가 수집(하베스트)할 수도 있습니다. 대상은 CV 레코드와 거기에 나열된 연구 성과(Dublin Core 또는 OpenAIRE 형식)입니다. 소속 기관 아래에 등재할지는 아래의 별도 선택입니다.",
     allowIndexingTitle:
       "기본적으로 꺼져 있습니다. 켜면 공개 CV가 검색 결과에 표시될 수 있고(이름, ORCID, 논문), OAI-PMH 엔드포인트를 통해 오픈 리포지터리와 애그리게이터가 수집할 수도 있습니다. 소속 기관 아래 등재는 별도의 옵트인입니다.",
     listUnderAffiliation: "리포지터리를 위해 현재 소속 기관 아래에 등재",
@@ -2016,7 +2016,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     publicShowLocation: "Местоположение",
     allowIndexing: "Разрешить индексирование этой страницы поисковыми системами",
     allowIndexingBody:
-      "Именно так коллеги и работодатели находят ваши работы в Google и других поисковых системах. Рекомендуется — вы можете отключить это в любой момент. Индексируемую страницу также могут собирать открытые репозитории и агрегаторы через точку доступа OAI-PMH SigmaCV (/api/oai): запись вашего резюме и перечисленные в нём работы в формате Dublin Core. Включение в набор вашей организации — отдельный выбор ниже.",
+      "Именно так коллеги и работодатели находят ваши работы в Google и других поисковых системах. Рекомендуется — вы можете отключить это в любой момент. Индексируемую страницу также могут собирать открытые репозитории и агрегаторы через точку доступа OAI-PMH SigmaCV (/api/oai): запись вашего резюме и перечисленные в нём работы в формате Dublin Core или OpenAIRE. Включение в набор вашей организации — отдельный выбор ниже.",
     allowIndexingTitle:
       "По умолчанию выключено. Если включить, ваше публичное резюме может появляться в результатах поиска (имя, ORCID, публикации) и собираться открытыми репозиториями и агрегаторами через точку доступа OAI-PMH. Включение в набор вашей организации — отдельное согласие.",
     listUnderAffiliation: "Включить меня в набор моей текущей организации для репозиториев",
