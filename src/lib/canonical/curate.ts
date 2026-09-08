@@ -20,6 +20,7 @@ import {
   type SupervisionStatus,
 } from "./schema";
 import { isDefaultSectionTitle, sectionTitle } from "@/lib/i18n";
+import { CANDIDATE_REVIEW_FLAGS } from "./review";
 import { toCslName } from "@/lib/openalex/toCsl";
 import { nameVariants } from "./nameVariants";
 import { normalizeCreditRoles } from "./credit";
@@ -57,16 +58,41 @@ function mapSection(
   };
 }
 
-/** Hide/show an item on the CV (display curation; the work is still the user's). */
+/**
+ * The `reviewedAt` an item carries after a show/hide. Switching a REVIEW
+ * CANDIDATE on (a work built hidden with a `name-matched` / `orcid-doi` flag)
+ * is the owner's adjudication — "this is mine, show it" — so it stamps the
+ * review exactly as pressing the row's Confirm button would; every other
+ * show/hide leaves the field alone (hiding is not a verdict on attribution).
+ * Shared by the single-item and bulk paths so they cannot drift.
+ */
+export function reviewedAtAfterInclude(
+  item: Pick<CvItem, "included" | "notMine" | "reviewedAt" | "meta">,
+  included: boolean,
+  now: string,
+): string | undefined {
+  if (item.reviewedAt) return item.reviewedAt;
+  if (!included || item.notMine) return undefined;
+  return CANDIDATE_REVIEW_FLAGS.has(item.meta.reviewFlag) ? now : undefined;
+}
+
+/** Hide/show an item on the CV (display curation; the work is still the user's).
+ *  Showing a review candidate also confirms it ({@link reviewedAtAfterInclude}). */
 export function setItemIncluded(
   cv: CanonicalCv,
   sectionId: string,
   itemId: string,
   included: boolean,
+  opts: { now?: string } = {},
 ): CanonicalCv {
+  const now = opts.now ?? new Date().toISOString();
   return mapSection(cv, sectionId, (s) => ({
     ...s,
-    items: s.items.map((it) => (it.id === itemId ? { ...it, included } : it)),
+    items: s.items.map((it) =>
+      it.id === itemId
+        ? { ...it, included, reviewedAt: reviewedAtAfterInclude(it, included, now) }
+        : it,
+    ),
   }));
 }
 

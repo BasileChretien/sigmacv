@@ -65,6 +65,25 @@ describe("itemReviewState", () => {
     expect(itemReviewState(item({ notMine: true }))).toBe("rejected");
   });
 
+  it("treats a review candidate the owner switched ON as confirmed (showing it is the verdict)", () => {
+    for (const reviewFlag of ["orcid-doi", "name-matched"] as const) {
+      const shown = item({ included: true, meta: { reviewFlag } });
+      expect(itemReviewState(shown)).toBe("confirmed");
+      // Still hidden → still waiting; rejected → rejected regardless.
+      expect(itemReviewState(item({ included: false, meta: { reviewFlag } }))).toBe("unreviewed");
+      expect(itemReviewState(item({ included: true, notMine: true, meta: { reviewFlag } }))).toBe(
+        "rejected",
+      );
+    }
+    // Other flags are NOT candidates: showing them says nothing about attribution.
+    expect(
+      itemReviewState(item({ included: true, meta: { reviewFlag: "likely-misattributed" } })),
+    ).toBe("unreviewed");
+    expect(itemReviewState(item({ included: true, meta: { reviewFlag: "duplicate" } }))).toBe(
+      "unreviewed",
+    );
+  });
+
   it("gives notMine precedence, so confirmed+notMine cannot be represented", () => {
     // The contradictory pair is storable but never readable as "confirmed" —
     // this is the invariant that lets us keep a single timestamp field.
@@ -148,8 +167,9 @@ describe("reviewCoverage", () => {
       cv([
         item({ id: "W1", reviewedAt: NOW, meta: flag }),
         item({ id: "W2", notMine: true, meta: flag }),
-        item({ id: "W3", meta: flag }),
-        item({ id: "W4", meta: flag }),
+        // Candidates are built hidden; these two are still waiting for a decision.
+        item({ id: "W3", included: false, meta: flag }),
+        item({ id: "W4", included: false, meta: flag }),
         // A sound work: invisible to the denominator entirely.
         item({ id: "W5", meta: { matchBasis: "orcid" } }),
       ]),
@@ -186,7 +206,7 @@ describe("unreviewedItems", () => {
     const out = unreviewedItems(
       cv([
         item({ id: "W1", reviewedAt: NOW, meta: flag }),
-        item({ id: "W2", meta: flag }),
+        item({ id: "W2", included: false, meta: flag }),
         item({ id: "W3", notMine: true, meta: flag }),
         // Unreviewed, but user-supplied — never a worklist entry.
         item({ id: "M1", source: "manual", meta: flag }),
@@ -200,7 +220,7 @@ describe("unreviewedItems", () => {
 
   it("respects the bound so a huge profile cannot build an unbounded list", () => {
     const many = Array.from({ length: 50 }, (_, i) =>
-      item({ id: `W${i}`, meta: { reviewFlag: "name-matched" } }),
+      item({ id: `W${i}`, included: false, meta: { reviewFlag: "name-matched" } }),
     );
     expect(unreviewedItems(cv(many), 10)).toHaveLength(10);
   });
@@ -263,10 +283,11 @@ describe("review state does not leak, and bulk keeps parity", () => {
     // user actually takes. If bulk skipped the stamp, they would adjudicate 30
     // works and watch review progress stay at zero.
     const flag = { reviewFlag: "name-matched" } as const;
+    // Candidates are built hidden (a shown candidate already counts as confirmed).
     const before = cv([
-      item({ id: "W1", meta: flag }),
-      item({ id: "W2", meta: flag }),
-      item({ id: "W3", meta: flag }),
+      item({ id: "W1", included: false, meta: flag }),
+      item({ id: "W2", included: false, meta: flag }),
+      item({ id: "W3", included: false, meta: flag }),
     ]);
     const after = setItemsNotMine(before, "publications", ["W1", "W2"], true, {
       reason: "different-person",
@@ -347,7 +368,10 @@ describe("retraction only adjudicates items that were actually asserted", () => 
     // Flagged, so these sit in the review denominator — otherwise the coverage
     // assertion below would hold trivially under the buggy implementation too.
     const flag = { reviewFlag: "name-matched" } as const;
-    const before = cv([item({ ...NEVER, meta: flag }), item({ id: "W2", meta: flag })]);
+    const before = cv([
+      item({ ...NEVER, included: false, meta: flag }),
+      item({ id: "W2", included: false, meta: flag }),
+    ]);
     const after = setItemsNotMine(before, "publications", ["W1", "W2"], false, { now: NOW });
     for (const it of after.sections[0]!.items) {
       expect(it.reviewedAt).toBeUndefined();

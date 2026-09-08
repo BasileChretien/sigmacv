@@ -37,7 +37,7 @@ import {
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { localePrivacyPath } from "@/lib/seo";
-import { needsReview } from "@/lib/canonical/review";
+import { itemReviewState, needsReview } from "@/lib/canonical/review";
 
 /** Parse a year-field value to an integer, or undefined when blank/non-numeric. */
 function parseYear(v: string): number | undefined {
@@ -545,6 +545,8 @@ export default function ItemRow({
   // Flatten any kept inline tags (<i>/<sub>/…) — these read the raw CSL title,
   // which only citeproc renders; here a tag would show as literal text.
   const title = stripInlineMarkup(item.csl?.title ?? itemDisplayText(item) ?? u.itemUntitled);
+  // Derived: an explicit Confirm OR a review candidate the owner switched on.
+  const reviewConfirmed = itemReviewState(item) === "confirmed";
   // Institution name (ROR-localized) shown as read-only context beside the
   // editable role, so "Add your title…" has something to attach to.
   const institution = displayInstitution(item, locale);
@@ -1151,13 +1153,13 @@ export default function ItemRow({
           {onToggleReviewed && needsReview(item) && !item.notMine ? (
             <button
               type="button"
-              className={`mine-btn is-review${item.reviewedAt ? " is-on" : ""}`}
+              className={`mine-btn is-review${reviewConfirmed ? " is-on" : ""}`}
               onClick={onToggleReviewed}
-              aria-pressed={Boolean(item.reviewedAt)}
-              aria-label={`${item.reviewedAt ? wu.reviewConfirmed : wu.reviewConfirm}: ${title}`}
+              aria-pressed={reviewConfirmed}
+              aria-label={`${reviewConfirmed ? wu.reviewConfirmed : wu.reviewConfirm}: ${title}`}
               title={wu.reviewConfirmHint}
             >
-              {item.reviewedAt ? `✓ ${wu.reviewConfirmed}` : wu.reviewConfirm}
+              {reviewConfirmed ? `✓ ${wu.reviewConfirmed}` : wu.reviewConfirm}
             </button>
           ) : null}
           {isCitation && onToggleFeatured ? (

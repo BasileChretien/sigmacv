@@ -164,6 +164,45 @@ describe("curation is immutable", () => {
 });
 
 describe("setItemIncluded", () => {
+  it("showing a review candidate stamps reviewedAt (the owner's adjudication); other show/hide does not", () => {
+    const cv = makeCv();
+    const id = cv.sections[0]!.items[0]!.id;
+    const now = "2026-09-08T00:00:00.000Z";
+    // A plain, sound work: hide then show → never stamped.
+    const hidden = setItemIncluded(cv, SECTION, id, false, { now });
+    const shown = setItemIncluded(hidden, SECTION, id, true, { now });
+    expect(shown.sections[0]!.items.find((i) => i.id === id)!.reviewedAt).toBeUndefined();
+    // A hidden review candidate switched on → stamped once, kept on later toggles.
+    const candidate = {
+      ...cv,
+      sections: cv.sections.map((s, i) =>
+        i !== 0
+          ? s
+          : {
+              ...s,
+              items: s.items.map((it) =>
+                it.id === id
+                  ? {
+                      ...it,
+                      included: false,
+                      meta: { ...it.meta, reviewFlag: "orcid-doi" as const },
+                    }
+                  : it,
+              ),
+            },
+      ),
+    };
+    const kept = setItemIncluded(candidate, SECTION, id, true, { now });
+    expect(kept.sections[0]!.items.find((i) => i.id === id)!.reviewedAt).toBe(now);
+    const rehidden = setItemIncluded(kept, SECTION, id, false, { now: "2026-10-01T00:00:00.000Z" });
+    expect(rehidden.sections[0]!.items.find((i) => i.id === id)!.reviewedAt).toBe(now);
+    // Hiding a candidate that was never shown stamps nothing (hiding is not a verdict).
+    const stillHidden = setItemIncluded(candidate, SECTION, id, false, { now });
+    expect(stillHidden.sections[0]!.items.find((i) => i.id === id)!.reviewedAt).toBeUndefined();
+    // Immutability: the input is untouched.
+    expect(candidate.sections[0]!.items.find((i) => i.id === id)!.reviewedAt).toBeUndefined();
+  });
+
   it("hides without deleting (item remains in the section)", () => {
     const cv = makeCv();
     const id = cv.sections[0]!.items[0]!.id;

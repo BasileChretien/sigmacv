@@ -179,8 +179,8 @@ describe("provenanceLedger", () => {
         // Sound, identifier-matched, never flagged → NOT in the population: the
         // editor never asked for it, so "unconfirmed" would be a false reproach.
         work("r2"),
-        // Flagged and not yet looked at → in the population, not counted.
-        work("f", { meta: { matchBasis: "orcid", reviewFlag: "orcid-doi" } }),
+        // Flagged (misattribution heuristic) and not yet looked at → in the population, not counted.
+        work("f", { meta: { matchBasis: "orcid", reviewFlag: "likely-misattributed" } }),
         // Owner-entered / claimed works are never "reviewed" in this sense.
         work("man", { source: "manual", sourceId: "m", reviewedAt: "2026-06-01T00:00:00.000Z" }),
         work("cl", { meta: { claimed: true }, reviewedAt: "2026-06-01T00:00:00.000Z" }),
@@ -260,7 +260,7 @@ describe("ledgerLines / provenanceLedgerHtml", () => {
     const flagged = cvWith([
       section("publications", [
         work("a", { meta: { doi: "10.1/a", matchBasis: "orcid" } }),
-        work("f", { meta: { matchBasis: "orcid", reviewFlag: "orcid-doi" } }),
+        work("f", { meta: { matchBasis: "orcid", reviewFlag: "likely-misattributed" } }),
       ]),
     ]);
     const fl = Object.fromEntries(

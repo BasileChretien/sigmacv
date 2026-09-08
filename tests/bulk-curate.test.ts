@@ -114,6 +114,20 @@ describe("filterSectionItems", () => {
   });
 });
 
+describe("setItemsIncluded — showing review candidates confirms them", () => {
+  it("stamps reviewedAt only on the candidates being switched on", () => {
+    const now = "2026-09-08T00:00:00.000Z";
+    const cv = makeCv([
+      makeItem({ id: "W1", included: false, meta: { reviewFlag: "orcid-doi" } }),
+      makeItem({ id: "W2" }),
+    ]);
+    const next = setItemsIncluded(cv, "publications", ["W1", "W2"], true, { now });
+    const pubs = next.sections.find((s) => s.id === "publications")!;
+    expect(pubs.items.find((i) => i.id === "W1")!.reviewedAt).toBe(now);
+    expect(pubs.items.find((i) => i.id === "W2")!.reviewedAt).toBeUndefined();
+  });
+});
+
 describe("setItemsIncluded / setItemsNotMine", () => {
   it("hides exactly the listed ids in the target section, immutably", () => {
     const cv = makeCv([makeItem({ id: "W1" }), makeItem({ id: "W2" }), makeItem({ id: "W3" })]);

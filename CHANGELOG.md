@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Showing a review candidate now counts as confirming it.** Works that arrive hidden with a review flag (ORCID-listed works OpenAlex did not attribute, name+organisation registry matches) were only ever confirmable through the row's Confirm button, which nothing pointed to; an owner who switched such a work on was still counted as "not confirmed" by the ledger and the review coverage. Switching a candidate on is now the adjudication: it stamps the review (single and bulk show), the row button shows "Confirmed", and documents curated before this change derive the same state, so no re-click is needed.
 - **Provenance ledger: the "confirmed by the owner" line no longer counts every publication.** It read "0 of 107" on a CV whose 107 works were identifier-matched and never flagged — a false reproach, since the editor deliberately never asks a researcher to re-confirm sound work. The line now counts the works that needed a look (review flag or misattribution verdict) plus any the owner confirmed anyway, is labelled accordingly in ten locales, and is omitted when nothing was flagged.
 - **Versions panel:** the hint under "Freeze as: Reader view" reused the living-page opt-in's wording ("adds a small Reader view link to your living page"), which is not what a freeze does; it now has its own inventory sentence.
 
