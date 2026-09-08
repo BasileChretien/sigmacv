@@ -72,7 +72,14 @@ function projectPublicContact(cv: CanonicalCv): CanonicalCv["owner"]["contact"] 
  *    share must not be derivable from the machine downloads;
  *  - meta.coauthorOrcids: the raw co-author ORCID list, an internal JSON-LD
  *    resolution input (the public page surfaces only the resolved `knows`
- *    links, never this identifier set).
+ *    links, never this identifier set);
+ *  - meta.funders: the per-work funder ids from OpenAlex `awards[]`. Source
+ *    data about the work, arguably public — but it is stored for a LATER
+ *    funder join, and until that join decides what is shown nothing that could
+ *    read as a funder-compliance signal may leave the owner's document (panel
+ *    veto: no compliance verdicts on any public surface). Stripping it here
+ *    keeps it out of the page, the machine downloads, the OAI feed and every
+ *    frozen snapshot at once.
  * The other meta fields (authorRole, peerReviewed, institution, …) ARE used by
  * the renderers, so the strip is surgical rather than dropping `meta`.
  *
@@ -101,6 +108,7 @@ export function stripInternalItemSignals(it: CvItem, hideSuperviseeName = false)
       refCount: undefined,
       selfRefs: undefined,
       coauthorOrcids: undefined,
+      funders: undefined,
       ...(hideSuperviseeName ? { superviseeName: undefined } : {}),
     },
   };
@@ -204,12 +212,20 @@ export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
     // needs it, and this whole object is sent to the anonymous browser, so it must
     // not ship (the public projection drops it for the same reason). The
     // reference / self-reference counts go with it: they feed an owner-only
-    // figure (`cv/selfReference.ts`) that an anonymous viewer must not see.
+    // figure (`cv/selfReference.ts`) that an anonymous viewer must not see. The
+    // per-work funder ids too: nothing in the preview editor reads them, and
+    // they stay owner-only until the funder join decides what is shown.
     sections: cv.sections.map((s) => ({
       ...s,
       items: s.items.map((it) => ({
         ...it,
-        meta: { ...it.meta, coauthorOrcids: undefined, refCount: undefined, selfRefs: undefined },
+        meta: {
+          ...it.meta,
+          coauthorOrcids: undefined,
+          refCount: undefined,
+          selfRefs: undefined,
+          funders: undefined,
+        },
       })),
     })),
     // Owner-only scratchpad + saved editor layouts: never for a non-owner viewer.

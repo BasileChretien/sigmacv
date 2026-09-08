@@ -1000,7 +1000,11 @@ export function indexFundersByAward(
       const award = a.funder_award_id?.trim().toLowerCase();
       if (!award || out.has(award)) continue;
       out.set(award, {
-        funderId: a.funder_id ?? undefined,
+        // Canonical OpenAlex URL form (OpenAlex returns the URL, but the bare
+        // "F…" form appears in filters and older payloads) — the same
+        // normalisation `meta.funders` uses, so a grant that borrows this id
+        // and the works' own funder ids agree byte-for-byte.
+        funderId: normalizeOpenAlexFunderId(a.funder_id),
         funderName: a.funder_display_name ?? undefined,
       });
     }
@@ -1910,6 +1914,70 @@ function workCountries(work: OpenAlexWork): string[] | undefined {
   return seen.size > 0 ? [...seen] : undefined;
 }
 
+const MAX_WORK_FUNDERS = 20;
+const MAX_FUNDER_NAME = 1000;
+const MAX_FUNDER_AWARD = 500;
+
+/**
+ * Canonical URL form of an OpenAlex funder id ("https://openalex.org/F4320332161")
+ * from either the URL form OpenAlex returns or a bare "F…" id; undefined for
+ * anything else (a FundRef DOI, an empty string) — an identifier is never
+ * invented from a shape we don't recognise.
+ */
+function normalizeOpenAlexFunderId(raw: string | null | undefined): string | undefined {
+  const short = shortId(raw);
+  const m = /^F(\d+)$/i.exec(short);
+  return m ? `https://openalex.org/F${m[1]}` : undefined;
+}
+
+type WorkFunder = NonNullable<CvItem["meta"]["funders"]>[number];
+
+/** Locale-independent (code-unit) string order — deterministic on every host. */
+function compareCodeUnits(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
+ * Stable order for a work's funders: by funder id, then by award number
+ * (case-folded; an award-less entry sorts first). Applied BEFORE the cap so
+ * the surviving 20 are the same set on every sync regardless of the order
+ * OpenAlex happens to list `awards[]` in.
+ */
+function compareWorkFunders(a: WorkFunder, b: WorkFunder): number {
+  return (
+    compareCodeUnits(a.id, b.id) ||
+    compareCodeUnits(a.awardId?.toLowerCase() ?? "", b.awardId?.toLowerCase() ?? "")
+  );
+}
+
+/**
+ * The funders acknowledged on the work (`meta.funders`): OpenAlex `awards[]`
+ * reduced to funder id (canonical URL form) + display name + award number,
+ * deduped by funder id + award number (case-insensitive — so two awards from
+ * the same funder both survive, an exact repeat collapses), sorted by
+ * (id, awardId) and only THEN bounded at {@link MAX_WORK_FUNDERS} (so the
+ * survivors are deterministic across syncs); undefined when the work carries
+ * no keyable award. Pure source data for the work OpenAlex returned — see the
+ * schema doc for why it is stored, what a carried work keeps, and why every
+ * public surface strips it.
+ */
+function workFunders(work: OpenAlexWork): CvItem["meta"]["funders"] {
+  const seen = new Set<string>();
+  const out: WorkFunder[] = [];
+  for (const a of work.awards ?? []) {
+    const id = normalizeOpenAlexFunderId(a.funder_id);
+    if (!id) continue;
+    const name = a.funder_display_name?.trim().slice(0, MAX_FUNDER_NAME) || undefined;
+    const awardId = a.funder_award_id?.trim().slice(0, MAX_FUNDER_AWARD) || undefined;
+    const key = `${id}|${awardId?.toLowerCase() ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ id, ...(name ? { name } : {}), ...(awardId ? { awardId } : {}) });
+  }
+  if (out.length === 0) return undefined;
+  return [...out].sort(compareWorkFunders).slice(0, MAX_WORK_FUNDERS);
+}
+
 /**
  * Reference counts for the work: how many works it cites (`referenced_works`
  * length) and how many of those are the owner's OWN works in this sync. Raw
@@ -2004,6 +2072,13 @@ function buildWorkCvItem(
       // or displayed here): authorship countries + reference / self-reference counts.
       countries: workCountries(work),
       ...workReferences(work, ownWorkIds),
+      // Funders acknowledged on the work (OpenAlex `awards[]`), stored per work for
+      // a later funder join. Source-driven for a work OpenAlex returned: rebuilt
+      // from `work` here, not from `prev` (a dropped award disappears). A work
+      // the sync CARRIES instead (manual / DOI-claimed / orcid-doi candidates,
+      // `carryOverUserItems`) never reaches this function and keeps its previous
+      // `meta.funders` verbatim.
+      funders: workFunders(work),
       oaStatus:
         work.open_access?.is_oa && work.open_access.oa_status
           ? work.open_access.oa_status
