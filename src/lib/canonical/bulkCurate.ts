@@ -6,7 +6,7 @@ import {
   type CvSection,
   type NotMineReason,
 } from "./schema";
-import { reviewedAtAfterNotMine, withExcludedItems } from "./curate";
+import { reviewedAtAfterInclude, reviewedAtAfterNotMine, withExcludedItems } from "./curate";
 
 /**
  * Bulk curation: pure, immutable operations over MANY items of one section at
@@ -82,10 +82,16 @@ export function setItemsIncluded(
   sectionId: string,
   itemIds: readonly string[],
   included: boolean,
+  opts: { now?: string } = {},
 ): CanonicalCv {
   const ids = new Set(itemIds);
   if (ids.size === 0) return cv;
-  return mapSectionItems(cv, sectionId, (it) => (ids.has(it.id) ? { ...it, included } : it));
+  const now = opts.now ?? new Date().toISOString();
+  return mapSectionItems(cv, sectionId, (it) =>
+    ids.has(it.id)
+      ? { ...it, included, reviewedAt: reviewedAtAfterInclude(it, included, now) }
+      : it,
+  );
 }
 
 /**

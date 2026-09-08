@@ -33,15 +33,39 @@ import type { CanonicalCv, CvItem } from "./schema";
  * The three-valued adjudication state of an item, DERIVED so that a contradictory
  * state is unrepresentable:
  *  - "rejected"   — the user asserted `notMine` (takes precedence over everything);
- *  - "confirmed"  — the user looked at it and kept it (`reviewedAt` stamped);
+ *  - "confirmed"  — the user looked at it and kept it: `reviewedAt` stamped, OR a
+ *                   review CANDIDATE the user switched on (see
+ *                   {@link isShownReviewCandidate});
  *  - "unreviewed" — never adjudicated. The default for every item ever synced.
  */
 export type ItemReviewState = "unreviewed" | "confirmed" | "rejected";
 
+/** The review flags of works that are built HIDDEN and wait for the owner:
+ *  name+org registry matches and ORCID-listed works OpenAlex did not attribute. */
+export const CANDIDATE_REVIEW_FLAGS: ReadonlySet<CvItem["meta"]["reviewFlag"]> = new Set([
+  "name-matched",
+  "orcid-doi",
+]);
+
+/**
+ * A review candidate (built hidden by default) that the owner has switched ON.
+ * Showing such a work on the CV is the adjudication itself — "this is mine, show
+ * it" — so it counts as confirmed even when the row's Confirm button was never
+ * pressed (the button is the only other place the flag surfaces, and owners who
+ * ticked "show" reasonably never saw a further question). `setItemIncluded` /
+ * `setItemsIncluded` also stamp `reviewedAt` on the way in, so new decisions
+ * carry an explicit record; this derivation covers every document curated
+ * before they did.
+ */
+function isShownReviewCandidate(item: CvItem): boolean {
+  return CANDIDATE_REVIEW_FLAGS.has(item.meta.reviewFlag) && item.included && !item.notMine;
+}
+
 /** Derive an item's adjudication state. `notMine` always wins. */
 export function itemReviewState(item: CvItem): ItemReviewState {
   if (item.notMine) return "rejected";
-  return item.reviewedAt ? "confirmed" : "unreviewed";
+  if (item.reviewedAt) return "confirmed";
+  return isShownReviewCandidate(item) ? "confirmed" : "unreviewed";
 }
 
 /**
