@@ -320,20 +320,25 @@ export function policyFinderUrl(journalName: string | undefined): string | undef
 // ── Panel gate ───────────────────────────────────────────────────────────────
 
 /** Whether the panel has anything to show: a position without a ROR, a work in
- *  either affiliation bucket, a countable work with no open copy found, or a
- *  work joined to one of the owner's own grants (`funders/join.ts`). The
- *  open / not-determined works alone are not a worklist, and neither is the
- *  count of works the list does not check. */
+ *  either affiliation bucket, a countable work with no open copy found, a
+ *  work joined to one of the owner's own grants (`funders/join.ts`), or a
+ *  ROR-linked current affiliation the CV is not yet listed under (the
+ *  "Institution listing" status line — an open choice to put forward, never a
+ *  gap; `cv/institutionPrompt.ts` decides it). The open / not-determined works
+ *  alone are not a worklist, and neither is the count of works the list does
+ *  not check. */
 export function hasWorklistContent(
   gaps: Pick<AffiliationGaps, "positionsWithoutRor" | "missing" | "noAffiliationData">,
   oa: Pick<OpenAccessStates, "counts">,
   joinedFunding = 0,
+  unlistedAffiliation = false,
 ): boolean {
   return (
     gaps.positionsWithoutRor.length > 0 ||
     gaps.missing.length > 0 ||
     gaps.noAffiliationData.length > 0 ||
     oa.counts["no-open-copy-found"] > 0 ||
-    joinedFunding > 0
+    joinedFunding > 0 ||
+    unlistedAffiliation
   );
 }

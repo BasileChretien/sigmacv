@@ -18,6 +18,7 @@ import ProfilePanel from "./ProfilePanel";
 import SectionsList, { type SectionsListHandle } from "./SectionsList";
 import StyleControls from "./StyleControls";
 import WorklistPanel from "./WorklistPanel";
+import type { InstitutionListing } from "./InstitutionListingRow";
 import type { FunderRow } from "@/lib/funders/join";
 
 /** The three task clusters of the subdivided ("regions") editor layout. */
@@ -56,6 +57,9 @@ interface CvEditorProps {
    *  works (owner-only, loaded by the page) — what the worklist joins the
    *  owner's grants through. Default: none (award-number matches only). */
   funderCrosswalk?: readonly FunderRow[];
+  /** The publish state + setter for the worklist's "Institution listing"
+   *  status line (owner-only; ignored when `anonymous`). */
+  institutionListing?: InstitutionListing;
 }
 
 /** Imperative surface CvWorkspace uses to drive the sync banner's "jump to item". */
@@ -77,6 +81,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     anonymous = false,
     consentedRorIds = NO_CONSENTED_ROR_IDS,
     funderCrosswalk = NO_FUNDER_CROSSWALK,
+    institutionListing,
   },
   ref,
 ) {
@@ -154,6 +159,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       consentedRorIds={consentedRorIds}
       funderCrosswalk={funderCrosswalk}
       onJump={jumpToItem}
+      listing={institutionListing}
     />
   );
   const sectionsList = (

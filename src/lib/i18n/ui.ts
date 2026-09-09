@@ -154,6 +154,9 @@ export interface UiStrings {
   /** A lapsed (kept) id, rendered with its own Remove control. */
   institutionPageLapsedKept: string;
   institutionPageRemove: string;
+  /** Sub-heading over the three institution boxes in the publish menu (the
+   *  `#publish-institution` anchor the prompt's Change link opens). */
+  publishInstitutionSection: string;
   /** The SECOND institution opt-in: share per-work reconciliation rows from a
    *  designated frozen version in the public export under `/i/<ror>/reconciliation`.
    *  Offered only while `showOnInstitutionPage` is on. */
@@ -389,6 +392,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     institutionPageArmedHint: "Nothing is listed yet — tick at least one institution below.",
     institutionPageLapsedKept: "Kept from a former affiliation: ROR {rorId}",
     institutionPageRemove: "Remove",
+    publishInstitutionSection: "Your institution",
     shareReconciliationRows: "Share my reconciliation rows with my institution",
     shareReconciliationRowsTitle:
       "Off by default. When on, a public CSV/JSON export under /i/<ROR id>/reconciliation lists your works from the frozen version you designate, with their open-access state. Requires the institution-page listing above. Withdraw at any time.",
@@ -592,6 +596,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     institutionPageArmedHint: "尚未列入——请在下方至少勾选一个机构。",
     institutionPageLapsedKept: "保留自先前所属机构：ROR {rorId}",
     institutionPageRemove: "移除",
+    publishInstitutionSection: "你的机构",
     shareReconciliationRows: "与我所属机构共享我的核对行",
     shareReconciliationRowsTitle:
       "默认关闭。开启后，/i/<ROR id>/reconciliation 下的公开 CSV/JSON 导出会列出您指定的冻结版本中的成果及其开放获取状态。需要先开启上方的机构页面显示。可随时撤回。",
@@ -801,6 +806,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     institutionPageArmedHint: "Aún no apareces en ninguna: marca al menos una institución abajo.",
     institutionPageLapsedKept: "Conservado de una afiliación anterior: ROR {rorId}",
     institutionPageRemove: "Quitar",
+    publishInstitutionSection: "Tu institución",
     shareReconciliationRows: "Compartir mis filas de conciliación con mi institución",
     shareReconciliationRowsTitle:
       "Desactivado por defecto. Al activarlo, una exportación pública CSV/JSON en /i/<ROR id>/reconciliation lista sus trabajos a partir de la versión congelada que designe, con su estado de acceso abierto. Requiere la inclusión en la página de la institución de arriba. Puede retirarlo en cualquier momento.",
@@ -1012,6 +1018,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Vous ne figurez encore nulle part : cochez au moins un établissement ci-dessous.",
     institutionPageLapsedKept: "Conservé d'une affiliation antérieure : ROR {rorId}",
     institutionPageRemove: "Retirer",
+    publishInstitutionSection: "Votre établissement",
     shareReconciliationRows: "Partager mes lignes de rapprochement avec mon établissement",
     shareReconciliationRowsTitle:
       "Désactivé par défaut. Une fois activé, un export public CSV/JSON sous /i/<ROR id>/reconciliation liste vos travaux à partir de la version figée que vous désignez, avec leur état d'accès ouvert. Nécessite l'affichage sur la page de l'établissement ci-dessus. Retrait possible à tout moment.",
@@ -1224,6 +1231,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Noch nirgends aufgelistet – kreuzen Sie unten mindestens eine Einrichtung an.",
     institutionPageLapsedKept: "Aus einer früheren Zugehörigkeit behalten: ROR {rorId}",
     institutionPageRemove: "Entfernen",
+    publishInstitutionSection: "Ihre Einrichtung",
     shareReconciliationRows: "Meine Abgleichszeilen mit meiner Einrichtung teilen",
     shareReconciliationRowsTitle:
       "Standardmäßig aus. Wenn aktiviert, listet ein öffentlicher CSV/JSON-Export unter /i/<ROR id>/reconciliation Ihre Arbeiten aus der von Ihnen bestimmten eingefrorenen Version mit ihrem Open-Access-Status. Setzt die Anzeige auf der Einrichtungsseite oben voraus. Jederzeit widerrufbar.",
@@ -1433,6 +1441,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "まだどこにも掲載されていません。下で少なくとも 1 つの機関をチェックしてください。",
     institutionPageLapsedKept: "以前の所属から残した掲載：ROR {rorId}",
     institutionPageRemove: "削除",
+    publishInstitutionSection: "所属機関",
     shareReconciliationRows: "照合用の行を所属機関と共有する",
     shareReconciliationRowsTitle:
       "既定ではオフです。オンにすると、/i/<ROR id>/reconciliation にある公開の CSV/JSON エクスポートに、指定した凍結版の業績とそのオープンアクセス状態が掲載されます。上の機関ページへの表示が必要です。いつでも撤回できます。",
@@ -1643,6 +1652,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Ainda não aparece em nenhuma: marque pelo menos uma instituição abaixo.",
     institutionPageLapsedKept: "Mantido de uma afiliação anterior: ROR {rorId}",
     institutionPageRemove: "Remover",
+    publishInstitutionSection: "Sua instituição",
     shareReconciliationRows: "Compartilhar minhas linhas de conciliação com minha instituição",
     shareReconciliationRowsTitle:
       "Desativado por padrão. Quando ativado, uma exportação pública CSV/JSON em /i/<ROR id>/reconciliation lista seus trabalhos a partir da versão congelada que você designar, com o estado de acesso aberto. Requer a listagem na página da instituição acima. Retire quando quiser.",
@@ -1854,6 +1864,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Non compari ancora da nessuna parte: spunta almeno un'istituzione qui sotto.",
     institutionPageLapsedKept: "Conservato da un'affiliazione precedente: ROR {rorId}",
     institutionPageRemove: "Rimuovi",
+    publishInstitutionSection: "La tua istituzione",
     shareReconciliationRows: "Condividi le mie righe di riconciliazione con la mia istituzione",
     shareReconciliationRowsTitle:
       "Disattivato per impostazione predefinita. Se attivo, un'esportazione pubblica CSV/JSON in /i/<ROR id>/reconciliation elenca i tuoi lavori dalla versione congelata che designi, con il loro stato di accesso aperto. Richiede l'inserimento nella pagina dell'istituzione qui sopra. Revocabile in qualsiasi momento.",
@@ -2062,6 +2073,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "아직 어디에도 등재되지 않았습니다. 아래에서 기관을 하나 이상 선택하세요.",
     institutionPageLapsedKept: "이전 소속에서 유지한 등재: ROR {rorId}",
     institutionPageRemove: "제거",
+    publishInstitutionSection: "소속 기관",
     shareReconciliationRows: "내 대조 행을 소속 기관과 공유",
     shareReconciliationRowsTitle:
       "기본값은 꺼짐입니다. 켜면 /i/<ROR id>/reconciliation의 공개 CSV/JSON 내보내기에 지정한 고정 버전의 연구 성과와 오픈 액세스 상태가 포함됩니다. 위의 기관 페이지 표시가 필요합니다. 언제든지 철회할 수 있습니다.",
@@ -2269,6 +2281,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     institutionPageArmedHint: "Пока нигде не размещено — отметьте ниже хотя бы одну организацию.",
     institutionPageLapsedKept: "Сохранено от прежней аффилиации: ROR {rorId}",
     institutionPageRemove: "Удалить",
+    publishInstitutionSection: "Ваша организация",
     shareReconciliationRows: "Делиться моими строками сверки с моей организацией",
     shareReconciliationRowsTitle:
       "По умолчанию выключено. Если включено, публичный экспорт CSV/JSON по адресу /i/<ROR id>/reconciliation содержит ваши работы из назначенной вами замороженной версии с их статусом открытого доступа. Требует размещения на странице организации выше. Можно отозвать в любой момент.",

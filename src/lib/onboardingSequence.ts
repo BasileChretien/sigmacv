@@ -14,15 +14,26 @@
  * dismissed) and asks here which one wins.
  */
 
-export type OnboardingStep = "syncReport" | "coachmark";
+export type OnboardingStep = "syncReport" | "coachmark" | "institution";
 
 /**
  * Priority order, highest first:
  *  1. `syncReport`  — what the latest sync changed (incl. the first-import
  *     summary): the most timely, "here's what just happened" context.
  *  2. `coachmark`   — the one-time hint to check the matches are yours.
+ *  3. `institution` — the one-time "List yourself under {institution}?" ask.
+ *     Last, because it is a choice about a page that is already live: it waits
+ *     for everything about the CV itself. Its `active` flag is also false while
+ *     the research-consent prompt or a freeze-request banner is on screen —
+ *     those two are answered on their own terms and are NOT steps here (making
+ *     them steps would hold the sync banner back for a whole session), so the
+ *     editor folds them into this step's condition instead.
  */
-export const ONBOARDING_PRIORITY: readonly OnboardingStep[] = ["syncReport", "coachmark"];
+export const ONBOARDING_PRIORITY: readonly OnboardingStep[] = [
+  "syncReport",
+  "coachmark",
+  "institution",
+];
 
 /** Each step is "active" when its own condition is met AND it isn't dismissed. */
 export type OnboardingActivity = Record<OnboardingStep, boolean>;

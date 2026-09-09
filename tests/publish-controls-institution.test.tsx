@@ -1,8 +1,15 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import InstitutionListingPrompt from "@/components/InstitutionListingPrompt";
 import PublishControls from "@/components/PublishControls";
 import { NO_INSTITUTION_PAGE, type InstitutionPageState } from "@/lib/cv/institutionConsent";
+import {
+  isPromptDismissed,
+  promptDismissalKey,
+  shouldOfferInstitutionPrompt,
+  type PublishSnapshot,
+} from "@/lib/cv/institutionPrompt";
 import { ui } from "@/lib/i18n/ui";
 
 /**
@@ -73,10 +80,23 @@ function lastBody(): Record<string, unknown> {
   const init = fetchMock.mock.calls.at(-1)![1] as { body: string };
   return JSON.parse(init.body) as Record<string, unknown>;
 }
+/** The publish snapshot the editor tracks for this institution page state. */
+function snapshot(institutionPage: InstitutionPageState): PublishSnapshot {
+  return {
+    published: true,
+    slug: "ada-x7",
+    indexable: true,
+    listUnderAffiliation: false,
+    affiliationRorId: NAGOYA.rorId,
+    institutionPage,
+  };
+}
+const promptCard = () => screen.queryByRole("region", { name: /list yourself under/i });
 
 beforeEach(() => {
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
+  window.localStorage.clear();
 });
 afterEach(() => {
   cleanup();
@@ -413,6 +433,78 @@ describe("PublishControls — show me on my institution's page", () => {
     expect(lastBody()).toMatchObject({ showOnInstitutionPage: false, consentedRorIds: [] });
     expect(toggle().checked).toBe(false);
     expect(toggle().disabled).toBe(true);
+  });
+
+  it("unticking the LAST institution in the picker is a withdrawal: remembered, so the prompt does not re-ask", async () => {
+    const stored = {
+      ...offered(NAGOYA, CAEN),
+      showOnInstitutionPage: true,
+      consentedRorIds: ["04chrp450"],
+    };
+    const setIds = ["04chrp450", "04d9jrx35"];
+    respond({ ...offered(NAGOYA, CAEN), showOnInstitutionPage: false, consentedRorIds: [] });
+    render(<PublishControls {...baseProps} initialInstitutionPage={stored} />);
+    expect(window.localStorage.getItem(promptDismissalKey(setIds))).toBeNull();
+    await act(async () => {
+      fireEvent.click(pick("Nagoya University"));
+    });
+    // The resulting consent is nothing at all — a withdrawal, whatever the path.
+    expect(lastBody()).toMatchObject({ showOnInstitutionPage: false, consentedRorIds: [] });
+    expect(window.localStorage.getItem(promptDismissalKey(setIds))).toBe("1");
+    const withdrawn = snapshot(offered(NAGOYA, CAEN));
+    expect(shouldOfferInstitutionPrompt(withdrawn, isPromptDismissed(setIds))).toBe(false);
+    cleanup();
+    // And the card itself stays away.
+    render(
+      <InstitutionListingPrompt locale="en-US" state={withdrawn} onPublishStateChange={vi.fn()} />,
+    );
+    expect(promptCard()).toBeNull();
+  });
+
+  it("removing the LAST lapsed id is a withdrawal too: remembered for the current set", async () => {
+    const stored = {
+      ...offered(NAGOYA),
+      showOnInstitutionPage: true,
+      consentedRorIds: ["02kpeqv85"],
+      lapsedRorIds: ["02kpeqv85"],
+    };
+    respond({ ...offered(NAGOYA), showOnInstitutionPage: false, consentedRorIds: [] });
+    render(<PublishControls {...baseProps} initialInstitutionPage={stored} />);
+    await act(async () => {
+      fireEvent.click(removeButton("02kpeqv85"));
+    });
+    expect(lastBody()).toMatchObject({ showOnInstitutionPage: false, consentedRorIds: [] });
+    expect(window.localStorage.getItem(promptDismissalKey(["04chrp450"]))).toBe("1");
+    const withdrawn = snapshot(offered(NAGOYA));
+    expect(shouldOfferInstitutionPrompt(withdrawn, isPromptDismissed(["04chrp450"]))).toBe(false);
+    cleanup();
+    render(
+      <InstitutionListingPrompt locale="en-US" state={withdrawn} onPublishStateChange={vi.fn()} />,
+    );
+    expect(promptCard()).toBeNull();
+  });
+
+  it("removing a lapsed id while another id stays consented is not a withdrawal, and is not remembered", async () => {
+    const stored = {
+      ...offered(NAGOYA),
+      showOnInstitutionPage: true,
+      consentedRorIds: ["02kpeqv85", "04chrp450"],
+      lapsedRorIds: ["02kpeqv85"],
+    };
+    respond({
+      ...offered(NAGOYA),
+      showOnInstitutionPage: true,
+      consentedRorIds: ["04chrp450"],
+    });
+    render(<PublishControls {...baseProps} initialInstitutionPage={stored} />);
+    await act(async () => {
+      fireEvent.click(removeButton("02kpeqv85"));
+    });
+    expect(lastBody()).toMatchObject({
+      showOnInstitutionPage: true,
+      consentedRorIds: ["04chrp450"],
+    });
+    expect(window.localStorage.getItem(promptDismissalKey(["04chrp450"]))).toBeNull();
   });
 
   it("turning indexing off does not mention the consent (the server clears it) and mirrors the cleared state", async () => {

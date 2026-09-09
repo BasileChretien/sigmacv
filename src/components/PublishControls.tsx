@@ -7,6 +7,7 @@ import { transparencyStrings } from "@/lib/i18n/transparency";
 import { localeTransparencyPath } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics/track";
 import { NO_INSTITUTION_PAGE, type InstitutionPageState } from "@/lib/cv/institutionConsent";
+import { rememberPromptDismissal } from "@/lib/cv/institutionPrompt";
 
 interface PublicContactFlags {
   email: boolean;
@@ -174,7 +175,14 @@ export default function PublishControls({
     update(next, next ? indexable : false, next ? listUnderAffiliation : false);
   // Indexing off → the affiliation listing goes with it (it requires indexing).
   const setIndexing = (next: boolean) => update(true, next, next ? listUnderAffiliation : false);
-  const setListing = (next: boolean) => update(true, true, next);
+  // An explicit withdrawal of either institution consent is an ANSWER: the
+  // one-time institution prompt must not ask again for this set of current
+  // affiliations (it keys its memory by the same set; see cv/institutionPrompt).
+  const rememberWithdrawal = () => rememberPromptDismissal(institutionPage.visibleCurrentRorIds);
+  const setListing = (next: boolean) => {
+    if (!next) rememberWithdrawal();
+    return update(true, true, next);
+  };
   // The opt-in is offered only while indexing is on AND a current position
   // resolves to a ROR record — otherwise there is no set to list under.
   const listingOffered = indexable && affiliationRorId !== null;
@@ -196,11 +204,18 @@ export default function PublishControls({
   // landed and the host refreshed the publish state (CvWorkspace does so after
   // each save); a tick inside that window is refused (422) and the error line
   // says so — re-open the menu and retry.
-  const setInstitution = (show: boolean, rorIds: string[]) =>
-    update(true, true, listUnderAffiliation, {
-      showOnInstitutionPage: show && rorIds.length > 0,
+  const setInstitution = (show: boolean, rorIds: string[]) => {
+    const on = show && rorIds.length > 0;
+    // A resulting consent of NOTHING is a withdrawal, whichever path got here:
+    // the toggle, unticking the last institution in the picker, or removing the
+    // last lapsed id. Each is an ANSWER — remembered under the same key, or the
+    // one-time prompt asks again on the next render.
+    if (!on) rememberWithdrawal();
+    return update(true, true, listUnderAffiliation, {
+      showOnInstitutionPage: on,
       consentedRorIds: show ? rorIds : [],
     });
+  };
   // With exactly ONE current affiliation the toggle consents to it in one click
   // (the copy names it). With several, ticking the toggle only ARMS the picker
   // (local state, nothing posted) until at least one institution is ticked —
@@ -210,6 +225,7 @@ export default function PublishControls({
   const setInstitutionToggle = (next: boolean) => {
     if (!next) {
       setInstitutionArmed(false);
+      // setInstitution remembers the withdrawal (its result is no consent).
       if (showOnInstitutionPage) void setInstitution(false, []);
       return;
     }
@@ -293,132 +309,146 @@ export default function PublishControls({
             <span>{u.allowIndexing}</span>
           </label>
           <p className="publish-summary muted">{u.allowIndexingBody}</p>
-          {/* A SEPARATE consent from indexing: listing the CV under the owner's
+          {/* "Your institution": the three institution consents, in one titled
+              sub-section (same order, same copy, no behavioural change) so the
+              institution prompt's and the worklist's "Change" links can deep-link
+              here by id (focusable, not in the tab order). */}
+          <div
+            id="publish-institution"
+            className="publish-institution-section"
+            tabIndex={-1}
+            aria-labelledby="publish-institution-heading"
+          >
+            <h3 id="publish-institution-heading" className="publish-subheading">
+              {u.publishInstitutionSection}
+            </h3>
+            {/* A SEPARATE consent from indexing: listing the CV under the owner's
               self-declared current affiliation in the OAI-PMH `ror:<id>` set
               (an institution-keyed harvest the indexing consent never covered).
               Disabled, with the reason, when it cannot apply. */}
-          <label
-            className="field-inline publish-affiliation-toggle"
-            title={u.listUnderAffiliationTitle}
-          >
-            <input
-              type="checkbox"
-              checked={listUnderAffiliation}
-              // Withdrawing must always be possible: a standing opt-in stays
-              // uncheckable-off even when no ROR key currently resolves.
-              disabled={busy || (!listingOffered && !listUnderAffiliation)}
-              onChange={(e) => setListing(e.target.checked)}
-            />
-            <span>{u.listUnderAffiliation}</span>
-          </label>
-          <p className="publish-summary muted">{u.listUnderAffiliationBody}</p>
-          {indexable && affiliationRorId === null ? (
-            <p className="publish-summary muted">{u.listUnderAffiliationNoRor}</p>
-          ) : null}
-          {/* A FOURTH consent: the public institution page. PINNED to the ROR
+            <label
+              className="field-inline publish-affiliation-toggle"
+              title={u.listUnderAffiliationTitle}
+            >
+              <input
+                type="checkbox"
+                checked={listUnderAffiliation}
+                // Withdrawing must always be possible: a standing opt-in stays
+                // uncheckable-off even when no ROR key currently resolves.
+                disabled={busy || (!listingOffered && !listUnderAffiliation)}
+                onChange={(e) => setListing(e.target.checked)}
+              />
+              <span>{u.listUnderAffiliation}</span>
+            </label>
+            <p className="publish-summary muted">{u.listUnderAffiliationBody}</p>
+            {indexable && affiliationRorId === null ? (
+              <p className="publish-summary muted">{u.listUnderAffiliationNoRor}</p>
+            ) : null}
+            {/* A FOURTH consent: the public institution page. PINNED to the ROR
               ids ticked below — the server validates them against the stored
               CV and never moves a consent when the affiliation changes; the
               editor re-asks instead. Withdrawal stays possible in every state. */}
-          <label
-            className="field-inline publish-affiliation-toggle"
-            title={u.showOnInstitutionPageTitle}
-          >
-            <input
-              type="checkbox"
-              checked={institutionOn}
-              disabled={busy || (!institutionOffered && !showOnInstitutionPage)}
-              onChange={(e) => setInstitutionToggle(e.target.checked)}
-            />
-            <span>{u.showOnInstitutionPage}</span>
-          </label>
-          <p className="publish-summary muted">{u.showOnInstitutionPageBody}</p>
-          {!institutionOffered && !showOnInstitutionPage ? (
-            <p className="publish-summary muted">{u.institutionPageUnavailable}</p>
-          ) : null}
-          {/* One affiliation: say which institution a single click consents to. */}
-          {institutionOffered && currentAffiliations.length === 1 && !showOnInstitutionPage ? (
-            <p className="publish-summary muted">
-              {u.institutionPageSingle.replace("{institution}", currentAffiliations[0]!.name)}
-            </p>
-          ) : null}
-          {currentAffiliations.length > 0 && (institutionOffered || showOnInstitutionPage) ? (
-            <fieldset className="publish-institution-picker">
-              <legend>{u.institutionPagePick}</legend>
-              {currentAffiliations.map((a) => (
-                <label key={a.rorId} className="field-inline">
+            <label
+              className="field-inline publish-affiliation-toggle"
+              title={u.showOnInstitutionPageTitle}
+            >
+              <input
+                type="checkbox"
+                checked={institutionOn}
+                disabled={busy || (!institutionOffered && !showOnInstitutionPage)}
+                onChange={(e) => setInstitutionToggle(e.target.checked)}
+              />
+              <span>{u.showOnInstitutionPage}</span>
+            </label>
+            <p className="publish-summary muted">{u.showOnInstitutionPageBody}</p>
+            {!institutionOffered && !showOnInstitutionPage ? (
+              <p className="publish-summary muted">{u.institutionPageUnavailable}</p>
+            ) : null}
+            {/* One affiliation: say which institution a single click consents to. */}
+            {institutionOffered && currentAffiliations.length === 1 && !showOnInstitutionPage ? (
+              <p className="publish-summary muted">
+                {u.institutionPageSingle.replace("{institution}", currentAffiliations[0]!.name)}
+              </p>
+            ) : null}
+            {currentAffiliations.length > 0 && (institutionOffered || showOnInstitutionPage) ? (
+              <fieldset className="publish-institution-picker">
+                <legend>{u.institutionPagePick}</legend>
+                {currentAffiliations.map((a) => (
+                  <label key={a.rorId} className="field-inline">
+                    <input
+                      type="checkbox"
+                      checked={consented.has(a.rorId)}
+                      disabled={busy || !institutionOn}
+                      onChange={(e) => setInstitutionPick(a.rorId, e.target.checked)}
+                    />
+                    <span>
+                      {a.name} <span className="muted">(ROR {a.rorId})</span>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+            ) : null}
+            {institutionArmed && !showOnInstitutionPage ? (
+              <p className="publish-summary consent-reask" role="status">
+                {u.institutionPageArmedHint}
+              </p>
+            ) : null}
+            {showOnInstitutionPage && active.length > 0 ? (
+              <p className="publish-summary">
+                {u.institutionPageListedUnder.replace("{institutions}", names(active))}
+              </p>
+            ) : null}
+            {/* Lapsed ids are ALWAYS shown, each with its own Remove — even while
+              another consent is active — so a kept listing is never invisible. */}
+            {lapsedRorIds.length > 0 ? (
+              <ul className="publish-institution-lapsed">
+                {lapsedRorIds.map((id) => (
+                  <li key={id} className="field-inline">
+                    <span className="muted">
+                      {u.institutionPageLapsedKept.replace("{rorId}", id)}
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      disabled={busy}
+                      aria-label={`${u.institutionPageRemove} — ROR ${id}`}
+                      onClick={() => void removeLapsed(id)}
+                    >
+                      {u.institutionPageRemove}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {showOnInstitutionPage ? (
+              <>
+                <label
+                  className="field-inline publish-affiliation-toggle"
+                  title={u.shareReconciliationRowsTitle}
+                >
                   <input
                     type="checkbox"
-                    checked={consented.has(a.rorId)}
-                    disabled={busy || !institutionOn}
-                    onChange={(e) => setInstitutionPick(a.rorId, e.target.checked)}
-                  />
-                  <span>
-                    {a.name} <span className="muted">(ROR {a.rorId})</span>
-                  </span>
-                </label>
-              ))}
-            </fieldset>
-          ) : null}
-          {institutionArmed && !showOnInstitutionPage ? (
-            <p className="publish-summary consent-reask" role="status">
-              {u.institutionPageArmedHint}
-            </p>
-          ) : null}
-          {showOnInstitutionPage && active.length > 0 ? (
-            <p className="publish-summary">
-              {u.institutionPageListedUnder.replace("{institutions}", names(active))}
-            </p>
-          ) : null}
-          {/* Lapsed ids are ALWAYS shown, each with its own Remove — even while
-              another consent is active — so a kept listing is never invisible. */}
-          {lapsedRorIds.length > 0 ? (
-            <ul className="publish-institution-lapsed">
-              {lapsedRorIds.map((id) => (
-                <li key={id} className="field-inline">
-                  <span className="muted">
-                    {u.institutionPageLapsedKept.replace("{rorId}", id)}
-                  </span>
-                  <button
-                    type="button"
-                    className="btn btn-sm"
+                    checked={shareReconciliationRows}
                     disabled={busy}
-                    aria-label={`${u.institutionPageRemove} — ROR ${id}`}
-                    onClick={() => void removeLapsed(id)}
-                  >
-                    {u.institutionPageRemove}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {showOnInstitutionPage ? (
-            <>
-              <label
-                className="field-inline publish-affiliation-toggle"
-                title={u.shareReconciliationRowsTitle}
-              >
-                <input
-                  type="checkbox"
-                  checked={shareReconciliationRows}
-                  disabled={busy}
-                  onChange={(e) => void setShareRows(e.target.checked)}
-                />
-                <span>{u.shareReconciliationRows}</span>
-              </label>
-              <p className="publish-summary muted">{u.shareReconciliationRowsBody}</p>
-            </>
-          ) : null}
-          {showOnInstitutionPage && lapsedRorIds.length > 0 ? (
-            reask.length > 0 ? (
-              <p className="publish-summary consent-reask" role="status">
-                {u.institutionPageLapsed.replace("{institutions}", names(reask))}
-              </p>
-            ) : currentAffiliations.length === 0 ? (
-              <p className="publish-summary consent-reask" role="status">
-                {u.institutionPageLapsedNone}
-              </p>
-            ) : null
-          ) : null}
+                    onChange={(e) => void setShareRows(e.target.checked)}
+                  />
+                  <span>{u.shareReconciliationRows}</span>
+                </label>
+                <p className="publish-summary muted">{u.shareReconciliationRowsBody}</p>
+              </>
+            ) : null}
+            {showOnInstitutionPage && lapsedRorIds.length > 0 ? (
+              reask.length > 0 ? (
+                <p className="publish-summary consent-reask" role="status">
+                  {u.institutionPageLapsed.replace("{institutions}", names(reask))}
+                </p>
+              ) : currentAffiliations.length === 0 ? (
+                <p className="publish-summary consent-reask" role="status">
+                  {u.institutionPageLapsedNone}
+                </p>
+              ) : null
+            ) : null}
+          </div>
           <fieldset className="public-contact-consent">
             <legend>{u.publicContactLegend}</legend>
             <label className="field-inline">
