@@ -86,6 +86,25 @@ else
   fi
 fi
 
+# The privacy notice says analytics never record which ORCID iD was previewed.
+# The tracker scrubs /preview/<iD> client-side (src/lib/analytics/plausibleInit.ts);
+# this removes any row that reached ClickHouse anyway (rows from before the scrub
+# shipped, or a client that ran an old stub). Idempotent — a no-op once clean —
+# so it runs on every deploy rather than as a step someone has to remember.
+# Skipped, with a warning, when the analytics profile is not running here.
+ch_cid="$(compose "$@" ps -q plausible_events_db 2>/dev/null || true)"
+if [ -z "$ch_cid" ]; then
+  echo "[deploy] ⚠️  No plausible_events_db container — skipped the /preview path purge (see docs/ANALYTICS.md)." >&2
+else
+  echo "[deploy] Purging any stored /preview/<iD> analytics paths…"
+  for stmt in \
+    "ALTER TABLE plausible_events_db.events_v2 DELETE WHERE pathname LIKE '/preview/%' AND pathname != '/preview/_'" \
+    "ALTER TABLE plausible_events_db.sessions_v2 DELETE WHERE (entry_page LIKE '/preview/%' AND entry_page != '/preview/_') OR (exit_page LIKE '/preview/%' AND exit_page != '/preview/_')"; do
+    compose "$@" exec -T plausible_events_db clickhouse-client --query "$stmt" \
+      || echo "[deploy] ⚠️  purge statement failed (table names changed? see docs/ANALYTICS.md): $stmt" >&2
+  done
+fi
+
 echo "[deploy] Pruning dangling images…"
 docker image prune -f >/dev/null 2>&1 || true
 

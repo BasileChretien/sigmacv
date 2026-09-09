@@ -29,6 +29,7 @@
     "oep:import": "dotenv -e .env -- tsx scripts/oep-import.ts",
     "ictrp:import": "dotenv -e .env -- tsx scripts/ictrp-import.ts",
     "forrt:import": "dotenv -e .env -- tsx scripts/forrt-import.ts",
+    "preview:suppress-hash": "dotenv -e .env -- tsx scripts/preview-suppress-hash.ts",
     "db:generate": "prisma generate",
     "db:migrate": "dotenv -e .env -- prisma migrate dev",
     "db:push": "dotenv -e .env -- prisma db push",

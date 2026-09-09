@@ -28,6 +28,8 @@ describe("termsStrings", () => {
       expect(s.ip).toContain("GitHub");
       // The auto-generated-data disclaimer must name the upstream sources.
       expect(s.accuracy).toContain("OpenAlex");
+      // The lookup clause must say a preview is not an assessment by SigmaCV.
+      expect(s.lookup).toContain("SigmaCV");
       // The contact clause must expose the operator's e-mail verbatim.
       expect(s.contact).toContain("privacy@sigmacv.org");
     }

@@ -45,6 +45,9 @@ export default function Terms({ locale }: { locale: string }) {
         <h2>{s.accuracyHeading}</h2>
         <p>{s.accuracy}</p>
 
+        <h2>{s.lookupHeading}</h2>
+        <p>{s.lookup}</p>
+
         <h2>{s.warrantyHeading}</h2>
         <p>{s.warranty}</p>
 
