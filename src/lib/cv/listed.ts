@@ -7,7 +7,9 @@ import type { Prisma } from "@/generated/prisma/client";
  *
  * Everything an institution page (`/i`, `/i/[ror]`), the sitemap, and the OAI
  * `ListSets` verb need to say about an institution is read here: how many CVs
- * are listed under a ROR id, and the institution's TRUSTED name. This module
+ * are listed under a ROR id, the institution's TRUSTED name, and the stored
+ * per-CV aggregates of the researchers who gave the PINNED institution-page
+ * consent ({@link listedForInstitutionPage}). This module
  * imports no external client (not OpenAlex, not ROR, not the shared fetch
  * wrapper), so a public request that reaches it can never reach the network — the plan's
  * "Live proxying" veto, enforced by `tests/institutions-no-openalex.test.ts`
@@ -43,6 +45,61 @@ function listedUnderRorWhere(rorId: string): Prisma.CvWhereInput {
  *  figure). A count, never the rows: the page shows no roster. */
 export async function countListedCvs(rorId: string): Promise<number> {
   return prisma.cv.count({ where: listedUnderRorWhere(rorId) });
+}
+
+/**
+ * Bound on the consented CVs one institution page sums. Ordered by id so the
+ * bound is stable between requests; when it is hit the page says "first N".
+ */
+export const INSTITUTION_PAGE_ROW_LIMIT = 2000;
+
+export interface InstitutionPageRows {
+  /** One entry per consented, ACTIVE CV: its stored aggregate as `unknown`
+   *  (validated by the caller — a stored row is external data to the page). */
+  rows: Array<{ aggregates: unknown }>;
+  /** True when the query bound was reached (the page states the bound). */
+  truncated: boolean;
+  /** The bound applied. */
+  limit: number;
+}
+
+/**
+ * The CVs an institution page COUNTS: the researchers who gave the pinned
+ * institution-page consent for this ROR id (`showOnInstitutionPage` +
+ * `consentedRorIds`) on a published, indexable CV — a different gate from the
+ * OAI-set listing above, never mixed with it — and whose consent is still
+ * ACTIVE: a consented id no longer among the visible current positions has
+ * lapsed, and a lapsed CV is not counted. The lapse rule is the editor's and
+ * the publish path's (`institutionPageListing`, derived from the document);
+ * here it is the same rule read from the denormalised `visibleCurrentRorIds`
+ * column every write rewrites from the document beside `currentRorId`, so the
+ * whole filter is five columns in SQL and no document is selected — nothing
+ * but the stored aggregate is read. A row written before that column existed
+ * carries `[]` until its next write, so it is not counted until then (like a
+ * null aggregate, which counts as pending). One row past the bound is fetched
+ * so `truncated` says whether more exist, not whether the bound was reached.
+ */
+export async function listedForInstitutionPage(
+  rorId: string,
+  opts: { limit?: number } = {},
+): Promise<InstitutionPageRows> {
+  const limit = opts.limit ?? INSTITUTION_PAGE_ROW_LIMIT;
+  const candidates = await prisma.cv.findMany({
+    where: {
+      showOnInstitutionPage: true,
+      published: true,
+      publicIndexable: true,
+      consentedRorIds: { has: rorId },
+      visibleCurrentRorIds: { has: rorId },
+    },
+    select: { institutionAggregates: true },
+    orderBy: { id: "asc" },
+    take: limit + 1,
+  });
+  const rows = candidates
+    .slice(0, limit)
+    .map((row) => ({ aggregates: row.institutionAggregates ?? null }));
+  return { rows, truncated: candidates.length > limit, limit };
 }
 
 /** Listed-CV counts per ROR key, for the institution index — one grouped query

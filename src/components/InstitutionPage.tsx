@@ -16,6 +16,7 @@ import {
   localeInstitutionsIndexPath,
 } from "@/lib/seo";
 import DocJsonLd from "./DocJsonLd";
+import InstitutionFiguresSection from "./InstitutionFiguresSection";
 import InstitutionOpenAlexSection from "./InstitutionOpenAlexSection";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
@@ -23,7 +24,11 @@ import SiteHeader from "./SiteHeader";
 /**
  * One institution's page: its canonical name, the ROR record, how many
  * researchers chose to be listed under it (a count — never a roster), the
- * OAI-PMH set for machines, and the "About this page" block that states who the
+ * figures of those who separately chose to be COUNTED here (their own listed
+ * works, summed under k-anonymity — a second count with its own sentence, never
+ * a ratio of one to the other), OpenAlex's record of the organisation (never
+ * compared with the former), the OAI-PMH set for machines, and the "About this
+ * page" block that states who the
  * controller is, that the institution is a reader like anyone else, that
  * listing is voluntary and absence means nothing, and that SigmaCV does not
  * rank, score or compare researchers. Shared by `/i/[ror]` and the localized
@@ -66,6 +71,7 @@ export default function InstitutionPage({
         <p className="doc-lede">{listedSentence(s, summary.listedCount)}</p>
         <p>{s.selfDeclared}</p>
 
+        {summary.figures && <InstitutionFiguresSection locale={loc} figures={summary.figures} />}
         <InstitutionOpenAlexSection locale={loc} snapshot={summary.openalex} />
 
         <h2>{s.oaiHeading}</h2>

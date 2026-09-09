@@ -41,8 +41,10 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import { __resetPublicPageCache, isKnownMiss } from "@/lib/cv/publicPageCache";
 import { currentAffiliation } from "@/lib/cv/publicJsonLd";
 import {
+  INSTITUTION_PAGE_ROW_LIMIT,
   countListedCvs,
   countListedCvsByRor,
+  listedForInstitutionPage,
   recordInstitutions,
   trustedInstitutionNames,
   trustedInstitutionRecord,
@@ -59,12 +61,77 @@ import {
   rememberInstitutionMiss,
 } from "@/lib/institutions/institutions";
 import { SITE_URL } from "@/lib/siteUrl";
+import type { CvAggregates } from "@/lib/institutions/cvAggregates";
 
 const ROR = "04chrp450";
 const HOSTILE = "Nagoya University (closed by court order — see example.evil)";
 
+/** The figures of a page nobody consented to be counted on. */
+const NO_FIGURES = {
+  contributors: 0,
+  pending: 0,
+  k: 5,
+  byYear: [],
+  byType: [],
+  truncated: false,
+  limit: INSTITUTION_PAGE_ROW_LIMIT,
+};
+
+/** A CV row as the institution-page reader selects it: the consent columns, a
+ *  document with (or without) a visible current position at ROR, and the stored
+ *  aggregate. */
+function consentedRow(opts: {
+  rorId?: string | null;
+  consented?: string[];
+  aggregates?: unknown;
+  document?: unknown;
+}) {
+  const document =
+    opts.document ??
+    buildCanonicalCv({
+      id: "cv_row",
+      resolved: { orcid: "0000-0002-7483-2489", authorIds: [], displayName: "A Researcher" },
+      works: [],
+      employments:
+        opts.rorId === null
+          ? []
+          : [
+              {
+                putCode: "cur",
+                organization: "Nagoya University",
+                startYear: 2024,
+                rorId: opts.rorId ?? ROR,
+              },
+            ],
+      now: "2026-09-08T00:00:00.000Z",
+    });
+  return {
+    consentedRorIds: opts.consented ?? [ROR],
+    showOnInstitutionPage: true,
+    published: true,
+    publicIndexable: true,
+    document,
+    institutionAggregates: opts.aggregates ?? null,
+  };
+}
+
+function aggregate(year: string, count: number): CvAggregates {
+  return {
+    v: 1,
+    worksTotal: count,
+    byYear: {
+      [year]: {
+        total: count,
+        oa: { "open-cc": count, "open-other": 0, "no-open-copy-found": 0, "not-determined": 0 },
+      },
+    },
+    byType: { publications: count },
+  };
+}
+
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
+  mocks.findMany.mockResolvedValue([]);
   mocks.institutionFindUnique.mockResolvedValue(null);
   mocks.institutionFindMany.mockResolvedValue([]);
   mocks.institutionUpsert.mockResolvedValue({});
@@ -240,6 +307,7 @@ describe("institutionSummary", () => {
       name: "Nagoya University",
       listedCount: 4,
       openalex: null,
+      figures: NO_FIGURES,
     });
   });
 
@@ -250,7 +318,56 @@ describe("institutionSummary", () => {
       name: `ROR ${ROR}`,
       listedCount: 1,
       openalex: null,
+      figures: NO_FIGURES,
     });
+  });
+
+  it("sums the consented rows' stored aggregates under k-anonymity; an unparseable stored aggregate counts as pending", async () => {
+    mocks.count.mockResolvedValue(1);
+    mocks.findMany.mockResolvedValue([
+      ...Array.from({ length: 5 }, (_, i) =>
+        consentedRow({ aggregates: aggregate("2021", i + 1) }),
+      ),
+      consentedRow({ aggregates: { v: 1, junk: true } }),
+      consentedRow({}),
+    ]);
+    const summary = await institutionSummary(ROR);
+    expect(summary?.figures).toEqual({
+      contributors: 5,
+      pending: 2,
+      k: 5,
+      truncated: false,
+      limit: INSTITUTION_PAGE_ROW_LIMIT,
+      byYear: [
+        {
+          year: "2021",
+          total: { count: 15, contributorCount: 5 },
+          oa: {
+            "open-cc": { count: 15, contributorCount: 5 },
+            // Nobody has such a work: structurally empty, shown as 0.
+            "open-other": { count: 0, contributorCount: 0 },
+            "no-open-copy-found": { count: 0, contributorCount: 0 },
+            "not-determined": { count: 0, contributorCount: 0 },
+          },
+        },
+      ],
+      byType: [{ type: "publications", cell: { count: 15, contributorCount: 5 } }],
+    });
+    expect(JSON.stringify(summary?.figures)).not.toMatch(/share|ratio|%|\d\.\d/);
+  });
+
+  it("reports the reader's bound on the summary — only when more rows exist than it", async () => {
+    mocks.count.mockResolvedValue(1);
+    mocks.findMany.mockResolvedValue(
+      Array.from({ length: INSTITUTION_PAGE_ROW_LIMIT + 1 }, () => consentedRow({})),
+    );
+    const hit = (await institutionSummary(ROR))?.figures;
+    expect(hit?.truncated).toBe(true);
+    expect(hit?.pending).toBe(INSTITUTION_PAGE_ROW_LIMIT);
+    mocks.findMany.mockResolvedValue(
+      Array.from({ length: INSTITUTION_PAGE_ROW_LIMIT }, () => consentedRow({})),
+    );
+    expect((await institutionSummary(ROR))?.figures?.truncated).toBe(false);
   });
 
   it("carries the stored OpenAlex snapshot when the row has a valid one — and null when it is missing, cleared, or malformed", async () => {
@@ -338,12 +455,97 @@ describe("institutionSummary", () => {
     // the ROR-recorded row: the trusted name, or `ROR <id>` — never the text.
     mocks.count.mockResolvedValue(1);
     mocks.findFirst.mockResolvedValue({ currentAffiliationName: HOSTILE });
-    mocks.findMany.mockResolvedValue([{ currentRorId: ROR, currentAffiliationName: HOSTILE }]);
+    // The one Cv query the page makes (the consented-figures reader) selects
+    // the consent columns, the document and the aggregate — never the name.
+    mocks.findMany.mockImplementation(async (args: { where: Record<string, unknown> }) =>
+      "consentedRorIds" in args.where
+        ? [consentedRow({ document: cv })]
+        : [{ currentRorId: ROR, currentAffiliationName: HOSTILE }],
+    );
     await expect(institutionSummary(ROR)).resolves.toMatchObject({ name: `ROR ${ROR}` });
     mocks.institutionFindUnique.mockResolvedValue({ name: "Nagoya University" });
     await expect(institutionSummary(ROR)).resolves.toMatchObject({ name: "Nagoya University" });
     expect(mocks.findFirst).not.toHaveBeenCalled();
-    expect(mocks.findMany).not.toHaveBeenCalled();
+    for (const call of mocks.findMany.mock.calls) {
+      expect(call[0].where).toHaveProperty("consentedRorIds");
+      expect(call[0].select).not.toHaveProperty("currentAffiliationName");
+    }
+  });
+});
+
+describe("listedForInstitutionPage", () => {
+  it("filters in SQL by the pinned consent + published + indexable + the consent still being a visible current position, selects the aggregate ONLY (never the document), and fetches one row past the bound", async () => {
+    await listedForInstitutionPage(ROR);
+    expect(mocks.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.findMany.mock.calls[0]![0]).toEqual({
+      where: {
+        showOnInstitutionPage: true,
+        published: true,
+        publicIndexable: true,
+        consentedRorIds: { has: ROR },
+        visibleCurrentRorIds: { has: ROR },
+      },
+      select: { institutionAggregates: true },
+      orderBy: { id: "asc" },
+      take: INSTITUTION_PAGE_ROW_LIMIT + 1,
+    });
+    expect(mocks.findMany.mock.calls[0]![0].select).not.toHaveProperty("document");
+    expect(INSTITUTION_PAGE_ROW_LIMIT).toBe(2000);
+    await listedForInstitutionPage(ROR, { limit: 7 });
+    expect(mocks.findMany.mock.calls[1]![0].take).toBe(8);
+  });
+
+  it("a lapsed consent — the id consented to but no longer a visible current position — is excluded by the query itself, so the reader never sees it", async () => {
+    // The lapse rule is the SQL: `visibleCurrentRorIds: { has: ROR }` beside
+    // `consentedRorIds: { has: ROR }`. Simulate Postgres applying it.
+    const stored = { v: 1, worksTotal: 0, byYear: {}, byType: {} };
+    const table = [
+      { consentedRorIds: [ROR], visibleCurrentRorIds: [ROR], institutionAggregates: stored },
+      // Consented here, but the current position moved elsewhere: lapsed.
+      {
+        consentedRorIds: [ROR],
+        visibleCurrentRorIds: ["05m32f987"],
+        institutionAggregates: stored,
+      },
+      // Consented here, no current position at all (or a row written before
+      // the column existed, which carries [] until its next write): lapsed.
+      { consentedRorIds: [ROR], visibleCurrentRorIds: [], institutionAggregates: stored },
+      // Active, nothing computed yet: passes through as null (pending).
+      { consentedRorIds: [ROR], visibleCurrentRorIds: [ROR], institutionAggregates: null },
+    ];
+    mocks.findMany.mockImplementation(
+      async (args: { where: { visibleCurrentRorIds: { has: string } } }) =>
+        table
+          .filter((r) => r.visibleCurrentRorIds.includes(args.where.visibleCurrentRorIds.has))
+          .map((r) => ({ institutionAggregates: r.institutionAggregates })),
+    );
+    const { rows, truncated, limit } = await listedForInstitutionPage(ROR);
+    expect(rows).toEqual([{ aggregates: stored }, { aggregates: null }]);
+    expect(truncated).toBe(false);
+    expect(limit).toBe(INSTITUTION_PAGE_ROW_LIMIT);
+  });
+
+  it("says the rows were truncated only when MORE than the bound exist, and returns at most the bound", async () => {
+    // Exactly the bound: not truncated.
+    mocks.findMany.mockResolvedValue([consentedRow({}), consentedRow({})]);
+    expect(await listedForInstitutionPage(ROR, { limit: 2 })).toMatchObject({
+      truncated: false,
+      limit: 2,
+    });
+    expect((await listedForInstitutionPage(ROR, { limit: 2 })).rows).toHaveLength(2);
+    // One past the bound (the extra row the query asks for): truncated, and the
+    // extra row is not summed.
+    mocks.findMany.mockResolvedValue([consentedRow({}), consentedRow({}), consentedRow({})]);
+    const hit = await listedForInstitutionPage(ROR, { limit: 2 });
+    expect(hit).toMatchObject({ truncated: true, limit: 2 });
+    expect(hit.rows).toHaveLength(2);
+  });
+
+  it("returns the stored aggregate as-is — validation is the caller's", async () => {
+    mocks.findMany.mockResolvedValue([consentedRow({ aggregates: { v: 1, junk: true } })]);
+    expect((await listedForInstitutionPage(ROR)).rows).toEqual([
+      { aggregates: { v: 1, junk: true } },
+    ]);
   });
 });
 
@@ -360,9 +562,9 @@ describe("institutionIndex", () => {
     ]);
     const index = await institutionIndex();
     expect(index).toEqual([
-      { rorId: ROR, name: "Alpha University", listedCount: 1, openalex: null },
-      { rorId: "00abcde12", name: "ROR 00abcde12", listedCount: 2, openalex: null },
-      { rorId: "05m32f987", name: "Zeta Institute", listedCount: 5, openalex: null },
+      { rorId: ROR, name: "Alpha University", listedCount: 1, openalex: null, figures: null },
+      { rorId: "00abcde12", name: "ROR 00abcde12", listedCount: 2, openalex: null, figures: null },
+      { rorId: "05m32f987", name: "Zeta Institute", listedCount: 5, openalex: null, figures: null },
     ]);
     expect(mocks.institutionFindMany).toHaveBeenCalledWith({
       where: { rorId: { in: ["05m32f987", ROR, "00abcde12"] } },
@@ -398,7 +600,13 @@ describe("institutionOaiSetUrl", () => {
 });
 
 describe("institutionJsonLd", () => {
-  const summary = { rorId: ROR, name: "Nagoya University", listedCount: 7, openalex: null };
+  const summary = {
+    rorId: ROR,
+    name: "Nagoya University",
+    listedCount: 7,
+    openalex: null,
+    figures: null,
+  };
 
   it("is a schema.org Organization identified by its ROR IRI, named by the trusted name, with the OAI set as subjectOf", () => {
     const ld = institutionJsonLd(summary);

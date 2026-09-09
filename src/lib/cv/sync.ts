@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { absoluteUrl } from "@/lib/siteUrl";
 import { pingIndexNow } from "@/lib/cv/indexNow";
@@ -16,6 +16,7 @@ import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { currentAffiliation } from "@/lib/cv/publicJsonLd";
 import { recordInstitutions, trustedInstitutionNames } from "@/lib/cv/listed";
+import { computeCvAggregates } from "@/lib/institutions/cvAggregates";
 import { provenanceLedger, type ProvenanceLedger } from "@/lib/cv/provenanceLedger";
 import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks";
 import { logger } from "@/lib/log";
@@ -104,6 +105,18 @@ function currentRorKey(cv: CanonicalCv): string | null {
  *  `ListSets` set name, chosen deterministically across every opted-in CV. */
 function affiliationSetName(cv: CanonicalCv): string | null {
   return currentAffiliation(cv)?.setName ?? null;
+}
+
+/**
+ * The `Cv.institutionAggregates` column: the counts-only aggregate of the works
+ * the public page lists (`computeCvAggregates`), written beside
+ * {@link currentRorKey} at EVERY write — sync, save and publish-state change —
+ * so the column follows the document and the institution page never sums a
+ * stale figure. A row with no parseable document gets a database null, which
+ * the page counts as "not yet computed".
+ */
+function aggregatesColumn(cv: CanonicalCv | null): Prisma.InputJsonValue | typeof Prisma.DbNull {
+  return cv ? (computeCvAggregates(cv) as unknown as Prisma.InputJsonValue) : Prisma.DbNull;
 }
 
 /**
@@ -623,6 +636,8 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   // re-keys — or un-lists — the CV at once.
   const currentRorId = currentRorKey(cv);
   const currentAffiliationName = affiliationSetName(cv);
+  const visibleRorIds = visibleCurrentRorIds(cv);
+  const institutionAggregates = aggregatesColumn(cv);
   await prisma.cv.upsert({
     where: { userId },
     create: {
@@ -634,6 +649,8 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       lastSyncReport: report as unknown as Prisma.InputJsonValue,
       currentRorId,
       currentAffiliationName,
+      visibleCurrentRorIds: visibleRorIds,
+      institutionAggregates,
     },
     update: {
       document: cv as unknown as Prisma.InputJsonValue,
@@ -642,6 +659,8 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       lastSyncReport: report as unknown as Prisma.InputJsonValue,
       currentRorId,
       currentAffiliationName,
+      visibleCurrentRorIds: visibleRorIds,
+      institutionAggregates,
     },
   });
 
@@ -695,6 +714,8 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
       schemaVersion: reconciled.schemaVersion,
       currentRorId: currentRorKey(reconciled),
       currentAffiliationName: affiliationSetName(reconciled),
+      visibleCurrentRorIds: visibleCurrentRorIds(reconciled),
+      institutionAggregates: aggregatesColumn(reconciled),
     },
   });
 
@@ -824,6 +845,8 @@ export async function setPublishState(
       listUnderAffiliation: listed,
       currentRorId,
       currentAffiliationName,
+      visibleCurrentRorIds: cv ? visibleCurrentRorIds(cv) : [],
+      institutionAggregates: aggregatesColumn(cv),
       ...consent,
     },
     select: {

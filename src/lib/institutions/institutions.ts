@@ -3,12 +3,16 @@ import { rorIri } from "@/lib/ror/id";
 import {
   countListedCvs,
   countListedCvsByRor,
+  listedForInstitutionPage,
   trustedInstitutionNames,
   trustedInstitutionRecord,
+  type InstitutionPageRows,
   type TrustedInstitutionRecord,
 } from "@/lib/cv/listed";
 import { rorSetSpec } from "@/lib/oai/oai";
 import { absoluteUrl } from "@/lib/siteUrl";
+import { sumAggregates, type SummedAggregates } from "./aggregateSum";
+import { parseCvAggregates } from "./cvAggregates";
 import {
   OPENALEX_INSTITUTION_ID_RE,
   parseInstitutionAggregates,
@@ -20,7 +24,9 @@ import {
  *
  * Deliberately little. A page exists only for a ROR id at least one researcher
  * chose to be listed under (the same opt-in that lists them in the OAI-PMH
- * `ror:<id>` set), and it shows ONE figure: how many did. No roster, no
+ * `ror:<id>` set), and it shows how many did, plus — under a SEPARATE, pinned
+ * consent and only above k researchers — the summed counts of those
+ * researchers' own listed works ({@link InstitutionFigures}). No roster, no
  * per-person column, no ratio, no score — and nothing from OpenAlex or any other
  * external service at request time: every read here is the database, through
  * `@/lib/cv/listed` only (the "Live proxying" veto — a page per ROR would
@@ -56,8 +62,23 @@ export interface InstitutionOpenAlexSnapshot {
   fetchedAt: string;
 }
 
-/** What the institution page knows: the key, the trusted name, the count, and
- *  the stored OpenAlex snapshot (null until fetched). */
+/**
+ * The researchers' OWN figures: the k-anonymous sum (`aggregateSum.ts`) of the
+ * stored per-CV aggregates of the CVs whose owners gave the pinned
+ * institution-page consent for this ROR and whose consent is still active —
+ * a different gate from `listedCount` (the OAI-set opt-in); the page states
+ * each as its own count and never relates one to the other. `truncated` says
+ * the reader's bound (`limit`) was hit. Never combined with the OpenAlex
+ * snapshot.
+ */
+export interface InstitutionFigures extends SummedAggregates {
+  truncated: boolean;
+  limit: number;
+}
+
+/** What the institution page knows: the key, the trusted name, the count, the
+ *  stored OpenAlex snapshot (null until fetched) and the opted-in figures
+ *  (null on the index, which shows names and counts only). */
 export interface InstitutionSummary {
   /** Bare ROR id. */
   rorId: string;
@@ -67,6 +88,7 @@ export interface InstitutionSummary {
   /** How many published, indexable CVs opted into the listing under this ROR. */
   listedCount: number;
   openalex: InstitutionOpenAlexSnapshot | null;
+  figures: InstitutionFigures | null;
 }
 
 /** The snapshot on a stored row, or null when the row has none (not fetched
@@ -82,6 +104,15 @@ function snapshotOf(record: TrustedInstitutionRecord | null): InstitutionOpenAle
     aggregates,
     fetchedAt: record.openalexFetchedAt.toISOString(),
   };
+}
+
+/** The consented rows summed: a stored aggregate that does not parse counts
+ *  as pending, exactly like a row not yet written. */
+function figuresOf(page: InstitutionPageRows): InstitutionFigures {
+  const summed = sumAggregates(
+    page.rows.map((r) => ({ aggregates: parseCvAggregates(r.aggregates) })),
+  );
+  return { ...summed, truncated: page.truncated, limit: page.limit };
 }
 
 /** The OpenAlex URI of the counted entity (the JSON-LD `sameAs`). `openalexId`
@@ -116,9 +147,10 @@ function fallbackName(rorId: string): string {
  */
 export async function institutionSummary(rorId: string): Promise<InstitutionSummary | null> {
   if (!isRorId(rorId)) return null;
-  const [listedCount, record] = await Promise.all([
+  const [listedCount, record, page] = await Promise.all([
     countListedCvs(rorId),
     trustedInstitutionRecord(rorId),
+    listedForInstitutionPage(rorId),
   ]);
   if (listedCount < 1) return null;
   return {
@@ -126,6 +158,7 @@ export async function institutionSummary(rorId: string): Promise<InstitutionSumm
     name: record?.name ?? fallbackName(rorId),
     listedCount,
     openalex: snapshotOf(record),
+    figures: figuresOf(page),
   };
 }
 
@@ -134,12 +167,14 @@ export async function institutionIndex(): Promise<InstitutionSummary[]> {
   const counts = await countListedCvsByRor();
   const rorIds = [...counts.keys()].filter(isRorId);
   const names = await trustedInstitutionNames(rorIds);
-  // The index lists names and counts only; the OpenAlex snapshot is a page thing.
+  // The index lists names and counts only; the OpenAlex snapshot and the
+  // opted-in figures are page things.
   const summaries: InstitutionSummary[] = rorIds.map((rorId) => ({
     rorId,
     name: names.get(rorId) ?? fallbackName(rorId),
     listedCount: counts.get(rorId)!,
     openalex: null,
+    figures: null,
   }));
   return summaries.sort((a, b) => a.name.localeCompare(b.name, "en"));
 }

@@ -43,7 +43,9 @@ vi.mock("next/headers", () => ({ headers: async () => mocks.requestHeaders }));
 vi.mock("@/components/SiteHeader", () => ({ default: () => null }));
 vi.mock("@/components/SiteFooter", () => ({ default: () => null }));
 
+import { buildCanonicalCv } from "@/lib/canonical/build";
 import { __resetPublicPageCache } from "@/lib/cv/publicPageCache";
+import { INSTITUTION_PAGE_ROW_LIMIT } from "@/lib/cv/listed";
 import { institutionStrings } from "@/lib/i18n/institutions";
 import IndexPage, {
   dynamic as indexDynamic,
@@ -78,18 +80,99 @@ const text = (html: string) =>
     .replace(/&quot;/g, '"')
     .replace(/&amp;/g, "&");
 
+/** The rows the consented-figures reader gets (the one Cv query the page
+ *  makes); set per test with {@link counted}. */
+let consentedRows: unknown[] = [];
+
 /** `count` listed CVs under ROR, with (or without) a trusted ROR-recorded name.
  *  The CVs' own affiliation column always carries hostile text, so any read of
- *  it would show on the page. */
+ *  it would show on the page. The Cv findMany is routed by its where clause:
+ *  the consent query gets {@link consentedRows}, anything else the hostile row. */
 function listed(count: number, name: string | null = NAME) {
   mocks.count.mockResolvedValue(count);
   mocks.institutionFindUnique.mockResolvedValue(name === null ? null : { name });
   mocks.findFirst.mockResolvedValue({ currentAffiliationName: HOSTILE });
-  mocks.findMany.mockResolvedValue([{ currentRorId: ROR, currentAffiliationName: HOSTILE }]);
+  mocks.findMany.mockImplementation(async (args: { where: Record<string, unknown> }) =>
+    "consentedRorIds" in args.where
+      ? consentedRows
+      : [{ currentRorId: ROR, currentAffiliationName: HOSTILE }],
+  );
 }
+
+/** A consented, ACTIVE CV (a visible current position at ROR) whose owner's
+ *  display name is hostile too — it must never reach the page. */
+const CONSENTED_DOC = buildCanonicalCv({
+  id: "cv_c",
+  resolved: { orcid: "0000-0002-7483-2489", authorIds: [], displayName: HOSTILE },
+  works: [],
+  employments: [{ putCode: "cur", organization: HOSTILE, startYear: 2024, rorId: ROR }],
+  now: "2026-09-08T00:00:00.000Z",
+});
+
+type Cells = Partial<
+  Record<"open-cc" | "open-other" | "no-open-copy-found" | "not-determined", number>
+>;
+
+/** One consented row with a stored aggregate built from `{ year: cells }`
+ *  (all in Publications), or a pending row when `byYear` is null. */
+function consentedRow(byYear: Record<string, Cells> | null) {
+  const base = {
+    consentedRorIds: [ROR],
+    showOnInstitutionPage: true,
+    published: true,
+    publicIndexable: true,
+    visibleCurrentRorIds: [ROR],
+    // The reader no longer selects the document; the mock still carries the
+    // hostile one so that any read of it would show on the page.
+    document: CONSENTED_DOC,
+  };
+  if (byYear === null) return { ...base, institutionAggregates: null };
+  let worksTotal = 0;
+  const rows: Record<string, unknown> = {};
+  for (const [year, cells] of Object.entries(byYear)) {
+    const oa = {
+      "open-cc": cells["open-cc"] ?? 0,
+      "open-other": cells["open-other"] ?? 0,
+      "no-open-copy-found": cells["no-open-copy-found"] ?? 0,
+      "not-determined": cells["not-determined"] ?? 0,
+    };
+    const total = Object.values(oa).reduce((n, c) => n + c, 0);
+    rows[year] = { total, oa };
+    worksTotal += total;
+  }
+  return {
+    ...base,
+    institutionAggregates: { v: 1, worksTotal, byYear: rows, byType: { publications: worksTotal } },
+  };
+}
+
+function counted(rows: unknown[]) {
+  consentedRows = rows;
+}
+
+/** The figures section's markup alone. */
+const figuresSection = (html: string) =>
+  html.match(/<section class="inst-figures">[\s\S]*?<\/section>/)?.[0] ?? "";
+/** The OpenAlex section's markup alone: from its heading to the OAI heading
+ *  that follows it on the page. */
+const openalexSection = (html: string) => {
+  const en = institutionStrings("en-US");
+  const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/'/g, "&#x27;");
+  const from = html.indexOf(`<h2>${esc(en.openalexHeading)}</h2>`);
+  const to = html.indexOf(`<h2>${esc(en.oaiHeading)}</h2>`);
+  if (from < 0 || to <= from) throw new Error("OpenAlex section not found");
+  return html.slice(from, to);
+};
+
+/** Every JSON-LD script on the page, as one string. */
+const jsonLd = (html: string) =>
+  [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+    .map((m) => m[1])
+    .join("\n");
 
 beforeEach(() => {
   for (const m of Object.values(mocks)) if (typeof m === "function") m.mockReset();
+  consentedRows = [];
   mocks.enforceRateLimit.mockResolvedValue({ ok: true });
   mocks.institutionFindUnique.mockResolvedValue(null);
   mocks.institutionFindMany.mockResolvedValue([]);
@@ -150,9 +233,14 @@ describe("/i/[ror]", () => {
     expect(text(html)).not.toContain(HOSTILE);
     expect(text(html)).not.toContain("example.evil");
     expect(JSON.stringify(meta)).not.toContain("example.evil");
-    // The CV columns that carry the owner's text were never read.
+    // The CV columns that carry the owner's text were never read: the one Cv
+    // query the page makes (the consented-figures reader) selects the consent
+    // columns, the document and the stored aggregate — never the name column.
     expect(mocks.findFirst).not.toHaveBeenCalled();
-    expect(mocks.findMany).not.toHaveBeenCalled();
+    for (const call of mocks.findMany.mock.calls) {
+      expect(call[0].where).toHaveProperty("consentedRorIds");
+      expect(call[0].select).not.toHaveProperty("currentAffiliationName");
+    }
   });
 
   it("falls back to 'ROR <id>' when no trusted record exists yet — never to the owner's text", async () => {
@@ -410,6 +498,216 @@ describe("/i/[ror]", () => {
     // A server component cannot send 429; the notice is at least never indexed
     // under the institution's URL.
     expect(await rorMetadata(params({ ror: ROR }))).toEqual({ robots: NOINDEX_NOFOLLOW });
+  });
+});
+
+describe("/i/[ror] — figures from researchers who chose to be counted here", () => {
+  const s = institutionStrings("en-US");
+
+  it("with fewer than 5 contributors, says so in one sentence and shows no figure", async () => {
+    listed(3);
+    counted([
+      consentedRow({ "2025": { "open-cc": 4 } }),
+      consentedRow({ "2025": { "open-cc": 4 } }),
+      consentedRow({ "2025": { "open-cc": 4 } }),
+      consentedRow({ "2025": { "open-cc": 4 } }),
+      consentedRow(null),
+    ]);
+    const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    const section = figuresSection(html);
+    expect(section).toContain(s.figuresHeading);
+    expect(section).toContain(
+      "Fewer than 5 researchers have chosen to be counted here, so no figures are shown yet.",
+    );
+    expect(text(section)).toContain("1 more chose to be counted but their figures");
+    expect(section).not.toContain("inst-table");
+    expect(section).not.toContain("16");
+    expect(section).not.toContain("Only the first");
+    // Both counts are on the page, each as its own sentence.
+    expect(html).toContain("3 researchers list this affiliation");
+  });
+
+  it("from 5 contributors, shows the contributor sentence, the pending sentence, the by-year and by-section tables with suppressed cells — and no name, no link, no ratio", async () => {
+    listed(3);
+    // Every CV also has one work with no year.
+    const U: Cells = { "open-cc": 1 };
+    const Y: Cells = { "open-cc": 2, "no-open-copy-found": 1 };
+    counted([
+      // Five contributors, all in 2025 (two open-cc, one closed each); the
+      // fifth alone also has an open-other work.
+      consentedRow({ "2025": Y, unknown: U }),
+      consentedRow({ "2025": Y, unknown: U }),
+      consentedRow({ "2025": Y, unknown: U }),
+      consentedRow({ "2025": Y, unknown: U }),
+      consentedRow({ "2025": { ...Y, "open-other": 1 }, unknown: U }),
+      // Two rows not computed yet.
+      consentedRow(null),
+      consentedRow(null),
+    ]);
+    const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    const section = figuresSection(html);
+    expect(section).toContain("5 researchers chose to be counted on this page.");
+    expect(text(section)).toContain(
+      "2 more chose to be counted but their figures have not been computed yet",
+    );
+    expect(section).not.toContain("Only the first");
+    expect(text(section)).toContain(s.figuresNotCompared);
+    expect(section).toContain(s.figuresByYearHeading);
+    expect(section).toContain(s.figuresByTypeHeading);
+    // 2025: total 16 from 5 CVs; open-cc 10 (5 CVs) shown; open-other (one
+    // CV) hidden, and the smallest shown cell — closed, 5 — hidden with it so
+    // that the two stand on all five CVs; not-determined is nobody's: 0.
+    expect(section).toContain('<th scope="row">2025</th>');
+    expect(section).toContain(
+      '<td class="num">16</td><td class="num">10</td><td class="num muted">fewer than 5 researchers</td><td class="num muted">fewer than 5 researchers</td><td class="num">0</td>',
+    );
+    expect(section).not.toContain(">1<");
+    expect((section.match(/muted">fewer than 5 researchers</g) ?? []).length).toBe(2);
+    // The works with no year: their own row, last.
+    expect(section).toContain('<th scope="row">No year</th>');
+    expect(section.indexOf("No year")).toBeGreaterThan(section.indexOf(">2025<"));
+    // The four state columns reuse the worklist's labels.
+    for (const label of [
+      "Open, Creative Commons licence",
+      "Open, other or unknown licence",
+      "No open copy found",
+      "Not determined",
+    ]) {
+      expect(section).toContain(label);
+    }
+    // Works by section: 21 in Publications (4 + 4 + 4 + 4 + 5), shown — every
+    // year row is shown, and the section table is fully shown too.
+    expect(section).toContain("<td>Publications</td>");
+    expect(section).toContain(">21<");
+    // Veto 4: no name, no per-person column, no link out of the section.
+    expect(section).not.toContain("<a ");
+    expect(text(section)).not.toContain(HOSTILE);
+    expect(text(html)).not.toContain(HOSTILE);
+    expect(section).not.toMatch(/%|\bshare\b|\bratio\b/i);
+    // JSON-LD unchanged: no employee / member, none of the figures.
+    const ld = jsonLd(html);
+    for (const word of ["employee", "member", "figures", "chose to be counted", "Publications"]) {
+      expect(ld, word).not.toContain(word);
+    }
+  });
+
+  it("says when only the first 2,000 consented researchers are included", async () => {
+    listed(3);
+    // The reader asks for one row past its bound; that row's existence is what
+    // "only the first 2,000" states, and it is not summed (1,995 pending, not
+    // 1,996).
+    const bound = Array.from({ length: INSTITUTION_PAGE_ROW_LIMIT + 1 }, (_, i) =>
+      consentedRow(i < 5 ? { "2025": { "open-cc": 1 } } : null),
+    );
+    counted(bound);
+    const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    const section = text(figuresSection(html));
+    expect(section).toContain("5 researchers chose to be counted on this page.");
+    expect(section).toContain("1,995 more chose to be counted");
+    expect(section).toContain(
+      "Only the first 2,000 researchers who chose to be counted are included.",
+    );
+    // Below k, the bound is still stated.
+    counted(bound.map((r, i) => (i < 4 ? consentedRow(null) : r)));
+    const below = text(figuresSection(renderToStaticMarkup(await RorPage(params({ ror: ROR })))));
+    expect(below).toContain("Fewer than 5 researchers have chosen");
+    expect(below).toContain("Only the first 2,000 researchers");
+  });
+
+  it("from 5 contributors with every figure suppressed, says so in one sentence instead of two empty tables", async () => {
+    listed(3);
+    // Five contributors, but four share 2020 (one work each) and the fifth
+    // lists nothing public: the year and the section are both short of 5.
+    counted([
+      consentedRow({ "2020": { "open-cc": 1 } }),
+      consentedRow({ "2020": { "open-cc": 1 } }),
+      consentedRow({ "2020": { "open-cc": 1 } }),
+      consentedRow({ "2020": { "open-cc": 1 } }),
+      consentedRow({}),
+      consentedRow(null),
+    ]);
+    const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    const section = figuresSection(html);
+    expect(section).toContain("5 researchers chose to be counted on this page.");
+    expect(text(section)).toContain("1 more chose to be counted");
+    expect(text(section)).toContain(
+      "No figure can be shown yet: every year and every section would either count fewer than 5 researchers or let a figure about fewer than 5 be worked out.",
+    );
+    expect(section).not.toContain("inst-table");
+    expect(section).not.toContain("fewer than 5 researchers</td>");
+    expect(section).not.toContain(s.figuresByYearHeading);
+    expect(section).not.toContain(s.figuresScope.slice(0, 20));
+  });
+
+  it("renders a cell nobody has a work in as 0, never as 'fewer than 5 researchers'", async () => {
+    listed(3);
+    counted(Array.from({ length: 5 }, () => consentedRow({ "2025": { "open-cc": 3 } })));
+    const section = figuresSection(renderToStaticMarkup(await RorPage(params({ ror: ROR }))));
+    // Total, open-cc, then the three structurally empty states.
+    expect(section).toContain(
+      '<td class="num">15</td><td class="num">15</td><td class="num">0</td><td class="num">0</td><td class="num">0</td>',
+    );
+    expect(section).not.toContain("fewer than 5 researchers</td>");
+  });
+
+  it("renders identically with and without an OpenAlex snapshot on the row — the two sections never meet", async () => {
+    const rows = Array.from({ length: 5 }, () => consentedRow({ "2025": { "open-cc": 3 } }));
+    listed(3);
+    counted(rows);
+    const without = figuresSection(renderToStaticMarkup(await RorPage(params({ ror: ROR }))));
+    mocks.institutionFindUnique.mockResolvedValue({
+      name: NAME,
+      openalexId: "I60134161",
+      openalexFetchedAt: new Date("2026-09-09T10:00:00Z"),
+      openalexAggregates: {
+        version: 1,
+        countedEntity: {
+          openalexId: "I60134161",
+          displayName: NAME,
+          lineageSize: 1,
+          relatedCount: 0,
+          foldedIds: ["I60134161"],
+          fetchedAt: "2026-09-09T10:00:00.000Z",
+        },
+        countedWorkTypes: ["article"],
+        years: { from: 2025, to: 2025 },
+        worksByYear: [{ year: 2025, count: 4321 }],
+        oaByStatusByYear: [{ year: 2025, status: "gold", count: 2000 }],
+        topCountries: [],
+        topCoAffiliations: [],
+      },
+    });
+    const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    expect(figuresSection(html)).toBe(without);
+    expect(without).toContain(">15<");
+    expect(html).toContain("4,321");
+    // No "OpenAlex has it, nobody claims it" figure anywhere on the page.
+    expect(html).not.toContain("4306");
+
+    // And the reverse: the OpenAlex section is byte-identical with and without
+    // figures rows (five contributors, or nobody counted at all).
+    const openalex = openalexSection(html);
+    expect(openalex).toContain("4,321");
+    counted([]);
+    const nobody = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    expect(openalexSection(nobody)).toBe(openalex);
+    expect(figuresSection(nobody)).not.toBe(without);
+    counted(Array.from({ length: 9 }, () => consentedRow({ "2025": { "open-cc": 7 } })));
+    expect(openalexSection(renderToStaticMarkup(await RorPage(params({ ror: ROR }))))).toBe(
+      openalex,
+    );
+  });
+
+  it("is localized on the locale route", async () => {
+    listed(3);
+    counted(Array.from({ length: 5 }, () => consentedRow({ "2025": { "open-cc": 1 } })));
+    const html = renderToStaticMarkup(await LocaleRorPage(params({ locale: "fr", ror: ROR })));
+    const fr = institutionStrings("fr-FR");
+    const section = text(figuresSection(html));
+    expect(section).toContain(fr.figuresHeading);
+    expect(section).toContain("5 chercheurs ont choisi");
+    expect(section).toContain("moins de 5 chercheurs");
+    expect(section).toContain("<td>Publications</td>");
   });
 });
 

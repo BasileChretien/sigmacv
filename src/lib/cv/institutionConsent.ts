@@ -17,7 +17,10 @@ import {
  * per-id "Remove", and resuming if that affiliation becomes current again),
  * never on a page, and the editor re-asks for the new affiliation. A public
  * institution page lists a CV under exactly the consented ids that are still
- * current ({@link institutionPageListing}).
+ * current ({@link institutionPageListing} for the editor and the publish path;
+ * the page's reader applies the same rule in SQL against the denormalised
+ * `Cv.visibleCurrentRorIds`, which every write rewrites from
+ * {@link visibleCurrentRorIds}).
  */
 
 /** Upper bound on ids per CV (a dual or triple appointment is the realistic max). */

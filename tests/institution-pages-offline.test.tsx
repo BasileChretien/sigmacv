@@ -22,6 +22,7 @@ Object.assign(process.env, {
 
 const mocks = vi.hoisted(() => ({
   count: vi.fn(),
+  findMany: vi.fn(),
   groupBy: vi.fn(),
   institutionFindUnique: vi.fn(),
   institutionFindMany: vi.fn(),
@@ -36,7 +37,7 @@ vi.mock("@/lib/http", () => {
 });
 vi.mock("@/lib/db", () => ({
   prisma: {
-    cv: { count: mocks.count, groupBy: mocks.groupBy },
+    cv: { count: mocks.count, findMany: mocks.findMany, groupBy: mocks.groupBy },
     institution: { findUnique: mocks.institutionFindUnique, findMany: mocks.institutionFindMany },
   },
 }));
@@ -48,6 +49,7 @@ vi.mock("next/headers", () => ({
 vi.mock("@/components/SiteHeader", () => ({ default: () => null }));
 vi.mock("@/components/SiteFooter", () => ({ default: () => null }));
 
+import { buildCanonicalCv } from "@/lib/canonical/build";
 import IndexPage, { generateMetadata as indexMetadata } from "@/app/i/page";
 import RorPage, { generateMetadata as rorMetadata } from "@/app/i/[ror]/page";
 import LocaleIndexPage, { generateMetadata as localeIndexMetadata } from "@/app/[locale]/i/page";
@@ -87,8 +89,38 @@ const AGGREGATES = {
   ],
 };
 
+/** Five consented, active CVs with a stored aggregate, so the opted-in figures
+ *  section renders its tables (not only the below-k sentence) from rows alone. */
+const CONSENTED_DOC = buildCanonicalCv({
+  id: "cv_c",
+  resolved: { orcid: "0000-0002-7483-2489", authorIds: [], displayName: "A Researcher" },
+  works: [],
+  employments: [{ putCode: "cur", organization: "Nagoya University", startYear: 2024, rorId: ROR }],
+  now: "2026-09-08T00:00:00.000Z",
+});
+const CONSENTED_ROWS = Array.from({ length: 5 }, () => ({
+  consentedRorIds: [ROR],
+  showOnInstitutionPage: true,
+  published: true,
+  publicIndexable: true,
+  visibleCurrentRorIds: [ROR],
+  document: CONSENTED_DOC,
+  institutionAggregates: {
+    v: 1,
+    worksTotal: 2,
+    byYear: {
+      "2025": {
+        total: 2,
+        oa: { "open-cc": 2, "open-other": 0, "no-open-copy-found": 0, "not-determined": 0 },
+      },
+    },
+    byType: { publications: 2 },
+  },
+}));
+
 beforeEach(() => {
   mocks.count.mockResolvedValue(3);
+  mocks.findMany.mockResolvedValue(CONSENTED_ROWS);
   mocks.groupBy.mockResolvedValue([{ currentRorId: ROR, _count: { _all: 3 } }]);
   mocks.institutionFindUnique.mockResolvedValue({
     name: "Nagoya University",
@@ -110,9 +142,12 @@ describe("institution routes render with no network at all", () => {
     ];
     for (const html of pages) expect(html).toContain("Nagoya University");
     // The two /i/[ror] renders show the stored snapshot — tables, links, sameAs —
-    // from the row alone.
+    // and the opted-in figures (five contributors, 10 works in 2025) from the
+    // rows alone.
     for (const html of [pages[1]!, pages[3]!]) {
       expect(html).toContain("inst-table");
+      expect(html).toContain("inst-figures");
+      expect(html).toContain(">10<");
       expect(html).toContain('href="https://openalex.org/I60134161"');
       expect(html).toContain('href="https://openalex.org/I4210121234"');
       expect(html).toContain("https://openalex.org/I60134161");
