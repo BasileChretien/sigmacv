@@ -225,6 +225,19 @@ model Institution {
   country   String?
   source    String   @default("ror")
   fetchedAt DateTime
+
+  // OpenAlex's record of the organisation, refreshed weekly by the internal
+  // resync tick (openalex/institutionRefresh.ts) for the RORs with an opted-in
+  // researcher, and read by the /i/[ror] page from this row only. The trusted
+  // ROR name above stays the page's name; OpenAlex's display_name lives inside
+  // the aggregates as "counted entity" context. Counts only, never a share.
+  openalexId            String?
+  openalexAggregates    Json?
+  openalexFetchedAt     DateTime?
+  openalexLastError     String?
+  openalexNextRefreshAt DateTime?
+
+  @@index([openalexNextRefreshAt])
 }
 
 model DoiWithdrawal {

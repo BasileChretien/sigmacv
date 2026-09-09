@@ -67,14 +67,34 @@ export async function countListedCvsByRor(): Promise<Map<string, number>> {
   return counts;
 }
 
-/** The institution's trusted (ROR-recorded) name for a bare ROR id, or null
- *  when no sync has recorded it yet — callers then show `ROR <id>`. */
-export async function trustedInstitutionName(rorId: string): Promise<string | null> {
+/**
+ * One institution's row as the page reads it: the trusted (ROR-recorded) name,
+ * trimmed (blank → null, callers then show `ROR <id>`), and the OpenAlex
+ * snapshot columns the internal resync job wrote — the stored JSON is returned
+ * as `unknown` for the caller to validate; nothing here is fetched. Null when
+ * no sync has recorded the institution yet.
+ */
+export interface TrustedInstitutionRecord {
+  name: string | null;
+  openalexId: string | null;
+  openalexAggregates: unknown;
+  openalexFetchedAt: Date | null;
+}
+
+export async function trustedInstitutionRecord(
+  rorId: string,
+): Promise<TrustedInstitutionRecord | null> {
   const row = await prisma.institution.findUnique({
     where: { rorId },
-    select: { name: true },
+    select: { name: true, openalexId: true, openalexAggregates: true, openalexFetchedAt: true },
   });
-  return row?.name.trim() || null;
+  if (!row) return null;
+  return {
+    name: row.name.trim() || null,
+    openalexId: row.openalexId ?? null,
+    openalexAggregates: row.openalexAggregates ?? null,
+    openalexFetchedAt: row.openalexFetchedAt ?? null,
+  };
 }
 
 /** Trusted names for many bare ROR ids at once (index, sitemap, ListSets):

@@ -3753,6 +3753,37 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .doc-page ol li {
   margin-bottom: var(--space-3);
 }
+/* Institution page: the OpenAlex count tables (counts only; a wide OA table
+   scrolls inside its wrapper, never the page). */
+.doc-page h3 {
+  margin-top: var(--space-6);
+  font-size: var(--text-lg);
+}
+.inst-table-wrap {
+  overflow-x: auto;
+  margin-top: var(--space-3);
+}
+.inst-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.inst-table th,
+.inst-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+.inst-table th {
+  color: var(--text);
+  font-weight: 600;
+}
+.inst-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 .landing-related ul {
   list-style: none;
   padding: 0;

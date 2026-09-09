@@ -39,6 +39,31 @@ export interface InstitutionStrings {
   backLink: string;
   rateLimitedHeading: string;
   rateLimitedBody: string;
+  /** "OpenAlex's record of this organisation" — rendered from the stored
+   *  snapshot only (counts, explicit denominators, no share). */
+  openalexHeading: string;
+  openalexNotFetched: string;
+  /** `{id}` (OpenAlex `I…`), `{entityName}`, `{lineage}`, `{related}`. */
+  openalexCountedEntity: string;
+  /** `{from}`, `{to}` (years). */
+  openalexScope: string;
+  openalexNotCompared: string;
+  openalexWorksByYearHeading: string;
+  openalexOaByYearHeading: string;
+  openalexOaNote: string;
+  /** `{n}`. */
+  openalexCountriesHeading: string;
+  openalexCountriesNote: string;
+  /** `{n}`. */
+  openalexCoAffiliationsHeading: string;
+  openalexCoAffiliationsNote: string;
+  /** `{date}`. */
+  openalexAsOf: string;
+  openalexColYear: string;
+  openalexColWorks: string;
+  openalexColTotal: string;
+  openalexColCountry: string;
+  openalexColOrganisation: string;
 }
 
 const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
@@ -76,6 +101,31 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     rateLimitedHeading: "Too many requests",
     rateLimitedBody:
       "There have been a lot of requests to this page in a short time. Please wait a moment and try again.",
+    openalexHeading: "OpenAlex's record of this organisation",
+    openalexNotFetched: "OpenAlex figures not fetched yet.",
+    openalexCountedEntity:
+      "Counted as OpenAlex entity {id} ({entityName}): a lineage of {lineage}, {related} associated organisations. Hospitals and affiliated labs that OpenAlex records as related or child organisations are folded in; parent organisations are not.",
+    openalexScope:
+      "Counts of articles, reviews, book chapters and preprints that OpenAlex attributes to these organisations, {from}–{to}. Datasets are left out: they swamp the current year. Counts only, never shares — each table states its own denominator.",
+    openalexNotCompared:
+      "These are OpenAlex's figures about the organisation, not about the researchers listed above, and SigmaCV compares neither with the other.",
+    openalexWorksByYearHeading: "Works by year",
+    openalexOaByYearHeading: "Open-access status by year",
+    openalexOaNote:
+      "OpenAlex's own status of each work's best open copy (gold, hybrid, diamond, green, bronze — or closed when it found none). The last column is that year's total.",
+    openalexCountriesHeading: "Countries of co-authors (top {n})",
+    openalexCountriesNote:
+      "Number of works with at least one author affiliated in each country, this organisation's own country included.",
+    openalexCoAffiliationsHeading: "Co-affiliated organisations (top {n})",
+    openalexCoAffiliationsNote:
+      "Number of works that also carry an author from each other organisation; this organisation's own lineage and associated organisations are left out.",
+    openalexAsOf:
+      "As of {date}, from OpenAlex; refreshed about weekly by SigmaCV. Nothing on this page is fetched when it is opened.",
+    openalexColYear: "Year",
+    openalexColWorks: "Works",
+    openalexColTotal: "Total",
+    openalexColCountry: "Country",
+    openalexColOrganisation: "Organisation",
   },
   "zh-CN": {
     indexMetaTitle: "机构",
@@ -109,6 +159,29 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     backLink: "← 返回 SigmaCV",
     rateLimitedHeading: "请求过多",
     rateLimitedBody: "短时间内对本页面的请求过多。请稍候再试。",
+    openalexHeading: "OpenAlex 对该机构的记录",
+    openalexNotFetched: "尚未获取 OpenAlex 数据。",
+    openalexCountedEntity:
+      "按 OpenAlex 实体 {id}（{entityName}）计数：谱系包含 {lineage} 个机构，关联机构 {related} 个。OpenAlex 记为关联或下属机构的医院和附属实验室已合并计入；上级机构不计入。",
+    openalexScope:
+      "OpenAlex 归属于这些机构的论文、综述、图书章节和预印本的数量，{from}–{to} 年。不含数据集：数据集会淹没当年的数字。只有数量，没有比例——每张表都写明自己的分母。",
+    openalexNotCompared:
+      "这些是 OpenAlex 关于该机构的数字，与上面列出的研究者无关，SigmaCV 也不将两者相互比较。",
+    openalexWorksByYearHeading: "按年份的成果数",
+    openalexOaByYearHeading: "按年份的开放获取状态",
+    openalexOaNote:
+      "OpenAlex 对每篇成果最佳开放版本的自有状态（gold、hybrid、diamond、green、bronze；未找到开放版本时为 closed）。最后一列是该年的总数。",
+    openalexCountriesHeading: "合著者所在国家（前 {n} 位）",
+    openalexCountriesNote: "至少有一位作者隶属于该国家的成果数，包括本机构所在的国家。",
+    openalexCoAffiliationsHeading: "共同署名机构（前 {n} 位）",
+    openalexCoAffiliationsNote: "同时带有其他机构作者的成果数；本机构自身的谱系和关联机构不计入。",
+    openalexAsOf:
+      "数据截至 {date}，来自 OpenAlex，由 SigmaCV 大约每周刷新一次。打开本页时不会获取任何数据。",
+    openalexColYear: "年份",
+    openalexColWorks: "成果",
+    openalexColTotal: "总计",
+    openalexColCountry: "国家",
+    openalexColOrganisation: "机构",
   },
   "es-ES": {
     indexMetaTitle: "Instituciones",
@@ -144,6 +217,31 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     rateLimitedHeading: "Demasiadas solicitudes",
     rateLimitedBody:
       "Ha habido muchas solicitudes a esta página en poco tiempo. Espere un momento e inténtelo de nuevo.",
+    openalexHeading: "El registro de esta organización en OpenAlex",
+    openalexNotFetched: "Cifras de OpenAlex aún no obtenidas.",
+    openalexCountedEntity:
+      "Contabilizada como la entidad de OpenAlex {id} ({entityName}): un linaje de {lineage}, {related} organizaciones asociadas. Los hospitales y laboratorios afiliados que OpenAlex registra como organizaciones relacionadas o dependientes se incluyen; las organizaciones matrices, no.",
+    openalexScope:
+      "Recuento de artículos, revisiones, capítulos de libro y preprints que OpenAlex atribuye a estas organizaciones, {from}–{to}. Se excluyen los conjuntos de datos: inundan el año en curso. Solo recuentos, nunca proporciones: cada tabla indica su propio denominador.",
+    openalexNotCompared:
+      "Son las cifras de OpenAlex sobre la organización, no sobre las personas investigadoras listadas arriba, y SigmaCV no compara unas con otras.",
+    openalexWorksByYearHeading: "Trabajos por año",
+    openalexOaByYearHeading: "Estado de acceso abierto por año",
+    openalexOaNote:
+      "El estado que OpenAlex asigna a la mejor copia abierta de cada trabajo (gold, hybrid, diamond, green, bronze, o closed cuando no encontró ninguna). La última columna es el total de ese año.",
+    openalexCountriesHeading: "Países de los coautores (los {n} primeros)",
+    openalexCountriesNote:
+      "Número de trabajos con al menos un autor afiliado en cada país, incluido el país de esta organización.",
+    openalexCoAffiliationsHeading: "Organizaciones coafiliadas (las {n} primeras)",
+    openalexCoAffiliationsNote:
+      "Número de trabajos que también llevan un autor de cada otra organización; se excluyen el propio linaje y las organizaciones asociadas de esta organización.",
+    openalexAsOf:
+      "A fecha de {date}, según OpenAlex; SigmaCV lo actualiza aproximadamente cada semana. Nada de esta página se obtiene al abrirla.",
+    openalexColYear: "Año",
+    openalexColWorks: "Trabajos",
+    openalexColTotal: "Total",
+    openalexColCountry: "País",
+    openalexColOrganisation: "Organización",
   },
   "fr-FR": {
     indexMetaTitle: "Établissements",
@@ -179,6 +277,31 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     rateLimitedHeading: "Trop de requêtes",
     rateLimitedBody:
       "Cette page a reçu beaucoup de requêtes en peu de temps. Patientez un instant, puis réessayez.",
+    openalexHeading: "Ce qu'OpenAlex enregistre sur cet organisme",
+    openalexNotFetched: "Chiffres OpenAlex pas encore récupérés.",
+    openalexCountedEntity:
+      "Comptabilisé comme l'entité OpenAlex {id} ({entityName}) : une lignée de {lineage}, {related} organismes associés. Les hôpitaux et laboratoires affiliés qu'OpenAlex enregistre comme organismes liés ou rattachés sont inclus ; les organismes parents ne le sont pas.",
+    openalexScope:
+      "Nombre d'articles, de revues de littérature, de chapitres d'ouvrage et de prépublications qu'OpenAlex attribue à ces organismes, {from}–{to}. Les jeux de données sont exclus : ils submergent l'année en cours. Des effectifs seulement, jamais des parts — chaque tableau indique son propre dénominateur.",
+    openalexNotCompared:
+      "Ce sont les chiffres d'OpenAlex sur l'organisme, non sur les chercheuses et chercheurs listés ci-dessus, et SigmaCV ne compare pas les uns aux autres.",
+    openalexWorksByYearHeading: "Travaux par année",
+    openalexOaByYearHeading: "Statut d'accès ouvert par année",
+    openalexOaNote:
+      "Le statut qu'OpenAlex attribue à la meilleure copie ouverte de chaque travail (gold, hybrid, diamond, green, bronze, ou closed lorsqu'il n'en a trouvé aucune). La dernière colonne est le total de l'année.",
+    openalexCountriesHeading: "Pays des co-auteurs ({n} premiers)",
+    openalexCountriesNote:
+      "Nombre de travaux ayant au moins un auteur affilié dans chaque pays, celui de cet organisme compris.",
+    openalexCoAffiliationsHeading: "Organismes co-affiliés ({n} premiers)",
+    openalexCoAffiliationsNote:
+      "Nombre de travaux portant aussi un auteur de chaque autre organisme ; la lignée et les organismes associés de cet organisme sont exclus.",
+    openalexAsOf:
+      "Au {date}, d'après OpenAlex ; actualisé environ chaque semaine par SigmaCV. Rien sur cette page n'est récupéré à son ouverture.",
+    openalexColYear: "Année",
+    openalexColWorks: "Travaux",
+    openalexColTotal: "Total",
+    openalexColCountry: "Pays",
+    openalexColOrganisation: "Organisme",
   },
   "de-DE": {
     indexMetaTitle: "Einrichtungen",
@@ -214,6 +337,31 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     rateLimitedHeading: "Zu viele Anfragen",
     rateLimitedBody:
       "Diese Seite hat in kurzer Zeit sehr viele Anfragen erhalten. Bitte warten Sie einen Moment und versuchen Sie es erneut.",
+    openalexHeading: "Was OpenAlex über diese Einrichtung verzeichnet",
+    openalexNotFetched: "OpenAlex-Zahlen noch nicht abgerufen.",
+    openalexCountedEntity:
+      "Gezählt als OpenAlex-Entität {id} ({entityName}): eine Linie von {lineage}, {related} verbundene Einrichtungen. Kliniken und angegliederte Labore, die OpenAlex als verwandte oder untergeordnete Einrichtungen führt, werden eingerechnet; übergeordnete Einrichtungen nicht.",
+    openalexScope:
+      "Anzahl der Artikel, Übersichtsarbeiten, Buchkapitel und Preprints, die OpenAlex diesen Einrichtungen zuordnet, {from}–{to}. Datensätze bleiben außen vor: sie überschwemmen das laufende Jahr. Nur Anzahlen, nie Anteile — jede Tabelle nennt ihren eigenen Nenner.",
+    openalexNotCompared:
+      "Das sind OpenAlex-Zahlen über die Einrichtung, nicht über die oben gelisteten Forschenden, und SigmaCV vergleicht beides nicht miteinander.",
+    openalexWorksByYearHeading: "Arbeiten nach Jahr",
+    openalexOaByYearHeading: "Open-Access-Status nach Jahr",
+    openalexOaNote:
+      "Der Status, den OpenAlex der besten offenen Kopie jeder Arbeit zuweist (gold, hybrid, diamond, green, bronze — oder closed, wenn keine gefunden wurde). Die letzte Spalte ist die Gesamtzahl des Jahres.",
+    openalexCountriesHeading: "Länder der Koautorinnen und Koautoren (Top {n})",
+    openalexCountriesNote:
+      "Anzahl der Arbeiten mit mindestens einer in dem jeweiligen Land affiliierten Autorin oder einem Autor, das Land dieser Einrichtung eingeschlossen.",
+    openalexCoAffiliationsHeading: "Mitaffiliierte Einrichtungen (Top {n})",
+    openalexCoAffiliationsNote:
+      "Anzahl der Arbeiten, die auch eine Autorin oder einen Autor der jeweils anderen Einrichtung tragen; die eigene Linie und die verbundenen Einrichtungen dieser Einrichtung bleiben außen vor.",
+    openalexAsOf:
+      "Stand {date}, laut OpenAlex; von SigmaCV etwa wöchentlich aktualisiert. Beim Öffnen dieser Seite wird nichts abgerufen.",
+    openalexColYear: "Jahr",
+    openalexColWorks: "Arbeiten",
+    openalexColTotal: "Gesamt",
+    openalexColCountry: "Land",
+    openalexColOrganisation: "Einrichtung",
   },
   "ja-JP": {
     indexMetaTitle: "研究機関",
@@ -249,6 +397,31 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     rateLimitedHeading: "リクエストが多すぎます",
     rateLimitedBody:
       "短時間にこのページへのリクエストが集中しました。少し待ってからもう一度お試しください。",
+    openalexHeading: "OpenAlex におけるこの機関の記録",
+    openalexNotFetched: "OpenAlex のデータはまだ取得されていません。",
+    openalexCountedEntity:
+      "OpenAlex エンティティ {id}（{entityName}）として集計：系統 {lineage} 件、関連機関 {related} 件。OpenAlex が関連機関または下位機関として記録する病院や附属研究所は含めます。上位機関は含めません。",
+    openalexScope:
+      "OpenAlex がこれらの機関に帰属させた論文・総説・図書の章・プレプリントの件数（{from}–{to} 年）。データセットは除外しています。当年の件数を埋め尽くしてしまうためです。件数のみで、割合は示しません。各表はそれぞれの分母を明示しています。",
+    openalexNotCompared:
+      "これは機関に関する OpenAlex の数値であり、上に掲載された研究者に関するものではありません。SigmaCV は両者を比較しません。",
+    openalexWorksByYearHeading: "年別の研究成果数",
+    openalexOaByYearHeading: "年別のオープンアクセス状況",
+    openalexOaNote:
+      "各成果の最良のオープン版に OpenAlex が付与した状態（gold、hybrid、diamond、green、bronze。見つからない場合は closed）。最後の列はその年の合計です。",
+    openalexCountriesHeading: "共著者の国（上位 {n}）",
+    openalexCountriesNote:
+      "各国に所属する著者を少なくとも一人含む成果の件数。この機関の国も含みます。",
+    openalexCoAffiliationsHeading: "共同所属機関（上位 {n}）",
+    openalexCoAffiliationsNote:
+      "他の各機関の著者も含む成果の件数。この機関自身の系統と関連機関は除きます。",
+    openalexAsOf:
+      "{date} 時点、OpenAlex より。SigmaCV がおよそ週に一度更新します。このページを開いた時点で取得される情報はありません。",
+    openalexColYear: "年",
+    openalexColWorks: "成果",
+    openalexColTotal: "合計",
+    openalexColCountry: "国",
+    openalexColOrganisation: "機関",
   },
   "pt-BR": {
     indexMetaTitle: "Instituições",
@@ -284,6 +457,31 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     rateLimitedHeading: "Muitas solicitações",
     rateLimitedBody:
       "Houve muitas solicitações a esta página em pouco tempo. Aguarde um momento e tente novamente.",
+    openalexHeading: "O registro desta organização no OpenAlex",
+    openalexNotFetched: "Números do OpenAlex ainda não obtidos.",
+    openalexCountedEntity:
+      "Contabilizada como a entidade {id} do OpenAlex ({entityName}): uma linhagem de {lineage}, {related} organizações associadas. Hospitais e laboratórios afiliados que o OpenAlex registra como organizações relacionadas ou subordinadas são incluídos; organizações-mãe, não.",
+    openalexScope:
+      "Contagem de artigos, revisões, capítulos de livro e preprints que o OpenAlex atribui a essas organizações, {from}–{to}. Conjuntos de dados ficam de fora: eles inundam o ano corrente. Apenas contagens, nunca proporções — cada tabela indica seu próprio denominador.",
+    openalexNotCompared:
+      "São os números do OpenAlex sobre a organização, não sobre as pessoas pesquisadoras listadas acima, e o SigmaCV não compara uns com os outros.",
+    openalexWorksByYearHeading: "Trabalhos por ano",
+    openalexOaByYearHeading: "Status de acesso aberto por ano",
+    openalexOaNote:
+      "O status que o OpenAlex atribui à melhor cópia aberta de cada trabalho (gold, hybrid, diamond, green, bronze — ou closed quando não encontrou nenhuma). A última coluna é o total daquele ano.",
+    openalexCountriesHeading: "Países dos coautores ({n} primeiros)",
+    openalexCountriesNote:
+      "Número de trabalhos com pelo menos um autor afiliado em cada país, incluindo o país desta organização.",
+    openalexCoAffiliationsHeading: "Organizações coafiliadas ({n} primeiras)",
+    openalexCoAffiliationsNote:
+      "Número de trabalhos que também trazem um autor de cada outra organização; a própria linhagem e as organizações associadas desta organização ficam de fora.",
+    openalexAsOf:
+      "Em {date}, segundo o OpenAlex; atualizado pelo SigmaCV mais ou menos a cada semana. Nada nesta página é buscado ao abri-la.",
+    openalexColYear: "Ano",
+    openalexColWorks: "Trabalhos",
+    openalexColTotal: "Total",
+    openalexColCountry: "País",
+    openalexColOrganisation: "Organização",
   },
   "it-IT": {
     indexMetaTitle: "Istituzioni",
@@ -319,6 +517,31 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     rateLimitedHeading: "Troppe richieste",
     rateLimitedBody:
       "Questa pagina ha ricevuto molte richieste in poco tempo. Attendi un momento e riprova.",
+    openalexHeading: "Ciò che OpenAlex registra su questa organizzazione",
+    openalexNotFetched: "Dati OpenAlex non ancora recuperati.",
+    openalexCountedEntity:
+      "Conteggiata come entità OpenAlex {id} ({entityName}): una discendenza di {lineage}, {related} organizzazioni associate. Ospedali e laboratori affiliati che OpenAlex registra come organizzazioni collegate o dipendenti sono inclusi; le organizzazioni madri no.",
+    openalexScope:
+      "Conteggio di articoli, rassegne, capitoli di libro e preprint che OpenAlex attribuisce a queste organizzazioni, {from}–{to}. I dataset sono esclusi: sommergono l'anno in corso. Solo conteggi, mai quote: ogni tabella indica il proprio denominatore.",
+    openalexNotCompared:
+      "Sono i dati di OpenAlex sull'organizzazione, non sulle ricercatrici e i ricercatori elencati sopra, e SigmaCV non confronta gli uni con gli altri.",
+    openalexWorksByYearHeading: "Lavori per anno",
+    openalexOaByYearHeading: "Stato di accesso aperto per anno",
+    openalexOaNote:
+      "Lo stato che OpenAlex assegna alla migliore copia aperta di ciascun lavoro (gold, hybrid, diamond, green, bronze, oppure closed quando non ne ha trovata alcuna). L'ultima colonna è il totale dell'anno.",
+    openalexCountriesHeading: "Paesi dei coautori (primi {n})",
+    openalexCountriesNote:
+      "Numero di lavori con almeno un autore affiliato in ciascun paese, incluso quello di questa organizzazione.",
+    openalexCoAffiliationsHeading: "Organizzazioni coaffiliate (prime {n})",
+    openalexCoAffiliationsNote:
+      "Numero di lavori che riportano anche un autore di ciascun'altra organizzazione; la discendenza e le organizzazioni associate di questa organizzazione sono escluse.",
+    openalexAsOf:
+      "Al {date}, secondo OpenAlex; aggiornato da SigmaCV circa ogni settimana. Nulla in questa pagina viene recuperato all'apertura.",
+    openalexColYear: "Anno",
+    openalexColWorks: "Lavori",
+    openalexColTotal: "Totale",
+    openalexColCountry: "Paese",
+    openalexColOrganisation: "Organizzazione",
   },
   "ko-KR": {
     indexMetaTitle: "기관",
@@ -354,6 +577,31 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     rateLimitedHeading: "요청이 너무 많습니다",
     rateLimitedBody:
       "짧은 시간에 이 페이지에 요청이 많이 몰렸습니다. 잠시 기다린 후 다시 시도해 주세요.",
+    openalexHeading: "OpenAlex에 기록된 이 기관",
+    openalexNotFetched: "OpenAlex 수치를 아직 가져오지 않았습니다.",
+    openalexCountedEntity:
+      "OpenAlex 엔터티 {id}({entityName})로 집계: 계보 {lineage}개, 관련 기관 {related}개. OpenAlex가 관련 또는 하위 기관으로 기록한 병원과 부속 연구소는 포함하며, 상위 기관은 포함하지 않습니다.",
+    openalexScope:
+      "OpenAlex가 이들 기관에 귀속시킨 논문, 리뷰, 단행본 챕터, 프리프린트의 건수({from}–{to}년). 데이터셋은 제외했습니다. 올해 수치를 뒤덮기 때문입니다. 건수만 제시하며 비율은 제시하지 않습니다. 각 표는 자체 분모를 명시합니다.",
+    openalexNotCompared:
+      "이는 기관에 관한 OpenAlex의 수치이며 위에 나열된 연구자에 관한 것이 아닙니다. SigmaCV는 둘을 서로 비교하지 않습니다.",
+    openalexWorksByYearHeading: "연도별 성과 수",
+    openalexOaByYearHeading: "연도별 오픈 액세스 상태",
+    openalexOaNote:
+      "각 성과의 최선의 공개본에 OpenAlex가 부여한 상태(gold, hybrid, diamond, green, bronze — 찾지 못한 경우 closed). 마지막 열은 해당 연도의 합계입니다.",
+    openalexCountriesHeading: "공저자 국가(상위 {n})",
+    openalexCountriesNote:
+      "각 국가에 소속된 저자를 한 명 이상 포함한 성과 수이며, 이 기관의 국가도 포함합니다.",
+    openalexCoAffiliationsHeading: "공동 소속 기관(상위 {n})",
+    openalexCoAffiliationsNote:
+      "다른 각 기관의 저자도 포함한 성과 수이며, 이 기관 자체의 계보와 관련 기관은 제외합니다.",
+    openalexAsOf:
+      "{date} 기준, OpenAlex 제공. SigmaCV가 약 매주 갱신합니다. 이 페이지를 열 때 가져오는 정보는 없습니다.",
+    openalexColYear: "연도",
+    openalexColWorks: "성과",
+    openalexColTotal: "합계",
+    openalexColCountry: "국가",
+    openalexColOrganisation: "기관",
   },
   "ru-RU": {
     indexMetaTitle: "Учреждения",
@@ -389,6 +637,31 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     rateLimitedHeading: "Слишком много запросов",
     rateLimitedBody:
       "За короткое время к этой странице поступило много запросов. Подождите немного и попробуйте снова.",
+    openalexHeading: "Что OpenAlex знает об этой организации",
+    openalexNotFetched: "Данные OpenAlex ещё не получены.",
+    openalexCountedEntity:
+      "Учтена как сущность OpenAlex {id} ({entityName}): линия из {lineage}, связанных организаций — {related}. Больницы и аффилированные лаборатории, которые OpenAlex записывает как связанные или дочерние организации, включены; головные организации — нет.",
+    openalexScope:
+      "Число статей, обзоров, глав книг и препринтов, которые OpenAlex относит к этим организациям, {from}–{to}. Наборы данных исключены: они заполоняют текущий год. Только числа, никаких долей — каждая таблица указывает свой знаменатель.",
+    openalexNotCompared:
+      "Это данные OpenAlex об организации, а не об исследователях, перечисленных выше, и SigmaCV не сравнивает одно с другим.",
+    openalexWorksByYearHeading: "Работы по годам",
+    openalexOaByYearHeading: "Статус открытого доступа по годам",
+    openalexOaNote:
+      "Статус, который OpenAlex присваивает лучшей открытой копии каждой работы (gold, hybrid, diamond, green, bronze — или closed, если она не найдена). Последний столбец — итог за год.",
+    openalexCountriesHeading: "Страны соавторов (первые {n})",
+    openalexCountriesNote:
+      "Число работ, у которых хотя бы один автор аффилирован в соответствующей стране, включая страну этой организации.",
+    openalexCoAffiliationsHeading: "Соаффилированные организации (первые {n})",
+    openalexCoAffiliationsNote:
+      "Число работ, у которых есть также автор из каждой другой организации; собственная линия и связанные организации этой организации исключены.",
+    openalexAsOf:
+      "По состоянию на {date}, по данным OpenAlex; SigmaCV обновляет примерно раз в неделю. При открытии этой страницы ничего не запрашивается.",
+    openalexColYear: "Год",
+    openalexColWorks: "Работы",
+    openalexColTotal: "Итого",
+    openalexColCountry: "Страна",
+    openalexColOrganisation: "Организация",
   },
 };
 

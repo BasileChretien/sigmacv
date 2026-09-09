@@ -184,6 +184,149 @@ describe("/i/[ror]", () => {
     expect(scripts.some((s) => s["@type"] === "WebPage")).toBe(true);
   });
 
+  describe("OpenAlex section (rendered from the stored row only)", () => {
+    const FETCHED = new Date("2026-09-09T10:00:00Z");
+    const AGG = {
+      version: 1,
+      countedEntity: {
+        openalexId: "I98702875",
+        displayName: "Université de Caen Normandie (OpenAlex)",
+        lineageSize: 2,
+        relatedCount: 3,
+        foldedIds: ["I98702875", "I4210114068"],
+        fetchedAt: FETCHED.toISOString(),
+      },
+      countedWorkTypes: ["article", "review", "book-chapter", "preprint"],
+      years: { from: 2025, to: 2026 },
+      worksByYear: [
+        { year: 2025, count: 1234 },
+        { year: 2026, count: 56 },
+      ],
+      oaByStatusByYear: [
+        { year: 2025, status: "gold", count: 400 },
+        { year: 2025, status: "closed", count: 834 },
+        { year: 2026, status: "mystery", count: 56 },
+      ],
+      topCountries: [
+        { code: "FR", name: "France", count: 1200 },
+        { code: "XX", name: "", count: 3 },
+      ],
+      topCoAffiliations: [
+        { openalexId: "I1294671590", name: "CNRS", count: 500 },
+        { openalexId: "I35440088", name: "", count: 7 },
+      ],
+    };
+
+    function listedWithSnapshot(aggregates: unknown = AGG) {
+      listed(3);
+      mocks.institutionFindUnique.mockResolvedValue({
+        name: NAME,
+        openalexId: "I98702875",
+        openalexAggregates: aggregates,
+        openalexFetchedAt: FETCHED,
+      });
+    }
+
+    it("says 'not fetched yet' and nothing else when the row has no snapshot", async () => {
+      listed(3);
+      const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+      const s = institutionStrings("en-US");
+      expect(text(html)).toContain(s.openalexHeading);
+      expect(text(html)).toContain(s.openalexNotFetched);
+      expect(html).not.toContain("inst-table");
+      expect(html).not.toContain("openalex.org");
+    });
+
+    it("renders the counted entity, the count tables with the year's total as denominator, the top lists and the as-of date — counts only", async () => {
+      listedWithSnapshot();
+      const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+      const body = text(html);
+      // The trusted ROR name stays the page's name; OpenAlex's is context only.
+      expect(html).toContain(`<h1>${NAME}</h1>`);
+      expect(body).toContain(
+        "Counted as OpenAlex entity I98702875 (Université de Caen Normandie (OpenAlex))",
+      );
+      expect(body).toContain("a lineage of 2, 3 associated organisations");
+      expect(html).toContain('href="https://openalex.org/I98702875"');
+      expect(body).toContain("2025–2026");
+      expect(body).toContain(institutionStrings("en-US").openalexNotCompared);
+      // Works by year.
+      expect(html).toContain('<th scope="row">2025</th>');
+      expect(html).toContain("1,234");
+      // OA by year: OpenAlex's statuses in order, an unknown one appended, the total last.
+      const headers = [...html.matchAll(/<th scope="col" class="num">([^<]*)<\/th>/g)].map(
+        (m) => m[1],
+      );
+      expect(headers).toEqual([
+        "Works",
+        "gold",
+        "hybrid",
+        "diamond",
+        "green",
+        "bronze",
+        "closed",
+        "mystery",
+        "Total",
+        "Works",
+        "Works",
+      ]);
+      const rows = [
+        ...html.matchAll(
+          /<tr><th scope="row">(\d{4})<\/th>((?:<td class="num">[^<]*<\/td>)+)<\/tr>/g,
+        ),
+      ].map((m) => [
+        m[1],
+        ...[...m[2]!.matchAll(/<td class="num">([^<]*)<\/td>/g)].map((c) => c[1]),
+      ]);
+      expect(rows).toContainEqual(["2025", "400", "0", "0", "0", "0", "834", "0", "1,234"]);
+      expect(rows).toContainEqual(["2026", "0", "0", "0", "0", "0", "0", "56", "56"]);
+      // Top lists; a blank name falls back to the code / id, an org links to OpenAlex.
+      expect(body).toContain("France");
+      expect(body).toContain("1,200");
+      expect(body).toContain("XX");
+      expect(html).toContain('href="https://openalex.org/I1294671590"');
+      expect(body).toContain("I35440088");
+      expect(body).toContain("top 15");
+      // As of.
+      expect(body).toContain("As of September 9, 2026");
+      // Never a share.
+      expect(body).not.toContain("%");
+      // Still no network and no CV column.
+      expect(mocks.findFirst).not.toHaveBeenCalled();
+    });
+
+    it("adds the OpenAlex entity as the Organization's sameAs, and only then", async () => {
+      listedWithSnapshot();
+      const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+      const org = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)]
+        .map((m) => JSON.parse(m[1]!.replace(/\\u003c/g, "<")))
+        .find((node) => node["@type"] === "Organization");
+      expect(org.sameAs).toBe("https://openalex.org/I98702875");
+      expect(JSON.stringify(org)).not.toContain("1234");
+
+      listed(3);
+      const bare = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+      expect(bare).not.toContain("sameAs");
+    });
+
+    it("treats a malformed stored snapshot as not fetched rather than throwing", async () => {
+      listedWithSnapshot({ version: 1, worksByYear: "nope" });
+      const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+      expect(text(html)).toContain(institutionStrings("en-US").openalexNotFetched);
+      expect(html).not.toContain("sameAs");
+    });
+
+    it("localizes the section (fr) with the locale's number and date formats", async () => {
+      listedWithSnapshot();
+      const html = renderToStaticMarkup(await LocaleRorPage(params({ locale: "fr", ror: ROR })));
+      const s = institutionStrings("fr-FR");
+      expect(text(html)).toContain(s.openalexHeading);
+      expect(text(html)).toContain(s.openalexWorksByYearHeading);
+      expect(text(html)).toContain("9 septembre 2026");
+      expect(html).toContain("1 234");
+    });
+  });
+
   it("names the page after the institution in its metadata", async () => {
     listed(3);
     const meta = await rorMetadata(params({ ror: ROR }));
