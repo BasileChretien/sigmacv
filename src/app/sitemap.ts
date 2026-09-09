@@ -14,6 +14,7 @@ import {
   localeGuidesIndexPath,
   localeInstitutionPath,
   localeInstitutionsIndexPath,
+  localeSearchPath,
   localeLandingPagePath,
 } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/siteUrl";
@@ -259,6 +260,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // and stays out of the sitemap — see isInstitutionIndexable). Best-effort like
   // cvEntries: a DB hiccup keeps the index entries and drops only the
   // per-institution ones.
+  // The lookup's bare page per locale — never a result URL (those are noindex).
+  const searchLanguages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) searchLanguages[loc] = absoluteUrl(localeSearchPath(loc));
+  const searchEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.map((loc) => ({
+    url: absoluteUrl(localeSearchPath(loc)),
+    changeFrequency: "monthly",
+    priority: loc === DEFAULT_UI_LOCALE ? 0.6 : 0.5,
+    alternates: { languages: searchLanguages },
+  }));
   const institutionsIndexLanguages: Record<string, string> = {};
   for (const loc of SUPPORTED_LOCALES) {
     institutionsIndexLanguages[loc] = absoluteUrl(localeInstitutionsIndexPath(loc));
@@ -304,6 +314,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...glossaryEntries,
     ...headTermEntries,
     ...examplesEntries,
+    ...searchEntries,
     ...institutionsIndexEntries,
     ...institutionEntries,
     ...cvEntries,

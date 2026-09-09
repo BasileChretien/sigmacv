@@ -34,6 +34,8 @@ describe("privacyStrings", () => {
       expect(s.preview).toContain("Art. 14(5)(b)");
       expect(s.preview).toContain("Art. 6(1)(f)");
       expect(s.preview).toContain("privacy@sigmacv.org");
+      // The lookup is disclosed where the preview is.
+      expect(s.preview).toContain("/search");
       // Non-users: the Art. 21 objection route with a 30-day promise.
       expect(s.nonUserRights).toContain("Art. 21");
       expect(s.nonUserRights).toContain("privacy@sigmacv.org");

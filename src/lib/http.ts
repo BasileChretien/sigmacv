@@ -15,6 +15,11 @@ export interface ResilientFetchOptions {
   headers?: Record<string, string>;
   /** Next.js fetch cache hint (server components / route handlers). */
   next?: { revalidate?: number };
+  /** `"no-store"` keeps a request out of Next's data cache entirely — required
+   *  when any part of the URL is chosen by an anonymous visitor, since each
+   *  distinct URL would otherwise write a disk entry. Pass `next: undefined`
+   *  alongside it. */
+  cache?: "no-store";
   /** `PUT` exists for the idempotent DataCite DOI update (tombstone). */
   method?: "GET" | "POST" | "PUT";
   body?: BodyInit;
@@ -67,6 +72,7 @@ export async function resilientFetch(
     retries = DEFAULT_RETRIES,
     headers,
     next,
+    cache,
     method = "GET",
     body,
     redirect,
@@ -83,6 +89,7 @@ export async function resilientFetch(
         body,
         signal: controller.signal,
         ...(next ? { next } : {}),
+        ...(cache ? { cache } : {}),
         ...(redirect ? { redirect } : {}),
       });
       // Retry transient server/rate-limit statuses (but not the last attempt).

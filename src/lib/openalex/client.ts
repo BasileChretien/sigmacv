@@ -69,7 +69,7 @@ const WORK_SELECT = [
 export async function openAlexResponse(
   path: string,
   params: Record<string, string>,
-  opts: Pick<ResilientFetchOptions, "timeoutMs" | "retries"> = {},
+  opts: Pick<ResilientFetchOptions, "timeoutMs" | "retries" | "cache" | "next"> = {},
 ): Promise<Response> {
   const url = new URL(`${OPENALEX_API}${path}`);
   const mailto = getEnv().OPENALEX_MAILTO;

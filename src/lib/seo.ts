@@ -70,6 +70,20 @@ export function termsLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+/** /search path (find a researcher by name) for a locale. */
+export function localeSearchPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/search" : `/${LOCALE_SLUGS[loc]}/search`;
+}
+
+/** hreflang → path map for the bare /search page (never a query). */
+export function searchLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeSearchPath(loc);
+  languages["x-default"] = "/search";
+  return languages;
+}
+
 /** /object path (the self-service objection page) for a locale. */
 export function localeObjectPath(locale: string): string {
   const loc = asLocale(locale);
