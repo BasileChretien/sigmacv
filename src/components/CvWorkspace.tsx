@@ -23,6 +23,7 @@ import CvEditor, { type CvEditorHandle } from "./CvEditor";
 import CvPreview from "./CvPreview";
 import DisambiguationCoachmark, { COACHMARK_DISMISS_KEY } from "./DisambiguationCoachmark";
 import FreezeRequestBanner from "./FreezeRequestBanner";
+import InstitutionListingPrompt from "./InstitutionListingPrompt";
 import PublishNudge from "./PublishNudge";
 import PopoverGroup from "./PopoverGroup";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
@@ -579,6 +580,17 @@ export default function CvWorkspace({
             suppressed={!exportNudgeArmed || activeOnboarding !== null}
             onDismissed={() => setExportNudgeArmed(false)}
           />
+          {/* The one-time institution ask — OWNER ONLY (this workspace never
+              renders for the anonymous preview). Appears once the page is live
+              and indexable and a current position is linked to a ROR record the
+              CV is not yet listed under; nothing pre-ticked, nothing decided by
+              silence; waits while an onboarding prompt is on screen. */}
+          <InstitutionListingPrompt
+            locale={uiLocale}
+            state={publishState}
+            suppressed={activeOnboarding !== null}
+            onPublishStateChange={setPublishState}
+          />
           {/* Mobile-only pane switch: on a phone the two panes stack and only
               the active one shows, so you don't scroll past the whole editor to
               reach the preview. On desktop both panes show and these hide. */}
@@ -643,6 +655,10 @@ export default function CvWorkspace({
                   (publishState.institutionPage ?? NO_INSTITUTION_PAGE).consentedRorIds
                 }
                 funderCrosswalk={funderCrosswalk}
+                institutionListing={{
+                  state: publishState,
+                  onPublishStateChange: setPublishState,
+                }}
               />
             </section>
             <section className="cv-workspace-pane" data-pane="preview">

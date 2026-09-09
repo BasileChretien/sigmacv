@@ -142,6 +142,23 @@ export interface WorkspaceUiStrings {
   wlFundingFound: string;
   /** Fallback when neither the grant, the work nor the crosswalk names the funder. */
   wlFundingUnnamedFunder: string;
+  // ── Owner worklist: institution listing (a status line, never a gap) ─────
+  /** First row: whether the CV is listed under its current affiliations. */
+  wlListingHeading: string;
+  /** Voluntary, absence means nothing, withdrawal immediate — under the heading. */
+  wlListingHelp: string;
+  /** Not yet listed; {institution} = the names joined. */
+  wlListingUnlisted: string;
+  /** The consent button — names the institution(s); {institution}. */
+  wlListingListMe: string;
+  /** The consent button while no institution is ticked yet (disabled). */
+  wlListingListMeNone: string;
+  /** Listed; {institution} = the names joined. */
+  wlListingListed: string;
+  /** Opens the Publish menu at the institution sub-section. */
+  wlListingChange: string;
+  /** Shown instead of the button while the page is unpublished or not indexable. */
+  wlListingNeedsPage: string;
 }
 
 const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
@@ -239,6 +256,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV has no policy record for {funder}.",
     wlFundingFound: "SigmaCV found: {state}",
     wlFundingUnnamedFunder: "a funder",
+    wlListingHeading: "Institution listing",
+    wlListingHelp:
+      "A status line, not a task: listing is voluntary and absence means nothing. Withdraw at any time from the Publish menu, with immediate effect.",
+    wlListingUnlisted: "You are not yet listed under {institution}.",
+    wlListingListMe: "List me under {institution}",
+    wlListingListMeNone: "List me under the institutions I tick",
+    wlListingListed: "Listed under {institution}.",
+    wlListingChange: "Change",
+    wlListingNeedsPage:
+      "Listing needs a published page with search indexing on — both are in the Publish menu.",
     hpInfoTitle: "For your eyes only",
     hpSelfRef:
       "About {pct} of the references in your papers point to your own work (n = {n}). Some panels look at this; nothing on your CV shows it.",
@@ -333,6 +360,15 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV 没有 {funder} 的政策记录。",
     wlFundingFound: "SigmaCV 的发现：{state}",
     wlFundingUnnamedFunder: "某资助方",
+    wlListingHeading: "机构列入",
+    wlListingHelp:
+      "这只是状态说明，不是待办事项：列入完全自愿，未列入不代表任何含义。可随时在“发布”菜单中撤回，立即生效。",
+    wlListingUnlisted: "你尚未列入 {institution}。",
+    wlListingListMe: "将我列入 {institution}",
+    wlListingListMeNone: "将我列入我勾选的机构",
+    wlListingListed: "已列入 {institution}。",
+    wlListingChange: "更改",
+    wlListingNeedsPage: "列入需要已发布且开启搜索索引的页面——两者都在“发布”菜单中。",
     hpInfoTitle: "仅供您本人查看",
     hpSelfRef:
       "您论文中约 {pct} 的参考文献指向您自己的作品（n = {n}）。部分评审会关注这一点；您的简历中不会显示它。",
@@ -431,6 +467,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV no tiene registro de política para {funder}.",
     wlFundingFound: "SigmaCV encontró: {state}",
     wlFundingUnnamedFunder: "un financiador",
+    wlListingHeading: "Inclusión en la institución",
+    wlListingHelp:
+      "Una línea de estado, no una tarea: figurar es voluntario y no figurar no significa nada. Retíralo cuando quieras desde el menú Publicar, con efecto inmediato.",
+    wlListingUnlisted: "Todavía no figuras bajo {institution}.",
+    wlListingListMe: "Listarme bajo {institution}",
+    wlListingListMeNone: "Listarme bajo las instituciones que marque",
+    wlListingListed: "Figuras bajo {institution}.",
+    wlListingChange: "Cambiar",
+    wlListingNeedsPage:
+      "Para figurar hace falta una página publicada con la indexación activada; ambas cosas están en el menú Publicar.",
     hpInfoTitle: "Solo para ti",
     hpSelfRef:
       "Alrededor del {pct} de las referencias de tus artículos remiten a tu propio trabajo (n = {n}). Algunos comités se fijan en esto; nada en tu CV lo muestra.",
@@ -533,6 +579,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV n'a pas d'enregistrement de politique pour {funder}.",
     wlFundingFound: "SigmaCV a trouvé : {state}",
     wlFundingUnnamedFunder: "un financeur",
+    wlListingHeading: "Inscription auprès de l'établissement",
+    wlListingHelp:
+      "Une ligne d'état, pas une tâche : figurer est volontaire et ne pas figurer ne signifie rien. Retirez-vous à tout moment depuis le menu Publier, avec effet immédiat.",
+    wlListingUnlisted: "Vous ne figurez pas encore sous {institution}.",
+    wlListingListMe: "Me lister sous {institution}",
+    wlListingListMeNone: "Me lister sous les établissements cochés",
+    wlListingListed: "Vous figurez sous {institution}.",
+    wlListingChange: "Modifier",
+    wlListingNeedsPage:
+      "Figurer suppose une page publiée avec l'indexation activée — les deux se trouvent dans le menu Publier.",
     hpInfoTitle: "Pour vous seulement",
     hpSelfRef:
       "Environ {pct} des références de vos articles renvoient à vos propres travaux (n = {n}). Certains comités y prêtent attention ; rien sur votre CV ne l'affiche.",
@@ -633,6 +689,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV hat keinen Richtlinien-Eintrag für {funder}.",
     wlFundingFound: "SigmaCV hat gefunden: {state}",
     wlFundingUnnamedFunder: "ein Förderer",
+    wlListingHeading: "Auflistung bei der Einrichtung",
+    wlListingHelp:
+      "Eine Statuszeile, keine Aufgabe: Die Auflistung ist freiwillig, und ihr Fehlen bedeutet nichts. Jederzeit im Menü Veröffentlichen zurücknehmbar, mit sofortiger Wirkung.",
+    wlListingUnlisted: "Sie sind noch nicht unter {institution} aufgeführt.",
+    wlListingListMe: "Mich unter {institution} aufführen",
+    wlListingListMeNone: "Mich unter den angekreuzten Einrichtungen aufführen",
+    wlListingListed: "Aufgeführt unter {institution}.",
+    wlListingChange: "Ändern",
+    wlListingNeedsPage:
+      "Die Auflistung setzt eine veröffentlichte Seite mit eingeschalteter Suchindexierung voraus – beides im Menü Veröffentlichen.",
     hpInfoTitle: "Nur für Sie",
     hpSelfRef:
       "Etwa {pct} der Literaturangaben in Ihren Arbeiten verweisen auf Ihre eigenen Arbeiten (n = {n}). Manche Gutachtergremien achten darauf; in Ihrem Lebenslauf erscheint es nirgends.",
@@ -731,6 +797,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV には {funder} の方針の記録がありません。",
     wlFundingFound: "SigmaCV が見つけた状態：{state}",
     wlFundingUnnamedFunder: "助成機関",
+    wlListingHeading: "機関への掲載",
+    wlListingHelp:
+      "これは状態の表示であり、作業項目ではありません。掲載は任意で、掲載がないことは何も意味しません。「公開」メニューからいつでも取り下げられ、即時に反映されます。",
+    wlListingUnlisted: "{institution} の下にはまだ掲載されていません。",
+    wlListingListMe: "{institution} の下に掲載する",
+    wlListingListMeNone: "チェックした機関の下に掲載する",
+    wlListingListed: "{institution} の下に掲載済みです。",
+    wlListingChange: "変更",
+    wlListingNeedsPage:
+      "掲載には、検索インデックスを有効にした公開済みページが必要です。どちらも「公開」メニューにあります。",
     hpInfoTitle: "あなただけに表示",
     hpSelfRef:
       "あなたの論文の参考文献のうち約 {pct} が自身の業績を引用しています（n = {n}）。審査委員会がこれを見ることがありますが、CV には一切表示されません。",
@@ -832,6 +908,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "O SigmaCV não tem registro de política para {funder}.",
     wlFundingFound: "O SigmaCV encontrou: {state}",
     wlFundingUnnamedFunder: "um financiador",
+    wlListingHeading: "Listagem na instituição",
+    wlListingHelp:
+      "Uma linha de status, não uma tarefa: aparecer é voluntário e não aparecer não significa nada. Retire a qualquer momento no menu Publicar, com efeito imediato.",
+    wlListingUnlisted: "Você ainda não está listado sob {institution}.",
+    wlListingListMe: "Listar-me sob {institution}",
+    wlListingListMeNone: "Listar-me sob as instituições que eu marcar",
+    wlListingListed: "Listado sob {institution}.",
+    wlListingChange: "Alterar",
+    wlListingNeedsPage:
+      "A listagem exige uma página publicada com a indexação de busca ativada — ambas estão no menu Publicar.",
     hpInfoTitle: "Somente para você",
     hpSelfRef:
       "Cerca de {pct} das referências dos seus artigos apontam para o seu próprio trabalho (n = {n}). Alguns comitês observam isso; nada no seu CV o mostra.",
@@ -933,6 +1019,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV non ha alcuna registrazione della politica di {funder}.",
     wlFundingFound: "SigmaCV ha trovato: {state}",
     wlFundingUnnamedFunder: "un finanziatore",
+    wlListingHeading: "Elenco presso l'istituzione",
+    wlListingHelp:
+      "Una riga di stato, non un compito: comparire è volontario e non comparire non significa nulla. Ritirati in qualsiasi momento dal menu Pubblica, con effetto immediato.",
+    wlListingUnlisted: "Non compari ancora sotto {institution}.",
+    wlListingListMe: "Elencami sotto {institution}",
+    wlListingListMeNone: "Elencami sotto le istituzioni che spunto",
+    wlListingListed: "Elencato sotto {institution}.",
+    wlListingChange: "Modifica",
+    wlListingNeedsPage:
+      "Per comparire serve una pagina pubblicata con l'indicizzazione attiva — entrambe nel menu Pubblica.",
     hpInfoTitle: "Solo per te",
     hpSelfRef:
       "Circa il {pct} dei riferimenti nei tuoi articoli rimanda ai tuoi stessi lavori (n = {n}). Alcune commissioni lo guardano; nulla nel tuo CV lo mostra.",
@@ -1031,6 +1127,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV에는 {funder}의 정책 기록이 없습니다.",
     wlFundingFound: "SigmaCV가 확인한 상태: {state}",
     wlFundingUnnamedFunder: "지원 기관",
+    wlListingHeading: "기관 등재",
+    wlListingHelp:
+      "상태 표시일 뿐 할 일이 아닙니다. 등재는 자발적이며 등재되지 않았다는 것은 아무 의미도 없습니다. 언제든지 게시 메뉴에서 철회할 수 있으며 즉시 반영됩니다.",
+    wlListingUnlisted: "아직 {institution} 아래에 등재되지 않았습니다.",
+    wlListingListMe: "{institution} 아래에 등재",
+    wlListingListMeNone: "체크한 기관 아래에 등재",
+    wlListingListed: "{institution} 아래에 등재됨.",
+    wlListingChange: "변경",
+    wlListingNeedsPage:
+      "등재하려면 검색 색인이 켜진 게시된 페이지가 필요합니다. 둘 다 게시 메뉴에 있습니다.",
     hpInfoTitle: "본인에게만 표시",
     hpSelfRef:
       "논문의 참고문헌 중 약 {pct}가 본인의 연구를 가리킵니다 (n = {n}). 일부 심사 위원회는 이를 살펴보지만 CV에는 전혀 표시되지 않습니다.",
@@ -1132,6 +1238,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "У SigmaCV нет записи о политике {funder}.",
     wlFundingFound: "SigmaCV нашёл: {state}",
     wlFundingUnnamedFunder: "спонсор",
+    wlListingHeading: "Указание под организацией",
+    wlListingHelp:
+      "Строка состояния, а не задача: указание добровольно, а его отсутствие ничего не значит. Отзовите в любой момент в меню «Публикация», с немедленным эффектом.",
+    wlListingUnlisted: "Вы ещё не указаны под {institution}.",
+    wlListingListMe: "Указать меня под {institution}",
+    wlListingListMeNone: "Указать меня под отмеченными организациями",
+    wlListingListed: "Указано под {institution}.",
+    wlListingChange: "Изменить",
+    wlListingNeedsPage:
+      "Для указания нужна опубликованная страница с включённой индексацией — и то и другое в меню «Публикация».",
     hpInfoTitle: "Только для вас",
     hpSelfRef:
       "Около {pct} ссылок в ваших статьях указывают на ваши собственные работы (n = {n}). Некоторые комиссии обращают на это внимание; в вашем резюме это нигде не отображается.",

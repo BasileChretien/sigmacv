@@ -513,5 +513,11 @@ describe("hasWorklistContent", () => {
     // Works the list does not check are a count, never a reason to show it.
     const onlyNotChecked = { ...empty, notChecked: 4 };
     expect(hasWorklistContent(onlyNotChecked, oaEmpty)).toBe(false);
+    // A grant join is a reason.
+    expect(hasWorklistContent(empty, oaEmpty, 1)).toBe(true);
+    // The fourth reason: a ROR-linked current affiliation not yet listed
+    // under (the status line) — shown even when everything else is empty.
+    expect(hasWorklistContent(empty, oaEmpty, 0, true)).toBe(true);
+    expect(hasWorklistContent(empty, oaEmpty, 0, false)).toBe(false);
   });
 });

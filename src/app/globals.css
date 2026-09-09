@@ -1175,6 +1175,98 @@ input[type="radio"] {
   color: var(--text-secondary);
   font-weight: var(--weight-medium);
 }
+/* "Your institution": the titled sub-section the institution prompt and the
+   worklist deep-link to. Focusable for that jump, with no ring of its own. */
+.publish-panel .publish-subheading {
+  margin: var(--space-3) var(--space-3) var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.publish-institution-section:focus {
+  outline: none;
+}
+
+/* ── Institution listing prompt: an inline, one-time active choice — a
+      labelled card, not a modal; nothing pre-ticked; two buttons of equal
+      weight. The entrance fade is stripped under prefers-reduced-motion by the
+      global rule near the top of this file. ── */
+@keyframes institution-prompt-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.institution-prompt {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  animation: institution-prompt-in 0.25s ease-out;
+}
+.institution-prompt-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-base);
+}
+.institution-prompt p {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.institution-prompt-listed {
+  font-weight: var(--weight-medium);
+}
+.institution-prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.institution-prompt-more {
+  font-size: var(--text-sm);
+}
+/* The picker with several current affiliations (prompt and worklist alike):
+   one unticked row per institution, the same divider treatment as the
+   publish menu's picker. */
+.institution-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-2);
+  padding: var(--space-1) 0 0 var(--space-3);
+  border: none;
+  border-left: 1px solid var(--border);
+  font-size: var(--text-sm);
+}
+.institution-picker legend {
+  float: none;
+  padding: 0;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.institution-listing-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+/* The worklist's "Institution listing" status line: same group styling, the
+   action beneath its sentence. */
+.cv-worklist-listing-status {
+  margin: 0 0 var(--space-1);
+}
+.cv-worklist-listing-status p {
+  margin: 0 0 var(--space-1);
+}
 /* ── Versions popover (frozen, citable CV versions) ── */
 .versions-panel {
   width: min(24rem, 92vw);

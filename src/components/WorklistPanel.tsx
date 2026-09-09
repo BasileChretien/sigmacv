@@ -12,10 +12,12 @@ import {
   type OpenAccessState,
   type WorklistRow,
 } from "@/lib/cv/worklist";
+import { unlistedAffiliations } from "@/lib/cv/institutionPrompt";
 import { joinOwnerFunding, toCrosswalk, type FunderRow } from "@/lib/funders/join";
 import { funderOaPolicy } from "@/lib/funders/oaPolicies";
 import type { Locale } from "@/lib/i18n";
 import { workspaceUi, type WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
+import InstitutionListingRow, { type InstitutionListing } from "./InstitutionListingRow";
 
 /** A stable empty crosswalk (a fresh `[]` per render would defeat the memo). */
 const NO_FUNDER_CROSSWALK: readonly FunderRow[] = [];
@@ -34,6 +36,9 @@ interface WorklistPanelProps {
   /** Jump to an item in the editor (expand its section + scroll/focus). When
    *  omitted (a read-only context) rows are plain text. */
   onJump?: (itemId: string) => void;
+  /** The publish state and its setter, for the "Institution listing" status
+   *  line (owner-only; the anonymous preview passes nothing and gets no row). */
+  listing?: InstitutionListing;
 }
 
 const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
@@ -82,13 +87,17 @@ export default function WorklistPanel({
   consentedRorIds,
   funderCrosswalk = NO_FUNDER_CROSSWALK,
   onJump,
+  listing,
 }: WorklistPanelProps) {
   const wu = workspaceUi(locale);
   const gaps = useMemo(() => affiliationGaps(cv, consentedRorIds), [cv, consentedRorIds]);
   const oa = useMemo(() => openAccessStates(cv), [cv]);
   const crosswalk = useMemo(() => toCrosswalk(funderCrosswalk), [funderCrosswalk]);
   const funding = useMemo(() => joinOwnerFunding(cv, crosswalk), [cv, crosswalk]);
-  if (!hasWorklistContent(gaps, oa, funding.length)) return null;
+  // The status line is a reason to show the panel only while a choice is open
+  // (an unlisted ROR-linked current affiliation) — never counted anywhere.
+  const unlisted = listing ? unlistedAffiliations(listing.state).length > 0 : false;
+  if (!hasWorklistContent(gaps, oa, funding.length, unlisted)) return null;
 
   const closed = oa.rows.filter((r) => r.state === "no-open-copy-found");
   const groups = groupByRor(gaps.missing);
@@ -133,6 +142,14 @@ export default function WorklistPanel({
     <details className="cv-worklist" data-owner-only="worklist">
       <summary className="cv-worklist-title">{wu.wlTitle}</summary>
       <p className="muted cv-worklist-intro">{wu.wlIntro}</p>
+
+      {listing ? (
+        <InstitutionListingRow
+          locale={locale}
+          state={listing.state}
+          onPublishStateChange={listing.onPublishStateChange}
+        />
+      ) : null}
 
       {gaps.positionsWithoutRor.length > 0 ? (
         <section className="cv-worklist-group">
