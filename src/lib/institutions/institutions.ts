@@ -9,7 +9,11 @@ import {
 } from "@/lib/cv/listed";
 import { rorSetSpec } from "@/lib/oai/oai";
 import { absoluteUrl } from "@/lib/siteUrl";
-import { parseInstitutionAggregates, type InstitutionAggregates } from "./snapshot";
+import {
+  OPENALEX_INSTITUTION_ID_RE,
+  parseInstitutionAggregates,
+  type InstitutionAggregates,
+} from "./snapshot";
 
 /**
  * Institution pages (`/i`, `/i/[ror]`): what SigmaCV says about an institution.
@@ -66,9 +70,11 @@ export interface InstitutionSummary {
 }
 
 /** The snapshot on a stored row, or null when the row has none (not fetched
- *  yet, cleared, or failed before any success) or it does not parse. */
+ *  yet, cleared, or failed before any success), it does not parse, or its
+ *  `openalexId` is not an `I…` id (it becomes an href and the `sameAs`). */
 function snapshotOf(record: TrustedInstitutionRecord | null): InstitutionOpenAlexSnapshot | null {
   if (!record?.openalexId || !record.openalexFetchedAt) return null;
+  if (!OPENALEX_INSTITUTION_ID_RE.test(record.openalexId)) return null;
   const aggregates = parseInstitutionAggregates(record.openalexAggregates);
   if (!aggregates) return null;
   return {

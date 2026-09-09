@@ -46,6 +46,8 @@ beforeEach(() => {
     refreshed: 2,
     failed: 0,
     cleared: 0,
+    missingRows: 0,
+    missingRowIds: [],
     stoppedForBudget: false,
   });
 });
@@ -55,6 +57,8 @@ const PROFILES_SUMMARY = {
   refreshed: 2,
   failed: 0,
   cleared: 0,
+  missingRows: 0,
+  missingRowIds: [],
   stoppedForBudget: false,
 };
 

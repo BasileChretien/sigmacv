@@ -64,9 +64,17 @@ export interface RefreshInstitutionProfilesSummary {
   failed: number;
   /** Rows whose OpenAlex columns were cleared because their ROR left the sets. */
   cleared: number;
+  /** Opted-in sets with no `Institution` row at all — skipped, never created
+   *  (a row needs a trusted ROR name, which only a sync writes). */
+  missingRows: number;
+  /** The first {@link MAX_REPORTED_MISSING} of those ROR ids. */
+  missingRowIds: string[];
   /** True when the budget ran out before every candidate was attempted. */
   stoppedForBudget: boolean;
 }
+
+/** Bound on the missing-row ids carried in the summary and the log line. */
+const MAX_REPORTED_MISSING = 20;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -82,6 +90,7 @@ async function collectGroups(
   paceMs: number,
 ): Promise<InstitutionGroupCounts> {
   const typeFilter = `type:${COUNTED_WORK_TYPES.join("|")}`;
+  // Hyphen range verified live on 2026-09-09: HTTP 200, same count as the pipe-joined years.
   const windowFilter = `publication_year:${years[0]}-${years[years.length - 1]}`;
   const grouped = async (
     groupBy: GroupWorksQuery["groupBy"],
@@ -173,6 +182,21 @@ async function dueRows(sets: string[], now: Date, maxRows: number): Promise<stri
   return rows.map((r) => r.rorId);
 }
 
+/**
+ * The opted-in sets with no `Institution` row. Such a set is skipped by design
+ * — a row is only ever written by a sync that recorded the trusted ROR name,
+ * so the job updates and never upserts — but silently: this makes the gap
+ * visible in the summary and, once per tick, in the log.
+ */
+async function missingRows(sets: string[]): Promise<string[]> {
+  const rows = await prisma.institution.findMany({
+    where: { rorId: { in: sets } },
+    select: { rorId: true },
+  });
+  const present = new Set(rows.map((r) => r.rorId));
+  return sets.filter((rorId) => !present.has(rorId));
+}
+
 /** Run one bounded refresh pass (see the module doc). Never throws. */
 export async function refreshInstitutionProfiles(
   opts: RefreshInstitutionProfilesOptions = {},
@@ -188,6 +212,8 @@ export async function refreshInstitutionProfiles(
     refreshed: 0,
     failed: 0,
     cleared: 0,
+    missingRows: 0,
+    missingRowIds: [],
     stoppedForBudget: false,
   };
   try {
@@ -195,10 +221,21 @@ export async function refreshInstitutionProfiles(
     summary.cleared = await clearLeftSets(sets);
     const rorIds = await dueRows(sets, now, maxRows);
     summary.candidates = rorIds.length;
+    const missing = await missingRows(sets);
+    summary.missingRows = missing.length;
+    summary.missingRowIds = missing.slice(0, MAX_REPORTED_MISSING);
+    if (missing.length > 0) {
+      logger.warn("institution.openalex_refresh_missing_rows", {
+        missingRows: summary.missingRows,
+        missingRowIds: summary.missingRowIds,
+      });
+    }
     for (const [i, rorId] of rorIds.entries()) {
       if (clock() - startedAt > budgetMs) {
         summary.stoppedForBudget = true;
-        logger.warn("institution.openalex_refresh_budget", {
+        // Steady state once more than a handful of institutions are due per
+        // tick — the remainder is simply next tick's work, so not a warning.
+        logger.info("institution.openalex_refresh_budget", {
           budgetMs,
           remaining: rorIds.length - i,
         });

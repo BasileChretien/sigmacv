@@ -56,10 +56,46 @@ import LocaleRorPage, { generateMetadata as localeRorMetadata } from "@/app/[loc
 const ROR = "04chrp450";
 const params = <T extends Record<string, string>>(p: T) => ({ params: Promise.resolve(p) });
 
+/** A stored OpenAlex snapshot, so the rendered-section branch (tables, links,
+ *  `sameAs`) is exercised with the network torn out, not only the "not fetched"
+ *  paragraph. */
+const FETCHED = new Date("2026-09-09T10:00:00Z");
+const AGGREGATES = {
+  version: 1,
+  countedEntity: {
+    openalexId: "I60134161",
+    displayName: "Nagoya University",
+    lineageSize: 1,
+    relatedCount: 2,
+    foldedIds: ["I60134161", "I4210121234"],
+    fetchedAt: FETCHED.toISOString(),
+  },
+  countedWorkTypes: ["article", "review", "book-chapter", "preprint"],
+  years: { from: 2025, to: 2026 },
+  worksByYear: [
+    { year: 2025, count: 4321 },
+    { year: 2026, count: 1200 },
+  ],
+  oaByStatusByYear: [
+    { year: 2025, status: "gold", count: 2000 },
+    { year: 2025, status: "closed", count: 2300 },
+    { year: 2026, status: "gold", count: 700 },
+  ],
+  topCountries: [{ code: "JP", name: "Japan", count: 4000 }],
+  topCoAffiliations: [
+    { openalexId: "I4210121234", name: "Nagoya University Hospital", count: 900 },
+  ],
+};
+
 beforeEach(() => {
   mocks.count.mockResolvedValue(3);
   mocks.groupBy.mockResolvedValue([{ currentRorId: ROR, _count: { _all: 3 } }]);
-  mocks.institutionFindUnique.mockResolvedValue({ name: "Nagoya University" });
+  mocks.institutionFindUnique.mockResolvedValue({
+    name: "Nagoya University",
+    openalexId: "I60134161",
+    openalexAggregates: AGGREGATES,
+    openalexFetchedAt: FETCHED,
+  });
   mocks.institutionFindMany.mockResolvedValue([{ rorId: ROR, name: "Nagoya University" }]);
 });
 afterAll(() => vi.unstubAllGlobals());
@@ -73,6 +109,15 @@ describe("institution routes render with no network at all", () => {
       renderToStaticMarkup(await LocaleRorPage(params({ locale: "ja", ror: ROR }))),
     ];
     for (const html of pages) expect(html).toContain("Nagoya University");
+    // The two /i/[ror] renders show the stored snapshot — tables, links, sameAs —
+    // from the row alone.
+    for (const html of [pages[1]!, pages[3]!]) {
+      expect(html).toContain("inst-table");
+      expect(html).toContain('href="https://openalex.org/I60134161"');
+      expect(html).toContain('href="https://openalex.org/I4210121234"');
+      expect(html).toContain("https://openalex.org/I60134161");
+      expect(html).toContain("sameAs");
+    }
     const metas = await Promise.all([
       indexMetadata(),
       rorMetadata(params({ ror: ROR })),

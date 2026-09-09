@@ -232,4 +232,28 @@ describe("computeInstitutionAggregates", () => {
       parseInstitutionAggregates({ ...agg, topCountries: [{ code: "FR", count: 1 }] }),
     ).toBeNull();
   });
+
+  it("refuses ids and country codes that are not the OpenAlex shapes — they become hrefs and the JSON-LD sameAs", () => {
+    const entity = (openalexId: string) => ({
+      ...agg,
+      countedEntity: { ...agg.countedEntity, openalexId },
+    });
+    for (const bad of ["javascript:alert(1)", "https://openalex.org/I1", "i1", "I", "I1 "]) {
+      expect(parseInstitutionAggregates(entity(bad)), bad).toBeNull();
+      expect(
+        parseInstitutionAggregates({
+          ...agg,
+          topCoAffiliations: [{ openalexId: bad, name: "x", count: 1 }],
+        }),
+        bad,
+      ).toBeNull();
+    }
+    for (const bad of ["fr", "FRA", "F", "javascript:", ""]) {
+      expect(
+        parseInstitutionAggregates({ ...agg, topCountries: [{ code: bad, name: "x", count: 1 }] }),
+        bad,
+      ).toBeNull();
+    }
+    expect(parseInstitutionAggregates(entity("I4210114068"))).not.toBeNull();
+  });
 });

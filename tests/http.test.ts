@@ -10,7 +10,10 @@ function res(status: number, headers: Record<string, string> = {}): Response {
   } as unknown as Response;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
 
 describe("resilientFetch", () => {
   it("returns a successful response without retrying", async () => {
@@ -53,6 +56,19 @@ describe("resilientFetch", () => {
     vi.stubGlobal("fetch", f);
     const r = await resilientFetch("https://x.test", { retries: 1 });
     expect(r.status).toBe(200);
+  });
+
+  it("caps a single Retry-After wait at 30 s (a 3600 s header waits 30 s, not an hour)", async () => {
+    vi.useFakeTimers();
+    let n = 0;
+    const f = vi.fn(async () => (++n < 2 ? res(429, { "retry-after": "3600" }) : res(200)));
+    vi.stubGlobal("fetch", f);
+    const pending = resilientFetch("https://x.test", { retries: 1 });
+    await vi.advanceTimersByTimeAsync(29_999);
+    expect(f).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(f).toHaveBeenCalledTimes(2);
+    expect((await pending).status).toBe(200);
   });
 
   it("times out a hung request", async () => {

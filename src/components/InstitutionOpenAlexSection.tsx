@@ -158,15 +158,19 @@ function oaStatusColumns(a: InstitutionAggregates): string[] {
 }
 
 /** One row per year of the window: the count per status column (zero when
- *  absent) and the year's total — the denominator, stated, never divided. */
+ *  absent) and the year's total — the denominator, stated, never divided. The
+ *  total is the year's works count (the same figure the works-by-year table
+ *  shows), NOT the sum of the status columns: the two come from different
+ *  OpenAlex requests and can differ slightly, and one stated total per year
+ *  is what lets a reader relate the two tables. */
 function oaRowsByYear(
   a: InstitutionAggregates,
   statuses: string[],
 ): Array<{ year: number; counts: number[]; total: number }> {
-  return a.worksByYear.map(({ year }) => {
+  return a.worksByYear.map(({ year, count: total }) => {
     const byStatus = new Map<string, number>();
     for (const r of a.oaByStatusByYear) if (r.year === year) byStatus.set(r.status, r.count);
     const counts = statuses.map((st) => byStatus.get(st) ?? 0);
-    return { year, counts, total: counts.reduce((sum, c) => sum + c, 0) };
+    return { year, counts, total };
   });
 }

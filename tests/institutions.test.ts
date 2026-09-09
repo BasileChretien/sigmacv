@@ -292,6 +292,16 @@ describe("institutionSummary", () => {
       { ...row, openalexAggregates: null },
       { ...row, openalexId: null },
       { ...row, openalexFetchedAt: null },
+      // Tampered ids become hrefs / sameAs: anything but an `I…` id is refused.
+      { ...row, openalexId: "javascript:alert(1)" },
+      { ...row, openalexId: "https://openalex.org/I60134161" },
+      {
+        ...row,
+        openalexAggregates: {
+          ...aggregates,
+          topCountries: [{ code: "javascript:", name: "Japan", count: 5 }],
+        },
+      },
     ]) {
       mocks.institutionFindUnique.mockResolvedValue(broken);
       expect((await institutionSummary(ROR))?.openalex).toBeNull();

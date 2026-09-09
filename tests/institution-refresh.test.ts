@@ -67,6 +67,24 @@ function sets(...rorIds: string[]) {
   mocks.countListedCvsByRor.mockResolvedValue(new Map(rorIds.map((r) => [r, 2])));
 }
 
+/** The `Institution` rows the job sees: the due query (ordered, capped)
+ *  returns `due`; the bare existence query returns `existing`. */
+function dbRows(due: string[], existing: string[] = due) {
+  mocks.findMany.mockImplementation(async (args: { orderBy?: unknown }) =>
+    ("orderBy" in args ? due : existing).map((rorId) => ({ rorId })),
+  );
+}
+
+const EMPTY_SUMMARY = {
+  candidates: 0,
+  refreshed: 0,
+  failed: 0,
+  cleared: 0,
+  missingRows: 0,
+  missingRowIds: [],
+  stoppedForBudget: false,
+};
+
 beforeEach(() => {
   for (const m of [
     mocks.findMany,
@@ -102,7 +120,7 @@ const opts = (over: Record<string, unknown> = {}) => ({
 describe("refreshInstitutionProfiles", () => {
   it("picks the stalest rows first among the opted-in sets, capped at maxRows, and clears rows that left the set", async () => {
     sets(NAGOYA, CAEN, "not-a-ror");
-    mocks.findMany.mockResolvedValue([{ rorId: NAGOYA }]);
+    dbRows([NAGOYA], [NAGOYA, CAEN]);
     mocks.updateMany.mockResolvedValue({ count: 2 });
 
     const summary = await refreshInstitutionProfiles(opts({ maxRows: 5 }));
@@ -126,18 +144,35 @@ describe("refreshInstitutionProfiles", () => {
       take: 5,
       select: { rorId: true },
     });
-    expect(summary).toEqual({
-      candidates: 1,
-      refreshed: 1,
-      failed: 0,
-      cleared: 2,
-      stoppedForBudget: false,
+    expect(summary).toEqual({ ...EMPTY_SUMMARY, candidates: 1, refreshed: 1, cleared: 2 });
+  });
+
+  it("counts and names (capped at 20) the opted-in sets with no Institution row, warns once with the ids, and never creates a row without a trusted ROR name", async () => {
+    const missing = Array.from({ length: 22 }, (_, i) => `0aaaaaa${String(i).padStart(2, "0")}`);
+    sets(NAGOYA, ...missing);
+    dbRows([NAGOYA]);
+
+    const summary = await refreshInstitutionProfiles(opts());
+
+    expect(mocks.findMany).toHaveBeenCalledWith({
+      where: { rorId: { in: [NAGOYA, ...missing] } },
+      select: { rorId: true },
     });
+    expect(summary).toMatchObject({ candidates: 1, refreshed: 1, missingRows: 22 });
+    expect(summary.missingRowIds).toEqual(missing.slice(0, 20));
+    expect(mocks.log.warn).toHaveBeenCalledTimes(1);
+    expect(mocks.log.warn).toHaveBeenCalledWith("institution.openalex_refresh_missing_rows", {
+      missingRows: 22,
+      missingRowIds: missing.slice(0, 20),
+    });
+    // The only write is the existing row's update — no upsert, no create.
+    expect(mocks.update).toHaveBeenCalledTimes(1);
+    expect(mocks.update.mock.calls[0]![0].where).toEqual({ rorId: NAGOYA });
   });
 
   it("makes ~10 OpenAlex calls per institution — entity, works by year, OA status per year of the window, countries, co-affiliations — all type-filtered on the folded ids", async () => {
     sets(NAGOYA);
-    mocks.findMany.mockResolvedValue([{ rorId: NAGOYA }]);
+    dbRows([NAGOYA]);
 
     await refreshInstitutionProfiles(opts());
 
@@ -171,7 +206,7 @@ describe("refreshInstitutionProfiles", () => {
 
   it("stores the counts-only aggregates with a weekly next refresh, clears the last error, and purges the cached page", async () => {
     sets(NAGOYA);
-    mocks.findMany.mockResolvedValue([{ rorId: NAGOYA }]);
+    dbRows([NAGOYA]);
 
     await refreshInstitutionProfiles(opts());
 
@@ -195,7 +230,7 @@ describe("refreshInstitutionProfiles", () => {
 
   it("is fail-soft per row: a failing row records the error and backs off one day, the next row still runs", async () => {
     sets(NAGOYA, CAEN);
-    mocks.findMany.mockResolvedValue([{ rorId: NAGOYA }, { rorId: CAEN }]);
+    dbRows([NAGOYA, CAEN]);
     mocks.fetchInstitutionByRor.mockImplementation(async (ror: string) => {
       if (ror === NAGOYA) throw new Error("OpenAlex request failed (503)");
       return entity("I98702875");
@@ -220,7 +255,7 @@ describe("refreshInstitutionProfiles", () => {
 
   it("treats a ROR with no OpenAlex entity as a failure (backed off, error stated), and never trusts an unbounded error string", async () => {
     sets(NAGOYA);
-    mocks.findMany.mockResolvedValue([{ rorId: NAGOYA }]);
+    dbRows([NAGOYA]);
     mocks.fetchInstitutionByRor.mockResolvedValue(null);
     await refreshInstitutionProfiles(opts());
     expect(mocks.update.mock.calls[0]![0].data.openalexLastError).toMatch(
@@ -238,9 +273,9 @@ describe("refreshInstitutionProfiles", () => {
     expect(mocks.update.mock.calls[0]![0].data.openalexLastError).toBe("not an Error");
   });
 
-  it("stops at the wall-clock budget, leaving the remaining candidates for the next tick", async () => {
+  it("stops at the wall-clock budget (an info-level, steady-state event), leaving the remaining candidates for the next tick", async () => {
     sets(NAGOYA, CAEN);
-    mocks.findMany.mockResolvedValue([{ rorId: NAGOYA }, { rorId: CAEN }]);
+    dbRows([NAGOYA, CAEN]);
     let ticks = 0;
     // The clock is read once at the start and once before each row.
     const clock = () => (ticks++ < 2 ? T0 : T0 + 61_000);
@@ -248,24 +283,38 @@ describe("refreshInstitutionProfiles", () => {
     const summary = await refreshInstitutionProfiles(opts({ clock, budgetMs: 60_000 }));
 
     expect(summary).toEqual({
+      ...EMPTY_SUMMARY,
       candidates: 2,
       refreshed: 1,
-      failed: 0,
-      cleared: 0,
       stoppedForBudget: true,
     });
     expect(mocks.fetchInstitutionByRor).toHaveBeenCalledTimes(1);
-    expect(mocks.log.warn).toHaveBeenCalledWith(
+    expect(mocks.log.info).toHaveBeenCalledWith(
       "institution.openalex_refresh_budget",
       expect.objectContaining({ remaining: 1 }),
     );
+    expect(mocks.log.warn).not.toHaveBeenCalled();
   });
 
-  it("paces the calls (default 200 ms) and defaults the clock to Date.now", async () => {
+  it("sleeps exactly paceMs before every OpenAlex works call (default 200 ms), defaulting the clock to Date.now and maxRows to 20", async () => {
+    vi.useFakeTimers();
     sets(NAGOYA);
-    mocks.findMany.mockResolvedValue([{ rorId: NAGOYA }]);
+    dbRows([NAGOYA]);
     const before = Date.now();
-    const summary = await refreshInstitutionProfiles({ paceMs: 1 });
+
+    const run = refreshInstitutionProfiles({});
+    await vi.advanceTimersByTimeAsync(199);
+    expect(mocks.groupWorks).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(mocks.groupWorks).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(8 * 200);
+    expect(mocks.groupWorks).toHaveBeenCalledTimes(9);
+    await vi.advanceTimersByTimeAsync(199);
+    expect(mocks.groupWorks).toHaveBeenCalledTimes(9);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(mocks.groupWorks).toHaveBeenCalledTimes(10);
+
+    const summary = await run;
     expect(summary.refreshed).toBe(1);
     const fetchedAt: Date = mocks.update.mock.calls[0]![0].data.openalexFetchedAt;
     expect(fetchedAt.getTime()).toBeGreaterThanOrEqual(before);
@@ -274,14 +323,8 @@ describe("refreshInstitutionProfiles", () => {
 
   it("does nothing but clear when no set is opted in, and never throws on a database failure", async () => {
     sets();
-    mocks.findMany.mockResolvedValue([]);
-    expect(await refreshInstitutionProfiles(opts())).toEqual({
-      candidates: 0,
-      refreshed: 0,
-      failed: 0,
-      cleared: 0,
-      stoppedForBudget: false,
-    });
+    dbRows([]);
+    expect(await refreshInstitutionProfiles(opts())).toEqual(EMPTY_SUMMARY);
     expect(mocks.fetchInstitutionByRor).not.toHaveBeenCalled();
     expect(mocks.log.info).not.toHaveBeenCalled();
 
@@ -295,7 +338,7 @@ describe("refreshInstitutionProfiles", () => {
 
   it("logs and moves on when even the failure record cannot be written", async () => {
     sets(NAGOYA, CAEN);
-    mocks.findMany.mockResolvedValue([{ rorId: NAGOYA }, { rorId: CAEN }]);
+    dbRows([NAGOYA, CAEN]);
     mocks.fetchInstitutionByRor.mockImplementationOnce(async () => {
       throw new Error("boom");
     });

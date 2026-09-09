@@ -90,6 +90,13 @@ export interface InstitutionGroupCounts {
 const count = z.number().int().nonnegative();
 const year = z.number().int();
 
+/** A short OpenAlex institution id (`I` + digits). Stored ids become hrefs and
+ *  the JSON-LD `sameAs`, so a row carrying anything else is refused whole. */
+export const OPENALEX_INSTITUTION_ID_RE = /^I\d+$/;
+/** An ISO 3166-1 alpha-2 country code as OpenAlex keys `authorships.countries`. */
+const COUNTRY_CODE_RE = /^[A-Z]{2}$/;
+const openalexInstitutionId = z.string().regex(OPENALEX_INSTITUTION_ID_RE);
+
 /**
  * The stored shape (`Institution.openalexAggregates`). Parsed back with
  * {@link parseInstitutionAggregates} before any render: a row is external data
@@ -99,7 +106,7 @@ const year = z.number().int();
 export const InstitutionAggregatesSchema = z.object({
   version: z.literal(1),
   countedEntity: z.object({
-    openalexId: z.string().min(1),
+    openalexId: openalexInstitutionId,
     displayName: z.string(),
     lineageSize: count,
     relatedCount: count,
@@ -110,8 +117,12 @@ export const InstitutionAggregatesSchema = z.object({
   years: z.object({ from: year, to: year }),
   worksByYear: z.array(z.object({ year, count })),
   oaByStatusByYear: z.array(z.object({ year, status: z.string().min(1), count })),
-  topCountries: z.array(z.object({ code: z.string().min(1), name: z.string(), count })),
-  topCoAffiliations: z.array(z.object({ openalexId: z.string().min(1), name: z.string(), count })),
+  topCountries: z.array(
+    z.object({ code: z.string().regex(COUNTRY_CODE_RE), name: z.string(), count }),
+  ),
+  topCoAffiliations: z.array(
+    z.object({ openalexId: openalexInstitutionId, name: z.string(), count }),
+  ),
 });
 
 export type InstitutionAggregates = z.infer<typeof InstitutionAggregatesSchema>;

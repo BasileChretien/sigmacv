@@ -64,6 +64,30 @@ describe("institutionStrings", () => {
     }
   });
 
+  it("states the counts-only scope positively: no locale's copy carries share or ratio vocabulary, even as a negation", () => {
+    const banned = [
+      "share",
+      "ratio",
+      "percent",
+      "%",
+      "比例",
+      "proporci",
+      "proporç",
+      "parts",
+      "Anteil",
+      "割合",
+      "quote",
+      "quota",
+      "비율",
+      "дол",
+      "процент",
+    ];
+    for (const loc of SUPPORTED_LOCALES) {
+      const scope = institutionStrings(loc).openalexScope;
+      for (const word of banned) expect(scope, `${loc} ${word}`).not.toContain(word);
+    }
+  });
+
   it("names the controller and keeps the proper nouns in every locale", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const s = institutionStrings(loc);

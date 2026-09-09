@@ -106,7 +106,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Counted as OpenAlex entity {id} ({entityName}): a lineage of {lineage}, {related} associated organisations. Hospitals and affiliated labs that OpenAlex records as related or child organisations are folded in; parent organisations are not.",
     openalexScope:
-      "Counts of articles, reviews, book chapters and preprints that OpenAlex attributes to these organisations, {from}–{to}. Datasets are left out: they swamp the current year. Counts only, never shares — each table states its own denominator.",
+      "Counts of articles, reviews, book chapters and preprints that OpenAlex attributes to these organisations, {from}–{to}. Datasets are left out: they swamp the current year. Counts only; each table states its own total.",
     openalexNotCompared:
       "These are OpenAlex's figures about the organisation, not about the researchers listed above, and SigmaCV compares neither with the other.",
     openalexWorksByYearHeading: "Works by year",
@@ -164,7 +164,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "按 OpenAlex 实体 {id}（{entityName}）计数：谱系包含 {lineage} 个机构，关联机构 {related} 个。OpenAlex 记为关联或下属机构的医院和附属实验室已合并计入；上级机构不计入。",
     openalexScope:
-      "OpenAlex 归属于这些机构的论文、综述、图书章节和预印本的数量，{from}–{to} 年。不含数据集：数据集会淹没当年的数字。只有数量，没有比例——每张表都写明自己的分母。",
+      "OpenAlex 归属于这些机构的论文、综述、图书章节和预印本的数量，{from}–{to} 年。不含数据集：数据集会淹没当年的数字。只列数量；每张表都写明自己的总数。",
     openalexNotCompared:
       "这些是 OpenAlex 关于该机构的数字，与上面列出的研究者无关，SigmaCV 也不将两者相互比较。",
     openalexWorksByYearHeading: "按年份的成果数",
@@ -222,7 +222,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Contabilizada como la entidad de OpenAlex {id} ({entityName}): un linaje de {lineage}, {related} organizaciones asociadas. Los hospitales y laboratorios afiliados que OpenAlex registra como organizaciones relacionadas o dependientes se incluyen; las organizaciones matrices, no.",
     openalexScope:
-      "Recuento de artículos, revisiones, capítulos de libro y preprints que OpenAlex atribuye a estas organizaciones, {from}–{to}. Se excluyen los conjuntos de datos: inundan el año en curso. Solo recuentos, nunca proporciones: cada tabla indica su propio denominador.",
+      "Recuento de artículos, revisiones, capítulos de libro y preprints que OpenAlex atribuye a estas organizaciones, {from}–{to}. Se excluyen los conjuntos de datos: inundan el año en curso. Solo recuentos; cada tabla indica su propio total.",
     openalexNotCompared:
       "Son las cifras de OpenAlex sobre la organización, no sobre las personas investigadoras listadas arriba, y SigmaCV no compara unas con otras.",
     openalexWorksByYearHeading: "Trabajos por año",
@@ -282,7 +282,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Comptabilisé comme l'entité OpenAlex {id} ({entityName}) : une lignée de {lineage}, {related} organismes associés. Les hôpitaux et laboratoires affiliés qu'OpenAlex enregistre comme organismes liés ou rattachés sont inclus ; les organismes parents ne le sont pas.",
     openalexScope:
-      "Nombre d'articles, de revues de littérature, de chapitres d'ouvrage et de prépublications qu'OpenAlex attribue à ces organismes, {from}–{to}. Les jeux de données sont exclus : ils submergent l'année en cours. Des effectifs seulement, jamais des parts — chaque tableau indique son propre dénominateur.",
+      "Nombre d'articles, de revues de littérature, de chapitres d'ouvrage et de prépublications qu'OpenAlex attribue à ces organismes, {from}–{to}. Les jeux de données sont exclus : ils submergent l'année en cours. Des effectifs seulement ; chaque tableau indique son propre total.",
     openalexNotCompared:
       "Ce sont les chiffres d'OpenAlex sur l'organisme, non sur les chercheuses et chercheurs listés ci-dessus, et SigmaCV ne compare pas les uns aux autres.",
     openalexWorksByYearHeading: "Travaux par année",
@@ -342,7 +342,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Gezählt als OpenAlex-Entität {id} ({entityName}): eine Linie von {lineage}, {related} verbundene Einrichtungen. Kliniken und angegliederte Labore, die OpenAlex als verwandte oder untergeordnete Einrichtungen führt, werden eingerechnet; übergeordnete Einrichtungen nicht.",
     openalexScope:
-      "Anzahl der Artikel, Übersichtsarbeiten, Buchkapitel und Preprints, die OpenAlex diesen Einrichtungen zuordnet, {from}–{to}. Datensätze bleiben außen vor: sie überschwemmen das laufende Jahr. Nur Anzahlen, nie Anteile — jede Tabelle nennt ihren eigenen Nenner.",
+      "Anzahl der Artikel, Übersichtsarbeiten, Buchkapitel und Preprints, die OpenAlex diesen Einrichtungen zuordnet, {from}–{to}. Datensätze bleiben außen vor: sie überschwemmen das laufende Jahr. Nur Anzahlen; jede Tabelle nennt ihre eigene Gesamtzahl.",
     openalexNotCompared:
       "Das sind OpenAlex-Zahlen über die Einrichtung, nicht über die oben gelisteten Forschenden, und SigmaCV vergleicht beides nicht miteinander.",
     openalexWorksByYearHeading: "Arbeiten nach Jahr",
@@ -402,7 +402,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "OpenAlex エンティティ {id}（{entityName}）として集計：系統 {lineage} 件、関連機関 {related} 件。OpenAlex が関連機関または下位機関として記録する病院や附属研究所は含めます。上位機関は含めません。",
     openalexScope:
-      "OpenAlex がこれらの機関に帰属させた論文・総説・図書の章・プレプリントの件数（{from}–{to} 年）。データセットは除外しています。当年の件数を埋め尽くしてしまうためです。件数のみで、割合は示しません。各表はそれぞれの分母を明示しています。",
+      "OpenAlex がこれらの機関に帰属させた論文・総説・図書の章・プレプリントの件数（{from}–{to} 年）。データセットは除外しています。当年の件数を埋め尽くしてしまうためです。件数のみです。各表はそれぞれの合計を明示しています。",
     openalexNotCompared:
       "これは機関に関する OpenAlex の数値であり、上に掲載された研究者に関するものではありません。SigmaCV は両者を比較しません。",
     openalexWorksByYearHeading: "年別の研究成果数",
@@ -462,7 +462,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Contabilizada como a entidade {id} do OpenAlex ({entityName}): uma linhagem de {lineage}, {related} organizações associadas. Hospitais e laboratórios afiliados que o OpenAlex registra como organizações relacionadas ou subordinadas são incluídos; organizações-mãe, não.",
     openalexScope:
-      "Contagem de artigos, revisões, capítulos de livro e preprints que o OpenAlex atribui a essas organizações, {from}–{to}. Conjuntos de dados ficam de fora: eles inundam o ano corrente. Apenas contagens, nunca proporções — cada tabela indica seu próprio denominador.",
+      "Contagem de artigos, revisões, capítulos de livro e preprints que o OpenAlex atribui a essas organizações, {from}–{to}. Conjuntos de dados ficam de fora: eles inundam o ano corrente. Apenas contagens; cada tabela indica seu próprio total.",
     openalexNotCompared:
       "São os números do OpenAlex sobre a organização, não sobre as pessoas pesquisadoras listadas acima, e o SigmaCV não compara uns com os outros.",
     openalexWorksByYearHeading: "Trabalhos por ano",
@@ -522,7 +522,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Conteggiata come entità OpenAlex {id} ({entityName}): una discendenza di {lineage}, {related} organizzazioni associate. Ospedali e laboratori affiliati che OpenAlex registra come organizzazioni collegate o dipendenti sono inclusi; le organizzazioni madri no.",
     openalexScope:
-      "Conteggio di articoli, rassegne, capitoli di libro e preprint che OpenAlex attribuisce a queste organizzazioni, {from}–{to}. I dataset sono esclusi: sommergono l'anno in corso. Solo conteggi, mai quote: ogni tabella indica il proprio denominatore.",
+      "Conteggio di articoli, rassegne, capitoli di libro e preprint che OpenAlex attribuisce a queste organizzazioni, {from}–{to}. I dataset sono esclusi: sommergono l'anno in corso. Solo conteggi; ogni tabella indica il proprio totale.",
     openalexNotCompared:
       "Sono i dati di OpenAlex sull'organizzazione, non sulle ricercatrici e i ricercatori elencati sopra, e SigmaCV non confronta gli uni con gli altri.",
     openalexWorksByYearHeading: "Lavori per anno",
@@ -582,7 +582,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "OpenAlex 엔터티 {id}({entityName})로 집계: 계보 {lineage}개, 관련 기관 {related}개. OpenAlex가 관련 또는 하위 기관으로 기록한 병원과 부속 연구소는 포함하며, 상위 기관은 포함하지 않습니다.",
     openalexScope:
-      "OpenAlex가 이들 기관에 귀속시킨 논문, 리뷰, 단행본 챕터, 프리프린트의 건수({from}–{to}년). 데이터셋은 제외했습니다. 올해 수치를 뒤덮기 때문입니다. 건수만 제시하며 비율은 제시하지 않습니다. 각 표는 자체 분모를 명시합니다.",
+      "OpenAlex가 이들 기관에 귀속시킨 논문, 리뷰, 단행본 챕터, 프리프린트의 건수({from}–{to}년). 데이터셋은 제외했습니다. 올해 수치를 뒤덮기 때문입니다. 건수만 제시합니다. 각 표는 자체 합계를 명시합니다.",
     openalexNotCompared:
       "이는 기관에 관한 OpenAlex의 수치이며 위에 나열된 연구자에 관한 것이 아닙니다. SigmaCV는 둘을 서로 비교하지 않습니다.",
     openalexWorksByYearHeading: "연도별 성과 수",
@@ -642,7 +642,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Учтена как сущность OpenAlex {id} ({entityName}): линия из {lineage}, связанных организаций — {related}. Больницы и аффилированные лаборатории, которые OpenAlex записывает как связанные или дочерние организации, включены; головные организации — нет.",
     openalexScope:
-      "Число статей, обзоров, глав книг и препринтов, которые OpenAlex относит к этим организациям, {from}–{to}. Наборы данных исключены: они заполоняют текущий год. Только числа, никаких долей — каждая таблица указывает свой знаменатель.",
+      "Число статей, обзоров, глав книг и препринтов, которые OpenAlex относит к этим организациям, {from}–{to}. Наборы данных исключены: они заполоняют текущий год. Только числа; каждая таблица указывает свой итог.",
     openalexNotCompared:
       "Это данные OpenAlex об организации, а не об исследователях, перечисленных выше, и SigmaCV не сравнивает одно с другим.",
     openalexWorksByYearHeading: "Работы по годам",

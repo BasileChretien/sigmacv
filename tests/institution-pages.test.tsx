@@ -202,9 +202,12 @@ describe("/i/[ror]", () => {
         { year: 2025, count: 1234 },
         { year: 2026, count: 56 },
       ],
+      // The statuses of 2025 sum to 1,230 while the year's works count is 1,234:
+      // the two come from different OpenAlex requests, and the table's Total
+      // column must be the works count, never the sum of the columns.
       oaByStatusByYear: [
         { year: 2025, status: "gold", count: 400 },
-        { year: 2025, status: "closed", count: 834 },
+        { year: 2025, status: "closed", count: 830 },
         { year: 2026, status: "mystery", count: 56 },
       ],
       topCountries: [
@@ -278,7 +281,7 @@ describe("/i/[ror]", () => {
         m[1],
         ...[...m[2]!.matchAll(/<td class="num">([^<]*)<\/td>/g)].map((c) => c[1]),
       ]);
-      expect(rows).toContainEqual(["2025", "400", "0", "0", "0", "0", "834", "0", "1,234"]);
+      expect(rows).toContainEqual(["2025", "400", "0", "0", "0", "0", "830", "0", "1,234"]);
       expect(rows).toContainEqual(["2026", "0", "0", "0", "0", "0", "0", "56", "56"]);
       // Top lists; a blank name falls back to the code / id, an org links to OpenAlex.
       expect(body).toContain("France");
@@ -314,6 +317,33 @@ describe("/i/[ror]", () => {
       const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
       expect(text(html)).toContain(institutionStrings("en-US").openalexNotFetched);
       expect(html).not.toContain("sameAs");
+    });
+
+    it("treats a tampered row — an openalexId or a co-affiliation id that is not an OpenAlex `I…` id — as not fetched: no table, no link, no sameAs", async () => {
+      const s = institutionStrings("en-US");
+      for (const row of [
+        { openalexId: "javascript:alert(1)", openalexAggregates: AGG },
+        {
+          openalexId: "I98702875",
+          openalexAggregates: {
+            ...AGG,
+            topCoAffiliations: [{ openalexId: "javascript:alert(1)", name: "x", count: 1 }],
+          },
+        },
+      ]) {
+        listed(3);
+        mocks.institutionFindUnique.mockResolvedValue({
+          name: NAME,
+          ...row,
+          openalexFetchedAt: FETCHED,
+        });
+        const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+        expect(text(html)).toContain(s.openalexNotFetched);
+        expect(html).not.toContain("inst-table");
+        expect(html).not.toContain("javascript:");
+        expect(html).not.toContain("openalex.org");
+        expect(html).not.toContain("sameAs");
+      }
     });
 
     it("localizes the section (fr) with the locale's number and date formats", async () => {
