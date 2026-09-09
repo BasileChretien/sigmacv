@@ -103,6 +103,7 @@ const CONSENTED_ROWS = Array.from({ length: 5 }, () => ({
   showOnInstitutionPage: true,
   published: true,
   publicIndexable: true,
+  visibleCurrentRorIds: [ROR],
   document: CONSENTED_DOC,
   institutionAggregates: {
     v: 1,

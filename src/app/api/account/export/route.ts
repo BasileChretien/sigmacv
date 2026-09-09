@@ -113,6 +113,7 @@ export async function GET() {
         currentRorId: cv.currentRorId,
         showOnInstitutionPage: cv.showOnInstitutionPage,
         consentedRorIds: cv.consentedRorIds,
+        visibleCurrentRorIds: cv.visibleCurrentRorIds,
         institutionAggregates: cv.institutionAggregates,
         createdAt: cv.createdAt,
         updatedAt: cv.updatedAt,

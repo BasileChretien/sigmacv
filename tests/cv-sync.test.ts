@@ -156,7 +156,7 @@ import {
   syncCvForUser,
 } from "@/lib/cv/sync";
 import { setItemIncluded } from "@/lib/canonical/curate";
-import { InstitutionConsentError } from "@/lib/cv/institutionConsent";
+import { InstitutionConsentError, visibleCurrentRorIds } from "@/lib/cv/institutionConsent";
 import { computeCvAggregates } from "@/lib/institutions/cvAggregates";
 import { Prisma } from "@/generated/prisma/client";
 import {
@@ -369,11 +369,37 @@ describe("syncCvForUser", () => {
     const expected = computeCvAggregates(cv);
     expect(expected.worksTotal).toBeGreaterThan(0);
     const arg = mocks.upsert.mock.calls[0]![0] as {
-      create: { institutionAggregates: unknown };
-      update: { institutionAggregates: unknown };
+      create: { institutionAggregates: unknown; visibleCurrentRorIds: string[] };
+      update: { institutionAggregates: unknown; visibleCurrentRorIds: string[] };
     };
     expect(arg.create.institutionAggregates).toEqual(expected);
     expect(arg.update.institutionAggregates).toEqual(expected);
+    // And the visible current affiliations the institution-page reader checks
+    // the pinned consent against, from the same document on the same write.
+    expect(arg.create.visibleCurrentRorIds).toEqual(visibleCurrentRorIds(cv));
+    expect(arg.update.visibleCurrentRorIds).toEqual(visibleCurrentRorIds(cv));
+  });
+
+  it("writes the visible current ROR ids beside the OAI key on sync: the first of them, or [] with none", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue([]);
+    vi.mocked(fetchOrcidPositions).mockResolvedValueOnce([
+      { putCode: "e1", organization: "Nagoya University", startYear: 2024, rorId: "04chrp450" },
+      { putCode: "e2", organization: "CHU de Caen", startYear: 2023, rorId: "05m32f987" },
+    ]);
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const arg = mocks.upsert.mock.calls[0]![0] as {
+      update: { currentRorId: string | null; visibleCurrentRorIds: string[] };
+    };
+    expect(arg.update.visibleCurrentRorIds).toEqual(["04chrp450", "05m32f987"]);
+    expect(arg.update.currentRorId).toBe("04chrp450");
+
+    // No position at all → [] (never left stale), like the null key.
+    mocks.upsert.mockClear();
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const bare = mocks.upsert.mock.calls[0]![0] as { update: { visibleCurrentRorIds: string[] } };
+    expect(bare.update.visibleCurrentRorIds).toEqual([]);
   });
 
   it("records ROR's own name for every confident institution match (fail-soft)", async () => {
@@ -777,6 +803,18 @@ describe("saveCvForUser", () => {
     expect(after.worksTotal).toBe(computeCvAggregates(AFFILIATED_DOC).worksTotal - 1);
   });
 
+  it("writes the visible current ROR ids on every save, so a consent lapses in SQL the moment the position is hidden", async () => {
+    mocks.findUnique.mockResolvedValue({ document: AFFILIATED_DOC });
+    await saveCvForUser("u1", AFFILIATED_DOC);
+    expect(mocks.update.mock.calls[0]![0].data.visibleCurrentRorIds).toEqual(["04chrp450"]);
+
+    const positions = AFFILIATED_DOC.sections.find((s) => s.type === "positions")!;
+    const hidden = setItemIncluded(AFFILIATED_DOC, positions.id, positions.items[0]!.id, false);
+    mocks.update.mockClear();
+    await saveCvForUser("u1", hidden);
+    expect(mocks.update.mock.calls[0]![0].data.visibleCurrentRorIds).toEqual([]);
+  });
+
   it("clears the ROR key when the current position is hidden or absent", async () => {
     const positions = AFFILIATED_DOC.sections.find((s) => s.type === "positions")!;
     const hidden = setItemIncluded(AFFILIATED_DOC, positions.id, positions.items[0]!.id, false);
@@ -1016,10 +1054,13 @@ describe("publish state", () => {
       expect(mocks.update.mock.calls[0]![0].data.institutionAggregates).toEqual(
         computeCvAggregates(AFFILIATED_DOC),
       );
+      expect(mocks.update.mock.calls[0]![0].data.visibleCurrentRorIds).toEqual(["04chrp450"]);
       mocks.update.mockClear();
       mocks.findUnique.mockResolvedValue(row({ junk: true }));
       await setPublishState("u1", false);
       expect(mocks.update.mock.calls[0]![0].data.institutionAggregates).toBe(Prisma.DbNull);
+      // An unparseable document has no visible current positions.
+      expect(mocks.update.mock.calls[0]![0].data.visibleCurrentRorIds).toEqual([]);
     });
 
     it("is refused without indexing (turning indexing off turns the listing off)", async () => {

@@ -48,6 +48,24 @@ export default function InstitutionFiguresSection({
       </section>
     );
   }
+  // Enough contributors, but every figure was suppressed (each year and each
+  // section short of k, or hidden to cover one that is): one sentence, not two
+  // tables of "fewer than k researchers".
+  if (figures.byYear.length === 0 && figures.byType.every((row) => row.cell === null)) {
+    return (
+      <section className="inst-figures">
+        <h2>{s.figuresHeading}</h2>
+        <p>
+          {fillInstitutionString(s.figuresContributors, {
+            count: num.format(figures.contributors),
+          })}
+        </p>
+        {pending}
+        {truncated}
+        <p>{fillInstitutionString(s.figuresAllSuppressed, { k })}</p>
+      </section>
+    );
+  }
   const wl = workspaceUi(locale);
   const oaLabel: Record<OpenAccessState, string> = {
     "open-cc": wl.wlStateOpenCc,

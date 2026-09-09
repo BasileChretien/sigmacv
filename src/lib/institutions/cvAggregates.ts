@@ -52,6 +52,11 @@ const oaCells = z.object({
   "not-determined": count,
 });
 
+/** A `byYear` key: a year of up to four digits, or {@link UNKNOWN_YEAR}. Any
+ *  other key (a tampered row) refuses the aggregate, so the page's year sort
+ *  only ever sees keys it can order. */
+const YEAR_KEY_RE = /^\d{1,4}$|^unknown$/;
+
 /** The stored shape. A stored row is external data to the page, so it is
  *  parsed back before any sum ({@link parseCvAggregates}); an older or
  *  hand-edited value degrades to "not yet computed" rather than throwing. Strict
@@ -59,7 +64,7 @@ const oaCells = z.object({
 const CvAggregatesSchema = z.strictObject({
   v: z.literal(CV_AGGREGATES_VERSION),
   worksTotal: count,
-  byYear: z.record(z.string(), z.strictObject({ total: count, oa: oaCells })),
+  byYear: z.record(z.string().regex(YEAR_KEY_RE), z.strictObject({ total: count, oa: oaCells })),
   byType: z.record(z.string(), count),
 });
 

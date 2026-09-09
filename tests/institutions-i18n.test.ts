@@ -115,8 +115,8 @@ describe("the opted-in figures section (figures*)", () => {
     k.startsWith("figures"),
   ) as Array<keyof ReturnType<typeof institutionStrings>>;
 
-  it("has fifteen keys, all translated in every locale", () => {
-    expect(FIGURES_KEYS).toHaveLength(15);
+  it("has sixteen keys, all translated in every locale", () => {
+    expect(FIGURES_KEYS).toHaveLength(16);
     const en = institutionStrings("en-US");
     for (const loc of SUPPORTED_LOCALES) {
       const s = institutionStrings(loc);
@@ -124,6 +124,7 @@ describe("the opted-in figures section (figures*)", () => {
       if (loc !== "en-US") {
         expect(s.figuresScope, loc).not.toBe(en.figuresScope);
         expect(s.figuresBelowK, loc).not.toBe(en.figuresBelowK);
+        expect(s.figuresAllSuppressed, loc).not.toBe(en.figuresAllSuppressed);
         expect(s.figuresSuppressed, loc).not.toBe(en.figuresSuppressed);
       }
     }
@@ -132,7 +133,12 @@ describe("the opted-in figures section (figures*)", () => {
   it("keeps the placeholders the section fills in, in every locale", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const s = institutionStrings(loc);
-      for (const key of ["figuresBelowK", "figuresScope", "figuresSuppressed"] as const) {
+      for (const key of [
+        "figuresBelowK",
+        "figuresAllSuppressed",
+        "figuresScope",
+        "figuresSuppressed",
+      ] as const) {
         expect(s[key], `${loc} ${key}`).toContain("{k}");
       }
       expect(s.figuresContributors, loc).toContain("{count}");

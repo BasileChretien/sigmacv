@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db";
-import { institutionPageListing } from "@/lib/cv/institutionConsent";
 import { logger } from "@/lib/log";
 import type { Prisma } from "@/generated/prisma/client";
 
@@ -70,12 +69,15 @@ export interface InstitutionPageRows {
  * `consentedRorIds`) on a published, indexable CV — a different gate from the
  * OAI-set listing above, never mixed with it — and whose consent is still
  * ACTIVE: a consented id no longer among the visible current positions has
- * lapsed (`institutionPageListing`), and a lapsed CV is not counted. The SQL
- * filter is the four columns; the lapse rule needs the document, so the
- * document is selected for every candidate row and parsed here — acceptable at
- * this scale (a page sums at most {@link INSTITUTION_PAGE_ROW_LIMIT} CVs, each
- * parse a few milliseconds) and the reason the query is bounded. Nothing from
- * the document leaves this function: only the stored aggregate is returned.
+ * lapsed, and a lapsed CV is not counted. The lapse rule is the editor's and
+ * the publish path's (`institutionPageListing`, derived from the document);
+ * here it is the same rule read from the denormalised `visibleCurrentRorIds`
+ * column every write rewrites from the document beside `currentRorId`, so the
+ * whole filter is five columns in SQL and no document is selected — nothing
+ * but the stored aggregate is read. A row written before that column existed
+ * carries `[]` until its next write, so it is not counted until then (like a
+ * null aggregate, which counts as pending). One row past the bound is fetched
+ * so `truncated` says whether more exist, not whether the bound was reached.
  */
 export async function listedForInstitutionPage(
   rorId: string,
@@ -88,22 +90,16 @@ export async function listedForInstitutionPage(
       published: true,
       publicIndexable: true,
       consentedRorIds: { has: rorId },
+      visibleCurrentRorIds: { has: rorId },
     },
-    select: {
-      consentedRorIds: true,
-      showOnInstitutionPage: true,
-      published: true,
-      publicIndexable: true,
-      document: true,
-      institutionAggregates: true,
-    },
+    select: { institutionAggregates: true },
     orderBy: { id: "asc" },
-    take: limit,
+    take: limit + 1,
   });
   const rows = candidates
-    .filter((row) => institutionPageListing(row).activeRorIds.includes(rorId))
+    .slice(0, limit)
     .map((row) => ({ aggregates: row.institutionAggregates ?? null }));
-  return { rows, truncated: candidates.length >= limit, limit };
+  return { rows, truncated: candidates.length > limit, limit };
 }
 
 /** Listed-CV counts per ROR key, for the institution index — one grouped query

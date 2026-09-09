@@ -10,23 +10,38 @@ import { UNKNOWN_YEAR, type CvAggregates } from "./cvAggregates";
  * shows in another section — the two are never combined, compared or
  * subtracted (the plan's "Opt-out oracle" veto).
  *
- * A cell is a count with the number of distinct CVs it came from. The
- * suppression rules, applied in this order:
+ * The unit of disclosure is the SET of CVs a figure is computed from, not a
+ * count of them: a figure is safe when at least k distinct CVs contribute to it,
+ * and a hidden figure is safe when the CVs contributing to everything hidden
+ * beside it — everything a reader could recover it from — number at least k
+ * together. The rules, in order:
  *
  *  (a) a year row is emitted only if at least k CVs contribute to its total
- *      (a CV contributes when it has at least one work that year);
- *  (b) each open-access cell is emitted only if at least k CVs contribute to
- *      THAT cell, otherwise it is `null` ("fewer than k researchers");
- *  (c) complement suppression: when exactly one cell of a row is hidden while
- *      the row total is shown, the smallest shown cell (ties: first in state
- *      order) is hidden too — otherwise the hidden value is total − Σ(shown);
- *  (d) the section table follows (b) per type, and (c) whenever every year
- *      row is shown, because then the year totals add up to the overall total
- *      and a lone hidden type would be that total minus the shown ones.
+ *      (a CV contributes when it has at least one work that year); a year with
+ *      1..k−1 contributors is hidden (absent);
+ *  (b) a cell nobody contributes to is STRUCTURALLY EMPTY: emitted as `0` (it
+ *      discloses nobody and is never "hidden"); a cell with 1..k−1 contributors
+ *      is hidden (`null`, "fewer than k researchers"); a cell with k or more is
+ *      shown. The section table follows the same rule per type (a type nobody
+ *      has a work in is absent, not zero);
+ *  (c) within a shown year row, whose total is on the page: while some cell is
+ *      hidden and the union of the hidden cells' contributors is smaller than k,
+ *      the smallest SHOWN cell (ties: first in state order) is hidden too — so
+ *      total − Σ(shown) is only ever the sum of a hidden set that k CVs stand
+ *      behind, never one or two CVs' figure;
+ *  (d) across the two tables: each table's shown entries sum to the overall
+ *      total when nothing of it is hidden, so a hidden year row is readable as
+ *      that total minus the shown years whenever the section table is fully
+ *      shown — and vice versa. While one table is fully shown and the union of
+ *      contributors to every hidden year row and hidden type is smaller than k,
+ *      the smallest shown entry of the FULLY SHOWN table (year rows by total,
+ *      types by count) is hidden too. Once both tables are partially hidden the
+ *      overall total is not on the page and nothing more is needed.
  *
  * Suppressed years are simply absent (the page says so in one sentence) and a
- * suppressed cell carries no contributor count either — emitting "0 CVs" would
- * be emitting the cell.
+ * suppressed cell carries no contributor count either — emitting "3 CVs" would
+ * be emitting the cell. The property test in `tests/aggregate-sum.test.ts`
+ * asserts (a)–(d) over random populations.
  */
 
 /** Distinct CVs a year row or a cell needs before it is shown. */
@@ -34,6 +49,8 @@ export const K_ANONYMITY = 5;
 
 export interface SummedCell {
   count: number;
+  /** Distinct CVs the count came from; `0` only for a structurally empty cell
+   *  (count `0`, shown as such — nobody has such a work). */
   contributorCount: number;
 }
 
@@ -41,7 +58,7 @@ export interface SummedYearRow {
   /** `"2021"` or {@link UNKNOWN_YEAR}. */
   year: string;
   total: SummedCell;
-  /** `null` = suppressed (fewer than k contributing CVs). */
+  /** `null` = suppressed (1..k−1 contributing CVs, or hidden to cover one). */
   oa: Record<OpenAccessState, SummedCell | null>;
 }
 
@@ -62,38 +79,82 @@ export interface SummedAggregates {
   byType: SummedTypeRow[];
 }
 
-interface Accumulator {
+/** A figure with the rows (indices into the readable rows) it came from. */
+interface Entry {
+  id: string;
   count: number;
-  contributors: number;
+  contributors: ReadonlySet<number>;
 }
 
-function add(acc: Map<string, Accumulator>, key: string, count: number): void {
+/** Structurally empty: nobody contributes, shown as 0. */
+const EMPTY_CELL: SummedCell = { count: 0, contributorCount: 0 };
+const NO_ROWS: ReadonlySet<number> = new Set<number>();
+const NO_IDS: ReadonlySet<string> = new Set<string>();
+
+/** Accumulate `count` from row `row` under `key`. The map and its sets are
+ *  private to one `sumAggregates` call (built here, read below), so they are
+ *  extended in place rather than re-copied per work — the only mutation in
+ *  this module, and never of an input. */
+function add(
+  acc: Map<string, { count: number; contributors: Set<number> }>,
+  key: string,
+  count: number,
+  row: number,
+): void {
   if (count <= 0) return;
-  const cur = acc.get(key) ?? { count: 0, contributors: 0 };
-  acc.set(key, { count: cur.count + count, contributors: cur.contributors + 1 });
-}
-
-function cellOf(acc: Accumulator | undefined, k: number): SummedCell | null {
-  if (!acc || acc.contributors < k) return null;
-  return { count: acc.count, contributorCount: acc.contributors };
-}
-
-/** Rule (c) on one row's cells: with exactly one hidden, hide the smallest
- *  shown one too (ties → first in `order`). Returns a new record. */
-function suppressComplement<K extends string>(
-  cells: Record<K, SummedCell | null>,
-  order: readonly K[],
-): Record<K, SummedCell | null> {
-  const hidden = order.filter((key) => cells[key] === null);
-  if (hidden.length !== 1) return cells;
-  let smallest: K | null = null;
-  for (const key of order) {
-    const cell = cells[key];
-    if (cell && (smallest === null || cell.count < cells[smallest]!.count)) smallest = key;
+  const cur = acc.get(key);
+  if (cur) {
+    cur.count += count;
+    cur.contributors.add(row);
+  } else {
+    acc.set(key, { count, contributors: new Set([row]) });
   }
-  // A table with a single, hidden entry has nothing else to hide.
-  if (smallest === null) return cells;
-  return { ...cells, [smallest]: null };
+}
+
+function entryOf(
+  id: string,
+  acc: { count: number; contributors: ReadonlySet<number> } | undefined,
+): Entry {
+  return { id, count: acc?.count ?? 0, contributors: acc?.contributors ?? NO_ROWS };
+}
+
+function cellOf(e: Entry): SummedCell {
+  return { count: e.count, contributorCount: e.contributors.size };
+}
+
+function unionOf(entries: readonly Entry[]): ReadonlySet<number> {
+  const out = new Set<number>();
+  for (const e of entries) for (const row of e.contributors) out.add(row);
+  return out;
+}
+
+/** The smallest entry by count (ties: the first). */
+function smallest(entries: readonly Entry[]): Entry {
+  return entries.reduce((best, e) => (e.count < best.count ? e : best));
+}
+
+/**
+ * Rules (c) and (d): while `hidden` is non-empty and its contributors do not
+ * cover k rows, move the smallest of `candidates` into it. Returns the ids of
+ * the candidates hidden this way. Stops when the candidates run out — then
+ * everything the hidden set could be recovered from is hidden with it.
+ */
+function coverHidden(
+  hidden: readonly Entry[],
+  candidates: readonly Entry[],
+  k: number,
+): ReadonlySet<string> {
+  const moved = new Set<string>();
+  if (hidden.length === 0) return moved;
+  let covered = unionOf(hidden);
+  let remaining = candidates;
+  while (covered.size < k && remaining.length > 0) {
+    const next = smallest(remaining);
+    moved.add(next.id);
+    covered = new Set([...covered, ...next.contributors]);
+    remaining = remaining.filter((e) => e !== next);
+  }
+  return moved;
 }
 
 function yearOrder(a: string, b: string): number {
@@ -104,6 +165,31 @@ function yearOrder(a: string, b: string): number {
 
 const KNOWN_TYPES = new Set<string>(SECTION_TYPES);
 
+/** One year row after rules (b) and (c), with the row's own entry for rule (d). */
+interface YearCandidate {
+  entry: Entry;
+  oa: Record<OpenAccessState, SummedCell | null>;
+}
+
+/** Rules (b) + (c) on one shown year's cells. */
+function yearCells(
+  cells: ReadonlyMap<OpenAccessState, { count: number; contributors: ReadonlySet<number> }>,
+  k: number,
+): Record<OpenAccessState, SummedCell | null> {
+  const entries = OPEN_ACCESS_STATES.map((st) => entryOf(st, cells.get(st)));
+  const hidden = entries.filter((e) => e.contributors.size > 0 && e.contributors.size < k);
+  const shown = entries.filter((e) => e.contributors.size >= k);
+  const covered = coverHidden(hidden, shown, k);
+  const oa = {} as Record<OpenAccessState, SummedCell | null>;
+  for (const e of entries) {
+    const st = e.id as OpenAccessState;
+    if (e.contributors.size === 0) oa[st] = EMPTY_CELL;
+    else if (e.contributors.size < k || covered.has(st)) oa[st] = null;
+    else oa[st] = cellOf(e);
+  }
+  return oa;
+}
+
 /** Sum the readable aggregates of an institution's consented CVs under
  *  k-anonymity (rules (a)–(d) above). `null` aggregates count as pending. */
 export function sumAggregates(
@@ -112,39 +198,62 @@ export function sumAggregates(
 ): SummedAggregates {
   const present = rows.flatMap((r) => (r.aggregates ? [r.aggregates] : []));
 
-  const yearTotals = new Map<string, Accumulator>();
-  const yearCells = new Map<string, Map<OpenAccessState, Accumulator>>();
-  const typeTotals = new Map<string, Accumulator>();
-  for (const a of present) {
-    for (const [year, row] of Object.entries(a.byYear)) {
-      add(yearTotals, year, row.total);
-      const cells = yearCells.get(year) ?? new Map<OpenAccessState, Accumulator>();
-      for (const st of OPEN_ACCESS_STATES) add(cells, st, row.oa[st]);
-      yearCells.set(year, cells);
+  const yearTotals = new Map<string, { count: number; contributors: Set<number> }>();
+  const cellsByYear = new Map<
+    string,
+    Map<OpenAccessState, { count: number; contributors: Set<number> }>
+  >();
+  const typeTotals = new Map<string, { count: number; contributors: Set<number> }>();
+  present.forEach((a, row) => {
+    for (const [year, r] of Object.entries(a.byYear)) {
+      add(yearTotals, year, r.total, row);
+      const cells = cellsByYear.get(year) ?? new Map();
+      for (const st of OPEN_ACCESS_STATES) add(cells, st, r.oa[st], row);
+      cellsByYear.set(year, cells);
     }
     // A stored key outside the catalogue (a type a later schema dropped) is ignored.
     for (const [type, count] of Object.entries(a.byType) as Array<[string, number]>) {
-      if (KNOWN_TYPES.has(type)) add(typeTotals, type, count);
+      if (KNOWN_TYPES.has(type)) add(typeTotals, type, count, row);
     }
+  });
+
+  // Rules (a)–(c): the year table.
+  const hiddenYears: Entry[] = [];
+  const shownYears: YearCandidate[] = [];
+  for (const year of [...yearTotals.keys()].sort(yearOrder)) {
+    const entry = entryOf(year, yearTotals.get(year));
+    if (entry.contributors.size < k) hiddenYears.push(entry);
+    // Every year in `yearTotals` was given its cell map in the same loop above.
+    else shownYears.push({ entry, oa: yearCells(cellsByYear.get(year)!, k) });
   }
 
-  const years = [...yearTotals.keys()].sort(yearOrder);
-  const byYear: SummedYearRow[] = [];
-  for (const year of years) {
-    const total = cellOf(yearTotals.get(year), k);
-    if (!total) continue; // rule (a)
-    const cells = yearCells.get(year)!;
-    const oa = {} as Record<OpenAccessState, SummedCell | null>;
-    for (const st of OPEN_ACCESS_STATES) oa[st] = cellOf(cells.get(st), k); // rule (b)
-    byYear.push({ year, total, oa: suppressComplement(oa, OPEN_ACCESS_STATES) }); // rule (c)
-  }
-  const everyYearShown = byYear.length === years.length;
+  // Rule (b) per type: the section table.
+  const types = SECTION_TYPES.filter((t) => typeTotals.has(t)).map((t) =>
+    entryOf(t, typeTotals.get(t)),
+  );
+  const hiddenTypes = types.filter((e) => e.contributors.size < k);
+  const shownTypes = types.filter((e) => e.contributors.size >= k);
 
-  const typeCells = {} as Record<CvSectionType, SummedCell | null>;
-  const types = SECTION_TYPES.filter((t) => typeTotals.has(t));
-  for (const type of types) typeCells[type] = cellOf(typeTotals.get(type), k); // rule (d)
-  const finalTypes = everyYearShown ? suppressComplement(typeCells, types) : typeCells;
-  const byType: SummedTypeRow[] = types.map((type) => ({ type, cell: finalTypes[type] }));
+  // Rule (d): the overall total is on the page while one table is fully shown.
+  const crossHidden = [...hiddenYears, ...hiddenTypes];
+  const yearsFullyShown = hiddenYears.length === 0;
+  const typesFullyShown = hiddenTypes.length === 0;
+  const coveredYears = yearsFullyShown
+    ? coverHidden(
+        crossHidden,
+        shownYears.map((y) => y.entry),
+        k,
+      )
+    : NO_IDS;
+  const coveredTypes = typesFullyShown ? coverHidden(crossHidden, shownTypes, k) : NO_IDS;
+
+  const byYear: SummedYearRow[] = shownYears
+    .filter((y) => !coveredYears.has(y.entry.id))
+    .map((y) => ({ year: y.entry.id, total: cellOf(y.entry), oa: y.oa }));
+  const byType: SummedTypeRow[] = types.map((e) => ({
+    type: e.id as CvSectionType,
+    cell: e.contributors.size < k || coveredTypes.has(e.id) ? null : cellOf(e),
+  }));
 
   return {
     contributors: present.length,

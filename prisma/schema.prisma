@@ -154,6 +154,16 @@ model Cv {
   // re-asked in the editor. Requires publicIndexable (cleared with it).
   showOnInstitutionPage  Boolean   @default(false)
   consentedRorIds        String[]  @default([])
+  // The bare ROR ids of ALL visible current positions, rewritten from the
+  // document on every save / sync / publish change beside currentRorId (the
+  // OAI key is the FIRST of these). A consented id (above) is ACTIVE only while
+  // it is also here, so the institution-page reader filters in SQL on both
+  // columns instead of parsing every candidate document; the editor and the
+  // publish path still derive the same rule from the document
+  // (src/lib/cv/institutionConsent.ts). Rows written before this column exists
+  // carry [] until their next write - not listed until then, like the null
+  // aggregates below. Derived, never edited; carried in the GDPR export.
+  visibleCurrentRorIds   String[]  @default([])
   // COUNTS of the works the public page lists (by year x open-access state, and
   // by section), computed from the document at every write beside currentRorId
   // (src/lib/institutions/cvAggregates.ts) and summed under k-anonymity on the

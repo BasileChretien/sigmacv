@@ -121,6 +121,9 @@ function consentedRow(byYear: Record<string, Cells> | null) {
     showOnInstitutionPage: true,
     published: true,
     publicIndexable: true,
+    visibleCurrentRorIds: [ROR],
+    // The reader no longer selects the document; the mock still carries the
+    // hostile one so that any read of it would show on the page.
     document: CONSENTED_DOC,
   };
   if (byYear === null) return { ...base, institutionAggregates: null };
@@ -150,6 +153,16 @@ function counted(rows: unknown[]) {
 /** The figures section's markup alone. */
 const figuresSection = (html: string) =>
   html.match(/<section class="inst-figures">[\s\S]*?<\/section>/)?.[0] ?? "";
+/** The OpenAlex section's markup alone: from its heading to the OAI heading
+ *  that follows it on the page. */
+const openalexSection = (html: string) => {
+  const en = institutionStrings("en-US");
+  const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/'/g, "&#x27;");
+  const from = html.indexOf(`<h2>${esc(en.openalexHeading)}</h2>`);
+  const to = html.indexOf(`<h2>${esc(en.oaiHeading)}</h2>`);
+  if (from < 0 || to <= from) throw new Error("OpenAlex section not found");
+  return html.slice(from, to);
+};
 
 /** Every JSON-LD script on the page, as one string. */
 const jsonLd = (html: string) =>
@@ -518,13 +531,15 @@ describe("/i/[ror] — figures from researchers who chose to be counted here", (
     listed(3);
     // Every CV also has one work with no year.
     const U: Cells = { "open-cc": 1 };
+    const Y: Cells = { "open-cc": 2, "no-open-copy-found": 1 };
     counted([
-      // Five contributors: all in 2025 (open-cc), only two in 2024 (closed).
-      consentedRow({ "2025": { "open-cc": 2 }, "2024": { "no-open-copy-found": 1 }, unknown: U }),
-      consentedRow({ "2025": { "open-cc": 2 }, "2024": { "no-open-copy-found": 1 }, unknown: U }),
-      consentedRow({ "2025": { "open-cc": 2 }, unknown: U }),
-      consentedRow({ "2025": { "open-cc": 2 }, unknown: U }),
-      consentedRow({ "2025": { "open-cc": 2, "open-other": 1 }, unknown: U }),
+      // Five contributors, all in 2025 (two open-cc, one closed each); the
+      // fifth alone also has an open-other work.
+      consentedRow({ "2025": Y, unknown: U }),
+      consentedRow({ "2025": Y, unknown: U }),
+      consentedRow({ "2025": Y, unknown: U }),
+      consentedRow({ "2025": Y, unknown: U }),
+      consentedRow({ "2025": { ...Y, "open-other": 1 }, unknown: U }),
       // Two rows not computed yet.
       consentedRow(null),
       consentedRow(null),
@@ -539,15 +554,15 @@ describe("/i/[ror] — figures from researchers who chose to be counted here", (
     expect(text(section)).toContain(s.figuresNotCompared);
     expect(section).toContain(s.figuresByYearHeading);
     expect(section).toContain(s.figuresByTypeHeading);
-    // 2024: two contributors → the row is absent. 2025: total 11 from 5 CVs;
-    // open-cc 10 from 5 CVs shown; the other three cells suppressed (one from
-    // a single CV, two empty) — three hidden, so nothing more to hide.
-    expect(section).not.toContain("2024");
+    // 2025: total 16 from 5 CVs; open-cc 10 (5 CVs) shown; open-other (one
+    // CV) hidden, and the smallest shown cell — closed, 5 — hidden with it so
+    // that the two stand on all five CVs; not-determined is nobody's: 0.
     expect(section).toContain('<th scope="row">2025</th>');
-    expect(section).toContain(">11<");
-    expect(section).toContain(">10<");
+    expect(section).toContain(
+      '<td class="num">16</td><td class="num">10</td><td class="num muted">fewer than 5 researchers</td><td class="num muted">fewer than 5 researchers</td><td class="num">0</td>',
+    );
     expect(section).not.toContain(">1<");
-    expect((section.match(/muted">fewer than 5 researchers</g) ?? []).length).toBe(6);
+    expect((section.match(/muted">fewer than 5 researchers</g) ?? []).length).toBe(2);
     // The works with no year: their own row, last.
     expect(section).toContain('<th scope="row">No year</th>');
     expect(section.indexOf("No year")).toBeGreaterThan(section.indexOf(">2025<"));
@@ -560,9 +575,10 @@ describe("/i/[ror] — figures from researchers who chose to be counted here", (
     ]) {
       expect(section).toContain(label);
     }
-    // Works by section: 18 in Publications (4 + 4 + 3 + 3 + 4).
+    // Works by section: 21 in Publications (4 + 4 + 4 + 4 + 5), shown — every
+    // year row is shown, and the section table is fully shown too.
     expect(section).toContain("<td>Publications</td>");
-    expect(section).toContain(">18<");
+    expect(section).toContain(">21<");
     // Veto 4: no name, no per-person column, no link out of the section.
     expect(section).not.toContain("<a ");
     expect(text(section)).not.toContain(HOSTILE);
@@ -577,7 +593,10 @@ describe("/i/[ror] — figures from researchers who chose to be counted here", (
 
   it("says when only the first 2,000 consented researchers are included", async () => {
     listed(3);
-    const bound = Array.from({ length: INSTITUTION_PAGE_ROW_LIMIT }, (_, i) =>
+    // The reader asks for one row past its bound; that row's existence is what
+    // "only the first 2,000" states, and it is not summed (1,995 pending, not
+    // 1,996).
+    const bound = Array.from({ length: INSTITUTION_PAGE_ROW_LIMIT + 1 }, (_, i) =>
       consentedRow(i < 5 ? { "2025": { "open-cc": 1 } } : null),
     );
     counted(bound);
@@ -593,6 +612,42 @@ describe("/i/[ror] — figures from researchers who chose to be counted here", (
     const below = text(figuresSection(renderToStaticMarkup(await RorPage(params({ ror: ROR })))));
     expect(below).toContain("Fewer than 5 researchers have chosen");
     expect(below).toContain("Only the first 2,000 researchers");
+  });
+
+  it("from 5 contributors with every figure suppressed, says so in one sentence instead of two empty tables", async () => {
+    listed(3);
+    // Five contributors, but four share 2020 (one work each) and the fifth
+    // lists nothing public: the year and the section are both short of 5.
+    counted([
+      consentedRow({ "2020": { "open-cc": 1 } }),
+      consentedRow({ "2020": { "open-cc": 1 } }),
+      consentedRow({ "2020": { "open-cc": 1 } }),
+      consentedRow({ "2020": { "open-cc": 1 } }),
+      consentedRow({}),
+      consentedRow(null),
+    ]);
+    const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    const section = figuresSection(html);
+    expect(section).toContain("5 researchers chose to be counted on this page.");
+    expect(text(section)).toContain("1 more chose to be counted");
+    expect(text(section)).toContain(
+      "No figure can be shown yet: every year and every section would either count fewer than 5 researchers or let a figure about fewer than 5 be worked out.",
+    );
+    expect(section).not.toContain("inst-table");
+    expect(section).not.toContain("fewer than 5 researchers</td>");
+    expect(section).not.toContain(s.figuresByYearHeading);
+    expect(section).not.toContain(s.figuresScope.slice(0, 20));
+  });
+
+  it("renders a cell nobody has a work in as 0, never as 'fewer than 5 researchers'", async () => {
+    listed(3);
+    counted(Array.from({ length: 5 }, () => consentedRow({ "2025": { "open-cc": 3 } })));
+    const section = figuresSection(renderToStaticMarkup(await RorPage(params({ ror: ROR }))));
+    // Total, open-cc, then the three structurally empty states.
+    expect(section).toContain(
+      '<td class="num">15</td><td class="num">15</td><td class="num">0</td><td class="num">0</td><td class="num">0</td>',
+    );
+    expect(section).not.toContain("fewer than 5 researchers</td>");
   });
 
   it("renders identically with and without an OpenAlex snapshot on the row — the two sections never meet", async () => {
@@ -628,6 +683,19 @@ describe("/i/[ror] — figures from researchers who chose to be counted here", (
     expect(html).toContain("4,321");
     // No "OpenAlex has it, nobody claims it" figure anywhere on the page.
     expect(html).not.toContain("4306");
+
+    // And the reverse: the OpenAlex section is byte-identical with and without
+    // figures rows (five contributors, or nobody counted at all).
+    const openalex = openalexSection(html);
+    expect(openalex).toContain("4,321");
+    counted([]);
+    const nobody = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    expect(openalexSection(nobody)).toBe(openalex);
+    expect(figuresSection(nobody)).not.toBe(without);
+    counted(Array.from({ length: 9 }, () => consentedRow({ "2025": { "open-cc": 7 } })));
+    expect(openalexSection(renderToStaticMarkup(await RorPage(params({ ror: ROR }))))).toBe(
+      openalex,
+    );
   });
 
   it("is localized on the locale route", async () => {

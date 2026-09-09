@@ -344,9 +344,10 @@ describe("institutionSummary", () => {
           total: { count: 15, contributorCount: 5 },
           oa: {
             "open-cc": { count: 15, contributorCount: 5 },
-            "open-other": null,
-            "no-open-copy-found": null,
-            "not-determined": null,
+            // Nobody has such a work: structurally empty, shown as 0.
+            "open-other": { count: 0, contributorCount: 0 },
+            "no-open-copy-found": { count: 0, contributorCount: 0 },
+            "not-determined": { count: 0, contributorCount: 0 },
           },
         },
       ],
@@ -355,12 +356,18 @@ describe("institutionSummary", () => {
     expect(JSON.stringify(summary?.figures)).not.toMatch(/share|ratio|%|\d\.\d/);
   });
 
-  it("reports the reader's bound on the summary", async () => {
+  it("reports the reader's bound on the summary — only when more rows exist than it", async () => {
     mocks.count.mockResolvedValue(1);
+    mocks.findMany.mockResolvedValue(
+      Array.from({ length: INSTITUTION_PAGE_ROW_LIMIT + 1 }, () => consentedRow({})),
+    );
+    const hit = (await institutionSummary(ROR))?.figures;
+    expect(hit?.truncated).toBe(true);
+    expect(hit?.pending).toBe(INSTITUTION_PAGE_ROW_LIMIT);
     mocks.findMany.mockResolvedValue(
       Array.from({ length: INSTITUTION_PAGE_ROW_LIMIT }, () => consentedRow({})),
     );
-    expect((await institutionSummary(ROR))?.figures?.truncated).toBe(true);
+    expect((await institutionSummary(ROR))?.figures?.truncated).toBe(false);
   });
 
   it("carries the stored OpenAlex snapshot when the row has a valid one — and null when it is missing, cleared, or malformed", async () => {
@@ -467,7 +474,7 @@ describe("institutionSummary", () => {
 });
 
 describe("listedForInstitutionPage", () => {
-  it("filters in SQL by the pinned consent + published + indexable, selects what the lapse check needs, and bounds the query", async () => {
+  it("filters in SQL by the pinned consent + published + indexable + the consent still being a visible current position, selects the aggregate ONLY (never the document), and fetches one row past the bound", async () => {
     await listedForInstitutionPage(ROR);
     expect(mocks.findMany).toHaveBeenCalledTimes(1);
     expect(mocks.findMany.mock.calls[0]![0]).toEqual({
@@ -476,49 +483,62 @@ describe("listedForInstitutionPage", () => {
         published: true,
         publicIndexable: true,
         consentedRorIds: { has: ROR },
+        visibleCurrentRorIds: { has: ROR },
       },
-      select: {
-        consentedRorIds: true,
-        showOnInstitutionPage: true,
-        published: true,
-        publicIndexable: true,
-        document: true,
-        institutionAggregates: true,
-      },
+      select: { institutionAggregates: true },
       orderBy: { id: "asc" },
-      take: INSTITUTION_PAGE_ROW_LIMIT,
+      take: INSTITUTION_PAGE_ROW_LIMIT + 1,
     });
+    expect(mocks.findMany.mock.calls[0]![0].select).not.toHaveProperty("document");
     expect(INSTITUTION_PAGE_ROW_LIMIT).toBe(2000);
     await listedForInstitutionPage(ROR, { limit: 7 });
-    expect(mocks.findMany.mock.calls[1]![0].take).toBe(7);
+    expect(mocks.findMany.mock.calls[1]![0].take).toBe(8);
   });
 
-  it("keeps only the rows whose consent for this ROR is still ACTIVE (a lapsed or unparseable document is not counted)", async () => {
+  it("a lapsed consent — the id consented to but no longer a visible current position — is excluded by the query itself, so the reader never sees it", async () => {
+    // The lapse rule is the SQL: `visibleCurrentRorIds: { has: ROR }` beside
+    // `consentedRorIds: { has: ROR }`. Simulate Postgres applying it.
     const stored = { v: 1, worksTotal: 0, byYear: {}, byType: {} };
-    mocks.findMany.mockResolvedValue([
-      consentedRow({ aggregates: stored }),
-      // Consented to this ROR, but the current position moved elsewhere: lapsed.
-      consentedRow({ rorId: "05m32f987", aggregates: stored }),
-      // Consented to this ROR with no current position at all: lapsed.
-      consentedRow({ rorId: null, aggregates: stored }),
-      // A document that does not parse has no current positions: lapsed.
-      consentedRow({ document: { junk: true }, aggregates: stored }),
-      // Active, but nothing computed yet: passes through as null (pending).
-      consentedRow({}),
-    ]);
+    const table = [
+      { consentedRorIds: [ROR], visibleCurrentRorIds: [ROR], institutionAggregates: stored },
+      // Consented here, but the current position moved elsewhere: lapsed.
+      {
+        consentedRorIds: [ROR],
+        visibleCurrentRorIds: ["05m32f987"],
+        institutionAggregates: stored,
+      },
+      // Consented here, no current position at all (or a row written before
+      // the column existed, which carries [] until its next write): lapsed.
+      { consentedRorIds: [ROR], visibleCurrentRorIds: [], institutionAggregates: stored },
+      // Active, nothing computed yet: passes through as null (pending).
+      { consentedRorIds: [ROR], visibleCurrentRorIds: [ROR], institutionAggregates: null },
+    ];
+    mocks.findMany.mockImplementation(
+      async (args: { where: { visibleCurrentRorIds: { has: string } } }) =>
+        table
+          .filter((r) => r.visibleCurrentRorIds.includes(args.where.visibleCurrentRorIds.has))
+          .map((r) => ({ institutionAggregates: r.institutionAggregates })),
+    );
     const { rows, truncated, limit } = await listedForInstitutionPage(ROR);
     expect(rows).toEqual([{ aggregates: stored }, { aggregates: null }]);
     expect(truncated).toBe(false);
     expect(limit).toBe(INSTITUTION_PAGE_ROW_LIMIT);
   });
 
-  it("says when the bound was hit", async () => {
+  it("says the rows were truncated only when MORE than the bound exist, and returns at most the bound", async () => {
+    // Exactly the bound: not truncated.
     mocks.findMany.mockResolvedValue([consentedRow({}), consentedRow({})]);
     expect(await listedForInstitutionPage(ROR, { limit: 2 })).toMatchObject({
-      truncated: true,
+      truncated: false,
       limit: 2,
     });
-    expect((await listedForInstitutionPage(ROR, { limit: 3 })).truncated).toBe(false);
+    expect((await listedForInstitutionPage(ROR, { limit: 2 })).rows).toHaveLength(2);
+    // One past the bound (the extra row the query asks for): truncated, and the
+    // extra row is not summed.
+    mocks.findMany.mockResolvedValue([consentedRow({}), consentedRow({}), consentedRow({})]);
+    const hit = await listedForInstitutionPage(ROR, { limit: 2 });
+    expect(hit).toMatchObject({ truncated: true, limit: 2 });
+    expect(hit.rows).toHaveLength(2);
   });
 
   it("returns the stored aggregate as-is — validation is the caller's", async () => {

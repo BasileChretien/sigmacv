@@ -191,4 +191,18 @@ describe("parseCvAggregates", () => {
       expect(parseCvAggregates(bad), JSON.stringify(bad)).toBeNull();
     }
   });
+
+  it("accepts only year-shaped byYear keys (up to four digits, or 'unknown'): a tampered key refuses the row instead of reaching the page's year sort", () => {
+    const row = {
+      total: 1,
+      oa: { "open-cc": 1, "open-other": 0, "no-open-copy-found": 0, "not-determined": 0 },
+    };
+    const withKey = (key: string) => ({ v: 1, worksTotal: 1, byYear: { [key]: row }, byType: {} });
+    for (const key of ["2020", "999", "0", UNKNOWN_YEAR]) {
+      expect(parseCvAggregates(withKey(key)), key).not.toBeNull();
+    }
+    for (const key of ["20x1", "20201", "-50", "2020 ", "Unknown", "constructor", ""]) {
+      expect(parseCvAggregates(withKey(key)), key).toBeNull();
+    }
+  });
 });

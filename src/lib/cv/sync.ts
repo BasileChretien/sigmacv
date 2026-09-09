@@ -636,6 +636,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   // re-keys — or un-lists — the CV at once.
   const currentRorId = currentRorKey(cv);
   const currentAffiliationName = affiliationSetName(cv);
+  const visibleRorIds = visibleCurrentRorIds(cv);
   const institutionAggregates = aggregatesColumn(cv);
   await prisma.cv.upsert({
     where: { userId },
@@ -648,6 +649,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       lastSyncReport: report as unknown as Prisma.InputJsonValue,
       currentRorId,
       currentAffiliationName,
+      visibleCurrentRorIds: visibleRorIds,
       institutionAggregates,
     },
     update: {
@@ -657,6 +659,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       lastSyncReport: report as unknown as Prisma.InputJsonValue,
       currentRorId,
       currentAffiliationName,
+      visibleCurrentRorIds: visibleRorIds,
       institutionAggregates,
     },
   });
@@ -711,6 +714,7 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
       schemaVersion: reconciled.schemaVersion,
       currentRorId: currentRorKey(reconciled),
       currentAffiliationName: affiliationSetName(reconciled),
+      visibleCurrentRorIds: visibleCurrentRorIds(reconciled),
       institutionAggregates: aggregatesColumn(reconciled),
     },
   });
@@ -841,6 +845,7 @@ export async function setPublishState(
       listUnderAffiliation: listed,
       currentRorId,
       currentAffiliationName,
+      visibleCurrentRorIds: cv ? visibleCurrentRorIds(cv) : [],
       institutionAggregates: aggregatesColumn(cv),
       ...consent,
     },
