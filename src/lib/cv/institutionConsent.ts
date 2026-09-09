@@ -158,6 +158,11 @@ export interface InstitutionPageState extends InstitutionConsentColumns {
   visibleCurrentRorIds: string[];
   /** Consented ids no longer among the visible current positions — re-asked, never moved. */
   lapsedRorIds: string[];
+  /** The SECOND institution opt-in: share per-work reconciliation rows from a
+   *  designated frozen version in the public export under
+   *  `/i/<ror>/reconciliation`. Offered only while `showOnInstitutionPage` is
+   *  on; the publish path clears it with that consent. */
+  shareReconciliationRows: boolean;
 }
 
 /** The state of a CV that never opted in (and the client's default). */
@@ -167,12 +172,27 @@ export const NO_INSTITUTION_PAGE: InstitutionPageState = {
   currentAffiliations: [],
   visibleCurrentRorIds: [],
   lapsedRorIds: [],
+  shareReconciliationRows: false,
 };
+
+/**
+ * The second opt-in as it must be STORED beside a resolved consent: it can
+ * only stand while the institution-page consent stands, so a withdrawal of
+ * that consent (explicit, or via indexing / unpublish through `NO_CONSENT`)
+ * clears it in the same write. `requested` undefined keeps the stored value.
+ */
+export function resolveReconciliationShare(
+  consent: InstitutionConsentColumns,
+  stored: boolean,
+  requested?: boolean,
+): boolean {
+  return consent.showOnInstitutionPage && (requested ?? stored);
+}
 
 export function institutionPageState(
   cv: CanonicalCv | null,
   columns: InstitutionConsentColumns,
-  flags: { published: boolean; publicIndexable: boolean },
+  flags: { published: boolean; publicIndexable: boolean; shareReconciliationRows?: boolean },
 ): InstitutionPageState {
   const currentAffiliations = cv ? visibleCurrentAffiliations(cv) : [];
   const visibleCurrentRorIds = currentAffiliations.map((a) => a.rorId);
@@ -186,5 +206,6 @@ export function institutionPageState(
     currentAffiliations,
     visibleCurrentRorIds,
     lapsedRorIds,
+    shareReconciliationRows: flags.shareReconciliationRows ?? false,
   };
 }

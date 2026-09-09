@@ -965,7 +965,23 @@ describe("publish state", () => {
       currentAffiliations: [],
       visibleCurrentRorIds: [],
       lapsedRorIds: [],
+      shareReconciliationRows: false,
     });
+  });
+
+  it("reports the second institution opt-in (the reconciliation rows) from its column", async () => {
+    mocks.findUnique.mockResolvedValue({
+      published: true,
+      publicSlug: "s",
+      publicIndexable: true,
+      listUnderAffiliation: false,
+      currentRorId: "04chrp450",
+      showOnInstitutionPage: true,
+      consentedRorIds: ["04chrp450"],
+      shareReconciliationRows: true,
+      document: AFFILIATED_DOC,
+    });
+    expect(await getPublishState("u1")).toMatchObject({ shareReconciliationRows: true });
   });
 
   it("reports the affiliation-listing opt-in and the ROR key the toggle depends on", async () => {
@@ -1220,6 +1236,71 @@ describe("publish state", () => {
       await setPublishState("u1", true, true, false, { show: true, rorIds: ["04chrp450"] });
       expect(getCachedInstitutionPage("04chrp450")).toBeNull();
       expect(getCachedInstitutionPage("04d9jrx35")).not.toBeNull();
+    });
+
+    it("the second opt-in (reconciliation rows) is stored only beside a standing page consent, kept when omitted, and cleared with that consent", async () => {
+      const consented = { showOnInstitutionPage: true, consentedRorIds: ["04chrp450"] };
+      // Ticked beside a standing consent: stored.
+      mocks.findUnique.mockResolvedValue({
+        ...row(AFFILIATED_DOC, consented),
+        shareReconciliationRows: false,
+      });
+      const on = await setPublishState("u1", true, true, false, undefined, true);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        showOnInstitutionPage: true,
+        shareReconciliationRows: true,
+      });
+      expect(on.shareReconciliationRows).toBe(true);
+      // Omitted: the stored value is kept.
+      mocks.update.mockClear();
+      mocks.findUnique.mockResolvedValue({
+        ...row(AFFILIATED_DOC, consented),
+        shareReconciliationRows: true,
+      });
+      const kept = await setPublishState("u1", true, true, false);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({ shareReconciliationRows: true });
+      expect(kept.shareReconciliationRows).toBe(true);
+      // Unticked explicitly: cleared.
+      mocks.update.mockClear();
+      await setPublishState("u1", true, true, false, undefined, false);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({ shareReconciliationRows: false });
+      // Requested WITHOUT a page consent: refused (never stored alone).
+      mocks.update.mockClear();
+      mocks.findUnique.mockResolvedValue({
+        ...row(AFFILIATED_DOC),
+        shareReconciliationRows: false,
+      });
+      const alone = await setPublishState("u1", true, true, false, undefined, true);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        showOnInstitutionPage: false,
+        shareReconciliationRows: false,
+      });
+      expect(alone.shareReconciliationRows).toBe(false);
+    });
+
+    it("withdrawing the page consent — explicitly, with indexing, or on unpublish — clears the second opt-in in the same write", async () => {
+      const consented = { showOnInstitutionPage: true, consentedRorIds: ["04chrp450"] };
+      const stored = { ...row(AFFILIATED_DOC, consented), shareReconciliationRows: true };
+      mocks.findUnique.mockResolvedValue(stored);
+      await setPublishState("u1", true, true, false, { show: false, rorIds: [] });
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        showOnInstitutionPage: false,
+        shareReconciliationRows: false,
+      });
+      mocks.update.mockClear();
+      await setPublishState("u1", true, false, false);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        publicIndexable: false,
+        shareReconciliationRows: false,
+      });
+      mocks.update.mockClear();
+      // Even when the request asks for it beside the unpublish.
+      await setPublishState("u1", false, true, false, undefined, true);
+      expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+        published: false,
+        showOnInstitutionPage: false,
+        shareReconciliationRows: false,
+      });
     });
 
     it("a withdrawal purges the cached institution pages of every id it was consented to", async () => {

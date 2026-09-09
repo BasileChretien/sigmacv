@@ -103,6 +103,7 @@ export default function PublishControls({
     nextIndexable: boolean,
     nextListed: boolean,
     institution?: InstitutionRequest,
+    shareRows?: boolean,
   ) {
     setBusy(true);
     setAnnounce("");
@@ -115,6 +116,7 @@ export default function PublishControls({
           indexable: nextIndexable,
           listUnderAffiliation: nextListed,
           ...institution,
+          ...(shareRows === undefined ? {} : { shareReconciliationRows: shareRows }),
         }),
       });
       if (res.ok) {
@@ -131,6 +133,7 @@ export default function PublishControls({
           currentAffiliations: data.currentAffiliations,
           visibleCurrentRorIds: data.visibleCurrentRorIds,
           lapsedRorIds: data.lapsedRorIds,
+          shareReconciliationRows: data.shareReconciliationRows,
         };
         setPublished(data.published);
         setSlug(data.publicSlug);
@@ -177,8 +180,13 @@ export default function PublishControls({
   const listingOffered = indexable && affiliationRorId !== null;
 
   // ── Institution page: a consent pinned to ticked ROR ids ──
-  const { showOnInstitutionPage, consentedRorIds, currentAffiliations, lapsedRorIds } =
-    institutionPage;
+  const {
+    showOnInstitutionPage,
+    consentedRorIds,
+    currentAffiliations,
+    lapsedRorIds,
+    shareReconciliationRows,
+  } = institutionPage;
   const consented = new Set(consentedRorIds);
   const active = currentAffiliations.filter((a) => consented.has(a.rorId));
   const institutionOffered = indexable && currentAffiliations.length > 0;
@@ -223,6 +231,11 @@ export default function PublishControls({
       true,
       consentedRorIds.filter((id) => id !== rorId),
     );
+  // ── The SECOND institution opt-in: per-work reconciliation rows ──
+  // Offered only while the page consent is STORED (not merely armed): the
+  // server refuses it without that consent and clears it with it. Posts only
+  // the flag — the stored institution choice is left as it is.
+  const setShareRows = (next: boolean) => update(true, true, listUnderAffiliation, undefined, next);
   const names = (affs: { name: string }[]) => affs.map((a) => a.name).join(", ");
   // The re-ask: a consented affiliation lapsed and there is a current one not
   // yet confirmed — name it; with no ROR-linked current position, say it is paused.
@@ -377,6 +390,23 @@ export default function PublishControls({
                 </li>
               ))}
             </ul>
+          ) : null}
+          {showOnInstitutionPage ? (
+            <>
+              <label
+                className="field-inline publish-affiliation-toggle"
+                title={u.shareReconciliationRowsTitle}
+              >
+                <input
+                  type="checkbox"
+                  checked={shareReconciliationRows}
+                  disabled={busy}
+                  onChange={(e) => void setShareRows(e.target.checked)}
+                />
+                <span>{u.shareReconciliationRows}</span>
+              </label>
+              <p className="publish-summary muted">{u.shareReconciliationRowsBody}</p>
+            </>
           ) : null}
           {showOnInstitutionPage && lapsedRorIds.length > 0 ? (
             reask.length > 0 ? (

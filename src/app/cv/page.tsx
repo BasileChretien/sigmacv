@@ -92,6 +92,7 @@ export default async function CvPage() {
         currentAffiliations: publish.currentAffiliations,
         visibleCurrentRorIds: publish.visibleCurrentRorIds,
         lapsedRorIds: publish.lapsedRorIds,
+        shareReconciliationRows: publish.shareReconciliationRows,
       }}
       signOutAction={handleSignOut}
     />

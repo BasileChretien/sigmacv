@@ -8,7 +8,9 @@ import { renderToStaticMarkup } from "react-dom/server";
  * imported — so if any code path under these four routes reached OpenAlex,
  * ROR or any other service, the module graph would fail to load or the render
  * would throw. The source-level grep in `institutions-no-openalex.test.ts`
- * cannot see a transitive import; this can.
+ * cannot see a transitive import; this can. The two reconciliation-export
+ * route handlers are rendered the same way: their rows come from the stored
+ * frozen version the reader selects, never from a fetch.
  */
 
 Object.assign(process.env, {
@@ -54,6 +56,12 @@ import IndexPage, { generateMetadata as indexMetadata } from "@/app/i/page";
 import RorPage, { generateMetadata as rorMetadata } from "@/app/i/[ror]/page";
 import LocaleIndexPage, { generateMetadata as localeIndexMetadata } from "@/app/[locale]/i/page";
 import LocaleRorPage, { generateMetadata as localeRorMetadata } from "@/app/[locale]/i/[ror]/page";
+import { GET as csvGet } from "@/app/i/[ror]/reconciliation.csv/route";
+import { GET as jsonGet } from "@/app/i/[ror]/reconciliation.json/route";
+import {
+  RECONCILIATION_COLUMNS,
+  storedReconciliationRows,
+} from "@/lib/institutions/reconciliationRows";
 
 const ROR = "04chrp450";
 const params = <T extends Record<string, string>>(p: T) => ({ params: Promise.resolve(p) });
@@ -118,9 +126,32 @@ const CONSENTED_ROWS = Array.from({ length: 5 }, () => ({
   },
 }));
 
+/** One reconciliation source: the reader's shape (the User's ORCID, the two
+ *  consent columns and the designated frozen version's STORED rows — never
+ *  its document), routed by where clause. */
+const SOURCE_ROWS = [
+  {
+    consentedRorIds: [ROR],
+    visibleCurrentRorIds: [ROR],
+    user: { orcid: "0000-0002-7483-2489" },
+    snapshots: [
+      {
+        version: 2,
+        reconciliationRows: storedReconciliationRows(CONSENTED_DOC, {
+          snapshotVersion: 2,
+          contentHash: "ab".repeat(32),
+          frozenAt: "2026-09-08T10:00:00.000Z",
+        }),
+      },
+    ],
+  },
+];
+
 beforeEach(() => {
   mocks.count.mockResolvedValue(3);
-  mocks.findMany.mockResolvedValue(CONSENTED_ROWS);
+  mocks.findMany.mockImplementation(async (args: { where: Record<string, unknown> }) =>
+    "snapshots" in args.where ? SOURCE_ROWS : CONSENTED_ROWS,
+  );
   mocks.groupBy.mockResolvedValue([{ currentRorId: ROR, _count: { _all: 3 } }]);
   mocks.institutionFindUnique.mockResolvedValue({
     name: "Nagoya University",
@@ -161,6 +192,25 @@ describe("institution routes render with no network at all", () => {
     ]);
     expect(metas[1]!.title).toBe("Nagoya University");
     expect(metas[3]!.title).toBe("Nagoya University");
+    // The page's one line about the export (three sources per the count mock).
+    for (const html of [pages[1]!, pages[3]!]) {
+      expect(html).toContain(`href="/i/${ROR}/reconciliation.csv"`);
+      expect(html).toContain(`href="/i/${ROR}/reconciliation.json"`);
+    }
+    expect(mocks.fetch).not.toHaveBeenCalled();
+  });
+
+  it("both reconciliation-export routes answer from the stored frozen version alone; fetch is never called", async () => {
+    const req = (ext: string) => new Request(`https://sigmacv.test/i/${ROR}/reconciliation.${ext}`);
+    const csv = await csvGet(req("csv"), params({ ror: ROR }));
+    expect(csv.status).toBe(200);
+    const text = await csv.text();
+    expect(text.split("\r\n")[0]).toBe(RECONCILIATION_COLUMNS.map((c) => `"${c}"`).join(","));
+    const json = await jsonGet(req("json"), params({ ror: ROR }));
+    expect(json.status).toBe(200);
+    const body = (await json.json()) as { ror: string; contributorCount: number; rows: unknown[] };
+    expect(body.ror).toBe(ROR);
+    expect(body.contributorCount).toBe(1);
     expect(mocks.fetch).not.toHaveBeenCalled();
   });
 });

@@ -23,8 +23,10 @@ const mocks = vi.hoisted(() => ({
   CvNotFoundError: class CvNotFoundError extends Error {},
   SnapshotLimitError: class SnapshotLimitError extends Error {},
   SnapshotDoiLockedError: class SnapshotDoiLockedError extends Error {},
+  SnapshotNotPublicError: class SnapshotNotPublicError extends Error {},
 }));
-const { CvNotFoundError, SnapshotLimitError, SnapshotDoiLockedError } = mocks;
+const { CvNotFoundError, SnapshotLimitError, SnapshotDoiLockedError, SnapshotNotPublicError } =
+  mocks;
 
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/rateLimitStore", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
@@ -34,6 +36,7 @@ vi.mock("@/lib/cv/sync", () => ({ CvNotFoundError: mocks.CvNotFoundError }));
 vi.mock("@/lib/cv/snapshotStore", () => ({
   SnapshotLimitError: mocks.SnapshotLimitError,
   SnapshotDoiLockedError: mocks.SnapshotDoiLockedError,
+  SnapshotNotPublicError: mocks.SnapshotNotPublicError,
   listSnapshots: mocks.listSnapshots,
   createSnapshot: mocks.createSnapshot,
   updateSnapshot: mocks.updateSnapshot,
@@ -227,6 +230,41 @@ describe("DELETE /api/cv/snapshots/[id]", () => {
     mocks.deleteSnapshot.mockResolvedValue(false);
     expect((await del("other")).status).toBe(404);
   });
+  it("forwards forReconciliation (alone or beside the other fields) and 409s not-public when the store refuses", async () => {
+    mocks.updateSnapshot.mockResolvedValue({ ...SUMMARY, isPublic: true, forReconciliation: true });
+    const res = await patchOne(
+      json(`${BASE}/snap1`, "PATCH", { forReconciliation: true }),
+      params("snap1"),
+    );
+    expect(res.status).toBe(200);
+    expect(mocks.updateSnapshot).toHaveBeenCalledWith("u1", "snap1", { forReconciliation: true });
+    expect(
+      ((await res.json()) as { snapshot: { forReconciliation: boolean } }).snapshot,
+    ).toMatchObject({
+      forReconciliation: true,
+    });
+    await patchOne(
+      json(`${BASE}/snap1`, "PATCH", { isPublic: true, forReconciliation: false }),
+      params("snap1"),
+    );
+    expect(mocks.updateSnapshot).toHaveBeenLastCalledWith("u1", "snap1", {
+      isPublic: true,
+      forReconciliation: false,
+    });
+    // Not a boolean: refused by the schema.
+    expect(
+      (await patchOne(json(`${BASE}/s`, "PATCH", { forReconciliation: "yes" }), params("s")))
+        .status,
+    ).toBe(422);
+    mocks.updateSnapshot.mockRejectedValue(new SnapshotNotPublicError("private"));
+    const refused = await patchOne(
+      json(`${BASE}/s`, "PATCH", { forReconciliation: true }),
+      params("s"),
+    );
+    expect(refused.status).toBe(409);
+    expect(await refused.json()).toEqual({ error: "not-public" });
+  });
+
   it("409s doi-minted for a minted version (mirrors PATCH): a DOI must keep resolving", async () => {
     mocks.deleteSnapshot.mockRejectedValue(new SnapshotDoiLockedError("locked"));
     const res = await del("s");

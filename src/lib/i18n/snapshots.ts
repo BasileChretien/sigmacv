@@ -104,6 +104,15 @@ export interface SnapshotStrings {
   mintConsentLabel: string;
   /** Button tooltip while the box is unticked. */
   mintNeedsConsent: string;
+  // ── Institution reconciliation export (the designated frozen version) ────
+  /** Row action: designate this (public) version as the export's source. */
+  reconciliationUse: string;
+  /** Row action: undesignate it. */
+  reconciliationStop: string;
+  /** Row tag on the designated version. */
+  reconciliationTag: string;
+  /** Tooltip on the disabled action of a private version. */
+  reconciliationNeedsPublic: string;
 }
 
 const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
@@ -185,6 +194,10 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     mintConsentLabel:
       "I understand and agree that DataCite keeps this DOI record, hidden but not erased, after I delete my account.",
     mintNeedsConsent: "Tick the consent box first to mint a DOI.",
+    reconciliationUse: "Use this frozen version for my institution's reconciliation export",
+    reconciliationStop: "Stop using it for the reconciliation export",
+    reconciliationTag: "Reconciliation export",
+    reconciliationNeedsPublic: "Only a public version can be used for the reconciliation export.",
   },
   "zh-CN": {
     tbVersions: "版本",
@@ -261,6 +274,10 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     mintConsentLabel:
       "我理解并同意：在我删除账户后，DataCite 仍会保留此 DOI 记录（隐藏但不删除）。",
     mintNeedsConsent: "请先勾选同意框，再注册 DOI。",
+    reconciliationUse: "将此冻结版本用于我所属机构的核对导出",
+    reconciliationStop: "停止将其用于核对导出",
+    reconciliationTag: "核对导出",
+    reconciliationNeedsPublic: "只有公开版本才能用于核对导出。",
   },
   "es-ES": {
     tbVersions: "Versiones",
@@ -340,6 +357,12 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     mintConsentLabel:
       "Entiendo y acepto que DataCite conserve este registro DOI, oculto pero no borrado, después de eliminar mi cuenta.",
     mintNeedsConsent: "Marque primero la casilla de consentimiento para registrar un DOI.",
+    reconciliationUse:
+      "Usar esta versión congelada para la exportación de conciliación de mi institución",
+    reconciliationStop: "Dejar de usarla para la exportación de conciliación",
+    reconciliationTag: "Exportación de conciliación",
+    reconciliationNeedsPublic:
+      "Solo una versión pública puede usarse para la exportación de conciliación.",
   },
   "fr-FR": {
     tbVersions: "Versions",
@@ -420,6 +443,12 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     mintConsentLabel:
       "Je comprends et j'accepte que DataCite conserve cette notice DOI, masquée mais non effacée, après la suppression de mon compte.",
     mintNeedsConsent: "Cochez d'abord la case de consentement pour attribuer un DOI.",
+    reconciliationUse:
+      "Utiliser cette version figée pour l'export de rapprochement de mon établissement",
+    reconciliationStop: "Ne plus l'utiliser pour l'export de rapprochement",
+    reconciliationTag: "Export de rapprochement",
+    reconciliationNeedsPublic:
+      "Seule une version publique peut servir à l'export de rapprochement.",
   },
   "de-DE": {
     tbVersions: "Versionen",
@@ -501,6 +530,12 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
       "Ich verstehe und stimme zu, dass DataCite diesen DOI-Datensatz nach dem Löschen meines Kontos ausgeblendet, aber nicht gelöscht, behält.",
     mintNeedsConsent:
       "Setzen Sie zuerst das Häkchen bei der Einwilligung, um einen DOI zu vergeben.",
+    reconciliationUse:
+      "Diese eingefrorene Version für den Abgleichsexport meiner Einrichtung verwenden",
+    reconciliationStop: "Nicht mehr für den Abgleichsexport verwenden",
+    reconciliationTag: "Abgleichsexport",
+    reconciliationNeedsPublic:
+      "Nur eine öffentliche Version kann für den Abgleichsexport verwendet werden.",
   },
   "ja-JP": {
     tbVersions: "バージョン",
@@ -580,6 +615,10 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     mintConsentLabel:
       "アカウント削除後も DataCite がこの DOI レコードを非表示のまま（消去せず）保持することを理解し、同意します。",
     mintNeedsConsent: "DOI を発行するには、まず同意のチェックボックスをオンにしてください。",
+    reconciliationUse: "この凍結版を所属機関の照合エクスポートに使う",
+    reconciliationStop: "照合エクスポートに使うのをやめる",
+    reconciliationTag: "照合エクスポート",
+    reconciliationNeedsPublic: "照合エクスポートに使えるのは公開版のみです。",
   },
   "pt-BR": {
     tbVersions: "Versões",
@@ -659,6 +698,12 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     mintConsentLabel:
       "Entendo e concordo que a DataCite mantenha este registro DOI, oculto mas não apagado, após a exclusão da minha conta.",
     mintNeedsConsent: "Marque primeiro a caixa de consentimento para registrar um DOI.",
+    reconciliationUse:
+      "Usar esta versão congelada para a exportação de conciliação da minha instituição",
+    reconciliationStop: "Parar de usá-la para a exportação de conciliação",
+    reconciliationTag: "Exportação de conciliação",
+    reconciliationNeedsPublic:
+      "Somente uma versão pública pode ser usada para a exportação de conciliação.",
   },
   "it-IT": {
     tbVersions: "Versioni",
@@ -738,6 +783,12 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     mintConsentLabel:
       "Comprendo e accetto che DataCite conservi questo record DOI, nascosto ma non cancellato, dopo l'eliminazione del mio account.",
     mintNeedsConsent: "Spunta prima la casella di consenso per assegnare un DOI.",
+    reconciliationUse:
+      "Usa questa versione congelata per l'esportazione di riconciliazione della mia istituzione",
+    reconciliationStop: "Smetti di usarla per l'esportazione di riconciliazione",
+    reconciliationTag: "Esportazione di riconciliazione",
+    reconciliationNeedsPublic:
+      "Solo una versione pubblica può essere usata per l'esportazione di riconciliazione.",
   },
   "ko-KR": {
     tbVersions: "버전",
@@ -816,6 +867,10 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     mintConsentLabel:
       "계정을 삭제한 후에도 DataCite가 이 DOI 레코드를 숨긴 상태로(삭제하지 않고) 보관한다는 점을 이해하고 동의합니다.",
     mintNeedsConsent: "DOI를 발급하려면 먼저 동의 확인란을 선택하세요.",
+    reconciliationUse: "이 고정 버전을 소속 기관의 대조 내보내기에 사용",
+    reconciliationStop: "대조 내보내기에 사용 중단",
+    reconciliationTag: "대조 내보내기",
+    reconciliationNeedsPublic: "공개 버전만 대조 내보내기에 사용할 수 있습니다.",
   },
   "ru-RU": {
     tbVersions: "Версии",
@@ -895,6 +950,10 @@ const SNAPSHOT_I18N: Record<Locale, SnapshotStrings> = {
     mintConsentLabel:
       "Я понимаю и соглашаюсь с тем, что DataCite сохранит эту запись DOI — скрытой, но не стёртой — после удаления моей учётной записи.",
     mintNeedsConsent: "Сначала отметьте поле согласия, чтобы присвоить DOI.",
+    reconciliationUse: "Использовать эту замороженную версию для экспорта сверки моей организации",
+    reconciliationStop: "Больше не использовать для экспорта сверки",
+    reconciliationTag: "Экспорт сверки",
+    reconciliationNeedsPublic: "Для экспорта сверки можно использовать только публичную версию.",
   },
 };
 

@@ -7,8 +7,11 @@ import { currentAffiliation } from "@/lib/cv/publicJsonLd";
 import {
   InstitutionConsentError,
   MAX_CONSENTED_ROR_IDS,
+  NO_INSTITUTION_PAGE,
   institutionPageListing,
+  institutionPageState,
   resolveInstitutionConsent,
+  resolveReconciliationShare,
   visibleCurrentAffiliations,
   visibleCurrentRorIds,
 } from "@/lib/cv/institutionConsent";
@@ -225,6 +228,40 @@ describe("resolveInstitutionConsent", () => {
     expect(() =>
       resolveInstitutionConsent({ show: true, rorIds: ["04d9jrx35"] }, current, ["02kpeqv85"]),
     ).toThrow(InstitutionConsentError);
+  });
+});
+
+describe("resolveReconciliationShare (the second opt-in)", () => {
+  const consented = { showOnInstitutionPage: true, consentedRorIds: ["04chrp450"] };
+  const withdrawn = { showOnInstitutionPage: false, consentedRorIds: [] };
+
+  it("stands only beside a standing page consent: requested, kept, or cleared with it", () => {
+    expect(resolveReconciliationShare(consented, false, true)).toBe(true);
+    expect(resolveReconciliationShare(consented, true, false)).toBe(false);
+    // Omitted: the stored value.
+    expect(resolveReconciliationShare(consented, true)).toBe(true);
+    expect(resolveReconciliationShare(consented, false)).toBe(false);
+    // No page consent: never, whatever was stored or asked.
+    expect(resolveReconciliationShare(withdrawn, true, true)).toBe(false);
+    expect(resolveReconciliationShare(withdrawn, true)).toBe(false);
+  });
+
+  it("is part of the publish state, false by default and read from the flags", () => {
+    expect(NO_INSTITUTION_PAGE.shareReconciliationRows).toBe(false);
+    const flags = { published: true, publicIndexable: true };
+    expect(institutionPageState(makeCv([NAGOYA]), consented, flags).shareReconciliationRows).toBe(
+      false,
+    );
+    expect(
+      institutionPageState(makeCv([NAGOYA]), consented, {
+        ...flags,
+        shareReconciliationRows: true,
+      }),
+    ).toMatchObject({
+      showOnInstitutionPage: true,
+      currentAffiliations: [{ rorId: "04chrp450", name: "Nagoya University" }],
+      shareReconciliationRows: true,
+    });
   });
 });
 

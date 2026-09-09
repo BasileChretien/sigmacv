@@ -90,6 +90,15 @@ export interface InstitutionStrings {
   figuresColTotal: string;
   figuresColSection: string;
   figuresColWorks: string;
+  /** The reconciliation export line (shown from one contributor): the count,
+   *  then the two download links; and the About sentence that says the rows
+   *  identify the researcher because each one chose to share them. */
+  reconciliationOne: string;
+  /** `{count}`. */
+  reconciliationMany: string;
+  reconciliationCsv: string;
+  reconciliationJson: string;
+  aboutReconciliation: string;
 }
 
 const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
@@ -173,6 +182,12 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     figuresColTotal: "Total",
     figuresColSection: "Section",
     figuresColWorks: "Works",
+    reconciliationOne: "1 researcher shares their reconciliation rows:",
+    reconciliationMany: "{count} researchers share their reconciliation rows:",
+    reconciliationCsv: "download CSV",
+    reconciliationJson: "JSON",
+    aboutReconciliation:
+      "Rows in the reconciliation export identify the researcher by ORCID iD, because each one chose to share them.",
   },
   "zh-CN": {
     indexMetaTitle: "机构",
@@ -249,6 +264,12 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     figuresColTotal: "总数",
     figuresColSection: "栏目",
     figuresColWorks: "成果",
+    reconciliationOne: "1 位研究者共享了核对行：",
+    reconciliationMany: "{count} 位研究者共享了核对行：",
+    reconciliationCsv: "下载 CSV",
+    reconciliationJson: "JSON",
+    aboutReconciliation:
+      "核对导出中的每一行都通过 ORCID iD 标识研究者，因为每一位都自行选择了共享。",
   },
   "es-ES": {
     indexMetaTitle: "Instituciones",
@@ -331,6 +352,12 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     figuresColTotal: "Total",
     figuresColSection: "Sección",
     figuresColWorks: "Trabajos",
+    reconciliationOne: "1 investigador comparte sus filas de conciliación:",
+    reconciliationMany: "{count} investigadores comparten sus filas de conciliación:",
+    reconciliationCsv: "descargar CSV",
+    reconciliationJson: "JSON",
+    aboutReconciliation:
+      "Las filas de la exportación de conciliación identifican al investigador por su ORCID iD, porque cada uno eligió compartirlas.",
   },
   "fr-FR": {
     indexMetaTitle: "Établissements",
@@ -413,6 +440,12 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     figuresColTotal: "Total",
     figuresColSection: "Rubrique",
     figuresColWorks: "Travaux",
+    reconciliationOne: "1 chercheur partage ses lignes de rapprochement :",
+    reconciliationMany: "{count} chercheurs partagent leurs lignes de rapprochement :",
+    reconciliationCsv: "télécharger le CSV",
+    reconciliationJson: "JSON",
+    aboutReconciliation:
+      "Les lignes de l'export de rapprochement identifient le chercheur par son ORCID iD, parce que chacun a choisi de les partager.",
   },
   "de-DE": {
     indexMetaTitle: "Einrichtungen",
@@ -495,6 +528,12 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     figuresColTotal: "Gesamt",
     figuresColSection: "Abschnitt",
     figuresColWorks: "Arbeiten",
+    reconciliationOne: "1 forschende Person teilt ihre Abgleichszeilen:",
+    reconciliationMany: "{count} Forschende teilen ihre Abgleichszeilen:",
+    reconciliationCsv: "CSV herunterladen",
+    reconciliationJson: "JSON",
+    aboutReconciliation:
+      "Die Zeilen des Abgleichsexports nennen die forschende Person über ihre ORCID iD, weil jede einzelne sich dafür entschieden hat, sie zu teilen.",
   },
   "ja-JP": {
     indexMetaTitle: "研究機関",
@@ -576,6 +615,12 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     figuresColTotal: "合計",
     figuresColSection: "セクション",
     figuresColWorks: "業績",
+    reconciliationOne: "1 人の研究者が照合用の行を共有しています：",
+    reconciliationMany: "{count} 人の研究者が照合用の行を共有しています：",
+    reconciliationCsv: "CSV をダウンロード",
+    reconciliationJson: "JSON",
+    aboutReconciliation:
+      "照合エクスポートの各行は ORCID iD で研究者を特定します。各研究者が自ら共有を選んだためです。",
   },
   "pt-BR": {
     indexMetaTitle: "Instituições",
@@ -658,6 +703,12 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     figuresColTotal: "Total",
     figuresColSection: "Seção",
     figuresColWorks: "Trabalhos",
+    reconciliationOne: "1 pesquisador compartilha suas linhas de conciliação:",
+    reconciliationMany: "{count} pesquisadores compartilham suas linhas de conciliação:",
+    reconciliationCsv: "baixar CSV",
+    reconciliationJson: "JSON",
+    aboutReconciliation:
+      "As linhas da exportação de conciliação identificam o pesquisador pelo ORCID iD, porque cada um escolheu compartilhá-las.",
   },
   "it-IT": {
     indexMetaTitle: "Istituzioni",
@@ -740,6 +791,12 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     figuresColTotal: "Totale",
     figuresColSection: "Sezione",
     figuresColWorks: "Lavori",
+    reconciliationOne: "1 ricercatore condivide le sue righe di riconciliazione:",
+    reconciliationMany: "{count} ricercatori condividono le loro righe di riconciliazione:",
+    reconciliationCsv: "scarica il CSV",
+    reconciliationJson: "JSON",
+    aboutReconciliation:
+      "Le righe dell'esportazione di riconciliazione identificano il ricercatore tramite il suo ORCID iD, perché ognuno ha scelto di condividerle.",
   },
   "ko-KR": {
     indexMetaTitle: "기관",
@@ -821,6 +878,12 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     figuresColTotal: "합계",
     figuresColSection: "섹션",
     figuresColWorks: "업적",
+    reconciliationOne: "1명의 연구자가 대조 행을 공유합니다:",
+    reconciliationMany: "{count}명의 연구자가 대조 행을 공유합니다:",
+    reconciliationCsv: "CSV 다운로드",
+    reconciliationJson: "JSON",
+    aboutReconciliation:
+      "대조 내보내기의 각 행은 ORCID iD로 연구자를 식별합니다. 각 연구자가 직접 공유를 선택했기 때문입니다.",
   },
   "ru-RU": {
     indexMetaTitle: "Учреждения",
@@ -902,6 +965,12 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     figuresColTotal: "Итого",
     figuresColSection: "Раздел",
     figuresColWorks: "Работы",
+    reconciliationOne: "1 исследователь делится своими строками сверки:",
+    reconciliationMany: "{count} исследователей делятся своими строками сверки:",
+    reconciliationCsv: "скачать CSV",
+    reconciliationJson: "JSON",
+    aboutReconciliation:
+      "Строки экспорта сверки указывают исследователя по его ORCID iD, потому что каждый из них сам решил ими поделиться.",
   },
 };
 

@@ -70,12 +70,50 @@ describe("/api/cv/publish", () => {
   it("POST forwards the affiliation-listing opt-in (default false) to the state setter", async () => {
     const res = await POST(post({ published: true, indexable: true, listUnderAffiliation: true }));
     expect(res.status).toBe(200);
-    expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, true, true, undefined);
+    expect(mocks.setPublishState).toHaveBeenCalledWith(
+      "u1",
+      true,
+      true,
+      true,
+      undefined,
+      undefined,
+    );
     expect(await res.json()).toEqual(STATE);
 
     mocks.setPublishState.mockClear();
     await POST(post({ published: true }));
-    expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, false, false, undefined);
+    expect(mocks.setPublishState).toHaveBeenCalledWith(
+      "u1",
+      true,
+      false,
+      false,
+      undefined,
+      undefined,
+    );
+  });
+
+  it("POST forwards the second institution opt-in (shareReconciliationRows) as its own argument, and refuses a non-boolean", async () => {
+    await POST(post({ published: true, indexable: true, shareReconciliationRows: true }));
+    expect(mocks.setPublishState).toHaveBeenLastCalledWith(
+      "u1",
+      true,
+      true,
+      false,
+      undefined,
+      true,
+    );
+    await POST(post({ published: true, indexable: true, shareReconciliationRows: false }));
+    expect(mocks.setPublishState).toHaveBeenLastCalledWith(
+      "u1",
+      true,
+      true,
+      false,
+      undefined,
+      false,
+    );
+    const res = await POST(post({ published: true, shareReconciliationRows: "yes" }));
+    expect(res.status).toBe(422);
+    expect(((await res.json()) as { error: string }).error).toContain("shareReconciliationRows");
   });
 
   describe("institution-page consent", () => {
@@ -89,10 +127,17 @@ describe("/api/cv/publish", () => {
         }),
       );
       expect(res.status).toBe(200);
-      expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, true, false, {
-        show: true,
-        rorIds: ["04chrp450", "04d9jrx35"],
-      });
+      expect(mocks.setPublishState).toHaveBeenCalledWith(
+        "u1",
+        true,
+        true,
+        false,
+        {
+          show: true,
+          rorIds: ["04chrp450", "04d9jrx35"],
+        },
+        undefined,
+      );
       // The response carries the picker + the re-ask so the UI needs no second call.
       expect(await res.json()).toMatchObject({
         showOnInstitutionPage: true,
@@ -103,17 +148,31 @@ describe("/api/cv/publish", () => {
 
       mocks.setPublishState.mockClear();
       await POST(post({ published: true, indexable: true, showOnInstitutionPage: false }));
-      expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, true, false, {
-        show: false,
-        rorIds: [],
-      });
+      expect(mocks.setPublishState).toHaveBeenCalledWith(
+        "u1",
+        true,
+        true,
+        false,
+        {
+          show: false,
+          rorIds: [],
+        },
+        undefined,
+      );
 
       mocks.setPublishState.mockClear();
       await POST(post({ published: true, indexable: true, consentedRorIds: ["04chrp450"] }));
-      expect(mocks.setPublishState).toHaveBeenCalledWith("u1", true, true, false, {
-        show: true,
-        rorIds: ["04chrp450"],
-      });
+      expect(mocks.setPublishState).toHaveBeenCalledWith(
+        "u1",
+        true,
+        true,
+        false,
+        {
+          show: true,
+          rorIds: ["04chrp450"],
+        },
+        undefined,
+      );
     });
 
     it("rejects a malformed ROR id, a non-array, or more than five ids with 422 before touching the store", async () => {

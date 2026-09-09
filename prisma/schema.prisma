@@ -164,6 +164,14 @@ model Cv {
   // carry [] until their next write - not listed until then, like the null
   // aggregates below. Derived, never edited; carried in the GDPR export.
   visibleCurrentRorIds   String[]  @default([])
+  // SECOND institution opt-in: share per-work reconciliation rows (ORCID iD,
+  // the works the public page lists with DOI / year / type / licence / open-
+  // access state, the consented ROR ids) in the public CSV/JSON export under
+  // /i/<ror>/reconciliation — read from the ONE frozen version the owner
+  // designates (CvSnapshot.forReconciliation), never from the live document.
+  // Offered only while showOnInstitutionPage is on and cleared with it (and so
+  // with indexing / unpublish); default false; carried in the GDPR export.
+  shareReconciliationRows Boolean  @default(false)
   // COUNTS of the works the public page lists (by year x open-access state, and
   // by section), computed from the document at every write beside currentRorId
   // (src/lib/institutions/cvAggregates.ts) and summed under k-anonymity on the
@@ -217,6 +225,19 @@ model CvSnapshot {
   ledger      Json?
   contentHash String?
   readerMode  Boolean  @default(false)
+  // The ONE frozen version (per CV) the owner designated as the source of the
+  // institution reconciliation export (Cv.shareReconciliationRows). Only a
+  // public version can be designated; designating another clears this one in
+  // the same transaction; making it private clears it; deleting it drops it.
+  forReconciliation Boolean @default(false)
+  // The export's per-work rows for THAT version, computed once at designation
+  // from the frozen document (reconciliationRows.ts) and cleared with the
+  // designation, so a public request reads this column and never parses the
+  // document (like Cv.institutionAggregates). Derived, never edited; carried in
+  // the GDPR export; dropped with the row. A partial unique index on (cvId)
+  // WHERE forReconciliation (migration-only — Prisma cannot declare it) makes
+  // "at most one designated version per CV" a database fact.
+  reconciliationRows Json?
 
   cv Cv @relation(fields: [cvId], references: [id], onDelete: Cascade)
 

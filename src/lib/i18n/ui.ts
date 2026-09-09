@@ -154,6 +154,13 @@ export interface UiStrings {
   /** A lapsed (kept) id, rendered with its own Remove control. */
   institutionPageLapsedKept: string;
   institutionPageRemove: string;
+  /** The SECOND institution opt-in: share per-work reconciliation rows from a
+   *  designated frozen version in the public export under `/i/<ror>/reconciliation`.
+   *  Offered only while `showOnInstitutionPage` is on. */
+  shareReconciliationRows: string;
+  shareReconciliationRowsTitle: string;
+  /** What is shared, where, from which version, how to stop. */
+  shareReconciliationRowsBody: string;
   publicContactLegend: string;
   publicShowEmail: string;
   publicShowPhone: string;
@@ -382,6 +389,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     institutionPageArmedHint: "Nothing is listed yet — tick at least one institution below.",
     institutionPageLapsedKept: "Kept from a former affiliation: ROR {rorId}",
     institutionPageRemove: "Remove",
+    shareReconciliationRows: "Share my reconciliation rows with my institution",
+    shareReconciliationRowsTitle:
+      "Off by default. When on, a public CSV/JSON export under /i/<ROR id>/reconciliation lists your works from the frozen version you designate, with their open-access state. Requires the institution-page listing above. Withdraw at any time.",
+    shareReconciliationRowsBody:
+      "What is shared: your ORCID iD, the works your public page lists with their DOI, year, type, licence and the open-access state SigmaCV found, and the institutions you ticked. Where: a public CSV/JSON file under /i/<ROR id>/reconciliation, for the institution reconciling its records. From which version: the frozen version you designate in Versions — nothing is shared until you designate one, and nothing changes until you designate another. How to stop: untick this box; the rows disappear with the next request.",
     publishTitle:
       "Creates a shareable public web page of this CV at a public link. It re-syncs as you update. Off by default; un-tick to take it offline.",
     exportFormatTitle:
@@ -580,6 +592,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     institutionPageArmedHint: "尚未列入——请在下方至少勾选一个机构。",
     institutionPageLapsedKept: "保留自先前所属机构：ROR {rorId}",
     institutionPageRemove: "移除",
+    shareReconciliationRows: "与我所属机构共享我的核对行",
+    shareReconciliationRowsTitle:
+      "默认关闭。开启后，/i/<ROR id>/reconciliation 下的公开 CSV/JSON 导出会列出您指定的冻结版本中的成果及其开放获取状态。需要先开启上方的机构页面显示。可随时撤回。",
+    shareReconciliationRowsBody:
+      "共享的内容：您的 ORCID iD、您公开页面列出的成果（含 DOI、年份、类型、许可以及 SigmaCV 找到的开放获取状态）以及您勾选的机构。共享的位置：/i/<ROR id>/reconciliation 下的公开 CSV/JSON 文件，供机构核对其记录使用。来自哪个版本：您在“版本”中指定的冻结版本——在您指定之前不会共享任何内容，在您指定另一个版本之前也不会有任何变化。如何停止：取消勾选此框；这些行会在下一次请求时消失。",
     publishTitle:
       "在公开链接处创建此简历的可分享公开网页。它会随你的更新而重新同步。默认关闭；取消勾选可将其下线。",
     exportFormatTitle:
@@ -784,6 +801,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     institutionPageArmedHint: "Aún no apareces en ninguna: marca al menos una institución abajo.",
     institutionPageLapsedKept: "Conservado de una afiliación anterior: ROR {rorId}",
     institutionPageRemove: "Quitar",
+    shareReconciliationRows: "Compartir mis filas de conciliación con mi institución",
+    shareReconciliationRowsTitle:
+      "Desactivado por defecto. Al activarlo, una exportación pública CSV/JSON en /i/<ROR id>/reconciliation lista sus trabajos a partir de la versión congelada que designe, con su estado de acceso abierto. Requiere la inclusión en la página de la institución de arriba. Puede retirarlo en cualquier momento.",
+    shareReconciliationRowsBody:
+      "Qué se comparte: su ORCID iD, los trabajos que lista su página pública con su DOI, año, tipo, licencia y el estado de acceso abierto que SigmaCV encontró, y las instituciones que marcó. Dónde: un archivo público CSV/JSON en /i/<ROR id>/reconciliation, para la institución que concilia sus registros. Desde qué versión: la versión congelada que designe en Versiones — no se comparte nada hasta que designe una, y nada cambia hasta que designe otra. Cómo parar: desmarque esta casilla; las filas desaparecen con la siguiente petición.",
     publishTitle:
       "Crea una página web pública de este CV en un enlace público que se puede compartir. Se resincroniza a medida que lo actualizas. Desactivada por defecto; desmárcala para retirarla.",
     exportFormatTitle:
@@ -990,6 +1012,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Vous ne figurez encore nulle part : cochez au moins un établissement ci-dessous.",
     institutionPageLapsedKept: "Conservé d'une affiliation antérieure : ROR {rorId}",
     institutionPageRemove: "Retirer",
+    shareReconciliationRows: "Partager mes lignes de rapprochement avec mon établissement",
+    shareReconciliationRowsTitle:
+      "Désactivé par défaut. Une fois activé, un export public CSV/JSON sous /i/<ROR id>/reconciliation liste vos travaux à partir de la version figée que vous désignez, avec leur état d'accès ouvert. Nécessite l'affichage sur la page de l'établissement ci-dessus. Retrait possible à tout moment.",
+    shareReconciliationRowsBody:
+      "Ce qui est partagé : votre ORCID iD, les travaux que liste votre page publique avec leur DOI, année, type, licence et l'état d'accès ouvert trouvé par SigmaCV, et les établissements que vous avez cochés. Où : un fichier public CSV/JSON sous /i/<ROR id>/reconciliation, pour l'établissement qui rapproche ses registres. À partir de quelle version : la version figée que vous désignez dans Versions — rien n'est partagé tant que vous n'en désignez pas une, et rien ne change tant que vous n'en désignez pas une autre. Pour arrêter : décochez cette case ; les lignes disparaissent dès la requête suivante.",
     publishTitle:
       "Crée une page web publique partageable de ce CV via un lien public. Elle se resynchronise au fur et à mesure de vos mises à jour. Désactivée par défaut ; décochez pour la mettre hors ligne.",
     exportFormatTitle:
@@ -1197,6 +1224,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Noch nirgends aufgelistet – kreuzen Sie unten mindestens eine Einrichtung an.",
     institutionPageLapsedKept: "Aus einer früheren Zugehörigkeit behalten: ROR {rorId}",
     institutionPageRemove: "Entfernen",
+    shareReconciliationRows: "Meine Abgleichszeilen mit meiner Einrichtung teilen",
+    shareReconciliationRowsTitle:
+      "Standardmäßig aus. Wenn aktiviert, listet ein öffentlicher CSV/JSON-Export unter /i/<ROR id>/reconciliation Ihre Arbeiten aus der von Ihnen bestimmten eingefrorenen Version mit ihrem Open-Access-Status. Setzt die Anzeige auf der Einrichtungsseite oben voraus. Jederzeit widerrufbar.",
+    shareReconciliationRowsBody:
+      "Was geteilt wird: Ihre ORCID iD, die Arbeiten, die Ihre öffentliche Seite auflistet, mit DOI, Jahr, Typ, Lizenz und dem von SigmaCV ermittelten Open-Access-Status, sowie die von Ihnen angekreuzten Einrichtungen. Wo: eine öffentliche CSV/JSON-Datei unter /i/<ROR id>/reconciliation, für die Einrichtung, die ihre Verzeichnisse abgleicht. Aus welcher Version: der eingefrorenen Version, die Sie unter Versionen bestimmen — nichts wird geteilt, bevor Sie eine bestimmen, und nichts ändert sich, bevor Sie eine andere bestimmen. So beenden Sie es: Häkchen entfernen; die Zeilen verschwinden mit der nächsten Anfrage.",
     publishTitle:
       "Erstellt eine teilbare öffentliche Webseite dieses Lebenslaufs unter einem öffentlichen Link. Sie wird bei Aktualisierungen neu synchronisiert. Standardmäßig aus; Häkchen entfernen, um sie offline zu nehmen.",
     exportFormatTitle:
@@ -1401,6 +1433,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "まだどこにも掲載されていません。下で少なくとも 1 つの機関をチェックしてください。",
     institutionPageLapsedKept: "以前の所属から残した掲載：ROR {rorId}",
     institutionPageRemove: "削除",
+    shareReconciliationRows: "照合用の行を所属機関と共有する",
+    shareReconciliationRowsTitle:
+      "既定ではオフです。オンにすると、/i/<ROR id>/reconciliation にある公開の CSV/JSON エクスポートに、指定した凍結版の業績とそのオープンアクセス状態が掲載されます。上の機関ページへの表示が必要です。いつでも撤回できます。",
+    shareReconciliationRowsBody:
+      "共有される内容：ORCID iD、公開ページに掲載されている業績（DOI・年・種別・ライセンス・SigmaCV が確認したオープンアクセス状態）、チェックした機関。共有先：機関が記録を照合するための、/i/<ROR id>/reconciliation にある公開の CSV/JSON ファイル。どの版から：「バージョン」で指定した凍結版から。指定するまで何も共有されず、別の版を指定するまで内容は変わりません。停止方法：このチェックを外すと、次のリクエストから行は表示されなくなります。",
     publishTitle:
       "この CV を共有可能な公開ウェブページとして公開リンクに作成します。更新すると再同期されます。既定ではオフ。チェックを外すとオフラインにできます。",
     exportFormatTitle:
@@ -1606,6 +1643,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Ainda não aparece em nenhuma: marque pelo menos uma instituição abaixo.",
     institutionPageLapsedKept: "Mantido de uma afiliação anterior: ROR {rorId}",
     institutionPageRemove: "Remover",
+    shareReconciliationRows: "Compartilhar minhas linhas de conciliação com minha instituição",
+    shareReconciliationRowsTitle:
+      "Desativado por padrão. Quando ativado, uma exportação pública CSV/JSON em /i/<ROR id>/reconciliation lista seus trabalhos a partir da versão congelada que você designar, com o estado de acesso aberto. Requer a listagem na página da instituição acima. Retire quando quiser.",
+    shareReconciliationRowsBody:
+      "O que é compartilhado: seu ORCID iD, os trabalhos que sua página pública lista com DOI, ano, tipo, licença e o estado de acesso aberto que o SigmaCV encontrou, e as instituições que você marcou. Onde: um arquivo público CSV/JSON em /i/<ROR id>/reconciliation, para a instituição que concilia seus registros. De qual versão: a versão congelada que você designar em Versões — nada é compartilhado até você designar uma, e nada muda até você designar outra. Como parar: desmarque esta caixa; as linhas desaparecem na próxima requisição.",
     publishTitle:
       "Cria uma página web pública e compartilhável deste CV em um link público. Ela é ressincronizada conforme você atualiza. Desativada por padrão; desmarque para tirá-la do ar.",
     exportFormatTitle:
@@ -1812,6 +1854,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "Non compari ancora da nessuna parte: spunta almeno un'istituzione qui sotto.",
     institutionPageLapsedKept: "Conservato da un'affiliazione precedente: ROR {rorId}",
     institutionPageRemove: "Rimuovi",
+    shareReconciliationRows: "Condividi le mie righe di riconciliazione con la mia istituzione",
+    shareReconciliationRowsTitle:
+      "Disattivato per impostazione predefinita. Se attivo, un'esportazione pubblica CSV/JSON in /i/<ROR id>/reconciliation elenca i tuoi lavori dalla versione congelata che designi, con il loro stato di accesso aperto. Richiede l'inserimento nella pagina dell'istituzione qui sopra. Revocabile in qualsiasi momento.",
+    shareReconciliationRowsBody:
+      "Cosa viene condiviso: il tuo ORCID iD, i lavori elencati dalla tua pagina pubblica con DOI, anno, tipo, licenza e lo stato di accesso aperto rilevato da SigmaCV, e le istituzioni che hai spuntato. Dove: un file pubblico CSV/JSON in /i/<ROR id>/reconciliation, per l'istituzione che riconcilia i propri registri. Da quale versione: la versione congelata che designi in Versioni — nulla viene condiviso finché non ne designi una, e nulla cambia finché non ne designi un'altra. Come interrompere: togli la spunta; le righe scompaiono dalla richiesta successiva.",
     publishTitle:
       "Crea una pagina web pubblica condivisibile di questo CV tramite un link pubblico. Si risincronizza man mano che apporti aggiornamenti. Disattivata per impostazione predefinita; deseleziona per metterla offline.",
     exportFormatTitle:
@@ -2015,6 +2062,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
       "아직 어디에도 등재되지 않았습니다. 아래에서 기관을 하나 이상 선택하세요.",
     institutionPageLapsedKept: "이전 소속에서 유지한 등재: ROR {rorId}",
     institutionPageRemove: "제거",
+    shareReconciliationRows: "내 대조 행을 소속 기관과 공유",
+    shareReconciliationRowsTitle:
+      "기본값은 꺼짐입니다. 켜면 /i/<ROR id>/reconciliation의 공개 CSV/JSON 내보내기에 지정한 고정 버전의 연구 성과와 오픈 액세스 상태가 포함됩니다. 위의 기관 페이지 표시가 필요합니다. 언제든지 철회할 수 있습니다.",
+    shareReconciliationRowsBody:
+      "공유되는 내용: ORCID iD, 공개 페이지에 표시된 연구 성과(DOI, 연도, 유형, 라이선스, SigmaCV가 확인한 오픈 액세스 상태), 그리고 선택한 기관. 공유 위치: 기관이 기록을 대조하는 데 쓰는 /i/<ROR id>/reconciliation의 공개 CSV/JSON 파일. 어느 버전에서: 버전에서 지정한 고정 버전 — 지정하기 전에는 아무것도 공유되지 않고, 다른 버전을 지정하기 전에는 아무것도 바뀌지 않습니다. 중단 방법: 이 확인란을 해제하면 다음 요청부터 행이 사라집니다.",
     publishTitle:
       "이 CV의 공유 가능한 공개 웹 페이지를 공개 링크로 생성합니다. 업데이트할 때마다 다시 동기화됩니다. 기본값은 꺼짐이며, 체크를 해제하면 오프라인으로 전환됩니다.",
     exportFormatTitle:
@@ -2217,6 +2269,11 @@ const UI_I18N: Record<Locale, UiStrings> = {
     institutionPageArmedHint: "Пока нигде не размещено — отметьте ниже хотя бы одну организацию.",
     institutionPageLapsedKept: "Сохранено от прежней аффилиации: ROR {rorId}",
     institutionPageRemove: "Удалить",
+    shareReconciliationRows: "Делиться моими строками сверки с моей организацией",
+    shareReconciliationRowsTitle:
+      "По умолчанию выключено. Если включено, публичный экспорт CSV/JSON по адресу /i/<ROR id>/reconciliation содержит ваши работы из назначенной вами замороженной версии с их статусом открытого доступа. Требует размещения на странице организации выше. Можно отозвать в любой момент.",
+    shareReconciliationRowsBody:
+      "Что передаётся: ваш ORCID iD, работы, перечисленные на вашей публичной странице, с DOI, годом, типом, лицензией и статусом открытого доступа, который нашёл SigmaCV, а также отмеченные вами организации. Куда: публичный файл CSV/JSON по адресу /i/<ROR id>/reconciliation — для организации, сверяющей свои записи. Из какой версии: из замороженной версии, которую вы назначаете в разделе «Версии»; пока вы её не назначите, ничего не передаётся, и ничего не меняется, пока вы не назначите другую. Как остановить: снимите этот флажок — строки исчезнут при следующем запросе.",
     publishTitle:
       "Создаёт публичную веб-страницу этого CV, доступную по публичной ссылке. Она пересинхронизируется по мере ваших изменений. По умолчанию отключено; снимите галочку, чтобы перевести её в офлайн.",
     exportFormatTitle:

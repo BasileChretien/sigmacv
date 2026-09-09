@@ -15,6 +15,7 @@ const SNAP = {
   doiState: "none",
   readerMode: false,
   contentHash: null,
+  forReconciliation: false,
 };
 
 type Handler = (url: string, init?: RequestInit) => { status: number; body?: unknown };
@@ -233,6 +234,84 @@ describe("VersionsControls", () => {
     );
     // The row stays.
     expect(screen.getAllByTestId("version-row")).toHaveLength(1);
+  });
+
+  it("designates a PUBLIC version for the institution reconciliation export, tags it, clears the previous one locally, and undesignates", async () => {
+    const first = { ...SNAP, id: "s1", version: 1, isPublic: true, forReconciliation: true };
+    const second = { ...SNAP, id: "s2", version: 2, isPublic: true, label: "Grant" };
+    const calls: Array<[string, RequestInit | undefined]> = [];
+    handler = (url, init) => {
+      calls.push([url, init]);
+      if (init?.method === "PATCH") {
+        const body = JSON.parse(String(init.body)) as { forReconciliation: boolean };
+        const id = url.endsWith("/s2") ? second : first;
+        return {
+          status: 200,
+          body: { snapshot: { ...id, forReconciliation: body.forReconciliation } },
+        };
+      }
+      return {
+        status: 200,
+        body: { snapshots: [second, first], doiMintingEnabled: false, max: 20 },
+      };
+    };
+    render(<VersionsControls locale="en-US" published={true} slug="basile-x" />);
+    await screen.findByText("Grant");
+    // v1 is designated: one tag, its action reads "Stop"; v2's reads "Use".
+    expect(screen.getAllByTestId("reconciliation-tag")).toHaveLength(1);
+    expect(screen.getByText("Stop using it for the reconciliation export")).toBeTruthy();
+    const use = screen.getByText(
+      "Use this frozen version for my institution's reconciliation export",
+    ) as HTMLButtonElement;
+    expect(use.disabled).toBe(false);
+    fireEvent.click(use);
+    await waitFor(() => expect(calls.some(([, i]) => i?.method === "PATCH")).toBe(true));
+    const patch = calls.find(([, i]) => i?.method === "PATCH")!;
+    expect(patch[0]).toBe("/api/cv/snapshots/s2");
+    expect(JSON.parse(String(patch[1]!.body))).toEqual({ forReconciliation: true });
+    // At most one designated version: the tag moved to v2 (the server cleared v1
+    // in its transaction; the panel mirrors that without a reload).
+    await waitFor(() => expect(screen.getAllByTestId("reconciliation-tag")).toHaveLength(1));
+    const rows = screen.getAllByTestId("version-row");
+    expect(rows[0]!.textContent).toContain("Reconciliation export");
+    expect(rows[1]!.textContent).not.toContain("Reconciliation export");
+    // Undesignate v2.
+    fireEvent.click(screen.getByText("Stop using it for the reconciliation export"));
+    await waitFor(() => expect(screen.queryAllByTestId("reconciliation-tag")).toHaveLength(0));
+    const last = calls.at(-1)!;
+    expect(last[0]).toBe("/api/cv/snapshots/s2");
+    expect(JSON.parse(String(last[1]!.body))).toEqual({ forReconciliation: false });
+  });
+
+  it("cannot designate a private version (disabled, with the reason), and explains a 409 from the server", async () => {
+    handler = (url, init) => {
+      if (init?.method === "PATCH") return { status: 409, body: { error: "not-public" } };
+      return {
+        status: 200,
+        body: {
+          snapshots: [
+            { ...SNAP, id: "priv", version: 1 },
+            { ...SNAP, id: "pub", version: 2, isPublic: true, label: "Public one" },
+          ],
+          doiMintingEnabled: false,
+          max: 20,
+        },
+      };
+    };
+    render(<VersionsControls locale="en-US" published={true} slug="basile-x" />);
+    await screen.findByText("Public one");
+    const buttons = screen.getAllByText(
+      "Use this frozen version for my institution's reconciliation export",
+    ) as HTMLButtonElement[];
+    expect(buttons).toHaveLength(2);
+    const [priv, pub] = buttons;
+    expect(priv!.disabled).toBe(true);
+    expect(priv!.title).toBe("Only a public version can be used for the reconciliation export.");
+    expect(pub!.disabled).toBe(false);
+    fireEvent.click(pub!);
+    await screen.findByText("Only a public version can be used for the reconciliation export.", {
+      selector: "[role=status]",
+    });
   });
 
   it("explains that sharing needs the live page, and shows the cap + load errors", async () => {

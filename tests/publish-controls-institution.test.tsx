@@ -55,6 +55,9 @@ function respond(state: Record<string, unknown>) {
 function toggle(): HTMLInputElement {
   return screen.getByLabelText(u.showOnInstitutionPage) as HTMLInputElement;
 }
+function shareBox(): HTMLInputElement | null {
+  return screen.queryByLabelText(u.shareReconciliationRows) as HTMLInputElement | null;
+}
 function pick(name: string): HTMLInputElement {
   return screen.getByLabelText(new RegExp(name)) as HTMLInputElement;
 }
@@ -78,6 +81,82 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+});
+
+describe("PublishControls — share my reconciliation rows (the second opt-in)", () => {
+  it("is offered ONLY while the page consent is stored — not when absent, not while merely armed", async () => {
+    render(<PublishControls {...baseProps} initialInstitutionPage={offered(NAGOYA, CAEN)} />);
+    expect(shareBox()).toBeNull();
+    await act(async () => {
+      fireEvent.click(toggle());
+    });
+    // Armed, nothing stored: still not offered.
+    expect(toggle().checked).toBe(true);
+    expect(shareBox()).toBeNull();
+    cleanup();
+    render(
+      <PublishControls
+        {...baseProps}
+        initialInstitutionPage={{
+          ...offered(NAGOYA),
+          showOnInstitutionPage: true,
+          consentedRorIds: ["04chrp450"],
+        }}
+      />,
+    );
+    expect(shareBox()).not.toBeNull();
+    expect(shareBox()!.checked).toBe(false);
+    expect(screen.getByText(u.shareReconciliationRowsBody)).toBeTruthy();
+  });
+
+  it("posts only the flag (the stored institution choice is left as it is), then reflects the server's answer", async () => {
+    const consented = {
+      ...offered(NAGOYA),
+      showOnInstitutionPage: true,
+      consentedRorIds: ["04chrp450"],
+    };
+    respond({ ...consented, shareReconciliationRows: true });
+    render(<PublishControls {...baseProps} initialInstitutionPage={consented} />);
+    await act(async () => {
+      fireEvent.click(shareBox()!);
+    });
+    expect(lastBody()).toEqual({
+      published: true,
+      indexable: true,
+      listUnderAffiliation: false,
+      shareReconciliationRows: true,
+    });
+    expect(shareBox()!.checked).toBe(true);
+    expect(baseProps.onPublishStateChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        institutionPage: expect.objectContaining({ shareReconciliationRows: true }),
+      }),
+    );
+    // Untick: the flag is posted false.
+    respond({ ...consented, shareReconciliationRows: false });
+    await act(async () => {
+      fireEvent.click(shareBox()!);
+    });
+    expect(lastBody()).toMatchObject({ shareReconciliationRows: false });
+    expect(shareBox()!.checked).toBe(false);
+  });
+
+  it("disappears when the page consent is withdrawn (the server clears it in the same write)", async () => {
+    const consented = {
+      ...offered(NAGOYA),
+      showOnInstitutionPage: true,
+      consentedRorIds: ["04chrp450"],
+      shareReconciliationRows: true,
+    };
+    respond({ ...offered(NAGOYA), showOnInstitutionPage: false, consentedRorIds: [] });
+    render(<PublishControls {...baseProps} initialInstitutionPage={consented} />);
+    expect(shareBox()!.checked).toBe(true);
+    await act(async () => {
+      fireEvent.click(toggle());
+    });
+    expect(lastBody()).toMatchObject({ showOnInstitutionPage: false, consentedRorIds: [] });
+    expect(shareBox()).toBeNull();
+  });
 });
 
 describe("PublishControls — show me on my institution's page", () => {

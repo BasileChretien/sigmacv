@@ -3,6 +3,7 @@ import { rorIri } from "@/lib/ror/id";
 import {
   countListedCvs,
   countListedCvsByRor,
+  countReconciliationSources,
   listedForInstitutionPage,
   trustedInstitutionNames,
   trustedInstitutionRecord,
@@ -89,6 +90,16 @@ export interface InstitutionSummary {
   listedCount: number;
   openalex: InstitutionOpenAlexSnapshot | null;
   figures: InstitutionFigures | null;
+  /** How many researchers opted in a SECOND time to share their reconciliation
+   *  rows under this ROR (and designated a frozen version): the page's one line
+   *  about the export, shown from 1 — each row is a named, opted-in researcher,
+   *  so there is no k here. 0 on the index. */
+  reconciliationCount: number;
+}
+
+/** The reconciliation export's path for one institution, in one format. */
+export function reconciliationExportPath(rorId: string, format: "csv" | "json"): string {
+  return `/i/${rorId}/reconciliation.${format}`;
 }
 
 /** The snapshot on a stored row, or null when the row has none (not fetched
@@ -147,10 +158,11 @@ function fallbackName(rorId: string): string {
  */
 export async function institutionSummary(rorId: string): Promise<InstitutionSummary | null> {
   if (!isRorId(rorId)) return null;
-  const [listedCount, record, page] = await Promise.all([
+  const [listedCount, record, page, reconciliationCount] = await Promise.all([
     countListedCvs(rorId),
     trustedInstitutionRecord(rorId),
     listedForInstitutionPage(rorId),
+    countReconciliationSources(rorId),
   ]);
   if (listedCount < 1) return null;
   return {
@@ -159,6 +171,7 @@ export async function institutionSummary(rorId: string): Promise<InstitutionSumm
     listedCount,
     openalex: snapshotOf(record),
     figures: figuresOf(page),
+    reconciliationCount,
   };
 }
 
@@ -175,6 +188,7 @@ export async function institutionIndex(): Promise<InstitutionSummary[]> {
     listedCount: counts.get(rorId)!,
     openalex: null,
     figures: null,
+    reconciliationCount: 0,
   }));
   return summaries.sort((a, b) => a.name.localeCompare(b.name, "en"));
 }
