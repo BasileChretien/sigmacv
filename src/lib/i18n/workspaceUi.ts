@@ -96,9 +96,13 @@ export interface WorkspaceUiStrings {
   wlGapsHelp: string;
   /** Sub-group label: the ROR the works DO carry; {ror}, {n}. */
   wlGapsGroup: string;
-  /** Works with EMPTY affiliation data (missing data, not a missing affiliation). */
+  /** OpenAlex works with EMPTY affiliation data (no institution on the owner's
+   *  authorship, or none with a ROR id — missing data, not a missing affiliation). */
   wlNoAffiliationHeading: string;
   wlNoAffiliationHelp: string;
+  /** One line under that bucket: works in the period from OTHER sources, which
+   *  never carry affiliation data and are not checked; {n}. Counts only. */
+  wlNotCheckedNote: string;
   /** Group (c): countable works with no open copy found; {n} of {total}. */
   wlClosedHeading: string;
   /** Help under the closed works — a deposit MAY be possible; never a verdict. */
@@ -186,7 +190,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlGapsGroup: "Affiliation on the paper: ROR {ror} — {n}",
     wlNoAffiliationHeading: "Works with no affiliation data ({n} of {total})",
     wlNoAffiliationHelp:
-      "OpenAlex recorded no institution on your authorship of these works. That is missing data, not a missing affiliation.",
+      "OpenAlex recorded no institution — or none with a ROR id — on your authorship of these works. That is missing data, not a missing affiliation.",
+    wlNotCheckedNote:
+      "{n} further works in this period come from other sources (datasets, conference papers, claimed DOIs) and are not checked here.",
     wlClosedHeading: "Works with no open copy found ({n} of {total})",
     wlClosedHelp:
       "No open copy was found by OpenAlex; a repository deposit may be possible — check the journal's policy.",
@@ -267,7 +273,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlGapsGroup: "论文上的署名机构：ROR {ror} — {n}",
     wlNoAffiliationHeading: "没有署名机构数据的作品（{total} 篇中的 {n} 篇）",
     wlNoAffiliationHelp:
-      "OpenAlex 没有为您在这些作品中的署名记录任何机构。这是数据缺失，不是署名机构缺失。",
+      "OpenAlex 没有为您在这些作品中的署名记录任何机构，或记录的机构没有 ROR 标识。这是数据缺失，不是署名机构缺失。",
+    wlNotCheckedNote:
+      "此期间另有 {n} 篇作品来自其他来源（数据集、会议论文、认领的 DOI），此处不做检查。",
     wlClosedHeading: "未找到开放副本的作品（{total} 篇中的 {n} 篇）",
     wlClosedHelp: "OpenAlex 未找到开放副本；也许可以在知识库中存缴——请查看该期刊的政策。",
     wlOaSummary: "您 {total} 篇计入统计的作品的开放获取状态：",
@@ -350,7 +358,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlGapsGroup: "Afiliación en el artículo: ROR {ror} — {n}",
     wlNoAffiliationHeading: "Trabajos sin datos de afiliación ({n} de {total})",
     wlNoAffiliationHelp:
-      "OpenAlex no registró ninguna institución en tu autoría de estos trabajos. Es un dato ausente, no una afiliación ausente.",
+      "OpenAlex no registró ninguna institución —o ninguna con identificador ROR— en tu autoría de estos trabajos. Es un dato ausente, no una afiliación ausente.",
+    wlNotCheckedNote:
+      "Otros {n} trabajos de este periodo proceden de otras fuentes (conjuntos de datos, artículos de congreso, DOI reclamados) y no se comprueban aquí.",
     wlClosedHeading: "Trabajos sin copia abierta encontrada ({n} de {total})",
     wlClosedHelp:
       "OpenAlex no encontró ninguna copia abierta; quizá sea posible un depósito en repositorio: consulta la política de la revista.",
@@ -436,7 +446,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlGapsGroup: "Affiliation sur l’article : ROR {ror} — {n}",
     wlNoAffiliationHeading: "Travaux sans donnée d’affiliation ({n} sur {total})",
     wlNoAffiliationHelp:
-      "OpenAlex n’a relevé aucune institution sur votre signature de ces travaux. C’est une donnée manquante, pas une affiliation manquante.",
+      "OpenAlex n’a relevé aucune institution — ou aucune dotée d’un identifiant ROR — sur votre signature de ces travaux. C’est une donnée manquante, pas une affiliation manquante.",
+    wlNotCheckedNote:
+      "{n} autres travaux de cette période proviennent d’autres sources (jeux de données, communications de conférence, DOI revendiqués) et ne sont pas vérifiés ici.",
     wlClosedHeading: "Travaux sans copie ouverte trouvée ({n} sur {total})",
     wlClosedHelp:
       "OpenAlex n’a trouvé aucune copie ouverte ; un dépôt en archive ouverte est peut-être possible — consultez la politique de la revue.",
@@ -522,7 +534,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlGapsGroup: "Affiliation auf der Arbeit: ROR {ror} — {n}",
     wlNoAffiliationHeading: "Arbeiten ohne Affiliationsdaten ({n} von {total})",
     wlNoAffiliationHelp:
-      "OpenAlex hat zu Ihrer Autorschaft dieser Arbeiten keine Institution erfasst. Das sind fehlende Daten, keine fehlende Affiliation.",
+      "OpenAlex hat zu Ihrer Autorschaft dieser Arbeiten keine Institution erfasst — oder keine mit ROR-Kennung. Das sind fehlende Daten, keine fehlende Affiliation.",
+    wlNotCheckedNote:
+      "{n} weitere Arbeiten aus diesem Zeitraum stammen aus anderen Quellen (Datensätze, Konferenzbeiträge, beanspruchte DOIs) und werden hier nicht geprüft.",
     wlClosedHeading: "Arbeiten ohne gefundene offene Kopie ({n} von {total})",
     wlClosedHelp:
       "OpenAlex hat keine offene Kopie gefunden; eine Ablage in einem Repositorium ist womöglich möglich — prüfen Sie die Richtlinie der Zeitschrift.",
@@ -606,7 +620,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlGapsGroup: "論文上の所属：ROR {ror} — {n} 件",
     wlNoAffiliationHeading: "所属データのない業績（{total} 件中 {n} 件）",
     wlNoAffiliationHelp:
-      "OpenAlex はこれらの業績におけるあなたの著者情報に機関を記録していません。これはデータの欠落であり、所属の欠落ではありません。",
+      "OpenAlex はこれらの業績におけるあなたの著者情報に機関を記録していないか、ROR 識別子のない機関のみを記録しています。これはデータの欠落であり、所属の欠落ではありません。",
+    wlNotCheckedNote:
+      "この期間の他の {n} 件の業績は他のソース（データセット、会議論文、申請した DOI）に由来し、ここでは確認されません。",
     wlClosedHeading: "オープンな複製が見つからなかった業績（{total} 件中 {n} 件）",
     wlClosedHelp:
       "OpenAlex はオープンな複製を見つけられませんでした。リポジトリへの登録が可能かもしれません — 学術誌のポリシーを確認してください。",
@@ -692,7 +708,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlGapsGroup: "Afiliação no artigo: ROR {ror} — {n}",
     wlNoAffiliationHeading: "Trabalhos sem dados de afiliação ({n} de {total})",
     wlNoAffiliationHelp:
-      "O OpenAlex não registrou nenhuma instituição na sua autoria destes trabalhos. É um dado ausente, não uma afiliação ausente.",
+      "O OpenAlex não registrou nenhuma instituição — ou nenhuma com identificador ROR — na sua autoria destes trabalhos. É um dado ausente, não uma afiliação ausente.",
+    wlNotCheckedNote:
+      "Outros {n} trabalhos deste período vêm de outras fontes (conjuntos de dados, artigos de conferência, DOIs reivindicados) e não são verificados aqui.",
     wlClosedHeading: "Trabalhos sem cópia aberta encontrada ({n} de {total})",
     wlClosedHelp:
       "O OpenAlex não encontrou nenhuma cópia aberta; um depósito em repositório pode ser possível: consulte a política da revista.",
@@ -778,7 +796,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlGapsGroup: "Affiliazione sull’articolo: ROR {ror} — {n}",
     wlNoAffiliationHeading: "Lavori senza dati di affiliazione ({n} di {total})",
     wlNoAffiliationHelp:
-      "OpenAlex non ha registrato alcuna istituzione sulla tua paternità di questi lavori. È un dato mancante, non un’affiliazione mancante.",
+      "OpenAlex non ha registrato alcuna istituzione — o nessuna con identificativo ROR — sulla tua paternità di questi lavori. È un dato mancante, non un’affiliazione mancante.",
+    wlNotCheckedNote:
+      "Altri {n} lavori di questo periodo provengono da altre fonti (set di dati, articoli di conferenza, DOI rivendicati) e non sono controllati qui.",
     wlClosedHeading: "Lavori senza copia aperta trovata ({n} di {total})",
     wlClosedHelp:
       "OpenAlex non ha trovato alcuna copia aperta; un deposito in un repository potrebbe essere possibile: verifica la politica della rivista.",
@@ -862,7 +882,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlGapsGroup: "논문상의 소속: ROR {ror} — {n}건",
     wlNoAffiliationHeading: "소속 데이터가 없는 연구물 ({total}건 중 {n}건)",
     wlNoAffiliationHelp:
-      "OpenAlex가 이 연구물의 내 저자 정보에 기관을 기록하지 않았습니다. 데이터가 없는 것이지 소속이 없는 것이 아닙니다.",
+      "OpenAlex가 이 연구물의 내 저자 정보에 기관을 기록하지 않았거나, ROR 식별자가 없는 기관만 기록했습니다. 데이터가 없는 것이지 소속이 없는 것이 아닙니다.",
+    wlNotCheckedNote:
+      "이 기간의 다른 연구물 {n}건은 다른 출처(데이터셋, 학술대회 논문, 직접 등록한 DOI)에서 왔으며 여기서는 확인하지 않습니다.",
     wlClosedHeading: "공개 사본을 찾지 못한 연구물 ({total}건 중 {n}건)",
     wlClosedHelp:
       "OpenAlex가 공개 사본을 찾지 못했습니다. 리포지터리 기탁이 가능할 수 있습니다 — 학술지의 정책을 확인하세요.",
@@ -949,7 +971,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlGapsGroup: "Аффилиация в статье: ROR {ror} — {n}",
     wlNoAffiliationHeading: "Работы без данных об аффилиации ({n} из {total})",
     wlNoAffiliationHelp:
-      "OpenAlex не зафиксировал организацию в вашем авторстве этих работ. Это отсутствующие данные, а не отсутствующая аффилиация.",
+      "OpenAlex не зафиксировал организацию в вашем авторстве этих работ — или зафиксировал только организацию без идентификатора ROR. Это отсутствующие данные, а не отсутствующая аффилиация.",
+    wlNotCheckedNote:
+      "Ещё {n} работ этого периода поступили из других источников (наборы данных, доклады конференций, заявленные DOI) и здесь не проверяются.",
     wlClosedHeading: "Работы, для которых не найдена открытая копия ({n} из {total})",
     wlClosedHelp:
       "OpenAlex не нашёл открытой копии; возможно, доступно размещение в репозитории — проверьте политику журнала.",

@@ -34,8 +34,11 @@ const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
   "not-determined": "wlStateUnknown",
 };
 
+/** Every substitution below uses a FUNCTION replacer: a source value (a ROR
+ *  key, a funder name) may contain `$'`, `$&` or `` $` ``, which a string
+ *  replacement would read as a pattern and corrupt the copy with. */
 function counted(template: string, n: number, total: number): string {
-  return template.replace("{n}", String(n)).replace("{total}", String(total));
+  return template.replace("{n}", () => String(n)).replace("{total}", () => String(total));
 }
 
 /**
@@ -43,7 +46,8 @@ function counted(template: string, n: number, total: number): string {
  * of reconciliation with an institution's record, shown ONLY in the editor: (a)
  * current positions without a ROR record, (b) works dated during a consented
  * position whose printed affiliation lacks that institution, grouped by the
- * ROR they DO carry, plus the works with no affiliation data at all, (c) the
+ * ROR they DO carry, plus the OpenAlex works with no affiliation data (works
+ * from other sources never carry it: counted on one line, not checked), (c) the
  * countable works with no open copy found, each with its four-state label and a
  * link to the journal's policy. Counts carry their denominators. Every row
  * jumps to the entry. It is help, not judgement — no compliance state exists
@@ -90,7 +94,7 @@ export default function WorklistPanel({ cv, locale, consentedRorIds, onJump }: W
           <p className="muted">{wu.wlPositionsHelp}</p>
           <ul>
             {gaps.positionsWithoutRor.map((p) => (
-              <li key={p.itemId}>{jump(p.itemId, p.label)}</li>
+              <li key={p.itemId}>{jump(p.itemId, p.label || wu.srNoTitle)}</li>
             ))}
           </ul>
         </section>
@@ -103,7 +107,9 @@ export default function WorklistPanel({ cv, locale, consentedRorIds, onJump }: W
           {groups.map((g) => (
             <div key={g.rorId} className="cv-worklist-subgroup">
               <h5>
-                {wu.wlGapsGroup.replace("{ror}", g.rorId).replace("{n}", String(g.rows.length))}
+                {wu.wlGapsGroup
+                  .replace("{ror}", () => g.rorId)
+                  .replace("{n}", () => String(g.rows.length))}
               </h5>
               <ul>
                 {g.rows.map((r) => (
@@ -133,11 +139,17 @@ export default function WorklistPanel({ cv, locale, consentedRorIds, onJump }: W
         </section>
       ) : null}
 
+      {gaps.notChecked > 0 ? (
+        <p className="muted cv-worklist-note">
+          {wu.wlNotCheckedNote.replace("{n}", () => String(gaps.notChecked))}
+        </p>
+      ) : null}
+
       {closed.length > 0 ? (
         <section className="cv-worklist-group">
           <h4>{counted(wu.wlClosedHeading, closed.length, oa.total)}</h4>
           <p className="muted cv-worklist-oa-summary">
-            {wu.wlOaSummary.replace("{total}", String(oa.total))}{" "}
+            {wu.wlOaSummary.replace("{total}", () => String(oa.total))}{" "}
             {OPEN_ACCESS_STATES.map((s) => (
               <span key={s} className="cv-worklist-chip" data-state={s}>
                 {wu[STATE_LABEL[s]]}: {oa.counts[s]}
@@ -165,7 +177,7 @@ export default function WorklistPanel({ cv, locale, consentedRorIds, onJump }: W
                   ) : null}
                   {r.funderNames.length > 0 ? (
                     <div className="muted cv-worklist-funders">
-                      {wu.wlFunders.replace("{names}", r.funderNames.join(", "))}
+                      {wu.wlFunders.replace("{names}", () => r.funderNames.join(", "))}
                     </div>
                   ) : null}
                 </li>

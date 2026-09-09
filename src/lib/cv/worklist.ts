@@ -56,11 +56,19 @@ export interface AffiliationGaps {
   /** Works dated inside a consented position window whose printed affiliation
    *  carries NONE of the consented ids. */
   missing: AffiliationGapRow[];
-  /** Works dated inside a window with NO affiliation data at all — missing data,
-   *  never a missing affiliation, so a separate bucket. */
+  /** OpenAlex-sourced works dated inside a window with NO affiliation data
+   *  (no institution on the owner's authorship, or none with a ROR id) —
+   *  missing data, never a missing affiliation, so a separate bucket. */
   noAffiliationData: WorklistRow[];
-  /** Denominator for the two buckets: visible works dated inside a window. */
+  /** Denominator for the two buckets: visible OpenAlex-sourced works dated
+   *  inside a window — the only works that can carry printed-affiliation data. */
   consideredWorks: number;
+  /** Visible works dated inside a window from every OTHER source (datasets,
+   *  conference papers, claimed DOIs, …). `workInstitutions` is written by the
+   *  OpenAlex build alone, so these are never checked: a count the panel shows
+   *  so the owner knows what the list left out — never a bucket, never a verdict,
+   *  and not part of {@link consideredWorks}. */
+  notChecked: number;
 }
 
 interface YearWindow {
@@ -106,7 +114,9 @@ function cslTitle(item: CvItem): string | undefined {
 }
 
 /** Every visible work (citation item) in document order — preprints included:
- *  the affiliation printed on a paper is about the paper, not the figures. */
+ *  the affiliation printed on a paper is about the paper, not the figures.
+ *  Every source is swept; the caller splits OpenAlex works (checkable) from
+ *  the rest (counted only). */
 function visibleWorks(cv: CanonicalCv): CvItem[] {
   const out: CvItem[] = [];
   for (const section of cv.sections) {
@@ -131,7 +141,9 @@ function positionLabel(pos: CvItem): string {
  * institution-page consent, `Cv.consentedRorIds` — bare ids). A work matches
  * when its printed affiliation (`meta.workInstitutions`, the account holder's
  * own authorship as OpenAlex indexes it) carries ANY consented id; a stored
- * IRI (`https://ror.org/<id>`) and a bare id compare equal. With no consented
+ * IRI (`https://ror.org/<id>`) and a bare id compare equal. Only OpenAlex-
+ * sourced works are checked — `workInstitutions` exists for no other source —
+ * the rest are counted as {@link AffiliationGaps.notChecked}. With no consented
  * id there is no window, so both work buckets are empty; the positions check
  * does not depend on consent.
  */
@@ -149,10 +161,18 @@ export function affiliationGaps(
   const missing: AffiliationGapRow[] = [];
   const noAffiliationData: WorklistRow[] = [];
   let consideredWorks = 0;
+  let notChecked = 0;
   if (windows.length > 0) {
     for (const item of visibleWorks(cv)) {
       const year = itemEffectiveYear(item);
       if (year === undefined || !inAnyWindow(year, windows)) continue;
+      // Only the OpenAlex build writes `workInstitutions` (and only for the
+      // owner's own authorship): a dataset, a conference paper or a claimed DOI
+      // can never carry it, so it is counted, not bucketed as missing data.
+      if (item.source !== "openalex") {
+        notChecked++;
+        continue;
+      }
       consideredWorks++;
       const row: WorklistRow = { itemId: item.id, title: cslTitle(item), year };
       const rorIds = [...new Set((item.meta.workInstitutions ?? []).map(affiliationKey))];
@@ -166,6 +186,7 @@ export function affiliationGaps(
     missing,
     noAffiliationData,
     consideredWorks,
+    notChecked,
   };
 }
 
@@ -300,7 +321,8 @@ export function policyFinderUrl(journalName: string | undefined): string | undef
 
 /** Whether the panel has anything to show: a position without a ROR, a work in
  *  either affiliation bucket, or a countable work with no open copy found. The
- *  open / not-determined works alone are not a worklist. */
+ *  open / not-determined works alone are not a worklist, and neither is the
+ *  count of works the list does not check. */
 export function hasWorklistContent(
   gaps: Pick<AffiliationGaps, "positionsWithoutRor" | "missing" | "noAffiliationData">,
   oa: Pick<OpenAccessStates, "counts">,

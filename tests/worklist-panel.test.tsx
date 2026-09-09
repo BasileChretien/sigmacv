@@ -154,6 +154,83 @@ describe("WorklistPanel (component)", () => {
     expect(document.body.textContent).not.toMatch(/compliant|overdue|violation/i);
   });
 
+  const dataset = (): CvItem => ({
+    ...work("D1", { year: 2022 }),
+    source: "datacite",
+    sourceId: "10.5281/zenodo.1",
+    csl: { id: "D1", type: "dataset", title: "A dataset" },
+  });
+  const conferencePaper = (): CvItem => ({
+    ...work("C1", { year: 2022 }),
+    source: "dblp",
+    sourceId: "conf/x/1",
+    csl: { id: "C1", type: "paper-conference", title: "A talk" },
+  });
+  const nagoyaNow = () =>
+    position("P1", { institution: "Nagoya University", rorId: NAGOYA, startYear: 2020 });
+
+  it("hides entirely when the only works in the window come from sources that never carry affiliation data", () => {
+    const { container } = render(
+      <WorklistPanel
+        cv={makeCv([dataset(), conferencePaper()], [nagoyaNow()])}
+        locale="en-US"
+        consentedRorIds={[NAGOYA]}
+        onJump={vi.fn()}
+      />,
+    );
+    expect(container.innerHTML).toBe("");
+  });
+
+  it("counts the works it does not check on one line — no verdict — and keeps them out of the denominators", () => {
+    const cv = makeCv(
+      [work("W-nodata", { year: 2022, oaIsOpen: true }), dataset(), conferencePaper()],
+      [nagoyaNow()],
+    );
+    render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[NAGOYA]} />);
+    expect(screen.getByText(/no affiliation data \(1 of 1\)/)).toBeTruthy();
+    expect(screen.getByText(/OpenAlex recorded no institution/)).toBeTruthy();
+    expect(
+      screen.getByText(/^2 further works in this period come from other sources/),
+    ).toBeTruthy();
+    expect(screen.queryByText(/A dataset/)).toBeNull();
+    expect(screen.queryByText(/A talk/)).toBeNull();
+  });
+
+  it("names a current position with neither an institution nor a line as untitled — never an empty button", () => {
+    const empty: CvItem = { ...position("P-empty", { startYear: 2021 }), displayText: undefined };
+    const onJump = vi.fn();
+    render(
+      <WorklistPanel
+        cv={makeCv([], [empty])}
+        locale="en-US"
+        consentedRorIds={[]}
+        onJump={onJump}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "(untitled)" }));
+    expect(onJump).toHaveBeenCalledWith("P-empty");
+  });
+
+  it("substitutes source values literally — a replacement pattern in a ROR key or a funder name never corrupts the copy", () => {
+    const rorKey = "https://example.org/$'";
+    const funder = "Fund $& Co $` Ltd";
+    const cv = makeCv(
+      [
+        work("W-gap", { year: 2022, oaIsOpen: true, workInstitutions: [rorKey] }),
+        work("W-closed", {
+          year: 2022,
+          oaIsOpen: false,
+          workInstitutions: [NAGOYA],
+          funders: [{ id: "https://openalex.org/F1", name: funder }],
+        }),
+      ],
+      [nagoyaNow()],
+    );
+    render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[NAGOYA]} />);
+    expect(screen.getByText(`Affiliation on the paper: ROR ${rorKey} — 1`)).toBeTruthy();
+    expect(screen.getByText(`Funders named on the work: ${funder}`)).toBeTruthy();
+  });
+
   it("renders rows as plain text without a jump callback, and omits the policy link without a venue", () => {
     const closed = work("W-closed", { year: 2021, oaIsOpen: false });
     const cv = makeCv([{ ...closed, csl: { id: "W-closed", type: "article-journal" } }], []);

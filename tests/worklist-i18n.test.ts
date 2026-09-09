@@ -89,6 +89,7 @@ describe("worklist strings (workspaceUi wl*)", () => {
       expect(s.wlGapsGroup, `${loc} wlGapsGroup`).toContain("{n}");
       expect(s.wlFunders, `${loc} wlFunders`).toContain("{names}");
       expect(s.wlOaSummary, `${loc} wlOaSummary`).toContain("{total}");
+      expect(s.wlNotCheckedNote, `${loc} wlNotCheckedNote`).toContain("{n}");
     }
   });
 
@@ -97,5 +98,14 @@ describe("worklist strings (workspaceUi wl*)", () => {
     expect(s.wlClosedHelp).toMatch(/No open copy was found by OpenAlex/);
     expect(s.wlClosedHelp).toMatch(/repository deposit may be possible/);
     expect(s.wlClosedHelp).toMatch(/check the journal.s policy/i);
+  });
+
+  it("says, in English, what the no-affiliation bucket holds and that other sources are counted, not checked", () => {
+    const s = workspaceUi("en-US");
+    expect(s.wlNoAffiliationHelp).toMatch(/OpenAlex recorded no institution/);
+    expect(s.wlNoAffiliationHelp).toMatch(/none with a ROR id/);
+    expect(s.wlNoAffiliationHelp).toMatch(/missing data, not a missing affiliation/);
+    expect(s.wlNotCheckedNote).toMatch(/other sources/);
+    expect(s.wlNotCheckedNote).toMatch(/not checked here/);
   });
 });

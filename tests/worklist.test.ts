@@ -157,6 +157,52 @@ describe("affiliationGaps — works inside consented position windows", () => {
     expect(gaps.consideredWorks).toBe(2);
   });
 
+  it("checks OpenAlex works only — other sources never carry printed-affiliation data, so they are counted, not bucketed", () => {
+    // `workInstitutions` is written by the OpenAlex build alone (and only when
+    // the owner's authorship carries a ROR'd institution). A dataset, a
+    // conference paper or a DOI-claimed work can never carry it, so listing
+    // them under "no affiliation data" would pad the bucket with items the
+    // owner cannot act on. They are counted apart, out of the denominator,
+    // with no verdict — and only inside a window, like everything else.
+    const cv = makeCv({
+      positions: [nagoyaNow],
+      works: [
+        work("W-oa-nodata", { meta: { year: 2022 } }),
+        work("W-oa-ok", { meta: { year: 2022, workInstitutions: [NAGOYA] } }),
+        work("D1", {
+          source: "datacite",
+          sourceId: "10.5281/zenodo.1",
+          csl: { id: "D1", type: "dataset", title: "A dataset" },
+          meta: { year: 2022 },
+        }),
+        work("C1", {
+          source: "dblp",
+          sourceId: "conf/x/1",
+          csl: { id: "C1", type: "paper-conference", title: "A talk" },
+          meta: { year: 2022 },
+        }),
+        work("M1", {
+          source: "manual",
+          sourceId: "10.1000/claimed",
+          meta: { year: 2022, claimed: true, matchBasis: "claimed" },
+        }),
+        work("D-old", {
+          source: "datacite",
+          sourceId: "10.5281/zenodo.2",
+          csl: { id: "D-old", type: "dataset", title: "An old dataset" },
+          meta: { year: 2010 },
+        }),
+      ],
+    });
+    const gaps = affiliationGaps(cv, [NAGOYA]);
+    expect(gaps.noAffiliationData.map((r) => r.itemId)).toEqual(["W-oa-nodata"]);
+    expect(gaps.missing).toEqual([]);
+    expect(gaps.consideredWorks).toBe(2);
+    expect(gaps.notChecked).toBe(3);
+    // Without a window nothing is considered — and nothing is "not checked" either.
+    expect(affiliationGaps(cv, []).notChecked).toBe(0);
+  });
+
   it("ignores works outside every consented window (source dates: start..end inclusive; no end = ongoing)", () => {
     const cv = makeCv({
       positions: [nagoyaNow, caenPast],
@@ -328,6 +374,12 @@ describe("openAccessState — four states from stored fields only", () => {
   it("derives each state", () => {
     expect(openAccessState({ meta: { oaIsOpen: true, license: "cc-by" } })).toBe("open-cc");
     expect(openAccessState({ meta: { oaIsOpen: true, license: " CC-BY-NC-ND " } })).toBe("open-cc");
+    // The two edges: CC0 is a Creative Commons instrument with no "cc-" prefix;
+    // public domain is open but not Creative Commons.
+    expect(openAccessState({ meta: { oaIsOpen: true, license: "cc0" } })).toBe("open-cc");
+    expect(openAccessState({ meta: { oaIsOpen: true, license: "public-domain" } })).toBe(
+      "open-other",
+    );
     expect(openAccessState({ meta: { oaIsOpen: true, license: "publisher-specific-oa" } })).toBe(
       "open-other",
     );
@@ -435,6 +487,7 @@ describe("hasWorklistContent", () => {
       missing: [],
       noAffiliationData: [],
       consideredWorks: 3,
+      notChecked: 0,
     };
     const oaEmpty = {
       rows: [{ itemId: "x", state: "open-cc" as const, funderNames: [] }],
@@ -457,5 +510,8 @@ describe("hasWorklistContent", () => {
         counts: { ...oaEmpty.counts, "no-open-copy-found": 1 },
       }),
     ).toBe(true);
+    // Works the list does not check are a count, never a reason to show it.
+    const onlyNotChecked = { ...empty, notChecked: 4 };
+    expect(hasWorklistContent(onlyNotChecked, oaEmpty)).toBe(false);
   });
 });

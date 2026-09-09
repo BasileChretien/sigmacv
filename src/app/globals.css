@@ -4375,6 +4375,12 @@ button.src-prov-chip.is-actionable:focus-visible {
   margin: var(--space-1) 0 0;
   font-size: var(--text-xs);
 }
+/* The one-line count of works the list does not check (other sources) — a
+   note, smaller than a group, with no rows under it. */
+.cv-worklist-note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+}
 .cv-worklist-group {
   margin-top: var(--space-2);
 }
