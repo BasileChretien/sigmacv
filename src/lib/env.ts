@@ -31,6 +31,13 @@ const EnvSchema = z.object({
   // is dormant (makes NO call, returns []). OPS has no anonymous access.
   EPO_OPS_KEY: z.string().optional(),
   EPO_OPS_SECRET: z.string().optional(),
+  // GDPR Art. 21 objection list for the no-login /preview/[orcid] route: a
+  // comma-separated list of lowercase hex HMAC-SHA256(AUTH_SECRET, ORCID) values
+  // (`npm run preview:suppress-hash <orcid>` prints one). NEVER plaintext iDs —
+  // a list of iDs is itself a personal-information database under the APPI. A
+  // listed iD is answered exactly like one with no public record. Interim,
+  // maintainer-operated mechanism until the self-service objection route lands.
+  PREVIEW_SUPPRESSED_ORCID_HMACS: z.string().optional(),
   // Shared secret guarding the internal scheduled-resync endpoint. If unset the
   // endpoint is disabled (returns 503), so it's optional even in production.
   RESYNC_SECRET: z.string().min(16).optional(),

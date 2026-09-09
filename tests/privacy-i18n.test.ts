@@ -26,6 +26,18 @@ describe("privacyStrings", () => {
       expect(s.intro).toContain("GDPR");
       expect(s.intro).toContain("APPI");
       expect(s.data).toContain("OpenAlex");
+      // The data list must name the registries queried by NAME + organisation.
+      expect(s.data).toContain("ClinicalTrials.gov");
+      expect(s.data).toContain("NIH RePORTER");
+      // The preview paragraph: Art. 14(5)(b) (notice in lieu of individual
+      // information), the legitimate-interest basis, and the objection address.
+      expect(s.preview).toContain("Art. 14(5)(b)");
+      expect(s.preview).toContain("Art. 6(1)(f)");
+      expect(s.preview).toContain("privacy@sigmacv.org");
+      // Non-users: the Art. 21 objection route with a 30-day promise.
+      expect(s.nonUserRights).toContain("Art. 21");
+      expect(s.nonUserRights).toContain("privacy@sigmacv.org");
+      expect(s.nonUserRights).toContain("30");
       // The opt-in research clause must cite the consent legal basis.
       expect(s.research).toContain("Art. 6(1)(a)");
       // The AI-drafting disclosure must name the EU processor in every locale.

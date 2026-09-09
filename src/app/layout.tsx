@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import { PLAUSIBLE_INIT_SCRIPT } from "@/lib/analytics/plausibleInit";
 import "./globals.css";
 import { SITE_URL } from "@/lib/siteUrl";
 import { landingStrings } from "@/lib/i18n/landing";
@@ -98,11 +99,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {PLAUSIBLE_SRC && (
           <>
             <Script async src={PLAUSIBLE_SRC} />
-            {/* Plausible v3 init stub (the exact snippet the dashboard provides).
-                The queue captures window.plausible(...) custom events fired before
-                the async script loads; the `||` guards never clobber the real fns. */}
+            {/* Plausible v3 init stub (the dashboard's snippet) plus the pathname
+                scrub that keeps a looked-up ORCID out of the analytics store — see
+                `src/lib/analytics/plausibleInit.ts` and its test. */}
             <Script id="plausible-init" strategy="afterInteractive">
-              {`window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()`}
+              {PLAUSIBLE_INIT_SCRIPT}
             </Script>
           </>
         )}

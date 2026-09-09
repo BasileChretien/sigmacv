@@ -363,6 +363,38 @@ Add a second factor at the edge for the Metabase block: uncomment `basic_auth`
 in `Caddyfile`, set `ADMIN_USER` + `ADMIN_PASSWORD_HASH` (generate the hash with
 `docker run --rm caddy:2-alpine caddy hash-password`), redeploy.
 
+## Preview paths are never stored
+
+Plausible records the pathname of every pageview. The no-login preview lives at
+`/preview/<ORCID>`, so without care the analytics store would become a
+persistent list of every non-user anyone looked up — contradicting the privacy
+notice's "our analytics do not record which iD was looked up". Two things keep
+that sentence true:
+
+1. **The init stub scrubs the path before the event leaves the browser.**
+   `src/lib/analytics/plausibleInit.ts` passes a `transformRequest` to
+   `plausible.init()` that rewrites `/preview/<anything>` to `/preview/_` in both
+   the URL (`u`) and referrer (`r`) fields of the payload; a test executes the
+   stub in a sandbox and asserts the rewrite. Top Pages therefore shows one row,
+   `/preview/_`, for all previews. Verify after deploy: open a preview, then
+   check that no `/preview/0000-…` row appears in Plausible's realtime view.
+2. **Rows recorded before the scrub must be deleted once, by hand.** On the
+   server, against the ClickHouse container (Plausible CE ≥ 2 stores events in
+   `events_v2` and sessions in `sessions_v2`; confirm the table names with
+   `SHOW TABLES FROM plausible_events_db` first):
+
+   ```bash
+   docker compose --profile analytics exec plausible_events_db clickhouse-client \
+     --query "ALTER TABLE plausible_events_db.events_v2 DELETE WHERE pathname LIKE '/preview/%' AND pathname != '/preview/_'"
+   docker compose --profile analytics exec plausible_events_db clickhouse-client \
+     --query "ALTER TABLE plausible_events_db.sessions_v2 DELETE WHERE (entry_page LIKE '/preview/%' AND entry_page != '/preview/_') OR (exit_page LIKE '/preview/%' AND exit_page != '/preview/_')"
+   ```
+
+   Mutations run asynchronously; `SELECT count() FROM plausible_events_db.events_v2
+WHERE pathname LIKE '/preview/0%'` should reach 0 within a minute. The nightly
+   ClickHouse backup taken after that point no longer contains the paths; earlier
+   backups age out on the 14-day rolling schedule.
+
 ## Feature-usage custom events
 
 Cookieless Plausible custom events fire from the editor via the

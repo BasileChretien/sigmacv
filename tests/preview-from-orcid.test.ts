@@ -9,6 +9,9 @@ Object.assign(process.env, {
   ORCID_CLIENT_ID: "APP-1",
   ORCID_CLIENT_SECRET: "secret",
   OPENALEX_MAILTO: "ci@example.org",
+  // GDPR Art. 21 objection list: HMAC-SHA256(AUTH_SECRET above, SUPPRESSED_ORCID).
+  PREVIEW_SUPPRESSED_ORCID_HMACS:
+    "ba8feb6a1dc35f25cef729f4f66c12be0f9cd345cd0ff893bde5c5f9915a24fd",
 });
 
 const mocks = vi.hoisted(() => ({ build: vi.fn(), render: vi.fn(), recordWorkFunders: vi.fn() }));
@@ -33,6 +36,8 @@ import worksFixture from "./fixtures/openalex-works.json";
 
 const works = worksFixture as unknown as OpenAlexWork[];
 const ORCID = "0000-0002-7483-2489";
+/** On the objection list (see the env above); never built, never cached. */
+const SUPPRESSED_ORCID = "0000-0002-1825-0097";
 
 const okCv = buildCanonicalCv({
   id: "cv_ok",
@@ -128,6 +133,19 @@ describe("previewCvFromOrcid", () => {
     const r2 = await previewCvFromOrcid(ORCID);
     expect(r2).toEqual({ status: "empty", orcid: ORCID });
     expect(mocks.build).toHaveBeenCalledTimes(1); // negative cache short-circuits
+  });
+
+  it("answers an iD on the objection list exactly like an unknown iD, without building", async () => {
+    mocks.build.mockResolvedValue({ cv: okCv, report: {} });
+    const r = await previewCvFromOrcid(SUPPRESSED_ORCID);
+    expect(r).toEqual({ status: "empty", orcid: SUPPRESSED_ORCID });
+    expect(mocks.build).not.toHaveBeenCalled();
+    expect(mocks.render).not.toHaveBeenCalled();
+    // Same shape as a genuinely empty record — no "objected" tell.
+    mocks.build.mockResolvedValue({ cv: emptyCv, report: {} });
+    const unknown = await previewCvFromOrcid(ORCID);
+    expect(Object.keys(unknown).sort()).toEqual(Object.keys(r).sort());
+    expect(unknown.status).toBe(r.status);
   });
 
   it("normalizes URL/whitespace forms to the same cache key", async () => {

@@ -30,6 +30,10 @@ export interface TermsStrings {
   acceptableUse: string;
   accuracyHeading: string;
   accuracy: string;
+  /** Viewing a third party's record through the public ORCID preview: no assessment,
+   *  no automated decisions, no bulk extraction, honour objections. */
+  lookupHeading: string;
+  lookup: string;
   warrantyHeading: string;
   warranty: string;
   liabilityHeading: string;
@@ -77,6 +81,9 @@ const TERMS_I18N: Record<Locale, TermsStrings> = {
     accuracyHeading: "Auto-generated data",
     accuracy:
       "SigmaCV builds your CV from third-party public sources (OpenAlex, ORCID, Crossref, DataCite and others). That data can be incomplete, out of date, or wrongly attributed — for example, a publication by a different researcher with a similar name. The service flags likely mismatches, but you are responsible for reviewing and correcting your CV before relying on it or publishing it. We do not warrant the accuracy or completeness of data obtained from these sources.",
+    lookupHeading: "Looking up other researchers",
+    lookup:
+      "The public ORCID preview lets you view a record assembled from public sources about a researcher who may never have used SigmaCV. Such a preview is automatic and unreviewed by the person it describes, may attribute work wrongly, and is not an assessment, ranking or endorsement of anyone by SigmaCV. Use it only to find or check public research records. Do not use it to make automated decisions about a person, to profile or harass anyone, or to extract records in bulk, and respect the wishes of a researcher who has asked us not to show their record.",
     warrantyHeading: "No warranty",
     warranty:
       "SigmaCV is provided “as is” and “as available”, without warranties of any kind, express or implied, including fitness for a particular purpose, accuracy, or uninterrupted availability. Because the service is free and personally run, it may change, become unavailable, or be discontinued at any time. To the maximum extent permitted by law, we disclaim all warranties not expressly stated here.",
@@ -127,6 +134,9 @@ const TERMS_I18N: Record<Locale, TermsStrings> = {
     accuracyHeading: "自动生成的数据",
     accuracy:
       "SigmaCV 依据第三方公开来源（OpenAlex、ORCID、Crossref、DataCite 等）生成您的简历。这些数据可能不完整、过时或被错误归属——例如某篇论文实为同名的另一位研究者所作。本服务会标记可能的不匹配，但在依赖或发布简历之前，您有责任进行核查与更正。我们不保证从这些来源获得的数据的准确性或完整性。",
+    lookupHeading: "查询其他研究者",
+    lookup:
+      "公开 ORCID 预览允许您查看依据公开数据源生成的、关于某位可能从未使用过 SigmaCV 的研究者的记录。此类预览是自动生成的，未经其所描述的本人审核，可能存在错误归属，并且不构成 SigmaCV 对任何人的评估、排名或背书。请仅将其用于查找或核对公开的研究记录。请勿将其用于对个人作出自动化决定、对任何人进行画像或骚扰，或批量提取记录；并请尊重已要求我们不显示其记录的研究者的意愿。",
     warrantyHeading: "不作保证",
     warranty:
       "SigmaCV 按「现状（as is）」及「可提供的现有状态（as available）」提供，不附带任何明示或默示的保证，包括对特定用途的适用性、准确性或不间断可用性的保证。由于本服务免费且由个人运营，它可能随时变更、不可用或停止提供。在法律允许的最大范围内，我们对本条款未明确载明的一切保证不予承担。",
@@ -175,6 +185,9 @@ const TERMS_I18N: Record<Locale, TermsStrings> = {
     accuracyHeading: "Datos generados automáticamente",
     accuracy:
       "SigmaCV crea su CV a partir de fuentes públicas de terceros (OpenAlex, ORCID, Crossref, DataCite y otras). Esos datos pueden estar incompletos, desactualizados o mal atribuidos —por ejemplo, una publicación de otro investigador con un nombre similar—. El servicio señala las posibles discrepancias, pero usted es responsable de revisar y corregir su CV antes de fiarse de él o publicarlo. No garantizamos la exactitud ni la integridad de los datos obtenidos de esas fuentes.",
+    lookupHeading: "Consultar a otros investigadores",
+    lookup:
+      "La vista previa pública por ORCID te permite ver un registro generado a partir de fuentes públicas sobre un investigador que puede no haber usado nunca SigmaCV. Esa vista previa es automática, no ha sido revisada por la persona a la que describe, puede atribuir obras erróneamente y no constituye una evaluación, clasificación ni aval de nadie por parte de SigmaCV. Úsala solo para localizar o comprobar registros públicos de investigación. No la uses para tomar decisiones automatizadas sobre una persona, para elaborar perfiles o acosar a nadie, ni para extraer registros de forma masiva, y respeta la voluntad de un investigador que nos haya pedido no mostrar su registro.",
     warrantyHeading: "Sin garantía",
     warranty:
       "SigmaCV se ofrece «tal cual» y «según disponibilidad», sin garantías de ningún tipo, expresas o implícitas, incluidas la idoneidad para un fin concreto, la exactitud o la disponibilidad ininterrumpida. Al ser un servicio gratuito y de gestión personal, puede cambiar, dejar de estar disponible o discontinuarse en cualquier momento. En la máxima medida permitida por la ley, declinamos toda garantía no indicada expresamente aquí.",
@@ -225,6 +238,9 @@ const TERMS_I18N: Record<Locale, TermsStrings> = {
     accuracyHeading: "Données générées automatiquement",
     accuracy:
       "SigmaCV construit votre CV à partir de sources publiques tierces (OpenAlex, ORCID, Crossref, DataCite et autres). Ces données peuvent être incomplètes, obsolètes ou mal attribuées — par exemple une publication d’un autre chercheur portant un nom similaire. Le service signale les incohérences probables, mais il vous incombe de vérifier et de corriger votre CV avant de vous y fier ou de le publier. Nous ne garantissons ni l’exactitude ni l’exhaustivité des données obtenues de ces sources.",
+    lookupHeading: "Consulter d'autres chercheurs",
+    lookup:
+      "L'aperçu public par ORCID vous permet de voir une notice assemblée à partir de sources publiques au sujet d'un chercheur qui n'a peut-être jamais utilisé SigmaCV. Un tel aperçu est automatique, n'a pas été vérifié par la personne qu'il décrit, peut attribuer des travaux à tort, et ne constitue ni une évaluation, ni un classement, ni une caution de quiconque par SigmaCV. Utilisez-le uniquement pour retrouver ou vérifier des notices de recherche publiques. Ne l'utilisez pas pour prendre des décisions automatisées au sujet d'une personne, pour profiler ou harceler quiconque, ni pour extraire des notices en masse, et respectez la volonté d'un chercheur qui nous a demandé de ne pas afficher sa notice.",
     warrantyHeading: "Absence de garantie",
     warranty:
       "SigmaCV est fourni « en l’état » et « selon disponibilité », sans garantie d’aucune sorte, expresse ou implicite, y compris d’adéquation à un usage particulier, d’exactitude ou de disponibilité ininterrompue. Le service étant gratuit et géré à titre personnel, il peut changer, devenir indisponible ou être interrompu à tout moment. Dans toute la mesure permise par la loi, nous déclinons toute garantie non expressément énoncée ici.",
@@ -275,6 +291,9 @@ const TERMS_I18N: Record<Locale, TermsStrings> = {
     accuracyHeading: "Automatisch erzeugte Daten",
     accuracy:
       "SigmaCV erstellt Ihren Lebenslauf aus öffentlichen Drittquellen (OpenAlex, ORCID, Crossref, DataCite u. a.). Diese Daten können unvollständig, veraltet oder falsch zugeordnet sein – etwa eine Publikation einer anderen Person mit ähnlichem Namen. Der Dienst kennzeichnet wahrscheinliche Fehlzuordnungen, doch sind Sie dafür verantwortlich, Ihren Lebenslauf zu prüfen und zu korrigieren, bevor Sie sich darauf verlassen oder ihn veröffentlichen. Wir gewährleisten weder die Richtigkeit noch die Vollständigkeit der aus diesen Quellen bezogenen Daten.",
+    lookupHeading: "Nachschlagen anderer Forschender",
+    lookup:
+      "Die öffentliche ORCID-Vorschau erlaubt es Ihnen, einen aus öffentlichen Quellen zusammengestellten Nachweis über eine forschende Person zu sehen, die SigmaCV möglicherweise nie genutzt hat. Eine solche Vorschau ist automatisch erstellt, von der beschriebenen Person nicht geprüft, kann Werke falsch zuordnen und ist keine Bewertung, kein Ranking und keine Empfehlung irgendeiner Person durch SigmaCV. Nutzen Sie sie nur, um öffentliche Forschungsnachweise zu finden oder zu prüfen. Nutzen Sie sie nicht für automatisierte Entscheidungen über eine Person, zum Profiling oder zur Belästigung und nicht zur massenhaften Extraktion von Nachweisen; respektieren Sie den Wunsch einer forschenden Person, die uns gebeten hat, ihren Nachweis nicht anzuzeigen.",
     warrantyHeading: "Keine Gewährleistung",
     warranty:
       "SigmaCV wird „wie besehen“ und „wie verfügbar“ bereitgestellt, ohne jegliche ausdrückliche oder stillschweigende Gewährleistung, einschließlich der Eignung für einen bestimmten Zweck, der Richtigkeit oder der unterbrechungsfreien Verfügbarkeit. Da der Dienst kostenlos ist und privat betrieben wird, kann er sich jederzeit ändern, nicht verfügbar sein oder eingestellt werden. Im größtmöglichen gesetzlich zulässigen Umfang schließen wir alle hier nicht ausdrücklich genannten Gewährleistungen aus.",
@@ -325,6 +344,9 @@ const TERMS_I18N: Record<Locale, TermsStrings> = {
     accuracyHeading: "自動生成されるデータ",
     accuracy:
       "SigmaCV は、第三者の公開ソース（OpenAlex、ORCID、Crossref、DataCite など）からお客様の CV を生成します。これらのデータは、不完全であったり、古かったり、誤って帰属されていたりする場合があります。たとえば、類似した氏名を持つ別の研究者の論文などです。本サービスは想定される不一致にフラグを付けますが、CV を信頼し、または公開する前に、内容を確認し修正する責任はお客様にあります。当方は、これらのソースから取得したデータの正確性や完全性を保証しません。",
+    lookupHeading: "他の研究者の照会",
+    lookup:
+      "ORCID による公開プレビューでは、SigmaCV を一度も利用したことがないかもしれない研究者について、公開ソースから組み立てた記録を見ることができます。このプレビューは自動生成であり、記載された本人による確認を経ておらず、業績が誤って帰属されている場合があり、SigmaCV による評価・順位付け・推薦ではありません。公開研究記録を探す、または確認する目的にのみご利用ください。個人に関する自動化された決定、プロファイリングや嫌がらせ、記録の大量抽出に利用しないでください。また、自身の記録を表示しないよう当方に求めた研究者の意思を尊重してください。",
     warrantyHeading: "無保証",
     warranty:
       "SigmaCV は「現状のまま（as is）」かつ「提供可能な範囲で（as available）」提供され、特定目的への適合性、正確性、または中断のない利用可能性を含め、明示・黙示を問わず一切の保証を伴いません。本サービスは無料かつ個人により運営されているため、いつでも変更され、利用できなくなり、または提供を終了する場合があります。法律で認められる最大限の範囲で、当方は本規約に明示されていない一切の保証を否認します。",
@@ -375,6 +397,9 @@ const TERMS_I18N: Record<Locale, TermsStrings> = {
     accuracyHeading: "Dados gerados automaticamente",
     accuracy:
       "O SigmaCV monta o seu CV a partir de fontes públicas de terceiros (OpenAlex, ORCID, Crossref, DataCite e outras). Esses dados podem estar incompletos, desatualizados ou atribuídos incorretamente — por exemplo, uma publicação de outro pesquisador com nome semelhante. O serviço sinaliza prováveis divergências, mas é sua a responsabilidade de revisar e corrigir o seu CV antes de confiar nele ou publicá-lo. Não garantimos a exatidão ou a integridade dos dados obtidos dessas fontes.",
+    lookupHeading: "Consultar outros pesquisadores",
+    lookup:
+      "A prévia pública por ORCID permite ver um registro montado a partir de fontes públicas sobre um pesquisador que pode nunca ter usado o SigmaCV. Essa prévia é automática, não foi revisada pela pessoa que descreve, pode atribuir trabalhos erroneamente e não é uma avaliação, classificação ou endosso de ninguém pelo SigmaCV. Use-a apenas para localizar ou verificar registros públicos de pesquisa. Não a use para tomar decisões automatizadas sobre uma pessoa, para traçar perfis ou assediar alguém, nem para extrair registros em massa, e respeite a vontade de um pesquisador que nos pediu para não exibir o seu registro.",
     warrantyHeading: "Sem garantia",
     warranty:
       "O SigmaCV é fornecido «no estado em que se encontra» e «conforme disponível», sem garantias de qualquer tipo, expressas ou implícitas, incluindo adequação a uma finalidade específica, exatidão ou disponibilidade ininterrupta. Por ser um serviço gratuito e mantido de forma pessoal, ele pode mudar, ficar indisponível ou ser descontinuado a qualquer momento. Na máxima extensão permitida por lei, isentamo-nos de todas as garantias não declaradas expressamente aqui.",
@@ -425,6 +450,9 @@ const TERMS_I18N: Record<Locale, TermsStrings> = {
     accuracyHeading: "Dati generati automaticamente",
     accuracy:
       "SigmaCV compone il tuo CV a partire da fonti pubbliche di terzi (OpenAlex, ORCID, Crossref, DataCite e altre). Tali dati possono essere incompleti, non aggiornati o attribuiti erroneamente — ad esempio una pubblicazione di un altro ricercatore con un nome simile. Il servizio segnala le probabili discordanze, ma sei tu responsabile di verificare e correggere il tuo CV prima di farvi affidamento o di pubblicarlo. Non garantiamo l’accuratezza o la completezza dei dati ottenuti da queste fonti.",
+    lookupHeading: "Consultare altri ricercatori",
+    lookup:
+      "L'anteprima pubblica tramite ORCID ti permette di vedere una registrazione assemblata da fonti pubbliche su un ricercatore che potrebbe non aver mai usato SigmaCV. Tale anteprima è automatica, non è stata verificata dalla persona che descrive, può attribuire lavori in modo errato e non costituisce una valutazione, una classifica o un avallo di chicchessia da parte di SigmaCV. Usala solo per trovare o verificare registrazioni pubbliche della ricerca. Non usarla per prendere decisioni automatizzate su una persona, per profilare o molestare qualcuno, né per estrarre registrazioni in massa, e rispetta la volontà di un ricercatore che ci ha chiesto di non mostrare la sua registrazione.",
     warrantyHeading: "Nessuna garanzia",
     warranty:
       "SigmaCV è fornito «così com’è» e «secondo disponibilità», senza garanzie di alcun tipo, espresse o implicite, comprese l’idoneità a uno scopo particolare, l’accuratezza o la disponibilità ininterrotta. Trattandosi di un servizio gratuito e gestito a titolo personale, può cambiare, non essere disponibile o essere interrotto in qualsiasi momento. Nella massima misura consentita dalla legge, decliniamo ogni garanzia non espressamente indicata qui.",
@@ -475,6 +503,9 @@ const TERMS_I18N: Record<Locale, TermsStrings> = {
     accuracyHeading: "자동 생성 데이터",
     accuracy:
       "SigmaCV는 제3자 공개 출처(OpenAlex, ORCID, Crossref, DataCite 등)로부터 귀하의 CV를 생성합니다. 이러한 데이터는 불완전하거나, 오래되었거나, 잘못 귀속되어 있을 수 있습니다. 예를 들어 이름이 비슷한 다른 연구자의 논문일 수 있습니다. 서비스는 불일치 가능성이 있는 항목에 표시를 하지만, CV를 신뢰하거나 게시하기 전에 이를 검토하고 수정할 책임은 귀하에게 있습니다. 당사는 이러한 출처에서 얻은 데이터의 정확성이나 완전성을 보증하지 않습니다.",
+    lookupHeading: "다른 연구자 조회",
+    lookup:
+      "ORCID 공개 미리보기를 통해 SigmaCV를 한 번도 사용하지 않았을 수 있는 연구자에 대해 공개 소스로 구성된 기록을 볼 수 있습니다. 이러한 미리보기는 자동으로 생성되며, 기술된 본인의 검토를 거치지 않았고, 성과가 잘못 귀속될 수 있으며, SigmaCV가 누군가를 평가·순위화·보증하는 것이 아닙니다. 공개 연구 기록을 찾거나 확인하는 용도로만 사용하십시오. 개인에 관한 자동화된 결정, 프로파일링이나 괴롭힘, 기록의 대량 추출에 사용하지 마시고, 자신의 기록을 표시하지 말아 달라고 요청한 연구자의 뜻을 존중해 주십시오.",
     warrantyHeading: "보증의 부인",
     warranty:
       "SigmaCV는 «있는 그대로(as is)» 및 «제공 가능한 범위에서(as available)» 제공되며, 특정 목적에의 적합성, 정확성, 또는 중단 없는 가용성을 포함하여 명시적이든 묵시적이든 어떠한 종류의 보증도 제공하지 않습니다. 본 서비스는 무료이며 개인이 운영하므로 언제든지 변경되거나, 이용할 수 없게 되거나, 중단될 수 있습니다. 법이 허용하는 최대 범위에서 당사는 여기에 명시되지 않은 모든 보증을 부인합니다.",
@@ -525,6 +556,9 @@ const TERMS_I18N: Record<Locale, TermsStrings> = {
     accuracyHeading: "Автоматически формируемые данные",
     accuracy:
       "SigmaCV формирует ваше CV из сторонних открытых источников (OpenAlex, ORCID, Crossref, DataCite и других). Эти данные могут быть неполными, устаревшими или неверно атрибутированными — например, публикация другого исследователя с похожим именем. Сервис помечает вероятные несоответствия, но вы несёте ответственность за проверку и исправление вашего CV, прежде чем полагаться на него или публиковать его. Мы не гарантируем точность или полноту данных, полученных из этих источников.",
+    lookupHeading: "Просмотр записей других исследователей",
+    lookup:
+      "Публичный предпросмотр по ORCID позволяет увидеть запись, собранную из открытых источников, об исследователе, который, возможно, никогда не пользовался SigmaCV. Такой предпросмотр формируется автоматически, не проверен описанным в нём человеком, может содержать ошибочную атрибуцию работ и не является оценкой, рейтингом или рекомендацией кого-либо со стороны SigmaCV. Используйте его только для поиска или проверки открытых научных записей. Не используйте его для автоматизированных решений о человеке, для профилирования или преследования кого-либо, а также для массового извлечения записей, и уважайте волю исследователя, попросившего нас не показывать его запись.",
     warrantyHeading: "Отсутствие гарантий",
     warranty:
       "SigmaCV предоставляется «как есть» и «по мере доступности», без каких-либо гарантий, явных или подразумеваемых, включая пригодность для определённой цели, точность или бесперебойную доступность. Поскольку сервис бесплатный и поддерживается частным лицом, он может изменяться, становиться недоступным или прекращать работу в любое время. В максимально допустимой законом степени мы отказываемся от всех гарантий, прямо не указанных здесь.",

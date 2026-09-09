@@ -59,6 +59,7 @@ export default function Privacy({ locale }: { locale: string }) {
 
         <h2>{s.rightsHeading}</h2>
         <p>{s.rights}</p>
+        <p>{s.nonUserRights}</p>
 
         <h2>{s.contactHeading}</h2>
         <p>{s.contact}</p>
