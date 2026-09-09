@@ -258,6 +258,26 @@ model Institution {
   @@index([openalexNextRefreshAt])
 }
 
+// The OpenAlex funder crosswalk: one row per funder printed on an owner's
+// works (meta.funders[].id, OpenAlex F…), with the ids OpenAlex records for it
+// — the FundRef DOI, the bare ROR id, the Wikidata item — so the owner's ORCID
+// / Crossref grants (FundRef / ROR ids) can be compared with a work's OpenAlex
+// funder id without string-equalling the two namespaces (funders/join.ts).
+// Reference data about funders, not about a person: written at sync
+// (openalex/funders.ts — bounded, fail-soft, refreshed every 90 days), read by
+// the owner's editor only; never on a public surface.
+model Funder {
+  openalexId String   @id
+  fundrefDoi String?
+  rorId      String?
+  wikidataId String?
+  name       String
+  fetchedAt  DateTime
+
+  @@index([fundrefDoi])
+  @@index([rorId])
+}
+
 model DoiWithdrawal {
   doi       String   @id
   attempts  Int      @default(1)

@@ -119,6 +119,29 @@ export interface WorkspaceUiStrings {
   wlFunders: string;
   /** Title on a row's jump button. */
   wlJump: string;
+  // ── Owner worklist: your grants and their open-access policies ───────────
+  /** Section heading — no count: never a number of works "needing action". */
+  wlFundingHeading: string;
+  /** Facts side by side, no verdict; the judgement is the owner's. */
+  wlFundingHelp: string;
+  /** Award-number match: "acknowledges award {award} from {funder}". */
+  wlFundingAward: string;
+  /** Funder-id match (weaker): the work names the funder, no award number; {funder}. */
+  wlFundingFunderOnly: string;
+  /** The recorded policy sentence for a maintainer-confirmed entry; {funder},
+   *  {date} (lastVerified), {statements}. */
+  wlFundingPolicy: string;
+  /** The same sentence for an entry still awaiting live confirmation — no
+   *  date exists, and it must never say "as recorded on"; {funder}, {statements}. */
+  wlFundingPolicyPending: string;
+  /** Link text to the policy on the funder's own domain. */
+  wlFundingPolicyLink: string;
+  /** No row in the policy table; {funder}. */
+  wlFundingNoPolicy: string;
+  /** What SigmaCV found, from stored fields; {state} = the four-state label. */
+  wlFundingFound: string;
+  /** Fallback when neither the grant, the work nor the crosswalk names the funder. */
+  wlFundingUnnamedFunder: string;
 }
 
 const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
@@ -204,6 +227,18 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Check the journal's policy (Open Policy Finder)",
     wlFunders: "Funders named on the work: {names}",
     wlJump: "Jump to this entry",
+    wlFundingHeading: "Your grants and their open-access policies",
+    wlFundingHelp:
+      "Works that acknowledge one of your own grants, beside what that funder's policy says and what SigmaCV found. Facts side by side, no verdict: whether a policy applies to a given work is for you to judge.",
+    wlFundingAward: "acknowledges award {award} from {funder}",
+    wlFundingFunderOnly: "names your funder {funder}; no award number on the work",
+    wlFundingPolicy: "{funder}'s open-access policy, as recorded on {date}: {statements}",
+    wlFundingPolicyPending:
+      "{funder}'s open-access policy, drafted from memory and not yet confirmed against the funder's site: {statements}",
+    wlFundingPolicyLink: "policy page",
+    wlFundingNoPolicy: "SigmaCV has no policy record for {funder}.",
+    wlFundingFound: "SigmaCV found: {state}",
+    wlFundingUnnamedFunder: "a funder",
     hpInfoTitle: "For your eyes only",
     hpSelfRef:
       "About {pct} of the references in your papers point to your own work (n = {n}). Some panels look at this; nothing on your CV shows it.",
@@ -286,6 +321,18 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "查看期刊政策（Open Policy Finder）",
     wlFunders: "作品上列出的资助方：{names}",
     wlJump: "跳转到此条目",
+    wlFundingHeading: "您的资助项目及其开放获取政策",
+    wlFundingHelp:
+      "致谢您本人资助项目的研究成果，与该资助方政策的表述及 SigmaCV 的发现并列呈现。仅列事实，不作结论：某项政策是否适用于某篇成果，由您自行判断。",
+    wlFundingAward: "致谢来自 {funder} 的资助编号 {award}",
+    wlFundingFunderOnly: "提及您的资助方 {funder}；成果上未注明资助编号",
+    wlFundingPolicy: "{funder} 的开放获取政策（记录日期 {date}）：{statements}",
+    wlFundingPolicyPending:
+      "{funder} 的开放获取政策（凭记忆草拟，尚未与资助方网站核对）：{statements}",
+    wlFundingPolicyLink: "政策页面",
+    wlFundingNoPolicy: "SigmaCV 没有 {funder} 的政策记录。",
+    wlFundingFound: "SigmaCV 的发现：{state}",
+    wlFundingUnnamedFunder: "某资助方",
     hpInfoTitle: "仅供您本人查看",
     hpSelfRef:
       "您论文中约 {pct} 的参考文献指向您自己的作品（n = {n}）。部分评审会关注这一点；您的简历中不会显示它。",
@@ -372,6 +419,18 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Consultar la política de la revista (Open Policy Finder)",
     wlFunders: "Financiadores nombrados en el trabajo: {names}",
     wlJump: "Ir a esta entrada",
+    wlFundingHeading: "Tus ayudas y sus políticas de acceso abierto",
+    wlFundingHelp:
+      "Trabajos que reconocen una de tus propias ayudas, junto a lo que dice la política de ese financiador y lo que SigmaCV encontró. Solo hechos, sin veredicto: si una política se aplica a un trabajo concreto es algo que te corresponde juzgar a ti.",
+    wlFundingAward: "reconoce la ayuda {award} de {funder}",
+    wlFundingFunderOnly: "menciona a tu financiador {funder}; sin número de ayuda en el trabajo",
+    wlFundingPolicy: "Política de acceso abierto de {funder}, registrada el {date}: {statements}",
+    wlFundingPolicyPending:
+      "Política de acceso abierto de {funder}, redactada de memoria y aún no contrastada con el sitio del financiador: {statements}",
+    wlFundingPolicyLink: "página de la política",
+    wlFundingNoPolicy: "SigmaCV no tiene registro de política para {funder}.",
+    wlFundingFound: "SigmaCV encontró: {state}",
+    wlFundingUnnamedFunder: "un financiador",
     hpInfoTitle: "Solo para ti",
     hpSelfRef:
       "Alrededor del {pct} de las referencias de tus artículos remiten a tu propio trabajo (n = {n}). Algunos comités se fijan en esto; nada en tu CV lo muestra.",
@@ -460,6 +519,20 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Consulter la politique de la revue (Open Policy Finder)",
     wlFunders: "Financeurs nommés sur le travail : {names}",
     wlJump: "Aller à cette entrée",
+    wlFundingHeading: "Vos financements et leurs politiques d'accès ouvert",
+    wlFundingHelp:
+      "Travaux qui mentionnent l'un de vos propres financements, présentés à côté de ce que dit la politique de ce financeur et de ce que SigmaCV a trouvé. Des faits, sans verdict : c'est à vous de juger si une politique s'applique à un travail donné.",
+    wlFundingAward: "mentionne la subvention {award} de {funder}",
+    wlFundingFunderOnly:
+      "cite votre financeur {funder} ; aucun numéro de subvention sur le travail",
+    wlFundingPolicy:
+      "Politique d'accès ouvert de {funder}, telle qu'enregistrée le {date} : {statements}",
+    wlFundingPolicyPending:
+      "Politique d'accès ouvert de {funder}, rédigée de mémoire et pas encore vérifiée sur le site du financeur : {statements}",
+    wlFundingPolicyLink: "page de la politique",
+    wlFundingNoPolicy: "SigmaCV n'a pas d'enregistrement de politique pour {funder}.",
+    wlFundingFound: "SigmaCV a trouvé : {state}",
+    wlFundingUnnamedFunder: "un financeur",
     hpInfoTitle: "Pour vous seulement",
     hpSelfRef:
       "Environ {pct} des références de vos articles renvoient à vos propres travaux (n = {n}). Certains comités y prêtent attention ; rien sur votre CV ne l'affiche.",
@@ -548,6 +621,18 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Richtlinie der Zeitschrift prüfen (Open Policy Finder)",
     wlFunders: "Auf der Arbeit genannte Förderer: {names}",
     wlJump: "Zu diesem Eintrag springen",
+    wlFundingHeading: "Ihre Förderungen und deren Open-Access-Richtlinien",
+    wlFundingHelp:
+      "Arbeiten, die eine Ihrer eigenen Förderungen nennen, neben dem, was die Richtlinie des Förderers sagt, und dem, was SigmaCV gefunden hat. Nur Fakten, kein Urteil: ob eine Richtlinie auf eine bestimmte Arbeit zutrifft, beurteilen Sie selbst.",
+    wlFundingAward: "nennt die Förderung {award} von {funder}",
+    wlFundingFunderOnly: "nennt Ihren Förderer {funder}; keine Fördernummer auf der Arbeit",
+    wlFundingPolicy: "Open-Access-Richtlinie von {funder}, Stand {date}: {statements}",
+    wlFundingPolicyPending:
+      "Open-Access-Richtlinie von {funder}, aus dem Gedächtnis verfasst und noch nicht mit der Website des Förderers abgeglichen: {statements}",
+    wlFundingPolicyLink: "Seite der Richtlinie",
+    wlFundingNoPolicy: "SigmaCV hat keinen Richtlinien-Eintrag für {funder}.",
+    wlFundingFound: "SigmaCV hat gefunden: {state}",
+    wlFundingUnnamedFunder: "ein Förderer",
     hpInfoTitle: "Nur für Sie",
     hpSelfRef:
       "Etwa {pct} der Literaturangaben in Ihren Arbeiten verweisen auf Ihre eigenen Arbeiten (n = {n}). Manche Gutachtergremien achten darauf; in Ihrem Lebenslauf erscheint es nirgends.",
@@ -634,6 +719,18 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "学術誌のポリシーを確認（Open Policy Finder）",
     wlFunders: "業績に記載された助成機関：{names}",
     wlJump: "この項目へ移動",
+    wlFundingHeading: "あなたの助成金とそのオープンアクセス方針",
+    wlFundingHelp:
+      "あなた自身の助成金を謝辞に挙げている業績を、その助成機関の方針の記述と SigmaCV が見つけた状態と並べて示します。事実のみで判定はしません。ある方針が特定の業績に当てはまるかどうかは、あなた自身が判断してください。",
+    wlFundingAward: "{funder} の助成番号 {award} を謝辞に記載",
+    wlFundingFunderOnly: "あなたの助成機関 {funder} を記載。業績に助成番号なし",
+    wlFundingPolicy: "{funder} のオープンアクセス方針（{date} 時点の記録）：{statements}",
+    wlFundingPolicyPending:
+      "{funder} のオープンアクセス方針（記憶をもとに下書きしたもので、助成機関のサイトとはまだ照合していません）：{statements}",
+    wlFundingPolicyLink: "方針のページ",
+    wlFundingNoPolicy: "SigmaCV には {funder} の方針の記録がありません。",
+    wlFundingFound: "SigmaCV が見つけた状態：{state}",
+    wlFundingUnnamedFunder: "助成機関",
     hpInfoTitle: "あなただけに表示",
     hpSelfRef:
       "あなたの論文の参考文献のうち約 {pct} が自身の業績を引用しています（n = {n}）。審査委員会がこれを見ることがありますが、CV には一切表示されません。",
@@ -722,6 +819,19 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Consultar a política da revista (Open Policy Finder)",
     wlFunders: "Financiadores nomeados no trabalho: {names}",
     wlJump: "Ir para esta entrada",
+    wlFundingHeading: "Seus financiamentos e suas políticas de acesso aberto",
+    wlFundingHelp:
+      "Trabalhos que reconhecem um dos seus próprios financiamentos, ao lado do que diz a política desse financiador e do que o SigmaCV encontrou. Apenas fatos, sem veredito: se uma política se aplica a um trabalho específico é algo que cabe a você julgar.",
+    wlFundingAward: "reconhece o financiamento {award} de {funder}",
+    wlFundingFunderOnly:
+      "menciona seu financiador {funder}; sem número de financiamento no trabalho",
+    wlFundingPolicy: "Política de acesso aberto de {funder}, registrada em {date}: {statements}",
+    wlFundingPolicyPending:
+      "Política de acesso aberto de {funder}, redigida de memória e ainda não conferida no site do financiador: {statements}",
+    wlFundingPolicyLink: "página da política",
+    wlFundingNoPolicy: "O SigmaCV não tem registro de política para {funder}.",
+    wlFundingFound: "O SigmaCV encontrou: {state}",
+    wlFundingUnnamedFunder: "um financiador",
     hpInfoTitle: "Somente para você",
     hpSelfRef:
       "Cerca de {pct} das referências dos seus artigos apontam para o seu próprio trabalho (n = {n}). Alguns comitês observam isso; nada no seu CV o mostra.",
@@ -810,6 +920,19 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Verifica la politica della rivista (Open Policy Finder)",
     wlFunders: "Finanziatori indicati sul lavoro: {names}",
     wlJump: "Vai a questa voce",
+    wlFundingHeading: "I tuoi finanziamenti e le loro politiche di accesso aperto",
+    wlFundingHelp:
+      "Lavori che citano uno dei tuoi finanziamenti, accanto a ciò che dice la politica di quel finanziatore e a ciò che SigmaCV ha trovato. Solo fatti, nessun verdetto: se una politica si applica a un dato lavoro spetta a te giudicarlo.",
+    wlFundingAward: "cita il finanziamento {award} di {funder}",
+    wlFundingFunderOnly:
+      "cita il tuo finanziatore {funder}; nessun numero di finanziamento sul lavoro",
+    wlFundingPolicy: "Politica di accesso aperto di {funder}, registrata il {date}: {statements}",
+    wlFundingPolicyPending:
+      "Politica di accesso aperto di {funder}, redatta a memoria e non ancora verificata sul sito del finanziatore: {statements}",
+    wlFundingPolicyLink: "pagina della politica",
+    wlFundingNoPolicy: "SigmaCV non ha alcuna registrazione della politica di {funder}.",
+    wlFundingFound: "SigmaCV ha trovato: {state}",
+    wlFundingUnnamedFunder: "un finanziatore",
     hpInfoTitle: "Solo per te",
     hpSelfRef:
       "Circa il {pct} dei riferimenti nei tuoi articoli rimanda ai tuoi stessi lavori (n = {n}). Alcune commissioni lo guardano; nulla nel tuo CV lo mostra.",
@@ -896,6 +1019,18 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "학술지 정책 확인 (Open Policy Finder)",
     wlFunders: "연구물에 명시된 지원 기관: {names}",
     wlJump: "이 항목으로 이동",
+    wlFundingHeading: "내 연구비와 그 오픈 액세스 정책",
+    wlFundingHelp:
+      "내 연구비를 사사에 밝힌 연구물을, 해당 지원 기관의 정책 내용과 SigmaCV가 확인한 상태와 나란히 보여 줍니다. 사실만 제시하며 판정하지 않습니다. 특정 정책이 특정 연구물에 적용되는지는 직접 판단하세요.",
+    wlFundingAward: "{funder}의 과제번호 {award}를 사사에 명시",
+    wlFundingFunderOnly: "내 지원 기관 {funder}을(를) 명시. 연구물에 과제번호 없음",
+    wlFundingPolicy: "{funder}의 오픈 액세스 정책({date} 기준 기록): {statements}",
+    wlFundingPolicyPending:
+      "{funder}의 오픈 액세스 정책(기억에 의존해 작성했으며 아직 지원 기관 사이트와 대조하지 않음): {statements}",
+    wlFundingPolicyLink: "정책 페이지",
+    wlFundingNoPolicy: "SigmaCV에는 {funder}의 정책 기록이 없습니다.",
+    wlFundingFound: "SigmaCV가 확인한 상태: {state}",
+    wlFundingUnnamedFunder: "지원 기관",
     hpInfoTitle: "본인에게만 표시",
     hpSelfRef:
       "논문의 참고문헌 중 약 {pct}가 본인의 연구를 가리킵니다 (n = {n}). 일부 심사 위원회는 이를 살펴보지만 CV에는 전혀 표시되지 않습니다.",
@@ -985,6 +1120,18 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Проверить политику журнала (Open Policy Finder)",
     wlFunders: "Спонсоры, указанные в работе: {names}",
     wlJump: "Перейти к этой записи",
+    wlFundingHeading: "Ваши гранты и их политики открытого доступа",
+    wlFundingHelp:
+      "Работы, в которых указан один из ваших собственных грантов, рядом с тем, что говорит политика этого спонсора, и тем, что нашёл SigmaCV. Только факты, без вердикта: применима ли политика к конкретной работе, решаете вы.",
+    wlFundingAward: "указывает грант {award} от {funder}",
+    wlFundingFunderOnly: "упоминает вашего спонсора {funder}; номер гранта в работе не указан",
+    wlFundingPolicy: "Политика открытого доступа {funder}, по записи от {date}: {statements}",
+    wlFundingPolicyPending:
+      "Политика открытого доступа {funder}, записанная по памяти и ещё не сверенная с сайтом спонсора: {statements}",
+    wlFundingPolicyLink: "страница политики",
+    wlFundingNoPolicy: "У SigmaCV нет записи о политике {funder}.",
+    wlFundingFound: "SigmaCV нашёл: {state}",
+    wlFundingUnnamedFunder: "спонсор",
     hpInfoTitle: "Только для вас",
     hpSelfRef:
       "Около {pct} ссылок в ваших статьях указывают на ваши собственные работы (n = {n}). Некоторые комиссии обращают на это внимание; в вашем резюме это нигде не отображается.",

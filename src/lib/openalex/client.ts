@@ -1,5 +1,5 @@
 import { getEnv } from "@/lib/env";
-import { resilientFetch } from "@/lib/http";
+import { resilientFetch, type ResilientFetchOptions } from "@/lib/http";
 import { logger } from "@/lib/log";
 import {
   normalizeOrcid,
@@ -62,11 +62,14 @@ const WORK_SELECT = [
  * One polite-pool GET against OpenAlex (mailto + User-Agent, the shared timeout
  * and retry), returning the raw Response so a caller can treat a status itself
  * — the institution fetchers (`institutions.ts`) need 404 as "no entity", not
- * an error. Everything else goes through {@link openAlexGet}.
+ * an error. A caller on an interactive, time-budgeted path may tighten the
+ * timeout / retry (`opts`); the defaults are the shared ones. Everything else
+ * goes through {@link openAlexGet}.
  */
 export async function openAlexResponse(
   path: string,
   params: Record<string, string>,
+  opts: Pick<ResilientFetchOptions, "timeoutMs" | "retries"> = {},
 ): Promise<Response> {
   const url = new URL(`${OPENALEX_API}${path}`);
   const mailto = getEnv().OPENALEX_MAILTO;
@@ -83,6 +86,7 @@ export async function openAlexResponse(
     // OpenAlex data changes slowly; let Next cache for an hour.
     next: { revalidate: 3600 },
     timeoutMs: 15_000,
+    ...opts,
   });
 }
 

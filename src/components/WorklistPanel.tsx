@@ -12,8 +12,13 @@ import {
   type OpenAccessState,
   type WorklistRow,
 } from "@/lib/cv/worklist";
+import { joinOwnerFunding, toCrosswalk, type FunderRow } from "@/lib/funders/join";
+import { funderOaPolicy } from "@/lib/funders/oaPolicies";
 import type { Locale } from "@/lib/i18n";
 import { workspaceUi, type WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
+
+/** A stable empty crosswalk (a fresh `[]` per render would defeat the memo). */
+const NO_FUNDER_CROSSWALK: readonly FunderRow[] = [];
 
 interface WorklistPanelProps {
   cv: CanonicalCv;
@@ -22,6 +27,10 @@ interface WorklistPanelProps {
    *  With none, the affiliation buckets are empty; positions and open access
    *  are still listed. */
   consentedRorIds: readonly string[];
+  /** The OpenAlex funder crosswalk rows for the funders printed on the owner's
+   *  works (owner-only, loaded by the page). With none, the owner's grants
+   *  still join by award number. */
+  funderCrosswalk?: readonly FunderRow[];
   /** Jump to an item in the editor (expand its section + scroll/focus). When
    *  omitted (a read-only context) rows are plain text. */
   onJump?: (itemId: string) => void;
@@ -35,10 +44,20 @@ const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
 };
 
 /** Every substitution below uses a FUNCTION replacer: a source value (a ROR
- *  key, a funder name) may contain `$'`, `$&` or `` $` ``, which a string
- *  replacement would read as a pattern and corrupt the copy with. */
+ *  key, a funder name, an award number) may contain `$'`, `$&` or `` $` ``,
+ *  which a string replacement would read as a pattern and corrupt the copy
+ *  with. */
 function counted(template: string, n: number, total: number): string {
   return template.replace("{n}", () => String(n)).replace("{total}", () => String(total));
+}
+
+/** Every occurrence of each `{key}` (a locale may repeat one), function replacer. */
+function fill(template: string, values: Record<string, string>): string {
+  let out = template;
+  for (const [key, value] of Object.entries(values)) {
+    out = out.replaceAll(`{${key}}`, () => value);
+  }
+  return out;
 }
 
 /**
@@ -49,16 +68,27 @@ function counted(template: string, n: number, total: number): string {
  * ROR they DO carry, plus the OpenAlex works with no affiliation data (works
  * from other sources never carry it: counted on one line, not checked), (c) the
  * countable works with no open copy found, each with its four-state label and a
- * link to the journal's policy. Counts carry their denominators. Every row
- * jumps to the entry. It is help, not judgement — no compliance state exists
- * (the i18n test bans the vocabulary) — and nothing here reaches the CV, the
- * public page or an export. Renders nothing when there is nothing to show.
+ * link to the journal's policy, (d) the works that acknowledge one of the
+ * owner's OWN grants (`funders/join.ts`), each beside the funder's recorded
+ * open-access policy — dated, linked — and what SigmaCV found. Counts carry
+ * their denominators; the funding heading carries none. Every row jumps to the
+ * entry. It is help, not judgement — no compliance state exists (the i18n tests
+ * ban the vocabulary) — and nothing here reaches the CV, the public page or an
+ * export. Renders nothing when there is nothing to show.
  */
-export default function WorklistPanel({ cv, locale, consentedRorIds, onJump }: WorklistPanelProps) {
+export default function WorklistPanel({
+  cv,
+  locale,
+  consentedRorIds,
+  funderCrosswalk = NO_FUNDER_CROSSWALK,
+  onJump,
+}: WorklistPanelProps) {
   const wu = workspaceUi(locale);
   const gaps = useMemo(() => affiliationGaps(cv, consentedRorIds), [cv, consentedRorIds]);
   const oa = useMemo(() => openAccessStates(cv), [cv]);
-  if (!hasWorklistContent(gaps, oa)) return null;
+  const crosswalk = useMemo(() => toCrosswalk(funderCrosswalk), [funderCrosswalk]);
+  const funding = useMemo(() => joinOwnerFunding(cv, crosswalk), [cv, crosswalk]);
+  if (!hasWorklistContent(gaps, oa, funding.length)) return null;
 
   const closed = oa.rows.filter((r) => r.state === "no-open-copy-found");
   const groups = groupByRor(gaps.missing);
@@ -80,6 +110,24 @@ export default function WorklistPanel({ cv, locale, consentedRorIds, onJump }: W
     ) : (
       <span>{label}</span>
     );
+  const stateChip = (state: OpenAccessState): ReactNode => (
+    <span className="cv-worklist-chip" data-state={state}>
+      {wu[STATE_LABEL[state]]}
+    </span>
+  );
+  const finderLink = (venue: string | undefined): ReactNode => {
+    const policy = policyFinderUrl(venue);
+    return policy ? (
+      <>
+        {" "}
+        <a href={policy} target="_blank" rel="noopener noreferrer">
+          {wu.wlPolicyLink}
+        </a>
+      </>
+    ) : null;
+  };
+  // "SigmaCV found: {state}" with the chip in the placeholder's place.
+  const [foundBefore, foundAfter] = wu.wlFundingFound.split("{state}");
 
   return (
     <details className="cv-worklist" data-owner-only="worklist">
@@ -158,28 +206,71 @@ export default function WorklistPanel({ cv, locale, consentedRorIds, onJump }: W
           </p>
           <p className="muted">{wu.wlClosedHelp}</p>
           <ul>
-            {closed.map((r) => {
-              const policy = policyFinderUrl(r.venue);
+            {closed.map((r) => (
+              <li key={r.itemId}>
+                {jump(r.itemId, rowText(r))} {stateChip(r.state)}
+                {r.venue ? <span className="muted"> · {r.venue}</span> : null}
+                {finderLink(r.venue)}
+                {r.funderNames.length > 0 ? (
+                  <div className="muted cv-worklist-funders">
+                    {wu.wlFunders.replace("{names}", () => r.funderNames.join(", "))}
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {funding.length > 0 ? (
+        <section className="cv-worklist-group" data-worklist="funding">
+          <h4>{wu.wlFundingHeading}</h4>
+          <p className="muted">{wu.wlFundingHelp}</p>
+          <ul>
+            {funding.map((row) => {
+              const funder = row.funderName ?? wu.wlFundingUnnamedFunder;
+              const policy = funderOaPolicy(row.fundrefDoi);
+              const basis =
+                row.matchBasis === "award-number"
+                  ? fill(wu.wlFundingAward, { award: row.awardId ?? "", funder })
+                  : fill(wu.wlFundingFunderOnly, { funder });
               return (
-                <li key={r.itemId}>
-                  {jump(r.itemId, rowText(r))}{" "}
-                  <span className="cv-worklist-chip" data-state={r.state}>
-                    {wu[STATE_LABEL[r.state]]}
-                  </span>
-                  {r.venue ? <span className="muted"> · {r.venue}</span> : null}
-                  {policy ? (
-                    <>
-                      {" "}
-                      <a href={policy} target="_blank" rel="noopener noreferrer">
-                        {wu.wlPolicyLink}
-                      </a>
-                    </>
-                  ) : null}
-                  {r.funderNames.length > 0 ? (
-                    <div className="muted cv-worklist-funders">
-                      {wu.wlFunders.replace("{names}", () => r.funderNames.join(", "))}
-                    </div>
-                  ) : null}
+                <li key={`${row.workId}/${row.grantId}`}>
+                  {jump(
+                    row.workId,
+                    rowText({ itemId: row.workId, title: row.title, year: row.year }),
+                  )}{" "}
+                  <span className="cv-worklist-funding-basis">{basis}</span>
+                  <div className="muted cv-worklist-funding-policy">
+                    {policy ? (
+                      <>
+                        {policy.verifiedBy === "maintainer"
+                          ? fill(wu.wlFundingPolicy, {
+                              funder,
+                              date: policy.lastVerified,
+                              statements: policy.statements.join("; "),
+                            })
+                          : // Drafted from memory, never checked live: no date
+                            // exists, and the sentence says so rather than
+                            // "as recorded on".
+                            fill(wu.wlFundingPolicyPending, {
+                              funder,
+                              statements: policy.statements.join("; "),
+                            })}{" "}
+                        <a href={policy.policyUrl} target="_blank" rel="noopener noreferrer">
+                          {wu.wlFundingPolicyLink}
+                        </a>
+                      </>
+                    ) : (
+                      fill(wu.wlFundingNoPolicy, { funder })
+                    )}
+                  </div>
+                  <div className="muted cv-worklist-funding-found">
+                    {foundBefore}
+                    {stateChip(row.openAccess)}
+                    {foundAfter}
+                    {finderLink(row.venue)}
+                  </div>
                 </li>
               );
             })}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { safeParseSyncReport, type SyncReport } from "@/lib/cv/syncReport";
 import { NO_INSTITUTION_PAGE, type InstitutionPageState } from "@/lib/cv/institutionConsent";
+import type { FunderRow } from "@/lib/funders/join";
 import { updateDisplay } from "@/lib/canonical/curate";
 import { asLocale, t, type Locale } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
@@ -39,8 +40,16 @@ const DOCUMENT_EXPORT_FORMATS: ReadonlySet<ExportFormat> = new Set<ExportFormat>
   "markdown",
 ]);
 
+/** A stable empty crosswalk (a fresh `[]` per render would defeat the worklist's memo). */
+const NO_FUNDER_CROSSWALK: readonly FunderRow[] = [];
+
 interface CvWorkspaceProps {
   initialCv: CanonicalCv | null;
+  /** The OpenAlex funder crosswalk rows for the funders on the owner's works,
+   *  loaded server-side beside the CV (owner-only); the worklist's funder join
+   *  reads them. Static for the page's life — a re-sync warms the table, the
+   *  next open reads it. */
+  funderCrosswalk?: readonly FunderRow[];
   /** The persisted "what changed" report of the last sync (null = none yet). */
   initialSyncReport?: SyncReport | null;
   /** True when the server's first auto-sync threw — show a retryable error
@@ -114,6 +123,7 @@ function isPublishState(data: unknown): data is PublishStateResponse {
 
 export default function CvWorkspace({
   initialCv,
+  funderCrosswalk = NO_FUNDER_CROSSWALK,
   initialSyncReport = null,
   initialSyncFailed = false,
   autoSyncOnLoad = false,
@@ -630,6 +640,7 @@ export default function CvWorkspace({
                 consentedRorIds={
                   (publishState.institutionPage ?? NO_INSTITUTION_PAGE).consentedRorIds
                 }
+                funderCrosswalk={funderCrosswalk}
               />
             </section>
             <section className="cv-workspace-pane" data-pane="preview">
