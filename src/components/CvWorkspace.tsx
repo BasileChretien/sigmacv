@@ -627,6 +627,9 @@ export default function CvWorkspace({
                 onChange={update}
                 onClaimAdded={handleClaimAdded}
                 variant="regions"
+                consentedRorIds={
+                  (publishState.institutionPage ?? NO_INSTITUTION_PAGE).consentedRorIds
+                }
               />
             </section>
             <section className="cv-workspace-pane" data-pane="preview">

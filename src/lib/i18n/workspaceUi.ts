@@ -83,6 +83,38 @@ export interface WorkspaceUiStrings {
   tbPublish: string;
   tbPublished: string;
   tbShare: string;
+  // ── Owner worklist: affiliations & open access (editor-only) ─────────────
+  /** Collapsible panel title. */
+  wlTitle: string;
+  /** Owner-only framing: help, not a verdict; never on the CV or public page. */
+  wlIntro: string;
+  /** Group (a): current positions without a ROR record; {n} of {total}. */
+  wlPositionsHeading: string;
+  wlPositionsHelp: string;
+  /** Group (b): works whose printed affiliation lacks a consented id; {n} of {total}. */
+  wlGapsHeading: string;
+  wlGapsHelp: string;
+  /** Sub-group label: the ROR the works DO carry; {ror}, {n}. */
+  wlGapsGroup: string;
+  /** Works with EMPTY affiliation data (missing data, not a missing affiliation). */
+  wlNoAffiliationHeading: string;
+  wlNoAffiliationHelp: string;
+  /** Group (c): countable works with no open copy found; {n} of {total}. */
+  wlClosedHeading: string;
+  /** Help under the closed works — a deposit MAY be possible; never a verdict. */
+  wlClosedHelp: string;
+  /** Lead-in to the four-state counts; {total} = countable works. */
+  wlOaSummary: string;
+  wlStateOpenCc: string;
+  wlStateOpenOther: string;
+  wlStateClosed: string;
+  wlStateUnknown: string;
+  /** Open Policy Finder link text (journal policy by name). */
+  wlPolicyLink: string;
+  /** Funder NAMES printed on the work, as context only; {names}. */
+  wlFunders: string;
+  /** Title on a row's jump button. */
+  wlJump: string;
 }
 
 const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
@@ -142,6 +174,30 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publish",
     tbPublished: "Published",
     tbShare: "Share",
+    wlTitle: "Affiliations & open access",
+    wlIntro:
+      "For you only — help with the record, not a verdict. Nothing here appears on your CV or your public page.",
+    wlPositionsHeading: "Current positions without an institution record ({n} of {total})",
+    wlPositionsHelp:
+      "The ROR record was not resolved. Add the organisation on ORCID, or pick it in the editor, so the position links to its institution.",
+    wlGapsHeading: "Works whose printed affiliation lacks your institution ({n} of {total})",
+    wlGapsHelp:
+      "Dated during a position you are listed under, but the affiliation on the paper — as OpenAlex indexes it — names another organisation. Often the paper printed a different unit, or the affiliation was not captured; nothing here is wrong by itself.",
+    wlGapsGroup: "Affiliation on the paper: ROR {ror} — {n}",
+    wlNoAffiliationHeading: "Works with no affiliation data ({n} of {total})",
+    wlNoAffiliationHelp:
+      "OpenAlex recorded no institution on your authorship of these works. That is missing data, not a missing affiliation.",
+    wlClosedHeading: "Works with no open copy found ({n} of {total})",
+    wlClosedHelp:
+      "No open copy was found by OpenAlex; a repository deposit may be possible — check the journal's policy.",
+    wlOaSummary: "Open-access status of your {total} countable works:",
+    wlStateOpenCc: "Open, Creative Commons licence",
+    wlStateOpenOther: "Open, other or unknown licence",
+    wlStateClosed: "No open copy found",
+    wlStateUnknown: "Not determined",
+    wlPolicyLink: "Check the journal's policy (Open Policy Finder)",
+    wlFunders: "Funders named on the work: {names}",
+    wlJump: "Jump to this entry",
     hpInfoTitle: "For your eyes only",
     hpSelfRef:
       "About {pct} of the references in your papers point to your own work (n = {n}). Some panels look at this; nothing on your CV shows it.",
@@ -199,6 +255,29 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "发布",
     tbPublished: "已发布",
     tbShare: "分享",
+    wlTitle: "机构隶属与开放获取",
+    wlIntro:
+      "仅供您本人查看——这是对您记录的帮助，不是评判。这里的内容不会出现在您的简历或公开页面上。",
+    wlPositionsHeading: "没有机构记录的当前职位（{total} 个中的 {n} 个）",
+    wlPositionsHelp:
+      "未能解析 ROR 记录。请在 ORCID 上添加该组织，或在编辑器中选择它，使该职位关联到其机构。",
+    wlGapsHeading: "印刷署名机构中不含您所在机构的作品（{total} 篇中的 {n} 篇）",
+    wlGapsHelp:
+      "这些作品的日期落在您被列入的职位期间，但论文上的署名机构（按 OpenAlex 的索引）是另一个组织。通常是论文印了不同的单位，或署名机构未被采集；这本身并不是错误。",
+    wlGapsGroup: "论文上的署名机构：ROR {ror} — {n}",
+    wlNoAffiliationHeading: "没有署名机构数据的作品（{total} 篇中的 {n} 篇）",
+    wlNoAffiliationHelp:
+      "OpenAlex 没有为您在这些作品中的署名记录任何机构。这是数据缺失，不是署名机构缺失。",
+    wlClosedHeading: "未找到开放副本的作品（{total} 篇中的 {n} 篇）",
+    wlClosedHelp: "OpenAlex 未找到开放副本；也许可以在知识库中存缴——请查看该期刊的政策。",
+    wlOaSummary: "您 {total} 篇计入统计的作品的开放获取状态：",
+    wlStateOpenCc: "开放，知识共享（CC）许可",
+    wlStateOpenOther: "开放，其他或未知许可",
+    wlStateClosed: "未找到开放副本",
+    wlStateUnknown: "未确定",
+    wlPolicyLink: "查看期刊政策（Open Policy Finder）",
+    wlFunders: "作品上列出的资助方：{names}",
+    wlJump: "跳转到此条目",
     hpInfoTitle: "仅供您本人查看",
     hpSelfRef:
       "您论文中约 {pct} 的参考文献指向您自己的作品（n = {n}）。部分评审会关注这一点；您的简历中不会显示它。",
@@ -259,6 +338,30 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publicar",
     tbPublished: "Publicado",
     tbShare: "Compartir",
+    wlTitle: "Afiliaciones y acceso abierto",
+    wlIntro:
+      "Solo para ti: una ayuda para tu registro, no un veredicto. Nada de esto aparece en tu CV ni en tu página pública.",
+    wlPositionsHeading: "Puestos actuales sin registro de institución ({n} de {total})",
+    wlPositionsHelp:
+      "No se resolvió el registro ROR. Añade la organización en ORCID, o elígela en el editor, para que el puesto quede enlazado con su institución.",
+    wlGapsHeading: "Trabajos cuya afiliación impresa no incluye tu institución ({n} de {total})",
+    wlGapsHelp:
+      "Fechados durante un puesto bajo el que apareces listado, pero la afiliación en el artículo, tal como la indexa OpenAlex, nombra otra organización. A menudo el artículo imprimió otra unidad, o la afiliación no se recogió; nada de esto es un error por sí mismo.",
+    wlGapsGroup: "Afiliación en el artículo: ROR {ror} — {n}",
+    wlNoAffiliationHeading: "Trabajos sin datos de afiliación ({n} de {total})",
+    wlNoAffiliationHelp:
+      "OpenAlex no registró ninguna institución en tu autoría de estos trabajos. Es un dato ausente, no una afiliación ausente.",
+    wlClosedHeading: "Trabajos sin copia abierta encontrada ({n} de {total})",
+    wlClosedHelp:
+      "OpenAlex no encontró ninguna copia abierta; quizá sea posible un depósito en repositorio: consulta la política de la revista.",
+    wlOaSummary: "Estado de acceso abierto de tus {total} trabajos contabilizados:",
+    wlStateOpenCc: "Abierto, licencia Creative Commons",
+    wlStateOpenOther: "Abierto, otra licencia o licencia desconocida",
+    wlStateClosed: "No se encontró copia abierta",
+    wlStateUnknown: "Sin determinar",
+    wlPolicyLink: "Consultar la política de la revista (Open Policy Finder)",
+    wlFunders: "Financiadores nombrados en el trabajo: {names}",
+    wlJump: "Ir a esta entrada",
     hpInfoTitle: "Solo para ti",
     hpSelfRef:
       "Alrededor del {pct} de las referencias de tus artículos remiten a tu propio trabajo (n = {n}). Algunos comités se fijan en esto; nada en tu CV lo muestra.",
@@ -320,6 +423,31 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publier",
     tbPublished: "Publié",
     tbShare: "Partager",
+    wlTitle: "Affiliations et accès ouvert",
+    wlIntro:
+      "Pour vous seulement — une aide pour votre dossier, pas un verdict. Rien de ceci n’apparaît sur votre CV ni sur votre page publique.",
+    wlPositionsHeading: "Postes actuels sans fiche d’institution ({n} sur {total})",
+    wlPositionsHelp:
+      "La fiche ROR n’a pas été résolue. Ajoutez l’organisation sur ORCID, ou choisissez-la dans l’éditeur, pour que le poste soit relié à son institution.",
+    wlGapsHeading:
+      "Travaux dont l’affiliation imprimée ne mentionne pas votre institution ({n} sur {total})",
+    wlGapsHelp:
+      "Datés pendant un poste sous lequel vous êtes listé·e, mais l’affiliation sur l’article — telle qu’OpenAlex l’indexe — nomme une autre organisation. Souvent l’article a imprimé une autre unité, ou l’affiliation n’a pas été relevée ; rien ici n’est faux en soi.",
+    wlGapsGroup: "Affiliation sur l’article : ROR {ror} — {n}",
+    wlNoAffiliationHeading: "Travaux sans donnée d’affiliation ({n} sur {total})",
+    wlNoAffiliationHelp:
+      "OpenAlex n’a relevé aucune institution sur votre signature de ces travaux. C’est une donnée manquante, pas une affiliation manquante.",
+    wlClosedHeading: "Travaux sans copie ouverte trouvée ({n} sur {total})",
+    wlClosedHelp:
+      "OpenAlex n’a trouvé aucune copie ouverte ; un dépôt en archive ouverte est peut-être possible — consultez la politique de la revue.",
+    wlOaSummary: "Statut d’accès ouvert de vos {total} travaux comptabilisés :",
+    wlStateOpenCc: "Ouvert, licence Creative Commons",
+    wlStateOpenOther: "Ouvert, autre licence ou licence inconnue",
+    wlStateClosed: "Aucune copie ouverte trouvée",
+    wlStateUnknown: "Non déterminé",
+    wlPolicyLink: "Consulter la politique de la revue (Open Policy Finder)",
+    wlFunders: "Financeurs nommés sur le travail : {names}",
+    wlJump: "Aller à cette entrée",
     hpInfoTitle: "Pour vous seulement",
     hpSelfRef:
       "Environ {pct} des références de vos articles renvoient à vos propres travaux (n = {n}). Certains comités y prêtent attention ; rien sur votre CV ne l'affiche.",
@@ -381,6 +509,31 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Veröffentlichen",
     tbPublished: "Veröffentlicht",
     tbShare: "Teilen",
+    wlTitle: "Affiliationen & Open Access",
+    wlIntro:
+      "Nur für Sie — eine Hilfe für Ihren Datensatz, kein Urteil. Nichts davon erscheint in Ihrem Lebenslauf oder auf Ihrer öffentlichen Seite.",
+    wlPositionsHeading: "Aktuelle Positionen ohne Institutionsdatensatz ({n} von {total})",
+    wlPositionsHelp:
+      "Der ROR-Datensatz wurde nicht aufgelöst. Ergänzen Sie die Organisation auf ORCID oder wählen Sie sie im Editor, damit die Position mit ihrer Institution verknüpft ist.",
+    wlGapsHeading:
+      "Arbeiten, deren gedruckte Affiliation Ihre Institution nicht nennt ({n} von {total})",
+    wlGapsHelp:
+      "Datiert während einer Position, unter der Sie gelistet sind, aber die Affiliation auf der Arbeit — wie OpenAlex sie indexiert — nennt eine andere Organisation. Oft stand auf der Arbeit eine andere Einheit, oder die Affiliation wurde nicht erfasst; nichts hiervon ist für sich genommen falsch.",
+    wlGapsGroup: "Affiliation auf der Arbeit: ROR {ror} — {n}",
+    wlNoAffiliationHeading: "Arbeiten ohne Affiliationsdaten ({n} von {total})",
+    wlNoAffiliationHelp:
+      "OpenAlex hat zu Ihrer Autorschaft dieser Arbeiten keine Institution erfasst. Das sind fehlende Daten, keine fehlende Affiliation.",
+    wlClosedHeading: "Arbeiten ohne gefundene offene Kopie ({n} von {total})",
+    wlClosedHelp:
+      "OpenAlex hat keine offene Kopie gefunden; eine Ablage in einem Repositorium ist womöglich möglich — prüfen Sie die Richtlinie der Zeitschrift.",
+    wlOaSummary: "Open-Access-Status Ihrer {total} zählbaren Arbeiten:",
+    wlStateOpenCc: "Offen, Creative-Commons-Lizenz",
+    wlStateOpenOther: "Offen, andere oder unbekannte Lizenz",
+    wlStateClosed: "Keine offene Kopie gefunden",
+    wlStateUnknown: "Nicht bestimmt",
+    wlPolicyLink: "Richtlinie der Zeitschrift prüfen (Open Policy Finder)",
+    wlFunders: "Auf der Arbeit genannte Förderer: {names}",
+    wlJump: "Zu diesem Eintrag springen",
     hpInfoTitle: "Nur für Sie",
     hpSelfRef:
       "Etwa {pct} der Literaturangaben in Ihren Arbeiten verweisen auf Ihre eigenen Arbeiten (n = {n}). Manche Gutachtergremien achten darauf; in Ihrem Lebenslauf erscheint es nirgends.",
@@ -441,6 +594,30 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "公開",
     tbPublished: "公開中",
     tbShare: "共有",
+    wlTitle: "所属とオープンアクセス",
+    wlIntro:
+      "あなただけに表示 — 記録を整えるための手助けであり、評価ではありません。ここの内容は CV にも公開ページにも表示されません。",
+    wlPositionsHeading: "機関レコードのない現在の職位（{total} 件中 {n} 件）",
+    wlPositionsHelp:
+      "ROR レコードを解決できませんでした。ORCID に組織を追加するか、エディタで選択すると、職位がその機関に結び付きます。",
+    wlGapsHeading: "掲載された所属にあなたの機関が含まれない業績（{total} 件中 {n} 件）",
+    wlGapsHelp:
+      "あなたが掲載されている職位の期間に発表されていますが、論文上の所属（OpenAlex の索引による）は別の組織です。論文に別の部局が印刷されていたり、所属が取り込まれていなかったりすることがよくあります。それ自体は誤りではありません。",
+    wlGapsGroup: "論文上の所属：ROR {ror} — {n} 件",
+    wlNoAffiliationHeading: "所属データのない業績（{total} 件中 {n} 件）",
+    wlNoAffiliationHelp:
+      "OpenAlex はこれらの業績におけるあなたの著者情報に機関を記録していません。これはデータの欠落であり、所属の欠落ではありません。",
+    wlClosedHeading: "オープンな複製が見つからなかった業績（{total} 件中 {n} 件）",
+    wlClosedHelp:
+      "OpenAlex はオープンな複製を見つけられませんでした。リポジトリへの登録が可能かもしれません — 学術誌のポリシーを確認してください。",
+    wlOaSummary: "集計対象の業績 {total} 件のオープンアクセス状況：",
+    wlStateOpenCc: "オープン、クリエイティブ・コモンズ・ライセンス",
+    wlStateOpenOther: "オープン、その他または不明のライセンス",
+    wlStateClosed: "オープンな複製は見つかりませんでした",
+    wlStateUnknown: "未判定",
+    wlPolicyLink: "学術誌のポリシーを確認（Open Policy Finder）",
+    wlFunders: "業績に記載された助成機関：{names}",
+    wlJump: "この項目へ移動",
     hpInfoTitle: "あなただけに表示",
     hpSelfRef:
       "あなたの論文の参考文献のうち約 {pct} が自身の業績を引用しています（n = {n}）。審査委員会がこれを見ることがありますが、CV には一切表示されません。",
@@ -502,6 +679,31 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publicar",
     tbPublished: "Publicado",
     tbShare: "Compartilhar",
+    wlTitle: "Afiliações e acesso aberto",
+    wlIntro:
+      "Somente para você: uma ajuda para o seu registro, não um veredito. Nada disto aparece no seu CV nem na sua página pública.",
+    wlPositionsHeading: "Cargos atuais sem registro de instituição ({n} de {total})",
+    wlPositionsHelp:
+      "O registro ROR não foi resolvido. Adicione a organização no ORCID, ou escolha-a no editor, para que o cargo fique vinculado à sua instituição.",
+    wlGapsHeading:
+      "Trabalhos cuja afiliação impressa não inclui a sua instituição ({n} de {total})",
+    wlGapsHelp:
+      "Datados durante um cargo sob o qual você está listado, mas a afiliação no artigo, tal como o OpenAlex a indexa, nomeia outra organização. Muitas vezes o artigo imprimiu outra unidade, ou a afiliação não foi captada; nada aqui é um erro por si só.",
+    wlGapsGroup: "Afiliação no artigo: ROR {ror} — {n}",
+    wlNoAffiliationHeading: "Trabalhos sem dados de afiliação ({n} de {total})",
+    wlNoAffiliationHelp:
+      "O OpenAlex não registrou nenhuma instituição na sua autoria destes trabalhos. É um dado ausente, não uma afiliação ausente.",
+    wlClosedHeading: "Trabalhos sem cópia aberta encontrada ({n} de {total})",
+    wlClosedHelp:
+      "O OpenAlex não encontrou nenhuma cópia aberta; um depósito em repositório pode ser possível: consulte a política da revista.",
+    wlOaSummary: "Situação de acesso aberto dos seus {total} trabalhos contabilizados:",
+    wlStateOpenCc: "Aberto, licença Creative Commons",
+    wlStateOpenOther: "Aberto, outra licença ou licença desconhecida",
+    wlStateClosed: "Nenhuma cópia aberta encontrada",
+    wlStateUnknown: "Não determinado",
+    wlPolicyLink: "Consultar a política da revista (Open Policy Finder)",
+    wlFunders: "Financiadores nomeados no trabalho: {names}",
+    wlJump: "Ir para esta entrada",
     hpInfoTitle: "Somente para você",
     hpSelfRef:
       "Cerca de {pct} das referências dos seus artigos apontam para o seu próprio trabalho (n = {n}). Alguns comitês observam isso; nada no seu CV o mostra.",
@@ -563,6 +765,31 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Pubblica",
     tbPublished: "Pubblicato",
     tbShare: "Condividi",
+    wlTitle: "Affiliazioni e accesso aperto",
+    wlIntro:
+      "Solo per te: un aiuto per il tuo profilo, non un verdetto. Nulla di questo compare nel tuo CV né nella tua pagina pubblica.",
+    wlPositionsHeading: "Posizioni attuali senza scheda dell’istituzione ({n} di {total})",
+    wlPositionsHelp:
+      "La scheda ROR non è stata risolta. Aggiungi l’organizzazione su ORCID, o sceglila nell’editor, così la posizione è collegata alla sua istituzione.",
+    wlGapsHeading:
+      "Lavori la cui affiliazione stampata non riporta la tua istituzione ({n} di {total})",
+    wlGapsHelp:
+      "Datati durante una posizione sotto cui sei elencato, ma l’affiliazione sull’articolo, come la indicizza OpenAlex, nomina un’altra organizzazione. Spesso l’articolo riportava un’altra unità, o l’affiliazione non è stata rilevata; nulla qui è sbagliato di per sé.",
+    wlGapsGroup: "Affiliazione sull’articolo: ROR {ror} — {n}",
+    wlNoAffiliationHeading: "Lavori senza dati di affiliazione ({n} di {total})",
+    wlNoAffiliationHelp:
+      "OpenAlex non ha registrato alcuna istituzione sulla tua paternità di questi lavori. È un dato mancante, non un’affiliazione mancante.",
+    wlClosedHeading: "Lavori senza copia aperta trovata ({n} di {total})",
+    wlClosedHelp:
+      "OpenAlex non ha trovato alcuna copia aperta; un deposito in un repository potrebbe essere possibile: verifica la politica della rivista.",
+    wlOaSummary: "Stato di accesso aperto dei tuoi {total} lavori conteggiati:",
+    wlStateOpenCc: "Aperto, licenza Creative Commons",
+    wlStateOpenOther: "Aperto, altra licenza o licenza sconosciuta",
+    wlStateClosed: "Nessuna copia aperta trovata",
+    wlStateUnknown: "Non determinato",
+    wlPolicyLink: "Verifica la politica della rivista (Open Policy Finder)",
+    wlFunders: "Finanziatori indicati sul lavoro: {names}",
+    wlJump: "Vai a questa voce",
     hpInfoTitle: "Solo per te",
     hpSelfRef:
       "Circa il {pct} dei riferimenti nei tuoi articoli rimanda ai tuoi stessi lavori (n = {n}). Alcune commissioni lo guardano; nulla nel tuo CV lo mostra.",
@@ -623,6 +850,30 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "게시",
     tbPublished: "게시됨",
     tbShare: "공유",
+    wlTitle: "소속 및 오픈 액세스",
+    wlIntro:
+      "본인에게만 표시 — 기록을 정리하는 데 도움을 주는 것이지 판정이 아닙니다. 여기의 내용은 CV나 공개 페이지에 나타나지 않습니다.",
+    wlPositionsHeading: "기관 레코드가 없는 현재 직위 ({total}개 중 {n}개)",
+    wlPositionsHelp:
+      "ROR 레코드를 찾지 못했습니다. ORCID에 기관을 추가하거나 편집기에서 선택하면 직위가 해당 기관과 연결됩니다.",
+    wlGapsHeading: "게재된 소속에 내 기관이 없는 연구물 ({total}건 중 {n}건)",
+    wlGapsHelp:
+      "내가 등재된 직위 기간에 발표되었지만, 논문에 인쇄된 소속(OpenAlex 색인 기준)은 다른 기관입니다. 논문에 다른 부서가 인쇄되었거나 소속이 수집되지 않은 경우가 많습니다. 이것 자체는 오류가 아닙니다.",
+    wlGapsGroup: "논문상의 소속: ROR {ror} — {n}건",
+    wlNoAffiliationHeading: "소속 데이터가 없는 연구물 ({total}건 중 {n}건)",
+    wlNoAffiliationHelp:
+      "OpenAlex가 이 연구물의 내 저자 정보에 기관을 기록하지 않았습니다. 데이터가 없는 것이지 소속이 없는 것이 아닙니다.",
+    wlClosedHeading: "공개 사본을 찾지 못한 연구물 ({total}건 중 {n}건)",
+    wlClosedHelp:
+      "OpenAlex가 공개 사본을 찾지 못했습니다. 리포지터리 기탁이 가능할 수 있습니다 — 학술지의 정책을 확인하세요.",
+    wlOaSummary: "집계 대상 연구물 {total}건의 오픈 액세스 상태:",
+    wlStateOpenCc: "공개, 크리에이티브 커먼즈 라이선스",
+    wlStateOpenOther: "공개, 기타 또는 알 수 없는 라이선스",
+    wlStateClosed: "공개 사본을 찾지 못함",
+    wlStateUnknown: "판정되지 않음",
+    wlPolicyLink: "학술지 정책 확인 (Open Policy Finder)",
+    wlFunders: "연구물에 명시된 지원 기관: {names}",
+    wlJump: "이 항목으로 이동",
     hpInfoTitle: "본인에게만 표시",
     hpSelfRef:
       "논문의 참고문헌 중 약 {pct}가 본인의 연구를 가리킵니다 (n = {n}). 일부 심사 위원회는 이를 살펴보지만 CV에는 전혀 표시되지 않습니다.",
@@ -685,6 +936,31 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Опубликовать",
     tbPublished: "Опубликовано",
     tbShare: "Поделиться",
+    wlTitle: "Аффилиации и открытый доступ",
+    wlIntro:
+      "Только для вас — помощь с вашей записью, а не вердикт. Ничего из этого не появляется в вашем CV или на публичной странице.",
+    wlPositionsHeading: "Текущие должности без записи об организации ({n} из {total})",
+    wlPositionsHelp:
+      "Запись ROR не была определена. Добавьте организацию в ORCID или выберите её в редакторе, чтобы должность была связана со своей организацией.",
+    wlGapsHeading:
+      "Работы, в напечатанной аффилиации которых нет вашей организации ({n} из {total})",
+    wlGapsHelp:
+      "Датированы периодом должности, под которой вы указаны, но аффилиация в статье — как её индексирует OpenAlex — называет другую организацию. Часто в статье напечатано другое подразделение или аффилиация не была собрана; само по себе это не ошибка.",
+    wlGapsGroup: "Аффилиация в статье: ROR {ror} — {n}",
+    wlNoAffiliationHeading: "Работы без данных об аффилиации ({n} из {total})",
+    wlNoAffiliationHelp:
+      "OpenAlex не зафиксировал организацию в вашем авторстве этих работ. Это отсутствующие данные, а не отсутствующая аффилиация.",
+    wlClosedHeading: "Работы, для которых не найдена открытая копия ({n} из {total})",
+    wlClosedHelp:
+      "OpenAlex не нашёл открытой копии; возможно, доступно размещение в репозитории — проверьте политику журнала.",
+    wlOaSummary: "Статус открытого доступа ваших {total} учитываемых работ:",
+    wlStateOpenCc: "Открыто, лицензия Creative Commons",
+    wlStateOpenOther: "Открыто, другая или неизвестная лицензия",
+    wlStateClosed: "Открытая копия не найдена",
+    wlStateUnknown: "Не определено",
+    wlPolicyLink: "Проверить политику журнала (Open Policy Finder)",
+    wlFunders: "Спонсоры, указанные в работе: {names}",
+    wlJump: "Перейти к этой записи",
     hpInfoTitle: "Только для вас",
     hpSelfRef:
       "Около {pct} ссылок в ваших статьях указывают на ваши собственные работы (n = {n}). Некоторые комиссии обращают на это внимание; в вашем резюме это нигде не отображается.",
