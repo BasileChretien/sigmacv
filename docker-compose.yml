@@ -247,7 +247,7 @@ services:
   # Metabase BI. Connect it (in its UI) to the SigmaCV DB using the READ-ONLY
   # role `metabase_ro` (host: postgres, db: sigmacv) — see docs/ANALYTICS.md.
   metabase:
-    image: metabase/metabase:v0.63.16.1
+    image: metabase/metabase:v0.63.16.9
     restart: unless-stopped
     profiles: ["analytics"]
     depends_on:
