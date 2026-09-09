@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { objectWithOrcid } from "@/app/object/actions";
+import { getEnv } from "@/lib/env";
 import { asLocale } from "@/lib/i18n";
 import { landingStrings } from "@/lib/i18n/landing";
 import { objectionStrings } from "@/lib/i18n/objection";
@@ -18,6 +19,9 @@ import SiteHeader from "./SiteHeader";
 export default function ObjectionPage({ locale }: { locale: string }) {
   const loc = asLocale(locale);
   const s = objectionStrings(loc);
+  // Nothing could be recorded without the key: say so here rather than after a
+  // pointless ORCID round trip.
+  const available = Boolean(getEnv().PREVIEW_SUPPRESSION_KEY);
   return (
     <div className="site-shell" lang={loc}>
       <SiteHeader locale={loc} />
@@ -32,16 +36,23 @@ export default function ObjectionPage({ locale }: { locale: string }) {
           <li>{s.what3}</li>
         </ul>
 
-        <form action={objectWithOrcid} className="objection-form">
-          <SignInButton
-            method="orcid"
-            className="hp2-btn hp2-btn-primary"
-            pendingLabel={landingStrings(loc).signingIn}
-          >
-            {s.cta}
-          </SignInButton>
-          <p className="muted">{s.ctaNote}</p>
-        </form>
+        {available ? (
+          <form action={objectWithOrcid} className="objection-form">
+            <SignInButton
+              method="orcid-object"
+              className="hp2-btn hp2-btn-primary"
+              pendingLabel={landingStrings(loc).signingIn}
+            >
+              {s.cta}
+            </SignInButton>
+            <p className="muted">{s.ctaNote}</p>
+          </form>
+        ) : (
+          <div className="objection-unavailable">
+            <h2>{s.doneUnavailableHeading}</h2>
+            <p>{s.doneUnavailableBody}</p>
+          </div>
+        )}
 
         <p className="muted">
           {s.emailFallback}{" "}

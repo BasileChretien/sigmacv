@@ -20,7 +20,9 @@ import { trackEvent } from "@/lib/analytics/track";
  * No personal data is sent — only the auth method (orcid / google / email).
  */
 interface SignInButtonProps {
-  method: "orcid" | "google" | "email";
+  /** "orcid-object" is the /object route's ORCID verification — tagged apart so the
+   *  sign-in funnel (M4) is not inflated by objections. */
+  method: "orcid" | "google" | "email" | "orcid-object";
   className: string;
   /** Localized busy label shown while the sign-in is redirecting. */
   pendingLabel: string;

@@ -67,12 +67,6 @@ export async function previewCvFromOrcid(
   const orcid = normalizeOrcidForPreview(raw);
   if (!orcid) return { status: "invalid" };
 
-  // GDPR Art. 21 objection: an iD on the suppression list is answered exactly
-  // like an iD with no public record — no build, no cache write, no distinct
-  // status a visitor could read as "this person objected". Checked BEFORE the
-  // cache so an objection takes effect on the next request, not after the TTL.
-  if (await isOrcidPreviewSuppressed(orcid)) return { status: "empty", orcid };
-
   const cached = getCachedOrcidPreview(orcid);
   if (cached)
     return {
@@ -83,6 +77,13 @@ export async function previewCvFromOrcid(
       cv: cached.cv,
       sourceCounts: cached.sourceCounts,
     };
+  // GDPR Art. 21 objection: an iD on the suppression list is answered exactly
+  // like an iD with no public record — no build, no cache write, no distinct
+  // status a visitor could read as "this person objected". Checked after the
+  // positive cache (a hit costs no DB round trip; recording an objection drops
+  // the cached preview, so it still takes effect on the next request) and
+  // before any source is queried.
+  if (await isOrcidPreviewSuppressed(orcid)) return { status: "empty", orcid };
   if (isKnownEmptyPreview(orcid)) return { status: "empty", orcid };
 
   return dedupeOrcidPreview<PreviewResult>(orcid, async () => {

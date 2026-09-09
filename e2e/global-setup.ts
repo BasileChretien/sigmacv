@@ -23,6 +23,9 @@ export default async function globalSetup() {
   });
 
   // Clean slate (respect FK order).
+  // Objections are keyed by HMAC(TEST_ORCID) and independent of User (by
+  // design), so a spec that failed mid-toggle would otherwise poison the next.
+  await db.previewSuppression.deleteMany();
   await db.researchEvent.deleteMany();
   await db.cv.deleteMany();
   await db.session.deleteMany();
