@@ -413,3 +413,14 @@ model ForrtReplication {
   @@index([originalDoi])
   @@index([replicationDoi])
 }
+
+// GDPR Art. 21 objections to the no-login ORCID preview: one row per objecting
+// iD, keyed by HMAC-SHA256(PREVIEW_SUPPRESSION_KEY, iD) — never the plaintext iD.
+// Independent of User on purpose: a non-user objects through /object (ORCID-
+// verified, no account created), and the row survives an account's deletion.
+// `source` is how the row was made: "orcid-oauth" (/object) or "account".
+model PreviewSuppression {
+  orcidHmac String   @id
+  createdAt DateTime @default(now())
+  source    String
+}

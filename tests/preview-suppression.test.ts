@@ -1,4 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// The module also hosts the DB-backed functions (which import the Prisma client
+// and read the env); the pure helpers under test need neither.
+vi.mock("@/lib/db", () => ({ prisma: {} }));
+Object.assign(process.env, {
+  DATABASE_URL: "postgresql://u:p@localhost:5432/db",
+  AUTH_SECRET: "x".repeat(20),
+  ORCID_CLIENT_ID: "APP-1",
+  ORCID_CLIENT_SECRET: "secret",
+  OPENALEX_MAILTO: "ci@example.org",
+});
 import {
   isPreviewSuppressed,
   parseSuppressionList,

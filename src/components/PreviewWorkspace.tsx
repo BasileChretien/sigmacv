@@ -223,7 +223,7 @@ export default function PreviewWorkspace({
           ) : null}
         </p>
         <p className="preview-app-banner-promise muted">
-          {s.promise} <a href="/privacy#preview">{s.objectLink}</a>
+          {s.promise} <a href="/object">{s.objectLink}</a>
         </p>
       </aside>
 

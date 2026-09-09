@@ -61,7 +61,7 @@ describe("PreviewWorkspace (third-party framing)", () => {
     expect(banner.textContent).not.toContain(s.bannerPublished);
     expect(screen.queryByTestId("preview-published-link")).toBeNull();
     const object = screen.getByText(s.objectLink) as HTMLAnchorElement;
-    expect(object.getAttribute("href")).toBe("/privacy#preview");
+    expect(object.getAttribute("href")).toBe("/object");
   });
 
   it("points at the researcher's published page when one is indexable", () => {

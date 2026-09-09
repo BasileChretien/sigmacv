@@ -1,4 +1,5 @@
 import NextAuth from "next-auth";
+import { handleObjectionSignIn } from "@/lib/auth/objection";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/db";
 import { authConfig } from "@/auth.config";
@@ -58,6 +59,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     ...authConfig.callbacks,
+    // The objection provider records the objection and ABORTS the sign-in with a
+    // redirect (no user row, no session); every other provider passes through.
+    signIn({ account }) {
+      return handleObjectionSignIn(
+        account
+          ? { provider: account.provider, providerAccountId: account.providerAccountId }
+          : null,
+      );
+    },
     session({ session, user }) {
       // With the database strategy, `user` is the full DB row including our
       // custom columns (orcid, researchConsent).

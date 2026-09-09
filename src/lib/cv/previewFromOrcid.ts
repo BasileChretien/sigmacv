@@ -4,8 +4,7 @@ import { applyOwnerCorrections } from "@/lib/cv/ownerCorrections";
 import { fetchOwnerCorrections } from "@/lib/cv/fetchOwnerCorrections";
 import { renderCvHtml } from "@/lib/render/html";
 import { validOrcidOrNull } from "@/lib/orcid/validate";
-import { getEnv } from "@/lib/env";
-import { isPreviewSuppressed, parseSuppressionList } from "@/lib/cv/previewSuppression";
+import { isOrcidPreviewSuppressed } from "@/lib/cv/previewSuppression";
 import { logger } from "@/lib/log";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import {
@@ -55,7 +54,7 @@ export function normalizeOrcidForPreview(raw: string): string | null {
  * interactive editor loads) plus a first-paint HTML render. Cached per normalized
  * ORCID and single-flighted; ORCIDs with no public record are negatively cached so
  * a flood of unknown ids can't re-fetch every source. An iD on the objection list
- * ({@link isPreviewSuppressed}) returns the same `empty` result as an unknown iD.
+ * ({@link isOrcidPreviewSuppressed}) returns the same `empty` result as an unknown iD.
  */
 export async function previewCvFromOrcid(
   raw: string,
@@ -68,22 +67,6 @@ export async function previewCvFromOrcid(
   const orcid = normalizeOrcidForPreview(raw);
   if (!orcid) return { status: "invalid" };
 
-  // GDPR Art. 21 objection: an iD on the suppression list is answered exactly
-  // like an iD with no public record — no build, no cache write, no distinct
-  // status a visitor could read as "this person objected". Checked BEFORE the
-  // cache so an objection takes effect on the next request, not after the TTL.
-  const env = getEnv();
-  if (
-    isPreviewSuppressed(
-      orcid,
-      parseSuppressionList(env.PREVIEW_SUPPRESSED_ORCID_HMACS),
-      // Guaranteed present by env.ts whenever the list is non-empty; with an
-      // empty list isPreviewSuppressed returns before hashing anything.
-      env.PREVIEW_SUPPRESSION_KEY ?? "",
-    )
-  )
-    return { status: "empty", orcid };
-
   const cached = getCachedOrcidPreview(orcid);
   if (cached)
     return {
@@ -94,6 +77,13 @@ export async function previewCvFromOrcid(
       cv: cached.cv,
       sourceCounts: cached.sourceCounts,
     };
+  // GDPR Art. 21 objection: an iD on the suppression list is answered exactly
+  // like an iD with no public record — no build, no cache write, no distinct
+  // status a visitor could read as "this person objected". Checked after the
+  // positive cache (a hit costs no DB round trip; recording an objection drops
+  // the cached preview, so it still takes effect on the next request) and
+  // before any source is queried.
+  if (await isOrcidPreviewSuppressed(orcid)) return { status: "empty", orcid };
   if (isKnownEmptyPreview(orcid)) return { status: "empty", orcid };
 
   return dedupeOrcidPreview<PreviewResult>(orcid, async () => {

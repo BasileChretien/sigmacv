@@ -95,6 +95,11 @@ export type Env = z.infer<typeof EnvSchema>;
 
 let cached: Env | null = null;
 
+/** Test hook: forget the parsed env so a test can change process.env and re-parse. */
+export function __resetEnvForTests(): void {
+  cached = null;
+}
+
 export function getEnv(): Env {
   if (cached) return cached;
   // Treat empty-string env values as unset (e.g. `RESYNC_SECRET=""` in .env),
