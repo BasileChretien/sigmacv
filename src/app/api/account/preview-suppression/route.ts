@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
-import {
-  isOrcidPreviewSuppressed,
-  setOrcidPreviewSuppressed,
-} from "@/lib/cv/previewSuppression";
+import { isOrcidPreviewSuppressed, setOrcidPreviewSuppressed } from "@/lib/cv/previewSuppression";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { isSameOrigin } from "@/lib/security/origin";
@@ -32,7 +29,10 @@ export async function GET() {
   const orcid = session.user.orcid;
   if (!orcid) return NextResponse.json({ suppressed: false, applicable: false });
   const suppressed = await isOrcidPreviewSuppressed(orcid);
-  return NextResponse.json({ suppressed, applicable: true }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json(
+    { suppressed, applicable: true },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }
 
 export async function POST(req: Request) {

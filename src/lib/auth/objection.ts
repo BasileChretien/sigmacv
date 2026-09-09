@@ -35,10 +35,12 @@ export function objectionDonePath(outcome: ObjectionOutcome): string {
  * unchanged; for the objection provider it returns the redirect that aborts
  * the sign-in, after recording (or failing to record) the objection.
  */
-export async function handleObjectionSignIn(account: {
-  provider?: string;
-  providerAccountId?: string;
-} | null): Promise<true | string> {
+export async function handleObjectionSignIn(
+  account: {
+    provider?: string;
+    providerAccountId?: string;
+  } | null,
+): Promise<true | string> {
   if (account?.provider !== OBJECTION_PROVIDER_ID) return true;
   const orcid = validOrcidOrNull(account.providerAccountId ?? "");
   if (!orcid) return objectionDonePath("failed");

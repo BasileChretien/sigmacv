@@ -80,7 +80,8 @@ const OBJECTION_I18N: Record<Locale, ObjectionStrings> = {
       "这不会影响您自己发布的页面：如果您日后登录并发布，该页面由您自行管理。已登录用户可以在账户设置中重新开启自动预览。",
     cta: "核实我的 ORCID iD 并隐藏我的预览",
     ctaNote: "您将被转到 orcid.org 登录，随后直接返回此处。除非核实成功，否则不会存储任何内容。",
-    emailFallback: "更愿意使用电子邮件？请将您的 ORCID iD 发送至 privacy@sigmacv.org，我们将在 30 天内处理您的反对。",
+    emailFallback:
+      "更愿意使用电子邮件？请将您的 ORCID iD 发送至 privacy@sigmacv.org，我们将在 30 天内处理您的反对。",
     doneSuppressedHeading: "您的预览已隐藏",
     doneSuppressedBody:
       "从现在起，您 ORCID iD 的自动预览将按“不存在公开记录”处理。SigmaCV 未创建任何账户。若要重新显示，请登录并在账户设置中重新开启，或发送邮件至 privacy@sigmacv.org。",
@@ -92,7 +93,8 @@ const OBJECTION_I18N: Record<Locale, ObjectionStrings> = {
       "此 SigmaCV 实例尚未配置反对密钥。请将您的 ORCID iD 发送至 privacy@sigmacv.org，我们将手动排除。",
     tryAgain: "重试",
     accountToggle: "不显示我记录的自动预览",
-    accountToggleHint: "隐藏您 ORCID iD 的免登录预览（按“不存在公开记录”处理）。您已发布的页面（如有）不受影响。",
+    accountToggleHint:
+      "隐藏您 ORCID iD 的免登录预览（按“不存在公开记录”处理）。您已发布的页面（如有）不受影响。",
     accountToggleError: "无法更新预览设置。请重试。",
     back: "返回 SigmaCV",
   },
@@ -192,7 +194,8 @@ const OBJECTION_I18N: Record<Locale, ObjectionStrings> = {
     accountToggle: "Keine automatische Vorschau meines Nachweises anzeigen",
     accountToggleHint:
       "Verbirgt die Vorschau ohne Anmeldung für Ihre ORCID iD (beantwortet, als gäbe es keinen öffentlichen Nachweis). Eine von Ihnen veröffentlichte Seite ist nicht betroffen.",
-    accountToggleError: "Die Einstellung konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
+    accountToggleError:
+      "Die Einstellung konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
     back: "Zurück zu SigmaCV",
   },
   "ja-JP": {
@@ -202,12 +205,15 @@ const OBJECTION_I18N: Record<Locale, ObjectionStrings> = {
       "誰でも SigmaCV で ORCID iD を入力すれば、アカウントなしで公開ソースから組み立てた CV を見ることができます。その iD がご自身のもので、表示されたくない場合は、ここで異議を申し立てることができます。アカウントは不要です。ORCID に一度ログインしてその iD がご自身のものであることを確認するだけで、SigmaCV はアカウントを作成せず、セッションも保持しません。",
     whatHeading: "異議申し立てによって起こること",
     what1: "次回のアクセス以降、ご自身の iD の自動プレビューは「公開記録なし」として扱われます。",
-    what2: "SigmaCV は iD そのものではなく、鍵付きハッシュのみを保存し、異議があったことを訪問者に知らせることもありません。",
+    what2:
+      "SigmaCV は iD そのものではなく、鍵付きハッシュのみを保存し、異議があったことを訪問者に知らせることもありません。",
     what3:
       "ご自身で公開したページには影響しません。後でログインして公開すれば、そのページはご自身で管理できます。ログイン済みのユーザーはアカウント設定から自動プレビューを再び有効にできます。",
     cta: "ORCID iD を確認してプレビューを非表示にする",
-    ctaNote: "orcid.org に移動してログインした後、すぐにこのページに戻ります。確認が完了しない限り、何も保存されません。",
-    emailFallback: "メールをご希望の場合は、ORCID iD を添えて privacy@sigmacv.org までご連絡ください。異議には 30 日以内に対応します。",
+    ctaNote:
+      "orcid.org に移動してログインした後、すぐにこのページに戻ります。確認が完了しない限り、何も保存されません。",
+    emailFallback:
+      "メールをご希望の場合は、ORCID iD を添えて privacy@sigmacv.org までご連絡ください。異議には 30 日以内に対応します。",
     doneSuppressedHeading: "プレビューを非表示にしました",
     doneSuppressedBody:
       "今後、ご自身の ORCID iD の自動プレビューは「公開記録なし」として扱われます。SigmaCV はアカウントを作成していません。再び表示するには、ログインしてアカウント設定で有効に戻すか、privacy@sigmacv.org までご連絡ください。",
@@ -297,12 +303,15 @@ const OBJECTION_I18N: Record<Locale, ObjectionStrings> = {
       "누구나 SigmaCV에 ORCID iD를 입력하면 계정 없이 공개 소스로 구성된 CV를 볼 수 있습니다. 그 iD가 본인의 것이고 표시되기를 원하지 않는다면 여기에서 이의를 제기할 수 있습니다. 계정은 필요 없습니다. ORCID에 한 번 로그인하여 iD가 본인의 것임을 확인하기만 하면 되며, SigmaCV는 계정을 만들지도, 세션을 유지하지도 않습니다.",
     whatHeading: "이의 제기의 효과",
     what1: "다음 방문부터 본인 iD의 자동 미리보기는 공개 기록이 없는 것처럼 처리됩니다.",
-    what2: "SigmaCV는 iD 자체가 아니라 키가 적용된 해시만 저장하며, 이의를 제기했다는 사실을 방문자에게 알리지 않습니다.",
+    what2:
+      "SigmaCV는 iD 자체가 아니라 키가 적용된 해시만 저장하며, 이의를 제기했다는 사실을 방문자에게 알리지 않습니다.",
     what3:
       "본인이 직접 게시한 페이지에는 영향을 주지 않습니다. 나중에 로그인하여 게시하면 그 페이지는 본인이 관리합니다. 로그인한 사용자는 계정 설정에서 자동 미리보기를 다시 켤 수 있습니다.",
     cta: "내 ORCID iD를 확인하고 미리보기 숨기기",
-    ctaNote: "orcid.org로 이동하여 로그인한 뒤 바로 이곳으로 돌아옵니다. 확인이 완료되지 않으면 아무것도 저장되지 않습니다.",
-    emailFallback: "이메일을 선호하십니까? ORCID iD를 첨부하여 privacy@sigmacv.org로 보내 주십시오. 이의는 30일 이내에 처리합니다.",
+    ctaNote:
+      "orcid.org로 이동하여 로그인한 뒤 바로 이곳으로 돌아옵니다. 확인이 완료되지 않으면 아무것도 저장되지 않습니다.",
+    emailFallback:
+      "이메일을 선호하십니까? ORCID iD를 첨부하여 privacy@sigmacv.org로 보내 주십시오. 이의는 30일 이내에 처리합니다.",
     doneSuppressedHeading: "미리보기가 숨겨졌습니다",
     doneSuppressedBody:
       "이제부터 본인 ORCID iD의 자동 미리보기는 공개 기록이 없는 것처럼 처리됩니다. SigmaCV는 계정을 만들지 않았습니다. 다시 표시하려면 로그인하여 계정 설정에서 다시 켜거나 privacy@sigmacv.org로 이메일을 보내 주십시오.",

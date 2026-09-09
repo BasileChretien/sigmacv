@@ -73,7 +73,9 @@ function suppressionKey(): string | null {
 export async function isOrcidPreviewSuppressed(orcid: string): Promise<boolean> {
   const env = getEnv();
   const key = env.PREVIEW_SUPPRESSION_KEY;
-  if (isPreviewSuppressed(orcid, parseSuppressionList(env.PREVIEW_SUPPRESSED_ORCID_HMACS), key ?? "")) {
+  if (
+    isPreviewSuppressed(orcid, parseSuppressionList(env.PREVIEW_SUPPRESSED_ORCID_HMACS), key ?? "")
+  ) {
     return true;
   }
   if (!key) return false;

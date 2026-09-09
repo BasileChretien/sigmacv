@@ -11,7 +11,14 @@ import { TEST_ORCID } from "../fixtures/seed";
  */
 test.describe.configure({ timeout: 180_000 });
 
-test("account toggle hides the anonymous preview and shows it again", async ({ page, context }) => {
+test("account toggle hides the anonymous preview and shows it again", async ({
+  page,
+  context,
+  authedUserId,
+}) => {
+  // Requesting the fixture is what seeds the user + session; without it /cv
+  // redirects to the landing page and there is no account menu to open.
+  expect(authedUserId).toBeTruthy();
   await page.goto("/cv");
   await page.locator("button.account-trigger").click();
   const toggle = page.getByTestId("preview-suppression-toggle");

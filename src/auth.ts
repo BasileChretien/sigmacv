@@ -63,7 +63,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // redirect (no user row, no session); every other provider passes through.
     signIn({ account }) {
       return handleObjectionSignIn(
-        account ? { provider: account.provider, providerAccountId: account.providerAccountId } : null,
+        account
+          ? { provider: account.provider, providerAccountId: account.providerAccountId }
+          : null,
       );
     },
     session({ session, user }) {

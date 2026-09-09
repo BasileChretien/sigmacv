@@ -52,7 +52,10 @@ describe("isOrcidPreviewSuppressed", () => {
   it("looks the iD up by its keyed HMAC, never the plaintext iD", async () => {
     mocks.findUnique.mockResolvedValue({ orcidHmac: HMAC });
     await expect(isOrcidPreviewSuppressed(ORCID)).resolves.toBe(true);
-    expect(mocks.findUnique).toHaveBeenCalledWith({ where: { orcidHmac: HMAC }, select: { orcidHmac: true } });
+    expect(mocks.findUnique).toHaveBeenCalledWith({
+      where: { orcidHmac: HMAC },
+      select: { orcidHmac: true },
+    });
     expect(JSON.stringify(mocks.findUnique.mock.calls)).not.toContain(ORCID);
   });
 
