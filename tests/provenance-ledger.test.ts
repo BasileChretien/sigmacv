@@ -269,6 +269,20 @@ describe("ledgerLines / provenanceLedgerHtml", () => {
     expect(fl.reviewed).toBe("0 of 1 (0%)");
   });
 
+  it("names the listed works in the retracted line, not the retracted ones", () => {
+    // "Retracted works shown — 0 of 107" reads as "0 of my 107 retracted works
+    // are shown". The denominator is the LISTED works, so the label has to name
+    // them; a CV with nothing retracted must not look like it has 107.
+    const clean = cvWith([
+      section("publications", [work("a", { meta: { doi: "10.1/a", matchBasis: "orcid" } })]),
+    ]);
+    expect(ledgerLines(provenanceLedger(clean), "en-US")).toContainEqual({
+      key: "retractedVisible",
+      label: "Listed works that have been retracted",
+      figure: "0 of 1 (0%)",
+    });
+  });
+
   it("lists the residual line when it counts something", () => {
     const l = provenanceLedger(cvWith([section("grants", [entry("g", { source: "nsf" })])]));
     expect(ledgerLines(l, "en-US").map((x) => x.key)).toContain("other");
