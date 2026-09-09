@@ -4,11 +4,12 @@ import { createHmac } from "node:crypto";
  * Objection list for the no-login `/preview/[orcid]` route (GDPR Art. 21).
  *
  * A researcher who never used SigmaCV can ask not to be shown in the automatic
- * preview. Their iD is stored ONLY as `HMAC-SHA256(AUTH_SECRET, ORCID)` in the
- * `PREVIEW_SUPPRESSED_ORCID_HMACS` environment variable (comma-separated
- * lowercase hex) — never in plaintext, because a list of iDs is itself a
- * personal-information database under the APPI, and an HMAC keyed by the
- * server secret cannot be reversed or joined by anyone holding the env alone.
+ * preview. Their iD is stored ONLY as `HMAC-SHA256(PREVIEW_SUPPRESSION_KEY,
+ * ORCID)` in the `PREVIEW_SUPPRESSED_ORCID_HMACS` environment variable
+ * (comma-separated lowercase hex) — never in plaintext, because a list of iDs
+ * is itself a personal-information database under the APPI. The key is
+ * DEDICATED (not AUTH_SECRET) so a routine secret rotation cannot silently
+ * void every objection; `env.ts` refuses a list without its key.
  *
  * A suppressed iD is answered by {@link previewCvFromOrcid} with the SAME
  * `empty` result as an iD with no public record: no distinct status, no

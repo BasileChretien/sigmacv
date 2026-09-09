@@ -77,7 +77,9 @@ export async function previewCvFromOrcid(
     isPreviewSuppressed(
       orcid,
       parseSuppressionList(env.PREVIEW_SUPPRESSED_ORCID_HMACS),
-      env.AUTH_SECRET,
+      // Guaranteed present by env.ts whenever the list is non-empty; with an
+      // empty list isPreviewSuppressed returns before hashing anything.
+      env.PREVIEW_SUPPRESSION_KEY ?? "",
     )
   )
     return { status: "empty", orcid };

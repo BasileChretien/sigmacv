@@ -23,6 +23,8 @@ function setEnv(overrides: Record<string, string | undefined>) {
     "DATACITE_REPOSITORY_ID",
     "DATACITE_PASSWORD",
     "DATACITE_PREFIX",
+    "PREVIEW_SUPPRESSED_ORCID_HMACS",
+    "PREVIEW_SUPPRESSION_KEY",
   ]) {
     delete (process.env as Record<string, string | undefined>)[k];
   }
@@ -122,6 +124,40 @@ describe("getEnv", () => {
     setEnv({ ...VALID, NODE_ENV: "test", DATACITE_PREFIX: "doi:10.1" });
     ({ getEnv } = await loadEnv());
     expect(() => getEnv()).toThrow(/DATACITE_PREFIX/);
+  });
+
+  it("parses the preview suppression list with its dedicated key, and refuses a keyless list", async () => {
+    setEnv({ ...VALID, NODE_ENV: "test" });
+    let { getEnv } = await loadEnv();
+    expect(getEnv().PREVIEW_SUPPRESSED_ORCID_HMACS).toBeUndefined();
+    expect(getEnv().PREVIEW_SUPPRESSION_KEY).toBeUndefined();
+
+    const hmacs = "a".repeat(64) + "," + "b".repeat(64);
+    setEnv({
+      ...VALID,
+      NODE_ENV: "test",
+      PREVIEW_SUPPRESSED_ORCID_HMACS: hmacs,
+      PREVIEW_SUPPRESSION_KEY: "k".repeat(24),
+    });
+    ({ getEnv } = await loadEnv());
+    expect(getEnv().PREVIEW_SUPPRESSED_ORCID_HMACS).toBe(hmacs);
+    expect(getEnv().PREVIEW_SUPPRESSION_KEY).toBe("k".repeat(24));
+
+    // A list without its key would match nothing and silently re-expose every
+    // objector: startup must fail loudly instead.
+    setEnv({ ...VALID, NODE_ENV: "test", PREVIEW_SUPPRESSED_ORCID_HMACS: hmacs });
+    ({ getEnv } = await loadEnv());
+    expect(() => getEnv()).toThrow(/PREVIEW_SUPPRESSION_KEY/);
+
+    // A key that is too short is rejected too.
+    setEnv({
+      ...VALID,
+      NODE_ENV: "test",
+      PREVIEW_SUPPRESSED_ORCID_HMACS: hmacs,
+      PREVIEW_SUPPRESSION_KEY: "short",
+    });
+    ({ getEnv } = await loadEnv());
+    expect(() => getEnv()).toThrow(/PREVIEW_SUPPRESSION_KEY/);
   });
 
   it("defaults OpenAlex curation to DISABLED (flag unset → false, endpoint undefined)", async () => {

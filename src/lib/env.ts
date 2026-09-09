@@ -7,70 +7,89 @@ import { z } from "zod";
  * does not crash when secrets are absent. Call `getEnv()` inside request
  * handlers / runtime code paths that actually need the values.
  */
-const EnvSchema = z.object({
-  DATABASE_URL: z.string().min(1),
-  AUTH_SECRET: z.string().min(1),
-  AUTH_URL: z.url().optional(),
-  ORCID_CLIENT_ID: z.string().min(1),
-  ORCID_CLIENT_SECRET: z.string().min(1),
-  ORCID_ENVIRONMENT: z.enum(["sandbox", "production"]).default("sandbox"),
-  OPENALEX_MAILTO: z.email(),
-  // Optional alternate logins (enabled only when present).
-  GOOGLE_CLIENT_ID: z.string().optional(),
-  GOOGLE_CLIENT_SECRET: z.string().optional(),
-  EMAIL_SERVER: z.string().optional(), // SMTP URL, e.g. smtp://user:pass@host:587
-  EMAIL_FROM: z.string().optional(), // e.g. "SigmaCV <no-reply@example.org>"
-  // OpenAIRE Graph API: a 1-month refresh token, exchanged for short-lived (1h)
-  // access tokens for higher rate limits. Optional — the client works anonymously
-  // (lower limits) when unset. Generate at https://graph.openaire.eu (account →
-  // personal access token); store the REFRESH token only (never the access token).
-  OPENAIRE_REFRESH_TOKEN: z.string().optional(),
-  // EPO Open Patent Services (OPS) — patents by inventor name. OAuth2
-  // client-credentials (consumer key + secret from a free OPS account at
-  // https://developers.epo.org). Optional — with neither set the patents client
-  // is dormant (makes NO call, returns []). OPS has no anonymous access.
-  EPO_OPS_KEY: z.string().optional(),
-  EPO_OPS_SECRET: z.string().optional(),
-  // GDPR Art. 21 objection list for the no-login /preview/[orcid] route: a
-  // comma-separated list of lowercase hex HMAC-SHA256(AUTH_SECRET, ORCID) values
-  // (`npm run preview:suppress-hash <orcid>` prints one). NEVER plaintext iDs —
-  // a list of iDs is itself a personal-information database under the APPI. A
-  // listed iD is answered exactly like one with no public record. Interim,
-  // maintainer-operated mechanism until the self-service objection route lands.
-  PREVIEW_SUPPRESSED_ORCID_HMACS: z.string().optional(),
-  // Shared secret guarding the internal scheduled-resync endpoint. If unset the
-  // endpoint is disabled (returns 503), so it's optional even in production.
-  RESYNC_SECRET: z.string().min(16).optional(),
-  // ── OpenAlex upstream curation push (Phase 5 — "give back to the commons") ──
-  // DISABLED by default. When unset/false the app makes NO external curation
-  // write — ever (the endpoint 503s and the write-client returns "disabled"
-  // without touching the network). The real OpenAlex curation API contract is
-  // UNCONFIRMED, so this stays gated until it is. Set to "true" only once the
-  // endpoint + payload below are verified against the real API.
-  OPENALEX_CURATION_ENABLED: z
-    .enum(["true", "false"])
-    .optional()
-    .transform((v) => v === "true"),
-  // Where the (PROVISIONAL) curation request is POSTed when enabled. Optional
-  // even when enabled: if absent the write-client reports an error rather than
-  // guessing a production URL.
-  OPENALEX_CURATION_ENDPOINT: z.url().optional(),
-  // ── DataCite DOI minting for frozen CV snapshots (roadmap C5) ──────────────
-  // DORMANT unless ALL THREE are set: the mint endpoint then answers 409
-  // "doi-minting-disabled" and makes NO network call. Needs a DataCite
-  // repository account (Fabrica): the repository id ("MEMBER.REPO"), its
-  // password, and the DOI prefix ("10.xxxxx") it may mint under. The
-  // credentials never reach the client; see `lib/datacite/mint.ts`.
-  DATACITE_REPOSITORY_ID: z.string().optional(),
-  DATACITE_PASSWORD: z.string().optional(),
-  DATACITE_PREFIX: z
-    .string()
-    .regex(/^10\.\d{4,9}$/, "DATACITE_PREFIX must look like 10.12345")
-    .optional(),
-  // NOTE: the narrative-CV AI assistant is BRING-YOUR-OWN-KEY — the server holds
-  // no key and presets no provider (the user supplies base URL + model + key from
-  // their browser, per-request). So there is intentionally NO AI_* env here.
-});
+const EnvSchema = z
+  .object({
+    DATABASE_URL: z.string().min(1),
+    AUTH_SECRET: z.string().min(1),
+    AUTH_URL: z.url().optional(),
+    ORCID_CLIENT_ID: z.string().min(1),
+    ORCID_CLIENT_SECRET: z.string().min(1),
+    ORCID_ENVIRONMENT: z.enum(["sandbox", "production"]).default("sandbox"),
+    OPENALEX_MAILTO: z.email(),
+    // Optional alternate logins (enabled only when present).
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    EMAIL_SERVER: z.string().optional(), // SMTP URL, e.g. smtp://user:pass@host:587
+    EMAIL_FROM: z.string().optional(), // e.g. "SigmaCV <no-reply@example.org>"
+    // OpenAIRE Graph API: a 1-month refresh token, exchanged for short-lived (1h)
+    // access tokens for higher rate limits. Optional — the client works anonymously
+    // (lower limits) when unset. Generate at https://graph.openaire.eu (account →
+    // personal access token); store the REFRESH token only (never the access token).
+    OPENAIRE_REFRESH_TOKEN: z.string().optional(),
+    // EPO Open Patent Services (OPS) — patents by inventor name. OAuth2
+    // client-credentials (consumer key + secret from a free OPS account at
+    // https://developers.epo.org). Optional — with neither set the patents client
+    // is dormant (makes NO call, returns []). OPS has no anonymous access.
+    EPO_OPS_KEY: z.string().optional(),
+    EPO_OPS_SECRET: z.string().optional(),
+    // GDPR Art. 21 objection list for the no-login /preview/[orcid] route: a
+    // comma-separated list of lowercase hex HMAC-SHA256(PREVIEW_SUPPRESSION_KEY,
+    // ORCID) values (`npm run preview:suppress-hash` prints one; it prompts for
+    // the iD so it never lands in shell history). NEVER plaintext iDs — a list of
+    // iDs is itself a personal-information database under the APPI. A listed iD
+    // is answered exactly like one with no public record. Interim,
+    // maintainer-operated mechanism until the self-service objection route lands.
+    PREVIEW_SUPPRESSED_ORCID_HMACS: z.string().optional(),
+    // The key those HMACs are computed with. DEDICATED and DURABLE on purpose:
+    // keying them by AUTH_SECRET would let a routine secret rotation silently void
+    // every objection. Required (≥ 16 chars) whenever the list above is set —
+    // see the refinement below, which fails startup loudly instead of letting a
+    // keyless list match nothing. Rotate it only by recomputing every entry.
+    PREVIEW_SUPPRESSION_KEY: z.string().min(16).optional(),
+    // Shared secret guarding the internal scheduled-resync endpoint. If unset the
+    // endpoint is disabled (returns 503), so it's optional even in production.
+    RESYNC_SECRET: z.string().min(16).optional(),
+    // ── OpenAlex upstream curation push (Phase 5 — "give back to the commons") ──
+    // DISABLED by default. When unset/false the app makes NO external curation
+    // write — ever (the endpoint 503s and the write-client returns "disabled"
+    // without touching the network). The real OpenAlex curation API contract is
+    // UNCONFIRMED, so this stays gated until it is. Set to "true" only once the
+    // endpoint + payload below are verified against the real API.
+    OPENALEX_CURATION_ENABLED: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((v) => v === "true"),
+    // Where the (PROVISIONAL) curation request is POSTed when enabled. Optional
+    // even when enabled: if absent the write-client reports an error rather than
+    // guessing a production URL.
+    OPENALEX_CURATION_ENDPOINT: z.url().optional(),
+    // ── DataCite DOI minting for frozen CV snapshots (roadmap C5) ──────────────
+    // DORMANT unless ALL THREE are set: the mint endpoint then answers 409
+    // "doi-minting-disabled" and makes NO network call. Needs a DataCite
+    // repository account (Fabrica): the repository id ("MEMBER.REPO"), its
+    // password, and the DOI prefix ("10.xxxxx") it may mint under. The
+    // credentials never reach the client; see `lib/datacite/mint.ts`.
+    DATACITE_REPOSITORY_ID: z.string().optional(),
+    DATACITE_PASSWORD: z.string().optional(),
+    DATACITE_PREFIX: z
+      .string()
+      .regex(/^10\.\d{4,9}$/, "DATACITE_PREFIX must look like 10.12345")
+      .optional(),
+    // NOTE: the narrative-CV AI assistant is BRING-YOUR-OWN-KEY — the server holds
+    // no key and presets no provider (the user supplies base URL + model + key from
+    // their browser, per-request). So there is intentionally NO AI_* env here.
+  })
+  .superRefine((env, ctx) => {
+    // A suppression list without its key would match nothing: every objector's
+    // record would be previewable again with no error. Fail loudly instead.
+    if (env.PREVIEW_SUPPRESSED_ORCID_HMACS && !env.PREVIEW_SUPPRESSION_KEY) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["PREVIEW_SUPPRESSION_KEY"],
+        message: "required when PREVIEW_SUPPRESSED_ORCID_HMACS is set (the list is keyed by it)",
+      });
+    }
+  });
 
 export type Env = z.infer<typeof EnvSchema>;
 

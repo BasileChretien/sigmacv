@@ -9,7 +9,8 @@ Object.assign(process.env, {
   ORCID_CLIENT_ID: "APP-1",
   ORCID_CLIENT_SECRET: "secret",
   OPENALEX_MAILTO: "ci@example.org",
-  // GDPR Art. 21 objection list: HMAC-SHA256(AUTH_SECRET above, SUPPRESSED_ORCID).
+  // GDPR Art. 21 objection list: HMAC-SHA256(PREVIEW_SUPPRESSION_KEY, SUPPRESSED_ORCID).
+  PREVIEW_SUPPRESSION_KEY: "x".repeat(20),
   PREVIEW_SUPPRESSED_ORCID_HMACS:
     "ba8feb6a1dc35f25cef729f4f66c12be0f9cd345cd0ff893bde5c5f9915a24fd",
 });
