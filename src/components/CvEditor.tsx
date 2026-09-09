@@ -18,6 +18,7 @@ import ProfilePanel from "./ProfilePanel";
 import SectionsList, { type SectionsListHandle } from "./SectionsList";
 import StyleControls from "./StyleControls";
 import WorklistPanel from "./WorklistPanel";
+import type { FunderRow } from "@/lib/funders/join";
 
 /** The three task clusters of the subdivided ("regions") editor layout. */
 type EditorPart = "content" | "design" | "profile";
@@ -25,6 +26,8 @@ const EDITOR_PARTS: readonly EditorPart[] = ["profile", "design", "content"];
 
 /** A stable empty consent (a fresh `[]` per render would defeat the worklist's memo). */
 const NO_CONSENTED_ROR_IDS: readonly string[] = [];
+/** A stable empty crosswalk, for the same reason. */
+const NO_FUNDER_CROSSWALK: readonly FunderRow[] = [];
 
 interface CvEditorProps {
   cv: CanonicalCv;
@@ -49,6 +52,10 @@ interface CvEditorProps {
   /** The ROR ids the owner consented to on the institution page (bare ids) —
    *  what the owner worklist checks affiliations against. Default: none. */
   consentedRorIds?: readonly string[];
+  /** The OpenAlex funder crosswalk rows for the funders printed on the owner's
+   *  works (owner-only, loaded by the page) — what the worklist joins the
+   *  owner's grants through. Default: none (award-number matches only). */
+  funderCrosswalk?: readonly FunderRow[];
 }
 
 /** Imperative surface CvWorkspace uses to drive the sync banner's "jump to item". */
@@ -69,6 +76,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     variant = "classic",
     anonymous = false,
     consentedRorIds = NO_CONSENTED_ROR_IDS,
+    funderCrosswalk = NO_FUNDER_CROSSWALK,
   },
   ref,
 ) {
@@ -140,7 +148,13 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   // nothing an anonymous caller could consent to anyway. Renders nothing when
   // there is nothing to show.
   const worklistPanel = anonymous ? null : (
-    <WorklistPanel cv={cv} locale={locale} consentedRorIds={consentedRorIds} onJump={jumpToItem} />
+    <WorklistPanel
+      cv={cv}
+      locale={locale}
+      consentedRorIds={consentedRorIds}
+      funderCrosswalk={funderCrosswalk}
+      onJump={jumpToItem}
+    />
   );
   const sectionsList = (
     <SectionsList

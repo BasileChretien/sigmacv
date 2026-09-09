@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   upsert: vi.fn(),
   update: vi.fn(),
   institutionUpsert: vi.fn(),
+  recordWorkFunders: vi.fn(),
   institutionFindMany: vi.fn(),
   fetchWorks: vi.fn(),
   resolveAuthor: vi.fn(),
@@ -75,6 +76,7 @@ vi.mock("@/lib/openalex/client", () => ({
   fetchJournalNamesByIssn: mocks.fetchJournalNames,
 }));
 vi.mock("@/lib/openalex/resolveAuthor", () => ({ resolveAuthorByOrcid: mocks.resolveAuthor }));
+vi.mock("@/lib/openalex/funders", () => ({ recordWorkFunders: mocks.recordWorkFunders }));
 vi.mock("@/lib/oep/client", () => ({
   fetchEditorialRoles: mocks.fetchEditorial,
   fetchEditorialRoleCandidates: mocks.fetchEditorialCandidates,
@@ -216,6 +218,7 @@ beforeEach(() => {
   }));
   mocks.institutionUpsert.mockResolvedValue({});
   mocks.institutionFindMany.mockResolvedValue([]);
+  mocks.recordWorkFunders.mockResolvedValue(undefined);
   mocks.enrichCvWithCrossref.mockImplementation(async (cv) => cv);
   mocks.enrichCvWithAbstracts.mockImplementation(async (cv) => cv);
   mocks.enrichCvWithIcite.mockImplementation(async (cv) => cv);
@@ -427,6 +430,26 @@ describe("syncCvForUser", () => {
     mocks.upsert.mockClear();
     await expect(syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid })).resolves.toBeDefined();
     expect(mocks.upsert).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the OpenAlex funder crosswalk warm for the built document, AFTER the write (the owner's document never waits on it)", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    const order: string[] = [];
+    mocks.recordWorkFunders.mockImplementation(async () => {
+      order.push("funders");
+    });
+    mocks.upsert.mockImplementation(async () => {
+      order.push("write");
+      return {};
+    });
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.recordWorkFunders).toHaveBeenCalledTimes(1);
+    const [doc, now] = mocks.recordWorkFunders.mock.calls[0]!;
+    expect(doc).toBe(cv);
+    expect(now).toBeInstanceOf(Date);
+    expect(order).toEqual(["write", "funders"]);
   });
 
   it("reports the first sync as initial (no per-item flood) and persists the report", async () => {

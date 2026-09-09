@@ -11,7 +11,7 @@ Object.assign(process.env, {
   OPENALEX_MAILTO: "ci@example.org",
 });
 
-const mocks = vi.hoisted(() => ({ build: vi.fn(), render: vi.fn() }));
+const mocks = vi.hoisted(() => ({ build: vi.fn(), render: vi.fn(), recordWorkFunders: vi.fn() }));
 
 // Keep the REAL cvItemCount (pure, operates on the CV the mock returns); only
 // stub the DB-and-network build. projectCvForPreview runs for real.
@@ -21,6 +21,9 @@ vi.mock("@/lib/cv/sync", async (importOriginal) => ({
   buildCvFromOrcid: mocks.build,
 }));
 vi.mock("@/lib/render/html", () => ({ renderCvHtml: mocks.render }));
+// The OpenAlex funder crosswalk writer belongs to the AUTHENTICATED sync only:
+// spied here so the anonymous preview path can be shown never to reach it.
+vi.mock("@/lib/openalex/funders", () => ({ recordWorkFunders: mocks.recordWorkFunders }));
 
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { __resetOrcidPreviewCache } from "@/lib/cv/orcidPreviewCache";
@@ -47,6 +50,7 @@ const emptyCv = buildCanonicalCv({
 beforeEach(() => {
   mocks.build.mockReset();
   mocks.render.mockReset().mockReturnValue("<html>RENDERED</html>");
+  mocks.recordWorkFunders.mockReset();
   __resetOrcidPreviewCache();
 });
 
@@ -107,6 +111,13 @@ describe("previewCvFromOrcid", () => {
     expect(r2).toMatchObject({ status: "ok", name: "Basile Chrétien" });
     expect(mocks.build).toHaveBeenCalledTimes(1);
     expect(mocks.render).toHaveBeenCalledTimes(1);
+  });
+
+  it("never writes the OpenAlex funder crosswalk — that is the authenticated sync's job, not the anonymous preview's", async () => {
+    mocks.build.mockResolvedValue({ cv: okCv, report: {} });
+    const r = await previewCvFromOrcid(ORCID);
+    expect(r.status).toBe("ok");
+    expect(mocks.recordWorkFunders).not.toHaveBeenCalled();
   });
 
   it("returns empty (and negatively caches) an ORCID with no public record", async () => {

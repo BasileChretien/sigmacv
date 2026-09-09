@@ -41,6 +41,7 @@ import {
 import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
 import { rorSetSpec, type OaiRecordInput, type OaiSet } from "@/lib/oai/oai";
 import { fetchJournalNamesByIssn, fetchWorksByAuthorIds } from "@/lib/openalex/client";
+import { recordWorkFunders } from "@/lib/openalex/funders";
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
 import { normalizeOrcid } from "@/lib/openalex/types";
 import { discoverOrcidOnlyWorks } from "@/lib/cv/orcidDiscovery";
@@ -663,6 +664,14 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       institutionAggregates,
     },
   });
+
+  // AFTER the write: the OpenAlex funder crosswalk for the funders printed on
+  // the owner's works (the owner worklist's funder join reads it). Reference
+  // data about funders — at most 25 polite-pool calls per sync inside a 10 s
+  // wall-clock budget, ~0 once warm, fail-soft — so the owner's document never
+  // waits on it; the next page load reads whatever landed. Only on the
+  // authenticated sync, never on the anonymous preview build.
+  await recordWorkFunders(cv, new Date());
 
   return { cv, report };
 }
