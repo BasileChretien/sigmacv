@@ -71,6 +71,11 @@ interface StyleControlsProps {
    * the original flat two-column fieldset exactly (same DOM, same classes).
    */
   grouped?: boolean;
+  /** The no-login preview: the visitor may not be the owner, so no control that
+   *  would put a figure on the person is offered (metrics, chart, citation
+   *  counts, per-work indicators, authorship table, citation sort). The preview
+   *  projection strips the data too; this only keeps the UI honest. */
+  anonymous?: boolean;
 }
 
 const STYLE_LABELS: Record<string, string> = {
@@ -198,6 +203,7 @@ export default function StyleControls({
   locale,
   onChange,
   grouped = false,
+  anonymous = false,
 }: StyleControlsProps) {
   const customStyle = cv.display.customStyle;
   const cvLocale = asLocale(cv.display.locale);
@@ -642,7 +648,7 @@ export default function StyleControls({
             <option value="custom">{t(locale, "sortCustom")}</option>
             <option value="year-desc">{t(locale, "sortYearDesc")}</option>
             <option value="year-asc">{t(locale, "sortYearAsc")}</option>
-            <option value="citations">{t(locale, "sortCitations")}</option>
+            {anonymous ? null : <option value="citations">{t(locale, "sortCitations")}</option>}
           </select>
           {cv.display.publicationOrder === "citations" ? (
             <span className="field-hint muted">{t(locale, "sortCitationsNote")}</span>
@@ -927,125 +933,129 @@ export default function StyleControls({
         ) : null}
       </StyleGroup>
 
-      <StyleGroup grouped={grouped} title={eu.grpMetrics} defaultOpen={false}>
-        {/* Responsible-metrics framing: metrics are optional and the narrative
+      {anonymous ? null : (
+        <StyleGroup grouped={grouped} title={eu.grpMetrics} defaultOpen={false}>
+          {/* Responsible-metrics framing: metrics are optional and the narrative
             leads (DORA). A gentle nudge at the point of choice, not a block. */}
-        <p className="muted metric-preset-note field-note metrics-nudge">
-          <MetricsNoteText text={metricsNudge(locale)} />
-        </p>
-        <div className="field metric-picker">
-          <span>{u.metricsLabel}</span>
-          {/* Field-normalised measures — the responsible, low-friction default:
+          <p className="muted metric-preset-note field-note metrics-nudge">
+            <MetricsNoteText text={metricsNudge(locale)} />
+          </p>
+          <div className="field metric-picker">
+            <span>{u.metricsLabel}</span>
+            {/* Field-normalised measures — the responsible, low-friction default:
               surfaced directly, no gate. */}
-          <div className="metric-group metric-group-recommended">
-            <span className="metric-group-heading">{metricsRecommendedGroup(locale)}</span>
-            <div className="metric-options">
-              {RECOMMENDED_METRICS.map((m) => renderMetricOption(m.key))}
+            <div className="metric-group metric-group-recommended">
+              <span className="metric-group-heading">{metricsRecommendedGroup(locale)}</span>
+              <div className="metric-options">
+                {RECOMMENDED_METRICS.map((m) => renderMetricOption(m.key))}
+              </div>
+            </div>
+            {/* Author-level counts — DORA/CoARA-discouraged for judging individuals,
+              so gated behind an explicit acknowledgment (not neutral peers). */}
+            <div className="metric-group metric-group-discouraged">
+              <label className="field-inline metric-ack">
+                <input
+                  type="checkbox"
+                  checked={showDiscouraged}
+                  onChange={(e) => setAckDiscouraged(e.target.checked)}
+                />
+                <span className="metric-ack-body">
+                  <span className="metric-group-heading">{metricsDiscouragedGroup(locale)}</span>
+                  <span className="muted metric-preset-note metric-ack-note">
+                    <MetricsNoteText text={metricsDiscouragedAck(locale)} />
+                  </span>
+                </span>
+              </label>
+              {showDiscouraged ? (
+                <div className="metric-options">
+                  {DISCOURAGED_METRICS.map((m) => renderMetricOption(m.key))}
+                </div>
+              ) : null}
+            </div>
+            {/* Contextual caution once the strip turns metrics-heavy — steers back
+              toward a short, readable header without removing any choice. */}
+            {cv.display.metrics.length >= METRICS_CROWDING_THRESHOLD ? (
+              <p className="metric-preset-note field-note metrics-crowding-note">
+                {metricsCrowdingNote(locale)}
+              </p>
+            ) : null}
+            <div className="metric-preset">
+              <button
+                type="button"
+                className="btn btn-small"
+                onClick={() =>
+                  onChange(
+                    updateDisplay(cv, {
+                      // Exactly the field-normalized indicators (DORA / Leiden), in
+                      // catalog order — derived from the single source of truth so it
+                      // matches the note's "field-normalised only" promise and can't
+                      // drift. Deliberately excludes raw / IF-like measures (e.g. the
+                      // 2-year mean citedness). RCR only renders where there's data.
+                      metrics: METRIC_DEFS.filter((d) => FIELD_NORMALIZED_METRICS.has(d.key)).map(
+                        (d) => d.key,
+                      ),
+                      showMetrics: true,
+                    }),
+                  )
+                }
+              >
+                {u.metricsPreset}
+              </button>
+              <span className="muted metric-preset-note">
+                <MetricsNoteText text={u.metricsPresetNote} />
+              </span>
             </div>
           </div>
-          {/* Author-level counts — DORA/CoARA-discouraged for judging individuals,
-              so gated behind an explicit acknowledgment (not neutral peers). */}
-          <div className="metric-group metric-group-discouraged">
-            <label className="field-inline metric-ack">
-              <input
-                type="checkbox"
-                checked={showDiscouraged}
-                onChange={(e) => setAckDiscouraged(e.target.checked)}
-              />
-              <span className="metric-ack-body">
-                <span className="metric-group-heading">{metricsDiscouragedGroup(locale)}</span>
-                <span className="muted metric-preset-note metric-ack-note">
-                  <MetricsNoteText text={metricsDiscouragedAck(locale)} />
-                </span>
+
+          <div className="field metric-picker">
+            <span>{u.authorshipLabel}</span>
+            <div className="metric-options">
+              {AUTHORSHIP_ROLES.map((r) => {
+                const selected = cv.display.authorshipRoles.includes(r);
+                return (
+                  <label key={r} className="field-inline">
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={() => {
+                        const set = new Set(cv.display.authorshipRoles);
+                        if (selected) set.delete(r);
+                        else set.add(r);
+                        const roles = [...set];
+                        onChange(
+                          updateDisplay(cv, {
+                            authorshipRoles: roles,
+                            showAuthorshipTable: roles.length > 0,
+                          }),
+                        );
+                      }}
+                    />
+                    <span>{authorshipRoleLabel(locale, r)}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <span className="muted metric-preset-note">{u.authorshipNote}</span>
+            {authorshipNeedsResync ? (
+              <span className="metric-preset-note authorship-resync-note">
+                {u.authorshipResyncNote}
               </span>
-            </label>
-            {showDiscouraged ? (
-              <div className="metric-options">
-                {DISCOURAGED_METRICS.map((m) => renderMetricOption(m.key))}
-              </div>
             ) : null}
           </div>
-          {/* Contextual caution once the strip turns metrics-heavy — steers back
-              toward a short, readable header without removing any choice. */}
-          {cv.display.metrics.length >= METRICS_CROWDING_THRESHOLD ? (
-            <p className="metric-preset-note field-note metrics-crowding-note">
-              {metricsCrowdingNote(locale)}
-            </p>
-          ) : null}
-          <div className="metric-preset">
-            <button
-              type="button"
-              className="btn btn-small"
-              onClick={() =>
-                onChange(
-                  updateDisplay(cv, {
-                    // Exactly the field-normalized indicators (DORA / Leiden), in
-                    // catalog order — derived from the single source of truth so it
-                    // matches the note's "field-normalised only" promise and can't
-                    // drift. Deliberately excludes raw / IF-like measures (e.g. the
-                    // 2-year mean citedness). RCR only renders where there's data.
-                    metrics: METRIC_DEFS.filter((d) => FIELD_NORMALIZED_METRICS.has(d.key)).map(
-                      (d) => d.key,
-                    ),
-                    showMetrics: true,
-                  }),
-                )
-              }
-            >
-              {u.metricsPreset}
-            </button>
-            <span className="muted metric-preset-note">
-              <MetricsNoteText text={u.metricsPresetNote} />
-            </span>
-          </div>
-        </div>
-
-        <div className="field metric-picker">
-          <span>{u.authorshipLabel}</span>
-          <div className="metric-options">
-            {AUTHORSHIP_ROLES.map((r) => {
-              const selected = cv.display.authorshipRoles.includes(r);
-              return (
-                <label key={r} className="field-inline">
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={() => {
-                      const set = new Set(cv.display.authorshipRoles);
-                      if (selected) set.delete(r);
-                      else set.add(r);
-                      const roles = [...set];
-                      onChange(
-                        updateDisplay(cv, {
-                          authorshipRoles: roles,
-                          showAuthorshipTable: roles.length > 0,
-                        }),
-                      );
-                    }}
-                  />
-                  <span>{authorshipRoleLabel(locale, r)}</span>
-                </label>
-              );
-            })}
-          </div>
-          <span className="muted metric-preset-note">{u.authorshipNote}</span>
-          {authorshipNeedsResync ? (
-            <span className="metric-preset-note authorship-resync-note">
-              {u.authorshipResyncNote}
-            </span>
-          ) : null}
-        </div>
-      </StyleGroup>
+        </StyleGroup>
+      )}
 
       <StyleGroup grouped={grouped} title={eu.grpDisplay} defaultOpen={false}>
-        <label className="field-inline">
-          <input
-            type="checkbox"
-            checked={cv.display.showCharts}
-            onChange={(e) => onChange(updateDisplay(cv, { showCharts: e.target.checked }))}
-          />
-          <span>{u.showCharts}</span>
-        </label>
+        {anonymous ? null : (
+          <label className="field-inline">
+            <input
+              type="checkbox"
+              checked={cv.display.showCharts}
+              onChange={(e) => onChange(updateDisplay(cv, { showCharts: e.target.checked }))}
+            />
+            <span>{u.showCharts}</span>
+          </label>
+        )}
 
         <label className="field-inline">
           <input
@@ -1183,26 +1193,34 @@ export default function StyleControls({
           <span>{u.showAuthorRole}</span>
         </label>
 
-        <label className="field-inline">
-          <input
-            type="checkbox"
-            checked={cv.display.showCitationCounts}
-            onChange={(e) => onChange(updateDisplay(cv, { showCitationCounts: e.target.checked }))}
-          />
-          <span>{u.showCitationCounts}</span>
-        </label>
+        {anonymous ? null : (
+          <>
+            <label className="field-inline">
+              <input
+                type="checkbox"
+                checked={cv.display.showCitationCounts}
+                onChange={(e) =>
+                  onChange(updateDisplay(cv, { showCitationCounts: e.target.checked }))
+                }
+              />
+              <span>{u.showCitationCounts}</span>
+            </label>
 
-        <label className="field-inline" title={u.showWorkIndicatorsNote}>
-          <input
-            type="checkbox"
-            checked={cv.display.showWorkIndicators}
-            onChange={(e) => onChange(updateDisplay(cv, { showWorkIndicators: e.target.checked }))}
-          />
-          <span>{u.showWorkIndicators}</span>
-        </label>
-        {cv.display.showWorkIndicators ? (
-          <p className="muted metric-preset-note field-note">{u.showWorkIndicatorsNote}</p>
-        ) : null}
+            <label className="field-inline" title={u.showWorkIndicatorsNote}>
+              <input
+                type="checkbox"
+                checked={cv.display.showWorkIndicators}
+                onChange={(e) =>
+                  onChange(updateDisplay(cv, { showWorkIndicators: e.target.checked }))
+                }
+              />
+              <span>{u.showWorkIndicators}</span>
+            </label>
+            {cv.display.showWorkIndicators ? (
+              <p className="muted metric-preset-note field-note">{u.showWorkIndicatorsNote}</p>
+            ) : null}
+          </>
+        )}
 
         <label className="field-inline">
           <input

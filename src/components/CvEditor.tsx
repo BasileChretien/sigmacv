@@ -182,6 +182,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
           availableStyles={availableStyles}
           locale={locale}
           onChange={onChange}
+          anonymous={anonymous}
         />
         <CvHealthPanel
           cv={cv}
@@ -286,6 +287,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
           locale={locale}
           onChange={onChange}
           grouped
+          anonymous={anonymous}
         />
       </div>
       <div

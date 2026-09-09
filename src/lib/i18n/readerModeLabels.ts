@@ -17,7 +17,6 @@ export function readerModeKeyLabels(u: UiStrings, eu: EditorExtraStrings): strin
     showCitationCounts: u.showCitationCounts,
     showResearchAreas: u.showResearchAreas,
     showAuthorRole: u.showAuthorRole,
-    showWorkIndicators: u.showWorkIndicators,
     showCollaboration: u.showCollaboration,
     showCreditRoles: eu.showCreditRoles,
     showDataLinks: u.showDataLinks,

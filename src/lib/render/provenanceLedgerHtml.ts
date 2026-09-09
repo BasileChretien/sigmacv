@@ -41,12 +41,12 @@ export function ledgerLines(ledger: ProvenanceLedger, locale: string): LedgerDis
     retractedVisible: s.provLedgerRetracted,
   };
   const numFmt = new Intl.NumberFormat(locale);
-  const pctFmt = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
+  // Count and denominator only. `share` stays on the pure ledger for the owner's
+  // editor panel, but never reaches a recipient-facing surface as a percentage.
   const figure = (l: LedgerLine): string =>
     s.provLedgerOf
       .replace("{n}", numFmt.format(l.count))
-      .replace("{total}", numFmt.format(l.denominator))
-      .replace("{pct}", pctFmt.format(l.share ?? 0));
+      .replace("{total}", numFmt.format(l.denominator));
   const out: LedgerDisplayLine[] = [];
   for (const key of LINE_ORDER) {
     const l = ledger[key];

@@ -3680,9 +3680,34 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   line-height: 1.4;
   color: var(--muted);
 }
-.preview-app-signin {
+.preview-app-signin,
+.preview-app-copy {
   width: auto;
   white-space: nowrap;
+}
+/* Third-party framing banner under the app bar: what this page is about the
+   person (an automatic, figure-free build) or where their own page is. */
+.preview-app-banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted, var(--surface));
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+.preview-app-banner.is-published {
+  border-left: 4px solid var(--accent-500);
+}
+.preview-app-banner p {
+  margin: 0;
+}
+.preview-app-banner-link {
+  font-weight: var(--weight-bold);
+}
+.preview-app-banner-promise {
+  font-size: var(--text-xs);
 }
 @media (max-width: 720px) {
   .preview-app-note {

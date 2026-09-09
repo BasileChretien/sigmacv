@@ -7,6 +7,7 @@ import { asLocale } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
 import { landingStrings } from "@/lib/i18n/landing";
 import { previewStrings } from "@/lib/i18n/preview";
+import { trackEvent } from "@/lib/analytics/track";
 import CvEditor, { type CvEditorHandle } from "./CvEditor";
 import CvPreview from "./CvPreview";
 import SignInButton from "./SignInButton";
@@ -23,15 +24,24 @@ interface PreviewWorkspaceProps {
   availableStyles: string[];
   /** Per-source item counts from the build, for the provenance panel. */
   sourceCounts?: Record<string, number>;
+  /** `/p/<slug>` when the researcher published an indexable page; else null. */
+  publishedPath?: string | null;
 }
 
 /**
  * The no-login INTERACTIVE preview: the REAL editor (curate + restyle) beside the
  * live preview, seeded from a CV built off a public ORCID iD. Everything visual
  * works anonymously — reorder, remove "not mine", show/hide sections, pick the
- * template / citation style / metrics — and the preview re-renders as you edit.
- * Saving, publishing and exporting are the only account-gated actions, surfaced
- * as a single "sign in" call to action. Nothing is persisted.
+ * template / citation style — and the preview re-renders as you edit. Nothing is
+ * persisted.
+ *
+ * The visitor may not be the owner, so the page is framed for a THIRD PARTY: a
+ * banner says this is an automatic, unreviewed build that shows no figure about
+ * the person (the projection strips every metric; `anonymous` hides the
+ * controls), or — when the researcher published an indexable page — points at
+ * that page instead. Two calls to action, never conflated: "this is my record"
+ * (sign in: save / publish / export are account-gated) and "know this
+ * researcher?" (copy the link to send them — no email, no invitation).
  */
 export default function PreviewWorkspace({
   initialCv,
@@ -40,6 +50,7 @@ export default function PreviewWorkspace({
   locale,
   availableStyles,
   sourceCounts,
+  publishedPath = null,
 }: PreviewWorkspaceProps) {
   const loc = asLocale(locale);
   const s = previewStrings(loc);
@@ -77,6 +88,19 @@ export default function PreviewWorkspace({
   // preview with no explanation).
   const [renderError, setRenderError] = useState<null | "rate" | "fail">(null);
   const [pane, setPane] = useState<"editor" | "preview">("editor");
+  // Third-party CTA: copy this page's URL to send to the researcher. Clipboard
+  // only — no email, no invitation, nothing leaves the visitor's device.
+  const [copied, setCopied] = useState(false);
+  const copyLink = useCallback(async () => {
+    trackEvent("Preview CTA", { action: "copy-link" });
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard unavailable (permissions / insecure context): nothing to undo.
+    }
+  }, []);
   // Which surface the preview renders: the document (export) render, or the living
   // public page — which applies the chosen animated publicStyle.
   const [previewSurface, setPreviewSurface] = useState<"document" | "public">("document");
@@ -153,7 +177,19 @@ export default function PreviewWorkspace({
         </span>
         <div className="preview-app-cta">
           <span className="preview-app-note">{s.editNote}</span>
-          <form action={signInWithOrcid}>
+          <button
+            type="button"
+            className="hp2-btn preview-app-copy"
+            onClick={copyLink}
+            data-testid="preview-copy-link"
+            aria-live="polite"
+          >
+            {copied ? s.copied : s.ctaCopyLink}
+          </button>
+          <form
+            action={signInWithOrcid}
+            onSubmit={() => trackEvent("Preview CTA", { action: "signin" })}
+          >
             <SignInButton
               method="orcid"
               className="hp2-btn hp2-btn-primary preview-app-signin"
@@ -164,6 +200,32 @@ export default function PreviewWorkspace({
           </form>
         </div>
       </header>
+
+      {/* Third-party framing: what this page is (and is not) about the person. */}
+      <aside
+        className={`preview-app-banner${publishedPath ? " is-published" : ""}`}
+        data-testid="preview-banner"
+      >
+        <p className="preview-app-banner-text">
+          {publishedPath ? s.bannerPublished : s.bannerAutomatic}
+          {publishedPath ? (
+            <>
+              {" "}
+              <a
+                href={publishedPath}
+                className="preview-app-banner-link"
+                data-testid="preview-published-link"
+                onClick={() => trackEvent("Preview CTA", { action: "published-page" })}
+              >
+                {s.ctaPublishedPage}
+              </a>
+            </>
+          ) : null}
+        </p>
+        <p className="preview-app-banner-promise muted">
+          {s.promise} <a href="/privacy#preview">{s.objectLink}</a>
+        </p>
+      </aside>
 
       {/* Mobile pane switch — both panes sit side-by-side on desktop. */}
       <div className="pane-tabs" aria-label={`${eu.tabEditor} / ${eu.tabPreview}`}>

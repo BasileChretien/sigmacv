@@ -51,6 +51,21 @@ export interface PreviewStrings {
   editNote: string;
   /** Link back to the home page. */
   back: string;
+  /** Third-party framing (the visitor may not be the owner). `bannerAutomatic`: the
+   *  record is a raw machine build, unreviewed, figure-free; `bannerPublished`: the
+   *  researcher has a published, indexable page — read that instead. */
+  bannerAutomatic: string;
+  bannerPublished: string;
+  /** Link text to the researcher's published page (only when indexable). */
+  ctaPublishedPage: string;
+  /** The one-sentence promise of the lookup: what it is for, and what it is not. */
+  promise: string;
+  /** Link to the privacy notice's objection route for non-users. */
+  objectLink: string;
+  /** Third-party CTA: copy the preview link to send to the researcher. */
+  ctaCopyLink: string;
+  /** Transient confirmation after copying. */
+  copied: string;
 }
 
 const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
@@ -60,11 +75,11 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formCta: "Preview my CV",
     metaTitle: "CV preview",
     builtFromPublic:
-      "This preview is built live from public data (OpenAlex and ORCID). Sign in to curate it, pick a citation style, and make it yours.",
-    ctaSignIn: "Sign in with ORCID to save, edit & publish",
+      "This preview is built live from public data (OpenAlex, ORCID and other open sources). If it is your record, sign in to curate it, pick a citation style and make it yours.",
+    ctaSignIn: "This is my record — sign in with ORCID",
     emptyHeading: "No public record found yet",
     emptyBody:
-      "We couldn't find a public research record for this ORCID iD. Sign in and SigmaCV will help you build your CV anyway.",
+      "We couldn't find a public research record for this ORCID iD. If it is yours, sign in and SigmaCV will help you build your CV anyway.",
     invalidHeading: "That doesn't look like an ORCID iD",
     invalidBody: "An ORCID iD looks like 0000-0000-0000-0000. Check it and try again.",
     rateLimitedHeading: "Too many previews",
@@ -77,12 +92,22 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
       "Preview updates paused briefly (too many refreshes). Your edits are safe — it'll catch up in a moment.",
     refreshFailed:
       "Couldn't refresh the preview just now. Your edits are safe — it'll retry on your next change.",
-    loadingTitle: "Building your CV preview",
+    loadingTitle: "Building the CV preview",
     loadingBody:
-      "Gathering your work from public sources (OpenAlex, ORCID) and formatting it. This usually takes a few seconds.",
-    ctaKeep: "Sign in to save & publish",
-    editNote: "Live preview — curate and restyle freely. Sign in to save, publish, or export.",
+      "Gathering this researcher's public work from open sources (OpenAlex, ORCID) and formatting it. This usually takes a few seconds.",
+    ctaKeep: "This is my record — sign in to save & publish",
+    editNote:
+      "Live preview — curate and restyle freely; nothing is saved. Sign in as the owner to save, publish or export.",
     back: "Back to SigmaCV",
+    bannerAutomatic:
+      "Automatic preview — assembled from open sources, not published or reviewed on SigmaCV. It may include work by others with the same name, and it shows no citation figures or indices.",
+    bannerPublished:
+      "Curated by the researcher — this record has a published SigmaCV page. Read that page for what the researcher chose to show; this preview is the raw machine build.",
+    ctaPublishedPage: "Open the published page",
+    promise: "Look up what a researcher has published — not how they score.",
+    objectLink: "Don't want your record previewed? How to object",
+    ctaCopyLink: "Know this researcher? Copy the link",
+    copied: "Link copied",
   },
   "zh-CN": {
     formPrompt: "想先看看效果？",
@@ -90,10 +115,11 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formCta: "预览我的简历",
     metaTitle: "简历预览",
     builtFromPublic:
-      "此预览根据公开数据（OpenAlex 和 ORCID）实时生成。登录后即可整理内容、选择引用样式，并将其打造成您自己的简历。",
-    ctaSignIn: "使用 ORCID 登录以保存、编辑和发布",
+      "此预览根据公开数据（OpenAlex、ORCID 及其他开放数据源）实时生成。如果这是您的记录，请登录以整理内容、选择引用样式，并将其打造成您自己的简历。",
+    ctaSignIn: "这是我的记录——使用 ORCID 登录",
     emptyHeading: "暂未找到公开记录",
-    emptyBody: "我们没有找到与此 ORCID iD 对应的公开研究记录。登录后，SigmaCV 仍会帮助您创建简历。",
+    emptyBody:
+      "我们没有找到与此 ORCID iD 对应的公开研究记录。如果这是您的 iD，请登录，SigmaCV 仍会帮助您创建简历。",
     invalidHeading: "这看起来不是 ORCID iD",
     invalidBody: "ORCID iD 的格式类似 0000-0000-0000-0000。请检查后重试。",
     rateLimitedHeading: "预览次数过多",
@@ -102,11 +128,22 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     errorBody: "我们暂时无法生成此预览——某个数据源可能暂时不可用。请稍后再试。",
     refreshPaused: "预览更新已暂停片刻（刷新过于频繁）。您的编辑已安全保留——稍后会自动更新。",
     refreshFailed: "暂时无法刷新预览。您的编辑已安全保留——下次修改时会自动重试。",
-    loadingTitle: "正在生成您的简历预览",
-    loadingBody: "正在从公开数据源（OpenAlex、ORCID）收集并整理您的成果。通常需要几秒钟。",
-    ctaKeep: "登录以保存和发布",
-    editNote: "实时预览——可自由整理和调整样式。登录后即可保存、发布或导出。",
+    loadingTitle: "正在生成简历预览",
+    loadingBody:
+      "正在从公开数据源（OpenAlex、ORCID）收集并整理这位研究者的公开成果。通常需要几秒钟。",
+    ctaKeep: "这是我的记录——登录以保存和发布",
+    editNote:
+      "实时预览——可自由整理和调整样式；不会保存任何内容。以本人身份登录后即可保存、发布或导出。",
     back: "返回 SigmaCV",
+    bannerAutomatic:
+      "自动预览——依据公开数据源生成，未在 SigmaCV 上发布，也未经本人审核。其中可能包含同名他人的成果，并且不显示任何引用数字或指数。",
+    bannerPublished:
+      "由研究者本人整理——该记录已有一个发布的 SigmaCV 页面。请阅读该页面了解研究者选择展示的内容；此预览只是原始的机器生成版本。",
+    ctaPublishedPage: "打开已发布的页面",
+    promise: "查看研究者发表了什么——而不是给他们打分。",
+    objectLink: "不希望您的记录被预览？了解如何提出反对",
+    ctaCopyLink: "认识这位研究者？复制链接",
+    copied: "链接已复制",
   },
   "es-ES": {
     formPrompt: "¿Prefieres verlo primero?",
@@ -114,11 +151,11 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formCta: "Ver la vista previa de mi CV",
     metaTitle: "Vista previa del CV",
     builtFromPublic:
-      "Esta vista previa se genera en directo a partir de datos públicos (OpenAlex y ORCID). Inicia sesión para personalizarlo, elegir un estilo de cita y hacerlo tuyo.",
-    ctaSignIn: "Inicia sesión con ORCID para guardar, editar y publicar",
+      "Esta vista previa se genera en directo a partir de datos públicos (OpenAlex, ORCID y otras fuentes abiertas). Si es tu registro, inicia sesión para personalizarlo, elegir un estilo de cita y hacerlo tuyo.",
+    ctaSignIn: "Este es mi registro: iniciar sesión con ORCID",
     emptyHeading: "Aún no se ha encontrado ningún registro público",
     emptyBody:
-      "No hemos encontrado ningún registro de investigación público para este iD ORCID. Inicia sesión y SigmaCV te ayudará a crear tu CV de todos modos.",
+      "No hemos encontrado ningún registro de investigación público para este iD ORCID. Si es tuyo, inicia sesión y SigmaCV te ayudará a crear tu CV de todos modos.",
     invalidHeading: "Esto no parece un iD ORCID",
     invalidBody:
       "Un iD ORCID tiene el formato 0000-0000-0000-0000. Compruébalo e inténtalo de nuevo.",
@@ -132,13 +169,22 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
       "La actualización de la vista previa se ha pausado un momento (demasiados refrescos). Tus cambios están a salvo y se pondrá al día enseguida.",
     refreshFailed:
       "No se pudo actualizar la vista previa ahora mismo. Tus cambios están a salvo: se reintentará con tu próxima edición.",
-    loadingTitle: "Generando la vista previa de tu CV",
+    loadingTitle: "Generando la vista previa del CV",
     loadingBody:
-      "Reuniendo tu trabajo de fuentes públicas (OpenAlex, ORCID) y dándole formato. Esto suele tardar unos segundos.",
-    ctaKeep: "Inicia sesión para guardar y publicar",
+      "Recopilando las obras públicas de este investigador desde fuentes abiertas (OpenAlex, ORCID) y dándoles formato. Suele tardar unos segundos.",
+    ctaKeep: "Este es mi registro: iniciar sesión para guardar y publicar",
     editNote:
-      "Vista previa en vivo: organiza y personaliza libremente. Inicia sesión para guardar, publicar o exportar.",
+      "Vista previa en directo: personaliza y cambia el estilo libremente; no se guarda nada. Inicia sesión como titular para guardar, publicar o exportar.",
     back: "Volver a SigmaCV",
+    bannerAutomatic:
+      "Vista previa automática: generada a partir de fuentes abiertas, no publicada ni revisada en SigmaCV. Puede incluir obras de otras personas con el mismo nombre y no muestra cifras de citas ni índices.",
+    bannerPublished:
+      "Curada por el investigador: este registro tiene una página SigmaCV publicada. Consulta esa página para ver lo que el investigador decidió mostrar; esta vista previa es la construcción automática en bruto.",
+    ctaPublishedPage: "Abrir la página publicada",
+    promise: "Consulta qué ha publicado un investigador, no cómo puntúa.",
+    objectLink: "¿No quieres que se muestre tu registro? Cómo oponerte",
+    ctaCopyLink: "¿Conoces a este investigador? Copia el enlace",
+    copied: "Enlace copiado",
   },
   "fr-FR": {
     formPrompt: "Envie de voir le résultat d'abord ?",
@@ -146,11 +192,11 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formCta: "Prévisualiser mon CV",
     metaTitle: "Aperçu du CV",
     builtFromPublic:
-      "Cet aperçu est généré en direct à partir de données publiques (OpenAlex et ORCID). Connectez-vous pour le personnaliser, choisir un style de citation et le faire vôtre.",
-    ctaSignIn: "Se connecter avec ORCID pour enregistrer, modifier et publier",
+      "Cet aperçu est construit en direct à partir de données publiques (OpenAlex, ORCID et d'autres sources ouvertes). Si c'est votre notice, connectez-vous pour la trier, choisir un style de citation et vous l'approprier.",
+    ctaSignIn: "C'est ma notice — se connecter avec ORCID",
     emptyHeading: "Aucune trace publique trouvée pour l'instant",
     emptyBody:
-      "Nous n'avons trouvé aucun dossier de recherche public pour cet iD ORCID. Connectez-vous et SigmaCV vous aidera à construire votre CV malgré tout.",
+      "Nous n'avons trouvé aucune notice de recherche publique pour cet ORCID iD. Si c'est le vôtre, connectez-vous et SigmaCV vous aidera quand même à construire votre CV.",
     invalidHeading: "Cela ne ressemble pas à un iD ORCID",
     invalidBody: "Un iD ORCID ressemble à 0000-0000-0000-0000. Vérifiez-le et réessayez.",
     rateLimitedHeading: "Trop d'aperçus",
@@ -163,13 +209,22 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
       "La mise à jour de l'aperçu est suspendue un instant (trop de rafraîchissements). Vos modifications sont conservées et l'aperçu se mettra à jour sous peu.",
     refreshFailed:
       "Impossible d'actualiser l'aperçu pour le moment. Vos modifications sont conservées — une nouvelle tentative aura lieu à votre prochaine modification.",
-    loadingTitle: "Construction de l’aperçu de votre CV",
+    loadingTitle: "Construction de l'aperçu du CV",
     loadingBody:
-      "Nous rassemblons vos travaux depuis des sources publiques (OpenAlex, ORCID) et les mettons en forme. Cela prend généralement quelques secondes.",
-    ctaKeep: "Se connecter pour enregistrer et publier",
+      "Collecte des travaux publics de ce chercheur depuis les sources ouvertes (OpenAlex, ORCID) et mise en forme. Cela prend généralement quelques secondes.",
+    ctaKeep: "C'est ma notice — se connecter pour enregistrer et publier",
     editNote:
-      "Aperçu en direct — organisez et personnalisez librement. Connectez-vous pour enregistrer, publier ou exporter.",
+      "Aperçu en direct — triez et restylez librement ; rien n'est enregistré. Connectez-vous en tant que titulaire pour enregistrer, publier ou exporter.",
     back: "Retour à SigmaCV",
+    bannerAutomatic:
+      "Aperçu automatique — assemblé à partir de sources ouvertes, ni publié ni vérifié sur SigmaCV. Il peut inclure des travaux d'homonymes et n'affiche aucun chiffre de citations ni indice.",
+    bannerPublished:
+      "Établi par le chercheur — cette notice dispose d'une page SigmaCV publiée. Consultez cette page pour ce que le chercheur a choisi de montrer ; cet aperçu est la construction automatique brute.",
+    ctaPublishedPage: "Ouvrir la page publiée",
+    promise: "Voir ce qu'un chercheur a publié — pas comment il est noté.",
+    objectLink: "Vous ne souhaitez pas que votre notice soit affichée ? Comment vous y opposer",
+    ctaCopyLink: "Vous connaissez ce chercheur ? Copier le lien",
+    copied: "Lien copié",
   },
   "de-DE": {
     formPrompt: "Möchten Sie es erst einmal sehen?",
@@ -177,11 +232,11 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formCta: "Lebenslauf-Vorschau ansehen",
     metaTitle: "Lebenslauf-Vorschau",
     builtFromPublic:
-      "Diese Vorschau wird live aus öffentlichen Daten (OpenAlex und ORCID) erstellt. Melden Sie sich an, um ihn anzupassen, einen Zitationsstil zu wählen und ihn zu Ihrem eigenen zu machen.",
-    ctaSignIn: "Mit ORCID anmelden, um zu speichern, zu bearbeiten und zu veröffentlichen",
+      "Diese Vorschau wird live aus öffentlichen Daten erstellt (OpenAlex, ORCID und weitere offene Quellen). Ist es Ihr Nachweis, melden Sie sich an, um ihn zu kuratieren, einen Zitierstil zu wählen und ihn zu Ihrem zu machen.",
+    ctaSignIn: "Das ist mein Nachweis – mit ORCID anmelden",
     emptyHeading: "Noch kein öffentlicher Eintrag gefunden",
     emptyBody:
-      "Wir konnten für diese ORCID iD keinen öffentlichen Forschungsdatensatz finden. Melden Sie sich an, und SigmaCV hilft Ihnen trotzdem beim Aufbau Ihres Lebenslaufs.",
+      "Wir haben für diese ORCID iD keinen öffentlichen Forschungsnachweis gefunden. Ist es Ihre iD, melden Sie sich an – SigmaCV hilft Ihnen trotzdem beim Aufbau Ihres Lebenslaufs.",
     invalidHeading: "Das sieht nicht nach einer ORCID iD aus",
     invalidBody:
       "Eine ORCID iD sieht so aus: 0000-0000-0000-0000. Bitte prüfen Sie sie und versuchen Sie es erneut.",
@@ -195,13 +250,23 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
       "Die Vorschau-Aktualisierung ist kurz pausiert (zu viele Aktualisierungen). Ihre Änderungen sind sicher und die Vorschau zieht gleich nach.",
     refreshFailed:
       "Die Vorschau konnte gerade nicht aktualisiert werden. Ihre Änderungen sind sicher — bei Ihrer nächsten Bearbeitung wird es erneut versucht.",
-    loadingTitle: "Ihre Lebenslauf-Vorschau wird erstellt",
+    loadingTitle: "Die Lebenslauf-Vorschau wird erstellt",
     loadingBody:
-      "Wir sammeln Ihre Arbeiten aus öffentlichen Quellen (OpenAlex, ORCID) und formatieren sie. Das dauert in der Regel einige Sekunden.",
-    ctaKeep: "Anmelden zum Speichern und Veröffentlichen",
+      "Die öffentlichen Werke dieser Person werden aus offenen Quellen (OpenAlex, ORCID) gesammelt und formatiert. Das dauert meist nur wenige Sekunden.",
+    ctaKeep: "Das ist mein Nachweis – anmelden, um zu speichern und zu veröffentlichen",
     editNote:
-      "Live-Vorschau – frei kuratieren und umgestalten. Melden Sie sich an, um zu speichern, zu veröffentlichen oder zu exportieren.",
+      "Live-Vorschau – frei kuratieren und umgestalten; nichts wird gespeichert. Als Inhaber anmelden, um zu speichern, zu veröffentlichen oder zu exportieren.",
     back: "Zurück zu SigmaCV",
+    bannerAutomatic:
+      "Automatische Vorschau – aus offenen Quellen zusammengestellt, auf SigmaCV weder veröffentlicht noch geprüft. Sie kann Werke von Namensvettern enthalten und zeigt keine Zitationszahlen oder Indizes.",
+    bannerPublished:
+      "Von der forschenden Person kuratiert – zu diesem Nachweis gibt es eine veröffentlichte SigmaCV-Seite. Dort steht, was die Person zeigen möchte; diese Vorschau ist die rohe maschinelle Zusammenstellung.",
+    ctaPublishedPage: "Veröffentlichte Seite öffnen",
+    promise:
+      "Nachschlagen, was eine forschende Person veröffentlicht hat – nicht, wie sie abschneidet.",
+    objectLink: "Sie möchten keine Vorschau Ihres Nachweises? So widersprechen Sie",
+    ctaCopyLink: "Sie kennen diese Person? Link kopieren",
+    copied: "Link kopiert",
   },
   "ja-JP": {
     formPrompt: "まず結果を見てみますか？",
@@ -209,11 +274,11 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formCta: "CV をプレビュー",
     metaTitle: "CV プレビュー",
     builtFromPublic:
-      "このプレビューは公開データ（OpenAlex と ORCID）からリアルタイムで生成されています。ログインすると、内容を整え、引用スタイルを選び、あなた自身の CV に仕上げられます。",
-    ctaSignIn: "ORCID でログインして保存・編集・公開",
+      "このプレビューは公開データ（OpenAlex、ORCID、その他の公開ソース）からリアルタイムで構築されています。ご自身の記録であれば、ログインして整理し、引用スタイルを選び、自分のものにしてください。",
+    ctaSignIn: "これは私の記録です — ORCID でログイン",
     emptyHeading: "公開記録はまだ見つかりません",
     emptyBody:
-      "この ORCID iD に対応する公開された研究記録は見つかりませんでした。ログインすれば、SigmaCV がそれでも CV の作成をお手伝いします。",
+      "この ORCID iD に対応する公開研究記録は見つかりませんでした。ご自身の iD であれば、ログインしてください。SigmaCV が CV 作成をお手伝いします。",
     invalidHeading: "ORCID iD ではないようです",
     invalidBody:
       "ORCID iD は 0000-0000-0000-0000 のような形式です。ご確認のうえ、もう一度お試しください。",
@@ -227,13 +292,22 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
       "プレビューの更新を少し停止しました（更新が多すぎます）。編集内容は保持されています。まもなく反映されます。",
     refreshFailed:
       "現在プレビューを更新できませんでした。編集内容は保持されています。次の編集時に再試行します。",
-    loadingTitle: "CV プレビューを生成しています",
+    loadingTitle: "CV プレビューを作成しています",
     loadingBody:
-      "公開データソース（OpenAlex、ORCID）からあなたの業績を集めて整えています。通常は数秒で完了します。",
-    ctaKeep: "ログインして保存・公開",
+      "公開ソース（OpenAlex、ORCID）からこの研究者の公開業績を集めて整形しています。通常は数秒で完了します。",
+    ctaKeep: "これは私の記録です — ログインして保存・公開",
     editNote:
-      "ライブプレビュー——自由に整理・スタイル変更できます。保存・公開・書き出しはログイン後に。",
+      "ライブプレビュー — 自由に整理・スタイル変更できますが、何も保存されません。保存・公開・エクスポートは本人としてログインしてください。",
     back: "SigmaCV に戻る",
+    bannerAutomatic:
+      "自動プレビュー — 公開ソースから組み立てたもので、SigmaCV 上で公開も本人確認もされていません。同姓同名の他者の業績が含まれることがあり、引用数や指数は一切表示しません。",
+    bannerPublished:
+      "研究者本人が整理 — この記録には公開済みの SigmaCV ページがあります。研究者が示すと決めた内容はそのページをご覧ください。このプレビューは機械的に組み立てた素の版です。",
+    ctaPublishedPage: "公開ページを開く",
+    promise: "研究者が何を発表したかを調べる — 点数ではなく。",
+    objectLink: "自分の記録をプレビューされたくない場合は？ 異議の申し立て方法",
+    ctaCopyLink: "この研究者をご存じですか？ リンクをコピー",
+    copied: "リンクをコピーしました",
   },
   "pt-BR": {
     formPrompt: "Quer ver primeiro?",
@@ -241,11 +315,11 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formCta: "Pré-visualizar meu CV",
     metaTitle: "Pré-visualização do CV",
     builtFromPublic:
-      "Esta pré-visualização é gerada ao vivo a partir de dados públicos (OpenAlex e ORCID). Entre para organizá-lo, escolher um estilo de citação e torná-lo seu.",
-    ctaSignIn: "Entrar com ORCID para salvar, editar e publicar",
+      "Esta prévia é construída ao vivo a partir de dados públicos (OpenAlex, ORCID e outras fontes abertas). Se for o seu registro, faça login para curá-lo, escolher um estilo de citação e torná-lo seu.",
+    ctaSignIn: "Este é o meu registro — entrar com ORCID",
     emptyHeading: "Nenhum registro público encontrado ainda",
     emptyBody:
-      "Não encontramos um registro de pesquisa público para este iD ORCID. Entre e o SigmaCV ajudará você a montar seu CV mesmo assim.",
+      "Não encontramos um registro público de pesquisa para este ORCID iD. Se for o seu, faça login e o SigmaCV ajudará você a montar o seu CV mesmo assim.",
     invalidHeading: "Isso não parece um iD ORCID",
     invalidBody: "Um iD ORCID tem o formato 0000-0000-0000-0000. Verifique e tente novamente.",
     rateLimitedHeading: "Muitas pré-visualizações",
@@ -258,13 +332,22 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
       "A atualização da pré-visualização foi pausada por um momento (muitas atualizações). Suas edições estão seguras e ela se atualizará em breve.",
     refreshFailed:
       "Não foi possível atualizar a pré-visualização agora. Suas edições estão seguras — tentaremos novamente na sua próxima alteração.",
-    loadingTitle: "Gerando a pré-visualização do seu CV",
+    loadingTitle: "Montando a prévia do CV",
     loadingBody:
-      "Reunindo seu trabalho de fontes públicas (OpenAlex, ORCID) e formatando-o. Isso geralmente leva alguns segundos.",
-    ctaKeep: "Entrar para salvar e publicar",
+      "Reunindo os trabalhos públicos deste pesquisador em fontes abertas (OpenAlex, ORCID) e formatando-os. Normalmente leva alguns segundos.",
+    ctaKeep: "Este é o meu registro — entrar para salvar e publicar",
     editNote:
-      "Pré-visualização ao vivo — organize e personalize à vontade. Entre para salvar, publicar ou exportar.",
+      "Prévia ao vivo — cure e reestilize à vontade; nada é salvo. Entre como titular para salvar, publicar ou exportar.",
     back: "Voltar ao SigmaCV",
+    bannerAutomatic:
+      "Prévia automática — montada a partir de fontes abertas, não publicada nem revisada no SigmaCV. Pode incluir trabalhos de homônimos e não mostra números de citações nem índices.",
+    bannerPublished:
+      "Curada pelo pesquisador — este registro tem uma página SigmaCV publicada. Consulte essa página para ver o que o pesquisador escolheu mostrar; esta prévia é a montagem automática bruta.",
+    ctaPublishedPage: "Abrir a página publicada",
+    promise: "Consulte o que um pesquisador publicou — não a pontuação dele.",
+    objectLink: "Não quer que seu registro seja exibido? Como se opor",
+    ctaCopyLink: "Conhece este pesquisador? Copiar o link",
+    copied: "Link copiado",
   },
   "it-IT": {
     formPrompt: "Vuoi prima dare un'occhiata?",
@@ -272,11 +355,11 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formCta: "Anteprima del mio CV",
     metaTitle: "Anteprima del CV",
     builtFromPublic:
-      "Questa anteprima è generata in tempo reale da dati pubblici (OpenAlex e ORCID). Accedi per personalizzarlo, scegliere uno stile di citazione e renderlo tuo.",
-    ctaSignIn: "Accedi con ORCID per salvare, modificare e pubblicare",
+      "Questa anteprima è costruita in tempo reale da dati pubblici (OpenAlex, ORCID e altre fonti aperte). Se è la tua registrazione, accedi per curarla, scegliere uno stile di citazione e farla tua.",
+    ctaSignIn: "È la mia registrazione — accedi con ORCID",
     emptyHeading: "Nessun record pubblico trovato per ora",
     emptyBody:
-      "Non abbiamo trovato un record di ricerca pubblico per questo iD ORCID. Accedi e SigmaCV ti aiuterà comunque a creare il tuo CV.",
+      "Non abbiamo trovato alcuna registrazione pubblica della ricerca per questo ORCID iD. Se è il tuo, accedi e SigmaCV ti aiuterà comunque a costruire il tuo CV.",
     invalidHeading: "Questo non sembra un iD ORCID",
     invalidBody: "Un iD ORCID ha il formato 0000-0000-0000-0000. Controllalo e riprova.",
     rateLimitedHeading: "Troppe anteprime",
@@ -289,13 +372,22 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
       "L'aggiornamento dell'anteprima è in pausa per un momento (troppi aggiornamenti). Le tue modifiche sono al sicuro e l'anteprima si aggiornerà a breve.",
     refreshFailed:
       "Non è stato possibile aggiornare l'anteprima al momento. Le tue modifiche sono al sicuro — verrà riprovato alla prossima modifica.",
-    loadingTitle: "Creazione dell’anteprima del tuo CV",
+    loadingTitle: "Costruzione dell'anteprima del CV",
     loadingBody:
-      "Stiamo raccogliendo i tuoi lavori da fonti pubbliche (OpenAlex, ORCID) e li stiamo formattando. Di solito richiede qualche secondo.",
-    ctaKeep: "Accedi per salvare e pubblicare",
+      "Raccolta dei lavori pubblici di questo ricercatore da fonti aperte (OpenAlex, ORCID) e formattazione. Di solito richiede pochi secondi.",
+    ctaKeep: "È la mia registrazione — accedi per salvare e pubblicare",
     editNote:
-      "Anteprima dal vivo — organizza e personalizza liberamente. Accedi per salvare, pubblicare o esportare.",
+      "Anteprima in tempo reale — cura e ristilizza liberamente; nulla viene salvato. Accedi come titolare per salvare, pubblicare o esportare.",
     back: "Torna a SigmaCV",
+    bannerAutomatic:
+      "Anteprima automatica — assemblata da fonti aperte, non pubblicata né verificata su SigmaCV. Può includere lavori di omonimi e non mostra alcun numero di citazioni né indice.",
+    bannerPublished:
+      "Curata dal ricercatore — questa registrazione ha una pagina SigmaCV pubblicata. Consulta quella pagina per ciò che il ricercatore ha scelto di mostrare; questa anteprima è la costruzione automatica grezza.",
+    ctaPublishedPage: "Apri la pagina pubblicata",
+    promise: "Scopri cosa ha pubblicato un ricercatore — non il suo punteggio.",
+    objectLink: "Non vuoi che la tua registrazione venga mostrata? Come opporsi",
+    ctaCopyLink: "Conosci questo ricercatore? Copia il link",
+    copied: "Link copiato",
   },
   "ko-KR": {
     formPrompt: "먼저 확인해 보시겠어요?",
@@ -303,11 +395,11 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formCta: "내 CV 미리보기",
     metaTitle: "CV 미리보기",
     builtFromPublic:
-      "이 미리보기는 공개 데이터(OpenAlex 및 ORCID)를 바탕으로 실시간으로 생성됩니다. 로그인하면 내용을 정리하고 인용 스타일을 선택해 나만의 CV로 완성할 수 있습니다.",
-    ctaSignIn: "ORCID로 로그인하여 저장, 편집 및 게시",
+      "이 미리보기는 공개 데이터(OpenAlex, ORCID 및 기타 공개 소스)로 실시간 구성됩니다. 본인의 기록이라면 로그인하여 정리하고, 인용 스타일을 선택해 자신의 것으로 만드십시오.",
+    ctaSignIn: "이것은 내 기록입니다 — ORCID로 로그인",
     emptyHeading: "아직 공개 기록을 찾지 못했습니다",
     emptyBody:
-      "이 ORCID iD에 대한 공개 연구 기록을 찾지 못했습니다. 로그인하시면 SigmaCV가 그래도 CV 작성을 도와드립니다.",
+      "이 ORCID iD에 대한 공개 연구 기록을 찾지 못했습니다. 본인의 iD라면 로그인하십시오. SigmaCV가 CV 작성을 도와드립니다.",
     invalidHeading: "ORCID iD가 아닌 것 같습니다",
     invalidBody: "ORCID iD는 0000-0000-0000-0000 형식입니다. 확인 후 다시 시도해 주세요.",
     rateLimitedHeading: "미리보기 요청이 너무 많습니다",
@@ -322,11 +414,20 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
       "지금은 미리보기를 새로 고치지 못했습니다. 편집 내용은 안전하며 다음 편집 시 다시 시도합니다.",
     loadingTitle: "CV 미리보기를 생성하는 중",
     loadingBody:
-      "공개 데이터 출처(OpenAlex, ORCID)에서 연구 성과를 수집하고 서식을 적용하고 있습니다. 보통 몇 초 정도 걸립니다.",
-    ctaKeep: "로그인하여 저장 및 게시",
+      "공개 소스(OpenAlex, ORCID)에서 이 연구자의 공개 성과를 수집하여 정리하고 있습니다. 보통 몇 초 걸립니다.",
+    ctaKeep: "이것은 내 기록입니다 — 로그인하여 저장 및 게시",
     editNote:
-      "실시간 미리보기 — 자유롭게 정리하고 스타일을 바꿔 보세요. 저장, 게시, 내보내기는 로그인 후 가능합니다.",
+      "실시간 미리보기 — 자유롭게 정리하고 스타일을 바꿀 수 있지만 아무것도 저장되지 않습니다. 저장·게시·내보내기는 본인으로 로그인하십시오.",
     back: "SigmaCV로 돌아가기",
+    bannerAutomatic:
+      "자동 미리보기 — 공개 소스로 구성되었으며 SigmaCV에 게시되지도, 본인이 검토하지도 않았습니다. 동명이인의 성과가 포함될 수 있으며 인용 수치나 지수는 표시하지 않습니다.",
+    bannerPublished:
+      "연구자 본인이 정리 — 이 기록에는 게시된 SigmaCV 페이지가 있습니다. 연구자가 보여주기로 선택한 내용은 그 페이지에서 확인하십시오. 이 미리보기는 기계가 구성한 원본입니다.",
+    ctaPublishedPage: "게시된 페이지 열기",
+    promise: "연구자가 무엇을 발표했는지 조회하십시오 — 점수가 아니라.",
+    objectLink: "본인 기록이 미리보기되는 것을 원하지 않으십니까? 이의 제기 방법",
+    ctaCopyLink: "이 연구자를 아십니까? 링크 복사",
+    copied: "링크가 복사되었습니다",
   },
   "ru-RU": {
     formPrompt: "Хотите сначала посмотреть?",
@@ -334,11 +435,11 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formCta: "Предпросмотр моего CV",
     metaTitle: "Предпросмотр CV",
     builtFromPublic:
-      "Этот предпросмотр создаётся в реальном времени из открытых данных (OpenAlex и ORCID). Войдите, чтобы отредактировать его, выбрать стиль цитирования и сделать его своим.",
-    ctaSignIn: "Войдите через ORCID, чтобы сохранять, редактировать и публиковать",
+      "Этот предпросмотр собирается в реальном времени из открытых данных (OpenAlex, ORCID и другие открытые источники). Если это ваша запись, войдите, чтобы отредактировать её, выбрать стиль цитирования и сделать своей.",
+    ctaSignIn: "Это моя запись — войти через ORCID",
     emptyHeading: "Публичных записей пока не найдено",
     emptyBody:
-      "Мы не нашли публичных научных записей для этого ORCID iD. Войдите, и SigmaCV всё равно поможет вам составить CV.",
+      "Мы не нашли открытой научной записи для этого ORCID iD. Если он ваш, войдите — SigmaCV всё равно поможет вам составить CV.",
     invalidHeading: "Это не похоже на ORCID iD",
     invalidBody: "ORCID iD выглядит так: 0000-0000-0000-0000. Проверьте его и попробуйте снова.",
     rateLimitedHeading: "Слишком много запросов предпросмотра",
@@ -351,13 +452,22 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
       "Обновление предпросмотра приостановлено на мгновение (слишком много обновлений). Ваши изменения сохранены, предпросмотр скоро обновится.",
     refreshFailed:
       "Не удалось обновить предпросмотр сейчас. Ваши изменения сохранены — повторим при следующем редактировании.",
-    loadingTitle: "Создаём предпросмотр вашего CV",
+    loadingTitle: "Формируется предпросмотр CV",
     loadingBody:
-      "Собираем ваши работы из открытых источников (OpenAlex, ORCID) и форматируем их. Обычно это занимает несколько секунд.",
-    ctaKeep: "Войти, чтобы сохранить и опубликовать",
+      "Собираем открытые работы этого исследователя из открытых источников (OpenAlex, ORCID) и оформляем их. Обычно это занимает несколько секунд.",
+    ctaKeep: "Это моя запись — войти, чтобы сохранить и опубликовать",
     editNote:
-      "Живой предпросмотр — свободно редактируйте и меняйте стиль. Войдите, чтобы сохранить, опубликовать или экспортировать.",
+      "Предпросмотр в реальном времени — редактируйте и меняйте стиль свободно; ничего не сохраняется. Войдите как владелец, чтобы сохранить, опубликовать или экспортировать.",
     back: "Назад в SigmaCV",
+    bannerAutomatic:
+      "Автоматический предпросмотр — собран из открытых источников, не опубликован и не проверен на SigmaCV. Может содержать работы однофамильцев и не показывает ни показателей цитирования, ни индексов.",
+    bannerPublished:
+      "Составлено самим исследователем — у этой записи есть опубликованная страница SigmaCV. То, что исследователь решил показать, смотрите на ней; этот предпросмотр — необработанная машинная сборка.",
+    ctaPublishedPage: "Открыть опубликованную страницу",
+    promise: "Узнайте, что опубликовал исследователь, — а не сколько у него баллов.",
+    objectLink: "Не хотите, чтобы вашу запись показывали? Как возразить",
+    ctaCopyLink: "Знаете этого исследователя? Скопировать ссылку",
+    copied: "Ссылка скопирована",
   },
 };
 

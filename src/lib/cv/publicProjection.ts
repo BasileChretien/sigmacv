@@ -192,9 +192,14 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
  * never emit that metadata and only render INCLUDED items, so nothing extra leaks
  * on any HTML/machine render — the metadata lives only in the editor's UI.
  *
- * Metrics + per-year chart data are kept (not gated) so the editor's show-metrics
- * toggle has data to reveal; the renderers still honour `display.showMetrics` /
- * `showCharts`, so a toggled-off figure never renders. Pure + immutable.
+ * NO FIGURE ABOUT THE PERSON. The visitor may be anyone, and only the researcher
+ * may put a number on their own record (they sign in to do so). So this strips
+ * the author-level metrics and the per-year series, every per-work indicator
+ * (citation counts, FWCI, top-decile flag, RCR, clinical citations, APT, the
+ * OpenCitations count) and forces the corresponding display toggles off — so
+ * neither the render nor the anonymous editor's controls can surface a figure,
+ * whatever a visitor toggles. A citation sort is reset to newest-first for the
+ * same reason. The privacy notice promises exactly this. Pure + immutable.
  */
 export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
   return {
@@ -205,6 +210,9 @@ export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
       // Rirekisho personal fields never auto-surface (no opt-in); an anonymous
       // build never populates them, but strip defensively.
       personal: undefined,
+      // Author-level figures and the per-year series: never for a non-owner.
+      metrics: undefined,
+      countsByYear: [],
     },
     // Keep every item + its review cues (reviewFlag/duplicateOf/misattribution),
     // but strip `meta.coauthorOrcids` — a raw list of THIRD-PARTY ORCID iDs used
@@ -225,11 +233,31 @@ export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
           refCount: undefined,
           selfRefs: undefined,
           funders: undefined,
+          // Per-work figures (see the module note): none survive.
+          citedByCount: undefined,
+          fwci: undefined,
+          topDecile: undefined,
+          rcr: undefined,
+          clinicalCitations: undefined,
+          apt: undefined,
+          citedByOpenCitations: undefined,
         },
       })),
     })),
     // Owner-only scratchpad + saved editor layouts: never for a non-owner viewer.
     notes: undefined,
     presets: [],
+    display: {
+      ...cv.display,
+      showMetrics: false,
+      metrics: [],
+      showCharts: false,
+      showCitationCounts: false,
+      showWorkIndicators: false,
+      showAuthorshipTable: false,
+      authorshipRoles: [],
+      publicationOrder:
+        cv.display.publicationOrder === "citations" ? "year-desc" : cv.display.publicationOrder,
+    },
   };
 }
