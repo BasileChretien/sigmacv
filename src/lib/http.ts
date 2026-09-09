@@ -30,6 +30,14 @@ export interface ResilientFetchOptions {
 const DEFAULT_TIMEOUT_MS = 15_000;
 const DEFAULT_RETRIES = 2;
 const MAX_BACKOFF_MS = 8_000;
+/**
+ * Cap on ONE `Retry-After` wait. The header is honoured (it is the polite
+ * thing to do) but an upstream asking for an hour would otherwise hold a sync
+ * — or a whole cron tick, which now makes a few hundred paced calls — hostage
+ * to a single response; past this the request simply retries and, if still
+ * rate-limited, fails fast to the caller's fail-soft path.
+ */
+const MAX_RETRY_AFTER_MS = 30_000;
 
 function backoffMs(attempt: number): number {
   // 400ms, 800ms, 1600ms … capped.
@@ -40,7 +48,7 @@ function retryAfterMs(res: Response): number | null {
   const ra = res.headers.get("retry-after");
   if (!ra) return null;
   const secs = Number(ra);
-  return Number.isFinite(secs) ? secs * 1000 : null;
+  return Number.isFinite(secs) ? Math.min(MAX_RETRY_AFTER_MS, secs * 1000) : null;
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

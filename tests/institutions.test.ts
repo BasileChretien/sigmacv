@@ -44,8 +44,8 @@ import {
   countListedCvs,
   countListedCvsByRor,
   recordInstitutions,
-  trustedInstitutionName,
   trustedInstitutionNames,
+  trustedInstitutionRecord,
 } from "@/lib/cv/listed";
 import {
   MIN_INDEXABLE_LISTED,
@@ -132,17 +132,34 @@ describe("listed.ts counters (database only)", () => {
 });
 
 describe("listed.ts trusted names (the Institution table, never a CV column)", () => {
-  it("trustedInstitutionName reads the ROR-recorded row by id, trimmed, or null", async () => {
-    mocks.institutionFindUnique.mockResolvedValue({ name: "  Nagoya University  " });
-    await expect(trustedInstitutionName(ROR)).resolves.toBe("Nagoya University");
+  it("trustedInstitutionRecord reads the ROR-recorded row by id (name trimmed, blank → null) with its OpenAlex columns, or null", async () => {
+    const fetchedAt = new Date("2026-09-09T10:00:00Z");
+    mocks.institutionFindUnique.mockResolvedValue({
+      name: "  Nagoya University  ",
+      openalexId: "I60134161",
+      openalexAggregates: { version: 1 },
+      openalexFetchedAt: fetchedAt,
+    });
+    await expect(trustedInstitutionRecord(ROR)).resolves.toEqual({
+      name: "Nagoya University",
+      openalexId: "I60134161",
+      openalexAggregates: { version: 1 },
+      openalexFetchedAt: fetchedAt,
+    });
     expect(mocks.institutionFindUnique).toHaveBeenCalledWith({
       where: { rorId: ROR },
-      select: { name: true },
+      select: { name: true, openalexId: true, openalexAggregates: true, openalexFetchedAt: true },
     });
     mocks.institutionFindUnique.mockResolvedValue(null);
-    await expect(trustedInstitutionName(ROR)).resolves.toBeNull();
+    await expect(trustedInstitutionRecord(ROR)).resolves.toBeNull();
+    // A row the OpenAlex job has not touched (or cleared): null columns.
     mocks.institutionFindUnique.mockResolvedValue({ name: "   " });
-    await expect(trustedInstitutionName(ROR)).resolves.toBeNull();
+    await expect(trustedInstitutionRecord(ROR)).resolves.toEqual({
+      name: null,
+      openalexId: null,
+      openalexAggregates: null,
+      openalexFetchedAt: null,
+    });
     // Never the Cv table.
     expect(mocks.findFirst).not.toHaveBeenCalled();
     expect(mocks.findMany).not.toHaveBeenCalled();
@@ -222,6 +239,7 @@ describe("institutionSummary", () => {
       rorId: ROR,
       name: "Nagoya University",
       listedCount: 4,
+      openalex: null,
     });
   });
 
@@ -231,7 +249,63 @@ describe("institutionSummary", () => {
       rorId: ROR,
       name: `ROR ${ROR}`,
       listedCount: 1,
+      openalex: null,
     });
+  });
+
+  it("carries the stored OpenAlex snapshot when the row has a valid one — and null when it is missing, cleared, or malformed", async () => {
+    const fetchedAt = new Date("2026-09-09T10:00:00Z");
+    const aggregates = {
+      version: 1,
+      countedEntity: {
+        openalexId: "I60134161",
+        displayName: "Nagoya University",
+        lineageSize: 2,
+        relatedCount: 3,
+        foldedIds: ["I60134161"],
+        fetchedAt: fetchedAt.toISOString(),
+      },
+      countedWorkTypes: ["article"],
+      years: { from: 2020, to: 2026 },
+      worksByYear: [{ year: 2026, count: 5 }],
+      oaByStatusByYear: [{ year: 2026, status: "gold", count: 2 }],
+      topCountries: [{ code: "JP", name: "Japan", count: 5 }],
+      topCoAffiliations: [],
+    };
+    mocks.count.mockResolvedValue(2);
+    const row = {
+      name: "Nagoya University",
+      openalexId: "I60134161",
+      openalexAggregates: aggregates,
+      openalexFetchedAt: fetchedAt,
+    };
+    mocks.institutionFindUnique.mockResolvedValue(row);
+    const summary = await institutionSummary(ROR);
+    expect(summary?.openalex).toEqual({
+      openalexId: "I60134161",
+      aggregates,
+      fetchedAt: "2026-09-09T10:00:00.000Z",
+    });
+
+    for (const broken of [
+      { ...row, openalexAggregates: { version: 1, junk: true } },
+      { ...row, openalexAggregates: null },
+      { ...row, openalexId: null },
+      { ...row, openalexFetchedAt: null },
+      // Tampered ids become hrefs / sameAs: anything but an `I…` id is refused.
+      { ...row, openalexId: "javascript:alert(1)" },
+      { ...row, openalexId: "https://openalex.org/I60134161" },
+      {
+        ...row,
+        openalexAggregates: {
+          ...aggregates,
+          topCountries: [{ code: "javascript:", name: "Japan", count: 5 }],
+        },
+      },
+    ]) {
+      mocks.institutionFindUnique.mockResolvedValue(broken);
+      expect((await institutionSummary(ROR))?.openalex).toBeNull();
+    }
   });
 
   it("is null for a ROR nobody listed under (no page exists for it)", async () => {
@@ -286,9 +360,9 @@ describe("institutionIndex", () => {
     ]);
     const index = await institutionIndex();
     expect(index).toEqual([
-      { rorId: ROR, name: "Alpha University", listedCount: 1 },
-      { rorId: "00abcde12", name: "ROR 00abcde12", listedCount: 2 },
-      { rorId: "05m32f987", name: "Zeta Institute", listedCount: 5 },
+      { rorId: ROR, name: "Alpha University", listedCount: 1, openalex: null },
+      { rorId: "00abcde12", name: "ROR 00abcde12", listedCount: 2, openalex: null },
+      { rorId: "05m32f987", name: "Zeta Institute", listedCount: 5, openalex: null },
     ]);
     expect(mocks.institutionFindMany).toHaveBeenCalledWith({
       where: { rorId: { in: ["05m32f987", ROR, "00abcde12"] } },
@@ -324,7 +398,7 @@ describe("institutionOaiSetUrl", () => {
 });
 
 describe("institutionJsonLd", () => {
-  const summary = { rorId: ROR, name: "Nagoya University", listedCount: 7 };
+  const summary = { rorId: ROR, name: "Nagoya University", listedCount: 7, openalex: null };
 
   it("is a schema.org Organization identified by its ROR IRI, named by the trusted name, with the OAI set as subjectOf", () => {
     const ld = institutionJsonLd(summary);
@@ -337,6 +411,36 @@ describe("institutionJsonLd", () => {
       "@type": "DataFeed",
       url: institutionOaiSetUrl(ROR),
     });
+    expect(ld).not.toHaveProperty("sameAs");
+  });
+
+  it("links the counted OpenAlex entity as sameAs when a snapshot is stored — an identifier, never a figure", () => {
+    const ld = institutionJsonLd({
+      ...summary,
+      openalex: {
+        openalexId: "I60134161",
+        fetchedAt: "2026-09-09T10:00:00.000Z",
+        aggregates: {
+          version: 1,
+          countedEntity: {
+            openalexId: "I60134161",
+            displayName: "Nagoya University",
+            lineageSize: 1,
+            relatedCount: 0,
+            foldedIds: ["I60134161"],
+            fetchedAt: "2026-09-09T10:00:00.000Z",
+          },
+          countedWorkTypes: ["article"],
+          years: { from: 2020, to: 2026 },
+          worksByYear: [{ year: 2026, count: 99 }],
+          oaByStatusByYear: [],
+          topCountries: [],
+          topCoAffiliations: [],
+        },
+      },
+    });
+    expect(ld.sameAs).toBe("https://openalex.org/I60134161");
+    expect(JSON.stringify(ld)).not.toContain("99");
   });
 
   it("never asserts employment or membership, and carries no ratio, score or roster", () => {

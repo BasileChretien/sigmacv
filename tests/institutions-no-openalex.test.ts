@@ -21,6 +21,15 @@ const SCOPES = [
   "src/app/[locale]/i",
   "src/components/InstitutionIndex.tsx",
   "src/components/InstitutionPage.tsx",
+  "src/components/InstitutionOpenAlexSection.tsx",
+];
+/** The two modules that DO talk to OpenAlex about institutions — the snapshot
+ *  fetchers and the resync-tick refresh job — live under `src/lib/openalex/`,
+ *  outside every scope above, and are reachable from the page only through the
+ *  row they write. Named here so that a move into scope fails loudly. */
+const OPENALEX_SIDE = [
+  "src/lib/openalex/institutions.ts",
+  "src/lib/openalex/institutionRefresh.ts",
 ];
 const EXTERNAL_CLIENTS = [
   "@/lib/openalex",
@@ -49,9 +58,22 @@ function sourceFiles(path: string): string[] {
 describe("institution pages never call an external API", () => {
   const files = SCOPES.flatMap(sourceFiles);
 
-  it("covers the lib, the listed-CV reader, the four routes and both components", () => {
-    expect(files.length).toBeGreaterThanOrEqual(9);
+  it("covers the lib (incl. the pure snapshot module), the listed-CV reader, the four routes and the three components", () => {
+    expect(files.length).toBeGreaterThanOrEqual(11);
     expect(files.some((f) => f.endsWith("listed.ts"))).toBe(true);
+    expect(files.some((f) => f.endsWith("snapshot.ts"))).toBe(true);
+    expect(files.some((f) => f.endsWith("InstitutionOpenAlexSection.tsx"))).toBe(true);
+  });
+
+  it("keeps the OpenAlex-side snapshot modules outside the scanned scope, and the scope never imports them", () => {
+    for (const path of OPENALEX_SIDE) {
+      expect(statSync(join(ROOT, path)).isFile(), path).toBe(true);
+      expect(files.some((f) => f.endsWith(path.replace(/\//g, "\\")) || f.endsWith(path))).toBe(
+        false,
+      );
+    }
+    // Both are covered by the `@/lib/openalex` prefix in EXTERNAL_CLIENTS.
+    expect(EXTERNAL_CLIENTS).toContain("@/lib/openalex");
   });
 
   it.each(files)("%s imports no external-source client and never fetches", (file) => {

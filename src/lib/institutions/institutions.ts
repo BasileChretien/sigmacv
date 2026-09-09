@@ -3,11 +3,17 @@ import { rorIri } from "@/lib/ror/id";
 import {
   countListedCvs,
   countListedCvsByRor,
-  trustedInstitutionName,
   trustedInstitutionNames,
+  trustedInstitutionRecord,
+  type TrustedInstitutionRecord,
 } from "@/lib/cv/listed";
 import { rorSetSpec } from "@/lib/oai/oai";
 import { absoluteUrl } from "@/lib/siteUrl";
+import {
+  OPENALEX_INSTITUTION_ID_RE,
+  parseInstitutionAggregates,
+  type InstitutionAggregates,
+} from "./snapshot";
 
 /**
  * Institution pages (`/i`, `/i/[ror]`): what SigmaCV says about an institution.
@@ -36,7 +42,22 @@ export function isRorId(id: string): boolean {
   return ROR_ID_RE.test(id);
 }
 
-/** What the institution page knows: the key, the trusted name, the count. */
+/**
+ * OpenAlex's record of the organisation, as the page shows it: the stored
+ * counts-only aggregates the internal resync job wrote (`snapshot.ts`), read
+ * from the `Institution` row — never fetched by a request. Null until the job
+ * has run for this ROR, or when the stored JSON is not the expected shape.
+ */
+export interface InstitutionOpenAlexSnapshot {
+  /** Short OpenAlex id (`I…`) of the counted entity. */
+  openalexId: string;
+  aggregates: InstitutionAggregates;
+  /** When the job fetched it (ISO). */
+  fetchedAt: string;
+}
+
+/** What the institution page knows: the key, the trusted name, the count, and
+ *  the stored OpenAlex snapshot (null until fetched). */
 export interface InstitutionSummary {
   /** Bare ROR id. */
   rorId: string;
@@ -45,6 +66,28 @@ export interface InstitutionSummary {
   name: string;
   /** How many published, indexable CVs opted into the listing under this ROR. */
   listedCount: number;
+  openalex: InstitutionOpenAlexSnapshot | null;
+}
+
+/** The snapshot on a stored row, or null when the row has none (not fetched
+ *  yet, cleared, or failed before any success), it does not parse, or its
+ *  `openalexId` is not an `I…` id (it becomes an href and the `sameAs`). */
+function snapshotOf(record: TrustedInstitutionRecord | null): InstitutionOpenAlexSnapshot | null {
+  if (!record?.openalexId || !record.openalexFetchedAt) return null;
+  if (!OPENALEX_INSTITUTION_ID_RE.test(record.openalexId)) return null;
+  const aggregates = parseInstitutionAggregates(record.openalexAggregates);
+  if (!aggregates) return null;
+  return {
+    openalexId: record.openalexId,
+    aggregates,
+    fetchedAt: record.openalexFetchedAt.toISOString(),
+  };
+}
+
+/** The OpenAlex URI of the counted entity (the JSON-LD `sameAs`). `openalexId`
+ *  is the job's validated short id, so the URI is built, never passed through. */
+export function openAlexInstitutionUrl(openalexId: string): string {
+  return `https://openalex.org/${openalexId}`;
 }
 
 /**
@@ -73,12 +116,17 @@ function fallbackName(rorId: string): string {
  */
 export async function institutionSummary(rorId: string): Promise<InstitutionSummary | null> {
   if (!isRorId(rorId)) return null;
-  const [listedCount, name] = await Promise.all([
+  const [listedCount, record] = await Promise.all([
     countListedCvs(rorId),
-    trustedInstitutionName(rorId),
+    trustedInstitutionRecord(rorId),
   ]);
   if (listedCount < 1) return null;
-  return { rorId, name: name ?? fallbackName(rorId), listedCount };
+  return {
+    rorId,
+    name: record?.name ?? fallbackName(rorId),
+    listedCount,
+    openalex: snapshotOf(record),
+  };
 }
 
 /** Every institution with at least one listed CV, with its count, by name. */
@@ -86,10 +134,12 @@ export async function institutionIndex(): Promise<InstitutionSummary[]> {
   const counts = await countListedCvsByRor();
   const rorIds = [...counts.keys()].filter(isRorId);
   const names = await trustedInstitutionNames(rorIds);
+  // The index lists names and counts only; the OpenAlex snapshot is a page thing.
   const summaries: InstitutionSummary[] = rorIds.map((rorId) => ({
     rorId,
     name: names.get(rorId) ?? fallbackName(rorId),
     listedCount: counts.get(rorId)!,
+    openalex: null,
   }));
   return summaries.sort((a, b) => a.name.localeCompare(b.name, "en"));
 }
@@ -108,6 +158,8 @@ export function institutionOaiSetUrl(rorId: string): string {
  * is the researcher's statement, not the organisation's roster — and the count
  * itself is prose on the page, not a structured claim. `rorId` is a validated
  * bare id (every summary comes through `isRorId`), so the IRI always resolves.
+ * When the stored OpenAlex snapshot names the counted entity, its URI is the
+ * Organization's `sameAs` — an identifier link, not a figure.
  */
 export function institutionJsonLd(summary: InstitutionSummary): Record<string, unknown> {
   const iri = rorIri(summary.rorId);
@@ -117,6 +169,7 @@ export function institutionJsonLd(summary: InstitutionSummary): Record<string, u
     "@id": iri,
     identifier: iri,
     name: summary.name,
+    ...(summary.openalex ? { sameAs: openAlexInstitutionUrl(summary.openalex.openalexId) } : {}),
     subjectOf: {
       "@type": "DataFeed",
       name: `SigmaCV OAI-PMH set ${rorSetSpec(summary.rorId)}`,

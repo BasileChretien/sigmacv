@@ -58,14 +58,23 @@ const WORK_SELECT = [
   "primary_topic",
 ].join(",");
 
-async function openAlexGet<T>(path: string, params: Record<string, string>): Promise<T> {
+/**
+ * One polite-pool GET against OpenAlex (mailto + User-Agent, the shared timeout
+ * and retry), returning the raw Response so a caller can treat a status itself
+ * — the institution fetchers (`institutions.ts`) need 404 as "no entity", not
+ * an error. Everything else goes through {@link openAlexGet}.
+ */
+export async function openAlexResponse(
+  path: string,
+  params: Record<string, string>,
+): Promise<Response> {
   const url = new URL(`${OPENALEX_API}${path}`);
   const mailto = getEnv().OPENALEX_MAILTO;
   // Polite pool: identify ourselves on every request.
   url.searchParams.set("mailto", mailto);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
-  const res = await resilientFetch(url, {
+  return resilientFetch(url, {
     headers: {
       Accept: "application/json",
       // Polite-pool identification (in addition to the mailto query param).
@@ -75,11 +84,16 @@ async function openAlexGet<T>(path: string, params: Record<string, string>): Pro
     next: { revalidate: 3600 },
     timeoutMs: 15_000,
   });
-  if (!res.ok) {
-    throw new Error(
-      `OpenAlex request failed (${res.status} ${res.statusText}) for ${url.pathname}`,
-    );
-  }
+}
+
+/** The error a non-OK OpenAlex response is surfaced as. */
+export function openAlexError(res: Response, path: string): Error {
+  return new Error(`OpenAlex request failed (${res.status} ${res.statusText}) for ${path}`);
+}
+
+export async function openAlexGet<T>(path: string, params: Record<string, string>): Promise<T> {
+  const res = await openAlexResponse(path, params);
+  if (!res.ok) throw openAlexError(res, path);
   return (await res.json()) as T;
 }
 

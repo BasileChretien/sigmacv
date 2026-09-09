@@ -35,6 +35,56 @@ describe("institutionStrings", () => {
       expect(s.listedMany, loc).toContain("{count}");
       expect(s.metaDescription, loc).toContain("{name}");
       expect(s.oaiLink, loc).toContain("{id}");
+      for (const ph of ["{id}", "{entityName}", "{lineage}", "{related}"]) {
+        expect(s.openalexCountedEntity, `${loc} ${ph}`).toContain(ph);
+      }
+      expect(s.openalexScope, loc).toContain("{from}");
+      expect(s.openalexScope, loc).toContain("{to}");
+      expect(s.openalexCountriesHeading, loc).toContain("{n}");
+      expect(s.openalexCoAffiliationsHeading, loc).toContain("{n}");
+      expect(s.openalexAsOf, loc).toContain("{date}");
+    }
+  });
+
+  it("the OpenAlex section's copy is translated, names OpenAlex, and states the type filter and that nothing is fetched on open", () => {
+    const en = institutionStrings("en-US");
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = institutionStrings(loc);
+      expect(s.openalexHeading, loc).toContain("OpenAlex");
+      expect(s.openalexAsOf, loc).toContain("OpenAlex");
+      expect(s.openalexNotFetched, loc).toContain("OpenAlex");
+      // OpenAlex's own status vocabulary stays untranslated in the OA note.
+      for (const status of ["gold", "hybrid", "diamond", "green", "bronze", "closed"]) {
+        expect(s.openalexOaNote, `${loc} ${status}`).toContain(status);
+      }
+      if (loc !== "en-US") {
+        expect(s.openalexScope, loc).not.toBe(en.openalexScope);
+        expect(s.openalexNotCompared, loc).not.toBe(en.openalexNotCompared);
+      }
+    }
+  });
+
+  it("states the counts-only scope positively: no locale's copy carries share or ratio vocabulary, even as a negation", () => {
+    const banned = [
+      "share",
+      "ratio",
+      "percent",
+      "%",
+      "比例",
+      "proporci",
+      "proporç",
+      "parts",
+      "Anteil",
+      "割合",
+      "quote",
+      "quota",
+      "비율",
+      "дол",
+      "процент",
+    ];
+    for (const loc of SUPPORTED_LOCALES) {
+      const scope = institutionStrings(loc).openalexScope;
+      for (const word of banned) expect(scope, `${loc} ${word}`).not.toContain(word);
     }
   });
 

@@ -16,6 +16,7 @@ import {
   localeInstitutionsIndexPath,
 } from "@/lib/seo";
 import DocJsonLd from "./DocJsonLd";
+import InstitutionOpenAlexSection from "./InstitutionOpenAlexSection";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 
@@ -64,6 +65,8 @@ export default function InstitutionPage({
         </p>
         <p className="doc-lede">{listedSentence(s, summary.listedCount)}</p>
         <p>{s.selfDeclared}</p>
+
+        <InstitutionOpenAlexSection locale={loc} snapshot={summary.openalex} />
 
         <h2>{s.oaiHeading}</h2>
         <p>
