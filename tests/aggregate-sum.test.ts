@@ -15,12 +15,12 @@ import { UNKNOWN_YEAR, type CvAggregates } from "@/lib/institutions/cvAggregates
  * the unit is the SET of CVs a figure comes from: a year row needs k
  * contributing CVs; a cell nobody has is a structural 0, a cell 1..k−1 have is
  * hidden, a cell k have is shown; hidden cells of a row take shown cells with
- * them until the hidden set stands on k CVs; and across the two tables, while
- * one is fully shown (so the overall total is on the page) the hidden entries
- * of the other take the fully shown table's smallest entries with them until
- * they stand on k CVs too. The property test at the end is the guarantee, over
- * random populations; the named cases before it are the three leaks the review
- * found in the count-based version.
+ * them until the hidden set stands on k CVs; and across the two tables — whose
+ * shown sums always differ by exactly Σ hidden years − Σ hidden types — the
+ * hidden entries of both take the smallest shown entries of either table with
+ * them until they stand on k CVs too. The property test at the end is the
+ * guarantee, over random populations; the named cases before it are the leaks
+ * the reviews found in the count-based and the one-table-fully-shown versions.
  */
 
 type Oa = Partial<Record<OpenAccessState, number>>;
@@ -84,11 +84,19 @@ describe("sumAggregates: contributors and pending", () => {
 
 describe("rule (a): a year row needs k contributing CVs", () => {
   it("omits a year four CVs contribute to and emits one five contribute to, with the summed total", () => {
+    // CV#5 has a hidden year of its own (2019) so that the hidden years stand
+    // on five CVs together and rule (d) has nothing to add — this case is
+    // about rule (a) alone.
     const rows = fiveOf((i) =>
-      agg(i < 4 ? { 2020: { "open-cc": 2 }, 2021: { "open-cc": 1 } } : { 2021: { "open-cc": 3 } }),
+      agg(
+        i < 4
+          ? { 2020: { "open-cc": 2 }, 2021: { "open-cc": 1 } }
+          : { 2019: { "open-cc": 1 }, 2021: { "open-cc": 3 } },
+      ),
     );
     const s = sumAggregates(rows);
     expect(year(s, "2020")).toBeUndefined();
+    expect(year(s, "2019")).toBeUndefined();
     expect(year(s, "2021")?.total).toEqual(cell(7, 5));
   });
 
@@ -271,8 +279,9 @@ describe("rule (d): the section table, and the two tables together", () => {
   it("emits a type five CVs contribute to and nulls one fewer contribute to, in the canonical order", () => {
     // The hidden types (preprints: 3 CVs, datasets: 2) stand on three CVs, and
     // the year table — fully shown — would put the overall total on the page,
-    // so it gives up its smallest row (its only one) rather than let the sum
-    // of the hidden types be read off.
+    // so the smallest shown entry of either table goes with them: publications
+    // (5) rather than the 2020 row (10), and five CVs then stand behind the
+    // hidden set; the year row stays.
     const rows = fiveOf((i) =>
       agg(
         { 2020: { "open-cc": 2 } },
@@ -281,11 +290,11 @@ describe("rule (d): the section table, and the two tables together", () => {
     );
     const s = sumAggregates(rows);
     expect(s.byType).toEqual([
-      { type: "publications", cell: cell(5, 5) },
+      { type: "publications", cell: null },
       { type: "preprints", cell: null },
       { type: "datasets", cell: null },
     ]);
-    expect(s.byYear).toEqual([]);
+    expect(year(s, "2020")?.total).toEqual(cell(10, 5));
     const order = s.byType.map((t) => (SECTION_TYPES as readonly string[]).indexOf(t.type));
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
@@ -301,10 +310,11 @@ describe("rule (d): the section table, and the two tables together", () => {
     );
     const s = sumAggregates(rows);
     expect(year(s, "2019")).toBeUndefined();
-    expect(year(s, "2025")?.total).toEqual(cell(10, 5));
-    // The section table was fully shown: its smallest (only) entry is hidden
-    // with the year, so the overall total is no longer on the page.
-    expect(s.byType).toEqual([{ type: "publications", cell: null }]);
+    // The smallest shown entry of either table is the 2025 row (10; the
+    // section table's only entry is 17): hidden with the year, so all five
+    // CVs stand behind {2019, 2025} and 17 − 10 is no longer on the page.
+    expect(s.byYear).toEqual([]);
+    expect(s.byType).toEqual([{ type: "publications", cell: cell(17, 5) }]);
   });
 
   it("the reverse: a hidden section hides the fully shown year table's smallest rows until the hidden set stands on k", () => {
@@ -328,10 +338,40 @@ describe("rule (d): the section table, and the two tables together", () => {
     expect(year(s, "2021")?.total).toEqual(cell(12, 6));
   });
 
-  it("when both tables are already partially hidden, the overall total is not on the page and nothing more is hidden", () => {
-    // 2021: CVs 1–2 (hidden); preprints: CVs 1–2 (hidden). Neither table adds
-    // up to the overall total, so neither hidden entry is the other table's
-    // sum minus the shown entries.
+  it("REGRESSION (review): with both tables partially hidden, the difference between their shown sums is still two CVs' figure, so more is hidden until the hidden set stands on k", () => {
+    // Five CVs with 2 publications each in 2020; CV#1 alone has 7 more in
+    // 2019; CV#2 alone has 2 preprints (in 2020). Hidden: 2019 (CV#1) and
+    // preprints (CV#2). The one-table rule stopped here — neither table added
+    // up to the overall total — but Σ shown types − Σ shown years = 17 − 12 =
+    // 5 = 7 − 2 is on the page, a function of two people's works.
+    const rows = fiveOf((i) =>
+      agg(
+        i === 0
+          ? { 2019: { "open-cc": 7 }, 2020: { "open-cc": 2 } }
+          : { 2020: { "open-cc": i === 1 ? 4 : 2 } },
+        i === 0
+          ? { publications: 9 }
+          : i === 1
+            ? { publications: 2, preprints: 2 }
+            : { publications: 2 },
+      ),
+    );
+    const s = sumAggregates(rows);
+    expect(year(s, "2019")).toBeUndefined();
+    // The smallest shown entry of either table is 2020 (12; publications is
+    // 17): hidden too, and five CVs now stand behind {2019, 2020, preprints}.
+    expect(s.byYear).toEqual([]);
+    expect(s.byType).toEqual([
+      { type: "publications", cell: cell(17, 5) },
+      { type: "preprints", cell: null },
+    ]);
+  });
+
+  it("with both tables partially hidden and equal shown sums, the tie goes to the year table", () => {
+    // 2021: CVs 1–2 (hidden); preprints: CVs 1–2 (hidden); 2020 and
+    // publications both 10 on five CVs. 10 − 10 = 0 = 2 − 2 is on the page:
+    // the hidden set {CV#1, CV#2} is short of k, and of the two equal
+    // candidates the year row goes first.
     const rows = fiveOf((i) =>
       agg(
         { 2020: { "open-cc": 2 }, ...(i < 2 ? { 2021: { "open-cc": 1 } } : {}) },
@@ -339,12 +379,34 @@ describe("rule (d): the section table, and the two tables together", () => {
       ),
     );
     const s = sumAggregates(rows);
-    expect(year(s, "2021")).toBeUndefined();
-    expect(year(s, "2020")?.total).toEqual(cell(10, 5));
+    expect(s.byYear).toEqual([]);
     expect(s.byType).toEqual([
       { type: "publications", cell: cell(10, 5) },
       { type: "preprints", cell: null },
     ]);
+  });
+
+  it("hidden entries of the SAME table are covered from both tables too (a hidden year takes a smaller shown year before a larger section)", () => {
+    // Six CVs: 2020 (1 each, 6) and 2021 (2 each, 12); CV#1 alone has 3 works
+    // in 2019. Hidden: 2019 (CV#1). Candidates by count: 2020 (6),
+    // 2021 (12), publications (21): 2020 goes, and six CVs stand behind
+    // {2019, 2020}; 2021 and publications stay.
+    const rows = Array.from({ length: 6 }, (_, i) =>
+      row(
+        agg(
+          {
+            2020: { "open-cc": 1 },
+            2021: { "open-cc": 2 },
+            ...(i === 0 ? { 2019: { "open-cc": 3 } } : {}),
+          },
+          { publications: i === 0 ? 6 : 3 },
+        ),
+      ),
+    );
+    const s = sumAggregates(rows);
+    expect(s.byYear.map((r) => r.year)).toEqual(["2021"]);
+    expect(year(s, "2021")?.total).toEqual(cell(12, 6));
+    expect(s.byType).toEqual([{ type: "publications", cell: cell(21, 6) }]);
   });
 
   it("a section table with a single hidden entry: the fully shown year table gives up its rows, and when it runs out nothing that could reveal the entry is left", () => {
@@ -524,24 +586,24 @@ describe("property: every emitted number stands on k CVs, and so does everything
       }
 
       // (iii) Σ shown types − Σ shown year totals = Σ hidden years − Σ hidden
-      // types (consistent data), and whenever one table is fully shown — so the
-      // overall total is on the page — everything hidden stands on k CVs.
+      // types (consistent data) is always on the page, so whenever anything is
+      // hidden in either table, everything hidden stands on k CVs together —
+      // or nothing at all is shown (the candidates ran out and both tables
+      // are hidden in full, so the page carries no figure to recover from).
       const shownYearSum = s.byYear.reduce((n, r) => n + r.total.count, 0);
       expect(shownTypeSum - shownYearSum, tag).toBe(sum(hiddenYears) - sum(hiddenTypes));
       const crossHidden = [...hiddenYears, ...hiddenTypes];
-      if (crossHidden.length > 0 && (hiddenYears.length === 0 || hiddenTypes.length === 0)) {
-        expect(union(crossHidden).size, `${tag}: one table fully shown`).toBeGreaterThanOrEqual(k);
+      const anythingShown = s.byYear.length > 0 || s.byType.some((t) => t.cell !== null);
+      if (crossHidden.length > 0 && anythingShown) {
+        expect(union(crossHidden).size, `${tag}: cross-table hidden set`).toBeGreaterThanOrEqual(k);
       }
 
-      // No over-suppression: an entry k CVs stand behind is hidden only for a
-      // reason on the other table.
-      for (const t of hiddenYears) {
-        if (t.rows.size >= k)
-          expect(hiddenTypes.length, `${tag}: year hidden for nothing`).toBeGreaterThan(0);
-      }
-      for (const t of hiddenTypes) {
-        if (t.rows.size >= k)
-          expect(hiddenYears.length, `${tag}: type hidden for nothing`).toBeGreaterThan(0);
+      // No over-suppression: an entry k CVs stand behind is hidden only to
+      // cover an entry fewer than k stand behind, in either table — when
+      // nothing needs hiding, nothing is hidden.
+      const needsCover = crossHidden.some((t) => t.rows.size < k);
+      for (const t of crossHidden) {
+        if (t.rows.size >= k) expect(needsCover, `${tag}: entry hidden for nothing`).toBe(true);
       }
     }
   });

@@ -29,14 +29,17 @@ import { UNKNOWN_YEAR, type CvAggregates } from "./cvAggregates";
  *      the smallest SHOWN cell (ties: first in state order) is hidden too — so
  *      total − Σ(shown) is only ever the sum of a hidden set that k CVs stand
  *      behind, never one or two CVs' figure;
- *  (d) across the two tables: each table's shown entries sum to the overall
- *      total when nothing of it is hidden, so a hidden year row is readable as
- *      that total minus the shown years whenever the section table is fully
- *      shown — and vice versa. While one table is fully shown and the union of
- *      contributors to every hidden year row and hidden type is smaller than k,
- *      the smallest shown entry of the FULLY SHOWN table (year rows by total,
- *      types by count) is hidden too. Once both tables are partially hidden the
- *      overall total is not on the page and nothing more is needed.
+ *  (d) across the two tables: both add up to the same overall total, so
+ *      Σ(shown types) − Σ(shown years) = Σ(hidden years) − Σ(hidden types) is
+ *      ALWAYS computable from the page — with one table fully shown it is a
+ *      hidden row outright, and with both partially hidden it is still a
+ *      number that only the hidden entries' contributors stand behind (a lone
+ *      CV's hidden year minus another lone CV's hidden type is two people's
+ *      figure). So whenever anything is hidden in either table and the union
+ *      of contributors to every hidden year row and hidden type is smaller
+ *      than k, the smallest shown entry of EITHER table (year rows by total,
+ *      types by count; ties: years before types, then key order) is hidden
+ *      too, until the hidden set stands on k CVs or nothing shown is left.
  *
  * Suppressed years are simply absent (the page says so in one sentence) and a
  * suppressed cell carries no contributor count either — emitting "3 CVs" would
@@ -89,7 +92,6 @@ interface Entry {
 /** Structurally empty: nobody contributes, shown as 0. */
 const EMPTY_CELL: SummedCell = { count: 0, contributorCount: 0 };
 const NO_ROWS: ReadonlySet<number> = new Set<number>();
-const NO_IDS: ReadonlySet<string> = new Set<string>();
 
 /** Accumulate `count` from row `row` under `key`. The map and its sets are
  *  private to one `sumAggregates` call (built here, read below), so they are
@@ -234,25 +236,23 @@ export function sumAggregates(
   const hiddenTypes = types.filter((e) => e.contributors.size < k);
   const shownTypes = types.filter((e) => e.contributors.size >= k);
 
-  // Rule (d): the overall total is on the page while one table is fully shown.
-  const crossHidden = [...hiddenYears, ...hiddenTypes];
-  const yearsFullyShown = hiddenYears.length === 0;
-  const typesFullyShown = hiddenTypes.length === 0;
-  const coveredYears = yearsFullyShown
-    ? coverHidden(
-        crossHidden,
-        shownYears.map((y) => y.entry),
-        k,
-      )
-    : NO_IDS;
-  const coveredTypes = typesFullyShown ? coverHidden(crossHidden, shownTypes, k) : NO_IDS;
+  // Rule (d): the difference between the two tables' shown sums is always on
+  // the page, so the hidden entries of both are covered from both. Year ids
+  // (digits or `UNKNOWN_YEAR`) and type ids (the section catalogue) never
+  // collide, so one set of moved ids serves both tables; the candidate order
+  // is the tie-break (years first, each table in its own key order).
+  const covered = coverHidden(
+    [...hiddenYears, ...hiddenTypes],
+    [...shownYears.map((y) => y.entry), ...shownTypes],
+    k,
+  );
 
   const byYear: SummedYearRow[] = shownYears
-    .filter((y) => !coveredYears.has(y.entry.id))
+    .filter((y) => !covered.has(y.entry.id))
     .map((y) => ({ year: y.entry.id, total: cellOf(y.entry), oa: y.oa }));
   const byType: SummedTypeRow[] = types.map((e) => ({
     type: e.id as CvSectionType,
-    cell: e.contributors.size < k || coveredTypes.has(e.id) ? null : cellOf(e),
+    cell: e.contributors.size < k || covered.has(e.id) ? null : cellOf(e),
   }));
 
   return {
