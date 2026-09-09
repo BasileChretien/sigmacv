@@ -17,10 +17,14 @@ import CvHealthPanel, { type CvHealthCategory } from "./CvHealthPanel";
 import ProfilePanel from "./ProfilePanel";
 import SectionsList, { type SectionsListHandle } from "./SectionsList";
 import StyleControls from "./StyleControls";
+import WorklistPanel from "./WorklistPanel";
 
 /** The three task clusters of the subdivided ("regions") editor layout. */
 type EditorPart = "content" | "design" | "profile";
 const EDITOR_PARTS: readonly EditorPart[] = ["profile", "design", "content"];
+
+/** A stable empty consent (a fresh `[]` per render would defeat the worklist's memo). */
+const NO_CONSENTED_ROR_IDS: readonly string[] = [];
 
 interface CvEditorProps {
   cv: CanonicalCv;
@@ -39,8 +43,12 @@ interface CvEditorProps {
    */
   variant?: "classic" | "regions";
   /** No-login preview mode: hides the account-only add-by-DOI / import-.bib
-   *  panels (they save server-side). Curation/styling stay fully available. */
+   *  panels (they save server-side) and the owner worklist. Curation/styling
+   *  stay fully available. */
   anonymous?: boolean;
+  /** The ROR ids the owner consented to on the institution page (bare ids) —
+   *  what the owner worklist checks affiliations against. Default: none. */
+  consentedRorIds?: readonly string[];
 }
 
 /** Imperative surface CvWorkspace uses to drive the sync banner's "jump to item". */
@@ -60,6 +68,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     onClaimAdded = () => {},
     variant = "classic",
     anonymous = false,
+    consentedRorIds = NO_CONSENTED_ROR_IDS,
   },
   ref,
 ) {
@@ -86,13 +95,15 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   // Bumped by jumpToPublicStyle() to (re)trigger the reveal effect below.
   const [publicStyleFocusTick, setPublicStyleFocusTick] = useState(0);
 
-  // The sync banner (in CvWorkspace) jumps to a specific item; route it through
-  // the Content part first so the target row is mounted before it scrolls.
+  // A jump to a specific item (the sync banner in CvWorkspace, the owner
+  // worklist's rows) routes through the Content part first so the target row is
+  // mounted before it scrolls.
+  const jumpToItem = (itemId: string) => {
+    setActivePart("content");
+    sectionsRef.current?.jumpToItem(itemId);
+  };
   useImperativeHandle(ref, () => ({
-    jumpToItem: (itemId: string) => {
-      setActivePart("content");
-      sectionsRef.current?.jumpToItem(itemId);
-    },
+    jumpToItem,
     // Deep-link from the Publish menu: open the Design part, then (in the effect
     // below, once that panel is visible) reveal + scroll to the public-style group.
     jumpToPublicStyle: () => {
@@ -123,6 +134,14 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   }, [publicStyleFocusTick, activePart]);
 
   const profilePanel = <ProfilePanel cv={cv} locale={locale} onChange={onChange} />;
+  // The owner worklist ("Affiliations & open access") sits with the sections
+  // list, where its rows jump to. OWNER-ONLY: the no-login preview shows a
+  // visitor someone else's public record, who must not see it — and it reads
+  // nothing an anonymous caller could consent to anyway. Renders nothing when
+  // there is nothing to show.
+  const worklistPanel = anonymous ? null : (
+    <WorklistPanel cv={cv} locale={locale} consentedRorIds={consentedRorIds} onJump={jumpToItem} />
+  );
   const sectionsList = (
     <SectionsList
       ref={sectionsRef}
@@ -151,6 +170,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
           onConfirmAllMisattributed={() => onChange(confirmAllMisattributed(cv))}
           ownerInsights={!anonymous}
         />
+        {worklistPanel}
         {sectionsList}
       </div>
     );
@@ -230,6 +250,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
         aria-labelledby="cv-part-tab-content"
         hidden={activePart !== "content"}
       >
+        {worklistPanel}
         {sectionsList}
       </div>
       <div
