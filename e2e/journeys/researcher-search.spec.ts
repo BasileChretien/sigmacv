@@ -15,7 +15,10 @@ test("search by name lists an ORCID-bearing researcher and links the preview, no
   await page.getByRole("button", { name: "Search" }).click();
 
   await expect(page).toHaveURL(/\/search\?q=/);
-  const result = page.getByTestId("search-result").first();
+  // The fixture server answers with several authors; pick the seeded one by its
+  // iD rather than by position (OpenAlex order is not ours to assert).
+  const result = page.locator(`[data-testid="search-result"][href="/preview/${TEST_ORCID}"]`);
+  await expect(page.getByTestId("search-result").first()).toBeVisible();
   await expect(result).toBeVisible();
   await expect(result).toHaveAttribute("href", `/preview/${TEST_ORCID}`);
   await expect(result).toHaveAttribute("rel", "nofollow");
