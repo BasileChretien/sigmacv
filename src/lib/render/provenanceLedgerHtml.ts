@@ -41,8 +41,10 @@ export function ledgerLines(ledger: ProvenanceLedger, locale: string): LedgerDis
     retractedVisible: s.provLedgerRetracted,
   };
   const numFmt = new Intl.NumberFormat(locale);
-  // Count and denominator only. `share` stays on the pure ledger for the owner's
-  // editor panel, but never reaches a recipient-facing surface as a percentage.
+  // Count and denominator only. The pure ledger still computes `share`, but no
+  // surface prints it as a percentage any more — this formatter feeds the owner's
+  // editor panel AND the recipient-facing pages, and a share on the latter reads
+  // as a score (2026-09-08 panel, veto 6).
   const figure = (l: LedgerLine): string =>
     s.provLedgerOf
       .replace("{n}", numFmt.format(l.count))

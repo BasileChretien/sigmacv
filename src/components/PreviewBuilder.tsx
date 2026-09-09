@@ -172,6 +172,13 @@ export default function PreviewBuilder({
         <div className="preview-empty">
           <h1>{heading}</h1>
           <p>{body}</p>
+          {publishedPath ? (
+            <p>
+              <a href={publishedPath} data-testid="preview-published-link">
+                {s.ctaPublishedPage}
+              </a>
+            </p>
+          ) : null}
           {phase === "empty" ? (
             <form
               action={signInWithOrcid}

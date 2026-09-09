@@ -88,6 +88,10 @@ export const HIRING_OFF_KEYS = [
   "showMetrics",
   "showCharts",
   "showAuthorshipTable",
+  // Named here on purpose: reader mode no longer forces the per-work FWCI/RCR
+  // pills ON, so they left READER_MODE_KEYS — but a hiring-panel version must
+  // still force them OFF (no academic evidence mark on that surface).
+  "showWorkIndicators",
   // A hiring-panel version must stay that way: `?view=reader` on it would
   // switch every evidence mark back on, so the reader view is closed for it.
   "allowReaderMode",

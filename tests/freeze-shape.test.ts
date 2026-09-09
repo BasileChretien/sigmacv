@@ -120,6 +120,11 @@ describe("applyHiringPreset", () => {
     expect(out.showAuthorshipTable).toBe(false);
     expect(out.showOpenAccessShare).toBe(false);
     expect(out.allowReaderMode).toBe(false);
+    // Per-work indicators are no longer a reader-mode key, so pin them by name:
+    // a hiring-panel version must switch them off even when the owner had them on.
+    expect(
+      applyHiringPreset(updateDisplay(CV, { showWorkIndicators: true }).display).showWorkIndicators,
+    ).toBe(false);
     expect(
       applyHiringPreset(updateDisplay(CV, { allowReaderMode: true }).display).allowReaderMode,
     ).toBe(false);
