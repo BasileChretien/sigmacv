@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { itemEffectiveYear, type CanonicalCv, type CvSectionType } from "@/lib/canonical/schema";
+import {
+  itemEffectiveYear,
+  type CanonicalCv,
+  type CvItem,
+  type CvSectionType,
+} from "@/lib/canonical/schema";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { OPEN_ACCESS_STATES, openAccessState, type OpenAccessState } from "@/lib/cv/worklist";
 import { selectSections } from "@/lib/render/citationItems";
@@ -74,25 +79,52 @@ function emptyOa(): Record<OpenAccessState, number> {
   return out;
 }
 
+/** One work the public page lists, with the section it sits in. */
+export interface ListedWork {
+  item: CvItem;
+  sectionType: CvSectionType;
+}
+
+/**
+ * THE work-set predicate every institution surface shares: the works `cv`'s
+ * public page lists, in page order — the public projection (hidden, "not
+ * mine" and view-excluded items dropped) then the page's own list selection
+ * (`selectSections`: "peer-reviewed only", "count letters", the publications
+ * cap, and the owner's "hide retracted" choice). A retracted work the page
+ * still shows (with its badge) is INCLUDED here and flagged by `meta.retracted`;
+ * the counts below and the OAI-PMH per-work records leave it out, the
+ * reconciliation rows carry it with its flag. Nothing else re-derives a
+ * visibility rule: a work absent from the page is absent from every caller.
+ */
+export function listedWorks(cv: CanonicalCv): ListedWork[] {
+  const out: ListedWork[] = [];
+  for (const { section, items } of selectSections(projectCvForPublic(cv))) {
+    for (const item of items) {
+      // The projection already dropped hidden and "not mine" items; the one
+      // check the OAI records still make on the projected list is the
+      // citation gate.
+      if (!item.csl || item.notMine) continue;
+      out.push({ item, sectionType: section.type });
+    }
+  }
+  return out;
+}
+
 /** The counts of the works `cv`'s public page lists. */
 export function computeCvAggregates(cv: CanonicalCv): CvAggregates {
   const byYear: Record<string, CvAggregatesYear> = {};
   const byType: Partial<Record<CvSectionType, number>> = {};
   let worksTotal = 0;
-  for (const { section, items } of selectSections(projectCvForPublic(cv))) {
-    for (const item of items) {
-      // The projection already dropped hidden and "not mine" items; the two
-      // checks the OAI records still make on the projected list are the
-      // citation gate and the retraction gate.
-      if (!item.csl || item.notMine || item.meta.retracted) continue;
-      const year = itemEffectiveYear(item);
-      const key = year === undefined ? UNKNOWN_YEAR : String(year);
-      const state = openAccessState(item);
-      const row = byYear[key] ?? { total: 0, oa: emptyOa() };
-      byYear[key] = { total: row.total + 1, oa: { ...row.oa, [state]: row.oa[state] + 1 } };
-      byType[section.type] = (byType[section.type] ?? 0) + 1;
-      worksTotal++;
-    }
+  for (const { item, sectionType } of listedWorks(cv)) {
+    // The retraction gate the OAI records apply too.
+    if (item.meta.retracted) continue;
+    const year = itemEffectiveYear(item);
+    const key = year === undefined ? UNKNOWN_YEAR : String(year);
+    const state = openAccessState(item);
+    const row = byYear[key] ?? { total: 0, oa: emptyOa() };
+    byYear[key] = { total: row.total + 1, oa: { ...row.oa, [state]: row.oa[state] + 1 } };
+    byType[sectionType] = (byType[sectionType] ?? 0) + 1;
+    worksTotal++;
   }
   return { v: CV_AGGREGATES_VERSION, worksTotal, byYear, byType };
 }

@@ -28,8 +28,12 @@ const BodySchema = z.object({
    *  (an unknown id is a 422). Omit both fields to leave the stored choice as is. */
   showOnInstitutionPage: z.boolean().optional(),
   consentedRorIds: z.array(z.string().regex(ROR_ID_PATTERN)).max(MAX_CONSENTED_ROR_IDS).optional(),
+  /** The SECOND institution opt-in: share per-work reconciliation rows from a
+   *  designated frozen version. Stands only while `showOnInstitutionPage`
+   *  stands (the state setter clears it with that consent); omitted = kept. */
+  shareReconciliationRows: z.boolean().optional(),
 });
-// Four booleans and at most five 9-char ids; reject anything larger early
+// Five booleans and at most five 9-char ids; reject anything larger early
 // (streamed, not by header).
 const MAX_BODY_BYTES = 2_000;
 
@@ -79,7 +83,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error:
-          "Expected { published: boolean, indexable?: boolean, listUnderAffiliation?: boolean, showOnInstitutionPage?: boolean, consentedRorIds?: string[] (ROR ids, max 5) }",
+          "Expected { published: boolean, indexable?: boolean, listUnderAffiliation?: boolean, showOnInstitutionPage?: boolean, consentedRorIds?: string[] (ROR ids, max 5), shareReconciliationRows?: boolean }",
       },
       { status: 422 },
     );
@@ -92,6 +96,7 @@ export async function POST(req: Request) {
       parsed.data.indexable ?? false,
       parsed.data.listUnderAffiliation ?? false,
       institutionPageRequest(parsed.data),
+      parsed.data.shareReconciliationRows,
     );
     return NextResponse.json(state);
   } catch (err) {

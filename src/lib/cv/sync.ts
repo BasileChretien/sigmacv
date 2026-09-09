@@ -7,6 +7,7 @@ import { invalidatePublicPage, purgeInstitutionPages } from "@/lib/cv/publicPage
 import {
   institutionPageState,
   resolveInstitutionConsent,
+  resolveReconciliationShare,
   visibleCurrentRorIds,
   type InstitutionConsentColumns,
   type InstitutionPageRequest,
@@ -770,6 +771,7 @@ export async function getPublishState(userId: string): Promise<PublishState> {
       currentRorId: true,
       showOnInstitutionPage: true,
       consentedRorIds: true,
+      shareReconciliationRows: true,
       document: true,
     },
   });
@@ -787,7 +789,11 @@ export async function getPublishState(userId: string): Promise<PublishState> {
       row
         ? { showOnInstitutionPage: row.showOnInstitutionPage, consentedRorIds: row.consentedRorIds }
         : NO_CONSENT,
-      { published, publicIndexable },
+      {
+        published,
+        publicIndexable,
+        shareReconciliationRows: row?.shareReconciliationRows ?? false,
+      },
     ),
   };
 }
@@ -806,13 +812,18 @@ export async function getPublishState(userId: string): Promise<PublishState> {
  *  — unlike the OAI key — never re-derived: omitted here, the stored choice is
  *  kept as-is, so a lapsed id survives to be re-asked rather than moved (and an
  *  already-stored id may be re-posted, so keeping a lapsed one while ticking a
- *  new affiliation is a valid request). */
+ *  new affiliation is a valid request). `shareReconciliationRows` is the
+ *  SECOND institution opt-in (the per-work reconciliation export): it stands
+ *  only while the institution-page consent stands — cleared with it, and so
+ *  with indexing and on unpublish (`resolveReconciliationShare`); omitted, the
+ *  stored value is kept (subject to the same rule). */
 export async function setPublishState(
   userId: string,
   published: boolean,
   indexable = false,
   listUnderAffiliation = false,
   institutionPage?: InstitutionPageRequest,
+  shareReconciliationRows?: boolean,
 ): Promise<PublishState> {
   const row = await prisma.cv.findUnique({ where: { userId } });
   if (!row) throw new CvNotFoundError();
@@ -845,6 +856,11 @@ export async function setPublishState(
       )
     : stored;
   const consent = publicIndexable ? requested : NO_CONSENT;
+  const shareRows = resolveReconciliationShare(
+    consent,
+    row.shareReconciliationRows,
+    shareReconciliationRows,
+  );
   const updated = await prisma.cv.update({
     where: { userId },
     data: {
@@ -857,6 +873,7 @@ export async function setPublishState(
       visibleCurrentRorIds: cv ? visibleCurrentRorIds(cv) : [],
       institutionAggregates: aggregatesColumn(cv),
       ...consent,
+      shareReconciliationRows: shareRows,
     },
     select: {
       published: true,
@@ -888,6 +905,7 @@ export async function setPublishState(
     ...institutionPageState(cv, consent, {
       published: updated.published,
       publicIndexable: updated.publicIndexable,
+      shareReconciliationRows: shareRows,
     }),
   };
 }

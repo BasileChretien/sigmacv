@@ -1,9 +1,10 @@
 import { randomBytes } from "node:crypto";
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
 import { CvNotFoundError } from "@/lib/cv/sync";
 import { recordPendingDoiWithdrawal } from "@/lib/cv/doiWithdrawals";
+import { purgeInstitutionPages } from "@/lib/cv/publicPageCache";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import {
   isProvenanceLedger,
@@ -13,6 +14,7 @@ import {
 import { shapeForFreeze, type FreezeShape } from "@/lib/cv/snapshotShape";
 import { contentHashOf } from "@/lib/cv/snapshotHash";
 import { freezeCanonical, MAX_SNAPSHOTS_PER_CV } from "@/lib/cv/snapshots";
+import { storedReconciliationRows } from "@/lib/institutions/reconciliationRows";
 import {
   doiMintingEnabled,
   mintSnapshotDoi,
@@ -50,6 +52,16 @@ export class SnapshotDoiLockedError extends Error {
   }
 }
 
+/** Thrown when a version that is NOT public would be designated as the source
+ *  of the institution reconciliation export: the export reads a public frozen
+ *  version only (a private one is the owner's alone). The API maps it to 409. */
+export class SnapshotNotPublicError extends Error {
+  constructor() {
+    super("Only a public version can be used for the reconciliation export.");
+    this.name = "SnapshotNotPublicError";
+  }
+}
+
 /** `withdrawn` is written by {@link withdrawMintedSnapshotDois} moments before
  *  the row is cascaded away — it exists so a partially failed deletion leaves
  *  an honest state behind, never as something the editor lists. */
@@ -71,6 +83,9 @@ export interface SnapshotSummary {
   /** SHA-256 (hex) of the canonical JSON of the frozen document's PUBLIC
    *  projection; null on versions frozen before the hash existed. */
   contentHash: string | null;
+  /** Designated as the source of the institution reconciliation export (at
+   *  most one per CV; public versions only). */
+  forReconciliation: boolean;
 }
 
 /** URL-safe capability token: 18 random bytes → 24 base64url chars (144 bits). */
@@ -96,6 +111,7 @@ type SnapshotRow = {
   doiState: string;
   readerMode: boolean;
   contentHash: string | null;
+  forReconciliation: boolean;
 };
 
 const SUMMARY_SELECT = {
@@ -109,6 +125,7 @@ const SUMMARY_SELECT = {
   doiState: true,
   readerMode: true,
   contentHash: true,
+  forReconciliation: true,
 } as const;
 
 function asDoiState(s: string): DoiState {
@@ -127,14 +144,22 @@ function toSummary(row: SnapshotRow): SnapshotSummary {
     doiState: asDoiState(row.doiState),
     readerMode: row.readerMode,
     contentHash: row.contentHash,
+    forReconciliation: row.forReconciliation,
   };
 }
 
-/** The owner's CV row (id + publish state + document); throws when absent. */
+/** The owner's CV row (id + publish state + document + the institution pages
+ *  it is consented to, for the cache purge); throws when absent. */
 async function ownerCv(userId: string) {
   const row = await prisma.cv.findUnique({
     where: { userId },
-    select: { id: true, document: true, published: true, publicSlug: true },
+    select: {
+      id: true,
+      document: true,
+      published: true,
+      publicSlug: true,
+      consentedRorIds: true,
+    },
   });
   if (!row) throw new CvNotFoundError();
   return row;
@@ -238,12 +263,63 @@ export async function createSnapshot(
   return toSummary(row);
 }
 
-/** Relabel and/or toggle visibility. Returns null when the id isn't the
- *  owner's. A minted snapshot cannot be made private ({@link SnapshotDoiLockedError}). */
+/** The reconciliation export's rows for a version being designated, computed
+ *  from ITS frozen document (read here, once — the public request never reads
+ *  it); null when that document no longer parses, in which case the version
+ *  cannot be designated. */
+async function reconciliationRowsColumn(
+  snapshot: { id: string; version: number; contentHash: string | null; createdAt: Date },
+  cvId: string,
+): Promise<Prisma.InputJsonValue | null> {
+  const row = await prisma.cvSnapshot.findFirst({
+    where: { id: snapshot.id, cvId },
+    select: { canonical: true },
+  });
+  /* v8 ignore next -- the caller just read the same row */
+  if (!row) return null;
+  const frozen = parseFrozen(row.canonical);
+  if (!frozen) return null;
+  // `freezeCanonical` once more (idempotent — the copy is already stripped),
+  // so "the rows come from a stripped document" is a fact of this writer.
+  const stored = storedReconciliationRows(freezeCanonical(frozen), {
+    snapshotVersion: snapshot.version,
+    contentHash: snapshot.contentHash,
+    frozenAt: snapshot.createdAt.toISOString(),
+  });
+  return stored as unknown as Prisma.InputJsonValue;
+}
+
+type SnapshotPatchData = {
+  isPublic?: boolean;
+  label?: string;
+  forReconciliation?: boolean;
+  reconciliationRows?: Prisma.InputJsonValue | typeof Prisma.DbNull;
+};
+
+/**
+ * Relabel, toggle visibility and/or (un)designate the version as the source
+ * of the institution reconciliation export. Returns null when the id isn't
+ * the owner's (or, on designation, when its frozen document no longer
+ * parses — nothing to compute rows from). A minted snapshot cannot be made
+ * private ({@link SnapshotDoiLockedError}); only a public version can be
+ * designated ({@link SnapshotNotPublicError}), and making a version private
+ * drops its designation in the same write. At most ONE version per CV is
+ * designated: designating this one clears every other in one transaction, so
+ * the export never reads two versions of one CV, and never none between two
+ * writes (the partial unique index on `(cvId) WHERE forReconciliation` makes
+ * the database refuse a concurrent second one).
+ *
+ * The export's rows are computed HERE, at designation, from the frozen
+ * document and stored beside the flag (`reconciliationRows`), so that no
+ * public request ever parses a frozen document; undesignating clears them.
+ * Either change purges the institution pages this CV is consented to, so the
+ * page's "N researchers share their rows" line moves at once, not within the
+ * cache TTL.
+ */
 export async function updateSnapshot(
   userId: string,
   id: string,
-  patch: { isPublic?: boolean; label?: string },
+  patch: { isPublic?: boolean; label?: string; forReconciliation?: boolean },
 ): Promise<SnapshotSummary | null> {
   const cv = await ownerCv(userId);
   const existing = await prisma.cvSnapshot.findFirst({
@@ -254,29 +330,57 @@ export async function updateSnapshot(
   if (patch.isPublic === false && existing.doiState === "minted") {
     throw new SnapshotDoiLockedError();
   }
-  const data: { isPublic?: boolean; label?: string } = {};
+  const willBePublic = patch.isPublic ?? existing.isPublic;
+  if (patch.forReconciliation === true && !willBePublic) throw new SnapshotNotPublicError();
+  const data: SnapshotPatchData = {};
   if (patch.isPublic !== undefined) data.isPublic = patch.isPublic;
   if (patch.label !== undefined) data.label = patch.label.trim();
-  const row = await prisma.cvSnapshot.update({
+  if (patch.isPublic === false) data.forReconciliation = false;
+  if (patch.forReconciliation !== undefined) data.forReconciliation = patch.forReconciliation;
+  if (data.forReconciliation === true) {
+    const rows = await reconciliationRowsColumn(existing, cv.id);
+    if (rows === null) return null;
+    data.reconciliationRows = rows;
+  } else if (data.forReconciliation === false) {
+    data.reconciliationRows = Prisma.DbNull;
+  }
+  const update = prisma.cvSnapshot.update({
     where: { id: existing.id },
     data,
     select: SUMMARY_SELECT,
   });
+  if (data.forReconciliation !== true) {
+    const summary = toSummary(await update);
+    if (data.forReconciliation === false) purgeInstitutionPages(cv.consentedRorIds);
+    return summary;
+  }
+  const [, row] = await prisma.$transaction([
+    prisma.cvSnapshot.updateMany({
+      where: { cvId: cv.id, forReconciliation: true, id: { not: existing.id } },
+      data: { forReconciliation: false, reconciliationRows: Prisma.DbNull },
+    }),
+    update,
+  ]);
+  purgeInstitutionPages(cv.consentedRorIds);
+  logger.info("snapshot.reconciliation_designated", { version: existing.version });
   return toSummary(row);
 }
 
 /** Delete one snapshot; false when it isn't the owner's. A MINTED snapshot is
  *  refused ({@link SnapshotDoiLockedError}) — its DOI must keep resolving; a
- *  `pending` / `failed` row holds no DOI and can go. */
+ *  `pending` / `failed` row holds no DOI and can go. Deleting the designated
+ *  version drops it from the reconciliation export, so the institution pages
+ *  are purged like an undesignation. */
 export async function deleteSnapshot(userId: string, id: string): Promise<boolean> {
   const cv = await ownerCv(userId);
   const existing = await prisma.cvSnapshot.findFirst({
     where: { id, cvId: cv.id },
-    select: { id: true, doiState: true },
+    select: { id: true, doiState: true, forReconciliation: true },
   });
   if (!existing) return false;
   if (existing.doiState === "minted") throw new SnapshotDoiLockedError();
   const res = await prisma.cvSnapshot.deleteMany({ where: { id, cvId: cv.id } });
+  if (res.count > 0 && existing.forReconciliation) purgeInstitutionPages(cv.consentedRorIds);
   return res.count > 0;
 }
 

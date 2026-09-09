@@ -117,7 +117,8 @@ function isPublishState(data: unknown): data is PublishStateResponse {
     Array.isArray(d.consentedRorIds) &&
     Array.isArray(d.currentAffiliations) &&
     Array.isArray(d.visibleCurrentRorIds) &&
-    Array.isArray(d.lapsedRorIds)
+    Array.isArray(d.lapsedRorIds) &&
+    typeof d.shareReconciliationRows === "boolean"
   );
 }
 
@@ -215,6 +216,7 @@ export default function CvWorkspace({
           currentAffiliations: data.currentAffiliations,
           visibleCurrentRorIds: data.visibleCurrentRorIds,
           lapsedRorIds: data.lapsedRorIds,
+          shareReconciliationRows: data.shareReconciliationRows,
         },
       });
     } catch {

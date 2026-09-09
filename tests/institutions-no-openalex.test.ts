@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { join, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -11,7 +11,10 @@ import { describe, expect, it } from "vitest";
  * wire a client in: any import of an external-source client or of the sync
  * module, or a raw `fetch(`, fails here. The runtime counterpart (render every
  * route with `fetch` and `@/lib/http` torn out) is
- * `institution-pages-offline.test.tsx`.
+ * `institution-pages-offline.test.tsx`. The scope recurses, so the
+ * reconciliation export (its pure row module, its assembler, the shared route
+ * helper and both route handlers under `src/app/i/[ror]/`) is covered too — a
+ * public GET of the export must reach the database alone, exactly like a page.
  */
 const ROOT = join(__dirname, "..");
 const SCOPES = [
@@ -59,13 +62,18 @@ function sourceFiles(path: string): string[] {
 describe("institution pages never call an external API", () => {
   const files = SCOPES.flatMap(sourceFiles);
 
-  it("covers the lib (incl. the pure snapshot, aggregate and summing modules), the listed-CV reader, the four routes and the four components", () => {
-    expect(files.length).toBeGreaterThanOrEqual(14);
+  it("covers the lib (incl. the pure snapshot, aggregate, summing and reconciliation modules), the listed-CV reader, the four pages, the two export routes and the four components", () => {
+    expect(files.length).toBeGreaterThanOrEqual(19);
     for (const name of [
       "listed.ts",
       "snapshot.ts",
       "cvAggregates.ts",
       "aggregateSum.ts",
+      "reconciliation.ts",
+      "reconciliationRows.ts",
+      "reconciliationRoute.ts",
+      `reconciliation.csv${sep}route.ts`,
+      `reconciliation.json${sep}route.ts`,
       "InstitutionOpenAlexSection.tsx",
       "InstitutionFiguresSection.tsx",
     ]) {

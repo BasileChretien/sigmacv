@@ -89,6 +89,11 @@ export async function GET() {
           ledger: true,
           contentHash: true,
           readerMode: true,
+          // Whether the user designated it as the source of the institution
+          // reconciliation export, and the export's rows computed from it at
+          // designation (null otherwise).
+          forReconciliation: true,
+          reconciliationRows: true,
         },
       })
     : [];
@@ -97,7 +102,8 @@ export async function GET() {
   // at which URL, whether it may be indexed, whether it is listed under the
   // owner's current affiliation for OAI-PMH harvesters (and the ROR key it lists
   // under), whether it opted in to the institution page and under which ROR
-  // ids, the counts-only aggregate of its listed works the institution page sums
+  // ids, whether it opted in a second time to share its reconciliation rows,
+  // the counts-only aggregate of its listed works the institution page sums
   // (derived from the owner's own data), when it last synced and what that sync
   // changed. Internal job bookkeeping (the resync lock) is not user data.
   const cvRecord = cv
@@ -113,6 +119,7 @@ export async function GET() {
         currentRorId: cv.currentRorId,
         showOnInstitutionPage: cv.showOnInstitutionPage,
         consentedRorIds: cv.consentedRorIds,
+        shareReconciliationRows: cv.shareReconciliationRows,
         visibleCurrentRorIds: cv.visibleCurrentRorIds,
         institutionAggregates: cv.institutionAggregates,
         createdAt: cv.createdAt,

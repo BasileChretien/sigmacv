@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/log";
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 
 /**
  * The institution listing's database access — and nothing else.
@@ -100,6 +100,122 @@ export async function listedForInstitutionPage(
     .slice(0, limit)
     .map((row) => ({ aggregates: row.institutionAggregates ?? null }));
   return { rows, truncated: candidates.length > limit, limit };
+}
+
+/** The designated frozen version: the ONE public snapshot per CV the owner
+ *  chose as the source of the reconciliation export, WITH its rows already
+ *  computed (a designated version whose rows are missing — a row written by
+ *  an older build — is not a source until it is designated again). */
+const DESIGNATED_SNAPSHOT = {
+  forReconciliation: true,
+  isPublic: true,
+  reconciliationRows: { not: Prisma.AnyNull },
+} as const;
+
+/**
+ * The consent gate of the reconciliation export, as a where clause — the
+ * institution-page gate above ({@link listedForInstitutionPage}: pinned
+ * consent, published + indexable, the id still a visible current position —
+ * the lapse rule in SQL) AND the SECOND opt-in (`shareReconciliationRows`) AND
+ * an owner with an ORCID iD (the export names the researcher by identifier)
+ * AND a designated public frozen version with stored rows to read from. A CV
+ * missing any one of the seven is not a source — and, because the count below
+ * uses the same clause, is not counted on the page either.
+ */
+function reconciliationWhere(rorId: string): Prisma.CvWhereInput {
+  return {
+    showOnInstitutionPage: true,
+    shareReconciliationRows: true,
+    published: true,
+    publicIndexable: true,
+    consentedRorIds: { has: rorId },
+    visibleCurrentRorIds: { has: rorId },
+    user: { orcid: { not: null } },
+    snapshots: { some: DESIGNATED_SNAPSHOT },
+  };
+}
+
+/**
+ * Bound on the CVs one reconciliation export reads (by id, so the bound is
+ * stable between requests); past it the export says `truncated`. Size
+ * estimate: a stored work row is ~250 bytes of JSON, a public page lists a
+ * few dozen to a few hundred works, so one source is ~10–50 KB and a full
+ * export of 1,000 sources ~10–50 MB — the most one request may assemble in
+ * memory and serialise; an institution past the bound reads "first 1,000".
+ */
+export const RECONCILIATION_ROW_LIMIT = 1000;
+
+export interface ReconciliationSource {
+  /** The owner's authenticated ORCID iD (the User row's), or null for an
+   *  account with none — the export needs it and skips such a CV. */
+  orcid: string | null;
+  consentedRorIds: string[];
+  visibleCurrentRorIds: string[];
+  /** The designated frozen version: its number (for the log line) and its
+   *  stored rows as `unknown` (parsed by the caller — a stored row is external
+   *  data). Never the frozen document. */
+  snapshot: { version: number; reconciliationRows: unknown };
+}
+
+export interface ReconciliationSources {
+  sources: ReconciliationSource[];
+  /** True when more CVs exist past the bound. */
+  truncated: boolean;
+  limit: number;
+}
+
+/**
+ * The CVs whose owners opted in a SECOND time to share their reconciliation
+ * rows under this ROR id, each with its designated public frozen version —
+ * the only per-person read of the programme. Seven columns in SQL, no live
+ * `document` and no frozen `canonical` selected: the rows are the version's
+ * STORED rows, computed when it was designated. The owner's ORCID iD is read
+ * from the User relation because the export names the researcher by
+ * identifier; the institution PAGE never reads it. One row past the bound is
+ * fetched so `truncated` says whether more exist.
+ */
+export async function reconciliationSources(
+  rorId: string,
+  opts: { limit?: number } = {},
+): Promise<ReconciliationSources> {
+  const limit = opts.limit ?? RECONCILIATION_ROW_LIMIT;
+  const rows = await prisma.cv.findMany({
+    where: reconciliationWhere(rorId),
+    select: {
+      consentedRorIds: true,
+      visibleCurrentRorIds: true,
+      user: { select: { orcid: true } },
+      snapshots: {
+        where: DESIGNATED_SNAPSHOT,
+        select: { version: true, reconciliationRows: true },
+        orderBy: { version: "desc" },
+        take: 1,
+      },
+    },
+    orderBy: { id: "asc" },
+    take: limit + 1,
+  });
+  const sources: ReconciliationSource[] = [];
+  for (const row of rows.slice(0, limit)) {
+    const snapshot = row.snapshots[0];
+    /* v8 ignore next -- the where clause requires a designated snapshot */
+    if (!snapshot) continue;
+    sources.push({
+      orcid: row.user.orcid ?? null,
+      consentedRorIds: row.consentedRorIds,
+      visibleCurrentRorIds: row.visibleCurrentRorIds,
+      snapshot,
+    });
+  }
+  return { sources, truncated: rows.length > limit, limit };
+}
+
+/** How many CVs are reconciliation sources under this ROR id — the page's one
+ *  line about the export (a count; the rows themselves are the export's). The
+ *  same clause as the reader's, so the page's count and the export's
+ *  `contributorCount` agree except for a stored value that no longer parses. */
+export async function countReconciliationSources(rorId: string): Promise<number> {
+  return prisma.cv.count({ where: reconciliationWhere(rorId) });
 }
 
 /** Listed-CV counts per ROR key, for the institution index — one grouped query

@@ -5,6 +5,7 @@ import { fillInstitutionString, institutionStrings } from "@/lib/i18n/institutio
 import {
   institutionJsonLd,
   institutionOaiSetUrl,
+  reconciliationExportPath,
   type InstitutionSummary,
 } from "@/lib/institutions/institutions";
 import { serializeJsonLd } from "@/lib/jsonLd";
@@ -27,7 +28,10 @@ import SiteHeader from "./SiteHeader";
  * figures of those who separately chose to be COUNTED here (their own listed
  * works, summed under k-anonymity — a second count with its own sentence, never
  * a ratio of one to the other), OpenAlex's record of the organisation (never
- * compared with the former), the OAI-PMH set for machines, and the "About this
+ * compared with the former), the OAI-PMH set for machines, one line about the
+ * reconciliation export when at least one researcher opted in a second time to
+ * share their per-work rows (the programme's only per-person surface, and not
+ * on this page: two download links, no row), and the "About this
  * page" block that states who the
  * controller is, that the institution is a reader like anyone else, that
  * listing is voluntary and absence means nothing, and that SigmaCV does not
@@ -46,6 +50,10 @@ export default function InstitutionPage({
   const rorUrl = `https://ror.org/${summary.rorId}`;
   const setUrl = institutionOaiSetUrl(summary.rorId);
   const faqHref = `${localeFaqPath(loc)}#${faqItemAnchor(FAQ_REQUEST_LINK_INDEX)}`;
+  // Each row of the export is a named, opted-in researcher, so there is no k
+  // here: the line appears from the first contributor, and the About block
+  // then says why the rows carry an identifier.
+  const reconciliation = summary.reconciliationCount >= 1;
   return (
     <div className="site-shell" lang={loc}>
       <SiteHeader locale={loc} />
@@ -79,6 +87,14 @@ export default function InstitutionPage({
           {s.oaiBody}{" "}
           <a href={setUrl}>{fillInstitutionString(s.oaiLink, { id: rorSetSpec(summary.rorId) })}</a>
         </p>
+        {reconciliation ? (
+          <p className="inst-reconciliation">
+            {reconciliationSentence(s, summary.reconciliationCount)}{" "}
+            <a href={reconciliationExportPath(summary.rorId, "csv")}>{s.reconciliationCsv}</a>
+            {" · "}
+            <a href={reconciliationExportPath(summary.rorId, "json")}>{s.reconciliationJson}</a>
+          </p>
+        ) : null}
 
         <h2>{s.aboutHeading}</h2>
         <p>{s.aboutController}</p>
@@ -87,6 +103,7 @@ export default function InstitutionPage({
         <p>
           {s.aboutNoRanking} <Link href={faqHref}>{s.aboutRequestLink}</Link>
         </p>
+        {reconciliation ? <p>{s.aboutReconciliation}</p> : null}
 
         <p className="doc-back muted">
           <Link href={localeHomePath(loc)}>{s.backLink}</Link>
@@ -100,6 +117,11 @@ export default function InstitutionPage({
 /** "N researchers list this affiliation" (singular for one). */
 export function listedSentence(s: ReturnType<typeof institutionStrings>, count: number): string {
   return count === 1 ? s.listedOne : fillInstitutionString(s.listedMany, { count });
+}
+
+/** "N researchers share their reconciliation rows:" (singular for one). */
+function reconciliationSentence(s: ReturnType<typeof institutionStrings>, count: number): string {
+  return count === 1 ? s.reconciliationOne : fillInstitutionString(s.reconciliationMany, { count });
 }
 
 /** The notice shown in place of either page when the public-page rate limit is

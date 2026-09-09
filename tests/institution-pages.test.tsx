@@ -43,6 +43,7 @@ vi.mock("next/headers", () => ({ headers: async () => mocks.requestHeaders }));
 vi.mock("@/components/SiteHeader", () => ({ default: () => null }));
 vi.mock("@/components/SiteFooter", () => ({ default: () => null }));
 
+import { Prisma } from "@/generated/prisma/client";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { __resetPublicPageCache } from "@/lib/cv/publicPageCache";
 import { INSTITUTION_PAGE_ROW_LIMIT } from "@/lib/cv/listed";
@@ -83,13 +84,21 @@ const text = (html: string) =>
 /** The rows the consented-figures reader gets (the one Cv query the page
  *  makes); set per test with {@link counted}. */
 let consentedRows: unknown[] = [];
+/** How many researchers share their reconciliation rows (the second count
+ *  the page makes, routed by its where clause); set per test with {@link sharing}. */
+let sharingCount = 0;
+function sharing(count: number) {
+  sharingCount = count;
+}
 
 /** `count` listed CVs under ROR, with (or without) a trusted ROR-recorded name.
  *  The CVs' own affiliation column always carries hostile text, so any read of
  *  it would show on the page. The Cv findMany is routed by its where clause:
  *  the consent query gets {@link consentedRows}, anything else the hostile row. */
 function listed(count: number, name: string | null = NAME) {
-  mocks.count.mockResolvedValue(count);
+  mocks.count.mockImplementation(async (args: { where: Record<string, unknown> }) =>
+    "snapshots" in args.where ? sharingCount : count,
+  );
   mocks.institutionFindUnique.mockResolvedValue(name === null ? null : { name });
   mocks.findFirst.mockResolvedValue({ currentAffiliationName: HOSTILE });
   mocks.findMany.mockImplementation(async (args: { where: Record<string, unknown> }) =>
@@ -177,7 +186,10 @@ beforeEach(() => {
   mocks.institutionFindUnique.mockResolvedValue(null);
   mocks.institutionFindMany.mockResolvedValue([]);
 });
-afterEach(() => __resetPublicPageCache());
+afterEach(() => {
+  __resetPublicPageCache();
+  sharingCount = 0;
+});
 
 describe("route configuration", () => {
   it("every institution route is dynamic (RORs cannot be enumerated at build time)", () => {
@@ -477,9 +489,10 @@ describe("/i/[ror]", () => {
   it("404s a ROR nobody listed under, then remembers the miss so the next hit skips the database", async () => {
     listed(0, null);
     await expect(RorPage(params({ ror: ROR }))).rejects.toThrow();
-    expect(mocks.count).toHaveBeenCalledTimes(1);
+    // The listed count and the reconciliation count run in parallel: two reads.
+    expect(mocks.count).toHaveBeenCalledTimes(2);
     await expect(RorPage(params({ ror: ROR }))).rejects.toThrow();
-    expect(mocks.count).toHaveBeenCalledTimes(1);
+    expect(mocks.count).toHaveBeenCalledTimes(2);
     expect(await rorMetadata(params({ ror: ROR }))).toEqual({ robots: NOINDEX_NOFOLLOW });
   });
 
@@ -708,6 +721,70 @@ describe("/i/[ror] — figures from researchers who chose to be counted here", (
     expect(section).toContain("5 chercheurs ont choisi");
     expect(section).toContain("moins de 5 chercheurs");
     expect(section).toContain("<td>Publications</td>");
+  });
+});
+
+describe("/i/[ror] — the reconciliation export line", () => {
+  const s = institutionStrings("en-US");
+
+  it("is absent, with its About sentence, while nobody shares rows — the page stays roster-free", async () => {
+    listed(3);
+    const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    expect(html).not.toContain("reconciliation.csv");
+    expect(html).not.toContain("reconciliation.json");
+    expect(html).not.toContain("inst-reconciliation");
+    expect(text(html)).not.toContain(s.aboutReconciliation);
+  });
+
+  it("from one contributor, states the count (singular) with the CSV and JSON links and says in About why the rows carry an identifier", async () => {
+    listed(3);
+    sharing(1);
+    const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    expect(text(html)).toContain(s.reconciliationOne);
+    expect(html).toContain(`href="/i/${ROR}/reconciliation.csv"`);
+    expect(html).toContain(`href="/i/${ROR}/reconciliation.json"`);
+    expect(text(html)).toContain(s.aboutReconciliation);
+    // Still no roster: no name, no ORCID, no per-person line on the page itself.
+    expect(text(html)).not.toContain(HOSTILE);
+    expect(html).not.toContain("0000-0002-7483-2489");
+  });
+
+  it("uses the plural from two contributors, and the localized page links to the same locale-free export", async () => {
+    listed(3);
+    sharing(4);
+    const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    expect(text(html)).toContain("4 researchers share their reconciliation rows:");
+    const fr = renderToStaticMarkup(await LocaleRorPage(params({ locale: "fr", ror: ROR })));
+    const sf = institutionStrings("fr-FR");
+    expect(text(fr)).toContain(sf.reconciliationMany.replace("{count}", "4"));
+    expect(fr).toContain(`href="/i/${ROR}/reconciliation.csv"`);
+    expect(text(fr)).toContain(sf.aboutReconciliation);
+  });
+
+  it("the reconciliation count is read with the seven-column gate (stored rows and an ORCID iD included) and never a document", async () => {
+    listed(2);
+    sharing(1);
+    await RorPage(params({ ror: ROR }));
+    const call = mocks.count.mock.calls.find(
+      (args: unknown[]) => "snapshots" in (args[0] as { where: Record<string, unknown> }).where,
+    );
+    expect(call![0].where).toEqual({
+      showOnInstitutionPage: true,
+      shareReconciliationRows: true,
+      published: true,
+      publicIndexable: true,
+      consentedRorIds: { has: ROR },
+      visibleCurrentRorIds: { has: ROR },
+      user: { orcid: { not: null } },
+      snapshots: {
+        some: {
+          forReconciliation: true,
+          isPublic: true,
+          reconciliationRows: { not: Prisma.AnyNull },
+        },
+      },
+    });
+    expect(call![0]).not.toHaveProperty("select");
   });
 });
 

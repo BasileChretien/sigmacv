@@ -84,7 +84,20 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
 
   function patchLocal(next: SnapshotSummary) {
     setListing((cur) =>
-      cur ? { ...cur, snapshots: cur.snapshots.map((x) => (x.id === next.id ? next : x)) } : cur,
+      cur
+        ? {
+            ...cur,
+            snapshots: cur.snapshots.map((x) =>
+              x.id === next.id
+                ? next
+                : // At most one designated version per CV: the server cleared the
+                  // others in the same transaction, so mirror that locally.
+                  next.forReconciliation
+                  ? { ...x, forReconciliation: false }
+                  : x,
+            ),
+          }
+        : cur,
     );
   }
 
@@ -131,6 +144,27 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
         body: JSON.stringify({ isPublic }),
       });
       if (res.ok) patchLocal(((await res.json()) as { snapshot: SnapshotSummary }).snapshot);
+      else setAnnounce(s.actionFailed);
+    } catch {
+      setAnnounce(s.actionFailed);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /** (Un)designate a version as the source of the institution reconciliation
+   *  export — public versions only (the server 409s otherwise). */
+  async function setForReconciliation(snap: SnapshotSummary, forReconciliation: boolean) {
+    setBusy(snap.id);
+    setAnnounce("");
+    try {
+      const res = await fetch(`/api/cv/snapshots/${encodeURIComponent(snap.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ forReconciliation }),
+      });
+      if (res.ok) patchLocal(((await res.json()) as { snapshot: SnapshotSummary }).snapshot);
+      else if (res.status === 409) setAnnounce(s.reconciliationNeedsPublic);
       else setAnnounce(s.actionFailed);
     } catch {
       setAnnounce(s.actionFailed);
@@ -324,6 +358,11 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
                     {s.readerTag}
                   </span>
                 ) : null}
+                {snap.forReconciliation ? (
+                  <span className="versions-row-tag" data-testid="reconciliation-tag">
+                    {s.reconciliationTag}
+                  </span>
+                ) : null}
                 <span className="versions-row-date">
                   {formatSnapshotDate(snap.createdAt, locale)}
                 </span>
@@ -374,6 +413,22 @@ export default function VersionsControls({ locale, published, slug }: VersionsCo
                     {mintingId === snap.id ? s.minting : s.mintDoi}
                   </button>
                 ) : null}
+                {/* The institution reconciliation export reads ONE designated
+                    public version; a private one cannot be designated (the
+                    server 409s), so the action is disabled with the reason. */}
+                <button
+                  type="button"
+                  className="link-btn"
+                  disabled={rowBusy || (!snap.isPublic && !snap.forReconciliation)}
+                  title={
+                    !snap.isPublic && !snap.forReconciliation
+                      ? s.reconciliationNeedsPublic
+                      : undefined
+                  }
+                  onClick={() => void setForReconciliation(snap, !snap.forReconciliation)}
+                >
+                  {snap.forReconciliation ? s.reconciliationStop : s.reconciliationUse}
+                </button>
                 <button
                   type="button"
                   className="link-btn danger"

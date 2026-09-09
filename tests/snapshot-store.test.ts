@@ -28,10 +28,18 @@ const mocks = vi.hoisted(() => ({
   mintSnapshotDoi: vi.fn(),
   tombstoneSnapshotDoi: vi.fn(),
   recordPendingDoiWithdrawal: vi.fn(),
+  updateMany: vi.fn(),
+  transaction: vi.fn(),
+  purgeInstitutionPages: vi.fn(),
+}));
+
+vi.mock("@/lib/cv/publicPageCache", () => ({
+  purgeInstitutionPages: mocks.purgeInstitutionPages,
 }));
 
 vi.mock("@/lib/db", () => ({
   prisma: {
+    $transaction: mocks.transaction,
     cv: { findUnique: mocks.cvFindUnique },
     cvSnapshot: {
       findMany: mocks.findMany,
@@ -40,6 +48,7 @@ vi.mock("@/lib/db", () => ({
       create: mocks.create,
       findFirst: mocks.findFirst,
       update: mocks.update,
+      updateMany: mocks.updateMany,
       deleteMany: mocks.deleteMany,
       findUnique: mocks.findUnique,
     },
@@ -67,12 +76,15 @@ import {
   newSnapshotToken,
   SnapshotDoiLockedError,
   SnapshotLimitError,
+  SnapshotNotPublicError,
   snapshotPublicPath,
   updateSnapshot,
   withdrawMintedSnapshotDois,
 } from "@/lib/cv/snapshotStore";
 import { CvNotFoundError } from "@/lib/cv/sync";
-import { MAX_SNAPSHOTS_PER_CV } from "@/lib/cv/snapshots";
+import { freezeCanonical, MAX_SNAPSHOTS_PER_CV } from "@/lib/cv/snapshots";
+import { storedReconciliationRows } from "@/lib/institutions/reconciliationRows";
+import { Prisma } from "@/generated/prisma/client";
 import { provenanceLedger, type ProvenanceLedger } from "@/lib/cv/provenanceLedger";
 import { contentHashOf, stableJson } from "@/lib/cv/snapshotHash";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
@@ -88,7 +100,14 @@ function makeCv(): CanonicalCv {
 }
 
 const CV = makeCv();
-const CV_ROW = { id: "cv1", document: CV, published: true, publicSlug: "basile-x" };
+const CONSENTED = ["04chrp450", "02kpeqv85"];
+const CV_ROW = {
+  id: "cv1",
+  document: CV,
+  published: true,
+  publicSlug: "basile-x",
+  consentedRorIds: CONSENTED,
+};
 const ROW = {
   id: "snap1",
   cvId: "cv1",
@@ -103,11 +122,14 @@ const ROW = {
   ledger: null as unknown,
   contentHash: null as string | null,
   readerMode: false,
+  forReconciliation: false,
 };
 
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
   for (const fn of Object.values(logger)) vi.mocked(fn).mockReset();
+  // The array form: every operation is already a promise from the mocks.
+  mocks.transaction.mockImplementation(async (ops: Promise<unknown>[]) => Promise.all(ops));
   mocks.cvFindUnique.mockResolvedValue(CV_ROW);
   mocks.doiMintingEnabled.mockReturnValue(false);
 });
@@ -151,6 +173,7 @@ describe("listSnapshots", () => {
       doiState: "none",
       readerMode: false,
       contentHash: null,
+      forReconciliation: false,
     });
     // An unknown stored state degrades to "none".
     expect(out.snapshots[1]!.doiState).toBe("none");
@@ -340,6 +363,130 @@ describe("updateSnapshot", () => {
     mocks.update.mockResolvedValue({ ...ROW, doiState: "minted", doi: "10.1/x", label: "L" });
     expect((await updateSnapshot("u1", "snap1", { label: "L" }))?.doiState).toBe("minted");
   });
+
+  describe("designation for the institution reconciliation export", () => {
+    /** What the designation stores: the export's rows, computed from the
+     *  version's frozen document (ROW.canonical) and its number / hash / date. */
+    const STORED_ROWS = storedReconciliationRows(freezeCanonical(CV), {
+      snapshotVersion: 2,
+      contentHash: null,
+      frozenAt: "2026-09-04T10:00:00.000Z",
+    });
+
+    it("designates a PUBLIC version, computes and stores its rows from the frozen document, clears every other of the CV (rows included) in ONE transaction, and purges the institution pages", async () => {
+      mocks.findFirst.mockResolvedValue(ROW);
+      mocks.updateMany.mockResolvedValue({ count: 1 });
+      mocks.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+        ...ROW,
+        ...data,
+      }));
+      const out = await updateSnapshot("u1", "snap1", { forReconciliation: true });
+      expect(out?.forReconciliation).toBe(true);
+      expect(STORED_ROWS.rows.length).toBeGreaterThan(0);
+      // The frozen document is read ONCE, here, for this version only.
+      expect(mocks.findFirst).toHaveBeenCalledTimes(2);
+      expect(mocks.findFirst.mock.calls[1]![0]).toEqual({
+        where: { id: "snap1", cvId: "cv1" },
+        select: { canonical: true },
+      });
+      expect(mocks.transaction).toHaveBeenCalledTimes(1);
+      expect(mocks.updateMany.mock.calls[0]![0]).toEqual({
+        where: { cvId: "cv1", forReconciliation: true, id: { not: "snap1" } },
+        data: { forReconciliation: false, reconciliationRows: Prisma.DbNull },
+      });
+      expect(mocks.update.mock.calls[0]![0]).toEqual({
+        where: { id: "snap1" },
+        data: { forReconciliation: true, reconciliationRows: STORED_ROWS },
+        select: expect.any(Object),
+      });
+      expect(mocks.purgeInstitutionPages).toHaveBeenCalledTimes(1);
+      expect(mocks.purgeInstitutionPages).toHaveBeenCalledWith(CONSENTED);
+      expect(logger.info).toHaveBeenCalledWith("snapshot.reconciliation_designated", {
+        version: 2,
+      });
+    });
+
+    it("refuses to designate a version whose frozen document no longer parses — nothing to compute rows from — and writes nothing", async () => {
+      mocks.findFirst
+        .mockResolvedValueOnce(ROW)
+        .mockResolvedValueOnce({ canonical: { nope: true } });
+      expect(await updateSnapshot("u1", "snap1", { forReconciliation: true })).toBeNull();
+      expect(mocks.update).not.toHaveBeenCalled();
+      expect(mocks.transaction).not.toHaveBeenCalled();
+      expect(mocks.purgeInstitutionPages).not.toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalledWith("snapshot.stored_document_invalid", {
+        issueCount: expect.any(Number),
+      });
+    });
+
+    it("refuses to designate a private version, or one being made private in the same patch — and never writes", async () => {
+      mocks.findFirst.mockResolvedValue({ ...ROW, isPublic: false });
+      await expect(
+        updateSnapshot("u1", "snap1", { forReconciliation: true }),
+      ).rejects.toBeInstanceOf(SnapshotNotPublicError);
+      mocks.findFirst.mockResolvedValue(ROW);
+      await expect(
+        updateSnapshot("u1", "snap1", { isPublic: false, forReconciliation: true }),
+      ).rejects.toBeInstanceOf(SnapshotNotPublicError);
+      expect(mocks.update).not.toHaveBeenCalled();
+      expect(mocks.transaction).not.toHaveBeenCalled();
+      expect(mocks.purgeInstitutionPages).not.toHaveBeenCalled();
+      // A private version made public in the same patch CAN be designated.
+      mocks.findFirst.mockResolvedValue({ ...ROW, isPublic: false });
+      mocks.updateMany.mockResolvedValue({ count: 0 });
+      mocks.update.mockResolvedValue({ ...ROW, isPublic: true, forReconciliation: true });
+      const out = await updateSnapshot("u1", "snap1", { isPublic: true, forReconciliation: true });
+      expect(out?.forReconciliation).toBe(true);
+      expect(mocks.update.mock.calls[0]![0].data).toEqual({
+        isPublic: true,
+        forReconciliation: true,
+        reconciliationRows: STORED_ROWS,
+      });
+    });
+
+    it("undesignates without a transaction, clearing the stored rows and purging the pages; making a version private drops its designation in the same write", async () => {
+      mocks.findFirst.mockResolvedValue({ ...ROW, forReconciliation: true });
+      mocks.update.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+        ...ROW,
+        ...data,
+      }));
+      const off = await updateSnapshot("u1", "snap1", { forReconciliation: false });
+      expect(off?.forReconciliation).toBe(false);
+      expect(mocks.update.mock.calls[0]![0].data).toEqual({
+        forReconciliation: false,
+        reconciliationRows: Prisma.DbNull,
+      });
+      expect(mocks.transaction).not.toHaveBeenCalled();
+      // Only the summary row was read: no document fetch on the way out.
+      expect(mocks.findFirst).toHaveBeenCalledTimes(1);
+      expect(mocks.purgeInstitutionPages).toHaveBeenCalledTimes(1);
+      expect(mocks.purgeInstitutionPages).toHaveBeenCalledWith(CONSENTED);
+      mocks.update.mockClear();
+      mocks.purgeInstitutionPages.mockClear();
+      const hidden = await updateSnapshot("u1", "snap1", { isPublic: false });
+      expect(hidden?.forReconciliation).toBe(false);
+      expect(mocks.update.mock.calls[0]![0].data).toEqual({
+        isPublic: false,
+        forReconciliation: false,
+        reconciliationRows: Prisma.DbNull,
+      });
+      expect(mocks.purgeInstitutionPages).toHaveBeenCalledWith(CONSENTED);
+      // A label-only patch on a designated version leaves the designation,
+      // the rows and the cache alone.
+      mocks.update.mockClear();
+      mocks.purgeInstitutionPages.mockClear();
+      await updateSnapshot("u1", "snap1", { label: "Only" });
+      expect(mocks.update.mock.calls[0]![0].data).toEqual({ label: "Only" });
+      expect(mocks.purgeInstitutionPages).not.toHaveBeenCalled();
+    });
+
+    it("the listing and the summaries carry the flag", async () => {
+      mocks.cvFindUnique.mockResolvedValue(CV_ROW);
+      mocks.findMany.mockResolvedValue([{ ...ROW, forReconciliation: true }, ROW]);
+      const listing = await listSnapshots("u1");
+      expect(listing.snapshots.map((s) => s.forReconciliation)).toEqual([true, false]);
+    });
+  });
 });
 
 describe("deleteSnapshot", () => {
@@ -359,6 +506,23 @@ describe("deleteSnapshot", () => {
     mocks.findFirst.mockResolvedValue(null);
     expect(await deleteSnapshot("u1", "other")).toBe(false);
     expect(mocks.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("purges the institution pages when the DESIGNATED version goes (it leaves the export), and not otherwise", async () => {
+    mocks.findFirst.mockResolvedValue({ id: "snap1", doiState: "none", forReconciliation: true });
+    mocks.deleteMany.mockResolvedValue({ count: 1 });
+    expect(await deleteSnapshot("u1", "snap1")).toBe(true);
+    expect(mocks.findFirst.mock.calls[0]![0].select).toMatchObject({ forReconciliation: true });
+    expect(mocks.purgeInstitutionPages).toHaveBeenCalledWith(CONSENTED);
+    mocks.purgeInstitutionPages.mockClear();
+    mocks.findFirst.mockResolvedValue({ id: "snap1", doiState: "none", forReconciliation: false });
+    expect(await deleteSnapshot("u1", "snap1")).toBe(true);
+    expect(mocks.purgeInstitutionPages).not.toHaveBeenCalled();
+    // A row that was already gone purges nothing either.
+    mocks.findFirst.mockResolvedValue({ id: "snap1", doiState: "none", forReconciliation: true });
+    mocks.deleteMany.mockResolvedValue({ count: 0 });
+    expect(await deleteSnapshot("u1", "snap1")).toBe(false);
+    expect(mocks.purgeInstitutionPages).not.toHaveBeenCalled();
   });
 
   it("refuses to delete a minted snapshot: its DOI must keep resolving while the account exists", async () => {

@@ -37,6 +37,7 @@ vi.mock("@/lib/db", () => ({
 }));
 vi.mock("@/lib/log", () => ({ logger: { info: vi.fn(), warn: mocks.warn, error: vi.fn() } }));
 
+import { Prisma } from "@/generated/prisma/client";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { __resetPublicPageCache, isKnownMiss } from "@/lib/cv/publicPageCache";
 import { currentAffiliation } from "@/lib/cv/publicJsonLd";
@@ -58,6 +59,7 @@ import {
   isInstitutionIndexable,
   isKnownInstitutionMiss,
   isRorId,
+  reconciliationExportPath,
   rememberInstitutionMiss,
 } from "@/lib/institutions/institutions";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -127,6 +129,14 @@ function aggregate(year: string, count: number): CvAggregates {
     },
     byType: { publications: count },
   };
+}
+
+/** `count` answers the listed-CV gate with `listed` and the reconciliation
+ *  gate (the one whose where names the designated snapshot) with `sharing`. */
+function counts(listed: number, sharing = 0) {
+  mocks.count.mockImplementation(async ({ where }: { where: Record<string, unknown> }) =>
+    "snapshots" in where ? sharing : listed,
+  );
 }
 
 beforeEach(() => {
@@ -300,7 +310,7 @@ describe("recordInstitutions (sync-time writer of ROR's own record)", () => {
 
 describe("institutionSummary", () => {
   it("returns the ROR, the trusted name and the count for a listed institution", async () => {
-    mocks.count.mockResolvedValue(4);
+    counts(4, 2);
     mocks.institutionFindUnique.mockResolvedValue({ name: "Nagoya University" });
     await expect(institutionSummary(ROR)).resolves.toEqual({
       rorId: ROR,
@@ -308,18 +318,48 @@ describe("institutionSummary", () => {
       listedCount: 4,
       openalex: null,
       figures: NO_FIGURES,
+      reconciliationCount: 2,
     });
   });
 
   it("falls back to 'ROR <id>' when no trusted record exists", async () => {
-    mocks.count.mockResolvedValue(1);
+    counts(1);
     await expect(institutionSummary(ROR)).resolves.toEqual({
       rorId: ROR,
       name: `ROR ${ROR}`,
       listedCount: 1,
       openalex: null,
       figures: NO_FIGURES,
+      reconciliationCount: 0,
     });
+  });
+
+  it("counts the reconciliation sources under the seven-column gate (the page consent, the second opt-in, an owner with an ORCID iD and a designated public version with stored rows)", async () => {
+    counts(3, 1);
+    await institutionSummary(ROR);
+    const call = mocks.count.mock.calls.find(
+      (args: unknown[]) => "snapshots" in (args[0] as { where: Record<string, unknown> }).where,
+    );
+    expect(call![0]).toEqual({
+      where: {
+        showOnInstitutionPage: true,
+        shareReconciliationRows: true,
+        published: true,
+        publicIndexable: true,
+        consentedRorIds: { has: ROR },
+        visibleCurrentRorIds: { has: ROR },
+        user: { orcid: { not: null } },
+        snapshots: {
+          some: {
+            forReconciliation: true,
+            isPublic: true,
+            reconciliationRows: { not: Prisma.AnyNull },
+          },
+        },
+      },
+    });
+    expect(reconciliationExportPath(ROR, "csv")).toBe(`/i/${ROR}/reconciliation.csv`);
+    expect(reconciliationExportPath(ROR, "json")).toBe(`/i/${ROR}/reconciliation.json`);
   });
 
   it("sums the consented rows' stored aggregates under k-anonymity; an unparseable stored aggregate counts as pending", async () => {
@@ -562,9 +602,30 @@ describe("institutionIndex", () => {
     ]);
     const index = await institutionIndex();
     expect(index).toEqual([
-      { rorId: ROR, name: "Alpha University", listedCount: 1, openalex: null, figures: null },
-      { rorId: "00abcde12", name: "ROR 00abcde12", listedCount: 2, openalex: null, figures: null },
-      { rorId: "05m32f987", name: "Zeta Institute", listedCount: 5, openalex: null, figures: null },
+      {
+        rorId: ROR,
+        name: "Alpha University",
+        listedCount: 1,
+        openalex: null,
+        figures: null,
+        reconciliationCount: 0,
+      },
+      {
+        rorId: "00abcde12",
+        name: "ROR 00abcde12",
+        listedCount: 2,
+        openalex: null,
+        figures: null,
+        reconciliationCount: 0,
+      },
+      {
+        rorId: "05m32f987",
+        name: "Zeta Institute",
+        listedCount: 5,
+        openalex: null,
+        figures: null,
+        reconciliationCount: 0,
+      },
     ]);
     expect(mocks.institutionFindMany).toHaveBeenCalledWith({
       where: { rorId: { in: ["05m32f987", ROR, "00abcde12"] } },
@@ -606,6 +667,7 @@ describe("institutionJsonLd", () => {
     listedCount: 7,
     openalex: null,
     figures: null,
+    reconciliationCount: 0,
   };
 
   it("is a schema.org Organization identified by its ROR IRI, named by the trusted name, with the OAI set as subjectOf", () => {
