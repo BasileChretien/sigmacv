@@ -76,6 +76,11 @@ services:
       # section. Leave blank to keep the EPO client dormant (no call, no effect).
       EPO_OPS_KEY: ${EPO_OPS_KEY:-}
       EPO_OPS_SECRET: ${EPO_OPS_SECRET:-}
+      # GDPR Art. 21 objections to the no-login preview: the key the /object route
+      # and the account toggle hash iDs with, and the manual HMAC list (PR C).
+      # Both optional; without the key /object says objections are unavailable.
+      PREVIEW_SUPPRESSION_KEY: ${PREVIEW_SUPPRESSION_KEY:-}
+      PREVIEW_SUPPRESSED_ORCID_HMACS: ${PREVIEW_SUPPRESSED_ORCID_HMACS:-}
       RATE_LIMIT_PERSIST: ${RATE_LIMIT_PERSIST:-true}
       NODE_ENV: "production"
     expose:
