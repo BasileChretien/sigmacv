@@ -22,6 +22,7 @@ const SCOPES = [
   "src/components/InstitutionIndex.tsx",
   "src/components/InstitutionPage.tsx",
   "src/components/InstitutionOpenAlexSection.tsx",
+  "src/components/InstitutionFiguresSection.tsx",
 ];
 /** The two modules that DO talk to OpenAlex about institutions — the snapshot
  *  fetchers and the resync-tick refresh job — live under `src/lib/openalex/`,
@@ -58,11 +59,21 @@ function sourceFiles(path: string): string[] {
 describe("institution pages never call an external API", () => {
   const files = SCOPES.flatMap(sourceFiles);
 
-  it("covers the lib (incl. the pure snapshot module), the listed-CV reader, the four routes and the three components", () => {
-    expect(files.length).toBeGreaterThanOrEqual(11);
-    expect(files.some((f) => f.endsWith("listed.ts"))).toBe(true);
-    expect(files.some((f) => f.endsWith("snapshot.ts"))).toBe(true);
-    expect(files.some((f) => f.endsWith("InstitutionOpenAlexSection.tsx"))).toBe(true);
+  it("covers the lib (incl. the pure snapshot, aggregate and summing modules), the listed-CV reader, the four routes and the four components", () => {
+    expect(files.length).toBeGreaterThanOrEqual(14);
+    for (const name of [
+      "listed.ts",
+      "snapshot.ts",
+      "cvAggregates.ts",
+      "aggregateSum.ts",
+      "InstitutionOpenAlexSection.tsx",
+      "InstitutionFiguresSection.tsx",
+    ]) {
+      expect(
+        files.some((f) => f.endsWith(name)),
+        name,
+      ).toBe(true);
+    }
   });
 
   it("keeps the OpenAlex-side snapshot modules outside the scanned scope, and the scope never imports them", () => {
@@ -80,5 +91,81 @@ describe("institution pages never call an external API", () => {
     const src = readFileSync(file, "utf8");
     for (const client of EXTERNAL_CLIENTS) expect(src, client).not.toContain(client);
     expect(src).not.toMatch(/\bfetch\s*\(/);
+  });
+});
+
+/**
+ * The plan's "Opt-out oracle" veto, at the source level: the researchers' own
+ * figures (the per-CV aggregate, its k-anonymous sum and the section that
+ * renders it) and OpenAlex's snapshot of the organisation (its pure module and
+ * its section) never import each other and never name each other, so no code
+ * path can receive both and subtract one from the other. The page composes the
+ * two sections side by side; each is handed only its own data.
+ */
+describe("the opted-in figures and the OpenAlex snapshot never meet", () => {
+  const read = (path: string) => readFileSync(join(ROOT, path), "utf8");
+  /** The module specifiers a file imports. */
+  const imports = (src: string) => [...src.matchAll(/from\s+"([^"]+)"/g)].map((m) => m[1]!);
+  /** The file with its comments stripped: prose may name the other side
+   *  ("never OpenAlex's"); code must not. */
+  const code = (src: string) => src.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "");
+  const FIGURES_SIDE = [
+    "src/lib/institutions/cvAggregates.ts",
+    "src/lib/institutions/aggregateSum.ts",
+    "src/components/InstitutionFiguresSection.tsx",
+  ];
+  const SNAPSHOT_SIDE = [
+    "src/lib/institutions/snapshot.ts",
+    "src/components/InstitutionOpenAlexSection.tsx",
+  ];
+
+  it.each(FIGURES_SIDE)(
+    "%s imports nothing of, and names no symbol of, the OpenAlex snapshot",
+    (path) => {
+      const src = read(path);
+      for (const spec of imports(src)) {
+        expect(spec, spec).not.toMatch(/snapshot|openalex|InstitutionOpenAlexSection/i);
+      }
+      for (const symbol of [
+        "InstitutionAggregates",
+        "InstitutionOpenAlexSnapshot",
+        "parseInstitutionAggregates",
+        "openalexAggregates",
+        "openAlexInstitutionUrl",
+        "snapshot",
+      ]) {
+        expect(code(src), symbol).not.toContain(symbol);
+      }
+    },
+  );
+
+  it.each(SNAPSHOT_SIDE)(
+    "%s imports nothing of, and names no symbol of, the opted-in figures",
+    (path) => {
+      const src = read(path);
+      for (const spec of imports(src)) {
+        expect(spec, spec).not.toMatch(
+          /aggregateSum|cvAggregates|InstitutionFiguresSection|listed/,
+        );
+      }
+      for (const symbol of [
+        "InstitutionFigures",
+        "SummedAggregates",
+        "sumAggregates",
+        "CvAggregates",
+        "institutionAggregates",
+        "figures",
+      ]) {
+        expect(code(src), symbol).not.toContain(symbol);
+      }
+    },
+  );
+
+  it("the page hands each section only its own data", () => {
+    const page = read("src/components/InstitutionPage.tsx");
+    expect(page).toContain("<InstitutionFiguresSection locale={loc} figures={summary.figures} />");
+    expect(page).toContain(
+      "<InstitutionOpenAlexSection locale={loc} snapshot={summary.openalex} />",
+    );
   });
 });

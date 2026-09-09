@@ -53,6 +53,7 @@ const CV_ROW = {
   currentRorId: "04chrp450",
   showOnInstitutionPage: true,
   consentedRorIds: ["04chrp450", "02kpeqv85"],
+  institutionAggregates: { v: 1, worksTotal: 3, byYear: {}, byType: { publications: 3 } },
   resyncLockedAt: null,
   createdAt: new Date("2026-06-01T00:00:00Z"),
   updatedAt: new Date("2026-09-01T00:00:00Z"),
@@ -118,6 +119,9 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
       // The institution-page consent and the ROR ids it is pinned to (lapsed ones included).
       showOnInstitutionPage: true,
       consentedRorIds: ["04chrp450", "02kpeqv85"],
+      // The counts-only aggregate the institution page sums: derived from the
+      // owner's own document, so it is the owner's data too.
+      institutionAggregates: { v: 1, worksTotal: 3, byYear: {}, byType: { publications: 3 } },
       schemaVersion: 2,
       lastSyncedAt: CV_ROW.lastSyncedAt.toISOString(),
       lastSyncReport: { added: 1 },

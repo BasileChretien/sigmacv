@@ -97,8 +97,9 @@ export async function GET() {
   // at which URL, whether it may be indexed, whether it is listed under the
   // owner's current affiliation for OAI-PMH harvesters (and the ROR key it lists
   // under), whether it opted in to the institution page and under which ROR
-  // ids, when it last synced and what that sync changed. Internal job
-  // bookkeeping (the resync lock) is not user data.
+  // ids, the counts-only aggregate of its listed works the institution page sums
+  // (derived from the owner's own data), when it last synced and what that sync
+  // changed. Internal job bookkeeping (the resync lock) is not user data.
   const cvRecord = cv
     ? {
         id: cv.id,
@@ -112,6 +113,7 @@ export async function GET() {
         currentRorId: cv.currentRorId,
         showOnInstitutionPage: cv.showOnInstitutionPage,
         consentedRorIds: cv.consentedRorIds,
+        institutionAggregates: cv.institutionAggregates,
         createdAt: cv.createdAt,
         updatedAt: cv.updatedAt,
       }

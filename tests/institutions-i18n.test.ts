@@ -110,6 +110,117 @@ describe("institutionStrings", () => {
   });
 });
 
+describe("the opted-in figures section (figures*)", () => {
+  const FIGURES_KEYS = Object.keys(institutionStrings("en-US")).filter((k) =>
+    k.startsWith("figures"),
+  ) as Array<keyof ReturnType<typeof institutionStrings>>;
+
+  it("has fifteen keys, all translated in every locale", () => {
+    expect(FIGURES_KEYS).toHaveLength(15);
+    const en = institutionStrings("en-US");
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = institutionStrings(loc);
+      for (const key of FIGURES_KEYS) expect(s[key].length, `${loc}.${key}`).toBeGreaterThan(0);
+      if (loc !== "en-US") {
+        expect(s.figuresScope, loc).not.toBe(en.figuresScope);
+        expect(s.figuresBelowK, loc).not.toBe(en.figuresBelowK);
+        expect(s.figuresSuppressed, loc).not.toBe(en.figuresSuppressed);
+      }
+    }
+  });
+
+  it("keeps the placeholders the section fills in, in every locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = institutionStrings(loc);
+      for (const key of ["figuresBelowK", "figuresScope", "figuresSuppressed"] as const) {
+        expect(s[key], `${loc} ${key}`).toContain("{k}");
+      }
+      expect(s.figuresContributors, loc).toContain("{count}");
+      expect(s.figuresPending, loc).toContain("{pending}");
+      expect(s.figuresTruncated, loc).toContain("{limit}");
+      expect(s.figuresNotCompared, loc).toContain("OpenAlex");
+    }
+  });
+
+  it("never carries compliance, share, ratio, rate or percentage vocabulary — in any locale", () => {
+    // Per-locale substrings (lower-cased) plus, for English, whole-word forms of
+    // "rate" and "share" (as nouns) — "state" and "shared" are not the words.
+    const banned: Record<string, string[]> = {
+      "en-US": ["compliant", "compliance", "overdue", "%", "ratio", "percent", "proportion"],
+      "zh-CN": ["合规", "逾期", "比例", "百分比", "占比", "率", "%"],
+      "es-ES": [
+        "conforme",
+        "cumplimiento",
+        "vencid",
+        "%",
+        "porcentaje",
+        "proporci",
+        "tasa",
+        "cuota",
+      ],
+      "fr-FR": [
+        "conforme",
+        "conformité",
+        "en retard",
+        "%",
+        "pourcentage",
+        "proportion",
+        "taux",
+        "la part",
+      ],
+      "de-DE": ["konform", "überfällig", "%", "prozent", "anteil", "quote", "verhältnis"],
+      "ja-JP": ["準拠", "遵守", "違反", "期限", "%", "割合", "比率", "率"],
+      "pt-BR": [
+        "conforme",
+        "cumprimento",
+        "atrasad",
+        "vencid",
+        "%",
+        "porcentagem",
+        "percentual",
+        "proporç",
+        "taxa",
+        "parcela",
+      ],
+      "it-IT": [
+        "conforme",
+        "conformità",
+        "in ritardo",
+        "scadut",
+        "%",
+        "percentuale",
+        "proporzion",
+        "tasso",
+        "quota",
+      ],
+      "ko-KR": ["준수", "위반", "연체", "%", "비율", "백분율", "점유"],
+      "ru-RU": [
+        "соответств",
+        "просрочен",
+        "%",
+        "процент",
+        "доля",
+        "доли",
+        "долю",
+        "соотношени",
+        "коэффициент",
+      ],
+    };
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = institutionStrings(loc);
+      for (const key of FIGURES_KEYS) {
+        const value = s[key].toLowerCase();
+        for (const word of banned[loc]!)
+          expect(value, `${loc}.${key}: ${word}`).not.toContain(word);
+        if (loc === "en-US") expect(value, `${key}`).not.toMatch(/\b(rates?|shares?)\b/);
+        // No figure of any kind is baked into the copy: the only digits are the
+        // threshold "1" in the scope sentence's "exactly one" translations.
+        expect(value.replace(/\{[a-z]+\}/g, ""), `${loc}.${key}`).not.toMatch(/[2-9]\d*/);
+      }
+    }
+  });
+});
+
 describe("fillInstitutionString", () => {
   it("substitutes every occurrence of each placeholder", () => {
     expect(fillInstitutionString("{count} at {name} ({name})", { count: 3, name: "X" })).toBe(

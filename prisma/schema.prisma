@@ -154,6 +154,14 @@ model Cv {
   // re-asked in the editor. Requires publicIndexable (cleared with it).
   showOnInstitutionPage  Boolean   @default(false)
   consentedRorIds        String[]  @default([])
+  // COUNTS of the works the public page lists (by year x open-access state, and
+  // by section), computed from the document at every write beside currentRorId
+  // (src/lib/institutions/cvAggregates.ts) and summed under k-anonymity on the
+  // public institution page(s) for the CVs whose owners gave the consent above.
+  // Null until the row's next save / sync / publish change (no backfill: the
+  // weekly resync covers everyone); the page counts such rows as pending.
+  // Derived, never edited; carried in the GDPR export; dropped with the row.
+  institutionAggregates  Json?
   // Compare-and-set lock for the scheduled re-sync job (null = unlocked).
   resyncLockedAt         DateTime?
   createdAt              DateTime  @default(now())

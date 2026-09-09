@@ -64,6 +64,31 @@ export interface InstitutionStrings {
   openalexColTotal: string;
   openalexColCountry: string;
   openalexColOrganisation: string;
+  /** "Figures from researchers who chose to be counted here" — the k-anonymous
+   *  sum of the consented CVs' stored aggregates (counts, explicit totals, no
+   *  share). Placeholders: `{k}` (the threshold), `{count}` (contributors),
+   *  `{pending}` (not yet computed), `{limit}` (the reader's bound). */
+  figuresHeading: string;
+  /** `{k}`. */
+  figuresBelowK: string;
+  /** `{count}`. */
+  figuresContributors: string;
+  /** `{pending}`. */
+  figuresPending: string;
+  /** `{limit}`. */
+  figuresTruncated: string;
+  /** `{k}`. */
+  figuresScope: string;
+  figuresNotCompared: string;
+  figuresByYearHeading: string;
+  figuresByTypeHeading: string;
+  /** The suppressed-cell label; `{k}`. */
+  figuresSuppressed: string;
+  figuresYearUnknown: string;
+  figuresColYear: string;
+  figuresColTotal: string;
+  figuresColSection: string;
+  figuresColWorks: string;
 }
 
 const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
@@ -126,6 +151,25 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexColTotal: "Total",
     openalexColCountry: "Country",
     openalexColOrganisation: "Organisation",
+    figuresHeading: "Figures from researchers who chose to be counted here",
+    figuresBelowK:
+      "Fewer than {k} researchers have chosen to be counted here, so no figures are shown yet.",
+    figuresContributors: "{count} researchers chose to be counted on this page.",
+    figuresPending:
+      "{pending} more chose to be counted but their figures have not been computed yet; they are added after their next save or weekly re-sync.",
+    figuresTruncated: "Only the first {limit} researchers who chose to be counted are included.",
+    figuresScope:
+      "Counts of the works each researcher's own public CV lists, added up: by year and open-access state, then by section. Counts only; each row states its own total. A year, a cell or a section that fewer than {k} researchers contribute to is not shown, and where exactly one cell of a row would be hidden, the next-smallest is hidden with it.",
+    figuresNotCompared:
+      "These are the researchers' own figures, added up. They are not compared with OpenAlex's record of the organisation, and neither is subtracted from the other.",
+    figuresByYearHeading: "Works by year and open-access state",
+    figuresByTypeHeading: "Works by section",
+    figuresSuppressed: "fewer than {k} researchers",
+    figuresYearUnknown: "No year",
+    figuresColYear: "Year",
+    figuresColTotal: "Total",
+    figuresColSection: "Section",
+    figuresColWorks: "Works",
   },
   "zh-CN": {
     indexMetaTitle: "机构",
@@ -182,6 +226,24 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexColTotal: "总计",
     openalexColCountry: "国家",
     openalexColOrganisation: "机构",
+    figuresHeading: "选择在此被计入的研究者的数字",
+    figuresBelowK: "选择在此被计入的研究者少于 {k} 位，因此暂不显示任何数字。",
+    figuresContributors: "{count} 位研究者选择在本页面被计入。",
+    figuresPending:
+      "另有 {pending} 位选择被计入，但其数字尚未计算；他们将在下一次保存或每周重新同步后加入。",
+    figuresTruncated: "仅包含最先选择被计入的 {limit} 位研究者。",
+    figuresScope:
+      "各研究者自己的公开简历所列成果的数量之和：按年份与开放获取状态，再按栏目。仅为数量；每一行都注明其总数。少于 {k} 位研究者贡献的年份、单元格或栏目不予显示；若某一行恰好只有一个单元格需要隐藏，则次小的单元格也一并隐藏。",
+    figuresNotCompared:
+      "这些是研究者自己的数字之和。它们不与 OpenAlex 关于该机构的记录进行比较，二者也不互相相减。",
+    figuresByYearHeading: "按年份与开放获取状态的成果",
+    figuresByTypeHeading: "按栏目的成果",
+    figuresSuppressed: "少于 {k} 位研究者",
+    figuresYearUnknown: "无年份",
+    figuresColYear: "年份",
+    figuresColTotal: "总数",
+    figuresColSection: "栏目",
+    figuresColWorks: "成果",
   },
   "es-ES": {
     indexMetaTitle: "Instituciones",
@@ -242,6 +304,26 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexColTotal: "Total",
     openalexColCountry: "País",
     openalexColOrganisation: "Organización",
+    figuresHeading: "Cifras de quienes eligieron ser contados aquí",
+    figuresBelowK:
+      "Menos de {k} investigadores han elegido ser contados aquí, así que todavía no se muestran cifras.",
+    figuresContributors: "{count} investigadores eligieron ser contados en esta página.",
+    figuresPending:
+      "{pending} más eligieron ser contados, pero sus cifras aún no se han calculado; se añaden tras su próximo guardado o la resincronización semanal.",
+    figuresTruncated:
+      "Solo se incluyen los primeros {limit} investigadores que eligieron ser contados.",
+    figuresScope:
+      "Recuentos de los trabajos que lista el CV público de cada investigador, sumados: por año y estado de acceso abierto, y después por sección. Solo recuentos; cada fila indica su propio total. No se muestra ningún año, celda o sección al que contribuyan menos de {k} investigadores, y cuando en una fila solo una celda quedaría oculta, se oculta también la siguiente más pequeña.",
+    figuresNotCompared:
+      "Son las cifras propias de los investigadores, sumadas. No se comparan con el registro de la organización en OpenAlex, y ninguna se resta de la otra.",
+    figuresByYearHeading: "Trabajos por año y estado de acceso abierto",
+    figuresByTypeHeading: "Trabajos por sección",
+    figuresSuppressed: "menos de {k} investigadores",
+    figuresYearUnknown: "Sin año",
+    figuresColYear: "Año",
+    figuresColTotal: "Total",
+    figuresColSection: "Sección",
+    figuresColWorks: "Trabajos",
   },
   "fr-FR": {
     indexMetaTitle: "Établissements",
@@ -302,6 +384,26 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexColTotal: "Total",
     openalexColCountry: "Pays",
     openalexColOrganisation: "Organisme",
+    figuresHeading: "Chiffres des chercheurs qui ont choisi d'être comptés ici",
+    figuresBelowK:
+      "Moins de {k} chercheurs ont choisi d'être comptés ici ; aucun chiffre n'est donc encore affiché.",
+    figuresContributors: "{count} chercheurs ont choisi d'être comptés sur cette page.",
+    figuresPending:
+      "{pending} autres ont choisi d'être comptés, mais leurs chiffres n'ont pas encore été calculés ; ils s'ajoutent après leur prochain enregistrement ou la resynchronisation hebdomadaire.",
+    figuresTruncated:
+      "Seuls les {limit} premiers chercheurs ayant choisi d'être comptés sont inclus.",
+    figuresScope:
+      "Nombre de travaux listés par le CV public de chaque chercheur, additionnés : par année et par état d'accès ouvert, puis par rubrique. Des nombres seulement ; chaque ligne indique son propre total. Une année, une case ou une rubrique à laquelle moins de {k} chercheurs contribuent n'est pas affichée, et lorsqu'une seule case d'une ligne devrait être masquée, la case suivante la plus petite l'est aussi.",
+    figuresNotCompared:
+      "Ce sont les chiffres des chercheurs eux-mêmes, additionnés. Ils ne sont pas comparés à la fiche de l'organisation dans OpenAlex, et aucun n'est soustrait de l'autre.",
+    figuresByYearHeading: "Travaux par année et état d'accès ouvert",
+    figuresByTypeHeading: "Travaux par rubrique",
+    figuresSuppressed: "moins de {k} chercheurs",
+    figuresYearUnknown: "Sans année",
+    figuresColYear: "Année",
+    figuresColTotal: "Total",
+    figuresColSection: "Rubrique",
+    figuresColWorks: "Travaux",
   },
   "de-DE": {
     indexMetaTitle: "Einrichtungen",
@@ -362,6 +464,26 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexColTotal: "Gesamt",
     openalexColCountry: "Land",
     openalexColOrganisation: "Einrichtung",
+    figuresHeading: "Zahlen der Forschenden, die sich hier zählen lassen",
+    figuresBelowK:
+      "Weniger als {k} Forschende haben sich entschieden, hier gezählt zu werden; deshalb werden noch keine Zahlen gezeigt.",
+    figuresContributors:
+      "{count} Forschende haben sich entschieden, auf dieser Seite gezählt zu werden.",
+    figuresPending:
+      "{pending} weitere haben sich dafür entschieden, doch ihre Zahlen sind noch nicht berechnet; sie kommen nach ihrem nächsten Speichern oder der wöchentlichen Neusynchronisierung hinzu.",
+    figuresTruncated: "Nur die ersten {limit} Forschenden, die sich zählen lassen, sind enthalten.",
+    figuresScope:
+      "Anzahl der Arbeiten, die der öffentliche Lebenslauf jeder Person auflistet, aufsummiert: nach Jahr und Open-Access-Status, dann nach Abschnitt. Nur Zahlen; jede Zeile nennt ihre eigene Gesamtzahl. Ein Jahr, eine Zelle oder ein Abschnitt, zu dem weniger als {k} Forschende beitragen, wird nicht gezeigt, und wo in einer Zeile genau eine Zelle verborgen bliebe, wird die nächstkleinere mit verborgen.",
+    figuresNotCompared:
+      "Das sind die eigenen Zahlen der Forschenden, aufsummiert. Sie werden nicht mit dem OpenAlex-Eintrag der Organisation verglichen, und keines wird vom anderen abgezogen.",
+    figuresByYearHeading: "Arbeiten nach Jahr und Open-Access-Status",
+    figuresByTypeHeading: "Arbeiten nach Abschnitt",
+    figuresSuppressed: "weniger als {k} Forschende",
+    figuresYearUnknown: "Ohne Jahr",
+    figuresColYear: "Jahr",
+    figuresColTotal: "Gesamt",
+    figuresColSection: "Abschnitt",
+    figuresColWorks: "Arbeiten",
   },
   "ja-JP": {
     indexMetaTitle: "研究機関",
@@ -422,6 +544,25 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexColTotal: "合計",
     openalexColCountry: "国",
     openalexColOrganisation: "機関",
+    figuresHeading: "ここで数えられることを選んだ研究者の数値",
+    figuresBelowK:
+      "ここで数えられることを選んだ研究者は {k} 人未満のため、数値はまだ表示されません。",
+    figuresContributors: "{count} 人の研究者がこのページで数えられることを選びました。",
+    figuresPending:
+      "さらに {pending} 人が数えられることを選びましたが、その数値はまだ算出されていません。次回の保存または毎週の再同期の後に加わります。",
+    figuresTruncated: "数えられることを選んだ研究者のうち、最初の {limit} 人のみを含みます。",
+    figuresScope:
+      "各研究者の公開 CV に掲載された業績の件数を合計したものです。年とオープンアクセスの状態ごと、次にセクションごとに示します。件数のみで、各行はそれ自身の合計を示します。{k} 人未満の研究者しか寄与しない年・セル・セクションは表示せず、ある行でちょうど 1 つのセルだけが隠れる場合は、次に小さいセルも併せて隠します。",
+    figuresNotCompared:
+      "これは研究者自身の数値を合計したものです。OpenAlex にある組織の記録とは比較せず、どちらかをもう一方から差し引くこともありません。",
+    figuresByYearHeading: "年とオープンアクセスの状態ごとの業績",
+    figuresByTypeHeading: "セクションごとの業績",
+    figuresSuppressed: "{k} 人未満の研究者",
+    figuresYearUnknown: "年なし",
+    figuresColYear: "年",
+    figuresColTotal: "合計",
+    figuresColSection: "セクション",
+    figuresColWorks: "業績",
   },
   "pt-BR": {
     indexMetaTitle: "Instituições",
@@ -482,6 +623,26 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexColTotal: "Total",
     openalexColCountry: "País",
     openalexColOrganisation: "Organização",
+    figuresHeading: "Números de quem escolheu ser contado aqui",
+    figuresBelowK:
+      "Menos de {k} pesquisadores escolheram ser contados aqui, por isso ainda não há números exibidos.",
+    figuresContributors: "{count} pesquisadores escolheram ser contados nesta página.",
+    figuresPending:
+      "Outros {pending} escolheram ser contados, mas seus números ainda não foram calculados; eles entram após o próximo salvamento ou a ressincronização semanal.",
+    figuresTruncated:
+      "Apenas os primeiros {limit} pesquisadores que escolheram ser contados estão incluídos.",
+    figuresScope:
+      "Contagens dos trabalhos que o CV público de cada pesquisador lista, somadas: por ano e estado de acesso aberto, depois por seção. Apenas contagens; cada linha informa o seu próprio total. Um ano, uma célula ou uma seção para os quais menos de {k} pesquisadores contribuem não é exibido, e quando em uma linha apenas uma célula ficaria oculta, a próxima menor é ocultada junto.",
+    figuresNotCompared:
+      "São os números dos próprios pesquisadores, somados. Não são comparados com o registro da organização no OpenAlex, e nenhum é subtraído do outro.",
+    figuresByYearHeading: "Trabalhos por ano e estado de acesso aberto",
+    figuresByTypeHeading: "Trabalhos por seção",
+    figuresSuppressed: "menos de {k} pesquisadores",
+    figuresYearUnknown: "Sem ano",
+    figuresColYear: "Ano",
+    figuresColTotal: "Total",
+    figuresColSection: "Seção",
+    figuresColWorks: "Trabalhos",
   },
   "it-IT": {
     indexMetaTitle: "Istituzioni",
@@ -542,6 +703,26 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexColTotal: "Totale",
     openalexColCountry: "Paese",
     openalexColOrganisation: "Organizzazione",
+    figuresHeading: "Numeri di chi ha scelto di essere conteggiato qui",
+    figuresBelowK:
+      "Meno di {k} ricercatori hanno scelto di essere conteggiati qui, quindi non viene ancora mostrato alcun numero.",
+    figuresContributors: "{count} ricercatori hanno scelto di essere conteggiati in questa pagina.",
+    figuresPending:
+      "Altri {pending} hanno scelto di essere conteggiati, ma i loro numeri non sono ancora stati calcolati; si aggiungono dopo il prossimo salvataggio o la risincronizzazione settimanale.",
+    figuresTruncated:
+      "Sono inclusi solo i primi {limit} ricercatori che hanno scelto di essere conteggiati.",
+    figuresScope:
+      "Conteggi dei lavori elencati dal CV pubblico di ciascun ricercatore, sommati: per anno e stato di accesso aperto, poi per sezione. Solo conteggi; ogni riga indica il proprio totale. Un anno, una cella o una sezione a cui contribuiscono meno di {k} ricercatori non viene mostrata, e quando in una riga resterebbe nascosta una sola cella, viene nascosta anche la successiva più piccola.",
+    figuresNotCompared:
+      "Sono i numeri dei ricercatori stessi, sommati. Non vengono confrontati con la scheda dell'organizzazione in OpenAlex, e nessuno dei due viene sottratto all'altro.",
+    figuresByYearHeading: "Lavori per anno e stato di accesso aperto",
+    figuresByTypeHeading: "Lavori per sezione",
+    figuresSuppressed: "meno di {k} ricercatori",
+    figuresYearUnknown: "Senza anno",
+    figuresColYear: "Anno",
+    figuresColTotal: "Totale",
+    figuresColSection: "Sezione",
+    figuresColWorks: "Lavori",
   },
   "ko-KR": {
     indexMetaTitle: "기관",
@@ -602,6 +783,25 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexColTotal: "합계",
     openalexColCountry: "국가",
     openalexColOrganisation: "기관",
+    figuresHeading: "여기에 집계되기를 선택한 연구자들의 수치",
+    figuresBelowK:
+      "여기에 집계되기를 선택한 연구자가 {k}명 미만이므로 아직 수치를 표시하지 않습니다.",
+    figuresContributors: "{count}명의 연구자가 이 페이지에 집계되기를 선택했습니다.",
+    figuresPending:
+      "추가로 {pending}명이 집계되기를 선택했지만 수치가 아직 계산되지 않았습니다. 다음 저장 또는 주간 재동기화 이후에 더해집니다.",
+    figuresTruncated: "집계되기를 선택한 연구자 중 처음 {limit}명만 포함됩니다.",
+    figuresScope:
+      "각 연구자의 공개 CV에 실린 업적의 건수를 합산한 것입니다. 연도와 오픈 액세스 상태별, 그다음 섹션별로 보여 줍니다. 건수만 표시하며 각 행은 자체 합계를 밝힙니다. {k}명 미만의 연구자만 기여한 연도·칸·섹션은 표시하지 않으며, 한 행에서 정확히 한 칸만 가려질 경우 그다음으로 작은 칸도 함께 가립니다.",
+    figuresNotCompared:
+      "이는 연구자들 자신의 수치를 합산한 것입니다. OpenAlex에 있는 기관 기록과 비교하지 않으며, 어느 한쪽을 다른 쪽에서 빼지도 않습니다.",
+    figuresByYearHeading: "연도 및 오픈 액세스 상태별 업적",
+    figuresByTypeHeading: "섹션별 업적",
+    figuresSuppressed: "{k}명 미만의 연구자",
+    figuresYearUnknown: "연도 없음",
+    figuresColYear: "연도",
+    figuresColTotal: "합계",
+    figuresColSection: "섹션",
+    figuresColWorks: "업적",
   },
   "ru-RU": {
     indexMetaTitle: "Учреждения",
@@ -662,6 +862,25 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexColTotal: "Итого",
     openalexColCountry: "Страна",
     openalexColOrganisation: "Организация",
+    figuresHeading: "Цифры исследователей, которые решили быть учтёнными здесь",
+    figuresBelowK:
+      "Меньше {k} исследователей решили быть учтёнными здесь, поэтому цифры пока не показываются.",
+    figuresContributors: "{count} исследователей решили быть учтёнными на этой странице.",
+    figuresPending:
+      "Ещё {pending} решили быть учтёнными, но их цифры пока не рассчитаны; они добавятся после следующего сохранения или еженедельной повторной синхронизации.",
+    figuresTruncated: "Включены только первые {limit} исследователей, решивших быть учтёнными.",
+    figuresScope:
+      "Число работ, перечисленных в публичном CV каждого исследователя, в сумме: по годам и статусу открытого доступа, затем по разделам. Только числа; в каждой строке указан её собственный итог. Год, ячейка или раздел, в которые внесли вклад меньше {k} исследователей, не показываются, а если в строке скрылась бы ровно одна ячейка, вместе с ней скрывается и следующая по величине наименьшая.",
+    figuresNotCompared:
+      "Это собственные цифры исследователей, сложенные вместе. Они не сравниваются с записью об организации в OpenAlex, и ни одно не вычитается из другого.",
+    figuresByYearHeading: "Работы по годам и статусу открытого доступа",
+    figuresByTypeHeading: "Работы по разделам",
+    figuresSuppressed: "меньше {k} исследователей",
+    figuresYearUnknown: "Без года",
+    figuresColYear: "Год",
+    figuresColTotal: "Итого",
+    figuresColSection: "Раздел",
+    figuresColWorks: "Работы",
   },
 };
 

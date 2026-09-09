@@ -157,6 +157,8 @@ import {
 } from "@/lib/cv/sync";
 import { setItemIncluded } from "@/lib/canonical/curate";
 import { InstitutionConsentError } from "@/lib/cv/institutionConsent";
+import { computeCvAggregates } from "@/lib/institutions/cvAggregates";
+import { Prisma } from "@/generated/prisma/client";
 import {
   __resetPublicPageCache,
   getCachedInstitutionPage,
@@ -357,6 +359,21 @@ describe("syncCvForUser", () => {
     await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
     const bare = mocks.upsert.mock.calls[0]![0] as { update: { currentRorId: string | null } };
     expect(bare.update.currentRorId).toBeNull();
+  });
+
+  it("writes the counts-only institution aggregate beside the ROR key on sync (create and update)", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    const expected = computeCvAggregates(cv);
+    expect(expected.worksTotal).toBeGreaterThan(0);
+    const arg = mocks.upsert.mock.calls[0]![0] as {
+      create: { institutionAggregates: unknown };
+      update: { institutionAggregates: unknown };
+    };
+    expect(arg.create.institutionAggregates).toEqual(expected);
+    expect(arg.update.institutionAggregates).toEqual(expected);
   });
 
   it("records ROR's own name for every confident institution match (fail-soft)", async () => {
@@ -743,6 +760,23 @@ describe("saveCvForUser", () => {
     expect(mocks.update.mock.calls[0]![0].data.currentRorId).toBe("04chrp450");
   });
 
+  it("writes the institution aggregate beside the ROR key on every save, so a curation change reaches the page", async () => {
+    mocks.findUnique.mockResolvedValue({ document: AFFILIATED_DOC });
+    await saveCvForUser("u1", AFFILIATED_DOC);
+    expect(mocks.update.mock.calls[0]![0].data.institutionAggregates).toEqual(
+      computeCvAggregates(AFFILIATED_DOC),
+    );
+    // Hiding a work changes the stored aggregate on the same write.
+    const pubs = AFFILIATED_DOC.sections.find((s) => s.type === "publications")!;
+    const hidden = setItemIncluded(AFFILIATED_DOC, pubs.id, pubs.items[0]!.id, false);
+    mocks.update.mockClear();
+    await saveCvForUser("u1", hidden);
+    const after = mocks.update.mock.calls[0]![0].data.institutionAggregates as {
+      worksTotal: number;
+    };
+    expect(after.worksTotal).toBe(computeCvAggregates(AFFILIATED_DOC).worksTotal - 1);
+  });
+
   it("clears the ROR key when the current position is hidden or absent", async () => {
     const positions = AFFILIATED_DOC.sections.find((s) => s.type === "positions")!;
     const hidden = setItemIncluded(AFFILIATED_DOC, positions.id, positions.items[0]!.id, false);
@@ -973,6 +1007,19 @@ describe("publish state", () => {
       });
       expect(state.listUnderAffiliation).toBe(true);
       expect(state.affiliationRorId).toBe("04chrp450");
+    });
+
+    it("writes the institution aggregate beside the ROR key on every publish-state change (a database null for an unparseable document)", async () => {
+      mocks.findUnique.mockResolvedValue(row(AFFILIATED_DOC));
+      mocks.update.mockResolvedValue({ published: true, publicSlug: "s", publicIndexable: true });
+      await setPublishState("u1", true, true);
+      expect(mocks.update.mock.calls[0]![0].data.institutionAggregates).toEqual(
+        computeCvAggregates(AFFILIATED_DOC),
+      );
+      mocks.update.mockClear();
+      mocks.findUnique.mockResolvedValue(row({ junk: true }));
+      await setPublishState("u1", false);
+      expect(mocks.update.mock.calls[0]![0].data.institutionAggregates).toBe(Prisma.DbNull);
     });
 
     it("is refused without indexing (turning indexing off turns the listing off)", async () => {
