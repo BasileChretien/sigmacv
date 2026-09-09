@@ -94,6 +94,27 @@ describe("CvEditor (component)", () => {
     expect(screen.getByText(/A shorter strip reads better/i)).toBeTruthy();
   });
 
+  it("anonymous: offers no control that would put a figure on the person", () => {
+    render(
+      <CvEditor
+        cv={makeCv()}
+        availableStyles={["apa"]}
+        uiLocale="en-US"
+        onChange={vi.fn()}
+        anonymous
+      />,
+    );
+    // No metrics group at all (no picker, no preset, no authorship table)…
+    expect(screen.queryByLabelText(/Mean RCR/i)).toBeNull();
+    expect(screen.queryByText(/Metrics & authorship/)).toBeNull();
+    // …no chart / citation-count / per-work-indicator toggles…
+    expect(screen.queryByLabelText(/citation counts/i)).toBeNull();
+    expect(screen.queryByLabelText(/charts/i)).toBeNull();
+    expect(screen.queryByLabelText(/indicators/i)).toBeNull();
+    // …and no "most cited first" sort.
+    expect(document.querySelector('option[value="citations"]')).toBeNull();
+  });
+
   it("changing the highlight style propagates to display.highlightStyle", () => {
     const onChange = vi.fn();
     render(

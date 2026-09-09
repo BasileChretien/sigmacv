@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { MAX_TOTAL_CV_ITEMS, cvItemCount } from "@/lib/cv/sync";
+import { projectCvForPreview } from "@/lib/cv/publicProjection";
 import { logger } from "@/lib/log";
 import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
@@ -72,7 +73,14 @@ export async function POST(req: Request) {
 
   try {
     const surface = (read.value as { surface?: unknown } | null)?.surface;
-    const html = surface === "public" ? renderPublicCvHtml(parsed.data) : renderCvHtml(parsed.data);
+    // The document is CLIENT-SUPPLIED: the anonymous editor only ever sends a
+    // figure-free projection, but a visitor with devtools could POST invented
+    // metrics under a real researcher's name and get them rendered on this
+    // origin. Re-apply the preview projection here so no figure about the
+    // person can be rendered anonymously, whatever the body says (the same
+    // stripping the build path applies before anything reaches the browser).
+    const doc = projectCvForPreview(parsed.data);
+    const html = surface === "public" ? renderPublicCvHtml(doc) : renderCvHtml(doc);
     return NextResponse.json({ html });
   } catch (err) {
     logger.error("api.preview_render_failed", { err });

@@ -26,16 +26,18 @@ import type { DisplayChoices } from "@/lib/canonical/schema";
  *    the research-areas chip row, the collaboration-breadth line (descriptive:
  *    countries on the author lists, no map or ranking);
  *  - per-entry context: the open-access badge, the citation count with its
- *    context, the account holder's authorship role, the per-work indicators
- *    (RCR / FWCI / clinical citations — per-work values as reported, never
- *    summed or ranked; see `workIndicators.ts`), the CRediT roles, the open
+ *    context, the account holder's authorship role, the CRediT roles, the open
  *    data / code links, the FORRT replication evidence, the Software Heritage
  *    archival link and the Sciety public-evaluation line;
  *  - the supervision summary line — a tally of the supervision records the
  *    owner already lists on the page, not an external figure.
  *
  * Deliberately NOT here: `showMetrics` / `showCharts` / `showAuthorshipTable`
- * (evaluative aggregates the owner alone chooses), and `showCareerContext` —
+ * (evaluative aggregates the owner alone chooses); `showWorkIndicators` — the
+ * per-work FWCI / RCR pills with their "1.0 = average" legend are field-
+ * normalised indicators that exist for some disciplines and not others, so
+ * forcing them on the assessor's view would grade CVs differently by field
+ * (the 2026-09-08 demand-side panel's defect 5); and `showCareerContext` —
  * the owner-declared career context is sensitive personal data that the public
  * projection (`cv/publicProjection.ts`) strips unless the owner shows it, so a
  * forced toggle could reveal nothing and would only make the editor note
@@ -50,7 +52,6 @@ export const READER_MODE_KEYS = [
   "showCitationCounts",
   "showResearchAreas",
   "showAuthorRole",
-  "showWorkIndicators",
   "showCollaboration",
   "showCreditRoles",
   "showDataLinks",
@@ -87,6 +88,10 @@ export const HIRING_OFF_KEYS = [
   "showMetrics",
   "showCharts",
   "showAuthorshipTable",
+  // Named here on purpose: reader mode no longer forces the per-work FWCI/RCR
+  // pills ON, so they left READER_MODE_KEYS — but a hiring-panel version must
+  // still force them OFF (no academic evidence mark on that surface).
+  "showWorkIndicators",
   // A hiring-panel version must stay that way: `?view=reader` on it would
   // switch every evidence mark back on, so the reader view is closed for it.
   "allowReaderMode",

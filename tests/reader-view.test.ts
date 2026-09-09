@@ -240,7 +240,10 @@ function cvWith(sections: SectionSpec[], display: Record<string, unknown> = {}):
     schemaVersion: 2,
     id: "legend",
     owner: { orcid: "0000-0002-7483-2489", openAlexAuthorIds: [], displayName: "Basile Chrétien" },
-    display: { allowReaderMode: true, ...display },
+    // The per-work indicator pills are the OWNER's toggle (reader mode no longer
+    // forces them on: 2026-09-08 panel, defect 5); the legend fixtures switch it
+    // on so the pills exist to be explained.
+    display: { allowReaderMode: true, showWorkIndicators: true, ...display },
     sections: sections.map((s, i) => ({
       id: s.id,
       type: s.type,
@@ -450,6 +453,21 @@ describe("reader banner: print-visible legend", () => {
     // A zero FWCI on a very recent work is not shown as a pill — so not explained.
     const recent = new Date().getUTCFullYear();
     expect(only({ fwci: 0, year: recent })).not.toContain("FWCI");
+  });
+
+  it("explains no indicator pill when the owner left the indicators off (reader mode does not force them)", () => {
+    const cv = cvWith(
+      [
+        {
+          id: "publications",
+          type: "publications",
+          items: [item("w1", "openalex", { year: 2015, rcr: 1.5, fwci: 2 })],
+        },
+      ],
+      { showWorkIndicators: false },
+    );
+    const lines = linesOf(legendOf(banner(cv)));
+    expect(lines.join(" ")).not.toMatch(/RCR|FWCI/);
   });
 
   it("names the open-access statuses behind the OA badges shown", () => {

@@ -42,7 +42,7 @@ export default function Privacy({ locale }: { locale: string }) {
         <h2>{s.sharingHeading}</h2>
         <p>{s.sharing}</p>
 
-        <h2>{s.previewHeading}</h2>
+        <h2 id="preview">{s.previewHeading}</h2>
         <p>{s.preview}</p>
 
         <h2>{s.researchHeading}</h2>

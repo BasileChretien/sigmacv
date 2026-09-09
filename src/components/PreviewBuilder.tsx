@@ -8,6 +8,7 @@ import { asLocale, t } from "@/lib/i18n";
 import { landingStrings } from "@/lib/i18n/landing";
 import { previewStrings } from "@/lib/i18n/preview";
 import { sourceProvenanceStrings } from "@/lib/i18n/sourceProvenance";
+import { trackEvent } from "@/lib/analytics/track";
 import PreviewWorkspace from "./PreviewWorkspace";
 import SignInButton from "./SignInButton";
 
@@ -15,6 +16,8 @@ interface PreviewBuilderProps {
   orcid: string;
   locale: string;
   availableStyles: string[];
+  /** `/p/<slug>` when the researcher published an indexable page; else null. */
+  publishedPath: string | null;
 }
 
 /** One display source resolving live (counts fold in as ticks arrive). */
@@ -41,7 +44,12 @@ type Phase = "searching" | "ready" | "empty" | "error" | "rate";
  * pane carries the settled provenance panel. All client-side: no data is
  * persisted, and the underlying build is cached + rate-limited server-side.
  */
-export default function PreviewBuilder({ orcid, locale, availableStyles }: PreviewBuilderProps) {
+export default function PreviewBuilder({
+  orcid,
+  locale,
+  availableStyles,
+  publishedPath,
+}: PreviewBuilderProps) {
   const loc = asLocale(locale);
   const s = previewStrings(loc);
   const sp = sourceProvenanceStrings(loc);
@@ -50,6 +58,11 @@ export default function PreviewBuilder({ orcid, locale, availableStyles }: Previ
   const [result, setResult] = useState<OkResult | null>(null);
   // Bumped by "Try again" to re-run the stream after a transient failure.
   const [attempt, setAttempt] = useState(0);
+
+  // Cookieless outcome signal — the phase only, never the iD (see track.ts).
+  useEffect(() => {
+    if (phase !== "searching") trackEvent("Preview", { outcome: phase });
+  }, [phase]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -144,6 +157,7 @@ export default function PreviewBuilder({ orcid, locale, availableStyles }: Previ
         locale={loc}
         availableStyles={availableStyles}
         sourceCounts={result.sourceCounts}
+        publishedPath={publishedPath}
       />
     );
   }
@@ -158,8 +172,18 @@ export default function PreviewBuilder({ orcid, locale, availableStyles }: Previ
         <div className="preview-empty">
           <h1>{heading}</h1>
           <p>{body}</p>
+          {publishedPath ? (
+            <p>
+              <a href={publishedPath} data-testid="preview-published-link">
+                {s.ctaPublishedPage}
+              </a>
+            </p>
+          ) : null}
           {phase === "empty" ? (
-            <form action={signInWithOrcid}>
+            <form
+              action={signInWithOrcid}
+              onSubmit={() => trackEvent("Preview CTA", { action: "signin" })}
+            >
               <SignInButton
                 method="orcid"
                 className="hp2-btn hp2-btn-primary"

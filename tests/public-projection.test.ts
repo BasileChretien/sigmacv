@@ -8,6 +8,7 @@ import {
   updateOwner,
 } from "@/lib/canonical/curate";
 import { projectCvForPreview, projectCvForPublic } from "@/lib/cv/publicProjection";
+import type { CanonicalCv } from "@/lib/canonical/schema";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
@@ -316,20 +317,80 @@ describe("projectCvForPreview", () => {
     expect(prev.owner.contact).toEqual({ website: "https://example.org" });
   });
 
-  it("keeps metrics + chart data even when the display opt-ins are off (editor toggle needs the data)", () => {
+  it("strips every figure about the person, whatever the display opt-ins say (no metrics for a non-owner)", () => {
     const b = makeCv();
-    const cv = {
+    const cv: CanonicalCv = {
       ...b,
       owner: {
         ...b.owner,
         metrics: { h_index: 5 },
         countsByYear: [{ year: 2020, works: 1, citations: 2 }],
       },
-      display: { ...b.display, showMetrics: false, showCharts: false },
+      sections: b.sections.map((s) => ({
+        ...s,
+        items: s.items.map((it) => ({
+          ...it,
+          meta: {
+            ...it.meta,
+            citedByCount: 40,
+            fwci: 2.1,
+            topDecile: true,
+            rcr: 1.7,
+            clinicalCitations: 3,
+            apt: 0.5,
+            citedByOpenCitations: 38,
+          },
+        })),
+      })),
+      display: {
+        ...b.display,
+        showMetrics: true,
+        metrics: ["h_index"],
+        showCharts: true,
+        showCitationCounts: true,
+        showWorkIndicators: true,
+        showAuthorshipTable: true,
+        authorshipRoles: ["first"],
+        publicationOrder: "citations",
+      },
     };
     const prev = projectCvForPreview(cv);
-    expect(prev.owner.metrics).toEqual({ h_index: 5 });
-    expect(prev.owner.countsByYear).toEqual([{ year: 2020, works: 1, citations: 2 }]);
+    expect(prev.owner.metrics).toBeUndefined();
+    expect(prev.owner.countsByYear).toEqual([]);
+    for (const s of prev.sections)
+      for (const it of s.items) {
+        for (const k of [
+          "citedByCount",
+          "fwci",
+          "topDecile",
+          "rcr",
+          "clinicalCitations",
+          "apt",
+          "citedByOpenCitations",
+        ] as const)
+          expect(it.meta[k], k).toBeUndefined();
+      }
+    expect(prev.display.showMetrics).toBe(false);
+    expect(prev.display.metrics).toEqual([]);
+    expect(prev.display.showCharts).toBe(false);
+    expect(prev.display.showCitationCounts).toBe(false);
+    expect(prev.display.showWorkIndicators).toBe(false);
+    expect(prev.display.showAuthorshipTable).toBe(false);
+    expect(prev.display.authorshipRoles).toEqual([]);
+    expect(prev.display.publicationOrder).toBe("year-desc");
+    // The serialized object carries no figure either (it is sent to the browser).
+    expect(JSON.stringify(prev)).not.toMatch(
+      /"(citedByCount|fwci|rcr|topDecile|clinicalCitations|apt|citedByOpenCitations|h_index)"/,
+    );
+  });
+
+  it("leaves a non-citation sort alone", () => {
+    const b = makeCv();
+    const prev = projectCvForPreview({
+      ...b,
+      display: { ...b.display, publicationOrder: "year-asc" },
+    });
+    expect(prev.display.publicationOrder).toBe("year-asc");
   });
 
   it("does not mutate the input", () => {

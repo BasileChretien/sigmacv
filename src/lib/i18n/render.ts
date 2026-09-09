@@ -181,7 +181,9 @@ export interface RenderStrings {
   provLedgerPid: string;
   provLedgerReviewed: string;
   provLedgerRetracted: string;
-  /** Ledger figure; "{n}", "{total}", "{pct}" substituted at render. */
+  /** Ledger figure; "{n}" and "{total}" substituted at render. Never a percentage:
+   *  the ledger is rendered on recipient-facing pages (public page, frozen version,
+   *  PDF), and a share there reads as a score (assessor-panel veto 6). */
   provLedgerOf: string;
   /** Collaboration-breadth line; "{countries}" and "{pct}" substituted. */
   collabLine: string;
@@ -436,7 +438,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLedgerPid: "Resolvable by a persistent identifier (DOI / PMID / arXiv / ORCID)",
     provLedgerReviewed: "Works flagged for review and confirmed by the owner",
     provLedgerRetracted: "Listed works that have been retracted",
-    provLedgerOf: "{n} of {total} ({pct})",
+    provLedgerOf: "{n} of {total}",
     collabLine: "Co-authors from {countries} countries · {pct} of works international",
     collabLineOne: "Co-authors from one country · {pct} of works international",
     collabTop: "most often {list}",
@@ -641,7 +643,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLedgerPid: "可通过持久标识符解析（DOI / PMID / arXiv / ORCID）",
     provLedgerReviewed: "被标记需复核且已由本人确认的成果",
     provLedgerRetracted: "所列成果中已撤稿的作品",
-    provLedgerOf: "{n} / {total}（{pct}）",
+    provLedgerOf: "{n} / {total}",
     collabLine: "合作者来自 {countries} 个国家/地区 · {pct} 的作品为国际合作",
     collabLineOne: "合作者来自 1 个国家/地区 · {pct} 的作品为国际合作",
     collabTop: "最常见：{list}",
@@ -855,7 +857,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLedgerPid: "Resolubles mediante un identificador persistente (DOI / PMID / arXiv / ORCID)",
     provLedgerReviewed: "Trabajos marcados para revisión y confirmados por el titular",
     provLedgerRetracted: "Trabajos listados que han sido retractados",
-    provLedgerOf: "{n} de {total} ({pct})",
+    provLedgerOf: "{n} de {total}",
     collabLine: "Coautores de {countries} países · {pct} de los trabajos son internacionales",
     collabLineOne: "Coautores de un país · {pct} de los trabajos son internacionales",
     collabTop: "con mayor frecuencia {list}",
@@ -1074,7 +1076,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLedgerPid: "Résolubles par un identifiant pérenne (DOI / PMID / arXiv / ORCID)",
     provLedgerReviewed: "Travaux signalés pour vérification et confirmés par le titulaire",
     provLedgerRetracted: "Travaux listés qui ont été rétractés",
-    provLedgerOf: "{n} sur {total} ({pct})",
+    provLedgerOf: "{n} sur {total}",
     collabLine: "Co-auteurs de {countries} pays · {pct} des travaux sont internationaux",
     collabLineOne: "Co-auteurs d'un seul pays · {pct} des travaux sont internationaux",
     collabTop: "le plus souvent {list}",
@@ -1291,7 +1293,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLedgerPid: "Über einen persistenten Identifikator auflösbar (DOI / PMID / arXiv / ORCID)",
     provLedgerReviewed: "Zur Prüfung markierte Arbeiten, von der Inhaberin/dem Inhaber bestätigt",
     provLedgerRetracted: "Aufgeführte Arbeiten, die zurückgezogen wurden",
-    provLedgerOf: "{n} von {total} ({pct})",
+    provLedgerOf: "{n} von {total}",
     collabLine:
       "Koautorinnen und Koautoren aus {countries} Ländern · {pct} der Arbeiten international",
     collabLineOne: "Koautorinnen und Koautoren aus einem Land · {pct} der Arbeiten international",
@@ -1504,7 +1506,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLedgerPid: "永続識別子で解決可能（DOI / PMID / arXiv / ORCID）",
     provLedgerReviewed: "確認が必要と判定された成果のうち本人が確認したもの",
     provLedgerRetracted: "掲載されている業績のうち撤回されたもの",
-    provLedgerOf: "{total} 件中 {n} 件（{pct}）",
+    provLedgerOf: "{total} 件中 {n} 件",
     collabLine: "共著者は {countries} か国 · 国際共著は全体の {pct}",
     collabLineOne: "共著者は 1 か国 · 国際共著は全体の {pct}",
     collabTop: "最も多いのは {list}",
@@ -1719,7 +1721,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLedgerPid: "Resolvíveis por um identificador persistente (DOI / PMID / arXiv / ORCID)",
     provLedgerReviewed: "Trabalhos sinalizados para revisão e confirmados pelo titular",
     provLedgerRetracted: "Trabalhos listados que foram retratados",
-    provLedgerOf: "{n} de {total} ({pct})",
+    provLedgerOf: "{n} de {total}",
     collabLine: "Coautores de {countries} países · {pct} dos trabalhos são internacionais",
     collabLineOne: "Coautores de um país · {pct} dos trabalhos são internacionais",
     collabTop: "com mais frequência {list}",
@@ -1938,7 +1940,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLedgerPid: "Risolvibili tramite un identificativo persistente (DOI / PMID / arXiv / ORCID)",
     provLedgerReviewed: "Lavori segnalati per la revisione e confermati dal titolare",
     provLedgerRetracted: "Lavori elencati che sono stati ritrattati",
-    provLedgerOf: "{n} su {total} ({pct})",
+    provLedgerOf: "{n} su {total}",
     collabLine: "Coautori da {countries} paesi · {pct} dei lavori sono internazionali",
     collabLineOne: "Coautori da un solo paese · {pct} dei lavori sono internazionali",
     collabTop: "più spesso {list}",
@@ -2148,7 +2150,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLedgerPid: "영구 식별자로 확인 가능 (DOI / PMID / arXiv / ORCID)",
     provLedgerReviewed: "검토 대상으로 표시된 성과 중 본인이 확인한 것",
     provLedgerRetracted: "목록에 있는 업적 중 철회된 것",
-    provLedgerOf: "{total}건 중 {n}건 ({pct})",
+    provLedgerOf: "{total}건 중 {n}건",
     collabLine: "공저자 국가 {countries}개 · 국제 공동 연구 비율 {pct}",
     collabLineOne: "공저자 국가 1개 · 국제 공동 연구 비율 {pct}",
     collabTop: "가장 많은 국가: {list}",
@@ -2360,7 +2362,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     provLedgerPid: "Разрешимы по постоянному идентификатору (DOI / PMID / arXiv / ORCID)",
     provLedgerReviewed: "Работы, отмеченные для проверки и подтверждённые владельцем",
     provLedgerRetracted: "Перечисленные работы, которые были отозваны",
-    provLedgerOf: "{n} из {total} ({pct})",
+    provLedgerOf: "{n} из {total}",
     collabLine: "Соавторы из {countries} стран · {pct} работ международные",
     collabLineOne: "Соавторы из одной страны · {pct} работ международные",
     collabTop: "чаще всего {list}",

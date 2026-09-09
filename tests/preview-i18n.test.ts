@@ -32,6 +32,13 @@ describe("previewStrings", () => {
       expect(s.builtFromPublic).toContain("OpenAlex");
       expect(s.builtFromPublic).toContain("ORCID");
       expect(s.back).toContain("SigmaCV");
+      // Third-party framing: both banners name SigmaCV, and the automatic one
+      // must say the build is not the researcher's own page.
+      expect(s.bannerAutomatic).toContain("SigmaCV");
+      expect(s.bannerPublished).toContain("SigmaCV");
+      // The owner CTAs say "this is my record" in some form — never a bare "sign in"
+      // that a third party could read as an invitation to claim someone else's.
+      expect(s.ctaKeep).not.toBe(s.ctaSignIn);
     }
   });
 });

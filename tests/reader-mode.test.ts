@@ -27,7 +27,6 @@ describe("reader-mode preset (applyReaderMode)", () => {
       "showCitationCounts",
       "showResearchAreas",
       "showAuthorRole",
-      "showWorkIndicators",
       "showCollaboration",
       "showCreditRoles",
       "showDataLinks",
@@ -41,7 +40,6 @@ describe("reader-mode preset (applyReaderMode)", () => {
 
   it("forces each trust/context toggle that landed after the preset on, from an owner-off document", () => {
     const appended = [
-      "showWorkIndicators",
       "showCollaboration",
       "showCreditRoles",
       "showDataLinks",
@@ -68,6 +66,9 @@ describe("reader-mode preset (applyReaderMode)", () => {
       "showMetrics",
       "showCharts",
       "showAuthorshipTable",
+      // Per-work FWCI/RCR pills exist for some fields and not others: forcing
+      // them would grade CVs by discipline (2026-09-08 panel, defect 5).
+      "showWorkIndicators",
       "showCareerContext",
       "hideSuperviseeNames",
     ] as const) {

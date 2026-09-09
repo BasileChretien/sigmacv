@@ -252,10 +252,10 @@ describe("ledgerLines / provenanceLedgerHtml", () => {
     // Nothing was flagged for review → nothing to confirm → no "reviewed" line.
     expect(keys).not.toContain("reviewed");
     const byKey = Object.fromEntries(lines.map((l) => [l.key, l.figure]));
-    expect(byKey.identifierMatched).toBe("2 of 3 (67%)");
-    expect(byKey.claimed).toBe("1 of 3 (33%)");
-    expect(byKey.selfEntered).toBe("0 of 3 (0%)");
-    expect(byKey.retractedVisible).toBe("1 of 3 (33%)");
+    expect(byKey.identifierMatched).toBe("2 of 3");
+    expect(byKey.claimed).toBe("1 of 3");
+    expect(byKey.selfEntered).toBe("0 of 3");
+    expect(byKey.retractedVisible).toBe("1 of 3");
     // With one flagged work the line appears, over the flagged population only.
     const flagged = cvWith([
       section("publications", [
@@ -266,7 +266,7 @@ describe("ledgerLines / provenanceLedgerHtml", () => {
     const fl = Object.fromEntries(
       ledgerLines(provenanceLedger(flagged), "en-US").map((l) => [l.key, l.figure]),
     );
-    expect(fl.reviewed).toBe("0 of 1 (0%)");
+    expect(fl.reviewed).toBe("0 of 1");
   });
 
   it("names the listed works in the retracted line, not the retracted ones", () => {
@@ -279,7 +279,7 @@ describe("ledgerLines / provenanceLedgerHtml", () => {
     expect(ledgerLines(provenanceLedger(clean), "en-US")).toContainEqual({
       key: "retractedVisible",
       label: "Listed works that have been retracted",
-      figure: "0 of 1 (0%)",
+      figure: "0 of 1",
     });
   });
 
@@ -293,7 +293,7 @@ describe("ledgerLines / provenanceLedgerHtml", () => {
     expect(html).toContain('<table class="cv-prov-ledger" aria-label="Provenance ledger">');
     expect(html).toContain("<caption>Provenance ledger</caption>");
     expect(html).toContain(
-      '<tr data-ledger="identifierMatched"><td>Matched by identifier (ORCID / OpenAlex)</td><td>2 of 3 (67%)</td></tr>',
+      '<tr data-ledger="identifierMatched"><td>Matched by identifier (ORCID / OpenAlex)</td><td>2 of 3</td></tr>',
     );
     expect(provenanceLedgerHtml(provenanceLedger(base()), "en-US")).toBe("");
   });
@@ -303,7 +303,7 @@ describe("ledgerLines / provenanceLedgerHtml", () => {
       const s = renderStrings(loc);
       expect(s.provLedgerOf).toContain("{n}");
       expect(s.provLedgerOf).toContain("{total}");
-      expect(s.provLedgerOf).toContain("{pct}");
+      expect(s.provLedgerOf).not.toContain("{pct}"); // never a percentage on a recipient page
       const lines = ledgerLines(provenanceLedger(cv), loc);
       expect(lines.length).toBe(6); // no flagged work → no "reviewed" line
       for (const l of lines) {
@@ -332,7 +332,7 @@ describe("provenanceFooter + ledger", () => {
     expect(html).toContain("Generated from");
     expect(html).toContain('<table class="cv-prov-ledger"');
     expect(html).toContain(
-      '<tr data-ledger="claimed"><td>Added by DOI (owner-asserted)</td><td>1 of 2 (50%)</td></tr>',
+      '<tr data-ledger="claimed"><td>Added by DOI (owner-asserted)</td><td>1 of 2</td></tr>',
     );
     expect(html).toMatch(/<\/table><\/footer>$/);
   });
@@ -344,12 +344,12 @@ describe("provenanceFooter + ledger", () => {
     // derived from it would misreport the attribution + review lines…
     const naive = provenanceFooter(projected);
     expect(naive).toContain(
-      '<tr data-ledger="claimed"><td>Added by DOI (owner-asserted)</td><td>0 of 2 (0%)</td></tr>',
+      '<tr data-ledger="claimed"><td>Added by DOI (owner-asserted)</td><td>0 of 2</td></tr>',
     );
     // …whereas the stored-document ledger, passed through opts, is right.
     const html = provenanceFooter(projected, { provenanceLedger: provenanceLedger(stored) });
     expect(html).toContain(
-      '<tr data-ledger="claimed"><td>Added by DOI (owner-asserted)</td><td>1 of 2 (50%)</td></tr>',
+      '<tr data-ledger="claimed"><td>Added by DOI (owner-asserted)</td><td>1 of 2</td></tr>',
     );
     // Nothing in this fixture was flagged for review, so the stored ledger has
     // no "reviewed" line to show — and never a "0 of N" over sound work.

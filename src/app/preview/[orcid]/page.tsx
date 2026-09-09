@@ -7,6 +7,7 @@ import SiteHeader from "@/components/SiteHeader";
 import { asLocale, DEFAULT_UI_LOCALE, type Locale } from "@/lib/i18n";
 import { previewStrings } from "@/lib/i18n/preview";
 import { normalizeOrcidForPreview } from "@/lib/cv/previewFromOrcid";
+import { resolvePublishedPreviewLink } from "@/lib/cv/previewPublishedLink";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 
 export const runtime = "nodejs";
@@ -53,10 +54,23 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
     return <PreviewNotice locale={loc} heading={s.invalidHeading} body={s.invalidBody} />;
   }
 
+  // If the researcher already published an INDEXABLE page, point the visitor at
+  // it (the sitemap's own predicate — nothing narrower is ever revealed). Resolved
+  // here, per request, never inside the cached build, so an unpublish takes
+  // effect on the next request. Fail-soft: null renders the same page.
+  const publishedPath = await resolvePublishedPreviewLink(orcid);
+
   // `loading.tsx` covers the brief moment while this client component boots and
   // opens the stream; the builder then shows the live search and finally mounts
   // the interactive editor (whose editor pane carries the settled provenance panel).
-  return <PreviewBuilder orcid={orcid} locale={loc} availableStyles={listAvailableStyles()} />;
+  return (
+    <PreviewBuilder
+      orcid={orcid}
+      locale={loc}
+      availableStyles={listAvailableStyles()}
+      publishedPath={publishedPath}
+    />
+  );
 }
 
 /** Centred notice for a malformed iD — offers the paste-your-ORCID form again.
