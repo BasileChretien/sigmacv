@@ -103,7 +103,7 @@ services:
   # secret-guarded endpoint. Disabled gracefully if RESYNC_SECRET is unset
   # (the endpoint returns 503 and curl's failure is swallowed).
   resync-cron:
-    image: curlimages/curl:8.21.0
+    image: curlimages/curl:8.22.0
     restart: unless-stopped
     depends_on:
       - app
@@ -119,7 +119,7 @@ services:
   # digestSentAt — so a container restart can never starve the schedule. No-op
   # when RESYNC_SECRET or SMTP (EMAIL_SERVER/EMAIL_FROM) is unset.
   digest-cron:
-    image: curlimages/curl:8.21.0
+    image: curlimages/curl:8.22.0
     restart: unless-stopped
     depends_on:
       - app
