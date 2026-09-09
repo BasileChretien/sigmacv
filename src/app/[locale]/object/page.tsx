@@ -6,6 +6,12 @@ import { objectionStrings } from "@/lib/i18n/objection";
 import { localeObjectPath, objectLanguageAlternates } from "@/lib/seo";
 
 /** Localized objection page (/fr/object, /ja/object, …); en-US lives at /object. */
+// Rendered per request, NOT prerendered at build time: the page decides whether
+// objections are available from PREVIEW_SUPPRESSION_KEY, which exists only in the
+// running container (the image build has no secrets). A static render would bake
+// "unavailable" into the HTML for the life of the image — as it did on 2026-09-09.
+export const dynamic = "force-dynamic";
+
 export const dynamicParams = false;
 
 export function generateStaticParams(): { locale: string }[] {
