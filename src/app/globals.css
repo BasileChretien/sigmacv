@@ -4355,6 +4355,91 @@ button.src-prov-chip.is-actionable:focus-visible {
   font-size: var(--text-xs);
 }
 
+/* ── Owner worklist ("Affiliations & open access", editor-only) ────────────── */
+/* A quiet, collapsed-by-default <details> beside the sections list: help with
+   the record, not an alarm — so a neutral surface, unlike the warn-toned health
+   checklist above. */
+.cv-worklist {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: var(--text-sm);
+}
+.cv-worklist-title {
+  cursor: pointer;
+  font-weight: 600;
+}
+.cv-worklist-intro {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+}
+/* The one-line count of works the list does not check (other sources) — a
+   note, smaller than a group, with no rows under it. */
+.cv-worklist-note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+}
+.cv-worklist-group {
+  margin-top: var(--space-2);
+}
+.cv-worklist-group h4 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-sm);
+}
+.cv-worklist-group h5 {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.cv-worklist-group p {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-xs);
+}
+.cv-worklist-group ul {
+  margin: 0;
+  padding-left: var(--space-4);
+}
+.cv-worklist-group li {
+  margin: 0.1rem 0;
+}
+/* Each row jumps to its entry (expand the section + scroll to it) — an inline
+   text link, like the health checklist's, so the panel reads as prose. */
+.cv-worklist-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.cv-worklist-link:hover {
+  text-decoration-thickness: 2px;
+}
+/* The four-state open-access label: a neutral chip in every state — there is
+   no "bad" state to colour. */
+.cv-worklist-chip {
+  display: inline-block;
+  margin-left: var(--space-1);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.cv-worklist-oa-summary .cv-worklist-chip {
+  margin: 0 var(--space-1) 0 0;
+}
+.cv-worklist-funders {
+  font-size: var(--text-xs);
+}
+
 /* ── Bulk-curation bar ─────────────────────────────────────────────────────── */
 .bulk-bar {
   display: flex;
