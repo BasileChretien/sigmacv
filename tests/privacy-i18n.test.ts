@@ -34,6 +34,12 @@ describe("privacyStrings", () => {
       expect(s.preview).toContain("Art. 14(5)(b)");
       expect(s.preview).toContain("Art. 6(1)(f)");
       expect(s.preview).toContain("privacy@sigmacv.org");
+      // The lookup is disclosed where the preview is.
+      expect(s.preview).toContain("/search");
+      // The lookup's cache is disclosed as memory-only and short-lived, never as "nothing".
+      expect(s.preview).not.toMatch(
+        /stores nothing|no almacena nada|ne conserve rien|speichert nichts/,
+      );
       // Non-users: the Art. 21 objection route with a 30-day promise.
       expect(s.nonUserRights).toContain("Art. 21");
       expect(s.nonUserRights).toContain("privacy@sigmacv.org");

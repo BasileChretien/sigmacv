@@ -16,6 +16,21 @@ afterEach(() => {
 });
 
 describe("resilientFetch", () => {
+  it('forwards cache: "no-store" to fetch and omits an undefined next (no data-cache entry)', async () => {
+    const f = vi.fn(async () => res(200));
+    vi.stubGlobal("fetch", f);
+    await resilientFetch("https://x.test", { retries: 0, cache: "no-store", next: undefined });
+    const init = (f.mock.calls as unknown as unknown[][])[0]![1] as Record<string, unknown>;
+    expect(init.cache).toBe("no-store");
+    expect("next" in init).toBe(false);
+    // …and the other way round: a revalidate hint is forwarded, with no cache key.
+    f.mockClear();
+    await resilientFetch("https://x.test", { retries: 0, next: { revalidate: 60 } });
+    const init2 = (f.mock.calls as unknown as unknown[][])[0]![1] as Record<string, unknown>;
+    expect(init2.next).toEqual({ revalidate: 60 });
+    expect("cache" in init2).toBe(false);
+  });
+
   it("returns a successful response without retrying", async () => {
     const f = vi.fn(async () => res(200));
     vi.stubGlobal("fetch", f);
