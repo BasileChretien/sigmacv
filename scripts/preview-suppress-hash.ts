@@ -9,6 +9,11 @@
  * PRODUCTION secret, since the HMAC is keyed by it. Append the printed value to
  * the comma-separated env var on the server and restart the app. Never write the
  * plaintext iD anywhere: the objection record is the HMAC.
+ *
+ * The HMAC is keyed by AUTH_SECRET, so ROTATING AUTH_SECRET VOIDS EVERY ENTRY:
+ * recompute the list under the new secret and deploy both together (see
+ * SECURITY.md). Nothing detects a stale list at runtime — a stale entry simply
+ * stops matching and the record is previewed again.
  */
 import { previewSuppressionHmac } from "../src/lib/cv/previewSuppression";
 import { validOrcidOrNull } from "../src/lib/orcid/validate";

@@ -128,7 +128,13 @@ uncached.
 Set these before exposing the app publicly (see `.env.production.example`):
 
 - `POSTGRES_PASSWORD` — **required**; deployment fails fast if unset.
-- `AUTH_SECRET` — ≥ 32 chars (`openssl rand -base64 33`).
+- `AUTH_SECRET` — ≥ 32 chars (`openssl rand -base64 33`). **Rotating it silently
+  voids `PREVIEW_SUPPRESSED_ORCID_HMACS`** (the GDPR Art. 21 objection list for
+  the no-login preview is keyed by it): every entry stops matching and the
+  objectors' records become previewable again with no error. Before or with a
+  rotation, recompute every entry with `npm run preview:suppress-hash` under the
+  NEW secret and deploy both together. Keep the plaintext iDs of objectors in
+  the privacy mailbox only, never in the repo or the env.
 - `AUTH_URL` — the canonical HTTPS origin (anchors OAuth callbacks + the CSRF
   origin check).
 - `RATE_LIMIT_PERSIST=true` — durable, cross-instance rate limiting.

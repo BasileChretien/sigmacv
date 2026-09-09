@@ -378,10 +378,13 @@ that sentence true:
    stub in a sandbox and asserts the rewrite. Top Pages therefore shows one row,
    `/preview/_`, for all previews. Verify after deploy: open a preview, then
    check that no `/preview/0000-…` row appears in Plausible's realtime view.
-2. **Rows recorded before the scrub must be deleted once, by hand.** On the
-   server, against the ClickHouse container (Plausible CE ≥ 2 stores events in
-   `events_v2` and sessions in `sessions_v2`; confirm the table names with
-   `SHOW TABLES FROM plausible_events_db` first):
+2. **Rows that reached ClickHouse anyway are deleted by `scripts/deploy.sh` on
+   every deploy** (rows from before the scrub shipped, or from a client running
+   an old stub). The two mutations are idempotent, so running them each deploy
+   costs nothing once the store is clean; the script warns and continues if the
+   `analytics` profile is not running. To run them by hand (Plausible CE ≥ 2
+   stores events in `events_v2` and sessions in `sessions_v2`; confirm the table
+   names with `SHOW TABLES FROM plausible_events_db` first):
 
    ```bash
    docker compose --profile analytics exec plausible_events_db clickhouse-client \

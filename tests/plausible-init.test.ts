@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { PLAUSIBLE_INIT_SCRIPT } from "@/lib/analytics/plausibleInit";
 
@@ -16,6 +17,15 @@ function boot(): Stub {
   vm.runInNewContext(PLAUSIBLE_INIT_SCRIPT, win);
   return win.plausible as Stub;
 }
+
+describe("root layout", () => {
+  it("inlines PLAUSIBLE_INIT_SCRIPT rather than a hand-written init snippet", () => {
+    const layout = readFileSync("src/app/layout.tsx", "utf8");
+    expect(layout).toContain("{PLAUSIBLE_INIT_SCRIPT}");
+    // A revert to the old literal `plausible.init()` would drop the scrub silently.
+    expect(layout).not.toMatch(/plausible\.init\(/);
+  });
+});
 
 describe("PLAUSIBLE_INIT_SCRIPT", () => {
   it("contains no backslash (it is inlined into a JSX template literal)", () => {
