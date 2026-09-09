@@ -2,6 +2,7 @@ import type { NextAuthConfig } from "next-auth";
 import type { OIDCConfig, Provider } from "next-auth/providers";
 import Google from "next-auth/providers/google";
 import Nodemailer from "next-auth/providers/nodemailer";
+import { OBJECTION_PROVIDER_ID } from "@/lib/auth/objectionProvider";
 
 /**
  * Edge-safe Auth.js config (no database adapter, no Node-only imports). The
@@ -84,6 +85,13 @@ export const enabledProviders = {
 };
 
 const providers: Provider[] = [orcidProvider];
+// The objection flow (/object): the SAME ORCID app, client and issuer under a
+// second provider id, so its callback path (/api/auth/callback/orcid-object —
+// registered on the ORCID app as a second redirect URI) is bound to the round
+// trip a visitor starts from /object and to nothing else. auth.ts's signIn
+// callback records the objection for this id and aborts the sign-in, so no
+// account or session is ever created. Never listed on the sign-in card.
+providers.push({ ...orcidProvider, id: OBJECTION_PROVIDER_ID, name: "ORCID (objection)" });
 if (googleEnabled) {
   providers.push(
     Google({

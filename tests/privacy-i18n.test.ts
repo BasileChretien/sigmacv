@@ -38,6 +38,8 @@ describe("privacyStrings", () => {
       expect(s.nonUserRights).toContain("Art. 21");
       expect(s.nonUserRights).toContain("privacy@sigmacv.org");
       expect(s.nonUserRights).toContain("30");
+      // The self-service route is named in every locale.
+      expect(s.nonUserRights).toContain("/object");
       // The opt-in research clause must cite the consent legal basis.
       expect(s.research).toContain("Art. 6(1)(a)");
       // The AI-drafting disclosure must name the EU processor in every locale.

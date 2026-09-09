@@ -19,7 +19,11 @@ const mocks = vi.hoisted(() => ({ build: vi.fn(), render: vi.fn(), recordWorkFun
 
 // Keep the REAL cvItemCount (pure, operates on the CV the mock returns); only
 // stub the DB-and-network build. projectCvForPreview runs for real.
-vi.mock("@/lib/db", () => ({ prisma: {} }));
+// The suppression lookup reads one table; everything else stays absent (and
+// fail-soft), as before.
+vi.mock("@/lib/db", () => ({
+  prisma: { previewSuppression: { findUnique: async () => null } },
+}));
 vi.mock("@/lib/cv/sync", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/cv/sync")>()),
   buildCvFromOrcid: mocks.build,

@@ -70,6 +70,20 @@ export function termsLanguageAlternates(): Record<string, string> {
   return languages;
 }
 
+/** /object path (the self-service objection page) for a locale. */
+export function localeObjectPath(locale: string): string {
+  const loc = asLocale(locale);
+  return loc === DEFAULT_UI_LOCALE ? "/object" : `/${LOCALE_SLUGS[loc]}/object`;
+}
+
+/** hreflang → path map for the /object page. */
+export function objectLanguageAlternates(): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const loc of SUPPORTED_LOCALES) languages[loc] = localeObjectPath(loc);
+  languages["x-default"] = "/object";
+  return languages;
+}
+
 /** /contact path for a locale: "/contact" for the default, "/{slug}/contact" otherwise. */
 export function localeContactPath(locale: string): string {
   const loc = asLocale(locale);

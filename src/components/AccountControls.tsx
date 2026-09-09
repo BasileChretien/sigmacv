@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ui } from "@/lib/i18n/ui";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
+import { objectionStrings } from "@/lib/i18n/objection";
 
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -37,8 +38,41 @@ export default function AccountControls({
 }: AccountControlsProps) {
   const u = ui(locale);
   const wu = workspaceUi(locale);
+  const os = objectionStrings(locale);
   const [consenting, setConsenting] = useState(researchConsent);
   const [digest, setDigest] = useState(digestOptIn);
+  // The no-login preview objection (same table as /object). Loaded on mount
+  // rather than threaded through four components; null until known, and the
+  // control is not offered at all for an account without an ORCID iD.
+  const [suppressed, setSuppressed] = useState<boolean | null>(null);
+  const [suppressError, setSuppressError] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/account/preview-suppression")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { suppressed?: boolean; applicable?: boolean } | null) => {
+        if (!cancelled && d?.applicable) setSuppressed(!!d.suppressed);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  async function toggleSuppressed(next: boolean) {
+    setSuppressed(next); // optimistic
+    setSuppressError("");
+    try {
+      const res = await fetch("/api/account/preview-suppression", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ suppress: next }),
+      });
+      if (!res.ok) throw new Error("preview suppression update failed");
+    } catch {
+      setSuppressed(!next);
+      setSuppressError(os.accountToggleError);
+    }
+  }
   // Contact-email state: the saved (server-side) address + its verification,
   // and the input draft. Saving stores the address PENDING and triggers the
   // double-opt-in confirmation mail — only a confirmed address is ever used.
@@ -174,6 +208,18 @@ export default function AccountControls({
 
   return (
     <div className="account-controls">
+      {suppressed !== null ? (
+        <label className="field-inline preview-suppression-toggle" title={os.accountToggleHint}>
+          <input
+            type="checkbox"
+            checked={suppressed}
+            onChange={(e) => toggleSuppressed(e.target.checked)}
+            data-testid="preview-suppression-toggle"
+          />
+          <span>{os.accountToggle}</span>
+        </label>
+      ) : null}
+      {suppressError ? <span className="muted">{suppressError}</span> : null}
       <label className="field-inline digest-toggle" title={wu.dgHint}>
         <input type="checkbox" checked={digest} onChange={(e) => toggleDigest(e.target.checked)} />
         <span>{wu.dgLabel}</span>

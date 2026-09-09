@@ -138,6 +138,11 @@ Set these before exposing the app publicly (see `.env.production.example`):
   key and deploying both together. Keep objectors' plaintext iDs in the privacy
   mailbox only, never in the repo or the env; the hash script prompts for the
   iD rather than taking it as an argument, so it stays out of shell history.
+  The same key hashes the `PreviewSuppression` table rows written by the
+  self-service `/object` route (ORCID-verified through the `orcid-object`
+  provider id — Auth.js's signIn callback records the row and aborts the
+  sign-in, so no user or session is created) and by the signed-in account
+  toggle. Rotating the key voids those rows too.
 - `AUTH_URL` — the canonical HTTPS origin (anchors OAuth callbacks + the CSRF
   origin check).
 - `RATE_LIMIT_PERSIST=true` — durable, cross-instance rate limiting.
