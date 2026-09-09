@@ -204,11 +204,18 @@ export default function PublishControls({
   // landed and the host refreshed the publish state (CvWorkspace does so after
   // each save); a tick inside that window is refused (422) and the error line
   // says so — re-open the menu and retry.
-  const setInstitution = (show: boolean, rorIds: string[]) =>
-    update(true, true, listUnderAffiliation, {
-      showOnInstitutionPage: show && rorIds.length > 0,
+  const setInstitution = (show: boolean, rorIds: string[]) => {
+    const on = show && rorIds.length > 0;
+    // A resulting consent of NOTHING is a withdrawal, whichever path got here:
+    // the toggle, unticking the last institution in the picker, or removing the
+    // last lapsed id. Each is an ANSWER — remembered under the same key, or the
+    // one-time prompt asks again on the next render.
+    if (!on) rememberWithdrawal();
+    return update(true, true, listUnderAffiliation, {
+      showOnInstitutionPage: on,
       consentedRorIds: show ? rorIds : [],
     });
+  };
   // With exactly ONE current affiliation the toggle consents to it in one click
   // (the copy names it). With several, ticking the toggle only ARMS the picker
   // (local state, nothing posted) until at least one institution is ticked —
@@ -218,10 +225,8 @@ export default function PublishControls({
   const setInstitutionToggle = (next: boolean) => {
     if (!next) {
       setInstitutionArmed(false);
-      if (showOnInstitutionPage) {
-        rememberWithdrawal();
-        void setInstitution(false, []);
-      }
+      // setInstitution remembers the withdrawal (its result is no consent).
+      if (showOnInstitutionPage) void setInstitution(false, []);
       return;
     }
     if (currentAffiliations.length === 1) {

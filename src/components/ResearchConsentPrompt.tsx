@@ -32,11 +32,17 @@ interface ResearchConsentPromptProps {
   initialConsent: boolean;
   /** UI locale (follows the CV's display language). */
   locale: string;
+  /** Whether anything is on screen right now. The host's onboarding sequencer
+   *  holds its own one-time prompts back while this one is up, so they never
+   *  stack; reported from here because only this component knows (the decision
+   *  reads localStorage AND sessionStorage, client-side, after mount). */
+  onVisibilityChange?: (open: boolean) => void;
 }
 
 export default function ResearchConsentPrompt({
   initialConsent,
   locale,
+  onVisibilityChange,
 }: ResearchConsentPromptProps) {
   const [mode, setMode] = useState<Mode>("hidden");
   const [busy, setBusy] = useState(false);
@@ -98,6 +104,10 @@ export default function ResearchConsentPrompt({
       setMode("prompt");
     }
   }, [initialConsent]);
+
+  useEffect(() => {
+    onVisibilityChange?.(mode !== "hidden");
+  }, [mode, onVisibilityChange]);
 
   function markSeen() {
     try {

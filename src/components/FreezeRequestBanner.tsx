@@ -14,6 +14,10 @@ interface FreezeRequestBannerProps {
   locale: string;
   published: boolean;
   slug: string | null;
+  /** Whether the banner is on screen right now. The host's onboarding sequencer
+   *  holds its own one-time prompts back while it is (they never stack); only
+   *  this component knows, since the request is parsed from the URL on mount. */
+  onVisibilityChange?: (open: boolean) => void;
 }
 
 const REQUEST_PARAMS = ["freeze", "preset", "label", "by"] as const;
@@ -30,7 +34,12 @@ function fill(template: string, vars: Record<string, string | number>): string {
  * The query is parsed in the browser only and is never sent anywhere; "Not now"
  * drops it from the URL. Renders nothing without a valid request.
  */
-export default function FreezeRequestBanner({ locale, published, slug }: FreezeRequestBannerProps) {
+export default function FreezeRequestBanner({
+  locale,
+  published,
+  slug,
+  onVisibilityChange,
+}: FreezeRequestBannerProps) {
   const s = snapshotStrings(locale);
   const [req, setReq] = useState<FreezeRequest | null>(null);
   const [busy, setBusy] = useState(false);
@@ -44,6 +53,10 @@ export default function FreezeRequestBanner({ locale, published, slug }: FreezeR
       // No window / malformed URL: no request.
     }
   }, []);
+
+  useEffect(() => {
+    onVisibilityChange?.(req !== null);
+  }, [req, onVisibilityChange]);
 
   if (!req) return null;
 

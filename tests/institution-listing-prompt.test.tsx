@@ -3,7 +3,9 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import InstitutionListingPrompt from "@/components/InstitutionListingPrompt";
+import PreviewWorkspace from "@/components/PreviewWorkspace";
 import PublishControls from "@/components/PublishControls";
+import { CanonicalCvSchema, type CanonicalCv } from "@/lib/canonical/schema";
 import { NO_INSTITUTION_PAGE } from "@/lib/cv/institutionConsent";
 import { promptDismissalKey, type PublishSnapshot } from "@/lib/cv/institutionPrompt";
 import { institutionPromptStrings } from "@/lib/i18n/institutionPrompt";
@@ -18,6 +20,14 @@ import { localePrivacyPath } from "@/lib/seo";
  * the Publish menu is remembered under the same key); the anonymous preview
  * never renders it.
  */
+
+// The anonymous preview's sign-in actions are server actions: stub the module
+// so importing the workspace does not drag the auth stack into jsdom.
+vi.mock("@/app/auth-actions", () => ({
+  signInWithOrcid: vi.fn(),
+  signInWithGoogle: vi.fn(),
+  signInWithEmail: vi.fn(),
+}));
 
 const s = institutionPromptStrings("en-US");
 const u = ui("en-US");
@@ -47,6 +57,41 @@ const withAffiliations = (...affs: { rorId: string; name: string }[]) =>
       visibleCurrentRorIds: affs.map((a) => a.rorId),
     },
   });
+
+/** A minimal CV for the anonymous preview: one ROR-linked current position (the
+ *  very thing the owner's prompt keys on) and one work. */
+function previewCv(): CanonicalCv {
+  return CanonicalCvSchema.parse({
+    schemaVersion: 2,
+    id: "preview",
+    owner: { orcid: "0000-0002-7483-2489", openAlexAuthorIds: [], displayName: "Ada" },
+    display: {},
+    sections: [
+      {
+        id: "positions",
+        type: "positions",
+        title: "Positions",
+        visible: true,
+        order: 0,
+        items: [
+          {
+            id: "P1",
+            source: "orcid",
+            sourceId: "P1",
+            included: true,
+            notMine: false,
+            order: 0,
+            authoredBySelf: false,
+            selfNameVariants: [],
+            displayText: "Professor",
+            meta: { institution: NAGOYA.name, rorId: NAGOYA.rorId, startYear: 2020 },
+          },
+        ],
+      },
+    ],
+    provenance: { generatedAt: "2026-09-08T00:00:00.000Z", sources: ["orcid"] },
+  });
+}
 
 const fetchMock = vi.fn();
 function respond(over: Record<string, unknown> = {}) {
@@ -171,7 +216,7 @@ describe("InstitutionListingPrompt — the visibility matrix", () => {
         false,
       ],
       [
-        "institution page on but OAI listing off: still an open choice",
+        "institution page on, OAI listing off: on ONE surface — a status, not an ask",
         snapshot({
           institutionPage: {
             ...NO_INSTITUTION_PAGE,
@@ -181,7 +226,12 @@ describe("InstitutionListingPrompt — the visibility matrix", () => {
             consentedRorIds: [NAGOYA.rorId],
           },
         }),
-        true,
+        false,
+      ],
+      [
+        "OAI listing on, institution page off: on ONE surface — a status, not an ask",
+        snapshot({ listUnderAffiliation: true }),
+        false,
       ],
     ];
     for (const [label, state, shown] of cases) {
@@ -315,6 +365,87 @@ describe("InstitutionListingPrompt — several affiliations, the picker", () => 
   });
 });
 
+describe("InstitutionListingPrompt — the confirmation", () => {
+  it("keeps its live region in the DOM from the start and swaps the CONTENT, so it is announced", async () => {
+    respond();
+    renderPrompt(snapshot());
+    // The region exists before there is anything to say (an element that only
+    // appears with its text is routinely missed by screen readers).
+    const status = screen.getByRole("status");
+    expect(status.textContent).toBe("");
+    await act(async () => {
+      fireEvent.click(yesButton());
+    });
+    // Same node, new content.
+    expect(screen.getByRole("status")).toBe(status);
+    expect(status.textContent).toBe(
+      u.institutionPageListedUnder.replace("{institutions}", "Nagoya University"),
+    );
+    // The section is labelled by the confirmation now, not by a stale heading.
+    const section = document.querySelector("section.institution-prompt")!;
+    expect(section.getAttribute("aria-labelledby")).toBe(status.id);
+  });
+
+  it("belongs to the set it was given for: a NEW affiliation asks again", async () => {
+    respond();
+    const onPublishStateChange = vi.fn();
+    const { rerender } = render(
+      <InstitutionListingPrompt
+        locale="en-US"
+        state={snapshot()}
+        onPublishStateChange={onPublishStateChange}
+      />,
+    );
+    await act(async () => {
+      fireEvent.click(yesButton());
+    });
+    expect(screen.getByRole("status").textContent).toContain("Nagoya University");
+    // The same set, re-rendered with the server's answer: still the confirmation.
+    const listedNagoya: PublishSnapshot = {
+      ...snapshot(),
+      listUnderAffiliation: true,
+      institutionPage: {
+        ...NO_INSTITUTION_PAGE,
+        currentAffiliations: [NAGOYA],
+        visibleCurrentRorIds: [NAGOYA.rorId],
+        showOnInstitutionPage: true,
+        consentedRorIds: [NAGOYA.rorId],
+      },
+    };
+    rerender(
+      <InstitutionListingPrompt
+        locale="en-US"
+        state={listedNagoya}
+        onPublishStateChange={onPublishStateChange}
+      />,
+    );
+    expect(card()).toBeNull();
+    expect(screen.getByRole("status").textContent).toContain("Nagoya University");
+    // A second affiliation arrives: a new set of ROR ids is a new question, and
+    // the confirmation must not sit on top of it.
+    const plusCaen: PublishSnapshot = {
+      ...listedNagoya,
+      institutionPage: {
+        ...listedNagoya.institutionPage,
+        currentAffiliations: [NAGOYA, CAEN],
+        visibleCurrentRorIds: [NAGOYA.rorId, CAEN.rorId],
+      },
+    };
+    rerender(
+      <InstitutionListingPrompt
+        locale="en-US"
+        state={plusCaen}
+        onPublishStateChange={onPublishStateChange}
+      />,
+    );
+    expect(card()).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Yes, list me under CHU de Caen Normandie" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe("");
+  });
+});
+
 describe("InstitutionListingPrompt — Not now, and memory per set", () => {
   it("sends nothing, closes, and stays closed for the same set — but a new affiliation asks again", () => {
     renderPrompt(snapshot());
@@ -425,6 +556,29 @@ describe("InstitutionListingPrompt — never on a public or anonymous surface", 
     expect(src("PreviewWorkspace.tsx")).not.toContain("InstitutionListingPrompt");
     expect(src("PreviewBuilder.tsx")).not.toContain("InstitutionListingPrompt");
     expect(src("PreviewWorkspace.tsx")).not.toContain("institutionListing");
+  });
+
+  it("is absent from a REAL render of the anonymous preview — no ask, no status line, no consent button", () => {
+    render(
+      <PreviewWorkspace
+        initialCv={previewCv()}
+        initialHtml="<p>cv</p>"
+        name="Ada"
+        locale="en-US"
+        availableStyles={["apa"]}
+      />,
+    );
+    // The workspace really rendered (this guard would be vacuous otherwise).
+    expect(document.querySelector(".preview-app")).toBeTruthy();
+    // The card, the worklist's status line, and every string either would use.
+    expect(card()).toBeNull();
+    expect(document.querySelector('[data-worklist="listing"]')).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Yes, list me under/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^List me under/ })).toBeNull();
+    expect(document.body.textContent).not.toContain(s.nothingUntil);
+    expect(document.body.textContent).not.toContain(s.withdraw);
+    // And it asked the publish API nothing at all.
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).not.toContain("/api/cv/publish");
   });
 });
 

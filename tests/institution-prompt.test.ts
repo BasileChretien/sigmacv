@@ -2,9 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NO_INSTITUTION_PAGE } from "@/lib/cv/institutionConsent";
 import {
   INSTITUTION_PROMPT_KEY_PREFIX,
+  affiliationListingState,
   affiliationSetKey,
   browserStorage,
   canListNow,
+  pageOnlyAffiliations,
+  setOnlyAffiliations,
   institutionListingBody,
   isPromptDismissed,
   listedAffiliations,
@@ -125,21 +128,71 @@ describe("browserStorage", () => {
   });
 });
 
+/** The four consent combinations for ONE affiliation. */
+const pageOnlyState = snapshot({
+  institutionPage: {
+    ...NO_INSTITUTION_PAGE,
+    currentAffiliations: [NAGOYA],
+    visibleCurrentRorIds: [NAGOYA.rorId],
+    showOnInstitutionPage: true,
+    consentedRorIds: [NAGOYA.rorId],
+  },
+});
+const setOnlyState = snapshot({ listUnderAffiliation: true });
+const bothState = { ...pageOnlyState, listUnderAffiliation: true };
+
+describe("affiliationListingState — two surfaces, four states", () => {
+  it("names each surface separately, so being on one is never 'not listed'", () => {
+    expect(affiliationListingState(snapshot(), NAGOYA.rorId)).toBe("none");
+    expect(affiliationListingState(pageOnlyState, NAGOYA.rorId)).toBe("page-only");
+    expect(affiliationListingState(setOnlyState, NAGOYA.rorId)).toBe("set-only");
+    expect(affiliationListingState(bothState, NAGOYA.rorId)).toBe("both");
+  });
+
+  it("sorts each affiliation into exactly one bucket", () => {
+    const buckets = [
+      unlistedAffiliations,
+      pageOnlyAffiliations,
+      setOnlyAffiliations,
+      listedAffiliations,
+    ];
+    for (const [state, own] of [
+      [snapshot(), unlistedAffiliations],
+      [pageOnlyState, pageOnlyAffiliations],
+      [setOnlyState, setOnlyAffiliations],
+      [bothState, listedAffiliations],
+    ] as const) {
+      for (const bucket of buckets) {
+        expect(bucket(state)).toEqual(bucket === own ? [NAGOYA] : []);
+      }
+    }
+  });
+
+  it("the OAI-PMH set is keyed by the ONE position the server picked, not by every affiliation", () => {
+    // Both current, both consented for the page, but the set is keyed to Nagoya.
+    const two = {
+      ...bothState,
+      institutionPage: {
+        ...bothState.institutionPage,
+        currentAffiliations: [NAGOYA, CAEN],
+        visibleCurrentRorIds: [NAGOYA.rorId, CAEN.rorId],
+        consentedRorIds: [NAGOYA.rorId, CAEN.rorId],
+      },
+    };
+    expect(listedAffiliations(two)).toEqual([NAGOYA]);
+    expect(pageOnlyAffiliations(two)).toEqual([CAEN]);
+    expect(unlistedAffiliations(two)).toEqual([]);
+  });
+});
+
 describe("listed / unlisted affiliations", () => {
   it("an affiliation is listed only with BOTH consents on and its id consented", () => {
     expect(unlistedAffiliations(snapshot())).toEqual([NAGOYA]);
     expect(listedAffiliations(snapshot())).toEqual([]);
-    // Institution page on, OAI listing off: still not listed.
-    const pageOnly = snapshot({
-      institutionPage: {
-        ...NO_INSTITUTION_PAGE,
-        currentAffiliations: [NAGOYA],
-        visibleCurrentRorIds: [NAGOYA.rorId],
-        showOnInstitutionPage: true,
-        consentedRorIds: [NAGOYA.rorId],
-      },
-    });
-    expect(unlistedAffiliations(pageOnly)).toEqual([NAGOYA]);
+    // Institution page on, OAI listing off: on ONE surface — never "not listed".
+    const pageOnly = pageOnlyState;
+    expect(unlistedAffiliations(pageOnly)).toEqual([]);
+    expect(pageOnlyAffiliations(pageOnly)).toEqual([NAGOYA]);
     // Both on: listed.
     const both = { ...pageOnly, listUnderAffiliation: true };
     expect(listedAffiliations(both)).toEqual([NAGOYA]);
@@ -161,6 +214,8 @@ describe("listed / unlisted affiliations", () => {
     const none = snapshot({ institutionPage: NO_INSTITUTION_PAGE, affiliationRorId: null });
     expect(unlistedAffiliations(none)).toEqual([]);
     expect(listedAffiliations(none)).toEqual([]);
+    expect(pageOnlyAffiliations(none)).toEqual([]);
+    expect(setOnlyAffiliations(none)).toEqual([]);
   });
 });
 
@@ -189,6 +244,14 @@ describe("shouldOfferInstitutionPrompt — the visibility matrix", () => {
       },
     });
     expect(shouldOfferInstitutionPrompt(listed, false)).toBe(false);
+  });
+
+  it("never asks someone already on ONE of the two surfaces — that is a status, not an open choice", () => {
+    expect(shouldOfferInstitutionPrompt(pageOnlyState, false)).toBe(false);
+    expect(shouldOfferInstitutionPrompt(setOnlyState, false)).toBe(false);
+    expect(shouldOfferInstitutionPrompt(bothState, false)).toBe(false);
+    // Only "on neither surface" is an open choice.
+    expect(shouldOfferInstitutionPrompt(snapshot(), false)).toBe(true);
   });
 });
 

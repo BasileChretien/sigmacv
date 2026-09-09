@@ -149,6 +149,10 @@ export interface WorkspaceUiStrings {
   wlListingHelp: string;
   /** Not yet listed; {institution} = the names joined. */
   wlListingUnlisted: string;
+  /** On the institution's page but not in its OAI-PMH set; {institution}. */
+  wlListingPageOnly: string;
+  /** In the institution's OAI-PMH set but not on its page; {institution}. */
+  wlListingSetOnly: string;
   /** The consent button — names the institution(s); {institution}. */
   wlListingListMe: string;
   /** The consent button while no institution is ticked yet (disabled). */
@@ -260,6 +264,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingHelp:
       "A status line, not a task: listing is voluntary and absence means nothing. Withdraw at any time from the Publish menu, with immediate effect.",
     wlListingUnlisted: "You are not yet listed under {institution}.",
+    wlListingPageOnly: "Listed on {institution}'s page; not in its repository set.",
+    wlListingSetOnly: "In {institution}'s repository set; not on its page.",
     wlListingListMe: "List me under {institution}",
     wlListingListMeNone: "List me under the institutions I tick",
     wlListingListed: "Listed under {institution}.",
@@ -364,6 +370,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingHelp:
       "这只是状态说明，不是待办事项：列入完全自愿，未列入不代表任何含义。可随时在“发布”菜单中撤回，立即生效。",
     wlListingUnlisted: "你尚未列入 {institution}。",
+    wlListingPageOnly: "已显示在 {institution} 的页面上；尚未加入其资料库集合。",
+    wlListingSetOnly: "已加入 {institution} 的资料库集合；尚未显示在其页面上。",
     wlListingListMe: "将我列入 {institution}",
     wlListingListMeNone: "将我列入我勾选的机构",
     wlListingListed: "已列入 {institution}。",
@@ -471,6 +479,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingHelp:
       "Una línea de estado, no una tarea: figurar es voluntario y no figurar no significa nada. Retíralo cuando quieras desde el menú Publicar, con efecto inmediato.",
     wlListingUnlisted: "Todavía no figuras bajo {institution}.",
+    wlListingPageOnly:
+      "Figuras en la página de {institution}; no en su conjunto para repositorios.",
+    wlListingSetOnly: "Figuras en el conjunto para repositorios de {institution}; no en su página.",
     wlListingListMe: "Listarme bajo {institution}",
     wlListingListMeNone: "Listarme bajo las instituciones que marque",
     wlListingListed: "Figuras bajo {institution}.",
@@ -583,6 +594,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingHelp:
       "Une ligne d'état, pas une tâche : figurer est volontaire et ne pas figurer ne signifie rien. Retirez-vous à tout moment depuis le menu Publier, avec effet immédiat.",
     wlListingUnlisted: "Vous ne figurez pas encore sous {institution}.",
+    wlListingPageOnly:
+      "Vous figurez sur la page de {institution} ; pas dans son ensemble pour les dépôts.",
+    wlListingSetOnly:
+      "Vous figurez dans l'ensemble pour les dépôts de {institution} ; pas sur sa page.",
     wlListingListMe: "Me lister sous {institution}",
     wlListingListMeNone: "Me lister sous les établissements cochés",
     wlListingListed: "Vous figurez sous {institution}.",
@@ -693,6 +708,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingHelp:
       "Eine Statuszeile, keine Aufgabe: Die Auflistung ist freiwillig, und ihr Fehlen bedeutet nichts. Jederzeit im Menü Veröffentlichen zurücknehmbar, mit sofortiger Wirkung.",
     wlListingUnlisted: "Sie sind noch nicht unter {institution} aufgeführt.",
+    wlListingPageOnly:
+      "Auf der Seite von {institution} aufgeführt; nicht in deren Set für Repositorien.",
+    wlListingSetOnly: "Im Set für Repositorien von {institution}; nicht auf deren Seite.",
     wlListingListMe: "Mich unter {institution} aufführen",
     wlListingListMeNone: "Mich unter den angekreuzten Einrichtungen aufführen",
     wlListingListed: "Aufgeführt unter {institution}.",
@@ -801,6 +819,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingHelp:
       "これは状態の表示であり、作業項目ではありません。掲載は任意で、掲載がないことは何も意味しません。「公開」メニューからいつでも取り下げられ、即時に反映されます。",
     wlListingUnlisted: "{institution} の下にはまだ掲載されていません。",
+    wlListingPageOnly:
+      "{institution} のページには掲載されていますが、そのリポジトリ用セットには入っていません。",
+    wlListingSetOnly:
+      "{institution} のリポジトリ用セットには入っていますが、そのページには掲載されていません。",
     wlListingListMe: "{institution} の下に掲載する",
     wlListingListMeNone: "チェックした機関の下に掲載する",
     wlListingListed: "{institution} の下に掲載済みです。",
@@ -912,6 +934,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingHelp:
       "Uma linha de status, não uma tarefa: aparecer é voluntário e não aparecer não significa nada. Retire a qualquer momento no menu Publicar, com efeito imediato.",
     wlListingUnlisted: "Você ainda não está listado sob {institution}.",
+    wlListingPageOnly:
+      "Você aparece na página de {institution}; não no conjunto dela para repositórios.",
+    wlListingSetOnly:
+      "Você aparece no conjunto de {institution} para repositórios; não na página dela.",
     wlListingListMe: "Listar-me sob {institution}",
     wlListingListMeNone: "Listar-me sob as instituições que eu marcar",
     wlListingListed: "Listado sob {institution}.",
@@ -1023,6 +1049,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingHelp:
       "Una riga di stato, non un compito: comparire è volontario e non comparire non significa nulla. Ritirati in qualsiasi momento dal menu Pubblica, con effetto immediato.",
     wlListingUnlisted: "Non compari ancora sotto {institution}.",
+    wlListingPageOnly:
+      "Compari sulla pagina di {institution}; non nel suo insieme per i repository.",
+    wlListingSetOnly:
+      "Compari nell'insieme per i repository di {institution}; non sulla sua pagina.",
     wlListingListMe: "Elencami sotto {institution}",
     wlListingListMeNone: "Elencami sotto le istituzioni che spunto",
     wlListingListed: "Elencato sotto {institution}.",
@@ -1131,6 +1161,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingHelp:
       "상태 표시일 뿐 할 일이 아닙니다. 등재는 자발적이며 등재되지 않았다는 것은 아무 의미도 없습니다. 언제든지 게시 메뉴에서 철회할 수 있으며 즉시 반영됩니다.",
     wlListingUnlisted: "아직 {institution} 아래에 등재되지 않았습니다.",
+    wlListingPageOnly:
+      "{institution} 페이지에는 표시되지만, 해당 기관의 리포지토리 세트에는 포함되어 있지 않습니다.",
+    wlListingSetOnly:
+      "{institution}의 리포지토리 세트에는 포함되어 있지만, 해당 기관의 페이지에는 표시되지 않습니다.",
     wlListingListMe: "{institution} 아래에 등재",
     wlListingListMeNone: "체크한 기관 아래에 등재",
     wlListingListed: "{institution} 아래에 등재됨.",
@@ -1242,6 +1276,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingHelp:
       "Строка состояния, а не задача: указание добровольно, а его отсутствие ничего не значит. Отзовите в любой момент в меню «Публикация», с немедленным эффектом.",
     wlListingUnlisted: "Вы ещё не указаны под {institution}.",
+    wlListingPageOnly:
+      "Вы указаны на странице организации {institution}, но не в её наборе для репозиториев.",
+    wlListingSetOnly:
+      "Вы указаны в наборе для репозиториев организации {institution}, но не на её странице.",
     wlListingListMe: "Указать меня под {institution}",
     wlListingListMeNone: "Указать меня под отмеченными организациями",
     wlListingListed: "Указано под {institution}.",

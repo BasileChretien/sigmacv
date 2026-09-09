@@ -19,6 +19,7 @@ type PreviewLayout = "split" | "stacked";
 // stays as an immediate-save fallback.
 const AUTOSAVE_DELAY_MS = 1500;
 import { selectOnboardingStep, type OnboardingStep } from "@/lib/onboardingSequence";
+import { isPromptDismissed, shouldOfferInstitutionPrompt } from "@/lib/cv/institutionPrompt";
 import CvEditor, { type CvEditorHandle } from "./CvEditor";
 import CvPreview from "./CvPreview";
 import DisambiguationCoachmark, { COACHMARK_DISMISS_KEY } from "./DisambiguationCoachmark";
@@ -426,6 +427,11 @@ export default function CvWorkspace({
   const [onboardingTick, setOnboardingTick] = useState(0);
   const [activeOnboarding, setActiveOnboarding] = useState<OnboardingStep | null>(null);
   const advanceOnboarding = useCallback(() => setOnboardingTick((n) => n + 1), []);
+  // Two prompts that are NOT sequencer steps (each is answered on its own
+  // terms) but must not be stacked on: the research-consent modal/banner and a
+  // freeze request carried in the URL. They report their own visibility.
+  const [researchPromptOpen, setResearchPromptOpen] = useState(false);
+  const [freezeRequestOpen, setFreezeRequestOpen] = useState(false);
   useEffect(() => {
     const read = (key: string): string | null => {
       try {
@@ -441,10 +447,24 @@ export default function CvWorkspace({
           (syncReport.addedTotal > 0 || syncReport.removedTotal > 0) &&
           read(SYNC_REPORT_DISMISS_KEY) !== syncReport.syncedAt,
         coachmark: hasPublications && read(COACHMARK_DISMISS_KEY) !== "1",
+        institution:
+          !researchPromptOpen &&
+          !freezeRequestOpen &&
+          shouldOfferInstitutionPrompt(
+            publishState,
+            isPromptDismissed(publishState.institutionPage.visibleCurrentRorIds),
+          ),
       }),
     );
     // onboardingTick re-reads localStorage after a dismissal advances the queue.
-  }, [syncReport, hasPublications, onboardingTick]);
+  }, [
+    syncReport,
+    hasPublications,
+    onboardingTick,
+    publishState,
+    researchPromptOpen,
+    freezeRequestOpen,
+  ]);
 
   const handleExport = useCallback(async () => {
     // Export uses the SAVED document — don't download a stale file if the
@@ -502,7 +522,11 @@ export default function CvWorkspace({
         {t(uiLocale, "skipToContent")}
       </a>
       {researchEnabled ? (
-        <ResearchConsentPrompt initialConsent={researchConsent} locale={uiLocale} />
+        <ResearchConsentPrompt
+          initialConsent={researchConsent}
+          locale={uiLocale}
+          onVisibilityChange={setResearchPromptOpen}
+        />
       ) : null}
       {/* PopoverGroup keeps one menu open at a time and renders the shared
           dismiss scrim as a sibling of the bar (so the bar stays clickable
@@ -556,6 +580,7 @@ export default function CvWorkspace({
             locale={uiLocale}
             published={publishState.published}
             slug={publishState.slug}
+            onVisibilityChange={setFreezeRequestOpen}
           />
           <SyncReportBanner
             report={syncReport}
@@ -584,11 +609,13 @@ export default function CvWorkspace({
               renders for the anonymous preview). Appears once the page is live
               and indexable and a current position is linked to a ROR record the
               CV is not yet listed under; nothing pre-ticked, nothing decided by
-              silence; waits while an onboarding prompt is on screen. */}
+              silence. It is the LAST step of the onboarding sequencer, whose
+              condition also covers the research-consent prompt and a freeze
+              request — so it never stacks with any of them. */}
           <InstitutionListingPrompt
             locale={uiLocale}
             state={publishState}
-            suppressed={activeOnboarding !== null}
+            suppressed={activeOnboarding !== "institution"}
             onPublishStateChange={setPublishState}
           />
           {/* Mobile-only pane switch: on a phone the two panes stack and only

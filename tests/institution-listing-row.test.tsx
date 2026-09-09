@@ -6,20 +6,25 @@ import WorklistPanel from "@/components/WorklistPanel";
 import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import { NO_INSTITUTION_PAGE } from "@/lib/cv/institutionConsent";
 import type { PublishSnapshot } from "@/lib/cv/institutionPrompt";
+import { institutionPromptStrings } from "@/lib/i18n/institutionPrompt";
 import { ui } from "@/lib/i18n/ui";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
+import { localePrivacyPath } from "@/lib/seo";
 
 /**
  * The worklist's first row, "Institution listing": a STATUS line, never a gap.
- * Unlisted → "You are not yet listed under …" + the same one-request "List me
- * under …" control as the prompt (picker rule included); listed → "Listed
- * under …" + Change; lapsed → the Publish menu's own wording. It is a reason
- * to show the otherwise-empty panel only while a choice is open, and the
- * anonymous preview never gets it.
+ * On neither surface → "You are not yet listed under …" + the prompt's own
+ * disclosure and "What this means" link + the same one-request "List me under …"
+ * control (picker rule included); on both → "Listed under …" + Change; on
+ * exactly one → the third wording, which names the surface that is missing;
+ * lapsed → the Publish menu's own wording. It is a reason to show the
+ * otherwise-empty panel only while a choice is open, and the anonymous preview
+ * never gets it.
  */
 
 const wu = workspaceUi("en-US");
 const u = ui("en-US");
+const s = institutionPromptStrings("en-US");
 const NAGOYA = { rorId: "04chrp450", name: "Nagoya University" };
 const CAEN = { rorId: "04d9jrx35", name: "CHU de Caen Normandie" };
 
@@ -242,6 +247,88 @@ describe("InstitutionListingRow — unlisted", () => {
   });
 });
 
+describe("InstitutionListingRow — the disclosure at the point of consent", () => {
+  it("says what the button does and links to the privacy notice, beside the button", () => {
+    renderPanel(quietCv(), snapshot());
+    const more = screen.getByRole("link", { name: s.learnMore }) as HTMLAnchorElement;
+    expect(more.getAttribute("href")).toBe(localePrivacyPath("en-US"));
+    expect(more.getAttribute("target")).toBe("_blank");
+    expect(more.getAttribute("rel")).toBe("noopener noreferrer");
+    // The prompt's own sentence — what appears where — not a bare button.
+    const disclosure = more.closest("p")!;
+    expect(disclosure.textContent).toContain(s.what.replace("{institution}", "Nagoya University"));
+    // It sits in the same row as the control it explains.
+    expect(row()!.contains(more)).toBe(true);
+    expect(
+      row()!.contains(screen.getByRole("button", { name: "List me under Nagoya University" })),
+    ).toBe(true);
+  });
+
+  it("with several affiliations, the disclosure names the OAI-keyed institution — as the prompt's body does", () => {
+    renderPanel(
+      quietCv(),
+      snapshot({
+        institutionPage: {
+          ...NO_INSTITUTION_PAGE,
+          currentAffiliations: [NAGOYA, CAEN],
+          visibleCurrentRorIds: [NAGOYA.rorId, CAEN.rorId],
+        },
+      }),
+    );
+    const disclosure = screen.getByRole("link", { name: s.learnMore }).closest("p")!;
+    // The set is keyed to Nagoya (the server's `affiliationRorId`) whatever is
+    // ticked, so the sentence names Nagoya, not the ticked institution.
+    expect(disclosure.textContent).toContain(s.what.replace("{institution}", "Nagoya University"));
+    fireEvent.click(screen.getByLabelText(/CHU de Caen Normandie/));
+    expect(
+      screen.getByRole("button", { name: "List me under CHU de Caen Normandie" }),
+    ).toBeTruthy();
+    expect(disclosure.textContent).toContain(s.what.replace("{institution}", "Nagoya University"));
+  });
+
+  it("no page to list on: the disclosure and the button go away together", () => {
+    renderPanel(quietCv(), snapshot({ published: false }));
+    expect(screen.queryByRole("link", { name: s.learnMore })).toBeNull();
+    expect(screen.queryByRole("button", { name: /List me under/ })).toBeNull();
+  });
+});
+
+describe("InstitutionListingRow — on exactly ONE of the two surfaces", () => {
+  const onPage = snapshot({
+    institutionPage: {
+      ...NO_INSTITUTION_PAGE,
+      currentAffiliations: [NAGOYA],
+      visibleCurrentRorIds: [NAGOYA.rorId],
+      showOnInstitutionPage: true,
+      consentedRorIds: [NAGOYA.rorId],
+    },
+  });
+  const inSet = snapshot({ listUnderAffiliation: true });
+  const fill = (template: string, institution: string) =>
+    template.replace("{institution}", institution);
+
+  it("on the page but not in the repository set: says exactly that, with Change and no ask", () => {
+    renderPanel(quietCv({ closed: true }), onPage, [NAGOYA.rorId]);
+    expect(row()!.textContent).toContain(fill(wu.wlListingPageOnly, "Nagoya University"));
+    expect(row()!.textContent).not.toContain("You are not yet listed");
+    expect(screen.queryByRole("button", { name: /List me under/ })).toBeNull();
+    expect(screen.getByRole("button", { name: wu.wlListingChange })).toBeTruthy();
+  });
+
+  it("in the repository set but not on the page: the other half of the same sentence", () => {
+    renderPanel(quietCv({ closed: true }), inSet, []);
+    expect(row()!.textContent).toContain(fill(wu.wlListingSetOnly, "Nagoya University"));
+    expect(row()!.textContent).not.toContain("You are not yet listed");
+    expect(screen.queryByRole("button", { name: /List me under/ })).toBeNull();
+    expect(screen.getByRole("button", { name: wu.wlListingChange })).toBeTruthy();
+  });
+
+  it("is a status, not an open choice: it alone does not open an otherwise-empty panel", () => {
+    const { container } = renderPanel(quietCv(), onPage, [NAGOYA.rorId]);
+    expect(container.innerHTML).toBe("");
+  });
+});
+
 describe("InstitutionListingRow — listed and lapsed", () => {
   it("listed: says so with a Change link, and is NOT a reason to show an otherwise-empty panel", () => {
     const { container } = renderPanel(quietCv(), listedSnapshot(), [NAGOYA.rorId]);
@@ -282,7 +369,9 @@ describe("InstitutionListingRow — listed and lapsed", () => {
     renderPanel(
       quietCv({ closed: true }),
       snapshot({
-        listUnderAffiliation: true,
+        // The kept id is the ONLY consent: the current position is on neither
+        // surface, so it is still an open choice.
+        listUnderAffiliation: false,
         institutionPage: {
           ...NO_INSTITUTION_PAGE,
           currentAffiliations: [NAGOYA],
@@ -299,6 +388,31 @@ describe("InstitutionListingRow — listed and lapsed", () => {
     ).toBeTruthy();
     expect(screen.getByText("You are not yet listed under Nagoya University.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "List me under Nagoya University" })).toBeTruthy();
+  });
+
+  it("lapsed while the current position IS in the repository set: the third wording, not an ask", () => {
+    renderPanel(
+      quietCv({ closed: true }),
+      snapshot({
+        listUnderAffiliation: true,
+        institutionPage: {
+          ...NO_INSTITUTION_PAGE,
+          currentAffiliations: [NAGOYA],
+          visibleCurrentRorIds: [NAGOYA.rorId],
+          showOnInstitutionPage: true,
+          consentedRorIds: ["00old0000"],
+          lapsedRorIds: ["00old0000"],
+        },
+      }),
+      ["00old0000"],
+    );
+    expect(
+      screen.getByText(u.institutionPageLapsedKept.replace("{rorId}", "00old0000")),
+    ).toBeTruthy();
+    expect(row()!.textContent).toContain(
+      wu.wlListingSetOnly.replace("{institution}", "Nagoya University"),
+    );
+    expect(screen.queryByRole("button", { name: /List me under/ })).toBeNull();
   });
 
   it("renders no row with no ROR-linked current affiliation and no lapsed id, and none at all without the listing prop", () => {

@@ -85,27 +85,74 @@ export function rememberPromptDismissal(
   }
 }
 
-/** "Listed" means BOTH consents stand — the OAI-PMH affiliation set and the
- *  institution page — and the affiliation's id is among the consented ones.
- *  Anything less is an open choice the prompt and the worklist line put
- *  forward. */
-function isListed(state: PublishSnapshot, rorId: string): boolean {
-  const { listUnderAffiliation, institutionPage } = state;
+/** Whether the CV is in this institution's OAI-PMH set. That set is keyed by
+ *  the ONE position the server picked (`affiliationRorId`), so the consent
+ *  applies to that id alone — never to every current affiliation. */
+function inRepositorySet(state: PublishSnapshot, rorId: string): boolean {
+  return state.listUnderAffiliation && state.affiliationRorId === rorId;
+}
+
+/** Whether the CV is on this institution's page (the pinned-id consent). */
+function onInstitutionPage(state: PublishSnapshot, rorId: string): boolean {
   return (
-    listUnderAffiliation &&
-    institutionPage.showOnInstitutionPage &&
-    institutionPage.consentedRorIds.includes(rorId)
+    state.institutionPage.showOnInstitutionPage &&
+    state.institutionPage.consentedRorIds.includes(rorId)
   );
 }
 
-/** The visible current affiliations (ROR-linked) the CV is listed under. */
-export function listedAffiliations(state: PublishSnapshot): VisibleAffiliation[] {
-  return state.institutionPage.currentAffiliations.filter((a) => isListed(state, a.rorId));
+/**
+ * The two consents are two SURFACES, and a researcher can be on one without
+ * the other — so collapsing them into one boolean would tell someone already
+ * on the institution's page that they are "not yet listed" and ask again.
+ * Four states, named for what is true:
+ *  • `both`      — in the repository set AND on the institution page;
+ *  • `page-only` — on the institution page, not in the repository set;
+ *  • `set-only`  — in the repository set, not on the institution page;
+ *  • `none`      — on NEITHER: the only state the prompt asks about.
+ */
+export type AffiliationListingState = "none" | "page-only" | "set-only" | "both";
+
+export function affiliationListingState(
+  state: PublishSnapshot,
+  rorId: string,
+): AffiliationListingState {
+  const inSet = inRepositorySet(state, rorId);
+  const onPage = onInstitutionPage(state, rorId);
+  if (inSet && onPage) return "both";
+  if (onPage) return "page-only";
+  if (inSet) return "set-only";
+  return "none";
 }
 
-/** The visible current affiliations (ROR-linked) the CV is NOT yet listed under. */
+function affiliationsInState(
+  state: PublishSnapshot,
+  want: AffiliationListingState,
+): VisibleAffiliation[] {
+  return state.institutionPage.currentAffiliations.filter(
+    (a) => affiliationListingState(state, a.rorId) === want,
+  );
+}
+
+/** The visible current affiliations (ROR-linked) the CV is listed under on
+ *  BOTH surfaces. */
+export function listedAffiliations(state: PublishSnapshot): VisibleAffiliation[] {
+  return affiliationsInState(state, "both");
+}
+
+/** The visible current affiliations (ROR-linked) the CV is on NEITHER surface
+ *  for — the open choice the prompt and the worklist line put forward. */
 export function unlistedAffiliations(state: PublishSnapshot): VisibleAffiliation[] {
-  return state.institutionPage.currentAffiliations.filter((a) => !isListed(state, a.rorId));
+  return affiliationsInState(state, "none");
+}
+
+/** On the institution's page, but not in its OAI-PMH set. */
+export function pageOnlyAffiliations(state: PublishSnapshot): VisibleAffiliation[] {
+  return affiliationsInState(state, "page-only");
+}
+
+/** In the institution's OAI-PMH set, but not on its page. */
+export function setOnlyAffiliations(state: PublishSnapshot): VisibleAffiliation[] {
+  return affiliationsInState(state, "set-only");
 }
 
 /** A listing can only be given on a published, indexable page (both consents

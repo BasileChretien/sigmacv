@@ -57,6 +57,7 @@ export default function InstitutionListingPrompt({
   const u = ui(locale);
   const wu = workspaceUi(locale);
   const titleId = useId();
+  const statusId = useId();
   const setIds = state.institutionPage.visibleCurrentRorIds;
   const setKey = affiliationSetKey(setIds);
   // Client-only gate so a remembered answer never flashes the card (and SSR
@@ -69,34 +70,18 @@ export default function InstitutionListingPrompt({
   useEffect(() => {
     setDismissed(isPromptDismissed(setIds));
     setChecked(setKey);
+    // A confirmation belongs to the set it was given for: a NEW affiliation is a
+    // new question, so the card must go back to asking instead of sitting on
+    // "you are listed under …" for a set that has since changed.
+    setListed(null);
     // The set key is what identifies the dismissal; the ids are its content.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setKey]);
 
-  if (listed) {
-    return (
-      <section className="institution-prompt" aria-labelledby={titleId}>
-        <p id={titleId} className="institution-prompt-listed" role="status">
-          {u.institutionPageListedUnder.replace("{institutions}", () =>
-            listed.map((a) => a.name).join(", "),
-          )}
-        </p>
-        <div className="institution-prompt-actions">
-          <button
-            type="button"
-            className="link-btn"
-            onClick={() => openTopBarMenu(PUBLISH_TRIGGER, PUBLISH_INSTITUTION_ANCHOR)}
-          >
-            {wu.wlListingChange}
-          </button>
-        </div>
-      </section>
-    );
-  }
-
-  if (suppressed || checked !== setKey || !shouldOfferInstitutionPrompt(state, dismissed)) {
-    return null;
-  }
+  const asking =
+    !suppressed && checked === setKey && shouldOfferInstitutionPrompt(state, dismissed);
+  // The confirmation stays on screen once given, whatever suppresses the ask.
+  if (!listed && !asking) return null;
 
   const unlisted = unlistedAffiliations(state);
   const several = unlisted.length > 1;
@@ -124,42 +109,70 @@ export default function InstitutionListingPrompt({
   };
 
   return (
-    <section className="institution-prompt" aria-labelledby={titleId}>
-      <h2 id={titleId} className="institution-prompt-title">
-        {several ? s.headingMany : fill(s.heading)}
-      </h2>
-      <p>{fill(s.what, several ? (oaiName ?? names) : names)}</p>
-      <p>{s.nothingUntil}</p>
-      <p>{s.withdraw}</p>
-      <p className="muted">
-        {reconBefore}
-        <button type="button" className="link-btn" onClick={() => openTopBarMenu(VERSIONS_TRIGGER)}>
-          {s.versions}
-        </button>
-        {reconAfter}
+    <section className="institution-prompt" aria-labelledby={listed ? statusId : titleId}>
+      {/* The live region is rendered from the start and its CONTENT swapped, so
+          a screen reader announces the confirmation when it arrives (a region
+          that only appears with its text is often missed). */}
+      <p id={statusId} className="institution-prompt-listed" role="status">
+        {listed
+          ? u.institutionPageListedUnder.replace("{institutions}", () =>
+              listed.map((a) => a.name).join(", "),
+            )
+          : ""}
       </p>
-      <div className="institution-prompt-actions">
-        <InstitutionListingAction
-          locale={locale}
-          state={state}
-          affiliations={unlisted}
-          yesLabel={(institution) => s.yes.replace("{institution}", () => institution)}
-          yesNoneLabel={s.yesNone}
-          idPrefix={`${titleId}-pick`}
-          onListed={onListed}
-        />
-        <button type="button" className="btn" onClick={notNow}>
-          {s.notNow}
-        </button>
-        <a
-          className="institution-prompt-more"
-          href={localePrivacyPath(locale)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {s.learnMore}
-        </a>
-      </div>
+      {listed ? (
+        <div className="institution-prompt-actions">
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => openTopBarMenu(PUBLISH_TRIGGER, PUBLISH_INSTITUTION_ANCHOR)}
+          >
+            {wu.wlListingChange}
+          </button>
+        </div>
+      ) : (
+        <>
+          <h2 id={titleId} className="institution-prompt-title">
+            {several ? s.headingMany : fill(s.heading)}
+          </h2>
+          <p>{fill(s.what, several ? (oaiName ?? names) : names)}</p>
+          <p>{s.nothingUntil}</p>
+          <p>{s.withdraw}</p>
+          <p className="muted">
+            {reconBefore}
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => openTopBarMenu(VERSIONS_TRIGGER)}
+            >
+              {s.versions}
+            </button>
+            {reconAfter}
+          </p>
+          <div className="institution-prompt-actions">
+            <InstitutionListingAction
+              locale={locale}
+              state={state}
+              affiliations={unlisted}
+              yesLabel={(institution) => s.yes.replace("{institution}", () => institution)}
+              yesNoneLabel={s.yesNone}
+              idPrefix={`${titleId}-pick`}
+              onListed={onListed}
+            />
+            <button type="button" className="btn" onClick={notNow}>
+              {s.notNow}
+            </button>
+            <a
+              className="institution-prompt-more"
+              href={localePrivacyPath(locale)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {s.learnMore}
+            </a>
+          </div>
+        </>
+      )}
     </section>
   );
 }

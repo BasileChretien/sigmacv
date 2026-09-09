@@ -4,7 +4,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import CvWorkspace from "@/components/CvWorkspace";
 import { COACHMARK_DISMISS_KEY } from "@/components/DisambiguationCoachmark";
 import { CanonicalCvSchema, type CanonicalCv } from "@/lib/canonical/schema";
+import { NO_INSTITUTION_PAGE } from "@/lib/cv/institutionConsent";
 import type { SyncReport } from "@/lib/cv/syncReport";
+import { consentStrings } from "@/lib/i18n";
+import { snapshotStrings } from "@/lib/i18n/snapshots";
 
 afterEach(cleanup);
 beforeEach(() => window.localStorage.clear());
@@ -86,6 +89,57 @@ describe("CvWorkspace — onboarding prompts show one at a time", () => {
     fireEvent.click(screen.getByText("Got it"));
     await waitFor(() => expect(document.querySelector(".coachmark")).toBeNull());
     expect(document.querySelector(".publish-nudge")).toBeNull();
+  });
+});
+
+describe("CvWorkspace — the institution ask is last, and never stacks", () => {
+  const NAGOYA = { rorId: "04chrp450", name: "Nagoya University" };
+  /** Live, indexable page + a ROR-linked current position not yet listed. */
+  const listable = {
+    ...baseProps,
+    initialSyncReport: { ...CHANGED_REPORT, addedTotal: 0, removedTotal: 0, added: [] },
+    published: true,
+    publicSlug: "ada-x7",
+    publicIndexable: true,
+    publicAffiliationRorId: NAGOYA.rorId,
+    publicInstitutionPage: {
+      ...NO_INSTITUTION_PAGE,
+      currentAffiliations: [NAGOYA],
+      visibleCurrentRorIds: [NAGOYA.rorId],
+    },
+  };
+  const askCard = () => screen.queryByRole("region", { name: /list yourself under/i });
+
+  it("waits for the coachmark, then asks", async () => {
+    render(<CvWorkspace {...listable} />);
+    // The coachmark is the higher-priority step: the ask waits.
+    await waitFor(() => expect(document.querySelector(".coachmark")).toBeTruthy());
+    expect(askCard()).toBeNull();
+    fireEvent.click(screen.getByText("Got it"));
+    await waitFor(() => expect(askCard()).not.toBeNull());
+  });
+
+  it("never stacks on the research-consent prompt: it waits until that is answered", async () => {
+    window.localStorage.setItem(COACHMARK_DISMISS_KEY, "1");
+    render(<CvWorkspace {...listable} researchEnabled researchConsent={false} />);
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeTruthy());
+    expect(askCard()).toBeNull();
+    // "Not now" on the consent prompt: the institution ask is then free to show.
+    fireEvent.click(screen.getByRole("button", { name: consentStrings("en-US").notNow }));
+    await waitFor(() => expect(askCard()).not.toBeNull());
+  });
+
+  it("never stacks on a freeze request carried in the URL", async () => {
+    window.localStorage.setItem(COACHMARK_DISMISS_KEY, "1");
+    window.history.replaceState(null, "", "/cv?freeze=erc&preset=hiring");
+    render(<CvWorkspace {...listable} />);
+    await waitFor(() =>
+      expect(document.querySelector('[data-testid="freeze-request"]')).toBeTruthy(),
+    );
+    expect(askCard()).toBeNull();
+    fireEvent.click(screen.getByText(snapshotStrings("en-US").requestDismiss));
+    await waitFor(() => expect(askCard()).not.toBeNull());
+    window.history.replaceState(null, "", "/cv");
   });
 });
 

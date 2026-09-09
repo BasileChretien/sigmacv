@@ -39,6 +39,50 @@ const FORBIDDEN: Record<Locale, string[]> = {
   "ru-RU": ["соответств", "соблюден", "просрочен", "нарушени", "мандат", "процент", "доля", "%"],
 };
 
+/**
+ * Rate / ratio / share-as-a-quantity, per locale. Word-boundary patterns where
+ * the language has word boundaries (bare substrings would fire on "sepa-rate",
+ * "par-tager"), plain characters for zh/ja/ko. The English regexes below are
+ * the originals; every other locale carries its own equivalents, so a
+ * translation cannot smuggle in a quantity the English copy refuses.
+ */
+const FORBIDDEN_QUANTITY: Record<Locale, RegExp[]> = {
+  "en-US": [
+    /\brates?\b/i,
+    /\bratios?\b/i,
+    /\b(a|the|your|their|its|of) share\b|\bshare of\b|\bshares\b/i,
+  ],
+  "zh-CN": [/率/, /比例/, /占比/, /份额/],
+  "es-ES": [/\btasas?\b/i, /\bproporci/i, /\bcuotas?\b/i, /índice/i],
+  "fr-FR": [/\btaux\b/i, /\bproportion/i, /\bparts? des?\b/i],
+  "de-DE": [/\bquote/i, /\braten?\b/i, /\banteil/i],
+  "ja-JP": [/率/, /割合/, /比率/],
+  "pt-BR": [/\btaxas?\b/i, /\bproporç/i, /\bcotas?\b/i, /índice/i],
+  "it-IT": [/\btass[oi]\b/i, /\bquota/i, /\bpercentuale/i],
+  "ko-KR": [/비율/, /점유율/, /퍼센트/],
+  // JS word boundaries are ASCII-only, so Cyrillic patterns carry no \b.
+  "ru-RU": [/дол[яию]/i, /ставк/i, /процент/i, /коэффициент/i],
+};
+
+/**
+ * The two promises the disclosure must carry, in every locale: that absence
+ * means nothing, and that withdrawal takes effect at once. Substrings taken
+ * from the translations themselves — a rewrite that drops either promise fails
+ * here rather than shipping a softer consent in nine languages.
+ */
+const PRESENCE: Record<Locale, { absence: string; immediate: string }> = {
+  "en-US": { absence: "absence means nothing", immediate: "immediate" },
+  "zh-CN": { absence: "不代表任何含义", immediate: "立即生效" },
+  "es-ES": { absence: "no significa nada", immediate: "inmediato" },
+  "fr-FR": { absence: "ne signifie rien", immediate: "immédiat" },
+  "de-DE": { absence: "Fehlen bedeutet nichts", immediate: "sofortiger Wirkung" },
+  "ja-JP": { absence: "何も意味しません", immediate: "即時" },
+  "pt-BR": { absence: "não significa nada", immediate: "imediato" },
+  "it-IT": { absence: "non significa nulla", immediate: "immediato" },
+  "ko-KR": { absence: "아무 의미도 없습니다", immediate: "즉시" },
+  "ru-RU": { absence: "ничего не значит", immediate: "немедленн" },
+};
+
 function allStrings(loc: Locale): Array<[string, string]> {
   const p = institutionPromptStrings(loc);
   const w = workspaceUi(loc);
@@ -84,7 +128,13 @@ describe("institution prompt + listing strings", () => {
       expect(s.reconciliation, `${loc} prompt.reconciliation`).toContain("{versions}");
       expect(s.headingMany, `${loc} prompt.headingMany`).not.toContain("{institution}");
       expect(s.yesNone, `${loc} prompt.yesNone`).not.toContain("{institution}");
-      for (const key of ["wlListingUnlisted", "wlListingListMe", "wlListingListed"] as const) {
+      for (const key of [
+        "wlListingUnlisted",
+        "wlListingListMe",
+        "wlListingListed",
+        "wlListingPageOnly",
+        "wlListingSetOnly",
+      ] as const) {
         expect(w[key], `${loc} ${key}`).toContain("{institution}");
       }
       expect(w.wlListingListMeNone, `${loc} wlListingListMeNone`).not.toContain("{institution}");
@@ -102,16 +152,59 @@ describe("institution prompt + listing strings", () => {
     }
   });
 
-  it("in English: no rate, ratio or share-as-a-quantity, and nothing that implies the institution asked", () => {
+  it("never uses a rate, a ratio or a share-as-a-quantity, in ANY locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      for (const [key, value] of allStrings(loc)) {
+        for (const pattern of FORBIDDEN_QUANTITY[loc]) {
+          expect(pattern.test(value), `${loc} ${key} matches ${pattern}: ${value}`).toBe(false);
+        }
+      }
+    }
+  });
+
+  it("those per-locale patterns actually bite (a ban that matches nothing is not a ban)", () => {
+    const violation: Record<Locale, string> = {
+      "en-US": "the open-access rate of your works",
+      "zh-CN": "开放获取率",
+      "es-ES": "la tasa de acceso abierto",
+      "fr-FR": "le taux d'accès ouvert",
+      "de-DE": "die Open-Access-Quote",
+      "ja-JP": "オープンアクセス率",
+      "pt-BR": "a taxa de acesso aberto",
+      "it-IT": "il tasso di accesso aperto",
+      "ko-KR": "오픈액세스 비율",
+      "ru-RU": "доля открытых работ",
+    };
+    for (const loc of SUPPORTED_LOCALES) {
+      expect(
+        FORBIDDEN_QUANTITY[loc].some((p) => p.test(violation[loc])),
+        `${loc}: no pattern catches "${violation[loc]}"`,
+      ).toBe(true);
+      // …and the presence markers are really in the strings they check.
+      expect(PRESENCE[loc].absence.length, loc).toBeGreaterThan(0);
+    }
+  });
+
+  it("in English: nothing that implies the institution asked", () => {
     for (const [key, value] of allStrings("en-US")) {
-      expect(value, key).not.toMatch(/\b(rates?|ratios?)\b/i);
       // "share" as a noun (a quantity); "sharing rows" (the verb) is allowed.
-      expect(value, key).not.toMatch(
-        /\b(a|the|your|their|its|of) share\b|\bshare of\b|\bshares\b/i,
-      );
       expect(value, key).not.toMatch(
         /\b(asked|asks|requested|requests|requires?|required|must)\b/i,
       );
+    }
+  });
+
+  it("says, in EVERY locale, that absence means nothing and that withdrawal is immediate", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const { absence, immediate } = PRESENCE[loc];
+      const s = institutionPromptStrings(loc);
+      const help = workspaceUi(loc).wlListingHelp;
+      expect(s.nothingUntil, `${loc} prompt.nothingUntil`).toContain(absence);
+      expect(s.withdraw, `${loc} prompt.withdraw`).toContain(immediate);
+      // The worklist's status line repeats both — it is the surface someone
+      // who dismissed the prompt still sees.
+      expect(help, `${loc} wlListingHelp`).toContain(absence);
+      expect(help, `${loc} wlListingHelp`).toContain(immediate);
     }
   });
 
