@@ -62,6 +62,9 @@ export interface LandingStrings {
   emailHelper: string;
   /** Busy label while a sign-in is redirecting (button "Signing in…" state). */
   signingIn: string;
+  /** Secondary entry under the sign-in card: the name lookup (/search) — for a
+   *  visitor who is not the owner. Never competes with the sign-in CTA. */
+  lookupLink: string;
   /** Email magic-link "check your inbox" confirmation: heading + body. */
   checkInboxTitle: string;
   checkInboxBody: string;
@@ -115,6 +118,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailFieldLabel: "Email address",
     emailHelper: "We’ll email you a one-time sign-in link — no password needed.",
     signingIn: "Signing in…",
+    lookupLink: "Looking for someone else? Find a researcher by name",
     checkInboxTitle: "Check your inbox",
     checkInboxBody:
       "We’ve sent a one-time sign-in link to your email. Open it on this device to finish signing in. The link expires shortly; you can close this tab.",
@@ -212,6 +216,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailFieldLabel: "电子邮件地址",
     emailHelper: "我们会向您发送一次性登录链接——无需密码。",
     signingIn: "正在登录…",
+    lookupLink: "想查找其他人？按姓名查找研究者",
     checkInboxTitle: "请查收邮箱",
     checkInboxBody:
       "我们已向您的邮箱发送了一次性登录链接。请在本设备上打开它以完成登录。该链接将很快过期；您可以关闭此标签页。",
@@ -297,6 +302,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailFieldLabel: "Correo electrónico",
     emailHelper: "Te enviaremos un enlace de inicio de sesión de un solo uso — sin contraseña.",
     signingIn: "Iniciando sesión…",
+    lookupLink: "¿Buscas a otra persona? Busca a un investigador por su nombre",
     checkInboxTitle: "Revisa tu bandeja de entrada",
     checkInboxBody:
       "Hemos enviado un enlace de inicio de sesión de un solo uso a tu correo. Ábrelo en este dispositivo para completar el acceso. El enlace caduca en breve; puedes cerrar esta pestaña.",
@@ -395,6 +401,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailFieldLabel: "Adresse e-mail",
     emailHelper: "Nous vous enverrons un lien de connexion à usage unique — sans mot de passe.",
     signingIn: "Connexion…",
+    lookupLink: "Vous cherchez quelqu'un d'autre ? Trouver un chercheur par son nom",
     checkInboxTitle: "Vérifiez votre boîte de réception",
     checkInboxBody:
       "Nous avons envoyé un lien de connexion à usage unique à votre adresse e-mail. Ouvrez-le sur cet appareil pour terminer la connexion. Le lien expire sous peu ; vous pouvez fermer cet onglet.",
@@ -493,6 +500,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailFieldLabel: "E-Mail-Adresse",
     emailHelper: "Wir senden Ihnen einen einmaligen Anmeldelink — ganz ohne Passwort.",
     signingIn: "Anmeldung läuft…",
+    lookupLink: "Sie suchen jemand anderen? Forschende nach Namen finden",
     checkInboxTitle: "Prüfen Sie Ihren Posteingang",
     checkInboxBody:
       "Wir haben einen einmaligen Anmeldelink an Ihre E-Mail-Adresse gesendet. Öffnen Sie ihn auf diesem Gerät, um die Anmeldung abzuschließen. Der Link läuft bald ab; Sie können diesen Tab schließen.",
@@ -590,6 +598,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailFieldLabel: "メールアドレス",
     emailHelper: "一度だけ使えるサインインリンクをメールで送ります——パスワードは不要です。",
     signingIn: "サインインしています…",
+    lookupLink: "他の人をお探しですか？ 氏名で研究者を探す",
     checkInboxTitle: "メールをご確認ください",
     checkInboxBody:
       "一度だけ使えるサインインリンクをメールでお送りしました。サインインを完了するには、この端末でリンクを開いてください。リンクはまもなく失効します。このタブは閉じてかまいません。",
@@ -687,6 +696,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailFieldLabel: "Endereço de e-mail",
     emailHelper: "Enviaremos um link de acesso de uso único por e-mail — sem necessidade de senha.",
     signingIn: "Entrando…",
+    lookupLink: "Procurando outra pessoa? Encontre um pesquisador pelo nome",
     checkInboxTitle: "Verifique sua caixa de entrada",
     checkInboxBody:
       "Enviamos um link de acesso de uso único para o seu e-mail. Abra-o neste dispositivo para concluir o login. O link expira em breve; você pode fechar esta aba.",
@@ -784,6 +794,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailFieldLabel: "Indirizzo e-mail",
     emailHelper: "Ti invieremo un link di accesso monouso via e-mail — senza password.",
     signingIn: "Accesso in corso…",
+    lookupLink: "Cerchi qualcun altro? Trova un ricercatore per nome",
     checkInboxTitle: "Controlla la tua casella di posta",
     checkInboxBody:
       "Abbiamo inviato un link di accesso monouso alla tua e-mail. Aprilo su questo dispositivo per completare l’accesso. Il link scade a breve; puoi chiudere questa scheda.",
@@ -881,6 +892,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailFieldLabel: "이메일 주소",
     emailHelper: "일회용 로그인 링크를 이메일로 보내드립니다 — 비밀번호가 필요 없습니다.",
     signingIn: "로그인 중…",
+    lookupLink: "다른 사람을 찾으시나요? 이름으로 연구자 찾기",
     checkInboxTitle: "이메일을 확인하세요",
     checkInboxBody:
       "일회용 로그인 링크를 이메일로 보냈습니다. 로그인을 완료하려면 이 기기에서 링크를 여세요. 링크는 곧 만료됩니다. 이 탭은 닫아도 됩니다.",
@@ -976,6 +988,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     emailFieldLabel: "Адрес эл. почты",
     emailHelper: "Мы отправим вам одноразовую ссылку для входа — пароль не нужен.",
     signingIn: "Выполняется вход…",
+    lookupLink: "Ищете кого-то другого? Найти исследователя по имени",
     checkInboxTitle: "Проверьте почту",
     checkInboxBody:
       "Мы отправили одноразовую ссылку для входа на вашу почту. Откройте её на этом устройстве, чтобы завершить вход. Ссылка скоро истечёт; эту вкладку можно закрыть.",

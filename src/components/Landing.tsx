@@ -30,6 +30,7 @@ import {
   localePrinciplesPath,
   localePrivacyPath,
   localeTransparencyPath,
+  localeSearchPath,
 } from "@/lib/seo";
 import { getSiteLinks } from "@/lib/siteLinks";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -158,6 +159,13 @@ export default function Landing({ locale }: LandingProps) {
               {/* Try-before-you-trust: preview a CV from a public ORCID iD with no
                   sign-in, then convert. Lowers the OAuth-commitment barrier. */}
               <OrcidPreviewForm locale={loc} />
+              {/* The other visitor: not the owner, looking someone up. A quiet
+                  secondary entry — the hero and the sign-in CTA stay as they are. */}
+              <p className="hp2-lookup">
+                <a href={localeSearchPath(loc)} data-testid="home-lookup-link">
+                  {s.lookupLink} <span aria-hidden="true">→</span>
+                </a>
+              </p>
 
               <details className="hp2-help">
                 <summary>{help.question}</summary>
