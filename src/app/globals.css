@@ -3706,6 +3706,13 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 .preview-app-banner-link {
   font-weight: var(--weight-bold);
 }
+.hp2-lookup {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+}
+.hp2-lookup a {
+  color: var(--muted);
+}
 .preview-app-banner-promise {
   font-size: var(--text-xs);
 }
