@@ -18,7 +18,7 @@ const REQUIRED_PASSTHROUGH = [
 
 /** `      NAME: ${NAME}` or `      NAME: ${NAME:-default}` on its own line. */
 function passthroughLine(name: string): RegExp {
-  return new RegExp("^\s+" + name + ": \$\{" + name + "(:-[^}]*)?\}\s*$", "m");
+  return new RegExp("^\\s+" + name + ": \\$\\{" + name + "(:-[^}]*)?\\}\\s*$", "m");
 }
 
 describe.each(["docker-compose.yml", "docker-compose.prod.yml"])(
