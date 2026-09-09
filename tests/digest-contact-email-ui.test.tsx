@@ -46,7 +46,15 @@ describe("digest contact-email field (gated behind the Email-updates toggle)", (
       "/api/account/contact-email",
       expect.objectContaining({ method: "POST" }),
     );
-    const body = JSON.parse((fetchMock.mock.calls[0]![1] as { body: string }).body) as {
+    const body = JSON.parse(
+      (
+        fetchMock.mock.calls.find((c) =>
+          String(c[0]).includes("/api/account/contact-email"),
+        )![1] as {
+          body: string;
+        }
+      ).body,
+    ) as {
       email: string;
       locale: string;
     };
