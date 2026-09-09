@@ -196,7 +196,64 @@ describe("joinOwnerFunding — award number", () => {
     expect(joinOwnerFunding(cv, CROSSWALK)).toEqual([]);
   });
 
-  it("accepts an award-number match when the grant's funder id cannot be resolved (GRID, RINGGOLD, unknown)", () => {
+  it("refuses an award-number match when the grant's FundRef DOI disagrees with the work row's, even when the grant's funder is NOT in the crosswalk", () => {
+    // The reproduction: a JSPS grant (FundRef DOI) and an ANR-funded work
+    // sharing the award number "2020", with a crosswalk that holds ANR's row
+    // only. JSPS resolves to nothing, but its DOI is still comparable with the
+    // DOI on ANR's row — and it disagrees. Before the fix this joined as
+    // "award-number", named JSPS and carried ANR's policy key.
+    const anrOnly = toCrosswalk([ROWS[0]!]);
+    const cv = makeCv(
+      [work("W1", [{ id: ANR_URL, name: "ANR", awardId: "2020" }])],
+      [grant("G1", { funderId: JSPS_FUNDREF, funderName: "JSPS", awardId: "2020" })],
+    );
+    expect(joinOwnerFunding(cv, anrOnly)).toEqual([]);
+    // ORCID's FUNDREF form of the same DOI is the same disagreement.
+    const orcidForm = makeCv(
+      [work("W1", [{ id: ANR_URL, awardId: "2020" }])],
+      [grant("G1", { funderId: `FUNDREF:http://dx.doi.org/${JSPS_FUNDREF}`, awardId: "2020" })],
+    );
+    expect(joinOwnerFunding(orcidForm, anrOnly)).toEqual([]);
+  });
+
+  it("accepts the same award-number match when the FundRef DOIs on both sides agree, with a one-row crosswalk", () => {
+    const anrOnly = toCrosswalk([ROWS[0]!]);
+    const cv = makeCv(
+      [work("W1", [{ id: ANR_URL, name: "ANR", awardId: "2020" }])],
+      [grant("G1", { funderId: ANR_FUNDREF, funderName: "ANR (grant)", awardId: "2020" })],
+    );
+    expect(
+      joinOwnerFunding(cv, anrOnly).map((r) => [r.matchBasis, r.funderName, r.fundrefDoi]),
+    ).toEqual([["award-number", "ANR (grant)", ANR_FUNDREF]]);
+  });
+
+  it("refuses an award-number match when the grant's ROR id disagrees with the work row's, and accepts it when they agree", () => {
+    const anrOnly = toCrosswalk([ROWS[0]!]);
+    const disagree = makeCv(
+      [work("W1", [{ id: ANR_URL, awardId: "2020" }])],
+      // JSPS's ROR id, which no crosswalk row carries.
+      [grant("G1", { funderId: "ROR:https://ror.org/03vhdva43", awardId: "2020" })],
+    );
+    expect(joinOwnerFunding(disagree, anrOnly)).toEqual([]);
+    const agree = makeCv(
+      [work("W1", [{ id: ANR_URL, awardId: "2020" }])],
+      [grant("G1", { funderId: `ROR:https://ror.org/${ANR_ROR}`, awardId: "2020" })],
+    );
+    expect(joinOwnerFunding(agree, anrOnly).map((r) => [r.matchBasis, r.fundrefDoi])).toEqual([
+      ["award-number", ANR_FUNDREF],
+    ]);
+  });
+
+  it("refuses an award-number match when the grant carries a DIFFERENT OpenAlex id than the work, crosswalk or not", () => {
+    const cv = makeCv(
+      [work("W1", [{ id: ANR_URL, awardId: "2020" }])],
+      [grant("G1", { funderId: JSPS_URL, awardId: "2020" })],
+    );
+    expect(joinOwnerFunding(cv, EMPTY)).toEqual([]);
+    expect(joinOwnerFunding(cv, CROSSWALK)).toEqual([]);
+  });
+
+  it("accepts an award-number match when the grant's funder id cannot be resolved (GRID, RINGGOLD, unknown), keying the policy by the crosswalk row's DOI", () => {
     const cv = makeCv(
       [work("W1", [{ id: ANR_URL, name: "ANR", awardId: "ANR-21-CE17-0001" }])],
       [
@@ -206,13 +263,26 @@ describe("joinOwnerFunding — award number", () => {
       ],
     );
     const rows = joinOwnerFunding(cv, CROSSWALK);
-    expect(rows.map((r) => [r.grantId, r.matchBasis])).toEqual([
-      ["G1", "award-number"],
-      ["G2", "award-number"],
-      ["G3", "award-number"],
+    expect(rows.map((r) => [r.grantId, r.matchBasis, r.fundrefDoi])).toEqual([
+      ["G1", "award-number", ANR_FUNDREF],
+      ["G2", "award-number", ANR_FUNDREF],
+      ["G3", "award-number", ANR_FUNDREF],
     ]);
     // The funder name falls back to the name printed on the work.
     expect(rows[0]!.funderName).toBe("ANR");
+  });
+
+  it("keys the policy by the grant's OWN FundRef DOI when it carries one, even when the work row has none", () => {
+    // ANR's row without a FundRef DOI: nothing to disagree with, and the
+    // grant's own DOI is the better policy key.
+    const rowWithoutDoi = toCrosswalk([{ openalexId: ANR_OA, rorId: ANR_ROR, name: "ANR" }]);
+    const cv = makeCv(
+      [work("W1", [{ id: ANR_URL, awardId: "2020" }])],
+      [grant("G1", { funderId: ANR_FUNDREF, awardId: "2020" })],
+    );
+    expect(joinOwnerFunding(cv, rowWithoutDoi).map((r) => [r.matchBasis, r.fundrefDoi])).toEqual([
+      ["award-number", ANR_FUNDREF],
+    ]);
   });
 
   it("does not match a grant whose award number differs from the work's, even for the same funder", () => {
@@ -298,6 +368,43 @@ describe("joinOwnerFunding — funder id only", () => {
       expect(
         joinOwnerFunding(cross, walk).map((r) => [r.matchBasis, r.fundrefDoi, r.funderName]),
       ).toEqual([["funder-id", fundref, `Funder ${i}`]]);
+      // (d) A shared award number never overrides a KNOWN disagreement: the
+      //     grant's FundRef DOI / ROR id / OpenAlex id against the work's, in
+      //     every combination where both sides carry a comparable id — with
+      //     the crosswalk holding the WORK's row only (the grant's funder
+      //     absent from it), or holding both, or nothing (OpenAlex ids).
+      const award = `AWD-${i}`;
+      const otherFundref = `10.13039/${200000000 + i}`;
+      const otherRor = `0${String(i).padStart(7, "0")}`;
+      const otherOa = `F${5320000000 + i}`;
+      const workRow = toCrosswalk([
+        { openalexId: oa, fundrefDoi: fundref, rorId: `1${String(i).padStart(7, "0")}`, name: "W" },
+      ]);
+      const bothRows = toCrosswalk([
+        ...workRow.values(),
+        { openalexId: otherOa, fundrefDoi: otherFundref, rorId: otherRor, name: "G" },
+      ]);
+      const fundedWork = work("W", [{ id: `https://openalex.org/${oa}`, awardId: award }]);
+      for (const funderId of [
+        otherFundref,
+        `FUNDREF:http://dx.doi.org/${otherFundref}`,
+        `ROR:https://ror.org/${otherRor}`,
+        `https://openalex.org/${otherOa}`,
+      ]) {
+        const pair = makeCv([fundedWork], [grant("G", { funderId, awardId: award })]);
+        expect(joinOwnerFunding(pair, workRow)).toEqual([]);
+        expect(joinOwnerFunding(pair, bothRows)).toEqual([]);
+      }
+      const oaPair = makeCv(
+        [fundedWork],
+        [grant("G", { funderId: `https://openalex.org/${otherOa}`, awardId: award })],
+      );
+      expect(joinOwnerFunding(oaPair, EMPTY)).toEqual([]);
+      // …while the same award with the SAME ids on both sides does join.
+      const agreeing = makeCv([fundedWork], [grant("G", { funderId: fundref, awardId: award })]);
+      expect(joinOwnerFunding(agreeing, workRow).map((r) => r.matchBasis)).toEqual([
+        "award-number",
+      ]);
     }
   });
 });

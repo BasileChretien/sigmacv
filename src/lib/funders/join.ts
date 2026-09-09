@@ -29,8 +29,12 @@ import { bareRorId } from "@/lib/ror/id";
  * Two match rules, in order, both conservative:
  *  (a) award number — the work's `funders[].awardId` equals the grant's
  *      `awardId` after normalisation (case, whitespace, hyphens, slashes only;
- *      leading zeros are kept), AND, when both sides resolve to a funder,
- *      the funders agree;
+ *      leading zeros are kept), AND no comparable id disagrees: the grant's
+ *      own FundRef DOI against the work row's, the grant's own ROR id against
+ *      the work row's, and the OpenAlex id the grant carries or resolves to
+ *      against the work's. Only when NEITHER side offers a comparable id does
+ *      the award number decide alone — a grant whose funder sits outside the
+ *      crosswalk is not thereby a grant whose funder agrees;
  *  (b) funder id — the work names the funder WITHOUT an award number and the
  *      grant's funder resolves to that same OpenAlex funder. Weaker, flagged
  *      `matchBasis: "funder-id"` so the copy says so.
@@ -182,37 +186,67 @@ function indexCrosswalk(crosswalk: ReadonlyMap<string, FunderRow>): CrosswalkInd
 }
 
 interface ResolvedFunder {
-  /** The short OpenAlex id the grant's funder resolves to, when it does. */
+  /**
+   * The short OpenAlex id the grant's funder resolves to: the `F…` it carries
+   * itself, else the crosswalk row its FundRef DOI / ROR id points at.
+   */
   openalexId?: string;
-  /** The grant's own FundRef DOI (direct, or through the crosswalk). */
+  /** The grant's OWN FundRef DOI — carried on the grant, never borrowed. */
   fundrefDoi?: string;
+  /** The grant's OWN ROR id — carried on the grant, never borrowed. */
+  rorId?: string;
 }
 
-/** A grant's funder in the OpenAlex namespace, through the crosswalk only. */
+/**
+ * A grant's funder in the OpenAlex namespace, through the crosswalk only —
+ * plus the comparable ids the grant carries itself, kept apart so a
+ * disagreement can be seen even when the crosswalk has no row for them.
+ */
 function resolveGrantFunder(funderId: string | undefined, idx: CrosswalkIndex): ResolvedFunder {
   const openalexId = shortOpenAlexFunderId(funderId);
-  if (openalexId) return { openalexId, fundrefDoi: idx.byId.get(openalexId)?.fundrefDoi };
+  if (openalexId) return { openalexId };
   const fundrefDoi = fundrefDoiOf(funderId);
   if (fundrefDoi) return { openalexId: idx.byFundref.get(fundrefDoi), fundrefDoi };
   const rorId = rorIdOf(funderId);
-  if (rorId) return { openalexId: idx.byRor.get(rorId) };
+  if (rorId) return { openalexId: idx.byRor.get(rorId), rorId };
   return {};
 }
 
-function matchBasis(
-  workAward: string | undefined,
-  workOpenalexId: string,
-  grantAward: string | undefined,
-  grantOpenalexId: string | undefined,
-): FundingMatchBasis | undefined {
-  if (workAward && grantAward) {
-    if (workAward !== grantAward) return undefined;
-    return grantOpenalexId === undefined || grantOpenalexId === workOpenalexId
-      ? "award-number"
-      : undefined;
+interface WorkFunder {
+  /** The work's OpenAlex funder id, short form (always OpenAlex-shaped here). */
+  openalexId: string;
+  /** Its crosswalk row, when the crosswalk has one. */
+  row: FunderRow | undefined;
+  award: string | undefined;
+}
+
+interface ResolvedGrant {
+  item: CvItem;
+  funder: ResolvedFunder;
+  award: string | undefined;
+}
+
+/**
+ * True when a comparable id on the grant DISAGREES with the work's funder:
+ * the OpenAlex id the grant carries or resolves to, its own FundRef DOI
+ * against the work row's, its own ROR id against the work row's. A side with
+ * nothing comparable disagrees with nothing.
+ */
+function fundersDisagree(grant: ResolvedFunder, work: WorkFunder): boolean {
+  if (grant.openalexId !== undefined && grant.openalexId !== work.openalexId) return true;
+  if (grant.fundrefDoi && work.row?.fundrefDoi && grant.fundrefDoi !== work.row.fundrefDoi) {
+    return true;
   }
-  if (!workAward && grantOpenalexId !== undefined && grantOpenalexId === workOpenalexId) {
-    return "funder-id";
+  return Boolean(grant.rorId && work.row?.rorId && grant.rorId !== work.row.rorId);
+}
+
+function matchBasis(work: WorkFunder, grant: ResolvedGrant): FundingMatchBasis | undefined {
+  if (work.award && grant.award) {
+    if (work.award !== grant.award) return undefined;
+    return fundersDisagree(grant.funder, work) ? undefined : "award-number";
+  }
+  if (!work.award && grant.funder.openalexId !== undefined) {
+    return grant.funder.openalexId === work.openalexId ? "funder-id" : undefined;
   }
   return undefined;
 }
@@ -240,7 +274,7 @@ export function joinOwnerFunding(
   const grants = ownGrants(cv);
   if (grants.length === 0) return [];
   const idx = indexCrosswalk(crosswalk);
-  const resolvedGrants = grants.map((item) => ({
+  const resolvedGrants: ResolvedGrant[] = grants.map((item) => ({
     item,
     funder: resolveGrantFunder(item.meta.funderId, idx),
     award: normalizeAwardId(item.meta.awardId),
@@ -253,13 +287,21 @@ export function joinOwnerFunding(
     const byGrant = new Map<string, OwnerFundingJoin>();
     for (const printed of funders) {
       const workOpenalexId = shortOpenAlexFunderId(printed.id);
+      // The shape gate that makes the namespace property hold: a work funder
+      // id that is not OpenAlex-shaped (a FundRef DOI, a ROR URL, anything
+      // else) is skipped outright, so a grant carrying that very string can
+      // never join it by equality — only through the crosswalk, below.
       if (!workOpenalexId) continue;
-      const row = idx.byId.get(workOpenalexId);
-      const workAward = normalizeAwardId(printed.awardId);
+      const printedFunder: WorkFunder = {
+        openalexId: workOpenalexId,
+        row: idx.byId.get(workOpenalexId),
+        award: normalizeAwardId(printed.awardId),
+      };
       for (const grant of resolvedGrants) {
-        const basis = matchBasis(workAward, workOpenalexId, grant.award, grant.funder.openalexId);
+        const basis = matchBasis(printedFunder, grant);
         if (!basis) continue;
         if (byGrant.get(grant.item.id)?.matchBasis === "award-number") continue;
+        const row = printedFunder.row;
         byGrant.set(grant.item.id, {
           workId: work.id,
           grantId: grant.item.id,
@@ -267,7 +309,9 @@ export function joinOwnerFunding(
             nonBlank(grant.item.meta.funderName) ?? nonBlank(printed.name) ?? nonBlank(row?.name),
           awardId: basis === "award-number" ? grant.item.meta.awardId : undefined,
           matchBasis: basis,
-          fundrefDoi: row?.fundrefDoi ?? grant.funder.fundrefDoi,
+          // The policy key: the grant's OWN FundRef DOI when it carries one,
+          // else the DOI OpenAlex records for the work's funder.
+          fundrefDoi: grant.funder.fundrefDoi ?? row?.fundrefDoi,
           title: cslTitle(work),
           year: itemEffectiveYear(work),
           venue: itemVenue(work),

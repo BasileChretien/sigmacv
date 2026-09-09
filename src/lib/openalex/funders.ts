@@ -31,12 +31,18 @@ export const FUNDER_FRESHNESS_MS = 90 * 24 * 3600 * 1000;
 export const FUNDER_FETCH_BOUND = 25;
 /**
  * Wall-clock budget per sync. The writer runs on the interactive path (the
- * `/cv` auto-sync, the manual sync route, the hourly resync) and a single
- * fetch can take tens of seconds under the shared client's retries, so the
- * count bound alone is not a time bound: no new fetch starts past this, and
- * the rest is the next sync's work.
+ * `/cv` auto-sync, the manual sync route, the hourly resync), so the count
+ * bound alone is not a time bound: no new fetch starts past this, and the
+ * rest is the next sync's work. The budget is checked BEFORE a fetch, so one
+ * fetch already in flight can still overrun it — which is why each lookup
+ * runs with {@link FUNDER_FETCH_OPTIONS}: a single attempt under its own
+ * timeout, no retry (the shared client's default of two retries would let
+ * one hung fetch hold the sync for ~46 s). A funder missed this way is
+ * stale again next sync.
  */
 export const FUNDER_BUDGET_MS = 10_000;
+/** Per-lookup fetch options: one attempt, the budget as its timeout. */
+export const FUNDER_FETCH_OPTIONS = { retries: 0, timeoutMs: FUNDER_BUDGET_MS } as const;
 
 export interface RecordWorkFundersOptions {
   /** Wall-clock budget; no new fetch is started past it (default 10 s). */
@@ -96,7 +102,7 @@ function rorIdOf(url: string | null | undefined): string | undefined {
 export async function fetchFunder(openalexId: string): Promise<FetchedFunder | null> {
   if (!FUNDER_ID.test(openalexId)) return null;
   const path = `/funders/${openalexId}`;
-  const res = await openAlexResponse(path, { select: FUNDER_SELECT });
+  const res = await openAlexResponse(path, { select: FUNDER_SELECT }, FUNDER_FETCH_OPTIONS);
   if (res.status === 404) return null;
   if (!res.ok) throw openAlexError(res, path);
   const raw = (await res.json()) as RawFunder;

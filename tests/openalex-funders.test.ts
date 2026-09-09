@@ -18,6 +18,7 @@ import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonica
 import {
   FUNDER_BUDGET_MS,
   FUNDER_FETCH_BOUND,
+  FUNDER_FETCH_OPTIONS,
   FUNDER_FRESHNESS_MS,
   fetchFunder,
   recordWorkFunders,
@@ -112,10 +113,18 @@ describe("fetchFunder", () => {
   });
 
   it("throws on any other failure (the caller's fail-soft path owns it)", async () => {
-    // A 4xx: the shared fetch does not retry it (a 5xx would, and would eat the
-    // next mocked responses), so the failure surfaces at once.
     fetchMock.mockResolvedValue(jsonResponse({ error: "boom" }, 400));
     await expect(fetchFunder("F1")).rejects.toThrow(/OpenAlex request failed \(400/);
+  });
+
+  it("makes ONE attempt per lookup — a 5xx is not retried, so a hung fetch cannot hold the interactive sync past its own timeout", async () => {
+    expect(FUNDER_FETCH_OPTIONS).toEqual({ retries: 0, timeoutMs: FUNDER_BUDGET_MS });
+    fetchMock.mockResolvedValue(jsonResponse({ error: "down" }, 503));
+    await expect(fetchFunder("F1")).rejects.toThrow(/OpenAlex request failed \(503/);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // …and the timeout rides the request as an abort signal.
+    const init = fetchMock.mock.calls[0]![1] as RequestInit;
+    expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 });
 
