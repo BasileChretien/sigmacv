@@ -43,6 +43,8 @@ describe("institutionStrings", () => {
       expect(s.openalexCountriesHeading, loc).toContain("{n}");
       expect(s.openalexCoAffiliationsHeading, loc).toContain("{n}");
       expect(s.openalexAsOf, loc).toContain("{date}");
+      expect(s.openalexShareNote, loc).toContain("{floor}");
+      expect(s.openalexTotalsDiffer, loc).toContain("{years}");
     }
   });
 
@@ -60,11 +62,13 @@ describe("institutionStrings", () => {
       if (loc !== "en-US") {
         expect(s.openalexScope, loc).not.toBe(en.openalexScope);
         expect(s.openalexNotCompared, loc).not.toBe(en.openalexNotCompared);
+        expect(s.openalexShareNote, loc).not.toBe(en.openalexShareNote);
+        expect(s.openalexColShare, loc).not.toBe(en.openalexColShare);
       }
     }
   });
 
-  it("states the counts-only scope positively: no locale's copy carries share or ratio vocabulary, even as a negation", () => {
+  it("keeps the scope line about counts: the share has its own note, so no locale's scope carries share or ratio vocabulary, even as a negation", () => {
     const banned = [
       "share",
       "ratio",
@@ -85,6 +89,48 @@ describe("institutionStrings", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const scope = institutionStrings(loc).openalexScope;
       for (const word of banned) expect(scope, `${loc} ${word}`).not.toContain(word);
+    }
+  });
+
+  it("the open-share copy carries no assessment vocabulary in any locale — a share is stated, never judged", () => {
+    // The 2026-09-10 panel's ban list for every surface that prints a share:
+    // no rank, no verdict, no comparative adjective, no compliance word.
+    const SHARE_KEYS = [
+      "openalexColShare",
+      "openalexShareNote",
+      "openalexShareFew",
+      "openalexShareIncomplete",
+      "openalexTotalsDiffer",
+    ] as const;
+    const latin =
+      /\b(rank(ing|ed|s)?|top|bottom|league|scores?|scored|grades?|graded|leaders?|laggards?|lagging|leading|best|worst|ahead|behind|outperform\w*|underperform\w*|performance|targets?|gaps?|coverage|benchmarks?|complian\w*|mandates?|overdue|violations?|breach\w*|closed access)\b/i;
+    const cjk = [
+      "ランキング",
+      "順位",
+      "排名",
+      "评分",
+      "评级",
+      "最高",
+      "最低",
+      "落后",
+      "领先",
+      "순위",
+      "랭킹",
+      "점수",
+      "최고",
+      "최저",
+      "рейтинг",
+      "лидер",
+      "отста",
+    ];
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = institutionStrings(loc);
+      for (const key of SHARE_KEYS) {
+        expect(s[key], `${loc}.${key}`).not.toMatch(latin);
+        for (const w of cjk) expect(s[key], `${loc}.${key} ${w}`).not.toContain(w);
+      }
+      // The note states the floor, and that the figure is not adjusted.
+      expect(s.openalexShareNote, loc).toContain("{floor}");
     }
   });
 

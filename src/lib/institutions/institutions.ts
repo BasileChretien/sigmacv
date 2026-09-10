@@ -51,7 +51,8 @@ export function isRorId(id: string): boolean {
 
 /**
  * OpenAlex's record of the organisation, as the page shows it: the stored
- * counts-only aggregates the internal resync job wrote (`snapshot.ts`), read
+ * counts-only aggregates the internal resync job wrote (`snapshot.ts`) —
+ * rendered with one derived share (`oaShare.ts`) — read
  * from the `Institution` row — never fetched by a request. Null until the job
  * has run for this ROR, or when the stored JSON is not the expected shape.
  */

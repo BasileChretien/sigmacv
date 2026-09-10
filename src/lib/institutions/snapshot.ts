@@ -20,10 +20,13 @@ import { z } from "zod";
  *   (91,924 "works" for Nagoya in 2026), so every series here is restricted to
  *   {@link COUNTED_WORK_TYPES} and labelled as such.
  *
- * Counts only: no field here is ever a share, percentage or ratio (the plan's
- * "Compliance verdicts" veto). The page shows each year's total beside its
- * status counts as the explicit denominator and leaves the division to the
- * reader.
+ * Counts only: no field here is ever a share, percentage or ratio — the
+ * stored row is a set of counts (the plan's "Compliance verdicts" veto, as it
+ * applies to storage). The ONE derived figure, the open share, is computed at
+ * render by `oaShare.ts` from these counts alone (the owner's decision of
+ * 2026-09-09, designed by the panel of 2026-09-10): printed beside its
+ * numerator and denominator, withheld where a year is too small or not yet
+ * complete, never stored, never sorted on, never differenced.
  */
 
 /** The OpenAlex work types the series count: the publication-like outputs,

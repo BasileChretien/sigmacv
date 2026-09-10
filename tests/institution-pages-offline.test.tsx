@@ -177,6 +177,10 @@ describe("institution routes render with no network at all", () => {
     // rows alone.
     for (const html of [pages[1]!, pages[3]!]) {
       expect(html).toContain("inst-table");
+      // The share path ran with fetch stubbed to throw: 2025 is stated
+      // (2,000 / 4,300), 2026 is the snapshot's last year and withheld.
+      expect(html).toContain("2,000 / 4,300 = 47%");
+      expect(html).toContain("inst-share-withheld");
       expect(html).toContain("inst-figures");
       expect(html).toContain(">10<");
       expect(html).toContain('href="https://openalex.org/I60134161"');
