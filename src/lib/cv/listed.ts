@@ -308,14 +308,21 @@ export async function trustedInstitutionRecords(
   return out;
 }
 
-/** Every institution row with a stored OpenAlex snapshot (id + name): the
- *  comparison picker's universe, still to be intersected with the opted-in
- *  sets by the caller. Bounded by the number of institutions ever synced. */
-export async function institutionsWithSnapshot(): Promise<Array<{ rorId: string; name: string }>> {
+/** Among the given bare ROR ids (the opted-in sets), the rows with a stored
+ *  OpenAlex snapshot (id + name): the comparison picker's universe. Keyed on
+ *  the primary key and capped, so a landing on the picker never scans the
+ *  whole `Institution` table (every ROR any position ever resolved). */
+export const INSTITUTIONS_WITH_SNAPSHOT_LIMIT = 500;
+
+export async function institutionsWithSnapshot(
+  rorIds: string[],
+): Promise<Array<{ rorId: string; name: string }>> {
+  if (rorIds.length === 0) return [];
   return prisma.institution.findMany({
-    where: { openalexFetchedAt: { not: null } },
+    where: { rorId: { in: rorIds }, openalexFetchedAt: { not: null } },
     select: { rorId: true, name: true },
     orderBy: { name: "asc" },
+    take: INSTITUTIONS_WITH_SNAPSHOT_LIMIT,
   });
 }
 

@@ -19,8 +19,8 @@ import { OPENALEX_INSTITUTION_ID_RE, parseInstitutionAggregates } from "./snapsh
  * least one researcher chose to be listed under it — the same gate as `/i/[ror]`,
  * used here for existence only: the listed count is a consented figure and is
  * never carried to the page); a stored snapshot that parses; and at least one
- * full year with a stated share (the floor in `oaShare.ts`). Ids beyond
- * {@link MAX_COMPARED} are left out and said so.
+ * stated share (the floor in `oaShare.ts`) among the full years every column
+ * covers. Ids beyond {@link MAX_COMPARED} are left out and said so.
  *
  * What the page never does, structurally: columns are ALPHABETICAL by name —
  * never the caller's order, so a shared URL cannot encode "X before Y" — and
@@ -54,7 +54,6 @@ export interface CompareColumn {
   country: string | null;
   /** Short OpenAlex id of the counted entity. */
   openalexId: string;
-  entityName: string;
   foldedCount: number;
   /** ISO timestamp of the snapshot. */
   fetchedAt: string;
@@ -133,7 +132,6 @@ function columnOf(
       name: record.name ?? `ROR ${rorId}`,
       country: record.country,
       openalexId: record.openalexId,
-      entityName: a.countedEntity.displayName,
       foldedCount: a.countedEntity.foldedIds.length,
       fetchedAt: record.openalexFetchedAt.toISOString(),
       years: a.years,
@@ -188,14 +186,31 @@ export async function institutionComparison(
     if ("reason" in resolved) out.push({ rorId, reason: resolved.reason });
     else columns.push(resolved.column);
   }
-  columns.sort((a, b) => a.name.localeCompare(b.name, "en"));
-  if (columns.length === 0) return { ...empty, dropped: out };
+  // Alphabetical by name; a tie falls back to the id, so the URL's order can
+  // never decide a column's place.
+  columns.sort((a, b) => a.name.localeCompare(b.name, "en") || a.rorId.localeCompare(b.rorId));
 
-  const commonYears = commonFullYears(columns);
-  const times = columns.map((c) => Date.parse(c.fetchedAt));
+  // A column must state at least one share on the COMMON full years, not only
+  // on its own window — otherwise it would sit beside the others with every
+  // row "too few". Dropping one can widen the common window, so iterate.
+  let cols = columns;
+  let commonYears = cols.length > 0 ? commonFullYears(cols) : [];
+  for (;;) {
+    const keep = new Set(commonYears);
+    const kept = cols.filter((c) => c.rows.some((r) => keep.has(r.year) && r.percent !== null));
+    if (kept.length === cols.length) break;
+    for (const c of cols) {
+      if (!kept.includes(c)) out.push({ rorId: c.rorId, reason: "below-floor" });
+    }
+    cols = kept;
+    commonYears = cols.length > 0 ? commonFullYears(cols) : [];
+  }
+  if (cols.length === 0) return { ...empty, dropped: out };
+
+  const times = cols.map((c) => Date.parse(c.fetchedAt));
   const skewed = Math.max(...times) - Math.min(...times) > SNAPSHOT_SKEW_DAYS * DAY_MS;
   const keep = new Set(commonYears);
-  const shaped = columns.map((c) => ({
+  const shaped = cols.map((c) => ({
     ...c,
     rows: c.rows
       .filter((r) => keep.has(r.year) || r.year === c.years.to)
@@ -218,14 +233,16 @@ function withholdForSkew(r: CompareShareRow, skewed: boolean): CompareShareRow {
 }
 
 /**
- * The organisations that can be set side by side: those with a snapshot among
- * the opted-in sets, by name. The picker's list; the index page stays a plain
- * list and never offers a selection.
+ * The organisations that can be set side by side: the opted-in sets that have
+ * a snapshot, by name. The picker's list; the index page stays a plain list
+ * and never offers a selection. The sets are read first so the row read is
+ * keyed on them (bounded, capped) rather than scanning every institution.
  */
 export async function listComparableInstitutions(): Promise<ComparableInstitution[]> {
-  const [counts, rows] = await Promise.all([countListedCvsByRor(), institutionsWithSnapshot()]);
+  const counts = await countListedCvsByRor();
+  const sets = [...counts.keys()].filter((id) => isRorId(id) && (counts.get(id) ?? 0) >= 1);
+  const rows = await institutionsWithSnapshot(sets);
   return rows
-    .filter((r) => isRorId(r.rorId) && (counts.get(r.rorId) ?? 0) >= 1)
     .map((r) => ({ rorId: r.rorId, name: r.name.trim() || `ROR ${r.rorId}` }))
     .sort((a, b) => a.name.localeCompare(b.name, "en"));
 }

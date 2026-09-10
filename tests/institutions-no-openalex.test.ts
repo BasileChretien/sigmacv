@@ -26,6 +26,7 @@ const SCOPES = [
   "src/components/InstitutionPage.tsx",
   "src/components/InstitutionOpenAlexSection.tsx",
   "src/components/InstitutionFiguresSection.tsx",
+  "src/components/InstitutionCompare.tsx",
 ];
 /** The two modules that DO talk to OpenAlex about institutions — the snapshot
  *  fetchers and the resync-tick refresh job — live under `src/lib/openalex/`,
@@ -62,12 +63,14 @@ function sourceFiles(path: string): string[] {
 describe("institution pages never call an external API", () => {
   const files = SCOPES.flatMap(sourceFiles);
 
-  it("covers the lib (incl. the pure snapshot, share, aggregate, summing and reconciliation modules), the listed-CV reader, the four pages, the two export routes and the four components", () => {
-    expect(files.length).toBeGreaterThanOrEqual(20);
+  it("covers the lib (incl. the pure snapshot, share, comparison, aggregate, summing and reconciliation modules), the listed-CV reader, the six pages, the two export routes and the five components", () => {
+    expect(files.length).toBeGreaterThanOrEqual(24);
     for (const name of [
       "listed.ts",
       "snapshot.ts",
       "oaShare.ts",
+      "compare.ts",
+      "InstitutionCompare.tsx",
       "cvAggregates.ts",
       "aggregateSum.ts",
       "reconciliation.ts",
@@ -126,7 +129,10 @@ describe("the opted-in figures and the OpenAlex snapshot never meet", () => {
   const SNAPSHOT_SIDE = [
     "src/lib/institutions/snapshot.ts",
     "src/lib/institutions/oaShare.ts",
+    // `compare.ts` reads the listed-CV reader for page EXISTENCE only (like
+    // `institutions.ts`, it sits on neither side); its component is snapshot-side.
     "src/components/InstitutionOpenAlexSection.tsx",
+    "src/components/InstitutionCompare.tsx",
   ];
 
   it.each(FIGURES_SIDE)(
@@ -148,6 +154,24 @@ describe("the opted-in figures and the OpenAlex snapshot never meet", () => {
       }
     },
   );
+
+  it("compare.ts takes from the listed-CV reader only the existence gate and the institution rows, never the consented figures", () => {
+    const src = read("src/lib/institutions/compare.ts");
+    const fromListed = [...src.matchAll(/import \{([^}]*)\} from "@\/lib\/cv\/listed"/g)]
+      .flatMap((m) => m[1]!.split(","))
+      .map((s) => s.replace(/^\s*type\s+/, "").trim())
+      .filter(Boolean)
+      .sort();
+    expect(fromListed).toEqual([
+      "TrustedInstitutionRecordRow",
+      "countListedCvsByRor",
+      "institutionsWithSnapshot",
+      "trustedInstitutionRecords",
+    ]);
+    expect(code(src)).not.toMatch(
+      /listedForInstitutionPage|institutionAggregates|sumAggregates|reconciliation|figures/,
+    );
+  });
 
   it.each(SNAPSHOT_SIDE)(
     "%s imports nothing of, and names no symbol of, the opted-in figures",

@@ -3931,14 +3931,25 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 }
 /* Institution comparison view: one column per organisation, each its own
    table with its own total and date; the method box sits above them. */
+/* The page is wider than a document page so that three organisations really
+   sit side by side; everything but the grid keeps the document measure. */
+.inst-compare-page {
+  max-width: 1100px;
+}
+.inst-compare-page > :not(.inst-compare) {
+  max-width: 720px;
+}
 .inst-method {
-  border-left: 3px solid var(--border);
+  border-left: 3px solid var(--accent);
   padding-left: var(--space-3);
   margin: var(--space-4) 0;
 }
+.inst-method strong {
+  color: var(--text);
+}
 .inst-compare {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
   gap: var(--space-5);
   margin-top: var(--space-4);
 }
@@ -3946,9 +3957,28 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   margin-top: 0;
   font-size: var(--text-lg);
 }
+/* Five short columns per organisation: no pinned share cell here, it would
+   cover most of a narrow column's scroll viewport. */
+.inst-compare .inst-table .inst-share {
+  position: static;
+  box-shadow: none;
+}
+.inst-picker fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
 .inst-picker label {
   display: block;
   padding: var(--space-1) 0;
+}
+@media print {
+  .inst-compare {
+    grid-template-columns: 1fr;
+  }
+  .inst-table-wrap {
+    overflow: visible;
+  }
 }
 .landing-related ul {
   list-style: none;

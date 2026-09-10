@@ -56,6 +56,11 @@ This is a living document. Items marked _planned_ are tracked in the
   "list under my current affiliation" — each set is labelled as a
   self-declared current affiliation, never as an institution's record of its
   output. The privacy notice names OAI-PMH harvesters as recipients.
+- **Institution pages and the comparison view** (`/i/<ror>`, `/i/compare`) show
+  open-access counts and their stated shares — for one organisation, or for two
+  or three a reader chooses, in alphabetical order, with denominators, refresh
+  dates and the method on the page — a self-monitoring aid in the spirit of the
+  Baromètre de la Science Ouverte, never a ranking, composite or league table.
 - Owners can **export their full account** (canonical CV + research log) and
   **delete their account** at any time (GDPR / Japan APPI).
 - The source is open (Apache-2.0) and the whole stack is **self-hostable** with

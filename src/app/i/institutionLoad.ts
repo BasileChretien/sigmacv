@@ -81,21 +81,23 @@ export const loadInstitutionIndex = cache(async (): Promise<InstitutionIndexLook
 /**
  * Resolve the comparison view for the current request. `key` is the raw `ror`
  * query serialised (React `cache` keys on argument identity, and the two
- * callers of one request must share the check and the reads). The public-page
- * limit is charged once per requested organisation (at least once), then the
- * view's own bucket; the picker's list is read only when the page needs it.
+ * callers of one request must share the check and the reads). The view's own
+ * bucket is checked first (one write pair), then the public-page limit is
+ * charged once per requested organisation (at least once) — 2N + 1 write
+ * pairs per hit against the institution page's one, accepted at 20/min; the
+ * picker's list is read only when the page needs it.
  */
 export const loadInstitutionComparison = cache(
   async (key: string): Promise<InstitutionCompareLookup> => {
     const raw = parseCompareKey(key);
     const ip = clientIpFromHeaders(await headers());
+    const own = await enforceRateLimit(`icompare:${ip}`, COMPARE_MAX_PER_MIN, 60_000);
+    if (!own.ok) return { kind: "rate-limited" };
     const charges = Math.max(1, normaliseCompareIds(raw).ids.length);
     for (let i = 0; i < charges; i++) {
       const rl = await enforcePubPageRateLimitForIp(ip);
       if (!rl.ok) return { kind: "rate-limited" };
     }
-    const own = await enforceRateLimit(`icompare:${ip}`, COMPARE_MAX_PER_MIN, 60_000);
-    if (!own.ok) return { kind: "rate-limited" };
     const comparison = await institutionComparison(raw);
     const picker = comparison.columns.length < 2 ? await listComparableInstitutions() : [];
     return { kind: "ok", comparison, picker };

@@ -30,9 +30,11 @@ import SiteHeader from "./SiteHeader";
  * stored snapshots only; nothing here calls out. The page's structure is its
  * argument: the method box and the field label come BEFORE the numbers, the
  * columns are alphabetical and each carries its own total and as-of date, the
- * share sits in one cell with both of its counts, and there is no sort, no
- * difference, no chart and no third column SigmaCV chose. Shared by
- * `/i/compare` and `/[locale]/i/compare`; `lang` is set on the subtree.
+ * share sits in one cell with both of its counts (and is spoken with them
+ * named), and there is no sort, no difference, no chart and no third column
+ * SigmaCV chose. Shared by `/i/compare` and `/[locale]/i/compare`; `lang` is
+ * set on the subtree. The page is wider than a document page so that three
+ * columns really sit side by side (`.inst-compare-page`).
  */
 
 /** Where questions about the page go: the same address as the privacy notice. */
@@ -55,12 +57,10 @@ export default function InstitutionCompare({
   const num = new Intl.NumberFormat(loc);
   const ready = comparison.columns.length >= 2;
   const floor = num.format(MIN_SHARE_DENOMINATOR);
-  const overCap = comparison.dropped.some((d) => d.reason === "over-cap");
-  const dropped = comparison.dropped.filter((d) => d.reason !== "over-cap");
   return (
     <div className="site-shell" lang={loc}>
       <SiteHeader locale={loc} />
-      <main className="doc-page" id="site-main">
+      <main className="doc-page inst-compare-page" id="site-main">
         <p className="muted">
           <Link href={localeInstitutionsIndexPath(loc)}>{s.backToIndex}</Link>
         </p>
@@ -70,17 +70,11 @@ export default function InstitutionCompare({
         {ready ? (
           <Comparison locale={loc} c={c} comparison={comparison} num={num} floor={floor} />
         ) : (
-          <Picker locale={loc} c={c} picker={picker} comparison={comparison} />
+          <>
+            <Picker locale={loc} c={c} picker={picker} comparison={comparison} />
+            <Notices c={c} comparison={comparison} floor={floor} />
+          </>
         )}
-
-        {dropped.map((d) => (
-          <p key={d.rorId} className="muted">
-            {fillInstitutionString(c.dropped, { ror: d.rorId, floor })}
-          </p>
-        ))}
-        {overCap ? (
-          <p className="muted">{fillInstitutionString(c.overCap, { max: MAX_COMPARED })}</p>
-        ) : null}
 
         <p className="doc-back muted">
           <Link href={localeHomePath(loc)}>{s.backLink}</Link>
@@ -88,6 +82,38 @@ export default function InstitutionCompare({
       </main>
       <SiteFooter locale={loc} />
     </div>
+  );
+}
+
+/** One neutral line per requested id that has nothing to show (the id linked
+ *  to its ROR record, since no page may exist to name it), and one line when
+ *  ids were left out over the cap — never naming those. */
+function Notices({
+  c,
+  comparison,
+  floor,
+}: {
+  c: Strings;
+  comparison: InstitutionComparison;
+  floor: string;
+}) {
+  const dropped = comparison.dropped.filter((d) => d.reason !== "over-cap");
+  const overCap = comparison.dropped.some((d) => d.reason === "over-cap");
+  // `{ror}` leads the sentence in every locale; the id becomes a link.
+  const [before, after] = c.dropped.split("{ror}");
+  return (
+    <>
+      {dropped.map((d) => (
+        <p key={d.rorId} className="muted">
+          {before}
+          <a href={`https://ror.org/${d.rorId}`}>{d.rorId}</a>
+          {fillInstitutionString(after ?? "", { floor })}
+        </p>
+      ))}
+      {overCap ? (
+        <p className="muted">{fillInstitutionString(c.overCap, { max: MAX_COMPARED })}</p>
+      ) : null}
+    </>
   );
 }
 
@@ -109,24 +135,28 @@ function Picker({
   return (
     <>
       <p>{c.pickerIntro}</p>
-      {comparison.columns.length === 1 ? <p>{c.pickerNeedTwo}</p> : null}
       {picker.length === 0 ? (
         <p className="muted">{c.pickerEmpty}</p>
       ) : (
         <form method="get" action={localeInstitutionComparePath(locale)} className="inst-picker">
-          {picker.map((inst) => (
-            <label key={inst.rorId}>
-              <input
-                type="checkbox"
-                name="ror"
-                value={inst.rorId}
-                defaultChecked={chosen.has(inst.rorId)}
-              />{" "}
-              {inst.name}
-            </label>
-          ))}
+          <fieldset>
+            <legend>{c.pickerNeedTwo}</legend>
+            {picker.map((inst) => (
+              <label key={inst.rorId}>
+                <input
+                  type="checkbox"
+                  name="ror"
+                  value={inst.rorId}
+                  defaultChecked={chosen.has(inst.rorId)}
+                />{" "}
+                {inst.name}
+              </label>
+            ))}
+          </fieldset>
           <p>
-            <button type="submit">{c.pickerSubmit}</button>
+            <button type="submit" className="btn btn-primary">
+              {c.pickerSubmit}
+            </button>
           </p>
         </form>
       )}
@@ -147,7 +177,6 @@ function Comparison({
   num: Intl.NumberFormat;
   floor: string;
 }) {
-  const s = institutionStrings(locale);
   const pct = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" });
   const countries = new Set(comparison.columns.map((col) => col.country).filter(Boolean));
@@ -178,6 +207,11 @@ function Comparison({
         ))}
       </div>
 
+      <Notices c={c} comparison={comparison} floor={floor} />
+      <p>
+        <Link href={localeInstitutionComparePath(locale)}>{c.pickerChange}</Link>
+      </p>
+
       {countries.size > 1 ? <p className="muted">{c.caveatCountries}</p> : null}
 
       <h2>{c.caveatsHeading}</h2>
@@ -192,17 +226,14 @@ function Comparison({
         <li>{c.caveatDrift}</li>
       </ul>
       <p>{fillInstitutionString(c.disclaimer, { contact: CONTACT })}</p>
-      <p>
-        <Link href={localeInstitutionComparePath(locale)}>{c.pickerChange}</Link>
-      </p>
-      <p className="muted">{s.openalexNotCompared}</p>
     </>
   );
 }
 
 /** One organisation's column: its name (linking to its own page), country,
- *  counted entity, as-of date, and its own table over the common full years
- *  plus its incomplete year. */
+ *  counted entity, as-of date, and its own table — named for assistive
+ *  technology by a hidden caption — over the common full years plus its
+ *  incomplete year. */
 function Column({
   locale,
   c,
@@ -235,11 +266,12 @@ function Column({
       </p>
       <div className="inst-table-wrap">
         <table className="inst-table">
+          <caption className="visually-hidden">{col.name}</caption>
           <thead>
             <tr>
               <th scope="col">{s.openalexColYear}</th>
               <th scope="col" className="num">
-                {s.openalexColWorks}
+                {s.openalexColTotal}
               </th>
               <th scope="col" className="num">
                 {c.colOpen}
@@ -259,15 +291,12 @@ function Column({
                 <td className="num">{num.format(r.known)}</td>
                 <td className="num">{num.format(r.open)}</td>
                 <td className="num">{num.format(r.closed)}</td>
-                <td className="num inst-share">{shareCell(r, c, num, pct)}</td>
+                <td className="num inst-share">{shareCell(r, c, s, num, pct)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="muted">
-        <Link href={localeInstitutionPath(locale, col.rorId)}>{c.ownPage}</Link>
-      </p>
     </section>
   );
 }
@@ -282,16 +311,34 @@ function regionName(locale: string, code: string): string {
   }
 }
 
+/** The share cell: `open / known = n %` for the eye, and — because "/" and
+ *  "=" are not reliably voiced — the percent with both counts named for the
+ *  ear; or the stated reason it is withheld. */
 function shareCell(
   r: CompareShareRow,
   c: Strings,
+  s: ReturnType<typeof institutionStrings>,
   num: Intl.NumberFormat,
   pct: Intl.NumberFormat,
 ): ReactNode {
   if (r.percent === null) {
-    return <span className="inst-share-withheld">{withheldLabel(r.withheld!, c)}</span>;
+    return (
+      <span className="inst-share-withheld">
+        {withheldLabel(r.withheld ?? "small-denominator", c)}
+      </span>
+    );
   }
-  return `${num.format(r.open)} / ${num.format(r.known)} = ${pct.format(r.percent / 100)}`;
+  const open = num.format(r.open);
+  const known = num.format(r.known);
+  const share = pct.format(r.percent / 100);
+  return (
+    <>
+      <span aria-hidden="true">{`${open} / ${known} = ${share}`}</span>
+      <span className="visually-hidden">
+        {`${share} — ${open} ${c.colOpen}, ${known} ${s.openalexColTotal}`}
+      </span>
+    </>
+  );
 }
 
 /** Exhaustive over the reasons `compare.ts` can give. */
