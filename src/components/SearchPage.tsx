@@ -12,7 +12,8 @@ import SiteHeader from "./SiteHeader";
  *
  * The promise is on the page: what a researcher has published, not how they
  * score. A row is a name, a place, a span of years and the ORCID mark; no
- * figure anywhere, no sort control, relevance order as OpenAlex returns it.
+ * figure anywhere, no sort control, no rank number (an ordered list would put
+ * one beside every name), relevance order as OpenAlex returns it.
  * Result links are `nofollow` and the result page itself is `noindex`: a
  * list assembled for one visitor's query is never a crawlable index of people.
  */
@@ -20,7 +21,7 @@ export default function SearchPage({ locale, lookup }: { locale: string; lookup:
   const loc = asLocale(locale);
   const s = searchStrings(loc);
   const rawValue =
-    lookup.kind === "ok" ? lookup.query : lookup.kind === "invalid" ? lookup.raw : "";
+    lookup.kind === "ok" ? lookup.typed : lookup.kind === "invalid" ? lookup.raw : "";
   return (
     <div className="site-shell" lang={loc}>
       <SiteHeader locale={loc} />
@@ -67,7 +68,7 @@ export default function SearchPage({ locale, lookup }: { locale: string; lookup:
               {s.noResults}
             </p>
           ) : (
-            <ol className="search-results" data-testid="search-results">
+            <ul className="search-results" data-testid="search-results">
               {lookup.hits.map((h) => (
                 <li key={h.orcid} className="search-result">
                   <Link
@@ -77,21 +78,23 @@ export default function SearchPage({ locale, lookup }: { locale: string; lookup:
                     data-testid="search-result"
                   >
                     <span className="search-result-name">{h.name}</span>
-                    {h.affiliation ? (
-                      <span className="search-result-aff muted">
-                        {h.affiliation}
-                        {h.years
-                          ? ` · ${h.years[0] === h.years[1] ? h.years[0] : `${h.years[0]}–${h.years[1]}`}`
-                          : ""}
+                    <span className="search-result-meta">
+                      {h.affiliation ? (
+                        <span className="search-result-aff muted">
+                          {h.affiliation}
+                          {h.years
+                            ? ` · ${h.years[0] === h.years[1] ? h.years[0] : `${h.years[0]}–${h.years[1]}`}`
+                            : ""}
+                        </span>
+                      ) : null}
+                      <span className="search-result-orcid muted">
+                        <span aria-hidden="true">iD</span> {s.orcidMark}
                       </span>
-                    ) : null}
-                    <span className="search-result-orcid muted">
-                      <span aria-hidden="true">iD</span> {s.orcidMark}
                     </span>
                   </Link>
                 </li>
               ))}
-            </ol>
+            </ul>
           )
         ) : null}
 

@@ -11,7 +11,14 @@ export type SearchLookup =
   | { kind: "idle" }
   | { kind: "invalid"; raw: string }
   | { kind: "rate-limited"; retryAfterSec: number }
-  | { kind: "ok"; query: string; hits: AuthorSearchHit[] };
+  | {
+      kind: "ok";
+      /** The normalised query (what OpenAlex was asked). */
+      query: string;
+      /** What the visitor typed, whitespace-collapsed but with their casing — for the box. */
+      typed: string;
+      hits: AuthorSearchHit[];
+    };
 
 /**
  * Resolve the lookup for the current request (deduplicated between
@@ -24,7 +31,8 @@ export const loadSearch = cache(async (rawQuery: string | undefined): Promise<Se
   if (!query) return { kind: "invalid", raw: rawQuery };
   const rl = await enforceSearchRateLimit();
   if (!rl.ok) return { kind: "rate-limited", retryAfterSec: rl.retryAfterSec };
-  return { kind: "ok", query, hits: await searchAuthorsByName(query) };
+  const typed = rawQuery.normalize("NFC").replace(/\s+/g, " ").trim();
+  return { kind: "ok", query, typed, hits: await searchAuthorsByName(query) };
 });
 
 /** First `q` of the page's search params, as a string. */

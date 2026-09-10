@@ -89,14 +89,32 @@ export function toAuthorSearchHit(a: OpenAlexAuthor): AuthorSearchHit | null {
   };
 }
 
+/** The last year of a hit's affiliation span, or -Infinity when unknown. */
+function lastYear(h: AuthorSearchHit): number {
+  return h.years ? h.years[1] : Number.NEGATIVE_INFINITY;
+}
+
 /**
  * OpenAlex keeps several author records for one person (one per affiliation
- * era, typically) and they all carry the same iD. One iD is one row: the first
- * record OpenAlex ranks wins, and its affiliation stands for the person.
+ * era, typically) and they all carry the same iD. One iD is one row, kept at
+ * the position of the first record OpenAlex ranked — but the record that
+ * stands for the person is the one with the most recent affiliation, because
+ * the visitor most likely to search a name is its owner, and a 1975 institute
+ * beside their name tells them "not you".
  */
 function dedupeByOrcid(hits: AuthorSearchHit[]): AuthorSearchHit[] {
-  const seen = new Set<string>();
-  return hits.filter((h) => (seen.has(h.orcid) ? false : (seen.add(h.orcid), true)));
+  const out: AuthorSearchHit[] = [];
+  const at = new Map<string, number>();
+  for (const h of hits) {
+    const i = at.get(h.orcid);
+    if (i === undefined) {
+      at.set(h.orcid, out.length);
+      out.push(h);
+    } else if (lastYear(h) > lastYear(out[i]!)) {
+      out[i] = h;
+    }
+  }
+  return out;
 }
 
 /**
