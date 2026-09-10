@@ -80,8 +80,21 @@
   .hp2-hero {
     grid-template-columns: 1fr;
   }
+  /* One column: headline, then the box, then the subtitle, then the graphic.
+     On a phone the card must be on the first screen, not two screens down. */
+  .hp2-hero-copy {
+    display: flex;
+    flex-direction: column;
+  }
+  .hp2-signin {
+    order: 0;
+  }
+  .hp2-sub {
+    order: 1;
+    margin: var(--space-5) 0 0;
+  }
   .hp2-hero-fig {
-    order: -1;
+    order: 1;
   }
 }
 .hp2-eyebrow {
@@ -209,6 +222,22 @@
 .hp2-trust-list li {
   color: var(--muted);
   line-height: 1.5;
+}
+.hp2-help-orcid {
+  margin: var(--space-3) 0 var(--space-2);
+}
+.hp2-trust-eyebrow {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+/* On a narrow phone the card head ("Sign in" + its sub) stacks instead of
+   squeezing the title onto two lines beside the sub. */
+@media (max-width: 440px) {
+  .hp2-signin-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
 }
 .hp2-fine {
   margin: var(--space-4) 0 0;

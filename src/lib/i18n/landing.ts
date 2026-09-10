@@ -47,6 +47,9 @@ export interface LandingStrings {
   step3: string;
   signInTitle: string;
   signInSub: string;
+  /** Summary of the card's single disclosure: what sign-in accesses, and how to
+   *  get an ORCID iD. One toggle where there were two. */
+  signInHow: string;
   /** Divider between the "see it first" box and the sign-in button: the ask to
    *  keep the record once the visitor has seen it. */
   keepIt: string;
@@ -83,6 +86,10 @@ export interface LandingStrings {
   featuresTitle: string;
   /** Concise feature cards (title + one-line body). Same count in every locale. */
   features: { title: string; body: string }[];
+  /** Eyebrow over the "why SigmaCV" section: the mission line, moved here from
+   *  the hero — it is for funders and librarians, not for a visitor's first
+   *  thirty seconds. */
+  whyEyebrow: string;
   /** Trust / "why SigmaCV" section heading. */
   trustTitle: string;
   /** Trust cards (Free / Private / Open source / Responsible) — minimal copy;
@@ -102,15 +109,16 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     metaTitle: "SigmaCV — Free academic CV builder from ORCID & OpenAlex",
     metaDescription:
       "Free, open-source academic CV builder. Auto-build your researcher CV from ORCID and OpenAlex, generate a formatted publication list, pick a citation style, and export to PDF, DOCX, LaTeX, Markdown or BibTeX.",
-    eyebrow: "Open infrastructure for responsible research assessment",
-    heroTitle: "Your academic CV, in every funder's format — from one ORCID iD.",
+    eyebrow: "Free · open source · no account needed to look",
+    heroTitle: "Your academic CV, built from the public record. Type your name to see it.",
     heroSub:
-      "SigmaCV builds your CV from OpenAlex and ORCID, then lays it out for NIH, ERC, MSCA, NSF, JSPS and more — choose a citation style once and every reference reformats. Export to PDF, Word, LaTeX or Markdown, or publish a public page that keeps itself up to date. Built for researchers who rebuild their CV for every grant — Word and LaTeX alike.",
+      "SigmaCV assembles your publications, grants and positions from OpenAlex and ORCID, and lays them out in the format each funder asks for. Export to PDF, Word or LaTeX, or publish a page that keeps itself up to date.",
     step1: "Sign in with your ORCID iD.",
     step2: "Publications populate automatically from OpenAlex.",
     step3: "Curate, style, and export — or publish a living page.",
     signInTitle: "Sign in",
     signInSub: "Free for individuals · open source",
+    signInHow: "How sign-in works",
     keepIt: "Is it yours? Sign in to curate, export and publish it.",
     signInOrcid: "Sign in with ORCID",
     orcidTrust: "We only read your public ORCID record — never post, never write anything back.",
@@ -183,6 +191,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Opt-in, field-normalized metrics — default none, DORA-aligned.",
       },
     ],
+    whyEyebrow: "Open infrastructure for responsible research assessment",
     trustTitle: "Why SigmaCV",
     trust: [
       { title: "Free", body: "For individuals, always." },
@@ -201,15 +210,16 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     metaTitle: "SigmaCV — 基于 ORCID 和 OpenAlex 的免费学术简历生成器",
     metaDescription:
       "根据 ORCID 和 OpenAlex 自动生成简洁、可定制的学术简历：汇总您的论文、按标识符高亮您的署名、选择引用样式、整理属于您的成果，并导出为 PDF、DOCX、LaTeX、Markdown 或 BibTeX，或发布一个始终保持最新的公开主页。可选的负责任指标，免费、开源且尊重隐私。",
-    eyebrow: "面向负责任研究评价的开放基础设施",
-    heroTitle: "您的学术简历，一个 ORCID iD 即可生成各资助机构所需的格式。",
+    eyebrow: "免费 · 开源 · 查看无需账户",
+    heroTitle: "您的学术简历，由公开研究记录自动生成。输入姓名即可查看。",
     heroSub:
-      "SigmaCV 依据 OpenAlex 和 ORCID 生成您的简历，并按 NIH、ERC、MSCA、NSF、JSPS 等机构的要求排版——只需选择一次引用样式，所有参考文献即同步重排。可导出为 PDF、Word、LaTeX 或 Markdown，也可发布一个自动保持最新的公开主页。专为每次申请资助都要重做简历的研究者打造——无论您用 Word 还是 LaTeX。",
+      "SigmaCV 从 OpenAlex 和 ORCID 汇集您的论文、资助和职位，并按各资助机构要求的格式排版。可导出为 PDF、Word 或 LaTeX，或发布一个自动保持最新的网页。",
     step1: "使用您的 ORCID iD 登录。",
     step2: "论文将自动从 OpenAlex 填充。",
     step3: "整理、设置样式并导出——或发布一个持续更新的页面。",
     signInTitle: "登录",
     signInSub: "个人免费 · 开源",
+    signInHow: "登录方式说明",
     keepIt: "是您的记录？登录即可整理、导出和发布。",
     signInOrcid: "使用 ORCID 登录",
     orcidTrust: "我们仅读取您公开的 ORCID 记录——绝不发布、绝不写入任何内容。",
@@ -270,6 +280,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
       },
       { title: "负责任地使用指标", body: "可选的领域归一化指标——默认不显示，符合 DORA。" },
     ],
+    whyEyebrow: "面向负责任研究评价的开放基础设施",
     trustTitle: "为什么选择 SigmaCV",
     trust: [
       { title: "免费", body: "永久面向个人。" },
@@ -288,15 +299,17 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     metaTitle: "SigmaCV — Generador gratuito de CV académicos desde ORCID y OpenAlex",
     metaDescription:
       "Genera automáticamente un CV académico limpio desde ORCID y OpenAlex. Elige un estilo de cita, selecciona lo que es tuyo y exporta a PDF, DOCX, LaTeX o Markdown. Gratis y de código abierto.",
-    eyebrow: "Infraestructura abierta para una evaluación responsable de la investigación",
-    heroTitle: "Tu CV académico, en el formato de cada financiador — desde un solo iD ORCID.",
+    eyebrow: "Gratis · código abierto · no hace falta cuenta para mirar",
+    heroTitle:
+      "Tu CV académico, a partir de los datos abiertos de investigación. Escribe tu nombre para verlo.",
     heroSub:
-      "SigmaCV crea tu CV a partir de OpenAlex y ORCID y lo adapta a NIH, ERC, MSCA, NSF, JSPS y más: elige un estilo de cita una vez y todas las referencias se reformatean. Expórtalo a PDF, Word, LaTeX o Markdown, o publica una página pública que se mantiene actualizada sola. Pensado para quienes rehacen su CV en cada convocatoria, tanto en Word como en LaTeX.",
+      "SigmaCV reúne tus publicaciones, financiación y cargos desde OpenAlex y ORCID, y los presenta en el formato que pide cada financiador. Exporta a PDF, Word o LaTeX, o publica una página que se mantiene al día sola.",
     step1: "Inicia sesión con tu iD ORCID.",
     step2: "Las publicaciones se rellenan automáticamente desde OpenAlex.",
     step3: "Selecciona, da estilo y exporta, o publica una página viva.",
     signInTitle: "Iniciar sesión",
     signInSub: "Gratis para particulares · código abierto",
+    signInHow: "Cómo funciona el inicio de sesión",
     keepIt: "¿Es tuyo? Inicia sesión para revisarlo, exportarlo y publicarlo.",
     signInOrcid: "Iniciar sesión con ORCID",
     orcidTrust: "Solo leemos tu registro público de ORCID: nunca publicamos ni escribimos nada.",
@@ -369,6 +382,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Métricas opcionales y normalizadas por campo — ninguna por defecto, alineadas con DORA.",
       },
     ],
+    whyEyebrow: "Infraestructura abierta para una evaluación responsable de la investigación",
     trustTitle: "Por qué SigmaCV",
     trust: [
       { title: "Gratis", body: "Para particulares, siempre." },
@@ -387,15 +401,17 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     metaTitle: "SigmaCV — Générateur gratuit de CV académique depuis ORCID et OpenAlex",
     metaDescription:
       "Générez automatiquement un CV académique soigné depuis ORCID et OpenAlex. Choisissez un style de citation, sélectionnez ce qui est à vous et exportez en PDF, DOCX, LaTeX ou Markdown. Gratuit et open source.",
-    eyebrow: "Infrastructure ouverte pour une évaluation responsable de la recherche",
-    heroTitle: "Votre CV académique, au format de chaque financeur — à partir d'un seul iD ORCID.",
+    eyebrow: "Gratuit · open source · aucun compte requis pour regarder",
+    heroTitle:
+      "Votre CV académique, à partir des données ouvertes de la recherche. Saisissez votre nom pour le voir.",
     heroSub:
-      "SigmaCV construit votre CV à partir d'OpenAlex et d'ORCID, puis le met en forme pour le NIH, l'ERC, les MSCA, la NSF, la JSPS et d'autres — choisissez un style de citation une fois et toutes les références se reformatent. Exportez en PDF, Word, LaTeX ou Markdown, ou publiez une page publique qui se met à jour toute seule. Pensé pour celles et ceux qui refont leur CV à chaque demande de financement — sous Word comme sous LaTeX.",
+      "SigmaCV rassemble vos publications, financements et fonctions depuis OpenAlex et ORCID, et les met en page au format demandé par chaque financeur. Exportez en PDF, Word ou LaTeX, ou publiez une page qui se tient à jour toute seule.",
     step1: "Connectez-vous avec votre iD ORCID.",
     step2: "Les publications se remplissent automatiquement depuis OpenAlex.",
     step3: "Sélectionnez, mettez en forme et exportez — ou publiez une page vivante.",
     signInTitle: "Se connecter",
     signInSub: "Gratuit pour les particuliers · open source",
+    signInHow: "Comment fonctionne la connexion",
     keepIt: "C'est le vôtre ? Connectez-vous pour le corriger, l'exporter et le publier.",
     signInOrcid: "Se connecter avec ORCID",
     orcidTrust:
@@ -469,6 +485,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Métriques optionnelles et normalisées par champ — aucune par défaut, alignées sur DORA.",
       },
     ],
+    whyEyebrow: "Infrastructure ouverte pour une évaluation responsable de la recherche",
     trustTitle: "Pourquoi SigmaCV",
     trust: [
       { title: "Gratuit", body: "Pour les particuliers, toujours." },
@@ -487,15 +504,17 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     metaTitle: "SigmaCV — Kostenloser akademischer Lebenslauf-Generator aus ORCID & OpenAlex",
     metaDescription:
       "Erstellen Sie automatisch einen sauberen akademischen Lebenslauf aus ORCID und OpenAlex. Zitierstil wählen, Eigenes kuratieren und als PDF, DOCX, LaTeX oder Markdown exportieren. Kostenlos und quelloffen.",
-    eyebrow: "Offene Infrastruktur für verantwortungsvolle Forschungsbewertung",
-    heroTitle: "Ihr akademischer Lebenslauf – im Format jedes Geldgebers, aus einer ORCID iD.",
+    eyebrow: "Kostenlos · quelloffen · zum Ansehen kein Konto nötig",
+    heroTitle:
+      "Ihr akademischer Lebenslauf, aus den offenen Forschungsdaten. Namen eingeben und ansehen.",
     heroSub:
-      "SigmaCV erstellt Ihren Lebenslauf aus OpenAlex und ORCID und bringt ihn ins Format von NIH, ERC, MSCA, NSF, JSPS und mehr – wählen Sie einmal einen Zitationsstil, und alle Referenzen werden neu formatiert. Exportieren Sie als PDF, Word, LaTeX oder Markdown, oder veröffentlichen Sie eine öffentliche Seite, die sich selbst aktuell hält. Für alle, die ihren Lebenslauf für jeden Antrag neu aufsetzen – ob in Word oder LaTeX.",
+      "SigmaCV sammelt Ihre Publikationen, Förderungen und Positionen aus OpenAlex und ORCID und bringt sie in das Format, das der jeweilige Geldgeber verlangt. Exportieren Sie als PDF, Word oder LaTeX, oder veröffentlichen Sie eine Seite, die sich selbst aktuell hält.",
     step1: "Melden Sie sich mit Ihrer ORCID iD an.",
     step2: "Publikationen werden automatisch aus OpenAlex befüllt.",
     step3: "Kuratieren, gestalten und exportieren — oder eine lebende Seite veröffentlichen.",
     signInTitle: "Anmelden",
     signInSub: "Kostenlos für Einzelpersonen · quelloffen",
+    signInHow: "So funktioniert die Anmeldung",
     keepIt:
       "Ist es Ihr Lebenslauf? Melden Sie sich an, um ihn zu kuratieren, zu exportieren und zu veröffentlichen.",
     signInOrcid: "Mit ORCID anmelden",
@@ -570,6 +589,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Optionale, feldnormierte Metriken — standardmäßig keine, DORA-konform.",
       },
     ],
+    whyEyebrow: "Offene Infrastruktur für verantwortungsvolle Forschungsbewertung",
     trustTitle: "Warum SigmaCV",
     trust: [
       { title: "Kostenlos", body: "Für Einzelne, immer." },
@@ -588,15 +608,16 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     metaTitle: "SigmaCV — ORCID と OpenAlex から作る無料の研究者 CV ジェネレーター",
     metaDescription:
       "ORCID と OpenAlex から整った学術 CV を自動生成。引用スタイルを選び、自分の業績を整理し、PDF・DOCX・LaTeX・Markdown に書き出せます。無料・オープンソース。",
-    eyebrow: "責任ある研究評価のためのオープンインフラ",
-    heroTitle: "あなたの学術 CV を、ひとつの ORCID iD から各助成機関の書式で。",
+    eyebrow: "無料 · オープンソース · 閲覧にアカウント不要",
+    heroTitle: "公開研究記録から、あなたの学術 CV を。氏名を入力してご覧ください。",
     heroSub:
-      "SigmaCV は OpenAlex と ORCID からあなたの CV を作成し、NIH・ERC・MSCA・NSF・JSPS などの書式に整えます。引用スタイルを一度選べば、すべての参考文献が一括で再整形されます。PDF・Word・LaTeX・Markdown に書き出せるほか、自動で最新に保たれる公開ページも公開できます。助成金申請のたびに CV を作り直している研究者のために——Word でも LaTeX でも。",
+      "SigmaCV は OpenAlex と ORCID から論文・助成・職歴を集め、各助成機関が求める書式に整えます。PDF・Word・LaTeX に書き出すか、自動で最新に保たれるページとして公開できます。",
     step1: "ORCID iD でサインインします。",
     step2: "論文が OpenAlex から自動的に取り込まれます。",
     step3: "整理・スタイル設定・書き出し——または更新され続けるページを公開。",
     signInTitle: "サインイン",
     signInSub: "個人は無料 · オープンソース",
+    signInHow: "サインインの仕組み",
     keepIt: "ご自身の記録ですか？サインインすると整理・書き出し・公開ができます。",
     signInOrcid: "ORCID でサインイン",
     orcidTrust: "公開されている ORCID の記録を読み取るだけです。投稿も書き込みも一切行いません。",
@@ -669,6 +690,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "オプトインかつ分野で正規化された指標——既定では非表示、DORA に準拠。",
       },
     ],
+    whyEyebrow: "責任ある研究評価のためのオープンインフラ",
     trustTitle: "SigmaCV を選ぶ理由",
     trust: [
       { title: "無料", body: "個人はずっと無料。" },
@@ -687,15 +709,17 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     metaTitle: "SigmaCV — Gerador gratuito de currículo acadêmico a partir de ORCID e OpenAlex",
     metaDescription:
       "Gere automaticamente um currículo acadêmico limpo a partir de ORCID e OpenAlex. Escolha um estilo de citação, organize o que é seu e exporte para PDF, DOCX, LaTeX ou Markdown. Gratuito e de código aberto.",
-    eyebrow: "Infraestrutura aberta para avaliação responsável da pesquisa",
-    heroTitle: "Seu CV acadêmico, no formato de cada financiador — a partir de um único iD ORCID.",
+    eyebrow: "Gratuito · código aberto · sem conta para ver",
+    heroTitle:
+      "Seu CV acadêmico, a partir dos dados abertos de pesquisa. Digite seu nome para vê-lo.",
     heroSub:
-      "O SigmaCV monta seu CV a partir do OpenAlex e do ORCID e o formata para NIH, ERC, MSCA, NSF, JSPS e outros — escolha um estilo de citação uma vez e todas as referências são reformatadas. Exporte para PDF, Word, LaTeX ou Markdown, ou publique uma página pública que se mantém atualizada sozinha. Feito para quem refaz o CV a cada edital — no Word e no LaTeX.",
+      "O SigmaCV reúne suas publicações, financiamentos e cargos a partir do OpenAlex e do ORCID, e os organiza no formato que cada financiador pede. Exporte em PDF, Word ou LaTeX, ou publique uma página que se mantém atualizada sozinha.",
     step1: "Entre com o seu iD ORCID.",
     step2: "As publicações são preenchidas automaticamente a partir do OpenAlex.",
     step3: "Organize, estilize e exporte — ou publique uma página viva.",
     signInTitle: "Entrar",
     signInSub: "Gratuito para indivíduos · código aberto",
+    signInHow: "Como funciona o login",
     keepIt: "É seu? Entre para organizar, exportar e publicar.",
     signInOrcid: "Entrar com ORCID",
     orcidTrust: "Lemos apenas seu registro público do ORCID — nunca publicamos nem gravamos nada.",
@@ -768,6 +792,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Métricas opcionais e normalizadas por área — nenhuma por padrão, alinhadas à DORA.",
       },
     ],
+    whyEyebrow: "Infraestrutura aberta para avaliação responsável da pesquisa",
     trustTitle: "Por que o SigmaCV",
     trust: [
       { title: "Gratuito", body: "Para indivíduos, sempre." },
@@ -786,15 +811,17 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     metaTitle: "SigmaCV — Generatore gratuito di CV accademici da ORCID e OpenAlex",
     metaDescription:
       "Genera automaticamente un CV accademico ordinato da ORCID e OpenAlex. Scegli uno stile di citazione, seleziona ciò che è tuo ed esporta in PDF, DOCX, LaTeX o Markdown. Gratuito e open source.",
-    eyebrow: "Infrastruttura aperta per una valutazione responsabile della ricerca",
-    heroTitle: "Il tuo CV accademico, nel formato di ogni ente finanziatore — da un solo iD ORCID.",
+    eyebrow: "Gratuito · open source · per guardare non serve un account",
+    heroTitle:
+      "Il tuo CV accademico, dai dati aperti della ricerca. Scrivi il tuo nome per vederlo.",
     heroSub:
-      "SigmaCV crea il tuo CV da OpenAlex e ORCID e lo imposta per NIH, ERC, MSCA, NSF, JSPS e altri: scegli una volta lo stile di citazione e tutti i riferimenti si riformattano. Esportalo in PDF, Word, LaTeX o Markdown, oppure pubblica una pagina pubblica che si mantiene aggiornata da sola. Pensato per chi rifà il CV a ogni bando — sia in Word sia in LaTeX.",
+      "SigmaCV raccoglie le tue pubblicazioni, i finanziamenti e gli incarichi da OpenAlex e ORCID e li impagina nel formato richiesto da ogni ente finanziatore. Esporta in PDF, Word o LaTeX, oppure pubblica una pagina che si aggiorna da sola.",
     step1: "Accedi con il tuo iD ORCID.",
     step2: "Le pubblicazioni si popolano automaticamente da OpenAlex.",
     step3: "Seleziona, applica uno stile ed esporta — o pubblica una pagina viva.",
     signInTitle: "Accedi",
     signInSub: "Gratuito per i privati · open source",
+    signInHow: "Come funziona l'accesso",
     keepIt: "È il tuo? Accedi per curarlo, esportarlo e pubblicarlo.",
     signInOrcid: "Accedi con ORCID",
     orcidTrust: "Leggiamo solo il tuo record ORCID pubblico — non pubblichiamo né scriviamo nulla.",
@@ -867,6 +894,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Metriche facoltative e normalizzate per disciplina — nessuna per impostazione predefinita, in linea con DORA.",
       },
     ],
+    whyEyebrow: "Infrastruttura aperta per una valutazione responsabile della ricerca",
     trustTitle: "Perché SigmaCV",
     trust: [
       { title: "Gratis", body: "Per i singoli, sempre." },
@@ -885,15 +913,16 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     metaTitle: "SigmaCV — ORCID와 OpenAlex로 만드는 무료 학술 CV 생성기",
     metaDescription:
       "ORCID와 OpenAlex에서 깔끔한 학술 CV를 자동 생성하세요. 인용 스타일을 선택하고, 본인의 업적을 정리하고, PDF·DOCX·LaTeX·Markdown으로 내보내세요. 무료 오픈소스.",
-    eyebrow: "책임 있는 연구 평가를 위한 오픈 인프라",
-    heroTitle: "하나의 ORCID iD로, 각 지원기관 양식에 맞춘 학술 CV를.",
+    eyebrow: "무료 · 오픈소스 · 계정 없이 바로 보기",
+    heroTitle: "공개 연구 기록으로 만드는 학술 CV. 이름을 입력해 확인하세요.",
     heroSub:
-      "SigmaCV는 OpenAlex와 ORCID에서 CV를 생성하고 NIH, ERC, MSCA, NSF, JSPS 등 각 기관 양식에 맞춰 배치합니다. 인용 스타일을 한 번만 선택하면 모든 참고문헌이 다시 서식화됩니다. PDF, Word, LaTeX, Markdown으로 내보내거나 자동으로 최신 상태를 유지하는 공개 페이지를 게시할 수 있습니다. 지원할 때마다 CV를 새로 만드는 연구자를 위해——Word든 LaTeX든.",
+      "SigmaCV는 OpenAlex와 ORCID에서 논문, 연구비, 경력을 모아 각 지원기관이 요구하는 양식으로 정리합니다. PDF, Word, LaTeX로 내보내거나 스스로 최신 상태를 유지하는 페이지로 게시하세요.",
     step1: "ORCID iD로 로그인하세요.",
     step2: "논문이 OpenAlex에서 자동으로 채워집니다.",
     step3: "정리하고, 스타일을 지정하고, 내보내거나 — 지속 갱신되는 페이지를 공개하세요.",
     signInTitle: "로그인",
     signInSub: "개인 무료 · 오픈소스",
+    signInHow: "로그인 방식 안내",
     keepIt: "본인의 기록인가요? 로그인하면 정리, 내보내기, 게시를 할 수 있습니다.",
     signInOrcid: "ORCID로 로그인",
     orcidTrust: "공개된 ORCID 기록만 읽습니다. 게시하거나 무언가를 기록하는 일은 없습니다.",
@@ -963,6 +992,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
       },
       { title: "책임 있는 지표", body: "선택형, 분야 정규화 지표 — 기본값은 없음, DORA에 부합." },
     ],
+    whyEyebrow: "책임 있는 연구 평가를 위한 오픈 인프라",
     trustTitle: "왜 SigmaCV인가",
     trust: [
       { title: "무료", body: "개인은 항상 무료." },
@@ -981,15 +1011,16 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     metaTitle: "SigmaCV — Бесплатный генератор академических CV из ORCID и OpenAlex",
     metaDescription:
       "Автоматически создавайте аккуратное академическое резюме из ORCID и OpenAlex. Выберите стиль цитирования, отберите свои работы и экспортируйте в PDF, DOCX, LaTeX или Markdown. Бесплатно и с открытым кодом.",
-    eyebrow: "Открытая инфраструктура для ответственной оценки исследований",
-    heroTitle: "Ваше академическое CV в формате каждого грантодателя — из одного ORCID iD.",
+    eyebrow: "Бесплатно · открытый код · смотреть можно без аккаунта",
+    heroTitle: "Ваше академическое CV из открытых научных данных. Введите имя, чтобы увидеть его.",
     heroSub:
-      "SigmaCV собирает ваше CV из OpenAlex и ORCID и оформляет его под NIH, ERC, MSCA, NSF, JSPS и другие — выберите стиль цитирования один раз, и все ссылки переформатируются. Экспортируйте в PDF, Word, LaTeX или Markdown или опубликуйте общедоступную страницу, которая сама поддерживает актуальность. Для тех, кто переделывает CV под каждую заявку, — и в Word, и в LaTeX.",
+      "SigmaCV собирает ваши публикации, гранты и должности из OpenAlex и ORCID и оформляет их в формате, который требует каждый фонд. Экспортируйте в PDF, Word или LaTeX или опубликуйте страницу, которая обновляется сама.",
     step1: "Войдите с помощью вашего ORCID iD.",
     step2: "Публикации автоматически загружаются из OpenAlex.",
     step3: "Отберите, оформите и экспортируйте — или опубликуйте живую страницу.",
     signInTitle: "Войти",
     signInSub: "Бесплатно для частных лиц · открытый код",
+    signInHow: "Как работает вход",
     keepIt: "Это ваша запись? Войдите, чтобы отредактировать, экспортировать и опубликовать её.",
     signInOrcid: "Войти через ORCID",
     orcidTrust:
@@ -1063,6 +1094,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Подключаемые, нормированные по области метрики — по умолчанию нет, в соответствии с DORA.",
       },
     ],
+    whyEyebrow: "Открытая инфраструктура для ответственной оценки исследований",
     trustTitle: "Почему SigmaCV",
     trust: [
       { title: "Бесплатно", body: "Для частных лиц, всегда." },

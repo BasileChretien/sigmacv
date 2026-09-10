@@ -80,8 +80,7 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formPrompt: "See what SigmaCV finds — before you sign in",
     formAria: "Your name or ORCID iD",
     formCta: "Show me",
-    formHint:
-      "Type your name as it appears on your papers, or paste your ORCID iD. No account needed; a name lists researchers who have an ORCID iD.",
+    formHint: "Your name as on your papers, or your ORCID iD — no account needed.",
     formInvalid:
       "Type at least three characters of a name, or an ORCID iD like 0000-0000-0000-0000.",
     formRetryPrompt: "Try again with a name or an ORCID iD",
@@ -125,8 +124,7 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formPrompt: "登录前先看看 SigmaCV 能找到什么",
     formAria: "您的姓名或 ORCID iD",
     formCta: "看看",
-    formHint:
-      "输入论文上署名的姓名，或粘贴您的 ORCID iD。无需账户；按姓名查找会列出拥有 ORCID iD 的研究者。",
+    formHint: "论文上署名的姓名，或您的 ORCID iD——无需账户。",
     formInvalid: "请输入至少三个字符的姓名，或形如 0000-0000-0000-0000 的 ORCID iD。",
     formRetryPrompt: "请用姓名或 ORCID iD 重试",
     metaTitle: "简历预览",
@@ -165,8 +163,7 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formPrompt: "Mira lo que SigmaCV encuentra, antes de iniciar sesión",
     formAria: "Tu nombre o tu iD ORCID",
     formCta: "Ver",
-    formHint:
-      "Escribe tu nombre tal como aparece en tus artículos, o pega tu iD ORCID. Sin cuenta; un nombre muestra los investigadores que tienen iD ORCID.",
+    formHint: "Tu nombre tal como aparece en tus artículos, o tu iD ORCID — sin cuenta.",
     formInvalid:
       "Escribe al menos tres caracteres de un nombre, o un iD ORCID como 0000-0000-0000-0000.",
     formRetryPrompt: "Inténtalo de nuevo con un nombre o un iD ORCID",
@@ -211,8 +208,7 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formPrompt: "Voyez ce que SigmaCV trouve, avant de vous connecter",
     formAria: "Votre nom ou votre iD ORCID",
     formCta: "Voir",
-    formHint:
-      "Saisissez votre nom tel qu'il figure sur vos articles, ou collez votre iD ORCID. Aucun compte requis ; un nom affiche les chercheurs disposant d'un iD ORCID.",
+    formHint: "Votre nom tel qu'il figure sur vos articles, ou votre iD ORCID — sans compte.",
     formInvalid:
       "Saisissez au moins trois caractères d'un nom, ou un iD ORCID de la forme 0000-0000-0000-0000.",
     formRetryPrompt: "Réessayez avec un nom ou un iD ORCID",
@@ -256,8 +252,7 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formPrompt: "Sehen Sie, was SigmaCV findet – vor der Anmeldung",
     formAria: "Ihr Name oder Ihre ORCID iD",
     formCta: "Anzeigen",
-    formHint:
-      "Geben Sie Ihren Namen wie auf Ihren Publikationen ein oder fügen Sie Ihre ORCID iD ein. Kein Konto nötig; ein Name listet Forschende mit einer ORCID iD.",
+    formHint: "Ihr Name wie auf Ihren Publikationen oder Ihre ORCID iD – kein Konto nötig.",
     formInvalid:
       "Geben Sie mindestens drei Zeichen eines Namens ein oder eine ORCID iD wie 0000-0000-0000-0000.",
     formRetryPrompt: "Versuchen Sie es erneut mit einem Namen oder einer ORCID iD",
@@ -303,8 +298,7 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formPrompt: "ログイン前に SigmaCV が見つける内容を確認",
     formAria: "氏名または ORCID iD",
     formCta: "表示",
-    formHint:
-      "論文に記載の氏名を入力するか、ORCID iD を貼り付けてください。アカウントは不要です。氏名では ORCID iD を持つ研究者が一覧表示されます。",
+    formHint: "論文に記載の氏名、または ORCID iD — アカウント不要。",
     formInvalid:
       "氏名を 3 文字以上、または 0000-0000-0000-0000 形式の ORCID iD を入力してください。",
     formRetryPrompt: "氏名または ORCID iD でもう一度お試しください",
@@ -349,8 +343,7 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formPrompt: "Veja o que o SigmaCV encontra, antes de entrar",
     formAria: "Seu nome ou seu iD ORCID",
     formCta: "Ver",
-    formHint:
-      "Digite seu nome como aparece nos seus artigos, ou cole seu iD ORCID. Não precisa de conta; um nome lista pesquisadores que têm iD ORCID.",
+    formHint: "Seu nome como nos seus artigos, ou seu iD ORCID — sem conta.",
     formInvalid:
       "Digite pelo menos três caracteres de um nome, ou um iD ORCID como 0000-0000-0000-0000.",
     formRetryPrompt: "Tente novamente com um nome ou um iD ORCID",
@@ -394,8 +387,7 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formPrompt: "Guarda cosa trova SigmaCV, prima di accedere",
     formAria: "Il tuo nome o il tuo ORCID iD",
     formCta: "Mostra",
-    formHint:
-      "Scrivi il tuo nome come appare nei tuoi articoli, oppure incolla il tuo ORCID iD. Nessun account richiesto; un nome elenca i ricercatori con un ORCID iD.",
+    formHint: "Il tuo nome come nei tuoi articoli, o il tuo ORCID iD — senza account.",
     formInvalid:
       "Scrivi almeno tre caratteri di un nome, oppure un ORCID iD come 0000-0000-0000-0000.",
     formRetryPrompt: "Riprova con un nome o un ORCID iD",
@@ -439,8 +431,7 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formPrompt: "로그인 전에 SigmaCV가 찾은 내용 보기",
     formAria: "이름 또는 ORCID iD",
     formCta: "보기",
-    formHint:
-      "논문에 표기된 이름을 입력하거나 ORCID iD를 붙여넣으세요. 계정이 필요 없으며, 이름으로 검색하면 ORCID iD가 있는 연구자가 표시됩니다.",
+    formHint: "논문에 표기된 이름 또는 ORCID iD — 계정 불필요.",
     formInvalid: "이름을 세 글자 이상 입력하거나 0000-0000-0000-0000 형식의 ORCID iD를 입력하세요.",
     formRetryPrompt: "이름 또는 ORCID iD로 다시 시도하세요",
     metaTitle: "CV 미리보기",
@@ -483,8 +474,7 @@ const PREVIEW_I18N: Record<Locale, PreviewStrings> = {
     formPrompt: "Посмотрите, что находит SigmaCV, до входа",
     formAria: "Ваше имя или ORCID iD",
     formCta: "Показать",
-    formHint:
-      "Введите имя так, как оно указано в ваших статьях, или вставьте ORCID iD. Аккаунт не нужен; по имени показываются исследователи с ORCID iD.",
+    formHint: "Имя как в ваших статьях или ORCID iD — без аккаунта.",
     formInvalid: "Введите не менее трёх символов имени или ORCID iD вида 0000-0000-0000-0000.",
     formRetryPrompt: "Попробуйте снова, указав имя или ORCID iD",
     metaTitle: "Предпросмотр CV",
