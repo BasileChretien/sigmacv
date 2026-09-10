@@ -80,7 +80,11 @@ export default function InstitutionPage({
         <p>{s.selfDeclared}</p>
 
         {summary.figures && <InstitutionFiguresSection locale={loc} figures={summary.figures} />}
-        <InstitutionOpenAlexSection locale={loc} snapshot={summary.openalex} />
+        <InstitutionOpenAlexSection
+          locale={loc}
+          rorId={summary.rorId}
+          snapshot={summary.openalex}
+        />
 
         <h2>{s.oaiHeading}</h2>
         <p>

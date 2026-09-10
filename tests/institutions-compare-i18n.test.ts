@@ -38,6 +38,7 @@ describe("institutionCompareStrings", () => {
       expect(s.overCap, loc).toContain("{max}");
       expect(s.caveatFolding, loc).toContain("{max}");
       expect(s.disclaimer, loc).toContain("{contact}");
+      expect(s.sparklineLabel, loc).toContain("{name}");
     }
   });
 

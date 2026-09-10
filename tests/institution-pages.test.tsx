@@ -339,6 +339,8 @@ describe("/i/[ror]", () => {
       expect(text(html)).toContain(s.openalexNotFetched);
       expect(html).not.toContain("inst-table");
       expect(html).not.toContain("openalex.org");
+      // Nothing to set beside another organisation yet: no link to the comparison.
+      expect(html).not.toContain("/i/compare");
     });
 
     it("renders the counted entity, the count tables with the year's total as denominator, the open share beside its counts, the top lists and the as-of date", async () => {
@@ -403,6 +405,8 @@ describe("/i/[ror]", () => {
       expect(body).toContain("top 15");
       // As of.
       expect(body).toContain("As of September 9, 2026");
+      // The one link to the comparison view, pre-filled with this organisation.
+      expect(html).toContain(`href="/i/compare?ror=${ROR}"`);
       // The share is the ONLY percent on the page: no other figure is divided.
       expect(body.match(/%/g)).toHaveLength(1);
       // Still no network and no CV column.

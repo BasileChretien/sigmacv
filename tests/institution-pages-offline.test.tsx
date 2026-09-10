@@ -200,6 +200,9 @@ describe("institution routes render with no network at all", () => {
     ]);
     expect(metas[1]!.title).toBe("Nagoya University");
     expect(metas[3]!.title).toBe("Nagoya University");
+    // The one link to the comparison view, pre-filled and locale-aware.
+    expect(pages[1]).toContain(`href="/i/compare?ror=${ROR}"`);
+    expect(pages[3]).toContain(`href="/ja/i/compare?ror=${ROR}"`);
     // The page's one line about the export (three sources per the count mock).
     for (const html of [pages[1]!, pages[3]!]) {
       expect(html).toContain(`href="/i/${ROR}/reconciliation.csv"`);

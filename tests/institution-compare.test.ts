@@ -199,7 +199,10 @@ describe("institutionComparison", () => {
       known: 1000,
       percent: null,
       withheld: "partial-year",
+      statuses: { gold: 900, closed: 100 },
     });
+    expect(nagoya.rows.find((r) => r.year === 2022)!.statuses).toEqual({});
+    expect(nagoya.domains).toBeUndefined();
     // Nothing consented rides along: no listed count, no count of any kind.
     expect(JSON.stringify(out)).not.toMatch(/listed|"count":/i);
   });

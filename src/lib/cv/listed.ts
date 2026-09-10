@@ -312,7 +312,7 @@ export async function trustedInstitutionRecords(
  *  OpenAlex snapshot (id + name): the comparison picker's universe. Keyed on
  *  the primary key and capped, so a landing on the picker never scans the
  *  whole `Institution` table (every ROR any position ever resolved). */
-export const INSTITUTIONS_WITH_SNAPSHOT_LIMIT = 500;
+const INSTITUTIONS_WITH_SNAPSHOT_LIMIT = 500;
 
 export async function institutionsWithSnapshot(
   rorIds: string[],

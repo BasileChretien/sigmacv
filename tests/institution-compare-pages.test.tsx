@@ -87,10 +87,30 @@ const ROWS = [
     name: "Nagoya University",
     country: "JP",
     openalexId: "I60134161",
-    openalexAggregates: aggregates({
-      2024: { open: 3964, closed: 2171 },
-      2026: { open: 5, closed: 5 },
-    }),
+    openalexAggregates: {
+      ...aggregates({
+        2023: { open: 3000, closed: 3000 },
+        2024: { open: 3964, closed: 2171 },
+        2026: { open: 5, closed: 5 },
+      }),
+      // A status OpenAlex adds later, on the partial row (no share to disturb).
+      oaByStatusByYear: [
+        ...aggregates({
+          2023: { open: 3000, closed: 3000 },
+          2024: { open: 3964, closed: 2171 },
+          2026: { open: 5, closed: 5 },
+        }).oaByStatusByYear,
+        { year: 2026, status: "mystery", count: 5 },
+      ],
+      // Stored in OpenAlex's domain order (smaller count first): never re-sorted.
+      domains: {
+        total: 6200,
+        byDomain: [
+          { id: "1", name: "Life Sciences", count: 200 },
+          { id: "4", name: "Health Sciences", count: 5000 },
+        ],
+      },
+    },
     openalexFetchedAt: new Date("2026-09-01T00:00:00.000Z"),
   },
   {
@@ -99,6 +119,7 @@ const ROWS = [
     country: "FR",
     openalexId: "I98702875",
     openalexAggregates: aggregates({
+      2023: { open: 300, closed: 700 },
       2024: { open: 400, closed: 830 },
       2025: { open: 20, closed: 30 },
       2026: { open: 56, closed: 0 },
@@ -187,7 +208,7 @@ describe("/i/compare", () => {
     // Exactly the two stated shares are the only percents on the page, in column order.
     expect(
       text(html.replace(/<span class="visually-hidden">[^<]*<\/span>/g, "")).match(/\d+%/g),
-    ).toEqual(["65%", "33%"]);
+    ).toEqual(["50%", "65%", "30%", "33%"]);
     // A full year below the floor keeps its counts and its own reason, on its own row.
     expect(html).toMatch(
       new RegExp(
@@ -211,6 +232,24 @@ describe("/i/compare", () => {
     );
     // The page is the wide variant of the document page.
     expect(html).toContain('class="doc-page inst-compare-page"');
+    // One sparkline per column (never an overlay), named for the reader; the
+    // status breakdown per column; the field mix only where the row carries it.
+    expect(html.match(/<svg class="inst-spark"/g)).toHaveLength(2);
+    expect(html).toContain(
+      `aria-label="${fillInstitutionString(c.sparklineLabel, { name: "Nagoya University" })}"`,
+    );
+    expect(html).toContain(
+      `<caption class="visually-hidden">${c.statusHeading} — Nagoya University</caption>`,
+    );
+    expect(html).toContain('<th scope="col" class="num">gold</th>');
+    expect(html).not.toContain('<th scope="col" class="num">closed</th>');
+    // An unknown status is shown after OpenAlex's, never dropped.
+    expect(html).toMatch(/bronze<\/th><th scope="col" class="num">mystery<\/th>/);
+    // The domain rows keep their stored order, whatever the counts.
+    expect(body.indexOf("Life Sciences")).toBeLessThan(body.indexOf("Health Sciences"));
+    expect(html.match(/<caption class="visually-hidden">OpenAlex domains — /g)).toHaveLength(1);
+    expect(body).toContain("Health Sciences");
+    expect(body).toContain("6,200 works in all");
 
     // Three columns, asked in a non-alphabetical order, still alphabetical.
     const three = text(renderToStaticMarkup(await ComparePage(props([NAGOYA, CAEN, CHU]))));
@@ -274,6 +313,49 @@ describe("/i/compare", () => {
     expect(mocks.institutionFindMany).toHaveBeenCalledTimes(2);
   });
 
+  it("draws each trajectory over the common full years only, on a labelled fixed 0–100 axis, with a withheld year as a gap, never the partial year, and not at all for fewer than two stated shares", async () => {
+    // Common years 2020–2025 (both windows 2020–2026): x = 30, 70.4, 110.8, 151.2, 191.6, 232.
+    const nagoya = {
+      ...ROWS[0]!,
+      openalexAggregates: aggregates({
+        2020: { open: 500, closed: 500 }, // 50 %  → y 29
+        2021: { open: 0, closed: 500 }, // 0 %   → y 50
+        2022: { open: 10, closed: 10 }, // withheld: a gap
+        2023: { open: 500, closed: 0 }, // 100 % → y 8
+        2024: { open: 750, closed: 250 }, // 75 %  → y 18.5
+        2026: { open: 900, closed: 100 }, // the partial year: never plotted
+      }),
+    };
+    // Caen states one share only: a lone dot is a height, so no figure.
+    const caen = {
+      ...ROWS[1]!,
+      openalexAggregates: aggregates({ 2024: { open: 400, closed: 830 } }),
+    };
+    db();
+    mocks.institutionFindMany.mockImplementation(async () => [nagoya, caen]);
+    const html = renderToStaticMarkup(await ComparePage(props([NAGOYA, CAEN])));
+    const svgs = html.match(/<svg class="inst-spark"[\s\S]*?<\/svg>/g)!;
+    expect(svgs).toHaveLength(1);
+    const [first] = svgs;
+    expect(first).toContain('<polyline points="30,29 70.4,50" fill="none">');
+    expect(first).toContain('<polyline points="151.2,8 191.6,18.5" fill="none">');
+    expect(first!.match(/<polyline /g)).toHaveLength(2);
+    expect(first!.match(/<circle /g)).toHaveLength(4);
+    for (const [cx, cy] of [
+      ["30", "29"],
+      ["70.4", "50"],
+      ["151.2", "8"],
+      ["191.6", "18.5"],
+    ]) {
+      expect(first).toContain(`<circle cx="${cx}" cy="${cy}" r="2.5">`);
+    }
+    expect(first).not.toContain('cx="232"');
+    // The axis is labelled 0 and 100, and the range's first and last year printed.
+    for (const label of ["100", "0", "2020", "2025"]) {
+      expect(first).toMatch(new RegExp(`<text class="inst-spark-label"[^>]*>${label}</text>`));
+    }
+  });
+
   it("withholds every share with the skew reason when the records were read more than 30 days apart, keeping the counts and the rows' own reasons", async () => {
     db();
     const base = mocks.institutionFindMany.getMockImplementation()!;
@@ -287,6 +369,8 @@ describe("/i/compare", () => {
     expect(text(html)).toContain(fillInstitutionString(c.skewNote, { days: 30 }));
     expect(html).toContain(`<span class="inst-share-withheld">${c.shareSkew}</span>`);
     expect(html).not.toMatch(/\d+%/);
+    // No stated share: no trajectory is drawn at all.
+    expect(html).not.toContain("inst-spark");
     expect(html).toContain("3,964");
     expect(html).toContain(`<span class="inst-share-withheld">${c.shareIncomplete}</span>`);
     expect(html).toContain(`<span class="inst-share-withheld">${c.shareFew}</span>`);

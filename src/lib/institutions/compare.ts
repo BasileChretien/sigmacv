@@ -6,7 +6,11 @@ import {
 } from "@/lib/cv/listed";
 import { isRorId } from "./institutions";
 import { oaShareByYear, type OaShareRow, type OaShareWithheld } from "./oaShare";
-import { OPENALEX_INSTITUTION_ID_RE, parseInstitutionAggregates } from "./snapshot";
+import {
+  OPENALEX_INSTITUTION_ID_RE,
+  parseInstitutionAggregates,
+  type InstitutionAggregates,
+} from "./snapshot";
 
 /**
  * The comparison view (`/i/compare?ror=a&ror=b[&ror=c]`): two or three
@@ -44,6 +48,8 @@ export type CompareWithheld = OaShareWithheld | "snapshot-skew";
 
 export interface CompareShareRow extends Omit<OaShareRow, "withheld"> {
   withheld: CompareWithheld | null;
+  /** The year's OpenAlex status buckets (`closed` included), as stored. */
+  statuses: Record<string, number>;
 }
 
 export interface CompareColumn {
@@ -60,6 +66,8 @@ export interface CompareColumn {
   years: { from: number; to: number };
   /** The common full years (oldest first), then this column's own partial year. */
   rows: CompareShareRow[];
+  /** The field mix, when the row was refreshed since it exists (PR #457). */
+  domains: InstitutionAggregates["domains"];
 }
 
 export type DroppedReason = "no-page" | "no-record" | "below-floor" | "over-cap";
@@ -126,6 +134,13 @@ function columnOf(
   if (!a) return { reason: "no-record" };
   const shares = oaShareByYear(a);
   if (!shares.some((r) => r.percent !== null)) return { reason: "below-floor" };
+  const statusesOf = (year: number): Record<string, number> => {
+    const out: Record<string, number> = {};
+    for (const r of a.oaByStatusByYear) {
+      if (r.year === year) out[r.status] = (out[r.status] ?? 0) + r.count;
+    }
+    return out;
+  };
   return {
     column: {
       rorId,
@@ -135,7 +150,8 @@ function columnOf(
       foldedCount: a.countedEntity.foldedIds.length,
       fetchedAt: record.openalexFetchedAt.toISOString(),
       years: a.years,
-      rows: shares,
+      rows: shares.map((r) => ({ ...r, statuses: statusesOf(r.year) })),
+      domains: a.domains,
     },
   };
 }

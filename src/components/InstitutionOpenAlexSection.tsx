@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
 import { fillInstitutionString, institutionStrings } from "@/lib/i18n/institutions";
@@ -13,6 +14,7 @@ import {
   type OaShareWithheld,
 } from "@/lib/institutions/oaShare";
 import { OA_STATUS_ORDER, TOP_N, type InstitutionAggregates } from "@/lib/institutions/snapshot";
+import { localeInstitutionComparePath } from "@/lib/seo";
 
 /**
  * "OpenAlex's record of this organisation" on the institution page: rendered
@@ -35,9 +37,12 @@ import { OA_STATUS_ORDER, TOP_N, type InstitutionAggregates } from "@/lib/instit
  */
 export default function InstitutionOpenAlexSection({
   locale,
+  rorId,
   snapshot,
 }: {
   locale: Locale;
+  /** The page's bare ROR id: pre-fills the comparison view's picker. */
+  rorId: string;
   snapshot: InstitutionOpenAlexSnapshot | null;
 }) {
   const s = institutionStrings(locale);
@@ -154,6 +159,11 @@ export default function InstitutionOpenAlexSection({
       />
 
       <p className="muted">{fillInstitutionString(s.openalexAsOf, { date })}</p>
+      <p>
+        <Link href={localeInstitutionComparePath(locale, `ror=${rorId}`)}>
+          {s.openalexCompareLink}
+        </Link>
+      </p>
     </>
   );
 }
