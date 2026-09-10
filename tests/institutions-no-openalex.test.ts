@@ -64,12 +64,14 @@ describe("institution pages never call an external API", () => {
   const files = SCOPES.flatMap(sourceFiles);
 
   it("covers the lib (incl. the pure snapshot, share, comparison, aggregate, summing and reconciliation modules), the listed-CV reader, the six pages, the two export routes and the five components", () => {
-    expect(files.length).toBeGreaterThanOrEqual(24);
+    expect(files.length).toBeGreaterThanOrEqual(27);
     for (const name of [
       "listed.ts",
       "snapshot.ts",
       "oaShare.ts",
       "compare.ts",
+      "compareExport.ts",
+      "compareLimits.ts",
       "InstitutionCompare.tsx",
       "cvAggregates.ts",
       "aggregateSum.ts",
@@ -129,6 +131,7 @@ describe("the opted-in figures and the OpenAlex snapshot never meet", () => {
   const SNAPSHOT_SIDE = [
     "src/lib/institutions/snapshot.ts",
     "src/lib/institutions/oaShare.ts",
+    "src/lib/institutions/compareExport.ts",
     // `compare.ts` reads the listed-CV reader for page EXISTENCE only (like
     // `institutions.ts`, it sits on neither side); its component is snapshot-side.
     "src/components/InstitutionOpenAlexSection.tsx",

@@ -6,6 +6,7 @@ import { institutionCompareStrings } from "@/lib/i18n/institutionsCompare";
 import {
   MAX_COMPARED,
   SNAPSHOT_SKEW_DAYS,
+  canonicalCompareQuery,
   type ComparableInstitution,
   type CompareColumn,
   type CompareShareRow,
@@ -211,6 +212,11 @@ function Comparison({
       <Notices c={c} comparison={comparison} floor={floor} />
       <p>
         <Link href={localeInstitutionComparePath(locale)}>{c.pickerChange}</Link>
+      </p>
+      <p className="muted">
+        <a href={`/i/compare.json?${canonicalCompareQuery(comparison.canonicalIds)}`}>
+          {c.jsonLink}
+        </a>
       </p>
 
       {countries.size > 1 ? <p className="muted">{c.caveatCountries}</p> : null}

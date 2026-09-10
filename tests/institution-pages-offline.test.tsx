@@ -62,6 +62,7 @@ import LocaleComparePage, {
 } from "@/app/[locale]/i/compare/page";
 import { GET as csvGet } from "@/app/i/[ror]/reconciliation.csv/route";
 import { GET as jsonGet } from "@/app/i/[ror]/reconciliation.json/route";
+import { GET as compareJsonGet } from "@/app/i/compare.json/route";
 import {
   RECONCILIATION_COLUMNS,
   storedReconciliationRows,
@@ -254,6 +255,13 @@ describe("institution routes render with no network at all", () => {
       }),
     ]);
     for (const meta of metas) expect(meta.robots).toEqual({ index: false, follow: true });
+    // The JSON export answers from the same rows, counts only.
+    const res = await compareJsonGet(
+      new Request(`https://sigmacv.test/i/compare.json?ror=${ROR}&ror=${OTHER}`),
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { organisations: Array<{ rorId: string }> };
+    expect(body.organisations.map((o) => o.rorId).sort()).toEqual([ROR, OTHER].sort());
     expect(mocks.fetch).not.toHaveBeenCalled();
   });
 
