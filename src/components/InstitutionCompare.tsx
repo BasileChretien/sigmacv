@@ -14,7 +14,7 @@ import {
 } from "@/lib/institutions/compare";
 import { openAlexInstitutionUrl } from "@/lib/institutions/institutions";
 import { MIN_SHARE_DENOMINATOR } from "@/lib/institutions/oaShare";
-import { MAX_FOLDED_IDS } from "@/lib/institutions/snapshot";
+import { MAX_FOLDED_IDS, OA_STATUS_ORDER } from "@/lib/institutions/snapshot";
 import {
   localeHomePath,
   localeInstitutionComparePath,
@@ -200,6 +200,7 @@ function Comparison({
             locale={locale}
             c={c}
             col={col}
+            years={comparison.commonYears}
             num={num}
             pct={pct}
             date={dateFmt}
@@ -238,6 +239,7 @@ function Column({
   locale,
   c,
   col,
+  years,
   num,
   pct,
   date,
@@ -245,12 +247,14 @@ function Column({
   locale: string;
   c: Strings;
   col: CompareColumn;
+  years: number[];
   num: Intl.NumberFormat;
   pct: Intl.NumberFormat;
   date: Intl.DateTimeFormat;
 }) {
   const s = institutionStrings(locale);
   const entityUrl = openAlexInstitutionUrl(col.openalexId);
+  const statuses = openStatusColumns(col);
   return (
     <section className="inst-compare-col">
       <h2>
@@ -264,6 +268,11 @@ function Column({
       <p className="muted">
         {fillInstitutionString(c.asOf, { date: date.format(new Date(col.fetchedAt)) })}
       </p>
+      <Sparkline
+        col={col}
+        years={years}
+        label={fillInstitutionString(c.sparklineLabel, { name: col.name })}
+      />
       <div className="inst-table-wrap">
         <table className="inst-table">
           <caption className="visually-hidden">{col.name}</caption>
@@ -297,7 +306,142 @@ function Column({
           </tbody>
         </table>
       </div>
+
+      <h3>{c.statusHeading}</h3>
+      <div className="inst-table-wrap">
+        <table className="inst-table">
+          <caption className="visually-hidden">
+            {c.statusHeading} — {col.name}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">{s.openalexColYear}</th>
+              {statuses.map((st) => (
+                <th key={st} scope="col" className="num">
+                  {st}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {col.rows.map((r) => (
+              <tr key={r.year}>
+                <th scope="row">{r.year}</th>
+                {statuses.map((st) => (
+                  <td key={st} className="num">
+                    {num.format(r.statuses[st] ?? 0)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {col.domains ? (
+        <>
+          <h3>{s.openalexDomainsHeading}</h3>
+          <p className="muted">
+            {fillInstitutionString(s.openalexDomainsNote, {
+              from: col.years.from,
+              to: col.years.to,
+              total: num.format(col.domains.total),
+            })}
+          </p>
+          <div className="inst-table-wrap">
+            <table className="inst-table">
+              <caption className="visually-hidden">
+                {s.openalexDomainsHeading} — {col.name}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">{s.openalexColDomain}</th>
+                  <th scope="col" className="num">
+                    {s.openalexColWorks}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {col.domains.byDomain.map((d) => (
+                  <tr key={d.id}>
+                    <td>{d.name || d.id}</td>
+                    <td className="num">{num.format(d.count)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : null}
     </section>
+  );
+}
+
+/** The open statuses in OpenAlex's order (never `closed`, which is the
+ *  "none found" column above), then any status the stored rows carry that the
+ *  list does not know, so a new one is shown rather than dropped. */
+function openStatusColumns(col: CompareColumn): string[] {
+  const known = new Set<string>(OA_STATUS_ORDER);
+  const present = new Set(col.rows.flatMap((r) => Object.keys(r.statuses)));
+  const extra = [...present].filter((st) => !known.has(st) && st !== "closed").sort();
+  return [...OA_STATUS_ORDER.filter((st) => st !== "closed"), ...extra];
+}
+
+/**
+ * One organisation's trajectory: its stated shares over the COMMON full
+ * years on a fixed 0–100 axis, one figure per column — never two lines on one
+ * plot, never a bar against another column's. A withheld year is a gap, not
+ * a zero. With fewer than two stated shares nothing is drawn: a lone dot on
+ * a shared axis is a height, not a trajectory. The axis is labelled 0 and
+ * 100 and the first and last year are printed (visual only; the accessible
+ * name says what the figure is), so the fixed scale is read as one.
+ */
+function Sparkline({ col, years, label }: { col: CompareColumn; years: number[]; label: string }) {
+  const W = 240;
+  const H = 68;
+  const L = 30;
+  const R = 8;
+  const T = 8;
+  const B = 50;
+  const points = years.map((year, i) => {
+    const r = col.rows.find((row) => row.year === year);
+    if (!r || r.percent === null) return null;
+    const x = L + (i * (W - L - R)) / (years.length - 1);
+    return { x: Number(x.toFixed(1)), y: Number((B - (r.percent / 100) * (B - T)).toFixed(1)) };
+  });
+  if (points.filter(Boolean).length < 2) return null;
+  const segments: string[] = [];
+  let run: string[] = [];
+  for (const p of points) {
+    if (p) run.push(`${p.x},${p.y}`);
+    else {
+      if (run.length > 1) segments.push(run.join(" "));
+      run = [];
+    }
+  }
+  if (run.length > 1) segments.push(run.join(" "));
+  return (
+    <svg className="inst-spark" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
+      <title>{label}</title>
+      <line className="inst-spark-axis" x1={L} y1={T} x2={W - R} y2={T} />
+      <line className="inst-spark-axis" x1={L} y1={B} x2={W - R} y2={B} />
+      <text className="inst-spark-label" x={L - 4} y={T + 3} textAnchor="end" aria-hidden="true">
+        100
+      </text>
+      <text className="inst-spark-label" x={L - 4} y={B + 3} textAnchor="end" aria-hidden="true">
+        0
+      </text>
+      <text className="inst-spark-label" x={L} y={H - 2} aria-hidden="true">
+        {years[0]}
+      </text>
+      <text className="inst-spark-label" x={W - R} y={H - 2} textAnchor="end" aria-hidden="true">
+        {years[years.length - 1]}
+      </text>
+      {segments.map((d) => (
+        <polyline key={d} points={d} fill="none" />
+      ))}
+      {points.map((p, i) => (p ? <circle key={years[i]} cx={p.x} cy={p.y} r="2.5" /> : null))}
+    </svg>
   );
 }
 

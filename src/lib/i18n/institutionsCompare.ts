@@ -56,6 +56,10 @@ export interface InstitutionCompareStrings {
   caveatCountries: string;
   /** `{contact}`. */
   disclaimer: string;
+  /** Per column, beneath the main table: the open copies split by OpenAlex status. */
+  statusHeading: string;
+  /** `{name}`: the accessible name of a column's sparkline (0–100 axis, stated shares only). */
+  sparklineLabel: string;
 }
 
 const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
@@ -108,6 +112,9 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "These organisations are in different countries: open-access practice follows national policy and infrastructure as much as the organisation.",
     disclaimer:
       "This is public data arranged for reading, not an assessment. SigmaCV gives no organisation a position, a mark or a verdict; nothing here says whether any policy was followed, and no figure of any researcher listed on SigmaCV is used. Only organisations under which at least one researcher chose to be listed can appear — a self-selected set, not a country or a sector. A difference of a few points, or between records read weeks apart, is not meaningful. Corrections belong to OpenAlex, which SigmaCV re-reads weekly; questions about this page: {contact}.",
+    statusHeading: "Open copies by status",
+    sparklineLabel:
+      "Open share by year for {name}, on a scale from 0 to 100 percent; a missing point is a year without a stated share.",
   },
   "zh-CN": {
     metaTitle: "机构并列查看",
@@ -154,6 +161,8 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "这些机构位于不同国家：开放获取实践既取决于机构，也同样取决于国家政策和基础设施。",
     disclaimer:
       "这是为阅读而整理的公开数据，不是评价。SigmaCV 不给任何机构名次、分数或结论；这里没有任何数字说明是否遵循了某项政策，也未使用任何列于 SigmaCV 的研究者的数字。只有至少有一位研究者选择列于其下的机构才会出现——这是一个自我选择形成的集合，不代表一个国家或领域。几个百分点的差异，或相隔数周读取的记录之间的差异，没有意义。更正应向 OpenAlex 提出，SigmaCV 每周重新读取；关于本页的问题请联系：{contact}。",
+    statusHeading: "按状态划分的开放版本",
+    sparklineLabel: "{name} 的逐年开放占比，刻度为 0 到 100%；缺失的点表示该年未给出占比。",
   },
   "es-ES": {
     metaTitle: "Organizaciones en paralelo",
@@ -205,6 +214,9 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "Estas organizaciones están en países distintos: la práctica de acceso abierto depende tanto de la política y la infraestructura nacionales como de la organización.",
     disclaimer:
       "Estos son datos públicos dispuestos para su lectura, no una evaluación. SigmaCV no da a ninguna organización una posición, una nota ni un veredicto; nada aquí dice si se ha seguido alguna política, y no se usa ninguna cifra de ningún investigador que figure en SigmaCV. Solo pueden aparecer organizaciones bajo las que al menos un investigador decidió figurar: un conjunto autoseleccionado, no un país ni un sector. Una diferencia de unos puntos, o entre registros leídos con semanas de distancia, no es significativa. Las correcciones corresponden a OpenAlex, que SigmaCV vuelve a leer cada semana; preguntas sobre esta página: {contact}.",
+    statusHeading: "Copias abiertas por estado",
+    sparklineLabel:
+      "Proporción abierta por año de {name}, en una escala de 0 a 100 por ciento; un punto ausente es un año sin proporción indicada.",
   },
   "fr-FR": {
     metaTitle: "Organismes côte à côte",
@@ -256,6 +268,9 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "Ces organismes sont dans des pays différents : la pratique de l'accès ouvert tient autant à la politique et aux infrastructures nationales qu'à l'organisme.",
     disclaimer:
       "Ce sont des données publiques disposées pour la lecture, pas une évaluation. SigmaCV n'attribue à aucun organisme une place, une note ni un verdict ; rien ici ne dit si une politique a été suivie, et aucun chiffre d'aucun chercheur listé sur SigmaCV n'est utilisé. Seuls peuvent figurer des organismes sous lesquels au moins un chercheur a choisi d'être listé : un ensemble auto-sélectionné, ni un pays ni un secteur. Un écart de quelques points, ou entre des relevés lus à quelques semaines d'intervalle, n'est pas significatif. Les corrections relèvent d'OpenAlex, que SigmaCV relit chaque semaine ; pour toute question sur cette page : {contact}.",
+    statusHeading: "Copies ouvertes par statut",
+    sparklineLabel:
+      "Part ouverte par année de {name}, sur une échelle de 0 à 100 pour cent ; un point absent est une année sans part indiquée.",
   },
   "de-DE": {
     metaTitle: "Einrichtungen nebeneinander",
@@ -308,6 +323,9 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "Diese Einrichtungen liegen in verschiedenen Ländern: Open-Access-Praxis hängt ebenso von nationaler Politik und Infrastruktur ab wie von der Einrichtung.",
     disclaimer:
       "Dies sind öffentliche Daten, zum Lesen angeordnet, keine Bewertung. SigmaCV gibt keiner Einrichtung einen Platz, eine Note oder ein Urteil; nichts hier sagt, ob eine Vorgabe befolgt wurde, und keine Zahl einer auf SigmaCV gelisteten forschenden Person wird verwendet. Erscheinen können nur Einrichtungen, unter denen sich mindestens eine forschende Person listen ließ — eine selbstgewählte Menge, kein Land und keine Branche. Ein Unterschied von wenigen Punkten oder zwischen Wochen auseinander gelesenen Einträgen ist nicht aussagekräftig. Korrekturen gehören zu OpenAlex, das SigmaCV wöchentlich neu liest; Fragen zu dieser Seite: {contact}.",
+    statusHeading: "Offene Kopien nach Status",
+    sparklineLabel:
+      "Offener Anteil nach Jahr für {name}, auf einer Skala von 0 bis 100 Prozent; ein fehlender Punkt ist ein Jahr ohne angegebenen Anteil.",
   },
   "ja-JP": {
     metaTitle: "機関の並置",
@@ -358,6 +376,9 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "これらの機関は異なる国にあります。オープンアクセスの慣行は、機関と同じくらい国の政策や基盤に左右されます。",
     disclaimer:
       "これは読むために整えた公開データであり、評価ではありません。SigmaCV はどの機関にも位置・点数・結論を与えません。ここにある数値は、何らかの方針が守られたかどうかを語りませんし、SigmaCV に掲載された研究者の数値は一切使っていません。現れるのは、少なくとも一人の研究者がその下に掲載されることを選んだ機関だけです。自己選択によって成る集合であり、国や分野を代表するものではありません。数ポイントの差や、数週間離れて読み取った記録の間の差に意味はありません。訂正は OpenAlex に属し、SigmaCV は毎週読み直します。このページについての質問は {contact} まで。",
+    statusHeading: "状態別のオープン版",
+    sparklineLabel:
+      "{name} の年別オープン率（0 から 100 パーセントの目盛り）。点がない年は率を示していない年です。",
   },
   "pt-BR": {
     metaTitle: "Organizações lado a lado",
@@ -408,6 +429,9 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "Estas organizações estão em países diferentes: a prática de acesso aberto depende tanto da política e da infraestrutura nacionais quanto da organização.",
     disclaimer:
       "Estes são dados públicos dispostos para leitura, não uma avaliação. O SigmaCV não dá a nenhuma organização uma posição, uma nota ou um veredito; nada aqui diz se alguma política foi seguida, e nenhum número de nenhum pesquisador listado no SigmaCV é usado. Só podem aparecer organizações sob as quais pelo menos um pesquisador optou por ser listado — um conjunto autosselecionado, não um país nem um setor. Uma diferença de alguns pontos, ou entre registros lidos com semanas de intervalo, não é significativa. Correções pertencem ao OpenAlex, que o SigmaCV relê toda semana; perguntas sobre esta página: {contact}.",
+    statusHeading: "Cópias abertas por status",
+    sparklineLabel:
+      "Proporção aberta por ano de {name}, numa escala de 0 a 100 por cento; um ponto ausente é um ano sem proporção indicada.",
   },
   "it-IT": {
     metaTitle: "Organizzazioni affiancate",
@@ -460,6 +484,9 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "Queste organizzazioni si trovano in paesi diversi: la pratica dell'accesso aperto dipende dalla politica e dalle infrastrutture nazionali quanto dall'organizzazione.",
     disclaimer:
       "Questi sono dati pubblici disposti per la lettura, non una valutazione. SigmaCV non assegna ad alcuna organizzazione una posizione, un voto o un verdetto; nulla qui dice se una politica sia stata seguita, e non viene usata alcuna cifra di alcun ricercatore elencato su SigmaCV. Possono comparire solo organizzazioni sotto le quali almeno un ricercatore ha scelto di essere elencato: un insieme autoselezionato, non un paese né un settore. Una differenza di pochi punti, o fra registrazioni lette a settimane di distanza, non è significativa. Le correzioni spettano a OpenAlex, che SigmaCV rilegge ogni settimana; domande su questa pagina: {contact}.",
+    statusHeading: "Copie aperte per stato",
+    sparklineLabel:
+      "Quota aperta per anno di {name}, su una scala da 0 a 100 per cento; un punto assente è un anno senza quota indicata.",
   },
   "ko-KR": {
     metaTitle: "기관 나란히 보기",
@@ -511,6 +538,9 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "이들 기관은 서로 다른 나라에 있습니다. 오픈 액세스 관행은 기관만큼이나 국가 정책과 기반에 좌우됩니다.",
     disclaimer:
       "이것은 읽기 위해 정리한 공개 데이터이지 평가가 아닙니다. SigmaCV는 어떤 기관에도 자리, 등급, 결론을 주지 않습니다. 여기의 어떤 수치도 어떤 정책이 지켜졌는지 말하지 않으며, SigmaCV에 등재된 연구자의 수치는 전혀 쓰이지 않습니다. 적어도 한 명의 연구자가 그 아래 등재되기를 선택한 기관만 나타납니다. 스스로 선택하여 이루어진 집합이며, 국가나 분야를 대표하지 않습니다. 몇 포인트의 차이나 몇 주 떨어져 읽은 기록 사이의 차이는 의미가 없습니다. 정정은 OpenAlex의 몫이며 SigmaCV는 매주 다시 읽습니다. 이 페이지에 관한 문의: {contact}.",
+    statusHeading: "상태별 공개본",
+    sparklineLabel:
+      "{name}의 연도별 공개 비율(0에서 100퍼센트 눈금). 점이 없는 해는 비율을 표시하지 않은 해입니다.",
   },
   "ru-RU": {
     metaTitle: "Организации рядом",
@@ -562,6 +592,9 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "Эти организации находятся в разных странах: практика открытого доступа зависит от национальной политики и инфраструктуры не меньше, чем от организации.",
     disclaimer:
       "Это публичные данные, расположенные для чтения, а не оценка. SigmaCV не даёт ни одной организации места, отметки или вердикта; ничто здесь не говорит, соблюдалась ли какая-либо политика, и не используется ни одно число ни одного исследователя, указанного на SigmaCV. Появиться могут только организации, под которыми хотя бы один исследователь решил быть указанным, — самоотобранное множество, а не страна и не отрасль. Разница в несколько пунктов или между записями, прочитанными с разницей в недели, не значима. Исправления — дело OpenAlex, который SigmaCV перечитывает еженедельно; вопросы об этой странице: {contact}.",
+    statusHeading: "Открытые копии по статусам",
+    sparklineLabel:
+      "Открытая доля по годам для {name}, по шкале от 0 до 100 процентов; отсутствующая точка — год без указанной доли.",
   },
 };
 

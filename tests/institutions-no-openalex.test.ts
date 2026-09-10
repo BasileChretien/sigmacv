@@ -198,8 +198,10 @@ describe("the opted-in figures and the OpenAlex snapshot never meet", () => {
   it("the page hands each section only its own data", () => {
     const page = read("src/components/InstitutionPage.tsx");
     expect(page).toContain("<InstitutionFiguresSection locale={loc} figures={summary.figures} />");
-    expect(page).toContain(
-      "<InstitutionOpenAlexSection locale={loc} snapshot={summary.openalex} />",
+    // The OpenAlex section gets the snapshot and the page's ROR id (for its
+    // link to the comparison view) — never the figures.
+    expect(page.replace(/\s+/g, " ")).toContain(
+      "<InstitutionOpenAlexSection locale={loc} rorId={summary.rorId} snapshot={summary.openalex} />",
     );
   });
 });
