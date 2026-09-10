@@ -400,16 +400,31 @@ WHERE pathname LIKE '/preview/0%'` should reach 0 within a minute. The nightly
 
 ## Feature-usage custom events
 
-Cookieless Plausible custom events fire from the editor via the
+Cookieless Plausible custom events fire from the editor, the homepage and
+landing pages, the no-login preview and the sign-in error page via the
 `trackEvent()` helper (`src/lib/analytics/track.ts`). They carry only neutral
-product signals — never personal data, CV content, or a mine/not-mine correction
-(those stay on the consent + IRB-gated `ResearchEvent` path):
+product signals — never personal data, CV content, a typed name or iD, or a
+mine/not-mine correction (those stay on the consent + IRB-gated `ResearchEvent`
+path):
 
-| Event      | Props                                   | Fired when                       |
-| ---------- | --------------------------------------- | -------------------------------- |
-| `Export`   | `format` (pdf/docx/latex/markdown/html) | a CV is exported                 |
-| `Template` | `template` (classic/modern/…)           | a different template is selected |
-| `Publish`  | `indexable` (bool)                      | a public page is published       |
+| Event                  | Props                                                                                        | Fired when                                                                             |
+| ---------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `See it first`         | `input` (orcid / name)                                                                       | the homepage / orcid-to-cv box sends a visitor onward — the kind only, never the value |
+| `Sign in`              | `method` (orcid / google / email)                                                            | a sign-in button is pressed                                                            |
+| `Sign-in error`        | `code` (Configuration / AccessDenied / Verification / OAuthSignin / OAuthCallback / Default) | the sign-in error page renders — our mapped bucket, never Auth.js's raw `?error`       |
+| `Preview`              | `outcome` (ready / empty / error / rate)                                                     | a no-login preview build settles                                                       |
+| `Preview CTA`          | `action` (signin / copy-link / published-page)                                               | a call to action on the preview is used                                                |
+| `Export`               | `format` (pdf/docx/latex/markdown/html)                                                      | a CV is exported                                                                       |
+| `Template`             | `template` (classic/modern/…)                                                                | a different template is selected                                                       |
+| `PublicStyle`          | `style` (public-page style id)                                                               | a different public-page style is selected                                              |
+| `Publish`              | `indexable` (bool)                                                                           | a public page is published                                                             |
+| `Publish nudge`        | `action`                                                                                     | the post-export publish nudge is followed                                              |
+| `Badge snippet copied` | `format`                                                                                     | a Living-CV badge snippet is copied                                                    |
+
+The pageview scrub in `src/lib/analytics/plausibleInit.ts` cuts `/preview/<iD>`
+to `/preview/_` and drops the query string from `/search?q=…` before the request
+leaves the browser, so neither a looked-up iD nor a typed name reaches the
+collector.
 
 They appear under **Goals / Custom events** in the Plausible dashboard once you
 add them there (Site settings → Goals → Custom event). No extra deploy needed —

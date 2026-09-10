@@ -47,6 +47,9 @@ export interface LandingStrings {
   step3: string;
   signInTitle: string;
   signInSub: string;
+  /** Divider between the "see it first" box and the sign-in button: the ask to
+   *  keep the record once the visitor has seen it. */
+  keepIt: string;
   signInOrcid: string;
   /** Trust line shown directly under the ORCID sign-in button. */
   orcidTrust: string;
@@ -108,6 +111,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     step3: "Curate, style, and export — or publish a living page.",
     signInTitle: "Sign in",
     signInSub: "Free for individuals · open source",
+    keepIt: "Is it yours? Sign in to curate, export and publish it.",
     signInOrcid: "Sign in with ORCID",
     orcidTrust: "We only read your public ORCID record — never post, never write anything back.",
     orDivider: "or",
@@ -206,6 +210,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     step3: "整理、设置样式并导出——或发布一个持续更新的页面。",
     signInTitle: "登录",
     signInSub: "个人免费 · 开源",
+    keepIt: "是您的记录？登录即可整理、导出和发布。",
     signInOrcid: "使用 ORCID 登录",
     orcidTrust: "我们仅读取您公开的 ORCID 记录——绝不发布、绝不写入任何内容。",
     orDivider: "或",
@@ -292,6 +297,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     step3: "Selecciona, da estilo y exporta, o publica una página viva.",
     signInTitle: "Iniciar sesión",
     signInSub: "Gratis para particulares · código abierto",
+    keepIt: "¿Es tuyo? Inicia sesión para revisarlo, exportarlo y publicarlo.",
     signInOrcid: "Iniciar sesión con ORCID",
     orcidTrust: "Solo leemos tu registro público de ORCID: nunca publicamos ni escribimos nada.",
     orDivider: "o",
@@ -390,6 +396,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     step3: "Sélectionnez, mettez en forme et exportez — ou publiez une page vivante.",
     signInTitle: "Se connecter",
     signInSub: "Gratuit pour les particuliers · open source",
+    keepIt: "C'est le vôtre ? Connectez-vous pour le corriger, l'exporter et le publier.",
     signInOrcid: "Se connecter avec ORCID",
     orcidTrust:
       "Nous lisons seulement votre fiche ORCID publique — jamais de publication ni d’écriture.",
@@ -489,6 +496,8 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     step3: "Kuratieren, gestalten und exportieren — oder eine lebende Seite veröffentlichen.",
     signInTitle: "Anmelden",
     signInSub: "Kostenlos für Einzelpersonen · quelloffen",
+    keepIt:
+      "Ist es Ihr Lebenslauf? Melden Sie sich an, um ihn zu kuratieren, zu exportieren und zu veröffentlichen.",
     signInOrcid: "Mit ORCID anmelden",
     orcidTrust:
       "Wir lesen nur Ihren öffentlichen ORCID-Eintrag — wir posten und schreiben nie etwas zurück.",
@@ -588,6 +597,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     step3: "整理・スタイル設定・書き出し——または更新され続けるページを公開。",
     signInTitle: "サインイン",
     signInSub: "個人は無料 · オープンソース",
+    keepIt: "ご自身の記録ですか？サインインすると整理・書き出し・公開ができます。",
     signInOrcid: "ORCID でサインイン",
     orcidTrust: "公開されている ORCID の記録を読み取るだけです。投稿も書き込みも一切行いません。",
     orDivider: "または",
@@ -686,6 +696,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     step3: "Organize, estilize e exporte — ou publique uma página viva.",
     signInTitle: "Entrar",
     signInSub: "Gratuito para indivíduos · código aberto",
+    keepIt: "É seu? Entre para organizar, exportar e publicar.",
     signInOrcid: "Entrar com ORCID",
     orcidTrust: "Lemos apenas seu registro público do ORCID — nunca publicamos nem gravamos nada.",
     orDivider: "ou",
@@ -784,6 +795,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     step3: "Seleziona, applica uno stile ed esporta — o pubblica una pagina viva.",
     signInTitle: "Accedi",
     signInSub: "Gratuito per i privati · open source",
+    keepIt: "È il tuo? Accedi per curarlo, esportarlo e pubblicarlo.",
     signInOrcid: "Accedi con ORCID",
     orcidTrust: "Leggiamo solo il tuo record ORCID pubblico — non pubblichiamo né scriviamo nulla.",
     orDivider: "oppure",
@@ -882,6 +894,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     step3: "정리하고, 스타일을 지정하고, 내보내거나 — 지속 갱신되는 페이지를 공개하세요.",
     signInTitle: "로그인",
     signInSub: "개인 무료 · 오픈소스",
+    keepIt: "본인의 기록인가요? 로그인하면 정리, 내보내기, 게시를 할 수 있습니다.",
     signInOrcid: "ORCID로 로그인",
     orcidTrust: "공개된 ORCID 기록만 읽습니다. 게시하거나 무언가를 기록하는 일은 없습니다.",
     orDivider: "또는",
@@ -977,6 +990,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
     step3: "Отберите, оформите и экспортируйте — или опубликуйте живую страницу.",
     signInTitle: "Войти",
     signInSub: "Бесплатно для частных лиц · открытый код",
+    keepIt: "Это ваша запись? Войдите, чтобы отредактировать, экспортировать и опубликовать её.",
     signInOrcid: "Войти через ORCID",
     orcidTrust:
       "Мы только читаем ваш публичный профиль ORCID — ничего не публикуем и не записываем.",

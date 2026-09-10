@@ -13,7 +13,7 @@ import { serializeJsonLd } from "@/lib/jsonLd";
 import { localeHomePath, localeLandingPagePath } from "@/lib/seo";
 import { absoluteUrl, SITE_URL } from "@/lib/siteUrl";
 import DocJsonLd from "./DocJsonLd";
-import OrcidPreviewForm from "./OrcidPreviewForm";
+import SeeItFirstForm from "./SeeItFirstForm";
 import SiteLinks from "./SiteLinks";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
@@ -121,9 +121,9 @@ export default function LandingPage({ page, locale }: { page: AnyLandingPageId; 
             same read-only reassurance here. */}
         <p className="muted doc-trust">{landingStrings(loc).orcidTrust}</p>
 
-        {/* The ORCID→CV page is the natural home for the no-login preview: paste
-            an iD and see the result before signing in. */}
-        {page === "orcid-to-cv" ? <OrcidPreviewForm locale={loc} /> : null}
+        {/* The ORCID→CV page is the natural home for the no-login preview: a name
+            or an iD shows the result before signing in. */}
+        {page === "orcid-to-cv" ? <SeeItFirstForm locale={loc} /> : null}
 
         <section>
           <h2>{c.stepsHeading}</h2>

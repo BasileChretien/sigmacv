@@ -52,6 +52,21 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(out.n).toBe("pageview");
   });
 
+  it("drops the typed name from /search?q= (bare and localized), keeping the fragment", () => {
+    const transform = boot().o!.transformRequest!;
+    const out = transform({
+      u: "https://sigmacv.org/search?q=Basile%20Chr%C3%A9tien#top",
+      r: "https://sigmacv.org/fr/search?q=chr%C3%A9tien",
+    });
+    expect(out.u).toBe("https://sigmacv.org/search#top");
+    expect(out.r).toBe("https://sigmacv.org/fr/search");
+    // Not a lookup: a page whose path merely contains "search" keeps its query.
+    expect(transform({ u: "https://sigmacv.org/research?x=1" }).u).toBe(
+      "https://sigmacv.org/research?x=1",
+    );
+    expect(transform({ u: "https://sigmacv.org/search" }).u).toBe("https://sigmacv.org/search");
+  });
+
   it("leaves every other path, and a missing/odd payload, untouched", () => {
     const transform = boot().o!.transformRequest!;
     expect(transform({ u: "https://sigmacv.org/p/abc", r: "" })).toEqual({

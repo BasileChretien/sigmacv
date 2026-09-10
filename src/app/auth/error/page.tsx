@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "@/components/landing/home.css";
+import AuthErrorPing from "@/components/AuthErrorPing";
 import { DEFAULT_UI_LOCALE } from "@/lib/i18n";
 import { landingStrings } from "@/lib/i18n/landing";
 
@@ -74,6 +75,7 @@ export default async function AuthErrorPage({ searchParams }: SearchParams) {
   return (
     <div className="hp2 hp2-auth-page" lang={loc}>
       <main className="hp2-auth-card" id="hp2-main">
+        <AuthErrorPing code={code} />
         <span className="hp2-brand-mark hp2-auth-mark" aria-hidden="true">
           Σ
         </span>

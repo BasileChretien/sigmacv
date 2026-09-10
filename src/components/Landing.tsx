@@ -2,7 +2,7 @@ import Link from "next/link";
 import "./landing/beams.css";
 import "./landing/home.css";
 import SignInButton from "@/components/SignInButton";
-import OrcidPreviewForm from "./OrcidPreviewForm";
+import SeeItFirstForm from "./SeeItFirstForm";
 import { enabledProviders } from "@/auth.config";
 import { signInWithEmail, signInWithGoogle, signInWithOrcid } from "@/app/auth-actions";
 import { asLocale, t } from "@/lib/i18n";
@@ -122,10 +122,18 @@ export default function Landing({ locale }: LandingProps) {
             <p className="hp2-sub">{s.heroSub}</p>
 
             <div className="hp2-signin">
-              <div className="hp2-signin-head">
+              {/* The front door: a name or an iD opens the no-login preview or the
+                  name lookup before any OAuth is asked for. Cold visitors get
+                  something to do; warm ones still see the sign-in right below.
+                  A name lands on the same /search as the "someone else" line at
+                  the bottom of the card — the two differ only in who is asking. */}
+              <SeeItFirstForm locale={loc} />
+
+              <div className="hp2-signin-head hp2-keepit">
                 <h2 className="hp2-signin-title">{s.signInTitle}</h2>
                 <span className="hp2-signin-sub">{s.signInSub}</span>
               </div>
+              <p className="hp2-keepit-line">{s.keepIt}</p>
 
               <form action={signInWithOrcid}>
                 <SignInButton
@@ -156,9 +164,6 @@ export default function Landing({ locale }: LandingProps) {
                 </div>
               </details>
 
-              {/* Try-before-you-trust: preview a CV from a public ORCID iD with no
-                  sign-in, then convert. Lowers the OAuth-commitment barrier. */}
-              <OrcidPreviewForm locale={loc} />
               {/* The other visitor: not the owner, looking someone up. A quiet
                   secondary entry — the hero and the sign-in CTA stay as they are. */}
               <p className="hp2-lookup">

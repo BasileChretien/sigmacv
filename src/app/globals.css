@@ -3564,10 +3564,19 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
 }
 .hp2-preview .auth-email-row {
   margin-top: 0;
+  /* A long button label (de-DE) must push the button under the input on a
+     narrow phone, never squeeze the input to a sliver. */
+  flex-wrap: wrap;
+}
+/* The shared .hp2-btn is full-width by default; in this row the input is the
+   thing to fill and the button takes only its label. */
+.hp2-preview .auth-email-row .hp2-btn {
+  width: auto;
+  flex: 0 0 auto;
 }
 .hp2-preview-input {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 .hp2-preview-input[aria-invalid="true"] {
   border-color: var(--danger, #c0392b);
@@ -3576,6 +3585,11 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   margin: var(--space-1) 0 0;
   font-size: var(--text-xs);
   color: var(--danger, #c0392b);
+}
+.hp2-preview-hint {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  color: var(--muted);
 }
 /* Standalone /preview/[orcid] page: an intro band (name + sign-in CTA) over the
    scaled CV render, plus centred empty/invalid states. */
