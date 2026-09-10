@@ -62,11 +62,12 @@ function sourceFiles(path: string): string[] {
 describe("institution pages never call an external API", () => {
   const files = SCOPES.flatMap(sourceFiles);
 
-  it("covers the lib (incl. the pure snapshot, aggregate, summing and reconciliation modules), the listed-CV reader, the four pages, the two export routes and the four components", () => {
-    expect(files.length).toBeGreaterThanOrEqual(19);
+  it("covers the lib (incl. the pure snapshot, share, aggregate, summing and reconciliation modules), the listed-CV reader, the four pages, the two export routes and the four components", () => {
+    expect(files.length).toBeGreaterThanOrEqual(20);
     for (const name of [
       "listed.ts",
       "snapshot.ts",
+      "oaShare.ts",
       "cvAggregates.ts",
       "aggregateSum.ts",
       "reconciliation.ts",
@@ -124,6 +125,7 @@ describe("the opted-in figures and the OpenAlex snapshot never meet", () => {
   ];
   const SNAPSHOT_SIDE = [
     "src/lib/institutions/snapshot.ts",
+    "src/lib/institutions/oaShare.ts",
     "src/components/InstitutionOpenAlexSection.tsx",
   ];
 

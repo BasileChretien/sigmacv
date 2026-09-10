@@ -5,7 +5,9 @@ import { asLocale, type Locale } from "./index";
  * languages. Typed as Record<Locale, InstitutionStrings> so a missing
  * translation is a compile error.
  *
- * The pages state counts only. The copy therefore never ranks, scores or
+ * The pages state counts, plus one whole-percent open share on `/i/[ror]`
+ * that is defined and bounded on the page (`openalexShareNote`). The copy
+ * therefore never ranks, scores or
  * compares, never uses compliance vocabulary, and never says an institution
  * "evaluates its researchers" — it says: read a verifiable CV a researcher
  * chooses to send you. Placeholders: `{name}` (institution), `{count}`
@@ -40,7 +42,8 @@ export interface InstitutionStrings {
   rateLimitedHeading: string;
   rateLimitedBody: string;
   /** "OpenAlex's record of this organisation" — rendered from the stored
-   *  snapshot only (counts, explicit denominators, no share). */
+   *  snapshot only: counts with explicit denominators, and the one open
+   *  share `openalexShareNote` defines. */
   openalexHeading: string;
   openalexNotFetched: string;
   /** `{id}` (OpenAlex `I…`), `{entityName}`, `{lineage}`, `{related}`. */
@@ -59,6 +62,16 @@ export interface InstitutionStrings {
   openalexCoAffiliationsNote: string;
   /** `{date}`. */
   openalexAsOf: string;
+  /** Column header of the open share. */
+  openalexColShare: string;
+  /** `{floor}`: the share's definition, floor and limits, above the table. */
+  openalexShareNote: string;
+  /** The share cell below the floor. */
+  openalexShareFew: string;
+  /** The share cell of the snapshot's last (incomplete) year. */
+  openalexShareIncomplete: string;
+  /** `{years}`: the years where the two totals differ by more than one percent. */
+  openalexTotalsDiffer: string;
   openalexColYear: string;
   openalexColWorks: string;
   openalexColTotal: string;
@@ -141,13 +154,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Counted as OpenAlex entity {id} ({entityName}): a lineage of {lineage}, {related} associated organisations. Hospitals and affiliated labs that OpenAlex records as related or child organisations are folded in; parent organisations are not.",
     openalexScope:
-      "Counts of articles, reviews, book chapters and preprints that OpenAlex attributes to these organisations, {from}–{to}. Datasets are left out: they swamp the current year. Counts only; each table states its own total.",
+      "Counts of articles, reviews, book chapters and preprints that OpenAlex attributes to these organisations, {from}–{to}. Datasets are left out: they swamp the current year. Each table states its own total.",
     openalexNotCompared:
       "These are OpenAlex's figures about the organisation, not about the researchers listed above, and SigmaCV compares neither with the other.",
     openalexWorksByYearHeading: "Works by year",
     openalexOaByYearHeading: "Open-access status by year",
     openalexOaNote:
-      "OpenAlex's own status of each work's best open copy (gold, hybrid, diamond, green, bronze — or closed when it found none). The last column is that year's total.",
+      "OpenAlex's own status of each work's best open copy (gold, hybrid, diamond, green, bronze — or closed when it found none). Total is the number of works with a status that year, from the same request as the columns; it can differ slightly from the works-by-year table.",
     openalexCountriesHeading: "Countries of co-authors (top {n})",
     openalexCountriesNote:
       "Number of works with at least one author affiliated in each country, this organisation's own country included.",
@@ -156,6 +169,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Number of works that also carry an author from each other organisation; this organisation's own lineage and associated organisations are left out.",
     openalexAsOf:
       "As of {date}, from OpenAlex; refreshed about weekly by SigmaCV. Nothing on this page is fetched when it is opened.",
+    openalexColShare: "Open share",
+    openalexShareNote:
+      "Open share: the works OpenAlex records under any status but closed (bronze included), divided by that year's total and stated as a whole percent beside both counts. It is given only where a year counts at least {floor} works with a status, and not for the latest year shown, which is not over; the statuses of the year before it may still change as embargoes end. It is not adjusted for field, language, publisher or size: a difference of a few points, or a shift between records read weeks apart, means nothing on its own.",
+    openalexShareFew: "too few works to state a share",
+    openalexShareIncomplete: "year not complete",
+    openalexTotalsDiffer:
+      "For {years}, the works-by-year table counts a noticeably different number of works from those with a status here; the two come from different OpenAlex requests.",
     openalexColYear: "Year",
     openalexColWorks: "Works",
     openalexColTotal: "Total",
@@ -226,19 +246,26 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "按 OpenAlex 实体 {id}（{entityName}）计数：谱系包含 {lineage} 个机构，关联机构 {related} 个。OpenAlex 记为关联或下属机构的医院和附属实验室已合并计入；上级机构不计入。",
     openalexScope:
-      "OpenAlex 归属于这些机构的论文、综述、图书章节和预印本的数量，{from}–{to} 年。不含数据集：数据集会淹没当年的数字。只列数量；每张表都写明自己的总数。",
+      "OpenAlex 归属于这些机构的论文、综述、图书章节和预印本的数量，{from}–{to} 年。不含数据集：数据集会淹没当年的数字。每张表都写明自己的总数。",
     openalexNotCompared:
       "这些是 OpenAlex 关于该机构的数字，与上面列出的研究者无关，SigmaCV 也不将两者相互比较。",
     openalexWorksByYearHeading: "按年份的成果数",
     openalexOaByYearHeading: "按年份的开放获取状态",
     openalexOaNote:
-      "OpenAlex 对每篇成果最佳开放版本的自有状态（gold、hybrid、diamond、green、bronze；未找到开放版本时为 closed）。最后一列是该年的总数。",
+      "OpenAlex 对每篇成果最佳开放版本的自有状态（gold、hybrid、diamond、green、bronze；未找到开放版本时为 closed）。总计是该年有状态的成果数，与各列来自同一次请求；它可能与按年份的成果数表略有出入。",
     openalexCountriesHeading: "合著者所在国家（前 {n} 位）",
     openalexCountriesNote: "至少有一位作者隶属于该国家的成果数，包括本机构所在的国家。",
     openalexCoAffiliationsHeading: "共同署名机构（前 {n} 位）",
     openalexCoAffiliationsNote: "同时带有其他机构作者的成果数；本机构自身的谱系和关联机构不计入。",
     openalexAsOf:
       "数据截至 {date}，来自 OpenAlex，由 SigmaCV 大约每周刷新一次。打开本页时不会获取任何数据。",
+    openalexColShare: "开放占比",
+    openalexShareNote:
+      "开放占比：OpenAlex 记为 closed 以外任一状态（含 bronze）的成果数除以该年总计，取整数百分比，并与两个计数并列显示。只有当某年至少有 {floor} 篇有状态的成果时才给出，所示的最后一年因尚未结束不给出；其前一年的状态也可能随着禁运期结束而变化。未按学科、语言、出版商或规模调整：几个百分点的差异，或相隔数周读取的记录之间的变化，本身没有任何意义。",
+    openalexShareFew: "成果太少，不给出占比",
+    openalexShareIncomplete: "年份未结束",
+    openalexTotalsDiffer:
+      "{years} 年，按年份的成果数表的数量与此处有状态的成果数明显不同；两者来自 OpenAlex 的不同请求。",
     openalexColYear: "年份",
     openalexColWorks: "成果",
     openalexColTotal: "总计",
@@ -310,13 +337,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Contabilizada como la entidad de OpenAlex {id} ({entityName}): un linaje de {lineage}, {related} organizaciones asociadas. Los hospitales y laboratorios afiliados que OpenAlex registra como organizaciones relacionadas o dependientes se incluyen; las organizaciones matrices, no.",
     openalexScope:
-      "Recuento de artículos, revisiones, capítulos de libro y preprints que OpenAlex atribuye a estas organizaciones, {from}–{to}. Se excluyen los conjuntos de datos: inundan el año en curso. Solo recuentos; cada tabla indica su propio total.",
+      "Recuento de artículos, revisiones, capítulos de libro y preprints que OpenAlex atribuye a estas organizaciones, {from}–{to}. Se excluyen los conjuntos de datos: inundan el año en curso. Cada tabla indica su propio total.",
     openalexNotCompared:
       "Son las cifras de OpenAlex sobre la organización, no sobre las personas investigadoras listadas arriba, y SigmaCV no compara unas con otras.",
     openalexWorksByYearHeading: "Trabajos por año",
     openalexOaByYearHeading: "Estado de acceso abierto por año",
     openalexOaNote:
-      "El estado que OpenAlex asigna a la mejor copia abierta de cada trabajo (gold, hybrid, diamond, green, bronze, o closed cuando no encontró ninguna). La última columna es el total de ese año.",
+      "El estado que OpenAlex asigna a la mejor copia abierta de cada trabajo (gold, hybrid, diamond, green, bronze, o closed cuando no encontró ninguna). El total es el número de trabajos con estado ese año, de la misma petición que las columnas; puede diferir ligeramente de la tabla de trabajos por año.",
     openalexCountriesHeading: "Países de los coautores (los {n} primeros)",
     openalexCountriesNote:
       "Número de trabajos con al menos un autor afiliado en cada país, incluido el país de esta organización.",
@@ -325,6 +352,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Número de trabajos que también llevan un autor de cada otra organización; se excluyen el propio linaje y las organizaciones asociadas de esta organización.",
     openalexAsOf:
       "A fecha de {date}, según OpenAlex; SigmaCV lo actualiza aproximadamente cada semana. Nada de esta página se obtiene al abrirla.",
+    openalexColShare: "Proporción abierta",
+    openalexShareNote:
+      "Proporción abierta: los trabajos que OpenAlex registra con cualquier estado salvo closed (bronze incluido), divididos por el total de ese año y expresados como porcentaje entero junto a ambos recuentos. Solo se indica cuando un año cuenta al menos {floor} trabajos con estado, y no para el último año mostrado, que no ha terminado; los estados del año anterior aún pueden cambiar a medida que vencen los embargos. No se ajusta por campo, idioma, editorial ni tamaño: una diferencia de unos puntos, o un cambio entre registros leídos con semanas de distancia, no significa nada por sí sola.",
+    openalexShareFew: "demasiado pocos trabajos para indicar una proporción",
+    openalexShareIncomplete: "año no completo",
+    openalexTotalsDiffer:
+      "En {years}, la tabla de trabajos por año cuenta un número de trabajos claramente distinto del de trabajos con estado aquí; ambos proceden de peticiones distintas a OpenAlex.",
     openalexColYear: "Año",
     openalexColWorks: "Trabajos",
     openalexColTotal: "Total",
@@ -398,13 +432,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Comptabilisé comme l'entité OpenAlex {id} ({entityName}) : une lignée de {lineage}, {related} organismes associés. Les hôpitaux et laboratoires affiliés qu'OpenAlex enregistre comme organismes liés ou rattachés sont inclus ; les organismes parents ne le sont pas.",
     openalexScope:
-      "Nombre d'articles, de revues de littérature, de chapitres d'ouvrage et de prépublications qu'OpenAlex attribue à ces organismes, {from}–{to}. Les jeux de données sont exclus : ils submergent l'année en cours. Des effectifs seulement ; chaque tableau indique son propre total.",
+      "Nombre d'articles, de revues de littérature, de chapitres d'ouvrage et de prépublications qu'OpenAlex attribue à ces organismes, {from}–{to}. Les jeux de données sont exclus : ils submergent l'année en cours. Chaque tableau indique son propre total.",
     openalexNotCompared:
       "Ce sont les chiffres d'OpenAlex sur l'organisme, non sur les chercheuses et chercheurs listés ci-dessus, et SigmaCV ne compare pas les uns aux autres.",
     openalexWorksByYearHeading: "Travaux par année",
     openalexOaByYearHeading: "Statut d'accès ouvert par année",
     openalexOaNote:
-      "Le statut qu'OpenAlex attribue à la meilleure copie ouverte de chaque travail (gold, hybrid, diamond, green, bronze, ou closed lorsqu'il n'en a trouvé aucune). La dernière colonne est le total de l'année.",
+      "Le statut qu'OpenAlex attribue à la meilleure copie ouverte de chaque travail (gold, hybrid, diamond, green, bronze, ou closed lorsqu'il n'en a trouvé aucune). Le total est le nombre de travaux dotés d'un statut cette année-là, issu de la même requête que les colonnes ; il peut différer légèrement du tableau des travaux par année.",
     openalexCountriesHeading: "Pays des co-auteurs ({n} premiers)",
     openalexCountriesNote:
       "Nombre de travaux ayant au moins un auteur affilié dans chaque pays, celui de cet organisme compris.",
@@ -413,6 +447,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Nombre de travaux portant aussi un auteur de chaque autre organisme ; la lignée et les organismes associés de cet organisme sont exclus.",
     openalexAsOf:
       "Au {date}, d'après OpenAlex ; actualisé environ chaque semaine par SigmaCV. Rien sur cette page n'est récupéré à son ouverture.",
+    openalexColShare: "Part ouverte",
+    openalexShareNote:
+      "Part ouverte : les travaux qu'OpenAlex enregistre sous tout statut sauf closed (bronze compris), divisés par le total de l'année et exprimés en pourcentage entier à côté des deux effectifs. Elle n'est indiquée que lorsqu'une année compte au moins {floor} travaux dotés d'un statut, et jamais pour la dernière année affichée, qui n'est pas terminée ; les statuts de l'année précédente peuvent encore changer à mesure que les embargos expirent. Elle n'est corrigée ni du domaine, ni de la langue, ni de l'éditeur, ni de la taille : un écart de quelques points, ou une variation entre des relevés lus à quelques semaines d'intervalle, ne signifie rien en soi.",
+    openalexShareFew: "trop peu de travaux pour indiquer une part",
+    openalexShareIncomplete: "année incomplète",
+    openalexTotalsDiffer:
+      "Pour {years}, le tableau des travaux par année compte un nombre de travaux nettement différent de celui des travaux dotés d'un statut ici ; les deux viennent de requêtes OpenAlex distinctes.",
     openalexColYear: "Année",
     openalexColWorks: "Travaux",
     openalexColTotal: "Total",
@@ -486,13 +527,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Gezählt als OpenAlex-Entität {id} ({entityName}): eine Linie von {lineage}, {related} verbundene Einrichtungen. Kliniken und angegliederte Labore, die OpenAlex als verwandte oder untergeordnete Einrichtungen führt, werden eingerechnet; übergeordnete Einrichtungen nicht.",
     openalexScope:
-      "Anzahl der Artikel, Übersichtsarbeiten, Buchkapitel und Preprints, die OpenAlex diesen Einrichtungen zuordnet, {from}–{to}. Datensätze bleiben außen vor: sie überschwemmen das laufende Jahr. Nur Anzahlen; jede Tabelle nennt ihre eigene Gesamtzahl.",
+      "Anzahl der Artikel, Übersichtsarbeiten, Buchkapitel und Preprints, die OpenAlex diesen Einrichtungen zuordnet, {from}–{to}. Datensätze bleiben außen vor: sie überschwemmen das laufende Jahr. Jede Tabelle nennt ihre eigene Gesamtzahl.",
     openalexNotCompared:
       "Das sind OpenAlex-Zahlen über die Einrichtung, nicht über die oben gelisteten Forschenden, und SigmaCV vergleicht beides nicht miteinander.",
     openalexWorksByYearHeading: "Arbeiten nach Jahr",
     openalexOaByYearHeading: "Open-Access-Status nach Jahr",
     openalexOaNote:
-      "Der Status, den OpenAlex der besten offenen Kopie jeder Arbeit zuweist (gold, hybrid, diamond, green, bronze — oder closed, wenn keine gefunden wurde). Die letzte Spalte ist die Gesamtzahl des Jahres.",
+      "Der Status, den OpenAlex der besten offenen Kopie jeder Arbeit zuweist (gold, hybrid, diamond, green, bronze — oder closed, wenn keine gefunden wurde). Gesamt ist die Zahl der Arbeiten mit einem Status in dem Jahr, aus derselben Abfrage wie die Spalten; sie kann leicht von der Tabelle der Arbeiten nach Jahr abweichen.",
     openalexCountriesHeading: "Länder der Koautorinnen und Koautoren (Top {n})",
     openalexCountriesNote:
       "Anzahl der Arbeiten mit mindestens einer in dem jeweiligen Land affiliierten Autorin oder einem Autor, das Land dieser Einrichtung eingeschlossen.",
@@ -501,6 +542,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Anzahl der Arbeiten, die auch eine Autorin oder einen Autor der jeweils anderen Einrichtung tragen; die eigene Linie und die verbundenen Einrichtungen dieser Einrichtung bleiben außen vor.",
     openalexAsOf:
       "Stand {date}, laut OpenAlex; von SigmaCV etwa wöchentlich aktualisiert. Beim Öffnen dieser Seite wird nichts abgerufen.",
+    openalexColShare: "Offener Anteil",
+    openalexShareNote:
+      "Offener Anteil: die Arbeiten, die OpenAlex mit irgendeinem Status außer closed führt (bronze eingeschlossen), geteilt durch die Gesamtzahl des Jahres und als ganze Prozentzahl neben beiden Zahlen abgedruckt. Er wird nur angegeben, wenn ein Jahr mindestens {floor} Arbeiten mit Status zählt, und nicht für das letzte gezeigte Jahr, das noch nicht zu Ende ist; die Status des Vorjahres können sich noch ändern, wenn Embargofristen ablaufen. Er ist nicht nach Fach, Sprache, Verlag oder Größe bereinigt: ein Unterschied von wenigen Punkten oder eine Verschiebung zwischen Abrufen, die Wochen auseinanderliegen, bedeutet für sich genommen nichts.",
+    openalexShareFew: "zu wenige Arbeiten für einen Anteil",
+    openalexShareIncomplete: "Jahr nicht abgeschlossen",
+    openalexTotalsDiffer:
+      "Für {years} zählt die Tabelle der Arbeiten nach Jahr eine deutlich andere Zahl von Arbeiten als die mit Status hier; beide stammen aus verschiedenen OpenAlex-Abfragen.",
     openalexColYear: "Jahr",
     openalexColWorks: "Arbeiten",
     openalexColTotal: "Gesamt",
@@ -574,13 +622,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "OpenAlex エンティティ {id}（{entityName}）として集計：系統 {lineage} 件、関連機関 {related} 件。OpenAlex が関連機関または下位機関として記録する病院や附属研究所は含めます。上位機関は含めません。",
     openalexScope:
-      "OpenAlex がこれらの機関に帰属させた論文・総説・図書の章・プレプリントの件数（{from}–{to} 年）。データセットは除外しています。当年の件数を埋め尽くしてしまうためです。件数のみです。各表はそれぞれの合計を明示しています。",
+      "OpenAlex がこれらの機関に帰属させた論文・総説・図書の章・プレプリントの件数（{from}–{to} 年）。データセットは除外しています。当年の件数を埋め尽くしてしまうためです。各表はそれぞれの合計を明示しています。",
     openalexNotCompared:
       "これは機関に関する OpenAlex の数値であり、上に掲載された研究者に関するものではありません。SigmaCV は両者を比較しません。",
     openalexWorksByYearHeading: "年別の研究成果数",
     openalexOaByYearHeading: "年別のオープンアクセス状況",
     openalexOaNote:
-      "各成果の最良のオープン版に OpenAlex が付与した状態（gold、hybrid、diamond、green、bronze。見つからない場合は closed）。最後の列はその年の合計です。",
+      "各成果の最良のオープン版に OpenAlex が付与した状態（gold、hybrid、diamond、green、bronze。見つからない場合は closed）。合計はその年に状態のある成果の件数で、各列と同じ問い合わせによるものです。年別の研究成果数の表とはわずかに異なることがあります。",
     openalexCountriesHeading: "共著者の国（上位 {n}）",
     openalexCountriesNote:
       "各国に所属する著者を少なくとも一人含む成果の件数。この機関の国も含みます。",
@@ -589,6 +637,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "他の各機関の著者も含む成果の件数。この機関自身の系統と関連機関は除きます。",
     openalexAsOf:
       "{date} 時点、OpenAlex より。SigmaCV がおよそ週に一度更新します。このページを開いた時点で取得される情報はありません。",
+    openalexColShare: "オープン率",
+    openalexShareNote:
+      "オープン率：OpenAlex が closed 以外のいずれかの状態（bronze を含む）を付与した成果数をその年の合計で割り、整数のパーセントに丸めて、二つの件数と並べて示します。ある年に状態のある成果が {floor} 件以上ある場合にのみ示し、まだ終わっていない表示される最後の年には示しません。その前年の状態も、エンバーゴの終了に伴いなお変わることがあります。分野・言語・出版社・規模による補正はしていません。数ポイントの差や、数週間離れて読み取った記録の間の変動は、それだけでは何も意味しません。",
+    openalexShareFew: "成果が少なすぎるため率を示しません",
+    openalexShareIncomplete: "年が終わっていません",
+    openalexTotalsDiffer:
+      "{years} 年は、年別の研究成果数の表の件数がここでの状態のある成果数と明らかに異なります。両者は OpenAlex への別々の問い合わせによるものです。",
     openalexColYear: "年",
     openalexColWorks: "成果",
     openalexColTotal: "合計",
@@ -661,13 +716,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Contabilizada como a entidade {id} do OpenAlex ({entityName}): uma linhagem de {lineage}, {related} organizações associadas. Hospitais e laboratórios afiliados que o OpenAlex registra como organizações relacionadas ou subordinadas são incluídos; organizações-mãe, não.",
     openalexScope:
-      "Contagem de artigos, revisões, capítulos de livro e preprints que o OpenAlex atribui a essas organizações, {from}–{to}. Conjuntos de dados ficam de fora: eles inundam o ano corrente. Apenas contagens; cada tabela indica seu próprio total.",
+      "Contagem de artigos, revisões, capítulos de livro e preprints que o OpenAlex atribui a essas organizações, {from}–{to}. Conjuntos de dados ficam de fora: eles inundam o ano corrente. Cada tabela indica seu próprio total.",
     openalexNotCompared:
       "São os números do OpenAlex sobre a organização, não sobre as pessoas pesquisadoras listadas acima, e o SigmaCV não compara uns com os outros.",
     openalexWorksByYearHeading: "Trabalhos por ano",
     openalexOaByYearHeading: "Status de acesso aberto por ano",
     openalexOaNote:
-      "O status que o OpenAlex atribui à melhor cópia aberta de cada trabalho (gold, hybrid, diamond, green, bronze — ou closed quando não encontrou nenhuma). A última coluna é o total daquele ano.",
+      "O status que o OpenAlex atribui à melhor cópia aberta de cada trabalho (gold, hybrid, diamond, green, bronze — ou closed quando não encontrou nenhuma). O total é o número de trabalhos com status naquele ano, da mesma consulta que as colunas; pode diferir ligeiramente da tabela de trabalhos por ano.",
     openalexCountriesHeading: "Países dos coautores ({n} primeiros)",
     openalexCountriesNote:
       "Número de trabalhos com pelo menos um autor afiliado em cada país, incluindo o país desta organização.",
@@ -676,6 +731,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Número de trabalhos que também trazem um autor de cada outra organização; a própria linhagem e as organizações associadas desta organização ficam de fora.",
     openalexAsOf:
       "Em {date}, segundo o OpenAlex; atualizado pelo SigmaCV mais ou menos a cada semana. Nada nesta página é buscado ao abri-la.",
+    openalexColShare: "Proporção aberta",
+    openalexShareNote:
+      "Proporção aberta: os trabalhos que o OpenAlex registra com qualquer status exceto closed (bronze incluído), divididos pelo total daquele ano e expressos como porcentagem inteira ao lado das duas contagens. Só é indicada quando um ano conta pelo menos {floor} trabalhos com status, e nunca para o último ano mostrado, que não terminou; os status do ano anterior ainda podem mudar à medida que os embargos expiram. Não é ajustada por área, idioma, editora ou tamanho: uma diferença de alguns pontos, ou uma variação entre registros lidos com semanas de intervalo, não significa nada por si só.",
+    openalexShareFew: "trabalhos de menos para indicar uma proporção",
+    openalexShareIncomplete: "ano não completo",
+    openalexTotalsDiffer:
+      "Em {years}, a tabela de trabalhos por ano conta um número de trabalhos claramente diferente do de trabalhos com status aqui; os dois vêm de consultas distintas ao OpenAlex.",
     openalexColYear: "Ano",
     openalexColWorks: "Trabalhos",
     openalexColTotal: "Total",
@@ -749,13 +811,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Conteggiata come entità OpenAlex {id} ({entityName}): una discendenza di {lineage}, {related} organizzazioni associate. Ospedali e laboratori affiliati che OpenAlex registra come organizzazioni collegate o dipendenti sono inclusi; le organizzazioni madri no.",
     openalexScope:
-      "Conteggio di articoli, rassegne, capitoli di libro e preprint che OpenAlex attribuisce a queste organizzazioni, {from}–{to}. I dataset sono esclusi: sommergono l'anno in corso. Solo conteggi; ogni tabella indica il proprio totale.",
+      "Conteggio di articoli, rassegne, capitoli di libro e preprint che OpenAlex attribuisce a queste organizzazioni, {from}–{to}. I dataset sono esclusi: sommergono l'anno in corso. Ogni tabella indica il proprio totale.",
     openalexNotCompared:
       "Sono i dati di OpenAlex sull'organizzazione, non sulle ricercatrici e i ricercatori elencati sopra, e SigmaCV non confronta gli uni con gli altri.",
     openalexWorksByYearHeading: "Lavori per anno",
     openalexOaByYearHeading: "Stato di accesso aperto per anno",
     openalexOaNote:
-      "Lo stato che OpenAlex assegna alla migliore copia aperta di ciascun lavoro (gold, hybrid, diamond, green, bronze, oppure closed quando non ne ha trovata alcuna). L'ultima colonna è il totale dell'anno.",
+      "Lo stato che OpenAlex assegna alla migliore copia aperta di ciascun lavoro (gold, hybrid, diamond, green, bronze, oppure closed quando non ne ha trovata alcuna). Il totale è il numero di lavori con uno stato in quell'anno, dalla stessa richiesta delle colonne; può differire leggermente dalla tabella dei lavori per anno.",
     openalexCountriesHeading: "Paesi dei coautori (primi {n})",
     openalexCountriesNote:
       "Numero di lavori con almeno un autore affiliato in ciascun paese, incluso quello di questa organizzazione.",
@@ -764,6 +826,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Numero di lavori che riportano anche un autore di ciascun'altra organizzazione; la discendenza e le organizzazioni associate di questa organizzazione sono escluse.",
     openalexAsOf:
       "Al {date}, secondo OpenAlex; aggiornato da SigmaCV circa ogni settimana. Nulla in questa pagina viene recuperato all'apertura.",
+    openalexColShare: "Quota aperta",
+    openalexShareNote:
+      "Quota aperta: i lavori che OpenAlex registra con qualsiasi stato tranne closed (bronze incluso), divisi per il totale dell'anno ed espressi come percentuale intera accanto a entrambi i conteggi. È indicata solo quando un anno conta almeno {floor} lavori con uno stato, e mai per l'ultimo anno mostrato, che non è finito; gli stati dell'anno precedente possono ancora cambiare man mano che scadono gli embarghi. Non è corretta per disciplina, lingua, editore o dimensione: una differenza di pochi punti, o una variazione fra letture distanti settimane, non significa nulla di per sé.",
+    openalexShareFew: "troppo pochi lavori per indicare una quota",
+    openalexShareIncomplete: "anno non completo",
+    openalexTotalsDiffer:
+      "Per {years}, la tabella dei lavori per anno conta un numero di lavori nettamente diverso da quello dei lavori con uno stato qui; i due provengono da richieste OpenAlex distinte.",
     openalexColYear: "Anno",
     openalexColWorks: "Lavori",
     openalexColTotal: "Totale",
@@ -837,13 +906,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "OpenAlex 엔터티 {id}({entityName})로 집계: 계보 {lineage}개, 관련 기관 {related}개. OpenAlex가 관련 또는 하위 기관으로 기록한 병원과 부속 연구소는 포함하며, 상위 기관은 포함하지 않습니다.",
     openalexScope:
-      "OpenAlex가 이들 기관에 귀속시킨 논문, 리뷰, 단행본 챕터, 프리프린트의 건수({from}–{to}년). 데이터셋은 제외했습니다. 올해 수치를 뒤덮기 때문입니다. 건수만 제시합니다. 각 표는 자체 합계를 명시합니다.",
+      "OpenAlex가 이들 기관에 귀속시킨 논문, 리뷰, 단행본 챕터, 프리프린트의 건수({from}–{to}년). 데이터셋은 제외했습니다. 올해 수치를 뒤덮기 때문입니다. 각 표는 자체 합계를 명시합니다.",
     openalexNotCompared:
       "이는 기관에 관한 OpenAlex의 수치이며 위에 나열된 연구자에 관한 것이 아닙니다. SigmaCV는 둘을 서로 비교하지 않습니다.",
     openalexWorksByYearHeading: "연도별 성과 수",
     openalexOaByYearHeading: "연도별 오픈 액세스 상태",
     openalexOaNote:
-      "각 성과의 최선의 공개본에 OpenAlex가 부여한 상태(gold, hybrid, diamond, green, bronze — 찾지 못한 경우 closed). 마지막 열은 해당 연도의 합계입니다.",
+      "각 성과의 최선의 공개본에 OpenAlex가 부여한 상태(gold, hybrid, diamond, green, bronze — 찾지 못한 경우 closed). 합계는 그해에 상태가 있는 성과의 건수로, 각 열과 같은 요청에서 나온 것입니다. 연도별 성과 표와는 약간 다를 수 있습니다.",
     openalexCountriesHeading: "공저자 국가(상위 {n})",
     openalexCountriesNote:
       "각 국가에 소속된 저자를 한 명 이상 포함한 성과 수이며, 이 기관의 국가도 포함합니다.",
@@ -852,6 +921,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "다른 각 기관의 저자도 포함한 성과 수이며, 이 기관 자체의 계보와 관련 기관은 제외합니다.",
     openalexAsOf:
       "{date} 기준, OpenAlex 제공. SigmaCV가 약 매주 갱신합니다. 이 페이지를 열 때 가져오는 정보는 없습니다.",
+    openalexColShare: "공개 비율",
+    openalexShareNote:
+      "공개 비율: OpenAlex가 closed 이외의 상태(bronze 포함)를 부여한 성과 수를 그해 합계로 나누어 정수 퍼센트로 반올림하고, 두 건수와 나란히 표시합니다. 한 해에 상태가 있는 성과가 {floor}건 이상일 때만 표시하며, 아직 끝나지 않은 표시된 마지막 연도에는 표시하지 않습니다. 그 전년도의 상태도 엠바고가 끝남에 따라 아직 바뀔 수 있습니다. 분야, 언어, 출판사, 규모에 따라 보정하지 않았습니다. 몇 포인트의 차이나 몇 주 간격으로 읽은 기록 사이의 변동은 그 자체로는 아무것도 뜻하지 않습니다.",
+    openalexShareFew: "성과가 너무 적어 비율을 표시하지 않습니다",
+    openalexShareIncomplete: "연도가 끝나지 않았습니다",
+    openalexTotalsDiffer:
+      "{years}년은 연도별 성과 표의 건수가 이곳의 상태가 있는 성과 수와 뚜렷이 다릅니다. 둘은 OpenAlex에 대한 서로 다른 요청에서 나왔습니다.",
     openalexColYear: "연도",
     openalexColWorks: "성과",
     openalexColTotal: "합계",
@@ -924,13 +1000,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexCountedEntity:
       "Учтена как сущность OpenAlex {id} ({entityName}): линия из {lineage}, связанных организаций — {related}. Больницы и аффилированные лаборатории, которые OpenAlex записывает как связанные или дочерние организации, включены; головные организации — нет.",
     openalexScope:
-      "Число статей, обзоров, глав книг и препринтов, которые OpenAlex относит к этим организациям, {from}–{to}. Наборы данных исключены: они заполоняют текущий год. Только числа; каждая таблица указывает свой итог.",
+      "Число статей, обзоров, глав книг и препринтов, которые OpenAlex относит к этим организациям, {from}–{to}. Наборы данных исключены: они заполоняют текущий год. Каждая таблица указывает свой итог.",
     openalexNotCompared:
       "Это данные OpenAlex об организации, а не об исследователях, перечисленных выше, и SigmaCV не сравнивает одно с другим.",
     openalexWorksByYearHeading: "Работы по годам",
     openalexOaByYearHeading: "Статус открытого доступа по годам",
     openalexOaNote:
-      "Статус, который OpenAlex присваивает лучшей открытой копии каждой работы (gold, hybrid, diamond, green, bronze — или closed, если она не найдена). Последний столбец — итог за год.",
+      "Статус, который OpenAlex присваивает лучшей открытой копии каждой работы (gold, hybrid, diamond, green, bronze — или closed, если она не найдена). Итого — число работ со статусом за этот год, из того же запроса, что и столбцы; оно может немного отличаться от таблицы работ по годам.",
     openalexCountriesHeading: "Страны соавторов (первые {n})",
     openalexCountriesNote:
       "Число работ, у которых хотя бы один автор аффилирован в соответствующей стране, включая страну этой организации.",
@@ -939,6 +1015,13 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Число работ, у которых есть также автор из каждой другой организации; собственная линия и связанные организации этой организации исключены.",
     openalexAsOf:
       "По состоянию на {date}, по данным OpenAlex; SigmaCV обновляет примерно раз в неделю. При открытии этой страницы ничего не запрашивается.",
+    openalexColShare: "Открытая доля",
+    openalexShareNote:
+      "Открытая доля: работы, которым OpenAlex присвоил любой статус, кроме closed (включая bronze), делённые на итог года и выраженные целым процентом рядом с обоими числами. Она указывается только там, где год насчитывает не меньше {floor} работ со статусом, и не для последнего показанного года, который ещё не завершён; статусы предыдущего года ещё могут меняться по мере окончания эмбарго. Она не скорректирована по области, языку, издателю или размеру: разница в несколько пунктов или сдвиг между записями, прочитанными с разницей в недели, сама по себе ничего не значит.",
+    openalexShareFew: "слишком мало работ, чтобы указать долю",
+    openalexShareIncomplete: "год не завершён",
+    openalexTotalsDiffer:
+      "За {years} таблица работ по годам насчитывает заметно иное число работ, чем работ со статусом здесь; оба числа получены разными запросами к OpenAlex.",
     openalexColYear: "Год",
     openalexColWorks: "Работы",
     openalexColTotal: "Итого",

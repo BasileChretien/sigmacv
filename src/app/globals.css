@@ -3908,6 +3908,27 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+/* The open-share column: both counts and the whole percent in one cell. It
+   is the last of ten columns, so on a narrow screen it is pinned to the right
+   edge of the scrolling wrapper rather than hidden behind a scroll; sticky is
+   inert when the table fits. A withheld share is a quiet reason, not a
+   figure, and may wrap (the numeric string keeps the cell's nowrap). */
+.inst-table th.inst-share,
+.inst-table td.inst-share {
+  position: sticky;
+  right: 0;
+  background: var(--bg);
+  box-shadow: -1px 0 0 var(--border);
+}
+.inst-share-withheld {
+  color: var(--muted);
+  font-style: italic;
+  font-variant-numeric: normal;
+  white-space: normal;
+  display: inline-block;
+  max-width: 12rem;
+  text-align: right;
+}
 .landing-related ul {
   list-style: none;
   padding: 0;

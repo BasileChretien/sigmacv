@@ -303,8 +303,9 @@ describe("/i/[ror]", () => {
         { year: 2026, count: 56 },
       ],
       // The statuses of 2025 sum to 1,230 while the year's works count is 1,234:
-      // the two come from different OpenAlex requests, and the table's Total
-      // column must be the works count, never the sum of the columns.
+      // the two come from different OpenAlex requests. The OA table's Total is
+      // the sum of its own columns (the share's denominator, same request); a
+      // gap this small (0.3 %) is not named on the page.
       oaByStatusByYear: [
         { year: 2025, status: "gold", count: 400 },
         { year: 2025, status: "closed", count: 830 },
@@ -340,7 +341,7 @@ describe("/i/[ror]", () => {
       expect(html).not.toContain("openalex.org");
     });
 
-    it("renders the counted entity, the count tables with the year's total as denominator, the top lists and the as-of date — counts only", async () => {
+    it("renders the counted entity, the count tables with the year's total as denominator, the open share beside its counts, the top lists and the as-of date", async () => {
       listedWithSnapshot();
       const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
       const body = text(html);
@@ -357,9 +358,9 @@ describe("/i/[ror]", () => {
       expect(html).toContain('<th scope="row">2025</th>');
       expect(html).toContain("1,234");
       // OA by year: OpenAlex's statuses in order, an unknown one appended, the total last.
-      const headers = [...html.matchAll(/<th scope="col" class="num">([^<]*)<\/th>/g)].map(
-        (m) => m[1],
-      );
+      const headers = [
+        ...html.matchAll(/<th scope="col" class="num(?: inst-share)?">([^<]*)<\/th>/g),
+      ].map((m) => m[1]);
       expect(headers).toEqual([
         "Works",
         "gold",
@@ -370,19 +371,29 @@ describe("/i/[ror]", () => {
         "closed",
         "mystery",
         "Total",
+        "Open share",
         "Works",
         "Works",
       ]);
       const rows = [
         ...html.matchAll(
-          /<tr><th scope="row">(\d{4})<\/th>((?:<td class="num">[^<]*<\/td>)+)<\/tr>/g,
+          /<tr><th scope="row">(\d{4})<\/th>((?:<td class="num">[^<]*<\/td>)+)(?:<td class="num inst-share">.*?<\/td>)?<\/tr>/g,
         ),
       ].map((m) => [
         m[1],
         ...[...m[2]!.matchAll(/<td class="num">([^<]*)<\/td>/g)].map((c) => c[1]),
       ]);
-      expect(rows).toContainEqual(["2025", "400", "0", "0", "0", "0", "830", "0", "1,234"]);
+      // Total = the sum of the status columns (1,230), not the works count (1,234).
+      expect(rows).toContainEqual(["2025", "400", "0", "0", "0", "0", "830", "0", "1,230"]);
       expect(rows).toContainEqual(["2026", "0", "0", "0", "0", "0", "0", "56", "56"]);
+      // The share: open / total = whole percent, in ONE cell with both counts
+      // (400 / 1,230 = 32.5 → 33); the last year is withheld as incomplete.
+      expect(html).toContain('<td class="num inst-share">400 / 1,230 = 33%</td>');
+      expect(html).toContain('<span class="inst-share-withheld">year not complete</span>');
+      // Its definition and floor are stated above the table; the two totals
+      // differ by 0.3 % here, so no year is named.
+      expect(body).toContain("at least 100 works");
+      expect(body).not.toContain("the works-by-year table counts a noticeably different");
       // Top lists; a blank name falls back to the code / id, an org links to OpenAlex.
       expect(body).toContain("France");
       expect(body).toContain("1,200");
@@ -392,10 +403,42 @@ describe("/i/[ror]", () => {
       expect(body).toContain("top 15");
       // As of.
       expect(body).toContain("As of September 9, 2026");
-      // Never a share.
-      expect(body).not.toContain("%");
+      // The share is the ONLY percent on the page: no other figure is divided.
+      expect(body.match(/%/g)).toHaveLength(1);
       // Still no network and no CV column.
       expect(mocks.findFirst).not.toHaveBeenCalled();
+    });
+
+    it("withholds the share below the floor, and names the years where the two totals differ by more than one percent", async () => {
+      listedWithSnapshot({
+        ...AGG,
+        years: { from: 2024, to: 2026 },
+        worksByYear: [
+          { year: 2024, count: 90 },
+          { year: 2025, count: 1000 },
+          { year: 2026, count: 10 },
+        ],
+        oaByStatusByYear: [
+          { year: 2024, status: "gold", count: 90 },
+          { year: 2025, status: "gold", count: 450 },
+          { year: 2025, status: "closed", count: 450 },
+          { year: 2026, status: "gold", count: 10 },
+        ],
+      });
+      const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+      const body = text(html);
+      // 2024: 90 works with a status — below 100, counts shown, no share.
+      expect(html).toContain(
+        '<span class="inst-share-withheld">too few works to state a share</span>',
+      );
+      expect(html).toContain('<tr><th scope="row">2024</th><td class="num">90</td>');
+      // 2025: 450 / 900 = 50%, and 900 vs the works count 1,000 is a 10 % gap, named.
+      expect(html).toContain('<td class="num inst-share">450 / 900 = 50%</td>');
+      expect(body).toContain("For 2025, the works-by-year table counts a noticeably different");
+      // 2026 is the current year of that snapshot: withheld whatever it counts.
+      expect(html).toContain('<span class="inst-share-withheld">year not complete</span>');
+      // Never a difference between years, never a second percent per row.
+      expect(body.match(/%/g)).toHaveLength(1);
     });
 
     it("adds the OpenAlex entity as the Organization's sameAs, and only then", async () => {

@@ -5,6 +5,13 @@ import {
   openAlexInstitutionUrl,
   type InstitutionOpenAlexSnapshot,
 } from "@/lib/institutions/institutions";
+import {
+  MIN_SHARE_DENOMINATOR,
+  oaShareByYear,
+  yearsWhereTotalsDiffer,
+  type OaShareRow,
+  type OaShareWithheld,
+} from "@/lib/institutions/oaShare";
 import { OA_STATUS_ORDER, TOP_N, type InstitutionAggregates } from "@/lib/institutions/snapshot";
 
 /**
@@ -13,12 +20,15 @@ import { OA_STATUS_ORDER, TOP_N, type InstitutionAggregates } from "@/lib/instit
  * row (`snapshot.ts`) — this component, like the whole page, never calls out.
  * With no stored row it says so and shows nothing else.
  *
- * Counts, in tables: works by year, OA status by year with the year's total as
- * the explicit denominator, then the top co-author countries and the top
- * co-affiliated organisations. No ratio, no percentage, no share axis — the
- * plan's "Compliance verdicts" veto — and a sentence saying these are
- * OpenAlex's figures about the organisation, not about the listed researchers,
- * and that the two are not compared.
+ * Counts, in tables: works by year, OA status by year with the year's number
+ * of works with a status as the explicit denominator, then the top co-author
+ * countries and the top co-affiliated organisations. The one derived figure
+ * is the open share (`oaShare.ts`): a whole percent printed beside both of
+ * its counts, withheld below the floor and for the incomplete current year,
+ * with its definition and limits stated above the table. No sort, no
+ * difference, no axis — and a sentence saying these are OpenAlex's figures
+ * about the organisation, not about the listed researchers, and that the two
+ * are not compared.
  */
 export default function InstitutionOpenAlexSection({
   locale,
@@ -38,11 +48,14 @@ export default function InstitutionOpenAlexSection({
   }
   const a = snapshot.aggregates;
   const num = new Intl.NumberFormat(locale);
+  const pct = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
   const date = new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(
     new Date(snapshot.fetchedAt),
   );
   const entityUrl = openAlexInstitutionUrl(snapshot.openalexId);
   const statuses = oaStatusColumns(a);
+  const shares = oaShareByYear(a);
+  const differing = yearsWhereTotalsDiffer(a);
   return (
     <>
       <h2>{s.openalexHeading}</h2>
@@ -67,15 +80,29 @@ export default function InstitutionOpenAlexSection({
 
       <h3>{s.openalexOaByYearHeading}</h3>
       <p className="muted">{s.openalexOaNote}</p>
+      <p className="muted">
+        {fillInstitutionString(s.openalexShareNote, { floor: num.format(MIN_SHARE_DENOMINATOR) })}
+      </p>
       <CountTable
-        columns={[s.openalexColYear, ...statuses, s.openalexColTotal]}
-        rows={oaRowsByYear(a, statuses).map((r) => ({
+        columns={[s.openalexColYear, ...statuses, s.openalexColTotal, s.openalexColShare]}
+        rows={oaRowsByYear(a, statuses, shares).map((r) => ({
           key: r.year,
           head: r.year,
-          counts: [...r.counts, r.total],
+          counts: [...r.counts, r.share.known],
+          tail: shareCell(r.share, s, num, pct),
         }))}
         num={num}
       />
+      {differing.length > 0 && (
+        <p className="muted">
+          {fillInstitutionString(s.openalexTotalsDiffer, {
+            // "2023 and 2024" / "2023、2024": the locale's own list separators.
+            years: new Intl.ListFormat(locale, { type: "conjunction" }).format(
+              differing.map(String),
+            ),
+          })}
+        </p>
+      )}
 
       <h3>{fillInstitutionString(s.openalexCountriesHeading, { n: TOP_N })}</h3>
       <p className="muted">{s.openalexCountriesNote}</p>
@@ -106,25 +133,58 @@ export default function InstitutionOpenAlexSection({
   );
 }
 
-/** A table of counts: a label column, then right-aligned numeric columns. A
- *  year row is a row header (`th scope="row"`); a name row is a plain cell.
- *  Wide tables scroll inside the wrapper, never the page. */
+/** The share cell: `open / known = n %` with both counts in the same cell as
+ *  the figure, or the stated reason it is withheld. */
+function shareCell(
+  share: OaShareRow,
+  s: ReturnType<typeof institutionStrings>,
+  num: Intl.NumberFormat,
+  pct: Intl.NumberFormat,
+): ReactNode {
+  if (share.percent === null) {
+    return <span className="inst-share-withheld">{withheldLabel(share.withheld!, s)}</span>;
+  }
+  return `${num.format(share.open)} / ${num.format(share.known)} = ${pct.format(share.percent / 100)}`;
+}
+
+/** Exhaustive over the reasons `oaShare.ts` can give: a new reason is a type
+ *  error here, never a wrong sentence in ten locales. */
+function withheldLabel(w: OaShareWithheld, s: ReturnType<typeof institutionStrings>): string {
+  switch (w) {
+    case "partial-year":
+      return s.openalexShareIncomplete;
+    case "small-denominator":
+      return s.openalexShareFew;
+  }
+}
+
+/** A table of counts: a label column, then right-aligned numeric columns, and
+ *  optionally one trailing text cell (the share). A year row is a row header
+ *  (`th scope="row"`); a name row is a plain cell. Wide tables scroll inside
+ *  the wrapper, never the page. */
 function CountTable({
   columns,
   rows,
   num,
 }: {
   columns: string[];
-  rows: Array<{ key: string | number; head: ReactNode; counts: number[] }>;
+  rows: Array<{ key: string | number; head: ReactNode; counts: number[]; tail?: ReactNode }>;
   num: Intl.NumberFormat;
 }) {
+  // The trailing text column is pinned to the right edge on narrow screens
+  // (CSS `inst-share`); its header must carry the class too.
+  const tailHeader = rows.some((r) => r.tail !== undefined) ? columns.length - 1 : -1;
   return (
     <div className="inst-table-wrap">
       <table className="inst-table">
         <thead>
           <tr>
             {columns.map((label, i) => (
-              <th key={label} scope="col" className={i === 0 ? undefined : "num"}>
+              <th
+                key={label}
+                scope="col"
+                className={i === 0 ? undefined : i === tailHeader ? "num inst-share" : "num"}
+              >
                 {label}
               </th>
             ))}
@@ -139,6 +199,7 @@ function CountTable({
                   {num.format(count)}
                 </td>
               ))}
+              {row.tail !== undefined && <td className="num inst-share">{row.tail}</td>}
             </tr>
           ))}
         </tbody>
@@ -158,19 +219,20 @@ function oaStatusColumns(a: InstitutionAggregates): string[] {
 }
 
 /** One row per year of the window: the count per status column (zero when
- *  absent) and the year's total — the denominator, stated, never divided. The
- *  total is the year's works count (the same figure the works-by-year table
- *  shows), NOT the sum of the status columns: the two come from different
- *  OpenAlex requests and can differ slightly, and one stated total per year
- *  is what lets a reader relate the two tables. */
+ *  absent) and the year's share row, whose `known` is the stated total — the
+ *  number of works with a status, summed from the same OpenAlex request as
+ *  the columns, so the columns always add up to it. The works-by-year table
+ *  comes from another request and can differ slightly; the page names the
+ *  years where it does. */
 function oaRowsByYear(
   a: InstitutionAggregates,
   statuses: string[],
-): Array<{ year: number; counts: number[]; total: number }> {
-  return a.worksByYear.map(({ year, count: total }) => {
+  shares: OaShareRow[],
+): Array<{ year: number; counts: number[]; share: OaShareRow }> {
+  return shares.map((share) => {
     const byStatus = new Map<string, number>();
-    for (const r of a.oaByStatusByYear) if (r.year === year) byStatus.set(r.status, r.count);
+    for (const r of a.oaByStatusByYear) if (r.year === share.year) byStatus.set(r.status, r.count);
     const counts = statuses.map((st) => byStatus.get(st) ?? 0);
-    return { year, counts, total };
+    return { year: share.year, counts, share };
   });
 }
