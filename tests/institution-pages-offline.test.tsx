@@ -56,6 +56,10 @@ import IndexPage, { generateMetadata as indexMetadata } from "@/app/i/page";
 import RorPage, { generateMetadata as rorMetadata } from "@/app/i/[ror]/page";
 import LocaleIndexPage, { generateMetadata as localeIndexMetadata } from "@/app/[locale]/i/page";
 import LocaleRorPage, { generateMetadata as localeRorMetadata } from "@/app/[locale]/i/[ror]/page";
+import ComparePage, { generateMetadata as compareMetadata } from "@/app/i/compare/page";
+import LocaleComparePage, {
+  generateMetadata as localeCompareMetadata,
+} from "@/app/[locale]/i/compare/page";
 import { GET as csvGet } from "@/app/i/[ror]/reconciliation.csv/route";
 import { GET as jsonGet } from "@/app/i/[ror]/reconciliation.json/route";
 import {
@@ -201,6 +205,52 @@ describe("institution routes render with no network at all", () => {
       expect(html).toContain(`href="/i/${ROR}/reconciliation.csv"`);
       expect(html).toContain(`href="/i/${ROR}/reconciliation.json"`);
     }
+    expect(mocks.fetch).not.toHaveBeenCalled();
+  });
+
+  it("the comparison view (both routes) renders two columns from the stored rows alone; fetch is never called", async () => {
+    const OTHER = "03xjwb503";
+    const row = (rorId: string, name: string) => ({
+      rorId,
+      name,
+      country: "JP",
+      openalexId: "I60134161",
+      openalexAggregates: AGGREGATES,
+      openalexFetchedAt: FETCHED,
+    });
+    mocks.groupBy.mockResolvedValue([
+      { currentRorId: ROR, _count: { _all: 3 } },
+      { currentRorId: OTHER, _count: { _all: 2 } },
+    ]);
+    mocks.institutionFindMany.mockImplementation(async (args: { where: { rorId?: unknown } }) =>
+      args.where.rorId
+        ? [row(ROR, "Nagoya University"), row(OTHER, "Université de Caen Normandie")]
+        : [{ rorId: ROR, name: "Nagoya University" }],
+    );
+    const search = { ror: [ROR, OTHER] };
+    const pages = [
+      renderToStaticMarkup(await ComparePage({ searchParams: Promise.resolve(search) })),
+      renderToStaticMarkup(
+        await LocaleComparePage({
+          params: Promise.resolve({ locale: "ja" }),
+          searchParams: Promise.resolve(search),
+        }),
+      ),
+    ];
+    for (const html of pages) {
+      expect(html.match(/inst-compare-col/g)).toHaveLength(2);
+      expect(html).toContain("2,000 / 4,300 = 47%");
+      expect(html).toContain("inst-share-withheld");
+      expect(html).toContain("Nagoya University");
+    }
+    const metas = await Promise.all([
+      compareMetadata({ searchParams: Promise.resolve(search) }),
+      localeCompareMetadata({
+        params: Promise.resolve({ locale: "ja" }),
+        searchParams: Promise.resolve(search),
+      }),
+    ]);
+    for (const meta of metas) expect(meta.robots).toEqual({ index: false, follow: true });
     expect(mocks.fetch).not.toHaveBeenCalled();
   });
 

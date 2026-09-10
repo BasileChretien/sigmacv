@@ -126,7 +126,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Institutions under which researchers chose to list their public SigmaCV CV — a count per institution, no roster, no ranking.",
     indexHeading: "Institutions",
     indexIntro:
-      "Each institution below has at least one researcher who chose to list their public CV under it. The page shows how many did — a count only, never who, and never a comparison between institutions.",
+      "Each institution below has at least one researcher who chose to list their public CV under it. The page shows how many did — a count only, never who. OpenAlex's public record of two or three organisations can be set side by side at /i/compare, never ranked.",
     indexEmpty: "No researcher has chosen to be listed under an institution yet.",
     metaDescription:
       "Researchers who chose to list their public SigmaCV CV under {name}: a count only — no roster, no ranking, no score.",
@@ -224,7 +224,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "研究者选择将其 SigmaCV 公开简历列于其下的机构——每个机构一个数字，没有名单，没有排名。",
     indexHeading: "机构",
     indexIntro:
-      "下列每个机构都至少有一位研究者选择将其公开简历列于该机构之下。页面只显示人数——仅为数量，绝不显示是谁，也绝不在机构之间进行比较。",
+      "下列每个机构都至少有一位研究者选择将其公开简历列于该机构之下。页面只显示人数——仅为数量，绝不显示是谁。两到三个机构在 OpenAlex 中的公开记录可在 /i/compare 并列查看，绝不排序。",
     indexEmpty: "尚无研究者选择列于某个机构之下。",
     metaDescription:
       "选择将其 SigmaCV 公开简历列于 {name} 之下的研究者：仅为数量——没有名单，没有排名，没有评分。",
@@ -317,7 +317,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Instituciones bajo las que los investigadores eligieron listar su CV público de SigmaCV: una cifra por institución, sin lista de personas, sin clasificación.",
     indexHeading: "Instituciones",
     indexIntro:
-      "Cada institución de abajo tiene al menos un investigador que eligió listar su CV público bajo ella. La página muestra cuántos lo hicieron: solo una cifra, nunca quiénes, y nunca una comparación entre instituciones.",
+      "Cada institución de abajo tiene al menos un investigador que eligió listar su CV público bajo ella. La página muestra cuántos lo hicieron: solo una cifra, nunca quiénes. El registro público de dos o tres organizaciones en OpenAlex puede ponerse en paralelo en /i/compare, nunca en un orden.",
     indexEmpty: "Ningún investigador ha elegido todavía ser listado bajo una institución.",
     metaDescription:
       "Investigadores que eligieron listar su CV público de SigmaCV bajo {name}: solo una cifra, sin lista de personas, sin clasificación, sin puntuación.",
@@ -416,7 +416,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Établissements sous lesquels des chercheurs ont choisi de lister leur CV public SigmaCV : un décompte par établissement, sans liste nominative, sans classement.",
     indexHeading: "Établissements",
     indexIntro:
-      "Chaque établissement ci-dessous compte au moins un chercheur qui a choisi d'y lister son CV public. La page indique combien l'ont fait : un simple décompte, jamais qui, et jamais de comparaison entre établissements.",
+      "Chaque établissement ci-dessous compte au moins un chercheur qui a choisi d'y lister son CV public. La page indique combien l'ont fait : un simple décompte, jamais qui. Ce qu'OpenAlex enregistre publiquement sur deux ou trois organismes peut être mis côte à côte sur /i/compare, jamais ordonné.",
     indexEmpty: "Aucun chercheur n'a encore choisi d'être listé sous un établissement.",
     metaDescription:
       "Chercheurs ayant choisi de lister leur CV public SigmaCV sous {name} : un simple décompte, sans liste nominative, sans classement, sans score.",
@@ -515,7 +515,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Einrichtungen, unter denen Forschende ihren öffentlichen SigmaCV-Lebenslauf listen ließen – eine Zahl je Einrichtung, keine Namensliste, kein Ranking.",
     indexHeading: "Einrichtungen",
     indexIntro:
-      "Jede Einrichtung unten hat mindestens eine forschende Person, die ihren öffentlichen Lebenslauf darunter listen ließ. Die Seite zeigt, wie viele es sind – nur eine Zahl, nie wer, und nie ein Vergleich zwischen Einrichtungen.",
+      "Jede Einrichtung unten hat mindestens eine forschende Person, die ihren öffentlichen Lebenslauf darunter listen ließ. Die Seite zeigt, wie viele es sind – nur eine Zahl, nie wer. Was OpenAlex öffentlich über zwei oder drei Einrichtungen verzeichnet, lässt sich unter /i/compare nebeneinander stellen, nie in eine Reihenfolge bringen.",
     indexEmpty: "Noch keine forschende Person hat sich unter einer Einrichtung listen lassen.",
     metaDescription:
       "Forschende, die ihren öffentlichen SigmaCV-Lebenslauf unter {name} listen ließen: nur eine Zahl – keine Namensliste, kein Ranking, keine Bewertung.",
@@ -614,7 +614,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "研究者が自分の SigmaCV 公開 CV を掲載することを選んだ研究機関の一覧。機関ごとの人数のみで、名簿も順位付けもありません。",
     indexHeading: "研究機関",
     indexIntro:
-      "以下の各機関には、その機関の下に公開 CV を掲載することを選んだ研究者が少なくとも 1 人います。このページに表示されるのは人数だけで、誰かは表示されず、機関同士の比較も行いません。",
+      "以下の各機関には、その機関の下に公開 CV を掲載することを選んだ研究者が少なくとも 1 人います。このページに表示されるのは人数だけで、誰かは表示されません。二つまたは三つの機関について OpenAlex が公開している記録は /i/compare で並置できますが、順序づけは行いません。",
     indexEmpty: "まだ、機関の下への掲載を選んだ研究者はいません。",
     metaDescription:
       "{name} の下に SigmaCV 公開 CV を掲載することを選んだ研究者：人数のみ。名簿も順位付けもスコアもありません。",
@@ -712,7 +712,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Instituições sob as quais pesquisadores escolheram listar seu CV público do SigmaCV: uma contagem por instituição, sem lista de nomes, sem ranking.",
     indexHeading: "Instituições",
     indexIntro:
-      "Cada instituição abaixo tem pelo menos um pesquisador que escolheu listar seu CV público sob ela. A página mostra quantos o fizeram: apenas uma contagem, nunca quem, e nunca uma comparação entre instituições.",
+      "Cada instituição abaixo tem pelo menos um pesquisador que escolheu listar seu CV público sob ela. A página mostra quantos o fizeram: apenas uma contagem, nunca quem. O registro público de duas ou três organizações no OpenAlex pode ser colocado lado a lado em /i/compare, nunca em ordem.",
     indexEmpty: "Nenhum pesquisador escolheu ainda ser listado sob uma instituição.",
     metaDescription:
       "Pesquisadores que escolheram listar seu CV público do SigmaCV sob {name}: apenas uma contagem, sem lista de nomes, sem ranking, sem pontuação.",
@@ -811,7 +811,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Istituzioni sotto cui i ricercatori hanno scelto di elencare il proprio CV pubblico SigmaCV: un conteggio per istituzione, nessun elenco di nomi, nessuna classifica.",
     indexHeading: "Istituzioni",
     indexIntro:
-      "Ogni istituzione qui sotto ha almeno un ricercatore che ha scelto di elencarvi il proprio CV pubblico. La pagina mostra quanti lo hanno fatto: solo un conteggio, mai chi, e mai un confronto tra istituzioni.",
+      "Ogni istituzione qui sotto ha almeno un ricercatore che ha scelto di elencarvi il proprio CV pubblico. La pagina mostra quanti lo hanno fatto: solo un conteggio, mai chi. Ciò che OpenAlex registra pubblicamente su due o tre organizzazioni può essere affiancato su /i/compare, mai messo in ordine.",
     indexEmpty: "Nessun ricercatore ha ancora scelto di essere elencato sotto un'istituzione.",
     metaDescription:
       "Ricercatori che hanno scelto di elencare il proprio CV pubblico SigmaCV sotto {name}: solo un conteggio, nessun elenco di nomi, nessuna classifica, nessun punteggio.",
@@ -910,7 +910,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "연구자가 자신의 SigmaCV 공개 CV를 등록하기로 선택한 기관 목록. 기관별 인원수만 표시되며, 명단도 순위도 없습니다.",
     indexHeading: "기관",
     indexIntro:
-      "아래 각 기관에는 그 기관 아래 공개 CV를 등록하기로 선택한 연구자가 최소 한 명 있습니다. 이 페이지는 그 인원수만 보여 줍니다. 누구인지는 표시하지 않으며, 기관 간 비교도 하지 않습니다.",
+      "아래 각 기관에는 그 기관 아래 공개 CV를 등록하기로 선택한 연구자가 최소 한 명 있습니다. 이 페이지는 그 인원수만 보여 줍니다. 누구인지는 표시하지 않습니다. 두세 기관에 대한 OpenAlex의 공개 기록은 /i/compare에서 나란히 놓을 수 있으며, 줄 세우지는 않습니다.",
     indexEmpty: "아직 기관 아래 등록을 선택한 연구자가 없습니다.",
     metaDescription:
       "{name} 아래 SigmaCV 공개 CV를 등록하기로 선택한 연구자: 인원수만 표시됩니다. 명단도, 순위도, 점수도 없습니다.",
@@ -1008,7 +1008,7 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Учреждения, под которыми исследователи решили разместить своё публичное резюме SigmaCV: число по каждому учреждению, без списка имён, без рейтинга.",
     indexHeading: "Учреждения",
     indexIntro:
-      "У каждого учреждения ниже есть хотя бы один исследователь, решивший разместить под ним своё публичное резюме. Страница показывает, сколько их: только число, никогда не имена и никогда не сравнение учреждений.",
+      "У каждого учреждения ниже есть хотя бы один исследователь, решивший разместить под ним своё публичное резюме. Страница показывает, сколько их: только число, никогда не имена. Публичные записи OpenAlex о двух или трёх организациях можно поставить рядом на /i/compare — никогда в порядке.",
     indexEmpty: "Пока ни один исследователь не решил быть указанным под учреждением.",
     metaDescription:
       "Исследователи, решившие разместить своё публичное резюме SigmaCV под {name}: только число — без списка имён, без рейтинга, без оценки.",

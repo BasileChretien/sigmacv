@@ -205,6 +205,15 @@ export function localeInstitutionPath(locale: string, ror: string): string {
   return loc === DEFAULT_UI_LOCALE ? `/i/${ror}` : `/${LOCALE_SLUGS[loc]}/i/${ror}`;
 }
 
+/** The comparison view's path for a locale, with the canonical (sorted) query
+ *  when ids are given: "/i/compare?ror=a&ror=b". No hreflang map exists for
+ *  it — the page is noindex, and hreflang on a noindex page contradicts itself. */
+export function localeInstitutionComparePath(locale: string, query = ""): string {
+  const loc = asLocale(locale);
+  const base = loc === DEFAULT_UI_LOCALE ? "/i/compare" : `/${LOCALE_SLUGS[loc]}/i/compare`;
+  return query ? `${base}?${query}` : base;
+}
+
 /** hreflang → path map for a single institution page. */
 export function institutionLanguageAlternates(ror: string): Record<string, string> {
   const languages: Record<string, string> = {};
