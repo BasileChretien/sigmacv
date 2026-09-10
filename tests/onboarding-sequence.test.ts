@@ -9,6 +9,7 @@ const activity = (over: Partial<OnboardingActivity> = {}): OnboardingActivity =>
   syncReport: false,
   coachmark: false,
   institution: false,
+  indexing: false,
   ...over,
 });
 
@@ -35,6 +36,6 @@ describe("selectOnboardingStep", () => {
   });
 
   it("documents the priority order: sync report → coachmark → institution", () => {
-    expect([...ONBOARDING_PRIORITY]).toEqual(["syncReport", "coachmark", "institution"]);
+    expect([...ONBOARDING_PRIORITY]).toEqual(["syncReport", "coachmark", "indexing", "institution"]);
   });
 });

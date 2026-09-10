@@ -159,6 +159,12 @@ export interface WorkspaceUiStrings {
   wlListingListMeNone: string;
   /** Listed; {institution} = the names joined. */
   wlListingListed: string;
+  /** The worklist's "Search indexing" row: heading, help, and the three states. */
+  wlIndexingHeading: string;
+  wlIndexingHelp: string;
+  wlIndexingUndecided: string;
+  wlIndexingOff: string;
+  wlIndexingOn: string;
   /** Opens the Publish menu at the institution sub-section. */
   wlListingChange: string;
   /** Shown instead of the button while the page is unpublished or not indexable. */
@@ -269,6 +275,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingListMe: "List me under {institution}",
     wlListingListMeNone: "List me under the institutions I tick",
     wlListingListed: "Listed under {institution}.",
+    wlIndexingHeading: "Search indexing",
+    wlIndexingHelp:
+      "Whether search engines may list your public page. Off until you choose; nothing is decided by silence.",
+    wlIndexingUndecided: "Not decided yet — your page is not indexed.",
+    wlIndexingOff: "Off — you chose not now; your page is not indexed.",
+    wlIndexingOn: "On — search engines may index your page.",
     wlListingChange: "Change",
     wlListingNeedsPage:
       "Listing needs a published page with search indexing on — both are in the Publish menu.",
@@ -375,6 +387,11 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingListMe: "将我列入 {institution}",
     wlListingListMeNone: "将我列入我勾选的机构",
     wlListingListed: "已列入 {institution}。",
+    wlIndexingHeading: "搜索引擎收录",
+    wlIndexingHelp: "搜索引擎是否可以收录您的公开页面。在您选择之前保持关闭；沉默不作为决定。",
+    wlIndexingUndecided: "尚未决定——您的页面未被收录。",
+    wlIndexingOff: "关闭——您选择了暂不；您的页面未被收录。",
+    wlIndexingOn: "开启——搜索引擎可以收录您的页面。",
     wlListingChange: "更改",
     wlListingNeedsPage: "列入需要已发布且开启搜索索引的页面——两者都在“发布”菜单中。",
     hpInfoTitle: "仅供您本人查看",
@@ -485,6 +502,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingListMe: "Listarme bajo {institution}",
     wlListingListMeNone: "Listarme bajo las instituciones que marque",
     wlListingListed: "Figuras bajo {institution}.",
+    wlIndexingHeading: "Indexación en buscadores",
+    wlIndexingHelp:
+      "Si los motores de búsqueda pueden listar tu página pública. Desactivada hasta que elijas; nada se decide por silencio.",
+    wlIndexingUndecided: "Sin decidir todavía: tu página no está indexada.",
+    wlIndexingOff: "Desactivada: elegiste «ahora no»; tu página no está indexada.",
+    wlIndexingOn: "Activada: los motores de búsqueda pueden indexar tu página.",
     wlListingChange: "Cambiar",
     wlListingNeedsPage:
       "Para figurar hace falta una página publicada con la indexación activada; ambas cosas están en el menú Publicar.",
@@ -601,6 +624,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingListMe: "Me lister sous {institution}",
     wlListingListMeNone: "Me lister sous les établissements cochés",
     wlListingListed: "Vous figurez sous {institution}.",
+    wlIndexingHeading: "Indexation par les moteurs de recherche",
+    wlIndexingHelp:
+      "Si les moteurs de recherche peuvent référencer votre page publique. Désactivée tant que vous n'avez pas choisi ; rien n'est décidé par le silence.",
+    wlIndexingUndecided: "Pas encore décidé — votre page n'est pas indexée.",
+    wlIndexingOff:
+      "Désactivée — vous avez choisi « pas maintenant » ; votre page n'est pas indexée.",
+    wlIndexingOn: "Activée — les moteurs de recherche peuvent indexer votre page.",
     wlListingChange: "Modifier",
     wlListingNeedsPage:
       "Figurer suppose une page publiée avec l'indexation activée — les deux se trouvent dans le menu Publier.",
@@ -714,6 +744,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingListMe: "Mich unter {institution} aufführen",
     wlListingListMeNone: "Mich unter den angekreuzten Einrichtungen aufführen",
     wlListingListed: "Aufgeführt unter {institution}.",
+    wlIndexingHeading: "Suchmaschinen-Indexierung",
+    wlIndexingHelp:
+      "Ob Suchmaschinen Ihre öffentliche Seite listen dürfen. Aus, bis Sie sich entscheiden; Schweigen entscheidet nichts.",
+    wlIndexingUndecided: "Noch nicht entschieden – Ihre Seite ist nicht indexiert.",
+    wlIndexingOff: "Aus – Sie haben „jetzt nicht“ gewählt; Ihre Seite ist nicht indexiert.",
+    wlIndexingOn: "An – Suchmaschinen dürfen Ihre Seite indexieren.",
     wlListingChange: "Ändern",
     wlListingNeedsPage:
       "Die Auflistung setzt eine veröffentlichte Seite mit eingeschalteter Suchindexierung voraus – beides im Menü Veröffentlichen.",
@@ -826,6 +862,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingListMe: "{institution} の下に掲載する",
     wlListingListMeNone: "チェックした機関の下に掲載する",
     wlListingListed: "{institution} の下に掲載済みです。",
+    wlIndexingHeading: "検索エンジンの索引",
+    wlIndexingHelp:
+      "検索エンジンがあなたの公開ページを掲載できるかどうか。選択するまでオフのままで、沈黙は決定になりません。",
+    wlIndexingUndecided: "未決定 — あなたのページは索引されていません。",
+    wlIndexingOff: "オフ — 「今はしない」を選びました。あなたのページは索引されていません。",
+    wlIndexingOn: "オン — 検索エンジンがあなたのページを索引できます。",
     wlListingChange: "変更",
     wlListingNeedsPage:
       "掲載には、検索インデックスを有効にした公開済みページが必要です。どちらも「公開」メニューにあります。",
@@ -941,6 +983,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingListMe: "Listar-me sob {institution}",
     wlListingListMeNone: "Listar-me sob as instituições que eu marcar",
     wlListingListed: "Listado sob {institution}.",
+    wlIndexingHeading: "Indexação em buscadores",
+    wlIndexingHelp:
+      "Se os mecanismos de busca podem listar sua página pública. Desligada até você escolher; nada é decidido por silêncio.",
+    wlIndexingUndecided: "Ainda não decidido — sua página não está indexada.",
+    wlIndexingOff: "Desligada — você escolheu «agora não»; sua página não está indexada.",
+    wlIndexingOn: "Ligada — os mecanismos de busca podem indexar sua página.",
     wlListingChange: "Alterar",
     wlListingNeedsPage:
       "A listagem exige uma página publicada com a indexação de busca ativada — ambas estão no menu Publicar.",
@@ -1056,6 +1104,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingListMe: "Elencami sotto {institution}",
     wlListingListMeNone: "Elencami sotto le istituzioni che spunto",
     wlListingListed: "Elencato sotto {institution}.",
+    wlIndexingHeading: "Indicizzazione nei motori di ricerca",
+    wlIndexingHelp:
+      "Se i motori di ricerca possono elencare la tua pagina pubblica. Disattivata finché non scegli; nulla è deciso dal silenzio.",
+    wlIndexingUndecided: "Non ancora deciso — la tua pagina non è indicizzata.",
+    wlIndexingOff: "Disattivata — hai scelto «non ora»; la tua pagina non è indicizzata.",
+    wlIndexingOn: "Attivata — i motori di ricerca possono indicizzare la tua pagina.",
     wlListingChange: "Modifica",
     wlListingNeedsPage:
       "Per comparire serve una pagina pubblicata con l'indicizzazione attiva — entrambe nel menu Pubblica.",
@@ -1168,6 +1222,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingListMe: "{institution} 아래에 등재",
     wlListingListMeNone: "체크한 기관 아래에 등재",
     wlListingListed: "{institution} 아래에 등재됨.",
+    wlIndexingHeading: "검색 엔진 색인",
+    wlIndexingHelp:
+      "검색 엔진이 귀하의 공개 페이지를 목록에 올릴 수 있는지 여부입니다. 선택하기 전까지는 꺼져 있으며, 침묵은 결정이 아닙니다.",
+    wlIndexingUndecided: "아직 결정되지 않음 — 귀하의 페이지는 색인되지 않았습니다.",
+    wlIndexingOff: "꺼짐 — '지금은 안 함'을 선택했습니다. 귀하의 페이지는 색인되지 않았습니다.",
+    wlIndexingOn: "켜짐 — 검색 엔진이 귀하의 페이지를 색인할 수 있습니다.",
     wlListingChange: "변경",
     wlListingNeedsPage:
       "등재하려면 검색 색인이 켜진 게시된 페이지가 필요합니다. 둘 다 게시 메뉴에 있습니다.",
@@ -1283,6 +1343,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingListMe: "Указать меня под {institution}",
     wlListingListMeNone: "Указать меня под отмеченными организациями",
     wlListingListed: "Указано под {institution}.",
+    wlIndexingHeading: "Индексация поисковыми системами",
+    wlIndexingHelp:
+      "Могут ли поисковые системы показывать вашу публичную страницу. Выключено, пока вы не решите; молчание ничего не решает.",
+    wlIndexingUndecided: "Ещё не решено — ваша страница не индексируется.",
+    wlIndexingOff: "Выключено — вы выбрали «не сейчас»; ваша страница не индексируется.",
+    wlIndexingOn: "Включено — поисковые системы могут индексировать вашу страницу.",
     wlListingChange: "Изменить",
     wlListingNeedsPage:
       "Для указания нужна опубликованная страница с включённой индексацией — и то и другое в меню «Публикация».",

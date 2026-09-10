@@ -14,14 +14,18 @@
  * dismissed) and asks here which one wins.
  */
 
-export type OnboardingStep = "syncReport" | "coachmark" | "institution";
+export type OnboardingStep = "syncReport" | "coachmark" | "indexing" | "institution";
 
 /**
  * Priority order, highest first:
  *  1. `syncReport`  — what the latest sync changed (incl. the first-import
  *     summary): the most timely, "here's what just happened" context.
  *  2. `coachmark`   — the one-time hint to check the matches are yours.
- *  3. `institution` — the one-time "List yourself under {institution}?" ask.
+ *  3. `indexing`    — the one-time "Should search engines index your page?"
+ *     ask, once the page is live and not yet indexable. Before the institution
+ *     ask because listing REQUIRES indexing: the two are asked in the order
+ *     they can apply, never together.
+ *  4. `institution` — the one-time "List yourself under {institution}?" ask.
  *     Last, because it is a choice about a page that is already live: it waits
  *     for everything about the CV itself. Its `active` flag is also false while
  *     the research-consent prompt or a freeze-request banner is on screen —
@@ -32,6 +36,7 @@ export type OnboardingStep = "syncReport" | "coachmark" | "institution";
 export const ONBOARDING_PRIORITY: readonly OnboardingStep[] = [
   "syncReport",
   "coachmark",
+  "indexing",
   "institution",
 ];
 

@@ -18,6 +18,7 @@ import { funderOaPolicy } from "@/lib/funders/oaPolicies";
 import type { Locale } from "@/lib/i18n";
 import { workspaceUi, type WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
 import InstitutionListingRow, { type InstitutionListing } from "./InstitutionListingRow";
+import IndexingRow from "./IndexingRow";
 
 /** A stable empty crosswalk (a fresh `[]` per render would defeat the memo). */
 const NO_FUNDER_CROSSWALK: readonly FunderRow[] = [];
@@ -144,11 +145,18 @@ export default function WorklistPanel({
       <p className="muted cv-worklist-intro">{wu.wlIntro}</p>
 
       {listing ? (
-        <InstitutionListingRow
-          locale={locale}
-          state={listing.state}
-          onPublishStateChange={listing.onPublishStateChange}
-        />
+        <>
+          <IndexingRow
+            locale={locale}
+            state={listing.state}
+            onPublishStateChange={listing.onPublishStateChange}
+          />
+          <InstitutionListingRow
+            locale={locale}
+            state={listing.state}
+            onPublishStateChange={listing.onPublishStateChange}
+          />
+        </>
       ) : null}
 
       {gaps.positionsWithoutRor.length > 0 ? (

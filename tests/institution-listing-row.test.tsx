@@ -340,9 +340,11 @@ describe("InstitutionListingRow — listed and lapsed", () => {
     expect(screen.getByText(/^Listed under Nagoya University\./)).toBeTruthy();
     expect(screen.getByRole("button", { name: wu.wlListingChange })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /List me under/ })).toBeNull();
-    // The row precedes every other group.
-    const groups = document.querySelectorAll(".cv-worklist-group");
-    expect(groups[0]!.getAttribute("data-worklist")).toBe("listing");
+    // The two status rows lead, indexing first (listing requires it), then the rest.
+    const groups = [...document.querySelectorAll(".cv-worklist-group")].map((g) =>
+      g.getAttribute("data-worklist"),
+    );
+    expect(groups.slice(0, 2)).toEqual(["indexing", "listing"]);
   });
 
   it("Change opens the Publish menu at the institution sub-section", async () => {
