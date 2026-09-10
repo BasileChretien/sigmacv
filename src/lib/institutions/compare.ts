@@ -4,8 +4,14 @@ import {
   trustedInstitutionRecords,
   type TrustedInstitutionRecordRow,
 } from "@/lib/cv/listed";
-import { isRorId } from "./institutions";
-import { oaShareByYear, type OaShareRow, type OaShareWithheld } from "./oaShare";
+import { isRorId, previousOf } from "./institutions";
+import {
+  oaShareByYear,
+  previousReading,
+  type OaShareRow,
+  type OaShareWithheld,
+  type PreviousReading,
+} from "./oaShare";
 import {
   OPENALEX_INSTITUTION_ID_RE,
   parseInstitutionAggregates,
@@ -71,6 +77,11 @@ export interface CompareColumn {
   rows: CompareShareRow[];
   /** The field mix, when the row was refreshed since it exists (PR #457). */
   domains: InstitutionAggregates["domains"];
+  /** The last full year as the reading before this one stated it; null when
+   *  there is none, either reading stated no share, the columns are skewed, or
+   *  the year is not among the common full years (a column must never state a
+   *  year the others do not). */
+  previous: PreviousReading | null;
 }
 
 export type DroppedReason = "no-page" | "no-record" | "below-floor" | "over-cap";
@@ -157,6 +168,7 @@ function columnOf(
       years: a.years,
       rows: shares.map((r) => ({ ...r, statuses: statusesOf(r.year) })),
       domains: a.domains,
+      previous: previousReading(a, previousOf(record)),
     },
   };
 }
@@ -231,11 +243,22 @@ export async function institutionComparison(
   const times = cols.map((c) => Date.parse(c.fetchedAt));
   const skewed = Math.max(...times) - Math.min(...times) > SNAPSHOT_SKEW_DAYS * DAY_MS;
   const keep = new Set(commonYears);
-  const shaped = cols.map((c) => ({
+  // A previous reading is shown only for a year every column shows; the ones
+  // that remain are a second cross-column pair of shares with their own dates,
+  // so the same skew rule applies to them, and every share goes under skew.
+  const shownPrevious = cols.map((c) =>
+    c.previous && keep.has(c.previous.year) ? c.previous : null,
+  );
+  const prevTimes = shownPrevious.flatMap((p) => (p ? [Date.parse(p.fetchedAt)] : []));
+  const prevSkewed =
+    prevTimes.length > 1 &&
+    Math.max(...prevTimes) - Math.min(...prevTimes) > SNAPSHOT_SKEW_DAYS * DAY_MS;
+  const shaped = cols.map((c, i) => ({
     ...c,
     rows: c.rows
       .filter((r) => keep.has(r.year) || r.year === c.years.to)
       .map((r) => withholdForSkew(r, skewed)),
+    previous: skewed || prevSkewed ? null : shownPrevious[i]!,
   }));
   return {
     columns: shaped,

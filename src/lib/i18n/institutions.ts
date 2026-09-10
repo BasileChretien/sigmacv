@@ -79,6 +79,8 @@ export interface InstitutionStrings {
   openalexColDomain: string;
   /** The one link from an organisation's page to the comparison view (pre-filled with it). */
   openalexCompareLink: string;
+  /** `{date}`, `{year}`, `{open}`, `{known}`, `{pct}`: the last full year as the reading before this one stated it. */
+  openalexPreviousReading: string;
   openalexColYear: string;
   openalexColWorks: string;
   openalexColTotal: string;
@@ -188,6 +190,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Works by the OpenAlex domain of their primary topic, {from}–{to}: {total} works in all; the rows can add up to fewer, since a work OpenAlex has given no topic is in no row. The open share above is not adjusted for this mix: where two organisations differ here, their shares do not measure the same thing.",
     openalexColDomain: "Domain",
     openalexCompareLink: "Set beside another organisation",
+    openalexPreviousReading:
+      "At the previous reading ({date}), {year} stood at {open} / {known} = {pct}. A share moves between readings as OpenAlex's record does.",
     openalexColYear: "Year",
     openalexColWorks: "Works",
     openalexColTotal: "Total",
@@ -283,6 +287,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "按成果主要主题所属的 OpenAlex 领域统计的成果数，{from}–{to} 年：共 {total} 项成果；各行之和可能少于此数，因为 OpenAlex 未指定主题的成果不在任何一行中。上方的开放占比未按此构成调整：两个机构在此处不同时，其占比衡量的并非同一事物。",
     openalexColDomain: "领域",
     openalexCompareLink: "与另一机构并列查看",
+    openalexPreviousReading:
+      "上一次读取（{date}）时，{year} 年为 {open} / {known} = {pct}。占比会随 OpenAlex 记录的变化而在两次读取之间变动。",
     openalexColYear: "年份",
     openalexColWorks: "成果",
     openalexColTotal: "总计",
@@ -381,6 +387,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Trabajos según el dominio de OpenAlex de su tema principal, {from}–{to}: {total} trabajos en total; las filas pueden sumar menos, ya que un trabajo al que OpenAlex no ha asignado tema no está en ninguna fila. La proporción abierta de arriba no se ajusta por esta composición: cuando dos organizaciones difieren aquí, sus proporciones no miden lo mismo.",
     openalexColDomain: "Dominio",
     openalexCompareLink: "Poner en paralelo con otra organización",
+    openalexPreviousReading:
+      "En la lectura anterior ({date}), {year} estaba en {open} / {known} = {pct}. Una proporción cambia entre lecturas conforme cambia el registro de OpenAlex.",
     openalexColYear: "Año",
     openalexColWorks: "Trabajos",
     openalexColTotal: "Total",
@@ -481,6 +489,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Travaux selon le domaine OpenAlex de leur sujet principal, {from}–{to} : {total} travaux en tout ; les lignes peuvent totaliser moins, car un travail auquel OpenAlex n'a attribué aucun sujet ne figure dans aucune ligne. La part ouverte ci-dessus n'est pas corrigée de cette composition : là où deux organismes diffèrent ici, leurs parts ne mesurent pas la même chose.",
     openalexColDomain: "Domaine",
     openalexCompareLink: "Mettre côte à côte avec un autre organisme",
+    openalexPreviousReading:
+      "À la lecture précédente ({date}), {year} était à {open} / {known} = {pct}. Une part bouge d'une lecture à l'autre comme bouge ce qu'OpenAlex enregistre.",
     openalexColYear: "Année",
     openalexColWorks: "Travaux",
     openalexColTotal: "Total",
@@ -581,6 +591,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Arbeiten nach der OpenAlex-Domäne ihres Hauptthemas, {from}–{to}: insgesamt {total} Arbeiten; die Zeilen können weniger ergeben, da eine Arbeit ohne von OpenAlex zugewiesenes Thema in keiner Zeile steht. Der offene Anteil oben ist nicht um diese Zusammensetzung bereinigt: wo sich zwei Einrichtungen hier unterscheiden, messen ihre Anteile nicht dasselbe.",
     openalexColDomain: "Domäne",
     openalexCompareLink: "Neben eine andere Einrichtung stellen",
+    openalexPreviousReading:
+      "Bei der vorigen Lesung ({date}) stand {year} bei {open} / {known} = {pct}. Ein Anteil bewegt sich zwischen zwei Lesungen, wie sich OpenAlex' Eintrag bewegt.",
     openalexColYear: "Jahr",
     openalexColWorks: "Arbeiten",
     openalexColTotal: "Gesamt",
@@ -681,6 +693,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "主要トピックの OpenAlex ドメイン別の成果数（{from}–{to} 年）。合計 {total} 件。OpenAlex がトピックを付与していない成果はどの行にも含まれないため、各行の合計はこれより少ないことがあります。上のオープン率はこの構成で補正していません。ここで構成が異なる二つの機関では、その率は同じものを測っていません。",
     openalexColDomain: "ドメイン",
     openalexCompareLink: "別の機関と並置する",
+    openalexPreviousReading:
+      "前回の読み取り（{date}）では、{year} 年は {open} / {known} = {pct} でした。率は OpenAlex の記録の変化に応じて読み取りごとに動きます。",
     openalexColYear: "年",
     openalexColWorks: "成果",
     openalexColTotal: "合計",
@@ -780,6 +794,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Trabalhos pelo domínio do OpenAlex de seu tema principal, {from}–{to}: {total} trabalhos ao todo; as linhas podem somar menos, pois um trabalho ao qual o OpenAlex não atribuiu tema não está em nenhuma linha. A proporção aberta acima não é ajustada por essa composição: onde duas organizações diferem aqui, suas proporções não medem a mesma coisa.",
     openalexColDomain: "Domínio",
     openalexCompareLink: "Colocar lado a lado com outra organização",
+    openalexPreviousReading:
+      "Na leitura anterior ({date}), {year} estava em {open} / {known} = {pct}. Uma proporção muda entre leituras conforme muda o registro do OpenAlex.",
     openalexColYear: "Ano",
     openalexColWorks: "Trabalhos",
     openalexColTotal: "Total",
@@ -880,6 +896,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Lavori per dominio OpenAlex del loro tema principale, {from}–{to}: {total} lavori in tutto; le righe possono sommare a meno, poiché un lavoro a cui OpenAlex non ha assegnato un tema non compare in alcuna riga. La quota aperta qui sopra non è corretta per questa composizione: dove due organizzazioni differiscono qui, le loro quote non misurano la stessa cosa.",
     openalexColDomain: "Dominio",
     openalexCompareLink: "Affiancare a un'altra organizzazione",
+    openalexPreviousReading:
+      "Alla lettura precedente ({date}), {year} era a {open} / {known} = {pct}. Una quota si muove fra una lettura e l'altra come si muove ciò che OpenAlex registra.",
     openalexColYear: "Anno",
     openalexColWorks: "Lavori",
     openalexColTotal: "Totale",
@@ -980,6 +998,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "주요 주제의 OpenAlex 도메인별 성과 수({from}–{to}년): 모두 {total}건. OpenAlex가 주제를 부여하지 않은 성과는 어느 행에도 없으므로 행의 합은 이보다 적을 수 있습니다. 위의 공개 비율은 이 구성에 따라 보정하지 않았습니다. 두 기관이 여기서 다르면 그 비율은 같은 것을 재지 않습니다.",
     openalexColDomain: "도메인",
     openalexCompareLink: "다른 기관과 나란히 보기",
+    openalexPreviousReading:
+      "이전에 읽은 시점({date})에는 {year}년이 {open} / {known} = {pct}였습니다. 비율은 OpenAlex 기록이 바뀌는 대로 읽은 시점 사이에 움직입니다.",
     openalexColYear: "연도",
     openalexColWorks: "성과",
     openalexColTotal: "합계",
@@ -1079,6 +1099,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
       "Работы по домену OpenAlex, к которому относится их основная тема, {from}–{to}: всего {total} работ; сумма строк может быть меньше, поскольку работа, которой OpenAlex не присвоил тему, не входит ни в одну строку. Открытая доля выше не скорректирована по этому составу: там, где две организации здесь различаются, их доли измеряют не одно и то же.",
     openalexColDomain: "Домен",
     openalexCompareLink: "Поставить рядом с другой организацией",
+    openalexPreviousReading:
+      "При предыдущем чтении ({date}) {year} год составлял {open} / {known} = {pct}. Доля движется между чтениями так же, как движется запись OpenAlex.",
     openalexColYear: "Год",
     openalexColWorks: "Работы",
     openalexColTotal: "Итого",

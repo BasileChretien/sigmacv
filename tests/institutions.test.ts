@@ -222,10 +222,19 @@ describe("listed.ts trusted names (the Institution table, never a CV column)", (
       openalexId: "I60134161",
       openalexAggregates: { version: 1 },
       openalexFetchedAt: fetchedAt,
+      openalexPreviousAggregates: null,
+      openalexPreviousFetchedAt: null,
     });
     expect(mocks.institutionFindUnique).toHaveBeenCalledWith({
       where: { rorId: ROR },
-      select: { name: true, openalexId: true, openalexAggregates: true, openalexFetchedAt: true },
+      select: {
+        name: true,
+        openalexId: true,
+        openalexAggregates: true,
+        openalexFetchedAt: true,
+        openalexPreviousAggregates: true,
+        openalexPreviousFetchedAt: true,
+      },
     });
     mocks.institutionFindUnique.mockResolvedValue(null);
     await expect(trustedInstitutionRecord(ROR)).resolves.toBeNull();
@@ -236,6 +245,8 @@ describe("listed.ts trusted names (the Institution table, never a CV column)", (
       openalexId: null,
       openalexAggregates: null,
       openalexFetchedAt: null,
+      openalexPreviousAggregates: null,
+      openalexPreviousFetchedAt: null,
     });
     // Never the Cv table.
     expect(mocks.findFirst).not.toHaveBeenCalled();
@@ -442,7 +453,29 @@ describe("institutionSummary", () => {
       openalexId: "I60134161",
       aggregates,
       fetchedAt: "2026-09-09T10:00:00.000Z",
+      previous: null,
     });
+    // A previous reading rides along only with its date and when it parses.
+    mocks.institutionFindUnique.mockResolvedValue({
+      ...row,
+      openalexPreviousAggregates: aggregates,
+      openalexPreviousFetchedAt: new Date("2026-09-02T10:00:00.000Z"),
+    });
+    expect((await institutionSummary(ROR))?.openalex?.previous).toEqual({
+      aggregates,
+      fetchedAt: "2026-09-02T10:00:00.000Z",
+    });
+    for (const noPrevious of [
+      { ...row, openalexPreviousAggregates: aggregates, openalexPreviousFetchedAt: null },
+      {
+        ...row,
+        openalexPreviousAggregates: { version: 1, junk: true },
+        openalexPreviousFetchedAt: new Date("2026-09-02T10:00:00.000Z"),
+      },
+    ]) {
+      mocks.institutionFindUnique.mockResolvedValue(noPrevious);
+      expect((await institutionSummary(ROR))?.openalex?.previous).toBeNull();
+    }
 
     for (const broken of [
       { ...row, openalexAggregates: { version: 1, junk: true } },
@@ -690,6 +723,7 @@ describe("institutionJsonLd", () => {
       openalex: {
         openalexId: "I60134161",
         fetchedAt: "2026-09-09T10:00:00.000Z",
+        previous: null,
         aggregates: {
           version: 1,
           countedEntity: {

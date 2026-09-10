@@ -55,6 +55,13 @@ export interface ComparisonExportOrganisation {
   years: { from: number; to: number };
   rows: ComparisonExportRow[];
   domains: CompareColumn["domains"] | null;
+  /** The last full year as the reading before this one counted it (no share). */
+  previousReading: {
+    fetchedAt: string;
+    year: number;
+    worksWithStatus: number;
+    openCopies: number;
+  } | null;
 }
 
 export interface ComparisonExport {
@@ -135,5 +142,13 @@ function organisationOf(col: CompareColumn): ComparisonExportOrganisation {
       notStatedBecause: r.withheld,
     })),
     domains: col.domains ?? null,
+    previousReading: col.previous
+      ? {
+          fetchedAt: col.previous.fetchedAt,
+          year: col.previous.year,
+          worksWithStatus: col.previous.known,
+          openCopies: col.previous.open,
+        }
+      : null,
   };
 }

@@ -50,6 +50,13 @@ const comparison: InstitutionComparison = {
         },
       ],
       domains: { total: 6200, byDomain: [{ id: "4", name: "Health Sciences", count: 5000 }] },
+      previous: {
+        year: 2025,
+        open: 640,
+        known: 1000,
+        percent: 64,
+        fetchedAt: "2026-08-25T00:00:00.000Z",
+      },
     },
     {
       rorId: B,
@@ -73,6 +80,7 @@ const comparison: InstitutionComparison = {
         },
       ],
       domains: undefined,
+      previous: null,
     },
   ],
   dropped: [{ rorId: "027arzy69", reason: "no-page" }],
@@ -149,6 +157,14 @@ describe("comparisonExport", () => {
       byDomain: [{ id: "4", name: "Health Sciences", count: 5000 }],
     });
     expect(out.organisations[1]!.domains).toBeNull();
+    // The previous reading travels as counts only, never its percent.
+    expect(nagoya.previousReading).toEqual({
+      fetchedAt: "2026-08-25T00:00:00.000Z",
+      year: 2025,
+      worksWithStatus: 1000,
+      openCopies: 640,
+    });
+    expect(out.organisations[1]!.previousReading).toBeNull();
   });
 
   it("carries counts only: no share, percent, ratio or rank anywhere — and nothing consented", () => {
@@ -166,6 +182,6 @@ describe("comparisonExport", () => {
       expect(json, banned).not.toContain(banned);
     }
     // The stated shares of the page (65, 33) never appear as numbers.
-    expect(json).not.toMatch(/:\s*65\b|:\s*33\b/);
+    expect(json).not.toMatch(/:\s*65\b|:\s*33\b|:\s*64\b/);
   });
 });

@@ -252,6 +252,9 @@ export interface TrustedInstitutionRecord {
   openalexId: string | null;
   openalexAggregates: unknown;
   openalexFetchedAt: Date | null;
+  /** The reading before the current one (validated by the caller like the current). */
+  openalexPreviousAggregates: unknown;
+  openalexPreviousFetchedAt: Date | null;
 }
 
 export async function trustedInstitutionRecord(
@@ -259,7 +262,14 @@ export async function trustedInstitutionRecord(
 ): Promise<TrustedInstitutionRecord | null> {
   const row = await prisma.institution.findUnique({
     where: { rorId },
-    select: { name: true, openalexId: true, openalexAggregates: true, openalexFetchedAt: true },
+    select: {
+      name: true,
+      openalexId: true,
+      openalexAggregates: true,
+      openalexFetchedAt: true,
+      openalexPreviousAggregates: true,
+      openalexPreviousFetchedAt: true,
+    },
   });
   if (!row) return null;
   return {
@@ -267,6 +277,8 @@ export async function trustedInstitutionRecord(
     openalexId: row.openalexId ?? null,
     openalexAggregates: row.openalexAggregates ?? null,
     openalexFetchedAt: row.openalexFetchedAt ?? null,
+    openalexPreviousAggregates: row.openalexPreviousAggregates ?? null,
+    openalexPreviousFetchedAt: row.openalexPreviousFetchedAt ?? null,
   };
 }
 
@@ -293,6 +305,8 @@ export async function trustedInstitutionRecords(
       openalexId: true,
       openalexAggregates: true,
       openalexFetchedAt: true,
+      openalexPreviousAggregates: true,
+      openalexPreviousFetchedAt: true,
     },
   });
   for (const row of rows) {
@@ -303,6 +317,8 @@ export async function trustedInstitutionRecords(
       openalexId: row.openalexId ?? null,
       openalexAggregates: row.openalexAggregates ?? null,
       openalexFetchedAt: row.openalexFetchedAt ?? null,
+      openalexPreviousAggregates: row.openalexPreviousAggregates ?? null,
+      openalexPreviousFetchedAt: row.openalexPreviousFetchedAt ?? null,
     });
   }
   return out;
