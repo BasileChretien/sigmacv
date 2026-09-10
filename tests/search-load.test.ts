@@ -39,9 +39,9 @@ describe("loadSearch", () => {
     mocks.search.mockResolvedValue([
       { name: "N", orcid: "0000-0002-1825-0097", affiliation: null, years: null },
     ]);
-    const out = await loadSearch("  Chrétien ");
-    expect(out).toMatchObject({ kind: "ok", query: "chrétien" });
-    expect(mocks.search).toHaveBeenCalledWith("chrétien");
+    const out = await loadSearch("  Basile   Chrétien ");
+    expect(out).toMatchObject({ kind: "ok", query: "basile chrétien", typed: "Basile Chrétien" });
+    expect(mocks.search).toHaveBeenCalledWith("basile chrétien");
     const keys = (mocks.rateLimit.mock.calls as unknown as unknown[][]).map((c) => String(c[0]));
     expect(keys).toEqual(["search:203.0.113.9", "search:global:minute", "search:global:hour"]);
     expect(keys.join(" ")).not.toContain("preview");
@@ -60,7 +60,7 @@ describe("queryParam + searchRobots", () => {
     expect(queryParam({ q: "x" })).toBe("x");
     expect(queryParam({})).toBeUndefined();
     expect(searchRobots({ kind: "idle" })).toBeUndefined();
-    expect(searchRobots({ kind: "ok", query: "x", hits: [] })).toEqual({
+    expect(searchRobots({ kind: "ok", query: "x", typed: "x", hits: [] })).toEqual({
       index: false,
       follow: false,
     });

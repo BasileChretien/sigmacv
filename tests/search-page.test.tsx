@@ -46,6 +46,7 @@ describe("SearchPage", () => {
         lookup={{
           kind: "ok",
           query: "chrétien",
+          typed: "Chrétien",
           hits: [
             {
               name: "Basile Chrétien",
@@ -66,6 +67,10 @@ describe("SearchPage", () => {
     expect(links[0]!.textContent).toContain("2024–2026");
     expect(links[0]!.textContent).toContain(s.orcidMark);
     expect(links[1]!.textContent).not.toContain("null");
+    // The box keeps what the visitor typed, not the lower-cased query; the list
+    // is unordered — a numbered list would put a rank beside every name.
+    expect((screen.getByTestId("search-input") as HTMLInputElement).value).toBe("Chrétien");
+    expect(screen.getByTestId("search-results").tagName).toBe("UL");
     const list = screen.getByTestId("search-results").textContent ?? "";
     // The only digits on a row are the affiliation years.
     expect(list.replace(/\d{4}–\d{4}/g, "")).not.toMatch(/\d/);
@@ -74,7 +79,7 @@ describe("SearchPage", () => {
 
   it("shows the empty, invalid and rate-limited notices", () => {
     const { unmount } = render(
-      <SearchPage locale="en-US" lookup={{ kind: "ok", query: "zzz", hits: [] }} />,
+      <SearchPage locale="en-US" lookup={{ kind: "ok", query: "zzz", typed: "zzz", hits: [] }} />,
     );
     expect(screen.getByTestId("search-empty").textContent).toBe(s.noResults);
     unmount();
