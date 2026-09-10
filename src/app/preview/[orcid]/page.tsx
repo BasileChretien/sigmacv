@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import OrcidPreviewForm from "@/components/OrcidPreviewForm";
+import SeeItFirstForm from "@/components/SeeItFirstForm";
 import PreviewBuilder from "@/components/PreviewBuilder";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
@@ -73,7 +73,8 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
   );
 }
 
-/** Centred notice for a malformed iD — offers the paste-your-ORCID form again.
+/** Centred notice for a malformed iD — offers the see-it-first box again, headed
+ *  as a retry (this is a third-party surface, not the owner-voiced homepage).
  *  The no-record / transient-error / rate-limited states are surfaced by
  *  {@link PreviewBuilder} instead (they're only known once the stream runs). */
 function PreviewNotice({
@@ -93,7 +94,7 @@ function PreviewNotice({
         <div className="preview-empty">
           <h1>{heading}</h1>
           <p>{body}</p>
-          <OrcidPreviewForm locale={locale} />
+          <SeeItFirstForm locale={locale} prompt={s.formRetryPrompt} />
           <p className="doc-back muted">
             <Link href="/">{s.back}</Link>
           </p>

@@ -5,14 +5,14 @@ import { landingStrings } from "@/lib/i18n/landing";
 import { searchStrings } from "@/lib/i18n/search";
 
 /**
- * The homepage's entry to the lookup: one quiet line under the sign-in card's
- * preview form, linking the locale's /search. It must never compete with the
+ * The homepage's entry to the lookup: one quiet line at the bottom of the
+ * sign-in card (whose top is the "see it first" box), linking the locale's /search. It must never compete with the
  * sign-in call to action, and its wording must exist in every locale.
  */
 describe("homepage lookup entry", () => {
-  it("links the localized /search from under the preview form, and nowhere near the hero", () => {
+  it("links the localized /search from the bottom of the sign-in card, below the see-it-first box", () => {
     const src = readFileSync("src/components/Landing.tsx", "utf8");
-    const form = src.indexOf("<OrcidPreviewForm locale={loc} />");
+    const form = src.indexOf("<SeeItFirstForm locale={loc} />");
     const link = src.indexOf('data-testid="home-lookup-link"');
     expect(form).toBeGreaterThan(-1);
     expect(link).toBeGreaterThan(form);

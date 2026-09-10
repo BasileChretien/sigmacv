@@ -133,6 +133,21 @@
   font-size: var(--text-xs);
   color: var(--muted);
 }
+/* "See it first" sits at the top of the card; the sign-in follows under a rule. */
+.hp2-signin > .hp2-preview:first-child {
+  margin-top: 0;
+}
+.hp2-keepit {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+  margin-bottom: var(--space-2);
+}
+.hp2-keepit-line {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
 .hp2-btn {
   display: inline-flex;
   align-items: center;
