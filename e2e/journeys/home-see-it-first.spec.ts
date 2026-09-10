@@ -12,7 +12,8 @@ test.describe("see it first", () => {
     await box.getByRole("textbox").fill("Basile Chrétien");
     await box.getByRole("button").click();
     await expect(page).toHaveURL(/\/search\?q=Basile%20Chr%C3%A9tien$/);
-    await expect(page.getByTestId("search-input")).toHaveValue("Basile Chrétien");
+    // The URL carries the visitor's casing; the page shows the lookup's normalised query.
+    await expect(page.getByTestId("search-input")).toHaveValue(/^basile chrétien$/i);
   });
 
   test("an ORCID iD goes straight to the preview", async ({ page }) => {

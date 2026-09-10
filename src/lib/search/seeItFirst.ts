@@ -10,7 +10,9 @@ import { isValidOrcidChecksum } from "@/lib/orcid/checksum";
 export type SeeItFirstTarget =
   { kind: "orcid"; orcid: string } | { kind: "name"; query: string } | { kind: "invalid" };
 
-const ORCID_RE = /(\d{4}-\d{4}-\d{4}-\d{3}[\dX])/i;
+/** The whole input must be an iD — bare, or as an orcid.org URL — never an iD
+ *  buried in other text ("Alice 0000-0002-1825-0097" is a name to look up). */
+const ORCID_RE = /^(?:(?:https?:\/\/)?(?:www\.)?orcid\.org\/)?(\d{4}-\d{4}-\d{4}-\d{3}[\dX])\/?$/i;
 
 /** Something shaped like an iD that was mistyped: digits, dashes, spaces — never a name. */
 const DIGITS_ONLY = /^[\d\s-]+$/;
