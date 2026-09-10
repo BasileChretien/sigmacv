@@ -103,9 +103,30 @@ beforeEach(() => {
   mocks.fetchInstitutionByRor.mockImplementation(async (ror: string) =>
     entity(ror === NAGOYA ? "I60134161" : "I98702875"),
   );
-  mocks.groupWorks.mockResolvedValue({
-    total: 3,
-    groups: [{ key: "2025", label: "2025", count: 3 }],
+  // Each grouped request answers with a key of ITS shape (the job now refuses
+  // to store aggregates that fail the stored schema), and the domain request
+  // answers differently from the rest so a test can tell that the stored field
+  // mix came from that request (groups and total).
+  mocks.groupWorks.mockImplementation(async (q: { groupBy: string }) => {
+    switch (q.groupBy) {
+      case "primary_topic.domain.id":
+        return {
+          total: 40,
+          groups: [{ key: "https://openalex.org/domains/4", label: "Health Sciences", count: 30 }],
+        };
+      case "authorships.countries":
+        return {
+          total: 3,
+          groups: [{ key: "https://openalex.org/countries/JP", label: "Japan", count: 3 }],
+        };
+      case "authorships.institutions.lineage":
+        return {
+          total: 3,
+          groups: [{ key: "https://openalex.org/I4210121234", label: "Hospital", count: 2 }],
+        };
+      default:
+        return { total: 3, groups: [{ key: "2025", label: "2025", count: 3 }] };
+    }
   });
 });
 afterEach(() => vi.useRealTimers());
@@ -170,7 +191,7 @@ describe("refreshInstitutionProfiles", () => {
     expect(mocks.update.mock.calls[0]![0].where).toEqual({ rorId: NAGOYA });
   });
 
-  it("makes ~10 OpenAlex calls per institution — entity, works by year, OA status per year of the window, countries, co-affiliations — all type-filtered on the folded ids", async () => {
+  it("makes 12 OpenAlex calls per institution — the entity, then works by year, OA status per year of the window, countries, co-affiliations, field mix — all type-filtered on the folded ids", async () => {
     sets(NAGOYA);
     dbRows([NAGOYA]);
 
@@ -178,7 +199,7 @@ describe("refreshInstitutionProfiles", () => {
 
     expect(mocks.fetchInstitutionByRor).toHaveBeenCalledWith(NAGOYA);
     const calls = mocks.groupWorks.mock.calls.map((c) => c[0]);
-    expect(calls).toHaveLength(1 + 7 + 1 + 1);
+    expect(calls).toHaveLength(1 + 7 + 1 + 1 + 1);
     const folded = ["I60134161", "I999"];
     expect(calls[0]).toEqual({
       lineageIds: folded,
@@ -202,6 +223,11 @@ describe("refreshInstitutionProfiles", () => {
       filters: [TYPE_FILTER, "publication_year:2020-2026"],
       groupBy: "authorships.institutions.lineage",
     });
+    expect(calls[10]).toEqual({
+      lineageIds: folded,
+      filters: [TYPE_FILTER, "publication_year:2020-2026"],
+      groupBy: "primary_topic.domain.id",
+    });
   });
 
   it("stores the counts-only aggregates with a weekly next refresh, clears the last error, and purges the cached page", async () => {
@@ -220,12 +246,40 @@ describe("refreshInstitutionProfiles", () => {
     expect(data.openalexNextRefreshAt).toEqual(new Date(T0 + 7 * DAY));
     expect(data.openalexAggregates.countedEntity.openalexId).toBe("I60134161");
     expect(data.openalexAggregates.worksByYear).toContainEqual({ year: 2025, count: 3 });
+    // The field mix: that request's own total and groups, ids shortened.
+    expect(data.openalexAggregates.domains).toEqual({
+      total: 40,
+      byDomain: [{ id: "4", name: "Health Sciences", count: 30 }],
+    });
     expect(JSON.stringify(data.openalexAggregates)).not.toMatch(/share|pct|%/);
     expect(mocks.purgeInstitutionPages).toHaveBeenCalledWith([NAGOYA]);
     expect(mocks.log.info).toHaveBeenCalledWith(
       "institution.openalex_refreshed",
       expect.objectContaining({ refreshed: 1 }),
     );
+  });
+
+  it("refuses to store aggregates that fail the stored schema — a recorded failure with backoff, the previous snapshot kept — rather than a row the page would read as 'not fetched yet' for a week", async () => {
+    sets(NAGOYA);
+    dbRows([NAGOYA]);
+    const valid = mocks.groupWorks.getMockImplementation()!;
+    mocks.groupWorks.mockImplementation(async (q: { groupBy: string }) =>
+      q.groupBy === "primary_topic.domain.id"
+        ? {
+            total: 1,
+            groups: [{ key: "https://openalex.org/domains/unknown", label: "?", count: 1 }],
+          }
+        : valid(q),
+    );
+
+    const summary = await refreshInstitutionProfiles(opts());
+
+    expect(summary).toMatchObject({ refreshed: 0, failed: 1 });
+    expect(mocks.update).toHaveBeenCalledTimes(1);
+    const { data } = mocks.update.mock.calls[0]![0];
+    expect(data.openalexAggregates).toBeUndefined();
+    expect(data.openalexLastError).toMatch(/stored schema/);
+    expect(mocks.purgeInstitutionPages).not.toHaveBeenCalled();
   });
 
   it("is fail-soft per row: a failing row records the error and backs off one day, the next row still runs", async () => {
@@ -307,12 +361,12 @@ describe("refreshInstitutionProfiles", () => {
     expect(mocks.groupWorks).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1);
     expect(mocks.groupWorks).toHaveBeenCalledTimes(1);
-    await vi.advanceTimersByTimeAsync(8 * 200);
-    expect(mocks.groupWorks).toHaveBeenCalledTimes(9);
-    await vi.advanceTimersByTimeAsync(199);
-    expect(mocks.groupWorks).toHaveBeenCalledTimes(9);
-    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(9 * 200);
     expect(mocks.groupWorks).toHaveBeenCalledTimes(10);
+    await vi.advanceTimersByTimeAsync(199);
+    expect(mocks.groupWorks).toHaveBeenCalledTimes(10);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(mocks.groupWorks).toHaveBeenCalledTimes(11);
 
     const summary = await run;
     expect(summary.refreshed).toBe(1);

@@ -61,6 +61,15 @@ function groups(over: Partial<InstitutionGroupCounts> = {}): InstitutionGroupCou
       g("https://openalex.org/I1294671590", 5_000, "CNRS"),
       g("https://openalex.org/I35440088", 4_000, "INSERM"),
     ],
+    domains: {
+      total: 20_264,
+      groups: [
+        g("https://openalex.org/domains/1", 2_074, "Life Sciences"),
+        g("https://openalex.org/domains/2", 6_246, "Social Sciences"),
+        g("https://openalex.org/domains/4", 6_110, "Health Sciences"),
+        g("https://openalex.org/domains/3", 5_813, "Physical Sciences"),
+      ],
+    },
     ...over,
   };
 }
@@ -176,6 +185,21 @@ describe("computeInstitutionAggregates", () => {
     ]);
   });
 
+  it("stores the field mix as short domain ids + names + counts in OpenAlex's domain order (never by count), with that request's own total as the denominator", () => {
+    expect(agg.domains).toEqual({
+      total: 20_264,
+      byDomain: [
+        { id: "1", name: "Life Sciences", count: 2_074 },
+        { id: "2", name: "Social Sciences", count: 6_246 },
+        { id: "3", name: "Physical Sciences", count: 5_813 },
+        { id: "4", name: "Health Sciences", count: 6_110 },
+      ],
+    });
+    // The four domains sum below the total: works OpenAlex gave no topic.
+    const sum = agg.domains!.byDomain.reduce((n, d) => n + d.count, 0);
+    expect(sum).toBeLessThan(agg.domains!.total);
+  });
+
   it("caps both top lists at TOP_N, highest count first", () => {
     expect(TOP_N).toBe(15);
     const countries = Array.from({ length: 40 }, (_, i) =>
@@ -212,6 +236,7 @@ describe("computeInstitutionAggregates", () => {
     expect(Object.keys(agg).sort()).toEqual([
       "countedEntity",
       "countedWorkTypes",
+      "domains",
       "oaByStatusByYear",
       "topCoAffiliations",
       "topCountries",
@@ -219,6 +244,19 @@ describe("computeInstitutionAggregates", () => {
       "worksByYear",
       "years",
     ]);
+  });
+
+  it("still parses a row stored before the field mix existed, and rejects a malformed one", () => {
+    const { domains: _dropped, ...older } = agg;
+    expect(parseInstitutionAggregates(older)).toEqual(older);
+    expect(parseInstitutionAggregates(older)?.domains).toBeUndefined();
+    expect(
+      parseInstitutionAggregates({
+        ...agg,
+        domains: { total: 1, byDomain: [{ id: "domains/2", name: "x", count: 1 }] },
+      }),
+    ).toBeNull();
+    expect(parseInstitutionAggregates({ ...agg, domains: { byDomain: [] } })).toBeNull();
   });
 
   it("round-trips through the stored-JSON parser, which rejects anything else", () => {

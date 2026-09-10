@@ -20,8 +20,12 @@ import { openAlexError, openAlexGet, openAlexResponse } from "./client";
  *   carries `relationship ∈ parent | child | related` (a hospital is `related`).
  * - `GET /works?filter=authorships.institutions.lineage:I…|I…,<more>&group_by=<key>`
  *   with `key ∈ publication_year | open_access.oa_status | authorships.countries |
- *   authorships.institutions.lineage`; `authorships.institutions.ror:<bare id>`
- *   also works. Response: `{ meta: { count }, group_by: [{ key, key_display_name, count }] }`.
+ *   authorships.institutions.lineage | primary_topic.domain.id`;
+ *   `authorships.institutions.ror:<bare id>` also works. Response:
+ *   `{ meta: { count }, group_by: [{ key, key_display_name, count }] }`. The
+ *   domain key returns `https://openalex.org/domains/<n>` with the domain's
+ *   name (verified live 2026-09-10: four groups, whose sum is below
+ *   `meta.count` by the works OpenAlex has given no topic).
  *
  * Bounded: `per-page=200`, no paging (OpenAlex caps `group_by` at 200 groups).
  * Nothing user-supplied ever reaches a URL: the ROR id is validated by shape,
@@ -35,7 +39,8 @@ export type WorksGroupBy =
   | "publication_year"
   | "open_access.oa_status"
   | "authorships.countries"
-  | "authorships.institutions.lineage";
+  | "authorships.institutions.lineage"
+  | "primary_topic.domain.id";
 
 /** A short OpenAlex institution id. */
 const OPENALEX_INSTITUTION_ID = /^I\d+$/;

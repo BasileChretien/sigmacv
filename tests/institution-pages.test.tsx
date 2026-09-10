@@ -441,6 +441,31 @@ describe("/i/[ror]", () => {
       expect(body.match(/%/g)).toHaveLength(1);
     });
 
+    it("shows the field mix only for a row that carries it, with that request's own total, never a share of it", async () => {
+      listedWithSnapshot();
+      const without = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+      expect(text(without)).not.toContain(institutionStrings("en-US").openalexDomainsHeading);
+
+      listedWithSnapshot({
+        ...AGG,
+        domains: {
+          total: 1250,
+          byDomain: [
+            { id: "4", name: "Health Sciences", count: 900 },
+            { id: "2", name: "", count: 300 },
+          ],
+        },
+      });
+      const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+      const body = text(html);
+      expect(body).toContain(institutionStrings("en-US").openalexDomainsHeading);
+      expect(body).toContain("1,250 works in all");
+      expect(html).toContain('<tr><td>Health Sciences</td><td class="num">900</td></tr>');
+      // A blank name falls back to the domain id; still only the one percent on the page.
+      expect(html).toContain('<tr><td>2</td><td class="num">300</td></tr>');
+      expect(body.match(/%/g)).toHaveLength(1);
+    });
+
     it("adds the OpenAlex entity as the Organization's sameAs, and only then", async () => {
       listedWithSnapshot();
       const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));

@@ -45,6 +45,9 @@ describe("institutionStrings", () => {
       expect(s.openalexAsOf, loc).toContain("{date}");
       expect(s.openalexShareNote, loc).toContain("{floor}");
       expect(s.openalexTotalsDiffer, loc).toContain("{years}");
+      for (const ph of ["{from}", "{to}", "{total}"]) {
+        expect(s.openalexDomainsNote, `${loc} ${ph}`).toContain(ph);
+      }
     }
   });
 
@@ -101,6 +104,9 @@ describe("institutionStrings", () => {
       "openalexShareFew",
       "openalexShareIncomplete",
       "openalexTotalsDiffer",
+      "openalexDomainsHeading",
+      "openalexDomainsNote",
+      "openalexColDomain",
     ] as const;
     const latin =
       /\b(rank(ing|ed|s)?|top|bottom|league|scores?|scored|grades?|graded|leaders?|laggards?|lagging|leading|best|worst|ahead|behind|outperform\w*|underperform\w*|performance|targets?|gaps?|coverage|benchmarks?|complian\w*|mandates?|overdue|violations?|breach\w*|closed access)\b/i;
