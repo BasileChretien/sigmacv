@@ -72,6 +72,11 @@ export interface InstitutionStrings {
   openalexShareIncomplete: string;
   /** `{years}`: the years where the two totals differ by more than one percent. */
   openalexTotalsDiffer: string;
+  /** The field-mix table (works by OpenAlex domain), shown only for rows that carry it. */
+  openalexDomainsHeading: string;
+  /** `{from}`, `{to}`, `{total}`: the window and that request's own total. */
+  openalexDomainsNote: string;
+  openalexColDomain: string;
   openalexColYear: string;
   openalexColWorks: string;
   openalexColTotal: string;
@@ -176,6 +181,10 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexShareIncomplete: "year not complete",
     openalexTotalsDiffer:
       "For {years}, the works-by-year table counts a noticeably different number of works from those with a status here; the two come from different OpenAlex requests.",
+    openalexDomainsHeading: "OpenAlex domains",
+    openalexDomainsNote:
+      "Works by the OpenAlex domain of their primary topic, {from}–{to}: {total} works in all; the rows can add up to fewer, since a work OpenAlex has given no topic is in no row. The open share above is not adjusted for this mix: where two organisations differ here, their shares do not measure the same thing.",
+    openalexColDomain: "Domain",
     openalexColYear: "Year",
     openalexColWorks: "Works",
     openalexColTotal: "Total",
@@ -266,6 +275,10 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexShareIncomplete: "年份未结束",
     openalexTotalsDiffer:
       "{years} 年，按年份的成果数表的数量与此处有状态的成果数明显不同；两者来自 OpenAlex 的不同请求。",
+    openalexDomainsHeading: "OpenAlex 领域",
+    openalexDomainsNote:
+      "按成果主要主题所属的 OpenAlex 领域统计的成果数，{from}–{to} 年：共 {total} 项成果；各行之和可能少于此数，因为 OpenAlex 未指定主题的成果不在任何一行中。上方的开放占比未按此构成调整：两个机构在此处不同时，其占比衡量的并非同一事物。",
+    openalexColDomain: "领域",
     openalexColYear: "年份",
     openalexColWorks: "成果",
     openalexColTotal: "总计",
@@ -359,6 +372,10 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexShareIncomplete: "año no completo",
     openalexTotalsDiffer:
       "En {years}, la tabla de trabajos por año cuenta un número de trabajos claramente distinto del de trabajos con estado aquí; ambos proceden de peticiones distintas a OpenAlex.",
+    openalexDomainsHeading: "Dominios de OpenAlex",
+    openalexDomainsNote:
+      "Trabajos según el dominio de OpenAlex de su tema principal, {from}–{to}: {total} trabajos en total; las filas pueden sumar menos, ya que un trabajo al que OpenAlex no ha asignado tema no está en ninguna fila. La proporción abierta de arriba no se ajusta por esta composición: cuando dos organizaciones difieren aquí, sus proporciones no miden lo mismo.",
+    openalexColDomain: "Dominio",
     openalexColYear: "Año",
     openalexColWorks: "Trabajos",
     openalexColTotal: "Total",
@@ -454,6 +471,10 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexShareIncomplete: "année incomplète",
     openalexTotalsDiffer:
       "Pour {years}, le tableau des travaux par année compte un nombre de travaux nettement différent de celui des travaux dotés d'un statut ici ; les deux viennent de requêtes OpenAlex distinctes.",
+    openalexDomainsHeading: "Domaines OpenAlex",
+    openalexDomainsNote:
+      "Travaux selon le domaine OpenAlex de leur sujet principal, {from}–{to} : {total} travaux en tout ; les lignes peuvent totaliser moins, car un travail auquel OpenAlex n'a attribué aucun sujet ne figure dans aucune ligne. La part ouverte ci-dessus n'est pas corrigée de cette composition : là où deux organismes diffèrent ici, leurs parts ne mesurent pas la même chose.",
+    openalexColDomain: "Domaine",
     openalexColYear: "Année",
     openalexColWorks: "Travaux",
     openalexColTotal: "Total",
@@ -549,6 +570,10 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexShareIncomplete: "Jahr nicht abgeschlossen",
     openalexTotalsDiffer:
       "Für {years} zählt die Tabelle der Arbeiten nach Jahr eine deutlich andere Zahl von Arbeiten als die mit Status hier; beide stammen aus verschiedenen OpenAlex-Abfragen.",
+    openalexDomainsHeading: "OpenAlex-Domänen",
+    openalexDomainsNote:
+      "Arbeiten nach der OpenAlex-Domäne ihres Hauptthemas, {from}–{to}: insgesamt {total} Arbeiten; die Zeilen können weniger ergeben, da eine Arbeit ohne von OpenAlex zugewiesenes Thema in keiner Zeile steht. Der offene Anteil oben ist nicht um diese Zusammensetzung bereinigt: wo sich zwei Einrichtungen hier unterscheiden, messen ihre Anteile nicht dasselbe.",
+    openalexColDomain: "Domäne",
     openalexColYear: "Jahr",
     openalexColWorks: "Arbeiten",
     openalexColTotal: "Gesamt",
@@ -644,6 +669,10 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexShareIncomplete: "年が終わっていません",
     openalexTotalsDiffer:
       "{years} 年は、年別の研究成果数の表の件数がここでの状態のある成果数と明らかに異なります。両者は OpenAlex への別々の問い合わせによるものです。",
+    openalexDomainsHeading: "OpenAlex のドメイン",
+    openalexDomainsNote:
+      "主要トピックの OpenAlex ドメイン別の成果数（{from}–{to} 年）。合計 {total} 件。OpenAlex がトピックを付与していない成果はどの行にも含まれないため、各行の合計はこれより少ないことがあります。上のオープン率はこの構成で補正していません。ここで構成が異なる二つの機関では、その率は同じものを測っていません。",
+    openalexColDomain: "ドメイン",
     openalexColYear: "年",
     openalexColWorks: "成果",
     openalexColTotal: "合計",
@@ -738,6 +767,10 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexShareIncomplete: "ano não completo",
     openalexTotalsDiffer:
       "Em {years}, a tabela de trabalhos por ano conta um número de trabalhos claramente diferente do de trabalhos com status aqui; os dois vêm de consultas distintas ao OpenAlex.",
+    openalexDomainsHeading: "Domínios do OpenAlex",
+    openalexDomainsNote:
+      "Trabalhos pelo domínio do OpenAlex de seu tema principal, {from}–{to}: {total} trabalhos ao todo; as linhas podem somar menos, pois um trabalho ao qual o OpenAlex não atribuiu tema não está em nenhuma linha. A proporção aberta acima não é ajustada por essa composição: onde duas organizações diferem aqui, suas proporções não medem a mesma coisa.",
+    openalexColDomain: "Domínio",
     openalexColYear: "Ano",
     openalexColWorks: "Trabalhos",
     openalexColTotal: "Total",
@@ -833,6 +866,10 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexShareIncomplete: "anno non completo",
     openalexTotalsDiffer:
       "Per {years}, la tabella dei lavori per anno conta un numero di lavori nettamente diverso da quello dei lavori con uno stato qui; i due provengono da richieste OpenAlex distinte.",
+    openalexDomainsHeading: "Domini OpenAlex",
+    openalexDomainsNote:
+      "Lavori per dominio OpenAlex del loro tema principale, {from}–{to}: {total} lavori in tutto; le righe possono sommare a meno, poiché un lavoro a cui OpenAlex non ha assegnato un tema non compare in alcuna riga. La quota aperta qui sopra non è corretta per questa composizione: dove due organizzazioni differiscono qui, le loro quote non misurano la stessa cosa.",
+    openalexColDomain: "Dominio",
     openalexColYear: "Anno",
     openalexColWorks: "Lavori",
     openalexColTotal: "Totale",
@@ -928,6 +965,10 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexShareIncomplete: "연도가 끝나지 않았습니다",
     openalexTotalsDiffer:
       "{years}년은 연도별 성과 표의 건수가 이곳의 상태가 있는 성과 수와 뚜렷이 다릅니다. 둘은 OpenAlex에 대한 서로 다른 요청에서 나왔습니다.",
+    openalexDomainsHeading: "OpenAlex 도메인",
+    openalexDomainsNote:
+      "주요 주제의 OpenAlex 도메인별 성과 수({from}–{to}년): 모두 {total}건. OpenAlex가 주제를 부여하지 않은 성과는 어느 행에도 없으므로 행의 합은 이보다 적을 수 있습니다. 위의 공개 비율은 이 구성에 따라 보정하지 않았습니다. 두 기관이 여기서 다르면 그 비율은 같은 것을 재지 않습니다.",
+    openalexColDomain: "도메인",
     openalexColYear: "연도",
     openalexColWorks: "성과",
     openalexColTotal: "합계",
@@ -1022,6 +1063,10 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     openalexShareIncomplete: "год не завершён",
     openalexTotalsDiffer:
       "За {years} таблица работ по годам насчитывает заметно иное число работ, чем работ со статусом здесь; оба числа получены разными запросами к OpenAlex.",
+    openalexDomainsHeading: "Домены OpenAlex",
+    openalexDomainsNote:
+      "Работы по домену OpenAlex, к которому относится их основная тема, {from}–{to}: всего {total} работ; сумма строк может быть меньше, поскольку работа, которой OpenAlex не присвоил тему, не входит ни в одну строку. Открытая доля выше не скорректирована по этому составу: там, где две организации здесь различаются, их доли измеряют не одно и то же.",
+    openalexColDomain: "Домен",
     openalexColYear: "Год",
     openalexColWorks: "Работы",
     openalexColTotal: "Итого",

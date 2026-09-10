@@ -88,6 +88,11 @@ export interface InstitutionGroupCounts {
   countries: CountedGroup[];
   /** `group_by=authorships.institutions.lineage` over the window. */
   coAffiliations: CountedGroup[];
+  /** `group_by=primary_topic.domain.id` over the window, with that request's
+   *  own total (the stated denominator: the works without a topic are in no
+   *  group). Added 2026-09-10; the field it feeds is optional in the stored
+   *  shape so rows written before it still parse. */
+  domains: { groups: CountedGroup[]; total: number };
 }
 
 const count = z.number().int().nonnegative();
@@ -126,6 +131,18 @@ export const InstitutionAggregatesSchema = z.object({
   topCoAffiliations: z.array(
     z.object({ openalexId: openalexInstitutionId, name: z.string(), count }),
   ),
+  /** The field mix: works by the OpenAlex domain of their primary topic over
+   *  the window, in OpenAlex's own domain order (by id, so two pages line up
+   *  row for row — never sorted by count), and the request's own total. OPTIONAL —
+   *  a required addition would fail every stored row until its next refresh;
+   *  the page shows nothing for a row without it. Counts only, so the reader
+   *  can see whether two mixes are alike; never a field-normalised share. */
+  domains: z
+    .object({
+      total: count,
+      byDomain: z.array(z.object({ id: z.string().regex(/^\d+$/), name: z.string(), count })),
+    })
+    .optional(),
 });
 
 export type InstitutionAggregates = z.infer<typeof InstitutionAggregatesSchema>;
@@ -213,6 +230,13 @@ export function computeInstitutionAggregates(
     .sort(byCountDesc)
     .slice(0, TOP_N);
 
+  const domains = {
+    total: groups.domains.total,
+    byDomain: [...groups.domains.groups]
+      .map((g) => ({ id: shortOpenAlexId(g.key), name: g.label, count: g.count }))
+      .sort((a, b) => Number(a.id) - Number(b.id)),
+  };
+
   return {
     version: 1,
     countedEntity: {
@@ -229,6 +253,7 @@ export function computeInstitutionAggregates(
     oaByStatusByYear,
     topCountries,
     topCoAffiliations,
+    domains,
   };
 }
 

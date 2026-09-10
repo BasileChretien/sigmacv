@@ -22,7 +22,10 @@ import { OA_STATUS_ORDER, TOP_N, type InstitutionAggregates } from "@/lib/instit
  *
  * Counts, in tables: works by year, OA status by year with the year's number
  * of works with a status as the explicit denominator, then the top co-author
- * countries and the top co-affiliated organisations. The one derived figure
+ * countries and the top co-affiliated organisations, and — for a row refreshed
+ * since 2026-09-10 — the field mix (works by the OpenAlex domain of their
+ * primary topic, with that request's own total), so a reader can see whether
+ * two organisations are alike before reading their shares. The one derived figure
  * is the open share (`oaShare.ts`): a whole percent printed beside both of
  * its counts, withheld below the floor and for the incomplete current year,
  * with its definition and limits stated above the table. No sort, no
@@ -102,6 +105,28 @@ export default function InstitutionOpenAlexSection({
             ),
           })}
         </p>
+      )}
+
+      {a.domains && (
+        <>
+          <h3>{s.openalexDomainsHeading}</h3>
+          <p className="muted">
+            {fillInstitutionString(s.openalexDomainsNote, {
+              from: a.years.from,
+              to: a.years.to,
+              total: num.format(a.domains.total),
+            })}
+          </p>
+          <CountTable
+            columns={[s.openalexColDomain, s.openalexColWorks]}
+            rows={a.domains.byDomain.map((r) => ({
+              key: r.id,
+              head: r.name || r.id,
+              counts: [r.count],
+            }))}
+            num={num}
+          />
+        </>
       )}
 
       <h3>{fillInstitutionString(s.openalexCountriesHeading, { n: TOP_N })}</h3>
