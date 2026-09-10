@@ -53,5 +53,7 @@ test("publish → the indexing question → Not now is remembered → Yes switch
   await expect(again.getByRole("status")).toContainText("may now index", { timeout: 15_000 });
   row = await db.cv.findUnique({ where: { userId: authedUserId } });
   expect(row?.publicIndexable).toBe(true);
-  await expect(page.getByTestId("worklist-indexing")).toContainText(/On/);
+  // Indexing ON is a status, not a reason: with nothing else to show, the
+  // worklist panel (and its row) stays out of the way.
+  await expect(page.getByTestId("indexing-prompt")).toContainText("may now index");
 });
