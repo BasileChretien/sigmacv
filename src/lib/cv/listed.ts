@@ -270,6 +270,55 @@ export async function trustedInstitutionRecord(
   };
 }
 
+/** One row as the comparison view reads it: the record above plus the ROR
+ *  id and the country ROR recorded (ISO 3166-1 alpha-2, or null). */
+export interface TrustedInstitutionRecordRow extends TrustedInstitutionRecord {
+  rorId: string;
+  country: string | null;
+}
+
+/** The records of many bare ROR ids at once (the comparison view): a map
+ *  holding only the ids with a recorded row. One query for all of them. */
+export async function trustedInstitutionRecords(
+  rorIds: string[],
+): Promise<Map<string, TrustedInstitutionRecordRow>> {
+  const out = new Map<string, TrustedInstitutionRecordRow>();
+  if (rorIds.length === 0) return out;
+  const rows = await prisma.institution.findMany({
+    where: { rorId: { in: rorIds } },
+    select: {
+      rorId: true,
+      name: true,
+      country: true,
+      openalexId: true,
+      openalexAggregates: true,
+      openalexFetchedAt: true,
+    },
+  });
+  for (const row of rows) {
+    out.set(row.rorId, {
+      rorId: row.rorId,
+      name: row.name.trim() || null,
+      country: row.country?.trim() || null,
+      openalexId: row.openalexId ?? null,
+      openalexAggregates: row.openalexAggregates ?? null,
+      openalexFetchedAt: row.openalexFetchedAt ?? null,
+    });
+  }
+  return out;
+}
+
+/** Every institution row with a stored OpenAlex snapshot (id + name): the
+ *  comparison picker's universe, still to be intersected with the opted-in
+ *  sets by the caller. Bounded by the number of institutions ever synced. */
+export async function institutionsWithSnapshot(): Promise<Array<{ rorId: string; name: string }>> {
+  return prisma.institution.findMany({
+    where: { openalexFetchedAt: { not: null } },
+    select: { rorId: true, name: true },
+    orderBy: { name: "asc" },
+  });
+}
+
 /** Trusted names for many bare ROR ids at once (index, sitemap, ListSets):
  *  a map holding only the ids with a recorded row. */
 export async function trustedInstitutionNames(rorIds: string[]): Promise<Map<string, string>> {

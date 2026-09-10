@@ -3929,6 +3929,27 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   max-width: 12rem;
   text-align: right;
 }
+/* Institution comparison view: one column per organisation, each its own
+   table with its own total and date; the method box sits above them. */
+.inst-method {
+  border-left: 3px solid var(--border);
+  padding-left: var(--space-3);
+  margin: var(--space-4) 0;
+}
+.inst-compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+.inst-compare-col h2 {
+  margin-top: 0;
+  font-size: var(--text-lg);
+}
+.inst-picker label {
+  display: block;
+  padding: var(--space-1) 0;
+}
 .landing-related ul {
   list-style: none;
   padding: 0;
