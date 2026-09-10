@@ -147,11 +147,12 @@ export default function Landing({ locale }: LandingProps) {
               </form>
               <p className="hp2-signin-trust">{s.orcidTrust}</p>
 
-              {/* Elevate the one-line trust into the concrete, verifiable facts
+              {/* One disclosure, not two: the verifiable facts about access
                   (read-only openid scope, no write-back, token not stored, open +
-                  portable) — answers the "a tool that wants my ORCID?" hesitation. */}
-              <details className="hp2-help hp2-trust">
-                <summary>{trustDetails.summary}</summary>
+                  portable) and, for the visitor without an iD, what ORCID is and
+                  where to get one. Answers both hesitations behind one toggle. */}
+              <details className="hp2-help hp2-signin-how">
+                <summary>{s.signInHow}</summary>
                 <div className="hp2-help-body">
                   <ul className="hp2-trust-list">
                     <li>{trustDetails.access}</li>
@@ -160,6 +161,17 @@ export default function Landing({ locale }: LandingProps) {
                   </ul>
                   <a className="hp2-help-cta" href={localePrivacyPath(loc)}>
                     {trustDetails.privacyCta} <span aria-hidden="true">→</span>
+                  </a>
+                  <p className="hp2-help-orcid">
+                    <strong>{help.question}</strong> {help.explainer}
+                  </p>
+                  <a
+                    className="hp2-help-cta"
+                    href={ORCID_REGISTER_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {help.cta} <span aria-hidden="true">→</span>
                   </a>
                 </div>
               </details>
@@ -171,21 +183,6 @@ export default function Landing({ locale }: LandingProps) {
                   {s.lookupLink} <span aria-hidden="true">→</span>
                 </a>
               </p>
-
-              <details className="hp2-help">
-                <summary>{help.question}</summary>
-                <div className="hp2-help-body">
-                  <p>{help.explainer}</p>
-                  <a
-                    className="hp2-help-cta"
-                    href={ORCID_REGISTER_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {help.cta} <span aria-hidden="true">→</span>
-                  </a>
-                </div>
-              </details>
 
               {enabledProviders.google || enabledProviders.email ? (
                 <div className="auth-divider">
@@ -283,6 +280,7 @@ export default function Landing({ locale }: LandingProps) {
 
         {/* ── Why / trust ────────────────────────────────────────── */}
         <section className="hp2-trust">
+          <span className="hp2-eyebrow hp2-trust-eyebrow">{s.whyEyebrow}</span>
           <h2 className="hp2-trust-title">{s.trustTitle}</h2>
           <ul className="hp2-trust-grid">
             {s.trust.map((tr, i) => (
