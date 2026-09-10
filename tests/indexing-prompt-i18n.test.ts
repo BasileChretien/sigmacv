@@ -10,7 +10,13 @@ describe("indexingPromptStrings", () => {
         expect(v.length, `${loc}.${k}`).toBeGreaterThan(0);
       }
       const wu = workspaceUi(loc);
-      for (const k of ["wlIndexingHeading", "wlIndexingHelp", "wlIndexingUndecided", "wlIndexingOff", "wlIndexingOn"] as const) {
+      for (const k of [
+        "wlIndexingHeading",
+        "wlIndexingHelp",
+        "wlIndexingUndecided",
+        "wlIndexingOff",
+        "wlIndexingOn",
+      ] as const) {
         expect(wu[k].length, `${loc}.${k}`).toBeGreaterThan(0);
       }
     }

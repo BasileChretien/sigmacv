@@ -15,10 +15,11 @@ import {
  * exactly that. What this module adds is the moment: once the page is live and
  * not yet indexable, the choice is put in front of the researcher once, and
  * stays visible in the worklist until made. Nothing is decided by silence —
- * "Not now" sends no request and is remembered per PAGE (its slug), so a page
- * published afresh asks again. A "yes" is one request carrying the FULL current
- * publish state (the route treats every omitted flag as false) with
- * `indexable: true`.
+ * "Not now" sends no request and is remembered per PAGE (its slug — a page's
+ * permanent capability URL, kept across unpublish and republish, so the
+ * one-time card does not return for the same page; the worklist row keeps the
+ * choice reachable for as long as it is open). A "yes" is one request that
+ * turns indexing on and touches nothing else.
  */
 
 /** Versioned so a future change of the disclosure can re-ask everyone once. */
@@ -29,8 +30,9 @@ export function indexingPromptKey(slug: string): string {
   return INDEXING_PROMPT_KEY_PREFIX + slug;
 }
 
-/** Whether the researcher already answered ("Not now" or "Yes") for this page.
- *  An unpublished CV (no slug) is never asked. */
+/** Whether the researcher already answered ("Not now" or "Yes") for this page
+ *  (its slug is permanent, so this holds across unpublish/republish). An
+ *  unpublished CV (no slug) is never asked. */
 export function isIndexingPromptDismissed(
   slug: string | null,
   storage: StorageLike | null = browserStorage(),
@@ -81,17 +83,16 @@ export function indexingWorklistState(
   return dismissed ? "off" : "undecided";
 }
 
-/** The body one "yes" posts: the FULL current publish state (every omitted
- *  flag would read as false) with indexing switched on. The institution
- *  consents are carried unchanged — a "yes" to indexing is never a "yes" to
- *  listing, which is asked separately, afterwards. */
+/** The body one "yes" posts: turn indexing on and touch nothing else. The
+ *  route reads an OMITTED institution-page field as "leave the stored choice
+ *  as it is", so those are omitted rather than echoed from a client snapshot
+ *  that could be stale — a "yes" to indexing is never a "yes" (or a "no")
+ *  to listing, which is asked separately, afterwards. `listUnderAffiliation`
+ *  is the one flag the route reads as false when omitted, so it is carried. */
 export interface IndexingBody {
   published: true;
   indexable: true;
   listUnderAffiliation: boolean;
-  showOnInstitutionPage: boolean;
-  consentedRorIds: string[];
-  shareReconciliationRows: boolean;
 }
 
 export function indexingBody(state: PublishSnapshot): IndexingBody {
@@ -99,9 +100,6 @@ export function indexingBody(state: PublishSnapshot): IndexingBody {
     published: true,
     indexable: true,
     listUnderAffiliation: state.listUnderAffiliation,
-    showOnInstitutionPage: state.institutionPage.showOnInstitutionPage,
-    consentedRorIds: [...state.institutionPage.consentedRorIds],
-    shareReconciliationRows: state.institutionPage.shareReconciliationRows,
   };
 }
 

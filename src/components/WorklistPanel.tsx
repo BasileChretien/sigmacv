@@ -98,7 +98,13 @@ export default function WorklistPanel({
   // The status line is a reason to show the panel only while a choice is open
   // (an unlisted ROR-linked current affiliation) — never counted anywhere.
   const unlisted = listing ? unlistedAffiliations(listing.state).length > 0 : false;
-  if (!hasWorklistContent(gaps, oa, funding.length, unlisted)) return null;
+  // So is an open indexing decision on a live page (not decided, or "not now"):
+  // the choice must stay reachable, never buried by a clean CV. Indexing ON is a
+  // status, not a reason (like a completed listing).
+  const indexingOpen = listing
+    ? listing.state.published && listing.state.slug !== null && !listing.state.indexable
+    : false;
+  if (!hasWorklistContent(gaps, oa, funding.length, unlisted) && !indexingOpen) return null;
 
   const closed = oa.rows.filter((r) => r.state === "no-open-copy-found");
   const groups = groupByRor(gaps.missing);

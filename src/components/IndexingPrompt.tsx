@@ -24,14 +24,16 @@ interface IndexingPromptProps {
   suppressed?: boolean;
   /** The server answered a "yes": keep the host's state in lockstep. */
   onPublishStateChange: (next: PublishSnapshot) => void;
+  /** Answered either way: let the onboarding queue move on. */
+  onDismissed?: () => void;
 }
 
 /**
  * The one-time, inline "Should search engines index your page?" card — an
  * ASK, not a default. OWNER ONLY. Shown when the page is live and not yet
  * indexable, until the researcher answers: "Yes" (one request, the full
- * publish state with indexing on) or "Not now" (sends nothing, remembered per
- * page — a page published afresh asks again). Two buttons of equal weight; a
+ * request that turns indexing on and touches nothing else) or "Not now" (sends
+ * nothing, remembered per page for as long as it exists). Two buttons of equal weight; a
  * "What this means" link to the privacy notice; one sentence saying the
  * institution listing is a SEPARATE choice, asked next — never folded in here.
  * Not a dialog: a labelled section that steals no focus.
@@ -41,6 +43,7 @@ export default function IndexingPrompt({
   state,
   suppressed = false,
   onPublishStateChange,
+  onDismissed,
 }: IndexingPromptProps) {
   const s = indexingPromptStrings(locale);
   const u = ui(locale);
@@ -62,12 +65,16 @@ export default function IndexingPrompt({
   }, [slug]);
 
   const asking = !suppressed && checked === slug && shouldOfferIndexingPrompt(state, dismissed);
-  // The confirmation stays on screen once given, whatever suppresses the ask.
-  if (!done && !asking) return null;
+  // Unlike the institution card (the LAST onboarding step), this one has a
+  // successor: a "yes" can make the institution ask active at once. So the
+  // confirmation yields to whatever prompt the queue shows next — nothing ever
+  // stacks — and stays only while no other prompt is up.
+  if (suppressed || (!done && !asking)) return null;
 
   const notNow = () => {
     rememberIndexingPromptDismissal(slug);
     setDismissed(true);
+    onDismissed?.();
   };
   const yes = async () => {
     setBusy(true);
@@ -85,6 +92,7 @@ export default function IndexingPrompt({
     // Cookieless product signal, the same one the Publish menu sends. No identifiers.
     trackEvent("Publish", { indexable: true });
     setDone(true);
+    onDismissed?.();
   };
 
   return (

@@ -77,7 +77,12 @@ describe("IndexingPrompt", () => {
     ];
     for (const c of cases) {
       const { unmount } = render(
-        <IndexingPrompt locale="en-US" state={c.state} suppressed={c.suppressed} onPublishStateChange={vi.fn()} />,
+        <IndexingPrompt
+          locale="en-US"
+          state={c.state}
+          suppressed={c.suppressed}
+          onPublishStateChange={vi.fn()}
+        />,
       );
       await new Promise((r) => setTimeout(r, 0));
       expect(screen.queryByTestId("indexing-prompt")).toBeNull();
@@ -105,13 +110,63 @@ describe("IndexingPrompt", () => {
     fireEvent.click(screen.getByTestId("indexing-prompt-yes"));
     await waitFor(() => expect(screen.getByRole("status").textContent).toBe(s.done));
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const body = JSON.parse((fetchMock.mock.calls[0]![1] as { body: string }).body) as Record<string, unknown>;
+    const body = JSON.parse((fetchMock.mock.calls[0]![1] as { body: string }).body) as Record<
+      string,
+      unknown
+    >;
     expect(body).toMatchObject({ published: true, indexable: true, listUnderAffiliation: false });
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ indexable: true }));
     expect(trackEvent).toHaveBeenCalledWith("Publish", { indexable: true });
     expect(window.localStorage.getItem(indexingPromptKey("basile-ab12"))).toBe("1");
     // The ask is gone; the confirmation and a Change link remain.
     expect(screen.queryByTestId("indexing-prompt-yes")).toBeNull();
+  });
+
+  it("'Not now' and 'Yes' both tell the onboarding queue to move on", async () => {
+    const onDismissed = vi.fn();
+    const { unmount } = render(
+      <IndexingPrompt
+        locale="en-US"
+        state={snapshot()}
+        onPublishStateChange={vi.fn()}
+        onDismissed={onDismissed}
+      />,
+    );
+    await waitFor(() => expect(screen.getByTestId("indexing-prompt-not-now")).toBeTruthy());
+    fireEvent.click(screen.getByTestId("indexing-prompt-not-now"));
+    expect(onDismissed).toHaveBeenCalledTimes(1);
+    unmount();
+    window.localStorage.clear();
+    render(
+      <IndexingPrompt
+        locale="en-US"
+        state={snapshot()}
+        onPublishStateChange={vi.fn()}
+        onDismissed={onDismissed}
+      />,
+    );
+    await waitFor(() => expect(screen.getByTestId("indexing-prompt-yes")).toBeTruthy());
+    fireEvent.click(screen.getByTestId("indexing-prompt-yes"));
+    await waitFor(() => expect(onDismissed).toHaveBeenCalledTimes(2));
+  });
+
+  it("yields to the next prompt: once suppressed, even the confirmation is not rendered (no stacking)", async () => {
+    const { rerender } = render(
+      <IndexingPrompt locale="en-US" state={snapshot()} onPublishStateChange={vi.fn()} />,
+    );
+    await waitFor(() => expect(screen.getByTestId("indexing-prompt-yes")).toBeTruthy());
+    fireEvent.click(screen.getByTestId("indexing-prompt-yes"));
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(s.done));
+    // The host moved the queue on to the institution ask: this card steps aside.
+    rerender(
+      <IndexingPrompt
+        locale="en-US"
+        state={snapshot({ indexable: true })}
+        suppressed
+        onPublishStateChange={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId("indexing-prompt")).toBeNull();
   });
 
   it("a failed 'Yes' shows the publish error, keeps asking, and remembers nothing", async () => {

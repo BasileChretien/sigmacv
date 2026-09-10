@@ -13,6 +13,12 @@ test("publish → the indexing question → Not now is remembered → Yes switch
   page,
   authedUserId,
 }) => {
+  // The onboarding queue shows ONE prompt at a time, highest priority first;
+  // the coachmark precedes the indexing step, so a fresh user must have seen
+  // it (the sync banner needs a stored sync report the seed does not carry).
+  await page.addInitScript(() => {
+    window.localStorage.setItem("sigmacv:coachmarkDismissed", "1");
+  });
   await page.goto("/cv");
   await togglePublish(page, true);
   // Close the Publish popover so the inline card is reachable.

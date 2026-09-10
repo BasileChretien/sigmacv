@@ -36,6 +36,11 @@ describe("selectOnboardingStep", () => {
   });
 
   it("documents the priority order: sync report → coachmark → institution", () => {
-    expect([...ONBOARDING_PRIORITY]).toEqual(["syncReport", "coachmark", "indexing", "institution"]);
+    expect([...ONBOARDING_PRIORITY]).toEqual([
+      "syncReport",
+      "coachmark",
+      "indexing",
+      "institution",
+    ]);
   });
 });

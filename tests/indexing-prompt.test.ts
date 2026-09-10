@@ -82,14 +82,18 @@ describe("shouldOfferIndexingPrompt", () => {
     expect(shouldOfferIndexingPrompt(snapshot(), false)).toBe(true);
     expect(shouldOfferIndexingPrompt(snapshot(), true)).toBe(false);
     expect(shouldOfferIndexingPrompt(snapshot({ indexable: true }), false)).toBe(false);
-    expect(shouldOfferIndexingPrompt(snapshot({ published: false, slug: null }), false)).toBe(false);
+    expect(shouldOfferIndexingPrompt(snapshot({ published: false, slug: null }), false)).toBe(
+      false,
+    );
     expect(shouldOfferIndexingPrompt(snapshot({ slug: null }), false)).toBe(false);
   });
 });
 
 describe("indexingWorklistState", () => {
   it("names the four states", () => {
-    expect(indexingWorklistState(snapshot({ published: false, slug: null }), false)).toBe("unpublished");
+    expect(indexingWorklistState(snapshot({ published: false, slug: null }), false)).toBe(
+      "unpublished",
+    );
     expect(indexingWorklistState(snapshot(), false)).toBe("undecided");
     expect(indexingWorklistState(snapshot(), true)).toBe("off");
     expect(indexingWorklistState(snapshot({ indexable: true }), false)).toBe("on");
@@ -98,7 +102,7 @@ describe("indexingWorklistState", () => {
 });
 
 describe("indexingBody + postIndexing", () => {
-  it("carries the FULL publish state with indexing on, institution consents unchanged", () => {
+  it("turns indexing on and touches nothing else (institution fields omitted, not echoed)", () => {
     const body = indexingBody(
       snapshot({
         listUnderAffiliation: true,
@@ -112,17 +116,12 @@ describe("indexingBody + postIndexing", () => {
         },
       }),
     );
-    expect(body).toEqual({
-      published: true,
-      indexable: true,
-      listUnderAffiliation: true,
-      showOnInstitutionPage: true,
-      consentedRorIds: ["04chrp450"],
-      shareReconciliationRows: true,
-    });
-    // A "yes" to indexing is never a "yes" to listing.
+    // Indexing on, the OAI-set flag carried (the route reads it as false when
+    // omitted), and NO institution-page field: omitted means "leave as is".
+    expect(body).toEqual({ published: true, indexable: true, listUnderAffiliation: true });
     expect(indexingBody(snapshot()).listUnderAffiliation).toBe(false);
-    expect(indexingBody(snapshot()).showOnInstitutionPage).toBe(false);
+    expect("showOnInstitutionPage" in indexingBody(snapshot())).toBe(false);
+    expect("consentedRorIds" in indexingBody(snapshot())).toBe(false);
   });
 
   it("posts once to /api/cv/publish and returns the server's snapshot, or null on failure", async () => {
@@ -145,7 +144,10 @@ describe("indexingBody + postIndexing", () => {
     expect(f).toHaveBeenCalledTimes(1);
     const [url, init] = (f.mock.calls as unknown as unknown[][])[0]!;
     expect(url).toBe("/api/cv/publish");
-    expect(JSON.parse((init as { body: string }).body)).toMatchObject({ indexable: true, published: true });
+    expect(JSON.parse((init as { body: string }).body)).toMatchObject({
+      indexable: true,
+      published: true,
+    });
 
     const bad = vi.fn(async () => ({ ok: false, json: async () => ({}) }) as unknown as Response);
     expect(await postIndexing(snapshot(), bad as unknown as typeof fetch)).toBeNull();

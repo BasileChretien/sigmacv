@@ -621,7 +621,11 @@ export default function CvWorkspace({
           <IndexingPrompt
             locale={uiLocale}
             state={publishState}
-            suppressed={activeOnboarding !== "indexing"}
+            suppressed={
+              activeOnboarding !== "indexing" &&
+              (activeOnboarding !== null || researchPromptOpen || freezeRequestOpen)
+            }
+            onDismissed={advanceOnboarding}
             onPublishStateChange={setPublishState}
           />
           <InstitutionListingPrompt
