@@ -40,6 +40,7 @@ import LocaleComparePage, {
   dynamic as localeCompareDynamic,
   generateMetadata as localeCompareMetadata,
 } from "@/app/[locale]/i/compare/page";
+import { GET as jsonGet, dynamic as jsonDynamic } from "@/app/i/compare.json/route";
 
 const NAGOYA = "04chrp450";
 const CAEN = "03xjwb503";
@@ -224,6 +225,13 @@ describe("/i/compare", () => {
     expect(html).not.toContain("<select");
     expect(body).toContain("privacy@sigmacv.org");
     expect(html).toContain(`href="/i/${NAGOYA}"`);
+    // The export link carries the canonical (sorted) ids.
+    expect(html).toContain(
+      `href="/i/compare.json?${[NAGOYA, CAEN]
+        .sort()
+        .map((id) => `ror=${id}`)
+        .join("&amp;")}"`,
+    );
     // Each table is named for assistive technology, and the share is spoken
     // with its counts named, the visual string hidden from the reader.
     expect(html).toContain('<caption class="visually-hidden">Nagoya University</caption>');
@@ -409,6 +417,81 @@ describe("/i/compare", () => {
     expect(html.match(/inst-compare-col/g)).toHaveLength(3);
     expect(text(html)).toContain("At most 3 organisations are set side by side");
     expect(mocks.institutionFindMany.mock.calls[0]![0].where.rorId.in).toEqual([NAGOYA, CAEN, CHU]);
+  });
+
+  it("exports the same comparison as counts-only JSON under CC0, with the page's rules and headers, and refuses fewer than two like the page", async () => {
+    expect(jsonDynamic).toBe("force-dynamic");
+    db();
+    const req = (q: string) =>
+      new Request(`https://sigmacv.test/i/compare.json?${q}`, {
+        headers: { "x-forwarded-for": "203.0.113.9" },
+      });
+    const res = await jsonGet(req(`ror=${CAEN}&ror=${NAGOYA}`));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("application/json; charset=utf-8");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(res.headers.get("x-robots-tag")).toBe("noindex");
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+    expect(res.headers.get("link")).toContain("creativecommons.org/publicdomain/zero/1.0/");
+    const raw = await res.text();
+    const body = JSON.parse(raw) as {
+      method: string;
+      license: string;
+      organisations: Array<{ name: string; rows: Array<Record<string, unknown>> }>;
+      commonYears: number[];
+    };
+    expect(body.method).toBe("sigmacv-institution-comparison/v1");
+    expect(body.license).toBe("CC0-1.0");
+    // Alphabetical, like the page; counts only, never the page's shares.
+    expect(body.organisations.map((o) => o.name)).toEqual([
+      "Nagoya University",
+      "Université de Caen Normandie",
+    ]);
+    expect(body.organisations[0]!.rows.find((r) => r.year === 2024)).toEqual({
+      year: 2024,
+      worksWithStatus: 6135,
+      openCopies: 3964,
+      noneFound: 2171,
+      byStatus: { gold: 3964, closed: 2171 },
+      notStatedBecause: null,
+    });
+    for (const banned of ["percent", "share", "%", "listed"]) expect(raw).not.toContain(banned);
+    // The folded entities and counted types come from the stored row, as-is.
+    const first = body.organisations[0] as unknown as {
+      foldedIds: string[];
+      countedWorkTypes: string[];
+    };
+    expect(first.foldedIds).toEqual(["I60134161", "I4210121234"]);
+    expect(first.countedWorkTypes).toEqual(["article"]);
+    // The same rate limit as the page: own bucket, then one charge per organisation.
+    const keys = mocks.enforceRateLimit.mock.calls.map((c) => c[0]);
+    expect(keys[0]).toBe("icompare:203.0.113.9");
+    expect(keys.filter((k) => k === "pubpage:203.0.113.9")).toHaveLength(2);
+
+    // Fewer than two: a 404 that says why, as the page does; never an echo of a bad id.
+    db({ [NAGOYA]: 3 });
+    const miss = await jsonGet(req(`ror=${NAGOYA}&ror=${CHU}&ror=x'`));
+    expect(miss.status).toBe(404);
+    const missBody = (await miss.json()) as { error: string; dropped: unknown[] };
+    expect(missBody.error).toBe("nothing-to-set-side-by-side");
+    expect(missBody.dropped).toEqual([{ rorId: CHU, reason: "no-page" }]);
+    expect(JSON.stringify(missBody)).not.toContain("x'");
+
+    // Rate-limited: a JSON 429 with Retry-After — the refusing bucket's own.
+    mocks.enforceRateLimit.mockReset();
+    mocks.enforceRateLimit.mockResolvedValue({ ok: false, retryAfterSec: 30 });
+    const limited = await jsonGet(req(`ror=${CAEN}&ror=${NAGOYA}`));
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("retry-after")).toBe("30");
+    expect(limited.headers.get("access-control-expose-headers")).toContain("Retry-After");
+    expect(((await limited.json()) as { error: string }).error).toBe("rate-limited");
+    mocks.enforceRateLimit.mockReset();
+    mocks.enforceRateLimit.mockImplementation(async (key: string) =>
+      key.startsWith("pubpage:") ? { ok: false, retryAfterSec: 45 } : { ok: true },
+    );
+    const pub = await jsonGet(req(`ror=${CAEN}&ror=${NAGOYA}`));
+    expect(pub.status).toBe(429);
+    expect(pub.headers.get("retry-after")).toBe("45");
   });
 
   it("is localized on the locale route, and refuses an unknown or default-locale slug", async () => {

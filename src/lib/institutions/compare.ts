@@ -60,7 +60,10 @@ export interface CompareColumn {
   country: string | null;
   /** Short OpenAlex id of the counted entity. */
   openalexId: string;
+  /** The OpenAlex entities whose works are counted (self + related + child). */
+  foldedIds: string[];
   foldedCount: number;
+  countedWorkTypes: string[];
   /** ISO timestamp of the snapshot. */
   fetchedAt: string;
   years: { from: number; to: number };
@@ -147,7 +150,9 @@ function columnOf(
       name: record.name ?? `ROR ${rorId}`,
       country: record.country,
       openalexId: record.openalexId,
+      foldedIds: a.countedEntity.foldedIds,
       foldedCount: a.countedEntity.foldedIds.length,
+      countedWorkTypes: a.countedWorkTypes,
       fetchedAt: record.openalexFetchedAt.toISOString(),
       years: a.years,
       rows: shares.map((r) => ({ ...r, statuses: statusesOf(r.year) })),

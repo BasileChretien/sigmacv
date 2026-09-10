@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cache } from "react";
 import { headers } from "next/headers";
+import { chargeComparisonLimits } from "@/app/i/compareLimits";
 import { enforcePubPageRateLimitForIp } from "@/app/p/[slug]/pubRateLimit";
 import type { Locale } from "@/lib/i18n";
 import { institutionCompareStrings } from "@/lib/i18n/institutionsCompare";
@@ -8,7 +9,6 @@ import {
   canonicalCompareQuery,
   institutionComparison,
   listComparableInstitutions,
-  normaliseCompareIds,
   type ComparableInstitution,
   type InstitutionComparison,
 } from "@/lib/institutions/compare";
@@ -21,7 +21,6 @@ import {
   rememberInstitutionMiss,
   type InstitutionSummary,
 } from "@/lib/institutions/institutions";
-import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { clientIpFromHeaders } from "@/lib/security/clientIp";
 import { localeInstitutionComparePath } from "@/lib/seo";
 
@@ -49,12 +48,6 @@ export type InstitutionCompareLookup =
   | { kind: "ok"; comparison: InstitutionComparison; picker: ComparableInstitution[] }
   | { kind: "rate-limited" };
 
-/** The comparison view's own ceiling per IP, on top of the public-page buckets
- *  (which it charges once per requested organisation): a page that carries up
- *  to three organisations' records must not hand one IP three times the data
- *  per token. */
-const COMPARE_MAX_PER_MIN = 20;
-
 async function rateLimited(): Promise<boolean> {
   const rl = await enforcePubPageRateLimitForIp(clientIpFromHeaders(await headers()));
   return !rl.ok;
@@ -81,23 +74,16 @@ export const loadInstitutionIndex = cache(async (): Promise<InstitutionIndexLook
 /**
  * Resolve the comparison view for the current request. `key` is the raw `ror`
  * query serialised (React `cache` keys on argument identity, and the two
- * callers of one request must share the check and the reads). The view's own
- * bucket is checked first (one write pair), then the public-page limit is
- * charged once per requested organisation (at least once) — 2N + 1 write
- * pairs per hit against the institution page's one, accepted at 20/min; the
- * picker's list is read only when the page needs it.
+ * callers of one request must share the check and the reads). The rate limit
+ * is the comparison surfaces' shared one (`compareLimits.ts`); the picker's
+ * list is read only when the page needs it.
  */
 export const loadInstitutionComparison = cache(
   async (key: string): Promise<InstitutionCompareLookup> => {
     const raw = parseCompareKey(key);
     const ip = clientIpFromHeaders(await headers());
-    const own = await enforceRateLimit(`icompare:${ip}`, COMPARE_MAX_PER_MIN, 60_000);
-    if (!own.ok) return { kind: "rate-limited" };
-    const charges = Math.max(1, normaliseCompareIds(raw).ids.length);
-    for (let i = 0; i < charges; i++) {
-      const rl = await enforcePubPageRateLimitForIp(ip);
-      if (!rl.ok) return { kind: "rate-limited" };
-    }
+    const limited = await chargeComparisonLimits(ip, raw);
+    if (!limited.ok) return { kind: "rate-limited" };
     const comparison = await institutionComparison(raw);
     const picker = comparison.columns.length < 2 ? await listComparableInstitutions() : [];
     return { kind: "ok", comparison, picker };

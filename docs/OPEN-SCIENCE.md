@@ -61,6 +61,8 @@ This is a living document. Items marked _planned_ are tracked in the
   or three a reader chooses, in alphabetical order, with denominators, refresh
   dates and the method on the page — a self-monitoring aid in the spirit of the
   Baromètre de la Science Ouverte, never a ranking, composite or league table.
+  The comparison is also served as counts-only JSON under CC0 (`/i/compare.json`),
+  with a citation request and the method version in the envelope.
 - Owners can **export their full account** (canonical CV + research log) and
   **delete their account** at any time (GDPR / Japan APPI).
 - The source is open (Apache-2.0) and the whole stack is **self-hostable** with

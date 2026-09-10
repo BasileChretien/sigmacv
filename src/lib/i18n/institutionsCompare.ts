@@ -60,6 +60,8 @@ export interface InstitutionCompareStrings {
   statusHeading: string;
   /** `{name}`: the accessible name of a column's sparkline (0–100 axis, stated shares only). */
   sparklineLabel: string;
+  /** The link to the counts-only JSON export (`/i/compare.json`, CC0, citation requested). */
+  jsonLink: string;
 }
 
 const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
@@ -115,6 +117,7 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
     statusHeading: "Open copies by status",
     sparklineLabel:
       "Open share by year for {name}, on a scale from 0 to 100 percent; a missing point is a year without a stated share.",
+    jsonLink: "This comparison as JSON — counts only, under CC0; please cite OpenAlex and SigmaCV",
   },
   "zh-CN": {
     metaTitle: "机构并列查看",
@@ -163,6 +166,7 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
       "这是为阅读而整理的公开数据，不是评价。SigmaCV 不给任何机构名次、分数或结论；这里没有任何数字说明是否遵循了某项政策，也未使用任何列于 SigmaCV 的研究者的数字。只有至少有一位研究者选择列于其下的机构才会出现——这是一个自我选择形成的集合，不代表一个国家或领域。几个百分点的差异，或相隔数周读取的记录之间的差异，没有意义。更正应向 OpenAlex 提出，SigmaCV 每周重新读取；关于本页的问题请联系：{contact}。",
     statusHeading: "按状态划分的开放版本",
     sparklineLabel: "{name} 的逐年开放占比，刻度为 0 到 100%；缺失的点表示该年未给出占比。",
+    jsonLink: "以 JSON 获取此并列数据——仅含计数，CC0 许可；请引用 OpenAlex 与 SigmaCV",
   },
   "es-ES": {
     metaTitle: "Organizaciones en paralelo",
@@ -217,6 +221,7 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
     statusHeading: "Copias abiertas por estado",
     sparklineLabel:
       "Proporción abierta por año de {name}, en una escala de 0 a 100 por ciento; un punto ausente es un año sin proporción indicada.",
+    jsonLink: "Esta comparación en JSON — solo recuentos, bajo CC0; cite OpenAlex y SigmaCV",
   },
   "fr-FR": {
     metaTitle: "Organismes côte à côte",
@@ -271,6 +276,8 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
     statusHeading: "Copies ouvertes par statut",
     sparklineLabel:
       "Part ouverte par année de {name}, sur une échelle de 0 à 100 pour cent ; un point absent est une année sans part indiquée.",
+    jsonLink:
+      "Ces données en JSON — effectifs seulement, sous CC0 ; merci de citer OpenAlex et SigmaCV",
   },
   "de-DE": {
     metaTitle: "Einrichtungen nebeneinander",
@@ -326,6 +333,8 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
     statusHeading: "Offene Kopien nach Status",
     sparklineLabel:
       "Offener Anteil nach Jahr für {name}, auf einer Skala von 0 bis 100 Prozent; ein fehlender Punkt ist ein Jahr ohne angegebenen Anteil.",
+    jsonLink:
+      "Diese Gegenüberstellung als JSON — nur Zahlen, unter CC0; bitte OpenAlex und SigmaCV zitieren",
   },
   "ja-JP": {
     metaTitle: "機関の並置",
@@ -379,6 +388,8 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
     statusHeading: "状態別のオープン版",
     sparklineLabel:
       "{name} の年別オープン率（0 から 100 パーセントの目盛り）。点がない年は率を示していない年です。",
+    jsonLink:
+      "この並置データを JSON で取得（件数のみ、CC0。OpenAlex と SigmaCV の引用をお願いします）",
   },
   "pt-BR": {
     metaTitle: "Organizações lado a lado",
@@ -432,6 +443,7 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
     statusHeading: "Cópias abertas por status",
     sparklineLabel:
       "Proporção aberta por ano de {name}, numa escala de 0 a 100 por cento; um ponto ausente é um ano sem proporção indicada.",
+    jsonLink: "Esta comparação em JSON — apenas contagens, sob CC0; cite o OpenAlex e o SigmaCV",
   },
   "it-IT": {
     metaTitle: "Organizzazioni affiancate",
@@ -487,6 +499,8 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
     statusHeading: "Copie aperte per stato",
     sparklineLabel:
       "Quota aperta per anno di {name}, su una scala da 0 a 100 per cento; un punto assente è un anno senza quota indicata.",
+    jsonLink:
+      "Questi dati in JSON — solo conteggi, sotto CC0; si prega di citare OpenAlex e SigmaCV",
   },
   "ko-KR": {
     metaTitle: "기관 나란히 보기",
@@ -541,6 +555,7 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
     statusHeading: "상태별 공개본",
     sparklineLabel:
       "{name}의 연도별 공개 비율(0에서 100퍼센트 눈금). 점이 없는 해는 비율을 표시하지 않은 해입니다.",
+    jsonLink: "이 비교 데이터를 JSON으로 — 건수만, CC0. OpenAlex와 SigmaCV를 인용해 주십시오",
   },
   "ru-RU": {
     metaTitle: "Организации рядом",
@@ -595,6 +610,7 @@ const INSTITUTIONS_COMPARE_I18N: Record<Locale, InstitutionCompareStrings> = {
     statusHeading: "Открытые копии по статусам",
     sparklineLabel:
       "Открытая доля по годам для {name}, по шкале от 0 до 100 процентов; отсутствующая точка — год без указанной доли.",
+    jsonLink: "Эти данные в JSON — только числа, под CC0; просим цитировать OpenAlex и SigmaCV",
   },
 };
 
