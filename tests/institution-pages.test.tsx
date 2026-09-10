@@ -470,6 +470,36 @@ describe("/i/[ror]", () => {
       expect(body.match(/%/g)).toHaveLength(1);
     });
 
+    it("prints what the last full year stood at one reading earlier, when the row carries a previous reading that stated a share — and never a difference", async () => {
+      listedWithSnapshot();
+      const without = text(renderToStaticMarkup(await RorPage(params({ ror: ROR }))));
+      expect(without).not.toContain("At the previous reading");
+
+      listed(3);
+      mocks.institutionFindUnique.mockResolvedValue({
+        name: NAME,
+        openalexId: "I98702875",
+        openalexAggregates: AGG,
+        openalexFetchedAt: FETCHED,
+        openalexPreviousAggregates: {
+          ...AGG,
+          oaByStatusByYear: [
+            { year: 2025, status: "gold", count: 380 },
+            { year: 2025, status: "closed", count: 850 },
+          ],
+        },
+        openalexPreviousFetchedAt: new Date("2026-09-02T10:00:00Z"),
+      });
+      const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+      const body = text(html);
+      expect(body).toContain(
+        "At the previous reading (September 2, 2026), 2025 stood at 380 / 1,230 = 31%.",
+      );
+      // Two percents now: the current share and the previous reading's; no third figure.
+      expect(body.match(/\d+%/g)).toEqual(["33%", "31%"]);
+      expect(body).not.toMatch(/[+−-]\s?\d+\s?(points?|%)/);
+    });
+
     it("adds the OpenAlex entity as the Organization's sameAs, and only then", async () => {
       listedWithSnapshot();
       const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));

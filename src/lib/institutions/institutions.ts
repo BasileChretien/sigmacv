@@ -62,6 +62,8 @@ export interface InstitutionOpenAlexSnapshot {
   aggregates: InstitutionAggregates;
   /** When the job fetched it (ISO). */
   fetchedAt: string;
+  /** The reading before this one, when the row carries one that parses. */
+  previous: { aggregates: InstitutionAggregates; fetchedAt: string } | null;
 }
 
 /**
@@ -115,7 +117,21 @@ function snapshotOf(record: TrustedInstitutionRecord | null): InstitutionOpenAle
     openalexId: record.openalexId,
     aggregates,
     fetchedAt: record.openalexFetchedAt.toISOString(),
+    previous: previousOf(record),
   };
+}
+
+/** The previous reading on a row, or null when absent or not the stored shape. */
+export function previousOf(
+  record: Pick<
+    TrustedInstitutionRecord,
+    "openalexPreviousAggregates" | "openalexPreviousFetchedAt"
+  >,
+): { aggregates: InstitutionAggregates; fetchedAt: string } | null {
+  if (!record.openalexPreviousFetchedAt) return null;
+  const aggregates = parseInstitutionAggregates(record.openalexPreviousAggregates);
+  if (!aggregates) return null;
+  return { aggregates, fetchedAt: record.openalexPreviousFetchedAt.toISOString() };
 }
 
 /** The consented rows summed: a stored aggregate that does not parse counts

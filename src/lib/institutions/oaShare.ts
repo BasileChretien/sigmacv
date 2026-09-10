@@ -104,3 +104,43 @@ export function yearsWhereTotalsDiffer(
     })
     .map((r) => r.year);
 }
+
+/** What the previous reading stated for one year, when both readings state a share. */
+export interface PreviousReading {
+  year: number;
+  open: number;
+  known: number;
+  percent: number;
+  fetchedAt: string;
+}
+
+/**
+ * The stability signal: the CURRENT window's last full year as the reading
+ * before this one stated it. Null when there is no previous reading, when
+ * either reading states no share for that year (a partial year at a year
+ * boundary, or below the floor — a single reading is not a signal, and a
+ * share below the floor is never printed), or when the year lies outside the
+ * previous reading's window. Never a difference: the page prints both
+ * readings and lets the reader see the movement. A previous reading that is
+ * months old (a refresh that backed off for weeks) is still printed, with its
+ * date: it is one organisation's own earlier statement, not a comparison, and
+ * a stale-but-same share is exactly the signal.
+ */
+export function previousReading(
+  current: Pick<InstitutionAggregates, "years" | "oaByStatusByYear">,
+  previous: { aggregates: InstitutionAggregates; fetchedAt: string } | null,
+): PreviousReading | null {
+  if (!previous) return null;
+  const year = current.years.to - 1;
+  const now = oaShareByYear(current).find((r) => r.year === year);
+  if (!now || now.percent === null) return null;
+  const then = oaShareByYear(previous.aggregates).find((r) => r.year === year);
+  if (!then || then.percent === null) return null;
+  return {
+    year,
+    open: then.open,
+    known: then.known,
+    percent: then.percent,
+    fetchedAt: previous.fetchedAt,
+  };
+}

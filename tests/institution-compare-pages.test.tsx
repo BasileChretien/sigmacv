@@ -364,6 +364,52 @@ describe("/i/compare", () => {
     }
   });
 
+  it("prints, per column, what the last full year stood at the previous reading — with that column's date — and nothing under skew", async () => {
+    const withPrevious = ROWS.map((r) => ({
+      ...r,
+      openalexAggregates: {
+        ...(r.openalexAggregates as object),
+        oaByStatusByYear: [
+          { year: 2025, status: "gold", count: r.rorId === NAGOYA ? 600 : 200 },
+          { year: 2025, status: "closed", count: 400 },
+        ],
+      },
+      openalexPreviousAggregates: {
+        ...(r.openalexAggregates as object),
+        oaByStatusByYear: [
+          { year: 2025, status: "gold", count: r.rorId === NAGOYA ? 550 : 250 },
+          { year: 2025, status: "closed", count: 450 },
+        ],
+      },
+      openalexPreviousFetchedAt: new Date(
+        r.rorId === NAGOYA ? "2026-08-25T00:00:00.000Z" : "2026-08-27T00:00:00.000Z",
+      ),
+    }));
+    db();
+    mocks.institutionFindMany.mockImplementation(async (args: { where: { rorId?: unknown } }) =>
+      args.where.rorId ? withPrevious.slice(0, 2) : withPrevious,
+    );
+    const html = renderToStaticMarkup(await ComparePage(props([CAEN, NAGOYA])));
+    const body = text(html);
+    expect(body).toContain(
+      "At the previous reading (August 25, 2026), 2025 stood at 550 / 1,000 = 55%.",
+    );
+    expect(body).toContain(
+      "At the previous reading (August 27, 2026), 2025 stood at 250 / 700 = 36%.",
+    );
+
+    // Skewed columns: the line goes with the shares.
+    mocks.institutionFindMany.mockImplementation(async () =>
+      withPrevious
+        .slice(0, 2)
+        .map((r) =>
+          r.rorId === CAEN ? { ...r, openalexFetchedAt: new Date("2026-10-15T00:00:00.000Z") } : r,
+        ),
+    );
+    const skewed = text(renderToStaticMarkup(await ComparePage(props([CAEN, NAGOYA]))));
+    expect(skewed).not.toContain("At the previous reading");
+  });
+
   it("withholds every share with the skew reason when the records were read more than 30 days apart, keeping the counts and the rows' own reasons", async () => {
     db();
     const base = mocks.institutionFindMany.getMockImplementation()!;

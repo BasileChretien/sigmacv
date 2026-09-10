@@ -9,9 +9,11 @@ import {
 import {
   MIN_SHARE_DENOMINATOR,
   oaShareByYear,
+  previousReading,
   yearsWhereTotalsDiffer,
   type OaShareRow,
   type OaShareWithheld,
+  type PreviousReading,
 } from "@/lib/institutions/oaShare";
 import { OA_STATUS_ORDER, TOP_N, type InstitutionAggregates } from "@/lib/institutions/snapshot";
 import { localeInstitutionComparePath } from "@/lib/seo";
@@ -64,6 +66,7 @@ export default function InstitutionOpenAlexSection({
   const statuses = oaStatusColumns(a);
   const shares = oaShareByYear(a);
   const differing = yearsWhereTotalsDiffer(a);
+  const previous = previousReading(a, snapshot.previous);
   return (
     <>
       <h2>{s.openalexHeading}</h2>
@@ -111,6 +114,7 @@ export default function InstitutionOpenAlexSection({
           })}
         </p>
       )}
+      {previous && <p className="muted">{previousReadingLine(previous, s, locale, num, pct)}</p>}
 
       {a.domains && (
         <>
@@ -166,6 +170,27 @@ export default function InstitutionOpenAlexSection({
       </p>
     </>
   );
+}
+
+/** "At the previous reading (date), year stood at open / known = n %": the
+ *  stability signal, both readings visible, never a difference between them. */
+export function previousReadingLine(
+  previous: PreviousReading,
+  s: ReturnType<typeof institutionStrings>,
+  locale: string,
+  num: Intl.NumberFormat,
+  pct: Intl.NumberFormat,
+): string {
+  const date = new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(
+    new Date(previous.fetchedAt),
+  );
+  return fillInstitutionString(s.openalexPreviousReading, {
+    date,
+    year: previous.year,
+    open: num.format(previous.open),
+    known: num.format(previous.known),
+    pct: pct.format(previous.percent / 100),
+  });
 }
 
 /** The share cell: `open / known = n %` with both counts in the same cell as

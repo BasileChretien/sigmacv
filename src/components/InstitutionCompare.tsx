@@ -22,6 +22,7 @@ import {
   localeInstitutionPath,
   localeInstitutionsIndexPath,
 } from "@/lib/seo";
+import { previousReadingLine } from "./InstitutionOpenAlexSection";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 
@@ -312,6 +313,9 @@ function Column({
           </tbody>
         </table>
       </div>
+      {col.previous ? (
+        <p className="muted">{previousReadingLine(col.previous, s, locale, num, pct)}</p>
+      ) : null}
 
       <h3>{c.statusHeading}</h3>
       <div className="inst-table-wrap">

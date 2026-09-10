@@ -132,6 +132,17 @@ async function refreshOne(rorId: string, now: Date, paceMs: number): Promise<voi
   if (!parseInstitutionAggregates(aggregates)) {
     throw new Error("aggregates failed the stored schema; previous snapshot kept");
   }
+  // The outgoing reading becomes the previous one: the page prints what the
+  // last full year stood at one reading earlier (the stability signal). Read
+  // and write are two statements: within a tick nothing else touches the row
+  // (the clear and the due list are disjoint and sequential), and a second
+  // success inside the week merely makes the previous reading a day old. A
+  // row with aggregates but no fetch time (hand-edited) carries nothing.
+  const outgoing = await prisma.institution.findUnique({
+    where: { rorId },
+    select: { openalexAggregates: true, openalexFetchedAt: true },
+  });
+  const previous = outgoing?.openalexFetchedAt ? (outgoing.openalexAggregates ?? null) : null;
   await prisma.institution.update({
     where: { rorId },
     data: {
@@ -140,6 +151,9 @@ async function refreshOne(rorId: string, now: Date, paceMs: number): Promise<voi
       openalexFetchedAt: now,
       openalexLastError: null,
       openalexNextRefreshAt: new Date(now.getTime() + INSTITUTION_REFRESH_INTERVAL_MS),
+      openalexPreviousAggregates:
+        previous === null ? Prisma.DbNull : (previous as Prisma.InputJsonValue),
+      openalexPreviousFetchedAt: previous === null ? null : (outgoing?.openalexFetchedAt ?? null),
     },
   });
   purgeInstitutionPages([rorId]);
@@ -176,6 +190,8 @@ async function clearLeftSets(sets: string[]): Promise<number> {
       openalexFetchedAt: null,
       openalexLastError: null,
       openalexNextRefreshAt: null,
+      openalexPreviousAggregates: Prisma.DbNull,
+      openalexPreviousFetchedAt: null,
     },
   });
   return count;

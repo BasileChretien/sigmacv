@@ -63,6 +63,8 @@ function record(
     openalexId: string | null;
     openalexAggregates: unknown;
     openalexFetchedAt: Date | null;
+    openalexPreviousAggregates: unknown;
+    openalexPreviousFetchedAt: Date | null;
   }> = {},
 ) {
   return {
@@ -77,6 +79,8 @@ function record(
       2026: { open: 900, closed: 100 },
     }),
     openalexFetchedAt: new Date("2026-09-01T00:00:00.000Z"),
+    openalexPreviousAggregates: null,
+    openalexPreviousFetchedAt: null,
     ...over,
   };
 }
@@ -203,6 +207,7 @@ describe("institutionComparison", () => {
     });
     expect(nagoya.rows.find((r) => r.year === 2022)!.statuses).toEqual({});
     expect(nagoya.domains).toBeUndefined();
+    expect(nagoya.previous).toBeNull();
     // Nothing consented rides along: no listed count, no count of any kind.
     expect(JSON.stringify(out)).not.toMatch(/listed|"count":/i);
   });
@@ -226,6 +231,84 @@ describe("institutionComparison", () => {
     expect(out.columns[0]!.rows.map((r) => r.year)).toEqual([2020, 2021, 2022, 2023, 2024, 2025]);
     expect(out.columns[1]!.rows.map((r) => r.year)).toEqual([2020, 2021, 2022, 2023, 2024, 2026]);
     expect(out.skewed).toBe(false);
+  });
+
+  it("carries the previous reading of the last full year, and withholds it with the shares under skew", async () => {
+    const prev = {
+      openalexPreviousAggregates: aggregates(2020, 2026, { 2025: { open: 640, closed: 360 } }),
+      openalexPreviousFetchedAt: new Date("2026-08-25T00:00:00.000Z"),
+    };
+    // The current reading states a share for 2025 too (both readings must).
+    const current = aggregates(2020, 2026, {
+      2024: { open: 500, closed: 500 },
+      2025: { open: 700, closed: 300 },
+    });
+    db(
+      [
+        record(A, "A", { ...prev, openalexAggregates: current }),
+        record(B, "B", { ...prev, openalexAggregates: current }),
+      ],
+      { [A]: 1, [B]: 1 },
+    );
+    const out = await institutionComparison([A, B]);
+    expect(out.columns[0]!.previous).toEqual({
+      year: 2025,
+      open: 640,
+      known: 1000,
+      percent: 64,
+      fetchedAt: "2026-08-25T00:00:00.000Z",
+    });
+
+    const late = new Date(
+      Date.parse("2026-09-01T00:00:00.000Z") + (SNAPSHOT_SKEW_DAYS + 1) * 864e5,
+    );
+    db([record(A, "A", prev), record(B, "B", { ...prev, openalexFetchedAt: late })], {
+      [A]: 1,
+      [B]: 1,
+    });
+    const skewed = await institutionComparison([A, B]);
+    expect(skewed.skewed).toBe(true);
+    expect(skewed.columns.every((c) => c.previous === null)).toBe(true);
+
+    // The previous readings themselves read too far apart: both lines go.
+    db(
+      [
+        record(A, "A", prev),
+        record(B, "B", {
+          ...prev,
+          openalexPreviousFetchedAt: new Date("2026-07-01T00:00:00.000Z"),
+        }),
+      ],
+      { [A]: 1, [B]: 1 },
+    );
+    const prevSkewed = await institutionComparison([A, B]);
+    expect(prevSkewed.skewed).toBe(false);
+    expect(prevSkewed.columns.every((c) => c.previous === null)).toBe(true);
+
+    // At a year boundary A's last full year (2026) is not common: no line for A.
+    db(
+      [
+        record(A, "A", {
+          openalexAggregates: aggregates(2021, 2027, {
+            2025: { open: 500, closed: 500 },
+            2026: { open: 700, closed: 300 },
+          }),
+          openalexFetchedAt: new Date("2027-01-03T00:00:00.000Z"),
+          openalexPreviousAggregates: aggregates(2021, 2027, { 2026: { open: 650, closed: 350 } }),
+          openalexPreviousFetchedAt: new Date("2026-12-27T00:00:00.000Z"),
+        }),
+        record(B, "B", {
+          ...prev,
+          openalexAggregates: aggregates(2020, 2026, { 2025: { open: 640, closed: 360 } }),
+          openalexFetchedAt: new Date("2026-12-28T00:00:00.000Z"),
+        }),
+      ],
+      { [A]: 1, [B]: 1 },
+    );
+    const boundary = await institutionComparison([A, B]);
+    expect(boundary.commonYears).toEqual([2021, 2022, 2023, 2024, 2025]);
+    expect(boundary.columns.find((c) => c.rorId === A)!.previous).toBeNull();
+    expect(boundary.columns.find((c) => c.rorId === B)!.previous).toMatchObject({ year: 2025 });
   });
 
   it("withholds every stated share when the snapshots were read too far apart, keeping the counts and the more specific reasons", async () => {

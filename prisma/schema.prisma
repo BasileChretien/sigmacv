@@ -275,6 +275,11 @@ model Institution {
   openalexFetchedAt     DateTime?
   openalexLastError     String?
   openalexNextRefreshAt DateTime?
+  // The reading before the current one (the outgoing aggregates and their
+  // fetch time, moved here by the refresh): the page prints what the last full
+  // year's share stood at one reading earlier. Cleared with the snapshot.
+  openalexPreviousAggregates Json?
+  openalexPreviousFetchedAt  DateTime?
 
   @@index([openalexNextRefreshAt])
 }

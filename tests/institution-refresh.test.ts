@@ -11,6 +11,7 @@ Object.assign(process.env, {
 
 const mocks = vi.hoisted(() => ({
   findMany: vi.fn(),
+  findUnique: vi.fn(),
   update: vi.fn(),
   updateMany: vi.fn(),
   countListedCvsByRor: vi.fn(),
@@ -22,7 +23,12 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    institution: { findMany: mocks.findMany, update: mocks.update, updateMany: mocks.updateMany },
+    institution: {
+      findMany: mocks.findMany,
+      findUnique: mocks.findUnique,
+      update: mocks.update,
+      updateMany: mocks.updateMany,
+    },
   },
 }));
 vi.mock("@/lib/cv/listed", () => ({ countListedCvsByRor: mocks.countListedCvsByRor }));
@@ -99,6 +105,7 @@ beforeEach(() => {
   }
   for (const fn of Object.values(mocks.log)) fn.mockReset();
   mocks.update.mockResolvedValue({});
+  mocks.findUnique.mockResolvedValue({ openalexAggregates: null, openalexFetchedAt: null });
   mocks.updateMany.mockResolvedValue({ count: 0 });
   mocks.fetchInstitutionByRor.mockImplementation(async (ror: string) =>
     entity(ror === NAGOYA ? "I60134161" : "I98702875"),
@@ -154,6 +161,8 @@ describe("refreshInstitutionProfiles", () => {
         openalexFetchedAt: null,
         openalexLastError: null,
         openalexNextRefreshAt: null,
+        openalexPreviousAggregates: Prisma.DbNull,
+        openalexPreviousFetchedAt: null,
       },
     });
     expect(mocks.findMany).toHaveBeenCalledWith({
@@ -246,6 +255,9 @@ describe("refreshInstitutionProfiles", () => {
     expect(data.openalexNextRefreshAt).toEqual(new Date(T0 + 7 * DAY));
     expect(data.openalexAggregates.countedEntity.openalexId).toBe("I60134161");
     expect(data.openalexAggregates.worksByYear).toContainEqual({ year: 2025, count: 3 });
+    // A first reading: no previous one to carry.
+    expect(data.openalexPreviousAggregates).toBe(Prisma.DbNull);
+    expect(data.openalexPreviousFetchedAt).toBeNull();
     // The field mix: that request's own total and groups, ids shortened.
     expect(data.openalexAggregates.domains).toEqual({
       total: 40,
@@ -257,6 +269,28 @@ describe("refreshInstitutionProfiles", () => {
       "institution.openalex_refreshed",
       expect.objectContaining({ refreshed: 1 }),
     );
+  });
+
+  it("carries the outgoing reading into the previous columns when it stores a new one", async () => {
+    sets(NAGOYA);
+    dbRows([NAGOYA]);
+    const outgoing = { version: 1, stale: true };
+    const fetched = new Date(T0 - 7 * DAY);
+    mocks.findUnique.mockResolvedValue({
+      openalexAggregates: outgoing,
+      openalexFetchedAt: fetched,
+    });
+
+    await refreshInstitutionProfiles(opts());
+
+    expect(mocks.findUnique).toHaveBeenCalledWith({
+      where: { rorId: NAGOYA },
+      select: { openalexAggregates: true, openalexFetchedAt: true },
+    });
+    const { data } = mocks.update.mock.calls[0]![0];
+    expect(data.openalexPreviousAggregates).toEqual(outgoing);
+    expect(data.openalexPreviousFetchedAt).toEqual(fetched);
+    expect(data.openalexFetchedAt).toEqual(NOW);
   });
 
   it("refuses to store aggregates that fail the stored schema — a recorded failure with backoff, the previous snapshot kept — rather than a row the page would read as 'not fetched yet' for a week", async () => {

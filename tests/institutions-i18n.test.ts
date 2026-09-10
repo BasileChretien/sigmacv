@@ -48,6 +48,9 @@ describe("institutionStrings", () => {
       for (const ph of ["{from}", "{to}", "{total}"]) {
         expect(s.openalexDomainsNote, `${loc} ${ph}`).toContain(ph);
       }
+      for (const ph of ["{date}", "{year}", "{open}", "{known}", "{pct}"]) {
+        expect(s.openalexPreviousReading, `${loc} ${ph}`).toContain(ph);
+      }
     }
   });
 
@@ -107,6 +110,7 @@ describe("institutionStrings", () => {
       "openalexDomainsHeading",
       "openalexDomainsNote",
       "openalexColDomain",
+      "openalexPreviousReading",
     ] as const;
     const latin =
       /\b(rank(ing|ed|s)?|top|bottom|league|scores?|scored|grades?|graded|leaders?|laggards?|lagging|leading|best|worst|ahead|behind|outperform\w*|underperform\w*|performance|targets?|gaps?|coverage|benchmarks?|complian\w*|mandates?|overdue|violations?|breach\w*|closed access)\b/i;
