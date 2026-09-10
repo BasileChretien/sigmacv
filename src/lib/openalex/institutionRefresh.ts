@@ -8,6 +8,7 @@ import {
   computeInstitutionAggregates,
   countedYears,
   foldedInstitutionIds,
+  parseInstitutionAggregates,
   type CountedGroup,
   type InstitutionGroupCounts,
 } from "@/lib/institutions/snapshot";
@@ -24,7 +25,8 @@ import { fetchInstitutionByRor, groupWorks, type GroupWorksQuery } from "./insti
  * longer an opted-in set are cleared (the trusted ROR name stays — it is still
  * the OAI set name), then the stalest rows among the current sets (`nextRefreshAt`
  * null or due, nulls first) are refreshed, at most `maxRows`, each costing
- * ~10 polite-pool calls paced `paceMs` apart, inside a wall-clock budget. A
+ * 12 polite-pool calls (one entity lookup + 11 grouped requests) paced
+ * `paceMs` apart, inside a wall-clock budget. A
  * success schedules the next refresh a week out; a failure records the reason
  * and backs off one day. Fail-soft throughout: a row's failure never stops the
  * next row, and nothing here throws into the cron route.
@@ -83,7 +85,8 @@ function errorMessage(err: unknown): string {
   return message.slice(0, MAX_ERROR_LENGTH);
 }
 
-/** The grouped counts for one institution: 1 + years + 2 calls, paced. */
+/** The grouped counts for one institution: 1 + years + 3 calls, paced —
+ *  about 2.2 s of pacing plus latency per row at the default 200 ms. */
 async function collectGroups(
   lineageIds: string[],
   years: number[],
@@ -92,13 +95,14 @@ async function collectGroups(
   const typeFilter = `type:${COUNTED_WORK_TYPES.join("|")}`;
   // Hyphen range verified live on 2026-09-09: HTTP 200, same count as the pipe-joined years.
   const windowFilter = `publication_year:${years[0]}-${years[years.length - 1]}`;
+  const call = async (groupBy: GroupWorksQuery["groupBy"], filters: string[]) => {
+    if (paceMs > 0) await sleep(paceMs);
+    return groupWorks({ lineageIds, filters, groupBy });
+  };
   const grouped = async (
     groupBy: GroupWorksQuery["groupBy"],
     filters: string[],
-  ): Promise<CountedGroup[]> => {
-    if (paceMs > 0) await sleep(paceMs);
-    return (await groupWorks({ lineageIds, filters, groupBy })).groups;
-  };
+  ): Promise<CountedGroup[]> => (await call(groupBy, filters)).groups;
   const byYear = await grouped("publication_year", [typeFilter, windowFilter]);
   const oaByYear: InstitutionGroupCounts["oaByYear"] = [];
   for (const year of years) {
@@ -110,7 +114,9 @@ async function collectGroups(
     typeFilter,
     windowFilter,
   ]);
-  return { byYear, oaByYear, countries, coAffiliations };
+  // The field mix keeps its request's own total: the stated denominator.
+  const domains = await call("primary_topic.domain.id", [typeFilter, windowFilter]);
+  return { byYear, oaByYear, countries, coAffiliations, domains };
 }
 
 /** Fetch, aggregate and store one institution's snapshot; throws on failure. */
@@ -119,6 +125,13 @@ async function refreshOne(rorId: string, now: Date, paceMs: number): Promise<voi
   if (!entity) throw new Error("no OpenAlex institution for this ROR id");
   const groups = await collectGroups(foldedInstitutionIds(entity), countedYears(now), paceMs);
   const aggregates = computeInstitutionAggregates(entity, groups, { fetchedAt: now, now });
+  // The page parses the stored row back and reads "not fetched yet" for a row
+  // that fails the schema — silently, for a week. Refuse to store one: a key
+  // shape OpenAlex changes becomes a recorded failure with a one-day backoff,
+  // and the previous snapshot stays on the row.
+  if (!parseInstitutionAggregates(aggregates)) {
+    throw new Error("aggregates failed the stored schema; previous snapshot kept");
+  }
   await prisma.institution.update({
     where: { rorId },
     data: {

@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 const RESYNC_MIN_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 // The institution snapshot's own guard (same shape as the resync's): a pass is
-// up to 20 institutions × ~10 OpenAlex calls, so two must never overlap.
+// up to 20 institutions × ~12 OpenAlex calls, so two must never overlap.
 const INSTITUTION_PROFILES_MIN_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const INSTITUTION_PROFILES_MAX_ROWS = 20;
 const INSTITUTION_PROFILES_PACE_MS = 200;
