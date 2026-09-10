@@ -18,6 +18,7 @@ import { funderOaPolicy } from "@/lib/funders/oaPolicies";
 import type { Locale } from "@/lib/i18n";
 import { workspaceUi, type WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
 import InstitutionListingRow, { type InstitutionListing } from "./InstitutionListingRow";
+import IndexingRow from "./IndexingRow";
 
 /** A stable empty crosswalk (a fresh `[]` per render would defeat the memo). */
 const NO_FUNDER_CROSSWALK: readonly FunderRow[] = [];
@@ -97,7 +98,13 @@ export default function WorklistPanel({
   // The status line is a reason to show the panel only while a choice is open
   // (an unlisted ROR-linked current affiliation) — never counted anywhere.
   const unlisted = listing ? unlistedAffiliations(listing.state).length > 0 : false;
-  if (!hasWorklistContent(gaps, oa, funding.length, unlisted)) return null;
+  // So is an open indexing decision on a live page (not decided, or "not now"):
+  // the choice must stay reachable, never buried by a clean CV. Indexing ON is a
+  // status, not a reason (like a completed listing).
+  const indexingOpen = listing
+    ? listing.state.published && listing.state.slug !== null && !listing.state.indexable
+    : false;
+  if (!hasWorklistContent(gaps, oa, funding.length, unlisted) && !indexingOpen) return null;
 
   const closed = oa.rows.filter((r) => r.state === "no-open-copy-found");
   const groups = groupByRor(gaps.missing);
@@ -144,11 +151,18 @@ export default function WorklistPanel({
       <p className="muted cv-worklist-intro">{wu.wlIntro}</p>
 
       {listing ? (
-        <InstitutionListingRow
-          locale={locale}
-          state={listing.state}
-          onPublishStateChange={listing.onPublishStateChange}
-        />
+        <>
+          <IndexingRow
+            locale={locale}
+            state={listing.state}
+            onPublishStateChange={listing.onPublishStateChange}
+          />
+          <InstitutionListingRow
+            locale={locale}
+            state={listing.state}
+            onPublishStateChange={listing.onPublishStateChange}
+          />
+        </>
       ) : null}
 
       {gaps.positionsWithoutRor.length > 0 ? (

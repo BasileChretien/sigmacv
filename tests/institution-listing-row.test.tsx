@@ -329,6 +329,21 @@ describe("InstitutionListingRow — on exactly ONE of the two surfaces", () => {
   });
 });
 
+describe("IndexingRow — the open indexing decision keeps the panel visible", () => {
+  it("a clean CV with a live, un-indexed page shows the Search indexing row (and nothing else)", () => {
+    const snap = { ...listedSnapshot(), indexable: false, listUnderAffiliation: false };
+    const { container } = renderPanel(quietCv(), snap, []);
+    expect(container.innerHTML).not.toBe("");
+    const row = document.querySelector('[data-testid="worklist-indexing"]');
+    expect(row?.getAttribute("data-state")).toBe("undecided");
+    expect(screen.getByTestId("worklist-indexing-yes")).toBeTruthy();
+    cleanup();
+    // Indexing ON is a status, not a reason: the clean panel stays empty.
+    const { container: c2 } = renderPanel(quietCv(), { ...snap, indexable: true }, []);
+    expect(c2.innerHTML).toBe("");
+  });
+});
+
 describe("InstitutionListingRow — listed and lapsed", () => {
   it("listed: says so with a Change link, and is NOT a reason to show an otherwise-empty panel", () => {
     const { container } = renderPanel(quietCv(), listedSnapshot(), [NAGOYA.rorId]);
@@ -340,9 +355,11 @@ describe("InstitutionListingRow — listed and lapsed", () => {
     expect(screen.getByText(/^Listed under Nagoya University\./)).toBeTruthy();
     expect(screen.getByRole("button", { name: wu.wlListingChange })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /List me under/ })).toBeNull();
-    // The row precedes every other group.
-    const groups = document.querySelectorAll(".cv-worklist-group");
-    expect(groups[0]!.getAttribute("data-worklist")).toBe("listing");
+    // The two status rows lead, indexing first (listing requires it), then the rest.
+    const groups = [...document.querySelectorAll(".cv-worklist-group")].map((g) =>
+      g.getAttribute("data-worklist"),
+    );
+    expect(groups.slice(0, 2)).toEqual(["indexing", "listing"]);
   });
 
   it("Change opens the Publish menu at the institution sub-section", async () => {

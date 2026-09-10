@@ -20,11 +20,13 @@ type PreviewLayout = "split" | "stacked";
 const AUTOSAVE_DELAY_MS = 1500;
 import { selectOnboardingStep, type OnboardingStep } from "@/lib/onboardingSequence";
 import { isPromptDismissed, shouldOfferInstitutionPrompt } from "@/lib/cv/institutionPrompt";
+import { isIndexingPromptDismissed, shouldOfferIndexingPrompt } from "@/lib/cv/indexingPrompt";
 import CvEditor, { type CvEditorHandle } from "./CvEditor";
 import CvPreview from "./CvPreview";
 import DisambiguationCoachmark, { COACHMARK_DISMISS_KEY } from "./DisambiguationCoachmark";
 import FreezeRequestBanner from "./FreezeRequestBanner";
 import InstitutionListingPrompt from "./InstitutionListingPrompt";
+import IndexingPrompt from "./IndexingPrompt";
 import PublishNudge from "./PublishNudge";
 import PopoverGroup from "./PopoverGroup";
 import ResearchConsentPrompt from "./ResearchConsentPrompt";
@@ -447,6 +449,10 @@ export default function CvWorkspace({
           (syncReport.addedTotal > 0 || syncReport.removedTotal > 0) &&
           read(SYNC_REPORT_DISMISS_KEY) !== syncReport.syncedAt,
         coachmark: hasPublications && read(COACHMARK_DISMISS_KEY) !== "1",
+        indexing:
+          !researchPromptOpen &&
+          !freezeRequestOpen &&
+          shouldOfferIndexingPrompt(publishState, isIndexingPromptDismissed(publishState.slug)),
         institution:
           !researchPromptOpen &&
           !freezeRequestOpen &&
@@ -612,6 +618,16 @@ export default function CvWorkspace({
               silence. It is the LAST step of the onboarding sequencer, whose
               condition also covers the research-consent prompt and a freeze
               request — so it never stacks with any of them. */}
+          <IndexingPrompt
+            locale={uiLocale}
+            state={publishState}
+            suppressed={
+              activeOnboarding !== "indexing" &&
+              (activeOnboarding !== null || researchPromptOpen || freezeRequestOpen)
+            }
+            onDismissed={advanceOnboarding}
+            onPublishStateChange={setPublishState}
+          />
           <InstitutionListingPrompt
             locale={uiLocale}
             state={publishState}
