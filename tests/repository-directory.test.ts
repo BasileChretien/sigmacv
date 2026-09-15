@@ -152,17 +152,27 @@ describe("the destination tables", () => {
       expect(new URL(n.sourceUrl).protocol).toBe("https:");
       expect(NOTE).toContain(`| \`${n.countryCode}\` |`);
     }
-    const OWN_DOMAIN: Record<string, string> = {
-      "10.13039/100000002": "nih.gov",
-      "10.13039/100010269": "europepmc.org",
+    // The destination on the repository's own domain; the page it was confirmed on,
+    // on the funder's domain or the repository's.
+    const DOMAINS: Record<string, { destination: string; source: string[] }> = {
+      "10.13039/100000002": { destination: "nih.gov", source: ["nih.gov"] },
+      "10.13039/100010269": {
+        destination: "europepmc.org",
+        source: ["wellcome.org", "europepmc.org"],
+      },
     };
     for (const f of FUNDER_REPOSITORIES) {
       expect(f.fundrefDoi).toMatch(/^10\.13039\/\d+$/);
-      for (const raw of [f.sourceUrl, f.destination.href]) {
-        const url = new URL(raw);
-        expect(url.protocol).toBe("https:");
-        expect(url.hostname.endsWith(OWN_DOMAIN[f.fundrefDoi]!), raw).toBe(true);
-      }
+      const domains = DOMAINS[f.fundrefDoi]!;
+      const destination = new URL(f.destination.href);
+      expect(destination.protocol).toBe("https:");
+      expect(destination.hostname.endsWith(domains.destination), f.destination.href).toBe(true);
+      const source = new URL(f.sourceUrl);
+      expect(source.protocol).toBe("https:");
+      expect(
+        domains.source.some((d) => source.hostname.endsWith(d)),
+        f.sourceUrl,
+      ).toBe(true);
       const row = NOTE.split("\n").find((l) => l.startsWith(`| \`${f.fundrefDoi}\` |`));
       expect(row, f.fundrefDoi).toBeDefined();
       expect(row!.includes("**pending**")).toBe(f.verifiedBy === "maintainer-pending");
@@ -186,9 +196,12 @@ describe("the destination tables", () => {
     expect(funderRepository("10.13039/100000002".toUpperCase())?.destination.name).toBe(
       "PubMed Central (NIHMS)",
     );
-    // Wellcome's destination is recorded but unconfirmed: never an action.
-    expect(FUNDER_REPOSITORIES.some((f) => f.fundrefDoi === "10.13039/100010269")).toBe(true);
-    expect(funderRepository("10.13039/100010269")).toBeUndefined();
+    expect(funderRepository("10.13039/100010269")?.destination.name).toBe("Europe PMC plus");
+    // An entry nobody has confirmed is never an action.
+    for (const pending of FUNDER_REPOSITORIES.filter((f) => f.verifiedBy !== "maintainer")) {
+      expect(funderRepository(pending.fundrefDoi), pending.fundrefDoi).toBeUndefined();
+    }
+    expect(funderRepository("10.13039/999999999")).toBeUndefined();
     expect(funderRepository(undefined)).toBeUndefined();
   });
 });

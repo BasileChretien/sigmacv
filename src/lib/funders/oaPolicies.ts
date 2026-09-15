@@ -70,15 +70,19 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
   {
     fundrefDoi: "10.13039/100010269",
     name: "Wellcome",
+    // Read in a browser on 2026-09-15 (the page says "Last updated: 2 January
+    // 2025"); wellcome.org refuses automated reading. No effective date is stated.
     policyUrl:
-      "https://wellcome.org/grant-funding/guidance/open-access-guidance/open-access-policy",
-    effectiveFrom: "2021-01-01",
+      "https://wellcome.org/research-funding/guidance/ending-a-grant/open-access-guidance/open-access-policy",
     statements: [
-      "immediate open access for research articles submitted from 1 January 2021",
-      "CC BY licence",
-      "the article or its author accepted manuscript in PubMed Central / Europe PMC on publication, with no embargo",
+      "original research it funds freely available from Europe PMC on publication",
+      "a CC BY licence (CC BY-ND by exception)",
+      "the Version of Record or the Author Accepted Manuscript in Europe PMC; an accepted manuscript is self-archived through Europe PMC plus",
+      "a data availability statement",
+      "monographs and book chapters: an embargo of up to 6 months",
     ],
-    verifiedBy: "maintainer-pending",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
   {
     fundrefDoi: "10.13039/100000002",

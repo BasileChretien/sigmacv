@@ -12,7 +12,8 @@ import type { RepositorySource } from "@/lib/openalex/repositories";
  *    an author's deposit (indexes, aggregators, data and archive platforms), so
  *    "your works are already in PubMed" is never offered as a place to deposit;
  *  - national repositories by country (France → HAL);
- *  - funder repositories by FundRef DOI (NIH → PubMed Central through NIHMS). A
+ *  - funder repositories by FundRef DOI (NIH → PubMed Central through NIHMS,
+ *    Wellcome → Europe PMC plus). A
  *    destination nobody has confirmed is recorded but never routed to: a link is
  *    an action, and an unconfirmed action is not offered.
  */
@@ -240,8 +241,13 @@ export const FUNDER_REPOSITORIES: readonly FunderRepository[] = [
     fundrefDoi: "10.13039/100010269",
     funder: "Wellcome",
     destination: { name: "Europe PMC plus", href: "https://plus.europepmc.org/" },
-    sourceUrl: "https://plus.europepmc.org/",
-    verifiedBy: "maintainer-pending",
+    // Wellcome's own page names Europe PMC plus for self-archiving the accepted
+    // manuscript (CC BY, on publication); read in a browser, as wellcome.org
+    // refuses automated reading.
+    sourceUrl:
+      "https://wellcome.org/research-funding/guidance/open-access-guidance/depositing-your-wellcome-funded-research",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
 ];
 
