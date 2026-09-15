@@ -73,6 +73,15 @@ describe("publicMetaDescription", () => {
     }
   });
 
+  it("leaves a '$' in the owner's text alone (no replacement-pattern expansion)", () => {
+    const d = publicMetaDescription(
+      makeCv({ displayName: "Ada $& Lovelace", headline: "$' $$ 50$" }),
+    );
+    expect(d).toBe(
+      "Ada $& Lovelace, $' $$ 50$ — academic CV on SigmaCV, built from open research data (ORCID, OpenAlex).",
+    );
+  });
+
   it("collapses whitespace", () => {
     expect(
       publicMetaDescription(makeCv({ headline: "  a\n  b  ", summary: "c ".repeat(20) })),

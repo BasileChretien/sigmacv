@@ -69,7 +69,9 @@ function fallbackDescription(cv: CanonicalCv, shortLead: string): string {
   const who = [name, shortLead || latestAffiliation(cv)].filter(Boolean).join(", ");
   const template = renderStrings(cv.display.locale).metaDescriptionFallback;
   // No `who` at all: drop the placeholder and the dash that would have followed it.
-  return who ? template.replace("{who}", who) : template.replace(/^\{who\}\s*[—–-]+\s*/u, "");
+  // Function replacer: `who` is user text, and a string replacer would expand
+  // "$&", "$`" or "$'" inside it (same idiom as `{org}` in render/html.ts).
+  return who ? template.replace("{who}", () => who) : template.replace(/^\{who\}\s*[—–-]+\s*/u, "");
 }
 
 /** One `<meta property="..." content="..."/>` tag (property = og:* namespace). */
