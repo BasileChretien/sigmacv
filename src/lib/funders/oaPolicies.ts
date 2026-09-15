@@ -65,7 +65,7 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
     statements: [
       "peer-reviewed research articles submitted for publication on or after 1 April 2022: immediately open access, with no embargo",
       "either the version of record in the journal or the author accepted manuscript in a repository at final publication",
-      "a CC BY licence (CC BY-ND by exception)",
+      "a CC BY licence (CC BY-ND by exception; the Open Government Licence under Crown Copyright)",
       "monographs, book chapters and edited collections published on or after 1 January 2024: open access within 12 months, CC BY preferred",
     ],
     verifiedBy: "maintainer",
@@ -107,11 +107,12 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
     fundrefDoi: "10.13039/100000001",
     name: "National Science Foundation (NSF)",
     // The page (updated 18 September 2025) states no version and no embargo, so
-    // neither does the entry.
+    // neither does the entry; it points to the PAPPG for the requirements (Public
+    // Access Plan 2.0 is linked only "for additional context").
     policyUrl: "https://www.nsf.gov/public-access",
     statements: [
-      "NSF awardees deposit all peer-reviewed publications and juried conference papers in the NSF Public Access Repository (NSF-PAR)",
-      "policy: NSF Public Access Plan 2.0, for open, immediate and equitable access to NSF-funded research",
+      "awards from proposals submitted or due on or after 25 January 2016: all peer-reviewed publications and juried conference papers deposited in NSF-PAR",
+      "requirements set out in the NSF Proposal & Award Policies & Procedures Guide (PAPPG)",
     ],
     verifiedBy: "maintainer",
     lastVerified: "2026-09-15",
@@ -127,6 +128,7 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
       "ERC grants under Horizon Europe (2021–2027) follow its open-access terms",
       "at publication, peer-reviewed publications deposited immediately in open access in a trusted repository",
       "CC BY or equivalent (long-text publications may exclude commercial use or derivative works)",
+      "Horizon 2020 ERC grants: open access through a repository within 6 months (12 months in social sciences and humanities)",
     ],
     verifiedBy: "maintainer",
     lastVerified: "2026-09-15",
@@ -165,7 +167,8 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
     effectiveFrom: "2025-01-01",
     statements: [
       "all published research it funds, in whole or in part, from 1 January 2025",
-      "a preprint on a recognised preprint server, available immediately without embargo under CC BY 4.0",
+      "funded manuscripts posted as a preprint on a recognised server as soon as possible and to the extent feasible",
+      "funded manuscripts available immediately, without embargo, under CC BY 4.0 or an equivalent licence",
       "accepted articles deposited on publication in PubMed Central or another openly accessible repository",
       "underlying data accessible immediately and as open as possible",
       "the foundation does not pay article processing charges",
@@ -180,8 +183,8 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
       "https://www.fwf.ac.at/en/about-us/what-we-do/open-science/open-access-policy/open-access-policy-for-peer-reviewed-publications",
     statements: [
       "peer-reviewed publications from FWF projects approved after 31 December 2020",
-      "open access at publication: an open access journal, a transformative agreement, or self-archiving with no embargo",
-      "a CC BY licence or an equivalent free licence (CC BY-ND only in exceptional cases the FWF approves)",
+      "open access at publication: an open access journal or platform, a transformative agreement or journal, or self-archiving with no embargo",
+      "a CC BY or equivalent free licence; CC BY-ND only in exceptional FWF-approved cases, stated for open access journals and platforms",
     ],
     verifiedBy: "maintainer",
     lastVerified: "2026-09-15",
@@ -194,7 +197,7 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
       "all NWO calls published since 1 January 2021 (Plan S)",
       "scholarly articles in open access immediately at publication, without embargo",
       "a CC BY licence (CC BY-ND in exceptional cases)",
-      "routes: a fully open access journal, a transformative agreement, or immediate deposit in an open access repository",
+      "routes: a fully open access journal, a transformative agreement or journal, or immediate deposit of the version of record or accepted manuscript in a repository",
     ],
     verifiedBy: "maintainer",
     lastVerified: "2026-09-15",
