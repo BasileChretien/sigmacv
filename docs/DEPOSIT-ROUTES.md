@@ -75,4 +75,4 @@ UKRI is deliberately absent: its policy asks for a repository without naming one
 
 A click on any place sends one cookieless Plausible event, `Deposit route`, with a single property `kind` (`funder`, `own`, `national`, `zenodo` or `shareyourpaper`) — never the DOI, the destination or anything about the person (`src/lib/analytics/track.ts`). To see it in Plausible, add a custom-event goal named `Deposit route` and the custom property `kind`.
 
-Keep Plausible's **outbound-link tracking** off for this site (a dashboard setting of the `pa-*` script, not code): switched on, it would send each clicked URL — and the ShareYourPaper link carries the paper's DOI.
+Plausible's **outbound-link tracking** is switched on for this site (read off the live `pa-*.js` configuration on 2026-09-15), and its event carries the clicked URL — which, for the ShareYourPaper link, holds the paper's DOI. The init script's `transformRequest` (`src/lib/analytics/plausibleInit.ts`) cuts the path from outbound URLs to `shareyourpaper.org` and `doi.org` before the request leaves the browser, so only the destination host is recorded.

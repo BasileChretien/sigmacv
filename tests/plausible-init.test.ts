@@ -67,6 +67,39 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(transform({ u: "https://sigmacv.org/search" }).u).toBe("https://sigmacv.org/search");
   });
 
+  it("cuts a paper's DOI out of an outbound-link event (ShareYourPaper, doi.org), keeping the host", () => {
+    const transform = boot().o!.transformRequest!;
+    type Event = Payload & { p?: Record<string, string> };
+    const outbound = (url: string) =>
+      (
+        transform({
+          n: "Outbound Link: Click",
+          u: "https://sigmacv.org/cv",
+          p: { url },
+        } as Event) as Event
+      ).p!.url;
+    expect(outbound("https://shareyourpaper.org/10.1002/pds.5000")).toBe(
+      "https://shareyourpaper.org/_",
+    );
+    expect(outbound("https://doi.org/10.1234/(SICI)1?x=1#frag")).toBe("https://doi.org/_#frag");
+    expect(outbound("http://dx.doi.org/10.1234/x")).toBe("http://dx.doi.org/_");
+    // Every other destination — and a look-alike host — is left as it was.
+    for (const url of [
+      "https://hal.science/submit",
+      "https://zenodo.org/uploads/new",
+      "https://notdoi.org/10.1234/x",
+      "https://doi.org.example.com/10.1234/x",
+    ]) {
+      expect(outbound(url)).toBe(url);
+    }
+    // A custom event's own props are not touched.
+    const custom = transform({
+      n: "Deposit route",
+      p: { kind: "shareyourpaper" },
+    } as Event) as Event;
+    expect(custom.p).toEqual({ kind: "shareyourpaper" });
+  });
+
   it("leaves every other path, and a missing/odd payload, untouched", () => {
     const transform = boot().o!.transformRequest!;
     expect(transform({ u: "https://sigmacv.org/p/abc", r: "" })).toEqual({
