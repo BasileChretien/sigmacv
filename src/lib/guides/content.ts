@@ -3136,7 +3136,8 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       ],
     },
     "responsible-metrics-on-an-academic-cv": {
-      title: "Metriken im akademischen Lebenslauf: verantwortungsvoll einsetzen (DORA, Leiden)",
+      title:
+        "Metriken im akademischen Lebenslauf verantwortungsvoll einsetzen (DORA, Leiden Manifesto)",
       description:
         "Wie man Forschungsmetriken im Lebenslauf verantwortungsvoll darstellt: warum der Journal Impact Factor und der h-Index irreführen, was feldnormierte Indikatoren hinzufügen und was DORA und das Leiden Manifesto empfehlen.",
       blocks: [

@@ -837,7 +837,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     liveVersionLabel: "Versión en línea",
     livingNote: "Actualizado el {date} · CV vivo, se actualiza solo",
     metaDescriptionFallback:
-      "{who} — CV académico en SigmaCV, creado a partir de datos de investigación abiertos (ORCID, OpenAlex).",
+      "{who} — CV académico en SigmaCV, creado a partir de datos abiertos de investigación (ORCID, OpenAlex).",
     rorRecordTitle: "Ficha de la organización en ROR",
     institutionSiteTitle: "Sitio web de la institución",
     indicatorRcr: "RCR {v}",
@@ -1710,7 +1710,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     liveVersionLabel: "Versão online",
     livingNote: "Atualizado em {date} · currículo vivo, atualizado automaticamente",
     metaDescriptionFallback:
-      "{who} — currículo acadêmico no SigmaCV, criado a partir de dados de pesquisa abertos (ORCID, OpenAlex).",
+      "{who} — currículo acadêmico no SigmaCV, criado a partir de dados abertos de pesquisa (ORCID, OpenAlex).",
     rorRecordTitle: "Registro da organização no ROR",
     institutionSiteTitle: "Site da instituição",
     indicatorRcr: "RCR {v}",
@@ -1930,7 +1930,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     liveVersionLabel: "Versione online",
     livingNote: "Aggiornato il {date} · CV vivo, si aggiorna da solo",
     metaDescriptionFallback:
-      "{who} — CV accademico su SigmaCV, costruito da dati di ricerca aperti (ORCID, OpenAlex).",
+      "{who} — CV accademico su SigmaCV, costruito a partire da dati di ricerca aperti (ORCID, OpenAlex).",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
     institutionSiteTitle: "Sito web dell’istituzione",
     indicatorRcr: "RCR {v}",
