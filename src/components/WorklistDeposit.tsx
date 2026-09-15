@@ -39,8 +39,9 @@ interface WorklistDepositProps {
  * behind a disclosure, and a "Copy DOI" button for the form. Routes and wording
  * come from `lib/archiving/depositRoutes.ts` (the order is the rule; the words
  * never go beyond the publisher's record). A click sends one cookieless analytics
- * event carrying the route's kind only — never the DOI, the destination or
- * anything about the person.
+ * event carrying the route's kind only; Plausible's own outbound-link event for
+ * the same click keeps the destination's origin alone, never a path that carries
+ * a DOI (`lib/analytics/plausibleInit.ts`).
  */
 export default function WorklistDeposit({
   locale,
