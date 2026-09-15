@@ -177,12 +177,22 @@ function boundedText(value: string | undefined, max: number): string | undefined
 
 /**
  * The publisher's statement as plain text. OA.Works passes the publisher's inline
- * markup through (`<i><scp>CYP</scp>2B6</i>`); tags are removed, then any angle
- * bracket left over (a nested or broken tag such as `<scr<script>ipt>`) is dropped
- * too, so no markup survives even though React would escape it on render.
+ * markup through (`<i><scp>CYP</scp>2B6</i>`). One character scan drops every
+ * angle bracket and whatever sits between an opening `<` and the next `>` (an
+ * unterminated `<` drops the rest), so no markup survives a nested or broken tag
+ * such as `<scr<script>ipt>` — even though React would escape it on render. A
+ * scan, not a multi-character regex: a one-pass regex strip can re-form a tag.
  */
 function plainStatement(value: string | undefined): string | undefined {
-  return value?.replace(/<[^>]*>/g, "").replace(/[<>]/g, "");
+  if (value === undefined) return undefined;
+  let text = "";
+  let inTag = false;
+  for (const ch of value) {
+    if (ch === "<") inTag = true;
+    else if (ch === ">") inTag = false;
+    else if (!inTag) text += ch;
+  }
+  return text;
 }
 
 /** An archived URL whose address names a sharing / archiving / embargo policy. */

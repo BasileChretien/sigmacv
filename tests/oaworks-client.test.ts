@@ -240,7 +240,7 @@ describe("fetchSelfArchivingPermission — bounds and normalisation", () => {
     expect(
       (await permission({ deposit_statement: "a<scr<script>ipt>alert(1)</script>b <c" }))
         .depositStatement,
-    ).toBe("aiptalert(1)b c");
+    ).toBe("aiptalert(1)b");
     expect(
       (await permission({ deposit_statement: "y".repeat(PERMISSION_LIMITS.depositStatement + 1) }))
         .depositStatement,
