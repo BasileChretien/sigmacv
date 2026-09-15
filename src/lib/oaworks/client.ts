@@ -164,6 +164,16 @@ function boundedText(value: string | undefined, max: number): string | undefined
   return text && text.length <= max ? text : undefined;
 }
 
+/**
+ * The publisher's statement as plain text. OA.Works passes the publisher's inline
+ * markup through (`<i><scp>CYP</scp>2B6</i>`); tags are removed, then any angle
+ * bracket left over (a nested or broken tag such as `<scr<script>ipt>`) is dropped
+ * too, so no markup survives even though React would escape it on render.
+ */
+function plainStatement(value: string | undefined): string | undefined {
+  return value?.replace(/<[^>]*>/g, "").replace(/[<>]/g, "");
+}
+
 /** An archived URL whose address names a sharing / archiving / embargo policy. */
 const POLICY_LIKE = /self-?archiv|sharing|embargo|open-?access|author|copyright|polic/i;
 
@@ -198,7 +208,7 @@ function toPermission(p: BestPermission): SelfArchivingPermission {
     locations: locationsOf(p.locations),
     licence: boundedText(p.licence, PERMISSION_LIMITS.licence),
     depositStatement: boundedText(
-      p.deposit_statement?.replace(/<[^>]*>/g, ""),
+      plainStatement(p.deposit_statement),
       PERMISSION_LIMITS.depositStatement,
     ),
     recordUpdated: isoFromRecordDate(p.meta?.updated),

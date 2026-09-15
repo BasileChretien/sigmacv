@@ -203,6 +203,11 @@ describe("fetchSelfArchivingPermission — bounds and normalisation", () => {
       (await permission({ deposit_statement: "Role of<i><scp>CYP</scp>2B6</i>\n in  X." }))
         .depositStatement,
     ).toBe("Role ofCYP2B6 in X.");
+    // A nested or broken tag leaves no angle bracket behind.
+    expect(
+      (await permission({ deposit_statement: "a<scr<script>ipt>alert(1)</script>b <c" }))
+        .depositStatement,
+    ).toBe("aiptalert(1)b c");
     expect(
       (await permission({ deposit_statement: "y".repeat(PERMISSION_LIMITS.depositStatement + 1) }))
         .depositStatement,
