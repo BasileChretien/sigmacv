@@ -108,8 +108,17 @@ afterEach(() => {
 
 describe("WorklistPanel — your grants and their open-access policies", () => {
   it("renders the joined (work, grant) with the funder's pending policy — worded as unconfirmed, no date — its link, and what SigmaCV found", () => {
-    const anr = funderOaPolicy(ANR_FUNDREF)!;
-    expect(anr.verifiedBy).toBe("maintainer-pending");
+    // The table's ANR entry is confirmed; the pending wording is shown with a
+    // pending copy of it — an entry nobody has checked against the funder's site.
+    const real = funderOaPolicy(ANR_FUNDREF)!;
+    const anr: FunderOaPolicy = {
+      fundrefDoi: real.fundrefDoi,
+      name: real.name,
+      policyUrl: real.policyUrl,
+      statements: real.statements,
+      verifiedBy: "maintainer-pending",
+    };
+    policyMock.override = () => anr;
     const onJump = vi.fn();
     // An OPEN work: the "no open copy found" section stays out, so every
     // element below belongs to the funding section alone.
