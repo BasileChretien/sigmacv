@@ -296,33 +296,64 @@ describe("depositNotes — what the record asks of the form", () => {
   const [nih] = depositRoutes(cvWith(), work(NIH_WORK), ctx());
   const notes = (meta: CvItem["meta"], route: DepositRoute | undefined, csl = {}) =>
     depositNotes(work(meta, csl), route!, EN, "en-US", TODAY);
+  const NO_DOI = { DOI: undefined };
 
   it("carries the licence and an embargo that is still running", () => {
     const running = record({ licence: "cc-by-nc-nd", embargoMonths: 12, embargoEnd: "2027-01-23" });
-    expect(notes({ selfArchiving: running }, hal)).toEqual([
+    expect(notes({ selfArchiving: running }, hal, NO_DOI)).toEqual([
       "In the form, set the licence to cc-by-nc-nd.",
       "Keep the file under embargo until 2027-01-23.",
     ]);
-    expect(notes({ selfArchiving: { ...running, embargoEnd: "2021-01-23" } }, hal)).toEqual([
-      "In the form, set the licence to cc-by-nc-nd.",
-    ]);
-    expect(notes({ selfArchiving: record({ embargoMonths: 6 }) }, hal)).toEqual([
+    expect(notes({ selfArchiving: { ...running, embargoEnd: "2021-01-23" } }, hal, NO_DOI)).toEqual(
+      ["In the form, set the licence to cc-by-nc-nd."],
+    );
+    expect(notes({ selfArchiving: record({ embargoMonths: 6 }) }, hal, NO_DOI)).toEqual([
       "Keep the file under embargo for 6 months after publication.",
     ]);
-    expect(notes({ selfArchiving: record({ embargoMonths: 0 }) }, hal)).toEqual([]);
+    expect(notes({ selfArchiving: record({ embargoMonths: 0 }) }, hal, NO_DOI)).toEqual([]);
   });
 
   it("says nothing of the policy's conditions for a funder's repository or a record that allows no deposit", () => {
     expect(notes({ ...NIH_WORK, selfArchiving: record({ licence: "cc-by" }) }, nih)).toEqual([]);
     expect(
-      notes({ selfArchiving: record({ canArchive: false, versions: [], licence: "cc-by" }) }, hal),
+      notes(
+        { selfArchiving: record({ canArchive: false, versions: [], licence: "cc-by" }) },
+        hal,
+        NO_DOI,
+      ),
     ).toEqual([]);
   });
 
   it("tells a Zenodo depositor where the publisher's DOI goes — when the work has one", () => {
     expect(notes({}, zenodo)).toEqual([EN.wlDepositZenodoDoi]);
-    expect(notes({}, zenodo, { DOI: undefined })).toEqual([]);
-    expect(notes({}, hal)).toEqual([]);
+    expect(notes({}, zenodo, NO_DOI)).toEqual([]);
+  });
+
+  it("tells a HAL depositor to paste the DOI where the form loads metadata — after the record's conditions, whatever the record says", () => {
+    expect(notes({}, hal)).toEqual([EN.wlDepositHalDoi]);
+    expect(notes({}, hal, NO_DOI)).toEqual([]);
+    expect(notes({}, hal, { DOI: "  " })).toEqual([]);
+    expect(notes({ selfArchiving: record({ licence: "cc-by" }) }, hal)).toEqual([
+      "In the form, set the licence to cc-by.",
+      EN.wlDepositHalDoi,
+    ]);
+    expect(notes({ selfArchiving: record({ canArchive: false, versions: [] }) }, hal)).toEqual([
+      EN.wlDepositHalDoi,
+    ]);
+    // HAL reached because the owner's works sit there, not by country: the same note.
+    const [ownHal] = depositRoutes(cvWith({ depositRepositories: [HAL_OWN] }), work(), ctx());
+    expect(ownHal!.kind).toBe("own");
+    expect(notes({}, ownHal)).toEqual([EN.wlDepositHalDoi]);
+    // Neither a funder's repository nor Zenodo gets the HAL note.
+    expect(notes({}, nih)).toEqual([]);
+    expect(notes({}, zenodo)).not.toContain(EN.wlDepositHalDoi);
+  });
+
+  it("quotes HAL's own labels only in French, the one interface language they were read in", () => {
+    const fr = workspaceUi("fr-FR").wlDepositHalDoi;
+    expect(fr).toContain("Chargez les métadonnées à partir d'un identifiant");
+    expect(fr).toContain("Récupérer les métadonnées");
+    expect(EN.wlDepositHalDoi).not.toMatch(/Chargez|Récupérer/);
   });
 });
 
