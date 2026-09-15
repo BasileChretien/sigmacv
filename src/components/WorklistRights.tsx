@@ -58,7 +58,7 @@ export default function WorklistRights({ locale, selfArchiving, statutory }: Wor
           <p key={entry.countryCode} className="muted cv-worklist-rights-statutory">
             {line.text} {line.verification}{" "}
             <a href={line.sourceUrl} target="_blank" rel="noopener noreferrer">
-              {wu.wlStatutorySourceLink}
+              {line.sourceLabel}
             </a>
             {line.guidanceUrl ? (
               <>

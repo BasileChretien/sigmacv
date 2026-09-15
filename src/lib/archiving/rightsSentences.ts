@@ -29,7 +29,6 @@ const KIND_KEY: Record<StatutoryKind, keyof WorkspaceUiStrings> = {
   "author-right": "wlStatutoryAuthorRight",
   "deposit-requirement": "wlStatutoryDepositRequirement",
   "funding-policy": "wlStatutoryFundingPolicy",
-  "no-author-right": "wlStatutoryNoAuthorRight",
 };
 
 export interface PublisherPolicyLines {
@@ -110,6 +109,8 @@ export interface StatutoryLine {
   /** "Recorded on <date>." or the pending wording — never a date for a draft. */
   verification: string;
   sourceUrl: string;
+  /** "legal text" when the source is the text itself, else "guidance". */
+  sourceLabel: string;
   guidanceUrl?: string;
 }
 
@@ -131,6 +132,8 @@ export function statutoryLine(
         ? fill(wu.wlStatutoryRecorded, { date: entry.lastVerified })
         : wu.wlStatutoryPending,
     sourceUrl: entry.sourceUrl,
+    sourceLabel:
+      entry.sourceKind === "legal-text" ? wu.wlStatutorySourceLink : wu.wlStatutoryGuidanceLink,
     guidanceUrl: entry.guidanceUrl,
   };
 }

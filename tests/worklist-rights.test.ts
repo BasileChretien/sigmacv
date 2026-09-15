@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { publisherPolicyLines, statutoryLine } from "@/lib/archiving/rightsSentences";
-import { STATUTORY_ARCHIVING } from "@/lib/archiving/statutoryRights";
+import { STATUTORY_ARCHIVING, type StatutoryArchivingEntry } from "@/lib/archiving/statutoryRights";
 import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import { openAccessStates } from "@/lib/cv/worklist";
 import { fill } from "@/lib/i18n/fill";
@@ -106,7 +106,7 @@ describe("publisherPolicyLines", () => {
 });
 
 describe("statutoryLine", () => {
-  it("words a verified author right as something that may also apply, dated, with its source and guidance", () => {
+  it("words a verified author right as something that may also apply, dated, linked to its legal text and guidance", () => {
     const fr = entry("FR");
     const line = statutoryLine(fr, EN, "en-US");
     expect(line.text).toBe(
@@ -114,16 +114,31 @@ describe("statutoryLine", () => {
     );
     expect(line.verification).toBe("Recorded on 2026-09-15.");
     expect(line.sourceUrl).toBe(fr.sourceUrl);
+    expect(line.sourceLabel).toBe(EN.wlStatutorySourceLink);
     expect(line.guidanceUrl).toBe(fr.guidanceUrl);
   });
 
+  it("labels a guidance page as guidance, never as legal text", () => {
+    for (const code of ["BE", "JP"]) {
+      const line = statutoryLine(entry(code), EN, "en-US");
+      expect(line.sourceLabel, code).toBe(EN.wlStatutoryGuidanceLink);
+      expect(line.guidanceUrl, code).toBeUndefined();
+    }
+  });
+
   it("gives a pending entry the pending wording and never a date", () => {
-    const at = entry("AT");
-    expect(at.verifiedBy).toBe("maintainer-pending");
-    const line = statutoryLine(at, EN, "en-US");
+    const pending: StatutoryArchivingEntry = {
+      countryCode: "XX",
+      kind: "author-right",
+      instrument: "A drafted instrument",
+      sourceUrl: "https://example.org/law",
+      sourceKind: "legal-text",
+      statements: ["a drafted statement"],
+      verifiedBy: "maintainer-pending",
+    };
+    const line = statutoryLine(pending, EN, "en-US");
     expect(line.verification).toBe(EN.wlStatutoryPending);
     expect(line.verification).not.toMatch(/\d{4}-\d{2}-\d{2}/);
-    expect(line.guidanceUrl).toBeUndefined();
   });
 
   it("words each kind its own way, with the country named in the viewer's locale", () => {
@@ -133,15 +148,12 @@ describe("statutoryLine", () => {
     expect(statutoryLine(entry("JP"), EN, "en-US").text).toMatch(
       /^May also apply — national open-access policy \(Japan\), /,
     );
-    expect(statutoryLine(entry("IT"), EN, "en-US").text).toMatch(
-      /^No statutory self-archiving right for authors \(Italy\) — /,
-    );
     expect(statutoryLine(entry("DE"), workspaceUi("ja-JP"), "ja-JP").text).toContain("（ドイツ）");
   });
 });
 
 describe("openAccessStates — the rights inputs on each row", () => {
-  function cvWith(meta: CvItem["meta"]): CanonicalCv {
+  function cvWith(meta: CvItem["meta"], type = "article-journal"): CanonicalCv {
     return CanonicalCvSchema.parse({
       schemaVersion: 2,
       id: "wr",
@@ -164,7 +176,7 @@ describe("openAccessStates — the rights inputs on each row", () => {
               order: 0,
               authoredBySelf: true,
               selfNameVariants: [],
-              csl: { id: "W1", type: "article-journal", title: "One" },
+              csl: { id: "W1", type, title: "One" },
               meta: { year: 2020, oaIsOpen: false, ...meta },
             },
           ],
@@ -174,12 +186,24 @@ describe("openAccessStates — the rights inputs on each row", () => {
     });
   }
 
-  it("carries the stored OA.Works record and the statutory entries for the countries on the paper", () => {
+  it("carries the stored OA.Works record and the statutory entries that can cover the work", () => {
     const [row] = openAccessStates(
       cvWith({ selfArchiving: CELL, workCountries: ["US", "FR", "JP"] }),
     ).rows;
     expect(row!.selfArchiving).toEqual(CELL);
-    expect(row!.statutory.map((e) => e.countryCode)).toEqual(["FR", "JP"]);
+    // A 2020 paper: France's right can cover it, Japan's FY2025 policy cannot.
+    expect(row!.statutory.map((e) => e.countryCode)).toEqual(["FR"]);
+    const [recent] = openAccessStates(cvWith({ year: 2025, workCountries: ["FR", "JP"] })).rows;
+    expect(recent!.statutory.map((e) => e.countryCode)).toEqual(["FR", "JP"]);
+  });
+
+  it("uses the owner's year override and the work's type to decide", () => {
+    const [overridden] = openAccessStates(
+      cvWith({ year: 2020, yearOverride: 2026, workCountries: ["JP"] }),
+    ).rows;
+    expect(overridden!.statutory.map((e) => e.countryCode)).toEqual(["JP"]);
+    const [chapter] = openAccessStates(cvWith({ workCountries: ["FR", "NL"] }, "chapter")).rows;
+    expect(chapter!.statutory.map((e) => e.countryCode)).toEqual(["NL"]);
   });
 
   it("carries nothing when the owner's sync stored nothing", () => {
@@ -193,5 +217,11 @@ describe("fill", () => {
   it("substitutes every occurrence of every key with a function replacer", () => {
     expect(fill("{a} and {a}, {b}", { a: "$&", b: "x" })).toBe("$& and $&, x");
     expect(fill("no placeholders", { a: "1" })).toBe("no placeholders");
+  });
+
+  it("never re-scans a substituted value, and leaves a placeholder without a value as written", () => {
+    expect(fill("{a}|{b}", { a: "{b}", b: "x" })).toBe("{b}|x");
+    expect(fill("{a} {missing}", { a: "1" })).toBe("1 {missing}");
+    expect(fill("{toString}", {})).toBe("{toString}");
   });
 });

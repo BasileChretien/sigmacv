@@ -62,7 +62,6 @@ const PLACEHOLDERS: Partial<Record<keyof WorkspaceUiStrings, string[]>> = {
   wlStatutoryAuthorRight: ["{country}", "{instrument}", "{statements}"],
   wlStatutoryDepositRequirement: ["{country}", "{instrument}", "{statements}"],
   wlStatutoryFundingPolicy: ["{country}", "{instrument}", "{statements}"],
-  wlStatutoryNoAuthorRight: ["{country}", "{instrument}", "{statements}"],
   wlStatutoryRecorded: ["{date}"],
 };
 
@@ -193,7 +192,6 @@ describe("worklist self-archiving strings (workspaceUi wlArchiving*, wlStatutory
     ] as const) {
       expect(s[key], key).toMatch(/^May also apply — /);
     }
-    expect(s.wlStatutoryNoAuthorRight).toMatch(/^No statutory self-archiving right for authors/);
     for (const key of RIGHTS_KEYS) {
       expect(s[key], key).not.toMatch(/\bapplies\b|\bexpire|\byou must\b|\beligible\b/i);
     }

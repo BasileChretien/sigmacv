@@ -14,17 +14,19 @@ import { countableWorks } from "@/lib/render/countable";
  * no open copy found and a DOI, the publisher's self-archiving policy as OA.Works
  * records it (`meta.selfArchiving`), for the worklist's rights line.
  *
- * Called from `syncCvForUser` ONLY — the authenticated owner sync (`/api/cv/sync`)
- * and the scheduled re-sync of the owner's own document, which runs the same
- * function — and never from `buildCvFromOrcid`, which the anonymous no-login
- * preview shares: a visitor who pastes an iD triggers no OA.Works call and gets
- * no rights data (`tests/funders-not-public.test.ts` checks both at the source).
+ * Called from `syncCvForUser` ONLY — which serves the owner's manual sync
+ * (`/api/cv/sync`), the first-visit build of `/cv`, and the scheduled re-sync of a
+ * published CV's own document — and never from `buildCvFromOrcid`, which the
+ * anonymous no-login preview shares: a visitor who pastes an iD triggers no
+ * OA.Works call and gets no rights data (`tests/funders-not-public.test.ts` checks
+ * both at the source).
  *
- * Polite by construction: sequential (one call at a time), at most
+ * Polite by construction: sequential (one call at a time, no retry), at most
  * {@link SELF_ARCHIVING_MAX_LOOKUPS} per sync inside {@link SELF_ARCHIVING_BUDGET_MS}
  * of wall clock, never-checked works first, and a work answered within
  * {@link SELF_ARCHIVING_REFRESH_DAYS} days is not asked again — publisher policies
- * move slowly and every record is shown with its dates. Fail-soft: a failed call
+ * move slowly and every record is shown with its dates, so after the first sync a
+ * re-sync (the cron's included) makes next to no calls. Fail-soft: a failed call
  * keeps the stored record and leaves the work unstamped, so it is retried first
  * on a later sync; an answered "no record" clears it. A work that stops being a
  * candidate (an open copy appeared, it was hidden or retracted) loses its record:
@@ -32,7 +34,7 @@ import { countableWorks } from "@/lib/render/countable";
  */
 
 export const SELF_ARCHIVING_MAX_LOOKUPS = 40;
-const SELF_ARCHIVING_BUDGET_MS = 15_000;
+const SELF_ARCHIVING_BUDGET_MS = 12_000;
 export const SELF_ARCHIVING_REFRESH_DAYS = 7;
 
 const DAY_MS = 86_400_000;

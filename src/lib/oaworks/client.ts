@@ -40,7 +40,10 @@ import { logger } from "@/lib/log";
 
 const OAWORKS_API = "https://bg.api.oa.works/permissions";
 const MAX_BYTES = 1_000_000;
+const MAX_DOI = 300;
 const DOI_RE = /^10\.\d{4,9}\/\S+$/;
+/** The issuers whose record is the publisher's policy (OA.Works writes "Publisher"). */
+const PUBLISHER_ISSUERS: ReadonlySet<string> = new Set(["journal", "publisher"]);
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export const ARTICLE_VERSIONS = [
@@ -101,15 +104,23 @@ const BestPermissionSchema = z.object({
   deposit_statement: optionalText,
   meta: z.object({ updated: optionalText }).optional().catch(undefined),
   provenance: z.object({ archiving_policy: z.unknown() }).optional().catch(undefined),
+  issuer: z.object({ type: optionalText }).optional().catch(undefined),
 });
 type BestPermission = z.infer<typeof BestPermissionSchema>;
 
+/**
+ * A DOI as a bare "10.x/…" string, or undefined. Dot segments ("." / "..") are
+ * refused: the DOI's "/" stays a path separator in the request URL, so a segment
+ * like ".." would walk the request out of `/permissions/` — and a stored
+ * `csl.DOI` is owner-editable and carries no format constraint of its own.
+ */
 function bareDoi(doi: string): string | undefined {
   const bare = doi
     .trim()
     .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "")
     .replace(/^doi:/i, "");
-  return DOI_RE.test(bare) ? bare : undefined;
+  if (bare.length > MAX_DOI || !DOI_RE.test(bare)) return undefined;
+  return bare.split("/").some((segment) => segment === "." || segment === "..") ? undefined : bare;
 }
 
 function collapse(value: string): string {
@@ -193,9 +204,17 @@ function policyUrlOf(raw: unknown): string | undefined {
 }
 
 function toPermission(p: BestPermission): SelfArchivingPermission {
+  const recorded = {
+    recordUpdated: isoFromRecordDate(p.meta?.updated),
+    policyUrl: policyUrlOf(p.provenance?.archiving_policy),
+  };
+  // A refusal prints only that no permission is recorded, with the record's date
+  // and the archived policy: nothing else from the record is kept.
+  if (!p.can_archive) return { canArchive: false, versions: [], locations: [], ...recorded };
   const months = p.embargo_months;
   return {
-    canArchive: p.can_archive,
+    ...recorded,
+    canArchive: true,
     versions: versionsOf(p),
     embargoMonths:
       months !== undefined &&
@@ -234,14 +253,19 @@ export async function fetchSelfArchivingPermission(
 ): Promise<PermissionLookup> {
   const bare = bareDoi(doi);
   if (!bare) return NONE;
-  // The DOI's own "/" stays a path separator (OA.Works routes on it); every
-  // other reserved character is escaped.
-  const url = `${OAWORKS_API}/${encodeURIComponent(bare).replace(/%2F/gi, "/")}`;
   try {
-    const res = await resilientFetch(url, {
+    // The DOI's own "/" stays a path separator (OA.Works routes on it); every
+    // other reserved character is escaped — and the parsed URL must still sit
+    // under /permissions/ (a second guard behind bareDoi's dot-segment check).
+    const url = new URL(`${OAWORKS_API}/${encodeURIComponent(bare).replace(/%2F/gi, "/")}`);
+    /* v8 ignore next -- bareDoi refuses every dot segment; this is the second guard */
+    if (!url.pathname.startsWith("/permissions/10.")) return NONE;
+    const res = await resilientFetch(url.href, {
       headers: { Accept: "application/json", "User-Agent": userAgent(mailto) },
-      timeoutMs: 10_000,
-      retries: 1,
+      // One attempt: the pass retries a failed work on a later sync, and a 501
+      // "DOI is not a journal article" is not worth asking twice.
+      timeoutMs: 8_000,
+      retries: 0,
       // `retrievedAt` must mean when SigmaCV asked, not when a cache did.
       cache: "no-store",
     });
@@ -254,7 +278,12 @@ export async function fetchSelfArchivingPermission(
     const raw = (data as { best_permission?: unknown }).best_permission;
     if (raw === undefined || raw === null) return NONE;
     const best = BestPermissionSchema.safeParse(raw);
-    return best.success ? { status: "found", permission: toPermission(best.data) } : FAILED;
+    if (!best.success) return FAILED;
+    // Only a journal's or a publisher's record is the publisher's policy the
+    // worklist names; any other issuer is no record of that policy.
+    const issuer = best.data.issuer?.type?.trim().toLowerCase();
+    if (!issuer || !PUBLISHER_ISSUERS.has(issuer)) return NONE;
+    return { status: "found", permission: toPermission(best.data) };
   } catch (err) {
     logger.warn("oaworks.fetch_failed", { err });
     return FAILED;

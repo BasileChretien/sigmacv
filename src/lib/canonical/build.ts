@@ -1785,41 +1785,6 @@ export function selfWorkCountries(selfAuth: OpenAlexAuthorship | undefined): str
   return codes.size ? [...codes] : undefined;
 }
 
-const ISSN_L_RE = /^\d{4}-\d{3}[\dX]$/;
-
-/** The journal's linking ISSN (`primary_location.source.issn_l`), upper-cased,
- *  or undefined when absent or not ISSN-shaped. */
-export function workIssn(work: OpenAlexWork): string | undefined {
-  const issn = work.primary_location?.source?.issn_l?.trim().toUpperCase();
-  return issn && ISSN_L_RE.test(issn) ? issn : undefined;
-}
-
-const MAX_REPOSITORY_LOCATIONS = 5;
-
-/**
- * The OPEN repository copies of a work (OpenAlex `locations[]` whose source is a
- * repository and whose copy is free to read) as `{sourceId, name}` — deduped by
- * source, in OpenAlex order, bounded; undefined when none. A closed work has
- * none by definition: it is the owner's OTHER works that say where deposits
- * already sit.
- */
-export function workRepositoryLocations(
-  work: OpenAlexWork,
-): { sourceId: string; name: string }[] | undefined {
-  const out: { sourceId: string; name: string }[] = [];
-  for (const location of work.locations ?? []) {
-    const source = location?.source;
-    if (location?.is_oa !== true || (source?.type ?? "").toLowerCase() !== "repository") continue;
-    const sourceId = shortId(source?.id);
-    const name = source?.display_name?.trim();
-    if (!/^S\d{1,20}$/.test(sourceId) || !name || name.length > 300) continue;
-    if (out.some((r) => r.sourceId === sourceId)) continue;
-    out.push({ sourceId, name });
-    if (out.length >= MAX_REPOSITORY_LOCATIONS) break;
-  }
-  return out.length ? out : undefined;
-}
-
 /** A human label for the account holder's authorship role on a work, or undefined. */
 export function authorRoleLabel(a: OpenAlexAuthorship | undefined): string | undefined {
   if (!a) return undefined;
@@ -2173,10 +2138,6 @@ function buildWorkCvItem(
       // The affiliation COUNTRY on this paper (own authorship) — the owner
       // worklist's statutory self-archiving line (`archiving/statutoryRights.ts`).
       workCountries: authoredBySelf ? selfWorkCountries(selfAuth) : undefined,
-      // Journal ISSN-L and the OPEN repository copies OpenAlex lists — owner-only
-      // inputs of the worklist's self-archiving rows, rebuilt from the source.
-      issn: workIssn(work),
-      repositoryLocations: workRepositoryLocations(work),
       reviewFlag:
         reviewFlagOverride ?? (authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined),
     },

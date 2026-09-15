@@ -112,8 +112,6 @@ export function stripInternalItemSignals(it: CvItem, hideSuperviseeName = false)
       // The self-archiving inputs — owner worklist only (see the note above).
       selfArchiving: undefined,
       selfArchivingCheckedAt: undefined,
-      issn: undefined,
-      repositoryLocations: undefined,
       workCountries: undefined,
       ...(hideSuperviseeName ? { superviseeName: undefined } : {}),
     },
@@ -243,8 +241,6 @@ export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
           // but a stored value must not reach a non-owner either.
           selfArchiving: undefined,
           selfArchivingCheckedAt: undefined,
-          issn: undefined,
-          repositoryLocations: undefined,
           workCountries: undefined,
           // Per-work figures (see the module note): none survive.
           citedByCount: undefined,

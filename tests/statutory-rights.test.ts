@@ -4,15 +4,17 @@ import { describe, expect, it } from "vitest";
 import {
   STATUTORY_ARCHIVING,
   STATUTORY_KINDS,
+  STATUTORY_SOURCE_KINDS,
   statutoryArchivingFor,
 } from "@/lib/archiving/statutoryRights";
 
 /**
  * The statutory self-archiving table: committed, hand-verified DATA keyed by
  * country — never scraped, never inferred. Every entry names its instrument and
- * where its text was read, and says when; the sentence built from it "may also
- * apply" beside the publisher's and the funder's policies, so the vocabulary of a
- * verdict or a quantity is banned outright.
+ * where it was read, and says when; the sentence built from it "may also apply"
+ * beside the publisher's and the funder's policies, so the vocabulary of a
+ * verdict or a quantity is banned outright, and a rule the work's year or type
+ * already rules out is never offered.
  */
 
 const FORBIDDEN = [
@@ -27,19 +29,19 @@ const FORBIDDEN = [
 ];
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Where each country's text must live. */
-const SOURCE_DOMAIN: Record<string, string> = {
-  FR: "legifrance.gouv.fr",
-  DE: "gesetze-im-internet.de",
-  AT: "jusline.at",
-  NL: "wetten.overheid.nl",
-  BE: "kuleuven.be",
-  ES: "boe.es",
-  IT: "normattiva.it",
-  JP: "kyushu-u.ac.jp",
+/** Where each country's rule must be read, and what that page is. */
+const SOURCE: Record<string, { domain: string; kind: string }> = {
+  FR: { domain: "legifrance.gouv.fr", kind: "legal-text" },
+  DE: { domain: "gesetze-im-internet.de", kind: "legal-text" },
+  AT: { domain: "jusline.at", kind: "legal-text" },
+  NL: { domain: "wetten.overheid.nl", kind: "legal-text" },
+  BE: { domain: "kuleuven.be", kind: "guidance" },
+  ES: { domain: "boe.es", kind: "legal-text" },
+  JP: { domain: "kyushu-u.ac.jp", kind: "guidance" },
 };
 const GUIDANCE_DOMAIN: Record<string, string> = {
   FR: "ouvrirlascience.fr",
+  DE: "irights.info",
   NL: "openaccess.nl",
 };
 
@@ -52,23 +54,32 @@ function onDomain(raw: string, domain: string): boolean {
   );
 }
 
+const entry = (code: string) => STATUTORY_ARCHIVING.find((e) => e.countryCode === code)!;
+
 describe("STATUTORY_ARCHIVING", () => {
   it("has the expected countries, each once, as upper-case ISO codes", () => {
     const codes = STATUTORY_ARCHIVING.map((e) => e.countryCode);
     expect(new Set(codes).size).toBe(codes.length);
-    expect([...codes].sort()).toEqual(Object.keys(SOURCE_DOMAIN).sort());
+    expect([...codes].sort()).toEqual(Object.keys(SOURCE).sort());
     for (const code of codes) expect(code).toMatch(/^[A-Z]{2}$/);
   });
 
   it.each(STATUTORY_ARCHIVING.map((e) => [e.countryCode, e] as const))(
-    "%s: https source on the expected domain, a known kind, a named instrument, short factual statements",
+    "%s: https source on the expected domain and of the expected kind, a named instrument, short factual statements",
     (code, e) => {
-      expect(onDomain(e.sourceUrl, SOURCE_DOMAIN[code]!), e.sourceUrl).toBe(true);
+      expect(onDomain(e.sourceUrl, SOURCE[code]!.domain), e.sourceUrl).toBe(true);
+      expect(e.sourceKind).toBe(SOURCE[code]!.kind);
+      expect(STATUTORY_SOURCE_KINDS).toContain(e.sourceKind);
       if (e.guidanceUrl !== undefined) {
         expect(GUIDANCE_DOMAIN[code], `${code} has an unexpected guidance page`).toBeDefined();
         expect(onDomain(e.guidanceUrl, GUIDANCE_DOMAIN[code]!), e.guidanceUrl).toBe(true);
       }
       expect(STATUTORY_KINDS).toContain(e.kind);
+      if (e.appliesFrom !== undefined) expect(e.appliesFrom).toMatch(ISO_DATE);
+      if (e.workTypes !== undefined) {
+        expect(e.workTypes.length).toBeGreaterThan(0);
+        for (const t of e.workTypes) expect(t).toMatch(/^[a-z-]+$/);
+      }
       expect(e.instrument.trim()).toBe(e.instrument);
       expect(e.instrument.length).toBeGreaterThan(0);
       expect(e.instrument.length).toBeLessThanOrEqual(160);
@@ -84,8 +95,7 @@ describe("STATUTORY_ARCHIVING", () => {
 
   it("names every guidance page it expects", () => {
     for (const code of Object.keys(GUIDANCE_DOMAIN)) {
-      const entry = STATUTORY_ARCHIVING.find((e) => e.countryCode === code);
-      expect(entry?.guidanceUrl, code).toBeDefined();
+      expect(entry(code).guidanceUrl, code).toBeDefined();
     }
   });
 
@@ -111,12 +121,28 @@ describe("STATUTORY_ARCHIVING", () => {
     }
   });
 
-  it("words Spain as a requirement, never an optional right, and Italy as having no author right", () => {
-    const es = STATUTORY_ARCHIVING.find((e) => e.countryCode === "ES")!;
+  it("lists only rules that give the author something — never a country's absence of one", () => {
+    expect([...STATUTORY_KINDS]).toEqual(["author-right", "deposit-requirement", "funding-policy"]);
+    for (const e of STATUTORY_ARCHIVING) {
+      expect(e.statements.join(" "), e.countryCode).not.toMatch(/\bno statutory right\b/i);
+    }
+  });
+
+  it("words Spain as a requirement in force from September 2022, and Japan as a policy for the FY2025 calls", () => {
+    const es = entry("ES");
     expect(es.kind).toBe("deposit-requirement");
     expect(es.statements.join(" ")).toMatch(/not an optional right/);
-    expect(STATUTORY_ARCHIVING.find((e) => e.countryCode === "IT")!.kind).toBe("no-author-right");
-    expect(STATUTORY_ARCHIVING.find((e) => e.countryCode === "JP")!.kind).toBe("funding-policy");
+    expect(es.appliesFrom).toBe("2022-09-07");
+    const jp = entry("JP");
+    expect(jp.kind).toBe("funding-policy");
+    expect(jp.appliesFrom).toBe("2025-04-01");
+    expect(jp.statements.join(" ")).toMatch(/FY2025/);
+  });
+
+  it("keys Austria on the institution's funding and the author's staff status, not on the research", () => {
+    const at = entry("AT").statements.join(" ");
+    expect(at).toMatch(/member of the academic staff of a research institution/);
+    expect(at).not.toMatch(/from research at least half funded/);
   });
 
   it("lists every entry, with its source, in the maintainer note — pending ones marked", () => {
@@ -140,9 +166,16 @@ describe("STATUTORY_ARCHIVING", () => {
 });
 
 describe("statutoryArchivingFor", () => {
+  const codes = (list: ReturnType<typeof statutoryArchivingFor>) => list.map((e) => e.countryCode);
+
   it("returns one entry per known country, in the stored order, case-insensitively", () => {
     expect(
-      statutoryArchivingFor(["jp", "FR", "fr", "US", " de "]).map((e) => e.countryCode),
+      codes(
+        statutoryArchivingFor(["jp", "FR", "fr", "US", " de "], {
+          year: 2025,
+          type: "article-journal",
+        }),
+      ),
     ).toEqual(["JP", "FR", "DE"]);
   });
 
@@ -150,5 +183,28 @@ describe("statutoryArchivingFor", () => {
     expect(statutoryArchivingFor(["US", "GB"])).toEqual([]);
     expect(statutoryArchivingFor([])).toEqual([]);
     expect(statutoryArchivingFor(undefined)).toEqual([]);
+  });
+
+  it("leaves out a rule that started after the work's year, and keeps it from the start year or with no year", () => {
+    const article = { type: "article-journal" };
+    expect(codes(statutoryArchivingFor(["ES", "JP"], { ...article, year: 2021 }))).toEqual([]);
+    expect(codes(statutoryArchivingFor(["ES", "JP"], { ...article, year: 2022 }))).toEqual(["ES"]);
+    expect(codes(statutoryArchivingFor(["ES", "JP"], { ...article, year: 2025 }))).toEqual([
+      "ES",
+      "JP",
+    ]);
+    expect(codes(statutoryArchivingFor(["ES", "JP"], article))).toEqual(["ES", "JP"]);
+    // A rule with no start date is never filtered by year (Belgium is retroactive).
+    expect(codes(statutoryArchivingFor(["BE"], { ...article, year: 1990 }))).toEqual(["BE"]);
+  });
+
+  it("leaves out a rule that does not cover the work's type, or when the type is unknown", () => {
+    expect(
+      codes(statutoryArchivingFor(["FR", "NL", "ES"], { year: 2024, type: "chapter" })),
+    ).toEqual(["NL", "ES"]);
+    expect(codes(statutoryArchivingFor(["FR", "NL", "ES"], { year: 2024 }))).toEqual(["ES"]);
+    expect(
+      codes(statutoryArchivingFor(["FR", "NL"], { year: 2024, type: "article-journal" })),
+    ).toEqual(["FR", "NL"]);
   });
 });

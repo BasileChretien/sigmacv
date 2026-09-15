@@ -98,7 +98,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
     expect(text).not.toMatch(/%|\bof \d+\b/);
   });
 
-  it("prints a refusal without statement or link, and a pending statutory entry without a date", () => {
+  it("prints a refusal without statement or link, and labels a rule read on a guidance page as guidance", () => {
     const cv = makeCv([
       work("W1", {
         oaIsOpen: false,
@@ -108,7 +108,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
           policyUrl: undefined,
           recordUpdated: undefined,
         },
-        workCountries: ["AT"],
+        workCountries: ["BE"],
       }),
     ]);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} />);
@@ -120,13 +120,25 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
     expect(rights.querySelector("blockquote")).toBeNull();
     expect(screen.queryByRole("link", { name: EN.wlArchivingPolicyLink })).toBeNull();
     const statutory = rights.querySelector(".cv-worklist-rights-statutory")!;
-    expect(statutory.textContent).toContain(EN.wlStatutoryPending);
-    expect(statutory.textContent).not.toContain("Recorded on");
-    expect(screen.queryByRole("link", { name: EN.wlStatutoryGuidanceLink })).toBeNull();
+    expect(statutory.textContent).toContain(
+      "May also apply — secondary-publication right (Belgium), ",
+    );
+    expect(statutory.textContent).toContain("Recorded on 2026-09-15.");
+    expect(
+      screen.getByRole("link", { name: EN.wlStatutoryGuidanceLink }).getAttribute("href"),
+    ).toBe(entry("BE").sourceUrl);
+    expect(screen.queryByRole("link", { name: EN.wlStatutorySourceLink })).toBeNull();
+  });
+
+  it("leaves out a rule the work's year rules out, and with nothing else shows no rights block", () => {
+    const cv = makeCv([work("W1", { oaIsOpen: false, year: 2021, workCountries: ["ES", "JP"] })]);
+    const { container } = render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} />);
+    expect(container.querySelector('[data-worklist="rights"]')).toBeNull();
+    expect(container.textContent).not.toContain(EN.wlArchivingDisclaimer);
   });
 
   it("prints the statutory rule alone when OA.Works holds nothing for the work", () => {
-    const cv = makeCv([work("W1", { oaIsOpen: false, workCountries: ["ES"] })]);
+    const cv = makeCv([work("W1", { oaIsOpen: false, year: 2023, workCountries: ["ES"] })]);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} />);
     const rights = container.querySelector('[data-worklist="rights"]')!;
     expect(rights.querySelector(".cv-worklist-rights-publisher")).toBeNull();

@@ -20,27 +20,21 @@ vi.mock("@/lib/db", () => ({
   prisma: { cv: { findUnique: db.findUnique, findMany: db.findMany, count: db.count } },
 }));
 
-import {
-  buildCanonicalCv,
-  selfWorkCountries,
-  workIssn,
-  workRepositoryLocations,
-} from "@/lib/canonical/build";
+import { buildCanonicalCv, selfWorkCountries } from "@/lib/canonical/build";
 import { parseCanonicalCv, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import { serializePublicCv } from "@/lib/cv/publicFormats";
 import { projectCvForPreview, projectCvForPublic } from "@/lib/cv/publicProjection";
 import { freezeCanonical } from "@/lib/cv/snapshots";
 import { getPublicCvRecord, listPublicCvRecords } from "@/lib/cv/sync";
 import type { ResolvedAuthor } from "@/lib/openalex/resolveAuthor";
-import type { OpenAlexAuthorship, OpenAlexLocation, OpenAlexWork } from "@/lib/openalex/types";
+import type { OpenAlexAuthorship, OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
 
 /**
- * The per-work inputs of the worklist's self-archiving rows: the owner's
- * affiliation countries on the paper, the journal ISSN-L and the open repository
- * copies (rebuilt from OpenAlex on every sync), plus the OA.Works record the
- * owner's sync stores (carried across re-sync). Owner-only: every public surface
- * strips all of them.
+ * The per-work inputs of the worklist's rights lines: the owner's affiliation
+ * countries on the paper (rebuilt from OpenAlex on every sync) and the OA.Works
+ * record the owner's sync stores (carried across re-sync). Owner-only: every
+ * public surface strips both.
  */
 
 const works = worksFixture as unknown as OpenAlexWork[];
@@ -52,7 +46,6 @@ const resolved: ResolvedAuthor = {
 const NOW = "2026-09-15T00:00:00.000Z";
 const OWN = "https://openalex.org/W4300000001";
 const SELF_AUTHOR = "https://openalex.org/A5001069481";
-const HAL = "https://openalex.org/S4306402512";
 const RECORD: NonNullable<CvItem["meta"]["selfArchiving"]> = {
   source: "oa.works",
   canArchive: true,
@@ -67,25 +60,16 @@ const RECORD: NonNullable<CvItem["meta"]["selfArchiving"]> = {
   retrievedAt: NOW,
 };
 
-function repo(id: string, name: string, isOa = true): OpenAlexLocation {
-  return { is_oa: isOa, source: { id, display_name: name, type: "repository" } };
-}
-
-/** The fixture's own work with fields replaced. */
-function ownWork(patch: Partial<OpenAlexWork>): OpenAlexWork {
-  const w = works.find((x) => x.id === OWN)!;
-  return { ...w, ...patch };
-}
-
-/** The own work with `countries` set on the owner's authorship and on the co-author's. */
+/** The fixture's own work with `countries` set on the owner's and the co-author's authorships. */
 function withCountries(self: unknown, coauthor: string[] = ["US"]): OpenAlexWork {
   const w = works.find((x) => x.id === OWN)!;
-  return ownWork({
+  return {
+    ...w,
     authorships: (w.authorships ?? []).map((a) => ({
       ...a,
       countries: (a.author?.id === SELF_AUTHOR ? self : coauthor) as string[],
     })),
-  });
+  };
 }
 
 function build(ws: OpenAlexWork[], previous?: CanonicalCv): CanonicalCv {
@@ -129,57 +113,13 @@ describe("build: the affiliation countries on the owner's own authorship", () =>
     expect(selfWorkCountries(undefined)).toBeUndefined();
     expect(own(build(works)).meta.workCountries).toBeUndefined();
   });
-});
 
-describe("build: the journal ISSN-L", () => {
-  it("stores the linking ISSN, upper-cased, and nothing that is not ISSN-shaped", () => {
-    expect(own(build(works)).meta.issn).toBe("0306-5251");
-    const at = (issn_l: unknown) =>
-      workIssn({ id: "W", primary_location: { source: { issn_l } } } as OpenAlexWork);
-    expect(at(" 1234-567x ")).toBe("1234-567X");
-    expect(at("12345678")).toBeUndefined();
-    expect(at(null)).toBeUndefined();
-    expect(workIssn({ id: "W" })).toBeUndefined();
-  });
-});
-
-describe("build: the open repository copies", () => {
-  it("keeps only OPEN copies in a repository, deduped by source, with a well-formed id and name, bounded at 5", () => {
-    const locations = [
-      null,
-      repo(HAL, "HAL", false), // closed copy (a metadata-only record)
-      {
-        is_oa: true,
-        source: { id: "https://openalex.org/S1", display_name: "J", type: "journal" },
-      },
-      repo(HAL, " HAL "),
-      repo(HAL, "HAL again"),
-      repo("https://openalex.org/I123", "not a source id"),
-      repo("https://openalex.org/S9", ""),
-      repo("https://openalex.org/S10", "x".repeat(301)),
-      { is_oa: true, source: null },
-      ...[21, 22, 23, 24, 25, 26].map((n) => repo(`https://openalex.org/S${n}`, `Repo ${n}`)),
-    ] as OpenAlexLocation[];
-    expect(workRepositoryLocations(ownWork({ locations }))).toEqual([
-      { sourceId: "S4306402512", name: "HAL" },
-      { sourceId: "S21", name: "Repo 21" },
-      { sourceId: "S22", name: "Repo 22" },
-      { sourceId: "S23", name: "Repo 23" },
-      { sourceId: "S24", name: "Repo 24" },
-    ]);
-    expect(
-      workRepositoryLocations(ownWork({ locations: [repo(HAL, "HAL", false)] })),
-    ).toBeUndefined();
-    expect(workRepositoryLocations(ownWork({ locations: null }))).toBeUndefined();
-  });
-
-  it("rebuilds them from the source on every sync, and carries the OA.Works record with its date", () => {
-    const first = build([ownWork({ locations: [repo(HAL, "HAL")] }), ...others()]);
-    expect(own(first).meta.repositoryLocations).toEqual([{ sourceId: "S4306402512", name: "HAL" }]);
+  it("rebuilds the countries from the source on every sync, and carries the OA.Works record with its date", () => {
+    const first = build([withCountries(["FR"]), ...others()]);
     const stored = withOwnMeta(first, { selfArchiving: RECORD, selfArchivingCheckedAt: NOW });
-    const again = build([ownWork({ locations: [] }), ...others()], stored);
-    // Source-driven: the dropped location is gone.
-    expect(own(again).meta.repositoryLocations).toBeUndefined();
+    const again = build([withCountries(["DE"]), ...others()], stored);
+    // Source-driven: the new affiliation country replaces the old one.
+    expect(own(again).meta.workCountries).toEqual(["DE"]);
     // Bounded-enrichment result: carried until the owner's pass refreshes it.
     expect(own(again).meta.selfArchiving).toEqual(RECORD);
     expect(own(again).meta.selfArchivingCheckedAt).toBe(NOW);
@@ -191,8 +131,6 @@ describe("schema: the self-archiving fields round-trip and degrade", () => {
     withOwnMeta(build(works), {
       selfArchiving: RECORD,
       selfArchivingCheckedAt: NOW,
-      issn: "0306-5251",
-      repositoryLocations: [{ sourceId: "S4306402512", name: "HAL" }],
       workCountries: ["FR"],
     });
 
@@ -216,24 +154,11 @@ describe("schema: the self-archiving fields round-trip and degrade", () => {
     }
   });
 
-  it("degrades repository copies per entry, and the other fields as a whole", () => {
-    const parsed = parseCanonicalCv(
-      withOwnMeta(full(), {
-        repositoryLocations: [
-          { sourceId: "S1", name: "Kept" },
-          { sourceId: "I2", name: "Bad" },
-        ],
-        issn: "not-an-issn",
-        workCountries: ["fra"],
-      }),
-    );
-    expect(own(parsed).meta.repositoryLocations).toEqual([{ sourceId: "S1", name: "Kept" }]);
-    expect(own(parsed).meta.issn).toBeUndefined();
-    expect(own(parsed).meta.workCountries).toBeUndefined();
-    const tooMany = Array.from({ length: 6 }, (_, i) => ({ sourceId: `S${i}`, name: `R${i}` }));
-    for (const value of [tooMany, [{ sourceId: "bad" }], [], "HAL"]) {
-      const out = parseCanonicalCv(withOwnMeta(full(), { repositoryLocations: value }));
-      expect(own(out).meta.repositoryLocations).toBeUndefined();
+  it("degrades malformed countries as a whole, keeping the record", () => {
+    for (const value of [["fra"], ["fr"], "FR", Array.from({ length: 11 }, () => "FR")]) {
+      const parsed = parseCanonicalCv(withOwnMeta(full(), { workCountries: value }));
+      expect(own(parsed).meta.workCountries).toBeUndefined();
+      expect(own(parsed).meta.selfArchiving).toEqual(RECORD);
     }
   });
 });
@@ -242,17 +167,9 @@ describe("the self-archiving fields never reach a public surface", () => {
   const cv = withOwnMeta(build(works), {
     selfArchiving: RECORD,
     selfArchivingCheckedAt: NOW,
-    issn: "0306-5251",
-    repositoryLocations: [{ sourceId: "S4306402512", name: "SENTINEL-REPOSITORY" }],
     workCountries: ["FR"],
   });
-  const FIELDS = [
-    "selfArchiving",
-    "selfArchivingCheckedAt",
-    "issn",
-    "repositoryLocations",
-    "workCountries",
-  ] as const;
+  const FIELDS = ["selfArchiving", "selfArchivingCheckedAt", "workCountries"] as const;
 
   it("is stripped by the public projection, the preview projection and the snapshot freeze", () => {
     for (const projected of [
@@ -275,10 +192,8 @@ describe("the self-archiving fields never reach a public surface", () => {
       for (const needle of [
         "selfArchiving",
         "workCountries",
-        "repositoryLocations",
         "SENTINEL-STATEMENT",
         "SENTINEL-POLICY",
-        "SENTINEL-REPOSITORY",
         "oa.works",
       ]) {
         expect(body, `${fmt} carries ${needle}`).not.toContain(needle);

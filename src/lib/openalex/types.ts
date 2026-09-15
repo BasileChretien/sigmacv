@@ -74,9 +74,6 @@ export interface OpenAlexLocation {
    * `raw_type: "StudyRegistration"` (see `isPreregistration` in canonical/build.ts).
    */
   raw_type?: string | null;
-  /** Whether this location's copy is free to read. Read on `locations[]` to keep
-   *  only the OPEN repository copies (build.ts `workRepositoryLocations`). */
-  is_oa?: boolean | null;
 }
 
 /**
@@ -135,12 +132,6 @@ export interface OpenAlexWork {
   primary_location?: OpenAlexLocation | null;
   /** Best open-access location (fallback source for the reuse license). */
   best_oa_location?: OpenAlexLocation | null;
-  /**
-   * Every location OpenAlex knows for the work (the journal, repositories, …).
-   * Read only for the work's OPEN repository copies (build.ts
-   * `workRepositoryLocations`); an entry may be null in the wild.
-   */
-  locations?: (OpenAlexLocation | null)[] | null;
   biblio?: {
     volume?: string | null;
     issue?: string | null;

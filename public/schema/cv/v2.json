@@ -1507,28 +1507,6 @@
                     "selfArchivingCheckedAt": {
                       "type": "string"
                     },
-                    "issn": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{3}[\\dX]$"
-                    },
-                    "repositoryLocations": {
-                      "maxItems": 5,
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "sourceId": {
-                            "type": "string",
-                            "pattern": "^S\\d{1,20}$"
-                          },
-                          "name": {
-                            "type": "string",
-                            "maxLength": 300
-                          }
-                        },
-                        "required": ["sourceId", "name"]
-                      }
-                    },
                     "workCountries": {
                       "maxItems": 10,
                       "type": "array",

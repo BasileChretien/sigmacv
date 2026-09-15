@@ -93,13 +93,21 @@ describe("fetchSelfArchivingPermission — answers", () => {
     expect(init.cache).toBe("no-store");
   });
 
-  it("records a refusal as found with canArchive false", async () => {
-    stubFetch(json({ best_permission: { can_archive: false } }));
+  it("records a refusal as found with canArchive false, keeping only the record's date and archived policy", async () => {
+    stubFetch(json(cellWith({ can_archive: false })));
     const out = await fetchSelfArchivingPermission("10.1234/closed");
     expect(out).toEqual({
       status: "found",
-      permission: { canArchive: false, versions: [], locations: [] },
+      permission: {
+        canArchive: false,
+        versions: [],
+        locations: [],
+        recordUpdated: "2021-01-27",
+        policyUrl:
+          "https://web.archive.org/web/20200106202134/https://www.elsevier.com/__data/promis_misc/external-embargo-list.pdf",
+      },
     });
+    expect(JSON.stringify(out)).not.toMatch(/embargo_end|licence|manuscript version/i);
   });
 
   it("answers none when OA.Works holds no best_permission (absent or null)", async () => {
@@ -108,18 +116,41 @@ describe("fetchSelfArchivingPermission — answers", () => {
     expect(await fetchSelfArchivingPermission("10.1234/b")).toEqual({ status: "none" });
   });
 
-  it("answers none for a 404 and for OA.Works' 501 'DOI is not a journal article'", async () => {
-    // The shared fetch wrapper retries any 5xx once, so the 501 is seen twice.
-    const notArticle = () => res("DOI is not a journal article", 501);
-    stubFetch(res("Not found", 404), notArticle(), notArticle());
+  it("answers none when the record's issuer is not the journal or the publisher", async () => {
+    stubFetch(
+      json(cellWith({ issuer: { type: "affiliation", id: ["FR"] } })),
+      json(cellWith({ issuer: undefined })),
+      json(cellWith({ issuer: { type: " Publisher " } })),
+    );
     expect(await fetchSelfArchivingPermission("10.1234/a")).toEqual({ status: "none" });
     expect(await fetchSelfArchivingPermission("10.1234/b")).toEqual({ status: "none" });
+    expect((await fetchSelfArchivingPermission("10.1234/c")).status).toBe("found");
+  });
+
+  it("answers none for a 404 and for OA.Works' 501 'DOI is not a journal article', asking once", async () => {
+    const fetchMock = stubFetch(res("Not found", 404), res("DOI is not a journal article", 501));
+    expect(await fetchSelfArchivingPermission("10.1234/a")).toEqual({ status: "none" });
+    expect(await fetchSelfArchivingPermission("10.1234/b")).toEqual({ status: "none" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("answers none for a malformed DOI without calling OA.Works", async () => {
     const fetchMock = stubFetch();
     expect(await fetchSelfArchivingPermission("not a doi")).toEqual({ status: "none" });
     expect(await fetchSelfArchivingPermission("")).toEqual({ status: "none" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses a DOI with a dot segment — which would walk the request out of /permissions/ — or an over-long one", async () => {
+    const fetchMock = stubFetch();
+    for (const doi of [
+      "10.1234/../../../secret",
+      "10.1234/./x",
+      "10.1234/a/..",
+      `10.1234/${"a".repeat(300)}`,
+    ]) {
+      expect(await fetchSelfArchivingPermission(doi), doi).toEqual({ status: "none" });
+    }
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -138,10 +169,11 @@ describe("fetchSelfArchivingPermission — answers", () => {
 });
 
 describe("fetchSelfArchivingPermission — failures are not answers", () => {
-  it("fails on a 429 and on a 5xx other than 501 (after the one retry)", async () => {
-    stubFetch(res("slow down", 429), res("slow down", 429), res("oops", 503), res("oops", 500));
+  it("fails on a 429 and on a 5xx other than 501, without retrying (the pass retries on a later sync)", async () => {
+    const fetchMock = stubFetch(res("slow down", 429), res("oops", 503));
     expect(await fetchSelfArchivingPermission("10.1234/a")).toEqual({ status: "failed" });
     expect(await fetchSelfArchivingPermission("10.1234/b")).toEqual({ status: "failed" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("fails on malformed JSON, a non-object body and an oversized body", async () => {
@@ -156,9 +188,10 @@ describe("fetchSelfArchivingPermission — failures are not answers", () => {
     expect(await fetchSelfArchivingPermission("10.1234/a")).toEqual({ status: "failed" });
   });
 
-  it("fails on a network error that outlasts the retry", async () => {
-    stubFetch(new Error("ECONNRESET"), new Error("ECONNRESET"));
+  it("fails on a network error, asking once", async () => {
+    const fetchMock = stubFetch(new Error("ECONNRESET"));
     expect(await fetchSelfArchivingPermission("10.1234/a")).toEqual({ status: "failed" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -155,8 +155,6 @@ export interface WorkspaceUiStrings {
   wlStatutoryDepositRequirement: string;
   /** A national open-access policy (no statute) that MAY also apply; {country}, {instrument}, {statements}. */
   wlStatutoryFundingPolicy: string;
-  /** The country has no statutory author right; {country}, {instrument}, {statements}. */
-  wlStatutoryNoAuthorRight: string;
   /** Verified statutory entry; {date} = the table's lastVerified. */
   wlStatutoryRecorded: string;
   /** Unverified statutory entry — never a date. */
@@ -319,15 +317,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingRetrieved: "Retrieved from OA.Works {retrieved}; the record gives no update date.",
     wlArchivingPolicyLink: "archived copy of the publisher's policy",
     wlArchivingDisclaimer:
-      "Publisher policies change, and an OA.Works record can be several years old — check its date. A statutory right depends on conditions SigmaCV cannot see: how much of the work was publicly funded, how often the journal appears, your co-authors' agreement, the discipline. Your signed publishing agreement may grant more. This is information, not legal advice; ask your library before depositing.",
+      "Publisher policies change, and an OA.Works record can be several years old — check its date. A statutory right depends on conditions SigmaCV cannot see: whether the work or your institution was publicly funded, how often the journal appears, your co-authors' agreement, the discipline. Your signed publishing agreement may allow more or less than the journal's general policy. This is information, not legal advice; ask your library before depositing.",
     wlStatutoryAuthorRight:
       "May also apply — secondary-publication right ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
       "May also apply — statutory repository-deposit requirement ({country}), {instrument}: {statements}.",
     wlStatutoryFundingPolicy:
       "May also apply — national open-access policy ({country}), {instrument}: {statements}.",
-    wlStatutoryNoAuthorRight:
-      "No statutory self-archiving right for authors ({country}) — {instrument}: {statements}.",
     wlStatutoryRecorded: "Recorded on {date}.",
     wlStatutoryPending: "Drafted and not yet confirmed against the legal text.",
     wlStatutorySourceLink: "legal text",
@@ -460,13 +456,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingRetrieved: "于 {retrieved} 获取自 OA.Works；该记录未注明更新日期。",
     wlArchivingPolicyLink: "出版方政策（存档副本）",
     wlArchivingDisclaimer:
-      "出版方政策会变化，OA.Works 的记录可能已有数年之久——请查看其日期。法定权利取决于 SigmaCV 无法核实的条件：该研究获得了多少公共资助、期刊的出版频率、合著者是否同意、所属学科。您签署的出版协议可能赋予您更多权利。以上仅供参考，并非法律意见；存缴前请咨询您所在机构的图书馆。",
+      "出版方政策会变化，OA.Works 的记录可能已有数年之久——请查看其日期。法定权利取决于 SigmaCV 无法核实的条件：该研究或您所在机构是否获得公共资助、期刊的出版频率、合著者是否同意、所属学科。您签署的出版协议允许的范围可能比期刊的一般政策更宽或更窄。以上仅供参考，并非法律意见；存缴前请咨询您所在机构的图书馆。",
     wlStatutoryAuthorRight: "也可能适用——二次出版权（{country}），{instrument}：{statements}。",
     wlStatutoryDepositRequirement:
       "也可能适用——法律规定的知识库存缴要求（{country}），{instrument}：{statements}。",
     wlStatutoryFundingPolicy:
       "也可能适用——国家开放获取政策（{country}），{instrument}：{statements}。",
-    wlStatutoryNoAuthorRight: "法律未赋予作者自存档权（{country}）——{instrument}：{statements}。",
     wlStatutoryRecorded: "记录日期 {date}。",
     wlStatutoryPending: "已起草，尚未与法律文本核对。",
     wlStatutorySourceLink: "法律文本",
@@ -604,15 +599,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Consultado en OA.Works el {retrieved}; el registro no indica fecha de actualización.",
     wlArchivingPolicyLink: "copia archivada de la política de la editorial",
     wlArchivingDisclaimer:
-      "Las políticas editoriales cambian y un registro de OA.Works puede tener varios años: comprueba su fecha. Un derecho previsto por la ley depende de condiciones que SigmaCV no puede comprobar: cuánta financiación pública recibió el trabajo, la periodicidad de la revista, el consentimiento de tus coautores, la disciplina. El contrato de publicación que firmaste puede concederte más derechos. Esto es información, no asesoramiento jurídico; consulta a tu biblioteca antes de depositar.",
+      "Las políticas editoriales cambian y un registro de OA.Works puede tener varios años: comprueba su fecha. Un derecho previsto por la ley depende de condiciones que SigmaCV no puede comprobar: si el trabajo o tu institución recibieron financiación pública, la periodicidad de la revista, el consentimiento de tus coautores, la disciplina. El contrato de publicación que firmaste puede permitir más o menos que la política general de la revista. Esto es información, no asesoramiento jurídico; consulta a tu biblioteca antes de depositar.",
     wlStatutoryAuthorRight:
       "Podría aplicarse también el derecho de publicación secundaria ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
       "Podría aplicarse también el requisito legal de depósito en repositorio ({country}), {instrument}: {statements}.",
     wlStatutoryFundingPolicy:
       "Podría aplicarse también la política nacional de acceso abierto ({country}), {instrument}: {statements}.",
-    wlStatutoryNoAuthorRight:
-      "La ley no reconoce a los autores un derecho de autoarchivo ({country}). {instrument}: {statements}.",
     wlStatutoryRecorded: "Registrado el {date}.",
     wlStatutoryPending: "Redactado y aún sin contrastar con el texto legal.",
     wlStatutorySourceLink: "texto legal",
@@ -755,15 +748,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Consultée sur OA.Works le {retrieved} ; la fiche n'indique pas de date de mise à jour.",
     wlArchivingPolicyLink: "copie archivée de la politique de l'éditeur",
     wlArchivingDisclaimer:
-      "Les politiques des éditeurs évoluent et une fiche OA.Works peut dater de plusieurs années : vérifiez sa date. Un droit prévu par la loi dépend de conditions que SigmaCV ne peut pas vérifier : l'importance du financement public de la recherche, la périodicité de la revue, l'accord de vos coauteurs, la discipline. Le contrat d'édition que vous avez signé peut vous accorder davantage de droits. Ces éléments sont donnés à titre d'information et ne constituent pas un conseil juridique ; renseignez-vous auprès de votre bibliothèque avant tout dépôt.",
+      "Les politiques des éditeurs évoluent et une fiche OA.Works peut dater de plusieurs années : vérifiez sa date. Un droit prévu par la loi dépend de conditions que SigmaCV ne peut pas vérifier : le financement public du travail ou de votre établissement, la périodicité de la revue, l'accord de vos coauteurs, la discipline. Le contrat d'édition que vous avez signé peut prévoir plus ou moins que la politique générale de la revue. Ces éléments sont donnés à titre d'information et ne constituent pas un conseil juridique ; renseignez-vous auprès de votre bibliothèque avant tout dépôt.",
     wlStatutoryAuthorRight:
       "Peut aussi s'appliquer — droit d'exploitation secondaire ({country}), {instrument} : {statements}.",
     wlStatutoryDepositRequirement:
       "Peut aussi s'appliquer — obligation légale de dépôt en archive ouverte ({country}), {instrument} : {statements}.",
     wlStatutoryFundingPolicy:
       "Peut aussi s'appliquer — politique nationale d'accès ouvert ({country}), {instrument} : {statements}.",
-    wlStatutoryNoAuthorRight:
-      "Aucun droit d'auto-archivage prévu par la loi pour les auteurs ({country}) — {instrument} : {statements}.",
     wlStatutoryRecorded: "Enregistré le {date}.",
     wlStatutoryPending: "Rédigé, pas encore vérifié au regard du texte de loi.",
     wlStatutorySourceLink: "texte de loi",
@@ -909,15 +900,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Am {retrieved} von OA.Works abgerufen; der Eintrag nennt kein Aktualisierungsdatum.",
     wlArchivingPolicyLink: "archivierte Kopie der Verlagsrichtlinie",
     wlArchivingDisclaimer:
-      "Verlagsrichtlinien ändern sich, und ein OA.Works-Eintrag kann mehrere Jahre alt sein – prüfen Sie dessen Datum. Ein gesetzliches Recht hängt von Bedingungen ab, die SigmaCV nicht prüfen kann: wie stark die Forschung öffentlich gefördert wurde, wie oft die Zeitschrift erscheint, die Zustimmung Ihrer Mitautorinnen und Mitautoren, das Fachgebiet. Ihr Verlagsvertrag kann Ihnen weitergehende Rechte einräumen. Dies dient der Information und ist keine Rechtsberatung; wenden Sie sich vor der Ablage an Ihre Bibliothek.",
+      "Verlagsrichtlinien ändern sich, und ein OA.Works-Eintrag kann mehrere Jahre alt sein – prüfen Sie dessen Datum. Ein gesetzliches Recht hängt von Bedingungen ab, die SigmaCV nicht prüfen kann: ob die Arbeit oder Ihre Einrichtung öffentlich gefördert wurde, wie oft die Zeitschrift erscheint, die Zustimmung Ihrer Mitautorinnen und Mitautoren, das Fachgebiet. Ihr Verlagsvertrag kann mehr oder weniger erlauben als die allgemeine Richtlinie der Zeitschrift. Dies dient der Information und ist keine Rechtsberatung; wenden Sie sich vor der Ablage an Ihre Bibliothek.",
     wlStatutoryAuthorRight:
       "Möglicherweise ebenfalls anwendbar – Zweitveröffentlichungsrecht ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
       "Möglicherweise ebenfalls anwendbar – gesetzliche Vorgabe zur Ablage in einem Repositorium ({country}), {instrument}: {statements}.",
     wlStatutoryFundingPolicy:
       "Möglicherweise ebenfalls anwendbar – nationale Open-Access-Richtlinie ({country}), {instrument}: {statements}.",
-    wlStatutoryNoAuthorRight:
-      "Kein gesetzliches Zweitveröffentlichungsrecht für Autorinnen und Autoren ({country}) – {instrument}: {statements}.",
     wlStatutoryRecorded: "Stand: {date}.",
     wlStatutoryPending: "Entwurf, noch nicht mit dem Gesetzestext abgeglichen.",
     wlStatutorySourceLink: "Gesetzestext",
@@ -1056,15 +1045,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingRetrieved: "{retrieved} に OA.Works から取得。記録に更新日の記載はありません。",
     wlArchivingPolicyLink: "出版社ポリシー（アーカイブ版）",
     wlArchivingDisclaimer:
-      "出版社のポリシーは変わることがあり、OA.Works の記録が数年前のものである場合もあります。日付を確認してください。法律上の権利は、SigmaCV では確認できない条件（研究が受けた公的資金の程度、雑誌の刊行頻度、共著者の同意、分野など）に左右されます。署名済みの出版契約で、より広い利用が認められている場合もあります。これは情報提供であり、法的助言ではありません。登録の前に所属機関の図書館にご相談ください。",
+      "出版社のポリシーは変わることがあり、OA.Works の記録が数年前のものである場合もあります。日付を確認してください。法律上の権利は、SigmaCV では確認できない条件（研究またはご所属機関が公的資金を受けているか、雑誌の刊行頻度、共著者の同意、分野など）に左右されます。署名済みの出版契約の内容は、雑誌の一般的なポリシーより広いことも狭いこともあります。これは情報提供であり、法的助言ではありません。登録の前に所属機関の図書館にご相談ください。",
     wlStatutoryAuthorRight:
       "二次出版権（{country}）も適用される可能性があります。{instrument}：{statements}。",
     wlStatutoryDepositRequirement:
       "リポジトリへの登録を求める法律上の規定（{country}）も適用される可能性があります。{instrument}：{statements}。",
     wlStatutoryFundingPolicy:
       "国のオープンアクセス方針（{country}）も適用される可能性があります。{instrument}：{statements}。",
-    wlStatutoryNoAuthorRight:
-      "著者のセルフアーカイブ権を定めた法律はありません（{country}）。{instrument}：{statements}。",
     wlStatutoryRecorded: "{date} 時点の記録。",
     wlStatutoryPending: "草案段階で、法令本文との照合はまだ済んでいません。",
     wlStatutorySourceLink: "法令本文",
@@ -1208,15 +1195,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Consultado no OA.Works em {retrieved}; o registro não indica data de atualização.",
     wlArchivingPolicyLink: "cópia arquivada da política da editora",
     wlArchivingDisclaimer:
-      "As políticas das editoras mudam, e um registro do OA.Works pode ter vários anos — confira a data. Um direito previsto em lei depende de condições que o SigmaCV não tem como verificar: quanto financiamento público a pesquisa recebeu, a periodicidade da revista, o consentimento dos seus coautores, a área. O contrato de publicação que você assinou pode lhe garantir mais direitos. Isto é informação, não orientação jurídica; consulte sua biblioteca antes de depositar.",
+      "As políticas das editoras mudam, e um registro do OA.Works pode ter vários anos — confira a data. Um direito previsto em lei depende de condições que o SigmaCV não tem como verificar: se o trabalho ou sua instituição recebeu financiamento público, a periodicidade da revista, o consentimento dos seus coautores, a área. O contrato de publicação que você assinou pode permitir mais ou menos do que a política geral da revista. Isto é informação, não orientação jurídica; consulte sua biblioteca antes de depositar.",
     wlStatutoryAuthorRight:
       "Também pode se aplicar — direito de publicação secundária ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
       "Também pode se aplicar — exigência legal de depósito em repositório ({country}), {instrument}: {statements}.",
     wlStatutoryFundingPolicy:
       "Também pode se aplicar — política nacional de acesso aberto ({country}), {instrument}: {statements}.",
-    wlStatutoryNoAuthorRight:
-      "Não há direito legal de autoarquivamento para autores ({country}) — {instrument}: {statements}.",
     wlStatutoryRecorded: "Registrado em {date}.",
     wlStatutoryPending: "Redigido e ainda não conferido com o texto legal.",
     wlStatutorySourceLink: "texto legal",
@@ -1361,15 +1346,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Consultata su OA.Works il {retrieved}; la scheda non indica una data di aggiornamento.",
     wlArchivingPolicyLink: "copia archiviata della politica dell'editore",
     wlArchivingDisclaimer:
-      "Le politiche degli editori cambiano e una scheda OA.Works può risalire a diversi anni fa: controllane la data. Un diritto previsto dalla legge dipende da condizioni che SigmaCV non può verificare: quanto finanziamento pubblico ha ricevuto la ricerca, la periodicità della rivista, il consenso dei tuoi coautori, la disciplina. Il contratto di pubblicazione che hai firmato può riconoscerti diritti più ampi. Queste sono informazioni, non una consulenza legale; chiedi alla tua biblioteca prima di depositare.",
+      "Le politiche degli editori cambiano e una scheda OA.Works può risalire a diversi anni fa: controllane la data. Un diritto previsto dalla legge dipende da condizioni che SigmaCV non può verificare: se la ricerca o il tuo ente hanno ricevuto finanziamenti pubblici, la periodicità della rivista, il consenso dei tuoi coautori, la disciplina. Il contratto di pubblicazione che hai firmato può consentire più o meno di quanto preveda la politica generale della rivista. Queste sono informazioni, non una consulenza legale; chiedi alla tua biblioteca prima di depositare.",
     wlStatutoryAuthorRight:
       "Potrebbe applicarsi anche — diritto di pubblicazione secondaria ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
       "Potrebbe applicarsi anche — requisito di legge di deposito in un archivio aperto ({country}), {instrument}: {statements}.",
     wlStatutoryFundingPolicy:
       "Potrebbe applicarsi anche — politica nazionale di accesso aperto ({country}), {instrument}: {statements}.",
-    wlStatutoryNoAuthorRight:
-      "Nessun diritto legale di autoarchiviazione per gli autori ({country}) — {instrument}: {statements}.",
     wlStatutoryRecorded: "Registrato il {date}.",
     wlStatutoryPending: "Bozza, non ancora confrontata con il testo di legge.",
     wlStatutorySourceLink: "testo di legge",
@@ -1510,15 +1493,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingRetrieved: "OA.Works 조회일 {retrieved}(기록에 갱신일 없음).",
     wlArchivingPolicyLink: "출판사 정책(보관본)",
     wlArchivingDisclaimer:
-      "출판사 정책은 바뀔 수 있으며, OA.Works 기록은 여러 해 전의 것일 수 있습니다. 날짜를 확인하세요. 법적 권리는 SigmaCV가 확인할 수 없는 조건(연구가 받은 공적 자금의 정도, 학술지 발행 주기, 공저자의 동의, 학문 분야 등)에 달려 있습니다. 서명한 출판 계약이 더 많은 권리를 인정할 수도 있습니다. 이는 정보 제공일 뿐 법률 자문이 아닙니다. 기탁하기 전에 소속 기관 도서관에 문의하세요.",
+      "출판사 정책은 바뀔 수 있으며, OA.Works 기록은 여러 해 전의 것일 수 있습니다. 날짜를 확인하세요. 법적 권리는 SigmaCV가 확인할 수 없는 조건(연구 또는 소속 기관의 공적 자금 지원 여부, 학술지 발행 주기, 공저자의 동의, 학문 분야 등)에 달려 있습니다. 서명한 출판 계약은 학술지의 일반 정책보다 더 많이 또는 더 적게 허용할 수 있습니다. 이는 정보 제공일 뿐 법률 자문이 아닙니다. 기탁하기 전에 소속 기관 도서관에 문의하세요.",
     wlStatutoryAuthorRight:
       "2차 출판권({country})도 적용될 수 있습니다. {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
       "리포지터리 기탁에 관한 법적 요건({country})도 적용될 수 있습니다. {instrument}: {statements}.",
     wlStatutoryFundingPolicy:
       "국가 오픈 액세스 정책({country})도 적용될 수 있습니다. {instrument}: {statements}.",
-    wlStatutoryNoAuthorRight:
-      "저자의 셀프 아카이빙 권리를 정한 법률이 없습니다({country}). {instrument}: {statements}.",
     wlStatutoryRecorded: "{date} 기준 기록.",
     wlStatutoryPending: "초안이며 아직 법령 원문과 대조하지 않았습니다.",
     wlStatutorySourceLink: "법령 원문",
@@ -1663,15 +1644,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Запись получена из OA.Works {retrieved}; дата обновления в ней не указана.",
     wlArchivingPolicyLink: "архивная копия политики издателя",
     wlArchivingDisclaimer:
-      "Политики издателей меняются, а запись OA.Works может быть сделана несколько лет назад — проверьте её дату. Право, предусмотренное законом, зависит от условий, которые SigmaCV проверить не может: объёма государственного финансирования исследования, периодичности журнала, согласия соавторов, научной области. Подписанный вами издательский договор может предоставлять вам больше прав. Это информация, а не юридическая консультация; перед размещением в репозитории обратитесь в свою библиотеку.",
+      "Политики издателей меняются, а запись OA.Works может быть сделана несколько лет назад — проверьте её дату. Право, предусмотренное законом, зависит от условий, которые SigmaCV проверить не может: государственного финансирования исследования или вашей организации, периодичности журнала, согласия соавторов, научной области. Подписанный вами издательский договор может разрешать больше или меньше, чем общая политика журнала. Это информация, а не юридическая консультация; перед размещением в репозитории обратитесь в свою библиотеку.",
     wlStatutoryAuthorRight:
       "Также может применяться — право на вторичную публикацию ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
       "Также может применяться — законодательное требование о размещении в репозитории ({country}), {instrument}: {statements}.",
     wlStatutoryFundingPolicy:
       "Также может применяться — национальная политика открытого доступа ({country}), {instrument}: {statements}.",
-    wlStatutoryNoAuthorRight:
-      "Закон не даёт авторам права на самоархивирование ({country}) — {instrument}: {statements}.",
     wlStatutoryRecorded: "Запись от {date}.",
     wlStatutoryPending: "Черновик, ещё не сверен с текстом закона.",
     wlStatutorySourceLink: "текст закона",

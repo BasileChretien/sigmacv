@@ -290,17 +290,20 @@ export function openAccessStates(cv: CanonicalCv): OpenAccessStates {
   const rows: OpenAccessRow[] = [];
   for (const item of countableWorks(cv)) {
     const state = openAccessState(item);
+    const year = itemEffectiveYear(item);
     counts[state]++;
     rows.push({
       itemId: item.id,
       title: cslTitle(item),
-      year: itemEffectiveYear(item),
+      year,
       state,
       license: item.meta.license,
       venue: itemVenue(item),
       funderNames: funderNames(item),
       selfArchiving: item.meta.selfArchiving,
-      statutory: statutoryArchivingFor(item.meta.workCountries),
+      // Only the rules that can cover THIS work (its year, its type): a rule the
+      // data already rules out is never put in front of the owner.
+      statutory: statutoryArchivingFor(item.meta.workCountries, { year, type: item.csl?.type }),
     });
   }
   return { rows, counts, total: rows.length };
