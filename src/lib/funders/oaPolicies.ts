@@ -225,7 +225,7 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
       "https://formas.se/en/start-page/apply-for-funding/how-it-works/good-to-know-before-you-apply.html",
     statements: [
       "results from calls that opened after 1 January 2021: immediate open access, without delay",
-      "a CC BY licence",
+      "a CC BY licence for articles",
       "routes: an open access journal or platform, a subscription journal with simultaneous open archiving, or a transformative agreement",
     ],
     verifiedBy: "maintainer",
@@ -255,7 +255,7 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
     statements: [
       "DFG grant recipients are requested, not required, to publish their project results in open access",
       "in open access journals, or in repositories alongside publication by a publisher, if possible without a time delay",
-      "a publication allowance of €750 per year of funding duration can cover open access fees",
+      "in individual grants, a publication allowance of €750 per year of funding duration, which can cover open access article charges",
     ],
     verifiedBy: "maintainer",
     lastVerified: "2026-09-15",
@@ -280,8 +280,9 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
     policyUrl: "https://www.jst.go.jp/EN/about/openscience/guideline_openscience_en_r7.pdf",
     statements: [
       "research publications from JST-funded projects open access in principle; peer-reviewed articles within 12 months of publication",
-      "projects from calls from 2025 in the Strategic Basic Research Programs (except ALCA-Next, CRONOS) and FOREST: posted immediately after publication",
-      "the Author Accepted Manuscript, in an institutional repository (recommended) or similar; preprints are also permitted",
+      "calls from 2025 in the Strategic Basic Research Programs (except ALCA-Next, CRONOS) and FOREST: peer-reviewed articles, immediately after publication",
+      "for those projects, the data underlying the articles are also posted immediately",
+      "routes: the Author Accepted Manuscript in an institutional repository (recommended) or another site, or an open access journal",
       "where immediate posting is difficult, the reasons are reported in the annual research report",
     ],
     verifiedBy: "maintainer",
