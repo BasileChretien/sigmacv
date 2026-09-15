@@ -117,10 +117,12 @@ describe("funderOaPolicy", () => {
     expect(nih.effectiveFrom).toBe("2025-07-01");
     expect(nih.statements.join(" ")).toMatch(/PubMed Central/);
     expect(nih.policyUrl).toBe("https://sharing.nih.gov/public-access-policy");
-    // ERC scopes its policy by call, not by date: the call is in the
+    // ERC scopes its terms by programme, not by date: the programme is in the
     // statements and no January-1 proxy is invented.
     const erc = funderOaPolicy("10.13039/501100000781")!;
     expect(erc.effectiveFrom).toBeUndefined();
-    expect(erc.statements.join(" ")).toMatch(/2021 calls/);
+    expect(erc.statements.join(" ")).toContain("Horizon Europe (2021–2027)");
+    // Gates states one date for its current terms.
+    expect(funderOaPolicy("10.13039/100000865")!.effectiveFrom).toBe("2025-01-01");
   });
 });

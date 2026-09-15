@@ -57,15 +57,19 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
   {
     fundrefDoi: "10.13039/100014013",
     name: "UK Research and Innovation (UKRI)",
+    // The policy page (updated 22 June 2026) gives both dates; UKRI's guidance
+    // pages for research articles (26 August 2026) and for monographs, book
+    // chapters and edited collections (7 July 2026) give the rest.
     policyUrl: "https://www.ukri.org/publications/ukri-open-access-policy/",
     effectiveFrom: "2022-04-01",
     statements: [
-      "immediate open access for peer-reviewed research articles submitted from 1 April 2022",
-      "CC BY licence (CC BY-ND by exception)",
-      "either the version of record in the journal or the author accepted manuscript in a repository, with no embargo",
-      "monographs, book chapters and edited collections published from 1 January 2024: open access within 12 months",
+      "peer-reviewed research articles submitted for publication on or after 1 April 2022: immediately open access, with no embargo",
+      "either the version of record in the journal or the author accepted manuscript in a repository at final publication",
+      "a CC BY licence (CC BY-ND by exception; the Open Government Licence under Crown Copyright)",
+      "monographs, book chapters and edited collections published on or after 1 January 2024: open access within 12 months, CC BY preferred",
     ],
-    verifiedBy: "maintainer-pending",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
   {
     fundrefDoi: "10.13039/100010269",
@@ -87,6 +91,8 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
   {
     fundrefDoi: "10.13039/100000002",
     name: "National Institutes of Health (NIH)",
+    // Still unconfirmed: sharing.nih.gov and grants.nih.gov put a bot check in
+    // front of automated readers (2026-09-15). Confirm it by hand.
     policyUrl: "https://sharing.nih.gov/public-access-policy",
     effectiveFrom: "2025-07-01",
     statements: [
@@ -100,82 +106,101 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
   {
     fundrefDoi: "10.13039/100000001",
     name: "National Science Foundation (NSF)",
+    // The page (updated 18 September 2025) states no version and no embargo, so
+    // neither does the entry; it points to the PAPPG for the requirements (Public
+    // Access Plan 2.0 is linked only "for additional context").
     policyUrl: "https://www.nsf.gov/public-access",
     statements: [
-      "peer-reviewed journal articles and juried conference papers from NSF-funded work are deposited in the NSF Public Access Repository (NSF-PAR)",
-      "the accepted manuscript or the version of record is deposited",
+      "awards from proposals submitted or due on or after 25 January 2016: all peer-reviewed publications and juried conference papers deposited in NSF-PAR",
+      "requirements set out in the NSF Proposal & Award Policies & Procedures Guide (PAPPG)",
     ],
-    verifiedBy: "maintainer-pending",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
-  // ERC, the European Commission, ANR, FWF and NWO scope their policy by CALL,
-  // not by date — so no `effectiveFrom` on any of the five; the call wording
-  // lives in the statements.
+  // ERC, the European Commission, ANR, FWF and NWO scope their terms by
+  // programme, project or call rather than by one date: the scope is in the
+  // statements, and no January-1 `effectiveFrom` stands in for it.
   {
     fundrefDoi: "10.13039/501100000781",
     name: "European Research Council (ERC)",
     policyUrl: "https://erc.europa.eu/manage-your-project/open-science",
     statements: [
-      "ERC grants follow the Horizon Europe open-access terms",
-      "immediate open access for peer-reviewed publications",
-      "deposit in a trusted repository, CC BY licence (CC BY-NC or CC BY-ND allowed for monographs)",
-      "applies to grants under Horizon Europe (the 2021 calls onwards)",
+      "ERC grants under Horizon Europe (2021–2027) follow its open-access terms",
+      "at publication, peer-reviewed publications deposited immediately in open access in a trusted repository",
+      "CC BY or equivalent (long-text publications may exclude commercial use or derivative works)",
+      "Horizon 2020 ERC grants: open access through a repository within 6 months (12 months in social sciences and humanities)",
     ],
-    verifiedBy: "maintainer-pending",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
   {
     fundrefDoi: "10.13039/501100000780",
     name: "European Commission (Horizon Europe)",
-    policyUrl:
-      "https://research-and-innovation.ec.europa.eu/strategy/strategy-research-and-innovation/our-digital-future/open-science_en",
+    // The Commission's own open-science page carries no terms; the page of its
+    // research executive agency does.
+    policyUrl: "https://rea.ec.europa.eu/open-science_en",
     statements: [
-      "immediate open access for peer-reviewed publications from Horizon Europe grants (the 2021 calls onwards)",
-      "deposit of the version of record or the author accepted manuscript in a trusted repository",
-      "CC BY licence (CC BY-NC or CC BY-ND allowed for monographs)",
+      "applies to Horizon Europe grants",
+      "peer-reviewed publications in open access, the final version or the peer-reviewed manuscript deposited in a trusted repository",
+      "journal articles under CC BY or an equivalent licence; long texts may also use CC BY-NC or CC BY-ND",
     ],
-    verifiedBy: "maintainer-pending",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
   {
     fundrefDoi: "10.13039/501100001665",
     name: "Agence Nationale de la Recherche (ANR)",
+    // Read in French; the page was updated on 6 November 2023.
     policyUrl: "https://anr.fr/fr/lanr/engagements/la-science-ouverte/",
     statements: [
-      "immediate open access for publications from projects funded from the 2022 calls onwards (Plan S)",
-      "deposit of the full text in HAL",
-      "CC BY licence",
+      "projects funded from 2022: publications in immediate open access under CC BY or equivalent",
+      "the full text (accepted manuscript or publisher's version) deposited in HAL, at the latest at publication",
+      "a subscription journal is possible through the rights retention strategy",
     ],
-    verifiedBy: "maintainer-pending",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
   {
     fundrefDoi: "10.13039/100000865",
-    name: "Bill & Melinda Gates Foundation",
-    policyUrl: "https://openaccess.gatesfoundation.org/",
+    name: "Gates Foundation",
+    policyUrl: "https://openaccess.gatesfoundation.org/open-access-policy/",
     effectiveFrom: "2025-01-01",
     statements: [
-      "a preprint of every funded research article, immediately, under CC BY",
-      "from 2025 the foundation no longer pays article processing charges",
+      "all published research it funds, in whole or in part, from 1 January 2025",
+      "funded manuscripts posted as a preprint on a recognised server as soon as possible and to the extent feasible",
+      "funded manuscripts available immediately, without embargo, under CC BY 4.0 or an equivalent licence",
+      "accepted articles deposited on publication in PubMed Central or another openly accessible repository",
+      "underlying data accessible immediately and as open as possible",
+      "the foundation does not pay article processing charges",
     ],
-    verifiedBy: "maintainer-pending",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
   {
     fundrefDoi: "10.13039/501100002428",
     name: "Austrian Science Fund (FWF)",
-    policyUrl: "https://www.fwf.ac.at/en/research-funding/open-access-policy",
+    policyUrl:
+      "https://www.fwf.ac.at/en/about-us/what-we-do/open-science/open-access-policy/open-access-policy-for-peer-reviewed-publications",
     statements: [
-      "immediate open access for peer-reviewed publications from the 2021 calls onwards (Plan S)",
-      "CC BY licence",
-      "deposit in a repository",
+      "peer-reviewed publications from FWF projects approved after 31 December 2020",
+      "open access at publication: an open access journal or platform, a transformative agreement or journal, or self-archiving with no embargo",
+      "a CC BY or equivalent free licence; CC BY-ND only in exceptional FWF-approved cases, stated for open access journals and platforms",
     ],
-    verifiedBy: "maintainer-pending",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
   {
     fundrefDoi: "10.13039/501100003246",
     name: "Dutch Research Council (NWO)",
-    policyUrl: "https://www.nwo.nl/en/open-science",
+    policyUrl: "https://www.nwo.nl/en/open-access-publishing",
     statements: [
-      "immediate open access for publications from calls from 2021 onwards (Plan S)",
-      "CC BY licence",
+      "all NWO calls published since 1 January 2021 (Plan S)",
+      "scholarly articles in open access immediately at publication, without embargo",
+      "a CC BY licence (CC BY-ND in exceptional cases)",
+      "routes: a fully open access journal, a transformative agreement or journal, or immediate deposit of the version of record or accepted manuscript in a repository",
     ],
-    verifiedBy: "maintainer-pending",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
 ];
 
