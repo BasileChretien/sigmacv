@@ -72,3 +72,52 @@ describe("the funder join never reaches a public surface", () => {
     expect(src).not.toMatch(/oaPolicies|joinOwnerFunding|loadFunderCrosswalk|recordWorkFunders/);
   });
 });
+
+/**
+ * The self-archiving programme is editor-only for the same reason: the publisher
+ * policy OA.Works records, the statutory table and the rights lines exist for the
+ * owner's worklist alone (the stored fields are stripped by the projections —
+ * self-archiving-fields.test.ts). No public scope imports the programme or the
+ * OA.Works client, and the anonymous preview makes no OA.Works call: the pass runs
+ * in `syncCvForUser`, never in the `buildCvFromOrcid` the preview shares.
+ */
+describe("the self-archiving programme never reaches a public surface", () => {
+  const PROGRAMME = [
+    "src/lib/archiving/selfArchivingPass.ts",
+    "src/lib/archiving/statutoryRights.ts",
+    "src/lib/archiving/rightsSentences.ts",
+    "src/lib/oaworks/client.ts",
+    "src/components/WorklistRights.tsx",
+  ];
+  const files = PUBLIC_SCOPES.flatMap(sourceFiles);
+
+  it("has the programme's modules to keep out", () => {
+    for (const file of PROGRAMME) expect(existsSync(join(ROOT, file)), file).toBe(true);
+  });
+
+  it.each(files)("%s imports nothing from the programme nor the OA.Works client", (file) => {
+    const src = readFileSync(file, "utf8");
+    expect(src).not.toMatch(/["']@\/lib\/archiving/);
+    expect(src).not.toMatch(/["']@\/lib\/oaworks/);
+    expect(src).not.toMatch(
+      /enrichCvWithSelfArchiving|fetchSelfArchivingPermission|statutoryArchivingFor|WorklistRights/,
+    );
+  });
+
+  it("runs the OA.Works pass in the owner sync only — never in the build the anonymous preview shares", () => {
+    const sync = readFileSync(join(ROOT, "src/lib/cv/sync.ts"), "utf8");
+    const buildStart = sync.indexOf("export async function buildCvFromOrcid");
+    const ownerStart = sync.indexOf("export async function syncCvForUser");
+    const ownerEnd = sync.indexOf("export async function", ownerStart + 1);
+    expect(buildStart).toBeGreaterThan(0);
+    expect(ownerStart).toBeGreaterThan(buildStart);
+    const build = sync.slice(buildStart, ownerStart);
+    const owner = sync.slice(ownerStart, ownerEnd);
+    expect(build.length).toBeGreaterThan(2000);
+    expect(build).not.toContain("enrichCvWithSelfArchiving");
+    expect(owner).toContain("enrichCvWithSelfArchiving(");
+    // The preview builder reaches the sources through buildCvFromOrcid alone.
+    const preview = readFileSync(join(ROOT, "src/lib/cv/previewFromOrcid.ts"), "utf8");
+    expect(preview).not.toContain("syncCvForUser");
+  });
+});

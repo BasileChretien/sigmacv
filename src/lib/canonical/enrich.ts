@@ -97,22 +97,25 @@ async function mapBounded<T, R>(
 }
 
 /**
- * The per-work lookups of one bounded pass under {@link ENRICH_PASS_BUDGET_MS}:
- * returns the targets actually examined (a prefix of `targets`) with their
- * results, and logs ONE info line when the budget deferred the rest.
+ * The per-work lookups of one bounded pass under a wall-clock budget (default
+ * {@link ENRICH_PASS_BUDGET_MS}): returns the targets actually examined (a
+ * prefix of `targets`) with their results, and logs ONE info line when the
+ * budget deferred the rest. Exported for the passes that live beside their
+ * feature rather than here (`archiving/selfArchivingPass.ts`).
  */
-async function mapWithinBudget<T, R>(
+export async function mapWithinBudget<T, R>(
   pass: string,
   targets: readonly T[],
   fn: (item: T, index: number) => Promise<R>,
   limit: number = CONCURRENCY,
+  budgetMs: number = ENRICH_PASS_BUDGET_MS,
 ): Promise<{ examined: T[]; results: R[] }> {
-  const results = await mapBounded(targets, limit, fn, withPassBudget());
+  const results = await mapBounded(targets, limit, fn, withPassBudget(budgetMs));
   const examined = targets.slice(0, results.length);
   if (examined.length < targets.length) {
     logger.info("enrich.pass_budget_exhausted", {
       pass,
-      budgetMs: ENRICH_PASS_BUDGET_MS,
+      budgetMs,
       examined: examined.length,
       deferred: targets.length - examined.length,
     });
@@ -255,7 +258,7 @@ export async function enrichCvWithAbstracts(cv: CanonicalCv, mailto: string): Pr
 // ─── Rotation for the bounded per-sync passes ────────────────────────────────
 
 /** One candidate item of a bounded pass: its position plus the pass's sentinel. */
-interface RotationTarget {
+export interface RotationTarget {
   s: number;
   i: number;
   /** The pass's `meta.*CheckedAt` sentinel at the start of this run — undefined
@@ -263,7 +266,7 @@ interface RotationTarget {
   checkedAt?: string;
 }
 
-const posKey = (t: Pick<RotationTarget, "s" | "i">): string => `${t.s}:${t.i}`;
+export const posKey = (t: Pick<RotationTarget, "s" | "i">): string => `${t.s}:${t.i}`;
 
 /**
  * Order + cap a bounded pass's candidates so its per-sync budget ROTATES through
@@ -273,7 +276,10 @@ const posKey = (t: Pick<RotationTarget, "s" | "i">): string => `${t.s}:${t.i}`;
  * re-sync — without both, a CV larger than the cap had the same head re-queried
  * on every sync and its tail never reached. Pure (never mutates the input).
  */
-function rotationQueue<T extends RotationTarget>(candidates: readonly T[], cap: number): T[] {
+export function rotationQueue<T extends RotationTarget>(
+  candidates: readonly T[],
+  cap: number,
+): T[] {
   const fresh = candidates.filter((t) => t.checkedAt === undefined);
   const known = candidates
     .filter((t) => t.checkedAt !== undefined)
@@ -287,7 +293,7 @@ function rotationQueue<T extends RotationTarget>(candidates: readonly T[], cap: 
  * `hits` entry merged on top. Items the pass did not examine are returned as-is.
  * A miss therefore never removes an earlier find — only a fresh hit overwrites.
  */
-function applyPass(
+export function applyPass(
   cv: CanonicalCv,
   targets: readonly RotationTarget[],
   hits: ReadonlyMap<string, Partial<CvItem["meta"]>>,

@@ -4748,6 +4748,23 @@ button.src-prov-chip.is-actionable:focus-visible {
 .cv-worklist-funders {
   font-size: var(--text-xs);
 }
+/* The rights lines under a closed work: the publisher's policy as OA.Works
+   recorded it and the statutory rule that may also apply — prose beside the
+   work, never a badge or a colour. The publisher's own statement is quoted. */
+.cv-worklist-rights {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: var(--text-xs);
+}
+.cv-worklist-rights p {
+  margin: 0 0 0.15rem;
+}
+.cv-worklist-rights-statement {
+  margin: 0.15rem 0 0.25rem;
+  padding-left: var(--space-2);
+  border-left: 2px solid var(--border);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
 
 /* ── Bulk-curation bar ─────────────────────────────────────────────────────── */
 .bulk-bar {

@@ -455,6 +455,8 @@ describe("openAccessStates — over the countable works", () => {
       license: "cc-by",
       venue: "PNAS",
       funderNames: ["Agence Nationale de la Recherche", "Wellcome Trust"],
+      // Nothing stored by the owner's sync, no country on the paper: no rights inputs.
+      statutory: [],
     });
     expect(w2!.venue).toBe("J. Ex.");
     expect(w2!.funderNames).toEqual([]);

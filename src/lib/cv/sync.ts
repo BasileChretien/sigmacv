@@ -24,6 +24,7 @@ import { logger } from "@/lib/log";
 import { getEnv } from "@/lib/env";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { attachDataciteLinks } from "@/lib/canonical/dataLinks";
+import { enrichCvWithSelfArchiving } from "@/lib/archiving/selfArchivingPass";
 import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
@@ -631,7 +632,14 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   const previous = previousParsed?.success ? previousParsed.data : null;
   const id = existing?.id ?? randomUUID();
 
-  const { cv, report } = await buildCvFromOrcid({ orcid, fallbackName, previous, id });
+  const built = await buildCvFromOrcid({ orcid, fallbackName, previous, id });
+  const { report } = built;
+  // The worklist's self-archiving rights line: OA.Works for this owner's closed
+  // articles. HERE, never in `buildCvFromOrcid` — the anonymous preview shares
+  // that function and must make no such call. Sequential, capped, budgeted and
+  // fail-soft (`archiving/selfArchivingPass.ts`); it adds or removes no item, so
+  // the report above stays true.
+  const cv = await enrichCvWithSelfArchiving(built.cv, getEnv().OPENALEX_MAILTO);
 
   // The OAI affiliation-set key follows the document on every write (see
   // `currentRorKey`): a re-sync that changes or drops the current position

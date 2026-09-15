@@ -478,7 +478,8 @@ function pickDefined<T extends object, K extends keyof T>(
  * lost its results on every rebuild, and (b) with the sentinels gone the passes
  * re-examined the same first N works forever. Carried from the previous item
  * by {@link carriedEnrichmentMeta}; a pass overwrites a value only on a fresh
- * hit, never on a miss.
+ * hit, never on a miss — except the self-archiving pass, which also clears its
+ * record on an answered "no record" (a withdrawn policy must not linger).
  *
  * `retracted` is deliberately NOT here: the works builder unions the carried
  * Crossref flag with OpenAlex's fresh `is_retracted` itself (see
@@ -511,6 +512,9 @@ const BOUNDED_ENRICHMENT_KEYS = [
   "replications",
   "replicationOf",
   "replicationsCheckedAt",
+  // OA.Works self-archiving permission (the OWNER sync's pass only)
+  "selfArchiving",
+  "selfArchivingCheckedAt",
 ] as const satisfies readonly (keyof CvItem["meta"])[];
 
 /** {@link BOUNDED_ENRICHMENT_KEYS} carried from `prev` (defined values only). */
@@ -1762,6 +1766,25 @@ export function selfWorkInstitutions(
   return rors.length ? [...new Set(rors)].slice(0, 50) : undefined;
 }
 
+const MAX_WORK_COUNTRIES = 10;
+
+/**
+ * ISO-3166 alpha-2 codes of the account holder's OWN authorship of a work
+ * (OpenAlex `authorships[].countries` on the self-matched authorship): the
+ * affiliation country printed on this paper. Upper-case, deduped, bounded;
+ * undefined when none. Drives the owner worklist's statutory line.
+ */
+export function selfWorkCountries(selfAuth: OpenAlexAuthorship | undefined): string[] | undefined {
+  const raw = selfAuth?.countries;
+  const codes = new Set<string>();
+  for (const c of Array.isArray(raw) ? raw : []) {
+    const code = typeof c === "string" ? c.trim().toUpperCase() : "";
+    if (/^[A-Z]{2}$/.test(code)) codes.add(code);
+    if (codes.size >= MAX_WORK_COUNTRIES) break;
+  }
+  return codes.size ? [...codes] : undefined;
+}
+
 /** A human label for the account holder's authorship role on a work, or undefined. */
 export function authorRoleLabel(a: OpenAlexAuthorship | undefined): string | undefined {
   if (!a) return undefined;
@@ -2050,6 +2073,12 @@ function buildWorkCvItem(
       // Spread FIRST so a source-driven field below always wins where both exist.
       ...carriedEnrichmentMeta(prev),
       ...carriedCitationOverrides(prev),
+      // The OA.Works record is DOI-keyed: carried only while the DOI is unchanged,
+      // so a corrected DOI is asked about afresh rather than keeping the old DOI's
+      // policy through the pass's seven-day refresh window.
+      ...(prev && prev.csl?.DOI?.trim().toLowerCase() !== csl.DOI?.trim().toLowerCase()
+        ? { selfArchiving: undefined, selfArchivingCheckedAt: undefined }
+        : {}),
       year: work.publication_year ?? undefined,
       type: work.type ?? undefined,
       doi: csl.DOI,
@@ -2112,6 +2141,9 @@ function buildWorkCvItem(
       // ROR ids of the user's affiliation on THIS paper — for the misattribution
       // affiliation check; only set for own works that carry a ROR'd institution.
       workInstitutions: authoredBySelf ? selfWorkInstitutions(selfAuth) : undefined,
+      // The affiliation COUNTRY on this paper (own authorship) — the owner
+      // worklist's statutory self-archiving line (`archiving/statutoryRights.ts`).
+      workCountries: authoredBySelf ? selfWorkCountries(selfAuth) : undefined,
       reviewFlag:
         reviewFlagOverride ?? (authoredBySelf ? reviewFlagFor(selfAuth, ownerOrcid) : undefined),
     },

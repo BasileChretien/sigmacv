@@ -1444,6 +1444,76 @@
                     },
                     "publicEvaluationsCheckedAt": {
                       "type": "string"
+                    },
+                    "selfArchiving": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "const": "oa.works"
+                        },
+                        "canArchive": {
+                          "type": "boolean"
+                        },
+                        "versions": {
+                          "maxItems": 3,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["submittedVersion", "acceptedVersion", "publishedVersion"]
+                          }
+                        },
+                        "embargoMonths": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 600
+                        },
+                        "embargoEnd": {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                        },
+                        "locations": {
+                          "maxItems": 8,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 100
+                          }
+                        },
+                        "licence": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "depositStatement": {
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        "recordUpdated": {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                        },
+                        "policyUrl": {
+                          "type": "string",
+                          "maxLength": 2048,
+                          "pattern": "^https?:\\/\\/"
+                        },
+                        "retrievedAt": {
+                          "type": "string",
+                          "maxLength": 64
+                        }
+                      },
+                      "required": ["source", "canArchive", "versions", "locations", "retrievedAt"]
+                    },
+                    "selfArchivingCheckedAt": {
+                      "type": "string"
+                    },
+                    "workCountries": {
+                      "maxItems": 10,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[A-Z]{2}$"
+                      }
                     }
                   }
                 }
