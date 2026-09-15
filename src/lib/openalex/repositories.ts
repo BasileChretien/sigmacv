@@ -87,6 +87,19 @@ export async function fetchAuthorRepositories(
   const ids = [...new Set(authorIds.map(shortId).filter((id) => AUTHOR_ID.test(id)))];
   if (ids.length === 0) return [];
   const deadline = Date.now() + budgetMs;
+  // `resilientFetch`'s timeout covers the headers only: a body that stalls after
+  // them is cut at the same deadline, and counts as a failed lookup.
+  const readJson = async (res: Response): Promise<unknown> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const expired = new Promise<undefined>((resolve) => {
+      timer = setTimeout(() => resolve(undefined), Math.max(0, deadline - Date.now()));
+    });
+    try {
+      return await Promise.race([res.json() as Promise<unknown>, expired]);
+    } finally {
+      clearTimeout(timer);
+    }
+  };
   try {
     const groupedRes = await openAlexResponse(
       "/works",
@@ -97,7 +110,7 @@ export async function fetchAuthorRepositories(
       { retries: 0, timeoutMs: budgetMs },
     );
     if (!groupedRes.ok) return undefined;
-    const grouped = GroupsSchema.safeParse(await groupedRes.json());
+    const grouped = GroupsSchema.safeParse(await readJson(groupedRes));
     if (!grouped.success) return undefined;
     const groups = grouped.data.group_by
       .filter((g) => g !== undefined)
@@ -118,7 +131,7 @@ export async function fetchAuthorRepositories(
       { retries: 0, timeoutMs: left },
     );
     if (!sourcesRes.ok) return undefined;
-    const sources = SourcesSchema.safeParse(await sourcesRes.json());
+    const sources = SourcesSchema.safeParse(await readJson(sourcesRes));
     if (!sources.success) return undefined;
     const byId = new Map(
       sources.data.results.filter((s) => s !== undefined).map((s) => [shortId(s.id), s] as const),

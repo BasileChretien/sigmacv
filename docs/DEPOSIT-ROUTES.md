@@ -26,7 +26,7 @@ A destination reached by an earlier rule is not repeated. ShareYourPaper (`https
 
 **Under the action**, what the record asks of the form: the licence ("In the form, set the licence to …" — Zenodo's form preselects CC BY), and the embargo while it runs (an end date still ahead, or a duration after publication when only the months are recorded). Not for a funder repository, which sets the release itself. For Zenodo, when the work has a DOI: answer "No" to "Do you already have a DOI for this upload?" and add the DOI under "Related works" — otherwise the deposit takes the publisher's DOI as its own. Zenodo's form is in English, so every locale quotes its labels in English.
 
-The "Check the journal's policy" search link on a closed row shows only while OA.Works holds no record for it.
+The "Check the journal's policy" search link on a closed row shows whenever OA.Works gives no link to the publisher's policy.
 
 ## Where "own" comes from
 

@@ -149,4 +149,15 @@ describe("fetchAuthorRepositories", () => {
       vi.useRealTimers();
     }
   });
+
+  it("gives up on a body that stalls after the headers, at the same deadline", async () => {
+    const stalled = new Response(new ReadableStream({ start() {} }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+    stubFetch(stalled);
+    const started = Date.now();
+    expect(await fetchAuthorRepositories(["A1"], 60)).toBeUndefined();
+    expect(Date.now() - started).toBeLessThan(2_000);
+  });
 });

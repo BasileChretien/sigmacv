@@ -76,7 +76,7 @@ function counted(template: string, n: number, total: number): string {
  * publisher's self-archiving policy as OA.Works recorded it and the statutory
  * rule that may also apply (`WorklistRights`, one disclaimer under the list) and,
  * for a journal article, one place to deposit it (`WorklistDeposit`) — the
- * journal-policy link then shows only while OA.Works holds no record, (d) the works that acknowledge one of the
+ * journal-policy search link shows whenever OA.Works gives no policy link, (d) the works that acknowledge one of the
  * owner's OWN grants (`funders/join.ts`), each beside the funder's recorded
  * open-access policy — dated, linked — and what SigmaCV found. Counts carry
  * their denominators; the funding heading carries none. Every row jumps to the
@@ -295,7 +295,7 @@ export default function WorklistPanel({
               <li key={r.itemId}>
                 {jump(r.itemId, rowText(r))} {stateChip(r.state)}
                 {r.venue ? <span className="muted"> · {r.venue}</span> : null}
-                {r.selfArchiving ? null : finderLink(r.venue)}
+                {r.selfArchiving?.policyUrl ? null : finderLink(r.venue)}
                 {r.funderNames.length > 0 ? (
                   <div className="muted cv-worklist-funders">
                     {wu.wlFunders.replace("{names}", () => r.funderNames.join(", "))}

@@ -272,7 +272,7 @@ describe("WorklistPanel — the deposit action", () => {
     );
   });
 
-  it("is for journal articles only, and hides the journal-policy search once OA.Works holds a record", () => {
+  it("is for journal articles only, and keeps the journal-policy search until OA.Works links the publisher's policy", () => {
     const venue = { "container-title": "Journal of Tests" };
     const book = render(
       <WorklistPanel
@@ -290,14 +290,21 @@ describe("WorklistPanel — the deposit action", () => {
     );
     expect(unrecorded.queryByRole("link", { name: EN.wlPolicyLink })).not.toBeNull();
     unrecorded.unmount();
-    const recorded = render(
-      <WorklistPanel
-        cv={makeCv(work({ selfArchiving: ACCEPTED }, venue))}
-        locale="en-US"
-        consentedRorIds={[]}
-      />,
-    );
-    expect(recorded.queryByRole("link", { name: EN.wlPolicyLink })).toBeNull();
+    const recorded = (policy: Partial<typeof ACCEPTED> & { policyUrl?: string }) =>
+      render(
+        <WorklistPanel
+          cv={makeCv(work({ selfArchiving: { ...ACCEPTED, ...policy } }, venue))}
+          locale="en-US"
+          consentedRorIds={[]}
+        />,
+      );
+    const linked = recorded({ policyUrl: "https://perma.cc/J5MA-H2EJ" });
+    expect(linked.queryByRole("link", { name: EN.wlPolicyLink })).toBeNull();
+    linked.unmount();
+    // A refusal recorded without a link to the publisher's policy keeps the search:
+    // otherwise the row would carry no link to any policy at all.
+    const unlinked = recorded({ canArchive: false, versions: [], locations: [] });
+    expect(unlinked.queryByRole("link", { name: EN.wlPolicyLink })).not.toBeNull();
   });
 
   it("shows no Copy DOI and no ShareYourPaper for a work without a DOI, and speaks the viewer's language", () => {
