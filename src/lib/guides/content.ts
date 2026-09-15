@@ -2477,8 +2477,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       ],
     },
     "responsible-metrics-on-an-academic-cv": {
-      title:
-        "Utiliser les indicateurs de façon responsable sur un CV académique (DORA & le Leiden Manifesto)",
+      title: "Indicateurs sur un CV académique : un usage responsable (DORA, Leiden Manifesto)",
       description:
         "Comment présenter les indicateurs de recherche sur un CV de façon responsable : pourquoi le facteur d'impact des revues et l'indice h induisent en erreur, ce qu'apportent les indicateurs normalisés par le champ, et ce que recommandent DORA et le Leiden Manifesto.",
       blocks: [
@@ -3137,8 +3136,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
       ],
     },
     "responsible-metrics-on-an-academic-cv": {
-      title:
-        "Metriken verantwortungsvoll im akademischen Lebenslauf einsetzen (DORA & Leiden Manifesto)",
+      title: "Metriken im akademischen Lebenslauf: verantwortungsvoll einsetzen (DORA, Leiden)",
       description:
         "Wie man Forschungsmetriken im Lebenslauf verantwortungsvoll darstellt: warum der Journal Impact Factor und der h-Index irreführen, was feldnormierte Indikatoren hinzufügen und was DORA und das Leiden Manifesto empfehlen.",
       blocks: [

@@ -8,6 +8,7 @@ import { guidesNavLabel } from "@/lib/i18n/guidesNav";
 import { landingPageStrings } from "@/lib/i18n/landingPages";
 import { localeGuidePath, localeGuidesIndexPath, localeLandingPagePath } from "@/lib/seo";
 import { renderContentBlock } from "./contentBlocks";
+import SeeItFirstForm from "./SeeItFirstForm";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 
@@ -78,6 +79,15 @@ export default function GuidePage({ guide, locale = "en-US" }: { guide: Guide; l
             ))}
           </section>
         ) : null}
+
+        {/* The guides are where the reach is (Copilot cited three of them ~340
+            times a day in Sept 2026, against ~5 site visits): a reader who has
+            just read how to write the CV gets the box that shows the one built
+            from their record, before the related-links list. Own prompt — the
+            homepage's "before you sign in" has no sign-in card to sit beside. */}
+        <section className="guide-try" data-testid="guide-see-it-first">
+          <SeeItFirstForm locale={locale} prompt={chrome.tryPrompt} />
+        </section>
 
         {relatedGuides.length > 0 || (guide.relatedPages && guide.relatedPages.length > 0) ? (
           <section className="landing-related">

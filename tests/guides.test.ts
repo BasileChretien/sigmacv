@@ -108,6 +108,16 @@ describe("guides localization (forced 10 locales)", () => {
     }
   });
 
+  it("every title fits Bing's 100-character <title> ceiling once the layout appends ' — SigmaCV'", () => {
+    // Bing Webmaster flagged the French responsible-metrics guide (105 chars) on 2026-09-15.
+    const SUFFIX = " — SigmaCV";
+    for (const loc of SUPPORTED_LOCALES) {
+      for (const g of listGuides(loc)) {
+        expect([...`${g.title}${SUFFIX}`].length, `${loc} ${g.slug}`).toBeLessThanOrEqual(100);
+      }
+    }
+  });
+
   it("non-English locales actually differ from English", () => {
     const enGuide = getGuide("how-to-write-an-academic-cv", "en-US")!;
     const frGuide = getGuide("how-to-write-an-academic-cv", "fr-FR")!;

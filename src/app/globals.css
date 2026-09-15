@@ -3910,6 +3910,16 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
   margin-top: var(--space-8);
   font-size: var(--text-sm);
 }
+/* The see-it-first box at the end of a guide: set off from the prose by a rule,
+   the box itself styled by the shared .hp2-preview rules. */
+.guide-try {
+  margin-top: var(--space-8);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+.guide-try .hp2-preview {
+  margin-top: 0;
+}
 /* Landing-page lede + step list + related-links block (C1 content depth). */
 .doc-page .doc-lede {
   font-size: var(--text-lg);

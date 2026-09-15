@@ -15,6 +15,9 @@ export interface GuidesChrome {
   allGuides: string;
   allTerms: string;
   backToHome: string;
+  /** Heading of the "see it first" box under a guide's body: the reader has
+   *  just read how to write the CV; this offers the one built from their record. */
+  tryPrompt: string;
 }
 
 export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
@@ -32,6 +35,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     allGuides: "All guides",
     allTerms: "All terms",
     backToHome: "Back to SigmaCV",
+    tryPrompt: "Now see the CV the public record builds for you — no account needed",
   },
   "zh-CN": {
     guidesIndexTitle: "学术简历指南",
@@ -47,6 +51,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     allGuides: "所有指南",
     allTerms: "所有术语",
     backToHome: "返回 SigmaCV",
+    tryPrompt: "现在看看公开记录为您生成的简历——无需账户",
   },
   "es-ES": {
     guidesIndexTitle: "Guías sobre el currículum académico",
@@ -62,6 +67,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     allGuides: "Todas las guías",
     allTerms: "Todos los términos",
     backToHome: "Volver a SigmaCV",
+    tryPrompt: "Ahora mira el CV que el registro público construye para ti — sin cuenta",
   },
   "fr-FR": {
     guidesIndexTitle: "Guides sur le CV académique",
@@ -77,6 +83,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     allGuides: "Tous les guides",
     allTerms: "Tous les termes",
     backToHome: "Retour à SigmaCV",
+    tryPrompt: "Voyez maintenant le CV que le registre public construit pour vous — sans compte",
   },
   "de-DE": {
     guidesIndexTitle: "Leitfäden zum akademischen Lebenslauf",
@@ -92,6 +99,8 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     allGuides: "Alle Leitfäden",
     allTerms: "Alle Begriffe",
     backToHome: "Zurück zu SigmaCV",
+    tryPrompt:
+      "Sehen Sie jetzt den Lebenslauf, den das öffentliche Verzeichnis für Sie erstellt – kein Konto nötig",
   },
   "ja-JP": {
     guidesIndexTitle: "アカデミックCVガイド",
@@ -107,6 +116,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     allGuides: "すべてのガイド",
     allTerms: "すべての用語",
     backToHome: "SigmaCV に戻る",
+    tryPrompt: "公開記録から作られるあなたの CV を今すぐ確認 — アカウント不要",
   },
   "pt-BR": {
     guidesIndexTitle: "Guias de currículo acadêmico",
@@ -122,6 +132,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     allGuides: "Todos os guias",
     allTerms: "Todos os termos",
     backToHome: "Voltar ao SigmaCV",
+    tryPrompt: "Veja agora o currículo que o registro público monta para você — sem conta",
   },
   "it-IT": {
     guidesIndexTitle: "Guide al curriculum vitae accademico",
@@ -137,6 +148,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     allGuides: "Tutte le guide",
     allTerms: "Tutti i termini",
     backToHome: "Torna a SigmaCV",
+    tryPrompt: "Guarda ora il CV che il registro pubblico costruisce per te — senza account",
   },
   "ko-KR": {
     guidesIndexTitle: "학술 CV 가이드",
@@ -152,6 +164,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     allGuides: "전체 가이드",
     allTerms: "전체 용어",
     backToHome: "SigmaCV로 돌아가기",
+    tryPrompt: "공개 기록으로 만들어지는 내 CV를 지금 확인하세요 — 계정 불필요",
   },
   "ru-RU": {
     guidesIndexTitle: "Руководства по академическому резюме",
@@ -167,6 +180,7 @@ export const GUIDES_CHROME: Record<Locale, GuidesChrome> = {
     allGuides: "Все руководства",
     allTerms: "Все термины",
     backToHome: "На главную SigmaCV",
+    tryPrompt: "Посмотрите, какое резюме открытые данные составляют для вас — без аккаунта",
   },
 };
 

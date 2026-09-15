@@ -104,6 +104,10 @@ export interface RenderStrings {
   liveVersionLabel: string;
   /** Public-page "living CV" line; "{date}" is the localized last-synced date. */
   livingNote: string;
+  /** Public-page SERP description when the owner wrote no headline or summary
+   *  (or one shorter than a search engine will show); "{who}" → the name, then
+   *  the headline or the latest visible affiliation. */
+  metaDescriptionFallback: string;
   /** Public-page hint that the publications can be saved to a reference manager
    *  (Zotero/Mendeley) via the browser connector — the page carries COinS metadata. */
   refManagerNote: string;
@@ -410,6 +414,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     madeWith: "Made with",
     liveVersionLabel: "Live version",
     livingNote: "Updated {date} · living CV, updates automatically",
+    metaDescriptionFallback:
+      "{who} — academic CV on SigmaCV, built from open research data (ORCID, OpenAlex).",
     rorRecordTitle: "ROR organization record",
     institutionSiteTitle: "Institution website",
     indicatorRcr: "RCR {v}",
@@ -616,6 +622,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     madeWith: "制作工具：",
     liveVersionLabel: "在线版本",
     livingNote: "更新于 {date} · 在线简历，自动更新",
+    metaDescriptionFallback:
+      "{who}——SigmaCV 上的学术简历，依据开放研究数据（ORCID、OpenAlex）生成。",
     rorRecordTitle: "ROR 机构记录",
     institutionSiteTitle: "机构网站",
     indicatorRcr: "RCR {v}",
@@ -828,6 +836,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     madeWith: "Hecho con",
     liveVersionLabel: "Versión en línea",
     livingNote: "Actualizado el {date} · CV vivo, se actualiza solo",
+    metaDescriptionFallback:
+      "{who} — CV académico en SigmaCV, creado a partir de datos de investigación abiertos (ORCID, OpenAlex).",
     rorRecordTitle: "Ficha de la organización en ROR",
     institutionSiteTitle: "Sitio web de la institución",
     indicatorRcr: "RCR {v}",
@@ -1047,6 +1057,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     madeWith: "Créé avec",
     liveVersionLabel: "Version en ligne",
     livingNote: "Mis à jour le {date} · CV vivant, mis à jour automatiquement",
+    metaDescriptionFallback:
+      "{who} — CV académique sur SigmaCV, construit à partir de données de recherche ouvertes (ORCID, OpenAlex).",
     rorRecordTitle: "Fiche de l’organisation dans ROR",
     institutionSiteTitle: "Site web de l’établissement",
     indicatorRcr: "RCR {v}",
@@ -1264,6 +1276,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     madeWith: "Erstellt mit",
     liveVersionLabel: "Live-Version",
     livingNote: "Aktualisiert am {date} · lebender Lebenslauf, automatisch aktualisiert",
+    metaDescriptionFallback:
+      "{who} – akademischer Lebenslauf auf SigmaCV, erstellt aus offenen Forschungsdaten (ORCID, OpenAlex).",
     rorRecordTitle: "ROR-Organisationseintrag",
     institutionSiteTitle: "Website der Einrichtung",
     indicatorRcr: "RCR {v}",
@@ -1478,6 +1492,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     madeWith: "作成ツール：",
     liveVersionLabel: "オンライン版",
     livingNote: "{date} 更新 · 自動更新されるライブ CV",
+    metaDescriptionFallback:
+      "{who} — SigmaCV のアカデミック CV。オープンな研究データ（ORCID、OpenAlex）から作成。",
     rorRecordTitle: "ROR 機関レコード",
     institutionSiteTitle: "機関ウェブサイト",
     indicatorRcr: "RCR {v}",
@@ -1693,6 +1709,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     madeWith: "Feito com",
     liveVersionLabel: "Versão online",
     livingNote: "Atualizado em {date} · currículo vivo, atualizado automaticamente",
+    metaDescriptionFallback:
+      "{who} — currículo acadêmico no SigmaCV, criado a partir de dados de pesquisa abertos (ORCID, OpenAlex).",
     rorRecordTitle: "Registro da organização no ROR",
     institutionSiteTitle: "Site da instituição",
     indicatorRcr: "RCR {v}",
@@ -1911,6 +1929,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     madeWith: "Creato con",
     liveVersionLabel: "Versione online",
     livingNote: "Aggiornato il {date} · CV vivo, si aggiorna da solo",
+    metaDescriptionFallback:
+      "{who} — CV accademico su SigmaCV, costruito da dati di ricerca aperti (ORCID, OpenAlex).",
     rorRecordTitle: "Scheda dell’organizzazione su ROR",
     institutionSiteTitle: "Sito web dell’istituzione",
     indicatorRcr: "RCR {v}",
@@ -2122,6 +2142,7 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     madeWith: "제작 도구:",
     liveVersionLabel: "온라인 버전",
     livingNote: "{date} 업데이트 · 자동으로 갱신되는 라이브 CV",
+    metaDescriptionFallback: "{who} — SigmaCV의 학술 CV, 공개 연구 데이터(ORCID, OpenAlex)로 생성.",
     rorRecordTitle: "ROR 기관 레코드",
     institutionSiteTitle: "기관 웹사이트",
     indicatorRcr: "RCR {v}",
@@ -2334,6 +2355,8 @@ const RENDER_I18N: Record<Locale, RenderStrings> = {
     madeWith: "Создано с помощью",
     liveVersionLabel: "Онлайн-версия",
     livingNote: "Обновлено {date} · живое резюме, обновляется автоматически",
+    metaDescriptionFallback:
+      "{who} — академическое резюме на SigmaCV, составленное из открытых научных данных (ORCID, OpenAlex).",
     rorRecordTitle: "Запись организации в ROR",
     institutionSiteTitle: "Сайт организации",
     indicatorRcr: "RCR {v}",
