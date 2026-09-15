@@ -27,6 +27,12 @@ const OWN_DOMAIN: Record<string, string> = {
   "10.13039/100000865": "gatesfoundation.org",
   "10.13039/501100002428": "fwf.ac.at",
   "10.13039/501100003246": "nwo.nl",
+  "10.13039/501100001711": "snf.ch",
+  "10.13039/501100001862": "formas.se",
+  "10.13039/501100001871": "fct.pt",
+  "10.13039/501100001659": "dfg.de",
+  "10.13039/501100001691": "jsps.go.jp",
+  "10.13039/501100002241": "jst.go.jp",
 };
 
 const NOTE = readFileSync(join(__dirname, "..", "docs", "FUNDER-OA-POLICIES.md"), "utf8");
@@ -116,7 +122,9 @@ describe("funderOaPolicy", () => {
     const nih = funderOaPolicy("10.13039/100000002")!;
     expect(nih.effectiveFrom).toBe("2025-07-01");
     expect(nih.statements.join(" ")).toMatch(/PubMed Central/);
-    expect(nih.policyUrl).toBe("https://sharing.nih.gov/public-access-policy");
+    expect(nih.policyUrl).toBe(
+      "https://grants.nih.gov/policy-and-compliance/policy-topics/public-access",
+    );
     // ERC scopes its terms by programme, not by date: the programme is in the
     // statements and no January-1 proxy is invented.
     const erc = funderOaPolicy("10.13039/501100000781")!;
