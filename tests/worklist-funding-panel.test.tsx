@@ -34,14 +34,14 @@ import { funderOaPolicy, type FunderOaPolicy } from "@/lib/funders/oaPolicies";
 const ANR_OA = "F4320332161";
 const ANR_URL = `https://openalex.org/${ANR_OA}`;
 const ANR_FUNDREF = "10.13039/501100001665";
-const JSPS_OA = "F4320334764";
-const JSPS_URL = `https://openalex.org/${JSPS_OA}`;
-const JSPS_FUNDREF = "10.13039/501100001691";
+const AMED_OA = "F4320320879";
+const AMED_URL = `https://openalex.org/${AMED_OA}`;
+const AMED_FUNDREF = "10.13039/100009619";
 const CROSSWALK: FunderRow[] = [
   { openalexId: ANR_OA, fundrefDoi: ANR_FUNDREF, name: "Agence Nationale de la Recherche" },
   {
-    openalexId: JSPS_OA,
-    fundrefDoi: JSPS_FUNDREF,
+    openalexId: AMED_OA,
+    fundrefDoi: AMED_FUNDREF,
     name: "Japan Society for the Promotion of Science",
   },
 ];
@@ -202,20 +202,20 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
     // A CLOSED work: it is listed under "no open copy found" too, so the work
     // appears twice — once per section — and both are plain text (no handler).
     const cv = makeCv(
-      [work("W-jsps", [{ id: JSPS_URL }], { oaIsOpen: false })],
-      [grant("G1", { funderId: `FUNDREF:http://dx.doi.org/${JSPS_FUNDREF}`, funderName: "JSPS" })],
+      [work("W-amed", [{ id: AMED_URL }], { oaIsOpen: false })],
+      [grant("G1", { funderId: `FUNDREF:http://dx.doi.org/${AMED_FUNDREF}`, funderName: "AMED" })],
     );
     render(
       <WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} funderCrosswalk={CROSSWALK} />,
     );
-    expect(screen.getByText(/names your funder JSPS; no award number on the work/)).toBeTruthy();
-    expect(screen.getByText("SigmaCV has no policy record for JSPS.")).toBeTruthy();
+    expect(screen.getByText(/names your funder AMED; no award number on the work/)).toBeTruthy();
+    expect(screen.getByText("SigmaCV has no policy record for AMED.")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /policy page/ })).toBeNull();
     expect(screen.getByText(/SigmaCV found:/).textContent).toContain("No open copy found");
     expect(screen.getByText(/no open copy found \(1 of 1\)/)).toBeTruthy();
     // No jump handler → plain text, not a button.
     expect(screen.queryByRole("button")).toBeNull();
-    expect(screen.getAllByText("Work W-jsps (2024)")).toHaveLength(2);
+    expect(screen.getAllByText("Work W-amed (2024)")).toHaveLength(2);
   });
 
   it("names an unnamed funder generically rather than printing an empty name", () => {
@@ -233,7 +233,7 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
   it("omits the section — and the whole panel — when nothing joins", () => {
     const cv = makeCv(
       [work("W1", [{ id: ANR_URL, awardId: "ANR-21-CE17-0001" }], { oaIsOpen: true })],
-      [grant("G1", { funderId: JSPS_FUNDREF, funderName: "JSPS", awardId: "OTHER-1" })],
+      [grant("G1", { funderId: AMED_FUNDREF, funderName: "AMED", awardId: "OTHER-1" })],
     );
     const { container } = render(
       <WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} funderCrosswalk={CROSSWALK} />,

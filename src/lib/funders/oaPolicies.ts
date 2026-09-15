@@ -91,17 +91,18 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
   {
     fundrefDoi: "10.13039/100000002",
     name: "National Institutes of Health (NIH)",
-    // Still unconfirmed: sharing.nih.gov and grants.nih.gov put a bot check in
-    // front of automated readers (2026-09-15). Confirm it by hand.
-    policyUrl: "https://sharing.nih.gov/public-access-policy",
+    // Read in the maintainer's own browser (sharing.nih.gov/public-access-policy
+    // redirects here); automated readers get a bot check.
+    policyUrl: "https://grants.nih.gov/policy-and-compliance/policy-topics/public-access",
     effectiveFrom: "2025-07-01",
     statements: [
       "2024 NIH Public Access Policy",
-      "applies to manuscripts accepted for publication on or after 1 July 2025",
-      "the author accepted manuscript is submitted to PubMed Central",
-      "publicly available in PubMed Central on the official date of publication, with no embargo",
+      "Author Accepted Manuscripts accepted for publication in a journal on or after 1 July 2025",
+      "submitted to PubMed Central upon acceptance for publication",
+      "publicly available without embargo upon the Official Date of Publication",
     ],
-    verifiedBy: "maintainer-pending",
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
   },
   {
     fundrefDoi: "10.13039/100000001",
@@ -198,6 +199,91 @@ export const FUNDER_OA_POLICIES: readonly FunderOaPolicy[] = [
       "scholarly articles in open access immediately at publication, without embargo",
       "a CC BY licence (CC BY-ND in exceptional cases)",
       "routes: a fully open access journal, a transformative agreement or journal, or immediate deposit of the version of record or accepted manuscript in a repository",
+    ],
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
+  },
+  {
+    fundrefDoi: "10.13039/501100001711",
+    name: "Swiss National Science Foundation (SNSF)",
+    policyUrl:
+      "https://www.snf.ch/en/MDecEyLJgpSTk0cU/page/open-access-information-for-researchers",
+    statements: [
+      "articles from projects submitted on or after 1 January 2023: open access with no embargo",
+      "a CC BY licence for articles (CC BY-ND only upon justified request and SNSF approval)",
+      "routes: an open access journal, a hybrid journal, or a version with identical content in a public repository",
+      "rights retention: authors keep the right to share the final manuscript under CC BY immediately upon submission",
+      "books and book chapters: an embargo of up to 12 months, no specific licence",
+    ],
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
+  },
+  {
+    fundrefDoi: "10.13039/501100001862",
+    name: "Formas (Swedish Research Council for Sustainable Development)",
+    policyUrl:
+      "https://formas.se/en/start-page/apply-for-funding/how-it-works/good-to-know-before-you-apply.html",
+    statements: [
+      "results from calls that opened after 1 January 2021: immediate open access, without delay",
+      "a CC BY licence for articles",
+      "routes: an open access journal or platform, a subscription journal with simultaneous open archiving, or a transformative agreement",
+    ],
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
+  },
+  {
+    fundrefDoi: "10.13039/501100001871",
+    name: "Fundação para a Ciência e a Tecnologia (FCT)",
+    // FCT's policy page names the scope only; its announcement (updated
+    // 11 February 2025) states the terms. It states no licence.
+    policyUrl:
+      "https://www.fct.pt/en/nova-politica-sobre-acesso-aberto-a-publicacoes-cientificas-da-fct-promove-a-visibilidade-da-producao-cientifica/",
+    statements: [
+      "funding whose application period ends after 7 February 2025",
+      "articles, books, book chapters, monographs, doctoral theses and master's dissertations",
+      "no embargo periods; rights retention, so at least the accepted manuscript is open access",
+      "routes: gold, green in an RCAAP network repository, or a hybrid journal under a transformative agreement",
+    ],
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
+  },
+  {
+    fundrefDoi: "10.13039/501100001659",
+    name: "Deutsche Forschungsgemeinschaft (DFG)",
+    // FAQ updated 19 March 2025.
+    policyUrl: "https://www.dfg.de/en/research-funding/proposal-funding-process/faq/open-access",
+    statements: [
+      "DFG grant recipients are requested, not required, to publish their project results in open access",
+      "in open access journals, or in repositories alongside publication by a publisher, if possible without a time delay",
+      "in individual grants, a publication allowance of €750 per year of funding duration, which can cover open access article charges",
+    ],
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
+  },
+  {
+    fundrefDoi: "10.13039/501100001691",
+    name: "Japan Society for the Promotion of Science (JSPS)",
+    // Read in Japanese (科研費「オープンアクセス」).
+    policyUrl: "https://www.jsps.go.jp/j-grantsinaid/01_seido/08_openaccess/index.html",
+    statements: [
+      "peer-reviewed papers and their underlying data from KAKENHI grants in calls from fiscal 2025",
+      "posted in an institutional repository or other information infrastructure immediately after journal publication",
+    ],
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
+  },
+  {
+    fundrefDoi: "10.13039/501100002241",
+    name: "Japan Science and Technology Agency (JST)",
+    // Implementation guidelines revised 1 April 2025 (a provisional translation;
+    // the Japanese version is official).
+    policyUrl: "https://www.jst.go.jp/EN/about/openscience/guideline_openscience_en_r7.pdf",
+    statements: [
+      "research publications from JST-funded projects open access in principle; peer-reviewed articles within 12 months of publication",
+      "calls from 2025 in the Strategic Basic Research Programs (except ALCA-Next, CRONOS) and FOREST: peer-reviewed articles, immediately after publication",
+      "for those projects, the data underlying the articles are also posted immediately",
+      "routes: the Author Accepted Manuscript in an institutional repository (recommended) or another site, or an open access journal",
+      "where immediate posting is difficult, the reasons are reported in the annual research report",
     ],
     verifiedBy: "maintainer",
     lastVerified: "2026-09-15",
