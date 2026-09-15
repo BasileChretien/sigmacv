@@ -297,6 +297,32 @@
               "type": "boolean"
             }
           }
+        },
+        "depositRepositories": {
+          "maxItems": 3,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceId": {
+                "type": "string",
+                "pattern": "^S\\d{1,20}$"
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "url": {
+                "type": "string",
+                "maxLength": 2048,
+                "pattern": "^https?:\\/\\/"
+              }
+            },
+            "required": ["sourceId", "name", "url"]
+          }
+        },
+        "depositRepositoriesCheckedAt": {
+          "type": "string"
         }
       },
       "required": ["orcid", "openAlexAuthorIds", "displayName"]

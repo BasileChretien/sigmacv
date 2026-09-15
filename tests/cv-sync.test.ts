@@ -140,6 +140,11 @@ const selfArchivingPass = vi.hoisted(() => vi.fn(async (cv: unknown, _mailto: st
 vi.mock("@/lib/archiving/selfArchivingPass", () => ({
   enrichCvWithSelfArchiving: selfArchivingPass,
 }));
+// Likewise the repository pass (deposit-repositories-pass.test.ts): a pass-through spy.
+const depositRepositoriesPass = vi.hoisted(() => vi.fn(async (cv: unknown) => cv));
+vi.mock("@/lib/archiving/depositRepositoriesPass", () => ({
+  enrichCvWithDepositRepositories: depositRepositoriesPass,
+}));
 
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
@@ -373,6 +378,35 @@ describe("syncCvForUser", () => {
     selfArchivingPass.mockClear();
     await buildCvFromOrcid({ orcid: RESOLVED.orcid });
     expect(selfArchivingPass).not.toHaveBeenCalled();
+  });
+
+  it("runs the repository pass after the rights pass on the owner sync, and persists what it returns — the preview build never runs it", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    selfArchivingPass.mockClear();
+    depositRepositoriesPass.mockClear();
+    selfArchivingPass.mockImplementationOnce(async (doc: unknown) => ({
+      ...(doc as CanonicalCv),
+      notes: "rights",
+    }));
+    depositRepositoriesPass.mockImplementationOnce(async (doc: unknown) => ({
+      ...(doc as CanonicalCv),
+      notes: (doc as CanonicalCv).notes + " then repositories",
+    }));
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(depositRepositoriesPass).toHaveBeenCalledTimes(1);
+    expect(cv.notes).toBe("rights then repositories");
+    const arg = mocks.upsert.mock.calls[0]![0] as {
+      create: { document: CanonicalCv };
+      update: { document: CanonicalCv };
+    };
+    expect(arg.create.document.notes).toBe("rights then repositories");
+    expect(arg.update.document.notes).toBe("rights then repositories");
+
+    depositRepositoriesPass.mockClear();
+    await buildCvFromOrcid({ orcid: RESOLVED.orcid });
+    expect(depositRepositoriesPass).not.toHaveBeenCalled();
   });
 
   it("denormalises the current affiliation's ROR id on sync (and the resync that reuses it)", async () => {

@@ -25,6 +25,7 @@ import { getEnv } from "@/lib/env";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { attachDataciteLinks } from "@/lib/canonical/dataLinks";
 import { enrichCvWithSelfArchiving } from "@/lib/archiving/selfArchivingPass";
+import { enrichCvWithDepositRepositories } from "@/lib/archiving/depositRepositoriesPass";
 import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
@@ -639,7 +640,11 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   // that function and must make no such call. Sequential, capped, budgeted and
   // fail-soft (`archiving/selfArchivingPass.ts`); it adds or removes no item, so
   // the report above stays true.
-  const cv = await enrichCvWithSelfArchiving(built.cv, getEnv().OPENALEX_MAILTO);
+  const withRights = await enrichCvWithSelfArchiving(built.cv, getEnv().OPENALEX_MAILTO);
+  // The places the owner's works already sit, for the worklist's deposit routes:
+  // two small OpenAlex calls, weekly, fail-soft (`archiving/depositRepositoriesPass.ts`).
+  // Owner sync only, like the pass above.
+  const cv = await enrichCvWithDepositRepositories(withRights);
 
   // The OAI affiliation-set key follows the document on every write (see
   // `currentRorKey`): a re-sync that changes or drops the current position

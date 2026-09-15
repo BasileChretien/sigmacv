@@ -1422,6 +1422,32 @@ export const CvOwnerSchema = z.object({
    * `display.showCareerContext`; never feeds any metric.
    */
   careerContext: CareerContextSchema.optional(),
+  /**
+   * The places the owner's works already sit, as OpenAlex indexes them — at most
+   * three, most works first, HAL portals merged into HAL, indexes and data
+   * platforms excluded (`archiving/repositoryDirectory.ts`): the name and link the
+   * worklist's "your other works are already in …" deposit route prints, never a
+   * count. Written by the OWNER sync (`archiving/depositRepositoriesPass.ts`) and
+   * carried across rebuilds while the author record is unchanged. Owner-only:
+   * STRIPPED from the public projection and the anonymous preview. A malformed
+   * stored value degrades to undefined.
+   */
+  depositRepositories: z
+    .array(
+      z.object({
+        sourceId: z.string().regex(/^S\d{1,20}$/),
+        name: z.string().max(300),
+        url: z
+          .string()
+          .max(2048)
+          .regex(/^https?:\/\//i),
+      }),
+    )
+    .max(3)
+    .optional()
+    .catch(undefined),
+  /** ISO timestamp of the repository pass's last answer (its refresh sentinel). */
+  depositRepositoriesCheckedAt: z.string().optional(),
 });
 export type CvOwner = z.infer<typeof CvOwnerSchema>;
 

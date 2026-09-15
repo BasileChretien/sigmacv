@@ -57,6 +57,9 @@ interface CvEditorProps {
    *  works (owner-only, loaded by the page) — what the worklist joins the
    *  owner's grants through. Default: none (award-number matches only). */
   funderCrosswalk?: readonly FunderRow[];
+  /** ISO-3166 code of the owner's current affiliation (owner-only, loaded by the
+   *  page) — the worklist's deposit routes can follow it instead of each paper's. */
+  currentAffiliationCountry?: string;
   /** The publish state + setter for the worklist's "Institution listing"
    *  status line (owner-only; ignored when `anonymous`). */
   institutionListing?: InstitutionListing;
@@ -81,6 +84,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     anonymous = false,
     consentedRorIds = NO_CONSENTED_ROR_IDS,
     funderCrosswalk = NO_FUNDER_CROSSWALK,
+    currentAffiliationCountry,
     institutionListing,
   },
   ref,
@@ -158,6 +162,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       locale={locale}
       consentedRorIds={consentedRorIds}
       funderCrosswalk={funderCrosswalk}
+      currentAffiliationCountry={currentAffiliationCountry}
       onJump={jumpToItem}
       listing={institutionListing}
     />
