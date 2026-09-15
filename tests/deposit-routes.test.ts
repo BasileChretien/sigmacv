@@ -340,6 +340,10 @@ describe("depositNotes — what the record asks of the form", () => {
     expect(notes({ selfArchiving: record({ canArchive: false, versions: [] }) }, hal)).toEqual([
       EN.wlDepositHalDoi,
     ]);
+    // HAL reached because the owner's works sit there, not by country: the same note.
+    const [ownHal] = depositRoutes(cvWith({ depositRepositories: [HAL_OWN] }), work(), ctx());
+    expect(ownHal!.kind).toBe("own");
+    expect(notes({}, ownHal)).toEqual([EN.wlDepositHalDoi]);
     // Neither a funder's repository nor Zenodo gets the HAL note.
     expect(notes({}, nih)).toEqual([]);
     expect(notes({}, zenodo)).not.toContain(EN.wlDepositHalDoi);
