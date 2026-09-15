@@ -89,6 +89,8 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(outbound("https://doi.org:443/10.1234/x")).toBe("https://doi.org:443");
     expect(outbound("https://doi.org./10.1234/x")).toBe("https://doi.org.");
     expect(outbound("https://doi.org")).toBe("https://doi.org");
+    // A query-only DOI URL (no path): the query goes too.
+    expect(outbound("https://doi.org?doi=10.1234/x#frag")).toBe("https://doi.org");
     // Not an absolute URL: left as it was.
     expect(outbound("mailto:someone@example.org")).toBe("mailto:someone@example.org");
     // A custom event's own props are not touched.
