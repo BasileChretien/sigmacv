@@ -5,6 +5,7 @@ import type { WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
 import { shortId } from "@/lib/openalex/types";
 import {
   funderRepository,
+  HAL,
   nationalRepository,
   placeFitsLocations,
   placeKindOf,
@@ -211,9 +212,11 @@ export function depositAction(
 
 /**
  * What the recorded policy asks of the deposit form — the licence, and the embargo
- * while it runs — and, for Zenodo, how to give the publisher's DOI without taking
- * it as the deposit's own. Not the policy's conditions for a funder's repository,
- * which sets the release itself. `today` is an ISO date (YYYY-MM-DD).
+ * while it runs — and where the publisher's DOI goes: for Zenodo, how to give it
+ * without taking it as the deposit's own; for HAL, the box that fills the form in
+ * from it (HAL ignores a DOI passed in the link). Not the policy's conditions for a
+ * funder's repository, which sets the release itself. `today` is an ISO date
+ * (YYYY-MM-DD).
  */
 export function depositNotes(
   item: CvItem,
@@ -238,7 +241,9 @@ export function depositNotes(
       );
     }
   }
-  if (route.href === ZENODO.href && item.csl?.DOI?.trim()) notes.push(wu.wlDepositZenodoDoi);
+  const hasDoi = Boolean(item.csl?.DOI?.trim());
+  if (hasDoi && route.href === ZENODO.href) notes.push(wu.wlDepositZenodoDoi);
+  if (hasDoi && route.href === HAL.href) notes.push(wu.wlDepositHalDoi);
   return notes;
 }
 

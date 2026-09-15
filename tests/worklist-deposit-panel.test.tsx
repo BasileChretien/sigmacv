@@ -96,7 +96,7 @@ describe("WorklistPanel — the deposit action", () => {
     expect(link.getAttribute("target")).toBe("_blank");
     expect(primary.textContent).toContain("— because of your affiliation on this paper (France)");
     expect(block.querySelector(".cv-worklist-deposit-notes")!.textContent).toBe(
-      "In the form, set the licence to cc-by-nc-nd. Keep the file under embargo until 2999-01-01.",
+      `In the form, set the licence to cc-by-nc-nd. Keep the file under embargo until 2999-01-01. ${EN.wlDepositHalDoi}`,
     );
     const others = block.querySelector("details")!;
     expect(others.querySelector("summary")!.textContent).toBe(EN.wlDepositOtherPlaces);
