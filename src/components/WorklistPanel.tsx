@@ -16,9 +16,11 @@ import { unlistedAffiliations } from "@/lib/cv/institutionPrompt";
 import { joinOwnerFunding, toCrosswalk, type FunderRow } from "@/lib/funders/join";
 import { funderOaPolicy } from "@/lib/funders/oaPolicies";
 import type { Locale } from "@/lib/i18n";
+import { fill } from "@/lib/i18n/fill";
 import { workspaceUi, type WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
 import InstitutionListingRow, { type InstitutionListing } from "./InstitutionListingRow";
 import IndexingRow from "./IndexingRow";
+import WorklistRights from "./WorklistRights";
 
 /** A stable empty crosswalk (a fresh `[]` per render would defeat the memo). */
 const NO_FUNDER_CROSSWALK: readonly FunderRow[] = [];
@@ -57,15 +59,6 @@ function counted(template: string, n: number, total: number): string {
   return template.replace("{n}", () => String(n)).replace("{total}", () => String(total));
 }
 
-/** Every occurrence of each `{key}` (a locale may repeat one), function replacer. */
-function fill(template: string, values: Record<string, string>): string {
-  let out = template;
-  for (const [key, value] of Object.entries(values)) {
-    out = out.replaceAll(`{${key}}`, () => value);
-  }
-  return out;
-}
-
 /**
  * The owner's "Affiliations & open access" worklist — the researcher-first half
  * of reconciliation with an institution's record, shown ONLY in the editor: (a)
@@ -73,8 +66,11 @@ function fill(template: string, values: Record<string, string>): string {
  * position whose printed affiliation lacks that institution, grouped by the
  * ROR they DO carry, plus the OpenAlex works with no affiliation data (works
  * from other sources never carry it: counted on one line, not checked), (c) the
- * countable works with no open copy found, each with its four-state label and a
- * link to the journal's policy, (d) the works that acknowledge one of the
+ * countable works with no open copy found, each with its four-state label, a
+ * link to the journal's policy and — when the owner's sync stored them — the
+ * publisher's self-archiving policy as OA.Works recorded it and the statutory
+ * rule that may also apply (`WorklistRights`, one disclaimer under the list),
+ * (d) the works that acknowledge one of the
  * owner's OWN grants (`funders/join.ts`), each beside the funder's recorded
  * open-access policy — dated, linked — and what SigmaCV found. Counts carry
  * their denominators; the funding heading carries none. Every row jumps to the
@@ -247,9 +243,17 @@ export default function WorklistPanel({
                     {wu.wlFunders.replace("{names}", () => r.funderNames.join(", "))}
                   </div>
                 ) : null}
+                <WorklistRights
+                  locale={locale}
+                  selfArchiving={r.selfArchiving}
+                  statutory={r.statutory}
+                />
               </li>
             ))}
           </ul>
+          {closed.some((r) => r.selfArchiving || r.statutory.length > 0) ? (
+            <p className="muted cv-worklist-note">{wu.wlArchivingDisclaimer}</p>
+          ) : null}
         </section>
       ) : null}
 

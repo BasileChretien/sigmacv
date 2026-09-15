@@ -996,6 +996,108 @@ const CvItemSchema = z.object({
      * {@link iciteCheckedAt}). Carried across re-sync.
      */
     publicEvaluationsCheckedAt: z.string().optional(),
+    /**
+     * The publisher's self-archiving policy for THIS journal article as OA.Works
+     * records it (`oaworks/client.ts`): whether a copy may be self-archived, which
+     * versions, where, the embargo (OA.Works' own end date for this article), the
+     * licence of the deposited copy, the publisher's required statement (quoted
+     * verbatim, never translated), the record's own last-update date and an
+     * archived copy of the policy, plus when SigmaCV retrieved it. Stored only for
+     * a countable journal article with no open copy found and a DOI, and only by
+     * the OWNER's sync (`archiving/selfArchivingPass.ts`) — never by the anonymous
+     * preview build — for the owner worklist's rights line: help, never a verdict.
+     * Carried across re-sync and refreshed when the work's turn comes round
+     * ({@link selfArchivingCheckedAt}); an OA.Works "no record" answer clears it,
+     * a failed call keeps it. STRIPPED from every public surface (living page,
+     * downloads, OAI-PMH, frozen versions, anonymous preview); the owner's own
+     * JSON export and the account data export keep it. A malformed stored value
+     * degrades to `undefined` rather than failing the CV read.
+     */
+    selfArchiving: z
+      .object({
+        source: z.literal("oa.works"),
+        canArchive: z.boolean(),
+        versions: z
+          .array(z.enum(["submittedVersion", "acceptedVersion", "publishedVersion"]))
+          .max(3),
+        embargoMonths: z.number().int().min(0).max(600).optional(),
+        embargoEnd: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        locations: z.array(z.string().max(100)).max(8),
+        licence: z.string().max(100).optional(),
+        depositStatement: z.string().max(2000).optional(),
+        recordUpdated: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        policyUrl: z
+          .string()
+          .max(2048)
+          .regex(/^https?:\/\//i)
+          .optional(),
+        retrievedAt: z.string().max(64),
+      })
+      .optional()
+      .catch(undefined),
+    /**
+     * ISO timestamp of the last OA.Works lookup for this work that got an ANSWER
+     * (a record, or "no record"; a failed call leaves it as it was, so the work
+     * is retried) — the rotation sentinel of the self-archiving pass, same scheme
+     * as {@link iciteCheckedAt}. Carried across re-sync; owner-only.
+     */
+    selfArchivingCheckedAt: z.string().optional(),
+    /**
+     * The journal's linking ISSN (OpenAlex `primary_location.source.issn_l`,
+     * "1234-567X"), kept for ISSN-keyed policy lookups (Jisc Open Policy Finder,
+     * once a key exists). Source-driven: rebuilt from the work on every sync.
+     * Owner-only; STRIPPED from the public projection (not a render input).
+     */
+    issn: z
+      .string()
+      .regex(/^\d{4}-\d{3}[\dX]$/)
+      .optional()
+      .catch(undefined),
+    /**
+     * The OPEN repository copies OpenAlex lists for this work (`locations[]`
+     * whose source is a repository and whose copy is open) as the source's short
+     * id ("S4306402512") and display name — deduped, in OpenAlex order, bounded
+     * at 5. Stored for the owner worklist's deposit routing (where the owner's
+     * other works already sit); source-driven, rebuilt on every sync. Owner-only;
+     * STRIPPED from the public projection. Degrades PER ENTRY like
+     * {@link funders}; never `[]` after parse.
+     */
+    repositoryLocations: z
+      .array(
+        z
+          .object({
+            sourceId: z.string().regex(/^S\d{1,20}$/),
+            name: z.string().max(300),
+          })
+          .optional()
+          .catch(undefined),
+      )
+      .max(5)
+      .transform((entries) => {
+        const kept = entries.filter((e) => e !== undefined);
+        return kept.length > 0 ? kept : undefined;
+      })
+      .optional()
+      .catch(undefined),
+    /**
+     * ISO-3166 alpha-2 codes of the account holder's OWN authorship of this work
+     * (OpenAlex `authorships[].countries` on the self-matched authorship — the
+     * affiliation country printed on the paper), upper-case, deduped, bounded at
+     * 10. Drives the owner worklist's statutory line
+     * (`archiving/statutoryRights.ts`). Owner-only; STRIPPED from the public
+     * projection (internal signal, not a render input).
+     */
+    workCountries: z
+      .array(z.string().regex(/^[A-Z]{2}$/))
+      .max(10)
+      .optional()
+      .catch(undefined),
   }),
 });
 export type CvItem = z.infer<typeof CvItemSchema>;

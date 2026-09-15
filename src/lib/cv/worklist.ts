@@ -9,6 +9,10 @@ import {
 } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { positionRorId, visibleCurrentPositions } from "@/lib/cv/currentPositions";
+import {
+  statutoryArchivingFor,
+  type StatutoryArchivingEntry,
+} from "@/lib/archiving/statutoryRights";
 import { countableWorks } from "@/lib/render/countable";
 import { bareRorId } from "@/lib/ror/id";
 
@@ -250,6 +254,12 @@ export interface OpenAccessRow extends WorklistRow {
   /** The funder NAMES printed on the work (`meta.funders`), as context only —
    *  no mandate, no route, nothing that says a policy applies. */
   funderNames: string[];
+  /** The publisher's self-archiving policy as OA.Works recorded it, stored by
+   *  the owner's sync (`meta.selfArchiving`) — a dated fact, never a verdict. */
+  selfArchiving?: NonNullable<CvItem["meta"]["selfArchiving"]>;
+  /** The statutory entries for the countries printed on the owner's authorship
+   *  (`meta.workCountries`): rules that MAY also apply, one per country. */
+  statutory: StatutoryArchivingEntry[];
 }
 
 export interface OpenAccessStates {
@@ -289,6 +299,8 @@ export function openAccessStates(cv: CanonicalCv): OpenAccessStates {
       license: item.meta.license,
       venue: itemVenue(item),
       funderNames: funderNames(item),
+      selfArchiving: item.meta.selfArchiving,
+      statutory: statutoryArchivingFor(item.meta.workCountries),
     });
   }
   return { rows, counts, total: rows.length };

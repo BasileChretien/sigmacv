@@ -132,6 +132,14 @@ vi.mock("@/lib/canonical/enrich", () => ({
   enrichCvWithSciety: mocks.enrichCvWithSciety,
   withRorProvenance: (cv: unknown) => cv,
 }));
+// The owner sync's OA.Works pass has its own tests (self-archiving-pass.test.ts).
+// Here it is a pass-through spy, so a test can see that the owner sync — and only
+// the owner sync — runs it before the write. Not part of `mocks`, so beforeEach's
+// reset keeps its implementation.
+const selfArchivingPass = vi.hoisted(() => vi.fn(async (cv: unknown, _mailto: string) => cv));
+vi.mock("@/lib/archiving/selfArchivingPass", () => ({
+  enrichCvWithSelfArchiving: selfArchivingPass,
+}));
 
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
@@ -340,6 +348,31 @@ describe("syncCvForUser", () => {
     };
     expect(ownFunders(arg.create.document)).toEqual(ownFunders(cv));
     expect(ownFunders(arg.update.document)).toEqual(ownFunders(cv));
+  });
+
+  it("runs the self-archiving pass on the owner sync, and persists what it returns — the preview build never runs it", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    selfArchivingPass.mockClear();
+    selfArchivingPass.mockImplementationOnce(async (doc: unknown) => ({
+      ...(doc as CanonicalCv),
+      notes: "marked by the rights pass",
+    }));
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(selfArchivingPass).toHaveBeenCalledTimes(1);
+    expect(selfArchivingPass.mock.calls[0]![1]).toBe(process.env.OPENALEX_MAILTO);
+    expect(cv.notes).toBe("marked by the rights pass");
+    const arg = mocks.upsert.mock.calls[0]![0] as {
+      create: { document: CanonicalCv };
+      update: { document: CanonicalCv };
+    };
+    expect(arg.create.document.notes).toBe("marked by the rights pass");
+    expect(arg.update.document.notes).toBe("marked by the rights pass");
+
+    selfArchivingPass.mockClear();
+    await buildCvFromOrcid({ orcid: RESOLVED.orcid });
+    expect(selfArchivingPass).not.toHaveBeenCalled();
   });
 
   it("denormalises the current affiliation's ROR id on sync (and the resync that reuses it)", async () => {

@@ -45,6 +45,10 @@ const WORK_SELECT = [
   "open_access",
   "primary_location",
   "best_oa_location",
+  // Every hosting location — reduced at build to the work's OPEN repository copies
+  // (`meta.repositoryLocations`, owner-only) for the worklist's deposit routing.
+  // A few small objects per work, on the existing request.
+  "locations",
   "biblio",
   "ids",
   // OpenAlex replaced the old `grants` field with `awards` (award number + funder

@@ -30,6 +30,21 @@ const MANDATE: Record<Locale, string[]> = {
   "ru-RU": ["мандат", "обязательн"],
 };
 
+/** A percentage never appears on a worklist key either (the panel's veto on
+ *  shares and coverage figures): the sign, full-width or not, and the word. */
+const PERCENT: Record<Locale, string[]> = {
+  "en-US": ["percent", "%"],
+  "zh-CN": ["百分", "%", "％"],
+  "es-ES": ["porcent", "%"],
+  "fr-FR": ["pourcent", "%"],
+  "de-DE": ["prozent", "%"],
+  "ja-JP": ["パーセント", "%", "％"],
+  "pt-BR": ["porcent", "%"],
+  "it-IT": ["percent", "%"],
+  "ko-KR": ["퍼센트", "%", "％"],
+  "ru-RU": ["процент", "%"],
+};
+
 const PLACEHOLDERS: Partial<Record<keyof WorkspaceUiStrings, string[]>> = {
   wlFundingAward: ["{award}", "{funder}"],
   wlFundingFunderOnly: ["{funder}"],
@@ -37,6 +52,18 @@ const PLACEHOLDERS: Partial<Record<keyof WorkspaceUiStrings, string[]>> = {
   wlFundingPolicyPending: ["{funder}", "{statements}"],
   wlFundingNoPolicy: ["{funder}"],
   wlFundingFound: ["{state}"],
+  wlArchivingAllowed: ["{versions}"],
+  wlArchivingWhere: ["{locations}"],
+  wlArchivingEmbargo: ["{duration}", "{date}"],
+  wlArchivingEmbargoDuration: ["{duration}"],
+  wlArchivingLicence: ["{licence}"],
+  wlArchivingDates: ["{updated}", "{retrieved}"],
+  wlArchivingRetrieved: ["{retrieved}"],
+  wlStatutoryAuthorRight: ["{country}", "{instrument}", "{statements}"],
+  wlStatutoryDepositRequirement: ["{country}", "{instrument}", "{statements}"],
+  wlStatutoryFundingPolicy: ["{country}", "{instrument}", "{statements}"],
+  wlStatutoryNoAuthorRight: ["{country}", "{instrument}", "{statements}"],
+  wlStatutoryRecorded: ["{date}"],
 };
 
 describe("worklist funding strings (workspaceUi wlFunding*)", () => {
@@ -63,12 +90,12 @@ describe("worklist funding strings (workspaceUi wlFunding*)", () => {
     }
   });
 
-  it("never say mandate (or its translations) on any worklist key, in any locale", () => {
+  it("never say mandate or percent (or their translations) on any worklist key, in any locale", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const s = workspaceUi(loc);
       for (const key of ALL_WL_KEYS) {
         const text = s[key].toLowerCase();
-        for (const word of MANDATE[loc]) {
+        for (const word of [...MANDATE[loc], ...PERCENT[loc]]) {
           expect(text.includes(word), `${loc} ${key} contains "${word}": ${s[key]}`).toBe(false);
         }
       }
@@ -104,5 +131,87 @@ describe("worklist funding strings (workspaceUi wlFunding*)", () => {
     }
     expect(s.wlFundingHeading).toMatch(/^Tus /);
     expect(s.wlFundingHelp).toMatch(/tus propias ayudas/);
+  });
+});
+
+const RIGHTS_KEYS = Object.keys(workspaceUi("en-US")).filter(
+  (k) => k.startsWith("wlArchiving") || k.startsWith("wlStatutory"),
+) as Array<keyof WorkspaceUiStrings>;
+
+/**
+ * The rights lines under a closed work (publisher policy as OA.Works recorded it,
+ * statutory rules that may also apply). The compliance, mandate and percent bans
+ * above already cover them as `wl*` keys; these add what is specific to them:
+ * no count anywhere, "may also apply" rather than "applies", and no date on a
+ * statutory entry nobody has confirmed.
+ */
+describe("worklist self-archiving strings (workspaceUi wlArchiving*, wlStatutory*)", () => {
+  it("exist, and are translated, in every locale", () => {
+    expect(RIGHTS_KEYS.length).toBeGreaterThanOrEqual(20);
+    const en = workspaceUi("en-US");
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = workspaceUi(loc);
+      for (const key of RIGHTS_KEYS) {
+        expect(s[key].trim().length, `${loc} ${key}`).toBeGreaterThan(0);
+      }
+      if (loc === "en-US") continue;
+      for (const key of [
+        "wlArchivingAllowed",
+        "wlArchivingNotAllowed",
+        "wlArchivingDisclaimer",
+        "wlStatutoryAuthorRight",
+        "wlStatutoryPending",
+      ] as const) {
+        expect(s[key], `${loc} ${key}`).not.toBe(en[key]);
+      }
+    }
+  });
+
+  it("never carry a count, in any locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = workspaceUi(loc);
+      for (const key of RIGHTS_KEYS) {
+        expect(s[key], `${loc} ${key}`).not.toMatch(/\{n\}|\{total\}/);
+      }
+    }
+  });
+
+  it("never date a pending statutory entry, in any locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = workspaceUi(loc);
+      expect(s.wlStatutoryPending, loc).not.toContain("{date}");
+      expect(s.wlStatutoryPending, loc).not.toBe(s.wlStatutoryRecorded);
+    }
+  });
+
+  it("say, in English, that a statutory rule may also apply — never that it applies", () => {
+    const s = workspaceUi("en-US");
+    for (const key of [
+      "wlStatutoryAuthorRight",
+      "wlStatutoryDepositRequirement",
+      "wlStatutoryFundingPolicy",
+    ] as const) {
+      expect(s[key], key).toMatch(/^May also apply — /);
+    }
+    expect(s.wlStatutoryNoAuthorRight).toMatch(/^No statutory self-archiving right for authors/);
+    for (const key of RIGHTS_KEYS) {
+      expect(s[key], key).not.toMatch(/\bapplies\b|\bexpire|\byou must\b|\beligible\b/i);
+    }
+  });
+
+  it("say, in English, that records are dated, the conditions unverifiable and this is not legal advice", () => {
+    const s = workspaceUi("en-US");
+    expect(s.wlArchivingDisclaimer).toMatch(/several years old — check its date/);
+    expect(s.wlArchivingDisclaimer).toMatch(/conditions SigmaCV cannot see/);
+    expect(s.wlArchivingDisclaimer).toMatch(/not legal advice/);
+    expect(s.wlArchivingDates).toBe("OA.Works record updated {updated}; retrieved {retrieved}.");
+  });
+
+  it("address the owner informally in Spanish, like the rest of the worklist", () => {
+    const s = workspaceUi("es-ES");
+    for (const key of RIGHTS_KEYS) {
+      expect(s[key], key).not.toMatch(/\busted\b|\bsu biblioteca\b|\bsus coautores\b/i);
+    }
+    expect(s.wlArchivingDisclaimer).toMatch(/tu biblioteca/);
   });
 });

@@ -42,6 +42,7 @@ All external clients live under `src/lib/<source>/`, send a polite-pool `mailto`
 - **EPO OPS** — patents by inventor (OAuth client-credentials `EPO_OPS_KEY`/`SECRET`, XML). Name+org review candidates → Patents section. Dormant without credentials.
 - **Wikidata** — owner identity (`wdt:P496` ORCID match) → `owner.wikidataUri`/`wikidataSameAs`, surfaced as `sameAs` in the public JSON-LD (not a CV item).
 - **ROR** — institution canonicalization (provenance-only).
+- **OA.Works** permissions API (`bg.api.oa.works/permissions/<doi>`, keyless, public-domain data) — the publisher's self-archiving policy for each closed journal article, stored as `meta.selfArchiving` by the **owner sync only** (`src/lib/archiving/selfArchivingPass.ts`, never the anonymous preview) and shown beside the statutory table (`src/lib/archiving/statutoryRights.ts`, maintainer note `docs/STATUTORY-ARCHIVING-RIGHTS.md`) in the editor worklist. Editor-only end to end; see `src/lib/archiving/CLAUDE.md`. _(Jisc Open Policy Finder, ISSN-keyed, is the planned second source once an API key exists.)_
 
 ## Curation model
 

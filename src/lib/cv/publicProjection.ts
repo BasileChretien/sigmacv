@@ -109,6 +109,12 @@ export function stripInternalItemSignals(it: CvItem, hideSuperviseeName = false)
       selfRefs: undefined,
       coauthorOrcids: undefined,
       funders: undefined,
+      // The self-archiving inputs — owner worklist only (see the note above).
+      selfArchiving: undefined,
+      selfArchivingCheckedAt: undefined,
+      issn: undefined,
+      repositoryLocations: undefined,
+      workCountries: undefined,
       ...(hideSuperviseeName ? { superviseeName: undefined } : {}),
     },
   };
@@ -233,6 +239,13 @@ export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
           refCount: undefined,
           selfRefs: undefined,
           funders: undefined,
+          // The self-archiving inputs: the preview build never fetches them,
+          // but a stored value must not reach a non-owner either.
+          selfArchiving: undefined,
+          selfArchivingCheckedAt: undefined,
+          issn: undefined,
+          repositoryLocations: undefined,
+          workCountries: undefined,
           // Per-work figures (see the module note): none survive.
           citedByCount: undefined,
           fwci: undefined,
