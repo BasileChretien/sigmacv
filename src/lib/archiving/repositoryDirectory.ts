@@ -158,7 +158,8 @@ const MAX_OWNER_REPOSITORIES = 3;
 /**
  * The places the owner's works already sit, most works first: non-deposit
  * sources dropped, HAL portals merged into HAL, a known deposit form preferred to
- * a homepage, a source without a usable link dropped, at least
+ * a homepage, a source without an https link dropped (a plain-http homepage still
+ * identifies a HAL portal, whose link is then HAL's own form), at least
  * {@link MIN_WORKS_IN_REPOSITORY} works, at most {@link MAX_OWNER_REPOSITORIES}.
  * The counts order the list and are not kept.
  */
@@ -171,7 +172,8 @@ export function ownerDepositRepositories(
     const hal = isHalFamily(source);
     const key = hal ? HAL_SOURCE_ID : source.sourceId;
     const known = hal ? HAL : KNOWN_DESTINATIONS.get(source.sourceId);
-    const url = known?.href ?? source.homepageUrl;
+    const homepage = source.homepageUrl?.startsWith("https://") ? source.homepageUrl : undefined;
+    const url = known?.href ?? homepage;
     const name = known?.name ?? source.name.trim();
     if (!url || !name || name.length > 300) continue;
     const seen = merged.get(key);

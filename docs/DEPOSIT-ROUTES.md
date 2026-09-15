@@ -14,13 +14,13 @@ A destination reached by an earlier rule is not repeated. ShareYourPaper (`https
 
 ## What the action says — never beyond the publisher's record
 
-| OA.Works record (`meta.selfArchiving`)       | Action                                                                                                                                                  |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| none (not looked up, no record, call failed) | "Deposit your accepted manuscript, not the publisher's PDF, in _X_ if the journal's policy allows it"                                                   |
-| self-archiving not allowed                   | "Deposit in _X_ only if your publishing agreement allows it" — "…only if a right shown above or your publishing agreement…" when a statutory rule shows |
-| allowed, but only in places _X_ is not       | the same "only if" wording                                                                                                                              |
-| allowed                                      | the version the record allows, the publisher's own first: published version, then accepted manuscript, then submitted manuscript                        |
-| any record, funder route                     | "Deposit the accepted manuscript in _X_" — the funder's policy is why the place is offered                                                              |
+| OA.Works record (`meta.selfArchiving`)       | Action                                                                                                                                                                                                             |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| none (not looked up, no record, call failed) | "Deposit your accepted manuscript, not the publisher's PDF, in _X_ if the journal's policy allows it"                                                                                                              |
+| self-archiving not allowed                   | "Deposit in _X_ only if your publishing agreement allows it" — "…only if a right shown above or your publishing agreement…" when an author's statutory right shows (not a deposit requirement or funding guidance) |
+| allowed, but only in places _X_ is not       | the same "only if" wording                                                                                                                                                                                         |
+| allowed                                      | the version the record allows, the publisher's own first: published version, then accepted manuscript, then submitted manuscript                                                                                   |
+| any record, funder route                     | "Deposit the accepted manuscript in _X_" — the funder's policy is why the place is offered                                                                                                                         |
 
 **Places and OA.Works' location vocabulary** (`placeFitsLocations`): every place fits "Any Repository" and "Any Website"; **HAL** fits an institutional repository (through its portals) and any non-commercial repository; **Zenodo** a "Non-commercial Repository" or a general repository; **arXiv** a subject repository or a preprint server; any other place only the "any" kinds. No recorded location means no constraint.
 

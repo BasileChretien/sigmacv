@@ -311,7 +311,7 @@ export default function WorklistPanel({
                     locale={locale}
                     cv={cv}
                     item={depositItem(r.itemId)!}
-                    hasStatutoryRight={r.statutory.length > 0}
+                    hasStatutoryRight={r.statutory.some((entry) => entry.kind === "author-right")}
                     basis={depositBasis}
                     currentCountry={currentAffiliationCountry}
                     crosswalk={crosswalk}

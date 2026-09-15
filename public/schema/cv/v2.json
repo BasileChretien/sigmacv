@@ -315,7 +315,7 @@
               "url": {
                 "type": "string",
                 "maxLength": 2048,
-                "pattern": "^https?:\\/\\/"
+                "pattern": "^https:\\/\\/"
               }
             },
             "required": ["sourceId", "name", "url"]

@@ -112,7 +112,7 @@ describe("WorklistPanel — the deposit action", () => {
     expect(block.textContent).not.toMatch(/\d+ (of|works)|%/);
   });
 
-  it("says “only if” — naming the right shown above — when the record allows no deposit", () => {
+  it("says “only if” — naming a statutory right only when an author's right is shown — when the record allows no deposit", () => {
     const refused = { ...ACCEPTED, canArchive: false, versions: [], locations: [] };
     const { container, unmount } = render(
       <WorklistPanel
@@ -133,6 +133,22 @@ describe("WorklistPanel — the deposit action", () => {
       />,
     );
     expect(primaryText(rendered.container)).toContain(
+      "Deposit in Zenodo only if your publishing agreement allows it",
+    );
+    rendered.unmount();
+    // Spain's rule is a deposit requirement, not a right over the publisher's terms:
+    // shown above the work, but never offered as what allows the deposit.
+    const spain = render(
+      <WorklistPanel
+        cv={makeCv(work({ selfArchiving: refused, workCountries: ["ES"] }))}
+        locale="en-US"
+        consentedRorIds={[]}
+      />,
+    );
+    expect(spain.container.querySelector('[data-worklist="rights"]')!.textContent).toContain(
+      "(Spain)",
+    );
+    expect(primaryText(spain.container)).toContain(
       "Deposit in Zenodo only if your publishing agreement allows it",
     );
   });

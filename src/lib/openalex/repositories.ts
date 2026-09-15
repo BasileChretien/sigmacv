@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { readBodyWithin } from "@/lib/http";
 import { logger } from "@/lib/log";
 import { openAlexResponse } from "./client";
 import { shortId } from "./types";
@@ -87,18 +88,12 @@ export async function fetchAuthorRepositories(
   const ids = [...new Set(authorIds.map(shortId).filter((id) => AUTHOR_ID.test(id)))];
   if (ids.length === 0) return [];
   const deadline = Date.now() + budgetMs;
-  // `resilientFetch`'s timeout covers the headers only: a body that stalls after
-  // them is cut at the same deadline, and counts as a failed lookup.
+  // `resilientFetch`'s timeout covers the headers only: the body is read against
+  // the same deadline, and its stream is cancelled if it stalls or grows past a
+  // megabyte (a grouped answer is about 10 KB).
   const readJson = async (res: Response): Promise<unknown> => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const expired = new Promise<undefined>((resolve) => {
-      timer = setTimeout(() => resolve(undefined), Math.max(0, deadline - Date.now()));
-    });
-    try {
-      return await Promise.race([res.json() as Promise<unknown>, expired]);
-    } finally {
-      clearTimeout(timer);
-    }
+    const text = await readBodyWithin(res, deadline, 1_000_000);
+    return text === undefined ? undefined : JSON.parse(text);
   };
   try {
     const groupedRes = await openAlexResponse(

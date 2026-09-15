@@ -1424,13 +1424,14 @@ export const CvOwnerSchema = z.object({
   careerContext: CareerContextSchema.optional(),
   /**
    * The places the owner's works already sit, as OpenAlex indexes them — at most
-   * three, most works first, HAL portals merged into HAL, indexes and data
-   * platforms excluded (`archiving/repositoryDirectory.ts`): the name and link the
-   * worklist's "your other works are already in …" deposit route prints, never a
-   * count. Written by the OWNER sync (`archiving/depositRepositoriesPass.ts`) and
-   * carried across rebuilds while the author record is unchanged. Owner-only:
-   * STRIPPED from the public projection and the anonymous preview. A malformed
-   * stored value degrades to undefined.
+   * three, most works first, HAL portals merged into HAL, indexes, data platforms
+   * and preprint servers excluded (`archiving/repositoryDirectory.ts`): the name
+   * and https link the worklist's "OpenAlex lists some of your works in …" deposit
+   * route prints, never a count. Written by the OWNER sync
+   * (`archiving/depositRepositoriesPass.ts`) and carried across rebuilds while the
+   * author record is unchanged. Owner-only: STRIPPED from the public projection
+   * and the anonymous preview. A malformed stored value — a plain-http link
+   * included — degrades to undefined.
    */
   depositRepositories: z
     .array(
@@ -1440,7 +1441,7 @@ export const CvOwnerSchema = z.object({
         url: z
           .string()
           .max(2048)
-          .regex(/^https?:\/\//i),
+          .regex(/^https:\/\//i),
       }),
     )
     .max(3)

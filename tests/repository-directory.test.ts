@@ -82,7 +82,7 @@ describe("ownerDepositRepositories", () => {
     ]);
   });
 
-  it("links arXiv's submission form, keeps a homepage otherwise, and drops a place with no link or name", () => {
+  it("links arXiv's submission form, keeps an https homepage otherwise, and drops a place with no https link or no name", () => {
     expect(
       ownerDepositRepositories([
         source({
@@ -91,6 +91,11 @@ describe("ownerDepositRepositories", () => {
           homepageUrl: "https://arxiv.org",
         }),
         source({ sourceId: "S2", homepageUrl: undefined }),
+        source({
+          sourceId: "S5",
+          name: "Plain-http repository",
+          homepageUrl: "http://repo.example.org",
+        }),
         source({ sourceId: "S3", name: "   " }),
         source({ sourceId: "S4", name: "x".repeat(301) }),
       ]),

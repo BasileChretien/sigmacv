@@ -150,8 +150,9 @@ describe("fetchAuthorRepositories", () => {
     }
   });
 
-  it("gives up on a body that stalls after the headers, at the same deadline", async () => {
-    const stalled = new Response(new ReadableStream({ start() {} }), {
+  it("gives up on a body that stalls after the headers, at the same deadline, and cancels its stream", async () => {
+    const cancel = vi.fn();
+    const stalled = new Response(new ReadableStream({ start() {}, cancel }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -159,5 +160,6 @@ describe("fetchAuthorRepositories", () => {
     const started = Date.now();
     expect(await fetchAuthorRepositories(["A1"], 60)).toBeUndefined();
     expect(Date.now() - started).toBeLessThan(2_000);
+    await vi.waitFor(() => expect(cancel).toHaveBeenCalled());
   });
 });

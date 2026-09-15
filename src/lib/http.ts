@@ -112,3 +112,41 @@ export async function resilientFetch(
   }
   throw lastErr instanceof Error ? lastErr : new Error(`Request to ${String(url)} failed`);
 }
+
+/**
+ * A response body as text, read chunk by chunk against a deadline (epoch ms) and
+ * a byte cap: undefined when there is no body, when it stalls past the deadline or
+ * when it grows past `maxBytes` — the stream is then cancelled at once, never
+ * buffered whole first. {@link resilientFetch}'s timeout stops at the headers, so a
+ * caller holding a wall-clock budget reads the body through this.
+ */
+export async function readBodyWithin(
+  res: Response,
+  deadline: number,
+  maxBytes: number,
+): Promise<string | undefined> {
+  const reader = res.body?.getReader();
+  if (!reader) return undefined;
+  const decoder = new TextDecoder();
+  let bytes = 0;
+  let text = "";
+  try {
+    for (;;) {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timedOut = new Promise<"timed-out">((resolve) => {
+        timer = setTimeout(() => resolve("timed-out"), Math.max(0, deadline - Date.now()));
+      });
+      const chunk = await Promise.race([reader.read(), timedOut]).finally(() =>
+        clearTimeout(timer),
+      );
+      if (chunk === "timed-out") return undefined;
+      if (chunk.done) return text + decoder.decode();
+      bytes += chunk.value.byteLength;
+      if (bytes > maxBytes) return undefined;
+      text += decoder.decode(chunk.value, { stream: true });
+    }
+  } finally {
+    /* v8 ignore next -- cancelling a finished or errored stream is fail-soft by design */
+    void reader.cancel().catch(() => undefined);
+  }
+}

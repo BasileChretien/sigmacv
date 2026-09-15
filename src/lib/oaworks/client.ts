@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { resilientFetch } from "@/lib/http";
+import { readBodyWithin, resilientFetch } from "@/lib/http";
 import { logger } from "@/lib/log";
 
 /**
@@ -252,44 +252,6 @@ function userAgent(mailto: string | undefined): string {
 
 /** The longest one lookup may take, headers and body together. */
 const OAWORKS_TIMEOUT_MS = 8_000;
-const TIMED_OUT = Symbol("timed out");
-
-/** `promise`, or {@link TIMED_OUT} once `ms` have passed — whichever comes first. */
-function within<T>(promise: Promise<T>, ms: number): Promise<T | typeof TIMED_OUT> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<typeof TIMED_OUT>((resolve) => {
-    timer = setTimeout(() => resolve(TIMED_OUT), Math.max(0, ms));
-  });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
-}
-
-/**
- * The response body as text, read chunk by chunk against the lookup's deadline and
- * {@link MAX_BYTES}: undefined when there is no body, when it stalls past the
- * deadline or when it grows too large — the stream is then cancelled at once,
- * never buffered whole first (`resilientFetch`'s timeout stops at the headers).
- */
-async function boundedBody(res: Response, deadline: number): Promise<string | undefined> {
-  const reader = res.body?.getReader();
-  if (!reader) return undefined;
-  const decoder = new TextDecoder();
-  let bytes = 0;
-  let text = "";
-  try {
-    for (;;) {
-      const chunk = await within(reader.read(), deadline - Date.now());
-      if (chunk === TIMED_OUT) return undefined;
-      if (chunk.done) return text + decoder.decode();
-      bytes += chunk.value.byteLength;
-      if (bytes > MAX_BYTES) return undefined;
-      text += decoder.decode(chunk.value, { stream: true });
-    }
-  } finally {
-    /* v8 ignore next -- cancelling a finished or errored stream is fail-soft by design */
-    void reader.cancel().catch(() => undefined);
-  }
-}
-
 /**
  * The self-archiving permission OA.Works records for a journal article's DOI.
  * `none` for a malformed DOI (no call), a 4xx other than 429 — including the
@@ -329,7 +291,7 @@ export async function fetchSelfArchivingPermission(
     });
     if (res.status === 429 || (res.status >= 500 && res.status !== 501)) return FAILED;
     if (!res.ok) return NONE;
-    const body = await boundedBody(res, deadline);
+    const body = await readBodyWithin(res, deadline, MAX_BYTES);
     if (body === undefined) return FAILED;
     const data: unknown = JSON.parse(body);
     if (typeof data !== "object" || data === null || Array.isArray(data)) return FAILED;
