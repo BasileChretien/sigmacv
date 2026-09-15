@@ -119,11 +119,19 @@ describe("statutoryLine", () => {
   });
 
   it("labels a guidance page as guidance, never as legal text", () => {
-    for (const code of ["BE", "JP"]) {
-      const line = statutoryLine(entry(code), EN, "en-US");
-      expect(line.sourceLabel, code).toBe(EN.wlStatutoryGuidanceLink);
-      expect(line.guidanceUrl, code).toBeUndefined();
-    }
+    const line = statutoryLine(entry("JP"), EN, "en-US");
+    expect(line.sourceLabel).toBe(EN.wlStatutoryGuidanceLink);
+    expect(line.guidanceUrl).toBeUndefined();
+  });
+
+  it("links Belgium and Bulgaria to their legal text — Belgium with its guidance page too", () => {
+    const be = statutoryLine(entry("BE"), EN, "en-US");
+    expect(be.sourceLabel).toBe(EN.wlStatutorySourceLink);
+    expect(be.guidanceUrl).toBe(entry("BE").guidanceUrl);
+    const bg = statutoryLine(entry("BG"), EN, "en-US");
+    expect(bg.text).toContain("secondary-publication right (Bulgaria)");
+    expect(bg.sourceLabel).toBe(EN.wlStatutorySourceLink);
+    expect(bg.guidanceUrl).toBeUndefined();
   });
 
   it("gives a pending entry the pending wording and never a date", () => {

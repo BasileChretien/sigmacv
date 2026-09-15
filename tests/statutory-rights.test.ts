@@ -35,7 +35,8 @@ const SOURCE: Record<string, { domain: string; kind: string }> = {
   DE: { domain: "gesetze-im-internet.de", kind: "legal-text" },
   AT: { domain: "jusline.at", kind: "legal-text" },
   NL: { domain: "wetten.overheid.nl", kind: "legal-text" },
-  BE: { domain: "kuleuven.be", kind: "guidance" },
+  BE: { domain: "ejustice.just.fgov.be", kind: "legal-text" },
+  BG: { domain: "dv.parliament.bg", kind: "legal-text" },
   ES: { domain: "boe.es", kind: "legal-text" },
   JP: { domain: "kyushu-u.ac.jp", kind: "guidance" },
 };
@@ -43,6 +44,7 @@ const GUIDANCE_DOMAIN: Record<string, string> = {
   FR: "ouvrirlascience.fr",
   DE: "irights.info",
   NL: "openaccess.nl",
+  BE: "kuleuven.be",
 };
 
 const NOTE = readFileSync(join(__dirname, "..", "docs", "STATUTORY-ARCHIVING-RIGHTS.md"), "utf8");
@@ -145,6 +147,21 @@ describe("STATUTORY_ARCHIVING", () => {
     expect(at).not.toMatch(/from research at least half funded/);
   });
 
+  it("keys Bulgaria on scientific literature from 2021 on — earlier contracts stand — and reads Belgium in the Code itself", () => {
+    const bg = entry("BG");
+    expect(bg.kind).toBe("author-right");
+    expect(bg.appliesFrom).toBe("2021-06-07");
+    expect(bg.workTypes).toContain("chapter");
+    expect(bg.workTypes).not.toContain("dataset");
+    expect(bg.statements.join(" ")).toMatch(/not to contracts concluded or rights acquired before/);
+    expect(bg.statements.join(" ")).toMatch(/publisher must be mentioned/);
+    const be = entry("BE");
+    expect(be.sourceKind).toBe("legal-text");
+    expect(be.appliesFrom).toBeUndefined();
+    // The Code says "le manuscrit" and "fonds publics" — nothing about a version or origin.
+    expect(be.statements.join(" ")).not.toMatch(/accepted version|domestic or foreign/);
+  });
+
   it("lists every entry, with its source, in the maintainer note — pending ones marked", () => {
     for (const e of STATUTORY_ARCHIVING) {
       expect(NOTE, `${e.countryCode} missing from the note`).toContain(`| \`${e.countryCode}\` |`);
@@ -196,6 +213,11 @@ describe("statutoryArchivingFor", () => {
     expect(codes(statutoryArchivingFor(["ES", "JP"], article))).toEqual(["ES", "JP"]);
     // A rule with no start date is never filtered by year (Belgium is retroactive).
     expect(codes(statutoryArchivingFor(["BE"], { ...article, year: 1990 }))).toEqual(["BE"]);
+    // Bulgaria leaves contracts concluded before 7 June 2021 unaffected: a 2020 work's
+    // publishing contract predates it. A dataset is not scientific literature.
+    expect(codes(statutoryArchivingFor(["BG"], { type: "chapter", year: 2020 }))).toEqual([]);
+    expect(codes(statutoryArchivingFor(["BG"], { type: "chapter", year: 2021 }))).toEqual(["BG"]);
+    expect(codes(statutoryArchivingFor(["BG"], { type: "dataset", year: 2024 }))).toEqual([]);
   });
 
   it("leaves out a rule that does not cover the work's type, or when the type is unknown", () => {

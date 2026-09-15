@@ -80,6 +80,16 @@ interface StatutoryEntryPending extends StatutoryEntryBase {
 export type StatutoryArchivingEntry = StatutoryEntryVerified | StatutoryEntryPending;
 
 const JOURNAL_ARTICLES = ["article-journal"] as const;
+/** CSL types of "a work of scientific literature": texts, never datasets or software. */
+const SCHOLARLY_LITERATURE = [
+  "article-journal",
+  "article",
+  "chapter",
+  "book",
+  "paper-conference",
+  "report",
+  "thesis",
+] as const;
 
 export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
   {
@@ -165,16 +175,40 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
     countryCode: "BE",
     kind: "author-right",
     instrument: "Code de droit économique / Wetboek van economisch recht, art. XI.196 § 2/1",
-    sourceUrl:
+    sourceUrl: "https://www.ejustice.just.fgov.be/eli/loi/2013/02/28/2013A11134/justel",
+    sourceKind: "legal-text",
+    guidanceUrl:
       "https://www.kuleuven.be/open-science/what-is-open-science/scholarly-publishing-and-open-access/open-access-kuleuven/belgian-oa-legislation",
-    sourceKind: "guidance",
     workTypes: JOURNAL_ARTICLES,
     statements: [
-      "a journal article from research financed at least half by public funds, domestic or foreign",
-      "the accepted version, 6 months after publication (sciences) or 12 months (humanities, social sciences)",
+      "a scientific article from research financed at least half by public funds",
+      "even after assigning the rights to a periodical's publisher or placing them under a simple or exclusive licence",
+      "the manuscript, free of charge in open access, 12 months (humanities, social sciences) or 6 months (other sciences) after first publication in a periodical",
       "the source of first publication must be cited",
-      "the publisher cannot ask the author to waive the right, even by invoking non-Belgian law",
-      "applies to articles published before 2018 too",
+      "the publishing contract may set a shorter delay; the King may extend it",
+      "the right cannot be waived; when a connecting factor is located in Belgium, it applies whatever law the parties chose",
+      "applies also to works created before it took effect on 15 September 2018 and not then in the public domain",
+    ],
+    verifiedBy: "maintainer",
+    lastVerified: "2026-09-15",
+  },
+  {
+    countryCode: "BG",
+    kind: "author-right",
+    instrument:
+      "Закон за авторското право и сродните му права, чл. 60, ал. 2–4 (ДВ, бр. 100 от 2023 г.)",
+    sourceUrl: "https://dv.parliament.bg/DVWeb/showMaterialDV.jsp?idMat=201485",
+    sourceKind: "legal-text",
+    appliesFrom: "2021-06-07",
+    workTypes: SCHOLARLY_LITERATURE,
+    statements: [
+      "a work of scientific literature created in connection with research funded wholly or partly by public funds",
+      "the author keeps the right to make it, or parts of it, public in non-commercial educational or scientific repositories",
+      "once a publisher has accepted it for publication; the text names no version and sets no later delay",
+      "the publisher must be mentioned",
+      "any agreement that prevents or restricts this right is null and void",
+      "a publisher may not restrict publication solely because the work is already in such a repository",
+      "in force since 1 December 2023; applies to works as at 7 June 2021, not to contracts concluded or rights acquired before that date",
     ],
     verifiedBy: "maintainer",
     lastVerified: "2026-09-15",
